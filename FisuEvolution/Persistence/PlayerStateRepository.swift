@@ -38,14 +38,14 @@ struct PlayerStateRepository: Sendable {
     func load() async -> PlayerState? {
         do {
             if let (payload, _) = try await persistence.loadLatest() {
-                return try JSONDecoder().decode(PlayerState.self, from: payload)
+                return try SaveMigrator.migrate(payload)
             }
         } catch {
             Log.persistence.error("CoreData load failed, trying snapshot: \(error)")
         }
         do {
             let payload = try Data(contentsOf: snapshotURL)
-            let state = try JSONDecoder().decode(PlayerState.self, from: payload)
+            let state = try SaveMigrator.migrate(payload)
             Log.persistence.warning("recovered save from JSON snapshot")
             return state
         } catch CocoaError.fileReadNoSuchFile {

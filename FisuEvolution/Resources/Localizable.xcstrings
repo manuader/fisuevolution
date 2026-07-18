@@ -1,102 +1,329 @@
 {
-  "sourceLanguage" : "es",
-  "strings" : {
-    "error.content.message" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The game content could not be loaded. Try reinstalling the app."
+  "sourceLanguage": "es",
+  "strings": {
+    "error.content.message": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The game content could not be loaded. Try reinstalling the app."
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudo cargar el contenido del juego. Probá reinstalar la app."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo cargar el contenido del juego. Probá reinstalar la app."
           }
         }
       }
     },
-    "error.content.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Something broke"
+    "error.content.title": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something broke"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Algo se rompió"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algo se rompió"
           }
         }
       }
     },
-    "hud.coins.label" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Coins"
+    "hud.coins.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coins"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Monedas"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monedas"
           }
         }
       }
     },
-    "spawn.button.title %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hire %@"
+    "loading.title": {
+      "extractionState": "stale",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading…"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sumar %@"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando…"
           }
         }
       }
     },
-    "spawn.button.hint" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buys a new character and places it on the board"
+    "spawn.button.hint": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buys a new character and places it on the board"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compra un personaje nuevo y lo pone en el tablero"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compra un personaje nuevo y lo pone en el tablero"
           }
         }
       }
     },
-    "loading.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Loading…"
+    "spawn.button.title %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hire %@"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cargando…"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sumar %@"
+          }
+        }
+      }
+    },
+    "career.title": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Te recibiste en la UBA! ¿Y ahora qué?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You graduated from UBA! Now what?"
+          }
+        }
+      }
+    },
+    "career.subtitle": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegí tu carrera. Dura hasta la próxima reencarnación."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pick your career. It lasts until your next reincarnation."
+          }
+        }
+      }
+    },
+    "passive.title %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ingreso pasivo: %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passive income: %@"
+          }
+        }
+      }
+    },
+    "passive.explainer %@ %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tus %1$@ del tablero van a generar %2$@/s cada uno, solos."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each of your %1$@ on the board will earn %2$@/s on its own."
+          }
+        }
+      }
+    },
+    "passive.unlock": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desbloquear por"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock for"
+          }
+        }
+      }
+    },
+    "passive.unlocked": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Ya genera solo!"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Already earning on its own!"
+          }
+        }
+      }
+    },
+    "passive.insufficient": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te faltan monedas"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not enough coins"
+          }
+        }
+      }
+    },
+    "offline.title": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mientras no estabas…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While you were away…"
+          }
+        }
+      }
+    },
+    "offline.collect": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cobrar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collect"
+          }
+        }
+      }
+    },
+    "prestige.button": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reencarnar"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reincarnate"
+          }
+        }
+      }
+    },
+    "prestige.title": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Reencarnar?"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reincarnate?"
+          }
+        }
+      }
+    },
+    "prestige.body %@": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reseteás el tablero y las monedas, pero ganás %@ Puntos de Alma y un multiplicador permanente. Cada vida arranca más rápido."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your board and coins reset, but you gain %@ Soul Points and a permanent multiplier. Every life starts faster."
+          }
+        }
+      }
+    },
+    "prestige.confirm": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reencarnar ahora"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reincarnate now"
+          }
+        }
+      }
+    },
+    "prestige.cancel": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet"
           }
         }
       }
     }
   },
-  "version" : "1.0"
+  "version": "1.0"
 }

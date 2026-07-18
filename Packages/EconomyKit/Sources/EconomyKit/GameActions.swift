@@ -13,6 +13,12 @@ public enum SpawnError: Error, Equatable {
     case noSpawnableType
 }
 
+public enum PassiveUnlockError: Error, Equatable {
+    case unknownType
+    case alreadyUnlocked
+    case insufficientCoins
+}
+
 /// Player actions as pure mutations over `PlayerState` (bible §2.3 rules 1 and 4,
 /// with the approved progressive-spawn extension). No UI, fully unit-tested.
 extension StandardEconomy {
@@ -25,10 +31,21 @@ extension StandardEconomy {
         return gain
     }
 
+    /// Bible §2.3 rule 3 — buying a type's passive makes EVERY instance of that
+    /// type on the board generate income. Per-type, independent purchases.
+    public func applyPassiveUnlock(typeId: String, state: inout PlayerState, tiers: TierRepository) throws {
+        guard let type = tiers.type(id: typeId) else { throw PassiveUnlockError.unknownType }
+        guard state.passiveUnlocked[typeId] != true else { throw PassiveUnlockError.alreadyUnlocked }
+        guard state.coins >= type.passiveUnlockCost else { throw PassiveUnlockError.insufficientCoins }
+        state.coins -= type.passiveUnlockCost
+        state.passiveUnlocked[typeId] = true
+    }
+
     /// The type the progressive spawn currently offers. On career tiers (9/10) it
     /// respects the chosen path; without one it falls back to the first concrete
     /// type of that tier (only reachable in edge cases, e.g. imported saves).
-    public func spawnQuote(state: PlayerState, tiers: TierRepository) -> SpawnQuote? {
+    /// `costMultiplier` applies prestige spawn discounts (1.0 = none).
+    public func spawnQuote(state: PlayerState, tiers: TierRepository, costMultiplier: Double = 1.0) -> SpawnQuote? {
         let tier = spawnTier(maxTierReached: state.maxTierReached)
         let candidates = tiers.concreteTypes.filter { $0.tier == tier }
         guard !candidates.isEmpty else { return nil }
@@ -46,7 +63,7 @@ extension StandardEconomy {
         let purchases = state.spawnPurchases[type.id] ?? 0
         return SpawnQuote(
             type: type,
-            cost: spawnCost(spawnTier: tier, purchases: purchases),
+            cost: spawnCost(spawnTier: tier, purchases: purchases) * costMultiplier,
             purchases: purchases
         )
     }

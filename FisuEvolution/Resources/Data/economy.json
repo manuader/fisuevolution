@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "baseTapYieldTier1": 1,
+  "yieldGrowthPerTier": 3.8,
+  "passiveRatio": 0.3,
+  "passiveUnlockCostMultiplier": 100,
+  "spawn": {
+    "baseCost": 15,
+    "costGrowth": 1.15,
+    "tierOffset": 4
+  },
+  "critChanceBase": 0.0,
+  "critMultiplier": 5.0,
+  "offlineEfficiencyBase": 0.5,
+  "offlineCapHours": 8,
+  "prestige": {
+    "soulPointsDivisor": 1000000,
+    "soulPointsExponent": 0.5,
+    "globalMultiplierPerSoulPoint": 0.02
+  },
+  "board": {
+    "columns": 5,
+    "rows": 7
+  }
+}

@@ -51,8 +51,10 @@ public struct PlayerState: Codable, Sendable, Equatable {
     public var ownedSkins: [String]
     public var activeSkin: String?
     public var removedAds: Bool
+    /// Modificadores temporales vivos (rewarded/eventos/boosts) — schema v2.
+    public var activeModifiers: [ActiveModifier]
 
-    public static let currentSchemaVersion = 1
+    public static let currentSchemaVersion = 2
 
     public init(
         schemaVersion: Int,
@@ -72,7 +74,8 @@ public struct PlayerState: Codable, Sendable, Equatable {
         ownedSpecials: [String],
         ownedSkins: [String],
         activeSkin: String?,
-        removedAds: Bool
+        removedAds: Bool,
+        activeModifiers: [ActiveModifier]
     ) {
         self.schemaVersion = schemaVersion
         self.coins = coins
@@ -92,6 +95,7 @@ public struct PlayerState: Codable, Sendable, Equatable {
         self.ownedSkins = ownedSkins
         self.activeSkin = activeSkin
         self.removedAds = removedAds
+        self.activeModifiers = activeModifiers
     }
 
     /// A fresh run: one starter unit on cell 0, everything else at its baseline.
@@ -124,7 +128,8 @@ public struct PlayerState: Codable, Sendable, Equatable {
             ownedSpecials: [],
             ownedSkins: [],
             activeSkin: nil,
-            removedAds: false
+            removedAds: false,
+            activeModifiers: []
         )
     }
 }

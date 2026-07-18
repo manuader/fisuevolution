@@ -56,7 +56,7 @@ struct GameActionsTests {
     @Test func tapAddsGainAndLifetime() {
         var state = makeState()
         let type = makeType("a", tier: 1, tapYield: 1)
-        let gain = economy.applyTap(type: type, state: &state)
+        let gain = economy.applyTap(type: type, state: &state, now: 0)
         #expect(gain == 1)
         #expect(state.coins == 1)
         #expect(state.lifetimeEarnings == 1)
@@ -66,7 +66,7 @@ struct GameActionsTests {
         var state = makeState()
         state.upgrades.tapMultiplier = 2
         state.globalMultiplier = 1.5
-        let gain = economy.applyTap(type: makeType("a", tier: 1, tapYield: 10), state: &state)
+        let gain = economy.applyTap(type: makeType("a", tier: 1, tapYield: 10), state: &state, now: 0)
         #expect(abs(gain - 30) < 1e-12)
         #expect(abs(state.lifetimeEarnings - 30) < 1e-12)
     }

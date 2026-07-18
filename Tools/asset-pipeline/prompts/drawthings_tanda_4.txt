@@ -1,0 +1,121 @@
+========================================================================
+HOBO EVOLUTION — Draw Things — TANDA 4 (28 assets)
+========================================================================
+Modelo: SD 1.5 + LoRA hoboevo_style.safetensors (peso 1.0)
+Sampler: DPM++ 2M Karras | Steps: 28 | CFG: 7 | 768x768 | VAE: fp32
+Guardar cada imagen como: raw/tanda_4/{assetKey}.png
+El seed va EXACTO (permite regenerar identico).
+========================================================================
+
+[1/28] director   (seed 100017)
+PROMPT:   hoboevo_style, corporate director in a corner office, tailored suit, desk name plate, tiny espresso cup, city skyline window behind, middle-management boss who loves calling meetings, upper class, shiny cufflinks, practiced power smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[2/28] fundador_startup   (seed 100018)
+PROMPT:   hoboevo_style, startup founder pitching his big idea, blazer over graphic t-shirt, conference lanyard badge, floating pitch-deck slides, unicorn coffee mug, buzzword-loving tech founder promising to disrupt everything, paper millionaire, designer sneakers, visionary wide-eyed intensity, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[3/28] dueno_pyme   (seed 100019)
+PROMPT:   hoboevo_style, small factory business owner, shirt with rolled sleeves, big ring of keys on belt, small delivery truck behind, old calculator in hand, hard-working family business boss who does every job himself, solid middle class, sturdy work boots, proud tired smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[4/28] emprendedor   (seed 100020)
+PROMPT:   hoboevo_style, hustling serial entrepreneur, megaphone in hand, generic mindset book under arm, whiteboard with rising arrow chart, headset microphone, hustle-culture guru selling online courses, flashy but leveraged, shiny suit, over-caffeinated megawatt smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[5/28] ceo   (seed 100021)
+PROMPT:   hoboevo_style, powerful corporate CEO, immaculate dark suit, golden tie, smartphone in hand, skyscraper silhouette behind, untouchable big-company boss, board meetings and golf, rich, gold watch and pocket square, cold triumphant smirk, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[6/28] millonario   (seed 100022)
+PROMPT:   hoboevo_style, flashy new millionaire, banknotes raining around him, champagne glass, fur-collared coat, chunky gold rings, new money showing off everything at once, millionaire, bills stuffed in every pocket, ecstatic laughing grin, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[7/28] multimillonario   (seed 100023)
+PROMPT:   hoboevo_style, extravagant multi-millionaire, open briefcase overflowing with cash, small yacht model in hand, multiple gold chains, diamond tie pin, tycoon who owns half the city and forgot which half, obscene wealth, velvet suit, bored unimpressed look, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[8/28] rey_ladrillo   (seed 100024)
+PROMPT:   hoboevo_style, real-estate mogul, king of bricks, holding a brick and a tower model, crown made of little bricks, folded blueprints in pocket, buys whole city blocks, preaches that bricks never lose value, massive property wealth, brick-red suit, beaming landlord grin, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[9/28] magnate_petrolero   (seed 100025)
+PROMPT:   hoboevo_style, classic oil tycoon magnate, black top hat, oil derrick silhouette behind, oil barrel, fat cigar, oil-drop pattern tie, old-school baron striking black gold, petro-rich, gold-tipped cane, greedy delighted grin, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[10/28] space_billionaire   (seed 100026)
+PROMPT:   hoboevo_style, eccentric space-obsessed billionaire, business suit with astronaut helmet under arm, toy-like personal rocket behind, mission patch on chest, tech billionaire racing his own rockets to space, generic parody of no real person, billionaire, platinum watch, manic visionary grin, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[11/28] trillonario   (seed 100027)
+PROMPT:   hoboevo_style, reality-bending trillionaire, monocle, banknotes orbiting him like satellites, tiny planet held like a stress ball, infinity-pattern suit, wealth beyond countries, buys economies for fun, trillions, glowing golden trim on suit, serene untouchable smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[12/28] dueno_luna   (seed 200001)
+PROMPT:   hoboevo_style, proud owner of the Moon standing on lunar ground, chunky moon boots, planted flag with his own smiling face on it, framed property deed, astronaut helmet under arm, bought the entire Moon as a real-estate flex, lunar landlord, silver-glitter suit, smug landlord smirk, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[13/28] dueno_marte   (seed 200002)
+PROMPT:   hoboevo_style, owner of planet Mars, red dusty ground, sold-style sign post planted in the soil, snow globe with a tiny domed city inside, spacesuit with a painted-on necktie, flipping an entire red planet like a fixer-upper, interplanetary mogul, copper-red cape, deal-closing wink, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[14/28] magnate_solar   (seed 200003)
+PROMPT:   hoboevo_style, magnate of the entire solar system, holding a miniature glowing sun like a beach ball, small planets orbiting his head, cosmic sunglasses, owns every planet and charges tolls per orbit, solar-scale riches, radiant golden suit, blinding confident smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[15/28] senor_galaxia   (seed 200004)
+PROMPT:   hoboevo_style, lord of the galaxy, swirling spiral-galaxy cape, small stars orbiting his crown, staff topped with a tiny black hole, galactic overlord signing away star systems like paperwork, galactic empire, constellation-pattern robe, regal amused stare, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[16/28] emperador_cosmico   (seed 200005)
+PROMPT:   hoboevo_style, cosmic emperor on a floating nebula throne, massive jagged crown, scepter topped with a spinning planet, cape made of nebula clouds, rules space itself and taxes light for passing through, cosmic empire, jewel-studded ceremonial robe, imperious raised eyebrow, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[17/28] ser_ascendido   (seed 200006)
+PROMPT:   hoboevo_style, ascended being of pure energy, floating cross-legged in lotus pose, glowing third eye, body outlined in radiant light, small floating orbs, transcended money, now he IS the economy, beyond material wealth, luminous aura, blissful enlightened smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[18/28] semidios   (seed 200007)
+PROMPT:   hoboevo_style, muscular demigod, white toga with golden trim, laurel wreath, lightning bolt gripped in fist, tiny pet storm cloud, half mortal half divine, still checks his investment portfolio, divine treasures, golden sandals, heroic overconfident grin, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[19/28] deidad   (seed 200008)
+PROMPT:   hoboevo_style, radiant multi-armed deity, four arms holding a coin, a lightning bolt, balance scales and a mate gourd, golden halo disc behind head, worshipped as the god of hustle, temples of gold, ornate jewelry, serene all-knowing smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[20/28] god   (seed 200009)
+PROMPT:   hoboevo_style, supreme god of everything, enormous white cloud beard, all-seeing eye above his head, cosmic halo, tiny spinning universe in one palm, mate gourd in the other hand, the final form: God himself, but he still drinks mate, owns existence itself, robe of stars, warm omnipotent smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[21/28] bg_luxury   (seed 400004)
+PROMPT:   hoboevo_style, luxury penthouse interior background scene, floor-to-ceiling window over a night skyline, marble floor, golden chandelier, abstract art piece, new-money penthouse excess, opulent gold and marble, glamorous night glow, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[22/28] bg_island   (seed 400005)
+PROMPT:   hoboevo_style, private tropical island background scene, white sand beach, palm trees, yacht anchored offshore, beach cabana, turquoise water, billionaire hideaway island, owning paradise itself, sunny vacation bliss, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[23/28] bg_moon   (seed 400006)
+PROMPT:   hoboevo_style, lunar surface background scene, gray craters, several planted flags, small glass dome habitat, Earth rising in a black sky, rover tracks, the Moon turned into private property, lunar real estate development, serene cosmic quiet, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[24/28] bg_mars   (seed 400007)
+PROMPT:   hoboevo_style, red martian desert background scene, red dunes and rocky mesas, terraforming domes, two small moons in a pink sky, distant dust devil, Mars in the middle of a real-estate development boom, planetary-scale investment, warm alien dusk, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[25/28] bg_solar   (seed 400008)
+PROMPT:   hoboevo_style, solar system panorama background scene, giant stylized sun, planets aligned along orbit rings, asteroid belt, tiny toll gates on the orbit lines, the whole solar system managed like a portfolio, star-scale assets, radiant cosmic grandeur, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[26/28] bg_galaxy   (seed 400009)
+PROMPT:   hoboevo_style, spiral galaxy panorama background scene, swirling spiral arms of stars, colorful nebulas, star clusters, tiny constellations, a galaxy under new management, galactic scale property, deep space majesty, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[27/28] bg_cosmic   (seed 400010)
+PROMPT:   hoboevo_style, abstract cosmic realm background scene, floating rock islands, aurora ribbons, geometric portals, rivers of stars, space itself bending to wealth, reality-scale power, surreal cosmic wonder, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[28/28] bg_god_realm   (seed 400011)
+PROMPT:   hoboevo_style, divine heavenly realm background scene, sea of clouds, golden gates, marble columns, god rays from above, golden coins floating like stars, the afterlife of infinite wealth, paradise made of gold and light, blinding holy serenity, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------

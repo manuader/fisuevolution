@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "generation": {
+    "active_path": "drawthings",
+    "comfyui_url": "http://127.0.0.1:8188",
+    "model": "SD 1.5",
+    "sampler": "DPM++ 2M Karras",
+    "steps": 28,
+    "cfg": 7,
+    "resolution": 768,
+    "vae": "fp32",
+    "upscale": "RealESRGAN_x2",
+    "lora": "hoboevo_style.safetensors",
+    "lora_strength": 1.0,
+    "trigger": "hoboevo_style",
+    "comfyui_checkpoint": "PLACEHOLDER_SD15_CHECKPOINT.safetensors",
+    "comfyui_vae": "PLACEHOLDER_FP32_VAE.safetensors"
+  },
+  "negative_prompt": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
+  "negative_prompt_lora": "watermark, text, blurry, extra limbs",
+  "seeds": {
+    "characters_earth": 100001,
+    "characters_cosmic": 200001,
+    "specials": 300001,
+    "backgrounds": 400001,
+    "ui": 500001,
+    "fx": 600001
+  },
+  "qa": {
+    "initial_threshold": 0.75,
+    "threshold_margin": 0.02,
+    "clip_model": "ViT-B-32",
+    "clip_pretrained": "laion2b_s34b_b79k",
+    "families": {
+      "characters": { "threshold": null, "anchors": [] },
+      "ui": { "threshold": null, "anchors": [] },
+      "backgrounds": { "threshold": null, "anchors": [] },
+      "fx": { "threshold": null, "anchors": [] }
+    },
+    "palette": ["#FFD93D", "#FF6B35", "#FF4D6D", "#4D96FF", "#6BCB77", "#FFF8E7", "#2C2C2C", "#FFFFFF"],
+    "palette_max_distance": 90,
+    "palette_min_coverage": 0.85,
+    "contact_sheet_thumb": 120,
+    "max_regen_attempts": 3
+  },
+  "paths": {
+    "raw": "raw",
+    "cutout": "cutout",
+    "approved": "approved",
+    "masters": "approved/masters",
+    "rejected": "rejected",
+    "state": "state",
+    "prompts": "prompts",
+    "heroes": "heroes/approved",
+    "lora_dataset": "lora/dataset",
+    "resources": "../../FisuEvolution/Resources",
+    "backgrounds_dir": "Backgrounds",
+    "atlases": {
+      "earth": "earth.atlas",
+      "cosmic": "cosmic.atlas",
+      "specials": "specials.atlas",
+      "ui": "ui.atlas"
+    }
+  }
+}

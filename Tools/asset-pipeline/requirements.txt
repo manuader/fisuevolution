@@ -1,0 +1,9 @@
+# Pipeline de arte Hobo Evolution — deps Python (M1 Air OK, todo gratis)
+# Instalar con: pip install -r requirements.txt
+rembg
+open_clip_torch
+pillow
+requests
+# vtracer es OPCIONAL (vectorizado PNG->SVG, fuera del camino critico).
+# Si su build falla en tu maquina, comentalo: nada del pipeline lo requiere.
+vtracer

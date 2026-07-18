@@ -47,8 +47,12 @@ targets:
     platform: iOS
     sources:
       - FisuEvolutionTests
+      # SKTestSession(configurationFileNamed:) busca el .storekit en el bundle de tests.
+      - path: StoreKitConfig/FisuEvolution.storekit
+        buildPhase: resources
     dependencies:
       - target: FisuEvolution
+      - sdk: StoreKitTest.framework
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES

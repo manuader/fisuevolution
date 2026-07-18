@@ -1,0 +1,73 @@
+========================================================================
+HOBO EVOLUTION — Draw Things — TANDA 1 (16 assets)
+========================================================================
+Modelo: SD 1.5 + LoRA hoboevo_style.safetensors (peso 1.0)
+Sampler: DPM++ 2M Karras | Steps: 28 | CFG: 7 | 768x768 | VAE: fp32
+Guardar cada imagen como: raw/tanda_1/{assetKey}.png
+El seed va EXACTO (permite regenerar identico).
+========================================================================
+
+[1/16] homeless   (seed 100001)
+PROMPT:   hoboevo_style, scruffy homeless street man with attitude, bottle, tattered layered clothes, fingerless gloves, Buenos Aires street 'fisura' vibe, disheveled but endearing, none, dirty patched clothes, dazed goofy stare, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[2/16] cartonero   (seed 100002)
+PROMPT:   hoboevo_style, street cardboard collector pushing a big two-wheeled cart, cart piled with flattened cardboard, hi-vis reflective vest, worn cap, urban recycler hustling through the city, streetwise and proud, very poor, patched trousers, determined squint with a tired smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[3/16] kiosco   (seed 100003)
+PROMPT:   hoboevo_style, small kiosk shop attendant behind a tiny counter window, counter crammed with candy, pack of cigarettes, sleeping cat beside him, hanging snack strips, neighborhood corner kiosk that never closes, modest, simple apron over t-shirt, sleepy deadpan stare, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[4/16] repartidor   (seed 100004)
+PROMPT:   hoboevo_style, food delivery rider on a beat-up scooter, oversized generic cube-shaped food-delivery backpack (parody, no real brand), scuffed helmet, cracked phone mounted on handlebar, gig-economy courier racing through traffic, low income, worn-out sneakers, stressed wide-eyed hurry, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[5/16] chofer_app   (seed 100005)
+PROMPT:   hoboevo_style, rideshare app driver leaning on his compact car, small sedan car, courtesy water bottle and lollipop on the dashboard, phone with navigation app, chatty rideshare driver proud of his five-star rating, working class, tidy polo shirt, friendly overeager grin, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[6/16] fast_food   (seed 100006)
+PROMPT:   hoboevo_style, fast food employee at the fryer counter, fast-food uniform and paper hat (parody 'McRonald's'), greasy spatula, tray of fries, burger-joint shift that was supposed to be temporary, minimum wage, grease-stained uniform, resigned thousand-yard stare, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[7/16] oficinista   (seed 100007)
+PROMPT:   hoboevo_style, tired office clerk at a cluttered desk, wrinkled dress shirt, loosened tie, heavy eye bags, a mate gourd with metal straw on the desk, Buenos Aires office worker surviving on mate, lower middle class, cheap tie, exhausted forced smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[8/16] administrativo   (seed 100008)
+PROMPT:   hoboevo_style, administrative clerk buried in official paperwork, towering stacks of stamped folders, rubber stamp in hand, clip-on tie, loose form sheets flying, endless bureaucracy, everything in triplicate with official seals, modest, sweater vest over shirt, bored bureaucratic blank stare, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[9/16] junior_programmer   (seed 100009)
+PROMPT:   hoboevo_style, young junior programmer fresh out of university, laptop covered in stickers, dark-mode screen glow, hoodie, energy drink can, proud new graduate holding his first job, empty pockets, broke graduate, worn backpack, nervous eager smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[10/16] junior_architect   (seed 100010)
+PROMPT:   hoboevo_style, young junior architect fresh out of university, rolled blueprints, small building model, scale ruler in shirt pocket, proud new graduate at his first studio internship, empty pockets, broke graduate, thrifted blazer, hopeful wide smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[11/16] junior_doctor   (seed 100011)
+PROMPT:   hoboevo_style, young junior doctor fresh out of medical school, oversized white coat, stethoscope around neck, clipboard, giant coffee thermos, proud new graduate on a 24-hour hospital shift, empty pockets, broke graduate, scrubs under the coat, sleep-deprived enthusiastic grin, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[12/16] junior_lawyer   (seed 100012)
+PROMPT:   hoboevo_style, young junior lawyer fresh out of law school, cheap slightly oversized suit, thick law code book under arm, bulging folder of case papers, proud new graduate running courthouse errands, empty pockets, broke graduate, scuffed dress shoes, overconfident rookie smirk, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[13/16] senior_programmer   (seed 100013)
+PROMPT:   hoboevo_style, veteran senior programmer, mechanical keyboard, triple monitor glow, worn hoodie over collared shirt, gray-streaked beard, rubber duck on desk, grumpy tech lead who has seen every bug in existence, comfortable, expensive headphones, smug all-knowing smirk, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[14/16] senior_architect   (seed 100014)
+PROMPT:   hoboevo_style, veteran senior architect, white hard hat, long blueprint tube, glasses pushed up on forehead, miniature skyscraper model in hand, seasoned architect bossing around a construction site, well-off, tailored shirt with rolled sleeves, confident appraising look, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[15/16] senior_doctor   (seed 100015)
+PROMPT:   hoboevo_style, veteran senior doctor, pristine white coat, head mirror, expensive pen in chest pocket, framed diploma under arm, renowned specialist with a private practice, wealthy professional, gold wristwatch, calm reassuring smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[16/16] senior_lawyer   (seed 100016)
+PROMPT:   hoboevo_style, veteran senior lawyer, sharp pinstripe suit, leather briefcase, gold fountain pen, thick signed contract, feared courtroom shark who never loses, wealthy professional, silk tie, predatory confident grin, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------

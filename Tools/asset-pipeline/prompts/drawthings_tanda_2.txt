@@ -1,0 +1,133 @@
+========================================================================
+HOBO EVOLUTION — Draw Things — TANDA 2 (31 assets)
+========================================================================
+Modelo: SD 1.5 + LoRA hoboevo_style.safetensors (peso 1.0)
+Sampler: DPM++ 2M Karras | Steps: 28 | CFG: 7 | 768x768 | VAE: fp32
+Guardar cada imagen como: raw/tanda_2/{assetKey}.png
+El seed va EXACTO (permite regenerar identico).
+========================================================================
+
+[1/31] ui_btn_primary   (seed 500001)
+PROMPT:   hoboevo_style, mobile game button, rounded rectangle, sunny yellow fill, darker flat bottom edge, no icon, no label, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[2/31] ui_btn_secondary   (seed 500002)
+PROMPT:   hoboevo_style, mobile game button, rounded rectangle, sky blue fill, darker flat bottom edge, no icon, no label, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[3/31] ui_btn_danger   (seed 500003)
+PROMPT:   hoboevo_style, mobile game button, rounded rectangle, hot pink-red fill, darker flat bottom edge, no icon, no label, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[4/31] ui_btn_disabled   (seed 500004)
+PROMPT:   hoboevo_style, mobile game button, rounded rectangle, desaturated gray fill, pressed flat look, no icon, no label, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[5/31] ui_btn_store   (seed 500005)
+PROMPT:   hoboevo_style, mobile game button, rounded rectangle, orange fill with a white shopping cart glyph, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[6/31] ui_btn_upgrade   (seed 500006)
+PROMPT:   hoboevo_style, mobile game button, rounded rectangle, green fill with a white upward arrow glyph, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[7/31] ui_btn_reincarnate   (seed 500007)
+PROMPT:   hoboevo_style, mobile game button, rounded rectangle, blue fill with a pink circular rebirth spiral glyph, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[8/31] ui_btn_watch_ad   (seed 500008)
+PROMPT:   hoboevo_style, mobile game button, rounded rectangle, blue fill with a white play triangle inside a small screen glyph, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[9/31] ui_btn_claim   (seed 500009)
+PROMPT:   hoboevo_style, mobile game button, rounded rectangle, yellow fill with a small gift box glyph, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[10/31] ui_btn_collect   (seed 500010)
+PROMPT:   hoboevo_style, mobile game button, rounded rectangle, green fill with an open hand catching a falling coin glyph, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[11/31] ui_coin   (seed 500011)
+PROMPT:   hoboevo_style, game currency icon, shiny golden coin with an embossed generic money glyph, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[12/31] ui_money   (seed 500012)
+PROMPT:   hoboevo_style, game currency icon, small stack of green banknotes with a paper band, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[13/31] ui_dollar   (seed 500013)
+PROMPT:   hoboevo_style, game currency icon, single crisp green banknote with a generic oval portrait, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[14/31] ui_million   (seed 500014)
+PROMPT:   hoboevo_style, game currency icon, tall bundle of strapped banknote stacks, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[15/31] ui_billion   (seed 500015)
+PROMPT:   hoboevo_style, game currency icon, open briefcase packed with banknote bundles and a gold bar, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[16/31] ui_trillion   (seed 500016)
+PROMPT:   hoboevo_style, game currency icon, sparkling diamond sitting on a pile of gold coins, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[17/31] ui_infinity   (seed 500017)
+PROMPT:   hoboevo_style, game currency icon, glowing golden infinity loop symbol floating above a coin, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[18/31] ui_up_income   (seed 500018)
+PROMPT:   hoboevo_style, game upgrade icon, gold coin with a rising arrow, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[19/31] ui_up_spawn   (seed 500019)
+PROMPT:   hoboevo_style, game upgrade icon, hatching golden egg with sparkles and a tiny plus burst, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[20/31] ui_up_offline   (seed 500020)
+PROMPT:   hoboevo_style, game upgrade icon, crescent moon over a small pile of coins, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[21/31] ui_up_tap   (seed 500021)
+PROMPT:   hoboevo_style, game upgrade icon, pointing finger tapping with radial burst lines, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[22/31] ui_up_crit   (seed 500022)
+PROMPT:   hoboevo_style, game upgrade icon, coin struck by a lightning bolt with an impact burst, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[23/31] ui_up_golden   (seed 500023)
+PROMPT:   hoboevo_style, game upgrade icon, golden hand touching a coin with sparkling midas-touch stars, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[24/31] ui_up_prestige   (seed 500024)
+PROMPT:   hoboevo_style, game upgrade icon, star with an orbiting loop arrow around it, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[25/31] ui_boost_mate   (seed 500025)
+PROMPT:   hoboevo_style, game boost icon, Argentine mate gourd with metal bombilla straw and a steam wisp, the national fuel of Argentina, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[26/31] ui_boost_cafe   (seed 500026)
+PROMPT:   hoboevo_style, game boost icon, small espresso coffee cup with bold steam swirls, extra-strong 'cargado' coffee, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[27/31] ui_boost_fernet   (seed 500027)
+PROMPT:   hoboevo_style, game boost icon, tall glass of dark herbal liquor mixed with cola, foam on top, ice cubes, iconic Argentine fernet con coca, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[28/31] ui_boost_milanesa   (seed 500028)
+PROMPT:   hoboevo_style, game boost icon, golden breaded meat cutlet on a plate with a lemon wedge, the sacred Argentine milanesa, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[29/31] ui_boost_asado   (seed 500029)
+PROMPT:   hoboevo_style, game boost icon, smoking charcoal grill with sizzling meat cuts and sausages, Sunday asado barbecue ritual, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[30/31] ui_boost_turbo   (seed 500030)
+PROMPT:   hoboevo_style, game boost icon, rocket-flame speed gauge with a fire trail, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[31/31] logo   (seed 500031)
+PROMPT:   hoboevo_style, game logo mark, graphic emblem only, absolutely no letters or words, circular badge with a cartoon scruffy bearded face wearing a tilted golden crown, bold upward evolution arrow behind the head, from street fisura to god, cheeky and iconic, cheeky one-eyebrow grin, simple flat vector game icon, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------

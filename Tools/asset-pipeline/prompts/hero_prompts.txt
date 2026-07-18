@@ -1,0 +1,91 @@
+================================================================================
+HOBO EVOLUTION — HERO PROMPTS (fase heroes, ANTES del LoRA)
+================================================================================
+Pegar en Draw Things (App Store) con modelo Stable Diffusion 1.5.
+
+SETTINGS EXACTOS (no cambiar entre imagenes):
+  - Model:      Stable Diffusion 1.5 (generic base)
+  - Sampler:    DPM++ 2M Karras
+  - Steps:      28
+  - CFG Scale:  7
+  - Size:       768 x 768
+  - VAE:        fp32 (si aparecen artefactos de color, forzar VAE fp32)
+  - LoRA:       NINGUNO todavia (el LoRA sale de estas imagenes)
+  - Seed:       libre en esta fase (anotar el seed de cada aprobada)
+
+Generar 3-4 candidatos por sujeto. El humano aprueba 3-4 definitivos por
+checklist de estilo (seccion 3 del asset doc):
+  [ ] 2D flat vector cartoon, una sola direccion de arte
+  [ ] Cabeza ~55-60% de la figura
+  [ ] Outline negro grueso y uniforme
+  [ ] Colores planos, SIN gradientes, luz suave arriba-izquierda
+  [ ] Paleta: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 + #FFF8E7/#2C2C2C/#FFFFFF
+  [ ] Vista 3/4, centrado, cuerpo completo, pose idle, fondo limpio
+  [ ] Silueta legible, tono comedia-adulto
+
+Guardar las aprobadas en: Tools/asset-pipeline/heroes/approved/
+(nombres sugeridos: hero_fisura_01.png, hero_cartonero_01.png, ...)
+
+================================================================================
+PROMPT MAESTRO (base identica para los 4 sujetos — seccion 4.1 del asset doc)
+================================================================================
+
+Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art
+direction. Big-head/tiny-body (head ≈ 55–60% of figure). Uniform thick black
+outline, constant weight. Flat colors, minimal cel-shading, NO gradients,
+single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77
+with #FFF8E7 / #2C2C2C / #FFFFFF. 3/4 view, centered, full body, neutral idle
+pose, generous safe margin, square canvas, transparent background. Clean
+readable silhouette, adult-comedy tone, humorous expression. Mobile-game
+production quality, cohesive studio look.
+
+NEGATIVE (igual para todos):
+realism, anime, 3d, pixel art, photographic lighting, gradients,
+busy background, blurry, extra limbs, watermark, text
+
+================================================================================
+HERO 1 — EL FISURA (T1)
+================================================================================
+Al prompt maestro, agregar:
+
+Subject: scruffy homeless street man with attitude. Props: bottle, tattered
+layered clothes, fingerless gloves. Cultural cues: Buenos Aires street 'fisura'
+vibe, disheveled but endearing. Wealth cues: none, dirty patched clothes.
+Expression: dazed goofy stare.
+
+================================================================================
+HERO 2 — CARTONERO (T2)
+================================================================================
+Al prompt maestro, agregar:
+
+Subject: street cardboard collector pushing a big two-wheeled cart. Props:
+cart piled with flattened cardboard, hi-vis reflective vest, worn cap.
+Cultural cues: urban recycler hustling through the city, streetwise and proud.
+Wealth cues: very poor, patched trousers. Expression: determined squint with a
+tired smile.
+
+================================================================================
+HERO 3 — OFICINISTA (T7)
+================================================================================
+Al prompt maestro, agregar:
+
+Subject: tired office clerk at a cluttered desk. Props: wrinkled dress shirt,
+loosened tie, heavy eye bags, a mate gourd with metal straw on the desk.
+Cultural cues: Buenos Aires office worker surviving on mate. Wealth cues:
+lower middle class, cheap tie. Expression: exhausted forced smile.
+
+================================================================================
+HERO 4 — CEO (T15)
+================================================================================
+Al prompt maestro, agregar:
+
+Subject: powerful corporate CEO. Props: immaculate dark suit, golden tie,
+smartphone in hand, skyscraper silhouette behind. Cultural cues: untouchable
+big-company boss, board meetings and golf. Wealth cues: rich, gold watch and
+pocket square. Expression: cold triumphant smirk.
+
+================================================================================
+DESPUES DE APROBAR: 10-15 imagenes on-style para el dataset del LoRA
+(pueden ser variantes de estos 4). Luego:
+  python3 scripts/prepare_lora_dataset.py
+================================================================================

@@ -1,0 +1,89 @@
+{
+  "schemaVersion": 1,
+  "boosts": [
+    {
+      "id": "mate",
+      "iconKey": "ui_boost_mate",
+      "effectType": "spawnCostMultiplier",
+      "magnitude": 0.7,
+      "durationSeconds": 60,
+      "cooldownSeconds": 1800,
+      "displayNameKey": "boost.mate.name",
+      "flavorTextKey": "boost.mate.flavor",
+      "reviewSafe": {
+        "displayNameKey": "boost.mate.name",
+        "flavorTextKey": "boost.mate.flavor"
+      }
+    },
+    {
+      "id": "cafe",
+      "iconKey": "ui_boost_cafe",
+      "effectType": "tapMultiplier",
+      "magnitude": 2.0,
+      "durationSeconds": 45,
+      "cooldownSeconds": 2700,
+      "displayNameKey": "boost.cafe.name",
+      "flavorTextKey": "boost.cafe.flavor",
+      "reviewSafe": {
+        "displayNameKey": "boost.cafe.name",
+        "flavorTextKey": "boost.cafe.flavor"
+      }
+    },
+    {
+      "id": "fernet",
+      "iconKey": "ui_boost_fernet",
+      "effectType": "incomeMultiplier",
+      "magnitude": 3.0,
+      "durationSeconds": 90,
+      "cooldownSeconds": 3600,
+      "displayNameKey": "boost.fernet.name",
+      "flavorTextKey": "boost.fernet.flavor",
+      "reviewSafe": {
+        "displayNameKey": "boost.fernet.safe.name",
+        "flavorTextKey": "boost.fernet.safe.flavor"
+      }
+    },
+    {
+      "id": "milanesa",
+      "iconKey": "ui_boost_milanesa",
+      "effectType": "offlineEfficiencyPermanent",
+      "magnitude": 0.05,
+      "durationSeconds": 0,
+      "cooldownSeconds": 86400,
+      "displayNameKey": "boost.milanesa.name",
+      "flavorTextKey": "boost.milanesa.flavor",
+      "reviewSafe": {
+        "displayNameKey": "boost.milanesa.name",
+        "flavorTextKey": "boost.milanesa.flavor"
+      }
+    },
+    {
+      "id": "asado",
+      "iconKey": "ui_boost_asado",
+      "effectType": "periodicChest",
+      "magnitude": 4.0,
+      "durationSeconds": 0,
+      "cooldownSeconds": 21600,
+      "displayNameKey": "boost.asado.name",
+      "flavorTextKey": "boost.asado.flavor",
+      "reviewSafe": {
+        "displayNameKey": "boost.asado.name",
+        "flavorTextKey": "boost.asado.flavor"
+      }
+    },
+    {
+      "id": "turbo",
+      "iconKey": "ui_boost_turbo",
+      "effectType": "incomeMultiplier",
+      "magnitude": 5.0,
+      "durationSeconds": 30,
+      "cooldownSeconds": 7200,
+      "displayNameKey": "boost.turbo.name",
+      "flavorTextKey": "boost.turbo.flavor",
+      "reviewSafe": {
+        "displayNameKey": "boost.turbo.safe.name",
+        "flavorTextKey": "boost.turbo.safe.flavor"
+      }
+    }
+  ]
+}

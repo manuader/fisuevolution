@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "baseIntervalSeconds": 300,
+  "intervalJitterSeconds": 180,
+  "events": [
+    {
+      "id": "plan_platita",
+      "effectType": "incomeMultiplier",
+      "magnitude": 5.0,
+      "durationSeconds": 60,
+      "weight": 20,
+      "minTier": 2,
+      "cooldownSeconds": 900,
+      "flavorTextKey": "event.plan_platita.flavor",
+      "isBuff": true
+    },
+    {
+      "id": "startup_comprada",
+      "effectType": "instantEvolution",
+      "magnitude": 1,
+      "durationSeconds": 0,
+      "weight": 10,
+      "minTier": 5,
+      "cooldownSeconds": 1800,
+      "flavorTextKey": "event.startup_comprada.flavor",
+      "isBuff": true
+    },
+    {
+      "id": "devaluacion",
+      "effectType": "incomeMultiplier",
+      "magnitude": 0.5,
+      "durationSeconds": 90,
+      "weight": 16,
+      "minTier": 3,
+      "cooldownSeconds": 900,
+      "flavorTextKey": "event.devaluacion.flavor",
+      "isBuff": false
+    },
+    {
+      "id": "blanqueo",
+      "effectType": "freeHighTier",
+      "magnitude": 2,
+      "durationSeconds": 0,
+      "weight": 6,
+      "minTier": 9,
+      "cooldownSeconds": 3600,
+      "flavorTextKey": "event.blanqueo.flavor",
+      "isBuff": true
+    },
+    {
+      "id": "cayo_mercado_pago",
+      "effectType": "spawnCostMultiplier",
+      "magnitude": 2.0,
+      "durationSeconds": 60,
+      "weight": 14,
+      "minTier": 4,
+      "cooldownSeconds": 1200,
+      "flavorTextKey": "event.cayo_mercado_pago.flavor",
+      "isBuff": false
+    },
+    {
+      "id": "inversion_alienigena",
+      "effectType": "incomeMultiplier",
+      "magnitude": 10.0,
+      "durationSeconds": 30,
+      "weight": 3,
+      "minTier": 20,
+      "cooldownSeconds": 5400,
+      "flavorTextKey": "event.inversion_alienigena.flavor",
+      "isBuff": true
+    },
+    {
+      "id": "corralito",
+      "effectType": "frozenCoins",
+      "magnitude": 1.0,
+      "durationSeconds": 45,
+      "weight": 8,
+      "minTier": 6,
+      "cooldownSeconds": 2400,
+      "flavorTextKey": "event.corralito.flavor",
+      "isBuff": false
+    },
+    {
+      "id": "aguinaldo",
+      "effectType": "bonusCoins",
+      "magnitude": 900,
+      "durationSeconds": 0,
+      "weight": 12,
+      "minTier": 7,
+      "cooldownSeconds": 3600,
+      "flavorTextKey": "event.aguinaldo.flavor",
+      "isBuff": true
+    }
+  ]
+}

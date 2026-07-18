@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "products": [
+    {
+      "id": "com.fisuevolution.iap.remove_ads",
+      "type": "nonConsumable",
+      "entitlement": "removeAds"
+    },
+    {
+      "id": "com.fisuevolution.iap.skin_golden",
+      "type": "nonConsumable",
+      "entitlement": "skin",
+      "skinId": "golden"
+    },
+    {
+      "id": "com.fisuevolution.iap.skin_galaxy",
+      "type": "nonConsumable",
+      "entitlement": "skin",
+      "skinId": "galaxy"
+    },
+    {
+      "id": "com.fisuevolution.iap.skin_god",
+      "type": "nonConsumable",
+      "entitlement": "skin",
+      "skinId": "god"
+    }
+  ]
+}

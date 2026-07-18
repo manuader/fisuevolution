@@ -1,0 +1,69 @@
+========================================================================
+HOBO EVOLUTION — Draw Things — TANDA 5 (15 assets)
+========================================================================
+Modelo: SD 1.5 + LoRA hoboevo_style.safetensors (peso 1.0)
+Sampler: DPM++ 2M Karras | Steps: 28 | CFG: 7 | 768x768 | VAE: fp32
+Guardar cada imagen como: raw/tanda_5/{assetKey}.png
+El seed va EXACTO (permite regenerar identico).
+========================================================================
+
+[1/15] sp_cryptobro   (seed 300001)
+PROMPT:   hoboevo_style, smug crypto bro trader, flashy oversized watch, phone showing green candlestick chart, sunglasses pushed up, coin-pattern shirt, to-the-moon evangelist who never sells at the top, volatile riches, gold chain over hoodie, insufferable smug grin, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[2/15] sp_demonio_arca   (seed 300002)
+PROMPT:   hoboevo_style, bureaucratic tax demon, bat wings, small horns, office necktie, armful of tax forms, giant red ink stamp, tax-collector demon from the underworld revenue service, feeds on late fees, shabby office suit, gleeful sadistic smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[3/15] sp_contador_dios   (seed 300003)
+PROMPT:   hoboevo_style, divine celestial accountant, glowing ledger book, halo shaped like a calculator, floating glowing spreadsheets, feather quill, audits the finances of mortals from heaven, cosmic order, immaculate white suit, serene judging stare, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[4/15] sp_zombie_ceo   (seed 300004)
+PROMPT:   hoboevo_style, undead zombie CEO, torn pinstripe suit, green skin, stitched forehead, dangling loose tie, coffee cup clutched in stiff hand, still attends board meetings from beyond the grave, posthumous stock options, dusty gold watch, vacant hungry stare, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[5/15] sp_lizard   (seed 300005)
+PROMPT:   hoboevo_style, reptilian humanoid in a business suit, green scales, vertical slit pupils, forked tongue, half-lifted human face mask, tailored gray suit, conspiracy-theory lizard person secretly running world finance, shadow-elite wealth, obsidian cufflinks, unsettling too-wide smile, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[6/15] sp_alien_investor   (seed 300006)
+PROMPT:   hoboevo_style, little green alien venture investor, big oval head with antenna, briefcase overflowing with glowing space currency, small UFO parked behind, tablet with charts, intergalactic venture capitalist scouting Earth startups, galactic funds, tiny silver suit, curious calculating stare, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[7/15] sp_bug_simulacion   (seed 300007)
+PROMPT:   hoboevo_style, glitched-out simulation error character, body split into offset slices, floating warning signs, half-rendered limbs, patches of static noise, a rendering error of the simulation that became self-aware, corrupted data, flickering outline, confused fragmented face, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[8/15] sp_arbolito   (seed 300008)
+PROMPT:   hoboevo_style, street currency dealer whispering exchange rates, jacket held open lined with fanned foreign banknotes, small leafy branch with bill-shaped leaves sprouting from his cap, hand beside mouth mid-whisper, downtown Buenos Aires street money changer, the human money tree, wads of foreign cash, worn windbreaker, shifty sideways glance, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[9/15] sp_coach   (seed 300009)
+PROMPT:   hoboevo_style, over-the-top motivational life coach, headset microphone, sparkling white teeth, tight polo shirt, whiteboard with rocket doodle, rubber wristbands, sells success formulas and five-am morning routines, seminar money, shiny loafers, aggressively positive beam, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[10/15] sp_influencer   (seed 300010)
+PROMPT:   hoboevo_style, social media influencer mid-selfie, ring light glowing behind head like a halo, phone on selfie stick, shopping bags, floating heart and thumbs-up symbols, monetizes every waking second of her life, gifted products, designer knockoffs, practiced duck-face pout, full body, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[11/15] fx_merge   (seed 600001)
+PROMPT:   hoboevo_style, particle sprite for a game effect, radial starburst pop, thick flat rays, simple flat particle sprite, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[12/15] fx_money   (seed 600002)
+PROMPT:   hoboevo_style, particle sprite for a game effect, single spinning golden coin with small motion tick marks, simple flat particle sprite, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[13/15] fx_tap   (seed 600003)
+PROMPT:   hoboevo_style, particle sprite for a game effect, concentric tap ripple rings, simple flat particle sprite, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[14/15] fx_unlock   (seed 600004)
+PROMPT:   hoboevo_style, particle sprite for a game effect, four-pointed sparkle star, simple flat particle sprite, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[15/15] fx_evolution_flash   (seed 600005)
+PROMPT:   hoboevo_style, particle sprite for a game effect, bright radial flash burst with flat wedge rays, simple flat particle sprite, centered, transparent background
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------

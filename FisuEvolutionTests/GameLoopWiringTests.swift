@@ -160,4 +160,21 @@ struct SaveMigratorTests {
             try SaveMigrator.migrate(data)
         }
     }
+
+    @Test func v1SaveMigratesToV2WithEmptyModifiers() throws {
+        var state = PlayerState.newGame(startTypeId: "homeless", offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 0)
+        state.coins = 77
+        guard var object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any] else {
+            Issue.record("fixture no serializable")
+            return
+        }
+        object.removeValue(forKey: "activeModifiers")
+        object["schemaVersion"] = 1
+        let v1Data = try JSONSerialization.data(withJSONObject: object)
+
+        let migrated = try SaveMigrator.migrate(v1Data)
+        #expect(migrated.schemaVersion == 2)
+        #expect(migrated.coins == 77)
+        #expect(migrated.activeModifiers.isEmpty)
+    }
 }

@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "upgrades": [
+    {
+      "id": "income",
+      "titleKey": "upgrade.income.title",
+      "iconKey": "ui_up_income",
+      "effectType": "incomeMultiplier",
+      "magnitudePerLevel": 0.1,
+      "maxLevel": 20,
+      "baseCost": 500,
+      "costGrowth": 8.0
+    },
+    {
+      "id": "spawn",
+      "titleKey": "upgrade.spawn.title",
+      "iconKey": "ui_up_spawn",
+      "effectType": "spawnCostDiscount",
+      "magnitudePerLevel": 0.03,
+      "maxLevel": 10,
+      "baseCost": 750,
+      "costGrowth": 9.0
+    },
+    {
+      "id": "offline",
+      "titleKey": "upgrade.offline.title",
+      "iconKey": "ui_up_offline",
+      "effectType": "offlineEfficiency",
+      "magnitudePerLevel": 0.05,
+      "maxLevel": 10,
+      "baseCost": 1200,
+      "costGrowth": 10.0
+    },
+    {
+      "id": "tap",
+      "titleKey": "upgrade.tap.title",
+      "iconKey": "ui_up_tap",
+      "effectType": "tapMultiplier",
+      "magnitudePerLevel": 0.25,
+      "maxLevel": 20,
+      "baseCost": 300,
+      "costGrowth": 7.0
+    },
+    {
+      "id": "crit",
+      "titleKey": "upgrade.crit.title",
+      "iconKey": "ui_up_crit",
+      "effectType": "critChance",
+      "magnitudePerLevel": 0.01,
+      "maxLevel": 25,
+      "baseCost": 2500,
+      "costGrowth": 8.0
+    },
+    {
+      "id": "golden",
+      "titleKey": "upgrade.golden.title",
+      "iconKey": "ui_up_golden",
+      "effectType": "goldenTouchChance",
+      "magnitudePerLevel": 0.005,
+      "maxLevel": 10,
+      "baseCost": 6000,
+      "costGrowth": 10.0
+    },
+    {
+      "id": "prestige",
+      "titleKey": "upgrade.prestige.title",
+      "iconKey": "ui_up_prestige",
+      "effectType": "prestigeBonusPerSoulPoint",
+      "magnitudePerLevel": 0.005,
+      "maxLevel": 10,
+      "baseCost": 15000,
+      "costGrowth": 12.0
+    }
+  ]
+}

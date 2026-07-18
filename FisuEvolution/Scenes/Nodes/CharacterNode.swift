@@ -40,7 +40,7 @@ final class CharacterNode: SKNode {
         fatalError("CharacterNode is never decoded")
     }
 
-    func configure(type: CharacterType, texture: SKTexture?, cellIndex: Int, cellSize: CGFloat) {
+    func configure(type: CharacterType, texture: SKTexture?, cellIndex: Int, cellSize: CGFloat, skinTint: SKColor? = nil) {
         typeId = type.id
         self.cellIndex = cellIndex
 
@@ -52,7 +52,9 @@ final class CharacterNode: SKNode {
             transform: nil
         )
         plate.fillColor = Palette.color(for: type.phase)
-        plate.strokeColor = Palette.ink
+        plate.strokeColor = skinTint ?? Palette.ink
+        plate.lineWidth = skinTint == nil ? 2 : 3
+        plate.glowWidth = skinTint == nil ? 0 : 3
 
         sprite.texture = texture
         sprite.isHidden = texture == nil

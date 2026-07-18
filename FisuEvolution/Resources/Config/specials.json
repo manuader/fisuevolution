@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "specials": [
+    {
+      "id": "sp_cryptobro",
+      "displayNameKey": "special.cryptobro.name",
+      "flavorTextKey": "special.cryptobro.flavor",
+      "dropChanceOnMerge": 0.005,
+      "minTier": 5,
+      "requiresPrestigeLevel": 0,
+      "passiveEffect": { "type": "incomeMultiplier", "magnitude": 1.03 }
+    },
+    {
+      "id": "sp_demonio_arca",
+      "displayNameKey": "special.demonio_arca.name",
+      "flavorTextKey": "special.demonio_arca.flavor",
+      "dropChanceOnMerge": 0.004,
+      "minTier": 8,
+      "requiresPrestigeLevel": 0,
+      "passiveEffect": { "type": "spawnDiscount", "magnitude": 0.05 }
+    },
+    {
+      "id": "sp_contador_dios",
+      "displayNameKey": "special.contador_dios.name",
+      "flavorTextKey": "special.contador_dios.flavor",
+      "dropChanceOnMerge": 0.002,
+      "minTier": 9,
+      "requiresPrestigeLevel": 5,
+      "passiveEffect": { "type": "incomeMultiplier", "magnitude": 1.1 }
+    },
+    {
+      "id": "sp_zombie_ceo",
+      "displayNameKey": "special.zombie_ceo.name",
+      "flavorTextKey": "special.zombie_ceo.flavor",
+      "dropChanceOnMerge": 0.004,
+      "minTier": 15,
+      "requiresPrestigeLevel": 0,
+      "passiveEffect": { "type": "offlineEfficiencyBonus", "magnitude": 0.05 }
+    },
+    {
+      "id": "sp_lizard",
+      "displayNameKey": "special.lizard.name",
+      "flavorTextKey": "special.lizard.flavor",
+      "dropChanceOnMerge": 0.003,
+      "minTier": 17,
+      "requiresPrestigeLevel": 0,
+      "passiveEffect": { "type": "critChanceBonus", "magnitude": 0.02 }
+    },
+    {
+      "id": "sp_alien_investor",
+      "displayNameKey": "special.alien_investor.name",
+      "flavorTextKey": "special.alien_investor.flavor",
+      "dropChanceOnMerge": 0.002,
+      "minTier": 22,
+      "requiresPrestigeLevel": 0,
+      "passiveEffect": { "type": "incomeMultiplier", "magnitude": 1.05 }
+    },
+    {
+      "id": "sp_bug_simulacion",
+      "displayNameKey": "special.bug_simulacion.name",
+      "flavorTextKey": "special.bug_simulacion.flavor",
+      "dropChanceOnMerge": 0.001,
+      "minTier": 21,
+      "requiresPrestigeLevel": 8,
+      "passiveEffect": { "type": "critChanceBonus", "magnitude": 0.05 }
+    },
+    {
+      "id": "sp_arbolito",
+      "displayNameKey": "special.arbolito.name",
+      "flavorTextKey": "special.arbolito.flavor",
+      "dropChanceOnMerge": 0.004,
+      "minTier": 6,
+      "requiresPrestigeLevel": 3,
+      "passiveEffect": { "type": "spawnDiscount", "magnitude": 0.05 }
+    },
+    {
+      "id": "sp_coach",
+      "displayNameKey": "special.coach.name",
+      "flavorTextKey": "special.coach.flavor",
+      "dropChanceOnMerge": 0.005,
+      "minTier": 4,
+      "requiresPrestigeLevel": 0,
+      "passiveEffect": { "type": "incomeMultiplier", "magnitude": 1.02 }
+    },
+    {
+      "id": "sp_influencer",
+      "displayNameKey": "special.influencer.name",
+      "flavorTextKey": "special.influencer.flavor",
+      "dropChanceOnMerge": 0.005,
+      "minTier": 3,
+      "requiresPrestigeLevel": 0,
+      "passiveEffect": { "type": "incomeMultiplier", "magnitude": 1.02 }
+    }
+  ]
+}

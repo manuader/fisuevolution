@@ -75,12 +75,12 @@ struct Simulator {
 
         for second in 0..<maxSeconds {
             // Pasivo del segundo (delta 1s, dentro del clamp del ticker).
-            IncomeTicker.tick(state: &state, tiers: tiers, delta: 1)
+            IncomeTicker.tick(state: &state, tiers: tiers, delta: 1, now: Double(second))
 
             // Taps sobre la unidad de mayor tier.
             if strategy.tapsPerSecond > 0, let best = bestUnit(state: state) {
                 for _ in 0..<strategy.tapsPerSecond {
-                    _ = economy.applyTap(type: best, state: &state)
+                    _ = economy.applyTap(type: best, state: &state, now: Double(second))
                     result.totalTaps += 1
                 }
             }
@@ -115,7 +115,7 @@ struct Simulator {
             }
         }
 
-        result.finalCoinsPerSecond = IncomeTicker.passivePerSecond(state: state, tiers: tiers)
+        result.finalCoinsPerSecond = IncomeTicker.passivePerSecond(state: state, tiers: tiers, now: Double(maxSeconds))
         return result
     }
 

@@ -13,7 +13,7 @@ public enum OfflineCalculator {
     ) -> Double {
         let elapsed = max(0, now - state.lastSeenTimestamp)
         let capped = min(elapsed, config.offlineCapHours * 3600)
-        return capped * IncomeTicker.passivePerSecond(state: state, tiers: tiers) * state.upgrades.offlineEfficiency
+        return capped * IncomeTicker.passivePerSecond(state: state, tiers: tiers, now: now) * state.upgrades.offlineEfficiency
     }
 
     /// Applies offline earnings and stamps `lastSeenTimestamp`. Returns the amount

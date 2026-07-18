@@ -264,6 +264,7 @@ final class BoardScene: SKScene {
         }
         characterNodes.removeAll(keepingCapacity: true)
 
+        let skinTint = SkinResolver.tint(for: player.activeSkin)
         for placement in player.board {
             guard let type = content.tiers.type(id: placement.typeId) else {
                 Log.board.error("placement references unknown type '\(placement.typeId)'")
@@ -274,7 +275,8 @@ final class BoardScene: SKScene {
                 type: type,
                 texture: renderer.texture(for: type, manifest: content.manifest),
                 cellIndex: placement.cellIndex,
-                cellSize: cellSize
+                cellSize: cellSize,
+                skinTint: skinTint
             )
             node.position = position(ofCell: placement.cellIndex, centered: true)
             node.zPosition = 0

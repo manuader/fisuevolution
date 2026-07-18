@@ -1,0 +1,21 @@
+========================================================================
+HOBO EVOLUTION — Draw Things — TANDA 3 (3 assets)
+========================================================================
+Modelo: SD 1.5 + LoRA hoboevo_style.safetensors (peso 1.0)
+Sampler: DPM++ 2M Karras | Steps: 28 | CFG: 7 | 768x768 | VAE: fp32
+Guardar cada imagen como: raw/tanda_3/{assetKey}.png
+El seed va EXACTO (permite regenerar identico).
+========================================================================
+
+[1/3] bg_alley   (seed 400001)
+PROMPT:   hoboevo_style, gritty dead-end city alley background scene, dumpster, flattened cardboard boxes, graffiti wall, clothesline with rags, dripping pipe, lonely street lamp, Buenos Aires back alley where the Fisura sleeps, poor neighborhood, cracked plaster walls, moody but warm, soft light from top-left, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[2/3] bg_urban   (seed 400002)
+PROMPT:   hoboevo_style, lively city street corner background scene, corner kiosk, bus stop shelter, tangled power lines, obelisk silhouette on the horizon, parked scooter, pigeons, Buenos Aires downtown energy, working-class city, faded posters, busy daytime cheer, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------
+[3/3] bg_corporate   (seed 400003)
+PROMPT:   hoboevo_style, glass corporate district background scene, mirrored office towers, revolving door entrance, grids of office windows, small coffee cart, financial district ambition, corporate polish, blue glass and steel, cool professional morning light, wide flat vector background scene, no characters, no people, full canvas
+NEGATIVE: watermark, text, blurry, extra limbs
+------------------------------------------------------------------------

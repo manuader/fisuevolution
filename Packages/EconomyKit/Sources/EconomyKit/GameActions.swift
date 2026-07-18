@@ -24,8 +24,10 @@ public enum PassiveUnlockError: Error, Equatable {
 extension StandardEconomy {
     /// Rule 1 — tap: `tapYield × tapMultiplier × globalMultiplier`, always available.
     /// Returns the gain so the scene can show feedback.
-    public func applyTap(type: CharacterType, state: inout PlayerState) -> Double {
-        let gain = type.tapYield * state.upgrades.tapMultiplier * state.globalMultiplier
+    public func applyTap(type: CharacterType, state: inout PlayerState, now: TimeInterval) -> Double {
+        let modifierFactor = ModifierMath.factor(state.activeModifiers, effect: .incomeMultiplier, now: now)
+            * ModifierMath.factor(state.activeModifiers, effect: .tapMultiplier, now: now)
+        let gain = type.tapYield * state.upgrades.tapMultiplier * state.globalMultiplier * modifierFactor
         state.coins += gain
         state.lifetimeEarnings += gain
         return gain
@@ -44,8 +46,9 @@ extension StandardEconomy {
     /// The type the progressive spawn currently offers. On career tiers (9/10) it
     /// respects the chosen path; without one it falls back to the first concrete
     /// type of that tier (only reachable in edge cases, e.g. imported saves).
-    /// `costMultiplier` applies prestige spawn discounts (1.0 = none).
-    public func spawnQuote(state: PlayerState, tiers: TierRepository, costMultiplier: Double = 1.0) -> SpawnQuote? {
+    /// `costMultiplier` applies prestige spawn discounts (1.0 = none); live
+    /// `spawnCostMultiplier` modifiers (Unos Mates) compose on top.
+    public func spawnQuote(state: PlayerState, tiers: TierRepository, costMultiplier: Double = 1.0, now: TimeInterval = 0) -> SpawnQuote? {
         let tier = spawnTier(maxTierReached: state.maxTierReached)
         let candidates = tiers.concreteTypes.filter { $0.tier == tier }
         guard !candidates.isEmpty else { return nil }
@@ -64,9 +67,10 @@ extension StandardEconomy {
         case .perType: state.spawnPurchases[type.id] ?? 0
         case .total: state.spawnPurchases.values.reduce(0, +)
         }
+        let modifierFactor = ModifierMath.factor(state.activeModifiers, effect: .spawnCostMultiplier, now: now)
         return SpawnQuote(
             type: type,
-            cost: spawnCost(spawnTier: tier, purchases: purchases) * costMultiplier,
+            cost: spawnCost(spawnTier: tier, purchases: purchases) * costMultiplier * modifierFactor,
             purchases: state.spawnPurchases[type.id] ?? 0
         )
     }

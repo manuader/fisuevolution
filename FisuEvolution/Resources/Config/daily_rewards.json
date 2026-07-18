@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "days": [
+    { "day": 1, "type": "coins", "coinsFactor": 1.0, "titleKey": "daily.day1.title" },
+    { "day": 2, "type": "coins", "coinsFactor": 1.5, "titleKey": "daily.day2.title" },
+    { "day": 3, "type": "coins", "coinsFactor": 2.5, "titleKey": "daily.day3.title" },
+    { "day": 4, "type": "coins", "coinsFactor": 3.5, "titleKey": "daily.day4.title" },
+    { "day": 5, "type": "coins", "coinsFactor": 4.5, "titleKey": "daily.day5.title" },
+    { "day": 6, "type": "coins", "coinsFactor": 6.0, "titleKey": "daily.day6.title" },
+    { "day": 7, "type": "special_roll", "titleKey": "daily.day7.title" }
+  ]
+}

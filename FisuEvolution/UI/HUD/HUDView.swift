@@ -1,11 +1,24 @@
 import SwiftUI
 
-/// Coin counter overlay. Observes `GameState`; F1 swaps the raw number for
-/// `CoinFormatter` output and adds the spawn button.
+/// HUD superior: tienda | monedas | bonus. Observa proyecciones de `GameState`.
 struct HUDView: View {
     @Environment(GameState.self) private var gameState
+    var onStoreTap: () -> Void = {}
+    var onBonusTap: () -> Void = {}
 
     var body: some View {
+        HStack(spacing: 12) {
+            hudIconButton(systemName: "cart.fill", labelKey: "hud.store.label", identifier: "hud.store", action: onStoreTap)
+            Spacer()
+            coinCounter
+            Spacer()
+            hudIconButton(systemName: "gift.fill", labelKey: "hud.bonus.label", identifier: "hud.bonus", action: onBonusTap)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+    }
+
+    private var coinCounter: some View {
         HStack(spacing: 8) {
             Image(systemName: "dollarsign.circle.fill")
                 .foregroundStyle(Color("PaletteYellow"))
@@ -17,10 +30,22 @@ struct HUDView: View {
         .padding(.vertical, 10)
         .background(Color("PaletteCream"), in: .capsule)
         .overlay(Capsule().stroke(Color("PaletteInk").opacity(0.3), lineWidth: 1.5))
-        .padding(.top, 8)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("hud.coins")
         .accessibilityLabel(Text("hud.coins.label"))
         .accessibilityValue(Text(verbatim: gameState.coinsText))
+    }
+
+    private func hudIconButton(systemName: String, labelKey: String, identifier: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: systemName)
+                .font(.title3)
+                .padding(10)
+                .background(Color("PaletteCream"), in: .circle)
+                .overlay(Circle().stroke(Color("PaletteInk").opacity(0.3), lineWidth: 1.5))
+        }
+        .tint(Color("PaletteInk"))
+        .accessibilityIdentifier(identifier)
+        .accessibilityLabel(Text(LocalizedStringKey(labelKey)))
     }
 }

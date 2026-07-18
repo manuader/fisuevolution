@@ -150,7 +150,7 @@ struct PassiveTests {
 
     @Test func lockedTypeYieldsZero() {
         let state = makeState(board: [(0, "a"), (1, "a")])
-        #expect(IncomeTicker.passivePerSecond(state: state, tiers: tiers) == 0)
+        #expect(IncomeTicker.passivePerSecond(state: state, tiers: tiers, now: 0) == 0)
     }
 
     @Test func unlockAffectsAllInstancesOfThatTypeOnly() throws {
@@ -159,7 +159,7 @@ struct PassiveTests {
         try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
         #expect(state.coins == 0)
         // 3 fisuras × 0.3 × mult 1.0; el 'b' sigue sin generar.
-        #expect(abs(IncomeTicker.passivePerSecond(state: state, tiers: tiers) - 0.9) < 1e-12)
+        #expect(abs(IncomeTicker.passivePerSecond(state: state, tiers: tiers, now: 0) - 0.9) < 1e-12)
     }
 
     @Test func unlocksAreIndependentPerType() throws {
@@ -167,7 +167,7 @@ struct PassiveTests {
         state.coins = 1000
         try economy.applyPassiveUnlock(typeId: "b", state: &state, tiers: tiers)
         // Solo 'b': 1 × (3.8... no: b tapYield 1 default) — b yield 0.3.
-        #expect(abs(IncomeTicker.passivePerSecond(state: state, tiers: tiers) - 0.3) < 1e-12)
+        #expect(abs(IncomeTicker.passivePerSecond(state: state, tiers: tiers, now: 0) - 0.3) < 1e-12)
     }
 
     @Test func unlockFailsWithoutCoins() {
@@ -208,9 +208,9 @@ struct IncomeTickTests {
 
     @Test func tickIsProportionalToDelta() throws {
         var state = try unlockedState()
-        let short = IncomeTicker.tick(state: &state, tiers: tiers, delta: 0.016)
+        let short = IncomeTicker.tick(state: &state, tiers: tiers, delta: 0.016, now: 0)
         var state2 = try unlockedState()
-        let long = IncomeTicker.tick(state: &state2, tiers: tiers, delta: 1.0)
+        let long = IncomeTicker.tick(state: &state2, tiers: tiers, delta: 1.0, now: 0)
         #expect(abs(long / short - 62.5) < 1e-6)
         #expect(abs(long - 0.6) < 1e-12)
     }
@@ -218,27 +218,27 @@ struct IncomeTickTests {
     @Test func tickAccumulatesLifetime() throws {
         var state = try unlockedState()
         let before = state.lifetimeEarnings
-        IncomeTicker.tick(state: &state, tiers: tiers, delta: 1.0)
+        IncomeTicker.tick(state: &state, tiers: tiers, delta: 1.0, now: 0)
         #expect(abs(state.lifetimeEarnings - before - 0.6) < 1e-12)
     }
 
     @Test func tickAppliesGlobalMultiplier() throws {
         var state = try unlockedState()
         state.globalMultiplier = 2.0
-        let earned = IncomeTicker.tick(state: &state, tiers: tiers, delta: 1.0)
+        let earned = IncomeTicker.tick(state: &state, tiers: tiers, delta: 1.0, now: 0)
         #expect(abs(earned - 1.2) < 1e-12)
     }
 
     @Test func hugeDeltaAfterResumeIsIgnored() throws {
         var state = try unlockedState()
-        let earned = IncomeTicker.tick(state: &state, tiers: tiers, delta: 3600)
+        let earned = IncomeTicker.tick(state: &state, tiers: tiers, delta: 3600, now: 0)
         #expect(earned == 0)
         #expect(state.coins == 0)
     }
 
     @Test func negativeDeltaIsIgnored() throws {
         var state = try unlockedState()
-        #expect(IncomeTicker.tick(state: &state, tiers: tiers, delta: -1) == 0)
+        #expect(IncomeTicker.tick(state: &state, tiers: tiers, delta: -1, now: 0) == 0)
     }
 }
 

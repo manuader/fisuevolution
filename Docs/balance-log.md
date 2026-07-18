@@ -63,5 +63,6 @@ swift run --package-path Tools/balance-sim balance-sim \
   --tiers FisuEvolution/Resources/Data/tiers.json --max-hours 36
 ```
 
-**Aprobación del gate:** _pendiente — jugar 20 min reales + revisar esta tabla y
-firmar acá con fecha._
+**Aprobación del gate:** ✅ aprobado por el usuario el 2026-07-18 tras playtest
+en Simulador ("el juego parece funcionar bien"). economy.json v1 queda congelado
+como base; próxima revisión de números recién con feedback de TestFlight.

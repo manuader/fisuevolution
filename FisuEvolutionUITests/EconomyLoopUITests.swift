@@ -5,6 +5,7 @@ final class EconomyLoopUITests: XCTestCase {
     @MainActor
     func testTappingEarnsCoinsAndSpawnButtonExists() throws {
         let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset"]
         app.launch()
 
         let coins = app.otherElements["hud.coins"]

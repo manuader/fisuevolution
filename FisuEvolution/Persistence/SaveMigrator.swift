@@ -19,8 +19,21 @@ enum SaveMigrator {
         switch version {
         case PlayerState.currentSchemaVersion:
             return try JSONDecoder().decode(PlayerState.self, from: data)
+        case 1:
+            return try JSONDecoder().decode(PlayerState.self, from: migrateV1toV2(data))
         default:
             throw SaveMigrationError.unsupportedVersion(version)
         }
+    }
+
+    /// v1 → v2: aparece `activeModifiers` (F4). Transformación por diccionario para
+    /// no depender de un tipo `PlayerStateV1` congelado.
+    private static func migrateV1toV2(_ data: Data) throws -> Data {
+        guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw SaveMigrationError.unsupportedVersion(1)
+        }
+        object["activeModifiers"] = []
+        object["schemaVersion"] = 2
+        return try JSONSerialization.data(withJSONObject: object)
     }
 }

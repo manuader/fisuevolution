@@ -5,6 +5,7 @@ final class LaunchSmokeTests: XCTestCase {
     @MainActor
     func testLaunchShowsCoinHUD() throws {
         let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset"]
         app.launch()
 
         let coins = app.otherElements["hud.coins"]

@@ -56,6 +56,8 @@ final class GameState {
     private(set) var unitCount = 0
     private(set) var prestigeAvailable = false
     private(set) var soulPointsText = "0"
+    private(set) var ownedSkins: [String] = []
+    private(set) var activeSkin: String?
     var careerPrompt: CareerPrompt?
     var passivePrompt: PassivePrompt?
     var offlineReward: OfflineReward?
@@ -89,7 +91,13 @@ final class GameState {
             )
             self.repository = repository
 
-            if let saved = await repository.load() {
+            // Infra de UI tests: estado limpio y determinístico por launch argument.
+            var forceNewGame = false
+            #if DEBUG
+            forceNewGame = ProcessInfo.processInfo.arguments.contains("--uitest-reset")
+            #endif
+
+            if !forceNewGame, let saved = await repository.load() {
                 player = saved
                 Log.lifecycle.info("save loaded: prestige \(saved.prestigeLevel), maxTier \(saved.maxTierReached)")
             } else {
@@ -123,12 +131,25 @@ final class GameState {
     /// Passive income tick. Mutates only non-observed state — zero SwiftUI work.
     func tick(delta: TimeInterval) {
         guard let content, var player else { return }
-        IncomeTicker.tick(state: &player, tiers: content.tiers, delta: delta * debugTimeScale)
+        IncomeTicker.tick(
+            state: &player,
+            tiers: content.tiers,
+            delta: delta * debugTimeScale,
+            now: Date().timeIntervalSince1970
+        )
         self.player = player
     }
 
-    /// 8 Hz projection flush driven by the scene's frame counter.
+    /// 8 Hz projection flush driven by the scene's frame counter. Also prunes
+    /// expired modifiers (cheap; only mutates when something actually expired).
     func flushHUD() {
+        if var player {
+            let pruned = ModifierMath.prune(&player, now: Date().timeIntervalSince1970)
+            if pruned {
+                self.player = player
+                scheduleSave()
+            }
+        }
         refreshProjections()
     }
 
@@ -141,7 +162,7 @@ final class GameState {
               let type = content.tiers.type(id: placement.typeId)
         else { return nil }
 
-        let gain = economy.applyTap(type: type, state: &player)
+        let gain = economy.applyTap(type: type, state: &player, now: Date().timeIntervalSince1970)
         self.player = player
         refreshProjections()
         scheduleSave()
@@ -284,6 +305,98 @@ final class GameState {
         Log.economy.info("prestige applied: level \(player.prestigeLevel), soulPoints \(player.soulPoints)")
     }
 
+    // MARK: Store (F4)
+
+    /// StoreKit es la fuente de verdad; acá solo se cachea en el save.
+    func applyStoreEntitlements(removedAds: Bool, ownedSkins: [String]) {
+        guard var player else { return }
+        guard player.removedAds != removedAds || player.ownedSkins != ownedSkins else { return }
+        player.removedAds = removedAds
+        player.ownedSkins = ownedSkins
+        if let active = player.activeSkin, !ownedSkins.contains(active) {
+            player.activeSkin = nil
+        }
+        self.player = player
+        bumpBoard()
+        scheduleSave()
+    }
+
+    func setActiveSkin(_ skinId: String?) {
+        guard var player else { return }
+        if let skinId, !player.ownedSkins.contains(skinId) { return }
+        guard player.activeSkin != skinId else { return }
+        player.activeSkin = skinId
+        self.player = player
+        bumpBoard()
+        scheduleSave()
+    }
+
+    // MARK: Rewarded ads (F4 — efectos del bible §4.4)
+
+    func applyRewardedReward(_ reward: RewardedAdsConfig.Reward) {
+        guard var player else { return }
+        let now = Date().timeIntervalSince1970
+        switch reward.effectType {
+        case .incomeMultiplier:
+            guard let magnitude = reward.magnitude, let duration = reward.durationSeconds else { return }
+            player.activeModifiers.append(ActiveModifier(
+                effect: .incomeMultiplier,
+                magnitude: magnitude,
+                expiresAt: now + duration,
+                sourceKey: "rewarded.\(reward.id)"
+            ))
+            self.player = player
+            refreshProjections()
+            scheduleSave()
+        case .instantMerge:
+            performInstantMerge()
+        case .rareUnit:
+            grantRareUnit()
+        }
+        Log.economy.info("rewarded effect applied: \(reward.id)")
+    }
+
+    /// Merge gratis del par más alto disponible (saltea pares que pidan carrera).
+    private func performInstantMerge() {
+        guard var player, let content else { return }
+        var cellsByType: [String: [Int]] = [:]
+        for placement in player.board {
+            cellsByType[placement.typeId, default: []].append(placement.cellIndex)
+        }
+        let candidates = cellsByType
+            .filter { $0.value.count >= 2 }
+            .sorted { (content.tiers.type(id: $0.key)?.tier ?? 0) > (content.tiers.type(id: $1.key)?.tier ?? 0) }
+        for (typeId, cells) in candidates {
+            guard case .merged(let newTypeId) = MergeRules.evaluate(
+                sourceTypeId: typeId,
+                targetTypeId: typeId,
+                chosenCareerPath: player.chosenCareerPath,
+                tiers: content.tiers
+            ) else { continue }
+            BoardActions.applyMerge(sourceCell: cells[0], targetCell: cells[1], newTypeId: newTypeId, state: &player, tiers: content.tiers)
+            self.player = player
+            bumpBoard()
+            scheduleSave()
+            return
+        }
+    }
+
+    /// F4: "spawn rare" autosuficiente — dropea una unidad del tier máximo.
+    /// F5 lo recablea al drop real de special characters.
+    private func grantRareUnit() {
+        guard var player, let content else { return }
+        let tier = player.maxTierReached
+        guard let type = content.tiers.concreteTypes.first(where: { candidate in
+            candidate.tier == tier && (player.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
+        }) ?? content.tiers.concreteTypes.first(where: { $0.tier == tier }) else { return }
+        let occupied = Set(player.board.map(\.cellIndex))
+        guard let free = (0..<content.economy.board.cellCount).first(where: { !occupied.contains($0) }) else { return }
+        player.board.append(BoardPlacement(cellIndex: free, typeId: type.id))
+        self.player = player
+        bumpBoard()
+        scheduleSave()
+    }
+
     // MARK: Lifecycle (offline + immediate save)
 
     func handleScenePhase(_ scenePhase: ScenePhase) {
@@ -384,7 +497,7 @@ final class GameState {
     private func currentQuote(player: PlayerState) -> SpawnQuote? {
         guard let economy, let content else { return nil }
         let discount = content.prestigeUnlocks.cumulativeSpawnDiscount(atPrestigeLevel: player.prestigeLevel)
-        return economy.spawnQuote(state: player, tiers: content.tiers, costMultiplier: 1 - discount)
+        return economy.spawnQuote(state: player, tiers: content.tiers, costMultiplier: 1 - discount, now: Date().timeIntervalSince1970)
     }
 
     private func bumpBoard() {
@@ -413,6 +526,9 @@ final class GameState {
 
         let souls = String(player.soulPoints)
         if soulPointsText != souls { soulPointsText = souls }
+
+        if ownedSkins != player.ownedSkins { ownedSkins = player.ownedSkins }
+        if activeSkin != player.activeSkin { activeSkin = player.activeSkin }
     }
 
     private func scheduleSave() {

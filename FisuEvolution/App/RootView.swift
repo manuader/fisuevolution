@@ -33,6 +33,9 @@ struct GameBoardView: View {
     @Environment(GameState.self) private var gameState
     @State private var scene: BoardScene?
     @State private var showPrestige = false
+    @State private var showStore = false
+    @State private var showBonus = false
+    @State private var adsProvider = StubAdsProvider()
     #if DEBUG
     @State private var showDebugPanel = false
     #endif
@@ -46,7 +49,10 @@ struct GameBoardView: View {
                     .ignoresSafeArea()
             }
             VStack {
-                HUDView()
+                HUDView(
+                    onStoreTap: { showStore = true },
+                    onBonusTap: { showBonus = true }
+                )
                 Spacer()
                 bottomBar
             }
@@ -70,6 +76,12 @@ struct GameBoardView: View {
         }
         .sheet(isPresented: $showPrestige) {
             PrestigeView()
+        }
+        .sheet(isPresented: $showStore) {
+            StoreView()
+        }
+        .sheet(isPresented: $showBonus) {
+            BonusView(adsProvider: adsProvider)
         }
         #if DEBUG
         .sheet(isPresented: $showDebugPanel) {

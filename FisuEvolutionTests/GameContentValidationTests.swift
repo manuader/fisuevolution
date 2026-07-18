@@ -42,10 +42,13 @@ struct GameContentValidationTests {
         }
     }
 
-    @Test func economyConfigMatchesBibleDefaults() {
+    @Test func economyConfigMatchesTunedValues() {
+        // Valores del gate de balance F2 (ver Docs/balance-log.md), no los del
+        // bible §3 literal: el sim demostró que 15/1.15/perType llega a God en 7 min.
         #expect(content.economy.yieldGrowthPerTier == 3.8)
-        #expect(content.economy.spawn.baseCost == 15)
-        #expect(content.economy.spawn.costGrowth == 1.15)
+        #expect(content.economy.spawn.baseCost == 50)
+        #expect(content.economy.spawn.costGrowth == 1.022)
+        #expect(content.economy.spawn.costBasis == .total)
         #expect(content.economy.offlineCapHours == 8)
         #expect(content.economy.board.cellCount == 35)
     }

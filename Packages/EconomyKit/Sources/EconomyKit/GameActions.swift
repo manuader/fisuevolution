@@ -60,11 +60,14 @@ extension StandardEconomy {
             type = candidates[0]
         }
 
-        let purchases = state.spawnPurchases[type.id] ?? 0
+        let purchases: Int = switch config.spawn.costBasis {
+        case .perType: state.spawnPurchases[type.id] ?? 0
+        case .total: state.spawnPurchases.values.reduce(0, +)
+        }
         return SpawnQuote(
             type: type,
             cost: spawnCost(spawnTier: tier, purchases: purchases) * costMultiplier,
-            purchases: purchases
+            purchases: state.spawnPurchases[type.id] ?? 0
         )
     }
 

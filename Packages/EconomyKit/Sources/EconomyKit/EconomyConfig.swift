@@ -7,19 +7,42 @@ import Foundation
 /// is expressed here as `prestige.soulPointsDivisor` + `prestige.soulPointsExponent`.
 public struct EconomyConfig: Codable, Sendable, Equatable {
     public struct SpawnConfig: Codable, Sendable, Equatable {
+        /// What the cost-growth exponent counts. `perType` (bible literal): purchases
+        /// of the currently offered type — pacing colapsa en una sola pared cuando la
+        /// ventana de spawn avanza. `total`: todas las compras de la vida — inflación
+        /// global suave, pacing parejo (validado con balance-sim). [TUNEABLE]
+        public enum CostBasis: String, Codable, Sendable {
+            case perType
+            case total
+        }
+
         /// Base cost of the very first spawn purchase (bible: 15).
         public let baseCost: Double
-        /// Multiplicative growth per purchase of the current spawn tier (bible: 1.15).
+        /// Multiplicative growth per purchase counted according to `costBasis`.
         public let costGrowth: Double
         /// Progressive-spawn mechanic: the shop offers tier `max(1, maxTierReached - tierOffset)`.
         /// Approved extension to bible §2.3 rule 4 — reaching god with tier-1-only spawns
         /// would need 2^29 units.
         public let tierOffset: Int
+        public let costBasis: CostBasis
 
-        public init(baseCost: Double, costGrowth: Double, tierOffset: Int) {
+        public init(baseCost: Double, costGrowth: Double, tierOffset: Int, costBasis: CostBasis = .perType) {
             self.baseCost = baseCost
             self.costGrowth = costGrowth
             self.tierOffset = tierOffset
+            self.costBasis = costBasis
+        }
+
+        enum CodingKeys: String, CodingKey {
+            case baseCost, costGrowth, tierOffset, costBasis
+        }
+
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            baseCost = try container.decode(Double.self, forKey: .baseCost)
+            costGrowth = try container.decode(Double.self, forKey: .costGrowth)
+            tierOffset = try container.decode(Int.self, forKey: .tierOffset)
+            costBasis = try container.decodeIfPresent(CostBasis.self, forKey: .costBasis) ?? .perType
         }
     }
 

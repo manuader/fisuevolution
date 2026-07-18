@@ -5,9 +5,10 @@
   "passiveRatio": 0.3,
   "passiveUnlockCostMultiplier": 100,
   "spawn": {
-    "baseCost": 15,
-    "costGrowth": 1.15,
-    "tierOffset": 4
+    "baseCost": 50,
+    "costGrowth": 1.022,
+    "tierOffset": 4,
+    "costBasis": "total"
   },
   "critChanceBase": 0.0,
   "critMultiplier": 5.0,

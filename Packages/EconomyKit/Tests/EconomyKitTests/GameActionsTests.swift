@@ -104,6 +104,41 @@ struct GameActionsTests {
         #expect(abs(quote.cost - 15 * pow(1.15, 3)) < 1e-9)
     }
 
+    @Test func totalBasisCountsEveryLifetimeSpawn() throws {
+        var config = makeEconomy().config
+        config = EconomyConfig(
+            schemaVersion: config.schemaVersion,
+            baseTapYieldTier1: config.baseTapYieldTier1,
+            yieldGrowthPerTier: config.yieldGrowthPerTier,
+            passiveRatio: config.passiveRatio,
+            passiveUnlockCostMultiplier: config.passiveUnlockCostMultiplier,
+            spawn: .init(baseCost: 15, costGrowth: 1.15, tierOffset: 4, costBasis: .total),
+            critChanceBase: config.critChanceBase,
+            critMultiplier: config.critMultiplier,
+            offlineEfficiencyBase: config.offlineEfficiencyBase,
+            offlineCapHours: config.offlineCapHours,
+            prestige: config.prestige,
+            board: config.board
+        )
+        let totalEconomy = StandardEconomy(config: config)
+        let tiers = try makeTiers()
+        var state = makeState()
+        state.spawnPurchases = ["a": 2, "b": 3]
+        let quote = try #require(totalEconomy.spawnQuote(state: state, tiers: tiers))
+        // Exponente = 5 compras totales, aunque de "a" haya solo 2.
+        #expect(abs(quote.cost - 15 * pow(1.15, 5)) < 1e-9)
+        // El contador del quote sigue siendo per-type (lo usa applySpawn).
+        #expect(quote.purchases == 2)
+    }
+
+    @Test func costBasisDefaultsToPerTypeWhenAbsentInJSON() throws {
+        let json = """
+        {"baseCost": 15, "costGrowth": 1.15, "tierOffset": 4}
+        """
+        let spawn = try JSONDecoder().decode(EconomyConfig.SpawnConfig.self, from: Data(json.utf8))
+        #expect(spawn.costBasis == .perType)
+    }
+
     @Test func spawnDeductsCoinsAndPlacesOnFirstFreeCell() throws {
         let tiers = try makeTiers()
         var state = makeState()

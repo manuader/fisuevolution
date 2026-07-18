@@ -7,7 +7,7 @@ final class LaunchSmokeTests: XCTestCase {
         let app = XCUIApplication()
         app.launch()
 
-        let coins = app.staticTexts["hud.coins"]
+        let coins = app.otherElements["hud.coins"]
         XCTAssertTrue(coins.waitForExistence(timeout: 15), "HUD coin counter never appeared")
     }
 }

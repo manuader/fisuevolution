@@ -33,6 +33,8 @@ final class BoardScene: SKScene {
         fatalError("BoardScene is never decoded")
     }
 
+    private var renderedBoardVersion = -1
+
     override func didMove(to view: SKView) {
         layoutBoard()
     }
@@ -43,11 +45,66 @@ final class BoardScene: SKScene {
         layoutBoard()
     }
 
+    /// Frame hook. Board composition changes (spawn, merge) bump
+    /// `GameState.boardVersion`; comparing an Int per frame is the cheap,
+    /// Observation-free way to know when to relayout.
+    override func update(_ currentTime: TimeInterval) {
+        if gameState.boardVersion != renderedBoardVersion {
+            layoutBoard()
+        }
+    }
+
+    // MARK: - Tap (bible §2.3 regla 1)
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        guard let node = characterNode(at: location) else { return }
+        guard let gain = gameState.registerTap(cellIndex: node.cellIndex) else { return }
+        runTapFeedback(on: node, gain: gain)
+    }
+
+    /// Hit-testing returns the deepest node (sprite/label); climb to the unit.
+    private func characterNode(at point: CGPoint) -> CharacterNode? {
+        for candidate in nodes(at: point) {
+            var current: SKNode? = candidate
+            while let node = current {
+                if let character = node as? CharacterNode {
+                    return character
+                }
+                current = node.parent
+            }
+        }
+        return nil
+    }
+
+    /// Feedback mínimo de F1: bounce + "+N" flotante. F5 suma partícula, SFX y haptic.
+    private func runTapFeedback(on node: CharacterNode, gain: Double) {
+        node.removeAction(forKey: "tapBounce")
+        node.run(
+            .sequence([.scale(to: 1.12, duration: 0.06), .scale(to: 1.0, duration: 0.1)]),
+            withKey: "tapBounce"
+        )
+
+        let label = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        label.text = "+\(CoinFormatter.string(from: gain))"
+        label.fontSize = 17
+        label.fontColor = Palette.ink
+        label.position = CGPoint(x: node.position.x, y: node.position.y + 34)
+        label.zPosition = 100
+        gridNode.addChild(label)
+        label.run(.sequence([
+            .group([.moveBy(x: 0, y: 30, duration: 0.55), .fadeOut(withDuration: 0.55)]),
+            .removeFromParent(),
+        ]))
+    }
+
     /// Rebuilds the grid and re-renders every placement from the current player state.
     /// Cheap at F0 scale; F1/F2 switch to incremental updates driven by state changes.
     func layoutBoard() {
         guard let content = gameState.content, let player = gameState.player else { return }
         lastLayoutSize = size
+        renderedBoardVersion = gameState.boardVersion
 
         let board = content.economy.board
         let availableWidth = size.width - Self.horizontalInset * 2

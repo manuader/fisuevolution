@@ -28,12 +28,17 @@ struct GameBoardView: View {
     @State private var scene: BoardScene?
 
     var body: some View {
-        ZStack(alignment: .top) {
+        ZStack {
             if let scene {
                 SpriteView(scene: scene)
                     .ignoresSafeArea()
             }
-            HUDView()
+            VStack {
+                HUDView()
+                Spacer()
+                SpawnButtonView()
+                    .padding(.bottom, 20)
+            }
         }
         .onAppear {
             if scene == nil {

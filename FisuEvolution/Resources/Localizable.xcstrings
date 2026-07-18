@@ -49,6 +49,38 @@
         }
       }
     },
+    "spawn.button.title %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hire %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sumar %@"
+          }
+        }
+      }
+    },
+    "spawn.button.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buys a new character and places it on the board"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compra un personaje nuevo y lo pone en el tablero"
+          }
+        }
+      }
+    },
     "loading.title" : {
       "localizations" : {
         "en" : {

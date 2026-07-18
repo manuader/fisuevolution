@@ -9,18 +9,18 @@ struct HUDView: View {
         HStack(spacing: 8) {
             Image(systemName: "dollarsign.circle.fill")
                 .foregroundStyle(Color("PaletteYellow"))
-            Text(verbatim: gameState.coins.formatted(.number.precision(.fractionLength(0))))
+            Text(verbatim: gameState.coinsText)
                 .font(.title2.weight(.bold))
                 .monospacedDigit()
-                .accessibilityIdentifier("hud.coins")
         }
         .padding(.horizontal, 18)
         .padding(.vertical, 10)
         .background(Color("PaletteCream"), in: .capsule)
         .overlay(Capsule().stroke(Color("PaletteInk").opacity(0.3), lineWidth: 1.5))
         .padding(.top, 8)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier("hud.coins")
         .accessibilityLabel(Text("hud.coins.label"))
-        .accessibilityValue(Text(verbatim: gameState.coins.formatted(.number.precision(.fractionLength(0)))))
+        .accessibilityValue(Text(verbatim: gameState.coinsText))
     }
 }

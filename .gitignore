@@ -1,0 +1,18 @@
+# Xcode / build
+build/
+DerivedData/
+*.xcodeproj
+xcuserdata/
+*.xcuserstate
+.DS_Store
+
+# SwiftPM
+.build/
+.swiftpm/
+
+# Asset pipeline (F3)
+Tools/asset-pipeline/.venv/
+Tools/asset-pipeline/raw/
+Tools/asset-pipeline/cutout/
+Tools/asset-pipeline/ComfyUI/
+*.safetensors

@@ -19,6 +19,9 @@ settings:
     TARGETED_DEVICE_FAMILY: "1"
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     CODE_SIGN_STYLE: Automatic
+    # Sin AppIntents en ningún target; silencia el aviso del metadata processor
+    # para que el criterio "cero warnings" sea chequeable por grep.
+    ENABLE_APP_INTENTS_METADATA: NO
 targets:
   FisuEvolution:
     type: application

@@ -11,9 +11,18 @@ exactamente que hacer. Nunca se simula que una imagen existe.
 
 ```bash
 cd Tools/asset-pipeline
-python3 -m venv .venv && source .venv/bin/activate
+python3.12 -m venv .venv && source .venv/bin/activate   # 3.12, NO 3.14 (onnxruntime/torch)
 pip install -r requirements.txt        # vtracer es opcional; si falla, comentarlo
+# ComfyUI comparte el MISMO venv (sin conflictos de deps a 2026-07):
+pip install -r ComfyUI/requirements.txt
 ```
+
+Nota 2026-07: el plan es SIN LoRA (Tensor.Art requeria gate humano). La
+consistencia viene del prompt maestro completo en cada prompt (gen_prompts.py)
++ seeds fijos + QA CLIP. El workflow `workflows/sd15_hoboevo.json` ya no tiene
+nodo LoraLoader. Checkpoint: `ComfyUI/models/checkpoints/v1-5-pruned-emaonly.safetensors`
+(sha256 6ce01616...06fa2fa). Tiempo medido en la M1 Air 16GB: ~460 s por imagen
+768x768 a 28 steps (~15 s/step) — planificar tandas nocturnas o bajar a 512.
 
 Los scripts que solo arman texto/JSON (`gen_prompts.py`, `update_manifest.py
 --verify`) corren con python3 pelado, sin instalar nada.

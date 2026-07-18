@@ -16,3 +16,4 @@ Tools/asset-pipeline/raw/
 Tools/asset-pipeline/cutout/
 Tools/asset-pipeline/ComfyUI/
 *.safetensors
+build-ci/

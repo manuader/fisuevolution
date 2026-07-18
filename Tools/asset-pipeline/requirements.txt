@@ -1,6 +1,6 @@
 # Pipeline de arte Hobo Evolution — deps Python (M1 Air OK, todo gratis)
 # Instalar con: pip install -r requirements.txt
-rembg
+rembg[cpu]
 open_clip_torch
 pillow
 requests

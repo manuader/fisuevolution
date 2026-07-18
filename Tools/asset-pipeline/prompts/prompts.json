@@ -6,14 +6,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "scruffy homeless street man with attitude",
-    "props": "bottle, tattered layered clothes, fingerless gloves",
+    "subject": "scruffy homeless street man standing hunched forward with a lazy swagger, one knee bent, clutching a bottle against his chest",
+    "props": "green glass bottle hugged in both hands, tattered layered coats, fingerless gloves, patched beanie, broken untied sneakers",
     "ar_cues": "Buenos Aires street 'fisura' vibe, disheveled but endearing",
     "wealth_cues": "none, dirty patched clothes",
-    "expression": "dazed goofy stare",
+    "expression": "dazed goofy cross-eyed stare with a crooked grin",
     "seed": 100001,
-    "prompt": "hoboevo_style, scruffy homeless street man with attitude, bottle, tattered layered clothes, fingerless gloves, Buenos Aires street 'fisura' vibe, disheveled but endearing, none, dirty patched clothes, dazed goofy stare, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: scruffy homeless street man standing hunched forward with a lazy swagger, one knee bent, clutching a bottle against his chest. Props: green glass bottle hugged in both hands, tattered layered coats, fingerless gloves, patched beanie, broken untied sneakers. Cultural cues: Buenos Aires street 'fisura' vibe, disheveled but endearing. Wealth cues: none, dirty patched clothes. Expression: dazed goofy cross-eyed stare with a crooked grin. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 1,
     "phase": "earth"
   },
@@ -24,14 +24,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "street cardboard collector pushing a big two-wheeled cart",
-    "props": "cart piled with flattened cardboard, hi-vis reflective vest, worn cap",
+    "subject": "street cardboard collector standing proudly, one fist on his hip, the other hand gripping the handle of his upright two-wheeled cart beside him",
+    "props": "tall two-wheeled hand cart piled with flattened cardboard standing at his side, hi-vis reflective vest, worn cap, coil of rope over one shoulder",
     "ar_cues": "urban recycler hustling through the city, streetwise and proud",
     "wealth_cues": "very poor, patched trousers",
     "expression": "determined squint with a tired smile",
     "seed": 100002,
-    "prompt": "hoboevo_style, street cardboard collector pushing a big two-wheeled cart, cart piled with flattened cardboard, hi-vis reflective vest, worn cap, urban recycler hustling through the city, streetwise and proud, very poor, patched trousers, determined squint with a tired smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: street cardboard collector standing proudly, one fist on his hip, the other hand gripping the handle of his upright two-wheeled cart beside him. Props: tall two-wheeled hand cart piled with flattened cardboard standing at his side, hi-vis reflective vest, worn cap, coil of rope over one shoulder. Cultural cues: urban recycler hustling through the city, streetwise and proud. Wealth cues: very poor, patched trousers. Expression: determined squint with a tired smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 2,
     "phase": "earth"
   },
@@ -42,14 +42,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "small kiosk shop attendant behind a tiny counter window",
-    "props": "counter crammed with candy, pack of cigarettes, sleeping cat beside him, hanging snack strips",
-    "ar_cues": "neighborhood corner kiosk that never closes",
-    "wealth_cues": "modest, simple apron over t-shirt",
+    "subject": "kiosk shop attendant standing with a wooden vendor tray strapped over his shoulders, both hands steadying the tray, a sleeping cat curled at his feet",
+    "props": "vendor tray crammed with candy, packs of cigarettes and hanging snack strips, simple apron over t-shirt, sleeping cat at his feet",
+    "ar_cues": "neighborhood corner kiosk that never closes, now on the go",
+    "wealth_cues": "modest, faded apron",
     "expression": "sleepy deadpan stare",
     "seed": 100003,
-    "prompt": "hoboevo_style, small kiosk shop attendant behind a tiny counter window, counter crammed with candy, pack of cigarettes, sleeping cat beside him, hanging snack strips, neighborhood corner kiosk that never closes, modest, simple apron over t-shirt, sleepy deadpan stare, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: kiosk shop attendant standing with a wooden vendor tray strapped over his shoulders, both hands steadying the tray, a sleeping cat curled at his feet. Props: vendor tray crammed with candy, packs of cigarettes and hanging snack strips, simple apron over t-shirt, sleeping cat at his feet. Cultural cues: neighborhood corner kiosk that never closes, now on the go. Wealth cues: modest, faded apron. Expression: sleepy deadpan stare. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 3,
     "phase": "earth"
   },
@@ -60,14 +60,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "food delivery rider on a beat-up scooter",
-    "props": "oversized generic cube-shaped food-delivery backpack (parody, no real brand), scuffed helmet, cracked phone mounted on handlebar",
-    "ar_cues": "gig-economy courier racing through traffic",
+    "subject": "food delivery courier standing with knees slightly bent as if about to sprint, phone gripped in one hand, the other thumb hooked in his backpack strap",
+    "props": "oversized generic cube-shaped food-delivery backpack towering over his head (parody, no real brand), scuffed helmet with visor up, cracked phone",
+    "ar_cues": "gig-economy courier always racing the clock",
     "wealth_cues": "low income, worn-out sneakers",
     "expression": "stressed wide-eyed hurry",
     "seed": 100004,
-    "prompt": "hoboevo_style, food delivery rider on a beat-up scooter, oversized generic cube-shaped food-delivery backpack (parody, no real brand), scuffed helmet, cracked phone mounted on handlebar, gig-economy courier racing through traffic, low income, worn-out sneakers, stressed wide-eyed hurry, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: food delivery courier standing with knees slightly bent as if about to sprint, phone gripped in one hand, the other thumb hooked in his backpack strap. Props: oversized generic cube-shaped food-delivery backpack towering over his head (parody, no real brand), scuffed helmet with visor up, cracked phone. Cultural cues: gig-economy courier always racing the clock. Wealth cues: low income, worn-out sneakers. Expression: stressed wide-eyed hurry. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 4,
     "phase": "earth"
   },
@@ -78,14 +78,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "rideshare app driver leaning on his compact car",
-    "props": "small sedan car, courtesy water bottle and lollipop on the dashboard, phone with navigation app",
+    "subject": "rideshare app driver standing relaxed with weight on one leg, politely offering a tiny water bottle in one hand and a lollipop in the other",
+    "props": "courtesy mini water bottle and wrapped lollipop held out, car keys clipped to his belt, pine-tree air freshener dangling from his pocket, phone with navigation app in shirt pocket",
     "ar_cues": "chatty rideshare driver proud of his five-star rating",
     "wealth_cues": "working class, tidy polo shirt",
     "expression": "friendly overeager grin",
     "seed": 100005,
-    "prompt": "hoboevo_style, rideshare app driver leaning on his compact car, small sedan car, courtesy water bottle and lollipop on the dashboard, phone with navigation app, chatty rideshare driver proud of his five-star rating, working class, tidy polo shirt, friendly overeager grin, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: rideshare app driver standing relaxed with weight on one leg, politely offering a tiny water bottle in one hand and a lollipop in the other. Props: courtesy mini water bottle and wrapped lollipop held out, car keys clipped to his belt, pine-tree air freshener dangling from his pocket, phone with navigation app in shirt pocket. Cultural cues: chatty rideshare driver proud of his five-star rating. Wealth cues: working class, tidy polo shirt. Expression: friendly overeager grin. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 5,
     "phase": "earth"
   },
@@ -96,14 +96,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "fast food employee at the fryer counter",
-    "props": "fast-food uniform and paper hat (parody 'McRonald's'), greasy spatula, tray of fries",
+    "subject": "fast food employee standing with slumped shoulders, holding a greasy spatula like a wilted flag in one hand and a tray of fries in the other",
+    "props": "fast-food uniform and crooked paper hat (parody 'McRonald's'), greasy spatula, cardboard tray of fries, name tag",
     "ar_cues": "burger-joint shift that was supposed to be temporary",
     "wealth_cues": "minimum wage, grease-stained uniform",
     "expression": "resigned thousand-yard stare",
     "seed": 100006,
-    "prompt": "hoboevo_style, fast food employee at the fryer counter, fast-food uniform and paper hat (parody 'McRonald's'), greasy spatula, tray of fries, burger-joint shift that was supposed to be temporary, minimum wage, grease-stained uniform, resigned thousand-yard stare, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: fast food employee standing with slumped shoulders, holding a greasy spatula like a wilted flag in one hand and a tray of fries in the other. Props: fast-food uniform and crooked paper hat (parody 'McRonald's'), greasy spatula, cardboard tray of fries, name tag. Cultural cues: burger-joint shift that was supposed to be temporary. Wealth cues: minimum wage, grease-stained uniform. Expression: resigned thousand-yard stare. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 6,
     "phase": "earth"
   },
@@ -114,14 +114,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "tired office clerk at a cluttered desk",
-    "props": "wrinkled dress shirt, loosened tie, heavy eye bags, a mate gourd with metal straw on the desk",
+    "subject": "tired office clerk standing hunched, sipping from a mate gourd through a metal straw with one hand, a thermos tucked under the other arm",
+    "props": "mate gourd with metal bombilla straw, thermos under arm, wrinkled dress shirt, loosened cheap tie, lanyard ID badge, heavy eye bags",
     "ar_cues": "Buenos Aires office worker surviving on mate",
     "wealth_cues": "lower middle class, cheap tie",
     "expression": "exhausted forced smile",
     "seed": 100007,
-    "prompt": "hoboevo_style, tired office clerk at a cluttered desk, wrinkled dress shirt, loosened tie, heavy eye bags, a mate gourd with metal straw on the desk, Buenos Aires office worker surviving on mate, lower middle class, cheap tie, exhausted forced smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: tired office clerk standing hunched, sipping from a mate gourd through a metal straw with one hand, a thermos tucked under the other arm. Props: mate gourd with metal bombilla straw, thermos under arm, wrinkled dress shirt, loosened cheap tie, lanyard ID badge, heavy eye bags. Cultural cues: Buenos Aires office worker surviving on mate. Wealth cues: lower middle class, cheap tie. Expression: exhausted forced smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 7,
     "phase": "earth"
   },
@@ -132,14 +132,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "administrative clerk buried in official paperwork",
-    "props": "towering stacks of stamped folders, rubber stamp in hand, clip-on tie, loose form sheets flying",
+    "subject": "administrative clerk standing stiffly, hugging a wobbling tower of stamped folders with both arms, a rubber stamp balanced on top of the pile",
+    "props": "teetering stack of stamped official folders hugged to his chest, rubber stamp, clip-on tie, loose form sheets slipping out, sweater vest over shirt",
     "ar_cues": "endless bureaucracy, everything in triplicate with official seals",
-    "wealth_cues": "modest, sweater vest over shirt",
+    "wealth_cues": "modest, sweater vest",
     "expression": "bored bureaucratic blank stare",
     "seed": 100008,
-    "prompt": "hoboevo_style, administrative clerk buried in official paperwork, towering stacks of stamped folders, rubber stamp in hand, clip-on tie, loose form sheets flying, endless bureaucracy, everything in triplicate with official seals, modest, sweater vest over shirt, bored bureaucratic blank stare, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: administrative clerk standing stiffly, hugging a wobbling tower of stamped folders with both arms, a rubber stamp balanced on top of the pile. Props: teetering stack of stamped official folders hugged to his chest, rubber stamp, clip-on tie, loose form sheets slipping out, sweater vest over shirt. Cultural cues: endless bureaucracy, everything in triplicate with official seals. Wealth cues: modest, sweater vest. Expression: bored bureaucratic blank stare. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 8,
     "phase": "earth"
   },
@@ -150,14 +150,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "young junior programmer fresh out of university",
-    "props": "laptop covered in stickers, dark-mode screen glow, hoodie, energy drink can",
+    "subject": "young junior programmer fresh out of university, standing hugging a sticker-covered laptop to his chest with one arm, energy drink can raised in the other hand",
+    "props": "laptop covered in stickers hugged to chest, energy drink can, hoodie, rolled diploma with ribbon poking out of his worn backpack",
     "ar_cues": "proud new graduate holding his first job, empty pockets",
     "wealth_cues": "broke graduate, worn backpack",
     "expression": "nervous eager smile",
     "seed": 100009,
-    "prompt": "hoboevo_style, young junior programmer fresh out of university, laptop covered in stickers, dark-mode screen glow, hoodie, energy drink can, proud new graduate holding his first job, empty pockets, broke graduate, worn backpack, nervous eager smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: young junior programmer fresh out of university, standing hugging a sticker-covered laptop to his chest with one arm, energy drink can raised in the other hand. Props: laptop covered in stickers hugged to chest, energy drink can, hoodie, rolled diploma with ribbon poking out of his worn backpack. Cultural cues: proud new graduate holding his first job, empty pockets. Wealth cues: broke graduate, worn backpack. Expression: nervous eager smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 9,
     "phase": "earth"
   },
@@ -168,14 +168,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "young junior architect fresh out of university",
-    "props": "rolled blueprints, small building model, scale ruler in shirt pocket",
+    "subject": "young junior architect fresh out of university, standing very upright trying to look professional, rolled blueprints and a rolled diploma tucked under one arm, a small building model balanced on the other palm",
+    "props": "rolled blueprints, rolled diploma with ribbon, small building model held on open palm, scale ruler in shirt pocket, thrifted blazer",
     "ar_cues": "proud new graduate at his first studio internship, empty pockets",
     "wealth_cues": "broke graduate, thrifted blazer",
     "expression": "hopeful wide smile",
     "seed": 100010,
-    "prompt": "hoboevo_style, young junior architect fresh out of university, rolled blueprints, small building model, scale ruler in shirt pocket, proud new graduate at his first studio internship, empty pockets, broke graduate, thrifted blazer, hopeful wide smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: young junior architect fresh out of university, standing very upright trying to look professional, rolled blueprints and a rolled diploma tucked under one arm, a small building model balanced on the other palm. Props: rolled blueprints, rolled diploma with ribbon, small building model held on open palm, scale ruler in shirt pocket, thrifted blazer. Cultural cues: proud new graduate at his first studio internship, empty pockets. Wealth cues: broke graduate, thrifted blazer. Expression: hopeful wide smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 9,
     "phase": "earth"
   },
@@ -186,14 +186,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "young junior doctor fresh out of medical school",
-    "props": "oversized white coat, stethoscope around neck, clipboard, giant coffee thermos",
+    "subject": "young junior doctor fresh out of medical school, standing swaying half-asleep on his feet, gripping a giant coffee thermos with both hands",
+    "props": "oversized white coat, stethoscope around neck, giant coffee thermos held in both hands, rolled diploma with ribbon sticking out of coat pocket, scrubs under the coat",
     "ar_cues": "proud new graduate on a 24-hour hospital shift, empty pockets",
-    "wealth_cues": "broke graduate, scrubs under the coat",
+    "wealth_cues": "broke graduate, worn clogs",
     "expression": "sleep-deprived enthusiastic grin",
     "seed": 100011,
-    "prompt": "hoboevo_style, young junior doctor fresh out of medical school, oversized white coat, stethoscope around neck, clipboard, giant coffee thermos, proud new graduate on a 24-hour hospital shift, empty pockets, broke graduate, scrubs under the coat, sleep-deprived enthusiastic grin, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: young junior doctor fresh out of medical school, standing swaying half-asleep on his feet, gripping a giant coffee thermos with both hands. Props: oversized white coat, stethoscope around neck, giant coffee thermos held in both hands, rolled diploma with ribbon sticking out of coat pocket, scrubs under the coat. Cultural cues: proud new graduate on a 24-hour hospital shift, empty pockets. Wealth cues: broke graduate, worn clogs. Expression: sleep-deprived enthusiastic grin. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 9,
     "phase": "earth"
   },
@@ -204,14 +204,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "young junior lawyer fresh out of law school",
-    "props": "cheap slightly oversized suit, thick law code book under arm, bulging folder of case papers",
+    "subject": "young junior lawyer fresh out of law school, standing with chest puffed out, hugging a thick law code book with one arm and raising his rolled diploma triumphantly with the other hand",
+    "props": "cheap slightly oversized suit, thick law code book under arm, rolled diploma with ribbon held high, bulging folder of case papers wedged in his armpit",
     "ar_cues": "proud new graduate running courthouse errands, empty pockets",
     "wealth_cues": "broke graduate, scuffed dress shoes",
     "expression": "overconfident rookie smirk",
     "seed": 100012,
-    "prompt": "hoboevo_style, young junior lawyer fresh out of law school, cheap slightly oversized suit, thick law code book under arm, bulging folder of case papers, proud new graduate running courthouse errands, empty pockets, broke graduate, scuffed dress shoes, overconfident rookie smirk, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: young junior lawyer fresh out of law school, standing with chest puffed out, hugging a thick law code book with one arm and raising his rolled diploma triumphantly with the other hand. Props: cheap slightly oversized suit, thick law code book under arm, rolled diploma with ribbon held high, bulging folder of case papers wedged in his armpit. Cultural cues: proud new graduate running courthouse errands, empty pockets. Wealth cues: broke graduate, scuffed dress shoes. Expression: overconfident rookie smirk. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 9,
     "phase": "earth"
   },
@@ -222,14 +222,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "veteran senior programmer",
-    "props": "mechanical keyboard, triple monitor glow, worn hoodie over collared shirt, gray-streaked beard, rubber duck on desk",
+    "subject": "veteran senior programmer standing slouched with one hand deep in his hoodie pocket, a coffee-stained mug hooked on a finger of the other hand",
+    "props": "worn hoodie over collared shirt, laptop bag slung across chest, coffee-stained mug, rubber duck peeking out of the hoodie pocket, gray-streaked beard, expensive headphones around neck",
     "ar_cues": "grumpy tech lead who has seen every bug in existence",
     "wealth_cues": "comfortable, expensive headphones",
     "expression": "smug all-knowing smirk",
     "seed": 100013,
-    "prompt": "hoboevo_style, veteran senior programmer, mechanical keyboard, triple monitor glow, worn hoodie over collared shirt, gray-streaked beard, rubber duck on desk, grumpy tech lead who has seen every bug in existence, comfortable, expensive headphones, smug all-knowing smirk, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: veteran senior programmer standing slouched with one hand deep in his hoodie pocket, a coffee-stained mug hooked on a finger of the other hand. Props: worn hoodie over collared shirt, laptop bag slung across chest, coffee-stained mug, rubber duck peeking out of the hoodie pocket, gray-streaked beard, expensive headphones around neck. Cultural cues: grumpy tech lead who has seen every bug in existence. Wealth cues: comfortable, expensive headphones. Expression: smug all-knowing smirk. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 10,
     "phase": "earth"
   },
@@ -240,14 +240,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "veteran senior architect",
-    "props": "white hard hat, long blueprint tube, glasses pushed up on forehead, miniature skyscraper model in hand",
+    "subject": "veteran senior architect standing with feet planted wide as if surveying a construction site, blueprint tube resting over one shoulder, miniature skyscraper model held up in the other hand",
+    "props": "white hard hat, long blueprint tube over shoulder, miniature skyscraper model in hand, glasses pushed up on forehead, tailored shirt with rolled sleeves",
     "ar_cues": "seasoned architect bossing around a construction site",
-    "wealth_cues": "well-off, tailored shirt with rolled sleeves",
+    "wealth_cues": "well-off, tailored shirt",
     "expression": "confident appraising look",
     "seed": 100014,
-    "prompt": "hoboevo_style, veteran senior architect, white hard hat, long blueprint tube, glasses pushed up on forehead, miniature skyscraper model in hand, seasoned architect bossing around a construction site, well-off, tailored shirt with rolled sleeves, confident appraising look, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: veteran senior architect standing with feet planted wide as if surveying a construction site, blueprint tube resting over one shoulder, miniature skyscraper model held up in the other hand. Props: white hard hat, long blueprint tube over shoulder, miniature skyscraper model in hand, glasses pushed up on forehead, tailored shirt with rolled sleeves. Cultural cues: seasoned architect bossing around a construction site. Wealth cues: well-off, tailored shirt. Expression: confident appraising look. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 10,
     "phase": "earth"
   },
@@ -258,14 +258,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "veteran senior doctor",
-    "props": "pristine white coat, head mirror, expensive pen in chest pocket, framed diploma under arm",
+    "subject": "veteran senior doctor standing perfectly upright, one hand adjusting the head mirror on his forehead, a framed diploma tucked under the other arm",
+    "props": "pristine white coat, head mirror, framed diploma under arm, expensive pen in chest pocket, gold wristwatch",
     "ar_cues": "renowned specialist with a private practice",
     "wealth_cues": "wealthy professional, gold wristwatch",
     "expression": "calm reassuring smile",
     "seed": 100015,
-    "prompt": "hoboevo_style, veteran senior doctor, pristine white coat, head mirror, expensive pen in chest pocket, framed diploma under arm, renowned specialist with a private practice, wealthy professional, gold wristwatch, calm reassuring smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: veteran senior doctor standing perfectly upright, one hand adjusting the head mirror on his forehead, a framed diploma tucked under the other arm. Props: pristine white coat, head mirror, framed diploma under arm, expensive pen in chest pocket, gold wristwatch. Cultural cues: renowned specialist with a private practice. Wealth cues: wealthy professional, gold wristwatch. Expression: calm reassuring smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 10,
     "phase": "earth"
   },
@@ -276,14 +276,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 1,
-    "subject": "veteran senior lawyer",
-    "props": "sharp pinstripe suit, leather briefcase, gold fountain pen, thick signed contract",
+    "subject": "veteran senior lawyer standing in a courtroom power stance, one arm thrust forward brandishing a signed contract, leather briefcase gripped in the other hand",
+    "props": "sharp pinstripe suit, leather briefcase, thick signed contract held out, gold fountain pen in breast pocket, silk tie",
     "ar_cues": "feared courtroom shark who never loses",
     "wealth_cues": "wealthy professional, silk tie",
     "expression": "predatory confident grin",
     "seed": 100016,
-    "prompt": "hoboevo_style, veteran senior lawyer, sharp pinstripe suit, leather briefcase, gold fountain pen, thick signed contract, feared courtroom shark who never loses, wealthy professional, silk tie, predatory confident grin, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: veteran senior lawyer standing in a courtroom power stance, one arm thrust forward brandishing a signed contract, leather briefcase gripped in the other hand. Props: sharp pinstripe suit, leather briefcase, thick signed contract held out, gold fountain pen in breast pocket, silk tie. Cultural cues: feared courtroom shark who never loses. Wealth cues: wealthy professional, silk tie. Expression: predatory confident grin. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 10,
     "phase": "earth"
   },
@@ -294,14 +294,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "corporate director in a corner office",
-    "props": "tailored suit, desk name plate, tiny espresso cup, city skyline window behind",
+    "subject": "corporate director standing straight-backed, one hand adjusting a shiny cufflink, the other pinching a tiny espresso cup with his pinky raised",
+    "props": "tailored suit, tiny espresso cup held pinky-out, shiny cufflinks, small desk name plate tucked under one arm",
     "ar_cues": "middle-management boss who loves calling meetings",
     "wealth_cues": "upper class, shiny cufflinks",
     "expression": "practiced power smile",
     "seed": 100017,
-    "prompt": "hoboevo_style, corporate director in a corner office, tailored suit, desk name plate, tiny espresso cup, city skyline window behind, middle-management boss who loves calling meetings, upper class, shiny cufflinks, practiced power smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: corporate director standing straight-backed, one hand adjusting a shiny cufflink, the other pinching a tiny espresso cup with his pinky raised. Props: tailored suit, tiny espresso cup held pinky-out, shiny cufflinks, small desk name plate tucked under one arm. Cultural cues: middle-management boss who loves calling meetings. Wealth cues: upper class, shiny cufflinks. Expression: practiced power smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 11,
     "phase": "earth"
   },
@@ -312,14 +312,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "startup founder pitching his big idea",
-    "props": "blazer over graphic t-shirt, conference lanyard badge, floating pitch-deck slides, unicorn coffee mug",
+    "subject": "startup founder standing mid-pitch with both arms spread wide, presenting an invisible world-changing idea",
+    "props": "blazer over graphic t-shirt, conference lanyard badge swinging, unicorn coffee mug hooked on one thumb, small pitch-deck cards fanned in the other hand",
     "ar_cues": "buzzword-loving tech founder promising to disrupt everything",
     "wealth_cues": "paper millionaire, designer sneakers",
     "expression": "visionary wide-eyed intensity",
     "seed": 100018,
-    "prompt": "hoboevo_style, startup founder pitching his big idea, blazer over graphic t-shirt, conference lanyard badge, floating pitch-deck slides, unicorn coffee mug, buzzword-loving tech founder promising to disrupt everything, paper millionaire, designer sneakers, visionary wide-eyed intensity, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: startup founder standing mid-pitch with both arms spread wide, presenting an invisible world-changing idea. Props: blazer over graphic t-shirt, conference lanyard badge swinging, unicorn coffee mug hooked on one thumb, small pitch-deck cards fanned in the other hand. Cultural cues: buzzword-loving tech founder promising to disrupt everything. Wealth cues: paper millionaire, designer sneakers. Expression: visionary wide-eyed intensity. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 12,
     "phase": "earth"
   },
@@ -330,14 +330,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "small factory business owner",
-    "props": "shirt with rolled sleeves, big ring of keys on belt, small delivery truck behind, old calculator in hand",
+    "subject": "small factory business owner standing solid with feet planted wide, hoisting a heavy ring of keys in one fist, an old calculator gripped in the other hand",
+    "props": "shirt with rolled sleeves, big ring of keys held up, chunky old calculator, pencil behind ear, sturdy work boots",
     "ar_cues": "hard-working family business boss who does every job himself",
     "wealth_cues": "solid middle class, sturdy work boots",
     "expression": "proud tired smile",
     "seed": 100019,
-    "prompt": "hoboevo_style, small factory business owner, shirt with rolled sleeves, big ring of keys on belt, small delivery truck behind, old calculator in hand, hard-working family business boss who does every job himself, solid middle class, sturdy work boots, proud tired smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: small factory business owner standing solid with feet planted wide, hoisting a heavy ring of keys in one fist, an old calculator gripped in the other hand. Props: shirt with rolled sleeves, big ring of keys held up, chunky old calculator, pencil behind ear, sturdy work boots. Cultural cues: hard-working family business boss who does every job himself. Wealth cues: solid middle class, sturdy work boots. Expression: proud tired smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 13,
     "phase": "earth"
   },
@@ -348,14 +348,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "hustling serial entrepreneur",
-    "props": "megaphone in hand, generic mindset book under arm, whiteboard with rising arrow chart, headset microphone",
+    "subject": "hustling serial entrepreneur standing on tiptoes, shouting into a megaphone raised high with one hand, a generic mindset book clutched against his chest with the other",
+    "props": "megaphone raised high, generic mindset book, headset microphone, shiny suit, rubber motivational wristbands",
     "ar_cues": "hustle-culture guru selling online courses",
     "wealth_cues": "flashy but leveraged, shiny suit",
     "expression": "over-caffeinated megawatt smile",
     "seed": 100020,
-    "prompt": "hoboevo_style, hustling serial entrepreneur, megaphone in hand, generic mindset book under arm, whiteboard with rising arrow chart, headset microphone, hustle-culture guru selling online courses, flashy but leveraged, shiny suit, over-caffeinated megawatt smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: hustling serial entrepreneur standing on tiptoes, shouting into a megaphone raised high with one hand, a generic mindset book clutched against his chest with the other. Props: megaphone raised high, generic mindset book, headset microphone, shiny suit, rubber motivational wristbands. Cultural cues: hustle-culture guru selling online courses. Wealth cues: flashy but leveraged, shiny suit. Expression: over-caffeinated megawatt smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 14,
     "phase": "earth"
   },
@@ -366,14 +366,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "powerful corporate CEO",
-    "props": "immaculate dark suit, golden tie, smartphone in hand, skyscraper silhouette behind",
+    "subject": "powerful corporate CEO standing with arms firmly crossed over his chest, chin raised, feet planted like he owns the ground",
+    "props": "immaculate dark suit, golden tie, gold watch peeking from crossed arms, smartphone poking out of breast pocket, pocket square",
     "ar_cues": "untouchable big-company boss, board meetings and golf",
     "wealth_cues": "rich, gold watch and pocket square",
     "expression": "cold triumphant smirk",
     "seed": 100021,
-    "prompt": "hoboevo_style, powerful corporate CEO, immaculate dark suit, golden tie, smartphone in hand, skyscraper silhouette behind, untouchable big-company boss, board meetings and golf, rich, gold watch and pocket square, cold triumphant smirk, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: powerful corporate CEO standing with arms firmly crossed over his chest, chin raised, feet planted like he owns the ground. Props: immaculate dark suit, golden tie, gold watch peeking from crossed arms, smartphone poking out of breast pocket, pocket square. Cultural cues: untouchable big-company boss, board meetings and golf. Wealth cues: rich, gold watch and pocket square. Expression: cold triumphant smirk. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 15,
     "phase": "earth"
   },
@@ -384,14 +384,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "flashy new millionaire",
-    "props": "banknotes raining around him, champagne glass, fur-collared coat, chunky gold rings",
+    "subject": "flashy new millionaire standing with legs wide mid-laugh, both arms thrown open, champagne glass raised in one hand",
+    "props": "banknotes raining around him, champagne glass held high, fur-collared coat, chunky gold rings on every finger, bills stuffed in every pocket",
     "ar_cues": "new money showing off everything at once",
-    "wealth_cues": "millionaire, bills stuffed in every pocket",
+    "wealth_cues": "millionaire, overflowing pockets",
     "expression": "ecstatic laughing grin",
     "seed": 100022,
-    "prompt": "hoboevo_style, flashy new millionaire, banknotes raining around him, champagne glass, fur-collared coat, chunky gold rings, new money showing off everything at once, millionaire, bills stuffed in every pocket, ecstatic laughing grin, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: flashy new millionaire standing with legs wide mid-laugh, both arms thrown open, champagne glass raised in one hand. Props: banknotes raining around him, champagne glass held high, fur-collared coat, chunky gold rings on every finger, bills stuffed in every pocket. Cultural cues: new money showing off everything at once. Wealth cues: millionaire, overflowing pockets. Expression: ecstatic laughing grin. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 16,
     "phase": "earth"
   },
@@ -402,14 +402,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "extravagant multi-millionaire",
-    "props": "open briefcase overflowing with cash, small yacht model in hand, multiple gold chains, diamond tie pin",
+    "subject": "extravagant multi-millionaire standing bored with his weight on one leg, presenting an open cash-stuffed briefcase on one flat palm like a waiter's tray, a tiny yacht model dangling from the other hand",
+    "props": "open briefcase overflowing with cash held on one palm, small yacht model dangling by its mast, multiple gold chains, diamond tie pin, velvet suit",
     "ar_cues": "tycoon who owns half the city and forgot which half",
     "wealth_cues": "obscene wealth, velvet suit",
     "expression": "bored unimpressed look",
     "seed": 100023,
-    "prompt": "hoboevo_style, extravagant multi-millionaire, open briefcase overflowing with cash, small yacht model in hand, multiple gold chains, diamond tie pin, tycoon who owns half the city and forgot which half, obscene wealth, velvet suit, bored unimpressed look, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: extravagant multi-millionaire standing bored with his weight on one leg, presenting an open cash-stuffed briefcase on one flat palm like a waiter's tray, a tiny yacht model dangling from the other hand. Props: open briefcase overflowing with cash held on one palm, small yacht model dangling by its mast, multiple gold chains, diamond tie pin, velvet suit. Cultural cues: tycoon who owns half the city and forgot which half. Wealth cues: obscene wealth, velvet suit. Expression: bored unimpressed look. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 17,
     "phase": "earth"
   },
@@ -420,14 +420,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "real-estate mogul, king of bricks",
-    "props": "holding a brick and a tower model, crown made of little bricks, folded blueprints in pocket",
+    "subject": "real-estate mogul king of bricks, standing like a statue holding a single brick aloft in one hand like a trophy, a tower model tucked under the other arm",
+    "props": "crown made of little bricks, single brick raised high, apartment tower model under arm, folded blueprints in pocket, brick-red suit",
     "ar_cues": "buys whole city blocks, preaches that bricks never lose value",
     "wealth_cues": "massive property wealth, brick-red suit",
     "expression": "beaming landlord grin",
     "seed": 100024,
-    "prompt": "hoboevo_style, real-estate mogul, king of bricks, holding a brick and a tower model, crown made of little bricks, folded blueprints in pocket, buys whole city blocks, preaches that bricks never lose value, massive property wealth, brick-red suit, beaming landlord grin, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: real-estate mogul king of bricks, standing like a statue holding a single brick aloft in one hand like a trophy, a tower model tucked under the other arm. Props: crown made of little bricks, single brick raised high, apartment tower model under arm, folded blueprints in pocket, brick-red suit. Cultural cues: buys whole city blocks, preaches that bricks never lose value. Wealth cues: massive property wealth, brick-red suit. Expression: beaming landlord grin. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 18,
     "phase": "earth"
   },
@@ -438,14 +438,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "classic oil tycoon magnate",
-    "props": "black top hat, oil derrick silhouette behind, oil barrel, fat cigar, oil-drop pattern tie",
+    "subject": "classic oil tycoon standing with one foot propped up on an oil barrel, both hands resting on a gold-tipped cane, fat cigar clamped in his grin",
+    "props": "black top hat, oil barrel under his boot, gold-tipped cane, fat cigar, oil-drop pattern tie, oil splashes on his suit",
     "ar_cues": "old-school baron striking black gold",
     "wealth_cues": "petro-rich, gold-tipped cane",
     "expression": "greedy delighted grin",
     "seed": 100025,
-    "prompt": "hoboevo_style, classic oil tycoon magnate, black top hat, oil derrick silhouette behind, oil barrel, fat cigar, oil-drop pattern tie, old-school baron striking black gold, petro-rich, gold-tipped cane, greedy delighted grin, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: classic oil tycoon standing with one foot propped up on an oil barrel, both hands resting on a gold-tipped cane, fat cigar clamped in his grin. Props: black top hat, oil barrel under his boot, gold-tipped cane, fat cigar, oil-drop pattern tie, oil splashes on his suit. Cultural cues: old-school baron striking black gold. Wealth cues: petro-rich, gold-tipped cane. Expression: greedy delighted grin. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 19,
     "phase": "earth"
   },
@@ -456,14 +456,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "eccentric space-obsessed billionaire",
-    "props": "business suit with astronaut helmet under arm, toy-like personal rocket behind, mission patch on chest",
+    "subject": "eccentric space-obsessed billionaire standing in a heroic launch pose, one arm pointing straight up at the sky, astronaut helmet tucked under the other arm",
+    "props": "business suit with a small toy-like jetpack strapped on his back, astronaut helmet under arm, mission patch on chest, platinum watch",
     "ar_cues": "tech billionaire racing his own rockets to space, generic parody of no real person",
     "wealth_cues": "billionaire, platinum watch",
     "expression": "manic visionary grin",
     "seed": 100026,
-    "prompt": "hoboevo_style, eccentric space-obsessed billionaire, business suit with astronaut helmet under arm, toy-like personal rocket behind, mission patch on chest, tech billionaire racing his own rockets to space, generic parody of no real person, billionaire, platinum watch, manic visionary grin, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: eccentric space-obsessed billionaire standing in a heroic launch pose, one arm pointing straight up at the sky, astronaut helmet tucked under the other arm. Props: business suit with a small toy-like jetpack strapped on his back, astronaut helmet under arm, mission patch on chest, platinum watch. Cultural cues: tech billionaire racing his own rockets to space, generic parody of no real person. Wealth cues: billionaire, platinum watch. Expression: manic visionary grin. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 20,
     "phase": "earth"
   },
@@ -474,14 +474,14 @@
     "family": "characters_earth",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "reality-bending trillionaire",
-    "props": "monocle, banknotes orbiting him like satellites, tiny planet held like a stress ball, infinity-pattern suit",
+    "subject": "reality-bending trillionaire standing perfectly still and serene, one hand behind his back, the other holding a tiny planet like a stress ball",
+    "props": "monocle, banknotes orbiting around him like satellites, tiny planet held in one palm, infinity-pattern suit with glowing golden trim",
     "ar_cues": "wealth beyond countries, buys economies for fun",
-    "wealth_cues": "trillions, glowing golden trim on suit",
+    "wealth_cues": "trillions, glowing golden trim",
     "expression": "serene untouchable smile",
     "seed": 100027,
-    "prompt": "hoboevo_style, reality-bending trillionaire, monocle, banknotes orbiting him like satellites, tiny planet held like a stress ball, infinity-pattern suit, wealth beyond countries, buys economies for fun, trillions, glowing golden trim on suit, serene untouchable smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: reality-bending trillionaire standing perfectly still and serene, one hand behind his back, the other holding a tiny planet like a stress ball. Props: monocle, banknotes orbiting around him like satellites, tiny planet held in one palm, infinity-pattern suit with glowing golden trim. Cultural cues: wealth beyond countries, buys economies for fun. Wealth cues: trillions, glowing golden trim. Expression: serene untouchable smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 21,
     "phase": "earth"
   },
@@ -492,14 +492,14 @@
     "family": "characters_cosmic",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "proud owner of the Moon standing on lunar ground",
-    "props": "chunky moon boots, planted flag with his own smiling face on it, framed property deed, astronaut helmet under arm",
+    "subject": "proud new owner of the Moon standing with chest puffed out, one hand gripping a planted flag pole at his side, framed property deed tucked under the other arm",
+    "props": "planted flag with his own smiling face printed on it, framed property deed under arm, chunky moon boots, astronaut helmet hooked on his belt, silver-glitter suit",
     "ar_cues": "bought the entire Moon as a real-estate flex",
     "wealth_cues": "lunar landlord, silver-glitter suit",
     "expression": "smug landlord smirk",
     "seed": 200001,
-    "prompt": "hoboevo_style, proud owner of the Moon standing on lunar ground, chunky moon boots, planted flag with his own smiling face on it, framed property deed, astronaut helmet under arm, bought the entire Moon as a real-estate flex, lunar landlord, silver-glitter suit, smug landlord smirk, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: proud new owner of the Moon standing with chest puffed out, one hand gripping a planted flag pole at his side, framed property deed tucked under the other arm. Props: planted flag with his own smiling face printed on it, framed property deed under arm, chunky moon boots, astronaut helmet hooked on his belt, silver-glitter suit. Cultural cues: bought the entire Moon as a real-estate flex. Wealth cues: lunar landlord, silver-glitter suit. Expression: smug landlord smirk. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 22,
     "phase": "cosmic"
   },
@@ -510,14 +510,14 @@
     "family": "characters_cosmic",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "owner of planet Mars",
-    "props": "red dusty ground, sold-style sign post planted in the soil, snow globe with a tiny domed city inside, spacesuit with a painted-on necktie",
+    "subject": "owner of planet Mars standing mid-wink, one hand resting on a 'sold'-style sign post planted beside him, the other hand holding up a snow globe with a tiny domed city inside",
+    "props": "sold-style sign post at his side, snow globe with miniature domed city, spacesuit with a painted-on necktie, copper-red cape, red dust on his boots",
     "ar_cues": "flipping an entire red planet like a fixer-upper",
     "wealth_cues": "interplanetary mogul, copper-red cape",
     "expression": "deal-closing wink",
     "seed": 200002,
-    "prompt": "hoboevo_style, owner of planet Mars, red dusty ground, sold-style sign post planted in the soil, snow globe with a tiny domed city inside, spacesuit with a painted-on necktie, flipping an entire red planet like a fixer-upper, interplanetary mogul, copper-red cape, deal-closing wink, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: owner of planet Mars standing mid-wink, one hand resting on a 'sold'-style sign post planted beside him, the other hand holding up a snow globe with a tiny domed city inside. Props: sold-style sign post at his side, snow globe with miniature domed city, spacesuit with a painted-on necktie, copper-red cape, red dust on his boots. Cultural cues: flipping an entire red planet like a fixer-upper. Wealth cues: interplanetary mogul, copper-red cape. Expression: deal-closing wink. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 23,
     "phase": "cosmic"
   },
@@ -528,14 +528,14 @@
     "family": "characters_cosmic",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "magnate of the entire solar system",
-    "props": "holding a miniature glowing sun like a beach ball, small planets orbiting his head, cosmic sunglasses",
+    "subject": "magnate of the entire solar system standing with legs apart, hoisting a miniature glowing sun overhead in one hand like a championship trophy, the other fist on his hip",
+    "props": "miniature glowing sun held overhead, small planets orbiting his head, cosmic sunglasses, radiant golden suit",
     "ar_cues": "owns every planet and charges tolls per orbit",
     "wealth_cues": "solar-scale riches, radiant golden suit",
     "expression": "blinding confident smile",
     "seed": 200003,
-    "prompt": "hoboevo_style, magnate of the entire solar system, holding a miniature glowing sun like a beach ball, small planets orbiting his head, cosmic sunglasses, owns every planet and charges tolls per orbit, solar-scale riches, radiant golden suit, blinding confident smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: magnate of the entire solar system standing with legs apart, hoisting a miniature glowing sun overhead in one hand like a championship trophy, the other fist on his hip. Props: miniature glowing sun held overhead, small planets orbiting his head, cosmic sunglasses, radiant golden suit. Cultural cues: owns every planet and charges tolls per orbit. Wealth cues: solar-scale riches, radiant golden suit. Expression: blinding confident smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 24,
     "phase": "cosmic"
   },
@@ -546,14 +546,14 @@
     "family": "characters_cosmic",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "lord of the galaxy",
-    "props": "swirling spiral-galaxy cape, small stars orbiting his crown, staff topped with a tiny black hole",
+    "subject": "lord of the galaxy standing regally with both hands resting on a tall staff planted in front of him, cape billowing behind",
+    "props": "staff topped with a tiny swirling black hole, spiral-galaxy cape, small stars orbiting his crown, constellation-pattern robe",
     "ar_cues": "galactic overlord signing away star systems like paperwork",
-    "wealth_cues": "galactic empire, constellation-pattern robe",
+    "wealth_cues": "galactic empire, constellation robe",
     "expression": "regal amused stare",
     "seed": 200004,
-    "prompt": "hoboevo_style, lord of the galaxy, swirling spiral-galaxy cape, small stars orbiting his crown, staff topped with a tiny black hole, galactic overlord signing away star systems like paperwork, galactic empire, constellation-pattern robe, regal amused stare, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: lord of the galaxy standing regally with both hands resting on a tall staff planted in front of him, cape billowing behind. Props: staff topped with a tiny swirling black hole, spiral-galaxy cape, small stars orbiting his crown, constellation-pattern robe. Cultural cues: galactic overlord signing away star systems like paperwork. Wealth cues: galactic empire, constellation robe. Expression: regal amused stare. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 25,
     "phase": "cosmic"
   },
@@ -564,14 +564,14 @@
     "family": "characters_cosmic",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "cosmic emperor on a floating nebula throne",
-    "props": "massive jagged crown, scepter topped with a spinning planet, cape made of nebula clouds",
+    "subject": "cosmic emperor standing imperiously with feet planted, scepter struck into the ground beside him, the other hand raised mid-decree",
+    "props": "massive jagged crown, scepter topped with a spinning planet, cape made of nebula clouds spread wide, jewel-studded ceremonial robe",
     "ar_cues": "rules space itself and taxes light for passing through",
-    "wealth_cues": "cosmic empire, jewel-studded ceremonial robe",
+    "wealth_cues": "cosmic empire, jeweled robe",
     "expression": "imperious raised eyebrow",
     "seed": 200005,
-    "prompt": "hoboevo_style, cosmic emperor on a floating nebula throne, massive jagged crown, scepter topped with a spinning planet, cape made of nebula clouds, rules space itself and taxes light for passing through, cosmic empire, jewel-studded ceremonial robe, imperious raised eyebrow, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: cosmic emperor standing imperiously with feet planted, scepter struck into the ground beside him, the other hand raised mid-decree. Props: massive jagged crown, scepter topped with a spinning planet, cape made of nebula clouds spread wide, jewel-studded ceremonial robe. Cultural cues: rules space itself and taxes light for passing through. Wealth cues: cosmic empire, jeweled robe. Expression: imperious raised eyebrow. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 26,
     "phase": "cosmic"
   },
@@ -582,14 +582,14 @@
     "family": "characters_cosmic",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "ascended being of pure energy",
-    "props": "floating cross-legged in lotus pose, glowing third eye, body outlined in radiant light, small floating orbs",
+    "subject": "ascended being of pure energy standing weightlessly on tiptoe, bare feet barely touching the ground, arms open at his sides with palms up",
+    "props": "glowing third eye, body outlined in radiant light, small glowing orbs circling his open hands, faint energy ripples at his feet",
     "ar_cues": "transcended money, now he IS the economy",
     "wealth_cues": "beyond material wealth, luminous aura",
     "expression": "blissful enlightened smile",
     "seed": 200006,
-    "prompt": "hoboevo_style, ascended being of pure energy, floating cross-legged in lotus pose, glowing third eye, body outlined in radiant light, small floating orbs, transcended money, now he IS the economy, beyond material wealth, luminous aura, blissful enlightened smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: ascended being of pure energy standing weightlessly on tiptoe, bare feet barely touching the ground, arms open at his sides with palms up. Props: glowing third eye, body outlined in radiant light, small glowing orbs circling his open hands, faint energy ripples at his feet. Cultural cues: transcended money, now he IS the economy. Wealth cues: beyond material wealth, luminous aura. Expression: blissful enlightened smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 27,
     "phase": "cosmic"
   },
@@ -600,14 +600,14 @@
     "family": "characters_cosmic",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "muscular demigod",
-    "props": "white toga with golden trim, laurel wreath, lightning bolt gripped in fist, tiny pet storm cloud",
+    "subject": "muscular demigod standing in a heroic contrapposto, flexing one bicep while gripping a lightning bolt raised in the other fist",
+    "props": "white toga with golden trim, laurel wreath, lightning bolt gripped in fist, tiny pet storm cloud hovering by his shoulder, golden sandals",
     "ar_cues": "half mortal half divine, still checks his investment portfolio",
     "wealth_cues": "divine treasures, golden sandals",
     "expression": "heroic overconfident grin",
     "seed": 200007,
-    "prompt": "hoboevo_style, muscular demigod, white toga with golden trim, laurel wreath, lightning bolt gripped in fist, tiny pet storm cloud, half mortal half divine, still checks his investment portfolio, divine treasures, golden sandals, heroic overconfident grin, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: muscular demigod standing in a heroic contrapposto, flexing one bicep while gripping a lightning bolt raised in the other fist. Props: white toga with golden trim, laurel wreath, lightning bolt gripped in fist, tiny pet storm cloud hovering by his shoulder, golden sandals. Cultural cues: half mortal half divine, still checks his investment portfolio. Wealth cues: divine treasures, golden sandals. Expression: heroic overconfident grin. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 28,
     "phase": "cosmic"
   },
@@ -618,14 +618,14 @@
     "family": "characters_cosmic",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "radiant multi-armed deity",
-    "props": "four arms holding a coin, a lightning bolt, balance scales and a mate gourd, golden halo disc behind head",
+    "subject": "radiant multi-armed deity standing perfectly symmetrical and serene, four arms fanned out like a golden statue",
+    "props": "four hands holding a coin, a lightning bolt, balance scales and a mate gourd, golden halo disc behind head, ornate jewelry",
     "ar_cues": "worshipped as the god of hustle",
     "wealth_cues": "temples of gold, ornate jewelry",
     "expression": "serene all-knowing smile",
     "seed": 200008,
-    "prompt": "hoboevo_style, radiant multi-armed deity, four arms holding a coin, a lightning bolt, balance scales and a mate gourd, golden halo disc behind head, worshipped as the god of hustle, temples of gold, ornate jewelry, serene all-knowing smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: radiant multi-armed deity standing perfectly symmetrical and serene, four arms fanned out like a golden statue. Props: four hands holding a coin, a lightning bolt, balance scales and a mate gourd, golden halo disc behind head, ornate jewelry. Cultural cues: worshipped as the god of hustle. Wealth cues: temples of gold, ornate jewelry. Expression: serene all-knowing smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 29,
     "phase": "cosmic"
   },
@@ -636,14 +636,14 @@
     "family": "characters_cosmic",
     "qa_family": "characters",
     "tanda": 4,
-    "subject": "supreme god of everything",
-    "props": "enormous white cloud beard, all-seeing eye above his head, cosmic halo, tiny spinning universe in one palm, mate gourd in the other hand",
+    "subject": "supreme god of everything standing calm and colossal, one open palm holding a tiny spinning universe at chest height, the other hand raising a mate gourd like a toast",
+    "props": "enormous white cloud beard flowing down to his feet, all-seeing eye above his head, cosmic halo, tiny spinning universe in one palm, mate gourd with metal straw in the other hand, robe of stars",
     "ar_cues": "the final form: God himself, but he still drinks mate",
     "wealth_cues": "owns existence itself, robe of stars",
     "expression": "warm omnipotent smile",
     "seed": 200009,
-    "prompt": "hoboevo_style, supreme god of everything, enormous white cloud beard, all-seeing eye above his head, cosmic halo, tiny spinning universe in one palm, mate gourd in the other hand, the final form: God himself, but he still drinks mate, owns existence itself, robe of stars, warm omnipotent smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs",
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: supreme god of everything standing calm and colossal, one open palm holding a tiny spinning universe at chest height, the other hand raising a mate gourd like a toast. Props: enormous white cloud beard flowing down to his feet, all-seeing eye above his head, cosmic halo, tiny spinning universe in one palm, mate gourd with metal straw in the other hand, robe of stars. Cultural cues: the final form: God himself, but he still drinks mate. Wealth cues: owns existence itself, robe of stars. Expression: warm omnipotent smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",
     "tier": 30,
     "phase": "cosmic"
   },
@@ -660,8 +660,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500001,
-    "prompt": "hoboevo_style, mobile game button, rounded rectangle, sunny yellow fill, darker flat bottom edge, no icon, no label, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: sunny yellow fill, darker flat bottom edge, no icon, no label. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_btn_secondary",
@@ -676,8 +676,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500002,
-    "prompt": "hoboevo_style, mobile game button, rounded rectangle, sky blue fill, darker flat bottom edge, no icon, no label, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: sky blue fill, darker flat bottom edge, no icon, no label. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_btn_danger",
@@ -692,8 +692,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500003,
-    "prompt": "hoboevo_style, mobile game button, rounded rectangle, hot pink-red fill, darker flat bottom edge, no icon, no label, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: hot pink-red fill, darker flat bottom edge, no icon, no label. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_btn_disabled",
@@ -708,8 +708,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500004,
-    "prompt": "hoboevo_style, mobile game button, rounded rectangle, desaturated gray fill, pressed flat look, no icon, no label, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: desaturated gray fill, pressed flat look, no icon, no label. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_btn_store",
@@ -724,8 +724,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500005,
-    "prompt": "hoboevo_style, mobile game button, rounded rectangle, orange fill with a white shopping cart glyph, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: orange fill with a white shopping cart glyph. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_btn_upgrade",
@@ -740,8 +740,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500006,
-    "prompt": "hoboevo_style, mobile game button, rounded rectangle, green fill with a white upward arrow glyph, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: green fill with a white upward arrow glyph. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_btn_reincarnate",
@@ -756,8 +756,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500007,
-    "prompt": "hoboevo_style, mobile game button, rounded rectangle, blue fill with a pink circular rebirth spiral glyph, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: blue fill with a pink circular rebirth spiral glyph. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_btn_watch_ad",
@@ -772,8 +772,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500008,
-    "prompt": "hoboevo_style, mobile game button, rounded rectangle, blue fill with a white play triangle inside a small screen glyph, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: blue fill with a white play triangle inside a small screen glyph. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_btn_claim",
@@ -788,8 +788,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500009,
-    "prompt": "hoboevo_style, mobile game button, rounded rectangle, yellow fill with a small gift box glyph, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: yellow fill with a small gift box glyph. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_btn_collect",
@@ -804,8 +804,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500010,
-    "prompt": "hoboevo_style, mobile game button, rounded rectangle, green fill with an open hand catching a falling coin glyph, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: green fill with an open hand catching a falling coin glyph. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_coin",
@@ -820,8 +820,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500011,
-    "prompt": "hoboevo_style, game currency icon, shiny golden coin with an embossed generic money glyph, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: shiny golden coin with an embossed generic money glyph. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_money",
@@ -836,8 +836,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500012,
-    "prompt": "hoboevo_style, game currency icon, small stack of green banknotes with a paper band, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: small stack of green banknotes with a paper band. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_dollar",
@@ -852,8 +852,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500013,
-    "prompt": "hoboevo_style, game currency icon, single crisp green banknote with a generic oval portrait, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: single crisp green banknote with a generic oval portrait. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_million",
@@ -868,8 +868,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500014,
-    "prompt": "hoboevo_style, game currency icon, tall bundle of strapped banknote stacks, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: tall bundle of strapped banknote stacks. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_billion",
@@ -884,8 +884,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500015,
-    "prompt": "hoboevo_style, game currency icon, open briefcase packed with banknote bundles and a gold bar, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: open briefcase packed with banknote bundles and a gold bar. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_trillion",
@@ -900,8 +900,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500016,
-    "prompt": "hoboevo_style, game currency icon, sparkling diamond sitting on a pile of gold coins, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: sparkling diamond sitting on a pile of gold coins. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_infinity",
@@ -916,8 +916,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500017,
-    "prompt": "hoboevo_style, game currency icon, glowing golden infinity loop symbol floating above a coin, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: glowing golden infinity loop symbol floating above a coin. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_up_income",
@@ -932,8 +932,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500018,
-    "prompt": "hoboevo_style, game upgrade icon, gold coin with a rising arrow, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: gold coin with a rising arrow. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_up_spawn",
@@ -948,8 +948,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500019,
-    "prompt": "hoboevo_style, game upgrade icon, hatching golden egg with sparkles and a tiny plus burst, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: hatching golden egg with sparkles and a tiny plus burst. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_up_offline",
@@ -964,8 +964,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500020,
-    "prompt": "hoboevo_style, game upgrade icon, crescent moon over a small pile of coins, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: crescent moon over a small pile of coins. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_up_tap",
@@ -980,8 +980,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500021,
-    "prompt": "hoboevo_style, game upgrade icon, pointing finger tapping with radial burst lines, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: pointing finger tapping with radial burst lines. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_up_crit",
@@ -996,8 +996,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500022,
-    "prompt": "hoboevo_style, game upgrade icon, coin struck by a lightning bolt with an impact burst, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: coin struck by a lightning bolt with an impact burst. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_up_golden",
@@ -1012,8 +1012,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500023,
-    "prompt": "hoboevo_style, game upgrade icon, golden hand touching a coin with sparkling midas-touch stars, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: golden hand touching a coin with sparkling midas-touch stars. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_up_prestige",
@@ -1028,8 +1028,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500024,
-    "prompt": "hoboevo_style, game upgrade icon, star with an orbiting loop arrow around it, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: star with an orbiting loop arrow around it. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_boost_mate",
@@ -1044,8 +1044,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500025,
-    "prompt": "hoboevo_style, game boost icon, Argentine mate gourd with metal bombilla straw and a steam wisp, the national fuel of Argentina, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: Argentine mate gourd with metal bombilla straw and a steam wisp. Cultural cues: the national fuel of Argentina. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_boost_cafe",
@@ -1060,8 +1060,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500026,
-    "prompt": "hoboevo_style, game boost icon, small espresso coffee cup with bold steam swirls, extra-strong 'cargado' coffee, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: small espresso coffee cup with bold steam swirls. Cultural cues: extra-strong 'cargado' coffee. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_boost_fernet",
@@ -1076,8 +1076,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500027,
-    "prompt": "hoboevo_style, game boost icon, tall glass of dark herbal liquor mixed with cola, foam on top, ice cubes, iconic Argentine fernet con coca, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: tall glass of dark herbal liquor mixed with cola, foam on top, ice cubes. Cultural cues: iconic Argentine fernet con coca. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_boost_milanesa",
@@ -1092,8 +1092,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500028,
-    "prompt": "hoboevo_style, game boost icon, golden breaded meat cutlet on a plate with a lemon wedge, the sacred Argentine milanesa, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: golden breaded meat cutlet on a plate with a lemon wedge. Cultural cues: the sacred Argentine milanesa. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_boost_asado",
@@ -1108,8 +1108,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500029,
-    "prompt": "hoboevo_style, game boost icon, smoking charcoal grill with sizzling meat cuts and sausages, Sunday asado barbecue ritual, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: smoking charcoal grill with sizzling meat cuts and sausages. Cultural cues: Sunday asado barbecue ritual. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "ui_boost_turbo",
@@ -1124,8 +1124,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 500030,
-    "prompt": "hoboevo_style, game boost icon, rocket-flame speed gauge with a fire trail, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: rocket-flame speed gauge with a fire trail. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "logo",
@@ -1140,8 +1140,8 @@
     "wealth_cues": "",
     "expression": "cheeky one-eyebrow grin",
     "seed": 500031,
-    "prompt": "hoboevo_style, game logo mark, graphic emblem only, absolutely no letters or words, circular badge with a cartoon scruffy bearded face wearing a tilted golden crown, bold upward evolution arrow behind the head, from street fisura to god, cheeky and iconic, cheeky one-eyebrow grin, simple flat vector game icon, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game logo mark, graphic emblem only, absolutely no letters or words. Props: circular badge with a cartoon scruffy bearded face wearing a tilted golden crown, bold upward evolution arrow behind the head. Cultural cues: from street fisura to god, cheeky and iconic. Expression: cheeky one-eyebrow grin. Simple flat vector game icon, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_alley",
@@ -1150,14 +1150,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 3,
-    "subject": "gritty dead-end city alley background scene",
-    "props": "dumpster, flattened cardboard boxes, graffiti wall, clothesline with rags, dripping pipe, lonely street lamp",
-    "ar_cues": "Buenos Aires back alley where the Fisura sleeps",
-    "wealth_cues": "poor neighborhood, cracked plaster walls",
-    "expression": "moody but warm, soft light from top-left",
+    "subject": "gritty Buenos Aires dead-end alley game playfield, the bottom third is a wide empty stretch of worn cobblestone ground where characters will stand, all scenery kept above it",
+    "props": "graffiti-covered cracked plaster walls, stacks of flattened cardboard leaning against the back wall, dumpster tucked against a side wall, clothesline with rags strung overhead, dripping pipe, lonely street lamp, narrow strip of night sky between rooftops",
+    "ar_cues": "porteno back alley where the Fisura sleeps, cardboard everywhere",
+    "wealth_cues": "poor neighborhood, cracked plaster and stained walls",
+    "expression": "moody but warm, soft street-lamp glow from top-left",
     "seed": 400001,
-    "prompt": "hoboevo_style, gritty dead-end city alley background scene, dumpster, flattened cardboard boxes, graffiti wall, clothesline with rags, dripping pipe, lonely street lamp, Buenos Aires back alley where the Fisura sleeps, poor neighborhood, cracked plaster walls, moody but warm, soft light from top-left, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: gritty Buenos Aires dead-end alley game playfield, the bottom third is a wide empty stretch of worn cobblestone ground where characters will stand, all scenery kept above it. Props: graffiti-covered cracked plaster walls, stacks of flattened cardboard leaning against the back wall, dumpster tucked against a side wall, clothesline with rags strung overhead, dripping pipe, lonely street lamp, narrow strip of night sky between rooftops. Cultural cues: porteno back alley where the Fisura sleeps, cardboard everywhere. Wealth cues: poor neighborhood, cracked plaster and stained walls. Expression: moody but warm, soft street-lamp glow from top-left. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_urban",
@@ -1166,14 +1166,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 3,
-    "subject": "lively city street corner background scene",
-    "props": "corner kiosk, bus stop shelter, tangled power lines, obelisk silhouette on the horizon, parked scooter, pigeons",
-    "ar_cues": "Buenos Aires downtown energy",
-    "wealth_cues": "working-class city, faded posters",
-    "expression": "busy daytime cheer",
+    "subject": "lively Buenos Aires street corner game playfield, the bottom third is a wide empty gray sidewalk where characters will stand, storefronts and street furniture kept behind and above it",
+    "props": "corner kiosk stall with hanging snack strips at one side, bus stop shelter at the other side, tangled power lines overhead, faded posters on walls, obelisk silhouette on the horizon, pigeons perched on the wires",
+    "ar_cues": "downtown Buenos Aires energy, kiosks on every corner",
+    "wealth_cues": "working-class city, faded posters and worn shutters",
+    "expression": "busy daytime cheer, bright noon light",
     "seed": 400002,
-    "prompt": "hoboevo_style, lively city street corner background scene, corner kiosk, bus stop shelter, tangled power lines, obelisk silhouette on the horizon, parked scooter, pigeons, Buenos Aires downtown energy, working-class city, faded posters, busy daytime cheer, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: lively Buenos Aires street corner game playfield, the bottom third is a wide empty gray sidewalk where characters will stand, storefronts and street furniture kept behind and above it. Props: corner kiosk stall with hanging snack strips at one side, bus stop shelter at the other side, tangled power lines overhead, faded posters on walls, obelisk silhouette on the horizon, pigeons perched on the wires. Cultural cues: downtown Buenos Aires energy, kiosks on every corner. Wealth cues: working-class city, faded posters and worn shutters. Expression: busy daytime cheer, bright noon light. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_corporate",
@@ -1182,14 +1182,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 3,
-    "subject": "glass corporate district background scene",
-    "props": "mirrored office towers, revolving door entrance, grids of office windows, small coffee cart",
-    "ar_cues": "financial district ambition",
+    "subject": "glass corporate district game playfield, the bottom third is a wide empty polished granite plaza where characters will stand, office towers rising behind it",
+    "props": "mirrored office towers with grids of lit windows filling the upper area, revolving door entrances at the far edges, small coffee cart tucked to one side, thin strip of morning sky between skyscrapers",
+    "ar_cues": "financial district downtown office canyon, ambition in glass and steel",
     "wealth_cues": "corporate polish, blue glass and steel",
     "expression": "cool professional morning light",
     "seed": 400003,
-    "prompt": "hoboevo_style, glass corporate district background scene, mirrored office towers, revolving door entrance, grids of office windows, small coffee cart, financial district ambition, corporate polish, blue glass and steel, cool professional morning light, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: glass corporate district game playfield, the bottom third is a wide empty polished granite plaza where characters will stand, office towers rising behind it. Props: mirrored office towers with grids of lit windows filling the upper area, revolving door entrances at the far edges, small coffee cart tucked to one side, thin strip of morning sky between skyscrapers. Cultural cues: financial district downtown office canyon, ambition in glass and steel. Wealth cues: corporate polish, blue glass and steel. Expression: cool professional morning light. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_luxury",
@@ -1198,14 +1198,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 4,
-    "subject": "luxury penthouse interior background scene",
-    "props": "floor-to-ceiling window over a night skyline, marble floor, golden chandelier, abstract art piece",
-    "ar_cues": "new-money penthouse excess",
-    "wealth_cues": "opulent gold and marble",
-    "expression": "glamorous night glow",
+    "subject": "luxury waterfront promenade game playfield, the bottom third is a wide empty polished stone-and-wood boardwalk where characters will stand, the marina skyline across the water behind it",
+    "props": "sleek glass towers and renovated red-brick dock warehouses across the water, elegant white harp-shaped pedestrian bridge, gleaming yacht moored at the dock, golden street lamps, calm reflective water",
+    "ar_cues": "Puerto Madero new-money waterfront, old docks turned millionaire mile",
+    "wealth_cues": "opulent marina, gold-lit towers",
+    "expression": "glamorous warm sunset glow",
     "seed": 400004,
-    "prompt": "hoboevo_style, luxury penthouse interior background scene, floor-to-ceiling window over a night skyline, marble floor, golden chandelier, abstract art piece, new-money penthouse excess, opulent gold and marble, glamorous night glow, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: luxury waterfront promenade game playfield, the bottom third is a wide empty polished stone-and-wood boardwalk where characters will stand, the marina skyline across the water behind it. Props: sleek glass towers and renovated red-brick dock warehouses across the water, elegant white harp-shaped pedestrian bridge, gleaming yacht moored at the dock, golden street lamps, calm reflective water. Cultural cues: Puerto Madero new-money waterfront, old docks turned millionaire mile. Wealth cues: opulent marina, gold-lit towers. Expression: glamorous warm sunset glow. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_island",
@@ -1214,14 +1214,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 4,
-    "subject": "private tropical island background scene",
-    "props": "white sand beach, palm trees, yacht anchored offshore, beach cabana, turquoise water",
-    "ar_cues": "billionaire hideaway island",
+    "subject": "private tropical island game playfield, the bottom third is a wide empty stretch of pristine white sand where characters will stand, sea and palms behind it",
+    "props": "leaning palm trees framing the sides, beach cabana at one edge, turquoise water, luxury yacht anchored offshore, distant green islet, a few puffy clouds",
+    "ar_cues": "billionaire hideaway island, paradise with a deed",
     "wealth_cues": "owning paradise itself",
     "expression": "sunny vacation bliss",
     "seed": 400005,
-    "prompt": "hoboevo_style, private tropical island background scene, white sand beach, palm trees, yacht anchored offshore, beach cabana, turquoise water, billionaire hideaway island, owning paradise itself, sunny vacation bliss, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: private tropical island game playfield, the bottom third is a wide empty stretch of pristine white sand where characters will stand, sea and palms behind it. Props: leaning palm trees framing the sides, beach cabana at one edge, turquoise water, luxury yacht anchored offshore, distant green islet, a few puffy clouds. Cultural cues: billionaire hideaway island, paradise with a deed. Wealth cues: owning paradise itself. Expression: sunny vacation bliss. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_moon",
@@ -1230,14 +1230,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 4,
-    "subject": "lunar surface background scene",
-    "props": "gray craters, several planted flags, small glass dome habitat, Earth rising in a black sky, rover tracks",
+    "subject": "lunar surface game playfield, the bottom third is a smooth empty stretch of gray moon dust where characters will stand, craters and structures kept in the distance behind it",
+    "props": "cratered gray hills in the midground, several planted flags in the distance, small glass dome habitat on the horizon, Earth rising big and blue in a black star-filled sky",
     "ar_cues": "the Moon turned into private property",
     "wealth_cues": "lunar real estate development",
-    "expression": "serene cosmic quiet",
+    "expression": "serene cosmic quiet, cool earthlight",
     "seed": 400006,
-    "prompt": "hoboevo_style, lunar surface background scene, gray craters, several planted flags, small glass dome habitat, Earth rising in a black sky, rover tracks, the Moon turned into private property, lunar real estate development, serene cosmic quiet, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: lunar surface game playfield, the bottom third is a smooth empty stretch of gray moon dust where characters will stand, craters and structures kept in the distance behind it. Props: cratered gray hills in the midground, several planted flags in the distance, small glass dome habitat on the horizon, Earth rising big and blue in a black star-filled sky. Cultural cues: the Moon turned into private property. Wealth cues: lunar real estate development. Expression: serene cosmic quiet, cool earthlight. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_mars",
@@ -1246,14 +1246,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 4,
-    "subject": "red martian desert background scene",
-    "props": "red dunes and rocky mesas, terraforming domes, two small moons in a pink sky, distant dust devil",
+    "subject": "red martian desert game playfield, the bottom third is a flat empty plain of red dust where characters will stand, dunes and mesas rising behind it",
+    "props": "red dunes and rocky mesas in the midground, cluster of terraforming domes on the horizon, two small moons in a pink sky, distant dust devil",
     "ar_cues": "Mars in the middle of a real-estate development boom",
     "wealth_cues": "planetary-scale investment",
     "expression": "warm alien dusk",
     "seed": 400007,
-    "prompt": "hoboevo_style, red martian desert background scene, red dunes and rocky mesas, terraforming domes, two small moons in a pink sky, distant dust devil, Mars in the middle of a real-estate development boom, planetary-scale investment, warm alien dusk, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: red martian desert game playfield, the bottom third is a flat empty plain of red dust where characters will stand, dunes and mesas rising behind it. Props: red dunes and rocky mesas in the midground, cluster of terraforming domes on the horizon, two small moons in a pink sky, distant dust devil. Cultural cues: Mars in the middle of a real-estate development boom. Wealth cues: planetary-scale investment. Expression: warm alien dusk. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_solar",
@@ -1262,14 +1262,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 4,
-    "subject": "solar system panorama background scene",
-    "props": "giant stylized sun, planets aligned along orbit rings, asteroid belt, tiny toll gates on the orbit lines",
+    "subject": "solar system panorama game playfield, the bottom third is a smooth glowing golden orbit-ring platform forming an empty floor where characters will stand, the system spread across the sky above",
+    "props": "giant stylized sun low on the horizon, planets aligned along glowing orbit arcs in the sky, asteroid belt sweeping across, tiny toll gates on the distant orbit lines",
     "ar_cues": "the whole solar system managed like a portfolio",
     "wealth_cues": "star-scale assets",
     "expression": "radiant cosmic grandeur",
     "seed": 400008,
-    "prompt": "hoboevo_style, solar system panorama background scene, giant stylized sun, planets aligned along orbit rings, asteroid belt, tiny toll gates on the orbit lines, the whole solar system managed like a portfolio, star-scale assets, radiant cosmic grandeur, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: solar system panorama game playfield, the bottom third is a smooth glowing golden orbit-ring platform forming an empty floor where characters will stand, the system spread across the sky above. Props: giant stylized sun low on the horizon, planets aligned along glowing orbit arcs in the sky, asteroid belt sweeping across, tiny toll gates on the distant orbit lines. Cultural cues: the whole solar system managed like a portfolio. Wealth cues: star-scale assets. Expression: radiant cosmic grandeur. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_galaxy",
@@ -1278,14 +1278,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 4,
-    "subject": "spiral galaxy panorama background scene",
-    "props": "swirling spiral arms of stars, colorful nebulas, star clusters, tiny constellations",
+    "subject": "spiral galaxy panorama game playfield, the bottom third is a smooth empty plain of compacted stardust forming a floor where characters will stand, the galaxy filling the sky above",
+    "props": "huge swirling spiral arms of stars overhead, colorful nebulas, dense star clusters, tiny constellations drawn with thin lines",
     "ar_cues": "a galaxy under new management",
     "wealth_cues": "galactic scale property",
     "expression": "deep space majesty",
     "seed": 400009,
-    "prompt": "hoboevo_style, spiral galaxy panorama background scene, swirling spiral arms of stars, colorful nebulas, star clusters, tiny constellations, a galaxy under new management, galactic scale property, deep space majesty, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: spiral galaxy panorama game playfield, the bottom third is a smooth empty plain of compacted stardust forming a floor where characters will stand, the galaxy filling the sky above. Props: huge swirling spiral arms of stars overhead, colorful nebulas, dense star clusters, tiny constellations drawn with thin lines. Cultural cues: a galaxy under new management. Wealth cues: galactic scale property. Expression: deep space majesty. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_cosmic",
@@ -1294,14 +1294,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 4,
-    "subject": "abstract cosmic realm background scene",
-    "props": "floating rock islands, aurora ribbons, geometric portals, rivers of stars",
+    "subject": "abstract cosmic realm game playfield, the bottom third is the flat empty top of a huge floating rock plateau where characters will stand, surreal space scenery around and above it",
+    "props": "smaller floating rock islands drifting in the distance, aurora ribbons weaving across the sky, geometric glowing portals, rivers of stars flowing between the islands",
     "ar_cues": "space itself bending to wealth",
     "wealth_cues": "reality-scale power",
     "expression": "surreal cosmic wonder",
     "seed": 400010,
-    "prompt": "hoboevo_style, abstract cosmic realm background scene, floating rock islands, aurora ribbons, geometric portals, rivers of stars, space itself bending to wealth, reality-scale power, surreal cosmic wonder, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: abstract cosmic realm game playfield, the bottom third is the flat empty top of a huge floating rock plateau where characters will stand, surreal space scenery around and above it. Props: smaller floating rock islands drifting in the distance, aurora ribbons weaving across the sky, geometric glowing portals, rivers of stars flowing between the islands. Cultural cues: space itself bending to wealth. Wealth cues: reality-scale power. Expression: surreal cosmic wonder. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "bg_god_realm",
@@ -1310,14 +1310,14 @@
     "family": "backgrounds",
     "qa_family": "backgrounds",
     "tanda": 4,
-    "subject": "divine heavenly realm background scene",
-    "props": "sea of clouds, golden gates, marble columns, god rays from above, golden coins floating like stars",
+    "subject": "divine heavenly realm game playfield, the bottom third is a solid flat floor of dense golden clouds forming an empty walkable surface where characters will stand, celestial architecture behind it",
+    "props": "sea of golden clouds, tall golden gates in the far center, white marble columns at the sides, god rays beaming from above, golden coins floating high up like stars",
     "ar_cues": "the afterlife of infinite wealth",
     "wealth_cues": "paradise made of gold and light",
     "expression": "blinding holy serenity",
     "seed": 400011,
-    "prompt": "hoboevo_style, divine heavenly realm background scene, sea of clouds, golden gates, marble columns, god rays from above, golden coins floating like stars, the afterlife of infinite wealth, paradise made of gold and light, blinding holy serenity, wide flat vector background scene, no characters, no people, full canvas",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon game background scene, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the bottom third is clean, open, walkable ground where game characters will stand (no objects in that zone), landscape and skyline fill the upper area. No characters, no people, no text. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: divine heavenly realm game playfield, the bottom third is a solid flat floor of dense golden clouds forming an empty walkable surface where characters will stand, celestial architecture behind it. Props: sea of golden clouds, tall golden gates in the far center, white marble columns at the sides, god rays beaming from above, golden coins floating high up like stars. Cultural cues: the afterlife of infinite wealth. Wealth cues: paradise made of gold and light. Expression: blinding holy serenity. Game background, empty foreground ground area for characters to stand, no objects in the lower foreground, no characters, no people, no text, full canvas.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "sp_cryptobro",
@@ -1326,14 +1326,14 @@
     "family": "specials",
     "qa_family": "characters",
     "tanda": 5,
-    "subject": "smug crypto bro trader",
-    "props": "flashy oversized watch, phone showing green candlestick chart, sunglasses pushed up, coin-pattern shirt",
+    "subject": "smug crypto bro trader standing with legs apart, thrusting his phone forward to show off a chart with one hand, the other fist clenched in victory",
+    "props": "phone showing green candlestick chart held out, flashy oversized watch, sunglasses pushed up on his head, coin-pattern shirt, gold chain over hoodie",
     "ar_cues": "to-the-moon evangelist who never sells at the top",
     "wealth_cues": "volatile riches, gold chain over hoodie",
     "expression": "insufferable smug grin",
     "seed": 300001,
-    "prompt": "hoboevo_style, smug crypto bro trader, flashy oversized watch, phone showing green candlestick chart, sunglasses pushed up, coin-pattern shirt, to-the-moon evangelist who never sells at the top, volatile riches, gold chain over hoodie, insufferable smug grin, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: smug crypto bro trader standing with legs apart, thrusting his phone forward to show off a chart with one hand, the other fist clenched in victory. Props: phone showing green candlestick chart held out, flashy oversized watch, sunglasses pushed up on his head, coin-pattern shirt, gold chain over hoodie. Cultural cues: to-the-moon evangelist who never sells at the top. Wealth cues: volatile riches, gold chain over hoodie. Expression: insufferable smug grin. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "sp_demonio_arca",
@@ -1342,14 +1342,14 @@
     "family": "specials",
     "qa_family": "characters",
     "tanda": 5,
-    "subject": "bureaucratic tax demon",
-    "props": "bat wings, small horns, office necktie, armful of tax forms, giant red ink stamp",
+    "subject": "bureaucratic tax demon standing hunched with bat wings half spread, hugging an armful of tax forms with one arm, a giant red ink stamp raised ready to strike in the other hand",
+    "props": "bat wings, small horns, office necktie over shabby suit, armful of tax forms, giant red ink stamp raised high",
     "ar_cues": "tax-collector demon from the underworld revenue service",
     "wealth_cues": "feeds on late fees, shabby office suit",
     "expression": "gleeful sadistic smile",
     "seed": 300002,
-    "prompt": "hoboevo_style, bureaucratic tax demon, bat wings, small horns, office necktie, armful of tax forms, giant red ink stamp, tax-collector demon from the underworld revenue service, feeds on late fees, shabby office suit, gleeful sadistic smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: bureaucratic tax demon standing hunched with bat wings half spread, hugging an armful of tax forms with one arm, a giant red ink stamp raised ready to strike in the other hand. Props: bat wings, small horns, office necktie over shabby suit, armful of tax forms, giant red ink stamp raised high. Cultural cues: tax-collector demon from the underworld revenue service. Wealth cues: feeds on late fees, shabby office suit. Expression: gleeful sadistic smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "sp_contador_dios",
@@ -1358,14 +1358,14 @@
     "family": "specials",
     "qa_family": "characters",
     "tanda": 5,
-    "subject": "divine celestial accountant",
-    "props": "glowing ledger book, halo shaped like a calculator, floating glowing spreadsheets, feather quill",
+    "subject": "divine celestial accountant standing tall and serene, a glowing ledger book open on one flat palm, a feather quill raised in the other hand",
+    "props": "glowing ledger book on open palm, feather quill, halo shaped like a calculator, small glowing spreadsheets floating around him, immaculate white suit",
     "ar_cues": "audits the finances of mortals from heaven",
     "wealth_cues": "cosmic order, immaculate white suit",
     "expression": "serene judging stare",
     "seed": 300003,
-    "prompt": "hoboevo_style, divine celestial accountant, glowing ledger book, halo shaped like a calculator, floating glowing spreadsheets, feather quill, audits the finances of mortals from heaven, cosmic order, immaculate white suit, serene judging stare, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: divine celestial accountant standing tall and serene, a glowing ledger book open on one flat palm, a feather quill raised in the other hand. Props: glowing ledger book on open palm, feather quill, halo shaped like a calculator, small glowing spreadsheets floating around him, immaculate white suit. Cultural cues: audits the finances of mortals from heaven. Wealth cues: cosmic order, immaculate white suit. Expression: serene judging stare. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "sp_zombie_ceo",
@@ -1374,14 +1374,14 @@
     "family": "specials",
     "qa_family": "characters",
     "tanda": 5,
-    "subject": "undead zombie CEO",
-    "props": "torn pinstripe suit, green skin, stitched forehead, dangling loose tie, coffee cup clutched in stiff hand",
+    "subject": "undead zombie CEO standing tilted in a stiff shamble pose, both rigid arms half raised forward, a coffee cup clutched in one stiff hand",
+    "props": "torn pinstripe suit, green skin, stitched forehead, dangling loose tie, paper coffee cup clutched in stiff fingers, dusty gold watch",
     "ar_cues": "still attends board meetings from beyond the grave",
     "wealth_cues": "posthumous stock options, dusty gold watch",
     "expression": "vacant hungry stare",
     "seed": 300004,
-    "prompt": "hoboevo_style, undead zombie CEO, torn pinstripe suit, green skin, stitched forehead, dangling loose tie, coffee cup clutched in stiff hand, still attends board meetings from beyond the grave, posthumous stock options, dusty gold watch, vacant hungry stare, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: undead zombie CEO standing tilted in a stiff shamble pose, both rigid arms half raised forward, a coffee cup clutched in one stiff hand. Props: torn pinstripe suit, green skin, stitched forehead, dangling loose tie, paper coffee cup clutched in stiff fingers, dusty gold watch. Cultural cues: still attends board meetings from beyond the grave. Wealth cues: posthumous stock options, dusty gold watch. Expression: vacant hungry stare. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "sp_lizard",
@@ -1390,14 +1390,14 @@
     "family": "specials",
     "qa_family": "characters",
     "tanda": 5,
-    "subject": "reptilian humanoid in a business suit",
-    "props": "green scales, vertical slit pupils, forked tongue, half-lifted human face mask, tailored gray suit",
+    "subject": "reptilian humanoid in a business suit standing unnaturally straight and still, hands folded in front, a half-lifted human face mask held in one clawed hand",
+    "props": "green scales, vertical slit pupils, forked tongue flicking out, half-lifted human face mask in one claw, tailored gray suit, obsidian cufflinks",
     "ar_cues": "conspiracy-theory lizard person secretly running world finance",
     "wealth_cues": "shadow-elite wealth, obsidian cufflinks",
     "expression": "unsettling too-wide smile",
     "seed": 300005,
-    "prompt": "hoboevo_style, reptilian humanoid in a business suit, green scales, vertical slit pupils, forked tongue, half-lifted human face mask, tailored gray suit, conspiracy-theory lizard person secretly running world finance, shadow-elite wealth, obsidian cufflinks, unsettling too-wide smile, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: reptilian humanoid in a business suit standing unnaturally straight and still, hands folded in front, a half-lifted human face mask held in one clawed hand. Props: green scales, vertical slit pupils, forked tongue flicking out, half-lifted human face mask in one claw, tailored gray suit, obsidian cufflinks. Cultural cues: conspiracy-theory lizard person secretly running world finance. Wealth cues: shadow-elite wealth, obsidian cufflinks. Expression: unsettling too-wide smile. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "sp_alien_investor",
@@ -1406,14 +1406,14 @@
     "family": "specials",
     "qa_family": "characters",
     "tanda": 5,
-    "subject": "little green alien venture investor",
-    "props": "big oval head with antenna, briefcase overflowing with glowing space currency, small UFO parked behind, tablet with charts",
+    "subject": "little green alien venture investor standing on short legs, holding up a briefcase overflowing with glowing space currency with both hands",
+    "props": "big oval head with antenna, briefcase overflowing with glowing space coins held with both hands, tablet with charts wedged under one arm, tiny silver suit",
     "ar_cues": "intergalactic venture capitalist scouting Earth startups",
     "wealth_cues": "galactic funds, tiny silver suit",
     "expression": "curious calculating stare",
     "seed": 300006,
-    "prompt": "hoboevo_style, little green alien venture investor, big oval head with antenna, briefcase overflowing with glowing space currency, small UFO parked behind, tablet with charts, intergalactic venture capitalist scouting Earth startups, galactic funds, tiny silver suit, curious calculating stare, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: little green alien venture investor standing on short legs, holding up a briefcase overflowing with glowing space currency with both hands. Props: big oval head with antenna, briefcase overflowing with glowing space coins held with both hands, tablet with charts wedged under one arm, tiny silver suit. Cultural cues: intergalactic venture capitalist scouting Earth startups. Wealth cues: galactic funds, tiny silver suit. Expression: curious calculating stare. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "sp_bug_simulacion",
@@ -1422,14 +1422,14 @@
     "family": "specials",
     "qa_family": "characters",
     "tanda": 5,
-    "subject": "glitched-out simulation error character",
-    "props": "body split into offset slices, floating warning signs, half-rendered limbs, patches of static noise",
+    "subject": "glitched-out simulation error character standing with his body split into offset horizontal slices, one leg misaligned but both feet planted, arms flickering in duplicated positions",
+    "props": "body split into offset glitch slices, floating warning signs around him, half-rendered limbs, patches of static noise, flickering outline",
     "ar_cues": "a rendering error of the simulation that became self-aware",
     "wealth_cues": "corrupted data, flickering outline",
     "expression": "confused fragmented face",
     "seed": 300007,
-    "prompt": "hoboevo_style, glitched-out simulation error character, body split into offset slices, floating warning signs, half-rendered limbs, patches of static noise, a rendering error of the simulation that became self-aware, corrupted data, flickering outline, confused fragmented face, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: glitched-out simulation error character standing with his body split into offset horizontal slices, one leg misaligned but both feet planted, arms flickering in duplicated positions. Props: body split into offset glitch slices, floating warning signs around him, half-rendered limbs, patches of static noise, flickering outline. Cultural cues: a rendering error of the simulation that became self-aware. Wealth cues: corrupted data, flickering outline. Expression: confused fragmented face. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "sp_arbolito",
@@ -1438,14 +1438,14 @@
     "family": "specials",
     "qa_family": "characters",
     "tanda": 5,
-    "subject": "street currency dealer whispering exchange rates",
-    "props": "jacket held open lined with fanned foreign banknotes, small leafy branch with bill-shaped leaves sprouting from his cap, hand beside mouth mid-whisper",
+    "subject": "street currency dealer standing shifty with knees bent, holding his jacket wide open with one hand to reveal the lining, the other hand cupped beside his mouth mid-whisper",
+    "props": "jacket lining fanned with foreign banknotes, small leafy branch with bill-shaped leaves sprouting from his cap, worn windbreaker, wads of cash bulging in pockets",
     "ar_cues": "downtown Buenos Aires street money changer, the human money tree",
     "wealth_cues": "wads of foreign cash, worn windbreaker",
     "expression": "shifty sideways glance",
     "seed": 300008,
-    "prompt": "hoboevo_style, street currency dealer whispering exchange rates, jacket held open lined with fanned foreign banknotes, small leafy branch with bill-shaped leaves sprouting from his cap, hand beside mouth mid-whisper, downtown Buenos Aires street money changer, the human money tree, wads of foreign cash, worn windbreaker, shifty sideways glance, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: street currency dealer standing shifty with knees bent, holding his jacket wide open with one hand to reveal the lining, the other hand cupped beside his mouth mid-whisper. Props: jacket lining fanned with foreign banknotes, small leafy branch with bill-shaped leaves sprouting from his cap, worn windbreaker, wads of cash bulging in pockets. Cultural cues: downtown Buenos Aires street money changer, the human money tree. Wealth cues: wads of foreign cash, worn windbreaker. Expression: shifty sideways glance. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "sp_coach",
@@ -1454,14 +1454,14 @@
     "family": "specials",
     "qa_family": "characters",
     "tanda": 5,
-    "subject": "over-the-top motivational life coach",
-    "props": "headset microphone, sparkling white teeth, tight polo shirt, whiteboard with rocket doodle, rubber wristbands",
+    "subject": "over-the-top motivational life coach standing in an exaggerated power stance, one fist pumped to the sky, the other hand pointing straight at the viewer",
+    "props": "headset microphone, sparkling white teeth, tight polo shirt, rubber wristbands on both wrists, laminated success-formula card in the pointing hand",
     "ar_cues": "sells success formulas and five-am morning routines",
     "wealth_cues": "seminar money, shiny loafers",
     "expression": "aggressively positive beam",
     "seed": 300009,
-    "prompt": "hoboevo_style, over-the-top motivational life coach, headset microphone, sparkling white teeth, tight polo shirt, whiteboard with rocket doodle, rubber wristbands, sells success formulas and five-am morning routines, seminar money, shiny loafers, aggressively positive beam, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: over-the-top motivational life coach standing in an exaggerated power stance, one fist pumped to the sky, the other hand pointing straight at the viewer. Props: headset microphone, sparkling white teeth, tight polo shirt, rubber wristbands on both wrists, laminated success-formula card in the pointing hand. Cultural cues: sells success formulas and five-am morning routines. Wealth cues: seminar money, shiny loafers. Expression: aggressively positive beam. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "sp_influencer",
@@ -1470,14 +1470,14 @@
     "family": "specials",
     "qa_family": "characters",
     "tanda": 5,
-    "subject": "social media influencer mid-selfie",
-    "props": "ring light glowing behind head like a halo, phone on selfie stick, shopping bags, floating heart and thumbs-up symbols",
+    "subject": "social media influencer standing in a rehearsed pose with one hip cocked, holding a phone on a selfie stick high with one hand, shopping bags hooked on the other forearm",
+    "props": "phone on selfie stick, ring light glowing behind her head like a halo, glossy shopping bags on forearm, floating heart and thumbs-up symbols around her",
     "ar_cues": "monetizes every waking second of her life",
     "wealth_cues": "gifted products, designer knockoffs",
     "expression": "practiced duck-face pout",
     "seed": 300010,
-    "prompt": "hoboevo_style, social media influencer mid-selfie, ring light glowing behind head like a halo, phone on selfie stick, shopping bags, floating heart and thumbs-up symbols, monetizes every waking second of her life, gifted products, designer knockoffs, practiced duck-face pout, full body, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet planted flat on the ground, hands visible, characterful idle pose, centered, generous safe margin, square canvas, plain white background. Clean readable silhouette, adult-comedy tone, humorous expression. Mobile-game production quality, cohesive studio look. Subject: social media influencer standing in a rehearsed pose with one hip cocked, holding a phone on a selfie stick high with one hand, shopping bags hooked on the other forearm. Props: phone on selfie stick, ring light glowing behind her head like a halo, glossy shopping bags on forearm, floating heart and thumbs-up symbols around her. Cultural cues: monetizes every waking second of her life. Wealth cues: gifted products, designer knockoffs. Expression: practiced duck-face pout. Full body standing pose, feet planted on the ground, hands visible, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "fx_merge",
@@ -1492,8 +1492,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 600001,
-    "prompt": "hoboevo_style, particle sprite for a game effect, radial starburst pop, thick flat rays, simple flat particle sprite, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: particle sprite for a game effect. Props: radial starburst pop, thick flat rays. Simple flat particle sprite, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "fx_money",
@@ -1508,8 +1508,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 600002,
-    "prompt": "hoboevo_style, particle sprite for a game effect, single spinning golden coin with small motion tick marks, simple flat particle sprite, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: particle sprite for a game effect. Props: single spinning golden coin with small motion tick marks. Simple flat particle sprite, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "fx_tap",
@@ -1524,8 +1524,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 600003,
-    "prompt": "hoboevo_style, particle sprite for a game effect, concentric tap ripple rings, simple flat particle sprite, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: particle sprite for a game effect. Props: concentric tap ripple rings. Simple flat particle sprite, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "fx_unlock",
@@ -1540,8 +1540,8 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 600004,
-    "prompt": "hoboevo_style, particle sprite for a game effect, four-pointed sparkle star, simple flat particle sprite, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: particle sprite for a game effect. Props: four-pointed sparkle star. Simple flat particle sprite, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   },
   {
     "assetKey": "fx_evolution_flash",
@@ -1556,7 +1556,7 @@
     "wealth_cues": "",
     "expression": "",
     "seed": 600005,
-    "prompt": "hoboevo_style, particle sprite for a game effect, bright radial flash burst with flat wedge rays, simple flat particle sprite, centered, transparent background",
-    "negative": "watermark, text, blurry, extra limbs"
+    "prompt": "Official \"Hobo Evolution\" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: particle sprite for a game effect. Props: bright radial flash burst with flat wedge rays. Simple flat particle sprite, centered, plain white background.",
+    "negative": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text"
   }
 ]

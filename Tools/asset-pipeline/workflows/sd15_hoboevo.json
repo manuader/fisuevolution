@@ -2,33 +2,20 @@
   "1": {
     "class_type": "CheckpointLoaderSimple",
     "_meta": {
-      "title": "PLACEHOLDER: nombre del checkpoint SD 1.5 segun tu instalacion (ComfyUI/models/checkpoints). comfy_batch.py lo inyecta desde config.json -> generation.comfyui_checkpoint"
+      "title": "Checkpoint SD 1.5 (ComfyUI/models/checkpoints). comfy_batch.py lo inyecta desde config.json -> generation.comfyui_checkpoint"
     },
     "inputs": {
-      "ckpt_name": "PLACEHOLDER_SD15_CHECKPOINT.safetensors"
-    }
-  },
-  "2": {
-    "class_type": "LoraLoader",
-    "_meta": {
-      "title": "LoRA de estilo hoboevo_style (copiar el .safetensors de Tensor.Art a ComfyUI/models/loras/)"
-    },
-    "inputs": {
-      "lora_name": "hoboevo_style.safetensors",
-      "strength_model": 1.0,
-      "strength_clip": 1.0,
-      "model": ["1", 0],
-      "clip": ["1", 1]
+      "ckpt_name": "v1-5-pruned-emaonly.safetensors"
     }
   },
   "3": {
     "class_type": "CLIPTextEncode",
     "_meta": {
-      "title": "Prompt positivo (comfy_batch.py lo inyecta por asset desde prompts.json)"
+      "title": "Prompt positivo (comfy_batch.py lo inyecta por asset desde prompts.json). SIN LoRA: el estilo viene del prompt maestro + seeds fijos + QA CLIP"
     },
     "inputs": {
       "text": "PLACEHOLDER_POSITIVE_PROMPT",
-      "clip": ["2", 1]
+      "clip": ["1", 1]
     }
   },
   "4": {
@@ -38,7 +25,7 @@
     },
     "inputs": {
       "text": "PLACEHOLDER_NEGATIVE_PROMPT",
-      "clip": ["2", 1]
+      "clip": ["1", 1]
     }
   },
   "5": {
@@ -64,7 +51,7 @@
       "sampler_name": "dpmpp_2m",
       "scheduler": "karras",
       "denoise": 1.0,
-      "model": ["2", 0],
+      "model": ["1", 0],
       "positive": ["3", 0],
       "negative": ["4", 0],
       "latent_image": ["5", 0]

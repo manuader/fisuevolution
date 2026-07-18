@@ -73,9 +73,13 @@ def build_workflow(config, entry, seed_override=None):
 
     wf = copy.deepcopy(json.loads(WORKFLOW_PATH.read_text(encoding="utf-8")))
     wf[NODE_CHECKPOINT]["inputs"]["ckpt_name"] = gen["comfyui_checkpoint"]
-    wf[NODE_LORA]["inputs"]["lora_name"] = gen["lora"]
-    wf[NODE_LORA]["inputs"]["strength_model"] = gen["lora_strength"]
-    wf[NODE_LORA]["inputs"]["strength_clip"] = gen["lora_strength"]
+    # Plan sin LoRA: el workflow ya no tiene nodo LoraLoader (consistencia =
+    # prompt maestro + seeds fijos + QA CLIP). Si algun dia vuelve el LoRA,
+    # basta re-agregar el nodo "2" al workflow y este bloque lo configura.
+    if NODE_LORA in wf:
+        wf[NODE_LORA]["inputs"]["lora_name"] = gen["lora"]
+        wf[NODE_LORA]["inputs"]["strength_model"] = gen["lora_strength"]
+        wf[NODE_LORA]["inputs"]["strength_clip"] = gen["lora_strength"]
     wf[NODE_POSITIVE]["inputs"]["text"] = entry["prompt"]
     wf[NODE_NEGATIVE]["inputs"]["text"] = entry["negative"]
     wf[NODE_LATENT]["inputs"]["width"] = gen["resolution"]

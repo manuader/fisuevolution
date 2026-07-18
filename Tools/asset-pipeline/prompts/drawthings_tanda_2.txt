@@ -1,133 +1,133 @@
 ========================================================================
 HOBO EVOLUTION — Draw Things — TANDA 2 (31 assets)
 ========================================================================
-Modelo: SD 1.5 + LoRA hoboevo_style.safetensors (peso 1.0)
-Sampler: DPM++ 2M Karras | Steps: 28 | CFG: 7 | 768x768 | VAE: fp32
+Modelo: SD 1.5 SIN LoRA (estilo = prompt maestro + seed fijo)
+Sampler: DPM++ 2M Karras | Steps: 24 | CFG: 7 | 512x512 | VAE: fp32
 Guardar cada imagen como: raw/tanda_2/{assetKey}.png
 El seed va EXACTO (permite regenerar identico).
 ========================================================================
 
 [1/31] ui_btn_primary   (seed 500001)
-PROMPT:   hoboevo_style, mobile game button, rounded rectangle, sunny yellow fill, darker flat bottom edge, no icon, no label, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: sunny yellow fill, darker flat bottom edge, no icon, no label. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [2/31] ui_btn_secondary   (seed 500002)
-PROMPT:   hoboevo_style, mobile game button, rounded rectangle, sky blue fill, darker flat bottom edge, no icon, no label, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: sky blue fill, darker flat bottom edge, no icon, no label. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [3/31] ui_btn_danger   (seed 500003)
-PROMPT:   hoboevo_style, mobile game button, rounded rectangle, hot pink-red fill, darker flat bottom edge, no icon, no label, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: hot pink-red fill, darker flat bottom edge, no icon, no label. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [4/31] ui_btn_disabled   (seed 500004)
-PROMPT:   hoboevo_style, mobile game button, rounded rectangle, desaturated gray fill, pressed flat look, no icon, no label, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: desaturated gray fill, pressed flat look, no icon, no label. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [5/31] ui_btn_store   (seed 500005)
-PROMPT:   hoboevo_style, mobile game button, rounded rectangle, orange fill with a white shopping cart glyph, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: orange fill with a white shopping cart glyph. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [6/31] ui_btn_upgrade   (seed 500006)
-PROMPT:   hoboevo_style, mobile game button, rounded rectangle, green fill with a white upward arrow glyph, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: green fill with a white upward arrow glyph. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [7/31] ui_btn_reincarnate   (seed 500007)
-PROMPT:   hoboevo_style, mobile game button, rounded rectangle, blue fill with a pink circular rebirth spiral glyph, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: blue fill with a pink circular rebirth spiral glyph. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [8/31] ui_btn_watch_ad   (seed 500008)
-PROMPT:   hoboevo_style, mobile game button, rounded rectangle, blue fill with a white play triangle inside a small screen glyph, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: blue fill with a white play triangle inside a small screen glyph. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [9/31] ui_btn_claim   (seed 500009)
-PROMPT:   hoboevo_style, mobile game button, rounded rectangle, yellow fill with a small gift box glyph, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: yellow fill with a small gift box glyph. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [10/31] ui_btn_collect   (seed 500010)
-PROMPT:   hoboevo_style, mobile game button, rounded rectangle, green fill with an open hand catching a falling coin glyph, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: mobile game button, rounded rectangle. Props: green fill with an open hand catching a falling coin glyph. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [11/31] ui_coin   (seed 500011)
-PROMPT:   hoboevo_style, game currency icon, shiny golden coin with an embossed generic money glyph, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: shiny golden coin with an embossed generic money glyph. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [12/31] ui_money   (seed 500012)
-PROMPT:   hoboevo_style, game currency icon, small stack of green banknotes with a paper band, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: small stack of green banknotes with a paper band. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [13/31] ui_dollar   (seed 500013)
-PROMPT:   hoboevo_style, game currency icon, single crisp green banknote with a generic oval portrait, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: single crisp green banknote with a generic oval portrait. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [14/31] ui_million   (seed 500014)
-PROMPT:   hoboevo_style, game currency icon, tall bundle of strapped banknote stacks, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: tall bundle of strapped banknote stacks. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [15/31] ui_billion   (seed 500015)
-PROMPT:   hoboevo_style, game currency icon, open briefcase packed with banknote bundles and a gold bar, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: open briefcase packed with banknote bundles and a gold bar. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [16/31] ui_trillion   (seed 500016)
-PROMPT:   hoboevo_style, game currency icon, sparkling diamond sitting on a pile of gold coins, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: sparkling diamond sitting on a pile of gold coins. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [17/31] ui_infinity   (seed 500017)
-PROMPT:   hoboevo_style, game currency icon, glowing golden infinity loop symbol floating above a coin, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game currency icon. Props: glowing golden infinity loop symbol floating above a coin. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [18/31] ui_up_income   (seed 500018)
-PROMPT:   hoboevo_style, game upgrade icon, gold coin with a rising arrow, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: gold coin with a rising arrow. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [19/31] ui_up_spawn   (seed 500019)
-PROMPT:   hoboevo_style, game upgrade icon, hatching golden egg with sparkles and a tiny plus burst, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: hatching golden egg with sparkles and a tiny plus burst. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [20/31] ui_up_offline   (seed 500020)
-PROMPT:   hoboevo_style, game upgrade icon, crescent moon over a small pile of coins, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: crescent moon over a small pile of coins. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [21/31] ui_up_tap   (seed 500021)
-PROMPT:   hoboevo_style, game upgrade icon, pointing finger tapping with radial burst lines, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: pointing finger tapping with radial burst lines. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [22/31] ui_up_crit   (seed 500022)
-PROMPT:   hoboevo_style, game upgrade icon, coin struck by a lightning bolt with an impact burst, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: coin struck by a lightning bolt with an impact burst. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [23/31] ui_up_golden   (seed 500023)
-PROMPT:   hoboevo_style, game upgrade icon, golden hand touching a coin with sparkling midas-touch stars, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: golden hand touching a coin with sparkling midas-touch stars. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [24/31] ui_up_prestige   (seed 500024)
-PROMPT:   hoboevo_style, game upgrade icon, star with an orbiting loop arrow around it, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game upgrade icon. Props: star with an orbiting loop arrow around it. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [25/31] ui_boost_mate   (seed 500025)
-PROMPT:   hoboevo_style, game boost icon, Argentine mate gourd with metal bombilla straw and a steam wisp, the national fuel of Argentina, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: Argentine mate gourd with metal bombilla straw and a steam wisp. Cultural cues: the national fuel of Argentina. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [26/31] ui_boost_cafe   (seed 500026)
-PROMPT:   hoboevo_style, game boost icon, small espresso coffee cup with bold steam swirls, extra-strong 'cargado' coffee, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: small espresso coffee cup with bold steam swirls. Cultural cues: extra-strong 'cargado' coffee. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [27/31] ui_boost_fernet   (seed 500027)
-PROMPT:   hoboevo_style, game boost icon, tall glass of dark herbal liquor mixed with cola, foam on top, ice cubes, iconic Argentine fernet con coca, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: tall glass of dark herbal liquor mixed with cola, foam on top, ice cubes. Cultural cues: iconic Argentine fernet con coca. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [28/31] ui_boost_milanesa   (seed 500028)
-PROMPT:   hoboevo_style, game boost icon, golden breaded meat cutlet on a plate with a lemon wedge, the sacred Argentine milanesa, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: golden breaded meat cutlet on a plate with a lemon wedge. Cultural cues: the sacred Argentine milanesa. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [29/31] ui_boost_asado   (seed 500029)
-PROMPT:   hoboevo_style, game boost icon, smoking charcoal grill with sizzling meat cuts and sausages, Sunday asado barbecue ritual, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: smoking charcoal grill with sizzling meat cuts and sausages. Cultural cues: Sunday asado barbecue ritual. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [30/31] ui_boost_turbo   (seed 500030)
-PROMPT:   hoboevo_style, game boost icon, rocket-flame speed gauge with a fire trail, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game boost icon. Props: rocket-flame speed gauge with a fire trail. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------
 [31/31] logo   (seed 500031)
-PROMPT:   hoboevo_style, game logo mark, graphic emblem only, absolutely no letters or words, circular badge with a cartoon scruffy bearded face wearing a tilted golden crown, bold upward evolution arrow behind the head, from street fisura to god, cheeky and iconic, cheeky one-eyebrow grin, simple flat vector game icon, centered, transparent background
-NEGATIVE: watermark, text, blurry, extra limbs
+PROMPT:   Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art direction. Uniform thick black outline, constant weight. Flat colors, minimal cel-shading, NO gradients, single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. Generous safe margin, square canvas. Clean readable shapes, mobile-game production quality, cohesive studio look. Subject: game logo mark, graphic emblem only, absolutely no letters or words. Props: circular badge with a cartoon scruffy bearded face wearing a tilted golden crown, bold upward evolution arrow behind the head. Cultural cues: from street fisura to god, cheeky and iconic. Expression: cheeky one-eyebrow grin. Simple flat vector game icon, centered, plain white background.
+NEGATIVE: realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text
 ------------------------------------------------------------------------

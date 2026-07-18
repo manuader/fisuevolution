@@ -27,31 +27,99 @@ from _common import ROOT, load_config, tiers_path, write_json  # noqa: E402
 import cultural_dict as cd  # noqa: E402
 
 
-def _join_prompt(trigger, entry, suffix):
-    parts = [trigger]
-    for field in ("subject", "props", "ar_cues", "wealth_cues", "expression"):
+# --- Direccion "Cow Evolution" (SDXL) ---------------------------------------
+# El estilo final lo define el workflow SDXL (DreamShaper XL Turbo + LoRAs de
+# estilo, montado aparte). Estas plantillas fijan el CONTENIDO y el FRAMING:
+# personajes = figura completa DE PIE (pies apoyados, manos visibles, pose
+# idle propia); backgrounds = campo de juego con el tercio inferior de piso
+# despejado. La consistencia extra viene de seeds fijos + QA CLIP.
+
+MASTER_STYLE_CHARACTER = (
+    'Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art '
+    "direction. Big-head/tiny-body (head 55-60% of figure). Uniform thick black "
+    "outline, constant weight. Flat colors, minimal cel-shading, NO gradients, "
+    "single soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 "
+    "with #FFF8E7 / #2C2C2C / #FFFFFF. Full-body standing character, both feet "
+    "planted flat on the ground, hands visible, characterful idle pose, centered, "
+    "generous safe margin, square canvas, plain white background. Clean readable "
+    "silhouette, adult-comedy tone, humorous expression. Mobile-game production "
+    "quality, cohesive studio look."
+)
+
+# Version sin las clausulas de personaje (cabeza grande / full body / pose idle)
+MASTER_STYLE_FLAT = (
+    'Official "Hobo Evolution" game asset. 2D flat vector cartoon, single art '
+    "direction. Uniform thick black outline, constant weight. Flat colors, "
+    "minimal cel-shading, NO gradients, single soft light top-left. Palette: "
+    "#FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 with #FFF8E7 / #2C2C2C / #FFFFFF. "
+    "Generous safe margin, square canvas. Clean readable shapes, mobile-game "
+    "production quality, cohesive studio look."
+)
+
+# Backgrounds = campo de juego (estilo pradera de Cow Evolution): escena
+# completa, piso transitable abajo, paisaje arriba, sin personajes ni texto.
+MASTER_STYLE_BACKGROUND = (
+    'Official "Hobo Evolution" game asset. 2D flat vector cartoon game '
+    "background scene, single art direction. Uniform thick black outline, "
+    "constant weight. Flat colors, minimal cel-shading, NO gradients, single "
+    "soft light top-left. Palette: #FFD93D #FF6B35 #FF4D6D #4D96FF #6BCB77 "
+    "with #FFF8E7 / #2C2C2C / #FFFFFF. Full-canvas playfield composition: the "
+    "bottom third is clean, open, walkable ground where game characters will "
+    "stand (no objects in that zone), landscape and skyline fill the upper "
+    "area. No characters, no people, no text. Clean readable shapes, "
+    "mobile-game production quality, cohesive studio look."
+)
+
+MASTER_BY_CATEGORY = {
+    "character": MASTER_STYLE_CHARACTER,
+    "special": MASTER_STYLE_CHARACTER,
+    "background": MASTER_STYLE_BACKGROUND,
+    "ui": MASTER_STYLE_FLAT,
+    "fx": MASTER_STYLE_FLAT,
+}
+
+
+def _join_prompt(category, entry, suffix):
+    parts = [MASTER_BY_CATEGORY[category]]
+    for label, field in (
+        ("Subject", "subject"),
+        ("Props", "props"),
+        ("Cultural cues", "ar_cues"),
+        ("Wealth cues", "wealth_cues"),
+        ("Expression", "expression"),
+    ):
         value = entry.get(field, "").strip()
         if value:
-            parts.append(value)
+            parts.append(f"{label}: {value}.")
     if suffix:
         parts.append(suffix)
-    return ", ".join(parts)
+    return " ".join(parts)
 
 
 SUFFIXES = {
-    "character": "full body, centered, transparent background",
-    "special": "full body, centered, transparent background",
-    "background": "wide flat vector background scene, no characters, no people, full canvas",
-    "ui": "simple flat vector game icon, centered, transparent background",
-    "fx": "simple flat particle sprite, centered, transparent background",
+    "character": (
+        "Full body standing pose, feet planted on the ground, hands visible, "
+        "centered, plain white background."
+    ),
+    "special": (
+        "Full body standing pose, feet planted on the ground, hands visible, "
+        "centered, plain white background."
+    ),
+    "background": (
+        "Game background, empty foreground ground area for characters to stand, "
+        "no objects in the lower foreground, no characters, no people, no text, "
+        "full canvas."
+    ),
+    "ui": "Simple flat vector game icon, centered, plain white background.",
+    "fx": "Simple flat particle sprite, centered, plain white background.",
 }
 
 
 def build_all_entries(config=None):
     """Lista canonica de los 93 assets con seed/tanda/atlas/prompt."""
     config = config or load_config()
-    trigger = config["generation"]["trigger"]
-    negative = config["negative_prompt_lora"]
+    # sin LoRA: negative COMPLETO del prompt maestro (no la version corta LoRA)
+    negative = config["negative_prompt"]
     seeds = config["seeds"]
 
     with open(tiers_path(config), "r", encoding="utf-8") as f:
@@ -76,7 +144,7 @@ def build_all_entries(config=None):
             "wealth_cues": cultural["wealth_cues"],
             "expression": cultural["expression"],
             "seed": seeds[family] + idx,
-            "prompt": _join_prompt(trigger, cultural, SUFFIXES[category]),
+            "prompt": _join_prompt(category, cultural, SUFFIXES[category]),
             "negative": negative,
         }
         if tier is not None:
@@ -146,7 +214,7 @@ def write_drawthings_exports(entries, config):
         lines.append(bar)
         lines.append(f"HOBO EVOLUTION — Draw Things — TANDA {tanda} ({len(batch)} assets)")
         lines.append(bar)
-        lines.append(f"Modelo: {gen['model']} + LoRA {gen['lora']} (peso {gen['lora_strength']})")
+        lines.append(f"Modelo: {gen['model']} SIN LoRA (estilo = prompt maestro + seed fijo)")
         lines.append(
             f"Sampler: {gen['sampler']} | Steps: {gen['steps']} | CFG: {gen['cfg']} | "
             f"{gen['resolution']}x{gen['resolution']} | VAE: {gen['vae']}"

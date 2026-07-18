@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "generation": {
-    "active_path": "drawthings",
+    "active_path": "comfyui",
     "comfyui_url": "http://127.0.0.1:8188",
     "model": "SD 1.5",
     "sampler": "DPM++ 2M Karras",
-    "steps": 28,
+    "steps": 24,
     "cfg": 7,
-    "resolution": 768,
+    "resolution": 512,
     "vae": "fp32",
     "upscale": "RealESRGAN_x2",
     "lora": "hoboevo_style.safetensors",
     "lora_strength": 1.0,
     "trigger": "hoboevo_style",
-    "comfyui_checkpoint": "PLACEHOLDER_SD15_CHECKPOINT.safetensors",
+    "comfyui_checkpoint": "v1-5-pruned-emaonly.safetensors",
     "comfyui_vae": "PLACEHOLDER_FP32_VAE.safetensors"
   },
   "negative_prompt": "realism, anime, 3d, pixel art, photographic lighting, gradients, busy background, blurry, extra limbs, watermark, text",

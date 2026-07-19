@@ -9,6 +9,13 @@ struct GameContent: Sendable {
     let flags: FeatureFlags
     let prestigeUnlocks: PrestigeUnlocks
     let rewardedAds: RewardedAdsConfig
+    let events: EventsConfig
+    let specials: SpecialsConfig
+    let upgradesConfig: UpgradesConfig
+    let dailyRewards: DailyRewardsConfig
+    let boosts: BoostsConfig
+    let viral: ViralConfig
+    let gameCenter: GameCenterConfig
 }
 
 /// Decodes and validates the bundled JSON content. Any failure produces a typed
@@ -22,6 +29,13 @@ enum GameContentLoader {
         let flags: FeatureFlags = try decode("feature_flags", from: bundle)
         let prestigeUnlocks: PrestigeUnlocks = try decode("prestige_unlocks", from: bundle)
         let rewardedAds: RewardedAdsConfig = try decode("rewarded_ads", from: bundle)
+        let events: EventsConfig = try decode("events", from: bundle)
+        let specials: SpecialsConfig = try decode("specials", from: bundle)
+        let upgradesConfig: UpgradesConfig = try decode("upgrades", from: bundle)
+        let dailyRewards: DailyRewardsConfig = try decode("daily_rewards", from: bundle)
+        let boosts: BoostsConfig = try decode("boosts", from: bundle)
+        let viral: ViralConfig = try decode("viral", from: bundle)
+        let gameCenter: GameCenterConfig = try decode("gamecenter", from: bundle)
 
         let tiers: TierRepository
         do {
@@ -30,7 +44,21 @@ enum GameContentLoader {
             throw GameError.contentInvalid(file: "tiers.json", reason: "\(error)")
         }
 
-        return GameContent(economy: economy, tiers: tiers, manifest: manifest, flags: flags, prestigeUnlocks: prestigeUnlocks, rewardedAds: rewardedAds)
+        return GameContent(
+            economy: economy,
+            tiers: tiers,
+            manifest: manifest,
+            flags: flags,
+            prestigeUnlocks: prestigeUnlocks,
+            rewardedAds: rewardedAds,
+            events: events,
+            specials: specials,
+            upgradesConfig: upgradesConfig,
+            dailyRewards: dailyRewards,
+            boosts: boosts,
+            viral: viral,
+            gameCenter: gameCenter
+        )
     }
 
     private static func decode<T: Decodable>(_ name: String, from bundle: Bundle) throws -> T {

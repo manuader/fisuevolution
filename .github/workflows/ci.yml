@@ -1,0 +1,33 @@
+# CI (plan F6.11): tests en cada push. Solo test — nada de archives en el free
+# tier (minutos macOS a 10x). Se activa solo cuando el repo tenga remoto en GitHub.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app/Contents/Developer
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: EconomyKit tests (rápidos, sin simulador)
+        run: swift test --package-path Packages/EconomyKit
+
+      - name: App tests
+        run: |
+          xcodebuild -project FisuEvolution.xcodeproj -scheme FisuEvolution \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            test -parallel-testing-enabled NO

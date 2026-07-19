@@ -9,18 +9,23 @@ final class BoardScene: SKScene {
     private unowned let gameState: GameState
     private let renderer = PlaceholderRenderer()
     private let pool = CharacterNodePool()
-    private let mergeHaptic = UIImpactFeedbackGenerator(style: .medium)
+    private let particles = ParticlePool()
 
-    private let gridNode = SKNode()
-    private var cellNodes: [SKShapeNode] = []
+    /// Campo de juego (estilo Cow Evolution): fondo de escena + personajes
+    /// parados en anclas orgánicas — sin grilla visible.
+    private let backgroundLayer = SKNode()
+    private let fieldNode = SKNode()
     private var characterNodes: [Int: CharacterNode] = [:]
     private var lastLayoutSize: CGSize = .zero
     private var renderedBoardVersion = -1
+    private var renderedStageKey = ""
 
-    // Grid geometry cached by layoutBoard for hit-testing and drops.
+    // Geometría del campo, cacheada por layoutBoard.
     private var boardColumns = 0
     private var boardRows = 0
     private var cellSize: CGFloat = 0
+    /// Punto de anclaje por cellIndex: grilla lógica + jitter determinístico.
+    private var anchorPoints: [CGPoint] = []
 
     // Drag state
     private var dragNode: CharacterNode?
@@ -28,6 +33,10 @@ final class BoardScene: SKScene {
     private var isDragging = false
     private static let dragThreshold: CGFloat = 10
     private static let longPressKey = "longPress"
+
+    // FTUE hint
+    private var hintNode: SKShapeNode?
+    private var hintTargetCell = -1
 
     // Tick state
     private var lastUpdateTime: TimeInterval = 0
@@ -45,7 +54,8 @@ final class BoardScene: SKScene {
         super.init(size: CGSize(width: 390, height: 844))
         scaleMode = .resizeFill
         backgroundColor = Palette.cream
-        addChild(gridNode)
+        addChild(backgroundLayer)
+        addChild(fieldNode)
     }
 
     @available(*, unavailable)
@@ -55,7 +65,7 @@ final class BoardScene: SKScene {
 
     override func didMove(to view: SKView) {
         layoutBoard()
-        mergeHaptic.prepare()
+        particles.preheat()
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -82,6 +92,47 @@ final class BoardScene: SKScene {
         if gameState.boardVersion != renderedBoardVersion {
             layoutBoard()
         }
+
+        updateFTUEHint()
+    }
+
+    /// Anillo pulsante sobre la unidad a tapear (hint 1) o sobre una del par
+    /// mergeable (hint 3). El hint del botón de spawn vive en SwiftUI.
+    private func updateFTUEHint() {
+        var targetCell = -1
+        if gameState.showTapHint {
+            targetCell = gameState.player?.board.first?.cellIndex ?? -1
+        } else if gameState.showMergeHint, let player = gameState.player {
+            var byType: [String: Int] = [:]
+            outer: for placement in player.board {
+                if let first = byType[placement.typeId] {
+                    targetCell = first
+                    break outer
+                }
+                byType[placement.typeId] = placement.cellIndex
+            }
+        }
+
+        guard targetCell != hintTargetCell else { return }
+        hintTargetCell = targetCell
+        hintNode?.removeFromParent()
+        hintNode = nil
+        guard targetCell >= 0 else { return }
+
+        let ring = SKShapeNode(circleOfRadius: cellSize * 0.55)
+        ring.strokeColor = SKColor(named: "PaletteBlue") ?? .systemBlue
+        ring.lineWidth = 4
+        ring.fillColor = .clear
+        ring.position = position(ofCell: targetCell)
+        ring.zPosition = 80
+        fieldNode.addChild(ring)
+        if !UIAccessibility.isReduceMotionEnabled {
+            ring.run(.repeatForever(.sequence([
+                .group([.scale(to: 1.15, duration: 0.5), .fadeAlpha(to: 0.5, duration: 0.5)]),
+                .group([.scale(to: 1.0, duration: 0.5), .fadeAlpha(to: 1.0, duration: 0.5)]),
+            ])))
+        }
+        hintNode = ring
     }
 
     // MARK: - Gestos: tap, drag-and-drop (§2.3 regla 2), long-press (pasivo)
@@ -92,6 +143,7 @@ final class BoardScene: SKScene {
         dragNode = node
         dragOriginCell = node.cellIndex
         isDragging = false
+        node.removeAction(forKey: "wander")
 
         // Long-press: si en 0.45s sigue apretando sin arrastrar → popup de pasivo.
         run(.sequence([
@@ -106,8 +158,8 @@ final class BoardScene: SKScene {
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard let node = dragNode, let touch = touches.first else { return }
-        let location = touch.location(in: gridNode)
-        let origin = position(ofCell: dragOriginCell, centered: true)
+        let location = touch.location(in: fieldNode)
+        let origin = position(ofCell: dragOriginCell)
 
         if !isDragging, hypot(location.x - origin.x, location.y - origin.y) > Self.dragThreshold {
             isDragging = true
@@ -127,27 +179,36 @@ final class BoardScene: SKScene {
         guard isDragging else {
             // Tap corto: §2.3 regla 1.
             dragNode = nil
-            if let gain = gameState.registerTap(cellIndex: node.cellIndex) {
-                runTapFeedback(on: node, gain: gain)
+            if let result = gameState.registerTap(cellIndex: node.cellIndex) {
+                runTapFeedback(on: node, result: result)
             }
             return
         }
 
-        let dropPoint = touch.location(in: gridNode)
+        let dropPoint = touch.location(in: fieldNode)
         guard let targetCell = cellIndex(at: dropPoint) else {
             cancelDrag(snapBack: true)
             return
         }
 
         switch gameState.handleDrop(fromCell: dragOriginCell, toCell: targetCell) {
-        case .merged(let cell):
+        case .merged(let cell, let evolvedTo):
             dragNode = nil
-            mergeHaptic.impactOccurred()
             layoutBoard()
-            characterNodes[cell]?.run(.sequence([
-                .scale(to: 1.25, duration: 0.1),
-                .scale(to: 1.0, duration: 0.12),
-            ]))
+            let mergedNode = characterNodes[cell]
+            if let mergedNode {
+                particles.emit(.merge, at: mergedNode.position, in: fieldNode)
+                mergedNode.run(.sequence([
+                    .scale(to: 1.25, duration: 0.1),
+                    .scale(to: 1.0, duration: 0.12),
+                ]))
+            }
+            if let evolvedTo {
+                gameState.playHaptic(.evolution)
+                runEvolutionReveal(for: evolvedTo, at: mergedNode?.position)
+            } else {
+                gameState.playHaptic(.merge)
+            }
         case .moved:
             dragNode = nil
             layoutBoard()
@@ -167,13 +228,22 @@ final class BoardScene: SKScene {
         isDragging = false
         node.zPosition = 0
         if snapBack {
-            node.run(.group([
-                .move(to: position(ofCell: node.cellIndex, centered: true), duration: 0.15),
-                .scale(to: 1.0, duration: 0.15),
+            node.run(.sequence([
+                .group([
+                    .move(to: position(ofCell: node.cellIndex), duration: 0.15),
+                    .scale(to: 1.0, duration: 0.15),
+                ]),
+                .run { [weak self, weak node] in
+                    guard let node else { return }
+                    node.zPosition = self?.depthZ(for: node.position) ?? 0
+                    self?.startWander(node)
+                },
             ]))
         } else {
-            node.position = position(ofCell: node.cellIndex, centered: true)
+            node.position = position(ofCell: node.cellIndex)
             node.setScale(1.0)
+            node.zPosition = depthZ(for: node.position)
+            startWander(node)
         }
     }
 
@@ -191,30 +261,84 @@ final class BoardScene: SKScene {
         return nil
     }
 
-    /// Feedback mínimo de F1/F2: bounce + "+N" flotante. F5 suma partícula, SFX y haptic.
-    private func runTapFeedback(on node: CharacterNode, gain: Double) {
+    /// Bounce + "+N" flotante; crit y golden gritan más fuerte. F5.2 suma
+    /// partículas, SFX y haptics ricos.
+    private func runTapFeedback(on node: CharacterNode, result: GameState.TapResult) {
         node.removeAction(forKey: "tapBounce")
+        let punch: CGFloat = result.isCrit || result.isGolden ? 1.22 : 1.12
         node.run(
-            .sequence([.scale(to: 1.12, duration: 0.06), .scale(to: 1.0, duration: 0.1)]),
+            .sequence([.scale(to: punch, duration: 0.06), .scale(to: 1.0, duration: 0.1)]),
             withKey: "tapBounce"
         )
 
+        particles.emit(result.isCrit || result.isGolden ? .coins : .tap, at: node.position, in: fieldNode)
+        if result.isGolden || result.isCrit {
+            gameState.playHaptic(.rarity)
+        }
+
         let label = SKLabelNode(fontNamed: "AvenirNext-Bold")
-        label.text = "+\(CoinFormatter.string(from: gain))"
-        label.fontSize = 17
-        label.fontColor = Palette.ink
+        label.text = "+\(CoinFormatter.string(from: result.gain))"
+        label.fontSize = result.isCrit || result.isGolden ? 24 : 17
+        label.fontColor = result.isGolden ? Palette.yellow : (result.isCrit ? SKColor(named: "PalettePink") ?? .red : Palette.ink)
         label.position = CGPoint(x: node.position.x, y: node.position.y + 34)
         label.zPosition = 100
-        gridNode.addChild(label)
+        fieldNode.addChild(label)
         label.run(.sequence([
-            .group([.moveBy(x: 0, y: 30, duration: 0.55), .fadeOut(withDuration: 0.55)]),
+            .group([.moveBy(x: 0, y: result.isCrit || result.isGolden ? 44 : 30, duration: 0.55), .fadeOut(withDuration: 0.55)]),
             .removeFromParent(),
         ]))
     }
 
-    // MARK: - Layout
+    // MARK: - Reveal de evolución (bible §8: el momento de video vertical)
 
-    /// Rebuilds the grid and re-renders every placement from the current player state.
+    private func runEvolutionReveal(for type: CharacterType, at position: CGPoint?) {
+        let reduceMotion = UIAccessibility.isReduceMotionEnabled
+
+        let flash = SKShapeNode(rect: CGRect(origin: .zero, size: size))
+        flash.fillColor = .white
+        flash.strokeColor = .clear
+        flash.alpha = 0
+        flash.zPosition = 200
+        addChild(flash)
+        flash.run(.sequence([
+            .fadeAlpha(to: reduceMotion ? 0.35 : 0.75, duration: 0.08),
+            .fadeOut(withDuration: 0.35),
+            .removeFromParent(),
+        ]))
+
+        if let position, !reduceMotion {
+            particles.emit(.evolution, at: position, in: fieldNode)
+        }
+
+        let banner = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+        banner.text = type.displayName.uppercased()
+        banner.fontSize = 34
+        banner.fontColor = SKColor(named: "PalettePink") ?? .magenta
+        banner.position = CGPoint(x: size.width / 2, y: size.height * 0.62)
+        banner.zPosition = 210
+        banner.alpha = 0
+        banner.setScale(reduceMotion ? 1.0 : 0.4)
+        addChild(banner)
+
+        let entrance: SKAction = reduceMotion
+            ? .fadeIn(withDuration: 0.25)
+            : .group([.fadeIn(withDuration: 0.15), .sequence([.scale(to: 1.15, duration: 0.2), .scale(to: 1.0, duration: 0.1)])])
+        banner.run(.sequence([
+            entrance,
+            .wait(forDuration: 1.0),
+            .fadeOut(withDuration: 0.3),
+            .removeFromParent(),
+            .run { [weak self] in
+                // Al cerrar el reveal, ofrecer el share card (bible §8).
+                self?.gameState.offerShareCard(for: type)
+            },
+        ]))
+    }
+
+    // MARK: - Layout (campo, no grilla)
+
+    /// Reconstruye el campo: fondo de la etapa actual, anclas orgánicas y
+    /// personajes parados con orden de profundidad por Y.
     func layoutBoard() {
         guard let content = gameState.content, let player = gameState.player else { return }
         lastLayoutSize = size
@@ -232,30 +356,86 @@ final class BoardScene: SKScene {
         let gridHeight = cellSize * CGFloat(board.rows)
         let originX = (size.width - gridWidth) / 2
         let originY = Self.bottomInset + (availableHeight - gridHeight) / 2
-        gridNode.position = CGPoint(x: originX, y: originY)
+        fieldNode.position = CGPoint(x: originX, y: originY)
 
-        rebuildCells(board: board)
+        rebuildAnchors(board: board)
+        renderFieldBackground(content: content, player: player)
         renderPlacements(player: player, content: content)
     }
 
-    private func rebuildCells(board: EconomyConfig.BoardConfig) {
-        for cell in cellNodes {
-            cell.removeFromParent()
-        }
-        cellNodes.removeAll(keepingCapacity: true)
-
-        for index in 0..<board.cellCount {
-            let cell = SKShapeNode(
-                rect: CGRect(x: 0, y: 0, width: cellSize * 0.96, height: cellSize * 0.96),
-                cornerRadius: cellSize * 0.12
+    /// Ancla por cellIndex: punto de grilla lógica + jitter determinístico
+    /// (hash del índice), para que el campo se vea orgánico pero estable entre
+    /// launches y consistente con el modelo de board persistido.
+    private func rebuildAnchors(board: EconomyConfig.BoardConfig) {
+        anchorPoints = (0..<board.cellCount).map { index in
+            let column = index % max(boardColumns, 1)
+            let row = index / max(boardColumns, 1)
+            var hash = UInt64(index &* 2654435761)
+            hash = (hash ^ (hash >> 13)) &* 0x9E3779B97F4A7C15
+            let jitterX = (CGFloat(hash % 1000) / 1000 - 0.5) * cellSize * 0.45
+            let jitterY = (CGFloat((hash >> 10) % 1000) / 1000 - 0.5) * cellSize * 0.35
+            return CGPoint(
+                x: CGFloat(column) * cellSize + cellSize / 2 + jitterX,
+                y: CGFloat(row) * cellSize + cellSize / 2 + jitterY
             )
-            cell.fillColor = Palette.yellow.withAlphaComponent(0.15)
-            cell.strokeColor = Palette.ink.withAlphaComponent(0.25)
-            cell.lineWidth = 1.5
-            cell.position = position(ofCell: index, centered: false)
-            gridNode.addChild(cell)
-            cellNodes.append(cell)
         }
+    }
+
+    // MARK: - Fondo por etapa (bible §6.4: 11 stages)
+
+    /// maxTierReached → key de background. Umbrales [TUNEABLE].
+    private static let stageThresholds: [(minTier: Int, key: String)] = [
+        (30, "god_realm"), (28, "cosmic"), (26, "galaxy"), (24, "solar"),
+        (22, "mars"), (18, "moon"), (14, "island"), (10, "luxury"),
+        (6, "corporate"), (3, "urban"), (1, "alley"),
+    ]
+
+    /// Colores de fallback (cielo, piso) hasta que el arte real llene el manifest.
+    private static let stageFallbackColors: [String: (sky: SKColor, ground: SKColor)] = [
+        "alley": (SKColor(red: 0.62, green: 0.66, blue: 0.72, alpha: 1), SKColor(red: 0.45, green: 0.45, blue: 0.48, alpha: 1)),
+        "urban": (SKColor(red: 0.55, green: 0.78, blue: 0.95, alpha: 1), SKColor(red: 0.72, green: 0.66, blue: 0.55, alpha: 1)),
+        "corporate": (SKColor(red: 0.7, green: 0.85, blue: 0.95, alpha: 1), SKColor(red: 0.7, green: 0.7, blue: 0.72, alpha: 1)),
+        "luxury": (SKColor(red: 0.45, green: 0.8, blue: 0.85, alpha: 1), SKColor(red: 0.93, green: 0.89, blue: 0.78, alpha: 1)),
+        "island": (SKColor(red: 0.4, green: 0.85, blue: 0.95, alpha: 1), SKColor(red: 0.96, green: 0.87, blue: 0.62, alpha: 1)),
+        "moon": (SKColor(red: 0.08, green: 0.08, blue: 0.14, alpha: 1), SKColor(red: 0.55, green: 0.55, blue: 0.58, alpha: 1)),
+        "mars": (SKColor(red: 0.25, green: 0.1, blue: 0.1, alpha: 1), SKColor(red: 0.75, green: 0.4, blue: 0.25, alpha: 1)),
+        "solar": (SKColor(red: 0.06, green: 0.07, blue: 0.2, alpha: 1), SKColor(red: 0.9, green: 0.6, blue: 0.2, alpha: 1)),
+        "galaxy": (SKColor(red: 0.12, green: 0.05, blue: 0.25, alpha: 1), SKColor(red: 0.4, green: 0.3, blue: 0.6, alpha: 1)),
+        "cosmic": (SKColor(red: 0.04, green: 0.02, blue: 0.1, alpha: 1), SKColor(red: 0.3, green: 0.15, blue: 0.45, alpha: 1)),
+        "god_realm": (SKColor(red: 1.0, green: 0.92, blue: 0.7, alpha: 1), SKColor(red: 1.0, green: 0.97, blue: 0.88, alpha: 1)),
+    ]
+
+    private func renderFieldBackground(content: GameContent, player: PlayerState) {
+        let stage = Self.stageThresholds.first { player.maxTierReached >= $0.minTier }?.key ?? "alley"
+        guard stage != renderedStageKey || backgroundLayer.children.isEmpty else { return }
+        renderedStageKey = stage
+        backgroundLayer.removeAllChildren()
+
+        // Arte real del manifest si existe; si no, cielo + piso de fallback.
+        if let assetName = content.manifest.backgrounds[stage].flatMap({ $0.isEmpty ? nil : $0 }),
+           UIImage(named: assetName) != nil {
+            let sprite = SKSpriteNode(imageNamed: assetName)
+            sprite.anchorPoint = .zero
+            sprite.position = .zero
+            sprite.size = size
+            sprite.zPosition = -100
+            backgroundLayer.addChild(sprite)
+            return
+        }
+
+        let colors = Self.stageFallbackColors[stage] ?? (Palette.cream, Palette.yellow)
+        let sky = SKSpriteNode(color: colors.sky, size: size)
+        sky.anchorPoint = .zero
+        sky.position = .zero
+        sky.zPosition = -100
+        backgroundLayer.addChild(sky)
+
+        let groundHeight = size.height * 0.62
+        let ground = SKSpriteNode(color: colors.ground, size: CGSize(width: size.width, height: groundHeight))
+        ground.anchorPoint = .zero
+        ground.position = .zero
+        ground.zPosition = -99
+        backgroundLayer.addChild(ground)
     }
 
     private func renderPlacements(player: PlayerState, content: GameContent) {
@@ -270,39 +450,68 @@ final class BoardScene: SKScene {
                 Log.board.error("placement references unknown type '\(placement.typeId)'")
                 continue
             }
+            let hasRealArt = content.manifest.characters[type.id] != nil
             let node = pool.obtain()
             node.configure(
                 type: type,
                 texture: renderer.texture(for: type, manifest: content.manifest),
                 cellIndex: placement.cellIndex,
                 cellSize: cellSize,
-                skinTint: skinTint
+                skinTint: skinTint,
+                hasRealArt: hasRealArt
             )
-            node.position = position(ofCell: placement.cellIndex, centered: true)
-            node.zPosition = 0
+            node.position = position(ofCell: placement.cellIndex)
+            node.zPosition = depthZ(for: node.position)
             node.setScale(1.0)
-            gridNode.addChild(node)
+            fieldNode.addChild(node)
             characterNodes[placement.cellIndex] = node
+            startWander(node)
         }
     }
 
-    /// Cell `index` → point in grid coordinates. Row 0 sits at the bottom.
-    private func position(ofCell index: Int, centered: Bool) -> CGPoint {
-        let column = index % max(boardColumns, 1)
-        let row = index / max(boardColumns, 1)
-        let offset = centered ? cellSize / 2 : cellSize * 0.02
-        return CGPoint(
-            x: CGFloat(column) * cellSize + offset,
-            y: CGFloat(row) * cellSize + offset
-        )
+    /// Los de abajo (más "cerca") tapan a los de arriba — profundidad de campo.
+    private func depthZ(for point: CGPoint) -> CGFloat {
+        (CGFloat(boardRows) * cellSize - point.y) * 0.01
     }
 
-    /// Grid point → cell index, nil outside the grid.
+    /// Deambulación idle alrededor del ancla (estilo Cow Evolution). Se corta al
+    /// agarrar el nodo y se reinicia al soltarlo/relayout.
+    private func startWander(_ node: CharacterNode) {
+        node.removeAction(forKey: "wander")
+        guard !UIAccessibility.isReduceMotionEnabled else { return }
+        let anchor = position(ofCell: node.cellIndex)
+        var hash = UInt64(node.cellIndex &* 40503 &+ 7)
+        let step: () -> SKAction = {
+            hash = (hash ^ (hash >> 13)) &* 0x9E3779B97F4A7C15
+            let dx = (CGFloat(hash % 100) / 100 - 0.5) * 18
+            let dy = (CGFloat((hash >> 8) % 100) / 100 - 0.5) * 12
+            let pause = 0.6 + Double(hash % 140) / 100
+            return .sequence([
+                .wait(forDuration: pause),
+                .move(to: CGPoint(x: anchor.x + dx, y: anchor.y + dy), duration: 1.2),
+            ])
+        }
+        node.run(.repeatForever(.sequence([step(), step(), step()])), withKey: "wander")
+    }
+
+    /// Ancla del cellIndex (campo orgánico).
+    private func position(ofCell index: Int) -> CGPoint {
+        guard index >= 0, index < anchorPoints.count else { return .zero }
+        return anchorPoints[index]
+    }
+
+    /// Punto del campo → cellIndex del ancla más cercana (radio generoso), nil
+    /// si cae lejos de toda ancla.
     private func cellIndex(at point: CGPoint) -> Int? {
-        guard cellSize > 0 else { return nil }
-        let column = Int(floor(point.x / cellSize))
-        let row = Int(floor(point.y / cellSize))
-        guard (0..<boardColumns).contains(column), (0..<boardRows).contains(row) else { return nil }
-        return row * boardColumns + column
+        guard cellSize > 0, !anchorPoints.isEmpty else { return nil }
+        var best: (index: Int, distance: CGFloat)?
+        for (index, anchor) in anchorPoints.enumerated() {
+            let distance = hypot(point.x - anchor.x, point.y - anchor.y)
+            if best == nil || distance < best!.distance {
+                best = (index, distance)
+            }
+        }
+        guard let best, best.distance <= cellSize * 0.85 else { return nil }
+        return best.index
     }
 }

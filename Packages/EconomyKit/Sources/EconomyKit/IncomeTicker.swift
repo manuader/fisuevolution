@@ -20,7 +20,7 @@ public enum IncomeTicker {
                 total += type.passiveYieldPerInstance * Double(count)
             }
         }
-        return total * state.globalMultiplier
+        return total * state.globalMultiplier * state.upgrades.incomeMultiplier
             * ModifierMath.factor(state.activeModifiers, effect: .incomeMultiplier, now: now)
     }
 

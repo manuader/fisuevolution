@@ -35,6 +35,7 @@ struct GameBoardView: View {
     @State private var showPrestige = false
     @State private var showStore = false
     @State private var showBonus = false
+    @State private var showUpgrades = false
     @State private var adsProvider = StubAdsProvider()
     #if DEBUG
     @State private var showDebugPanel = false
@@ -48,14 +49,20 @@ struct GameBoardView: View {
                 SpriteView(scene: scene)
                     .ignoresSafeArea()
             }
-            VStack {
+            VStack(spacing: 8) {
                 HUDView(
                     onStoreTap: { showStore = true },
-                    onBonusTap: { showBonus = true }
+                    onBonusTap: { showBonus = true },
+                    onUpgradesTap: { showUpgrades = true }
                 )
+                if let event = gameState.activeEvent {
+                    EventBannerView(event: event)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 Spacer()
                 bottomBar
             }
+            .animation(.spring(duration: 0.35), value: gameState.activeEvent)
             #if DEBUG
             debugButton
             #endif
@@ -82,6 +89,27 @@ struct GameBoardView: View {
         }
         .sheet(isPresented: $showBonus) {
             BonusView(adsProvider: adsProvider)
+        }
+        .sheet(isPresented: $showUpgrades) {
+            UpgradesView()
+        }
+        .sheet(item: Binding(
+            get: { gameState.specialDrop },
+            set: { if $0 == nil { gameState.dismissSpecialDrop() } }
+        )) { special in
+            SpecialDropView(special: special)
+        }
+        .sheet(item: Binding(
+            get: { gameState.shareCardSubject },
+            set: { if $0 == nil { gameState.dismissShareCard() } }
+        )) { subject in
+            ShareCardSheet(subject: subject)
+        }
+        .sheet(item: Binding(
+            get: { gameState.dailyClaim.map { IdentifiedClaim(claim: $0) } },
+            set: { if $0 == nil { gameState.dismissDailyClaim() } }
+        )) { wrapped in
+            DailyRewardView(claim: wrapped.claim)
         }
         #if DEBUG
         .sheet(isPresented: $showDebugPanel) {
@@ -119,6 +147,12 @@ struct GameBoardView: View {
             SpawnButtonView()
         }
         .padding(.bottom, 20)
+    }
+
+        /// DailyRewardManager.Claim no es Identifiable; wrapper para .sheet(item:).
+    private struct IdentifiedClaim: Identifiable {
+        let id = UUID()
+        let claim: DailyRewardManager.Claim
     }
 
     #if DEBUG

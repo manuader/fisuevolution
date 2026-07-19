@@ -23,7 +23,7 @@ public enum PrestigeCalculator {
         let total = max(state.soulPoints, economy.soulPoints(lifetimeEarnings: state.lifetimeEarnings))
         state.soulPoints = total
         state.prestigeLevel += 1
-        state.globalMultiplier = economy.globalMultiplier(soulPoints: total)
+        state.globalMultiplier = economy.globalMultiplier(soulPoints: total, prestigeBonus: state.upgrades.prestigeBonus)
         state.coins = 0
         state.board = [BoardPlacement(cellIndex: 0, typeId: tiers.baseType.id)]
         state.spawnPurchases = [:]

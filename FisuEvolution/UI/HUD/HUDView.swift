@@ -5,10 +5,12 @@ struct HUDView: View {
     @Environment(GameState.self) private var gameState
     var onStoreTap: () -> Void = {}
     var onBonusTap: () -> Void = {}
+    var onUpgradesTap: () -> Void = {}
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             hudIconButton(systemName: "cart.fill", labelKey: "hud.store.label", identifier: "hud.store", action: onStoreTap)
+            hudIconButton(systemName: "arrow.up.circle.fill", labelKey: "hud.upgrades.label", identifier: "hud.upgrades", action: onUpgradesTap)
             Spacer()
             coinCounter
             Spacer()

@@ -27,7 +27,8 @@ extension StandardEconomy {
     public func applyTap(type: CharacterType, state: inout PlayerState, now: TimeInterval) -> Double {
         let modifierFactor = ModifierMath.factor(state.activeModifiers, effect: .incomeMultiplier, now: now)
             * ModifierMath.factor(state.activeModifiers, effect: .tapMultiplier, now: now)
-        let gain = type.tapYield * state.upgrades.tapMultiplier * state.globalMultiplier * modifierFactor
+        let gain = type.tapYield * state.upgrades.tapMultiplier * state.upgrades.incomeMultiplier
+            * state.globalMultiplier * modifierFactor
         state.coins += gain
         state.lifetimeEarnings += gain
         return gain

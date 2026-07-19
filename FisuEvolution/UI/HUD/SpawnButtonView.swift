@@ -4,6 +4,8 @@ import SwiftUI
 /// and disables itself while coins are short. F2 adds the merge loop on top.
 struct SpawnButtonView: View {
     @Environment(GameState.self) private var gameState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var pulsing = false
 
     var body: some View {
         if let quote = gameState.spawnQuote {
@@ -27,6 +29,9 @@ struct SpawnButtonView: View {
             .tint(Color("PaletteGreen"))
             .foregroundStyle(Color("PaletteInk"))
             .disabled(!gameState.canAffordSpawn)
+            .scaleEffect(gameState.showSpawnHint && pulsing && !reduceMotion ? 1.06 : 1.0)
+            .animation(.easeInOut(duration: 0.55).repeatForever(autoreverses: true), value: pulsing)
+            .onAppear { pulsing = true }
             .accessibilityIdentifier("hud.spawn")
             .accessibilityHint(Text("spawn.button.hint"))
         }

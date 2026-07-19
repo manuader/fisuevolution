@@ -8,6 +8,7 @@ import UIKit
 final class CharacterNode: SKNode {
     static let nodeName = "character"
 
+    private let shadow = SKShapeNode()
     private let plate = SKShapeNode()
     private let sprite = SKSpriteNode()
     private let tierLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
@@ -19,6 +20,10 @@ final class CharacterNode: SKNode {
     override init() {
         super.init()
         name = Self.nodeName
+
+        shadow.fillColor = SKColor.black.withAlphaComponent(0.18)
+        shadow.strokeColor = .clear
+        addChild(shadow)
 
         plate.lineWidth = 2
         addChild(plate)
@@ -40,11 +45,49 @@ final class CharacterNode: SKNode {
         fatalError("CharacterNode is never decoded")
     }
 
-    func configure(type: CharacterType, texture: SKTexture?, cellIndex: Int, cellSize: CGFloat, skinTint: SKColor? = nil) {
+    /// `hasRealArt`: con arte del manifest la figura completa ES el personaje
+    /// (sin placa ni nombre, parado en el campo); con placeholder mantiene la
+    /// placa de color legible. La sombra elíptica bajo los pies va siempre.
+    func configure(
+        type: CharacterType,
+        texture: SKTexture?,
+        cellIndex: Int,
+        cellSize: CGFloat,
+        skinTint: SKColor? = nil,
+        hasRealArt: Bool = false
+    ) {
         typeId = type.id
         self.cellIndex = cellIndex
 
         let plateSize = cellSize * 0.92
+        let shadowRect = CGRect(
+            x: -plateSize * 0.34,
+            y: -plateSize * 0.56,
+            width: plateSize * 0.68,
+            height: plateSize * 0.18
+        )
+        shadow.path = CGPath(ellipseIn: shadowRect, transform: nil)
+
+        if hasRealArt {
+            plate.isHidden = true
+            nameLabel.isHidden = true
+            sprite.texture = texture
+            sprite.isHidden = texture == nil
+            sprite.size = CGSize(width: plateSize, height: plateSize)
+            sprite.position = CGPoint(x: 0, y: 0)
+            sprite.color = skinTint ?? .white
+            sprite.colorBlendFactor = skinTint == nil ? 0 : 0.25
+
+            tierLabel.isHidden = false
+            tierLabel.text = "T\(type.tier)"
+            tierLabel.fontSize = plateSize * 0.14
+            tierLabel.fontColor = Palette.ink
+            tierLabel.position = CGPoint(x: 0, y: plateSize * 0.52)
+            return
+        }
+
+        plate.isHidden = false
+        nameLabel.isHidden = false
         plate.path = CGPath(
             roundedRect: CGRect(x: -plateSize / 2, y: -plateSize / 2, width: plateSize, height: plateSize),
             cornerWidth: plateSize * 0.18,
@@ -58,10 +101,13 @@ final class CharacterNode: SKNode {
 
         sprite.texture = texture
         sprite.isHidden = texture == nil
+        sprite.color = .white
+        sprite.colorBlendFactor = 0
         let spriteSide = plateSize * 0.52
         sprite.size = CGSize(width: spriteSide, height: spriteSide)
         sprite.position = CGPoint(x: 0, y: plateSize * 0.04)
 
+        tierLabel.isHidden = false
         tierLabel.text = "T\(type.tier)"
         tierLabel.fontSize = plateSize * 0.2
         tierLabel.fontColor = Palette.ink

@@ -11,16 +11,50 @@ public struct BoardPlacement: Codable, Sendable, Equatable {
     }
 }
 
-/// Per-line upgrade levels stored in the save (build bible §2.2).
+/// Derived upgrade effects cached in the save (recomputed by UpgradeManager
+/// from `upgradeLevels` × upgrades.json; bible §2.2 + las 7 líneas del plan).
 public struct UpgradeState: Codable, Sendable, Equatable {
     public var offlineEfficiency: Double
     public var tapMultiplier: Double
     public var critChance: Double
+    /// Multiplicador global de income de la línea de upgrade "income" (v3).
+    public var incomeMultiplier: Double
+    /// Chance de tap dorado (paga x10) de la línea "golden" (v3).
+    public var goldenChance: Double
+    /// Descuento de spawn de la línea "spawn", 0…1 (v3).
+    public var spawnDiscount: Double
+    /// Bonus sobre el multiplicador por soul point de la línea "prestige" (v3).
+    public var prestigeBonus: Double
 
-    public init(offlineEfficiency: Double, tapMultiplier: Double, critChance: Double) {
+    public init(
+        offlineEfficiency: Double,
+        tapMultiplier: Double,
+        critChance: Double,
+        incomeMultiplier: Double = 1.0,
+        goldenChance: Double = 0.0,
+        spawnDiscount: Double = 0.0,
+        prestigeBonus: Double = 0.0
+    ) {
         self.offlineEfficiency = offlineEfficiency
         self.tapMultiplier = tapMultiplier
         self.critChance = critChance
+        self.incomeMultiplier = incomeMultiplier
+        self.goldenChance = goldenChance
+        self.spawnDiscount = spawnDiscount
+        self.prestigeBonus = prestigeBonus
+    }
+}
+
+/// Estado del daily reward (ciclo de 7 días).
+public struct DailyRewardState: Codable, Sendable, Equatable {
+    /// Día calendario del último claim, "yyyy-MM-dd" en el timezone del device.
+    public var lastClaimDay: String?
+    /// Posición 1…7 dentro del ciclo (el próximo claim usa este día).
+    public var cycleDay: Int
+
+    public init(lastClaimDay: String? = nil, cycleDay: Int = 1) {
+        self.lastClaimDay = lastClaimDay
+        self.cycleDay = cycleDay
     }
 }
 
@@ -53,8 +87,16 @@ public struct PlayerState: Codable, Sendable, Equatable {
     public var removedAds: Bool
     /// Modificadores temporales vivos (rewarded/eventos/boosts) — schema v2.
     public var activeModifiers: [ActiveModifier]
+    /// Niveles comprados por línea de upgrade (upgrades.json) — v3.
+    public var upgradeLevels: [String: Int]
+    /// Última activación por boost id (cooldowns de boosts.json) — v3.
+    public var boostActivations: [String: TimeInterval]
+    /// Estado del daily reward — v3.
+    public var daily: DailyRewardState
+    /// Shares completados (referral local de viral.json) — v3.
+    public var sharesCompleted: Int
 
-    public static let currentSchemaVersion = 2
+    public static let currentSchemaVersion = 3
 
     public init(
         schemaVersion: Int,
@@ -75,7 +117,11 @@ public struct PlayerState: Codable, Sendable, Equatable {
         ownedSkins: [String],
         activeSkin: String?,
         removedAds: Bool,
-        activeModifiers: [ActiveModifier]
+        activeModifiers: [ActiveModifier],
+        upgradeLevels: [String: Int] = [:],
+        boostActivations: [String: TimeInterval] = [:],
+        daily: DailyRewardState = DailyRewardState(),
+        sharesCompleted: Int = 0
     ) {
         self.schemaVersion = schemaVersion
         self.coins = coins
@@ -96,6 +142,10 @@ public struct PlayerState: Codable, Sendable, Equatable {
         self.activeSkin = activeSkin
         self.removedAds = removedAds
         self.activeModifiers = activeModifiers
+        self.upgradeLevels = upgradeLevels
+        self.boostActivations = boostActivations
+        self.daily = daily
+        self.sharesCompleted = sharesCompleted
     }
 
     /// A fresh run: one starter unit on cell 0, everything else at its baseline.

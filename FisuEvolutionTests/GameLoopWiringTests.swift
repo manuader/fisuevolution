@@ -25,11 +25,13 @@ struct GameLoopWiringTests {
         #expect(gameState.player?.board.count == 3)
 
         let resolution = gameState.handleDrop(fromCell: 1, toCell: 2)
-        guard case .merged(let cell) = resolution else {
+        guard case .merged(let cell, let evolvedTo) = resolution else {
             Issue.record("expected merge, got \(resolution)")
             return
         }
         #expect(cell == 2)
+        // Primer cartonero: el tier máximo avanzó → hay reveal.
+        #expect(evolvedTo?.id == "cartonero")
         #expect(gameState.player?.board.count == 2)
         #expect(gameState.player?.board.contains { $0.typeId == "cartonero" } == true)
         #expect(gameState.player?.maxTierReached == 2)
@@ -161,7 +163,7 @@ struct SaveMigratorTests {
         }
     }
 
-    @Test func v1SaveMigratesToV2WithEmptyModifiers() throws {
+    @Test func v1SaveMigratesToCurrentSchema() throws {
         var state = PlayerState.newGame(startTypeId: "homeless", offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 0)
         state.coins = 77
         guard var object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any] else {
@@ -173,8 +175,10 @@ struct SaveMigratorTests {
         let v1Data = try JSONSerialization.data(withJSONObject: object)
 
         let migrated = try SaveMigrator.migrate(v1Data)
-        #expect(migrated.schemaVersion == 2)
+        #expect(migrated.schemaVersion == PlayerState.currentSchemaVersion)
         #expect(migrated.coins == 77)
         #expect(migrated.activeModifiers.isEmpty)
+        #expect(migrated.upgradeLevels.isEmpty)
+        #expect(migrated.daily.cycleDay == 1)
     }
 }

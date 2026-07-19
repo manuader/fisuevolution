@@ -40,7 +40,8 @@ final class GameState {
     }
 
     enum DropResolution {
-        case merged(targetCell: Int)
+        /// `evolvedTo` presente cuando el merge alcanzó un tier nuevo (reveal).
+        case merged(targetCell: Int, evolvedTo: CharacterType?)
         case moved
         case careerPending
         case snapBack
@@ -58,6 +59,16 @@ final class GameState {
     private(set) var soulPointsText = "0"
     private(set) var ownedSkins: [String] = []
     private(set) var activeSkin: String?
+    private(set) var activeEvent: EventManager.ActiveEvent?
+    private(set) var specialDrop: SpecialsConfig.Special?
+    private(set) var dailyClaim: DailyRewardManager.Claim?
+    private(set) var shareCardSubject: CharacterType?
+    private(set) var showTapHint = false
+    private(set) var showSpawnHint = false
+    private(set) var showMergeHint = false
+    /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen
+    /// `player` directo lo observan para re-renderizar.
+    private(set) var effectsVersion = 0
     var careerPrompt: CareerPrompt?
     var passivePrompt: PassivePrompt?
     var offlineReward: OfflineReward?
@@ -72,9 +83,37 @@ final class GameState {
     private var repository: PlayerStateRepository?
     private let injectedRepository: PlayerStateRepository?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
+    @ObservationIgnored private var rng = SystemRandomNumberGenerator()
+    @ObservationIgnored private var gameCenter: GameCenterManager?
+    @ObservationIgnored private var haptics: HapticsManager?
+    @ObservationIgnored private var audio: AudioManager?
+    @ObservationIgnored private var ftueTapped = UserDefaults.standard.bool(forKey: "ftue.tapped")
+    @ObservationIgnored private var ftueSpawned = UserDefaults.standard.bool(forKey: "ftue.spawned")
+    @ObservationIgnored private var ftueMerged = UserDefaults.standard.bool(forKey: "ftue.merged")
+    @ObservationIgnored private var cloudSync: CloudSaveSync?
+    @ObservationIgnored private var nextEventAt: TimeInterval = .infinity
+    @ObservationIgnored private var eventLastFired: [String: TimeInterval] = [:]
 
     init(repository: PlayerStateRepository? = nil) {
         self.injectedRepository = repository
+    }
+
+    /// Servicios opcionales detrás de feature flags (Game Center, CloudKit).
+    func attachGameCenter(_ manager: GameCenterManager) {
+        gameCenter = manager
+    }
+
+    func attachHaptics(_ manager: HapticsManager) {
+        haptics = manager
+    }
+
+    func attachAudio(_ manager: AudioManager) {
+        audio = manager
+    }
+
+    /// La escena pide feedback háptico sin conocer al manager.
+    func playHaptic(_ pattern: HapticsManager.Pattern) {
+        haptics?.play(pattern)
     }
 
     // MARK: Bootstrap
@@ -97,10 +136,20 @@ final class GameState {
             forceNewGame = ProcessInfo.processInfo.arguments.contains("--uitest-reset")
             #endif
 
+            if content.flags.cloudKitEnabled {
+                cloudSync = CloudSaveSync()
+            }
+
+            var isFreshInstall = false
             if !forceNewGame, let saved = await repository.load() {
-                player = saved
-                Log.lifecycle.info("save loaded: prestige \(saved.prestigeLevel), maxTier \(saved.maxTierReached)")
+                var resolved = saved
+                if let cloudSync, let remote = try? await cloudSync.fetch() {
+                    resolved = SaveConflictResolver.resolve(local: saved, remote: remote)
+                }
+                player = resolved
+                Log.lifecycle.info("save loaded: prestige \(resolved.prestigeLevel), maxTier \(resolved.maxTierReached)")
             } else {
+                isFreshInstall = true
                 let fresh = PlayerState.newGame(
                     startTypeId: content.tiers.baseType.id,
                     offlineEfficiencyBase: content.economy.offlineEfficiencyBase,
@@ -113,6 +162,15 @@ final class GameState {
             }
 
             applyOfflineProgressIfNeeded()
+            // El primer launch de una cuenta nueva no reclama daily: el jugador
+            // todavía no jugó y el popup compite con el tutorial (FTUE).
+            if !isFreshInstall {
+                claimDailyIfAvailable()
+            } else if var player {
+                player.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
+                self.player = player
+            }
+            scheduleNextEvent(from: Date().timeIntervalSince1970)
             refreshProjections()
             phase = .ready
         } catch let error as GameError {
@@ -141,32 +199,58 @@ final class GameState {
     }
 
     /// 8 Hz projection flush driven by the scene's frame counter. Also prunes
-    /// expired modifiers (cheap; only mutates when something actually expired).
+    /// expired modifiers and fires scheduled events.
     func flushHUD() {
+        let now = Date().timeIntervalSince1970
         if var player {
-            let pruned = ModifierMath.prune(&player, now: Date().timeIntervalSince1970)
+            let pruned = ModifierMath.prune(&player, now: now)
             if pruned {
                 self.player = player
                 scheduleSave()
             }
         }
+        fireEventIfDue(now: now)
         refreshProjections()
     }
 
     // MARK: Player actions
 
+    struct TapResult {
+        let gain: Double
+        let isCrit: Bool
+        let isGolden: Bool
+    }
+
+    /// Bible §2.3 regla 1 — tap con rolls de crítico (× critMultiplier) y golden
+    /// touch (×10, línea de upgrade "golden"). Nil si la celda está vacía.
     @discardableResult
-    func registerTap(cellIndex: Int) -> Double? {
+    func registerTap(cellIndex: Int) -> TapResult? {
         guard let economy, let content, var player = player,
               let placement = player.board.first(where: { $0.cellIndex == cellIndex }),
               let type = content.tiers.type(id: placement.typeId)
         else { return nil }
 
-        let gain = economy.applyTap(type: type, state: &player, now: Date().timeIntervalSince1970)
+        var gain = economy.applyTap(type: type, state: &player, now: Date().timeIntervalSince1970)
+        let isCrit = Double.random(in: 0..<1, using: &rng) < player.upgrades.critChance
+        let isGolden = Double.random(in: 0..<1, using: &rng) < player.upgrades.goldenChance
+        var bonusFactor = 1.0
+        if isCrit { bonusFactor *= content.economy.critMultiplier }
+        if isGolden { bonusFactor *= 10 }
+        if bonusFactor > 1 {
+            let extra = gain * (bonusFactor - 1)
+            player.coins += extra
+            player.lifetimeEarnings += extra
+            gain += extra
+        }
         self.player = player
+        if !ftueTapped {
+            ftueTapped = true
+            UserDefaults.standard.set(true, forKey: "ftue.tapped")
+        }
+        audio?.play(isCrit || isGolden ? .coin : .tap)
         refreshProjections()
         scheduleSave()
-        return gain
+        return TapResult(gain: gain, isCrit: isCrit, isGolden: isGolden)
     }
 
     func buySpawn() {
@@ -176,9 +260,16 @@ final class GameState {
         do {
             try economy.applySpawn(quote: quote, state: &player, boardCapacity: content.economy.board.cellCount)
             self.player = player
+            if !ftueSpawned {
+                ftueSpawned = true
+                UserDefaults.standard.set(true, forKey: "ftue.spawned")
+            }
+            haptics?.play(.purchase)
+            audio?.play(.buy)
             bumpBoard()
             scheduleSave()
         } catch {
+            haptics?.play(.error)
             Log.economy.info("spawn rejected: \(error)")
         }
     }
@@ -206,11 +297,20 @@ final class GameState {
             tiers: content.tiers
         ) {
         case .merged(let newTypeId):
+            let tierBefore = player.maxTierReached
             BoardActions.applyMerge(sourceCell: fromCell, targetCell: toCell, newTypeId: newTypeId, state: &player, tiers: content.tiers)
+            let evolvedTo = player.maxTierReached > tierBefore ? content.tiers.type(id: newTypeId) : nil
             self.player = player
+            if !ftueMerged {
+                ftueMerged = true
+                UserDefaults.standard.set(true, forKey: "ftue.merged")
+            }
+            audio?.play(evolvedTo != nil ? .evolution : .merge)
+            reportMergeMilestones()
+            rollSpecialDrop()
             bumpBoard()
             scheduleSave()
-            return .merged(targetCell: toCell)
+            return .merged(targetCell: toCell, evolvedTo: evolvedTo)
         case .requiresCareerChoice(let options):
             careerPrompt = CareerPrompt(
                 options: options.compactMap { content.tiers.type(id: $0) },
@@ -253,8 +353,39 @@ final class GameState {
         )
         self.player = player
         careerPrompt = nil
+        reportMergeMilestones()
+        rollSpecialDrop()
         bumpBoard()
         scheduleSave()
+    }
+
+    private func reportMergeMilestones() {
+        guard let player else { return }
+        gameCenter?.report(.firstMerge)
+        gameCenter?.report(.reachedTier(player.maxTierReached))
+        gameCenter?.report(.scoreUpdate(lifetimeEarnings: player.lifetimeEarnings, maxTier: player.maxTierReached))
+    }
+
+    private func rollSpecialDrop() {
+        guard let economy, let content, var player else { return }
+        if let dropped = SpecialDropManager.rollOnMerge(
+            state: &player,
+            config: content.specials,
+            upgrades: content.upgradesConfig,
+            viral: content.viral,
+            economy: economy,
+            rng: &rng
+        ) {
+            self.player = player
+            specialDrop = dropped
+            haptics?.play(.rarity)
+            audio?.play(.rare)
+            Log.economy.info("special dropped: \(dropped.id)")
+        }
+    }
+
+    func dismissSpecialDrop() {
+        specialDrop = nil
     }
 
     /// Long-press on a unit → passive unlock prompt for its type (§2.3 regla 3).
@@ -276,10 +407,12 @@ final class GameState {
         do {
             try economy.applyPassiveUnlock(typeId: typeId, state: &player, tiers: content.tiers)
             self.player = player
+            haptics?.play(.purchase)
             passivePrompt = nil
             refreshProjections()
             scheduleSave()
         } catch {
+            haptics?.play(.error)
             Log.economy.info("passive unlock rejected: \(error)")
         }
     }
@@ -300,6 +433,8 @@ final class GameState {
             now: Date().timeIntervalSince1970
         )
         self.player = player
+        audio?.play(.prestige)
+        gameCenter?.report(.firstPrestige)
         bumpBoard()
         Task { await persistNow() }
         Log.economy.info("prestige applied: level \(player.prestigeLevel), soulPoints \(player.soulPoints)")
@@ -397,6 +532,157 @@ final class GameState {
         scheduleSave()
     }
 
+    // MARK: Upgrades (F5 — las 7 líneas)
+
+    func upgradeLevel(of lineId: String) -> Int {
+        player?.upgradeLevels[lineId] ?? 0
+    }
+
+    func upgradeCost(of line: UpgradesConfig.Line) -> Double {
+        UpgradeManager.cost(of: line, level: upgradeLevel(of: line.id))
+    }
+
+    func buyUpgrade(lineId: String) {
+        guard let economy, let content, var player = player else { return }
+        do {
+            try UpgradeManager.purchase(
+                lineId: lineId,
+                state: &player,
+                config: content.upgradesConfig,
+                specials: content.specials,
+                viral: content.viral,
+                economy: economy
+            )
+            self.player = player
+            haptics?.play(.purchase)
+            effectsVersion += 1
+            refreshProjections()
+            scheduleSave()
+        } catch {
+            haptics?.play(.error)
+            Log.economy.info("upgrade rejected: \(error)")
+        }
+    }
+
+    // MARK: Boosts (F5 — bible §1)
+
+    func boostCooldownRemaining(_ boost: BoostsConfig.Boost) -> TimeInterval {
+        guard let player else { return .infinity }
+        return BoostManager.cooldownRemaining(of: boost, state: player, now: Date().timeIntervalSince1970)
+    }
+
+    /// Devuelve las coins del cofre si el boost era el Asado.
+    @discardableResult
+    func activateBoost(id: String) -> Double? {
+        guard let economy, let content, var player = player else { return nil }
+        do {
+            let chest = try BoostManager.activate(
+                boostId: id,
+                state: &player,
+                config: content.boosts,
+                upgrades: content.upgradesConfig,
+                specials: content.specials,
+                viral: content.viral,
+                tiers: content.tiers,
+                economy: economy,
+                now: Date().timeIntervalSince1970
+            )
+            self.player = player
+            effectsVersion += 1
+            refreshProjections()
+            scheduleSave()
+            return chest
+        } catch {
+            Log.economy.info("boost rejected: \(error)")
+            return nil
+        }
+    }
+
+    // MARK: Eventos (F5 — bible §1)
+
+    private func scheduleNextEvent(from now: TimeInterval) {
+        guard let content else { return }
+        let jitter = Double.random(in: 0..<max(content.events.intervalJitterSeconds, 1), using: &rng)
+        nextEventAt = now + content.events.baseIntervalSeconds + jitter
+    }
+
+    private func fireEventIfDue(now: TimeInterval) {
+        guard let economy, let content, var player else { return }
+        if let active = activeEvent, now >= active.endsAt {
+            activeEvent = nil
+        }
+        guard now >= nextEventAt else { return }
+        scheduleNextEvent(from: now)
+        guard let roll = EventManager.fireRandomEvent(
+            state: &player,
+            config: content.events,
+            tiers: content.tiers,
+            economy: economy,
+            now: now,
+            lastFired: eventLastFired,
+            rng: &rng
+        ) else { return }
+        self.player = player
+        eventLastFired[roll.event.id] = now
+        activeEvent = roll.active
+        audio?.play(.event)
+        bumpBoard()
+        scheduleSave()
+        Log.economy.info("event fired: \(roll.event.id)")
+    }
+
+    // MARK: Daily + shares (F5)
+
+    private func claimDailyIfAvailable() {
+        guard let economy, let content, var player else { return }
+        if let claim = DailyRewardManager.claimIfAvailable(
+            state: &player,
+            config: content.dailyRewards,
+            specials: content.specials,
+            upgrades: content.upgradesConfig,
+            viral: content.viral,
+            economy: economy,
+            today: Date(),
+            rng: &rng
+        ) {
+            self.player = player
+            dailyClaim = claim
+            audio?.play(.daily)
+            refreshProjections()
+            scheduleSave()
+        }
+    }
+
+    func dismissDailyClaim() {
+        dailyClaim = nil
+    }
+
+    /// La escena ofrece el share card al terminar el reveal de evolución.
+    func offerShareCard(for type: CharacterType) {
+        shareCardSubject = type
+    }
+
+    func dismissShareCard() {
+        shareCardSubject = nil
+    }
+
+    /// Referral local (bible §8): compartir da un boost permanente chico, capeado.
+    func registerShareCompleted() {
+        guard let economy, let content, var player = player else { return }
+        guard player.sharesCompleted < content.viral.maxShares else { return }
+        player.sharesCompleted += 1
+        UpgradeManager.recomputeDerivedEffects(
+            state: &player,
+            config: content.upgradesConfig,
+            specials: content.specials,
+            viral: content.viral,
+            economy: economy
+        )
+        self.player = player
+        effectsVersion += 1
+        scheduleSave()
+    }
+
     // MARK: Lifecycle (offline + immediate save)
 
     func handleScenePhase(_ scenePhase: ScenePhase) {
@@ -410,6 +696,7 @@ final class GameState {
         case .active:
             guard phase == .ready else { return }
             applyOfflineProgressIfNeeded()
+            claimDailyIfAvailable()
             refreshProjections()
         @unknown default:
             break
@@ -496,8 +783,9 @@ final class GameState {
 
     private func currentQuote(player: PlayerState) -> SpawnQuote? {
         guard let economy, let content else { return nil }
-        let discount = content.prestigeUnlocks.cumulativeSpawnDiscount(atPrestigeLevel: player.prestigeLevel)
-        return economy.spawnQuote(state: player, tiers: content.tiers, costMultiplier: 1 - discount, now: Date().timeIntervalSince1970)
+        let prestigeDiscount = content.prestigeUnlocks.cumulativeSpawnDiscount(atPrestigeLevel: player.prestigeLevel)
+        let multiplier = (1 - prestigeDiscount) * (1 - player.upgrades.spawnDiscount)
+        return economy.spawnQuote(state: player, tiers: content.tiers, costMultiplier: multiplier, now: Date().timeIntervalSince1970)
     }
 
     private func bumpBoard() {
@@ -529,6 +817,23 @@ final class GameState {
 
         if ownedSkins != player.ownedSkins { ownedSkins = player.ownedSkins }
         if activeSkin != player.activeSkin { activeSkin = player.activeSkin }
+
+        let tapHint = !ftueTapped
+        if showTapHint != tapHint { showTapHint = tapHint }
+        let spawnHint = ftueTapped && !ftueSpawned && (spawnQuote.map { player.coins >= $0.cost } ?? false)
+        if showSpawnHint != spawnHint { showSpawnHint = spawnHint }
+        var pairExists = false
+        if !ftueMerged && ftueSpawned {
+            var seen: Set<String> = []
+            for placement in player.board {
+                if !seen.insert(placement.typeId).inserted {
+                    pairExists = true
+                    break
+                }
+            }
+        }
+        let mergeHint = ftueSpawned && !ftueMerged && pairExists
+        if showMergeHint != mergeHint { showMergeHint = mergeHint }
     }
 
     private func scheduleSave() {
@@ -543,5 +848,8 @@ final class GameState {
     func persistNow() async {
         guard let repository, let player else { return }
         await repository.save(player)
+        if let cloudSync {
+            await cloudSync.push(player)
+        }
     }
 }

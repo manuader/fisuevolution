@@ -35,6 +35,8 @@ struct GameStateTests {
             now: 1_700_000_000
         )
         existing.coins = 999
+        // Daily ya reclamado hoy: este test verifica la carga del save, no el daily.
+        existing.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
         await repository.save(existing)
 
         let gameState = GameState(repository: repository)

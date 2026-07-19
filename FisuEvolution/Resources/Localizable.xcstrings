@@ -1,633 +1,2051 @@
 {
-  "sourceLanguage": "es",
-  "strings": {
-    "error.content.message": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The game content could not be loaded. Try reinstalling the app."
+  "sourceLanguage" : "es",
+  "strings" : {
+    "ads.reward.boost" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turbo x3 (1 min)"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudo cargar el contenido del juego. Probá reinstalar la app."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turbo x3 (1 min)"
           }
         }
       }
     },
-    "error.content.title": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Something broke"
+    "ads.reward.double" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earnings x2 (2 min)"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Algo se rompió"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ganancias x2 (2 min)"
           }
         }
       }
     },
-    "hud.coins.label": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Coins"
+    "ads.reward.evolve" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free evolution"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Monedas"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evolución gratis"
           }
         }
       }
     },
-    "loading.title": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Loading…"
+    "ads.reward.rare" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonus character"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cargando…"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personaje de regalo"
           }
         }
       }
     },
-    "spawn.button.hint": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buys a new character and places it on the board"
+    "ads.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonus"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Compra un personaje nuevo y lo pone en el tablero"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonus"
           }
         }
       }
     },
-    "spawn.button.title %@": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hire %@"
+    "ads.watch" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch ad"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Sumar %@"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver video"
           }
         }
       }
     },
-    "career.title": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¡Te recibiste en la UBA! ¿Y ahora qué?"
+    "bonus.activate" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activate"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "You graduated from UBA! Now what?"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activar"
           }
         }
       }
     },
-    "career.subtitle": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Elegí tu carrera. Dura hasta la próxima reencarnación."
+    "bonus.duration %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lasts %@ seconds"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pick your career. It lasts until your next reincarnation."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dura %@ segundos"
           }
         }
       }
     },
-    "passive.title %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ingreso pasivo: %@"
+    "bonus.section.ads" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch an ad"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Passive income: %@"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por ver un video"
           }
         }
       }
     },
-    "passive.explainer %@ %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tus %1$@ del tablero van a generar %2$@/s cada uno, solos."
+    "bonus.section.boosts" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boosts"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Each of your %1$@ on the board will earn %2$@/s on its own."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boosts"
           }
         }
       }
     },
-    "passive.unlock": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Desbloquear por"
+    "boost.asado.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every 6 hours a fat chest drops. The grill master takes his time, but never fails."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unlock for"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada 6 horas cae un cofre gordo. El asador no se apura, pero nunca falla."
           }
         }
       }
     },
-    "passive.unlocked": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¡Ya genera solo!"
+    "boost.asado.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunday Asado"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Already earning on its own!"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asado del Domingo"
           }
         }
       }
     },
-    "passive.insufficient": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Te faltan monedas"
+    "boost.cafe.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double shot, productive tachycardia: x2 taps until the shakes wear off."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not enough coins"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doble carga, taquicardia productiva: taps x2 hasta que baje el temblor."
           }
         }
       }
     },
-    "offline.title": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mientras no estabas…"
+    "boost.cafe.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strong Coffee"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "While you were away…"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Café Cargado"
           }
         }
       }
     },
-    "offline.collect": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cobrar"
+    "boost.fernet.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "70/30, as Córdoba law demands. The hangout pays off: x3 income while the glass lasts."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Collect"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "70/30 como manda la ley cordobesa. La juntada rinde: income x3 mientras dure el vaso."
           }
         }
       }
     },
-    "prestige.button": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reencarnar"
+    "boost.fernet.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fernet & Cola"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reincarnate"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fernet con Coca"
           }
         }
       }
     },
-    "prestige.title": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "¿Reencarnar?"
+    "boost.fernet.safe.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The hangout is on and good vibes pay: x3 income while the conversation lasts."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reincarnate?"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se armó la juntada y la buena onda factura: income x3 mientras dura la charla."
           }
         }
       }
     },
-    "prestige.body %@": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reseteás el tablero y las monedas, pero ganás %@ Puntos de Alma y un multiplicador permanente. Cada vida arranca más rápido."
+    "boost.fernet.safe.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Night Hangout"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Your board and coins reset, but you gain %@ Soul Points and a permanent multiplier. Every life starts faster."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Juntada Nocturna"
           }
         }
       }
     },
-    "prestige.confirm": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reencarnar ahora"
+    "boost.mate.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pass the mate around and the crew delivers: hiring is 30% cheaper for a bit."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reincarnate now"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ronda de mates y el equipo rinde: contratar sale 30% más barato por un rato."
           }
         }
       }
     },
-    "prestige.cancel": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Todavía no"
+    "boost.mate.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Round of Mate"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not yet"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unos Mates"
           }
         }
       }
     },
-    "store.title": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tienda"
+    "boost.milanesa.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napolitana with fries. You sleep like a log and earn better: +5% offline forever."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Store"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Napolitana con fritas. Dormís como un lirón y rendís mejor: +5% offline para siempre."
           }
         }
       }
     },
-    "store.close": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cerrar"
+    "boost.milanesa.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Milanesa"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Close"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Milanesa"
           }
         }
       }
     },
-    "store.section.general": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mejoras"
+    "boost.turbo.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don't ask what was in the thermos. x5 income for 30 seconds of pure madness."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Upgrades"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No preguntes qué había en el termo. Income x5 por 30 segundos de puro delirio."
           }
         }
       }
     },
-    "store.section.skins": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skins"
+    "boost.turbo.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turbo Mode"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skins"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo Turbo"
           }
         }
       }
     },
-    "store.restore": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restaurar compras"
+    "boost.turbo.safe.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deep breath, full flow, the universe pays up: x5 income for 30 seconds."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restore Purchases"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Respirás hondo, entrás en flow y el universo te paga: income x5 por 30 segundos."
           }
         }
       }
     },
-    "store.purchased": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Comprado"
+    "boost.turbo.safe.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Focus Mode"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Purchased"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo Enfocado"
           }
         }
       }
     },
-    "store.skin.activate": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usar"
+    "career.subtitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick your career. It lasts until your next reincarnation."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Use"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegí tu carrera. Dura hasta la próxima reencarnación."
           }
         }
       }
     },
-    "store.skin.active": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activa"
+    "career.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You graduated from UBA! Now what?"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Active"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Te recibiste en la UBA! ¿Y ahora qué?"
           }
         }
       }
     },
-    "store.error.load": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudo cargar la tienda"
+    "daily.day1.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day 1: The Side Hustle"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Couldn't load the store"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día 1: La Changuita"
           }
         }
       }
     },
-    "store.error.purchase": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudo completar la compra. Probá de nuevo."
+    "daily.day2.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day 2: A Decent Tip"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Purchase failed. Try again."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día 2: Propina Digna"
           }
         }
       }
     },
-    "store.error.restore": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se pudo restaurar. Probá de nuevo."
+    "daily.day3.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day 3: Small Payday"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Restore failed. Try again."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día 3: Quincena Chica"
           }
         }
       }
     },
-    "ads.title": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bonus"
+    "daily.day4.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day 4: Actual Legal Salary"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bonus"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día 4: Sueldo en Blanco"
           }
         }
       }
     },
-    "ads.watch": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ver video"
+    "daily.day5.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day 5: Fat Payday"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Watch ad"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día 5: Quincena Gorda"
           }
         }
       }
     },
-    "ads.reward.double": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ganancias x2 (2 min)"
+    "daily.day6.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day 6: Jackpot Day"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Earnings x2 (2 min)"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día 6: Ganaste el Gordo"
           }
         }
       }
     },
-    "ads.reward.boost": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Turbo x3 (1 min)"
+    "daily.day7.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day 7: A Shady Character Appears"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Turbo x3 (1 min)"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día 7: Aparece Alguien Turbio"
           }
         }
       }
     },
-    "ads.reward.evolve": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Evolución gratis"
+    "daily.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily reward"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Free evolution"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premio del día"
           }
         }
       }
     },
-    "ads.reward.rare": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Personaje de regalo"
+    "error.content.message" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The game content could not be loaded. Try reinstalling the app."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bonus character"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo cargar el contenido del juego. Probá reinstalar la app."
           }
         }
       }
     },
-    "hud.store.label": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tienda"
+    "error.content.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something broke"
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Store"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algo se rompió"
           }
         }
       }
     },
-    "hud.bonus.label": {
-      "localizations": {
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bonus"
+    "event.aguinaldo.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonus paycheck day! Enjoy it: it lasts less than ice cream in January."
           }
         },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bonus"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Llegó el aguinaldo! Disfrutalo: dura menos que un helado en enero."
+          }
+        }
+      }
+    },
+    "event.blanqueo.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capital amnesty: a high-tier character shows up that was \"totally declared all along\"."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blanqueo de capitales: apareció un personaje high-tier que \"siempre estuvo declarado\"."
+          }
+        }
+      }
+    },
+    "event.cayo_mercado_pago.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The payment app is down. Nobody can pay for anything. Everything costs double in cash."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se cayó Mercado Pago. Nadie puede pagar nada. Todo sale el doble en efectivo."
+          }
+        }
+      }
+    },
+    "event.corralito.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corralito! Your coins are right there… you just can't touch them. Sound familiar?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Corralito! Tus coins están ahí… pero no las podés tocar. ¿Te suena?"
+          }
+        }
+      }
+    },
+    "event.devaluacion.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Surprise devaluation: your money is worth half. Relax, you've trained for this."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devaluación sorpresa: tu plata vale la mitad. Tranqui, ya estás entrenado."
+          }
+        }
+      }
+    },
+    "event.inversion_alienigena.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aliens are investing in you: x10. They don't get the local economy either, but they're all in."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aliens invierten en vos: x10. No entienden la economía argentina, pero le ponen fichas."
+          }
+        }
+      }
+    },
+    "event.plan_platita.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan Platita just dropped! Printing happiness at x5. Don't ask where it comes from."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Cayó el Plan Platita! Imprimimos alegría x5. No preguntes de dónde sale."
+          }
+        }
+      }
+    },
+    "event.startup_comprada.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A big tech just acquired you! Hoodie on: your top unit evolves for free."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Te compró una big tech! Ponete el hoodie: tu unidad top evoluciona gratis."
+          }
+        }
+      }
+    },
+    "gc.ach.first_merge.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The First Merge"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Rejunte"
+          }
+        }
+      }
+    },
+    "gc.ach.first_prestige.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Born Again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Primera Reencarnación"
+          }
+        }
+      }
+    },
+    "gc.ach.tier9_uba.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "College Graduate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Egresado de la UBA"
+          }
+        }
+      }
+    },
+    "gc.ach.tier21.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trillionaire: Nothing Makes Sense Anymore"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trillonario: Ya Nada Tiene Sentido"
+          }
+        }
+      }
+    },
+    "gc.ach.tier30_god.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From Hobo to God"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Fisura a Dios"
+          }
+        }
+      }
+    },
+    "gc.lb.lifetime_earnings.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top Earners"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los Que Más Facturaron"
+          }
+        }
+      }
+    },
+    "gc.lb.max_tier.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Social Ladder"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Escalera Social"
+          }
+        }
+      }
+    },
+    "hud.bonus.label" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonus"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonus"
+          }
+        }
+      }
+    },
+    "hud.coins.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monedas"
+          }
+        }
+      }
+    },
+    "hud.store.label" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Store"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tienda"
+          }
+        }
+      }
+    },
+    "hud.upgrades.label" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrades"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejoras"
+          }
+        }
+      }
+    },
+    "loading.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargando…"
+          }
+        }
+      }
+    },
+    "offline.collect" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cobrar"
+          }
+        }
+      }
+    },
+    "offline.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "While you were away…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mientras no estabas…"
+          }
+        }
+      }
+    },
+    "passive.explainer %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each of your %1$@ on the board will earn %2$@/s on its own."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus %1$@ del tablero van a generar %2$@/s cada uno, solos."
+          }
+        }
+      }
+    },
+    "passive.insufficient" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough coins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te faltan monedas"
+          }
+        }
+      }
+    },
+    "passive.title %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passive income: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingreso pasivo: %@"
+          }
+        }
+      }
+    },
+    "passive.unlock" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock for"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloquear por"
+          }
+        }
+      }
+    },
+    "passive.unlocked" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already earning on its own!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Ya genera solo!"
+          }
+        }
+      }
+    },
+    "prestige.body %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your board and coins reset, but you gain %@ Soul Points and a permanent multiplier. Every life starts faster."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reseteás el tablero y las monedas, pero ganás %@ Puntos de Alma y un multiplicador permanente. Cada vida arranca más rápido."
+          }
+        }
+      }
+    },
+    "prestige.button" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reincarnate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reencarnar"
+          }
+        }
+      }
+    },
+    "prestige.cancel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todavía no"
+          }
+        }
+      }
+    },
+    "prestige.confirm" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reincarnate now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reencarnar ahora"
+          }
+        }
+      }
+    },
+    "prestige.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reincarnate?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Reencarnar?"
+          }
+        }
+      }
+    },
+    "settings.haptics" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haptics"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vibración"
+          }
+        }
+      }
+    },
+    "settings.music" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Música"
+          }
+        }
+      }
+    },
+    "settings.sfx" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sound effects"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Efectos de sonido"
+          }
+        }
+      }
+    },
+    "settings.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes"
+          }
+        }
+      }
+    },
+    "share.button" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share for a bonus"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir y ganar bonus"
+          }
+        }
+      }
+    },
+    "share.card.caption %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I made it to %@ and you're still broke 💀"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Llegué a %@ y vos seguís de fisura 💀"
+          }
+        }
+      }
+    },
+    "share.skip" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora no"
+          }
+        }
+      }
+    },
+    "spawn.button.hint" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buys a new character and places it on the board"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compra un personaje nuevo y lo pone en el tablero"
+          }
+        }
+      }
+    },
+    "spawn.button.title %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hire %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sumar %@"
+          }
+        }
+      }
+    },
+    "special.alien_investor.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Came for the minerals, stayed for the dulce de leche. +5% intergalactic income."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vino por los minerales, se quedó por el dulce de leche. +5% de income intergaláctico."
+          }
+        }
+      }
+    },
+    "special.alien_investor.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alien Investor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alien Investor"
+          }
+        }
+      }
+    },
+    "special.arbolito.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"Exchange, exchange, exchaaange.\" Gets you everything 5% cheaper. Don't ask where from."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"Cambio, cambio, cambiooo.\" Te consigue todo 5% más barato. No preguntes de dónde."
+          }
+        }
+      }
+    },
+    "special.arbolito.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Street Money Changer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El del Arbolito"
+          }
+        }
+      }
+    },
+    "special.bug_simulacion.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You saw the same cat twice. The local Matrix has tech debt and you're exploiting it: +5% crit."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viste dos gatos iguales. La Matrix argentina tiene deuda técnica y vos la explotás: +5% crit."
+          }
+        }
+      }
+    },
+    "special.bug_simulacion.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simulation Bug"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bug de la Simulación"
+          }
+        }
+      }
+    },
+    "special.coach.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What if your salary was just a limit you set for yourself? +2% income, −100% patience."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Y si el sueldo era un límite que te ponías vos? +2% de income, −100% de paciencia."
+          }
+        }
+      }
+    },
+    "special.coach.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Life Coach"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coach Ontológico"
+          }
+        }
+      }
+    },
+    "special.contador_dios.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deducts earnings in dimensions the taxman hasn't discovered. +10% income, all legal (trust him)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deduce ganancias en dimensiones que el fisco ni conoce. +10% de income, todo en regla (creele)."
+          }
+        }
+      }
+    },
+    "special.contador_dios.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "God's Accountant"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Contador de Dios"
+          }
+        }
+      }
+    },
+    "special.cryptobro.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Says \"do your own research\" and shows you a JPEG of a monkey. +3% income, DYOR."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te dice \"hacé tu propia investigación\" y te muestra un JPG de un mono. +3% de income, DYOR."
+          }
+        }
+      }
+    },
+    "special.cryptobro.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crypto Bro"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crypto Bro"
+          }
+        }
+      }
+    },
+    "special.demonio_arca.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Came to audit you and never left. At least now everything comes with a proper invoice."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vino a auditarte y se quedó a vivir. Al menos ahora conseguís todo con factura A."
+          }
+        }
+      }
+    },
+    "special.demonio_arca.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tax Office Demon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demonio de ARCA"
+          }
+        }
+      }
+    },
+    "special.drop.claim" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It's mine!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Es mío!"
+          }
+        }
+      }
+    },
+    "special.drop.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A special character appeared!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Apareció un personaje especial!"
+          }
+        }
+      }
+    },
+    "special.influencer.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"Guys, use code FISURA for 2% off EVERYTHING. Link in bio.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"Chicos, con el código FISURA tienen 2% off en TODO. Link en bio.\""
+          }
+        }
+      }
+    },
+    "special.influencer.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Influencer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Influencer"
+          }
+        }
+      }
+    },
+    "special.lizard.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blinks sideways and never drinks water in meetings. With him around, you hit the jackpot more often."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parpadea de costado y no toma agua en las reuniones. Con él cerca, la pegás más seguido."
+          }
+        }
+      }
+    },
+    "special.lizard.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lizard Billionaire"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lizard Billionaire"
+          }
+        }
+      }
+    },
+    "special.zombie_ceo.flavor" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doesn't sleep, doesn't feel, still sends emails at 3 AM. Your empire earns more while you sleep."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No duerme, no siente, sigue mandando mails a las 3 AM. Tu imperio rinde más mientras dormís."
+          }
+        }
+      }
+    },
+    "special.zombie_ceo.name" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zombie CEO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zombie CEO"
+          }
+        }
+      }
+    },
+    "store.close" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar"
+          }
+        }
+      }
+    },
+    "store.error.load" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't load the store"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo cargar la tienda"
+          }
+        }
+      }
+    },
+    "store.error.purchase" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Purchase failed. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo completar la compra. Probá de nuevo."
+          }
+        }
+      }
+    },
+    "store.error.restore" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore failed. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo restaurar. Probá de nuevo."
+          }
+        }
+      }
+    },
+    "store.purchased" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Purchased"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprado"
+          }
+        }
+      }
+    },
+    "store.restore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore Purchases"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restaurar compras"
+          }
+        }
+      }
+    },
+    "store.section.general" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrades"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejoras"
+          }
+        }
+      }
+    },
+    "store.section.skins" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skins"
+          }
+        }
+      }
+    },
+    "store.skin.activate" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar"
+          }
+        }
+      }
+    },
+    "store.skin.active" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa"
+          }
+        }
+      }
+    },
+    "store.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Store"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tienda"
+          }
+        }
+      }
+    },
+    "upgrade.crit.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hit It Big"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pegarla"
+          }
+        }
+      }
+    },
+    "upgrade.golden.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Golden Touch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque de Oro"
+          }
+        }
+      }
+    },
+    "upgrade.income.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More Cash"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más Platita"
+          }
+        }
+      }
+    },
+    "upgrade.offline.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siesta Mode"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo Siesta"
+          }
+        }
+      }
+    },
+    "upgrade.prestige.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soul Interest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interés de Almas"
+          }
+        }
+      }
+    },
+    "upgrade.spawn.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Price Control"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Precios Cuidados"
+          }
+        }
+      }
+    },
+    "upgrade.tap.title" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hardened Fingers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dedos Curtidos"
+          }
+        }
+      }
+    },
+    "upgrades.level %@ %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %1$@ / %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nivel %1$@ / %2$@"
+          }
+        }
+      }
+    },
+    "upgrades.maxed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maxed out"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al máximo"
+          }
+        }
+      }
+    },
+    "upgrades.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrades"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejoras"
           }
         }
       }
     }
   },
-  "version": "1.0"
+  "version" : "1.0"
 }

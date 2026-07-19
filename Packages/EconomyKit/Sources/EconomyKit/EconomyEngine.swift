@@ -11,7 +11,7 @@ public protocol EconomyCalculating: Sendable {
     /// Cost of the next spawn purchase of `tier`, after `purchases` prior purchases of it.
     func spawnCost(spawnTier tier: Int, purchases: Int) -> Double
     func soulPoints(lifetimeEarnings: Double) -> Int
-    func globalMultiplier(soulPoints: Int) -> Double
+    func globalMultiplier(soulPoints: Int, prestigeBonus: Double) -> Double
 }
 
 /// The standard implementation of the build-bible §3 formulas.
@@ -57,8 +57,8 @@ public struct StandardEconomy: EconomyCalculating {
         return Self.clampedFloor(raw)
     }
 
-    public func globalMultiplier(soulPoints: Int) -> Double {
-        1.0 + Double(soulPoints) * config.prestige.globalMultiplierPerSoulPoint
+    public func globalMultiplier(soulPoints: Int, prestigeBonus: Double = 0) -> Double {
+        1.0 + Double(soulPoints) * config.prestige.globalMultiplierPerSoulPoint * (1 + prestigeBonus)
     }
 
     /// `Int(_:)` on a Double at or beyond 2^63 traps; idle-game magnitudes get there.

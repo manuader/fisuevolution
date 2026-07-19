@@ -6,9 +6,13 @@ import SwiftUI
 struct StoreView: View {
     @Environment(StoreManager.self) private var store
     @Environment(GameState.self) private var gameState
+    @Environment(HapticsManager.self) private var haptics
+    @Environment(AudioManager.self) private var audio
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        @Bindable var haptics = haptics
+        @Bindable var audio = audio
         NavigationStack {
             List {
                 switch store.loadState {
@@ -35,6 +39,18 @@ struct StoreView: View {
                     Text(verbatim: message)
                         .font(.footnote)
                         .foregroundStyle(Color("PalettePink"))
+                }
+
+                Section("settings.title") {
+                    Toggle("settings.haptics", isOn: $haptics.isEnabled)
+                    VStack(alignment: .leading) {
+                        Text("settings.music")
+                        Slider(value: $audio.musicVolume, in: 0...1)
+                    }
+                    VStack(alignment: .leading) {
+                        Text("settings.sfx")
+                        Slider(value: $audio.sfxVolume, in: 0...1)
+                    }
                 }
             }
             .navigationTitle(Text("store.title"))

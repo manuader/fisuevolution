@@ -1,7 +1,7 @@
 # 05 — Chofer de App (Tier 5)
 
 - **archivo**: `chofer_app.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

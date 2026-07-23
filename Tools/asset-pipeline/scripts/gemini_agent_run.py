@@ -139,7 +139,7 @@ def mark_done(asset: dict) -> None:
 
 
 def run_agent(asset: dict, args: argparse.Namespace) -> bool:
-    cmd = [args.claude_bin, "-p", agent_prompt(asset)]
+    cmd = [args.claude_bin, "-p", agent_prompt(asset), "--chrome"]
     if args.yolo:
         cmd.append("--dangerously-skip-permissions")
     else:

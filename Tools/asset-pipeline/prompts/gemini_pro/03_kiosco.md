@@ -1,7 +1,7 @@
 # 03 — Personal de Kiosco (Tier 3)
 
 - **archivo**: `kiosco.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 04 — Repartidor (Tier 4)
 
 - **archivo**: `repartidor.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

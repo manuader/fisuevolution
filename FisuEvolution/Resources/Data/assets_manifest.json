@@ -18,6 +18,33 @@
         0.1
       ],
       "scale": 1.0
+    },
+    "kiosco": {
+      "atlas": "earth",
+      "key": "kiosco_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "repartidor": {
+      "atlas": "earth",
+      "key": "repartidor_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "chofer_app": {
+      "atlas": "earth",
+      "key": "chofer_app_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
     }
   },
   "backgrounds": {},

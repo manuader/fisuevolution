@@ -7,3 +7,4 @@ requests
 # vtracer es OPCIONAL (vectorizado PNG->SVG, fuera del camino critico).
 # Si su build falla en tu maquina, comentalo: nada del pipeline lo requiere.
 vtracer
+selenium==4.39.0

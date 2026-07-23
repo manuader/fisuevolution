@@ -45,6 +45,33 @@
         0.1
       ],
       "scale": 1.0
+    },
+    "fast_food": {
+      "atlas": "earth",
+      "key": "fast_food_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "oficinista": {
+      "atlas": "earth",
+      "key": "oficinista_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "administrativo": {
+      "atlas": "earth",
+      "key": "administrativo_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
     }
   },
   "backgrounds": {},

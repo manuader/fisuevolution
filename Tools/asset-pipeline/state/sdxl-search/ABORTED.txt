@@ -1,0 +1,24 @@
+2026-07-19 — Matriz de validacion SDXL ABORTADA por decision del usuario antes
+de completar la primera imagen: 0 imagenes generadas (la 1ra estaba en carga/
+sampling cuando llego el STOP). La generacion migra a la API de Gemini.
+
+Nota de registro: las hoboevo_00026-28 de ComfyUI/output (18-jul 20:13-20:17)
+que se evaluaron visualmente como "SDXL" son en realidad SD 1.5 a 512x512
+(remanentes de la cola de la ronda 1 de prompt-search; el checkpoint
+DreamShaperXL termino de descargarse DESPUES de esa hora).
+
+Queda instalado como fallback (nada borrado):
+  ComfyUI/ (v0.28.0, server APAGADO) + .venv compartido (python 3.12)
+  models/checkpoints: v1-5-pruned-emaonly.safetensors (4.27GB, sha256 ok)
+                      DreamShaperXL_Turbo_v2_1.safetensors (6.94GB)
+  models/loras: sdxl_lightning_8step_lora / StickersRedmond (trigger
+                "Stickers, Sticker") / CuteCartoonRedmond (trigger
+                "CuteCartoonAF, Cute Cartoon") / IconsRedmondV2 ("icredm")
+  workflows/sdxl_hoboevo.json (DPM++ SDE Karras, 6 steps, CFG 2, 1024)
+  scripts/style_score.py (scorer v2: CLIP + solo_prob + single + paleta +
+                          saturacion + bg_white + edge_touch)
+  state/prompt-search/ (25 imgs SD1.5 + scores_v2_round1.json — t6_clipart
+                        fue el unico template 4/4 PASS)
+
+Para relanzar el server: cd ComfyUI && ../.venv/bin/python main.py
+  --force-fp16 --use-split-cross-attention

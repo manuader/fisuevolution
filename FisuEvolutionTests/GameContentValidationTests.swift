@@ -60,10 +60,14 @@ struct GameContentValidationTests {
         #expect(content.flags.buildVariant == "dev")
     }
 
-    @Test func manifestStartsEmptySoEverythingRendersPlaceholders() {
-        #expect(content.manifest.characters.isEmpty)
-        #expect(content.manifest.backgrounds.isEmpty)
-        #expect(content.manifest.ui.isEmpty)
+    /// El arte entra por tandas: cada entrada del manifest debe apuntar a un
+    /// tipo real; los tipos sin entrada renderizan placeholder (regla de oro).
+    @Test func manifestEntriesReferenceRealTypes() {
+        for (typeId, asset) in content.manifest.characters {
+            #expect(content.tiers.type(id: typeId) != nil, "manifest huérfano: \(typeId)")
+            #expect(!asset.key.isEmpty)
+            #expect(!asset.atlas.isEmpty)
+        }
     }
 
     private func expectRelativelyEqual(_ actual: Double, _ expected: Double, context: String) {

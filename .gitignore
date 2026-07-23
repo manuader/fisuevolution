@@ -17,3 +17,4 @@ Tools/asset-pipeline/cutout/
 Tools/asset-pipeline/ComfyUI/
 *.safetensors
 build-ci/
+Tools/asset-pipeline/.secrets/

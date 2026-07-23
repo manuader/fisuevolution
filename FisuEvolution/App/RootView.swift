@@ -46,8 +46,13 @@ struct GameBoardView: View {
 
         ZStack {
             if let scene {
+                #if DEBUG
+                SpriteView(scene: scene, debugOptions: [.showsFPS, .showsNodeCount])
+                    .ignoresSafeArea()
+                #else
                 SpriteView(scene: scene)
                     .ignoresSafeArea()
+                #endif
             }
             VStack(spacing: 8) {
                 HUDView(

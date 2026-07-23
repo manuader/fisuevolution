@@ -60,6 +60,11 @@ def process(image_path: Path, entry: dict, session) -> None:
             "anchor": [0.5, 0.1],
             "scale": 1.0,
         }
+    elif manifest_section == "backgrounds":
+        # BoardScene busca manifest.backgrounds[stage], donde stage es el nombre
+        # de etapa SIN el prefijo "bg_" (alley, urban, …, god_realm).
+        stage = entry["assetKey"].removeprefix("bg_")
+        manifest["backgrounds"][stage] = asset_key
     else:
         manifest[manifest_section][entry["assetKey"]] = asset_key
     MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False))

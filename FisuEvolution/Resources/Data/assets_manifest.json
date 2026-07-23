@@ -417,17 +417,17 @@
     }
   },
   "backgrounds": {
-    "bg_alley": "bg_alley",
-    "bg_urban": "bg_urban",
-    "bg_corporate": "bg_corporate",
-    "bg_luxury": "bg_luxury",
-    "bg_island": "bg_island",
-    "bg_moon": "bg_moon",
-    "bg_mars": "bg_mars",
-    "bg_solar": "bg_solar",
-    "bg_galaxy": "bg_galaxy",
-    "bg_cosmic": "bg_cosmic",
-    "bg_god_realm": "bg_god_realm"
+    "alley": "bg_alley",
+    "urban": "bg_urban",
+    "corporate": "bg_corporate",
+    "luxury": "bg_luxury",
+    "island": "bg_island",
+    "moon": "bg_moon",
+    "mars": "bg_mars",
+    "solar": "bg_solar",
+    "galaxy": "bg_galaxy",
+    "cosmic": "bg_cosmic",
+    "god_realm": "bg_god_realm"
   },
   "ui": {
     "ui_btn_secondary": "ui_btn_secondary",

@@ -1,7 +1,7 @@
 # 10 — Arquitecto Jr. (Tier 9 — elección de carrera)
 
 - **archivo**: `junior_architect.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

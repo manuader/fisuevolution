@@ -29,6 +29,12 @@ MANIFEST = PIPELINE.parent.parent / "FisuEvolution" / "Resources" / "Data" / "as
 CHECKPOINT = PIPELINE / "state" / "selenium-run.json"
 
 
+def _applescript_string(text: str) -> str:
+    """Literal AppleScript seguro para `keystroke` (escapa \\ y comillas)."""
+    escaped = text.replace("\\", "\\\\").replace('"', '\\"')
+    return '"' + escaped + '"'
+
+
 class GenerationBlocked(RuntimeError):
     """Gemini pidió intervención humana o la UI no fue reconocida."""
 
@@ -166,8 +172,10 @@ class AssetRunner:
     def run(self, asset: Asset) -> bool:
         self.dropbox.mkdir(parents=True, exist_ok=True)
         destination = self.dropbox / f"{asset.key}.png"
+        # Chrome (attach por debugger) baja siempre a ~/Downloads pese al CDP.
+        downloads = Path.home() / "Downloads"
         try:
-            source = self.browser.generate(asset, self.reference, self.dropbox)
+            source = self.browser.generate(asset, self.reference, downloads)
             source = Path(source)
             if not verify_png(source, self.minimum_bytes):
                 raise GenerationBlocked("la descarga no es un PNG válido de más de 100 KB")
@@ -299,33 +307,60 @@ class GeminiBrowser:
         self._check_blocked()
 
     def _submit(self, prompt: str) -> None:
-        from selenium.webdriver.common.keys import Keys
+        # El prompt es el texto EXACTO del .md del asset (nunca inventado).
+        # Gemini exige input "trusted": send_keys/CDP no habilitan el botón de
+        # enviar. Se escribe con keystrokes reales de macOS (System Events) y se
+        # confirma con un Return real; ambos indistinguibles de un humano.
+        # NO clickear el campo: el foco OS-level viene del paste de la referencia.
+        # Re-clickear con Selenium lo rompe. Chrome al frente + keystroke real.
+        subprocess.run(["osascript", "-e", 'tell application "Google Chrome" to activate'])
+        time.sleep(1.0)
+        # Pre-tipeo descartable: la app a veces pierde el primer carácter tras activate.
+        subprocess.run(["osascript", "-e", 'tell application "System Events" to keystroke " "'])
+        time.sleep(0.3)
+        subprocess.run(["osascript", "-e", 'tell application "System Events" to key code 51'])  # Delete
+        time.sleep(0.2)
+        script = 'tell application "System Events" to keystroke %s' % _applescript_string(prompt)
+        result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+        if result.returncode != 0:
+            raise GenerationBlocked(
+                "System Events no pudo escribir (¿falta permiso de Accesibilidad?): "
+                + result.stderr.strip()
+            )
 
-        field = self._find_first([
-            ("CSS_SELECTOR", "textarea"),
-            ("CSS_SELECTOR", "[contenteditable='true']"),
-        ])
-        if field is None:
-            raise GenerationBlocked("no encontré el cuadro de prompt de Gemini")
-        field.click()
-        field.send_keys(prompt)
-        # El botón "Enviar mensaje" aparece recién cuando hay texto; esperarlo.
-        send = self._wait_for(
+        # Esperar a que Gemini habilite "Enviar mensaje" (confirma que el texto entró).
+        self._wait_for(
             lambda: self._find_first([
                 ("CSS_SELECTOR", "button[aria-label='Enviar mensaje']"),
                 ("CSS_SELECTOR", "button[aria-label='Send message']"),
-                ("XPATH", "//button[contains(@aria-label,'Enviar mensaje') or contains(@aria-label,'Send message')]"),
             ]),
             "el botón Enviar mensaje de Gemini",
         )
-        send.click()
+        subprocess.run(["osascript", "-e", 'tell application "System Events" to key code 36'])
 
-    def _download_button(self):
-        # El botón de descarga puede estar en el DOM sin ser "displayed" (aparece
-        # al hover). Se toma el primero que exista y esté habilitado.
+    def _biggest_image(self):
         from selenium.webdriver.common.by import By
 
         driver = self._driver()
+        imgs = sorted(
+            driver.find_elements(By.TAG_NAME, "img"),
+            key=lambda i: int(i.get_attribute("naturalWidth") or 0),
+            reverse=True,
+        )
+        return imgs[0] if imgs and int(imgs[0].get_attribute("naturalWidth") or 0) >= 800 else None
+
+    def _download_button(self):
+        # Aparece recién al hacer hover sobre la imagen; se revela con ActionChains
+        # y se toma regardless de is_displayed().
+        from selenium.webdriver.common.by import By
+        from selenium.webdriver.common.action_chains import ActionChains
+
+        driver = self._driver()
+        image = self._biggest_image()
+        if image is None:
+            return None
+        ActionChains(driver).move_to_element(image).perform()
+        time.sleep(0.8)
         matches = driver.find_elements(
             By.XPATH,
             "//button[contains(@aria-label,'Descargar imagen') or contains(@aria-label,'Download image') or contains(@aria-label,'Descargar') or contains(@aria-label,'Download')]",
@@ -340,7 +375,10 @@ class GeminiBrowser:
         while time.monotonic() < deadline:
             self._check_blocked()
             pending = list(downloads.glob("*.crdownload"))
-            candidates = [path for path in downloads.glob("*.png") if path not in before]
+            candidates = [
+                path for path in downloads.glob("Gemini_Generated_Image_*.png")
+                if path not in before
+            ]
             if candidates and not pending:
                 newest = max(candidates, key=lambda path: path.stat().st_mtime)
                 if verify_png(newest):
@@ -349,24 +387,40 @@ class GeminiBrowser:
         raise GenerationBlocked("timeout esperando un PNG descargado desde Gemini")
 
     def generate(self, asset: Asset, reference: Path | None, downloads: Path) -> Path:
-        """Genera uno; no marca estados ni modifica el manifest."""
+        """Genera uno y devuelve el PNG guardado en `downloads`. La imagen se
+        extrae por canvas (píxeles ya renderizados) — sin depender del botón de
+        descarga hover-only ni de blobs que Gemini revoca."""
+        import base64
+
         downloads.mkdir(parents=True, exist_ok=True)
         driver = self._driver()
-        try:
-            driver.execute_cdp_cmd(
-                "Page.setDownloadBehavior",
-                {"behavior": "allow", "downloadPath": str(downloads.resolve())},
-            )
-        except Exception as error:
-            raise GenerationBlocked("Chrome no permitió configurar la carpeta de descargas") from error
-        before = set(downloads.glob("*.png"))
+        driver.set_script_timeout(30)
         self._open_new_chat()
         if asset.needs_reference:
             self._upload_reference(reference)
         self._submit(asset.prompt)
-        button = self._wait_for(self._download_button, "el botón de descarga de la imagen")
-        button.click()
-        return self._wait_for_download(downloads, before)
+        image = self._wait_for(self._biggest_image, "la imagen generada por Gemini")
+        # Dejar que termine de renderizar a resolución plena.
+        time.sleep(2)
+        image = self._biggest_image() or image
+        data_url = driver.execute_script(
+            """
+            const img = arguments[0];
+            const c = document.createElement('canvas');
+            c.width = img.naturalWidth; c.height = img.naturalHeight;
+            try { c.getContext('2d').drawImage(img, 0, 0); return c.toDataURL('image/png'); }
+            catch (e) { return 'TAINT:' + e; }
+            """,
+            image,
+        )
+        if not data_url.startswith("data:image"):
+            raise GenerationBlocked(f"no pude extraer la imagen por canvas: {data_url[:60]}")
+        raw = base64.b64decode(data_url.split(",", 1)[1])
+        out = downloads / f"gemini_{asset.key}.png"
+        out.write_bytes(raw)
+        if not verify_png(out):
+            raise GenerationBlocked("la imagen extraída no es un PNG válido")
+        return out
 
 
 def main() -> None:

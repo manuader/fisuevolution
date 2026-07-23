@@ -1,7 +1,7 @@
 # 09 — Programador Jr. (Tier 9 — elección de carrera)
 
 - **archivo**: `junior_programmer.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

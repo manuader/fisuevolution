@@ -1,7 +1,7 @@
 # 43 — Bug de la Simulación (Special)
 
 - **archivo**: `sp_bug_simulacion.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

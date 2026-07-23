@@ -1,7 +1,7 @@
 # 79 — Mejora de Crítico (UI — Upgrade)
 
 - **archivo**: `ui_up_crit.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

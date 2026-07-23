@@ -1,7 +1,7 @@
 # 18 — Fundador de Startup (Tier 12)
 
 - **archivo**: `fundador_startup.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

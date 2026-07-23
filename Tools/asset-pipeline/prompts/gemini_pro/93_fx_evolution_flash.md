@@ -1,7 +1,7 @@
 # 93 — FX Evolution Flash (FX)
 
 - **archivo**: `fx_evolution_flash.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

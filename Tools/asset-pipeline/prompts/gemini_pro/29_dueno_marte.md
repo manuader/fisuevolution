@@ -1,7 +1,7 @@
 # 29 — Dueño de Marte (Tier 23 — Fase Cósmica)
 
 - **archivo**: `dueno_marte.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

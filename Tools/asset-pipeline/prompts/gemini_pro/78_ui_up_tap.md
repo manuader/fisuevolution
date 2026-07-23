@@ -1,7 +1,7 @@
 # 78 — Mejora de Tap (UI — Upgrade)
 
 - **archivo**: `ui_up_tap.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

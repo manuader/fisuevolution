@@ -1,7 +1,7 @@
 # 60 — Botón de Peligro (UI — Botón)
 
 - **archivo**: `ui_btn_danger.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

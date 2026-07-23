@@ -1,7 +1,7 @@
 # 65 — Botón de Ver Anuncio (UI — Botón)
 
 - **archivo**: `ui_btn_watch_ad.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

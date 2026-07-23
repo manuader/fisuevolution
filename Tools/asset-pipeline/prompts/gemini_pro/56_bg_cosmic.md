@@ -1,7 +1,7 @@
 # 56 — Reino Cósmico (Cosmic) (Background)
 
 - **archivo**: `bg_cosmic.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

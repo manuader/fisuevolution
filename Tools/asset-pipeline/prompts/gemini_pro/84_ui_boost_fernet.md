@@ -1,7 +1,7 @@
 # 84 — Boost Fernet (UI — Boost)
 
 - **archivo**: `ui_boost_fernet.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

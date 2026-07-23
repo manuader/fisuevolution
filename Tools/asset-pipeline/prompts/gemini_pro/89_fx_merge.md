@@ -1,7 +1,7 @@
 # 89 — FX Merge (FX)
 
 - **archivo**: `fx_merge.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -1,7 +1,7 @@
 # 46 — El Influencer (Special)
 
 - **archivo**: `sp_influencer.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

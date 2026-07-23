@@ -1,7 +1,7 @@
 # 62 — Botón de Tienda (UI — Botón)
 
 - **archivo**: `ui_btn_store.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

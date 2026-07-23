@@ -1,7 +1,7 @@
 # 41 — Lizard Billionaire (Special)
 
 - **archivo**: `sp_lizard.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

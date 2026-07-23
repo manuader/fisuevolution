@@ -1,7 +1,7 @@
 # 38 — Demonio de ARCA (Special)
 
 - **archivo**: `sp_demonio_arca.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

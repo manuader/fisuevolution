@@ -1,7 +1,7 @@
 # 15 — Médico Senior (Tier 10)
 
 - **archivo**: `senior_doctor.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

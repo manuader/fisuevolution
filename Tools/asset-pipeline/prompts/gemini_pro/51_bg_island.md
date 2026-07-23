@@ -1,7 +1,7 @@
 # 51 — Isla Privada (Island) (Background)
 
 - **archivo**: `bg_island.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

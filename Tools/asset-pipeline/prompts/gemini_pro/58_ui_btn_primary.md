@@ -1,7 +1,7 @@
 # 58 — Botón Primario (UI — Botón)
 
 - **archivo**: `ui_btn_primary.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

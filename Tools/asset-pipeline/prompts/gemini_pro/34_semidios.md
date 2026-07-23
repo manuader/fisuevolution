@@ -1,7 +1,7 @@
 # 34 — Semidiós (Tier 28 — Fase Cósmica)
 
 - **archivo**: `semidios.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

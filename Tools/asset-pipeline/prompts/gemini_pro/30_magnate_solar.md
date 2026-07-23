@@ -1,7 +1,7 @@
 # 30 — Magnate Solar (Tier 24 — Fase Cósmica)
 
 - **archivo**: `magnate_solar.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 25 — Magnate Petrolero (Tier 19)
 
 - **archivo**: `magnate_petrolero.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

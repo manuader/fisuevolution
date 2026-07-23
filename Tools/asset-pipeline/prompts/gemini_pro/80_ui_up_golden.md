@@ -1,7 +1,7 @@
 # 80 — Mejora Toque Dorado (UI — Upgrade)
 
 - **archivo**: `ui_up_golden.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

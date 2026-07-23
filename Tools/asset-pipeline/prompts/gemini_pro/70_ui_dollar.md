@@ -1,7 +1,7 @@
 # 70 — Dólar (UI — Currency)
 
 - **archivo**: `ui_dollar.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

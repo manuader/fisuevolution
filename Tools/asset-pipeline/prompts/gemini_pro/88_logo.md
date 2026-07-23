@@ -1,7 +1,7 @@
 # 88 — Logo del Juego (UI — Logo)
 
 - **archivo**: `logo.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

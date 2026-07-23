@@ -1,7 +1,7 @@
 # 24 — Rey del Ladrillo (Tier 18)
 
 - **archivo**: `rey_ladrillo.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

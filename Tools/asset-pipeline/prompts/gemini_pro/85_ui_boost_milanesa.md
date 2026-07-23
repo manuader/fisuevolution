@@ -1,7 +1,7 @@
 # 85 — Boost Milanesa (UI — Boost)
 
 - **archivo**: `ui_boost_milanesa.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

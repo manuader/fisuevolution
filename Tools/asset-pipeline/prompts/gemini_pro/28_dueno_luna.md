@@ -1,7 +1,7 @@
 # 28 — Dueño de la Luna (Tier 22 — Fase Cósmica)
 
 - **archivo**: `dueno_luna.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

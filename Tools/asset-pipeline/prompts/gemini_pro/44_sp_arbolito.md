@@ -1,7 +1,7 @@
 # 44 — El del Arbolito (Special)
 
 - **archivo**: `sp_arbolito.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

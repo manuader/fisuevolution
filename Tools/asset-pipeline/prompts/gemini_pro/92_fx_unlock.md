@@ -1,7 +1,7 @@
 # 92 — FX Unlock (FX)
 
 - **archivo**: `fx_unlock.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

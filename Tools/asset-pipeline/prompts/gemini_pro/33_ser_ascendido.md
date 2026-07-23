@@ -1,7 +1,7 @@
 # 33 — Ser Ascendido (Tier 27 — Fase Cósmica)
 
 - **archivo**: `ser_ascendido.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

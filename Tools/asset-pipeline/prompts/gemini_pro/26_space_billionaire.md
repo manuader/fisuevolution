@@ -1,7 +1,7 @@
 # 26 — Space Billionaire (Tier 20)
 
 - **archivo**: `space_billionaire.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

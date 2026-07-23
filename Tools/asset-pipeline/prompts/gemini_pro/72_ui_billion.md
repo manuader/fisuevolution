@@ -1,7 +1,7 @@
 # 72 — Billón (Mil Millones) (UI — Currency)
 
 - **archivo**: `ui_billion.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

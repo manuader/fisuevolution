@@ -1,7 +1,7 @@
 # 48 — Calle Porteña (Urban) (Background)
 
 - **archivo**: `bg_urban.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

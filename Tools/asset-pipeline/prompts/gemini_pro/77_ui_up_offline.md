@@ -1,7 +1,7 @@
 # 77 — Mejora Offline (UI — Upgrade)
 
 - **archivo**: `ui_up_offline.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

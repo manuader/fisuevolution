@@ -1,7 +1,7 @@
 # 67 — Botón de Recolectar (UI — Botón)
 
 - **archivo**: `ui_btn_collect.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -1,7 +1,7 @@
 # 31 — Señor de la Galaxia (Tier 25 — Fase Cósmica)
 
 - **archivo**: `senor_galaxia.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

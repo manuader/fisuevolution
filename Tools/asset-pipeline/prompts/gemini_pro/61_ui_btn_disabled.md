@@ -1,7 +1,7 @@
 # 61 — Botón Deshabilitado (UI — Botón)
 
 - **archivo**: `ui_btn_disabled.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

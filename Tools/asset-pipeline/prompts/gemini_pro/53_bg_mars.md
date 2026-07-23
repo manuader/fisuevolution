@@ -1,7 +1,7 @@
 # 53 — Marte (Mars) (Background)
 
 - **archivo**: `bg_mars.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

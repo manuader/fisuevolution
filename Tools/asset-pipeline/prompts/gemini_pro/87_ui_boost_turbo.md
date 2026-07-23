@@ -1,7 +1,7 @@
 # 87 — Boost Turbo (UI — Boost)
 
 - **archivo**: `ui_boost_turbo.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

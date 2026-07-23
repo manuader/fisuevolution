@@ -1,7 +1,7 @@
 # 14 — Arquitecto Senior (Tier 10)
 
 - **archivo**: `senior_architect.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

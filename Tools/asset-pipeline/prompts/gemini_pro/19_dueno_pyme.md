@@ -1,7 +1,7 @@
 # 19 — Dueño de PYME (Tier 13)
 
 - **archivo**: `dueno_pyme.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 91 — FX Tap (FX)
 
 - **archivo**: `fx_tap.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

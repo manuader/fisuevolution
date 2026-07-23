@@ -1,7 +1,7 @@
 # 49 — Distrito Corporativo (Corporate) (Background)
 
 - **archivo**: `bg_corporate.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

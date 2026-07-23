@@ -81,8 +81,390 @@
         0.1
       ],
       "scale": 1.0
+    },
+    "junior_architect": {
+      "atlas": "earth",
+      "key": "junior_architect_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "junior_doctor": {
+      "atlas": "earth",
+      "key": "junior_doctor_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "junior_lawyer": {
+      "atlas": "earth",
+      "key": "junior_lawyer_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "senior_programmer": {
+      "atlas": "earth",
+      "key": "senior_programmer_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "senior_architect": {
+      "atlas": "earth",
+      "key": "senior_architect_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "senior_doctor": {
+      "atlas": "earth",
+      "key": "senior_doctor_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "senior_lawyer": {
+      "atlas": "earth",
+      "key": "senior_lawyer_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "director": {
+      "atlas": "earth",
+      "key": "director_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "fundador_startup": {
+      "atlas": "earth",
+      "key": "fundador_startup_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "dueno_pyme": {
+      "atlas": "earth",
+      "key": "dueno_pyme_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "emprendedor": {
+      "atlas": "earth",
+      "key": "emprendedor_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "ceo": {
+      "atlas": "earth",
+      "key": "ceo_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "millonario": {
+      "atlas": "earth",
+      "key": "millonario_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "multimillonario": {
+      "atlas": "earth",
+      "key": "multimillonario_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "rey_ladrillo": {
+      "atlas": "earth",
+      "key": "rey_ladrillo_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "magnate_petrolero": {
+      "atlas": "earth",
+      "key": "magnate_petrolero_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "space_billionaire": {
+      "atlas": "earth",
+      "key": "space_billionaire_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "trillonario": {
+      "atlas": "earth",
+      "key": "trillonario_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "dueno_luna": {
+      "atlas": "cosmic",
+      "key": "dueno_luna_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "dueno_marte": {
+      "atlas": "cosmic",
+      "key": "dueno_marte_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "magnate_solar": {
+      "atlas": "cosmic",
+      "key": "magnate_solar_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "senor_galaxia": {
+      "atlas": "cosmic",
+      "key": "senor_galaxia_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "emperador_cosmico": {
+      "atlas": "cosmic",
+      "key": "emperador_cosmico_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "ser_ascendido": {
+      "atlas": "cosmic",
+      "key": "ser_ascendido_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "semidios": {
+      "atlas": "cosmic",
+      "key": "semidios_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "deidad": {
+      "atlas": "cosmic",
+      "key": "deidad_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "god": {
+      "atlas": "cosmic",
+      "key": "god_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "sp_cryptobro": {
+      "atlas": "specials",
+      "key": "sp_cryptobro",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "sp_demonio_arca": {
+      "atlas": "specials",
+      "key": "sp_demonio_arca",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "sp_contador_dios": {
+      "atlas": "specials",
+      "key": "sp_contador_dios",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "sp_zombie_ceo": {
+      "atlas": "specials",
+      "key": "sp_zombie_ceo",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "sp_lizard": {
+      "atlas": "specials",
+      "key": "sp_lizard",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "sp_alien_investor": {
+      "atlas": "specials",
+      "key": "sp_alien_investor",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "sp_bug_simulacion": {
+      "atlas": "specials",
+      "key": "sp_bug_simulacion",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "sp_arbolito": {
+      "atlas": "specials",
+      "key": "sp_arbolito",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "sp_coach": {
+      "atlas": "specials",
+      "key": "sp_coach",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "sp_influencer": {
+      "atlas": "specials",
+      "key": "sp_influencer",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
     }
   },
-  "backgrounds": {},
-  "ui": {}
+  "backgrounds": {
+    "bg_alley": "bg_alley",
+    "bg_urban": "bg_urban",
+    "bg_corporate": "bg_corporate",
+    "bg_luxury": "bg_luxury",
+    "bg_island": "bg_island",
+    "bg_moon": "bg_moon",
+    "bg_mars": "bg_mars",
+    "bg_solar": "bg_solar",
+    "bg_galaxy": "bg_galaxy",
+    "bg_cosmic": "bg_cosmic",
+    "bg_god_realm": "bg_god_realm"
+  },
+  "ui": {
+    "ui_btn_secondary": "ui_btn_secondary",
+    "ui_btn_store": "ui_btn_store",
+    "ui_btn_upgrade": "ui_btn_upgrade",
+    "ui_btn_reincarnate": "ui_btn_reincarnate",
+    "ui_btn_danger": "ui_btn_danger",
+    "ui_btn_disabled": "ui_btn_disabled",
+    "ui_btn_primary": "ui_btn_primary",
+    "ui_btn_watch_ad": "ui_btn_watch_ad",
+    "ui_btn_claim": "ui_btn_claim",
+    "ui_btn_collect": "ui_btn_collect",
+    "ui_money": "ui_money",
+    "ui_dollar": "ui_dollar",
+    "ui_million": "ui_million",
+    "ui_coin": "ui_coin",
+    "ui_billion": "ui_billion",
+    "ui_trillion": "ui_trillion",
+    "ui_infinity": "ui_infinity",
+    "ui_up_income": "ui_up_income",
+    "ui_up_spawn": "ui_up_spawn",
+    "ui_up_offline": "ui_up_offline",
+    "ui_up_tap": "ui_up_tap",
+    "ui_up_crit": "ui_up_crit",
+    "ui_up_golden": "ui_up_golden",
+    "ui_up_prestige": "ui_up_prestige",
+    "ui_boost_mate": "ui_boost_mate",
+    "ui_boost_cafe": "ui_boost_cafe",
+    "ui_boost_fernet": "ui_boost_fernet",
+    "ui_boost_milanesa": "ui_boost_milanesa",
+    "ui_boost_asado": "ui_boost_asado",
+    "ui_boost_turbo": "ui_boost_turbo",
+    "logo": "logo",
+    "fx_merge": "fx_merge",
+    "fx_money": "fx_money",
+    "fx_tap": "fx_tap",
+    "fx_unlock": "fx_unlock",
+    "fx_evolution_flash": "fx_evolution_flash"
+  }
 }

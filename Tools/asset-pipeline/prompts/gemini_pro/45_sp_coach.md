@@ -1,7 +1,7 @@
 # 45 — Coach Ontológico (Special)
 
 - **archivo**: `sp_coach.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

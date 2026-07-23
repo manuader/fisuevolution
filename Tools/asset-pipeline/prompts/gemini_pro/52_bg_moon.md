@@ -1,7 +1,7 @@
 # 52 — Luna (Moon) (Background)
 
 - **archivo**: `bg_moon.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

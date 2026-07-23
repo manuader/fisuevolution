@@ -1,7 +1,7 @@
 # 54 — Sistema Solar (Solar) (Background)
 
 - **archivo**: `bg_solar.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

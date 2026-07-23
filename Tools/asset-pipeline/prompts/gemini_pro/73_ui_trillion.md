@@ -1,7 +1,7 @@
 # 73 — Trillón (UI — Currency)
 
 - **archivo**: `ui_trillion.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

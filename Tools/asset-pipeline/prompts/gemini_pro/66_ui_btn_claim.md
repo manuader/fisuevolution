@@ -1,7 +1,7 @@
 # 66 — Botón de Reclamar (UI — Botón)
 
 - **archivo**: `ui_btn_claim.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

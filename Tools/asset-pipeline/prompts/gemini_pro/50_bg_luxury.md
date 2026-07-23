@@ -1,7 +1,7 @@
 # 50 — Puerto Madero (Luxury) (Background)
 
 - **archivo**: `bg_luxury.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

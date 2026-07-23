@@ -1,7 +1,7 @@
 # 55 — Galaxia (Galaxy) (Background)
 
 - **archivo**: `bg_galaxy.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

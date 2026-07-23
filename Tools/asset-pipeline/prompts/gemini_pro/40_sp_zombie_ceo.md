@@ -1,7 +1,7 @@
 # 40 — Zombie CEO (Special)
 
 - **archivo**: `sp_zombie_ceo.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

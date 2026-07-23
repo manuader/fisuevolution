@@ -1,7 +1,7 @@
 # 57 — Reino Divino (God Realm) (Background)
 
 - **archivo**: `bg_god_realm.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -1,7 +1,7 @@
 # 59 — Botón Secundario (UI — Botón)
 
 - **archivo**: `ui_btn_secondary.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -1,7 +1,7 @@
 # 20 — Emprendedor (Tier 14)
 
 - **archivo**: `emprendedor.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

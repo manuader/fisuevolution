@@ -1,7 +1,7 @@
 # 81 — Mejora de Prestigio (UI — Upgrade)
 
 - **archivo**: `ui_up_prestige.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

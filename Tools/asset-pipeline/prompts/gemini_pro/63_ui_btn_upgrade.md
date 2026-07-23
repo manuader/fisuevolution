@@ -1,7 +1,7 @@
 # 63 — Botón de Mejora (UI — Botón)
 
 - **archivo**: `ui_btn_upgrade.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

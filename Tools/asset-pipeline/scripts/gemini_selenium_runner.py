@@ -329,14 +329,21 @@ class GeminiBrowser:
             )
 
         # Esperar a que Gemini habilite "Enviar mensaje" (confirma que el texto entró).
-        self._wait_for(
+        send = self._wait_for(
             lambda: self._find_first([
                 ("CSS_SELECTOR", "button[aria-label='Enviar mensaje']"),
                 ("CSS_SELECTOR", "button[aria-label='Send message']"),
             ]),
             "el botón Enviar mensaje de Gemini",
         )
-        subprocess.run(["osascript", "-e", 'tell application "System Events" to key code 36'])
+        # Click directo del botón (Return no siempre envía); confirmar que la
+        # conversación arranca por el cambio de URL a /app/<id>.
+        driver = self._driver()
+        driver.execute_script("arguments[0].click();", send)
+        self._wait_for(
+            lambda: "/app/" in driver.current_url,
+            "que Gemini abra la conversación tras enviar",
+        )
 
     def _biggest_image(self):
         from selenium.webdriver.common.by import By
@@ -399,28 +406,70 @@ class GeminiBrowser:
         if asset.needs_reference:
             self._upload_reference(reference)
         self._submit(asset.prompt)
-        image = self._wait_for(self._biggest_image, "la imagen generada por Gemini")
-        # Dejar que termine de renderizar a resolución plena.
-        time.sleep(2)
-        image = self._biggest_image() or image
-        data_url = driver.execute_script(
-            """
-            const img = arguments[0];
-            const c = document.createElement('canvas');
-            c.width = img.naturalWidth; c.height = img.naturalHeight;
-            try { c.getContext('2d').drawImage(img, 0, 0); return c.toDataURL('image/png'); }
-            catch (e) { return 'TAINT:' + e; }
-            """,
-            image,
+        # La imagen GENERADA vive en la respuesta y difiere de la referencia
+        # adjunta (que también es 2048px). Se espera una imagen grande cuya huella
+        # de píxeles NO coincida con la referencia.
+        raw = self._wait_for(
+            lambda: self._extract_generated_png(reference if asset.needs_reference else None),
+            "la imagen generada por Gemini (distinta de la referencia)",
         )
-        if not data_url.startswith("data:image"):
-            raise GenerationBlocked(f"no pude extraer la imagen por canvas: {data_url[:60]}")
-        raw = base64.b64decode(data_url.split(",", 1)[1])
         out = downloads / f"gemini_{asset.key}.png"
         out.write_bytes(raw)
         if not verify_png(out):
             raise GenerationBlocked("la imagen extraída no es un PNG válido")
         return out
+
+    def _fingerprint(self, png_bytes: bytes) -> tuple:
+        from io import BytesIO
+        from PIL import Image
+
+        thumb = Image.open(BytesIO(png_bytes)).convert("RGB").resize((32, 32))
+        return tuple(thumb.getdata())
+
+    @staticmethod
+    def _fingerprint_distance(a: tuple, b: tuple) -> float:
+        total = 0
+        for (r1, g1, b1), (r2, g2, b2) in zip(a, b):
+            total += abs(r1 - r2) + abs(g1 - g2) + abs(b1 - b2)
+        return total / (len(a) * 3)
+
+    def _extract_generated_png(self, reference: Path | None):
+        """Devuelve los bytes PNG de la primera imagen grande que NO sea la
+        referencia. None si todavía no apareció (para que `_wait_for` reintente)."""
+        import base64
+
+        driver = self._driver()
+        ref_fp = None
+        if reference is not None:
+            if not hasattr(self, "_ref_fp_cache"):
+                self._ref_fp_cache = self._fingerprint(reference.read_bytes())
+            ref_fp = self._ref_fp_cache
+
+        candidates = sorted(
+            (i for i in driver.find_elements("tag name", "img")
+             if int(i.get_attribute("naturalWidth") or 0) >= 512),
+            key=lambda i: int(i.get_attribute("naturalWidth")),
+            reverse=True,
+        )
+        for image in candidates:
+            data_url = driver.execute_script(
+                """
+                const img = arguments[0];
+                const c = document.createElement('canvas');
+                c.width = img.naturalWidth; c.height = img.naturalHeight;
+                try { c.getContext('2d').drawImage(img, 0, 0); return c.toDataURL('image/png'); }
+                catch (e) { return 'TAINT:' + e; }
+                """,
+                image,
+            )
+            if not data_url.startswith("data:image"):
+                continue
+            raw = base64.b64decode(data_url.split(",", 1)[1])
+            if ref_fp is not None:
+                if self._fingerprint_distance(self._fingerprint(raw), ref_fp) < 12:
+                    continue  # es la referencia; seguir buscando/esperando
+            return raw
+        return None
 
 
 def main() -> None:

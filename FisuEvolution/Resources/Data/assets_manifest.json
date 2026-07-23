@@ -81,15 +81,6 @@
         0.1
       ],
       "scale": 1.0
-    },
-    "junior_architect": {
-      "atlas": "earth",
-      "key": "junior_architect_idle",
-      "anchor": [
-        0.5,
-        0.1
-      ],
-      "scale": 1.0
     }
   },
   "backgrounds": {},

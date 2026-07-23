@@ -8,6 +8,10 @@ import UIKit
 final class CharacterNode: SKNode {
     static let nodeName = "character"
 
+    /// Los personajes con arte real se muestran 2.2× el tamaño de la celda
+    /// (crecen hacia arriba, con los pies apoyados sobre la sombra).
+    static let realArtScale: CGFloat = 2.2
+
     private let shadow = SKShapeNode()
     private let plate = SKShapeNode()
     private let sprite = SKSpriteNode()
@@ -73,8 +77,11 @@ final class CharacterNode: SKNode {
             nameLabel.isHidden = true
             sprite.texture = texture
             sprite.isHidden = texture == nil
-            sprite.size = CGSize(width: plateSize, height: plateSize)
-            sprite.position = CGPoint(x: 0, y: 0)
+            // 30% más grande, creciendo hacia arriba: el borde inferior (los pies)
+            // se mantiene sobre la sombra en lugar de atravesar el piso.
+            let artSide = plateSize * Self.realArtScale
+            sprite.size = CGSize(width: artSide, height: artSide)
+            sprite.position = CGPoint(x: 0, y: (artSide - plateSize) / 2)
             sprite.color = skinTint ?? .white
             sprite.colorBlendFactor = skinTint == nil ? 0 : 0.25
 
@@ -82,7 +89,7 @@ final class CharacterNode: SKNode {
             tierLabel.text = "T\(type.tier)"
             tierLabel.fontSize = plateSize * 0.14
             tierLabel.fontColor = Palette.ink
-            tierLabel.position = CGPoint(x: 0, y: plateSize * 0.52)
+            tierLabel.position = CGPoint(x: 0, y: sprite.position.y + artSide * 0.5 + plateSize * 0.03)
             return
         }
 

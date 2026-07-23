@@ -16,6 +16,15 @@ public enum BoardActions {
         return true
     }
 
+    /// Removes the unit at `cell` (frees the slot). Returns false if the cell was
+    /// already empty. Usado por "dejar de contratar" para destrabar tiers bajos.
+    @discardableResult
+    public static func removeUnit(atCell cell: Int, state: inout PlayerState) -> Bool {
+        guard let index = state.board.firstIndex(where: { $0.cellIndex == cell }) else { return false }
+        state.board.remove(at: index)
+        return true
+    }
+
     /// Consumes source + target and leaves one `newTypeId` unit on the target cell.
     /// Also advances `maxTierReached` (input to progressive spawn and backgrounds).
     public static func applyMerge(

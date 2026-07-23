@@ -45,8 +45,26 @@ struct PassiveUnlockView: View {
                         .foregroundStyle(Color("PalettePink"))
                 }
             }
+
+            if prompt.canDismiss {
+                Divider()
+                Button(role: .destructive) {
+                    gameState.dismissCharacter(atCell: prompt.cellIndex)
+                } label: {
+                    Label {
+                        Text(verbatim: "Dejar de contratar")
+                    } icon: {
+                        Image(systemName: "person.fill.xmark")
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
+                }
+                .buttonStyle(.bordered)
+                .tint(Color("PalettePink"))
+            }
         }
         .padding(24)
-        .presentationDetents([.fraction(0.35)])
+        .presentationDetents([.fraction(0.45)])
     }
 }

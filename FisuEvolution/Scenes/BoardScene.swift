@@ -293,6 +293,7 @@ final class BoardScene: SKScene {
 
     private func runEvolutionReveal(for type: CharacterType, at position: CGPoint?) {
         let reduceMotion = UIAccessibility.isReduceMotionEnabled
+        let hold: TimeInterval = 1.5
 
         let flash = SKShapeNode(rect: CGRect(origin: .zero, size: size))
         flash.fillColor = .white
@@ -310,11 +311,64 @@ final class BoardScene: SKScene {
             particles.emit(.evolution, at: position, in: fieldNode)
         }
 
+        // Scrim para enfocar la atención en el personaje recién desbloqueado.
+        let scrim = SKSpriteNode(color: SKColor.black.withAlphaComponent(0.72), size: size)
+        scrim.anchorPoint = .zero
+        scrim.position = .zero
+        scrim.zPosition = 195
+        scrim.alpha = 0
+        addChild(scrim)
+        scrim.run(.sequence([
+            .fadeAlpha(to: 1.0, duration: 0.2),
+            .wait(forDuration: hold),
+            .fadeOut(withDuration: 0.3),
+            .removeFromParent(),
+        ]))
+
+        // Foto del personaje: el arte real (o el placeholder) en grande y centrado.
+        if let content = gameState.content,
+           let texture = renderer.texture(for: type, manifest: content.manifest) {
+            let side = min(size.width * 0.82, size.height * 0.52)
+            let photo = SKSpriteNode(texture: texture)
+            photo.size = CGSize(width: side, height: side)
+            photo.position = CGPoint(x: size.width / 2, y: size.height * 0.45)
+            photo.zPosition = 208
+            photo.alpha = 0
+            photo.setScale(reduceMotion ? 1.0 : 0.5)
+            addChild(photo)
+            let photoIn: SKAction = reduceMotion
+                ? .fadeIn(withDuration: 0.25)
+                : .group([.fadeIn(withDuration: 0.18), .sequence([.scale(to: 1.1, duration: 0.24), .scale(to: 1.0, duration: 0.12)])])
+            photo.run(.sequence([
+                photoIn,
+                .wait(forDuration: hold - 0.2),
+                .fadeOut(withDuration: 0.3),
+                .removeFromParent(),
+            ]))
+        }
+
+        // Etiqueta "¡NUEVO!" arriba de todo.
+        let tag = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+        tag.text = "¡NUEVO!"
+        tag.fontSize = 24
+        tag.fontColor = Palette.yellow
+        tag.position = CGPoint(x: size.width / 2, y: size.height * 0.82)
+        tag.zPosition = 210
+        tag.alpha = 0
+        tag.run(.sequence([
+            .fadeIn(withDuration: 0.2),
+            .wait(forDuration: hold + 0.1),
+            .fadeOut(withDuration: 0.3),
+            .removeFromParent(),
+        ]))
+        addChild(tag)
+
+        // Nombre del personaje ARRIBA de la foto.
         let banner = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         banner.text = type.displayName.uppercased()
-        banner.fontSize = 34
+        banner.fontSize = 38
         banner.fontColor = SKColor(named: "PalettePink") ?? .magenta
-        banner.position = CGPoint(x: size.width / 2, y: size.height * 0.62)
+        banner.position = CGPoint(x: size.width / 2, y: size.height * 0.76)
         banner.zPosition = 210
         banner.alpha = 0
         banner.setScale(reduceMotion ? 1.0 : 0.4)
@@ -323,15 +377,14 @@ final class BoardScene: SKScene {
         let entrance: SKAction = reduceMotion
             ? .fadeIn(withDuration: 0.25)
             : .group([.fadeIn(withDuration: 0.15), .sequence([.scale(to: 1.15, duration: 0.2), .scale(to: 1.0, duration: 0.1)])])
+        // El reveal cierra solo; ya no se ofrece el share card (interrumpía el
+        // ritmo del juego). offerShareCard sigue disponible por si se dispara
+        // desde otro lado en el futuro.
         banner.run(.sequence([
             entrance,
-            .wait(forDuration: 1.0),
+            .wait(forDuration: hold),
             .fadeOut(withDuration: 0.3),
             .removeFromParent(),
-            .run { [weak self] in
-                // Al cerrar el reveal, ofrecer el share card (bible §8).
-                self?.gameState.offerShareCard(for: type)
-            },
         ]))
     }
 
@@ -348,15 +401,13 @@ final class BoardScene: SKScene {
         boardColumns = board.columns
         boardRows = board.rows
 
+        // Los personajes conviven en la franja de piso (parte inferior de la
+        // pantalla, donde el fondo generado tiene el suelo). La celda se ajusta al
+        // ancho para que entren las columnas; las filas se apilan cerca y hacia
+        // arriba (profundidad de multitud, no una grilla que llena la pantalla).
         let availableWidth = size.width - Self.horizontalInset * 2
-        let availableHeight = size.height - Self.topInset - Self.bottomInset
-        cellSize = min(availableWidth / CGFloat(board.columns), availableHeight / CGFloat(board.rows))
-
-        let gridWidth = cellSize * CGFloat(board.columns)
-        let gridHeight = cellSize * CGFloat(board.rows)
-        let originX = (size.width - gridWidth) / 2
-        let originY = Self.bottomInset + (availableHeight - gridHeight) / 2
-        fieldNode.position = CGPoint(x: originX, y: originY)
+        cellSize = availableWidth / CGFloat(max(board.columns, 1))
+        fieldNode.position = CGPoint(x: Self.horizontalInset, y: Self.bottomInset)
 
         rebuildAnchors(board: board)
         renderFieldBackground(content: content, player: player)
@@ -367,16 +418,22 @@ final class BoardScene: SKScene {
     /// (hash del índice), para que el campo se vea orgánico pero estable entre
     /// launches y consistente con el modelo de board persistido.
     private func rebuildAnchors(board: EconomyConfig.BoardConfig) {
+        let cols = max(boardColumns, 1)
+        let colSpacing = cellSize
+        let frontY = cellSize * 0.5             // pies de la fila delantera, sobre el piso
+        let rowDepth = cellSize * 0.6           // cada fila de atrás, más arriba y detrás
         anchorPoints = (0..<board.cellCount).map { index in
-            let column = index % max(boardColumns, 1)
-            let row = index / max(boardColumns, 1)
+            let column = index % cols
+            let row = index / cols
+            // Filas alternadas corridas un poco (centrado) para asomar entre sí.
+            let rowStagger = (row % 2 == 0 ? -1.0 : 1.0) * colSpacing * 0.12
             var hash = UInt64(index &* 2654435761)
             hash = (hash ^ (hash >> 13)) &* 0x9E3779B97F4A7C15
-            let jitterX = (CGFloat(hash % 1000) / 1000 - 0.5) * cellSize * 0.45
-            let jitterY = (CGFloat((hash >> 10) % 1000) / 1000 - 0.5) * cellSize * 0.35
+            let jitterX = (CGFloat(hash % 1000) / 1000 - 0.5) * cellSize * 0.10
+            let jitterY = (CGFloat((hash >> 10) % 1000) / 1000 - 0.5) * cellSize * 0.06
             return CGPoint(
-                x: CGFloat(column) * cellSize + cellSize / 2 + jitterX,
-                y: CGFloat(row) * cellSize + cellSize / 2 + jitterY
+                x: CGFloat(column) * colSpacing + colSpacing / 2 + rowStagger + jitterX,
+                y: frontY + CGFloat(row) * rowDepth + jitterY
             )
         }
     }

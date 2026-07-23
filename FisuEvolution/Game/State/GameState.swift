@@ -29,9 +29,12 @@ final class GameState {
     struct PassivePrompt: Identifiable, Equatable {
         let id = UUID()
         let type: CharacterType
+        let cellIndex: Int
         let instanceCount: Int
         let isUnlocked: Bool
         let canAfford: Bool
+        /// Se puede "dejar de contratar" si no es la última unidad del tablero.
+        let canDismiss: Bool
     }
 
     struct OfflineReward: Identifiable, Equatable {
@@ -161,6 +164,7 @@ final class GameState {
                 Log.lifecycle.info("new game started")
             }
 
+            reconcileBoardCapacity(cellCount: content.economy.board.cellCount)
             applyOfflineProgressIfNeeded()
             // El primer launch de una cuenta nueva no reclama daily: el jugador
             // todavía no jugó y el popup compite con el tutorial (FTUE).
@@ -182,6 +186,24 @@ final class GameState {
             assertionFailure("\(error)")
             phase = .failed(String(localized: "error.content.message"))
         }
+    }
+
+    /// Ajusta el tablero al máximo de celdas actual (por si el límite bajó entre
+    /// versiones): conserva las unidades de mayor tier y las reubica en 0..<N,
+    /// evitando placements fuera de rango que renderizarían en el origen.
+    private func reconcileBoardCapacity(cellCount: Int) {
+        guard let content, var player, !player.board.isEmpty else { return }
+        let outOfRange = player.board.contains { $0.cellIndex >= cellCount || $0.cellIndex < 0 }
+        guard outOfRange || player.board.count > cellCount else { return }
+        let ranked = player.board.sorted {
+            (content.tiers.type(id: $0.typeId)?.tier ?? 0) > (content.tiers.type(id: $1.typeId)?.tier ?? 0)
+        }
+        player.board = ranked.prefix(cellCount).enumerated().map {
+            BoardPlacement(cellIndex: $0.offset, typeId: $0.element.typeId)
+        }
+        self.player = player
+        Log.lifecycle.info("board reconciled to \(cellCount) cells")
+        scheduleSave()
     }
 
     // MARK: Frame loop (called by BoardScene)
@@ -396,10 +418,25 @@ final class GameState {
         else { return }
         passivePrompt = PassivePrompt(
             type: type,
+            cellIndex: cellIndex,
             instanceCount: player.board.count(where: { $0.typeId == type.id }),
             isUnlocked: player.passiveUnlocked[type.id] == true,
-            canAfford: player.coins >= type.passiveUnlockCost
+            canAfford: player.coins >= type.passiveUnlockCost,
+            canDismiss: player.board.count > 1
         )
+    }
+
+    /// "Dejar de contratar": saca la unidad de `cell` y libera el espacio.
+    /// Sirve para destrabar un tier bajo que ya no se puede comprar/mergear.
+    func dismissCharacter(atCell cell: Int) {
+        guard var player else { return }
+        guard player.board.count > 1 else { return }  // nunca dejar el tablero vacío
+        guard BoardActions.removeUnit(atCell: cell, state: &player) else { return }
+        self.player = player
+        passivePrompt = nil
+        playHaptic(.merge)
+        bumpBoard()
+        scheduleSave()
     }
 
     func unlockPassive(typeId: String) {
@@ -804,7 +841,10 @@ final class GameState {
         let quote = currentQuote(player: player)
         if spawnQuote != quote { spawnQuote = quote }
 
-        let affordable = quote.map { player.coins >= $0.cost } ?? false
+        // El tablero tiene un máximo de celdas: con el tablero lleno no se puede
+        // contratar (hay que "dejar de contratar" a alguno para liberar espacio).
+        let boardFull = player.board.count >= content.economy.board.cellCount
+        let affordable = (quote.map { player.coins >= $0.cost } ?? false) && !boardFull
         if canAffordSpawn != affordable { canAffordSpawn = affordable }
 
         if unitCount != player.board.count { unitCount = player.board.count }

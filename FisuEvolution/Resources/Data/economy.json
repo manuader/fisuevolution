@@ -20,7 +20,7 @@
     "globalMultiplierPerSoulPoint": 0.02
   },
   "board": {
-    "columns": 5,
-    "rows": 7
+    "columns": 4,
+    "rows": 2
   }
 }

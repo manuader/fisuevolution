@@ -50,7 +50,7 @@ struct GameContentValidationTests {
         #expect(content.economy.spawn.costGrowth == 1.022)
         #expect(content.economy.spawn.costBasis == .total)
         #expect(content.economy.offlineCapHours == 8)
-        #expect(content.economy.board.cellCount == 35)
+        #expect(content.economy.board.cellCount == 8)
     }
 
     @Test func featureFlagsShipDisabled() {
@@ -63,8 +63,12 @@ struct GameContentValidationTests {
     /// El arte entra por tandas: cada entrada del manifest debe apuntar a un
     /// tipo real; los tipos sin entrada renderizan placeholder (regla de oro).
     @Test func manifestEntriesReferenceRealTypes() {
+        // Una entrada de personaje debe apuntar a un tier real O a un special
+        // real (los specials tienen arte propio en specials.atlas, no son tiers).
+        let specialIds = Set(content.specials.specials.map(\.id))
         for (typeId, asset) in content.manifest.characters {
-            #expect(content.tiers.type(id: typeId) != nil, "manifest huérfano: \(typeId)")
+            let isReal = content.tiers.type(id: typeId) != nil || specialIds.contains(typeId)
+            #expect(isReal, "manifest huérfano: \(typeId)")
             #expect(!asset.key.isEmpty)
             #expect(!asset.atlas.isEmpty)
         }

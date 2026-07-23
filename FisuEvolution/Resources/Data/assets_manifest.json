@@ -9,6 +9,15 @@
         0.1
       ],
       "scale": 1.0
+    },
+    "cartonero": {
+      "atlas": "earth",
+      "key": "cartonero_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
     }
   },
   "backgrounds": {},

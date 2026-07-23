@@ -5,7 +5,7 @@ Orden secuencial para generar los 93 assets de FisuEvolution con Gemini Pro (cha
 | NN | asset | archivo | estado |
 |---|---|---|---|
 | 01 | homeless | `homeless.png` | hecho |
-| 02 | cartonero | `cartonero.png` | pendiente |
+| 02 | cartonero | `cartonero.png` | hecho |
 | 03 | kiosco | `kiosco.png` | pendiente |
 | 04 | repartidor | `repartidor.png` | pendiente |
 | 05 | chofer_app | `chofer_app.png` | pendiente |
@@ -98,4 +98,4 @@ Orden secuencial para generar los 93 assets de FisuEvolution con Gemini Pro (cha
 | 92 | fx_unlock | `fx_unlock.png` | pendiente |
 | 93 | fx_evolution_flash | `fx_evolution_flash.png` | pendiente |
 
-**Progreso**: 1/93 hechos, 92 pendientes.
+**Progreso**: 2/93 hechos, 91 pendientes.

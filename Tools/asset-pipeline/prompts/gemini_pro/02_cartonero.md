@@ -1,7 +1,7 @@
 # 02 — Cartonero (Tier 2)
 
 - **archivo**: `cartonero.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

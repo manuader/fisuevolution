@@ -12,7 +12,7 @@ El código NUNCA referencia sprites directo: todo pasa por `FisuEvolution/Resour
 
 Generar **93 assets** (36 personajes + 10 specials + 11 backgrounds + 24 UI + 5 fx + logo) en estilo cartoon consistente, PNG con fondo transparente, e integrarlos al juego. La consistencia se logra pasando **El Fisura ya aprobado** (`Tools/asset-pipeline/heroes/approved/fisura.png`) como imagen de referencia en cada generación.
 
-**Progreso: 9/93 hechos** (homeless, cartonero, kiosco, repartidor, chofer_app, fast_food, oficinista, administrativo, junior_programmer, junior_doctor — verificados visualmente como correctos). El batch de los ~83 restantes está corriendo con el runner arreglado.
+**Progreso: 93/93 hechos ✅ — arte COMPLETO.** 36 personajes (earth+cosmic.atlas) + 10 specials (specials.atlas) + 11 backgrounds (Backgrounds/) + 30 íconos UI + logo (sin texto) + 5 fx (ui.atlas). Barrido final OK: manifest 93 claves, 0 íconos en blanco (sweep de opacidad post-rembg), 0 faltantes @2x/@3x, dropbox vacío, 91 originales en procesadas/. Verificado visualmente por fase (personajes/cosmic/specials/bg/ui/logo/fx). Bugs #3–#6 resueltos, 10 tests en verde. **Siguiente**: `xcodegen generate` + build para verlo en el juego; luego F6.
 
 ## Arquitectura del pipeline (`Tools/asset-pipeline/`)
 
@@ -43,7 +43,7 @@ cd Tools/asset-pipeline
 .venv/bin/python scripts/gemini_selenium_runner.py --only junior_lawyer  # 1 asset
 nohup caffeinate -is .venv/bin/python scripts/gemini_selenium_runner.py --process --pause 3 --timeout 260 &  # batch completo
 ```
-Flags: `--only <key>`, `--limit N`, `--dry-run`, `--process` (integra al juego al final), `--timeout`, `--pause`.
+Flags: `--only <key>`, `--limit N`, `--dry-run`, `--process` (integra al juego por-asset, ni bien cae en dropbox), `--timeout`, `--pause`, `--retries N` (default 1), `--max-consecutive-failures N` (default 3, frena ante bloqueo/logout).
 
 ## Lo que FUNCIONÓ (y por qué, tras mucho debug)
 
@@ -72,6 +72,10 @@ Downstream: `process_dropbox.py` recorta el fondo blanco con `rembg` (modelo isn
 
 1. **Capturaba la referencia, no el generado**: como `fisura.png` es 2048px, `_biggest_image` lo tomaba. Los primeros 5 "éxitos" (junior_architect, etc.) eran copias del Fisura. **Fix**: descartar por huella de píxeles (`_extract_generated_png` compara contra la referencia). SIEMPRE verificá visualmente algunos con Read sobre el PNG.
 2. **El submit no ocurría**: `Return` no enviaba, la referencia quedaba en el compose. **Fix**: JS click al botón + esperar cambio de URL.
+3. **Canvas "tainted" en imagen cross-origin (causó el freno en junior_architect)**: Gemini a veces sirve la imagen generada desde `lh3.googleusercontent.com` en vez de un `blob:` same-origin. `canvas.toDataURL()` lanza `SecurityError` (cross-origin sin CORS), el runner la descartaba (`continue`), no hallaba imagen válida y daba timeout → freno del batch. Los primeros 9 funcionaron porque su imagen era un `blob:` al momento de extraer. **Fix**: cuando el canvas queda tainted, `_download_cross_origin` baja el `src` con las **cookies de Google de la sesión** (el CDN da 403 sin auth) y re-codifica a PNG. Verificado en vivo (junior_architect, junior_lawyer).
+4. **El batch se frenaba ante UN solo fallo** (`break` "para no gastar tu cuota"): un timeout transitorio volteaba las 83 restantes. **Fix**: `--retries` (default 1) reintenta el asset, y si igual falla se **salta al siguiente**; sólo frena tras `--max-consecutive-failures` fallos SEGUIDOS (default 3 = síntoma de bloqueo/logout/cuota).
+5. **`verify_png` rechazaba íconos UI válidos (fase 58-93)**: el gate era `minimum_bytes=100_000`, calibrado para personajes detallados (500 KB+). Un ícono UI plano (botón, moneda) es un 1024×1024 real pero comprime a ~30-90 KB → lo rechazaba como "imagen extraída no es un PNG válido", flakeando toda la fase UI/fx (y algún bg simple). **Fix**: el gate ahora es **dimensional** (`min(w,h) >= 512`) + un piso de bytes mínimo (1 KB, sólo anti-vacío). Salvados sin regenerar los 3 que ya estaban en `~/Downloads/gemini_*.png`.
+6. **Extracción vacía/transparente (ui_coin salió en blanco)**: muy de vez en cuando el canvas se lee antes de que la imagen termine de renderizar y captura un placeholder 1024×1024 totalmente transparente. Al bajar el gate de bytes (Bug #5), ese blanco pasaba y se integraba (0% opaco). **Fix**: `_has_content(raw)` en `_extract_generated_png` descarta lo transparente (alpha_max < 16) o de color uniforme (rango < 8), así `_wait_for` sigue esperando el render real. **Lección**: al verificar UI, no alcanza con mirar el original pre-rembg — comprobá el **% de píxeles opacos** del `@2x` post-rembg (script una-línea con PIL/numpy).
 
 ## Estado del proceso ahora
 

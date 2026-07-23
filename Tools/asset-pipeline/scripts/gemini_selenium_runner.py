@@ -103,15 +103,24 @@ def pending_assets(
     return assets
 
 
-def verify_png(path: Path, minimum_bytes: int = 100_000) -> bool:
-    """Comprueba firma, tamaño y decodificación de un PNG descargado."""
+def verify_png(path: Path, minimum_bytes: int = 1_000) -> bool:
+    """Comprueba firma, decodificación y DIMENSIONES de un PNG generado.
+
+    El gate real es dimensional (>=512px), no de bytes: un ícono UI plano
+    comprime a ~30-90 KB (mucho menos que un personaje detallado) pero sigue
+    siendo un 1024x1024 real. Un umbral de 100 KB rechazaba íconos válidos.
+    El piso de bytes queda mínimo, sólo para descartar archivos vacíos/truncados."""
     if not path.is_file() or path.stat().st_size < minimum_bytes:
         return False
     try:
         from PIL import Image
 
         with Image.open(path) as image:
-            image.verify()
+            image.verify()  # integridad del stream
+        with Image.open(path) as image:
+            width, height = image.size
+        if min(width, height) < 512:
+            return False
         return path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
     except (OSError, ValueError):
         return False
@@ -161,7 +170,7 @@ class AssetRunner:
         dropbox: Path,
         reference: Path | None,
         checkpoint: RunCheckpoint,
-        minimum_bytes: int = 100_000,
+        minimum_bytes: int = 1_000,
     ):
         self.browser = browser
         self.dropbox = Path(dropbox)
@@ -435,7 +444,12 @@ class GeminiBrowser:
 
     def _extract_generated_png(self, reference: Path | None):
         """Devuelve los bytes PNG de la primera imagen grande que NO sea la
-        referencia. None si todavía no apareció (para que `_wait_for` reintente)."""
+        referencia. None si todavía no apareció (para que `_wait_for` reintente).
+
+        La imagen recién generada suele ser un `blob:` same-origin y se extrae por
+        canvas. Cuando Gemini ya la sirvió desde lh3.googleusercontent.com el canvas
+        queda "tainted" (cross-origin) y `toDataURL` lanza SecurityError; en ese caso
+        se baja el `src` con las cookies de la sesión y se re-codifica a PNG."""
         import base64
 
         driver = self._driver()
@@ -462,14 +476,62 @@ class GeminiBrowser:
                 """,
                 image,
             )
-            if not data_url.startswith("data:image"):
-                continue
-            raw = base64.b64decode(data_url.split(",", 1)[1])
+            if data_url.startswith("data:image"):
+                raw = base64.b64decode(data_url.split(",", 1)[1])
+            else:
+                # Canvas "tainted" (imagen cross-origin de googleusercontent):
+                # bajar el original con las cookies de Google de la sesión.
+                raw = self._download_cross_origin(image.get_attribute("src"))
+                if raw is None:
+                    continue
+            if not self._has_content(raw):
+                continue  # placeholder vacío/transparente: esperar el render real
             if ref_fp is not None:
                 if self._fingerprint_distance(self._fingerprint(raw), ref_fp) < 12:
                     continue  # es la referencia; seguir buscando/esperando
             return raw
         return None
+
+    @staticmethod
+    def _has_content(raw: bytes) -> bool:
+        """Descarta extracciones vacías: un placeholder transparente o un bloque de
+        color uniforme (el canvas leído antes de que la imagen termine de renderizar).
+        Un asset real tiene píxeles opacos Y variación de color."""
+        from io import BytesIO
+        from PIL import Image
+
+        image = Image.open(BytesIO(raw)).convert("RGBA")
+        _, alpha_max = image.getchannel("A").getextrema()
+        if alpha_max < 16:
+            return False  # totalmente transparente
+        ranges = [hi - lo for lo, hi in image.convert("RGB").getextrema()]
+        return max(ranges) >= 8  # alguna variación de color (no un bloque plano)
+
+    def _download_cross_origin(self, src: str | None):
+        """Baja la imagen generada (lh3.googleusercontent.com sirve 403 sin auth)
+        con las cookies de Google de la sesión de Chrome y la re-codifica a PNG.
+        Devuelve bytes PNG, o None si el src no es http o la bajada falla."""
+        if not src or not src.startswith("http"):
+            return None
+        import urllib.request
+        from io import BytesIO
+        from PIL import Image
+
+        try:
+            cookie_header = "; ".join(
+                f"{cookie['name']}={cookie['value']}"
+                for cookie in self._driver().get_cookies()
+            )
+            request = urllib.request.Request(
+                src, headers={"User-Agent": "Mozilla/5.0", "Cookie": cookie_header}
+            )
+            with urllib.request.urlopen(request, timeout=30) as response:
+                data = response.read()
+            buffer = BytesIO()
+            Image.open(BytesIO(data)).convert("RGB").save(buffer, "PNG")
+            return buffer.getvalue()
+        except Exception:
+            return None
 
 
 def main() -> None:
@@ -484,6 +546,10 @@ def main() -> None:
     parser.add_argument("--process", action="store_true", help="procesa dropbox explícitamente al terminar")
     parser.add_argument("--port", type=int, default=9222, help="puerto Chrome debug")
     parser.add_argument("--timeout", type=int, default=180, help="timeout de UI/descarga por asset")
+    parser.add_argument("--retries", type=int, default=1,
+                        help="reintentos por asset ante un fallo transitorio")
+    parser.add_argument("--max-consecutive-failures", type=int, default=3,
+                        help="frena el batch tras N fallos SEGUIDOS (bloqueo/logout/cuota)")
     args = parser.parse_args()
 
     queue = pending_assets(PROMPTS_DIR, DROPBOX, PROCESSED, MANIFEST)
@@ -499,20 +565,40 @@ def main() -> None:
     py = str(PIPELINE / ".venv" / "bin" / "python")
     process_script = str(PIPELINE / "scripts" / "process_dropbox.py")
     completed: list[str] = []
+    consecutive_failures = 0
     for index, asset in enumerate(queue, 1):
         print(f"[{index}/{len(queue)}] {asset.key}…", flush=True)
-        if runner.run(asset):
+        # Un fallo transitorio (timeout de red/UI) no debe voltear todo el batch:
+        # se reintenta el asset y, si igual falla, se salta al siguiente. Sólo se
+        # frena ante N fallos SEGUIDOS (síntoma de bloqueo/logout/cuota agotada).
+        ok = False
+        for attempt in range(args.retries + 1):
+            ok = runner.run(asset)
+            if ok:
+                break
+            if attempt < args.retries:
+                print(f"  … reintento {attempt + 1}/{args.retries}", file=sys.stderr)
+                time.sleep(args.pause)
+        if ok:
             completed.append(asset.key)
+            consecutive_failures = 0
             print(f"  ✓ dropbox/{asset.key}.png")
             # Integrar y ARCHIVAR en procesadas/ inmediatamente (robusto ante
             # interrupciones): recorte → atlas → manifest → mueve el original.
             if args.process:
                 subprocess.run([py, process_script], check=False)
         else:
-            print("  ✗ queda pendiente; se detiene para no gastar tu cuota", file=sys.stderr)
-            break
+            consecutive_failures += 1
+            print(f"  ✗ {asset.key} falló ({consecutive_failures} seguidas); "
+                  "sigo con el próximo", file=sys.stderr)
+            if consecutive_failures >= args.max_consecutive_failures:
+                print(f"  ⨯ {consecutive_failures} fallos seguidos: freno para no "
+                      "gastar tu cuota (¿bloqueo/logout?)", file=sys.stderr)
+                break
         if index < len(queue):
             time.sleep(args.pause)
+    print(f"=== FIN: {len(completed)}/{len(queue)} OK, "
+          f"{len(queue) - len(completed)} pendientes ===")
 
 
 if __name__ == "__main__":

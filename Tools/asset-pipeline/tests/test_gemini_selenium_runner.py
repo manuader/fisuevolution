@@ -13,6 +13,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 from gemini_selenium_runner import (  # noqa: E402
     AssetRunner,
+    GeminiBrowser,
     RunCheckpoint,
     parse_asset,
     pending_assets,
@@ -77,6 +78,20 @@ class GeminiSeleniumRunnerTests(unittest.TestCase):
 
         self.assertTrue(verify_png(image, minimum_bytes=100_000))
 
+    def test_verify_png_accepts_full_size_icon_below_old_100kb_gate(self):
+        # Regresión: un ícono UI plano de 1024x1024 comprime muy por debajo de
+        # 100 KB pero es válido. El gate es dimensional, no de bytes.
+        icon = self.root / "flat_icon.png"
+        Image.linear_gradient("L").resize((1024, 1024)).convert("RGB").save(icon)
+        self.assertLess(icon.stat().st_size, 100_000)  # habría fallado el viejo gate
+        self.assertTrue(verify_png(icon))
+
+    def test_verify_png_rejects_small_dimensions_even_if_bytes_ok(self):
+        # Una imagen chica (p.ej. un thumbnail espurio) no es un asset válido.
+        small = self.root / "small.png"
+        Image.effect_noise((128, 128), 100).convert("RGB").save(small)
+        self.assertFalse(verify_png(small, minimum_bytes=1))
+
     def test_checkpoint_records_success_and_failure_atomically(self):
         checkpoint = RunCheckpoint(self.root / "state" / "selenium-run.json")
         checkpoint.record_failure("next", "timeout")
@@ -96,6 +111,28 @@ class GeminiSeleniumRunnerTests(unittest.TestCase):
         self.assertIn("--remote-debugging-port=9222", command)
         self.assertIn(f"--user-data-dir={profile}", command)
         self.assertIn("https://gemini.google.com/", command)
+
+    def test_has_content_rejects_blank_and_accepts_real_image(self):
+        from io import BytesIO
+
+        def png_bytes(img):
+            buf = BytesIO()
+            img.save(buf, "PNG")
+            return buf.getvalue()
+
+        transparent = Image.new("RGBA", (1024, 1024), (0, 0, 0, 0))
+        solid = Image.new("RGB", (1024, 1024), (255, 255, 255))
+        real = Image.linear_gradient("L").resize((1024, 1024)).convert("RGB")
+        self.assertFalse(GeminiBrowser._has_content(png_bytes(transparent)))
+        self.assertFalse(GeminiBrowser._has_content(png_bytes(solid)))
+        self.assertTrue(GeminiBrowser._has_content(png_bytes(real)))
+
+    def test_download_cross_origin_ignores_non_http_src_without_browser(self):
+        # El guard corta antes de tocar Selenium: un blob:/None nunca abre driver.
+        browser = GeminiBrowser(port=9222)
+        self.assertIsNone(browser._download_cross_origin(None))
+        self.assertIsNone(browser._download_cross_origin("blob:https://x/abc"))
+        self.assertIsNone(browser.driver)  # jamás se conectó
 
     def test_failed_download_keeps_md_pending_and_records_failure(self):
         asset_path = write_prompt(self.prompts, "03_next")

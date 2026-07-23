@@ -496,19 +496,23 @@ def main() -> None:
         return
 
     runner = AssetRunner(GeminiBrowser(args.port, args.timeout), DROPBOX, REFERENCE, RunCheckpoint(CHECKPOINT))
+    py = str(PIPELINE / ".venv" / "bin" / "python")
+    process_script = str(PIPELINE / "scripts" / "process_dropbox.py")
     completed: list[str] = []
     for index, asset in enumerate(queue, 1):
         print(f"[{index}/{len(queue)}] {asset.key}…", flush=True)
         if runner.run(asset):
             completed.append(asset.key)
             print(f"  ✓ dropbox/{asset.key}.png")
+            # Integrar y ARCHIVAR en procesadas/ inmediatamente (robusto ante
+            # interrupciones): recorte → atlas → manifest → mueve el original.
+            if args.process:
+                subprocess.run([py, process_script], check=False)
         else:
             print("  ✗ queda pendiente; se detiene para no gastar tu cuota", file=sys.stderr)
             break
         if index < len(queue):
             time.sleep(args.pause)
-    if args.process and completed:
-        subprocess.run([str(PIPELINE / ".venv" / "bin" / "python"), str(PIPELINE / "scripts" / "process_dropbox.py")], check=False)
 
 
 if __name__ == "__main__":

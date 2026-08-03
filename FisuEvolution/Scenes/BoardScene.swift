@@ -100,16 +100,17 @@ final class BoardScene: SKScene {
     /// mergeable (hint 3). El hint del botón de spawn vive en SwiftUI.
     private func updateFTUEHint() {
         var targetCell = -1
+        let placements = gameState.visiblePlacements
         if gameState.showTapHint {
-            targetCell = gameState.player?.board.first?.cellIndex ?? -1
-        } else if gameState.showMergeHint, let player = gameState.player {
+            targetCell = placements.first?.slot ?? -1
+        } else if gameState.showMergeHint {
             var byType: [String: Int] = [:]
-            outer: for placement in player.board {
+            outer: for placement in placements {
                 if let first = byType[placement.typeId] {
                     targetCell = first
                     break outer
                 }
-                byType[placement.typeId] = placement.cellIndex
+                byType[placement.typeId] = placement.slot
             }
         }
 
@@ -192,12 +193,15 @@ final class BoardScene: SKScene {
         }
 
         switch gameState.handleDrop(fromCell: dragOriginCell, toCell: targetCell) {
-        case .merged(let cell, let evolvedTo):
+        case .merged(let cell, let evolvedTo, let promotedToFloor, _):
             dragNode = nil
             layoutBoard()
-            let mergedNode = characterNodes[cell]
+            // Si el resultado ascendió de piso (F7 §3.4), ya no está en este piso:
+            // feedback en el punto del drop. F7.2 agrega la animación de vuelo.
+            let mergedNode = promotedToFloor == nil ? characterNodes[cell] : nil
+            let feedbackPoint = mergedNode?.position ?? dropPoint
+            particles.emit(.merge, at: feedbackPoint, in: fieldNode)
             if let mergedNode {
-                particles.emit(.merge, at: mergedNode.position, in: fieldNode)
                 mergedNode.run(.sequence([
                     .scale(to: 1.25, duration: 0.1),
                     .scale(to: 1.0, duration: 0.12),
@@ -398,34 +402,35 @@ final class BoardScene: SKScene {
 
     // MARK: - Layout (campo, no grilla)
 
-    /// Reconstruye el campo: fondo de la etapa actual, anclas orgánicas y
-    /// personajes parados con orden de profundidad por Y.
+    /// Reconstruye el campo: fondo del PISO VISIBLE (F7 La Torre), anclas
+    /// orgánicas y personajes parados con orden de profundidad por Y.
     func layoutBoard() {
-        guard let content = gameState.content, let player = gameState.player else { return }
+        guard let content = gameState.content, gameState.player != nil,
+              let floorDef = gameState.visibleFloorDef else { return }
         lastLayoutSize = size
         renderedBoardVersion = gameState.boardVersion
 
-        let board = content.economy.board
-        boardColumns = board.columns
-        boardRows = board.rows
+        // Grilla del piso: 2 filas (franja de multitud), columnas según capacidad.
+        boardRows = 2
+        boardColumns = max(1, (floorDef.capacity + boardRows - 1) / boardRows)
 
         // Los personajes conviven en la franja de piso (parte inferior de la
         // pantalla, donde el fondo generado tiene el suelo). La celda se ajusta al
         // ancho para que entren las columnas; las filas se apilan cerca y hacia
         // arriba (profundidad de multitud, no una grilla que llena la pantalla).
         let availableWidth = size.width - Self.horizontalInset * 2
-        cellSize = availableWidth / CGFloat(max(board.columns, 1))
+        cellSize = availableWidth / CGFloat(max(boardColumns, 1))
         fieldNode.position = CGPoint(x: Self.horizontalInset, y: Self.bottomInset)
 
-        rebuildAnchors(board: board)
-        renderFieldBackground(content: content, player: player)
-        renderPlacements(player: player, content: content)
+        rebuildAnchors(capacity: floorDef.capacity)
+        renderFieldBackground(content: content, floorDef: floorDef)
+        renderPlacements(content: content)
     }
 
-    /// Ancla por cellIndex: punto de grilla lógica + jitter determinístico
+    /// Ancla por slot: punto de grilla lógica + jitter determinístico
     /// (hash del índice), para que el campo se vea orgánico pero estable entre
-    /// launches y consistente con el modelo de board persistido.
-    private func rebuildAnchors(board: EconomyConfig.BoardConfig) {
+    /// launches y consistente con el modelo de slots del piso.
+    private func rebuildAnchors(capacity: Int) {
         let cols = max(boardColumns, 1)
         // Margen lateral para que los personajes grandes de las puntas no se corten
         // contra el borde de la pantalla; las columnas se centran dentro del campo.
@@ -433,7 +438,7 @@ final class BoardScene: SKScene {
         let colSpacing = (cellSize * CGFloat(cols) - 2 * edgeInset) / CGFloat(cols)
         let frontY = cellSize * 0.55            // pies de la fila delantera, sobre el piso
         let rowDepth = cellSize * 0.95          // franja de piso más alta: filas más separadas
-        anchorPoints = (0..<board.cellCount).map { index in
+        anchorPoints = (0..<capacity).map { index in
             let column = index % cols
             let row = index / cols
             // Filas alternadas corridas un poco (centrado) para asomar entre sí.
@@ -449,14 +454,7 @@ final class BoardScene: SKScene {
         }
     }
 
-    // MARK: - Fondo por etapa (bible §6.4: 11 stages)
-
-    /// maxTierReached → key de background. Umbrales [TUNEABLE].
-    private static let stageThresholds: [(minTier: Int, key: String)] = [
-        (30, "god_realm"), (28, "cosmic"), (26, "galaxy"), (24, "solar"),
-        (22, "mars"), (18, "moon"), (14, "island"), (10, "luxury"),
-        (6, "corporate"), (3, "urban"), (1, "alley"),
-    ]
+    // MARK: - Fondo por piso (F7: floors[] en config; la tabla de stages murió)
 
     /// Colores de fallback (cielo, piso) hasta que el arte real llene el manifest.
     private static let stageFallbackColors: [String: (sky: SKColor, ground: SKColor)] = [
@@ -473,8 +471,8 @@ final class BoardScene: SKScene {
         "god_realm": (SKColor(red: 1.0, green: 0.92, blue: 0.7, alpha: 1), SKColor(red: 1.0, green: 0.97, blue: 0.88, alpha: 1)),
     ]
 
-    private func renderFieldBackground(content: GameContent, player: PlayerState) {
-        let stage = Self.stageThresholds.first { player.maxTierReached >= $0.minTier }?.key ?? "alley"
+    private func renderFieldBackground(content: GameContent, floorDef: FloorDef) {
+        let stage = floorDef.background
         guard stage != renderedStageKey || backgroundLayer.children.isEmpty else { return }
         renderedStageKey = stage
         backgroundLayer.removeAllChildren()
@@ -511,14 +509,14 @@ final class BoardScene: SKScene {
         backgroundLayer.addChild(ground)
     }
 
-    private func renderPlacements(player: PlayerState, content: GameContent) {
+    private func renderPlacements(content: GameContent) {
         for (_, node) in characterNodes {
             pool.recycle(node)
         }
         characterNodes.removeAll(keepingCapacity: true)
 
-        let skinTint = SkinResolver.tint(for: player.activeSkin)
-        for placement in player.board {
+        let skinTint = SkinResolver.tint(for: gameState.activeSkin)
+        for placement in gameState.visiblePlacements {
             guard let type = content.tiers.type(id: placement.typeId) else {
                 Log.board.error("placement references unknown type '\(placement.typeId)'")
                 continue
@@ -528,16 +526,16 @@ final class BoardScene: SKScene {
             node.configure(
                 type: type,
                 texture: renderer.texture(for: type, manifest: content.manifest),
-                cellIndex: placement.cellIndex,
+                cellIndex: placement.slot,
                 cellSize: cellSize,
                 skinTint: skinTint,
                 hasRealArt: hasRealArt
             )
-            node.position = position(ofCell: placement.cellIndex)
+            node.position = position(ofCell: placement.slot)
             node.zPosition = depthZ(for: node.position)
             node.setScale(1.0)
             fieldNode.addChild(node)
-            characterNodes[placement.cellIndex] = node
+            characterNodes[placement.slot] = node
             startWander(node)
         }
     }

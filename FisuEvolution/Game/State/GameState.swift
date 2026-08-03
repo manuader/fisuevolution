@@ -8,6 +8,9 @@ import SwiftUI
 /// Architecture (bible §4.1 + Docs/concurrency-conventions.md):
 /// - `player` is the authoritative state but `@ObservationIgnored`: the income tick
 ///   mutates it every frame and MUST NOT invalidate SwiftUI.
+/// - `tower` (F7) es el modelo de juego en memoria (pisos/slots); lo canónico del
+///   save es `player.run.units` (por tipo) y `TowerReconciler` los reconcilia en
+///   cada carga contra el mapeo `floors[]` vigente.
 /// - SwiftUI observes cheap projections (`coinsText`, `spawnQuote`, prompts…) that
 ///   refresh on discrete events immediately and from the scene's 8 Hz flush.
 /// - The scene reads `boardVersion` per frame and relayouts only on change.
@@ -22,6 +25,7 @@ final class GameState {
     struct CareerPrompt: Identifiable, Equatable {
         let id = UUID()
         let options: [CharacterType]
+        /// Slots del PISO VISIBLE (el merge diferido ocurre donde se arrastró).
         let sourceCell: Int
         let targetCell: Int
     }
@@ -29,11 +33,12 @@ final class GameState {
     struct PassivePrompt: Identifiable, Equatable {
         let id = UUID()
         let type: CharacterType
+        /// Slot del piso visible.
         let cellIndex: Int
         let instanceCount: Int
         let isUnlocked: Bool
         let canAfford: Bool
-        /// Se puede "dejar de contratar" si no es la última unidad del tablero.
+        /// Se puede "dejar de contratar" si no es la última unidad de la torre.
         let canDismiss: Bool
     }
 
@@ -44,7 +49,8 @@ final class GameState {
 
     enum DropResolution {
         /// `evolvedTo` presente cuando el merge alcanzó un tier nuevo (reveal).
-        case merged(targetCell: Int, evolvedTo: CharacterType?)
+        /// `promotedToFloor` presente cuando el resultado ascendió de piso.
+        case merged(targetCell: Int, evolvedTo: CharacterType?, promotedToFloor: Int?, unlockedFloorId: String?)
         case moved
         case careerPending
         case snapBack
@@ -55,11 +61,13 @@ final class GameState {
     private(set) var phase: Phase = .loading
     private(set) var coinsText = "0"
     private(set) var boardVersion = 0
-    private(set) var spawnQuote: SpawnQuote?
+    /// Cotización de contratación del PISO VISIBLE (tier base del piso — F7 §3.3).
+    private(set) var spawnQuote: HireQuote?
     private(set) var canAffordSpawn = false
     private(set) var unitCount = 0
+    /// F7: reencarnación disponible = vas a ganar ≥1 ORO.
     private(set) var prestigeAvailable = false
-    private(set) var soulPointsText = "0"
+    private(set) var oroText = "0"
     private(set) var ownedSkins: [String] = []
     private(set) var activeSkin: String?
     private(set) var activeEvent: EventManager.ActiveEvent?
@@ -69,6 +77,8 @@ final class GameState {
     private(set) var showTapHint = false
     private(set) var showSpawnHint = false
     private(set) var showMergeHint = false
+    /// Piso visible (ordinal 0-based). La escena lo consume vía boardVersion.
+    private(set) var visibleFloorOrdinal = 0
     /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen
     /// `player` directo lo observan para re-renderizar.
     private(set) var effectsVersion = 0
@@ -79,6 +89,9 @@ final class GameState {
     // MARK: Authoritative state
 
     @ObservationIgnored private(set) var player: PlayerState?
+    /// La torre en memoria (pisos/slots). No se serializa: se reconstruye por
+    /// reconciliación desde `run.units` en cada carga.
+    @ObservationIgnored private(set) var tower: TowerState?
     private(set) var content: GameContent?
     @ObservationIgnored var debugTimeScale: Double = 1
 
@@ -119,6 +132,39 @@ final class GameState {
         haptics?.play(pattern)
     }
 
+    // MARK: Tower accessors (scene + views)
+
+    var floorTable: FloorTable? { content?.floorTable }
+
+    var visibleFloorDef: FloorDef? {
+        content.map { $0.floorTable[visibleFloorOrdinal] }
+    }
+
+    /// Placements del piso visible (la escena solo dibuja este piso en F7.1).
+    var visiblePlacements: [TowerPlacement] {
+        tower?.placements(onFloor: visibleFloorOrdinal) ?? []
+    }
+
+    var visibleFloorOccupancy: (occupied: Int, capacity: Int) {
+        guard let tower, tower.floors.indices.contains(visibleFloorOrdinal) else { return (0, 0) }
+        let floor = tower.floors[visibleFloorOrdinal]
+        return (floor.occupiedCount, floor.def.capacity)
+    }
+
+    /// Cambia el piso visible (clampeado a pisos desbloqueados). La navegación
+    /// completa (swipe/flechas/asomarse a bloqueados) llega en F7.2.
+    func setVisibleFloor(_ ordinal: Int) {
+        guard let content, let player else { return }
+        let unlockedOrdinals = content.floorTable.floors.enumerated()
+            .filter { player.run.unlockedFloors.contains($0.element.id) }
+            .map(\.offset)
+        guard let maxUnlocked = unlockedOrdinals.max() else { return }
+        let clamped = min(max(0, ordinal), maxUnlocked)
+        guard clamped != visibleFloorOrdinal else { return }
+        visibleFloorOrdinal = clamped
+        bumpBoard()
+    }
+
     // MARK: Bootstrap
 
     func bootstrap() async {
@@ -151,11 +197,12 @@ final class GameState {
                     resolved = SaveConflictResolver.resolve(local: saved, remote: remote)
                 }
                 player = resolved
-                Log.lifecycle.info("save loaded: prestige \(resolved.prestigeLevel), maxTier \(resolved.maxTierReached)")
+                Log.lifecycle.info("save loaded: prestige \(resolved.meta.prestigeLevel), maxTier \(resolved.run.maxTierReached)")
             } else {
                 isFreshInstall = true
                 let fresh = PlayerState.newGame(
                     startTypeId: content.tiers.baseType.id,
+                    startFloorId: content.floorTable[0].id,
                     offlineEfficiencyBase: content.economy.offlineEfficiencyBase,
                     critChanceBase: content.economy.critChanceBase,
                     now: Date().timeIntervalSince1970
@@ -165,14 +212,14 @@ final class GameState {
                 Log.lifecycle.info("new game started")
             }
 
-            reconcileBoardCapacity(cellCount: content.economy.board.cellCount)
+            reconcileTower()
             applyOfflineProgressIfNeeded()
             // El primer launch de una cuenta nueva no reclama daily: el jugador
             // todavía no jugó y el popup compite con el tutorial (FTUE).
             if !isFreshInstall {
                 claimDailyIfAvailable()
             } else if var player {
-                player.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
+                player.meta.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
                 self.player = player
             }
             scheduleNextEvent(from: Date().timeIntervalSince1970)
@@ -189,22 +236,55 @@ final class GameState {
         }
     }
 
-    /// Ajusta el tablero al máximo de celdas actual (por si el límite bajó entre
-    /// versiones): conserva las unidades de mayor tier y las reubica en 0..<N,
-    /// evitando placements fuera de rango que renderizarían en el origen.
-    private func reconcileBoardCapacity(cellCount: Int) {
-        guard let content, var player, !player.board.isEmpty else { return }
-        let outOfRange = player.board.contains { $0.cellIndex >= cellCount || $0.cellIndex < 0 }
-        guard outOfRange || player.board.count > cellCount else { return }
-        let ranked = player.board.sorted {
-            (content.tiers.type(id: $0.typeId)?.tier ?? 0) > (content.tiers.type(id: $1.typeId)?.tier ?? 0)
-        }
-        player.board = ranked.prefix(cellCount).enumerated().map {
-            BoardPlacement(cellIndex: $0.offset, typeId: $0.element.typeId)
-        }
+    /// Reconstruye la torre desde `run.units` contra el mapeo vigente. Corre en
+    /// cada carga: un remapeo tier→piso entre versiones reacomoda la partida en
+    /// vez de romperla (spec §3.1). Arranca mirando el piso más alto desbloqueado.
+    private func reconcileTower() {
+        guard let content, var player else { return }
+        let before = player.run.units
+        let outcome = TowerReconciler.reconcile(
+            run: &player.run,
+            floorTable: content.floorTable,
+            tiers: content.tiers
+        )
         self.player = player
-        Log.lifecycle.info("board reconciled to \(cellCount) cells")
-        scheduleSave()
+        self.tower = outcome.tower
+        if outcome.autoMerged > 0 || !outcome.discarded.isEmpty {
+            Log.lifecycle.info("tower reconciled: autoMerged \(outcome.autoMerged), discarded \(outcome.discarded)")
+            scheduleSave()
+        } else if before != player.run.units {
+            scheduleSave()
+        }
+        let unlockedOrdinals = content.floorTable.floors.enumerated()
+            .filter { player.run.unlockedFloors.contains($0.element.id) }
+            .map(\.offset)
+        visibleFloorOrdinal = unlockedOrdinals.max() ?? 0
+        updateMaxFloorStat()
+    }
+
+    /// Re-sincroniza la torre desde `run.units` SIN mover el piso visible
+    /// (para mutaciones fuera de TowerActions, ej. instantEvolution).
+    private func resyncTower() {
+        guard let content, var player else { return }
+        let outcome = TowerReconciler.reconcile(
+            run: &player.run,
+            floorTable: content.floorTable,
+            tiers: content.tiers
+        )
+        self.player = player
+        self.tower = outcome.tower
+        updateMaxFloorStat()
+    }
+
+    private func updateMaxFloorStat() {
+        guard let content, var player else { return }
+        let maxUnlocked = content.floorTable.floors.enumerated()
+            .filter { player.run.unlockedFloors.contains($0.element.id) }
+            .map(\.offset).max() ?? 0
+        if maxUnlocked > player.meta.stats.maxFloorOrdinalEver {
+            player.meta.stats.maxFloorOrdinalEver = maxUnlocked
+            self.player = player
+        }
     }
 
     // MARK: Frame loop (called by BoardScene)
@@ -215,6 +295,8 @@ final class GameState {
         IncomeTicker.tick(
             state: &player,
             tiers: content.tiers,
+            floorTable: content.floorTable,
+            config: content.economy,
             delta: delta * debugTimeScale,
             now: Date().timeIntervalSince1970
         )
@@ -244,25 +326,30 @@ final class GameState {
         let isGolden: Bool
     }
 
-    /// Bible §2.3 regla 1 — tap con rolls de crítico (× critMultiplier) y golden
-    /// touch (×10, línea de upgrade "golden"). Nil si la celda está vacía.
+    /// Tap con rolls de crítico (× critMultiplier) y golden touch (×10).
+    /// `cellIndex` = slot del piso visible. Nil si el slot está vacío.
     @discardableResult
     func registerTap(cellIndex: Int) -> TapResult? {
         guard let economy, let content, var player = player,
-              let placement = player.board.first(where: { $0.cellIndex == cellIndex }),
-              let type = content.tiers.type(id: placement.typeId)
+              let typeId = tower?.typeId(floorOrdinal: visibleFloorOrdinal, slot: cellIndex),
+              let type = content.tiers.type(id: typeId)
         else { return nil }
 
-        var gain = economy.applyTap(type: type, state: &player, now: Date().timeIntervalSince1970)
-        let isCrit = Double.random(in: 0..<1, using: &rng) < player.upgrades.critChance
-        let isGolden = Double.random(in: 0..<1, using: &rng) < player.upgrades.goldenChance
+        var gain = economy.applyTap(
+            type: type,
+            state: &player,
+            floorTable: content.floorTable,
+            now: Date().timeIntervalSince1970
+        )
+        let isCrit = Double.random(in: 0..<1, using: &rng) < player.meta.derivedEffects.critChance
+        let isGolden = Double.random(in: 0..<1, using: &rng) < player.meta.derivedEffects.goldenChance
         var bonusFactor = 1.0
         if isCrit { bonusFactor *= content.economy.critMultiplier }
         if isGolden { bonusFactor *= 10 }
         if bonusFactor > 1 {
             let extra = gain * (bonusFactor - 1)
-            player.coins += extra
-            player.lifetimeEarnings += extra
+            player.run.coins += extra
+            player.meta.lifetimeEarnings += extra
             gain += extra
         }
         self.player = player
@@ -276,13 +363,20 @@ final class GameState {
         return TapResult(gain: gain, isCrit: isCrit, isGolden: isGolden)
     }
 
+    /// Contrata el tier base del piso visible (F7 §3.3).
     func buySpawn() {
-        guard let economy, let content, var player = player,
+        guard let content, var player = player, var tower,
               let quote = currentQuote(player: player)
         else { return }
         do {
-            try economy.applySpawn(quote: quote, state: &player, boardCapacity: content.economy.board.cellCount)
+            _ = try TowerActions.hire(
+                quote: quote,
+                state: &player,
+                tower: &tower,
+                floorTable: content.floorTable
+            )
             self.player = player
+            self.tower = tower
             if !ftueSpawned {
                 ftueSpawned = true
                 UserDefaults.standard.set(true, forKey: "ftue.spawned")
@@ -293,47 +387,75 @@ final class GameState {
             scheduleSave()
         } catch {
             haptics?.play(.error)
-            Log.economy.info("spawn rejected: \(error)")
+            Log.economy.info("hire rejected: \(error)")
         }
     }
 
-    /// Resolves a drag-drop from the scene (bible §2.3 regla 2 + choice node T9).
+    /// Resolves a drag-drop from the scene (slots del piso visible; F7 §3.4:
+    /// si el resultado pertenece a un piso superior, asciende — piso destino
+    /// lleno bloquea el merge).
     func handleDrop(fromCell: Int, toCell: Int) -> DropResolution {
-        guard let content, var player = player, fromCell != toCell,
-              let source = player.board.first(where: { $0.cellIndex == fromCell })
+        guard let content, var player = player, var tower, fromCell != toCell,
+              let sourceType = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: fromCell)
         else { return .snapBack }
 
-        guard let target = player.board.first(where: { $0.cellIndex == toCell }) else {
-            if BoardActions.moveUnit(fromCell: fromCell, toCell: toCell, state: &player) {
-                self.player = player
+        guard let targetType = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: toCell) else {
+            if TowerActions.move(floorOrdinal: visibleFloorOrdinal, fromSlot: fromCell, toSlot: toCell, tower: &tower) {
+                self.tower = tower
                 bumpBoard()
-                scheduleSave()
                 return .moved
             }
             return .snapBack
         }
 
         switch MergeRules.evaluate(
-            sourceTypeId: source.typeId,
-            targetTypeId: target.typeId,
-            chosenCareerPath: player.chosenCareerPath,
+            sourceTypeId: sourceType,
+            targetTypeId: targetType,
+            chosenCareerPath: player.run.chosenCareerPath,
             tiers: content.tiers
         ) {
         case .merged(let newTypeId):
-            let tierBefore = player.maxTierReached
-            BoardActions.applyMerge(sourceCell: fromCell, targetCell: toCell, newTypeId: newTypeId, state: &player, tiers: content.tiers)
-            let evolvedTo = player.maxTierReached > tierBefore ? content.tiers.type(id: newTypeId) : nil
-            self.player = player
-            if !ftueMerged {
-                ftueMerged = true
-                UserDefaults.standard.set(true, forKey: "ftue.merged")
+            let tierBefore = player.run.maxTierReached
+            do {
+                let result = try TowerActions.applyMerge(
+                    floorOrdinal: visibleFloorOrdinal,
+                    sourceSlot: fromCell,
+                    targetSlot: toCell,
+                    newTypeId: newTypeId,
+                    state: &player,
+                    tower: &tower,
+                    tiers: content.tiers,
+                    floorTable: content.floorTable
+                )
+                let evolvedTo = player.run.maxTierReached > tierBefore ? content.tiers.type(id: newTypeId) : nil
+                self.player = player
+                self.tower = tower
+                if !ftueMerged {
+                    ftueMerged = true
+                    UserDefaults.standard.set(true, forKey: "ftue.merged")
+                }
+                audio?.play(evolvedTo != nil ? .evolution : .merge)
+                reportMergeMilestones()
+                rollSpecialDrop()
+                updateMaxFloorStat()
+                bumpBoard()
+                scheduleSave()
+                switch result {
+                case .stayed(_, let slot, _):
+                    return .merged(targetCell: slot, evolvedTo: evolvedTo, promotedToFloor: nil, unlockedFloorId: nil)
+                case .promoted(let toFloor, _, _, let unlockedFloorId):
+                    return .merged(targetCell: toCell, evolvedTo: evolvedTo, promotedToFloor: toFloor, unlockedFloorId: unlockedFloorId)
+                case .requiresCareerChoice:
+                    return .snapBack  // unreachable: MergeRules ya resolvió
+                }
+            } catch TowerError.destinationFloorFull {
+                haptics?.play(.error)
+                Log.economy.info("merge blocked: destination floor full")
+                return .snapBack
+            } catch {
+                Log.economy.info("merge rejected: \(error)")
+                return .snapBack
             }
-            audio?.play(evolvedTo != nil ? .evolution : .merge)
-            reportMergeMilestones()
-            rollSpecialDrop()
-            bumpBoard()
-            scheduleSave()
-            return .merged(targetCell: toCell, evolvedTo: evolvedTo)
         case .requiresCareerChoice(let options):
             careerPrompt = CareerPrompt(
                 options: options.compactMap { content.tiers.type(id: $0) },
@@ -349,15 +471,15 @@ final class GameState {
     /// Completes the deferred T9 merge after the player picks a career. The choice
     /// persists until the next reincarnation (bible §1).
     func chooseCareer(optionId: String) {
-        guard let prompt = careerPrompt, let content, var player = player else { return }
-        player.chosenCareerPath = MergeRules.careerPath(fromOptionId: optionId)
+        guard let prompt = careerPrompt, let content, var player = player, var tower else { return }
+        player.run.chosenCareerPath = MergeRules.careerPath(fromOptionId: optionId)
 
-        guard let source = player.board.first(where: { $0.cellIndex == prompt.sourceCell }),
-              let target = player.board.first(where: { $0.cellIndex == prompt.targetCell }),
+        guard let sourceType = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: prompt.sourceCell),
+              let targetType = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: prompt.targetCell),
               case .merged(let newTypeId) = MergeRules.evaluate(
-                  sourceTypeId: source.typeId,
-                  targetTypeId: target.typeId,
-                  chosenCareerPath: player.chosenCareerPath,
+                  sourceTypeId: sourceType,
+                  targetTypeId: targetType,
+                  chosenCareerPath: player.run.chosenCareerPath,
                   tiers: content.tiers
               )
         else {
@@ -367,17 +489,26 @@ final class GameState {
             return
         }
 
-        BoardActions.applyMerge(
-            sourceCell: prompt.sourceCell,
-            targetCell: prompt.targetCell,
-            newTypeId: newTypeId,
-            state: &player,
-            tiers: content.tiers
-        )
+        do {
+            _ = try TowerActions.applyMerge(
+                floorOrdinal: visibleFloorOrdinal,
+                sourceSlot: prompt.sourceCell,
+                targetSlot: prompt.targetCell,
+                newTypeId: newTypeId,
+                state: &player,
+                tower: &tower,
+                tiers: content.tiers,
+                floorTable: content.floorTable
+            )
+        } catch {
+            Log.economy.info("career merge rejected: \(error)")
+        }
         self.player = player
+        self.tower = tower
         careerPrompt = nil
         reportMergeMilestones()
         rollSpecialDrop()
+        updateMaxFloorStat()
         bumpBoard()
         scheduleSave()
     }
@@ -385,8 +516,8 @@ final class GameState {
     private func reportMergeMilestones() {
         guard let player else { return }
         gameCenter?.report(.firstMerge)
-        gameCenter?.report(.reachedTier(player.maxTierReached))
-        gameCenter?.report(.scoreUpdate(lifetimeEarnings: player.lifetimeEarnings, maxTier: player.maxTierReached))
+        gameCenter?.report(.reachedTier(player.run.maxTierReached))
+        gameCenter?.report(.scoreUpdate(lifetimeEarnings: player.meta.lifetimeEarnings, maxTier: player.run.maxTierReached))
     }
 
     private func rollSpecialDrop() {
@@ -399,6 +530,10 @@ final class GameState {
             economy: economy,
             rng: &rng
         ) {
+            // Anclaje visual: el special queda en el piso donde cayó (⚠️5).
+            if let floorId = visibleFloorDef?.id {
+                player.meta.specialAnchors[dropped.id] = floorId
+            }
             self.player = player
             specialDrop = dropped
             haptics?.play(.rarity)
@@ -412,28 +547,28 @@ final class GameState {
     }
 
     /// Long-press on a unit → passive unlock prompt for its type (§2.3 regla 3).
+    /// `cellIndex` = slot del piso visible.
     func presentPassivePrompt(cellIndex: Int) {
-        guard let content, let player,
-              let placement = player.board.first(where: { $0.cellIndex == cellIndex }),
-              let type = content.tiers.type(id: placement.typeId)
+        guard let content, let player, let tower,
+              let typeId = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: cellIndex),
+              let type = content.tiers.type(id: typeId)
         else { return }
         passivePrompt = PassivePrompt(
             type: type,
             cellIndex: cellIndex,
-            instanceCount: player.board.count(where: { $0.typeId == type.id }),
-            isUnlocked: player.passiveUnlocked[type.id] == true,
-            canAfford: player.coins >= type.passiveUnlockCost,
-            canDismiss: player.board.count > 1
+            instanceCount: player.run.units[type.id] ?? 0,
+            isUnlocked: player.run.passiveUnlocked[type.id] == true,
+            canAfford: player.run.coins >= type.passiveUnlockCost,
+            canDismiss: player.run.totalUnits > 1
         )
     }
 
-    /// "Dejar de contratar": saca la unidad de `cell` y libera el espacio.
-    /// Sirve para destrabar un tier bajo que ya no se puede comprar/mergear.
+    /// "Dejar de contratar": saca la unidad del slot y libera el espacio.
     func dismissCharacter(atCell cell: Int) {
-        guard var player else { return }
-        guard player.board.count > 1 else { return }  // nunca dejar el tablero vacío
-        guard BoardActions.removeUnit(atCell: cell, state: &player) else { return }
+        guard var player, var tower else { return }
+        guard TowerActions.removeUnit(floorOrdinal: visibleFloorOrdinal, slot: cell, state: &player, tower: &tower) else { return }
         self.player = player
+        self.tower = tower
         passivePrompt = nil
         playHaptic(.merge)
         bumpBoard()
@@ -455,50 +590,62 @@ final class GameState {
         }
     }
 
+    // MARK: Reencarnación (F7: gate por ORO)
+
+    /// ORO que ganarías reencarnando ahora.
     var prestigeSoulPointsGained: Int {
         guard let economy, let player else { return 0 }
-        return PrestigeCalculator.soulPointsGained(state: player, economy: economy)
+        return PrestigeCalculator.oroGained(state: player, economy: economy)
     }
 
     func confirmPrestige() {
         guard let economy, let content, var player = player,
-              PrestigeCalculator.canPrestige(state: player, tiers: content.tiers)
+              PrestigeCalculator.canReincarnate(state: player, economy: economy)
         else { return }
-        PrestigeCalculator.applyPrestige(
+        PrestigeCalculator.applyReincarnation(
             state: &player,
             economy: economy,
             tiers: content.tiers,
+            floorTable: content.floorTable,
             now: Date().timeIntervalSince1970
         )
         self.player = player
+        reconcileTower()
         audio?.play(.prestige)
         gameCenter?.report(.firstPrestige)
         bumpBoard()
         Task { await persistNow() }
-        Log.economy.info("prestige applied: level \(player.prestigeLevel), soulPoints \(player.soulPoints)")
+        Log.economy.info("reincarnated: level \(player.meta.prestigeLevel), oro \(player.meta.oro)")
     }
 
     // MARK: Store (F4)
 
     /// StoreKit es la fuente de verdad; acá solo se cachea en el save.
+    /// Las skins de milestone viven aparte (`meta.milestoneSkins`) y NO se pisan.
     func applyStoreEntitlements(removedAds: Bool, ownedSkins: [String]) {
         guard var player else { return }
-        guard player.removedAds != removedAds || player.ownedSkins != ownedSkins else { return }
-        player.removedAds = removedAds
-        player.ownedSkins = ownedSkins
-        if let active = player.activeSkin, !ownedSkins.contains(active) {
-            player.activeSkin = nil
-        }
+        guard player.meta.removedAds != removedAds || player.meta.ownedSkins != ownedSkins else { return }
+        player.meta.removedAds = removedAds
+        player.meta.ownedSkins = ownedSkins
+        let owned = player.meta.allOwnedSkins
+        player.meta.activeSkinByType = player.meta.activeSkinByType.filter { owned.contains($0.value) }
         self.player = player
         bumpBoard()
         scheduleSave()
     }
 
+    /// Puente F7.1: el skin "global" legacy se aplica a TODOS los tipos poseídos.
+    /// La selección por tipo llega con la ficha (F7.5).
     func setActiveSkin(_ skinId: String?) {
         guard var player else { return }
-        if let skinId, !player.ownedSkins.contains(skinId) { return }
-        guard player.activeSkin != skinId else { return }
-        player.activeSkin = skinId
+        if let skinId, !player.meta.allOwnedSkins.contains(skinId) { return }
+        if let skinId {
+            for typeId in player.run.units.keys {
+                player.meta.activeSkinByType[typeId] = skinId
+            }
+        } else {
+            player.meta.activeSkinByType = [:]
+        }
         self.player = player
         bumpBoard()
         scheduleSave()
@@ -512,7 +659,7 @@ final class GameState {
         switch reward.effectType {
         case .incomeMultiplier:
             guard let magnitude = reward.magnitude, let duration = reward.durationSeconds else { return }
-            player.activeModifiers.append(ActiveModifier(
+            player.run.activeModifiers.append(ActiveModifier(
                 effect: .incomeMultiplier,
                 magnitude: magnitude,
                 expiresAt: now + duration,
@@ -531,49 +678,70 @@ final class GameState {
 
     /// Merge gratis del par más alto disponible (saltea pares que pidan carrera).
     private func performInstantMerge() {
-        guard var player, let content else { return }
-        var cellsByType: [String: [Int]] = [:]
-        for placement in player.board {
-            cellsByType[placement.typeId, default: []].append(placement.cellIndex)
-        }
-        let candidates = cellsByType
-            .filter { $0.value.count >= 2 }
-            .sorted { (content.tiers.type(id: $0.key)?.tier ?? 0) > (content.tiers.type(id: $1.key)?.tier ?? 0) }
-        for (typeId, cells) in candidates {
+        guard var player, var tower, let content else { return }
+        // Buscar el par de mayor tier en TODA la torre.
+        let candidates: [(floorOrdinal: Int, slots: [Int], typeId: String, tier: Int)] = tower.floors.indices.flatMap { ordinal in
+            var slotsByType: [String: [Int]] = [:]
+            for placement in tower.placements(onFloor: ordinal) {
+                slotsByType[placement.typeId, default: []].append(placement.slot)
+            }
+            return slotsByType.compactMap { typeId, slots -> (floorOrdinal: Int, slots: [Int], typeId: String, tier: Int)? in
+                guard slots.count >= 2, let type = content.tiers.type(id: typeId) else { return nil }
+                return (floorOrdinal: ordinal, slots: slots, typeId: typeId, tier: type.tier)
+            }
+        }.sorted { $0.tier > $1.tier }
+
+        for candidate in candidates {
             guard case .merged(let newTypeId) = MergeRules.evaluate(
-                sourceTypeId: typeId,
-                targetTypeId: typeId,
-                chosenCareerPath: player.chosenCareerPath,
+                sourceTypeId: candidate.typeId,
+                targetTypeId: candidate.typeId,
+                chosenCareerPath: player.run.chosenCareerPath,
                 tiers: content.tiers
             ) else { continue }
-            BoardActions.applyMerge(sourceCell: cells[0], targetCell: cells[1], newTypeId: newTypeId, state: &player, tiers: content.tiers)
-            self.player = player
-            bumpBoard()
-            scheduleSave()
-            return
+            do {
+                _ = try TowerActions.applyMerge(
+                    floorOrdinal: candidate.floorOrdinal,
+                    sourceSlot: candidate.slots[0],
+                    targetSlot: candidate.slots[1],
+                    newTypeId: newTypeId,
+                    state: &player,
+                    tower: &tower,
+                    tiers: content.tiers,
+                    floorTable: content.floorTable
+                )
+                self.player = player
+                self.tower = tower
+                updateMaxFloorStat()
+                bumpBoard()
+                scheduleSave()
+                return
+            } catch {
+                continue  // piso destino lleno: probar el siguiente par
+            }
         }
     }
 
-    /// F4: "spawn rare" autosuficiente — dropea una unidad del tier máximo.
-    /// F5 lo recablea al drop real de special characters.
+    /// F4: "spawn rare" — dropea una unidad del tier máximo en su piso.
     private func grantRareUnit() {
-        guard var player, let content else { return }
-        let tier = player.maxTierReached
+        guard var player, var tower, let content else { return }
+        let tier = player.run.maxTierReached
         guard let type = content.tiers.concreteTypes.first(where: { candidate in
-            candidate.tier == tier && (player.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
+            candidate.tier == tier && (player.run.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
         }) ?? content.tiers.concreteTypes.first(where: { $0.tier == tier }) else { return }
-        let occupied = Set(player.board.map(\.cellIndex))
-        guard let free = (0..<content.economy.board.cellCount).first(where: { !occupied.contains($0) }) else { return }
-        player.board.append(BoardPlacement(cellIndex: free, typeId: type.id))
+        let ordinal = content.floorTable.ordinal(forTier: type.tier)
+        guard let slot = tower.floors[ordinal].firstFreeSlot() else { return }
+        tower.floors[ordinal].slots[slot] = type.id
+        player.run.units[type.id, default: 0] += 1
         self.player = player
+        self.tower = tower
         bumpBoard()
         scheduleSave()
     }
 
-    // MARK: Upgrades (F5 — las 7 líneas)
+    // MARK: Upgrades (F5 — las 7 líneas; pasan a ORO en F7.4)
 
     func upgradeLevel(of lineId: String) -> Int {
-        player?.upgradeLevels[lineId] ?? 0
+        player?.meta.oroUpgradeLevels[lineId] ?? 0
     }
 
     func upgradeCost(of line: UpgradesConfig.Line) -> Double {
@@ -655,18 +823,45 @@ final class GameState {
             state: &player,
             config: content.events,
             tiers: content.tiers,
+            floorTable: content.floorTable,
             economy: economy,
             now: now,
             lastFired: eventLastFired,
             rng: &rng
         ) else { return }
         self.player = player
+        // Si el evento regaló una unidad, colocarla en su piso (si hay lugar).
+        if let grantedTypeId = roll.grantedUnitTypeId {
+            placeGrantedUnit(typeId: grantedTypeId)
+        }
+        // instantEvolution mutó run.units directamente: re-sincronizar la torre.
+        if roll.unitsChanged {
+            resyncTower()
+        }
         eventLastFired[roll.event.id] = now
         activeEvent = roll.active
         audio?.play(.event)
         bumpBoard()
         scheduleSave()
         Log.economy.info("event fired: \(roll.event.id)")
+    }
+
+    /// Coloca una unidad regalada (evento) en el piso de su tier; si el piso está
+    /// lleno, el regalo se pierde con log (sin bloquear el evento).
+    private func placeGrantedUnit(typeId: String) {
+        guard var player, var tower, let content,
+              let type = content.tiers.type(id: typeId) else { return }
+        let ordinal = content.floorTable.ordinal(forTier: type.tier)
+        guard let slot = tower.floors[ordinal].firstFreeSlot() else {
+            Log.economy.info("granted unit skipped (floor full): \(typeId)")
+            return
+        }
+        tower.floors[ordinal].slots[slot] = typeId
+        player.run.units[typeId, default: 0] += 1
+        player.run.maxTierReached = max(player.run.maxTierReached, type.tier)
+        self.player = player
+        self.tower = tower
+        updateMaxFloorStat()
     }
 
     // MARK: Daily + shares (F5)
@@ -707,8 +902,8 @@ final class GameState {
     /// Referral local (bible §8): compartir da un boost permanente chico, capeado.
     func registerShareCompleted() {
         guard let economy, let content, var player = player else { return }
-        guard player.sharesCompleted < content.viral.maxShares else { return }
-        player.sharesCompleted += 1
+        guard player.meta.sharesCompleted < content.viral.maxShares else { return }
+        player.meta.sharesCompleted += 1
         UpgradeManager.recomputeDerivedEffects(
             state: &player,
             config: content.upgradesConfig,
@@ -727,7 +922,7 @@ final class GameState {
         switch scenePhase {
         case .background, .inactive:
             guard var player else { return }
-            player.lastSeenTimestamp = Date().timeIntervalSince1970
+            player.meta.lastSeenTimestamp = Date().timeIntervalSince1970
             self.player = player
             saveTask?.cancel()
             Task { await persistNow() }
@@ -746,6 +941,7 @@ final class GameState {
         let credited = OfflineCalculator.apply(
             state: &player,
             tiers: content.tiers,
+            floorTable: content.floorTable,
             config: content.economy,
             now: Date().timeIntervalSince1970
         )
@@ -762,42 +958,48 @@ final class GameState {
     func debugGrantCoins() {
         guard var player else { return }
         let grant = max(1_000_000, (currentQuote(player: player)?.cost ?? 0) * 100)
-        player.coins += grant
-        player.lifetimeEarnings += grant
+        player.run.coins += grant
+        player.meta.lifetimeEarnings += grant
         self.player = player
         refreshProjections()
     }
 
     /// Coloca un par del tier máximo alcanzado para poder testear la escalera.
     func debugGrantPair() {
-        guard let content, var player else { return }
-        let tier = player.maxTierReached
+        guard let content, var player, var tower else { return }
+        let tier = player.run.maxTierReached
         guard let type = content.tiers.concreteTypes.first(where: { candidate in
-            candidate.tier == tier && (player.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
+            candidate.tier == tier && (player.run.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
         }) ?? content.tiers.concreteTypes.first(where: { $0.tier == tier }) else { return }
 
-        let occupied = Set(player.board.map(\.cellIndex))
-        let capacity = content.economy.board.cellCount
-        let free = (0..<capacity).filter { !occupied.contains($0) }.prefix(2)
-        guard free.count == 2 else { return }
-        for cell in free {
-            player.board.append(BoardPlacement(cellIndex: cell, typeId: type.id))
+        let ordinal = content.floorTable.ordinal(forTier: type.tier)
+        guard let slotA = tower.floors[ordinal].firstFreeSlot() else { return }
+        tower.floors[ordinal].slots[slotA] = type.id
+        guard let slotB = tower.floors[ordinal].firstFreeSlot() else {
+            tower.floors[ordinal].slots[slotA] = nil
+            return
+        }
+        tower.floors[ordinal].slots[slotB] = type.id
+        player.run.units[type.id, default: 0] += 2
+        if !player.run.unlockedFloors.contains(content.floorTable[ordinal].id) {
+            player.run.unlockedFloors.append(content.floorTable[ordinal].id)
         }
         self.player = player
+        self.tower = tower
         bumpBoard()
     }
 
     /// Salta la escalera para playtesting (ej. probar la elección de carrera en T9).
     func debugSetMaxTier(_ tier: Int) {
         guard var player, let content else { return }
-        player.maxTierReached = min(max(1, tier), content.tiers.maxTier)
+        player.run.maxTierReached = min(max(1, tier), content.tiers.maxTier)
         self.player = player
         refreshProjections()
     }
 
     func debugSimulateOffline(hours: Double) {
         guard var player else { return }
-        player.lastSeenTimestamp -= hours * 3600
+        player.meta.lastSeenTimestamp -= hours * 3600
         self.player = player
         applyOfflineProgressIfNeeded()
         refreshProjections()
@@ -807,11 +1009,13 @@ final class GameState {
         guard let content else { return }
         player = PlayerState.newGame(
             startTypeId: content.tiers.baseType.id,
+            startFloorId: content.floorTable[0].id,
             offlineEfficiencyBase: content.economy.offlineEfficiencyBase,
             critChanceBase: content.economy.critChanceBase,
             now: Date().timeIntervalSince1970
         )
         debugTimeScale = 1
+        reconcileTower()
         bumpBoard()
         Task { await persistNow() }
     }
@@ -819,11 +1023,19 @@ final class GameState {
 
     // MARK: Internals
 
-    private func currentQuote(player: PlayerState) -> SpawnQuote? {
+    private func currentQuote(player: PlayerState) -> HireQuote? {
         guard let economy, let content else { return nil }
-        let prestigeDiscount = content.prestigeUnlocks.cumulativeSpawnDiscount(atPrestigeLevel: player.prestigeLevel)
-        let multiplier = (1 - prestigeDiscount) * (1 - player.upgrades.spawnDiscount)
-        return economy.spawnQuote(state: player, tiers: content.tiers, costMultiplier: multiplier, now: Date().timeIntervalSince1970)
+        let prestigeDiscount = content.prestigeUnlocks.cumulativeSpawnDiscount(atPrestigeLevel: player.meta.prestigeLevel)
+        return TowerActions.hireQuote(
+            floorOrdinal: visibleFloorOrdinal,
+            state: player,
+            tiers: content.tiers,
+            floorTable: content.floorTable,
+            config: content.economy,
+            economy: economy,
+            costMultiplier: 1 - prestigeDiscount,
+            now: Date().timeIntervalSince1970
+        )
     }
 
     private func bumpBoard() {
@@ -836,42 +1048,40 @@ final class GameState {
     private func refreshProjections() {
         guard let content, let player else { return }
 
-        let newCoins = CoinFormatter.string(from: player.coins)
+        let newCoins = CoinFormatter.string(from: player.run.coins)
         if coinsText != newCoins { coinsText = newCoins }
 
         let quote = currentQuote(player: player)
         if spawnQuote != quote { spawnQuote = quote }
 
-        // El tablero tiene un máximo de celdas: con el tablero lleno no se puede
-        // contratar (hay que "dejar de contratar" a alguno para liberar espacio).
-        let boardFull = player.board.count >= content.economy.board.cellCount
-        let affordable = (quote.map { player.coins >= $0.cost } ?? false) && !boardFull
+        // Piso visible lleno o bloqueado ⇒ no se puede contratar.
+        let floorFull = visibleFloorOccupancy.occupied >= max(visibleFloorOccupancy.capacity, 1)
+        let floorUnlocked = visibleFloorDef.map { player.run.unlockedFloors.contains($0.id) } ?? false
+        let affordable = (quote.map { player.run.coins >= $0.cost } ?? false) && !floorFull && floorUnlocked
         if canAffordSpawn != affordable { canAffordSpawn = affordable }
 
-        if unitCount != player.board.count { unitCount = player.board.count }
+        let total = player.run.totalUnits
+        if unitCount != total { unitCount = total }
 
-        let prestige = PrestigeCalculator.canPrestige(state: player, tiers: content.tiers)
-        if prestigeAvailable != prestige { prestigeAvailable = prestige }
+        let canReincarnate = economy.map { PrestigeCalculator.canReincarnate(state: player, economy: $0) } ?? false
+        if prestigeAvailable != canReincarnate { prestigeAvailable = canReincarnate }
 
-        let souls = String(player.soulPoints)
-        if soulPointsText != souls { soulPointsText = souls }
+        let oro = String(player.meta.oro)
+        if oroText != oro { oroText = oro }
 
-        if ownedSkins != player.ownedSkins { ownedSkins = player.ownedSkins }
-        if activeSkin != player.activeSkin { activeSkin = player.activeSkin }
+        let skins = Array(player.meta.allOwnedSkins).sorted()
+        if ownedSkins != skins { ownedSkins = skins }
+        // Puente F7.1: "skin global activa" = la del tipo base (si existe).
+        let legacyActive = player.meta.activeSkinByType[content.tiers.baseType.id]
+        if activeSkin != legacyActive { activeSkin = legacyActive }
 
         let tapHint = !ftueTapped
         if showTapHint != tapHint { showTapHint = tapHint }
-        let spawnHint = ftueTapped && !ftueSpawned && (spawnQuote.map { player.coins >= $0.cost } ?? false)
+        let spawnHint = ftueTapped && !ftueSpawned && (spawnQuote.map { player.run.coins >= $0.cost } ?? false)
         if showSpawnHint != spawnHint { showSpawnHint = spawnHint }
         var pairExists = false
         if !ftueMerged && ftueSpawned {
-            var seen: Set<String> = []
-            for placement in player.board {
-                if !seen.insert(placement.typeId).inserted {
-                    pairExists = true
-                    break
-                }
-            }
+            pairExists = player.run.units.values.contains { $0 >= 2 }
         }
         let mergeHint = ftueSpawned && !ftueMerged && pairExists
         if showMergeHint != mergeHint { showMergeHint = mergeHint }

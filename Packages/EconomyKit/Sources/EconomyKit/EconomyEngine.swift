@@ -1,28 +1,25 @@
 import Foundation
 
-/// Pure economy math shared by the game, the tier generator and the balance simulator.
+/// Pure economy math shared by the game, the tier generator and the pacing simulator.
 /// No UIKit, no SpriteKit, no side effects — everything is testable in isolation.
 public protocol EconomyCalculating: Sendable {
     func tapYield(forTier tier: Int) -> Double
     func passiveYield(forTier tier: Int) -> Double
     func passiveUnlockCost(forTier tier: Int) -> Double
-    /// Progressive-spawn: which tier the shop currently offers.
-    func spawnTier(maxTierReached: Int) -> Int
-    /// Cost of the next spawn purchase of `tier`, after `purchases` prior purchases of it.
-    func spawnCost(spawnTier tier: Int, purchases: Int) -> Double
-    func soulPoints(lifetimeEarnings: Double) -> Int
-    func globalMultiplier(soulPoints: Int, prestigeBonus: Double) -> Double
+    /// ORO total que corresponde a un lifetimeEarnings dado (fórmula F7 §3.7).
+    func oroTotal(lifetimeEarnings: Double) -> Int
+    /// Multiplicador global. Se computa sobre `oroEarnedLifetime` (monótono):
+    /// gastar ORO nunca nerfea.
+    func globalMultiplier(oroEarnedLifetime: Int, prestigeBonus: Double) -> Double
 }
 
-/// The standard implementation of the build-bible §3 formulas.
+/// The standard implementation of the F7 formulas.
 ///
 ///     tapYield(t)          = baseTapYieldTier1 × yieldGrowthPerTier^(t−1)
 ///     passiveYield(t)      = tapYield(t) × passiveRatio
 ///     passiveUnlockCost(t) = tapYield(t) × passiveUnlockCostMultiplier
-///     spawnTier            = max(1, maxTierReached − spawn.tierOffset)
-///     spawnCost(t, n)      = spawn.baseCost × tapYield(t)/tapYield(1) × spawn.costGrowth^n
-///     soulPoints           = floor((lifetimeEarnings / divisor)^exponent)
-///     globalMultiplier     = 1 + soulPoints × globalMultiplierPerSoulPoint
+///     oroTotal             = floor((lifetimeEarnings / oro.divisor)^oro.exponent)
+///     globalMultiplier     = 1 + oroEarnedLifetime × perOro × (1 + prestigeBonus)
 public struct StandardEconomy: EconomyCalculating {
     public let config: EconomyConfig
 
@@ -42,23 +39,14 @@ public struct StandardEconomy: EconomyCalculating {
         tapYield(forTier: tier) * config.passiveUnlockCostMultiplier
     }
 
-    public func spawnTier(maxTierReached: Int) -> Int {
-        max(1, maxTierReached - config.spawn.tierOffset)
-    }
-
-    public func spawnCost(spawnTier tier: Int, purchases: Int) -> Double {
-        let tierScale = tapYield(forTier: tier) / tapYield(forTier: 1)
-        return config.spawn.baseCost * tierScale * pow(config.spawn.costGrowth, Double(purchases))
-    }
-
-    public func soulPoints(lifetimeEarnings: Double) -> Int {
+    public func oroTotal(lifetimeEarnings: Double) -> Int {
         guard lifetimeEarnings > 0 else { return 0 }
-        let raw = pow(lifetimeEarnings / config.prestige.soulPointsDivisor, config.prestige.soulPointsExponent)
+        let raw = pow(lifetimeEarnings / config.oro.divisor, config.oro.exponent)
         return Self.clampedFloor(raw)
     }
 
-    public func globalMultiplier(soulPoints: Int, prestigeBonus: Double = 0) -> Double {
-        1.0 + Double(soulPoints) * config.prestige.globalMultiplierPerSoulPoint * (1 + prestigeBonus)
+    public func globalMultiplier(oroEarnedLifetime: Int, prestigeBonus: Double = 0) -> Double {
+        1.0 + Double(oroEarnedLifetime) * config.oro.globalMultiplierPerOro * (1 + prestigeBonus)
     }
 
     /// `Int(_:)` on a Double at or beyond 2^63 traps; idle-game magnitudes get there.

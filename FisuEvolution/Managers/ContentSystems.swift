@@ -28,18 +28,20 @@ enum UpgradeManager {
         guard let line = config.upgrades.first(where: { $0.id == lineId }) else {
             throw PurchaseError.unknownLine
         }
-        let level = state.upgradeLevels[lineId] ?? 0
+        let level = state.meta.oroUpgradeLevels[lineId] ?? 0
         guard level < line.maxLevel else { throw PurchaseError.maxLevelReached }
         let price = cost(of: line, level: level)
-        guard state.coins >= price else { throw PurchaseError.insufficientCoins }
+        guard state.run.coins >= price else { throw PurchaseError.insufficientCoins }
 
-        state.coins -= price
-        state.upgradeLevels[lineId] = level + 1
+        state.run.coins -= price
+        state.meta.oroUpgradeLevels[lineId] = level + 1
         recomputeDerivedEffects(state: &state, config: config, specials: specials, viral: viral, economy: economy)
     }
 
-    /// ÚNICO punto que deriva `UpgradeState` desde niveles + specials + shares.
+    /// ÚNICO punto que deriva `meta.derivedEffects` desde niveles + specials + shares.
     /// Se llama tras comprar upgrade, drop de special, share o milanesa.
+    /// (Los multiplicadores POR PERSONAJE no entran acá: son per-type vía
+    /// `CharUpgrades.multiplier` en los caminos de income — F7 §3.6.)
     static func recomputeDerivedEffects(
         state: inout PlayerState,
         config: UpgradesConfig,
@@ -56,7 +58,7 @@ enum UpgradeManager {
         var prestigeBonus = 0.0
 
         for line in config.upgrades {
-            let level = Double(state.upgradeLevels[line.id] ?? 0)
+            let level = Double(state.meta.oroUpgradeLevels[line.id] ?? 0)
             guard level > 0 else { continue }
             switch line.effectType {
             case .incomeMultiplier: income += level * line.magnitudePerLevel
@@ -69,7 +71,7 @@ enum UpgradeManager {
             }
         }
 
-        for special in specials.specials where state.ownedSpecials.contains(special.id) {
+        for special in specials.specials where state.meta.ownedSpecials.contains(special.id) {
             switch special.passiveEffect.type {
             case .incomeMultiplier: income *= special.passiveEffect.magnitude
             case .offlineEfficiencyBonus: offline += special.passiveEffect.magnitude
@@ -79,20 +81,23 @@ enum UpgradeManager {
         }
 
         // Milanesa (boost permanente) reusa el dict de niveles con key propia.
-        offline += Double(state.upgradeLevels[BoostManager.milanesaLevelKey] ?? 0) * 0.05
+        offline += Double(state.meta.oroUpgradeLevels[BoostManager.milanesaLevelKey] ?? 0) * 0.05
 
         // Referral local (bible §8): bonus permanente chico por share, con cap.
-        let shares = min(state.sharesCompleted, viral.maxShares)
+        let shares = min(state.meta.sharesCompleted, viral.maxShares)
         income *= 1.0 + Double(shares) * viral.shareBonusGlobalMultiplier
 
-        state.upgrades.incomeMultiplier = income
-        state.upgrades.tapMultiplier = tap
-        state.upgrades.critChance = min(crit, 0.5)
-        state.upgrades.offlineEfficiency = min(offline, 1.0)
-        state.upgrades.goldenChance = min(golden, 0.1)
-        state.upgrades.spawnDiscount = min(spawnDiscount, 0.6)
-        state.upgrades.prestigeBonus = prestigeBonus
-        state.globalMultiplier = economy.globalMultiplier(soulPoints: state.soulPoints, prestigeBonus: prestigeBonus)
+        state.meta.derivedEffects.incomeMultiplier = income
+        state.meta.derivedEffects.tapMultiplier = tap
+        state.meta.derivedEffects.critChance = min(crit, 0.5)
+        state.meta.derivedEffects.offlineEfficiency = min(offline, 1.0)
+        state.meta.derivedEffects.goldenChance = min(golden, 0.1)
+        state.meta.derivedEffects.spawnDiscount = min(spawnDiscount, 0.6)
+        state.meta.derivedEffects.prestigeBonus = prestigeBonus
+        state.meta.globalMultiplier = economy.globalMultiplier(
+            oroEarnedLifetime: state.meta.oroEarnedLifetime,
+            prestigeBonus: prestigeBonus
+        )
     }
 }
 
@@ -109,6 +114,12 @@ enum EventManager {
     struct Roll {
         let event: EventsConfig.Event
         let active: ActiveEvent?
+        /// Tipo de unidad regalada (freeHighTier): el CALLER la coloca en la torre
+        /// (EventManager no conoce los pisos).
+        let grantedUnitTypeId: String?
+        /// true si el evento mutó `run.units` (instantEvolution): el caller debe
+        /// re-sincronizar la torre.
+        let unitsChanged: Bool
     }
 
     /// Sortea el próximo evento elegible (weighted, respeta minTier y cooldowns)
@@ -117,13 +128,14 @@ enum EventManager {
         state: inout PlayerState,
         config: EventsConfig,
         tiers: TierRepository,
+        floorTable: FloorTable,
         economy: StandardEconomy,
         now: TimeInterval,
         lastFired: [String: TimeInterval],
         rng: inout some RandomNumberGenerator
     ) -> Roll? {
         let eligible = config.events.filter { event in
-            state.maxTierReached >= event.minTier
+            state.run.maxTierReached >= event.minTier
                 && now - (lastFired[event.id] ?? -.infinity) >= event.cooldownSeconds
         }
         guard !eligible.isEmpty else { return nil }
@@ -139,27 +151,30 @@ enum EventManager {
             }
         }
 
-        let active = apply(event: chosen, state: &state, tiers: tiers, economy: economy, now: now)
-        return Roll(event: chosen, active: active)
+        return apply(event: chosen, state: &state, tiers: tiers, floorTable: floorTable, economy: economy, now: now)
     }
 
     private static func apply(
         event: EventsConfig.Event,
         state: inout PlayerState,
         tiers: TierRepository,
+        floorTable: FloorTable,
         economy: StandardEconomy,
         now: TimeInterval
-    ) -> ActiveEvent? {
+    ) -> Roll? {
+        var grantedUnitTypeId: String?
+        var unitsChanged = false
+
         switch event.effectType {
         case .incomeMultiplier:
-            state.activeModifiers.append(ActiveModifier(
+            state.run.activeModifiers.append(ActiveModifier(
                 effect: .incomeMultiplier,
                 magnitude: event.magnitude,
                 expiresAt: now + event.durationSeconds,
                 sourceKey: "event.\(event.id)"
             ))
         case .spawnCostMultiplier:
-            state.activeModifiers.append(ActiveModifier(
+            state.run.activeModifiers.append(ActiveModifier(
                 effect: .spawnCostMultiplier,
                 magnitude: event.magnitude,
                 expiresAt: now + event.durationSeconds,
@@ -167,7 +182,7 @@ enum EventManager {
             ))
         case .frozenCoins:
             // Corralito: los coins no crecen (income x0) durante N segundos.
-            state.activeModifiers.append(ActiveModifier(
+            state.run.activeModifiers.append(ActiveModifier(
                 effect: .incomeMultiplier,
                 magnitude: 0,
                 expiresAt: now + event.durationSeconds,
@@ -175,37 +190,42 @@ enum EventManager {
             ))
         case .bonusCoins:
             // Aguinaldo: magnitude = segundos de income pasivo actual, al toque.
-            let bonus = IncomeTicker.passivePerSecond(state: state, tiers: tiers, now: now) * event.magnitude
+            let bonus = IncomeTicker.passivePerSecond(
+                state: state, tiers: tiers, floorTable: floorTable, config: economy.config, now: now
+            ) * event.magnitude
             guard bonus > 0 else { return nil }
-            state.coins += bonus
-            state.lifetimeEarnings += bonus
+            state.run.coins += bonus
+            state.meta.lifetimeEarnings += bonus
         case .instantEvolution:
-            // Startup comprada: evoluciona la unidad top (merge gratis conceptual).
-            guard let top = state.board
-                .compactMap({ placement in tiers.type(id: placement.typeId).map { (placement, $0) } })
-                .max(by: { $0.1.tier < $1.1.tier }),
-                let nextId = top.1.mergesInto,
-                let next = tiers.type(id: nextId), !next.isChoiceNode,
-                let index = state.board.firstIndex(of: top.0)
+            // Startup comprada: evoluciona una unidad top (merge gratis conceptual).
+            guard let top = state.run.units.keys
+                .compactMap({ tiers.type(id: $0) })
+                .filter({ (state.run.units[$0.id] ?? 0) > 0 })
+                .max(by: { $0.tier < $1.tier }),
+                let nextId = top.mergesInto,
+                let next = tiers.type(id: nextId), !next.isChoiceNode
             else { return nil }
-            state.board[index] = BoardPlacement(cellIndex: top.0.cellIndex, typeId: nextId)
-            state.maxTierReached = max(state.maxTierReached, next.tier)
+            state.run.units[top.id, default: 0] -= 1
+            if state.run.units[top.id] == 0 { state.run.units[top.id] = nil }
+            state.run.units[nextId, default: 0] += 1
+            state.run.maxTierReached = max(state.run.maxTierReached, next.tier)
+            unitsChanged = true
         case .freeHighTier:
             // Blanqueo: unidad gratis de tier (máx alcanzado − magnitude).
-            let tier = max(1, state.maxTierReached - Int(event.magnitude))
+            let tier = max(1, state.run.maxTierReached - Int(event.magnitude))
             guard let type = tiers.concreteTypes.first(where: { candidate in
-                candidate.tier == tier && (state.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
+                candidate.tier == tier && (state.run.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
             }) ?? tiers.concreteTypes.first(where: { $0.tier == tier }) else { return nil }
-            let occupied = Set(state.board.map(\.cellIndex))
-            guard let free = (0..<economy.config.board.cellCount).first(where: { !occupied.contains($0) }) else { return nil }
-            state.board.append(BoardPlacement(cellIndex: free, typeId: type.id))
+            grantedUnitTypeId = type.id
         }
 
-        guard event.durationSeconds > 0 else {
+        let active: ActiveEvent = if event.durationSeconds > 0 {
+            ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + event.durationSeconds)
+        } else {
             // Efectos instantáneos: banner corto informativo.
-            return ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + 6)
+            ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + 6)
         }
-        return ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + event.durationSeconds)
+        return Roll(event: event, active: active, grantedUnitTypeId: grantedUnitTypeId, unitsChanged: unitsChanged)
     }
 }
 
@@ -220,7 +240,7 @@ enum BoostManager {
     }
 
     static func cooldownRemaining(of boost: BoostsConfig.Boost, state: PlayerState, now: TimeInterval) -> TimeInterval {
-        let last = state.boostActivations[boost.id] ?? -.infinity
+        let last = state.meta.boostActivations[boost.id] ?? -.infinity
         return max(0, boost.cooldownSeconds - (now - last))
     }
 
@@ -244,7 +264,7 @@ enum BoostManager {
         let remaining = cooldownRemaining(of: boost, state: state, now: now)
         guard remaining <= 0 else { throw ActivationError.onCooldown(remaining: remaining) }
 
-        state.boostActivations[boost.id] = now
+        state.meta.boostActivations[boost.id] = now
 
         switch boost.effectType {
         case .incomeMultiplier, .tapMultiplier, .spawnCostMultiplier:
@@ -253,7 +273,7 @@ enum BoostManager {
             case .tapMultiplier: .tapMultiplier
             default: .spawnCostMultiplier
             }
-            state.activeModifiers.append(ActiveModifier(
+            state.run.activeModifiers.append(ActiveModifier(
                 effect: effect,
                 magnitude: boost.magnitude,
                 expiresAt: now + boost.durationSeconds,
@@ -262,14 +282,14 @@ enum BoostManager {
             return nil
         case .offlineEfficiencyPermanent:
             // Milanesa: mejora permanente, acumulable, capeada en la derivación.
-            state.upgradeLevels[milanesaLevelKey, default: 0] += 1
+            state.meta.oroUpgradeLevels[milanesaLevelKey, default: 0] += 1
             UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, economy: economy)
             return nil
         case .periodicChest:
             // Asado del Domingo: cofre = factor × passiveUnlockCost(tier máximo).
-            let chest = economy.passiveUnlockCost(forTier: state.maxTierReached) * boost.magnitude
-            state.coins += chest
-            state.lifetimeEarnings += chest
+            let chest = economy.passiveUnlockCost(forTier: state.run.maxTierReached) * boost.magnitude
+            state.run.coins += chest
+            state.meta.lifetimeEarnings += chest
             return chest
         }
     }
@@ -288,13 +308,13 @@ enum SpecialDropManager {
         rng: inout some RandomNumberGenerator
     ) -> SpecialsConfig.Special? {
         let eligible = config.specials.filter { special in
-            !state.ownedSpecials.contains(special.id)
-                && state.maxTierReached >= special.minTier
-                && state.prestigeLevel >= special.requiresPrestigeLevel
+            !state.meta.ownedSpecials.contains(special.id)
+                && state.run.maxTierReached >= special.minTier
+                && state.meta.prestigeLevel >= special.requiresPrestigeLevel
         }
         for special in eligible {
             if Double.random(in: 0..<1, using: &rng) < special.dropChanceOnMerge {
-                state.ownedSpecials.append(special.id)
+                state.meta.ownedSpecials.append(special.id)
                 UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: config, viral: viral, economy: economy)
                 return special
             }
@@ -330,40 +350,40 @@ enum DailyRewardManager {
         rng: inout some RandomNumberGenerator
     ) -> Claim? {
         let todayString = dayString(for: today, calendar: calendar)
-        guard state.daily.lastClaimDay != todayString else { return nil }
+        guard state.meta.daily.lastClaimDay != todayString else { return nil }
 
-        if let last = state.daily.lastClaimDay,
+        if let last = state.meta.daily.lastClaimDay,
            let yesterday = calendar.date(byAdding: .day, value: -1, to: today),
            last != dayString(for: yesterday, calendar: calendar) {
-            state.daily.cycleDay = 1
+            state.meta.daily.cycleDay = 1
         }
 
-        let cycleDay = min(max(state.daily.cycleDay, 1), config.days.count)
+        let cycleDay = min(max(state.meta.daily.cycleDay, 1), config.days.count)
         guard let day = config.days.first(where: { $0.day == cycleDay }) else { return nil }
 
         var coins = 0.0
         var special: String?
         if day.type == "special_roll" {
             let eligible = specials.specials.filter {
-                !state.ownedSpecials.contains($0.id) && state.prestigeLevel >= $0.requiresPrestigeLevel
+                !state.meta.ownedSpecials.contains($0.id) && state.meta.prestigeLevel >= $0.requiresPrestigeLevel
             }
             if let picked = eligible.randomElement(using: &rng) {
-                state.ownedSpecials.append(picked.id)
+                state.meta.ownedSpecials.append(picked.id)
                 UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, economy: economy)
                 special = picked.id
             } else {
-                coins = economy.passiveUnlockCost(forTier: state.maxTierReached) * 6.0
-                state.coins += coins
-                state.lifetimeEarnings += coins
+                coins = economy.passiveUnlockCost(forTier: state.run.maxTierReached) * 6.0
+                state.run.coins += coins
+                state.meta.lifetimeEarnings += coins
             }
         } else {
-            coins = economy.passiveUnlockCost(forTier: state.maxTierReached) * (day.coinsFactor ?? 1.0)
-            state.coins += coins
-            state.lifetimeEarnings += coins
+            coins = economy.passiveUnlockCost(forTier: state.run.maxTierReached) * (day.coinsFactor ?? 1.0)
+            state.run.coins += coins
+            state.meta.lifetimeEarnings += coins
         }
 
-        state.daily.lastClaimDay = todayString
-        state.daily.cycleDay = cycleDay >= config.days.count ? 1 : cycleDay + 1
+        state.meta.daily.lastClaimDay = todayString
+        state.meta.daily.cycleDay = cycleDay >= config.days.count ? 1 : cycleDay + 1
         return Claim(day: day, coinsGranted: coins, specialGranted: special)
     }
 }

@@ -38,8 +38,8 @@ actor CloudSaveSync {
                 record = CKRecord(recordType: Self.recordType, recordID: recordID)
             }
             record["snapshotJSON"] = String(decoding: payload, as: UTF8.self)
-            record["lifetimeEarnings"] = state.lifetimeEarnings
-            record["lastSeenTimestamp"] = state.lastSeenTimestamp
+            record["lifetimeEarnings"] = state.meta.lifetimeEarnings
+            record["lastSeenTimestamp"] = state.meta.lastSeenTimestamp
             record["schemaVersion"] = state.schemaVersion
 
             do {
@@ -47,7 +47,7 @@ actor CloudSaveSync {
             } catch let error as CKError where error.code == .serverRecordChanged {
                 if let remote = try await fetch() {
                     let resolved = SaveConflictResolver.resolve(local: state, remote: remote)
-                    if resolved.lifetimeEarnings > remote.lifetimeEarnings {
+                    if resolved.meta.lifetimeEarnings > remote.meta.lifetimeEarnings {
                         await push(resolved)
                     }
                 }

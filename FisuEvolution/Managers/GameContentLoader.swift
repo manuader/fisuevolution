@@ -5,6 +5,8 @@ import Foundation
 struct GameContent: Sendable {
     let economy: EconomyConfig
     let tiers: TierRepository
+    /// La Torre (F7): mapeo tier→piso validado, derivado de `economy.floors`.
+    let floorTable: FloorTable
     let manifest: AssetsManifest
     let flags: FeatureFlags
     let prestigeUnlocks: PrestigeUnlocks
@@ -44,9 +46,24 @@ enum GameContentLoader {
             throw GameError.contentInvalid(file: "tiers.json", reason: "\(error)")
         }
 
+        let floorTable: FloorTable
+        do {
+            floorTable = try FloorTable(floors: economy.floors, maxTier: tiers.maxTier)
+        } catch {
+            throw GameError.contentInvalid(file: "economy.json (floors)", reason: "\(error)")
+        }
+        // Todo fondo referenciado por un piso tiene que existir en el manifest.
+        for floor in floorTable.floors where manifest.backgrounds[floor.background] == nil {
+            throw GameError.contentInvalid(
+                file: "economy.json (floors)",
+                reason: "floor \(floor.id) references unknown background \(floor.background)"
+            )
+        }
+
         return GameContent(
             economy: economy,
             tiers: tiers,
+            floorTable: floorTable,
             manifest: manifest,
             flags: flags,
             prestigeUnlocks: prestigeUnlocks,

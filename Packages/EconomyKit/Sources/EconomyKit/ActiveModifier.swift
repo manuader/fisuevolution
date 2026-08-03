@@ -46,8 +46,8 @@ public enum ModifierMath {
     /// Drops expired modifiers. Returns true if anything was removed.
     @discardableResult
     public static func prune(_ state: inout PlayerState, now: TimeInterval) -> Bool {
-        let before = state.activeModifiers.count
-        state.activeModifiers.removeAll { !$0.isActive(at: now) }
-        return state.activeModifiers.count != before
+        let before = state.run.activeModifiers.count
+        state.run.activeModifiers.removeAll { !$0.isActive(at: now) }
+        return state.run.activeModifiers.count != before
     }
 }

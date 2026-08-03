@@ -26,7 +26,7 @@ private struct FixedRNG: RandomNumberGenerator {
     }
 }
 
-@Suite("Sistemas de contenido F5 (contra los JSON reales)")
+@Suite("Sistemas de contenido F7 (contra los JSON reales)")
 @MainActor
 struct ContentSystemsTests {
     let content: GameContent
@@ -37,15 +37,18 @@ struct ContentSystemsTests {
         economy = StandardEconomy(config: content.economy)
     }
 
+    /// Estado v4 (run/meta): tipo base en el primer piso de la torre. Los ids
+    /// salen de la data (`baseType`, `floorTable[0]`), nunca hardcodeados.
     private func makeState(maxTier: Int = 1, coins: Double = 0) -> PlayerState {
         var state = PlayerState.newGame(
             startTypeId: content.tiers.baseType.id,
+            startFloorId: content.floorTable[0].id,
             offlineEfficiencyBase: content.economy.offlineEfficiencyBase,
             critChanceBase: content.economy.critChanceBase,
             now: 1000
         )
-        state.maxTierReached = maxTier
-        state.coins = coins
+        state.run.maxTierReached = maxTier
+        state.run.coins = coins
         return state
     }
 
@@ -61,9 +64,9 @@ struct ContentSystemsTests {
             viral: content.viral,
             economy: economy
         )
-        #expect(state.upgradeLevels["tap"] == 1)
-        #expect(abs(state.upgrades.tapMultiplier - 1.25) < 1e-9)
-        #expect(state.coins < 10_000)
+        #expect(state.meta.oroUpgradeLevels["tap"] == 1)
+        #expect(abs(state.meta.derivedEffects.tapMultiplier - 1.25) < 1e-9)
+        #expect(state.run.coins < 10_000)
     }
 
     @Test func upgradeCostGrowsExponentially() throws {
@@ -77,8 +80,8 @@ struct ContentSystemsTests {
         #expect(throws: UpgradeManager.PurchaseError.insufficientCoins) {
             try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
         }
-        state.upgradeLevels["income"] = 20
-        state.coins = 1e30
+        state.meta.oroUpgradeLevels["income"] = 20
+        state.run.coins = 1e30
         #expect(throws: UpgradeManager.PurchaseError.maxLevelReached) {
             try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
         }
@@ -86,9 +89,9 @@ struct ContentSystemsTests {
 
     @Test func sharesAddCappedIncomeBonus() {
         var state = makeState()
-        state.sharesCompleted = 100 // por encima del cap (20)
+        state.meta.sharesCompleted = 100 // por encima del cap (20)
         UpgradeManager.recomputeDerivedEffects(state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
-        #expect(abs(state.upgrades.incomeMultiplier - 1.1) < 1e-9)
+        #expect(abs(state.meta.derivedEffects.incomeMultiplier - 1.1) < 1e-9)
     }
 
     // MARK: Eventos
@@ -100,6 +103,7 @@ struct ContentSystemsTests {
             state: &state,
             config: content.events,
             tiers: content.tiers,
+            floorTable: content.floorTable,
             economy: economy,
             now: 1000,
             lastFired: [:],
@@ -108,7 +112,7 @@ struct ContentSystemsTests {
         let fired = try #require(roll)
         #expect(fired.event.minTier <= 2)
         if fired.event.effectType == .incomeMultiplier {
-            #expect(state.activeModifiers.contains { $0.sourceKey == "event.\(fired.event.id)" })
+            #expect(state.run.activeModifiers.contains { $0.sourceKey == "event.\(fired.event.id)" })
         }
     }
 
@@ -118,7 +122,7 @@ struct ContentSystemsTests {
         let now = 1000.0
         let allRecent = Dictionary(uniqueKeysWithValues: content.events.events.map { ($0.id, now - 1) })
         let roll = EventManager.fireRandomEvent(
-            state: &state, config: content.events, tiers: content.tiers,
+            state: &state, config: content.events, tiers: content.tiers, floorTable: content.floorTable,
             economy: economy, now: now, lastFired: allRecent, rng: &rng
         )
         #expect(roll == nil)
@@ -126,18 +130,58 @@ struct ContentSystemsTests {
 
     @Test func aguinaldoPaysPassiveIncomeSeconds() throws {
         var state = makeState(maxTier: 30)
-        state.coins = 1e6
+        state.run.coins = 1e6
         try economy.applyPassiveUnlock(typeId: content.tiers.baseType.id, state: &state, tiers: content.tiers)
-        let coinsBefore = state.coins
+        let coinsBefore = state.run.coins
         var rng = FixedRNG(values: [0])
         // Forzar aguinaldo: solo él sin cooldown.
         let lastFired = Dictionary(uniqueKeysWithValues: content.events.events.filter { $0.id != "aguinaldo" }.map { ($0.id, 1000.0 - 1) })
         let roll = EventManager.fireRandomEvent(
-            state: &state, config: content.events, tiers: content.tiers,
+            state: &state, config: content.events, tiers: content.tiers, floorTable: content.floorTable,
             economy: economy, now: 1000, lastFired: lastFired, rng: &rng
         )
         #expect(roll?.event.id == "aguinaldo")
-        #expect(state.coins > coinsBefore)
+        #expect(state.run.coins > coinsBefore)
+    }
+
+    @Test func blanqueoReturnsUnitTypeWithoutPlacing() throws {
+        // freeHighTier post-F7: el evento YA NO coloca en ningún board — devuelve
+        // el typeId y el caller (GameState) lo ubica en la torre.
+        var state = makeState(maxTier: 9)
+        let unitsBefore = state.run.units
+        var rng = FixedRNG(values: [0])
+        let lastFired = Dictionary(uniqueKeysWithValues: content.events.events.filter { $0.id != "blanqueo" }.map { ($0.id, 1000.0 - 1) })
+        let roll = try #require(EventManager.fireRandomEvent(
+            state: &state, config: content.events, tiers: content.tiers, floorTable: content.floorTable,
+            economy: economy, now: 1000, lastFired: lastFired, rng: &rng
+        ))
+        #expect(roll.event.id == "blanqueo")
+        let granted = try #require(roll.grantedUnitTypeId)
+        // magnitude 2 → tier máximo alcanzado − 2.
+        #expect(content.tiers.type(id: granted)?.tier == 7)
+        #expect(roll.unitsChanged == false)
+        #expect(state.run.units == unitsBefore)
+    }
+
+    @Test func startupCompradaEvolvesTopUnitAndFlagsUnitsChanged() throws {
+        // instantEvolution muta run.units (merge gratis conceptual) y marca
+        // unitsChanged para que el caller re-sincronice la torre.
+        var state = makeState(maxTier: 5)
+        let base = content.tiers.baseType
+        let nextId = try #require(base.mergesInto)
+        var rng = FixedRNG(values: [0])
+        let lastFired = Dictionary(uniqueKeysWithValues: content.events.events.filter { $0.id != "startup_comprada" }.map { ($0.id, 1000.0 - 1) })
+        let roll = try #require(EventManager.fireRandomEvent(
+            state: &state, config: content.events, tiers: content.tiers, floorTable: content.floorTable,
+            economy: economy, now: 1000, lastFired: lastFired, rng: &rng
+        ))
+        #expect(roll.event.id == "startup_comprada")
+        #expect(roll.unitsChanged)
+        #expect(roll.grantedUnitTypeId == nil)
+        #expect(state.run.units[base.id] == nil)
+        #expect(state.run.units[nextId] == 1)
+        // Evolucionar a T2 no baja el máximo histórico de la run.
+        #expect(state.run.maxTierReached == 5)
     }
 
     // MARK: Boosts
@@ -150,7 +194,7 @@ struct ContentSystemsTests {
             tiers: content.tiers, economy: economy, now: 1000
         )
         #expect(chest == nil)
-        #expect(state.activeModifiers.contains { $0.sourceKey == "boost.cafe" && $0.effect == .tapMultiplier })
+        #expect(state.run.activeModifiers.contains { $0.sourceKey == "boost.cafe" && $0.effect == .tapMultiplier })
 
         #expect(throws: BoostManager.ActivationError.self) {
             try BoostManager.activate(
@@ -163,13 +207,13 @@ struct ContentSystemsTests {
 
     @Test func milanesaPermanentlyImprovesOffline() throws {
         var state = makeState()
-        let before = state.upgrades.offlineEfficiency
+        let before = state.meta.derivedEffects.offlineEfficiency
         _ = try BoostManager.activate(
             boostId: "milanesa", state: &state, config: content.boosts,
             upgrades: content.upgradesConfig, specials: content.specials, viral: content.viral,
             tiers: content.tiers, economy: economy, now: 1000
         )
-        #expect(abs(state.upgrades.offlineEfficiency - before - 0.05) < 1e-9)
+        #expect(abs(state.meta.derivedEffects.offlineEfficiency - before - 0.05) < 1e-9)
     }
 
     @Test func asadoGrantsChestScaledToMaxTier() throws {
@@ -181,7 +225,7 @@ struct ContentSystemsTests {
         )
         let expected = economy.passiveUnlockCost(forTier: 5) * 4.0
         #expect(abs((chest ?? 0) - expected) < 1e-6)
-        #expect(abs(state.coins - expected) < 1e-6)
+        #expect(abs(state.run.coins - expected) < 1e-6)
     }
 
     // MARK: Specials
@@ -200,14 +244,14 @@ struct ContentSystemsTests {
             )
         }
         #expect(dropped != nil)
-        #expect(state.ownedSpecials.count == 1)
+        #expect(state.meta.ownedSpecials.count == 1)
         // Prestige 0: los secretos no pueden caer.
         #expect(dropped?.requiresPrestigeLevel == 0)
     }
 
     @Test func specialsNeverDropTwice() {
         var state = makeState(maxTier: 30)
-        state.ownedSpecials = content.specials.specials.map(\.id)
+        state.meta.ownedSpecials = content.specials.specials.map(\.id)
         var rng = FixedRNG(values: [0])
         let dropped = SpecialDropManager.rollOnMerge(
             state: &state, config: content.specials,
@@ -230,7 +274,7 @@ struct ContentSystemsTests {
         ))
         #expect(claim.day.day == 1)
         #expect(claim.coinsGranted > 0)
-        #expect(state.daily.cycleDay == 2)
+        #expect(state.meta.daily.cycleDay == 2)
 
         // Mismo día: no hay segundo claim.
         let second = DailyRewardManager.claimIfAvailable(
@@ -243,8 +287,8 @@ struct ContentSystemsTests {
 
     @Test func skippedDayResetsCycle() throws {
         var state = makeState()
-        state.daily.cycleDay = 5
-        state.daily.lastClaimDay = "2023-11-10"
+        state.meta.daily.cycleDay = 5
+        state.meta.daily.lastClaimDay = "2023-11-10"
         var rng = FixedRNG(values: [0])
         // 2023-11-14 (calendario local): hay días salteados desde el 10 → reset.
         let today = try #require(Calendar.current.date(from: DateComponents(year: 2023, month: 11, day: 14, hour: 12)))

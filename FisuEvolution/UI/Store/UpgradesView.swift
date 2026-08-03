@@ -38,7 +38,7 @@ struct UpgradesView: View {
         let level = gameState.upgradeLevel(of: line.id)
         let cost = gameState.upgradeCost(of: line)
         let maxed = level >= line.maxLevel
-        let canAfford = (gameState.player?.coins ?? 0) >= cost
+        let canAfford = (gameState.player?.run.coins ?? 0) >= cost
 
         return HStack {
             if let icon = UIArt.image("ui_up_\(line.id)") {

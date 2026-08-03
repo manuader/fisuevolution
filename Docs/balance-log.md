@@ -66,3 +66,65 @@ swift run --package-path Tools/balance-sim balance-sim \
 **Aprobación del gate:** ✅ aprobado por el usuario el 2026-07-18 tras playtest
 en Simulador ("el juego parece funcionar bien"). economy.json v1 queda congelado
 como base; próxima revisión de números recién con feedback de TestFlight.
+
+---
+
+# F7.1 — Calibración inicial de "La Torre" (2026-08-03)
+
+Primera corrida real de `PacingSimulator` (16 iteraciones de knobs). Config
+congelada en economy.json v2; targets del PLAN §F7.1c (±30% ya aplicado).
+
+## Resultado final del sim (bot greedy, 4 sesiones×20 min/día)
+
+| Hito | Valor | Target | |
+|---|---|---|---|
+| urban (piso 2) activo | 16.2 min | 14–39 min | ✅ |
+| gradiente urban→island (geomean) | ×1.92/piso | 1.15–2.6 | ✅ |
+| 1ª reencarnación (pared) | 4.0 h | 2.8–7.8 h | ✅ |
+| Dios (pared) | 48.3 h | 21–65 h | ✅ |
+| Reencarnaciones al llegar | 15 | ≥3 | ✅ |
+
+## Knobs que movió la calibración (seed → final)
+
+- `yieldGrowthPerTier` 2.6 → **2.8** (tiers.json regenerado): el income de
+  frontera tiene que ganarle al costo del backfill para que las cadenas de
+  merge profundas (16×T6 → T10) sean pagables. ERA el cuello del mid-game.
+- `hire.defaultCostMultiplier/Growth` 600/1.6 → **3000/1.15**: entrada punitiva
+  más cara (×5) pero growth suave — lo caro es ENTRAR; el growth alto mataba
+  las cadenas largas.
+- Overrides por piso: alley **450/15** (fase fisura 15-20 min), corporate
+  **1800** (abarata la cadena de T10), luxury **9000** (separa island de luxury).
+- `oro.divisor` 5e9 → **3e6** (1ª reencarnación en el día 1, sesión 2) y
+  `globalMultiplierPerOro` 0.02 → **0.12** (la escalera de duplicaciones
+  comprime el late game: dios en ~2 días).
+- `charUpgrades.costGrowth` 7.0 → **4.0** (runs más profundas antes del techo
+  de payback).
+- `offlineEfficiencyBase` 0.5 → **0.35**.
+
+## Notas de diseño (para el dueño)
+
+1. **"1ª reencarnación ~piso 5-6" del plan quedó descartado por inconsistente**:
+   con 80 min activos/día, el piso 5 está a días de distancia — imposible junto
+   con "1ª reencarnación 2.8–7.8 h pared". Se calibró al assert duro (pared);
+   la 1ª reencarnación cae con frontera en corporate (piso 3).
+2. **El assert de ratio se implementa como gradiente geomean del arco
+   urban→island + guarda anti-acantilado (≤4.0 por paso)**: los unlocks se
+   pegan a los inicios de sesión del modelo humano (el offline paga la cadena
+   durante el gap), así que los ratios individuales son discretos/lumpy por
+   estructura, no por curva. Post-island los ratios tienden a 1.0 POR DISEÑO
+   (sweep de prestigio).
+3. **Fix al simulador (desviación vs plan aprobado)**: `hireAction` no
+   implementaba la regla «hire si <25% del wallet» del plan — sin ella el bot
+   nunca compra material de merge y la progresión muere en T5-T8. Se agregó
+   (PacingSimulator.swift). Sin cambios de gameplay real: es el modelo de
+   jugador.
+
+## Cómo re-correr
+
+```bash
+swift run --package-path Tools/pacing-sim pacing-sim \
+  --economy FisuEvolution/Resources/Data/economy.json \
+  --tiers FisuEvolution/Resources/Data/tiers.json
+```
+
+La grid search fina sobre los 6 knobs (margen ≥15%) queda para F7.6.

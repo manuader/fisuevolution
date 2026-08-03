@@ -1,26 +1,119 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "baseTapYieldTier1": 1,
-  "yieldGrowthPerTier": 3.8,
-  "passiveRatio": 0.3,
-  "passiveUnlockCostMultiplier": 100,
-  "spawn": {
-    "baseCost": 50,
-    "costGrowth": 1.022,
-    "tierOffset": 4,
-    "costBasis": "total"
+  "yieldGrowthPerTier": 2.8,
+  "passiveRatio": 0.5,
+  "passiveUnlockCostMultiplier": 60,
+  "hire": {
+    "defaultCostMultiplier": 3000,
+    "defaultCostGrowth": 1.15
+  },
+  "charUpgrades": {
+    "baseCostMultiplier": 50,
+    "costGrowth": 4.0,
+    "effectFactorPerLevel": 2.0
+  },
+  "oro": {
+    "divisor": 3000000,
+    "exponent": 0.5,
+    "globalMultiplierPerOro": 0.12
   },
   "critChanceBase": 0.0,
   "critMultiplier": 5.0,
-  "offlineEfficiencyBase": 0.5,
-  "offlineCapHours": 8,
-  "prestige": {
-    "soulPointsDivisor": 1000000,
-    "soulPointsExponent": 0.5,
-    "globalMultiplierPerSoulPoint": 0.02
-  },
-  "board": {
-    "columns": 4,
-    "rows": 2
-  }
+  "offlineEfficiencyBase": 0.35,
+  "offlineCapHours": 10,
+  "floors": [
+    {
+      "id": "alley",
+      "background": "alley",
+      "firstTier": 1,
+      "lastTier": 2,
+      "capacity": 10,
+      "incomeMultiplier": 1.0,
+      "hireCostMultiplier": 450,
+      "hireCostGrowth": 15
+    },
+    {
+      "id": "urban",
+      "background": "urban",
+      "firstTier": 3,
+      "lastTier": 5,
+      "capacity": 10,
+      "incomeMultiplier": 2.0
+    },
+    {
+      "id": "corporate",
+      "background": "corporate",
+      "firstTier": 6,
+      "lastTier": 9,
+      "capacity": 10,
+      "incomeMultiplier": 3.6,
+      "hireCostMultiplier": 1800
+    },
+    {
+      "id": "luxury",
+      "background": "luxury",
+      "firstTier": 10,
+      "lastTier": 13,
+      "capacity": 10,
+      "incomeMultiplier": 7.0,
+      "hireCostMultiplier": 9000
+    },
+    {
+      "id": "island",
+      "background": "island",
+      "firstTier": 14,
+      "lastTier": 17,
+      "capacity": 10,
+      "incomeMultiplier": 13.0
+    },
+    {
+      "id": "moon",
+      "background": "moon",
+      "firstTier": 18,
+      "lastTier": 21,
+      "capacity": 10,
+      "incomeMultiplier": 25.0
+    },
+    {
+      "id": "mars",
+      "background": "mars",
+      "firstTier": 22,
+      "lastTier": 23,
+      "capacity": 10,
+      "incomeMultiplier": 48.0
+    },
+    {
+      "id": "solar",
+      "background": "solar",
+      "firstTier": 24,
+      "lastTier": 25,
+      "capacity": 10,
+      "incomeMultiplier": 90.0
+    },
+    {
+      "id": "galaxy",
+      "background": "galaxy",
+      "firstTier": 26,
+      "lastTier": 27,
+      "capacity": 10,
+      "incomeMultiplier": 170.0
+    },
+    {
+      "id": "cosmic",
+      "background": "cosmic",
+      "firstTier": 28,
+      "lastTier": 29,
+      "capacity": 10,
+      "incomeMultiplier": 325.0
+    },
+    {
+      "id": "god_realm",
+      "background": "god_realm",
+      "firstTier": 30,
+      "lastTier": 30,
+      "capacity": 10,
+      "incomeMultiplier": 620.0
+    }
+  ]
 }

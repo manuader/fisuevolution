@@ -3,10 +3,11 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// F2 wiring: GameState orquestando merge, carrera, pasivo, offline y prestige
-/// sobre el contenido real bundleado. La matemática pura vive en EconomyKitTests;
-/// acá se prueba la orquestación.
-@Suite("GameState F2 wiring")
+/// F7 wiring: GameState orquestando la torre (merge/ascenso, carrera, pasivo,
+/// offline y reencarnación) sobre el contenido real bundleado. La matemática
+/// pura vive en EconomyKitTests; acá se prueba el CABLEADO: que las acciones
+/// sobre el piso visible muten `run.units` y `tower` en sincronía.
+@Suite("GameState F7 wiring")
 @MainActor
 struct GameLoopWiringTests {
     private func makeGameState() async -> GameState {
@@ -19,89 +20,175 @@ struct GameLoopWiringTests {
         return gameState
     }
 
-    @Test func dropOnSameTypeMerges() async throws {
-        let gameState = await makeGameState()
-        gameState.debugGrantPair() // 2 fisuras extra en celdas 1 y 2
-        #expect(gameState.player?.board.count == 3)
+    /// Slots (ordenados) que ocupa un tipo en el piso VISIBLE — los slots
+    /// concretos los decide TowerReconciler/firstFreeSlot, no los pineamos.
+    private func slots(of typeId: String, in gameState: GameState) -> [Int] {
+        gameState.visiblePlacements.filter { $0.typeId == typeId }.map(\.slot).sorted()
+    }
 
-        let resolution = gameState.handleDrop(fromCell: 1, toCell: 2)
-        guard case .merged(let cell, let evolvedTo) = resolution else {
+    // MARK: Drag & drop en el piso visible
+
+    @Test func dropOnSameTypeMergesOnVisibleFloor() async throws {
+        let gameState = await makeGameState()
+        gameState.debugGrantPair() // 2 fisuras extra en el alley
+        let fisuras = slots(of: "homeless", in: gameState)
+        #expect(fisuras.count == 3) // la inicial + el par
+
+        let resolution = gameState.handleDrop(fromCell: fisuras[1], toCell: fisuras[2])
+        guard case .merged(
+            targetCell: let targetCell,
+            evolvedTo: let evolvedTo,
+            promotedToFloor: let promotedToFloor,
+            unlockedFloorId: let unlockedFloorId
+        ) = resolution else {
             Issue.record("expected merge, got \(resolution)")
             return
         }
-        #expect(cell == 2)
+        #expect(targetCell == fisuras[2])
         // Primer cartonero: el tier máximo avanzó → hay reveal.
         #expect(evolvedTo?.id == "cartonero")
-        #expect(gameState.player?.board.count == 2)
-        #expect(gameState.player?.board.contains { $0.typeId == "cartonero" } == true)
-        #expect(gameState.player?.maxTierReached == 2)
+        // T2 sigue viviendo en el alley (1-2): ni ascenso ni desbloqueo.
+        #expect(promotedToFloor == nil)
+        #expect(unlockedFloorId == nil)
+        #expect(gameState.player?.run.units == ["homeless": 1, "cartonero": 1])
+        #expect(gameState.player?.run.maxTierReached == 2)
         #expect(gameState.unitCount == 2)
+        // Invariante F7: la torre en memoria refleja exactamente run.units.
+        #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
     }
 
     @Test func dropOnEmptyCellMoves() async throws {
         let gameState = await makeGameState()
-        let resolution = gameState.handleDrop(fromCell: 0, toCell: 7)
+        let from = try #require(slots(of: "homeless", in: gameState).first)
+        let resolution = gameState.handleDrop(fromCell: from, toCell: 7)
         guard case .moved = resolution else {
             Issue.record("expected move, got \(resolution)")
             return
         }
-        #expect(gameState.player?.board == [BoardPlacement(cellIndex: 7, typeId: "homeless")])
+        #expect(gameState.visiblePlacements == [TowerPlacement(floorOrdinal: 0, slot: 7, typeId: "homeless")])
     }
 
     @Test func dropOnDifferentTypeSnapsBack() async throws {
         let gameState = await makeGameState()
         gameState.debugSetMaxTier(2)
-        gameState.debugGrantPair() // 2 cartoneros en 1 y 2
-        let resolution = gameState.handleDrop(fromCell: 0, toCell: 1) // fisura → cartonero
+        gameState.debugGrantPair() // 2 cartoneros en el alley
+        let fisura = try #require(slots(of: "homeless", in: gameState).first)
+        let cartonero = try #require(slots(of: "cartonero", in: gameState).first)
+
+        let resolution = gameState.handleDrop(fromCell: fisura, toCell: cartonero) // fisura → cartonero
         guard case .snapBack = resolution else {
             Issue.record("expected snapBack, got \(resolution)")
             return
         }
-        #expect(gameState.player?.board.count == 3)
+        // Nada se consumió: la torre y el save siguen sincronizados.
+        #expect(gameState.unitCount == 3)
+        #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
     }
+
+    // MARK: Carrera (T8+T8 → choice node diferido)
 
     @Test func tier8MergeAsksForCareerAndResolvesAfterChoice() async throws {
         let gameState = await makeGameState()
         gameState.debugSetMaxTier(8)
-        gameState.debugGrantPair() // 2 administrativos en 1 y 2
+        gameState.debugGrantPair() // 2 administrativos en corporate (ordinal 2)
+        // handleDrop opera sobre el piso VISIBLE: subir hasta el par.
+        gameState.setVisibleFloor(2)
+        #expect(gameState.visibleFloorDef?.id == "corporate")
+        let admins = slots(of: "administrativo", in: gameState)
+        #expect(admins.count == 2)
 
-        let resolution = gameState.handleDrop(fromCell: 1, toCell: 2)
+        let resolution = gameState.handleDrop(fromCell: admins[0], toCell: admins[1])
         guard case .careerPending = resolution else {
             Issue.record("expected careerPending, got \(resolution)")
             return
         }
         let prompt = try #require(gameState.careerPrompt)
         #expect(prompt.options.count == 4)
-        // El board no cambió todavía (merge diferido, snap-back visual).
-        #expect(gameState.player?.board.count == 3)
+        // La torre no cambió todavía (merge diferido, snap-back visual).
+        #expect(gameState.player?.run.units["administrativo"] == 2)
+        #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
 
         gameState.chooseCareer(optionId: "junior_programmer")
         #expect(gameState.careerPrompt == nil)
-        #expect(gameState.player?.chosenCareerPath == "programmer")
-        #expect(gameState.player?.board.contains { $0.typeId == "junior_programmer" } == true)
-        #expect(gameState.player?.maxTierReached == 9)
+        #expect(gameState.player?.run.chosenCareerPath == "programmer")
+        #expect(gameState.player?.run.units["junior_programmer"] == 1)
+        #expect(gameState.player?.run.maxTierReached == 9)
+        #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
     }
+
+    // MARK: Ascenso de piso (F7 §3.4: el merge cruza la frontera corporate → luxury)
+
+    @Test func tier10MergePromotesToLuxuryAndUnlocksIt() async throws {
+        let gameState = await makeGameState()
+        // Carrera elegida por el camino real (T8+T8 → prompt → programmer).
+        gameState.debugSetMaxTier(8)
+        gameState.debugGrantPair()
+        gameState.setVisibleFloor(2)
+        let admins = slots(of: "administrativo", in: gameState)
+        _ = gameState.handleDrop(fromCell: admins[0], toCell: admins[1])
+        gameState.chooseCareer(optionId: "junior_programmer")
+        #expect(gameState.player?.run.maxTierReached == 9)
+
+        // Con la carrera elegida, debugGrantPair coloca juniors DE ESA rama.
+        gameState.debugGrantPair()
+        let juniors = slots(of: "junior_programmer", in: gameState)
+        #expect(juniors.count == 3) // el del merge + el par
+
+        let resolution = gameState.handleDrop(fromCell: juniors[0], toCell: juniors[1])
+        guard case .merged(
+            targetCell: _,
+            evolvedTo: let evolvedTo,
+            promotedToFloor: let promotedToFloor,
+            unlockedFloorId: let unlockedFloorId
+        ) = resolution else {
+            Issue.record("expected merge, got \(resolution)")
+            return
+        }
+        // T10 pertenece a luxury (10-13): reveal + ascenso + desbloqueo.
+        let luxuryOrdinal = try #require(gameState.floorTable?.ordinal(of: "luxury"))
+        #expect(evolvedTo?.id == "senior_programmer")
+        #expect(promotedToFloor == luxuryOrdinal)
+        #expect(unlockedFloorId == "luxury")
+        #expect(gameState.player?.run.unlockedFloors.contains("luxury") == true)
+        // La unidad ascendida vive en luxury, no en corporate.
+        #expect(gameState.tower?.placements(onFloor: luxuryOrdinal).contains { $0.typeId == "senior_programmer" } == true)
+        #expect(gameState.player?.run.units["senior_programmer"] == 1)
+        #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
+    }
+
+    // MARK: Pasivo + tick
 
     @Test func passiveUnlockMakesTickEarn() async throws {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
         gameState.unlockPassive(typeId: "homeless")
-        #expect(gameState.player?.passiveUnlocked["homeless"] == true)
+        #expect(gameState.player?.run.passiveUnlocked["homeless"] == true)
 
-        let coinsBefore = try #require(gameState.player?.coins)
+        // Yield real derivado del contenido: passive del tipo × mult del piso
+        // donde vive (alley) — sin números mágicos.
+        let content = try #require(gameState.content)
+        let fisura = try #require(content.tiers.type(id: "homeless"))
+        let expectedPerSecond = fisura.passiveYieldPerInstance
+            * content.floorTable.floor(forTier: fisura.tier).incomeMultiplier
+
+        let coinsBefore = try #require(gameState.player?.run.coins)
         gameState.tick(delta: 1.0)
-        let coinsAfter = try #require(gameState.player?.coins)
-        #expect(abs(coinsAfter - coinsBefore - 0.3) < 1e-9)
+        let coinsAfter = try #require(gameState.player?.run.coins)
+        #expect(abs(coinsAfter - coinsBefore - expectedPerSecond) < 1e-9)
     }
 
     @Test func hugeTickDeltaIsClamped() async throws {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
         gameState.unlockPassive(typeId: "homeless")
-        let coinsBefore = try #require(gameState.player?.coins)
+        let coinsBefore = try #require(gameState.player?.run.coins)
+        // El delta gigante del primer frame post-background lo cubre offline:
+        // acreditarlo acá duplicaría.
         gameState.tick(delta: 3600)
-        #expect(gameState.player?.coins == coinsBefore)
+        #expect(gameState.player?.run.coins == coinsBefore)
     }
+
+    // MARK: Offline
 
     @Test func offlineSimulationCreditsAndPresentsPopup() async throws {
         let gameState = await makeGameState()
@@ -109,76 +196,70 @@ struct GameLoopWiringTests {
         gameState.unlockPassive(typeId: "homeless")
         gameState.debugSimulateOffline(hours: 4)
 
+        let content = try #require(gameState.content)
+        let fisura = try #require(content.tiers.type(id: "homeless"))
+        let perSecond = fisura.passiveYieldPerInstance
+            * content.floorTable.floor(forTier: fisura.tier).incomeMultiplier
+        let expected = perSecond * 4 * 3600 * content.economy.offlineEfficiencyBase
+
         let reward = try #require(gameState.offlineReward)
-        // 1 fisura × 0.3/s × 4h × 0.5 efficiency (tolerancia: el reloj real avanza
-        // unos ms entre bootstrap y apply).
-        #expect(abs(reward.amount - 0.3 * 4 * 3600 * 0.5) < 1.0)
+        // Tolerancia: el reloj real avanza unos ms entre bootstrap y apply.
+        #expect(abs(reward.amount - expected) < 1.0)
     }
 
-    @Test func prestigeFlowResetsRun() async throws {
+    // MARK: Reencarnación (F7: gate por ORO, no por tier)
+
+    @Test func prestigeFlowResetsRunAndKeepsMeta() async throws {
         let gameState = await makeGameState()
-        gameState.debugGrantCoins() // suma lifetimeEarnings → habrá Soul Points
-        gameState.debugSetMaxTier(30)
-        gameState.debugGrantPair() // 2 dioses… con eso alcanza uno
+        let divisor = try #require(gameState.content?.economy.oro.divisor)
+        // Gate: reencarnar ⟺ ganar ≥1 ORO ⟺ lifetimeEarnings alcanza el divisor.
+        var fuse = 0
+        while !gameState.prestigeAvailable && fuse < 64 {
+            gameState.debugGrantCoins()
+            fuse += 1
+        }
         #expect(gameState.prestigeAvailable)
-        #expect(gameState.prestigeSoulPointsGained > 0)
+        #expect((gameState.player?.meta.lifetimeEarnings ?? 0) >= divisor)
+        #expect(gameState.prestigeSoulPointsGained > 0) // "soul points" = ORO hasta F7.4
 
         gameState.confirmPrestige()
-        #expect(gameState.player?.prestigeLevel == 1)
-        #expect(gameState.player?.board.count == 1)
-        #expect(gameState.player?.maxTierReached == 1)
+        // La run murió entera…
+        #expect(gameState.player?.run.units == ["homeless": 1])
+        #expect(gameState.player?.run.hireCounts.isEmpty == true)
+        #expect(gameState.player?.run.unlockedFloors == ["alley"])
+        // …y la meta cobró.
+        #expect(gameState.player?.meta.prestigeLevel == 1)
+        #expect((gameState.player?.meta.oro ?? 0) > 0)
+        #expect((gameState.player?.meta.globalMultiplier ?? 0) > 1.0)
         #expect(gameState.prestigeAvailable == false)
-        #expect((gameState.player?.globalMultiplier ?? 0) > 1.0)
+        // Torre reconciliada: una fisura sola en el alley.
+        #expect(gameState.visibleFloorOrdinal == 0)
+        #expect(gameState.visiblePlacements.count == 1)
+        #expect(gameState.visiblePlacements.first?.typeId == "homeless")
+        #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
     }
 
-    @Test func spawnQuoteAppliesPrestigeDiscount() async throws {
+    @Test func hireQuoteAppliesPrestigeDiscount() async throws {
         let gameState = await makeGameState()
         let baseCost = try #require(gameState.spawnQuote?.cost)
 
-        gameState.debugSetMaxTier(30)
-        gameState.debugGrantPair()
+        var fuse = 0
+        while !gameState.prestigeAvailable && fuse < 64 {
+            gameState.debugGrantCoins()
+            fuse += 1
+        }
         gameState.confirmPrestige()
 
+        // El descuento fluye por prestige_unlocks → costMultiplier del hireQuote
+        // (GameState.currentQuote), NO por derivedEffects.spawnDiscount (esa es
+        // la línea de upgrade "spawn"). Post-reencarnación hireCounts está en 0,
+        // así que la única diferencia con el quote virgen es el descuento.
+        let unlocks = try #require(gameState.content?.prestigeUnlocks)
+        let level = try #require(gameState.player?.meta.prestigeLevel)
+        #expect(level == 1)
+        let expected = baseCost * (1 - unlocks.cumulativeSpawnDiscount(atPrestigeLevel: level))
         let discounted = try #require(gameState.spawnQuote?.cost)
-        // prestige nivel 1 → 5% de descuento según prestige_unlocks.json
-        #expect(abs(discounted - baseCost * 0.95) < 1e-9)
-    }
-}
-
-@Suite("SaveMigrator")
-struct SaveMigratorTests {
-    @Test func currentVersionDecodes() throws {
-        let state = PlayerState.newGame(startTypeId: "homeless", offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 0)
-        let data = try JSONEncoder().encode(state)
-        let migrated = try SaveMigrator.migrate(data)
-        #expect(migrated == state)
-    }
-
-    @Test func futureVersionThrowsInsteadOfCorrupting() throws {
-        var state = PlayerState.newGame(startTypeId: "homeless", offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 0)
-        state.schemaVersion = 99
-        let data = try JSONEncoder().encode(state)
-        #expect(throws: SaveMigrationError.unsupportedVersion(99)) {
-            try SaveMigrator.migrate(data)
-        }
-    }
-
-    @Test func v1SaveMigratesToCurrentSchema() throws {
-        var state = PlayerState.newGame(startTypeId: "homeless", offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 0)
-        state.coins = 77
-        guard var object = try JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any] else {
-            Issue.record("fixture no serializable")
-            return
-        }
-        object.removeValue(forKey: "activeModifiers")
-        object["schemaVersion"] = 1
-        let v1Data = try JSONSerialization.data(withJSONObject: object)
-
-        let migrated = try SaveMigrator.migrate(v1Data)
-        #expect(migrated.schemaVersion == PlayerState.currentSchemaVersion)
-        #expect(migrated.coins == 77)
-        #expect(migrated.activeModifiers.isEmpty)
-        #expect(migrated.upgradeLevels.isEmpty)
-        #expect(migrated.daily.cycleDay == 1)
+        #expect(discounted < baseCost)
+        #expect(abs(discounted - expected) < 1e-9)
     }
 }

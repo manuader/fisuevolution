@@ -1,41 +1,42 @@
 import Foundation
 
-/// Reincarnation (bible §5): reaching god lets the player reset the run for
-/// permanent soul points. `soulPoints` converges to `formula(lifetimeEarnings)`
-/// — the gained amount is the delta, so points are never double-earned.
+/// Reencarnación (F7 §3.7): el gate es GANAR ORO (≥1), no tener a Dios en el
+/// tablero — con el pacing aprobado la 1ª reencarnación llega en el piso 5-6.
+/// `oroEarnedLifetime` converge a `formula(lifetimeEarnings)` — lo ganado es el
+/// delta, así el ORO nunca se cobra dos veces.
 public enum PrestigeCalculator {
-    public static func canPrestige(state: PlayerState, tiers: TierRepository) -> Bool {
-        state.board.contains { $0.typeId == tiers.terminalType.id }
+    public static func oroGained(state: PlayerState, economy: StandardEconomy) -> Int {
+        max(0, economy.oroTotal(lifetimeEarnings: state.meta.lifetimeEarnings) - state.meta.oroEarnedLifetime)
     }
 
-    public static func soulPointsGained(state: PlayerState, economy: StandardEconomy) -> Int {
-        max(0, economy.soulPoints(lifetimeEarnings: state.lifetimeEarnings) - state.soulPoints)
+    public static func canReincarnate(state: PlayerState, economy: StandardEconomy) -> Bool {
+        oroGained(state: state, economy: economy) >= 1
     }
 
-    /// Resets the run (board, coins, spawns, passives, career, maxTier) and keeps
-    /// the meta layer (soul points, upgrades, lifetime, purchases, cosmetics).
-    public static func applyPrestige(
+    /// Reencarnar: `run = .fresh(...)` (muere TODO lo de la run — imposible
+    /// olvidarse un campo) y la meta acredita el ORO ganado.
+    public static func applyReincarnation(
         state: inout PlayerState,
         economy: StandardEconomy,
         tiers: TierRepository,
+        floorTable: FloorTable,
         now: TimeInterval
     ) {
-        let total = max(state.soulPoints, economy.soulPoints(lifetimeEarnings: state.lifetimeEarnings))
-        state.soulPoints = total
-        state.prestigeLevel += 1
-        state.globalMultiplier = economy.globalMultiplier(soulPoints: total, prestigeBonus: state.upgrades.prestigeBonus)
-        state.coins = 0
-        state.board = [BoardPlacement(cellIndex: 0, typeId: tiers.baseType.id)]
-        state.spawnPurchases = [:]
-        state.passiveUnlocked = [:]
-        state.chosenCareerPath = nil
-        state.maxTierReached = 1
-        state.lastSeenTimestamp = now
+        let gained = oroGained(state: state, economy: economy)
+        state.meta.oro += gained
+        state.meta.oroEarnedLifetime += gained
+        state.meta.prestigeLevel += 1
+        state.meta.globalMultiplier = economy.globalMultiplier(
+            oroEarnedLifetime: state.meta.oroEarnedLifetime,
+            prestigeBonus: state.meta.derivedEffects.prestigeBonus
+        )
+        state.meta.lastSeenTimestamp = now
+        state.run = .fresh(startTypeId: tiers.baseType.id, startFloorId: floorTable[0].id)
     }
 }
 
-/// Data-driven prestige rewards (`prestige_unlocks.json`): per-level spawn cost
-/// discount now; backgrounds/skins/secret specials consumed by F5 systems.
+/// Data-driven prestige rewards (`prestige_unlocks.json`): per-level hire cost
+/// discount.
 public struct PrestigeUnlocks: Codable, Sendable, Equatable {
     public struct Level: Codable, Sendable, Equatable {
         public let level: Int
@@ -54,7 +55,7 @@ public struct PrestigeUnlocks: Codable, Sendable, Equatable {
     }
 
     public let schemaVersion: Int
-    /// Hard cap so stacked discounts never zero out the spawn cost. [TUNEABLE]
+    /// Hard cap so stacked discounts never zero out the hire cost. [TUNEABLE]
     public let spawnDiscountCap: Double
     public let levels: [Level]
 

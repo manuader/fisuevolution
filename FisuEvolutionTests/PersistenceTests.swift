@@ -8,11 +8,12 @@ struct PersistenceTests {
     private func makeState(coins: Double = 0) -> PlayerState {
         var state = PlayerState.newGame(
             startTypeId: "homeless",
+            startFloorId: "alley",
             offlineEfficiencyBase: 0.5,
             critChanceBase: 0,
             now: 1_700_000_000
         )
-        state.coins = coins
+        state.run.coins = coins
         return state
     }
 
@@ -39,7 +40,7 @@ struct PersistenceTests {
         await repository.save(makeState(coins: 1))
         await repository.save(makeState(coins: 2))
         let loaded = await repository.load()
-        #expect(loaded?.coins == 2)
+        #expect(loaded?.run.coins == 2)
     }
 
     @Test func fallsBackToSnapshotWhenCoreDataIsEmpty() async throws {

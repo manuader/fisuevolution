@@ -18,7 +18,7 @@ from pathlib import Path
 
 from _common import read_json, write_json
 
-FILE_RE = re.compile(r"^(?P<order>\d{2})_(?P<key>.+)\.md$")
+FILE_RE = re.compile(r"^(?P<order>\d{2,3})_(?P<key>.+)\.md$")
 STATE_RE = re.compile(r"^- \*\*estado\*\*: (?P<state>\w+)$", re.MULTILINE)
 PIPELINE = Path(__file__).resolve().parents[1]
 PROMPTS_DIR = PIPELINE / "prompts" / "gemini_pro"
@@ -88,7 +88,7 @@ def pending_assets(
     """Devuelve únicamente assets no integrados, en orden de evolución."""
     known_manifest = manifest_keys(manifest)
     assets: list[Asset] = []
-    for path in sorted(prompts_dir.glob("[0-9][0-9]_*.md")):
+    for path in sorted(prompts_dir.glob("[0-9][0-9]*.md")):
         if path.name == "00_INDICE.md":
             continue
         asset = parse_asset(path)
@@ -279,6 +279,17 @@ class GeminiBrowser:
             "el cuadro de prompt de Gemini (confirmá el login en Chrome aislado)",
         )
 
+    def _focus_compose(self) -> None:
+        """Clickea el compose box para darle foco DOM (assets sin referencia, que
+        no tienen paste). Sin esto los keystrokes de System Events se pierden."""
+        field = self._find_first([
+            ("CSS_SELECTOR", "[contenteditable='true']"),
+            ("CSS_SELECTOR", "textarea"),
+        ])
+        if field is not None:
+            field.click()
+            time.sleep(0.3)
+
     def _upload_reference(self, reference: Path) -> None:
         # Gemini no expone un <input type=file> accesible; el camino confiable es
         # pegar la imagen desde el portapapeles del sistema (macOS) con cmd+v.
@@ -414,6 +425,10 @@ class GeminiBrowser:
         self._open_new_chat()
         if asset.needs_reference:
             self._upload_reference(reference)
+        else:
+            # Sin referencia no hay paste que enfoque el editor: hay que clickearlo
+            # para que los keystrokes de System Events aterricen en el compose box.
+            self._focus_compose()
         self._submit(asset.prompt)
         # La imagen GENERADA vive en la respuesta y difiere de la referencia
         # adjunta (que también es 2048px). Se espera una imagen grande cuya huella

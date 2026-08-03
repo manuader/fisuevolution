@@ -19,6 +19,10 @@ settings:
     TARGETED_DEVICE_FAMILY: "1"
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     CODE_SIGN_STYLE: Automatic
+    # Development team (Personal Team gratis de Manuel Ader). Necesario para
+    # firmar en dispositivo físico; el simulador no lo requiere. Va acá y no en la
+    # UI de Xcode porque el .xcodeproj se regenera con `xcodegen generate`.
+    DEVELOPMENT_TEAM: 2TS7P7VDQJ
     # Sin AppIntents en ningún target; silencia el aviso del metadata processor
     # para que el criterio "cero warnings" sea chequeable por grep.
     ENABLE_APP_INTENTS_METADATA: NO

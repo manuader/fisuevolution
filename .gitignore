@@ -20,3 +20,6 @@ build-ci/
 Tools/asset-pipeline/.secrets/
 Tools/asset-pipeline/.chrome-profile/
 Tools/asset-pipeline/state/selenium-run.json
+
+# Graphify knowledge graph (generated, ~4MB; rebuild with `graphify update .`)
+graphify-out/

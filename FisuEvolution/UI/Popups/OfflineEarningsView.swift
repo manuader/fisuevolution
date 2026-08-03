@@ -7,29 +7,35 @@ struct OfflineEarningsView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
-        VStack(spacing: 18) {
-            Text("offline.title")
-                .font(.title2.weight(.heavy))
-            HStack(spacing: 8) {
-                Image(systemName: "dollarsign.circle.fill")
-                    .foregroundStyle(Color("PaletteYellow"))
-                Text(verbatim: "+\(CoinFormatter.string(from: reward.amount))")
-                    .font(.largeTitle.weight(.bold))
-                    .monospacedDigit()
+        GamePanel(art: "panel_reward", insets: EdgeInsets(top: 82, leading: 22, bottom: 24, trailing: 22)) {
+            VStack(spacing: 18) {
+                Text("offline.title")
+                    .font(.system(.title2, design: .rounded).weight(.heavy))
+                    .foregroundStyle(Color("PaletteInk"))
+                HStack(spacing: 8) {
+                    CoinIcon(size: 34)
+                    Text(verbatim: "+\(CoinFormatter.string(from: reward.amount))")
+                        .font(.largeTitle.weight(.bold))
+                        .monospacedDigit()
+                }
+                Button {
+                    dismiss()
+                } label: {
+                    Text("offline.collect")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color("PaletteYellow"))
+                .foregroundStyle(Color("PaletteInk"))
             }
-            Button {
-                dismiss()
-            } label: {
-                Text("offline.collect")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(Color("PaletteYellow"))
-            .foregroundStyle(Color("PaletteInk"))
         }
-        .padding(24)
-        .presentationDetents([.fraction(0.3)])
+        .overlay(alignment: .topTrailing) {
+            ArtCloseButton { dismiss() }
+                .padding(10)
+        }
+        .padding(16)
+        .presentationDetents([.fraction(0.42)])
     }
 }

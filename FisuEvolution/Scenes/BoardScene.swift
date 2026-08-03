@@ -249,16 +249,24 @@ final class BoardScene: SKScene {
 
     /// Hit-testing returns the deepest node (sprite/label); climb to the unit.
     private func characterNode(at point: CGPoint) -> CharacterNode? {
-        for candidate in nodes(at: point) {
-            var current: SKNode? = candidate
-            while let node = current {
-                if let character = node as? CharacterNode {
-                    return character
-                }
-                current = node.parent
+        // Entre los personajes cuyo cuerpo (radio generoso alrededor del ancla)
+        // contiene el toque, elegir el de ADELANTE (mayor zPosition); ante empate,
+        // el de ancla más cercana. Es más fiable que `nodes(at:)` cuando están
+        // amontonados y sus cajas transparentes se solapan.
+        let local = fieldNode.convert(point, from: self)
+        let radius = cellSize * 0.82
+        var best: (node: CharacterNode, z: CGFloat, dist: CGFloat)?
+        for (_, node) in characterNodes {
+            let dx = local.x - node.position.x
+            let dy = local.y - (node.position.y + cellSize * 0.25)  // el cuerpo va sobre el ancla
+            let dist = hypot(dx, dy)
+            guard dist <= radius else { continue }
+            if best == nil || node.zPosition > best!.z
+                || (node.zPosition == best!.z && dist < best!.dist) {
+                best = (node, node.zPosition, dist)
             }
         }
-        return nil
+        return best?.node
     }
 
     /// Bounce + "+N" flotante; crit y golden gritan más fuerte. F5.2 suma
@@ -419,20 +427,23 @@ final class BoardScene: SKScene {
     /// launches y consistente con el modelo de board persistido.
     private func rebuildAnchors(board: EconomyConfig.BoardConfig) {
         let cols = max(boardColumns, 1)
-        let colSpacing = cellSize
-        let frontY = cellSize * 0.5             // pies de la fila delantera, sobre el piso
-        let rowDepth = cellSize * 0.6           // cada fila de atrás, más arriba y detrás
+        // Margen lateral para que los personajes grandes de las puntas no se corten
+        // contra el borde de la pantalla; las columnas se centran dentro del campo.
+        let edgeInset = cellSize * 0.68
+        let colSpacing = (cellSize * CGFloat(cols) - 2 * edgeInset) / CGFloat(cols)
+        let frontY = cellSize * 0.55            // pies de la fila delantera, sobre el piso
+        let rowDepth = cellSize * 0.95          // franja de piso más alta: filas más separadas
         anchorPoints = (0..<board.cellCount).map { index in
             let column = index % cols
             let row = index / cols
             // Filas alternadas corridas un poco (centrado) para asomar entre sí.
-            let rowStagger = (row % 2 == 0 ? -1.0 : 1.0) * colSpacing * 0.12
+            let rowStagger = (row % 2 == 0 ? -1.0 : 1.0) * colSpacing * 0.1
             var hash = UInt64(index &* 2654435761)
             hash = (hash ^ (hash >> 13)) &* 0x9E3779B97F4A7C15
-            let jitterX = (CGFloat(hash % 1000) / 1000 - 0.5) * cellSize * 0.10
+            let jitterX = (CGFloat(hash % 1000) / 1000 - 0.5) * cellSize * 0.08
             let jitterY = (CGFloat((hash >> 10) % 1000) / 1000 - 0.5) * cellSize * 0.06
             return CGPoint(
-                x: CGFloat(column) * colSpacing + colSpacing / 2 + rowStagger + jitterX,
+                x: edgeInset + CGFloat(column) * colSpacing + colSpacing / 2 + rowStagger + jitterX,
                 y: frontY + CGFloat(row) * rowDepth + jitterY
             )
         }
@@ -472,9 +483,14 @@ final class BoardScene: SKScene {
         if let assetName = content.manifest.backgrounds[stage].flatMap({ $0.isEmpty ? nil : $0 }),
            UIImage(named: assetName) != nil {
             let sprite = SKSpriteNode(imageNamed: assetName)
-            sprite.anchorPoint = .zero
-            sprite.position = .zero
-            sprite.size = size
+            // Aspect-FILL: escalar para cubrir la pantalla SIN deformar (se recorta
+            // el excedente). Un poco extra para agrandar la franja de piso, y
+            // anclado abajo para que el piso jugable se vea completo y grande.
+            let tex = sprite.texture?.size() ?? CGSize(width: 1024, height: 1024)
+            let scale = max(size.width / tex.width, size.height / tex.height) * 1.18
+            sprite.size = CGSize(width: tex.width * scale, height: tex.height * scale)
+            sprite.anchorPoint = CGPoint(x: 0.5, y: 0.0)
+            sprite.position = CGPoint(x: size.width / 2, y: 0)
             sprite.zPosition = -100
             backgroundLayer.addChild(sprite)
             return
@@ -540,8 +556,8 @@ final class BoardScene: SKScene {
         var hash = UInt64(node.cellIndex &* 40503 &+ 7)
         let step: () -> SKAction = {
             hash = (hash ^ (hash >> 13)) &* 0x9E3779B97F4A7C15
-            let dx = (CGFloat(hash % 100) / 100 - 0.5) * 18
-            let dy = (CGFloat((hash >> 8) % 100) / 100 - 0.5) * 12
+            let dx = (CGFloat(hash % 100) / 100 - 0.5) * 30
+            let dy = (CGFloat((hash >> 8) % 100) / 100 - 0.5) * 24
             let pause = 0.6 + Double(hash % 140) / 100
             return .sequence([
                 .wait(forDuration: pause),
@@ -561,14 +577,20 @@ final class BoardScene: SKScene {
     /// si cae lejos de toda ancla.
     private func cellIndex(at point: CGPoint) -> Int? {
         guard cellSize > 0, !anchorPoints.isEmpty else { return nil }
-        var best: (index: Int, distance: CGFloat)?
+        let occupied = Set(characterNodes.keys)
+        var bestOcc: (index: Int, distance: CGFloat)?
+        var bestAny: (index: Int, distance: CGFloat)?
         for (index, anchor) in anchorPoints.enumerated() {
             let distance = hypot(point.x - anchor.x, point.y - anchor.y)
-            if best == nil || distance < best!.distance {
-                best = (index, distance)
+            if bestAny == nil || distance < bestAny!.distance { bestAny = (index, distance) }
+            if occupied.contains(index), bestOcc == nil || distance < bestOcc!.distance {
+                bestOcc = (index, distance)
             }
         }
-        guard let best, best.distance <= cellSize * 0.85 else { return nil }
-        return best.index
+        // Para MERGEAR: preferir una celda ocupada cercana (soltás sobre otro
+        // personaje aunque estén amontonados). Si no hay, la celda más cercana.
+        if let occ = bestOcc, occ.distance <= cellSize * 0.95 { return occ.index }
+        if let any = bestAny, any.distance <= cellSize * 1.05 { return any.index }
+        return nil
     }
 }

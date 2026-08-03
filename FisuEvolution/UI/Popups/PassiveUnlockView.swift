@@ -7,64 +7,67 @@ struct PassiveUnlockView: View {
     let prompt: GameState.PassivePrompt
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("passive.title \(prompt.type.displayName)")
-                .font(.title3.weight(.bold))
-                .multilineTextAlignment(.center)
+        GamePanel(art: "panel_dialog", insets: EdgeInsets(top: 74, leading: 24, bottom: 26, trailing: 24)) {
+            VStack(spacing: 16) {
+                Text("passive.title \(prompt.type.displayName)")
+                    .font(.system(.title3, design: .rounded).weight(.bold))
+                    .foregroundStyle(Color("PaletteInk"))
+                    .multilineTextAlignment(.center)
 
-            Text("passive.explainer \(String(prompt.instanceCount)) \(CoinFormatter.string(from: prompt.type.passiveYieldPerInstance))")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+                Text("passive.explainer \(String(prompt.instanceCount)) \(CoinFormatter.string(from: prompt.type.passiveYieldPerInstance))")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
 
-            if prompt.isUnlocked {
-                Label("passive.unlocked", systemImage: "checkmark.circle.fill")
-                    .font(.headline)
-                    .foregroundStyle(Color("PaletteGreen"))
-            } else {
-                Button {
-                    gameState.unlockPassive(typeId: prompt.type.id)
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("passive.unlock")
-                        Image(systemName: "dollarsign.circle.fill")
-                        Text(verbatim: CoinFormatter.string(from: prompt.type.passiveUnlockCost))
-                            .monospacedDigit()
+                if prompt.isUnlocked {
+                    Label("passive.unlocked", systemImage: "checkmark.circle.fill")
+                        .font(.headline)
+                        .foregroundStyle(Color("PaletteGreen"))
+                } else {
+                    Button {
+                        gameState.unlockPassive(typeId: prompt.type.id)
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text("passive.unlock")
+                            CoinIcon(size: 18)
+                            Text(verbatim: CoinFormatter.string(from: prompt.type.passiveUnlockCost))
+                                .monospacedDigit()
+                        }
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
                     }
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(Color("PaletteGreen"))
-                .disabled(!prompt.canAfford)
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color("PaletteGreen"))
+                    .disabled(!prompt.canAfford)
 
-                if !prompt.canAfford {
-                    Text("passive.insufficient")
-                        .font(.footnote)
-                        .foregroundStyle(Color("PalettePink"))
-                }
-            }
-
-            if prompt.canDismiss {
-                Divider()
-                Button(role: .destructive) {
-                    gameState.dismissCharacter(atCell: prompt.cellIndex)
-                } label: {
-                    Label {
-                        Text(verbatim: "Dejar de contratar")
-                    } icon: {
-                        Image(systemName: "person.fill.xmark")
+                    if !prompt.canAfford {
+                        Text("passive.insufficient")
+                            .font(.footnote)
+                            .foregroundStyle(Color("PalettePink"))
                     }
-                    .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 4)
                 }
-                .buttonStyle(.bordered)
-                .tint(Color("PalettePink"))
+
+                if prompt.canDismiss {
+                    Divider()
+                    Button(role: .destructive) {
+                        gameState.dismissCharacter(atCell: prompt.cellIndex)
+                    } label: {
+                        Label {
+                            Text(verbatim: "Dejar de contratar")
+                        } icon: {
+                            Image(systemName: "person.fill.xmark")
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.bordered)
+                    .tint(Color("PalettePink"))
+                }
             }
         }
-        .padding(24)
-        .presentationDetents([.fraction(0.45)])
+        .padding(16)
+        .presentationDetents([.fraction(0.54)])
     }
 }

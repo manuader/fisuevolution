@@ -9,7 +9,7 @@ struct RootView: View {
         Group {
             switch gameState.phase {
             case .loading:
-                ProgressView("loading.title")
+                SplashView()
             case .failed(let message):
                 ContentUnavailableView(
                     String(localized: "error.content.title"),
@@ -20,8 +20,53 @@ struct RootView: View {
                 GameBoardView()
             }
         }
+        // La UI está pensada para el mundo cálido/crema del juego; forzamos light
+        // para que dark mode no rompa los grises/blancos de los menús.
+        .preferredColorScheme(.light)
         .onChange(of: scenePhase) { _, newPhase in
             gameState.handleScenePhase(newPhase)
+        }
+    }
+}
+
+/// Pantalla de carga de marca: fondo crema + logo/mascota + tip, en vez del
+/// spinner blanco del sistema (que era la primera impresión de la app).
+struct SplashView: View {
+    private let tips = [
+        "Consejo: arrastrá dos iguales y evolucionan.",
+        "Tocá al Fisura para juntar plata.",
+        "En Mejoras potenciás tus ganancias.",
+    ]
+    var body: some View {
+        ZStack {
+            Color("PaletteCream").ignoresSafeArea()
+            VStack(spacing: 22) {
+                Spacer()
+                // Logo del atlas si ya está disponible; si no, wordmark tipográfico.
+                if let logo = UIArt.image("logo") {
+                    logo.resizable().scaledToFit().frame(maxWidth: 240, maxHeight: 200)
+                } else {
+                    VStack(spacing: 2) {
+                        Text(verbatim: "FISU")
+                            .font(.system(size: 56, weight: .black, design: .rounded))
+                        Text(verbatim: "EVOLUTION")
+                            .font(.system(size: 26, weight: .heavy, design: .rounded))
+                            .tracking(6)
+                    }
+                    .foregroundStyle(Color("PaletteInk"))
+                }
+                if let fisura = UIArt.image("fisura_celebrate") ?? UIArt.image("fisura_point") {
+                    fisura.resizable().scaledToFit().frame(maxWidth: 200, maxHeight: 240)
+                }
+                Spacer()
+                ProgressView()
+                    .tint(Color("PaletteOrange"))
+                Text(verbatim: tips.randomElement() ?? tips[0])
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                    .padding(.bottom, 40)
+            }
+            .padding(.horizontal, 30)
         }
     }
 }
@@ -36,7 +81,10 @@ struct GameBoardView: View {
     @State private var showStore = false
     @State private var showBonus = false
     @State private var showUpgrades = false
+    @State private var showConfig = false
     @State private var adsProvider = StubAdsProvider()
+    // Los popups automáticos no deben pisar el tutorial en el primer arranque.
+    @AppStorage("fisuTutorialDone") private var tutorialDone = false
     #if DEBUG
     @State private var showDebugPanel = false
     #endif
@@ -58,7 +106,8 @@ struct GameBoardView: View {
                 HUDView(
                     onStoreTap: { showStore = true },
                     onBonusTap: { showBonus = true },
-                    onUpgradesTap: { showUpgrades = true }
+                    onUpgradesTap: { showUpgrades = true },
+                    onSettingsTap: { showConfig = true }
                 )
                 if let event = gameState.activeEvent {
                     EventBannerView(event: event)
@@ -71,19 +120,30 @@ struct GameBoardView: View {
             #if DEBUG
             debugButton
             #endif
+
+            TutorialOverlay()
         }
         .onAppear {
             if scene == nil {
                 scene = BoardScene(gameState: gameState)
             }
         }
-        .sheet(item: $gameState.careerPrompt) { prompt in
+        .sheet(item: Binding(
+            get: { tutorialDone ? gameState.careerPrompt : nil },
+            set: { gameState.careerPrompt = $0 }
+        )) { prompt in
             CareerChoiceView(prompt: prompt)
         }
-        .sheet(item: $gameState.passivePrompt) { prompt in
+        .sheet(item: Binding(
+            get: { tutorialDone ? gameState.passivePrompt : nil },
+            set: { gameState.passivePrompt = $0 }
+        )) { prompt in
             PassiveUnlockView(prompt: prompt)
         }
-        .sheet(item: $gameState.offlineReward) { reward in
+        .sheet(item: Binding(
+            get: { tutorialDone ? gameState.offlineReward : nil },
+            set: { gameState.offlineReward = $0 }
+        )) { reward in
             OfflineEarningsView(reward: reward)
         }
         .sheet(isPresented: $showPrestige) {
@@ -98,8 +158,11 @@ struct GameBoardView: View {
         .sheet(isPresented: $showUpgrades) {
             UpgradesView()
         }
+        .sheet(isPresented: $showConfig) {
+            ConfigView()
+        }
         .sheet(item: Binding(
-            get: { gameState.specialDrop },
+            get: { tutorialDone ? gameState.specialDrop : nil },
             set: { if $0 == nil { gameState.dismissSpecialDrop() } }
         )) { special in
             SpecialDropView(special: special)
@@ -111,7 +174,7 @@ struct GameBoardView: View {
             ShareCardSheet(subject: subject)
         }
         .sheet(item: Binding(
-            get: { gameState.dailyClaim.map { IdentifiedClaim(claim: $0) } },
+            get: { tutorialDone ? gameState.dailyClaim.map { IdentifiedClaim(claim: $0) } : nil },
             set: { if $0 == nil { gameState.dismissDailyClaim() } }
         )) { wrapped in
             DailyRewardView(claim: wrapped.claim)
@@ -178,6 +241,7 @@ struct GameBoardView: View {
             Spacer()
         }
         .padding(.trailing, 8)
+        .padding(.top, 68) // debajo del HUD para no tapar el engranaje de Config
     }
     #endif
 }

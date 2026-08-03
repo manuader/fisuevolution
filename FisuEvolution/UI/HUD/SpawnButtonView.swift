@@ -9,26 +9,31 @@ struct SpawnButtonView: View {
 
     var body: some View {
         if let quote = gameState.spawnQuote {
-            Button {
+            ArtButton(art: "ui_btn_buy", tint: Color("PaletteGreen")) {
                 gameState.buySpawn()
             } label: {
                 VStack(spacing: 2) {
                     Text("spawn.button.title \(quote.type.displayName)")
-                        .font(.headline)
+                        .font(.system(.headline, design: .rounded).weight(.bold))
                     HStack(spacing: 4) {
-                        Image(systemName: "dollarsign.circle.fill")
+                        CoinIcon(size: 18)
                         Text(verbatim: CoinFormatter.string(from: quote.cost))
                             .monospacedDigit()
                     }
                     .font(.subheadline.weight(.semibold))
                 }
-                .padding(.horizontal, 22)
-                .padding(.vertical, 6)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Color("PaletteGreen"))
-            .foregroundStyle(Color("PaletteInk"))
-            .disabled(!gameState.canAffordSpawn)
+            // Sin saldo: NO usamos `.disabled` (el dimming del sistema bajaba el
+            // texto a ~0.3 y lo volvía ilegible). El botón queda tappable —
+            // `buySpawn()` falla solo si no alcanza — y comunicamos el estado con
+            // texto blanco (afford) o ink (sin saldo) + una leve desaturación.
+            .foregroundStyle(gameState.canAffordSpawn ? .white : Color("PaletteInk"))
+            .shadow(color: .black.opacity(gameState.canAffordSpawn ? 0.55 : 0), radius: 2, y: 1)
+            .shadow(color: .black.opacity(gameState.canAffordSpawn ? 0.35 : 0), radius: 0.5, y: 0)
+            .saturation(gameState.canAffordSpawn ? 1 : 0.7)
+            .opacity(gameState.canAffordSpawn ? 1 : 0.92)
+            .frame(maxWidth: 300)
+            .fixedSize(horizontal: false, vertical: true)
             .scaleEffect(gameState.showSpawnHint && pulsing && !reduceMotion ? 1.06 : 1.0)
             .animation(.easeInOut(duration: 0.55).repeatForever(autoreverses: true), value: pulsing)
             .onAppear { pulsing = true }

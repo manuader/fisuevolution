@@ -6,31 +6,38 @@ struct SpecialDropView: View {
     let special: SpecialsConfig.Special
 
     var body: some View {
-        VStack(spacing: 16) {
-            Text("special.drop.title")
-                .font(.title2.weight(.heavy))
-            Image(systemName: "star.circle.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(Color("PaletteYellow"))
-            Text(LocalizedStringKey(special.displayNameKey))
-                .font(.title3.weight(.bold))
-            Text(LocalizedStringKey(special.flavorTextKey))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-            Button {
-                gameState.dismissSpecialDrop()
-            } label: {
-                Text("special.drop.claim")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
+        GamePanel(art: "panel_reward", insets: EdgeInsets(top: 82, leading: 22, bottom: 24, trailing: 22)) {
+            VStack(spacing: 16) {
+                Text("special.drop.title")
+                    .font(.system(.title2, design: .rounded).weight(.heavy))
+                    .foregroundStyle(Color("PaletteInk"))
+                Image(systemName: "star.circle.fill")
+                    .font(.system(size: 56))
+                    .foregroundStyle(Color("PaletteYellow"))
+                Text(LocalizedStringKey(special.displayNameKey))
+                    .font(.title3.weight(.bold))
+                Text(LocalizedStringKey(special.flavorTextKey))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                Button {
+                    gameState.dismissSpecialDrop()
+                } label: {
+                    Text("special.drop.claim")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color("PaletteYellow"))
+                .foregroundStyle(Color("PaletteInk"))
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Color("PaletteYellow"))
-            .foregroundStyle(Color("PaletteInk"))
         }
-        .padding(24)
-        .presentationDetents([.fraction(0.45)])
+        .overlay(alignment: .topTrailing) {
+            ArtCloseButton { gameState.dismissSpecialDrop() }
+                .padding(10)
+        }
+        .padding(16)
+        .presentationDetents([.fraction(0.55)])
     }
 }

@@ -126,6 +126,7 @@ final class GameState {
             let content = try GameContentLoader.load(from: .main)
             self.content = content
             self.economy = StandardEconomy(config: content.economy)
+            UIArt.configure(available: Set(content.manifest.ui.keys))
 
             let repository = injectedRepository ?? PlayerStateRepository(
                 persistence: PersistenceController(),

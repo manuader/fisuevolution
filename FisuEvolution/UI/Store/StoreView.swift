@@ -15,15 +15,18 @@ struct StoreView: View {
         @Bindable var audio = audio
         NavigationStack {
             List {
-                switch store.loadState {
-                case .idle, .loading:
-                    ProgressView("loading.title")
-                case .failed:
-                    Label("store.error.load", systemImage: "wifi.exclamationmark")
-                        .foregroundStyle(.secondary)
-                case .loaded:
-                    productSections
+                Group {
+                    switch store.loadState {
+                    case .idle, .loading:
+                        ProgressView("loading.title")
+                    case .failed:
+                        Label("store.error.load", systemImage: "wifi.exclamationmark")
+                            .foregroundStyle(.secondary)
+                    case .loaded:
+                        productSections
+                    }
                 }
+                .listRowBackground(Color.clear)
 
                 Section {
                     Button {
@@ -34,11 +37,13 @@ struct StoreView: View {
                     }
                     .accessibilityIdentifier("store.restore")
                 }
+                .listRowBackground(Color.clear)
 
                 if let message = store.lastErrorMessage {
                     Text(verbatim: message)
                         .font(.footnote)
                         .foregroundStyle(Color("PalettePink"))
+                        .listRowBackground(Color.clear)
                 }
 
                 Section("settings.title") {
@@ -52,12 +57,20 @@ struct StoreView: View {
                         Slider(value: $audio.sfxVolume, in: 0...1)
                     }
                 }
+                .listRowBackground(Color.clear)
             }
-            .navigationTitle(Text("store.title"))
+            .scrollContentBackground(.hidden)
+            .contentMargins(.horizontal, 22, for: .scrollContent)
+            .contentMargins(.top, 8, for: .scrollContent)
+            .background { PanelBackground(art: "panel_store") }
+            .safeAreaInset(edge: .top) {
+                PanelTitleBanner(titleKey: "store.title").padding(.top, 6).padding(.bottom, 4)
+            }
+            .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("store.close") { dismiss() }
+                    ArtCloseButton { dismiss() }
                 }
             }
         }
@@ -65,14 +78,22 @@ struct StoreView: View {
 
     @ViewBuilder
     private var productSections: some View {
-        Section("store.section.general") {
-            ForEach(store.products.filter { store.skinId(for: $0.id) == nil }) { product in
-                productRow(product)
+        // Sólo mostrar la sección si tiene productos: evita headers "UPGRADES"/
+        // "SKINS" colgados sobre un hueco vacío cuando StoreKit no cargó productos.
+        let general = store.products.filter { store.skinId(for: $0.id) == nil }
+        let skins = store.products.filter { store.skinId(for: $0.id) != nil }
+        if !general.isEmpty {
+            Section("store.section.general") {
+                ForEach(general) { product in
+                    productRow(product)
+                }
             }
         }
-        Section("store.section.skins") {
-            ForEach(store.products.filter { store.skinId(for: $0.id) != nil }) { product in
-                skinRow(product)
+        if !skins.isEmpty {
+            Section("store.section.skins") {
+                ForEach(skins) { product in
+                    skinRow(product)
+                }
             }
         }
     }

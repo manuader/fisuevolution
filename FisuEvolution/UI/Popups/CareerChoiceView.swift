@@ -8,29 +8,32 @@ struct CareerChoiceView: View {
     let prompt: GameState.CareerPrompt
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("career.title")
-                .font(.title2.weight(.heavy))
-                .multilineTextAlignment(.center)
-            Text("career.subtitle")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+        GamePanel(art: "panel_career", insets: EdgeInsets(top: 74, leading: 24, bottom: 26, trailing: 24)) {
+            VStack(spacing: 20) {
+                Text("career.title")
+                    .font(.system(.title2, design: .rounded).weight(.heavy))
+                    .foregroundStyle(Color("PaletteInk"))
+                    .multilineTextAlignment(.center)
+                Text("career.subtitle")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
 
-            ForEach(prompt.options) { option in
-                Button {
-                    gameState.chooseCareer(optionId: option.id)
-                } label: {
-                    Text(verbatim: option.displayName)
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                ForEach(prompt.options) { option in
+                    Button {
+                        gameState.chooseCareer(optionId: option.id)
+                    } label: {
+                        Text(verbatim: option.displayName)
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color("PaletteBlue"))
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Color("PaletteBlue"))
             }
         }
-        .padding(24)
+        .padding(16)
         .presentationDetents([.medium])
         .interactiveDismissDisabled()
     }

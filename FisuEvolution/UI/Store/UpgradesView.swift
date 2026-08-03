@@ -15,12 +15,20 @@ struct UpgradesView: View {
                 ForEach(gameState.content?.upgradesConfig.upgrades ?? []) { line in
                     upgradeRow(line)
                 }
+                .listRowBackground(Color.clear)
             }
-            .navigationTitle(Text("upgrades.title"))
+            .scrollContentBackground(.hidden)
+            .contentMargins(.horizontal, 22, for: .scrollContent)
+            .contentMargins(.top, 8, for: .scrollContent)
+            .background { PanelBackground(art: "panel_upgrades") }
+            .safeAreaInset(edge: .top) {
+                PanelTitleBanner(titleKey: "upgrades.title").padding(.top, 6).padding(.bottom, 4)
+            }
+            .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("store.close") { dismiss() }
+                    ArtCloseButton { dismiss() }
                 }
             }
         }
@@ -33,6 +41,11 @@ struct UpgradesView: View {
         let canAfford = (gameState.player?.coins ?? 0) >= cost
 
         return HStack {
+            if let icon = UIArt.image("ui_up_\(line.id)") {
+                icon.resizable()
+                    .scaledToFit()
+                    .frame(width: 34, height: 34)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 Text(LocalizedStringKey(line.titleKey))
                     .font(.headline)
@@ -50,7 +63,7 @@ struct UpgradesView: View {
                     gameState.buyUpgrade(lineId: line.id)
                 } label: {
                     HStack(spacing: 4) {
-                        Image(systemName: "dollarsign.circle.fill")
+                        CoinIcon(size: 16)
                         Text(verbatim: CoinFormatter.string(from: cost))
                             .monospacedDigit()
                     }

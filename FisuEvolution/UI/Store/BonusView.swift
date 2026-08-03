@@ -23,11 +23,13 @@ struct BonusView: View {
                         boostRow(boost)
                     }
                 }
+                .listRowBackground(Color.clear)
                 Section("bonus.section.ads") {
                     ForEach(gameState.content?.rewardedAds.rewards ?? []) { reward in
                         rewardedRow(reward)
                     }
                 }
+                .listRowBackground(Color.clear)
                 if let chestAmount {
                     Section {
                         Label {
@@ -38,13 +40,21 @@ struct BonusView: View {
                                 .foregroundStyle(Color("PaletteYellow"))
                         }
                     }
+                    .listRowBackground(Color.clear)
                 }
             }
-            .navigationTitle(Text("ads.title"))
+            .scrollContentBackground(.hidden)
+            .contentMargins(.horizontal, 22, for: .scrollContent)
+            .contentMargins(.top, 20, for: .scrollContent)
+            .background { PanelBackground(art: "panel_reward") }
+            .safeAreaInset(edge: .top) {
+                PanelTitleBanner(titleKey: "ads.title").padding(.top, 6).padding(.bottom, 4)
+            }
+            .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("store.close") { dismiss() }
+                    ArtCloseButton { dismiss() }
                 }
             }
             .onReceive(timer) { now = $0 }
@@ -56,6 +66,11 @@ struct BonusView: View {
         let remaining = gameState.boostCooldownRemaining(boost)
 
         return HStack {
+            if let icon = UIArt.image("ui_boost_\(boost.id)") {
+                icon.resizable()
+                    .scaledToFit()
+                    .frame(width: 34, height: 34)
+            }
             VStack(alignment: .leading, spacing: 2) {
                 Text(LocalizedStringKey(boost.displayNameKey(buildVariant: variant)))
                     .font(.headline)

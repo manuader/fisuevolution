@@ -70,6 +70,7 @@
       }
     },
     "ads.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1694,7 +1695,6 @@
       }
     },
     "store.close" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1863,6 +1863,7 @@
       }
     },
     "store.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2031,6 +2032,7 @@
       }
     },
     "upgrades.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

@@ -10,15 +10,20 @@ final class BoardScene: SKScene {
     private let renderer = PlaceholderRenderer()
     private let pool = CharacterNodePool()
     private let particles = ParticlePool()
+    private let cameraNode = SKCameraNode()
+    /// Overlay fijo a la cámara: reveal, flash y textos no se quedan atrás al
+    /// cambiar de piso.
+    private let cameraOverlay = SKNode()
 
     /// Campo de juego (estilo Cow Evolution): fondo de escena + personajes
     /// parados en anclas orgánicas — sin grilla visible.
     private let backgroundLayer = SKNode()
     private let fieldNode = SKNode()
+    private var floorNodes: [Int: FloorNode] = [:]
     private var characterNodes: [Int: CharacterNode] = [:]
     private var lastLayoutSize: CGSize = .zero
     private var renderedBoardVersion = -1
-    private var renderedStageKey = ""
+    private var displayedFloorOrdinal = -1
 
     // Geometría del campo, cacheada por layoutBoard.
     private var boardColumns = 0
@@ -31,8 +36,11 @@ final class BoardScene: SKScene {
     private var dragNode: CharacterNode?
     private var dragOriginCell = -1
     private var isDragging = false
+    private var emptyTouchStart: CGPoint?
     private static let dragThreshold: CGFloat = 10
     private static let longPressKey = "longPress"
+    private static let ascentDuration: TimeInterval = 0.7
+    private static let ascentDistanceRatio: CGFloat = 0.78
 
     // FTUE hint
     private var hintNode: SKShapeNode?
@@ -56,6 +64,9 @@ final class BoardScene: SKScene {
         backgroundColor = Palette.cream
         addChild(backgroundLayer)
         addChild(fieldNode)
+        cameraNode.addChild(cameraOverlay)
+        addChild(cameraNode)
+        camera = cameraNode
     }
 
     @available(*, unavailable)
@@ -140,7 +151,10 @@ final class BoardScene: SKScene {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard dragNode == nil, let touch = touches.first else { return }
-        guard let node = characterNode(at: touch.location(in: self)) else { return }
+        guard let node = characterNode(at: touch.location(in: self)) else {
+            emptyTouchStart = touch.location(in: self)
+            return
+        }
         dragNode = node
         dragOriginCell = node.cellIndex
         isDragging = false
@@ -158,6 +172,7 @@ final class BoardScene: SKScene {
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if emptyTouchStart != nil { return }
         guard let node = dragNode, let touch = touches.first else { return }
         let location = touch.location(in: fieldNode)
         let origin = position(ofCell: dragOriginCell)
@@ -175,6 +190,16 @@ final class BoardScene: SKScene {
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         removeAction(forKey: Self.longPressKey)
+        if let start = emptyTouchStart, let touch = touches.first {
+            emptyTouchStart = nil
+            let end = touch.location(in: self)
+            let deltaY = end.y - start.y
+            let deltaX = end.x - start.x
+            if abs(deltaY) > 48, abs(deltaY) > abs(deltaX) * 1.5 {
+                _ = gameState.moveVisibleFloor(by: deltaY > 0 ? 1 : -1)
+            }
+            return
+        }
         guard let node = dragNode, let touch = touches.first else { return }
 
         guard isDragging else {
@@ -193,7 +218,12 @@ final class BoardScene: SKScene {
         }
 
         switch gameState.handleDrop(fromCell: dragOriginCell, toCell: targetCell) {
-        case .merged(let cell, let evolvedTo, let promotedToFloor, _):
+        case .merged(let cell, let evolvedTo, let promotedType, let promotedToFloor, _):
+            // `layoutBoard()` recicla los nodos del campo. Tomamos la coordenada
+            // mundial antes de reconstruirlo para animar una copia independiente.
+            let promotionStart = promotedToFloor == nil
+                ? nil
+                : fieldNode.convert(node.position, to: backgroundLayer)
             dragNode = nil
             layoutBoard()
             // Si el resultado ascendió de piso (F7 §3.4), ya no está en este piso:
@@ -206,6 +236,9 @@ final class BoardScene: SKScene {
                     .scale(to: 1.25, duration: 0.1),
                     .scale(to: 1.0, duration: 0.12),
                 ]))
+            }
+            if let promotedType, let promotionStart {
+                runAscentAnimation(type: promotedType, from: promotionStart)
             }
             if let evolvedTo {
                 gameState.playHaptic(.evolution)
@@ -223,6 +256,7 @@ final class BoardScene: SKScene {
 
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         removeAction(forKey: Self.longPressKey)
+        emptyTouchStart = nil
         cancelDrag(snapBack: true)
     }
 
@@ -312,7 +346,7 @@ final class BoardScene: SKScene {
         flash.strokeColor = .clear
         flash.alpha = 0
         flash.zPosition = 200
-        addChild(flash)
+        cameraOverlay.addChild(flash)
         flash.run(.sequence([
             .fadeAlpha(to: reduceMotion ? 0.35 : 0.75, duration: 0.08),
             .fadeOut(withDuration: 0.35),
@@ -329,7 +363,7 @@ final class BoardScene: SKScene {
         scrim.position = .zero
         scrim.zPosition = 195
         scrim.alpha = 0
-        addChild(scrim)
+        cameraOverlay.addChild(scrim)
         scrim.run(.sequence([
             .fadeAlpha(to: 1.0, duration: 0.2),
             .wait(forDuration: hold),
@@ -347,7 +381,7 @@ final class BoardScene: SKScene {
             photo.zPosition = 208
             photo.alpha = 0
             photo.setScale(reduceMotion ? 1.0 : 0.5)
-            addChild(photo)
+            cameraOverlay.addChild(photo)
             let photoIn: SKAction = reduceMotion
                 ? .fadeIn(withDuration: 0.25)
                 : .group([.fadeIn(withDuration: 0.18), .sequence([.scale(to: 1.1, duration: 0.24), .scale(to: 1.0, duration: 0.12)])])
@@ -373,7 +407,7 @@ final class BoardScene: SKScene {
             .fadeOut(withDuration: 0.3),
             .removeFromParent(),
         ]))
-        addChild(tag)
+        cameraOverlay.addChild(tag)
 
         // Nombre del personaje ARRIBA de la foto.
         let banner = SKLabelNode(fontNamed: "AvenirNext-Heavy")
@@ -384,7 +418,7 @@ final class BoardScene: SKScene {
         banner.zPosition = 210
         banner.alpha = 0
         banner.setScale(reduceMotion ? 1.0 : 0.4)
-        addChild(banner)
+        cameraOverlay.addChild(banner)
 
         let entrance: SKAction = reduceMotion
             ? .fadeIn(withDuration: 0.25)
@@ -410,6 +444,9 @@ final class BoardScene: SKScene {
         lastLayoutSize = size
         renderedBoardVersion = gameState.boardVersion
 
+        let floorOffset = CGFloat(gameState.visibleFloorOrdinal) * size.height
+        backgroundLayer.position = .zero
+
         // Grilla del piso: 2 filas (franja de multitud), columnas según capacidad.
         boardRows = 2
         boardColumns = max(1, (floorDef.capacity + boardRows - 1) / boardRows)
@@ -420,11 +457,110 @@ final class BoardScene: SKScene {
         // arriba (profundidad de multitud, no una grilla que llena la pantalla).
         let availableWidth = size.width - Self.horizontalInset * 2
         cellSize = availableWidth / CGFloat(max(boardColumns, 1))
-        fieldNode.position = CGPoint(x: Self.horizontalInset, y: Self.bottomInset)
+        fieldNode.position = CGPoint(x: Self.horizontalInset, y: Self.bottomInset + floorOffset)
+
+        cameraOverlay.position = CGPoint(x: -size.width / 2, y: -size.height / 2)
+        moveCameraIfNeeded(to: floorOffset)
 
         rebuildAnchors(capacity: floorDef.capacity)
-        renderFieldBackground(content: content, floorDef: floorDef)
+        renderLiveFloorNodes(content: content)
         renderPlacements(content: content)
+    }
+
+    /// Mantiene sólo el piso visible y sus vecinos inmediatos. El resto de los
+    /// fondos se descarga; al volver a entrar se reconstruyen desde el manifest.
+    private func renderLiveFloorNodes(content: GameContent) {
+        let visible = gameState.visibleFloorOrdinal
+        let lower = max(0, visible - 1)
+        let upper = min(content.floorTable.floors.count - 1, visible + 1)
+        let liveOrdinals = Set(lower...upper)
+
+        // Primero materializamos las claves: mutar un Dictionary mientras se lo
+        // enumera puede invalidar su iterador al desalojar un piso lejano.
+        let staleOrdinals = floorNodes.keys.filter { !liveOrdinals.contains($0) }
+        for ordinal in staleOrdinals {
+            floorNodes.removeValue(forKey: ordinal)?.removeFromParent()
+        }
+
+        for ordinal in liveOrdinals {
+            let definition = content.floorTable[ordinal]
+            let node = floorNodes[ordinal] ?? FloorNode(ordinal: ordinal, definition: definition)
+            node.position = CGPoint(x: 0, y: CGFloat(ordinal) * size.height)
+            node.render(content: content, size: size)
+            node.isPaused = ordinal != visible
+            if floorNodes[ordinal] == nil {
+                backgroundLayer.addChild(node)
+                floorNodes[ordinal] = node
+            }
+        }
+    }
+
+    private func moveCameraIfNeeded(to floorOffset: CGFloat) {
+        let target = CGPoint(x: size.width / 2, y: size.height / 2 + floorOffset)
+        guard displayedFloorOrdinal != gameState.visibleFloorOrdinal || cameraNode.position != target else { return }
+        displayedFloorOrdinal = gameState.visibleFloorOrdinal
+        cameraNode.removeAction(forKey: "floorCamera")
+        guard !UIAccessibility.isReduceMotionEnabled else {
+            cameraNode.position = target
+            return
+        }
+        cameraNode.run(.move(to: target, duration: 0.35), withKey: "floorCamera")
+    }
+
+    /// Una promoción ya fue aplicada por EconomyKit antes de llegar acá. SpriteKit
+    /// sólo presenta un clon temporal: vuela hacia el piso superior y vuelve al
+    /// pool al finalizar, por lo que no deja un nodo interactivo duplicado.
+    private func runAscentAnimation(type: CharacterType, from start: CGPoint) {
+        guard let content = gameState.content else { return }
+        let flight = pool.obtain()
+        let hasRealArt = content.manifest.characters[type.id] != nil
+        flight.configure(
+            type: type,
+            texture: renderer.texture(for: type, manifest: content.manifest),
+            cellIndex: -1,
+            cellSize: cellSize,
+            skinTint: SkinResolver.tint(for: gameState.activeSkin),
+            hasRealArt: hasRealArt
+        )
+        flight.position = start
+        flight.zPosition = 120
+        flight.setScale(0.92)
+        backgroundLayer.addChild(flight)
+
+        let destination = CGPoint(x: start.x, y: start.y + size.height * Self.ascentDistanceRatio)
+        let flightAction: SKAction = UIAccessibility.isReduceMotionEnabled
+            ? .move(to: destination, duration: 0.01)
+            : .group([
+                .move(to: destination, duration: Self.ascentDuration),
+                .sequence([
+                    .scale(to: 1.12, duration: Self.ascentDuration * 0.45),
+                    .scale(to: 0.72, duration: Self.ascentDuration * 0.55),
+                ]),
+                .sequence([
+                    .wait(forDuration: Self.ascentDuration * 0.7),
+                    .fadeOut(withDuration: Self.ascentDuration * 0.3),
+                ]),
+            ])
+        flight.run(.sequence([
+            flightAction,
+            .run { [weak self, weak flight] in
+                guard let flight else { return }
+                self?.pool.recycle(flight)
+            },
+        ]))
+
+        particles.emit(.evolution, at: start, in: backgroundLayer)
+        guard let flashAsset = content.manifest.ui["fx_evolution_flash"] else { return }
+        let flash = SKSpriteNode(texture: SKTextureAtlas(named: "ui").textureNamed(flashAsset))
+        let flashSide = cellSize * 2.1
+        flash.size = CGSize(width: flashSide, height: flashSide)
+        flash.position = start
+        flash.zPosition = 121
+        backgroundLayer.addChild(flash)
+        flash.run(.sequence([
+            .group([.scale(to: 1.35, duration: 0.16), .fadeOut(withDuration: 0.24)]),
+            .removeFromParent(),
+        ]))
     }
 
     /// Ancla por slot: punto de grilla lógica + jitter determinístico
@@ -452,61 +588,6 @@ final class BoardScene: SKScene {
                 y: frontY + CGFloat(row) * rowDepth + jitterY
             )
         }
-    }
-
-    // MARK: - Fondo por piso (F7: floors[] en config; la tabla de stages murió)
-
-    /// Colores de fallback (cielo, piso) hasta que el arte real llene el manifest.
-    private static let stageFallbackColors: [String: (sky: SKColor, ground: SKColor)] = [
-        "alley": (SKColor(red: 0.62, green: 0.66, blue: 0.72, alpha: 1), SKColor(red: 0.45, green: 0.45, blue: 0.48, alpha: 1)),
-        "urban": (SKColor(red: 0.55, green: 0.78, blue: 0.95, alpha: 1), SKColor(red: 0.72, green: 0.66, blue: 0.55, alpha: 1)),
-        "corporate": (SKColor(red: 0.7, green: 0.85, blue: 0.95, alpha: 1), SKColor(red: 0.7, green: 0.7, blue: 0.72, alpha: 1)),
-        "luxury": (SKColor(red: 0.45, green: 0.8, blue: 0.85, alpha: 1), SKColor(red: 0.93, green: 0.89, blue: 0.78, alpha: 1)),
-        "island": (SKColor(red: 0.4, green: 0.85, blue: 0.95, alpha: 1), SKColor(red: 0.96, green: 0.87, blue: 0.62, alpha: 1)),
-        "moon": (SKColor(red: 0.08, green: 0.08, blue: 0.14, alpha: 1), SKColor(red: 0.55, green: 0.55, blue: 0.58, alpha: 1)),
-        "mars": (SKColor(red: 0.25, green: 0.1, blue: 0.1, alpha: 1), SKColor(red: 0.75, green: 0.4, blue: 0.25, alpha: 1)),
-        "solar": (SKColor(red: 0.06, green: 0.07, blue: 0.2, alpha: 1), SKColor(red: 0.9, green: 0.6, blue: 0.2, alpha: 1)),
-        "galaxy": (SKColor(red: 0.12, green: 0.05, blue: 0.25, alpha: 1), SKColor(red: 0.4, green: 0.3, blue: 0.6, alpha: 1)),
-        "cosmic": (SKColor(red: 0.04, green: 0.02, blue: 0.1, alpha: 1), SKColor(red: 0.3, green: 0.15, blue: 0.45, alpha: 1)),
-        "god_realm": (SKColor(red: 1.0, green: 0.92, blue: 0.7, alpha: 1), SKColor(red: 1.0, green: 0.97, blue: 0.88, alpha: 1)),
-    ]
-
-    private func renderFieldBackground(content: GameContent, floorDef: FloorDef) {
-        let stage = floorDef.background
-        guard stage != renderedStageKey || backgroundLayer.children.isEmpty else { return }
-        renderedStageKey = stage
-        backgroundLayer.removeAllChildren()
-
-        // Arte real del manifest si existe; si no, cielo + piso de fallback.
-        if let assetName = content.manifest.backgrounds[stage].flatMap({ $0.isEmpty ? nil : $0 }),
-           UIImage(named: assetName) != nil {
-            let sprite = SKSpriteNode(imageNamed: assetName)
-            // Aspect-FILL: escalar para cubrir la pantalla SIN deformar (se recorta
-            // el excedente). Un poco extra para agrandar la franja de piso, y
-            // anclado abajo para que el piso jugable se vea completo y grande.
-            let tex = sprite.texture?.size() ?? CGSize(width: 1024, height: 1024)
-            let scale = max(size.width / tex.width, size.height / tex.height) * 1.18
-            sprite.size = CGSize(width: tex.width * scale, height: tex.height * scale)
-            sprite.anchorPoint = CGPoint(x: 0.5, y: 0.0)
-            sprite.position = CGPoint(x: size.width / 2, y: 0)
-            sprite.zPosition = -100
-            backgroundLayer.addChild(sprite)
-            return
-        }
-
-        let colors = Self.stageFallbackColors[stage] ?? (Palette.cream, Palette.yellow)
-        let sky = SKSpriteNode(color: colors.sky, size: size)
-        sky.anchorPoint = .zero
-        sky.position = .zero
-        sky.zPosition = -100
-        backgroundLayer.addChild(sky)
-
-        let groundHeight = size.height * 0.62
-        let ground = SKSpriteNode(color: colors.ground, size: CGSize(width: size.width, height: groundHeight))
-        ground.anchorPoint = .zero
-        ground.position = .zero
-        ground.zPosition = -99
-        backgroundLayer.addChild(ground)
     }
 
     private func renderPlacements(content: GameContent) {

@@ -26,6 +26,39 @@ struct GameLoopWiringTests {
         gameState.visiblePlacements.filter { $0.typeId == typeId }.map(\.slot).sorted()
     }
 
+    // MARK: Torre en escena (F7.2)
+
+    @Test func towerNavigationProjectsUnlockedBoundsAndTotalIncome() async throws {
+        let gameState = await makeGameState()
+
+        #expect(gameState.towerNavigation.floorID == "alley")
+        #expect(gameState.towerNavigation.ordinal == 0)
+        #expect(gameState.towerNavigation.totalFloors == gameState.floorTable?.floors.count)
+        #expect(gameState.towerNavigation.canNavigateUp == false)
+        #expect(gameState.towerNavigation.canNavigateDown == false)
+
+        // El helper coloca el par en urban y lo desbloquea: la navegación nunca
+        // puede saltar a un piso que la run todavía no abrió.
+        gameState.debugSetMaxTier(5)
+        gameState.debugGrantPair()
+        #expect(gameState.towerNavigation.canNavigateUp)
+
+        let versionBeforeNavigation = gameState.boardVersion
+        #expect(gameState.moveVisibleFloor(by: 1))
+        #expect(gameState.visibleFloorOrdinal == 1)
+        #expect(gameState.towerNavigation.floorID == "urban")
+        #expect(gameState.towerNavigation.canNavigateUp == false)
+        #expect(gameState.towerNavigation.canNavigateDown)
+        #expect(gameState.boardVersion > versionBeforeNavigation)
+        #expect(gameState.moveVisibleFloor(by: 1) == false)
+
+        gameState.debugGrantCoins()
+        gameState.unlockPassive(typeId: "homeless")
+        gameState.flushHUD()
+        #expect(gameState.towerIncomePerSecond > 0)
+        #expect(gameState.towerIncomePerSecondText != "0")
+    }
+
     // MARK: Drag & drop en el piso visible
 
     @Test func dropOnSameTypeMergesOnVisibleFloor() async throws {
@@ -38,6 +71,7 @@ struct GameLoopWiringTests {
         guard case .merged(
             targetCell: let targetCell,
             evolvedTo: let evolvedTo,
+            promotedType: let promotedType,
             promotedToFloor: let promotedToFloor,
             unlockedFloorId: let unlockedFloorId
         ) = resolution else {
@@ -48,6 +82,7 @@ struct GameLoopWiringTests {
         // Primer cartonero: el tier máximo avanzó → hay reveal.
         #expect(evolvedTo?.id == "cartonero")
         // T2 sigue viviendo en el alley (1-2): ni ascenso ni desbloqueo.
+        #expect(promotedType == nil)
         #expect(promotedToFloor == nil)
         #expect(unlockedFloorId == nil)
         #expect(gameState.player?.run.units == ["homeless": 1, "cartonero": 1])
@@ -138,6 +173,7 @@ struct GameLoopWiringTests {
         guard case .merged(
             targetCell: _,
             evolvedTo: let evolvedTo,
+            promotedType: let promotedType,
             promotedToFloor: let promotedToFloor,
             unlockedFloorId: let unlockedFloorId
         ) = resolution else {
@@ -147,6 +183,7 @@ struct GameLoopWiringTests {
         // T10 pertenece a luxury (10-13): reveal + ascenso + desbloqueo.
         let luxuryOrdinal = try #require(gameState.floorTable?.ordinal(of: "luxury"))
         #expect(evolvedTo?.id == "senior_programmer")
+        #expect(promotedType?.id == "senior_programmer")
         #expect(promotedToFloor == luxuryOrdinal)
         #expect(unlockedFloorId == "luxury")
         #expect(gameState.player?.run.unlockedFloors.contains("luxury") == true)

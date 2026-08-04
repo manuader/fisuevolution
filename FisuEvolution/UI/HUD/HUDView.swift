@@ -11,18 +11,21 @@ struct HUDView: View {
     var body: some View {
         // Agrupado izq/der con Spacers flexibles: los botones de las puntas nunca
         // se recortan contra el borde de la pantalla (bug de desborde horizontal).
-        HStack(spacing: 0) {
-            HStack(spacing: 8) {
-                hudIconButton(systemName: "cart.fill", tint: Color("PaletteOrange"), labelKey: "hud.store.label", identifier: "hud.store", action: onStoreTap)
-                hudIconButton(systemName: "arrow.up.circle.fill", tint: Color("PaletteGreen"), labelKey: "hud.upgrades.label", identifier: "hud.upgrades", action: onUpgradesTap)
+        VStack(spacing: 5) {
+            HStack(spacing: 0) {
+                HStack(spacing: 8) {
+                    hudIconButton(systemName: "cart.fill", tint: Color("PaletteOrange"), labelKey: "hud.store.label", identifier: "hud.store", action: onStoreTap)
+                    hudIconButton(systemName: "arrow.up.circle.fill", tint: Color("PaletteGreen"), labelKey: "hud.upgrades.label", identifier: "hud.upgrades", action: onUpgradesTap)
+                }
+                Spacer(minLength: 6)
+                coinCounter
+                Spacer(minLength: 6)
+                HStack(spacing: 8) {
+                    hudIconButton(systemName: "gift.fill", tint: Color("PalettePink"), labelKey: "hud.bonus.label", identifier: "hud.bonus", action: onBonusTap)
+                    hudIconButton(systemName: "gearshape.fill", tint: Color("PaletteBlue"), labelKey: "hud.settings.label", identifier: "hud.settings", action: onSettingsTap)
+                }
             }
-            Spacer(minLength: 6)
-            coinCounter
-            Spacer(minLength: 6)
-            HStack(spacing: 8) {
-                hudIconButton(systemName: "gift.fill", tint: Color("PalettePink"), labelKey: "hud.bonus.label", identifier: "hud.bonus", action: onBonusTap)
-                hudIconButton(systemName: "gearshape.fill", tint: Color("PaletteBlue"), labelKey: "hud.settings.label", identifier: "hud.settings", action: onSettingsTap)
-            }
+            towerNavigator
         }
         .padding(.horizontal, 10)
         .padding(.top, 8)
@@ -56,6 +59,67 @@ struct HUDView: View {
         .accessibilityIdentifier("hud.coins")
         .accessibilityLabel(Text("hud.coins.label"))
         .accessibilityValue(Text(verbatim: gameState.coinsText))
+    }
+
+    private var towerNavigator: some View {
+        let navigation = gameState.towerNavigation
+        return HStack(spacing: 6) {
+            towerArrow(systemName: "chevron.down", direction: -1, enabled: navigation.canNavigateDown, identifier: "tower.arrow.down")
+            VStack(spacing: 1) {
+                Text(floorNameKey(for: navigation.floorID))
+                    .font(.system(.caption, design: .rounded).weight(.heavy))
+                    .lineLimit(1)
+                Text("\(navigation.ordinal + 1)/\(navigation.totalFloors) · \(navigation.occupied)/\(navigation.capacity) · \(gameState.towerIncomePerSecondText)/s")
+                    .font(.system(size: 10, design: .rounded).weight(.semibold))
+                    .monospacedDigit()
+                    .lineLimit(1)
+            }
+            .foregroundStyle(Color("PaletteInk"))
+            .frame(minWidth: 130)
+            .accessibilityElement(children: .ignore)
+            .accessibilityIdentifier("tower.pill")
+            .accessibilityLabel(Text(floorNameKey(for: navigation.floorID)))
+            .accessibilityValue("\(navigation.occupied)/\(navigation.capacity)")
+            towerArrow(systemName: "chevron.up", direction: 1, enabled: navigation.canNavigateUp, identifier: "tower.arrow.up")
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(Capsule().fill(Color("PaletteCream")).overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2)))
+    }
+
+    private func towerArrow(systemName: String, direction: Int, enabled: Bool, identifier: String) -> some View {
+        Button {
+            _ = gameState.moveVisibleFloor(by: direction)
+        } label: {
+            Image(systemName: systemName)
+                .font(.system(size: 13, weight: .heavy))
+                .foregroundStyle(enabled ? Color("PaletteBlue") : Color("PaletteInk").opacity(0.28))
+                .frame(width: 26, height: 26)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!enabled)
+        .accessibilityIdentifier(identifier)
+        .accessibilityLabel(Text(direction > 0 ? "tower.navigate.up" : "tower.navigate.down"))
+    }
+
+    /// `LocalizedStringKey` no resuelve claves construidas por interpolación; el
+    /// switch conserva las claves estáticas para que el catálogo las traduzca.
+    private func floorNameKey(for floorID: String) -> LocalizedStringKey {
+        switch floorID {
+        case "alley": "tower.floor.alley"
+        case "urban": "tower.floor.urban"
+        case "corporate": "tower.floor.corporate"
+        case "luxury": "tower.floor.luxury"
+        case "island": "tower.floor.island"
+        case "moon": "tower.floor.moon"
+        case "mars": "tower.floor.mars"
+        case "solar": "tower.floor.solar"
+        case "galaxy": "tower.floor.galaxy"
+        case "cosmic": "tower.floor.cosmic"
+        case "god_realm": "tower.floor.god_realm"
+        default: "tower.floor.alley"
+        }
     }
 
     /// Botón de icono unificado: misma base (círculo crema + borde ink), mismo

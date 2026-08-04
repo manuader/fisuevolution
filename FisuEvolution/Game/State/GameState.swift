@@ -47,10 +47,39 @@ final class GameState {
         let amount: Double
     }
 
+    /// Proyección chica y estable para los controles de navegación de la torre.
+    /// La UI no inspecciona `PlayerState` ni `TowerState`: recibe sólo el piso
+    /// visible, su capacidad y los límites desbloqueados de la run actual.
+    struct TowerNavigation: Equatable {
+        let floorID: String
+        let ordinal: Int
+        let totalFloors: Int
+        let occupied: Int
+        let capacity: Int
+        let canNavigateUp: Bool
+        let canNavigateDown: Bool
+
+        static let empty = TowerNavigation(
+            floorID: "",
+            ordinal: 0,
+            totalFloors: 0,
+            occupied: 0,
+            capacity: 0,
+            canNavigateUp: false,
+            canNavigateDown: false
+        )
+    }
+
     enum DropResolution {
         /// `evolvedTo` presente cuando el merge alcanzó un tier nuevo (reveal).
         /// `promotedToFloor` presente cuando el resultado ascendió de piso.
-        case merged(targetCell: Int, evolvedTo: CharacterType?, promotedToFloor: Int?, unlockedFloorId: String?)
+        case merged(
+            targetCell: Int,
+            evolvedTo: CharacterType?,
+            promotedType: CharacterType?,
+            promotedToFloor: Int?,
+            unlockedFloorId: String?
+        )
         case moved
         case careerPending
         case snapBack
@@ -79,6 +108,11 @@ final class GameState {
     private(set) var showMergeHint = false
     /// Piso visible (ordinal 0-based). La escena lo consume vía boardVersion.
     private(set) var visibleFloorOrdinal = 0
+    /// Estado listo para la pill y las flechas de F7.2.
+    private(set) var towerNavigation = TowerNavigation.empty
+    /// Income pasivo agregado de todos los pisos, aunque no estén en cámara.
+    private(set) var towerIncomePerSecond = 0.0
+    private(set) var towerIncomePerSecondText = "0"
     /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen
     /// `player` directo lo observan para re-renderizar.
     private(set) var effectsVersion = 0
@@ -165,6 +199,16 @@ final class GameState {
         bumpBoard()
     }
 
+    /// Navega exactamente un piso en la torre. Devuelve `false` en los límites
+    /// desbloqueados para que SpriteKit no anime una cámara que no se movió.
+    @discardableResult
+    func moveVisibleFloor(by direction: Int) -> Bool {
+        guard direction == -1 || direction == 1 else { return false }
+        let previous = visibleFloorOrdinal
+        setVisibleFloor(previous + direction)
+        return visibleFloorOrdinal != previous
+    }
+
     // MARK: Bootstrap
 
     func bootstrap() async {
@@ -213,6 +257,11 @@ final class GameState {
             }
 
             reconcileTower()
+            #if DEBUG
+            if ProcessInfo.processInfo.arguments.contains("--uitest-unlock-tower") {
+                debugUnlockFloors(throughTier: 5)
+            }
+            #endif
             applyOfflineProgressIfNeeded()
             // El primer launch de una cuenta nueva no reclama daily: el jugador
             // todavía no jugó y el popup compite con el tutorial (FTUE).
@@ -442,9 +491,21 @@ final class GameState {
                 scheduleSave()
                 switch result {
                 case .stayed(_, let slot, _):
-                    return .merged(targetCell: slot, evolvedTo: evolvedTo, promotedToFloor: nil, unlockedFloorId: nil)
+                    return .merged(
+                        targetCell: slot,
+                        evolvedTo: evolvedTo,
+                        promotedType: nil,
+                        promotedToFloor: nil,
+                        unlockedFloorId: nil
+                    )
                 case .promoted(let toFloor, _, _, let unlockedFloorId):
-                    return .merged(targetCell: toCell, evolvedTo: evolvedTo, promotedToFloor: toFloor, unlockedFloorId: unlockedFloorId)
+                    return .merged(
+                        targetCell: toCell,
+                        evolvedTo: evolvedTo,
+                        promotedType: content.tiers.type(id: newTypeId),
+                        promotedToFloor: toFloor,
+                        unlockedFloorId: unlockedFloorId
+                    )
                 case .requiresCareerChoice:
                     return .snapBack  // unreachable: MergeRules ya resolvió
                 }
@@ -997,6 +1058,17 @@ final class GameState {
         refreshProjections()
     }
 
+    /// Fixture de UI test: desbloquea pisos por la tabla data-driven, sin tocar
+    /// el binario Release ni depender de un save preexistente en el simulador.
+    func debugUnlockFloors(throughTier tier: Int) {
+        guard var player, let content else { return }
+        let highestOrdinal = content.floorTable.ordinal(forTier: tier)
+        player.run.unlockedFloors = content.floorTable.floors.prefix(highestOrdinal + 1).map(\.id)
+        self.player = player
+        visibleFloorOrdinal = 0
+        refreshProjections()
+    }
+
     func debugSimulateOffline(hours: Double) {
         guard var player else { return }
         player.meta.lastSeenTimestamp -= hours * 3600
@@ -1063,6 +1135,24 @@ final class GameState {
         let total = player.run.totalUnits
         if unitCount != total { unitCount = total }
 
+        let navigation = makeTowerNavigation(content: content, player: player)
+        if towerNavigation != navigation { towerNavigation = navigation }
+
+        let towerIncome = IncomeTicker.passivePerSecond(
+            state: player,
+            tiers: content.tiers,
+            floorTable: content.floorTable,
+            config: content.economy,
+            now: Date().timeIntervalSince1970
+        )
+        if towerIncomePerSecond != towerIncome { towerIncomePerSecond = towerIncome }
+        // El formatter de monedas redondea los valores sub-unitarios a 0, pero
+        // en una tasa eso escondería income real al comienzo de la partida.
+        let incomeText = towerIncome > 0 && towerIncome < 1
+            ? towerIncome.formatted(.number.precision(.fractionLength(1)))
+            : CoinFormatter.string(from: towerIncome)
+        if towerIncomePerSecondText != incomeText { towerIncomePerSecondText = incomeText }
+
         let canReincarnate = economy.map { PrestigeCalculator.canReincarnate(state: player, economy: $0) } ?? false
         if prestigeAvailable != canReincarnate { prestigeAvailable = canReincarnate }
 
@@ -1085,6 +1175,25 @@ final class GameState {
         }
         let mergeHint = ftueSpawned && !ftueMerged && pairExists
         if showMergeHint != mergeHint { showMergeHint = mergeHint }
+    }
+
+    private func makeTowerNavigation(content: GameContent, player: PlayerState) -> TowerNavigation {
+        let floors = content.floorTable.floors
+        guard floors.indices.contains(visibleFloorOrdinal) else { return .empty }
+        let visible = floors[visibleFloorOrdinal]
+        let occupancy = visibleFloorOccupancy
+        let unlocked = Set(player.run.unlockedFloors)
+        return TowerNavigation(
+            floorID: visible.id,
+            ordinal: visibleFloorOrdinal,
+            totalFloors: floors.count,
+            occupied: occupancy.occupied,
+            capacity: occupancy.capacity,
+            canNavigateUp: floors.indices.contains(visibleFloorOrdinal + 1)
+                && unlocked.contains(floors[visibleFloorOrdinal + 1].id),
+            canNavigateDown: floors.indices.contains(visibleFloorOrdinal - 1)
+                && unlocked.contains(floors[visibleFloorOrdinal - 1].id)
+        )
     }
 
     private func scheduleSave() {

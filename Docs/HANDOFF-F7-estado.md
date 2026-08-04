@@ -18,6 +18,26 @@
 >
 > **Lo que sigue: F7.2** (torre en escena — ver §6 y `Docs/PLAN-F7-torre.md`).
 
+> ## ✅ ACTUALIZACIÓN 2026-08-04 (madrugada): F7.2 CERRADO
+>
+> La torre ya vive en la escena: `SKCameraNode`, `FloorNode` apilados y lazy
+> visible ±1, overlay de reveal fijado a cámara, navegación por flechas y swipe
+> en espacio vacío, pill accesible con income total y ascenso visual pooled.
+> `TowerNavigation` es la única proyección que consume la UI; los nombres de los
+> 11 pisos y a11y están localizados en es/en. Se agregó un fixture sólo DEBUG
+> (`--uitest-unlock-tower`) para validar navegación determinista sin un save.
+>
+> Verificación final: **126 tests EconomyKit + 66 tests app, todos verdes**;
+> `GameLoopWiringTests` 11/11, smoke UI 3/3 (flecha y drag vertical reales),
+> build Debug con warnings-as-errors y captura persistente
+> `scratchpad/qa-shots/F7.2-navigator.png` a **60 fps**. `graphify` sigue sin
+> instalar en este entorno. Se regeneró el proyecto con `xcodegen generate`
+> porque el nuevo archivo no aparecía en el build generado.
+>
+> **Lo que sigue: F7.3** — UX de contratación contextual/bloqueos, celebración
+> del unlock con cámara y tutorial de torre/ascenso. Bitácora de esta sesión:
+> `Docs/SESION-2026-08-03-f7-torre.md`.
+
 > **Para el agente que retoma:** este doc te deja arrancar DE CERO. Leelo entero,
 > después leé `Docs/PROMPT-F7-torre-de-escenarios.md` (spec funcional aprobada) y
 > `Docs/PLAN-F7-torre.md` (plan de implementación aprobado, con arquitectura,
@@ -88,8 +108,8 @@ cortísima; passive income inútil. F7 = rediseño "La Torre".
 | Fase | Estado |
 |---|---|
 | **F7.0** docs (prompt+plan) | ✅ COMMITEADO (`d7cf370`) |
-| **F7.1** EconomyKit v2 + estado v4 + migración | 🟡 **CÓDIGO FUENTE COMPLETO Y COMPILANDO — TESTS SIN MIGRAR** (ver §5) |
-| F7.2 Torre en escena (cámara/FloorNodes/navegación) | ⬜ pendiente |
+| **F7.1** EconomyKit v2 + estado v4 + migración | ✅ cerrado (`432e6a5`; el §5 es histórico) |
+| **F7.2** Torre en escena (cámara/FloorNodes/navegación) | ✅ cerrado (ver actualización 2026-08-04) |
 | F7.3 Contratación por piso + desbloqueo + tutorial | ⬜ pendiente (parcial: la lógica ya existe en F7.1; falta UX) |
 | F7.4 ORO UI + upgrades currency + PrestigeView | ⬜ pendiente |
 | F7.5 Skins + ficha | ⬜ pendiente |

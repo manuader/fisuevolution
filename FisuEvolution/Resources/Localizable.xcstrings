@@ -1981,6 +1981,84 @@
         }
       }
     },
+    "tower.floor.alley" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Alley" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Callejón" } }
+      }
+    },
+    "tower.floor.urban" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "City" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ciudad" } }
+      }
+    },
+    "tower.floor.corporate" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Corporate" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Corporativo" } }
+      }
+    },
+    "tower.floor.luxury" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Luxury" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Lujo" } }
+      }
+    },
+    "tower.floor.island" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Island" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Isla" } }
+      }
+    },
+    "tower.floor.moon" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Moon" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Luna" } }
+      }
+    },
+    "tower.floor.mars" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Mars" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Marte" } }
+      }
+    },
+    "tower.floor.solar" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Solar system" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sistema solar" } }
+      }
+    },
+    "tower.floor.galaxy" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Galaxy" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Galaxia" } }
+      }
+    },
+    "tower.floor.cosmic" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cosmic realm" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reino cósmico" } }
+      }
+    },
+    "tower.floor.god_realm" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "God realm" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reino divino" } }
+      }
+    },
+    "tower.navigate.down" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Go down one floor" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Bajar un piso" } }
+      }
+    },
+    "tower.navigate.up" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Go up one floor" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Subir un piso" } }
+      }
+    },
     "upgrade.tap.title" : {
       "extractionState" : "stale",
       "localizations" : {

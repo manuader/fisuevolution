@@ -218,7 +218,7 @@ final class BoardScene: SKScene {
         }
 
         switch gameState.handleDrop(fromCell: dragOriginCell, toCell: targetCell) {
-        case .merged(let cell, let evolvedTo, let promotedType, let promotedToFloor, _):
+        case .merged(let cell, let evolvedTo, let promotedType, let promotedToFloor, let unlockedFloorID):
             // `layoutBoard()` recicla los nodos del campo. Tomamos la coordenada
             // mundial antes de reconstruirlo para animar una copia independiente.
             let promotionStart = promotedToFloor == nil
@@ -239,6 +239,9 @@ final class BoardScene: SKScene {
             }
             if let promotedType, let promotionStart {
                 runAscentAnimation(type: promotedType, from: promotionStart)
+            }
+            if let unlockedFloorID, let promotedToFloor {
+                runFloorUnlockCelebration(floorID: unlockedFloorID, destinationOrdinal: promotedToFloor)
             }
             if let evolvedTo {
                 gameState.playHaptic(.evolution)
@@ -465,6 +468,7 @@ final class BoardScene: SKScene {
         rebuildAnchors(capacity: floorDef.capacity)
         renderLiveFloorNodes(content: content)
         renderPlacements(content: content)
+        renderLockedFloorOverlay()
     }
 
     /// Mantiene sólo el piso visible y sus vecinos inmediatos. El resto de los
@@ -563,6 +567,52 @@ final class BoardScene: SKScene {
         ]))
     }
 
+    /// El primer ascenso que abre un piso conserva el vuelo en pantalla y, al
+    /// terminar, lleva la cámara a la nueva escena. En promociones posteriores
+    /// la cámara no roba el foco: queda un indicador de ascenso en F7.2.
+    private func runFloorUnlockCelebration(floorID: String, destinationOrdinal: Int) {
+        let reduceMotion = UIAccessibility.isReduceMotionEnabled
+        let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+        title.text = String(localized: "tower.unlock.title")
+        title.fontSize = 29
+        title.fontColor = Palette.yellow
+        title.position = CGPoint(x: size.width / 2, y: size.height * 0.63)
+        title.zPosition = 220
+        title.alpha = 0
+        cameraOverlay.addChild(title)
+        let titleEntrance: SKAction = reduceMotion
+            ? .fadeIn(withDuration: 0.01)
+            : .group([.fadeIn(withDuration: 0.15), .sequence([.scale(to: 1.12, duration: 0.18), .scale(to: 1, duration: 0.1)])])
+        title.run(.sequence([
+            titleEntrance,
+            .wait(forDuration: 0.9),
+            .fadeOut(withDuration: 0.22),
+            .removeFromParent(),
+        ]))
+
+        let hint = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        hint.text = String(localized: "tower.unlock.hint")
+        hint.fontSize = 18
+        hint.fontColor = Palette.cream
+        hint.position = CGPoint(x: size.width / 2, y: size.height * 0.56)
+        hint.zPosition = 220
+        hint.alpha = 0
+        cameraOverlay.addChild(hint)
+        hint.run(.sequence([
+            .fadeIn(withDuration: reduceMotion ? 0.01 : 0.15),
+            .wait(forDuration: 0.9),
+            .fadeOut(withDuration: 0.22),
+            .removeFromParent(),
+        ]))
+
+        gameState.playHaptic(.rarity)
+        run(.sequence([
+            .wait(forDuration: reduceMotion ? 0.01 : Self.ascentDuration),
+            .run { [weak self] in self?.gameState.setVisibleFloor(destinationOrdinal) },
+        ]), withKey: "unlockCamera")
+        Log.board.info("floor unlocked: \(floorID)")
+    }
+
     /// Ancla por slot: punto de grilla lógica + jitter determinístico
     /// (hash del índice), para que el campo se vea orgánico pero estable entre
     /// launches y consistente con el modelo de slots del piso.
@@ -619,6 +669,54 @@ final class BoardScene: SKScene {
             characterNodes[placement.slot] = node
             startWander(node)
         }
+    }
+
+    /// Un único vistazo al siguiente piso bloqueado hace visible la meta sin
+    /// convertirlo en un tablero jugable. El scrim vive bajo la cámara, por lo
+    /// que acompaña cualquier cambio de piso y no tapa el HUD de SwiftUI.
+    private func renderLockedFloorOverlay() {
+        cameraOverlay.childNode(withName: "lockedFloorOverlay")?.removeFromParent()
+        guard !gameState.visibleFloorIsUnlocked else { return }
+
+        let overlay = SKNode()
+        overlay.name = "lockedFloorOverlay"
+        overlay.zPosition = 210
+
+        let veil = SKShapeNode(rect: CGRect(origin: .zero, size: size))
+        veil.fillColor = .black.withAlphaComponent(0.36)
+        veil.strokeColor = .clear
+        overlay.addChild(veil)
+
+        let lock = SKNode()
+        lock.position = CGPoint(x: size.width / 2, y: size.height * 0.55)
+        let shackle = SKShapeNode(rectOf: CGSize(width: 38, height: 42), cornerRadius: 18)
+        shackle.position.y = 17
+        shackle.strokeColor = Palette.cream
+        shackle.lineWidth = 5
+        shackle.fillColor = .clear
+        lock.addChild(shackle)
+        let body = SKShapeNode(rectOf: CGSize(width: 62, height: 48), cornerRadius: 8)
+        body.position.y = -18
+        body.fillColor = Palette.yellow
+        body.strokeColor = Palette.ink
+        body.lineWidth = 3
+        lock.addChild(body)
+        overlay.addChild(lock)
+
+        let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+        title.text = String(localized: "tower.locked.title")
+        title.fontSize = 25
+        title.fontColor = Palette.cream
+        title.position = CGPoint(x: size.width / 2, y: size.height * 0.40)
+        overlay.addChild(title)
+
+        let hint = SKLabelNode(fontNamed: "AvenirNext-Bold")
+        hint.text = String(localized: "tower.locked.hint")
+        hint.fontSize = 17
+        hint.fontColor = Palette.cream
+        hint.position = CGPoint(x: size.width / 2, y: size.height * 0.35)
+        overlay.addChild(hint)
+        cameraOverlay.addChild(overlay)
     }
 
     /// Los de abajo (más "cerca") tapan a los de arriba — profundidad de campo.

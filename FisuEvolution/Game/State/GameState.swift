@@ -70,6 +70,18 @@ final class GameState {
         )
     }
 
+    /// Mensaje efímero que la escena o el HUD presenta sin conocer errores de
+    /// EconomyKit. La lógica conserva el error tipado; la UI recibe intención.
+    struct TowerNotice: Identifiable, Equatable {
+        enum Kind: Equatable {
+            case floorFull
+            case destinationFloorFull(floorID: String)
+        }
+
+        let id = UUID()
+        let kind: Kind
+    }
+
     enum DropResolution {
         /// `evolvedTo` presente cuando el merge alcanzó un tier nuevo (reveal).
         /// `promotedToFloor` presente cuando el resultado ascendió de piso.
@@ -113,6 +125,9 @@ final class GameState {
     /// Income pasivo agregado de todos los pisos, aunque no estén en cámara.
     private(set) var towerIncomePerSecond = 0.0
     private(set) var towerIncomePerSecondText = "0"
+    private(set) var visibleFloorIsFull = false
+    private(set) var visibleFloorIsUnlocked = false
+    var towerNotice: TowerNotice?
     /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen
     /// `player` directo lo observan para re-renderizar.
     private(set) var effectsVersion = 0
@@ -185,22 +200,23 @@ final class GameState {
         return (floor.occupiedCount, floor.def.capacity)
     }
 
-    /// Cambia el piso visible (clampeado a pisos desbloqueados). La navegación
-    /// completa (swipe/flechas/asomarse a bloqueados) llega en F7.2.
+    /// Cambia el piso visible dentro de los abiertos y permite asomarse a uno
+    /// bloqueado. Así se ve la meta siguiente sin poder contratar ni saltar más.
     func setVisibleFloor(_ ordinal: Int) {
         guard let content, let player else { return }
         let unlockedOrdinals = content.floorTable.floors.enumerated()
             .filter { player.run.unlockedFloors.contains($0.element.id) }
             .map(\.offset)
         guard let maxUnlocked = unlockedOrdinals.max() else { return }
-        let clamped = min(max(0, ordinal), maxUnlocked)
+        let maxVisible = min(maxUnlocked + 1, content.floorTable.floors.count - 1)
+        let clamped = min(max(0, ordinal), maxVisible)
         guard clamped != visibleFloorOrdinal else { return }
         visibleFloorOrdinal = clamped
         bumpBoard()
     }
 
-    /// Navega exactamente un piso en la torre. Devuelve `false` en los límites
-    /// desbloqueados para que SpriteKit no anime una cámara que no se movió.
+    /// Navega exactamente un piso en la torre. El límite superior es la vista
+    /// previa del próximo piso bloqueado, para que SpriteKit no anime más allá.
     @discardableResult
     func moveVisibleFloor(by direction: Int) -> Bool {
         guard direction == -1 || direction == 1 else { return false }
@@ -435,6 +451,9 @@ final class GameState {
             bumpBoard()
             scheduleSave()
         } catch {
+            if case TowerError.floorFull = error {
+                towerNotice = TowerNotice(kind: .floorFull)
+            }
             haptics?.play(.error)
             Log.economy.info("hire rejected: \(error)")
         }
@@ -509,7 +528,8 @@ final class GameState {
                 case .requiresCareerChoice:
                     return .snapBack  // unreachable: MergeRules ya resolvió
                 }
-            } catch TowerError.destinationFloorFull {
+            } catch TowerError.destinationFloorFull(let floorID) {
+                towerNotice = TowerNotice(kind: .destinationFloorFull(floorID: floorID))
                 haptics?.play(.error)
                 Log.economy.info("merge blocked: destination floor full")
                 return .snapBack
@@ -572,6 +592,11 @@ final class GameState {
         updateMaxFloorStat()
         bumpBoard()
         scheduleSave()
+    }
+
+    func dismissTowerNotice(id: UUID) {
+        guard towerNotice?.id == id else { return }
+        towerNotice = nil
     }
 
     private func reportMergeMilestones() {
@@ -1129,6 +1154,8 @@ final class GameState {
         // Piso visible lleno o bloqueado ⇒ no se puede contratar.
         let floorFull = visibleFloorOccupancy.occupied >= max(visibleFloorOccupancy.capacity, 1)
         let floorUnlocked = visibleFloorDef.map { player.run.unlockedFloors.contains($0.id) } ?? false
+        if visibleFloorIsFull != floorFull { visibleFloorIsFull = floorFull }
+        if visibleFloorIsUnlocked != floorUnlocked { visibleFloorIsUnlocked = floorUnlocked }
         let affordable = (quote.map { player.run.coins >= $0.cost } ?? false) && !floorFull && floorUnlocked
         if canAffordSpawn != affordable { canAffordSpawn = affordable }
 
@@ -1183,16 +1210,19 @@ final class GameState {
         let visible = floors[visibleFloorOrdinal]
         let occupancy = visibleFloorOccupancy
         let unlocked = Set(player.run.unlockedFloors)
+        let maxUnlocked = floors.enumerated()
+            .filter { unlocked.contains($0.element.id) }
+            .map(\.offset)
+            .max() ?? 0
+        let maxVisible = min(maxUnlocked + 1, floors.count - 1)
         return TowerNavigation(
             floorID: visible.id,
             ordinal: visibleFloorOrdinal,
             totalFloors: floors.count,
             occupied: occupancy.occupied,
             capacity: occupancy.capacity,
-            canNavigateUp: floors.indices.contains(visibleFloorOrdinal + 1)
-                && unlocked.contains(floors[visibleFloorOrdinal + 1].id),
-            canNavigateDown: floors.indices.contains(visibleFloorOrdinal - 1)
-                && unlocked.contains(floors[visibleFloorOrdinal - 1].id)
+            canNavigateUp: visibleFloorOrdinal < maxVisible,
+            canNavigateDown: visibleFloorOrdinal > 0
         )
     }
 

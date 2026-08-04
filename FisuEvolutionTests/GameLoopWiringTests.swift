@@ -34,11 +34,20 @@ struct GameLoopWiringTests {
         #expect(gameState.towerNavigation.floorID == "alley")
         #expect(gameState.towerNavigation.ordinal == 0)
         #expect(gameState.towerNavigation.totalFloors == gameState.floorTable?.floors.count)
-        #expect(gameState.towerNavigation.canNavigateUp == false)
+        // La torre deja asomarse exactamente a UN piso bloqueado: hace visible
+        // el objetivo de progresión sin permitir contratar ni saltar más arriba.
+        #expect(gameState.towerNavigation.canNavigateUp)
         #expect(gameState.towerNavigation.canNavigateDown == false)
+        #expect(gameState.moveVisibleFloor(by: 1))
+        #expect(gameState.visibleFloorOrdinal == 1)
+        #expect(gameState.visibleFloorIsUnlocked == false)
+        #expect(gameState.canAffordSpawn == false)
+        #expect(gameState.towerNavigation.canNavigateUp == false)
+        #expect(gameState.towerNavigation.canNavigateDown)
+        #expect(gameState.moveVisibleFloor(by: -1))
 
-        // El helper coloca el par en urban y lo desbloquea: la navegación nunca
-        // puede saltar a un piso que la run todavía no abrió.
+        // El helper coloca el par en urban y lo desbloquea: el límite de preview
+        // se desplaza al siguiente piso, sin permitir saltarlo.
         gameState.debugSetMaxTier(5)
         gameState.debugGrantPair()
         #expect(gameState.towerNavigation.canNavigateUp)
@@ -47,10 +56,16 @@ struct GameLoopWiringTests {
         #expect(gameState.moveVisibleFloor(by: 1))
         #expect(gameState.visibleFloorOrdinal == 1)
         #expect(gameState.towerNavigation.floorID == "urban")
-        #expect(gameState.towerNavigation.canNavigateUp == false)
+        #expect(gameState.visibleFloorIsUnlocked)
+        #expect(gameState.towerNavigation.canNavigateUp)
         #expect(gameState.towerNavigation.canNavigateDown)
         #expect(gameState.boardVersion > versionBeforeNavigation)
+        #expect(gameState.moveVisibleFloor(by: 1))
+        #expect(gameState.visibleFloorOrdinal == 2)
+        #expect(gameState.visibleFloorIsUnlocked == false)
+        #expect(gameState.towerNavigation.canNavigateUp == false)
         #expect(gameState.moveVisibleFloor(by: 1) == false)
+        #expect(gameState.moveVisibleFloor(by: -1))
 
         gameState.debugGrantCoins()
         gameState.unlockPassive(typeId: "homeless")
@@ -117,6 +132,31 @@ struct GameLoopWiringTests {
         }
         // Nada se consumió: la torre y el save siguen sincronizados.
         #expect(gameState.unitCount == 3)
+        #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
+    }
+
+    @Test func tier2MergePromotesToUrbanAndUnlocksIt() async throws {
+        let gameState = await makeGameState()
+        gameState.debugSetMaxTier(2)
+        gameState.debugGrantPair()
+        let cartoneros = slots(of: "cartonero", in: gameState)
+        #expect(cartoneros.count == 2)
+
+        let resolution = gameState.handleDrop(fromCell: cartoneros[0], toCell: cartoneros[1])
+        guard case .merged(
+            targetCell: _,
+            evolvedTo: _,
+            promotedType: let promotedType,
+            promotedToFloor: let promotedToFloor,
+            unlockedFloorId: let unlockedFloorId
+        ) = resolution else {
+            Issue.record("expected an urban promotion, got \(resolution)")
+            return
+        }
+        #expect(promotedType?.tier == 3)
+        #expect(promotedToFloor == 1)
+        #expect(unlockedFloorId == "urban")
+        #expect(gameState.player?.run.unlockedFloors.contains("urban") == true)
         #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
     }
 
@@ -191,6 +231,33 @@ struct GameLoopWiringTests {
         #expect(gameState.tower?.placements(onFloor: luxuryOrdinal).contains { $0.typeId == "senior_programmer" } == true)
         #expect(gameState.player?.run.units["senior_programmer"] == 1)
         #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
+    }
+
+    @Test func destinationFullMergePublishesTowerNotice() async throws {
+        let gameState = await makeGameState()
+        gameState.debugSetMaxTier(8)
+        gameState.debugGrantPair()
+        gameState.setVisibleFloor(2)
+        let admins = slots(of: "administrativo", in: gameState)
+        _ = gameState.handleDrop(fromCell: admins[0], toCell: admins[1])
+        gameState.chooseCareer(optionId: "junior_programmer")
+        gameState.debugGrantPair() // dos juniors que intentarán ascender
+
+        // Llenamos luxury de forma intencional con el helper existente. La acción
+        // de merge tiene que seguir siendo atómica y publicar sólo la intención UI.
+        gameState.debugSetMaxTier(10)
+        for _ in 0..<5 { gameState.debugGrantPair() }
+        gameState.setVisibleFloor(2)
+        let juniors = slots(of: "junior_programmer", in: gameState)
+        let resolution = gameState.handleDrop(fromCell: juniors[0], toCell: juniors[1])
+        guard case .snapBack = resolution else {
+            Issue.record("expected blocked promotion, got \(resolution)")
+            return
+        }
+        #expect(gameState.towerNotice?.kind == .destinationFloorFull(floorID: "luxury"))
+        let noticeID = try #require(gameState.towerNotice?.id)
+        gameState.dismissTowerNotice(id: noticeID)
+        #expect(gameState.towerNotice == nil)
     }
 
     // MARK: Pasivo + tick

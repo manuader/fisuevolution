@@ -38,6 +38,22 @@
 > del unlock con cámara y tutorial de torre/ascenso. Bitácora de esta sesión:
 > `Docs/SESION-2026-08-03-f7-torre.md`.
 
+> ## 🟡 ACTUALIZACIÓN 2026-08-04: F7.3 EN CURSO
+>
+> Implementados y listos para commit: proyecciones de piso lleno/bloqueado, toast
+> tipado para destino lleno, estado legible del botón de contratación, celebración
+> + foco de cámara al primer unlock, preview de exactamente un piso bloqueado
+> (scrim+candado) y tutorial localizado de 7 pasos. Wiring **13/13** y smoke UI
+> **4/4**; captura estable de preview en `scratchpad/qa-shots/F7.3-locked-floor-preview.png`.
+> El ascenso T2→Urban está cubierto en GameState, pero su drag visual no se dejó
+> automatizado porque las coordenadas SpriteKit del runner resultaron frágiles.
+> La suite completa de app había dado **67/67 verdes** antes del ajuste de balance
+> posterior. El ajuste pedido en `99af8dd` baja el primer Fisura a **50**: el
+> test de contenido pasa, pero el simulador deja urban (5.8 min) y la primera
+> reencarnación (0.26 h) fuera de los targets F7.1. Se preserva la decisión del
+> dueño y se deja la recalibración para F7.6. No interpretar el fallo de esos
+> targets como regresión accidental. Dejar commit aislado antes de F7.4.
+
 > **Para el agente que retoma:** este doc te deja arrancar DE CERO. Leelo entero,
 > después leé `Docs/PROMPT-F7-torre-de-escenarios.md` (spec funcional aprobada) y
 > `Docs/PLAN-F7-torre.md` (plan de implementación aprobado, con arquitectura,
@@ -110,14 +126,14 @@ cortísima; passive income inútil. F7 = rediseño "La Torre".
 | **F7.0** docs (prompt+plan) | ✅ COMMITEADO (`d7cf370`) |
 | **F7.1** EconomyKit v2 + estado v4 + migración | ✅ cerrado (`432e6a5`; el §5 es histórico) |
 | **F7.2** Torre en escena (cámara/FloorNodes/navegación) | ✅ cerrado (ver actualización 2026-08-04) |
-| F7.3 Contratación por piso + desbloqueo + tutorial | ⬜ pendiente (parcial: la lógica ya existe en F7.1; falta UX) |
+| F7.3 Contratación por piso + desbloqueo + tutorial | 🟡 implementación lista; falta commit (captura de preview sí, ascenso cubierto por test) |
 | F7.4 ORO UI + upgrades currency + PrestigeView | ⬜ pendiente |
 | F7.5 Skins + ficha | ⬜ pendiente |
 | F7.6 Balance (grid sim) + drills + polish + docs | ⬜ pendiente |
 
-**TODO el código F7.1 está SIN COMMITEAR** (working tree). `git status` debe mostrar:
-9 archivos M en FisuEvolution/, 10 M + 1 D + 6 ?? en Packages/EconomyKit/Sources.
-NO commitear hasta que los tests estén verdes (regla de la fase).
+F7.1 y F7.2 ya están commiteadas (`432e6a5`, `3b27416`). Al retomar, revisar
+`git status`: sólo deben existir cambios de la fase activa, documentados en la
+bitácora de sesión.
 
 ## 3. Lo implementado en F7.1 (todo compila; smoke test en vivo PASÓ)
 

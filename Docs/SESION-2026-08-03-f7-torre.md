@@ -102,3 +102,59 @@ F7.3 a F7.6 conforme a `Docs/PLAN-F7-torre.md`.
 Implementar solamente la UX que todavía falta sobre la lógica F7.1 ya existente:
 estado de contratación bloqueada/llena, toast de destino lleno, celebración del
 primer unlock con foco de cámara y los pasos de tutorial para torre/ascenso.
+
+## Progreso F7.3 (en curso)
+
+- Ajuste pedido el 2026-08-04: el primer Fisura vuelve a costar **50** (override
+  `alley.hireCostMultiplier`); se actualizó el test anti-drift del contenido y
+  quedó en el commit aislado `99af8dd`. `GameContentValidationTests` confirmó
+  **9/9**. El simulador de 90 días registró urban en **5.8 min activos** y primera
+  reencarnación en **0.26 h** (frente a los targets históricos 14–39 min y
+  2.8–7.8 h); Dios sigue en **33.20 h**. No se tocaron más knobs: el cambio fue
+  explícitamente pedido y la recalibración deliberada queda para F7.6. El detalle
+  reproducible vive en `Docs/balance-log.md`.
+
+- `GameState` ya expone `visibleFloorIsFull`, `visibleFloorIsUnlocked` y el
+  mensaje efímero tipado `TowerNotice`. `buySpawn()` publica `.floorFull` y un
+  ascenso que EconomyKit bloquea por capacidad publica
+  `.destinationFloorFull(floorID:)`, sin convertir `TowerError` en texto dentro
+  de la lógica.
+- `SpawnButtonView` presenta el estado lleno/bloqueado con el patrón legible
+  existente (ink + desaturación, no `.disabled`), y `RootView` muestra un toast
+  accesible que se autocierra o se puede tocar. Quedaron añadidas sus claves
+  es/en al catálogo.
+- TDD: `destinationFullMergePublishesTowerNotice` llena luxury mediante los
+  helpers DEBUG existentes, prueba que el merge sigue en `.snapBack`, verifica
+  el aviso con id de piso data-driven y que se descarta por id.
+- Dos errores de compilación ya corregidos durante esta subfase: faltaba
+  `import EconomyKit` para `HireQuote` y un modificador `.font` había quedado
+  fuera de un `@ViewBuilder`; se envolvió en `Group`. El test de wiring se lanzó
+  en `/private/tmp/f7-3-wiring-fixed.xcresult`; reintentar `xcresulttool` si el
+  lector devuelve inicialmente `FileSystemError:3`; el reintento confirmó
+  `GameLoopWiringTests` **12/12** verde.
+- `BoardScene` ahora consume `unlockedFloorId` sólo para el primer ascenso: el
+  clon termina su vuelo, aparece `¡PISO NUEVO!`, se dispara haptic de rareza y
+  la cámara enfoca el destino. Las promociones a pisos ya abiertos no mueven la
+  cámara. Build Debug posterior verde con warnings-as-errors.
+- `TutorialOverlay` pasó de cinco a siete pasos: mantiene tap/merge/contratar/
+  mejoras y suma torre + ascenso. Todos los textos de tutorial que estaban
+  hardcodeados migraron al catálogo es/en, incluido Saltar y tocar para seguir.
+- Se cerró la brecha de navegación que hacía inalcanzable la UX bloqueada: la
+  torre deja mirar **sólo el próximo** piso todavía cerrado. `BoardScene` pinta
+  allí scrim, candado vectorial y hint localizado; no hay contratación ni salto
+  a un segundo piso. El contrato está en `towerNavigationProjectsUnlockedBounds…`.
+- QA reciente: `GameLoopWiringTests` **13/13** (incluye T2→T3→Urban) y
+  `LaunchSmokeTests` **4/4** en iPhone 16. La captura del preview bloqueado se
+  conserva en `scratchpad/qa-shots/F7.3-locked-floor-preview.png`, extraída del
+  smoke y con 60 fps. Una automatización adicional del drag exacto T2→T3 se
+  descartó en vez de commitear una prueba frágil: el runner mapea distinto las
+  coordenadas visuales de SpriteKit. La transición sigue cubierta por el wiring
+  test y por el código de escena; si se requiere esa captura puntual, retomar
+  desde install limpio o exponer nodos de SpriteKit con a11y determinista.
+- Gate de fase: la suite completa terminó **67/67 verde** en iPhone 16 (bundle
+  `/private/tmp/f7-3-app-full.xcresult`) antes de `99af8dd`; `xcresulttool`
+  requirió reintentos por su `FileSystemError:3` transitorio. Tras el ajuste de
+  precio, no se debe interpretar un fallo de `PacingTests` contra sus bandas
+  F7.1 como una regresión accidental: la decisión de precio la contradice y está
+  asentada arriba. El working tree contiene exclusivamente F7.3 y esta bitácora;
+  el siguiente paso seguro es su commit aislado y luego F7.4.

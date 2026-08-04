@@ -8,18 +8,22 @@ struct TutorialOverlay: View {
     @AppStorage("fisuTutorialDone") private var done = false
     @State private var step = 0
 
-    private struct Step { let pose: String; let text: String }
+    private struct Step { let pose: String; let textKey: String }
     private let steps: [Step] = [
         .init(pose: "fisura_wave",
-              text: "¡Hola! Soy El Fisura. Tocame para juntar plata. 💰"),
+              textKey: "tutorial.step.tap"),
         .init(pose: "fisura_explain",
-              text: "¿Ves dos iguales? Arrastrá uno sobre el otro y evolucionan a algo mejor."),
+              textKey: "tutorial.step.merge"),
         .init(pose: "fisura_point",
-              text: "Con el botón verde de abajo contratás más changos para el barrio."),
+              textKey: "tutorial.step.hire"),
         .init(pose: "fisura_explain",
-              text: "En Tienda y Mejoras potenciás tus ganancias. ¡No seas amarrete!"),
+              textKey: "tutorial.step.upgrades"),
+        .init(pose: "fisura_point",
+              textKey: "tutorial.step.tower"),
         .init(pose: "fisura_celebrate",
-              text: "¡Listo, capo! El barrio cuenta con vos. A hacerse millonario. 🚀"),
+              textKey: "tutorial.step.ascent"),
+        .init(pose: "fisura_celebrate",
+              textKey: "tutorial.step.finish"),
     ]
 
     var body: some View {
@@ -38,14 +42,14 @@ struct TutorialOverlay: View {
 
             VStack(spacing: 0) {
                 Spacer()
-                SpeechBubble(text: current.text)
+                SpeechBubble(text: String(localized: String.LocalizationValue(current.textKey)))
                     .padding(.bottom, 4)
                 HStack(alignment: .bottom, spacing: 0) {
                     fisura(current.pose)
                     Spacer()
                     VStack(spacing: 10) {
                         progressDots
-                        Text(verbatim: "tocá para seguir ▸")
+                        Text("tutorial.continue")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.white.opacity(0.9))
                     }
@@ -95,7 +99,7 @@ struct TutorialOverlay: View {
                 Button {
                     finish()
                 } label: {
-                    Text(verbatim: "Saltar")
+                    Text("tutorial.skip")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 14)

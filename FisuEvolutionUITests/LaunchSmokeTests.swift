@@ -25,7 +25,31 @@ final class LaunchSmokeTests: XCTestCase {
         XCTAssertTrue(down.exists, "down arrow missing")
         XCTAssertTrue(up.exists, "up arrow missing")
         XCTAssertFalse(down.isEnabled, "new game must not navigate below the alley")
-        XCTAssertFalse(up.isEnabled, "new game must not navigate into a locked floor")
+        XCTAssertTrue(up.isEnabled, "new game should preview its next locked floor")
+    }
+
+    @MainActor
+    func testLockedFloorPreviewStopsAtOneFloorAhead() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset"]
+        app.launch()
+
+        let pill = app.otherElements["tower.pill"]
+        XCTAssertTrue(pill.waitForExistence(timeout: 15))
+        let initialLabel = pill.label
+        let up = app.buttons["tower.arrow.up"]
+        up.tap()
+        let reachedPreview = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label != %@", initialLabel), object: pill
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [reachedPreview], timeout: 3), .completed)
+        XCTAssertFalse(up.isEnabled, "preview must not allow skipping another locked floor")
+        XCTAssertTrue(app.buttons["tower.arrow.down"].isEnabled)
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "F7.3 locked-floor-preview"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
     }
 
     @MainActor

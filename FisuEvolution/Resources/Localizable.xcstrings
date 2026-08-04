@@ -1322,6 +1322,108 @@
         }
       }
     },
+    "spawn.button.full" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Floor full" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Piso lleno" } }
+      }
+    },
+    "spawn.button.full.detail" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Merge to make room" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fusioná para hacer lugar" } }
+      }
+    },
+    "spawn.button.locked" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Floor locked" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Piso bloqueado" } }
+      }
+    },
+    "spawn.button.locked.detail" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Evolve to unlock it" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Evolucioná para abrirlo" } }
+      }
+    },
+    "tower.notice.destination_full" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Floor above is full — make room first" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "El piso de arriba está lleno — hacé lugar primero" } }
+      }
+    },
+    "tower.notice.floor_full" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This floor is full — merge to make room" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Este piso está lleno — fusioná para hacer lugar" } }
+      }
+    },
+    "tower.unlock.hint" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Go up to visit it" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Subí a visitarlo" } }
+      }
+    },
+    "tower.unlock.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "NEW FLOOR!" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¡PISO NUEVO!" } }
+      }
+    },
+    "tutorial.continue" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "tap to continue ▸" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "tocá para seguir ▸" } }
+      }
+    },
+    "tutorial.skip" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Saltar" } }
+      }
+    },
+    "tutorial.step.ascent" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "When an evolution belongs upstairs, it flies there. Go visit your crew." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cuando una evolución pertenece arriba, vuela hasta allá. Subí a visitar a tu gente." } }
+      }
+    },
+    "tutorial.step.finish" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You are set. Time to make millions! 🚀" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¡Listo, capo! El barrio cuenta con vos. A hacerse millonario. 🚀" } }
+      }
+    },
+    "tutorial.step.hire" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The green button hires more characters for this floor." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Con el botón verde de abajo contratás más changos para este piso." } }
+      }
+    },
+    "tutorial.step.merge" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "See two matching characters? Drag one onto the other to evolve them." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Ves dos iguales? Arrastrá uno sobre el otro y evolucionan a algo mejor." } }
+      }
+    },
+    "tutorial.step.tap" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hi! I am El Fisura. Tap me to earn coins. 💰" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¡Hola! Soy El Fisura. Tocame para juntar plata. 💰" } }
+      }
+    },
+    "tutorial.step.tower" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This is your tower. Use the arrows or swipe an empty space to move between floors." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Esta es tu torre. Usá las flechas o deslizá por un espacio vacío para moverte entre pisos." } }
+      }
+    },
+    "tutorial.step.upgrades" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Store and Upgrades boost your earnings. Do not be stingy!" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "En Tienda y Mejoras potenciás tus ganancias. ¡No seas amarrete!" } }
+      }
+    },
     "special.alien_investor.flavor" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2045,6 +2147,18 @@
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "God realm" } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Reino divino" } }
+      }
+    },
+    "tower.locked.hint" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Evolve a character below to open it" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Evolucioná un personaje de abajo para abrirlo" } }
+      }
+    },
+    "tower.locked.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "LOCKED FLOOR" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "PISO BLOQUEADO" } }
       }
     },
     "tower.navigate.down" : {

@@ -121,6 +121,13 @@ struct GameBoardView: View {
             debugButton
             #endif
 
+            if let notice = gameState.towerNotice {
+                TowerNoticeView(notice: notice) {
+                    gameState.dismissTowerNotice(id: notice.id)
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+
             TutorialOverlay()
         }
         .onAppear {
@@ -244,4 +251,40 @@ struct GameBoardView: View {
         .padding(.top, 68) // debajo del HUD para no tapar el engranaje de Config
     }
     #endif
+}
+
+private struct TowerNoticeView: View {
+    let notice: GameState.TowerNotice
+    let dismiss: () -> Void
+
+    private var messageKey: LocalizedStringKey {
+        switch notice.kind {
+        case .floorFull: "tower.notice.floor_full"
+        case .destinationFloorFull: "tower.notice.destination_full"
+        }
+    }
+
+    var body: some View {
+        VStack {
+            Spacer()
+            Text(messageKey)
+                .font(.system(.subheadline, design: .rounded).weight(.heavy))
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color("PaletteInk"))
+                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .background(Capsule().fill(Color("PaletteCream")).overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3)))
+                .onTapGesture(perform: dismiss)
+                .accessibilityIdentifier("tower.notice")
+                .accessibilityAddTraits(.isButton)
+                .task(id: notice.id) {
+                    try? await Task.sleep(for: .seconds(2.4))
+                    guard !Task.isCancelled else { return }
+                    dismiss()
+                }
+                .padding(.bottom, 132)
+        }
+        .padding(.horizontal, 20)
+        .allowsHitTesting(true)
+    }
 }

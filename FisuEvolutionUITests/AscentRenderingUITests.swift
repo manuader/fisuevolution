@@ -49,6 +49,23 @@ final class AscentRenderingUITests: XCTestCase {
         dismissSheet(app)
     }
 
+    /// Llegar a Urban acredita la skin de milestone `urban_trailblazer`, y su
+    /// celebración es un sheet MODAL: mientras está arriba tapa el tablero —que
+    /// es de lo que este test da veredicto mirando la captura— y deja todo el
+    /// HUD inalcanzable, incluidas las flechas de la torre.
+    ///
+    /// Aparece sólo con el tutorial dado por visto, o sea que depende de un
+    /// `@AppStorage` que `--uitest-reset` NO toca y que el propio test puede
+    /// terminar de avanzar a fuerza de taps. Por eso se tolera que esté o no en
+    /// vez de asumir una de las dos ramas.
+    @MainActor
+    private func dismissSkinAward(_ app: XCUIApplication) {
+        let nice = app.buttons["skin.award.dismiss"]
+        guard nice.waitForExistence(timeout: 2) else { return }
+        nice.tap()
+        Thread.sleep(forTimeInterval: 0.6)
+    }
+
     @MainActor
     func testCharactersStayVisibleAfterTheFirstAscent() throws {
         let app = XCUIApplication()
@@ -70,6 +87,7 @@ final class AscentRenderingUITests: XCTestCase {
         grantPair(app)
         slot(0, in: app).press(forDuration: 0.05, thenDragTo: slot(1, in: app))
         Thread.sleep(forTimeInterval: 3.0)  // vuelo + celebración + cámara
+        dismissSkinAward(app)
         add(shot(app, "2 tras el ascenso a Urban"))
         // Gate: sin ascenso, nada de lo que sigue prueba el arreglo del pool.
         let pillTrasAscenso = app.otherElements["tower.pill"].label

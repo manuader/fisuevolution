@@ -223,3 +223,79 @@ struct HireActionTests {
         #expect(tower == before.1)
     }
 }
+
+// MARK: - Gate de contratación (dos pisos por encima)
+//
+// El fixture de la torre tiene sólo DOS pisos, y con dos pisos el gate es
+// invisible: el ordinal 1 siempre cae en el escape del tope, así que
+// `hireLocked` es inalcanzable. Este suite arma su propia tabla de CUATRO pisos
+// de un tier cada uno, que sigue entrando en `maxTier: 4` y por lo tanto sirve
+// con `fxTiers()` sin tocarlo.
+
+private func gateFloor(_ id: String, _ tier: Int) -> FloorDef {
+    FloorDef(
+        id: id, background: "alley", firstTier: tier, lastTier: tier,
+        capacity: 5, incomeMultiplier: 1.0
+    )
+}
+
+@Suite("Gate de contratación")
+struct HireGateTests {
+    let config = fxConfig()
+    let economy = fxEconomy()
+    let tiers: TierRepository
+    let floorTable: FloorTable
+
+    init() throws {
+        tiers = try fxTiers()
+        floorTable = try FloorTable(
+            floors: [gateFloor("g1", 1), gateFloor("g2", 2), gateFloor("g3", 3), gateFloor("g4", 4)],
+            maxTier: 4
+        )
+    }
+
+    @Test("el piso de abajo siempre deja contratar, aunque no haya nada arriba")
+    func groundFloorIsAlwaysHireable() {
+        #expect(TowerActions.canHire(floorOrdinal: 0, unlockedFloors: ["g1"], floorTable: floorTable))
+    }
+
+    @Test("un piso necesita DOS pisos desbloqueados por encima")
+    func upperFloorNeedsTwoAbove() {
+        #expect(!TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
+        #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2", "g3", "g4"], floorTable: floorTable))
+    }
+
+    @Test("los dos pisos del tope se destraban al abrir el último")
+    func topOfTowerEscapes() {
+        #expect(!TowerActions.canHire(floorOrdinal: 3, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
+        #expect(!TowerActions.canHire(floorOrdinal: 2, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
+        let all = ["g1", "g2", "g3", "g4"]
+        #expect(TowerActions.canHire(floorOrdinal: 3, unlockedFloors: all, floorTable: floorTable))
+        #expect(TowerActions.canHire(floorOrdinal: 2, unlockedFloors: all, floorTable: floorTable))
+    }
+
+    @Test("hire rechaza con hireLocked y no muta nada")
+    func hireRejectsWhenGateClosed() throws {
+        var state = PlayerState.newGame(
+            startTypeId: "a", startFloorId: "g1",
+            offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 1000
+        )
+        state.run.units = ["a": 1, "b": 1]
+        var tower = TowerReconciler.reconcile(run: &state.run, floorTable: floorTable, tiers: tiers).tower
+        // Después del reconcile: el reconciliador sincroniza unlockedFloors por
+        // unidades, así que fijar el escenario acá y no antes.
+        state.run.unlockedFloors = ["g1", "g2"]   // g4 cerrado ⇒ el gate de g2 no pasa
+        state.run.coins = 1_000_000
+        let quote = try #require(TowerActions.hireQuote(
+            floorOrdinal: 1, state: state, tiers: tiers,
+            floorTable: floorTable, config: config, economy: economy
+        ))
+        let before = (state, tower)
+
+        #expect(throws: TowerError.hireLocked) {
+            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
+        }
+        #expect(state == before.0, "un hire rechazado no puede cobrar")
+        #expect(tower == before.1, "ni ocupar un slot")
+    }
+}

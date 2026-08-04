@@ -23,6 +23,10 @@ public enum TowerError: Error, Equatable {
     case insufficientCoins
     case invalidSlot
     case noHireableType
+    /// El piso está abierto, pero todavía no habilita contratar: falta que se
+    /// desbloqueen dos pisos por encima. Distinto de `floorLocked` a propósito —
+    /// un piso puede estar abierto y aun así no dejar contratar.
+    case hireLocked
 }
 
 /// Resultado de un merge en la torre.
@@ -86,6 +90,34 @@ public enum TowerActions {
 
     /// Contrata en el piso del quote. Requiere piso desbloqueado, slot libre y saldo.
     @discardableResult
+    /// ¿Este piso habilita contratar?
+    ///
+    /// El backfill sólo tiene sentido cuando tu frontera ya está bastante más
+    /// arriba. El precio punitivo lo desalentaba de forma implícita —el jugador
+    /// tenía que deducirlo de los números— y esto lo vuelve una regla explícita.
+    ///
+    /// - El piso de abajo de todo (ordinal 0) SIEMPRE deja contratar: es el motor
+    ///   del early game y ya es la excepción de precio.
+    /// - Los dos pisos del tope nunca van a tener dos por encima, así que
+    ///   desbloquear el último piso de la torre los habilita.
+    ///
+    /// La usan `hire` y `PacingSimulator`. **No duplicar la condición**: es el
+    /// mismo error que el balance-log documenta para la fórmula de costo, que
+    /// hacía que el simulador cotizara distinto que el juego.
+    public static func canHire(
+        floorOrdinal: Int,
+        unlockedFloors: [String],
+        floorTable: FloorTable
+    ) -> Bool {
+        guard floorOrdinal >= 0, floorOrdinal < floorTable.count else { return false }
+        if floorOrdinal == 0 { return true }
+        let unlocked = Set(unlockedFloors)
+        if let top = floorTable.floors.last, unlocked.contains(top.id) { return true }
+        let required = floorOrdinal + 2
+        guard required < floorTable.count else { return false }
+        return unlocked.contains(floorTable[required].id)
+    }
+
     public static func hire(
         quote: HireQuote,
         state: inout PlayerState,
@@ -94,6 +126,11 @@ public enum TowerActions {
     ) throws -> TowerPlacement {
         let floor = floorTable[quote.floorOrdinal]
         guard state.run.unlockedFloors.contains(floor.id) else { throw TowerError.floorLocked }
+        guard canHire(
+            floorOrdinal: quote.floorOrdinal,
+            unlockedFloors: state.run.unlockedFloors,
+            floorTable: floorTable
+        ) else { throw TowerError.hireLocked }
         guard state.run.coins >= quote.cost else { throw TowerError.insufficientCoins }
         guard let slot = tower.floors[quote.floorOrdinal].firstFreeSlot() else { throw TowerError.floorFull }
 

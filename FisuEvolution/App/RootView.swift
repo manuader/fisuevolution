@@ -104,7 +104,7 @@ struct GameBoardView: View {
                 SpriteView(
                     scene: scene,
                     options: [.ignoresSiblingOrder, .shouldCullNonVisibleNodes],
-                    debugOptions: [.showsFPS, .showsNodeCount]
+                    debugOptions: [.showsFPS, .showsNodeCount, .showsDrawCount]
                 )
                 .ignoresSafeArea()
                 #else

@@ -1,8 +1,16 @@
 # HANDOFF — Optimización de fluidez
 
-> Para el agente que retoma. Fecha: 2026-08-04. Último commit de este trabajo:
-> `081f6b7`. Leé también `Docs/HANDOFF-F7-estado.md` (estado del juego) y
+> Para el agente que retoma. Fecha: 2026-08-04. Leé también
+> `Docs/HANDOFF-F7-estado.md` (estado del juego) y
 > `Docs/HANDOFF-arte-gemini.md` (pipeline de arte).
+
+> ## ✅ EL PLAN DE FLUIDEZ ESTÁ CERRADO
+>
+> Las fases 0, 1 y 2 se hicieron en `081f6b7`. Después se midió Release —lo que
+> la Fase 0 dejaba pendiente— y **esa medición cambió el alcance del resto**: de
+> las fases 3, 4 y 5 se hicieron sólo las dos partes que arreglan un problema
+> perceptible, y las otras tres se descartaron con el número que las descarta.
+> El detalle está en §4. No re-litigar sin volver a medir.
 
 ---
 
@@ -32,12 +40,10 @@ packer terminaba poniendo **una imagen por página**. Verificado leyendo el
 atlas no agrupa nada, cada sprite en pantalla es su propio draw call
 irreducible, y cada uno arrastra ~9,5 MB de VRAM.
 
-Segundo hallazgo importante: **una parte del lag es artefacto de Debug**
+Segundo hallazgo: se sospechaba que **una parte del lag era artefacto de Debug**
 (`-Onone` + `SWIFT_STRICT_CONCURRENCY: complete` conserva chequeos de
-aislamiento en runtime) **y del simulador**, que no tiene render por tiles ni
-memoria unificada. **Nunca se llegó a medir en Release sobre device.** Eso sigue
-pendiente y conviene hacerlo antes de invertir en las fases que quedan, para no
-optimizar lo que ya se arregla solo.
+aislamiento en runtime) y del simulador. **Se midió, y esa sospecha no se
+sostuvo**: no quedaba lag residual que atribuirle. Ver §2 bis.
 
 ---
 
@@ -131,67 +137,138 @@ de atlas y no cierran, es esto.
 
 ---
 
-## 4. Lo que FALTA (fases 3, 4 y 5)
+## 3 bis. La medición de Release (lo que cerró el plan)
 
-### Fase 3 — Camino de render
+Build de Release en el simulador con `SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG`
+para conservar el overlay de fps y los fixtures `--uitest-*`. El compilador sí
+corrió optimizado (`-O` en la app, `-Owholemodule` en EconomyKit).
 
-1. **Sacar el `SKCropNode` de `FloorNode`**
-   (`FisuEvolution/Scenes/Nodes/FloorNode.swift`). Se agregó hoy en `b167c57`
-   para arreglar un bug real (el fondo de un piso invadía al vecino), pero
-   cuesta un pase de stencil por piso vivo (hasta 3) y encima el fondo se dibuja
-   a 1005×1005 pt dentro de un slot de 393×852 → **3,0× de overdraw** que el
-   stencil después descarta.
-   **Alternativa recomendada**: aspect-fill por **coordenadas de textura** con
-   `SKTexture(rect:in:)` y el sprite del tamaño **exacto** del slot. Da cero
-   overdraw, cero stencil, y el bug de invasión entre pisos se vuelve imposible
-   *por construcción* en vez de por recorte. `definition.backgroundOffset` pasa
-   a ser un desplazamiento dentro del subrect normalizado (hoy mueve el sprite y
-   se clampea contra el sobrante).
-   **Junto con esto** conviene reautorar los fondos a proporción vertical
-   (~768×1664) en vez de cuadrados: ahí sí se puede bajar su memoria sin perder
-   nitidez, porque se dejan de guardar los píxeles laterales que nunca se ven.
-2. **`renderPlacements` reconciliador** (`BoardScene.swift`): hoy recicla y
-   reconstruye **los 10 personajes** en cada spawn, merge, movida y cambio de
-   piso — y el tap de contratar es la acción más repetida del juego. En un merge
-   cambian 2 de 10 slots. Comparar contra `characterNodes` por `slot`+`typeId` y
-   tocar sólo lo que cambió. Beneficio extra: el wander deja de reiniciarse.
-   Hay 13 sitios que llaman `bumpBoard()`; el más caliente es `buySpawn`.
-3. **Sombra a sprite compartido** (`CharacterNode.swift`): la sombra elíptica es
-   un `SKShapeNode` idéntico en los 10 personajes, y los shape nodes **nunca
-   batchean**. Con una `SKTexture` compartida (patrón de
-   `ParticlePool.particleTexture`) las 10 sombras se fusionan en 1 draw call.
+| | reposo (17 nodos) | poblado (65 nodos) |
+|---|---|---|
+| Debug (`-Onone`) | 60,0 fps | 60,0 fps |
+| Release (`-O`) | 59,0 fps | 60,0 fps |
 
-### Fase 4 — Invalidaciones de SwiftUI
+**Los fps están saturados en el techo en las dos configuraciones.** La métrica no
+discrimina: la Fase 2 ya sacó el cuello de botella y el optimizador no compra
+nada medible encima. Capturas: `scratchpad/qa-shots/perf-debug-poblado.png` y
+`perf-release-poblado.png`.
 
-`refreshProjections` **ya compara antes de escribir** en sus 15 asignaciones —
-eso está bien y no hay que tocarlo. El problema es lo que cuesta *llegar* a esa
-comparación, y quién la escucha:
+Como fps no servía para dimensionar nada más, se agregó `.showsDrawCount` al
+overlay de DEBUG (`RootView.swift`, una línea, ya gateada). **Dejalo ahí**: es el
+instrumento que contestó la pregunta central, y §6 ya advierte que mirar sólo fps
+engaña.
 
-- **`HUDView` se recompone ~7,5 veces por segundo**, siempre, porque lee
-  `coinsText`. En cada pasada: `HUDView.swift:72` usa `Text(_:)` con
-  interpolación, o sea construye una `LocalizedStringKey` con 5 argumentos
-  boxeados y hace un lookup de bundle **que falla** y cae al fallback; más ~10
-  `Color("...")` por string. → `Text(verbatim:)` y colores a `static let`.
-- **Trabajo redundante en `refreshProjections`** (`GameState.swift`): recalcula
-  `IncomeTicker.passivePerSecond` que **ya se calculó ese mismo frame** dentro
-  de `tick` y se descartó; llama `visibleFloorOccupancy` **tres veces** por
-  pasada; y hace `Set(...).union(...).sorted()` sobre las 39 skins para producir
-  casi siempre el mismo array.
-- **`CoinFormatter.swift:31`** construye un `FloatingPointFormatStyle` en cada
-  llamada (2× por flush más una por fila de varias listas).
-- **`GameBoardView` se re-evalúa entero en cada spawn/merge** por
-  `RootView.swift:212`, un `accessibilityValue(unitCount)` que existe **sólo
-  para los UI tests** y arrastra el re-diff de la `SpriteView` y de 13 `.sheet`.
-- **Timers como propiedades almacenadas** (`EventBannerView.swift:9`,
-  `BonusView.swift:13`): el struct se re-inicializa con cada evaluación del
-  padre, creando y autoconectando un `Timer` nuevo cada vez.
+| tablero | nodos | draws |
+|---|---|---|
+| 1 personaje | 17 | **8** |
+| 9 personajes | 65 | **48** |
 
-### Fase 5 — Audio (menor pero real)
+**5 draw calls por personaje, cero batching entre ellos** aunque compartan página
+de atlas. Capturas: `perf-draws-1-personaje.png` y `perf-draws-9-personajes.png`.
 
-`FisuEvolution/Audio/AudioManager.swift` **no sintetiza nada** (son `.caf` PCM),
-pero crea el `AVAudioPlayer` **sincrónicamente en el hilo principal en el primer
-uso de cada SFX** y no llama `prepareToPlay()` en ningún lado: son ~10 tirones,
-uno por sonido nuevo. Precargar y preparar fuera de main.
+### ⚠️ Por qué no batchean (esto corrige el plan)
+
+`BoardScene.depthZ(for:)` le da a **cada personaje un `zPosition` único**,
+derivado de su `y`, para que se solapen como multitud. Con `ignoresSiblingOrder`
+SpriteKit ordena por z y sólo puede fusionar nodos que comparten z. Como cada
+personaje ocupa su propio escalón de profundidad, **el batching entre personajes
+es imposible por construcción** — no es culpa de los shape nodes.
+
+Eso invalida el dimensionamiento de la Fase 3.3 del plan, que prometía que pasar
+la sombra a `SKTexture` compartida fusionaría "las 10 sombras en 1 draw call". No
+lo hace: el orden de profundidad lo prohíbe. Se ahorraría la rasterización del
+path del `SKShapeNode` (real, pero chico), no 9 draw calls.
+
+---
+
+## 4. Qué se hizo del resto, y qué NO
+
+Con fps en el techo y 48 draw calls en el peor caso, **ninguna de las fases 3, 4
+y 5 se justificaba por las métricas que el plan mismo puso como criterio**
+("si alguna fase no mueve la aguja medida contra el baseline, se revierte en vez
+de acumularse como complejidad sin beneficio").
+
+Lo que esas métricas NO ven son los *hitches*: caídas de un frame suelto en
+acciones puntuales, que un promedio corriendo a 60 esconde por completo. De la
+lista pendiente, dos ítems son hitches reales y se hicieron. Los otros tres se
+descartaron.
+
+### ✅ Hecho — Fase 5 (audio)
+
+`AudioManager.preloadSFX()` construye los diez players y les llama
+`prepareToPlay()` al arrancar, en vez de hacerlo en el primer `play` de cada uno
+—que eran diez tirones repartidos por la partida, cada uno justo encima de la
+acción que lo dispara—. La lectura del disco va a una tarea aparte
+(`AVAudioPlayer` no es `Sendable`; lo que cruza es el `Data`, que sí lo es) y se
+cede el hilo principal entre SFX, así que la precarga convive con el bootstrap en
+lugar de bloquearlo.
+
+**Se extendió a la música**, que el plan no mencionaba: `music_earth_loop.caf`
+son 1,7 MB y se leían en main durante el arranque — el archivo más pesado del
+bundle y el stall de audio más grande que había. `startMusic` es `async` ahora.
+
+Tests: `FisuEvolutionTests/AudioManagerTests.swift` (2).
+
+### ✅ Hecho — Fase 3.2 (`renderPlacements` reconciliador)
+
+Se hizo **por el defecto visible, no por los fps**: reconstruir los diez
+personajes en cada contratación reiniciaba el wander de toda la multitud, así que
+el tablero entero pegaba un salto de vuelta a sus anclas en la acción más
+repetida del juego.
+
+La decisión vive en `FisuEvolution/Scenes/BoardReconciliation.swift`, un tipo
+puro, porque ahí está el riesgo real del cambio: **dejar quieto un nodo que en
+realidad tenía que rearmarse**. La clave de identidad es
+`RenderedUnit {typeId, skinID, cellSize, columns}` — todo lo que consume
+`CharacterNode.configure`. Un nodo que sobrevive no se reconfigura, no se
+reposiciona y no se le reinicia el wander.
+
+Dos cosas que hacen que esto sea seguro y conviene no romper:
+- El wander usa `.move(to:)` **absoluto contra el ancla**, no movimientos
+  relativos, así que un nodo que sobrevive muchos relayouts no deriva.
+- `characterNodes` sólo se muta en `renderPlacements`; nadie más vacía
+  `fieldNode`. `renderedUnits` se mantiene en paralelo ahí mismo. Si eso cambia,
+  los dos diccionarios se desincronizan.
+
+Los nodos se devuelven al pool **antes** de pedir los nuevos, para que `obtain()`
+reutilice en vez de alocar de más en cada merge.
+
+Tests: `FisuEvolutionTests/BoardReconciliationTests.swift` (5).
+
+### ❌ Descartado — Fase 3.1 (sacar el `SKCropNode` de `FloorNode`)
+
+3× de overdraw que el stencil descarta, sí, pero con fps en el techo no compra
+nada medible, y toca el bug de fondos arreglado en `b167c57` que protege
+`testEachFloorRendersOnlyItsOwnBackground`. Riesgo real contra beneficio no
+medible. Si alguna vez se retoma, la alternativa buena sigue siendo aspect-fill
+por coordenadas de textura con `SKTexture(rect:in:)` y el sprite del tamaño
+exacto del slot: cero overdraw, cero stencil, y la invasión entre pisos se vuelve
+imposible *por construcción* en vez de por recorte. `definition.backgroundOffset`
+pasaría a ser un desplazamiento dentro del subrect normalizado.
+
+### ❌ Descartado — Fase 3.3 (sombra a sprite compartido)
+
+Su premisa es falsa: ver §3 bis. El depth sorting por personaje impide la fusión
+que la fase prometía.
+
+### ❌ Descartado — Fase 4 (invalidaciones de SwiftUI)
+
+`HUDView` se recompone ~7,5 veces por segundo y hay trabajo redundante en
+`refreshProjections`, pero nada de eso mueve una métrica hoy. Queda anotado acá
+por si algún día aparece un síntoma que lo justifique: `HUDView.swift:72` usa
+`Text(_:)` con interpolación (construye una `LocalizedStringKey` con 5 argumentos
+boxeados y hace un lookup de bundle que falla y cae al fallback) más ~10
+`Color("...")` por string; `refreshProjections` recalcula
+`IncomeTicker.passivePerSecond` que ya se calculó ese frame dentro de `tick`,
+llama `visibleFloorOccupancy` tres veces por pasada y hace
+`Set(...).union(...).sorted()` sobre las 39 skins; `CoinFormatter.swift:31`
+construye un `FloatingPointFormatStyle` en cada llamada.
+
+**El único de esa lista que no es optimización sino bug latente** son los timers
+como propiedades almacenadas (`EventBannerView.swift:9`, `BonusView.swift:13`):
+el struct se re-inicializa con cada evaluación del padre, creando y
+autoconectando un `Timer` nuevo cada vez. Ese sí conviene arreglarlo cuando se
+toque esa zona.
 
 ---
 
@@ -205,15 +282,27 @@ xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
 cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q
 ```
 
-Estado actual, todo verde: **EconomyKit 134/134, app 75/75, UI 10/10,
+Estado actual, todo verde: **EconomyKit 134/134, app 82/82, UI 10/10,
 pipeline 20/20.**
 
-Dos tests de UI son guardianes de bugs arreglados hoy y **no se pueden dejar
-caer**:
+Dos tests de UI son guardianes de bugs viejos y **no se pueden dejar caer**:
 - `testEachFloorRendersOnlyItsOwnBackground` — protege el bug del fondo que
-  invadía el piso vecino. **Crítico si tocás `FloorNode` en la Fase 3.**
+  invadía el piso vecino. **Crítico si alguna vez se retoma la Fase 3.1.**
 - `testCharactersStayVisibleAfterTheFirstAscent` — protege el bug de personajes
   invisibles pero clickeables (el pool devolvía nodos con `alpha = 0`).
+
+⚠️ **El segundo estaba roto desde antes y nadie se enteró.** F7.5 (`05a3e24`)
+agregó la celebración de skin de milestone, que es un **sheet modal**, y el
+ascenso a Urban que este test recorre acredita `urban_trailblazer`: el sheet
+tapaba el tablero —del que el test da veredicto mirando la captura— y dejaba
+`tower.arrow.down` inalcanzable. Se verificó stasheando los cambios y corriendo
+el test contra HEAD pelado: fallaba idéntico. Ahora el test cierra la
+celebración como la cierra el jugador (`dismissSkinAward`).
+
+**Lección para el próximo**: la celebración depende de `fisuTutorialDone`, un
+`@AppStorage` que `--uitest-reset` **NO** toca y que el propio test puede
+terminar de avanzar a fuerza de taps. Cualquier test de UI que pase por un
+ascenso tiene que tolerar las dos ramas en vez de asumir una.
 
 También hay `testPerfBaselinePopulatedBoard`, que puebla el tablero y deja
 capturas con el overlay de fps para comparar. Las capturas salen del xcresult:
@@ -241,6 +330,21 @@ contador pasa en falso o falla sin motivo.
    versionado). El batch de arte hay que correrlo **desde Terminal.app**.
 4. **Medir fps con builds corriendo en paralelo da números basura.** En una
    captura temprana salió 4,5 fps sólo porque había un `xcodebuild` compilando.
+5. **Los fps son una métrica saturada acá: no discriminan nada.** Todo da 60,
+   en Debug y en Release, vacío y poblado. Si querés dimensionar un cambio de
+   render, mirá `draws` (el overlay ya lo muestra); si lo que sospechás es un
+   hitch, los fps no te lo van a mostrar nunca y hace falta otra herramienta.
+6. **Manejar el simulador a mano contamina la suite de UI.** Escribir
+   `fisuTutorialDone` con `simctl spawn defaults write` para saltear el tutorial
+   cambia qué popups aparecen en los tests. Fue lo primero que sospeché cuando
+   falló el test de UI — y **estaba equivocado**: el test fallaba igual con el
+   flag invertido y también contra HEAD sin ningún cambio. Vale la pena aislar
+   la variable con `git stash` antes de acusar al código propio.
+7. **Un test de UI que falla por `kAXErrorCannotComplete` /
+   "Failed to scroll to visible" casi nunca es un problema del botón**: es algo
+   modal tapándolo. La forma rápida de verlo es exportar los attachments del
+   xcresult y mirar la captura y el `App UI hierarchy`, que lista los elementos
+   del sheet que está encima.
 
 ---
 

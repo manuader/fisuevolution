@@ -5,7 +5,7 @@
   "passiveRatio": 0.5,
   "passiveUnlockCostMultiplier": 60,
   "hire": {
-    "defaultCostMultiplier": 100,
+    "defaultCostMultiplier": 400,
     "defaultCostGrowth": 1.2
   },
   "charUpgrades": {

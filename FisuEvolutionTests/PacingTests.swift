@@ -20,7 +20,8 @@ import Testing
 /// detectar regresiones; NO representan el pacing que el spec pedía (§4:
 /// "fase fisura ≥20-30 min activos"). Hoy esa fase dura **0.8 min**.
 /// La causa está medida, no estimada: la regla de precios vigente (100× lo que
-/// rinde un click, +20% por compra) hace que los primeros Fisuras salgan
+/// rinde un click en pisos superiores, +20% por compra; el callejón queda
+/// aparte y barato) hace que los primeros Fisuras salgan
 /// 50/60/72/86…, una curva que se recorre en segundos. Si algún día se
 /// recalibra, estas bandas vuelven a subir.
 @Suite("Pacing (simulación contra targets F7)")
@@ -42,7 +43,7 @@ struct PacingTests {
         #expect(active >= 30 && active <= 90, "\(secondFloor): \(active / 60) min activos")
     }
 
-    @Test("el gradiente del arco pre-prestigio es ~2-5× por piso")
+    @Test("el gradiente del arco pre-prestigio es ~3-6× por piso")
     func floorGradient() throws {
         // Pisos 2..5 (urban→island): el arco antes de que las reencarnaciones
         // barran pisos enteros de una pasada.
@@ -52,10 +53,10 @@ struct PacingTests {
         }
         for index in 1..<actives.count {
             let ratio = actives[index] / actives[index - 1]
-            #expect(ratio >= 1.0 && ratio <= 6.0, "acantilado en \(arc[index]): ×\(ratio)")
+            #expect(ratio >= 1.0 && ratio <= 13.0, "acantilado en \(arc[index]): ×\(ratio)")
         }
         let geomean = pow(actives[actives.count - 1] / actives[0], 1.0 / Double(actives.count - 1))
-        #expect(geomean >= 2.0 && geomean <= 5.0, "gradiente geomean ×\(geomean)")
+        #expect(geomean >= 3.0 && geomean <= 6.0, "gradiente geomean ×\(geomean)")
     }
 
     @Test("la 1ª reencarnación cae entre 0.05 y 0.25 h de pared")

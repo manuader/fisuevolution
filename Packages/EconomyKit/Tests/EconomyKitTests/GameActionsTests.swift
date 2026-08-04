@@ -259,14 +259,15 @@ struct HireGateTests {
         #expect(TowerActions.canHire(floorOrdinal: 0, unlockedFloors: ["g1"], floorTable: floorTable))
     }
 
-    @Test("un piso necesita DOS pisos desbloqueados por encima")
-    func upperFloorNeedsTwoAbove() {
-        #expect(!TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
-        #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2", "g3", "g4"], floorTable: floorTable))
+    @Test("un piso necesita el de arriba desbloqueado")
+    func upperFloorNeedsTheOneAbove() {
+        #expect(!TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2"], floorTable: floorTable))
+        #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
     }
 
-    @Test("los dos pisos del tope se destraban al abrir el último")
+    @Test("el último piso se destraba a sí mismo al abrirse")
     func topOfTowerEscapes() {
+        // g4 no tiene ninguno por encima: sin el escape nunca dejaría contratar.
         #expect(!TowerActions.canHire(floorOrdinal: 3, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
         #expect(!TowerActions.canHire(floorOrdinal: 2, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
         let all = ["g1", "g2", "g3", "g4"]
@@ -284,7 +285,7 @@ struct HireGateTests {
         var tower = TowerReconciler.reconcile(run: &state.run, floorTable: floorTable, tiers: tiers).tower
         // Después del reconcile: el reconciliador sincroniza unlockedFloors por
         // unidades, así que fijar el escenario acá y no antes.
-        state.run.unlockedFloors = ["g1", "g2"]   // g4 cerrado ⇒ el gate de g2 no pasa
+        state.run.unlockedFloors = ["g1", "g2"]   // g3 cerrado ⇒ el gate de g2 no pasa
         state.run.coins = 1_000_000
         let quote = try #require(TowerActions.hireQuote(
             floorOrdinal: 1, state: state, tiers: tiers,
@@ -299,14 +300,24 @@ struct HireGateTests {
         #expect(tower == before.1, "ni ocupar un slot")
     }
 
-    @Test("desbloquear un piso destraba la contratación del que está dos abajo")
-    func unlockingAFloorOpensHiringTwoBelow() {
+    @Test("desbloquear un piso destraba la contratación del que está justo abajo")
+    func unlockingAFloorOpensHiringRightBelow() {
+        #expect(
+            TowerActions.newlyHireableFloors(
+                unlockedBefore: ["g1", "g2"], unlockedAfter: ["g1", "g2", "g3"], floorTable: floorTable
+            ) == [1],
+            "abrir g3 sólo destraba g2"
+        )
+    }
+
+    @Test("abrir el último piso destraba también al último por el escape")
+    func unlockingTheTopAlsoOpensItself() {
         let before = ["g1", "g2", "g3"]
         #expect(
             TowerActions.newlyHireableFloors(
                 unlockedBefore: before, unlockedAfter: before + ["g4"], floorTable: floorTable
-            ) == [1, 2, 3],
-            "g4 es además el tope, así que destraba g2 por la regla y g3/g4 por el escape"
+            ) == [2, 3],
+            "g3 por la regla y g4 por el escape, que si no nunca se abriría"
         )
     }
 
@@ -316,7 +327,7 @@ struct HireGateTests {
             TowerActions.newlyHireableFloors(
                 unlockedBefore: ["g1"], unlockedAfter: ["g1", "g2"], floorTable: floorTable
             ).isEmpty,
-            "abrir g2 no le da dos pisos por encima a nadie"
+            "abrir g2 no le da el piso de arriba a nadie: g1 ya podía y g2 necesita g3"
         )
     }
 }

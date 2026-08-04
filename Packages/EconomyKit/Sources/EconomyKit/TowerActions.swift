@@ -23,8 +23,8 @@ public enum TowerError: Error, Equatable {
     case insufficientCoins
     case invalidSlot
     case noHireableType
-    /// El piso está abierto, pero todavía no habilita contratar: falta que se
-    /// desbloqueen dos pisos por encima. Distinto de `floorLocked` a propósito —
+    /// El piso está abierto, pero todavía no habilita contratar: falta
+    /// desbloquear el piso de arriba. Distinto de `floorLocked` a propósito —
     /// un piso puede estar abierto y aun así no dejar contratar.
     case hireLocked
 }
@@ -88,8 +88,6 @@ public enum TowerActions {
         return candidates.sorted { $0.id < $1.id }.first
     }
 
-    /// Contrata en el piso del quote. Requiere piso desbloqueado, slot libre y saldo.
-    @discardableResult
     /// ¿Este piso habilita contratar?
     ///
     /// El backfill sólo tiene sentido cuando tu frontera ya está bastante más
@@ -98,8 +96,17 @@ public enum TowerActions {
     ///
     /// - El piso de abajo de todo (ordinal 0) SIEMPRE deja contratar: es el motor
     ///   del early game y ya es la excepción de precio.
-    /// - Los dos pisos del tope nunca van a tener dos por encima, así que
-    ///   desbloquear el último piso de la torre los habilita.
+    /// - El último piso no tiene ninguno por encima, así que desbloquearlo lo
+    ///   habilita a sí mismo.
+    ///
+    /// **Por qué UNO y no dos**: con dos, el juego deja de poder terminarse. El
+    /// spec de F7 §3.3 dice que el merge puro es matemáticamente inviable
+    /// (T30 = 2²⁹ fisuras) y que el backfill es el puente; pedir dos pisos saca
+    /// ese puente justo donde hace falta —no podés comprar material en el piso
+    /// que estás atravesando— y queda un huevo-y-gallina, porque la frontera
+    /// avanza GRACIAS al backfill. Medido: sin gate Dios cae a las 38 h, con
+    /// gate de uno a las 264 h, y con gate de dos el bot se traba en tier 12 y
+    /// no llega nunca.
     ///
     /// La usan `hire` y `PacingSimulator`. **No duplicar la condición**: es el
     /// mismo error que el balance-log documenta para la fórmula de costo, que
@@ -113,17 +120,17 @@ public enum TowerActions {
         if floorOrdinal == 0 { return true }
         let unlocked = Set(unlockedFloors)
         if let top = floorTable.floors.last, unlocked.contains(top.id) { return true }
-        let required = floorOrdinal + 2
+        let required = floorOrdinal + 1
         guard required < floorTable.count else { return false }
         return unlocked.contains(floorTable[required].id)
     }
 
     /// Pisos que pasan de NO contratables a contratables por un desbloqueo.
     ///
-    /// En el caso normal es uno solo —el que está dos abajo del que se abrió—;
-    /// al abrir el último piso son los dos del tope juntos, porque ahí entra el
-    /// escape. Se calcula comparando la regla contra sí misma en vez de restar
-    /// ordinales a mano, así los dos casos salen de la misma fuente.
+    /// En el caso normal es uno solo: el que está justo abajo del que se abrió.
+    /// Se calcula comparando la regla contra sí misma en vez de restar ordinales
+    /// a mano, así el caso normal y el del escape del tope salen de la misma
+    /// fuente y no pueden desincronizarse.
     public static func newlyHireableFloors(
         unlockedBefore: [String],
         unlockedAfter: [String],
@@ -135,6 +142,9 @@ public enum TowerActions {
         }
     }
 
+    /// Contrata en el piso del quote. Requiere piso desbloqueado, gate abierto,
+    /// slot libre y saldo.
+    @discardableResult
     public static func hire(
         quote: HireQuote,
         state: inout PlayerState,

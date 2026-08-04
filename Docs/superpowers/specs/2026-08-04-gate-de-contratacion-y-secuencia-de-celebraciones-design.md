@@ -36,19 +36,36 @@ Sumarle el aviso del punto 1 sin arreglar esto lo empeoraría.
 ### La regla
 
 Una función pura en EconomyKit,
-`TowerActions.canHire(floorOrdinal:state:floorTable:) -> Bool`:
+`TowerActions.canHire(floorOrdinal:unlockedFloors:floorTable:) -> Bool`:
 
 1. **Ordinal 0 (callejón): siempre `true`.** Contratar un Fisura tiene que ser
    siempre posible — es el motor del early game y ya es la excepción de precio
    (multiplicador 50 en vez de 300, ver `balance-log`).
 2. **Tope de la torre**: si `unlockedFloors` contiene el id del **último** piso,
    `true` para cualquier ordinal.
-3. **Regla general**: `true` si `unlockedFloors` contiene el piso `ordinal + 2`.
+3. **Regla general**: `true` si `unlockedFloors` contiene el piso `ordinal + 1`.
 
-La regla 2 existe porque los dos pisos de arriba de todo nunca van a tener dos
-pisos por encima. Con 11 pisos (ordinales 0–10) afecta sólo a `cosmic` (9) y
-`god_realm` (10); para el resto la regla 3 ya alcanza. Decisión del dueño:
-preferible a dejar un botón que no se abre nunca.
+La regla 2 existe porque el último piso no tiene ninguno por encima; sin ella
+nunca dejaría contratar. Decisión del dueño frente a un botón que no se abre.
+
+> ⚠️ **El pedido original era `ordinal + 2` y se midió que rompe el juego.**
+> Con dos pisos el bot se traba en tier 12 y no llega a Dios nunca. La causa es
+> estructural, no de calibración: el §3.3 del prompt de F7 dice que el merge puro
+> es matemáticamente inviable (T30 = 2²⁹ fisuras) y que el backfill es el puente.
+> Pedir dos pisos saca ese puente justo donde hace falta —no podés comprar
+> material en el piso que estás atravesando— y queda un huevo-y-gallina, porque
+> la frontera avanza GRACIAS al backfill.
+>
+> Medido el 2026-08-04, misma config, tres corridas de `pacing-sim`:
+>
+> | | sin gate | **+1 (elegido)** | +2 (pedido original) |
+> |---|---|---|---|
+> | luxury (piso 4) | 25,7 min activos | 200,8 min | 977,9 min |
+> | island (piso 5) | 58 min | 403,5 min | nunca |
+> | **Dios** | **38,2 h** | **264,2 h** | **nunca** (tier 12) |
+> | reencarnaciones | 17 | 50 | 49 |
+>
+> El dueño eligió +1 sabiendo que alarga el juego ~7×.
 
 `TowerActions.hire` suma `guard canHire(...) else { throw TowerError.hireLocked }`
 **después** del `floorLocked` que ya existe. Son errores distintos a propósito: el
@@ -127,9 +144,9 @@ esperar a un sheet que cierra el jugador.
 Al desbloquear el piso `U`, el conjunto de pisos que pasan de no-contratables a
 contratables es:
 
-- caso normal: `{U - 2}`
-- caso tope (`U` es el último): `{último - 1, último}` — porque `último - 2` ya
-  era contratable por la regla general
+- caso normal: `{U - 1}`
+- caso tope (`U` es el último): `{último - 1, último}` — el de abajo por la regla
+  general y el último por el escape
 
 El toast nombra **el más bajo** de ese conjunto: es el que el jugador va a querer
 rellenar y da una sola regla para los dos casos. Se calcula con una función pura
@@ -141,9 +158,8 @@ de llamada.
 ## Qué se testea
 
 **EconomyKit (puro):**
-- `canHire`: piso 0 siempre; con `ordinal + 2` desbloqueado sí y sin él no; el
-  escape del tope habilita `cosmic` y `god_realm`; un piso bloqueado sigue
-  bloqueado aunque el gate pase.
+- `canHire`: piso 0 siempre; con `ordinal + 1` desbloqueado sí y sin él no; el
+  escape habilita el último piso, que si no nunca se abriría.
 - `hire` tira `hireLocked` y **no** cobra monedas ni ocupa slot.
 - `newlyHireableFloors`: caso normal devuelve uno, caso tope devuelve dos, y no
   devuelve nada cuando el unlock no destraba a nadie.
@@ -196,8 +212,8 @@ y ahora la cadena dura más.
 
 ## Fuera de alcance
 
-- Cambiar el número 2 (es el parámetro que pidió el dueño; si mañana se quiere
-  configurable, va a `economy.json`, no a código).
+- Hacer el número configurable. Hoy es una constante en `canHire`; si mañana se
+  quiere tunear, va a `economy.json`, no a código.
 - Rebalancear costos de contratación. La regla de precios de `balance-log`
   (300× el click del piso, 50 en el callejón) no se toca.
 - Encolar cualquier otra celebración del juego (daily, specials, eventos): esta

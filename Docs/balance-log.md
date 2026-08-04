@@ -259,3 +259,60 @@ O sea: el juego largo se mantiene, lo que se comprimió casi por completo es el
 arranque. `PacingTests` se re-pineó otra vez a esta conducta; los targets de
 DISEÑO siguen mostrándose en el semáforo de `pacing-sim` para que la brecha no
 se olvide.
+
+---
+
+# Gate de contratación (2026-08-04, decisión del dueño)
+
+Contratar en un piso pasa a exigir **el piso de arriba desbloqueado**. El
+callejón queda exento (siempre se puede contratar un Fisura) y el último piso se
+habilita a sí mismo al abrirse, porque no tiene ninguno por encima.
+
+## El pedido original era DOS pisos y rompe el juego
+
+Medido, no estimado. Tres corridas de `pacing-sim`, misma config, mismo seed:
+
+| | sin gate | **+1 (elegido)** | +2 (pedido original) |
+|---|---|---|---|
+| urban (piso 2) activo | 0.8 min | 0.8 min | 0.8 min |
+| corporate (piso 3) | — | 4.2 min | 4.2 min |
+| luxury (piso 4) | 25.7 min | 200.8 min | 977.9 min |
+| island (piso 5) | 58.0 min | 403.5 min | **nunca** |
+| **Dios (pared)** | **38.2 h** | **264.2 h** | **nunca** (traba en tier 12) |
+| reencarnaciones | 17 | 50 | 49 |
+
+**Por qué +2 no funciona, y no es cuestión de calibrar**: el §3.3 del prompt de
+F7 dice que el merge puro es matemáticamente inviable (T30 = 2²⁹ fisuras) y que
+el backfill es el puente que lo hace posible. Exigir dos pisos saca ese puente
+justo donde hace falta —no podés comprar material en el piso que estás
+atravesando— y queda un huevo-y-gallina, porque la frontera avanza GRACIAS al
+backfill. El bot entra a luxury a las 288 h y se queda ahí reencarnando 49 veces
+sin avanzar.
+
+## Lo que cuesta la opción elegida
+
+El dueño eligió +1 sabiendo que **el juego se alarga ~7×**: Dios pasa de 38.2 h a
+264.2 h de pared. El early game no se mueve (la fase fisura la fija la curva del
+callejón, que quedó intacta).
+
+**Consecuencia derivada que NO estaba en la decisión**: apareció un acantilado de
+**×47.8 en luxury** (antes ×7.1). El backfill de corporate se habilita recién al
+abrir luxury, así que atravesar corporate pasó a depender casi sólo del merge
+desde abajo. El gradiente geomean del arco urban→island subió de ×2.43 a ×7.96.
+
+## Qué se re-pineó
+
+`FisuEvolutionTests/PacingTests.swift`, tercera vez, con ±30% sobre la corrida
+real:
+
+- gradiente geomean: 3.0–6.0 → **5.6–10.3**
+- guarda anti-acantilado por paso: ≤9.0 → **≤62.0**
+- dios: 21–65 h → **185–343 h**
+- fase fisura y 1ª reencarnación: **sin cambios**, no se movieron
+
+⚠️ La guarda anti-acantilado quedó **vestigial**: con el tope en 62 ya casi no
+puede saltar. Si algún día se recalibra el balance, eso es lo primero que hay que
+volver a bajar.
+
+`pacing-sim` sigue imprimiendo los targets de DISEÑO en su semáforo, así que la
+brecha queda visible cada vez que se corre.

@@ -232,7 +232,17 @@ public struct PacingSimulator: Sendable {
 
         // 4. Backfill: hire en pisos superiores desbloqueados SOLO si es rentable
         //    (precio punitivo: recién conviene con la frontera pisos arriba).
-        for ordinal in 1..<floorTable.count where state.run.unlockedFloors.contains(floorTable[ordinal].id) {
+        //    El gate de dos pisos por encima sale de `TowerActions.canHire`, la
+        //    MISMA función que usa el juego: si acá se copiara la condición, el
+        //    simulador podría modelar un jugador que hace algo que el juego no
+        //    permite.
+        for ordinal in 1..<floorTable.count
+        where state.run.unlockedFloors.contains(floorTable[ordinal].id)
+            && TowerActions.canHire(
+                floorOrdinal: ordinal,
+                unlockedFloors: state.run.unlockedFloors,
+                floorTable: floorTable
+            ) {
             if let hire = hireAction(floorOrdinal: ordinal, state: state, requireProfit: true, passiveRate: passiveRate) {
                 candidates.append(hire)
             }

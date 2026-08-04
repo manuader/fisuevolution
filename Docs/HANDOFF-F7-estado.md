@@ -1,5 +1,51 @@
 # HANDOFF — F7 "La Torre": estado de implementación
 
+> ## ✅ 2026-08-04: F7 COMPLETO (F7.5 y F7.6 cerradas)
+>
+> Las seis fases están commiteadas. Tests: **EconomyKit 133/133, app 71/71,
+> smoke UI 7/7, pipeline 17/17**, build con warnings-as-errors limpio.
+>
+> - **F7.5** (`05a3e24`): fallback del retrato al arte base, la tienda dejó de
+>   equipar (murió el puente global `setActiveSkin`/`activeSkin`), celebración de
+>   milestone (`SkinAwardView`), specials anclados dibujándose en su piso, y
+>   smoke UI de la ficha con fixture `--uitest-open-sheet`. Bug de localización
+>   corregido: `character.count` y `character.skin.index` salían como claves
+>   crudas (declaradas `%@`, interpoladas con `Int` → `%lld`).
+> - **F7.6** (`e7021c2`): targets de pacing **re-pineados a la baja** por
+>   decisión del dueño (conservar el Fisura a 50) — el costo está medido en
+>   `Docs/balance-log.md §F7.6`, no maquillado; drill de extensibilidad nuevo
+>   (piso 12 + personaje + skin, cero código) y drill de remapeo ampliado al caso
+>   `unlockTier` corrido; haptics/SFX de ascenso, unlock y reencarnación.
+> - **Skins ampliadas** (`de16870`, `3d5a1a2`): expansión de alcance pedida por
+>   el dueño — el §9 de la spec ponía el arte de skins FUERA de alcance. Catálogo
+>   de **39 entradas** (3 tintes IAP + una skin por cada uno de los 36
+>   personajes) con nombres localizados es/en, y el pipeline de arte habilitado
+>   para skins (referencia por asset, categoría `skin`, 36 prompts + icono ORO).
+>
+> ### ⛔ Lo único que quedó pendiente: GENERAR EL ARTE
+>
+> El batch de Gemini **no pudo correr**: la cuenta está en **"límite de uso"**
+> (verificado dos veces, `state/selenium-run.json`). No es un bug del pipeline —
+> el circuito quedó probado y listo. Cuando la cuota se restablezca:
+>
+> ```bash
+> cd Tools/asset-pipeline
+> .venv/bin/python scripts/launch_gemini_chrome.py          # Chrome dedicado :9222
+> .venv/bin/python scripts/gemini_selenium_runner.py --only homeless__second_life \
+>     --process --ref-threshold 5                            # validar UNO primero
+> nohup caffeinate -is .venv/bin/python scripts/gemini_selenium_runner.py \
+>     --process --pause 3 --timeout 260 --ref-threshold 5 &  # los 38 restantes
+> ```
+>
+> `--ref-threshold 5` es obligatorio para skins: la referencia adjunta es el
+> MISMO personaje, y con el umbral por defecto (12) el filtro anti-falsos-
+> positivos puede descartar la skin legítima por parecerse a su referencia.
+>
+> El juego **funciona hoy sin ese arte**: las 36 skins están catalogadas y caen
+> a la textura base (contrato testeado en `missingSkinArtFallsBackToTheBaseTexture`).
+> Al caer los PNG, `--process` los integra solo y no hay que tocar código.
+> El icono ORO (`GameArt.swift`) sigue vectorial por el mismo motivo.
+
 > ## ✅ ACTUALIZACIÓN 2026-08-03 (tarde): F7.1 CERRADO
 >
 > Todo lo que este doc describe como pendiente en §5 se COMPLETÓ y está

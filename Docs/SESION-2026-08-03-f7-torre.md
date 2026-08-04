@@ -237,3 +237,90 @@ primer unlock con foco de cámara y los pasos de tutorial para torre/ascenso.
   tutorial, y el visual de specials anclados. Después ejecutar suites finales y
   documentar/commitear. Pacing no debe usarse como gate verde: sigue fuera de
   rango por Fisura=50 y se arregla deliberadamente en F7.6.
+
+---
+
+## Sesión 2026-08-04 (madrugada-mañana) — cierre de F7 + skins
+
+### F7.5 cerrada (`05a3e24`)
+
+Los cinco pendientes que el handoff dejaba anotados, verificados contra el
+código y no contra la bitácora:
+
+1. **Fallback del retrato**: la ficha caía al SF Symbol `person.fill` cuando
+   faltaba el arte de una skin; ahora cae al retrato base, mismo criterio que el
+   tablero (`PlaceholderRenderer`).
+2. **CTA legacy del Store**: `StoreView` seguía equipando con `setActiveSkin`,
+   que aplicaba la skin a TODOS los tipos y competía con la selección por tipo de
+   la ficha. La tienda ahora vende y apunta a la ficha; murieron
+   `GameState.setActiveSkin` y la proyección `activeSkin`.
+3. **Celebración de milestone**: `awardEligibleMilestoneSkins` sólo logueaba.
+   Se publica `skinAward` y `SkinAwardView` la presenta gateada por tutorial. Se
+   celebra UNA por tanda: encadenar popups interrumpe el loop.
+4. **Specials anclados**: `meta.specialAnchors` se escribía desde F7.1 y no lo
+   leía nadie. `visibleFloorSpecials` + render en `BoardScene` (decorado, sin
+   slot, no interactivo).
+5. **Smoke UI de la ficha**: fixture `--uitest-open-sheet` en vez de long-press
+   sobre SpriteKit, que no da coordenadas estables en el runner.
+
+**Bug encontrado en la QA visual** (el motivo por el que la QA con screenshot no
+es opcional): `character.count` y `character.skin.index` se veían como claves
+crudas en pantalla. Están declaradas con `%@` pero el código interpolaba `Int`,
+que SwiftUI convierte a `%lld`, y el lookup fallaba. Se pasan como `String`,
+igual que `passive.explainer`. Un barrido sobre el resto de las claves no
+encontró más casos.
+
+### F7.6 cerrada (`e7021c2`)
+
+- **Balance**: el dueño eligió conservar el primer Fisura a 50 y BAJAR los
+  targets. Queda registrado en `Docs/balance-log.md §F7.6` con la tabla de lo que
+  cuesta: fase fisura de 16.2 → **5.8 min**, 1ª reencarnación de 4.0 → **0.26 h**.
+  Dios (33.2 h) y reencarnaciones (13) siguen en banda. `economy.json` intacto,
+  así que el grid search de 6 knobs no se hizo. `pacing-sim` gana `--csv` y
+  sigue imprimiendo los targets de DISEÑO para que la brecha se vea.
+- **Drill de extensibilidad** (nuevo, no existía): piso 12 + personaje + skin
+  declarados sólo como datos. Encontró de entrada una cobertura de tiers
+  inconsistente en su propio fixture, que es exactamente para lo que sirve.
+- **Drill de remapeo**: se agregó el caso `unlockTier` corrido que pedía el spec
+  §7 y no estaba cubierto.
+- **Polish**: el ascenso era indistinguible de un merge (ahora tiene acento
+  propio), al desbloqueo de piso le faltaba SFX y a la reencarnación háptica.
+  Reduce Motion ya cubría cámara, vuelo, reveal, celebración y wander; los
+  micro-rebotes de <150 ms de manipulación directa se dejaron a propósito.
+
+### Skins: expansión de alcance (`de16870`, `3d5a1a2`)
+
+El §9 del spec ponía el **arte** de skins nuevas fuera de alcance (entraba el
+sistema; el catálogo podía shippear con arte pendiente gracias al fallback). El
+dueño pidió generarlo: **una skin por personaje, 36**.
+
+**Pipeline** — tres cambios, con tests (17/17):
+1. El runner leía el campo `**referencia**` del `.md` como un booleano y
+   adjuntaba SIEMPRE `fisura.png`. Con 93 assets del mismo personaje base daba
+   igual; con skins no: cada una necesita a SU personaje como referencia de
+   estilo. Ahora el path del `.md` manda, y la caché de huella se indexa por path.
+2. `--ref-threshold`: con la referencia siendo el MISMO personaje, el filtro
+   anti-falsos-positivos puede descartar la skin legítima. Para skins va en ~5.
+3. `process_dropbox` gana la categoría `skin`: deja el PNG en el atlas del
+   personaje base y NO escribe el manifest (meterlo ahí rompería
+   `manifestEntriesReferenceRealTypes`). La key se arma con `skin_asset_key`
+   porque la convención es `<char>_idle__<skin>`, con el `__` DESPUÉS de `_idle`.
+
+**Prompts**: 36 generados desde `cultural_dict` (`gen_skin_prompts.py`). Cada
+skin conserva pose, cara y expresión y cambia sólo vestuario, props y paleta,
+con cambio cromático fuerte pedido explícitamente — además de diseño, es lo que
+evita que el filtro de huella la confunda con la referencia. Más el icono ORO.
+
+**Catálogo**: 39 entradas con `displayNameKey` (estaba en el modelo del spec
+§3.9 y nunca se había implementado) y 39 nombres es/en. La condición de
+desbloqueo dejó de interpolar el id crudo del piso; `TowerNaming` se extrajo del
+HUD porque ahora lo usan dos superficies.
+
+### ⛔ Bloqueo: el arte no se generó
+
+El batch se frenó con **"Gemini alcanzó su límite de uso"** (dos intentos,
+registrados en `state/selenium-run.json`). No es un bug del pipeline: el
+circuito quedó armado y probado. El comando exacto para retomar está al tope de
+`Docs/HANDOFF-F7-estado.md`. El juego funciona hoy sin ese arte: las 36 skins
+caen a la textura base, contrato cubierto por
+`missingSkinArtFallsBackToTheBaseTexture`.

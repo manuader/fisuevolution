@@ -12,11 +12,15 @@ enum UIArt {
     /// en el arranque con `configure`. `textureNamed()` sí carga bien la textura.
     private static var available: Set<String> = []
     private static var uiCache: [String: UIImage] = [:]
+    /// Retratos de personajes: atlas parametrizable, separado del atlas UI y
+    /// cacheado por `atlas/key` para que la ficha no recodifique PNGs al paginar.
+    private static var characterCache: [String: UIImage] = [:]
 
     /// Llamado en bootstrap con `content.manifest.ui.keys` (assets integrados).
     static func configure(available names: Set<String>) {
         available = names
         uiCache.removeAll()
+        characterCache.removeAll()
     }
 
     static func has(_ name: String) -> Bool { available.contains(name) }
@@ -37,6 +41,17 @@ enum UIArt {
     /// Imagen a escala natural (para íconos: usar con `.scaledToFit()`).
     static func image(_ name: String) -> Image? {
         uiImage(name).map { Image(uiImage: $0) }
+    }
+
+    static func characterImage(atlas atlasName: String, key: String) -> Image? {
+        let cacheKey = "\(atlasName)/\(key)"
+        if let cached = characterCache[cacheKey] { return Image(uiImage: cached) }
+        let texture = SKTextureAtlas(named: atlasName).textureNamed(key)
+        guard texture.size().width > 1, texture.size().height > 1 else { return nil }
+        let cg = texture.cgImage()
+        let image = UIImage(cgImage: cg, scale: max(1, CGFloat(cg.width) / 200), orientation: .up)
+        characterCache[cacheKey] = image
+        return Image(uiImage: image)
     }
 
     /// Imagen 9-slice: sólo el centro se estira, los bordes/esquinas quedan fijos.

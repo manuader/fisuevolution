@@ -78,6 +78,56 @@
 >
 > **Lo que sigue: F7.5** — skins data-driven y ficha de personaje.
 
+> ## 🟡 ACTUALIZACIÓN 2026-08-04 (madrugada): F7.5 EN CURSO — RETOMAR DESDE ACÁ
+>
+> **No hay commit F7.5 todavía.** Los cambios listados abajo están sin stage sobre
+> `main`; no descartar ni restaurar el worktree. Se debe continuar desde este
+> estado y recién commitear cuando se cierre el checklist completo de la fase.
+>
+> Ya implementado y comprobado con TDD:
+>
+> - `skins.json` es el catálogo bundleado; `SkinsConfig` + `SkinMilestones` viven
+>   en EconomyKit. Valida tipos/pisos/tratamientos y separa estrictamente skins
+>   de milestone de los entitlements IAP. `swift test --filter SkinMilestonesTests`
+>   terminó **2/2 verde**.
+> - `GameContentLoader` carga y valida el catálogo contra tiers/floors reales.
+>   `GameContentValidationTests` terminó **11/11 verde** en
+>   `/private/tmp/f7-5-resolver-green.xcresult` (antes, la versión sin resolver
+>   ya había confirmado el catálogo real 10/10).
+> - Al actualizar la torre, `GameState` acredita milestones de manera idempotente
+>   (`urban_trailblazer` al llegar a Urban) sin tocar `ownedSkins`. Wiring de
+>   esa integración: **13/13 verde** en
+>   `/private/tmp/f7-5-milestone-green.xcresult`.
+> - La selección ya es por tipo: `equipSkin(id:forCharacterType:)`, validada
+>   contra ownership+catálogo, se persiste en Meta y sobrevive Reencarnación.
+>   El contrato está cubierto y la suite de wiring terminó **14/14 verde** en
+>   `/private/tmp/f7-5-sheet-green.xcresult` y luego otra vez tras integrar UI
+>   en `/private/tmp/f7-5-character-sheet-2.xcresult`.
+> - `SkinResolver` dejó de tener el switch hardcodeado: resuelve
+>   `.base/.tint(hex:)/.texture(key:)`; `BoardScene` calcula el tratamiento por
+>   unidad y `PlaceholderRenderer` vuelve silenciosamente a la textura base si
+>   falta un key futuro. `UIArt` ganó caché compuesta `atlas/key` para retratos.
+> - Long-press ya abre `CharacterSheetView`; se eliminó `PassiveUnlockView`. La
+>   ficha tiene retrato, selector con flechas/índice, lock+condición o compra IAP,
+>   pasivo y despedir con confirmación. Se agregaron claves es/en. Hubo que correr
+>   `xcodegen generate` al borrar/agregar esos Swift porque el xcodeproj generado
+>   todavía referenciaba `PassiveUnlockView.swift`.
+>
+> **Pendiente para cerrar F7.5 (en este orden):**
+>
+> 1. Revisar visualmente la ficha en simulador y agregar smoke UI estable con
+>    captura (el long-press de SpriteKit puede requerir coordenadas deterministas).
+> 2. Corregir/validar el fallback visual del retrato de una texture skin ausente
+>    (el tablero sí cae a base; confirmar que la ficha también priorice retrato
+>    base antes del SF Symbol), y revisar que Store no mantenga el viejo CTA de
+>    activar global — la ficha debe ser la única selección por tipo.
+> 3. Agregar celebración de milestone gateada por tutorial y el visual de specials
+>    anclados por piso; ambos siguen pendientes del checklist F7.5.
+> 4. Ejecutar el set final (EconomyKit completo, Content/GameLoop, smoke UI),
+>    inspeccionar screenshots, actualizar esta bitácora/handoff y recién entonces
+>    stage+commit. No declarar suite completa verde: Pacing sigue rojo por el
+>    precio Fisura=50 pedido y se recalibra en F7.6.
+
 > **Para el agente que retoma:** este doc te deja arrancar DE CERO. Leelo entero,
 > después leé `Docs/PROMPT-F7-torre-de-escenarios.md` (spec funcional aprobada) y
 > `Docs/PLAN-F7-torre.md` (plan de implementación aprobado, con arquitectura,
@@ -152,7 +202,7 @@ cortísima; passive income inútil. F7 = rediseño "La Torre".
 | **F7.2** Torre en escena (cámara/FloorNodes/navegación) | ✅ cerrado (ver actualización 2026-08-04) |
 | F7.3 Contratación por piso + desbloqueo + tutorial | ✅ cerrado (`42d778e`; captura de preview y ascenso cubierto por test) |
 | F7.4 ORO UI + upgrades currency + PrestigeView | ✅ cerrado (ver actualización 2026-08-04) |
-| F7.5 Skins + ficha | ⬜ pendiente |
+| F7.5 Skins + ficha | 🟡 en curso — catálogo, resolver, ficha y persistencia hechos; faltan QA visual/celebración/specials |
 | F7.6 Balance (grid sim) + drills + polish + docs | ⬜ pendiente |
 
 F7.1 y F7.2 ya están commiteadas (`432e6a5`, `3b27416`). Al retomar, revisar

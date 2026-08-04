@@ -157,6 +157,7 @@ struct GameLoopWiringTests {
         #expect(promotedToFloor == 1)
         #expect(unlockedFloorId == "urban")
         #expect(gameState.player?.run.unlockedFloors.contains("urban") == true)
+        #expect(gameState.player?.meta.milestoneSkins.contains("urban_trailblazer") == true)
         #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
     }
 
@@ -279,6 +280,28 @@ struct GameLoopWiringTests {
         gameState.tick(delta: 1.0)
         let coinsAfter = try #require(gameState.player?.run.coins)
         #expect(abs(coinsAfter - coinsBefore - expectedPerSecond) < 1e-9)
+    }
+
+    // MARK: Ficha de personaje + skins (F7.5)
+
+    @Test func skinEquipIsScopedToItsCharacterAndSurvivesReincarnation() async throws {
+        let gameState = await makeGameState()
+        gameState.applyStoreEntitlements(removedAds: false, ownedSkins: ["golden"])
+
+        // La skin global se equipa en UNA ficha, no en todos los tipos como el
+        // puente F7.1. La preferencia vive en Meta y debe sobrevivir la run.
+        gameState.equipSkin(id: "golden", forCharacterType: "homeless")
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "golden")
+        #expect(gameState.activeSkinID(forCharacterType: "cartonero") == nil)
+
+        var fuse = 0
+        while !gameState.prestigeAvailable && fuse < 64 {
+            gameState.debugGrantCoins()
+            fuse += 1
+        }
+        #expect(gameState.prestigeAvailable)
+        gameState.confirmPrestige()
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "golden")
     }
 
     @Test func hugeTickDeltaIsClamped() async throws {

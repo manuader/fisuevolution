@@ -30,7 +30,9 @@ final class GameState {
         let targetCell: Int
     }
 
-    struct PassivePrompt: Identifiable, Equatable {
+    /// Modelo mínimo de la ficha abierta desde un personaje del tablero. Mantiene
+    /// el slot para que despedir siga siendo una acción explícita y confirmable.
+    struct CharacterSheet: Identifiable, Equatable {
         let id = UUID()
         let type: CharacterType
         /// Slot del piso visible.
@@ -111,6 +113,8 @@ final class GameState {
     private(set) var oroText = "0"
     private(set) var ownedSkins: [String] = []
     private(set) var activeSkin: String?
+    /// Invalida la ficha cuando llega un entitlement, milestone o equipamiento.
+    private(set) var skinSelectionVersion = 0
     private(set) var activeEvent: EventManager.ActiveEvent?
     private(set) var specialDrop: SpecialsConfig.Special?
     private(set) var dailyClaim: DailyRewardManager.Claim?
@@ -132,7 +136,7 @@ final class GameState {
     /// `player` directo lo observan para re-renderizar.
     private(set) var effectsVersion = 0
     var careerPrompt: CareerPrompt?
-    var passivePrompt: PassivePrompt?
+    var characterSheet: CharacterSheet?
     var offlineReward: OfflineReward?
 
     // MARK: Authoritative state
@@ -350,6 +354,19 @@ final class GameState {
             player.meta.stats.maxFloorOrdinalEver = maxUnlocked
             self.player = player
         }
+        awardEligibleMilestoneSkins()
+    }
+
+    /// Milestones no dependen de la escena: cualquier unlock/reencarnación que
+    /// actualice el estado de torre acredita una vez en MetaState. StoreKit usa
+    /// `ownedSkins` aparte y por eso esta unión nunca borra una compra.
+    private func awardEligibleMilestoneSkins() {
+        guard let content, var player else { return }
+        let newlyUnlocked = SkinMilestones.newlyUnlocked(state: player, config: content.skins)
+        guard !newlyUnlocked.isEmpty else { return }
+        player.meta.milestoneSkins = Array(Set(player.meta.milestoneSkins).union(newlyUnlocked)).sorted()
+        self.player = player
+        Log.economy.info("skin milestones awarded: \(newlyUnlocked)")
     }
 
     // MARK: Frame loop (called by BoardScene)
@@ -632,14 +649,14 @@ final class GameState {
         specialDrop = nil
     }
 
-    /// Long-press on a unit → passive unlock prompt for its type (§2.3 regla 3).
+    /// Long-press on a unit → ficha por personaje (§2.3 regla 3).
     /// `cellIndex` = slot del piso visible.
-    func presentPassivePrompt(cellIndex: Int) {
+    func presentCharacterSheet(cellIndex: Int) {
         guard let content, let player, let tower,
               let typeId = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: cellIndex),
               let type = content.tiers.type(id: typeId)
         else { return }
-        passivePrompt = PassivePrompt(
+        characterSheet = CharacterSheet(
             type: type,
             cellIndex: cellIndex,
             instanceCount: player.run.units[type.id] ?? 0,
@@ -655,7 +672,7 @@ final class GameState {
         guard TowerActions.removeUnit(floorOrdinal: visibleFloorOrdinal, slot: cell, state: &player, tower: &tower) else { return }
         self.player = player
         self.tower = tower
-        passivePrompt = nil
+        characterSheet = nil
         playHaptic(.merge)
         bumpBoard()
         scheduleSave()
@@ -667,7 +684,7 @@ final class GameState {
             try economy.applyPassiveUnlock(typeId: typeId, state: &player, tiers: content.tiers)
             self.player = player
             haptics?.play(.purchase)
-            passivePrompt = nil
+            characterSheet = nil
             refreshProjections()
             scheduleSave()
         } catch {
@@ -716,6 +733,7 @@ final class GameState {
         let owned = player.meta.allOwnedSkins
         player.meta.activeSkinByType = player.meta.activeSkinByType.filter { owned.contains($0.value) }
         self.player = player
+        skinSelectionVersion &+= 1
         bumpBoard()
         scheduleSave()
     }
@@ -733,6 +751,47 @@ final class GameState {
             player.meta.activeSkinByType = [:]
         }
         self.player = player
+        skinSelectionVersion &+= 1
+        bumpBoard()
+        scheduleSave()
+    }
+
+    /// Skin actualmente equipada en la ficha de un tipo. La ausencia es la
+    /// apariencia base: no se persiste un ID artificial para poder sumar skins
+    /// data-driven sin migrar saves.
+    func activeSkinID(forCharacterType typeID: String) -> String? {
+        guard let player else { return nil }
+        return player.meta.activeSkinByType[typeID]
+    }
+
+    func skinOptions(forCharacterType typeID: String) -> [SkinsConfig.Entry] {
+        content?.skins.entries(forCharacterType: typeID) ?? []
+    }
+
+    func ownsSkin(_ skinID: String) -> Bool {
+        player?.meta.allOwnedSkins.contains(skinID) == true
+    }
+
+    /// Equipa una skin en UN personaje. Valida tanto la pertenencia de la skin
+    /// al catálogo como la propiedad del jugador; StoreKit nunca puede inyectar
+    /// una apariencia que `skins.json` no declare para esa ficha.
+    func equipSkin(id skinID: String?, forCharacterType typeID: String) {
+        guard let content, var player,
+              content.tiers.type(id: typeID) != nil
+        else { return }
+        if let skinID {
+            guard player.meta.allOwnedSkins.contains(skinID),
+                  content.skins.entries(forCharacterType: typeID).contains(where: { $0.id == skinID })
+            else { return }
+            player.meta.activeSkinByType[typeID] = skinID
+        } else {
+            player.meta.activeSkinByType.removeValue(forKey: typeID)
+        }
+        self.player = player
+        skinSelectionVersion &+= 1
+        if typeID == content.tiers.baseType.id {
+            activeSkin = skinID
+        }
         bumpBoard()
         scheduleSave()
     }

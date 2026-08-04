@@ -474,6 +474,90 @@
         }
       }
     },
+    "character.count %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ on the tower" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%@ en la torre" } }
+      }
+    },
+    "character.dismiss" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop hiring" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Dejar de contratar" } }
+      }
+    },
+    "character.dismiss.cancel" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep character" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conservar personaje" } }
+      }
+    },
+    "character.dismiss.confirm" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Remove character" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Despedir personaje" } }
+      }
+    },
+    "character.dismiss.message" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This frees its slot and cannot be undone." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Libera su lugar y no se puede deshacer." } }
+      }
+    },
+    "character.dismiss.title" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stop hiring?" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Dejar de contratar?" } }
+      }
+    },
+    "character.skin.base" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Base look" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Apariencia base" } }
+      }
+    },
+    "character.skin.equip" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Equip" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Equipar" } }
+      }
+    },
+    "character.skin.equipped" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Equipped" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Equipada" } }
+      }
+    },
+    "character.skin.index %@ %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$@/%2$@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%1$@/%2$@" } }
+      }
+    },
+    "character.skin.locked" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Locked look" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Apariencia bloqueada" } }
+      }
+    },
+    "character.skin.reach-floor %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reach %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Llegá a %@" } }
+      }
+    },
+    "character.skin.reincarnations %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Reincarnate %@ time(s)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Reencarná %@ vez/veces" } }
+      }
+    },
+    "character.skin.store" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Available in the store" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Disponible en la tienda" } }
+      }
+    },
     "daily.day1.title" : {
       "extractionState" : "stale",
       "localizations" : {

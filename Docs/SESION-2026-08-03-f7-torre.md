@@ -198,3 +198,42 @@ primer unlock con foco de cámara y los pasos de tutorial para torre/ascenso.
   EconomyKit, y reemplazar `PassiveUnlockView` por la ficha con selección de
   skin, pasivo y despedida confirmada. Mantener el registro de TDD, capturas y
   verificaciones en esta misma bitácora.
+
+## F7.5 — skins y ficha (en curso; worktree sin commit)
+
+- TDD primero: `SkinMilestonesTests` nació en rojo por faltar el modelo y quedó
+  **2/2 verde** con `SkinsConfig` + `SkinMilestones` puros en EconomyKit. El
+  catálogo `Resources/Config/skins.json` declara los tres tintes IAP globales
+  y dos skins de milestone por tipo (`urban_trailblazer`, `second_life`). El
+  loader lo valida contra tipos y pisos reales.
+- Otro contrato en rojo fijó que resolver una skin sea data-driven y scoped al
+  tipo. `SkinResolver` ahora retorna `.base/.tint(hex:)/.texture(key:)`, sin IDs
+  hardcodeados; la escena calcula la apariencia unidad por unidad. Una textura
+  de skin no existente cae a la textura base sin mostrar un placeholder roto.
+  `GameContentValidationTests` quedó **11/11 verde** en
+  `/private/tmp/f7-5-resolver-green.xcresult`.
+- `updateMaxFloorStat()` acredita skins de milestone de forma idempotente y
+  separada de StoreKit. `tier2MergePromotesToUrbanAndUnlocksIt` ahora prueba
+  también `urban_trailblazer`; wiring **13/13 verde** en
+  `/private/tmp/f7-5-milestone-green.xcresult`.
+- La selección por ficha se agregó con `activeSkinID(forCharacterType:)` y
+  `equipSkin(id:forCharacterType:)`: exige propiedad + compatibilidad de
+  catálogo, no altera otros tipos y sobrevive una reencarnación. TDD de ese
+  ciclo: wiring **14/14 verde** en `/private/tmp/f7-5-sheet-green.xcresult`.
+- `CharacterSheetView` reemplaza (y elimina) `PassiveUnlockView`: long-press
+  abre retrato, pager de apariencia, pasivo y despedida destructiva confirmada.
+  `UIArt` tiene caché `atlas/key` para retratos y la ficha puede iniciar una
+  compra IAP del skin bloqueado. La integración compiló y repitió wiring
+  **14/14 verde** en `/private/tmp/f7-5-character-sheet-2.xcresult`.
+  Al borrar/agregar los Swift fue necesario `xcodegen generate`; el proyecto
+  generado conservaba `PassiveUnlockView.swift` como input y el build falló
+  hasta regenerarlo.
+- Estado exacto al interrumpir: cambios **sin stage y sin commit** de F7.5 en
+  `GameState`, loader, resolver, escena, renderer, UIArt, RootView, strings,
+  tests; nuevos `skins.json`, `SkinsConfig.swift`, `SkinMilestonesTests.swift`
+  y `CharacterSheetView.swift`; borrado `PassiveUnlockView.swift`. Falta QA
+  visual/UI screenshot de la ficha, fallback visual de retrato texture ausente,
+  retirar el CTA global viejo de Store, celebración de milestone gateada por
+  tutorial, y el visual de specials anclados. Después ejecutar suites finales y
+  documentar/commitear. Pacing no debe usarse como gate verde: sigue fuera de
+  rango por Fisura=50 y se arregla deliberadamente en F7.6.

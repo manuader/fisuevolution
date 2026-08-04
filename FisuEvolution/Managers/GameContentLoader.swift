@@ -13,6 +13,7 @@ struct GameContent: Sendable {
     let rewardedAds: RewardedAdsConfig
     let events: EventsConfig
     let specials: SpecialsConfig
+    let skins: SkinsConfig
     let upgradesConfig: UpgradesConfig
     let dailyRewards: DailyRewardsConfig
     let boosts: BoostsConfig
@@ -33,6 +34,7 @@ enum GameContentLoader {
         let rewardedAds: RewardedAdsConfig = try decode("rewarded_ads", from: bundle)
         let events: EventsConfig = try decode("events", from: bundle)
         let specials: SpecialsConfig = try decode("specials", from: bundle)
+        let skins: SkinsConfig = try decode("skins", from: bundle)
         let upgradesConfig: UpgradesConfig = try decode("upgrades", from: bundle)
         let dailyRewards: DailyRewardsConfig = try decode("daily_rewards", from: bundle)
         let boosts: BoostsConfig = try decode("boosts", from: bundle)
@@ -59,6 +61,14 @@ enum GameContentLoader {
                 reason: "floor \(floor.id) references unknown background \(floor.background)"
             )
         }
+        do {
+            try skins.validate(
+                characterTypeIDs: Set(tiers.concreteTypes.map(\.id)),
+                floorIDs: Set(floorTable.floors.map(\.id))
+            )
+        } catch {
+            throw GameError.contentInvalid(file: "skins.json", reason: "\(error)")
+        }
 
         return GameContent(
             economy: economy,
@@ -70,6 +80,7 @@ enum GameContentLoader {
             rewardedAds: rewardedAds,
             events: events,
             specials: specials,
+            skins: skins,
             upgradesConfig: upgradesConfig,
             dailyRewards: dailyRewards,
             boosts: boosts,

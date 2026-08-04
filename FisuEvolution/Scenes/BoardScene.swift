@@ -166,7 +166,7 @@ final class BoardScene: SKScene {
             .run { [weak self] in
                 guard let self, let held = self.dragNode, !self.isDragging else { return }
                 self.cancelDrag(snapBack: false)
-                self.gameState.presentPassivePrompt(cellIndex: held.cellIndex)
+                self.gameState.presentCharacterSheet(cellIndex: held.cellIndex)
             },
         ]), withKey: Self.longPressKey)
     }
@@ -516,14 +516,26 @@ final class BoardScene: SKScene {
     /// pool al finalizar, por lo que no deja un nodo interactivo duplicado.
     private func runAscentAnimation(type: CharacterType, from start: CGPoint) {
         guard let content = gameState.content else { return }
+        let skinTreatment = SkinResolver.treatment(
+            for: gameState.activeSkinID(forCharacterType: type.id),
+            characterType: type.id,
+            config: content.skins
+        )
         let flight = pool.obtain()
         let hasRealArt = content.manifest.characters[type.id] != nil
         flight.configure(
             type: type,
-            texture: renderer.texture(for: type, manifest: content.manifest),
+            texture: renderer.texture(
+                for: type,
+                manifest: content.manifest,
+                skinTextureKey: {
+                    if case let .texture(key) = skinTreatment { return key }
+                    return nil
+                }()
+            ),
             cellIndex: -1,
             cellSize: cellSize,
-            skinTint: SkinResolver.tint(for: gameState.activeSkin),
+            skinTint: SkinResolver.tintColor(for: skinTreatment),
             hasRealArt: hasRealArt
         )
         flight.position = start
@@ -646,20 +658,31 @@ final class BoardScene: SKScene {
         }
         characterNodes.removeAll(keepingCapacity: true)
 
-        let skinTint = SkinResolver.tint(for: gameState.activeSkin)
         for placement in gameState.visiblePlacements {
             guard let type = content.tiers.type(id: placement.typeId) else {
                 Log.board.error("placement references unknown type '\(placement.typeId)'")
                 continue
             }
+            let skinTreatment = SkinResolver.treatment(
+                for: gameState.activeSkinID(forCharacterType: type.id),
+                characterType: type.id,
+                config: content.skins
+            )
             let hasRealArt = content.manifest.characters[type.id] != nil
             let node = pool.obtain()
             node.configure(
                 type: type,
-                texture: renderer.texture(for: type, manifest: content.manifest),
+                texture: renderer.texture(
+                    for: type,
+                    manifest: content.manifest,
+                    skinTextureKey: {
+                        if case let .texture(key) = skinTreatment { return key }
+                        return nil
+                    }()
+                ),
                 cellIndex: placement.slot,
                 cellSize: cellSize,
-                skinTint: skinTint,
+                skinTint: SkinResolver.tintColor(for: skinTreatment),
                 hasRealArt: hasRealArt
             )
             node.position = position(ofCell: placement.slot)

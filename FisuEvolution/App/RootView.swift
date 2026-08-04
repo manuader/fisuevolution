@@ -142,10 +142,10 @@ struct GameBoardView: View {
             CareerChoiceView(prompt: prompt)
         }
         .sheet(item: Binding(
-            get: { tutorialDone ? gameState.passivePrompt : nil },
-            set: { gameState.passivePrompt = $0 }
-        )) { prompt in
-            PassiveUnlockView(prompt: prompt)
+            get: { tutorialDone ? gameState.characterSheet : nil },
+            set: { gameState.characterSheet = $0 }
+        )) { sheet in
+            CharacterSheetView(sheet: sheet)
         }
         .sheet(item: Binding(
             get: { tutorialDone ? gameState.offlineReward : nil },

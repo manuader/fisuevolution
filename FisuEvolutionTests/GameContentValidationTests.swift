@@ -161,6 +161,37 @@ struct GameContentValidationTests {
         }
     }
 
+    @Test func skinCatalogReferencesBundledTypesAndFloors() {
+        #expect(content.skins.schemaVersion == 1)
+        #expect(content.skins.skins.count >= 5)
+        for skin in content.skins.skins {
+            #expect(
+                skin.characterType == "*" || content.tiers.type(id: skin.characterType) != nil,
+                "skin \(skin.id): tipo desconocido \(skin.characterType)"
+            )
+            if let floor = skin.floorReached {
+                #expect(content.floorTable.floors.contains { $0.id == floor }, "skin \(skin.id): piso desconocido \(floor)")
+            }
+        }
+    }
+
+    @Test @MainActor func skinResolverIsDataDrivenAndScopedToCharacterType() {
+        let config = SkinsConfig(
+            schemaVersion: 1,
+            skins: [
+                .init(id: "golden", characterType: "*", treatment: .tint, tintHex: "#FFD93D", textureKey: nil, floorReached: nil, reincarnations: nil),
+                .init(id: "urban", characterType: "cartonero", treatment: .texture, tintHex: nil, textureKey: "cartonero_idle__urban", floorReached: "urban", reincarnations: nil),
+            ]
+        )
+
+        #expect(SkinResolver.treatment(for: nil, characterType: "homeless", config: config) == .base)
+        #expect(SkinResolver.treatment(for: "golden", characterType: "homeless", config: config) == .tint(hex: "#FFD93D"))
+        #expect(SkinResolver.treatment(for: "urban", characterType: "cartonero", config: config) == .texture(key: "cartonero_idle__urban"))
+        // Un ID válido pero ajeno a la ficha vuelve a la base, sin filtrarse a
+        // otro personaje ni mostrar una textura inválida.
+        #expect(SkinResolver.treatment(for: "urban", characterType: "homeless", config: config) == .base)
+    }
+
     private func expectRelativelyEqual(_ actual: Double, _ expected: Double, context: String) {
         let tolerance = max(abs(expected), 1) * 1e-9
         #expect(abs(actual - expected) <= tolerance, "\(context): \(actual) != \(expected)")

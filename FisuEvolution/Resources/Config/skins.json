@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "skins": [
+    {
+      "id": "golden",
+      "characterType": "*",
+      "treatment": "tint",
+      "tintHex": "#FFD93D"
+    },
+    {
+      "id": "galaxy",
+      "characterType": "*",
+      "treatment": "tint",
+      "tintHex": "#4D96FF"
+    },
+    {
+      "id": "god",
+      "characterType": "*",
+      "treatment": "tint",
+      "tintHex": "#FFF8E7"
+    },
+    {
+      "id": "urban_trailblazer",
+      "characterType": "cartonero",
+      "treatment": "texture",
+      "textureKey": "cartonero_idle__urban_trailblazer",
+      "floorReached": "urban"
+    },
+    {
+      "id": "second_life",
+      "characterType": "homeless",
+      "treatment": "texture",
+      "textureKey": "homeless_idle__second_life",
+      "reincarnations": 1
+    }
+  ]
+}

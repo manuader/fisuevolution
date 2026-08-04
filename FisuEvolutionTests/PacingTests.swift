@@ -15,6 +15,14 @@ import Testing
 /// pre-prestigio (urban→island) contra la banda 1.15–2.6, más una guarda
 /// anti-acantilado por paso (≤4). Post-island los ratios tienden a 1 POR
 /// DISEÑO (sweep de reencarnación) y quedan fuera del assert.
+///
+/// ⚠️ BANDAS RE-PINEADAS EN F7.6 (decisión del dueño, `Docs/balance-log.md §F7.6`):
+/// el precio del primer Fisura quedó en 50 (era 450) porque arrancar barato se
+/// siente mejor. El costo es real y está medido: la fase fisura pasó de 16 a
+/// **5.8 min activos** y la 1ª reencarnación de 4.0 h a **0.26 h** — muy por
+/// debajo del objetivo de diseño original (§4 del spec: "≥20-30 min"). Estos
+/// asserts fijan la conducta ACTUAL para detectar regresiones; no representan
+/// el pacing que el spec pedía. Si algún día se recalibra, vuelven a subir.
 @Suite("Pacing (simulación contra targets F7)")
 struct PacingTests {
     let report: PacingSimulator.Report
@@ -27,11 +35,11 @@ struct PacingTests {
         floorTable = content.floorTable
     }
 
-    @Test("la fase fisura dura 14-39 min activos")
+    @Test("la fase fisura dura 4-8 min activos")
     func strugglingPhaseLength() throws {
         let secondFloor = floorTable[1].id
         let active = try #require(report.floorUnlockActiveSeconds[secondFloor])
-        #expect(active >= 14 * 60 && active <= 39 * 60, "\(secondFloor): \(active / 60) min activos")
+        #expect(active >= 4 * 60 && active <= 8 * 60, "\(secondFloor): \(active / 60) min activos")
     }
 
     @Test("el gradiente del arco pre-prestigio es ~1.15-2.6× por piso")
@@ -50,10 +58,10 @@ struct PacingTests {
         #expect(geomean >= 1.15 && geomean <= 2.6, "gradiente geomean ×\(geomean)")
     }
 
-    @Test("la 1ª reencarnación cae entre 2.8 y 7.8 h de pared")
+    @Test("la 1ª reencarnación cae entre 0.15 y 0.40 h de pared")
     func firstReincarnation() throws {
         let wall = try #require(report.firstReincarnationWall, "nunca reencarnó")
-        #expect(wall >= 2.8 * 3600 && wall <= 7.8 * 3600, "1ª reencarnación: \(wall / 3600) h")
+        #expect(wall >= 0.15 * 3600 && wall <= 0.40 * 3600, "1ª reencarnación: \(wall / 3600) h")
     }
 
     @Test("dios llega entre 21 y 65 h de pared con ≥3 reencarnaciones")

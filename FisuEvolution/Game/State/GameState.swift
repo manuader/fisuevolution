@@ -193,6 +193,20 @@ final class GameState {
         haptics?.play(pattern)
     }
 
+    /// Un ascenso no es un merge más: la unidad se muda de piso. Se le da un
+    /// acento propio para que se distinga del merge que se queda en el lugar.
+    func playAscentFeedback() {
+        haptics?.play(.evolution)
+        audio?.play(.rare)
+    }
+
+    /// Abrir un piso es el hito grande del loop de la torre; lleva el acento más
+    /// fuerte que tenemos, a la par de la reencarnación.
+    func playFloorUnlockFeedback() {
+        haptics?.play(.rarity)
+        audio?.play(.prestige)
+    }
+
     // MARK: Tower accessors (scene + views)
 
     var floorTable: FloorTable? { content?.floorTable }
@@ -748,6 +762,7 @@ final class GameState {
         self.player = player
         reconcileTower()
         audio?.play(.prestige)
+        haptics?.play(.rarity)
         gameCenter?.report(.firstPrestige)
         bumpBoard()
         Task { await persistNow() }

@@ -578,6 +578,7 @@ final class BoardScene: SKScene {
         flight.zPosition = 120
         flight.setScale(0.92)
         backgroundLayer.addChild(flight)
+        gameState.playAscentFeedback()
 
         let destination = CGPoint(x: start.x, y: start.y + size.height * Self.ascentDistanceRatio)
         let flightAction: SKAction = UIAccessibility.isReduceMotionEnabled
@@ -653,7 +654,7 @@ final class BoardScene: SKScene {
             .removeFromParent(),
         ]))
 
-        gameState.playHaptic(.rarity)
+        gameState.playFloorUnlockFeedback()
         run(.sequence([
             .wait(forDuration: reduceMotion ? 0.01 : Self.ascentDuration),
             .run { [weak self] in self?.gameState.setVisibleFloor(destinationOrdinal) },

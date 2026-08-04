@@ -22,14 +22,17 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         /// Reencarnaciones acumuladas que desbloquean esta skin de milestone.
         public let reincarnations: Int?
 
+        /// Los campos de tratamiento y de milestone son mutuamente excluyentes
+        /// según el tipo de skin, así que van con default: declarar una entrada
+        /// nueva no obliga a enumerar los cuatro que no aplican.
         public init(
             id: String,
             characterType: String,
             treatment: Treatment,
-            tintHex: String?,
-            textureKey: String?,
-            floorReached: String?,
-            reincarnations: Int?
+            tintHex: String? = nil,
+            textureKey: String? = nil,
+            floorReached: String? = nil,
+            reincarnations: Int? = nil
         ) {
             self.id = id
             self.characterType = characterType

@@ -143,3 +143,55 @@ quedan fuera de banda; dios y cantidad de reencarnaciones siguen en banda.
 La recalibración integral queda deliberadamente para F7.6: no modificar otros
 knobs sin una nueva decisión del dueño, porque compensar el arranque barato con
 otra pared cambiaría la intención recién aprobada.
+
+---
+
+# F7.6 — Re-pineo de targets (2026-08-04)
+
+**Decisión del dueño en esta sesión:** conservar el primer Fisura a **50**
+(commit `99af8dd`) y **bajar los targets** a la conducta real, en vez de
+recalibrar los otros knobs. Por lo tanto el grid search de 6 knobs que pedía el
+plan F7.6 **no se hizo**: `economy.json` y `tiers.json` quedan intactos.
+
+## Lo que esto cuesta (medido, no estimado)
+
+| Hito | Diseño original (§4 spec) | Calibrado F7.1 (Fisura 450) | **Hoy (Fisura 50)** |
+|---|---|---|---|
+| Fase fisura (piso 2) | ≥ 20-30 min activos | 16.2 min | **5.8 min** |
+| 1ª reencarnación | 4-6 h | 4.0 h | **0.26 h** (~16 min) |
+| Dios | 30-50 h | 48.3 h | 33.2 h ✅ |
+| Reencarnaciones | varias | 15 | 13 ✅ |
+
+El early game quedó **~3× más corto** que el calibrado y **~4-5× más corto** que
+el objetivo de diseño. La primera reencarnación pasó de ser un hito de la tarde
+a caer dentro de la primera sesión. El late game (dios, reencarnaciones) sigue
+en banda: el Fisura barato acelera el arranque, no el juego entero.
+
+Esto **no es una mejora de pacing**: es un intercambio deliberado de duración por
+sensación de arranque. Queda registrado para que una recalibración futura sepa
+exactamente qué se cambió y cuánto costó.
+
+## Qué se re-pineó
+
+`FisuEvolutionTests/PacingTests.swift`, con ±30% sobre la corrida real:
+- fase fisura: 14-39 min → **4-8 min**
+- 1ª reencarnación: 2.8-7.8 h → **0.15-0.40 h**
+- gradiente (geomean urban→island) y dios/reencarnaciones: **sin cambios**, ya
+  pasaban (×2.43 y 33.2 h).
+
+Los asserts ahora fijan la conducta ACTUAL para detectar regresiones; no
+representan el pacing que el spec pedía. `pacing-sim` sigue imprimiendo los
+targets de DISEÑO en su semáforo, a propósito, para que la brecha quede visible
+cada vez que se corre.
+
+## Corrida completa
+
+`Docs/balance-run-f7.csv` (generado con `--csv`, incluye pisos, hitos y los
+knobs vigentes).
+
+```bash
+swift run --package-path Tools/pacing-sim pacing-sim \
+  --economy FisuEvolution/Resources/Data/economy.json \
+  --tiers FisuEvolution/Resources/Data/tiers.json \
+  --csv Docs/balance-run-f7.csv
+```

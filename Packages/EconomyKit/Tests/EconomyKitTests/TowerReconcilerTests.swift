@@ -242,4 +242,51 @@ struct TowerReconcilerRemapDrillTests {
         // Los pisos habitados quedan desbloqueados en orden de tabla nueva.
         #expect(state.run.unlockedFloors == ["p1", "p2", "p3", "p4"])
     }
+
+    /// El caso que pide el spec §7 explícitamente: además de mover un tier de
+    /// piso, la config nueva CORRE el `unlockTier`. Un piso que el jugador ya
+    /// tenía abierto no se puede volver a cerrar (el desbloqueo se persiste por
+    /// id, no se recalcula), y uno cuyo unlockTier bajó por debajo del progreso
+    /// se abre solo.
+    @Test("correr unlockTier no re-bloquea lo ganado y abre lo que corresponde")
+    func remapWithShiftedUnlockTier() throws {
+        var state = livedInState()
+        state.run.maxTierReached = 3
+
+        let shifted = try FloorTable(
+            floors: [
+                // f1 sigue cubriendo T1-2 pero ahora exige T2 para abrirse: el
+                // jugador ya lo tenía, así que sigue abierto igual.
+                FloorDef(
+                    id: "f1", background: "alley", firstTier: 1, lastTier: 2,
+                    capacity: 5, incomeMultiplier: 1.0, unlockTierOverride: 2
+                ),
+                // f2 exigía T3 (su firstTier); ahora exige T4, que el jugador NO
+                // alcanzó. Pero tiene unidades ahí, así que se queda abierto.
+                FloorDef(
+                    id: "f2", background: "urban", firstTier: 3, lastTier: 3,
+                    capacity: 5, incomeMultiplier: 1.0, unlockTierOverride: 4
+                ),
+                // Piso nuevo cuyo unlockTier (3) ya está alcanzado: se abre solo,
+                // sin que el jugador haga nada.
+                FloorDef(
+                    id: "f3", background: "island", firstTier: 4, lastTier: 4,
+                    capacity: 5, incomeMultiplier: 2.0, unlockTierOverride: 3
+                ),
+            ],
+            maxTier: 4
+        )
+
+        let outcome = TowerReconciler.reconcile(run: &state.run, floorTable: shifted, tiers: tiers)
+
+        #expect(state.run.units == ["a": 3, "b": 2, "c_prog": 1, "d": 1])
+        #expect(outcome.discarded.isEmpty)
+        #expect(outcome.tower.unitCounts == state.run.units)
+        // f2 conserva su desbloqueo pese a que su unlockTier nuevo (4) está por
+        // encima del progreso; f3 entra por unlockTier alcanzado.
+        #expect(state.run.unlockedFloors == ["f1", "f2", "f3"])
+        // Y el remapeo movió a `d` (T4) del piso viejo f2 al f3 nuevo.
+        #expect(fxSlots(of: "d", onFloor: 2, in: outcome.tower).count == 1)
+        #expect(fxSlots(of: "c_prog", onFloor: 1, in: outcome.tower).count == 1)
+    }
 }

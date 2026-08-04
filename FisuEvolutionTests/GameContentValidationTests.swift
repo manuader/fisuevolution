@@ -52,8 +52,11 @@ struct GameContentValidationTests {
         #expect(economy.yieldGrowthPerTier == 2.8)
         #expect(economy.passiveRatio == 0.5)
         #expect(economy.passiveUnlockCostMultiplier == 60)
-        #expect(economy.hire.defaultCostMultiplier == 3000)
-        #expect(economy.hire.defaultCostGrowth == 1.15)
+        // Regla de precios del dueño (2026-08-04): contratar el tier base de un
+        // piso cuesta 100× lo que rinde un click de ese personaje ahí, y cada
+        // compra sube el precio 20%.
+        #expect(economy.hire.defaultCostMultiplier == 100)
+        #expect(economy.hire.defaultCostGrowth == 1.2)
         #expect(economy.charUpgrades.baseCostMultiplier == 50)
         #expect(economy.charUpgrades.costGrowth == 4.0)
         #expect(economy.charUpgrades.effectFactorPerLevel == 2.0)
@@ -67,27 +70,41 @@ struct GameContentValidationTests {
     }
 
     @Test func floorHireOverridesMatchTunedValues() {
-        // Overrides por piso de la calibración final: alley barato para arrancar
-        // (50/15), corporate y luxury con multiplicador propio; TODO el resto
-        // cae al default global punitivo (3000/1.15). Un override que aparezca
-        // en otro piso es drift, no tuning.
+        // La regla de precios es ÚNICA para toda la torre, así que el único
+        // override legítimo es el del alley: baja el multiplicador a 50 para
+        // anclar el primer Fisura en 50 monedas. Cualquier otro override
+        // rompería la regla y es drift, no tuning.
         for floor in content.floorTable.floors {
-            switch floor.id {
-            case "alley":
+            if floor.id == "alley" {
                 #expect(floor.hireCostMultiplierOverride == 50)
-                #expect(floor.hireCostGrowthOverride == 15)
-            case "corporate":
-                #expect(floor.hireCostMultiplierOverride == 1800)
-                #expect(floor.hireCostGrowthOverride == nil)
-            case "luxury":
-                #expect(floor.hireCostMultiplierOverride == 9000)
-                #expect(floor.hireCostGrowthOverride == nil)
-            default:
+            } else {
                 #expect(floor.hireCostMultiplierOverride == nil, "override de hire inesperado en \(floor.id)")
-                #expect(floor.hireCostGrowthOverride == nil, "override de growth inesperado en \(floor.id)")
             }
+            #expect(floor.hireCostGrowthOverride == nil, "el 20% por compra es global: \(floor.id) no debe overridearlo")
             // v2 no overridea unlockTier: todo piso se desbloquea con su firstTier.
             #expect(floor.unlockTierOverride == nil, "unlockTier inesperado en \(floor.id)")
+        }
+    }
+
+    /// La regla en números concretos, contra el contenido real: el primer Fisura
+    /// sale 50, el segundo 60 (+20%), y en un piso superior el tier base cuesta
+    /// 100 veces lo que rinde un click suyo ahí.
+    @Test func hirePricesFollowTheOwnersRule() throws {
+        let economy = StandardEconomy(config: content.economy)
+        let alley = content.floorTable[0]
+        #expect(content.economy.hireCost(floor: alley, tapYield: economy.tapYield(forTier: 1), purchases: 0) == 50)
+        let segundo = content.economy.hireCost(floor: alley, tapYield: economy.tapYield(forTier: 1), purchases: 1)
+        #expect(abs(segundo - 60) < 1e-9)
+
+        for ordinal in 1..<content.floorTable.count {
+            let floor = content.floorTable[ordinal]
+            let tapValue = economy.tapYield(forTier: floor.firstTier) * floor.incomeMultiplier
+            let precio = content.economy.hireCost(
+                floor: floor,
+                tapYield: economy.tapYield(forTier: floor.firstTier),
+                purchases: 0
+            )
+            #expect(abs(precio - 100 * tapValue) < precio * 1e-12, "\(floor.id): \(precio) ≠ 100× \(tapValue)")
         }
     }
 

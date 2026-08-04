@@ -108,4 +108,24 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     public func hireCostGrowth(for floor: FloorDef) -> Double {
         floor.hireCostGrowthOverride ?? hire.defaultCostGrowth
     }
+
+    /// Costo de contratar el tier base de un piso, ANTES de descuentos
+    /// permanentes y modificadores temporales.
+    ///
+    /// Regla del dueño (2026-08-04): el precio es `multiplicador ×` **lo que
+    /// realmente rinde un click de ese personaje en ese piso** — o sea el
+    /// tapYield del tier POR el `incomeMultiplier` del piso, no el tapYield
+    /// pelado. Con el default en 100, contratar cuesta 100 taps de ese mismo
+    /// personaje; el piso 1 overridea a 50 para que el primer Fisura sea 50.
+    /// Cada compra sube la curva un `hireCostGrowth` (20% por defecto).
+    ///
+    /// Vive acá y no en `TowerActions` porque el `PacingSimulator` necesita el
+    /// mismo número: duplicar la fórmula fue lo que llevó a que el simulador
+    /// cotizara distinto que el juego.
+    public func hireCost(floor: FloorDef, tapYield: Double, purchases: Int) -> Double {
+        hireCostMultiplier(for: floor)
+            * tapYield
+            * floor.incomeMultiplier
+            * pow(hireCostGrowth(for: floor), Double(purchases))
+    }
 }

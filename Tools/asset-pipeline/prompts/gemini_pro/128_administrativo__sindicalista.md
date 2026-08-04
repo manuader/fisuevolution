@@ -1,7 +1,7 @@
 # 128 — Delegado Sindical (skin de Administrativo)
 
 - **archivo**: `administrativo__sindicalista.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/administrativo.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

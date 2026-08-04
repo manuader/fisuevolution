@@ -112,13 +112,15 @@ struct ExtensibilityDrillTests {
         #expect(tower.unitCounts == state.run.units)
 
         // Y su tier base se contrata con la curva que declara la config, sin
-        // ninguna tabla por etapa: cost = mult × tapYield(t12) × growth^compras.
+        // ninguna tabla por etapa: el precio es el multiplicador por lo que
+        // RINDE UN CLICK en ese piso (tapYield × incomeMultiplier del piso).
+        let floor12 = table[11]
         let quote = try #require(TowerActions.hireQuote(
             floorOrdinal: 11, state: state, tiers: tiers,
             floorTable: table, config: config, economy: economy
         ))
         #expect(quote.type.id == "t12")
-        #expect(quote.cost == 10 * economy.tapYield(forTier: 12))
+        #expect(quote.cost == 10 * economy.tapYield(forTier: 12) * floor12.incomeMultiplier)
         try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: table)
         #expect(state.run.units["t12"] == 2)
         #expect(state.run.hireCounts["floor12"] == 1)

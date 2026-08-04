@@ -195,3 +195,58 @@ swift run --package-path Tools/pacing-sim pacing-sim \
   --tiers FisuEvolution/Resources/Data/tiers.json \
   --csv Docs/balance-run-f7.csv
 ```
+
+---
+
+# Regla de precios de contratación (2026-08-04, decisión del dueño)
+
+Reemplaza a los multiplicadores por piso que venían de la calibración F7.1.
+**Una sola regla para toda la torre:**
+
+- Contratar el tier base de un piso cuesta **100 × lo que rinde un click de ese
+  mismo personaje EN ESE PISO** — o sea `tapYield(tier) × incomeMultiplier(piso)`,
+  no el tapYield pelado (elegido explícitamente por el dueño entre las dos
+  lecturas posibles).
+- **Cada compra sube el precio un 20%** (`growth = 1.2`), en todos los pisos.
+- **Excepción única**: el piso 1 usa multiplicador 50 en vez de 100, para que el
+  primer Fisura cueste exactamente 50.
+
+Implementación: `EconomyConfig.hireCost(floor:tapYield:purchases:)`, una sola
+función que usan `TowerActions.hireQuote` y `PacingSimulator`. Antes la fórmula
+estaba duplicada en los dos lugares; unificarla evita que el simulador cotice
+distinto que el juego.
+
+Precios de arranque por piso (primera compra):
+
+| piso | tier base | rinde el click | primer precio |
+|---|---|---|---|
+| alley | 1 | 1 | **50** (excepción) |
+| urban | 3 | 15.7 | 1.6k |
+| corporate | 6 | 620 | 62.0k |
+| luxury | 10 | 74k | 7.4M |
+| island | 14 | 8.5M | 845M |
+| moon | 18 | 1.0G | 99.9G |
+| god_realm | 30 | 5.8P | 575.406T |
+
+Curva del alley: 50, 60, 72, 86, 104, 124, 149, 179, 215, 258… (el n°20 sale
+1.597 y el n°30, 9.891).
+
+## Efecto en el pacing (medido, no estimado)
+
+| Hito | Diseño (§4 spec) | Calibrado F7.1 | Fisura 50 (F7.6) | **Regla nueva** |
+|---|---|---|---|---|
+| Fase fisura | ≥20-30 min | 16.2 min | 5.8 min | **0.8 min** |
+| 1ª reencarnación | 4-6 h | 4.0 h | 0.26 h | **0.12 h** |
+| Dios | 30-50 h | 48.3 h | 33.2 h | 33.2 h ✅ |
+| Reencarnaciones | varias | 15 | 13 | 16 ✅ |
+
+El crecimiento del 20% es MUCHO más suave que el 15× que tenía el alley, así que
+la fase fisura pasó de 5.8 min a **48 segundos**: el jugador compra 10 Fisuras
+con 1.400 monedas. El arco medio (urban→island) sigue teniendo pendiente sana
+(×2 a ×5 por piso) y el late game no se movió: Dios sigue a 33 h con 16
+reencarnaciones.
+
+O sea: el juego largo se mantiene, lo que se comprimió casi por completo es el
+arranque. `PacingTests` se re-pineó otra vez a esta conducta; los targets de
+DISEÑO siguen mostrándose en el semáforo de `pacing-sim` para que la brecha no
+se olvide.

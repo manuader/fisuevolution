@@ -248,9 +248,11 @@ public struct PacingSimulator: Sendable {
         guard let type = candidates.first(where: { $0.id.hasSuffix(careerPath) }) ?? candidates.sorted(by: { $0.id < $1.id }).first
         else { return nil }
         let purchases = state.run.hireCounts[floor.id] ?? 0
-        let cost = config.hireCostMultiplier(for: floor)
-            * economy.tapYield(forTier: type.tier)
-            * pow(config.hireCostGrowth(for: floor), Double(purchases))
+        let cost = config.hireCost(
+            floor: floor,
+            tapYield: economy.tapYield(forTier: type.tier),
+            purchases: purchases
+        )
 
         if requireProfit {
             // Política del plan (§F7.1c): backfill si es BARATO relativo al wallet

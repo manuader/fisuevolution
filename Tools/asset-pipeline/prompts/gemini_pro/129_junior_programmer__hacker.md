@@ -1,7 +1,7 @@
 # 129 — Modo Hacker (skin de Programador Jr.)
 
 - **archivo**: `junior_programmer__hacker.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `../../FisuEvolution/Resources/earth.atlas/junior_programmer_idle@3x.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

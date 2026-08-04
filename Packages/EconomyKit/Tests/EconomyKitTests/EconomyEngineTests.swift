@@ -93,6 +93,22 @@ struct HireQuoteCurveTests {
         )
     }
 
+    /// La regla del dueño (2026-08-04): el precio es el multiplicador POR lo que
+    /// rinde un click de ese personaje EN ESE PISO — o sea incluye el
+    /// `incomeMultiplier` del piso, no sólo el tapYield pelado.
+    @Test("el precio incluye el incomeMultiplier del piso")
+    func precioEscalaConElIncomeDelPiso() throws {
+        let rico = fxConfig(f2IncomeMultiplier: 3.0)
+        let tablaRica = try fxFloorTable(config: rico)
+        let (state, _, _) = try fxStateAndTower(config: rico)
+        let cotizado = try #require(TowerActions.hireQuote(
+            floorOrdinal: 1, state: state, tiers: tiers,
+            floorTable: tablaRica, config: rico, economy: StandardEconomy(config: rico)
+        ))
+        // f2: 100 (default) × tapYield(T3)=14.44 × income 3.0
+        #expect(abs(cotizado.cost - 100 * 14.44 * 3.0) < 1e-9)
+    }
+
     @Test("f1 usa su override barato: 15 × 1.15^n")
     func f1CurvaBarata() throws {
         var (state, _, _) = try fxStateAndTower()

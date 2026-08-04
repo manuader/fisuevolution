@@ -57,11 +57,14 @@ public enum TowerActions {
         let floor = floorTable[floorOrdinal]
         guard let type = baseHireType(for: floor, state: state, tiers: tiers) else { return nil }
         let purchases = state.run.hireCounts[floor.id] ?? 0
-        let base = config.hireCostMultiplier(for: floor) * economy.tapYield(forTier: type.tier)
-        let growth = pow(config.hireCostGrowth(for: floor), Double(purchases))
+        let base = config.hireCost(
+            floor: floor,
+            tapYield: economy.tapYield(forTier: type.tier),
+            purchases: purchases
+        )
         let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
-        let cost = base * growth * costMultiplier * modifier * discount
+        let cost = base * costMultiplier * modifier * discount
         return HireQuote(floorOrdinal: floorOrdinal, type: type, cost: cost, purchases: purchases)
     }
 

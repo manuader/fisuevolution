@@ -5,8 +5,8 @@
   "passiveRatio": 0.5,
   "passiveUnlockCostMultiplier": 60,
   "hire": {
-    "defaultCostMultiplier": 3000,
-    "defaultCostGrowth": 1.15
+    "defaultCostMultiplier": 100,
+    "defaultCostGrowth": 1.2
   },
   "charUpgrades": {
     "baseCostMultiplier": 50,
@@ -30,8 +30,7 @@
       "lastTier": 2,
       "capacity": 10,
       "incomeMultiplier": 1.0,
-      "hireCostMultiplier": 50,
-      "hireCostGrowth": 15
+      "hireCostMultiplier": 50
     },
     {
       "id": "urban",
@@ -47,8 +46,7 @@
       "firstTier": 6,
       "lastTier": 9,
       "capacity": 10,
-      "incomeMultiplier": 3.6,
-      "hireCostMultiplier": 1800
+      "incomeMultiplier": 3.6
     },
     {
       "id": "luxury",
@@ -56,8 +54,7 @@
       "firstTier": 10,
       "lastTier": 13,
       "capacity": 10,
-      "incomeMultiplier": 7.0,
-      "hireCostMultiplier": 9000
+      "incomeMultiplier": 7.0
     },
     {
       "id": "island",

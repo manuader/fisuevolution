@@ -1,7 +1,7 @@
 # 126 — Chef de Estrella (skin de Empleado de Fast Food)
 
 - **archivo**: `fast_food__chef_estrella.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/fast_food.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

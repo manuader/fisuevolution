@@ -118,6 +118,23 @@ public enum TowerActions {
         return unlocked.contains(floorTable[required].id)
     }
 
+    /// Pisos que pasan de NO contratables a contratables por un desbloqueo.
+    ///
+    /// En el caso normal es uno solo —el que está dos abajo del que se abrió—;
+    /// al abrir el último piso son los dos del tope juntos, porque ahí entra el
+    /// escape. Se calcula comparando la regla contra sí misma en vez de restar
+    /// ordinales a mano, así los dos casos salen de la misma fuente.
+    public static func newlyHireableFloors(
+        unlockedBefore: [String],
+        unlockedAfter: [String],
+        floorTable: FloorTable
+    ) -> [Int] {
+        (0..<floorTable.count).filter { ordinal in
+            !canHire(floorOrdinal: ordinal, unlockedFloors: unlockedBefore, floorTable: floorTable)
+                && canHire(floorOrdinal: ordinal, unlockedFloors: unlockedAfter, floorTable: floorTable)
+        }
+    }
+
     public static func hire(
         quote: HireQuote,
         state: inout PlayerState,

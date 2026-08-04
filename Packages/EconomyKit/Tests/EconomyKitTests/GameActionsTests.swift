@@ -298,4 +298,25 @@ struct HireGateTests {
         #expect(state == before.0, "un hire rechazado no puede cobrar")
         #expect(tower == before.1, "ni ocupar un slot")
     }
+
+    @Test("desbloquear un piso destraba la contratación del que está dos abajo")
+    func unlockingAFloorOpensHiringTwoBelow() {
+        let before = ["g1", "g2", "g3"]
+        #expect(
+            TowerActions.newlyHireableFloors(
+                unlockedBefore: before, unlockedAfter: before + ["g4"], floorTable: floorTable
+            ) == [1, 2, 3],
+            "g4 es además el tope, así que destraba g2 por la regla y g3/g4 por el escape"
+        )
+    }
+
+    @Test("un unlock que no destraba a nadie devuelve vacío")
+    func unlockingNothingNewReturnsEmpty() {
+        #expect(
+            TowerActions.newlyHireableFloors(
+                unlockedBefore: ["g1"], unlockedAfter: ["g1", "g2"], floorTable: floorTable
+            ).isEmpty,
+            "abrir g2 no le da dos pisos por encima a nadie"
+        )
+    }
 }

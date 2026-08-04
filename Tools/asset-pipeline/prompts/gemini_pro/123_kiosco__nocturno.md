@@ -1,7 +1,7 @@
 # 123 — Turno Noche (skin de Personal de Kiosco)
 
 - **archivo**: `kiosco__nocturno.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/kiosco.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

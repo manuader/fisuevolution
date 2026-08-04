@@ -1,7 +1,7 @@
 # 124 — Reparto Cohete (skin de Repartidor)
 
 - **archivo**: `repartidor__cohete.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/repartidor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

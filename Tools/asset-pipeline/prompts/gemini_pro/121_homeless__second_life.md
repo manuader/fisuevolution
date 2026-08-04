@@ -1,7 +1,7 @@
 # 121 — Segunda Vida (skin de El Fisura)
 
 - **archivo**: `homeless__second_life.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

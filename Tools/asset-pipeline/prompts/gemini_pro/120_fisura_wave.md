@@ -1,7 +1,7 @@
 # 120 — Fisura Saludando (Tutorial — El Fisura)
 
 - **archivo**: `fisura_wave.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

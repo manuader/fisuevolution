@@ -1,7 +1,7 @@
 # 122 — Pionero Urbano (skin de Cartonero)
 
 - **archivo**: `cartonero__urban_trailblazer.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/cartonero.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

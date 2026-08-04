@@ -49,6 +49,14 @@ final class GameState {
         let amount: Double
     }
 
+    /// Skin recién ganada por milestone. Se publica una sola vez por skin (el
+    /// crédito en MetaState es idempotente) para que la UI celebre sin volver a
+    /// consultar el catálogo ni el estado.
+    struct SkinAward: Identifiable, Equatable {
+        let id: String
+        let characterType: CharacterType
+    }
+
     /// Proyección chica y estable para los controles de navegación de la torre.
     /// La UI no inspecciona `PlayerState` ni `TowerState`: recibe sólo el piso
     /// visible, su capacidad y los límites desbloqueados de la run actual.
@@ -112,7 +120,6 @@ final class GameState {
     private(set) var prestigeAvailable = false
     private(set) var oroText = "0"
     private(set) var ownedSkins: [String] = []
-    private(set) var activeSkin: String?
     /// Invalida la ficha cuando llega un entitlement, milestone o equipamiento.
     private(set) var skinSelectionVersion = 0
     private(set) var activeEvent: EventManager.ActiveEvent?
@@ -138,6 +145,7 @@ final class GameState {
     var careerPrompt: CareerPrompt?
     var characterSheet: CharacterSheet?
     var offlineReward: OfflineReward?
+    var skinAward: SkinAward?
 
     // MARK: Authoritative state
 
@@ -191,6 +199,16 @@ final class GameState {
 
     var visibleFloorDef: FloorDef? {
         content.map { $0.floorTable[visibleFloorOrdinal] }
+    }
+
+    /// Specials anclados al piso visible (⚠️5: no ocupan slot ni se mergean —
+    /// quedan de decorado en el piso donde cayeron). Un special sin ancla (o con
+    /// un ancla de una config vieja) simplemente no se dibuja.
+    var visibleFloorSpecials: [SpecialsConfig.Special] {
+        guard let content, let player, let floorID = visibleFloorDef?.id else { return [] }
+        return content.specials.specials.filter {
+            player.meta.ownedSpecials.contains($0.id) && player.meta.specialAnchors[$0.id] == floorID
+        }
     }
 
     /// Placements del piso visible (la escena solo dibuja este piso en F7.1).
@@ -281,6 +299,12 @@ final class GameState {
             if ProcessInfo.processInfo.arguments.contains("--uitest-unlock-tower") {
                 debugUnlockFloors(throughTier: 5)
             }
+            // El long-press sobre SpriteKit no es determinista en el runner: para
+            // el smoke de la ficha alcanza con abrirla sobre la primera unidad.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-open-sheet"),
+               let slot = visiblePlacements.first?.slot {
+                presentCharacterSheet(cellIndex: slot)
+            }
             #endif
             applyOfflineProgressIfNeeded()
             // El primer launch de una cuenta nueva no reclama daily: el jugador
@@ -366,7 +390,16 @@ final class GameState {
         guard !newlyUnlocked.isEmpty else { return }
         player.meta.milestoneSkins = Array(Set(player.meta.milestoneSkins).union(newlyUnlocked)).sorted()
         self.player = player
+        skinSelectionVersion &+= 1
         Log.economy.info("skin milestones awarded: \(newlyUnlocked)")
+
+        // Se celebra UNA: encadenar popups interrumpe el loop, y el crédito ya
+        // quedó hecho para todas. La ficha muestra el resto.
+        if let first = newlyUnlocked.sorted().first,
+           let entry = content.skins.entry(id: first),
+           let type = content.tiers.type(id: entry.characterType) {
+            skinAward = SkinAward(id: first, characterType: type)
+        }
     }
 
     // MARK: Frame loop (called by BoardScene)
@@ -738,24 +771,6 @@ final class GameState {
         scheduleSave()
     }
 
-    /// Puente F7.1: el skin "global" legacy se aplica a TODOS los tipos poseídos.
-    /// La selección por tipo llega con la ficha (F7.5).
-    func setActiveSkin(_ skinId: String?) {
-        guard var player else { return }
-        if let skinId, !player.meta.allOwnedSkins.contains(skinId) { return }
-        if let skinId {
-            for typeId in player.run.units.keys {
-                player.meta.activeSkinByType[typeId] = skinId
-            }
-        } else {
-            player.meta.activeSkinByType = [:]
-        }
-        self.player = player
-        skinSelectionVersion &+= 1
-        bumpBoard()
-        scheduleSave()
-    }
-
     /// Skin actualmente equipada en la ficha de un tipo. La ausencia es la
     /// apariencia base: no se persiste un ID artificial para poder sumar skins
     /// data-driven sin migrar saves.
@@ -789,9 +804,6 @@ final class GameState {
         }
         self.player = player
         skinSelectionVersion &+= 1
-        if typeID == content.tiers.baseType.id {
-            activeSkin = skinID
-        }
         bumpBoard()
         scheduleSave()
     }
@@ -1282,9 +1294,6 @@ final class GameState {
 
         let skins = Array(player.meta.allOwnedSkins).sorted()
         if ownedSkins != skins { ownedSkins = skins }
-        // Puente F7.1: "skin global activa" = la del tipo base (si existe).
-        let legacyActive = player.meta.activeSkinByType[content.tiers.baseType.id]
-        if activeSkin != legacyActive { activeSkin = legacyActive }
 
         let tapHint = !ftueTapped
         if showTapHint != tapHint { showTapHint = tapHint }

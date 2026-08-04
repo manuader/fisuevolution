@@ -41,6 +41,7 @@ final class BoardScene: SKScene {
     private static let longPressKey = "longPress"
     private static let ascentDuration: TimeInterval = 0.7
     private static let ascentDistanceRatio: CGFloat = 0.78
+    private static let specialNodePrefix = "special."
 
     // FTUE hint
     private var hintNode: SKShapeNode?
@@ -468,7 +469,42 @@ final class BoardScene: SKScene {
         rebuildAnchors(capacity: floorDef.capacity)
         renderLiveFloorNodes(content: content)
         renderPlacements(content: content)
+        renderAnchoredSpecials(content: content)
         renderLockedFloorOverlay()
+    }
+
+    /// Los specials no ocupan slot (⚠️5): se anclan al borde del piso donde
+    /// cayeron, detrás de la multitud, como parte del decorado. No son
+    /// interactivos — `cellIndex(at:)` sólo mira `characterNodes`.
+    private func renderAnchoredSpecials(content: GameContent) {
+        fieldNode.children
+            .filter { $0.name?.hasPrefix(Self.specialNodePrefix) == true }
+            .forEach { $0.removeFromParent() }
+
+        let specials = gameState.visibleFloorSpecials
+        guard !specials.isEmpty else { return }
+
+        let side = cellSize * 0.62
+        for (index, special) in specials.enumerated() {
+            guard let asset = content.manifest.characters[special.id] else { continue }
+            let texture = SKTextureAtlas(named: asset.atlas).textureNamed(asset.key)
+            guard texture.size().width > 1 else { continue }
+
+            let node = SKSpriteNode(texture: texture)
+            node.name = Self.specialNodePrefix + special.id
+            node.size = CGSize(width: side, height: side)
+            // Alternan izquierda/derecha y suben por el fondo del campo, para no
+            // taparse entre sí ni pisar las anclas de personajes.
+            let isLeft = index.isMultiple(of: 2)
+            let row = CGFloat(index / 2)
+            node.position = CGPoint(
+                x: isLeft ? side * 0.55 : size.width - Self.horizontalInset * 2 - side * 0.55,
+                y: cellSize * 1.65 + row * side * 0.9
+            )
+            node.zPosition = -1
+            node.alpha = 0.95
+            fieldNode.addChild(node)
+        }
     }
 
     /// Mantiene sólo el piso visible y sus vecinos inmediatos. El resto de los

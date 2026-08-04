@@ -115,28 +115,24 @@ struct StoreView: View {
         }
     }
 
+    /// La tienda VENDE skins; equiparlas es potestad de la ficha de personaje
+    /// (§3.10), que es la única superficie que sabe a qué tipo aplicarlas. Acá
+    /// sólo se confirma la compra y se apunta a dónde se usa.
     private func skinRow(_ product: Product) -> some View {
-        let skinId = store.skinId(for: product.id)
-        return HStack {
+        HStack {
             VStack(alignment: .leading) {
                 Text(verbatim: product.displayName).font(.headline)
                 Text(verbatim: product.description).font(.footnote).foregroundStyle(.secondary)
             }
             Spacer()
-            if let skinId, store.isPurchased(product.id) {
-                if gameState.activeSkin == skinId {
-                    Button {
-                        gameState.setActiveSkin(nil)
-                    } label: {
-                        Label("store.skin.active", systemImage: "checkmark.seal.fill")
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color("PaletteGreen"))
-                } else {
-                    Button("store.skin.activate") {
-                        gameState.setActiveSkin(skinId)
-                    }
-                    .buttonStyle(.bordered)
+            if store.isPurchased(product.id) {
+                VStack(alignment: .trailing, spacing: 2) {
+                    Label("store.purchased", systemImage: "checkmark.circle.fill")
+                        .labelStyle(.iconOnly)
+                        .foregroundStyle(Color("PaletteGreen"))
+                    Text("store.skin.equip-hint")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
             } else {
                 buyButton(product)

@@ -105,4 +105,29 @@ final class LaunchSmokeTests: XCTestCase {
         screenshot.lifetime = .keepAlways
         add(screenshot)
     }
+
+    /// La ficha es la superficie canónica por personaje (§3.10): retrato, pager
+    /// de apariencias y equipar. El fixture la abre directo porque el long-press
+    /// sobre SpriteKit no da coordenadas estables en el runner.
+    @MainActor
+    func testCharacterSheetExposesSkinPager() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-open-sheet"]
+        app.launch()
+
+        let next = app.buttons["character.skin.next"]
+        XCTAssertTrue(next.waitForExistence(timeout: 15), "character sheet skin pager never appeared")
+        XCTAssertTrue(app.buttons["character.skin.previous"].exists)
+
+        // La base es la posición 0: sólo se puede avanzar.
+        XCTAssertFalse(app.buttons["character.skin.previous"].isEnabled)
+        XCTAssertTrue(next.isEnabled, "the base look must not be the only entry of the pager")
+        next.tap()
+        XCTAssertTrue(app.buttons["character.skin.previous"].isEnabled)
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "F7.5 character sheet"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
 }

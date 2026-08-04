@@ -1,5 +1,6 @@
 import EconomyKit
 import SpriteKit
+import SwiftUI
 
 /// Traduce una elección persistida en la ficha a un tratamiento de render.
 /// No hay IDs de skin en código: `skins.json` es la única fuente de verdad.
@@ -31,6 +32,12 @@ enum SkinResolver {
     static func tintColor(for treatment: Treatment) -> SKColor? {
         guard case let .tint(hex) = treatment else { return nil }
         return SKColor(hex: hex)
+    }
+
+    /// Gemelo del anterior para las superficies SwiftUI (ficha y celebración),
+    /// que tintan con `colorMultiply` en vez de `colorBlendFactor`.
+    static func swiftUITint(for treatment: Treatment) -> Color? {
+        tintColor(for: treatment).map(Color.init(uiColor:))
     }
 }
 

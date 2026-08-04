@@ -72,7 +72,9 @@ struct CharacterSheetView: View {
             Text(sheet.type.displayName)
                 .font(.system(.title2, design: .rounded).weight(.black))
                 .foregroundStyle(Color("PaletteInk"))
-            Text("character.count \(sheet.instanceCount)")
+            // Los Int se interpolan como %lld y no matchean la clave declarada
+            // con %@: se pasan como String, igual que `passive.explainer`.
+            Text("character.count \(String(sheet.instanceCount))")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -90,7 +92,7 @@ struct CharacterSheetView: View {
                 VStack(spacing: 3) {
                     Text(skinName)
                         .font(.headline)
-                    Text("character.skin.index \(selectedIndex + 1) \(options.count)")
+                    Text("character.skin.index \(String(selectedIndex + 1)) \(String(options.count))")
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                 }
@@ -213,11 +215,7 @@ private struct CharacterPortrait: View {
 
     var body: some View {
         Group {
-            if let asset = gameState.content?.manifest.characters[type.id],
-               let image = UIArt.characterImage(
-                   atlas: asset.atlas,
-                   key: textureKey ?? asset.key
-               ) {
+            if let image = portrait {
                 image
                     .resizable()
                     .scaledToFit()
@@ -233,25 +231,24 @@ private struct CharacterPortrait: View {
         .accessibilityHidden(true)
     }
 
+    /// Mismo criterio que el tablero (`PlaceholderRenderer`): una skin catalogada
+    /// cuyo arte todavía no existe cae al retrato BASE, no al SF Symbol — el
+    /// catálogo puede shippear antes que el arte sin que la ficha se degrade.
+    private var portrait: Image? {
+        guard let asset = gameState.content?.manifest.characters[type.id] else { return nil }
+        if let textureKey,
+           let skinImage = UIArt.characterImage(atlas: asset.atlas, key: textureKey) {
+            return skinImage
+        }
+        return UIArt.characterImage(atlas: asset.atlas, key: asset.key)
+    }
+
     private var textureKey: String? {
         guard case let .texture(key) = treatment else { return nil }
         return key
     }
 
     private var tintColor: Color? {
-        guard case let .tint(hex) = treatment else { return nil }
-        return Color(hex: hex)
-    }
-}
-
-private extension Color {
-    init?(hex: String) {
-        let value = hex.trimmingCharacters(in: CharacterSet(charactersIn: "#"))
-        guard value.count == 6, let raw = Int(value, radix: 16) else { return nil }
-        self.init(
-            red: Double((raw >> 16) & 0xFF) / 255,
-            green: Double((raw >> 8) & 0xFF) / 255,
-            blue: Double(raw & 0xFF) / 255
-        )
+        SkinResolver.swiftUITint(for: treatment)
     }
 }

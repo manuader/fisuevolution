@@ -82,30 +82,27 @@ struct StoreManagerTests {
         #expect(gameState.player?.meta.ownedSkins == ["golden"])
         #expect(gameState.ownedSkins == ["golden"])
 
-        // Puente F7.1: con más de un tipo poseído, la skin "global" se aplica
-        // a TODOS los tipos (la selección por ficha llega en F7.5).
+        // F7.5: la compra habilita, pero equipar es POR TIPO desde la ficha —
+        // el tinte comprado en un personaje no se derrama sobre los demás.
         gameState.debugSetMaxTier(2)
         gameState.debugGrantPair()
         let before = try #require(gameState.player)
         #expect(before.run.units.count >= 2)
 
-        gameState.setActiveSkin("golden")
+        gameState.equipSkin(id: "golden", forCharacterType: "homeless")
         let after = try #require(gameState.player)
-        for typeId in after.run.units.keys {
-            #expect(after.meta.activeSkinByType[typeId] == "golden")
-        }
-        #expect(after.meta.activeSkinByType.count == after.run.units.count)
-        // La proyección legacy del GameState lee la skin del tipo base.
-        #expect(gameState.activeSkin == "golden")
+        #expect(after.meta.activeSkinByType["homeless"] == "golden")
+        #expect(after.meta.activeSkinByType.count == 1)
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "golden")
+        #expect(gameState.activeSkinID(forCharacterType: "cartonero") == nil)
 
-        // Una skin no comprada no se puede activar.
-        gameState.setActiveSkin("god")
-        #expect(gameState.activeSkin == "golden")
+        // Una skin no comprada no se puede equipar.
+        gameState.equipSkin(id: "god", forCharacterType: "homeless")
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "golden")
 
-        // nil limpia el puente entero.
-        gameState.setActiveSkin(nil)
-        #expect(gameState.player?.meta.activeSkinByType.isEmpty == true)
-        #expect(gameState.activeSkin == nil)
+        // nil vuelve ese tipo a su apariencia base.
+        gameState.equipSkin(id: nil, forCharacterType: "homeless")
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == nil)
     }
 
     @Test func refundRevokesEntitlement() async throws {
@@ -166,6 +163,6 @@ struct StoreManagerTests {
         #expect(gameState.ownedSkins == ["golden", "milestone_asado"])
         // El filtro anti-huérfanos de applyStoreEntitlements no echó a la activa.
         #expect(player.meta.activeSkinByType["homeless"] == "milestone_asado")
-        #expect(gameState.activeSkin == "milestone_asado")
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "milestone_asado")
     }
 }

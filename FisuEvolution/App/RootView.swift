@@ -134,6 +134,13 @@ struct GameBoardView: View {
             if scene == nil {
                 scene = BoardScene(gameState: gameState)
             }
+            #if DEBUG
+            // Los popups viven detrás del gate de tutorial; el smoke que los
+            // ejercita lo salta explícitamente en vez de simular los 7 pasos.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-open-sheet") {
+                tutorialDone = true
+            }
+            #endif
         }
         .sheet(item: Binding(
             get: { tutorialDone ? gameState.careerPrompt : nil },
@@ -146,6 +153,12 @@ struct GameBoardView: View {
             set: { gameState.characterSheet = $0 }
         )) { sheet in
             CharacterSheetView(sheet: sheet)
+        }
+        .sheet(item: Binding(
+            get: { tutorialDone ? gameState.skinAward : nil },
+            set: { gameState.skinAward = $0 }
+        )) { award in
+            SkinAwardView(award: award)
         }
         .sheet(item: Binding(
             get: { tutorialDone ? gameState.offlineReward : nil },

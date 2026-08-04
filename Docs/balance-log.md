@@ -203,12 +203,12 @@ swift run --package-path Tools/pacing-sim pacing-sim \
 Reemplaza a los multiplicadores por piso que venían de la calibración F7.1.
 **Una sola regla para toda la torre:**
 
-- Contratar el tier base de un piso cuesta **400 × lo que rinde un click de ese
+- Contratar el tier base de un piso cuesta **300 × lo que rinde un click de ese
   mismo personaje EN ESE PISO** — o sea `tapYield(tier) × incomeMultiplier(piso)`,
   no el tapYield pelado (elegido explícitamente por el dueño entre las dos
   lecturas posibles).
 - **Cada compra sube el precio un 20%** (`growth = 1.2`), en todos los pisos.
-- **Excepción única**: el piso 1 usa multiplicador 50 en vez de 400. Contratar un
+- **Excepción única**: el piso 1 usa multiplicador 50 en vez de 300. Contratar un
   Fisura tiene que ser siempre barato — el callejón queda fuera de la regla cara
   a propósito, no por falta de calibración.
 
@@ -219,15 +219,15 @@ distinto que el juego.
 
 Precios de arranque por piso (primera compra):
 
-| piso | tier base | rinde el click | primer precio (×400) |
+| piso | tier base | rinde el click | primer precio (×300) |
 |---|---|---|---|
 | alley | 1 | 1 | **50** (excepción, ×50) |
-| urban | 3 | 15.7 | 6.3k |
-| corporate | 6 | 620 | 248k |
-| luxury | 10 | 74k | 29.6M |
-| island | 14 | 8.5M | 3.4G |
-| moon | 18 | 1.0G | 400G |
-| god_realm | 30 | 5.8P | 2.3P |
+| urban | 3 | 15.7 | 4.7k |
+| corporate | 6 | 620 | 186k |
+| luxury | 10 | 74k | 22.2M |
+| island | 14 | 8.5M | 2.5G |
+| moon | 18 | 1.0G | 300G |
+| god_realm | 30 | 5.8P | 1.7P |
 
 Curva del alley: 50, 60, 72, 86, 104, 124, 149, 179, 215, 258… (el n°20 sale
 1.597 y el n°30, 9.891).
@@ -242,10 +242,12 @@ Curva del alley: 50, 60, 72, 86, 104, 124, 149, 179, 215, 258… (el n°20 sale
 | Reencarnaciones | varias | 15 | 13 | 16 ✅ |
 
 **Ajuste posterior del mismo día**: el multiplicador de pisos superiores pasó de
-100 a **400** (el callejón sigue en 50). Sube el peso del backfill sin tocar el
-arranque: Dios pasa de 33.2 a 38.3 h y el arco medio se empina (geomean ×4.3 por
-piso, con un escalón fuerte en luxury ×10.5). La fase fisura no se mueve —la
-fija la curva del callejón, que quedó intacta a propósito.
+100 a **300** (el callejón sigue en 50). Sube el peso del backfill sin tocar el
+arranque: Dios pasa de 33.2 a 38.3 h con 17 reencarnaciones, y el arco medio se
+empina (geomean ×4.2 por piso, con un escalón en luxury ×7.1). La fase fisura no
+se mueve —la fija la curva del callejón, que quedó intacta a propósito—.
+Se probó también ×400: mismo tiempo a Dios y un escalón más brusco en luxury
+(×10.5), así que ×300 quedó como el punto más parejo.
 
 El crecimiento del 20% es MUCHO más suave que el 15× que tenía el alley, así que
 la fase fisura pasó de 5.8 min a **48 segundos**: el jugador compra 10 Fisuras

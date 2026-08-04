@@ -53,7 +53,7 @@ struct PacingTests {
         }
         for index in 1..<actives.count {
             let ratio = actives[index] / actives[index - 1]
-            #expect(ratio >= 1.0 && ratio <= 13.0, "acantilado en \(arc[index]): ×\(ratio)")
+            #expect(ratio >= 1.0 && ratio <= 9.0, "acantilado en \(arc[index]): ×\(ratio)")
         }
         let geomean = pow(actives[actives.count - 1] / actives[0], 1.0 / Double(actives.count - 1))
         #expect(geomean >= 3.0 && geomean <= 6.0, "gradiente geomean ×\(geomean)")

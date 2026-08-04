@@ -19,13 +19,33 @@ RESOURCES = PIPELINE.parent.parent / "FisuEvolution" / "Resources"
 MANIFEST = RESOURCES / "Data" / "assets_manifest.json"
 
 # assetKey → (carpeta destino, sección del manifest, sufijo de key)
+# `manifest_section = None` ⇒ el asset NO entra al manifest (ver categoría skin).
 ATLAS_BY_CATEGORY = {
     "character": ("{phase}.atlas", "characters", "_idle"),
     "special": ("specials.atlas", "characters", ""),
     "ui": ("ui.atlas", "ui", ""),
     "fx": ("ui.atlas", "ui", ""),
     "background": ("Backgrounds", "backgrounds", ""),
+    # Skins (F7.5): viven en el atlas de SU personaje y el juego las resuelve por
+    # nombre directo (`PlaceholderRenderer`), no por manifest. Meterlas en
+    # manifest["characters"] rompería el test de "manifest huérfano" porque no
+    # son tiers. El sufijo lo arma `skin_asset_key`, no esta tabla: la
+    # convención es `<char>_idle__<skin>`, con el `__` DESPUÉS de `_idle`.
+    "skin": ("{phase}.atlas", None, ""),
 }
+
+
+def skin_asset_key(asset_key: str) -> str:
+    """`homeless__second_life` → `homeless_idle__second_life`.
+
+    El assetKey del pipeline usa `<char>__<skin>` (un solo nombre de archivo por
+    asset); el juego espera el sufijo `_idle` sobre el personaje base. Concatenar
+    `_idle` al final —como hacen las otras categorías— daría
+    `homeless__second_life_idle`, que no matchea nada."""
+    character, separator, skin = asset_key.partition("__")
+    if not separator:
+        raise ValueError(f"assetKey de skin sin '__': {asset_key}")
+    return f"{character}_idle__{skin}"
 
 
 def load_entries() -> dict[str, dict]:
@@ -40,7 +60,10 @@ def process(image_path: Path, entry: dict, session) -> None:
     category = entry.get("category", "character")
     atlas_template, manifest_section, key_suffix = ATLAS_BY_CATEGORY[category]
     atlas_name = atlas_template.format(phase=entry.get("atlas", "earth"))
-    asset_key = entry["assetKey"] + key_suffix
+    asset_key = (
+        skin_asset_key(entry["assetKey"]) if category == "skin"
+        else entry["assetKey"] + key_suffix
+    )
 
     img = Image.open(image_path).convert("RGBA")
 
@@ -51,6 +74,13 @@ def process(image_path: Path, entry: dict, session) -> None:
     target_dir.mkdir(parents=True, exist_ok=True)
     img.resize((1536, 1536), Image.LANCZOS).save(target_dir / f"{asset_key}@3x.png")
     img.resize((1024, 1024), Image.LANCZOS).save(target_dir / f"{asset_key}@2x.png")
+
+    if manifest_section is None:
+        # Skins: el catálogo vive en skins.json y el arte se busca por nombre.
+        PROCESSED.mkdir(exist_ok=True)
+        image_path.rename(PROCESSED / image_path.name)
+        print(f"  ✓ {entry['assetKey']} → {atlas_name}/{asset_key}@2x/@3x (sin manifest)")
+        return
 
     manifest = json.loads(MANIFEST.read_text())
     if manifest_section == "characters":

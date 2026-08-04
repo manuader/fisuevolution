@@ -20,6 +20,11 @@ from _common import read_json, write_json
 
 FILE_RE = re.compile(r"^(?P<order>\d{2,3})_(?P<key>.+)\.md$")
 STATE_RE = re.compile(r"^- \*\*estado\*\*: (?P<state>\w+)$", re.MULTILINE)
+# El path de la referencia se lee del propio .md: cada skin adjunta a SU
+# personaje, no al Fisura. Se acepta con o sin backticks.
+REFERENCE_RE = re.compile(
+    r"^- \*\*referencia\*\*:[^`\n]*`?(?P<path>[^`\n]+?)`?\s*$", re.MULTILINE
+)
 PIPELINE = Path(__file__).resolve().parents[1]
 PROMPTS_DIR = PIPELINE / "prompts" / "gemini_pro"
 DROPBOX = PIPELINE / "dropbox"
@@ -45,11 +50,32 @@ class Asset:
     key: str
     path: Path
     state: str
-    needs_reference: bool
     prompt: str
+    #: Imagen de estilo a adjuntar, resuelta desde el campo `**referencia**` del
+    #: .md. `None` = el asset no lleva referencia (fondos, íconos UI).
+    reference: Path | None
+
+    @property
+    def needs_reference(self) -> bool:
+        return self.reference is not None
 
 
-def parse_asset(path: Path) -> Asset:
+def parse_reference(text: str, base: Path) -> Path | None:
+    """Resuelve el path del campo `**referencia**` relativo a la raíz del pipeline.
+
+    Hasta F7 el runner ignoraba este valor y adjuntaba siempre `fisura.png`: con
+    93 assets del mismo personaje base daba igual. Las skins rompen ese supuesto
+    — cada una necesita como referencia de estilo a SU personaje — así que ahora
+    el path escrito en el .md es el que manda."""
+    match = REFERENCE_RE.search(text)
+    if not match:
+        return None
+    raw = match.group("path").strip()
+    candidate = Path(raw)
+    return candidate if candidate.is_absolute() else (base / raw)
+
+
+def parse_asset(path: Path, base: Path = PIPELINE) -> Asset:
     """Convierte un MD numerado de Gemini Pro en una entrada de cola."""
     match = FILE_RE.match(path.name)
     if not match:
@@ -64,8 +90,8 @@ def parse_asset(path: Path) -> Asset:
         key=match.group("key"),
         path=path,
         state=state.group("state") if state else "pendiente",
-        needs_reference="**referencia**" in text,
         prompt=prompt.strip(),
+        reference=parse_reference(text, base),
     )
 
 
@@ -184,7 +210,8 @@ class AssetRunner:
         # Chrome (attach por debugger) baja siempre a ~/Downloads pese al CDP.
         downloads = Path.home() / "Downloads"
         try:
-            source = self.browser.generate(asset, self.reference, downloads)
+            # La del .md manda; `self.reference` queda de fallback histórico.
+            source = self.browser.generate(asset, asset.reference or self.reference, downloads)
             source = Path(source)
             if not verify_png(source, self.minimum_bytes):
                 raise GenerationBlocked("la descarga no es un PNG válido de más de 100 KB")
@@ -203,9 +230,15 @@ class AssetRunner:
 class GeminiBrowser:
     """Adaptador pequeño y deliberadamente conservador para la web de Gemini."""
 
-    def __init__(self, port: int = 9222, timeout: int = 180):
+    def __init__(self, port: int = 9222, timeout: int = 180, ref_threshold: float = 12):
         self.port = port
         self.timeout = timeout
+        # Distancia MAE por debajo de la cual una imagen se considera "es la
+        # referencia adjunta" y se descarta. Con referencias de OTRO personaje
+        # (los 93 assets originales) 12 es holgado; con skins —donde la
+        # referencia es el MISMO personaje con otra ropa— hay que bajarlo o el
+        # filtro se come el resultado legítimo.
+        self.ref_threshold = ref_threshold
         self.driver = None
 
     def _driver(self):
@@ -470,9 +503,14 @@ class GeminiBrowser:
         driver = self._driver()
         ref_fp = None
         if reference is not None:
+            # Cache POR PATH: con referencia por asset, una sola entrada global
+            # haría que la skin del CEO se comparara contra el Fisura.
             if not hasattr(self, "_ref_fp_cache"):
-                self._ref_fp_cache = self._fingerprint(reference.read_bytes())
-            ref_fp = self._ref_fp_cache
+                self._ref_fp_cache = {}
+            key = str(reference)
+            if key not in self._ref_fp_cache:
+                self._ref_fp_cache[key] = self._fingerprint(reference.read_bytes())
+            ref_fp = self._ref_fp_cache[key]
 
         candidates = sorted(
             (i for i in driver.find_elements("tag name", "img")
@@ -502,7 +540,7 @@ class GeminiBrowser:
             if not self._has_content(raw):
                 continue  # placeholder vacío/transparente: esperar el render real
             if ref_fp is not None:
-                if self._fingerprint_distance(self._fingerprint(raw), ref_fp) < 12:
+                if self._fingerprint_distance(self._fingerprint(raw), ref_fp) < self.ref_threshold:
                     continue  # es la referencia; seguir buscando/esperando
             return raw
         return None
@@ -565,6 +603,10 @@ def main() -> None:
                         help="reintentos por asset ante un fallo transitorio")
     parser.add_argument("--max-consecutive-failures", type=int, default=3,
                         help="frena el batch tras N fallos SEGUIDOS (bloqueo/logout/cuota)")
+    parser.add_argument("--ref-threshold", type=float, default=12,
+                        help="distancia MAE bajo la cual se descarta una imagen por "
+                             "ser la referencia adjunta. Bajalo (~5) cuando la "
+                             "referencia sea el MISMO personaje que se genera (skins)")
     args = parser.parse_args()
 
     queue = pending_assets(PROMPTS_DIR, DROPBOX, PROCESSED, MANIFEST)
@@ -573,10 +615,18 @@ def main() -> None:
     if args.limit:
         queue = queue[:args.limit]
     print("Cola:", ", ".join(f"{asset.order:02d}_{asset.key}" for asset in queue) or "vacía")
+    for asset in queue:
+        if asset.reference is not None and not asset.reference.is_file():
+            print(f"  ⚠️  {asset.key}: falta la referencia {asset.reference}", file=sys.stderr)
     if args.dry_run or not queue:
         return
 
-    runner = AssetRunner(GeminiBrowser(args.port, args.timeout), DROPBOX, REFERENCE, RunCheckpoint(CHECKPOINT))
+    runner = AssetRunner(
+        GeminiBrowser(args.port, args.timeout, args.ref_threshold),
+        DROPBOX,
+        REFERENCE,
+        RunCheckpoint(CHECKPOINT),
+    )
     py = str(PIPELINE / ".venv" / "bin" / "python")
     process_script = str(PIPELINE / "scripts" / "process_dropbox.py")
     completed: list[str] = []

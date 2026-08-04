@@ -1,0 +1,290 @@
+[
+  {
+    "id": "second_life",
+    "characterType": "homeless",
+    "treatment": "texture",
+    "textureKey": "homeless_idle__second_life",
+    "displayNameKey": "skin.name.second_life",
+    "reincarnations": 1
+  },
+  {
+    "id": "urban_trailblazer",
+    "characterType": "cartonero",
+    "treatment": "texture",
+    "textureKey": "cartonero_idle__urban_trailblazer",
+    "displayNameKey": "skin.name.urban_trailblazer",
+    "floorReached": "urban"
+  },
+  {
+    "id": "nocturno",
+    "characterType": "kiosco",
+    "treatment": "texture",
+    "textureKey": "kiosco_idle__nocturno",
+    "displayNameKey": "skin.name.nocturno",
+    "floorReached": "corporate"
+  },
+  {
+    "id": "cohete",
+    "characterType": "repartidor",
+    "treatment": "texture",
+    "textureKey": "repartidor_idle__cohete",
+    "displayNameKey": "skin.name.cohete",
+    "floorReached": "corporate"
+  },
+  {
+    "id": "taxi_clasico",
+    "characterType": "chofer_app",
+    "treatment": "texture",
+    "textureKey": "chofer_app_idle__taxi_clasico",
+    "displayNameKey": "skin.name.taxi_clasico",
+    "floorReached": "corporate"
+  },
+  {
+    "id": "chef_estrella",
+    "characterType": "fast_food",
+    "treatment": "texture",
+    "textureKey": "fast_food_idle__chef_estrella",
+    "displayNameKey": "skin.name.chef_estrella",
+    "floorReached": "luxury"
+  },
+  {
+    "id": "home_office",
+    "characterType": "oficinista",
+    "treatment": "texture",
+    "textureKey": "oficinista_idle__home_office",
+    "displayNameKey": "skin.name.home_office",
+    "floorReached": "luxury"
+  },
+  {
+    "id": "sindicalista",
+    "characterType": "administrativo",
+    "treatment": "texture",
+    "textureKey": "administrativo_idle__sindicalista",
+    "displayNameKey": "skin.name.sindicalista",
+    "floorReached": "luxury"
+  },
+  {
+    "id": "hacker",
+    "characterType": "junior_programmer",
+    "treatment": "texture",
+    "textureKey": "junior_programmer_idle__hacker",
+    "displayNameKey": "skin.name.hacker",
+    "floorReached": "luxury"
+  },
+  {
+    "id": "obra",
+    "characterType": "junior_architect",
+    "treatment": "texture",
+    "textureKey": "junior_architect_idle__obra",
+    "displayNameKey": "skin.name.obra",
+    "floorReached": "luxury"
+  },
+  {
+    "id": "guardia",
+    "characterType": "junior_doctor",
+    "treatment": "texture",
+    "textureKey": "junior_doctor_idle__guardia",
+    "displayNameKey": "skin.name.guardia",
+    "floorReached": "luxury"
+  },
+  {
+    "id": "tribunales",
+    "characterType": "junior_lawyer",
+    "treatment": "texture",
+    "textureKey": "junior_lawyer_idle__tribunales",
+    "displayNameKey": "skin.name.tribunales",
+    "floorReached": "luxury"
+  },
+  {
+    "id": "open_source",
+    "characterType": "senior_programmer",
+    "treatment": "texture",
+    "textureKey": "senior_programmer_idle__open_source",
+    "displayNameKey": "skin.name.open_source",
+    "floorReached": "island"
+  },
+  {
+    "id": "starchitect",
+    "characterType": "senior_architect",
+    "treatment": "texture",
+    "textureKey": "senior_architect_idle__starchitect",
+    "displayNameKey": "skin.name.starchitect",
+    "floorReached": "island"
+  },
+  {
+    "id": "cirujano",
+    "characterType": "senior_doctor",
+    "treatment": "texture",
+    "textureKey": "senior_doctor_idle__cirujano",
+    "displayNameKey": "skin.name.cirujano",
+    "floorReached": "island"
+  },
+  {
+    "id": "penalista",
+    "characterType": "senior_lawyer",
+    "treatment": "texture",
+    "textureKey": "senior_lawyer_idle__penalista",
+    "displayNameKey": "skin.name.penalista",
+    "floorReached": "island"
+  },
+  {
+    "id": "directorio",
+    "characterType": "director",
+    "treatment": "texture",
+    "textureKey": "director_idle__directorio",
+    "displayNameKey": "skin.name.directorio",
+    "floorReached": "island"
+  },
+  {
+    "id": "unicornio",
+    "characterType": "fundador_startup",
+    "treatment": "texture",
+    "textureKey": "fundador_startup_idle__unicornio",
+    "displayNameKey": "skin.name.unicornio",
+    "floorReached": "island"
+  },
+  {
+    "id": "industrial",
+    "characterType": "dueno_pyme",
+    "treatment": "texture",
+    "textureKey": "dueno_pyme_idle__industrial",
+    "displayNameKey": "skin.name.industrial",
+    "floorReached": "island"
+  },
+  {
+    "id": "conferencia",
+    "characterType": "emprendedor",
+    "treatment": "texture",
+    "textureKey": "emprendedor_idle__conferencia",
+    "displayNameKey": "skin.name.conferencia",
+    "floorReached": "moon"
+  },
+  {
+    "id": "magnate",
+    "characterType": "ceo",
+    "treatment": "texture",
+    "textureKey": "ceo_idle__magnate",
+    "displayNameKey": "skin.name.magnate",
+    "floorReached": "moon"
+  },
+  {
+    "id": "yate",
+    "characterType": "millonario",
+    "treatment": "texture",
+    "textureKey": "millonario_idle__yate",
+    "displayNameKey": "skin.name.yate",
+    "floorReached": "moon"
+  },
+  {
+    "id": "filantropo",
+    "characterType": "multimillonario",
+    "treatment": "texture",
+    "textureKey": "multimillonario_idle__filantropo",
+    "displayNameKey": "skin.name.filantropo",
+    "floorReached": "moon"
+  },
+  {
+    "id": "rascacielos",
+    "characterType": "rey_ladrillo",
+    "treatment": "texture",
+    "textureKey": "rey_ladrillo_idle__rascacielos",
+    "displayNameKey": "skin.name.rascacielos",
+    "floorReached": "mars"
+  },
+  {
+    "id": "esquisto",
+    "characterType": "magnate_petrolero",
+    "treatment": "texture",
+    "textureKey": "magnate_petrolero_idle__esquisto",
+    "displayNameKey": "skin.name.esquisto",
+    "floorReached": "mars"
+  },
+  {
+    "id": "traje_presurizado",
+    "characterType": "space_billionaire",
+    "treatment": "texture",
+    "textureKey": "space_billionaire_idle__traje_presurizado",
+    "displayNameKey": "skin.name.traje_presurizado",
+    "floorReached": "mars"
+  },
+  {
+    "id": "moneda_propia",
+    "characterType": "trillonario",
+    "treatment": "texture",
+    "textureKey": "trillonario_idle__moneda_propia",
+    "displayNameKey": "skin.name.moneda_propia",
+    "floorReached": "mars"
+  },
+  {
+    "id": "selenita",
+    "characterType": "dueno_luna",
+    "treatment": "texture",
+    "textureKey": "dueno_luna_idle__selenita",
+    "displayNameKey": "skin.name.selenita",
+    "floorReached": "solar"
+  },
+  {
+    "id": "terraformador",
+    "characterType": "dueno_marte",
+    "treatment": "texture",
+    "textureKey": "dueno_marte_idle__terraformador",
+    "displayNameKey": "skin.name.terraformador",
+    "floorReached": "solar"
+  },
+  {
+    "id": "corona_solar",
+    "characterType": "magnate_solar",
+    "treatment": "texture",
+    "textureKey": "magnate_solar_idle__corona_solar",
+    "displayNameKey": "skin.name.corona_solar",
+    "floorReached": "galaxy"
+  },
+  {
+    "id": "agujero_negro",
+    "characterType": "senor_galaxia",
+    "treatment": "texture",
+    "textureKey": "senor_galaxia_idle__agujero_negro",
+    "displayNameKey": "skin.name.agujero_negro",
+    "floorReached": "galaxy"
+  },
+  {
+    "id": "dinastia",
+    "characterType": "emperador_cosmico",
+    "treatment": "texture",
+    "textureKey": "emperador_cosmico_idle__dinastia",
+    "displayNameKey": "skin.name.dinastia",
+    "floorReached": "cosmic"
+  },
+  {
+    "id": "iluminado",
+    "characterType": "ser_ascendido",
+    "treatment": "texture",
+    "textureKey": "ser_ascendido_idle__iluminado",
+    "displayNameKey": "skin.name.iluminado",
+    "floorReached": "cosmic"
+  },
+  {
+    "id": "titan",
+    "characterType": "semidios",
+    "treatment": "texture",
+    "textureKey": "semidios_idle__titan",
+    "displayNameKey": "skin.name.titan",
+    "floorReached": "god_realm"
+  },
+  {
+    "id": "oraculo",
+    "characterType": "deidad",
+    "treatment": "texture",
+    "textureKey": "deidad_idle__oraculo",
+    "displayNameKey": "skin.name.oraculo",
+    "floorReached": "god_realm"
+  },
+  {
+    "id": "genesis",
+    "characterType": "god",
+    "treatment": "texture",
+    "textureKey": "god_idle__genesis",
+    "displayNameKey": "skin.name.genesis",
+    "reincarnations": 3
+  }
+]

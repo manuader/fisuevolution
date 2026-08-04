@@ -154,3 +154,113 @@ class GeminiSeleniumRunnerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReferencePerAssetTests(unittest.TestCase):
+    """F7: cada skin adjunta a SU personaje. Antes el runner leía el campo
+    `**referencia**` como un booleano y adjuntaba siempre fisura.png, lo que
+    habría mandado el Fisura como referencia de estilo de la skin del CEO."""
+
+    def test_reference_path_comes_from_the_md(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            prompt = root / "40_ceo__magnate.md"
+            prompt.write_text(
+                "# Skin\n\n- **estado**: pendiente\n"
+                "- **referencia**: adjuntar `dropbox/procesadas/ceo.png`\n\n"
+                "## Prompt\n\nPrompt de prueba.\n",
+                encoding="utf-8",
+            )
+            asset = parse_asset(prompt, base=root)
+            self.assertTrue(asset.needs_reference)
+            self.assertEqual(asset.reference, root / "dropbox/procesadas/ceo.png")
+
+    def test_asset_without_reference_field_has_none(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            prompt = root / "47_bg_alley.md"
+            prompt.write_text(
+                "# Fondo\n\n- **estado**: pendiente\n\n## Prompt\n\nUna calle.\n",
+                encoding="utf-8",
+            )
+            asset = parse_asset(prompt, base=root)
+            self.assertIsNone(asset.reference)
+            self.assertFalse(asset.needs_reference)
+
+    def test_runner_prefers_the_assets_own_reference(self):
+        captured = {}
+
+        class FakeBrowser:
+            def generate(self, asset, reference, downloads):
+                captured["reference"] = reference
+                raise RuntimeError("corta acá: sólo interesa qué referencia se pasó")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            prompt = root / "41_god__dorado.md"
+            prompt.write_text(
+                "# Skin\n\n- **estado**: pendiente\n"
+                "- **referencia**: adjuntar `dropbox/procesadas/god.png`\n\n"
+                "## Prompt\n\nPrompt.\n",
+                encoding="utf-8",
+            )
+            asset = parse_asset(prompt, base=root)
+            runner = AssetRunner(
+                FakeBrowser(),
+                root / "dropbox",
+                root / "heroes" / "approved" / "fisura.png",  # fallback global
+                RunCheckpoint(root / "state.json"),
+            )
+            self.assertFalse(runner.run(asset))
+        self.assertEqual(captured["reference"], root / "dropbox/procesadas/god.png")
+
+    def test_fingerprint_cache_is_keyed_by_path(self):
+        """Una sola entrada global compararía la skin del CEO contra el Fisura."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            first, second = root / "a.png", root / "b.png"
+            Image.new("RGB", (600, 600), (10, 20, 30)).save(first)
+            Image.new("RGB", (600, 600), (200, 180, 160)).save(second)
+
+            browser = GeminiBrowser()
+            browser._ref_fp_cache = {}
+            for path in (first, second):
+                browser._ref_fp_cache[str(path)] = browser._fingerprint(path.read_bytes())
+
+            self.assertEqual(len(browser._ref_fp_cache), 2)
+            self.assertNotEqual(
+                browser._ref_fp_cache[str(first)],
+                browser._ref_fp_cache[str(second)],
+            )
+
+
+class SkinAssetKeyTests(unittest.TestCase):
+    """La convención del juego es `<char>_idle__<skin>`: el `_idle` va ANTES del
+    `__`. Concatenar el sufijo al final (como las otras categorías) daría
+    `homeless__second_life_idle`, que no matchea ninguna textura."""
+
+    def test_skin_key_inserts_idle_before_the_skin_id(self):
+        from process_dropbox import skin_asset_key
+
+        self.assertEqual(
+            skin_asset_key("homeless__second_life"), "homeless_idle__second_life"
+        )
+        self.assertEqual(
+            skin_asset_key("junior_programmer__hacker"),
+            "junior_programmer_idle__hacker",
+        )
+
+    def test_skin_key_rejects_a_key_without_separator(self):
+        from process_dropbox import skin_asset_key
+
+        with self.assertRaises(ValueError):
+            skin_asset_key("homeless")
+
+    def test_skin_category_does_not_write_the_manifest(self):
+        from process_dropbox import ATLAS_BY_CATEGORY
+
+        _, manifest_section, _ = ATLAS_BY_CATEGORY["skin"]
+        self.assertIsNone(
+            manifest_section,
+            "una skin en manifest['characters'] rompe manifestEntriesReferenceRealTypes",
+        )

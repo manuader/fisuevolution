@@ -19,7 +19,14 @@ struct FisuEvolutionApp: App {
                 .task {
                     haptics.prepare()
                     audio.prepare()
-                    audio.startMusic()
+                    // El audio se carga en paralelo con el bootstrap en vez de
+                    // demorarlo: la lectura de los `.caf` corre fuera de main y
+                    // deja los diez SFX listos antes de que el jugador pueda
+                    // dispararlos.
+                    Task {
+                        await audio.startMusic()
+                        await audio.preloadSFX()
+                    }
                     gameState.attachHaptics(haptics)
                     gameState.attachAudio(audio)
                     await gameState.bootstrap()

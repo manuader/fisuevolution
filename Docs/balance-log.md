@@ -316,3 +316,46 @@ volver a bajar.
 
 `pacing-sim` sigue imprimiendo los targets de DISEÑO en su semáforo, así que la
 brecha queda visible cada vez que se corre.
+
+---
+
+# Contratación ×2 más cara (2026-08-04, decisión del dueño)
+
+`hire.defaultCostMultiplier` **300 → 600**. El callejón NO se toca: sigue con su
+override de 50, así que la curva del Fisura queda igual (50, 60, 72, 86…).
+
+O sea: contratar el tier base de cualquier piso superior pasa a costar 600× lo
+que rinde un click de ese personaje ahí.
+
+## Efecto medido (y es contraintuitivo)
+
+| Hito | gate +1 a 300× | **gate +1 a 600×** |
+|---|---|---|
+| fase fisura (urban) | 0.8 min | 0.8 min |
+| corporate | 4.2 min | 4.2 min |
+| luxury | 200.8 min | 201.3 min |
+| island | 403.5 min | 443.9 min |
+| **Dios (pared)** | 264.2 h | **196.3 h** |
+| reencarnaciones | 50 | 41 |
+
+**Duplicar el precio ACORTÓ el juego** (264 h → 196 h). No es un error de
+medición: el bot sólo hace backfill cuando le es rentable, así que encarecerlo no
+lo hace tardar más — lo hace **dejar de hacerlo** y volcar esa plata a pasivo,
+mejoras por personaje y reencarnar. El barrido de reencarnación resulta más
+rápido que la molienda de backfill, y por eso llega antes con MENOS
+reencarnaciones (41 vs 50).
+
+⚠️ Eso vale para el bot greedy del simulador, que es un **modelo** de jugador.
+Un jugador real que insista en rellenar pisos sí va a sentir el doble de precio.
+La conclusión sólida es la del arco: el early game no se mueve y el mid game
+tampoco (luxury queda igual); lo que cambia es la estrategia óptima del late
+game.
+
+## Tests
+
+No hizo falta re-pinear nada: `PacingTests` quedó dentro de las bandas fijadas
+para el gate (dios 185-343 h contiene 196.3; el gradiente geomean ×8.21 entra en
+5.6-10.3). `GameContentValidationTests` sí se actualizó — es anti-drift y pinea
+el 300 explícitamente.
+
+App 83/83.

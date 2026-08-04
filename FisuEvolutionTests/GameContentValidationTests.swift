@@ -53,9 +53,10 @@ struct GameContentValidationTests {
         #expect(economy.passiveRatio == 0.5)
         #expect(economy.passiveUnlockCostMultiplier == 60)
         // Regla de precios del dueño (2026-08-04): contratar el tier base de un
-        // piso cuesta 300× lo que rinde un click de ese personaje ahí, y cada
+        // piso cuesta 600× lo que rinde un click de ese personaje ahí, y cada
         // compra sube el precio 20%. El callejón es la excepción barata.
-        #expect(economy.hire.defaultCostMultiplier == 300)
+        // Era 300 y el dueño lo duplicó el mismo día; ver Docs/balance-log.md.
+        #expect(economy.hire.defaultCostMultiplier == 600)
         #expect(economy.hire.defaultCostGrowth == 1.2)
         #expect(economy.charUpgrades.baseCostMultiplier == 50)
         #expect(economy.charUpgrades.costGrowth == 4.0)
@@ -94,7 +95,7 @@ struct GameContentValidationTests {
 
     /// La regla en números concretos, contra el contenido real: el primer Fisura
     /// sale 50, el segundo 60 (+20%), y en un piso superior el tier base cuesta
-    /// 300 veces lo que rinde un click suyo ahí. Contratar un Fisura es siempre
+    /// 600 veces lo que rinde un click suyo ahí. Contratar un Fisura es siempre
     /// barato: el callejón queda deliberadamente fuera de la regla cara.
     @Test func hirePricesFollowTheOwnersRule() throws {
         let economy = StandardEconomy(config: content.economy)
@@ -111,7 +112,7 @@ struct GameContentValidationTests {
                 tapYield: economy.tapYield(forTier: floor.firstTier),
                 purchases: 0
             )
-            #expect(abs(precio - 300 * tapValue) < precio * 1e-12, "\(floor.id): \(precio) ≠ 300× \(tapValue)")
+            #expect(abs(precio - 600 * tapValue) < precio * 1e-12, "\(floor.id): \(precio) ≠ 600× \(tapValue)")
         }
     }
 

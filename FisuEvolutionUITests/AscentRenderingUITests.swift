@@ -86,7 +86,9 @@ final class AscentRenderingUITests: XCTestCase {
         //    tipos distintos y snap-back — el test pasaba sin ascender nada.
         grantPair(app)
         slot(0, in: app).press(forDuration: 0.05, thenDragTo: slot(1, in: app))
-        Thread.sleep(forTimeInterval: 3.0)  // vuelo + celebración + cámara
+        // La cadena es SECUENCIAL desde 2026-08-04: vuelo (0,7 s) + reveal
+        // (~2 s) + celebración de piso (~1,3 s) antes de que aparezca el sheet.
+        Thread.sleep(forTimeInterval: 6.0)
         dismissSkinAward(app)
         add(shot(app, "2 tras el ascenso a Urban"))
         // Gate: sin ascenso, nada de lo que sigue prueba el arreglo del pool.

@@ -244,17 +244,44 @@ final class BoardScene: SKScene {
                     .scale(to: 1.0, duration: 0.12),
                 ]))
             }
+            // Cadena: vuelo → reveal del personaje → piso nuevo → avisarle a
+            // GameState, que recién ahí suelta el sheet de skin y el toast.
+            // Antes los tres arrancaban juntos en t=0 y el sheet aparecía encima,
+            // así que no se apreciaba ninguno — y es el momento más importante
+            // del juego. Encadena por completion y no por delays fijos: con
+            // Reduce Motion las duraciones colapsan y un offset quedaría
+            // desalineado.
+            let finish: () -> Void = { [weak self] in
+                self?.gameState.celebrationsDidFinish()
+            }
+            let celebrateFloor: () -> Void = { [weak self] in
+                guard let self, let unlockedFloorID, let promotedToFloor else {
+                    finish()
+                    return
+                }
+                self.runFloorUnlockCelebration(
+                    floorID: unlockedFloorID,
+                    destinationOrdinal: promotedToFloor,
+                    completion: finish
+                )
+            }
+            let revealEvolution: () -> Void = { [weak self] in
+                guard let self, let evolvedTo else {
+                    celebrateFloor()
+                    return
+                }
+                self.gameState.playHaptic(.evolution)
+                self.runEvolutionReveal(
+                    for: evolvedTo,
+                    at: mergedNode?.position,
+                    completion: celebrateFloor
+                )
+            }
             if let promotedType, let promotionStart {
-                runAscentAnimation(type: promotedType, from: promotionStart)
-            }
-            if let unlockedFloorID, let promotedToFloor {
-                runFloorUnlockCelebration(floorID: unlockedFloorID, destinationOrdinal: promotedToFloor)
-            }
-            if let evolvedTo {
-                gameState.playHaptic(.evolution)
-                runEvolutionReveal(for: evolvedTo, at: mergedNode?.position)
+                runAscentAnimation(type: promotedType, from: promotionStart, completion: revealEvolution)
             } else {
-                gameState.playHaptic(.merge)
+                if evolvedTo == nil { gameState.playHaptic(.merge) }
+                revealEvolution()
             }
         case .moved:
             dragNode = nil
@@ -347,7 +374,11 @@ final class BoardScene: SKScene {
 
     // MARK: - Reveal de evolución (bible §8: el momento de video vertical)
 
-    private func runEvolutionReveal(for type: CharacterType, at position: CGPoint?) {
+    private func runEvolutionReveal(
+        for type: CharacterType,
+        at position: CGPoint?,
+        completion: @escaping () -> Void = {}
+    ) {
         let reduceMotion = UIAccessibility.isReduceMotionEnabled
         let hold: TimeInterval = 1.5
 
@@ -379,7 +410,7 @@ final class BoardScene: SKScene {
             .wait(forDuration: hold),
             .fadeOut(withDuration: 0.3),
             .removeFromParent(),
-        ]))
+        ]), completion: completion)
 
         // Foto del personaje: el arte real (o el placeholder) en grande y centrado.
         if let content = gameState.content,
@@ -555,8 +586,12 @@ final class BoardScene: SKScene {
     /// Una promoción ya fue aplicada por EconomyKit antes de llegar acá. SpriteKit
     /// sólo presenta un clon temporal: vuela hacia el piso superior y vuelve al
     /// pool al finalizar, por lo que no deja un nodo interactivo duplicado.
-    private func runAscentAnimation(type: CharacterType, from start: CGPoint) {
-        guard let content = gameState.content else { return }
+    private func runAscentAnimation(
+        type: CharacterType,
+        from start: CGPoint,
+        completion: @escaping () -> Void = {}
+    ) {
+        guard let content = gameState.content else { completion(); return }
         let skinTreatment = SkinResolver.treatment(
             for: gameState.activeSkinID(forCharacterType: type.id),
             characterType: type.id,
@@ -599,11 +634,14 @@ final class BoardScene: SKScene {
                     .fadeOut(withDuration: Self.ascentDuration * 0.3),
                 ]),
             ])
+        // El completion va acá y no al final del método: más abajo hay un
+        // `guard` por el asset del flash que puede cortar, y la cadena no puede
+        // depender de que ese asset exista.
         flight.run(.sequence([
             flightAction,
             .run { [weak self, weak flight] in
-                guard let flight else { return }
-                self?.pool.recycle(flight)
+                if let flight { self?.pool.recycle(flight) }
+                completion()
             },
         ]))
 
@@ -624,7 +662,11 @@ final class BoardScene: SKScene {
     /// El primer ascenso que abre un piso conserva el vuelo en pantalla y, al
     /// terminar, lleva la cámara a la nueva escena. En promociones posteriores
     /// la cámara no roba el foco: queda un indicador de ascenso en F7.2.
-    private func runFloorUnlockCelebration(floorID: String, destinationOrdinal: Int) {
+    private func runFloorUnlockCelebration(
+        floorID: String,
+        destinationOrdinal: Int,
+        completion: @escaping () -> Void = {}
+    ) {
         let reduceMotion = UIAccessibility.isReduceMotionEnabled
         let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         title.text = String(localized: "tower.unlock.title")
@@ -642,7 +684,7 @@ final class BoardScene: SKScene {
             .wait(forDuration: 0.9),
             .fadeOut(withDuration: 0.22),
             .removeFromParent(),
-        ]))
+        ]), completion: completion)
 
         let hint = SKLabelNode(fontNamed: "AvenirNext-Bold")
         hint.text = String(localized: "tower.unlock.hint")

@@ -133,12 +133,35 @@ final class CharacterNode: SKNode {
 final class CharacterNodePool {
     private var free: [CharacterNode] = []
 
+    /// Entrega SIEMPRE un nodo en estado visual neutro.
+    ///
+    /// Limpiar acá, y no en cada efecto, es deliberado: el vuelo del ascenso
+    /// termina con `alpha = 0` y `configure` no toca la opacidad, así que un
+    /// nodo sucio reutilizado renderiza invisible pero sigue siendo clickeable
+    /// —el hit-testing mira posición, no opacidad— y el personaje "existe" sin
+    /// verse. El pool es el único punto por el que pasan todos los caminos de
+    /// reutilización.
+    ///
+    /// La limpieza va en `obtain` y no en `recycle` porque el vuelo del ascenso
+    /// se recicla a sí mismo DESDE el bloque `.run` de su propia secuencia:
+    /// tocarle las acciones ahí sería re-entrante. Acá el nodo ya está
+    /// desacoplado del árbol y ninguna acción está evaluándose.
     func obtain() -> CharacterNode {
-        free.popLast() ?? CharacterNode()
+        guard let node = free.popLast() else { return CharacterNode() }
+        node.removeAllActions()
+        node.alpha = 1
+        node.setScale(1)
+        node.zRotation = 0
+        node.isHidden = false
+        return node
     }
 
     func recycle(_ node: CharacterNode) {
         node.removeFromParent()
+        // Reciclar dos veces el mismo nodo lo pondría dos veces en la lista
+        // libre, y dos personajes distintos compartirían un solo nodo: uno de
+        // los dos desaparece. Barato de prevenir, carísimo de diagnosticar.
+        guard !free.contains(where: { $0 === node }) else { return }
         free.append(node)
     }
 }

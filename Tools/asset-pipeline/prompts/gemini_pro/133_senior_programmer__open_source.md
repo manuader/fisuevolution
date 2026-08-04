@@ -1,7 +1,7 @@
 # 133 — Gurú Open Source (skin de Programador Sr.)
 
 - **archivo**: `senior_programmer__open_source.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_programmer.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

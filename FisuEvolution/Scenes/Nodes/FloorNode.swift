@@ -9,13 +9,25 @@ final class FloorNode: SKNode {
     let ordinal: Int
     let definition: FloorDef
 
-    private let background = SKNode()
+    /// Recorta el fondo AL SLOT DEL PISO.
+    ///
+    /// El fondo se sobredimensiona un 18% para llenar cualquier pantalla sin
+    /// dejar bordes, y va anclado abajo para que el suelo quede donde caminan
+    /// los personajes. Eso hace que sobre alto POR ARRIBA: sin recortar, ese
+    /// excedente se mete en el slot del piso de al lado y —como todos los
+    /// fondos comparten zPosition y el orden entre hermanos lo decide el árbol—
+    /// el piso de abajo puede terminar pintando sobre el de arriba.
+    private let background = SKCropNode()
     private var renderedSize: CGSize = .zero
 
     init(ordinal: Int, definition: FloorDef) {
         self.ordinal = ordinal
         self.definition = definition
         super.init()
+        // Orden determinístico entre pisos vivos: `renderLiveFloorNodes` los
+        // agrega iterando un Set, así que sin esto el orden de dibujo entre
+        // hermanos es arbitrario. Queda muy por debajo del campo de personajes.
+        zPosition = CGFloat(ordinal) * 0.01
         addChild(background)
     }
 
@@ -29,6 +41,10 @@ final class FloorNode: SKNode {
         renderedSize = size
         background.removeAllChildren()
 
+        let mask = SKSpriteNode(color: .white, size: size)
+        mask.anchorPoint = .zero
+        background.maskNode = mask
+
         if let assetName = content.manifest.backgrounds[definition.background].flatMap({ $0.isEmpty ? nil : $0 }),
            UIImage(named: assetName) != nil {
             let sprite = SKSpriteNode(imageNamed: assetName)
@@ -36,7 +52,12 @@ final class FloorNode: SKNode {
             let scale = max(size.width / textureSize.width, size.height / textureSize.height) * 1.18
             sprite.size = CGSize(width: textureSize.width * scale, height: textureSize.height * scale)
             sprite.anchorPoint = CGPoint(x: 0.5, y: 0)
-            sprite.position = CGPoint(x: size.width / 2, y: 0)
+            // Bajar el fondo hunde su franja plana inferior por debajo del slot.
+            // El clamp al sobrante REAL del aspect-fill garantiza que el borde
+            // superior nunca se despegue del techo del piso.
+            let slack = max(0, sprite.size.height - size.height)
+            let offset = min(definition.backgroundOffset * size.height, slack)
+            sprite.position = CGPoint(x: size.width / 2, y: -offset)
             sprite.zPosition = -100
             background.addChild(sprite)
             return

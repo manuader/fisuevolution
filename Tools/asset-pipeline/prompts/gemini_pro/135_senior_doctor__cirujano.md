@@ -1,7 +1,7 @@
 # 135 — Cirujano (skin de Médico Sr.)
 
 - **archivo**: `senior_doctor__cirujano.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_doctor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

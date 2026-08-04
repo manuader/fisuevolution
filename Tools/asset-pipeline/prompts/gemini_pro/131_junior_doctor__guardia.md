@@ -1,7 +1,7 @@
 # 131 — Guardia (skin de Médico Jr.)
 
 - **archivo**: `junior_doctor__guardia.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/junior_doctor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

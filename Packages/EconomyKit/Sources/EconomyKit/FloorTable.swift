@@ -22,6 +22,16 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
     /// Tier cuya PRIMERA creación desbloquea este piso. Default: `firstTier`.
     /// Overrideable por config (spec §3.8, default ⚠️9).
     public let unlockTierOverride: Int?
+    /// Cuánto BAJAR el fondo dentro del piso, como fracción del alto de pantalla.
+    ///
+    /// Algunos fondos generados traen una franja inferior plana y vacía (la
+    /// "zona transitable despejada" que pedía su prompt): island ~30%, urban y
+    /// moon ~10%. Los personajes se paran ARRIBA de esa franja, así que queda de
+    /// espacio muerto. Correr el fondo hacia abajo mete arte real en ese hueco
+    /// sin tocar los PNG —regenerar fondos está fuera de alcance (spec §5)— y
+    /// sin código nuevo por piso. El render lo clampea al sobrante real del
+    /// aspect-fill, así que nunca puede abrir un hueco arriba. [TUNEABLE]
+    public let backgroundOffset: Double
 
     public var unlockTier: Int { unlockTierOverride ?? firstTier }
 
@@ -36,7 +46,8 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
         incomeMultiplier: Double,
         hireCostMultiplierOverride: Double? = nil,
         hireCostGrowthOverride: Double? = nil,
-        unlockTierOverride: Int? = nil
+        unlockTierOverride: Int? = nil,
+        backgroundOffset: Double = 0
     ) {
         self.id = id
         self.background = background
@@ -47,6 +58,23 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
         self.hireCostMultiplierOverride = hireCostMultiplierOverride
         self.hireCostGrowthOverride = hireCostGrowthOverride
         self.unlockTierOverride = unlockTierOverride
+        self.backgroundOffset = backgroundOffset
+    }
+
+    /// `backgroundOffset` es opcional en el JSON: los pisos cuyo fondo llena
+    /// bien la pantalla no lo declaran.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        background = try container.decode(String.self, forKey: .background)
+        firstTier = try container.decode(Int.self, forKey: .firstTier)
+        lastTier = try container.decode(Int.self, forKey: .lastTier)
+        capacity = try container.decode(Int.self, forKey: .capacity)
+        incomeMultiplier = try container.decode(Double.self, forKey: .incomeMultiplier)
+        hireCostMultiplierOverride = try container.decodeIfPresent(Double.self, forKey: .hireCostMultiplierOverride)
+        hireCostGrowthOverride = try container.decodeIfPresent(Double.self, forKey: .hireCostGrowthOverride)
+        unlockTierOverride = try container.decodeIfPresent(Int.self, forKey: .unlockTierOverride)
+        backgroundOffset = try container.decodeIfPresent(Double.self, forKey: .backgroundOffset) ?? 0
     }
 
     enum CodingKeys: String, CodingKey {
@@ -54,6 +82,7 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
         case hireCostMultiplierOverride = "hireCostMultiplier"
         case hireCostGrowthOverride = "hireCostGrowth"
         case unlockTierOverride = "unlockTier"
+        case backgroundOffset
     }
 }
 

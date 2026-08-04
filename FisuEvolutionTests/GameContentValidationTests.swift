@@ -83,6 +83,12 @@ struct GameContentValidationTests {
             #expect(floor.hireCostGrowthOverride == nil, "el 20% por compra es global: \(floor.id) no debe overridearlo")
             // v2 no overridea unlockTier: todo piso se desbloquea con su firstTier.
             #expect(floor.unlockTierOverride == nil, "unlockTier inesperado en \(floor.id)")
+            // El encuadre del fondo nunca puede pasar el sobrante del aspect-fill
+            // (1.18 → 18%): más que eso despegaría el fondo del techo del piso.
+            #expect(
+                floor.backgroundOffset >= 0 && floor.backgroundOffset <= 0.18,
+                "backgroundOffset fuera del sobrante en \(floor.id): \(floor.backgroundOffset)"
+            )
         }
     }
 

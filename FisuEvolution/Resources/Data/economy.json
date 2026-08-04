@@ -38,7 +38,8 @@
       "firstTier": 3,
       "lastTier": 5,
       "capacity": 10,
-      "incomeMultiplier": 2.0
+      "incomeMultiplier": 2.0,
+      "backgroundOffset": 0.135
     },
     {
       "id": "corporate",
@@ -62,7 +63,8 @@
       "firstTier": 14,
       "lastTier": 17,
       "capacity": 10,
-      "incomeMultiplier": 13.0
+      "incomeMultiplier": 13.0,
+      "backgroundOffset": 0.18
     },
     {
       "id": "moon",
@@ -70,7 +72,8 @@
       "firstTier": 18,
       "lastTier": 21,
       "capacity": 10,
-      "incomeMultiplier": 25.0
+      "incomeMultiplier": 25.0,
+      "backgroundOffset": 0.12
     },
     {
       "id": "mars",
@@ -78,7 +81,8 @@
       "firstTier": 22,
       "lastTier": 23,
       "capacity": 10,
-      "incomeMultiplier": 48.0
+      "incomeMultiplier": 48.0,
+      "backgroundOffset": 0.118
     },
     {
       "id": "solar",

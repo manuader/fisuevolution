@@ -125,6 +125,23 @@ desentonan con los integrados.
 | Assets en disco | 230 MB | **36 MB** |
 | fps en reposo | 58 | **60** |
 
+> **Sobre los 112 MB**: re-medido el 2026-08-04 sobre un build Debug LIMPIO da
+> **135 MB**, y Release **115 MB** (la diferencia son el dylib de debug y los
+> Frameworks). No es una regresión: el número original debe venir de otro tipo de
+> build. Lo que importa del desglose es que **los 11 fondos solos son ~81 MB** —
+> 5,1 MB cada `@3x` más su `@2x`—, o sea más de la mitad del `.app`. Son el único
+> grupo que la Fase 2 dejó sin tocar, a propósito (§3). El resto se reparte entre
+> `earth.atlasc` 20 MB, Frameworks 16 MB, `cosmic.atlasc` 9,5 MB y
+> `ui.atlasc` 8,7 MB.
+>
+> Eso deja una consecuencia que conviene tener presente: **reautorar los fondos a
+> proporción vertical (~768×1664) sigue siendo la única ganancia grande que queda
+> en peso de app**, y hoy ~54% de sus píxeles no se ven nunca. Venía dentro de la
+> Fase 3.1, que se descartó porque no mueve fps — y eso sigue siendo cierto—,
+> pero **el peso del `.app` es otra métrica y sí la movería**. Si algún día
+> importa el tamaño de descarga en la App Store, es por ahí y no por el
+> `SKCropNode`.
+
 Captura después del cambio: `scratchpad/qa-shots/perf-after-resize.png`.
 Comparada contra el baseline: **el arte se ve indistinguible**.
 

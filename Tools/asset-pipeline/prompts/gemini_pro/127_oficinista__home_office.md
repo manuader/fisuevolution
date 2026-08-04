@@ -1,7 +1,7 @@
 # 127 — Home Office (skin de Oficinista)
 
 - **archivo**: `oficinista__home_office.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/oficinista.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

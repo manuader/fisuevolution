@@ -21,10 +21,14 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         public let floorReached: String?
         /// Reencarnaciones acumuladas que desbloquean esta skin de milestone.
         public let reincarnations: Int?
+        /// Clave de localización del nombre visible (spec §3.9). Opcional: sin
+        /// ella la ficha muestra el id embellecido, que alcanza para una skin
+        /// de prueba pero no para una que se shippea.
+        public let displayNameKey: String?
 
         /// Los campos de tratamiento y de milestone son mutuamente excluyentes
         /// según el tipo de skin, así que van con default: declarar una entrada
-        /// nueva no obliga a enumerar los cuatro que no aplican.
+        /// nueva no obliga a enumerar los cinco que no aplican.
         public init(
             id: String,
             characterType: String,
@@ -32,7 +36,8 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             tintHex: String? = nil,
             textureKey: String? = nil,
             floorReached: String? = nil,
-            reincarnations: Int? = nil
+            reincarnations: Int? = nil,
+            displayNameKey: String? = nil
         ) {
             self.id = id
             self.characterType = characterType
@@ -41,6 +46,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             self.textureKey = textureKey
             self.floorReached = floorReached
             self.reincarnations = reincarnations
+            self.displayNameKey = displayNameKey
         }
 
         public var isMilestone: Bool { floorReached != nil || reincarnations != nil }

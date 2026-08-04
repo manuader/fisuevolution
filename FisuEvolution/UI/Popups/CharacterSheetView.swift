@@ -180,7 +180,12 @@ struct CharacterSheetView: View {
 
     private var skinName: String {
         guard let skin = selected.skin else { return String(localized: "character.skin.base") }
-        return skin.id.replacingOccurrences(of: "_", with: " ").capitalized
+        // Una skin catalogada sin `displayNameKey` cae al id embellecido: sirve
+        // para una skin de prueba, y evita que falte un nombre rompa la ficha.
+        guard let key = skin.displayNameKey else {
+            return skin.id.replacingOccurrences(of: "_", with: " ").capitalized
+        }
+        return String(localized: String.LocalizationValue(key))
     }
 
     private var isSelectedActive: Bool {
@@ -189,7 +194,11 @@ struct CharacterSheetView: View {
 
     private var unlockDescription: String {
         guard let skin = selected.skin else { return "" }
-        if let floor = skin.floorReached { return String(localized: "character.skin.reach-floor \(floor)") }
+        // El id crudo del piso ("urban") no es un nombre: se muestra el
+        // localizado, el mismo que usa la pill de la torre.
+        if let floor = skin.floorReached {
+            return String(localized: "character.skin.reach-floor \(TowerNaming.floorName(for: floor))")
+        }
         if let lives = skin.reincarnations { return String(localized: "character.skin.reincarnations \(lives)") }
         return String(localized: "character.skin.store")
     }

@@ -103,23 +103,8 @@ struct HUDView: View {
         .accessibilityLabel(Text(direction > 0 ? "tower.navigate.up" : "tower.navigate.down"))
     }
 
-    /// `LocalizedStringKey` no resuelve claves construidas por interpolación; el
-    /// switch conserva las claves estáticas para que el catálogo las traduzca.
     private func floorNameKey(for floorID: String) -> LocalizedStringKey {
-        switch floorID {
-        case "alley": "tower.floor.alley"
-        case "urban": "tower.floor.urban"
-        case "corporate": "tower.floor.corporate"
-        case "luxury": "tower.floor.luxury"
-        case "island": "tower.floor.island"
-        case "moon": "tower.floor.moon"
-        case "mars": "tower.floor.mars"
-        case "solar": "tower.floor.solar"
-        case "galaxy": "tower.floor.galaxy"
-        case "cosmic": "tower.floor.cosmic"
-        case "god_realm": "tower.floor.god_realm"
-        default: "tower.floor.alley"
-        }
+        TowerNaming.floorNameKey(for: floorID)
     }
 
     /// Botón de icono unificado: misma base (círculo crema + borde ink), mismo

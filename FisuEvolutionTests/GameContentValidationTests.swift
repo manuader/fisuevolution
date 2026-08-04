@@ -175,6 +175,55 @@ struct GameContentValidationTests {
         }
     }
 
+    /// Cada personaje concreto tiene su skin alternativa catalogada, y todas
+    /// declaran nombre visible: una skin sin `displayNameKey` se vería en la
+    /// ficha como su id crudo.
+    @Test func everyCharacterHasACataloguedSkinWithAName() throws {
+        let textureSkins = content.skins.skins.filter { $0.treatment == .texture }
+        let covered = Set(textureSkins.map(\.characterType))
+        for type in content.tiers.concreteTypes {
+            #expect(covered.contains(type.id), "el personaje \(type.id) no tiene skin catalogada")
+        }
+        for skin in content.skins.skins {
+            let key = try #require(skin.displayNameKey, "skin \(skin.id): sin displayNameKey")
+            #expect(key == "skin.name.\(skin.id)")
+        }
+    }
+
+    /// La convención de textura es `<baseKey>__<skinId>` (spec §5): el arte de
+    /// una skin vive en el atlas de SU personaje, con el `__` DESPUÉS de `_idle`.
+    /// Romperla no falla en runtime —hay fallback a la base— pero deja la skin
+    /// invisible para siempre, que es peor: por eso se asserta acá.
+    @Test func textureSkinKeysFollowTheNamingConvention() throws {
+        for skin in content.skins.skins where skin.treatment == .texture {
+            let key = try #require(skin.textureKey, "skin \(skin.id): texture sin textureKey")
+            let asset = try #require(
+                content.manifest.characters[skin.characterType],
+                "skin \(skin.id): su personaje no tiene arte base en el manifest"
+            )
+            #expect(key == "\(asset.key)__\(skin.id)", "skin \(skin.id): textureKey fuera de convención (\(key))")
+        }
+    }
+
+    /// El contrato que permite shippear catálogo y arte por separado: una skin
+    /// cuyo PNG todavía no existe DEBE caer a la textura base, nunca a un
+    /// placeholder roto. Vale antes y después de que entre el arte.
+    @MainActor
+    @Test func missingSkinArtFallsBackToTheBaseTexture() throws {
+        let renderer = PlaceholderRenderer()
+        for skin in content.skins.skins where skin.treatment == .texture {
+            guard let type = content.tiers.type(id: skin.characterType) else { continue }
+            let texture = try #require(
+                renderer.texture(for: type, manifest: content.manifest, skinTextureKey: skin.textureKey),
+                "skin \(skin.id): el renderer no devolvió textura"
+            )
+            // Sirve el arte de la skin si existe y la base si todavía no: en
+            // ningún caso una textura inválida (0x0) que se vería como un hueco.
+            #expect(texture.size().width > 1, "skin \(skin.id): textura inválida servida")
+            #expect(texture.size().height > 1, "skin \(skin.id): textura inválida servida")
+        }
+    }
+
     @Test @MainActor func skinResolverIsDataDrivenAndScopedToCharacterType() {
         let config = SkinsConfig(
             schemaVersion: 1,

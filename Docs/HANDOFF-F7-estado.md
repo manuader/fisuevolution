@@ -22,7 +22,46 @@
 >   personajes) con nombres localizados es/en, y el pipeline de arte habilitado
 >   para skins (referencia por asset, categoría `skin`, 36 prompts + icono ORO).
 >
-> ### ⛔ Lo único que quedó pendiente: GENERAR EL ARTE
+> ### ✅ EL ARTE YA SE GENERÓ (actualizado 2026-08-04)
+>
+> **Las 36 skins están generadas e integradas**: 36 `@2x` + 36 `@3x` en los
+> atlas, a 384/512 (o sea que respetan el reescalado de `Docs/HANDOFF-perf.md` y
+> no rompen el texture atlas), con los originales archivados en `procesadas/`.
+> Lo de abajo quedó como referencia del circuito, no como pendiente.
+>
+> **Verificación hecha el 2026-08-04** (los bugs #1 y #6 del
+> `HANDOFF-arte-gemini.md`, que el propio doc marca como fáciles de
+> reintroducir):
+>
+> - **Bug #6 (PNG en blanco): limpio.** Opacidad del `@2x` post-rembg entre 17% y
+>   52% en las 36. Ninguna vacía.
+> - **Bug #1 (copia de la referencia): una sola.**
+>   `oficinista__home_office` salió **idéntica al arte base** — el prompt pide
+>   pijama a rayas, pantuflas, manta y mate, y lo generado es el oficinista de
+>   siempre. No falló el prompt ni el filtro de huella: ese filtro sólo detecta
+>   capturas literales del archivo de referencia, no que el modelo ignore el
+>   pedido. Regenerar con el mismo prompt debería alcanzar.
+> - `director__directorio` es una generación real (le agrega un gráfico) pero sin
+>   el cambio cromático fuerte que pedía el prompt. Floja, no rota — queda a
+>   criterio del dueño si se regenera o se deja.
+> - Las otras 34 son legítimas y bien distintas.
+>
+> **Ya está encolada la regeneración de la única rota**: su original se movió a
+> `dropbox/rechazadas/` y su `.md` volvió a `pendiente`, así que la cola del
+> runner tiene exactamente ese asset. Se corre **desde Terminal.app**:
+>
+> ```bash
+> cd Tools/asset-pipeline
+> .venv/bin/python scripts/launch_gemini_chrome.py
+> .venv/bin/python scripts/gemini_selenium_runner.py \
+>     --only oficinista__home_office --process --ref-threshold 5
+> ```
+>
+> Al terminar, comparar el PNG nuevo contra `oficinista_idle@2x.png`: si se
+> siguen pareciendo, el modelo volvió a ignorar el vestuario.
+>
+> <details>
+> <summary>Por qué el batch va desde Terminal (referencia del circuito)</summary>
 >
 > **Hay que correrlo desde Terminal.app, a mano.** No es un bug del pipeline ni
 > falta de cuota: el runner escribe el prompt con keystrokes reales de macOS
@@ -52,11 +91,13 @@
 > el bloqueo real, así que el runner abortaba TODOS los assets creyendo que la
 > cuota estaba agotada. Ver `BENIGN_NOTICES` en el runner y sus tests.
 >
-> El juego **funciona hoy sin ese arte**: las 36 skins están catalogadas y caen
+> El juego **funciona sin ese arte**: las 36 skins están catalogadas y caen
 > a la textura base (contrato testeado en `missingSkinArtFallsBackToTheBaseTexture`).
 > Al caer los PNG, `--process` los integra solo y no hay que tocar código.
 > `OroIcon` ya lee `ui_oro` con fallback vectorial: cuando el asset entre, aparece
 > solo.
+>
+> </details>
 
 > ## ✅ ACTUALIZACIÓN 2026-08-03 (tarde): F7.1 CERRADO
 >

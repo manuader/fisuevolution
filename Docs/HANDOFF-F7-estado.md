@@ -1,5 +1,23 @@
 # HANDOFF — F7 "La Torre": estado de implementación
 
+> ## ✅ ACTUALIZACIÓN 2026-08-03 (tarde): F7.1 CERRADO
+>
+> Todo lo que este doc describe como pendiente en §5 se COMPLETÓ y está
+> commiteado en `432e6a5` ("temp commit", subsume los commits A y B del §5.3):
+> - Tests del paquete migrados + 2 suites nuevas: **126 tests verdes** (`swift test`).
+> - Tests de app migrados (8 suites + SaveMigratorTests propio + PacingTests):
+>   **61 tests verdes**, UI tests compilan, cero warnings.
+> - `Tools/pacing-sim` creado; **calibración inicial hecha** (16 iteraciones):
+>   los 4 targets de §4/PLAN §F7.1c pasan — urban 16.2 min activos, 1ª
+>   reencarnación 4.0 h, dios 48.2 h con 14 reencarnaciones. Detalle de knobs,
+>   decisiones de diseño del assert de gradiente y un fix al PacingSimulator
+>   (regla «hire si <25% del wallet» del plan, que faltaba) en
+>   `Docs/balance-log.md §F7.1`.
+> - `yieldGrowthPerTier` quedó en **2.8** (no 2.6) y tiers.json regenerado.
+> - El §4 (problema de balance) y el §5 quedan como registro histórico.
+>
+> **Lo que sigue: F7.2** (torre en escena — ver §6 y `Docs/PLAN-F7-torre.md`).
+
 > **Para el agente que retoma:** este doc te deja arrancar DE CERO. Leelo entero,
 > después leé `Docs/PROMPT-F7-torre-de-escenarios.md` (spec funcional aprobada) y
 > `Docs/PLAN-F7-torre.md` (plan de implementación aprobado, con arquitectura,

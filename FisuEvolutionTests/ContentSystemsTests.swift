@@ -54,8 +54,9 @@ struct ContentSystemsTests {
 
     // MARK: Upgrades
 
-    @Test func upgradePurchaseAppliesDerivedEffect() throws {
+    @Test func oroUpgradePurchaseAppliesDerivedEffectWithoutSpendingCoins() throws {
         var state = makeState(coins: 10_000)
+        state.meta.oro = 10
         try UpgradeManager.purchase(
             lineId: "tap",
             state: &state,
@@ -66,22 +67,23 @@ struct ContentSystemsTests {
         )
         #expect(state.meta.oroUpgradeLevels["tap"] == 1)
         #expect(abs(state.meta.derivedEffects.tapMultiplier - 1.25) < 1e-9)
-        #expect(state.run.coins < 10_000)
+        #expect(state.meta.oro == 9)
+        #expect(state.run.coins == 10_000)
     }
 
     @Test func upgradeCostGrowsExponentially() throws {
         let line = try #require(content.upgradesConfig.upgrades.first { $0.id == "income" })
-        #expect(UpgradeManager.cost(of: line, level: 0) == 500)
-        #expect(UpgradeManager.cost(of: line, level: 2) == 500 * 64)
+        #expect(UpgradeManager.cost(of: line, level: 0) == 1)
+        #expect(UpgradeManager.cost(of: line, level: 2) == 4)
     }
 
-    @Test func upgradeRespectsMaxLevelAndCoins() throws {
+    @Test func oroUpgradeRespectsMaxLevelAndBalance() throws {
         var state = makeState(coins: 100)
-        #expect(throws: UpgradeManager.PurchaseError.insufficientCoins) {
+        #expect(throws: UpgradeManager.PurchaseError.insufficientOro) {
             try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
         }
         state.meta.oroUpgradeLevels["income"] = 20
-        state.run.coins = 1e30
+        state.meta.oro = 1_000
         #expect(throws: UpgradeManager.PurchaseError.maxLevelReached) {
             try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
         }

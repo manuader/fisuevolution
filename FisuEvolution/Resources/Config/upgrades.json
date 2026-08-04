@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "upgrades": [
     {
       "id": "income",
@@ -8,8 +8,9 @@
       "effectType": "incomeMultiplier",
       "magnitudePerLevel": 0.1,
       "maxLevel": 20,
-      "baseCost": 500,
-      "costGrowth": 8.0
+      "baseCost": 1,
+      "costGrowth": 2.0,
+      "currency": "oro"
     },
     {
       "id": "spawn",
@@ -18,8 +19,9 @@
       "effectType": "spawnCostDiscount",
       "magnitudePerLevel": 0.03,
       "maxLevel": 10,
-      "baseCost": 750,
-      "costGrowth": 9.0
+      "baseCost": 1,
+      "costGrowth": 2.2,
+      "currency": "oro"
     },
     {
       "id": "offline",
@@ -28,8 +30,9 @@
       "effectType": "offlineEfficiency",
       "magnitudePerLevel": 0.05,
       "maxLevel": 10,
-      "baseCost": 1200,
-      "costGrowth": 10.0
+      "baseCost": 2,
+      "costGrowth": 2.3,
+      "currency": "oro"
     },
     {
       "id": "tap",
@@ -38,8 +41,9 @@
       "effectType": "tapMultiplier",
       "magnitudePerLevel": 0.25,
       "maxLevel": 20,
-      "baseCost": 300,
-      "costGrowth": 7.0
+      "baseCost": 1,
+      "costGrowth": 2.0,
+      "currency": "oro"
     },
     {
       "id": "crit",
@@ -48,8 +52,9 @@
       "effectType": "critChance",
       "magnitudePerLevel": 0.01,
       "maxLevel": 25,
-      "baseCost": 2500,
-      "costGrowth": 8.0
+      "baseCost": 3,
+      "costGrowth": 2.5,
+      "currency": "oro"
     },
     {
       "id": "golden",
@@ -58,8 +63,9 @@
       "effectType": "goldenTouchChance",
       "magnitudePerLevel": 0.005,
       "maxLevel": 10,
-      "baseCost": 6000,
-      "costGrowth": 10.0
+      "baseCost": 4,
+      "costGrowth": 2.7,
+      "currency": "oro"
     },
     {
       "id": "prestige",
@@ -68,8 +74,9 @@
       "effectType": "prestigeBonusPerSoulPoint",
       "magnitudePerLevel": 0.005,
       "maxLevel": 10,
-      "baseCost": 15000,
-      "costGrowth": 12.0
+      "baseCost": 5,
+      "costGrowth": 3.0,
+      "currency": "oro"
     }
   ]
 }

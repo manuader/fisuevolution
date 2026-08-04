@@ -59,6 +59,10 @@ struct SpecialsConfig: Codable, Sendable, Equatable {
 }
 
 struct UpgradesConfig: Codable, Sendable, Equatable {
+    enum Currency: String, Codable, Sendable {
+        case coins
+        case oro
+    }
     enum EffectType: String, Codable, Sendable {
         case incomeMultiplier
         case spawnCostDiscount
@@ -78,6 +82,26 @@ struct UpgradesConfig: Codable, Sendable, Equatable {
         let maxLevel: Int
         let baseCost: Double
         let costGrowth: Double
+        /// Los JSON v1 no tenían moneda: se decodifican como coins para que un
+        /// catálogo viejo siga siendo válido durante la transición F7.4.
+        let currency: Currency
+
+        private enum CodingKeys: String, CodingKey {
+            case id, titleKey, iconKey, effectType, magnitudePerLevel, maxLevel, baseCost, costGrowth, currency
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decode(String.self, forKey: .id)
+            titleKey = try container.decode(String.self, forKey: .titleKey)
+            iconKey = try container.decode(String.self, forKey: .iconKey)
+            effectType = try container.decode(EffectType.self, forKey: .effectType)
+            magnitudePerLevel = try container.decode(Double.self, forKey: .magnitudePerLevel)
+            maxLevel = try container.decode(Int.self, forKey: .maxLevel)
+            baseCost = try container.decode(Double.self, forKey: .baseCost)
+            costGrowth = try container.decode(Double.self, forKey: .costGrowth)
+            currency = try container.decodeIfPresent(Currency.self, forKey: .currency) ?? .coins
+        }
     }
 
     let schemaVersion: Int

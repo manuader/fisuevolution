@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Reincarnation confirmation (bible §5): reset the run, keep the soul.
+/// Reencarnación: mata la run, preserva MetaState y acredita ORO.
 struct PrestigeView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
@@ -11,9 +11,15 @@ struct PrestigeView: View {
                 Text("prestige.title")
                     .font(.system(.title2, design: .rounded).weight(.heavy))
                     .foregroundStyle(Color("PaletteInk"))
-                Text("prestige.body \(String(gameState.prestigeSoulPointsGained))")
+                Text("prestige.body \(String(gameState.prestigeOroGained))")
                     .font(.body)
                     .multilineTextAlignment(.center)
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("prestige.loses", systemImage: "arrow.counterclockwise")
+                    Label("prestige.keeps", systemImage: "sparkles")
+                }
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(Color("PaletteInk"))
 
                 Button {
                     gameState.confirmPrestige()

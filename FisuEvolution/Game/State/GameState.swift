@@ -679,7 +679,7 @@ final class GameState {
     // MARK: Reencarnación (F7: gate por ORO)
 
     /// ORO que ganarías reencarnando ahora.
-    var prestigeSoulPointsGained: Int {
+    var prestigeOroGained: Int {
         guard let economy, let player else { return 0 }
         return PrestigeCalculator.oroGained(state: player, economy: economy)
     }
@@ -832,6 +832,41 @@ final class GameState {
 
     func upgradeCost(of line: UpgradesConfig.Line) -> Double {
         UpgradeManager.cost(of: line, level: upgradeLevel(of: line.id))
+    }
+
+    /// Tipos que el jugador conoce en esta vida (o ya mejoró) para la pestaña
+    /// Personajes. La UI recibe el catálogo filtrado, no inspecciona el save.
+    var characterUpgradeTypes: [CharacterType] {
+        guard let content, let player else { return [] }
+        return content.tiers.concreteTypes
+            .filter { (player.run.units[$0.id] ?? 0) > 0 || (player.run.charUpgradeLevels[$0.id] ?? 0) > 0 }
+            .sorted { $0.tier < $1.tier }
+    }
+
+    func characterUpgradeLevel(of typeID: String) -> Int {
+        player?.run.charUpgradeLevels[typeID] ?? 0
+    }
+
+    func characterUpgradeCost(of type: CharacterType) -> Double? {
+        guard let economy, let player, let content else { return nil }
+        return CharUpgrades.nextLevelCost(type: type, levels: player.run.charUpgradeLevels, config: content.economy, economy: economy)
+    }
+
+    func buyCharacterUpgrade(typeID: String) {
+        guard let economy, let content, var player,
+              let type = content.tiers.type(id: typeID)
+        else { return }
+        do {
+            try CharUpgrades.purchase(type: type, state: &player, config: content.economy, economy: economy)
+            self.player = player
+            haptics?.play(.purchase)
+            effectsVersion += 1
+            refreshProjections()
+            scheduleSave()
+        } catch {
+            haptics?.play(.error)
+            Log.economy.info("character upgrade rejected: \(error)")
+        }
     }
 
     func buyUpgrade(lineId: String) {

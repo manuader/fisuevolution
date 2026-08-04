@@ -316,6 +316,12 @@ struct GameLoopWiringTests {
     @Test func prestigeFlowResetsRunAndKeepsMeta() async throws {
         let gameState = await makeGameState()
         let divisor = try #require(gameState.content?.economy.oro.divisor)
+        let fisura = try #require(gameState.content?.tiers.type(id: "homeless"))
+        gameState.debugGrantCoins()
+        let coinsBeforeCharacterUpgrade = try #require(gameState.player?.run.coins)
+        gameState.buyCharacterUpgrade(typeID: fisura.id)
+        #expect(gameState.characterUpgradeLevel(of: fisura.id) == 1)
+        #expect((gameState.player?.run.coins ?? coinsBeforeCharacterUpgrade) < coinsBeforeCharacterUpgrade)
         // Gate: reencarnar ⟺ ganar ≥1 ORO ⟺ lifetimeEarnings alcanza el divisor.
         var fuse = 0
         while !gameState.prestigeAvailable && fuse < 64 {
@@ -324,12 +330,13 @@ struct GameLoopWiringTests {
         }
         #expect(gameState.prestigeAvailable)
         #expect((gameState.player?.meta.lifetimeEarnings ?? 0) >= divisor)
-        #expect(gameState.prestigeSoulPointsGained > 0) // "soul points" = ORO hasta F7.4
+        #expect(gameState.prestigeOroGained > 0)
 
         gameState.confirmPrestige()
         // La run murió entera…
         #expect(gameState.player?.run.units == ["homeless": 1])
         #expect(gameState.player?.run.hireCounts.isEmpty == true)
+        #expect(gameState.characterUpgradeLevel(of: fisura.id) == 0)
         #expect(gameState.player?.run.unlockedFloors == ["alley"])
         // …y la meta cobró.
         #expect(gameState.player?.meta.prestigeLevel == 1)

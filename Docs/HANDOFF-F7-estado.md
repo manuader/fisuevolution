@@ -52,7 +52,31 @@
 > test de contenido pasa, pero el simulador deja urban (5.8 min) y la primera
 > reencarnación (0.26 h) fuera de los targets F7.1. Se preserva la decisión del
 > dueño y se deja la recalibración para F7.6. No interpretar el fallo de esos
-> targets como regresión accidental. Dejar commit aislado antes de F7.4.
+> targets como regresión accidental. F7.3 quedó aislada en `42d778e` antes de F7.4.
+
+> ## ✅ ACTUALIZACIÓN 2026-08-04: F7.4 CERRADO
+>
+> La economía permanente usa ORO de forma explícita: `upgrades.json` es v2 y
+> sus siete líneas declaran `currency:"oro"` (1–5 ORO base, crecimiento 2.0–3.0).
+> El decoder conserva compatibilidad con catálogos v1 al asumir `.coins` si falta
+> esa clave. `UpgradeManager` debita `meta.oro` entero, no `run.coins`.
+>
+> `UpgradesView` quedó dividido en Personajes (mejoras ×2 por tipo, de la run)
+> y Permanentes (ORO), ambos con IDs de accesibilidad estables. `PrestigeView`
+> ahora comunica Reencarnación, pérdida de run y conservación de meta. La mejora
+> por personaje queda cubierta en el ciclo completo: paga monedas y se borra al
+> reencarnar, mientras ORO permanece. `OroIcon` es vectorial de transición hasta
+> que F7.6 lo sustituya por el asset de pipeline.
+>
+> Verificaciones: `ContentSystemsTests` **16/16**
+> (`/private/tmp/f7-4-oro-core.xcresult`), `GameLoopWiringTests` **13/13**
+> (`/private/tmp/f7-4-wiring-final.xcresult`) y smoke UI **5/5**
+> (`/private/tmp/f7-4-ui-final.xcresult`). Captura:
+> `scratchpad/qa-shots/F7.4-upgrades-permanent.png`. Los targets de pacing
+> siguen fuera de banda únicamente por el precio Fisura 50 solicitado, a
+> recalibrar en F7.6.
+>
+> **Lo que sigue: F7.5** — skins data-driven y ficha de personaje.
 
 > **Para el agente que retoma:** este doc te deja arrancar DE CERO. Leelo entero,
 > después leé `Docs/PROMPT-F7-torre-de-escenarios.md` (spec funcional aprobada) y
@@ -126,8 +150,8 @@ cortísima; passive income inútil. F7 = rediseño "La Torre".
 | **F7.0** docs (prompt+plan) | ✅ COMMITEADO (`d7cf370`) |
 | **F7.1** EconomyKit v2 + estado v4 + migración | ✅ cerrado (`432e6a5`; el §5 es histórico) |
 | **F7.2** Torre en escena (cámara/FloorNodes/navegación) | ✅ cerrado (ver actualización 2026-08-04) |
-| F7.3 Contratación por piso + desbloqueo + tutorial | 🟡 implementación lista; falta commit (captura de preview sí, ascenso cubierto por test) |
-| F7.4 ORO UI + upgrades currency + PrestigeView | ⬜ pendiente |
+| F7.3 Contratación por piso + desbloqueo + tutorial | ✅ cerrado (`42d778e`; captura de preview y ascenso cubierto por test) |
+| F7.4 ORO UI + upgrades currency + PrestigeView | ✅ cerrado (ver actualización 2026-08-04) |
 | F7.5 Skins + ficha | ⬜ pendiente |
 | F7.6 Balance (grid sim) + drills + polish + docs | ⬜ pendiente |
 

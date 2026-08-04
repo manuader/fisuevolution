@@ -15,6 +15,7 @@ enum UpgradeManager {
         case unknownLine
         case maxLevelReached
         case insufficientCoins
+        case insufficientOro
     }
 
     static func purchase(
@@ -31,9 +32,15 @@ enum UpgradeManager {
         let level = state.meta.oroUpgradeLevels[lineId] ?? 0
         guard level < line.maxLevel else { throw PurchaseError.maxLevelReached }
         let price = cost(of: line, level: level)
-        guard state.run.coins >= price else { throw PurchaseError.insufficientCoins }
-
-        state.run.coins -= price
+        switch line.currency {
+        case .coins:
+            guard state.run.coins >= price else { throw PurchaseError.insufficientCoins }
+            state.run.coins -= price
+        case .oro:
+            let oroCost = Int(price.rounded(.up))
+            guard state.meta.oro >= oroCost else { throw PurchaseError.insufficientOro }
+            state.meta.oro -= oroCost
+        }
         state.meta.oroUpgradeLevels[lineId] = level + 1
         recomputeDerivedEffects(state: &state, config: config, specials: specials, viral: viral, economy: economy)
     }

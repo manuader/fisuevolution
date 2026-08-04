@@ -128,6 +128,20 @@ struct CoinIcon: View {
     }
 }
 
+/// ORO es moneda de reencarnación. Se mantiene vectorial hasta que F7.6 sume su
+/// asset final, para no introducir un placeholder rasterizado en la UI.
+struct OroIcon: View {
+    var size: CGFloat = 26
+    var body: some View {
+        Image(systemName: "sparkles")
+            .resizable()
+            .scaledToFit()
+            .foregroundStyle(Color("PaletteYellow"))
+            .shadow(color: Color("PaletteInk").opacity(0.35), radius: 0.5)
+            .frame(width: size, height: size)
+    }
+}
+
 /// Botón cerrar (X roja `ui_btn_close`); sin arte, `xmark.circle.fill`.
 struct ArtCloseButton: View {
     let action: () -> Void

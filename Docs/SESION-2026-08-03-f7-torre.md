@@ -156,5 +156,45 @@ primer unlock con foco de cámara y los pasos de tutorial para torre/ascenso.
   requirió reintentos por su `FileSystemError:3` transitorio. Tras el ajuste de
   precio, no se debe interpretar un fallo de `PacingTests` contra sus bandas
   F7.1 como una regresión accidental: la decisión de precio la contradice y está
-  asentada arriba. El working tree contiene exclusivamente F7.3 y esta bitácora;
-  el siguiente paso seguro es su commit aislado y luego F7.4.
+  asentada arriba. F7.3 quedó aislada en `42d778e` (`F7.3: mejorar UX de
+  contratación y desbloqueo`); el siguiente paso es F7.4.
+
+## F7.4 — ORO, mejoras y reencarnación (cerrado, pendiente de commit)
+
+- Línea de base revisada: el modelo ya separa correctamente `run.charUpgradeLevels`
+  y `meta.oroUpgradeLevels`; `CharUpgrades` ya aplica ×2 por nivel en tap e income.
+  La deuda es de orquestación/UI: `UpgradeManager.purchase` todavía cobra
+  `run.coins`, `UpgradesView` es una sola lista y `PrestigeView` conserva nombres
+  de soul points. F7.4 debe mover las siete líneas permanentes a ORO, exponer la
+  compra de mejoras por personaje y traducir la superficie de reencarnación.
+- `upgrades.json` pasó a schema v2 y declara `currency:"oro"`
+  (bases 1–5, growth 2.0–3.0). `UpgradesConfig.Line` usa `decodeIfPresent` con
+  fallback `.coins` para catálogos v1, mientras que `UpgradeManager` ahora debita
+  ORO entero sin tocar `run.coins`. `ContentSystemsTests` verificó el contrato:
+  compra + efecto, monedas intactas, insuficiencia de ORO y máximo; **16/16**
+  verdes en `/private/tmp/f7-4-oro-core.xcresult`.
+- La vista de mejoras se dividió en las pestañas vectoriales Personajes y
+  Permanentes. La primera lista sólo tipos que existen en la run (o que tenían
+  nivel) y compra con monedas; la segunda muestra las siete líneas del catálogo,
+  saldo ORO y compra con `meta.oro`. Las acciones tienen IDs estables
+  `upgrades.character.<type>` y `upgrades.permanent.<line>`.
+- `PrestigeView` pasó a Reencarnación: nombra el ORO ganado y hace explícito qué
+  se pierde (run) y qué se conserva (meta). Se renombró la proyección UI a
+  `prestigeOroGained`; `OroIcon` vectorial evita introducir un PNG provisional.
+- Verificación final de F7.4: `GameLoopWiringTests` **13/13**
+  (`/private/tmp/f7-4-wiring-final.xcresult`) confirma que una mejora de Fisura
+  consume monedas y vuelve a nivel 0 después de reencarnar; smoke UI **5/5**
+  (`/private/tmp/f7-4-ui-final.xcresult`) comprueba HUD → Permanentes → compra
+  ORO. La captura inspeccionada está en
+  `scratchpad/qa-shots/F7.4-upgrades-permanent.png`.
+- El reintento de `xcresulttool` tras 10–30 s sigue siendo necesario cuando
+  Xcode entrega primero un bundle `Staging` sin metadata. No se ejecutó Pacing
+  como gate verde: el cambio solicitado de Fisura a 50 lo deja deliberadamente
+  fuera de las bandas F7.1 hasta la recalibración F7.6.
+
+## Próximo hito: F7.5 — skins + ficha
+
+- Implementar catálogo `skins.json`, modelo y resolución data-driven en
+  EconomyKit, y reemplazar `PassiveUnlockView` por la ficha con selección de
+  skin, pasivo y despedida confirmada. Mantener el registro de TDD, capturas y
+  verificaciones en esta misma bitácora.

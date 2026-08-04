@@ -1100,15 +1100,27 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your board and coins reset, but you gain %@ Soul Points and a permanent multiplier. Every life starts faster."
+            "value" : "Your board and coins reset, but you gain %@ ORO and a permanent multiplier. Every life starts faster."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Reseteás el tablero y las monedas, pero ganás %@ Puntos de Alma y un multiplicador permanente. Cada vida arranca más rápido."
+            "value" : "Reseteás el tablero y las monedas, pero ganás %@ ORO y un multiplicador permanente. Cada vida arranca más rápido."
           }
         }
+      }
+    },
+    "prestige.keeps" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You keep: ORO, permanent upgrades and skins" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conservás: ORO, mejoras permanentes y skins" } }
+      }
+    },
+    "prestige.loses" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You lose: coins, units and character upgrades" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Perdés: monedas, unidades y mejoras de personajes" } }
       }
     },
     "prestige.button" : {
@@ -2206,6 +2218,18 @@
         }
       }
     },
+    "upgrades.character_multiplier %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Income ×2^%@ this life" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ingreso ×2^%@ en esta vida" } }
+      }
+    },
+    "upgrades.characters.empty" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hire a character to improve them." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Contratá un personaje para mejorarlo." } }
+      }
+    },
     "upgrades.maxed" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2221,6 +2245,24 @@
             "value" : "Al máximo"
           }
         }
+      }
+    },
+    "upgrades.oro_balance %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "ORO: %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "ORO: %@" } }
+      }
+    },
+    "upgrades.tab.characters" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Characters" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Personajes" } }
+      }
+    },
+    "upgrades.tab.permanent" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Permanent" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Permanentes" } }
       }
     },
     "upgrades.title" : {

@@ -80,4 +80,29 @@ final class LaunchSmokeTests: XCTestCase {
         )
         XCTAssertEqual(XCTWaiter().wait(for: [returnedBySwipe], timeout: 3), .completed)
     }
+
+    @MainActor
+    func testUpgradesExposePermanentOroPurchase() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset"]
+        app.launch()
+
+        let upgrades = app.buttons["hud.upgrades"]
+        XCTAssertTrue(upgrades.waitForExistence(timeout: 15), "upgrades HUD action never appeared")
+        upgrades.tap()
+
+        let permanentTab = app.buttons["upgrades.tab.permanent"]
+        XCTAssertTrue(permanentTab.waitForExistence(timeout: 5), "permanent upgrades tab never appeared")
+        permanentTab.tap()
+
+        XCTAssertTrue(
+            app.buttons["upgrades.permanent.income"].waitForExistence(timeout: 5),
+            "an ORO permanent upgrade must remain accessible by a stable identifier"
+        )
+
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "F7.4 permanent ORO upgrades"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+    }
 }

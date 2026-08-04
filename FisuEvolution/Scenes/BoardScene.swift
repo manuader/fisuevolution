@@ -21,6 +21,10 @@ final class BoardScene: SKScene {
     private let fieldNode = SKNode()
     private var floorNodes: [Int: FloorNode] = [:]
     private var characterNodes: [Int: CharacterNode] = [:]
+    /// Qué está mostrando cada slot, para reconciliar en vez de reconstruir.
+    /// Se mantiene en paralelo a `characterNodes` y sólo `renderPlacements`
+    /// escribe en los dos.
+    private var renderedUnits: [Int: RenderedUnit] = [:]
     private var lastLayoutSize: CGSize = .zero
     private var renderedBoardVersion = -1
     private var displayedFloorOrdinal = -1
@@ -690,19 +694,39 @@ final class BoardScene: SKScene {
         }
     }
 
+    /// Reconcilia en vez de reconstruir: sólo se rearman los slots que de verdad
+    /// cambiaron (ver `BoardReconciliation`). Un personaje que sigue igual
+    /// conserva su nodo, su posición deambulada y sus acciones a medio correr.
     private func renderPlacements(content: GameContent) {
-        for (_, node) in characterNodes {
-            pool.recycle(node)
-        }
-        characterNodes.removeAll(keepingCapacity: true)
-
+        var wanted: [Int: RenderedUnit] = [:]
+        var types: [Int: CharacterType] = [:]
         for placement in gameState.visiblePlacements {
             guard let type = content.tiers.type(id: placement.typeId) else {
                 Log.board.error("placement references unknown type '\(placement.typeId)'")
                 continue
             }
+            types[placement.slot] = type
+            wanted[placement.slot] = RenderedUnit(
+                typeId: type.id,
+                skinID: gameState.activeSkinID(forCharacterType: type.id),
+                cellSize: cellSize,
+                columns: boardColumns
+            )
+        }
+
+        let plan = BoardReconciliation(rendered: renderedUnits, wanted: wanted)
+
+        // Devolver al pool ANTES de pedir: así `obtain()` reutiliza los nodos que
+        // se acaban de liberar en vez de alocar de más en cada merge.
+        for slot in plan.discarded {
+            guard let node = characterNodes.removeValue(forKey: slot) else { continue }
+            pool.recycle(node)
+        }
+
+        for slot in plan.rebuilt {
+            guard let type = types[slot] else { continue }
             let skinTreatment = SkinResolver.treatment(
-                for: gameState.activeSkinID(forCharacterType: type.id),
+                for: wanted[slot]?.skinID,
                 characterType: type.id,
                 config: content.skins
             )
@@ -718,18 +742,20 @@ final class BoardScene: SKScene {
                         return nil
                     }()
                 ),
-                cellIndex: placement.slot,
+                cellIndex: slot,
                 cellSize: cellSize,
                 skinTint: SkinResolver.tintColor(for: skinTreatment),
                 hasRealArt: hasRealArt
             )
-            node.position = position(ofCell: placement.slot)
+            node.position = position(ofCell: slot)
             node.zPosition = depthZ(for: node.position)
             node.setScale(1.0)
             fieldNode.addChild(node)
-            characterNodes[placement.slot] = node
+            characterNodes[slot] = node
             startWander(node)
         }
+
+        renderedUnits = wanted
     }
 
     /// Un único vistazo al siguiente piso bloqueado hace visible la meta sin

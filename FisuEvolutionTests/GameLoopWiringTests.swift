@@ -159,9 +159,35 @@ struct GameLoopWiringTests {
         #expect(gameState.player?.run.unlockedFloors.contains("urban") == true)
         #expect(gameState.player?.meta.milestoneSkins.contains("urban_trailblazer") == true)
         #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
-        // La skin ganada se celebra una vez: la UI la presenta gateada por tutorial.
+        // El sheet ya NO aparece en el instante del merge: taparía el vuelo, el
+        // reveal y la celebración del piso, los tres a la vez. Espera a que la
+        // escena termine su cadena.
+        #expect(gameState.skinAward == nil, "el sheet no puede tapar la cadena")
+        gameState.celebrationsDidFinish()
         #expect(gameState.skinAward?.id == "urban_trailblazer")
         #expect(gameState.skinAward?.characterType.id == "cartonero")
+    }
+
+    /// Con el gate de contratación, abrir corporate (ordinal 2) es lo que
+    /// destraba urban (ordinal 1): recién ahí urban tiene el piso de arriba.
+    @Test func hireUnlockedNoticeWaitsItsTurn() async throws {
+        let gameState = await makeGameState()
+        // tier 5 (`chofer_app`) vive en urban, así que hay que abrir urban y
+        // pararse ahí: `slots(of:in:)` y `handleDrop` miran el piso VISIBLE.
+        gameState.debugUnlockFloors(throughTier: 5)
+        gameState.debugSetMaxTier(5)
+        gameState.debugGrantPair()
+        #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
+        let pair = slots(of: "chofer_app", in: gameState)
+        #expect(pair.count >= 2)
+
+        _ = gameState.handleDrop(fromCell: pair[0], toCell: pair[1])
+        #expect(gameState.player?.run.unlockedFloors.contains("corporate") == true)
+        #expect(gameState.towerNotice == nil, "el toast no sale durante la cadena")
+
+        gameState.celebrationsDidFinish()
+        gameState.skinAwardDismissed()        // no-op si no hubo skin que otorgar
+        #expect(gameState.towerNotice?.kind == .hireUnlocked(floorID: "urban"))
     }
 
     /// Los specials no ocupan slot: quedan de decorado en el piso donde cayeron

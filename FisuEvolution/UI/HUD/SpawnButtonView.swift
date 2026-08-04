@@ -25,6 +25,9 @@ struct SpawnButtonView: View {
                     } else if !gameState.visibleFloorIsUnlocked {
                         Text("spawn.button.locked.detail")
                             .font(.subheadline.weight(.semibold))
+                    } else if !gameState.visibleFloorAllowsHiring {
+                        Text("spawn.button.hire_locked.detail")
+                            .font(.subheadline.weight(.semibold))
                     } else {
                         HStack(spacing: 4) {
                             CoinIcon(size: 18)
@@ -69,6 +72,8 @@ struct SpawnButtonView: View {
                 Text("spawn.button.full")
             } else if !gameState.visibleFloorIsUnlocked {
                 Text("spawn.button.locked")
+            } else if !gameState.visibleFloorAllowsHiring {
+                Text("spawn.button.hire_locked")
             } else {
                 Text("spawn.button.title \(quote.type.displayName)")
             }

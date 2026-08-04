@@ -167,7 +167,7 @@ struct GameBoardView: View {
         .sheet(item: Binding(
             get: { tutorialDone ? gameState.skinAward : nil },
             set: { gameState.skinAward = $0 }
-        )) { award in
+        ), onDismiss: { gameState.skinAwardDismissed() }) { award in
             SkinAwardView(award: award)
         }
         .sheet(item: Binding(
@@ -284,6 +284,7 @@ private struct TowerNoticeView: View {
         switch notice.kind {
         case .floorFull: "tower.notice.floor_full"
         case .destinationFloorFull: "tower.notice.destination_full"
+        case .hireUnlocked: "tower.notice.hire_unlocked"
         }
     }
 

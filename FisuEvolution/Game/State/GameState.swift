@@ -86,6 +86,8 @@ final class GameState {
         enum Kind: Equatable {
             case floorFull
             case destinationFloorFull(floorID: String)
+            /// Un piso que antes no dejaba contratar ahora sí.
+            case hireUnlocked(floorID: String)
         }
 
         let id = UUID()
@@ -138,6 +140,9 @@ final class GameState {
     private(set) var towerIncomePerSecondText = "0"
     private(set) var visibleFloorIsFull = false
     private(set) var visibleFloorIsUnlocked = false
+    /// El piso está abierto pero todavía no habilita contratar: falta
+    /// desbloquear el de arriba. El callejón nunca entra acá.
+    private(set) var visibleFloorAllowsHiring = false
     var towerNotice: TowerNotice?
     /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen
     /// `player` directo lo observan para re-renderizar.
@@ -148,6 +153,15 @@ final class GameState {
     var skinAward: SkinAward?
 
     // MARK: Authoritative state
+
+    /// Un merge que abre piso dispara una cadena de celebraciones en la escena.
+    /// Mientras corre, las superficies de SwiftUI esperan su turno: si el sheet
+    /// de skin apareciera en el instante del merge taparía el vuelo, el reveal y
+    /// la celebración del piso —los tres a la vez, que es el bug que esto
+    /// arregla—.
+    @ObservationIgnored private var celebrationChainActive = false
+    @ObservationIgnored private var pendingSkinAward: SkinAward?
+    @ObservationIgnored private var pendingHireUnlockedFloorID: String?
 
     @ObservationIgnored private(set) var player: PlayerState?
     /// La torre en memoria (pisos/slots). No se serializa: se reconstruye por
@@ -412,8 +426,36 @@ final class GameState {
         if let first = newlyUnlocked.sorted().first,
            let entry = content.skins.entry(id: first),
            let type = content.tiers.type(id: entry.characterType) {
-            skinAward = SkinAward(id: first, characterType: type)
+            let award = SkinAward(id: first, characterType: type)
+            if celebrationChainActive {
+                pendingSkinAward = award
+            } else {
+                skinAward = award
+            }
         }
+    }
+
+    /// La escena terminó de reproducir la cadena del ascenso (vuelo → reveal →
+    /// piso nuevo). Recién ahora SwiftUI puede poner su parte arriba.
+    func celebrationsDidFinish() {
+        celebrationChainActive = false
+        if let award = pendingSkinAward {
+            pendingSkinAward = nil
+            skinAward = award
+            return  // el toast espera a que el jugador cierre el sheet
+        }
+        flushPendingHireNotice()
+    }
+
+    /// El sheet de skin se cerró (por botón o por gesto).
+    func skinAwardDismissed() {
+        flushPendingHireNotice()
+    }
+
+    private func flushPendingHireNotice() {
+        guard let floorID = pendingHireUnlockedFloorID else { return }
+        pendingHireUnlockedFloorID = nil
+        towerNotice = TowerNotice(kind: .hireUnlocked(floorID: floorID))
     }
 
     // MARK: Frame loop (called by BoardScene)
@@ -548,6 +590,9 @@ final class GameState {
         ) {
         case .merged(let newTypeId):
             let tierBefore = player.run.maxTierReached
+            // `applyMerge` muta `unlockedFloors`: hay que fotografiarlo antes
+            // para saber qué destrabó el ascenso.
+            let unlockedBefore = player.run.unlockedFloors
             do {
                 let result = try TowerActions.applyMerge(
                     floorOrdinal: visibleFloorOrdinal,
@@ -562,6 +607,21 @@ final class GameState {
                 let evolvedTo = player.run.maxTierReached > tierBefore ? content.tiers.type(id: newTypeId) : nil
                 self.player = player
                 self.tower = tower
+                // El sheet de skin y el toast esperan a que la escena termine su
+                // cadena. Marcarlo ANTES de `updateMaxFloorStat()`, que es quien
+                // acredita la skin de milestone.
+                if case .promoted = result {
+                    celebrationChainActive = true
+                    let newlyHireable = TowerActions.newlyHireableFloors(
+                        unlockedBefore: unlockedBefore,
+                        unlockedAfter: player.run.unlockedFloors,
+                        floorTable: content.floorTable
+                    )
+                    // El más bajo: es el que el jugador va a querer rellenar.
+                    if let ordinal = newlyHireable.first {
+                        pendingHireUnlockedFloorID = content.floorTable[ordinal].id
+                    }
+                }
                 if !ftueMerged {
                     ftueMerged = true
                     UserDefaults.standard.set(true, forKey: "ftue.merged")
@@ -1275,9 +1335,16 @@ final class GameState {
         // Piso visible lleno o bloqueado ⇒ no se puede contratar.
         let floorFull = visibleFloorOccupancy.occupied >= max(visibleFloorOccupancy.capacity, 1)
         let floorUnlocked = visibleFloorDef.map { player.run.unlockedFloors.contains($0.id) } ?? false
+        let allowsHiring = TowerActions.canHire(
+            floorOrdinal: visibleFloorOrdinal,
+            unlockedFloors: player.run.unlockedFloors,
+            floorTable: content.floorTable
+        )
         if visibleFloorIsFull != floorFull { visibleFloorIsFull = floorFull }
         if visibleFloorIsUnlocked != floorUnlocked { visibleFloorIsUnlocked = floorUnlocked }
-        let affordable = (quote.map { player.run.coins >= $0.cost } ?? false) && !floorFull && floorUnlocked
+        if visibleFloorAllowsHiring != allowsHiring { visibleFloorAllowsHiring = allowsHiring }
+        let affordable = (quote.map { player.run.coins >= $0.cost } ?? false)
+            && !floorFull && floorUnlocked && allowsHiring
         if canAffordSpawn != affordable { canAffordSpawn = affordable }
 
         let total = player.run.totalUnits

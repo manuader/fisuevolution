@@ -2308,6 +2308,38 @@
         }
       }
     },
+    "spawn.button.hire_locked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not yet"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no"
+          }
+        }
+      }
+    },
+    "spawn.button.hire_locked.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the floor above"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrí el piso de arriba"
+          }
+        }
+      }
+    },
     "spawn.button.locked": {
       "localizations": {
         "en": {
@@ -3198,6 +3230,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Este piso está lleno — fusioná para hacer lugar"
+          }
+        }
+      }
+    },
+    "tower.notice.hire_unlocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can hire on the floors below now!"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¡Ya podés contratar en los pisos de abajo!"
           }
         }
       }

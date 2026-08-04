@@ -128,3 +128,18 @@ swift run --package-path Tools/pacing-sim pacing-sim \
 ```
 
 La grid search fina sobre los 6 knobs (margen ≥15%) queda para F7.6.
+
+## Ajuste pedido — 2026-08-04: primer Fisura a 50
+
+Por pedido explícito del dueño, el override de contratación de `alley` baja de
+**450** a **50** (growth se conserva en 15). Se mantiene aunque descalibra los
+targets históricos: es la nueva decisión de producto, no un accidente.
+
+Corrida inmediata de `Tools/pacing-sim` (90 días, mismos seeds): urban **5.8 min
+activos** (antes 16.2), primera reencarnación **0.26 h pared** (antes 4.0), dios
+**33.20 h** con 13 reencarnaciones. Urban, gradiente y primera reencarnación
+quedan fuera de banda; dios y cantidad de reencarnaciones siguen en banda.
+
+La recalibración integral queda deliberadamente para F7.6: no modificar otros
+knobs sin una nueva decisión del dueño, porque compensar el arranque barato con
+otra pared cambiaría la intención recién aprobada.

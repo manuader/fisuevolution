@@ -30,7 +30,7 @@
       "lastTier": 2,
       "capacity": 10,
       "incomeMultiplier": 1.0,
-      "hireCostMultiplier": 450,
+      "hireCostMultiplier": 50,
       "hireCostGrowth": 15
     },
     {

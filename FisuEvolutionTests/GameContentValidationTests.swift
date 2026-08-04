@@ -68,13 +68,13 @@ struct GameContentValidationTests {
 
     @Test func floorHireOverridesMatchTunedValues() {
         // Overrides por piso de la calibración final: alley barato para arrancar
-        // (450/15), corporate y luxury con multiplicador propio; TODO el resto
+        // (50/15), corporate y luxury con multiplicador propio; TODO el resto
         // cae al default global punitivo (3000/1.15). Un override que aparezca
         // en otro piso es drift, no tuning.
         for floor in content.floorTable.floors {
             switch floor.id {
             case "alley":
-                #expect(floor.hireCostMultiplierOverride == 450)
+                #expect(floor.hireCostMultiplierOverride == 50)
                 #expect(floor.hireCostGrowthOverride == 15)
             case "corporate":
                 #expect(floor.hireCostMultiplierOverride == 1800)

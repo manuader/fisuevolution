@@ -1,7 +1,7 @@
 # 137 — Sala de Directorio (skin de Director)
 
 - **archivo**: `director__directorio.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/director.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 143 — Filántropo (skin de Multimillonario)
 
 - **archivo**: `multimillonario__filantropo.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/multimillonario.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

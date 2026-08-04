@@ -1,7 +1,7 @@
 # 148 — Selenita (skin de Dueño de la Luna)
 
 - **archivo**: `dueno_luna__selenita.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/dueno_luna.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

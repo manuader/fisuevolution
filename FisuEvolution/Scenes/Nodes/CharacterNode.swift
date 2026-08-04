@@ -86,8 +86,7 @@ final class CharacterNode: SKNode {
             sprite.colorBlendFactor = skinTint == nil ? 0 : 0.25
 
             tierLabel.isHidden = false
-            tierLabel.text = "T\(type.tier)"
-            tierLabel.fontSize = plateSize * 0.14
+            setLabel(tierLabel, text: "T\(type.tier)", fontSize: plateSize * 0.14)
             tierLabel.fontColor = Palette.ink
             tierLabel.position = CGPoint(x: 0, y: sprite.position.y + artSide * 0.5 + plateSize * 0.03)
             return
@@ -115,15 +114,22 @@ final class CharacterNode: SKNode {
         sprite.position = CGPoint(x: 0, y: plateSize * 0.04)
 
         tierLabel.isHidden = false
-        tierLabel.text = "T\(type.tier)"
-        tierLabel.fontSize = plateSize * 0.2
+        setLabel(tierLabel, text: "T\(type.tier)", fontSize: plateSize * 0.2)
         tierLabel.fontColor = Palette.ink
         tierLabel.position = CGPoint(x: 0, y: plateSize * 0.46)
 
-        nameLabel.text = type.displayName
-        nameLabel.fontSize = plateSize * 0.11
+        setLabel(nameLabel, text: type.displayName, fontSize: plateSize * 0.11)
         nameLabel.fontColor = Palette.ink
         nameLabel.position = CGPoint(x: 0, y: -plateSize * 0.46)
+    }
+
+    /// Asignar `text` o `fontSize` a un `SKLabelNode` lo marca sucio y obliga a
+    /// rehacer el layout de Core Text y a re-subir su textura, aunque el valor
+    /// sea idéntico. Como `configure` corre sobre los 10 personajes en cada
+    /// relayout, escribir sin comparar era lo más caro del ciclo.
+    private func setLabel(_ label: SKLabelNode, text: String, fontSize: CGFloat) {
+        if label.text != text { label.text = text }
+        if label.fontSize != fontSize { label.fontSize = fontSize }
     }
 }
 

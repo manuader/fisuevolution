@@ -1,7 +1,7 @@
 # 142 — Yate (skin de Millonario)
 
 - **archivo**: `millonario__yate.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/millonario.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

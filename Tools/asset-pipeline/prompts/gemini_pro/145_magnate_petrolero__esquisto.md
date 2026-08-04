@@ -1,7 +1,7 @@
 # 145 — Esquisto (skin de Magnate Petrolero)
 
 - **archivo**: `magnate_petrolero__esquisto.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/magnate_petrolero.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

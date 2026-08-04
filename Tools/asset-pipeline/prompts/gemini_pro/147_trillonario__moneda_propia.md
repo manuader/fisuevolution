@@ -1,7 +1,7 @@
 # 147 — Moneda Propia (skin de Trillonario)
 
 - **archivo**: `trillonario__moneda_propia.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/trillonario.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 140 — Charla TED (skin de Emprendedor)
 
 - **archivo**: `emprendedor__conferencia.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/emprendedor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 153 — Iluminado (skin de Ser Ascendido)
 
 - **archivo**: `ser_ascendido__iluminado.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/ser_ascendido.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

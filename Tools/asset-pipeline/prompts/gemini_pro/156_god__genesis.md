@@ -1,7 +1,7 @@
 # 156 — Génesis (skin de Dios)
 
 - **archivo**: `god__genesis.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/god.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

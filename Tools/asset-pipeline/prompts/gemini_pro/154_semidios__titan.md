@@ -1,7 +1,7 @@
 # 154 — Titán (skin de Semidiós)
 
 - **archivo**: `semidios__titan.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/semidios.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -46,7 +46,7 @@ enum UIArt {
     static func characterImage(atlas atlasName: String, key: String) -> Image? {
         let cacheKey = "\(atlasName)/\(key)"
         if let cached = characterCache[cacheKey] { return Image(uiImage: cached) }
-        let texture = SKTextureAtlas(named: atlasName).textureNamed(key)
+        let texture = AtlasCache.atlas(named: atlasName).textureNamed(key)
         guard texture.size().width > 1, texture.size().height > 1 else { return nil }
         let cg = texture.cgImage()
         let image = UIImage(cgImage: cg, scale: max(1, CGFloat(cg.width) / 200), orientation: .up)

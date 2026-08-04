@@ -112,12 +112,14 @@ final class BoardScene: SKScene {
     /// mergeable (hint 3). El hint del botón de spawn vive en SwiftUI.
     private func updateFTUEHint() {
         var targetCell = -1
-        let placements = gameState.visiblePlacements
+        // `visiblePlacements` construye un array nuevo: pedirlo antes de saber si
+        // hay hint activo era una allocation por frame para siempre, incluso con
+        // el tutorial terminado.
         if gameState.showTapHint {
-            targetCell = placements.first?.slot ?? -1
+            targetCell = gameState.visiblePlacements.first?.slot ?? -1
         } else if gameState.showMergeHint {
             var byType: [String: Int] = [:]
-            outer: for placement in placements {
+            outer: for placement in gameState.visiblePlacements {
                 if let first = byType[placement.typeId] {
                     targetCell = first
                     break outer
@@ -487,8 +489,7 @@ final class BoardScene: SKScene {
         let side = cellSize * 0.62
         for (index, special) in specials.enumerated() {
             guard let asset = content.manifest.characters[special.id] else { continue }
-            let texture = SKTextureAtlas(named: asset.atlas).textureNamed(asset.key)
-            guard texture.size().width > 1 else { continue }
+            guard let texture = AtlasCache.texture(named: asset.key, inAtlas: asset.atlas) else { continue }
 
             let node = SKSpriteNode(texture: texture)
             node.name = Self.specialNodePrefix + special.id
@@ -604,7 +605,7 @@ final class BoardScene: SKScene {
 
         particles.emit(.evolution, at: start, in: backgroundLayer)
         guard let flashAsset = content.manifest.ui["fx_evolution_flash"] else { return }
-        let flash = SKSpriteNode(texture: SKTextureAtlas(named: "ui").textureNamed(flashAsset))
+        let flash = SKSpriteNode(texture: AtlasCache.atlas(named: "ui").textureNamed(flashAsset))
         let flashSide = cellSize * 2.1
         flash.size = CGSize(width: flashSide, height: flashSide)
         flash.position = start

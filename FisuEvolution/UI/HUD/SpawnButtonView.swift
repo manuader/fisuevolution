@@ -8,6 +8,10 @@ struct SpawnButtonView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pulsing = false
 
+    private var shouldPulse: Bool {
+        gameState.showSpawnHint && !reduceMotion
+    }
+
     var body: some View {
         if let quote = gameState.spawnQuote {
             ArtButton(art: "ui_btn_buy", tint: Color("PaletteGreen")) {
@@ -42,9 +46,17 @@ struct SpawnButtonView: View {
             .opacity(gameState.canAffordSpawn ? 1 : 0.92)
             .frame(maxWidth: 300)
             .fixedSize(horizontal: false, vertical: true)
-            .scaleEffect(gameState.showSpawnHint && pulsing && !reduceMotion ? 1.06 : 1.0)
-            .animation(.easeInOut(duration: 0.55).repeatForever(autoreverses: true), value: pulsing)
-            .onAppear { pulsing = true }
+            // El pulso vive SÓLO mientras el hint está activo. Antes `pulsing` se
+            // encendía en `onAppear` y no se apagaba nunca, así que un
+            // `repeatForever` mantenía el display link de SwiftUI corriendo toda
+            // la sesión —en paralelo al de SpriteKit— aunque el hint estuviera
+            // oculto y el `scaleEffect` lo neutralizara visualmente.
+            .scaleEffect(pulsing ? 1.06 : 1.0)
+            .animation(pulsing ? .easeInOut(duration: 0.55).repeatForever(autoreverses: true) : .default,
+                       value: pulsing)
+            .onChange(of: shouldPulse, initial: true) { _, active in
+                pulsing = active
+            }
             .accessibilityIdentifier("hud.spawn")
             .accessibilityHint(Text("spawn.button.hint"))
         }

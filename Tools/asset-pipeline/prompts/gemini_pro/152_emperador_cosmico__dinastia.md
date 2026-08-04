@@ -1,7 +1,7 @@
 # 152 — Dinastía (skin de Emperador Cósmico)
 
 - **archivo**: `emperador_cosmico__dinastia.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/emperador_cosmico.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

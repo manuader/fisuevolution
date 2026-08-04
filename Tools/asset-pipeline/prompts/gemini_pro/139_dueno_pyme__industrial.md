@@ -1,7 +1,7 @@
 # 139 — Nave Industrial (skin de Dueño de PYME)
 
 - **archivo**: `dueno_pyme__industrial.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/dueno_pyme.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

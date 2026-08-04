@@ -1,7 +1,7 @@
 # 151 — Agujero Negro (skin de Señor de la Galaxia)
 
 - **archivo**: `senor_galaxia__agujero_negro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senor_galaxia.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

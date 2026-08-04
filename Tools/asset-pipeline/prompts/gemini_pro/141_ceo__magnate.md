@@ -1,7 +1,7 @@
 # 141 — Magnate (skin de CEO)
 
 - **archivo**: `ceo__magnate.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/ceo.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

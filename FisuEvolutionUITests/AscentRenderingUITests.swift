@@ -73,11 +73,10 @@ final class AscentRenderingUITests: XCTestCase {
         add(shot(app, "2 tras el ascenso a Urban"))
         // Gate: sin ascenso, nada de lo que sigue prueba el arreglo del pool.
         let pillTrasAscenso = app.otherElements["tower.pill"].label
+        // Gate del test: si no ascendimos, nada de lo que sigue prueba el fix.
+        // El label accesible de la pill es el NOMBRE del piso, no el contador.
         XCTAssertEqual(pillTrasAscenso, "City",
                        "esperaba que el ascenso llevara la cámara a Urban")
-        // Gate del test: si no ascendimos, nada de lo que sigue prueba el fix.
-        let pill = app.otherElements["tower.pill"].label
-        XCTAssertTrue(pill.contains("2/11"), "esperaba estar en Urban tras el ascenso, pill = \(pill)")
 
         // 3) Volver al callejón: acá es donde se veían los personajes invisibles.
         let down = app.buttons["tower.arrow.down"]
@@ -133,5 +132,25 @@ final class AscentRenderingUITests: XCTestCase {
         attachment.name = name
         attachment.lifetime = .keepAlways
         return attachment
+    }
+
+    /// Baseline de rendimiento: puebla el callejón y captura el overlay de fps
+    /// con el tablero cargado, que es el caso que el jugador percibe.
+    @MainActor
+    func testPerfBaselinePopulatedBoard() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset"]
+        app.launch()
+        XCTAssertTrue(app.otherElements["tower.pill"].waitForExistence(timeout: 15))
+
+        for _ in 0..<4 { grantPair(app) }       // 8 unidades + la inicial
+        Thread.sleep(forTimeInterval: 3.0)      // dejar que el wander se estabilice
+        add(shot(app, "perf tablero poblado"))
+
+        // Tapear un rato: es el uso real, y cada tap corre el pipeline de feedback.
+        let centro = app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.82))
+        for _ in 0..<15 { centro.tap() }
+        Thread.sleep(forTimeInterval: 2.0)
+        add(shot(app, "perf tras 15 taps"))
     }
 }

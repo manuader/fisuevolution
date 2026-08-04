@@ -94,11 +94,21 @@ struct GameBoardView: View {
 
         ZStack {
             if let scene {
+                // `ignoresSiblingOrder` deja que SpriteKit reordene por textura y
+                // fusione draw calls. Es seguro porque el orden de dibujo ya está
+                // dado por zPosition explícito en todos lados (depthZ para
+                // personajes, los pisos por ordinal, y los overlays con z fijo);
+                // sin esto tiene que respetar el orden del árbol y dibuja nodo
+                // por nodo.
                 #if DEBUG
-                SpriteView(scene: scene, debugOptions: [.showsFPS, .showsNodeCount])
-                    .ignoresSafeArea()
+                SpriteView(
+                    scene: scene,
+                    options: [.ignoresSiblingOrder, .shouldCullNonVisibleNodes],
+                    debugOptions: [.showsFPS, .showsNodeCount]
+                )
+                .ignoresSafeArea()
                 #else
-                SpriteView(scene: scene)
+                SpriteView(scene: scene, options: [.ignoresSiblingOrder, .shouldCullNonVisibleNodes])
                     .ignoresSafeArea()
                 #endif
             }

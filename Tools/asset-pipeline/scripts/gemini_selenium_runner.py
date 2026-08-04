@@ -259,9 +259,23 @@ class GeminiBrowser:
             ) from error
         return self.driver
 
-    @staticmethod
-    def _contains_error(text: str) -> str | None:
+    #: Frases que comparten substring con un bloqueo real pero NO bloquean nada.
+    #: El banner "Estás por alcanzar el límite de uso" es un aviso preventivo: el
+    #: chat sigue generando. Como contiene "límite de uso", sin sacarlo antes de
+    #: buscar errores TODOS los assets fallan con "límite alcanzado" y el batch
+    #: se frena creyendo que la cuota se agotó.
+    BENIGN_NOTICES = (
+        "estás por alcanzar el límite de uso",
+        "estas por alcanzar el limite de uso",
+        "you're approaching your usage limit",
+        "youre approaching your usage limit",
+    )
+
+    @classmethod
+    def _contains_error(cls, text: str) -> str | None:
         normalized = text.lower()
+        for notice in cls.BENIGN_NOTICES:
+            normalized = normalized.replace(notice, "")
         patterns = {
             "captcha": "Gemini mostró un CAPTCHA",
             "límite de uso": "Gemini alcanzó su límite de uso",

@@ -264,3 +264,33 @@ class SkinAssetKeyTests(unittest.TestCase):
             manifest_section,
             "una skin en manifest['characters'] rompe manifestEntriesReferenceRealTypes",
         )
+
+
+class BlockDetectionTests(unittest.TestCase):
+    """El banner de aviso de cuota comparte substring con el bloqueo real."""
+
+    def test_approaching_limit_banner_is_not_a_block(self):
+        page = (
+            "Conversación con Gemini | ¿Tienes nuevas ideas para explorar? | "
+            "Estás por alcanzar el límite de uso. El modelo Pro puede agotarlo "
+            "más rápido. | Consultar uso | Pro"
+        )
+        self.assertIsNone(
+            GeminiBrowser._contains_error(page),
+            "el aviso preventivo frenaba el batch entero como si fuera un bloqueo",
+        )
+
+    def test_real_limit_message_is_still_detected(self):
+        self.assertEqual(
+            GeminiBrowser._contains_error("Llegaste a tu límite de mensajes por hoy"),
+            "Gemini alcanzó su límite de uso",
+        )
+        self.assertEqual(
+            GeminiBrowser._contains_error("Alcanzaste el límite de uso del modelo Pro"),
+            "Gemini alcanzó su límite de uso",
+        )
+
+    def test_other_blocks_are_untouched(self):
+        self.assertEqual(GeminiBrowser._contains_error("Please solve this CAPTCHA"), "Gemini mostró un CAPTCHA")
+        self.assertEqual(GeminiBrowser._contains_error("Something went wrong"), "Gemini devolvió un error")
+        self.assertIsNone(GeminiBrowser._contains_error("todo bien por acá"))

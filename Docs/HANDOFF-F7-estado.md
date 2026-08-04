@@ -24,9 +24,11 @@
 >
 > ### ⛔ Lo único que quedó pendiente: GENERAR EL ARTE
 >
-> El batch de Gemini **no pudo correr**: la cuenta está en **"límite de uso"**
-> (verificado dos veces, `state/selenium-run.json`). No es un bug del pipeline —
-> el circuito quedó probado y listo. Cuando la cuota se restablezca:
+> **Hay que correrlo desde Terminal.app, a mano.** No es un bug del pipeline ni
+> falta de cuota: el runner escribe el prompt con keystrokes reales de macOS
+> (`osascript` → System Events), y ese permiso de **Accesibilidad está otorgado
+> a Terminal**, no al proceso que hospeda a un agente. Desde cualquier otro shell
+> el AppleEvent se cuelga y termina en `-1712 (timed out)`.
 >
 > ```bash
 > cd Tools/asset-pipeline
@@ -41,10 +43,20 @@
 > MISMO personaje, y con el umbral por defecto (12) el filtro anti-falsos-
 > positivos puede descartar la skin legítima por parecerse a su referencia.
 >
+> Al terminar: verificar visualmente una muestra de los PNG (que no sean copias
+> de la referencia) y el **% de píxeles opacos** del `@2x` post-rembg — bugs #1 y
+> #6 del `HANDOFF-arte-gemini.md`, fáciles de reintroducir.
+>
+> ⚠️ **Falso positivo corregido en esta sesión**: el banner *"Estás por alcanzar
+> el límite de uso"* es un aviso preventivo, pero contiene el mismo substring que
+> el bloqueo real, así que el runner abortaba TODOS los assets creyendo que la
+> cuota estaba agotada. Ver `BENIGN_NOTICES` en el runner y sus tests.
+>
 > El juego **funciona hoy sin ese arte**: las 36 skins están catalogadas y caen
 > a la textura base (contrato testeado en `missingSkinArtFallsBackToTheBaseTexture`).
 > Al caer los PNG, `--process` los integra solo y no hay que tocar código.
-> El icono ORO (`GameArt.swift`) sigue vectorial por el mismo motivo.
+> `OroIcon` ya lee `ui_oro` con fallback vectorial: cuando el asset entre, aparece
+> solo.
 
 > ## ✅ ACTUALIZACIÓN 2026-08-03 (tarde): F7.1 CERRADO
 >

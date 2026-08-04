@@ -143,17 +143,23 @@ struct CoinIcon: View {
     }
 }
 
-/// ORO es moneda de reencarnación. Se mantiene vectorial hasta que F7.6 sume su
-/// asset final, para no introducir un placeholder rasterizado en la UI.
+/// Ícono de ORO, la moneda de reencarnación (`ui_oro`). Mismo patrón que
+/// `CoinIcon`: usa el asset del pipeline cuando existe y cae a un vectorial
+/// teñido mientras no esté, así el arte puede entrar sin tocar la UI.
 struct OroIcon: View {
     var size: CGFloat = 26
     var body: some View {
-        Image(systemName: "sparkles")
-            .resizable()
-            .scaledToFit()
-            .foregroundStyle(Color("PaletteYellow"))
-            .shadow(color: Color("PaletteInk").opacity(0.35), radius: 0.5)
-            .frame(width: size, height: size)
+        Group {
+            if let oro = UIArt.image("ui_oro") {
+                oro.resizable().scaledToFit()
+            } else {
+                Image(systemName: "sparkles")
+                    .resizable().scaledToFit()
+                    .foregroundStyle(Color("PaletteYellow"))
+                    .shadow(color: Color("PaletteInk").opacity(0.35), radius: 0.5)
+            }
+        }
+        .frame(width: size, height: size)
     }
 }
 

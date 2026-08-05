@@ -61,6 +61,30 @@ final class BoardScene: SKScene {
     private static let topInset: CGFloat = 130
     private static let bottomInset: CGFloat = 110
     private static let horizontalInset: CGFloat = 16
+    /// Margen a cada lado para los textos del reveal, que van centrados y a
+    /// pantalla completa.
+    static let revealMargin: CGFloat = 24
+
+    /// Achica la fuente de un label hasta que entre en `maxWidth`.
+    ///
+    /// Un `SKLabelNode` no encoge ni envuelve solo: a 38 pt los nombres largos
+    /// del reveal se salían de la pantalla —"MAGNATE DEL SISTEMA SOLAR" son 25
+    /// caracteres, más de 600 pt en una pantalla de 402—. Se escala la fuente en
+    /// proporción a lo que sobra, que preserva el tipo y el peso; recortar el
+    /// texto o envolverlo en dos renglones queda peor en un banner.
+    /// Una sola regla de tres NO alcanza: el ancho de un `SKLabelNode` no escala
+    /// lineal con `fontSize` porque las métricas de la fuente se cuantizan, y el
+    /// resultado queda 2-3 pt por encima del tope. Se hace el ajuste proporcional
+    /// —que llega cerca de una— y después se baja de a medio punto hasta entrar.
+    static func shrinkToFit(_ label: SKLabelNode, maxWidth: CGFloat) {
+        guard maxWidth > 0, label.frame.width > maxWidth, label.frame.width > 0 else { return }
+        label.fontSize *= maxWidth / label.frame.width
+        var guardrail = 0
+        while label.frame.width > maxWidth, label.fontSize > 8, guardrail < 40 {
+            label.fontSize -= 0.5
+            guardrail += 1
+        }
+    }
 
     init(gameState: GameState) {
         self.gameState = gameState
@@ -454,6 +478,10 @@ final class BoardScene: SKScene {
         let banner = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         banner.text = type.displayName.uppercased()
         banner.fontSize = 38
+        // La entrada agranda el banner un 15% en su pico, así que el ancho útil
+        // se descuenta: si no, un nombre que entra justo se corta al aparecer.
+        let peakScale: CGFloat = reduceMotion ? 1.0 : 1.15
+        BoardScene.shrinkToFit(banner, maxWidth: (size.width - Self.revealMargin * 2) / peakScale)
         banner.fontColor = SKColor(named: "PalettePink") ?? .magenta
         banner.position = CGPoint(x: size.width / 2, y: size.height * 0.76)
         banner.zPosition = 210

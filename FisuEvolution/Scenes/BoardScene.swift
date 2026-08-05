@@ -65,6 +65,15 @@ final class BoardScene: SKScene {
     /// pantalla completa.
     static let revealMargin: CGFloat = 24
 
+    /// Pies de la fila delantera, en fracciones de `cellSize` sobre el borde
+    /// inferior del campo.
+    private static let frontRowRatio: CGFloat = 0.55
+    /// Separación entre filas. Define cuán alta es la franja por la que se
+    /// mueven los personajes: el prompt de los fondos pedía "tercio inferior
+    /// transitable despejado", y con 0.95 la multitud usaba apenas la mitad de
+    /// esa franja y quedaba amontonada contra el borde de abajo.
+    private static let rowDepthRatio: CGFloat = 1.55
+
     /// Achica la fuente de un label hasta que entre en `maxWidth`.
     ///
     /// Un `SKLabelNode` no encoge ni envuelve solo: a 38 pt los nombres largos
@@ -348,18 +357,28 @@ final class BoardScene: SKScene {
 
     /// Hit-testing returns the deepest node (sprite/label); climb to the unit.
     private func characterNode(at point: CGPoint) -> CharacterNode? {
-        // Entre los personajes cuyo cuerpo (radio generoso alrededor del ancla)
-        // contiene el toque, elegir el de ADELANTE (mayor zPosition); ante empate,
-        // el de ancla más cercana. Es más fiable que `nodes(at:)` cuando están
-        // amontonados y sus cajas transparentes se solapan.
+        // Entre los personajes cuyo cuerpo contiene el toque, elegir el de
+        // ADELANTE (mayor zPosition); ante empate, el de centro más cercano. Es
+        // más fiable que `nodes(at:)` cuando están amontonados y sus cajas
+        // transparentes se solapan.
+        //
+        // La zona es una ELIPSE, no un círculo. El sprite mide ~2× `cellSize` de
+        // alto desde los pies, así que el círculo viejo —centrado a 0.25 con
+        // radio 0.82— llegaba hasta 1.07 y dejaba LA CABEZA AFUERA: tocarla no
+        // seleccionaba nada. Se estira sólo en vertical; agrandar también el
+        // ancho haría que un toque se coma al vecino de al lado, que están a
+        // menos de un `cellSize` de distancia.
         let local = fieldNode.convert(point, from: self)
-        let radius = cellSize * 0.82
+        let halfWidth = cellSize * 0.82
+        let halfHeight = cellSize * 1.15
         var best: (node: CharacterNode, z: CGFloat, dist: CGFloat)?
         for (_, node) in characterNodes {
-            let dx = local.x - node.position.x
-            let dy = local.y - (node.position.y + cellSize * 0.25)  // el cuerpo va sobre el ancla
+            let dx = (local.x - node.position.x) / halfWidth
+            // Centro del cuerpo: el ancla son los PIES y la figura crece hacia
+            // arriba, así que el óvalo se centra bien alto.
+            let dy = (local.y - (node.position.y + cellSize * 0.9)) / halfHeight
             let dist = hypot(dx, dy)
-            guard dist <= radius else { continue }
+            guard dist <= 1 else { continue }
             if best == nil || node.zPosition > best!.z
                 || (node.zPosition == best!.z && dist < best!.dist) {
                 best = (node, node.zPosition, dist)
@@ -746,8 +765,8 @@ final class BoardScene: SKScene {
         // contra el borde de la pantalla; las columnas se centran dentro del campo.
         let edgeInset = cellSize * 0.68
         let colSpacing = (cellSize * CGFloat(cols) - 2 * edgeInset) / CGFloat(cols)
-        let frontY = cellSize * 0.55            // pies de la fila delantera, sobre el piso
-        let rowDepth = cellSize * 0.95          // franja de piso más alta: filas más separadas
+        let frontY = cellSize * Self.frontRowRatio
+        let rowDepth = cellSize * Self.rowDepthRatio
         anchorPoints = (0..<capacity).map { index in
             let column = index % cols
             let row = index / cols
@@ -890,8 +909,8 @@ final class BoardScene: SKScene {
         var hash = UInt64(node.cellIndex &* 40503 &+ 7)
         let step: () -> SKAction = {
             hash = (hash ^ (hash >> 13)) &* 0x9E3779B97F4A7C15
-            let dx = (CGFloat(hash % 100) / 100 - 0.5) * 30
-            let dy = (CGFloat((hash >> 8) % 100) / 100 - 0.5) * 24
+            let dx = (CGFloat(hash % 100) / 100 - 0.5) * 34
+            let dy = (CGFloat((hash >> 8) % 100) / 100 - 0.5) * 40
             let pause = 0.6 + Double(hash % 140) / 100
             return .sequence([
                 .wait(forDuration: pause),

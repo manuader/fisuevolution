@@ -31,13 +31,29 @@ struct SkinAwardView: View {
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+                    // Sin esto el texto se trunca a una línea en vez de envolver
+                    // cuando el nombre del personaje es largo.
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Equipar desde acá: el premio se gana en medio del loop y
+                // mandarlo a buscar la ficha para usarlo es fricción de más.
+                Button("skin.award.equip") {
+                    gameState.equipSkin(id: award.id, forCharacterType: award.characterType.id)
+                    dismiss()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color("PaletteGreen"))
+                .accessibilityIdentifier("skin.award.equip")
 
                 Button("skin.award.dismiss") { dismiss() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.bordered)
                     .tint(Color("PaletteBlue"))
                     .accessibilityIdentifier("skin.award.dismiss")
             }
             .padding(.vertical, 6)
+            // Sin esto el panel se encoge al ancho ideal de su contenido y el
+            // subtítulo se desborda por los costados del marco.
+            .frame(maxWidth: .infinity)
         }
         .padding(16)
         .presentationDetents([.medium])

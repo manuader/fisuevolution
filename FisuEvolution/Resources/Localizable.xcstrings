@@ -1563,19 +1563,35 @@
         }
       }
     },
+    "skin.award.equip": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wear it"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ponérsela"
+          }
+        }
+      }
+    },
     "skin.award.subtitle %@": {
       "extractionState": "manual",
       "localizations": {
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desbloqueaste una apariencia para %@. Equipala manteniendo apretado el personaje."
+            "value": "Nueva apariencia para %@."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You unlocked a look for %@. Long-press the character to equip it."
+            "value": "A new look for %@."
           }
         }
       }

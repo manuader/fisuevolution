@@ -41,18 +41,32 @@ struct CharacterSheetView: View {
         // Proyección observada: entitlements/milestones/equipar refrescan el
         // estado del botón sin observar PlayerState (que cambia 8 veces/s).
         let _ = gameState.skinSelectionVersion
-        GamePanel(art: "panel_dialog", insets: EdgeInsets(top: 58, leading: 24, bottom: 26, trailing: 24)) {
-            ScrollView {
-                VStack(spacing: 16) {
-                    header
-                    skinPager
-                    passiveSection
-                    dismissalSection
+        // El panel se ajusta a su contenido y el Spacer lo empuja arriba: con
+        // `.large` a secas el marco decorativo se estiraba a toda la pantalla y
+        // quedaba media hoja vacía abajo.
+        VStack(spacing: 0) {
+            GamePanel(art: "panel_dialog", insets: EdgeInsets(top: 58, leading: 34, bottom: 44, trailing: 34)) {
+                ScrollView {
+                    VStack(spacing: 12) {
+                        header
+                        skinPager
+                        passiveSection
+                        dismissalSection
+                    }
                 }
+                .scrollBounceBehavior(.basedOnSize)
             }
+            .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
         }
         .padding(16)
-        .presentationDetents([.medium, .large])
+        // SÓLo `.large`. Con `.medium` la ficha abría a media pantalla y la
+        // sección de pasivo quedaba debajo del pliegue: había que descubrir que
+        // se scrollea, y no se notaba. Entra todo de una.
+        .presentationDetents([.large])
+        // El panel ya no ocupa toda la hoja, así que el fondo del sheet dejaba
+        // una franja blanca muerta: transparente, el panel flota sobre el juego.
+        .presentationBackground(.clear)
         .alert("character.dismiss.title", isPresented: $confirmingDismissal) {
             Button("character.dismiss.confirm", role: .destructive) {
                 gameState.dismissCharacter(atCell: sheet.cellIndex)
@@ -68,7 +82,7 @@ struct CharacterSheetView: View {
     private var header: some View {
         VStack(spacing: 5) {
             CharacterPortrait(type: sheet.type, treatment: selectedTreatment)
-                .frame(width: 118, height: 118)
+                .frame(width: 96, height: 96)
             Text(sheet.type.displayName)
                 .font(.system(.title2, design: .rounded).weight(.black))
                 .foregroundStyle(Color("PaletteInk"))

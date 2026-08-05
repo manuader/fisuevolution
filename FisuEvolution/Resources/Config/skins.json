@@ -2,27 +2,6 @@
   "schemaVersion": 1,
   "skins": [
     {
-      "id": "golden",
-      "characterType": "*",
-      "treatment": "tint",
-      "tintHex": "#FFD93D",
-      "displayNameKey": "skin.name.golden"
-    },
-    {
-      "id": "galaxy",
-      "characterType": "*",
-      "treatment": "tint",
-      "tintHex": "#4D96FF",
-      "displayNameKey": "skin.name.galaxy"
-    },
-    {
-      "id": "god",
-      "characterType": "*",
-      "treatment": "tint",
-      "tintHex": "#FFF8E7",
-      "displayNameKey": "skin.name.god"
-    },
-    {
       "id": "second_life",
       "characterType": "homeless",
       "treatment": "texture",

@@ -1,103 +1,37 @@
 {
-  "identifier" : "F15CE001-0000-4000-8000-000000000001",
-  "nonRenewingSubscriptions" : [
-
-  ],
-  "products" : [
+  "identifier": "F15CE001-0000-4000-8000-000000000001",
+  "nonRenewingSubscriptions": [],
+  "products": [
     {
-      "displayPrice" : "2.99",
-      "familyShareable" : false,
-      "internalID" : "F15CE001-0000-4000-8000-0000000000A1",
-      "localizations" : [
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000A1",
+      "localizations": [
         {
-          "description" : "Sacá los anuncios para siempre",
-          "displayName" : "Sin anuncios",
-          "locale" : "es"
+          "description": "Sacá los anuncios para siempre",
+          "displayName": "Sin anuncios",
+          "locale": "es"
         },
         {
-          "description" : "Remove ads forever",
-          "displayName" : "Remove Ads",
-          "locale" : "en"
+          "description": "Remove ads forever",
+          "displayName": "Remove Ads",
+          "locale": "en"
         }
       ],
-      "productID" : "com.fisuevolution.iap.remove_ads",
-      "referenceName" : "Remove Ads",
-      "type" : "NonConsumable"
-    },
-    {
-      "displayPrice" : "1.99",
-      "familyShareable" : false,
-      "internalID" : "F15CE001-0000-4000-8000-0000000000A2",
-      "localizations" : [
-        {
-          "description" : "Tus personajes, pero dorados",
-          "displayName" : "Skin Dorada",
-          "locale" : "es"
-        },
-        {
-          "description" : "Your characters, but golden",
-          "displayName" : "Golden Skin",
-          "locale" : "en"
-        }
-      ],
-      "productID" : "com.fisuevolution.iap.skin_golden",
-      "referenceName" : "Skin Golden",
-      "type" : "NonConsumable"
-    },
-    {
-      "displayPrice" : "2.99",
-      "familyShareable" : false,
-      "internalID" : "F15CE001-0000-4000-8000-0000000000A3",
-      "localizations" : [
-        {
-          "description" : "Vibra cósmica para el tablero",
-          "displayName" : "Skin Galaxia",
-          "locale" : "es"
-        },
-        {
-          "description" : "Cosmic vibes for your board",
-          "displayName" : "Galaxy Skin",
-          "locale" : "en"
-        }
-      ],
-      "productID" : "com.fisuevolution.iap.skin_galaxy",
-      "referenceName" : "Skin Galaxy",
-      "type" : "NonConsumable"
-    },
-    {
-      "displayPrice" : "4.99",
-      "familyShareable" : false,
-      "internalID" : "F15CE001-0000-4000-8000-0000000000A4",
-      "localizations" : [
-        {
-          "description" : "El drip definitivo",
-          "displayName" : "Skin Dios",
-          "locale" : "es"
-        },
-        {
-          "description" : "The ultimate drip",
-          "displayName" : "God Skin",
-          "locale" : "en"
-        }
-      ],
-      "productID" : "com.fisuevolution.iap.skin_god",
-      "referenceName" : "Skin God",
-      "type" : "NonConsumable"
+      "productID": "com.fisuevolution.iap.remove_ads",
+      "referenceName": "Remove Ads",
+      "type": "NonConsumable"
     }
   ],
-  "settings" : {
-    "_failTransactionsEnabled" : false,
-    "_locale" : "es_AR",
-    "_storefront" : "ARG",
-    "_storeKitErrors" : [
-
-    ]
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_locale": "es_AR",
+    "_storefront": "ARG",
+    "_storeKitErrors": []
   },
-  "subscriptionGroups" : [
-
-  ],
-  "version" : {
-    "major" : 3,
-    "minor" : 0
+  "subscriptionGroups": [],
+  "version": {
+    "major": 3,
+    "minor": 0
   }
 }

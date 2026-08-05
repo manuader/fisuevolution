@@ -81,8 +81,12 @@ struct CharacterSheetView: View {
 
     private var header: some View {
         VStack(spacing: 5) {
-            CharacterPortrait(type: sheet.type, treatment: selectedTreatment)
-                .frame(width: 96, height: 96)
+            CharacterPortrait(
+                type: sheet.type,
+                treatment: selectedTreatment,
+                asSilhouette: !isSelectedOwned
+            )
+            .frame(width: 96, height: 96)
             Text(sheet.type.displayName)
                 .font(.system(.title2, design: .rounded).weight(.black))
                 .foregroundStyle(Color("PaletteInk"))
@@ -213,7 +217,7 @@ struct CharacterSheetView: View {
         if let floor = skin.floorReached {
             return String(localized: "character.skin.reach-floor \(TowerNaming.floorName(for: floor))")
         }
-        if let lives = skin.reincarnations { return String(localized: "character.skin.reincarnations \(lives)") }
+        if let lives = skin.reincarnations { return String(localized: "character.skin.reincarnations \(String(lives))") }
         return String(localized: "character.skin.store")
     }
 
@@ -234,21 +238,33 @@ struct CharacterSheetView: View {
 private struct CharacterPortrait: View {
     let type: CharacterType
     let treatment: SkinResolver.Treatment
+    /// Una skin que todavía no tenés no se muestra: se ve su SILUETA en tinta
+    /// plena (spec §3.10, "personaje misterioso"). Enseñar el arte a color
+    /// regalaría la sorpresa de lo que estás por desbloquear.
+    var asSilhouette = false
     @Environment(GameState.self) private var gameState
 
     var body: some View {
         Group {
             if let image = portrait {
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .colorMultiply(tintColor ?? .white)
+                if asSilhouette {
+                    image
+                        .resizable()
+                        .renderingMode(.template)
+                        .scaledToFit()
+                        .foregroundStyle(Color("PaletteInk"))
+                } else {
+                    image
+                        .resizable()
+                        .scaledToFit()
+                        .colorMultiply(tintColor ?? .white)
+                }
             } else {
                 Image(systemName: "person.fill")
                     .resizable()
                     .scaledToFit()
                     .padding(20)
-                    .foregroundStyle(tintColor ?? Color("PaletteInk"))
+                    .foregroundStyle(asSilhouette ? Color("PaletteInk") : (tintColor ?? Color("PaletteInk")))
             }
         }
         .accessibilityHidden(true)

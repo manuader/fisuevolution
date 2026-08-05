@@ -40,7 +40,9 @@ struct StoreManagerTests {
         }
     }
 
-    @Test func loadsTheFourCatalogProducts() async throws {
+    /// Los tres tintes IAP (golden/galaxy/god) se retiraron del catálogo por
+    /// decisión del dueño, así que la tienda vende UN producto.
+    @Test func loadsTheCatalogProduct() async throws {
         let session = try makeSession()
         defer { _ = session }
         let gameState = await makeGameState()
@@ -48,7 +50,7 @@ struct StoreManagerTests {
         await store.start(gameState: gameState)
 
         #expect(store.loadState == .loaded)
-        #expect(store.products.count == 4)
+        #expect(store.products.count == 1)
         #expect(store.products.first?.id == "com.fisuevolution.iap.remove_ads")
     }
 
@@ -69,36 +71,39 @@ struct StoreManagerTests {
         #expect(gameState.player?.meta.removedAds == true)
     }
 
-    @Test func skinPurchaseAllowsActivation() async throws {
-        let session = try makeSession()
-        defer { session.clearTransactions() }
-        let gameState = await makeGameState()
-        let store = StoreManager()
-        await store.start(gameState: gameState)
+    /// Sin tintes IAP la tienda ya no vende skins, pero el contrato de EQUIPAR
+    /// sigue igual de vivo y ahora se ejercita con la única fuente que queda:
+    /// las de milestone. Equipar es POR TIPO — una skin puesta en un personaje
+    /// no se derrama sobre los demás— y una que no tenés no se puede equipar.
+    @Test func equippingIsScopedToTheCharacterType() async throws {
+        let repository = makeRepository()
+        var seeded = PlayerState.newGame(
+            startTypeId: "homeless",
+            startFloorId: "alley",
+            offlineEfficiencyBase: 0.35,
+            critChanceBase: 0,
+            now: Date().timeIntervalSince1970
+        )
+        seeded.meta.milestoneSkins = ["second_life"]
+        seeded.meta.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
+        await repository.save(seeded)
+        let gameState = await makeGameState(repository: repository)
 
-        let golden = try #require(store.products.first { $0.id == "com.fisuevolution.iap.skin_golden" })
-        await store.purchase(golden)
-        await waitUntil { gameState.player?.meta.ownedSkins.contains("golden") == true }
-        #expect(gameState.player?.meta.ownedSkins == ["golden"])
-        #expect(gameState.ownedSkins == ["golden"])
-
-        // F7.5: la compra habilita, pero equipar es POR TIPO desde la ficha —
-        // el tinte comprado en un personaje no se derrama sobre los demás.
         gameState.debugSetMaxTier(2)
         gameState.debugGrantPair()
         let before = try #require(gameState.player)
         #expect(before.run.units.count >= 2)
 
-        gameState.equipSkin(id: "golden", forCharacterType: "homeless")
+        gameState.equipSkin(id: "second_life", forCharacterType: "homeless")
         let after = try #require(gameState.player)
-        #expect(after.meta.activeSkinByType["homeless"] == "golden")
+        #expect(after.meta.activeSkinByType["homeless"] == "second_life")
         #expect(after.meta.activeSkinByType.count == 1)
-        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "golden")
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "second_life")
         #expect(gameState.activeSkinID(forCharacterType: "cartonero") == nil)
 
-        // Una skin no comprada no se puede equipar.
-        gameState.equipSkin(id: "god", forCharacterType: "homeless")
-        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "golden")
+        // Una skin que no tenés no se puede equipar.
+        gameState.equipSkin(id: "urban_trailblazer", forCharacterType: "homeless")
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "second_life")
 
         // nil vuelve ese tipo a su apariencia base.
         gameState.equipSkin(id: nil, forCharacterType: "homeless")
@@ -150,17 +155,19 @@ struct StoreManagerTests {
         let store = StoreManager()
         await store.start(gameState: gameState)
 
-        let golden = try #require(store.products.first { $0.id == "com.fisuevolution.iap.skin_golden" })
-        await store.purchase(golden)
-        await waitUntil { gameState.player?.meta.ownedSkins.contains("golden") == true }
+        // Sin skins en la tienda, el sync se dispara igual con cualquier compra:
+        // lo que se prueba es que reescribir `ownedSkins` no pise las milestone.
+        let removeAds = try #require(store.products.first { $0.id == "com.fisuevolution.iap.remove_ads" })
+        await store.purchase(removeAds)
+        await waitUntil { gameState.player?.meta.removedAds == true }
 
         let player = try #require(gameState.player)
-        // El cache de StoreKit quedó reescrito solo con lo comprado…
-        #expect(player.meta.ownedSkins == ["golden"])
+        // El cache de StoreKit quedó reescrito sin skins…
+        #expect(player.meta.ownedSkins.isEmpty)
         // …y la milestone no fue pisada.
         #expect(player.meta.milestoneSkins == ["milestone_asado"])
         // La proyección de la UI muestra la unión, ordenada.
-        #expect(gameState.ownedSkins == ["golden", "milestone_asado"])
+        #expect(gameState.ownedSkins == ["milestone_asado"])
         // El filtro anti-huérfanos de applyStoreEntitlements no echó a la activa.
         #expect(player.meta.activeSkinByType["homeless"] == "milestone_asado")
         #expect(gameState.activeSkinID(forCharacterType: "homeless") == "milestone_asado")

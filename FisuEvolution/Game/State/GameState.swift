@@ -1222,6 +1222,16 @@ final class GameState {
     // MARK: Debug helpers
 
     #if DEBUG
+    /// Acredita skins de milestone sin recorrer su condición. Desde que se
+    /// retiraron los tintes IAP, los milestones son la única fuente de skins,
+    /// así que los tests que ejercitan equipar necesitan esta puerta.
+    func grantMilestoneSkinsForTests(_ ids: [String]) {
+        guard var player else { return }
+        player.meta.milestoneSkins = Array(Set(player.meta.milestoneSkins).union(ids)).sorted()
+        self.player = player
+        skinSelectionVersion &+= 1
+    }
+
     func debugGrantCoins() {
         guard var player else { return }
         let grant = max(1_000_000, (currentQuote(player: player)?.cost ?? 0) * 100)

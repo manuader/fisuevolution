@@ -347,12 +347,14 @@ struct GameLoopWiringTests {
 
     @Test func skinEquipIsScopedToItsCharacterAndSurvivesReincarnation() async throws {
         let gameState = await makeGameState()
-        gameState.applyStoreEntitlements(removedAds: false, ownedSkins: ["golden"])
+        // `second_life` es de milestone, no de tienda: los tintes IAP se
+        // retiraron del catálogo y ya no hay skins comprables.
+        gameState.grantMilestoneSkinsForTests(["second_life"])
 
-        // La skin global se equipa en UNA ficha, no en todos los tipos como el
-        // puente F7.1. La preferencia vive en Meta y debe sobrevivir la run.
-        gameState.equipSkin(id: "golden", forCharacterType: "homeless")
-        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "golden")
+        // La skin se equipa en UNA ficha, no en todos los tipos como el puente
+        // F7.1. La preferencia vive en Meta y debe sobrevivir la run.
+        gameState.equipSkin(id: "second_life", forCharacterType: "homeless")
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "second_life")
         #expect(gameState.activeSkinID(forCharacterType: "cartonero") == nil)
 
         var fuse = 0
@@ -362,7 +364,7 @@ struct GameLoopWiringTests {
         }
         #expect(gameState.prestigeAvailable)
         gameState.confirmPrestige()
-        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "golden")
+        #expect(gameState.activeSkinID(forCharacterType: "homeless") == "second_life")
     }
 
     @Test func hugeTickDeltaIsClamped() async throws {

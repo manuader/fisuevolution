@@ -3,9 +3,23 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to
 > implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax.
 
-**Goal:** Contratar en un piso exige dos pisos desbloqueados por encima (el
-callejón queda exento), con aviso al destrabarse; y las celebraciones del ascenso
-que abre piso pasan a reproducirse de a una.
+> ## ⚠️ Este plan se ejecutó con UNA corrección: el gate es de UN piso, no dos
+>
+> Está escrito abajo con el número final. **El plan original pedía dos pisos** y
+> se cambió durante la Task 3, cuando el simulador dio el veredicto: con dos, el
+> bot se traba en tier 12 y **no llega a Dios nunca**, porque el gate saca el
+> backfill —el puente que hace viable la progresión— justo en el piso que estás
+> atravesando. Con uno, Dios pasa de 38 h a 264 h y el juego sigue terminándose.
+>
+> La medición de las tres corridas está en `Docs/balance-log.md` §"Gate de
+> contratación" y en el recuadro del spec. **No volver a subirlo a dos**: la
+> conclusión no es de calibración, es estructural.
+>
+> Commits: `9ec9ef0`, `92d77cf`, `cdd8262` (acá baja a uno), `b5fd4e4`, `2b24e66`.
+
+**Goal:** Contratar en un piso exige el piso de arriba desbloqueado (el callejón
+queda exento y el último piso se habilita a sí mismo), con aviso al destrabarse;
+y las celebraciones del ascenso que abre piso pasan a reproducirse de a una.
 
 **Architecture:** La condición del gate vive en **una** función pura de EconomyKit
 que usan el juego y el simulador de pacing. La cadena de celebraciones se encadena
@@ -58,7 +72,7 @@ SwiftUI, swift-testing para unit tests, XCTest para UI tests.
 Agregar al final de `GameActionsTests.swift`:
 
 ```swift
-// MARK: - Gate de contratación (dos pisos por encima)
+// MARK: - Gate de contratación (el piso de arriba desbloqueado)
 
 private func gateFloor(_ id: String, _ tier: Int) -> FloorDef {
     FloorDef(
@@ -76,7 +90,7 @@ struct HireGateTests {
 
     init() throws {
         tiers = try fxTiers()
-        // Cuatro pisos de un tier cada uno: el mínimo para que "dos por encima"
+        // Cuatro pisos de un tier cada uno: el mínimo para que "el de arriba"
         // sea distinguible del escape del tope.
         floorTable = try FloorTable(
             floors: [gateFloor("g1", 1), gateFloor("g2", 2), gateFloor("g3", 3), gateFloor("g4", 4)],
@@ -89,15 +103,15 @@ struct HireGateTests {
         #expect(TowerActions.canHire(floorOrdinal: 0, unlockedFloors: ["g1"], floorTable: floorTable))
     }
 
-    @Test("un piso necesita DOS pisos desbloqueados por encima")
-    func upperFloorNeedsTwoAbove() {
-        #expect(!TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
-        #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2", "g3", "g4"], floorTable: floorTable))
+    @Test("un piso necesita el de arriba desbloqueado")
+    func upperFloorNeedsTheOneAbove() {
+        #expect(!TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2"], floorTable: floorTable))
+        #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
     }
 
-    @Test("los dos pisos del tope se destraban al abrir el último")
+    @Test("el último piso se destraba a sí mismo al abrirse")
     func topOfTowerEscapes() {
-        // Sin el último abierto no hay forma: no existen dos pisos por encima.
+        // g4 no tiene ninguno por encima: sin el escape nunca dejaría contratar.
         #expect(!TowerActions.canHire(floorOrdinal: 3, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
         #expect(!TowerActions.canHire(floorOrdinal: 2, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
         let all = ["g1", "g2", "g3", "g4"]
@@ -112,7 +126,7 @@ struct HireGateTests {
             offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 1000
         )
         state.run.units = ["a": 1]
-        state.run.unlockedFloors = ["g1", "g2"]   // g4 cerrado ⇒ el gate de g2 no pasa
+        state.run.unlockedFloors = ["g1", "g2"]   // g3 cerrado ⇒ el gate de g2 no pasa
         state.run.coins = 1_000_000
         var tower = TowerReconciler.reconcile(run: &state.run, floorTable: floorTable, tiers: tiers).tower
         let coinsBefore = state.run.coins
@@ -148,8 +162,8 @@ En `TowerActions.swift`, agregar el caso al enum (línea ~25):
 
 ```swift
     case noHireableType
-    /// El piso está abierto, pero todavía no habilita contratar: falta que se
-    /// desbloqueen dos pisos por encima. Distinto de `floorLocked` a propósito.
+    /// El piso está abierto, pero todavía no habilita contratar: falta
+    /// desbloquear el piso de arriba. Distinto de `floorLocked` a propósito.
     case hireLocked
 ```
 
@@ -164,8 +178,12 @@ Y la función, justo antes de `hire`:
     ///
     /// - El callejón (ordinal 0) SIEMPRE deja contratar: es el motor del early
     ///   game y ya es la excepción de precio.
-    /// - Los dos pisos del tope nunca van a tener dos por encima, así que
-    ///   desbloquear el último piso de la torre los habilita.
+    /// - El último piso no tiene ninguno por encima, así que desbloquearlo lo
+    ///   habilita a sí mismo.
+    ///
+    /// **Por qué UNO y no dos**: con dos el juego deja de poder terminarse — el
+    /// backfill es el puente y el gate lo sacaría justo donde hace falta.
+    /// Medido; ver el recuadro del tope de este plan.
     ///
     /// La usan `hire` y `PacingSimulator`. **No duplicar la condición**: es el
     /// mismo error que el balance-log documenta para la fórmula de costo.
@@ -178,7 +196,7 @@ Y la función, justo antes de `hire`:
         if floorOrdinal == 0 { return true }
         let unlocked = Set(unlockedFloors)
         if let top = floorTable.floors.last, unlocked.contains(top.id) { return true }
-        let required = floorOrdinal + 2
+        let required = floorOrdinal + 1
         guard required < floorTable.count else { return false }
         return unlocked.contains(floorTable[required].id)
     }
@@ -209,7 +227,7 @@ gate. Ajustarlo desbloqueando los pisos que ahora hacen falta, no relajando el g
 
 ```bash
 git add Packages/EconomyKit
-git commit -m "feat(torre): contratar exige dos pisos desbloqueados por encima"
+git commit -m "feat(torre): contratar exige el piso de arriba desbloqueado"
 ```
 
 ---
@@ -230,14 +248,24 @@ git commit -m "feat(torre): contratar exige dos pisos desbloqueados por encima"
 Dentro de `HireGateTests`:
 
 ```swift
-    @Test("desbloquear un piso destraba la contratación del que está dos abajo")
-    func unlockingAFloorOpensHiringTwoBelow() {
+    @Test("desbloquear un piso destraba la contratación del que está justo abajo")
+    func unlockingAFloorOpensHiringRightBelow() {
+        #expect(
+            TowerActions.newlyHireableFloors(
+                unlockedBefore: ["g1", "g2"], unlockedAfter: ["g1", "g2", "g3"], floorTable: floorTable
+            ) == [1],
+            "abrir g3 sólo destraba g2"
+        )
+    }
+
+    @Test("abrir el último piso destraba también al último por el escape")
+    func unlockingTheTopAlsoOpensItself() {
         let before = ["g1", "g2", "g3"]
         #expect(
             TowerActions.newlyHireableFloors(
                 unlockedBefore: before, unlockedAfter: before + ["g4"], floorTable: floorTable
-            ) == [1, 2, 3],
-            "g4 es además el tope, así que destraba g2 por la regla y g3/g4 por el escape"
+            ) == [2, 3],
+            "g3 por la regla y g4 por el escape, que si no nunca se abriría"
         )
     }
 
@@ -247,15 +275,13 @@ Dentro de `HireGateTests`:
             TowerActions.newlyHireableFloors(
                 unlockedBefore: ["g1"], unlockedAfter: ["g1", "g2"], floorTable: floorTable
             ).isEmpty,
-            "abrir g2 no le da dos pisos por encima a nadie"
+            "abrir g2 no le da el piso de arriba a nadie: g1 ya podía y g2 necesita g3"
         )
     }
 ```
 
-> Con cuatro pisos, abrir el último dispara la regla general **y** el escape a la
-> vez, por eso devuelve tres ordinales. Con los once pisos reales el caso normal
-> devuelve uno solo; ese caso lo cubre el test de wiring de la Task 5, que corre
-> contra la torre de verdad.
+> Abrir el ÚLTIMO piso dispara la regla general **y** el escape del tope a la vez,
+> por eso ese caso devuelve dos ordinales en vez de uno.
 
 - [ ] **Step 2: Correr y verificar que fallan**
 
@@ -270,9 +296,10 @@ Esperado: `newlyHireableFloors` no existe.
 ```swift
     /// Pisos que pasan de NO contratables a contratables por un desbloqueo.
     ///
-    /// En el caso normal es uno solo (el que está dos abajo del que se abrió);
-    /// al abrir el último piso son dos, porque el escape del tope habilita a los
-    /// dos de arriba juntos.
+    /// En el caso normal es uno solo: el que está justo abajo del que se abrió.
+    /// Se calcula comparando la regla contra sí misma en vez de restar ordinales
+    /// a mano, así el caso normal y el del escape del tope salen de la misma
+    /// fuente y no pueden desincronizarse.
     public static func newlyHireableFloors(
         unlockedBefore: [String],
         unlockedAfter: [String],
@@ -383,8 +410,8 @@ En `GameLoopWiringTests.swift`, siguiendo el patrón de los tests de torre que y
 están ahí (usan los helpers DEBUG para desbloquear pisos):
 
 ```swift
-@Test("el piso visible no habilita contratar hasta tener dos pisos arriba")
-func visibleFloorGatesHiringUntilTwoFloorsAbove() async {
+@Test("el piso visible no habilita contratar hasta abrir el de arriba")
+func visibleFloorGatesHiringUntilTheFloorAboveOpens() async {
     let state = await makeReadyGameState()          // helper existente del archivo
     await MainActor.run {
         state.debugUnlockFloors(throughTier: 5)     // abre hasta urban (ordinal 1)
@@ -392,7 +419,7 @@ func visibleFloorGatesHiringUntilTwoFloorsAbove() async {
         state.flushHUD()
         #expect(state.visibleFloorAllowsHiring == false)
 
-        state.debugUnlockFloors(throughTier: 13)    // abre hasta luxury (ordinal 3)
+        state.debugUnlockFloors(throughTier: 9)     // abre hasta corporate (ordinal 2)
         state.flushHUD()
         #expect(state.visibleFloorAllowsHiring == true)
     }
@@ -418,8 +445,8 @@ Junto a las otras (~línea 140):
 
 ```swift
     private(set) var visibleFloorIsUnlocked = false
-    /// El piso está abierto pero todavía no habilita contratar (faltan dos pisos
-    /// por encima). El callejón nunca entra acá.
+    /// El piso está abierto pero todavía no habilita contratar: falta
+    /// desbloquear el de arriba. El callejón nunca entra acá.
     private(set) var visibleFloorAllowsHiring = false
 ```
 
@@ -473,7 +500,7 @@ En `Localizable.xcstrings`, con el mismo formato que `spawn.button.locked`:
 | clave | es | en |
 |---|---|---|
 | `spawn.button.hire_locked` | Todavía no | Not yet |
-| `spawn.button.hire_locked.detail` | Abrí dos pisos más arriba | Open two floors above |
+| `spawn.button.hire_locked.detail` | Abrí el piso de arriba | Open the floor above |
 
 - [ ] **Step 6: Correr y verificar que pasa**
 
@@ -488,7 +515,7 @@ xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
 
 ```bash
 git add FisuEvolution FisuEvolutionTests
-git commit -m "feat(hud): el botón de contratar muestra el gate de dos pisos"
+git commit -m "feat(hud): el botón de contratar muestra el gate del piso de arriba"
 ```
 
 ---
@@ -525,23 +552,26 @@ nueva. Reemplazar esas dos líneas por:
         #expect(gameState.skinAward?.characterType.id == "cartonero")
 ```
 
-Y agregar el test del toast, que necesita llegar a **luxury** (ordinal 3): recién
-ahí urban (ordinal 1) junta dos pisos por encima. Con los helpers DEBUG que el
-archivo ya usa:
+Y agregar el test del toast, que necesita llegar a **corporate** (ordinal 2):
+recién ahí urban (ordinal 1) tiene su piso de arriba. Con los helpers DEBUG que
+el archivo ya usa:
 
 ```swift
-    @Test("el toast de contratación espera a la cadena y al sheet")
-    func hireUnlockedNoticeWaitsItsTurn() async throws {
+    /// Con el gate de contratación, abrir corporate (ordinal 2) es lo que
+    /// destraba urban (ordinal 1): recién ahí urban tiene el piso de arriba.
+    @Test func hireUnlockedNoticeWaitsItsTurn() async throws {
         let gameState = await makeGameState()
-        // Tier 9 vive en corporate; mergear un par promueve a T10 = luxury, y
-        // luxury es el que le da a urban sus dos pisos por encima.
-        gameState.debugSetMaxTier(9)
+        // tier 5 (`chofer_app`) vive en urban, así que hay que abrir urban y
+        // pararse ahí: `slots(of:in:)` y `handleDrop` miran el piso VISIBLE.
+        gameState.debugUnlockFloors(throughTier: 5)
+        gameState.debugSetMaxTier(5)
         gameState.debugGrantPair()
-        let pair = slots(of: gameState.visiblePlacements.first?.typeId ?? "", in: gameState)
+        #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
+        let pair = slots(of: "chofer_app", in: gameState)
         #expect(pair.count >= 2)
 
         _ = gameState.handleDrop(fromCell: pair[0], toCell: pair[1])
-        #expect(gameState.player?.run.unlockedFloors.contains("luxury") == true)
+        #expect(gameState.player?.run.unlockedFloors.contains("corporate") == true)
         #expect(gameState.towerNotice == nil, "el toast no sale durante la cadena")
 
         gameState.celebrationsDidFinish()
@@ -550,9 +580,9 @@ archivo ya usa:
     }
 ```
 
-> Ajustar `slots(of:in:)` al helper exacto del archivo. Si `debugGrantPair` deja
-> el par en un piso que no es el visible, usar el mismo mecanismo que
-> `tier2MergePromotesToUrbanAndUnlocksIt` para ubicarlos.
+> `debugGrantPair` deja el par en el piso del tier, que acá NO es el visible:
+> hay que subir a urban antes, porque `slots(of:in:)` y `handleDrop` operan
+> sobre el piso visible.
 
 - [ ] **Step 2: Correr y verificar que fallan**
 
@@ -842,9 +872,15 @@ tests, así que los dos primeros números tienen que SUBIR.
 
 - [ ] **Step 2: Recorrido manual en el simulador**
 
-Instalar, `--uitest-reset`, y con los helpers DEBUG: pararse en urban con sólo
-corporate abierto → el botón dice "Todavía no". Abrir luxury → aparece el toast y
-el botón se habilita. Capturas de los dos estados a `scratchpad/qa-shots/`.
+Instalar con `--uitest-reset --uitest-unlock-tower` (deja alley + urban abiertos
+y corporate cerrado, que es exactamente el escenario): pararse en urban → el
+botón muestra el gate cerrado. Abrir corporate → aparece el toast y el botón se
+habilita. Capturas de los dos estados a `scratchpad/qa-shots/`.
+
+> ⚠️ Desactualizado desde el fallback de contratación (ver la bitácora del
+> 2026-08-05): parado en urban con corporate cerrado el botón ya **no** dice
+> "Todavía no", sino que ofrece contratar en el callejón. El estado "Todavía no"
+> quedó como fallback del fallback y en la torre real es inalcanzable.
 
 - [ ] **Step 3: Actualizar la bitácora**
 

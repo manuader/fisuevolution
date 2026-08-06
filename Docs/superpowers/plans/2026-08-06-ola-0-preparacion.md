@@ -737,13 +737,13 @@ print('mapeo válido:', len(pisos), 'pisos')"
 
 Esperado: `mapeo válido: 10 pisos`. Si tira `AssertionError`, la tabla está mal y **no** se pasa al siguiente step.
 
-- [ ] **Step 4: Escribir los 53 prompts de Gemini**
+- [ ] **Step 4: Escribir los 52 prompts de Gemini**
 
 En `Tools/asset-pipeline/prompts/gemini_pro/`, siguiendo el formato de los 93 que ya existen (cada `.md` con **archivo**, **estado**, **referencia**, **destino** y la sección `## Prompt`). Leer primero `Docs/HANDOFF-arte-gemini.md` y **tres prompts ya aprobados** para copiar el registro, y `Tools/asset-pipeline/scripts/cultural_dict.py`, que es la fuente del subject/props/expresión de cada asset.
 
 Son:
 - **7** de personaje de cuerpo entero, con `heroes/approved/fisura.png` como referencia de estilo.
-- **44** de cara: primer plano con gesto gracioso, uno por tipo concreto (los 37 de hoy + los 7 nuevos), destino `<id>_face`.
+- **43** de cara: primer plano con gesto gracioso, uno por tipo concreto (los **36** de hoy + los 7 nuevos), destino `<id>_face`. ⚠️ Son 36 y no 37 porque `junior` es el nodo de elección de carrera: `isChoiceNode: true`, sin sprite, y `TierRepository.concreteTypes` lo filtra.
 - **2** de skin: una del Fisura y una de Dios, **outfit distinto, no un tinte de color** — es exactamente por lo que se retiraron las tres skins pagas anteriores.
 
 - [ ] **Step 5: Contar los prompts y commitear**
@@ -752,7 +752,7 @@ Son:
 ls Tools/asset-pipeline/prompts/gemini_pro/ | wc -l
 ```
 
-Esperado: 53 archivos más que antes (los `.md` nuevos), más el `00_INDICE.md` actualizado.
+Esperado: 52 archivos más que antes (los `.md` nuevos), más el `00_INDICE.md` actualizado.
 
 ```bash
 git add Docs/superpowers/specs/2026-08-06-siete-personajes-y-remapeo.md Tools/asset-pipeline/prompts/
@@ -763,7 +763,7 @@ El playtest pidió mínimo 4 personajes por piso. La aritmética cierra con
 absorbe un fondo menos. Quedan 37 tiers en 10 pisos, todos de 4 salvo el
 de Dios.
 
-53 prompts nuevos para una sola corrida del runner: 7 personajes, 44
+52 prompts nuevos para una sola corrida del runner: 7 personajes, 43
 caras y 2 skins. Los JSON del juego NO se tocan todavía: eso es la Ola 2,
 cuando el arte exista."
 ```
@@ -858,6 +858,6 @@ así que el contrato es el nombre y no se toca ni una línea de Swift."
 | D · Bonus y carrera | `GameState+Bonus.swift`, `GameState+Actions.swift` + `EffectDescriptor` |
 | F · Prestigio | `GameState+Prestige.swift` + `EffectDescriptor` |
 | G1a · Tienda | `GameState+Store.swift` |
-| A2 · Arte | los 53 prompts, listos para una sola corrida |
+| A2 · Arte | los 52 prompts, listos para una sola corrida |
 
 Y cerrados, de paso: **RF-09** (el scroll), **RF-02a** (el diagnóstico de la tienda: no había bug, el `.storekit` declara un solo producto) y la mitad de **RF-14** (los cinco efectos que estaban mudos).

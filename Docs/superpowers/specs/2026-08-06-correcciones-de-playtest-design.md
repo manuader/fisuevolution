@@ -156,7 +156,12 @@ graciosa característica del personaje. Entra al `assets_manifest.json` con la
 clave `<id>_face`; sin entrada, la fila cae al círculo "T7" actual — o sea que la
 UI **no espera al arte** para poder construirse.
 
-Son **44 caras**: los 37 tipos concretos de hoy más los 7 que agrega RF-10.
+Son **43 caras**: los **36** tipos concretos de hoy más los 7 que agrega RF-10.
+
+⚠️ `tiers.json` declara 37 tipos, pero uno —`junior`, "Recién Recibido"— es el
+nodo de elección de carrera: `isChoiceNode: true`, sin entrada en el manifest, y
+`TierRepository.concreteTypes` lo filtra, así que **nunca aparece en la lista de
+mejoras**. Generarle una cara sería arte que no se muestra nunca.
 
 **Aceptación**: la fila muestra la cara cuando la clave existe en el manifest, y
 el círculo "T7" cuando no. Un test del manifest verifica que hay una cara por

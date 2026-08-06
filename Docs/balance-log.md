@@ -359,3 +359,71 @@ para el gate (dios 185-343 h contiene 196.3; el gradiente geomean ×8.21 entra e
 el 300 explícitamente.
 
 App 83/83.
+
+---
+
+# Línea de base ANTES del remapeo — 2026-08-06
+
+Medición tomada **a propósito antes** de tocar nada, porque una vez que la torre
+pase de 30 tiers en 11 pisos a 37 en 10 (RF-10) este número no se puede volver a
+tomar. Es contra esto que se compara el rebalance conjunto de la Ola 3.
+
+Comando (el mismo de siempre, sin cambios en `economy.json` ni `tiers.json`):
+
+```bash
+swift run --package-path Tools/pacing-sim pacing-sim \
+  --economy FisuEvolution/Resources/Data/economy.json \
+  --tiers FisuEvolution/Resources/Data/tiers.json
+```
+
+## Los números
+
+| Métrica | Valor |
+|---|---|
+| Dios (pared) | **196,30 h** · maxTier final 30 |
+| Reencarnaciones al llegar | **41** |
+| 1ª reencarnación (pared) | 0,14 h |
+| `lifetimeEarnings` final | 1,830e+33 |
+
+Desbloqueo de pisos, pared:
+
+| Piso | Pared | Ratio contra el anterior |
+|---|---|---|
+| urban | 0,01 h | — |
+| corporate | 0,07 h | ×5,18 |
+| luxury | 57,02 h | ×47,40 |
+| island | 129,06 h | ×2,21 |
+| moon | 196,14 h | ×1,51 |
+| mars | 196,26 h | ×1,01 |
+| solar | 196,27 h | ×1,00 |
+| galaxy | 196,27 h | ×1,00 |
+| cosmic | 196,28 h | ×1,00 |
+| god_realm | 196,30 h | ×1,00 |
+
+## El hallazgo: el acto cósmico no se juega, se desmorona
+
+**Los últimos cinco pisos se abren en 4 minutos**, de 196,14 h a 196,30 h. Mars,
+solar, galaxy, cosmic y god_realm tienen ratio ×1,00 entre sí: para cuando el
+jugador llega a la Luna ya tiene tanta plata acumulada que el resto de la torre
+cae de una sola vez.
+
+Eso reencuadra el pedido del playtest. La queja fue *"en todos los pisos deben
+haber por lo menos 4 personajes"*, y es cierta — pero el problema de los pisos
+cósmicos **no es sólo que tengan dos personajes**: es que el jugador pasa por
+los cinco en el tiempo que tarda en leer sus nombres. Meterles 7 tiers más
+(RF-10) los llena de contenido, y sin tocar la curva ese contenido se va a
+consumir igual de rápido.
+
+⚠️ **Consecuencia para el rebalance de la Ola 3.** Bajar el exponente del ORO de
+0,50 a 0,40 (RF-07) endurece la reencarnación, que es la palanca del late game,
+así que empuja en la dirección correcta. Pero el ×1,00 entre los cinco pisos de
+arriba no lo arregla el exponente del ORO: sale de que `incomeMultiplier` crece
+×2 por piso mientras las ganancias del jugador crecen mucho más rápido. Si
+después de la Ola 3 esos ratios siguen en ×1,00, el knob a mirar es la curva de
+`incomeMultiplier` de `floors[]`, no el ORO.
+
+Los targets de diseño que imprime el simulador (dios 21-65 h) siguen sin
+cumplirse por un factor de 3, y eso es **conocido y aceptado**: `PacingTests`
+está pineado a la conducta real desde F7.6, no al pacing que el spec pedía
+(decisión 5 del HANDOFF). El simulador los sigue imprimiendo para que la brecha
+quede visible.

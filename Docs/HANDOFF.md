@@ -210,6 +210,18 @@ El panel de debug es el ícono de herramientas del HUD.
    peso del `.app` y no cierran, borrá `build/DD`.
 2. **Un test de UI puede pasar sin probar nada.** Si automatizás gestos sobre
    SpriteKit, **asertá el efecto**, no que el gesto no crashee.
+
+   ⚠️ **`AscentRenderingUITests.testCharactersStayVisibleAfterTheFirstAscent`
+   falla hoy en `main`** (`"Alley" != "City"`, verificado 2026-08-06). No es un
+   problema de entorno ni del host de tests: es este mismo test cayendo en la
+   trampa 3 de abajo — arrastra por coordenadas fijas, el personaje deambuló, el
+   merge no engancha y el ascenso que asserta nunca ocurre. Su espejo de
+   `crowdBand` **sí** está al día (usa 0,4, igual que `BoardScene.crowdTopRatio`),
+   así que lo que falta son los reintentos. **Ya se llevó puestos dos agentes**
+   que lo diagnosticaron como "el simulador no arranca" y se pusieron a borrar
+   dispositivos. Mientras no se arregle, verificá con
+   `-skip-testing:FisuEvolutionUITests/AscentRenderingUITests` y sabé que la
+   línea de base real es **EconomyKit 144 verdes, UI 9 de 10**.
 3. **Los drags por coordenadas fijas fallan seguido** desde que el reconciliador
    conserva la posición deambulada: los personajes ya no vuelven a su ancla en
    cada relayout. Si automatizás un merge, contá con reintentos.

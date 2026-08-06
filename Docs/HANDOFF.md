@@ -1,6 +1,7 @@
 # HANDOFF — FisuEvolution, estado actual
 
-> **Empezá por acá.** Última actualización: 2026-08-05, commit `d39b57d`.
+> **Empezá por acá.** Última actualización: 2026-08-05, commit `eb81544` + el
+> fallback de contratación de esta sesión.
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 
@@ -119,6 +120,12 @@ traba en tier 12 y no llega a Dios nunca. El backfill es el puente que hace
 viable la progresión (el merge puro es 2²⁹ fisuras), y pedir dos pisos lo saca
 justo donde hace falta. Tabla completa en `Docs/balance-log.md`.
 
+**El botón no queda muerto cuando el gate cierra** (2026-08-05): parado en tu
+frontera, contratar cae en el piso de **abajo** —que por la propia regla del gate
+es siempre el más alto donde sí se puede— y el botón nombra ese piso para que la
+compra no parezca no haber pasado. `TowerActions.hireTargetFloor` decide el
+destino; `GameState.HireOffer` es la única proyección que consume el botón.
+
 ### Secuencia de celebraciones
 
 Un merge que asciende y abre piso disparaba **cinco cosas en t=0**. Ahora
@@ -149,6 +156,13 @@ La ficha de personaje abre entera y muestra skin y pasivo juntos sin scrollear;
 el nombre del personaje nuevo ya no se sale de la pantalla; la franja de piso es
 más alta y la hitbox cubre la cabeza.
 
+**La franja de la multitud llega hasta la mitad de la pantalla** (2026-08-05).
+Un solo knob, `BoardScene.crowdTopRatio`, en fracción del ALTO de pantalla; el
+deambular sale **derivado** de la franja, así que las filas la cubren sin huecos
+y nadie puede pasarse por arriba. ⚠️ Los fondos están autorados con el tercio
+inferior transitable, así que a 0,5 la multitud pisa la zona del decorado —es lo
+pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
+
 ---
 
 ## 5. Decisiones del dueño que NO se re-litigan
@@ -175,7 +189,7 @@ xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
 cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 20
 ```
 
-Estado: **EconomyKit 141 · app 85 · UI 10 · pipeline 20**, todo verde.
+Estado: **EconomyKit 144 · app 90 · UI 10 · pipeline 20**, todo verde.
 
 Simulador a mano:
 
@@ -207,14 +221,55 @@ El panel de debug es el ícono de herramientas del HUD.
 6. **`osascript`/System Events no funciona desde el shell del agente.** El batch
    de arte hay que correrlo desde Terminal.app.
 7. **Medir fps con un build corriendo en paralelo da números basura.**
+8. **La multitud y los fondos comparten espacio de `zPosition`, y eso ya rompió
+   una vez.** `depthZ` da negativo apenas una fila queda por encima de
+   `rows × cellSize`, y los `FloorNode` viven en `ordinal × 0.01`: cuando las dos
+   bandas se tocan, el fondo tapa a los personajes y quedan **invisibles pero
+   clickeables** (el hit-testing es geométrico y no mira el z). `fieldNode` va
+   montado en `BoardScene.fieldBaseZ` para que no puedan tocarse, y
+   `CrowdDepthTests` lo pinea. Si tocás `frontRowRatio`/`rowDepthRatio`/wander,
+   ese test es el que te avisa.
+9. **Un personaje invisible no siempre es `alpha = 0`.** Ese era el bug viejo del
+   pool. Si además ves su etiqueta "T1" flotando sin cuerpo, es z: dentro de un
+   `CharacterNode` todos los hijos comparten z, y con `ignoresSiblingOrder`
+   SpriteKit batchea labels y sprites del atlas por separado, así que contra el
+   fondo pierden los cuerpos y sobreviven los labels.
 
 ---
 
 ## 8. Qué queda
 
-**Nada conocido en el juego.** Lo que sigue es F6, que son gates humanos: cuenta
-Apple Developer (USD 99), nombre comercial, App Store Connect, TestFlight, submit.
-El ship-prep técnico ya está (`Distribution/`, entitlements, CI, privacy pages).
+⚠️ **Esto cambió el 2026-08-06.** Un jugador externo terminó el juego de punta a
+punta y mandó **16 correcciones**. Ya no es cierto que no quede nada: hay un
+programa de trabajo entero, con su spec y sus planes.
+
+| Documento | Qué es |
+|---|---|
+| `superpowers/specs/2026-08-06-correcciones-de-playtest-design.md` | **Los 16 pedidos como RF-01…RF-16**, con criterio de aceptación. Punto de entrada del programa |
+| `superpowers/specs/2026-08-06-siete-personajes-y-remapeo.md` | Los 8 personajes nuevos, la baja de `kiosco` y el remapeo de la torre a 10 pisos |
+| `superpowers/plans/2026-08-06-ola-0-preparacion.md` | Partir `GameState`, la pieza de descripción de efectos, el contenido y el audio |
+| `superpowers/plans/2026-08-06-ola-1-cinco-frentes.md` | Menú de mejoras, mapa de pisos, bonus, prestigio y tienda |
+
+El trabajo está organizado en **cuatro olas** para que varios frentes corran en
+paralelo sin compartir archivos. Lo único bloqueado por la cuenta de Apple
+Developer es **RF-02c**, el alta de productos en App Store Connect: todo lo demás
+—incluida la tienda funcionando— queda verificable en el simulador antes de eso.
+
+**Tres decisiones del dueño de esa sesión que no se re-litigan:**
+
+1. **El fondo que se retira es `cosmic`**, no `mars`. Criterio estético: es el
+   único que se sale del estilo (islas flotantes con cofres y un río de gemas).
+   Su costo está medido y anotado en el spec.
+2. **Sale `Personal de Kiosco` de la cadena** y El Mantero ocupa su lugar. Es lo
+   que baja el desplazamiento de la cadena de +3 a +2 y permite que tres de las
+   cuatro recolocaciones de personajes entren.
+3. **Magnate Petrolero queda en la luna.** Bajarlo a la isla exigía dejar un solo
+   personaje nuevo en toda la zona terrenal, y eso ensuciaba el callejón y la
+   calle urbana: tres desajustes nuevos para arreglar uno.
+
+Después de las cuatro olas sigue F6, que son gates humanos: cuenta Apple
+Developer (USD 99), nombre comercial, App Store Connect, TestFlight, submit. El
+ship-prep técnico ya está (`Distribution/`, entitlements, CI, privacy pages).
 
 Anotado por si algún día importa, con su medición:
 
@@ -239,4 +294,5 @@ Anotado por si algún día importa, con su medición:
 | `balance-log.md` | **Toda decisión de números, con su costo medido** |
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
+| `SESION-2026-08-05-fallback-de-contratacion.md` | El fallback del botón y la fila trasera invisible |
 | `superpowers/specs/`, `superpowers/plans/` | Specs y planes por feature |

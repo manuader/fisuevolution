@@ -777,6 +777,21 @@ cuando el arte exista."
 
 ## Frente F4 — Audio
 
+⚠️ **BLOQUEADO, verificado el 2026-08-06.** No hay fuente de audio en esta
+sesión: no existe MCP de ElevenLabs, y el único servidor de audio disponible
+genera **sólo voz** — su contrato dice explícitamente que no puede hacer música
+ni efectos, y que los modelos `sonilo_music`/`mirelo_text_to_audio` son
+exclusivos del pipeline de juegos y no se usan para audio suelto.
+
+**No ejecutes este frente hasta que haya fuente.** Desbloquearlo es conectar un
+MCP de música/efectos o conseguir audio CC0 a mano. El contrato son los nombres
+de archivo, así que integrarlo después es soltar los `.caf` con el mismo nombre:
+cero Swift, cero riesgo.
+
+⚠️ Y su criterio de aceptación es **humano**: se puede medir nivel, duración y
+costura del loop, pero el timbre y el "cansa en la décima vuelta" los juzga el
+dueño escuchando el juego.
+
 Un solo agente. **No toca Swift.** Trabaja sólo sobre `FisuEvolution/Resources/Audio/`.
 
 ### Task 6: Dos loops de música nuevos y revisión de los diez efectos

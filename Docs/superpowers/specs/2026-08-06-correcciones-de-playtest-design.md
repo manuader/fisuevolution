@@ -413,13 +413,38 @@ efectos **sintetizados por código** (`Tools/audio-synth`).
    contratar, comprar mejora, piso nuevo desbloqueado, moneda, acción inválida y
    las celebraciones.
 
-**Fuente del audio**: se generan con ElevenLabs, que está conectado a la sesión.
-Los volúmenes siguen respetando los sliders de música y efectos que ya existen en
-Ajustes.
+⚠️ **BLOQUEADO — la fuente de audio no existe en esta sesión** (verificado el
+2026-08-06). El spec decía que se generaban con ElevenLabs; es falso. No hay
+ningún MCP de ElevenLabs conectado, y el único servidor de audio disponible
+genera **sólo voz**: su propio contrato dice que no puede generar música ni
+efectos, y que los modelos `sonilo_music` y `mirelo_text_to_audio` existen
+únicamente para el pipeline de generación de juegos y no deben usarse para audio
+suelto.
+
+Para desbloquearlo hace falta **una de dos**: conectar un MCP con música y
+efectos standalone, o conseguir audio CC0 a mano — que era el plan original del
+proyecto (`AudioManager` todavía tiene el comentario del `[GATE HUMANO]` de audio
+CC0 del plan F5.10). El contrato son los nombres de archivo, así que integrarlo
+es soltar los `.caf` con el mismo nombre: **cero Swift**.
+
+⚠️ **Y este requisito no lo puede aceptar un agente.** Se puede medir nivel,
+duración, costura del loop y que el archivo exista; el timbre y el "cansa en la
+décima vuelta" necesitan un oído humano. La aceptación de RF-14 es del dueño.
+
+**Diagnóstico medido de lo que hay hoy** (2026-08-06): la calidad técnica está
+bien y el problema es puramente estético. `music_cosmic_loop` (26,7 s) loopea
+perfecto —salto de muestra de −73 dBFS—; `music_earth_loop` (20,0 s) tiene 38 ms
+de silencio al final que **no son un bug**: el bajo cierra en 19,96 s y el loop
+reinicia con el golpe de compás, así que ese hueco es del orden de la
+articulación normal del tema. Los diez SFX pican exactos a −3,0 dBFS, sin
+clipping, y `merge` (150 ms) y `evolution` (500 ms) ya son distinguibles.
+
+Los volúmenes siguen respetando los sliders de música y efectos de Ajustes.
 
 **Aceptación**: cada evento de la lista dispara un archivo distinto; con el
 slider de efectos en 0 no suena ninguno; la precarga sigue ocurriendo fuera del
-hilo principal, como quedó tras el arreglo de hitch de la sesión pasada.
+hilo principal, como quedó tras el arreglo de hitch de la sesión pasada. **Y el
+dueño escucha el juego y dice que le gusta** — no hay forma de automatizar eso.
 
 ---
 

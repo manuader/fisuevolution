@@ -96,10 +96,13 @@ enum UpgradeManager {
 
         state.meta.derivedEffects.incomeMultiplier = income
         state.meta.derivedEffects.tapMultiplier = tap
-        state.meta.derivedEffects.critChance = min(crit, 0.5)
-        state.meta.derivedEffects.offlineEfficiency = min(offline, 1.0)
-        state.meta.derivedEffects.goldenChance = min(golden, 0.1)
-        state.meta.derivedEffects.spawnDiscount = min(spawnDiscount, 0.6)
+        // Los topes salen de `EffectCaps` y no de literales sueltos: son los
+        // mismos que usa `EffectDescriptor` para armar la fila de la UI. Si se
+        // duplican, la fila promete un efecto que esta función después recorta.
+        state.meta.derivedEffects.critChance = min(crit, EffectCaps.crit)
+        state.meta.derivedEffects.offlineEfficiency = min(offline, EffectCaps.offline)
+        state.meta.derivedEffects.goldenChance = min(golden, EffectCaps.golden)
+        state.meta.derivedEffects.spawnDiscount = min(spawnDiscount, EffectCaps.spawnDiscount)
         state.meta.derivedEffects.prestigeBonus = prestigeBonus
         state.meta.globalMultiplier = economy.globalMultiplier(
             oroEarnedLifetime: state.meta.oroEarnedLifetime,

@@ -63,7 +63,10 @@ struct UpgradesConfig: Codable, Sendable, Equatable {
         case coins
         case oro
     }
-    enum EffectType: String, Codable, Sendable {
+    /// `CaseIterable` no es cosmético: es lo que le deja a
+    /// `EffectDescriptorTests` recorrer los siete tipos y verificar que ninguno
+    /// se queda sin descripción en pantalla.
+    enum EffectType: String, Codable, Sendable, CaseIterable {
         case incomeMultiplier
         case spawnCostDiscount
         case offlineEfficiency
@@ -121,7 +124,9 @@ struct DailyRewardsConfig: Codable, Sendable, Equatable {
 }
 
 struct BoostsConfig: Codable, Sendable, Equatable {
-    enum EffectType: String, Codable, Sendable {
+    /// Ídem `UpgradesConfig.EffectType`: `CaseIterable` es lo que hace real el
+    /// test de cobertura de `EffectDescriptor`.
+    enum EffectType: String, Codable, Sendable, CaseIterable {
         case incomeMultiplier
         case tapMultiplier
         case spawnCostMultiplier

@@ -610,7 +610,11 @@ def main() -> None:
     parser.add_argument("--dry-run", action="store_true", help="muestra cola sin abrir Gemini")
     parser.add_argument("--pause", type=float, default=4, help="segundos entre assets")
     parser.add_argument("--resume", action="store_true", help="continúa la cola; es el comportamiento por defecto")
-    parser.add_argument("--process", action="store_true", help="procesa dropbox explícitamente al terminar")
+    parser.add_argument("--process", action="store_true",
+                        help="integra y archiva cada asset APENAS se genera, no al "
+                             "final. Obligatorio cuando un asset de la cola usa como "
+                             "referencia a otro de la misma cola (las caras adjuntan "
+                             "el cuerpo del propio personaje)")
     parser.add_argument("--port", type=int, default=9222, help="puerto Chrome debug")
     parser.add_argument("--timeout", type=int, default=180, help="timeout de UI/descarga por asset")
     parser.add_argument("--retries", type=int, default=1,

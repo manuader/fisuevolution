@@ -73,10 +73,10 @@ urbano: **una manta → un kiosco → una moto → un auto**. Cada piso es una i
 
 | Tier | id | displayName | Piso | Se mergea en | Por qué es gracioso |
 |---|---|---|---|---|---|
-| 27 | `rey_asteroides` | **Rey de los Asteroides** | solar | `magnate_solar` | Vende el cinturón de asteroides **por kilo**, con carro flotante y balanza: es el Cartonero del sistema solar, veinticinco tiers después. El único chiste del tramo cósmico que le contesta al piso 1, que es de lo que se trata la torre entera. Astronómicamente además está donde va: el cinturón está justo después de Marte. |
-| 29 | `rentista_soles` | **Rentista de Soles** | galaxy | `estanciero_estelar` | Dejó de laburar hace tres fortunas y **vive de renta**: alquila soles por mes, en pantuflas y bata, con un llavero donde cada llave es una estrella. El sueño argentino máximo, a escala estelar. |
-| 30 | `estanciero_estelar` | **Estanciero Estelar** | galaxy | `senor_galaxia` | La oligarquía terrateniente, pero la pampa es un campo de estrellas y las vacas flotan. Bombacha, rastra de monedas de plata, mate en el cinto y un alambrado de postes de luz que se pierde en el horizonte. |
-| 32 | `coleccionista_galaxias` | **Coleccionista de Galaxias** | galaxy | `emperador_cosmico` | Tiene el álbum de galaxias completo **menos una**, y te cambia tres por esa. Está por encima del Señor de la Galaxia (que tiene una sola) y debajo del Emperador Cósmico, y a esta altura la plata ya no significa nada: son figuritas. |
+| 27 | `rey_asteroides` | **Rey de los Asteroides** | mars | `magnate_solar` | Vende el cinturón de asteroides **por kilo**, con carro flotante y balanza: es el Cartonero del sistema solar, veinticinco tiers después. El único chiste del tramo cósmico que le contesta al piso 1, que es de lo que se trata la torre entera. Astronómicamente además está donde va: el cinturón está justo después de Marte. |
+| 29 | `rentista_soles` | **Rentista de Soles** | solar | `estanciero_estelar` | Dejó de laburar hace tres fortunas y **vive de renta**: alquila soles por mes, en pantuflas y bata, con un llavero donde cada llave es una estrella. El sueño argentino máximo, a escala estelar. |
+| 30 | `estanciero_estelar` | **Estanciero Estelar** | solar | `senor_galaxia` | La oligarquía terrateniente, pero la pampa es un campo de estrellas y las vacas flotan. Bombacha, rastra de monedas de plata, mate en el cinto y un alambrado de postes de luz que se pierde en el horizonte. |
+| 32 | `coleccionista_galaxias` | **Coleccionista de Galaxias** | solar | `emperador_cosmico` | Tiene el álbum de galaxias completo **menos una**, y te cambia tres por esa. Está por encima del Señor de la Galaxia (que tiene una sola) y debajo del Emperador Cósmico, y a esta altura la plata ya no significa nada: son figuritas. |
 
 **Placeholders** (`spritePlaceholder`, mientras no exista el arte) y `phase`, para la Ola 2:
 
@@ -94,35 +94,80 @@ El corte `earth`/`cosmic` no se mueve: sigue cayendo entre el último del piso `
 primero del siguiente (hoy tiers 21/22, después del remapeo tiers **24/25**). Es el que
 elige `music_earth_loop` vs `music_cosmic_loop` y el atlas (`earth.atlas` / `cosmic.atlas`).
 
-## 4. Decisión 2 — Se retira `bg_mars`
+## 4. Decisión 2 — Se retira `bg_cosmic`
 
-De los cuatro fondos cósmicos (mars, solar, galaxy, cosmic), **el que se retira es `mars`**.
-Tres razones, en orden de peso:
+De los cuatro fondos cósmicos (mars, solar, galaxy, cosmic), **el que se retira es
+`cosmic`**. Es una **decisión estética del dueño**: el fondo cósmico se sale del estilo del
+juego. Abriendo los cuatro PNG (`Tools/asset-pipeline/dropbox/procesadas/bg_*.png`), lo que
+se ve es esto:
 
-1. **Es el único que duplica visualmente a su vecino.** `bg_moon` ya es un suelo rocoso
-   craterizado sin atmósfera con un cuerpo celeste grande en el cielo; `bg_mars` es la misma
-   composición con otra paleta ("llanura de polvo rojo, dunas y mesetas, dos lunas chicas en
-   un cielo rosa"). Se suben dos pisos y parece que no se movió nada.
-2. **Su escala ya está contenida por la de al lado.** El arco cósmico es un zoom-out
-   monótono: superficie de un cuerpo (moon) → sistema (solar) → galaxia (galaxy) → cosmos
-   abstracto (cosmic) → cielo (god_realm). Marte es **un planeta adentro del sistema solar**,
-   así que sacarlo no rompe la escalera; sacar `solar` o `galaxy` le haría un salto, y sacar
-   `cosmic` dejaría a los cuatro tiers divinos (Emperador Cósmico, Ser Ascendido, Semidiós,
-   Deidad) parados sobre un campo de estrellas literal en vez del reino abstracto que es
-   justo lo que ese tramo necesita.
-3. **La coherencia personaje↔fondo mejora en vez de empeorar.** Con `mars` retirado, el piso
-   `solar` queda con **Dueño de la Luna, Dueño de Marte, Rey de los Asteroides y Magnate del
-   Sistema Solar**: los cuatro dueños de cosas que están adentro del sistema solar, parados
-   sobre la plataforma de órbitas. Hoy el Dueño de la Luna está parado sobre Marte, que ya
-   era raro. Y el piso `cosmic` queda para los cuatro divinos, solos.
+- **`bg_cosmic`** son islas de roca flotantes con **cofres del tesoro abiertos, montañas de
+  monedas de oro, cristales de colores, portales hexagonales de neón y un río de gemas**
+  serpenteando por el fondo, sobre un cielo violeta con auroras. Es iconografía de loot de
+  RPG de fantasía; los otros diez fondos son lugares (un callejón, una esquina, una plaza de
+  oficinas, una playa, la Luna). Es el único que rompe ese idioma.
+- Además su piso **no es una franja de suelo que llega a los dos costados** como en los otros
+  diez: es una **meseta flotante con los bordes a la vista** en el medio del cuadro. Con 4
+  personajes por piso en vez de 2, es la zona de parado más angosta de toda la torre.
+- **`bg_galaxy` y `bg_cosmic` sí comparten paleta**: los dos son campos de estrellas violetas.
+  Son el único par que se pisa cromáticamente en la zona cósmica.
 
-Cuesta ~7 MB del `.app` (los fondos se comen 81 MB de los que pesa hoy). El personaje
-**Dueño de Marte no se toca**: sigue existiendo, sólo cambia de piso; Marte se le ve en el
-cielo del fondo `solar`, que ya trae "planetas alineados sobre arcos de órbita".
+Cuesta ~7 MB del `.app` (los fondos se comen 81 MB de lo que pesa hoy).
 
-El `.md` del prompt (`53_bg_mars.md`) y el PNG en `dropbox/procesadas/` **se dejan donde
+> **Corrección de la versión anterior de este documento.** La primera pasada proponía retirar
+> `bg_mars` argumentando que "duplica visualmente a `bg_moon`, es la misma composición en
+> rojo". **Eso es falso, y estaba escrito sin abrir las imágenes** — salió de las descripciones
+> de texto de `cultural_dict.py`, no de los PNG. `bg_moon` es cielo negro con la Tierra grande
+> al fondo, suelo gris craterizado, banderitas de colores y un domo de vidrio; `bg_mars` es
+> cielo rosa‑naranja, mesetas rojas, una colonia en construcción con grúas y andamios, cactus
+> y un remolino de polvo. Paletas opuestas y composiciones distintas. Queda anotado para que
+> el argumento no se repita: **un juicio visual se hace mirando el asset.**
+
+### El costo de sacar `cosmic`, tal cual es
+
+Sacar un fondo del **extremo** de la zona cósmica no es lo mismo que sacarlo del medio: todo
+el tramo divino baja un escalón de escala y quedan **dos desajustes personaje↔fondo reales**.
+No se pueden esconder, así que van anotados:
+
+1. **Tres personajes de escala galáctica quedan parados sobre el sistema solar.** El piso
+   `solar` (tiers 29–32) recibe a Rentista de Soles, Estanciero Estelar, **Señor de la
+   Galaxia** y **Coleccionista de Galaxias**. `bg_solar` dibuja *nuestro* sistema solar de
+   forma muy legible —el Sol adelante, Júpiter, Saturno, la Tierra, el cinturón de
+   asteroides, peajes sobre los arcos de órbita—, así que el Señor de la Galaxia parado ahí
+   se lee como si hubiera **bajado** de escala. Rentista de Soles es el único que gana con el
+   cambio: el Sol le queda justo atrás.
+2. **Los cuatro tiers divinos quedan sobre una galaxia literal.** El piso `galaxy` (33–36)
+   recibe a Emperador Cósmico, Ser Ascendido, Semidiós y Deidad. `bg_galaxy` es una espiral
+   con constelaciones dibujadas y un suelo de polvo estelar gris: lee como **astronomía**, no
+   como divinidad. Para el Emperador Cósmico está bien —gobierna el espacio—; para los otros
+   tres, que son el tramo trascendente, es el desajuste más caro de los dos.
+
+**No hay reordenamiento que lo arregle.** Los 8 personajes cósmicos que ya existen tienen un
+orden fijo en la cadena, y las cuatro últimas posiciones (33–36) están clavadas: nada puede
+ir después de Deidad, porque después va Dios. O sea que sólo se puede elegir dónde caen los 4
+nuevos entre los tiers 25 y 32, y ninguna de esas combinaciones mejora el total:
+
+- Correr un personaje nuevo al tier 28 llevaría al **Magnate del Sistema Solar** al piso
+  `solar`, que sería un calce perfecto (el fondo tiene los peajes por órbita que son su
+  chiste) — pero mete a Rentista de Soles o a Estanciero Estelar en el desierto rojo de
+  Marte, que calza **peor**, y encima invierte la escala de la cadena (alquilar soles antes
+  de ser dueño del sistema).
+- Correr a Rey de los Asteroides al piso `solar` —cuyo fondo dibuja el cinturón— obligaría a
+  meter dos personajes nuevos antes que él, y los tres que quedan son todos de escala mayor.
+
+Se cambia un desajuste por otro peor en los dos casos, así que **el mapeo de §5 es el mejor
+disponible y el costo queda asumido**. Lo único que gana el arreglo: **Dueño de Marte queda
+parado sobre Marte**, y el fondo trae justo una colonia a medio construir con grúas, que es
+literalmente su chiste (*flipping an entire red planet like a fixer-upper*).
+
+**Mitigación opcional, si el desajuste 2 molesta al verlo** (no está medido, no es parte de
+este frente): es **un solo prompt** regenerar `bg_galaxy` empujándolo al registro divino
+—misma espiral, núcleo más brillante, rayos de luz, paleta más cálida— en la misma corrida.
+No hace falta decidirlo ahora: el piso funciona igual y la vista sale de `floors[]`.
+
+El `.md` del prompt (`56_bg_cosmic.md`) y el PNG en `dropbox/procesadas/` **se dejan donde
 están**: son historia del pipeline, no del juego. Lo que se saca en la Ola 2 es la entrada
-`"mars"` de `assets_manifest.json` → `backgrounds` y los `Backgrounds/bg_mars@2x.png` /
+`"cosmic"` de `assets_manifest.json` → `backgrounds` y los `Backgrounds/bg_cosmic@2x.png` /
 `@3x.png` del bundle.
 
 ## 5. Decisión 3 — El mapeo final de 10 pisos
@@ -131,7 +176,7 @@ están**: son historia del pipeline, no del juego. Lo que se saca en la Ola 2 es
 pisos (10 saltos, razón media 1,902); la nueva tiene que ir de 1,0 a 620,0 en 10 pisos
 (9 saltos), o sea razón `620^(1/9) = 2,0431`. Los valores propuestos son esa progresión
 geométrica redondeada al estilo de la tabla vieja: **ningún piso se desvía más de 2,4% del
-valor ideal y todos los saltos caen entre ×2,00 y ×2,09** (la vieja iba entre ×1,80 y ×2,00).
+valor ideal y todos los saltos caen entre ×2,00 y ×2,10** (la vieja iba entre ×1,80 y ×2,00).
 
 | # | Piso | firstTier | lastTier | Personajes | `incomeMultiplier` | ideal | salto |
 |---|---|---|---|---|---|---|---|
@@ -141,17 +186,23 @@ valor ideal y todos los saltos caen entre ×2,00 y ×2,09** (la vieja iba entre 
 | 4 | `luxury` | 13 | 16 | *(Sr. de la carrera elegida)* · Director · Fundador de Startup · Dueño de PYME | **8,5** | 8,53 | ×2,02 |
 | 5 | `island` | 17 | 20 | Emprendedor · CEO · Millonario · Multimillonario | **17,0** | 17,42 | ×2,00 |
 | 6 | `moon` | 21 | 24 | Rey del Ladrillo · Magnate Petrolero · Space Billionaire · Trillonario | **35,0** | 35,59 | ×2,06 |
-| 7 | `solar` | 25 | 28 | Dueño de la Luna · Dueño de Marte · **Rey de los Asteroides** · Magnate del Sistema Solar | **72,0** | 72,71 | ×2,06 |
-| 8 | `galaxy` | 29 | 32 | **Rentista de Soles** · **Estanciero Estelar** · Señor de la Galaxia · **Coleccionista de Galaxias** | **150,0** | 148,55 | ×2,08 |
-| 9 | `cosmic` | 33 | 36 | Emperador Cósmico · Ser Ascendido · Semidiós · Deidad | **305,0** | 303,48 | ×2,03 |
+| 7 | `mars` | 25 | 28 | Dueño de la Luna · Dueño de Marte · **Rey de los Asteroides** · Magnate del Sistema Solar | **72,0** | 72,71 | ×2,06 |
+| 8 | `solar` | 29 | 32 | **Rentista de Soles** · **Estanciero Estelar** · Señor de la Galaxia · **Coleccionista de Galaxias** | **150,0** | 148,55 | ×2,08 |
+| 9 | `galaxy` | 33 | 36 | Emperador Cósmico · Ser Ascendido · Semidiós · Deidad | **305,0** | 303,48 | ×2,03 |
 | 10 | `god_realm` | 37 | 37 | Dios | **620,0** | 620,00 | ×2,03 |
 
 Verificado con el script del plan (Task 5, Step 3): `mapeo válido: 10 pisos` — cobertura
 exacta 1…37, sin huecos ni solapes, y los 9 pisos no-Dios con exactamente 4 tiers.
 
+**Los `backgroundOffset` sobreviven todos.** Son una propiedad de **la imagen** —dónde cae su
+franja de piso transitable—, no de la posición del piso en la torre, así que viajan con su
+fondo aunque el fondo cambie de tramo de tiers. Los cuatro que existen hoy (`urban` 0.135,
+`island` 0.18, `moon` 0.12, **`mars` 0.118**) quedan intactos y pegados a su propia imagen;
+`cosmic` no tenía ninguno, así que retirarlo no pierde nada. Es una diferencia concreta
+contra la propuesta anterior: retirar `mars` **sí** se habría llevado puesto un offset.
+
 El bloque `floors[]` de `economy.json` para la Ola 2, con los campos que **no** cambian
-(`capacity`, `hireCostMultiplier` del callejón y los `backgroundOffset` de cada fondo, salvo
-el de `mars` que se va con él):
+(`capacity`, `hireCostMultiplier` del callejón y los cuatro `backgroundOffset`):
 
 ```json
 [
@@ -161,9 +212,9 @@ el de `mars` que se va con él):
   { "id": "luxury",    "background": "luxury",    "firstTier": 13, "lastTier": 16, "capacity": 10, "incomeMultiplier":   8.5 },
   { "id": "island",    "background": "island",    "firstTier": 17, "lastTier": 20, "capacity": 10, "incomeMultiplier":  17.0, "backgroundOffset": 0.18 },
   { "id": "moon",      "background": "moon",      "firstTier": 21, "lastTier": 24, "capacity": 10, "incomeMultiplier":  35.0, "backgroundOffset": 0.12 },
-  { "id": "solar",     "background": "solar",     "firstTier": 25, "lastTier": 28, "capacity": 10, "incomeMultiplier":  72.0 },
-  { "id": "galaxy",    "background": "galaxy",    "firstTier": 29, "lastTier": 32, "capacity": 10, "incomeMultiplier": 150.0 },
-  { "id": "cosmic",    "background": "cosmic",    "firstTier": 33, "lastTier": 36, "capacity": 10, "incomeMultiplier": 305.0 },
+  { "id": "mars",      "background": "mars",      "firstTier": 25, "lastTier": 28, "capacity": 10, "incomeMultiplier":  72.0, "backgroundOffset": 0.118 },
+  { "id": "solar",     "background": "solar",     "firstTier": 29, "lastTier": 32, "capacity": 10, "incomeMultiplier": 150.0 },
+  { "id": "galaxy",    "background": "galaxy",    "firstTier": 33, "lastTier": 36, "capacity": 10, "incomeMultiplier": 305.0 },
   { "id": "god_realm", "background": "god_realm", "firstTier": 37, "lastTier": 37, "capacity": 10, "incomeMultiplier": 620.0 }
 ]
 ```
@@ -253,10 +304,10 @@ queda detrás del gate de la cuenta de Apple; el arte no.
 
 1. `tiers.json`: regenerar con los 7 tipos nuevos insertados y los 12 `mergesInto` de §5.
 2. `economy.json`: reemplazar `floors[]` por el bloque de §5.
-3. `assets_manifest.json`: sacar `backgrounds["mars"]`; agregar los 7 personajes, las 43
+3. `assets_manifest.json`: sacar `backgrounds["cosmic"]`; agregar los 7 personajes, las 43
    caras (`<id>_face`) y las 2 skins cuando el arte esté integrado.
 4. `skins.json` + `products.json`: las 2 skins pagas de §6.
-5. Borrar `Backgrounds/bg_mars@2x.png` y `@3x.png` del bundle (~7 MB).
+5. Borrar `Backgrounds/bg_cosmic@2x.png` y `@3x.png` del bundle (~7 MB).
 6. `Localizable.xcstrings`: los 7 `displayName`, los 2 nombres de skin.
 7. Correr `pacing-sim` **una sola vez** con RF-07 aplicado, y anotar la tabla en
    `Docs/balance-log.md`.

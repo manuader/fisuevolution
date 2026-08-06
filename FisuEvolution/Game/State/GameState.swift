@@ -132,6 +132,13 @@ final class GameState {
 
     // MARK: Observed projections (UI)
 
+    // ⚠️ Niveles de acceso: `GameState` vive partido en siete archivos
+    // (`GameState+*.swift`). En Swift `private` alcanza al tipo y a sus
+    // extensiones **del mismo archivo**, así que todo lo que escribe un dominio
+    // que se mudó tuvo que dejar de ser `private(set)`. Cada uno de esos lleva
+    // anotado quién lo escribe; lo que sigue `private(set)` es lo que sólo
+    // escribe este archivo (en la práctica, `refreshProjections`).
+
     private(set) var phase: Phase = .loading
     private(set) var coinsText = "0"
     private(set) var boardVersion = 0
@@ -147,16 +154,22 @@ final class GameState {
     private(set) var oroText = "0"
     private(set) var ownedSkins: [String] = []
     /// Invalida la ficha cuando llega un entitlement, milestone o equipamiento.
-    private(set) var skinSelectionVersion = 0
-    private(set) var activeEvent: EventManager.ActiveEvent?
-    private(set) var specialDrop: SpecialsConfig.Special?
-    private(set) var dailyClaim: DailyRewardManager.Claim?
-    private(set) var shareCardSubject: CharacterType?
+    /// Lo escriben `+Store` (entitlements y equipar) y `+Debug`.
+    var skinSelectionVersion = 0
+    /// Lo escribe `+Bonus`: el evento que arranca y el que vence.
+    var activeEvent: EventManager.ActiveEvent?
+    /// Lo escribe `+Actions`: el drop del merge y su descarte.
+    var specialDrop: SpecialsConfig.Special?
+    /// Lo escribe `+Bonus`: el daily que se reclama y su descarte.
+    var dailyClaim: DailyRewardManager.Claim?
+    /// Lo escribe `+Bonus`: la oferta de share card y su descarte.
+    var shareCardSubject: CharacterType?
     private(set) var showTapHint = false
     private(set) var showSpawnHint = false
     private(set) var showMergeHint = false
     /// Piso visible (ordinal 0-based). La escena lo consume vía boardVersion.
-    private(set) var visibleFloorOrdinal = 0
+    /// Lo escriben `+Tower` (navegación) y `+Debug` (fixture de UI test).
+    var visibleFloorOrdinal = 0
     /// Estado listo para la pill y las flechas de F7.2.
     private(set) var towerNavigation = TowerNavigation.empty
     /// Income pasivo agregado de todos los pisos, aunque no estén en cámara.
@@ -168,7 +181,8 @@ final class GameState {
     var towerNotice: TowerNotice?
     /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen
     /// `player` directo lo observan para re-renderizar.
-    private(set) var effectsVersion = 0
+    /// Lo escriben `+Upgrades` (las dos compras) y `+Bonus` (boosts y shares).
+    var effectsVersion = 0
     var careerPrompt: CareerPrompt?
     var characterSheet: CharacterSheet?
     var offlineReward: OfflineReward?
@@ -181,31 +195,44 @@ final class GameState {
     /// de skin apareciera en el instante del merge taparía el vuelo, el reveal y
     /// la celebración del piso —los tres a la vez, que es el bug que esto
     /// arregla—.
-    @ObservationIgnored private var celebrationChainActive = false
+    /// Lo escribe `+Actions`: el merge que asciende abre la cadena.
+    @ObservationIgnored var celebrationChainActive = false
     @ObservationIgnored private var pendingSkinAward: SkinAward?
-    @ObservationIgnored private var pendingHireUnlockedFloorID: String?
+    /// Lo escribe `+Actions` cuando el ascenso destraba un piso nuevo.
+    @ObservationIgnored var pendingHireUnlockedFloorID: String?
 
-    @ObservationIgnored private(set) var player: PlayerState?
+    /// Era `private(set)`. Lo mutan los seis dominios: cada acción del jugador
+    /// escribe el estado autoritativo y ninguno vive ya en este archivo.
+    @ObservationIgnored var player: PlayerState?
     /// La torre en memoria (pisos/slots). No se serializa: se reconstruye por
     /// reconciliación desde `run.units` en cada carga.
-    @ObservationIgnored private(set) var tower: TowerState?
+    /// Era `private(set)` por el mismo motivo que `player`.
+    @ObservationIgnored var tower: TowerState?
     private(set) var content: GameContent?
     @ObservationIgnored var debugTimeScale: Double = 1
 
-    private var economy: StandardEconomy?
+    /// La usan `+Actions`, `+Prestige`, `+Upgrades` y `+Bonus`.
+    var economy: StandardEconomy?
     private var repository: PlayerStateRepository?
     private let injectedRepository: PlayerStateRepository?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
-    @ObservationIgnored private var rng = SystemRandomNumberGenerator()
-    @ObservationIgnored private var gameCenter: GameCenterManager?
-    @ObservationIgnored private var haptics: HapticsManager?
-    @ObservationIgnored private var audio: AudioManager?
-    @ObservationIgnored private var ftueTapped = UserDefaults.standard.bool(forKey: "ftue.tapped")
-    @ObservationIgnored private var ftueSpawned = UserDefaults.standard.bool(forKey: "ftue.spawned")
-    @ObservationIgnored private var ftueMerged = UserDefaults.standard.bool(forKey: "ftue.merged")
+    /// Lo consumen `+Actions` (crítico/dorado y el drop de special) y `+Bonus`.
+    @ObservationIgnored var rng = SystemRandomNumberGenerator()
+    /// Los usan `+Actions` (merge/tap) y `+Prestige`.
+    @ObservationIgnored var gameCenter: GameCenterManager?
+    /// Los usan `+Actions`, `+Prestige` y `+Upgrades`.
+    @ObservationIgnored var haptics: HapticsManager?
+    /// Los usan `+Actions`, `+Prestige` y `+Bonus`.
+    @ObservationIgnored var audio: AudioManager?
+    /// Las tres banderas del FTUE las escribe `+Actions` y las lee este archivo
+    /// en `refreshProjections`.
+    @ObservationIgnored var ftueTapped = UserDefaults.standard.bool(forKey: "ftue.tapped")
+    @ObservationIgnored var ftueSpawned = UserDefaults.standard.bool(forKey: "ftue.spawned")
+    @ObservationIgnored var ftueMerged = UserDefaults.standard.bool(forKey: "ftue.merged")
     @ObservationIgnored private var cloudSync: CloudSaveSync?
-    @ObservationIgnored private var nextEventAt: TimeInterval = .infinity
-    @ObservationIgnored private var eventLastFired: [String: TimeInterval] = [:]
+    /// El scheduler de eventos vive entero en `+Bonus`.
+    @ObservationIgnored var nextEventAt: TimeInterval = .infinity
+    @ObservationIgnored var eventLastFired: [String: TimeInterval] = [:]
 
     init(repository: PlayerStateRepository? = nil) {
         self.injectedRepository = repository
@@ -241,66 +268,6 @@ final class GameState {
     func playFloorUnlockFeedback() {
         haptics?.play(.rarity)
         audio?.play(.prestige)
-    }
-
-    // MARK: Tower accessors (scene + views)
-
-    var floorTable: FloorTable? { content?.floorTable }
-
-    var visibleFloorDef: FloorDef? {
-        content.map { $0.floorTable[visibleFloorOrdinal] }
-    }
-
-    /// Specials anclados al piso visible (⚠️5: no ocupan slot ni se mergean —
-    /// quedan de decorado en el piso donde cayeron). Un special sin ancla (o con
-    /// un ancla de una config vieja) simplemente no se dibuja.
-    var visibleFloorSpecials: [SpecialsConfig.Special] {
-        guard let content, let player, let floorID = visibleFloorDef?.id else { return [] }
-        return content.specials.specials.filter {
-            player.meta.ownedSpecials.contains($0.id) && player.meta.specialAnchors[$0.id] == floorID
-        }
-    }
-
-    /// Placements del piso visible (la escena solo dibuja este piso en F7.1).
-    var visiblePlacements: [TowerPlacement] {
-        tower?.placements(onFloor: visibleFloorOrdinal) ?? []
-    }
-
-    var visibleFloorOccupancy: (occupied: Int, capacity: Int) {
-        floorOccupancy(ordinal: visibleFloorOrdinal)
-    }
-
-    /// Ocupación de un piso cualquiera: la contratación puede caer en uno que no
-    /// es el visible, y ahí el lleno que importa es el del destino.
-    func floorOccupancy(ordinal: Int) -> (occupied: Int, capacity: Int) {
-        guard let tower, tower.floors.indices.contains(ordinal) else { return (0, 0) }
-        let floor = tower.floors[ordinal]
-        return (floor.occupiedCount, floor.def.capacity)
-    }
-
-    /// Cambia el piso visible dentro de los abiertos y permite asomarse a uno
-    /// bloqueado. Así se ve la meta siguiente sin poder contratar ni saltar más.
-    func setVisibleFloor(_ ordinal: Int) {
-        guard let content, let player else { return }
-        let unlockedOrdinals = content.floorTable.floors.enumerated()
-            .filter { player.run.unlockedFloors.contains($0.element.id) }
-            .map(\.offset)
-        guard let maxUnlocked = unlockedOrdinals.max() else { return }
-        let maxVisible = min(maxUnlocked + 1, content.floorTable.floors.count - 1)
-        let clamped = min(max(0, ordinal), maxVisible)
-        guard clamped != visibleFloorOrdinal else { return }
-        visibleFloorOrdinal = clamped
-        bumpBoard()
-    }
-
-    /// Navega exactamente un piso en la torre. El límite superior es la vista
-    /// previa del próximo piso bloqueado, para que SpriteKit no anime más allá.
-    @discardableResult
-    func moveVisibleFloor(by direction: Int) -> Bool {
-        guard direction == -1 || direction == 1 else { return false }
-        let previous = visibleFloorOrdinal
-        setVisibleFloor(previous + direction)
-        return visibleFloorOrdinal != previous
     }
 
     // MARK: Bootstrap
@@ -388,7 +355,8 @@ final class GameState {
     /// Reconstruye la torre desde `run.units` contra el mapeo vigente. Corre en
     /// cada carga: un remapeo tier→piso entre versiones reacomoda la partida en
     /// vez de romperla (spec §3.1). Arranca mirando el piso más alto desbloqueado.
-    private func reconcileTower() {
+    /// La llaman `+Prestige` (reencarnar) y `+Debug` (resetear el save).
+    func reconcileTower() {
         guard let content, var player else { return }
         let before = player.run.units
         let outcome = TowerReconciler.reconcile(
@@ -413,7 +381,8 @@ final class GameState {
 
     /// Re-sincroniza la torre desde `run.units` SIN mover el piso visible
     /// (para mutaciones fuera de TowerActions, ej. instantEvolution).
-    private func resyncTower() {
+    /// La llama `+Bonus`, que es donde vive el evento que muta `run.units`.
+    func resyncTower() {
         guard let content, var player else { return }
         let outcome = TowerReconciler.reconcile(
             run: &player.run,
@@ -425,7 +394,9 @@ final class GameState {
         updateMaxFloorStat()
     }
 
-    private func updateMaxFloorStat() {
+    /// La llaman `+Actions` (merge y carrera) y `+Bonus` (merge instantáneo y
+    /// la unidad regalada por un evento).
+    func updateMaxFloorStat() {
         guard let content, var player else { return }
         let maxUnlocked = content.floorTable.floors.enumerated()
             .filter { player.run.unlockedFloors.contains($0.element.id) }
@@ -517,702 +488,6 @@ final class GameState {
         refreshProjections()
     }
 
-    // MARK: Player actions
-
-    struct TapResult {
-        let gain: Double
-        let isCrit: Bool
-        let isGolden: Bool
-    }
-
-    /// Tap con rolls de crítico (× critMultiplier) y golden touch (×10).
-    /// `cellIndex` = slot del piso visible. Nil si el slot está vacío.
-    @discardableResult
-    func registerTap(cellIndex: Int) -> TapResult? {
-        guard let economy, let content, var player = player,
-              let typeId = tower?.typeId(floorOrdinal: visibleFloorOrdinal, slot: cellIndex),
-              let type = content.tiers.type(id: typeId)
-        else { return nil }
-
-        var gain = economy.applyTap(
-            type: type,
-            state: &player,
-            floorTable: content.floorTable,
-            now: Date().timeIntervalSince1970
-        )
-        let isCrit = Double.random(in: 0..<1, using: &rng) < player.meta.derivedEffects.critChance
-        let isGolden = Double.random(in: 0..<1, using: &rng) < player.meta.derivedEffects.goldenChance
-        var bonusFactor = 1.0
-        if isCrit { bonusFactor *= content.economy.critMultiplier }
-        if isGolden { bonusFactor *= 10 }
-        if bonusFactor > 1 {
-            let extra = gain * (bonusFactor - 1)
-            player.run.coins += extra
-            player.meta.lifetimeEarnings += extra
-            gain += extra
-        }
-        self.player = player
-        if !ftueTapped {
-            ftueTapped = true
-            UserDefaults.standard.set(true, forKey: "ftue.tapped")
-        }
-        audio?.play(isCrit || isGolden ? .coin : .tap)
-        refreshProjections()
-        scheduleSave()
-        return TapResult(gain: gain, isCrit: isCrit, isGolden: isGolden)
-    }
-
-    /// Contrata el tier base del piso donde cae la oferta (F7 §3.3): el visible,
-    /// o el de abajo si el gate cerró el visible.
-    func buySpawn() {
-        guard let content, var player = player, var tower,
-              let ordinal = hireTargetOrdinal(player: player),
-              let quote = currentQuote(player: player, floorOrdinal: ordinal)
-        else { return }
-        do {
-            _ = try TowerActions.hire(
-                quote: quote,
-                state: &player,
-                tower: &tower,
-                floorTable: content.floorTable
-            )
-            self.player = player
-            self.tower = tower
-            if !ftueSpawned {
-                ftueSpawned = true
-                UserDefaults.standard.set(true, forKey: "ftue.spawned")
-            }
-            haptics?.play(.purchase)
-            audio?.play(.buy)
-            bumpBoard()
-            scheduleSave()
-        } catch {
-            if case TowerError.floorFull = error {
-                towerNotice = TowerNotice(kind: .floorFull)
-            }
-            haptics?.play(.error)
-            Log.economy.info("hire rejected: \(error)")
-        }
-    }
-
-    /// Resolves a drag-drop from the scene (slots del piso visible; F7 §3.4:
-    /// si el resultado pertenece a un piso superior, asciende — piso destino
-    /// lleno bloquea el merge).
-    func handleDrop(fromCell: Int, toCell: Int) -> DropResolution {
-        guard let content, var player = player, var tower, fromCell != toCell,
-              let sourceType = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: fromCell)
-        else { return .snapBack }
-
-        guard let targetType = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: toCell) else {
-            if TowerActions.move(floorOrdinal: visibleFloorOrdinal, fromSlot: fromCell, toSlot: toCell, tower: &tower) {
-                self.tower = tower
-                bumpBoard()
-                return .moved
-            }
-            return .snapBack
-        }
-
-        switch MergeRules.evaluate(
-            sourceTypeId: sourceType,
-            targetTypeId: targetType,
-            chosenCareerPath: player.run.chosenCareerPath,
-            tiers: content.tiers
-        ) {
-        case .merged(let newTypeId):
-            let tierBefore = player.run.maxTierReached
-            // `applyMerge` muta `unlockedFloors`: hay que fotografiarlo antes
-            // para saber qué destrabó el ascenso.
-            let unlockedBefore = player.run.unlockedFloors
-            do {
-                let result = try TowerActions.applyMerge(
-                    floorOrdinal: visibleFloorOrdinal,
-                    sourceSlot: fromCell,
-                    targetSlot: toCell,
-                    newTypeId: newTypeId,
-                    state: &player,
-                    tower: &tower,
-                    tiers: content.tiers,
-                    floorTable: content.floorTable
-                )
-                let evolvedTo = player.run.maxTierReached > tierBefore ? content.tiers.type(id: newTypeId) : nil
-                self.player = player
-                self.tower = tower
-                // El sheet de skin y el toast esperan a que la escena termine su
-                // cadena. Marcarlo ANTES de `updateMaxFloorStat()`, que es quien
-                // acredita la skin de milestone.
-                if case .promoted = result {
-                    celebrationChainActive = true
-                    let newlyHireable = TowerActions.newlyHireableFloors(
-                        unlockedBefore: unlockedBefore,
-                        unlockedAfter: player.run.unlockedFloors,
-                        floorTable: content.floorTable
-                    )
-                    // El más bajo: es el que el jugador va a querer rellenar.
-                    if let ordinal = newlyHireable.first {
-                        pendingHireUnlockedFloorID = content.floorTable[ordinal].id
-                    }
-                }
-                if !ftueMerged {
-                    ftueMerged = true
-                    UserDefaults.standard.set(true, forKey: "ftue.merged")
-                }
-                audio?.play(evolvedTo != nil ? .evolution : .merge)
-                reportMergeMilestones()
-                rollSpecialDrop()
-                updateMaxFloorStat()
-                bumpBoard()
-                scheduleSave()
-                switch result {
-                case .stayed(_, let slot, _):
-                    return .merged(
-                        targetCell: slot,
-                        evolvedTo: evolvedTo,
-                        promotedType: nil,
-                        promotedToFloor: nil,
-                        unlockedFloorId: nil
-                    )
-                case .promoted(let toFloor, _, _, let unlockedFloorId):
-                    return .merged(
-                        targetCell: toCell,
-                        evolvedTo: evolvedTo,
-                        promotedType: content.tiers.type(id: newTypeId),
-                        promotedToFloor: toFloor,
-                        unlockedFloorId: unlockedFloorId
-                    )
-                case .requiresCareerChoice:
-                    return .snapBack  // unreachable: MergeRules ya resolvió
-                }
-            } catch TowerError.destinationFloorFull(let floorID) {
-                towerNotice = TowerNotice(kind: .destinationFloorFull(floorID: floorID))
-                haptics?.play(.error)
-                Log.economy.info("merge blocked: destination floor full")
-                return .snapBack
-            } catch {
-                Log.economy.info("merge rejected: \(error)")
-                return .snapBack
-            }
-        case .requiresCareerChoice(let options):
-            careerPrompt = CareerPrompt(
-                options: options.compactMap { content.tiers.type(id: $0) },
-                sourceCell: fromCell,
-                targetCell: toCell
-            )
-            return .careerPending
-        case .invalid:
-            return .snapBack
-        }
-    }
-
-    /// Completes the deferred T9 merge after the player picks a career. The choice
-    /// persists until the next reincarnation (bible §1).
-    func chooseCareer(optionId: String) {
-        guard let prompt = careerPrompt, let content, var player = player, var tower else { return }
-        player.run.chosenCareerPath = MergeRules.careerPath(fromOptionId: optionId)
-
-        guard let sourceType = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: prompt.sourceCell),
-              let targetType = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: prompt.targetCell),
-              case .merged(let newTypeId) = MergeRules.evaluate(
-                  sourceTypeId: sourceType,
-                  targetTypeId: targetType,
-                  chosenCareerPath: player.run.chosenCareerPath,
-                  tiers: content.tiers
-              )
-        else {
-            self.player = player
-            careerPrompt = nil
-            refreshProjections()
-            return
-        }
-
-        do {
-            _ = try TowerActions.applyMerge(
-                floorOrdinal: visibleFloorOrdinal,
-                sourceSlot: prompt.sourceCell,
-                targetSlot: prompt.targetCell,
-                newTypeId: newTypeId,
-                state: &player,
-                tower: &tower,
-                tiers: content.tiers,
-                floorTable: content.floorTable
-            )
-        } catch {
-            Log.economy.info("career merge rejected: \(error)")
-        }
-        self.player = player
-        self.tower = tower
-        careerPrompt = nil
-        reportMergeMilestones()
-        rollSpecialDrop()
-        updateMaxFloorStat()
-        bumpBoard()
-        scheduleSave()
-    }
-
-    func dismissTowerNotice(id: UUID) {
-        guard towerNotice?.id == id else { return }
-        towerNotice = nil
-    }
-
-    private func reportMergeMilestones() {
-        guard let player else { return }
-        gameCenter?.report(.firstMerge)
-        gameCenter?.report(.reachedTier(player.run.maxTierReached))
-        gameCenter?.report(.scoreUpdate(lifetimeEarnings: player.meta.lifetimeEarnings, maxTier: player.run.maxTierReached))
-    }
-
-    private func rollSpecialDrop() {
-        guard let economy, let content, var player else { return }
-        if let dropped = SpecialDropManager.rollOnMerge(
-            state: &player,
-            config: content.specials,
-            upgrades: content.upgradesConfig,
-            viral: content.viral,
-            economy: economy,
-            rng: &rng
-        ) {
-            // Anclaje visual: el special queda en el piso donde cayó (⚠️5).
-            if let floorId = visibleFloorDef?.id {
-                player.meta.specialAnchors[dropped.id] = floorId
-            }
-            self.player = player
-            specialDrop = dropped
-            haptics?.play(.rarity)
-            audio?.play(.rare)
-            Log.economy.info("special dropped: \(dropped.id)")
-        }
-    }
-
-    func dismissSpecialDrop() {
-        specialDrop = nil
-    }
-
-    /// Long-press on a unit → ficha por personaje (§2.3 regla 3).
-    /// `cellIndex` = slot del piso visible.
-    func presentCharacterSheet(cellIndex: Int) {
-        guard let content, let player, let tower,
-              let typeId = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: cellIndex),
-              let type = content.tiers.type(id: typeId)
-        else { return }
-        characterSheet = CharacterSheet(
-            type: type,
-            cellIndex: cellIndex,
-            instanceCount: player.run.units[type.id] ?? 0,
-            isUnlocked: player.run.passiveUnlocked[type.id] == true,
-            canAfford: player.run.coins >= type.passiveUnlockCost,
-            canDismiss: player.run.totalUnits > 1
-        )
-    }
-
-    /// "Dejar de contratar": saca la unidad del slot y libera el espacio.
-    func dismissCharacter(atCell cell: Int) {
-        guard var player, var tower else { return }
-        guard TowerActions.removeUnit(floorOrdinal: visibleFloorOrdinal, slot: cell, state: &player, tower: &tower) else { return }
-        self.player = player
-        self.tower = tower
-        characterSheet = nil
-        playHaptic(.merge)
-        bumpBoard()
-        scheduleSave()
-    }
-
-    func unlockPassive(typeId: String) {
-        guard let economy, let content, var player = player else { return }
-        do {
-            try economy.applyPassiveUnlock(typeId: typeId, state: &player, tiers: content.tiers)
-            self.player = player
-            haptics?.play(.purchase)
-            characterSheet = nil
-            refreshProjections()
-            scheduleSave()
-        } catch {
-            haptics?.play(.error)
-            Log.economy.info("passive unlock rejected: \(error)")
-        }
-    }
-
-    // MARK: Reencarnación (F7: gate por ORO)
-
-    /// ORO que ganarías reencarnando ahora.
-    var prestigeOroGained: Int {
-        guard let economy, let player else { return 0 }
-        return PrestigeCalculator.oroGained(state: player, economy: economy)
-    }
-
-    func confirmPrestige() {
-        guard let economy, let content, var player = player,
-              PrestigeCalculator.canReincarnate(state: player, economy: economy)
-        else { return }
-        PrestigeCalculator.applyReincarnation(
-            state: &player,
-            economy: economy,
-            tiers: content.tiers,
-            floorTable: content.floorTable,
-            now: Date().timeIntervalSince1970
-        )
-        self.player = player
-        reconcileTower()
-        audio?.play(.prestige)
-        haptics?.play(.rarity)
-        gameCenter?.report(.firstPrestige)
-        bumpBoard()
-        Task { await persistNow() }
-        Log.economy.info("reincarnated: level \(player.meta.prestigeLevel), oro \(player.meta.oro)")
-    }
-
-    // MARK: Store (F4)
-
-    /// StoreKit es la fuente de verdad; acá solo se cachea en el save.
-    /// Las skins de milestone viven aparte (`meta.milestoneSkins`) y NO se pisan.
-    func applyStoreEntitlements(removedAds: Bool, ownedSkins: [String]) {
-        guard var player else { return }
-        guard player.meta.removedAds != removedAds || player.meta.ownedSkins != ownedSkins else { return }
-        player.meta.removedAds = removedAds
-        player.meta.ownedSkins = ownedSkins
-        let owned = player.meta.allOwnedSkins
-        player.meta.activeSkinByType = player.meta.activeSkinByType.filter { owned.contains($0.value) }
-        self.player = player
-        skinSelectionVersion &+= 1
-        bumpBoard()
-        scheduleSave()
-    }
-
-    /// Skin actualmente equipada en la ficha de un tipo. La ausencia es la
-    /// apariencia base: no se persiste un ID artificial para poder sumar skins
-    /// data-driven sin migrar saves.
-    func activeSkinID(forCharacterType typeID: String) -> String? {
-        guard let player else { return nil }
-        return player.meta.activeSkinByType[typeID]
-    }
-
-    func skinOptions(forCharacterType typeID: String) -> [SkinsConfig.Entry] {
-        content?.skins.entries(forCharacterType: typeID) ?? []
-    }
-
-    func ownsSkin(_ skinID: String) -> Bool {
-        player?.meta.allOwnedSkins.contains(skinID) == true
-    }
-
-    /// Equipa una skin en UN personaje. Valida tanto la pertenencia de la skin
-    /// al catálogo como la propiedad del jugador; StoreKit nunca puede inyectar
-    /// una apariencia que `skins.json` no declare para esa ficha.
-    func equipSkin(id skinID: String?, forCharacterType typeID: String) {
-        guard let content, var player,
-              content.tiers.type(id: typeID) != nil
-        else { return }
-        if let skinID {
-            guard player.meta.allOwnedSkins.contains(skinID),
-                  content.skins.entries(forCharacterType: typeID).contains(where: { $0.id == skinID })
-            else { return }
-            player.meta.activeSkinByType[typeID] = skinID
-        } else {
-            player.meta.activeSkinByType.removeValue(forKey: typeID)
-        }
-        self.player = player
-        skinSelectionVersion &+= 1
-        bumpBoard()
-        scheduleSave()
-    }
-
-    // MARK: Rewarded ads (F4 — efectos del bible §4.4)
-
-    func applyRewardedReward(_ reward: RewardedAdsConfig.Reward) {
-        guard var player else { return }
-        let now = Date().timeIntervalSince1970
-        switch reward.effectType {
-        case .incomeMultiplier:
-            guard let magnitude = reward.magnitude, let duration = reward.durationSeconds else { return }
-            player.run.activeModifiers.append(ActiveModifier(
-                effect: .incomeMultiplier,
-                magnitude: magnitude,
-                expiresAt: now + duration,
-                sourceKey: "rewarded.\(reward.id)"
-            ))
-            self.player = player
-            refreshProjections()
-            scheduleSave()
-        case .instantMerge:
-            performInstantMerge()
-        case .rareUnit:
-            grantRareUnit()
-        }
-        Log.economy.info("rewarded effect applied: \(reward.id)")
-    }
-
-    /// Merge gratis del par más alto disponible (saltea pares que pidan carrera).
-    private func performInstantMerge() {
-        guard var player, var tower, let content else { return }
-        // Buscar el par de mayor tier en TODA la torre.
-        let candidates: [(floorOrdinal: Int, slots: [Int], typeId: String, tier: Int)] = tower.floors.indices.flatMap { ordinal in
-            var slotsByType: [String: [Int]] = [:]
-            for placement in tower.placements(onFloor: ordinal) {
-                slotsByType[placement.typeId, default: []].append(placement.slot)
-            }
-            return slotsByType.compactMap { typeId, slots -> (floorOrdinal: Int, slots: [Int], typeId: String, tier: Int)? in
-                guard slots.count >= 2, let type = content.tiers.type(id: typeId) else { return nil }
-                return (floorOrdinal: ordinal, slots: slots, typeId: typeId, tier: type.tier)
-            }
-        }.sorted { $0.tier > $1.tier }
-
-        for candidate in candidates {
-            guard case .merged(let newTypeId) = MergeRules.evaluate(
-                sourceTypeId: candidate.typeId,
-                targetTypeId: candidate.typeId,
-                chosenCareerPath: player.run.chosenCareerPath,
-                tiers: content.tiers
-            ) else { continue }
-            do {
-                _ = try TowerActions.applyMerge(
-                    floorOrdinal: candidate.floorOrdinal,
-                    sourceSlot: candidate.slots[0],
-                    targetSlot: candidate.slots[1],
-                    newTypeId: newTypeId,
-                    state: &player,
-                    tower: &tower,
-                    tiers: content.tiers,
-                    floorTable: content.floorTable
-                )
-                self.player = player
-                self.tower = tower
-                updateMaxFloorStat()
-                bumpBoard()
-                scheduleSave()
-                return
-            } catch {
-                continue  // piso destino lleno: probar el siguiente par
-            }
-        }
-    }
-
-    /// F4: "spawn rare" — dropea una unidad del tier máximo en su piso.
-    private func grantRareUnit() {
-        guard var player, var tower, let content else { return }
-        let tier = player.run.maxTierReached
-        guard let type = content.tiers.concreteTypes.first(where: { candidate in
-            candidate.tier == tier && (player.run.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
-        }) ?? content.tiers.concreteTypes.first(where: { $0.tier == tier }) else { return }
-        let ordinal = content.floorTable.ordinal(forTier: type.tier)
-        guard let slot = tower.floors[ordinal].firstFreeSlot() else { return }
-        tower.floors[ordinal].slots[slot] = type.id
-        player.run.units[type.id, default: 0] += 1
-        self.player = player
-        self.tower = tower
-        bumpBoard()
-        scheduleSave()
-    }
-
-    // MARK: Upgrades (F5 — las 7 líneas; pasan a ORO en F7.4)
-
-    func upgradeLevel(of lineId: String) -> Int {
-        player?.meta.oroUpgradeLevels[lineId] ?? 0
-    }
-
-    func upgradeCost(of line: UpgradesConfig.Line) -> Double {
-        UpgradeManager.cost(of: line, level: upgradeLevel(of: line.id))
-    }
-
-    /// Tipos que el jugador conoce en esta vida (o ya mejoró) para la pestaña
-    /// Personajes. La UI recibe el catálogo filtrado, no inspecciona el save.
-    var characterUpgradeTypes: [CharacterType] {
-        guard let content, let player else { return [] }
-        return content.tiers.concreteTypes
-            .filter { (player.run.units[$0.id] ?? 0) > 0 || (player.run.charUpgradeLevels[$0.id] ?? 0) > 0 }
-            .sorted { $0.tier < $1.tier }
-    }
-
-    func characterUpgradeLevel(of typeID: String) -> Int {
-        player?.run.charUpgradeLevels[typeID] ?? 0
-    }
-
-    func characterUpgradeCost(of type: CharacterType) -> Double? {
-        guard let economy, let player, let content else { return nil }
-        return CharUpgrades.nextLevelCost(type: type, levels: player.run.charUpgradeLevels, config: content.economy, economy: economy)
-    }
-
-    func buyCharacterUpgrade(typeID: String) {
-        guard let economy, let content, var player,
-              let type = content.tiers.type(id: typeID)
-        else { return }
-        do {
-            try CharUpgrades.purchase(type: type, state: &player, config: content.economy, economy: economy)
-            self.player = player
-            haptics?.play(.purchase)
-            effectsVersion += 1
-            refreshProjections()
-            scheduleSave()
-        } catch {
-            haptics?.play(.error)
-            Log.economy.info("character upgrade rejected: \(error)")
-        }
-    }
-
-    func buyUpgrade(lineId: String) {
-        guard let economy, let content, var player = player else { return }
-        do {
-            try UpgradeManager.purchase(
-                lineId: lineId,
-                state: &player,
-                config: content.upgradesConfig,
-                specials: content.specials,
-                viral: content.viral,
-                economy: economy
-            )
-            self.player = player
-            haptics?.play(.purchase)
-            effectsVersion += 1
-            refreshProjections()
-            scheduleSave()
-        } catch {
-            haptics?.play(.error)
-            Log.economy.info("upgrade rejected: \(error)")
-        }
-    }
-
-    // MARK: Boosts (F5 — bible §1)
-
-    func boostCooldownRemaining(_ boost: BoostsConfig.Boost) -> TimeInterval {
-        guard let player else { return .infinity }
-        return BoostManager.cooldownRemaining(of: boost, state: player, now: Date().timeIntervalSince1970)
-    }
-
-    /// Devuelve las coins del cofre si el boost era el Asado.
-    @discardableResult
-    func activateBoost(id: String) -> Double? {
-        guard let economy, let content, var player = player else { return nil }
-        do {
-            let chest = try BoostManager.activate(
-                boostId: id,
-                state: &player,
-                config: content.boosts,
-                upgrades: content.upgradesConfig,
-                specials: content.specials,
-                viral: content.viral,
-                tiers: content.tiers,
-                economy: economy,
-                now: Date().timeIntervalSince1970
-            )
-            self.player = player
-            effectsVersion += 1
-            refreshProjections()
-            scheduleSave()
-            return chest
-        } catch {
-            Log.economy.info("boost rejected: \(error)")
-            return nil
-        }
-    }
-
-    // MARK: Eventos (F5 — bible §1)
-
-    private func scheduleNextEvent(from now: TimeInterval) {
-        guard let content else { return }
-        let jitter = Double.random(in: 0..<max(content.events.intervalJitterSeconds, 1), using: &rng)
-        nextEventAt = now + content.events.baseIntervalSeconds + jitter
-    }
-
-    private func fireEventIfDue(now: TimeInterval) {
-        guard let economy, let content, var player else { return }
-        if let active = activeEvent, now >= active.endsAt {
-            activeEvent = nil
-        }
-        guard now >= nextEventAt else { return }
-        scheduleNextEvent(from: now)
-        guard let roll = EventManager.fireRandomEvent(
-            state: &player,
-            config: content.events,
-            tiers: content.tiers,
-            floorTable: content.floorTable,
-            economy: economy,
-            now: now,
-            lastFired: eventLastFired,
-            rng: &rng
-        ) else { return }
-        self.player = player
-        // Si el evento regaló una unidad, colocarla en su piso (si hay lugar).
-        if let grantedTypeId = roll.grantedUnitTypeId {
-            placeGrantedUnit(typeId: grantedTypeId)
-        }
-        // instantEvolution mutó run.units directamente: re-sincronizar la torre.
-        if roll.unitsChanged {
-            resyncTower()
-        }
-        eventLastFired[roll.event.id] = now
-        activeEvent = roll.active
-        audio?.play(.event)
-        bumpBoard()
-        scheduleSave()
-        Log.economy.info("event fired: \(roll.event.id)")
-    }
-
-    /// Coloca una unidad regalada (evento) en el piso de su tier; si el piso está
-    /// lleno, el regalo se pierde con log (sin bloquear el evento).
-    private func placeGrantedUnit(typeId: String) {
-        guard var player, var tower, let content,
-              let type = content.tiers.type(id: typeId) else { return }
-        let ordinal = content.floorTable.ordinal(forTier: type.tier)
-        guard let slot = tower.floors[ordinal].firstFreeSlot() else {
-            Log.economy.info("granted unit skipped (floor full): \(typeId)")
-            return
-        }
-        tower.floors[ordinal].slots[slot] = typeId
-        player.run.units[typeId, default: 0] += 1
-        player.run.maxTierReached = max(player.run.maxTierReached, type.tier)
-        self.player = player
-        self.tower = tower
-        updateMaxFloorStat()
-    }
-
-    // MARK: Daily + shares (F5)
-
-    private func claimDailyIfAvailable() {
-        guard let economy, let content, var player else { return }
-        if let claim = DailyRewardManager.claimIfAvailable(
-            state: &player,
-            config: content.dailyRewards,
-            specials: content.specials,
-            upgrades: content.upgradesConfig,
-            viral: content.viral,
-            economy: economy,
-            today: Date(),
-            rng: &rng
-        ) {
-            self.player = player
-            dailyClaim = claim
-            audio?.play(.daily)
-            refreshProjections()
-            scheduleSave()
-        }
-    }
-
-    func dismissDailyClaim() {
-        dailyClaim = nil
-    }
-
-    /// La escena ofrece el share card al terminar el reveal de evolución.
-    func offerShareCard(for type: CharacterType) {
-        shareCardSubject = type
-    }
-
-    func dismissShareCard() {
-        shareCardSubject = nil
-    }
-
-    /// Referral local (bible §8): compartir da un boost permanente chico, capeado.
-    func registerShareCompleted() {
-        guard let economy, let content, var player = player else { return }
-        guard player.meta.sharesCompleted < content.viral.maxShares else { return }
-        player.meta.sharesCompleted += 1
-        UpgradeManager.recomputeDerivedEffects(
-            state: &player,
-            config: content.upgradesConfig,
-            specials: content.specials,
-            viral: content.viral,
-            economy: economy
-        )
-        self.player = player
-        effectsVersion += 1
-        scheduleSave()
-    }
-
     // MARK: Lifecycle (offline + immediate save)
 
     func handleScenePhase(_ scenePhase: ScenePhase) {
@@ -1233,7 +508,8 @@ final class GameState {
         }
     }
 
-    private func applyOfflineProgressIfNeeded() {
+    /// La llama también `+Debug`, para simular una vuelta después de N horas.
+    func applyOfflineProgressIfNeeded() {
         guard let content, var player else { return }
         let credited = OfflineCalculator.apply(
             state: &player,
@@ -1249,103 +525,13 @@ final class GameState {
         }
     }
 
-    // MARK: Debug helpers
-
-    #if DEBUG
-    /// Acredita skins de milestone sin recorrer su condición. Desde que se
-    /// retiraron los tintes IAP, los milestones son la única fuente de skins,
-    /// así que los tests que ejercitan equipar necesitan esta puerta.
-    func grantMilestoneSkinsForTests(_ ids: [String]) {
-        guard var player else { return }
-        player.meta.milestoneSkins = Array(Set(player.meta.milestoneSkins).union(ids)).sorted()
-        self.player = player
-        skinSelectionVersion &+= 1
-    }
-
-    func debugGrantCoins() {
-        guard var player else { return }
-        let quoted = currentQuote(player: player, floorOrdinal: hireTargetOrdinal(player: player) ?? visibleFloorOrdinal)
-        let grant = max(1_000_000, (quoted?.cost ?? 0) * 100)
-        player.run.coins += grant
-        player.meta.lifetimeEarnings += grant
-        self.player = player
-        refreshProjections()
-    }
-
-    /// Coloca un par del tier máximo alcanzado para poder testear la escalera.
-    func debugGrantPair() {
-        guard let content, var player, var tower else { return }
-        let tier = player.run.maxTierReached
-        guard let type = content.tiers.concreteTypes.first(where: { candidate in
-            candidate.tier == tier && (player.run.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
-        }) ?? content.tiers.concreteTypes.first(where: { $0.tier == tier }) else { return }
-
-        let ordinal = content.floorTable.ordinal(forTier: type.tier)
-        guard let slotA = tower.floors[ordinal].firstFreeSlot() else { return }
-        tower.floors[ordinal].slots[slotA] = type.id
-        guard let slotB = tower.floors[ordinal].firstFreeSlot() else {
-            tower.floors[ordinal].slots[slotA] = nil
-            return
-        }
-        tower.floors[ordinal].slots[slotB] = type.id
-        player.run.units[type.id, default: 0] += 2
-        if !player.run.unlockedFloors.contains(content.floorTable[ordinal].id) {
-            player.run.unlockedFloors.append(content.floorTable[ordinal].id)
-        }
-        self.player = player
-        self.tower = tower
-        bumpBoard()
-    }
-
-    /// Salta la escalera para playtesting (ej. probar la elección de carrera en T9).
-    func debugSetMaxTier(_ tier: Int) {
-        guard var player, let content else { return }
-        player.run.maxTierReached = min(max(1, tier), content.tiers.maxTier)
-        self.player = player
-        refreshProjections()
-    }
-
-    /// Fixture de UI test: desbloquea pisos por la tabla data-driven, sin tocar
-    /// el binario Release ni depender de un save preexistente en el simulador.
-    func debugUnlockFloors(throughTier tier: Int) {
-        guard var player, let content else { return }
-        let highestOrdinal = content.floorTable.ordinal(forTier: tier)
-        player.run.unlockedFloors = content.floorTable.floors.prefix(highestOrdinal + 1).map(\.id)
-        self.player = player
-        visibleFloorOrdinal = 0
-        refreshProjections()
-    }
-
-    func debugSimulateOffline(hours: Double) {
-        guard var player else { return }
-        player.meta.lastSeenTimestamp -= hours * 3600
-        self.player = player
-        applyOfflineProgressIfNeeded()
-        refreshProjections()
-    }
-
-    func debugResetSave() {
-        guard let content else { return }
-        player = PlayerState.newGame(
-            startTypeId: content.tiers.baseType.id,
-            startFloorId: content.floorTable[0].id,
-            offlineEfficiencyBase: content.economy.offlineEfficiencyBase,
-            critChanceBase: content.economy.critChanceBase,
-            now: Date().timeIntervalSince1970
-        )
-        debugTimeScale = 1
-        reconcileTower()
-        bumpBoard()
-        Task { await persistNow() }
-    }
-    #endif
-
     // MARK: Internals
 
     /// El piso donde cae la contratación: el visible, salvo que el gate lo haya
     /// cerrado y haya que bajar uno. `nil` si desde acá no se contrata en ningún
     /// lado (piso visible todavía cerrado).
-    private func hireTargetOrdinal(player: PlayerState) -> Int? {
+    /// La llaman `+Actions` (contratar) y `+Debug` (cotizar el regalo de coins).
+    func hireTargetOrdinal(player: PlayerState) -> Int? {
         guard let content else { return nil }
         return TowerActions.hireTargetFloor(
             visibleOrdinal: visibleFloorOrdinal,
@@ -1354,7 +540,8 @@ final class GameState {
         )
     }
 
-    private func currentQuote(player: PlayerState, floorOrdinal: Int) -> HireQuote? {
+    /// La llaman `+Actions` (contratar) y `+Debug`.
+    func currentQuote(player: PlayerState, floorOrdinal: Int) -> HireQuote? {
         guard let economy, let content else { return nil }
         let prestigeDiscount = content.prestigeUnlocks.cumulativeSpawnDiscount(atPrestigeLevel: player.meta.prestigeLevel)
         return TowerActions.hireQuote(
@@ -1369,14 +556,17 @@ final class GameState {
         )
     }
 
-    private func bumpBoard() {
+    /// La llaman los seis dominios: cualquier cambio que la escena tenga que
+    /// redibujar pasa por acá.
+    func bumpBoard() {
         boardVersion += 1
         refreshProjections()
     }
 
     /// Updates observed properties, writing only on real change so SwiftUI never
     /// invalidates spuriously.
-    private func refreshProjections() {
+    /// La llaman `+Actions`, `+Upgrades`, `+Bonus` y `+Debug`.
+    func refreshProjections() {
         guard let content, let player else { return }
 
         let newCoins = CoinFormatter.string(from: player.run.coins)
@@ -1474,7 +664,8 @@ final class GameState {
         )
     }
 
-    private func scheduleSave() {
+    /// La llaman los seis dominios: toda mutación persistible pasa por acá.
+    func scheduleSave() {
         saveTask?.cancel()
         saveTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2))

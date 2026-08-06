@@ -304,9 +304,22 @@ El reparto de los 7 sale de la aritmética:
 - Zona cósmica (mars, solar, galaxy, cosmic): 8 tiers en 4 pisos → 12 tiers en 3
   pisos → **+4 personajes y se retira 1 fondo**.
 
-Qué fondo se retira y en qué tier entra cada personaje nuevo lo decide la tarea
-A1 (§5), junto con los nombres y el humor de los 7 — que aprueba el dueño antes
-de que se genere una sola imagen.
+**Decisión del dueño (2026-08-06), no se re-litiga**: el fondo que se retira es
+**`cosmic`** — el de las islas flotantes con cofres y el río de gemas. Criterio:
+es el único que se sale del estilo del resto del juego, y comparte el campo de
+estrellas violeta con `bg_galaxy`.
+
+Se evaluó retirar `mars` en su lugar y se descartó. Su costo está medido y hay
+que anotarlo: retirar `cosmic` abre el hueco en la **punta** de la escala, así
+que tres personajes de escala galáctica quedan parados sobre el fondo del sistema
+solar. Retirar `mars` no tenía ese costo porque el hueco caía en el medio. Se
+eligió igual el criterio estético. (El argumento original para retirar `mars`
+—"duplica visualmente a la Luna"— **es falso**: verificado contra los PNG, la
+Luna es cielo negro con la Tierra al fondo y suelo gris, y Marte es cielo rosa
+con mesetas rojas y una colonia con grúas.)
+
+En qué tier entra cada personaje nuevo lo decide la tarea A1 (§5), junto con los
+nombres y el humor de los 7 — aprobados por el dueño el 2026-08-06.
 
 Los saves viejos **no se rompen**: `TowerReconciler` recalcula la ubicación
 contra el mapeo vigente en cada carga, que es exactamente el caso para el que se

@@ -1,4 +1,4 @@
-# Los 7 personajes nuevos y el remapeo de la torre a 10 pisos
+# Los 8 personajes nuevos y el remapeo de la torre a 10 pisos
 
 > Frente **F3** de la Ola 0 (`Docs/superpowers/plans/2026-08-06-ola-0-preparacion.md`, Task 5).
 > Cierra **RF-10** de `Docs/superpowers/specs/2026-08-06-correcciones-de-playtest-design.md`
@@ -6,8 +6,8 @@
 >
 > **Este documento no toca ni un JSON.** Es la decisión de contenido. `tiers.json`,
 > `economy.json`, `skins.json` y `products.json` se editan en la **Ola 2**, cuando el
-> arte exista. Los nombres y el humor de los 7 los **aprueba el dueño** antes de que
-> se genere una sola imagen.
+> arte exista. Los nombres y el humor los **aprueba el dueño** antes de que
+> se genere una sola imagen. Aprobados el 2026-08-06.
 
 ## 1. El problema
 
@@ -20,13 +20,14 @@ pisos tienen 2 personajes**. Se sube un piso, se ven dos caras, se sube otro.
 | | Hoy | Nuevo |
 |---|---|---|
 | Tiers (rungs de la cadena de merge) | 30 | **37** |
-| Tipos concretos (con sprite) | 36 | **43** |
+| Tipos concretos (con sprite) | 36 | **43** (35 + 8: sale `kiosco`, entran los 8 nuevos) |
 | Pisos | 11 | **10** |
 | Pisos con menos de 4 personajes | 7 | **0** (salvo el de Dios, que tiene 1 a propósito) |
 | Fondos | 11 | **10** |
 
-El reparto de los 7 personajes nuevos **no es una elección, sale forzado** de exigir
-exactamente 4 por piso:
+El reparto **no es una elección, sale forzado** de exigir exactamente 4 por piso. La tabla de
+abajo es el cálculo original con 7; la **Decisión 4 (§5)** lo corrige a 8 al eliminar a
+`kiosco`, que suma un cósmico más:
 
 | Zona | Pisos | Tiers hoy | Necesita | Nuevos |
 |---|---|---|---|---|
@@ -38,6 +39,10 @@ exactamente 4 por piso:
 Dentro de la zona terrenal el reparto también queda forzado: `corporate`, `luxury` e
 `island` ya tienen 4, así que los 3 nuevos van **2 al callejón y 1 al piso urbano**.
 
+⚠️ Esos 3 abajo empujan **+3** a todo lo de arriba, y eso es lo que mandaba a cuatro
+personajes un piso más alto de donde su nombre dice que van. La Decisión 4 baja el
+desplazamiento a **+2** eliminando a `kiosco`.
+
 ### ⚠️ Una corrección a la aritmética del spec
 
 RF-05 dice **44 caras** ("los 37 tipos concretos de hoy más los 7"). **Son 43.**
@@ -47,10 +52,12 @@ unidad en el tablero y **no aparece en la pestaña Personajes**, que se construy
 `TierRepository.concreteTypes` (`GameState.characterUpgradeTypes`, que filtra los nodos de
 elección). Generarle una cara sería arte que no se muestra en ningún lado.
 
-Concretos hoy: **36**. Más los 7 nuevos: **43 caras**. El total de prompts de este frente
-baja de 53 a **52** (7 personajes + 43 caras + 2 skins).
+Concretos hoy: **36**. Menos `kiosco` (Decisión 4) más los 8 nuevos: **43 caras**.
 
-## 3. Decisión 1 — Los 7 personajes nuevos
+Total de prompts del frente: **54** = 8 personajes + 43 caras + 2 skins + 1 regeneración de
+`bg_galaxy`.
+
+## 3. Decisión 1 — Los 8 personajes nuevos
 
 El criterio: los 30 que ya existen van de *El Fisura* a *Dios* pasando por el mundo laboral
 argentino y después por el espacio, y el chiste siempre es **la escala cósmica choca contra
@@ -64,16 +71,22 @@ escribieron para sonar como escritos por la misma persona.
 |---|---|---|---|---|---|
 | 2 | `trapito` | **El Trapito** | alley | `limpiavidrios` | Te cobra por cuidarte el auto que estacionaste solo. Es el primer ingreso de la torre y no requiere absolutamente **ningún** capital: un trapo. Después de El Fisura, que no tiene nada, tener un trapo ya es una carrera. |
 | 3 | `limpiavidrios` | **Limpiavidrios** | alley | `cartonero` | El del semáforo que empieza a lavarte el parabrisas antes de que puedas decir que no, con el verde a punto de salir. Escalón siguiente porque ya invirtió en herramientas: secador, botella y balde. |
-| 5 | `mantero` | **El Mantero** | urban | `kiosco` | Vende sobre una manta con las cuatro puntas ya agarradas, mitad vendedor mitad velocista. Es el eslabón que faltaba entre juntar cartón (vender basura) y atender un kiosco (tener local): acá ya tiene **mercadería**, pero le entra toda en un bulto. |
+| 5 | `mantero` | **El Mantero** | urban | `repartidor` | Vende sobre una manta con las cuatro puntas ya agarradas, mitad vendedor mitad velocista. Es el eslabón que faltaba entre juntar cartón (vender basura) y atender un kiosco (tener local): acá ya tiene **mercadería**, pero le entra toda en un bulto. |
 
 La cadena del callejón queda: **nada → un trapo → un secador → un carro**. Y la del piso
-urbano: **una manta → un kiosco → una moto → un auto**. Cada piso es una idea sola.
+urbano, después de que la Decisión 4 saca al kiosco: **una manta → una moto → un auto → un
+uniforme**, o sea la escalera de conseguir un laburo de verdad. Cada piso es una idea sola.
 
-### Los 4 cósmicos
+### Los 5 cósmicos
+
+⚠️ Eran 4. El quinto —**Fondo Buitre Estelar**— entra con la Decisión 4 (§5): eliminar a
+`kiosco` deja la cadena en 35 y hace falta un personaje más para llegar a 36. Los tiers de
+esta tabla ya son los definitivos, con el desplazamiento neto +2.
 
 | Tier | id | displayName | Piso | Se mergea en | Por qué es gracioso |
 |---|---|---|---|---|---|
-| 27 | `rey_asteroides` | **Rey de los Asteroides** | mars | `magnate_solar` | Vende el cinturón de asteroides **por kilo**, con carro flotante y balanza: es el Cartonero del sistema solar, veinticinco tiers después. El único chiste del tramo cósmico que le contesta al piso 1, que es de lo que se trata la torre entera. Astronómicamente además está donde va: el cinturón está justo después de Marte. |
+| 28 | `fondo_buitre` | **Fondo Buitre Estelar** | mars | `rentista_soles` | Compró la deuda de tres sistemas solares que entraron en default y ahora se los ejecuta. Traje impecable, portafolio lleno de bonos incobrables y cedulones de embargo pegados a planetitas que se lleva bajo el brazo. Es el arquetipo que le faltaba al tramo: el chatarrero, el rentista, el terrateniente y el coleccionista ya estaban — el depredador financiero no. Y es el trauma argentino con nombre propio. Encaja justo en el escalón entre tener **un** sistema solar y alquilar soles de a montones: los suyos no los compró, se los quedó. |
+| 26 | `rey_asteroides` | **Rey de los Asteroides** | mars | `magnate_solar` | Vende el cinturón de asteroides **por kilo**, con carro flotante y balanza: es el Cartonero del sistema solar, veinticinco tiers después. El único chiste del tramo cósmico que le contesta al piso 1, que es de lo que se trata la torre entera. Astronómicamente además está donde va: el cinturón está justo después de Marte. |
 | 29 | `rentista_soles` | **Rentista de Soles** | solar | `estanciero_estelar` | Dejó de laburar hace tres fortunas y **vive de renta**: alquila soles por mes, en pantuflas y bata, con un llavero donde cada llave es una estrella. El sueño argentino máximo, a escala estelar. |
 | 30 | `estanciero_estelar` | **Estanciero Estelar** | solar | `senor_galaxia` | La oligarquía terrateniente, pero la pampa es un campo de estrellas y las vacas flotan. Bombacha, rastra de monedas de plata, mate en el cinto y un alambrado de postes de luz que se pierde en el horizonte. |
 | 32 | `coleccionista_galaxias` | **Coleccionista de Galaxias** | solar | `emperador_cosmico` | Tiene el álbum de galaxias completo **menos una**, y te cambia tres por esa. Está por encima del Señor de la Galaxia (que tiene una sola) y debajo del Emperador Cósmico, y a esta altura la plata ya no significa nada: son figuritas. |
@@ -86,6 +99,7 @@ urbano: **una manta → un kiosco → una moto → un auto**. Cada piso es una i
 | `limpiavidrios` | `earth` | `sf:drop.fill` |
 | `mantero` | `earth` | `sf:bag.fill` |
 | `rey_asteroides` | `cosmic` | `sf:circle.hexagongrid.fill` |
+| `fondo_buitre` | `cosmic` | `sf:doc.text.fill` |
 | `rentista_soles` | `cosmic` | `sf:key.fill` |
 | `estanciero_estelar` | `cosmic` | `sf:leaf.fill` |
 | `coleccionista_galaxias` | `cosmic` | `sf:square.grid.3x3.fill` |
@@ -181,15 +195,48 @@ valor ideal y todos los saltos caen entre ×2,00 y ×2,10** (la vieja iba entre 
 | # | Piso | firstTier | lastTier | Personajes | `incomeMultiplier` | ideal | salto |
 |---|---|---|---|---|---|---|---|
 | 1 | `alley` | 1 | 4 | El Fisura · **El Trapito** · **Limpiavidrios** · Cartonero | **1,0** | 1,00 | — |
-| 2 | `urban` | 5 | 8 | **El Mantero** · Personal de Kiosco · Repartidor · Chofer de App | **2,0** | 2,04 | ×2,00 |
-| 3 | `corporate` | 9 | 12 | Empleado de Fast Food · Oficinista · Administrativo · *(elección de carrera)* | **4,2** | 4,17 | ×2,10 |
-| 4 | `luxury` | 13 | 16 | *(Sr. de la carrera elegida)* · Director · Fundador de Startup · Dueño de PYME | **8,5** | 8,53 | ×2,02 |
-| 5 | `island` | 17 | 20 | Emprendedor · CEO · Millonario · Multimillonario | **17,0** | 17,42 | ×2,00 |
-| 6 | `moon` | 21 | 24 | Rey del Ladrillo · Magnate Petrolero · Space Billionaire · Trillonario | **35,0** | 35,59 | ×2,06 |
-| 7 | `mars` | 25 | 28 | Dueño de la Luna · Dueño de Marte · **Rey de los Asteroides** · Magnate del Sistema Solar | **72,0** | 72,71 | ×2,06 |
+| 2 | `urban` | 5 | 8 | **El Mantero** · Repartidor · Chofer de App · Empleado de Fast Food | **2,0** | 2,04 | ×2,00 |
+| 3 | `corporate` | 9 | 12 | Oficinista · Administrativo · *(elección de carrera)* · *(Sr. de la carrera)* | **4,2** | 4,17 | ×2,10 |
+| 4 | `luxury` | 13 | 16 | Director · Fundador de Startup · Dueño de PYME · **Emprendedor** ✅ | **8,5** | 8,53 | ×2,02 |
+| 5 | `island` | 17 | 20 | CEO · Millonario · Multimillonario · **Rey del Ladrillo** ✅ | **17,0** | 17,42 | ×2,00 |
+| 6 | `moon` | 21 | 24 | Magnate Petrolero ❌ · Space Billionaire · Trillonario · **Dueño de la Luna** ✅ | **35,0** | 35,59 | ×2,06 |
+| 7 | `mars` | 25 | 28 | **Dueño de Marte** ✅ · **Rey de los Asteroides** · Magnate del Sistema Solar · **Fondo Buitre Estelar** | **72,0** | 72,71 | ×2,06 |
 | 8 | `solar` | 29 | 32 | **Rentista de Soles** · **Estanciero Estelar** · Señor de la Galaxia · **Coleccionista de Galaxias** | **150,0** | 148,55 | ×2,08 |
 | 9 | `galaxy` | 33 | 36 | Emperador Cósmico · Ser Ascendido · Semidiós · Deidad | **305,0** | 303,48 | ×2,03 |
 | 10 | `god_realm` | 37 | 37 | Dios | **620,0** | 620,00 | ×2,03 |
+
+✅ = recolocación pedida por el dueño y cumplida. ❌ = la única que no entró.
+
+### Decisión 4 — Sale `kiosco`, El Mantero ocupa su lugar
+
+**Decisión del dueño (2026-08-06).** El personaje **Personal de Kiosco** (`kiosco`, tier
+original 3) **se elimina de la cadena** y El Mantero ocupa su posición en el piso urbano.
+
+El motivo es aritmético y vale entenderlo, porque es la regla que gobierna toda esta tabla:
+**cada personaje nuevo que entra abajo empuja un lugar a todo lo que está arriba.** Con los 3
+terrenales agregados sin sacar a nadie, el desplazamiento era +3 y eso mandaba a Emprendedor a
+la isla, a Rey del Ladrillo y Magnate Petrolero a la luna, y al Dueño de la Luna a Marte —
+cuatro personajes un piso más arriba de donde su nombre dice que van.
+
+Reemplazar en vez de agregar deja el desplazamiento neto en **+2**, y con eso entran tres de
+las cuatro recolocaciones. Se evaluó la alternativa de cortar uno de los tres terrenales
+aprobados; reemplazar a `kiosco` da el mismo efecto sin perder ninguno.
+
+**Lo que no entra**: Magnate Petrolero queda en la luna. Para bajarlo a la isla haría falta
+desplazamiento +1, o sea un solo personaje nuevo en toda la zona terrenal, y eso obliga a que
+el Personal de Kiosco quede parado en el callejón y el Oficinista en la calle urbana. Se
+cambiaban tres desajustes nuevos abajo por uno arreglado arriba. **Está aceptado como está.**
+
+**Consecuencias de eliminar `kiosco`, todas para la Ola 2:**
+
+| Qué | Qué pasa |
+|---|---|
+| El total de personajes nuevos | Pasa de 7 a **8**: 29 originales − 1 + N = 36 → N = 8. El octavo es el **Fondo Buitre Estelar** (§3) |
+| Su sprite (`kiosco` en `earth.atlas`) | Queda huérfano. Se saca del manifest junto con la entrada del generador |
+| Su skin `kiosco__nocturno` | Queda huérfana también. Se saca de `skins.json` |
+| Su prompt de cara (`170_kiosco_face.md`) | Se elimina: no hay a quién ponérsela |
+| `cartonero` y `mantero` | Se rewirean sus `mergesInto` (tabla de abajo) |
+| Saves viejos con unidades `kiosco` | `TowerReconciler` las descarta al cargar. El juego no shipeó, así que no hay partidas reales que romper |
 
 Verificado con el script del plan (Task 5, Step 3): `mapeo válido: 10 pisos` — cobertura
 exacta 1…37, sin huecos ni solapes, y los 9 pisos no-Dios con exactamente 4 tiers.
@@ -221,22 +268,29 @@ El bloque `floors[]` de `economy.json` para la Ola 2, con los campos que **no** 
 
 ### Los `mergesInto` que cambian
 
-Sólo estos siete; el resto de la cadena queda igual.
+Sólo estos; el resto de la cadena queda igual. La lista incluye la baja de `kiosco`.
 
 | id | `mergesInto` hoy | `mergesInto` nuevo |
 |---|---|---|
 | `homeless` | `cartonero` | **`trapito`** |
-| `trapito` | — | **`limpiavidrios`** |
-| `limpiavidrios` | — | **`cartonero`** |
+| `trapito` | — (nuevo) | **`limpiavidrios`** |
+| `limpiavidrios` | — (nuevo) | **`cartonero`** |
 | `cartonero` | `kiosco` | **`mantero`** |
-| `mantero` | — | **`kiosco`** |
+| `mantero` | — (nuevo) | **`repartidor`** |
+| `kiosco` | `repartidor` | **se elimina la entrada** |
 | `dueno_marte` | `magnate_solar` | **`rey_asteroides`** |
-| `rey_asteroides` | — | **`magnate_solar`** |
-| `magnate_solar` | `senor_galaxia` | **`rentista_soles`** |
-| `rentista_soles` | — | **`estanciero_estelar`** |
-| `estanciero_estelar` | — | **`senor_galaxia`** |
+| `rey_asteroides` | — (nuevo) | **`magnate_solar`** |
+| `magnate_solar` | `senor_galaxia` | **`fondo_buitre`** |
+| `fondo_buitre` | — (nuevo) | **`rentista_soles`** |
+| `rentista_soles` | — (nuevo) | **`estanciero_estelar`** |
+| `estanciero_estelar` | — (nuevo) | **`senor_galaxia`** |
 | `senor_galaxia` | `emperador_cosmico` | **`coleccionista_galaxias`** |
-| `coleccionista_galaxias` | — | **`emperador_cosmico`** |
+| `coleccionista_galaxias` | — (nuevo) | **`emperador_cosmico`** |
+
+⚠️ **`tiers.json` no se edita a mano: se genera.** La fuente de la cadena es
+`Tools/generate-tiers/Sources/main.swift`, que la declara como lista de `CulturalEntry`
+(`kiosco` está en la línea 51). Las altas, la baja y los `mergesInto` van **ahí**, y después
+se corre `swift run generate-tiers`. Editar el JSON directo lo pisa la próxima regeneración.
 
 ### La curva de la economía por tier
 
@@ -257,7 +311,7 @@ Nada. `TowerReconciler` recalcula la ubicación de cada unidad contra el mapeo v
 carga — es exactamente el caso para el que se construyó. Un save con el mapeo de 11 pisos
 carga y reacomoda solo. La aceptación de RF-10 ya lo pide como test.
 
-## 6. Los 52 prompts de arte
+## 6. Los 54 prompts de arte
 
 Escritos en `Tools/asset-pipeline/prompts/gemini_pro/`, numerados **158–209**, todos en
 `estado: pendiente`, listos para **una sola corrida** del runner.

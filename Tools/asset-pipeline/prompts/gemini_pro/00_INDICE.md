@@ -198,7 +198,6 @@ Dos cosas que hay que respetar al correrla:
 | 167 | limpiavidrios_face | `limpiavidrios_face.png` | pendiente |
 | 168 | cartonero_face | `cartonero_face.png` | pendiente |
 | 169 | mantero_face | `mantero_face.png` | pendiente |
-| 170 | kiosco_face | `kiosco_face.png` | pendiente |
 | 171 | repartidor_face | `repartidor_face.png` | pendiente |
 | 172 | chofer_app_face | `chofer_app_face.png` | pendiente |
 | 173 | fast_food_face | `fast_food_face.png` | pendiente |
@@ -238,5 +237,8 @@ Dos cosas que hay que respetar al correrla:
 | 207 | god_face | `god_face.png` | pendiente |
 | 208 | homeless__mundialista | `homeless__mundialista.png` | pendiente |
 | 209 | god__parrillero | `god__parrillero.png` | pendiente |
+| 210 | fondo_buitre | `fondo_buitre.png` | pendiente |
+| 211 | fondo_buitre_face | `fondo_buitre_face.png` | pendiente |
+| 212 | bg_galaxy (regeneración) | `bg_galaxy.png` | pendiente |
 
-**Progreso**: 157/209 hechos, 52 pendientes.
+**Progreso**: 157/211 hechos, 54 pendientes.

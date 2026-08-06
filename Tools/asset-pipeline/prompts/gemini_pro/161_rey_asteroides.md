@@ -1,4 +1,4 @@
-# 161 — Rey de los Asteroides (Tier 27 — mapeo nuevo de 10 pisos)
+# 161 — Rey de los Asteroides (Tier 26 — mapeo nuevo de 10 pisos)
 
 - **archivo**: `rey_asteroides.png`
 - **estado**: pendiente

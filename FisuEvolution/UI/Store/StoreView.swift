@@ -20,10 +20,17 @@ struct StoreView: View {
                     case .idle, .loading:
                         ProgressView("loading.title")
                     case .failed:
-                        Label("store.error.load", systemImage: "wifi.exclamationmark")
-                            .foregroundStyle(.secondary)
+                        unavailableLabel
                     case .loaded:
-                        productSections
+                        // `Product.products(for:)` no falla cuando un id no
+                        // resuelve: lo omite. Con StoreKit caído devuelve la
+                        // lista vacía y `loadState` queda en `.loaded`, así que
+                        // el hueco hay que nombrarlo acá o no lo nombra nadie.
+                        if store.products.isEmpty {
+                            unavailableLabel
+                        } else {
+                            productSections
+                        }
                     }
                 }
                 .listRowBackground(Color.clear)
@@ -74,6 +81,26 @@ struct StoreView: View {
                 }
             }
         }
+    }
+
+    /// Lo que ve el jugador cuando la tienda no tiene nada que ofrecerle, sea
+    /// porque la carga falló o porque volvió vacía. Lleva el reintento adentro:
+    /// `start()` es idempotente y no vuelve a pedir los productos, así que cerrar
+    /// y reabrir el carrito no arregla nada por sí solo.
+    private var unavailableLabel: some View {
+        VStack(spacing: 8) {
+            Label("store.error.load", systemImage: "wifi.exclamationmark")
+                .foregroundStyle(.secondary)
+            Button {
+                Task { await store.loadProducts() }
+            } label: {
+                Text("store.retry")
+            }
+            .buttonStyle(.bordered)
+            .accessibilityIdentifier("store.retry")
+        }
+        .frame(maxWidth: .infinity)
+        .accessibilityIdentifier("store.unavailable")
     }
 
     @ViewBuilder

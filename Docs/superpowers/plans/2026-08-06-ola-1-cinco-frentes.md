@@ -44,8 +44,15 @@ enum EffectDescriptor {
 enum EffectFormatter {
     static func text(_ amount: EffectAmount) -> String                                  // "+30%", "−9%", "3%", "×2,5"
     static func progression(current: EffectAmount, next: EffectAmount?) -> String        // "+30% → +40%"
+    static var cappedNote: String { get }                                                // "al máximo"
 }
 ```
+
+**Ya está implementada y mergeada** (`FisuEvolution/Managers/EffectDescriptor.swift`, 10 tests verdes). `cappedNote` es la etiqueta para las filas cuyo `EffectAmount` viene con `isCapped`: **usala en vez de escribir tu propia etiqueta**, que es justo lo que esta pieza existe para evitar.
+
+⚠️ **Dos tests están rojos en `main` y no son tuyos**: `AscentRenderingUITests` y `PacingTests`. Verificá con
+`-skip-testing:FisuEvolutionUITests/AscentRenderingUITests -skip-testing:FisuEvolutionTests/PacingTests -parallel-testing-enabled NO`.
+La línea de base real es **EconomyKit 144 · app 100 · UI 7**. Detalle en `Docs/HANDOFF.md` §7.2.
 
 ### Verificación (todos los frentes, al final de cada task)
 

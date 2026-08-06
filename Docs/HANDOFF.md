@@ -222,6 +222,17 @@ El panel de debug es el ícono de herramientas del HUD.
    dispositivos. Mientras no se arregle, verificá con
    `-skip-testing:FisuEvolutionUITests/AscentRenderingUITests` y sabé que la
    línea de base real es **EconomyKit 144 verdes, UI 9 de 10**.
+
+   ⚠️ **`PacingTests.strugglingPhaseLength` también está rojo en `main`**
+   (verificado con `git stash` el 2026-08-06). No falla un assert: el proceso de
+   la app **muere** — `Test crashed with signal kill before starting test
+   execution`. Es entorno, no economía. Salteálo igual que el otro mientras no se
+   arregle.
+
+   ⚠️ **El simulador se degrada en corridas largas** (`(ipc/mig) server died`
+   repetido). Se sale con `xcrun simctl shutdown all`, `erase` del device y
+   `-parallel-testing-enabled NO`. Si una suite empieza a fallar a mitad de una
+   corrida que venía verde, es esto y no el código.
 3. **Los drags por coordenadas fijas fallan seguido** desde que el reconciliador
    conserva la posición deambulada: los personajes ya no vuelven a su ancla en
    cada relayout. Si automatizás un merge, contá con reintentos.

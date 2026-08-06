@@ -186,8 +186,14 @@ lleva **dos líneas**:
 2. Un **texto de color corto** con el humor del juego.
 
 La traducción de `effectType` + magnitud + nivel a texto vive en **una sola
-pieza** en EconomyKit (`EffectDescriptor`), consumida por las mejoras, los boosts
-y el prestigio. Los `effectType` a cubrir son los 7 de `upgrades.json`
+pieza**, `EffectDescriptor`, consumida por las mejoras, los boosts y el prestigio.
+
+⚠️ **Corrección (2026-08-06)**: este párrafo decía "en EconomyKit" y estaba mal.
+La pieza vive en la **capa de app** (`FisuEvolution/Managers/EffectDescriptor.swift`),
+porque los dos enums `EffectType` y los topes ya viven ahí (`ContentConfigs.swift`
+y `ContentSystems.swift`). Meterla en EconomyKit obligaba a mudar los enums y a
+que el paquete puro conociera el formato de presentación — justo lo que prohíbe
+la regla de capas del HANDOFF. Implementado y verificado así. Los `effectType` a cubrir son los 7 de `upgrades.json`
 (`incomeMultiplier`, `spawnCostDiscount`, `offlineEfficiency`, `tapMultiplier`,
 `critChance`, `goldenTouchChance`, `prestigeBonusPerSoulPoint`) y los 5 de
 `boosts.json` (`spawnCostMultiplier`, `tapMultiplier`, `incomeMultiplier`,

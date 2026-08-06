@@ -157,17 +157,20 @@ Cero cambio de conducta: mismos tests, mismo número, todos verdes."
 - Consumes: `AudioManager.SFX` (ya existe, 10 casos) y `AudioManager.play(_:)`.
 - Produces: nada que otro frente consuma.
 
-**El hallazgo**: `sfx_tap.caf`, `sfx_merge.caf`, `sfx_evolution.caf`, `sfx_coin.caf` y `sfx_error.caf` están en `FisuEvolution/Resources/Audio/` y **ningún call site los dispara**. Hoy sólo se tocan `.buy`, `.daily`, `.event`, `.prestige` y `.rare`. Además hay 14 `haptics?.play(...)` contra 9 `audio?.play(...)`: cinco acciones vibran y no suenan.
+**El hallazgo, ya corregido durante la ejecución**: la búsqueda inicial dio cinco SFX por huérfanos, pero **cuatro de ellos ya estaban cableados desde F5 dentro de ternarios** —`audio?.play(isCrit || isGolden ? .coin : .tap)` y `audio?.play(evolvedTo != nil ? .evolution : .merge)`—, que un grep del nombre pegado al paréntesis no encuentra. **El único mudo de verdad era `sfx_error`**: cinco acciones (contratar sin plata, mergear a un piso lleno, comprar un pasivo, una mejora de personaje y una de ORO) vibraban sin sonar. Falta además `.coin` en las dos veces que cae plata de golpe: las ganancias offline y el cofre del Asado.
+
+⚠️ Lección para el test: contar call sites por nombre literal da falsos huérfanos. El test tiene que parsear el argumento hasta su paréntesis de cierre para que un ternario cuente como cableado.
 
 **El mapeo a cablear:**
 
-| SFX | Cuándo suena |
-|---|---|
-| `.tap` | tap sobre un personaje que produce plata |
-| `.merge` | merge exitoso que **no** sube de tier |
-| `.evolution` | merge que sube de tier |
-| `.coin` | cobrar las ganancias offline y el cofre del boost `asado` |
-| `.error` | cada sitio que hoy hace `haptics?.play(.error)` sin audio |
+| SFX | Cuándo suena | Estado real |
+|---|---|---|
+| `.tap` | tap que no es crítico ni dorado | ya cableado (ternario) |
+| `.coin` | tap crítico o dorado | ya cableado (ternario) |
+| `.merge` | merge que **no** sube de tier | ya cableado (ternario) |
+| `.evolution` | merge que sube de tier | ya cableado (ternario) |
+| `.coin` | cobrar las ganancias offline y el cofre del `asado` | **falta** |
+| `.error` | cada sitio que hoy hace `haptics?.play(.error)` sin audio | **falta** |
 
 - [ ] **Step 1: Escribir el test que falla**
 

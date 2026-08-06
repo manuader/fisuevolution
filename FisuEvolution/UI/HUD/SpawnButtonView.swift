@@ -19,23 +19,7 @@ struct SpawnButtonView: View {
             } label: {
                 VStack(spacing: 2) {
                     buttonTitle(for: quote)
-                    if gameState.visibleFloorIsFull {
-                        Text("spawn.button.full.detail")
-                            .font(.subheadline.weight(.semibold))
-                    } else if !gameState.visibleFloorIsUnlocked {
-                        Text("spawn.button.locked.detail")
-                            .font(.subheadline.weight(.semibold))
-                    } else if !gameState.visibleFloorAllowsHiring {
-                        Text("spawn.button.hire_locked.detail")
-                            .font(.subheadline.weight(.semibold))
-                    } else {
-                        HStack(spacing: 4) {
-                            CoinIcon(size: 18)
-                            Text(verbatim: CoinFormatter.string(from: quote.cost))
-                                .monospacedDigit()
-                        }
-                        .font(.subheadline.weight(.semibold))
-                    }
+                    buttonDetail(for: quote)
                 }
             }
             // Sin saldo: NO usamos `.disabled` (el dimming del sistema bajaba el
@@ -68,16 +52,63 @@ struct SpawnButtonView: View {
     @ViewBuilder
     private func buttonTitle(for quote: HireQuote) -> some View {
         Group {
-            if gameState.visibleFloorIsFull {
-                Text("spawn.button.full")
-            } else if !gameState.visibleFloorIsUnlocked {
-                Text("spawn.button.locked")
-            } else if !gameState.visibleFloorAllowsHiring {
-                Text("spawn.button.hire_locked")
-            } else {
-                Text("spawn.button.title \(quote.type.displayName)")
+            switch gameState.hireOffer {
+            case .full: Text("spawn.button.full")
+            case .floorLocked: Text("spawn.button.locked")
+            case .unavailable: Text("spawn.button.hire_locked")
+            case .here, .floorBelow: Text("spawn.button.title \(quote.type.displayName)")
             }
         }
         .font(.system(.headline, design: .rounded).weight(.bold))
+    }
+
+    /// El detalle nombra el piso cuando la compra NO cae en el que estás
+    /// mirando: si no, la unidad aparecería en otro piso y el tap se sentiría
+    /// como que no pasó nada.
+    @ViewBuilder
+    private func buttonDetail(for quote: HireQuote) -> some View {
+        Group {
+            switch gameState.hireOffer {
+            case .here:
+                price(for: quote)
+            case .floorBelow(let floorID):
+                HStack(spacing: 4) {
+                    price(for: quote)
+                    floorTag(floorID)
+                }
+            case .full(let belowFloorID):
+                if let belowFloorID {
+                    HStack(spacing: 4) {
+                        Text("spawn.button.full.detail")
+                        floorTag(belowFloorID)
+                    }
+                } else {
+                    Text("spawn.button.full.detail")
+                }
+            case .floorLocked:
+                Text("spawn.button.locked.detail")
+            case .unavailable:
+                Text("spawn.button.hire_locked.detail")
+            }
+        }
+        .font(.subheadline.weight(.semibold))
+    }
+
+    private func price(for quote: HireQuote) -> some View {
+        HStack(spacing: 4) {
+            CoinIcon(size: 18)
+            Text(verbatim: CoinFormatter.string(from: quote.cost))
+                .monospacedDigit()
+        }
+    }
+
+    /// Nombre del piso de destino. La clave es estática (`TowerNaming`) porque
+    /// `LocalizedStringKey` no resuelve claves armadas por interpolación.
+    private func floorTag(_ floorID: String) -> some View {
+        HStack(spacing: 4) {
+            Text(verbatim: "·")
+            Text(TowerNaming.floorNameKey(for: floorID))
+        }
+        .opacity(0.85)
     }
 }

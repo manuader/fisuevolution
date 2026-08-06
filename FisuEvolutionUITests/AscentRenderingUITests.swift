@@ -13,9 +13,18 @@ final class AscentRenderingUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    /// Anclas del tablero, en coordenadas normalizadas. Salen de la geometría de
-    /// `BoardScene.rebuildAnchors` (2 filas × 5 columnas, `edgeInset` 0.68 y
-    /// `frontY` 0.55 del `cellSize`), no de tantear la pantalla.
+    /// Anclas del tablero. Un test de UI corre fuera de proceso y no puede
+    /// importar la app, así que esto es un ESPEJO de `BoardScene.rebuildAnchors`
+    /// + `BoardScene.crowdBand`.
+    ///
+    /// ⚠️ **Si cambiás la geometría del campo, cambiá esto en el mismo commit.**
+    /// Ya se desincronizó dos veces: quedó con el `rowDepth` viejo (no se notó
+    /// porque la fila 0 lo multiplica por cero) y después con el `frontY` viejo,
+    /// que sí rompió — el drag agarraba 70 pt por debajo del personaje, no había
+    /// merge, y el test moría en el gate del ascenso en vez de en el drag.
+    ///
+    /// El gate de la pill es justamente lo que convierte ese desfasaje en una
+    /// falla ruidosa en vez de un verde falso. No lo saques.
     @MainActor
     private func slot(_ index: Int, in app: XCUIApplication) -> XCUICoordinate {
         let width = app.frame.width
@@ -27,7 +36,34 @@ final class AscentRenderingUITests: XCTestCase {
         let row = CGFloat(index / 5)
         let stagger = (row.truncatingRemainder(dividingBy: 2) == 0 ? -1.0 : 1.0) * colSpacing * 0.1
         let x = 16 + edgeInset + column * colSpacing + colSpacing / 2 + stagger
-        let sceneY = 110 + cell * 0.55 + row * cell * 0.95
+
+        // Espejo de `crowdBand`: la franja va del piso (`0.55 × cell` sobre el
+        // borde del campo) hasta `crowdTopRatio` del alto de pantalla, y las dos
+        // filas se reparten ese alto — el ancla de cada una queda a medio
+        // deambular de su extremo.
+        let bottomInset: CGFloat = 110
+        let crowdTopRatio: CGFloat = 0.4
+        let rows: CGFloat = 2
+        let floorY = cell * 0.55
+        let topY = max(floorY, height * crowdTopRatio - bottomInset)
+        let usable = topY - floorY
+        let halfWander = usable / (2 * rows)
+        let frontY = floorY + halfWander
+        let rowDepth = usable - 2 * halfWander
+
+        // Se apunta al CENTRO DEL CUERPO (`cell × 0.9` sobre el ancla, igual que
+        // el óvalo de `characterNode(at:)`), no a los pies.
+        //
+        // El ancla es sólo el centro del deambular: en cualquier instante el
+        // personaje está hasta media amplitud más arriba o más abajo. Tocando a
+        // la altura de los pies, un personaje deambulado hacia arriba deja el
+        // punto FUERA de su óvalo y el drag agarra aire —el test moría en el
+        // gate del ascenso sin haber mergeado nada—. Apuntando al centro del
+        // cuerpo, el desfasaje entra siempre: media amplitud (≈50) es bastante
+        // menor que el semieje vertical del óvalo (`cell × 1.15` ≈ 85).
+        let bodyCenter = cell * 0.9
+        let sceneY = bottomInset + frontY + row * rowDepth + bodyCenter
+
         return app.coordinate(withNormalizedOffset: .zero)
             .withOffset(CGVector(dx: x, dy: height - sceneY))
     }

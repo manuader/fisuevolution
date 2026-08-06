@@ -125,6 +125,39 @@ public enum TowerActions {
         return unlocked.contains(floorTable[required].id)
     }
 
+    /// El piso donde CAE una contratación hecha parado en `visibleOrdinal`.
+    ///
+    /// Normalmente es el piso que estás mirando. Pero cuando el gate lo cierra
+    /// —estás en tu frontera y todavía no abriste el de arriba— el botón quedaba
+    /// muerto, y quedarse sin nada que comprar en el piso donde más falta hace
+    /// material de merge es justo lo contrario de lo que el gate busca. Así que
+    /// la compra cae al piso de abajo, que por la propia regla del gate es
+    /// siempre el más alto donde SÍ se puede contratar.
+    ///
+    /// Baja un solo piso a propósito: no hay caso donde haga falta más, porque
+    /// si el piso visible está abierto entonces el de abajo tiene el de arriba
+    /// abierto y su gate pasa.
+    ///
+    /// `nil` cuando no se puede contratar desde acá: el piso visible ni siquiera
+    /// está abierto (es el preview con candado al que la torre deja asomarse).
+    public static func hireTargetFloor(
+        visibleOrdinal: Int,
+        unlockedFloors: [String],
+        floorTable: FloorTable
+    ) -> Int? {
+        guard visibleOrdinal >= 0, visibleOrdinal < floorTable.count else { return nil }
+        let unlocked = Set(unlockedFloors)
+        guard unlocked.contains(floorTable[visibleOrdinal].id) else { return nil }
+        if canHire(floorOrdinal: visibleOrdinal, unlockedFloors: unlockedFloors, floorTable: floorTable) {
+            return visibleOrdinal
+        }
+        let below = visibleOrdinal - 1
+        guard below >= 0, unlocked.contains(floorTable[below].id),
+              canHire(floorOrdinal: below, unlockedFloors: unlockedFloors, floorTable: floorTable)
+        else { return nil }
+        return below
+    }
+
     /// Pisos que pasan de NO contratables a contratables por un desbloqueo.
     ///
     /// En el caso normal es uno solo: el que está justo abajo del que se abrió.

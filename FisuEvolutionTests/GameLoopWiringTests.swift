@@ -190,6 +190,59 @@ struct GameLoopWiringTests {
         #expect(gameState.towerNotice?.kind == .hireUnlocked(floorID: "urban"))
     }
 
+    /// Parado en la frontera, el gate cierra la contratación de ese piso. En vez
+    /// de dejar el botón muerto, la compra cae en el piso de abajo — que es
+    /// justamente donde hace falta material de merge — hasta que ese piso se
+    /// llena.
+    @Test func hiringOnTheFrontierFallsBackToTheFloorBelow() async throws {
+        let gameState = await makeGameState()
+        gameState.debugUnlockFloors(throughTier: 5)   // abre alley + urban, corporate no
+        #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
+
+        // El gate de urban no pasa (corporate cerrado), así que la oferta baja.
+        #expect(gameState.hireOffer == .floorBelow(floorID: "alley"))
+        #expect(gameState.spawnQuote?.floorOrdinal == 0)
+        #expect(gameState.spawnQuote?.type.id == "homeless", "cotiza el tier base del callejón")
+
+        gameState.debugGrantCoins()
+        gameState.flushHUD()
+        #expect(gameState.canAffordSpawn, "con plata el botón tiene que comprar, no quedar muerto")
+
+        let alleyBefore = gameState.floorOccupancy(ordinal: 0).occupied
+        let urbanBefore = gameState.floorOccupancy(ordinal: 1).occupied
+        gameState.buySpawn()
+        #expect(gameState.floorOccupancy(ordinal: 0).occupied == alleyBefore + 1, "la unidad cae abajo")
+        #expect(gameState.floorOccupancy(ordinal: 1).occupied == urbanBefore, "y no en el piso visible")
+        #expect(gameState.visibleFloorOrdinal == 1, "comprar no mueve la cámara")
+
+        // Y cuando el callejón se llena, el botón lo dice en vez de seguir cobrando.
+        let capacity = gameState.floorOccupancy(ordinal: 0).capacity
+        while gameState.floorOccupancy(ordinal: 0).occupied < capacity {
+            let before = gameState.floorOccupancy(ordinal: 0).occupied
+            gameState.buySpawn()
+            #expect(gameState.floorOccupancy(ordinal: 0).occupied == before + 1, "se quedó sin plata antes de llenarlo")
+        }
+        gameState.flushHUD()
+        #expect(gameState.hireOffer == .full(belowFloorID: "alley"))
+        #expect(gameState.canAffordSpawn == false)
+    }
+
+    /// Con el piso de arriba abierto no hay fallback: se contrata donde estás.
+    @Test func hiringStaysOnTheVisibleFloorWhenTheGateIsOpen() async throws {
+        let gameState = await makeGameState()
+        gameState.debugUnlockFloors(throughTier: 9)   // alley + urban + corporate
+        #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
+
+        #expect(gameState.hireOffer == .here)
+        #expect(gameState.spawnQuote?.floorOrdinal == 1)
+
+        gameState.debugGrantCoins()
+        gameState.flushHUD()
+        let urbanBefore = gameState.floorOccupancy(ordinal: 1).occupied
+        gameState.buySpawn()
+        #expect(gameState.floorOccupancy(ordinal: 1).occupied == urbanBefore + 1)
+    }
+
     /// Los specials no ocupan slot: quedan de decorado en el piso donde cayeron
     /// (⚠️5). La escena los dibuja desde esta proyección, así que un ancla de una
     /// config vieja (o un special no poseído) simplemente no aparece.

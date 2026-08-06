@@ -232,7 +232,7 @@ public struct PacingSimulator: Sendable {
 
         // 4. Backfill: hire en pisos superiores desbloqueados SOLO si es rentable
         //    (precio punitivo: recién conviene con la frontera pisos arriba).
-        //    El gate de dos pisos por encima sale de `TowerActions.canHire`, la
+        //    El gate del piso de arriba sale de `TowerActions.canHire`, la
         //    MISMA función que usa el juego: si acá se copiara la condición, el
         //    simulador podría modelar un jugador que hace algo que el juego no
         //    permite.

@@ -20,14 +20,22 @@ final class FloorNode: SKNode {
     private let background = SKCropNode()
     private var renderedSize: CGSize = .zero
 
+    /// Orden determinístico entre pisos vivos: `renderLiveFloorNodes` los agrega
+    /// iterando un Set, así que sin esto el orden de dibujo entre hermanos es
+    /// arbitrario.
+    ///
+    /// Toda esta banda tiene que quedar por debajo de `BoardScene.fieldBaseZ`: si
+    /// se toca con la de los personajes, el fondo tapa a la multitud. Ver el
+    /// comentario de `fieldBaseZ`.
+    static func backgroundZ(ordinal: Int) -> CGFloat {
+        CGFloat(ordinal) * 0.01
+    }
+
     init(ordinal: Int, definition: FloorDef) {
         self.ordinal = ordinal
         self.definition = definition
         super.init()
-        // Orden determinístico entre pisos vivos: `renderLiveFloorNodes` los
-        // agrega iterando un Set, así que sin esto el orden de dibujo entre
-        // hermanos es arbitrario. Queda muy por debajo del campo de personajes.
-        zPosition = CGFloat(ordinal) * 0.01
+        zPosition = Self.backgroundZ(ordinal: ordinal)
         addChild(background)
     }
 

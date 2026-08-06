@@ -224,7 +224,7 @@ struct HireActionTests {
     }
 }
 
-// MARK: - Gate de contratación (dos pisos por encima)
+// MARK: - Gate de contratación (el piso de arriba desbloqueado)
 //
 // El fixture de la torre tiene sólo DOS pisos, y con dos pisos el gate es
 // invisible: el ordinal 1 siempre cae en el escape del tope, así que
@@ -329,5 +329,30 @@ struct HireGateTests {
             ).isEmpty,
             "abrir g2 no le da el piso de arriba a nadie: g1 ya podía y g2 necesita g3"
         )
+    }
+
+    // MARK: A dónde cae la contratación
+
+    @Test("con el gate abierto, la contratación cae en el piso que estás mirando")
+    func hireTargetIsTheVisibleFloorWhenTheGateIsOpen() {
+        let open = ["g1", "g2", "g3"]
+        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 1, unlockedFloors: open, floorTable: floorTable) == 1)
+        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 0, unlockedFloors: ["g1"], floorTable: floorTable) == 0)
+    }
+
+    @Test("con el gate cerrado, la contratación cae en el piso de abajo")
+    func hireTargetFallsToTheFloorBelowWhenTheGateIsClosed() {
+        // Parado en g2, que es la frontera: g3 sigue cerrado, así que el gate de
+        // g2 no pasa y la compra tiene que caer en g1 en vez de no hacer nada.
+        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 1, unlockedFloors: ["g1", "g2"], floorTable: floorTable) == 0)
+        // Y baja UN piso, no hasta el fondo: parado en g3 cae en g2.
+        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 2, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable) == 1)
+    }
+
+    @Test("desde un piso todavía cerrado no se contrata en ningún lado")
+    func lockedFloorHasNoHireTarget() {
+        // El preview con candado: estás mirando g3 sin haberlo abierto.
+        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 2, unlockedFloors: ["g1", "g2"], floorTable: floorTable) == nil)
+        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 9, unlockedFloors: ["g1"], floorTable: floorTable) == nil)
     }
 }

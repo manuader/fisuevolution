@@ -94,6 +94,27 @@ final class GameState {
         let kind: Kind
     }
 
+    /// Qué ofrece el botón de contratar parado en el piso visible.
+    ///
+    /// Es UNA proyección y no tres booleanos porque el botón dibuja título y
+    /// detalle por separado y los dos tienen que contar la misma historia: con
+    /// booleanos ordenados había que repetir el mismo if/else en dos lugares y
+    /// mantenerlos sincronizados a mano.
+    enum HireOffer: Equatable {
+        /// La contratación cae en el piso que estás mirando.
+        case here
+        /// El gate cerró el piso visible, así que cae en el de abajo (§ el botón
+        /// no queda muerto en la frontera). El id es el del piso de destino.
+        case floorBelow(floorID: String)
+        /// El piso donde caería no tiene lugar. `belowFloorID` viene seteado sólo
+        /// cuando ese piso lleno es el de abajo y no el que estás mirando.
+        case full(belowFloorID: String?)
+        /// El piso visible todavía no está abierto: es el preview con candado.
+        case floorLocked
+        /// El gate cerró y tampoco hay piso de abajo donde caer.
+        case unavailable
+    }
+
     enum DropResolution {
         /// `evolvedTo` presente cuando el merge alcanzó un tier nuevo (reveal).
         /// `promotedToFloor` presente cuando el resultado ascendió de piso.
@@ -114,7 +135,10 @@ final class GameState {
     private(set) var phase: Phase = .loading
     private(set) var coinsText = "0"
     private(set) var boardVersion = 0
-    /// Cotización de contratación del PISO VISIBLE (tier base del piso — F7 §3.3).
+    /// Cotización del tier base del piso donde CAE la contratación (F7 §3.3):
+    /// el visible, o el de abajo cuando el gate cerró el visible. Lleva su
+    /// `floorOrdinal`, así que `buySpawn` contrata donde corresponde sin
+    /// recalcular nada.
     private(set) var spawnQuote: HireQuote?
     private(set) var canAffordSpawn = false
     private(set) var unitCount = 0
@@ -138,11 +162,9 @@ final class GameState {
     /// Income pasivo agregado de todos los pisos, aunque no estén en cámara.
     private(set) var towerIncomePerSecond = 0.0
     private(set) var towerIncomePerSecondText = "0"
-    private(set) var visibleFloorIsFull = false
     private(set) var visibleFloorIsUnlocked = false
-    /// El piso está abierto pero todavía no habilita contratar: falta
-    /// desbloquear el de arriba. El callejón nunca entra acá.
-    private(set) var visibleFloorAllowsHiring = false
+    /// Qué puede hacer el botón de contratar desde el piso visible.
+    private(set) var hireOffer: HireOffer = .floorLocked
     var towerNotice: TowerNotice?
     /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen
     /// `player` directo lo observan para re-renderizar.
@@ -245,8 +267,14 @@ final class GameState {
     }
 
     var visibleFloorOccupancy: (occupied: Int, capacity: Int) {
-        guard let tower, tower.floors.indices.contains(visibleFloorOrdinal) else { return (0, 0) }
-        let floor = tower.floors[visibleFloorOrdinal]
+        floorOccupancy(ordinal: visibleFloorOrdinal)
+    }
+
+    /// Ocupación de un piso cualquiera: la contratación puede caer en uno que no
+    /// es el visible, y ahí el lleno que importa es el del destino.
+    func floorOccupancy(ordinal: Int) -> (occupied: Int, capacity: Int) {
+        guard let tower, tower.floors.indices.contains(ordinal) else { return (0, 0) }
+        let floor = tower.floors[ordinal]
         return (floor.occupiedCount, floor.def.capacity)
     }
 
@@ -534,10 +562,12 @@ final class GameState {
         return TapResult(gain: gain, isCrit: isCrit, isGolden: isGolden)
     }
 
-    /// Contrata el tier base del piso visible (F7 §3.3).
+    /// Contrata el tier base del piso donde cae la oferta (F7 §3.3): el visible,
+    /// o el de abajo si el gate cerró el visible.
     func buySpawn() {
         guard let content, var player = player, var tower,
-              let quote = currentQuote(player: player)
+              let ordinal = hireTargetOrdinal(player: player),
+              let quote = currentQuote(player: player, floorOrdinal: ordinal)
         else { return }
         do {
             _ = try TowerActions.hire(
@@ -1234,7 +1264,8 @@ final class GameState {
 
     func debugGrantCoins() {
         guard var player else { return }
-        let grant = max(1_000_000, (currentQuote(player: player)?.cost ?? 0) * 100)
+        let quoted = currentQuote(player: player, floorOrdinal: hireTargetOrdinal(player: player) ?? visibleFloorOrdinal)
+        let grant = max(1_000_000, (quoted?.cost ?? 0) * 100)
         player.run.coins += grant
         player.meta.lifetimeEarnings += grant
         self.player = player
@@ -1311,11 +1342,23 @@ final class GameState {
 
     // MARK: Internals
 
-    private func currentQuote(player: PlayerState) -> HireQuote? {
+    /// El piso donde cae la contratación: el visible, salvo que el gate lo haya
+    /// cerrado y haya que bajar uno. `nil` si desde acá no se contrata en ningún
+    /// lado (piso visible todavía cerrado).
+    private func hireTargetOrdinal(player: PlayerState) -> Int? {
+        guard let content else { return nil }
+        return TowerActions.hireTargetFloor(
+            visibleOrdinal: visibleFloorOrdinal,
+            unlockedFloors: player.run.unlockedFloors,
+            floorTable: content.floorTable
+        )
+    }
+
+    private func currentQuote(player: PlayerState, floorOrdinal: Int) -> HireQuote? {
         guard let economy, let content else { return nil }
         let prestigeDiscount = content.prestigeUnlocks.cumulativeSpawnDiscount(atPrestigeLevel: player.meta.prestigeLevel)
         return TowerActions.hireQuote(
-            floorOrdinal: visibleFloorOrdinal,
+            floorOrdinal: floorOrdinal,
             state: player,
             tiers: content.tiers,
             floorTable: content.floorTable,
@@ -1339,22 +1382,32 @@ final class GameState {
         let newCoins = CoinFormatter.string(from: player.run.coins)
         if coinsText != newCoins { coinsText = newCoins }
 
-        let quote = currentQuote(player: player)
+        let target = hireTargetOrdinal(player: player)
+        // Sin destino igual cotizamos el piso visible: el botón sigue mostrando
+        // qué se vende acá aunque no se pueda comprar todavía.
+        let quote = currentQuote(player: player, floorOrdinal: target ?? visibleFloorOrdinal)
         if spawnQuote != quote { spawnQuote = quote }
 
-        // Piso visible lleno o bloqueado ⇒ no se puede contratar.
-        let floorFull = visibleFloorOccupancy.occupied >= max(visibleFloorOccupancy.capacity, 1)
         let floorUnlocked = visibleFloorDef.map { player.run.unlockedFloors.contains($0.id) } ?? false
-        let allowsHiring = TowerActions.canHire(
-            floorOrdinal: visibleFloorOrdinal,
-            unlockedFloors: player.run.unlockedFloors,
-            floorTable: content.floorTable
-        )
-        if visibleFloorIsFull != floorFull { visibleFloorIsFull = floorFull }
         if visibleFloorIsUnlocked != floorUnlocked { visibleFloorIsUnlocked = floorUnlocked }
-        if visibleFloorAllowsHiring != allowsHiring { visibleFloorAllowsHiring = allowsHiring }
-        let affordable = (quote.map { player.run.coins >= $0.cost } ?? false)
-            && !floorFull && floorUnlocked && allowsHiring
+
+        let targetFull = target.map { ordinal in
+            let occupancy = floorOccupancy(ordinal: ordinal)
+            return occupancy.occupied >= max(occupancy.capacity, 1)
+        } ?? false
+        let offer: HireOffer
+        switch (target, targetFull) {
+        case (nil, _):
+            offer = floorUnlocked ? .unavailable : .floorLocked
+        case (let ordinal?, true):
+            offer = .full(belowFloorID: ordinal == visibleFloorOrdinal ? nil : content.floorTable[ordinal].id)
+        case (let ordinal?, false):
+            offer = ordinal == visibleFloorOrdinal ? .here : .floorBelow(floorID: content.floorTable[ordinal].id)
+        }
+        if hireOffer != offer { hireOffer = offer }
+
+        let affordable = target != nil && !targetFull
+            && (quote.map { player.run.coins >= $0.cost } ?? false)
         if canAffordSpawn != affordable { canAffordSpawn = affordable }
 
         let total = player.run.totalUnits

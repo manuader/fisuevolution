@@ -23,3 +23,7 @@ Tools/asset-pipeline/state/selenium-run.json
 
 # Graphify knowledge graph (generated, ~4MB; rebuild with `graphify update .`)
 graphify-out/
+
+# Capturas de QA y worktrees de agentes (no van a la historia)
+scratchpad/
+.claude/worktrees/

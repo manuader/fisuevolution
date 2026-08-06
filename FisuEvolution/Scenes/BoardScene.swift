@@ -32,6 +32,9 @@ final class BoardScene: SKScene {
     // Geometría del campo, cacheada por layoutBoard.
     private var boardColumns = 0
     private var boardRows = 0
+    /// La franja de la multitud vigente. La recalcula `rebuildAnchors`; la leen
+    /// el deambular y el z de los specials.
+    private var band = CrowdBand(frontY: 0, rowDepth: 0, wanderRange: 0, topY: 0)
     private var cellSize: CGFloat = 0
     /// Punto de anclaje por cellIndex: grilla lógica + jitter determinístico.
     private var anchorPoints: [CGPoint] = []
@@ -59,20 +62,47 @@ final class BoardScene: SKScene {
 
     /// Vertical insets leaving room for the SwiftUI HUD above and controls below.
     private static let topInset: CGFloat = 130
-    private static let bottomInset: CGFloat = 110
+    /// Origen vertical del campo dentro de la escena.
+    static let bottomInset: CGFloat = 110
     private static let horizontalInset: CGFloat = 16
     /// Margen a cada lado para los textos del reveal, que van centrados y a
     /// pantalla completa.
     static let revealMargin: CGFloat = 24
 
-    /// Pies de la fila delantera, en fracciones de `cellSize` sobre el borde
-    /// inferior del campo.
-    private static let frontRowRatio: CGFloat = 0.55
-    /// Separación entre filas. Define cuán alta es la franja por la que se
-    /// mueven los personajes: el prompt de los fondos pedía "tercio inferior
-    /// transitable despejado", y con 0.95 la multitud usaba apenas la mitad de
-    /// esa franja y quedaba amontonada contra el borde de abajo.
-    private static let rowDepthRatio: CGFloat = 1.55
+    /// Piso de la franja: pies de la fila delantera en su punto más bajo, en
+    /// fracciones de `cellSize` sobre el borde inferior del campo. Va en
+    /// `cellSize` porque depende del tamaño del personaje, no de la pantalla.
+    static let frontRowRatio: CGFloat = 0.55
+    /// Techo de la franja por la que se mueve la multitud, en fracción del ALTO
+    /// de la pantalla.
+    ///
+    /// Va en alto de pantalla y no en `cellSize` porque `cellSize` sale del
+    /// ANCHO: atarlo ahí hace que la franja encoja en un teléfono angosto y
+    /// alto, justo donde sobra lugar.
+    ///
+    /// **Éste es EL knob del alto de la multitud.** 0,5 los lleva a la mitad
+    /// exacta de la pantalla; 0,4 los deja apenas arriba del tercio inferior,
+    /// que es la zona que los fondos tienen autorada como transitable.
+    static let crowdTopRatio: CGFloat = 0.4
+    /// Amplitud horizontal del deambular, centrada en el ancla (±la mitad).
+    static let wanderHorizontalRange: CGFloat = 34
+    /// Velocidad del deambular, en puntos por segundo. La duración de cada paso
+    /// sale de la distancia: con duración fija, agrandar la franja los haría
+    /// caminar más rápido en vez de recorrer más.
+    static let wanderSpeed: CGFloat = 44
+
+    /// Base de profundidad del campo de personajes.
+    ///
+    /// **Existe para que la multitud y los fondos NO compartan espacio de z.**
+    /// Los `FloorNode` viven en `ordinal × 0.01` (0 … 0.10 con once pisos) y
+    /// `depthZ` puede dar negativo en cuanto una fila se ubica por encima de
+    /// `rows × cellSize`. Cuando las dos bandas se tocan, un personaje queda
+    /// detrás del fondo de su propio piso: invisible pero clickeable, porque el
+    /// hit-testing es geométrico y no mira el z. Ya pasó una vez —subir la franja
+    /// de piso mandó la fila trasera a y≈156 con el cruce en 148— y la única
+    /// forma de que no vuelva a pasar con el próximo cambio de layout es que las
+    /// bandas no puedan tocarse.
+    static let fieldBaseZ: CGFloat = 10
 
     /// Achica la fuente de un label hasta que entre en `maxWidth`.
     ///
@@ -101,6 +131,11 @@ final class BoardScene: SKScene {
         scaleMode = .resizeFill
         backgroundColor = Palette.cream
         addChild(backgroundLayer)
+        // Todo el campo va montado por encima de la banda de los fondos, así que
+        // `depthZ` puede dar negativo sin hundir a nadie detrás de su piso. Los
+        // hijos del campo (arrastre 50, labels 100, ring 80, specials por debajo
+        // de la multitud) suben con él y conservan su orden relativo.
+        fieldNode.zPosition = Self.fieldBaseZ
         addChild(fieldNode)
         cameraNode.addChild(cameraOverlay)
         addChild(cameraNode)
@@ -142,7 +177,22 @@ final class BoardScene: SKScene {
             layoutBoard()
         }
 
+        refreshCrowdDepth()
         updateFTUEHint()
+    }
+
+    /// La profundidad se recalcula con el personaje ya movido, no una sola vez
+    /// desde su ancla.
+    ///
+    /// El deambular cubre toda la franja, así que dos personajes pueden cruzarse
+    /// de fila: con el z congelado en el ancla, el que quedó adelante se dibuja
+    /// detrás. Son ≤10 nodos por frame. El que se está arrastrando queda afuera
+    /// porque tiene su propio z mientras dura el gesto.
+    private func refreshCrowdDepth() {
+        for node in characterNodes.values where node !== dragNode {
+            let z = depthZ(for: node.position)
+            if node.zPosition != z { node.zPosition = z }
+        }
     }
 
     /// Anillo pulsante sobre la unidad a tapear (hint 1) o sobre una del par
@@ -334,7 +384,10 @@ final class BoardScene: SKScene {
         guard let node = dragNode else { return }
         dragNode = nil
         isDragging = false
-        node.zPosition = 0
+        // El z lo retoma `refreshCrowdDepth` en el frame siguiente, ya con el
+        // nodo fuera del arrastre. Antes se lo dejaba en 0 durante la vuelta, y
+        // ese 0 caía por debajo del fondo en cualquier piso que no fuera el
+        // primero: el personaje desaparecía los 0,15 s del snap-back.
         if snapBack {
             node.run(.sequence([
                 .group([
@@ -343,14 +396,12 @@ final class BoardScene: SKScene {
                 ]),
                 .run { [weak self, weak node] in
                     guard let node else { return }
-                    node.zPosition = self?.depthZ(for: node.position) ?? 0
                     self?.startWander(node)
                 },
             ]))
         } else {
             node.position = position(ofCell: node.cellIndex)
             node.setScale(1.0)
-            node.zPosition = depthZ(for: node.position)
             startWander(node)
         }
     }
@@ -584,7 +635,7 @@ final class BoardScene: SKScene {
                 x: isLeft ? side * 0.55 : size.width - Self.horizontalInset * 2 - side * 0.55,
                 y: cellSize * 1.65 + row * side * 0.9
             )
-            node.zPosition = -1
+            node.zPosition = Self.specialZ(band: band, rows: boardRows, cellSize: cellSize)
             node.alpha = 0.95
             fieldNode.addChild(node)
         }
@@ -765,8 +816,9 @@ final class BoardScene: SKScene {
         // contra el borde de la pantalla; las columnas se centran dentro del campo.
         let edgeInset = cellSize * 0.68
         let colSpacing = (cellSize * CGFloat(cols) - 2 * edgeInset) / CGFloat(cols)
-        let frontY = cellSize * Self.frontRowRatio
-        let rowDepth = cellSize * Self.rowDepthRatio
+        band = Self.crowdBand(sceneHeight: size.height, cellSize: cellSize, rows: boardRows)
+        let frontY = band.frontY
+        let rowDepth = band.rowDepth
         anchorPoints = (0..<capacity).map { index in
             let column = index % cols
             let row = index / cols
@@ -896,8 +948,59 @@ final class BoardScene: SKScene {
     }
 
     /// Los de abajo (más "cerca") tapan a los de arriba — profundidad de campo.
+    ///
+    /// Es RELATIVA a `fieldNode`, que va montado en `fieldBaseZ`: acá el valor
+    /// puede ser negativo sin que eso hunda a nadie detrás del fondo.
+    static func depthZ(y: CGFloat, rows: Int, cellSize: CGFloat) -> CGFloat {
+        (CGFloat(rows) * cellSize - y) * 0.01
+    }
+
+    /// La franja vertical por la que se mueve la multitud, resuelta para una
+    /// pantalla y un tamaño de celda concretos.
+    struct CrowdBand: Equatable {
+        /// Ancla de la fila delantera.
+        let frontY: CGFloat
+        /// Separación entre anclas de filas consecutivas.
+        let rowDepth: CGFloat
+        /// Amplitud vertical del deambular, centrada en el ancla (±la mitad).
+        let wanderRange: CGFloat
+        /// El `y` más alto que puede alcanzar un personaje. Define el z más bajo
+        /// de la multitud, que es lo que no puede chocar con los fondos.
+        let topY: CGFloat
+    }
+
+    /// Reparte las filas dentro de la franja y **deriva el deambular de ella**.
+    ///
+    /// Que el deambular salga de acá y no sea una constante aparte es lo que
+    /// hace imposible que un personaje se vaya por arriba de la franja: cada
+    /// fila recorre exactamente `1/rows` del total, así que las filas cubren la
+    /// franja entera sin huecos y sin pasarse. Cuando el deambular era un número
+    /// independiente sumado encima del ancla, la fila trasera terminó fuera de
+    /// rango y detrás del fondo.
+    static func crowdBand(sceneHeight: CGFloat, cellSize: CGFloat, rows: Int) -> CrowdBand {
+        let rows = max(1, rows)
+        let floorY = cellSize * frontRowRatio
+        let topY = max(floorY, sceneHeight * crowdTopRatio - bottomInset)
+        let usable = topY - floorY
+        let halfWander = usable / CGFloat(2 * rows)
+        return CrowdBand(
+            frontY: floorY + halfWander,
+            rowDepth: rows > 1 ? (usable - 2 * halfWander) / CGFloat(rows - 1) : 0,
+            wanderRange: halfWander * 2,
+            topY: topY
+        )
+    }
+
+    /// Profundidad de un special: detrás de TODA la multitud, incluido el
+    /// personaje que más arriba pueda llegar. Sale de la franja y no de una
+    /// constante porque un valor fijo se queda corto en cuanto la franja se
+    /// agranda — el techo ya da un `depthZ` de −2 en las pantallas grandes.
+    static func specialZ(band: CrowdBand, rows: Int, cellSize: CGFloat) -> CGFloat {
+        depthZ(y: band.topY, rows: rows, cellSize: cellSize) - 1
+    }
+
     private func depthZ(for point: CGPoint) -> CGFloat {
-        (CGFloat(boardRows) * cellSize - point.y) * 0.01
+        Self.depthZ(y: point.y, rows: boardRows, cellSize: cellSize)
     }
 
     /// Deambulación idle alrededor del ancla (estilo Cow Evolution). Se corta al
@@ -907,17 +1010,25 @@ final class BoardScene: SKScene {
         guard !UIAccessibility.isReduceMotionEnabled else { return }
         let anchor = position(ofCell: node.cellIndex)
         var hash = UInt64(node.cellIndex &* 40503 &+ 7)
-        let step: () -> SKAction = {
+        // Se generan los tres destinos primero para poder darle a cada paso una
+        // duración proporcional a lo que recorre: con una duración fija, una
+        // franja más alta no los haría pasear más lejos sino correr más rápido.
+        let stops: [(point: CGPoint, pause: TimeInterval)] = (0..<3).map { _ in
             hash = (hash ^ (hash >> 13)) &* 0x9E3779B97F4A7C15
-            let dx = (CGFloat(hash % 100) / 100 - 0.5) * 34
-            let dy = (CGFloat((hash >> 8) % 100) / 100 - 0.5) * 40
-            let pause = 0.6 + Double(hash % 140) / 100
+            let dx = (CGFloat(hash % 100) / 100 - 0.5) * Self.wanderHorizontalRange
+            let dy = (CGFloat((hash >> 8) % 100) / 100 - 0.5) * band.wanderRange
+            return (CGPoint(x: anchor.x + dx, y: anchor.y + dy), 0.6 + Double(hash % 140) / 100)
+        }
+        let steps = stops.indices.map { index -> SKAction in
+            let previous = stops[(index + stops.count - 1) % stops.count].point
+            let stop = stops[index]
+            let distance = hypot(stop.point.x - previous.x, stop.point.y - previous.y)
             return .sequence([
-                .wait(forDuration: pause),
-                .move(to: CGPoint(x: anchor.x + dx, y: anchor.y + dy), duration: 1.2),
+                .wait(forDuration: stop.pause),
+                .move(to: stop.point, duration: max(0.8, Double(distance / Self.wanderSpeed))),
             ])
         }
-        node.run(.repeatForever(.sequence([step(), step(), step()])), withKey: "wander")
+        node.run(.repeatForever(.sequence(steps)), withKey: "wander")
     }
 
     /// Ancla del cellIndex (campo orgánico).

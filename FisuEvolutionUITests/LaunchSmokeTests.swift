@@ -72,8 +72,10 @@ final class LaunchSmokeTests: XCTestCase {
         XCTAssertTrue(app.buttons["tower.arrow.down"].isEnabled)
 
         // Centro del campo vacío: el swipe no debe iniciar tap/drag de unidad.
-        let swipeStart = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
-        let swipeEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+        // RF-09: metáfora de scroll — para BAJAR un piso hay que arrastrar la
+        // torre hacia ARRIBA. Antes este gesto iba al revés (0.45 → 0.75).
+        let swipeStart = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+        let swipeEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
         swipeStart.press(forDuration: 0.05, thenDragTo: swipeEnd)
         let returnedBySwipe = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "label == %@", initialLabel), object: pill

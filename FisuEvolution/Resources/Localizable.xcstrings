@@ -3613,18 +3613,50 @@
         }
       }
     },
-    "upgrades.character_multiplier %@": {
+    "upgrades.character.income %@ %@ %@": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Income ×2^%@ this life"
+            "value": "Money %1$@ → %2$@ for %3$@"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ingreso ×2^%@ en esta vida"
+            "value": "Plata %1$@ → %2$@ para %3$@"
+          }
+        }
+      }
+    },
+    "upgrades.character.passive_effect %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@/s on its own for each %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@/s solo, por cada %2$@"
+          }
+        }
+      }
+    },
+    "upgrades.character.passive_owned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earning"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya genera"
           }
         }
       }

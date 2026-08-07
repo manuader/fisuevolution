@@ -10,16 +10,6 @@ import Testing
 @Suite("GameState F7 wiring")
 @MainActor
 struct GameLoopWiringTests {
-    private func makeGameState() async -> GameState {
-        let repository = PlayerStateRepository(
-            persistence: PersistenceController(inMemory: true),
-            snapshotURL: FileManager.default.temporaryDirectory.appending(path: "wire-\(UUID().uuidString).json")
-        )
-        let gameState = GameState(repository: repository)
-        await gameState.bootstrap()
-        return gameState
-    }
-
     /// Slots (ordenados) que ocupa un tipo en el piso VISIBLE — los slots
     /// concretos los decide TowerReconciler/firstFreeSlot, no los pineamos.
     private func slots(of typeId: String, in gameState: GameState) -> [Int] {

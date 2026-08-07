@@ -157,8 +157,27 @@ struct GameLoopWiringTests {
         // escena termine su cadena.
         #expect(gameState.skinAward == nil, "el sheet no puede tapar la cadena")
         gameState.celebrationsDidFinish()
-        #expect(gameState.skinAward?.id == "urban_trailblazer")
-        #expect(gameState.skinAward?.characterType.id == "cartonero")
+        // ⚠️ Acá se pineaba `skinAward?.id == "urban_trailblazer"`, y se rompió al
+        // agregar personajes: `urban` ahora otorga TRES skins y el popup muestra
+        // la primera alfabéticamente (`GameState.swift`, `newlyUnlocked.sorted().first`),
+        // que pasó a ser `malabarista`. Varias skins por piso es la conducta de
+        // siempre —isla y lujo otorgan siete— así que lo que estaba mal era el
+        // test: pinear el ganador alfabético lo rompe cada vez que entra
+        // contenido. Se pinea la regla, que es la que importa.
+        let premiada = try #require(gameState.skinAward, "tras la cadena tiene que aparecer el sheet")
+        #expect(
+            gameState.player?.meta.milestoneSkins.contains(premiada.id) == true,
+            "el popup tiene que mostrar una de las skins recién ganadas, no cualquiera"
+        )
+        #expect(
+            content(of: premiada, in: gameState)?.floorReached == "urban",
+            "y tiene que ser una del piso que se acaba de abrir"
+        )
+    }
+
+    /// La entrada de catálogo de la skin que muestra el sheet.
+    private func content(of award: GameState.SkinAward, in gameState: GameState) -> SkinsConfig.Entry? {
+        gameState.content?.skins.skins.first { $0.id == award.id }
     }
 
     /// Con el gate de contratación, abrir corporate (ordinal 2) es lo que

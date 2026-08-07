@@ -1,11 +1,19 @@
 import XCTest
 
 /// Smoke test: the app launches, loads its content and shows the HUD.
+///
+/// ⚠️ `--uitest-skip-tutorial` no es decorativo: es el arreglo de la trampa 9
+/// del HANDOFF. `fisuTutorialDone` vive en `UserDefaults` y sobrevivía a
+/// `--uitest-reset`, así que estos tests pasaban sólo si antes había corrido el
+/// que abre la ficha (que dejaba la bandera puesta de rebote). En un simulador
+/// limpio el scrim del tutorial les tapaba los controles y fallaban con un
+/// "Failed to scroll to visible" que no era del botón (trampa 4). Ahora cada
+/// test DECLARA en qué estado quiere el tutorial y ninguno depende del orden.
 final class LaunchSmokeTests: XCTestCase {
     @MainActor
     func testLaunchShowsCoinHUD() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
         let coins = app.otherElements["hud.coins"]
@@ -15,7 +23,7 @@ final class LaunchSmokeTests: XCTestCase {
     @MainActor
     func testLaunchShowsBoundedTowerNavigator() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
         let pill = app.otherElements["tower.pill"]
@@ -31,7 +39,7 @@ final class LaunchSmokeTests: XCTestCase {
     @MainActor
     func testLockedFloorPreviewStopsAtOneFloorAhead() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
         let pill = app.otherElements["tower.pill"]
@@ -55,7 +63,7 @@ final class LaunchSmokeTests: XCTestCase {
     @MainActor
     func testTowerArrowsAndEmptyBoardSwipeNavigateOneFloor() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-unlock-tower"]
+        app.launchArguments = ["--uitest-reset", "--uitest-unlock-tower", "--uitest-skip-tutorial"]
         app.launch()
 
         let pill = app.otherElements["tower.pill"]
@@ -86,7 +94,7 @@ final class LaunchSmokeTests: XCTestCase {
     @MainActor
     func testUpgradesExposePermanentOroPurchase() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
         let upgrades = app.buttons["hud.upgrades"]

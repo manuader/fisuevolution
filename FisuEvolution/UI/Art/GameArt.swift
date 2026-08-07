@@ -182,6 +182,10 @@ struct ArtCloseButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        // Es el botón de cerrar de TODAS las hojas y era el único control
+        // interactivo del juego sin identifier: sin él, un test sólo puede
+        // cerrarlas deslizando, que es un gesto que falla según la hoja.
+        .accessibilityIdentifier("sheet.close")
         .accessibilityLabel(Text("store.close"))
     }
 }

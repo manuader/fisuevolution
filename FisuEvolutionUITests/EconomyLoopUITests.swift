@@ -1,11 +1,16 @@
 import XCTest
 
 /// F1 loop: tapping El Fisura earns coins; the spawn button enables and buys.
+///
+/// ⚠️ `--uitest-skip-tutorial` arregla la trampa 9 del HANDOFF: sin él, en un
+/// simulador limpio el scrim del tutorial se come los toques al tablero y el
+/// test falla con "coins never changed after tapping" — que es exactamente lo
+/// que pasaba en `main` antes de rehacer el tutorial, medido.
 final class EconomyLoopUITests: XCTestCase {
     @MainActor
     func testTappingEarnsCoinsAndSpawnButtonExists() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
         let coins = app.otherElements["hud.coins"]

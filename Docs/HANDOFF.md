@@ -308,7 +308,22 @@ El panel de debug es el ícono de herramientas del HUD.
    device limpio, el scrim del tutorial les tapa los controles. Si te aparece un
    "Failed to scroll to visible" inexplicable, revisá si el tutorial está
    adelante (trampa 4). **Se arregla cuando se rehaga el tutorial (RF-01).**
-10. **`osascript`/System Events no funciona desde el shell del agente.** El batch
+10. **`osascript`/System Events no funciona desde el shell del agente** — y ahora
+    se sabe **exactamente dónde** (probado el 2026-08-06):
+
+    | Paso | Desde el shell del agente |
+    |---|---|
+    | `launch_gemini_chrome.py` | ✅ **funciona**. Abre el Chrome aislado y `:9222` responde |
+    | La sesión de Gemini en ese perfil | ✅ sigue logueada |
+    | `build_queue` y el checkpoint | ✅ funcionan |
+    | **Mandar las teclas al compose box** | ❌ `System Events got an error: osascript is not allowed to send keystrokes. (1002)` |
+
+    Es el permiso de **Accesibilidad** de macOS, que el shell del agente no tiene
+    y no puede pedirse a sí mismo. Falla en el asset 1 de 53, **sin consumir
+    cuota y sin ensuciar el checkpoint** — así que intentarlo es barato, pero no
+    sirve. El batch se corre **desde Terminal.app**, que sí tiene el permiso.
+
+    El batch
    de arte hay que correrlo desde Terminal.app.
 11. **Medir fps con un build corriendo en paralelo da números basura.**
 12. **La multitud y los fondos comparten espacio de `zPosition`, y eso ya rompió

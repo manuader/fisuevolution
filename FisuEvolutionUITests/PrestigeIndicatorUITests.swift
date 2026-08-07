@@ -25,7 +25,7 @@ final class PrestigeIndicatorUITests: XCTestCase {
     @MainActor
     func testPrestigeIndicatorGrowsAndPopupNeverShowsRawKeys() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-prestige"]
+        app.launchArguments = ["--uitest-reset", "--uitest-prestige", "--uitest-skip-tutorial"]
         app.launch()
 
         // El indicador es PERMANENTE y muestra el antes → después mientras haya
@@ -61,7 +61,7 @@ final class PrestigeIndicatorUITests: XCTestCase {
 
         // Segunda vida sobre el mismo save: ahora el "antes" ya no es ×1, que es
         // el caso que el popup tiene que saber contar.
-        app.launchArguments = ["--uitest-prestige"]
+        app.launchArguments = ["--uitest-prestige", "--uitest-skip-tutorial"]
         app.launch()
         XCTAssertTrue(indicator.waitForExistence(timeout: 15))
         let secondLife = indicator.value as? String ?? ""

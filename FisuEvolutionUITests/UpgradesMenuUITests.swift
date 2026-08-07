@@ -15,7 +15,7 @@ final class UpgradesMenuUITests: XCTestCase {
     @MainActor
     func testCharacterRowExposesBothButtons() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
         let upgrades = app.buttons["hud.upgrades"]

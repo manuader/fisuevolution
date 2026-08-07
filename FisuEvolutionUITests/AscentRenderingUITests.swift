@@ -105,7 +105,7 @@ final class AscentRenderingUITests: XCTestCase {
     @MainActor
     func testCharactersStayVisibleAfterTheFirstAscent() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
         XCTAssertTrue(app.otherElements["tower.pill"].waitForExistence(timeout: 15))
@@ -160,7 +160,7 @@ final class AscentRenderingUITests: XCTestCase {
     @MainActor
     func testEachFloorRendersOnlyItsOwnBackground() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-unlock-tower"]
+        app.launchArguments = ["--uitest-reset", "--uitest-unlock-tower", "--uitest-skip-tutorial"]
         app.launch()
 
         let pill = app.otherElements["tower.pill"]
@@ -195,7 +195,7 @@ final class AscentRenderingUITests: XCTestCase {
     @MainActor
     func testPerfBaselinePopulatedBoard() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
         XCTAssertTrue(app.otherElements["tower.pill"].waitForExistence(timeout: 15))
 

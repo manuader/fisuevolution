@@ -262,10 +262,37 @@ El panel de debug es el ícono de herramientas del HUD.
 5. **Claves de localización con `%@` interpoladas con un `Int`** salen como la
    clave cruda en pantalla: Swift manda `%lld` y el lookup falla. Pasá `String(x)`.
    Ya pasó **dos veces** (F7.5 y 2026-08-05).
-6. **`osascript`/System Events no funciona desde el shell del agente.** El batch
+
+   ⚠️ **Y tiene una segunda forma, encontrada el 2026-08-06: armar la CLAVE por
+   interpolación.**
+
+   ```swift
+   Text(LocalizedStringKey("upgrades.flavor.\(line.id)"))   // ⛔️ NO busca esa clave
+   ```
+
+   `LocalizedStringKey` es `ExpressibleByStringInterpolation`, así que eso no
+   construye `upgrades.flavor.income`: construye la clave **`upgrades.flavor.%@`**
+   con `income` de argumento. No la encuentra, y dibuja el formato con el id
+   sustituido — en pantalla se lee literal `upgrades.flavor.income`.
+
+   Lo peor es que **el test unitario pasaba**, porque hacía el lookup por otro
+   camino. Sólo se vio mirando el simulador. La forma correcta es resolver la
+   clave en una función del estado (`upgradeFlavorText(for:)`) y que el test
+   ejerza **esa misma función**, la que dibuja la fila.
+
+6. **El runner de tests de UI corre la app en INGLÉS**, aunque el idioma de
+   desarrollo del proyecto sea `es`. Un test que asserta sobre texto en español
+   pasa por la razón equivocada: no encuentra el texto **nunca**, ni cuando la
+   cosa que busca está presente. Asertá por **accessibility identifier**, y
+   verificá el test al revés —poniendo de vuelta lo que sacaste y viendo que
+   falla— antes de creerle.
+
+7. **Los agentes en paralelo comparten el scratchpad.** Si varios frentes
+   escriben `full.log` ahí, se pisan entre sí. Prefijá con el nombre del frente.
+8. **`osascript`/System Events no funciona desde el shell del agente.** El batch
    de arte hay que correrlo desde Terminal.app.
-7. **Medir fps con un build corriendo en paralelo da números basura.**
-8. **La multitud y los fondos comparten espacio de `zPosition`, y eso ya rompió
+9. **Medir fps con un build corriendo en paralelo da números basura.**
+10. **La multitud y los fondos comparten espacio de `zPosition`, y eso ya rompió
    una vez.** `depthZ` da negativo apenas una fila queda por encima de
    `rows × cellSize`, y los `FloorNode` viven en `ordinal × 0.01`: cuando las dos
    bandas se tocan, el fondo tapa a los personajes y quedan **invisibles pero
@@ -273,7 +300,7 @@ El panel de debug es el ícono de herramientas del HUD.
    montado en `BoardScene.fieldBaseZ` para que no puedan tocarse, y
    `CrowdDepthTests` lo pinea. Si tocás `frontRowRatio`/`rowDepthRatio`/wander,
    ese test es el que te avisa.
-9. **Un personaje invisible no siempre es `alpha = 0`.** Ese era el bug viejo del
+11. **Un personaje invisible no siempre es `alpha = 0`.** Ese era el bug viejo del
    pool. Si además ves su etiqueta "T1" flotando sin cuerpo, es z: dentro de un
    `CharacterNode` todos los hijos comparten z, y con `ignoresSiblingOrder`
    SpriteKit batchea labels y sprites del atlas por separado, así que contra el

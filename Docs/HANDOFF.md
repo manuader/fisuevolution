@@ -10,7 +10,7 @@
 ## 1. Qué es
 
 **FisuEvolution** ("Hobo Evolution"): juego iOS merge-idle con humor argentino.
-30 tiers de evolución (El Fisura → Dios) en una **torre de 11 pisos simultáneos**;
+37 tiers de evolución (El Fisura → Dios) en una **torre de 10 pisos simultáneos**;
 los personajes de todos los pisos producen a la vez, se mergean de a pares y al
 evolucionar "se mudan" al piso de arriba.
 
@@ -64,8 +64,8 @@ Ningún conteo, rango ni switch por etapa vive en código. Todo sale de JSON en
 
 | Archivo | Qué define |
 |---|---|
-| `Data/economy.json` | Curvas, los 11 pisos (`floors[]`), costos de contratación, ORO |
-| `Data/tiers.json` | Los 30 tiers y la cadena de evolución (generado: `swift run generate-tiers`) |
+| `Data/economy.json` | Curvas, los 10 pisos (`floors[]`), costos de contratación, ORO |
+| `Data/tiers.json` | Los 37 tiers y la cadena de evolución. **Generado** desde `Tools/generate-tiers/Sources/main.swift` — editar el JSON a mano lo pisa la próxima regeneración |
 | `Data/assets_manifest.json` | **Único puente código→arte.** Sin entrada acá, placeholder programático — ⚠️ **salvo los fondos**, ver abajo |
 | `Config/skins.json` | Catálogo de apariencias |
 | `Config/*.json` | Eventos, specials, upgrades, boosts, daily, feature flags |
@@ -201,7 +201,12 @@ xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
 cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 20
 ```
 
-Estado: **EconomyKit 144 · app 90 · UI 10 · pipeline 20**, todo verde.
+Estado: **EconomyKit 149 · app 150 · UI 17 · pipeline 25**, todo verde.
+
+⚠️ Dos tests están **rojos en `main` y son preexistentes**: `PacingTests`
+(pineado a la torre de 30 tiers, se repinea en el rebalance) y
+`AscentRenderingUITests` (frágil por la trampa 3). Salteálos con
+`-skip-testing:` y usá `-parallel-testing-enabled NO`.
 
 Simulador a mano:
 

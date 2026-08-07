@@ -16,6 +16,16 @@ extension GameState {
         skinSelectionVersion &+= 1
     }
 
+    /// El ORO de reencarnar sale de `meta.lifetimeEarnings`, que es monótono y no
+    /// se puede acumular en un test sin jugar la partida entera. Esta puerta la
+    /// mueve directo para poder ejercitar el prestigio (RF-16).
+    func giveLifetimeEarningsForTesting(_ amount: Double) {
+        guard var player else { return }
+        player.meta.lifetimeEarnings += amount
+        self.player = player
+        refreshProjections()
+    }
+
     func debugGrantCoins() {
         guard var player else { return }
         let quoted = currentQuote(player: player, floorOrdinal: hireTargetOrdinal(player: player) ?? visibleFloorOrdinal)

@@ -152,6 +152,8 @@ final class GameState {
     /// F7: reencarnación disponible = vas a ganar ≥1 ORO.
     private(set) var prestigeAvailable = false
     private(set) var oroText = "0"
+    /// RF-16: el antes/después del multiplicador. Lo escribe `+Prestige`.
+    var prestigePreview = PrestigePreview.empty
     private(set) var ownedSkins: [String] = []
     /// Invalida la ficha cuando llega un entitlement, milestone o equipamiento.
     /// Lo escriben `+Store` (entitlements y equipar) y `+Debug`.
@@ -628,6 +630,8 @@ final class GameState {
 
         let oro = String(player.meta.oro)
         if oroText != oro { oroText = oro }
+
+        refreshPrestigePreview()
 
         let skins = Array(player.meta.allOwnedSkins).sorted()
         if ownedSkins != skins { ownedSkins = skins }

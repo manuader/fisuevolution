@@ -168,6 +168,45 @@ struct BoostsConfig: Codable, Sendable, Equatable {
     let boosts: [Boost]
 }
 
+/// Qué se lleva el jugador por elegir cada carrera en el piso corporativo (RF-15).
+///
+/// Las cuatro ramas se reabsorben en el Director, así que sin esto la elección no
+/// define nada. Qué premio le toca a cada una vive en `careers.json` y no en
+/// código: cambiarlo es editar el JSON, y el loader valida que el payload que
+/// necesita cada tipo esté declarado.
+struct CareersConfig: Codable, Sendable, Equatable {
+    /// Los cuatro tipos son distintos ENTRE SÍ a propósito: cuatro variantes del
+    /// mismo premio vuelven a ser la elección decorativa que esto arregla.
+    enum RewardKind: String, Codable, Sendable, CaseIterable {
+        /// Cofre de plata proporcional al progreso (mismo cálculo que el Asado).
+        case coinChest
+        /// Un boost regalado que NO consume su cooldown.
+        case freeBoost
+        /// Una skin desbloqueada de una.
+        case skin
+        /// Un modificador temporal de costo de contratación.
+        case temporaryModifier
+    }
+
+    struct Career: Codable, Sendable, Equatable, Identifiable {
+        /// typeId de la opción (una de `tiers.json → junior.choiceOptions`).
+        let id: String
+        let rewardKind: RewardKind
+        /// `coinChest`: factor sobre `passiveUnlockCost(tier máximo)`.
+        let chestFactor: Double?
+        /// `freeBoost`: qué boost se regala.
+        let boostId: String?
+        /// `skin`: qué skin se desbloquea.
+        let skinId: String?
+        /// `temporaryModifier`: factor de costo (0,5 = mitad de precio) y cuánto dura.
+        let magnitude: Double?
+        let durationSeconds: Double?
+    }
+
+    let schemaVersion: Int
+    let careers: [Career]
+}
+
 struct ViralConfig: Codable, Sendable, Equatable {
     let schemaVersion: Int
     let shareBonusGlobalMultiplier: Double

@@ -19,22 +19,34 @@ struct CareerChoiceView: View {
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
 
+                // La recompensa se muestra ANTES de tocar (RF-15): una elección a
+                // ciegas entre cuatro botones idénticos no es una elección.
+                let rewards = gameState.careerRewards
                 ForEach(prompt.options) { option in
                     Button {
                         gameState.chooseCareer(optionId: option.id)
                     } label: {
-                        Text(verbatim: option.displayName)
-                            .font(.headline)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
+                        VStack(spacing: 3) {
+                            Text(verbatim: option.displayName)
+                                .font(.headline)
+                            if let reward = rewards[option.id] {
+                                Text(verbatim: reward.previewText)
+                                    .font(.caption)
+                                    .multilineTextAlignment(.center)
+                                    .opacity(0.85)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(Color("PaletteBlue"))
+                    .accessibilityIdentifier("career.option.\(option.id)")
                 }
             }
         }
         .padding(16)
-        .presentationDetents([.medium])
+        .presentationDetents([.large])
         .interactiveDismissDisabled()
     }
 }

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "careers": [
+    {
+      "id": "junior_programmer",
+      "rewardKind": "coinChest",
+      "chestFactor": 6.0
+    },
+    {
+      "id": "junior_architect",
+      "rewardKind": "skin",
+      "skinId": "obra"
+    },
+    {
+      "id": "junior_doctor",
+      "rewardKind": "freeBoost",
+      "boostId": "cafe"
+    },
+    {
+      "id": "junior_lawyer",
+      "rewardKind": "temporaryModifier",
+      "magnitude": 0.5,
+      "durationSeconds": 600
+    }
+  ]
+}

@@ -17,6 +17,7 @@ struct GameContent: Sendable {
     let upgradesConfig: UpgradesConfig
     let dailyRewards: DailyRewardsConfig
     let boosts: BoostsConfig
+    let careers: CareersConfig
     let viral: ViralConfig
     let gameCenter: GameCenterConfig
 }
@@ -38,6 +39,7 @@ enum GameContentLoader {
         let upgradesConfig: UpgradesConfig = try decode("upgrades", from: bundle)
         let dailyRewards: DailyRewardsConfig = try decode("daily_rewards", from: bundle)
         let boosts: BoostsConfig = try decode("boosts", from: bundle)
+        let careers: CareersConfig = try decode("careers", from: bundle)
         let viral: ViralConfig = try decode("viral", from: bundle)
         let gameCenter: GameCenterConfig = try decode("gamecenter", from: bundle)
 
@@ -79,6 +81,7 @@ enum GameContentLoader {
                 reason: "boost \(boost.id) references unknown floor \(boost.unlockFloorId)"
             )
         }
+        try validate(careers: careers, tiers: tiers, boosts: boosts, skins: skins)
 
         return GameContent(
             economy: economy,
@@ -94,9 +97,56 @@ enum GameContentLoader {
             upgradesConfig: upgradesConfig,
             dailyRewards: dailyRewards,
             boosts: boosts,
+            careers: careers,
             viral: viral,
             gameCenter: gameCenter
         )
+    }
+
+    /// RF-15: cada carrera declara su premio en `careers.json`, así que acá se
+    /// chequea que la opción exista, que el payload que ese tipo de premio
+    /// necesita esté, y que no haya dos carreras con el mismo tipo — que es lo
+    /// que convertiría la elección otra vez en cuatro variantes de lo mismo.
+    private static func validate(
+        careers: CareersConfig,
+        tiers: TierRepository,
+        boosts: BoostsConfig,
+        skins: SkinsConfig
+    ) throws {
+        func fail(_ reason: String) -> GameError { .contentInvalid(file: "careers.json", reason: reason) }
+
+        let options = Set(tiers.types.flatMap { $0.choiceOptions ?? [] })
+        guard careers.careers.count == options.count else {
+            throw fail("hay \(careers.careers.count) carreras declaradas y \(options.count) opciones en tiers.json")
+        }
+        guard Set(careers.careers.map(\.rewardKind)).count == careers.careers.count else {
+            throw fail("dos carreras dan el mismo tipo de premio: la elección deja de ser una elección")
+        }
+        for career in careers.careers {
+            guard options.contains(career.id) else {
+                throw fail("\(career.id) no es una opción de carrera de tiers.json")
+            }
+            switch career.rewardKind {
+            case .coinChest:
+                guard let factor = career.chestFactor, factor > 0 else {
+                    throw fail("\(career.id): coinChest necesita chestFactor > 0")
+                }
+            case .freeBoost:
+                guard let boostId = career.boostId, boosts.boosts.contains(where: { $0.id == boostId }) else {
+                    throw fail("\(career.id): freeBoost apunta a un boost inexistente")
+                }
+            case .skin:
+                guard let skinId = career.skinId, skins.skins.contains(where: { $0.id == skinId }) else {
+                    throw fail("\(career.id): skin apunta a una skin inexistente")
+                }
+            case .temporaryModifier:
+                guard let magnitude = career.magnitude, magnitude > 0,
+                      let duration = career.durationSeconds, duration > 0
+                else {
+                    throw fail("\(career.id): temporaryModifier necesita magnitude y durationSeconds > 0")
+                }
+            }
+        }
     }
 
     private static func decode<T: Decodable>(_ name: String, from bundle: Bundle) throws -> T {

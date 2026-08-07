@@ -209,6 +209,8 @@ extension GameState {
         else {
             self.player = player
             careerPrompt = nil
+            // Elegiste igual, así que cobrás igual (RF-15).
+            grantCareerReward(optionId: optionId)
             refreshProjections()
             return
         }
@@ -230,6 +232,9 @@ extension GameState {
         self.player = player
         self.tower = tower
         careerPrompt = nil
+        // El premio de una vez que hace que elegir carrera defina algo (RF-15).
+        // Vive en `+Bonus`: es un bonus más, y este archivo sólo lo dispara.
+        grantCareerReward(optionId: optionId)
         reportMergeMilestones()
         rollSpecialDrop()
         updateMaxFloorStat()

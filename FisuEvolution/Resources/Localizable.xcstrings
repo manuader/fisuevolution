@@ -554,6 +554,74 @@
         }
       }
     },
+    "career.reward.boost %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free %1$@: %2$@, without burning the cooldown"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ gratis: %2$@, sin gastar el cooldown"
+          }
+        }
+      }
+    },
+    "career.reward.chest %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome chest: %@ coins"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cofre de bienvenida: %@ de plata"
+          }
+        }
+      }
+    },
+    "career.reward.modifier %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ hiring cost, for %2$@ minutes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ al costo de contratar, por %2$@ minutos"
+          }
+        }
+      }
+    },
+    "career.reward.skin %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exclusive skin: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skin exclusiva: %@"
+          }
+        }
+      }
+    },
     "career.subtitle": {
       "localizations": {
         "en": {

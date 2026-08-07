@@ -53,6 +53,7 @@ extension GameState {
         }
         tower.floors[ordinal].slots[slotB] = type.id
         player.run.units[type.id, default: 0] += 2
+        player.run.markSeen(type.id)
         if !player.run.unlockedFloors.contains(content.floorTable[ordinal].id) {
             player.run.unlockedFloors.append(content.floorTable[ordinal].id)
         }

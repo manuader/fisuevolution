@@ -3,6 +3,10 @@ import SwiftUI
 
 /// Dos bolsillos explícitos: mejoras efímeras por personaje con plata y las
 /// siete mejoras globales que sobreviven en ORO.
+///
+/// Toda fila —de las dos pestañas— dice **qué hace y cuánto**, con el número de
+/// ese personaje o de esa línea (RF-04, RF-06). Un "nivel 3/20" no le dice nada
+/// a nadie: era la queja principal del playtest.
 struct UpgradesView: View {
     private enum Tab: String, CaseIterable, Identifiable {
         case characters
@@ -78,38 +82,94 @@ struct UpgradesView: View {
         .accessibilityIdentifier(identifier)
     }
 
+    // MARK: Personajes (RF-03, RF-04)
+
     @ViewBuilder private var characterRows: some View {
-        if gameState.characterUpgradeTypes.isEmpty {
+        let rows = gameState.characterUpgradeRows
+        if rows.isEmpty {
             Text("upgrades.characters.empty")
                 .font(.body.weight(.semibold))
                 .foregroundStyle(Color("PaletteInk"))
                 .padding(.top, 36)
         } else {
-            ForEach(gameState.characterUpgradeTypes) { type in
-                characterRow(type)
+            ForEach(rows) { row in
+                characterRow(row)
             }
         }
     }
 
-    private func characterRow(_ type: CharacterType) -> some View {
-        let level = gameState.characterUpgradeLevel(of: type.id)
-        let cost = gameState.characterUpgradeCost(of: type) ?? .infinity
-        let canAfford = (gameState.player?.run.coins ?? 0) >= cost
-        return upgradeCard(leading: {
-            Circle().fill(Color("PaletteYellow")).overlay(Circle().stroke(Color("PaletteInk"), lineWidth: 2))
-                .overlay(Text("T\(type.tier)").font(.caption.weight(.heavy)).foregroundStyle(Color("PaletteInk")))
-                .frame(width: 38, height: 38)
-        }, center: {
-            Text(type.displayName).font(.headline)
-            Text("upgrades.character_multiplier \(String(level))")
-                .font(.footnote.weight(.semibold)).foregroundStyle(Color("PaletteInk"))
-        }, action: {
-            gameState.buyCharacterUpgrade(typeID: type.id)
-        }, cost: {
-            CoinIcon(size: 16)
-            Text(verbatim: CoinFormatter.string(from: cost)).monospacedDigit()
-        }, identifier: "upgrades.character.\(type.id)", enabled: canAfford)
+    /// Dos botones: uno compra el ingreso pasivo y otro sube el multiplicador.
+    /// Cada uno lleva su costo y arriba dice, en plata y por segundo, qué le hace
+    /// a ESTE personaje.
+    private func characterRow(_ row: GameState.CharacterUpgradeRow) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 10) {
+                CharacterFace(faceKey: row.faceKey, tier: row.tier)
+                Text(verbatim: row.displayName)
+                    .font(.headline)
+                    .foregroundStyle(Color("PaletteInk"))
+                Spacer(minLength: 4)
+            }
+
+            upgradeLine(
+                text: Text("upgrades.character.income \(row.multiplierText) \(row.nextMultiplierText) \(row.displayName)"),
+                identifier: "upgrades.character.\(row.id).multiplier",
+                enabled: row.canAffordUpgrade,
+                tint: Color("PaletteBlue")
+            ) {
+                gameState.buyCharacterUpgrade(typeID: row.id)
+            } label: {
+                CoinIcon(size: 16)
+                Text(verbatim: CoinFormatter.string(from: row.upgradeCost)).monospacedDigit()
+            }
+
+            upgradeLine(
+                text: Text(verbatim: row.passiveEffectText),
+                identifier: "upgrades.character.\(row.id).passive",
+                enabled: row.canAffordPassive && !row.passiveUnlocked,
+                tint: Color("PaletteGreen")
+            ) {
+                gameState.buyPassiveFromMenu(typeId: row.id)
+            } label: {
+                if row.passiveUnlocked {
+                    Image(systemName: "checkmark")
+                    Text("upgrades.character.passive_owned")
+                } else {
+                    CoinIcon(size: 16)
+                    Text(verbatim: CoinFormatter.string(from: row.passiveCost)).monospacedDigit()
+                }
+            }
+        }
+        .padding(10)
+        .background(cardBackground)
     }
+
+    /// Una línea de explicación + su botón. El texto explica; el botón cobra.
+    private func upgradeLine<Label: View>(
+        text: Text,
+        identifier: String,
+        enabled: Bool,
+        tint: Color,
+        action: @escaping () -> Void,
+        @ViewBuilder label: () -> Label
+    ) -> some View {
+        HStack(spacing: 8) {
+            text
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(Color("PaletteInk"))
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Button(action: action) {
+                HStack(spacing: 4) { label() }
+                    .font(.subheadline.weight(.heavy))
+                    .padding(.horizontal, 9).padding(.vertical, 7)
+            }
+            .buttonStyle(.borderedProminent).tint(tint).disabled(!enabled)
+            .accessibilityIdentifier(identifier)
+        }
+    }
+
+    // MARK: Permanentes (RF-06)
 
     @ViewBuilder private var permanentRows: some View {
         ForEach(gameState.content?.upgradesConfig.upgrades ?? []) { line in
@@ -126,8 +186,15 @@ struct UpgradesView: View {
             if let icon = UIArt.image(line.iconKey) { icon.resizable().scaledToFit().frame(width: 38, height: 38) }
         }, center: {
             Text(LocalizedStringKey(line.titleKey)).font(.headline)
+            // La línea numérica sale del JSON (no se puede desincronizar de un
+            // cambio de balance); debajo, el chiste que la hace memorable.
+            Text(verbatim: gameState.upgradeEffectText(for: line))
+                .font(.footnote.weight(.heavy)).foregroundStyle(Color("PaletteInk"))
+            Text(verbatim: gameState.upgradeFlavorText(for: line))
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             Text("upgrades.level \(String(level)) \(String(line.maxLevel))")
-                .font(.footnote).foregroundStyle(Color("PaletteInk"))
+                .font(.caption2).foregroundStyle(.secondary)
         }, action: {
             gameState.buyUpgrade(lineId: line.id)
         }, cost: {
@@ -157,6 +224,39 @@ struct UpgradesView: View {
             .accessibilityIdentifier(identifier)
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 14).fill(Color("PaletteCream")).overlay(RoundedRectangle(cornerRadius: 14).stroke(Color("PaletteInk"), lineWidth: 2)))
+        .background(cardBackground)
+    }
+
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: 14).fill(Color("PaletteCream"))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color("PaletteInk"), lineWidth: 2))
+    }
+}
+
+/// La carita del personaje en el círculo de la fila (RF-05). Sin entrada en el
+/// manifest cae al círculo amarillo con el tier, así la pantalla no espera al
+/// arte para poder construirse.
+private struct CharacterFace: View {
+    let faceKey: String?
+    let tier: Int
+
+    var body: some View {
+        Group {
+            if let faceKey, let face = UIArt.image(faceKey) {
+                face.resizable().scaledToFill()
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color("PaletteInk"), lineWidth: 2))
+            } else {
+                Circle().fill(Color("PaletteYellow"))
+                    .overlay(Circle().stroke(Color("PaletteInk"), lineWidth: 2))
+                    .overlay(
+                        Text(verbatim: "T\(tier)")
+                            .font(.caption.weight(.heavy))
+                            .foregroundStyle(Color("PaletteInk"))
+                    )
+            }
+        }
+        .frame(width: 38, height: 38)
+        .accessibilityHidden(true)
     }
 }

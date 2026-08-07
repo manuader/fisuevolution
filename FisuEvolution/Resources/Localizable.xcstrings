@@ -3846,18 +3846,50 @@
         }
       }
     },
-    "upgrades.character_multiplier %@": {
+    "upgrades.character.income %@ %@ %@": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Income ×2^%@ this life"
+            "value": "Money %1$@ → %2$@ for %3$@"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ingreso ×2^%@ en esta vida"
+            "value": "Plata %1$@ → %2$@ para %3$@"
+          }
+        }
+      }
+    },
+    "upgrades.character.passive_effect %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@/s on its own for each %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%1$@/s solo, por cada %2$@"
+          }
+        }
+      }
+    },
+    "upgrades.character.passive_owned": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Earning"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya genera"
           }
         }
       }
@@ -3874,6 +3906,118 @@
           "stringUnit": {
             "state": "translated",
             "value": "Contratá un personaje para mejorarlo."
+          }
+        }
+      }
+    },
+    "upgrades.flavor.crit": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every so often a tap comes out lucky and pays several times over."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada tanto un toque sale premiado y paga varias veces."
+          }
+        }
+      }
+    },
+    "upgrades.flavor.golden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The golden touch: rare, but it pays ten times over."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El toque de oro: aparece poco, pero paga diez veces."
+          }
+        }
+      }
+    },
+    "upgrades.flavor.income": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything the tower earns comes in fatter."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo lo que genera la torre entra más gordo."
+          }
+        }
+      }
+    },
+    "upgrades.flavor.offline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "While you sleep, the tower keeps working. Not as hard, but it works."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mientras dormís, la torre sigue laburando. Menos, pero labura."
+          }
+        }
+      }
+    },
+    "upgrades.flavor.prestige": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every ORO you ever earned pulls a little harder next life."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada ORO que ganaste rinde un poco más en la próxima vida."
+          }
+        }
+      }
+    },
+    "upgrades.flavor.spawn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiring gets cheaper. Nobody asks where the discount comes from."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contratar sale más barato. Nadie pregunta de dónde sale el descuento."
+          }
+        }
+      }
+    },
+    "upgrades.flavor.tap": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every tap of yours is worth more. The finger is the first job."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cada dedazo tuyo vale más. El dedo es el primer laburo."
           }
         }
       }

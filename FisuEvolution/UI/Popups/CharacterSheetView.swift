@@ -2,8 +2,13 @@ import EconomyKit
 import StoreKit
 import SwiftUI
 
-/// Ficha por tipo de personaje. Es el único entry point del pasivo, la
-/// apariencia y despedir; evita que el juego interrumpa el loop con popups.
+/// Ficha por tipo de personaje: apariencia y despedir.
+///
+/// El pasivo **ya no se compra acá** (RF-04). Se compraba sólo manteniendo
+/// apretado un personaje del tablero, un gesto que nadie descubre, y ahora tiene
+/// su botón en cada fila del menú de mejoras. Sacada la sección, el long-press
+/// —que sigue abriendo esta ficha— pasa a servir únicamente para cambiar la
+/// skin, que es lo pedido.
 struct CharacterSheetView: View {
     @Environment(GameState.self) private var gameState
     @Environment(StoreManager.self) private var store
@@ -50,7 +55,6 @@ struct CharacterSheetView: View {
                     VStack(spacing: 12) {
                         header
                         skinPager
-                        passiveSection
                         dismissalSection
                     }
                 }
@@ -60,9 +64,9 @@ struct CharacterSheetView: View {
             Spacer(minLength: 0)
         }
         .padding(16)
-        // SÓLo `.large`. Con `.medium` la ficha abría a media pantalla y la
-        // sección de pasivo quedaba debajo del pliegue: había que descubrir que
-        // se scrollea, y no se notaba. Entra todo de una.
+        // SÓLo `.large`. Con `.medium` la ficha abría a media pantalla y lo de
+        // abajo quedaba tapado por el pliegue: había que descubrir que se
+        // scrollea, y no se notaba. Entra todo de una.
         .presentationDetents([.large])
         // El panel ya no ocupa toda la hoja, así que el fondo del sheet dejaba
         // una franja blanca muerta: transparente, el panel flota sobre el juego.
@@ -151,37 +155,6 @@ struct CharacterSheetView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(Color("PaletteGreen"))
         }
-    }
-
-    private var passiveSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("passive.title \(sheet.type.displayName)")
-                .font(.headline)
-            Text("passive.explainer \(String(sheet.instanceCount)) \(CoinFormatter.string(from: sheet.type.passiveYieldPerInstance))")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-            if sheet.isUnlocked {
-                Label("passive.unlocked", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(Color("PaletteGreen"))
-            } else {
-                Button {
-                    gameState.unlockPassive(typeId: sheet.type.id)
-                } label: {
-                    HStack(spacing: 6) {
-                        Text("passive.unlock")
-                        CoinIcon(size: 18)
-                        Text(verbatim: CoinFormatter.string(from: sheet.type.passiveUnlockCost))
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(Color("PaletteGreen"))
-                .disabled(!sheet.canAfford)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(12)
-        .background(Color("PaletteCream").opacity(0.7), in: RoundedRectangle(cornerRadius: 18))
     }
 
     @ViewBuilder private var dismissalSection: some View {

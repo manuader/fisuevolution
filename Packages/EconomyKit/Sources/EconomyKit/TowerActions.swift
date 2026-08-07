@@ -197,6 +197,7 @@ public enum TowerActions {
         state.run.coins -= quote.cost
         state.run.hireCounts[floor.id, default: 0] += 1
         state.run.units[quote.type.id, default: 0] += 1
+        state.run.markSeen(quote.type.id)
         tower.floors[quote.floorOrdinal].slots[slot] = quote.type.id
         return TowerPlacement(floorOrdinal: quote.floorOrdinal, slot: slot, typeId: quote.type.id)
     }
@@ -259,6 +260,7 @@ public enum TowerActions {
         if state.run.units[sourceType] == 0 { state.run.units[sourceType] = nil }
         if state.run.units[targetType] == 0 { state.run.units[targetType] = nil }
         state.run.units[newTypeId, default: 0] += 1
+        state.run.markSeen(newTypeId)
         state.run.maxTierReached = max(state.run.maxTierReached, newType.tier)
 
         if destinationOrdinal == floorOrdinal {

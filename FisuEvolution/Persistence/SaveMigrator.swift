@@ -100,6 +100,10 @@ enum SaveMigrator {
             "charUpgradeLevels": [:] as [String: Int],
             "unlockedFloors": [] as [String],
             "activeModifiers": old["activeModifiers"] as? [[String: Any]] ?? [],
+            // RF-03: lo que el jugador tenía en el tablero ya lo vio. Un save v3
+            // no tiene el campo, así que se siembra acá (el reconciliador vuelve
+            // a rellenarlo en la carga, pero la migración no depende de eso).
+            "seenTypes": Array(units.keys),
         ]
         if let career = old["chosenCareerPath"] as? String {
             run["chosenCareerPath"] = career

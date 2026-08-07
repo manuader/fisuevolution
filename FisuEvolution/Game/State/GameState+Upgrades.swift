@@ -5,6 +5,29 @@ import Foundation
 /// Separado de `GameState.swift` para que el frente del menú de mejoras no
 /// comparta archivo con los otros cinco dominios.
 extension GameState {
+    /// Todo lo que una fila del menú de personajes necesita para dibujarse, ya
+    /// resuelto: la UI no vuelve a preguntarle nada al estado. Los textos vienen
+    /// armados con el número de ESE personaje (RF-04), no con un nivel abstracto.
+    struct CharacterUpgradeRow: Identifiable, Equatable {
+        let id: String
+        let displayName: String
+        let tier: Int
+        /// Clave del manifest para la carita (RF-05). Nil → el círculo "T7".
+        let faceKey: String?
+        /// "×4" — lo que rinde HOY.
+        let multiplierText: String
+        /// "×8" — lo que rinde si comprás.
+        let nextMultiplierText: String
+        let upgradeCost: Double
+        let canAffordUpgrade: Bool
+        let passiveUnlocked: Bool
+        let passiveCost: Double
+        let canAffordPassive: Bool
+        /// "+2,5/s por cada Fisura" — qué hace el pasivo, con el número de ESTE
+        /// personaje ya multiplicado por su mejora y por el piso donde vive.
+        let passiveEffectText: String
+    }
+
     func upgradeLevel(of lineId: String) -> Int {
         player?.meta.oroUpgradeLevels[lineId] ?? 0
     }
@@ -13,12 +36,118 @@ extension GameState {
         UpgradeManager.cost(of: line, level: upgradeLevel(of: line.id))
     }
 
-    /// Tipos que el jugador conoce en esta vida (o ya mejoró) para la pestaña
-    /// Personajes. La UI recibe el catálogo filtrado, no inspecciona el save.
+    /// Qué hace una mejora permanente, en números que salen del JSON (RF-06):
+    /// "+30% → +40%". Al calcularse desde el config no se puede desincronizar de
+    /// un cambio de balance, y la traducción la hace la pieza única
+    /// `EffectDescriptor` que comparten mejoras, boosts y prestigio.
+    func upgradeEffectText(for line: UpgradesConfig.Line) -> String {
+        let level = upgradeLevel(of: line.id)
+        let current = EffectDescriptor.amount(
+            for: line.effectType, level: level, magnitudePerLevel: line.magnitudePerLevel
+        )
+        let next = level >= line.maxLevel
+            ? nil
+            : EffectDescriptor.amount(
+                for: line.effectType, level: level + 1, magnitudePerLevel: line.magnitudePerLevel
+            )
+        let progression = EffectFormatter.progression(current: current, next: next)
+        guard current.isCapped || next?.isCapped == true else { return progression }
+        return "\(progression) (\(EffectFormatter.cappedNote))"
+    }
+
+    /// El chiste de la mejora, la segunda línea de la fila (RF-06).
+    ///
+    /// La búsqueda vive acá y no en la vista porque `LocalizedStringKey` es
+    /// `ExpressibleByStringInterpolation`: `LocalizedStringKey("upgrades.flavor.\(id)")`
+    /// NO busca la clave armada, arma la clave `upgrades.flavor.%@` y, al no
+    /// encontrarla, imprime el formato con el id sustituido —o sea, la clave
+    /// cruda en pantalla (trampa 5 del HANDOFF, tercera vez)—. Con la clave en
+    /// una `String` aparte, `String(localized:)` hace el lookup de verdad, y el
+    /// test la ejerce por el mismo camino que la vista.
+    func upgradeFlavorText(for line: UpgradesConfig.Line) -> String {
+        let key = "upgrades.flavor.\(line.id)"
+        return String(localized: String.LocalizationValue(key))
+    }
+
+    /// Las filas de la pestaña Personajes, listas para dibujar.
+    ///
+    /// Es computada y no una proyección publicada a propósito: `UpgradesView` ya
+    /// se re-evalúa contra `effectsVersion` y `coinsText`, que son las dos cosas
+    /// que mueven una fila. Publicarla obligaría a difundir un array entero 8
+    /// veces por segundo para una pantalla que casi nunca está abierta.
+    var characterUpgradeRows: [CharacterUpgradeRow] {
+        guard let content, let player else { return [] }
+        let coins = player.run.coins
+        let factor = content.economy.charUpgrades.effectFactorPerLevel
+        return characterUpgradeTypes.map { type in
+            let level = characterUpgradeLevel(of: type.id)
+            let cost = characterUpgradeCost(of: type) ?? .infinity
+            return CharacterUpgradeRow(
+                id: type.id,
+                displayName: type.displayName,
+                tier: type.tier,
+                faceKey: faceKey(for: type.id),
+                multiplierText: multiplierText(pow(factor, Double(level))),
+                nextMultiplierText: multiplierText(pow(factor, Double(level + 1))),
+                upgradeCost: cost,
+                canAffordUpgrade: coins >= cost,
+                passiveUnlocked: player.run.passiveUnlocked[type.id] == true,
+                passiveCost: type.passiveUnlockCost,
+                canAffordPassive: coins >= type.passiveUnlockCost,
+                passiveEffectText: passiveEffectText(for: type)
+            )
+        }
+    }
+
+    /// Compra el pasivo DESDE EL MENÚ (RF-04). Delega en la acción canónica y
+    /// bumpea `effectsVersion` porque la fila se redibuja contra esa proyección:
+    /// sin esto el botón se queda mostrando el precio de algo ya comprado.
+    func buyPassiveFromMenu(typeId: String) {
+        let wasUnlocked = player?.run.passiveUnlocked[typeId] == true
+        unlockPassive(typeId: typeId)
+        if !wasUnlocked, player?.run.passiveUnlocked[typeId] == true {
+            effectsVersion += 1
+        }
+    }
+
+    /// La carita del manifest (RF-05) o nil. Sin entrada, la fila cae al círculo
+    /// "T7": la UI no espera al arte para poder construirse.
+    private func faceKey(for typeId: String) -> String? {
+        let key = "\(typeId)_face"
+        return content?.manifest.ui[key] != nil ? key : nil
+    }
+
+    private func multiplierText(_ value: Double) -> String {
+        EffectFormatter.text(EffectAmount(unit: .multiplier, value: value, isCapped: false))
+    }
+
+    /// Lo que rinde por segundo UNA instancia de este tipo con el pasivo puesto:
+    /// misma fórmula que `IncomeTicker`, sin los multiplicadores globales (que
+    /// aplican igual a todos y harían saltar el número con cada boost).
+    private func passiveEffectText(for type: CharacterType) -> String {
+        guard let content, let player else { return "" }
+        let perInstance = type.passiveYieldPerInstance
+            * CharUpgrades.multiplier(
+                typeId: type.id, levels: player.run.charUpgradeLevels, config: content.economy
+            )
+            * content.floorTable.floor(forTier: type.tier).incomeMultiplier
+        let rate = perInstance > 0 && perInstance < 1
+            ? perInstance.formatted(.number.precision(.fractionLength(1)))
+            : CoinFormatter.string(from: perInstance)
+        return String(localized: "upgrades.character.passive_effect \(rate) \(type.displayName)")
+    }
+
+    /// Tipos que el jugador desbloqueó EN ESTA RUN para la pestaña Personajes.
+    /// La UI recibe el catálogo filtrado, no inspecciona el save.
+    ///
+    /// Sale de `run.seenTypes` y no de las unidades vivas (RF-03): mergear tu
+    /// último Fisura te borraba de la pantalla la mejora que le habías comprado
+    /// y que te seguía rindiendo. El que nunca desbloqueaste sigue sin aparecer,
+    /// así que las evoluciones no se espoilean.
     var characterUpgradeTypes: [CharacterType] {
         guard let content, let player else { return [] }
         return content.tiers.concreteTypes
-            .filter { (player.run.units[$0.id] ?? 0) > 0 || (player.run.charUpgradeLevels[$0.id] ?? 0) > 0 }
+            .filter { player.run.seenTypes.contains($0.id) }
             .sorted { $0.tier < $1.tier }
     }
 

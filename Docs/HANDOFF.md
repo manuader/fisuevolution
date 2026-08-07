@@ -318,6 +318,23 @@ El panel de debug es el ícono de herramientas del HUD.
 7. **Los agentes en paralelo comparten el scratchpad.** Si varios frentes
    escriben `full.log` ahí, se pisan entre sí. Prefijá con el nombre del frente.
 
+   ⚠️⚠️ **Y su worktree se crea desde `origin/main`, no desde `main` local.**
+   El 2026-08-06 `origin/main` estaba **102 commits atrás** —este repo se
+   commitea local y casi no se pushea—, así que **todos** los frentes
+   arrancaron sobre el árbol de cuatro días antes: sin el plan que tenían que
+   leer, sin el spec, y con los JSON viejos. Cada uno lo detectó y se puso al
+   día solo, pero uno lo dijo bien: *"si otro frente arrancó igual, trabajó
+   sobre un repo fantasma"*.
+
+   **Lo primero que hace un frente nuevo es comprobarlo:**
+
+   ```bash
+   git rev-list --count origin/main..main
+   ```
+
+   Si no da 0, `git merge --ff-only main` antes de tocar nada. Y la solución de
+   fondo es pushear: mientras `origin` esté viejo, esto se repite en cada tanda.
+
 8. **El handler de `SKTexture.preload` TIENE que ser `@Sendable`.** SpriteKit lo
    llama desde una cola de fondo y `BoardScene` es `@MainActor` (`SKScene` lo es
    en el SDK), así que un `{}` pelado hereda el aislamiento y **mata el proceso

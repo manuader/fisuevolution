@@ -1396,6 +1396,23 @@
         }
       }
     },
+    "hud.settings.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes"
+          }
+        }
+      }
+    },
     "hud.store.label": {
       "extractionState": "stale",
       "localizations": {

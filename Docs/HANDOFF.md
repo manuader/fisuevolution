@@ -66,13 +66,25 @@ Ningún conteo, rango ni switch por etapa vive en código. Todo sale de JSON en
 |---|---|
 | `Data/economy.json` | Curvas, los 11 pisos (`floors[]`), costos de contratación, ORO |
 | `Data/tiers.json` | Los 30 tiers y la cadena de evolución (generado: `swift run generate-tiers`) |
-| `Data/assets_manifest.json` | **Único puente código→arte.** Sin entrada acá, placeholder programático |
+| `Data/assets_manifest.json` | **Único puente código→arte.** Sin entrada acá, placeholder programático — ⚠️ **salvo los fondos**, ver abajo |
 | `Config/skins.json` | Catálogo de apariencias |
 | `Config/*.json` | Eventos, specials, upgrades, boosts, daily, feature flags |
 
 Agregar un piso = una entrada en `floors[]` + el PNG del fondo. Agregar un
 personaje = PNGs al atlas + entrada en manifest/tiers. **Cero código.** Hay un
 `ExtensibilityDrillTests` que lo prueba con un piso 12 declarado sólo como dato.
+
+⚠️ **El fallback a placeholder NO cubre los fondos.** Un personaje sin entrada en
+el manifest se dibuja con su placeholder programático y el juego sigue; **un piso
+cuyo fondo falta hace que la app no arranque**. Medido el 2026-08-06 sacando
+`bg_galaxy` para destrabar su regeneración: los tests unitarios seguían verdes y
+los 17 de UI se cayeron con `Application com.manuader.fisuevolution is not
+running`. Restaurar la entrada los devolvió a verde sin tocar nada más.
+
+Consecuencia práctica: **regenerar un fondo exige sacarlo del manifest, y con el
+manifest así el juego no corre.** La ventana tiene que ser corta y no se puede
+buildear ni testear adentro. `process_dropbox.py` vuelve a poner la entrada al
+integrar la imagen nueva, y si algo sale mal `git checkout` la restaura.
 
 ### La torre
 

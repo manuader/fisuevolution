@@ -322,6 +322,37 @@ struct GameContentValidationTests {
         #expect(SkinResolver.treatment(for: "urban", characterType: "homeless", config: config) == .base)
     }
 
+    /// El drill de remapeo contra el contenido REAL: un save escrito con el
+    /// mapeo de 11 pisos tiene unidades de `kiosco`, que ya no existe. Tiene que
+    /// cargar, descartar sólo esas y reacomodar el resto contra el mapeo
+    /// vigente. `TowerReconciler` se construyó exactamente para esto, así que
+    /// pasa de una: se deja igual porque es la red del PRÓXIMO remapeo.
+    @Test("un save con el mapeo de 11 pisos carga y reacomoda sus unidades")
+    func oldSaveSurvivesTheRemap() throws {
+        var state = PlayerState.newGame(
+            startTypeId: "homeless",
+            startFloorId: "alley",
+            offlineEfficiencyBase: content.economy.offlineEfficiencyBase,
+            critChanceBase: content.economy.critChanceBase,
+            now: 1_700_000_000
+        )
+        // Un tipo que sigue existiendo y otro que se eliminó en este remapeo.
+        state.run.units = ["homeless": 3, "kiosco": 2]
+
+        let outcome = TowerReconciler.reconcile(
+            run: &state.run,
+            floorTable: content.floorTable,
+            tiers: content.tiers
+        )
+
+        #expect(outcome.discarded == ["kiosco": 2], "las unidades de un tipo eliminado se descartan, no rompen la carga")
+        #expect(state.run.units == ["homeless": 3], "kiosco tiene que salir de units, no quedar de zombi")
+        #expect(outcome.tower.unitCounts == state.run.units)
+        // Y el Fisura queda parado en el callejón, que es donde lo pone el
+        // mapeo NUEVO (T1 sigue en `alley`, ahora 1…4 en vez de 1…2).
+        #expect(content.floorTable.ordinal(forTier: 1) == 0)
+    }
+
     private func expectRelativelyEqual(_ actual: Double, _ expected: Double, context: String) {
         let tolerance = max(abs(expected), 1) * 1e-9
         #expect(abs(actual - expected) <= tolerance, "\(context): \(actual) != \(expected)")

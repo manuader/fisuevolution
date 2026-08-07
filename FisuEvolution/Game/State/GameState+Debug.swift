@@ -6,6 +6,36 @@ import Foundation
 /// que abrir el archivo del dominio ajeno sólo para tocar una puerta de test.
 extension GameState {
     #if DEBUG
+    /// Deja el estado del tutorial DECLARADO por el test en vez de heredado del
+    /// simulador.
+    ///
+    /// ⚠️ Esto es el arreglo de la trampa 9 del HANDOFF. `fisuTutorialDone` y
+    /// las tres banderas `ftue.*` viven en `UserDefaults`, que sobrevive a
+    /// `--uitest-reset` porque ese fixture sólo rehacía la PARTIDA. El resultado
+    /// era que `LaunchSmokeTests` y `EconomyLoopUITests` pasaban únicamente si
+    /// antes había corrido el test que abre la ficha (que seteaba
+    /// `fisuTutorialDone` de rebote): en un simulador limpio el tutorial les
+    /// tapaba los controles. Ahora `--uitest-reset` también resetea el tutorial,
+    /// y el que no quiere verlo lo dice con `--uitest-skip-tutorial`.
+    func applyTutorialLaunchArguments(forceNewGame: Bool) {
+        let arguments = ProcessInfo.processInfo.arguments
+        let defaults = UserDefaults.standard
+        if forceNewGame {
+            defaults.set(false, forKey: "fisuTutorialDone")
+            defaults.set(false, forKey: "ftue.tapped")
+            defaults.set(false, forKey: "ftue.spawned")
+            defaults.set(false, forKey: "ftue.merged")
+            ftueTapped = false
+            ftueSpawned = false
+            ftueMerged = false
+        }
+        // `--uitest-open-sheet` presenta una hoja modal: el tutorial no puede
+        // estar adelante, así que implica saltearlo.
+        if arguments.contains("--uitest-skip-tutorial") || arguments.contains("--uitest-open-sheet") {
+            defaults.set(true, forKey: "fisuTutorialDone")
+        }
+    }
+
     /// Acredita skins de milestone sin recorrer su condición. Desde que se
     /// retiraron los tintes IAP, los milestones son la única fuente de skins,
     /// así que los tests que ejercitan equipar necesitan esta puerta.

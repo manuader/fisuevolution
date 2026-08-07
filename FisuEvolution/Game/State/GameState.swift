@@ -115,6 +115,26 @@ final class GameState {
         case unavailable
     }
 
+    /// Los tres hitos del FTUE, como proyección `Equatable` para que publicarlos
+    /// no invalide SwiftUI en cada `refreshProjections`.
+    struct FTUEMilestones: Equatable {
+        var tapped = false
+        var spawned = false
+        var merged = false
+    }
+
+    /// Qué pide iluminar el tutorial sobre el tablero.
+    ///
+    /// No se pide "el slot N": el slot lo resuelve la escena contra las
+    /// unidades que hay de verdad, así que el recorte sigue cayendo bien
+    /// aunque cambie el layout o el personaje se mueva.
+    enum TutorialBoardTarget: Equatable {
+        /// Cualquier unidad del piso visible (paso "tocá al Fisura").
+        case anyUnit
+        /// Una de un par mergeable, si existe (paso "arrastrá uno sobre otro").
+        case mergePair
+    }
+
     enum DropResolution {
         /// `evolvedTo` presente cuando el merge alcanzó un tier nuevo (reveal).
         /// `promotedToFloor` presente cuando el resultado ascendió de piso.
@@ -169,6 +189,23 @@ final class GameState {
     private(set) var showTapHint = false
     private(set) var showSpawnHint = false
     private(set) var showMergeHint = false
+    /// Espejo OBSERVABLE de las tres banderas del FTUE.
+    ///
+    /// `ftueTapped`/`ftueSpawned`/`ftueMerged` son `@ObservationIgnored` porque
+    /// las escriben las acciones decenas de veces por segundo junto al resto del
+    /// estado. El tutorial (RF-01) avanza **por acción y no por toque**, así que
+    /// necesita verlas desde una vista: esto las publica una sola vez por
+    /// `refreshProjections`, escribiendo sólo si cambiaron.
+    private(set) var ftueMilestones = FTUEMilestones()
+    /// Qué quiere iluminar el tutorial en el TABLERO, o nil si el paso actual no
+    /// es de tablero. Lo escribe el overlay; lo lee el frame loop de la escena.
+    @ObservationIgnored var tutorialBoardTarget: TutorialBoardTarget?
+    /// Recorte resuelto para `tutorialBoardTarget`, en puntos de la VISTA.
+    ///
+    /// Lo publica `BoardScene` porque es la única que sabe dónde quedó parado el
+    /// personaje después de deambular: el ancla lógica del slot ya no alcanza
+    /// desde que el reconciliador conserva la posición deambulada.
+    var boardSpotlight: CGRect?
     /// Piso visible (ordinal 0-based). La escena lo consume vía boardVersion.
     /// Lo escriben `+Tower` (navegación) y `+Debug` (fixture de UI test).
     var visibleFloorOrdinal = 0
@@ -291,6 +328,7 @@ final class GameState {
             var forceNewGame = false
             #if DEBUG
             forceNewGame = ProcessInfo.processInfo.arguments.contains("--uitest-reset")
+            applyTutorialLaunchArguments(forceNewGame: forceNewGame)
             #endif
 
             if content.flags.cloudKitEnabled {
@@ -328,6 +366,13 @@ final class GameState {
             // prestigio jugando no es automatizable. El fixture lo acredita.
             if ProcessInfo.processInfo.arguments.contains("--uitest-prestige") {
                 giveLifetimeEarningsForTesting(300_000_000)
+            }
+            // El primer Fisura cuesta 50 y un tap rinde 1: llegar a contratar
+            // jugando son ~50 toques sobre un personaje que deambula. El fixture
+            // acredita la plata para que el test del tutorial mida el TUTORIAL y
+            // no la puntería del runner.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-coins") {
+                debugGrantCoins()
             }
             // El long-press sobre SpriteKit no es determinista en el runner: para
             // el smoke de la ficha alcanza con abrirla sobre la primera unidad.
@@ -651,6 +696,9 @@ final class GameState {
         }
         let mergeHint = ftueSpawned && !ftueMerged && pairExists
         if showMergeHint != mergeHint { showMergeHint = mergeHint }
+
+        let milestones = FTUEMilestones(tapped: ftueTapped, spawned: ftueSpawned, merged: ftueMerged)
+        if ftueMilestones != milestones { ftueMilestones = milestones }
     }
 
     private func makeTowerNavigation(content: GameContent, player: PlayerState) -> TowerNavigation {

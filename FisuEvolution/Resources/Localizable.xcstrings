@@ -3672,18 +3672,34 @@
         }
       }
     },
-    "tutorial.continue": {
+    "tutorial.done": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "tap to continue ▸"
+            "value": "Let's go!"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "tocá para seguir ▸"
+            "value": "¡Vamos!"
+          }
+        }
+      }
+    },
+    "tutorial.progress.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tutorial step"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paso del tutorial"
           }
         }
       }
@@ -3704,30 +3720,12 @@
         }
       }
     },
-    "tutorial.step.ascent": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "When an evolution belongs upstairs, it flies there. Go visit your crew."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cuando una evolución pertenece arriba, vuela hasta allá. Subí a visitar a tu gente."
-          }
-        }
-      }
-    },
     "tutorial.step.finish": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You are set. Time to make millions! 🚀"
+            "value": "You are set. The block is counting on you. Time to make millions! 🚀"
           }
         },
         "es": {
@@ -3739,24 +3737,38 @@
       }
     },
     "tutorial.step.hire": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The green button hires more characters for this floor."
+            "value": "There it is! Hit the green button to add another one to the alley."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Con el botón verde de abajo contratás más changos para este piso."
+            "value": "¡Ahí está! Dale al botón verde y sumás otro chango al callejón."
+          }
+        }
+      }
+    },
+    "tutorial.step.map": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "And here is the map: jump straight to any floor of the tower."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Y acá tenés el mapa: saltás a cualquier piso de la torre de una."
           }
         }
       }
     },
     "tutorial.step.merge": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3773,52 +3785,33 @@
       }
     },
     "tutorial.step.tap": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hi! I am El Fisura. Tap me to earn coins. 💰"
+            "value": "Hi! I am El Fisura. Tap me to earn coins until you can afford to hire another one. 💰"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "¡Hola! Soy El Fisura. Tocame para juntar plata. 💰"
-          }
-        }
-      }
-    },
-    "tutorial.step.tower": {
-      "extractionState": "stale",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This is your tower. Use the arrows or swipe an empty space to move between floors."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Esta es tu torre. Usá las flechas o deslizá por un espacio vacío para moverte entre pisos."
+            "value": "¡Hola! Soy El Fisura. Tocame para juntar plata hasta que te alcance para contratar a otro. 💰"
           }
         }
       }
     },
     "tutorial.step.upgrades": {
-      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Store and Upgrades boost your earnings. Do not be stingy!"
+            "value": "Upgrades boost your earnings for good. Do not be stingy!"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "En Tienda y Mejoras potenciás tus ganancias. ¡No seas amarrete!"
+            "value": "En Mejoras potenciás tus ganancias para siempre. ¡No seas amarrete!"
           }
         }
       }

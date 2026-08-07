@@ -1,126 +1,447 @@
 import SwiftUI
 
-/// Tutorial narrado por El Fisura (estilo Clash of Clans): scrim oscuro + una
-/// pose del Fisura abajo-izquierda + burbuja de diálogo con el texto del paso.
-/// Se toca para avanzar. Aparece una sola vez (AppStorage) y se puede saltear.
-/// Es un overlay autónomo: no toca la economía ni el GameState.
+/// Eventos de la propia UI que completan un paso y no se pueden leer de una
+/// proyección de `GameState` (abrir una hoja no cambia la economía).
+struct TutorialEvents: OptionSet, Equatable {
+    let rawValue: Int
+    static let openedUpgrades = TutorialEvents(rawValue: 1 << 0)
+    static let openedMap = TutorialEvents(rawValue: 1 << 1)
+}
+
+/// Tutorial interactivo (RF-01), patrón Clash of Clans.
+///
+/// Cada paso recorta un agujero sobre el control **real** —resuelto por
+/// `TutorialAnchorKey` para los controles de SwiftUI y por `BoardScene` para el
+/// personaje del tablero— con una mano que late encima. El resto de la pantalla
+/// queda oscurecido y **no responde al toque**, así que el paso sólo avanza
+/// cuando el jugador ejecuta la acción que se le pide. Tocar en cualquier lado
+/// ya no hace nada: era eso lo que hacía que el tutorial no enseñara nada.
+///
+/// Se conservan el botón de saltear y el `AppStorage` de "ya lo vi".
 struct TutorialOverlay: View {
+    /// Frames reales de los controles, ya resueltos por el `GeometryProxy` que
+    /// monta el overlay. Nunca coordenadas escritas a mano.
+    let anchors: [TutorialTarget: CGRect]
+    let events: TutorialEvents
+
+    @Environment(GameState.self) private var gameState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("fisuTutorialDone") private var done = false
     @State private var step = 0
 
-    private struct Step { let pose: String; let textKey: String }
-    private let steps: [Step] = [
-        .init(pose: "fisura_wave",
-              textKey: "tutorial.step.tap"),
-        .init(pose: "fisura_explain",
-              textKey: "tutorial.step.merge"),
-        .init(pose: "fisura_point",
-              textKey: "tutorial.step.hire"),
-        .init(pose: "fisura_explain",
-              textKey: "tutorial.step.upgrades"),
-        .init(pose: "fisura_point",
-              textKey: "tutorial.step.tower"),
-        .init(pose: "fisura_celebrate",
-              textKey: "tutorial.step.ascent"),
-        .init(pose: "fisura_celebrate",
-              textKey: "tutorial.step.finish"),
-    ]
+    // MARK: - El guion
+
+    /// Qué completa un paso. Es un enum y no un closure guardado para que el
+    /// guion siga siendo un valor puro y la condición viva en un solo `switch`
+    /// que se puede leer entero de una.
+    private enum Completion: Equatable {
+        /// Tocó al Fisura Y ya junta para contratar. Las dos cosas: con sólo el
+        /// primer toque, el paso siguiente iluminaría un botón que no se puede
+        /// pagar hasta dentro de cincuenta toques, y con el resto de la pantalla
+        /// bloqueada eso es un callejón sin salida.
+        case earnedEnoughToHire
+        case hired
+        case merged
+        case ui(TutorialEvents)
+        /// Lo cierra el botón del paso final.
+        case explicitButton
+    }
+
+    private struct Step {
+        let id: String
+        let target: TutorialTarget?
+        /// Recortes de sólo mirar: no llevan mano y no son la acción del paso,
+        /// pero dejan ver el marcador que el jugador necesita seguir.
+        var windows: [TutorialTarget] = []
+        var boardTarget: GameState.TutorialBoardTarget?
+        let text: LocalizedStringKey
+        let pose: String
+        let completion: Completion
+    }
+
+    /// ⚠️ Los controles que se iluminan son los del HUD de HOY: el menú de
+    /// mejoras (`hud.upgrades`) y el botón de mapa (`hud.map`, que vive en la
+    /// cápsula de la torre y no en la fila de íconos). El paso viejo que
+    /// explicaba las flechas de la torre lo reemplaza el mapa, que es lo que las
+    /// reemplazó a ellas.
+    private var steps: [Step] {
+        [
+            Step(id: "tap", target: .boardUnit, windows: [.coins], boardTarget: .anyUnit,
+                 text: "tutorial.step.tap", pose: "fisura_wave", completion: .earnedEnoughToHire),
+            Step(id: "hire", target: .hire, windows: [.coins],
+                 text: "tutorial.step.hire", pose: "fisura_point", completion: .hired),
+            Step(id: "merge", target: .boardUnit, boardTarget: .mergePair,
+                 text: "tutorial.step.merge", pose: "fisura_explain", completion: .merged),
+            Step(id: "upgrades", target: .upgrades,
+                 text: "tutorial.step.upgrades", pose: "fisura_explain", completion: .ui(.openedUpgrades)),
+            Step(id: "map", target: .map,
+                 text: "tutorial.step.map", pose: "fisura_point", completion: .ui(.openedMap)),
+            Step(id: "finish", target: nil,
+                 text: "tutorial.step.finish", pose: "fisura_celebrate", completion: .explicitButton),
+        ]
+    }
+
+    // MARK: - Cuerpo
 
     var body: some View {
         if !done, step < steps.count {
             overlay(steps[step])
-                .transition(.opacity)
         }
     }
 
+    @ViewBuilder
     private func overlay(_ current: Step) -> some View {
-        ZStack(alignment: .bottom) {
-            Color.black.opacity(0.72)
-                .ignoresSafeArea()
-                .contentShape(Rectangle())
-                .onTapGesture { advance() }
+        let hole = holeRect(for: current)
+        let windows = current.windows.compactMap { anchors[$0] }
+        GeometryReader { proxy in
+            ZStack {
+                scrim(hole: hole, windows: windows, screen: proxy.size)
+                if SpotlightShape.isDrawable(hole) {
+                    spotlightRing(hole)
+                    hand(hole, screen: proxy.size)
+                }
+                card(current, hole: hole, screen: proxy.size)
+            }
+            .background(markers(current, hole: hole))
+        }
+        .ignoresSafeArea()
+        .animation(motion(.easeInOut(duration: 0.32)), value: hole)
+        .animation(motion(.easeInOut(duration: 0.32)), value: step)
+        .onAppear {
+            gameState.tutorialBoardTarget = current.boardTarget
+        }
+        .onDisappear {
+            gameState.tutorialBoardTarget = nil
+        }
+        .onChange(of: current.boardTarget) { _, target in
+            gameState.tutorialBoardTarget = target
+        }
+        .onChange(of: progress, initial: true) { _, _ in
+            advanceWhileSatisfied()
+        }
+    }
 
-            VStack(spacing: 0) {
-                Spacer()
-                SpeechBubble(text: String(localized: String.LocalizationValue(current.textKey)))
-                    .padding(.bottom, 4)
-                HStack(alignment: .bottom, spacing: 0) {
-                    fisura(current.pose)
-                    Spacer()
-                    VStack(spacing: 10) {
-                        progressDots
-                        Text("tutorial.continue")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.white.opacity(0.9))
+    // MARK: - El recorte
+
+    /// El agujero del paso. `.null` = sin recorte (el paso final va con el scrim
+    /// entero, que es lo correcto: no pide tocar nada del juego).
+    private func holeRect(for current: Step) -> CGRect {
+        guard let target = current.target else { return .null }
+        let rect: CGRect? = target == .boardUnit ? gameState.boardSpotlight : anchors[target]
+        guard let rect, SpotlightShape.isDrawable(rect) else { return .null }
+        // Un poco de aire alrededor: pegado al borde del control el recorte se
+        // lee como un error de alineación.
+        return rect.insetBy(dx: -10, dy: -10)
+    }
+
+    private func scrim(hole: CGRect, windows: [CGRect], screen: CGSize) -> some View {
+        let shape = SpotlightShape(primary: hole, extras: windows)
+        return shape
+            .fill(Color.black.opacity(0.68), style: FillStyle(eoFill: true))
+            // La MISMA forma de hit-testing: fuera del agujero el toque se lo
+            // come el scrim y no llega ni al HUD ni a la escena. Es lo único que
+            // impide saltear un paso sin hacer lo que pide.
+            .contentShape(shape, eoFill: true)
+            .accessibilityIdentifier("tutorial.scrim")
+            .accessibilityHidden(true)
+    }
+
+    /// Borde luminoso del agujero: sin esto el recorte se lee como un bache en
+    /// el scrim en vez de como algo que hay que tocar.
+    private func spotlightRing(_ hole: CGRect) -> some View {
+        RoundedRectangle(cornerRadius: min(28, min(hole.width, hole.height) / 2), style: .continuous)
+            .strokeBorder(Color("PaletteYellow"), lineWidth: 3)
+            .shadow(color: Color("PaletteYellow").opacity(0.75), radius: 10)
+            .frame(width: hole.width, height: hole.height)
+            .position(x: hole.midX, y: hole.midY)
+            .allowsHitTesting(false)
+    }
+
+    private func hand(_ hole: CGRect, screen: CGSize) -> some View {
+        TutorialHand(hole: hole, screen: screen, reduceMotion: reduceMotion)
+    }
+
+    // MARK: - El globo
+
+    /// El globo va del lado OPUESTO al recorte, así nunca tapa el control que
+    /// está pidiendo que toques, y **esquiva las dos barras de controles** con
+    /// sus frames reales: apoyado sin ese margen se comía el HUD entero.
+    private func card(_ current: Step, hole: CGRect, screen: CGSize) -> some View {
+        // Sin recorte —el paso final— no hay nada que esquivar: va centrado, que
+        // es donde se lee un cierre.
+        let hasHole = SpotlightShape.isDrawable(hole)
+        let holeIsLow = hasHole ? hole.midY > screen.height / 2 : false
+        let topInset = (anchors[.hudBar]?.maxY ?? 0) + 14
+        let bottomInset = anchors[.bottomBar].map { screen.height - $0.minY + 14 } ?? 40
+        return VStack(spacing: 0) {
+            if !holeIsLow { Spacer(minLength: 0) }
+            TutorialCard(
+                text: current.text,
+                pose: current.pose,
+                index: step,
+                total: steps.count,
+                showsDoneButton: current.completion == .explicitButton,
+                onDone: finish,
+                onSkip: finish
+            )
+            .padding(.horizontal, 14)
+            .padding(.top, holeIsLow ? topInset : 0)
+            .padding(.bottom, hasHole && !holeIsLow ? bottomInset : 0)
+            if holeIsLow || !hasHole { Spacer(minLength: 0) }
+        }
+        .transition(.opacity)
+        .id(step)
+    }
+
+    // MARK: - Marcadores para los tests de UI
+
+    /// Invisibles para el jugador, medibles para los tests.
+    ///
+    /// ⚠️ Van por **identifier** y con el valor sin traducir: el runner corre la
+    /// app en inglés aunque el idioma de desarrollo sea `es` (trampa 6), así que
+    /// un assert sobre el texto del globo pasaría por no encontrar nunca nada.
+    /// `tutorial.spotlight` publica el recorte para poder comprobar que cae
+    /// sobre el frame del control de verdad y no sobre el vacío.
+    ///
+    /// ⚠️⚠️ Van de FONDO y de 1×1, igual que `board.units` en `RootView`. Puestos
+    /// arriba del `ZStack` y a pantalla completa —que es lo natural— son dos
+    /// elementos de accesibilidad que TAPAN a todos los controles de abajo en el
+    /// árbol de AX: XCUITest deja de considerarlos "hittable" y cada `.tap()`
+    /// falla con "Failed to scroll to visible", incluido el botón de saltear del
+    /// propio tutorial. Es la trampa 4 del HANDOFF con un disfraz nuevo: nunca
+    /// es el botón, siempre es algo tapándolo. Los toques por coordenada seguían
+    /// funcionando, así que el bug sólo se ve en los tests que usan `.tap()`
+    /// sobre un elemento.
+    private func markers(_ current: Step, hole: CGRect) -> some View {
+        VStack(spacing: 2) {
+            Color.clear
+                .frame(width: 1, height: 1)
+                .accessibilityElement()
+                .accessibilityIdentifier("tutorial.step")
+                .accessibilityValue(Text(verbatim: current.id))
+            Color.clear
+                .frame(width: 1, height: 1)
+                .accessibilityElement()
+                .accessibilityIdentifier("tutorial.spotlight")
+                // Distingue "este paso no ilumina nada" de "el control que este
+                // paso ilumina no publicó su ancla": lo segundo es un bug que
+                // deja el scrim entero y el paso sin salida, y sin este valor se
+                // ve exactamente igual que lo primero.
+                .accessibilityValue(Text(verbatim: SpotlightShape.isDrawable(hole)
+                    ? Self.describe(hole)
+                    : (current.target.map { "missing:\($0.rawValue)" } ?? "none")))
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .allowsHitTesting(false)
+    }
+
+    static func describe(_ rect: CGRect) -> String {
+        guard SpotlightShape.isDrawable(rect) else { return "none" }
+        return "\(Int(rect.minX.rounded())),\(Int(rect.minY.rounded()))," +
+            "\(Int(rect.width.rounded())),\(Int(rect.height.rounded()))"
+    }
+
+    // MARK: - Avanzar POR ACCIÓN
+
+    /// Todo lo que puede completar un paso, en un valor `Equatable`: es lo que
+    /// hace que un `onChange` alcance para reevaluar el guion entero.
+    private var progress: Progress {
+        Progress(
+            milestones: gameState.ftueMilestones,
+            canAffordSpawn: gameState.canAffordSpawn,
+            events: events
+        )
+    }
+
+    private struct Progress: Equatable {
+        let milestones: GameState.FTUEMilestones
+        let canAffordSpawn: Bool
+        let events: TutorialEvents
+    }
+
+    private func isSatisfied(_ completion: Completion) -> Bool {
+        switch completion {
+        case .earnedEnoughToHire: gameState.ftueMilestones.tapped && gameState.canAffordSpawn
+        case .hired: gameState.ftueMilestones.spawned
+        case .merged: gameState.ftueMilestones.merged
+        case .ui(let event): events.contains(event)
+        case .explicitButton: false
+        }
+    }
+
+    /// Avanza en bucle y no de a un paso: al reanudar una partida a medio
+    /// tutorial puede haber varios pasos ya cumplidos, y un `onChange` sobre el
+    /// booleano "el paso actual está cumplido" no vuelve a disparar cuando el
+    /// siguiente también lo está (true → true no es un cambio).
+    private func advanceWhileSatisfied() {
+        let script = steps
+        var next = step
+        while next < script.count, isSatisfied(script[next].completion) {
+            next += 1
+        }
+        guard next != step else { return }
+        withAnimation(motion(.easeInOut(duration: 0.3))) {
+            step = next
+            if step >= script.count { done = true }
+        }
+    }
+
+    private func finish() {
+        gameState.tutorialBoardTarget = nil
+        withAnimation(motion(.easeInOut(duration: 0.3))) { done = true }
+    }
+
+    /// ⚠️ Con Reduce Motion las transiciones **colapsan**: se devuelve `nil`, que
+    /// aplica el cambio sin animación. Es la misma regla por la que la secuencia
+    /// de celebraciones encadena por completion y no por delays.
+    private func motion(_ animation: Animation) -> Animation? {
+        reduceMotion ? nil : animation
+    }
+}
+
+/// La mano que late sobre el recorte.
+///
+/// ⚠️ Tiene su propio `@State` y su propio `onAppear` por un motivo concreto:
+/// el latido es un `repeatForever` disparado por el CAMBIO de `up`, y si ese
+/// cambio ocurre antes de que la vista exista, no hay cambio que animar y la
+/// mano se queda quieta para siempre. Es lo que pasaba con la bandera en el
+/// overlay: el `onAppear` del overlay corría mientras el recorte del tablero
+/// todavía no había llegado desde la escena, así que la mano nacía ya "arriba" y
+/// nunca latía. **No se veía en una captura** —la mano estaba, y en su pose
+/// grande— y sólo apareció comparando cuatro capturas seguidas CON y SIN Reduce
+/// Motion: las dos daban imágenes idénticas entre sí.
+///
+/// ⚠️ Con Reduce Motion `up` se queda en falso, así que el `repeatForever` no se
+/// registra nunca. No alcanza con darle duración cero: un `repeatForever`
+/// colapsado sigue corriendo el display link de SwiftUI toda la sesión, que es
+/// el bug que ya tuvo el botón de contratar.
+private struct TutorialHand: View {
+    let hole: CGRect
+    let screen: CGSize
+    let reduceMotion: Bool
+    @State private var up = false
+
+    private static let size: CGFloat = 46
+
+    var body: some View {
+        Image(systemName: "hand.point.up.left.fill")
+            .font(.system(size: Self.size, weight: .black))
+            .foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.6), radius: 5, y: 3)
+            .scaleEffect(up ? 1.14 : 0.92)
+            .offset(x: up ? 5 : 0, y: up ? 7 : 0)
+            .animation(
+                up ? .easeInOut(duration: 0.62).repeatForever(autoreverses: true) : .default,
+                value: up
+            )
+            // La mano se acomoda al borde del agujero, pero nunca se sale de la
+            // pantalla: el botón de contratar vive pegado al borde de abajo.
+            .position(
+                x: min(max(hole.maxX - 6, Self.size), screen.width - Self.size / 2),
+                y: min(max(hole.maxY - 2, Self.size), screen.height - Self.size)
+            )
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            .onAppear { up = !reduceMotion }
+    }
+}
+
+/// El globo del tutorial: pose del Fisura + texto + progreso, al nivel del resto
+/// del juego (cápsula crema, borde ink, tipografía redondeada).
+///
+/// Es horizontal y compacto —y no el Fisura de 300×380 con el globo arriba que
+/// había antes— porque tiene que convivir con el recorte sin taparlo.
+private struct TutorialCard: View {
+    let text: LocalizedStringKey
+    let pose: String
+    let index: Int
+    let total: Int
+    let showsDoneButton: Bool
+    let onDone: () -> Void
+    let onSkip: () -> Void
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack(alignment: .center, spacing: 10) {
+                portrait
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(text)
+                        .font(.system(.subheadline, design: .rounded).weight(.bold))
+                        .foregroundStyle(Color("PaletteInk"))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    HStack(spacing: 10) {
+                        dots
+                        Spacer(minLength: 8)
+                        // En el último paso no: "Saltar" y "¡Vamos!" harían lo
+                        // mismo, uno al lado del otro.
+                        if !showsDoneButton { skipButton }
                     }
-                    .padding(.trailing, 12)
-                    .padding(.bottom, 48)
                 }
             }
-            .padding(.bottom, 6)
-
-            skipButton
+            if showsDoneButton {
+                ArtButton(art: "ui_btn_buy", tint: Color("PaletteGreen"), minHeight: 52, action: onDone) {
+                    Text("tutorial.done")
+                        .font(.system(.headline, design: .rounded).weight(.heavy))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.5), radius: 2, y: 1)
+                }
+                .accessibilityIdentifier("tutorial.done")
+            }
         }
-        .id(step)  // reinicia la transición por paso
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color("PaletteCream"))
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .strokeBorder(Color("PaletteInk"), lineWidth: 3))
+                .shadow(color: .black.opacity(0.35), radius: 12, y: 5)
+        )
     }
 
-    /// El Fisura grande y protagonista (bottom-left).
-    @ViewBuilder private func fisura(_ pose: String) -> some View {
-        let art = UIArt.image(pose)
-            ?? UIArt.image("fisura_point")
-            ?? UIArt.image("fisura_explain")
+    @ViewBuilder private var portrait: some View {
+        let art = UIArt.image(pose) ?? UIArt.image("fisura_point") ?? UIArt.image("fisura_explain")
         Group {
             if let art {
                 art.resizable().scaledToFit()
             } else {
                 Image(systemName: "person.fill")
                     .resizable().scaledToFit()
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color("PaletteInk"))
             }
         }
-        .frame(width: 300, height: 380)
-        .shadow(color: .black.opacity(0.4), radius: 12, y: 4)
+        .frame(width: 76, height: 92)
+        .accessibilityHidden(true)
     }
 
-    private var progressDots: some View {
-        HStack(spacing: 6) {
-            ForEach(0..<steps.count, id: \.self) { i in
-                Circle()
-                    .fill(i == step ? Color("PaletteYellow") : Color.white.opacity(0.4))
-                    .frame(width: 8, height: 8)
-            }
-        }
-    }
-
+    /// Vive DENTRO del globo: suelto arriba a la derecha se apoyaba sobre el
+    /// carrito y el contador de monedas, que son controles que el tutorial
+    /// ilumina dos pasos después.
     private var skipButton: some View {
-        VStack {
-            HStack {
-                Spacer()
-                Button {
-                    finish()
-                } label: {
-                    Text("tutorial.skip")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 7)
-                        .background(Color.white.opacity(0.18), in: .capsule)
-                }
-                .accessibilityIdentifier("tutorial.skip")
+        Button(action: onSkip) {
+            Text("tutorial.skip")
+                .font(.system(.footnote, design: .rounded).weight(.heavy))
+                .foregroundStyle(Color("PaletteInk").opacity(0.55))
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Capsule().fill(Color("PaletteInk").opacity(0.09)))
+                .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("tutorial.skip")
+    }
+
+    private var dots: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<total, id: \.self) { i in
+                Capsule()
+                    .fill(i == index ? Color("PaletteOrange") : Color("PaletteInk").opacity(0.22))
+                    .frame(width: i == index ? 18 : 8, height: 8)
             }
-            Spacer()
         }
-        .padding(.top, 8)
-        .padding(.trailing, 16)
-    }
-
-    private func advance() {
-        withAnimation(.easeInOut(duration: 0.25)) {
-            if step + 1 >= steps.count { finish() } else { step += 1 }
-        }
-    }
-
-    private func finish() {
-        withAnimation(.easeInOut(duration: 0.3)) { done = true }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("tutorial.progress.label"))
+        .accessibilityValue(Text(verbatim: "\(index + 1)/\(total)"))
     }
 }

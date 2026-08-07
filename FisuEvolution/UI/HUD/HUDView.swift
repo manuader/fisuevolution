@@ -7,6 +7,9 @@ struct HUDView: View {
     var onBonusTap: () -> Void = {}
     var onUpgradesTap: () -> Void = {}
     var onSettingsTap: () -> Void = {}
+    /// El mapa se abre desde acá (ver `mapButton`), así que el tutorial no tiene
+    /// otra forma de enterarse de que su paso se cumplió.
+    var onMapOpen: () -> Void = {}
     /// El mapa se presenta desde acá y no desde `RootView` a propósito: vive
     /// pegado a las flechas de la torre, que es lo único que reemplaza.
     @State private var showFloorMap = false
@@ -19,6 +22,7 @@ struct HUDView: View {
                 HStack(spacing: 8) {
                     hudIconButton(systemName: "cart.fill", tint: Color("PaletteOrange"), labelKey: "hud.store.label", identifier: "hud.store", action: onStoreTap)
                     hudIconButton(systemName: "arrow.up.circle.fill", tint: Color("PaletteGreen"), labelKey: "hud.upgrades.label", identifier: "hud.upgrades", action: onUpgradesTap)
+                        .tutorialAnchor(.upgrades)
                 }
                 Spacer(minLength: 6)
                 coinCounter
@@ -44,6 +48,7 @@ struct HUDView: View {
             .padding(.top, -60)   // extiende el scrim bajo la barra de estado
             .allowsHitTesting(false)
         }
+        .tutorialAnchor(.hudBar)
     }
 
     private var coinCounter: some View {
@@ -63,6 +68,9 @@ struct HUDView: View {
         .accessibilityIdentifier("hud.coins")
         .accessibilityLabel(Text("hud.coins.label"))
         .accessibilityValue(Text(verbatim: gameState.coinsText))
+        // El tutorial le abre una ventana en el scrim mientras pide juntar
+        // plata: sin ver el contador, "tocá hasta que alcance" no se entiende.
+        .tutorialAnchor(.coins)
     }
 
     private var towerNavigator: some View {
@@ -99,6 +107,7 @@ struct HUDView: View {
     private var mapButton: some View {
         Button {
             showFloorMap = true
+            onMapOpen()
         } label: {
             Image(systemName: "building.2.fill")
                 .font(.system(size: 13, weight: .heavy))
@@ -109,6 +118,7 @@ struct HUDView: View {
         .buttonStyle(.plain)
         .accessibilityIdentifier("hud.map")
         .accessibilityLabel(Text("map.hud.label"))
+        .tutorialAnchor(.map)
     }
 
     private func towerArrow(systemName: String, direction: Int, enabled: Bool, identifier: String) -> some View {

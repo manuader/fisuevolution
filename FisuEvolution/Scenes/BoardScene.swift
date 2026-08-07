@@ -73,6 +73,9 @@ final class BoardScene: SKScene {
     // FTUE hint
     private var hintNode: SKShapeNode?
     private var hintTargetCell = -1
+    /// Personaje congelado por el recorte del tutorial (RF-01): mientras el paso
+    /// lo señala no deambula, para que el blanco no se mueva.
+    private weak var spotlitNode: CharacterNode?
 
     // Tick state
     private var lastUpdateTime: TimeInterval = 0
@@ -200,6 +203,7 @@ final class BoardScene: SKScene {
         if isFlying { streamFloorsAlongFlight() }
         refreshCrowdDepth()
         updateFTUEHint()
+        publishTutorialSpotlight()
     }
 
     /// La profundidad se recalcula con el personaje ya movido, no una sola vez
@@ -223,17 +227,16 @@ final class BoardScene: SKScene {
         // `visiblePlacements` construye un array nuevo: pedirlo antes de saber si
         // hay hint activo era una allocation por frame para siempre, incluso con
         // el tutorial terminado.
-        if gameState.showTapHint {
-            targetCell = gameState.visiblePlacements.first?.slot ?? -1
+        //
+        // Con el tutorial en un paso de tablero el anillo se calla: el recorte
+        // iluminado ya está señalando esa misma unidad y dos señales sobre el
+        // mismo personaje se leen como dos cosas distintas.
+        if gameState.tutorialBoardTarget != nil {
+            targetCell = -1
+        } else if gameState.showTapHint {
+            targetCell = firstUnitCell()
         } else if gameState.showMergeHint {
-            var byType: [String: Int] = [:]
-            outer: for placement in gameState.visiblePlacements {
-                if let first = byType[placement.typeId] {
-                    targetCell = first
-                    break outer
-                }
-                byType[placement.typeId] = placement.slot
-            }
+            targetCell = mergePairCell() ?? -1
         }
 
         guard targetCell != hintTargetCell else { return }
@@ -257,6 +260,128 @@ final class BoardScene: SKScene {
         }
         hintNode = ring
     }
+
+    // MARK: - Recorte del tutorial sobre el tablero (RF-01)
+
+    /// Primera unidad del piso visible.
+    private func firstUnitCell() -> Int {
+        gameState.visiblePlacements.first?.slot ?? -1
+    }
+
+    /// Una unidad de un par mergeable del piso visible, si lo hay.
+    private func mergePairCell() -> Int? {
+        mergePairCells()?.first
+    }
+
+    /// Las DOS unidades de un par mergeable.
+    ///
+    /// El tutorial ilumina las dos, no una: el paso pide arrastrar una SOBRE la
+    /// otra, y con la otra debajo del scrim el jugador no ve adónde tiene que
+    /// soltar. Un recorte que no incluye el destino de su propia acción es un
+    /// recorte mal puesto.
+    private func mergePairCells() -> [Int]? {
+        var byType: [String: Int] = [:]
+        for placement in gameState.visiblePlacements {
+            if let first = byType[placement.typeId] { return [first, placement.slot] }
+            byType[placement.typeId] = placement.slot
+        }
+        return nil
+    }
+
+    /// Publica en `GameState` el rectángulo del personaje que el tutorial pide
+    /// iluminar, en puntos de la VISTA (que es donde vive el overlay SwiftUI).
+    ///
+    /// El rect sale de la posición REAL del nodo y no del ancla del slot: desde
+    /// que el reconciliador conserva la posición deambulada, el ancla y el
+    /// personaje pueden estar a medio `cellSize` de distancia (es la misma
+    /// trampa 3 que hace fallar los drags por coordenadas fijas). Se usa la
+    /// MISMA elipse que el hit-testing de `characterNode(at:)`, así que el
+    /// agujero cae exactamente sobre lo que responde al toque.
+    ///
+    /// Sólo escribe cuando el recorte se movió más que `spotlightEpsilon`: el
+    /// deambular es continuo y publicar por frame invalidaría SwiftUI a 60 Hz.
+    private func publishTutorialSpotlight() {
+        guard let target = gameState.tutorialBoardTarget, view != nil else {
+            releaseSpotlitNode()
+            if gameState.boardSpotlight != nil { gameState.boardSpotlight = nil }
+            return
+        }
+        let cells = switch target {
+        case .anyUnit: [firstUnitCell()]
+        case .mergePair: mergePairCells() ?? [firstUnitCell()]
+        }
+        let nodes = cells.compactMap { $0 >= 0 ? characterNodes[$0] : nil }
+        guard let first = nodes.first else {
+            releaseSpotlitNode()
+            if gameState.boardSpotlight != nil { gameState.boardSpotlight = nil }
+            return
+        }
+        // El personaje iluminado deja de deambular mientras dura el paso.
+        //
+        // No es un detalle: a 44 pt/s se corre más de medio cuerpo por segundo, y
+        // el tutorial le está pidiendo al jugador que le apunte. Un blanco que se
+        // mueve mientras el globo dice "tocame" es exactamente lo que hace que un
+        // tutorial se sienta roto — y en el runner, donde consultar la posición
+        // cuesta ~2 s, hacía que el toque llegara siempre tarde.
+        if spotlitNode !== first {
+            releaseSpotlitNode()
+            spotlitNode = first
+        }
+        // Se re-chequea por frame y no una sola vez al entrar: un arrastre que se
+        // cancela vuelve a llamar a `startWander`, y ahí el blanco del paso del
+        // merge se pondría a caminar justo después de un intento fallido.
+        for node in nodes where node.action(forKey: "wander") != nil {
+            node.removeAction(forKey: "wander")
+        }
+
+        // Unión de los cuerpos: con el par, el recorte tiene que incluir al
+        // destino del arrastre y no sólo al que se agarra.
+        var rect = CGRect.null
+        for node in nodes {
+            rect = rect.union(bodyRect(of: node))
+        }
+        guard SpotlightShape.isDrawable(rect) else { return }
+        if let current = gameState.boardSpotlight,
+           abs(current.midX - rect.midX) < Self.spotlightEpsilon,
+           abs(current.midY - rect.midY) < Self.spotlightEpsilon,
+           abs(current.width - rect.width) < Self.spotlightEpsilon {
+            return
+        }
+        gameState.boardSpotlight = rect
+    }
+
+    /// Caja del cuerpo de un personaje en puntos de la VISTA. Es la misma elipse
+    /// que usa el hit-testing de `characterNode(at:)`, así que el recorte cae
+    /// exactamente sobre lo que responde al toque.
+    private func bodyRect(of node: CharacterNode) -> CGRect {
+        let halfWidth = cellSize * 0.82
+        let halfHeight = cellSize * 1.15
+        let bodyCenter = CGPoint(x: node.position.x, y: node.position.y + cellSize * 0.9)
+        let center = convertPoint(toView: fieldNode.convert(bodyCenter, to: self))
+        guard center.x.isFinite, center.y.isFinite else { return .null }
+        return CGRect(x: center.x - halfWidth, y: center.y - halfHeight,
+                      width: halfWidth * 2, height: halfHeight * 2)
+    }
+
+    /// Le devuelve el deambular a lo que el recorte había congelado.
+    ///
+    /// Se recorre el campo entero en vez de guardar referencias: entre que se
+    /// congela y que se suelta puede haber pasado un merge, y esos nodos ya
+    /// volvieron al pool. Lo único que hay que respetar es el que se está
+    /// arrastrando, que maneja su propio paseo en `touchesEnded`/`cancelDrag`.
+    private func releaseSpotlitNode() {
+        guard spotlitNode != nil else { return }
+        spotlitNode = nil
+        for node in characterNodes.values
+        where node !== dragNode && node.action(forKey: "wander") == nil {
+            startWander(node)
+        }
+    }
+
+    /// Cuánto se tiene que mover el personaje para republicar el recorte. A la
+    /// velocidad del deambular (44 pt/s) esto da ~7 Hz, el mismo presupuesto que
+    /// el flush del HUD.
+    private static let spotlightEpsilon: CGFloat = 6
 
     // MARK: - Gestos: tap, drag-and-drop (§2.3 regla 2), long-press (pasivo)
 

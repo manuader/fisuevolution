@@ -85,6 +85,9 @@ struct GameBoardView: View {
     @State private var adsProvider = StubAdsProvider()
     // Los popups automáticos no deben pisar el tutorial en el primer arranque.
     @AppStorage("fisuTutorialDone") private var tutorialDone = false
+    /// Los pasos del tutorial que se completan abriendo una hoja: la economía no
+    /// cambia, así que no hay proyección de `GameState` que los delate.
+    @State private var tutorialEvents: TutorialEvents = []
     #if DEBUG
     @State private var showDebugPanel = false
     #endif
@@ -116,8 +119,12 @@ struct GameBoardView: View {
                 HUDView(
                     onStoreTap: { showStore = true },
                     onBonusTap: { showBonus = true },
-                    onUpgradesTap: { showUpgrades = true },
-                    onSettingsTap: { showConfig = true }
+                    onUpgradesTap: {
+                        showUpgrades = true
+                        tutorialEvents.insert(.openedUpgrades)
+                    },
+                    onSettingsTap: { showConfig = true },
+                    onMapOpen: { tutorialEvents.insert(.openedMap) }
                 )
                 if let event = gameState.activeEvent {
                     EventBannerView(event: event)
@@ -137,20 +144,24 @@ struct GameBoardView: View {
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
-
-            TutorialOverlay()
+        }
+        // El overlay se monta acá y no dentro del `ZStack` porque necesita los
+        // anchors que publican los controles de adentro: `overlayPreferenceValue`
+        // los entrega ya recolectados, y el `GeometryReader` a pantalla completa
+        // los resuelve a puntos sin que nadie tenga que restar safe areas a mano.
+        .overlayPreferenceValue(TutorialAnchorKey.self) { anchors in
+            GeometryReader { proxy in
+                TutorialOverlay(
+                    anchors: anchors.mapValues { proxy[$0] },
+                    events: tutorialEvents
+                )
+            }
+            .ignoresSafeArea()
         }
         .onAppear {
             if scene == nil {
                 scene = BoardScene(gameState: gameState)
             }
-            #if DEBUG
-            // Los popups viven detrás del gate de tutorial; el smoke que los
-            // ejercita lo salta explícitamente en vez de simular los 7 pasos.
-            if ProcessInfo.processInfo.arguments.contains("--uitest-open-sheet") {
-                tutorialDone = true
-            }
-            #endif
         }
         .sheet(item: Binding(
             get: { tutorialDone ? gameState.careerPrompt : nil },
@@ -245,6 +256,7 @@ struct GameBoardView: View {
             SpawnButtonView()
         }
         .padding(.bottom, 20)
+        .tutorialAnchor(.bottomBar)
     }
 
         /// DailyRewardManager.Claim no es Identifiable; wrapper para .sheet(item:).

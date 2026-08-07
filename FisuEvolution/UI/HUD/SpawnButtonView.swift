@@ -46,6 +46,7 @@ struct SpawnButtonView: View {
             }
             .accessibilityIdentifier("hud.spawn")
             .accessibilityHint(Text("spawn.button.hint"))
+            .tutorialAnchor(.hire)
         }
     }
 

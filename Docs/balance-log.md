@@ -427,3 +427,72 @@ cumplirse por un factor de 3, y eso es **conocido y aceptado**: `PacingTests`
 está pineado a la conducta real desde F7.6, no al pacing que el spec pedía
 (decisión 5 del HANDOFF). El simulador los sigue imprimiendo para que la brecha
 quede visible.
+
+---
+
+# Medición DESPUÉS del remapeo, antes de tocar el ORO — 2026-08-06
+
+Segunda mitad del par de mediciones: misma corrida, mismos seeds, con la torre
+de **37 tiers en 10 pisos** ya integrada y **sin haber tocado el exponente del
+ORO todavía**. Aísla lo que hizo el remapeo solo.
+
+| Métrica | Antes (30 tiers / 11 pisos) | Ahora (37 / 10) |
+|---|---|---|
+| Dios (pared) | 196,30 h | **436,16 h** (×2,2) |
+| Reencarnaciones | 41 | 53 |
+| 1ª reencarnación | 0,14 h | 0,22 h |
+| `lifetimeEarnings` final | 1,83e+33 | 1,04e+44 |
+
+## El hallazgo: se abrió un muro de ×368 antes de corporativo
+
+| Piso | Pared | Ratio |
+|---|---|---|
+| urban | 0,04 h | — |
+| **corporate** | **268,00 h** | **×367,88** |
+| luxury | 312,03 h | ×1,16 |
+| island | 336,12 h | ×1,08 |
+| moon | 336,22 h | ×1,01 |
+| mars | 360,29 h | ×1,07 |
+| solar | 432,25 h | ×1,20 |
+| galaxy | 436,04 h | ×1,00 |
+| god_realm | 436,16 h | ×1,01 |
+
+**El jugador pasa 268 horas en el piso urbano.** Es, de lejos, el problema más
+grave que tiene el juego hoy — peor que cualquiera de los 16 del playtest.
+
+### Por qué pasa, y por qué nadie lo previó
+
+Sale de la interacción entre dos cosas que se decidieron por separado:
+
+1. **El gate de contratación** exige el piso de arriba desbloqueado, y el
+   callejón está exento. O sea: hasta que corporativo no abre, **lo único que se
+   puede comprar es el tier más barato del callejón**, y todo lo demás sale de
+   mergear.
+2. **El remapeo empujó el primer tier de corporativo de 6 a 9.** Mergear desde el
+   callejón hasta el tier 9 cuesta 2⁸ = 256 Fisuras, contra las 2⁵ = 32 de antes:
+   **ocho veces más**, y cada una comprada a un precio que sube con la curva.
+
+Ninguna de las dos decisiones estaba mal por su cuenta. El spec de RF-10 razonó
+sobre "4 personajes por piso" y no sobre la profundidad de merge que eso exige
+antes de que el gate se abra.
+
+### Lo que esto le hace al plan de la Ola 3
+
+⚠️ **Bajar el exponente del ORO (RF-07) no toca este problema.** El ORO es la
+palanca del late game; el muro está en el tier 9, antes de la primera
+reencarnación útil. Si se aplica RF-07 sobre esto, el juego se hace **más** largo
+sobre un arranque que ya es injugable.
+
+El orden correcto es: **primero el muro, después el ORO.** Y el muro tiene tres
+knobs candidatos, ninguno medido todavía:
+
+- La **cobertura del gate**: eximir también al piso urbano, no sólo al callejón.
+- El **`hireCostMultiplier` del urbano**, hoy heredando el default de 600×.
+- La **curva de `incomeMultiplier` de `floors[]`**, que sigue creciendo ×2 por
+  piso mientras las ganancias crecen mucho más rápido — que es también la causa
+  del ×1,00 entre los cinco pisos de arriba, ya anotado en la medición anterior y
+  **todavía sin resolver**.
+
+Vale el antecedente de esta misma bitácora: subir `hire.defaultCostMultiplier` de
+300 a 600 **acortó** el juego en vez de alargarlo. En esta economía la intuición
+falla seguido; ningún knob se mueve sin correr el simulador.

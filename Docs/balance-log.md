@@ -496,3 +496,169 @@ knobs candidatos, ninguno medido todavía:
 Vale el antecedente de esta misma bitácora: subir `hire.defaultCostMultiplier` de
 300 a 600 **acortó** el juego en vez de alargarlo. En esta economía la intuición
 falla seguido; ningún knob se mueve sin correr el simulador.
+
+---
+
+# El muro de ×368, cerrado — y RF-07 aplicado (Ola 3, frente A4, 2026-08-06)
+
+Cierra el par de mediciones anteriores. Orden de trabajo deliberado: **primero el
+muro, después el ORO**, porque el ORO es la palanca del late game y el muro
+estaba antes de la primera reencarnación útil — aplicarlo al revés habría hecho
+más largo un arranque ya injugable.
+
+## Resultado
+
+| Métrica | Antes del remapeo | Con el muro (main) | **Ahora** |
+|---|---|---|---|
+| Dios (pared) | 196,30 h | 436→441,16 h | **345,28 h** |
+| Muro peor ratio | ×47,40 (luxury) | ×367,88 (corporate) | **×24,61 (corporate)** |
+| Tramos colapsados (ratio ≤1,01) | 5 | 3 | **0** |
+| Reencarnaciones | 41 | 54 | 45 |
+| 1ª reencarnación | 0,14 h | 0,22 h | 0,20 h |
+| `lifetimeEarnings` final | 1,83e+33 | 3,81e+46 | 1,14e+40 |
+
+Piso por piso (activo / pared / ratio contra el anterior):
+
+| Piso | Activo | Pared | Ratio |
+|---|---|---|---|
+| urban | 2,4 min | 0,04 h | — |
+| corporate | 60,2 min | 14,00 h | ×24,61 |
+| luxury | 382,7 min | 110,05 h | ×6,36 |
+| island | 467,4 min | 134,12 h | ×1,22 ✅ |
+| moon | 548,3 min | 158,14 h | ×1,17 ✅ |
+| mars | 636,9 min | 182,28 h | ×1,16 ✅ |
+| solar | 783,8 min | 230,06 h | ×1,23 ✅ |
+| galaxy | 1042,3 min | 312,04 h | ×1,33 ✅ |
+| god_realm | 1176,8 min | 345,28 h | ×1,13 |
+
+El ✅ es la banda de DISEÑO (1,15–2,6). **Cinco de los ocho ratios entran en ella
+por primera vez desde F7.1** (god_realm queda a un pelo, en 1,13), y el acto
+cósmico —que se abría entero en 4 minutos— hoy se reparte en 187 h. El muro de
+268 h en el piso urbano no existe más.
+
+## Los knobs que se movieron (2 de 3 candidatos, más uno no previsto)
+
+1. **Cobertura del gate — el que arregló el muro.** `hireGateExempt: true` en el
+   piso urbano. Es un campo nuevo de `floors[]`; lo lee `TowerActions.canHire`,
+   la misma función única que usan el juego y el simulador (no se duplicó nada).
+   **No toca la PROFUNDIDAD del gate**, que sigue siendo de un piso: la decisión
+   3 del HANDOFF queda intacta. Lo que cambia es de qué pisos se puede sacar
+   material de merge mientras se atraviesa la frontera.
+2. **`oro.exponent` 0,50 → 0,45** (RF-07).
+3. **`oro.globalMultiplierPerOro` 0,12 → 0,18**, no previsto en el plan: sin él
+   RF-07 deja el juego en 398 h. Compensa el largo sin devolver el colapso.
+
+`hire.defaultCostMultiplier` sigue en **600** y el callejón en **50**: las
+decisiones 1 y 2 del HANDOFF no se tocaron. `tiers.json` no se regeneró porque no
+se tocó la cadena de yields.
+
+## Lo que se probó y se DESCARTÓ, con su número
+
+| # | Knob | Dios | Muro corporate | Veredicto |
+|---|---|---|---|---|
+| 0 | (línea de base, sin tocar nada) | 441,16 h | 268,00 h ×367,88 | referencia |
+| 1 | `urban.hireCostMultiplier` 600→50, **sin** tocar el gate | 441,17 h | **268,00 h** | ❌ **inerte**: el muro no se mueve ni un minuto |
+| 2 | gate urbano exento (solo) | 240,14 h | 14,01 h ×25,2 | ✅ mata el muro, pero quedan 4 tramos en ×1,01 |
+| 3 | gate + `urban.hireCostMultiplier` 50 | 196,04 h | 0,12 h ×3,0 | ❌ pasa de largo: mueve el acantilado a luxury (×39) |
+| 4 | gate + `incomeMultiplier` ×3/piso | 230,20 h | 9,00 h ×16,7 | ❌ **no toca el ×1,00** |
+| 5 | gate + `incomeMultiplier` ×1,5/piso | 268,17 h | 24,09 h ×20,6 | ❌ **no toca el ×1,00** |
+| 6 | gate + ORO 0,40 (lo que pedía RF-07) | **1094,04 h** | 4,01 h | ❌ luxury explota a 782 h (×129) |
+| 7 | gate + ORO 0,40 + mult 0,20 | 657,05 h | 4,01 h | ❌ sigue larguísimo |
+| 8 | gate + ORO 0,40 + mult 0,30 | 489,19 h | 9,04 h | ❌ largo y con luxury ×17,8 |
+| 9 | gate + ORO 0,47 | 268,28 h | 24,09 h | ❌ vuelve el ×1,01 en island/moon/mars |
+| 10 | gate + ORO 0,45 (mult 0,12) | 398,28 h | 24,00 h | ✅ forma sana, pero 398 h |
+| 11 | gate + ORO 0,44 + mult 0,18 | 384,28 h | 14,27 h | ✅ sano, más largo que el elegido |
+| 12 | gate + ORO 0,45 + mult 0,20 | 345,00 h | 14,00 h | ❌ reaparece island→moon ×1,01 |
+| 13 | gate + ORO 0,45 + mult 0,25 | 297,28 h | 9,01 h | ❌ colapso: luxury/island/moon ×1,01 |
+| 14 | gate + ORO 0,45 + mult 0,35 | 249,20 h | 9,01 h | ❌ colapso peor |
+| 15 | + `offlineCapHours` 10→16 | 345,28 h | 14,00 h | ❌ **inerte**, el tope no ata |
+| 16 | + `offlineEfficiencyBase` 0,35→0,50 | 326,28 h | 14,00 h | ❌ descartado: 5% de largo por un knob más |
+| ✅ | **gate + ORO 0,45 + mult 0,18** | **345,28 h** | **14,00 h ×24,61** | **elegido** |
+
+## Tres hallazgos que corrigen lo que esta bitácora daba por sentado
+
+**1. El `incomeMultiplier` NO es la causa del ×1,00.** La medición anterior lo
+señalaba como el knob a mirar. Es falso, y está medido: barrer la curva de ×1,5 a
+×3 por piso —un factor 2 por piso, que compuesto sobre la torre son ~3.000×— deja
+el colapso intacto en las dos puntas (corridas 4 y 5). Mueve el largo total, no
+la forma.
+
+**2. La causa real es la potencia del barrido de reencarnación.** El patrón del
+colapso es siempre "un salto grande y después dos o tres pisos casi gratis": es
+el jugador barriendo pisos enteros con el multiplicador global que trae de la
+reencarnación anterior. Por eso lo arregla el ORO y no el income: bajar el
+exponente le saca potencia al barrido. Y por eso **`globalMultiplierPerOro` es el
+knob más peligroso de los tres** — a 0,25 el colapso vuelve entero (corrida 13)
+aunque el exponente esté en 0,45. La nota de F7.1 que decía "post-island los
+ratios tienden a 1,0 POR DISEÑO" describía un síntoma, no un diseño.
+
+**3. RF-07 pedía 0,40 y 0,40 no sirve.** Medido: 1094 h, con luxury a 782 h. El
+spec estimó el número antes de que existiera la torre de 37 tiers; el propio
+RF-07 dice "calibrado con `pacing-sim`", y calibrado da **0,45**. Con 0,45 la
+queja del playtest igual queda atendida —ver la tabla de abajo—.
+
+## La tabla de ORO que pide RF-07
+
+`ORO = (lifetimeEarnings / 3.000.000) ^ exponente`
+
+| `lifetimeEarnings` | ORO viejo (0,50) | ORO nuevo (0,45) | queda en |
+|---|---|---|---|
+| 1e+07 | 2 | 2 | ×0,94 |
+| 1e+09 | 18 | 14 | ×0,75 |
+| 1e+12 | 577 | 306 | ×0,53 |
+| 1e+15 | 18.257 | 6.844 | ×0,38 |
+| 1e+20 | 5.773.503 | 1.217.014 | ×0,21 |
+| 1e+25 | 1,83e+09 | 2,16e+08 | ×0,12 |
+| 1e+30 | 5,77e+11 | 3,85e+10 | ×0,07 |
+| 1e+35 | 1,83e+14 | 6,84e+12 | ×0,04 |
+| 1e+40 | 5,77e+16 | 1,22e+15 | ×0,02 |
+
+Es exactamente lo que pedía el requisito: **las primeras reencarnaciones quedan
+casi iguales (×0,94) y las tardías rinden 50 veces menos (×0,02)**. La curva se
+aplasta por la cola, que era la queja.
+
+## Una trampa de método que casi mete un número falso en esta bitácora
+
+Las primeras cuatro corridas del knob `hireCostMultiplier` del urbano se
+escribieron en el JSON como `hireCostMultiplierOverride`, que es el nombre del
+campo en Swift pero **no la clave del JSON** — `FloorDef.CodingKeys` la mapea a
+`hireCostMultiplier`. El decoder ignora las claves que no conoce **sin fallar**,
+así que las cuatro corridas usaron el default de 600 y salieron idénticas hasta
+el último dígito. Eso *parecía* la confirmación limpia de que el knob era inerte.
+
+Lo delató que fueran idénticas **byte a byte** con un rango de 40× en el
+parámetro: un knob con efecto chico da números parecidos, no iguales. Al
+re-correrlo con la clave correcta el resultado de fondo se sostuvo (el knob sí es
+inerte mientras el gate está cerrado, corrida 1), pero por poco entra a la
+bitácora una medición que no midió nada.
+
+**Regla para el próximo**: si dos corridas dan un número idéntico, sospechá del
+harness antes de creerle al hallazgo. Verificar con
+`python3 -c "import json; print(json.load(open('variante.json'))['floors'][1])"`
+cuesta cinco segundos.
+
+## Efecto de lado del piso exento (no es sólo un número)
+
+Declarar un piso exento le saca dos comportamientos de UI que sólo existen para
+pisos con el gate cerrado, y hubo que re-apuntar dos tests que los cubrían:
+
+- **no emite el aviso `hireUnlocked`** —nunca pasa de bloqueado a contratable—, y
+- **no hace fallback al piso de abajo** al comprar, porque contrata en el suyo.
+
+Los dos mecanismos siguen vivos y probados: hoy el primer piso que el gate cierra
+es **corporativo** (lo destraba luxury), así que los tests se mudaron a ese par.
+Si algún día se exime otro piso, hay que volver a correr el par un piso más
+arriba.
+
+## Lo que queda abierto
+
+- **El ×24,61 de corporate es el peor tramo que queda.** Es mucho mejor que el
+  ×367,88 que había y que el ×47,40 que la torre vieja tenía en luxury, pero
+  sigue lejos de la banda de diseño. Está inflado por el denominador: el piso
+  urbano se pasa en 2,4 min porque el callejón arranca a 50 (decisión 1 del
+  HANDOFF). Achicarlo de verdad exige tocar esa decisión, así que no se tocó.
+- **345 h contra las 196 h de la torre vieja.** El juego quedó ~1,8× más largo
+  que antes del remapeo, con 7 tiers y 4 personajes por piso más. Es una decisión
+  de producto pendiente: si el dueño quiere volver a ~196 h, el camino medido más
+  limpio es la corrida 3 (gate + urbano a 50), que da 196,04 h — pero mueve el
+  acantilado a luxury (×39) y re-litiga la decisión 2 del HANDOFF.

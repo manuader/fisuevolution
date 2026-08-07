@@ -513,5 +513,6 @@ Anotado por si algún día importa, con su medición:
 | `balance-log.md` | **Toda decisión de números, con su costo medido** |
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
+| **`SESION-2026-08-06-correcciones-de-playtest.md`** | **El estado de la sesión de las 16 correcciones: qué quedó abierto, qué está en vuelo y los gates humanos. Empezá por acá si retomás ese trabajo** |
 | `SESION-2026-08-05-fallback-de-contratacion.md` | El fallback del botón y la fila trasera invisible |
 | `superpowers/specs/`, `superpowers/plans/` | Specs y planes por feature |

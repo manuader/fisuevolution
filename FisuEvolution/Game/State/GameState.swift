@@ -521,6 +521,8 @@ final class GameState {
         self.player = player
         if credited > 0 {
             offlineReward = OfflineReward(amount: credited)
+            // Plata que cae de golpe: suena como tal, igual que un tap dorado.
+            audio?.play(.coin)
             Log.economy.info("offline earnings credited: \(credited)")
         }
     }

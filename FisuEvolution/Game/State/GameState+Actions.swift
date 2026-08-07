@@ -78,6 +78,7 @@ extension GameState {
                 towerNotice = TowerNotice(kind: .floorFull)
             }
             haptics?.play(.error)
+            audio?.play(.error)
             Log.economy.info("hire rejected: \(error)")
         }
     }
@@ -172,6 +173,7 @@ extension GameState {
             } catch TowerError.destinationFloorFull(let floorID) {
                 towerNotice = TowerNotice(kind: .destinationFloorFull(floorID: floorID))
                 haptics?.play(.error)
+                audio?.play(.error)
                 Log.economy.info("merge blocked: destination floor full")
                 return .snapBack
             } catch {
@@ -313,6 +315,7 @@ extension GameState {
             scheduleSave()
         } catch {
             haptics?.play(.error)
+            audio?.play(.error)
             Log.economy.info("passive unlock rejected: \(error)")
         }
     }

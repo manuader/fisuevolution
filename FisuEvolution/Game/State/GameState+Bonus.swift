@@ -117,6 +117,9 @@ extension GameState {
             )
             self.player = player
             effectsVersion += 1
+            // El cofre del Asado es la otra vez que cae plata de golpe (el resto
+            // de los boosts no pagan nada al activarse, devuelven nil).
+            if chest != nil { audio?.play(.coin) }
             refreshProjections()
             scheduleSave()
             return chest

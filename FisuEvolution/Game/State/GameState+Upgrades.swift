@@ -44,6 +44,7 @@ extension GameState {
             scheduleSave()
         } catch {
             haptics?.play(.error)
+            audio?.play(.error)
             Log.economy.info("character upgrade rejected: \(error)")
         }
     }
@@ -66,6 +67,7 @@ extension GameState {
             scheduleSave()
         } catch {
             haptics?.play(.error)
+            audio?.play(.error)
             Log.economy.info("upgrade rejected: \(error)")
         }
     }

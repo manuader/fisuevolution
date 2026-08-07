@@ -6,9 +6,9 @@
   ],
   "achievements": [
     { "id": "ach_first_merge", "titleKey": "gc.ach.first_merge.title", "trigger": "firstMerge" },
-    { "id": "ach_tier9_uba", "titleKey": "gc.ach.tier9_uba.title", "trigger": "reachTier", "tier": 9 },
-    { "id": "ach_tier21", "titleKey": "gc.ach.tier21.title", "trigger": "reachTier", "tier": 21 },
-    { "id": "ach_tier30_god", "titleKey": "gc.ach.tier30_god.title", "trigger": "reachTier", "tier": 30 },
+    { "id": "ach_tier9_uba", "titleKey": "gc.ach.tier9_uba.title", "trigger": "reachTier", "tier": 11 },
+    { "id": "ach_tier21", "titleKey": "gc.ach.tier21.title", "trigger": "reachTier", "tier": 24 },
+    { "id": "ach_tier30_god", "titleKey": "gc.ach.tier30_god.title", "trigger": "reachTier", "tier": 37 },
     { "id": "ach_first_prestige", "titleKey": "gc.ach.first_prestige.title", "trigger": "firstPrestige" }
   ]
 }

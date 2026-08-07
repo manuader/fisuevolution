@@ -13,9 +13,12 @@ struct GameContentValidationTests {
     }
 
     @Test func tierTableHasExpectedShape() {
-        #expect(content.tiers.types.count == 37)
-        #expect(content.tiers.concreteTypes.count == 36)
-        #expect(content.tiers.maxTier == 30)
+        // Remapeo a 10 pisos: 44 entradas = 43 concretas + el nodo de elección
+        // `junior`. Las 43 concretas son las 36 de antes menos `kiosco` más los
+        // 8 personajes nuevos, y son exactamente las 43 caras del arte.
+        #expect(content.tiers.types.count == 44)
+        #expect(content.tiers.concreteTypes.count == 43)
+        #expect(content.tiers.maxTier == 37)
         #expect(content.tiers.baseType.id == "homeless")
         #expect(content.tiers.terminalType.id == "god")
     }
@@ -26,9 +29,40 @@ struct GameContentValidationTests {
         #expect(junior.choiceOptions?.count == 4)
         for option in junior.choiceOptions ?? [] {
             let resolved = try #require(content.tiers.type(id: option))
-            #expect(resolved.tier == 9)
+            #expect(resolved.tier == 11)
             #expect(resolved.isChoiceNode == false)
         }
+    }
+
+    /// RF-10: el playtest pidió "al menos 4 personajes por piso, menos el último
+    /// que sólo tiene a Dios". Con 4 exactos por piso el reparto queda forzado,
+    /// así que este test es la aritmética entera del remapeo en una sola pieza.
+    @Test("la torre cubre 1…37 sin huecos y ningún piso no-Dios tiene menos de 4 tiers")
+    func towerCoverageAfterRemap() {
+        let floors = content.floorTable.floors
+        #expect(floors.count == 10)
+        for floor in floors where floor.id != "god_realm" {
+            #expect(floor.lastTier - floor.firstTier + 1 == 4, "\(floor.id) no tiene 4 tiers")
+        }
+        #expect(floors.first?.firstTier == 1)
+        #expect(floors.last?.lastTier == 37)
+        for (lower, upper) in zip(floors, floors.dropFirst()) {
+            #expect(lower.lastTier + 1 == upper.firstTier, "hueco o solape entre \(lower.id) y \(upper.id)")
+        }
+    }
+
+    /// El corte `earth`/`cosmic` tiene que caer en un BORDE de piso, no partir
+    /// uno al medio: es lo que elige la música y el tema del tablero. Después
+    /// del remapeo cae entre T24 (Dueño de la Luna, último de `moon`) y T25
+    /// (Dueño de Marte, primero de `mars`).
+    @Test("la fase cambia justo en el borde moon→mars")
+    func phaseCutFallsOnAFloorBoundary() throws {
+        for type in content.tiers.types {
+            let expected: GamePhase = type.tier <= 24 ? .earth : .cosmic
+            #expect(type.phase == expected, "\(type.id) (T\(type.tier)) está en la fase equivocada")
+        }
+        let moon = try #require(content.floorTable.floors.first { $0.id == "moon" })
+        #expect(moon.lastTier == 24, "el corte de fase dejó de coincidir con el borde de piso")
     }
 
     /// Anti-drift: every number in tiers.json must equal the F7 formulas applied to
@@ -117,20 +151,22 @@ struct GameContentValidationTests {
     }
 
     @Test func towerFloorsMatchCalibratedLayout() throws {
-        // Layout FINAL de La Torre: 11 pisos data-driven, del callejón al reino
+        // Layout FINAL de La Torre: 10 pisos data-driven, del callejón al reino
         // divino, capacity 10 en todos e income estrictamente creciente.
+        // El `incomeMultiplier` es una progresión geométrica interpolada, no
+        // inventada: va de 1,0 a 620,0 en 9 saltos, o sea razón 620^(1/9) =
+        // 2,0431 redondeada al estilo de la tabla vieja.
         let expected: [(id: String, tiers: ClosedRange<Int>, income: Double)] = [
-            ("alley", 1...2, 1.0),
-            ("urban", 3...5, 2.0),
-            ("corporate", 6...9, 3.6),
-            ("luxury", 10...13, 7.0),
-            ("island", 14...17, 13.0),
-            ("moon", 18...21, 25.0),
-            ("mars", 22...23, 48.0),
-            ("solar", 24...25, 90.0),
-            ("galaxy", 26...27, 170.0),
-            ("cosmic", 28...29, 325.0),
-            ("god_realm", 30...30, 620.0),
+            ("alley", 1...4, 1.0),
+            ("urban", 5...8, 2.0),
+            ("corporate", 9...12, 4.2),
+            ("luxury", 13...16, 8.5),
+            ("island", 17...20, 17.0),
+            ("moon", 21...24, 35.0),
+            ("mars", 25...28, 72.0),
+            ("solar", 29...32, 150.0),
+            ("galaxy", 33...36, 305.0),
+            ("god_realm", 37...37, 620.0),
         ]
         let table = content.floorTable
         try #require(table.count == expected.count)

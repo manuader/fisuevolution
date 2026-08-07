@@ -84,13 +84,13 @@ struct GameLoopWiringTests {
             return
         }
         #expect(targetCell == fisuras[2])
-        // Primer cartonero: el tier máximo avanzó → hay reveal.
-        #expect(evolvedTo?.id == "cartonero")
-        // T2 sigue viviendo en el alley (1-2): ni ascenso ni desbloqueo.
+        // Primer trapito: el tier máximo avanzó → hay reveal.
+        #expect(evolvedTo?.id == "trapito")
+        // T2 sigue viviendo en el alley (1-4): ni ascenso ni desbloqueo.
         #expect(promotedType == nil)
         #expect(promotedToFloor == nil)
         #expect(unlockedFloorId == nil)
-        #expect(gameState.player?.run.units == ["homeless": 1, "cartonero": 1])
+        #expect(gameState.player?.run.units == ["homeless": 1, "trapito": 1])
         #expect(gameState.player?.run.maxTierReached == 2)
         #expect(gameState.unitCount == 2)
         // Invariante F7: la torre en memoria refleja exactamente run.units.
@@ -111,11 +111,11 @@ struct GameLoopWiringTests {
     @Test func dropOnDifferentTypeSnapsBack() async throws {
         let gameState = await makeGameState()
         gameState.debugSetMaxTier(2)
-        gameState.debugGrantPair() // 2 cartoneros en el alley
+        gameState.debugGrantPair() // 2 trapitos en el alley
         let fisura = try #require(slots(of: "homeless", in: gameState).first)
-        let cartonero = try #require(slots(of: "cartonero", in: gameState).first)
+        let trapito = try #require(slots(of: "trapito", in: gameState).first)
 
-        let resolution = gameState.handleDrop(fromCell: fisura, toCell: cartonero) // fisura → cartonero
+        let resolution = gameState.handleDrop(fromCell: fisura, toCell: trapito) // fisura → trapito
         guard case .snapBack = resolution else {
             Issue.record("expected snapBack, got \(resolution)")
             return
@@ -125,9 +125,11 @@ struct GameLoopWiringTests {
         #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
     }
 
-    @Test func tier2MergePromotesToUrbanAndUnlocksIt() async throws {
+    /// El callejón es 1…4, así que la frontera con urban la cruza el Cartonero
+    /// (T4) al mergear en El Mantero (T5), primero del piso urbano.
+    @Test func tier4MergePromotesToUrbanAndUnlocksIt() async throws {
         let gameState = await makeGameState()
-        gameState.debugSetMaxTier(2)
+        gameState.debugSetMaxTier(4)
         gameState.debugGrantPair()
         let cartoneros = slots(of: "cartonero", in: gameState)
         #expect(cartoneros.count == 2)
@@ -143,7 +145,8 @@ struct GameLoopWiringTests {
             Issue.record("expected an urban promotion, got \(resolution)")
             return
         }
-        #expect(promotedType?.tier == 3)
+        #expect(promotedType?.id == "mantero")
+        #expect(promotedType?.tier == 5)
         #expect(promotedToFloor == 1)
         #expect(unlockedFloorId == "urban")
         #expect(gameState.player?.run.unlockedFloors.contains("urban") == true)
@@ -162,13 +165,14 @@ struct GameLoopWiringTests {
     /// destraba urban (ordinal 1): recién ahí urban tiene el piso de arriba.
     @Test func hireUnlockedNoticeWaitsItsTurn() async throws {
         let gameState = await makeGameState()
-        // tier 5 (`chofer_app`) vive en urban, así que hay que abrir urban y
-        // pararse ahí: `slots(of:in:)` y `handleDrop` miran el piso VISIBLE.
-        gameState.debugUnlockFloors(throughTier: 5)
-        gameState.debugSetMaxTier(5)
+        // tier 8 (`fast_food`) es el ÚLTIMO de urban (5-8), así que su merge
+        // cruza a corporate. Hay que abrir urban y pararse ahí: `slots(of:in:)`
+        // y `handleDrop` miran el piso VISIBLE.
+        gameState.debugUnlockFloors(throughTier: 8)
+        gameState.debugSetMaxTier(8)
         gameState.debugGrantPair()
         #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
-        let pair = slots(of: "chofer_app", in: gameState)
+        let pair = slots(of: "fast_food", in: gameState)
         #expect(pair.count >= 2)
 
         _ = gameState.handleDrop(fromCell: pair[0], toCell: pair[1])
@@ -265,11 +269,11 @@ struct GameLoopWiringTests {
         #expect(gameState.visibleFloorSpecials.map(\.id) == ["sp_arbolito"])
     }
 
-    // MARK: Carrera (T8+T8 → choice node diferido)
+    // MARK: Carrera (T10+T10 → choice node diferido)
 
-    @Test func tier8MergeAsksForCareerAndResolvesAfterChoice() async throws {
+    @Test func tier10MergeAsksForCareerAndResolvesAfterChoice() async throws {
         let gameState = await makeGameState()
-        gameState.debugSetMaxTier(8)
+        gameState.debugSetMaxTier(10)
         gameState.debugGrantPair() // 2 administrativos en corporate (ordinal 2)
         // handleDrop opera sobre el piso VISIBLE: subir hasta el par.
         gameState.setVisibleFloor(2)
@@ -292,29 +296,33 @@ struct GameLoopWiringTests {
         #expect(gameState.careerPrompt == nil)
         #expect(gameState.player?.run.chosenCareerPath == "programmer")
         #expect(gameState.player?.run.units["junior_programmer"] == 1)
-        #expect(gameState.player?.run.maxTierReached == 9)
+        #expect(gameState.player?.run.maxTierReached == 11)
         #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
     }
 
     // MARK: Ascenso de piso (F7 §3.4: el merge cruza la frontera corporate → luxury)
 
-    @Test func tier10MergePromotesToLuxuryAndUnlocksIt() async throws {
+    /// Corporate es 9…12, así que ahora la frontera con luxury la cruza el
+    /// Senior (T12) al mergear en Director (T13) — no el junior, que se queda
+    /// en corporate.
+    @Test func tier12MergePromotesToLuxuryAndUnlocksIt() async throws {
         let gameState = await makeGameState()
-        // Carrera elegida por el camino real (T8+T8 → prompt → programmer).
-        gameState.debugSetMaxTier(8)
+        // Carrera elegida por el camino real (T10+T10 → prompt → programmer).
+        gameState.debugSetMaxTier(10)
         gameState.debugGrantPair()
         gameState.setVisibleFloor(2)
         let admins = slots(of: "administrativo", in: gameState)
         _ = gameState.handleDrop(fromCell: admins[0], toCell: admins[1])
         gameState.chooseCareer(optionId: "junior_programmer")
-        #expect(gameState.player?.run.maxTierReached == 9)
+        #expect(gameState.player?.run.maxTierReached == 11)
 
-        // Con la carrera elegida, debugGrantPair coloca juniors DE ESA rama.
+        // Con la carrera elegida, debugGrantPair coloca la rama correcta.
+        gameState.debugSetMaxTier(12)
         gameState.debugGrantPair()
-        let juniors = slots(of: "junior_programmer", in: gameState)
-        #expect(juniors.count == 3) // el del merge + el par
+        let seniors = slots(of: "senior_programmer", in: gameState)
+        #expect(seniors.count == 2)
 
-        let resolution = gameState.handleDrop(fromCell: juniors[0], toCell: juniors[1])
+        let resolution = gameState.handleDrop(fromCell: seniors[0], toCell: seniors[1])
         guard case .merged(
             targetCell: _,
             evolvedTo: let evolvedTo,
@@ -325,36 +333,37 @@ struct GameLoopWiringTests {
             Issue.record("expected merge, got \(resolution)")
             return
         }
-        // T10 pertenece a luxury (10-13): reveal + ascenso + desbloqueo.
+        // T13 pertenece a luxury (13-16): reveal + ascenso + desbloqueo.
         let luxuryOrdinal = try #require(gameState.floorTable?.ordinal(of: "luxury"))
-        #expect(evolvedTo?.id == "senior_programmer")
-        #expect(promotedType?.id == "senior_programmer")
+        #expect(evolvedTo?.id == "director")
+        #expect(promotedType?.id == "director")
         #expect(promotedToFloor == luxuryOrdinal)
         #expect(unlockedFloorId == "luxury")
         #expect(gameState.player?.run.unlockedFloors.contains("luxury") == true)
         // La unidad ascendida vive en luxury, no en corporate.
-        #expect(gameState.tower?.placements(onFloor: luxuryOrdinal).contains { $0.typeId == "senior_programmer" } == true)
-        #expect(gameState.player?.run.units["senior_programmer"] == 1)
+        #expect(gameState.tower?.placements(onFloor: luxuryOrdinal).contains { $0.typeId == "director" } == true)
+        #expect(gameState.player?.run.units["director"] == 1)
         #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
     }
 
     @Test func destinationFullMergePublishesTowerNotice() async throws {
         let gameState = await makeGameState()
-        gameState.debugSetMaxTier(8)
+        gameState.debugSetMaxTier(10)
         gameState.debugGrantPair()
         gameState.setVisibleFloor(2)
         let admins = slots(of: "administrativo", in: gameState)
         _ = gameState.handleDrop(fromCell: admins[0], toCell: admins[1])
         gameState.chooseCareer(optionId: "junior_programmer")
-        gameState.debugGrantPair() // dos juniors que intentarán ascender
+        gameState.debugSetMaxTier(12)
+        gameState.debugGrantPair() // dos seniors que intentarán ascender
 
         // Llenamos luxury de forma intencional con el helper existente. La acción
         // de merge tiene que seguir siendo atómica y publicar sólo la intención UI.
-        gameState.debugSetMaxTier(10)
+        gameState.debugSetMaxTier(13)
         for _ in 0..<5 { gameState.debugGrantPair() }
         gameState.setVisibleFloor(2)
-        let juniors = slots(of: "junior_programmer", in: gameState)
-        let resolution = gameState.handleDrop(fromCell: juniors[0], toCell: juniors[1])
+        let seniors = slots(of: "senior_programmer", in: gameState)
+        let resolution = gameState.handleDrop(fromCell: seniors[0], toCell: seniors[1])
         guard case .snapBack = resolution else {
             Issue.record("expected blocked promotion, got \(resolution)")
             return

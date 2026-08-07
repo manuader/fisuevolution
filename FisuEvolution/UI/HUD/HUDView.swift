@@ -7,6 +7,9 @@ struct HUDView: View {
     var onBonusTap: () -> Void = {}
     var onUpgradesTap: () -> Void = {}
     var onSettingsTap: () -> Void = {}
+    /// El mapa se presenta desde acá y no desde `RootView` a propósito: vive
+    /// pegado a las flechas de la torre, que es lo único que reemplaza.
+    @State private var showFloorMap = false
 
     var body: some View {
         // Agrupado izq/der con Spacers flexibles: los botones de las puntas nunca
@@ -82,10 +85,30 @@ struct HUDView: View {
             .accessibilityLabel(Text(floorNameKey(for: navigation.floorID)))
             .accessibilityValue("\(navigation.occupied)/\(navigation.capacity)")
             towerArrow(systemName: "chevron.up", direction: 1, enabled: navigation.canNavigateUp, identifier: "tower.arrow.up")
+            mapButton
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
         .background(Capsule().fill(Color("PaletteCream")).overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2)))
+        .sheet(isPresented: $showFloorMap) { FloorMapView() }
+    }
+
+    /// Va en la cápsula de la torre y no en la fila de íconos de arriba: es el
+    /// atajo de las flechas que tiene al lado, y arriba ya no entra otro botón
+    /// de 52 pt sin comerse el contador de monedas en las pantallas angostas.
+    private var mapButton: some View {
+        Button {
+            showFloorMap = true
+        } label: {
+            Image(systemName: "building.2.fill")
+                .font(.system(size: 13, weight: .heavy))
+                .foregroundStyle(Color("PaletteOrange"))
+                .frame(width: 26, height: 26)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("hud.map")
+        .accessibilityLabel(Text("map.hud.label"))
     }
 
     private func towerArrow(systemName: String, direction: Int, enabled: Bool, identifier: String) -> some View {

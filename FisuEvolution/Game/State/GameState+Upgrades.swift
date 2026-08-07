@@ -36,6 +36,39 @@ extension GameState {
         UpgradeManager.cost(of: line, level: upgradeLevel(of: line.id))
     }
 
+    /// Qué hace una mejora permanente, en números que salen del JSON (RF-06):
+    /// "+30% → +40%". Al calcularse desde el config no se puede desincronizar de
+    /// un cambio de balance, y la traducción la hace la pieza única
+    /// `EffectDescriptor` que comparten mejoras, boosts y prestigio.
+    func upgradeEffectText(for line: UpgradesConfig.Line) -> String {
+        let level = upgradeLevel(of: line.id)
+        let current = EffectDescriptor.amount(
+            for: line.effectType, level: level, magnitudePerLevel: line.magnitudePerLevel
+        )
+        let next = level >= line.maxLevel
+            ? nil
+            : EffectDescriptor.amount(
+                for: line.effectType, level: level + 1, magnitudePerLevel: line.magnitudePerLevel
+            )
+        let progression = EffectFormatter.progression(current: current, next: next)
+        guard current.isCapped || next?.isCapped == true else { return progression }
+        return "\(progression) (\(EffectFormatter.cappedNote))"
+    }
+
+    /// El chiste de la mejora, la segunda línea de la fila (RF-06).
+    ///
+    /// La búsqueda vive acá y no en la vista porque `LocalizedStringKey` es
+    /// `ExpressibleByStringInterpolation`: `LocalizedStringKey("upgrades.flavor.\(id)")`
+    /// NO busca la clave armada, arma la clave `upgrades.flavor.%@` y, al no
+    /// encontrarla, imprime el formato con el id sustituido —o sea, la clave
+    /// cruda en pantalla (trampa 5 del HANDOFF, tercera vez)—. Con la clave en
+    /// una `String` aparte, `String(localized:)` hace el lookup de verdad, y el
+    /// test la ejerce por el mismo camino que la vista.
+    func upgradeFlavorText(for line: UpgradesConfig.Line) -> String {
+        let key = "upgrades.flavor.\(line.id)"
+        return String(localized: String.LocalizationValue(key))
+    }
+
     /// Las filas de la pestaña Personajes, listas para dibujar.
     ///
     /// Es computada y no una proyección publicada a propósito: `UpgradesView` ya

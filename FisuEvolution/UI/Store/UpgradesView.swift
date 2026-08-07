@@ -186,8 +186,15 @@ struct UpgradesView: View {
             if let icon = UIArt.image(line.iconKey) { icon.resizable().scaledToFit().frame(width: 38, height: 38) }
         }, center: {
             Text(LocalizedStringKey(line.titleKey)).font(.headline)
+            // La línea numérica sale del JSON (no se puede desincronizar de un
+            // cambio de balance); debajo, el chiste que la hace memorable.
+            Text(verbatim: gameState.upgradeEffectText(for: line))
+                .font(.footnote.weight(.heavy)).foregroundStyle(Color("PaletteInk"))
+            Text(verbatim: gameState.upgradeFlavorText(for: line))
+                .font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             Text("upgrades.level \(String(level)) \(String(line.maxLevel))")
-                .font(.footnote).foregroundStyle(Color("PaletteInk"))
+                .font(.caption2).foregroundStyle(.secondary)
         }, action: {
             gameState.buyUpgrade(lineId: line.id)
         }, cost: {

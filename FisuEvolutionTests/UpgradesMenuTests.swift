@@ -81,4 +81,45 @@ struct UpgradesMenuTests {
         #expect(gameState.characterUpgradeRows[0].passiveUnlocked)
         #expect(gameState.towerIncomePerSecond > before, "comprar el pasivo tiene que subir el income del tipo")
     }
+
+    // MARK: RF-06 — las permanentes dicen qué hacen
+
+    @Test("ninguna mejora permanente queda sin línea de efecto")
+    func everyPermanentUpgradeExplainsItself() async throws {
+        let gameState = await makeGameState()
+        let lines = try #require(gameState.content?.upgradesConfig.upgrades)
+        #expect(!lines.isEmpty)
+        for line in lines {
+            let text = gameState.upgradeEffectText(for: line)
+            #expect(!text.isEmpty, "\(line.id) no dice qué hace")
+            #expect(text.contains("%") || text.contains("×"), "\(line.id) no muestra ningún número")
+        }
+    }
+
+    @Test("la línea de efecto muestra a cuánto saltás, y en el tope avisa que no sube más")
+    func effectTextShowsProgressionAndCap() async throws {
+        let gameState = await makeGameState()
+        let line = try #require(gameState.content?.upgradesConfig.upgrades.first { $0.id == "income" })
+        #expect(gameState.upgradeEffectText(for: line).contains("→"), "tiene que decir a cuánto saltás")
+
+        var player = try #require(gameState.player)
+        player.meta.oroUpgradeLevels[line.id] = line.maxLevel
+        gameState.player = player
+        let maxed = gameState.upgradeEffectText(for: line)
+        #expect(!maxed.contains("→"), "en el nivel máximo no hay salto que mostrar")
+    }
+
+    @Test("las siete mejoras permanentes tienen su texto de color en el catálogo")
+    func everyPermanentUpgradeHasFlavor() async throws {
+        let gameState = await makeGameState()
+        let lines = try #require(gameState.content?.upgradesConfig.upgrades)
+        for line in lines {
+            // Se llama a la MISMA función que dibuja la fila: buscar la clave por
+            // otro camino dejaría pasar una vista que imprime la clave cruda, que
+            // es exactamente lo que pasó la primera vez (trampa 5 del HANDOFF).
+            let text = gameState.upgradeFlavorText(for: line)
+            #expect(text != "upgrades.flavor.\(line.id)", "\(line.id) no tiene texto de color en el catálogo")
+            #expect(!text.isEmpty)
+        }
+    }
 }

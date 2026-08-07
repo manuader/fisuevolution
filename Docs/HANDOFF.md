@@ -386,7 +386,7 @@ El panel de debug es el ícono de herramientas del HUD.
       no, tarda dos minutos y confunde "el scrim se comió el toque" con "XCUITest
       se negó a tocar".
 
-14. **Un `repeatForever` no arranca si su `@State` cambió ANTES de que la vista
+9. **Un `repeatForever` no arranca si su `@State` cambió ANTES de que la vista
     exista.** La mano del tutorial no latía: el `onAppear` que ponía la bandera
     vivía en el overlay y corría mientras el recorte del tablero todavía no había
     llegado desde la escena, así que la mano se insertaba con la bandera ya en
@@ -405,14 +405,14 @@ El panel de debug es el ícono de herramientas del HUD.
     xcrun simctl spawn <UDID> defaults write com.apple.Accessibility ReduceMotionEnabled -bool true
     ```
 
-15. **Congelar lo que animaba baja los fps del overlay de DEBUG a ~1, y está
+10. **Congelar lo que animaba baja los fps del overlay de DEBUG a ~1, y está
     bien.** Con el recorte del tutorial sobre el tablero no queda nada animando
     en SpriteKit (el anillo de FTUE se calla y el personaje deja de deambular) y
     el contador marca `1.0 fps`. No se pierde income: `tick` integra por `delta`,
     así que la misma plata se acredita en tramos más largos, y el tap refresca
     las proyecciones por su cuenta sin pasar por el frame loop. Vuelve a 60 al
     salir del paso. Ver también la trampa 11: ese contador miente fácil.
-10. **`osascript`/System Events no funciona desde el shell del agente** — y ahora
+11. **`osascript`/System Events no funciona desde el shell del agente** — y ahora
     se sabe **exactamente dónde** (probado el 2026-08-06):
 
     | Paso | Desde el shell del agente |
@@ -429,8 +429,8 @@ El panel de debug es el ícono de herramientas del HUD.
 
     El batch
    de arte hay que correrlo desde Terminal.app.
-11. **Medir fps con un build corriendo en paralelo da números basura.**
-12. **La multitud y los fondos comparten espacio de `zPosition`, y eso ya rompió
+12. **Medir fps con un build corriendo en paralelo da números basura.**
+13. **La multitud y los fondos comparten espacio de `zPosition`, y eso ya rompió
    una vez.** `depthZ` da negativo apenas una fila queda por encima de
    `rows × cellSize`, y los `FloorNode` viven en `ordinal × 0.01`: cuando las dos
    bandas se tocan, el fondo tapa a los personajes y quedan **invisibles pero
@@ -438,7 +438,7 @@ El panel de debug es el ícono de herramientas del HUD.
    montado en `BoardScene.fieldBaseZ` para que no puedan tocarse, y
    `CrowdDepthTests` lo pinea. Si tocás `frontRowRatio`/`rowDepthRatio`/wander,
    ese test es el que te avisa.
-13. **Un personaje invisible no siempre es `alpha = 0`.** Ese era el bug viejo del
+14. **Un personaje invisible no siempre es `alpha = 0`.** Ese era el bug viejo del
    pool. Si además ves su etiqueta "T1" flotando sin cuerpo, es z: dentro de un
    `CharacterNode` todos los hijos comparten z, y con `ignoresSiblingOrder`
    SpriteKit batchea labels y sprites del atlas por separado, así que contra el

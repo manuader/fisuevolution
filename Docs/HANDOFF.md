@@ -382,6 +382,16 @@ Developer es **RF-02c**, el alta de productos en App Store Connect: todo lo dem�
 3. **Magnate Petrolero queda en la luna.** Bajarlo a la isla exigía dejar un solo
    personaje nuevo en toda la zona terrenal, y eso ensuciaba el callejón y la
    calle urbana: tres desajustes nuevos para arreglar uno.
+4. **Las 4 recompensas de carrera** (aprobadas 2026-08-06). Programador → cofre
+   de plata · Arquitecto → la skin "Pie de Obra" · Médico → un Café Cargado
+   gratis que no consume cooldown · Abogado → contratar a −50% por 10 minutos.
+   Son de **tipo distinto entre sí a propósito**: cuatro variantes del mismo
+   premio no son una elección. Viven en `Config/careers.json`.
+5. **Los 8 nombres de skin de los personajes nuevos** (aprobados 2026-08-06):
+   `naranjita`, `malabarista`, `feriante`, `chatarrero`, `holdout`, `jubilado`,
+   `tropero`, `figurita`. Son **ganables, no pagas** — las únicas pagas siguen
+   siendo las dos del Fisura y Dios. Existen porque el repo pinea que todo
+   personaje concreto tenga skin catalogada.
 
 Después de las cuatro olas sigue F6, que son gates humanos: cuenta Apple
 Developer (USD 99), nombre comercial, App Store Connect, TestFlight, submit. El

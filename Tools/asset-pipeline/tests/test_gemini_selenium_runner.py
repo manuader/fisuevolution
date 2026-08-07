@@ -294,3 +294,35 @@ class BlockDetectionTests(unittest.TestCase):
         self.assertEqual(GeminiBrowser._contains_error("Please solve this CAPTCHA"), "Gemini mostró un CAPTCHA")
         self.assertEqual(GeminiBrowser._contains_error("Something went wrong"), "Gemini devolvió un error")
         self.assertIsNone(GeminiBrowser._contains_error("todo bien por acá"))
+
+
+class PromptLandedTests(unittest.TestCase):
+    """El prompt tiene que llegar al editor ANTES de tocar enviar.
+
+    El 2026-08-06 el runner mandó imágenes sin prompt: la UI nueva de Gemini
+    (`new-input-ui`) suelta el foco al `<body>` después de pegar la referencia,
+    así que los keystrokes de System Events caían en la página. El runner no lo
+    notaba porque su única comprobación era que el botón "Enviar mensaje"
+    estuviera habilitado — y la imagen sola ya lo habilita.
+    """
+
+    def test_blank_editor_never_counts_as_landed(self):
+        # Quill deja "\n" y la clase ql-blank cuando el editor está vacío.
+        self.assertFalse(GeminiBrowser.prompt_landed("\n", "Match EXACTLY the art style"))
+        self.assertFalse(GeminiBrowser.prompt_landed("", "Match EXACTLY the art style"))
+        self.assertFalse(GeminiBrowser.prompt_landed("   \n  ", "Match EXACTLY the art style"))
+
+    def test_editor_with_the_prompt_counts_as_landed(self):
+        prompt = "Match EXACTLY the art style, line weight and color treatment."
+        self.assertTrue(GeminiBrowser.prompt_landed(prompt, prompt))
+
+    def test_partially_typed_prompt_does_not_count(self):
+        # Un keystroke que se corta a la mitad es peor que uno que no llega:
+        # genera arte con un prompt truncado y lo da por bueno.
+        prompt = "Match EXACTLY the art style, line weight and color treatment."
+        self.assertFalse(GeminiBrowser.prompt_landed("Match EXACTLY the art", prompt))
+
+    def test_ignores_whitespace_and_case_noise_from_the_editor(self):
+        # El editor normaliza saltos y puede agregar espacio de cola.
+        prompt = "Full body standing character, centered."
+        self.assertTrue(GeminiBrowser.prompt_landed("Full body standing character, centered. \n", prompt))

@@ -373,13 +373,40 @@ class GeminiBrowser:
         )
         self._check_blocked()
 
+    @staticmethod
+    def prompt_landed(editor_text: str, prompt: str) -> bool:
+        """¿El prompt llegó de verdad al editor?
+
+        No compara exacto a propósito: `keystroke` de System Events puede
+        maltratar algún carácter suelto (la raya larga, sobre todo) y no vale
+        abortar una corrida de 53 assets por eso. Pide dos cosas que un fallo
+        real nunca cumple: que el arranque coincida y que no falte texto.
+
+        Los dos fallos que tiene que atrapar son el vacío —el keystroke cayó en
+        otro lado— y el truncado, que es peor: genera arte contra medio prompt
+        y lo da por bueno.
+        """
+        def norm(s: str) -> str:
+            return " ".join((s or "").split())
+
+        got, want = norm(editor_text), norm(prompt)
+        if not got or not want:
+            return False
+        cabeza = min(40, len(want))
+        return got[:cabeza] == want[:cabeza] and len(got) >= int(len(want) * 0.9)
+
     def _submit(self, prompt: str) -> None:
         # El prompt es el texto EXACTO del .md del asset (nunca inventado).
         # Gemini exige input "trusted": send_keys/CDP no habilitan el botón de
-        # enviar. Se escribe con keystrokes reales de macOS (System Events) y se
-        # confirma con un Return real; ambos indistinguibles de un humano.
-        # NO clickear el campo: el foco OS-level viene del paste de la referencia.
-        # Re-clickear con Selenium lo rompe. Chrome al frente + keystroke real.
+        # enviar. Se escribe con keystrokes reales de macOS (System Events),
+        # indistinguibles de un humano.
+        #
+        # ⚠️ 2026-08-06: acá decía "NO clickear el campo, el foco OS-level viene
+        # del paste". Eso valía para la UI vieja. La nueva (`new-input-ui`, un
+        # editor Quill) **suelta el foco al `<body>` después de pegar la
+        # imagen**, así que los keystrokes caían en la página y se enviaba la
+        # referencia sin prompt. Medido con `document.activeElement`.
+        self._focus_compose()
         subprocess.run(["osascript", "-e", 'tell application "Google Chrome" to activate'])
         time.sleep(1.0)
         # Pre-tipeo descartable: la app a veces pierde el primer carácter tras activate.
@@ -395,7 +422,24 @@ class GeminiBrowser:
                 + result.stderr.strip()
             )
 
-        # Esperar a que Gemini habilite "Enviar mensaje" (confirma que el texto entró).
+        # ⚠️ El botón de enviar NO sirve como confirmación de que el texto entró:
+        # la imagen adjunta sola ya lo habilita (medido: `disabled == False` con
+        # el editor en `ql-blank`). Por eso el runner mandó referencias sin
+        # prompt sin enterarse. Se comprueba el editor, que es el único que sabe.
+        editor = self._find_first([
+            ("CSS_SELECTOR", "[contenteditable='true']"),
+            ("CSS_SELECTOR", "textarea"),
+        ])
+        if editor is None:
+            raise GenerationBlocked("no encontré el editor para verificar el prompt")
+        escrito = editor.get_attribute("innerText") or ""
+        if not self.prompt_landed(escrito, prompt):
+            raise GenerationBlocked(
+                "el prompt no llegó al editor: se escribieron "
+                f"{len(escrito.strip())} de {len(prompt)} caracteres. "
+                "Sin esto se enviaría la referencia sin instrucción."
+            )
+
         send = self._wait_for(
             lambda: self._find_first([
                 ("CSS_SELECTOR", "button[aria-label='Enviar mensaje']"),

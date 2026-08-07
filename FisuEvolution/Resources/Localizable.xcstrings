@@ -2806,13 +2806,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load the store"
+            "value": "Couldn't load purchases"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se pudo cargar la tienda"
+            "value": "No se pudieron cargar las compras"
           }
         }
       }
@@ -2880,6 +2880,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Restaurar compras"
+          }
+        }
+      }
+    },
+    "store.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try Again"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reintentar"
           }
         }
       }

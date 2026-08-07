@@ -233,6 +233,27 @@ El panel de debug es el ícono de herramientas del HUD.
    repetido). Se sale con `xcrun simctl shutdown all`, `erase` del device y
    `-parallel-testing-enabled NO`. Si una suite empieza a fallar a mitad de una
    corrida que venía verde, es esto y no el código.
+
+   ⚠️⚠️ **Dos agentes en paralelo NO pueden compartir el mismo device.** Es la
+   causa raíz de lo anterior. Con varios frentes corriendo contra
+   `name=iPhone 16 Pro` aparecen `Invalid device state`, `Mach error -308`,
+   reinicios del bundle a mitad de corrida y —lo que lo delata— **tests de OTRO
+   worktree en tu log**: un frente vio correr `EffectDescriptorTests`, que no
+   existían en su árbol. Cada frente se crea el suyo y apunta por UDID:
+
+   ```bash
+   xcrun simctl create "mi-frente" "iPhone 16 Pro"
+   ```
+
+   ```bash
+   xcodebuild ... -destination 'id=<UDID>' -parallel-testing-enabled NO
+   ```
+
+   Desde que se hizo eso: cero reinicios, cero fallos espurios.
+
+   ⚠️ **`EconomyLoopUITests.testTappingEarnsCoinsAndSpawnButtonExists` también es
+   flaky**, por la misma trampa 3: falló una vez y pasó las tres siguientes sin
+   que nadie tocara nada. No es un tercer bug, es el mismo patrón.
 3. **Los drags por coordenadas fijas fallan seguido** desde que el reconciliador
    conserva la posición deambulada: los personajes ya no vuelven a su ancla en
    cada relayout. Si automatizás un merge, contá con reintentos.

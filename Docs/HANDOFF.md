@@ -205,12 +205,13 @@ xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
 cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 20
 ```
 
-Estado: **EconomyKit 149 · app 150 · UI 17 · pipeline 25**, todo verde.
+Estado: **EconomyKit 150 · app 156 · UI 17 · pipeline 25**, todo verde.
 
-⚠️ Dos tests están **rojos en `main` y son preexistentes**: `PacingTests`
-(pineado a la torre de 30 tiers, se repinea en el rebalance) y
-`AscentRenderingUITests` (frágil por la trampa 3). Salteálos con
-`-skip-testing:` y usá `-parallel-testing-enabled NO`.
+⚠️ **`PacingTests` ya está repineado** a la torre de 37 tiers y entra en los 156.
+El único rojo preexistente es `AscentRenderingUITests` (frágil por la trampa 3):
+salteálo con `-skip-testing:` y usá siempre `-parallel-testing-enabled NO`.
+`EconomyLoopUITests` y `StoreManagerTests.refundRevokesEntitlement` son flakies
+**sensibles a carga**: pasan aislados.
 
 Simulador a mano:
 

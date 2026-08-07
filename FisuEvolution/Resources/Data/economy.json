@@ -15,8 +15,8 @@
   },
   "oro": {
     "divisor": 3000000,
-    "exponent": 0.5,
-    "globalMultiplierPerOro": 0.12
+    "exponent": 0.45,
+    "globalMultiplierPerOro": 0.18
   },
   "critChanceBase": 0.0,
   "critMultiplier": 5.0,
@@ -39,7 +39,8 @@
       "lastTier": 8,
       "capacity": 10,
       "incomeMultiplier": 2.0,
-      "backgroundOffset": 0.135
+      "backgroundOffset": 0.135,
+      "hireGateExempt": true
     },
     {
       "id": "corporate",

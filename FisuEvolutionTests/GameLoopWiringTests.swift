@@ -16,6 +16,16 @@ struct GameLoopWiringTests {
         gameState.visiblePlacements.filter { $0.typeId == typeId }.map(\.slot).sorted()
     }
 
+    /// Igual que `slots(of:)` pero por TIER: los tiers 11 y 12 tienen una rama
+    /// por carrera, así que hardcodear un id ahí ata el test a cuál eligió el
+    /// fixture.
+    private func slots(ofTier tier: Int, in gameState: GameState) -> [Int] {
+        gameState.visiblePlacements
+            .filter { gameState.content?.tiers.type(id: $0.typeId)?.tier == tier }
+            .map(\.slot)
+            .sorted()
+    }
+
     // MARK: Torre en escena (F7.2)
 
     @Test func towerNavigationProjectsUnlockedBoundsAndTotalIncome() async throws {
@@ -180,64 +190,89 @@ struct GameLoopWiringTests {
         gameState.content?.skins.skins.first { $0.id == award.id }
     }
 
-    /// Con el gate de contratación, abrir corporate (ordinal 2) es lo que
-    /// destraba urban (ordinal 1): recién ahí urban tiene el piso de arriba.
+    /// Con el gate de contratación, abrir luxury (ordinal 3) es lo que destraba
+    /// corporate (ordinal 2): recién ahí corporate tiene el piso de arriba.
+    ///
+    /// ⚠️ Antes este test usaba el par urban/corporate. Dejó de servir cuando el
+    /// urbano quedó EXENTO del gate (Ola 3, ver balance-log): un piso exento es
+    /// contratable desde siempre, así que nunca emite el aviso. Corporate es hoy
+    /// el primer piso que el gate sí cierra.
     @Test func hireUnlockedNoticeWaitsItsTurn() async throws {
         let gameState = await makeGameState()
-        // tier 8 (`fast_food`) es el ÚLTIMO de urban (5-8), así que su merge
-        // cruza a corporate. Hay que abrir urban y pararse ahí: `slots(of:in:)`
-        // y `handleDrop` miran el piso VISIBLE.
-        gameState.debugUnlockFloors(throughTier: 8)
-        gameState.debugSetMaxTier(8)
+        // tier 12 es el ÚLTIMO de corporate (9-12), así que su merge cruza a
+        // luxury. Hay que abrir corporate y pararse ahí: `slots(ofTier:in:)` y
+        // `handleDrop` miran el piso VISIBLE.
+        gameState.debugUnlockFloors(throughTier: 12)
+        gameState.debugSetMaxTier(12)
         gameState.debugGrantPair()
+        // `moveVisibleFloor` sólo acepta ±1: hay que subir de a un piso.
         #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
-        let pair = slots(of: "fast_food", in: gameState)
+        #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a corporate")
+        let pair = slots(ofTier: 12, in: gameState)
         #expect(pair.count >= 2)
 
         _ = gameState.handleDrop(fromCell: pair[0], toCell: pair[1])
-        #expect(gameState.player?.run.unlockedFloors.contains("corporate") == true)
+        #expect(gameState.player?.run.unlockedFloors.contains("luxury") == true)
         #expect(gameState.towerNotice == nil, "el toast no sale durante la cadena")
 
         gameState.celebrationsDidFinish()
         gameState.skinAwardDismissed()        // no-op si no hubo skin que otorgar
-        #expect(gameState.towerNotice?.kind == .hireUnlocked(floorID: "urban"))
+        #expect(gameState.towerNotice?.kind == .hireUnlocked(floorID: "corporate"))
+    }
+
+    /// El piso exento del gate (urbano) se contrata sin abrir el de arriba: es
+    /// justamente lo que cerró el muro de 268 h de la Ola 3.
+    @Test func theExemptFloorHiresWithoutTheOneAbove() async throws {
+        let gameState = await makeGameState()
+        gameState.debugUnlockFloors(throughTier: 5)   // abre alley + urban, corporate no
+        #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
+
+        #expect(gameState.hireOffer == .here, "el urbano está exento: se contrata acá")
+        #expect(gameState.spawnQuote?.floorOrdinal == 1)
+        #expect(gameState.spawnQuote?.type.id == "mantero", "cotiza el tier base del urbano")
     }
 
     /// Parado en la frontera, el gate cierra la contratación de ese piso. En vez
     /// de dejar el botón muerto, la compra cae en el piso de abajo — que es
     /// justamente donde hace falta material de merge — hasta que ese piso se
     /// llena.
+    ///
+    /// ⚠️ Usa corporate/urban y no urban/alley: desde la Ola 3 el urbano está
+    /// exento del gate, así que parado ahí NO hay fallback que probar.
     @Test func hiringOnTheFrontierFallsBackToTheFloorBelow() async throws {
         let gameState = await makeGameState()
-        gameState.debugUnlockFloors(throughTier: 5)   // abre alley + urban, corporate no
+        gameState.debugUnlockFloors(throughTier: 9)   // abre hasta corporate, luxury no
+        // `moveVisibleFloor` sólo acepta ±1: hay que subir de a un piso.
         #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
+        #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a corporate")
 
-        // El gate de urban no pasa (corporate cerrado), así que la oferta baja.
-        #expect(gameState.hireOffer == .floorBelow(floorID: "alley"))
-        #expect(gameState.spawnQuote?.floorOrdinal == 0)
-        #expect(gameState.spawnQuote?.type.id == "homeless", "cotiza el tier base del callejón")
+        // El gate de corporate no pasa (luxury cerrado), así que la oferta baja.
+        #expect(gameState.hireOffer == .floorBelow(floorID: "urban"))
+        #expect(gameState.spawnQuote?.floorOrdinal == 1)
+        #expect(gameState.spawnQuote?.type.id == "mantero", "cotiza el tier base del urbano")
 
         gameState.debugGrantCoins()
         gameState.flushHUD()
         #expect(gameState.canAffordSpawn, "con plata el botón tiene que comprar, no quedar muerto")
 
-        let alleyBefore = gameState.floorOccupancy(ordinal: 0).occupied
         let urbanBefore = gameState.floorOccupancy(ordinal: 1).occupied
+        let corporateBefore = gameState.floorOccupancy(ordinal: 2).occupied
         gameState.buySpawn()
-        #expect(gameState.floorOccupancy(ordinal: 0).occupied == alleyBefore + 1, "la unidad cae abajo")
-        #expect(gameState.floorOccupancy(ordinal: 1).occupied == urbanBefore, "y no en el piso visible")
-        #expect(gameState.visibleFloorOrdinal == 1, "comprar no mueve la cámara")
+        #expect(gameState.floorOccupancy(ordinal: 1).occupied == urbanBefore + 1, "la unidad cae abajo")
+        #expect(gameState.floorOccupancy(ordinal: 2).occupied == corporateBefore, "y no en el piso visible")
+        #expect(gameState.visibleFloorOrdinal == 2, "comprar no mueve la cámara")
 
-        // Y cuando el callejón se llena, el botón lo dice en vez de seguir cobrando.
-        let capacity = gameState.floorOccupancy(ordinal: 0).capacity
-        while gameState.floorOccupancy(ordinal: 0).occupied < capacity {
-            let before = gameState.floorOccupancy(ordinal: 0).occupied
+        // Y cuando el urbano se llena, el botón lo dice en vez de seguir cobrando.
+        let capacity = gameState.floorOccupancy(ordinal: 1).capacity
+        while gameState.floorOccupancy(ordinal: 1).occupied < capacity {
+            let before = gameState.floorOccupancy(ordinal: 1).occupied
+            gameState.debugGrantCoins()
             gameState.buySpawn()
-            #expect(gameState.floorOccupancy(ordinal: 0).occupied == before + 1, "se quedó sin plata antes de llenarlo")
+            #expect(gameState.floorOccupancy(ordinal: 1).occupied == before + 1, "se quedó sin plata antes de llenarlo")
         }
         gameState.flushHUD()
-        #expect(gameState.hireOffer == .full(belowFloorID: "alley"))
-        #expect(gameState.canAffordSpawn == false)
+        #expect(gameState.hireOffer == .full(belowFloorID: "urban"))
+        #expect(gameState.canAffordSpawn == false, "con el piso lleno el botón no cobra")
     }
 
     /// Con el piso de arriba abierto no hay fallback: se contrata donde estás.

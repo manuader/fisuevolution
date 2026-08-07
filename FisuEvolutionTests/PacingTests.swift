@@ -26,12 +26,21 @@ import Testing
 ///
 /// ⚠️⚠️ El **gate de contratación** (un piso desbloqueado por encima) alargó el
 /// juego ~7×: dios pasó de 38 h a 264 h. El dueño lo eligió sabiendo ese costo.
-/// Lo que NO estaba en esa decisión y quedó como consecuencia derivada: apareció
-/// un **acantilado de ×48 en luxury** (antes ×7.1). El backfill de corporate se
-/// habilita recién al abrir luxury, así que atravesar corporate pasó a depender
-/// casi sólo del merge desde abajo. La guarda anti-acantilado se ensanchó para
-/// tolerarlo y por lo tanto **ya casi no guarda nada**: si algún día se
-/// recalibra, lo primero que hay que volver a bajar es ese 62.
+///
+/// **Re-pineo de la Ola 3 (cuarta vez).** El remapeo a 37 tiers en 10 pisos
+/// combinado con ese gate abrió un muro de ×368: corporativo se abría a las
+/// 268 h y el jugador pasaba todas ellas en el piso urbano. Se cerró eximiendo
+/// al urbano del gate (`hireGateExempt`, cobertura del gate — la profundidad
+/// sigue siendo de UN piso) y aplicando RF-07 sobre el ORO. Medido:
+///
+/// - el muro de corporativo cayó de **268 h a 14 h** (×368 → ×24.6);
+/// - los cinco pisos de arriba dejaron de abrirse juntos: los ratios ×1.00
+///   pasaron a **1.13–1.33**, y cinco de ellos entran en la banda de DISEÑO por
+///   primera vez desde F7.1;
+/// - dios quedó en **345 h** (venía de 441 h con el muro).
+///
+/// La guarda anti-acantilado, que el gate había dejado vestigial en 62, vuelve
+/// a guardar algo: **32**, el ×24.6 medido +30%.
 @Suite("Pacing (simulación contra targets F7)")
 struct PacingTests {
     let report: PacingSimulator.Report
@@ -44,14 +53,16 @@ struct PacingTests {
         floorTable = content.floorTable
     }
 
-    @Test("la fase fisura dura 0.5-1.5 min activos")
+    @Test("la fase fisura dura 1.7-3.1 min activos")
     func strugglingPhaseLength() throws {
         let secondFloor = floorTable[1].id
         let active = try #require(report.floorUnlockActiveSeconds[secondFloor])
-        #expect(active >= 30 && active <= 90, "\(secondFloor): \(active / 60) min activos")
+        // 2.4 min medidos ±30%. Subió de 0.8 min con el remapeo (37 tiers): el
+        // callejón ahora cubre 4 tiers en vez de 5, no es un cambio de knob.
+        #expect(active >= 102 && active <= 187, "\(secondFloor): \(active / 60) min activos")
     }
 
-    @Test("el gradiente del arco pre-prestigio es ~6-10× por piso")
+    @Test("el gradiente del arco pre-prestigio es ~4-7.5× por piso")
     func floorGradient() throws {
         // Pisos 2..5 (urban→island): el arco antes de que las reencarnaciones
         // barran pisos enteros de una pasada.
@@ -61,12 +72,12 @@ struct PacingTests {
         }
         for index in 1..<actives.count {
             let ratio = actives[index] / actives[index - 1]
-            // 62 = el ×47.8 medido en luxury + 30%. Ver la nota del suite: esta
-            // guarda quedó vestigial por el gate de contratación.
-            #expect(ratio >= 1.0 && ratio <= 62.0, "acantilado en \(arc[index]): ×\(ratio)")
+            // 32 = el ×24.6 medido en corporate + 30%. Bajó de 62 al cerrarse
+            // el muro de la Ola 3: la guarda vuelve a poder detectar algo.
+            #expect(ratio >= 1.0 && ratio <= 32.0, "acantilado en \(arc[index]): ×\(ratio)")
         }
         let geomean = pow(actives[actives.count - 1] / actives[0], 1.0 / Double(actives.count - 1))
-        #expect(geomean >= 5.6 && geomean <= 10.3, "gradiente geomean ×\(geomean)")
+        #expect(geomean >= 4.0 && geomean <= 7.5, "gradiente geomean ×\(geomean)")
     }
 
     @Test("la 1ª reencarnación cae entre 0.05 y 0.25 h de pared")
@@ -75,10 +86,11 @@ struct PacingTests {
         #expect(wall >= 0.05 * 3600 && wall <= 0.25 * 3600, "1ª reencarnación: \(wall / 3600) h")
     }
 
-    @Test("dios llega entre 185 y 343 h de pared con ≥3 reencarnaciones")
+    @Test("dios llega entre 242 y 449 h de pared con ≥3 reencarnaciones")
     func godTiming() throws {
         let wall = try #require(report.godWall, "dios nunca llegó (maxTier \(report.finalMaxTier))")
-        #expect(wall >= 185 * 3600 && wall <= 343 * 3600, "dios: \(wall / 3600) h")
+        // 345.28 h medidas ±30%.
+        #expect(wall >= 242 * 3600 && wall <= 449 * 3600, "dios: \(wall / 3600) h")
         #expect(report.reincarnations >= 3, "reencarnaciones: \(report.reincarnations)")
     }
 }

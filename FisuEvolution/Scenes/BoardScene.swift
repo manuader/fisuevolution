@@ -28,6 +28,19 @@ final class BoardScene: SKScene {
     private var lastLayoutSize: CGSize = .zero
     private var renderedBoardVersion = -1
     private var displayedFloorOrdinal = -1
+    /// Piso alrededor del cual están montados los fondos vivos. Durante un vuelo
+    /// largo lo manda la CÁMARA y no el piso de destino.
+    private var liveFloorCenter = -1
+    /// Hay un vuelo entre pisos no vecinos en curso (RF-08).
+    private var isFlying = false
+    /// Fondos del recorrido, retenidos SÓLO mientras dura el vuelo.
+    ///
+    /// Sin esto la cámara llega a cada piso antes que su textura: montar el
+    /// `FloorNode` es instantáneo pero subir un PNG de 1536×1536 a la GPU no, y
+    /// a velocidad de crucero el vuelo se adelanta medio piso (~20 ms), así que
+    /// entre fondo y fondo aparecía el crema del `backgroundColor`. Se ve como
+    /// un parpadeo, que es exactamente el tirón que el vuelo no puede tener.
+    private var flightTextures: [SKTexture] = []
 
     // Geometría del campo, cacheada por layoutBoard.
     private var boardColumns = 0
@@ -49,6 +62,13 @@ final class BoardScene: SKScene {
     private static let ascentDuration: TimeInterval = 0.7
     private static let ascentDistanceRatio: CGFloat = 0.78
     private static let specialNodePrefix = "special."
+    private static let floorCameraKey = "floorCamera"
+    /// Cambiar de piso con las flechas o el deslizamiento: un salto corto.
+    private static let floorHopDuration: TimeInterval = 0.35
+    /// Presupuesto del vuelo del mapa (RF-08): tiene que dejar ver la torre que
+    /// se recorre sin dejar de ser un atajo.
+    private static let flightMinDuration: TimeInterval = 0.6
+    private static let flightMaxDuration: TimeInterval = 0.9
 
     // FTUE hint
     private var hintNode: SKShapeNode?
@@ -177,6 +197,7 @@ final class BoardScene: SKScene {
             layoutBoard()
         }
 
+        if isFlying { streamFloorsAlongFlight() }
         refreshCrowdDepth()
         updateFTUEHint()
     }
@@ -622,7 +643,11 @@ final class BoardScene: SKScene {
         moveCameraIfNeeded(to: floorOffset)
 
         rebuildAnchors(capacity: floorDef.capacity)
-        renderLiveFloorNodes(content: content)
+        // `moveCameraIfNeeded` ya decidió si esto es un vuelo. Si lo es, los
+        // fondos arrancan donde ESTÁ la cámara (el piso de salida) y el vuelo se
+        // encarga de ir trayendo el resto; centrarlos en el destino cargaría un
+        // fondo que se descarga en el frame siguiente.
+        renderLiveFloorNodes(content: content, centeredOn: isFlying ? cameraFloorOrdinal : gameState.visibleFloorOrdinal)
         renderPlacements(content: content)
         renderAnchoredSpecials(content: content)
         renderLockedFloorOverlay()
@@ -661,12 +686,21 @@ final class BoardScene: SKScene {
         }
     }
 
-    /// Mantiene sólo el piso visible y sus vecinos inmediatos. El resto de los
-    /// fondos se descarga; al volver a entrar se reconstruyen desde el manifest.
-    private func renderLiveFloorNodes(content: GameContent) {
+    /// Mantiene sólo un piso y sus vecinos inmediatos. El resto de los fondos se
+    /// descarga; al volver a entrar se reconstruyen desde el manifest.
+    ///
+    /// El centro es un parámetro y no `visibleFloorOrdinal` porque durante un
+    /// vuelo del mapa lo manda la cámara, que va pasando por los pisos del medio.
+    private func renderLiveFloorNodes(content: GameContent, centeredOn center: Int) {
+        liveFloorCenter = center
         let visible = gameState.visibleFloorOrdinal
-        let lower = max(0, visible - 1)
-        let upper = min(content.floorTable.floors.count - 1, visible + 1)
+        // Un piso a cada lado alcanza cuando la cámara se mueve de a uno. En
+        // pleno vuelo cruza más de un piso por cuadro, así que el de adelante
+        // tiene que estar montado ANTES de asomarse o se ve el crema del fondo
+        // de escena entre medio.
+        let radius = isFlying ? 2 : 1
+        let lower = max(0, center - radius)
+        let upper = min(content.floorTable.floors.count - 1, center + radius)
         let liveOrdinals = Set(lower...upper)
 
         // Primero materializamos las claves: mutar un Dictionary mientras se lo
@@ -689,16 +723,111 @@ final class BoardScene: SKScene {
         }
     }
 
+    /// Lleva la cámara al piso visible. Un piso de distancia es un salto corto;
+    /// más de uno es el **vuelo** del mapa (RF-08): la cámara recorre los pisos
+    /// del medio en vez de teletransportarse, así el jugador ve qué se saltea.
     private func moveCameraIfNeeded(to floorOffset: CGFloat) {
+        let destination = gameState.visibleFloorOrdinal
         let target = CGPoint(x: size.width / 2, y: size.height / 2 + floorOffset)
-        guard displayedFloorOrdinal != gameState.visibleFloorOrdinal || cameraNode.position != target else { return }
-        displayedFloorOrdinal = gameState.visibleFloorOrdinal
-        cameraNode.removeAction(forKey: "floorCamera")
+        // Con un vuelo en curso la cámara todavía NO está en el target: sin el
+        // `!isFlying` cualquier relayout lo cortaría en el aire y lo reiniciaría
+        // como salto corto desde donde hubiera quedado.
+        guard displayedFloorOrdinal != destination || (cameraNode.position != target && !isFlying) else { return }
+        // El primer layout no viene de ningún piso: arrancar la partida en el
+        // piso 6 no es un vuelo de seis pisos.
+        let origin = displayedFloorOrdinal
+        let distance = origin < 0 ? 0 : abs(destination - origin)
+        displayedFloorOrdinal = destination
+        cameraNode.removeAction(forKey: Self.floorCameraKey)
+        isFlying = false
         guard !UIAccessibility.isReduceMotionEnabled else {
             cameraNode.position = target
             return
         }
-        cameraNode.run(.move(to: target, duration: 0.35), withKey: "floorCamera")
+        guard distance > 1, let totalFloors = gameState.floorTable?.floors.count else {
+            cameraNode.run(.move(to: target, duration: Self.floorHopDuration), withKey: Self.floorCameraKey)
+            return
+        }
+        let flight = SKAction.move(to: target, duration: Self.flightDuration(floors: distance, totalFloors: totalFloors))
+        // Arranca y frena suave: sin esto el vuelo largo parece un corte, que es
+        // justo lo que el mapa vino a reemplazar.
+        flight.timingMode = .easeInEaseOut
+        isFlying = true
+        preloadFlightBackgrounds(from: origin, to: destination)
+        cameraNode.run(
+            .sequence([flight, .run { [weak self] in self?.finishFlight() }]),
+            withKey: Self.floorCameraKey
+        )
+    }
+
+    /// Cuánto dura el vuelo entre dos pisos que no son vecinos.
+    ///
+    /// Crece con la distancia pero se **aplana contra el alto de la torre**: dos
+    /// pisos ya tienen que leerse como vuelo y el salto más largo posible no
+    /// puede durar diez veces más. El techo sale de `floors[]`, así que el
+    /// presupuesto sigue siendo el mismo cuando la torre pase de once pisos a
+    /// diez.
+    static func flightDuration(floors: Int, totalFloors: Int) -> TimeInterval {
+        let longest = max(3, totalFloors - 1)
+        let span = Double(min(max(floors, 2), longest) - 2) / Double(longest - 2)
+        // Interpolación en los dos extremos (y no `min + delta * span`) para que
+        // los bordes den 0,6 y 0,9 exactos y no 0,8999999999999999.
+        return flightMinDuration * (1 - span) + flightMaxDuration * span
+    }
+
+    /// El piso sobre el que está la cámara AHORA, que durante un vuelo no es el
+    /// de destino.
+    private var cameraFloorOrdinal: Int {
+        guard size.height > 0, let count = gameState.floorTable?.floors.count else {
+            return gameState.visibleFloorOrdinal
+        }
+        let raw = Int(((cameraNode.position.y - size.height / 2) / size.height).rounded())
+        return min(max(0, raw), count - 1)
+    }
+
+    /// Durante el vuelo los fondos los manda la cámara y no el destino: si no,
+    /// ir del callejón a la Luna sería un tubo vacío con los dos extremos
+    /// pintados. Sigue siendo el rango visible ±1 — nunca están los once pisos
+    /// cargados a la vez.
+    private func streamFloorsAlongFlight() {
+        guard let content = gameState.content else { return }
+        let center = cameraFloorOrdinal
+        guard center != liveFloorCenter else { return }
+        renderLiveFloorNodes(content: content, centeredOn: center)
+    }
+
+    /// Manda las texturas del recorrido a la GPU **antes** de que la cámara pase
+    /// por ellas. Los `FloorNode` se siguen montando y desmontando sobre la
+    /// marcha: lo que se adelanta es la subida de la textura, que es lo único
+    /// que no llega a tiempo.
+    ///
+    /// Medido sobre el salto más largo (callejón → Dios): sin esto, once
+    /// cuadros seguidos con ~60% de la pantalla en crema; con esto, uno solo.
+    ///
+    /// El costo es tener los fondos del camino residentes durante los 0,9 s del
+    /// vuelo (≈9 MB cada uno a 3×). Las referencias se sueltan al aterrizar,
+    /// así que el pico no sobrevive a la animación.
+    private func preloadFlightBackgrounds(from origin: Int, to destination: Int) {
+        guard let content = gameState.content else { return }
+        let range = min(origin, destination)...max(origin, destination)
+        flightTextures = range.compactMap { ordinal -> SKTexture? in
+            guard content.floorTable.floors.indices.contains(ordinal),
+                  let asset = content.manifest.backgrounds[content.floorTable[ordinal].background],
+                  !asset.isEmpty, UIImage(named: asset) != nil else { return nil }
+            return SKTexture(imageNamed: asset)
+        }
+        // ⚠️ El handler tiene que ser `@Sendable`. SpriteKit lo llama desde una
+        // cola de fondo y `BoardScene` es `@MainActor` (SKScene lo es en el
+        // SDK), así que un `{}` pelado hereda el aislamiento y el runtime de
+        // concurrencia mata el proceso con SIGTRAP apenas termina la precarga.
+        SKTexture.preload(flightTextures) { @Sendable in }
+    }
+
+    private func finishFlight() {
+        isFlying = false
+        flightTextures = []
+        guard let content = gameState.content else { return }
+        renderLiveFloorNodes(content: content, centeredOn: gameState.visibleFloorOrdinal)
     }
 
     /// Una promoción ya fue aplicada por EconomyKit antes de llegar acá. SpriteKit

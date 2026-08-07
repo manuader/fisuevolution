@@ -82,4 +82,23 @@ struct FloorMapTests {
         #expect(gameState.boardVersion > versionBefore, "la escena tiene que enterarse del salto")
         #expect(gameState.floorMap.first { $0.isVisible }?.ordinal == top.ordinal)
     }
+
+    /// El vuelo dura más cuanto más lejos vas, pero se aplana: el salto más
+    /// largo posible no puede durar diez veces más que el más corto o deja de
+    /// ser un atajo. La regla sale del ALTO DE LA TORRE, así que sigue dando
+    /// 0,6…0,9 s cuando la Ola 2 la deje en diez pisos.
+    @Test("la duración del vuelo se aplana entre 0,6 y 0,9 s para cualquier torre")
+    func flightDurationStaysInsideItsBudget() throws {
+        for totalFloors in [4, 10, 11, 20] {
+            #expect(BoardScene.flightDuration(floors: 2, totalFloors: totalFloors) == 0.6)
+            #expect(BoardScene.flightDuration(floors: totalFloors - 1, totalFloors: totalFloors) == 0.9)
+            var previous = 0.0
+            for distance in 2...(totalFloors - 1) {
+                let duration = BoardScene.flightDuration(floors: distance, totalFloors: totalFloors)
+                #expect(duration >= 0.6 && duration <= 0.9, "\(distance)/\(totalFloors) se fue del presupuesto")
+                #expect(duration >= previous, "un salto más largo no puede durar menos")
+                previous = duration
+            }
+        }
+    }
 }

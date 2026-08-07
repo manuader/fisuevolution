@@ -13,9 +13,12 @@ struct GameContentValidationTests {
     }
 
     @Test func tierTableHasExpectedShape() {
-        #expect(content.tiers.types.count == 37)
-        #expect(content.tiers.concreteTypes.count == 36)
-        #expect(content.tiers.maxTier == 30)
+        // Remapeo a 10 pisos: 44 entradas = 43 concretas + el nodo de elección
+        // `junior`. Las 43 concretas son las 36 de antes menos `kiosco` más los
+        // 8 personajes nuevos, y son exactamente las 43 caras del arte.
+        #expect(content.tiers.types.count == 44)
+        #expect(content.tiers.concreteTypes.count == 43)
+        #expect(content.tiers.maxTier == 37)
         #expect(content.tiers.baseType.id == "homeless")
         #expect(content.tiers.terminalType.id == "god")
     }
@@ -26,9 +29,60 @@ struct GameContentValidationTests {
         #expect(junior.choiceOptions?.count == 4)
         for option in junior.choiceOptions ?? [] {
             let resolved = try #require(content.tiers.type(id: option))
-            #expect(resolved.tier == 9)
+            #expect(resolved.tier == 11)
             #expect(resolved.isChoiceNode == false)
         }
+    }
+
+    /// RF-10: el playtest pidió "al menos 4 personajes por piso, menos el último
+    /// que sólo tiene a Dios". Con 4 exactos por piso el reparto queda forzado,
+    /// así que este test es la aritmética entera del remapeo en una sola pieza.
+    @Test("la torre cubre 1…37 sin huecos y ningún piso no-Dios tiene menos de 4 tiers")
+    func towerCoverageAfterRemap() {
+        let floors = content.floorTable.floors
+        #expect(floors.count == 10)
+        for floor in floors where floor.id != "god_realm" {
+            #expect(floor.lastTier - floor.firstTier + 1 == 4, "\(floor.id) no tiene 4 tiers")
+        }
+        #expect(floors.first?.firstTier == 1)
+        #expect(floors.last?.lastTier == 37)
+        for (lower, upper) in zip(floors, floors.dropFirst()) {
+            #expect(lower.lastTier + 1 == upper.firstTier, "hueco o solape entre \(lower.id) y \(upper.id)")
+        }
+    }
+
+    /// `kiosco` (Personal de Kiosco) se eliminó de la cadena y El Mantero ocupó
+    /// su lugar. Se va de los tres lados a la vez: si sobrevive en uno queda
+    /// arte huérfano o —peor— una skin que no se le puede aplicar a nadie.
+    @Test("kiosco ya no existe en ningún lado")
+    func kioscoIsGone() {
+        #expect(content.tiers.types.allSatisfy { $0.id != "kiosco" })
+        #expect(content.skins.skins.allSatisfy { $0.characterType != "kiosco" })
+        #expect(content.manifest.characters.keys.allSatisfy { !$0.hasPrefix("kiosco") })
+    }
+
+    /// El fondo `bg_cosmic` se retiró (decisión estética del dueño). Sin entrada
+    /// en el manifest el código cae a un placeholder programático SIN romperse,
+    /// así que un fondo huérfano no falla ningún otro test: por eso se asserta acá.
+    @Test("el fondo cosmic se retiró del manifest y ningún piso lo pide")
+    func cosmicBackgroundIsGone() {
+        #expect(content.manifest.backgrounds["cosmic"] == nil)
+        #expect(content.floorTable.floors.allSatisfy { $0.background != "cosmic" })
+        #expect(content.manifest.backgrounds.count == 10)
+    }
+
+    /// El corte `earth`/`cosmic` tiene que caer en un BORDE de piso, no partir
+    /// uno al medio: es lo que elige la música y el tema del tablero. Después
+    /// del remapeo cae entre T24 (Dueño de la Luna, último de `moon`) y T25
+    /// (Dueño de Marte, primero de `mars`).
+    @Test("la fase cambia justo en el borde moon→mars")
+    func phaseCutFallsOnAFloorBoundary() throws {
+        for type in content.tiers.types {
+            let expected: GamePhase = type.tier <= 24 ? .earth : .cosmic
+            #expect(type.phase == expected, "\(type.id) (T\(type.tier)) está en la fase equivocada")
+        }
+        let moon = try #require(content.floorTable.floors.first { $0.id == "moon" })
+        #expect(moon.lastTier == 24, "el corte de fase dejó de coincidir con el borde de piso")
     }
 
     /// Anti-drift: every number in tiers.json must equal the F7 formulas applied to
@@ -117,20 +171,22 @@ struct GameContentValidationTests {
     }
 
     @Test func towerFloorsMatchCalibratedLayout() throws {
-        // Layout FINAL de La Torre: 11 pisos data-driven, del callejón al reino
+        // Layout FINAL de La Torre: 10 pisos data-driven, del callejón al reino
         // divino, capacity 10 en todos e income estrictamente creciente.
+        // El `incomeMultiplier` es una progresión geométrica interpolada, no
+        // inventada: va de 1,0 a 620,0 en 9 saltos, o sea razón 620^(1/9) =
+        // 2,0431 redondeada al estilo de la tabla vieja.
         let expected: [(id: String, tiers: ClosedRange<Int>, income: Double)] = [
-            ("alley", 1...2, 1.0),
-            ("urban", 3...5, 2.0),
-            ("corporate", 6...9, 3.6),
-            ("luxury", 10...13, 7.0),
-            ("island", 14...17, 13.0),
-            ("moon", 18...21, 25.0),
-            ("mars", 22...23, 48.0),
-            ("solar", 24...25, 90.0),
-            ("galaxy", 26...27, 170.0),
-            ("cosmic", 28...29, 325.0),
-            ("god_realm", 30...30, 620.0),
+            ("alley", 1...4, 1.0),
+            ("urban", 5...8, 2.0),
+            ("corporate", 9...12, 4.2),
+            ("luxury", 13...16, 8.5),
+            ("island", 17...20, 17.0),
+            ("moon", 21...24, 35.0),
+            ("mars", 25...28, 72.0),
+            ("solar", 29...32, 150.0),
+            ("galaxy", 33...36, 305.0),
+            ("god_realm", 37...37, 620.0),
         ]
         let table = content.floorTable
         try #require(table.count == expected.count)
@@ -264,6 +320,37 @@ struct GameContentValidationTests {
         // Un ID válido pero ajeno a la ficha vuelve a la base, sin filtrarse a
         // otro personaje ni mostrar una textura inválida.
         #expect(SkinResolver.treatment(for: "urban", characterType: "homeless", config: config) == .base)
+    }
+
+    /// El drill de remapeo contra el contenido REAL: un save escrito con el
+    /// mapeo de 11 pisos tiene unidades de `kiosco`, que ya no existe. Tiene que
+    /// cargar, descartar sólo esas y reacomodar el resto contra el mapeo
+    /// vigente. `TowerReconciler` se construyó exactamente para esto, así que
+    /// pasa de una: se deja igual porque es la red del PRÓXIMO remapeo.
+    @Test("un save con el mapeo de 11 pisos carga y reacomoda sus unidades")
+    func oldSaveSurvivesTheRemap() throws {
+        var state = PlayerState.newGame(
+            startTypeId: "homeless",
+            startFloorId: "alley",
+            offlineEfficiencyBase: content.economy.offlineEfficiencyBase,
+            critChanceBase: content.economy.critChanceBase,
+            now: 1_700_000_000
+        )
+        // Un tipo que sigue existiendo y otro que se eliminó en este remapeo.
+        state.run.units = ["homeless": 3, "kiosco": 2]
+
+        let outcome = TowerReconciler.reconcile(
+            run: &state.run,
+            floorTable: content.floorTable,
+            tiers: content.tiers
+        )
+
+        #expect(outcome.discarded == ["kiosco": 2], "las unidades de un tipo eliminado se descartan, no rompen la carga")
+        #expect(state.run.units == ["homeless": 3], "kiosco tiene que salir de units, no quedar de zombi")
+        #expect(outcome.tower.unitCounts == state.run.units)
+        // Y el Fisura queda parado en el callejón, que es donde lo pone el
+        // mapeo NUEVO (T1 sigue en `alley`, ahora 1…4 en vez de 1…2).
+        #expect(content.floorTable.ordinal(forTier: 1) == 0)
     }
 
     private func expectRelativelyEqual(_ actual: Double, _ expected: Double, context: String) {

@@ -27,7 +27,7 @@
       "id": "alley",
       "background": "alley",
       "firstTier": 1,
-      "lastTier": 2,
+      "lastTier": 4,
       "capacity": 10,
       "incomeMultiplier": 1.0,
       "hireCostMultiplier": 50
@@ -35,8 +35,8 @@
     {
       "id": "urban",
       "background": "urban",
-      "firstTier": 3,
-      "lastTier": 5,
+      "firstTier": 5,
+      "lastTier": 8,
       "capacity": 10,
       "incomeMultiplier": 2.0,
       "backgroundOffset": 0.135
@@ -44,75 +44,67 @@
     {
       "id": "corporate",
       "background": "corporate",
-      "firstTier": 6,
-      "lastTier": 9,
+      "firstTier": 9,
+      "lastTier": 12,
       "capacity": 10,
-      "incomeMultiplier": 3.6
+      "incomeMultiplier": 4.2
     },
     {
       "id": "luxury",
       "background": "luxury",
-      "firstTier": 10,
-      "lastTier": 13,
+      "firstTier": 13,
+      "lastTier": 16,
       "capacity": 10,
-      "incomeMultiplier": 7.0
+      "incomeMultiplier": 8.5
     },
     {
       "id": "island",
       "background": "island",
-      "firstTier": 14,
-      "lastTier": 17,
+      "firstTier": 17,
+      "lastTier": 20,
       "capacity": 10,
-      "incomeMultiplier": 13.0,
+      "incomeMultiplier": 17.0,
       "backgroundOffset": 0.18
     },
     {
       "id": "moon",
       "background": "moon",
-      "firstTier": 18,
-      "lastTier": 21,
+      "firstTier": 21,
+      "lastTier": 24,
       "capacity": 10,
-      "incomeMultiplier": 25.0,
+      "incomeMultiplier": 35.0,
       "backgroundOffset": 0.12
     },
     {
       "id": "mars",
       "background": "mars",
-      "firstTier": 22,
-      "lastTier": 23,
+      "firstTier": 25,
+      "lastTier": 28,
       "capacity": 10,
-      "incomeMultiplier": 48.0,
+      "incomeMultiplier": 72.0,
       "backgroundOffset": 0.118
     },
     {
       "id": "solar",
       "background": "solar",
-      "firstTier": 24,
-      "lastTier": 25,
+      "firstTier": 29,
+      "lastTier": 32,
       "capacity": 10,
-      "incomeMultiplier": 90.0
+      "incomeMultiplier": 150.0
     },
     {
       "id": "galaxy",
       "background": "galaxy",
-      "firstTier": 26,
-      "lastTier": 27,
+      "firstTier": 33,
+      "lastTier": 36,
       "capacity": 10,
-      "incomeMultiplier": 170.0
-    },
-    {
-      "id": "cosmic",
-      "background": "cosmic",
-      "firstTier": 28,
-      "lastTier": 29,
-      "capacity": 10,
-      "incomeMultiplier": 325.0
+      "incomeMultiplier": 305.0
     },
     {
       "id": "god_realm",
       "background": "god_realm",
-      "firstTier": 30,
-      "lastTier": 30,
+      "firstTier": 37,
+      "lastTier": 37,
       "capacity": 10,
       "incomeMultiplier": 620.0
     }

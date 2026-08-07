@@ -134,6 +134,21 @@ desentonan con los integrados.
 > `earth.atlasc` 20 MB, Frameworks 16 MB, `cosmic.atlasc` 9,5 MB y
 > `ui.atlasc` 8,7 MB.
 >
+> **Re-medido el 2026-08-07, después del remapeo a 10 pisos (Ola 2, frente A3):
+> 146 MB en Debug** con `build/DD` borrado, contra los 135 MB de antes. Los
+> **+11 MB** salen de restar un fondo y sumar arte de personajes:
+>
+> | | Antes | Después | Δ |
+> |---|---|---|---|
+> | `ui.atlasc` | 8,7 MB | **16 MB** | +7,3 — las 43 caras nuevas |
+> | `cosmic.atlasc` | 9,5 MB | **14 MB** | +4,5 — 5 cuerpos + la skin de Dios |
+> | `earth.atlasc` | 20 MB | **23 MB** | +3 — 3 cuerpos + la skin del Fisura |
+> | Fondos | 11 (~81 MB) | **10 (~74 MB)** | −7 — se retiró `bg_cosmic` |
+>
+> O sea que **el arte nuevo costó ~15 MB y el fondo retirado devolvió 7**. Sigue
+> valiendo que los fondos son el grupo más caro del `.app`: 10 archivos se comen
+> la mitad del bundle, y son sólo 10 imágenes.
+
 > Eso deja una consecuencia que conviene tener presente: **reautorar los fondos a
 > proporción vertical (~768×1664) sigue siendo la única ganancia grande que queda
 > en peso de app**, y hoy ~54% de sus píxeles no se ven nunca. Venía dentro de la

@@ -40,10 +40,10 @@ struct StoreManagerTests {
         }
     }
 
-    /// Los tres tintes IAP (golden/galaxy/god) se retiraron del catálogo por
-    /// decisión del dueño. Lo que vende la tienda hoy es `remove_ads` más las dos
-    /// skins de arte propio (RF-13), y en ese orden: `loadProducts()` reordena lo
-    /// que devuelve StoreKit según el orden de `products.json`.
+    /// El catálogo completo de RF-02b, en el orden de `products.json`:
+    /// `loadProducts()` reordena lo que devuelve StoreKit, que no garantiza
+    /// ninguno. El orden es de venta —el combo primero, las skins al final— y
+    /// este test es lo que lo pinea.
     @Test func loadsTheCatalogProducts() async throws {
         let session = try makeSession()
         defer { _ = session }
@@ -53,10 +53,93 @@ struct StoreManagerTests {
 
         #expect(store.loadState == .loaded)
         #expect(store.products.map(\.id) == [
+            "com.fisuevolution.iap.starter_pack",
             "com.fisuevolution.iap.remove_ads",
+            "com.fisuevolution.iap.coins_small",
+            "com.fisuevolution.iap.coins_medium",
+            "com.fisuevolution.iap.coins_large",
+            "com.fisuevolution.iap.oro_small",
+            "com.fisuevolution.iap.oro_medium",
+            "com.fisuevolution.iap.oro_large",
             "com.fisuevolution.iap.skin_mundialista",
             "com.fisuevolution.iap.skin_parrillero",
         ])
+    }
+
+    /// RF-02b, el recorrido entero de un CONSUMIBLE, que no es el de un
+    /// entitlement: StoreKit no lo devuelve nunca en `currentEntitlements`, así
+    /// que si `handle` no lo acredita en el momento la plata no llega nunca.
+    @Test func purchasingACoinPackCreditsCoins() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let store = StoreManager()
+        await store.start(gameState: gameState)
+
+        gameState.debugSetMaxTier(12)
+        let economy = try #require(gameState.economy)
+        let before = try #require(gameState.player).run.coins
+        let expected = economy.passiveUnlockCost(forTier: 12) * 15
+
+        let pack = try #require(store.products.first { $0.id == "com.fisuevolution.iap.coins_small" })
+        await store.purchase(pack)
+
+        await waitUntil { (gameState.player?.run.coins ?? 0) > before }
+        #expect(gameState.player?.run.coins == before + expected)
+    }
+
+    @Test func purchasingAnOroPackCreditsSpendableOro() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let store = StoreManager()
+        await store.start(gameState: gameState)
+
+        let before = try #require(gameState.player).meta.oro
+
+        let pack = try #require(store.products.first { $0.id == "com.fisuevolution.iap.oro_small" })
+        await store.purchase(pack)
+
+        await waitUntil { (gameState.player?.meta.oro ?? 0) > before }
+        #expect(gameState.player?.meta.oro == before + 250)
+        // La compra no compra multiplicador: eso sólo lo da reencarnar.
+        #expect(gameState.player?.meta.oroEarnedLifetime == 0)
+    }
+
+    /// Un consumible se vuelve a comprar. Si quedara marcado como "comprado" la
+    /// tienda le pondría el tilde y el jugador no podría comprar el segundo.
+    @Test func aCoinPackStaysBuyableAfterBuyingIt() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let store = StoreManager()
+        await store.start(gameState: gameState)
+
+        let before = try #require(gameState.player).run.coins
+        let pack = try #require(store.products.first { $0.id == "com.fisuevolution.iap.coins_small" })
+        await store.purchase(pack)
+        await waitUntil { (gameState.player?.run.coins ?? 0) > before }
+
+        #expect(!store.isPurchased(pack.id))
+    }
+
+    /// El combo reparte por los dos caminos a la vez: la plata la acredita el
+    /// camino de consumible, y quitar los ads y la skin el de entitlement.
+    @Test func theStarterPackGrantsItsThreeThings() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let store = StoreManager()
+        await store.start(gameState: gameState)
+
+        let before = try #require(gameState.player).run.coins
+        let pack = try #require(store.products.first { $0.id == "com.fisuevolution.iap.starter_pack" })
+        await store.purchase(pack)
+
+        await waitUntil { gameState.player?.meta.removedAds == true }
+        #expect(gameState.player?.meta.removedAds == true)
+        #expect(gameState.ownsSkin("mundialista"))
+        #expect((gameState.player?.run.coins ?? 0) > before)
     }
 
     @Test func purchaseGrantsEntitlementAndCachesInPlayerState() async throws {

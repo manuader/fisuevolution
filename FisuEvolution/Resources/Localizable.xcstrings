@@ -3163,6 +3163,54 @@
         }
       }
     },
+    "store.pack.coins %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gives you %@ in cash"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te da %@ de plata"
+          }
+        }
+      }
+    },
+    "store.pack.oro %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gives you %@ ORO to spend on permanent upgrades"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Te da %@ de ORO para las mejoras permanentes"
+          }
+        }
+      }
+    },
+    "store.pack.starter %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ in cash, the Mundialista skin and no more ads"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ de plata, la skin Mundialista y chau anuncios"
+          }
+        }
+      }
+    },
     "store.purchased": {
       "extractionState": "stale",
       "localizations": {
@@ -3212,6 +3260,22 @@
         }
       }
     },
+    "store.section.coins": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cash"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plata"
+          }
+        }
+      }
+    },
     "store.section.general": {
       "extractionState": "stale",
       "localizations": {
@@ -3225,6 +3289,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mejoras"
+          }
+        }
+      }
+    },
+    "store.section.oro": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ORO"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ORO"
           }
         }
       }

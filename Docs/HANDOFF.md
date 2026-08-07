@@ -302,12 +302,71 @@ El panel de debug es el ícono de herramientas del HUD.
    ⚠️ Y lo grave: **el test de UI seguía en verde con la app crasheada.** Es la
    trampa 2 otra vez — un test de UI puede pasar sin probar nada.
 
-9. **Los tests de UI existentes pasan según el ORDEN en que corren.**
-   `LaunchSmokeTests` y `EconomyLoopUITests` funcionan sólo porque
-   `--uitest-open-sheet` deja `fisuTutorialDone` seteado en ese simulador: en un
-   device limpio, el scrim del tutorial les tapa los controles. Si te aparece un
-   "Failed to scroll to visible" inexplicable, revisá si el tutorial está
-   adelante (trampa 4). **Se arregla cuando se rehaga el tutorial (RF-01).**
+9. ~~**Los tests de UI existentes pasan según el ORDEN en que corren.**~~
+   **ARREGLADO (2026-08-07, RF-01).** `LaunchSmokeTests` y `EconomyLoopUITests`
+   funcionaban sólo porque `--uitest-open-sheet` dejaba `fisuTutorialDone`
+   seteado en ese simulador; en un device limpio el scrim del tutorial les tapaba
+   los controles. Reproducido antes de tocar nada: `EconomyLoopUITests` fallaba
+   con "coins never changed after tapping" en un simulador recién creado.
+
+   El arreglo **no** fue que el tutorial deje de bloquear la pantalla —el patrón
+   Clash of Clans exige que la bloquee, y RF-01 lo pide explícitamente— sino que
+   el estado del tutorial pasó a ser **declarado y no heredado**:
+   `--uitest-reset` ahora resetea también `fisuTutorialDone` y las tres banderas
+   `ftue.*` (antes "partida nueva" sólo rehacía la PARTIDA), y el test que no
+   quiere ver el tutorial lo dice con `--uitest-skip-tutorial`. Ningún test
+   depende ya de lo que dejó otro.
+
+   ⚠️ **Dos trampas nuevas de SwiftUI salieron de acá** y las dos se ven igual:
+   todo compila, la pantalla se ve bien y el test falla en otro lado.
+
+   a. **Un elemento de accesibilidad a pantalla completa TAPA a todos los
+      controles de abajo en el árbol de AX.** Los marcadores del tutorial eran
+      dos `Color.clear` arriba del `ZStack`; con eso, XCUITest dejaba de
+      considerar "hittable" a cualquier botón —incluido el de saltear del propio
+      tutorial— y todo `.tap()` moría con "Failed to scroll to visible", que es
+      la trampa 4 con disfraz nuevo. Los toques por COORDENADA seguían
+      funcionando, así que en el simulador no se notaba. Van de fondo y de 1×1,
+      como `board.units` en `RootView`.
+
+   b. **`anchorPreference` PISA el valor del subárbol; no se suma.** Marcar la
+      franja del HUD borraba de un saque los anclas del contador de monedas, de
+      mejoras y del mapa, que viven adentro. El tutorial dibujaba el scrim entero
+      sin recorte y el paso quedaba sin salida. Se usa
+      `transformAnchorPreference`, que mergea.
+
+   c. Y una de tests: `.tap()` sobre un elemento que XCUITest considera no
+      hittable se pasa **~60 s** reintentando y después toca igual. Un test que
+      quiere probar que algo NO se puede tocar tiene que tocar por coordenada: si
+      no, tarda dos minutos y confunde "el scrim se comió el toque" con "XCUITest
+      se negó a tocar".
+
+14. **Un `repeatForever` no arranca si su `@State` cambió ANTES de que la vista
+    exista.** La mano del tutorial no latía: el `onAppear` que ponía la bandera
+    vivía en el overlay y corría mientras el recorte del tablero todavía no había
+    llegado desde la escena, así que la mano se insertaba con la bandera ya en
+    `true` — sin cambio que animar, sin animación. La bandera va en la **misma
+    vista** que anima, con su propio `onAppear`.
+
+    ⚠️ Lo importante es **cómo se encontró**, porque no se ve en una captura: la
+    mano estaba ahí y en su pose grande. Se ve comparando **cuatro capturas
+    seguidas** y hasheando la región. Y sólo se detecta si además se corre **al
+    revés**: con Reduce Motion las cuatro daban idéntico —correcto— y sin Reduce
+    Motion **también**, que es el bug. Una verificación visual que no discrimina
+    en los dos sentidos no está verificando nada; es la trampa 2 fuera de los
+    tests.
+
+    ```bash
+    xcrun simctl spawn <UDID> defaults write com.apple.Accessibility ReduceMotionEnabled -bool true
+    ```
+
+15. **Congelar lo que animaba baja los fps del overlay de DEBUG a ~1, y está
+    bien.** Con el recorte del tutorial sobre el tablero no queda nada animando
+    en SpriteKit (el anillo de FTUE se calla y el personaje deja de deambular) y
+    el contador marca `1.0 fps`. No se pierde income: `tick` integra por `delta`,
+    así que la misma plata se acredita en tramos más largos, y el tap refresca
+    las proyecciones por su cuenta sin pasar por el frame loop. Vuelve a 60 al
+    salir del paso. Ver también la trampa 11: ese contador miente fácil.
 10. **`osascript`/System Events no funciona desde el shell del agente** — y ahora
     se sabe **exactamente dónde** (probado el 2026-08-06):
 

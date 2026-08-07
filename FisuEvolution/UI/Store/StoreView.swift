@@ -177,5 +177,10 @@ struct StoreView: View {
         .buttonStyle(.borderedProminent)
         .tint(Color("PaletteBlue"))
         .disabled(store.isPurchasing)
+        // El identificador lleva el id del producto porque con tres filas los
+        // botones se leen todos "USD 2.99": sin esto no hay test de UI que
+        // pueda apretar UNO. Es un String, no una clave de localización, así
+        // que interpolarlo acá es correcto (trampa 5 es de `LocalizedStringKey`).
+        .accessibilityIdentifier("store.buy.\(product.id)")
     }
 }

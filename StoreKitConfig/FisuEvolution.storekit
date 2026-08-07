@@ -21,6 +21,46 @@
       "productID": "com.fisuevolution.iap.remove_ads",
       "referenceName": "Remove Ads",
       "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000A5",
+      "localizations": [
+        {
+          "description": "El Fisura con la camiseta y la copa que no ganó él",
+          "displayName": "Skin Mundialista",
+          "locale": "es"
+        },
+        {
+          "description": "The Fisura in the jersey, holding a cup he didn't win",
+          "displayName": "Mundialista Skin",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.skin_mundialista",
+      "referenceName": "Skin Mundialista",
+      "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000A6",
+      "localizations": [
+        {
+          "description": "Dios con delantal chamuscado y pinza de asado",
+          "displayName": "Skin Parrillero",
+          "locale": "es"
+        },
+        {
+          "description": "God in a scorched apron, tongs in hand",
+          "displayName": "Parrillero Skin",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.skin_parrillero",
+      "referenceName": "Skin Parrillero",
+      "type": "NonConsumable"
     }
   ],
   "settings": {

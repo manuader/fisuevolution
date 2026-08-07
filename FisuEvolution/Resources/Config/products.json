@@ -5,6 +5,18 @@
       "id": "com.fisuevolution.iap.remove_ads",
       "type": "nonConsumable",
       "entitlement": "removeAds"
+    },
+    {
+      "id": "com.fisuevolution.iap.skin_mundialista",
+      "type": "nonConsumable",
+      "entitlement": "skin",
+      "skinId": "mundialista"
+    },
+    {
+      "id": "com.fisuevolution.iap.skin_parrillero",
+      "type": "nonConsumable",
+      "entitlement": "skin",
+      "skinId": "parrillero"
     }
   ]
 }

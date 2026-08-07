@@ -41,8 +41,10 @@ struct StoreManagerTests {
     }
 
     /// Los tres tintes IAP (golden/galaxy/god) se retiraron del catálogo por
-    /// decisión del dueño, así que la tienda vende UN producto.
-    @Test func loadsTheCatalogProduct() async throws {
+    /// decisión del dueño. Lo que vende la tienda hoy es `remove_ads` más las dos
+    /// skins de arte propio (RF-13), y en ese orden: `loadProducts()` reordena lo
+    /// que devuelve StoreKit según el orden de `products.json`.
+    @Test func loadsTheCatalogProducts() async throws {
         let session = try makeSession()
         defer { _ = session }
         let gameState = await makeGameState()
@@ -50,8 +52,11 @@ struct StoreManagerTests {
         await store.start(gameState: gameState)
 
         #expect(store.loadState == .loaded)
-        #expect(store.products.count == 1)
-        #expect(store.products.first?.id == "com.fisuevolution.iap.remove_ads")
+        #expect(store.products.map(\.id) == [
+            "com.fisuevolution.iap.remove_ads",
+            "com.fisuevolution.iap.skin_mundialista",
+            "com.fisuevolution.iap.skin_parrillero",
+        ])
     }
 
     @Test func purchaseGrantsEntitlementAndCachesInPlayerState() async throws {
@@ -112,6 +117,7 @@ struct StoreManagerTests {
 
     @Test func refundRevokesEntitlement() async throws {
         let session = try makeSession()
+        defer { session.clearTransactions() }
         let gameState = await makeGameState()
         let store = StoreManager()
         await store.start(gameState: gameState)
@@ -120,7 +126,13 @@ struct StoreManagerTests {
         await store.purchase(removeAds)
         await waitUntil { store.isPurchased(removeAds.id) }
 
-        let transaction = try #require(session.allTransactions().first)
+        // Por productID, NO `.first`: desde que la tienda vende tres productos
+        // `allTransactions()` no tiene un orden garantizado, y refundear la
+        // transacción equivocada dejaba el test rojo de manera intermitente.
+        let transaction = try #require(
+            session.allTransactions().first { $0.productIdentifier == removeAds.id },
+            "no apareció la transacción de remove_ads"
+        )
         try session.refundTransaction(identifier: UInt(transaction.identifier))
 
         await waitUntil { !store.isPurchased(removeAds.id) }
@@ -171,5 +183,54 @@ struct StoreManagerTests {
         // El filtro anti-huérfanos de applyStoreEntitlements no echó a la activa.
         #expect(player.meta.activeSkinByType["homeless"] == "milestone_asado")
         #expect(gameState.activeSkinID(forCharacterType: "homeless") == "milestone_asado")
+    }
+
+    /// RF-13: las dos skins de arte propio se venden. Un caso por skin.
+    ///
+    /// El recorrido entero de una compra cosmética: antes de pagar la skin NO se
+    /// puede equipar (aunque `skins.json` la declare para ese tipo), la compra la
+    /// acredita en `meta.ownedSkins`, y recién ahí la ficha de personaje la deja
+    /// poner. Se ejercita `equipSkin`, que es la misma función que llama la ficha
+    /// — un test que sólo mirara `ownedSkins` pasaría sin probar que se equipa.
+    @Test(arguments: [
+        (productID: "com.fisuevolution.iap.skin_mundialista", skinID: "mundialista", characterType: "homeless"),
+        (productID: "com.fisuevolution.iap.skin_parrillero", skinID: "parrillero", characterType: "god"),
+    ])
+    func purchasingASkinMakesItEquippable(
+        productID: String,
+        skinID: String,
+        characterType: String
+    ) async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let store = StoreManager()
+        await store.start(gameState: gameState)
+
+        // La skin está en el catálogo de ese tipo, pero todavía no es suya.
+        #expect(gameState.skinOptions(forCharacterType: characterType).contains { $0.id == skinID })
+        #expect(!gameState.ownsSkin(skinID))
+        gameState.equipSkin(id: skinID, forCharacterType: characterType)
+        #expect(gameState.activeSkinID(forCharacterType: characterType) == nil, "se equipó sin comprarla")
+
+        let product = try #require(store.products.first { $0.id == productID })
+        await store.purchase(product)
+
+        await waitUntil { store.isPurchased(productID) }
+        #expect(store.isPurchased(productID))
+        // El entitlement se cachea en `ownedSkins`, no en `milestoneSkins`.
+        await waitUntil { gameState.ownsSkin(skinID) }
+        let player = try #require(gameState.player)
+        #expect(player.meta.ownedSkins.contains(skinID))
+        #expect(!player.meta.milestoneSkins.contains(skinID))
+
+        // Y ahora sí la ficha la deja equipar, sólo en su propio tipo.
+        gameState.equipSkin(id: skinID, forCharacterType: characterType)
+        #expect(gameState.activeSkinID(forCharacterType: characterType) == skinID)
+        #expect(SkinResolver.treatment(
+            for: skinID,
+            characterType: characterType,
+            config: try #require(gameState.content?.skins)
+        ) != .base, "la skin comprada no cambia el render")
     }
 }

@@ -1,7 +1,7 @@
 # 202 — Cara de Coleccionista de Galaxias (RF-05 — `coleccionista_galaxias_face`)
 
 - **archivo**: `coleccionista_galaxias_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/coleccionista_galaxias.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

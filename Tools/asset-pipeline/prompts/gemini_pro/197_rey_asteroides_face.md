@@ -1,7 +1,7 @@
 # 197 — Cara de Rey de los Asteroides (RF-05 — `rey_asteroides_face`)
 
 - **archivo**: `rey_asteroides_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/rey_asteroides.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

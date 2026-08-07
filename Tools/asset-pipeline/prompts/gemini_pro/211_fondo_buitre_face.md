@@ -1,7 +1,7 @@
 # 211 — Cara de Fondo Buitre Estelar (RF-05 — `fondo_buitre_face`)
 
 - **archivo**: `fondo_buitre_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/fondo_buitre.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

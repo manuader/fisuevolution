@@ -1,7 +1,7 @@
 # 169 — Cara de El Mantero (RF-05 — `mantero_face`)
 
 - **archivo**: `mantero_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/mantero.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

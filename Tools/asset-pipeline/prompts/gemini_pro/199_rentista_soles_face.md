@@ -1,7 +1,7 @@
 # 199 — Cara de Rentista de Soles (RF-05 — `rentista_soles_face`)
 
 - **archivo**: `rentista_soles_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/rentista_soles.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

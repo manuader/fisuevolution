@@ -1,7 +1,7 @@
 # 200 — Cara de Estanciero Estelar (RF-05 — `estanciero_estelar_face`)
 
 - **archivo**: `estanciero_estelar_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/estanciero_estelar.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

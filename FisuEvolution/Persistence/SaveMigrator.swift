@@ -122,6 +122,9 @@ enum SaveMigrator {
             "activeSkinByType": activeSkinByType,
             "removedAds": old["removedAds"] as? Bool ?? false,
             "boostActivations": old["boostActivations"] as? [String: Double] ?? [:],
+            // v3 no tenía cooldown de videos: el que migra arranca con los cuatro
+            // disponibles, que es lo generoso y lo que ya veía en pantalla.
+            "rewardedActivations": [:] as [String: Double],
             "daily": old["daily"] as? [String: Any] ?? ["cycleDay": 1],
             "sharesCompleted": old["sharesCompleted"] as? Int ?? 0,
             "lastSeenTimestamp": old["lastSeenTimestamp"] as? Double ?? 0,

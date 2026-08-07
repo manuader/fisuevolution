@@ -7,12 +7,38 @@ import Foundation
 extension GameState {
     // MARK: Rewarded ads (F4 — efectos del bible §4.4)
 
-    func applyRewardedReward(_ reward: RewardedAdsConfig.Reward) {
-        guard var player else { return }
-        let now = Date().timeIntervalSince1970
+    /// Cuánto falta para que ESTA recompensa vuelva a ofrecerse (RF-11).
+    ///
+    /// `now` es parámetro y no `Date()` adentro por lo mismo que en los boosts:
+    /// es la única forma de testear cuatro horas sin esperarlas.
+    func rewardCooldownRemaining(id: String, now: TimeInterval = Date().timeIntervalSince1970) -> TimeInterval {
+        guard let content, let player,
+              let reward = content.rewardedAds.rewards.first(where: { $0.id == id })
+        else { return 0 }
+        let last = player.meta.rewardedActivations[id] ?? -.infinity
+        return max(0, reward.cooldownSeconds - (now - last))
+    }
+
+    /// Acredita el premio de un video ya mirado y arranca su cooldown.
+    func applyRewardedReward(rewardId: String, now: TimeInterval = Date().timeIntervalSince1970) {
+        guard let content,
+              let reward = content.rewardedAds.rewards.first(where: { $0.id == rewardId }),
+              var player
+        else { return }
+        guard rewardCooldownRemaining(id: rewardId, now: now) <= 0 else {
+            Log.economy.info("rewarded on cooldown: \(rewardId)")
+            return
+        }
+
+        // El cooldown se marca ANTES de aplicar el efecto: si el efecto no
+        // encuentra dónde caer (torre llena, sin par mergeable), el video igual
+        // se miró y el anunciante igual cobró.
+        player.meta.rewardedActivations[rewardId] = now
+        self.player = player
+
         switch reward.effectType {
         case .incomeMultiplier:
-            guard let magnitude = reward.magnitude, let duration = reward.durationSeconds else { return }
+            guard let magnitude = reward.magnitude, let duration = reward.durationSeconds else { break }
             player.run.activeModifiers.append(ActiveModifier(
                 effect: .incomeMultiplier,
                 magnitude: magnitude,
@@ -21,12 +47,14 @@ extension GameState {
             ))
             self.player = player
             refreshProjections()
-            scheduleSave()
         case .instantMerge:
             performInstantMerge()
         case .rareUnit:
             grantRareUnit()
         }
+        // La fila tiene que pasar de botón a cuenta regresiva sin cerrar el panel.
+        effectsVersion += 1
+        scheduleSave()
         Log.economy.info("rewarded effect applied: \(reward.id)")
     }
 
@@ -224,6 +252,21 @@ extension GameState {
         shareCardSubject = nil
     }
 
+    // MARK: Proyecciones de la pantalla de Bonus (RF-06, RF-11, RF-12)
+
+    /// Las cuatro recompensas por video con su cuenta regresiva (RF-11).
+    var rewardRows: [RewardRow] {
+        guard let content else { return [] }
+        let now = Date().timeIntervalSince1970
+        return content.rewardedAds.rewards.map { reward in
+            RewardRow(
+                id: reward.id,
+                titleKey: reward.titleKey,
+                cooldownRemaining: rewardCooldownRemaining(id: reward.id, now: now)
+            )
+        }
+    }
+
     /// Referral local (bible §8): compartir da un boost permanente chico, capeado.
     func registerShareCompleted() {
         guard let economy, let content, var player = player else { return }
@@ -239,5 +282,16 @@ extension GameState {
         self.player = player
         effectsVersion += 1
         scheduleSave()
+    }
+}
+
+// MARK: - Los tipos que consume la pantalla de Bonus
+
+extension GameState {
+    /// Una recompensa por video con lo que falta para volver a ofrecerla.
+    struct RewardRow: Identifiable, Equatable {
+        let id: String
+        let titleKey: String
+        let cooldownRemaining: TimeInterval
     }
 }

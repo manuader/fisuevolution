@@ -155,6 +155,10 @@ public struct MetaState: Codable, Sendable, Equatable {
     /// Última activación por boost id (cooldowns; sobreviven la reencarnación
     /// para evitar el exploit de resetear cooldowns reencarnando).
     public var boostActivations: [String: TimeInterval]
+    /// Última vez que se cobró cada recompensa por video (RF-11). Vive acá y no
+    /// en `run` por lo mismo que `boostActivations`: si muriera al reencarnar,
+    /// reencarnar sería la forma de mirar los cuatro videos otra vez.
+    public var rewardedActivations: [String: TimeInterval]
     public var daily: DailyRewardState
     public var sharesCompleted: Int
     public var lastSeenTimestamp: TimeInterval
@@ -175,6 +179,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         activeSkinByType: [String: String],
         removedAds: Bool,
         boostActivations: [String: TimeInterval],
+        rewardedActivations: [String: TimeInterval] = [:],
         daily: DailyRewardState,
         sharesCompleted: Int,
         lastSeenTimestamp: TimeInterval,
@@ -194,10 +199,38 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.activeSkinByType = activeSkinByType
         self.removedAds = removedAds
         self.boostActivations = boostActivations
+        self.rewardedActivations = rewardedActivations
         self.daily = daily
         self.sharesCompleted = sharesCompleted
         self.lastSeenTimestamp = lastSeenTimestamp
         self.stats = stats
+    }
+
+    /// Decodificador a mano por UN campo. `rewardedActivations` no existe en los
+    /// saves v4 ya escritos y el decodificador sintetizado exige toda clave que no
+    /// sea opcional, así que sin esto el jugador que actualiza pierde la partida.
+    /// Es más barato que subir la versión del sobre por un diccionario vacío.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        lifetimeEarnings = try container.decode(Double.self, forKey: .lifetimeEarnings)
+        oro = try container.decode(Int.self, forKey: .oro)
+        oroEarnedLifetime = try container.decode(Int.self, forKey: .oroEarnedLifetime)
+        prestigeLevel = try container.decode(Int.self, forKey: .prestigeLevel)
+        oroUpgradeLevels = try container.decode([String: Int].self, forKey: .oroUpgradeLevels)
+        derivedEffects = try container.decode(UpgradeState.self, forKey: .derivedEffects)
+        globalMultiplier = try container.decode(Double.self, forKey: .globalMultiplier)
+        ownedSpecials = try container.decode([String].self, forKey: .ownedSpecials)
+        specialAnchors = try container.decode([String: String].self, forKey: .specialAnchors)
+        ownedSkins = try container.decode([String].self, forKey: .ownedSkins)
+        milestoneSkins = try container.decode([String].self, forKey: .milestoneSkins)
+        activeSkinByType = try container.decode([String: String].self, forKey: .activeSkinByType)
+        removedAds = try container.decode(Bool.self, forKey: .removedAds)
+        boostActivations = try container.decode([String: TimeInterval].self, forKey: .boostActivations)
+        rewardedActivations = try container.decodeIfPresent([String: TimeInterval].self, forKey: .rewardedActivations) ?? [:]
+        daily = try container.decode(DailyRewardState.self, forKey: .daily)
+        sharesCompleted = try container.decode(Int.self, forKey: .sharesCompleted)
+        lastSeenTimestamp = try container.decode(TimeInterval.self, forKey: .lastSeenTimestamp)
+        stats = try container.decode(MetaStats.self, forKey: .stats)
     }
 
     /// Meta virgen de cuenta nueva.
@@ -221,6 +254,7 @@ public struct MetaState: Codable, Sendable, Equatable {
             activeSkinByType: [:],
             removedAds: false,
             boostActivations: [:],
+            rewardedActivations: [:],
             daily: DailyRewardState(),
             sharesCompleted: 0,
             lastSeenTimestamp: now,

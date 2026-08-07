@@ -6,6 +6,7 @@
       "effectType": "incomeMultiplier",
       "magnitude": 2.0,
       "durationSeconds": 120,
+      "cooldownSeconds": 14400,
       "titleKey": "ads.reward.double"
     },
     {
@@ -13,16 +14,19 @@
       "effectType": "incomeMultiplier",
       "magnitude": 3.0,
       "durationSeconds": 60,
+      "cooldownSeconds": 14400,
       "titleKey": "ads.reward.boost"
     },
     {
       "id": "accelerate_evolution",
       "effectType": "instantMerge",
+      "cooldownSeconds": 14400,
       "titleKey": "ads.reward.evolve"
     },
     {
       "id": "spawn_rare",
       "effectType": "rareUnit",
+      "cooldownSeconds": 14400,
       "titleKey": "ads.reward.rare"
     }
   ]

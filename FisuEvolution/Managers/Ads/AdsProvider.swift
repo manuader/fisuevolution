@@ -44,6 +44,9 @@ struct RewardedAdsConfig: Codable, Sendable, Equatable {
         let magnitude: Double?
         let durationSeconds: Double?
         let titleKey: String
+        /// Cuánto tarda ESTA recompensa en volver a ofrecerse (RF-11). Los cuatro
+        /// cooldowns corren en paralelo: mirar un video no bloquea a los otros.
+        let cooldownSeconds: Double
     }
 
     let schemaVersion: Int

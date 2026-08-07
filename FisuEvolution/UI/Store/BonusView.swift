@@ -16,6 +16,10 @@ struct BonusView: View {
         // effectsVersion observado → cooldowns se refrescan al activar.
         let _ = gameState.effectsVersion
 
+        // `now` avanza una vez por segundo: es lo que hace tictaquear las cuentas
+        // regresivas, que se recalculan al recomponer.
+        let _ = now
+
         NavigationStack {
             List {
                 Section("bonus.section.boosts") {
@@ -25,8 +29,8 @@ struct BonusView: View {
                 }
                 .listRowBackground(Color.clear)
                 Section("bonus.section.ads") {
-                    ForEach(gameState.content?.rewardedAds.rewards ?? []) { reward in
-                        rewardedRow(reward)
+                    ForEach(gameState.rewardRows) { row in
+                        rewardedRow(row)
                     }
                 }
                 .listRowBackground(Color.clear)
@@ -96,24 +100,34 @@ struct BonusView: View {
         }
     }
 
-    private func rewardedRow(_ reward: RewardedAdsConfig.Reward) -> some View {
+    private func rewardedRow(_ row: GameState.RewardRow) -> some View {
         HStack {
-            Text(LocalizedStringKey(reward.titleKey))
+            Text(LocalizedStringKey(row.titleKey))
                 .font(.headline)
             Spacer()
-            Button {
-                watch(reward)
-            } label: {
-                if watchingRewardId == reward.id {
-                    ProgressView()
-                } else {
-                    Label("ads.watch", systemImage: "play.rectangle.fill")
+            if row.cooldownRemaining > 0 {
+                // En cooldown la fila muestra cuánto falta en lugar del botón,
+                // con el mismo formato que los boosts (RF-11).
+                Text(verbatim: cooldownText(row.cooldownRemaining))
+                    .font(.footnote.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("ads.cooldown.\(row.id)")
+            } else {
+                Button {
+                    watch(rewardId: row.id)
+                } label: {
+                    if watchingRewardId == row.id {
+                        ProgressView()
+                    } else {
+                        Label("ads.watch", systemImage: "play.rectangle.fill")
+                    }
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(Color("PaletteGreen"))
+                .disabled(watchingRewardId != nil || !adsProvider.isRewardedReady)
+                .accessibilityIdentifier("ads.watch.\(row.id)")
             }
-            .buttonStyle(.borderedProminent)
-            .tint(Color("PaletteGreen"))
-            .disabled(watchingRewardId != nil || !adsProvider.isRewardedReady)
-            .accessibilityIdentifier("ads.watch.\(reward.id)")
         }
     }
 
@@ -124,12 +138,12 @@ struct BonusView: View {
         return "\(total)s"
     }
 
-    private func watch(_ reward: RewardedAdsConfig.Reward) {
-        watchingRewardId = reward.id
+    private func watch(rewardId: String) {
+        watchingRewardId = rewardId
         Task {
             let earned = await adsProvider.showRewarded()
             if earned {
-                gameState.applyRewardedReward(reward)
+                gameState.applyRewardedReward(rewardId: rewardId)
             }
             watchingRewardId = nil
         }

@@ -152,6 +152,8 @@ final class GameState {
     /// F7: reencarnación disponible = vas a ganar ≥1 ORO.
     private(set) var prestigeAvailable = false
     private(set) var oroText = "0"
+    /// RF-16: el antes/después del multiplicador. Lo escribe `+Prestige`.
+    var prestigePreview = PrestigePreview.empty
     private(set) var ownedSkins: [String] = []
     /// Invalida la ficha cuando llega un entitlement, milestone o equipamiento.
     /// Lo escriben `+Store` (entitlements y equipar) y `+Debug`.
@@ -321,6 +323,11 @@ final class GameState {
             #if DEBUG
             if ProcessInfo.processInfo.arguments.contains("--uitest-unlock-tower") {
                 debugUnlockFloors(throughTier: 5)
+            }
+            // RF-16: el ORO va con la raíz de lifetime/3M, así que llegar al
+            // prestigio jugando no es automatizable. El fixture lo acredita.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-prestige") {
+                giveLifetimeEarningsForTesting(300_000_000)
             }
             // El long-press sobre SpriteKit no es determinista en el runner: para
             // el smoke de la ficha alcanza con abrirla sobre la primera unidad.
@@ -628,6 +635,8 @@ final class GameState {
 
         let oro = String(player.meta.oro)
         if oroText != oro { oroText = oro }
+
+        refreshPrestigePreview()
 
         let skins = Array(player.meta.allOwnedSkins).sorted()
         if ownedSkins != skins { ownedSkins = skins }

@@ -1380,6 +1380,22 @@
         }
       }
     },
+    "hud.prestige.multiplier.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Global multiplier"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multiplicador global"
+          }
+        }
+      }
+    },
     "hud.store.label": {
       "extractionState": "stale",
       "localizations": {
@@ -1550,13 +1566,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your board and coins reset, but you gain %@ ORO and a permanent multiplier. Every life starts faster."
+            "value": "Every ORO you earn adds %@ to your global multiplier, forever. Every life starts faster."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reseteás el tablero y las monedas, pero ganás %@ ORO y un multiplicador permanente. Cada vida arranca más rápido."
+            "value": "Cada ORO que ganás suma %@ al multiplicador global, para siempre. Cada vida arranca más rápido."
           }
         }
       }
@@ -1609,36 +1625,66 @@
         }
       }
     },
-    "prestige.keeps": {
-      "extractionState": "stale",
+    "prestige.keeps %@": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You keep: ORO, permanent upgrades and skins"
+            "value": "You keep: your ORO, the ×%@ multiplier, permanent upgrades and skins"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conservás: ORO, mejoras permanentes y skins"
+            "value": "Conservás: tu ORO, el multiplicador ×%@, las mejoras permanentes y las skins"
           }
         }
       }
     },
-    "prestige.loses": {
-      "extractionState": "stale",
+    "prestige.loses %@ %@": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "You lose: coins, units and character upgrades"
+            "value": "You lose: %@ on the tower, %@ coins and character upgrades"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Perdés: monedas, unidades y mejoras de personajes"
+            "value": "Perdés: %@ en la torre, %@ de plata y las mejoras de personaje"
+          }
+        }
+      }
+    },
+    "prestige.multiplier %@ %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your global multiplier goes from ×%@ to ×%@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu multiplicador global pasa de ×%@ a ×%@"
+          }
+        }
+      }
+    },
+    "prestige.oro.gain %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%@ ORO"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "+%@ ORO"
           }
         }
       }

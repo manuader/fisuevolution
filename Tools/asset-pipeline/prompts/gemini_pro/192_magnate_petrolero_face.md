@@ -1,7 +1,7 @@
 # 192 — Cara de Magnate Petrolero (RF-05 — `magnate_petrolero_face`)
 
 - **archivo**: `magnate_petrolero_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/magnate_petrolero.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 204 — Cara de Ser Ascendido (RF-05 — `ser_ascendido_face`)
 
 - **archivo**: `ser_ascendido_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/ser_ascendido.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

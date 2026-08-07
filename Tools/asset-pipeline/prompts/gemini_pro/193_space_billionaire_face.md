@@ -1,7 +1,7 @@
 # 193 — Cara de Space Billionaire (RF-05 — `space_billionaire_face`)
 
 - **archivo**: `space_billionaire_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/space_billionaire.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

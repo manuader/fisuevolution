@@ -1,7 +1,7 @@
 # 171 — Cara de Repartidor (RF-05 — `repartidor_face`)
 
 - **archivo**: `repartidor_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/repartidor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

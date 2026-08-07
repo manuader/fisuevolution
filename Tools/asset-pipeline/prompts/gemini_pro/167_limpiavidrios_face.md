@@ -1,7 +1,7 @@
 # 167 — Cara de Limpiavidrios (RF-05 — `limpiavidrios_face`)
 
 - **archivo**: `limpiavidrios_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/limpiavidrios.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

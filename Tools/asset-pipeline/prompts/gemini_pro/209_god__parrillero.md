@@ -1,7 +1,7 @@
 # 209 — Parrillero (skin paga de Dios — RF-13)
 
 - **archivo**: `god__parrillero.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/god.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

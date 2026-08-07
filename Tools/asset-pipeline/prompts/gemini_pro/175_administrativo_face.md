@@ -1,7 +1,7 @@
 # 175 — Cara de Administrativo (RF-05 — `administrativo_face`)
 
 - **archivo**: `administrativo_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/administrativo.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

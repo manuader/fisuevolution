@@ -326,3 +326,33 @@ class PromptLandedTests(unittest.TestCase):
         # El editor normaliza saltos y puede agregar espacio de cola.
         prompt = "Full body standing character, centered."
         self.assertTrue(GeminiBrowser.prompt_landed("Full body standing character, centered. \n", prompt))
+
+
+class PromptRegistryTests(unittest.TestCase):
+    """Todo prompt .md tiene que tener su entrada en prompts.json.
+
+    El 2026-08-06 se escribieron 52 prompts .md nuevos y nadie los agregó a
+    prompts.json. El runner los generó igual —lee los .md— pero
+    `process_dropbox.py` lee el JSON, así que rechazó los 45 PNG con
+    "NOMBRES DESCONOCIDOS" y ninguno llegó al juego. Dos fuentes de verdad que
+    nadie chequeaba una contra la otra.
+    """
+
+    def test_every_md_prompt_has_a_registry_entry(self):
+        pipeline = Path(__file__).resolve().parents[1]
+        registry = {
+            e["assetKey"]
+            for e in json.loads((pipeline / "prompts" / "prompts.json").read_text())
+        }
+        md_keys = set()
+        for md in (pipeline / "prompts" / "gemini_pro").glob("[0-9][0-9]*.md"):
+            if md.name == "00_INDICE.md":
+                continue
+            md_keys.add(parse_asset(md).key)
+
+        faltan = sorted(md_keys - registry)
+        self.assertEqual(
+            faltan, [],
+            "estos .md no tienen entrada en prompts.json, así que process_dropbox "
+            f"va a rechazar su PNG: {faltan}",
+        )

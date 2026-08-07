@@ -1,7 +1,7 @@
 # 179 — Cara de Abogado Jr. (RF-05 — `junior_lawyer_face`)
 
 - **archivo**: `junior_lawyer_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/junior_lawyer.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

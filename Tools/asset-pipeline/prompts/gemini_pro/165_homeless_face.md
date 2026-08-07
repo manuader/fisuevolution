@@ -1,7 +1,7 @@
 # 165 — Cara de El Fisura (RF-05 — `homeless_face`)
 
 - **archivo**: `homeless_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

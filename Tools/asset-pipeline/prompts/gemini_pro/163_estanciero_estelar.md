@@ -1,7 +1,7 @@
 # 163 — Estanciero Estelar (Tier 30 — mapeo nuevo de 10 pisos)
 
 - **archivo**: `estanciero_estelar.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

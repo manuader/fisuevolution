@@ -1,7 +1,7 @@
 # 208 — Mundialista (skin paga de El Fisura — RF-13)
 
 - **archivo**: `homeless__mundialista.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

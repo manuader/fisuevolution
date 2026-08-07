@@ -1,7 +1,7 @@
 # 178 — Cara de Médico Jr. (RF-05 — `junior_doctor_face`)
 
 - **archivo**: `junior_doctor_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/junior_doctor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

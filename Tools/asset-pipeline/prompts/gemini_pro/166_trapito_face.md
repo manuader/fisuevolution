@@ -1,7 +1,7 @@
 # 166 — Cara de El Trapito (RF-05 — `trapito_face`)
 
 - **archivo**: `trapito_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/trapito.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 198 — Cara de Magnate del Sistema Solar (RF-05 — `magnate_solar_face`)
 
 - **archivo**: `magnate_solar_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/magnate_solar.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

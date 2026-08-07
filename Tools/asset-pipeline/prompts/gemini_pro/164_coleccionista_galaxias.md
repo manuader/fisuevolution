@@ -1,7 +1,7 @@
 # 164 — Coleccionista de Galaxias (Tier 32 — mapeo nuevo de 10 pisos)
 
 - **archivo**: `coleccionista_galaxias.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

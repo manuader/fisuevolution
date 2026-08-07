@@ -1,7 +1,7 @@
 # 206 — Cara de Deidad (RF-05 — `deidad_face`)
 
 - **archivo**: `deidad_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/deidad.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

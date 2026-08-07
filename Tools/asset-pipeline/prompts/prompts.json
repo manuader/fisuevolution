@@ -2211,5 +2211,482 @@
     "assetKey": "ui_oro",
     "category": "ui",
     "prompt": "ORO is a UI icon for Fisura Evolution, an Argentine merge-idle mobile game. Design it as a premium prestige currency icon, featuring: a chunky golden ingot bar seen at a slight angle with a bright four-point sparkle glinting off its top corner, clearly richer and rarer than a plain coin.\n\nFlat, simple icon in the same visual language as the rest of the game: uniform thick black outline, flat colors with minimal cel-shading, no gradients, no photorealism. Centered on a plain pure white background, square image, generous margins, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "trapito",
+    "category": "character",
+    "atlas": "earth",
+    "family": "characters_earth",
+    "qa_family": "characters",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nEl Trapito is tier 2 of Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. He is a street parking minder standing planted in the middle of the road with both arms spread wide to reserve a parking spot only he can see, a rag dangling from one raised hand. This nails the Buenos Aires 'trapito' who charges you for watching the car you parked yourself. Keep every one of these props exactly as described — they're the Argentine joke: filthy orange rag waved high in one hand, fistful of loose coins in the other, unofficial-looking fluorescent vest three sizes too big, plastic whistle on a string around his neck, worn flip-flops. Wealth reads as: nothing but a pocketful of coins, oversized hand-me-down vest. His expression: insistent friendly-but-not-really grin.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "limpiavidrios",
+    "category": "character",
+    "atlas": "earth",
+    "family": "characters_earth",
+    "qa_family": "characters",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nLimpiavidrios is tier 3 of Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. He is a traffic-light windshield washer standing mid-lunge on the balls of his feet, rubber squeegee raised high in one hand as if attacking an invisible windshield, spray bottle of soapy water in the other. Think: he starts washing your windshield before you can say no, and the light is about to turn green. Keep every one of these props exactly as described — they're the Argentine joke: long rubber squeegee raised overhead, spray bottle of soapy water, plastic bucket at his feet, soap foam splattered up both forearms, sun-bleached t-shirt, cut-off shorts. Wealth reads as: very poor, plastic bucket and flip-flops. His expression: hurried pleading smile with one eye darting sideways at the traffic light.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "mantero",
+    "category": "character",
+    "atlas": "earth",
+    "family": "characters_earth",
+    "qa_family": "characters",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nEl Mantero is tier 5 of Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. He is a sidewalk blanket vendor standing behind his spread-out blanket of goods, already gripping two of its corners in his fists, half salesman and half sprinter. This nails the downtown Buenos Aires blanket vendor who can pack up his entire shop in two seconds flat. Keep every one of these props exactly as described — they're the Argentine joke: blanket spread on the ground at his feet covered in sunglasses, phone cases, socks and wind-up toys, its four corners gathered ready to bundle and bolt, small folding stool, tiny radio, gym bag over one shoulder. Wealth reads as: modest, his whole inventory fits in one bundle. His expression: quick sales-pitch grin with a nervous sideways glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rey_asteroides",
+    "category": "character",
+    "atlas": "cosmic",
+    "family": "characters_cosmic",
+    "qa_family": "characters",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nRey de los Asteroides is tier 27 of Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. He is an asteroid-belt scrap baron standing wide-legged in open space, one boot propped on a floating asteroid, hauling a levitating cart heaped with space rocks behind him with one hand. Think: he sells the asteroid belt by the kilo, cart and weighing scale included — the cartonero of the solar system, twenty-five tiers later. Keep every one of these props exactly as described — they're the Argentine joke: crown welded out of scrap metal and rusted bolts, levitating hand cart piled with asteroids and twisted satellite debris, hand-held balance scale weighing a glowing rock, mining pick strapped across his back, patched pressure overalls. Wealth reads as: rich off everybody else's junk, scrap-metal crown. His expression: shrewd appraising grin, already guessing what you weigh.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rentista_soles",
+    "category": "character",
+    "atlas": "cosmic",
+    "family": "characters_cosmic",
+    "qa_family": "characters",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nRentista de Soles is tier 29 of Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. He is a retired stellar landlord standing at ease in a dressing gown and slippers, sipping from a mate gourd through a metal straw, an enormous ring of keys hanging off one finger. Think: he stopped working three fortunes ago and lives off renting suns by the month, in pyjamas. Keep every one of these props exactly as described — they're the Argentine joke: silk dressing gown over striped pyjamas, house slippers, mate gourd with metal bombilla straw, huge key ring where every key head is a tiny burning sun, rolled rent ledger under one arm, small suns floating around him like rooms he rents out. Wealth reads as: never has to work again, silk dressing gown. His expression: smug relaxed half-smile of a man collecting rent in his slippers.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "estanciero_estelar",
+    "category": "character",
+    "atlas": "cosmic",
+    "family": "characters_cosmic",
+    "qa_family": "characters",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nEstanciero Estelar is tier 30 of Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. He is a star-field ranch owner standing with legs apart and thumbs hooked into his belt, a coiled lasso hanging from one hip, surveying land that goes on forever. This nails the landed gentry of the pampas, except the pampa is a star field and the cattle float. Keep every one of these props exactly as described — they're the Argentine joke: wide-brimmed flat hat, baggy gaucho work trousers tucked into short boots, broad leather belt studded with silver coins, coiled rope lasso, mate gourd hooked on the belt, tiny cows floating and grazing among the stars around him, a fence of glowing posts running off behind him. Wealth reads as: owns star fields the way others own farmland, silver-studded belt. His expression: unhurried squint of a man who owns everything he can see.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "coleccionista_galaxias",
+    "category": "character",
+    "atlas": "cosmic",
+    "family": "characters_cosmic",
+    "qa_family": "characters",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nColeccionista de Galaxias is tier 32 of Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. He is an obsessive galaxy collector standing hunched over an enormous open sticker album held in both hands, a spiral galaxy pinched between two fingers ready to be pressed in. Think: he has every galaxy in the album except the hard one, and he will trade you three for it. Keep every one of these props exactly as described — they're the Argentine joke: huge open collector's album with spiral galaxies stuck in neat rows and one empty gap left in the middle, a fistful of spare galaxies bulging out of his coat pocket, magnifying glass on a chain, plush velvet collector's coat. Wealth reads as: owns galaxies but treats them like trading stickers, velvet coat. His expression: obsessed wide-eyed stare fixed on the one empty slot.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "homeless_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of El Fisura, the scruffy Buenos Aires street survivor the whole game starts with, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: patched wool beanie pulled down low, matted hair sticking out under it, patchy stubble, the grimy collar of his tattered layered coats. His face is doing its signature gag: a dazed cross-eyed stare with a crooked lopsided grin and the tip of his tongue poking out. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "trapito_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of El Trapito, the street parking minder who charges you for watching your own car, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: oversized fluorescent vest collar swallowing his neck, plastic whistle on a string, the filthy orange rag draped over one shoulder. His face is doing its signature gag: an insistent friendly-but-not-really grin, eyebrows up, already talking you into paying. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "limpiavidrios_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Limpiavidrios, the traffic-light windshield washer who starts before you can say no, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: sun-bleached t-shirt collar, wet hair stuck to his forehead, blobs of soap foam on one cheek. His face is doing its signature gag: a hurried pleading smile with both eyes darting sideways at the light about to turn green. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "cartonero_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Cartonero, the cardboard collector who hauls the city's recycling on a two-wheeled cart, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: worn flat cap, coil of rope slung over one shoulder, hi-vis reflective vest collar. His face is doing its signature gag: a determined squint with a tired proud smile and one eyebrow hitched up. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "mantero_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of El Mantero, the sidewalk blanket vendor who can pack up his whole shop in two seconds, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: gym bag strap across one shoulder, a pair of unsold sunglasses pushed up on his head, cheap zip-up collar. His face is doing its signature gag: a quick sales-pitch grin with the eyes glancing hard to one side. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "repartidor_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Repartidor, the food delivery courier permanently racing the clock, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: scuffed helmet with the visor flipped up, the top corner of a giant cube-shaped delivery backpack poking up behind his head. His face is doing its signature gag: a stressed wide-eyed panic with clenched teeth and one fat sweat drop. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "chofer_app_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Chofer de App, the rideshare driver who really wants those five stars, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: tidy polo collar, a little pine-tree air freshener dangling next to his ear, a wrapped lollipop held up near his chin. His face is doing its signature gag: a friendly overeager grin with far too many teeth and hopeful raised eyebrows. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "fast_food_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Empleado de Fast Food, the burger-joint employee on the shift that was supposed to be temporary, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: crooked paper hat, a grease smudge on one cheek, name tag pinned to the uniform collar. His face is doing its signature gag: a resigned thousand-yard stare, dead eyes, the tiniest defeated smile. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "oficinista_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Oficinista, the Buenos Aires office worker running entirely on mate, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: the metal bombilla straw of a mate gourd at his lips, a loosened cheap tie, a lanyard ID badge, enormous dark eye bags. His face is doing its signature gag: an exhausted forced smile with one eye visibly twitching. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "administrativo_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Administrativo, the clerk who needs everything in triplicate with an official seal, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: clip-on tie, sweater-vest collar over a shirt, a stamped form sheet stuck to his forehead. His face is doing its signature gag: a bored bureaucratic blank stare, half-lidded, absolutely nothing happening behind the eyes. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "junior_programmer_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Programador Jr., the fresh computer-science graduate at his first job, still thrilled about it, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: hoodie hood up over messy hair, cheap earbuds, a laptop sticker stuck to his shoulder. His face is doing its signature gag: a nervous eager smile with wide hopeful eyes and a nervous bead of sweat. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "junior_architect_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Arquitecto Jr., the fresh architecture graduate trying very hard to look professional, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: thrifted blazer collar, a scale ruler tucked behind one ear, hair combed too carefully. His face is doing its signature gag: a hopeful wide smile with the eyebrows up somewhere near the hairline. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "junior_doctor_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Médico Jr., the fresh medical graduate somewhere in hour twenty of a twenty-four hour shift, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: oversized white coat collar, stethoscope around the neck, hair flattened by a surgical cap. His face is doing its signature gag: a sleep-deprived enthusiastic grin with wrecked dark circles and both eyes pointing slightly different ways. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "junior_lawyer_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Abogado Jr., the fresh law graduate running courthouse errands and loving it, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: cheap slightly oversized suit collar, hair slicked back hard, a crooked knot in the tie. His face is doing its signature gag: an overconfident rookie smirk with the chin raised too high. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "senior_programmer_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Programador Sr., the grumpy tech lead who has seen every bug that exists, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: grey-streaked beard, hood down, expensive headphones around the neck, a rubber duck peeking over one shoulder. His face is doing its signature gag: a smug all-knowing smirk with one eyebrow raised and eyes half closed. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "senior_architect_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Arquitecto Sr., the seasoned architect who runs the construction site, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: white hard hat, glasses pushed up on the forehead, tailored shirt collar with the top button open. His face is doing its signature gag: a confident appraising look, one eye squinted shut like he is measuring your face. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "senior_doctor_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Médico Sr., the renowned specialist with the private practice, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: head mirror strapped to the forehead, pristine white coat collar, immaculate side-parted hair. His face is doing its signature gag: a calm reassuring smile that is somehow far too calm. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "senior_lawyer_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Abogado Sr., the courtroom shark who never loses, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: silk tie knot, hair slicked straight back, pinstripe suit collar. His face is doing its signature gag: a predatory confident grin with a few too many teeth in it. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "director_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Director, the middle-management boss who loves calling meetings, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: tailored suit collar, shiny cufflink visible at the wrist of a tiny espresso cup raised to his lips, pinky out. His face is doing its signature gag: a practiced power smile that stops dead before it reaches the eyes. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "fundador_startup_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Fundador de Startup, the tech founder who is going to disrupt everything, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: conference lanyard badge, blazer worn over a graphic t-shirt collar, deliberately messy visionary hair. His face is doing its signature gag: a visionary wide-eyed intensity with enormous pupils, staring at something just past your shoulder. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "dueno_pyme_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Dueño de PYME, the family-business boss who does every job in the factory himself, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: pencil behind one ear, rolled-up shirt collar, a sheen of honest sweat on the forehead. His face is doing its signature gag: a proud tired smile with heavy crinkled eyes. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "emprendedor_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Emprendedor, the hustle-culture guru selling online courses, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: headset microphone curving to his mouth, sunglasses pushed up on his head, shiny suit collar. His face is doing its signature gag: an over-caffeinated megawatt smile with blindingly white teeth and a glint on one of them. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "ceo_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of CEO, the untouchable big-company boss, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: golden tie knot, immaculate dark suit collar, pocket square, perfect hair. His face is doing its signature gag: a cold triumphant smirk with one eyebrow up and the eyes completely unimpressed. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "millonario_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Millonario, the new millionaire showing off absolutely everything at once, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: fur-collared coat, several gold chains, banknotes fluttering past both ears. His face is doing its signature gag: an ecstatic laughing grin with the eyes squeezed shut and the head thrown back. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "multimillonario_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Multimillonario, the tycoon who owns half the city and forgot which half, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: velvet suit collar, diamond tie pin, layered gold chains. His face is doing its signature gag: a bored unimpressed look, heavy-lidded eyes, mouth a flat unbothered line. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "rey_ladrillo_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Rey del Ladrillo, the real-estate mogul who preaches that bricks never lose value, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: crown made of little bricks sitting on his head, brick-red suit collar. His face is doing its signature gag: a beaming landlord grin, all cheeks, thoroughly delighted with himself. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "magnate_petrolero_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Magnate Petrolero, the old-school baron striking black gold, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: black top hat, a fat cigar clamped in his teeth, an oil splash across one cheek, oil-drop pattern tie. His face is doing its signature gag: a greedy delighted grin curling around the cigar. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "space_billionaire_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Space Billionaire, the tech billionaire racing his own rockets to space, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: helmet-flattened hair, mission patch on the suit collar, the strap of a small toy-like jetpack over one shoulder. His face is doing its signature gag: a manic visionary grin with the eyes locked on something high above the frame. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "trillonario_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Trillonario, the man whose wealth outgrew countries, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: monocle, glowing golden trim on an infinity-pattern collar, banknotes orbiting his head like little satellites. His face is doing its signature gag: a serene untouchable smile, eyes calm, absolutely nothing can reach him. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "dueno_luna_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Dueño de la Luna, the man who bought the entire Moon as a real-estate flex, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: silver-glitter suit collar, an astronaut helmet pushed back off his head like a hood, a tiny Moon reflected in each eye. His face is doing its signature gag: a smug landlord smirk with the chin tucked down. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "dueno_marte_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Dueño de Marte, the mogul flipping an entire red planet like a fixer-upper, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: spacesuit collar with a necktie painted directly onto it, copper-red cape clasp at the shoulder, red dust freckling his cheeks. His face is doing its signature gag: an enormous deal-closing wink, one eye screwed shut, the other wide open. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "rey_asteroides_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Rey de los Asteroides, the scrap baron who sells the asteroid belt by the kilo, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: crown welded out of scrap metal and rusted bolts, patched pressure-overall collar, a smear of rock dust on the jaw. His face is doing its signature gag: a shrewd appraising grin, eyes narrowed, already guessing what your head weighs. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "magnate_solar_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Magnate del Sistema Solar, the magnate who charges a toll per orbit, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: cosmic sunglasses, radiant golden collar, tiny planets circling his head. His face is doing its signature gag: a blinding confident smile with a hard sparkle glinting off one tooth. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "rentista_soles_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Rentista de Soles, the retired landlord who rents out suns by the month, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: silk dressing gown collar over striped pyjamas, the metal bombilla straw of a mate gourd at his lips, tiny suns floating past his ears. His face is doing its signature gag: a smug relaxed half-smile, eyes half closed, a man who has not worked in three fortunes. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "estanciero_estelar_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Estanciero Estelar, the ranch owner whose pampa is a star field and whose cattle float, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: wide-brimmed flat hat, weathered neck above a plain work shirt, a tiny cow drifting past behind his shoulder. His face is doing its signature gag: an unhurried squint of a man who owns everything he can see, one corner of the mouth barely lifted. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "senor_galaxia_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Señor de la Galaxia, the galactic overlord who signs away star systems like paperwork, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: small stars orbiting a tall crown, a constellation-pattern robe collar, the swirl of a spiral-galaxy cape over one shoulder. His face is doing its signature gag: a regal amused stare with one eyebrow arched, faintly entertained by you. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "coleccionista_galaxias_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Coleccionista de Galaxias, the collector who has every galaxy in the album except the hard one, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: plush velvet collector's coat collar, magnifying glass on a chain swinging by his cheek, a spare spiral galaxy tucked behind one ear. His face is doing its signature gag: an obsessed wide-eyed stare, pupils enormous, fixed on something just out of frame. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "emperador_cosmico_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Emperador Cósmico, the emperor who taxes light for passing through, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: massive jagged crown, a cape of nebula clouds bunched at the shoulders, jewel-studded ceremonial collar. His face is doing its signature gag: an imperious raised eyebrow with the chin tilted down, looking at you like an expense. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "ser_ascendido_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Ser Ascendido, the being who transcended money and became the economy, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: a glowing third eye open on the forehead, the whole head outlined in radiant light, small glowing orbs drifting past his temples. His face is doing its signature gag: a blissful enlightened smile with both eyes softly closed. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "semidios_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Semidiós, the half-mortal half-divine hero who still checks his portfolio, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: laurel wreath, white toga collar with golden trim, a tiny pet storm cloud hovering by one ear with a spark in it. His face is doing its signature gag: a heroic overconfident grin with a bright sparkle popping off one tooth. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "deidad_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Deidad, the deity worshipped as the god of hustle, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: a golden halo disc behind the head, ornate jewelry at the ears and throat, a jeweled headpiece. His face is doing its signature gag: a serene all-knowing smile, eyes calm and slightly amused. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "god_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Dios, the supreme god of everything, who still drinks mate, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: an enormous white cloud beard filling the bottom of the frame, an all-seeing eye floating just above his head, a cosmic halo, the star-covered collar of his robe. His face is doing its signature gag: a warm omnipotent smile with deeply crinkled kind eyes. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
+  },
+  {
+    "assetKey": "homeless__mundialista",
+    "category": "skin",
+    "atlas": "earth",
+    "family": "skins",
+    "qa_family": "skins",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nEl Fisura — ALTERNATE OUTFIT \"Mundialista\". This is the same character as the attached reference: the scruffy homeless street man from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Keep his pose, body proportions, face and his dazed goofy cross-eyed stare with a crooked grin EXACTLY as in the reference — the silhouette must read as the same character. Change ONLY the clothing, the props and the palette: the national team turned him into a different man for one month every four years: his tattered coats are covered by a generic sky-blue and white vertically striped football shirt (a plain striped shirt only — no crest, no badge, no numbers, no lettering and no real team or federation mark of any kind), the patched beanie is swapped for a sky-blue and white bucket hat, two thick stripes of face paint run across each cheek, a plastic horn hangs from his neck on a cord, and the green bottle he hugs is replaced by a battered trophy he very obviously did not win. Palette shifts from dirty browns to bright sky blue and white. The new outfit must be boldly different in color from the reference so the two are never confused at a glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "god__parrillero",
+    "category": "skin",
+    "atlas": "cosmic",
+    "family": "skins",
+    "qa_family": "skins",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nDios — ALTERNATE OUTFIT \"Parrillero\". This is the same character as the attached reference: the supreme god of everything from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Keep his pose, body proportions, face and his warm omnipotent smile EXACTLY as in the reference — the silhouette must read as the same character. Change ONLY the clothing, the props and the palette: Sunday came around: the robe of stars is covered by a scorched white grill-master's apron, the enormous cloud beard is tucked inside the apron so it does not catch fire, the tiny spinning universe in his open palm is now a single glowing ember he is gently blowing on, the other hand raises a giant pair of grill tongs instead of the mate gourd (the gourd hangs from the apron pocket, because the mate is non-negotiable), and a slab of sizzling meat the size of a small moon floats beside him trailing a wisp of smoke. Palette shifts from cosmic blue and star-white to ember orange, charcoal grey and apron white. The new outfit must be boldly different in color from the reference so the two are never confused at a glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "fondo_buitre",
+    "category": "character",
+    "atlas": "cosmic",
+    "family": "characters_cosmic",
+    "qa_family": "characters",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFondo Buitre Estelar is tier 28 of Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. He is an impeccably dressed distressed-debt financier standing in open space, one hand casually holding three tiny foreclosed planets bundled together under his arm like repossessed furniture, the other hand extending a repossession notice toward the viewer. Think: he bought the debt of three solar systems that defaulted, and now he is collecting — he did not buy his stars, he kept them. Keep every one of these props exactly as described — they're the Argentine joke: pinstripe suit far too crisp for deep space, slicked-back hair, a bulging briefcase overflowing with worthless bond certificates, official-looking seizure notices stapled directly onto the little planets under his arm, a vulture-head lapel pin, a fountain pen tucked behind one ear. Wealth reads as: everything he owns used to belong to somebody who could not pay. His expression: a warm, entirely sincere-looking smile that does not reach the eyes at all.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "fondo_buitre_face",
+    "category": "ui",
+    "atlas": "ui",
+    "family": "faces",
+    "qa_family": "faces",
+    "tanda": 5,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFACE CLOSE-UP of Fondo Buitre Estelar, the distressed-debt financier who forecloses on solar systems, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Same character as the attached reference, head and shoulders only, filling the frame. Keep only the head-level identifiers: slicked-back hair, crisp pinstripe suit shoulders and collar, a vulture-head lapel pin, a fountain pen tucked behind one ear. His face is doing its signature gag: a wide, warm, absolutely sincere-looking smile paired with completely dead, unblinking eyes — the friendliest face you will ever be ruined by. Push the expression further than in the full-body art — this crop is shown inside a small circle in the upgrades menu, so the joke has to read at thumbnail size.\n\nHead and shoulders only, face centered and filling most of the frame, no hands, nothing below the chest, on a plain pure white background, square image, no text, no watermark, do not crop the top of the head."
   }
 ]

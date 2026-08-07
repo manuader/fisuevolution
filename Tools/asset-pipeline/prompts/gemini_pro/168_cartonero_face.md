@@ -1,7 +1,7 @@
 # 168 — Cara de Cartonero (RF-05 — `cartonero_face`)
 
 - **archivo**: `cartonero_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/cartonero.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

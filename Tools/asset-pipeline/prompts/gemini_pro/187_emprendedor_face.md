@@ -1,7 +1,7 @@
 # 187 — Cara de Emprendedor (RF-05 — `emprendedor_face`)
 
 - **archivo**: `emprendedor_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/emprendedor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

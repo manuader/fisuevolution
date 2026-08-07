@@ -1,7 +1,7 @@
 # 207 — Cara de Dios (RF-05 — `god_face`)
 
 - **archivo**: `god_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/god.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

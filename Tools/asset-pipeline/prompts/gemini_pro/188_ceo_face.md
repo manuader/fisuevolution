@@ -1,7 +1,7 @@
 # 188 — Cara de CEO (RF-05 — `ceo_face`)
 
 - **archivo**: `ceo_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/ceo.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

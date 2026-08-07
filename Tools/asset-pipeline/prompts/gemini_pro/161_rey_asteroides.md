@@ -1,7 +1,7 @@
 # 161 — Rey de los Asteroides (Tier 26 — mapeo nuevo de 10 pisos)
 
 - **archivo**: `rey_asteroides.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

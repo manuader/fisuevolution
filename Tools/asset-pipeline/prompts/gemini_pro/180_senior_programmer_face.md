@@ -1,7 +1,7 @@
 # 180 — Cara de Programador Sr. (RF-05 — `senior_programmer_face`)
 
 - **archivo**: `senior_programmer_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_programmer.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

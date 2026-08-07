@@ -1,7 +1,7 @@
 # 196 — Cara de Dueño de Marte (RF-05 — `dueno_marte_face`)
 
 - **archivo**: `dueno_marte_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/dueno_marte.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

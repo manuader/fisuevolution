@@ -1,7 +1,7 @@
 # 184 — Cara de Director (RF-05 — `director_face`)
 
 - **archivo**: `director_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/director.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

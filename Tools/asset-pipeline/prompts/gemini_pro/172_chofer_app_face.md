@@ -1,7 +1,7 @@
 # 172 — Cara de Chofer de App (RF-05 — `chofer_app_face`)
 
 - **archivo**: `chofer_app_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/chofer_app.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

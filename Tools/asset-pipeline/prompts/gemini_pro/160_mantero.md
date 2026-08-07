@@ -1,7 +1,7 @@
 # 160 — El Mantero (Tier 5 — mapeo nuevo de 10 pisos)
 
 - **archivo**: `mantero.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 185 — Cara de Fundador de Startup (RF-05 — `fundador_startup_face`)
 
 - **archivo**: `fundador_startup_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/fundador_startup.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

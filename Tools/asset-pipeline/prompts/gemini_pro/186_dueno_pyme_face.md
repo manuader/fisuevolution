@@ -1,7 +1,7 @@
 # 186 — Cara de Dueño de PYME (RF-05 — `dueno_pyme_face`)
 
 - **archivo**: `dueno_pyme_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/dueno_pyme.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

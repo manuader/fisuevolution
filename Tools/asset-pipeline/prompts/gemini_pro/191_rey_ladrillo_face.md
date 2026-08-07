@@ -1,7 +1,7 @@
 # 191 — Cara de Rey del Ladrillo (RF-05 — `rey_ladrillo_face`)
 
 - **archivo**: `rey_ladrillo_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/rey_ladrillo.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

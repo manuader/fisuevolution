@@ -1,7 +1,7 @@
 # 173 — Cara de Empleado de Fast Food (RF-05 — `fast_food_face`)
 
 - **archivo**: `fast_food_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/fast_food.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

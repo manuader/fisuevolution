@@ -414,6 +414,78 @@
         0.1
       ],
       "scale": 1.0
+    },
+    "coleccionista_galaxias": {
+      "atlas": "cosmic",
+      "key": "coleccionista_galaxias_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "estanciero_estelar": {
+      "atlas": "cosmic",
+      "key": "estanciero_estelar_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "fondo_buitre": {
+      "atlas": "cosmic",
+      "key": "fondo_buitre_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "limpiavidrios": {
+      "atlas": "earth",
+      "key": "limpiavidrios_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "mantero": {
+      "atlas": "earth",
+      "key": "mantero_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "rentista_soles": {
+      "atlas": "cosmic",
+      "key": "rentista_soles_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "rey_asteroides": {
+      "atlas": "cosmic",
+      "key": "rey_asteroides_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
+    },
+    "trapito": {
+      "atlas": "earth",
+      "key": "trapito_idle",
+      "anchor": [
+        0.5,
+        0.1
+      ],
+      "scale": 1.0
     }
   },
   "backgrounds": {
@@ -493,6 +565,43 @@
     "panel_reward": "panel_reward",
     "panel_upgrades": "panel_upgrades",
     "fisura_wave": "fisura_wave",
-    "ui_oro": "ui_oro"
+    "ui_oro": "ui_oro",
+    "administrativo_face": "administrativo_face",
+    "cartonero_face": "cartonero_face",
+    "ceo_face": "ceo_face",
+    "chofer_app_face": "chofer_app_face",
+    "deidad_face": "deidad_face",
+    "director_face": "director_face",
+    "dueno_luna_face": "dueno_luna_face",
+    "dueno_marte_face": "dueno_marte_face",
+    "dueno_pyme_face": "dueno_pyme_face",
+    "emperador_cosmico_face": "emperador_cosmico_face",
+    "emprendedor_face": "emprendedor_face",
+    "fast_food_face": "fast_food_face",
+    "fundador_startup_face": "fundador_startup_face",
+    "god_face": "god_face",
+    "homeless_face": "homeless_face",
+    "junior_architect_face": "junior_architect_face",
+    "junior_doctor_face": "junior_doctor_face",
+    "junior_lawyer_face": "junior_lawyer_face",
+    "junior_programmer_face": "junior_programmer_face",
+    "magnate_petrolero_face": "magnate_petrolero_face",
+    "magnate_solar_face": "magnate_solar_face",
+    "millonario_face": "millonario_face",
+    "multimillonario_face": "multimillonario_face",
+    "oficinista_face": "oficinista_face",
+    "repartidor_face": "repartidor_face",
+    "rey_ladrillo_face": "rey_ladrillo_face",
+    "semidios_face": "semidios_face",
+    "senior_architect_face": "senior_architect_face",
+    "senior_doctor_face": "senior_doctor_face",
+    "senior_lawyer_face": "senior_lawyer_face",
+    "senior_programmer_face": "senior_programmer_face",
+    "senor_galaxia_face": "senor_galaxia_face",
+    "ser_ascendido_face": "ser_ascendido_face",
+    "space_billionaire_face": "space_billionaire_face",
+    "trillonario_face": "trillonario_face",
+    "trapito_face": "trapito_face",
+    "limpiavidrios_face": "limpiavidrios_face"
   }
 }

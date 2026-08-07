@@ -1,7 +1,7 @@
 # 189 — Cara de Millonario (RF-05 — `millonario_face`)
 
 - **archivo**: `millonario_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/millonario.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

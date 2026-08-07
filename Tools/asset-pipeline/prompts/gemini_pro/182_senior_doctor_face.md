@@ -1,7 +1,7 @@
 # 182 — Cara de Médico Sr. (RF-05 — `senior_doctor_face`)
 
 - **archivo**: `senior_doctor_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_doctor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

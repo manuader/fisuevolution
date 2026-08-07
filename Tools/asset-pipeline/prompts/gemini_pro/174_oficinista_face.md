@@ -1,7 +1,7 @@
 # 174 — Cara de Oficinista (RF-05 — `oficinista_face`)
 
 - **archivo**: `oficinista_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/oficinista.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

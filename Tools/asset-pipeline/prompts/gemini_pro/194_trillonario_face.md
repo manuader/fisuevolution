@@ -1,7 +1,7 @@
 # 194 — Cara de Trillonario (RF-05 — `trillonario_face`)
 
 - **archivo**: `trillonario_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/trillonario.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

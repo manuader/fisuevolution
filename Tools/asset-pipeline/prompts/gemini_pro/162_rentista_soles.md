@@ -1,7 +1,7 @@
 # 162 — Rentista de Soles (Tier 29 — mapeo nuevo de 10 pisos)
 
 - **archivo**: `rentista_soles.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

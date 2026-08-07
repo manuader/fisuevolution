@@ -1,7 +1,7 @@
 # 181 — Cara de Arquitecto Sr. (RF-05 — `senior_architect_face`)
 
 - **archivo**: `senior_architect_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_architect.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

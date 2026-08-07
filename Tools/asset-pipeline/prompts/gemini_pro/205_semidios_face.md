@@ -1,7 +1,7 @@
 # 205 — Cara de Semidiós (RF-05 — `semidios_face`)
 
 - **archivo**: `semidios_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/semidios.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

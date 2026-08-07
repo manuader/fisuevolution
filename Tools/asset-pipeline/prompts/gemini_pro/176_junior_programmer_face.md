@@ -1,7 +1,7 @@
 # 176 — Cara de Programador Jr. (RF-05 — `junior_programmer_face`)
 
 - **archivo**: `junior_programmer_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

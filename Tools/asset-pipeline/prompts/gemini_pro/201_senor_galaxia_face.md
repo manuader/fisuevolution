@@ -1,7 +1,7 @@
 # 201 — Cara de Señor de la Galaxia (RF-05 — `senor_galaxia_face`)
 
 - **archivo**: `senor_galaxia_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senor_galaxia.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

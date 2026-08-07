@@ -1,7 +1,7 @@
 # 195 — Cara de Dueño de la Luna (RF-05 — `dueno_luna_face`)
 
 - **archivo**: `dueno_luna_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/dueno_luna.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

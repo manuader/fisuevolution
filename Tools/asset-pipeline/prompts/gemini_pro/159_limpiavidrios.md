@@ -1,7 +1,7 @@
 # 159 — Limpiavidrios (Tier 3 — mapeo nuevo de 10 pisos)
 
 - **archivo**: `limpiavidrios.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 203 — Cara de Emperador Cósmico (RF-05 — `emperador_cosmico_face`)
 
 - **archivo**: `emperador_cosmico_face.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/emperador_cosmico.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

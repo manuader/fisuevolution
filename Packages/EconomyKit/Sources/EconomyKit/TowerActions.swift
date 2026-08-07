@@ -98,6 +98,11 @@ public enum TowerActions {
     ///   del early game y ya es la excepción de precio.
     /// - El último piso no tiene ninguno por encima, así que desbloquearlo lo
     ///   habilita a sí mismo.
+    /// - Un piso puede declararse EXENTO en `economy.json` (`hireGateExempt`).
+    ///   Eso cambia la COBERTURA del gate, no su profundidad: sigue siendo de un
+    ///   piso. Se agregó para el urbano en la Ola 3, donde el gate se combinaba
+    ///   con el remapeo de tiers para dejar 268 h de pared antes de corporativo
+    ///   (`balance-log`, "El muro de ×368").
     ///
     /// **Por qué UNO y no dos**: con dos, el juego deja de poder terminarse. El
     /// spec de F7 §3.3 dice que el merge puro es matemáticamente inviable
@@ -118,6 +123,7 @@ public enum TowerActions {
     ) -> Bool {
         guard floorOrdinal >= 0, floorOrdinal < floorTable.count else { return false }
         if floorOrdinal == 0 { return true }
+        if floorTable[floorOrdinal].hireGateExempt { return true }
         let unlocked = Set(unlockedFloors)
         if let top = floorTable.floors.last, unlocked.contains(top.id) { return true }
         let required = floorOrdinal + 1

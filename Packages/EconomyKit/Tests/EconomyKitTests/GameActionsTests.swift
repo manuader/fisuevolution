@@ -265,6 +265,28 @@ struct HireGateTests {
         #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
     }
 
+    @Test("un piso exento contrata con el de arriba cerrado")
+    func exemptFloorIgnoresTheGate() throws {
+        // Cobertura del gate, no profundidad: sigue siendo de UN piso. El urbano
+        // se declaró exento en la Ola 3 porque el gate + el remapeo de tiers
+        // dejaban 268 h de pared antes de corporativo (ver balance-log).
+        let exempt = try FloorTable(
+            floors: [
+                gateFloor("g1", 1),
+                FloorDef(
+                    id: "g2", background: "alley", firstTier: 2, lastTier: 2,
+                    capacity: 5, incomeMultiplier: 1.0, hireGateExempt: true
+                ),
+                gateFloor("g3", 3),
+                gateFloor("g4", 4),
+            ],
+            maxTier: 4
+        )
+        #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2"], floorTable: exempt))
+        // El resto de la torre no se contagia: g3 sigue pidiendo g4.
+        #expect(!TowerActions.canHire(floorOrdinal: 2, unlockedFloors: ["g1", "g2", "g3"], floorTable: exempt))
+    }
+
     @Test("el último piso se destraba a sí mismo al abrirse")
     func topOfTowerEscapes() {
         // g4 no tiene ninguno por encima: sin el escape nunca dejaría contratar.

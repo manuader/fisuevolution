@@ -22,6 +22,14 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
     /// Tier cuya PRIMERA creación desbloquea este piso. Default: `firstTier`.
     /// Overrideable por config (spec §3.8, default ⚠️9).
     public let unlockTierOverride: Int?
+    /// Si este piso queda EXENTO del gate de contratación: se puede contratar en
+    /// él aunque el piso de arriba siga cerrado.
+    ///
+    /// No afecta la PROFUNDIDAD del gate —sigue siendo de un piso, decisión del
+    /// dueño que no se re-litiga—, sino su COBERTURA: de qué pisos se puede
+    /// sacar material de merge mientras se atraviesa la frontera. El piso 0
+    /// está exento siempre y no necesita declararlo. [TUNEABLE]
+    public let hireGateExempt: Bool
     /// Cuánto BAJAR el fondo dentro del piso, como fracción del alto de pantalla.
     ///
     /// Algunos fondos generados traen una franja inferior plana y vacía (la
@@ -47,7 +55,8 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
         hireCostMultiplierOverride: Double? = nil,
         hireCostGrowthOverride: Double? = nil,
         unlockTierOverride: Int? = nil,
-        backgroundOffset: Double = 0
+        backgroundOffset: Double = 0,
+        hireGateExempt: Bool = false
     ) {
         self.id = id
         self.background = background
@@ -59,6 +68,7 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
         self.hireCostGrowthOverride = hireCostGrowthOverride
         self.unlockTierOverride = unlockTierOverride
         self.backgroundOffset = backgroundOffset
+        self.hireGateExempt = hireGateExempt
     }
 
     /// `backgroundOffset` es opcional en el JSON: los pisos cuyo fondo llena
@@ -75,6 +85,7 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
         hireCostGrowthOverride = try container.decodeIfPresent(Double.self, forKey: .hireCostGrowthOverride)
         unlockTierOverride = try container.decodeIfPresent(Int.self, forKey: .unlockTierOverride)
         backgroundOffset = try container.decodeIfPresent(Double.self, forKey: .backgroundOffset) ?? 0
+        hireGateExempt = try container.decodeIfPresent(Bool.self, forKey: .hireGateExempt) ?? false
     }
 
     enum CodingKeys: String, CodingKey {
@@ -83,6 +94,7 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
         case hireCostGrowthOverride = "hireCostGrowth"
         case unlockTierOverride = "unlockTier"
         case backgroundOffset
+        case hireGateExempt
     }
 }
 

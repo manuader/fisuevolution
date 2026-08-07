@@ -512,4 +512,35 @@ struct GameLoopWiringTests {
         #expect(discounted < baseCost)
         #expect(abs(discounted - expected) < 1e-9)
     }
+
+    // MARK: Deslizamiento vertical (RF-09)
+
+    @Test("el deslizamiento usa la metáfora de scroll: dedo hacia abajo sube un piso")
+    func swipeDownGoesUp() async throws {
+        let gameState = await makeGameState()
+        gameState.debugUnlockFloors(throughTier: 5)   // abre alley + urban
+        let scene = BoardScene(gameState: gameState)
+        let startOrdinal = gameState.visibleFloorOrdinal
+
+        // En coordenadas de escena la y crece hacia arriba, así que el dedo
+        // yendo hacia ABAJO de la pantalla es deltaY negativo.
+        scene.simulateSwipe(deltaY: -120)
+        #expect(gameState.visibleFloorOrdinal == startOrdinal + 1, "hacia abajo tiene que subir")
+
+        scene.simulateSwipe(deltaY: 120)
+        #expect(gameState.visibleFloorOrdinal == startOrdinal, "hacia arriba tiene que bajar")
+    }
+
+    /// La regla vive en `floorDelta` y no duplicada en `touchesEnded`: si alguien
+    /// afloja el umbral o el sesgo vertical, se entera acá.
+    @Test("un roce corto o mayormente horizontal no navega")
+    func shortOrHorizontalSwipesDoNothing() async throws {
+        let gameState = await makeGameState()
+        let scene = BoardScene(gameState: gameState)
+
+        #expect(scene.floorDelta(deltaX: 0, deltaY: 40) == nil, "48pt es el umbral")
+        #expect(scene.floorDelta(deltaX: 200, deltaY: 120) == nil, "el arrastre horizontal no navega")
+        #expect(scene.floorDelta(deltaX: 0, deltaY: -120) == 1)
+        #expect(scene.floorDelta(deltaX: 0, deltaY: 120) == -1)
+    }
 }

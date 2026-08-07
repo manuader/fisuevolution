@@ -278,6 +278,26 @@ final class BoardScene: SKScene {
         }
     }
 
+    /// Decide a qué piso lleva un deslizamiento sobre el campo vacío. Extraída de
+    /// `touchesEnded` para que el test pruebe la regla y no una copia de la regla.
+    ///
+    /// Metáfora de scroll de iOS: se agarra la torre y se la mueve, igual que
+    /// cualquier lista. El dedo hacia ABAJO (que en coordenadas de escena es
+    /// `deltaY < 0`, porque la y crece hacia arriba) SUBE un piso.
+    func floorDelta(deltaX: CGFloat, deltaY: CGFloat) -> Int? {
+        guard abs(deltaY) > 48, abs(deltaY) > abs(deltaX) * 1.5 else { return nil }
+        return deltaY > 0 ? -1 : 1
+    }
+
+    #if DEBUG
+    /// Punto de entrada del test: ejecuta la MISMA decisión que el gesto.
+    func simulateSwipe(deltaY: CGFloat) {
+        if let delta = floorDelta(deltaX: 0, deltaY: deltaY) {
+            _ = gameState.moveVisibleFloor(by: delta)
+        }
+    }
+    #endif
+
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         removeAction(forKey: Self.longPressKey)
         if let start = emptyTouchStart, let touch = touches.first {
@@ -285,8 +305,8 @@ final class BoardScene: SKScene {
             let end = touch.location(in: self)
             let deltaY = end.y - start.y
             let deltaX = end.x - start.x
-            if abs(deltaY) > 48, abs(deltaY) > abs(deltaX) * 1.5 {
-                _ = gameState.moveVisibleFloor(by: deltaY > 0 ? 1 : -1)
+            if let delta = floorDelta(deltaX: deltaX, deltaY: deltaY) {
+                _ = gameState.moveVisibleFloor(by: delta)
             }
             return
         }

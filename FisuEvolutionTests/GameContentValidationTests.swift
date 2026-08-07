@@ -116,8 +116,11 @@ struct GameContentValidationTests {
         #expect(economy.charUpgrades.costGrowth == 4.0)
         #expect(economy.charUpgrades.effectFactorPerLevel == 2.0)
         #expect(economy.oro.divisor == 3_000_000)
-        #expect(economy.oro.exponent == 0.5)
-        #expect(economy.oro.globalMultiplierPerOro == 0.12)
+        // RF-07 (Ola 3): el exponente bajó de 0.5 a 0.45 —el spec pedía ~0.40,
+        // pero 0.40 medido deja el juego en 1094 h— y el multiplicador por ORO
+        // subió de 0.12 a 0.18 para compensar el largo. Ver Docs/balance-log.md.
+        #expect(economy.oro.exponent == 0.45)
+        #expect(economy.oro.globalMultiplierPerOro == 0.18)
         #expect(economy.critChanceBase == 0.0)
         #expect(economy.critMultiplier == 5.0)
         #expect(economy.offlineEfficiencyBase == 0.35)

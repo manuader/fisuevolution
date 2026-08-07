@@ -183,6 +183,10 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    conducta real en vez de recalibrar knobs. Costo medido en `balance-log §F7.6`.
 2. **Contratar arriba cuesta 600×** lo que rinde un click ahí; el callejón, 50×.
 3. **El gate es de UN piso**, no dos: con dos el juego no se puede terminar.
+   ⚠️ Su PROFUNDIDAD es la decisión; su COBERTURA no. En la Ola 3 el piso urbano
+   se declaró exento (`hireGateExempt` en `floors[]`) porque el gate, combinado
+   con el remapeo a 37 tiers, dejaba 268 h de pared antes de corporativo. Sigue
+   siendo un gate de un piso. Ver `balance-log`, "El muro de ×368, cerrado".
 4. **Los tintes IAP se retiraron** aunque eran los únicos productos pagos además
    de remove_ads.
 5. `PacingTests` está pineado a la **conducta actual**, no al pacing que el spec

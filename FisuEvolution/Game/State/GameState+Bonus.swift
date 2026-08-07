@@ -86,6 +86,7 @@ extension GameState {
         guard let slot = tower.floors[ordinal].firstFreeSlot() else { return }
         tower.floors[ordinal].slots[slot] = type.id
         player.run.units[type.id, default: 0] += 1
+        player.run.markSeen(type.id)
         self.player = player
         self.tower = tower
         bumpBoard()
@@ -183,6 +184,7 @@ extension GameState {
         }
         tower.floors[ordinal].slots[slot] = typeId
         player.run.units[typeId, default: 0] += 1
+        player.run.markSeen(typeId)
         player.run.maxTierReached = max(player.run.maxTierReached, type.tier)
         self.player = player
         self.tower = tower

@@ -71,6 +71,12 @@ public struct RunState: Codable, Sendable, Equatable {
     public var unlockedFloors: [String]
     /// Modificadores temporales vivos (rewarded/eventos/boosts).
     public var activeModifiers: [ActiveModifier]
+    /// Tipos que el jugador vio alguna vez EN ESTA RUN. La lista de mejoras se
+    /// arma con esto y no con las unidades vivas: mergear tu último Fisura no
+    /// tiene por qué borrarte de la pantalla la mejora que le compraste
+    /// (RF-03). Tiene valor por defecto para que los saves v4 anteriores al
+    /// campo decodifiquen; `TowerReconciler` los rellena en la carga.
+    public var seenTypes: Set<String> = []
 
     public init(
         coins: Double,
@@ -81,7 +87,8 @@ public struct RunState: Codable, Sendable, Equatable {
         maxTierReached: Int,
         charUpgradeLevels: [String: Int],
         unlockedFloors: [String],
-        activeModifiers: [ActiveModifier]
+        activeModifiers: [ActiveModifier],
+        seenTypes: Set<String> = []
     ) {
         self.coins = coins
         self.units = units
@@ -92,9 +99,11 @@ public struct RunState: Codable, Sendable, Equatable {
         self.charUpgradeLevels = charUpgradeLevels
         self.unlockedFloors = unlockedFloors
         self.activeModifiers = activeModifiers
+        self.seenTypes = seenTypes
     }
 
-    /// Run recién nacida: una unidad base, piso 1 desbloqueado.
+    /// Run recién nacida: una unidad base, piso 1 desbloqueado. Reencarnar es
+    /// exactamente esto, así que los vistos arrancan sólo con el tipo base.
     public static func fresh(startTypeId: String, startFloorId: String) -> RunState {
         RunState(
             coins: 0,
@@ -105,12 +114,17 @@ public struct RunState: Codable, Sendable, Equatable {
             maxTierReached: 1,
             charUpgradeLevels: [:],
             unlockedFloors: [startFloorId],
-            activeModifiers: []
+            activeModifiers: [],
+            seenTypes: [startTypeId]
         )
     }
 
     /// Total de unidades vivas en la torre.
     public var totalUnits: Int { units.values.reduce(0, +) }
+
+    /// Registra un tipo como visto en esta run. Lo llama TODO camino que crea
+    /// una unidad: contratar, mergear, los regalos de evento y los fixtures.
+    public mutating func markSeen(_ typeId: String) { seenTypes.insert(typeId) }
 }
 
 /// Estadísticas de cuenta (no afectan gameplay).
@@ -247,6 +261,9 @@ public struct PlayerState: Codable, Sendable, Equatable {
         self.run = run
         self.meta = meta
     }
+
+    /// Registra un tipo como visto en la run actual (RF-03).
+    public mutating func markSeen(_ typeId: String) { run.markSeen(typeId) }
 
     /// A fresh account: one starter unit, everything else at its baseline.
     /// The starter type id comes from data (`TierRepository.baseType`), never from code.

@@ -13,12 +13,17 @@ extension GameState {
         UpgradeManager.cost(of: line, level: upgradeLevel(of: line.id))
     }
 
-    /// Tipos que el jugador conoce en esta vida (o ya mejoró) para la pestaña
-    /// Personajes. La UI recibe el catálogo filtrado, no inspecciona el save.
+    /// Tipos que el jugador desbloqueó EN ESTA RUN para la pestaña Personajes.
+    /// La UI recibe el catálogo filtrado, no inspecciona el save.
+    ///
+    /// Sale de `run.seenTypes` y no de las unidades vivas (RF-03): mergear tu
+    /// último Fisura te borraba de la pantalla la mejora que le habías comprado
+    /// y que te seguía rindiendo. El que nunca desbloqueaste sigue sin aparecer,
+    /// así que las evoluciones no se espoilean.
     var characterUpgradeTypes: [CharacterType] {
         guard let content, let player else { return [] }
         return content.tiers.concreteTypes
-            .filter { (player.run.units[$0.id] ?? 0) > 0 || (player.run.charUpgradeLevels[$0.id] ?? 0) > 0 }
+            .filter { player.run.seenTypes.contains($0.id) }
             .sorted { $0.tier < $1.tier }
     }
 

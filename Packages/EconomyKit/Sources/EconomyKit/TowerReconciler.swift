@@ -26,6 +26,18 @@ public enum TowerReconciler {
         var autoMerged = 0
         var discarded: [String: Int] = [:]
 
+        // 0. Backfill de `seenTypes` (RF-03). Corre en CADA carga, así que un
+        //    save v4 anterior al campo (que decodifica con el set vacío) no le
+        //    deja la lista de mejoras en blanco al jugador que actualiza: lo que
+        //    tiene vivo y lo que ya mejoró cuentan como visto. No se sube la
+        //    versión del sobre porque el campo tiene default al decodificar.
+        for (typeId, count) in run.units where count > 0 {
+            run.markSeen(typeId)
+        }
+        for (typeId, level) in run.charUpgradeLevels where level > 0 {
+            run.markSeen(typeId)
+        }
+
         // 1. Agrupar unidades por piso según el mapeo VIGENTE (tipos desconocidos
         //    —removidos de la config— se descartan con registro).
         var byFloor: [Int: [(type: CharacterType, count: Int)]] = [:]

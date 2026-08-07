@@ -148,11 +148,19 @@ struct BoostsConfig: Codable, Sendable, Equatable {
         let cooldownSeconds: Double
         let displayNameKey: String
         let flavorTextKey: String
+        /// Piso que hay que haber alcanzado para que el boost aparezca (RF-12).
+        /// El mapeo vive acá y no en código: repartirlos distinto es editar JSON.
+        let unlockFloorId: String
         let reviewSafe: ReviewSafeText
 
         /// La build de store sirve SOLO los textos review-safe (Guideline 2.3.1).
         func displayNameKey(buildVariant: String) -> String {
             buildVariant == "store" ? reviewSafe.displayNameKey : displayNameKey
+        }
+
+        /// Gemelo del anterior: el chiste también tiene su versión review-safe.
+        func flavorTextKey(buildVariant: String) -> String {
+            buildVariant == "store" ? reviewSafe.flavorTextKey : flavorTextKey
         }
     }
 

@@ -8,6 +8,7 @@
       "magnitude": 0.7,
       "durationSeconds": 60,
       "cooldownSeconds": 1800,
+      "unlockFloorId": "alley",
       "displayNameKey": "boost.mate.name",
       "flavorTextKey": "boost.mate.flavor",
       "reviewSafe": {
@@ -22,6 +23,7 @@
       "magnitude": 2.0,
       "durationSeconds": 45,
       "cooldownSeconds": 2700,
+      "unlockFloorId": "corporate",
       "displayNameKey": "boost.cafe.name",
       "flavorTextKey": "boost.cafe.flavor",
       "reviewSafe": {
@@ -36,6 +38,7 @@
       "magnitude": 3.0,
       "durationSeconds": 90,
       "cooldownSeconds": 3600,
+      "unlockFloorId": "island",
       "displayNameKey": "boost.fernet.name",
       "flavorTextKey": "boost.fernet.flavor",
       "reviewSafe": {
@@ -50,6 +53,7 @@
       "magnitude": 0.05,
       "durationSeconds": 0,
       "cooldownSeconds": 86400,
+      "unlockFloorId": "galaxy",
       "displayNameKey": "boost.milanesa.name",
       "flavorTextKey": "boost.milanesa.flavor",
       "reviewSafe": {
@@ -64,6 +68,7 @@
       "magnitude": 4.0,
       "durationSeconds": 0,
       "cooldownSeconds": 21600,
+      "unlockFloorId": "mars",
       "displayNameKey": "boost.asado.name",
       "flavorTextKey": "boost.asado.flavor",
       "reviewSafe": {
@@ -78,6 +83,7 @@
       "magnitude": 5.0,
       "durationSeconds": 30,
       "cooldownSeconds": 7200,
+      "unlockFloorId": "god_realm",
       "displayNameKey": "boost.turbo.name",
       "flavorTextKey": "boost.turbo.flavor",
       "reviewSafe": {

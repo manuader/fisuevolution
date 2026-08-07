@@ -127,10 +127,29 @@ extension GameState {
         return BoostManager.cooldownRemaining(of: boost, state: player, now: Date().timeIntervalSince1970)
     }
 
+    /// ¿Llegó el jugador al piso que abre este boost? (RF-12)
+    ///
+    /// Se mide contra `meta.stats.maxFloorOrdinalEver` y no contra los pisos de la
+    /// run: si muriera al reencarnar, cada reencarnación te sacaría los boosts que
+    /// ya te habías ganado, que es exactamente lo contrario de "se van
+    /// desbloqueando a medida que avanzás".
+    func isBoostUnlocked(_ boost: BoostsConfig.Boost) -> Bool {
+        guard let content, let player,
+              let required = content.floorTable.ordinal(of: boost.unlockFloorId)
+        else { return false }
+        return player.meta.stats.maxFloorOrdinalEver >= required
+    }
+
     /// Devuelve las coins del cofre si el boost era el Asado.
     @discardableResult
     func activateBoost(id: String) -> Double? {
         guard let economy, let content, var player = player else { return nil }
+        // Un boost bloqueado no se activa ni por accidente: la fila lo esconde,
+        // pero la regla vive acá y no en la vista.
+        guard let boost = content.boosts.boosts.first(where: { $0.id == id }), isBoostUnlocked(boost) else {
+            Log.economy.info("boost locked: \(id)")
+            return nil
+        }
         do {
             let chest = try BoostManager.activate(
                 boostId: id,
@@ -254,6 +273,28 @@ extension GameState {
 
     // MARK: Proyecciones de la pantalla de Bonus (RF-06, RF-11, RF-12)
 
+    /// Las filas de boost, ya resueltas: qué hace cada uno, si está abierto y qué
+    /// piso lo abre. `BonusView` no lee `PlayerState` (regla de arquitectura), y
+    /// que la traducción viva acá evita que la vista invente la suya.
+    var boostRows: [BoostRow] {
+        guard let content, let player else { return [] }
+        let variant = content.flags.buildVariant
+        let now = Date().timeIntervalSince1970
+        return content.boosts.boosts.map { boost in
+            let unlocked = isBoostUnlocked(boost)
+            return BoostRow(
+                id: boost.id,
+                displayName: Self.localized(boost.displayNameKey(buildVariant: variant)),
+                iconKey: boost.iconKey,
+                effectText: Self.effectText(for: boost),
+                flavorText: Self.localized(boost.flavorTextKey(buildVariant: variant)),
+                isUnlocked: unlocked,
+                unlockFloorName: unlocked ? nil : TowerNaming.floorName(for: boost.unlockFloorId),
+                cooldownRemaining: BoostManager.cooldownRemaining(of: boost, state: player, now: now)
+            )
+        }
+    }
+
     /// Las cuatro recompensas por video con su cuenta regresiva (RF-11).
     var rewardRows: [RewardRow] {
         guard let content else { return [] }
@@ -265,6 +306,31 @@ extension GameState {
                 cooldownRemaining: rewardCooldownRemaining(id: reward.id, now: now)
             )
         }
+    }
+
+    /// La línea de "qué hace" de un boost (RF-06). El número sale entero de la
+    /// pieza compartida `EffectDescriptor` —incluido el mate, cuya magnitud 0,7 es
+    /// un factor de costo y se lee **−30%**—; acá sólo se le pone la frase
+    /// alrededor. Los segundos van como `String` a propósito: una clave con `%@`
+    /// interpolada con un `Int` sale en pantalla como la clave cruda.
+    private static func effectText(for boost: BoostsConfig.Boost) -> String {
+        let value = EffectFormatter.text(
+            EffectDescriptor.amount(forBoost: boost.effectType, magnitude: boost.magnitude)
+        )
+        let seconds = String(Int(boost.durationSeconds))
+        switch boost.effectType {
+        case .incomeMultiplier: return String(localized: "bonus.effect.income \(value) \(seconds)")
+        case .tapMultiplier: return String(localized: "bonus.effect.tap \(value) \(seconds)")
+        case .spawnCostMultiplier: return String(localized: "bonus.effect.spawn \(value) \(seconds)")
+        case .offlineEfficiencyPermanent: return String(localized: "bonus.effect.offline \(value)")
+        case .periodicChest: return String(localized: "bonus.effect.chest \(value)")
+        }
+    }
+
+    /// Lookup de una clave que viene del JSON. `String(localized:)` sólo acepta
+    /// literales, así que las claves data-driven pasan por el bundle.
+    static func localized(_ key: String) -> String {
+        Bundle.main.localizedString(forKey: key, value: nil, table: nil)
     }
 
     /// Referral local (bible §8): compartir da un boost permanente chico, capeado.
@@ -288,6 +354,23 @@ extension GameState {
 // MARK: - Los tipos que consume la pantalla de Bonus
 
 extension GameState {
+    /// Una fila de boost tal como se ve: nombre, qué hace, el chiste, y si está
+    /// abierta. Los textos vienen resueltos —no como claves— porque el número de
+    /// `effectText` sale de `EffectDescriptor` y tiene que poder testearse.
+    struct BoostRow: Identifiable, Equatable {
+        let id: String
+        let displayName: String
+        let iconKey: String
+        /// "×3 a los ingresos, por 90 s".
+        let effectText: String
+        /// El chiste corto del config (respeta la variante review-safe).
+        let flavorText: String
+        let isUnlocked: Bool
+        /// Nombre del piso que lo desbloquea. Nil si ya está abierto.
+        let unlockFloorName: String?
+        let cooldownRemaining: TimeInterval
+    }
+
     /// Una recompensa por video con lo que falta para volver a ofrecerla.
     struct RewardRow: Identifiable, Equatable {
         let id: String

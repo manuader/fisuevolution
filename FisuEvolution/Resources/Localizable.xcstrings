@@ -146,6 +146,108 @@
         }
       }
     },
+    "bonus.effect.chest %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A %@ coin chest, every time"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un cofre de plata %@, cada vez"
+          }
+        }
+      }
+    },
+    "bonus.effect.income %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ income, for %2$@ s"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ a los ingresos, por %2$@ s"
+          }
+        }
+      }
+    },
+    "bonus.effect.offline %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ offline earnings, forever"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ de ganancia offline, para siempre"
+          }
+        }
+      }
+    },
+    "bonus.effect.spawn %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ hiring cost, for %2$@ s"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ al costo de contratar, por %2$@ s"
+          }
+        }
+      }
+    },
+    "bonus.effect.tap %@ %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ per tap, for %2$@ s"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ a los clicks, por %2$@ s"
+          }
+        }
+      }
+    },
+    "bonus.locked %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlocks at %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se desbloquea en %@"
+          }
+        }
+      }
+    },
     "bonus.section.ads": {
       "extractionState": "stale",
       "localizations": {

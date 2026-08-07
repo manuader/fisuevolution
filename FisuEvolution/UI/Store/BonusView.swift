@@ -17,14 +17,14 @@ struct BonusView: View {
         let _ = gameState.effectsVersion
 
         // `now` avanza una vez por segundo: es lo que hace tictaquear las cuentas
-        // regresivas, que se recalculan al recomponer.
+        // regresivas de boosts y de videos, que se recalculan al recomponer.
         let _ = now
 
         NavigationStack {
             List {
                 Section("bonus.section.boosts") {
-                    ForEach(gameState.content?.boosts.boosts ?? []) { boost in
-                        boostRow(boost)
+                    ForEach(gameState.boostRows) { row in
+                        boostRow(row)
                     }
                 }
                 .listRowBackground(Color.clear)
@@ -65,39 +65,53 @@ struct BonusView: View {
         }
     }
 
-    private func boostRow(_ boost: BoostsConfig.Boost) -> some View {
-        let variant = gameState.content?.flags.buildVariant ?? "dev"
-        let remaining = gameState.boostCooldownRemaining(boost)
-
-        return HStack {
-            if let icon = UIArt.image("ui_boost_\(boost.id)") {
+    /// Dos líneas bajo el nombre (RF-06): qué hace con su número, y el chiste. El
+    /// número lo calcula `GameState` con la pieza compartida — la vista no traduce
+    /// magnitudes, que es cómo tres pantallas terminan diciendo tres cosas.
+    private func boostRow(_ row: GameState.BoostRow) -> some View {
+        HStack(spacing: 10) {
+            if let icon = UIArt.image(row.iconKey) {
                 icon.resizable()
                     .scaledToFit()
                     .frame(width: 34, height: 34)
             }
             VStack(alignment: .leading, spacing: 2) {
-                Text(LocalizedStringKey(boost.displayNameKey(buildVariant: variant)))
+                Text(verbatim: row.displayName)
                     .font(.headline)
-                if boost.durationSeconds > 0 {
-                    Text("bonus.duration \(String(Int(boost.durationSeconds)))")
-                        .font(.footnote)
+                Text(verbatim: row.effectText)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                Text(verbatim: row.flavorText)
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                if let floorName = row.unlockFloorName {
+                    Text("bonus.locked \(floorName)")
+                        .font(.caption.weight(.semibold))
                         .foregroundStyle(.secondary)
                 }
             }
-            Spacer()
-            if remaining > 0 {
-                Text(verbatim: cooldownText(remaining))
+            Spacer(minLength: 8)
+            if !row.isUnlocked {
+                Image(systemName: "lock.fill")
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("bonus.locked.\(row.id)")
+            } else if row.cooldownRemaining > 0 {
+                Text(verbatim: cooldownText(row.cooldownRemaining))
                     .font(.footnote.weight(.semibold))
                     .monospacedDigit()
                     .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("bonus.cooldown.\(row.id)")
             } else {
                 Button("bonus.activate") {
-                    chestAmount = gameState.activateBoost(id: boost.id)
+                    chestAmount = gameState.activateBoost(id: row.id)
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(Color("PaletteOrange"))
+                .accessibilityIdentifier("bonus.activate.\(row.id)")
             }
         }
+        // El boost que todavía no está se ve, pero apagado: es la zanahoria.
+        .opacity(row.isUnlocked ? 1 : 0.45)
     }
 
     private func rewardedRow(_ row: GameState.RewardRow) -> some View {

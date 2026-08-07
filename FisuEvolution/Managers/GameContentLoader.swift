@@ -70,6 +70,16 @@ enum GameContentLoader {
             throw GameError.contentInvalid(file: "skins.json", reason: "\(error)")
         }
 
+        // RF-12: el mapeo boost→piso vive en el JSON, así que un id mal escrito
+        // dejaría un boost inalcanzable para siempre y en silencio.
+        let floorIDs = Set(floorTable.floors.map(\.id))
+        for boost in boosts.boosts where !floorIDs.contains(boost.unlockFloorId) {
+            throw GameError.contentInvalid(
+                file: "boosts.json",
+                reason: "boost \(boost.id) references unknown floor \(boost.unlockFloorId)"
+            )
+        }
+
         return GameContent(
             economy: economy,
             tiers: tiers,

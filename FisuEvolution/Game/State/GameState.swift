@@ -324,6 +324,11 @@ final class GameState {
             if ProcessInfo.processInfo.arguments.contains("--uitest-unlock-tower") {
                 debugUnlockFloors(throughTier: 5)
             }
+            // RF-16: el ORO va con la raíz de lifetime/3M, así que llegar al
+            // prestigio jugando no es automatizable. El fixture lo acredita.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-prestige") {
+                giveLifetimeEarningsForTesting(300_000_000)
+            }
             // El long-press sobre SpriteKit no es determinista en el runner: para
             // el smoke de la ficha alcanza con abrirla sobre la primera unidad.
             if ProcessInfo.processInfo.arguments.contains("--uitest-open-sheet"),

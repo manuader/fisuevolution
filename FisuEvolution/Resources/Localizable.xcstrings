@@ -1210,6 +1210,22 @@
         }
       }
     },
+    "hud.prestige.multiplier.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Global multiplier"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multiplicador global"
+          }
+        }
+      }
+    },
     "hud.store.label": {
       "extractionState": "stale",
       "localizations": {

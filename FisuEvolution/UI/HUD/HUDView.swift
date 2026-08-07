@@ -26,6 +26,7 @@ struct HUDView: View {
                 }
             }
             towerNavigator
+            prestigeIndicator
         }
         .padding(.horizontal, 10)
         .padding(.top, 8)
@@ -101,6 +102,44 @@ struct HUDView: View {
         .disabled(!enabled)
         .accessibilityIdentifier(identifier)
         .accessibilityLabel(Text(direction > 0 ? "tower.navigate.up" : "tower.navigate.down"))
+    }
+
+    /// RF-16: cuánto potenciador te da reencarnar, siempre a la vista. Lee la
+    /// proyección `prestigePreview` que `refreshProjections` publica a 8 Hz —
+    /// **nunca** `PlayerState`, que cambia decenas de veces por segundo.
+    /// La flecha aparece sólo cuando hay ORO por cobrar: sin nada que ganar, el
+    /// "después" sería el "antes" y prometería un salto que no existe.
+    private var prestigeIndicator: some View {
+        let preview = gameState.prestigePreview
+        return HStack(spacing: 5) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 11, weight: .heavy))
+                .foregroundStyle(Color("PalettePink"))
+            Text(verbatim: "×\(preview.multiplierBeforeText)")
+            if preview.isWorthIt {
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 9, weight: .heavy))
+                    .foregroundStyle(Color("PaletteInk").opacity(0.45))
+                Text(verbatim: "×\(preview.multiplierAfterText)")
+                    .foregroundStyle(Color("PalettePink"))
+            }
+        }
+        .font(.system(size: 12, design: .rounded).weight(.heavy))
+        .monospacedDigit()
+        .lineLimit(1)
+        .foregroundStyle(Color("PaletteInk"))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 3)
+        .background(
+            Capsule().fill(Color("PaletteCream"))
+                .overlay(Capsule().strokeBorder(Color("PaletteInk").opacity(0.6), lineWidth: 1.5))
+        )
+        .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier("hud.prestige.multiplier")
+        .accessibilityLabel(Text("hud.prestige.multiplier.label"))
+        .accessibilityValue(Text(verbatim: preview.isWorthIt
+            ? "×\(preview.multiplierBeforeText) → ×\(preview.multiplierAfterText)"
+            : "×\(preview.multiplierBeforeText)"))
     }
 
     private func floorNameKey(for floorID: String) -> LocalizedStringKey {

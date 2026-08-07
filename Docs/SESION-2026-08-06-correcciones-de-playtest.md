@@ -121,10 +121,33 @@ swift run --package-path Tools/pacing-sim pacing-sim \
 |---|---|---|
 | 1 | **Que el dueño lo juegue** | Nada |
 | 2 | Decidir sobre las 345 h (§2) | El dueño |
-| 3 | **Packs de monedas y de ORO** (RF-02b, parcial) | Nada: el rebalance ya cerró |
+| 3 | ~~Packs de monedas y de ORO (RF-02b)~~ | **CERRADO el 2026-08-07**, ver abajo |
 | 4 | `bg_galaxy`, regeneración opcional | Una corrida del dueño (§6) |
 | 5 | **Música y efectos** (RF-14) | **No hay fuente de audio** (§5) |
 | 6 | Alta en App Store Connect (RF-02c) | La cuenta de Apple Developer |
+
+### El punto 3, cerrado (2026-08-07)
+
+La tienda pasó de 3 productos a 10: el combo de bienvenida, quitar los ads, tres
+packs de plata, tres de ORO y las dos skins. Lo que hay que saber:
+
+- **Un consumible no es un entitlement.** StoreKit no lo devuelve nunca en
+  `currentEntitlements`, así que si no se acredita en el momento la plata no
+  llega nunca; y como es un DELTA, llega dos veces con facilidad —`purchase()`
+  devuelve la transacción, `Transaction.updates` puede entregar la misma, y una
+  transacción sin `finish()` se re-entrega en el arranque siguiente—. La guarda
+  es **por ID de transacción y vive en el save** (`meta.creditedPurchases`).
+- **El ORO comprado NO mueve el multiplicador global**, por decisión del dueño y
+  contra lo medido en la Ola 3. El porqué está en `balance-log`.
+- **La plata de un pack sale proporcional al tier máximo**, con el mismo idioma
+  que el cofre de carrera. Un monto fijo es basura a las veinte horas.
+- **Los montos y precios son [TUNEABLE]**: viven en `products.json` y en el
+  `.storekit`, y moverlos no toca una línea de Swift.
+
+⚠️ Y una que ahorra media hora: **la configuración de StoreKit del esquema está
+declarada sólo en la acción `run`, y los tests de UI la heredan igual** (por
+`shouldUseLaunchSchemeArgsEnv`). Agregarla a la acción `test` de `project.yml`
+**no hace nada** — XcodeGen ni siquiera la emite. Se probó y se sacó.
 
 ⚠️ **El punto 1 no es una formalidad.** Los bugs más caros de la sesión
 aparecieron **mirando la pantalla**, no corriendo tests: la manito del tutorial

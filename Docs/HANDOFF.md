@@ -150,7 +150,8 @@ duraciones colapsan y ningún offset puede esperar a un sheet que cierra el juga
 - Se retiraron los tres tintes globales (golden/galaxy/god). Cada personaje tiene
   **base + la suya**. ⚠️ Eran los tres productos IAP: **la tienda quedó vendiendo
   sólo `remove_ads`**. El sistema de tintes sigue entero, una skin futura entra
-  por config.
+  por config. (Ya no es el estado actual: RF-13 sumó las dos skins de arte propio
+  y RF-02b los packs — hoy la tienda vende **10 productos**.)
 - Las bloqueadas se ven en **silueta** de tinta plena.
 - El popup del premio gana "Ponérsela".
 - **El arte de las 36 skins está hecho y verificado.** Una (`home_office`) se
@@ -205,7 +206,8 @@ xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
 cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 20
 ```
 
-Estado: **EconomyKit 150 · app 156 · UI 17 · pipeline 25**, todo verde.
+Estado: **EconomyKit 150 · app 170 · UI 19 · pipeline 25**, todo verde
+(2026-08-07: los packs de la tienda sumaron 14 tests de app y 2 de UI).
 
 ⚠️ **`PacingTests` ya está repineado** a la torre de 37 tiers y entra en los 156.
 El único rojo preexistente es `AscentRenderingUITests` (frágil por la trampa 3):

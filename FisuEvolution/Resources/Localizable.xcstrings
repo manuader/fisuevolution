@@ -2018,6 +2018,23 @@
         }
       }
     },
+    "skin.name.chatarrero": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scrap Dealer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chatarrero"
+          }
+        }
+      }
+    },
     "skin.name.chef_estrella": {
       "extractionState": "manual",
       "localizations": {
@@ -2154,6 +2171,40 @@
         }
       }
     },
+    "skin.name.feriante": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Market Stall"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feriante"
+          }
+        }
+      }
+    },
+    "skin.name.figurita": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rare Sticker"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Figurita Difícil"
+          }
+        }
+      }
+    },
     "skin.name.filantropo": {
       "extractionState": "manual",
       "localizations": {
@@ -2222,6 +2273,23 @@
         }
       }
     },
+    "skin.name.holdout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Holdout"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Holdout"
+          }
+        }
+      }
+    },
     "skin.name.home_office": {
       "extractionState": "manual",
       "localizations": {
@@ -2273,6 +2341,23 @@
         }
       }
     },
+    "skin.name.jubilado": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retired"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jubilado"
+          }
+        }
+      }
+    },
     "skin.name.magnate": {
       "extractionState": "manual",
       "localizations": {
@@ -2286,6 +2371,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Magnate"
+          }
+        }
+      }
+    },
+    "skin.name.malabarista": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traffic Juggler"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Malabarista"
           }
         }
       }
@@ -2307,19 +2409,36 @@
         }
       }
     },
-    "skin.name.nocturno": {
+    "skin.name.mundialista": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Night Shift"
+            "value": "World Cup Fan"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turno Noche"
+            "value": "Mundialista"
+          }
+        }
+      }
+    },
+    "skin.name.naranjita": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Orange Vest"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Naranjita"
           }
         }
       }
@@ -2371,6 +2490,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Oráculo"
+          }
+        }
+      }
+    },
+    "skin.name.parrillero": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grill Master"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parrillero"
           }
         }
       }
@@ -2456,159 +2592,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Delegado Sindical"
-          }
-        }
-      }
-    },
-    "skin.name.starchitect": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Starchitect"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arquitecto Estrella"
-          }
-        }
-      }
-    },
-    "skin.name.taxi_clasico": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Classic Cab"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Taxi Clásico"
-          }
-        }
-      }
-    },
-    "skin.name.terraformador": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Terraformer"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Terraformador"
-          }
-        }
-      }
-    },
-    "skin.name.titan": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Titan"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Titán"
-          }
-        }
-      }
-    },
-    "skin.name.traje_presurizado": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pressure Suit"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Traje Presurizado"
-          }
-        }
-      }
-    },
-    "skin.name.tribunales": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Courthouse"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tribunales"
-          }
-        }
-      }
-    },
-    "skin.name.unicornio": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unicorn"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Unicornio"
-          }
-        }
-      }
-    },
-    "skin.name.urban_trailblazer": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Urban Trailblazer"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pionero Urbano"
-          }
-        }
-      }
-    },
-    "skin.name.yate": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yacht"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Yate"
           }
         }
       }
@@ -4214,6 +4197,176 @@
           "stringUnit": {
             "state": "translated",
             "value": "Mejoras"
+          }
+        }
+      }
+    },
+    "skin.name.starchitect": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starchitect"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquitecto Estrella"
+          }
+        }
+      }
+    },
+    "skin.name.taxi_clasico": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Classic Cab"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Taxi Clásico"
+          }
+        }
+      }
+    },
+    "skin.name.terraformador": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terraformer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Terraformador"
+          }
+        }
+      }
+    },
+    "skin.name.titan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titan"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Titán"
+          }
+        }
+      }
+    },
+    "skin.name.traje_presurizado": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pressure Suit"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traje Presurizado"
+          }
+        }
+      }
+    },
+    "skin.name.tribunales": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Courthouse"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tribunales"
+          }
+        }
+      }
+    },
+    "skin.name.tropero": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cattle Drover"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tropero"
+          }
+        }
+      }
+    },
+    "skin.name.unicornio": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unicorn"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unicornio"
+          }
+        }
+      }
+    },
+    "skin.name.urban_trailblazer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Urban Trailblazer"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pionero Urbano"
+          }
+        }
+      }
+    },
+    "skin.name.yate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yacht"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yate"
           }
         }
       }

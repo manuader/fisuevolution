@@ -18,14 +18,6 @@
       "floorReached": "urban"
     },
     {
-      "id": "nocturno",
-      "characterType": "kiosco",
-      "treatment": "texture",
-      "textureKey": "kiosco_idle__nocturno",
-      "displayNameKey": "skin.name.nocturno",
-      "floorReached": "corporate"
-    },
-    {
       "id": "cohete",
       "characterType": "repartidor",
       "treatment": "texture",
@@ -255,7 +247,7 @@
       "treatment": "texture",
       "textureKey": "emperador_cosmico_idle__dinastia",
       "displayNameKey": "skin.name.dinastia",
-      "floorReached": "cosmic"
+      "floorReached": "god_realm"
     },
     {
       "id": "iluminado",
@@ -263,7 +255,7 @@
       "treatment": "texture",
       "textureKey": "ser_ascendido_idle__iluminado",
       "displayNameKey": "skin.name.iluminado",
-      "floorReached": "cosmic"
+      "floorReached": "god_realm"
     },
     {
       "id": "titan",
@@ -288,6 +280,84 @@
       "textureKey": "god_idle__genesis",
       "displayNameKey": "skin.name.genesis",
       "reincarnations": 3
+    },
+    {
+      "id": "naranjita",
+      "characterType": "trapito",
+      "treatment": "texture",
+      "textureKey": "trapito_idle__naranjita",
+      "displayNameKey": "skin.name.naranjita",
+      "floorReached": "urban"
+    },
+    {
+      "id": "malabarista",
+      "characterType": "limpiavidrios",
+      "treatment": "texture",
+      "textureKey": "limpiavidrios_idle__malabarista",
+      "displayNameKey": "skin.name.malabarista",
+      "floorReached": "urban"
+    },
+    {
+      "id": "feriante",
+      "characterType": "mantero",
+      "treatment": "texture",
+      "textureKey": "mantero_idle__feriante",
+      "displayNameKey": "skin.name.feriante",
+      "floorReached": "corporate"
+    },
+    {
+      "id": "chatarrero",
+      "characterType": "rey_asteroides",
+      "treatment": "texture",
+      "textureKey": "rey_asteroides_idle__chatarrero",
+      "displayNameKey": "skin.name.chatarrero",
+      "floorReached": "solar"
+    },
+    {
+      "id": "holdout",
+      "characterType": "fondo_buitre",
+      "treatment": "texture",
+      "textureKey": "fondo_buitre_idle__holdout",
+      "displayNameKey": "skin.name.holdout",
+      "floorReached": "solar"
+    },
+    {
+      "id": "jubilado",
+      "characterType": "rentista_soles",
+      "treatment": "texture",
+      "textureKey": "rentista_soles_idle__jubilado",
+      "displayNameKey": "skin.name.jubilado",
+      "floorReached": "galaxy"
+    },
+    {
+      "id": "tropero",
+      "characterType": "estanciero_estelar",
+      "treatment": "texture",
+      "textureKey": "estanciero_estelar_idle__tropero",
+      "displayNameKey": "skin.name.tropero",
+      "floorReached": "galaxy"
+    },
+    {
+      "id": "figurita",
+      "characterType": "coleccionista_galaxias",
+      "treatment": "texture",
+      "textureKey": "coleccionista_galaxias_idle__figurita",
+      "displayNameKey": "skin.name.figurita",
+      "floorReached": "galaxy"
+    },
+    {
+      "id": "mundialista",
+      "characterType": "homeless",
+      "treatment": "texture",
+      "textureKey": "homeless_idle__mundialista",
+      "displayNameKey": "skin.name.mundialista"
+    },
+    {
+      "id": "parrillero",
+      "characterType": "god",
+      "treatment": "texture",
+      "textureKey": "god_idle__parrillero",
+      "displayNameKey": "skin.name.parrillero"
     }
   ]
 }

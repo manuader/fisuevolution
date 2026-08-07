@@ -51,6 +51,26 @@ struct GameContentValidationTests {
         }
     }
 
+    /// `kiosco` (Personal de Kiosco) se eliminó de la cadena y El Mantero ocupó
+    /// su lugar. Se va de los tres lados a la vez: si sobrevive en uno queda
+    /// arte huérfano o —peor— una skin que no se le puede aplicar a nadie.
+    @Test("kiosco ya no existe en ningún lado")
+    func kioscoIsGone() {
+        #expect(content.tiers.types.allSatisfy { $0.id != "kiosco" })
+        #expect(content.skins.skins.allSatisfy { $0.characterType != "kiosco" })
+        #expect(content.manifest.characters.keys.allSatisfy { !$0.hasPrefix("kiosco") })
+    }
+
+    /// El fondo `bg_cosmic` se retiró (decisión estética del dueño). Sin entrada
+    /// en el manifest el código cae a un placeholder programático SIN romperse,
+    /// así que un fondo huérfano no falla ningún otro test: por eso se asserta acá.
+    @Test("el fondo cosmic se retiró del manifest y ningún piso lo pide")
+    func cosmicBackgroundIsGone() {
+        #expect(content.manifest.backgrounds["cosmic"] == nil)
+        #expect(content.floorTable.floors.allSatisfy { $0.background != "cosmic" })
+        #expect(content.manifest.backgrounds.count == 10)
+    }
+
     /// El corte `earth`/`cosmic` tiene que caer en un BORDE de piso, no partir
     /// uno al medio: es lo que elige la música y el tema del tablero. Después
     /// del remapeo cae entre T24 (Dueño de la Luna, último de `moon`) y T25

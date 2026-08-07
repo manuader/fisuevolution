@@ -289,10 +289,29 @@ El panel de debug es el ícono de herramientas del HUD.
 
 7. **Los agentes en paralelo comparten el scratchpad.** Si varios frentes
    escriben `full.log` ahí, se pisan entre sí. Prefijá con el nombre del frente.
-8. **`osascript`/System Events no funciona desde el shell del agente.** El batch
+
+8. **El handler de `SKTexture.preload` TIENE que ser `@Sendable`.** SpriteKit lo
+   llama desde una cola de fondo y `BoardScene` es `@MainActor` (`SKScene` lo es
+   en el SDK), así que un `{}` pelado hereda el aislamiento y **mata el proceso
+   con SIGTRAP** al terminar la precarga.
+
+   ```swift
+   SKTexture.preload(textures) { @Sendable in }   // ✅
+   ```
+
+   ⚠️ Y lo grave: **el test de UI seguía en verde con la app crasheada.** Es la
+   trampa 2 otra vez — un test de UI puede pasar sin probar nada.
+
+9. **Los tests de UI existentes pasan según el ORDEN en que corren.**
+   `LaunchSmokeTests` y `EconomyLoopUITests` funcionan sólo porque
+   `--uitest-open-sheet` deja `fisuTutorialDone` seteado en ese simulador: en un
+   device limpio, el scrim del tutorial les tapa los controles. Si te aparece un
+   "Failed to scroll to visible" inexplicable, revisá si el tutorial está
+   adelante (trampa 4). **Se arregla cuando se rehaga el tutorial (RF-01).**
+10. **`osascript`/System Events no funciona desde el shell del agente.** El batch
    de arte hay que correrlo desde Terminal.app.
-9. **Medir fps con un build corriendo en paralelo da números basura.**
-10. **La multitud y los fondos comparten espacio de `zPosition`, y eso ya rompió
+11. **Medir fps con un build corriendo en paralelo da números basura.**
+12. **La multitud y los fondos comparten espacio de `zPosition`, y eso ya rompió
    una vez.** `depthZ` da negativo apenas una fila queda por encima de
    `rows × cellSize`, y los `FloorNode` viven en `ordinal × 0.01`: cuando las dos
    bandas se tocan, el fondo tapa a los personajes y quedan **invisibles pero
@@ -300,7 +319,7 @@ El panel de debug es el ícono de herramientas del HUD.
    montado en `BoardScene.fieldBaseZ` para que no puedan tocarse, y
    `CrowdDepthTests` lo pinea. Si tocás `frontRowRatio`/`rowDepthRatio`/wander,
    ese test es el que te avisa.
-11. **Un personaje invisible no siempre es `alpha = 0`.** Ese era el bug viejo del
+13. **Un personaje invisible no siempre es `alpha = 0`.** Ese era el bug viejo del
    pool. Si además ves su etiqueta "T1" flotando sin cuerpo, es z: dentro de un
    `CharacterNode` todos los hijos comparten z, y con `ignoresSiblingOrder`
    SpriteKit batchea labels y sprites del atlas por separado, así que contra el

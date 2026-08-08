@@ -103,11 +103,24 @@ struct UpgradesView: View {
     /// a ESTE personaje.
     private func characterRow(_ row: GameState.CharacterUpgradeRow) -> some View {
         VStack(alignment: .leading, spacing: 9) {
-            HStack(spacing: 10) {
-                CharacterFace(faceKey: row.faceKey, tier: row.tier)
+            // El encabezado es la vidriera del arte (RF-05): la carita ocupa el
+            // doble que antes y el nombre creció con ella para que la cabecera no
+            // quede desbalanceada. Las dos líneas de abajo siguen a ancho
+            // completo, así que agrandar la cara no le come lugar a lo que
+            // explica los botones (RF-04, RF-06).
+            HStack(spacing: 12) {
+                CharacterFace(
+                    faceKey: row.faceKey,
+                    tier: row.tier,
+                    name: row.displayName,
+                    identifier: "upgrades.character.\(row.id).face"
+                )
                 Text(verbatim: row.displayName)
-                    .font(.headline)
+                    .font(.system(.title3, design: .rounded).weight(.heavy))
                     .foregroundStyle(Color("PaletteInk"))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 4)
             }
 
@@ -237,26 +250,40 @@ struct UpgradesView: View {
 /// manifest cae al círculo amarillo con el tier, así la pantalla no espera al
 /// arte para poder construirse.
 private struct CharacterFace: View {
+    /// Medía 38 pt hasta el 2026-08-07. El dueño pidió el **doble** para que se
+    /// aprecie el arte, y el arte lo banca: las caras son PNG de 192 px, o sea
+    /// que a 76 pt todavía sobran píxeles en un @2x.
+    static let side: CGFloat = 76
+
     let faceKey: String?
     let tier: Int
+    let name: String
+    let identifier: String
 
     var body: some View {
         Group {
             if let faceKey, let face = UIArt.image(faceKey) {
                 face.resizable().scaledToFill()
-                    .clipShape(Circle())
-                    .overlay(Circle().stroke(Color("PaletteInk"), lineWidth: 2))
             } else {
-                Circle().fill(Color("PaletteYellow"))
-                    .overlay(Circle().stroke(Color("PaletteInk"), lineWidth: 2))
-                    .overlay(
-                        Text(verbatim: "T\(tier)")
-                            .font(.caption.weight(.heavy))
-                            .foregroundStyle(Color("PaletteInk"))
-                    )
+                Color("PaletteYellow").overlay(
+                    Text(verbatim: "T\(tier)")
+                        .font(.system(.title3, design: .rounded).weight(.heavy))
+                        .foregroundStyle(Color("PaletteInk"))
+                )
             }
         }
-        .frame(width: 38, height: 38)
-        .accessibilityHidden(true)
+        .frame(width: Self.side, height: Self.side)
+        // Respaldo crema: al doble de tamaño, cualquier margen transparente del
+        // PNG dejaría ver el fondo de la tarjeta por dentro del círculo.
+        .background(Circle().fill(Color("PaletteCream")))
+        .clipShape(Circle())
+        .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+        .shadow(color: Color("PaletteInk").opacity(0.22), radius: 3, y: 2)
+        // Es un elemento de accesibilidad y no decoración escondida porque el
+        // pedido del dueño es un TAMAÑO: una constante en el código no prueba
+        // que la fila no lo haya apretado, y el test de UI mide este frame.
+        .accessibilityElement()
+        .accessibilityLabel(Text(verbatim: name))
+        .accessibilityIdentifier(identifier)
     }
 }

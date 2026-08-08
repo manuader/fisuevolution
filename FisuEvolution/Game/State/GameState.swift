@@ -362,6 +362,15 @@ final class GameState {
             if ProcessInfo.processInfo.arguments.contains("--uitest-unlock-tower") {
                 debugUnlockFloors(throughTier: 5)
             }
+            // RF-05: el menú de mejoras lista lo que el jugador VIO, no los pisos
+            // que abrió, así que abrir la torre no alcanza para tener varias
+            // filas en pantalla.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-seen-types") {
+                // Hasta 8 y no hasta 6 para que entre "Empleado de Fast Food":
+                // el nombre más largo del tramo, que es el que muestra si el
+                // encabezado aguanta al lado de la carita grande.
+                debugMarkTypesSeen(throughTier: 8)
+            }
             // RF-16: el ORO va con la raíz de lifetime/3M, así que llegar al
             // prestigio jugando no es automatizable. El fixture lo acredita.
             if ProcessInfo.processInfo.arguments.contains("--uitest-prestige") {

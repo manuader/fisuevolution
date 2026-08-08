@@ -111,6 +111,20 @@ extension GameState {
         refreshProjections()
     }
 
+    /// Marca como vistos los tipos concretos hasta cierto tier.
+    ///
+    /// `--uitest-unlock-tower` abre PISOS y no toca `run.seenTypes`, que es de
+    /// donde sale la lista de la pestaña Personajes (RF-03): con ese fixture solo
+    /// el menú de mejoras se ve siempre con UNA fila. Sin esta puerta no hay forma
+    /// de mirar varias tarjetas juntas, que es lo único que deja juzgar el layout.
+    func debugMarkTypesSeen(throughTier tier: Int) {
+        guard var player, let content else { return }
+        for type in content.tiers.concreteTypes where type.tier <= tier {
+            player.run.markSeen(type.id)
+        }
+        self.player = player
+    }
+
     func debugSimulateOffline(hours: Double) {
         guard var player else { return }
         player.meta.lastSeenTimestamp -= hours * 3600

@@ -1,10 +1,53 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "products": [
+    {
+      "id": "com.fisuevolution.iap.starter_pack",
+      "type": "nonConsumable",
+      "entitlement": "starterPack",
+      "skinId": "mundialista",
+      "coinFactor": 40.0
+    },
     {
       "id": "com.fisuevolution.iap.remove_ads",
       "type": "nonConsumable",
       "entitlement": "removeAds"
+    },
+    {
+      "id": "com.fisuevolution.iap.coins_small",
+      "type": "consumable",
+      "entitlement": "coins",
+      "coinFactor": 15.0
+    },
+    {
+      "id": "com.fisuevolution.iap.coins_medium",
+      "type": "consumable",
+      "entitlement": "coins",
+      "coinFactor": 90.0
+    },
+    {
+      "id": "com.fisuevolution.iap.coins_large",
+      "type": "consumable",
+      "entitlement": "coins",
+      "coinFactor": 220.0
+    },
+    {
+      "id": "com.fisuevolution.iap.oro_small",
+      "type": "consumable",
+      "entitlement": "oro",
+      "oroAmount": 250
+    },
+    {
+      "id": "com.fisuevolution.iap.oro_medium",
+      "type": "consumable",
+      "entitlement": "oro",
+      "oroAmount": 750
+    },
+    {
+      "id": "com.fisuevolution.iap.oro_large",
+      "type": "consumable",
+      "entitlement": "oro",
+      "oroAmount": 2000
     },
     {
       "id": "com.fisuevolution.iap.skin_mundialista",

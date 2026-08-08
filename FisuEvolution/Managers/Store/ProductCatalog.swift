@@ -7,12 +7,37 @@ struct ProductCatalog: Codable, Sendable, Equatable {
         enum Entitlement: String, Codable, Sendable {
             case removeAds
             case skin
+            /// Consumible: plata de la run, en proporción a dónde estás parado.
+            case coins
+            /// Consumible: saldo de ORO gastable. NO mueve el multiplicador
+            /// global, que sigue saliendo sólo de reencarnar.
+            case oro
+            /// El combo de bienvenida: plata + quitar los ads + una skin. Es
+            /// `nonConsumable` porque dos de las tres cosas son restaurables.
+            case starterPack
         }
 
         let id: String
         let type: String
         let entitlement: Entitlement
         let skinId: String?
+        /// `coins`: factor sobre `passiveUnlockCost(tier máximo)`, igual que el
+        /// cofre de carrera. Un monto fijo envejece mal en un idle exponencial.
+        let coinFactor: Double?
+        /// `oro`: monto fijo. Acá sí es fijo porque los sinks de ORO
+        /// (`upgrades.json`) tienen costos fijos, no exponenciales en la run.
+        let oroAmount: Int?
+
+        /// Sale del entitlement y no del campo `type`, que es un String suelto:
+        /// lo que decide si algo se puede volver a comprar es QUÉ entrega, y una
+        /// falta de ortografía en el JSON no debería regalar compras infinitas.
+        /// El starter pack no entra: dos de sus tres cosas son restaurables.
+        var isConsumable: Bool {
+            switch entitlement {
+            case .coins, .oro: true
+            case .removeAds, .skin, .starterPack: false
+            }
+        }
     }
 
     let schemaVersion: Int
@@ -20,8 +45,11 @@ struct ProductCatalog: Codable, Sendable, Equatable {
 
     var allProductIDs: [String] { products.map(\.id) }
 
-    var removeAdsProductID: String? {
-        products.first { $0.entitlement == .removeAds }?.id
+    /// Plural: el starter pack también quita los ads, así que tener cualquiera
+    /// de los dos alcanza. Con la versión singular, comprar el combo dejaba los
+    /// anuncios puestos.
+    var removeAdsProductIDs: Set<String> {
+        Set(products.filter { $0.entitlement == .removeAds || $0.entitlement == .starterPack }.map(\.id))
     }
 
     /// productID → skinId for every skin product.

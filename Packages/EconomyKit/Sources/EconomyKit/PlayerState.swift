@@ -173,6 +173,12 @@ public struct MetaState: Codable, Sendable, Equatable {
     /// en `run` por lo mismo que `boostActivations`: si muriera al reencarnar,
     /// reencarnar sería la forma de mirar los cuatro videos otra vez.
     public var rewardedActivations: [String: TimeInterval]
+    /// IDs de transacción de StoreKit ya acreditadas. Un entitlement se
+    /// reescribe entero en cada sync y es idempotente por construcción; un
+    /// consumible es un DELTA, así que acreditarlo dos veces regala plata. Vive
+    /// en el save y no en memoria porque una transacción sin `finish()` se
+    /// vuelve a entregar en el arranque siguiente.
+    public var creditedPurchases: Set<String>
     public var daily: DailyRewardState
     public var sharesCompleted: Int
     public var lastSeenTimestamp: TimeInterval
@@ -194,6 +200,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         removedAds: Bool,
         boostActivations: [String: TimeInterval],
         rewardedActivations: [String: TimeInterval] = [:],
+        creditedPurchases: Set<String> = [],
         daily: DailyRewardState,
         sharesCompleted: Int,
         lastSeenTimestamp: TimeInterval,
@@ -214,6 +221,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.removedAds = removedAds
         self.boostActivations = boostActivations
         self.rewardedActivations = rewardedActivations
+        self.creditedPurchases = creditedPurchases
         self.daily = daily
         self.sharesCompleted = sharesCompleted
         self.lastSeenTimestamp = lastSeenTimestamp
@@ -241,6 +249,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         removedAds = try container.decode(Bool.self, forKey: .removedAds)
         boostActivations = try container.decode([String: TimeInterval].self, forKey: .boostActivations)
         rewardedActivations = try container.decodeIfPresent([String: TimeInterval].self, forKey: .rewardedActivations) ?? [:]
+        creditedPurchases = try container.decodeIfPresent(Set<String>.self, forKey: .creditedPurchases) ?? []
         daily = try container.decode(DailyRewardState.self, forKey: .daily)
         sharesCompleted = try container.decode(Int.self, forKey: .sharesCompleted)
         lastSeenTimestamp = try container.decode(TimeInterval.self, forKey: .lastSeenTimestamp)

@@ -3,6 +3,26 @@
   "nonRenewingSubscriptions": [],
   "products": [
     {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000B0",
+      "localizations": [
+        {
+          "description": "Un fajo de plata, la skin Mundialista y chau anuncios",
+          "displayName": "Pack de Arranque",
+          "locale": "es"
+        },
+        {
+          "description": "A wad of cash, the Mundialista skin and no more ads",
+          "displayName": "Starter Pack",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.starter_pack",
+      "referenceName": "Starter Pack",
+      "type": "NonConsumable"
+    },
+    {
       "displayPrice": "2.99",
       "familyShareable": false,
       "internalID": "F15CE001-0000-4000-8000-0000000000A1",
@@ -21,6 +41,126 @@
       "productID": "com.fisuevolution.iap.remove_ads",
       "referenceName": "Remove Ads",
       "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000C1",
+      "localizations": [
+        {
+          "description": "Un vuelto para arrancar el día",
+          "displayName": "Puñado de Plata",
+          "locale": "es"
+        },
+        {
+          "description": "Pocket change to get the day going",
+          "displayName": "Handful of Cash",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.coins_small",
+      "referenceName": "Coins S",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000C2",
+      "localizations": [
+        {
+          "description": "Un fajo que se nota en el bolsillo",
+          "displayName": "Fajo de Plata",
+          "locale": "es"
+        },
+        {
+          "description": "A wad you can feel in your pocket",
+          "displayName": "Wad of Cash",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.coins_medium",
+      "referenceName": "Coins M",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000C3",
+      "localizations": [
+        {
+          "description": "El bolso entero, sin preguntar de dónde salió",
+          "displayName": "Bolso de Plata",
+          "locale": "es"
+        },
+        {
+          "description": "The whole duffel bag, no questions asked",
+          "displayName": "Bag of Cash",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.coins_large",
+      "referenceName": "Coins L",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "1.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000D1",
+      "localizations": [
+        {
+          "description": "Para esa mejora que venís mirando hace rato",
+          "displayName": "Puñado de ORO",
+          "locale": "es"
+        },
+        {
+          "description": "For that upgrade you keep staring at",
+          "displayName": "Handful of ORO",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.oro_small",
+      "referenceName": "ORO S",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000D2",
+      "localizations": [
+        {
+          "description": "Alcanza para varias, y todavía te sobra",
+          "displayName": "Cofre de ORO",
+          "locale": "es"
+        },
+        {
+          "description": "Enough for several, with change left over",
+          "displayName": "Chest of ORO",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.oro_medium",
+      "referenceName": "ORO M",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000D3",
+      "localizations": [
+        {
+          "description": "Para el que quiere todo, y lo quiere ahora",
+          "displayName": "Bóveda de ORO",
+          "locale": "es"
+        },
+        {
+          "description": "For those who want it all, and want it now",
+          "displayName": "Vault of ORO",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.oro_large",
+      "referenceName": "ORO L",
+      "type": "Consumable"
     },
     {
       "displayPrice": "2.99",

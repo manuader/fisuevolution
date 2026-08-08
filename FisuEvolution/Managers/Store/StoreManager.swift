@@ -105,6 +105,13 @@ final class StoreManager {
         catalog?.skinByProductID[productID]
     }
 
+    /// La entrada del catálogo de un producto. La tienda la necesita para
+    /// agrupar las filas por lo que entregan y para pedirle a `GameState` el
+    /// monto concreto de un pack.
+    func entry(for productID: String) -> ProductCatalog.Entry? {
+        catalog?.products.first { $0.id == productID }
+    }
+
     // MARK: - Internals
 
     private func handle(_ update: VerificationResult<Transaction>) async {
@@ -112,11 +119,23 @@ final class StoreManager {
             Log.store.error("unverified transaction dropped")
             return
         }
+        let entry = catalog?.products.first { $0.id == transaction.productID }
+
         if transaction.revocationDate != nil {
             purchasedProductIDs.remove(transaction.productID)
             Log.store.warning("entitlement revoked: \(transaction.productID)")
         } else {
-            purchasedProductIDs.insert(transaction.productID)
+            // Acreditar ANTES de `finish()`: una transacción sin finalizar se
+            // vuelve a entregar en el arranque siguiente, así que si la app se
+            // muere en el medio la plata igual llega. Que no llegue DOS veces
+            // lo garantiza la guarda de `creditStorePurchase`, que está en el save.
+            if let entry {
+                gameState?.creditStorePurchase(entry, transactionID: String(transaction.id))
+            }
+            // Un consumible no queda "comprado": se vuelve a vender.
+            if entry?.isConsumable != true {
+                purchasedProductIDs.insert(transaction.productID)
+            }
             Log.store.info("entitlement granted: \(transaction.productID)")
         }
         pushEntitlementsToGameState()
@@ -136,7 +155,7 @@ final class StoreManager {
 
     private func pushEntitlementsToGameState() {
         guard let catalog else { return }
-        let removedAds = catalog.removeAdsProductID.map { purchasedProductIDs.contains($0) } ?? false
+        let removedAds = !catalog.removeAdsProductIDs.isDisjoint(with: purchasedProductIDs)
         let ownedSkins = catalog.skinByProductID
             .filter { purchasedProductIDs.contains($0.key) }
             .map(\.value)

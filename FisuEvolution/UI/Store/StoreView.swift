@@ -103,19 +103,23 @@ struct StoreView: View {
         .accessibilityIdentifier("store.unavailable")
     }
 
+    /// Las filas se agrupan por lo que ENTREGAN, no por el tipo de StoreKit: el
+    /// combo es `nonConsumable` igual que quitar los ads, y va con él.
+    private func products(_ kinds: Set<ProductCatalog.Entry.Entitlement>) -> [Product] {
+        store.products.filter { product in
+            guard let entitlement = store.entry(for: product.id)?.entitlement else { return false }
+            return kinds.contains(entitlement)
+        }
+    }
+
     @ViewBuilder
     private var productSections: some View {
-        // Sólo mostrar la sección si tiene productos: evita headers "UPGRADES"/
-        // "SKINS" colgados sobre un hueco vacío cuando StoreKit no cargó productos.
-        let general = store.products.filter { store.skinId(for: $0.id) == nil }
-        let skins = store.products.filter { store.skinId(for: $0.id) != nil }
-        if !general.isEmpty {
-            Section("store.section.general") {
-                ForEach(general) { product in
-                    productRow(product)
-                }
-            }
-        }
+        // Sólo se dibuja la sección que tiene productos: evita headers colgados
+        // sobre un hueco cuando StoreKit devolvió menos de los declarados.
+        section("store.section.general", products([.starterPack, .removeAds]))
+        section("store.section.coins", products([.coins]))
+        section("store.section.oro", products([.oro]))
+        let skins = products([.skin])
         if !skins.isEmpty {
             Section("store.section.skins") {
                 ForEach(skins) { product in
@@ -125,13 +129,35 @@ struct StoreView: View {
         }
     }
 
+    @ViewBuilder
+    private func section(_ titleKey: LocalizedStringKey, _ products: [Product]) -> some View {
+        if !products.isEmpty {
+            Section(titleKey) {
+                ForEach(products) { product in
+                    productRow(product)
+                }
+            }
+        }
+    }
+
     private func productRow(_ product: Product) -> some View {
         HStack {
-            VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: product.displayName).font(.headline)
+                // La línea de arriba es el número concreto y sale calculado
+                // contra la partida (la plata de un pack depende de dónde estás
+                // parado); la de abajo es el color, que lo pone el `.storekit`.
+                if let reward = store.entry(for: product.id).flatMap(gameState.packRewardText) {
+                    Text(verbatim: reward)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(Color("PaletteGreen"))
+                        .accessibilityIdentifier("store.reward.\(product.id)")
+                }
                 Text(verbatim: product.description).font(.footnote).foregroundStyle(.secondary)
             }
             Spacer()
+            // Un consumible nunca queda "comprado", así que siempre cae en el
+            // botón: se vuelve a vender.
             if store.isPurchased(product.id) {
                 Label("store.purchased", systemImage: "checkmark.circle.fill")
                     .labelStyle(.iconOnly)

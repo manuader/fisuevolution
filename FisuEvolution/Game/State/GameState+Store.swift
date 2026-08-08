@@ -20,6 +20,63 @@ extension GameState {
         scheduleSave()
     }
 
+    /// Acredita lo que trae un producto CONSUMIBLE. Los entitlements
+    /// permanentes (remove ads, skins) no pasan por acá: los reescribe entero
+    /// `applyStoreEntitlements` en cada sync de StoreKit, que es lo correcto
+    /// para algo que se puede restaurar. La plata gastada no se restaura.
+    func creditStorePurchase(_ entry: ProductCatalog.Entry, transactionID: String) {
+        guard let economy, var player else { return }
+        // Por transacción y no por producto: comprar dos veces el mismo pack
+        // tiene que acreditar las dos.
+        guard player.meta.creditedPurchases.insert(transactionID).inserted else { return }
+
+        switch entry.entitlement {
+        case .coins, .starterPack:
+            guard let factor = entry.coinFactor else { return }
+            let amount = economy.passiveUnlockCost(forTier: player.run.maxTierReached) * factor
+            player.run.coins += amount
+            player.meta.lifetimeEarnings += amount
+        case .oro:
+            guard let amount = entry.oroAmount else { return }
+            // Sólo el balance. `oroEarnedLifetime` es lo que alimenta el
+            // multiplicador global y sube únicamente al reencarnar.
+            player.meta.oro += amount
+        case .removeAds, .skin:
+            return
+        }
+
+        self.player = player
+        refreshProjections()
+        scheduleSave()
+    }
+
+    /// Qué te da este pack, con el número concreto y ya formateado. La plata
+    /// depende de dónde estás parado, así que no se puede escribir en el
+    /// `.storekit`: sale calculada acá y la fila la muestra tal cual.
+    ///
+    /// Devuelve `nil` para lo que no es pack: la descripción de esos la pone
+    /// StoreKit y repetirla sería una segunda fuente de verdad.
+    func packRewardText(for entry: ProductCatalog.Entry) -> String? {
+        guard let economy, let player else { return nil }
+        switch entry.entitlement {
+        case .coins:
+            guard let factor = entry.coinFactor else { return nil }
+            let amount = economy.passiveUnlockCost(forTier: player.run.maxTierReached) * factor
+            return String(localized: "store.pack.coins \(CoinFormatter.string(from: amount))")
+        case .oro:
+            guard let amount = entry.oroAmount else { return nil }
+            // `String(amount)`: interpolar un Int en un `%@` manda `%lld` y el
+            // lookup falla, y en pantalla queda la clave cruda (trampa 5).
+            return String(localized: "store.pack.oro \(String(amount))")
+        case .starterPack:
+            guard let factor = entry.coinFactor else { return nil }
+            let amount = economy.passiveUnlockCost(forTier: player.run.maxTierReached) * factor
+            return String(localized: "store.pack.starter \(CoinFormatter.string(from: amount))")
+        case .removeAds, .skin:
+            return nil
+        }
+    }
+
     /// Skin actualmente equipada en la ficha de un tipo. La ausencia es la
     /// apariencia base: no se persiste un ID artificial para poder sumar skins
     /// data-driven sin migrar saves.

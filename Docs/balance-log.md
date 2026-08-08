@@ -662,3 +662,55 @@ arriba.
   de producto pendiente: si el dueño quiere volver a ~196 h, el camino medido más
   limpio es la corrida 3 (gate + urbano a 50), que da 196,04 h — pero mueve el
   acantilado a luxury (×39) y re-litiga la decisión 2 del HANDOFF.
+
+---
+
+# Los packs de la tienda: por qué el ORO pago no toca el multiplicador (RF-02b, 2026-08-07)
+
+No es una corrida de `pacing-sim`: es una decisión de monetización que **se tomó
+para no tener que volver a correrlo**. Queda acá porque el que la quiera cambiar
+tiene que saber contra qué choca.
+
+## La decisión
+
+**Comprar ORO acredita `meta.oro` y NO toca `meta.oroEarnedLifetime`.**
+
+El multiplicador global se computa sobre `oroEarnedLifetime`, no sobre el
+balance —así gastar ORO nunca nerfea—, así que la elección es exactamente si un
+pack puede comprar multiplicador. No puede.
+
+**Por qué**: la Ola 3 midió que `globalMultiplierPerOro` es el knob más peligroso
+de esta economía. A 0,25 el colapso de ×1,00 vuelve entero (corridas 12–14 de la
+tabla de arriba: 0,20 reabre island→moon, 0,25 y 0,35 lo empeoran). El valor
+elegido, 0,18, tiene margen de menos de un tercio antes de romper la forma de la
+curva. Un pack que inyectara `oroEarnedLifetime` movería ese knob por la puerta
+de atrás y por una cantidad que decide el jugador con la tarjeta, no el balance.
+
+Con la decisión tomada, el techo de lo que un pack puede hacer es **gastarse en
+`upgrades.json`**, que tiene topes de nivel: acotado por construcción.
+
+## La plata sí escala, y suma a `lifetimeEarnings`
+
+Un pack de plata da `passiveUnlockCost(tier máximo alcanzado) × factor`, el mismo
+idioma que el cofre de carrera (`coinChest`, `chestFactor` 6,0). Un monto fijo
+envejece mal: a las veinte horas el pack más caro es basura.
+
+Suma a `lifetimeEarnings` igual que el cofre, así que **sí genera ORO indirecto**
+— por el camino largo y sublineal de la fórmula (exponente 0,45), no por inyección.
+
+## Los factores, todos [TUNEABLE] en `products.json`
+
+| Producto | Qué da | Precio |
+|---|---|---|
+| `starter_pack` | ×40 + quitar ads + skin `mundialista` | 4,99 |
+| `coins_small` | ×15 | 0,99 |
+| `coins_medium` | ×90 | 4,99 |
+| `coins_large` | ×220 | 9,99 |
+| `oro_small` | 250 ORO | 1,99 |
+| `oro_medium` | 750 ORO | 4,99 |
+| `oro_large` | 2.000 ORO | 9,99 |
+
+Los montos de ORO se eligieron contra la tabla de arriba: la 1ª reencarnación da
+14 ORO (1e9 de lifetime) y a 1e12 da 306, así que 250 es "varias reencarnaciones
+tempranas" y 2.000 alcanza hasta bien entrado el juego. **No están medidos con el
+simulador** —`pacing-sim` no modela compras— y ese es su límite conocido.

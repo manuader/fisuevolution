@@ -150,7 +150,8 @@ duraciones colapsan y ningún offset puede esperar a un sheet que cierra el juga
 - Se retiraron los tres tintes globales (golden/galaxy/god). Cada personaje tiene
   **base + la suya**. ⚠️ Eran los tres productos IAP: **la tienda quedó vendiendo
   sólo `remove_ads`**. El sistema de tintes sigue entero, una skin futura entra
-  por config.
+  por config. (Ya no es el estado actual: RF-13 sumó las dos skins de arte propio
+  y RF-02b los packs — hoy la tienda vende **10 productos**.)
 - Las bloqueadas se ven en **silueta** de tinta plena.
 - El popup del premio gana "Ponérsela".
 - **El arte de las 36 skins está hecho y verificado.** Una (`home_office`) se
@@ -205,7 +206,8 @@ xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
 cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 20
 ```
 
-Estado: **EconomyKit 150 · app 156 · UI 17 · pipeline 25**, todo verde.
+Estado: **EconomyKit 150 · app 170 · UI 19 · pipeline 25**, todo verde
+(2026-08-07: los packs de la tienda sumaron 14 tests de app y 2 de UI).
 
 ⚠️ **`PacingTests` ya está repineado** a la torre de 37 tiers y entra en los 156.
 El único rojo preexistente es `AscentRenderingUITests` (frágil por la trampa 3):
@@ -448,6 +450,36 @@ El panel de debug es el ícono de herramientas del HUD.
    `CharacterNode` todos los hijos comparten z, y con `ignoresSiblingOrder`
    SpriteKit batchea labels y sprites del atlas por separado, así que contra el
    fondo pierden los cuerpos y sobreviven los labels.
+15. **`xcodegen generate` con Xcode ABIERTO rompe el proyecto que ves en Xcode**,
+   y el síntoma no se parece a la causa: Xcode dice
+   **`Missing package product 'EconomyKit'`** y el build falla.
+
+   Pasó el 2026-08-07. El `.xcodeproj` no se versiona y se regenera seguido, así
+   que la sesión abierta de Xcode se queda con el grafo de paquetes del archivo
+   viejo; cuando el archivo se reemplaza abajo, la referencia al paquete local
+   queda colgando. **El disco está perfecto** — se comprobó con un build de
+   device completo, que compiló y firmó:
+
+   ```bash
+   xcodebuild -scheme FisuEvolution -destination 'generic/platform=iOS' -configuration Debug build
+   ```
+
+   Y `xcodebuild -resolvePackageDependencies -scheme FisuEvolution` imprime
+   `EconomyKit: .../Packages/EconomyKit`, o sea que la resolución tampoco está rota.
+
+   **La cura es del lado de Xcode**, no del repo: cerrar el proyecto (⌘⇧W) y
+   volver a abrirlo. Si insiste, *File ▸ Packages ▸ Reset Package Caches*.
+
+   ⚠️ Y la prevención, que importa más si hay agentes trabajando: **cerrá Xcode
+   antes de dejar correr un frente**, o contá con reabrir el proyecto cuando
+   vuelvas. Un agente regenera el `.xcodeproj` cada vez que agrega o borra un
+   archivo Swift, que es todo el tiempo.
+
+   ⚠️ Corolario: **un build de línea de comando con `-derivedDataPath build/DD`
+   NO reproduce esto** —usa su propia DerivedData y su propio estado de
+   paquetes—, así que la suite puede estar entera en verde mientras Xcode no
+   compila. Para reproducir lo que ve Xcode hay que buildear **sin**
+   `-derivedDataPath`.
 
 ---
 

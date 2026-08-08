@@ -33,16 +33,27 @@ struct UpgradesMenuTests {
 
     // MARK: RF-04 — dos botones por fila, con el número de ese personaje
 
+    /// ⚠️ **Repineado el 2026-08-07** con el rediseño de la card. Este test
+    /// exigía que el texto **nombrara al personaje** ("+0,5/s por cada Fisura")
+    /// y que dijera **a cuánto saltás** ("×1 → ×2"). Las dos cosas las sacó una
+    /// decisión del dueño, y ninguna es una regresión:
+    ///
+    /// - el nombre ahora está en el encabezado de la card, al lado del retrato,
+    ///   así que repetirlo en cada línea era ruido que forzaba el renglón doble;
+    /// - el "después" lo insinúa el botón con su precio, y el pedido fue explícito:
+    ///   *"solo explicando cuál es el estado actual del upgrade, no el próximo"*.
+    ///
+    /// Lo que NO se relaja es que cada línea diga un número concreto de ESTE
+    /// personaje: eso es RF-04 y sigue asertado.
     @Test("cada fila dice qué hace cada botón, con el número de ese personaje")
     func rowsExplainBothButtons() async throws {
         let gameState = await makeGameState()
         let row = try #require(gameState.characterUpgradeRows.first)
         #expect(row.multiplierText.hasPrefix("×"), "la fila tiene que decir el multiplicador, no el nivel")
-        #expect(row.nextMultiplierText != row.multiplierText, "tiene que decir a cuánto saltás")
         #expect(row.passiveEffectText.contains("/s"), "el pasivo tiene que decir cuánto rinde por segundo")
         #expect(
-            row.passiveEffectText.contains(row.displayName),
-            "el texto tiene que nombrar al personaje, no hablar en abstracto"
+            gameState.characterIncomeText(for: row).contains(row.multiplierText),
+            "la línea del multiplicador tiene que mostrar el número, no un nivel abstracto"
         )
     }
 

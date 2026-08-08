@@ -102,59 +102,68 @@ struct UpgradesView: View {
     /// Cada uno lleva su costo y arriba dice, en plata y por segundo, qué le hace
     /// a ESTE personaje.
     private func characterRow(_ row: GameState.CharacterUpgradeRow) -> some View {
-        VStack(alignment: .leading, spacing: 9) {
-            // El encabezado es la vidriera del arte (RF-05): la carita ocupa el
-            // doble que antes y el nombre creció con ella para que la cabecera no
-            // quede desbalanceada. Las dos líneas de abajo siguen a ancho
-            // completo, así que agrandar la cara no le come lugar a lo que
-            // explica los botones (RF-04, RF-06).
-            HStack(spacing: 12) {
-                CharacterFace(
-                    faceKey: row.faceKey,
-                    tier: row.tier,
-                    name: row.displayName,
-                    identifier: "upgrades.character.\(row.id).face"
-                )
+        // El retrato es una BANDA de la card, no una viñeta dentro de ella: la
+        // ocupa entera de arriba abajo contra el borde izquierdo, y el recorte
+        // redondeado lo hace la card. Un círculo obliga a inscribir la cabeza en
+        // el diámetro y desperdicia las cuatro esquinas — a este tamaño eso es la
+        // mitad del arte. `fixedSize` en el texto es lo que decide el alto, y el
+        // retrato lo iguala con `maxHeight: .infinity`.
+        HStack(spacing: 0) {
+            CharacterPortrait(
+                faceKey: row.faceKey,
+                tier: row.tier,
+                name: row.displayName,
+                identifier: "upgrades.character.\(row.id).face"
+            )
+
+            VStack(alignment: .leading, spacing: 7) {
                 Text(verbatim: row.displayName)
                     .font(.system(.title3, design: .rounded).weight(.heavy))
                     .foregroundStyle(Color("PaletteInk"))
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)
                     .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 4)
-            }
 
-            upgradeLine(
-                text: Text("upgrades.character.income \(row.multiplierText) \(row.nextMultiplierText) \(row.displayName)"),
-                identifier: "upgrades.character.\(row.id).multiplier",
-                enabled: row.canAffordUpgrade,
-                tint: Color("PaletteBlue")
-            ) {
-                gameState.buyCharacterUpgrade(typeID: row.id)
-            } label: {
-                CoinIcon(size: 16)
-                Text(verbatim: CoinFormatter.string(from: row.upgradeCost)).monospacedDigit()
-            }
-
-            upgradeLine(
-                text: Text(verbatim: row.passiveEffectText),
-                identifier: "upgrades.character.\(row.id).passive",
-                enabled: row.canAffordPassive && !row.passiveUnlocked,
-                tint: Color("PaletteGreen")
-            ) {
-                gameState.buyPassiveFromMenu(typeId: row.id)
-            } label: {
-                if row.passiveUnlocked {
-                    Image(systemName: "checkmark")
-                    Text("upgrades.character.passive_owned")
-                } else {
+                upgradeLine(
+                    text: Text(verbatim: gameState.characterIncomeText(for: row)),
+                    identifier: "upgrades.character.\(row.id).multiplier",
+                    enabled: row.canAffordUpgrade,
+                    tint: Color("PaletteBlue")
+                ) {
+                    gameState.buyCharacterUpgrade(typeID: row.id)
+                } label: {
                     CoinIcon(size: 16)
-                    Text(verbatim: CoinFormatter.string(from: row.passiveCost)).monospacedDigit()
+                    Text(verbatim: CoinFormatter.string(from: row.upgradeCost)).monospacedDigit()
+                }
+
+                upgradeLine(
+                    text: Text(verbatim: row.passiveEffectText),
+                    identifier: "upgrades.character.\(row.id).passive",
+                    enabled: row.canAffordPassive && !row.passiveUnlocked,
+                    tint: Color("PaletteGreen")
+                ) {
+                    gameState.buyPassiveFromMenu(typeId: row.id)
+                } label: {
+                    if row.passiveUnlocked {
+                        Image(systemName: "checkmark")
+                        Text("upgrades.character.passive_owned")
+                    } else {
+                        CoinIcon(size: 16)
+                        Text(verbatim: CoinFormatter.string(from: row.passiveCost)).monospacedDigit()
+                    }
                 }
             }
+            .padding(.horizontal, 11)
+            .padding(.vertical, 10)
         }
-        .padding(10)
-        .background(cardBackground)
+        // El relleno va detrás y el recorte redondea el retrato contra la
+        // esquina; el TRAZO va de overlay al final, encima de todo. Si viaja
+        // dentro de `.background` queda debajo del contenido y el fondo opaco
+        // del retrato se lo come justo en el borde izquierdo — la card se veía
+        // partida en dos, con marco sólo alrededor del texto.
+        .background(RoundedRectangle(cornerRadius: 14).fill(Color("PaletteCream")))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color("PaletteInk"), lineWidth: 2))
     }
 
     /// Una línea de explicación + su botón. El texto explica; el botón cobra.
@@ -249,11 +258,11 @@ struct UpgradesView: View {
 /// La carita del personaje en el círculo de la fila (RF-05). Sin entrada en el
 /// manifest cae al círculo amarillo con el tier, así la pantalla no espera al
 /// arte para poder construirse.
-private struct CharacterFace: View {
-    /// Medía 38 pt hasta el 2026-08-07. El dueño pidió el **doble** para que se
-    /// aprecie el arte, y el arte lo banca: las caras son PNG de 192 px, o sea
-    /// que a 76 pt todavía sobran píxeles en un @2x.
-    static let side: CGFloat = 76
+private struct CharacterPortrait: View {
+    /// Ancho de la banda. El alto lo pone la card, así que el retrato crece con
+    /// el contenido en vez de imponerle un cuadrado. Las caras son PNG de 192 px:
+    /// a 104 pt de ancho todavía sobran píxeles en @2x.
+    static let width: CGFloat = 104
 
     let faceKey: String?
     let tier: Int
@@ -261,29 +270,50 @@ private struct CharacterFace: View {
     let identifier: String
 
     var body: some View {
-        Group {
-            if let faceKey, let face = UIArt.image(faceKey) {
-                face.resizable().scaledToFill()
-            } else {
-                Color("PaletteYellow").overlay(
-                    Text(verbatim: "T\(tier)")
-                        .font(.system(.title3, design: .rounded).weight(.heavy))
-                        .foregroundStyle(Color("PaletteInk"))
-                )
+        // La base es un rect vacío del tamaño de la banda y el arte va de
+        // OVERLAY, no al revés. Con el arte de base, `scaledToFill` desborda y
+        // el frame que reporta accesibilidad es el del sprite (un 150×150
+        // cuadrado), no el de la banda: `.clipped()` recorta el dibujo pero no
+        // corrige esa geometría. Medido el 2026-08-07 — el layout estaba bien y
+        // el test leía 150. Con `Color.clear` de base, el rect es el de la banda.
+        Color.clear
+            .frame(width: Self.width)
+            .frame(maxHeight: .infinity)
+            .overlay {
+                if let faceKey, let face = UIArt.image(faceKey) {
+                    // La banda es más alta que ancha y el arte es cuadrado, así
+                    // que se recorta a los costados —donde no hay cara— en vez
+                    // de dejar franjas de fondo.
+                    face.resizable().scaledToFill()
+                } else {
+                    Color("PaletteYellow").overlay(
+                        Text(verbatim: "T\(tier)")
+                            .font(.system(.title3, design: .rounded).weight(.heavy))
+                            .foregroundStyle(Color("PaletteInk"))
+                    )
+                }
             }
-        }
-        .frame(width: Self.side, height: Self.side)
-        // Respaldo crema: al doble de tamaño, cualquier margen transparente del
-        // PNG dejaría ver el fondo de la tarjeta por dentro del círculo.
-        .background(Circle().fill(Color("PaletteCream")))
-        .clipShape(Circle())
-        .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 3))
-        .shadow(color: Color("PaletteInk").opacity(0.22), radius: 3, y: 2)
-        // Es un elemento de accesibilidad y no decoración escondida porque el
-        // pedido del dueño es un TAMAÑO: una constante en el código no prueba
-        // que la fila no lo haya apretado, y el test de UI mide este frame.
-        .accessibilityElement()
-        .accessibilityLabel(Text(verbatim: name))
-        .accessibilityIdentifier(identifier)
+            // Respaldo crema: el PNG viene con alfa y sin esto se vería el panel
+            // a través de la banda.
+            .background(Color("PaletteCream"))
+            .clipped()
+            // Separa el retrato del texto sin encerrarlo: el marco de la card lo
+            // rodea por los otros tres lados.
+            .overlay(alignment: .trailing) {
+                Rectangle().fill(Color("PaletteInk")).frame(width: 2)
+            }
+            // El identificador va en una capa VACÍA encima, no en el retrato.
+            // Medido el 2026-08-07: el frame de accesibilidad de una vista que
+            // contiene arte desbordado reporta la geometría del sprite (150×150,
+            // el cuadrado de `scaledToFill`) y **no respeta `.clipped()`** —
+            // moverlo de lugar en la cadena de modificadores no lo cambia, se
+            // probaron tres variantes. Un `Color.clear` sin contenido adentro sí
+            // mide la banda, que es lo que el test tiene que juzgar.
+            .overlay {
+                Color.clear
+                    .accessibilityElement()
+                    .accessibilityLabel(Text(verbatim: name))
+                    .accessibilityIdentifier(identifier)
+            }
     }
 }

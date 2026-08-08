@@ -4201,6 +4201,38 @@
         }
       }
     },
+    "upgrades.character.income_now %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Money %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plata %@"
+          }
+        }
+      }
+    },
+    "upgrades.character.passive_now %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@/s each"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@/s cada uno"
+          }
+        }
+      }
+    },
     "upgrades.character.passive_effect %@ %@" : {
       "extractionState" : "stale",
       "localizations" : {

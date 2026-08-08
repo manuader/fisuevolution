@@ -12,18 +12,16 @@ extension GameState {
         let id: String
         let displayName: String
         let tier: Int
-        /// Clave del manifest para la carita (RF-05). Nil → el círculo "T7".
+        /// Clave del manifest para el retrato (RF-05). Nil → el bloque "T7".
         let faceKey: String?
         /// "×4" — lo que rinde HOY.
         let multiplierText: String
-        /// "×8" — lo que rinde si comprás.
-        let nextMultiplierText: String
         let upgradeCost: Double
         let canAffordUpgrade: Bool
         let passiveUnlocked: Bool
         let passiveCost: Double
         let canAffordPassive: Bool
-        /// "+2,5/s por cada Fisura" — qué hace el pasivo, con el número de ESTE
+        /// "+2,5/s cada uno" — qué rinde el pasivo, con el número de ESTE
         /// personaje ya multiplicado por su mejora y por el piso donde vive.
         let passiveEffectText: String
     }
@@ -88,7 +86,6 @@ extension GameState {
                 tier: type.tier,
                 faceKey: faceKey(for: type.id),
                 multiplierText: multiplierText(pow(factor, Double(level))),
-                nextMultiplierText: multiplierText(pow(factor, Double(level + 1))),
                 upgradeCost: cost,
                 canAffordUpgrade: coins >= cost,
                 passiveUnlocked: player.run.passiveUnlocked[type.id] == true,
@@ -121,6 +118,14 @@ extension GameState {
         EffectFormatter.text(EffectAmount(unit: .multiplier, value: value, isCapped: false))
     }
 
+    /// Qué rinde HOY este personaje, y nada más. Decía "Plata ×1 → ×2 para El
+    /// Fisura": tres datos en una línea, con el nombre repetido de la cabecera de
+    /// la card y un "después" que el botón ya insinúa con su precio. La fila
+    /// entra en el ancho que le deja el retrato sin achicar la letra.
+    func characterIncomeText(for row: CharacterUpgradeRow) -> String {
+        String(localized: "upgrades.character.income_now \(row.multiplierText)")
+    }
+
     /// Lo que rinde por segundo UNA instancia de este tipo con el pasivo puesto:
     /// misma fórmula que `IncomeTicker`, sin los multiplicadores globales (que
     /// aplican igual a todos y harían saltar el número con cada boost).
@@ -134,7 +139,8 @@ extension GameState {
         let rate = perInstance > 0 && perInstance < 1
             ? perInstance.formatted(.number.precision(.fractionLength(1)))
             : CoinFormatter.string(from: perInstance)
-        return String(localized: "upgrades.character.passive_effect \(rate) \(type.displayName)")
+        // Sin el nombre del personaje: ya está escrito arriba, en la card.
+        return String(localized: "upgrades.character.passive_now \(rate)")
     }
 
     /// Tipos que el jugador desbloqueó EN ESTA RUN para la pestaña Personajes.

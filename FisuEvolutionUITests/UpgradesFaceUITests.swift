@@ -1,27 +1,27 @@
 import XCTest
 
-/// RF-05 · que el arte de la carita se APRECIE.
+/// RF-05 · que el arte del personaje se APRECIE.
 ///
-/// El pedido del dueño fue textual: *"en la pestaña de upgrades hace que la foto
-/// de cada personaje sea el doble de grande (…) debe apreciarse bien el arte del
-/// juego"*. El círculo medía 38 pt de lado; el doble son 76.
+/// El pedido del dueño, del 2026-08-07: *"no quiero que la foto de la cara de los
+/// personajes esté embebida en un círculo, sino que tiene que ser la card quien
+/// contenga toda la imagen (en la parte izquierda)"*. O sea: el retrato es una
+/// **banda** de la card, de ancho fijo y alto el de la card entera.
 ///
-/// El tamaño se mide **en pantalla y no en el código**: una constante puede decir
-/// 76 y la fila apretar el círculo igual (el header comparte el ancho con el
-/// nombre). Por eso el círculo expone un accessibility identifier y lo que se
-/// asserta es su `frame`.
+/// Se mide **en pantalla y no en el código**: una constante puede decir 104 y la
+/// fila apretar la banda igual. Por eso el retrato expone un accessibility
+/// identifier y lo que se asserta es su `frame`.
 ///
 /// ⚠️ Se asserta por identifier y **nunca** por texto: el runner corre la app en
 /// inglés aunque el idioma de desarrollo del proyecto sea `es` (trampa 6 del
 /// HANDOFF).
 final class UpgradesFaceUITests: XCTestCase {
-    /// 38 pt era el tamaño viejo. El pedido es exactamente el doble.
-    private static let expectedSide: CGFloat = 76
+    /// El ancho de la banda, `CharacterPortrait.width`.
+    private static let expectedWidth: CGFloat = 104
 
     /// La captura va antes de los asserts a propósito: en rojo también quiero la
     /// foto, porque el criterio de este pedido es estético y se juzga mirando.
     @MainActor
-    func testEveryCharacterRowShowsItsFaceAtDoubleSize() throws {
+    func testEveryCharacterRowShowsItsPortraitAsAFullHeightBand() throws {
         continueAfterFailure = true
 
         let app = XCUIApplication()
@@ -64,15 +64,18 @@ final class UpgradesFaceUITests: XCTestCase {
             guard !frame.isEmpty else { continue }
             medidas += 1
             XCTAssertEqual(
-                frame.height, Self.expectedSide, accuracy: 1,
-                "la carita de \(face.identifier) mide \(frame.height) pt: el pedido es el doble de los 38 pt viejos"
+                frame.width, Self.expectedWidth, accuracy: 1,
+                "el retrato de \(face.identifier) mide \(frame.width) pt de ancho, no \(Self.expectedWidth)"
             )
-            XCTAssertEqual(
-                frame.width, frame.height, accuracy: 1,
-                "la carita de \(face.identifier) dejó de ser un círculo: \(frame.width)×\(frame.height)"
+            // Lo que separa una banda de una viñeta: el alto lo pone la card, así
+            // que tiene que ser MÁS alto que ancho. Un cuadrado acá significa que
+            // volvió a ser un recuadro metido adentro.
+            XCTAssertGreaterThan(
+                frame.height, frame.width,
+                "el retrato de \(face.identifier) volvió a ser una viñeta cuadrada: \(frame.width)×\(frame.height)"
             )
         }
-        XCTAssertGreaterThanOrEqual(medidas, 3, "no se pudo medir ninguna carita: la fila no la expone")
+        XCTAssertGreaterThanOrEqual(medidas, 3, "no se pudo medir ningún retrato: la fila no lo expone")
 
         // El nombre largo ("Empleado de Fast Food") vive más abajo y es el que
         // dice si el encabezado aguanta al lado de una carita del doble de

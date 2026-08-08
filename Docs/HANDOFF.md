@@ -512,7 +512,15 @@ handoff que dice "hecho" es exactamente lo que nadie vuelve a comprobar:
 | RF | Bloqueado por | Qué lo destraba |
 |---|---|---|
 | **02c** · alta en App Store Connect | La cuenta de Apple Developer (USD 99) | Que el dueño la saque |
-| **14** · música y efectos | **No hay fuente de audio.** Re-verificado el 2026-08-07: no queda ninguna herramienta de generación de audio en la sesión | Un MCP con música/SFX standalone, o audio CC0 a mano. **Integrarlo es cero Swift**: el contrato son los nombres de archivo |
+| **14** · música y efectos | **No hay fuente de audio.** Re-verificado el 2026-08-07: no queda ninguna herramienta de generación de audio en la sesión | Un MCP con música/SFX standalone, o audio CC0 a mano |
+
+📄 **Los dos están desarrollados hasta donde se puede sin el gate, en
+`Docs/HANDOFF-gates-pendientes.md`**: la lista de los 12 archivos de audio con su
+evento y su duración, y la tabla de los 10 productos lista para cargar en App
+Store Connect. Ahí también está corregido un error del spec: **"integrarlo es
+cero Swift" no es exacto** — RF-14 pide un efecto para "piso nuevo desbloqueado"
+y ese evento **no existe** (hoy suena `.evolution`, compartido con cualquier
+ascenso). Son tres líneas, y se hacen junto con el archivo.
 
 | Documento | Qué es |
 |---|---|
@@ -583,6 +591,7 @@ Anotado por si algún día importa, con su medición:
 | `balance-log.md` | **Toda decisión de números, con su costo medido** |
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
+| **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
 | **`SESION-2026-08-06-correcciones-de-playtest.md`** | **El estado de la sesión de las 16 correcciones: qué quedó abierto, qué está en vuelo y los gates humanos. Empezá por acá si retomás ese trabajo** |
 | `SESION-2026-08-05-fallback-de-contratacion.md` | El fallback del botón y la fila trasera invisible |
 | `superpowers/specs/`, `superpowers/plans/` | Specs y planes por feature |

@@ -1,9 +1,12 @@
 # HANDOFF — FisuEvolution, estado actual
 
-> **Empezá por acá.** Última actualización: 2026-08-05, commit `eb81544` + el
-> fallback de contratación de esta sesión.
+> **Empezá por acá.** Última actualización: **2026-08-07**, commit `eb858a6`.
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
+>
+> ⚠️ **Lo más importante que cambió**: el programa de las 16 correcciones del
+> playtest **se terminó**. Lo único que queda son dos gates humanos (§8). No hay
+> tarea de código pendiente en ese spec.
 
 ---
 
@@ -485,21 +488,53 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 8. Qué queda
 
-⚠️ **Esto cambió el 2026-08-06.** Un jugador externo terminó el juego de punta a
-punta y mandó **16 correcciones**. Ya no es cierto que no quede nada: hay un
-programa de trabajo entero, con su spec y sus planes.
+⚠️ **El programa de las 16 correcciones está CERRADO** (2026-08-07). Un jugador
+externo terminó el juego y mandó 16 pedidos; las cuatro olas se ejecutaron y
+**14 de los 16 están hechos y testeados**. Los otros dos no esperan código.
+
+Auditado el 2026-08-07 **contra el código, no contra los docs** — porque un
+handoff que dice "hecho" es exactamente lo que nadie vuelve a comprobar:
+
+| RF | Dónde se comprueba |
+|---|---|
+| 01 tutorial · 03 lista · 04 dos botones · 06 descripciones · 08 mapa · 15 carreras · 16 prestigio | sus tests de UI y unitarios |
+| 05 caras | **43 caras para 43 tipos concretos**: cobertura exacta del manifest |
+| 07 ORO | `oro.exponent` en 0,45, calibrado con `pacing-sim` (`balance-log`) |
+| 09 scroll | `BoardScene.floorDelta`, invertido, umbrales de 48 pt y 1,5× intactos |
+| 10 torre | 37 tiers en 10 pisos, `FloorTable` valida la cobertura |
+| 11 videos | `cooldownSeconds: 14400` por recompensa, en `meta.rewardedActivations` |
+| 12 boosts | los 6 gateados por piso en `boosts.json`: mate→alley, café→corporate, fernet→island, asado→mars, milanesa→galaxy, turbo→god_realm |
+| 13 skins pagas | las dos, vendidas contra el `.storekit` |
+| 02a/02b tienda | 10 productos; packs de plata, de ORO y el combo |
+
+**Los dos que faltan, y por qué ninguno es programación:**
+
+| RF | Bloqueado por | Qué lo destraba |
+|---|---|---|
+| **02c** · alta en App Store Connect | La cuenta de Apple Developer (USD 99) | Que el dueño la saque |
+| **14** · música y efectos | **No hay fuente de audio.** Re-verificado el 2026-08-07: no queda ninguna herramienta de generación de audio en la sesión | Un MCP con música/SFX standalone, o audio CC0 a mano. **Integrarlo es cero Swift**: el contrato son los nombres de archivo |
 
 | Documento | Qué es |
 |---|---|
-| `superpowers/specs/2026-08-06-correcciones-de-playtest-design.md` | **Los 16 pedidos como RF-01…RF-16**, con criterio de aceptación. Punto de entrada del programa |
-| `superpowers/specs/2026-08-06-siete-personajes-y-remapeo.md` | Los 8 personajes nuevos, la baja de `kiosco` y el remapeo de la torre a 10 pisos |
-| `superpowers/plans/2026-08-06-ola-0-preparacion.md` | Partir `GameState`, la pieza de descripción de efectos, el contenido y el audio |
-| `superpowers/plans/2026-08-06-ola-1-cinco-frentes.md` | Menú de mejoras, mapa de pisos, bonus, prestigio y tienda |
+| `superpowers/specs/2026-08-06-correcciones-de-playtest-design.md` | **Los 16 pedidos como RF-01…RF-16**, con criterio de aceptación |
+| `superpowers/specs/2026-08-06-siete-personajes-y-remapeo.md` | Los 8 personajes nuevos, la baja de `kiosco` y el remapeo a 10 pisos |
+| `superpowers/plans/2026-08-06-ola-{0,1,2}-*.md` | Los planes de ejecución, con el reparto por frentes |
 
-El trabajo está organizado en **cuatro olas** para que varios frentes corran en
-paralelo sin compartir archivos. Lo único bloqueado por la cuenta de Apple
-Developer es **RF-02c**, el alta de productos en App Store Connect: todo lo demás
-—incluida la tienda funcionando— queda verificable en el simulador antes de eso.
+### Lo que queda, y que NO sale del spec
+
+Encontrado de paso y sin dueño. Ninguno es urgente:
+
+- **La tienda se cuelga en "Loading…" cuando StoreKit no responde**, en vez de
+  caer al mensaje de error que sí existe. `Product.products(for:)` no vuelve
+  nunca y no hay timeout. Se ve lanzando por `simctl`, que **no** inyecta el
+  `.storekit` (sólo lo hace el esquema de Xcode, también en device).
+- **La fila de mejoras dice el nombre dos veces con VoiceOver**: la carita quedó
+  como elemento de accesibilidad con el nombre de etiqueta, y el `Text` de al
+  lado sigue ahí.
+- **El título flotante de los paneles deja pasar el texto por detrás** al
+  scrollear. Es de todos los paneles, no de uno.
+- **~81 MB de los ~115 del `.app` son los fondos**, con ~54% de píxeles que no
+  se ven nunca (`HANDOFF-perf.md`).
 
 **Tres decisiones del dueño de esa sesión que no se re-litigan:**
 
@@ -523,16 +558,14 @@ Developer es **RF-02c**, el alta de productos en App Store Connect: todo lo dem�
    siendo las dos del Fisura y Dios. Existen porque el repo pinea que todo
    personaje concreto tenga skin catalogada.
 
-Después de las cuatro olas sigue F6, que son gates humanos: cuenta Apple
-Developer (USD 99), nombre comercial, App Store Connect, TestFlight, submit. El
-ship-prep técnico ya está (`Distribution/`, entitlements, CI, privacy pages).
+**Con el spec cerrado, lo que sigue es F6**, que son todos gates humanos: cuenta
+Apple Developer (USD 99), nombre comercial, App Store Connect, TestFlight,
+submit. El ship-prep técnico ya está (`Distribution/`, entitlements, CI, privacy
+pages). Y antes que nada, **que el dueño lo juegue**: los bugs más caros de estas
+sesiones aparecieron mirando la pantalla, no corriendo tests.
 
 Anotado por si algún día importa, con su medición:
 
-- **Peso del `.app`**: 135 MB en Debug limpio, 115 en Release. **Los 11 fondos
-  solos son ~81 MB.** Reautorarlos a proporción vertical (~768×1664) es la única
-  ganancia grande que queda en tamaño de descarga; hoy ~54% de sus píxeles no se
-  ven nunca. Detalle en `Docs/HANDOFF-perf.md`.
 - **`director__directorio`** es una skin real pero floja (sin cambio cromático).
   Regenerarla cuesta cuota de Gemini; queda a criterio del dueño.
 - **Decisión de ads** (`Docs/ads-integration.md`): AdMob real o v1 sin ads.

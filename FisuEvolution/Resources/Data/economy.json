@@ -39,7 +39,7 @@
       "lastTier": 8,
       "capacity": 10,
       "incomeMultiplier": 2.0,
-      "backgroundOffset": 0.135,
+      "backgroundOffset": 0,
       "hireGateExempt": true
     },
     {
@@ -65,7 +65,7 @@
       "lastTier": 20,
       "capacity": 10,
       "incomeMultiplier": 17.0,
-      "backgroundOffset": 0.18
+      "backgroundOffset": 0
     },
     {
       "id": "moon",
@@ -74,7 +74,7 @@
       "lastTier": 24,
       "capacity": 10,
       "incomeMultiplier": 35.0,
-      "backgroundOffset": 0.12
+      "backgroundOffset": 0
     },
     {
       "id": "mars",
@@ -83,7 +83,7 @@
       "lastTier": 28,
       "capacity": 10,
       "incomeMultiplier": 72.0,
-      "backgroundOffset": 0.118
+      "backgroundOffset": 0
     },
     {
       "id": "solar",

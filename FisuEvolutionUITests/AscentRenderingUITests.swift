@@ -42,7 +42,12 @@ final class AscentRenderingUITests: XCTestCase {
         // filas se reparten ese alto — el ancla de cada una queda a medio
         // deambular de su extremo.
         let bottomInset: CGFloat = 110
-        let crowdTopRatio: CGFloat = 0.4
+        // Espejo de `BoardScene.crowdTopRatio`. Subió de 0,40 a 0,44 el
+        // 2026-08-10, cuando los 10 fondos se regeneraron con más piso: la banda
+        // de personajes creció con el arte. Este test está salteado por la
+        // trampa 3, pero un espejo desactualizado le haría calcular coordenadas
+        // de arrastre equivocadas el día que se arregle.
+        let crowdTopRatio: CGFloat = 0.44
         let rows: CGFloat = 2
         let floorY = cell * 0.55
         let topY = max(floorY, height * crowdTopRatio - bottomInset)

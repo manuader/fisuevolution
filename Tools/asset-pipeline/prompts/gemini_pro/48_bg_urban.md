@@ -2,7 +2,7 @@
 
 - **archivo**: `bg_urban.png`
 - **referencia**: adjuntar `dropbox/procesadas/bg_urban.ORIGINAL-2026-08.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -145,7 +145,7 @@ final class BoardScene: SKScene {
     /// **Éste es EL knob del alto de la multitud.** 0,5 los lleva a la mitad
     /// exacta de la pantalla; 0,4 los deja apenas arriba del tercio inferior,
     /// que es la zona que los fondos tienen autorada como transitable.
-    static let crowdTopRatio: CGFloat = 0.4
+    static let crowdTopRatio: CGFloat = 0.44
     /// Amplitud horizontal del deambular, centrada en el ancla (±la mitad).
     static let wanderHorizontalRange: CGFloat = 34
     /// Velocidad del deambular, en puntos por segundo. La duración de cada paso

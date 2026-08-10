@@ -1,7 +1,7 @@
 # 212 — Galaxia (Galaxy) — REGENERACIÓN hacia el registro divino (Background)
 
 - **archivo**: `bg_galaxy.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 > Regenera el fondo del prompt 55, que ya está `hecho`. Al retirarse `bg_cosmic`, este piso

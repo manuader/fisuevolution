@@ -186,6 +186,13 @@ final class GameState {
     var dailyClaim: DailyRewardManager.Claim?
     /// Lo escribe `+Bonus`: la oferta de share card y su descarte.
     var shareCardSubject: CharacterType?
+    /// Los bonus temporales corriendo, para los contadores del HUD.
+    ///
+    /// No llevan el tiempo restante adentro (ver `ActiveBonus`), así que este
+    /// array sólo cambia cuando un bonus arranca o se muere: la cuenta
+    /// regresiva no invalida SwiftUI. Lo arma `+Bonus`, lo escribe
+    /// `refreshProjections`.
+    private(set) var activeBonuses: [ActiveBonus] = []
     private(set) var showTapHint = false
     private(set) var showSpawnHint = false
     private(set) var showMergeHint = false
@@ -694,6 +701,9 @@ final class GameState {
 
         let skins = Array(player.meta.allOwnedSkins).sorted()
         if ownedSkins != skins { ownedSkins = skins }
+
+        let bonuses = makeActiveBonuses(player: player, content: content)
+        if activeBonuses != bonuses { activeBonuses = bonuses }
 
         let tapHint = !ftueTapped
         if showTapHint != tapHint { showTapHint = tapHint }

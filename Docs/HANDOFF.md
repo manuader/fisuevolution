@@ -124,6 +124,20 @@ la escena: por eso el doble toque hereda el prompt de carrera, el aviso de piso
 lleno, el ascenso y la cadena de celebraciones sin código propio. La geometría
 vive afuera, en `MergeTargeting`, y está pineada en `MergeTargetingTests`.
 
+### Contadores de bonus activos
+
+Bajo el HUD y a la izquierda, un chip por bonus temporal corriendo — boosts,
+videos y el premio del Abogado; los eventos no, que ya tienen su banner
+(2026-08-10, spec en `superpowers/specs/2026-08-10-contadores-de-bonus-activos-design.md`).
+
+⚠️ **La proyección `activeBonuses` NO lleva el tiempo restante**, y sacarlo de
+ahí es lo único que hace que esto sea gratis: lleva `expiresAt` y
+`totalDuration`, que son constantes, así que el array sólo cambia cuando un
+bonus arranca o se muere. Con el restante adentro, `refreshProjections`
+invalidaría SwiftUI una vez por segundo —y el aro, ocho— mientras hubiera un
+boost activo. El tiempo lo cuenta la vista con **un** timer de 1 Hz para toda la
+barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
+
 ---
 
 ## 4. Qué cambió en la sesión del 2026-08-05
@@ -416,6 +430,17 @@ El panel de debug es el ícono de herramientas del HUD.
       la trampa 4 con disfraz nuevo. Los toques por COORDENADA seguían
       funcionando, así que en el simulador no se notaba. Van de fondo y de 1×1,
       como `board.units` en `RootView`.
+
+   a-bis. **Y la forma general, encontrada el 2026-08-10 con los contadores de
+      bonus**: un `accessibilityIdentifier` puesto sobre un **contenedor que no
+      es elemento de accesibilidad** (un `VStack` pelado) **se propaga y pisa el
+      de sus hijos**. La barra tenía `hud.bonuses` en el `VStack` y cada chip su
+      `hud.bonus.chip`: en el árbol quedaba **un solo** elemento, llamado
+      `hud.bonuses`, y el test no encontraba ni un chip **mientras en pantalla
+      se veían perfectos**. La cura es no ponerle identificador al contenedor.
+      Se vio exportando los attachments del xcresult y mirando la captura —por
+      eso conviene tomarla ANTES de los asserts, que un assert que corta se
+      lleva puesta la evidencia.
 
    b. **`anchorPreference` PISA el valor del subárbol; no se suma.** Marcar la
       franja del HUD borraba de un saque los anclas del contador de monedas, de

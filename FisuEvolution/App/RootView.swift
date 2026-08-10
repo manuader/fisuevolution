@@ -126,6 +126,15 @@ struct GameBoardView: View {
                     onSettingsTap: { showConfig = true },
                     onMapOpen: { tutorialEvents.insert(.openedMap) }
                 )
+                // Los contadores de bonus van pegados al HUD y a la izquierda;
+                // el banner del evento, que es ancho y centrado, va debajo. Se
+                // monta sólo cuando hay algo que contar: así el timer de 1 Hz
+                // de la barra no existe durante una partida sin boosts.
+                if !gameState.activeBonuses.isEmpty {
+                    ActiveBonusBar(bonuses: gameState.activeBonuses)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading, 12)
+                }
                 if let event = gameState.activeEvent {
                     EventBannerView(event: event)
                         .transition(.move(edge: .top).combined(with: .opacity))

@@ -1348,6 +1348,22 @@
         }
       }
     },
+    "hud.bonus.active.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Active bonus"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonus activo"
+          }
+        }
+      }
+    },
     "hud.bonus.label" : {
       "extractionState" : "stale",
       "localizations" : {

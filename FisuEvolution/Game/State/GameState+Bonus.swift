@@ -297,6 +297,48 @@ extension GameState {
         }
     }
 
+    // MARK: Contadores de bonus activos (HUD)
+
+    /// Los bonus temporales corriendo, ya resueltos a chips.
+    ///
+    /// El catálogo se arma acá y no se cachea porque hay un portero barato antes:
+    /// sin ningún modificador vivo —que es el estado normal de la partida— no se
+    /// construye nada. Mientras un boost corre son siete entradas cada 125 ms,
+    /// que es ruido al lado de lo que ya hace `refreshProjections`.
+    func makeActiveBonuses(player: PlayerState, content: GameContent) -> [ActiveBonus] {
+        guard !player.run.activeModifiers.isEmpty else { return [] }
+        return ActiveBonusBuilder.bonuses(
+            from: player.run.activeModifiers,
+            catalog: Self.bonusCatalog(content: content),
+            now: Date().timeIntervalSince1970
+        )
+    }
+
+    /// `sourceKey` → con qué se dibuja y cuánto duraba. Es lo único que el
+    /// `ActiveModifier` no sabe de sí mismo: guarda cuándo vence, no cuánto
+    /// duraba, y el aro necesita las dos cosas.
+    private static func bonusCatalog(content: GameContent) -> [String: BonusSource] {
+        var catalog: [String: BonusSource] = [:]
+        for boost in content.boosts.boosts {
+            catalog["boost.\(boost.id)"] = BonusSource(
+                icon: .art(boost.iconKey), duration: boost.durationSeconds
+            )
+        }
+        for reward in content.rewardedAds.rewards {
+            guard let duration = reward.durationSeconds else { continue }
+            catalog["rewarded.\(reward.id)"] = BonusSource(
+                icon: .symbol("play.rectangle.fill"), duration: duration
+            )
+        }
+        for career in content.careers.careers {
+            guard let duration = career.durationSeconds else { continue }
+            catalog["career.\(career.id)"] = BonusSource(
+                icon: .symbol("briefcase.fill"), duration: duration
+            )
+        }
+        return catalog
+    }
+
     /// Las cuatro recompensas por video con su cuenta regresiva (RF-11).
     var rewardRows: [RewardRow] {
         guard let content else { return [] }

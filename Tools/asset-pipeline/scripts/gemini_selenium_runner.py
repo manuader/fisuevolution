@@ -33,6 +33,20 @@ REFERENCE = PIPELINE / "heroes" / "approved" / "fisura.png"
 MANIFEST = PIPELINE.parent.parent / "FisuEvolution" / "Resources" / "Data" / "assets_manifest.json"
 CHECKPOINT = PIPELINE / "state" / "selenium-run.json"
 
+# Errores de Selenium que significan "el DOM cambió debajo nuestro", NO "se
+# rompió todo". Se importan de forma defensiva porque el módulo se puede cargar
+# sin selenium instalado (los tests de cola y de PNG no lo necesitan).
+try:  # pragma: no cover - depende del entorno
+    from selenium.common.exceptions import (
+        StaleElementReferenceException,
+        WebDriverException,
+    )
+    TRANSIENT_DOM_ERRORS: tuple = (StaleElementReferenceException,)
+    BROWSER_ERRORS: tuple = (WebDriverException,)
+except ImportError:  # pragma: no cover
+    TRANSIENT_DOM_ERRORS = ()
+    BROWSER_ERRORS = ()
+
 
 def _applescript_string(text: str) -> str:
     """Literal AppleScript seguro para `keystroke` (escapa \\ y comillas)."""
@@ -219,7 +233,7 @@ class AssetRunner:
                 shutil.move(str(source), destination)
             if not verify_png(destination, self.minimum_bytes):
                 raise GenerationBlocked("el PNG no llegó íntegro a dropbox")
-        except (GenerationBlocked, OSError, RuntimeError) as error:
+        except (GenerationBlocked, OSError, RuntimeError) + BROWSER_ERRORS as error:
             self.checkpoint.record_failure(asset.key, str(error))
             return False
         mark_asset_done(asset)
@@ -307,12 +321,28 @@ class GeminiBrowser:
 
     def _wait_for(self, action, description: str):
         deadline = time.monotonic() + self.timeout
+        last_transient = None
         while time.monotonic() < deadline:
             self._check_blocked()
-            result = action()
+            try:
+                result = action()
+            except TRANSIENT_DOM_ERRORS as error:
+                # El DOM se rehizo mientras lo leíamos. Pasa de verdad: cuando
+                # Gemini muestra un mensaje de error propio, o mientras
+                # reemplaza el placeholder por la imagen final, el nodo que
+                # teníamos en la mano deja de existir. Es exactamente la
+                # condición "todavía no está listo", así que se reintenta hasta
+                # el deadline en vez de abortar.
+                last_transient = error
+                time.sleep(0.5)
+                continue
             if result:
                 return result
             time.sleep(0.5)
+        if last_transient is not None:
+            raise GenerationBlocked(
+                f"timeout esperando {description} (el DOM se rehizo: {type(last_transient).__name__})"
+            )
         raise GenerationBlocked(f"timeout esperando {description}")
 
     def _open_new_chat(self) -> None:

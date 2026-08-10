@@ -152,6 +152,65 @@ class GeminiSeleniumRunnerTests(unittest.TestCase):
         self.assertIn("next", checkpoint.data["failures"])
 
 
+class TransientBrowserErrorTests(unittest.TestCase):
+    """Un error del DOM no puede llevarse puesta la corrida entera.
+
+    Pasó el 2026-08-10 con 8 fondos por delante: Gemini mostró un mensaje de
+    error suyo, el DOM se rehizo debajo de Selenium y
+    `StaleElementReferenceException` subió por `_wait_for` → `generate` → `run`
+    → `main` y mató el proceso. `run` atrapaba sólo
+    `(GenerationBlocked, OSError, RuntimeError)`, y las excepciones de Selenium
+    no son ninguna de las tres.
+
+    Es la misma lección del bug #4 del handoff de arte —el batch no se frena por
+    UN fallo— pero por una puerta que aquel arreglo no cubría.
+    """
+
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.prompts = self.root / "prompts"
+        self.prompts.mkdir()
+        self.dropbox = self.root / "dropbox"
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def test_wait_for_survives_a_stale_element_and_retries(self):
+        """El DOM se rehace mientras leemos: hay que reintentar, no abortar."""
+        from selenium.common.exceptions import StaleElementReferenceException
+
+        browser = GeminiBrowser(timeout=5)
+        calls = {"n": 0}
+
+        def flaky():
+            calls["n"] += 1
+            if calls["n"] < 3:
+                raise StaleElementReferenceException("stale element not found")
+            return "listo"
+
+        self.assertEqual(browser._wait_for(flaky, "algo"), "listo")
+        self.assertEqual(calls["n"], 3)
+
+    def test_a_selenium_error_fails_only_that_asset(self):
+        """Y si igual explota, se anota el fallo y sigue el próximo."""
+        from selenium.common.exceptions import WebDriverException
+
+        asset_path = write_prompt(self.prompts, "04_boom")
+        asset = parse_asset(asset_path)
+
+        class ExplodingBrowser:
+            def generate(self, _asset, _reference, _downloads):
+                raise WebDriverException("stale element reference")
+
+        checkpoint = RunCheckpoint(self.root / "state" / "selenium-run.json")
+        runner = AssetRunner(ExplodingBrowser(), self.dropbox, None, checkpoint)
+
+        self.assertFalse(runner.run(asset))
+        self.assertIn("boom", checkpoint.data["failures"])
+        self.assertIn("estado**: pendiente", asset_path.read_text(encoding="utf-8"))
+
+
 if __name__ == "__main__":
     unittest.main()
 

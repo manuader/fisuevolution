@@ -70,6 +70,45 @@ final class BoardScene: SKScene {
     private static let flightMinDuration: TimeInterval = 0.6
     private static let flightMaxDuration: TimeInterval = 0.9
 
+    // MARK: Fusión asistida
+
+    /// Slots destacados por un gesto de fusión en curso: los hermanos del que
+    /// estás arrastrando, o el que viaja hacia su par en el doble toque.
+    /// Mientras están acá suben por encima de la multitud y no deambulan.
+    ///
+    /// Un `Set` y no una propiedad del nodo porque lo consulta
+    /// `refreshCrowdDepth`, que corre todos los frames: un `contains` sobre ≤10
+    /// slots no aloca nada.
+    private var mergeCandidates: Set<Int> = []
+    /// Último tap sobre un personaje, para reconocer el doble toque.
+    private var lastTapSlot = -1
+    private var lastTapTime: TimeInterval = 0
+    private var lastAssistedMergeTime: TimeInterval = 0
+    /// Cuánto sube un candidato por encima de su profundidad de multitud. El
+    /// `depthZ` de la franja va de ~−0,3 a ~2,0 y el arrastrado está en 50: con
+    /// 5 el candidato le gana a toda la multitud, pierde contra el que llevás en
+    /// la mano y conserva la profundidad relativa **entre** candidatos, así que
+    /// un par no se dibuja plano.
+    ///
+    /// Interno, no privado: `BoardGestureTests` lo pinea, igual que `fieldBaseZ`.
+    static let candidateZLift: CGFloat = 5
+    static let candidateScale: CGFloat = 1.12
+    private static let candidatePopDuration: TimeInterval = 0.1
+    /// Ventana del doble toque. La de iOS, para que el gesto se sienta como el
+    /// del sistema.
+    static let doubleTapWindow: TimeInterval = 0.3
+    /// Gracia entre dos fusiones por doble toque.
+    ///
+    /// Tocar rápido **es** un doble toque: sin esta gracia, una ráfaga de taps
+    /// para ganar monedas encadena el piso entero en dos segundos. No se puede
+    /// evitar del todo el disparo accidental —los dos primeros toques de una
+    /// ráfaga son indistinguibles de un doble toque deliberado— y tampoco hace
+    /// falta: fusionar nunca es una pérdida. Lo que hay que evitar es la
+    /// cascada.
+    static let assistedMergeCooldown: TimeInterval = 0.8
+    /// Lo que tarda el compañero en llegar hasta el que tocaste.
+    private static let assistedMergeSlide: TimeInterval = 0.18
+
     // FTUE hint
     private var hintNode: SKShapeNode?
     private var hintTargetCell = -1
@@ -213,9 +252,14 @@ final class BoardScene: SKScene {
     /// de fila: con el z congelado en el ancla, el que quedó adelante se dibuja
     /// detrás. Son ≤10 nodos por frame. El que se está arrastrando queda afuera
     /// porque tiene su propio z mientras dura el gesto.
+    ///
+    /// El realce de los candidatos se aplica **acá y no una sola vez al
+    /// agarrar**: este método corre todos los frames y pisaría cualquier z que
+    /// se hubiera asignado afuera.
     private func refreshCrowdDepth() {
-        for node in characterNodes.values where node !== dragNode {
+        for (slot, node) in characterNodes where node !== dragNode {
             let z = depthZ(for: node.position)
+                + (mergeCandidates.contains(slot) ? Self.candidateZLift : 0)
             if node.zPosition != z { node.zPosition = z }
         }
     }
@@ -367,13 +411,16 @@ final class BoardScene: SKScene {
     ///
     /// Se recorre el campo entero en vez de guardar referencias: entre que se
     /// congela y que se suelta puede haber pasado un merge, y esos nodos ya
-    /// volvieron al pool. Lo único que hay que respetar es el que se está
-    /// arrastrando, que maneja su propio paseo en `touchesEnded`/`cancelDrag`.
+    /// volvieron al pool. Lo único que hay que respetar es lo que congeló otro
+    /// gesto: el que se está arrastrando —que maneja su propio paseo en
+    /// `touchesEnded`/`cancelDrag`— y los candidatos a fusión, que si no
+    /// recuperarían el paseo en medio de un arrastre.
     private func releaseSpotlitNode() {
         guard spotlitNode != nil else { return }
         spotlitNode = nil
-        for node in characterNodes.values
-        where node !== dragNode && node.action(forKey: "wander") == nil {
+        for (slot, node) in characterNodes
+        where node !== dragNode && !mergeCandidates.contains(slot)
+            && node.action(forKey: "wander") == nil {
             startWander(node)
         }
     }
@@ -418,6 +465,7 @@ final class BoardScene: SKScene {
             removeAction(forKey: Self.longPressKey)
             node.zPosition = 50
             node.run(.scale(to: 1.08, duration: 0.08))
+            highlightMergeCandidates(of: node)
         }
         if isDragging {
             node.position = location
@@ -461,26 +509,41 @@ final class BoardScene: SKScene {
         guard isDragging else {
             // Tap corto: §2.3 regla 1.
             dragNode = nil
-            if let result = gameState.registerTap(cellIndex: node.cellIndex) {
-                runTapFeedback(on: node, result: result)
-            }
+            handleTap(on: node, at: touch.timestamp)
             return
         }
 
         let dropPoint = touch.location(in: fieldNode)
-        guard let targetCell = cellIndex(at: dropPoint) else {
+        guard let targetCell = dropTarget(at: dropPoint, dragging: node) else {
             cancelDrag(snapBack: true)
             return
         }
+        resolveDrop(from: dragOriginCell, to: targetCell, at: dropPoint, sourceNode: node)
+    }
 
-        switch gameState.handleDrop(fromCell: dragOriginCell, toCell: targetCell) {
+    /// Resuelve un drop ya decidido y corre su feedback.
+    ///
+    /// Es el **único** camino de fusión de la escena: el arrastre y el doble
+    /// toque entran los dos por acá, así que no pueden divergir. Por eso el
+    /// doble toque hereda gratis el prompt de carrera, el aviso de piso de
+    /// destino lleno, el ascenso, el reveal y la cadena de celebraciones.
+    private func resolveDrop(
+        from originCell: Int,
+        to targetCell: Int,
+        at dropPoint: CGPoint,
+        sourceNode node: CharacterNode
+    ) {
+        dragNode = nil
+        isDragging = false
+        clearMergeCandidates()
+
+        switch gameState.handleDrop(fromCell: originCell, toCell: targetCell) {
         case .merged(let cell, let evolvedTo, let promotedType, let promotedToFloor, let unlockedFloorID):
             // `layoutBoard()` recicla los nodos del campo. Tomamos la coordenada
             // mundial antes de reconstruirlo para animar una copia independiente.
             let promotionStart = promotedToFloor == nil
                 ? nil
                 : fieldNode.convert(node.position, to: backgroundLayer)
-            dragNode = nil
             layoutBoard()
             // Si el resultado ascendió de piso (F7 §3.4), ya no está en este piso:
             // feedback en el punto del drop. F7.2 agrega la animación de vuelo.
@@ -533,10 +596,12 @@ final class BoardScene: SKScene {
                 revealEvolution()
             }
         case .moved:
-            dragNode = nil
             layoutBoard()
         case .careerPending, .snapBack:
-            cancelDrag(snapBack: true)
+            // No pasa por `cancelDrag`: el arrastre ya se dio por terminado
+            // arriba, y el doble toque nunca tuvo uno. Lo que hay que deshacer
+            // es el desplazamiento del personaje, que es lo mismo en los dos.
+            returnToAnchor(node)
         }
     }
 
@@ -550,27 +615,216 @@ final class BoardScene: SKScene {
         guard let node = dragNode else { return }
         dragNode = nil
         isDragging = false
-        // El z lo retoma `refreshCrowdDepth` en el frame siguiente, ya con el
-        // nodo fuera del arrastre. Antes se lo dejaba en 0 durante la vuelta, y
-        // ese 0 caía por debajo del fondo en cualquier piso que no fuera el
-        // primero: el personaje desaparecía los 0,15 s del snap-back.
-        if snapBack {
-            node.run(.sequence([
-                .group([
-                    .move(to: position(ofCell: node.cellIndex), duration: 0.15),
-                    .scale(to: 1.0, duration: 0.15),
-                ]),
-                .run { [weak self, weak node] in
-                    guard let node else { return }
-                    self?.startWander(node)
-                },
-            ]))
-        } else {
+        clearMergeCandidates()
+        returnToAnchor(node, animated: snapBack)
+    }
+
+    /// Devuelve un personaje a su ancla y le retoma el paseo.
+    ///
+    /// Es la parte de `cancelDrag` que no habla del estado del arrastre: el
+    /// doble toque también tiene que poder deshacer su deslizamiento cuando la
+    /// fusión se rechaza (piso de destino lleno) o queda pendiente (elección de
+    /// carrera).
+    ///
+    /// El z lo retoma `refreshCrowdDepth` en el frame siguiente, ya con el nodo
+    /// fuera del gesto. Antes se lo dejaba en 0 durante la vuelta, y ese 0 caía
+    /// por debajo del fondo en cualquier piso que no fuera el primero: el
+    /// personaje desaparecía los 0,15 s del snap-back.
+    private func returnToAnchor(_ node: CharacterNode, animated: Bool = true) {
+        // Un paseo a medio correr le pelearía el movimiento a la vuelta durante
+        // los 0,15 s del snap-back: al candidato de una fusión rechazada
+        // `clearMergeCandidates` ya se lo devolvió.
+        node.removeAction(forKey: "wander")
+        guard animated else {
             node.position = position(ofCell: node.cellIndex)
             node.setScale(1.0)
             startWander(node)
+            return
+        }
+        node.run(.sequence([
+            .group([
+                .move(to: position(ofCell: node.cellIndex), duration: 0.15),
+                .scale(to: 1.0, duration: 0.15),
+            ]),
+            .run { [weak self, weak node] in
+                guard let node else { return }
+                self?.startWander(node)
+            },
+        ]))
+    }
+
+    // MARK: - Fusión asistida
+
+    /// Instantánea de la multitud para `MergeTargeting`, con las posiciones
+    /// REALES. Se arma por gesto, nunca por frame.
+    private func targetingUnits() -> [MergeTargeting.Unit] {
+        characterNodes.map {
+            MergeTargeting.Unit(slot: $0.key, typeId: $0.value.typeId, position: $0.value.position)
         }
     }
+
+    /// Al levantar un personaje, sus hermanos del mismo tipo se destacan: suben
+    /// por encima de la multitud, pegan un pop y **dejan de deambular**.
+    ///
+    /// Lo de dejar de deambular es la mitad del valor y no estaba en el pedido:
+    /// a 44 pt/s el blanco se te corre más de medio cuerpo por segundo mientras
+    /// apuntás. Es el mismo mecanismo con el que el recorte del tutorial congela
+    /// a su personaje iluminado.
+    ///
+    /// Se llama al ARRANCAR el arrastre y no en el `touchesBegan`: un tap para
+    /// ganar monedas dura ~100 ms y es la acción más repetida del juego, así que
+    /// prender y apagar el realce en cada toque sería un parpadeo permanente.
+    private func highlightMergeCandidates(of node: CharacterNode) {
+        let dragged = MergeTargeting.Unit(
+            slot: node.cellIndex, typeId: node.typeId, position: node.position
+        )
+        mergeCandidates = MergeTargeting.partnerSlots(of: dragged, among: targetingUnits())
+        for slot in mergeCandidates {
+            guard let candidate = characterNodes[slot] else { continue }
+            candidate.removeAction(forKey: "wander")
+            candidate.run(
+                .scale(to: Self.candidateScale, duration: Self.candidatePopDuration),
+                withKey: "candidate"
+            )
+        }
+    }
+
+    /// Devuelve a los destacados a la multitud. Idempotente: la llaman los dos
+    /// finales del arrastre y también `resolveDrop`.
+    private func clearMergeCandidates() {
+        guard !mergeCandidates.isEmpty else { return }
+        let slots = mergeCandidates
+        mergeCandidates = []
+        for slot in slots {
+            guard let candidate = characterNodes[slot] else { continue }
+            candidate.removeAction(forKey: "candidate")
+            candidate.run(.scale(to: 1.0, duration: Self.candidatePopDuration))
+            startWander(candidate)
+        }
+    }
+
+    /// Punto del campo → slot destino. La regla vive en `MergeTargeting`.
+    private func dropTarget(at point: CGPoint, dragging node: CharacterNode) -> Int? {
+        MergeTargeting.dropTarget(
+            at: point,
+            dragging: MergeTargeting.Unit(
+                slot: node.cellIndex, typeId: node.typeId, position: node.position
+            ),
+            units: targetingUnits(),
+            anchors: anchorPoints,
+            cellSize: cellSize
+        )
+    }
+
+    /// Tap corto (§2.3 regla 1) y, si es el segundo sobre el mismo personaje, la
+    /// fusión asistida.
+    ///
+    /// El tap **cobra siempre y primero**: el loop principal del juego no puede
+    /// pagar los 0,3 s de latencia que costaría esperar a ver si viene un
+    /// segundo toque. La fusión es un efecto adicional del segundo toque, no un
+    /// modo distinto — y así el jugador tampoco pierde monedas por fusionar.
+    private func handleTap(on node: CharacterNode, at timestamp: TimeInterval) {
+        let slot = node.cellIndex
+        if let result = gameState.registerTap(cellIndex: slot) {
+            runTapFeedback(on: node, result: result)
+        }
+
+        let isDoubleTap = slot == lastTapSlot && timestamp - lastTapTime <= Self.doubleTapWindow
+        lastTapSlot = slot
+        lastTapTime = timestamp
+        guard isDoubleTap,
+              timestamp - lastAssistedMergeTime > Self.assistedMergeCooldown,
+              let partner = nearestMergePartner(of: node)
+        else { return }
+
+        lastAssistedMergeTime = timestamp
+        // Sin esto, tres toques seguidos serían dos fusiones: el tercero forma
+        // par con el segundo.
+        lastTapSlot = -1
+        runAssistedMerge(partner: partner, into: node)
+    }
+
+    private func nearestMergePartner(of node: CharacterNode) -> CharacterNode? {
+        let tapped = MergeTargeting.Unit(
+            slot: node.cellIndex, typeId: node.typeId, position: node.position
+        )
+        guard let partner = MergeTargeting.nearestPartner(
+            of: tapped,
+            among: targetingUnits(),
+            within: cellSize * MergeTargeting.doubleTapReachRatio
+        ) else { return nil }
+        return characterNodes[partner.slot]
+    }
+
+    /// El compañero se acerca y se funde con el que tocaste. La fusión en sí la
+    /// resuelve `resolveDrop`, el mismo camino que el arrastre.
+    ///
+    /// El que viaja entra a `mergeCandidates` mientras dura el viaje: es lo que
+    /// lo mantiene por encima de la multitud, porque `refreshCrowdDepth` le
+    /// pisaría cualquier z asignado a mano en el frame siguiente.
+    ///
+    /// No lleva haptic propio: la fusión ya trae el suyo 0,18 s después y dos
+    /// vibraciones seguidas se leen como un error, no como un gesto que enganchó.
+    /// El deslizamiento arranca en el frame siguiente al toque, así que la
+    /// confirmación es visual e inmediata igual.
+    private func runAssistedMerge(partner: CharacterNode, into target: CharacterNode) {
+        let originCell = partner.cellIndex
+        let targetCell = target.cellIndex
+        // El destino sigue deambulando durante el viaje, pero a 44 pt/s son 8 pt
+        // en 0,18 s: invisible contra un cuerpo de ~117 pt de ancho. Congelarlo
+        // costaría tener que descongelarlo en los caminos de rechazo.
+        let meetingPoint = target.position
+
+        partner.removeAction(forKey: "wander")
+        mergeCandidates.insert(originCell)
+
+        let reduceMotion = UIAccessibility.isReduceMotionEnabled
+        let approach = SKAction.move(to: meetingPoint, duration: Self.assistedMergeSlide)
+        approach.timingMode = .easeIn
+        let slide: SKAction = reduceMotion
+            ? .move(to: meetingPoint, duration: 0.01)
+            : .group([
+                approach,
+                .sequence([
+                    .scale(to: 1.16, duration: Self.assistedMergeSlide * 0.5),
+                    .scale(to: 0.94, duration: Self.assistedMergeSlide * 0.5),
+                ]),
+            ])
+
+        partner.run(.sequence([
+            slide,
+            .run { [weak self, weak partner] in
+                guard let self, let partner else { return }
+                self.resolveDrop(
+                    from: originCell, to: targetCell, at: meetingPoint, sourceNode: partner
+                )
+            },
+        ]), withKey: "assistedMerge")
+    }
+
+    #if DEBUG
+    /// Puntos de entrada del test: ejecutan las MISMAS funciones que los gestos,
+    /// para que lo que se fija sea el comportamiento y no una copia suya. Sin
+    /// `SKView` no hay quien evalúe las acciones, así que el test observa el
+    /// estado que dejan (z, escala, paseo) y no el final de la animación.
+    func simulateGrab(slot: Int) {
+        guard let node = characterNodes[slot] else { return }
+        highlightMergeCandidates(of: node)
+        refreshCrowdDepth()
+    }
+
+    func simulateRelease() {
+        clearMergeCandidates()
+        refreshCrowdDepth()
+    }
+
+    func simulateTap(slot: Int, at timestamp: TimeInterval) {
+        guard let node = characterNodes[slot] else { return }
+        handleTap(on: node, at: timestamp)
+    }
+
+    func debugNode(atSlot slot: Int) -> CharacterNode? { characterNodes[slot] }
+    #endif
 
     /// Hit-testing returns the deepest node (sprite/label); climb to the unit.
     private func characterNode(at point: CGPoint) -> CharacterNode? {
@@ -1311,24 +1565,4 @@ final class BoardScene: SKScene {
         return anchorPoints[index]
     }
 
-    /// Punto del campo → cellIndex del ancla más cercana (radio generoso), nil
-    /// si cae lejos de toda ancla.
-    private func cellIndex(at point: CGPoint) -> Int? {
-        guard cellSize > 0, !anchorPoints.isEmpty else { return nil }
-        let occupied = Set(characterNodes.keys)
-        var bestOcc: (index: Int, distance: CGFloat)?
-        var bestAny: (index: Int, distance: CGFloat)?
-        for (index, anchor) in anchorPoints.enumerated() {
-            let distance = hypot(point.x - anchor.x, point.y - anchor.y)
-            if bestAny == nil || distance < bestAny!.distance { bestAny = (index, distance) }
-            if occupied.contains(index), bestOcc == nil || distance < bestOcc!.distance {
-                bestOcc = (index, distance)
-            }
-        }
-        // Para MERGEAR: preferir una celda ocupada cercana (soltás sobre otro
-        // personaje aunque estén amontonados). Si no hay, la celda más cercana.
-        if let occ = bestOcc, occ.distance <= cellSize * 0.95 { return occ.index }
-        if let any = bestAny, any.distance <= cellSize * 1.05 { return any.index }
-        return nil
-    }
 }

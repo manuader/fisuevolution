@@ -104,6 +104,26 @@ Una sola `SKScene` con `SKCameraNode`. Los `FloorNode` se apilan a
 `(0, i × alto)`; sólo vive el rango visible ±1. Reveal, flash y textos van
 re-parenteados a un overlay de cámara para que no se queden atrás al navegar.
 
+**Fusionar tiene dos gestos** (2026-08-10, spec en
+`superpowers/specs/2026-08-10-fusion-asistida-design.md`):
+
+- **Arrastrar.** Al levantar a alguien, los del **mismo tipo** se destacan: se
+  congelan (dejan de deambular), suben `candidateZLift` por encima de la
+  multitud, pegan un pop y capturan el drop a 1,5 celdas en vez de 0,95.
+- **Doble toque.** Dos toques sobre el mismo personaje dentro de 0,3 s traen al
+  compañero más cercano que esté a ≤2 celdas y lo funden. El tap **cobra
+  siempre y primero**; la fusión es un efecto adicional del segundo toque.
+
+⚠️ **Tocar rápido ES un doble toque** y no hay forma de distinguirlo: los dos
+primeros toques de cualquier ráfaga van a fusionar. No es un problema —fusionar
+nunca es una pérdida— pero la cascada sí, y por eso hay
+`assistedMergeCooldown` de 0,8 s. No lo saques.
+
+Los dos gestos salen por `resolveDrop`, que es el **único** camino de fusión de
+la escena: por eso el doble toque hereda el prompt de carrera, el aviso de piso
+lleno, el ascenso y la cadena de celebraciones sin código propio. La geometría
+vive afuera, en `MergeTargeting`, y está pineada en `MergeTargetingTests`.
+
 ---
 
 ## 4. Qué cambió en la sesión del 2026-08-05
@@ -292,9 +312,22 @@ El panel de debug es el ícono de herramientas del HUD.
    ⚠️ **`EconomyLoopUITests.testTappingEarnsCoinsAndSpawnButtonExists` también es
    flaky**, por la misma trampa 3: falló una vez y pasó las tres siguientes sin
    que nadie tocara nada. No es un tercer bug, es el mismo patrón.
-3. **Los drags por coordenadas fijas fallan seguido** desde que el reconciliador
-   conserva la posición deambulada: los personajes ya no vuelven a su ancla en
-   cada relayout. Si automatizás un merge, contá con reintentos.
+3. ~~**Los drags por coordenadas fijas fallan seguido**~~ **ARREGLADO en buena
+   parte (2026-08-10, fusión asistida).** La causa era peor que "los tests son
+   frágiles": la escena resolvía el drop contra el **ancla lógica** del slot y
+   no contra dónde estaba parado el personaje, que desde que el reconciliador
+   conserva la posición deambulada difieren hasta media celda. O sea que
+   **soltar encima de alguien te mudaba al hueco de al lado**, en el juego y no
+   sólo en el runner.
+
+   Ahora la decisión vive en `MergeTargeting.dropTarget`, que mide contra las
+   posiciones **reales**; las anclas quedan sólo para los slots vacíos, que no
+   tienen nodo. `mergeTheHighlightedPair` pasó de barrer ocho coordenadas a un
+   doble toque.
+
+   ⚠️ Lo que **no** cambió: los personajes siguen deambulando, así que un gesto
+   automatizado por coordenada fija sigue necesitando reintentos para acertarle
+   al CUERPO. Lo que ya no hace falta es barrer el DESTINO.
 4. **"Failed to scroll to visible" en un test de UI casi nunca es el botón**: es
    algo modal tapándolo. Exportá los attachments del xcresult y mirá la captura.
 5. **Claves de localización con `%@` interpoladas con un `Int`** salen como la

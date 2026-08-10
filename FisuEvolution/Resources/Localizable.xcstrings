@@ -4021,13 +4021,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "See two matching characters? Drag one onto the other to evolve them."
+            "value" : "Two matching characters close together? Double-tap one and they merge. Or drag one onto the other."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿Ves dos iguales? Arrastrá uno sobre el otro y evolucionan a algo mejor."
+            "value" : "¿Dos iguales cerca? Tocá dos veces a uno y se fusionan. O arrastrá uno sobre el otro."
           }
         }
       }
@@ -4186,6 +4186,7 @@
       }
     },
     "upgrades.character.income %@ %@ %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4202,6 +4203,7 @@
       }
     },
     "upgrades.character.income_now %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4213,22 +4215,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plata %@"
-          }
-        }
-      }
-    },
-    "upgrades.character.passive_now %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%@/s each"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%@/s cada uno"
           }
         }
       }
@@ -4246,6 +4232,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "+%1$@/s solo, por cada %2$@"
+          }
+        }
+      }
+    },
+    "upgrades.character.passive_now %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@/s each"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@/s cada uno"
           }
         }
       }

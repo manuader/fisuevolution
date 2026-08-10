@@ -200,35 +200,34 @@ final class TutorialUITests: XCTestCase {
         XCTFail("tocar el recorte no llevó al paso '\(next)' en \(attempts) intentos")
     }
 
-    /// Arrastra el personaje iluminado sobre su par.
+    /// Fusiona el par iluminado con un doble toque.
     ///
-    /// ⚠️ No se usan coordenadas fijas: el origen sale del recorte publicado
-    /// —que es la posición real del nodo— y el destino se barre, porque desde
-    /// que el reconciliador conserva la posición deambulada un drag por
-    /// coordenadas fijas falla seguido (trampa 3). Un intento que cae en piso
-    /// vacío MUEVE al personaje, así que cada intento parte de la posición nueva.
+    /// Antes esto arrastraba, y barría **ocho** coordenadas de destino para
+    /// conseguirlo: la escena resolvía el drop contra el ANCLA del slot y no
+    /// contra dónde estaba parado el personaje, que desde el reconciliador
+    /// difieren hasta media celda (trampa 3 del HANDOFF). El doble toque no
+    /// necesita puntería en el destino —el compañero lo busca la escena— así que
+    /// alcanza con tocar dos veces el recorte, que es la posición real del nodo.
+    ///
+    /// Se conservan reintentos por la razón de siempre: consultar un elemento
+    /// desde el runner cuesta ~2 s y el primer intento de una corrida puede
+    /// llegar mientras la escena todavía acomoda el campo. Un doble toque que
+    /// cae al lado no hace nada (no hay nodo ahí), así que reintentar no puede
+    /// hacer pasar el test por la razón equivocada.
     @MainActor
-    private func mergeTheHighlightedPair(_ app: XCUIApplication) throws {
+    private func mergeTheHighlightedPair(_ app: XCUIApplication, attempts: Int = 4) throws {
         let marker = app.otherElements["tutorial.step"]
-        let width = app.frame.width
-        // La escena resuelve el destino contra el ANCLA del slot, que está a los
-        // PIES del personaje: apuntar al centro del cuerpo deja el drop justo en
-        // el borde del radio de captura. Los pies caen cerca del borde inferior
-        // del recorte, que abraza la misma elipse que el hit-testing.
-        let candidates: [CGFloat] = [0.35, 0.29, 0.41, 0.23, 0.47, 0.53, 0.17, 0.60]
-        for (attempt, ratio) in candidates.enumerated() {
+        for _ in 0..<attempts {
             guard (marker.value as? String) == "merge" else { return }
             guard let hole = spotlight(app) else { continue }
-            let feetY = hole.maxY - hole.height * 0.15
-            let from = app.coordinate(withNormalizedOffset: .zero)
-                .withOffset(CGVector(dx: hole.midX, dy: hole.midY))
-            let to = app.coordinate(withNormalizedOffset: .zero)
-                .withOffset(CGVector(dx: width * ratio,
-                                     dy: attempt % 2 == 0 ? feetY : feetY - hole.height * 0.22))
-            from.press(forDuration: 0.12, thenDragTo: to)
-            if waitForStep(app, "upgrades", timeout: 1.5) { return }
+            // El recorte abraza a los DOS del par: su centro puede caer en el
+            // aire entre medio. Se apunta al cuerpo del de la izquierda.
+            app.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: hole.minX + hole.width * 0.25, dy: hole.midY))
+                .doubleTap()
+            if waitForStep(app, "upgrades", timeout: 3) { return }
         }
-        XCTFail("no se pudo fusionar el par iluminado en \(candidates.count) intentos")
+        XCTFail("el doble toque no fusionó el par iluminado en \(attempts) intentos")
     }
 
     /// Todas las hojas del juego cierran por el mismo `ArtCloseButton`.

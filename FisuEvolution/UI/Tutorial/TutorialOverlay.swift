@@ -70,6 +70,12 @@ struct TutorialOverlay: View {
                  text: "tutorial.step.tap", pose: "fisura_wave", completion: .earnedEnoughToHire),
             Step(id: "hire", target: .hire, windows: [.coins],
                  text: "tutorial.step.hire", pose: "fisura_point", completion: .hired),
+            // Enseña los DOS gestos de fusión y se completa con cualquiera de
+            // los dos. No son dos pasos porque después de contratar hay un solo
+            // par mergeable: darle un paso propio al doble toque deja al del
+            // arrastre sin par, y conseguirle otro cuesta tres pasos más —ganar
+            // plata, contratar, fusionar— porque el paso de contratar tiene el
+            // tablero bajo el scrim y no se puede tapear para ganar.
             Step(id: "merge", target: .boardUnit, boardTarget: .mergePair,
                  text: "tutorial.step.merge", pose: "fisura_explain", completion: .merged),
             Step(id: "upgrades", target: .upgrades,

@@ -149,7 +149,6 @@ struct MergeCounterTests {
 @Suite("Contadores: contrataciones")
 struct HireCounterTests {
     let config = fxConfig()
-    let economy = fxEconomy()
     let tiers: TierRepository
 
     init() throws {
@@ -159,7 +158,7 @@ struct HireCounterTests {
     private func makeQuote(on floorOrdinal: Int, state: PlayerState, floorTable: FloorTable) throws -> HireQuote {
         try #require(TowerActions.hireQuote(
             floorOrdinal: floorOrdinal, state: state, tiers: tiers,
-            floorTable: floorTable, config: config, economy: economy
+            floorTable: floorTable, config: config
         ))
     }
 

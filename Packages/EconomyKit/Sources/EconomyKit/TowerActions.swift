@@ -57,20 +57,12 @@ public enum TowerActions {
     /// mientras los dos caminos convivan, un mismo personaje puede cotizar
     /// distinto según de dónde lo compres. Se unifican cuando la pantalla nueva
     /// reemplace al botón (plan del rediseño).
-    ///
-    /// ⚠️ `economy` quedó SIN USO cuando `hireCost` pasó a recibir el tier y a
-    /// derivar el tapYield de la config (una sola fuente). No se sacó de la firma
-    /// en la ronda de fix para no reescribir sus 14 llamadores —entre ellos la
-    /// suite pineada `EconomyEngineTests`— por una limpieza cosmética; queda
-    /// propuesto como cambio aparte. **No lo uses para nada**: pasarle un
-    /// `StandardEconomy` de otra config no cambia el precio.
     public static func hireQuote(
         floorOrdinal: Int,
         state: PlayerState,
         tiers: TierRepository,
         floorTable: FloorTable,
         config: EconomyConfig,
-        economy: StandardEconomy,
         costMultiplier: Double = 1.0,
         now: TimeInterval = 0
     ) -> HireQuote? {

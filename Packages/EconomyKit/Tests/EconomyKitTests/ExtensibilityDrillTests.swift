@@ -117,7 +117,7 @@ struct ExtensibilityDrillTests {
         let floor12 = table[11]
         let quote = try #require(TowerActions.hireQuote(
             floorOrdinal: 11, state: state, tiers: tiers,
-            floorTable: table, config: config, economy: economy
+            floorTable: table, config: config
         ))
         #expect(quote.type.id == "t12")
         #expect(quote.cost == 10 * economy.tapYield(forTier: 12) * floor12.incomeMultiplier)

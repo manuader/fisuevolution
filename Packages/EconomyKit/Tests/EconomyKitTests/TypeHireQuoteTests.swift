@@ -14,7 +14,6 @@ import Testing
 @Suite("Cotización de contratación por tipo (§5.2)")
 struct TypeHireQuoteTests {
     let config = fxConfig()
-    let economy = fxEconomy()
     let tiers: TierRepository
     let floorTable: FloorTable
 
@@ -33,7 +32,7 @@ struct TypeHireQuoteTests {
     private func quote(floor ordinal: Int, state: PlayerState) -> HireQuote? {
         TowerActions.hireQuote(
             floorOrdinal: ordinal, state: state, tiers: tiers,
-            floorTable: floorTable, config: config, economy: economy
+            floorTable: floorTable, config: config
         )
     }
 
@@ -225,7 +224,7 @@ struct TypeHireQuoteTests {
         ))
         let porPiso = try #require(TowerActions.hireQuote(
             floorOrdinal: 0, state: state, tiers: tiers, floorTable: floorTable,
-            config: config, economy: economy, costMultiplier: 0.5, now: 1000
+            config: config, costMultiplier: 0.5, now: 1000
         ))
         #expect(abs(porTipo.cost - 15 * 0.5 * 0.5 * 0.75) < 1e-9)
         #expect(abs(porTipo.cost - porPiso.cost) < 1e-9)

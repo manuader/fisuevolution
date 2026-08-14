@@ -612,7 +612,7 @@ final class GameState {
 
     /// La llaman `+Actions` (contratar) y `+Debug`.
     func currentQuote(player: PlayerState, floorOrdinal: Int) -> HireQuote? {
-        guard let economy, let content else { return nil }
+        guard let content else { return nil }
         let prestigeDiscount = content.prestigeUnlocks.cumulativeSpawnDiscount(atPrestigeLevel: player.meta.prestigeLevel)
         return TowerActions.hireQuote(
             floorOrdinal: floorOrdinal,
@@ -620,7 +620,6 @@ final class GameState {
             tiers: content.tiers,
             floorTable: content.floorTable,
             config: content.economy,
-            economy: economy,
             costMultiplier: 1 - prestigeDiscount,
             now: Date().timeIntervalSince1970
         )

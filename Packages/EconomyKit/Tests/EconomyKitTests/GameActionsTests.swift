@@ -156,7 +156,6 @@ struct PassiveUnlockPurchaseTests {
 @Suite("Contratación")
 struct HireActionTests {
     let config = fxConfig()
-    let economy = fxEconomy()
     let tiers: TierRepository
 
     init() throws {
@@ -166,7 +165,7 @@ struct HireActionTests {
     private func makeQuote(on floorOrdinal: Int, state: PlayerState, floorTable: FloorTable) throws -> HireQuote {
         try #require(TowerActions.hireQuote(
             floorOrdinal: floorOrdinal, state: state, tiers: tiers,
-            floorTable: floorTable, config: config, economy: economy
+            floorTable: floorTable, config: config
         ))
     }
 
@@ -242,7 +241,6 @@ private func gateFloor(_ id: String, _ tier: Int) -> FloorDef {
 @Suite("Gate de contratación")
 struct HireGateTests {
     let config = fxConfig()
-    let economy = fxEconomy()
     let tiers: TierRepository
     let floorTable: FloorTable
 
@@ -311,7 +309,7 @@ struct HireGateTests {
         state.run.coins = 1_000_000
         let quote = try #require(TowerActions.hireQuote(
             floorOrdinal: 1, state: state, tiers: tiers,
-            floorTable: floorTable, config: config, economy: economy
+            floorTable: floorTable, config: config
         ))
         let before = (state, tower)
 

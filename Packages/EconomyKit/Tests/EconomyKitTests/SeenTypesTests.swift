@@ -66,7 +66,7 @@ import Testing
         state.run.coins = 1_000_000
         let quote = try #require(TowerActions.hireQuote(
             floorOrdinal: 0, state: state, tiers: tiers, floorTable: floorTable,
-            config: config, economy: StandardEconomy(config: config)
+            config: config
         ))
         let first = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
         let second = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)

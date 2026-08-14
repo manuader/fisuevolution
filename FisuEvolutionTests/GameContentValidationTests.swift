@@ -162,18 +162,14 @@ struct GameContentValidationTests {
     @Test func hirePricesFollowTheOwnersRule() throws {
         let economy = StandardEconomy(config: content.economy)
         let alley = content.floorTable[0]
-        #expect(content.economy.hireCost(floor: alley, tapYield: economy.tapYield(forTier: 1), purchases: 0) == 50)
-        let segundo = content.economy.hireCost(floor: alley, tapYield: economy.tapYield(forTier: 1), purchases: 1)
+        #expect(content.economy.hireCost(floor: alley, tier: 1, purchases: 0) == 50)
+        let segundo = content.economy.hireCost(floor: alley, tier: 1, purchases: 1)
         #expect(abs(segundo - 60) < 1e-9)
 
         for ordinal in 1..<content.floorTable.count {
             let floor = content.floorTable[ordinal]
             let tapValue = economy.tapYield(forTier: floor.firstTier) * floor.incomeMultiplier
-            let precio = content.economy.hireCost(
-                floor: floor,
-                tapYield: economy.tapYield(forTier: floor.firstTier),
-                purchases: 0
-            )
+            let precio = content.economy.hireCost(floor: floor, tier: floor.firstTier, purchases: 0)
             #expect(abs(precio - 600 * tapValue) < precio * 1e-12, "\(floor.id): \(precio) ≠ 600× \(tapValue)")
         }
     }

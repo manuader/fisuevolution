@@ -146,7 +146,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
 
     /// Costo de contratar UN TIER CONCRETO en su piso, ANTES de descuentos
     /// permanentes y modificadores temporales. **Ésta es LA fórmula de precio de
-    /// contratación**: no hay otra copia, y la firma vieja de abajo delega acá.
+    /// contratación, y la única**: no hay otra copia ni otra firma.
     ///
     /// Regla del dueño (2026-08-04): el precio es `multiplicador ×` **lo que
     /// realmente rinde un click de ese personaje en ese piso** — o sea el
@@ -168,17 +168,5 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             * floor.incomeMultiplier
             * pow(hire.tierPremium, Double(tier - floor.firstTier))
             * pow(hireCostGrowth(for: floor), Double(purchases))
-    }
-
-    /// Firma vieja, conservada por los pins que la leen (`GameContentValidationTests`):
-    /// cotiza el TIER BASE del piso.
-    ///
-    /// ⚠️ `tapYield` es redundante y **no se usa**: todos sus llamadores le pasan
-    /// `tapYield(forTier: floor.firstTier)`, que es exactamente lo que la fórmula
-    /// recalcula. Se ignora a propósito —tener dos fuentes para el mismo número
-    /// es justo el bug que este archivo documenta— así que si necesitás cotizar
-    /// OTRO tier, usá `hireCost(floor:tier:purchases:)`.
-    public func hireCost(floor: FloorDef, tapYield: Double, purchases: Int) -> Double {
-        hireCost(floor: floor, tier: floor.firstTier, purchases: purchases)
     }
 }

@@ -57,6 +57,13 @@ public enum TowerActions {
     /// mientras los dos caminos convivan, un mismo personaje puede cotizar
     /// distinto según de dónde lo compres. Se unifican cuando la pantalla nueva
     /// reemplace al botón (plan del rediseño).
+    ///
+    /// ⚠️ `economy` quedó SIN USO cuando `hireCost` pasó a recibir el tier y a
+    /// derivar el tapYield de la config (una sola fuente). No se sacó de la firma
+    /// en la ronda de fix para no reescribir sus 14 llamadores —entre ellos la
+    /// suite pineada `EconomyEngineTests`— por una limpieza cosmética; queda
+    /// propuesto como cambio aparte. **No lo uses para nada**: pasarle un
+    /// `StandardEconomy` de otra config no cambia el precio.
     public static func hireQuote(
         floorOrdinal: Int,
         state: PlayerState,
@@ -71,11 +78,10 @@ public enum TowerActions {
         let floor = floorTable[floorOrdinal]
         guard let type = baseHireType(for: floor, state: state, tiers: tiers) else { return nil }
         let purchases = state.run.hireCounts[floor.id] ?? 0
-        let base = config.hireCost(
-            floor: floor,
-            tapYield: economy.tapYield(forTier: type.tier),
-            purchases: purchases
-        )
+        // `floor.firstTier` y no `type.tier`: son el mismo número —`baseHireType`
+        // filtra por `tier == floor.firstTier`— pero acá lo que se cotiza es "el
+        // tier base de este piso", que es el contrato de esta función.
+        let base = config.hireCost(floor: floor, tier: floor.firstTier, purchases: purchases)
         let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
         let cost = base * costMultiplier * modifier * discount
@@ -96,8 +102,22 @@ public enum TowerActions {
     /// - El precio lleva el `tierPremium` de los tiers no-base (ver `hireCost`).
     ///
     /// No mira gate ni saldo: cotizar es sólo poner precio, y la pantalla también
-    /// muestra el precio de lo que todavía no podés comprar. Los guards viven en
-    /// `hire(quote:)`, que recibe este quote sin cambios de firma.
+    /// muestra el precio de lo que todavía no podés comprar.
+    ///
+    /// ⚠️ **Y nadie más abajo lo mira por vos.** Este quote entra a `hire(quote:)`
+    /// sin cambios de firma, pero los guards de `hire` son del PISO: piso
+    /// desbloqueado, `canHire` de ese piso, saldo y slot libre. **Ninguno mira el
+    /// tipo.** Con la cotización por piso eso alcanzaba —el único tipo cotizable
+    /// era el tier base—, pero acá ya no: si le pasás el quote de un T4 del
+    /// callejón a alguien que nunca mergeó, `hire` se lo vende, se lo coloca y
+    /// hasta se lo marca como visto.
+    ///
+    /// La compuerta por tipo **no existe en EconomyKit todavía**, y es a
+    /// propósito: quién puede contratar qué es una decisión de la pantalla de
+    /// laburos (la proyección `jobRows` decide qué fila se ofrece como
+    /// contratable y cuál sale bloqueada). Mientras tanto, **cotizar un tipo no
+    /// es autorizarlo**: quien construya el quote es responsable de que el tipo
+    /// sea uno que el jugador puede comprar.
     public static func hireQuote(
         typeId: String,
         state: PlayerState,

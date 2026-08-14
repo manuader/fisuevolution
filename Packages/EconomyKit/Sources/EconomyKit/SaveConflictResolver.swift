@@ -31,6 +31,20 @@ public enum SaveConflictResolver {
         where winner.meta.activeSkinByType[typeId] == nil {
             winner.meta.activeSkinByType[typeId] = skinId
         }
+
+        // Stats de cuenta: son monótonas, así que el máximo de cada contador es el
+        // valor real. Lo jugado en el otro device no se borra por perder el sync.
+        winner.meta.stats.maxFloorOrdinalEver = max(local.meta.stats.maxFloorOrdinalEver, remote.meta.stats.maxFloorOrdinalEver)
+        winner.meta.stats.totalMergesEver = max(local.meta.stats.totalMergesEver, remote.meta.stats.totalMergesEver)
+        winner.meta.stats.totalHiresEver = max(local.meta.stats.totalHiresEver, remote.meta.stats.totalHiresEver)
+        winner.meta.stats.totalTapsEver = max(local.meta.stats.totalTapsEver, remote.meta.stats.totalTapsEver)
+        winner.meta.stats.videosWatchedEver = max(local.meta.stats.videosWatchedEver, remote.meta.stats.videosWatchedEver)
+        winner.meta.stats.boostsActivatedEver = max(local.meta.stats.boostsActivatedEver, remote.meta.stats.boostsActivatedEver)
+
+        // Logros: un logro conseguido no se des-consigue, y uno cobrado no se
+        // vuelve a pagar. Unión de los dos lados en ambos conjuntos.
+        winner.meta.unlockedAchievements = local.meta.unlockedAchievements.union(remote.meta.unlockedAchievements)
+        winner.meta.claimedAchievements = local.meta.claimedAchievements.union(remote.meta.claimedAchievements)
         return winner
     }
 

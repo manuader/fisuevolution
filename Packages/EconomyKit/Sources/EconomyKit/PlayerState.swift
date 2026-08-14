@@ -62,6 +62,10 @@ public struct RunState: Codable, Sendable, Equatable {
     public var chosenCareerPath: String?
     /// Compras de hire POR PISO (floorId → count): curva de costo del piso.
     public var hireCounts: [String: Int]
+    /// Compras de hire POR TIPO (typeId → count): curva de costo del tipo, la que
+    /// usa la pantalla de laburos. Vive en `run` como `hireCounts`: es precio de
+    /// esta partida, así que reencarnar la borra.
+    public var hireCountsByType: [String: Int]
     /// Tier máximo alcanzado en esta run; gatea events/specials/asado/daily.
     public var maxTierReached: Int
     /// Mejoras por personaje compradas con plata (typeId → nivel). ×2/nivel.
@@ -74,9 +78,8 @@ public struct RunState: Codable, Sendable, Equatable {
     /// Tipos que el jugador vio alguna vez EN ESTA RUN. La lista de mejoras se
     /// arma con esto y no con las unidades vivas: mergear tu último Fisura no
     /// tiene por qué borrarte de la pantalla la mejora que le compraste
-    /// (RF-03). Tiene valor por defecto para que los saves v4 anteriores al
-    /// campo decodifiquen; `TowerReconciler` los rellena en la carga.
-    public var seenTypes: Set<String> = []
+    /// (RF-03). `TowerReconciler` los rellena en la carga.
+    public var seenTypes: Set<String>
 
     public init(
         coins: Double,
@@ -84,6 +87,7 @@ public struct RunState: Codable, Sendable, Equatable {
         passiveUnlocked: [String: Bool],
         chosenCareerPath: String?,
         hireCounts: [String: Int],
+        hireCountsByType: [String: Int] = [:],
         maxTierReached: Int,
         charUpgradeLevels: [String: Int],
         unlockedFloors: [String],
@@ -95,11 +99,33 @@ public struct RunState: Codable, Sendable, Equatable {
         self.passiveUnlocked = passiveUnlocked
         self.chosenCareerPath = chosenCareerPath
         self.hireCounts = hireCounts
+        self.hireCountsByType = hireCountsByType
         self.maxTierReached = maxTierReached
         self.charUpgradeLevels = charUpgradeLevels
         self.unlockedFloors = unlockedFloors
         self.activeModifiers = activeModifiers
         self.seenTypes = seenTypes
+    }
+
+    /// Decodificador a mano: el sintetizado exige TODA clave que no sea opcional
+    /// y se saltea los valores por defecto de las propiedades, así que un save v4
+    /// escrito antes de que existiera un campo tira `keyNotFound` y el jugador
+    /// pierde la partida. Cada campo agregado después de v4 se lee con
+    /// `decodeIfPresent ?? default`; los que todo v4 tiene, con `decode`.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        coins = try container.decode(Double.self, forKey: .coins)
+        units = try container.decode([String: Int].self, forKey: .units)
+        passiveUnlocked = try container.decode([String: Bool].self, forKey: .passiveUnlocked)
+        // Opcional de verdad: el encoder omite la clave mientras no se eligió carrera.
+        chosenCareerPath = try container.decodeIfPresent(String.self, forKey: .chosenCareerPath)
+        hireCounts = try container.decode([String: Int].self, forKey: .hireCounts)
+        hireCountsByType = try container.decodeIfPresent([String: Int].self, forKey: .hireCountsByType) ?? [:]
+        maxTierReached = try container.decode(Int.self, forKey: .maxTierReached)
+        charUpgradeLevels = try container.decode([String: Int].self, forKey: .charUpgradeLevels)
+        unlockedFloors = try container.decode([String].self, forKey: .unlockedFloors)
+        activeModifiers = try container.decode([ActiveModifier].self, forKey: .activeModifiers)
+        seenTypes = try container.decodeIfPresent(Set<String>.self, forKey: .seenTypes) ?? []
     }
 
     /// Run recién nacida: una unidad base, piso 1 desbloqueado. Reencarnar es
@@ -111,6 +137,7 @@ public struct RunState: Codable, Sendable, Equatable {
             passiveUnlocked: [:],
             chosenCareerPath: nil,
             hireCounts: [:],
+            hireCountsByType: [:],
             maxTierReached: 1,
             charUpgradeLevels: [:],
             unlockedFloors: [startFloorId],
@@ -127,13 +154,49 @@ public struct RunState: Codable, Sendable, Equatable {
     public mutating func markSeen(_ typeId: String) { seenTypes.insert(typeId) }
 }
 
-/// Estadísticas de cuenta (no afectan gameplay).
+/// Estadísticas de cuenta (no afectan gameplay). Monótonas y a prueba de
+/// reencarnación: son la materia prima de la pantalla de stats y de los logros.
 public struct MetaStats: Codable, Sendable, Equatable {
     /// Ordinal máximo de piso alcanzado en la historia de la cuenta.
     public var maxFloorOrdinalEver: Int
+    /// Fusiones hechas en toda la historia de la cuenta.
+    public var totalMergesEver: Int
+    /// Contrataciones hechas en toda la historia de la cuenta.
+    public var totalHiresEver: Int
+    /// Toques cobrados en toda la historia de la cuenta.
+    public var totalTapsEver: Int
+    /// Videos con recompensa mirados en toda la historia de la cuenta.
+    public var videosWatchedEver: Int
+    /// Boosts activados en toda la historia de la cuenta.
+    public var boostsActivatedEver: Int
 
-    public init(maxFloorOrdinalEver: Int = 0) {
+    public init(
+        maxFloorOrdinalEver: Int = 0,
+        totalMergesEver: Int = 0,
+        totalHiresEver: Int = 0,
+        totalTapsEver: Int = 0,
+        videosWatchedEver: Int = 0,
+        boostsActivatedEver: Int = 0
+    ) {
         self.maxFloorOrdinalEver = maxFloorOrdinalEver
+        self.totalMergesEver = totalMergesEver
+        self.totalHiresEver = totalHiresEver
+        self.totalTapsEver = totalTapsEver
+        self.videosWatchedEver = videosWatchedEver
+        self.boostsActivatedEver = boostsActivatedEver
+    }
+
+    /// Decodificador a mano por lo mismo que el de `MetaState`: los saves v4 ya
+    /// escritos sólo tienen `maxFloorOrdinalEver` y el sintetizado exigiría el
+    /// resto. Un contador que falta es cero, nunca una partida perdida.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        maxFloorOrdinalEver = try container.decodeIfPresent(Int.self, forKey: .maxFloorOrdinalEver) ?? 0
+        totalMergesEver = try container.decodeIfPresent(Int.self, forKey: .totalMergesEver) ?? 0
+        totalHiresEver = try container.decodeIfPresent(Int.self, forKey: .totalHiresEver) ?? 0
+        totalTapsEver = try container.decodeIfPresent(Int.self, forKey: .totalTapsEver) ?? 0
+        videosWatchedEver = try container.decodeIfPresent(Int.self, forKey: .videosWatchedEver) ?? 0
+        boostsActivatedEver = try container.decodeIfPresent(Int.self, forKey: .boostsActivatedEver) ?? 0
     }
 }
 
@@ -183,6 +246,12 @@ public struct MetaState: Codable, Sendable, Equatable {
     public var sharesCompleted: Int
     public var lastSeenTimestamp: TimeInterval
     public var stats: MetaStats
+    /// Logros ya conseguidos (ids de achievements.json).
+    public var unlockedAchievements: Set<String>
+    /// Logros cuya recompensa el jugador ya cobró. Separado de los desbloqueados
+    /// porque cobrar es un acto aparte: un logro se consigue una vez y se paga
+    /// una vez.
+    public var claimedAchievements: Set<String>
 
     public init(
         lifetimeEarnings: Double,
@@ -204,7 +273,9 @@ public struct MetaState: Codable, Sendable, Equatable {
         daily: DailyRewardState,
         sharesCompleted: Int,
         lastSeenTimestamp: TimeInterval,
-        stats: MetaStats
+        stats: MetaStats,
+        unlockedAchievements: Set<String> = [],
+        claimedAchievements: Set<String> = []
     ) {
         self.lifetimeEarnings = lifetimeEarnings
         self.oro = oro
@@ -226,10 +297,13 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.sharesCompleted = sharesCompleted
         self.lastSeenTimestamp = lastSeenTimestamp
         self.stats = stats
+        self.unlockedAchievements = unlockedAchievements
+        self.claimedAchievements = claimedAchievements
     }
 
-    /// Decodificador a mano por UN campo. `rewardedActivations` no existe en los
-    /// saves v4 ya escritos y el decodificador sintetizado exige toda clave que no
+    /// Decodificador a mano por los campos que llegaron después de v4
+    /// (`rewardedActivations`, `creditedPurchases`, los logros): no existen en los
+    /// saves ya escritos y el decodificador sintetizado exige toda clave que no
     /// sea opcional, así que sin esto el jugador que actualiza pierde la partida.
     /// Es más barato que subir la versión del sobre por un diccionario vacío.
     public init(from decoder: Decoder) throws {
@@ -254,6 +328,8 @@ public struct MetaState: Codable, Sendable, Equatable {
         sharesCompleted = try container.decode(Int.self, forKey: .sharesCompleted)
         lastSeenTimestamp = try container.decode(TimeInterval.self, forKey: .lastSeenTimestamp)
         stats = try container.decode(MetaStats.self, forKey: .stats)
+        unlockedAchievements = try container.decodeIfPresent(Set<String>.self, forKey: .unlockedAchievements) ?? []
+        claimedAchievements = try container.decodeIfPresent(Set<String>.self, forKey: .claimedAchievements) ?? []
     }
 
     /// Meta virgen de cuenta nueva.

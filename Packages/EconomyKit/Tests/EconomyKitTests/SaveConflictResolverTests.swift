@@ -106,6 +106,45 @@ struct SaveConflictResolverTests {
         #expect(resolved.meta.activeSkinByType == ["a": "god", "b": "casual"])
     }
 
+    @Test("stats de cuenta: cada contador queda en el máximo de los dos devices")
+    func statsMergeByMax() {
+        // Contadores cruzados a propósito: cada device lideró en unos y no en otros.
+        var winner = fxSave(lifetime: 1000, lastSeen: 2)
+        winner.meta.stats = MetaStats(
+            maxFloorOrdinalEver: 3, totalMergesEver: 100, totalHiresEver: 5,
+            totalTapsEver: 900, videosWatchedEver: 1, boostsActivatedEver: 8
+        )
+        var loser = fxSave(lifetime: 10, lastSeen: 1)
+        loser.meta.stats = MetaStats(
+            maxFloorOrdinalEver: 7, totalMergesEver: 20, totalHiresEver: 50,
+            totalTapsEver: 12, videosWatchedEver: 9, boostsActivatedEver: 2
+        )
+        let expected = MetaStats(
+            maxFloorOrdinalEver: 7, totalMergesEver: 100, totalHiresEver: 50,
+            totalTapsEver: 900, videosWatchedEver: 9, boostsActivatedEver: 8
+        )
+
+        // Da igual de qué lado venga cada uno: el resultado es el mismo.
+        #expect(SaveConflictResolver.resolve(local: winner, remote: loser).meta.stats == expected)
+        #expect(SaveConflictResolver.resolve(local: loser, remote: winner).meta.stats == expected)
+    }
+
+    @Test("logros: desbloqueados y cobrados se unen, gane quien gane")
+    func achievementsMergeByUnion() {
+        var winner = fxSave(lifetime: 1000, lastSeen: 2)
+        winner.meta.unlockedAchievements = ["ach_merge", "ach_piso"]
+        winner.meta.claimedAchievements = ["ach_merge"]
+        var loser = fxSave(lifetime: 10, lastSeen: 1)
+        loser.meta.unlockedAchievements = ["ach_video"]
+        loser.meta.claimedAchievements = ["ach_video"]
+
+        let resolved = SaveConflictResolver.resolve(local: loser, remote: winner)
+        #expect(resolved.meta.lifetimeEarnings == 1000)
+        // Lo conseguido en el device perdedor no se pierde ni se vuelve a cobrar.
+        #expect(resolved.meta.unlockedAchievements == ["ach_merge", "ach_piso", "ach_video"])
+        #expect(resolved.meta.claimedAchievements == ["ach_merge", "ach_video"])
+    }
+
     @Test("clampedScore jamás trapea: no-finito y gigantes a .max, negativos a 0")
     func scoreClampNeverTraps() {
         #expect(SaveConflictResolver.clampedScore(0) == 0)

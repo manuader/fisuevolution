@@ -202,6 +202,10 @@ public enum TowerActions {
 
         state.run.coins -= quote.cost
         state.run.hireCounts[floor.id, default: 0] += 1
+        // Por TIPO además de por piso: la curva de la pantalla de laburos. Va acá
+        // y no en el caller para que ningún camino de contratación se la saltee.
+        state.run.hireCountsByType[quote.type.id, default: 0] += 1
+        state.meta.stats.totalHiresEver += 1
         state.run.units[quote.type.id, default: 0] += 1
         state.run.markSeen(quote.type.id)
         tower.floors[quote.floorOrdinal].slots[slot] = quote.type.id
@@ -268,6 +272,11 @@ public enum TowerActions {
         state.run.units[newTypeId, default: 0] += 1
         state.run.markSeen(newTypeId)
         state.run.maxTierReached = max(state.run.maxTierReached, newType.tier)
+        // Después de los guards, junto al resto de la mutación: un merge que tira
+        // `destinationFloorFull` no ocurrió y no se cuenta. El auto-merge de
+        // `TowerReconciler` tampoco pasa por acá, y eso es a propósito: es de la
+        // carga, no del jugador.
+        state.meta.stats.totalMergesEver += 1
 
         if destinationOrdinal == floorOrdinal {
             tower.floors[floorOrdinal].slots[targetSlot] = newTypeId

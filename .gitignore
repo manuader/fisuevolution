@@ -27,3 +27,6 @@ graphify-out/
 # Capturas de QA y worktrees de agentes (no van a la historia)
 scratchpad/
 .claude/worktrees/
+
+# Workspace de subagent-driven-development (ledger, briefs, reports)
+.superpowers/

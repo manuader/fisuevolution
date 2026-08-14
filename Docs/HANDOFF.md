@@ -1,19 +1,23 @@
 # HANDOFF — FisuEvolution, estado actual
 
-> **Empezá por acá.** Última actualización: **2026-08-10**, commit `de9b76e`.
+> **Empezá por acá.** Última actualización: **2026-08-14**, commit `d60d886`
+> (main) + rama `feature/rediseno-ui-cowevolution`.
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
-> ⚠️ **Lo más importante que cambió**: el programa de las 16 correcciones del
-> playtest **se terminó**. Lo único que queda son dos gates humanos (§8). No hay
-> tarea de código pendiente en ese spec.
+> ⚠️⚠️ **HAY UN REDISEÑO DE UI EN CURSO, A MEDIO HACER, en la rama
+> `feature/rediseno-ui-cowevolution`** (2/20 tareas hechas). Si venís a
+> retomarlo, leé la sección "Sesión del 2026-08-14" de §4 ANTES que nada: dice
+> exactamente cómo se retoma (spec + plan + ledger). Si venís a otra cosa,
+> trabajá sobre `main` y no toques esa rama.
 >
-> **La sesión del 2026-08-10** sumó tres cosas de jugabilidad y arte, todas
-> commiteadas y verdes (§4): fusionar dejó de ser fiddly, los bonus activos se
-> ven en el HUD, y los 10 pisos tienen su fondo en perspectiva.
+> ⚠️ El programa de las 16 correcciones del playtest **se terminó**. Lo único
+> que queda de eso son dos gates humanos (§8). No hay tarea de código
+> pendiente en ese spec.
 >
-> ⚠️ **`main` está adelante de `origin/main`.** Mientras no se pushee, cada
-> frente nuevo arranca desde un árbol viejo — es la trampa 7.
+> ⚠️ **`main` puede estar adelante de `origin/main`.** Mientras no se pushee,
+> cada frente nuevo arranca desde un árbol viejo — es la trampa 7. Verificá
+> con `git rev-list --count origin/main..main`.
 
 ---
 
@@ -148,6 +152,60 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-14 — rediseño de UI estilo Cow Evolution (EN CURSO)
+
+**Qué es**: rediseño completo de la UI — HUD superior contiguo (moneda+ →
+tienda, monedas + coins/sec, botón ascensor, multiplicador de prestigio),
+barra inferior de 6 pantallas (FisuJobs/upgrades/skins/regalos/tienda/menú),
+menú con organigrama + stats + logros + settings completos, tienda de
+contratación por personaje con curva por tier, espejado de personajes, e
+iconos nuevos. Pedido y decisiones del dueño del 2026-08-14.
+
+**Dónde está TODO**:
+
+| Pieza | Ruta |
+|---|---|
+| Spec aprobado (leer primero) | `Docs/superpowers/specs/2026-08-14-rediseno-ui-cowevolution-design.md` |
+| Plan de 20 tareas | `Docs/superpowers/plans/2026-08-14-rediseno-ui-cowevolution.md` |
+| Rama de trabajo | `feature/rediseno-ui-cowevolution` (nace de `d60d886`) |
+| Ledger de progreso (fuente de verdad de qué se hizo) | `.superpowers/sdd/2026-08-14-rediseno-ui-cowevolution/progress.md` (git-ignorado; si no existe, reconstruir de `git log` de la rama) |
+
+**Las 4 decisiones del dueño (no se re-litigan)**: la tienda de personajes se
+llama **FisuJobs** (no "LinkedIn": marca); **curva de precios por tier**
+nueva con `tierPremium` calibrada con pacing-sim — el gate de un piso y el
+Fisura a 50 NO cambian; **skins pagas quedan en 2** pero el catálogo queda
+extensible por dato; **iconos vectoriales ahora**, batch de Gemini después
+(lo corre el dueño desde Terminal.app — trampa 11).
+
+**Estado al corte (2026-08-14)**: tareas **1 y 2 de 20 hechas, revisadas y
+verdes** en la rama:
+
+- T1 (`0f8654d`): decoders manuales del save — `RunState`/`MetaStats` ya no
+  pierden partidas por claves faltantes (⚠️ el default de `seenTypes` NUNCA
+  protegió el decode: bug latente real, confirmado con RED), campos nuevos
+  `run.hireCountsByType`, contadores en `meta.stats`, sets de logros en
+  `meta`, reglas de merge en `SaveConflictResolver`.
+- T2 (`f2b97c9`): contadores históricos incrementándose en los choke points
+  (`applyMerge`, `hire`, `registerTap`, `applyRewardedReward`,
+  `activateBoost`); el auto-merge del reconciliador NO cuenta (pineado).
+- Tests: **EconomyKit 167 · app 209**, verdes (los conteos viejos de §6
+  quedaron atrás para la rama).
+
+**Cómo se retoma**: skill `superpowers:subagent-driven-development` sobre el
+plan; el ledger dice la próxima tarea (Task 3: cotización por tipo +
+`tierPremium` + PacingSimulator). Un subagente Opus por tarea, SECUENCIAL
+(las tareas comparten RootView/GameArt/xcstrings — no paralelizar), review
+por tarea, y los minors diferidos están anotados en el ledger para el review
+final. Cada frente crea su simulador por UDID y lo borra al terminar.
+
+⚠️ Avisos vivos de esta sesión: (a) `xcodegen generate` corrió con Xcode
+abierto en T2 — si Xcode muestra `Missing package product 'EconomyKit'`, es
+la trampa 15: cerrar y reabrir el proyecto; (b) `PacingSimulator` duplica a
+mano el hire Y el merge (no llena los contadores nuevos) — T3 migra el hire
+y el resto queda anotado en el ledger; (c) los 6 tests nuevos de
+`SaveCompatibilityTests` pinean que un save v4 viejo decodifica — al agregar
+campos al save en tareas futuras hay que tocar decoder Y fixture.
 
 ### Sesión del 2026-08-10
 

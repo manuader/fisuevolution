@@ -112,6 +112,11 @@ struct GameContentValidationTests {
         // Era 300 y el dueño lo duplicó el mismo día; ver Docs/balance-log.md.
         #expect(economy.hire.defaultCostMultiplier == 600)
         #expect(economy.hire.defaultCostGrowth == 1.2)
+        // Recargo por tier no-base (rediseño §5.2): 2,8 (yieldGrowthPerTier) ×
+        // 1,8 ≈ 5× por tier, o sea que comprar el tier alto directo nunca gana
+        // contra comprar dos del de abajo y mergear. Bajarlo de 2,0 abriría ese
+        // atajo; subirlo vuelve inalcanzables los tiers de arriba de cada piso.
+        #expect(economy.hire.tierPremium == 1.8)
         #expect(economy.charUpgrades.baseCostMultiplier == 50)
         #expect(economy.charUpgrades.costGrowth == 4.0)
         #expect(economy.charUpgrades.effectFactorPerLevel == 2.0)

@@ -14,7 +14,8 @@ func fxConfig(
     capacity: Int = 5,
     f2IncomeMultiplier: Double = 1.0,
     hireDefaultMultiplier: Double = 100,
-    hireDefaultGrowth: Double = 2.0
+    hireDefaultGrowth: Double = 2.0,
+    tierPremium: Double = 1.8
 ) -> EconomyConfig {
     EconomyConfig(
         schemaVersion: 2,
@@ -22,7 +23,11 @@ func fxConfig(
         yieldGrowthPerTier: 3.8,
         passiveRatio: 0.3,
         passiveUnlockCostMultiplier: 100,
-        hire: .init(defaultCostMultiplier: hireDefaultMultiplier, defaultCostGrowth: hireDefaultGrowth),
+        hire: .init(
+            defaultCostMultiplier: hireDefaultMultiplier,
+            defaultCostGrowth: hireDefaultGrowth,
+            tierPremium: tierPremium
+        ),
         charUpgrades: .init(baseCostMultiplier: 10, costGrowth: 2.0, effectFactorPerLevel: 2.0),
         oro: .init(divisor: 1_000_000, exponent: 0.5, globalMultiplierPerOro: 0.02),
         critChanceBase: 0,

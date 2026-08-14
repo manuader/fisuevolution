@@ -251,18 +251,31 @@ public struct PacingSimulator: Sendable {
         return candidates.min { $0.cost < $1.cost }
     }
 
+    /// El bot compra SIEMPRE el tier base del piso —comprar más arriba nunca le
+    /// conviene, que es justo lo que `tierPremium` garantiza (§5.2)— pero cotiza
+    /// por el camino real: `TowerActions.hireQuote(typeId:)`, la misma función
+    /// que la pantalla de laburos. Antes armaba el precio con `config.hireCost`
+    /// por su cuenta, y ese es exactamente el modo en que el simulador y el juego
+    /// se desincronizaron una vez.
+    ///
+    /// Lo que sí sigue haciendo a mano es la MUTACIÓN: `TowerActions.hire` pide
+    /// un `TowerState` con slots, y el simulador no lo mantiene (deriva la
+    /// ocupación de `run.units`). Por eso replica los dos contadores que la curva
+    /// necesita —el del piso y el del TIPO—: si se olvidara del segundo, cotizaría
+    /// siempre el precio de la primera compra.
     private func hireAction(floorOrdinal: Int, state: PlayerState, requireProfit: Bool, passiveRate: Double) -> Action? {
         let floor = floorTable[floorOrdinal]
         guard floorCount(floorOrdinal, state: state) < floor.capacity else { return nil }
         let candidates = tiers.concreteTypes.filter { $0.tier == floor.firstTier }
         guard let type = candidates.first(where: { $0.id.hasSuffix(careerPath) }) ?? candidates.sorted(by: { $0.id < $1.id }).first
         else { return nil }
-        let purchases = state.run.hireCounts[floor.id] ?? 0
-        let cost = config.hireCost(
-            floor: floor,
-            tapYield: economy.tapYield(forTier: type.tier),
-            purchases: purchases
-        )
+        // `now: 0` alcanza: el bot no tiene modificadores temporales ni descuento
+        // permanente de prestigio, así que los dos factores valen 1.
+        guard let quote = TowerActions.hireQuote(
+            typeId: type.id, state: state, config: config,
+            floorTable: floorTable, tiers: tiers
+        ) else { return nil }
+        let cost = quote.cost
 
         if requireProfit {
             // Política del plan (§F7.1c): backfill si es BARATO relativo al wallet
@@ -285,6 +298,7 @@ public struct PacingSimulator: Sendable {
         return Action(cost: cost) { s in
             s.run.coins -= cost
             s.run.hireCounts[floorId, default: 0] += 1
+            s.run.hireCountsByType[typeId, default: 0] += 1
             s.run.units[typeId, default: 0] += 1
         }
     }

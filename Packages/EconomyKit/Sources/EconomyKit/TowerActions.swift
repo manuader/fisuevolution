@@ -5,7 +5,10 @@ public struct HireQuote: Equatable, Sendable {
     public let floorOrdinal: Int
     public let type: CharacterType
     public let cost: Double
-    /// Compras previas en ESTE piso (exponente de la curva).
+    /// Compras previas que forman el exponente de la curva: por PISO si el quote
+    /// salió de `hireQuote(floorOrdinal:)`, por TIPO si salió de
+    /// `hireQuote(typeId:)`. Es informativo (la pantalla lo muestra); quien cobra
+    /// es `cost`.
     public let purchases: Int
 
     public init(floorOrdinal: Int, type: CharacterType, cost: Double, purchases: Int) {
@@ -47,6 +50,13 @@ public enum TowerActions {
 
     /// Cotiza contratar el tier base del piso. `nil` si el piso no tiene un tipo
     /// concreto en su firstTier (config rota — la validación lo impide).
+    ///
+    /// ⚠️ Su exponente sigue siendo el contador POR PISO (`run.hireCounts`), que
+    /// es lo que pinean sus tests y lo que cobra el botón de la torre. La
+    /// pantalla de laburos usa `hireQuote(typeId:)`, con el contador por tipo:
+    /// mientras los dos caminos convivan, un mismo personaje puede cotizar
+    /// distinto según de dónde lo compres. Se unifican cuando la pantalla nueva
+    /// reemplace al botón (plan del rediseño).
     public static func hireQuote(
         floorOrdinal: Int,
         state: PlayerState,
@@ -70,6 +80,42 @@ public enum TowerActions {
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
         let cost = base * costMultiplier * modifier * discount
         return HireQuote(floorOrdinal: floorOrdinal, type: type, cost: cost, purchases: purchases)
+    }
+
+    /// Cotiza contratar UN TIPO concreto, en el piso al que ese tipo pertenece.
+    /// Es la cotización de la pantalla de laburos (§5.2), que vende cualquier
+    /// tipo y no sólo el tier base del piso visible.
+    ///
+    /// `nil` si el `typeId` no existe o es un nodo de elección (`junior`): esos
+    /// no son personajes, son la bifurcación de carrera.
+    ///
+    /// Dos diferencias con `hireQuote(floorOrdinal:)`, las dos a propósito:
+    /// - El exponente de la curva es `run.hireCountsByType[typeId]`, no el
+    ///   contador por piso: cada personaje tiene su propia curva, que es lo que
+    ///   la pantalla muestra ("— N contratados").
+    /// - El precio lleva el `tierPremium` de los tiers no-base (ver `hireCost`).
+    ///
+    /// No mira gate ni saldo: cotizar es sólo poner precio, y la pantalla también
+    /// muestra el precio de lo que todavía no podés comprar. Los guards viven en
+    /// `hire(quote:)`, que recibe este quote sin cambios de firma.
+    public static func hireQuote(
+        typeId: String,
+        state: PlayerState,
+        config: EconomyConfig,
+        floorTable: FloorTable,
+        tiers: TierRepository,
+        costMultiplier: Double = 1.0,
+        now: TimeInterval = 0
+    ) -> HireQuote? {
+        guard let type = tiers.type(id: typeId), !type.isChoiceNode else { return nil }
+        let ordinal = floorTable.ordinal(forTier: type.tier)
+        let floor = floorTable[ordinal]
+        let purchases = state.run.hireCountsByType[typeId] ?? 0
+        let base = config.hireCost(floor: floor, tier: type.tier, purchases: purchases)
+        let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
+        let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
+        let cost = base * costMultiplier * modifier * discount
+        return HireQuote(floorOrdinal: ordinal, type: type, cost: cost, purchases: purchases)
     }
 
     /// El tipo concreto que vende un piso: su firstTier; si ese tier tiene ramas

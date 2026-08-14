@@ -6,7 +6,8 @@
   "passiveUnlockCostMultiplier": 60,
   "hire": {
     "defaultCostMultiplier": 600,
-    "defaultCostGrowth": 1.2
+    "defaultCostGrowth": 1.2,
+    "tierPremium": 1.8
   },
   "charUpgrades": {
     "baseCostMultiplier": 50,

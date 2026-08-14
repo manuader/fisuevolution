@@ -714,3 +714,90 @@ Los montos de ORO se eligieron contra la tabla de arriba: la 1ª reencarnación 
 14 ORO (1e9 de lifetime) y a 1e12 da 306, así que 250 es "varias reencarnaciones
 tempranas" y 2.000 alcanza hasta bien entrado el juego. **No están medidos con el
 simulador** —`pacing-sim` no modela compras— y ese es su límite conocido.
+
+---
+
+# `tierPremium`: precio de los tiers no-base (rediseño de UI, 2026-08-14)
+
+La pantalla de laburos del rediseño vende **cualquier tipo desbloqueado**, no
+sólo el tier base del piso visible. Eso abre una puerta que la torre nunca tuvo:
+comprar el tier alto directo en vez de comprar dos del de abajo y mergearlos —o
+sea saltear la mecánica central del juego con la billetera.
+
+`hire.tierPremium` la cierra. La fórmula de contratación pasa a llevar un factor
+`tierPremium^(tier − firstTier(piso))`, y el valor elegido es **1,8**.
+
+## Por qué 1,8
+
+El salto de precio por tier dentro de un piso queda en
+`yieldGrowthPerTier × tierPremium = 2,8 × 1,8 ≈ **5,04×**`.
+
+La regla que hay que cumplir es `costo(t+1) > 2 × costo(t)`: si subir un tier
+costara menos que dos unidades del tier de abajo, comprar arriba sería el camino
+óptimo y mergear pasaría a ser el camino de los que no leen los números.
+
+- **Sin premium** el margen ya existía (2,8 > 2), pero es de apenas 1,4×: un
+  tuneo futuro de `yieldGrowthPerTier` hacia abajo lo perfora sin que nadie se dé
+  cuenta.
+- **Con 1,8** el margen es 2,5×, o sea que comprar el tier alto cuesta como
+  **cinco** del de abajo cuando mergear necesita dos. No conviene nunca, y el
+  jugador lo ve en el precio sin tener que hacer la cuenta.
+- Subirlo más volvería inalcanzables los tiers superiores de cada piso y la
+  pantalla nueva mostraría tres cuartas partes de su catálogo como decoración.
+
+**Para el tier BASE de cada piso el exponente es 0 y el premium vale 1**, así que
+ningún precio de los que ya existían se movió: el primer Fisura sigue saliendo
+50, el segundo 60, y la regla 600×/50× queda intacta. El premium sólo le pone
+precio a lo que antes no se podía comprar.
+
+También cambió **cuál contador alimenta la curva** en la cotización nueva: es
+`run.hireCountsByType[typeId]` (por TIPO) y no `run.hireCounts[floorId]` (por
+piso). Cada personaje tiene su propia curva del 20%, que es lo que la pantalla
+muestra como "— N contratados". El contador por piso sigue vivo y sigue siendo el
+exponente del botón viejo de la torre mientras los dos caminos convivan.
+
+## La conducta del bot NO se movió (medido)
+
+`PacingSimulator` migró a la cotización por tipo
+(`TowerActions.hireQuote(typeId:)`, la misma función que usa el juego) en vez de
+armar el precio por su cuenta con `config.hireCost`. Sigue comprando **el tier
+base de cada piso**, que es donde el premium vale 1 — y comprar más arriba nunca
+le conviene, que es justo lo que el premium garantiza.
+
+`swift run pacing-sim` ANTES y DESPUÉS del cambio, mismos JSON, horizonte 90
+días: **las dos salidas son idénticas byte a byte** (`diff` vacío).
+
+| | antes | después |
+|---|---|---|
+| urban (activo / pared) | 2,4 min / 0,04 h | 2,4 min / 0,04 h |
+| corporate | 60,2 min / 14,00 h | 60,2 min / 14,00 h |
+| luxury | 382,7 min / 110,05 h | 382,7 min / 110,05 h |
+| island | 467,4 min / 134,12 h | 467,4 min / 134,12 h |
+| moon | 548,3 min / 158,14 h | 548,3 min / 158,14 h |
+| mars | 636,9 min / 182,28 h | 636,9 min / 182,28 h |
+| solar | 783,8 min / 230,06 h | 783,8 min / 230,06 h |
+| galaxy | 1042,3 min / 312,04 h | 1042,3 min / 312,04 h |
+| god_realm | 1176,8 min / 345,28 h | 1176,8 min / 345,28 h |
+| reencarnaciones | 45 | 45 |
+| 1ª reencarnación | 0,20 h | 0,20 h |
+| dios (pared) | 345,28 h | 345,28 h |
+| lifetimeEarnings final | 1,139e+40 | 1,139e+40 |
+
+El semáforo de targets tampoco se movió: sigue con los mismos ❌ de diseño que
+esta bitácora documenta desde F7.6 (los targets impresos son los del plan F7.1c,
+no la conducta pineada — ver §F7.6).
+
+⚠️ **Lo que esto NO mide**: `pacing-sim` compra sólo tiers base, así que **la
+corrida de arriba no ejercita el premium en absoluto**. Es exactamente lo que se
+quería demostrar —que la economía existente no se movió— pero significa que el
+1,8 está justificado por la aritmética de la regla anti-atajo y no por una
+medición de pacing. Cuando la pantalla de laburos exista y el bot pueda comprar
+tiers no-base, hay que volver a correrlo.
+
+## Cómo re-correr
+
+```bash
+cd Tools/pacing-sim && swift run pacing-sim \
+  --economy ../../FisuEvolution/Resources/Data/economy.json \
+  --tiers ../../FisuEvolution/Resources/Data/tiers.json
+```

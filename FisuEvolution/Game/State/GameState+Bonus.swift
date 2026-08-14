@@ -34,6 +34,8 @@ extension GameState {
         // encuentra dónde caer (torre llena, sin par mergeable), el video igual
         // se miró y el anunciante igual cobró.
         player.meta.rewardedActivations[rewardId] = now
+        // El contador va donde va el cooldown, y por el mismo motivo.
+        player.meta.stats.videosWatchedEver += 1
         self.player = player
 
         switch reward.effectType {
@@ -163,6 +165,10 @@ extension GameState {
                 economy: economy,
                 now: Date().timeIntervalSince1970
             )
+            // Adentro del `do` y después del `activate`: un boost bloqueado sale
+            // por el guard de arriba y uno en cooldown tira, y ninguno de los dos
+            // es una activación.
+            player.meta.stats.boostsActivatedEver += 1
             self.player = player
             effectsVersion += 1
             // El cofre del Asado es la otra vez que cae plata de golpe (el resto

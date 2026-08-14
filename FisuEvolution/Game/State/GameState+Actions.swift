@@ -38,6 +38,7 @@ extension GameState {
             player.meta.lifetimeEarnings += extra
             gain += extra
         }
+        player.meta.stats.totalTapsEver += 1
         self.player = player
         if !ftueTapped {
             ftueTapped = true

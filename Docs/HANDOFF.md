@@ -1,12 +1,19 @@
 # HANDOFF — FisuEvolution, estado actual
 
-> **Empezá por acá.** Última actualización: **2026-08-07**, commit `eb858a6`.
+> **Empezá por acá.** Última actualización: **2026-08-10**, commit `de9b76e`.
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
 > ⚠️ **Lo más importante que cambió**: el programa de las 16 correcciones del
 > playtest **se terminó**. Lo único que queda son dos gates humanos (§8). No hay
 > tarea de código pendiente en ese spec.
+>
+> **La sesión del 2026-08-10** sumó tres cosas de jugabilidad y arte, todas
+> commiteadas y verdes (§4): fusionar dejó de ser fiddly, los bonus activos se
+> ven en el HUD, y los 10 pisos tienen su fondo en perspectiva.
+>
+> ⚠️ **`main` está adelante de `origin/main`.** Mientras no se pushee, cada
+> frente nuevo arranca desde un árbol viejo — es la trampa 7.
 
 ---
 
@@ -140,11 +147,61 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ---
 
-## 4. Qué cambió en la sesión del 2026-08-05
+## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-10
+
+Cuatro commits, de `853bb1b` a `de9b76e`. **Dos frentes en paralelo** —uno de
+jugabilidad y uno de arte— y eso dejó una marca en el historial: ver la ⚠️ del
+final de esta sección.
+
+#### Fusión asistida (`853bb1b`)
+
+Fusionar era la acción central del juego y la más fiddly. Detalle en §3, "La
+escena". Lo que hay que saber en dos líneas: al agarrar a alguien sus hermanos
+se destacan y se **congelan**, y un doble toque funde al par sin arrastrar nada.
+
+⚠️ Y una causa que no estaba en el pedido y era la peor: el drop se resolvía
+contra el **ancla** del slot y no contra dónde estaba parado el personaje, así
+que **soltar encima de alguien te mudaba al hueco de al lado**. Es la vieja
+trampa 3, ahora arreglada.
+
+#### Contadores de bonus activos (`de9b76e`)
+
+Un chip por bonus temporal corriendo, abajo del HUD y a la izquierda. Detalle en
+§3, "Contadores de bonus activos". La decisión que sostiene todo: la proyección
+**no** lleva el tiempo restante.
+
+#### Los 8 fondos que faltaban (`ab5d25d`, `3791247`)
+
+Los 10 pisos tienen piso dibujado en perspectiva y la banda de personajes usa
+ese espacio. Dos cambios de código que el arte hizo necesarios:
+
+1. `crowdTopRatio` 0,40 → **0,44**. Medido en el juego, no calculado: con 0,45
+   el techo de la banda quedaba encima de la línea del piso y los de atrás
+   volvían a flotar.
+2. **`backgroundOffset` a 0** en urban, island, moon y mars. Ese knob existía
+   para hundir la franja plana del arte VIEJO; con el arte nuevo esa franja es
+   el piso generado, así que el offset lo empujaba fuera de pantalla. El bug
+   quedaba vivo en 4 de los 10 pisos.
+
+#### ⚠️ Dos agentes en paralelo se pisaron en git
+
+`853bb1b` —la fusión asistida— **lo commiteó la sesión del arte, no la que
+escribió el código**: encontró el trabajo sin commitear en el árbol y lo barrió
+dentro de su tanda (su propio mensaje lo aclara). No se perdió nada y quedó con
+su spec, pero es autoría cruzada y explica por qué el commit de una feature de
+tablero aparece entre dos de arte.
+
+**La lección práctica**: con más de un frente sobre el mismo working tree,
+commiteá lo tuyo apenas esté verde. Lo que queda sin commitear no es "tuyo": es
+del próximo `git add` que pase.
+
+### Sesión del 2026-08-05
 
 19 commits, de `2001e24` a `d39b57d`.
 
-### Fluidez — plan CERRADO (ver `Docs/HANDOFF-perf.md`)
+#### Fluidez — plan CERRADO (ver `Docs/HANDOFF-perf.md`)
 
 Se midió Release, que era lo que faltaba, y **eso cerró el plan**: los fps están
 saturados a 60 en Debug y en Release, vacío y poblado. Se hicieron sólo las dos
@@ -158,7 +215,7 @@ que las descarta.
    a cada uno un `zPosition` único para el efecto multitud, y con
    `ignoresSiblingOrder` SpriteKit sólo fusiona nodos del mismo z.
 
-### Gate de contratación (spec y plan en `Docs/superpowers/`)
+#### Gate de contratación (spec y plan en `Docs/superpowers/`)
 
 Contratar en un piso exige **el piso de arriba desbloqueado**; el callejón queda
 exento y el último piso se habilita a sí mismo. La condición vive en **una**
@@ -175,14 +232,14 @@ es siempre el más alto donde sí se puede— y el botón nombra ese piso para q
 compra no parezca no haber pasado. `TowerActions.hireTargetFloor` decide el
 destino; `GameState.HireOffer` es la única proyección que consume el botón.
 
-### Secuencia de celebraciones
+#### Secuencia de celebraciones
 
 Un merge que asciende y abre piso disparaba **cinco cosas en t=0**. Ahora
 encadena: vuelo → reveal → piso nuevo → `celebrationsDidFinish()` → sheet de skin
 → toast. Encadena **por completion, no por delays**: con Reduce Motion las
 duraciones colapsan y ningún offset puede esperar a un sheet que cierra el jugador.
 
-### Skins
+#### Skins
 
 - Se retiraron los tres tintes globales (golden/galaxy/god). Cada personaje tiene
   **base + la suya**. ⚠️ Eran los tres productos IAP: **la tienda quedó vendiendo
@@ -194,13 +251,13 @@ duraciones colapsan y ningún offset puede esperar a un sheet que cierra el juga
 - **El arte de las 36 skins está hecho y verificado.** Una (`home_office`) se
   regeneró porque había salido idéntica al arte base.
 
-### Balance
+#### Balance
 
 `hire.defaultCostMultiplier` 300 → 600 (el callejón sigue en 50). Medido:
 **acortó** el juego de 264 h a 196 h, porque el bot deja de hacer backfill y
 vuelca esa plata a reencarnar. Ver `Docs/balance-log.md`.
 
-### UI
+#### UI
 
 La ficha de personaje abre entera y muestra skin y pasivo juntos sin scrollear;
 el nombre del personaje nuevo ya no se sale de la pantalla; la franja de piso es
@@ -243,14 +300,26 @@ xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
 cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 20
 ```
 
-Estado: **EconomyKit 150 · app 170 · UI 19 · pipeline 25**, todo verde
-(2026-08-07: los packs de la tienda sumaron 14 tests de app y 2 de UI).
+Estado: **app 201 · UI 22 · pipeline 25**, todo verde (2026-08-10: la fusión
+asistida sumó 19 tests de app y 1 de UI, y los contadores de bonus 10 y 2).
 
-⚠️ **`PacingTests` ya está repineado** a la torre de 37 tiers y entra en los 156.
-El único rojo preexistente es `AscentRenderingUITests` (frágil por la trampa 3):
-salteálo con `-skip-testing:` y usá siempre `-parallel-testing-enabled NO`.
+⚠️ **EconomyKit sigue en 150 y NO se corrió el 2026-08-10**: la sesión no lo
+tocó —ni `MergeRules`, ni `TowerActions`, ni la economía— así que el número es
+el de la corrida anterior, no una medición nueva.
+
+⚠️ **`PacingTests` ya está repineado** a la torre de 37 tiers. Su
+`strugglingPhaseLength` figuraba acá como rojo preexistente y el 2026-08-10
+**pasó en las dos corridas completas** de la suite: si te falla, tratalo como
+entorno (moría con `Test crashed with signal kill`), no como economía.
+El único rojo que sigue en pie es `AscentRenderingUITests` (frágil por la vieja
+trampa 3): salteálo con `-skip-testing:` y usá siempre
+`-parallel-testing-enabled NO`.
+
 `EconomyLoopUITests` y `StoreManagerTests.refundRevokesEntitlement` son flakies
-**sensibles a carga**: pasan aislados.
+**sensibles a carga**: pasan aislados. Confirmado otra vez el 2026-08-10 —
+fallaron los dos en una corrida que tardó 23 minutos contra los 10 habituales, y
+con el device borrado y aislados pasaron sin tocar una línea. **Si una suite
+empieza a fallar en una corrida que va lenta, mirá el reloj antes que el código.**
 
 Simulador a mano:
 
@@ -259,8 +328,18 @@ xcrun simctl install booted build/DD/Build/Products/Debug-iphonesimulator/FisuEv
 xcrun simctl launch booted com.manuader.fisuevolution --uitest-reset
 ```
 
-Fixtures DEBUG por launch argument: `--uitest-reset` (partida nueva),
-`--uitest-unlock-tower` (abre pisos), `--uitest-open-sheet` (abre la ficha).
+Fixtures DEBUG por launch argument — **son siete, no tres**:
+
+| Argumento | Qué deja listo |
+|---|---|
+| `--uitest-reset` | Partida nueva. Resetea también `fisuTutorialDone` y las banderas `ftue.*` |
+| `--uitest-skip-tutorial` | Sin tutorial. **Casi todo test de tablero lo necesita**: si no, el scrim se come los toques (trampa 9) |
+| `--uitest-coins` | Plata para contratar sin dar ~50 toques |
+| `--uitest-unlock-tower` | Abre pisos hasta el del tier 5. ⚠️ **NO toca `maxFloorOrdinalEver`**, así que no desbloquea boosts |
+| `--uitest-seen-types` | Marca tipos vistos: es lo que llena la pestaña Personajes |
+| `--uitest-prestige` | Acredita lifetime para llegar a reencarnar |
+| `--uitest-open-sheet` | Abre la ficha sobre la primera unidad |
+
 El panel de debug es el ícono de herramientas del HUD.
 
 ---
@@ -283,6 +362,14 @@ El panel de debug es el ícono de herramientas del HUD.
    dispositivos. Mientras no se arregle, verificá con
    `-skip-testing:FisuEvolutionUITests/AscentRenderingUITests` y sabé que la
    línea de base real es **EconomyKit 144 verdes, UI 9 de 10**.
+
+   ⚠️ **Vale la pena volver a correrlo.** El 2026-08-10 se arregló justamente la
+   causa que este diagnóstico le atribuye: el drop ya no se resuelve contra el
+   ancla, y ahora hay doble toque, que no necesita puntería en el destino. **No
+   se comprobó** —se lo salteó en las dos corridas de esa sesión—, así que sigue
+   figurando como rojo; pero si alguien lo mira, empezá por correrlo tal cual
+   antes de tocarle nada, y si sigue rojo pasalo a doble toque como se hizo con
+   `mergeTheHighlightedPair`.
 
    ⚠️ **`PacingTests.strugglingPhaseLength` también está rojo en `main`**
    (verificado con `git stash` el 2026-08-06). No falla un assert: el proceso de
@@ -630,6 +717,12 @@ submit. El ship-prep técnico ya está (`Distribution/`, entitlements, CI, priva
 pages). Y antes que nada, **que el dueño lo juegue**: los bugs más caros de estas
 sesiones aparecieron mirando la pantalla, no corriendo tests.
 
+✅ **Y eso ya pasó, el 2026-08-10.** De jugarlo salieron los dos pedidos de esa
+sesión, y los dos apuntaban a lo mismo: cosas que el juego hacía pero no se
+veían ni se sentían. Fusionar era fiddly —y abajo había un bug real de puntería
+que ningún test agarraba— y los bonus corrían sin ningún rastro en pantalla.
+**El patrón se repite: lo que falta no es lógica, es que la lógica se note.**
+
 Anotado por si algún día importa, con su medición:
 
 - **`director__directorio`** es una skin real pero floja (sin cambio cromático).
@@ -652,4 +745,6 @@ Anotado por si algún día importa, con su medición:
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
 | **`SESION-2026-08-06-correcciones-de-playtest.md`** | **El estado de la sesión de las 16 correcciones: qué quedó abierto, qué está en vuelo y los gates humanos. Empezá por acá si retomás ese trabajo** |
 | `SESION-2026-08-05-fallback-de-contratacion.md` | El fallback del botón y la fila trasera invisible |
+| `superpowers/specs/2026-08-10-fusion-asistida-design.md` | Los dos gestos de fusión, con los radios y por qué cada uno |
+| `superpowers/specs/2026-08-10-contadores-de-bonus-activos-design.md` | Los contadores del HUD y por qué la proyección no lleva el tiempo |
 | `superpowers/specs/`, `superpowers/plans/` | Specs y planes por feature |

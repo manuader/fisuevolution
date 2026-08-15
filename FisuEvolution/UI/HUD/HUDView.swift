@@ -4,17 +4,16 @@ import SwiftUI
 /// atajo a la tienda a la izquierda, la plata al centro y el ascensor a la
 /// derecha; debajo, la fila compacta de torre y el chip de reencarnación.
 ///
-/// La firma no cambia: sigue recibiendo las cinco closures que `RootView` cablea
-/// (`RootView.swift:119-128`). Lo que se reescribió es el cuerpo.
+/// Quedan **dos** closures de las cinco que recibía: bonus, mejoras y ajustes se
+/// mudaron a la barra inferior (`BottomMenuBar`) junto con la fila transitoria
+/// de cuatro íconos que vivía acá. La tienda sobrevive porque el HUD conserva su
+/// propio atajo —la moneda con el `+`—, que apunta al mismo destino que el tab.
 ///
 /// Observa **proyecciones** de `GameState` (`coinsText`, `towerNavigation`,
 /// `towerIncomePerSecondText`, `prestigePreview`), nunca `PlayerState`.
 struct HUDView: View {
     @Environment(GameState.self) private var gameState
     var onStoreTap: () -> Void = {}
-    var onBonusTap: () -> Void = {}
-    var onUpgradesTap: () -> Void = {}
-    var onSettingsTap: () -> Void = {}
     /// El mapa se abre desde acá (ver `elevatorButton`), así que el tutorial no
     /// tiene otra forma de enterarse de que su paso se cumplió.
     var onMapOpen: () -> Void = {}
@@ -27,7 +26,6 @@ struct HUDView: View {
             mainBar
             towerNavigator
             prestigeIndicator
-            legacyActionsRow
         }
         .padding(.horizontal, 10)
         .padding(.top, 8)
@@ -252,39 +250,5 @@ struct HUDView: View {
 
     private func floorNameKey(for floorID: String) -> LocalizedStringKey {
         TowerNaming.floorNameKey(for: floorID)
-    }
-
-    // MARK: - Transitorio
-
-    // TRANSITORIO: estos 4 botones se mudan a la barra inferior en la tarea siguiente (no estilar)
-    private var legacyActionsRow: some View {
-        HStack(spacing: 8) {
-            hudIconButton(systemName: "cart.fill", tint: Color("PaletteOrange"), labelKey: "hud.store.label", identifier: "hud.store", action: onStoreTap)
-            hudIconButton(systemName: "arrow.up.circle.fill", tint: Color("PaletteGreen"), labelKey: "hud.upgrades.label", identifier: "hud.upgrades", action: onUpgradesTap)
-                .tutorialAnchor(.upgrades)
-            hudIconButton(systemName: "gift.fill", tint: Color("PalettePink"), labelKey: "hud.bonus.label", identifier: "hud.bonus", action: onBonusTap)
-            hudIconButton(systemName: "gearshape.fill", tint: Color("PaletteBlue"), labelKey: "hud.settings.label", identifier: "hud.settings", action: onSettingsTap)
-        }
-    }
-
-    /// Botón de icono unificado: misma base (círculo crema + borde ink), mismo
-    /// tamaño; el color del glifo codifica la función.
-    // TRANSITORIO: se va con `legacyActionsRow` en la tarea siguiente (no estilar)
-    private func hudIconButton(systemName: String, tint: Color, labelKey: String, identifier: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .font(.system(size: 24, weight: .bold))
-                .foregroundStyle(tint)
-                .frame(width: 52, height: 52)
-                .background(
-                    Circle().fill(Color("PaletteCream"))
-                        .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 3))
-                        .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
-                )
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(identifier)
-        .accessibilityLabel(Text(LocalizedStringKey(labelKey)))
     }
 }

@@ -1403,6 +1403,23 @@
         }
       }
     },
+    "hud.hire.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hire"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contratar"
+          }
+        }
+      }
+    },
     "hud.income.label" : {
       "localizations" : {
         "en" : {
@@ -1448,6 +1465,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ajustes"
+          }
+        }
+      }
+    },
+    "hud.skins.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customization"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalización"
           }
         }
       }
@@ -4025,13 +4059,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "There it is! Hit the green button to add another one to the alley."
+            "value" : "There it is! Open FisuJobs — the little face down there — and hire another one for the alley."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Ahí está! Dale al botón verde y sumás otro chango al callejón."
+            "value" : "¡Ahí está! Abrí FisuJobs —la carita de abajo— y contratá a otro para el callejón."
           }
         }
       }

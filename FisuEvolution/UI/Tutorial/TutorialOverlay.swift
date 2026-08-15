@@ -59,11 +59,18 @@ struct TutorialOverlay: View {
         let completion: Completion
     }
 
-    /// ⚠️ Los controles que se iluminan son los del HUD de HOY: el menú de
-    /// mejoras (`hud.upgrades`) y el botón de mapa (`hud.map`, que vive en la
-    /// cápsula de la torre y no en la fila de íconos). El paso viejo que
-    /// explicaba las flechas de la torre lo reemplaza el mapa, que es lo que las
-    /// reemplazó a ellas.
+    /// ⚠️ Los controles que se iluminan son los de HOY: los **tabs** de FisuJobs
+    /// (`hud.hire`) y de mejoras (`hud.upgrades`) en la barra inferior, y el
+    /// botón de mapa (`hud.map`, que vive en la cápsula de la torre). El paso
+    /// viejo que explicaba las flechas de la torre lo reemplaza el mapa, que es
+    /// lo que las reemplazó a ellas.
+    ///
+    /// ⚠️ El paso de contratar ya no ilumina un botón que compra: ilumina el tab
+    /// que abre una PANTALLA. La hoja se presenta **por encima** del overlay
+    /// —que es lo correcto: el scrim sólo tiene que gobernar el tablero—, el
+    /// jugador contrata adentro y `hireCharacter` marca `ftue.spawned`, así que
+    /// el paso se completa aunque el globo esté tapado y el tutorial ya está en
+    /// "fusioná" cuando la hoja se cierra.
     private var steps: [Step] {
         [
             Step(id: "tap", target: .boardUnit, windows: [.coins], boardTarget: .anyUnit,

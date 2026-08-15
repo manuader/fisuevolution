@@ -167,12 +167,16 @@ final class GameState {
     /// `floorOrdinal`, así que `buySpawn` contrata donde corresponde sin
     /// recalcular nada.
     ///
-    /// ⚠️ **FisuJobs NO la consume**: la pantalla nueva cotiza por TIPO
+    /// ⚠️ **Ya no tiene consumidor de UI.** `SpawnButtonView` —el único que la
+    /// dibujaba— murió con la barra inferior, y FisuJobs cotiza por TIPO
     /// (`jobRows` / `hireCharacter`, en `+Hiring`) y no por el tier base del
-    /// piso visible. Su único consumidor de UI es `SpawnButtonView`, que muere
-    /// con `buySpawn` en la Task 7 del rediseño; cuando eso pase, esta
-    /// proyección se queda sin nadie que la lea y se va con él.
+    /// piso visible. Sigue publicada porque de ella salen `canAffordSpawn` —que
+    /// el tutorial usa para saber si ya te alcanza para contratar— y los tests
+    /// de `GameLoopWiringTests` que pinean la curva de precio.
     private(set) var spawnQuote: HireQuote?
+    /// La lee `TutorialOverlay` (`Completion.earnedEnoughToHire`): es la única
+    /// forma de preguntar "¿ya junta para el primer laburo?" sin que el tutorial
+    /// tenga que cotizar por su cuenta.
     private(set) var canAffordSpawn = false
     private(set) var unitCount = 0
     /// F7: reencarnación disponible = vas a ganar ≥1 ORO.
@@ -200,6 +204,10 @@ final class GameState {
     /// `refreshProjections`.
     private(set) var activeBonuses: [ActiveBonus] = []
     private(set) var showTapHint = false
+    /// ⚠️ Huérfana desde que murió `SpawnButtonView`: era el pulso de aquel
+    /// botón, y un tab de la barra no late. Se conserva —la calcula
+    /// `refreshProjections` en dos líneas— hasta que la pantalla de FisuJobs
+    /// decida si quiere destacar la fila que ya podés pagar (Task 8).
     private(set) var showSpawnHint = false
     private(set) var showMergeHint = false
     /// Espejo OBSERVABLE de las tres banderas del FTUE.
@@ -230,9 +238,10 @@ final class GameState {
     private(set) var visibleFloorIsUnlocked = false
     /// Qué puede hacer el botón de contratar desde el piso visible.
     ///
-    /// ⚠️ Mismo caso que `spawnQuote`: **FisuJobs no la usa.** El estado de una
-    /// fila de laburos es `JobRow.State`, que se decide por el piso DEL TIPO y
-    /// no por el visible. Su único consumidor de UI es `SpawnButtonView` (Task 7).
+    /// ⚠️ Mismo caso que `spawnQuote`: **sin consumidor de UI desde que la barra
+    /// inferior reemplazó al botón de spawn.** El estado de una fila de laburos
+    /// es `JobRow.State`, que se decide por el piso DEL TIPO y no por el
+    /// visible; queda publicada para `GameLoopWiringTests`.
     private(set) var hireOffer: HireOffer = .floorLocked
     var towerNotice: TowerNotice?
     /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen

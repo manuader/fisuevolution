@@ -78,10 +78,11 @@ struct GameBoardView: View {
     @Environment(GameState.self) private var gameState
     @State private var scene: BoardScene?
     @State private var showPrestige = false
-    @State private var showStore = false
-    @State private var showBonus = false
-    @State private var showUpgrades = false
-    @State private var showConfig = false
+    /// La pantalla de la barra inferior que está abierta, o `nil`. Las seis
+    /// comparten UN `.sheet(item:)` en vez de tener un `@State showX` cada una:
+    /// con un booleano por hoja, dos tabs seguidos podían dejar dos banderas en
+    /// `true` y SwiftUI presentar una sola. El enum lo hace imposible.
+    @State private var activeScreen: GameScreen?
     @State private var adsProvider = StubAdsProvider()
     // Los popups automáticos no deben pisar el tutorial en el primer arranque.
     @AppStorage("fisuTutorialDone") private var tutorialDone = false
@@ -117,13 +118,7 @@ struct GameBoardView: View {
             }
             VStack(spacing: 8) {
                 HUDView(
-                    onStoreTap: { showStore = true },
-                    onBonusTap: { showBonus = true },
-                    onUpgradesTap: {
-                        showUpgrades = true
-                        tutorialEvents.insert(.openedUpgrades)
-                    },
-                    onSettingsTap: { showConfig = true },
+                    onStoreTap: { open(.store) },
                     onMapOpen: { tutorialEvents.insert(.openedMap) }
                 )
                 // Los contadores de bonus van pegados al HUD y a la izquierda;
@@ -199,17 +194,19 @@ struct GameBoardView: View {
         .sheet(isPresented: $showPrestige) {
             PrestigeView()
         }
-        .sheet(isPresented: $showStore) {
-            StoreView()
-        }
-        .sheet(isPresented: $showBonus) {
-            BonusView(adsProvider: adsProvider)
-        }
-        .sheet(isPresented: $showUpgrades) {
-            UpgradesView()
-        }
-        .sheet(isPresented: $showConfig) {
-            ConfigView()
+        // Las seis pantallas de la barra inferior, en UN solo sheet. Los
+        // placeholders (`skins`, `menu`) y la lista cruda de FisuJobs son de
+        // esta tarea: las pantallas de verdad llegan en F3 y ya llevan puesto el
+        // identifier que sus tests van a buscar.
+        .sheet(item: $activeScreen) { screen in
+            switch screen {
+            case .jobs: JobsPlaceholderView()
+            case .upgrades: UpgradesView()
+            case .skins: ScreenPlaceholderView(identifier: "skins.placeholder", title: "Personalización")
+            case .gifts: BonusView(adsProvider: adsProvider)
+            case .store: StoreView()
+            case .menu: ScreenPlaceholderView(identifier: "menu.placeholder", title: "Menú")
+            }
         }
         .sheet(item: Binding(
             get: { tutorialDone ? gameState.specialDrop : nil },
@@ -243,29 +240,49 @@ struct GameBoardView: View {
         )
     }
 
+    /// Abre una pantalla de la barra y avisa al tutorial cuando el paso se
+    /// completa **por abrir la hoja** (la economía no cambia, así que no hay
+    /// proyección de `GameState` que lo delate).
+    private func open(_ screen: GameScreen) {
+        if screen == .upgrades { tutorialEvents.insert(.openedUpgrades) }
+        activeScreen = screen
+    }
+
+    /// La franja de abajo: el botón flotante de reencarnar y la barra de las 6
+    /// pantallas. Conserva `.tutorialAnchor(.bottomBar)`, que no ilumina nada
+    /// —es la franja que el globo del tutorial tiene que esquivar—.
     private var bottomBar: some View {
-        VStack(spacing: 10) {
-            if gameState.prestigeAvailable {
-                Button {
-                    showPrestige = true
-                } label: {
-                    Label {
-                        Text("prestige.button")
-                    } icon: {
-                        Image(systemName: "sparkles")
-                    }
-                    .font(.headline)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(Color("PalettePink"))
-                .accessibilityIdentifier("hud.prestige")
-            }
-            SpawnButtonView()
+        VStack(spacing: Tokens.s8) {
+            prestigeButton
+            BottomMenuBar(select: open)
         }
-        .padding(.bottom, 20)
+        .padding(.horizontal, Tokens.s8)
+        .padding(.bottom, Tokens.s8)
         .tutorialAnchor(.bottomBar)
+    }
+
+    /// Reencarnar salió de la barra: es una acción rara y definitiva, y un
+    /// séptimo tab la pondría al lado de la tienda. Queda flotando sobre el
+    /// tablero contra el borde derecho, y sólo cuando hay algo que cobrar.
+    @ViewBuilder private var prestigeButton: some View {
+        if gameState.prestigeAvailable {
+            Button {
+                showPrestige = true
+            } label: {
+                Label {
+                    Text("prestige.button")
+                } icon: {
+                    Image(systemName: "sparkles")
+                }
+                .font(.headline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color("PalettePink"))
+            .accessibilityIdentifier("hud.prestige")
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
     }
 
         /// DailyRewardManager.Claim no es Identifiable; wrapper para .sheet(item:).
@@ -295,6 +312,107 @@ struct GameBoardView: View {
         .padding(.top, 68) // debajo del HUD para no tapar el engranaje de Config
     }
     #endif
+}
+
+/// Andamio de FisuJobs: la lista cruda de `jobRows` con su botón de contratar.
+///
+/// ⚠️ **Es un placeholder y se borra entero en la Task 8**, que trae la pantalla
+/// diseñada (tarjetas, retratos, secciones). Lo único que tiene que sobrevivir
+/// de acá es el contrato de AX —`jobs.hire.<typeId>` en cada fila contratable y
+/// `sheet.close` para cerrar—, que es lo que ejercen los tests de esta tarea: la
+/// cadena "abrir la pantalla → contratar → cerrar" es la que reemplaza al botón
+/// de spawn, y tiene que estar viva desde el commit que lo borra.
+private struct JobsPlaceholderView: View {
+    @Environment(GameState.self) private var gameState
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            // ⚠️ `ScrollView` + `VStack` y no `List`: en una fila de `List` que
+            // tiene UN solo control, iOS convierte la fila ENTERA en el área
+            // táctil del botón, así que un toque en cualquier parte del renglón
+            // del Fisura contrata. Con las filas puestas a mano, el único que
+            // cobra es el pill. Además no es perezosa: las 43 filas existen en
+            // el árbol de AX sin scrollear, que es lo que necesitan los tests.
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(gameState.jobRows) { row in
+                        jobRow(row)
+                        Divider()
+                    }
+                }
+                .padding(.horizontal, Tokens.s16)
+            }
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
+            }
+        }
+    }
+
+    private func jobRow(_ row: JobRow) -> some View {
+        HStack(spacing: Tokens.s12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: row.displayName)
+                    .font(Tokens.body)
+                Text(verbatim: "\(row.incomeText) · ×\(row.hiredCount)")
+                    .font(Tokens.caption)
+                    .foregroundStyle(Color("PaletteInk").opacity(0.7))
+            }
+            Spacer(minLength: Tokens.s8)
+            // Sólo las filas contratables ofrecen precio: una fila con el piso
+            // bloqueado o un tipo que nunca viste no es una oferta, y un botón
+            // que siempre falla no se toca.
+            if row.state == .hirable {
+                PricePill(
+                    text: row.costText,
+                    currency: .coins,
+                    affordable: row.affordable,
+                    identifier: "jobs.hire.\(row.id)"
+                ) {
+                    gameState.hireCharacter(typeId: row.id)
+                }
+            }
+        }
+        .padding(.vertical, Tokens.s8)
+    }
+}
+
+/// Pantalla todavía no construida (Customización y Menú llegan en F3). Existe
+/// para que el tab abra algo cerrable desde el día uno y para llevar ya el
+/// identifier que su smoke test busca.
+///
+/// El título va `verbatim`: agregar dos claves al catálogo para borrarlas en F3
+/// deja huérfanos que después nadie sabe si están vivos.
+private struct ScreenPlaceholderView: View {
+    let identifier: String
+    let title: String
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Color("PaletteCream").ignoresSafeArea()
+            // ⚠️ El texto NO se estira a pantalla completa (trampa 9a): un
+            // elemento de accesibilidad del tamaño de la hoja tapa al botón de
+            // cerrar en el árbol de AX y todo `.tap()` muere con "Failed to
+            // scroll to visible". Los que se estiran son los CONTENEDORES, que
+            // no son elementos de accesibilidad; el `Text` conserva su tamaño
+            // natural y queda centrado.
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Text(verbatim: title)
+                        .font(Tokens.title)
+                        .foregroundStyle(Color("PaletteInk"))
+                        .accessibilityIdentifier(identifier)
+                    Spacer()
+                }
+                Spacer()
+            }
+            ArtCloseButton { dismiss() }.padding(18)
+        }
+    }
 }
 
 private struct TowerNoticeView: View {

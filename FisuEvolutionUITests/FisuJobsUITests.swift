@@ -47,6 +47,21 @@ final class FisuJobsUITests: XCTestCase {
         // esto falla es si la pantalla está bien y el roto es el árbol de AX.
         attach(app, named: "T8 FisuJobs abierta")
 
+        // La tarjeta es UNA parada de VoiceOver, no cinco: el resumen de la fila
+        // reemplaza a sus textos en vez de sumarse a ellos. Si alguien saca el
+        // `.accessibilityHidden(true)` de la columna de datos, el nombre vuelve a
+        // ser un elemento suelto y esto se pone rojo.
+        //
+        // ⚠️ Asertar sobre "El Fisura" NO es la trampa 6: los nombres de
+        // personaje salen de `tiers.json` como dato y son el MISMO string en las
+        // dos localizaciones (el runner corre en inglés y la captura los muestra
+        // en español igual). Lo que no se puede asertar es texto del catálogo.
+        XCTAssertFalse(app.staticTexts["El Fisura"].exists,
+                       "el nombre no puede ser su propio elemento de AX: lo anuncia la fila")
+        // Y el botón tiene que seguir siendo la SEGUNDA parada: tapar los datos
+        // no puede llevarse puesto el único control de la tarjeta.
+        XCTAssertTrue(hire.exists, "el silenciado de la fila no puede borrar el botón de contratar")
+
         // El valor de la fila contratable ES su precio. Se lee antes de tocar
         // porque después de contratar ya no se puede recuperar.
         let priceBefore = row.value as? String
@@ -139,6 +154,15 @@ final class FisuJobsUITests: XCTestCase {
                        "una fila nunca vista no publica precio, y dice \(unseen.value ?? "?")")
         XCTAssertFalse(app.buttons["jobs.hire.\(Self.unseenType)"].exists,
                        "una fila nunca vista no puede tener botón de contratar")
+
+        // El texto EN PANTALLA de una fila confidencial es "???" —el misterio es
+        // el diseño—, pero VoiceOver lee eso como puntuación. El nombre hablado
+        // sale de una clave propia. Se asserta "no es ??? y no está vacío" en vez
+        // del texto traducido, que sería la trampa 6.
+        let spokenName = unseen.label
+        XCTAssertFalse(spokenName.isEmpty, "una fila confidencial tiene que anunciarse con algo")
+        XCTAssertNotEqual(spokenName, "???",
+                          "\"???\" no es pronunciable: la fila confidencial necesita un label hablable")
     }
 
     // MARK: Helpers

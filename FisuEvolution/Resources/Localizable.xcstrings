@@ -1520,6 +1520,23 @@
         }
       }
     },
+    "jobs.ax.confidential" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confidential character"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personaje confidencial"
+          }
+        }
+      }
+    },
     "jobs.hired_count %@" : {
       "extractionState" : "manual",
       "localizations" : {

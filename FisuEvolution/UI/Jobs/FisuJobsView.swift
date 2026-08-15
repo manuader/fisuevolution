@@ -324,6 +324,16 @@ private struct JobCard: View {
         // CONTIENE un control lo borra del árbol y `jobs.hire.<id>` dejaría de
         // existir (trampa 9a). Atrás, el botón queda por delante y los dos se
         // ven: la fila informa, el botón cobra.
+        //
+        // ⚠️⚠️ **Y por eso el `children: .ignore` NO alcanza solo.** Ignora a los
+        // hijos DE ESTA CAPA, que no tiene ninguno; la tarjeta es su HERMANA en
+        // el `ZStack` que arma el `.background`, así que sus textos siguen siendo
+        // elementos de AX por derecho propio. Sin taparlos a mano, cada fila eran
+        // ~5 paradas de VoiceOver —nombre, ingreso, piso, conteo, badge— con todo
+        // dicho DOS veces (una por el resumen y otra por cada texto suelto), ×43
+        // filas. El silenciado vive en `content`/`rail`, sobre `info` y sobre el
+        // badge; el `PricePill` queda afuera a propósito: es el único control de
+        // la tarjeta y tiene que seguir siendo la segunda parada.
         .background {
             Color.clear
                 .accessibilityElement(children: .ignore)
@@ -344,6 +354,10 @@ private struct JobCard: View {
             JobPortrait(faceKey: row.faceKey, asSilhouette: isUnseen)
             info
                 .frame(maxWidth: .infinity, alignment: .leading)
+                // Todo lo que dice esta columna ya lo dice `axLabel`, que es el
+                // resumen de la fila. Sin esto se anuncia dos veces y encima
+                // partido en cuatro paradas.
+                .accessibilityHidden(true)
             rail
         }
     }
@@ -441,7 +455,11 @@ private struct JobCard: View {
                     action: hire
                 )
             } else if let stateText {
+                // El badge dice exactamente lo que ya publica `axValue`. Se tapa
+                // igual que `info` — y a diferencia del `PricePill`, que NO se
+                // toca porque es el control de la tarjeta.
                 JobStateBadge(text: stateText, locked: row.state != .floorFull)
+                    .accessibilityHidden(true)
             }
         }
         .frame(width: Self.railWidth, alignment: .trailing)
@@ -467,10 +485,21 @@ private struct JobCard: View {
         }
     }
 
+    /// Lo que VoiceOver anuncia como NOMBRE de la fila.
+    ///
+    /// ⚠️ Para lo nunca visto **no** se usa `row.displayName`: es "???", que
+    /// VoiceOver lee como puntuación (o directamente se come). El texto en
+    /// pantalla sigue siendo "???" —el misterio es el diseño—; lo que cambia es
+    /// sólo cómo se pronuncia.
+    ///
+    /// Lleva también el piso porque desde que `info` está tapada este resumen es
+    /// el ÚNICO lugar donde el dato existe para VoiceOver, y saber en qué piso
+    /// cae la contratación es justamente lo que decide si conviene.
     private var axLabel: String {
-        guard !isUnseen else { return row.displayName }
+        guard !isUnseen else { return String(localized: "jobs.ax.confidential") }
         return [
             row.displayName,
+            TowerNaming.floorName(for: row.floorID),
             row.incomeText,
             String(localized: "jobs.hired_count \(String(row.hiredCount))")
         ].joined(separator: ", ")

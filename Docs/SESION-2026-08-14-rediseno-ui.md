@@ -46,6 +46,30 @@ EconomyLoop 2, BottomMenu 2, Tutorial 5; suite completa 28/28 en T7, con
 `-skip-testing:FisuEvolutionUITests/AscentRenderingUITests`, rojo
 preexistente) · EconomyKit 180 · cero warnings.
 
+## ⚠️⚠️ REGLA VISUAL DEL DUEÑO (2026-08-15, SUMA IMPORTANCIA)
+
+**FisuJobs (`FisuEvolution/UI/Jobs/FisuJobsView.swift`) es la REFERENCIA
+VISUAL canónica. Todas las pantallas — menú, upgrades, personalización,
+bonus/regalos, tienda IAP y el ascensor — tienen que verse coherentes con
+ella. Todo el juego mantiene UNA identidad visual.** Cada dispatch de
+implementación o review de una pantalla incluye esta regla explícita.
+
+La gramática compartida (extraída de FisuJobs, T8):
+- Filas/celdas = `GameCard`; precios = `PricePill`; niveles/progreso =
+  `ProgressBar`; badges de estado con el mismo lenguaje (unificar
+  StatePill/JobStateBadge está en el triage).
+- Paleta SOLO `Color("Palette*")`; tipografía SOLO `Tokens.*` (rounded
+  heavy); bordes ink; crema de fondo.
+- Margen del panel MEDIDO contra el arte del `panel_*` que use la vista
+  (T8 midió 30pt en panel_store, T9 40pt en panel_upgrades, T10 36pt en
+  panel_dialog) — las tarjetas nunca pisan el marco de madera.
+- Cabecera fija con fondo crema OPACO + `toolbarBackground` crema (el
+  contenido no se transparenta al scrollear).
+- Cierre siempre `ArtCloseButton` (`sheet.close`).
+- Accesibilidad: fila informativa = una parada (patrón T8: hidden en
+  info/badge, nunca en el control); controles con identifier propio;
+  jamás identifier en contenedores.
+
 ## Decisiones del dueño (no re-litigar)
 
 FisuJobs como nombre · curva por tier con tierPremium (gate de un piso y

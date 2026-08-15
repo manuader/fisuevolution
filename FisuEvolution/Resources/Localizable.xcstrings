@@ -1049,6 +1049,23 @@
         }
       }
     },
+    "elevator.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elevator"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ascensor"
+          }
+        }
+      }
+    },
     "error.content.message" : {
       "extractionState" : "stale",
       "localizations" : {

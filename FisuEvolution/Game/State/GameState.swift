@@ -166,6 +166,12 @@ final class GameState {
     /// el visible, o el de abajo cuando el gate cerró el visible. Lleva su
     /// `floorOrdinal`, así que `buySpawn` contrata donde corresponde sin
     /// recalcular nada.
+    ///
+    /// ⚠️ **FisuJobs NO la consume**: la pantalla nueva cotiza por TIPO
+    /// (`jobRows` / `hireCharacter`, en `+Hiring`) y no por el tier base del
+    /// piso visible. Su único consumidor de UI es `SpawnButtonView`, que muere
+    /// con `buySpawn` en la Task 7 del rediseño; cuando eso pase, esta
+    /// proyección se queda sin nadie que la lea y se va con él.
     private(set) var spawnQuote: HireQuote?
     private(set) var canAffordSpawn = false
     private(set) var unitCount = 0
@@ -223,6 +229,10 @@ final class GameState {
     private(set) var towerIncomePerSecondText = "0"
     private(set) var visibleFloorIsUnlocked = false
     /// Qué puede hacer el botón de contratar desde el piso visible.
+    ///
+    /// ⚠️ Mismo caso que `spawnQuote`: **FisuJobs no la usa.** El estado de una
+    /// fila de laburos es `JobRow.State`, que se decide por el piso DEL TIPO y
+    /// no por el visible. Su único consumidor de UI es `SpawnButtonView` (Task 7).
     private(set) var hireOffer: HireOffer = .floorLocked
     var towerNotice: TowerNotice?
     /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen

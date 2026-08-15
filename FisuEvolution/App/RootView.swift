@@ -195,12 +195,11 @@ struct GameBoardView: View {
             PrestigeView()
         }
         // Las seis pantallas de la barra inferior, en UN solo sheet. Los
-        // placeholders (`skins`, `menu`) y la lista cruda de FisuJobs son de
-        // esta tarea: las pantallas de verdad llegan en F3 y ya llevan puesto el
-        // identifier que sus tests van a buscar.
+        // placeholders que quedan (`skins`, `menu`) llegan en F3 y ya llevan
+        // puesto el identifier que sus tests van a buscar.
         .sheet(item: $activeScreen) { screen in
             switch screen {
-            case .jobs: JobsPlaceholderView()
+            case .jobs: FisuJobsView()
             case .upgrades: UpgradesView()
             case .skins: ScreenPlaceholderView(identifier: "skins.placeholder", title: "Personalización")
             case .gifts: BonusView(adsProvider: adsProvider)
@@ -312,70 +311,6 @@ struct GameBoardView: View {
         .padding(.top, 68) // debajo del HUD para no tapar el engranaje de Config
     }
     #endif
-}
-
-/// Andamio de FisuJobs: la lista cruda de `jobRows` con su botón de contratar.
-///
-/// ⚠️ **Es un placeholder y se borra entero en la Task 8**, que trae la pantalla
-/// diseñada (tarjetas, retratos, secciones). Lo único que tiene que sobrevivir
-/// de acá es el contrato de AX —`jobs.hire.<typeId>` en cada fila contratable y
-/// `sheet.close` para cerrar—, que es lo que ejercen los tests de esta tarea: la
-/// cadena "abrir la pantalla → contratar → cerrar" es la que reemplaza al botón
-/// de spawn, y tiene que estar viva desde el commit que lo borra.
-private struct JobsPlaceholderView: View {
-    @Environment(GameState.self) private var gameState
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        NavigationStack {
-            // ⚠️ `ScrollView` + `VStack` y no `List`: en una fila de `List` que
-            // tiene UN solo control, iOS convierte la fila ENTERA en el área
-            // táctil del botón, así que un toque en cualquier parte del renglón
-            // del Fisura contrata. Con las filas puestas a mano, el único que
-            // cobra es el pill. Además no es perezosa: las 43 filas existen en
-            // el árbol de AX sin scrollear, que es lo que necesitan los tests.
-            ScrollView {
-                VStack(spacing: 0) {
-                    ForEach(gameState.jobRows) { row in
-                        jobRow(row)
-                        Divider()
-                    }
-                }
-                .padding(.horizontal, Tokens.s16)
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
-            }
-        }
-    }
-
-    private func jobRow(_ row: JobRow) -> some View {
-        HStack(spacing: Tokens.s12) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: row.displayName)
-                    .font(Tokens.body)
-                Text(verbatim: "\(row.incomeText) · ×\(row.hiredCount)")
-                    .font(Tokens.caption)
-                    .foregroundStyle(Color("PaletteInk").opacity(0.7))
-            }
-            Spacer(minLength: Tokens.s8)
-            // Sólo las filas contratables ofrecen precio: una fila con el piso
-            // bloqueado o un tipo que nunca viste no es una oferta, y un botón
-            // que siempre falla no se toca.
-            if row.state == .hirable {
-                PricePill(
-                    text: row.costText,
-                    currency: .coins,
-                    affordable: row.affordable,
-                    identifier: "jobs.hire.\(row.id)"
-                ) {
-                    gameState.hireCharacter(typeId: row.id)
-                }
-            }
-        }
-        .padding(.vertical, Tokens.s8)
-    }
 }
 
 /// Pantalla todavía no construida (Customización y Menú llegan en F3). Existe

@@ -210,10 +210,16 @@ struct UpgradesView: View {
             CharacterPortrait(
                 faceKey: row.faceKey,
                 tier: row.tier,
+                name: row.displayName,
                 identifier: "upgrades.character.\(row.id).face"
             )
 
             VStack(alignment: .leading, spacing: 6) {
+                // Lo escrito, no lo hablado: **quien DICE el nombre es el
+                // retrato**, que es el único elemento de la fila con identifier
+                // y frame propios (ver `CharacterPortrait`). Si este `Text`
+                // también fuera elemento, VoiceOver leería el nombre dos veces
+                // — el defecto del HANDOFF §8 que el spec §6 manda arreglar.
                 Text(verbatim: row.displayName)
                     .font(Tokens.title)
                     .foregroundStyle(Color("PaletteInk"))
@@ -221,6 +227,7 @@ struct UpgradesView: View {
                     .minimumScaleFactor(0.6)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityHidden(true)
 
                 upgradeLine(text: gameState.characterIncomeText(for: row), accent: Color("PaletteBlue")) {
                     PricePill(
@@ -494,6 +501,10 @@ private struct CharacterPortrait: View {
 
     let faceKey: String?
     let tier: Int
+    /// El nombre del personaje. Es la etiqueta de accesibilidad de la banda: la
+    /// fila lo muestra escrito al lado, pero quien lo DICE es el retrato (ver la
+    /// capa de medición, abajo).
+    let name: String
     let identifier: String
 
     var body: some View {
@@ -521,14 +532,14 @@ private struct CharacterPortrait: View {
                         )
                     }
                 }
-                // El dibujo es decoración: quien lo describe es el nombre de la
-                // fila. Sin esto queda un elemento `Image` SIN etiqueta en el
-                // árbol —verificado en el volcado de accesibilidad del
-                // 2026-08-15, con la geometría desbordada del sprite (128×128
-                // contra los 104 de la banda)— y VoiceOver se detiene ahí para
-                // no decir nada. Va acá adentro y no sobre la cadena entera: la
-                // capa de medición de más abajo tiene que seguir siendo un
-                // elemento de accesibilidad.
+                // El dibujo es decoración: quien describe al personaje es la
+                // capa de medición de más abajo, que lleva su nombre. Sin esto
+                // queda un elemento `Image` SIN etiqueta en el árbol
+                // —verificado en el volcado de accesibilidad del 2026-08-15, con
+                // la geometría desbordada del sprite (128×128 contra los 104 de
+                // la banda)— y VoiceOver se detiene ahí para no decir nada. Va
+                // acá adentro y no sobre la cadena entera: la capa de medición
+                // tiene que seguir siendo un elemento de accesibilidad.
                 .accessibilityHidden(true)
             }
             // Respaldo crema: el PNG viene con alfa y sin esto se vería el panel
@@ -548,18 +559,23 @@ private struct CharacterPortrait: View {
             // probaron tres variantes. Un `Color.clear` sin contenido adentro sí
             // mide la banda, que es lo que el test tiene que juzgar.
             //
-            // ⚠️⚠️ **Y esta capa NO lleva etiqueta.** Tenía el nombre del
-            // personaje, que el `Text` de al lado ya dice: VoiceOver lo
-            // anunciaba dos veces (defecto del HANDOFF §8). El spec §6 pedía
-            // `.accessibilityHidden(true)`, pero eso saca el elemento del árbol
-            // de accesibilidad y con él el identifier que `UpgradesFaceUITests`
-            // usa para MEDIR la banda: el test se caería. Sin etiqueta, el
-            // elemento sigue existiendo para XCUITest —mismo patrón que
-            // `board.units` en `RootView`, que tampoco tiene label— y VoiceOver
-            // no tiene nada que leer, así que el nombre se dice una sola vez.
+            // ⚠️⚠️ **Y esta capa es la que DICE el nombre del personaje.** El
+            // spec §6 pedía esconder la carita con `.accessibilityHidden(true)`
+            // para que VoiceOver dejara de repetir el nombre (defecto del
+            // HANDOFF §8), pero esconder ESTA capa la saca del árbol de
+            // accesibilidad y con ella el identifier que `UpgradesFaceUITests`
+            // usa para MEDIR la banda: el test se caería en el primer assert.
+            // Dejarla con identifier y sin etiqueta tampoco sirve: queda un
+            // elemento donde VoiceOver se detiene para no decir nada, que es
+            // exactamente el defecto que el `.accessibilityHidden` de arriba
+            // saca del medio. Así que el nombre vive acá —el único elemento de
+            // la fila con identifier y con el frame correcto— y el `Text` de al
+            // lado va `.accessibilityHidden(true)`. Resultado: el nombre se dice
+            // UNA vez, no hay paradas mudas y el test mide lo mismo que antes.
             .overlay {
                 Color.clear
                     .accessibilityElement()
+                    .accessibilityLabel(Text(verbatim: name))
                     .accessibilityIdentifier(identifier)
             }
     }

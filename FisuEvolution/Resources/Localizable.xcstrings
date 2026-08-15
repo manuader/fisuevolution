@@ -1,16 +1,6 @@
 {
   "sourceLanguage" : "es",
   "strings" : {
-    "%@/%@ · %@/%@ · %@/s" : {
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@/%2$@ · %3$@/%4$@ · %5$@/s"
-          }
-        }
-      }
-    },
     "ads.reward.boost" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1393,6 +1383,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Monedas"
+          }
+        }
+      }
+    },
+    "hud.coins.plus.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy coins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprar monedas"
+          }
+        }
+      }
+    },
+    "hud.income.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Income per second"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingresos por segundo"
           }
         }
       }

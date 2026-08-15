@@ -1388,6 +1388,7 @@
       }
     },
     "hud.coins.plus.label" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1757,6 +1758,7 @@
       }
     },
     "map.hud.label" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3033,6 +3035,7 @@
       }
     },
     "spawn.button.full" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3049,6 +3052,7 @@
       }
     },
     "spawn.button.full.detail" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3065,6 +3069,7 @@
       }
     },
     "spawn.button.hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3081,6 +3086,7 @@
       }
     },
     "spawn.button.hire_locked" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3097,6 +3103,7 @@
       }
     },
     "spawn.button.hire_locked.detail" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3113,6 +3120,7 @@
       }
     },
     "spawn.button.locked" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3129,6 +3137,7 @@
       }
     },
     "spawn.button.locked.detail" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3145,6 +3154,7 @@
       }
     },
     "spawn.button.title %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

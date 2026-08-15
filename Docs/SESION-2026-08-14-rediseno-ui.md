@@ -37,8 +37,9 @@
 | 6 | HUD superior nuevo | ✅ review clean | `30b8e98` | Barra contigua (moneda+/monedas+`X /s`/ascensor) + fix de la clave muerta de la pill (trampa 5). Los 4 botones viejos quedaron TRANSITORIOS |
 | 7 | Barra inferior + tutorial | ✅ review clean | `18f45d3` | 6 tabs (ids `hud.hire/upgrades/skins/bonus/store/settings`), SpawnButtonView borrado, bottomInset 110→114, tutorial por milestone, EconomyLoop/Tutorial UITests reescritos, BottomMenuUITests nuevo. Placeholders: jobs (lista cruda), skins, menu |
 | 8 | FisuJobsView | ✅ review clean (1 fix round) | `55736ba` + `3d2eb64` | Pantalla real de contratación (3 secciones, wordmark parodia, silueta "???"). Fix: la fila es UNA parada de VoiceOver + label hablable. +`65fac2a` (reformateo xcstrings de Xcode, controller). ⚠️ el patrón de fila accesible (accessibilityHidden en info/badge) es el que deben copiar las pantallas siguientes |
-| 9 | Upgrades v2 | ⏳ **PRÓXIMA** | — | Restyle conservando ids; brief en el workspace |
-| 10-20 | — | pendientes | — | Ver plan |
+| 9 | Upgrades v2 | ✅ review clean (1 fix round) | `0b47a8b` + `f6d7e68` | Restyle con GameCard/ProgressBar/PricePill, ORO en header, margen 40pt medido del arte; VoiceOver: nombre UNA vez en el retrato (tests pineados intactos). Retrato 104pt (test manda sobre el 88 del spec) |
+| 10 | ElevatorView | ⏳ **PRÓXIMA** | — | Restyle del mapa como ascensor; brief en el workspace |
+| 11-20 | — | pendientes | — | Ver plan |
 
 **Suites al cierre de T8**: `FisuEvolutionTests` 235 · UI verdes (FisuJobs 2,
 EconomyLoop 2, BottomMenu 2, Tutorial 5; suite completa 28/28 en T7, con

@@ -36,10 +36,12 @@
 | 5 | jobRows + hireCharacter | ✅ review clean | `66992c1` | Retomó parcial de un agente interrumpido (auditado, conservado). ⚠️ payloads `...NameKey` llevan el nombre YA RESUELTO |
 | 6 | HUD superior nuevo | ✅ review clean | `30b8e98` | Barra contigua (moneda+/monedas+`X /s`/ascensor) + fix de la clave muerta de la pill (trampa 5). Los 4 botones viejos quedaron TRANSITORIOS |
 | 7 | Barra inferior + tutorial | ✅ review clean | `18f45d3` | 6 tabs (ids `hud.hire/upgrades/skins/bonus/store/settings`), SpawnButtonView borrado, bottomInset 110→114, tutorial por milestone, EconomyLoop/Tutorial UITests reescritos, BottomMenuUITests nuevo. Placeholders: jobs (lista cruda), skins, menu |
-| 8 | FisuJobsView | ⏳ **PRÓXIMA** | — | Reemplaza JobsPlaceholderView; brief en el workspace |
-| 9-20 | — | pendientes | — | Ver plan |
+| 8 | FisuJobsView | ✅ review clean (1 fix round) | `55736ba` + `3d2eb64` | Pantalla real de contratación (3 secciones, wordmark parodia, silueta "???"). Fix: la fila es UNA parada de VoiceOver + label hablable. +`65fac2a` (reformateo xcstrings de Xcode, controller). ⚠️ el patrón de fila accesible (accessibilityHidden en info/badge) es el que deben copiar las pantallas siguientes |
+| 9 | Upgrades v2 | ⏳ **PRÓXIMA** | — | Restyle conservando ids; brief en el workspace |
+| 10-20 | — | pendientes | — | Ver plan |
 
-**Suites al cierre de T7**: `FisuEvolutionTests` 235 · UI 28/28 (con
+**Suites al cierre de T8**: `FisuEvolutionTests` 235 · UI verdes (FisuJobs 2,
+EconomyLoop 2, BottomMenu 2, Tutorial 5; suite completa 28/28 en T7, con
 `-skip-testing:FisuEvolutionUITests/AscentRenderingUITests`, rojo
 preexistente) · EconomyKit 180 · cero warnings.
 

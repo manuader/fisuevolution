@@ -1,5 +1,12 @@
 # HANDOFF — FisuEvolution, estado actual
 
+> ⚠️⚠️ **REDISEÑO DE UI EN CURSO EN ESTA RAMA** (`feature/rediseno-ui-cowevolution`).
+> El estado tarea por tarea y CÓMO RETOMAR viven en
+> **`Docs/SESION-2026-08-14-rediseno-ui.md`** — ese doc se actualiza al
+> cierre de CADA tarea y es la fuente de verdad de esta rama. Lo de abajo
+> describe el juego ANTES del rediseño y sigue siendo válido para todo lo
+> que el rediseño no tocó.
+>
 > **Empezá por acá.** Última actualización: **2026-08-10**, commit `de9b76e`.
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.

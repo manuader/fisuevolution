@@ -806,13 +806,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discover all 43 character types."
+            "value" : "Discover every character on your career path."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conocé los 43 tipos de personaje."
+            "value" : "Conocé todos los personajes de tu carrera."
           }
         }
       }

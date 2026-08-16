@@ -85,8 +85,14 @@ extension GameState {
     func evaluateAchievements() {
         guard let content, let player else { return }
         let catalog = content.achievements.achievements
-        guard player.meta.unlockedAchievements.count < catalog.count else { return }
 
+        // ⚠️ **Sin portero por `count`.** La versión anterior cortaba con
+        // `unlockedAchievements.count < catalog.count`, que compara ids del SAVE
+        // contra el catálogo VIGENTE: el día que se retire un logro, un save con
+        // los 39 viejos queda en 39 < 38 = false y el motor se apaga entero, en
+        // silencio y para siempre — ni siquiera agregar logros nuevos lo
+        // reviviría. Es el mismo agujero que el de `skinsAll` (precedente
+        // `kiosco`). El `where` de abajo ya es el filtro barato que se buscaba.
         var newlyUnlocked: [AchievementsConfig.Achievement] = []
         for achievement in catalog where !player.meta.unlockedAchievements.contains(achievement.id) {
             let progress = measure(achievement.trigger, player: player, content: content)
@@ -165,9 +171,17 @@ extension GameState {
         case .lifetimeEarnings:
             return (player.meta.lifetimeEarnings, value)
         case .seenAllTypes:
-            let concrete = content.tiers.concreteTypes
-            let seen = concrete.filter { player.run.seenTypes.contains($0.id) }.count
-            return (Double(seen), Double(concrete.count))
+            // Contra los tipos que ESTA run puede llegar a ver, no contra los 43
+            // del catálogo: ver los 43 es imposible en una sola vida.
+            let career = Self.careerTypes(content: content)
+            let branch = player.run.chosenCareerPath.flatMap { career.branches[$0] }
+            // Sin carrera elegida el objetivo sigue siendo el techo de la run
+            // —el tronco más la rama más larga—, así el logro no se abarata por
+            // no haber elegido todavía.
+            let branchSize = branch?.count ?? (career.branches.values.map(\.count).max() ?? 0)
+            let reachable = branch.map { career.trunk.union($0) } ?? career.trunk
+            let seen = reachable.filter { player.run.seenTypes.contains($0) }.count
+            return (Double(seen), Double(career.trunk.count + branchSize))
         case .dailyDay7:
             // `cycleDay` apunta al día que el ciclo VA A PAGAR y vuelve a 1 al
             // cobrar el último, así que llegar a 7 es el único momento
@@ -176,6 +190,58 @@ extension GameState {
         case .sharesCompleted:
             return (Double(player.meta.sharesCompleted), value)
         }
+    }
+
+    /// El árbol de evolución partido en **tronco** (lo que ve cualquier carrera)
+    /// y **ramas** (lo que cada carrera se lleva en exclusiva).
+    ///
+    /// Existe porque la elección de carrera es **excluyente y para toda la
+    /// vida**: elegir Médico cierra Programador, Arquitecto y Abogado hasta la
+    /// próxima reencarnación, y `run.seenTypes` muere con la run. Contra los 43
+    /// tipos concretos, una run ve como máximo **37** — los 35 del tronco más el
+    /// junior y el senior de su rama—, así que medir "los viste a todos" contra
+    /// 43 es prometer algo que el juego no puede dar: la barra se clavaría en
+    /// 0,86 para siempre y el logro sería ORO muerto.
+    ///
+    /// Se deriva del DATO y no de un 37 escrito: las raíces son los
+    /// `choiceOptions` de `tiers.json`, y la rama de cada una es lo que cuelga
+    /// por `mergesInto` hasta el primer punto de reunión (`director`, al que
+    /// llegan los cuatro seniors). Agregar una quinta carrera, alargar las ramas
+    /// a tres tipos o mover el reencuentro más arriba mueve el objetivo **solo**.
+    ///
+    /// No se cachea porque hay UN logro con este gatillo: se arma una vez por
+    /// pasada del motor (≈100 saltos de diccionario), no una por logro.
+    private static func careerTypes(content: GameContent) -> (trunk: Set<String>, branches: [String: Set<String>]) {
+        let tiers = content.tiers
+        let roots = Set(tiers.types.flatMap { $0.choiceOptions ?? [] })
+        guard !roots.isEmpty else { return (Set(tiers.concreteTypes.map(\.id)), [:]) }
+
+        // Cuántas raíces pasan por cada tipo. 1 = exclusivo de esa rama;
+        // ≥2 = el árbol ya se volvió a juntar y de ahí para arriba es tronco.
+        var reachedBy: [String: Int] = [:]
+        for root in roots {
+            var cursor: String? = root
+            var steps = 0
+            while let id = cursor, steps <= tiers.types.count {
+                reachedBy[id, default: 0] += 1
+                cursor = tiers.type(id: id)?.mergesInto
+                steps += 1
+            }
+        }
+
+        var branches: [String: Set<String>] = [:]
+        for root in roots {
+            var exclusive: Set<String> = []
+            var cursor: String? = root
+            while let id = cursor, reachedBy[id] == 1 {
+                exclusive.insert(id)
+                cursor = tiers.type(id: id)?.mergesInto
+            }
+            branches[MergeRules.careerPath(fromOptionId: root)] = exclusive
+        }
+        let allBranchTypes = branches.values.reduce(into: Set<String>()) { $0.formUnion($1) }
+        let trunk = Set(tiers.concreteTypes.map(\.id)).subtracting(allBranchTypes)
+        return (trunk, branches)
     }
 
     // MARK: Cobro
@@ -193,9 +259,9 @@ extension GameState {
         switch kind {
         case .coins:
             // Mismo cálculo que el cofre del Asado y el premio de la carrera: un
-            // factor sobre lo que cuesta el pasivo del tier máximo, así el
+            // factor sobre lo que cuesta el pasivo del tier de referencia, así el
             // premio nunca queda ridículo por cobrarlo tarde.
-            let chest = economy.passiveUnlockCost(forTier: player.run.maxTierReached)
+            let chest = economy.passiveUnlockCost(forTier: Self.rewardTier(player: player, content: content))
                 * (achievement.reward.factor ?? 0)
             player.run.coins += chest
             player.meta.lifetimeEarnings += chest
@@ -322,7 +388,10 @@ extension GameState {
     ) -> String {
         switch reward.rewardKind {
         case .coins:
-            let chest = economy.passiveUnlockCost(forTier: player.run.maxTierReached) * (reward.factor ?? 0)
+            // El MISMO tier que va a usar `claimAchievement`: si la fila cotizara
+            // por un lado y el cobro pagara por otro, la pantalla mentiría.
+            let chest = economy.passiveUnlockCost(forTier: rewardTier(player: player, content: content))
+                * (reward.factor ?? 0)
             return String(localized: "ach.reward.coins \(CoinFormatter.string(from: chest))")
         case .oro:
             return String(localized: "ach.reward.oro \(String(reward.amount ?? 0))")
@@ -334,6 +403,25 @@ extension GameState {
             // Inalcanzable: `validate` no deja arrancar con una reward rara.
             return ""
         }
+    }
+
+    /// Con qué tier se cotiza un premio en monedas.
+    ///
+    /// ⚠️ **No es `run.maxTierReached` a secas.** Ese vuelve a 1 al reencarnar y
+    /// `passiveUnlockCost` es exponencial: un logro conseguido en el reino divino
+    /// y cobrado después de reencarnar pagaría órdenes de magnitud menos. Y como
+    /// `claimedAchievements` es de una sola vía, el premio quedaría **quemado**:
+    /// el jugador no puede volver a intentarlo mejor.
+    ///
+    /// El suelo es el primer tier del piso más alto que tocó **en su vida**
+    /// (`meta.stats.maxFloorOrdinalEver`, que sobrevive a la reencarnación), así
+    /// que el premio nunca vale menos que eso. El `max` con la run deja que siga
+    /// creciendo dentro del piso, como cualquier otro cofre.
+    private static func rewardTier(player: PlayerState, content: GameContent) -> Int {
+        let floors = content.floorTable.floors
+        guard !floors.isEmpty else { return player.run.maxTierReached }
+        let ordinal = min(max(player.meta.stats.maxFloorOrdinalEver, 0), floors.count - 1)
+        return max(player.run.maxTierReached, floors[ordinal].firstTier)
     }
 
     /// Lookup de una clave del catálogo de logros. Va por `String(localized:)`

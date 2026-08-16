@@ -164,16 +164,57 @@ struct AchievementEngineTests {
         #expect(!state.isUnlocked("ach_wealth_1b"))
     }
 
-    /// El nodo de elección `junior` NO cuenta: es una bifurcación, no un
-    /// personaje, y exigirlo dejaría el logro imposible.
-    @Test("seenAllTypes se cruza al ver los 43 tipos concretos")
+    /// ⚠️ **Se mide contra los tipos ALCANZABLES, no contra los 43.** La carrera
+    /// es excluyente y `run.seenTypes` muere al reencarnar: una run ve como
+    /// máximo el tronco (35) más el junior y el senior de SU rama = 37. Medir
+    /// contra 43 dejaba el logro —40 de ORO— matemáticamente inconseguible, con
+    /// la barra clavada en 0,86 para siempre.
+    @Test("seenAllTypes se cruza con los tipos alcanzables de tu carrera, no con los 43")
     func seenAllTypesTrigger() async throws {
-        let content = try GameContentLoader.load(from: .main)
+        let branch = Self.doctorBranch
+        let trunk = try Self.trunkTypeIDs()
+        #expect(trunk.count == 35, "el tronco es lo que ve cualquier carrera")
+
+        let todos = await makeState {
+            $0.run.chosenCareerPath = "doctor"
+            $0.run.seenTypes = Set(trunk + branch)
+        }
+        todos.evaluateAchievements()
+        #expect(todos.isUnlocked("ach_seen_all"), "37 alcanzables tienen que alcanzar")
+
+        // Y no hace falta haber visto las otras tres carreras: con las 6 ajenas
+        // puestas el resultado es el mismo, no “más completo”.
+        let row = try #require(todos.achievementRows.first { $0.id == "ach_seen_all" })
+        #expect(row.state == .unlocked)
+        #expect(row.progress == 1)
+    }
+
+    @Test("a seenAllTypes le falta uno si te falta uno de tu rama")
+    func seenAllTypesStillNeedsTheWholeBranch() async throws {
+        let trunk = try Self.trunkTypeIDs()
+        // 36 de 37: está el junior de la rama, falta el senior.
         let state = await makeState {
-            $0.run.seenTypes = Set(content.tiers.concreteTypes.map(\.id))
+            $0.run.chosenCareerPath = "doctor"
+            $0.run.seenTypes = Set(trunk + ["junior_doctor"])
         }
         state.evaluateAchievements()
-        #expect(state.isUnlocked("ach_seen_all"))
+        #expect(!state.isUnlocked("ach_seen_all"))
+
+        let row = try #require(state.achievementRows.first { $0.id == "ach_seen_all" })
+        #expect(abs(row.progress - 36.0 / 37.0) < 1e-9, "el objetivo es 37, no 43")
+    }
+
+    /// Ver los tipos de OTRA carrera no acerca el logro: no son alcanzables en
+    /// esta vida y contarlos volvería a hacerlo inconseguible por el otro lado.
+    @Test("los tipos de las carreras ajenas no cuentan para seenAllTypes")
+    func foreignCareerTypesDoNotCount() async throws {
+        let trunk = try Self.trunkTypeIDs()
+        let state = await makeState {
+            $0.run.chosenCareerPath = "doctor"
+            $0.run.seenTypes = Set(trunk + Self.foreignBranches)
+        }
+        state.evaluateAchievements()
+        #expect(!state.isUnlocked("ach_seen_all"))
     }
 
     @Test("dailyDay7 se cruza al llegar al día 7 del ciclo")
@@ -188,6 +229,22 @@ struct AchievementEngineTests {
         let state = await makeState { $0.meta.sharesCompleted = 1 }
         state.evaluateAchievements()
         #expect(state.isUnlocked("ach_share_1"))
+    }
+
+    /// El motor no puede apagarse por contar mal. La versión anterior cortaba
+    /// con `unlockedAchievements.count < catalog.count`, que compara ids del
+    /// SAVE contra el catálogo VIGENTE: con logros retirados, un save viejo
+    /// supera la cuenta y el motor se apagaba entero, en silencio y para
+    /// siempre.
+    @Test("un save con ids de logros retirados no apaga el motor")
+    func retiredAchievementIDsDoNotStallTheEngine() async {
+        let state = await makeState {
+            // Más ids que logros hay en el catálogo, y ninguno del catálogo.
+            $0.meta.unlockedAchievements = Set((0..<40).map { "ach_retirado_\($0)" })
+            $0.meta.stats.totalMergesEver = 1
+        }
+        state.evaluateAchievements()
+        #expect(state.isUnlocked("ach_merges_1"), "un logro alcanzable se desbloquea igual")
     }
 
     @Test("una partida nueva no desbloquea nada")
@@ -304,6 +361,58 @@ struct AchievementEngineTests {
         let economy = try #require(high.economy)
         let expected = economy.passiveUnlockCost(forTier: 12) * 2.0
         #expect(abs(highGain - expected) < expected * 1e-9)
+    }
+
+    /// Reencarnar antes de cobrar NO puede evaporar el premio: `run.maxTierReached`
+    /// vuelve a 1 y `passiveUnlockCost` es exponencial, así que cobrar después
+    /// pagaría órdenes de magnitud menos — y como `claimed` es de una sola vía,
+    /// el premio quedaría quemado sin forma de recuperarlo.
+    @Test("el premio en monedas conserva el suelo histórico al reencarnar")
+    func coinRewardKeepsItsHistoricFloor() async throws {
+        let content = try GameContentLoader.load(from: .main)
+        // El piso más alto que tocó en su vida: galaxia (ordinal 8, tiers 33…36).
+        let ordinal = 8
+        let state = await makeState {
+            $0.meta.stats.totalMergesEver = 1
+            $0.run.maxTierReached = 33
+            $0.meta.stats.maxFloorOrdinalEver = ordinal
+        }
+        state.evaluateAchievements()
+        #expect(state.isUnlocked("ach_merges_1"))
+
+        // Reencarnar es exactamente esto (ver el docstring de `RunState.fresh`).
+        var player = try #require(state.player)
+        player.run = .fresh(startTypeId: "homeless", startFloorId: "alley")
+        state.player = player
+        #expect(state.player?.run.maxTierReached == 1)
+
+        let before = state.player?.run.coins ?? 0
+        state.claimAchievement(id: "ach_merges_1")
+        let gain = (state.player?.run.coins ?? 0) - before
+
+        let economy = try #require(state.economy)
+        let expected = economy.passiveUnlockCost(forTier: content.floorTable[ordinal].firstTier) * 2.0
+        #expect(abs(gain - expected) < expected * 1e-9, "el suelo es el primer tier del piso más alto de su vida")
+        // Y no es una diferencia cosmética: cobrarlo como T1 pagaba ~1e13 veces menos.
+        #expect(gain > economy.passiveUnlockCost(forTier: 1) * 2.0 * 1_000_000)
+    }
+
+    /// La fila cotiza con el MISMO tier con el que después paga el cobro: si no,
+    /// la pantalla prometería un número y el botón daría otro.
+    @Test("el texto del premio y lo que se acredita usan el mismo tier")
+    func rewardTextAgreesWithWhatItPays() async throws {
+        let state = await makeState {
+            $0.meta.stats.totalMergesEver = 1
+            $0.run.maxTierReached = 1
+            $0.meta.stats.maxFloorOrdinalEver = 8
+        }
+        state.evaluateAchievements()
+        let row = try #require(state.achievementRows.first { $0.id == "ach_merges_1" })
+
+        let before = state.player?.run.coins ?? 0
+        state.claimAchievement(id: "ach_merges_1")
+        let gain = (state.player?.run.coins ?? 0) - before
+        #expect(row.rewardText.contains(CoinFormatter.string(from: gain)))
     }
 
     /// El multiplicador global se computa sobre `oroEarnedLifetime`, que SOLO
@@ -448,6 +557,23 @@ struct AchievementEngineTests {
     }
 
     // MARK: Helpers
+
+    /// La rama que el test elige, y las tres que quedan cerradas por elegirla.
+    /// Van escritas a mano a propósito: si el test derivara las ramas igual que
+    /// el motor, los dos podrían estar equivocados juntos.
+    private static let doctorBranch = ["junior_doctor", "senior_doctor"]
+    private static let foreignBranches = [
+        "junior_programmer", "senior_programmer",
+        "junior_architect", "senior_architect",
+        "junior_lawyer", "senior_lawyer",
+    ]
+
+    /// Los tipos concretos que ve CUALQUIER carrera: todo menos las ocho ramas.
+    private static func trunkTypeIDs() throws -> [String] {
+        let content = try GameContentLoader.load(from: .main)
+        let branchTypes = Set(doctorBranch + foreignBranches)
+        return content.tiers.concreteTypes.map(\.id).filter { !branchTypes.contains($0) }
+    }
 
     private static func achievement(
         id: String = "ach_test",

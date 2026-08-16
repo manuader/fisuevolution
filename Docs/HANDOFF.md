@@ -754,21 +754,28 @@ riesgo alto son `ui_menu_stats`, `ui_trophy_silver` y `ui_daily_calendar`. El
 que salga hueco **no se integra** — se borran sus `@2x`/`@3x` y su clave de
 `manifest.ui`, y el juego vuelve solo al icono vectorial, que para eso está.
 
-**2. Costura pendiente: 4 de esos 15 iconos no tienen dónde aterrizar.**
-Verificado key por key otra vez el 2026-08-16: `ui_trophy_bronze`,
-`ui_trophy_silver`, `ui_trophy_gold` y `ui_daily_calendar` **no pasan por
-`GameIcon(artKey:)`**, así que aunque el batch salga perfecto esos PNG entran
-al atlas y al manifest y el juego los ignora. Los call-sites que hay que
-tocar son **tres, no dos** (T19 documentó dos):
+**2. Costura de los 15 iconos: las tres copas ya están; falta el calendario.**
 
-- `FisuEvolution/UI/Menu/AchievementsView.swift:206` → `VectorTrophyIcon(tier:)`
-- `FisuEvolution/App/RootView.swift:382` → `VectorTrophyIcon(tier:)`
-- `FisuEvolution/UI/Menu/MenuView.swift:65` → `VectorTrophyIcon(tier: .gold)`
-- `VectorCalendarIcon` sólo se declara en `GameIcons.swift:543`; no se usa en
-  ninguna vista.
+✅ **Los tres `ui_trophy_*` quedaron cableados en la ola final del review**
+(2026-08-16). Eran **DOS** call-sites y no tres —el conteo de tres que figuraba
+acá estaba mal: `MenuView.swift:65` nunca fue un pendiente, porque su copa ya
+pasaba por `GameIcon` vía la clave `ui_menu_trophy` del propio menú—. Los dos
+que faltaban ahora envuelven el vector con
+`GameIcon(artKey: "ui_trophy_\(tier.rawValue)")`, que mapea el metal al sufijo
+de la clave del atlas:
 
-Es costura de Swift, no de la cola: se hace cuando el batch esté integrado (y
-sólo para los iconos que sobrevivan la medición de opacidad).
+- `FisuEvolution/UI/Menu/AchievementsView.swift` (la copa de cada fila, 42 pt)
+- `FisuEvolution/App/RootView.swift` (la copa del toast, 34 pt)
+
+Mientras el atlas no tenga las claves siguen cayendo al vector y no cambia
+nada en pantalla; el día que el batch entre, entran solas.
+
+⚠️ **El pendiente real es `ui_daily_calendar`.** `VectorCalendarIcon` sólo se
+declara en `GameIcons.swift:543` y no se usa en ninguna vista: no hay dónde
+aterrizarlo sin **decidir antes dónde va el calendario** (la tira de días de
+Regalos tiene su propio dibujo, y meterle un icono es una decisión de diseño
+del dueño, no una costura mecánica). Hasta que esa decisión exista, ese PNG
+entra al atlas y el juego lo ignora.
 
 **3. Los ajustes ya están listos para App Store.** `SettingsView` trae las
 seis secciones del spec: **idioma** (sistema/es/en, con su clave propia

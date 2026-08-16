@@ -155,13 +155,14 @@ Terminal.app) · logros: la enumeración (39) manda sobre el "36" del titular.
   `ui_daily_calendar`. El que salga hueco NO se integra (se borran sus
   `@2x`/`@3x` y su clave de `manifest.ui`): el juego vuelve solo al vectorial,
   que para eso está. El script de medición está en el report de T19.
-- ⚠️ **4 de los 15 iconos no tienen dónde aterrizar todavía** (verificado key
-  por key en T19): `ui_trophy_bronze/silver/gold` y `ui_daily_calendar` NO
-  pasan por `GameIcon(artKey:)`. `AchievementsView.swift:206` y
-  `RootView.swift:382` instancian `VectorTrophyIcon(tier:)` directo, y
-  `VectorCalendarIcon` no se usa fuera de `GameIcons.swift`. Aunque el batch
-  salga perfecto, esos 4 PNG entran al atlas y al manifest y el juego los
-  ignora. Es costura de Swift (T20 / ola final), no de la cola.
+- ✅ **La costura de las tres copas está HECHA** (ola final del review,
+  2026-08-16): `AchievementsView` y `RootView` envuelven el vector con
+  `GameIcon(artKey: "ui_trophy_\(tier.rawValue)")`. Eran **dos** call-sites y
+  no tres — `MenuView.swift:65` ya pasaba por `GameIcon` con `ui_menu_trophy`.
+- ⚠️ **`ui_daily_calendar` sigue sin dónde aterrizar**: `VectorCalendarIcon` no
+  se usa fuera de `GameIcons.swift` y cablearlo pide decidir ANTES dónde va el
+  calendario en Regalos (decisión de diseño del dueño, no costura mecánica).
+  Hasta entonces ese PNG entra al atlas y el juego lo ignora.
 - ⚠️ **`gen_prompts.py` regenera `prompts.json` entero** desde
   `cultural_dict.py`: si alguien lo corre, se lleva puestas las 52 entradas
   agregadas a mano (las 15 de T19 incluidas). Quedó como generador legacy.

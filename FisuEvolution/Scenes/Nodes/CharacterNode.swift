@@ -12,6 +12,11 @@ final class CharacterNode: SKNode {
     /// (crecen hacia arriba, con los pies apoyados sobre la sombra).
     static let realArtScale: CGFloat = 2.2
 
+    /// Clave del volteo periódico que corre `BoardScene`. Vive acá porque es del
+    /// nodo: el pool lo borra al reciclar y `renderPlacements` lo vuelve a
+    /// encargar, sin pasar por el ciclo de vida del paseo.
+    static let facingActionKey = "facing"
+
     private let shadow = SKShapeNode()
     private let plate = SKShapeNode()
     private let sprite = SKSpriteNode()
@@ -123,6 +128,29 @@ final class CharacterNode: SKNode {
         nameLabel.position = CGPoint(x: 0, y: -plateSize * 0.46)
     }
 
+    /// Espeja al personaje para que mire hacia donde camina.
+    ///
+    /// ⚠️ El espejado va en el **sprite**, que es hijo, y NUNCA en el nodo. Los
+    /// `SKAction.scale(to:)` del tablero —el rebote del tap, el pop del
+    /// candidato, el snap-back del arrastre, el vuelo del ascenso— escriben
+    /// `xScale` e `yScale` a la vez sobre el nodo: con el espejado ahí, cada tap
+    /// devolvería al personaje a mirar a la derecha de un salto visible. El
+    /// sprite tiene `anchorPoint` (0.5, 0.5) y `position.x = 0` en los dos
+    /// caminos de `configure`, así que darlo vuelta es geométricamente neutro.
+    /// La sombra y las etiquetas no se espejan: una sombra elíptica centrada es
+    /// simétrica y un "T3" al revés se lee al revés.
+    ///
+    /// Se preserva la magnitud —y no se escribe un ±1— porque el signo es lo
+    /// único que significa "hacia dónde mira": cualquier escala que el sprite
+    /// llegue a tener tiene que sobrevivir al espejado.
+    func setFacing(left: Bool) {
+        let magnitude = abs(sprite.xScale)
+        let target = left ? -magnitude : magnitude
+        if sprite.xScale != target { sprite.xScale = target }
+    }
+
+    var isFacingLeft: Bool { sprite.xScale < 0 }
+
     /// Asignar `text` o `fontSize` a un `SKLabelNode` lo marca sucio y obliga a
     /// rehacer el layout de Core Text y a re-subir su textura, aunque el valor
     /// sea idéntico. Como `configure` corre sobre los 10 personajes en cada
@@ -157,6 +185,11 @@ final class CharacterNodePool {
         node.removeAllActions()
         node.alpha = 1
         node.setScale(1)
+        // `setScale(1)` limpia el NODO y no a sus hijos, y el espejado vive en el
+        // sprite justamente para que ningún `scale(to:)` lo pise: sin esta línea
+        // sobreviviría al reciclado y un personaje recién contratado podría
+        // aparecer dado vuelta sin que nada lo haya dado vuelta.
+        node.setFacing(left: false)
         node.zRotation = 0
         node.isHidden = false
         return node

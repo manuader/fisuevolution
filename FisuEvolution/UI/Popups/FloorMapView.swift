@@ -317,16 +317,18 @@ struct FloorMapView: View {
     ///
     /// **El canje acá es más caro y va dicho**: +2 pt (10 → 12) y **tres escalones
     /// de peso**, del `.black` de antes al `.semibold` del token. Se acepta a
-    /// propósito: `Tokens.caption` es con lo que el juego escribe TODAS sus
+    /// propósito: `Tokens.caption` es con lo que el juego escribe casi todas sus
     /// cápsulas chiquitas —el `floorTag` de FisuJobs, que es literalmente la misma
-    /// cápsula amarilla con borde ink, y el `StateBadge` compartido—, así que la
-    /// marca deja de ser la única del juego con un peso propio. Un
-    /// `.weight(.black)` encima del token la devolvería, pero sería la primera
-    /// tipografía de la app que se sale de la escala y la próxima pantalla copiaría
-    /// el atajo: la gramática vale más que dos escalones en una etiqueta de 12 pt
-    /// en tinta sobre amarillo pleno, que es el par de contraste más alto de la
-    /// paleta. Si el dueño la escucha apagada, el arreglo es subir el peso del
-    /// TOKEN —y con él las tres cápsulas—, no parchar esta.
+    /// cápsula amarilla con borde ink, y el `StateBadge` compartido; el chip de
+    /// `ActiveBonusBar` no, que va con `.system(15/13)` fijo—, así que la marca
+    /// deja de ser una de las pocas del juego con un peso propio. Un
+    /// `.weight(.black)` encima del token la devolvería, pero sería el primer
+    /// override de peso SOBRE UN TOKEN y la próxima pantalla copiaría el atajo:
+    /// la gramática vale más que dos escalones en una etiqueta de 12 pt en tinta
+    /// sobre amarillo pleno, que da **10:1** —holgado sobre el 4,5:1 de AA, aunque
+    /// no sea el par más alto de la paleta: tinta sobre crema da 13,2:1—. Si el
+    /// dueño la escucha apagada, el arreglo es subir el peso del TOKEN —y con él
+    /// las tres cápsulas—, no parchar esta.
     private var herePill: some View {
         Text("map.here")
             .font(Tokens.caption)

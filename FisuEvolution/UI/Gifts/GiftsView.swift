@@ -250,8 +250,11 @@ private struct DailyStrip: View {
                     // Por qué no hay botón, dicho en la pantalla y no sólo en
                     // el código: sin esta línea, "el día 3 está resaltado y no
                     // puedo tocarlo" se lee como un bug. Tres renglones y no
-                    // dos: al lado del plato la columna es más angosta y el
-                    // remate ("la racha vuelve al 1") no puede truncarse.
+                    // dos: al lado del plato la columna es más angosta y con
+                    // dos el remate ("la racha vuelve al 1") se caía en los
+                    // tamaños estándar. Con Dynamic Type de accesibilidad
+                    // trunca igual que antes de esta tarjeta (verificado): el
+                    // tercer renglón cubre el rango normal, no el AX.
                     Text("gifts.daily.note")
                         .font(Tokens.caption)
                         .foregroundStyle(Color("PaletteInk").opacity(0.65))

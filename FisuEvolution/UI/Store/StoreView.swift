@@ -474,6 +474,36 @@ private struct StoreProductCard: View {
     /// es la tarjeta que tiene que frenar el pulgar.
     private var plateSide: CGFloat { format == .featured ? 80 : 64 }
 
+    /// Ancho fijo del riel derecho de una FILA, igual que en FisuJobs, Regalos y
+    /// Logros: sin él, el riel se queda con lo que su contenido pida y la
+    /// columna de datos empieza en una x distinta en cada fila.
+    ///
+    /// **Medido sobre iPhone 16 Pro (402 pt)**: 402 − 2×30 de margen del panel
+    /// − 2×12 del `GameCard` − 2×12 de los huecos del `HStack` − 64 del plato
+    /// dejan **230 pt** para repartir entre datos y riel.
+    ///
+    /// - **Piso 92**: el `minWidth` del `PricePill`. Por debajo la cápsula no
+    ///   se achica, se sale del riel.
+    /// - **Techo 110**: el título de fila más largo mide 120 pt a `Tokens.body`
+    ///   ("Skin Mundialista" en español, "Mundialista Skin" en inglés), y
+    ///   230 − 110 es justo eso.
+    ///
+    /// **Por qué no lo decide el precio, como en Regalos.** Acá el texto de la
+    /// cápsula no lo escribe el juego sino StoreKit, y su ancho no tiene tope:
+    /// "$9.99" mide 45 pt (cápsula 95) pero cuando la moneda no es la del
+    /// locale —el simulador, y todo jugador con una moneda distinta a la del
+    /// storefront— el mismo precio sale "USD 9.99", 70 pt, cápsula 120. Un
+    /// riel dimensionado para el peor precio le comería la columna al título
+    /// para siempre. Así que el riel lo fija el título, que sí es finito, y el
+    /// precio se acomoda con el `minimumScaleFactor` que la cápsula ya tiene
+    /// (medido en pantalla: "USD 0.99" en 104 entra al 0,77 y se lee).
+    ///
+    /// 104 deja 126 pt de datos, seis más que el peor título. En pantallas más
+    /// chicas (SE, 375 pt) la columna baja a 99 y ahí el título se achica al
+    /// 0,83 — por eso va con `minimumScaleFactor` y no partido en dos, que era
+    /// el defecto.
+    private static let railWidth: CGFloat = 104
+
     var body: some View {
         Group {
             switch format {
@@ -525,6 +555,7 @@ private struct StoreProductCard: View {
                 info
                     .frame(maxWidth: .infinity, alignment: .leading)
                 rail
+                    .frame(width: Self.railWidth, alignment: .trailing)
             }
         }
     }
@@ -586,11 +617,23 @@ private struct StoreProductCard: View {
                     // Ya viaja en el valor de la tarjeta.
                     .accessibilityHidden(true)
             }
+            // ⚠️ **El nombre de una FILA va en un renglón**, como en Regalos y
+            // en Logros: en la columna de 126 pt que deja el riel entran los
+            // nueve nombres de góndola del catálogo (el peor, "Skin
+            // Mundialista", mide 120 a `Tokens.body`), pero antes del riel fijo
+            // el precio se llevaba lo que quería y "Puñado de Plata" se partía
+            // en "Puñado / de Plata" con dos palabras colgando arriba de la
+            // línea de beneficio, que ya usa tres renglones.
+            //
+            // La oferta destacada conserva los dos renglones: tiene la tarjeta
+            // entera para ella (226 pt contra los 173 que mide "Pack de
+            // Arranque" a `Tokens.title`) y es la única que puede permitirse
+            // partirse en vez de achicarse con Dynamic Type grande.
             Text(verbatim: product.displayName)
                 .font(format == .featured ? Tokens.title : Tokens.body)
                 .foregroundStyle(Color("PaletteInk"))
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
+                .lineLimit(format == .featured ? 2 : 1)
+                .minimumScaleFactor(format == .featured ? 0.7 : 0.6)
                 .fixedSize(horizontal: false, vertical: true)
                 // Es el nombre de la tarjeta: ya lo dice el resumen.
                 .accessibilityHidden(true)

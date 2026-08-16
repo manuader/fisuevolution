@@ -1,8 +1,12 @@
-# SESIÓN 2026-08-14/15 — Rediseño de UI estilo Cow Evolution (EN CURSO)
+# SESIÓN 2026-08-14/16 — Rediseño de UI estilo Cow Evolution (✅ COMPLETO)
 
 > **Para retomar con un agente nuevo, leé esto y alcanza.** Actualizado
 > después de CADA tarea (regla del dueño: ninguna tarea nueva arranca sin
 > que la anterior esté documentada acá).
+>
+> ✅ **Las 20 tareas del plan están hechas y revisadas** (cerrado el
+> 2026-08-16). Lo que queda no es implementación: está en "Qué queda", al
+> final de este doc.
 
 ## Cómo se retoma
 
@@ -48,7 +52,7 @@
 | 17 | Facing de personajes | ✅ review clean | `0d3839f` | Miran hacia donde caminan + flip periódico independiente (sobrevive congelamientos; un solo remover verificado estructuralmente). Espejado en `sprite.xScale`, nunca en el nodo. Verificación visual en LOS DOS sentidos (md5). Dos errores del brief corregidos con test (pool no limpia el sprite; withRange = ±range/2) |
 | 18 | Micro-animaciones + DailyRewardView | ✅ review clean (1 fix round: `d91ccc7`) | `b59b230` + `ed3abe5` | Contador rodante, stagger compartido (tope 8), shake ±4pt medido, toast con spring EN VIVO (2465→1779px filmado), popup diario restyleado, fixture 12º `--uitest-daily-popup`. De paso arregló el toast de T14 que no entraba animado. ⚠️ TowerNoticeView tiene el MISMO bug (transition muerta) — confirmado y diferido a la ola final |
 | 19 | Cola de iconos Gemini | ✅ | `f9d8ef1` | Cola lista, **cero imágenes generadas**: 15 `.md` (213–227) en `prompts/gemini_pro/` + 15 entradas gemelas en `prompts.json`, del draft, sin retocar un prompt. Sin campo `referencia` (los iconos de UI no adjuntan el Fisura) y `estado: pendiente`. Evidencia: suite del pipeline igual al baseline (27 tests, 1 rojo conocido por Chrome), `PromptRegistryTests` verde, y `--dry-run` del runner SIN Chrome listando exactamente los 15 en orden. El batch lo corre el dueño desde Terminal.app (ver Avisos vivos) |
-| 20 | Verificación final + docs | ⏳ **PRÓXIMA** | — | Suite completa, capturas, HANDOFF |
+| 20 | Verificación final + docs | ✅ | (este commit) | Las cuatro suites corridas ENTERAS en un simulador propio: **EconomyKit 180/180 · app 336/336 · UI 40/40 · pipeline 27 (1 rojo conocido de Chrome)**, cero warnings. **Ningún flaky hizo falta re-correr** y `PacingTests.strugglingPhaseLength` pasó. Verificación visual de las 20 pantallas + FTUE entero a mano + StoreKit caído + espejado. Los hallazgos visuales (cosméticos, ninguno bloqueante) van al review integral |
 
 **Suites al cierre de T16**: `FisuEvolutionTests` **327** (306 + 21 de
 `SettingsPersistenceTests`, `NotificationsManagerTests` y
@@ -161,6 +165,42 @@ Terminal.app) · logros: la enumeración (39) manda sobre el "36" del titular.
 - ⚠️ **`gen_prompts.py` regenera `prompts.json` entero** desde
   `cultural_dict.py`: si alguien lo corre, se lleva puestas las 52 entradas
   agregadas a mano (las 15 de T19 incluidas). Quedó como generador legacy.
-- El HANDOFF de `main` (commit `6156c59`) apunta a esta sesión pero dice
-  "retomar en Task 3": este doc es la fuente de verdad del estado; el
-  HANDOFF se re-sincroniza al cierre de la sesión o del branch.
+- ✅ **El HANDOFF de la rama ya está re-sincronizado** (T20): su banner dice
+  que el rediseño está completo, §4 tiene la sesión con los números finales,
+  §6 tiene la receta de verificación al día (unit ANTES que UI, simulador por
+  UDID) y §8 tiene lo que queda. El de `main` sigue viejo hasta el merge.
+
+---
+
+## Qué queda
+
+Ninguna de las tres cosas es implementación de las 20 tareas: el plan está
+terminado.
+
+1. **El review integral de la rama, con su ola de fixes.** Lo hace el
+   controller DESPUÉS de esta tarea. Entra:
+   - los **minors diferidos** de los 19 reviews, que viven en el ledger del
+     workspace SDD (`.superpowers/sdd/2026-08-14-rediseno-ui-cowevolution/progress.md`);
+     los más jugosos siguen siendo `CurrencyPill` huérfana (T6), el glifo chico
+     de `VectorCoinPlusIcon` (T6/T19) y el **`TowerNoticeView` con la misma
+     transition muerta** que T18 le arregló al toast (confirmado y diferido);
+   - los **hallazgos visuales de T20**, que están numerados y con severidad
+     sugerida en `.superpowers/sdd/.../task-20-report.md`. Son todos
+     cosméticos: ninguno impidió verificar ninguna pantalla;
+   - el copy de los boosts, cuyo flavor **repite el efecto** en varios (T13).
+
+2. **El batch de los 15 iconos (cola 213–227), que corre EL DUEÑO** desde
+   Terminal.app — receta completa, medición de opacidad post-batch y la
+   costura de los 4 iconos sin call-site en `Docs/HANDOFF.md` §8. La cola está
+   armada y verificada; no se generó ninguna imagen a propósito.
+
+3. **El merge a `main`.** ⚠️ Antes, la trampa 7: `main` local está adelante de
+   `origin/main` (3 commits al 2026-08-16), así que conviene pushear para que
+   el próximo frente no arranque de un árbol viejo.
+
+### Cómo se re-verifica la rama entera
+
+Está en `Docs/HANDOFF.md` §6, actualizado en T20 con los comandos exactos. Lo
+que no hay que olvidar: **simulador propio por UDID**, `-parallel-testing-enabled NO`,
+**unit ANTES que UI**, saltear `AscentRenderingUITests`, y **borrar el
+simulador al terminar**.

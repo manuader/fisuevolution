@@ -44,7 +44,13 @@
 | 13 | GiftsView | ✅ review clean | `4f64aa2` | Regalos v2: calendario diario NUEVO en pantalla + boosts + videos; BonusView borrada. Retomó un parcial de un agente cortado por API (auditado, conservado casi entero). `rewardText` saca el ×N del dato y no de la copy. Fixture nuevo `--uitest-daily-streak` (10º arg). Coherencia con FisuJobs CONFIRMADA por captura lado a lado; el fix visual salió de la captura, no de leer. ⚠️ el flavor de varios boosts REPITE el efecto (copy a triage) |
 | 14 | Logros (catálogo+motor) | ✅ review clean (1 fix round) | `274af9d` + `f056dcc` + `d95cc36` | 39 logros data-driven (el draft mandó), motor con 11 hooks, claim con recompensas, toast `ach.toast`, 82 claves. Fix: seen_all mide los 37 ALCANZABLES derivados del dato, portero eliminado, premio con suelo histórico (rewardText = claim). La pantalla la hace T15 |
 | 15 | Menú + org/stats/logros | ✅ review clean (1 fix round: `f08099e` — organigrama sin rearme por tick, tier con "(esta vida)") | `ce07c8a`..`f08099e` | Las 4 pantallas del menú. `menu.placeholder` MURIÓ (`ScreenPlaceholderView` borrado: las seis hojas de la barra existen). Es la ÚNICA hoja que navega hacia adentro. `statsSnapshot` (18 stats en texto) + `orgChartRows` (43 nodos, tier DESC). Margen 34pt medido en panel_config (marco DOBLE). Fixture nuevo `--uitest-achievements` (11º arg). 43 claves. Coherencia con FisuJobs verificada por captura lado a lado |
-| 16-20 | — | pendientes | — | Ver plan. ⚠️ **T16 arranca reemplazando `SettingsPlaceholderView`** (privado dentro de `MenuView.swift`) y el `case .settings` del `navigationDestination` |
+| 16 | Ajustes + legales + notificaciones | ✅ verde (sin review todavía) | `59b69a6` + `0a64d90` | `SettingsView` real (6 sesiones, 7 ids del spec), `LegalView` con parser por bloques, `NotificationsManager` (recordatorio diario 19:00, `isEnabled` `private(set)` para que no mienta), `terms.md` es+en del draft, `ConfigView` BORRADA, `StatDivider`→`RowDivider` compartido, `Tokens.prose` nuevo. `--uitest-reset` ahora limpia también los ajustes. 31 claves |
+| 17-20 | — | pendientes | — | Ver plan |
+
+**Suites al cierre de T16**: `FisuEvolutionTests` **327** (306 + 21 de
+`SettingsPersistenceTests`, `NotificationsManagerTests` y
+`LegalDocumentTests`) · `MenuUITests` 7/7 · `BottomMenuUITests` 2/2 · cero
+warnings de compilador.
 
 **Suites al cierre de T15**: `FisuEvolutionTests` **306** (294 + 12 de
 `StatsSnapshotTests`) · `MenuUITests` 6/6 · `BottomMenuUITests` 2/2 · cero
@@ -112,6 +118,18 @@ Terminal.app) · logros: la enumeración (39) manda sobre el "36" del titular.
   sub-vista tiene que cerrar el sheet entero, el cierre viaja como closure
   desde la raíz del stack. Con `dismiss`, `sheet.close` se comporta como el
   chevron de atrás que ya está al lado.
+- ⚠️ **Los ajustes viven en `UserDefaults` y sobreviven a `--uitest-reset`**
+  (T16): partículas, notificaciones e idioma se limpian ahora en
+  `applyLaunchArgumentDefaults`. Un test que apague las partículas sin eso se
+  las deja apagadas al siguiente — la misma trampa que las banderas del
+  tutorial (trampa 9).
+- ⚠️ **Los toggles de Ajustes son `switches`, no `buttons`** en el árbol de
+  accesibilidad: llevan el trait `.isToggle` (correcto: VoiceOver los anuncia
+  como interruptor). `app.buttons["settings.particles"]` no los encuentra.
+- ⚠️ **UserNotifications no está anotado para concurrencia estricta**: ni el
+  centro, ni la petición, ni los ajustes son `Sendable`. Las tres llamadas van
+  por callback + continuación adentro de `SystemNotificationCenter`; cualquier
+  intento de usar sus versiones `async` desde el main actor no compila.
 - El HANDOFF de `main` (commit `6156c59`) apunta a esta sesión pero dice
   "retomar en Task 3": este doc es la fuente de verdad del estado; el
   HANDOFF se re-sincroniza al cierre de la sesión o del branch.

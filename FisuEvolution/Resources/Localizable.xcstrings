@@ -1668,7 +1668,6 @@
       }
     },
     "ads.watch" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -1685,7 +1684,6 @@
       }
     },
     "bonus.activate" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2530,6 +2528,7 @@
       }
     },
     "daily.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3642,6 +3641,7 @@
       }
     },
     "notif.daily.body" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3658,6 +3658,7 @@
       }
     },
     "notif.daily.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4037,6 +4038,7 @@
       }
     },
     "settings.haptics" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4053,6 +4055,7 @@
       }
     },
     "settings.language" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4136,6 +4139,7 @@
       }
     },
     "settings.music" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4152,6 +4156,7 @@
       }
     },
     "settings.notifications" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4168,6 +4173,7 @@
       }
     },
     "settings.notifications.denied" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4184,6 +4190,7 @@
       }
     },
     "settings.notifications.hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4200,6 +4207,7 @@
       }
     },
     "settings.particles" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4216,6 +4224,7 @@
       }
     },
     "settings.particles.hint" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4265,6 +4274,7 @@
       }
     },
     "settings.restart.ok" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4281,6 +4291,7 @@
       }
     },
     "settings.restart.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4297,6 +4308,7 @@
       }
     },
     "settings.restore" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4313,6 +4325,7 @@
       }
     },
     "settings.restore.done %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4329,6 +4342,7 @@
       }
     },
     "settings.restore.empty" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4361,6 +4375,7 @@
       }
     },
     "settings.section.about" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4377,6 +4392,7 @@
       }
     },
     "settings.section.audio" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4393,6 +4409,7 @@
       }
     },
     "settings.section.game" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4409,6 +4426,7 @@
       }
     },
     "settings.section.legal" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4425,6 +4443,7 @@
       }
     },
     "settings.section.purchases" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4441,6 +4460,7 @@
       }
     },
     "settings.sfx" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4490,6 +4510,7 @@
       }
     },
     "settings.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {

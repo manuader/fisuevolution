@@ -319,10 +319,9 @@ struct GameBoardView: View {
     #endif
 }
 
-// `ScreenPlaceholderView` se retiró en la T15: las seis pantallas de la barra
-// existen de verdad y el último placeholder (`menu.placeholder`) murió con ella.
-// El que queda —Ajustes, hasta la T16— vive dentro de `MenuView`, que es quien
-// lo presenta.
+// `ScreenPlaceholderView` se retiró en la T15 y el último placeholder de todos
+// —Ajustes— murió en la T16: las seis pantallas de la barra y las cuatro del
+// menú existen de verdad.
 
 /// El banner de un logro recién conseguido: mismo mecanismo que
 /// `TowerNoticeView` —aparece, se puede tocar para cerrar y se va solo— pero con

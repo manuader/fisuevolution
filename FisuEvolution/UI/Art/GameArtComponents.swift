@@ -25,6 +25,13 @@ enum Tokens {
     static let title = Font.system(.title3, design: .rounded).weight(.heavy)
     static let body = Font.system(.subheadline, design: .rounded).weight(.bold)
     static let caption = Font.system(.caption, design: .rounded).weight(.semibold)
+    /// El único token de **peso normal**, para texto largo de verdad: los
+    /// documentos legales (T16), que son las dos únicas pantallas del juego con
+    /// párrafos de corrido. Los otros cuatro son pesados porque etiquetan cosas
+    /// —un número, un nombre, un botón— y ahí el peso es lo que las separa del
+    /// fondo; trescientas líneas de términos en `.bold` no se leen, se miran.
+    /// Sigue siendo `.rounded`, así que no se ve de otra app.
+    static let prose = Font.system(.subheadline, design: .rounded)
 
     /// Escala de espaciado 4/8/12/16/24. Nada de literales sueltos en las vistas.
     static let s4: CGFloat = 4
@@ -368,6 +375,24 @@ struct StateBadge: View {
                         .strokeBorder(Color("PaletteInk").opacity(muted ? 0.35 : 0.8), lineWidth: 2)
                 )
         )
+    }
+}
+
+// MARK: - RowDivider
+
+/// La línea entre dos filas de una `GameCard`.
+///
+/// No es `Divider()`: el separador del sistema es un gris frío que en una
+/// tarjeta crema con contorno ink se lee como de otra app. Nació privado en
+/// `StatsView` (T15) y se mudó acá al segundo llamador (Ajustes, T16) por la
+/// misma razón que `StateBadge`: dos copias de la misma línea se separan a la
+/// tercera pantalla.
+struct RowDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(Color("PaletteInk").opacity(0.12))
+            .frame(height: 1)
+            .accessibilityHidden(true)
     }
 }
 

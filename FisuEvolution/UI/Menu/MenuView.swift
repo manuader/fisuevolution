@@ -7,7 +7,7 @@ import SwiftUI
 /// Es la **única** de las seis hojas de la barra inferior que navega: las otras
 /// cinco son una pantalla y se cierran. Por eso acá el `NavigationStack` no es
 /// decorativo (en FisuJobs y compañía existe sólo para tener barra de
-/// herramientas) sino el mecanismo de la pantalla, y las tres sub-vistas se
+/// herramientas) sino el mecanismo de la pantalla, y las cuatro sub-vistas se
 /// **empujan** en vez de presentarse como hojas nuevas: una hoja sobre otra hoja
 /// apila dos marcos de madera y el jugador pierde de vista dónde está.
 ///
@@ -89,7 +89,7 @@ struct MenuView: View {
                 case .orgChart: OrgChartView(close: { dismiss() })
                 case .stats: StatsView(close: { dismiss() })
                 case .achievements: AchievementsView(close: { dismiss() })
-                case .settings: SettingsPlaceholderView(close: { dismiss() })
+                case .settings: SettingsView(close: { dismiss() })
                 }
             }
         }
@@ -179,51 +179,6 @@ struct MenuView: View {
         case .stats: "ui_menu_stats"
         case .achievements: "ui_menu_trophy"
         case .settings: "ui_menu_settings"
-        }
-    }
-}
-
-// MARK: - Ajustes (placeholder)
-
-/// Ajustes todavía no existe: lo construye la **T16** (`SettingsView`, spec
-/// §10.4), que además retira `ConfigView`. Hasta entonces la tarjeta abre esto,
-/// que ya lleva puesto el identifier que su test va a buscar.
-///
-/// El título **reusa la clave de la tarjeta** (`menu.card.settings`) en vez de
-/// traer una propia: agregar una clave al catálogo para borrarla en la tarea
-/// siguiente deja huérfanos que después nadie sabe si están vivos (mismo criterio
-/// que el viejo `ScreenPlaceholderView`). Y va traducida y no `verbatim`, porque
-/// el literal en español se leía "Ajustes" también con la app en inglés —que es
-/// como corre el runner (trampa 6)—.
-private struct SettingsPlaceholderView: View {
-    let close: () -> Void
-
-    var body: some View {
-        ZStack {
-            PanelBackground(art: "panel_config")
-            // ⚠️ El texto NO se estira a pantalla completa (trampa 9a): un
-            // elemento de accesibilidad del tamaño de la hoja tapa a los botones
-            // en el árbol de AX y todo `.tap()` muere con "Failed to scroll to
-            // visible". Los que se estiran son los contenedores, que no son
-            // elementos de accesibilidad.
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Text("menu.card.settings")
-                        .font(Tokens.title)
-                        .foregroundStyle(Color("PaletteInk"))
-                        .accessibilityIdentifier("settings.placeholder")
-                    Spacer()
-                }
-                Spacer()
-            }
-        }
-        .navigationTitle(Text(verbatim: ""))
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) { ArtCloseButton(action: close) }
         }
     }
 }

@@ -6,8 +6,8 @@ import Foundation
 /// que abrir el archivo del dominio ajeno sólo para tocar una puerta de test.
 extension GameState {
     #if DEBUG
-    /// Deja el estado del tutorial DECLARADO por el test en vez de heredado del
-    /// simulador.
+    /// Deja el estado que vive en `UserDefaults` —tutorial y ajustes— DECLARADO
+    /// por el test en vez de heredado del simulador.
     ///
     /// ⚠️ Esto es el arreglo de la trampa 9 del HANDOFF. `fisuTutorialDone` y
     /// las tres banderas `ftue.*` viven en `UserDefaults`, que sobrevive a
@@ -17,7 +17,12 @@ extension GameState {
     /// `fisuTutorialDone` de rebote): en un simulador limpio el tutorial les
     /// tapaba los controles. Ahora `--uitest-reset` también resetea el tutorial,
     /// y el que no quiere verlo lo dice con `--uitest-skip-tutorial`.
-    func applyTutorialLaunchArguments(forceNewGame: Bool) {
+    ///
+    /// ⚠️ **Los ajustes (T16) son exactamente la misma trampa**: partículas,
+    /// notificaciones e idioma también viven en `UserDefaults`. Un test que
+    /// apaga las partículas dejaba el simulador con el toggle apagado para el
+    /// test siguiente, que arrancaría midiendo otra cosa.
+    func applyLaunchArgumentDefaults(forceNewGame: Bool) {
         let arguments = ProcessInfo.processInfo.arguments
         let defaults = UserDefaults.standard
         if forceNewGame {
@@ -28,6 +33,10 @@ extension GameState {
             ftueTapped = false
             ftueSpawned = false
             ftueMerged = false
+            defaults.removeObject(forKey: ParticlePool.particlesDefaultsKey)
+            defaults.removeObject(forKey: NotificationsManager.defaultsKey)
+            defaults.removeObject(forKey: LanguagePreference.defaultsKey)
+            defaults.removeObject(forKey: LanguagePreference.systemKey)
         }
         // `--uitest-open-sheet` presenta una hoja modal: el tutorial no puede
         // estar adelante, así que implica saltearlo.

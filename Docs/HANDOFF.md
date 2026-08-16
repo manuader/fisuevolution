@@ -339,7 +339,7 @@ Fixtures DEBUG por launch argument — **son once, no tres**:
 
 | Argumento | Qué deja listo |
 |---|---|
-| `--uitest-reset` | Partida nueva. Resetea también `fisuTutorialDone` y las banderas `ftue.*` |
+| `--uitest-reset` | Partida nueva. Resetea también `fisuTutorialDone`, las banderas `ftue.*` y **los ajustes que viven en `UserDefaults`** (partículas, notificaciones e idioma — T16): sin eso, un test que apaga las partículas se las deja apagadas al siguiente |
 | `--uitest-skip-tutorial` | Sin tutorial. **Casi todo test de tablero lo necesita**: si no, el scrim se come los toques (trampa 9) |
 | `--uitest-coins` | Plata para contratar sin dar ~50 toques |
 | `--uitest-unlock-tower` | Abre pisos hasta el del tier 5. ⚠️ **NO toca `maxFloorOrdinalEver`**, así que no desbloquea boosts |

@@ -1,7 +1,7 @@
 import XCTest
 
-/// El Menú y sus tres sub-pantallas (spec §10): la grilla 2×2, el organigrama,
-/// las estadísticas y los logros.
+/// El Menú y sus sub-pantallas (spec §10): la grilla 2×2, el organigrama, las
+/// estadísticas, los logros, los ajustes y los documentos legales.
 ///
 /// ⚠️ Todo va por **identifier y por valor de accesibilidad**, nunca por texto:
 /// el runner corre la app en INGLÉS aunque el idioma de desarrollo sea `es`
@@ -35,17 +35,91 @@ final class MenuUITests: XCTestCase {
         }
     }
 
-    /// Ajustes todavía no existe (lo construye la T16): la tarjeta tiene que
-    /// abrir algo igual, y ese algo lleva ya el identifier de su test.
+    // MARK: Ajustes
+
+    /// Ajustes de punta a punta: los controles que el spec §10.4 pinea por
+    /// identifier, y el toggle de partículas ejercido de verdad.
+    ///
+    /// ⚠️ El estado del toggle se lee por **valor de accesibilidad sin
+    /// traducir** (`on`/`off`), igual que el estado de los logros: el runner
+    /// corre la app en inglés (trampa 6) y un valor traducido pasaría por la
+    /// razón equivocada.
+    ///
+    /// ⚠️ Que arranque en `on` depende de que `--uitest-reset` limpie
+    /// `settings.particlesEnabled`: la preferencia vive en `UserDefaults` y
+    /// sobrevive al borrado de la partida (misma trampa que las banderas del
+    /// tutorial). Sin eso, este test pasaría la primera vez y fallaría la
+    /// segunda.
     @MainActor
-    func testAjustesTodaviaEsUnPlaceholder() throws {
+    func testAjustesTraeSusControlesYApagaLasParticulas() throws {
         let app = launch()
         openMenu(app)
         app.buttons["menu.card.settings"].tap()
 
-        XCTAssertTrue(app.staticTexts["settings.placeholder"].waitForExistence(timeout: 10),
-                      "la tarjeta de Ajustes no abrió nada")
-        attach(app, named: "T15 ajustes placeholder")
+        // ⚠️ Los toggles son `switches` y no `buttons`: la fila lleva el trait
+        // `.isToggle` (que es lo correcto — VoiceOver la anuncia como interruptor
+        // y lee su estado), y eso la saca de `app.buttons`.
+        let particles = app.switches["settings.particles"]
+        XCTAssertTrue(particles.waitForExistence(timeout: 10), "la tarjeta de Ajustes no abrió la pantalla")
+        attach(app, named: "T16 ajustes")
+
+        // Restaurar compras y los dos legales tienen su fila. (Que "Restaurar"
+        // se VEA sin scrollear lo garantiza la tienda, que lo lleva en su
+        // cabecera fija: acá se comprueba que también se puede llegar desde
+        // Ajustes, que es donde el jugador lo va a buscar.)
+        for control in ["settings.restore", "settings.privacy", "settings.terms"] {
+            XCTAssertTrue(app.buttons[control].exists, "falta el control \(control) en Ajustes")
+        }
+        for toggle in ["settings.notifications", "settings.haptics"] {
+            XCTAssertTrue(app.switches[toggle].exists, "falta el toggle \(toggle) en Ajustes")
+        }
+        // Y el idioma arranca en "el del teléfono", que es el único estado que
+        // no eligió nadie.
+        XCTAssertEqual(app.buttons["settings.language.system"].value as? String, "selected",
+                       "sin elección previa, el idioma tiene que ser el del sistema")
+
+        XCTAssertEqual(particles.value as? String, "on", "las partículas arrancan prendidas")
+        particles.tap()
+
+        let off = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", "off"),
+            object: app.switches["settings.particles"]
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [off], timeout: 10), .completed,
+                       "tocar el toggle de partículas no cambió su estado")
+        attach(app, named: "T16 partículas apagadas")
+
+        // Y el final de la pantalla: la versión sale del bundle, así que un
+        // "Version settings.about.version" delataría la clave cruda (trampa 5).
+        app.swipeUp()
+        app.swipeUp()
+        attach(app, named: "T16 ajustes abajo")
+        let version = app.staticTexts["settings.about.version"]
+        XCTAssertTrue(version.exists, "falta la línea de versión en Acerca de")
+        let label = version.label
+        XCTAssertFalse(label.contains("settings.about"), "la versión muestra su clave cruda: \(label)")
+        XCTAssertTrue(label.contains("("), "la versión tiene que traer el build entre paréntesis: \(label)")
+    }
+
+    /// Los términos se leen ADENTRO del juego: es lo que comprueba que los `.md`
+    /// viajan en el bundle y que el parser los dibuja (un documento que no carga
+    /// se ve igual de vacío que uno que no existe).
+    @MainActor
+    func testLosTerminosSeAbrenDesdeAjustes() throws {
+        let app = launch()
+        openMenu(app)
+        app.buttons["menu.card.settings"].tap()
+        XCTAssertTrue(app.buttons["settings.terms"].waitForExistence(timeout: 10))
+        app.buttons["settings.terms"].tap()
+
+        XCTAssertTrue(app.staticTexts["legal.terms"].waitForExistence(timeout: 10),
+                      "la fila de Términos no abrió el documento")
+        attach(app, named: "T16 términos")
+        // El documento trae texto de verdad: el contacto está en las dos
+        // versiones y no depende del idioma del runner.
+        XCTAssertTrue(app.staticTexts.containing(
+            NSPredicate(format: "label CONTAINS %@", "adermanu@gmail.com")
+        ).firstMatch.exists, "el documento se dibujó vacío: revisá Resources/Legal en el bundle")
     }
 
     // MARK: Organigrama

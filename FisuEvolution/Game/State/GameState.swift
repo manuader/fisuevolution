@@ -361,7 +361,7 @@ final class GameState {
             var forceNewGame = false
             #if DEBUG
             forceNewGame = ProcessInfo.processInfo.arguments.contains("--uitest-reset")
-            applyTutorialLaunchArguments(forceNewGame: forceNewGame)
+            applyLaunchArgumentDefaults(forceNewGame: forceNewGame)
             #endif
 
             if content.flags.cloudKitEnabled {

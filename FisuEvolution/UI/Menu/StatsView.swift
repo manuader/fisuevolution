@@ -44,7 +44,7 @@ struct StatsView: View {
                 GameCard(style: .normal) {
                     VStack(spacing: 0) {
                         StatRow(key: "prestige_level", label: "stats.row.prestige_level", value: stats.prestigeLevel)
-                        StatDivider()
+                        RowDivider()
                         // ⚠️ Esta fila es la ÚNICA del grupo que cuenta la RUN, y
                         // queda entre dos históricas. La decisión es que lo diga
                         // la ETIQUETA —"Tier más alto (esta vida)"— y no moverla:
@@ -55,9 +55,9 @@ struct StatsView: View {
                         // se rompió. El arreglo de fondo es un `maxTierEver` en
                         // `MetaStats`, que es tocar el formato del save.
                         StatRow(key: "max_tier", label: "stats.row.max_tier", value: stats.maxTier)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "max_floor", label: "stats.row.max_floor", value: stats.maxFloorName)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "floors_unlocked", label: "stats.row.floors_unlocked", value: stats.floorsUnlocked)
                     }
                 }
@@ -67,12 +67,12 @@ struct StatsView: View {
                     VStack(spacing: 0) {
                         StatRow(key: "lifetime_earnings", label: "stats.row.lifetime_earnings",
                                 value: stats.lifetimeEarnings, glyph: .coins)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "income_per_second", label: "stats.row.income_per_second",
                                 value: stats.incomePerSecond, glyph: .coins)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "oro", label: "stats.row.oro", value: stats.oro, glyph: .oro)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "oro_lifetime", label: "stats.row.oro_lifetime",
                                 value: stats.oroLifetime, glyph: .oro)
                     }
@@ -82,11 +82,11 @@ struct StatsView: View {
                 GameCard(style: .normal) {
                     VStack(spacing: 0) {
                         StatRow(key: "unit_count", label: "stats.row.unit_count", value: stats.unitCount)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "seen_types", label: "stats.row.seen_types", value: stats.seenTypes)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "skins", label: "stats.row.skins", value: stats.skins)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "specials", label: "stats.row.specials", value: stats.specials)
                     }
                 }
@@ -95,16 +95,16 @@ struct StatsView: View {
                 GameCard(style: .normal) {
                     VStack(spacing: 0) {
                         StatRow(key: "total_merges", label: "stats.row.total_merges", value: stats.totalMerges)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "total_hires", label: "stats.row.total_hires", value: stats.totalHires)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "total_taps", label: "stats.row.total_taps", value: stats.totalTaps)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "videos_watched", label: "stats.row.videos_watched", value: stats.videosWatched)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "boosts_activated", label: "stats.row.boosts_activated",
                                 value: stats.boostsActivated)
-                        StatDivider()
+                        RowDivider()
                         StatRow(key: "shares", label: "stats.row.shares", value: stats.shares)
                     }
                 }
@@ -205,16 +205,5 @@ private struct StatRow: View {
             case .oro: OroIcon(size: 18)
             }
         }
-    }
-}
-
-/// La línea entre dos filas. No es `Divider()`: el separador del sistema es un
-/// gris frío que en una tarjeta crema con contorno ink se lee como de otra app.
-private struct StatDivider: View {
-    var body: some View {
-        Rectangle()
-            .fill(Color("PaletteInk").opacity(0.12))
-            .frame(height: 1)
-            .accessibilityHidden(true)
     }
 }

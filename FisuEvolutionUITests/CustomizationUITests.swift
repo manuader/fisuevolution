@@ -141,6 +141,63 @@ final class CustomizationUITests: XCTestCase {
         XCTAssertTrue(app.otherElements["skins.row.base"].exists)
     }
 
+    /// La tienda que no contesta: una skin PAGA sin precio no puede decir que no
+    /// está a la venta.
+    ///
+    /// Acompaña al finding de la ronda 1: `price(for:) == nil` mandaba la tarjeta
+    /// al mismo lugar que una skin de milestone sin cumplir —desaturada, con
+    /// candado y "Todavía no está a la venta"—, así que una falla de red
+    /// terminaba **afirmando algo falso sobre la skin**.
+    ///
+    /// ⚠️ **Qué pinea este test y qué NO.** Pinea la ESTRUCTURA: que la tarjeta
+    /// siga en la grilla sin precio, que no ofrezca comprar, y que publique un
+    /// estado propio. **No pinea el texto ni el tono**, y conviene no creer que
+    /// sí: el defecto viejo ya publicaba un valor distinto al de la bloqueada
+    /// ("Not for sale yet" contra "Reach reincarnation 1"), así que el
+    /// `assertNotEqual` de abajo **habría pasado igual con el bug puesto**. Queda
+    /// porque cubre la regresión de mañana —que alguien vuelva a resolver el
+    /// "sin precio" como un `milestoneLocked`— y no la de ayer.
+    ///
+    /// Lo que sí prueba el cambio de copy y de tono es la **captura** que este
+    /// test adjunta: XCUITest no puede leer la desaturación de una `GameCard`,
+    /// y asertar el texto en inglés sería la trampa 6. Ver el reporte, §Fix
+    /// ronda 1.
+    @MainActor
+    func testSinPrecioLaSkinPagaNoDiceQueNoEstaALaVenta() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "--uitest-reset", "--uitest-skip-tutorial", "--uitest-seen-types",
+            "--uitest-storekit-empty"
+        ]
+        app.launch()
+
+        _ = openSkins(app)
+        let paid = app.otherElements["skins.row.\(Self.paidSkin)"]
+        XCTAssertTrue(paid.waitForExistence(timeout: 10),
+                      "la skin paga tiene que seguir en la grilla aunque no haya precio")
+        attach(app, named: "T11 fix — skin paga sin precio (StoreKit vacio)")
+
+        // Sin producto cargado no hay nada que comprar: el botón no se dibuja.
+        XCTAssertFalse(app.buttons["store.buy.com.fisuevolution.iap.skin_mundialista"].exists,
+                       "sin precio no puede haber botón de compra")
+
+        let paidValue = try XCTUnwrap(paid.value as? String, "la tarjeta no publica su estado")
+        XCTAssertFalse(paidValue.isEmpty)
+
+        // La de milestone sin cumplir: ESA sí está legítimamente bloqueada.
+        let locked = app.otherElements["skins.row.\(Self.ownedSkin)"]
+        XCTAssertTrue(locked.exists, "sin el fixture de skins, la de reencarnación está bloqueada")
+        let lockedValue = try XCTUnwrap(locked.value as? String)
+
+        // Guarda de futuro (ver el ⚠️ de arriba: NO es lo que atrapa al bug viejo).
+        XCTAssertNotEqual(paidValue, lockedValue,
+                          """
+                          una skin paga sin precio no puede publicar el mismo estado que una \
+                          bloqueada por milestone: la primera dice que falta el precio, la \
+                          segunda que falta cumplir la condición. Las dos dicen "\(paidValue)".
+                          """)
+    }
+
     /// Abre Pintas y devuelve la tarjeta de la apariencia original, que existe en
     /// toda partida.
     ///

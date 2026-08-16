@@ -54,6 +54,21 @@ final class StoreManager {
     func loadProducts() async {
         guard let catalog else { return }
         loadState = .loading
+        #if DEBUG
+        // Fixture: la tienda que no contesta (sin red, o la app corriendo sin
+        // configuración de StoreKit).
+        //
+        // Hace falta una puerta porque **desde un test no se puede llegar a esa
+        // rama de otro modo**: el runner levanta la app con la configuración de
+        // StoreKit del scheme y los productos cargan siempre. Y esa rama es la
+        // que dibuja "Precio no disponible" en Pintas, o sea justo lo que hay
+        // que proteger de volver a mentir "no está a la venta".
+        if ProcessInfo.processInfo.arguments.contains("--uitest-storekit-empty") {
+            products = []
+            loadState = .failed
+            return
+        }
+        #endif
         do {
             let loaded = try await Product.products(for: catalog.allProductIDs)
             // Orden estable: el del catálogo (remove ads primero, skins después).

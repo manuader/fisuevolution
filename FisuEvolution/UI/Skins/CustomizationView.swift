@@ -369,9 +369,16 @@ private struct SkinCard: View {
         case .equipped: .equipped
         case .owned: .plain
         // Una skin a la venta **no** es una tarjeta apagada: es mercadería, y se
-        // muestra a todo color con su precio. Apagada queda sólo si su producto
-        // no cargó, que es cuando efectivamente no se puede hacer nada con ella.
-        case .purchasable: price == nil ? .locked : .plain
+        // muestra a todo color, con precio o sin él.
+        //
+        // ⚠️ Antes se apagaba cuando el producto no había cargado, y eso **mentía**:
+        // que StoreKit no haya contestado todavía —sin red, o la app corriendo sin
+        // configuración de tienda— no dice nada sobre la skin. La tarjeta gris con
+        // candado afirmaba "esto no se vende" y encima se transformaba sola cuando
+        // los productos llegaban. El estado del catálogo manda sobre el de la red:
+        // si es mercadería se ve como mercadería, y lo que falta —el precio— lo
+        // dice el badge de abajo.
+        case .purchasable: .plain
         case .milestoneLocked: .locked
         }
     }
@@ -537,9 +544,15 @@ private struct SkinCard: View {
                 )
                 .accessibilityLabel(Text("skins.buy.ax \(row.displayName)"))
             } else {
+                // El precio todavía no llegó (StoreKit sin contestar, sin red, o
+                // la app corriendo sin configuración de tienda).
+                //
+                // ⚠️ **Sin candado a propósito.** El candado es el glifo de "no
+                // podés", y acá sí podés: lo que falta es el precio, no el
+                // permiso. Ponerlo era la mitad de la mentira que este badge
+                // arregla; la otra mitad era el texto de "no está a la venta".
                 StateBadge(
-                    text: String(localized: "skins.locked.generic"),
-                    systemImage: "lock.fill",
+                    text: String(localized: "skins.price.unavailable"),
                     textAlignment: .center,
                     muted: true
                 )
@@ -557,7 +570,9 @@ private struct SkinCard: View {
         case .equipped: String(localized: "skins.equipped")
         case .owned: String(localized: "skins.owned")
         case .milestoneLocked(let conditionText): conditionText
-        case .purchasable: price ?? String(localized: "skins.locked.generic")
+        // Sin precio, el valor dice que falta el precio — no que la skin no se
+        // venda. Es el mismo texto que muestra el badge, por la misma razón.
+        case .purchasable: price ?? String(localized: "skins.price.unavailable")
         }
     }
 }

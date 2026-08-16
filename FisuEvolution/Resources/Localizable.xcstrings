@@ -3188,6 +3188,22 @@
         }
       }
     },
+    "skins.price.unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Price unavailable"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Precio no disponible"
+          }
+        }
+      }
+    },
     "skins.title" : {
       "extractionState" : "manual",
       "localizations" : {

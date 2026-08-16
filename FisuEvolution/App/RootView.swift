@@ -202,7 +202,7 @@ struct GameBoardView: View {
             case .jobs: FisuJobsView()
             case .upgrades: UpgradesView()
             case .skins: CustomizationView()
-            case .gifts: BonusView(adsProvider: adsProvider)
+            case .gifts: GiftsView(adsProvider: adsProvider)
             case .store: StoreView()
             case .menu: ScreenPlaceholderView(identifier: "menu.placeholder", title: "Menú")
             }

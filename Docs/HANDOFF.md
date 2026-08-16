@@ -335,7 +335,7 @@ xcrun simctl install booted build/DD/Build/Products/Debug-iphonesimulator/FisuEv
 xcrun simctl launch booted com.manuader.fisuevolution --uitest-reset
 ```
 
-Fixtures DEBUG por launch argument — **son nueve, no tres**:
+Fixtures DEBUG por launch argument — **son diez, no tres**:
 
 | Argumento | Qué deja listo |
 |---|---|
@@ -348,6 +348,7 @@ Fixtures DEBUG por launch argument — **son nueve, no tres**:
 | `--uitest-open-sheet` | Abre la ficha sobre la primera unidad |
 | `--uitest-skins` | Acredita las skins de milestone de los tipos YA VISTOS (van con `--uitest-seen-types`, que es lo que decide cuáles). Es lo que permite ejercer "Ponérsela" en Pintas sin abrir pisos ni reencarnar |
 | `--uitest-storekit-empty` | `StoreManager` no carga productos: simula la tienda que no contesta. Es la ÚNICA forma de ejercer desde un test la rama "Precio no disponible", porque el runner inyecta la configuración de StoreKit del scheme y si no los productos cargan siempre |
+| `--uitest-daily-streak` | Deja el ciclo del daily en el día 4: la tira del calendario de Regalos con días cobrados atrás. El único otro camino a un día con tilde es **volver mañana** |
 
 El panel de debug es el ícono de herramientas del HUD.
 

@@ -41,7 +41,7 @@ struct StoreView: View {
     ///
     /// Es un cronómetro de la vista y no un dato del estado —ni mucho menos de
     /// una proyección, donde el tiempo restante nunca va— por la misma razón que
-    /// los cooldowns de `BonusView`: sólo existe mientras la hoja está abierta y
+    /// los cooldowns de `GiftsView`: sólo existe mientras la hoja está abierta y
     /// nadie más lo necesita. Sirve para que una carga que se eterniza gane el
     /// botón de reintento aunque el manager todavía no haya cortado.
     @State private var waitedSeconds = 0

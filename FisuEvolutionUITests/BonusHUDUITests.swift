@@ -60,14 +60,18 @@ final class BonusHUDUITests: XCTestCase {
         activateMate.tap()
 
         // El video del stub tarda 2 s y siempre paga: ×2 a los ingresos por 120 s.
-        // ⚠️ Su fila vive abajo de los seis boosts y `List` es perezosa: hasta que
-        // no se scrollea no existe en el árbol de accesibilidad, y buscarla sin
-        // bajar falla con "no matches" aunque la vista esté perfecta.
+        // ⚠️ Su fila vive abajo de los seis boosts. `BonusView` era una `List`
+        // perezosa y la fila **no existía** hasta scrollear; desde que
+        // `GiftsView` la reemplazó —`ScrollView` con `VStack` NO perezoso— existe
+        // desde el vamos y lo que falta es que entre en la ventana. El bucle mira
+        // `isHittable` y no `exists`: con `exists` no deslizaba nunca y el toque
+        // caía sobre una fila fuera de pantalla. **Los asserts por id no se
+        // tocaron** — el plan sólo autoriza ajustar la navegación.
         let watch = app.buttons["ads.watch.double_earnings"]
-        for _ in 0..<4 where !watch.exists {
+        XCTAssertTrue(watch.waitForExistence(timeout: 6), "la fila del video tiene que estar")
+        for _ in 0..<6 where !watch.isHittable {
             app.swipeUp()
         }
-        XCTAssertTrue(watch.waitForExistence(timeout: 6), "la fila del video tiene que estar")
         watch.tap()
         XCTAssertTrue(app.staticTexts["ads.cooldown.double_earnings"].waitForExistence(timeout: 15)
                         || app.otherElements["ads.cooldown.double_earnings"].waitForExistence(timeout: 1),

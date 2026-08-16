@@ -422,6 +422,13 @@ final class GameState {
             if ProcessInfo.processInfo.arguments.contains("--uitest-coins") {
                 debugGrantCoins()
             }
+            // La tira del calendario de Regalos con días ya cobrados atrás. Va
+            // ANTES del claim automático de más abajo a propósito: en una partida
+            // nueva ese claim no corre (FTUE) y sólo marca `lastClaimDay`, así que
+            // el `cycleDay` que se pone acá es el que termina en pantalla.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-daily-streak") {
+                debugSetDailyCycleDay(4)
+            }
             // El long-press sobre SpriteKit no es determinista en el runner: para
             // el smoke de la ficha alcanza con abrirla sobre la primera unidad.
             if ProcessInfo.processInfo.arguments.contains("--uitest-open-sheet"),

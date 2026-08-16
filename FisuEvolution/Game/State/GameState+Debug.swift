@@ -125,6 +125,20 @@ extension GameState {
         self.player = player
     }
 
+    /// Adelanta el ciclo del daily sin esperar días reales.
+    ///
+    /// Existe por lo mismo que `debugMarkTypesSeen`: la tira del calendario de
+    /// `GiftsView` tiene cuatro estados —cobrado, en juego, por venir y el cofre—
+    /// y una partida nueva sólo muestra tres, porque el día 1 es el que está en
+    /// juego y atrás no hay nada. El único camino a un día con tilde es **volver
+    /// mañana**, así que sin esta puerta no hay forma de mirar la tira poblada ni
+    /// de juzgar si el tilde se lee. No cobra nada: mueve el contador y ya.
+    func debugSetDailyCycleDay(_ day: Int) {
+        guard var player, let content else { return }
+        player.meta.daily.cycleDay = min(max(day, 1), content.dailyRewards.days.count)
+        self.player = player
+    }
+
     func debugSimulateOffline(hours: Double) {
         guard var player else { return }
         player.meta.lastSeenTimestamp -= hours * 3600

@@ -9,7 +9,7 @@
 > sesión, con los números de tests de su cierre, está en §4.
 >
 > ✅ **Y el ticket post-merge que ese cierre dejó triageado TAMBIÉN está hecho**
-> — 7 tareas en `fix/cierre-post-merge` (17 commits sobre `89f215a`, mergeada a
+> — 7 tareas en `fix/cierre-post-merge` (18 commits sobre `89f215a`, mergeada a
 > `main` al cerrar la sesión), con review integral de rama que dio **ready to
 > merge y CERO ola de fixes de código**. El detalle está en
 > **`Docs/SESION-2026-08-16-cierre-post-merge.md`**. Lo que hay que saber en dos
@@ -800,13 +800,21 @@ El panel de debug es el ícono de herramientas del HUD.
 **1. El batch de los 15 iconos lo corre EL DUEÑO, desde Terminal.app.** La
 cola está armada y verificada (tarea 19): 15 prompts `.md` numerados
 **213–227** en `Tools/asset-pipeline/prompts/gemini_pro/` con sus 15 entradas
-gemelas en `prompts.json`, **todas sin generar** —cero PNG de esas claves en
-`ui.atlas`, verificado el 2026-08-16— y **sin campo `referencia`** (los iconos
-de UI no adjuntan el Fisura; `prompts.json` no lleva campo de estado, así que
-la cola se lee por lo que falta en el atlas). No se generó ninguna imagen a
-propósito: el runner tipea con `osascript` y el permiso de Accesibilidad lo
-tiene **Terminal.app y nada más** (trampa 11), así que desde el shell de un
-agente falla en el primer asset. La receta, con el Chrome
+gemelas en `prompts.json`, **los 15 sin generar** —cada `.md` con su línea
+`- **estado**: pendiente`— y **sin campo `referencia`** (los iconos de UI no
+adjuntan el Fisura). Cero PNG de esas claves en `ui.atlas`, verificado el
+2026-08-16.
+
+⚠️ **El estado de la cola vive en los `.md`, no en `prompts.json`.** Los dos
+runners parsean esa línea (`STATE_RE` en `gemini_selenium_runner.py`), y
+`pending_assets()` saltea un asset por cuatro caminos: `estado: hecho`, el PNG
+ya en `dropbox/`, el PNG en `dropbox/procesadas/`, o la clave ya presente en
+`assets_manifest.json`. `mark_asset_done` reescribe el `.md` a `hecho` recién
+después de verificar el PNG. Si editás un `.md` a mano, ese es el campo.
+
+No se generó ninguna imagen a propósito: el runner tipea con `osascript` y el
+permiso de Accesibilidad lo tiene **Terminal.app y nada más** (trampa 11), así
+que desde el shell de un agente falla en el primer asset. La receta, con el Chrome
 dedicado en `:9222` logueado en Gemini **Pro**:
 
 ```bash
@@ -885,7 +893,9 @@ entró:
   títulos de producto a un renglón; `MetaState.init(from:)` decodifica
   `derivedEffects` con `decodeIfPresent`, así que un sobre sin esa clave ya no
   se lleva la partida puesta; el migrador estrenó un e2e desde JSON crudo v3; y
-  `ui_pill_currency` salió del manifest, del atlas y del índice de prompts.
+  `ui_pill_currency` salió del manifest y del atlas, y quedó **anotado como
+  "retirado" en el índice de prompts** (la fila 113 sigue ahí, y su `.md`
+  también: es historia de otra tanda, no se borra).
 - ✅ **`AscentRenderingUITests` volvió** — las tres causas están en la trampa 2.
   La que nadie tenía: el callejón cubre los tiers **1..4**, así que el primer
   ascenso pide **cuatro** fusiones y no dos. **Ya no queda ningún
@@ -922,7 +932,7 @@ handoff que dice "hecho" es exactamente lo que nadie vuelve a comprobar:
 | RF | Bloqueado por | Qué lo destraba |
 |---|---|---|
 | **02c** · alta en App Store Connect | La cuenta de Apple Developer (USD 99) | Que el dueño la saque |
-| **14** · música y efectos | **No hay fuente de audio.** Re-verificado el 2026-08-07: no queda ninguna herramienta de generación de audio en la sesión | Un MCP con música/SFX standalone, o audio CC0 a mano |
+| **14** · música y efectos | **No hay fuente de audio.** Re-verificado el 2026-08-07 y otra vez el **2026-08-16**: el MCP de audio disponible en la sesión hace **sólo TTS**, y su contrato prohíbe usarlo para música o efectos standalone (esos modelos existen, pero para otro pipeline). Detalle en `SESION-2026-08-16-cierre-post-merge.md` | Un MCP con música/SFX standalone, o audio CC0 a mano |
 
 📄 **Los dos están desarrollados hasta donde se puede sin el gate, en
 `Docs/HANDOFF-gates-pendientes.md`**: la lista de los 12 archivos de audio con su

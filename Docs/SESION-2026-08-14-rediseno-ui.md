@@ -217,9 +217,10 @@ terminado.
    post-batch en `Docs/HANDOFF.md` §8. Es lo único de esta lista que sobrevive,
    y no por falta de trabajo: el runner tipea con `osascript` y ese permiso lo
    tiene Terminal.app y nada más (trampa 11). Al 2026-08-16 la **cola sigue
-   intacta y verificada** —los 15 `.md` numerados 213–227 con sus 15 entradas
-   gemelas en `prompts.json`, ninguna con campo `referencia`— y **cero PNG
-   generados** de esas claves en `ui.atlas`, a propósito. ✅ Lo que sí se terminó es la **costura**: ya no
+   intacta y verificada** —los 15 `.md` numerados 213–227, todos en
+   `- **estado**: pendiente` y ninguno con campo `referencia`, con sus 15
+   entradas gemelas en `prompts.json`— y **cero PNG generados** de esas claves
+   en `ui.atlas`, a propósito. ✅ Lo que sí se terminó es la **costura**: ya no
    queda ningún icono sin call-site (el calendario aterrizó en Regalos), así
    que el día que el batch corra, los 15 entran solos.
 

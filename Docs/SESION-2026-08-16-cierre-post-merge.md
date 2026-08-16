@@ -18,7 +18,7 @@
 
 ## Cómo se retoma
 
-1. Rama: `fix/cierre-post-merge`, 17 commits sobre `89f215a` (main post-merge
+1. Rama: `fix/cierre-post-merge`, 18 commits sobre `89f215a` (main post-merge
    del rediseño). Se mergea a `main` al cerrar la sesión.
 2. Plan (7 tareas): `Docs/superpowers/plans/2026-08-16-cierre-post-merge.md`.
    No hay spec propio: el insumo es el triage del review integral anterior.
@@ -41,7 +41,7 @@
 | 2 | Retirar el cluster spawn muerto | ✅ review clean | `283af80` | Se fueron `HireOffer`, `showSpawnHint`, `hireOffer` y su cálculo de `GameState`. **Ninguna aserción se perdió**: los pins del gate y del fallback se mudaron a `TowerActions`, la capa donde la conducta vive de verdad, verificados byte a byte contra `GameState.hireTargetOrdinal`. ⚠️ Lo que sí quedó huérfano es un requisito de UX — restaurado en la tarea 7 |
 | 3 | `StatePill` → `StateBadge` en Upgrades | ✅ review clean | `f36310b` | Una sola gramática de badge en el juego. Ids de estado NUEVOS en vez de reusar los de compra (un mismo id no puede resolver a `button` en un estado y a texto en otro); a11y por `.combine` + identifier, con precedente en `GiftsView`. Y tocar la cápsula ya no castiga con haptic+audio de error |
 | 4 | Pase de accesibilidad en lote | ✅ review clean (1 fix round) | `f336887` + `f888980` + `88a320f` | `PricePill` dice la moneda y **qué** compra; `ProgressBar` con label; se fueron las paradas mudas; el número de piso y el "estás acá" del ascensor escalan con Dynamic Type. El fix round no fue de código sino de **prosa**: los docstrings del ascensor declaran el canje ENTERO (tamaño **y** peso) y por qué `Tokens.display` perdió. Decisión declarada: **sin override de peso por call-site** — la gramática manda y el arreglo futuro es subir el token |
-| 5 | Residuales de la ola del review | ✅ review clean | `563542d` + `6eeecb1` + `f5ddab8` + `31f82c2` + `0d7d6c5` | Tarjeta de tienda degradada centrada aunque haya banner; riel fijo de **104** (derivado del `minWidth` 92 del `PricePill`, como el 96 de FisuJobs) que devuelve los títulos a un renglón; `MetaState.init(from:)` con `decodeIfPresent` + e2e del migrador desde JSON crudo v3; y `ui_pill_currency` fuera del manifest, del atlas y del índice. El follow-up del atlas fue **extensión de alcance autorizada** por el controller (zona del pipeline levantada SÓLO para eso) y se verificó **sobre el producto compilado**: ausente de `ui.plist`, páginas −73 KB, cola 213–227 intacta por diff |
+| 5 | Residuales de la ola del review | ✅ review clean | `563542d` + `6eeecb1` + `f5ddab8` + `31f82c2` + `0d7d6c5` | Tarjeta de tienda degradada centrada aunque haya banner; riel fijo de **104** (derivado del `minWidth` 92 del `PricePill`, como el 96 de FisuJobs) que devuelve los títulos a un renglón; `MetaState.init(from:)` con `decodeIfPresent` + e2e del migrador desde JSON crudo v3; y `ui_pill_currency` fuera del manifest y del atlas, y **anotado como "retirado" en el índice** (la fila 113 y su `.md` siguen ahí: son historia de otra tanda). El follow-up del atlas fue **extensión de alcance autorizada** por el controller (zona del pipeline levantada SÓLO para eso) y se verificó **sobre el producto compilado**: ausente de `ui.plist`, páginas −73 KB, cola 213–227 intacta por diff |
 | 6 | Recuperar `AscentRenderingUITests` | ✅ review clean (1 fix round) | `b7df49b` + `2bf663e` | **Volvió de entre los muertos tras diez días salteado.** Tres causas, no una; la tercera y decisiva no la tenía ningún diagnóstico previo: el callejón cubre los tiers **1..4**, así que el primer ascenso pide **cuatro** fusiones. El test ya no hardcodea el número —fusiona hasta que la pill cambia de piso— así que un rebalanceo no lo vuelve a romper. El fix round mató dos asserts que podían pasar sin haber comprobado nada (`unitCount` devolvía `-1` en la lectura fallida, menor que cualquier `before`) y desató el test del reloj. 3/3 verde, una de ellas en load average 48 |
 | 7 | Verificación final, docs y cierre | ✅ | `ac3dfb6` + (este commit) | Las cuatro suites enteras (números arriba). `ac3dfb6` corrige **cuatro premisas falsas** en prosa escrita en esta misma rama —comment-only, cero comportamiento—; este commit cierra los docs. El review integral de rama ruteó SÓLO items de documentación: no hubo ola de fixes de código |
 
@@ -114,11 +114,12 @@ Dos cosas, y **ninguna de las dos es código**.
 1. ⏳ **El batch de los 15 iconos, que corre EL DUEÑO desde Terminal.app.**
    Receta completa y medición de opacidad post-batch en `HANDOFF.md` §8. Al
    cierre de esta sesión la **cola 213–227 está intacta y verificada**: los 15
-   `.md` numerados con sus **15 entradas gemelas en `prompts.json`** (ninguna
-   con campo `referencia` — los iconos de UI no adjuntan el Fisura), **cero
-   PNG generados** para esas claves en `ui.atlas`, y el único archivo que esta
-   rama tocó bajo `prompts/` es `00_INDICE.md`, por la baja de
-   `ui_pill_currency` de la tarea 5. La **costura ya está completa**: con el
+   `.md` numerados —los 15 en `- **estado**: pendiente` y **ninguno con campo
+   `referencia`**, que es lo que los distingue de los 150 `.md` que sí lo
+   llevan: los iconos de UI no adjuntan el Fisura— con sus 15 entradas gemelas
+   en `prompts.json`, **cero PNG generados** para esas claves en `ui.atlas`, y
+   el único archivo que esta rama tocó bajo `prompts/` es `00_INDICE.md`, por
+   la baja de `ui_pill_currency` de la tarea 5. La **costura ya está completa**: con el
    calendario de la tarea 1 no queda ningún icono sin
    call-site, así que el día que el batch corra, los 15 entran solos. Es el
    siguiente paso inmediato de esta misma sesión: el controller lo intenta vía

@@ -133,6 +133,16 @@ extension GameState {
         )
     }
 
+    /// Cuántas veces reencarnaste, ya en texto.
+    ///
+    /// Existe aparte de `statsSnapshot` porque el organigrama lo necesita **solo**
+    /// —para la tarjeta del Jefe— y pedir la foto entera por una línea sale caro
+    /// dos veces: recorre cuatro catálogos, y —lo que de verdad importa— ata la
+    /// pantalla a `towerIncomePerSecondText`, que cambia sola mientras la torre
+    /// produce. Con eso, los 43 nodos se rearmarían cada vez que el income
+    /// abreviado pasa de "12,3K" a "12,4K".
+    var prestigeLevelText: String { String(player?.meta.prestigeLevel ?? 0) }
+
     /// La cadena de evolución entera, **con el jefe arriba**: tier descendente.
     ///
     /// El orden es la mitad del diseño de la pantalla: un organigrama se lee de

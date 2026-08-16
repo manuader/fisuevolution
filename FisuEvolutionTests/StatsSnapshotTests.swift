@@ -108,6 +108,10 @@ struct StatsSnapshotTests {
         #expect(snapshot.prestigeLevel == "1")
         #expect(snapshot.unitCount == "1", "reencarnar deja un solo Fisura")
         #expect(snapshot.oroLifetime != "0", "el ORO ganado es histórico")
+        // El atajo que usa el organigrama dice lo mismo que la foto entera: si
+        // divergieran, la tarjeta del Jefe y la pantalla de Stats se
+        // contradirían en la misma partida.
+        #expect(gameState.prestigeLevelText == snapshot.prestigeLevel)
     }
 
     // MARK: orgChartRows

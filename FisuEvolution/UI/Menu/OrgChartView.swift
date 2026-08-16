@@ -31,11 +31,16 @@ struct OrgChartView: View {
         let _ = gameState.effectsVersion
 
         // ⚠️ UNA lectura por evaluación del body: `orgChartRows` cotiza los 43
-        // tipos de cero cada vez que se lee y `statsSnapshot` recorre cuatro
-        // catálogos. Leerlos adentro del `ForEach` los multiplicaría por 43.
+        // tipos de cero cada vez que se lee. Leerlo adentro del `ForEach` lo
+        // multiplicaría por 43.
+        //
+        // ⚠️ El nivel de prestigio sale de `prestigeLevelText` y **no** de
+        // `statsSnapshot`: la foto entera arrastra `towerIncomePerSecondText`,
+        // que se mueve solo mientras la torre produce, y con eso los 43 nodos se
+        // rearmarían cada vez que el income abreviado cambia de dígito.
         let floors = Self.groups(of: gameState.orgChartRows)
         let multiplier = gameState.prestigePreview.multiplierBeforeText
-        let prestigeLevel = gameState.statsSnapshot.prestigeLevel
+        let prestigeLevel = gameState.prestigeLevelText
 
         ScrollView {
             // `VStack` y no `LazyVStack`: los 43 nodos tienen que existir en el

@@ -43,8 +43,12 @@
 | 12 | Tienda IAP v2 + timeout | ✅ review clean | `e4e7fe6` + `1b71856` | Timeout del Loading con carrera de canal (sin task group — el grupo mudaba el cuelgue), retry real, vidriera restyleada (starter destacado, packs, skins con preview), settings FUERA de la tienda (sin superficie hasta T16). Coherencia con FisuJobs CONFIRMADA. ⚠️ entorno: tras `simctl erase`, correr unit antes de UI o el plazo vence sin tienda local |
 | 13 | GiftsView | ✅ review clean | `4f64aa2` | Regalos v2: calendario diario NUEVO en pantalla + boosts + videos; BonusView borrada. Retomó un parcial de un agente cortado por API (auditado, conservado casi entero). `rewardText` saca el ×N del dato y no de la copy. Fixture nuevo `--uitest-daily-streak` (10º arg). Coherencia con FisuJobs CONFIRMADA por captura lado a lado; el fix visual salió de la captura, no de leer. ⚠️ el flavor de varios boosts REPITE el efecto (copy a triage) |
 | 14 | Logros (catálogo+motor) | ✅ review clean (1 fix round) | `274af9d` + `f056dcc` + `d95cc36` | 39 logros data-driven (el draft mandó), motor con 11 hooks, claim con recompensas, toast `ach.toast`, 82 claves. Fix: seen_all mide los 37 ALCANZABLES derivados del dato, portero eliminado, premio con suelo histórico (rewardText = claim). La pantalla la hace T15 |
-| 15 | Menú + org/stats/logros | ⏳ **PRÓXIMA** | — | MenuView 2×2 + OrgChartView + StatsView + AchievementsView; brief en el workspace |
-| 16-20 | — | pendientes | — | Ver plan |
+| 15 | Menú + org/stats/logros | ✅ implementada | `ce07c8a`..`fddb244` | Las 4 pantallas del menú. `menu.placeholder` MURIÓ (`ScreenPlaceholderView` borrado: las seis hojas de la barra existen). Es la ÚNICA hoja que navega hacia adentro. `statsSnapshot` (18 stats en texto) + `orgChartRows` (43 nodos, tier DESC). Margen 34pt medido en panel_config (marco DOBLE). Fixture nuevo `--uitest-achievements` (11º arg). 43 claves. Coherencia con FisuJobs verificada por captura lado a lado |
+| 16-20 | — | pendientes | — | Ver plan. ⚠️ **T16 arranca reemplazando `SettingsPlaceholderView`** (privado dentro de `MenuView.swift`) y el `case .settings` del `navigationDestination` |
+
+**Suites al cierre de T15**: `FisuEvolutionTests` **306** (294 + 12 de
+`StatsSnapshotTests`) · `MenuUITests` 6/6 · `BottomMenuUITests` 2/2 · cero
+warnings de compilador.
 
 **Suites al cierre de T8**: `FisuEvolutionTests` 235 · UI verdes (FisuJobs 2,
 EconomyLoop 2, BottomMenu 2, Tutorial 5; suite completa 28/28 en T7, con
@@ -96,6 +100,18 @@ Terminal.app) · logros: la enumeración (39) manda sobre el "36" del titular.
 - Flakies conocidos sensibles a carga: `StoreManagerTests`,
   `EconomyLoopUITests`, `BonusHUDUITests` — re-correr aislados antes de
   culpar al código.
+- ⚠️⚠️ **Correr los tests de UI ANTES que la suite unitaria rompe
+  `StoreManagerTests` ENTEROS** (medido en T15: 13 issues, ninguna compra
+  acreditada, y **fallaban igual aislados** — o sea que NO es carga). Con el
+  device borrado y `StoreManagerTests` primero, 10/10 verdes sin tocar nada.
+  Es la otra mitad del dato de T12: la asimetría es real y direccional —
+  una corrida de UI deja la tienda local del simulador en un estado que
+  SKTestSession ya no puede usar. **Unit siempre primero.**
+- ⚠️ **Dentro de una vista EMPUJADA de un `NavigationStack`,
+  `@Environment(\.dismiss)` DESAPILA, no cierra la hoja** (T15). Si una
+  sub-vista tiene que cerrar el sheet entero, el cierre viaja como closure
+  desde la raíz del stack. Con `dismiss`, `sheet.close` se comporta como el
+  chevron de atrás que ya está al lado.
 - El HANDOFF de `main` (commit `6156c59`) apunta a esta sesión pero dice
   "retomar en Task 3": este doc es la fuente de verdad del estado; el
   HANDOFF se re-sincroniza al cierre de la sesión o del branch.

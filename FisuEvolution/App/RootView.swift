@@ -154,10 +154,27 @@ struct GameBoardView: View {
             // transacción animada, y esa transacción la abre el padre. Con el
             // `.animation(value:)` puesto sobre el propio banner —como estaba
             // hasta la T18— el toast aparecía de golpe: el modificador animaba
-            // los cambios de adentro, no su propio nacimiento. El `Group` acota
-            // el alcance al toast, para no teñir de spring los cambios del HUD
-            // que caigan en el mismo frame.
-            Group {
+            // los cambios de adentro, no su propio nacimiento.
+            //
+            // El contenedor es un `ZStack` REAL y no un `Group` por HIGIENE, no
+            // porque el `Group` fallara: se midió cuadro a cuadro con las dos
+            // versiones y el banner recorre los MISMOS 229 pt en los mismos
+            // ~0,35 s (fix ronda 1 de la T18). La razón es que `Group` reparte
+            // sus modificadores a cada hijo, y acá el único "hijo" es el
+            // `if let` entero —el envoltorio opcional, que existe igual cuando
+            // el toast es `nil`—, así que la `.animation` cae afuera de la
+            // rama y abre la transacción lo mismo. Es una propiedad de tener UN
+            // solo hijo opcional: agregarle un segundo hermano al `Group`
+            // pondría una `.animation` por hermano. El `ZStack` no depende de
+            // eso, está montado siempre, y es la forma que ya usan el `VStack`
+            // del `EventBannerView` (arriba, misma pantalla) y el de
+            // `ActiveBonusBar`.
+            //
+            // No cambia el layout: el hijo se ancla solo (su raíz es un `VStack`
+            // con `Spacer()`, o sea que ocupa todo el alto igual que antes).
+            // Y acota el alcance al toast, para no teñir de spring los cambios
+            // del HUD que caigan en el mismo frame.
+            ZStack {
                 if let toast = gameState.achievementToast {
                     AchievementToastView(toast: toast) {
                         gameState.dismissAchievementToast(id: toast.id)

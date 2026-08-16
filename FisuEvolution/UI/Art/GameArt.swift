@@ -267,21 +267,6 @@ struct GameToggle: View {
     }
 }
 
-/// Cápsula de moneda vectorial (crema + borde ink). Reemplaza el PNG
-/// `ui_pill_currency` (interior transparente + brillo glossy + moneda redundante).
-struct CurrencyPill<Content: View>: View {
-    @ViewBuilder var content: () -> Content
-    var body: some View {
-        content()
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(
-                Capsule().fill(Color("PaletteCream"))
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk").opacity(0.85), lineWidth: 3))
-            )
-    }
-}
-
 /// Banner de título consistente para las hojas de menú: cápsula crema + texto
 /// display rounded en ink. Se ubica bajo el ornamento del panel (no encima), así
 /// el título SIEMPRE es legible sin chocar con el arte del marco.

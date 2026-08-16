@@ -142,12 +142,21 @@ struct GameBoardView: View {
             debugButton
             #endif
 
-            if let notice = gameState.towerNotice {
-                TowerNoticeView(notice: notice) {
-                    gameState.dismissTowerNotice(id: notice.id)
+            // Mismo patrón —y misma razón— que el toast de logros de acá abajo:
+            // una `.transition` sólo corre si la INSERCIÓN ocurre dentro de una
+            // transacción animada, y esa transacción la abre el PADRE. Sin el
+            // `ZStack` + `.animation(value:)`, la transition estaba declarada
+            // pero muerta y el aviso de piso aparecía de golpe. Es el defecto que
+            // la T18 le arregló al toast y que quedó confirmado y diferido acá.
+            ZStack {
+                if let notice = gameState.towerNotice {
+                    TowerNoticeView(notice: notice) {
+                        gameState.dismissTowerNotice(id: notice.id)
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
+            .animation(.spring(duration: 0.32), value: gameState.towerNotice?.id)
 
             // ⚠️ La animación de entrada va ACÁ y no adentro del banner: una
             // `.transition` sólo corre si la INSERCIÓN ocurre dentro de una
@@ -379,8 +388,13 @@ private struct AchievementToastView: View {
         VStack {
             Spacer()
             HStack(spacing: Tokens.s8) {
-                VectorTrophyIcon(tier: tier)
-                    .frame(width: 34, height: 34)
+                // Misma costura que la fila de Logros: el `rawValue` del metal es
+                // el sufijo de la clave del atlas (`ui_trophy_bronze/silver/gold`,
+                // prompts 224–226 de la cola). Sin PNG cae al vector, así que el
+                // pulso de abajo sigue midiendo lo mismo.
+                GameIcon(artKey: "ui_trophy_\(tier.rawValue)", size: 34) {
+                    VectorTrophyIcon(tier: tier)
+                }
                     .keyframeAnimator(initialValue: 1.0, trigger: pulse) { view, scale in
                         view.scaleEffect(scale)
                     } keyframes: { _ in

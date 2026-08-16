@@ -348,7 +348,12 @@ private struct BoostCard: View {
     /// Ancho fijo del riel derecho, por lo mismo que en `FisuJobsView`: sin él,
     /// "Activar" y "12m 3s" dejan la columna de datos arrancando en un lugar
     /// distinto en cada fila y la lista se ve desalineada de arriba abajo.
-    private static let railWidth: CGFloat = 96
+    ///
+    /// **92 y no 96**: 92 es el `minWidth` real de `ActionPill` y de `PricePill`,
+    /// o sea el piso duro de lo que puede haber en este riel. Los 4 pt que
+    /// sobraban eran aire, y acá el aire lo paga la columna de datos, que es la
+    /// que se estaba quedando corta.
+    static let railWidth: CGFloat = 92
 
     private var isCooling: Bool { row.isUnlocked && row.cooldownRemaining > 0 }
 
@@ -415,12 +420,25 @@ private struct BoostCard: View {
         }
     }
 
+    /// ⚠️ **El nombre va en UN renglón, al revés que en `FisuJobsView`**, y la
+    /// diferencia es de medición, no de gusto. Medidos a `Tokens.title` (20 pt),
+    /// los seis boosts y los cuatro videos van de 88 pt ("Milanesa") a 193 pt
+    /// ("Personaje de regalo"): en la columna de 130 pt que queda entre el plato
+    /// y el riel, **ocho de los diez se partían en dos** — y se partían mal, con
+    /// una sola palabra colgando ("Ganancias / dobles", "Turbo de / ingresos"),
+    /// arriba de un efecto que ya usa dos renglones. Cuatro renglones por fila
+    /// en una lista de diez filas no se lee como una lista.
+    ///
+    /// El nombre más largo entra al 0,67 y el `minimumScaleFactor` es 0,60, así
+    /// que nadie trunca. Lo que justifica los dos renglones en FisuJobs —43
+    /// nombres data-driven, algunos larguísimos— acá no aplica: son diez nombres
+    /// del catálogo, cortos y medidos.
     private var info: some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(verbatim: row.displayName)
                 .font(Tokens.title)
                 .foregroundStyle(Color("PaletteInk"))
-                .lineLimit(2)
+                .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: row.effectText)
@@ -542,7 +560,9 @@ private struct VideoCard: View {
     let isWatching: Bool
     let watch: () -> Void
 
-    private static let railWidth: CGFloat = 96
+    /// El mismo riel que el de los boosts, y por el mismo motivo: las dos
+    /// secciones son la misma lista.
+    private static let railWidth: CGFloat = BoostCard.railWidth
 
     var body: some View {
         GameCard(style: .normal) {
@@ -569,10 +589,13 @@ private struct VideoCard: View {
 
     private var info: some View {
         VStack(alignment: .leading, spacing: 3) {
+            // Un renglón, igual que el nombre del boost y por la misma medición
+            // (ver el docstring de `BoostCard.info`): los cuatro títulos de
+            // video se partían **los cuatro**.
             Text(LocalizedStringKey(row.titleKey))
                 .font(Tokens.title)
                 .foregroundStyle(Color("PaletteInk"))
-                .lineLimit(2)
+                .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .fixedSize(horizontal: false, vertical: true)
             // Lo que la fila NO decía hasta la T13: qué te da exactamente. El

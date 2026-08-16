@@ -157,7 +157,9 @@ private struct AchievementCard: View {
     /// Ancho fijo del riel derecho, el mismo que FisuJobs: sin él, "Cobrar" y
     /// "Cobrado" dejan los datos de cada tarjeta arrancando en una columna
     /// distinta y la lista se ve desalineada de arriba abajo.
-    private static let railWidth: CGFloat = 96
+    /// 92 es el `minWidth` real de `ActionPill`: lo que sobraba era aire que le
+    /// faltaba a la columna del título.
+    private static let railWidth: CGFloat = 92
 
     /// El catálogo nombra el metal (`trophy_bronze`); la vista lo mapea al
     /// icono. Un metal que no exista cae a bronce en vez de dejar el hueco
@@ -203,9 +205,15 @@ private struct AchievementCard: View {
 
     private var content: some View {
         HStack(spacing: Tokens.s12) {
-            VectorTrophyIcon(tier: tier)
-                .frame(width: 42, height: 42)
-                .accessibilityHidden(true)
+            // La copa pasa por `GameIcon` para que el PNG del atlas la pueda
+            // reemplazar: el `rawValue` del metal ES el sufijo de la clave
+            // (`ui_trophy_bronze/silver/gold`), que es como se llaman los tres
+            // prompts 224–226 de la cola. Mientras el atlas no las tenga, cae al
+            // vector y no cambia nada; el día que el batch entre, entra sola.
+            GameIcon(artKey: "ui_trophy_\(tier.rawValue)", size: 42) {
+                VectorTrophyIcon(tier: tier)
+            }
+            .accessibilityHidden(true)
             info
                 .frame(maxWidth: .infinity, alignment: .leading)
                 // Todo lo que dice esta columna ya lo dice `axLabel`, que es el
@@ -223,8 +231,8 @@ private struct AchievementCard: View {
             Text(verbatim: row.titleText)
                 .font(Tokens.body)
                 .foregroundStyle(Color("PaletteInk"))
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: row.descText)
                 .font(Tokens.caption)

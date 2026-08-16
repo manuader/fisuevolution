@@ -60,16 +60,16 @@ struct StoreView: View {
                     }
                     switch store.loadState {
                     case .idle, .loading:
-                        loadingCard
+                        centeredInPanel { loadingCard }
                     case .failed:
-                        unavailableCard
+                        centeredInPanel { unavailableCard }
                     case .loaded:
                         // `Product.products(for:)` no falla cuando un id no
                         // resuelve: lo omite. Con StoreKit caído devuelve la
                         // lista vacía y `loadState` queda en `.loaded`, así que
                         // el hueco hay que nombrarlo acá o no lo nombra nadie.
                         if store.products.isEmpty {
-                            unavailableCard
+                            centeredInPanel { unavailableCard }
                         } else {
                             shelves
                         }
@@ -251,6 +251,28 @@ struct StoreView: View {
     }
 
     // MARK: Carga y caída
+
+    /// Centra una tarjeta suelta en el alto visible del panel.
+    ///
+    /// Los dos estados degradados —esperando y caída— son UNA tarjeta en una
+    /// pantalla que normalmente muestra diez: pegada arriba, quedaba con el
+    /// marco de madera vacío debajo y se leía como una lista que se cortó a la
+    /// primera fila, no como un aviso (V5 del review). Centrada, el vacío es
+    /// simétrico y la tarjeta se lee como lo que es: el contenido de la hoja.
+    ///
+    /// `containerRelativeFrame` mide contra el `ScrollView`, que ya viene
+    /// recortado por el `safeAreaInset` de la cabecera, así que el centro es el
+    /// del hueco real. Se le restan los paddings verticales de la columna para
+    /// que centrar no invente un scroll de 28 pt en una pantalla sin nada que
+    /// scrollear.
+    @ViewBuilder private func centeredInPanel(
+        @ViewBuilder _ card: () -> some View
+    ) -> some View {
+        card()
+            .containerRelativeFrame(.vertical, alignment: .center) { height, _ in
+                max(0, height - Tokens.s4 - Tokens.s24)
+            }
+    }
 
     /// Mientras StoreKit contesta.
     ///
@@ -572,17 +594,31 @@ private struct StoreProductCard: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("store.reward.\(product.id)")
             }
-            // La descripción es la del `.storekit` y también entra entera: con
-            // dos renglones, "Dios con delantal chamuscado y pinza de a…" dejaba
-            // el chiste por la mitad, que es la única razón por la que ese texto
-            // existe.
-            Text(verbatim: product.description)
-                .font(Tokens.caption)
-                .foregroundStyle(Color("PaletteInk").opacity(0.65))
-                .lineLimit(3)
-                .minimumScaleFactor(0.7)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityHidden(true)
+            // ⚠️ **La descripción del `.storekit` se dibuja SÓLO cuando no hay
+            // línea de beneficio**, porque cuando la hay dicen lo mismo dos
+            // veces: el Pack de Arranque mostraba "12K de plata, la skin
+            // Mundialista y chau anuncios" e inmediatamente abajo "Un fajo de
+            // plata, la skin Mundialista y chau anuncios" — la misma frase, una
+            // con el número y la otra sin. De las dos gana la calculada: sale
+            // del catálogo del juego contra la partida del jugador, está
+            // traducida como todo lo demás, y la del `.storekit` en la tienda
+            // real la escribe App Store Connect en un solo idioma.
+            //
+            // Las que NO son pack (quitar los ads, las dos skins) no tienen
+            // línea calculada —`packRewardText` devuelve `nil` a propósito, y
+            // hay un test de UI que lo pinea—, así que ahí la descripción sigue
+            // siendo el único texto de la fila y entra entera: con dos
+            // renglones, "Dios con delantal chamuscado y pinza de a…" dejaba el
+            // chiste por la mitad, que es la única razón por la que existe.
+            if reward == nil {
+                Text(verbatim: product.description)
+                    .font(Tokens.caption)
+                    .foregroundStyle(Color("PaletteInk").opacity(0.65))
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.7)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityHidden(true)
+            }
         }
     }
 
@@ -643,7 +679,12 @@ private struct StoreProductCard: View {
                 .compactMap { $0 }
                 .joined(separator: ", ")
         }
-        return [tagline, product.description]
+        // El mismo criterio que la columna de datos. La línea de beneficio ya es
+        // su PROPIA parada de VoiceOver —queda destapada a propósito—, así que
+        // cuando existe el valor de la tarjeta se queda sólo con la cinta: meter
+        // la descripción del `.storekit` acá era hacer que la hoja leyera dos
+        // veces la misma frase.
+        return [tagline, reward == nil ? product.description : nil]
             .compactMap { $0 }
             .joined(separator: ", ")
     }

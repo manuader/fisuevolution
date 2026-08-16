@@ -247,18 +247,22 @@ struct UpgradesView: View {
                     if row.passiveUnlocked {
                         // Sigue siendo un botón —y con el MISMO identifier— para
                         // no cambiarle el tipo de elemento al árbol de AX: hoy
-                        // también lo era, sólo que `.disabled`. La acción es la
-                        // misma y `applyPassiveUnlock` la rechaza con
-                        // `alreadyUnlocked`, así que un toque de más no cobra
-                        // nada: suena el "no" y listo.
+                        // también lo era, sólo que `.disabled`.
+                        //
+                        // ⚠️ **Pero la acción es vacía.** Llamaba a
+                        // `buyPassiveFromMenu`, que la economía rechaza con
+                        // `alreadyUnlocked` — y ese rechazo dispara el háptico y
+                        // el sonido de ERROR. O sea que tocar "Ya genera", que es
+                        // la cápsula de LO QUE SALIÓ BIEN, te retaba. No hay nada
+                        // que comprar en este estado: el botón existe sólo para
+                        // que el árbol de accesibilidad no cambie de forma.
                         StatePill(
                             titleKey: "upgrades.character.passive_owned",
                             systemImage: "checkmark.circle.fill",
                             tint: Color("PaletteGreen"),
-                            identifier: "upgrades.character.\(row.id).passive"
-                        ) {
-                            gameState.buyPassiveFromMenu(typeId: row.id)
-                        }
+                            identifier: "upgrades.character.\(row.id).passive",
+                            action: {}
+                        )
                     } else {
                         PricePill(
                             text: CoinFormatter.string(from: row.passiveCost),
@@ -384,14 +388,17 @@ struct UpgradesView: View {
                         labelText: String(localized: "upgrades.level \(String(level)) \(String(line.maxLevel))")
                     )
                     if maxed {
+                        // Acción vacía por lo mismo que la cápsula del pasivo:
+                        // `buyUpgrade` rechaza con `maxLevelReached` y ese rechazo
+                        // suena a error. "Al máximo" es una felicitación, no un
+                        // límite que el jugador esté chocando.
                         StatePill(
                             titleKey: "upgrades.maxed",
                             systemImage: "star.circle.fill",
                             tint: Color("PaletteYellow"),
-                            identifier: "upgrades.permanent.\(line.id)"
-                        ) {
-                            gameState.buyUpgrade(lineId: line.id)
-                        }
+                            identifier: "upgrades.permanent.\(line.id)",
+                            action: {}
+                        )
                         .layoutPriority(1)
                     } else {
                         PricePill(

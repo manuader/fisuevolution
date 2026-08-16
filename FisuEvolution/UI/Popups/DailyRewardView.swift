@@ -64,6 +64,12 @@ struct DailyRewardView: View {
         }
         .padding(16)
         .presentationDetents([.fraction(0.52)])
+        // El moño de `panel_reward` no llega a los bordes de la hoja, así que el
+        // fondo de sistema dejaba un rectángulo BLANCO alrededor del panel —el
+        // único blanco puro de todo el juego, y justo en la pantalla que celebra
+        // la racha—. Transparente, el moño flota sobre el tablero, igual que la
+        // ficha del personaje (`CharacterSheetView`), que resolvió lo mismo.
+        .presentationBackground(.clear)
     }
 
     /// El premio: qué día es y qué te dio. Es **una** parada de VoiceOver

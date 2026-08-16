@@ -245,24 +245,48 @@ struct UpgradesView: View {
 
                 upgradeLine(text: row.passiveEffectText, accent: Color("PaletteGreen")) {
                     if row.passiveUnlocked {
-                        // Sigue siendo un botón —y con el MISMO identifier— para
-                        // no cambiarle el tipo de elemento al árbol de AX: hoy
-                        // también lo era, sólo que `.disabled`.
-                        //
-                        // ⚠️ **Pero la acción es vacía.** Llamaba a
-                        // `buyPassiveFromMenu`, que la economía rechaza con
-                        // `alreadyUnlocked` — y ese rechazo dispara el háptico y
-                        // el sonido de ERROR. O sea que tocar "Ya genera", que es
-                        // la cápsula de LO QUE SALIÓ BIEN, te retaba. No hay nada
-                        // que comprar en este estado: el botón existe sólo para
-                        // que el árbol de accesibilidad no cambie de forma.
-                        StatePill(
-                            titleKey: "upgrades.character.passive_owned",
+                        // Comprado: la fila deja de vender y pasa a **informar**,
+                        // y eso lo dibuja el `StateBadge` compartido —el mismo
+                        // que ya usan FisuJobs, el Shop, la tienda y Regalos—.
+                        // Era una cápsula propia de esta pantalla, y encima un
+                        // `Button` cuya acción hubo que vaciar porque
+                        // `buyPassiveFromMenu` rechaza con `alreadyUnlocked` y
+                        // ese rechazo suena a error: tocar "Ya genera", que es la
+                        // cápsula de LO QUE SALIÓ BIEN, te retaba. Un badge no es
+                        // un control, así que no queda toque que castigar ni
+                        // acción vacía que explicar.
+                        StateBadge(
+                            text: String(localized: "upgrades.character.passive_owned"),
                             systemImage: "checkmark.circle.fill",
-                            tint: Color("PaletteGreen"),
-                            identifier: "upgrades.character.\(row.id).passive",
-                            action: {}
+                            textAlignment: .center,
+                            muted: false
                         )
+                        // El badge se sirve en el MISMO hueco que el `PricePill`
+                        // (mínimo 92, pegado al borde). Es el riel fijo de
+                        // FisuJobs y de Logros —`railWidth`— aplicado en el
+                        // llamador, no un resto de la cápsula vieja: el badge
+                        // mide 79 pt contra los 92 del precio (medido sobre la
+                        // captura del 2026-08-16), y sin el hueco esos 13 pt se
+                        // los queda el renglón del efecto SÓLO en las filas
+                        // compradas: la lista baila entre estados.
+                        .frame(minWidth: 92, alignment: .trailing)
+                        // Upgrades navega por PARADAS (la fila colapsada es de
+                        // FisuJobs; decisión del controller de no unificar los
+                        // dos modelos), y acá el estado no viaja en ningún valor
+                        // de fila: este badge es la única parada que lo dice. Por
+                        // eso NO va `accessibilityHidden` como en FisuJobs — va
+                        // combinado, para que sea UNA parada y el glifo no quede
+                        // como una parada muda al lado. Mismo patrón que los
+                        // badges de `GiftsView`.
+                        //
+                        // ⚠️ El identifier ya no es el de la compra: ese
+                        // (`upgrades.character.<id>.passive`) sigue en el
+                        // `PricePill` de al lado, que es el control de verdad.
+                        // Repetirlo acá dejaría el mismo id en dos tipos de
+                        // elemento distintos —`button` en un estado y texto en el
+                        // otro—, que es una trampa para el próximo test.
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("upgrades.character.\(row.id).passive_owned")
                     } else {
                         PricePill(
                             text: CoinFormatter.string(from: row.passiveCost),
@@ -388,18 +412,23 @@ struct UpgradesView: View {
                         labelText: String(localized: "upgrades.level \(String(level)) \(String(line.maxLevel))")
                     )
                     if maxed {
-                        // Acción vacía por lo mismo que la cápsula del pasivo:
-                        // `buyUpgrade` rechaza con `maxLevelReached` y ese rechazo
-                        // suena a error. "Al máximo" es una felicitación, no un
-                        // límite que el jugador esté chocando.
-                        StatePill(
-                            titleKey: "upgrades.maxed",
+                        // El mismo badge que el pasivo comprado, por la misma
+                        // razón: `buyUpgrade` rechaza con `maxLevelReached` y ese
+                        // rechazo suena a error. "Al máximo" es una felicitación,
+                        // no un límite que el jugador esté chocando.
+                        StateBadge(
+                            text: String(localized: "upgrades.maxed"),
                             systemImage: "star.circle.fill",
-                            tint: Color("PaletteYellow"),
-                            identifier: "upgrades.permanent.\(line.id)",
-                            action: {}
+                            textAlignment: .center,
+                            muted: false
                         )
+                        // El mismo hueco que arriba: sin él la barra de nivel se
+                        // estira sólo en las filas al máximo y las siete líneas
+                        // dejan de tener la misma barra.
+                        .frame(minWidth: 92, alignment: .trailing)
                         .layoutPriority(1)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("upgrades.permanent.\(line.id).maxed")
                     } else {
                         PricePill(
                             text: String(oroCost),
@@ -441,58 +470,12 @@ struct UpgradesView: View {
     }
 }
 
-// MARK: - Cápsula de estado
-
-/// La cápsula que ocupa el lugar del precio cuando ya no hay nada que comprar:
-/// el pasivo ya abierto y la línea de ORO al máximo.
-///
-/// ⚠️ **Es un `Button` y lleva el identifier de la compra**, no una etiqueta:
-/// `upgrades.permanent.<id>` está pineado como botón por `LaunchSmokeTests` y
-/// `upgrades.character.<id>.passive` por `UpgradesMenuUITests`. Dejarlo de ser
-/// botón en un estado los rompería el día que el fixture llegue a ese estado.
-/// La acción es la misma que la de la cápsula de precio y la economía la
-/// rechaza sola (`alreadyUnlocked` / `maxLevelReached`), así que no hay camino
-/// para cobrar dos veces.
-///
-/// Comparte la geometría de `PricePill` (mínimo 92, padding 12/8, cápsula con
-/// contorno de 3) para que las filas de una lista no bailen entre estados.
-private struct StatePill: View {
-    let titleKey: LocalizedStringKey
-    let systemImage: String
-    let tint: Color
-    let identifier: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 5) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 15, weight: .black))
-                    .foregroundStyle(tint)
-                Text(titleKey)
-                    .font(Tokens.caption)
-                    .foregroundStyle(Color("PaletteInk"))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
-            }
-            // El padding es `s8` y no el `s12` de `PricePill`: con "Ya genera"
-            // adentro la cápsula se iba a 105 pt —13 más que un precio— y esos
-            // 13 se los sacaba al renglón del efecto, que partía en dos SÓLO en
-            // las filas ya compradas. Medido el 2026-08-15.
-            .padding(.horizontal, Tokens.s8)
-            .padding(.vertical, Tokens.s8)
-            .frame(minWidth: 92)
-            .background {
-                Capsule()
-                    .fill(Color("PaletteCream"))
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk").opacity(0.45), lineWidth: 3))
-            }
-            .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier(identifier)
-    }
-}
+// La `StatePill` privada que ocupaba este lugar se fue al `StateBadge` de
+// `GameArtComponents` (mismo camino que `JobStateBadge` en la T11): era la
+// tercera cápsula de estado del juego dibujada aparte —cápsula crema con glifo
+// de color contra el rectángulo naranja del badge compartido— y dos gramáticas
+// para el mismo papel es lo que la regla visual del dueño prohíbe. Los dos
+// llamadores están arriba, en `characterRow` y `permanentRow`.
 
 // MARK: - Retrato
 

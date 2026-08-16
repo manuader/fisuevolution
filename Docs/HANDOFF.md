@@ -10,7 +10,8 @@
 >
 > ✅ **Y el ticket post-merge que ese cierre dejó triageado TAMBIÉN está hecho**
 > — 7 tareas en `fix/cierre-post-merge` (18 commits sobre `89f215a`, mergeada a
-> `main` al cerrar la sesión), con review integral de rama que dio **ready to
+> `main` en `e4d4ce6` y **PUSHEADA — `origin/main` está al día y la trampa 7
+> quedó cerrada**), con review integral de rama que dio **ready to
 > merge y CERO ola de fixes de código**. El detalle está en
 > **`Docs/SESION-2026-08-16-cierre-post-merge.md`**. Lo que hay que saber en dos
 > líneas: el calendario del daily aterrizó en Regalos, y
@@ -744,8 +745,16 @@ El panel de debug es el ícono de herramientas del HUD.
     cuota y sin ensuciar el checkpoint** — así que intentarlo es barato, pero no
     sirve. El batch se corre **desde Terminal.app**, que sí tiene el permiso.
 
-    El batch
-   de arte hay que correrlo desde Terminal.app.
+    ✅ **Y hay una salida para agentes, probada el 2026-08-16**: escribir un
+    `.command` con los comandos del batch y lanzarlo con `open` — Terminal.app
+    pasa a ser el responsible process de TCC y `osascript` hereda su permiso.
+    El tipeo funcionó (2146/2150 caracteres del asset 2 llegaron al editor).
+    ⚠️ Lo que lo mata no es el permiso sino **el foco**: con otros frontends
+    activos en la máquina, las teclas caen en la ventana equivocada (probado
+    el mismo día: dos assets con 0 caracteres tipeados). Desde `acaf3e6` el
+    runner lo detecta y aborta con cuota cero — nunca manda un prompt a medias
+    ni barajado — pero el batch sólo AVANZA con la máquina quieta: si hay
+    sesiones de agentes corriendo, que lo lance el dueño con todo cerrado.
 12. **Medir fps con un build corriendo en paralelo da números basura.**
 13. **La multitud y los fondos comparten espacio de `zPosition`, y eso ya rompió
    una vez.** `depthZ` da negativo apenas una fila queda por encima de
@@ -813,9 +822,20 @@ ya en `dropbox/`, el PNG en `dropbox/procesadas/`, o la clave ya presente en
 después de verificar el PNG. Si editás un `.md` a mano, ese es el campo.
 
 No se generó ninguna imagen a propósito: el runner tipea con `osascript` y el
-permiso de Accesibilidad lo tiene **Terminal.app y nada más** (trampa 11), así
-que desde el shell de un agente falla en el primer asset. La receta, con el Chrome
-dedicado en `:9222` logueado en Gemini **Pro**:
+permiso de Accesibilidad lo tiene **Terminal.app y nada más** (trampa 11, que
+ahora tiene una salida para agentes — ver ahí). ⚠️ **El batch se intentó el
+2026-08-16 y frenó con cuota CERO**: la ruta del permiso funcionó, pero con
+otros frontends usando la máquina el foco se roba a mitad del tipeo (asset 1:
+0 de 2099 caracteres; asset 2: 2146 de 2150) y el guard `prompt_landed` abortó
+antes de enviar las tres veces. De ahí salió el **runner endurecido**
+(`78119ef` + `acaf3e6`, review adversarial con fuzz de 1.000 robos: cero
+prompts corruptos enviados): tipea en tandas de 250 con verificación de
+frontmost y de prefijo, avisa `⚠️ foco robado por «X»` nombrando a la app
+ladrona, y su peor caso es abortar con cuota cero — nunca mandar un prompt
+barajado. Knobs nuevos: `--type-chunk` (250) y `--type-pause` (0,25 s).
+**Corré el batch con la máquina quieta**: cada robo de foco quema un
+reintento y a los 3 fallos seguidos frena. La receta, con el Chrome dedicado
+en `:9222` logueado en Gemini **Pro**:
 
 ```bash
 cd Tools/asset-pipeline

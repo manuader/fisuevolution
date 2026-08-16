@@ -19,7 +19,10 @@
 ## Cómo se retoma
 
 1. Rama: `fix/cierre-post-merge`, 18 commits sobre `89f215a` (main post-merge
-   del rediseño). Se mergea a `main` al cerrar la sesión.
+   del rediseño). ✅ **Mergeada a `main` (`e4d4ce6`) y PUSHEADA** — y detrás
+   fueron también los dos commits del runner endurecido (`78119ef` +
+   `acaf3e6`, ver "El batch" abajo). `origin/main` quedó al día por primera
+   vez en la historia del repo: la trampa 7 está cerrada.
 2. Plan (7 tareas): `Docs/superpowers/plans/2026-08-16-cierre-post-merge.md`.
    No hay spec propio: el insumo es el triage del review integral anterior.
 3. Proceso: skill `superpowers:subagent-driven-development`. Workspace:
@@ -107,6 +110,47 @@ Los minors menores —el `waitUntilEnabled` sin backoff, el timeout muerto de
 conteos absolutos de segmentos AX en `FisuJobsUITests`— viven en el ledger del
 workspace SDD con su razonamiento completo.
 
+## El batch: el intento, y el runner que salió endurecido
+
+Después del merge y el push, el controller **intentó el batch** por la ruta
+nueva de la trampa 11 (un `.command` lanzado con `open`, para que Terminal.app
+sea el responsible process de TCC). Resultado, medido:
+
+- **La ruta del permiso FUNCIONA**: `osascript` tipeó desde la sesión del
+  agente (2146 de 2150 caracteres del asset 2 llegaron al editor).
+- **Lo que falló fue el foco**: con otros frontends activos en la máquina,
+  dos assets tiparon 0 caracteres (las teclas cayeron en otra ventana) y uno
+  perdió 4 por el camino. El guard `prompt_landed` abortó **antes de enviar**
+  las tres veces: 0/15 generados, **cuota gastada: cero**, cola intacta.
+
+De ahí salió el endurecimiento del runner, con el pipeline de siempre
+(implementador + review adversarial + fix round + re-review):
+
+- `78119ef` — tipeo en **tandas de 250** (knobs `--type-chunk`/`--type-pause`)
+  con verificación de frontmost antes de cada tanda, re-activación si otra app
+  se puso adelante, y abort **nombrando a la app ladrona** tras 3 intentos.
+- `acaf3e6` — el fix del Critical que el review confirmó: la recuperación de
+  foco podía insertar una tanda EN EL MEDIO del texto y `prompt_landed` (largo
+  exacto + cabeza intacta) lo aceptaba → cuota en un prompt barajado. Ahora se
+  verifica el **prefijo** del editor tras cada recuperación y tras la tanda
+  siguiente; la recuperación no manda ninguna tecla hasta confirmar Chrome al
+  frente; y las recuperaciones se avisan por stderr (`⚠️ foco robado por «X»`).
+  El re-review re-ejecutó el ataque original: `GenerationBlocked` con cuota
+  cero, y un fuzz de **1.000 robos aleatorios mandó cero prompts corruptos**.
+  Suite del pipeline: 27 base + 18 tests nuevos, con las redes probadas contra
+  mutantes.
+
+**Invariante que quedó**: el peor caso del runner es abortar con cuota cero —
+nunca enviar un prompt a medias ni barajado. Y el batch sólo AVANZA con la
+máquina quieta: cada robo de foco quema un reintento.
+
+Deuda menor del runner (en el ledger, con el loosening quirúrgico anotado por
+el re-review): `_verify_prefix` es exacto-tras-norm y divergiría de
+`prompt_landed` si Gemini mutila una raya larga durante una recuperación
+(cuota cero, sólo camino de recuperación); la recuperación de la tanda 1 no
+tiene tecla descartable; `activate`/`keystroke` siguen sin timeout de
+subprocess; hay 20 `.pyc` trackeados de antes.
+
 ## Qué queda
 
 Dos cosas, y **ninguna de las dos es código**.
@@ -121,12 +165,18 @@ Dos cosas, y **ninguna de las dos es código**.
    el único archivo que esta rama tocó bajo `prompts/` es `00_INDICE.md`, por
    la baja de `ui_pill_currency` de la tarea 5. La **costura ya está completa**: con el
    calendario de la tarea 1 no queda ningún icono sin
-   call-site, así que el día que el batch corra, los 15 entran solos. Es el
-   siguiente paso inmediato de esta misma sesión: el controller lo intenta vía
-   Terminal.app apenas cierre el merge. ⚠️ Sigue haciendo falta **medir el % de
-   píxeles opacos del `@2x`** antes de integrar: `rembg` se come los rellenos
-   interiores claros y grandes, y los de riesgo alto son `ui_menu_stats`,
-   `ui_trophy_silver` y `ui_daily_calendar`.
+   call-site, así que el día que el batch corra, los 15 entran solos.
+   ✅ **El intento del controller ya pasó** (ver "El batch", arriba): cuota
+   cero, runner endurecido, y el GO quedó dado — el Chrome dedicado abierto en
+   `:9222` y logueado, el `--dry-run` listando los 15, y el comando exacto en
+   manos del dueño, que lo corre desde Terminal.app **con la máquina quieta**.
+   ⚠️ Sigue haciendo falta **medir el % de píxeles opacos del `@2x`** antes de
+   integrar: `rembg` se come los rellenos interiores claros y grandes, y los
+   de riesgo alto son `ui_menu_stats`, `ui_trophy_silver` y
+   `ui_daily_calendar`. Esa verificación, el descarte de los huecos, el build
+   con suites de las pantallas tocadas y el commit+push del arte son el cierre
+   post-batch, y quedaron hablados para que los haga el agente cuando el
+   dueño avise que el batch terminó.
 
 2. ⏳ **Los dos gates humanos de F6**, que son los mismos de siempre:
    - **RF-02c** — la cuenta de Apple Developer (USD 99). Nada técnico pendiente.
@@ -139,6 +189,6 @@ Dos cosas, y **ninguna de las dos es código**.
      standalone, o audio CC0 a mano. La lista de los 12 archivos con su evento
      y su duración está lista en `Docs/HANDOFF-gates-pendientes.md`.
 
-⚠️ Y la trampa 7, que no se cierra sola: **`main` local está adelante de
-`origin/main`**. El push es parte del cierre, o el próximo frente arranca de un
-árbol viejo.
+✅ **La trampa 7 quedó cerrada en esta sesión**: `main` está pusheado
+(`origin/main` = `acaf3e6`, distancia 0). El próximo frente arranca, por
+primera vez, de un árbol al día.

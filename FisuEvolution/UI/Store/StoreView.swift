@@ -155,24 +155,43 @@ struct StoreView: View {
     ///
     /// Sólo se dibuja la sección que tiene productos: evita cintas colgadas sobre
     /// un hueco cuando StoreKit devolvió menos de los declarados.
+    ///
+    /// ⚠️ **Los `base` son la posición de cada góndola en la vidriera entera**, y
+    /// se calculan sumando las anteriores: la cascada de entrada (spec §11.2) es
+    /// del panel, así que la primera tarjeta de "Monedas" tiene que seguir a la
+    /// última de "General" y no volver a empezar de cero. Se suman en cadena
+    /// —y no con un contador mutable— porque un `ViewBuilder` no puede mutar
+    /// estado mientras arma la lista.
     @ViewBuilder private var shelves: some View {
         let featured = products(.starterPack)
         let removeAds = products(.removeAds)
+        let coins = products(.coins)
+        let oro = products(.oro)
+        let skins = products(.skin)
+        let coinsBase = featured.count + removeAds.count
+        let oroBase = coinsBase + coins.count
+        let skinsBase = oroBase + oro.count
         if !featured.isEmpty || !removeAds.isEmpty {
             // Las dos van juntas —y no cada una con su cinta— porque se agrupan
             // por lo que ENTREGAN: el combo es `nonConsumable` igual que quitar
             // los ads, y las dos son mejoras de la partida entera.
             shelfHeader("store.section.general")
-            ForEach(featured) { card($0, format: .featured, glyph: .bundle) }
-            ForEach(removeAds) { card($0, format: .row, glyph: .removeAds) }
+            ForEach(Array(featured.enumerated()), id: \.element.id) { offset, product in
+                card(product, format: .featured, glyph: .bundle)
+                    .staggeredAppearance(index: offset)
+            }
+            ForEach(Array(removeAds.enumerated()), id: \.element.id) { offset, product in
+                card(product, format: .row, glyph: .removeAds)
+                    .staggeredAppearance(index: featured.count + offset)
+            }
         }
-        shelf("store.section.coins", products(.coins), glyph: .coins)
-        shelf("store.section.oro", products(.oro), glyph: .oro)
-        let skins = products(.skin)
+        shelf("store.section.coins", coins, glyph: .coins, base: coinsBase)
+        shelf("store.section.oro", oro, glyph: .oro, base: oroBase)
         if !skins.isEmpty {
             shelfHeader("store.section.skins")
-            ForEach(skins) { product in
+            ForEach(Array(skins.enumerated()), id: \.element.id) { offset, product in
                 card(product, format: .row, glyph: .skin(skinPreview(for: product.id)))
+                    .staggeredAppearance(index: skinsBase + offset)
             }
         }
     }
@@ -181,11 +200,15 @@ struct StoreView: View {
     private func shelf(
         _ titleKey: LocalizedStringKey,
         _ products: [Product],
-        glyph: StoreProductCard.Glyph
+        glyph: StoreProductCard.Glyph,
+        base: Int
     ) -> some View {
         if !products.isEmpty {
             shelfHeader(titleKey)
-            ForEach(products) { card($0, format: .row, glyph: glyph) }
+            ForEach(Array(products.enumerated()), id: \.element.id) { offset, product in
+                card(product, format: .row, glyph: glyph)
+                    .staggeredAppearance(index: base + offset)
+            }
         }
     }
 

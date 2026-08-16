@@ -14,6 +14,10 @@ import SwiftUI
 /// - Ninguna animación `repeatForever` incondicional: mantiene vivo el display
 ///   link de SwiftUI toda la sesión (precedente: `SpawnButtonView.swift:36-46`).
 ///   El bounce del tab es un pulso disparado por el toque.
+/// - Toda animación de pulido se apaga con `accessibilityReduceMotion` (spec
+///   §11.2), y apagada tiene que dejar la pantalla en su estado FINAL, no en el
+///   inicial: una tarjeta que entra con `opacity 0` y espera un `onAppear` que
+///   nunca anima se quedaría invisible para siempre.
 
 // MARK: - Tokens
 
@@ -209,6 +213,72 @@ struct ProgressBar: View {
     }
 }
 
+// MARK: - StaggeredAppearance
+
+/// La aparición escalonada de las tarjetas de un panel (spec §11.2): cada fila
+/// entra con un desfase de 30 ms contra la anterior, así el contenido "cae" de
+/// arriba abajo en vez de aparecer de golpe.
+///
+/// Vive acá y no en cada pantalla porque las cuatro listas largas del juego
+/// —FisuJobs, Mejoras, Regalos y la tienda— tienen que cascadear IGUAL: dos
+/// ritmos distintos se leen como dos juegos (regla visual del dueño).
+///
+/// ⚠️ **El tope de 8 filas no es cosmético.** FisuJobs dibuja 43 tarjetas: sin
+/// tope, la última entraría a 1,3 s de abierta la hoja y la pantalla se leería
+/// rota. Con el tope, todo lo que está fuera de la primera pantalla comparte el
+/// desfase máximo (210 ms) y ya está adentro antes de que nadie llegue a
+/// scrollear.
+///
+/// ⚠️ **La bandera vive en la MISMA vista que anima, con su propio `onAppear`**
+/// (trampa 9 del HANDOFF: una animación cuyo `@State` cambió antes de que la
+/// vista exista no arranca nunca). Y con Reduce Motion la tarjeta arranca
+/// **visible**, sin depender de que el `onAppear` corra: el estado apagado es el
+/// final, no el inicial.
+struct StaggeredAppearance: ViewModifier {
+    /// Posición de la tarjeta contando desde arriba del panel, secciones
+    /// incluidas. No es el índice dentro de su sección: la cascada es del PANEL.
+    let index: Int
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var appeared = false
+
+    /// Cuántas filas escalonan antes de que el desfase se congele.
+    static let staggeredRows = 8
+    /// El desfase por fila (spec §11.2).
+    static let step: TimeInterval = 0.03
+
+    /// El retraso de la fila `index`, ya topeado. Expuesto —y testeado— porque es
+    /// la única parte de esta animación que se puede assertar sin renderizar.
+    static func delay(forIndex index: Int) -> TimeInterval {
+        Double(min(max(index, 0), staggeredRows - 1)) * step
+    }
+
+    /// Con Reduce Motion no hay estado intermedio: la tarjeta ya está puesta.
+    private var visible: Bool { reduceMotion || appeared }
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(visible ? 1 : 0)
+            // `offset` y no `padding`: no toca el layout, así que la columna no
+            // se reacomoda mientras las tarjetas entran.
+            .offset(y: visible ? 0 : 14)
+            .onAppear {
+                guard !reduceMotion, !appeared else { return }
+                withAnimation(.snappy(duration: 0.28).delay(Self.delay(forIndex: index))) {
+                    appeared = true
+                }
+            }
+    }
+}
+
+extension View {
+    /// Entrada escalonada de una tarjeta de panel. `index` es su posición desde
+    /// arriba del panel (ver `StaggeredAppearance`).
+    func staggeredAppearance(index: Int) -> some View {
+        modifier(StaggeredAppearance(index: index))
+    }
+}
+
 // MARK: - PricePill
 
 /// El botón de precio estilo "cinta" de Cow Evolution: moneda + monto ya
@@ -218,6 +288,11 @@ struct ProgressBar: View {
 /// ilegible (ver `SpawnButtonView.swift:25-33`). El botón queda tappable —la
 /// acción falla sola si no alcanza— y el estado se comunica con el relleno
 /// crema, el texto ink y una leve desaturación.
+///
+/// Y como el botón se puede tocar sin que alcance, el "no" hay que decirlo:
+/// tocarlo sin saldo lo hace **temblar** 0,3 s (spec §11.2). Es un pulso de
+/// keyframes disparado por el toque —ni timer ni `repeatForever`—, así que en
+/// reposo no hay ninguna animación viva.
 struct PricePill: View {
     enum Currency {
         case coins
@@ -234,8 +309,17 @@ struct PricePill: View {
     let identifier: String
     let action: () -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var shake = 0
+
     var body: some View {
-        Button(action: action) {
+        Button {
+            // El temblor es lo que reemplaza al `.disabled`: dice "no te alcanza"
+            // sin apagar el botón. Se dispara ANTES de la acción —que en el caso
+            // caro no va a hacer nada— y sólo cuando el precio no está a tiro.
+            if !affordable, !reduceMotion { shake += 1 }
+            action()
+        } label: {
             HStack(spacing: 6) {
                 switch currency {
                 case .coins: CoinIcon(size: 20)
@@ -268,6 +352,19 @@ struct PricePill: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
+        // ±4 pt, cuatro tramos, 0,3 s en total. Va **último** para que el
+        // identifier quede pegado al botón y no a un contenedor de más
+        // (trampa 9a-bis): `offset` no crea un elemento de accesibilidad.
+        .keyframeAnimator(initialValue: 0.0, trigger: shake) { view, dx in
+            view.offset(x: dx)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(-4, duration: 0.07)
+                CubicKeyframe(4, duration: 0.08)
+                CubicKeyframe(-3, duration: 0.08)
+                CubicKeyframe(0, duration: 0.07)
+            }
+        }
     }
 }
 

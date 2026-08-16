@@ -183,8 +183,11 @@ struct UpgradesView: View {
             }
             .padding(.top, Tokens.s24)
         } else {
-            ForEach(rows) { row in
+            // Cascada de entrada del panel (spec §11.2). Se recalcula al cambiar
+            // de pestaña, que es lo correcto: son otras tarjetas entrando.
+            ForEach(Array(rows.enumerated()), id: \.element.id) { offset, row in
                 characterRow(row)
+                    .staggeredAppearance(index: offset)
             }
         }
     }
@@ -322,8 +325,10 @@ struct UpgradesView: View {
     // MARK: Permanentes (RF-06)
 
     @ViewBuilder private var permanentRows: some View {
-        ForEach(gameState.content?.upgradesConfig.upgrades ?? []) { line in
+        let lines = gameState.content?.upgradesConfig.upgrades ?? []
+        ForEach(Array(lines.enumerated()), id: \.element.id) { offset, line in
             permanentRow(line)
+                .staggeredAppearance(index: offset)
         }
     }
 

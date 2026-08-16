@@ -149,11 +149,22 @@ struct GameBoardView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
 
-            if let toast = gameState.achievementToast {
-                AchievementToastView(toast: toast) {
-                    gameState.dismissAchievementToast(id: toast.id)
+            // ⚠️ La animación de entrada va ACÁ y no adentro del banner: una
+            // `.transition` sólo corre si la INSERCIÓN ocurre dentro de una
+            // transacción animada, y esa transacción la abre el padre. Con el
+            // `.animation(value:)` puesto sobre el propio banner —como estaba
+            // hasta la T18— el toast aparecía de golpe: el modificador animaba
+            // los cambios de adentro, no su propio nacimiento. El `Group` acota
+            // el alcance al toast, para no teñir de spring los cambios del HUD
+            // que caigan en el mismo frame.
+            Group {
+                if let toast = gameState.achievementToast {
+                    AchievementToastView(toast: toast) {
+                        gameState.dismissAchievementToast(id: toast.id)
+                    }
                 }
             }
+            .animation(.spring(duration: 0.32), value: gameState.achievementToast?.id)
         }
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los
         // anchors que publican los controles de adentro: `overlayPreferenceValue`
@@ -334,6 +345,12 @@ private struct AchievementToastView: View {
     let toast: AchievementToast
     let dismiss: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Dispara el pulso de la copa. Sube UNA vez por logro —desde el mismo
+    /// `.task(id:)` que ya cuenta los 2,4 s— y no es un `repeatForever`: el
+    /// trofeo late al llegar y se queda quieto. El banner es el mismo objeto para
+    /// dos logros seguidos (la cola reusa la vista), así que el disparo tiene que
+    /// colgar del `id` y no de un `onAppear`, que la segunda vez no corre.
+    @State private var pulse = 0
 
     /// El catálogo nombra el metal (`trophy_bronze`); la vista lo mapea al
     /// icono. Un metal que no exista cae a bronce en vez de dejar el hueco.
@@ -347,6 +364,14 @@ private struct AchievementToastView: View {
             HStack(spacing: Tokens.s8) {
                 VectorTrophyIcon(tier: tier)
                     .frame(width: 34, height: 34)
+                    .keyframeAnimator(initialValue: 1.0, trigger: pulse) { view, scale in
+                        view.scaleEffect(scale)
+                    } keyframes: { _ in
+                        KeyframeTrack {
+                            SpringKeyframe(1.3, duration: 0.2, spring: .bouncy)
+                            SpringKeyframe(1.0, duration: 0.3, spring: .bouncy)
+                        }
+                    }
                 VStack(alignment: .leading, spacing: 1) {
                     Text("ach.toast.unlocked")
                         .font(.system(.caption2, design: .rounded).weight(.heavy))
@@ -369,6 +394,7 @@ private struct AchievementToastView: View {
             .accessibilityIdentifier("ach.toast")
             .accessibilityAddTraits(.isButton)
             .task(id: toast.id) {
+                if !reduceMotion { pulse += 1 }
                 try? await Task.sleep(for: .seconds(2.4))
                 guard !Task.isCancelled else { return }
                 dismiss()
@@ -376,8 +402,9 @@ private struct AchievementToastView: View {
             .padding(.bottom, 196)
         }
         .padding(.horizontal, 20)
+        // Con Reduce Motion el banner se funde en vez de deslizarse: la guía de
+        // Apple pide reemplazar el movimiento por un fundido, no borrar el aviso.
         .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
-        .animation(reduceMotion ? nil : .spring(duration: 0.32), value: toast.id)
     }
 }
 

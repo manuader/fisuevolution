@@ -71,23 +71,31 @@ struct GiftsView: View {
                 // del video que ejerce `BonusHUDUITests` vive abajo de los seis
                 // boosts, y con la lista perezosa de `BonusView` el test tenía
                 // que deslizar hasta cuatro veces para encontrarla.
+                // Las tarjetas caen escalonadas de arriba abajo al abrir la hoja
+                // (spec §11.2). El índice corre a través de las TRES secciones
+                // —la tira del calendario es la fila 0— así que la cascada es del
+                // panel y no de cada sección por su cuenta. Las cintas de sección
+                // no participan: son el esqueleto, y lo que entra es el contenido.
                 VStack(spacing: Tokens.s12) {
                     section("gifts.section.daily")
                     DailyStrip(days: days)
+                        .staggeredAppearance(index: 0)
 
                     section("gifts.section.boosts")
-                    ForEach(boosts) { row in
+                    ForEach(Array(boosts.enumerated()), id: \.element.id) { offset, row in
                         BoostCard(row: row) { chestAmount = gameState.activateBoost(id: row.id) }
+                            .staggeredAppearance(index: 1 + offset)
                     }
                     if let chestAmount {
                         chestBanner(chestAmount)
                     }
 
                     section("gifts.section.videos")
-                    ForEach(rewards) { row in
+                    ForEach(Array(rewards.enumerated()), id: \.element.id) { offset, row in
                         VideoCard(row: row, isWatching: watchingRewardId == row.id) {
                             watch(rewardId: row.id)
                         }
+                        .staggeredAppearance(index: 1 + boosts.count + offset)
                     }
                 }
                 .padding(.horizontal, Self.panelInset)

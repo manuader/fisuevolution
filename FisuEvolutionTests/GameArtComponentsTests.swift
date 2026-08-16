@@ -135,6 +135,34 @@ struct GameArtComponentsTests {
         #expect(CountBadge(count: 1_234, dimmed: false).text == "×1234")
     }
 
+    // MARK: - StaggeredAppearance
+
+    @Test("el desfase sube 30 ms por fila y se congela en la octava")
+    func staggerDelayCapsAtEightRows() {
+        #expect(StaggeredAppearance.staggeredRows == 8)
+        #expect(StaggeredAppearance.delay(forIndex: 0) == 0)
+        #expect(StaggeredAppearance.delay(forIndex: 1) == StaggeredAppearance.step)
+        #expect(StaggeredAppearance.delay(forIndex: 7) == 7 * StaggeredAppearance.step)
+        // El tope. FisuJobs dibuja 43 tarjetas: sin esto, la última entraría a
+        // 1,3 s de abierta la hoja.
+        #expect(StaggeredAppearance.delay(forIndex: 8) == StaggeredAppearance.delay(forIndex: 7))
+        #expect(StaggeredAppearance.delay(forIndex: 42) == StaggeredAppearance.delay(forIndex: 7))
+        #expect(StaggeredAppearance.delay(forIndex: .max) == StaggeredAppearance.delay(forIndex: 7))
+    }
+
+    @Test("ninguna fila entra después de 210 ms, ni con retraso negativo")
+    func staggerDelayIsBounded() {
+        // Un delay negativo arranca la animación a mitad de camino: la tarjeta
+        // aparecería ya medio puesta.
+        #expect(StaggeredAppearance.delay(forIndex: -1) == 0)
+        #expect(StaggeredAppearance.delay(forIndex: .min) == 0)
+        for index in -3...50 {
+            let delay = StaggeredAppearance.delay(forIndex: index)
+            #expect(delay >= 0)
+            #expect(delay <= 0.21)
+        }
+    }
+
     // MARK: - Tokens
 
     @Test("la escala de espaciado es 4/8/12/16/24")

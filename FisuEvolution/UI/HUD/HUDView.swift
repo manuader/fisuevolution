@@ -13,6 +13,7 @@ import SwiftUI
 /// `towerIncomePerSecondText`, `prestigePreview`), nunca `PlayerState`.
 struct HUDView: View {
     @Environment(GameState.self) private var gameState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var onStoreTap: () -> Void = {}
     /// El mapa se abre desde acá (ver `elevatorButton`), así que el tutorial no
     /// tiene otra forma de enterarse de que su paso se cumplió.
@@ -92,16 +93,28 @@ struct HUDView: View {
         }
     }
 
+    /// El contador rueda: los dígitos que cambian salen y entran en vertical en
+    /// vez de saltar (spec §11.2). `monospacedDigit` **no** pelea con la
+    /// transición —al revés, es lo que la hace posible: sin ancho fijo, cada
+    /// dígito nuevo correría el resto del número mientras rueda.
+    ///
+    /// ⚠️ La duración es corta a propósito. `refreshProjections` publica
+    /// `coinsText` a 8 Hz, así que con la `.snappy` de fábrica (0,5 s) el
+    /// contador nunca terminaría un rodado antes de que llegue el siguiente y el
+    /// número quedaría permanentemente borroso mientras el jugador toca. A 0,22 s
+    /// alcanza a asentarse entre refrescos.
     private var coinsAmount: some View {
         HStack(spacing: Tokens.s4) {
             CoinIcon(size: 26)
             Text(verbatim: gameState.coinsText)
                 .font(Tokens.display)
                 .monospacedDigit()
+                .contentTransition(reduceMotion ? .identity : .numericText())
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
                 .foregroundStyle(Color("PaletteInk"))
         }
+        .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: gameState.coinsText)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("hud.coins")
         .accessibilityLabel(Text("hud.coins.label"))

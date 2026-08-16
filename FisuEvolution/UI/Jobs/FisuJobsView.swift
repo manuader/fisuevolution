@@ -62,10 +62,15 @@ struct FisuJobsView: View {
                         SectionHeader(group.section.titleKey)
                             .frame(maxWidth: .infinity)
                             .padding(.top, Tokens.s8)
-                        ForEach(group.rows) { row in
+                        ForEach(Array(group.rows.enumerated()), id: \.element.id) { offset, row in
                             JobCard(row: row, recommended: row.id == recommended) {
                                 gameState.hireCharacter(typeId: row.id)
                             }
+                            // La cascada es del PANEL, no de la sección: el
+                            // índice cuenta desde la primera tarjeta de arriba
+                            // de todo, así las tres secciones caen seguidas y no
+                            // arrancan de cero cada una.
+                            .staggeredAppearance(index: group.startIndex + offset)
                         }
                     }
                 }
@@ -138,13 +143,13 @@ struct FisuJobsView: View {
     /// tier, que es la mitad del diseño de la pantalla.
     private static func groups(of rows: [JobRow]) -> [JobGroup] {
         var groups: [JobGroup] = []
-        for row in rows {
+        for (index, row) in rows.enumerated() {
             let section = JobSection(row.state)
             if var last = groups.last, last.section == section {
                 last.rows.append(row)
                 groups[groups.count - 1] = last
             } else {
-                groups.append(JobGroup(section: section, rows: [row]))
+                groups.append(JobGroup(section: section, startIndex: index, rows: [row]))
             }
         }
         return groups
@@ -182,6 +187,9 @@ private enum JobSection: Int {
 
 private struct JobGroup: Identifiable {
     let section: JobSection
+    /// Posición de su primera fila dentro de la lista COMPLETA. Es lo que hace
+    /// que la cascada de entrada sea del panel entero y no de cada sección.
+    let startIndex: Int
     var rows: [JobRow]
     var id: Int { section.rawValue }
 }

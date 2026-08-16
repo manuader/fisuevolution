@@ -39,8 +39,9 @@
 | 8 | FisuJobsView | ✅ review clean (1 fix round) | `55736ba` + `3d2eb64` | Pantalla real de contratación (3 secciones, wordmark parodia, silueta "???"). Fix: la fila es UNA parada de VoiceOver + label hablable. +`65fac2a` (reformateo xcstrings de Xcode, controller). ⚠️ el patrón de fila accesible (accessibilityHidden en info/badge) es el que deben copiar las pantallas siguientes |
 | 9 | Upgrades v2 | ✅ review clean (1 fix round) | `0b47a8b` + `f6d7e68` | Restyle con GameCard/ProgressBar/PricePill, ORO en header, margen 40pt medido del arte; VoiceOver: nombre UNA vez en el retrato (tests pineados intactos). Retrato 104pt (test manda sobre el 88 del spec) |
 | 10 | ElevatorView | ✅ review clean | `72dc510` | El mapa es un ascensor (GameCard por piso, actual en amarillo, riel, `elevator.title`). Coherencia con FisuJobs CONFIRMADA por review (cabecera literal, mismo Tone, margen 36pt medido) |
-| 11 | Customization Shop | ⏳ **PRÓXIMA** | — | CustomizationView + skinCatalogRows; brief en el workspace |
-| 12-20 | — | pendientes | — | Ver plan |
+| 11 | Customization Shop | ✅ review clean (1 fix round) | `bd9b64d` + `e539876` | Carrusel de caras + grilla de skins (4 estados); unificó JobStateBadge→StateBadge (FisuJobs intacto, verificado); fixture nuevo `--uitest-storekit-empty` (9º arg). Coherencia con FisuJobs CONFIRMADA. Fix: StoreKit caído ya no miente "no está a la venta" |
+| 12 | Tienda IAP v2 + timeout | ⏳ **PRÓXIMA** | — | Restyle de StoreView + timeout del Loading + settings fuera de la tienda (quedan sin superficie hasta T16 — hueco aceptado). ⚠️ herencia: el reintento del caso degradado de skins espera el `store.retry` de esta pantalla |
+| 13-20 | — | pendientes | — | Ver plan |
 
 **Suites al cierre de T8**: `FisuEvolutionTests` 235 · UI verdes (FisuJobs 2,
 EconomyLoop 2, BottomMenu 2, Tutorial 5; suite completa 28/28 en T7, con

@@ -147,6 +147,36 @@ struct SaveCompatibilityTests {
         #expect(state.run.units == ["a": 3, "b": 2])
     }
 
+    /// Y el escalón siguiente: el sobre SIN la clave `derivedEffects`. No lo
+    /// produce ninguna migración de hoy —`migrateV3toV4` siempre escribe la
+    /// clave, aunque sea con `{}`— pero sí un v4 escrito por otra versión o un
+    /// blob recortado, y hasta acá se llevaba la partida entera con un
+    /// `keyNotFound`. Son efectos DERIVADOS: la fuente de verdad
+    /// (`oroUpgradeLevels`) sobrevive al lado y `recomputeDerivedEffects` los
+    /// reconstruye, así que caer al neutro es recuperable y perder el save no.
+    @Test("un save v4 sin la clave derivedEffects decodifica con el neutro")
+    func metaSinDerivedEffectsDecodifica() throws {
+        var object = fixtureV4SinClavesNuevas()
+        var meta = try #require(object["meta"] as? [String: Any])
+        meta["derivedEffects"] = nil
+        object["meta"] = meta
+
+        let data = try JSONSerialization.data(withJSONObject: object)
+        let state = try JSONDecoder().decode(PlayerState.self, from: data)
+
+        // El neutro es el MISMO que sale de decodificar `{}`.
+        #expect(state.meta.derivedEffects == UpgradeState(
+            offlineEfficiency: 0, tapMultiplier: 1.0, critChance: 0
+        ))
+        // La fuente de verdad de esos efectos llega intacta: se pueden recalcular.
+        #expect(state.meta.oroUpgradeLevels == ["offline": 2])
+        // Y el resto de la partida sobrevive, que es de lo que se trata.
+        #expect(state.run.coins == 123_456.5)
+        #expect(state.run.units == ["a": 3, "b": 2])
+        #expect(state.meta.oro == 12)
+        #expect(state.meta.prestigeLevel == 2)
+    }
+
     @Test("reencarnar borra las compras por tipo de la run")
     func freshRunEmpiezaSinComprasPorTipo() {
         // `hireCountsByType` es curva de costo de ESTA run: reencarnar la resetea.

@@ -114,6 +114,50 @@ struct LegalDocument {
         }
         return blocks(from: markdown)
     }
+
+    // MARK: Los dos idiomas
+
+    /// Parte un documento bilingüe en sus mitades: **cada `# H1` abre una**. Lo
+    /// que venga antes del primer título (no hay nada hoy) queda en la primera,
+    /// para no perderlo.
+    static func languageHalves(of blocks: [Block]) -> [[Block]] {
+        var halves: [[Block]] = []
+        for block in blocks {
+            if case .title = block { halves.append([]) }
+            if halves.isEmpty { halves.append([]) }
+            halves[halves.count - 1].append(block)
+        }
+        return halves
+    }
+
+    /// La mitad que le toca al idioma con el que la app está corriendo.
+    ///
+    /// ⚠️ **Los `.md` traen los dos idiomas concatenados, español arriba e
+    /// inglés abajo** —así se publican en `Distribution/site/`, y así viajan al
+    /// bundle, byte a byte (hay un test que lo pinea)—. La pantalla los mostraba
+    /// **enteros**: un jugador con el iPhone en inglés abría "Terms of Service"
+    /// y se encontraba con 150 líneas en español antes de llegar a su versión.
+    ///
+    /// La mitad inglesa se reconoce por el sufijo `(English)` de su título, que
+    /// es la convención de los dos documentos y ya estaba pineada por
+    /// `LegalDocumentTests`. Si el documento tuviera una sola mitad —o ninguna
+    /// reconocible— devuelve todo: quedarse sin términos es peor que mostrarlos
+    /// de más.
+    static func half(of blocks: [Block], forLanguage code: String) -> [Block] {
+        let halves = languageHalves(of: blocks)
+        guard halves.count > 1 else { return blocks }
+        let englishIndex = halves.firstIndex { half in
+            if case .title(let text)? = half.first { return text.hasSuffix("(English)") }
+            return false
+        }
+        if code.hasPrefix("en") {
+            return halves[englishIndex ?? halves.count - 1]
+        }
+        // Español es el idioma base y la primera mitad. Cualquier otro idioma
+        // cae acá también, que es donde ya cae la UI entera: el juego se
+        // traduce a dos y `es` es el que resuelve por defecto.
+        return halves[englishIndex == 0 ? 1 : 0]
+    }
 }
 
 // MARK: - La pantalla
@@ -291,8 +335,20 @@ struct LegalView: View {
     }
 
     /// Reparte los bloques del documento en grupos dibujables.
+    ///
+    /// Se queda con **la mitad del idioma en el que la app está corriendo**: el
+    /// `.md` trae español e inglés concatenados y mostrar los dos hacía que un
+    /// jugador en inglés tuviera que hojear el documento entero en español para
+    /// llegar al suyo. El idioma sale de `preferredLocalizations`, que es contra
+    /// lo que resuelve el resto de la UI —incluida la preferencia propia de
+    /// Ajustes, que escribe `AppleLanguages`—, así que la pantalla no puede
+    /// discrepar con el idioma de su propio título.
     private static func sections(of document: LegalDocument.Kind) -> [Section]? {
-        guard let blocks = LegalDocument.load(document) else { return nil }
+        guard let all = LegalDocument.load(document) else { return nil }
+        let blocks = LegalDocument.half(
+            of: all,
+            forLanguage: Bundle.main.preferredLocalizations.first ?? "es"
+        )
         var sections: [Section] = []
 
         func open(_ kind: Section.Kind) {

@@ -417,6 +417,82 @@ struct LegalDocumentTests {
         #expect(hasContact, "el documento tiene que decir a dónde escribir")
     }
 
+    // MARK: El corte por idioma
+
+    /// ⚠️ El defecto: la pantalla mostraba el documento ENTERO, con el español
+    /// arriba, así que un jugador con el teléfono en inglés abría "Terms of
+    /// Service" y tenía que hojear 150 líneas en otro idioma para llegar al
+    /// suyo.
+    @Test("cada idioma se lleva su mitad del documento")
+    func eachLanguageGetsItsOwnHalf() {
+        let blocks = LegalDocument.blocks(from: """
+        # Términos de Servicio — FisuEvolution
+
+        ## 1. Aceptación
+
+        Texto en español.
+
+        # Terms of Service — FisuEvolution (English)
+
+        ## 1. Acceptance
+
+        Text in English.
+        """)
+
+        #expect(LegalDocument.half(of: blocks, forLanguage: "es") == [
+            .title("Términos de Servicio — FisuEvolution"),
+            .heading("1. Aceptación"),
+            .paragraph("Texto en español.")
+        ])
+        #expect(LegalDocument.half(of: blocks, forLanguage: "en") == [
+            .title("Terms of Service — FisuEvolution (English)"),
+            .heading("1. Acceptance"),
+            .paragraph("Text in English.")
+        ])
+        // Un idioma que el juego no habla cae al base, igual que el resto de la UI.
+        #expect(LegalDocument.half(of: blocks, forLanguage: "pt-BR")
+                == LegalDocument.half(of: blocks, forLanguage: "es"))
+    }
+
+    /// Quedarse sin términos sería peor que mostrarlos de más: un documento de
+    /// un solo idioma se muestra entero.
+    @Test("un documento de un solo idioma se muestra entero")
+    func singleLanguageDocumentSurvives() {
+        let blocks = LegalDocument.blocks(from: """
+        # Solo un idioma
+
+        Texto.
+        """)
+        #expect(LegalDocument.half(of: blocks, forLanguage: "en") == blocks)
+        #expect(LegalDocument.half(of: blocks, forLanguage: "es") == blocks)
+    }
+
+    /// El corte sobre los documentos REALES, que es lo que ve el jugador: cada
+    /// mitad trae un solo `# H1` y las dos juntas son el documento entero.
+    @Test("los documentos del bundle se cortan en dos mitades sanas",
+          arguments: LegalDocument.Kind.allCases)
+    func realDocumentsSplitCleanly(kind: LegalDocument.Kind) throws {
+        let all = try #require(LegalDocument.load(kind))
+        let es = LegalDocument.half(of: all, forLanguage: "es")
+        let en = LegalDocument.half(of: all, forLanguage: "en")
+
+        #expect(es.count + en.count == all.count, "el corte no puede perder ni duplicar bloques")
+        #expect(es != en)
+        for half in [es, en] {
+            let titles = half.filter { if case .title = $0 { return true } else { return false } }
+            #expect(titles.count == 1, "cada mitad trae un solo título de idioma")
+            // Título + cuerpo. El piso es 2 y no más: la mitad inglesa de
+            // `privacy.md` es a propósito UN párrafo —el resumen honesto con el
+            // contacto—, mientras que la española va desglosada en viñetas.
+            #expect(half.count >= 2, "una mitad sin cuerpo sería una pantalla de legales en blanco")
+        }
+        if case .title(let text)? = en.first {
+            #expect(text.hasSuffix("(English)"))
+        } else {
+            Issue.record("la mitad inglesa tiene que arrancar en su título")
+        }
+    }
+
     /// ⚠️ **Guarda anti-deriva.** Los `.md` del bundle son COPIAS de
     /// `Distribution/site/`, que es lo que se publica en la web. Dos copias que
     /// se editan por separado terminan diciendo cosas distintas — y la que ve el

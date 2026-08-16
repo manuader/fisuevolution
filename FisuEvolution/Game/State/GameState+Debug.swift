@@ -148,6 +148,23 @@ extension GameState {
         self.player = player
     }
 
+    /// Deja el premio del día **sin cobrar** y lo cobra de verdad, para que el
+    /// popup se abra.
+    ///
+    /// Retrocede `lastClaimDay` a AYER y no lo borra a propósito: un día
+    /// salteado resetea el ciclo a 1 (`DailyRewardManager.claimIfAvailable`),
+    /// así que con "ayer" el fixture respeta el `cycleDay` que haya —el de
+    /// `--uitest-daily-streak`, si vino— en vez de pisarlo. El claim que corre
+    /// después es el REAL: el mismo que acredita la plata al volver a foreground.
+    func debugClaimDailyAgain() {
+        guard var player else { return }
+        player.meta.daily.lastClaimDay = DailyRewardManager.dayString(
+            for: Date().addingTimeInterval(-86_400)
+        )
+        self.player = player
+        claimDailyIfAvailable()
+    }
+
     /// Deja tres logros **conseguidos y sin cobrar** para poder fotografiar y
     /// ejercitar la pantalla de Logros.
     ///

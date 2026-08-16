@@ -460,6 +460,18 @@ final class GameState {
                 player.meta.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
                 self.player = player
             }
+            #if DEBUG
+            // El popup del premio del día, abierto. Va DESPUÉS del bloque de
+            // arriba porque es justamente ese bloque el que lo hace imposible:
+            // una partida nueva marca `lastClaimDay` en HOY para no pisar el
+            // tutorial, y el daily se cobra una sola vez por día. Sin esta
+            // puerta, la única pantalla que celebra la racha no se puede ni
+            // fotografiar ni ejercitar sin cambiarle la fecha al simulador.
+            // Combinado con `--uitest-daily-streak` muestra el día 4.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-daily-popup") {
+                debugClaimDailyAgain()
+            }
+            #endif
             scheduleNextEvent(from: Date().timeIntervalSince1970)
             // Una sola pasada post-carga: un save escrito ANTES de que
             // existieran los logros llega con medio catálogo ya ganado, y sin

@@ -45,6 +45,15 @@ struct StatsView: View {
                     VStack(spacing: 0) {
                         StatRow(key: "prestige_level", label: "stats.row.prestige_level", value: stats.prestigeLevel)
                         StatDivider()
+                        // ⚠️ Esta fila es la ÚNICA del grupo que cuenta la RUN, y
+                        // queda entre dos históricas. La decisión es que lo diga
+                        // la ETIQUETA —"Tier más alto (esta vida)"— y no moverla:
+                        // el tier máximo es un dato de carrera y en cualquier otro
+                        // grupo se lee peor. Sin la aclaración, el jugador que
+                        // reencarna lee "Reencarnaciones: 1 / Tier más alto: 1 /
+                        // Piso más alto: Reino de Dios" y piensa que el del medio
+                        // se rompió. El arreglo de fondo es un `maxTierEver` en
+                        // `MetaStats`, que es tocar el formato del save.
                         StatRow(key: "max_tier", label: "stats.row.max_tier", value: stats.maxTier)
                         StatDivider()
                         StatRow(key: "max_floor", label: "stats.row.max_floor", value: stats.maxFloorName)

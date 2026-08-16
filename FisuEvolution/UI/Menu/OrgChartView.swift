@@ -13,8 +13,8 @@ import SwiftUI
 /// ve como lo que es: el árbol abriéndose en cuatro y volviéndose a juntar.
 ///
 /// Lo que la vista **no** hace: no le pregunta nada al estado más allá de
-/// `orgChartRows`, `prestigePreview` y `prestigeLevelText`. Cada nodo viene con
-/// el nombre, el retrato, el conteo, el piso y el "lo viste" ya resueltos.
+/// `orgChartRows`, `globalMultiplierText` y `prestigeLevelText`. Cada nodo viene
+/// con el nombre, el retrato, el conteo, el piso y el "lo viste" ya resueltos.
 struct OrgChartView: View {
     @Environment(GameState.self) private var gameState
     /// Cierra la HOJA entera. No puede ser `@Environment(\.dismiss)`: esta vista
@@ -24,9 +24,11 @@ struct OrgChartView: View {
     var body: some View {
         // Las dos cosas que mueven el organigrama, leídas explícitamente para que
         // la pantalla se invalide contra ELLAS: contratar y fusionar mueven los
-        // ×N (`boardVersion`) y reencarnar mueve el multiplicador del jefe
-        // (`effectsVersion`). `player` es `@ObservationIgnored`, así que el tick
-        // de 60 Hz no recompone esto.
+        // ×N, y reencarnar mueve el multiplicador del Jefe — las dos pasan por
+        // `bumpBoard()`, o sea `boardVersion`—; comprar una mejora permanente de
+        // ORO mueve el `prestigeBonus`, que entra en el mismo multiplicador y
+        // avisa por `effectsVersion`. `player` es `@ObservationIgnored`, así que
+        // el tick de 60 Hz no recompone esto.
         let _ = gameState.boardVersion
         let _ = gameState.effectsVersion
 
@@ -34,12 +36,16 @@ struct OrgChartView: View {
         // tipos de cero cada vez que se lee. Leerlo adentro del `ForEach` lo
         // multiplicaría por 43.
         //
-        // ⚠️ El nivel de prestigio sale de `prestigeLevelText` y **no** de
-        // `statsSnapshot`: la foto entera arrastra `towerIncomePerSecondText`,
-        // que se mueve solo mientras la torre produce, y con eso los 43 nodos se
-        // rearmarían cada vez que el income abreviado cambia de dígito.
+        // ⚠️ Los dos datos del Jefe salen de accesores ESTRECHOS
+        // (`globalMultiplierText`, `prestigeLevelText`) y no de las proyecciones
+        // que los traen de garrón. `statsSnapshot` arrastra
+        // `towerIncomePerSecondText` y `prestigePreview` arrastra `coinsLost` y
+        // `oroGained`: los tres se mueven solos mientras la torre produce, y
+        // cualquiera de los dos atajos "obvios" rearmaría los 43 nodos ocho veces
+        // por segundo. Los accesores leen `player`/`economy` directo, que no
+        // disparan observación.
         let floors = Self.groups(of: gameState.orgChartRows)
-        let multiplier = gameState.prestigePreview.multiplierBeforeText
+        let multiplier = gameState.globalMultiplierText
         let prestigeLevel = gameState.prestigeLevelText
 
         ScrollView {
@@ -156,12 +162,19 @@ private struct Connector: View {
 
 /// La bifurcación: tronco, barra horizontal y una patita por hermano.
 ///
-/// La barra arranca en el CENTRO de la primera columna y termina en el de la
-/// última, que es como se dibuja un organigrama de verdad; una barra de borde a
-/// borde asomaría por fuera de las tarjetas de los extremos. Se consigue sin
-/// `GeometryReader` partiendo la fila en `2 × columnas` celdas iguales y dejando
-/// transparentes la primera y la última: cada celda mide media columna, así que
-/// los extremos transparentes son exactamente los dos medios sobrantes.
+/// La barra arranca **cerca** del centro de la primera columna y termina cerca
+/// del de la última, que es como se dibuja un organigrama de verdad; una barra de
+/// borde a borde asomaría por fuera de las tarjetas de los extremos. Se consigue
+/// sin `GeometryReader` partiendo la fila en `2 × columnas` celdas iguales y
+/// dejando transparentes la primera y la última.
+///
+/// ⚠️ Es **aproximado, no exacto**: las celdas de acá van con `spacing: 0` y las
+/// tarjetas de arriba con `Tokens.s8`, así que el centro real de cada hermano
+/// está corrido `s8 × (2i − n + 1) / 2n` respecto de su celda — **±3 pt** en los
+/// extremos con cuatro columnas, y menos hacia el medio. A esa escala no se nota
+/// contra una barra de 2 pt; dibujarlo exacto pide medir las tarjetas con
+/// `GeometryReader`, que es el mismo costo que el árbol fiel de la preocupación 1
+/// del reporte de la T15.
 private struct ForkConnector: View {
     let columns: Int
 

@@ -189,9 +189,12 @@ struct MenuView: View {
 /// §10.4), que además retira `ConfigView`. Hasta entonces la tarjeta abre esto,
 /// que ya lleva puesto el identifier que su test va a buscar.
 ///
-/// El título va `verbatim` y reusa la etiqueta de la tarjeta: agregar una clave
-/// al catálogo para borrarla en la tarea siguiente deja huérfanos que después
-/// nadie sabe si están vivos (mismo criterio que el viejo `ScreenPlaceholderView`).
+/// El título **reusa la clave de la tarjeta** (`menu.card.settings`) en vez de
+/// traer una propia: agregar una clave al catálogo para borrarla en la tarea
+/// siguiente deja huérfanos que después nadie sabe si están vivos (mismo criterio
+/// que el viejo `ScreenPlaceholderView`). Y va traducida y no `verbatim`, porque
+/// el literal en español se leía "Ajustes" también con la app en inglés —que es
+/// como corre el runner (trampa 6)—.
 private struct SettingsPlaceholderView: View {
     let close: () -> Void
 
@@ -207,7 +210,7 @@ private struct SettingsPlaceholderView: View {
                 Spacer()
                 HStack {
                     Spacer()
-                    Text(verbatim: "Ajustes")
+                    Text("menu.card.settings")
                         .font(Tokens.title)
                         .foregroundStyle(Color("PaletteInk"))
                         .accessibilityIdentifier("settings.placeholder")

@@ -24,6 +24,12 @@ struct StatsSnapshot: Equatable {
     // Carrera
     let prestigeLevel: String
     let maxFloorName: String
+    /// ⚠️ **Es de ESTA vida**, no de la cuenta: sale de `run.maxTierReached`, que
+    /// vuelve a 1 al reencarnar. Sus dos vecinos en pantalla (`prestigeLevel` y
+    /// `maxFloorName`) son históricos, así que la etiqueta lo aclara —
+    /// `stats.row.max_tier` dice "(esta vida)"—. No hay un `maxTierEver` en
+    /// `MetaStats` y agregarlo es tocar el formato del save; el día que exista,
+    /// esto pasa a leerlo y la aclaración de la etiqueta se cae sola.
     let maxTier: String
     let floorsUnlocked: String
     // Colección — los cuatro van como "tenés/hay" ("12/43")
@@ -114,6 +120,7 @@ extension GameState {
             incomePerSecond: towerIncomePerSecondText,
             prestigeLevel: String(player.meta.prestigeLevel),
             maxFloorName: floors.count > maxOrdinal ? TowerNaming.floorName(for: floors[maxOrdinal].id) : "",
+            // De la RUN y no de la cuenta: ver el campo en `StatsSnapshot`.
             maxTier: String(player.run.maxTierReached),
             floorsUnlocked: "\(openCount)/\(floors.count)",
             unitCount: String(player.run.totalUnits),
@@ -142,6 +149,36 @@ extension GameState {
     /// produce. Con eso, los 43 nodos se rearmarían cada vez que el income
     /// abreviado pasa de "12,3K" a "12,4K".
     var prestigeLevelText: String { String(player?.meta.prestigeLevel ?? 0) }
+
+    /// El multiplicador global vigente, ya en texto ("2,3"; el "×" lo pone la
+    /// vista). El otro dato de la tarjeta del Jefe.
+    ///
+    /// Existe por lo mismo que `prestigeLevelText`, y la trampa es peor: la forma
+    /// "obvia" de conseguir este número —`prestigePreview.multiplierBeforeText`—
+    /// ata la pantalla a una proyección que `refreshProjections` **reescribe a
+    /// 8 Hz**. `PrestigePreview` lleva adentro `coinsLost` y `oroGained`, que se
+    /// mueven con cada tick mientras la torre produce, así que el `==` que
+    /// protege al resto de las proyecciones ahí nunca da igual: con el
+    /// organigrama abierto, los 43 nodos se recotizaban ocho veces por segundo.
+    ///
+    /// Acá se lee el estado autoritativo directo: `player` es
+    /// `@ObservationIgnored` y `economy` se escribe una sola vez en el bootstrap,
+    /// así que esto no vuelve a invalidar la vista solo. Lo que sí lo mueve
+    /// —reencarnar— pasa por `confirmPrestige`, que bumpea `boardVersion`.
+    ///
+    /// ⚠️ El número sale de la **misma** función que el popup de reencarnación
+    /// (`economy.globalMultiplier`) y lo formatea el **mismo** formateador
+    /// (`PrestigePreview.multiplierText`): la tarjeta del Jefe y el indicador del
+    /// HUD no pueden decir cosas distintas. Es el criterio de `incomePerSecond`.
+    var globalMultiplierText: String {
+        guard let economy, let player else { return PrestigePreview.empty.multiplierBeforeText }
+        return PrestigePreview.multiplierText(
+            economy.globalMultiplier(
+                oroEarnedLifetime: player.meta.oroEarnedLifetime,
+                prestigeBonus: player.meta.derivedEffects.prestigeBonus
+            )
+        )
+    }
 
     /// La cadena de evolución entera, **con el jefe arriba**: tier descendente.
     ///

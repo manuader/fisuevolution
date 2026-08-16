@@ -5845,13 +5845,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Highest tier"
+            "value" : "Highest tier (this run)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tier más alto"
+            "value" : "Tier más alto (esta vida)"
           }
         }
       }

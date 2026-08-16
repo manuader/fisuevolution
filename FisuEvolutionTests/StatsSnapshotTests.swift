@@ -95,7 +95,10 @@ struct StatsSnapshotTests {
         player.meta.stats.videosWatchedEver = 3
         player.meta.stats.boostsActivatedEver = 7
         player.meta.sharesCompleted = 2
+        player.run.maxTierReached = 12
         gameState.player = player
+        #expect(gameState.statsSnapshot.maxTier == "12", "antes de reencarnar, el tier es el de la run vigente")
+
         gameState.giveLifetimeEarningsForTesting(500_000_000)
         gameState.confirmPrestige()
 
@@ -108,10 +111,39 @@ struct StatsSnapshotTests {
         #expect(snapshot.prestigeLevel == "1")
         #expect(snapshot.unitCount == "1", "reencarnar deja un solo Fisura")
         #expect(snapshot.oroLifetime != "0", "el ORO ganado es histórico")
-        // El atajo que usa el organigrama dice lo mismo que la foto entera: si
-        // divergieran, la tarjeta del Jefe y la pantalla de Stats se
-        // contradirían en la misma partida.
+        // ⚠️ `maxTier` es el que NO sobrevive, y va acá justamente por eso: vive
+        // entre dos filas históricas en pantalla y es el único del grupo Carrera
+        // que vuelve a cero. Si algún día se agrega un `maxTierEver` a `MetaStats`,
+        // este assert es el que se cae y avisa que la etiqueta "(esta vida)" ya
+        // no corresponde.
+        #expect(snapshot.maxTier == "1",
+                "el tier máximo es de ESTA vida: reencarnar lo devuelve a 1 y por eso lo aclara la etiqueta")
+        // Los dos atajos que usa el organigrama dicen lo mismo que las
+        // proyecciones enteras: si divergieran, la tarjeta del Jefe y la pantalla
+        // de Stats se contradirían en la misma partida.
         #expect(gameState.prestigeLevelText == snapshot.prestigeLevel)
+        #expect(gameState.globalMultiplierText == gameState.prestigePreview.multiplierBeforeText)
+    }
+
+    /// El multiplicador del Jefe **no** puede salir de `prestigePreview`: esa
+    /// proyección lleva `coinsLost` y `oroGained` adentro y `refreshProjections`
+    /// la reescribe a 8 Hz mientras la torre produce, así que leerla desde el
+    /// organigrama recotiza los 43 nodos ocho veces por segundo. El accesor
+    /// estrecho tiene que decir exactamente lo mismo que el popup, o la tarjeta
+    /// del Jefe y el indicador del HUD se contradicen.
+    @Test("el multiplicador del Jefe dice lo mismo que el del popup de reencarnación")
+    func theBossMultiplierMatchesThePrestigePopup() async throws {
+        let gameState = await makeGameState()
+        #expect(gameState.globalMultiplierText == gameState.prestigePreview.multiplierBeforeText,
+                "partida nueva: el multiplicador neutro")
+
+        gameState.giveLifetimeEarningsForTesting(500_000_000)
+        gameState.confirmPrestige()
+
+        #expect(gameState.globalMultiplierText == gameState.prestigePreview.multiplierBeforeText,
+                "con ORO cobrado tampoco pueden divergir")
+        #expect(gameState.globalMultiplierText != PrestigePreview.empty.multiplierBeforeText,
+                "reencarnar con 500M tiene que mover el multiplicador")
     }
 
     // MARK: orgChartRows

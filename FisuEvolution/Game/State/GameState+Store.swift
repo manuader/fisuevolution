@@ -233,6 +233,11 @@ extension GameState {
         }
         self.player = player
         skinSelectionVersion &+= 1
+        // Equipar es el gesto que sigue a conseguir una pinta, y `equipSkin` es
+        // el único camino de la pantalla de Personalización que pasa por el
+        // estado: los logros de skins se miden acá y en `updateMaxFloorStat`
+        // (que es donde las acredita `awardEligibleMilestoneSkins`).
+        evaluateAchievements()
         bumpBoard()
         scheduleSave()
     }

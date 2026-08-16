@@ -143,6 +143,10 @@ extension GameState {
             }
             haptics?.play(.purchase)
             audio?.play(.buy)
+            // `TowerActions.hire` es quien mueve `totalHiresEver`, así que el
+            // logro de contrataciones se mide recién acá (y sólo si la compra
+            // salió: el `catch` no cuenta).
+            evaluateAchievements()
             bumpBoard()
             scheduleSave()
         } catch {

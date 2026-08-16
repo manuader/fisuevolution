@@ -56,6 +56,7 @@ extension GameState {
         }
         // La fila tiene que pasar de botón a cuenta regresiva sin cerrar el panel.
         effectsVersion += 1
+        evaluateAchievements()
         scheduleSave()
         Log.economy.info("rewarded effect applied: \(reward.id)")
     }
@@ -174,6 +175,9 @@ extension GameState {
             // El cofre del Asado es la otra vez que cae plata de golpe (el resto
             // de los boosts no pagan nada al activarse, devuelven nil).
             if chest != nil { audio?.play(.coin) }
+            // Después del `+= 1` y dentro del `do`: un boost bloqueado o en
+            // cooldown no es una activación y no mueve el logro.
+            evaluateAchievements()
             refreshProjections()
             scheduleSave()
             return chest
@@ -261,6 +265,9 @@ extension GameState {
             self.player = player
             dailyClaim = claim
             audio?.play(.daily)
+            // El día 7 del ciclo y el special que puede tirar el cofre: los dos
+            // logros que sólo se cruzan por acá.
+            evaluateAchievements()
             refreshProjections()
             scheduleSave()
         }
@@ -588,6 +595,7 @@ extension GameState {
         )
         self.player = player
         effectsVersion += 1
+        evaluateAchievements()
         scheduleSave()
     }
 }

@@ -148,6 +148,12 @@ struct GameBoardView: View {
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
             }
+
+            if let toast = gameState.achievementToast {
+                AchievementToastView(toast: toast) {
+                    gameState.dismissAchievementToast(id: toast.id)
+                }
+            }
         }
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los
         // anchors que publican los controles de adentro: `overlayPreferenceValue`
@@ -347,6 +353,64 @@ private struct ScreenPlaceholderView: View {
             }
             ArtCloseButton { dismiss() }.padding(18)
         }
+    }
+}
+
+/// El banner de un logro recién conseguido: mismo mecanismo que
+/// `TowerNoticeView` —aparece, se puede tocar para cerrar y se va solo— pero con
+/// la copa y el título del logro adentro.
+///
+/// Va **más arriba** que el aviso de la torre a propósito: una contratación que
+/// llena el piso y cierra el logro de contrataciones publica los dos a la vez, y
+/// apilados se leen; superpuestos, ninguno.
+private struct AchievementToastView: View {
+    let toast: AchievementToast
+    let dismiss: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// El catálogo nombra el metal (`trophy_bronze`); la vista lo mapea al
+    /// icono. Un metal que no exista cae a bronce en vez de dejar el hueco.
+    private var tier: VectorTrophyIcon.Tier {
+        VectorTrophyIcon.Tier(rawValue: toast.icon.replacingOccurrences(of: "trophy_", with: "")) ?? .bronze
+    }
+
+    var body: some View {
+        VStack {
+            Spacer()
+            HStack(spacing: Tokens.s8) {
+                VectorTrophyIcon(tier: tier)
+                    .frame(width: 34, height: 34)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("ach.toast.unlocked")
+                        .font(.system(.caption2, design: .rounded).weight(.heavy))
+                        .foregroundStyle(Color("PaletteInk").opacity(0.65))
+                    Text(verbatim: toast.titleText)
+                        .font(.system(.subheadline, design: .rounded).weight(.heavy))
+                        .foregroundStyle(Color("PaletteInk"))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
+            .background(
+                Capsule().fill(Color("PaletteCream"))
+                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+            )
+            .onTapGesture(perform: dismiss)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("ach.toast")
+            .accessibilityAddTraits(.isButton)
+            .task(id: toast.id) {
+                try? await Task.sleep(for: .seconds(2.4))
+                guard !Task.isCancelled else { return }
+                dismiss()
+            }
+            .padding(.bottom, 196)
+        }
+        .padding(.horizontal, 20)
+        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+        .animation(reduceMotion ? nil : .spring(duration: 0.32), value: toast.id)
     }
 }
 

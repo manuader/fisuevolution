@@ -244,6 +244,13 @@ final class GameState {
     /// visible; queda publicada para `GameLoopWiringTests`.
     private(set) var hireOffer: HireOffer = .floorLocked
     var towerNotice: TowerNotice?
+    /// El logro recién conseguido que está en pantalla. Lo escribe
+    /// `+Achievements`.
+    var achievementToast: AchievementToast?
+    /// Los que esperan turno. Abrir un piso puede cerrar tres logros a la vez y
+    /// el banner dura 2,4 s: sin cola el jugador vería uno solo. Va
+    /// `@ObservationIgnored` porque lo único que la UI mira es el de adelante.
+    @ObservationIgnored var pendingAchievementToasts: [AchievementToast] = []
     /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen
     /// `player` directo lo observan para re-renderizar.
     /// Lo escriben `+Upgrades` (las dos compras) y `+Bonus` (boosts y shares).
@@ -446,6 +453,11 @@ final class GameState {
                 self.player = player
             }
             scheduleNextEvent(from: Date().timeIntervalSince1970)
+            // Una sola pasada post-carga: un save escrito ANTES de que
+            // existieran los logros llega con medio catálogo ya ganado, y sin
+            // esto quedaría esperando a la próxima fusión para enterarse.
+            // Corre con `phase == .loading`, así que acredita sin toastear.
+            evaluateAchievements()
             refreshProjections()
             phase = .ready
         } catch let error as GameError {
@@ -513,6 +525,10 @@ final class GameState {
             self.player = player
         }
         awardEligibleMilestoneSkins()
+        // Este método ya es el embudo de merges, ascensos y pisos nuevos: los
+        // logros de fusión, tier, piso, skins y specials cuelgan de acá y no de
+        // seis call sites que habría que mantener sincronizados.
+        evaluateAchievements()
     }
 
     /// Milestones no dependen de la escena: cualquier unlock/reencarnación que

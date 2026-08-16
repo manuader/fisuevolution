@@ -242,9 +242,17 @@ struct FloorMapView: View {
     ///
     /// ⚠️ El número se interpola `verbatim`: es un dígito, no una frase, y meterlo
     /// en un `LocalizedStringKey` armaría la clave `%lld` (trampa 5).
+    ///
+    /// ⚠️ **`Tokens.title` y no `.system(size: 17)`**: un tamaño fijo es el único
+    /// texto de la pantalla que se queda quieto cuando el jugador agranda la
+    /// letra del sistema, y en una botonera el número es justo lo que hay que
+    /// poder leer. `Tokens.title` es el token más cercano al 17 pt de antes (20 pt
+    /// en el cuerpo por defecto) y el que conserva el peso; los 3 pt de más caben
+    /// de sobra en el círculo de 40, y el `minimumScaleFactor` sigue siendo la red
+    /// del "10" en los cuerpos grandes.
     private func numberButton(_ entry: FloorMapEntry, tone: Tone) -> some View {
         Text(verbatim: "\(entry.ordinal + 1)")
-            .font(.system(size: 17, design: .rounded).weight(.black))
+            .font(Tokens.title)
             .monospacedDigit()
             .foregroundStyle(Color("PaletteInk"))
             .lineLimit(1)
@@ -295,9 +303,14 @@ struct FloorMapView: View {
     /// "Estás acá" en cápsula amarilla. Junto con el marco y el botón encendido
     /// son las tres marcas del piso actual: la que se ve de lejos (el marco), la
     /// de la botonera (el botón) y la que lo dice con todas las letras.
+    ///
+    /// ⚠️ **`Tokens.caption` y no `.system(size: 10)`**, por lo mismo que el
+    /// número: era el texto más chico de la pantalla y encima el único que no
+    /// crecía. El token más cercano son 12 pt —dos más que antes— y la cápsula
+    /// crece con él porque no tiene ancho fijo: es una marca, no una columna.
     private var herePill: some View {
         Text("map.here")
-            .font(.system(size: 10, design: .rounded).weight(.black))
+            .font(Tokens.caption)
             .foregroundStyle(Color("PaletteInk"))
             .lineLimit(1)
             .minimumScaleFactor(0.6)

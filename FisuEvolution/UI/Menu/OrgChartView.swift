@@ -13,8 +13,8 @@ import SwiftUI
 /// ve como lo que es: el árbol abriéndose en cuatro y volviéndose a juntar.
 ///
 /// Lo que la vista **no** hace: no le pregunta nada al estado más allá de
-/// `orgChartRows`, `prestigePreview` y `statsSnapshot`. Cada nodo viene con el
-/// nombre, el retrato, el conteo, el piso y el "lo viste" ya resueltos.
+/// `orgChartRows`, `prestigePreview` y `prestigeLevelText`. Cada nodo viene con
+/// el nombre, el retrato, el conteo, el piso y el "lo viste" ya resueltos.
 struct OrgChartView: View {
     @Environment(GameState.self) private var gameState
     /// Cierra la HOJA entera. No puede ser `@Environment(\.dismiss)`: esta vista
@@ -259,7 +259,7 @@ private struct BossCard: View {
     private func stat(_ titleKey: LocalizedStringKey, _ value: String) -> some View {
         VStack(alignment: .trailing, spacing: 0) {
             Text(titleKey)
-                .font(.system(.caption2, design: .rounded).weight(.semibold))
+                .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.6))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
@@ -362,7 +362,7 @@ private struct SiblingNodeCard: View {
         VStack(spacing: 5) {
             NodePortrait(faceKey: row.faceKey, side: 42, asSilhouette: tone == .unknown)
             Text(verbatim: row.displayName)
-                .font(.system(.caption2, design: .rounded).weight(.bold))
+                .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk"))
                 .multilineTextAlignment(.center)
                 .lineLimit(2)

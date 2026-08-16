@@ -153,12 +153,38 @@ final class AscentRenderingUITests: XCTestCase {
     /// `@AppStorage` que `--uitest-reset` NO toca y que el propio test puede
     /// terminar de avanzar a fuerza de taps. Por eso se tolera que esté o no en
     /// vez de asumir una de las dos ramas.
+    ///
+    /// ⚠️ La ventana era de **2 s** de un solo tiro, y eso era un falso rojo
+    /// esperando a una máquina cargada: si la hoja llegaba tarde, esto volvía sin
+    /// descartar nada y el toque siguiente —la flecha de bajar— caía sobre el
+    /// sheet. El test moría en el assert del callejón por CARGA y no por código,
+    /// que es exactamente como se ganó estar salteado diez días. Ahora la ventana
+    /// es ancha y además se espera a que la hoja **se vaya**: descartarla dispara
+    /// una animación, y un toque durante la salida también se pierde.
     @MainActor
-    private func dismissSkinAward(_ app: XCUIApplication) {
+    private func dismissSkinAward(_ app: XCUIApplication, timeout: TimeInterval = 10) {
         let nice = app.buttons["skin.award.dismiss"]
-        guard nice.waitForExistence(timeout: 2) else { return }
+        guard nice.waitForExistence(timeout: timeout) else { return }
         nice.tap()
-        Thread.sleep(forTimeInterval: 0.6)
+        let gone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"), object: nice
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 8), .completed,
+                       "la celebración de la skin no se fue: taparía todo lo que sigue")
+    }
+
+    /// Espera a que un control exista Y esté habilitado.
+    ///
+    /// Se poletea en vez de usar `NSPredicate` sobre `enabled` para no depender
+    /// del nombre KVC de la propiedad. Cada consulta al runner cuesta lo suyo,
+    /// así que el bucle se autorregula solo.
+    @MainActor
+    private func waitUntilEnabled(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if element.exists && element.isEnabled { return true }
+        } while Date() < deadline
+        return false
     }
 
     // MARK: - Fusión
@@ -171,9 +197,17 @@ final class AscentRenderingUITests: XCTestCase {
         app.otherElements["board.units"]
     }
 
+    /// `nil` si el valor accesible no se pudo leer o parsear.
+    ///
+    /// ⚠️ **No devuelve un centinela a propósito.** Devolvía `-1`, y eso volvía
+    /// vacuamente cierto el `XCTAssertLessThan(unitCount, before)` de
+    /// `mergeTopPair`: una lectura fallida da `-1`, que es menor que cualquier
+    /// `before`, así que el assert que existe para cazar "el tablero cambió pero
+    /// no por una fusión" pasaba justo cuando no podía saber nada. Con
+    /// `Optional` el que falla la lectura tiene que decirlo.
     @MainActor
-    private func unitCount(_ app: XCUIApplication) -> Int {
-        Int((units(app).value as? String) ?? "") ?? -1
+    private func unitCount(_ app: XCUIApplication) -> Int? {
+        (units(app).value as? String).flatMap(Int.init)
     }
 
     /// Fusiona el par del tier más alto con DOBLE TOQUE, como
@@ -202,7 +236,11 @@ final class AscentRenderingUITests: XCTestCase {
     private func mergeTopPair(_ app: XCUIApplication, _ what: String, rounds: Int = 3,
                               file: StaticString = #filePath, line: UInt = #line) {
         let board = units(app)
-        let before = unitCount(app)
+        guard let before = unitCount(app) else {
+            XCTFail("\(what): no se pudo leer board.units (valor: \(board.value ?? "nil"))",
+                    file: file, line: line)
+            return
+        }
         XCTAssertGreaterThan(before, 1, "\(what): el tablero tiene que traer el par a fusionar",
                              file: file, line: line)
         for _ in 0..<rounds {
@@ -212,8 +250,13 @@ final class AscentRenderingUITests: XCTestCase {
                 // llegara a encadenar dos fusiones, un target exacto se lo
                 // perdería y el test moriría buscando un número que ya pasó.
                 guard waitFor(board, valueOtherThan: String(before), timeout: 2) else { continue }
-                XCTAssertLessThan(unitCount(app), before,
-                                  "\(what): el tablero cambió, pero no por una fusión",
+                guard let after = unitCount(app) else {
+                    XCTFail("\(what): board.units dejó de leerse justo tras el doble toque",
+                            file: file, line: line)
+                    return
+                }
+                XCTAssertLessThan(after, before,
+                                  "\(what): el tablero cambió, pero no por una fusión (\(before) → \(after))",
                                   file: file, line: line)
                 return
             }
@@ -247,38 +290,57 @@ final class AscentRenderingUITests: XCTestCase {
         //    estuvo rojo: con el arrastre arreglado seguía sin ascender, porque
         //    fusionaba dos veces y se plantaba en el T3.
         var fusiones = 0
+        var ascendio = false
         while fusiones < 8 {
             grantPair(app)
             mergeTopPair(app, "el par del tier máximo (fusión \(fusiones + 1))")
             fusiones += 1
-            // La cadena del ascenso es SECUENCIAL desde 2026-08-04: vuelo
-            // (0,7 s) + reveal (~2 s) + celebración de piso (~1,3 s) antes de que
-            // aparezca el sheet. Una fusión que no asciende agota la espera y
-            // sigue de largo.
-            Thread.sleep(forTimeInterval: 6.0)
-            dismissSkinAward(app)
-            if pill.label != "Alley" { break }
+            // ⚠️ Acá había un `Thread.sleep(6)` fijo, calculado sobre la cadena
+            // SECUENCIAL del ascenso (vuelo 0,7 s + reveal ~2 s + celebración
+            // ~1,3 s). Con la máquina cargada esa cadena se pasa de los 6 s, y
+            // entonces el bucle daba por NO ascendida una fusión que sí ascendió
+            // y seguía fusionando sobre un piso que ya se estaba moviendo. Se
+            // espera por el efecto, con deadline: la fusión que no asciende lo
+            // agota y sigue de largo —cuesta tiempo, no correctitud—.
+            if waitFor(pill, labelOtherThan: "Alley", timeout: 15) {
+                ascendio = true
+                break
+            }
         }
+        XCTAssertTrue(ascendio, """
+                      ninguna de las \(fusiones) fusiones ascendió; \
+                      la pill sigue en "\(pill.label)"
+                      """)
+        dismissSkinAward(app)
         add(shot(app, "1 tras el ascenso a Urban"))
 
         // Gate del test: si no ascendimos, nada de lo que sigue prueba el fix.
         // El label accesible de la pill es el NOMBRE del piso, no el contador, y
         // el runner corre la app en INGLÉS: "City" es `tower.floor.urban`.
-        XCTAssertEqual(pill.label, "City",
-                       "esperaba que el ascenso llevara la cámara a Urban; \(fusiones) fusiones")
+        XCTAssertTrue(waitFor(pill, label: "City", timeout: 10), """
+                      esperaba que el ascenso llevara la cámara a Urban tras \
+                      \(fusiones) fusiones; la pill dice "\(pill.label)"
+                      """)
 
         // 2) Volver al callejón: acá es donde se veían los personajes invisibles.
         let down = app.buttons["tower.arrow.down"]
-        XCTAssertTrue(down.isEnabled, "tras el ascenso la flecha de bajar tiene que estar viva")
+        // ⚠️ El `isEnabled` iba sin esperar a que el control existiera siquiera:
+        // sobre un elemento que todavía no está, `isEnabled` es `false` y el
+        // assert moría sin haberle dado tiempo a nada.
+        XCTAssertTrue(waitUntilEnabled(down, timeout: 10),
+                      "tras el ascenso la flecha de bajar tiene que aparecer y estar viva")
         tapHUD(down, "la flecha de bajar de la torre")
-        Thread.sleep(forTimeInterval: 1.2)
-        XCTAssertEqual(pill.label, "Alley", "la flecha de bajar tiene que devolver al callejón")
+        XCTAssertTrue(waitFor(pill, label: "Alley", timeout: 10),
+                      "la flecha de bajar tiene que devolver al callejón; la pill dice \"\(pill.label)\"")
         add(shot(app, "2 de vuelta en el callejon"))
 
         // 3) Comprar un Fisura nuevo: era el que salía invisible. Desde que el
         //    botón de spawn murió, la compra pasa por FisuJobs (tab `hud.hire`).
         grantCoins(app)
-        let antesDeContratar = unitCount(app)
+        guard let antesDeContratar = unitCount(app) else {
+            XCTFail("no se pudo leer board.units antes de contratar")
+            return
+        }
         tapHUD(app.buttons["hud.hire"], "el tab de FisuJobs")
         tap(app.buttons["jobs.hire.homeless"], "la fila del Fisura en FisuJobs")
         // ⚠️ Con guarda: hasta el 2026-08-16 esto tapeaba `sheet.close` a ciegas
@@ -352,6 +414,24 @@ final class AscentRenderingUITests: XCTestCase {
                          timeout: TimeInterval) -> Bool {
         let changed = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "value != %@", stale), object: element
+        )
+        return XCTWaiter().wait(for: [changed], timeout: timeout) == .completed
+    }
+
+    @MainActor
+    private func waitFor(_ element: XCUIElement, label: String,
+                         timeout: TimeInterval) -> Bool {
+        let reached = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label == %@", label), object: element
+        )
+        return XCTWaiter().wait(for: [reached], timeout: timeout) == .completed
+    }
+
+    @MainActor
+    private func waitFor(_ element: XCUIElement, labelOtherThan stale: String,
+                         timeout: TimeInterval) -> Bool {
+        let changed = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "label != %@", stale), object: element
         )
         return XCTWaiter().wait(for: [changed], timeout: timeout) == .completed
     }

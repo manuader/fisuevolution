@@ -47,8 +47,8 @@
 | 16 | Ajustes + legales + notificaciones | ✅ review clean | `59b69a6` + `0a64d90` | `SettingsView` real (6 sesiones, 7 ids del spec), `LegalView` con parser por bloques, `NotificationsManager` (recordatorio diario 19:00, `isEnabled` `private(set)` para que no mienta), `terms.md` es+en del draft, `ConfigView` BORRADA, `StatDivider`→`RowDivider` compartido, `Tokens.prose` nuevo. `--uitest-reset` ahora limpia también los ajustes. 31 claves |
 | 17 | Facing de personajes | ✅ review clean | `0d3839f` | Miran hacia donde caminan + flip periódico independiente (sobrevive congelamientos; un solo remover verificado estructuralmente). Espejado en `sprite.xScale`, nunca en el nodo. Verificación visual en LOS DOS sentidos (md5). Dos errores del brief corregidos con test (pool no limpia el sprite; withRange = ±range/2) |
 | 18 | Micro-animaciones + DailyRewardView | ✅ review clean (1 fix round: `d91ccc7`) | `b59b230` + `ed3abe5` | Contador rodante, stagger compartido (tope 8), shake ±4pt medido, toast con spring EN VIVO (2465→1779px filmado), popup diario restyleado, fixture 12º `--uitest-daily-popup`. De paso arregló el toast de T14 que no entraba animado. ⚠️ TowerNoticeView tiene el MISMO bug (transition muerta) — confirmado y diferido a la ola final |
-| 19 | Cola de iconos Gemini | ⏳ **PRÓXIMA** | — | 15 prompts .md + prompts.json (el draft está listo); el batch lo corre el dueño desde Terminal.app |
-| 20 | Verificación final + docs | pendiente | — | Suite completa, capturas, HANDOFF |
+| 19 | Cola de iconos Gemini | ✅ | `f9d8ef1` | Cola lista, **cero imágenes generadas**: 15 `.md` (213–227) en `prompts/gemini_pro/` + 15 entradas gemelas en `prompts.json`, del draft, sin retocar un prompt. Sin campo `referencia` (los iconos de UI no adjuntan el Fisura) y `estado: pendiente`. Evidencia: suite del pipeline igual al baseline (27 tests, 1 rojo conocido por Chrome), `PromptRegistryTests` verde, y `--dry-run` del runner SIN Chrome listando exactamente los 15 en orden. El batch lo corre el dueño desde Terminal.app (ver Avisos vivos) |
+| 20 | Verificación final + docs | ⏳ **PRÓXIMA** | — | Suite completa, capturas, HANDOFF |
 
 **Suites al cierre de T16**: `FisuEvolutionTests` **327** (306 + 21 de
 `SettingsPersistenceTests`, `NotificationsManagerTests` y
@@ -133,6 +133,34 @@ Terminal.app) · logros: la enumeración (39) manda sobre el "36" del titular.
   centro, ni la petición, ni los ajustes son `Sendable`. Las tres llamadas van
   por callback + continuación adentro de `SystemNotificationCenter`; cualquier
   intento de usar sus versiones `async` desde el main actor no compila.
+- **La cola de los 15 iconos (T19) está lista y esperando al dueño.** Desde
+  **Terminal.app** (el runner tipea con `osascript` y el permiso de
+  Accesibilidad está otorgado a Terminal.app y a nada más), con el Chrome
+  dedicado en `:9222` logueado en Gemini **Pro**:
+  `cd Tools/asset-pipeline` → `.venv/bin/python scripts/launch_gemini_chrome.py`
+  (1 vez, login manual) → `… scripts/gemini_selenium_runner.py --dry-run`
+  (tiene que listar 213–227) → `nohup caffeinate -is .venv/bin/python
+  scripts/gemini_selenium_runner.py --process --pause 3 --timeout 260 &`.
+  Sin `--ref-threshold`: acá no se adjunta referencia. Sin `xcodegen`: no hay
+  Swift y el atlas es folder reference.
+- ⚠️ **Post-batch, medir el % de píxeles opacos del `@2x`** en
+  `FisuEvolution/Resources/ui.atlas/` — mirar el original pre-rembg NO alcanza
+  (bug #6 de `Docs/HANDOFF-arte-gemini.md`): `rembg` segmenta sujeto vs fondo,
+  no dentro vs fuera del contorno, y se come los rellenos interiores claros y
+  grandes. Riesgo alto: `ui_menu_stats`, `ui_trophy_silver`,
+  `ui_daily_calendar`. El que salga hueco NO se integra (se borran sus
+  `@2x`/`@3x` y su clave de `manifest.ui`): el juego vuelve solo al vectorial,
+  que para eso está. El script de medición está en el report de T19.
+- ⚠️ **4 de los 15 iconos no tienen dónde aterrizar todavía** (verificado key
+  por key en T19): `ui_trophy_bronze/silver/gold` y `ui_daily_calendar` NO
+  pasan por `GameIcon(artKey:)`. `AchievementsView.swift:206` y
+  `RootView.swift:382` instancian `VectorTrophyIcon(tier:)` directo, y
+  `VectorCalendarIcon` no se usa fuera de `GameIcons.swift`. Aunque el batch
+  salga perfecto, esos 4 PNG entran al atlas y al manifest y el juego los
+  ignora. Es costura de Swift (T20 / ola final), no de la cola.
+- ⚠️ **`gen_prompts.py` regenera `prompts.json` entero** desde
+  `cultural_dict.py`: si alguien lo corre, se lleva puestas las 52 entradas
+  agregadas a mano (las 15 de T19 incluidas). Quedó como generador legacy.
 - El HANDOFF de `main` (commit `6156c59`) apunta a esta sesión pero dice
   "retomar en Task 3": este doc es la fuente de verdad del estado; el
   HANDOFF se re-sincroniza al cierre de la sesión o del branch.

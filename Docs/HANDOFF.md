@@ -204,7 +204,7 @@ v2, Menú) más el Ascensor y las cuatro sub-pantallas del menú
 |---|---|
 | `EconomyKit` (`swift test`) | **180/180** ✅ |
 | `FisuEvolutionTests` | **336/336** ✅ |
-| `FisuEvolutionUITests` | **40/40** ✅ (14 clases; `AscentRenderingUITests` salteada, rojo preexistente de `main`) |
+| `FisuEvolutionUITests` | **40/40** ✅ (14 clases; `AscentRenderingUITests` salteada, rojo preexistente de `main` — **des-salteada más tarde ese mismo día**: la receta vigente de §6 corre **43 sin skips**) |
 | `Tools/asset-pipeline` | 27, **1 rojo conocido** (pide Chrome en `:9222`) |
 | Warnings de compilador | **0** |
 
@@ -379,23 +379,37 @@ xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
 # 2) UI DESPUÉS
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
   -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
-  -only-testing:FisuEvolutionUITests \
-  -skip-testing:FisuEvolutionUITests/AscentRenderingUITests test   # 40
+  -only-testing:FisuEvolutionUITests test                  # 43, sin skips
 
 cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 27, 1 rojo
 
 xcrun simctl shutdown $UDID && xcrun simctl delete $UDID   # ⚠️ el cierre es parte del trabajo
 ```
 
-Estado, medido entero el **2026-08-16** al cierre del rediseño de UI:
-**EconomyKit 180 · app 336 · UI 40 · pipeline 27 (1 rojo conocido)**, cero
+Estado el **2026-08-16**:
+**EconomyKit 180 · app 336 · UI 43 · pipeline 27 (1 rojo conocido)**, cero
 warnings de compilador.
+
+EconomyKit, app y pipeline salen de la corrida entera al cierre del rediseño de
+UI. **El 43 de UI sale de sumar** los 3 de `AscentRenderingUITests`
+—des-salteada más tarde ese mismo día y verificada **aparte, 3 corridas verdes**
+(fría, tibia y fría)— a los 40 que ya se medían con esa clase salteada.
+
+⚠️ **La corrida de los 43 de una sola vez todavía no se tomó**: cuando se
+intentó, la máquina estaba saturada por otros frentes (`load average` **504**) y
+cualquier resultado habría sido ruido, no señal. Si la tomás vos, anotá acá el
+número y el tiempo.
 
 - El rojo del pipeline es `test_wait_for_survives_a_stale_element_and_retries`:
   pide un Chrome escuchando en `:9222`. Es de entorno y es el baseline.
-- `AscentRenderingUITests` sigue siendo el único rojo de UI (frágil por la
-  vieja trampa 3): salteálo con `-skip-testing:` y usá siempre
-  `-parallel-testing-enabled NO`.
+- **Ya no hay ningún `-skip-testing:` en la receta de UI.** El único rojo que
+  quedaba, `AscentRenderingUITests`, se migró a doble toque el 2026-08-16 y pasa
+  (ver la trampa 2). Los 3 tests de esa clase entran al conteo: 40 → **43**.
+- Usá siempre `-parallel-testing-enabled NO`.
+- ⚠️ La suite de UI pasó de ~40 a 43 tests y `AscentRenderingUITests` es la más
+  lenta de todas (~4 min de las tres juntas, porque escala el callejón fusión
+  por fusión). Si una corrida completa empieza a rozar los flakies sensibles a
+  carga que se listan más abajo, es por eso — mirá el reloj antes que el código.
 
 ⚠️⚠️ **UNIT ANTES QUE UI, siempre.** Correr los tests de UI primero rompe
 `StoreManagerTests` **enteros**, y no es carga: fallan igual aislados. Una
@@ -449,25 +463,40 @@ El panel de debug es el ícono de herramientas del HUD.
 2. **Un test de UI puede pasar sin probar nada.** Si automatizás gestos sobre
    SpriteKit, **asertá el efecto**, no que el gesto no crashee.
 
-   ⚠️ **`AscentRenderingUITests.testCharactersStayVisibleAfterTheFirstAscent`
-   falla hoy en `main`** (`"Alley" != "City"`, verificado 2026-08-06). No es un
-   problema de entorno ni del host de tests: es este mismo test cayendo en la
-   trampa 3 de abajo — arrastra por coordenadas fijas, el personaje deambuló, el
-   merge no engancha y el ascenso que asserta nunca ocurre. Su espejo de
-   `crowdBand` **sí** está al día (usa 0,4, igual que `BoardScene.crowdTopRatio`),
-   así que lo que falta son los reintentos. **Ya se llevó puestos dos agentes**
-   que lo diagnosticaron como "el simulador no arranca" y se pusieron a borrar
-   dispositivos. Mientras no se arregle, verificá con
-   `-skip-testing:FisuEvolutionUITests/AscentRenderingUITests` y sabé que la
-   línea de base real es **EconomyKit 144 verdes, UI 9 de 10**.
+   ✅ **`AscentRenderingUITests` YA NO ES ROJO** (migrado y verificado el
+   2026-08-16, 3 corridas verdes: fría, tibia y fría). Estuvo diez días salteado
+   por un diagnóstico que era **verdadero pero incompleto**, y las tres causas
+   valen más que el arreglo:
 
-   ⚠️ **Vale la pena volver a correrlo.** El 2026-08-10 se arregló justamente la
-   causa que este diagnóstico le atribuye: el drop ya no se resuelve contra el
-   ancla, y ahora hay doble toque, que no necesita puntería en el destino. **No
-   se comprobó** —se lo salteó en las dos corridas de esa sesión—, así que sigue
-   figurando como rojo; pero si alguien lo mira, empezá por correrlo tal cual
-   antes de tocarle nada, y si sigue rojo pasalo a doble toque como se hizo con
-   `mergeTheHighlightedPair`.
+   1. **El arrastre por coordenadas fijas** (la vieja trampa 3). Arreglado
+      migrando a **doble toque**, como `mergeTheHighlightedPair`: sólo hay que
+      acertarle al personaje de ORIGEN, del destino se encarga
+      `MergeTargeting.nearestPartner`. Se barren los slots y se asserta que
+      `board.units` **baje**, que es lo único que prueba que hubo fusión.
+   2. **Un supuesto de economía vencido, y esto es lo que lo mantuvo rojo aun
+      después de arreglar el gesto.** El test decía "par de Cartoneros → Kiosco
+      (T3) **asciende**" y hace rato que no: el callejón cubre los tiers **1..4**
+      (`economy.json`), así que el primer piso nuevo lo abre un **T5** y hacen
+      falta **cuatro** fusiones, no dos. Ahora el test **no hardcodea el número**:
+      fusiona hasta que la pill cambia de piso, con tope. Un rebalanceo no lo
+      vuelve a romper.
+   3. **El device frío** (trampa 9a). El primer toque de la corrida sobre
+      `hud.debug` moría con `Failed to scroll to visible (by AX action)`, porque
+      `board.units` es del tamaño del tablero y XCUITest cree que tapa al HUD.
+      Este test es el primero de su suite, así que era el que se lo comía. Se
+      toca por COORDENADA, igual que `CustomizationUITests`.
+
+   ⚠️ **Ya se llevó puestos dos agentes** que lo diagnosticaron como "el
+   simulador no arranca" y se pusieron a borrar dispositivos. No es eso, nunca lo
+   fue: el modo de falla "la app no corre" era una entrada de background que
+   faltaba en el manifest, arreglada hace rato.
+
+   📌 **La moraleja, que es la de la trampa entera:** un test salteado se pudre
+   solo. Este acumuló un espejo de geometría desactualizado (`bottomInset` en 110
+   cuando la escena ya iba en 114), un `sheet.close` tapeado sin guarda —migrado
+   a ciegas mientras estaba salteado— y un supuesto de economía vencido, todo
+   sin que nadie se enterara, porque nadie lo corría. **Si vas a saltear algo,
+   ponele fecha de vencimiento.**
 
    ⚠️ **`PacingTests.strugglingPhaseLength` también está rojo en `main`**
    (verificado con `git stash` el 2026-08-06). No falla un assert: el proceso de

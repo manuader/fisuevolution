@@ -20,6 +20,7 @@ struct GameContent: Sendable {
     let careers: CareersConfig
     let viral: ViralConfig
     let gameCenter: GameCenterConfig
+    let achievements: AchievementsConfig
 }
 
 /// Decodes and validates the bundled JSON content. Any failure produces a typed
@@ -42,6 +43,7 @@ enum GameContentLoader {
         let careers: CareersConfig = try decode("careers", from: bundle)
         let viral: ViralConfig = try decode("viral", from: bundle)
         let gameCenter: GameCenterConfig = try decode("gamecenter", from: bundle)
+        let achievements: AchievementsConfig = try decode("achievements", from: bundle)
 
         let tiers: TierRepository
         do {
@@ -82,6 +84,7 @@ enum GameContentLoader {
             )
         }
         try validate(careers: careers, tiers: tiers, boosts: boosts, skins: skins)
+        try validate(achievements: achievements, floorTable: floorTable, boosts: boosts)
 
         return GameContent(
             economy: economy,
@@ -99,8 +102,66 @@ enum GameContentLoader {
             boosts: boosts,
             careers: careers,
             viral: viral,
-            gameCenter: gameCenter
+            gameCenter: gameCenter,
+            achievements: achievements
         )
+    }
+
+    /// Un logro mal declarado no rompe nada visible: se desbloquea nunca, o paga
+    /// cero, y nadie se entera hasta que un jugador lo reporta. Por eso el
+    /// catálogo se valida entero al arrancar, igual que las carreras.
+    ///
+    /// No es `private` a propósito: los casos que rechaza son el contrato del
+    /// catálogo y `AchievementEngineTests` los ejerce uno por uno.
+    static func validate(
+        achievements: AchievementsConfig,
+        floorTable: FloorTable,
+        boosts: BoostsConfig
+    ) throws {
+        func fail(_ reason: String) -> GameError { .contentInvalid(file: "achievements.json", reason: reason) }
+
+        let entries = achievements.achievements
+        guard Set(entries.map(\.id)).count == entries.count else {
+            throw fail("hay dos logros con el mismo id: el save no podría distinguirlos")
+        }
+        let floorIDs = Set(floorTable.floors.map(\.id))
+        for achievement in entries {
+            guard !achievement.titleKey.isEmpty, !achievement.descKey.isEmpty, !achievement.icon.isEmpty else {
+                throw fail("\(achievement.id): titleKey, descKey e icon no pueden estar vacíos")
+            }
+            guard let trigger = achievement.trigger.kind else {
+                throw fail("\(achievement.id): trigger desconocido '\(achievement.trigger.type)'")
+            }
+            if trigger.requiresValue {
+                guard let value = achievement.trigger.value, value > 0 else {
+                    throw fail("\(achievement.id): \(trigger.rawValue) necesita un value > 0")
+                }
+            }
+            if trigger.requiresFloorID {
+                guard let floorID = achievement.trigger.floorId, floorIDs.contains(floorID) else {
+                    throw fail("\(achievement.id): floorId desconocido '\(achievement.trigger.floorId ?? "")'")
+                }
+            }
+            guard let reward = achievement.reward.rewardKind else {
+                throw fail("\(achievement.id): reward desconocida '\(achievement.reward.kind)'")
+            }
+            switch reward {
+            case .coins:
+                guard let factor = achievement.reward.factor, factor > 0 else {
+                    throw fail("\(achievement.id): coins necesita factor > 0")
+                }
+            case .oro:
+                guard let amount = achievement.reward.amount, amount > 0 else {
+                    throw fail("\(achievement.id): oro necesita amount > 0")
+                }
+            case .freeBoost:
+                guard let boostID = achievement.reward.boostId,
+                      boosts.boosts.contains(where: { $0.id == boostID })
+                else {
+                    throw fail("\(achievement.id): freeBoost apunta a un boost inexistente")
+                }
+            }
+        }
     }
 
     /// RF-15: cada carrera declara su premio en `careers.json`, así que acá se

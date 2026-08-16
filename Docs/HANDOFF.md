@@ -291,11 +291,16 @@ traba en tier 12 y no llega a Dios nunca. El backfill es el puente que hace
 viable la progresión (el merge puro es 2²⁹ fisuras), y pedir dos pisos lo saca
 justo donde hace falta. Tabla completa en `Docs/balance-log.md`.
 
-**El botón no queda muerto cuando el gate cierra** (2026-08-05): parado en tu
-frontera, contratar cae en el piso de **abajo** —que por la propia regla del gate
-es siempre el más alto donde sí se puede— y el botón nombra ese piso para que la
-compra no parezca no haber pasado. `TowerActions.hireTargetFloor` decide el
-destino; `GameState.HireOffer` es la única proyección que consume el botón.
+**La contratación no queda muerta cuando el gate cierra** (2026-08-05): parado en
+tu frontera, cae en el piso de **abajo** —que por la propia regla del gate es
+siempre el más alto donde sí se puede—. `TowerActions.hireTargetFloor` decide el
+destino.
+
+⚠️ El botón que la dibujaba murió con la barra inferior, y su proyección
+(`GameState.HireOffer`) se retiró el 2026-08-16 al quedar sin consumidor. **La
+regla no cambió**: vive en EconomyKit, y la pinean `GameLoopWiringTests` —contra
+el `economy.json` real, incluida la exención del urbano— y `EconomyKitTests`
+sobre fixtures sintéticos.
 
 #### Secuencia de celebraciones
 

@@ -26,6 +26,36 @@ struct GameLoopWiringTests {
             .sorted()
     }
 
+    /// El piso donde CAE una contratación hecha parado en el visible, leído de
+    /// la capa REAL: `TowerActions` contra el `floorTable` bundleado. Es la
+    /// misma llamada que hace `GameState.hireTargetOrdinal`, y de ella cuelgan
+    /// `spawnQuote`, `canAffordSpawn` y —por arriba— la contratación de
+    /// FisuJobs. `nil` cuando desde el piso visible no se puede contratar.
+    ///
+    /// ⚠️ Se lee acá y no de una proyección de `GameState` a propósito: lo que
+    /// estos tests pinean es la semántica del gate **contra el `economy.json`
+    /// real** (el urbano exento, la profundidad de un piso), no la forma que le
+    /// daba la vista que la dibujaba. `EconomyKitTests` ya cubre la regla sobre
+    /// fixtures sintéticos; lo que sólo se puede pinear acá es que el CONTENIDO
+    /// bundleado siga produciendo esta conducta.
+    private func hireTarget(in gameState: GameState) throws -> Int? {
+        let floorTable = try #require(gameState.floorTable)
+        let player = try #require(gameState.player)
+        return TowerActions.hireTargetFloor(
+            visibleOrdinal: gameState.visibleFloorOrdinal,
+            unlockedFloors: player.run.unlockedFloors,
+            floorTable: floorTable
+        )
+    }
+
+    /// El id del piso de un ordinal, contra la tabla real.
+    private func floorID(ofOrdinal ordinal: Int?, in gameState: GameState) -> String? {
+        guard let ordinal, let floorTable = gameState.floorTable,
+              floorTable.floors.indices.contains(ordinal)
+        else { return nil }
+        return floorTable[ordinal].id
+    }
+
     // MARK: Torre en escena (F7.2)
 
     @Test func towerNavigationProjectsUnlockedBoundsAndTotalIncome() async throws {
@@ -227,7 +257,15 @@ struct GameLoopWiringTests {
         gameState.debugUnlockFloors(throughTier: 5)   // abre alley + urban, corporate no
         #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
 
-        #expect(gameState.hireOffer == .here, "el urbano está exento: se contrata acá")
+        let floorTable = try #require(gameState.floorTable)
+        let unlocked = try #require(gameState.player?.run.unlockedFloors)
+        #expect(unlocked.contains("corporate") == false, "el piso de arriba tiene que seguir cerrado")
+        // Con el de arriba cerrado el gate igual pasa: la exención del urbano
+        // (`hireGateExempt`) vive en el `economy.json` bundleado.
+        #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: unlocked, floorTable: floorTable))
+        // Y por eso la contratación cae ACÁ y no en el piso de abajo.
+        let target = try hireTarget(in: gameState)
+        #expect(target == gameState.visibleFloorOrdinal, "el urbano está exento: se contrata acá")
         #expect(gameState.spawnQuote?.floorOrdinal == 1)
         #expect(gameState.spawnQuote?.type.id == "mantero", "cotiza el tier base del urbano")
     }
@@ -247,7 +285,9 @@ struct GameLoopWiringTests {
         #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a corporate")
 
         // El gate de corporate no pasa (luxury cerrado), así que la oferta baja.
-        #expect(gameState.hireOffer == .floorBelow(floorID: "urban"))
+        let target = try hireTarget(in: gameState)
+        #expect(target != gameState.visibleFloorOrdinal, "parado en corporate el gate no deja contratar acá")
+        #expect(floorID(ofOrdinal: target, in: gameState) == "urban", "la contratación cae en el piso de abajo")
         #expect(gameState.spawnQuote?.floorOrdinal == 1)
         #expect(gameState.spawnQuote?.type.id == "mantero", "cotiza el tier base del urbano")
 
@@ -270,9 +310,17 @@ struct GameLoopWiringTests {
             gameState.buySpawn()
             #expect(gameState.floorOccupancy(ordinal: 1).occupied == before + 1, "se quedó sin plata antes de llenarlo")
         }
+        // Con plata de sobra encima: lo que corta la venta tiene que ser el piso
+        // lleno y no el saldo. Sin este grant, `canAffordSpawn == false` podría
+        // ser verde por estar en la lona.
+        gameState.debugGrantCoins()
         gameState.flushHUD()
-        #expect(gameState.hireOffer == .full(belowFloorID: "urban"))
-        #expect(gameState.canAffordSpawn == false, "con el piso lleno el botón no cobra")
+        let fullTarget = try hireTarget(in: gameState)
+        #expect(fullTarget != gameState.visibleFloorOrdinal, "el destino sigue siendo el de abajo")
+        #expect(floorID(ofOrdinal: fullTarget, in: gameState) == "urban")
+        let urban = gameState.floorOccupancy(ordinal: 1)
+        #expect(urban.occupied >= urban.capacity, "el urbano quedó lleno")
+        #expect(gameState.canAffordSpawn == false, "con el piso lleno el botón no cobra, aunque sobre plata")
     }
 
     /// Con el piso de arriba abierto no hay fallback: se contrata donde estás.
@@ -281,7 +329,8 @@ struct GameLoopWiringTests {
         gameState.debugUnlockFloors(throughTier: 9)   // alley + urban + corporate
         #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
 
-        #expect(gameState.hireOffer == .here)
+        let target = try hireTarget(in: gameState)
+        #expect(target == gameState.visibleFloorOrdinal, "con el de arriba abierto se contrata donde estás")
         #expect(gameState.spawnQuote?.floorOrdinal == 1)
 
         gameState.debugGrantCoins()

@@ -6,8 +6,8 @@ import Foundation
 /// que abrir el archivo del dominio ajeno sólo para tocar una puerta de test.
 extension GameState {
     #if DEBUG
-    /// Deja el estado del tutorial DECLARADO por el test en vez de heredado del
-    /// simulador.
+    /// Deja el estado que vive en `UserDefaults` —tutorial y ajustes— DECLARADO
+    /// por el test en vez de heredado del simulador.
     ///
     /// ⚠️ Esto es el arreglo de la trampa 9 del HANDOFF. `fisuTutorialDone` y
     /// las tres banderas `ftue.*` viven en `UserDefaults`, que sobrevive a
@@ -17,7 +17,12 @@ extension GameState {
     /// `fisuTutorialDone` de rebote): en un simulador limpio el tutorial les
     /// tapaba los controles. Ahora `--uitest-reset` también resetea el tutorial,
     /// y el que no quiere verlo lo dice con `--uitest-skip-tutorial`.
-    func applyTutorialLaunchArguments(forceNewGame: Bool) {
+    ///
+    /// ⚠️ **Los ajustes (T16) son exactamente la misma trampa**: partículas,
+    /// notificaciones e idioma también viven en `UserDefaults`. Un test que
+    /// apaga las partículas dejaba el simulador con el toggle apagado para el
+    /// test siguiente, que arrancaría midiendo otra cosa.
+    func applyLaunchArgumentDefaults(forceNewGame: Bool) {
         let arguments = ProcessInfo.processInfo.arguments
         let defaults = UserDefaults.standard
         if forceNewGame {
@@ -28,6 +33,10 @@ extension GameState {
             ftueTapped = false
             ftueSpawned = false
             ftueMerged = false
+            defaults.removeObject(forKey: ParticlePool.particlesDefaultsKey)
+            defaults.removeObject(forKey: NotificationsManager.defaultsKey)
+            defaults.removeObject(forKey: LanguagePreference.defaultsKey)
+            defaults.removeObject(forKey: LanguagePreference.systemKey)
         }
         // `--uitest-open-sheet` presenta una hoja modal: el tutorial no puede
         // estar adelante, así que implica saltearlo.
@@ -123,6 +132,64 @@ extension GameState {
             player.run.markSeen(type.id)
         }
         self.player = player
+    }
+
+    /// Adelanta el ciclo del daily sin esperar días reales.
+    ///
+    /// Existe por lo mismo que `debugMarkTypesSeen`: la tira del calendario de
+    /// `GiftsView` tiene cuatro estados —cobrado, en juego, por venir y el cofre—
+    /// y una partida nueva sólo muestra tres, porque el día 1 es el que está en
+    /// juego y atrás no hay nada. El único camino a un día con tilde es **volver
+    /// mañana**, así que sin esta puerta no hay forma de mirar la tira poblada ni
+    /// de juzgar si el tilde se lee. No cobra nada: mueve el contador y ya.
+    func debugSetDailyCycleDay(_ day: Int) {
+        guard var player, let content else { return }
+        player.meta.daily.cycleDay = min(max(day, 1), content.dailyRewards.days.count)
+        self.player = player
+    }
+
+    /// Deja el premio del día **sin cobrar** y lo cobra de verdad, para que el
+    /// popup se abra.
+    ///
+    /// Retrocede `lastClaimDay` a AYER y no lo borra a propósito: un día
+    /// salteado resetea el ciclo a 1 (`DailyRewardManager.claimIfAvailable`),
+    /// así que con "ayer" el fixture respeta el `cycleDay` que haya —el de
+    /// `--uitest-daily-streak`, si vino— en vez de pisarlo. El claim que corre
+    /// después es el REAL: el mismo que acredita la plata al volver a foreground.
+    func debugClaimDailyAgain() {
+        guard var player else { return }
+        player.meta.daily.lastClaimDay = DailyRewardManager.dayString(
+            for: Date().addingTimeInterval(-86_400)
+        )
+        self.player = player
+        claimDailyIfAvailable()
+    }
+
+    /// Deja tres logros **conseguidos y sin cobrar** para poder fotografiar y
+    /// ejercitar la pantalla de Logros.
+    ///
+    /// Existe por lo mismo que `debugMarkTypesSeen` y `debugSetDailyCycleDay`:
+    /// una partida nueva muestra los 39 logros en gris y **ninguno cobrable**,
+    /// así que sin esta puerta la sección "Para cobrar" no se puede ver ni
+    /// apretar. Conseguir uno jugando pide fusionar, mirar un video con el
+    /// proveedor real o dar mil toques sobre un personaje que deambula: nada de
+    /// eso es automatizable.
+    ///
+    /// Los tres contadores están elegidos para cruzar **un** gatillo cada uno
+    /// (`ach_merges_1`, `ach_taps_1000`, `ach_videos_1`) y ninguno más. Se usa
+    /// `max` para no PISAR un save que ya tuviera más: el fixture agrega, no
+    /// retrocede.
+    ///
+    /// ⚠️ Deja los logros desbloqueados y **sin cobrar** a propósito: cobrarlos
+    /// es lo que el test ejerce. Corre en `bootstrap` con `phase == .loading`,
+    /// así que `evaluateAchievements` acredita sin desfilar tres banners.
+    func debugSeedAchievements() {
+        guard var player else { return }
+        player.meta.stats.totalMergesEver = max(player.meta.stats.totalMergesEver, 1)
+        player.meta.stats.totalTapsEver = max(player.meta.stats.totalTapsEver, 1000)
+        player.meta.stats.videosWatchedEver = max(player.meta.stats.videosWatchedEver, 1)
+        self.player = player
+        evaluateAchievements()
     }
 
     func debugSimulateOffline(hours: Double) {

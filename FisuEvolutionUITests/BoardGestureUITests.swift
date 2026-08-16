@@ -16,8 +16,14 @@ final class BoardGestureUITests: XCTestCase {
 
         let units = app.otherElements["board.units"]
         XCTAssertTrue(units.waitForExistence(timeout: 15))
-        app.buttons["hud.spawn"].tap()
-        XCTAssertTrue(waitFor(units, value: "2", timeout: 6),
+        // Sembrar el par pasa por FisuJobs desde que el botón de spawn murió:
+        // tab → fila del Fisura → cerrar. El fixture `--uitest-coins` paga.
+        app.buttons["hud.hire"].tap()
+        let hire = app.buttons["jobs.hire.homeless"]
+        XCTAssertTrue(hire.waitForExistence(timeout: 10), "FisuJobs no ofrece contratar al Fisura")
+        hire.tap()
+        app.buttons["sheet.close"].tap()
+        XCTAssertTrue(waitFor(units, value: "2", timeout: 8),
                       "contratar tiene que dejar el par que se va a fusionar")
 
         // Se barre en X porque los dos deambulan y no hay recorte publicado que

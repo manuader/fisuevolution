@@ -13,6 +13,21 @@ final class ParticlePool {
         case coins
     }
 
+    /// El toggle de Ajustes (spec §10.4). `nonisolated` porque lo lee también el
+    /// `@AppStorage` de `SettingsView`, que se inicializa fuera del main actor.
+    nonisolated static let particlesDefaultsKey = "settings.particlesEnabled"
+
+    /// ⚠️ **El default es `true` y por eso esto es una función y no un
+    /// `bool(forKey:)` pelado**: `UserDefaults.bool(forKey:)` devuelve `false`
+    /// cuando la clave no existe, así que preguntarlo directo dejaría el juego
+    /// SIN partículas en la primera partida de todos los jugadores, con el
+    /// toggle mostrando lo contrario.
+    nonisolated static func particlesEnabled(in defaults: UserDefaults = .standard) -> Bool {
+        defaults.object(forKey: particlesDefaultsKey) == nil
+            ? true
+            : defaults.bool(forKey: particlesDefaultsKey)
+    }
+
     private var pools: [EffectType: [SKEmitterNode]] = [:]
     private static let particleTexture: SKTexture = {
         let side: CGFloat = 12
@@ -36,7 +51,17 @@ final class ParticlePool {
     }
 
     /// Dispara un burst en `position`; el emitter vuelve solo al pool.
+    ///
+    /// ⚠️ **Con las partículas apagadas se sale acá y no antes.** El corte va en
+    /// el pool y no en cada llamador (`BoardScene` tiene cinco) para que apagar
+    /// las partículas sea exactamente eso: el tap sigue pagando, el merge sigue
+    /// fusionando y la evolución sigue subiendo de piso. Es efecto, no lógica.
+    ///
+    /// La lectura de `UserDefaults` es un lookup en memoria y el ritmo de esto lo
+    /// pone el dedo del jugador (un burst por toque, por fusión o por ascenso),
+    /// no el frame loop: no hay nada que cachear.
     func emit(_ type: EffectType, at position: CGPoint, in parent: SKNode) {
+        guard Self.particlesEnabled() else { return }
         let emitter = pools[type]?.popLast() ?? makeEmitter(type)
         emitter.position = position
         emitter.zPosition = 90

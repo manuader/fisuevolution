@@ -1,0 +1,13 @@
+# 224 — Trofeo bronce (UI · rediseño)
+
+- **archivo**: `ui_trophy_bronze.png`
+- **estado**: pendiente
+- **destino**: Tools/asset-pipeline/dropbox/
+
+## Prompt
+
+Trofeo bronce is the BRONZE tier badge of the achievements list in Fisura Evolution, an Argentine merge-idle mobile game, and the humblest of a set of three identical trophies. Design it as a classic cartoon TROPHY CUP, front-facing and symmetrical: a wide bowl narrowing into a short stem, two big curved handles and a stepped base. Identical cup geometry to the other two trophies of this set (bronze, silver and gold): same bowl, same two curved handles with a clear open gap between each handle and the bowl, same short stem, same two-step base whose upper step is ink #2C2C2C and whose lower step is a blank cream #FFF8E7 plaque with nothing written on it. The only things that change between the three are the metal color of the bowl and the amount of shine. Here the metal is BRONZE: bowl and handles filled orange #FF6B35 with a thick ink #2C2C2C outline, a darker ink shading crescent along the inside of the bowl's right side, three short vertical ink flute lines across the middle of the bowl, and a single small cream #FFF8E7 highlight dash at the upper-left rim. No sparkles at all — this is the dullest metal of the three.
+
+This icon is drawn at about 40pt in the achievements list, so the cup silhouette must survive at thumbnail size and the metal color is the only cue that separates this trophy from the other two: keep it saturated and unmistakable. The background removal step of our pipeline eats large flat interior areas that look like background, so every enclosed shape must be a closed silhouette filled with a saturated palette color and carrying drawn internal detail — seams, rules, emblems or highlights — instead of one empty plane, and nothing inside the icon may be pure white except where explicitly asked for.
+
+Official game asset, same visual language as the rest of the game: 2D flat vector cartoon, single art direction, uniform thick black outline of constant weight, flat colors with minimal cel-shading, NO gradients, no photorealism, single soft light from the top-left. Locked palette — #FFD93D sunny yellow, #FF6B35 orange, #FF4D6D pink-red, #4D96FF blue, #6BCB77 green, plus #FFF8E7 cream, #2C2C2C ink black and #FFFFFF white — use no colors outside that list. Generous safe margin, square canvas, clean readable shapes, mobile-game production quality, cohesive studio look. Simple flat vector game icon, centered, plain white background. No text, no letters, no numbers, no watermark, no cropping.

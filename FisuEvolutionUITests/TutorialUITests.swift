@@ -60,9 +60,9 @@ final class TutorialUITests: XCTestCase {
         // La acción que el paso pide sí: tocar al personaje iluminado.
         try tapSpotlight(app, advancesTo: "hire")
 
-        // Y el paso siguiente ilumina el botón de contratar, que al tocarlo
-        // contrata de verdad y vuelve a avanzar.
-        app.buttons["hud.spawn"].tap()
+        // Y el paso siguiente ilumina el tab de FisuJobs, que abre la pantalla
+        // donde se contrata de verdad — y contratar vuelve a avanzar.
+        try hireFromFisuJobs(app)
         XCTAssertTrue(waitForStep(app, "merge"), "contratar tiene que completar el paso")
     }
 
@@ -78,15 +78,19 @@ final class TutorialUITests: XCTestCase {
         let raw = app.otherElements["tutorial.spotlight"].value as? String ?? "<sin marcador>"
         let hole = try XCTUnwrap(spotlight(app),
                                  "el paso de contratar tiene que publicar un recorte, publicó \(raw)")
-        let button = app.buttons["hud.spawn"].frame
+        // El ancla `.hire` se mudó del botón de spawn al TAB de FisuJobs: el
+        // recorte tiene que caer sobre él y no sobre la barra entera.
+        let button = app.buttons["hud.hire"].frame
         XCTAssertTrue(hole.contains(CGPoint(x: button.midX, y: button.midY)),
-                      "el recorte \(hole) no cubre el centro del botón real \(button)")
-        // Y no es un recorte gigante que "contiene todo": tiene que ser el botón.
+                      "el recorte \(hole) no cubre el centro del tab real \(button)")
+        // Y no es un recorte gigante que "contiene todo": tiene que ser el tab.
         XCTAssertLessThan(abs(hole.midX - button.midX), 24, "recorte descentrado en X")
         XCTAssertLessThan(abs(hole.midY - button.midY), 24, "recorte descentrado en Y")
+        XCTAssertLessThan(hole.width, button.width * 3,
+                          "un recorte del ancho de la barra no enseña cuál de los seis tabs tocar")
 
         let shot = XCTAttachment(screenshot: app.screenshot())
-        shot.name = "RF-01 recorte sobre el botón de contratar"
+        shot.name = "RF-01 recorte sobre el tab de FisuJobs"
         shot.lifetime = .keepAlways
         add(shot)
     }
@@ -105,6 +109,10 @@ final class TutorialUITests: XCTestCase {
         // final prueba igual: el test terminaba pasando, pero tardando 115 s y
         // sin distinguir "el scrim se comió el toque" de "XCUITest se negó a
         // tocar". La coordenada se saltea la hittability y prueba lo que importa.
+        //
+        // ⚠️ Y ahora el tab de mejoras es el VECINO del que el paso ilumina: el
+        // recorte cae sobre FisuJobs y este toque, a un tab de distancia, tiene
+        // que seguir muriendo en el scrim.
         let upgrades = app.buttons["hud.upgrades"]
         XCTAssertTrue(upgrades.exists)
         let target = upgrades.frame
@@ -125,7 +133,7 @@ final class TutorialUITests: XCTestCase {
 
         try tapSpotlight(app, advancesTo: "hire")
 
-        app.buttons["hud.spawn"].tap()
+        try hireFromFisuJobs(app)
         XCTAssertTrue(waitForStep(app, "merge"))
 
         try mergeTheHighlightedPair(app)
@@ -170,6 +178,26 @@ final class TutorialUITests: XCTestCase {
     }
 
     // MARK: - Helpers
+
+    /// El paso de contratar, entero: abrir FisuJobs desde el tab iluminado,
+    /// contratar al Fisura y cerrar la hoja.
+    ///
+    /// ⚠️ La hoja se presenta **por encima** del overlay del tutorial, y está
+    /// bien: el scrim existe para gobernar el tablero, no para tapar una hoja
+    /// modal que el propio paso mandó abrir. El paso se completa apenas
+    /// `hireCharacter` marca `ftue.spawned` —o sea con la hoja todavía puesta—,
+    /// así que al cerrarla el tutorial ya está en "fusioná".
+    @MainActor
+    private func hireFromFisuJobs(_ app: XCUIApplication) throws {
+        let tab = app.buttons["hud.hire"]
+        XCTAssertTrue(tab.waitForExistence(timeout: 6), "el tab de FisuJobs no está en la barra")
+        tab.tap()
+        let hire = app.buttons["jobs.hire.homeless"]
+        XCTAssertTrue(hire.waitForExistence(timeout: 6),
+                      "el tab iluminado tiene que abrir FisuJobs con el Fisura contratable")
+        hire.tap()
+        dismissSheet(app)
+    }
 
     /// Toca el centro del recorte publicado hasta que el paso avanza.
     ///

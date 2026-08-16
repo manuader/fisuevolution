@@ -36,7 +36,7 @@ interstitials reales que apagar.
 
 ## Rama B (fallback si no querés ads en la v1)
 
-`useRealAds` queda false y además: ocultar sección rewarded de BonusView por
+`useRealAds` queda false y además: ocultar la sección de videos de `GiftsView` por
 flag, mapear sus 4 efectos a boosts con cooldown, sacar `remove_ads` del
 catálogo de ASC v1 (el .storekit local puede conservarlo). Documentado para
 decisión en el gate de cierre de F5.

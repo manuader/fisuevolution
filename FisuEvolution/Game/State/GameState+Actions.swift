@@ -38,12 +38,18 @@ extension GameState {
             player.meta.lifetimeEarnings += extra
             gain += extra
         }
+        player.meta.stats.totalTapsEver += 1
         self.player = player
         if !ftueTapped {
             ftueTapped = true
             UserDefaults.standard.set(true, forKey: "ftue.tapped")
         }
         audio?.play(isCrit || isGolden ? .coin : .tap)
+        // Los logros de toques (1.000 / 100.000) y los de riqueza no tienen otro
+        // choke point: sin esto sólo se enterarían en la próxima fusión. La
+        // pasada cuesta una comparación por logro pendiente, contra el
+        // `refreshProjections` de la línea de abajo.
+        evaluateAchievements()
         refreshProjections()
         scheduleSave()
         return TapResult(gain: gain, isCrit: isCrit, isGolden: isGolden)
@@ -71,6 +77,8 @@ extension GameState {
             }
             haptics?.play(.purchase)
             audio?.play(.buy)
+            // Ídem `hireCharacter`: el contador lo mueve `TowerActions.hire`.
+            evaluateAchievements()
             bumpBoard()
             scheduleSave()
         } catch {

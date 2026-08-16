@@ -129,7 +129,13 @@ extension GameState {
     /// Lo que rinde por segundo UNA instancia de este tipo con el pasivo puesto:
     /// misma fórmula que `IncomeTicker`, sin los multiplicadores globales (que
     /// aplican igual a todos y harían saltar el número con cada boost).
-    private func passiveEffectText(for type: CharacterType) -> String {
+    ///
+    /// Dejó de ser `private` porque FisuJobs muestra el mismo número en su
+    /// tarjeta (`JobRow.incomeText`, §5.1: "produce X /s"). Es la MISMA fórmula
+    /// y el MISMO texto, así que se comparte en vez de copiarse: dos copias de
+    /// una fórmula de economía es lo que ya hizo que el simulador cotizara
+    /// distinto que el juego (`balance-log`).
+    func passiveEffectText(for type: CharacterType) -> String {
         guard let content, let player else { return "" }
         let perInstance = type.passiveYieldPerInstance
             * CharUpgrades.multiplier(

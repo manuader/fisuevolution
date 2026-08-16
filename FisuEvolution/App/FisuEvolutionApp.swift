@@ -7,6 +7,9 @@ struct FisuEvolutionApp: App {
     @State private var gameCenter = GameCenterManager()
     @State private var haptics = HapticsManager()
     @State private var audio = AudioManager()
+    /// El recordatorio diario de Ajustes (T16). No pide permiso al arrancar —lo
+    /// pide el toggle— así que construirlo acá no le muestra un diálogo a nadie.
+    @State private var notifications = NotificationsManager()
 
     var body: some Scene {
         WindowGroup {
@@ -16,6 +19,7 @@ struct FisuEvolutionApp: App {
                 .environment(gameCenter)
                 .environment(haptics)
                 .environment(audio)
+                .environment(notifications)
                 .task {
                     haptics.prepare()
                     audio.prepare()

@@ -1,23 +1,31 @@
 # HANDOFF — FisuEvolution, estado actual
 
-> **Empezá por acá.** Última actualización: **2026-08-14**, commit `d60d886`
-> (main) + rama `feature/rediseno-ui-cowevolution`.
+> ✅ **EL REDISEÑO DE UI DE ESTA RAMA ESTÁ COMPLETO** — 20 de 20 tareas
+> (`feature/rediseno-ui-cowevolution`, cerrado el 2026-08-16). El estado tarea
+> por tarea, las decisiones del dueño y los avisos vivos siguen en
+> **`Docs/SESION-2026-08-14-rediseno-ui.md`**, que es la fuente de verdad del
+> detalle de esta rama. Lo de abajo describe el juego ANTES del rediseño y
+> sigue siendo válido para todo lo que el rediseño no tocó; el resumen de la
+> sesión, con los números finales de tests, está en §4.
+>
+> ⚠️ **Lo que falta NO es implementación**: el review integral de rama con su
+> ola de fixes, el batch de los 15 iconos que corre el dueño (§8) y el merge
+> a `main`.
+>
+> **Empezá por acá.** Última actualización: **2026-08-16** (rediseño de UI).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
-> ⚠️⚠️ **HAY UN REDISEÑO DE UI EN CURSO, A MEDIO HACER, en la rama
-> `feature/rediseno-ui-cowevolution`** (2/20 tareas hechas). Si venís a
-> retomarlo, leé la sección "Sesión del 2026-08-14" de §4 ANTES que nada: dice
-> exactamente cómo se retoma (spec + plan + ledger). Si venís a otra cosa,
-> trabajá sobre `main` y no toques esa rama.
+> ⚠️ **Lo más importante que cambió**: el programa de las 16 correcciones del
+> playtest **se terminó**. Lo único que queda son dos gates humanos (§8). No hay
+> tarea de código pendiente en ese spec.
 >
-> ⚠️ El programa de las 16 correcciones del playtest **se terminó**. Lo único
-> que queda de eso son dos gates humanos (§8). No hay tarea de código
-> pendiente en ese spec.
+> **La sesión del 2026-08-10** sumó tres cosas de jugabilidad y arte, todas
+> commiteadas y verdes (§4): fusionar dejó de ser fiddly, los bonus activos se
+> ven en el HUD, y los 10 pisos tienen su fondo en perspectiva.
 >
-> ⚠️ **`main` puede estar adelante de `origin/main`.** Mientras no se pushee,
-> cada frente nuevo arranca desde un árbol viejo — es la trampa 7. Verificá
-> con `git rev-list --count origin/main..main`.
+> ⚠️ **`main` está adelante de `origin/main`.** Mientras no se pushee, cada
+> frente nuevo arranca desde un árbol viejo — es la trampa 7.
 
 ---
 
@@ -153,59 +161,58 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
-### Sesión del 2026-08-14 — rediseño de UI estilo Cow Evolution (EN CURSO)
+### Sesión del 2026-08-14/16 — Rediseño de UI estilo Cow Evolution
 
-**Qué es**: rediseño completo de la UI — HUD superior contiguo (moneda+ →
-tienda, monedas + coins/sec, botón ascensor, multiplicador de prestigio),
-barra inferior de 6 pantallas (FisuJobs/upgrades/skins/regalos/tienda/menú),
-menú con organigrama + stats + logros + settings completos, tienda de
-contratación por personaje con curva por tier, espejado de personajes, e
-iconos nuevos. Pedido y decisiones del dueño del 2026-08-14.
+**20 tareas, 53 commits** sobre `d60d886`, en `feature/rediseno-ui-cowevolution`.
+101 archivos, +19.248/−1.681. El detalle tarea por tarea —con los fix rounds,
+los rulings y los avisos— vive en **`Docs/SESION-2026-08-14-rediseno-ui.md`**;
+acá va lo que hay que saber sin abrirlo.
 
-**Dónde está TODO**:
+**Qué es**: el juego pasó a la estructura de Cow Evolution —HUD superior
+contiguo + **barra inferior de 6 pantallas**— con identidad visual propia.
+Desaparecieron los 4 botones sueltos del HUD y el botón de spawn; entraron
+seis pantallas reales (FisuJobs, Upgrades v2, Customization, Regalos, Tienda
+v2, Menú) más el Ascensor y las cuatro sub-pantallas del menú
+(organigrama, stats, logros, ajustes).
 
-| Pieza | Ruta |
+**Las piezas que importan:**
+
+- **FisuJobs** (`FisuEvolution/UI/Jobs/FisuJobsView.swift`) es la **referencia
+  visual canónica**: toda pantalla nueva se revisó contra ella (regla del
+  dueño, ver el doc de sesión). Gramática compartida: `GameCard` para filas,
+  `PricePill` para precios, `ProgressBar` para progreso, paleta sólo
+  `Palette*`, tipografía `Tokens.*`, cabecera crema opaca, `ArtCloseButton`.
+- **Curva de contratación por tipo** con `tierPremium` (1,8): cada tipo
+  desbloqueado se contrata con precio propio. El gate de un piso y el Fisura a
+  50 quedaron intactos.
+- **39 logros data-driven** con motor de 11 hooks y cobro con recompensa.
+- **Ajustes reales**: idioma, audio, notificaciones (recordatorio diario
+  19:00) y los dos legales (privacidad y términos, es+en) — todo listo para
+  App Store. `ConfigView` murió.
+- **Facing de personajes**: miran hacia donde caminan, con flip periódico
+  (7,5 s ± 5). El espejado va en `sprite.xScale`, nunca en el nodo.
+- **Micro-animaciones**: contador rodante, stagger compartido, shake medido,
+  toasts con spring.
+- Catálogo de strings: **269 → 468 claves** (es + en).
+- 34 archivos Swift nuevos; 3 borrados (`ConfigView`, `SpawnButtonView`,
+  `BonusView`).
+
+**Números finales, medidos el 2026-08-16 en un simulador propio por UDID,
+`-parallel-testing-enabled NO`, unit ANTES que UI:**
+
+| Suite | Resultado |
 |---|---|
-| Spec aprobado (leer primero) | `Docs/superpowers/specs/2026-08-14-rediseno-ui-cowevolution-design.md` |
-| Plan de 20 tareas | `Docs/superpowers/plans/2026-08-14-rediseno-ui-cowevolution.md` |
-| Rama de trabajo | `feature/rediseno-ui-cowevolution` (nace de `d60d886`) |
-| Ledger de progreso (fuente de verdad de qué se hizo) | `.superpowers/sdd/2026-08-14-rediseno-ui-cowevolution/progress.md` (git-ignorado; si no existe, reconstruir de `git log` de la rama) |
+| `EconomyKit` (`swift test`) | **180/180** ✅ |
+| `FisuEvolutionTests` | **336/336** ✅ |
+| `FisuEvolutionUITests` | **40/40** ✅ (14 clases; `AscentRenderingUITests` salteada, rojo preexistente de `main`) |
+| `Tools/asset-pipeline` | 27, **1 rojo conocido** (pide Chrome en `:9222`) |
+| Warnings de compilador | **0** |
 
-**Las 4 decisiones del dueño (no se re-litigan)**: la tienda de personajes se
-llama **FisuJobs** (no "LinkedIn": marca); **curva de precios por tier**
-nueva con `tierPremium` calibrada con pacing-sim — el gate de un piso y el
-Fisura a 50 NO cambian; **skins pagas quedan en 2** pero el catálogo queda
-extensible por dato; **iconos vectoriales ahora**, batch de Gemini después
-(lo corre el dueño desde Terminal.app — trampa 11).
-
-**Estado al corte (2026-08-14)**: tareas **1 y 2 de 20 hechas, revisadas y
-verdes** en la rama:
-
-- T1 (`0f8654d`): decoders manuales del save — `RunState`/`MetaStats` ya no
-  pierden partidas por claves faltantes (⚠️ el default de `seenTypes` NUNCA
-  protegió el decode: bug latente real, confirmado con RED), campos nuevos
-  `run.hireCountsByType`, contadores en `meta.stats`, sets de logros en
-  `meta`, reglas de merge en `SaveConflictResolver`.
-- T2 (`f2b97c9`): contadores históricos incrementándose en los choke points
-  (`applyMerge`, `hire`, `registerTap`, `applyRewardedReward`,
-  `activateBoost`); el auto-merge del reconciliador NO cuenta (pineado).
-- Tests: **EconomyKit 167 · app 209**, verdes (los conteos viejos de §6
-  quedaron atrás para la rama).
-
-**Cómo se retoma**: skill `superpowers:subagent-driven-development` sobre el
-plan; el ledger dice la próxima tarea (Task 3: cotización por tipo +
-`tierPremium` + PacingSimulator). Un subagente Opus por tarea, SECUENCIAL
-(las tareas comparten RootView/GameArt/xcstrings — no paralelizar), review
-por tarea, y los minors diferidos están anotados en el ledger para el review
-final. Cada frente crea su simulador por UDID y lo borra al terminar.
-
-⚠️ Avisos vivos de esta sesión: (a) `xcodegen generate` corrió con Xcode
-abierto en T2 — si Xcode muestra `Missing package product 'EconomyKit'`, es
-la trampa 15: cerrar y reabrir el proyecto; (b) `PacingSimulator` duplica a
-mano el hire Y el merge (no llena los contadores nuevos) — T3 migra el hire
-y el resto queda anotado en el ledger; (c) los 6 tests nuevos de
-`SaveCompatibilityTests` pinean que un save v4 viejo decodifica — al agregar
-campos al save en tareas futuras hay que tocar decoder Y fixture.
+⚠️ **Ningún flaky hizo falta re-correr**: `EconomyLoopUITests`,
+`BonusHUDUITests` y `StoreManagerTests` pasaron en la corrida completa, y
+`PacingTests.strugglingPhaseLength` —que figuraba como rojo de entorno— pasó
+también. La regla que lo hace reproducible es **correr unit antes que UI**
+(§7).
 
 ### Sesión del 2026-08-10
 
@@ -350,34 +357,57 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
 
 ## 6. Cómo verificar
 
+⚠️ **Creá tu propio simulador y apuntá por UDID** (trampa 2), y **corré unit
+ANTES que UI** — la asimetría es real y direccional, ver abajo.
+
 ```bash
-cd Packages/EconomyKit && swift test                      # 141
+UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
+
+cd Packages/EconomyKit && swift test                      # 180
 cd - && /opt/homebrew/bin/xcodegen generate               # si agregaste/borraste Swift
+
+# 1) UNIT PRIMERO
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
-  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' -derivedDataPath build/DD test
-cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 20
+  -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
+  -only-testing:FisuEvolutionTests test                   # 336
+
+# 2) UI DESPUÉS
+xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
+  -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
+  -only-testing:FisuEvolutionUITests \
+  -skip-testing:FisuEvolutionUITests/AscentRenderingUITests test   # 40
+
+cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 27, 1 rojo
+
+xcrun simctl shutdown $UDID && xcrun simctl delete $UDID   # ⚠️ el cierre es parte del trabajo
 ```
 
-Estado: **app 201 · UI 22 · pipeline 25**, todo verde (2026-08-10: la fusión
-asistida sumó 19 tests de app y 1 de UI, y los contadores de bonus 10 y 2).
+Estado, medido entero el **2026-08-16** al cierre del rediseño de UI:
+**EconomyKit 180 · app 336 · UI 40 · pipeline 27 (1 rojo conocido)**, cero
+warnings de compilador.
 
-⚠️ **EconomyKit sigue en 150 y NO se corrió el 2026-08-10**: la sesión no lo
-tocó —ni `MergeRules`, ni `TowerActions`, ni la economía— así que el número es
-el de la corrida anterior, no una medición nueva.
+- El rojo del pipeline es `test_wait_for_survives_a_stale_element_and_retries`:
+  pide un Chrome escuchando en `:9222`. Es de entorno y es el baseline.
+- `AscentRenderingUITests` sigue siendo el único rojo de UI (frágil por la
+  vieja trampa 3): salteálo con `-skip-testing:` y usá siempre
+  `-parallel-testing-enabled NO`.
 
-⚠️ **`PacingTests` ya está repineado** a la torre de 37 tiers. Su
-`strugglingPhaseLength` figuraba acá como rojo preexistente y el 2026-08-10
-**pasó en las dos corridas completas** de la suite: si te falla, tratalo como
-entorno (moría con `Test crashed with signal kill`), no como economía.
-El único rojo que sigue en pie es `AscentRenderingUITests` (frágil por la vieja
-trampa 3): salteálo con `-skip-testing:` y usá siempre
-`-parallel-testing-enabled NO`.
+⚠️⚠️ **UNIT ANTES QUE UI, siempre.** Correr los tests de UI primero rompe
+`StoreManagerTests` **enteros**, y no es carga: fallan igual aislados. Una
+corrida de UI deja la tienda local del simulador en un estado que
+`SKTestSession` ya no puede usar. Con el device recién creado y unit primero,
+pasan los 336 sin tocar nada.
 
-`EconomyLoopUITests` y `StoreManagerTests.refundRevokesEntitlement` son flakies
-**sensibles a carga**: pasan aislados. Confirmado otra vez el 2026-08-10 —
-fallaron los dos en una corrida que tardó 23 minutos contra los 10 habituales, y
-con el device borrado y aislados pasaron sin tocar una línea. **Si una suite
-empieza a fallar en una corrida que va lenta, mirá el reloj antes que el código.**
+⚠️ **`PacingTests.strugglingPhaseLength` figuraba como rojo de entorno** (moría
+con `Test crashed with signal kill`) y el 2026-08-16 **pasó en la corrida
+completa**. Si te falla, tratalo como entorno, no como economía.
+
+`EconomyLoopUITests`, `BonusHUDUITests` y
+`StoreManagerTests.refundRevokesEntitlement` son flakies **sensibles a carga**:
+pasan aislados. El 2026-08-16 pasaron los tres en la corrida completa sin
+re-correr nada. **Si una suite empieza a fallar en una corrida que va lenta,
+mirá el reloj antes que el código** — y `uptime`, que un simulador ajeno
+booteado o un `simctl` huérfano de otra tanda alcanzan para ensuciarla.
 
 Simulador a mano:
 
@@ -386,17 +416,22 @@ xcrun simctl install booted build/DD/Build/Products/Debug-iphonesimulator/FisuEv
 xcrun simctl launch booted com.manuader.fisuevolution --uitest-reset
 ```
 
-Fixtures DEBUG por launch argument — **son siete, no tres**:
+Fixtures DEBUG por launch argument — **son doce, no tres**:
 
 | Argumento | Qué deja listo |
 |---|---|
-| `--uitest-reset` | Partida nueva. Resetea también `fisuTutorialDone` y las banderas `ftue.*` |
+| `--uitest-reset` | Partida nueva. Resetea también `fisuTutorialDone`, las banderas `ftue.*` y **los ajustes que viven en `UserDefaults`** (partículas, notificaciones e idioma — T16): sin eso, un test que apaga las partículas se las deja apagadas al siguiente |
 | `--uitest-skip-tutorial` | Sin tutorial. **Casi todo test de tablero lo necesita**: si no, el scrim se come los toques (trampa 9) |
 | `--uitest-coins` | Plata para contratar sin dar ~50 toques |
 | `--uitest-unlock-tower` | Abre pisos hasta el del tier 5. ⚠️ **NO toca `maxFloorOrdinalEver`**, así que no desbloquea boosts |
 | `--uitest-seen-types` | Marca tipos vistos: es lo que llena la pestaña Personajes |
 | `--uitest-prestige` | Acredita lifetime para llegar a reencarnar |
 | `--uitest-open-sheet` | Abre la ficha sobre la primera unidad |
+| `--uitest-skins` | Acredita las skins de milestone de los tipos YA VISTOS (van con `--uitest-seen-types`, que es lo que decide cuáles). Es lo que permite ejercer "Ponérsela" en Pintas sin abrir pisos ni reencarnar |
+| `--uitest-storekit-empty` | `StoreManager` no carga productos: simula la tienda que no contesta. Es la ÚNICA forma de ejercer desde un test la rama "Precio no disponible", porque el runner inyecta la configuración de StoreKit del scheme y si no los productos cargan siempre |
+| `--uitest-daily-streak` | Deja el ciclo del daily en el día 4: la tira del calendario de Regalos con días cobrados atrás. El único otro camino a un día con tilde es **volver mañana** |
+| `--uitest-achievements` | Siembra los contadores históricos que cruzan tres logros (`ach_merges_1`, `ach_taps_1000`, `ach_videos_1`) y los deja **conseguidos y sin cobrar**: es lo único que llena la sección "Para cobrar" de la pantalla de Logros. Conseguir uno jugando pide fusionar, mirar un video con el proveedor real o dar mil toques — nada automatizable. Usa `max`, así que no pisa un save con más. ⚠️ Acredita durante `phase == .loading`, así que **NO desfila los tres banners**, y un logro ya acreditado no vuelve a cruzarse: para filmar el toast hay que cruzar uno EN RUNTIME y con el tablero despejado. El único barato es `ach_merges_1` — contratar uno en FisuJobs, cerrar la hoja y fusionar el par con doble toque. Contratar diez cruza `ach_hires_10` pero deja el banner tapado por la hoja |
+| `--uitest-daily-popup` | El popup del premio del día, ya abierto (T18). Retrocede `lastClaimDay` a **ayer** —no lo borra, que un día salteado resetea el ciclo a 1— y corre el claim real, el mismo que acredita al volver a foreground. Existe porque el daily se cobra solo y una sola vez por día, y una partida nueva marca `lastClaimDay` en HOY para no pisar el tutorial: sin esta puerta, la única pantalla que celebra la racha no se puede ni fotografiar ni ejercitar sin cambiarle la fecha al simulador. Combinado con `--uitest-daily-streak` muestra el día 4. ⚠️ **Va con `--uitest-skip-tutorial`: la hoja está gateada por `tutorialDone`** |
 
 El panel de debug es el ícono de herramientas del HUD.
 
@@ -690,6 +725,72 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 8. Qué queda
+
+### Lo que dejó el rediseño de UI (2026-08-16)
+
+**1. El batch de los 15 iconos lo corre EL DUEÑO, desde Terminal.app.** La
+cola está armada y verificada (tarea 19): 15 prompts `.md` numerados
+**213–227** en `Tools/asset-pipeline/prompts/gemini_pro/` con sus 15 entradas
+gemelas en `prompts.json`, todas en `estado: pendiente` y **sin campo
+`referencia`** (los iconos de UI no adjuntan el Fisura). No se generó ninguna
+imagen a propósito: el runner tipea con `osascript` y el permiso de
+Accesibilidad lo tiene **Terminal.app y nada más** (trampa 11), así que desde
+el shell de un agente falla en el primer asset. La receta, con el Chrome
+dedicado en `:9222` logueado en Gemini **Pro**:
+
+```bash
+cd Tools/asset-pipeline
+.venv/bin/python scripts/launch_gemini_chrome.py          # 1 vez, login manual
+.venv/bin/python scripts/gemini_selenium_runner.py --dry-run   # tiene que listar 213–227
+nohup caffeinate -is .venv/bin/python scripts/gemini_selenium_runner.py \
+  --process --pause 3 --timeout 260 &
+```
+
+Sin `--ref-threshold` y sin `xcodegen` (no hay Swift y el atlas es folder
+reference). ⚠️ **Post-batch hay que medir el % de píxeles opacos del `@2x`**
+en `FisuEvolution/Resources/ui.atlas/`: `rembg` se come los rellenos
+interiores claros y grandes (bug #6 de `HANDOFF-arte-gemini.md`), y los de
+riesgo alto son `ui_menu_stats`, `ui_trophy_silver` y `ui_daily_calendar`. El
+que salga hueco **no se integra** — se borran sus `@2x`/`@3x` y su clave de
+`manifest.ui`, y el juego vuelve solo al icono vectorial, que para eso está.
+
+**2. Costura de los 15 iconos: las tres copas ya están; falta el calendario.**
+
+✅ **Los tres `ui_trophy_*` quedaron cableados en la ola final del review**
+(2026-08-16). Eran **DOS** call-sites y no tres —el conteo de tres que figuraba
+acá estaba mal: `MenuView.swift:65` nunca fue un pendiente, porque su copa ya
+pasaba por `GameIcon` vía la clave `ui_menu_trophy` del propio menú—. Los dos
+que faltaban ahora envuelven el vector con
+`GameIcon(artKey: "ui_trophy_\(tier.rawValue)")`, que mapea el metal al sufijo
+de la clave del atlas:
+
+- `FisuEvolution/UI/Menu/AchievementsView.swift` (la copa de cada fila, 42 pt)
+- `FisuEvolution/App/RootView.swift` (la copa del toast, 34 pt)
+
+Mientras el atlas no tenga las claves siguen cayendo al vector y no cambia
+nada en pantalla; el día que el batch entre, entran solas.
+
+⚠️ **El pendiente real es `ui_daily_calendar`.** `VectorCalendarIcon` sólo se
+declara en `GameIcons.swift:543` y no se usa en ninguna vista: no hay dónde
+aterrizarlo sin **decidir antes dónde va el calendario** (la tira de días de
+Regalos tiene su propio dibujo, y meterle un icono es una decisión de diseño
+del dueño, no una costura mecánica). Hasta que esa decisión exista, ese PNG
+entra al atlas y el juego lo ignora.
+
+**3. Los ajustes ya están listos para App Store.** `SettingsView` trae las
+seis secciones del spec: **idioma** (sistema/es/en, con su clave propia
+además de `AppleLanguages`), audio, juego, compras (con "Restaurar"),
+**legales** y "Acerca de". Las **notificaciones** tienen recordatorio diario a
+las 19:00 vía `NotificationsManager`, y los **dos documentos legales**
+(privacidad y términos) se leen adentro del juego, en es+en, desde
+`Resources/Legal`. O sea que RF-02c ya no necesita nada de UI: lo único que
+falta sigue siendo la cuenta de Apple Developer.
+
+**4. Falta el review integral de la rama** —con su ola de fixes sobre los
+minors diferidos de las 20 tareas, que viven en el ledger del workspace SDD—
+y después el **merge a `main`**.
+
+---
 
 ⚠️ **El programa de las 16 correcciones está CERRADO** (2026-08-07). Un jugador
 externo terminó el juego y mandó 16 pedidos; las cuatro olas se ejecutaron y

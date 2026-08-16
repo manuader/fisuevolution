@@ -1,6 +1,8 @@
 # Rediseño de UI estilo Cow Evolution — spec de diseño
 
-> **Fecha**: 2026-08-14 · **Estado**: aprobado por el dueño (4 decisiones abajo)
+> **Estado**: implementado en `feature/rediseno-ui-cowevolution` (20 tareas, 2026-08-16)
+>
+> **Fecha**: 2026-08-14 · **Estado original**: aprobado por el dueño (4 decisiones abajo)
 > **Objetivo**: que FisuEvolution se vea y navegue como un juego iOS de alta
 > calidad 2026, con la estructura de Cow Evolution (HUD superior contiguo +
 > barra inferior de 6 pantallas) pero la identidad visual propia (paleta de 7

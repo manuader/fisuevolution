@@ -36,6 +36,35 @@ struct CoinFormatterTests {
         #expect(plain(987_654_321) == "988M")
     }
 
+    /// ⚠️ El sufijo se elige **después** de redondear. La mantisa cruda de
+    /// 999_500 es 999,5 y a cero decimales se va a 1000: mostrar "1.000K" era
+    /// mentir un orden de magnitud entero en el HUD (Critical del review de
+    /// T20). El caso vive en el borde de CADA sufijo, no sólo en el de K.
+    @Test func roundingUpToFourDigitsBumpsTheSuffix() {
+        #expect(plain(999_500) == "1M")
+        #expect(plain(999_999) == "1M")
+        #expect(plain(999_500_000) == "1B")
+        #expect(plain(999_999_999_999) == "1T")
+        #expect(plain(9.995e14) == "1aa")
+    }
+
+    /// El otro lado del mismo borde: lo que NO llega a 1000 redondeado se queda
+    /// con su sufijo y con sus tres dígitos.
+    @Test func justBelowTheBoundaryKeepsItsSuffix() {
+        #expect(plain(999_499) == "999K")
+        #expect(plain(999_000) == "999K")
+        #expect(plain(999_499_000) == "999M")
+    }
+
+    /// El borde bajo NO se toca: abajo de 1000 el valor se trunca hacia abajo
+    /// (999,9 → "999") a propósito, para no anunciar plata que no se puede
+    /// gastar. Es la única asimetría del formateador y queda pineada acá.
+    @Test func theLowBoundaryStillTruncates() {
+        #expect(plain(999.9) == "999")
+        #expect(plain(999.999) == "999")
+        #expect(plain(1000) == "1K")
+    }
+
     @Test func pathologicalInputsNeverCrash() {
         #expect(plain(.infinity) == "∞")
         #expect(plain(-5) == "∞")

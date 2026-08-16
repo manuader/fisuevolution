@@ -1,14 +1,56 @@
 import SwiftUI
 
-/// El mapa de la torre (RF-08): un ascensor vertical con todos los pisos
-/// apilados como un edificio —Dios arriba, el callejón abajo— para poder ir del
-/// piso 1 al 10 de un toque en vez de subir de a uno.
+/// El mapa de la torre (RF-08), restyleado como **panel de ascensor** (spec §4):
+/// una columna de botones de piso —Dios arriba, el callejón abajo— para poder ir
+/// del piso 1 al 10 de un toque en vez de subir de a uno.
 ///
 /// La vista no sabe cuántos pisos hay ni cómo se llaman los fondos: todo llega
 /// resuelto en `gameState.floorMap`, que sale de `floors[]`.
+///
+/// El restyle **no le tocó una línea a la lógica**: la misma proyección, la misma
+/// re-evaluación contra `boardVersion`, el mismo `jumpToFloor(ordinal:)`, el
+/// mismo caché de miniaturas y los mismos identifiers `map.floor.<id>`. Lo que
+/// cambió es el idioma visual —`GameCard`, `Tokens`, el botón redondo con el
+/// número de piso y el riel que los une— y que el título dejó de ser "La torre"
+/// para ser "Ascensor".
 struct FloorMapView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
+
+    /// Margen lateral de la columna. **Medido sobre el arte**, no elegido, con el
+    /// mismo método que `UpgradesView` (40 pt contra `panel_upgrades`) y
+    /// `FisuJobsView` (30 contra `panel_store`): el 9-slice dibuja las esquinas a
+    /// tamaño natural, así que el píxel `x` del PNG cae en `x / (anchoPx / 200)`
+    /// puntos del destino. Sondeando `panel_dialog@3x.png` (640², escala 3,2) en
+    /// su franja recta, el contorno del marco ocupa de **32,5 a 35,0 pt** y hacia
+    /// adentro es transparente (el crema lo pone `PanelBackground`); cerca de las
+    /// esquinas el trazo engorda hasta 38,8. Con los 20 pt que había, las filas
+    /// le pasaban por encima al marco entero. A 36 la columna entra justo adentro
+    /// del trazo y el marco se lee completo. Si el arte se re-exporta, se vuelve
+    /// a medir.
+    private static let panelInset: CGFloat = 36
+
+    /// Diámetro del botón redondo de piso. El riel se alinea a su centro, así que
+    /// las dos medidas salen de acá y no de dos literales que se desincronizan.
+    private static let buttonSide: CGFloat = 40
+    private static let shaftWidth: CGFloat = 7
+    /// Centro del botón = padding interno de `GameCard` + radio. Menos medio riel
+    /// para que quede centrado y no pegado.
+    private static var shaftLeading: CGFloat { Tokens.s12 + buttonSide / 2 - shaftWidth / 2 }
+
+    /// Los tres tonos de fila.
+    ///
+    /// ⚠️ Existe porque `GameCard.Style` está **anidado en un tipo genérico**:
+    /// `GameCard<A>.Style` y `GameCard<B>.Style` son tipos distintos, así que el
+    /// estilo no se puede guardar en una propiedad sin nombrar el contenido —y el
+    /// contenido de la fila es un `some View` que no tiene nombre—. Se elige el
+    /// tono acá y el `switch` se hace donde el contenido ya está fijado (mismo
+    /// patrón que `FisuJobsView.Tone`).
+    private enum Tone {
+        case plain
+        case current
+        case locked
+    }
 
     var body: some View {
         // `boardVersion` es lo único que puede cambiar una ocupación mientras el
@@ -20,13 +62,20 @@ struct FloorMapView: View {
         NavigationStack {
             ScrollViewReader { proxy in
                 ScrollView {
-                    VStack(spacing: 8) {
+                    VStack(spacing: Tokens.s12) {
                         ForEach(floors) { entry in
-                            floorRow(entry).id(entry.id)
+                            floorButton(entry).id(entry.id)
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
+                    // El riel del hueco del ascensor, alineado al centro de los
+                    // botones. Va DETRÁS de la columna, así que las tarjetas
+                    // —crema opaco— lo tapan y sólo asoma en los espacios entre
+                    // piso y piso: se lee como el cable que une los botones, que
+                    // es lo que convierte una lista en un panel de ascensor.
+                    .background(alignment: .leading) { shaft }
+                    .padding(.horizontal, Self.panelInset)
+                    .padding(.top, Tokens.s8)
+                    .padding(.bottom, Tokens.s24)
                 }
                 .onAppear {
                     // Se abre mostrando dónde estás parado, no la punta de la
@@ -36,58 +85,128 @@ struct FloorMapView: View {
                 }
             }
             .background { PanelBackground(art: "panel_dialog") }
-            .safeAreaInset(edge: .top) {
-                PanelTitleBanner(titleKey: "map.title")
-                    .padding(.top, 6)
-                    .padding(.bottom, 4)
-            }
+            .safeAreaInset(edge: .top) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
-            // Sin esto la barra queda blanca de sistema contra el crema del
-            // panel, que es la única superficie del juego que se ve así.
+            // La barra de navegación aparece recién al scrollear y de fábrica lo
+            // hace con el material blanco del sistema: contra el crema del panel
+            // quedaba una banda blanca, la única superficie del juego que se ve
+            // así. Pintada de crema empalma con la cabecera de abajo y las dos se
+            // leen como UNA barra fija. No se fuerza `.visible`: en reposo sigue
+            // transparente y el contorno de arriba del panel se ve entero (mismo
+            // criterio que `FisuJobsView` y `UpgradesView`).
             .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
         }
     }
 
-    private func floorRow(_ entry: FloorMapEntry) -> some View {
-        Button {
+    // MARK: Cabecera
+
+    /// El cartel del ascensor, fijo arriba de la columna.
+    ///
+    /// ⚠️ **El fondo opaco no es decoración.** Un `safeAreaInset` recorta el área
+    /// segura pero el contenido del scroll sigue pasando POR DEBAJO: con la banda
+    /// transparente las filas desfilaban a través del título y asomaban a los
+    /// costados de la cápsula. Es el defecto que el HANDOFF §8 anota para "el
+    /// título flotante de los paneles" —el de todas las hojas—, y acá se corta
+    /// igual que en `FisuJobsView` y `UpgradesView`.
+    private var header: some View {
+        VStack(spacing: Tokens.s4) {
+            HStack(spacing: Tokens.s8) {
+                // La cabina con su display: el mismo glifo que el botón del HUD
+                // que abre esta hoja, así el viaje de un lado al otro se lee como
+                // uno solo. Es decoración pura —el título ya dice "Ascensor"—,
+                // así que se esconde de VoiceOver en vez de quedar como una
+                // parada muda.
+                GameIcon(artKey: "ui_elevator", size: 34) { VectorElevatorIcon() }
+                    .accessibilityHidden(true)
+                PanelTitleBanner(titleKey: "elevator.title")
+            }
+            // La bajada, con el mismo formato que la de FisuJobs y la de la
+            // tienda: `Tokens.caption` en ink al 75%, centrada y a dos renglones.
+            // Era la única de las seis hojas que tenía título pelado, y de las
+            // seis es la que más lo necesita: el título dice CÓMO se llama la
+            // pantalla, no qué se hace en ella.
+            Text("elevator.subtitle")
+                .font(Tokens.caption)
+                .foregroundStyle(Color("PaletteInk").opacity(0.75))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, Tokens.s24)
+        }
+        .padding(.horizontal, Self.panelInset)
+        .padding(.top, 6)
+        .padding(.bottom, Tokens.s12)
+        .frame(maxWidth: .infinity)
+        .background {
+            Color("PaletteCream")
+                .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
+        }
+    }
+
+    /// El hueco del ascensor. Cápsula fina en tinta translúcida que corre por
+    /// detrás de toda la columna.
+    private var shaft: some View {
+        Capsule()
+            .fill(Color("PaletteInk").opacity(0.28))
+            .frame(width: Self.shaftWidth)
+            .padding(.leading, Self.shaftLeading)
+    }
+
+    // MARK: La fila = un botón de piso
+
+    /// Un botón del panel. La lógica es la de siempre: salta y cierra.
+    ///
+    /// ⚠️ El trío `children: .ignore` + label + value va **sobre el botón**, y no
+    /// en una capa aparte como en `FisuJobsView`: acá la fila **no contiene otro
+    /// control** —no hay cápsula de compra que un elemento contenedor pudiera
+    /// borrar del árbol (trampa 9a)—, así que colapsarla es exactamente lo que se
+    /// quiere: una parada de VoiceOver por piso, que dice cuál es y cómo está.
+    /// Es la estructura que ya tenía la vista y la que hace que
+    /// `FloorMapUITests` encuentre `map.floor.<id>` como `buttons[...]`.
+    ///
+    /// ⚠️⚠️ **Y por eso el contenido NO va `accessibilityHidden`**, aunque el
+    /// volcado de XCUITest liste los cinco textos de adentro. Se probó: taparlos
+    /// no los saca del volcado —XCUITest recorre la jerarquía de vistas, no la de
+    /// VoiceOver— y encima le borra al `Button` su etiqueta derivada, que queda
+    /// como control con identifier y MUDO. Medido el 2026-08-15 volcando el árbol
+    /// con y sin el modificador. El árbol resultante es idéntico —elemento por
+    /// elemento— al de antes del restyle, que es lo que había que conservar.
+    private func floorButton(_ entry: FloorMapEntry) -> some View {
+        let tone: Tone = entry.isUnlocked ? (entry.isVisible ? .current : .plain) : .locked
+        return Button {
             gameState.jumpToFloor(ordinal: entry.ordinal)
             dismiss()
         } label: {
-            HStack(spacing: 12) {
-                thumbnail(entry)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(TowerNaming.floorNameKey(for: entry.id))
-                        .font(.system(.subheadline, design: .rounded).weight(.heavy))
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                    // El número de piso se interpola SIEMPRE como String: con un
-                    // Int, Swift manda %lld, el lookup falla y en pantalla queda
-                    // la clave cruda. Ya pasó dos veces en este repo.
-                    Text("map.floor.ordinal \(String(entry.ordinal + 1))")
-                        .font(.system(size: 11, design: .rounded).weight(.semibold))
-                        .monospacedDigit()
-                        .foregroundStyle(Color("PaletteInk").opacity(0.6))
+            Group {
+                switch tone {
+                case .plain: GameCard(style: .normal) { row(entry, tone: tone) }
+                // El piso donde estás parado: marco y halo amarillos, el mismo
+                // acento que el botón encendido del panel.
+                case .current: GameCard(style: .highlighted(Color("PaletteYellow"))) { row(entry, tone: tone) }
+                case .locked: GameCard(style: .locked) { row(entry, tone: tone) }
                 }
-                Spacer(minLength: 6)
-                trailing(entry)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .foregroundStyle(Color("PaletteInk").opacity(entry.isUnlocked ? 1 : 0.45))
-            .background(rowBackground(entry))
-            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
         .buttonStyle(.plain)
+        // Un piso cerrado no es un destino: el preview es premio de las flechas
+        // del HUD, no de una lista. `FloorMapUITests` asserta justamente que el
+        // botón está deshabilitado.
         .disabled(!entry.isUnlocked)
         .accessibilityIdentifier("map.floor.\(entry.id)")
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(TowerNaming.floorNameKey(for: entry.id))
+        // El número va PRIMERO y el nombre después, como se anuncia un piso en un
+        // ascensor. Es lo que dice el botón redondo de la izquierda, que quedó
+        // fuera del árbol al colapsar la fila.
+        .accessibilityLabel(
+            Text("map.floor.ordinal \(String(entry.ordinal + 1))")
+                + Text(verbatim: ", ")
+                + Text(TowerNaming.floorNameKey(for: entry.id))
+        )
         .accessibilityValue(
             entry.isUnlocked
                 ? Text(verbatim: "\(entry.occupied)/\(entry.capacity)")
@@ -95,37 +214,109 @@ struct FloorMapView: View {
         )
     }
 
+    /// Anatomía de la fila: botón numerado, miniatura del fondo real y los datos.
+    private func row(_ entry: FloorMapEntry, tone: Tone) -> some View {
+        HStack(spacing: Tokens.s12) {
+            numberButton(entry, tone: tone)
+            thumbnail(entry)
+            VStack(alignment: .leading, spacing: Tokens.s4) {
+                Text(TowerNaming.floorNameKey(for: entry.id))
+                    .font(Tokens.title)
+                    .foregroundStyle(Color("PaletteInk"))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.6)
+                    .fixedSize(horizontal: false, vertical: true)
+                status(entry)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    /// El botón redondo con el número de piso: lo que hace que la columna se lea
+    /// como una botonera y no como una lista.
+    ///
+    /// Encendido (amarillo) en el piso donde estás; apagado (crema con su aro) en
+    /// los demás. El número se dibuja SIEMPRE, también en los cerrados: en una
+    /// botonera los números son la referencia y taparlos con un candado dejaría la
+    /// columna sin escala. El candado va en el renglón de estado.
+    ///
+    /// ⚠️ El número se interpola `verbatim`: es un dígito, no una frase, y meterlo
+    /// en un `LocalizedStringKey` armaría la clave `%lld` (trampa 5).
+    private func numberButton(_ entry: FloorMapEntry, tone: Tone) -> some View {
+        Text(verbatim: "\(entry.ordinal + 1)")
+            .font(.system(size: 17, design: .rounded).weight(.black))
+            .monospacedDigit()
+            .foregroundStyle(Color("PaletteInk"))
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .frame(width: Self.buttonSide, height: Self.buttonSide)
+            .background {
+                Circle()
+                    .fill(tone == .current ? Color("PaletteYellow") : Color("PaletteCream"))
+                    .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 2.5))
+                    .shadow(color: .black.opacity(0.16), radius: 3, y: 1)
+            }
+    }
+
+    /// El renglón de abajo del nombre: cuánta gente entra, o por qué no se puede
+    /// ir. Los dos estados comparten el ritmo icono + texto para que la columna no
+    /// baile entre filas.
     @ViewBuilder
-    private func trailing(_ entry: FloorMapEntry) -> some View {
+    private func status(_ entry: FloorMapEntry) -> some View {
         if entry.isUnlocked {
-            VStack(alignment: .trailing, spacing: 2) {
+            HStack(spacing: Tokens.s8) {
                 HStack(spacing: 4) {
                     Image(systemName: "person.2.fill")
-                        .font(.system(size: 11, weight: .bold))
+                        .font(.system(size: 12, weight: .bold))
                     Text(verbatim: "\(entry.occupied)/\(entry.capacity)")
-                        .font(.system(.subheadline, design: .rounded).weight(.heavy))
+                        .font(Tokens.body)
                         .monospacedDigit()
                 }
-                .accessibilityLabel(Text("map.occupancy.label"))
-                if entry.isVisible {
-                    Text("map.here")
-                        .font(.system(size: 10, design: .rounded).weight(.heavy))
-                        .foregroundStyle(Color("PaletteBlue"))
-                }
+                .foregroundStyle(Color("PaletteInk").opacity(0.75))
+                if entry.isVisible { herePill }
             }
         } else {
-            HStack(spacing: 4) {
+            HStack(spacing: 5) {
                 Image(systemName: "lock.fill")
-                    .font(.system(size: 12, weight: .bold))
+                    .font(.system(size: 14, weight: .black))
                 Text("map.locked")
-                    .font(.system(size: 11, design: .rounded).weight(.heavy))
+                    .font(Tokens.body)
                     .lineLimit(1)
+                    .minimumScaleFactor(0.6)
             }
+            // Sin apagar, a diferencia de la ocupación: `GameCard(style: .locked)`
+            // ya le baja la opacidad a la tarjeta ENTERA, y con el 0,75 encima el
+            // candado —que es la razón de ser de la fila cerrada— salía más
+            // apagado que el nombre del piso. Medido sobre la captura.
+            .foregroundStyle(Color("PaletteInk"))
         }
+    }
+
+    /// "Estás acá" en cápsula amarilla. Junto con el marco y el botón encendido
+    /// son las tres marcas del piso actual: la que se ve de lejos (el marco), la
+    /// de la botonera (el botón) y la que lo dice con todas las letras.
+    private var herePill: some View {
+        Text("map.here")
+            .font(.system(size: 10, design: .rounded).weight(.black))
+            .foregroundStyle(Color("PaletteInk"))
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .padding(.horizontal, Tokens.s8)
+            .padding(.vertical, 3)
+            .background {
+                Capsule()
+                    .fill(Color("PaletteYellow"))
+                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2))
+            }
     }
 
     /// Miniatura del fondo REAL del piso. El puente código→arte sigue siendo el
     /// manifest: sin entrada ahí, un rectángulo neutro (igual que en la escena).
+    ///
+    /// El apagado de los pisos cerrados ya no se hace acá: `GameCard(style:
+    /// .locked)` desatura y baja la opacidad de la tarjeta ENTERA, así que
+    /// repetirlo en la miniatura la dejaba dos veces más muerta que su propia
+    /// fila.
     @ViewBuilder
     private func thumbnail(_ entry: FloorMapEntry) -> some View {
         let asset = gameState.content?.manifest.backgrounds[entry.backgroundKey]
@@ -134,30 +325,16 @@ struct FloorMapView: View {
                 image
                     .resizable()
                     .scaledToFill()
-                    .saturation(entry.isUnlocked ? 1 : 0)
-                    .opacity(entry.isUnlocked ? 1 : 0.5)
             } else {
-                Color("PaletteInk").opacity(entry.isUnlocked ? 0.18 : 0.08)
+                Color("PaletteInk").opacity(0.18)
             }
         }
         .frame(width: 86, height: 54)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(Color("PaletteInk").opacity(entry.isUnlocked ? 0.8 : 0.3), lineWidth: 2)
+                .strokeBorder(Color("PaletteInk").opacity(0.8), lineWidth: 2)
         )
-    }
-
-    private func rowBackground(_ entry: FloorMapEntry) -> some View {
-        RoundedRectangle(cornerRadius: 16, style: .continuous)
-            .fill(Color("PaletteCream").opacity(entry.isUnlocked ? 0.95 : 0.55))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .strokeBorder(
-                        entry.isVisible ? Color("PaletteBlue") : Color("PaletteInk").opacity(entry.isUnlocked ? 0.75 : 0.25),
-                        lineWidth: entry.isVisible ? 3 : 2
-                    )
-            )
     }
 }
 

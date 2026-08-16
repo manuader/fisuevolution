@@ -78,10 +78,11 @@ struct GameBoardView: View {
     @Environment(GameState.self) private var gameState
     @State private var scene: BoardScene?
     @State private var showPrestige = false
-    @State private var showStore = false
-    @State private var showBonus = false
-    @State private var showUpgrades = false
-    @State private var showConfig = false
+    /// La pantalla de la barra inferior que está abierta, o `nil`. Las seis
+    /// comparten UN `.sheet(item:)` en vez de tener un `@State showX` cada una:
+    /// con un booleano por hoja, dos tabs seguidos podían dejar dos banderas en
+    /// `true` y SwiftUI presentar una sola. El enum lo hace imposible.
+    @State private var activeScreen: GameScreen?
     @State private var adsProvider = StubAdsProvider()
     // Los popups automáticos no deben pisar el tutorial en el primer arranque.
     @AppStorage("fisuTutorialDone") private var tutorialDone = false
@@ -117,13 +118,7 @@ struct GameBoardView: View {
             }
             VStack(spacing: 8) {
                 HUDView(
-                    onStoreTap: { showStore = true },
-                    onBonusTap: { showBonus = true },
-                    onUpgradesTap: {
-                        showUpgrades = true
-                        tutorialEvents.insert(.openedUpgrades)
-                    },
-                    onSettingsTap: { showConfig = true },
+                    onStoreTap: { open(.store) },
                     onMapOpen: { tutorialEvents.insert(.openedMap) }
                 )
                 // Los contadores de bonus van pegados al HUD y a la izquierda;
@@ -147,12 +142,55 @@ struct GameBoardView: View {
             debugButton
             #endif
 
-            if let notice = gameState.towerNotice {
-                TowerNoticeView(notice: notice) {
-                    gameState.dismissTowerNotice(id: notice.id)
+            // Mismo patrón —y misma razón— que el toast de logros de acá abajo:
+            // una `.transition` sólo corre si la INSERCIÓN ocurre dentro de una
+            // transacción animada, y esa transacción la abre el PADRE. Sin el
+            // `ZStack` + `.animation(value:)`, la transition estaba declarada
+            // pero muerta y el aviso de piso aparecía de golpe. Es el defecto que
+            // la T18 le arregló al toast y que quedó confirmado y diferido acá.
+            ZStack {
+                if let notice = gameState.towerNotice {
+                    TowerNoticeView(notice: notice) {
+                        gameState.dismissTowerNotice(id: notice.id)
+                    }
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
-                .transition(.move(edge: .bottom).combined(with: .opacity))
             }
+            .animation(.spring(duration: 0.32), value: gameState.towerNotice?.id)
+
+            // ⚠️ La animación de entrada va ACÁ y no adentro del banner: una
+            // `.transition` sólo corre si la INSERCIÓN ocurre dentro de una
+            // transacción animada, y esa transacción la abre el padre. Con el
+            // `.animation(value:)` puesto sobre el propio banner —como estaba
+            // hasta la T18— el toast aparecía de golpe: el modificador animaba
+            // los cambios de adentro, no su propio nacimiento.
+            //
+            // El contenedor es un `ZStack` REAL y no un `Group` por HIGIENE, no
+            // porque el `Group` fallara: se midió cuadro a cuadro con las dos
+            // versiones y el banner recorre los MISMOS 229 pt en los mismos
+            // ~0,35 s (fix ronda 1 de la T18). La razón es que `Group` reparte
+            // sus modificadores a cada hijo, y acá el único "hijo" es el
+            // `if let` entero —el envoltorio opcional, que existe igual cuando
+            // el toast es `nil`—, así que la `.animation` cae afuera de la
+            // rama y abre la transacción lo mismo. Es una propiedad de tener UN
+            // solo hijo opcional: agregarle un segundo hermano al `Group`
+            // pondría una `.animation` por hermano. El `ZStack` no depende de
+            // eso, está montado siempre, y es la forma que ya usan el `VStack`
+            // del `EventBannerView` (arriba, misma pantalla) y el de
+            // `ActiveBonusBar`.
+            //
+            // No cambia el layout: el hijo se ancla solo (su raíz es un `VStack`
+            // con `Spacer()`, o sea que ocupa todo el alto igual que antes).
+            // Y acota el alcance al toast, para no teñir de spring los cambios
+            // del HUD que caigan en el mismo frame.
+            ZStack {
+                if let toast = gameState.achievementToast {
+                    AchievementToastView(toast: toast) {
+                        gameState.dismissAchievementToast(id: toast.id)
+                    }
+                }
+            }
+            .animation(.spring(duration: 0.32), value: gameState.achievementToast?.id)
         }
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los
         // anchors que publican los controles de adentro: `overlayPreferenceValue`
@@ -199,17 +237,18 @@ struct GameBoardView: View {
         .sheet(isPresented: $showPrestige) {
             PrestigeView()
         }
-        .sheet(isPresented: $showStore) {
-            StoreView()
-        }
-        .sheet(isPresented: $showBonus) {
-            BonusView(adsProvider: adsProvider)
-        }
-        .sheet(isPresented: $showUpgrades) {
-            UpgradesView()
-        }
-        .sheet(isPresented: $showConfig) {
-            ConfigView()
+        // Las seis pantallas de la barra inferior, en UN solo sheet. Ya no queda
+        // ningún placeholder: el Menú es la última que se construyó (T15) y es
+        // la única que navega hacia adentro.
+        .sheet(item: $activeScreen) { screen in
+            switch screen {
+            case .jobs: FisuJobsView()
+            case .upgrades: UpgradesView()
+            case .skins: CustomizationView()
+            case .gifts: GiftsView(adsProvider: adsProvider)
+            case .store: StoreView()
+            case .menu: MenuView()
+            }
         }
         .sheet(item: Binding(
             get: { tutorialDone ? gameState.specialDrop : nil },
@@ -243,29 +282,49 @@ struct GameBoardView: View {
         )
     }
 
+    /// Abre una pantalla de la barra y avisa al tutorial cuando el paso se
+    /// completa **por abrir la hoja** (la economía no cambia, así que no hay
+    /// proyección de `GameState` que lo delate).
+    private func open(_ screen: GameScreen) {
+        if screen == .upgrades { tutorialEvents.insert(.openedUpgrades) }
+        activeScreen = screen
+    }
+
+    /// La franja de abajo: el botón flotante de reencarnar y la barra de las 6
+    /// pantallas. Conserva `.tutorialAnchor(.bottomBar)`, que no ilumina nada
+    /// —es la franja que el globo del tutorial tiene que esquivar—.
     private var bottomBar: some View {
-        VStack(spacing: 10) {
-            if gameState.prestigeAvailable {
-                Button {
-                    showPrestige = true
-                } label: {
-                    Label {
-                        Text("prestige.button")
-                    } icon: {
-                        Image(systemName: "sparkles")
-                    }
-                    .font(.headline)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(Color("PalettePink"))
-                .accessibilityIdentifier("hud.prestige")
-            }
-            SpawnButtonView()
+        VStack(spacing: Tokens.s8) {
+            prestigeButton
+            BottomMenuBar(select: open)
         }
-        .padding(.bottom, 20)
+        .padding(.horizontal, Tokens.s8)
+        .padding(.bottom, Tokens.s8)
         .tutorialAnchor(.bottomBar)
+    }
+
+    /// Reencarnar salió de la barra: es una acción rara y definitiva, y un
+    /// séptimo tab la pondría al lado de la tienda. Queda flotando sobre el
+    /// tablero contra el borde derecho, y sólo cuando hay algo que cobrar.
+    @ViewBuilder private var prestigeButton: some View {
+        if gameState.prestigeAvailable {
+            Button {
+                showPrestige = true
+            } label: {
+                Label {
+                    Text("prestige.button")
+                } icon: {
+                    Image(systemName: "sparkles")
+                }
+                .font(.headline)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 4)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(Color("PalettePink"))
+            .accessibilityIdentifier("hud.prestige")
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
     }
 
         /// DailyRewardManager.Claim no es Identifiable; wrapper para .sheet(item:).
@@ -295,6 +354,89 @@ struct GameBoardView: View {
         .padding(.top, 68) // debajo del HUD para no tapar el engranaje de Config
     }
     #endif
+}
+
+// `ScreenPlaceholderView` se retiró en la T15 y el último placeholder de todos
+// —Ajustes— murió en la T16: las seis pantallas de la barra y las cuatro del
+// menú existen de verdad.
+
+/// El banner de un logro recién conseguido: mismo mecanismo que
+/// `TowerNoticeView` —aparece, se puede tocar para cerrar y se va solo— pero con
+/// la copa y el título del logro adentro.
+///
+/// Va **más arriba** que el aviso de la torre a propósito: una contratación que
+/// llena el piso y cierra el logro de contrataciones publica los dos a la vez, y
+/// apilados se leen; superpuestos, ninguno.
+private struct AchievementToastView: View {
+    let toast: AchievementToast
+    let dismiss: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Dispara el pulso de la copa. Sube UNA vez por logro —desde el mismo
+    /// `.task(id:)` que ya cuenta los 2,4 s— y no es un `repeatForever`: el
+    /// trofeo late al llegar y se queda quieto. El banner es el mismo objeto para
+    /// dos logros seguidos (la cola reusa la vista), así que el disparo tiene que
+    /// colgar del `id` y no de un `onAppear`, que la segunda vez no corre.
+    @State private var pulse = 0
+
+    /// El catálogo nombra el metal (`trophy_bronze`); la vista lo mapea al
+    /// icono. Un metal que no exista cae a bronce en vez de dejar el hueco.
+    private var tier: VectorTrophyIcon.Tier {
+        VectorTrophyIcon.Tier(rawValue: toast.icon.replacingOccurrences(of: "trophy_", with: "")) ?? .bronze
+    }
+
+    var body: some View {
+        VStack {
+            Spacer()
+            HStack(spacing: Tokens.s8) {
+                // Misma costura que la fila de Logros: el `rawValue` del metal es
+                // el sufijo de la clave del atlas (`ui_trophy_bronze/silver/gold`,
+                // prompts 224–226 de la cola). Sin PNG cae al vector, así que el
+                // pulso de abajo sigue midiendo lo mismo.
+                GameIcon(artKey: "ui_trophy_\(tier.rawValue)", size: 34) {
+                    VectorTrophyIcon(tier: tier)
+                }
+                    .keyframeAnimator(initialValue: 1.0, trigger: pulse) { view, scale in
+                        view.scaleEffect(scale)
+                    } keyframes: { _ in
+                        KeyframeTrack {
+                            SpringKeyframe(1.3, duration: 0.2, spring: .bouncy)
+                            SpringKeyframe(1.0, duration: 0.3, spring: .bouncy)
+                        }
+                    }
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("ach.toast.unlocked")
+                        .font(.system(.caption2, design: .rounded).weight(.heavy))
+                        .foregroundStyle(Color("PaletteInk").opacity(0.65))
+                    Text(verbatim: toast.titleText)
+                        .font(.system(.subheadline, design: .rounded).weight(.heavy))
+                        .foregroundStyle(Color("PaletteInk"))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+            .padding(.horizontal, 18)
+            .padding(.vertical, 10)
+            .background(
+                Capsule().fill(Color("PaletteCream"))
+                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+            )
+            .onTapGesture(perform: dismiss)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("ach.toast")
+            .accessibilityAddTraits(.isButton)
+            .task(id: toast.id) {
+                if !reduceMotion { pulse += 1 }
+                try? await Task.sleep(for: .seconds(2.4))
+                guard !Task.isCancelled else { return }
+                dismiss()
+            }
+            .padding(.bottom, 196)
+        }
+        .padding(.horizontal, 20)
+        // Con Reduce Motion el banner se funde en vez de deslizarse: la guía de
+        // Apple pide reemplazar el movimiento por un fundido, no borrar el aviso.
+        .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
+    }
 }
 
 private struct TowerNoticeView: View {

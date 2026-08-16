@@ -34,6 +34,8 @@ extension GameState {
         // encuentra dónde caer (torre llena, sin par mergeable), el video igual
         // se miró y el anunciante igual cobró.
         player.meta.rewardedActivations[rewardId] = now
+        // El contador va donde va el cooldown, y por el mismo motivo.
+        player.meta.stats.videosWatchedEver += 1
         self.player = player
 
         switch reward.effectType {
@@ -54,6 +56,7 @@ extension GameState {
         }
         // La fila tiene que pasar de botón a cuenta regresiva sin cerrar el panel.
         effectsVersion += 1
+        evaluateAchievements()
         scheduleSave()
         Log.economy.info("rewarded effect applied: \(reward.id)")
     }
@@ -163,11 +166,18 @@ extension GameState {
                 economy: economy,
                 now: Date().timeIntervalSince1970
             )
+            // Adentro del `do` y después del `activate`: un boost bloqueado sale
+            // por el guard de arriba y uno en cooldown tira, y ninguno de los dos
+            // es una activación.
+            player.meta.stats.boostsActivatedEver += 1
             self.player = player
             effectsVersion += 1
             // El cofre del Asado es la otra vez que cae plata de golpe (el resto
             // de los boosts no pagan nada al activarse, devuelven nil).
             if chest != nil { audio?.play(.coin) }
+            // Después del `+= 1` y dentro del `do`: un boost bloqueado o en
+            // cooldown no es una activación y no mueve el logro.
+            evaluateAchievements()
             refreshProjections()
             scheduleSave()
             return chest
@@ -255,6 +265,9 @@ extension GameState {
             self.player = player
             dailyClaim = claim
             audio?.play(.daily)
+            // El día 7 del ciclo y el special que puede tirar el cofre: los dos
+            // logros que sólo se cruzan por acá.
+            evaluateAchievements()
             refreshProjections()
             scheduleSave()
         }
@@ -262,6 +275,43 @@ extension GameState {
 
     func dismissDailyClaim() {
         dailyClaim = nil
+    }
+
+    /// La semana del daily como la dibuja `GiftsView` (spec §9).
+    ///
+    /// ⚠️ **Es informativo y no cobra nada.** El claim sigue siendo automático
+    /// (bootstrap + vuelta a foreground); un botón acá abriría el doble camino de
+    /// claim que el spec descarta, con su carrera entre los dos.
+    ///
+    /// La semántica de `cycleDay`: **apunta al día que el ciclo VA A PAGAR**, no
+    /// al que ya pagó. `DailyRewardManager.claimIfAvailable` cobra el día
+    /// `cycleDay` y recién entonces lo avanza (`ContentSystems.swift:396-397`),
+    /// así que los días menores son los cobrados y ese es el que está en juego.
+    /// Después del claim automático de hoy, el resaltado ya es el de mañana: la
+    /// tira se lee como "esto llevás, esto viene".
+    ///
+    /// ⚠️⚠️ **Y por eso no se deduce "el día cobrado hoy" de `lastClaimDay`**,
+    /// que sería la otra lectura posible. En una instalación nueva el bootstrap
+    /// escribe `lastClaimDay = hoy` **sin cobrar y sin mover `cycleDay`**
+    /// (`GameState.swift:436-440`, para que el popup no compita con el tutorial):
+    /// con esa regla, una partida recién empezada mostraría los siete días
+    /// tildados. Está pineado en `DailyCalendarTests`.
+    var dailyCalendar: [DailyDayRow] {
+        guard let content, let player else { return [] }
+        let days = content.dailyRewards.days.sorted { $0.day < $1.day }
+        guard !days.isEmpty else { return [] }
+        let current = min(max(player.meta.daily.cycleDay, 1), days.count)
+        return days.map { day in
+            DailyDayRow(
+                id: day.day,
+                titleKey: day.titleKey,
+                isToday: day.day == current,
+                isClaimed: day.day < current,
+                // El mismo literal que decide el premio en `claimIfAvailable`: el
+                // día del cofre es el que tira un special en vez de monedas.
+                isChest: day.type == "special_roll"
+            )
+        }
     }
 
     /// La escena ofrece el share card al terminar el reveal de evolución.
@@ -276,7 +326,7 @@ extension GameState {
     // MARK: Proyecciones de la pantalla de Bonus (RF-06, RF-11, RF-12)
 
     /// Las filas de boost, ya resueltas: qué hace cada uno, si está abierto y qué
-    /// piso lo abre. `BonusView` no lee `PlayerState` (regla de arquitectura), y
+    /// piso lo abre. `GiftsView` no lee `PlayerState` (regla de arquitectura), y
     /// que la traducción viva acá evita que la vista invente la suya.
     var boostRows: [BoostRow] {
         guard let content, let player else { return [] }
@@ -292,7 +342,8 @@ extension GameState {
                 flavorText: Self.localized(boost.flavorTextKey(buildVariant: variant)),
                 isUnlocked: unlocked,
                 unlockFloorName: unlocked ? nil : TowerNaming.floorName(for: boost.unlockFloorId),
-                cooldownRemaining: BoostManager.cooldownRemaining(of: boost, state: player, now: now)
+                cooldownRemaining: BoostManager.cooldownRemaining(of: boost, state: player, now: now),
+                cooldownTotal: boost.cooldownSeconds
             )
         }
     }
@@ -339,7 +390,8 @@ extension GameState {
         return catalog
     }
 
-    /// Las cuatro recompensas por video con su cuenta regresiva (RF-11).
+    /// Las cuatro recompensas por video con su cuenta regresiva (RF-11) y qué da
+    /// cada una.
     var rewardRows: [RewardRow] {
         guard let content else { return [] }
         let now = Date().timeIntervalSince1970
@@ -347,9 +399,55 @@ extension GameState {
             RewardRow(
                 id: reward.id,
                 titleKey: reward.titleKey,
-                cooldownRemaining: rewardCooldownRemaining(id: reward.id, now: now)
+                rewardText: Self.rewardText(for: reward),
+                cooldownRemaining: rewardCooldownRemaining(id: reward.id, now: now),
+                cooldownTotal: reward.cooldownSeconds
             )
         }
+    }
+
+    /// Qué te da ESTE video, resuelto del dato (spec §9).
+    ///
+    /// Hasta acá la fila mostraba sólo su `titleKey`, y los dos multiplicadores
+    /// llevaban el número **escrito en el catálogo** ("Ganancias x2 (2 min)"):
+    /// cambiar `magnitude` en `rewarded_ads.json` dejaba la copy mintiendo, que
+    /// es la misma trampa que RF-06 corrigió en los boosts. El número sale ahora
+    /// de la pieza compartida `EffectDescriptor`, la misma que usan boosts,
+    /// mejoras y los chips del HUD, y los títulos quedaron como nombres.
+    ///
+    /// El `.incomeMultiplier` que se le pasa es el de `BoostsConfig` —son dos
+    /// enums distintos con el mismo caso— porque el descriptor traduce EFECTOS,
+    /// no orígenes: un ×2 a los ingresos se lee igual venga de un mate o de un
+    /// video.
+    private static func rewardText(for reward: RewardedAdsConfig.Reward) -> String {
+        switch reward.effectType {
+        case .incomeMultiplier:
+            // Sin magnitud o sin duración no hay frase que armar: la fila se queda
+            // con su título en vez de publicar un "× por" a medio llenar.
+            guard let magnitude = reward.magnitude, let duration = reward.durationSeconds else { return "" }
+            let value = EffectFormatter.text(
+                EffectDescriptor.amount(forBoost: .incomeMultiplier, magnitude: magnitude)
+            )
+            return String(localized: "ads.reward.text.income \(value) \(durationText(duration))")
+        case .instantMerge:
+            return String(localized: "ads.reward.text.merge")
+        case .rareUnit:
+            return String(localized: "ads.reward.text.rare")
+        }
+    }
+
+    /// "2 min" o "45 s". Los dos videos con duración duran minutos redondos, pero
+    /// la duración es un dato: si mañana uno dura 45 s, la frase sigue siendo
+    /// cierta sin tocar código.
+    ///
+    /// ⚠️ El número va como `String` a propósito: una clave con `%@` interpolada
+    /// con un `Int` sale en pantalla como la clave cruda (trampa 5).
+    private static func durationText(_ seconds: Double) -> String {
+        let total = Int(seconds.rounded())
+        if total >= 60, total % 60 == 0 {
+            return String(localized: "ads.duration.min \(String(total / 60))")
+        }
+        return String(localized: "ads.duration.sec \(String(total))")
     }
 
     /// La línea de "qué hace" de un boost (RF-06). El número sale entero de la
@@ -497,6 +595,7 @@ extension GameState {
         )
         self.player = player
         effectsVersion += 1
+        evaluateAchievements()
         scheduleSave()
     }
 }
@@ -519,13 +618,39 @@ extension GameState {
         /// Nombre del piso que lo desbloquea. Nil si ya está abierto.
         let unlockFloorName: String?
         let cooldownRemaining: TimeInterval
+        /// Cuánto dura el cooldown entero. Es una CONSTANTE del config, no algo
+        /// que cambie con el tiempo, y va acá por lo mismo que `totalDuration`
+        /// va en `ActiveBonus`: el aro necesita las dos cosas —cuánto falta y
+        /// sobre cuánto— y la vista no lee el config.
+        let cooldownTotal: TimeInterval
     }
 
     /// Una recompensa por video con lo que falta para volver a ofrecerla.
     struct RewardRow: Identifiable, Equatable {
         let id: String
         let titleKey: String
+        /// "×2 a los ingresos, por 2 min" — **ya resuelto**, no una clave: el
+        /// número sale de `EffectDescriptor` y tiene que poder testearse.
+        let rewardText: String
         let cooldownRemaining: TimeInterval
+        /// Las cuatro horas enteras del cooldown, para el aro (ver `BoostRow`).
+        let cooldownTotal: TimeInterval
+    }
+
+    /// Un día del ciclo de 7 del daily, tal como se dibuja la tira del
+    /// calendario. Ver `dailyCalendar` para qué significa exactamente "hoy".
+    struct DailyDayRow: Identifiable, Equatable {
+        /// 1...7 — el mismo número del config y el que muestra la casilla.
+        let id: Int
+        /// Clave del nombre del día ("Día 3: Quincena Chica"). Va como clave y no
+        /// resuelta porque no lleva ningún número adentro: la vista la localiza.
+        let titleKey: String
+        /// El día que el ciclo va a pagar. **No** es "el que cobraste hoy": ver
+        /// el docstring de `dailyCalendar`.
+        let isToday: Bool
+        let isClaimed: Bool
+        /// El día 7 no paga monedas: tira un personaje special.
+        let isChest: Bool
     }
 
     /// El premio de una carrera. El `kind` es lo que hace que la elección sea una

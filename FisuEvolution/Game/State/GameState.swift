@@ -166,7 +166,17 @@ final class GameState {
     /// el visible, o el de abajo cuando el gate cerró el visible. Lleva su
     /// `floorOrdinal`, así que `buySpawn` contrata donde corresponde sin
     /// recalcular nada.
+    ///
+    /// ⚠️ **Ya no tiene consumidor de UI.** `SpawnButtonView` —el único que la
+    /// dibujaba— murió con la barra inferior, y FisuJobs cotiza por TIPO
+    /// (`jobRows` / `hireCharacter`, en `+Hiring`) y no por el tier base del
+    /// piso visible. Sigue publicada porque de ella salen `canAffordSpawn` —que
+    /// el tutorial usa para saber si ya te alcanza para contratar— y los tests
+    /// de `GameLoopWiringTests` que pinean la curva de precio.
     private(set) var spawnQuote: HireQuote?
+    /// La lee `TutorialOverlay` (`Completion.earnedEnoughToHire`): es la única
+    /// forma de preguntar "¿ya junta para el primer laburo?" sin que el tutorial
+    /// tenga que cotizar por su cuenta.
     private(set) var canAffordSpawn = false
     private(set) var unitCount = 0
     /// F7: reencarnación disponible = vas a ganar ≥1 ORO.
@@ -194,6 +204,10 @@ final class GameState {
     /// `refreshProjections`.
     private(set) var activeBonuses: [ActiveBonus] = []
     private(set) var showTapHint = false
+    /// ⚠️ Huérfana desde que murió `SpawnButtonView`: era el pulso de aquel
+    /// botón, y un tab de la barra no late. Se conserva —la calcula
+    /// `refreshProjections` en dos líneas— hasta que la pantalla de FisuJobs
+    /// decida si quiere destacar la fila que ya podés pagar (Task 8).
     private(set) var showSpawnHint = false
     private(set) var showMergeHint = false
     /// Espejo OBSERVABLE de las tres banderas del FTUE.
@@ -223,8 +237,20 @@ final class GameState {
     private(set) var towerIncomePerSecondText = "0"
     private(set) var visibleFloorIsUnlocked = false
     /// Qué puede hacer el botón de contratar desde el piso visible.
+    ///
+    /// ⚠️ Mismo caso que `spawnQuote`: **sin consumidor de UI desde que la barra
+    /// inferior reemplazó al botón de spawn.** El estado de una fila de laburos
+    /// es `JobRow.State`, que se decide por el piso DEL TIPO y no por el
+    /// visible; queda publicada para `GameLoopWiringTests`.
     private(set) var hireOffer: HireOffer = .floorLocked
     var towerNotice: TowerNotice?
+    /// El logro recién conseguido que está en pantalla. Lo escribe
+    /// `+Achievements`.
+    var achievementToast: AchievementToast?
+    /// Los que esperan turno. Abrir un piso puede cerrar tres logros a la vez y
+    /// el banner dura 2,4 s: sin cola el jugador vería uno solo. Va
+    /// `@ObservationIgnored` porque lo único que la UI mira es el de adelante.
+    @ObservationIgnored var pendingAchievementToasts: [AchievementToast] = []
     /// Se incrementa al comprar upgrades/activar boosts: las vistas que leen
     /// `player` directo lo observan para re-renderizar.
     /// Lo escriben `+Upgrades` (las dos compras) y `+Bonus` (boosts y shares).
@@ -335,7 +361,7 @@ final class GameState {
             var forceNewGame = false
             #if DEBUG
             forceNewGame = ProcessInfo.processInfo.arguments.contains("--uitest-reset")
-            applyTutorialLaunchArguments(forceNewGame: forceNewGame)
+            applyLaunchArgumentDefaults(forceNewGame: forceNewGame)
             #endif
 
             if content.flags.cloudKitEnabled {
@@ -378,6 +404,19 @@ final class GameState {
                 // encabezado aguanta al lado de la carita grande.
                 debugMarkTypesSeen(throughTier: 8)
             }
+            // Las skins de milestone de los personajes que el jugador YA vio.
+            // Ganarlas jugando pide abrir pisos o reencarnar, así que sin esta
+            // puerta el Customization Shop no tiene una sola pinta que ponerse y
+            // no hay forma de ejercer "Ponérsela". Va DESPUÉS de
+            // `--uitest-seen-types` porque se apoya en lo que ese marcó.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-skins"), let player {
+                let seen = player.run.seenTypes
+                grantMilestoneSkinsForTests(
+                    content.skins.skins
+                        .filter { $0.isMilestone && seen.contains($0.characterType) }
+                        .map(\.id)
+                )
+            }
             // RF-16: el ORO va con la raíz de lifetime/3M, así que llegar al
             // prestigio jugando no es automatizable. El fixture lo acredita.
             if ProcessInfo.processInfo.arguments.contains("--uitest-prestige") {
@@ -389,6 +428,21 @@ final class GameState {
             // no la puntería del runner.
             if ProcessInfo.processInfo.arguments.contains("--uitest-coins") {
                 debugGrantCoins()
+            }
+            // La tira del calendario de Regalos con días ya cobrados atrás. Va
+            // ANTES del claim automático de más abajo a propósito: en una partida
+            // nueva ese claim no corre (FTUE) y sólo marca `lastClaimDay`, así que
+            // el `cycleDay` que se pone acá es el que termina en pantalla.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-daily-streak") {
+                debugSetDailyCycleDay(4)
+            }
+            // Tres logros conseguidos y sin cobrar: es la única forma de ver la
+            // sección "Para cobrar" de la pantalla de Logros con algo adentro.
+            // Va DESPUÉS de los otros fixtures a propósito —`--uitest-coins`
+            // mueve `lifetimeEarnings` y cruza su propio logro— para que su
+            // `evaluateAchievements()` acredite todo de una pasada.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-achievements") {
+                debugSeedAchievements()
             }
             // El long-press sobre SpriteKit no es determinista en el runner: para
             // el smoke de la ficha alcanza con abrirla sobre la primera unidad.
@@ -406,7 +460,24 @@ final class GameState {
                 player.meta.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
                 self.player = player
             }
+            #if DEBUG
+            // El popup del premio del día, abierto. Va DESPUÉS del bloque de
+            // arriba porque es justamente ese bloque el que lo hace imposible:
+            // una partida nueva marca `lastClaimDay` en HOY para no pisar el
+            // tutorial, y el daily se cobra una sola vez por día. Sin esta
+            // puerta, la única pantalla que celebra la racha no se puede ni
+            // fotografiar ni ejercitar sin cambiarle la fecha al simulador.
+            // Combinado con `--uitest-daily-streak` muestra el día 4.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-daily-popup") {
+                debugClaimDailyAgain()
+            }
+            #endif
             scheduleNextEvent(from: Date().timeIntervalSince1970)
+            // Una sola pasada post-carga: un save escrito ANTES de que
+            // existieran los logros llega con medio catálogo ya ganado, y sin
+            // esto quedaría esperando a la próxima fusión para enterarse.
+            // Corre con `phase == .loading`, así que acredita sin toastear.
+            evaluateAchievements()
             refreshProjections()
             phase = .ready
         } catch let error as GameError {
@@ -474,6 +545,10 @@ final class GameState {
             self.player = player
         }
         awardEligibleMilestoneSkins()
+        // Este método ya es el embudo de merges, ascensos y pisos nuevos: los
+        // logros de fusión, tier, piso, skins y specials cuelgan de acá y no de
+        // seis call sites que habría que mantener sincronizados.
+        evaluateAchievements()
     }
 
     /// Milestones no dependen de la escena: cualquier unlock/reencarnación que

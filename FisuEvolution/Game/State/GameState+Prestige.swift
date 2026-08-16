@@ -105,6 +105,12 @@ extension GameState {
         audio?.play(.prestige)
         haptics?.play(.rarity)
         gameCenter?.report(.firstPrestige)
+        // Los tres logros de reencarnación miran `meta.prestigeLevel`, que ya
+        // subió, así que en la práctica los cruza el `reconcileTower()` de arriba.
+        // Queda igual porque el orden de esas dos líneas no es un contrato: si
+        // mañana el reconciliador deja de pasar por `updateMaxFloorStat`, esto
+        // sigue siendo el choke point del prestigio. Es idempotente: no cuesta.
+        evaluateAchievements()
         bumpBoard()
         Task { await persistNow() }
         Log.economy.info("reincarnated: level \(player.meta.prestigeLevel), oro \(player.meta.oro)")

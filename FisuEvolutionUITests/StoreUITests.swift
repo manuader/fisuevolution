@@ -27,9 +27,15 @@ final class StoreUITests: XCTestCase {
         return app
     }
 
-    /// La lista es perezosa: una fila que no está a la vista no existe en el
-    /// árbol de accesibilidad, así que buscarla exige scrollear. Sin esto el
-    /// test fallaría por los productos de abajo aunque la tienda esté completa.
+    /// Busca una fila, scrolleando si hace falta.
+    ///
+    /// ⚠️ Desde la T12 la tienda **no es una `List`**: es un `ScrollView` con un
+    /// `VStack` (no `LazyVStack`), así que las diez tarjetas existen en el árbol
+    /// de accesibilidad sin scrollear y esto devuelve `true` en la primera
+    /// vuelta. Los deslizamientos quedan igual a propósito: son la red que
+    /// atrapa el día en que la columna se vuelva perezosa —por diez productos
+    /// más, o por un `LazyVStack` de vuelta— sin que este test tenga que
+    /// enterarse. Lo que se asserta es lo mismo de siempre: que la fila ESTÁ.
     @MainActor
     private func scrollUntilVisible(_ element: XCUIElement, in app: XCUIApplication) -> Bool {
         for _ in 0..<8 {
@@ -63,10 +69,17 @@ final class StoreUITests: XCTestCase {
             )
         }
 
-        let screenshot = XCTAttachment(screenshot: app.screenshot())
-        screenshot.name = "RF-02b la tienda con los packs"
-        screenshot.lifetime = .keepAlways
-        add(screenshot)
+        attach(app, named: "RF-02b la tienda con los packs")
+
+        // Y el fondo de la vidriera, que es donde viven las skins con su
+        // preview: XCUITest no puede leer si el retrato de la Mundialista se
+        // dibujó, así que lo único que prueba ese pedazo del rediseño es la
+        // captura. Sin este deslizamiento la única evidencia visual de la
+        // pantalla sería su encabezado.
+        app.swipeUp()
+        app.swipeUp()
+        app.swipeUp()
+        attach(app, named: "T12 la góndola de skins")
     }
 
     /// La otra mitad del pedido: que las filas digan qué dan. El número sale
@@ -75,10 +88,7 @@ final class StoreUITests: XCTestCase {
     func testEachPackSaysWhatItGives() throws {
         let app = openStore()
 
-        let top = XCTAttachment(screenshot: app.screenshot())
-        top.name = "RF-02b la tienda al abrirla"
-        top.lifetime = .keepAlways
-        add(top)
+        attach(app, named: "RF-02b la tienda al abrirla")
 
         for id in ["starter_pack", "coins_small", "oro_small"] {
             let reward = app.staticTexts["store.reward.com.fisuevolution.iap.\(id)"]
@@ -94,5 +104,13 @@ final class StoreUITests: XCTestCase {
             app.staticTexts["store.reward.com.fisuevolution.iap.remove_ads"].exists,
             "quitar los ads no es un pack y no debería tener línea calculada"
         )
+    }
+
+    @MainActor
+    private func attach(_ app: XCUIApplication, named name: String) {
+        let attachment = XCTAttachment(screenshot: app.screenshot())
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
     }
 }

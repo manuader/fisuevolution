@@ -24,6 +24,36 @@ final class StoreManager {
     private weak var gameState: GameState?
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
 
+    /// De dónde salen los productos. Es una propiedad y no una llamada directa
+    /// a `Product.products(for:)` por una sola razón: **la única forma de tener
+    /// una tienda que no contesta es poner un fetch que no conteste**, y el
+    /// defecto que este manager arregla (HANDOFF §8) es justamente ese.
+    @ObservationIgnored
+    var productsFetcher: @Sendable ([String]) async throws -> [Product] = {
+        try await Product.products(for: $0)
+    }
+
+    /// Cuánto se espera a StoreKit antes de dar la carga por perdida. Es `var`
+    /// para que los tests corran la carrera en milisegundos en vez de en diez
+    /// segundos; en la app nadie lo toca.
+    @ObservationIgnored
+    var loadTimeout: Duration = .seconds(10)
+
+    /// Qué carga es la vigente. Una carga vieja que contesta tarde —el fetch que
+    /// perdió la carrera y volvió igual, después de que el jugador tocó
+    /// "Reintentar"— no puede pisar el resultado de la nueva.
+    @ObservationIgnored private var loadGeneration = 0
+
+    init() {}
+
+    /// **Sólo para tests**: el manager con el catálogo ya puesto y sin el
+    /// listener de `Transaction.updates`, para poder ejercitar `loadProducts()`
+    /// sin la App Store de por medio. `start(gameState:)` es el camino de la app.
+    init(catalog: ProductCatalog, productsFetcher: @escaping @Sendable ([String]) async throws -> [Product]) {
+        self.catalog = catalog
+        self.productsFetcher = productsFetcher
+    }
+
     /// Called once from the app root. Starts the lifetime `Transaction.updates`
     /// listener (required: purchases can arrive at any moment) and hydrates.
     func start(gameState: GameState) async {
@@ -54,16 +84,87 @@ final class StoreManager {
     func loadProducts() async {
         guard let catalog else { return }
         loadState = .loading
-        do {
-            let loaded = try await Product.products(for: catalog.allProductIDs)
+        #if DEBUG
+        // Fixture: la tienda que no contesta (sin red, o la app corriendo sin
+        // configuración de StoreKit).
+        //
+        // Hace falta una puerta porque **desde un test no se puede llegar a esa
+        // rama de otro modo**: el runner levanta la app con la configuración de
+        // StoreKit del scheme y los productos cargan siempre. Y esa rama es la
+        // que dibuja "Precio no disponible" en Pintas, o sea justo lo que hay
+        // que proteger de volver a mentir "no está a la venta".
+        if ProcessInfo.processInfo.arguments.contains("--uitest-storekit-empty") {
+            products = []
+            loadState = .failed
+            return
+        }
+        #endif
+        loadGeneration += 1
+        let generation = loadGeneration
+        let outcome = await fetchWithDeadline(ids: catalog.allProductIDs)
+        // La carga que contesta cuando ya hay otra en curso se descarta: el
+        // jugador tocó "Reintentar" y lo que vale es el intento nuevo.
+        guard generation == loadGeneration else { return }
+
+        switch outcome {
+        case .loaded(let loaded):
             // Orden estable: el del catálogo (remove ads primero, skins después).
             let order = Dictionary(uniqueKeysWithValues: catalog.allProductIDs.enumerated().map { ($1, $0) })
             products = loaded.sorted { (order[$0.id] ?? .max) < (order[$1.id] ?? .max) }
             loadState = .loaded
-        } catch {
-            Log.store.error("product load failed: \(error)")
+        case .failed:
+            loadState = .failed
+        case .timedOut:
+            Log.store.error("product load timed out after \(self.loadTimeout, privacy: .public)")
             loadState = .failed
         }
+    }
+
+    /// Cómo terminó una carga.
+    private enum LoadOutcome: Sendable {
+        case loaded([Product])
+        /// StoreKit contestó con un error.
+        case failed
+        /// StoreKit no contestó a tiempo. Se distingue de `failed` para poder
+        /// nombrarlo en el log: es el defecto que la pantalla no podía ver.
+        case timedOut
+    }
+
+    /// El fetch de productos con plazo: gana el primero que conteste.
+    ///
+    /// ⚠️ **La carrera no se escribe con `withThrowingTaskGroup`** aunque sea el
+    /// reflejo obvio. Un grupo no termina hasta que TODOS sus hijos terminan, y
+    /// cancelarlo es sólo un pedido: con el fetch colgado —que es exactamente el
+    /// defecto que esto arregla— el grupo no sale nunca y `loadProducts()`
+    /// seguiría sin volver, con plazo y todo. Con el canal, se lee al ganador y
+    /// al perdedor se lo suelta: lo que llegue tarde cae en un `AsyncStream` que
+    /// ya no lee nadie, y la guarda de generación se ocupa del resto.
+    private func fetchWithDeadline(ids: [String]) async -> LoadOutcome {
+        let (outcomes, publish) = AsyncStream<LoadOutcome>.makeStream()
+        let fetcher = productsFetcher
+        let timeout = loadTimeout
+
+        let fetch = Task {
+            do {
+                publish.yield(.loaded(try await fetcher(ids)))
+            } catch {
+                Log.store.error("product load failed: \(error)")
+                publish.yield(.failed)
+            }
+        }
+        let deadline = Task {
+            // Cancelado (ganó el fetch) no publica nada: sin este `return`, el
+            // sueño interrumpido se leería como un plazo vencido.
+            do { try await Task.sleep(for: timeout) } catch { return }
+            publish.yield(.timedOut)
+        }
+        defer {
+            fetch.cancel()
+            deadline.cancel()
+        }
+
+        for await outcome in outcomes { return outcome }
+        return .timedOut
     }
 
     func purchase(_ product: Product) async {

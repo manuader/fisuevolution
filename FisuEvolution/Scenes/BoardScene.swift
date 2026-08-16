@@ -124,8 +124,20 @@ final class BoardScene: SKScene {
 
     /// Vertical insets leaving room for the SwiftUI HUD above and controls below.
     private static let topInset: CGFloat = 130
-    /// Origen vertical del campo dentro de la escena.
-    static let bottomInset: CGFloat = 110
+    /// Origen vertical del campo dentro de la escena: el borde de arriba de la
+    /// barra inferior, para que la multitud no camine detrás de ella.
+    ///
+    /// Sale de sumar la barra, no de tantear: `GameTabBar` mide 56 (el tab
+    /// destacado) + 8 de padding vertical arriba y abajo = **72**, la franja le
+    /// agrega **8** de aire abajo y la safe area de un teléfono con notch pone
+    /// **34**. Medido en el simulador sobre la captura (iPhone 16 Pro): el borde
+    /// ink de la barra arranca a 114 pt del borde inferior de la pantalla.
+    ///
+    /// ⚠️ Es UNA constante para todos los tamaños, así que en un teléfono sin
+    /// notch la barra queda 34 pt más abajo y sobra ese margen — el error va
+    /// hacia el lado seguro (nadie queda tapado). `CrowdBandTests` y
+    /// `CrowdDepthTests` asertan contra este knob, no contra el número.
+    static let bottomInset: CGFloat = 114
     private static let horizontalInset: CGFloat = 16
     /// Margen a cada lado para los textos del reveal, que van centrados y a
     /// pantalla completa.
@@ -153,6 +165,13 @@ final class BoardScene: SKScene {
     /// caminar más rápido en vez de recorrer más.
     static let wanderSpeed: CGFloat = 44
 
+    /// Cada cuánto se da vuelta solo un personaje, y cuánto se sortea alrededor
+    /// de ese período: `withRange` reparte ±la mitad, así que el volteo cae
+    /// entre 5 y 10 s. Más seguido se lee como un tic nervioso; más espaciado y
+    /// la multitud vuelve a parecer un cuadro.
+    private static let facingFlipPeriod: TimeInterval = 7.5
+    private static let facingFlipJitter: TimeInterval = 5
+
     /// Base de profundidad del campo de personajes.
     ///
     /// **Existe para que la multitud y los fondos NO compartan espacio de z.**
@@ -165,6 +184,32 @@ final class BoardScene: SKScene {
     /// forma de que no vuelva a pasar con el próximo cambio de layout es que las
     /// bandas no puedan tocarse.
     static let fieldBaseZ: CGFloat = 10
+
+    // MARK: - Reduce Motion
+
+    #if DEBUG
+    /// Simula Reduce Motion desde un test. `nil` = lo que diga el sistema.
+    ///
+    /// Existe porque `UIAccessibility.isReduceMotionEnabled` es del proceso y no
+    /// se puede cambiar desde un test unitario, y sin poder prenderlo la mitad
+    /// del comportamiento accesible de la escena sólo se verifica a ojo en el
+    /// simulador —que es exactamente la trampa 9 del HANDOFF: una verificación
+    /// que no corre en los dos sentidos no verifica nada—.
+    ///
+    /// ⚠️ Es estado global del proceso: el test lo pone y lo saca **sin `await`
+    /// en el medio**, o el flag se le filtra a otra prueba.
+    static var reduceMotionOverride: Bool?
+    #endif
+
+    /// El único lugar de la escena donde se pregunta por Reduce Motion, para que
+    /// el override valga para TODO lo que se mueve y no sólo para lo último que
+    /// alguien se acordó de enchufarle.
+    private static var prefersReducedMotion: Bool {
+        #if DEBUG
+        if let reduceMotionOverride { return reduceMotionOverride }
+        #endif
+        return UIAccessibility.isReduceMotionEnabled
+    }
 
     /// Achica la fuente de un label hasta que entre en `maxWidth`.
     ///
@@ -296,7 +341,7 @@ final class BoardScene: SKScene {
         ring.position = position(ofCell: targetCell)
         ring.zPosition = 80
         fieldNode.addChild(ring)
-        if !UIAccessibility.isReduceMotionEnabled {
+        if !Self.prefersReducedMotion {
             ring.run(.repeatForever(.sequence([
                 .group([.scale(to: 1.15, duration: 0.5), .fadeAlpha(to: 0.5, duration: 0.5)]),
                 .group([.scale(to: 1.0, duration: 0.5), .fadeAlpha(to: 1.0, duration: 0.5)]),
@@ -778,7 +823,7 @@ final class BoardScene: SKScene {
         partner.removeAction(forKey: "wander")
         mergeCandidates.insert(originCell)
 
-        let reduceMotion = UIAccessibility.isReduceMotionEnabled
+        let reduceMotion = Self.prefersReducedMotion
         let approach = SKAction.move(to: meetingPoint, duration: Self.assistedMergeSlide)
         approach.timingMode = .easeIn
         let slide: SKAction = reduceMotion
@@ -893,7 +938,7 @@ final class BoardScene: SKScene {
         at position: CGPoint?,
         completion: @escaping () -> Void = {}
     ) {
-        let reduceMotion = UIAccessibility.isReduceMotionEnabled
+        let reduceMotion = Self.prefersReducedMotion
         let hold: TimeInterval = 1.5
 
         let flash = SKShapeNode(rect: CGRect(origin: .zero, size: size))
@@ -1119,7 +1164,7 @@ final class BoardScene: SKScene {
         displayedFloorOrdinal = destination
         cameraNode.removeAction(forKey: Self.floorCameraKey)
         isFlying = false
-        guard !UIAccessibility.isReduceMotionEnabled else {
+        guard !Self.prefersReducedMotion else {
             cameraNode.position = target
             return
         }
@@ -1247,7 +1292,7 @@ final class BoardScene: SKScene {
         gameState.playAscentFeedback()
 
         let destination = CGPoint(x: start.x, y: start.y + size.height * Self.ascentDistanceRatio)
-        let flightAction: SKAction = UIAccessibility.isReduceMotionEnabled
+        let flightAction: SKAction = Self.prefersReducedMotion
             ? .move(to: destination, duration: 0.01)
             : .group([
                 .move(to: destination, duration: Self.ascentDuration),
@@ -1293,7 +1338,7 @@ final class BoardScene: SKScene {
         destinationOrdinal: Int,
         completion: @escaping () -> Void = {}
     ) {
-        let reduceMotion = UIAccessibility.isReduceMotionEnabled
+        let reduceMotion = Self.prefersReducedMotion
         let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         title.text = String(localized: "tower.unlock.title")
         title.fontSize = 29
@@ -1422,6 +1467,7 @@ final class BoardScene: SKScene {
             fieldNode.addChild(node)
             characterNodes[slot] = node
             startWander(node)
+            startFacingFlip(node)
         }
 
         renderedUnits = wanted
@@ -1535,7 +1581,7 @@ final class BoardScene: SKScene {
     /// agarrar el nodo y se reinicia al soltarlo/relayout.
     private func startWander(_ node: CharacterNode) {
         node.removeAction(forKey: "wander")
-        guard !UIAccessibility.isReduceMotionEnabled else { return }
+        guard !Self.prefersReducedMotion else { return }
         let anchor = position(ofCell: node.cellIndex)
         var hash = UInt64(node.cellIndex &* 40503 &+ 7)
         // Se generan los tres destinos primero para poder darle a cada paso una
@@ -1551,12 +1597,47 @@ final class BoardScene: SKScene {
             let previous = stops[(index + stops.count - 1) % stops.count].point
             let stop = stops[index]
             let distance = hypot(stop.point.x - previous.x, stop.point.y - previous.y)
+            // Mira hacia donde camina. El `dx` ya está calculado y el espejado es
+            // una multiplicación: el rumbo sale gratis, y sin él un personaje que
+            // se va para la izquierda camina de espaldas.
+            let facesLeft = stop.point.x < previous.x
             return .sequence([
                 .wait(forDuration: stop.pause),
+                .run { [weak node] in node?.setFacing(left: facesLeft) },
                 .move(to: stop.point, duration: max(0.8, Double(distance / Self.wanderSpeed))),
             ])
         }
         node.run(.repeatForever(.sequence(steps)), withKey: "wander")
+    }
+
+    /// Cada tanto un personaje se da vuelta solo, camine o no.
+    ///
+    /// Es lo que mantiene viva a la multitud cuando NO camina: el rumbo del
+    /// paseo sólo espeja al que se está moviendo, y los que están congelados —el
+    /// candidato de una fusión, el blanco del recorte del tutorial— se quedarían
+    /// mirando fijo hacia el mismo lado. Por eso NO comparte clave ni ciclo de
+    /// vida con `"wander"`: no se apaga con él, no se re-arranca con él. Lo
+    /// encarga `renderPlacements` y lo borra el pool al reciclar.
+    private func startFacingFlip(_ node: CharacterNode) {
+        node.removeAction(forKey: CharacterNode.facingActionKey)
+        // Un volteo es movimiento: va detrás del mismo guard que el paseo.
+        guard !Self.prefersReducedMotion else { return }
+        // La fase inicial sale del `cellIndex` —el mismo hash del paseo— y no del
+        // azar de SpriteKit: los diez arrancan en el mismo instante, así que con
+        // una espera común se darían vuelta todos juntos, como un cardumen.
+        var hash = UInt64(bitPattern: Int64(node.cellIndex &* 40503 &+ 7))
+        hash = (hash ^ (hash >> 13)) &* 0x9E3779B97F4A7C15
+        let phase = Double(hash % 100) / 100 * Self.facingFlipPeriod
+        node.run(.sequence([
+            .wait(forDuration: phase),
+            .repeatForever(.sequence([
+                .wait(forDuration: Self.facingFlipPeriod, withRange: Self.facingFlipJitter),
+                .run { [weak node] in
+                    guard let node else { return }
+                    node.setFacing(left: !node.isFacingLeft)
+                },
+            ])),
+        ]), withKey: CharacterNode.facingActionKey)
     }
 
     /// Ancla del cellIndex (campo orgánico).

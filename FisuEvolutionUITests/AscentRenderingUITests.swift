@@ -145,12 +145,18 @@ final class AscentRenderingUITests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.0)
         add(shot(app, "3 de vuelta en el callejon"))
 
-        // 4) Comprar un Fisura nuevo: era el que salía invisible.
+        // 4) Comprar un Fisura nuevo: era el que salía invisible. Desde que el
+        //    botón de spawn murió, la compra pasa por FisuJobs (tab `hud.hire`).
         app.buttons["hud.debug"].tap()
         app.buttons["+ Monedas (1M o costo de spawn ×100)"].tap()
         dismissSheet(app)
-        let spawn = app.buttons["hud.spawn"]
-        if spawn.waitForExistence(timeout: 3), spawn.isEnabled { spawn.tap() }
+        let jobs = app.buttons["hud.hire"]
+        if jobs.waitForExistence(timeout: 3) {
+            jobs.tap()
+            let hire = app.buttons["jobs.hire.homeless"]
+            if hire.waitForExistence(timeout: 5) { hire.tap() }
+            app.buttons["sheet.close"].tap()
+        }
         Thread.sleep(forTimeInterval: 1.0)
         add(shot(app, "4 tras comprar un Fisura nuevo"))
 

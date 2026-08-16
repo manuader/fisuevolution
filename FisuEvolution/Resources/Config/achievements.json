@@ -1,0 +1,549 @@
+{
+  "schemaVersion": 1,
+  "achievements": [
+    {
+      "id": "ach_floor_urban",
+      "titleKey": "ach.floor_urban.title",
+      "descKey": "ach.floor_urban.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "floorUnlocked",
+        "floorId": "urban"
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 4.0
+      }
+    },
+    {
+      "id": "ach_floor_corporate",
+      "titleKey": "ach.floor_corporate.title",
+      "descKey": "ach.floor_corporate.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "floorUnlocked",
+        "floorId": "corporate"
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 6.0
+      }
+    },
+    {
+      "id": "ach_floor_luxury",
+      "titleKey": "ach.floor_luxury.title",
+      "descKey": "ach.floor_luxury.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "floorUnlocked",
+        "floorId": "luxury"
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 8.0
+      }
+    },
+    {
+      "id": "ach_floor_island",
+      "titleKey": "ach.floor_island.title",
+      "descKey": "ach.floor_island.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "floorUnlocked",
+        "floorId": "island"
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 10.0
+      }
+    },
+    {
+      "id": "ach_floor_moon",
+      "titleKey": "ach.floor_moon.title",
+      "descKey": "ach.floor_moon.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "floorUnlocked",
+        "floorId": "moon"
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 12.0
+      }
+    },
+    {
+      "id": "ach_floor_mars",
+      "titleKey": "ach.floor_mars.title",
+      "descKey": "ach.floor_mars.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "floorUnlocked",
+        "floorId": "mars"
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 16.0
+      }
+    },
+    {
+      "id": "ach_floor_solar",
+      "titleKey": "ach.floor_solar.title",
+      "descKey": "ach.floor_solar.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "floorUnlocked",
+        "floorId": "solar"
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 20.0
+      }
+    },
+    {
+      "id": "ach_floor_galaxy",
+      "titleKey": "ach.floor_galaxy.title",
+      "descKey": "ach.floor_galaxy.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "floorUnlocked",
+        "floorId": "galaxy"
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 26.0
+      }
+    },
+    {
+      "id": "ach_floor_god_realm",
+      "titleKey": "ach.floor_god_realm.title",
+      "descKey": "ach.floor_god_realm.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "floorUnlocked",
+        "floorId": "god_realm"
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 40
+      }
+    },
+    {
+      "id": "ach_merges_1",
+      "titleKey": "ach.merges_1.title",
+      "descKey": "ach.merges_1.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "totalMerges",
+        "value": 1
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 2.0
+      }
+    },
+    {
+      "id": "ach_merges_100",
+      "titleKey": "ach.merges_100.title",
+      "descKey": "ach.merges_100.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "totalMerges",
+        "value": 100
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 12.0
+      }
+    },
+    {
+      "id": "ach_merges_1000",
+      "titleKey": "ach.merges_1000.title",
+      "descKey": "ach.merges_1000.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "totalMerges",
+        "value": 1000
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 40.0
+      }
+    },
+    {
+      "id": "ach_merges_10000",
+      "titleKey": "ach.merges_10000.title",
+      "descKey": "ach.merges_10000.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "totalMerges",
+        "value": 10000
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 60
+      }
+    },
+    {
+      "id": "ach_hires_10",
+      "titleKey": "ach.hires_10.title",
+      "descKey": "ach.hires_10.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "totalHires",
+        "value": 10
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 4.0
+      }
+    },
+    {
+      "id": "ach_hires_100",
+      "titleKey": "ach.hires_100.title",
+      "descKey": "ach.hires_100.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "totalHires",
+        "value": 100
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 16.0
+      }
+    },
+    {
+      "id": "ach_hires_1000",
+      "titleKey": "ach.hires_1000.title",
+      "descKey": "ach.hires_1000.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "totalHires",
+        "value": 1000
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 30
+      }
+    },
+    {
+      "id": "ach_tier_11",
+      "titleKey": "ach.tier_11.title",
+      "descKey": "ach.tier_11.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "tierReached",
+        "value": 11
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 10.0
+      }
+    },
+    {
+      "id": "ach_tier_24",
+      "titleKey": "ach.tier_24.title",
+      "descKey": "ach.tier_24.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "tierReached",
+        "value": 24
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 30.0
+      }
+    },
+    {
+      "id": "ach_tier_37",
+      "titleKey": "ach.tier_37.title",
+      "descKey": "ach.tier_37.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "tierReached",
+        "value": 37
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 100
+      }
+    },
+    {
+      "id": "ach_prestige_1",
+      "titleKey": "ach.prestige_1.title",
+      "descKey": "ach.prestige_1.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "prestigeLevel",
+        "value": 1
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 20.0
+      }
+    },
+    {
+      "id": "ach_prestige_3",
+      "titleKey": "ach.prestige_3.title",
+      "descKey": "ach.prestige_3.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "prestigeLevel",
+        "value": 3
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 25
+      }
+    },
+    {
+      "id": "ach_prestige_8",
+      "titleKey": "ach.prestige_8.title",
+      "descKey": "ach.prestige_8.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "prestigeLevel",
+        "value": 8
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 80
+      }
+    },
+    {
+      "id": "ach_skins_5",
+      "titleKey": "ach.skins_5.title",
+      "descKey": "ach.skins_5.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "skinsOwned",
+        "value": 5
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 10.0
+      }
+    },
+    {
+      "id": "ach_skins_20",
+      "titleKey": "ach.skins_20.title",
+      "descKey": "ach.skins_20.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "skinsOwned",
+        "value": 20
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 20
+      }
+    },
+    {
+      "id": "ach_skins_all",
+      "titleKey": "ach.skins_all.title",
+      "descKey": "ach.skins_all.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "skinsAll"
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 120
+      }
+    },
+    {
+      "id": "ach_specials_1",
+      "titleKey": "ach.specials_1.title",
+      "descKey": "ach.specials_1.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "specialsOwned",
+        "value": 1
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 6.0
+      }
+    },
+    {
+      "id": "ach_specials_10",
+      "titleKey": "ach.specials_10.title",
+      "descKey": "ach.specials_10.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "specialsOwned",
+        "value": 10
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 25
+      }
+    },
+    {
+      "id": "ach_videos_1",
+      "titleKey": "ach.videos_1.title",
+      "descKey": "ach.videos_1.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "videosWatched",
+        "value": 1
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 4.0
+      }
+    },
+    {
+      "id": "ach_videos_20",
+      "titleKey": "ach.videos_20.title",
+      "descKey": "ach.videos_20.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "videosWatched",
+        "value": 20
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 16.0
+      }
+    },
+    {
+      "id": "ach_boosts_1",
+      "titleKey": "ach.boosts_1.title",
+      "descKey": "ach.boosts_1.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "boostsActivated",
+        "value": 1
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 4.0
+      }
+    },
+    {
+      "id": "ach_boosts_50",
+      "titleKey": "ach.boosts_50.title",
+      "descKey": "ach.boosts_50.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "boostsActivated",
+        "value": 50
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 16.0
+      }
+    },
+    {
+      "id": "ach_taps_1000",
+      "titleKey": "ach.taps_1000.title",
+      "descKey": "ach.taps_1000.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "totalTaps",
+        "value": 1000
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 2.0
+      }
+    },
+    {
+      "id": "ach_taps_100000",
+      "titleKey": "ach.taps_100000.title",
+      "descKey": "ach.taps_100000.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "totalTaps",
+        "value": 100000
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 20.0
+      }
+    },
+    {
+      "id": "ach_wealth_1m",
+      "titleKey": "ach.wealth_1m.title",
+      "descKey": "ach.wealth_1m.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "lifetimeEarnings",
+        "value": 1000000.0
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 6.0
+      }
+    },
+    {
+      "id": "ach_wealth_1b",
+      "titleKey": "ach.wealth_1b.title",
+      "descKey": "ach.wealth_1b.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "lifetimeEarnings",
+        "value": 1000000000.0
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 20
+      }
+    },
+    {
+      "id": "ach_wealth_1q",
+      "titleKey": "ach.wealth_1q.title",
+      "descKey": "ach.wealth_1q.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "lifetimeEarnings",
+        "value": 1000000000000000.0
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 60
+      }
+    },
+    {
+      "id": "ach_seen_all",
+      "titleKey": "ach.seen_all.title",
+      "descKey": "ach.seen_all.desc",
+      "icon": "trophy_gold",
+      "trigger": {
+        "type": "seenAllTypes"
+      },
+      "reward": {
+        "kind": "oro",
+        "amount": 40
+      }
+    },
+    {
+      "id": "ach_daily_7",
+      "titleKey": "ach.daily_7.title",
+      "descKey": "ach.daily_7.desc",
+      "icon": "trophy_silver",
+      "trigger": {
+        "type": "dailyDay7",
+        "value": 7
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 12.0
+      }
+    },
+    {
+      "id": "ach_share_1",
+      "titleKey": "ach.share_1.title",
+      "descKey": "ach.share_1.desc",
+      "icon": "trophy_bronze",
+      "trigger": {
+        "type": "sharesCompleted",
+        "value": 1
+      },
+      "reward": {
+        "kind": "coins",
+        "factor": 6.0
+      }
+    }
+  ]
+}

@@ -213,6 +213,97 @@ struct ViralConfig: Codable, Sendable, Equatable {
     let maxShares: Int
 }
 
+/// Los logros del spec §10.3. Data-driven como todo lo demás: qué hay que hacer
+/// (`trigger`) y qué se lleva por hacerlo (`reward`) son dato, no código.
+///
+/// `trigger.type` y `reward.kind` viajan como `String` —el schema que fija el
+/// spec— y se leen a través de los dos enums de abajo. Esa indirección es la que
+/// hace que el switch del motor pueda ser **exhaustivo**: agregar un gatillo al
+/// enum sin su caso en el motor no compila, en vez de dejar un logro que no se
+/// desbloquea nunca y no se queja. Un `type` que no esté en el enum lo rechaza
+/// `GameContentLoader.validate` al arrancar, no en runtime.
+struct AchievementsConfig: Codable, Sendable, Equatable {
+    /// Los quince gatillos que el motor sabe evaluar.
+    enum TriggerKind: String, Sendable, CaseIterable {
+        /// El piso de `floorId` está abierto (o lo estuvo alguna vez).
+        case floorUnlocked
+        case tierReached
+        case totalMerges
+        case totalHires
+        case totalTaps
+        case prestigeLevel
+        case skinsOwned
+        /// TODAS las skins del catálogo. Sin `value`: el objetivo es
+        /// `skins.count`, así que sumar la skin 46 mueve el logro sin tocar
+        /// este JSON ni re-balancear nada.
+        case skinsAll
+        case specialsOwned
+        case videosWatched
+        case boostsActivated
+        case lifetimeEarnings
+        /// Los tipos CONCRETOS de `tiers.json` (el nodo de elección `junior` no
+        /// cuenta: es una bifurcación, no un personaje). Sin `value`, ídem.
+        case seenAllTypes
+        /// El ciclo del daily llegó a su último día.
+        case dailyDay7
+        case sharesCompleted
+
+        /// Los que se miden contra un número escrito en el JSON. Los otros tres
+        /// sacan el objetivo de otro lado (un piso, o el tamaño de un catálogo).
+        var requiresValue: Bool {
+            switch self {
+            case .floorUnlocked, .skinsAll, .seenAllTypes: false
+            default: true
+            }
+        }
+
+        var requiresFloorID: Bool { self == .floorUnlocked }
+    }
+
+    /// Las tres formas de pagar un logro.
+    enum RewardKind: String, Sendable, CaseIterable {
+        /// `factor` × `passiveUnlockCost(tier máximo)`, igual que el cofre del
+        /// Asado: cobrarlo tarde paga más y nunca queda ridículo.
+        case coins
+        /// `amount` de ORO al BALANCE. Nunca a `oroEarnedLifetime`.
+        case oro
+        /// Un boost regalado que no consume su cooldown (premio del Médico).
+        case freeBoost
+    }
+
+    struct Trigger: Codable, Sendable, Equatable {
+        let type: String
+        let value: Double?
+        let floorId: String?
+
+        var kind: TriggerKind? { TriggerKind(rawValue: type) }
+    }
+
+    struct Reward: Codable, Sendable, Equatable {
+        let kind: String
+        let factor: Double?
+        let amount: Int?
+        let boostId: String?
+
+        var rewardKind: RewardKind? { RewardKind(rawValue: kind) }
+    }
+
+    struct Achievement: Codable, Sendable, Equatable, Identifiable {
+        /// Estable para siempre: se persiste en `meta.unlockedAchievements`.
+        let id: String
+        let titleKey: String
+        let descKey: String
+        /// `trophy_bronze` / `trophy_silver` / `trophy_gold`. La vista mapea al
+        /// arte; el catálogo no conoce nombres de assets.
+        let icon: String
+        let trigger: Trigger
+        let reward: Reward
+    }
+
+    let schemaVersion: Int
+    let achievements: [Achievement]
+}
+
 struct GameCenterConfig: Codable, Sendable, Equatable {
     struct Leaderboard: Codable, Sendable, Equatable {
         let id: String

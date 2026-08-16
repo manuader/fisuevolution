@@ -112,6 +112,11 @@ struct GameContentValidationTests {
         // Era 300 y el dueño lo duplicó el mismo día; ver Docs/balance-log.md.
         #expect(economy.hire.defaultCostMultiplier == 600)
         #expect(economy.hire.defaultCostGrowth == 1.2)
+        // Recargo por tier no-base (rediseño §5.2): 2,8 (yieldGrowthPerTier) ×
+        // 1,8 ≈ 5× por tier, o sea que comprar el tier alto directo nunca gana
+        // contra comprar dos del de abajo y mergear. Bajarlo de 2,0 abriría ese
+        // atajo; subirlo vuelve inalcanzables los tiers de arriba de cada piso.
+        #expect(economy.hire.tierPremium == 1.8)
         #expect(economy.charUpgrades.baseCostMultiplier == 50)
         #expect(economy.charUpgrades.costGrowth == 4.0)
         #expect(economy.charUpgrades.effectFactorPerLevel == 2.0)
@@ -157,18 +162,14 @@ struct GameContentValidationTests {
     @Test func hirePricesFollowTheOwnersRule() throws {
         let economy = StandardEconomy(config: content.economy)
         let alley = content.floorTable[0]
-        #expect(content.economy.hireCost(floor: alley, tapYield: economy.tapYield(forTier: 1), purchases: 0) == 50)
-        let segundo = content.economy.hireCost(floor: alley, tapYield: economy.tapYield(forTier: 1), purchases: 1)
+        #expect(content.economy.hireCost(floor: alley, tier: 1, purchases: 0) == 50)
+        let segundo = content.economy.hireCost(floor: alley, tier: 1, purchases: 1)
         #expect(abs(segundo - 60) < 1e-9)
 
         for ordinal in 1..<content.floorTable.count {
             let floor = content.floorTable[ordinal]
             let tapValue = economy.tapYield(forTier: floor.firstTier) * floor.incomeMultiplier
-            let precio = content.economy.hireCost(
-                floor: floor,
-                tapYield: economy.tapYield(forTier: floor.firstTier),
-                purchases: 0
-            )
+            let precio = content.economy.hireCost(floor: floor, tier: floor.firstTier, purchases: 0)
             #expect(abs(precio - 600 * tapValue) < precio * 1e-12, "\(floor.id): \(precio) ≠ 600× \(tapValue)")
         }
     }

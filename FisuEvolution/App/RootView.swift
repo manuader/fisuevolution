@@ -194,14 +194,14 @@ struct GameBoardView: View {
         .sheet(isPresented: $showPrestige) {
             PrestigeView()
         }
-        // Las seis pantallas de la barra inferior, en UN solo sheet. Los
-        // placeholders que quedan (`skins`, `menu`) llegan en F3 y ya llevan
-        // puesto el identifier que sus tests van a buscar.
+        // Las seis pantallas de la barra inferior, en UN solo sheet. El
+        // placeholder que queda (`menu`) llega en F3 y ya lleva puesto el
+        // identifier que su test va a buscar.
         .sheet(item: $activeScreen) { screen in
             switch screen {
             case .jobs: FisuJobsView()
             case .upgrades: UpgradesView()
-            case .skins: ScreenPlaceholderView(identifier: "skins.placeholder", title: "Personalización")
+            case .skins: CustomizationView()
             case .gifts: BonusView(adsProvider: adsProvider)
             case .store: StoreView()
             case .menu: ScreenPlaceholderView(identifier: "menu.placeholder", title: "Menú")

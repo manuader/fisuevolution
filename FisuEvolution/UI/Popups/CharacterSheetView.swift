@@ -171,12 +171,10 @@ struct CharacterSheetView: View {
 
     private var skinName: String {
         guard let skin = selected.skin else { return String(localized: "character.skin.base") }
-        // Una skin catalogada sin `displayNameKey` cae al id embellecido: sirve
-        // para una skin de prueba, y evita que falte un nombre rompa la ficha.
-        guard let key = skin.displayNameKey else {
-            return skin.id.replacingOccurrences(of: "_", with: " ").capitalized
-        }
-        return String(localized: String.LocalizationValue(key))
+        // La resolución (clave del catálogo, o el id embellecido si la skin no
+        // declara nombre) vive en el estado desde la T11: el Customization Shop
+        // muestra los mismos nombres y dos copias divergen.
+        return gameState.skinDisplayName(for: skin)
     }
 
     private var isSelectedActive: Bool {

@@ -458,8 +458,15 @@ private struct JobCard: View {
                 // El badge dice exactamente lo que ya publica `axValue`. Se tapa
                 // igual que `info` — y a diferencia del `PricePill`, que NO se
                 // toca porque es el control de la tarjeta.
-                JobStateBadge(text: stateText, locked: row.state != .floorFull)
-                    .accessibilityHidden(true)
+                //
+                // Vive en `GameArtComponents` desde la T11: el Customization
+                // Shop dibuja el mismo badge, y dos copias privadas se separan.
+                StateBadge(
+                    text: stateText,
+                    systemImage: row.state == .floorFull ? nil : "lock.fill",
+                    muted: row.state != .floorFull
+                )
+                .accessibilityHidden(true)
             }
         }
         .frame(width: Self.railWidth, alignment: .trailing)
@@ -566,37 +573,6 @@ private struct JobPortrait: View {
 
 // MARK: - Badge de estado
 
-/// Lo que ocupa el lugar del precio cuando la fila no es una oferta. Cápsula
-/// crema con borde ink; `locked` le suma el candado y apaga el texto.
-///
-/// El texto llega ya resuelto (`String`) y no como clave: los mensajes de
-/// `gated`/`locked` llevan adentro el nombre del piso, que el estado interpola.
-private struct JobStateBadge: View {
-    let text: String
-    let locked: Bool
-
-    var body: some View {
-        HStack(spacing: 4) {
-            if locked {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 10, weight: .black))
-            }
-            Text(verbatim: text)
-                .font(Tokens.caption)
-                .multilineTextAlignment(.trailing)
-                .lineLimit(2)
-                .minimumScaleFactor(0.65)
-        }
-        .foregroundStyle(Color("PaletteInk").opacity(locked ? 0.75 : 1))
-        .padding(.horizontal, Tokens.s8)
-        .padding(.vertical, 6)
-        .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(locked ? Color("PaletteInk").opacity(0.07) : Color("PaletteOrange").opacity(0.28))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(Color("PaletteInk").opacity(locked ? 0.35 : 0.8), lineWidth: 2)
-                )
-        )
-    }
-}
+// `JobStateBadge` se mudó a `GameArtComponents` como `StateBadge` (T11): el
+// Customization Shop necesitaba el mismo badge y una segunda copia privada era
+// el camino corto para que los dos dibujos se separaran.

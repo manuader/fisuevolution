@@ -97,14 +97,23 @@ struct GameCard<Content: View>: View {
 /// vector copia la forma del PNG, así que si alguna vez se re-exporta recortado
 /// el cambio es invisible.
 struct SectionHeader: View {
-    let titleKey: LocalizedStringKey
+    private let label: Text
 
     init(_ titleKey: LocalizedStringKey) {
-        self.titleKey = titleKey
+        label = Text(titleKey)
+    }
+
+    /// Cinta con un texto **ya resuelto**. La necesita todo título que lleve
+    /// adentro un nombre que sale del dato ("Pintas de El Fisura"): esa frase se
+    /// arma con `String(localized: "clave \(nombre)")` en el estado, y volver a
+    /// envolverla en un `LocalizedStringKey` la convertiría en una clave que el
+    /// catálogo no tiene (trampa 5 del HANDOFF).
+    init(verbatim text: String) {
+        label = Text(verbatim: text)
     }
 
     var body: some View {
-        Text(titleKey)
+        label
             .font(Tokens.title)
             .foregroundStyle(Color("PaletteCream"))
             .lineLimit(1)
@@ -206,6 +215,10 @@ struct PricePill: View {
     enum Currency {
         case coins
         case oro
+        /// Plata de verdad (IAP). El texto lo pone StoreKit (`displayPrice`) y el
+        /// glifo es un carrito y **no** una moneda del juego: con la moneda
+        /// puesta, "USD 1,99" se lee como si costara monedas.
+        case money
     }
 
     let text: String
@@ -220,6 +233,11 @@ struct PricePill: View {
                 switch currency {
                 case .coins: CoinIcon(size: 20)
                 case .oro: OroIcon(size: 20)
+                case .money:
+                    Image(systemName: "cart.fill")
+                        .font(.system(size: 15, weight: .black))
+                        .foregroundStyle(affordable ? .white : Color("PaletteInk"))
+                        .frame(width: 20, height: 20)
                 }
                 Text(verbatim: text)
                     .font(Tokens.body)
@@ -243,6 +261,113 @@ struct PricePill: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
+    }
+}
+
+// MARK: - ActionPill
+
+/// El hermano de `PricePill` para las acciones que **no cuestan plata**
+/// ("Ponérsela"): misma cápsula, mismo alto, mismo contorno ink, con un glifo en
+/// vez de la moneda.
+///
+/// Existe como componente y no como una cápsula local porque es el tercer papel
+/// del mismo lenguaje y los tres tienen que verse hermanos: `PricePill` cobra,
+/// `ActionPill` hace, y `StateBadge` sólo informa (y por eso es el único que no
+/// es un botón). Sin él, cada pantalla nueva se dibuja su propio botón verde y a
+/// la tercera ya no son el mismo juego.
+///
+/// Como `PricePill`, **nunca** usa `.disabled`: una acción que no corresponde no
+/// se dibuja.
+struct ActionPill: View {
+    let titleKey: LocalizedStringKey
+    let systemImage: String
+    var tint: Color = Color("PaletteGreen")
+    let identifier: String
+    /// Etiqueta hablada. El título solo ("Ponérsela") no dice de QUÉ, y en una
+    /// grilla de tres tarjetas hay tres botones que dicen lo mismo.
+    var accessibilityLabel: Text?
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 15, weight: .black))
+                    .foregroundStyle(.white)
+                Text(titleKey)
+                    .font(Tokens.body)
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+            }
+            .shadow(color: .black.opacity(0.45), radius: 1, y: 1)
+            .padding(.horizontal, Tokens.s12)
+            .padding(.vertical, Tokens.s8)
+            .frame(minWidth: 92)
+            .background(
+                Capsule()
+                    .fill(tint)
+                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+                    .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+            )
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(identifier)
+        .accessibilityLabel(accessibilityLabel ?? Text(titleKey))
+    }
+}
+
+// MARK: - StateBadge
+
+/// Lo que ocupa el lugar del botón cuando la fila **no ofrece una acción**:
+/// cápsula con un glifo opcional y un texto corto. `muted` la apaga (crema
+/// translúcido, contorno tenue, candado) para "no se puede"; sin apagar va en
+/// naranja, para "acá pasa algo".
+///
+/// El texto llega ya resuelto (`String`) y no como clave: los mensajes que
+/// muestra llevan adentro un nombre de piso o de personaje que el estado
+/// interpola.
+///
+/// ⚠️ Nació privado en `FisuJobsView` (T8) y se mudó acá al segundo llamador
+/// (T11): es el badge de estado del juego, y dos copias con dibujos que se van
+/// separando es exactamente lo que la regla visual del dueño prohíbe. No lleva
+/// identifier ni traits: **no es un control**, y quien lo usa lo tapa de
+/// VoiceOver porque su texto ya viaja en el valor de la fila.
+struct StateBadge: View {
+    let text: String
+    /// Glifo a la izquierda (`lock.fill`, `checkmark.circle.fill`), o `nil`.
+    var systemImage: String?
+    /// Cómo se parte un texto de dos renglones. Nació en el riel derecho de
+    /// FisuJobs —donde `.trailing` es lo que alinea el badge con el borde de la
+    /// tarjeta— y por eso ese es el default; adentro de una tarjeta centrada, el
+    /// llamador pide `.center` o el renglón corto queda pegado a la derecha.
+    var textAlignment: TextAlignment = .trailing
+    let muted: Bool
+
+    var body: some View {
+        HStack(spacing: 4) {
+            if let systemImage {
+                Image(systemName: systemImage)
+                    .font(.system(size: 10, weight: .black))
+            }
+            Text(verbatim: text)
+                .font(Tokens.caption)
+                .multilineTextAlignment(textAlignment)
+                .lineLimit(2)
+                .minimumScaleFactor(0.65)
+        }
+        .foregroundStyle(Color("PaletteInk").opacity(muted ? 0.75 : 1))
+        .padding(.horizontal, Tokens.s8)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(muted ? Color("PaletteInk").opacity(0.07) : Color("PaletteOrange").opacity(0.28))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .strokeBorder(Color("PaletteInk").opacity(muted ? 0.35 : 0.8), lineWidth: 2)
+                )
+        )
     }
 }
 

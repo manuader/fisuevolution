@@ -397,6 +397,19 @@ final class GameState {
                 // encabezado aguanta al lado de la carita grande.
                 debugMarkTypesSeen(throughTier: 8)
             }
+            // Las skins de milestone de los personajes que el jugador YA vio.
+            // Ganarlas jugando pide abrir pisos o reencarnar, así que sin esta
+            // puerta el Customization Shop no tiene una sola pinta que ponerse y
+            // no hay forma de ejercer "Ponérsela". Va DESPUÉS de
+            // `--uitest-seen-types` porque se apoya en lo que ese marcó.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-skins"), let player {
+                let seen = player.run.seenTypes
+                grantMilestoneSkinsForTests(
+                    content.skins.skins
+                        .filter { $0.isMilestone && seen.contains($0.characterType) }
+                        .map(\.id)
+                )
+            }
             // RF-16: el ORO va con la raíz de lifetime/3M, así que llegar al
             // prestigio jugando no es automatizable. El fixture lo acredita.
             if ProcessInfo.processInfo.arguments.contains("--uitest-prestige") {

@@ -335,7 +335,7 @@ xcrun simctl install booted build/DD/Build/Products/Debug-iphonesimulator/FisuEv
 xcrun simctl launch booted com.manuader.fisuevolution --uitest-reset
 ```
 
-Fixtures DEBUG por launch argument — **son siete, no tres**:
+Fixtures DEBUG por launch argument — **son ocho, no tres**:
 
 | Argumento | Qué deja listo |
 |---|---|
@@ -346,6 +346,7 @@ Fixtures DEBUG por launch argument — **son siete, no tres**:
 | `--uitest-seen-types` | Marca tipos vistos: es lo que llena la pestaña Personajes |
 | `--uitest-prestige` | Acredita lifetime para llegar a reencarnar |
 | `--uitest-open-sheet` | Abre la ficha sobre la primera unidad |
+| `--uitest-skins` | Acredita las skins de milestone de los tipos YA VISTOS (van con `--uitest-seen-types`, que es lo que decide cuáles). Es lo que permite ejercer "Ponérsela" en Pintas sin abrir pisos ni reencarnar |
 
 El panel de debug es el ícono de herramientas del HUD.
 

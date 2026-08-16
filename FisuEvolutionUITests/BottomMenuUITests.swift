@@ -17,7 +17,11 @@ final class BottomMenuUITests: XCTestCase {
     private static let destinations: [(tab: String, inside: [String])] = [
         ("hud.hire", ["jobs.hire.homeless"]),
         ("hud.upgrades", ["upgrades.tab.permanent"]),
-        ("hud.skins", ["skins.placeholder"]),
+        // Pintas abre siempre con la grilla del primer personaje visto, y la
+        // apariencia original es la primera tarjeta de cualquier personaje: la
+        // fila `skins.row.base` existe en toda partida, también en una recién
+        // empezada.
+        ("hud.skins", ["skins.row.base"]),
         ("hud.bonus", ["bonus.activate.mate"]),
         // La tienda depende de StoreKit y su lista es perezosa: con los
         // productos cargados se ve la primera fila, mientras carga se ve el

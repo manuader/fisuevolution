@@ -151,13 +151,21 @@ Terminal.app) · logros: la enumeración (39) manda sobre el "36" del titular.
   `ui_daily_calendar`. El que salga hueco NO se integra (se borran sus
   `@2x`/`@3x` y su clave de `manifest.ui`): el juego vuelve solo al vectorial,
   que para eso está. El script de medición está en el report de T19.
-- ⚠️ **4 de los 15 iconos no tienen dónde aterrizar todavía** (verificado key
-  por key en T19): `ui_trophy_bronze/silver/gold` y `ui_daily_calendar` NO
-  pasan por `GameIcon(artKey:)`. `AchievementsView.swift:206` y
-  `RootView.swift:382` instancian `VectorTrophyIcon(tier:)` directo, y
-  `VectorCalendarIcon` no se usa fuera de `GameIcons.swift`. Aunque el batch
-  salga perfecto, esos 4 PNG entran al atlas y al manifest y el juego los
-  ignora. Es costura de Swift (T20 / ola final), no de la cola.
+- ✅ **La costura de los 4 iconos sin call-site quedó cerrada** (2026-08-16,
+  rama `fix/iconos-gameicon` nacida de `d9f9a9d`, lista para fast-forward:
+  `c361d4d` + `84a2af6`). `Tier.artKey` mapea `ui_trophy_bronze/silver/gold`
+  —un solo mapeo para los dos call-sites, pineado literal en
+  `GameArtComponentsTests`—, la fila de Logros y el toast de `RootView`
+  envuelven el vectorial con `GameIcon(artKey:)`, y `VectorCalendarIcon`
+  estrena call-site en la tarjeta del daily de `GiftsView`
+  (`ui_daily_calendar`, 44 pt en un plato de 56 como los de Boost/Screen).
+  **Los 15 del batch ya tienen dónde aterrizar.** Verificado: unit **337**
+  verdes · `MenuUITests` 7/7 · `BonusHUDUITests` 2/2 · cero warnings; las
+  capturas del xcresult se miraron y muestran los trofeos de la lista Y del
+  toast dibujados en pantalla. ⚠️ Lo único sin fotografiar es la tarjeta del
+  daily con el plato (ningún test captura la hoja de Regalos abierta y el
+  panel del simulador pide un permiso que una sesión autónoma no puede
+  otorgar): va con la pasada de capturas de T20.
 - ⚠️ **`gen_prompts.py` regenera `prompts.json` entero** desde
   `cultural_dict.py`: si alguien lo corre, se lleva puestas las 52 entradas
   agregadas a mano (las 15 de T19 incluidas). Quedó como generador legacy.

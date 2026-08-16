@@ -16,6 +16,22 @@ vistazo.
 | Skins ganables | 121–156 | una skin por personaje | 36 |
 | ORO | 157 | ícono de la moneda de prestigio | 1 |
 | **RF-10 · RF-05 · RF-13** | **158–209** | **7 personajes nuevos + 43 caras + 2 skins pagas** | **52** |
+| **Rediseño UI** | **213–227** | **15 íconos nuevos: 5 tabs + 2 del HUD + 4 del menú + 3 trofeos + calendario** | **15** |
+
+La tanda 213–227 sale del spec §12.1 de `.superpowers/sdd/2026-08-14-rediseno-ui-cowevolution/`.
+Tres cosas propias de esta tanda:
+
+- **Sin `**referencia**`**: los íconos de UI no adjuntan el Fisura. `parse_reference()` devuelve
+  `None` y el runner usa la rama "sin referencia" (clickea el compose box para tomar foco en vez
+  de pegar la imagen). Poner una referencia haría que el filtro de huella de píxeles descarte
+  generaciones válidas.
+- **El 16º ícono del spec, `ui_tab_jobs`, NO está en la cola**: la tab de FisuJobs usa la cara del
+  Fisura (`homeless_face`, ya en el atlas), como la vaca de Cow Evolution.
+- **Verificar el % de píxeles opacos del `@2x` post-rembg** antes de dar por bueno cada ícono
+  (bug #6 de `Docs/HANDOFF-arte-gemini.md`): rembg se come los rellenos interiores claros y
+  grandes. Los de riesgo alto son `ui_menu_stats`, `ui_trophy_silver` y `ui_daily_calendar`. El
+  que salga hueco NO se integra: el juego ya tiene su ícono vectorial de fallback en
+  `GameIcons.swift`.
 
 La tanda 158–209 sale de `Docs/superpowers/specs/2026-08-06-siete-personajes-y-remapeo.md`.
 Dos cosas que hay que respetar al correrla:
@@ -240,5 +256,23 @@ Dos cosas que hay que respetar al correrla:
 | 210 | fondo_buitre | `fondo_buitre.png` | pendiente |
 | 211 | fondo_buitre_face | `fondo_buitre_face.png` | pendiente |
 | 212 | bg_galaxy (regeneración) | `bg_galaxy.png` | pendiente |
+| 213 | ui_tab_upgrades | `ui_tab_upgrades.png` | pendiente |
+| 214 | ui_tab_skins | `ui_tab_skins.png` | pendiente |
+| 215 | ui_tab_gifts | `ui_tab_gifts.png` | pendiente |
+| 216 | ui_tab_shop | `ui_tab_shop.png` | pendiente |
+| 217 | ui_tab_menu | `ui_tab_menu.png` | pendiente |
+| 218 | ui_coin_plus | `ui_coin_plus.png` | pendiente |
+| 219 | ui_elevator | `ui_elevator.png` | pendiente |
+| 220 | ui_menu_orgchart | `ui_menu_orgchart.png` | pendiente |
+| 221 | ui_menu_stats | `ui_menu_stats.png` | pendiente |
+| 222 | ui_menu_trophy | `ui_menu_trophy.png` | pendiente |
+| 223 | ui_menu_settings | `ui_menu_settings.png` | pendiente |
+| 224 | ui_trophy_bronze | `ui_trophy_bronze.png` | pendiente |
+| 225 | ui_trophy_silver | `ui_trophy_silver.png` | pendiente |
+| 226 | ui_trophy_gold | `ui_trophy_gold.png` | pendiente |
+| 227 | ui_daily_calendar | `ui_daily_calendar.png` | pendiente |
 
-**Progreso**: 157/211 hechos, 54 pendientes.
+**Progreso** (contado sobre los `.md`, no sobre esta tabla): **211/226 hechos, 15 pendientes** —
+los 15 pendientes son los del rediseño, 213–227. ⚠️ Las filas 158–212 de arriba quedaron escritas
+`pendiente` pero sus `.md` ya están en `hecho`: **el estado real lo tiene el `.md`, no la tabla**
+(el runner reescribe el `.md`, nunca esta fila).

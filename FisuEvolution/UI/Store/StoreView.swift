@@ -659,6 +659,12 @@ private struct StoreProductCard: View {
                 // localización, así que interpolarlo es correcto (la trampa 5 es
                 // de `LocalizedStringKey`).
                 identifier: "store.buy.\(product.id)",
+                // Y por la misma razón el botón dice QUÉ compra: diez botones que
+                // se leen "USD 2,99" no se distinguen en el rotor. El nombre del
+                // producto lo escribe App Store Connect, así que entra como
+                // argumento. Mismo trato que la cápsula gemela de Pintas, que
+                // comparte con esta el namespace `store.buy.<id>`.
+                accessibilityPurpose: Text("store.buy.ax \(product.displayName)"),
                 action: buy
             )
             // Una compra en vuelo levanta la hoja de pago del sistema por

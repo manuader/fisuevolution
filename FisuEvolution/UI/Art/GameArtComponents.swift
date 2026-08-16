@@ -174,6 +174,14 @@ struct RibbonShape: InsettableShape {
 /// tiene el mismo problema medido (la barra ocupa `y 71…119` de 192, 37% de
 /// margen transparente arriba y abajo), y a 20 pt de alto los capInsets la
 /// aplastan hasta que el contorno negro desaparece.
+///
+/// ⚠️ **Publica etiqueta Y valor.** El valor solo ("Nivel 3 / 20", "34%") deja un
+/// elemento que VoiceOver anuncia sin decir de QUÉ es el número; la etiqueta dice
+/// qué mide y el valor cuánto va, que es el reparto que espera el lector. Quien
+/// necesite una etiqueta más específica la pisa desde afuera con
+/// `.accessibilityLabel` —el modificador de más afuera gana—, y quien no quiera
+/// que la barra hable la tapa entera (lo hace `AchievementsView`, donde el
+/// progreso ya viaja en el resumen de la fila).
 struct ProgressBar: View {
     let progress: Double
     let tint: Color
@@ -209,6 +217,7 @@ struct ProgressBar: View {
         }
         .frame(height: 20)
         .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("progress.ax.label"))
         .accessibilityValue(Text(verbatim: labelText ?? "\(Int(clampedProgress * 100))%"))
     }
 }
@@ -293,6 +302,15 @@ extension View {
 /// tocarlo sin saldo lo hace **temblar** 0,3 s (spec §11.2). Es un pulso de
 /// keyframes disparado por el toque —ni timer ni `repeatForever`—, así que en
 /// reposo no hay ninguna animación viva.
+///
+/// ⚠️ **Lo que dice en voz alta se arma entre los dos**: el componente pone el
+/// monto CON su moneda (el glifo de la moneda es un dibujo y VoiceOver no lo ve,
+/// así que "1,2K" a secas no decía en qué se paga) y el llamador pone el
+/// `accessibilityPurpose`, que es lo único que él sabe: QUÉ compra este precio.
+/// Sin propósito, media pantalla de botones dice sólo un número y en el rotor no
+/// se distingue cuál es cuál. Se compone acá adentro —y no con un
+/// `.accessibilityLabel` afuera— justamente para que la moneda no se pueda
+/// perder al escribir el llamador.
 struct PricePill: View {
     enum Currency {
         case coins
@@ -307,10 +325,35 @@ struct PricePill: View {
     let currency: Currency
     let affordable: Bool
     let identifier: String
+    /// **Qué** compra este precio, ya resuelto por el llamador ("Contratar a El
+    /// Fisura", "Comprar Pack de Arranque"). El componente le pega el monto y la
+    /// moneda detrás; sin él la parada dice sólo el número.
+    var accessibilityPurpose: Text?
     let action: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shake = 0
+
+    /// El monto con su moneda dicha con todas las letras.
+    ///
+    /// ⚠️ `.money` va **verbatim**: `displayPrice` lo escribe StoreKit y ya trae
+    /// la moneda del jugador ("USD 1,99"), así que agregarle una palabra la diría
+    /// dos veces. Expuesto —no privado— porque es lo único de esta etiqueta que
+    /// se puede assertar sin renderizar, y el test que lo lee es también el que
+    /// atrapa la clave que no llegó al catálogo.
+    var spokenAmount: String {
+        switch currency {
+        case .coins: String(localized: "price.ax.coins \(text)")
+        case .oro: String(localized: "price.ax.oro \(text)")
+        case .money: text
+        }
+    }
+
+    /// La parada completa: propósito (si lo hay) y monto.
+    private var spokenLabel: Text {
+        guard let accessibilityPurpose else { return Text(verbatim: spokenAmount) }
+        return accessibilityPurpose + Text(verbatim: ", \(spokenAmount)")
+    }
 
     var body: some View {
         Button {
@@ -352,6 +395,7 @@ struct PricePill: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
+        .accessibilityLabel(spokenLabel)
         // ±4 pt, cuatro tramos, 0,3 s en total. Va **último** para que el
         // identifier quede pegado al botón y no a un contenedor de más
         // (trampa 9a-bis): `offset` no crea un elemento de accesibilidad.
@@ -436,8 +480,20 @@ struct ActionPill: View {
 /// ⚠️ Nació privado en `FisuJobsView` (T8) y se mudó acá al segundo llamador
 /// (T11): es el badge de estado del juego, y dos copias con dibujos que se van
 /// separando es exactamente lo que la regla visual del dueño prohíbe. No lleva
-/// identifier ni traits: **no es un control**, y quien lo usa lo tapa de
-/// VoiceOver porque su texto ya viaja en el valor de la fila.
+/// identifier ni traits: **no es un control**.
+///
+/// ⚠️ **Y no hay un solo trato con VoiceOver: hay dos, y los elige el
+/// llamador** según cómo navegue SU pantalla.
+/// - `.accessibilityHidden(true)` donde la fila es **una** parada y su valor ya
+///   dice este mismo estado: repetirlo sería decirlo dos veces (FisuJobs, la
+///   tienda, Pintas, Logros — el patrón T8: tapar la info, nunca el control).
+/// - `.accessibilityElement(children: .combine)` + identifier donde la pantalla
+///   navega **por paradas** y este badge es el único lugar donde el estado
+///   existe (Regalos, Mejoras). El `combine` no es decoración: sin él el glifo
+///   queda como una parada muda al lado del texto.
+///
+/// Taparlo "por las dudas" en una pantalla del segundo grupo borra el estado del
+/// árbol y nadie se entera hasta que alguien lo escucha.
 struct StateBadge: View {
     let text: String
     /// Glifo a la izquierda (`lock.fill`, `checkmark.circle.fill`), o `nil`.

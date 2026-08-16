@@ -3271,6 +3271,23 @@
         }
       }
     },
+    "jobs.hire.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hire %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contratar a %@"
+          }
+        }
+      }
+    },
     "jobs.hired_count %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4001,6 +4018,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¿Reencarnar?"
+          }
+        }
+      }
+    },
+    "price.ax.coins %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ coins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ monedas"
+          }
+        }
+      }
+    },
+    "price.ax.oro %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ORO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de ORO"
+          }
+        }
+      }
+    },
+    "progress.ax.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progress"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Progreso"
           }
         }
       }
@@ -6392,6 +6460,23 @@
         }
       }
     },
+    "store.buy.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprar %@"
+          }
+        }
+      }
+    },
     "store.close" : {
       "localizations" : {
         "en" : {
@@ -7300,6 +7385,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dedos Curtidos"
+          }
+        }
+      }
+    },
+    "upgrades.ax.level_up %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level up %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subir de nivel %@"
+          }
+        }
+      }
+    },
+    "upgrades.ax.multiplier %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade %@'s cash"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejorar la plata de %@"
+          }
+        }
+      }
+    },
+    "upgrades.ax.passive %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock %@'s passive income"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloquear el ingreso pasivo de %@"
           }
         }
       }

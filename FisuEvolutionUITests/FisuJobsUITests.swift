@@ -68,6 +68,15 @@ final class FisuJobsUITests: XCTestCase {
         XCTAssertNotNil(priceBefore, "la fila tiene que publicar su precio como valor de accesibilidad")
         XCTAssertFalse(priceBefore?.isEmpty ?? true, "la fila publicó un precio vacío")
 
+        // Y la parada del botón no puede ser el mismo número pelado que ya dijo
+        // la fila: la moneda es un GLIFO —invisible para VoiceOver— y con 43
+        // filas "50" no dice a quién contrata. Se compara contra el valor de la
+        // fila y no contra un texto traducido (trampa 6).
+        XCTAssertNotEqual(hire.label, priceBefore,
+                          "el botón tiene que decir qué compra y en qué moneda, no sólo el monto: \(hire.label)")
+        XCTAssertTrue(hire.label.contains(priceBefore ?? "∅"),
+                      "y sin perder el monto por el camino: \(hire.label)")
+
         hire.tap()
 
         // El precio de contratar crece con cada compra del MISMO tipo (growth
@@ -141,6 +150,16 @@ final class FisuJobsUITests: XCTestCase {
                        "una fila bloqueada no ofrece precio: tiene que decir su estado, y dice \(lockedValue ?? "?")")
         XCTAssertFalse(app.buttons["jobs.hire.\(Self.lockedType)"].exists,
                        "una fila bloqueada no puede tener botón de contratar")
+
+        // ⚠️ **Y no repite el piso.** El valor de una fila `.lockedFloor` ES su
+        // piso ("Se abre en Ciudad"), así que el resumen lo saltea: dice nombre,
+        // ingreso y nómina. La contratable —cuyo valor es el precio— sí lo lleva,
+        // y por eso tiene un tramo más. Se cuentan los tramos en vez de comparar
+        // texto traducido (trampa 6); ningún nombre del catálogo trae ", ".
+        XCTAssertEqual(hirable.label.components(separatedBy: ", ").count, 4,
+                       "la fila contratable dice nombre, piso, ingreso y nómina: \(hirable.label)")
+        XCTAssertEqual(locked.label.components(separatedBy: ", ").count, 3,
+                       "la fila bloqueada no puede repetir el piso que ya dice su valor: \(locked.label)")
 
         // Y el Oficinista es tier 9: nunca visto, así que su tarjeta va en
         // silueta, sin nombre y sin rendimiento.

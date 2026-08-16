@@ -104,9 +104,15 @@ struct UpgradesView: View {
 
     /// Lo que hay para gastar en esta pestaña. Sin esto, la única forma de saber
     /// si un precio en ORO estaba a tiro era cerrar la hoja e ir al HUD.
+    ///
+    /// ⚠️ La moneda va tapada de VoiceOver, como los glifos de las filas: el
+    /// texto de al lado ya dice "ORO: 240" y la imagen sola dejaba una parada
+    /// muda entre las pestañas y la lista (el mismo defecto, el octavo glifo de
+    /// esta pestaña).
     private var oroBalance: some View {
         HStack(spacing: Tokens.s4) {
             OroIcon(size: 18)
+                .accessibilityHidden(true)
             Text("upgrades.oro_balance \(gameState.oroText)")
                 .font(Tokens.body)
                 .monospacedDigit()
@@ -237,7 +243,13 @@ struct UpgradesView: View {
                         text: CoinFormatter.string(from: row.upgradeCost),
                         currency: .coins,
                         affordable: row.canAffordUpgrade,
-                        identifier: "upgrades.character.\(row.id).multiplier"
+                        identifier: "upgrades.character.\(row.id).multiplier",
+                        // Las dos cápsulas de la fila son verdes, dicen un monto
+                        // en monedas y están una debajo de la otra: sin decir cuál
+                        // es cuál, la única forma de saberlo es el orden de
+                        // lectura. El nombre va porque en el rotor las N filas
+                        // repiten estos dos botones.
+                        accessibilityPurpose: Text("upgrades.ax.multiplier \(row.displayName)")
                     ) {
                         gameState.buyCharacterUpgrade(typeID: row.id)
                     }
@@ -292,7 +304,8 @@ struct UpgradesView: View {
                             text: CoinFormatter.string(from: row.passiveCost),
                             currency: .coins,
                             affordable: row.canAffordPassive,
-                            identifier: "upgrades.character.\(row.id).passive"
+                            identifier: "upgrades.character.\(row.id).passive",
+                            accessibilityPurpose: Text("upgrades.ax.passive \(row.displayName)")
                         ) {
                             gameState.buyPassiveFromMenu(typeId: row.id)
                         }
@@ -331,6 +344,14 @@ struct UpgradesView: View {
     /// eran exactamente los que le faltaban a "+172/s cada uno" para entrar en un
     /// renglón. El aire no se pierde: la cápsula trae 12 pt de padding propio
     /// antes del glifo, así que entre el texto y el número siguen habiendo 16.
+    ///
+    /// ⚠️ El `minimumScaleFactor` **no contradice lo de arriba**: con dos
+    /// renglones los ocho textos entran enteros a 12 pt en todos los cuerpos
+    /// normales, así que no se dispara nunca y la lista sigue teniendo UNA
+    /// tipografía. Es la red para Dynamic Type grande, donde el mismo texto ya no
+    /// entra ni en dos renglones y hoy se cortaba con puntos suspensivos: entre
+    /// un renglón un poco más chico y un efecto que no dice cuánto, gana el que
+    /// se lee.
     private func upgradeLine<Trailing: View>(
         text: String,
         accent: Color,
@@ -342,6 +363,7 @@ struct UpgradesView: View {
                 .monospacedDigit()
                 .foregroundStyle(accent)
                 .lineLimit(2)
+                .minimumScaleFactor(0.7)
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
             // Sin prioridad, la cápsula pierde contra un texto que quiere todo
@@ -434,7 +456,13 @@ struct UpgradesView: View {
                             text: String(oroCost),
                             currency: .oro,
                             affordable: canAfford,
-                            identifier: "upgrades.permanent.\(line.id)"
+                            identifier: "upgrades.permanent.\(line.id)",
+                            // Las siete líneas ofrecen el mismo botón de ORO: el
+                            // título es lo que dice cuál se está por subir. El
+                            // título sale del JSON, así que se resuelve con el
+                            // lookup de claves data-driven (`String(localized:)`
+                            // sólo acepta literales) y entra como ARGUMENTO.
+                            accessibilityPurpose: Text("upgrades.ax.level_up \(GameState.localized(line.titleKey))")
                         ) {
                             gameState.buyUpgrade(lineId: line.id)
                         }
@@ -448,6 +476,14 @@ struct UpgradesView: View {
     /// El glifo de la línea, encuadrado como el retrato de una tarjeta de
     /// FisuJobs para que las dos pantallas hablen el mismo idioma. Con la clave
     /// fuera del manifest cae a un SF Symbol: la fila no espera al arte.
+    ///
+    /// ⚠️ **Tapado de VoiceOver**, como el retrato de FisuJobs y la copa de
+    /// Logros: es decoración —el título de al lado dice qué línea es— y una
+    /// `Image` sin etiqueta deja una parada donde el lector se detiene para no
+    /// decir nada. Eran siete, una por línea de ORO. Se tapa el glifo y NO la
+    /// fila: el badge "Al máximo" y la cápsula de precio siguen siendo sus
+    /// propias paradas (patrón T8: se tapa la info, nunca el control ni el
+    /// estado que no viaja en ningún otro lado).
     private func upgradeIcon(_ key: String) -> some View {
         let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
         return Color.clear
@@ -467,6 +503,7 @@ struct UpgradesView: View {
             .background(Color("PaletteYellow").opacity(0.35))
             .clipShape(shape)
             .overlay(shape.strokeBorder(Color("PaletteInk"), lineWidth: 2))
+            .accessibilityHidden(true)
     }
 }
 

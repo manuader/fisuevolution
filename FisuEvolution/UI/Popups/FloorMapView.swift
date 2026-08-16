@@ -113,14 +113,29 @@ struct FloorMapView: View {
     /// título flotante de los paneles" —el de todas las hojas—, y acá se corta
     /// igual que en `FisuJobsView` y `UpgradesView`.
     private var header: some View {
-        HStack(spacing: Tokens.s8) {
-            // La cabina con su display: el mismo glifo que el botón del HUD que
-            // abre esta hoja, así el viaje de un lado al otro se lee como uno
-            // solo. Es decoración pura —el título ya dice "Ascensor"—, así que se
-            // esconde de VoiceOver en vez de quedar como una parada muda.
-            GameIcon(artKey: "ui_elevator", size: 34) { VectorElevatorIcon() }
-                .accessibilityHidden(true)
-            PanelTitleBanner(titleKey: "elevator.title")
+        VStack(spacing: Tokens.s4) {
+            HStack(spacing: Tokens.s8) {
+                // La cabina con su display: el mismo glifo que el botón del HUD
+                // que abre esta hoja, así el viaje de un lado al otro se lee como
+                // uno solo. Es decoración pura —el título ya dice "Ascensor"—,
+                // así que se esconde de VoiceOver en vez de quedar como una
+                // parada muda.
+                GameIcon(artKey: "ui_elevator", size: 34) { VectorElevatorIcon() }
+                    .accessibilityHidden(true)
+                PanelTitleBanner(titleKey: "elevator.title")
+            }
+            // La bajada, con el mismo formato que la de FisuJobs y la de la
+            // tienda: `Tokens.caption` en ink al 75%, centrada y a dos renglones.
+            // Era la única de las seis hojas que tenía título pelado, y de las
+            // seis es la que más lo necesita: el título dice CÓMO se llama la
+            // pantalla, no qué se hace en ella.
+            Text("elevator.subtitle")
+                .font(Tokens.caption)
+                .foregroundStyle(Color("PaletteInk").opacity(0.75))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, Tokens.s24)
         }
         .padding(.horizontal, Self.panelInset)
         .padding(.top, 6)

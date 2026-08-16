@@ -1667,23 +1667,6 @@
         }
       }
     },
-    "ads.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bonus"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bonus"
-          }
-        }
-      }
-    },
     "ads.watch" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1714,23 +1697,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activar"
-          }
-        }
-      }
-    },
-    "bonus.duration %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lasts %@ seconds"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dura %@ segundos"
           }
         }
       }
@@ -1837,53 +1803,19 @@
         }
       }
     },
-    "bonus.section.ads" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Watch an ad"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Por ver un video"
-          }
-        }
-      }
-    },
-    "bonus.section.boosts" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boosts"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Boosts"
-          }
-        }
-      }
-    },
     "boost.asado.flavor" : {
       "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Every 6 hours a fat chest drops. The grill master takes his time, but never fails."
+            "value" : "The grill master takes his time, but he never fails."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cada 6 horas cae un cofre gordo. El asador no se apura, pero nunca falla."
+            "value" : "El asador no se apura, pero nunca falla."
           }
         }
       }
@@ -1911,13 +1843,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Double shot, productive tachycardia: x2 taps until the shakes wear off."
+            "value" : "Double shot, productive tachycardia. Sit down when the shakes wear off."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Doble carga, taquicardia productiva: taps x2 hasta que baje el temblor."
+            "value" : "Doble carga, taquicardia productiva. Sentate cuando baje el temblor."
           }
         }
       }
@@ -1945,13 +1877,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "70/30, as Córdoba law demands. The hangout pays off: x3 income while the glass lasts."
+            "value" : "70/30, as Córdoba law demands. The hangout always pays off."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "70/30 como manda la ley cordobesa. La juntada rinde: income x3 mientras dure el vaso."
+            "value" : "70/30 como manda la ley cordobesa. La juntada siempre rinde."
           }
         }
       }
@@ -1979,13 +1911,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The hangout is on and good vibes pay: x3 income while the conversation lasts."
+            "value" : "The hangout is on and the good vibes pay for themselves."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se armó la juntada y la buena onda factura: income x3 mientras dura la charla."
+            "value" : "Se armó la juntada y la buena onda factura sola."
           }
         }
       }
@@ -2013,13 +1945,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pass the mate around and the crew delivers: hiring is 30% cheaper for a bit."
+            "value" : "Pass the mate around and the crew delivers. The thermos belongs to everyone."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ronda de mates y el equipo rinde: contratar sale 30% más barato por un rato."
+            "value" : "Ronda de mates y el equipo rinde. El termo es de todos."
           }
         }
       }
@@ -2047,13 +1979,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Napolitana with fries. You sleep like a log and earn better: +5% offline forever."
+            "value" : "Napolitana with fries. You sleep like a log and wake up richer."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Napolitana con fritas. Dormís como un lirón y rendís mejor: +5% offline para siempre."
+            "value" : "Napolitana con fritas. Dormís como un lirón y te despertás más rico."
           }
         }
       }
@@ -2081,13 +2013,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Don't ask what was in the thermos. x5 income for 30 seconds of pure madness."
+            "value" : "Don't ask what was in the thermos. Nobody is going to tell you."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No preguntes qué había en el termo. Income x5 por 30 segundos de puro delirio."
+            "value" : "No preguntes qué había en el termo. Nadie te va a contestar."
           }
         }
       }
@@ -2115,13 +2047,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deep breath, full flow, the universe pays up: x5 income for 30 seconds."
+            "value" : "Deep breath, full flow, and the universe pays up on its own."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Respirás hondo, entrás en flow y el universo te paga: income x5 por 30 segundos."
+            "value" : "Respirás hondo, entrás en flow y el universo te paga solo."
           }
         }
       }
@@ -2643,6 +2575,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ → %2$@"
+          }
+        }
+      }
+    },
+    "elevator.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten floors up. Nobody takes the stairs."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diez pisos para arriba. Nadie sube por escalera."
           }
         }
       }
@@ -3590,40 +3539,6 @@
         }
       }
     },
-    "map.occupancy.label" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Occupancy"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ocupación"
-          }
-        }
-      }
-    },
-    "map.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The tower"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La torre"
-          }
-        }
-      }
-    },
     "menu.card.achievements" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3909,23 +3824,6 @@
         }
       }
     },
-    "passive.insufficient" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not enough coins"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Te faltan monedas"
-          }
-        }
-      }
-    },
     "passive.title %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3956,23 +3854,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Desbloquear por"
-          }
-        }
-      }
-    },
-    "passive.unlocked" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Already earning on its own!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Ya genera solo!"
           }
         }
       }
@@ -5710,142 +5591,6 @@
         }
       }
     },
-    "spawn.button.full" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Floor full"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Piso lleno"
-          }
-        }
-      }
-    },
-    "spawn.button.full.detail" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Merge to make room"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fusioná para hacer lugar"
-          }
-        }
-      }
-    },
-    "spawn.button.hint" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Buys a new character and places it on the board"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compra un personaje nuevo y lo pone en el tablero"
-          }
-        }
-      }
-    },
-    "spawn.button.hire_locked" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not yet"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Todavía no"
-          }
-        }
-      }
-    },
-    "spawn.button.hire_locked.detail" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open the floor above"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abrí el piso de arriba"
-          }
-        }
-      }
-    },
-    "spawn.button.locked" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Floor locked"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Piso bloqueado"
-          }
-        }
-      }
-    },
-    "spawn.button.locked.detail" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Evolve to unlock it"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Evolucioná para abrirlo"
-          }
-        }
-      }
-    },
-    "spawn.button.title %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hire %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sumar %@"
-          }
-        }
-      }
-    },
     "special.alien_investor.flavor" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6834,13 +6579,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Upgrades"
+            "value" : "Featured"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mejoras"
+            "value" : "Destacados"
           }
         }
       }
@@ -6875,40 +6620,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skins"
-          }
-        }
-      }
-    },
-    "store.skin.activate" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Usar"
-          }
-        }
-      }
-    },
-    "store.skin.active" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Active"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activa"
           }
         }
       }

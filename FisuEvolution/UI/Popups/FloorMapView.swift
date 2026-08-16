@@ -244,12 +244,18 @@ struct FloorMapView: View {
     /// en un `LocalizedStringKey` armaría la clave `%lld` (trampa 5).
     ///
     /// ⚠️ **`Tokens.title` y no `.system(size: 17)`**: un tamaño fijo es el único
-    /// texto de la pantalla que se queda quieto cuando el jugador agranda la
-    /// letra del sistema, y en una botonera el número es justo lo que hay que
-    /// poder leer. `Tokens.title` es el token más cercano al 17 pt de antes (20 pt
-    /// en el cuerpo por defecto) y el que conserva el peso; los 3 pt de más caben
-    /// de sobra en el círculo de 40, y el `minimumScaleFactor` sigue siendo la red
-    /// del "10" en los cuerpos grandes.
+    /// texto de la pantalla que se queda quieto cuando el jugador agranda la letra
+    /// del sistema, y en una botonera el número es justo lo que hay que poder leer.
+    ///
+    /// **El canje, escrito entero**: se ganan 3 pt (17 → 20 en el cuerpo por
+    /// defecto) y se pierde **un escalón de peso**, del `.black` de antes al
+    /// `.heavy` del token. El único token que conserva el `.black` es
+    /// `Tokens.display`, y perdió por tamaño: mide 28 pt —+11 sobre el original—,
+    /// que en un círculo de 40 con el "10" del Reino divino ya no es un número
+    /// grande sino un número apretado. Entre un escalón de peso y once puntos de
+    /// más gana el peso perdido: a 20 pt el dígito se lee más que a 17, y el
+    /// `minimumScaleFactor` sigue siendo la red en los cuerpos grandes. Verificado
+    /// sobre la captura de `FloorMapUITests`.
     private func numberButton(_ entry: FloorMapEntry, tone: Tone) -> some View {
         Text(verbatim: "\(entry.ordinal + 1)")
             .font(Tokens.title)
@@ -306,8 +312,21 @@ struct FloorMapView: View {
     ///
     /// ⚠️ **`Tokens.caption` y no `.system(size: 10)`**, por lo mismo que el
     /// número: era el texto más chico de la pantalla y encima el único que no
-    /// crecía. El token más cercano son 12 pt —dos más que antes— y la cápsula
-    /// crece con él porque no tiene ancho fijo: es una marca, no una columna.
+    /// crecía. La cápsula crece con él porque no tiene ancho fijo: es una marca,
+    /// no una columna.
+    ///
+    /// **El canje acá es más caro y va dicho**: +2 pt (10 → 12) y **tres escalones
+    /// de peso**, del `.black` de antes al `.semibold` del token. Se acepta a
+    /// propósito: `Tokens.caption` es con lo que el juego escribe TODAS sus
+    /// cápsulas chiquitas —el `floorTag` de FisuJobs, que es literalmente la misma
+    /// cápsula amarilla con borde ink, y el `StateBadge` compartido—, así que la
+    /// marca deja de ser la única del juego con un peso propio. Un
+    /// `.weight(.black)` encima del token la devolvería, pero sería la primera
+    /// tipografía de la app que se sale de la escala y la próxima pantalla copiaría
+    /// el atajo: la gramática vale más que dos escalones en una etiqueta de 12 pt
+    /// en tinta sobre amarillo pleno, que es el par de contraste más alto de la
+    /// paleta. Si el dueño la escucha apagada, el arreglo es subir el peso del
+    /// TOKEN —y con él las tres cápsulas—, no parchar esta.
     private var herePill: some View {
         Text("map.here")
             .font(Tokens.caption)

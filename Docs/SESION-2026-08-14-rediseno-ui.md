@@ -45,7 +45,9 @@
 | 14 | Logros (catálogo+motor) | ✅ review clean (1 fix round) | `274af9d` + `f056dcc` + `d95cc36` | 39 logros data-driven (el draft mandó), motor con 11 hooks, claim con recompensas, toast `ach.toast`, 82 claves. Fix: seen_all mide los 37 ALCANZABLES derivados del dato, portero eliminado, premio con suelo histórico (rewardText = claim). La pantalla la hace T15 |
 | 15 | Menú + org/stats/logros | ✅ review clean (1 fix round: `f08099e` — organigrama sin rearme por tick, tier con "(esta vida)") | `ce07c8a`..`f08099e` | Las 4 pantallas del menú. `menu.placeholder` MURIÓ (`ScreenPlaceholderView` borrado: las seis hojas de la barra existen). Es la ÚNICA hoja que navega hacia adentro. `statsSnapshot` (18 stats en texto) + `orgChartRows` (43 nodos, tier DESC). Margen 34pt medido en panel_config (marco DOBLE). Fixture nuevo `--uitest-achievements` (11º arg). 43 claves. Coherencia con FisuJobs verificada por captura lado a lado |
 | 16 | Ajustes + legales + notificaciones | ✅ review clean | `59b69a6` + `0a64d90` | `SettingsView` real (6 sesiones, 7 ids del spec), `LegalView` con parser por bloques, `NotificationsManager` (recordatorio diario 19:00, `isEnabled` `private(set)` para que no mienta), `terms.md` es+en del draft, `ConfigView` BORRADA, `StatDivider`→`RowDivider` compartido, `Tokens.prose` nuevo. `--uitest-reset` ahora limpia también los ajustes. 31 claves |
-| 17-20 | — | pendientes | — | Ver plan |
+| 17 | Facing de personajes | ✅ review clean | `0d3839f` | Miran hacia donde caminan + flip periódico independiente (sobrevive congelamientos; un solo remover verificado estructuralmente). Espejado en `sprite.xScale`, nunca en el nodo. Verificación visual en LOS DOS sentidos (md5). Dos errores del brief corregidos con test (pool no limpia el sprite; withRange = ±range/2) |
+| 18 | Micro-animaciones + DailyRewardView | ⏳ **PRÓXIMA** | — | Pulido de animaciones + el restyle del popup daily (hueco del plan absorbido acá) |
+| 19-20 | — | pendientes | — | Ver plan |
 
 **Suites al cierre de T16**: `FisuEvolutionTests` **327** (306 + 21 de
 `SettingsPersistenceTests`, `NotificationsManagerTests` y

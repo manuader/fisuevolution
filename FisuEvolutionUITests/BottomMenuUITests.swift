@@ -30,7 +30,9 @@ final class BottomMenuUITests: XCTestCase {
         // que cualquiera de ellos la discrimina de las otras cinco pantallas.
         ("hud.store", ["store.buy.com.fisuevolution.iap.starter_pack", "store.restore",
                        "store.unavailable", "store.retry"]),
-        ("hud.settings", ["menu.placeholder"]),
+        // El Menú dejó de ser un placeholder en la T15: abre la grilla 2×2, y
+        // la tarjeta del organigrama es un identifier que sólo vive ahí.
+        ("hud.settings", ["menu.card.orgchart"]),
     ]
 
     @MainActor

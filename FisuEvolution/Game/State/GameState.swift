@@ -436,6 +436,14 @@ final class GameState {
             if ProcessInfo.processInfo.arguments.contains("--uitest-daily-streak") {
                 debugSetDailyCycleDay(4)
             }
+            // Tres logros conseguidos y sin cobrar: es la única forma de ver la
+            // sección "Para cobrar" de la pantalla de Logros con algo adentro.
+            // Va DESPUÉS de los otros fixtures a propósito —`--uitest-coins`
+            // mueve `lifetimeEarnings` y cruza su propio logro— para que su
+            // `evaluateAchievements()` acredite todo de una pasada.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-achievements") {
+                debugSeedAchievements()
+            }
             // El long-press sobre SpriteKit no es determinista en el runner: para
             // el smoke de la ficha alcanza con abrirla sobre la primera unidad.
             if ProcessInfo.processInfo.arguments.contains("--uitest-open-sheet"),

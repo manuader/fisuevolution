@@ -200,9 +200,9 @@ struct GameBoardView: View {
         .sheet(isPresented: $showPrestige) {
             PrestigeView()
         }
-        // Las seis pantallas de la barra inferior, en UN solo sheet. El
-        // placeholder que queda (`menu`) llega en F3 y ya lleva puesto el
-        // identifier que su test va a buscar.
+        // Las seis pantallas de la barra inferior, en UN solo sheet. Ya no queda
+        // ningún placeholder: el Menú es la última que se construyó (T15) y es
+        // la única que navega hacia adentro.
         .sheet(item: $activeScreen) { screen in
             switch screen {
             case .jobs: FisuJobsView()
@@ -210,7 +210,7 @@ struct GameBoardView: View {
             case .skins: CustomizationView()
             case .gifts: GiftsView(adsProvider: adsProvider)
             case .store: StoreView()
-            case .menu: ScreenPlaceholderView(identifier: "menu.placeholder", title: "Menú")
+            case .menu: MenuView()
             }
         }
         .sheet(item: Binding(
@@ -319,42 +319,10 @@ struct GameBoardView: View {
     #endif
 }
 
-/// Pantalla todavía no construida (Customización y Menú llegan en F3). Existe
-/// para que el tab abra algo cerrable desde el día uno y para llevar ya el
-/// identifier que su smoke test busca.
-///
-/// El título va `verbatim`: agregar dos claves al catálogo para borrarlas en F3
-/// deja huérfanos que después nadie sabe si están vivos.
-private struct ScreenPlaceholderView: View {
-    let identifier: String
-    let title: String
-    @Environment(\.dismiss) private var dismiss
-
-    var body: some View {
-        ZStack(alignment: .topTrailing) {
-            Color("PaletteCream").ignoresSafeArea()
-            // ⚠️ El texto NO se estira a pantalla completa (trampa 9a): un
-            // elemento de accesibilidad del tamaño de la hoja tapa al botón de
-            // cerrar en el árbol de AX y todo `.tap()` muere con "Failed to
-            // scroll to visible". Los que se estiran son los CONTENEDORES, que
-            // no son elementos de accesibilidad; el `Text` conserva su tamaño
-            // natural y queda centrado.
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    Text(verbatim: title)
-                        .font(Tokens.title)
-                        .foregroundStyle(Color("PaletteInk"))
-                        .accessibilityIdentifier(identifier)
-                    Spacer()
-                }
-                Spacer()
-            }
-            ArtCloseButton { dismiss() }.padding(18)
-        }
-    }
-}
+// `ScreenPlaceholderView` se retiró en la T15: las seis pantallas de la barra
+// existen de verdad y el último placeholder (`menu.placeholder`) murió con ella.
+// El que queda —Ajustes, hasta la T16— vive dentro de `MenuView`, que es quien
+// lo presenta.
 
 /// El banner de un logro recién conseguido: mismo mecanismo que
 /// `TowerNoticeView` —aparece, se puede tocar para cerrar y se va solo— pero con

@@ -139,6 +139,33 @@ extension GameState {
         self.player = player
     }
 
+    /// Deja tres logros **conseguidos y sin cobrar** para poder fotografiar y
+    /// ejercitar la pantalla de Logros.
+    ///
+    /// Existe por lo mismo que `debugMarkTypesSeen` y `debugSetDailyCycleDay`:
+    /// una partida nueva muestra los 39 logros en gris y **ninguno cobrable**,
+    /// así que sin esta puerta la sección "Para cobrar" no se puede ver ni
+    /// apretar. Conseguir uno jugando pide fusionar, mirar un video con el
+    /// proveedor real o dar mil toques sobre un personaje que deambula: nada de
+    /// eso es automatizable.
+    ///
+    /// Los tres contadores están elegidos para cruzar **un** gatillo cada uno
+    /// (`ach_merges_1`, `ach_taps_1000`, `ach_videos_1`) y ninguno más. Se usa
+    /// `max` para no PISAR un save que ya tuviera más: el fixture agrega, no
+    /// retrocede.
+    ///
+    /// ⚠️ Deja los logros desbloqueados y **sin cobrar** a propósito: cobrarlos
+    /// es lo que el test ejerce. Corre en `bootstrap` con `phase == .loading`,
+    /// así que `evaluateAchievements` acredita sin desfilar tres banners.
+    func debugSeedAchievements() {
+        guard var player else { return }
+        player.meta.stats.totalMergesEver = max(player.meta.stats.totalMergesEver, 1)
+        player.meta.stats.totalTapsEver = max(player.meta.stats.totalTapsEver, 1000)
+        player.meta.stats.videosWatchedEver = max(player.meta.stats.videosWatchedEver, 1)
+        self.player = player
+        evaluateAchievements()
+    }
+
     func debugSimulateOffline(hours: Double) {
         guard var player else { return }
         player.meta.lastSeenTimestamp -= hours * 3600

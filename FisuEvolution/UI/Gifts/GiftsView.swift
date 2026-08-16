@@ -229,24 +229,45 @@ private enum Cooldown {
 private struct DailyStrip: View {
     let days: [GameState.DailyDayRow]
 
+    /// El mismo plato de 56 pt que `BoostGlyph` y `ScreenGlyph`: las tres
+    /// secciones de la pantalla llevan su glifo con el mismo encuadre.
+    private static let plateShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+
     var body: some View {
         GameCard(style: .normal) {
             VStack(spacing: Tokens.s8) {
+                HStack(spacing: Tokens.s12) {
+                    // El calendario es el único de los 15 iconos de la T19 que
+                    // no tenía call-site: sin este `GameIcon`, su PNG entraría
+                    // al manifest y el juego lo ignoraría. 44 pt adentro del
+                    // plato — el rango que pide su prompt (44–60).
+                    GameIcon(artKey: "ui_daily_calendar", size: 44) { VectorCalendarIcon() }
+                        .padding(6)
+                        .background(Color("PaletteYellow").opacity(0.35))
+                        .clipShape(Self.plateShape)
+                        .overlay(Self.plateShape.strokeBorder(Color("PaletteInk"), lineWidth: 2))
+                        .accessibilityHidden(true)
+                    // Por qué no hay botón, dicho en la pantalla y no sólo en
+                    // el código: sin esta línea, "el día 3 está resaltado y no
+                    // puedo tocarlo" se lee como un bug. Tres renglones y no
+                    // dos: al lado del plato la columna es más angosta y con
+                    // dos el remate ("la racha vuelve al 1") se caía en los
+                    // tamaños estándar. Con Dynamic Type de accesibilidad
+                    // trunca igual que antes de esta tarjeta (verificado): el
+                    // tercer renglón cubre el rango normal, no el AX.
+                    Text("gifts.daily.note")
+                        .font(Tokens.caption)
+                        .foregroundStyle(Color("PaletteInk").opacity(0.65))
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 HStack(spacing: Tokens.s4) {
                     ForEach(days) { day in
                         DayCell(day: day)
                     }
                 }
-                // Por qué no hay botón, dicho en la pantalla y no sólo en el
-                // código: sin esta línea, "el día 3 está resaltado y no puedo
-                // tocarlo" se lee como un bug.
-                Text("gifts.daily.note")
-                    .font(Tokens.caption)
-                    .foregroundStyle(Color("PaletteInk").opacity(0.65))
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
-                    .frame(maxWidth: .infinity)
             }
         }
     }

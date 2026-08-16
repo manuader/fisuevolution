@@ -94,27 +94,6 @@ final class GameState {
         let kind: Kind
     }
 
-    /// Qué ofrece el botón de contratar parado en el piso visible.
-    ///
-    /// Es UNA proyección y no tres booleanos porque el botón dibuja título y
-    /// detalle por separado y los dos tienen que contar la misma historia: con
-    /// booleanos ordenados había que repetir el mismo if/else en dos lugares y
-    /// mantenerlos sincronizados a mano.
-    enum HireOffer: Equatable {
-        /// La contratación cae en el piso que estás mirando.
-        case here
-        /// El gate cerró el piso visible, así que cae en el de abajo (§ el botón
-        /// no queda muerto en la frontera). El id es el del piso de destino.
-        case floorBelow(floorID: String)
-        /// El piso donde caería no tiene lugar. `belowFloorID` viene seteado sólo
-        /// cuando ese piso lleno es el de abajo y no el que estás mirando.
-        case full(belowFloorID: String?)
-        /// El piso visible todavía no está abierto: es el preview con candado.
-        case floorLocked
-        /// El gate cerró y tampoco hay piso de abajo donde caer.
-        case unavailable
-    }
-
     /// Los tres hitos del FTUE, como proyección `Equatable` para que publicarlos
     /// no invalide SwiftUI en cada `refreshProjections`.
     struct FTUEMilestones: Equatable {
@@ -204,11 +183,6 @@ final class GameState {
     /// `refreshProjections`.
     private(set) var activeBonuses: [ActiveBonus] = []
     private(set) var showTapHint = false
-    /// ⚠️ Huérfana desde que murió `SpawnButtonView`: era el pulso de aquel
-    /// botón, y un tab de la barra no late. Se conserva —la calcula
-    /// `refreshProjections` en dos líneas— hasta que la pantalla de FisuJobs
-    /// decida si quiere destacar la fila que ya podés pagar (Task 8).
-    private(set) var showSpawnHint = false
     private(set) var showMergeHint = false
     /// Espejo OBSERVABLE de las tres banderas del FTUE.
     ///
@@ -236,13 +210,6 @@ final class GameState {
     private(set) var towerIncomePerSecond = 0.0
     private(set) var towerIncomePerSecondText = "0"
     private(set) var visibleFloorIsUnlocked = false
-    /// Qué puede hacer el botón de contratar desde el piso visible.
-    ///
-    /// ⚠️ Mismo caso que `spawnQuote`: **sin consumidor de UI desde que la barra
-    /// inferior reemplazó al botón de spawn.** El estado de una fila de laburos
-    /// es `JobRow.State`, que se decide por el piso DEL TIPO y no por el
-    /// visible; queda publicada para `GameLoopWiringTests`.
-    private(set) var hireOffer: HireOffer = .floorLocked
     var towerNotice: TowerNotice?
     /// El logro recién conseguido que está en pantalla. Lo escribe
     /// `+Achievements`.
@@ -730,17 +697,6 @@ final class GameState {
             let occupancy = floorOccupancy(ordinal: ordinal)
             return occupancy.occupied >= max(occupancy.capacity, 1)
         } ?? false
-        let offer: HireOffer
-        switch (target, targetFull) {
-        case (nil, _):
-            offer = floorUnlocked ? .unavailable : .floorLocked
-        case (let ordinal?, true):
-            offer = .full(belowFloorID: ordinal == visibleFloorOrdinal ? nil : content.floorTable[ordinal].id)
-        case (let ordinal?, false):
-            offer = ordinal == visibleFloorOrdinal ? .here : .floorBelow(floorID: content.floorTable[ordinal].id)
-        }
-        if hireOffer != offer { hireOffer = offer }
-
         let affordable = target != nil && !targetFull
             && (quote.map { player.run.coins >= $0.cost } ?? false)
         if canAffordSpawn != affordable { canAffordSpawn = affordable }
@@ -782,8 +738,6 @@ final class GameState {
 
         let tapHint = !ftueTapped
         if showTapHint != tapHint { showTapHint = tapHint }
-        let spawnHint = ftueTapped && !ftueSpawned && (spawnQuote.map { player.run.coins >= $0.cost } ?? false)
-        if showSpawnHint != spawnHint { showSpawnHint = spawnHint }
         var pairExists = false
         if !ftueMerged && ftueSpawned {
             pairExists = player.run.units.values.contains { $0 >= 2 }

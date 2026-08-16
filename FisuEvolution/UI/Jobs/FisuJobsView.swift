@@ -460,6 +460,12 @@ private struct JobCard: View {
                     currency: .coins,
                     affordable: row.affordable,
                     identifier: "jobs.hire.\(row.id)",
+                    // Con 43 filas, un botón que dice sólo "50" no dice a quién
+                    // contrata: en el rotor son 43 montos sueltos. El nombre sale
+                    // de `tiers.json` —es dato, no clave—, así que entra como
+                    // ARGUMENTO de una clave propia (trampa 5). La moneda no va
+                    // acá: la pone el componente.
+                    accessibilityPurpose: Text("jobs.hire.ax \(row.displayName)"),
                     action: hire
                 )
             } else if let stateText {
@@ -510,14 +516,24 @@ private struct JobCard: View {
     /// Lleva también el piso porque desde que `info` está tapada este resumen es
     /// el ÚNICO lugar donde el dato existe para VoiceOver, y saber en qué piso
     /// cae la contratación es justamente lo que decide si conviene.
+    ///
+    /// ⚠️ **Salvo cuando el valor ya lo nombra.** En `.lockedFloor` el payload
+    /// del estado es el piso PROPIO de la fila (lo aclara el docstring de
+    /// `JobRow`), así que `axValue` dice "Se abre en Callejón" y el piso salía
+    /// dos veces en la misma parada. En `.gated` no se toca: ese payload es el
+    /// piso de ARRIBA, que es otro dato.
     private var axLabel: String {
         guard !isUnseen else { return String(localized: "jobs.ax.confidential") }
+        let floorAlreadyInValue = switch row.state {
+        case .lockedFloor: true
+        default: false
+        }
         return [
             row.displayName,
-            TowerNaming.floorName(for: row.floorID),
+            floorAlreadyInValue ? nil : TowerNaming.floorName(for: row.floorID),
             row.incomeText,
             String(localized: "jobs.hired_count \(String(row.hiredCount))")
-        ].joined(separator: ", ")
+        ].compactMap { $0 }.joined(separator: ", ")
     }
 
     /// El valor de la fila es **lo que cuesta o por qué no se puede**.

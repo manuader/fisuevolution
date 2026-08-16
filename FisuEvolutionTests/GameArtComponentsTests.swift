@@ -105,6 +105,33 @@ struct GameArtComponentsTests {
         }
     }
 
+    /// La moneda vive en un GLIFO, que VoiceOver no ve: sin esto el botón se
+    /// anuncia "1,2K" y no dice en qué se paga.
+    ///
+    /// No se asserta el texto traducido (el runner puede correr en cualquier
+    /// idioma): se asserta que el monto sobrevive, que la frase CRECE —o sea que
+    /// la palabra de la moneda está— y que la clave llegó al catálogo, porque una
+    /// clave que falta se resuelve a sí misma y eso se ve.
+    @Test("el precio en moneda del juego dice la moneda")
+    func priceSpeaksItsCurrency() {
+        for currency in [PricePill.Currency.coins, .oro] {
+            let pill = PricePill(text: "1,2K", currency: currency, affordable: true,
+                                 identifier: "jobs.hire.test", action: {})
+            #expect(pill.spokenAmount.contains("1,2K"))
+            #expect(pill.spokenAmount.count > pill.text.count)
+            #expect(!pill.spokenAmount.contains("price.ax"))
+        }
+    }
+
+    /// La plata de verdad NO lleva palabra de moneda: `displayPrice` ya la trae
+    /// puesta ("USD 1,99") y agregarla la diría dos veces.
+    @Test("el precio de StoreKit se dice tal cual viene")
+    func realMoneyPriceIsSpokenVerbatim() {
+        let pill = PricePill(text: "USD 1,99", currency: .money, affordable: true,
+                             identifier: "store.buy.test", action: {})
+        #expect(pill.spokenAmount == "USD 1,99")
+    }
+
     // MARK: - ProgressBar
 
     @Test("el progreso se clampea a 0…1 y sobrevive a NaN")

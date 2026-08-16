@@ -540,9 +540,15 @@ private struct SkinCard: View {
                     currency: .money,
                     affordable: true,
                     identifier: "store.buy.\(productID)",
+                    // El nombre de la pinta va por el propósito del componente y
+                    // no por un `.accessibilityLabel` de afuera: pisar la etiqueta
+                    // entera se llevaba puesto el precio, y en una grilla de tres
+                    // cápsulas iguales el botón tiene que decir las dos cosas
+                    // —qué pinta y cuánto sale—. La misma cápsula, en la tienda,
+                    // dice lo mismo.
+                    accessibilityPurpose: Text("skins.buy.ax \(row.displayName)"),
                     action: buy
                 )
-                .accessibilityLabel(Text("skins.buy.ax \(row.displayName)"))
             } else {
                 // El precio todavía no llegó (StoreKit sin contestar, sin red, o
                 // la app corriendo sin configuración de tienda).

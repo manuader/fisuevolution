@@ -55,9 +55,6 @@ struct StoreView: View {
                 // perezosa además rompe el podado de accesibilidad de las
                 // tarjetas (medido en la T11). El costo es el del primer armado.
                 VStack(spacing: Tokens.s12) {
-                    if let message = store.lastErrorMessage {
-                        errorBanner(message)
-                    }
                     switch store.loadState {
                     case .idle, .loading:
                         centeredInPanel { loadingCard }
@@ -71,6 +68,7 @@ struct StoreView: View {
                         if store.products.isEmpty {
                             centeredInPanel { unavailableCard }
                         } else {
+                            errorBanner
                             shelves
                         }
                     }
@@ -265,13 +263,26 @@ struct StoreView: View {
     /// del hueco real. Se le restan los paddings verticales de la columna para
     /// que centrar no invente un scroll de 28 pt en una pantalla sin nada que
     /// scrollear.
-    @ViewBuilder private func centeredInPanel(
+    ///
+    /// ⚠️ **El aviso de error entra ACÁ ADENTRO y no arriba, como hermano.**
+    /// Con el aviso puesto —caída de red: falla el `loadProducts` y falla el
+    /// `restore` que el jugador toca después— la columna medía tarjeta +
+    /// aviso + 12 pt de separación contra un alto calculado sólo para la
+    /// tarjeta: se pasaba de largo, la tarjeta bajaba fuera del centro y la
+    /// pantalla ganaba un scroll del alto del aviso sin nada que scrollear.
+    /// Metido adentro, el alto de la columna vuelve a ser exactamente el del
+    /// hueco: el aviso se queda arriba con su alto natural y la tarjeta se
+    /// centra en lo que sobra, sin que nadie tenga que medir el aviso.
+    private func centeredInPanel(
         @ViewBuilder _ card: () -> some View
     ) -> some View {
-        card()
-            .containerRelativeFrame(.vertical, alignment: .center) { height, _ in
-                max(0, height - Tokens.s4 - Tokens.s24)
-            }
+        VStack(spacing: Tokens.s12) {
+            errorBanner
+            card().frame(maxHeight: .infinity)
+        }
+        .containerRelativeFrame(.vertical, alignment: .center) { height, _ in
+            max(0, height - Tokens.s4 - Tokens.s24)
+        }
     }
 
     /// Mientras StoreKit contesta.
@@ -356,7 +367,18 @@ struct StoreView: View {
 
     /// El error de una compra o de un restore. Va arriba de todo y no al final:
     /// es la respuesta a lo que el jugador acaba de tocar.
-    private func errorBanner(_ message: String) -> some View {
+    ///
+    /// Se desenvuelve solo —y no en el llamador— porque tiene DOS lugares donde
+    /// aparecer: arriba de las góndolas cuando la tienda cargó, y adentro de la
+    /// columna centrada cuando no (ver `centeredInPanel`). Con el `if let`
+    /// afuera, el segundo caso se olvidaba.
+    @ViewBuilder private var errorBanner: some View {
+        if let message = store.lastErrorMessage {
+            banner(message)
+        }
+    }
+
+    private func banner(_ message: String) -> some View {
         GameCard(style: .normal) {
             HStack(spacing: Tokens.s8) {
                 Image(systemName: "exclamationmark.triangle.fill")
@@ -452,6 +474,36 @@ private struct StoreProductCard: View {
     /// es la tarjeta que tiene que frenar el pulgar.
     private var plateSide: CGFloat { format == .featured ? 80 : 64 }
 
+    /// Ancho fijo del riel derecho de una FILA, igual que en FisuJobs, Regalos y
+    /// Logros: sin él, el riel se queda con lo que su contenido pida y la
+    /// columna de datos empieza en una x distinta en cada fila.
+    ///
+    /// **Medido sobre iPhone 16 Pro (402 pt)**: 402 − 2×30 de margen del panel
+    /// − 2×12 del `GameCard` − 2×12 de los huecos del `HStack` − 64 del plato
+    /// dejan **230 pt** para repartir entre datos y riel.
+    ///
+    /// - **Piso 92**: el `minWidth` del `PricePill`. Por debajo la cápsula no
+    ///   se achica, se sale del riel.
+    /// - **Techo 110**: el título de fila más largo mide 120 pt a `Tokens.body`
+    ///   ("Skin Mundialista" en español, "Mundialista Skin" en inglés), y
+    ///   230 − 110 es justo eso.
+    ///
+    /// **Por qué no lo decide el precio, como en Regalos.** Acá el texto de la
+    /// cápsula no lo escribe el juego sino StoreKit, y su ancho no tiene tope:
+    /// "$9.99" mide 45 pt (cápsula 95) pero cuando la moneda no es la del
+    /// locale —el simulador, y todo jugador con una moneda distinta a la del
+    /// storefront— el mismo precio sale "USD 9.99", 70 pt, cápsula 120. Un
+    /// riel dimensionado para el peor precio le comería la columna al título
+    /// para siempre. Así que el riel lo fija el título, que sí es finito, y el
+    /// precio se acomoda con el `minimumScaleFactor` que la cápsula ya tiene
+    /// (medido en pantalla: "USD 0.99" en 104 entra al 0,77 y se lee).
+    ///
+    /// 104 deja 126 pt de datos, seis más que el peor título. En pantallas más
+    /// chicas (SE, 375 pt) la columna baja a 99 y ahí el título se achica al
+    /// 0,83 — por eso va con `minimumScaleFactor` y no partido en dos, que era
+    /// el defecto.
+    private static let railWidth: CGFloat = 104
+
     var body: some View {
         Group {
             switch format {
@@ -503,6 +555,7 @@ private struct StoreProductCard: View {
                 info
                     .frame(maxWidth: .infinity, alignment: .leading)
                 rail
+                    .frame(width: Self.railWidth, alignment: .trailing)
             }
         }
     }
@@ -564,11 +617,23 @@ private struct StoreProductCard: View {
                     // Ya viaja en el valor de la tarjeta.
                     .accessibilityHidden(true)
             }
+            // ⚠️ **El nombre de una FILA va en un renglón**, como en Regalos y
+            // en Logros: en la columna de 126 pt que deja el riel entran los
+            // nueve nombres de góndola del catálogo (el peor, "Skin
+            // Mundialista", mide 120 a `Tokens.body`), pero antes del riel fijo
+            // el precio se llevaba lo que quería y "Puñado de Plata" se partía
+            // en "Puñado / de Plata" con dos palabras colgando arriba de la
+            // línea de beneficio, que ya usa tres renglones.
+            //
+            // La oferta destacada conserva los dos renglones: tiene la tarjeta
+            // entera para ella (226 pt contra los 173 que mide "Pack de
+            // Arranque" a `Tokens.title`) y es la única que puede permitirse
+            // partirse en vez de achicarse con Dynamic Type grande.
             Text(verbatim: product.displayName)
                 .font(format == .featured ? Tokens.title : Tokens.body)
                 .foregroundStyle(Color("PaletteInk"))
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
+                .lineLimit(format == .featured ? 2 : 1)
+                .minimumScaleFactor(format == .featured ? 0.7 : 0.6)
                 .fixedSize(horizontal: false, vertical: true)
                 // Es el nombre de la tarjeta: ya lo dice el resumen.
                 .accessibilityHidden(true)
@@ -659,6 +724,12 @@ private struct StoreProductCard: View {
                 // localización, así que interpolarlo es correcto (la trampa 5 es
                 // de `LocalizedStringKey`).
                 identifier: "store.buy.\(product.id)",
+                // Y por la misma razón el botón dice QUÉ compra: diez botones que
+                // se leen "USD 2,99" no se distinguen en el rotor. El nombre del
+                // producto lo escribe App Store Connect, así que entra como
+                // argumento. Mismo trato que la cápsula gemela de Pintas, que
+                // comparte con esta el namespace `store.buy.<id>`.
+                accessibilityPurpose: Text("store.buy.ax \(product.displayName)"),
                 action: buy
             )
             // Una compra en vuelo levanta la hoja de pago del sistema por

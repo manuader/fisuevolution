@@ -340,7 +340,20 @@ public struct MetaState: Codable, Sendable, Equatable {
         oroEarnedLifetime = try container.decode(Int.self, forKey: .oroEarnedLifetime)
         prestigeLevel = try container.decode(Int.self, forKey: .prestigeLevel)
         oroUpgradeLevels = try container.decode([String: Int].self, forKey: .oroUpgradeLevels)
-        derivedEffects = try container.decode(UpgradeState.self, forKey: .derivedEffects)
+        // ⚠️ `decodeIfPresent` por la misma razón que las siete claves de
+        // `UpgradeState`, un nivel más arriba: son **efectos derivados**. La
+        // fuente de verdad es `oroUpgradeLevels` —que se decodifica acá al
+        // lado— y `UpgradeManager.recomputeDerivedEffects` los reconstruye
+        // desde ahí en cuanto el jugador compra algo. Exigir la clave hacía
+        // que un sobre sin ella (un v4 escrito por otra versión, un blob
+        // recortado) tirara `keyNotFound` y el repositorio cayera a "starting
+        // fresh": la partida entera por un diccionario que se recalcula solo.
+        //
+        // El neutro es EXACTAMENTE el que sale de decodificar `{}` —el caso que
+        // ya llegaba por `migrateV3toV4`, que copia `old["upgrades"] ?? [:]`—,
+        // así que "sin la clave" y "con la clave vacía" no se separan.
+        derivedEffects = try container.decodeIfPresent(UpgradeState.self, forKey: .derivedEffects)
+            ?? UpgradeState(offlineEfficiency: 0, tapMultiplier: 1.0, critChance: 0)
         globalMultiplier = try container.decode(Double.self, forKey: .globalMultiplier)
         ownedSpecials = try container.decode([String].self, forKey: .ownedSpecials)
         specialAnchors = try container.decode([String: String].self, forKey: .specialAnchors)

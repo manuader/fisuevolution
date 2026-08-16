@@ -1,18 +1,27 @@
 # HANDOFF — FisuEvolution, estado actual
 
-> ✅ **EL REDISEÑO DE UI DE ESTA RAMA ESTÁ COMPLETO** — 20 de 20 tareas
+> ✅ **EL REDISEÑO DE UI ESTÁ COMPLETO Y MERGEADO** — 20 de 20 tareas
 > (`feature/rediseno-ui-cowevolution`, cerrado el 2026-08-16). El estado tarea
 > por tarea, las decisiones del dueño y los avisos vivos siguen en
 > **`Docs/SESION-2026-08-14-rediseno-ui.md`**, que es la fuente de verdad del
-> detalle de esta rama. Lo de abajo describe el juego ANTES del rediseño y
-> sigue siendo válido para todo lo que el rediseño no tocó; el resumen de la
-> sesión, con los números finales de tests, está en §4.
+> detalle de ESA rama. Lo de abajo describe el juego ANTES del rediseño y
+> sigue siendo válido para todo lo que el rediseño no tocó; el resumen de esa
+> sesión, con los números de tests de su cierre, está en §4.
 >
-> ⚠️ **Lo que falta NO es implementación**: el review integral de rama con su
-> ola de fixes, el batch de los 15 iconos que corre el dueño (§8) y el merge
-> a `main`.
+> ✅ **Y el ticket post-merge que ese cierre dejó triageado TAMBIÉN está hecho**
+> — 7 tareas en `fix/cierre-post-merge` (18 commits sobre `89f215a`, mergeada a
+> `main` al cerrar la sesión), con review integral de rama que dio **ready to
+> merge y CERO ola de fixes de código**. El detalle está en
+> **`Docs/SESION-2026-08-16-cierre-post-merge.md`**. Lo que hay que saber en dos
+> líneas: el calendario del daily aterrizó en Regalos, y
+> **`AscentRenderingUITests` volvió de entre los muertos** — la suite de UI
+> corre **43 sin un solo `-skip-testing:`** (§6).
 >
-> **Empezá por acá.** Última actualización: **2026-08-16** (rediseño de UI).
+> ⚠️ **Lo que falta NO es implementación**: el batch de los 15 iconos que corre
+> el dueño (§8) y los dos gates humanos de F6 (cuenta de Apple Developer y
+> RF-14, el audio).
+>
+> **Empezá por acá.** Última actualización: **2026-08-16** (cierre post-merge).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
@@ -204,7 +213,7 @@ v2, Menú) más el Ascensor y las cuatro sub-pantallas del menú
 |---|---|
 | `EconomyKit` (`swift test`) | **180/180** ✅ |
 | `FisuEvolutionTests` | **336/336** ✅ |
-| `FisuEvolutionUITests` | **40/40** ✅ (14 clases; `AscentRenderingUITests` salteada, rojo preexistente de `main`) |
+| `FisuEvolutionUITests` | **40/40** ✅ (**15 clases corriendo de las 16** que tiene la suite; `AscentRenderingUITests` salteada, rojo preexistente de `main` — **recuperada más tarde ese mismo día**: la receta vigente de §6 corre las 16, **43 sin skips**) |
 | `Tools/asset-pipeline` | 27, **1 rojo conocido** (pide Chrome en `:9222`) |
 | Warnings de compilador | **0** |
 
@@ -291,11 +300,28 @@ traba en tier 12 y no llega a Dios nunca. El backfill es el puente que hace
 viable la progresión (el merge puro es 2²⁹ fisuras), y pedir dos pisos lo saca
 justo donde hace falta. Tabla completa en `Docs/balance-log.md`.
 
-**El botón no queda muerto cuando el gate cierra** (2026-08-05): parado en tu
-frontera, contratar cae en el piso de **abajo** —que por la propia regla del gate
-es siempre el más alto donde sí se puede— y el botón nombra ese piso para que la
-compra no parezca no haber pasado. `TowerActions.hireTargetFloor` decide el
-destino; `GameState.HireOffer` es la única proyección que consume el botón.
+**La contratación no queda muerta cuando el gate cierra** (2026-08-05): parado en
+tu frontera, cae en el piso de **abajo** —que por la propia regla del gate es
+siempre el más alto donde sí se puede—. `TowerActions.hireTargetFloor` decide el
+destino.
+
+⚠️ El botón que la dibujaba murió con la barra inferior, y su proyección
+(`GameState.HireOffer`) se retiró el 2026-08-16 al quedar sin consumidor. **La
+regla no cambió**: vive en EconomyKit, y la pinean `GameLoopWiringTests` —contra
+el `economy.json` real, incluida la exención del urbano— y `EconomyKitTests`
+sobre fixtures sintéticos.
+
+📌 **Lo que se retiró es la proyección, NO el requisito de UX que la
+justificaba**, y este ata a cualquier pantalla de contratación futura: **el
+botón NOMBRABA el piso de destino, para que la compra no pareciera no haber
+pasado.** Contratás parado en tu frontera, el personaje aparece un piso más
+abajo y la cámara no se mueve: sin decirlo en pantalla, el jugador ve que pagó
+y que no cambió nada, y eso se lee como un bug. Hoy la deuda está **latente y
+no visible**, porque nadie ejerce el fallback desde la UI — FisuJobs contrata
+por tipo y su `floorTag` nombra el piso PROPIO de cada fila, que es otro dato,
+y `buySpawn()` quedó sin call-site de UI (sólo lo llaman los tests). El día que
+una pantalla vuelva a ofrecer contratar "acá", **tiene que decir dónde cayó**;
+el dato lo da `TowerActions.hireTargetFloor`.
 
 #### Secuencia de celebraciones
 
@@ -363,34 +389,50 @@ ANTES que UI** — la asimetría es real y direccional, ver abajo.
 ```bash
 UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
 
-cd Packages/EconomyKit && swift test                      # 180
+cd Packages/EconomyKit && swift test                      # 183
 cd - && /opt/homebrew/bin/xcodegen generate               # si agregaste/borraste Swift
 
 # 1) UNIT PRIMERO
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
   -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
-  -only-testing:FisuEvolutionTests test                   # 336
+  -only-testing:FisuEvolutionTests test                   # 346
 
 # 2) UI DESPUÉS
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
   -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
-  -only-testing:FisuEvolutionUITests \
-  -skip-testing:FisuEvolutionUITests/AscentRenderingUITests test   # 40
+  -only-testing:FisuEvolutionUITests test                  # 43, sin skips
 
 cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 27, 1 rojo
 
 xcrun simctl shutdown $UDID && xcrun simctl delete $UDID   # ⚠️ el cierre es parte del trabajo
 ```
 
-Estado, medido entero el **2026-08-16** al cierre del rediseño de UI:
-**EconomyKit 180 · app 336 · UI 40 · pipeline 27 (1 rojo conocido)**, cero
+Estado el **2026-08-16**:
+**EconomyKit 183 · app 346 · UI 43 · pipeline 27 (1 rojo conocido)**, cero
 warnings de compilador.
+
+✅ **Los cuatro números salen de la MISMA verificación**, la del cierre de
+`fix/cierre-post-merge`, con la receta de acá arriba tal cual: simulador propio
+por UDID, `-parallel-testing-enabled NO`, unit antes que UI. **Y el 43 de UI se
+tomó de una sola vez y sin un solo skip** —`AscentRenderingUITests` adentro—,
+que era lo único que quedaba pendiente de medir: hasta ese día el 43 salía de
+SUMAR los 3 de esa clase, verificados aparte, a los 40 que se medían con ella
+salteada.
+
+⚠️ Y se tomó **en malas condiciones a propósito**: arrancó con la máquina en
+`load average` **~156** por frentes ajenos y la suite pasó entera igual, con
+**cero flakies re-corridos**. O sea que el 43 no es un número de laboratorio.
 
 - El rojo del pipeline es `test_wait_for_survives_a_stale_element_and_retries`:
   pide un Chrome escuchando en `:9222`. Es de entorno y es el baseline.
-- `AscentRenderingUITests` sigue siendo el único rojo de UI (frágil por la
-  vieja trampa 3): salteálo con `-skip-testing:` y usá siempre
-  `-parallel-testing-enabled NO`.
+- **Ya no hay ningún `-skip-testing:` en la receta de UI.** El único rojo que
+  quedaba, `AscentRenderingUITests`, se migró a doble toque el 2026-08-16 y pasa
+  (ver la trampa 2). Los 3 tests de esa clase entran al conteo: 40 → **43**.
+- Usá siempre `-parallel-testing-enabled NO`.
+- ⚠️ La suite de UI pasó de ~40 a 43 tests y `AscentRenderingUITests` es la más
+  lenta de todas (~4 min de las tres juntas, porque escala el callejón fusión
+  por fusión). Si una corrida completa empieza a rozar los flakies sensibles a
+  carga que se listan más abajo, es por eso — mirá el reloj antes que el código.
 
 ⚠️⚠️ **UNIT ANTES QUE UI, siempre.** Correr los tests de UI primero rompe
 `StoreManagerTests` **enteros**, y no es carga: fallan igual aislados. Una
@@ -444,25 +486,40 @@ El panel de debug es el ícono de herramientas del HUD.
 2. **Un test de UI puede pasar sin probar nada.** Si automatizás gestos sobre
    SpriteKit, **asertá el efecto**, no que el gesto no crashee.
 
-   ⚠️ **`AscentRenderingUITests.testCharactersStayVisibleAfterTheFirstAscent`
-   falla hoy en `main`** (`"Alley" != "City"`, verificado 2026-08-06). No es un
-   problema de entorno ni del host de tests: es este mismo test cayendo en la
-   trampa 3 de abajo — arrastra por coordenadas fijas, el personaje deambuló, el
-   merge no engancha y el ascenso que asserta nunca ocurre. Su espejo de
-   `crowdBand` **sí** está al día (usa 0,4, igual que `BoardScene.crowdTopRatio`),
-   así que lo que falta son los reintentos. **Ya se llevó puestos dos agentes**
-   que lo diagnosticaron como "el simulador no arranca" y se pusieron a borrar
-   dispositivos. Mientras no se arregle, verificá con
-   `-skip-testing:FisuEvolutionUITests/AscentRenderingUITests` y sabé que la
-   línea de base real es **EconomyKit 144 verdes, UI 9 de 10**.
+   ✅ **`AscentRenderingUITests` YA NO ES ROJO** (migrado y verificado el
+   2026-08-16, 3 corridas verdes: fría, tibia y fría). Estuvo diez días salteado
+   por un diagnóstico que era **verdadero pero incompleto**, y las tres causas
+   valen más que el arreglo:
 
-   ⚠️ **Vale la pena volver a correrlo.** El 2026-08-10 se arregló justamente la
-   causa que este diagnóstico le atribuye: el drop ya no se resuelve contra el
-   ancla, y ahora hay doble toque, que no necesita puntería en el destino. **No
-   se comprobó** —se lo salteó en las dos corridas de esa sesión—, así que sigue
-   figurando como rojo; pero si alguien lo mira, empezá por correrlo tal cual
-   antes de tocarle nada, y si sigue rojo pasalo a doble toque como se hizo con
-   `mergeTheHighlightedPair`.
+   1. **El arrastre por coordenadas fijas** (la vieja trampa 3). Arreglado
+      migrando a **doble toque**, como `mergeTheHighlightedPair`: sólo hay que
+      acertarle al personaje de ORIGEN, del destino se encarga
+      `MergeTargeting.nearestPartner`. Se barren los slots y se asserta que
+      `board.units` **baje**, que es lo único que prueba que hubo fusión.
+   2. **Un supuesto de economía vencido, y esto es lo que lo mantuvo rojo aun
+      después de arreglar el gesto.** El test decía "par de Cartoneros → Kiosco
+      (T3) **asciende**" y hace rato que no: el callejón cubre los tiers **1..4**
+      (`economy.json`), así que el primer piso nuevo lo abre un **T5** y hacen
+      falta **cuatro** fusiones, no dos. Ahora el test **no hardcodea el número**:
+      fusiona hasta que la pill cambia de piso, con tope. Un rebalanceo no lo
+      vuelve a romper.
+   3. **El device frío** (trampa 9a). El primer toque de la corrida sobre
+      `hud.debug` moría con `Failed to scroll to visible (by AX action)`, porque
+      `board.units` es del tamaño del tablero y XCUITest cree que tapa al HUD.
+      Este test es el primero de su suite, así que era el que se lo comía. Se
+      toca por COORDENADA, igual que `CustomizationUITests`.
+
+   ⚠️ **Ya se llevó puestos dos agentes** que lo diagnosticaron como "el
+   simulador no arranca" y se pusieron a borrar dispositivos. No es eso, nunca lo
+   fue: el modo de falla "la app no corre" era una entrada de background que
+   faltaba en el manifest, arreglada hace rato.
+
+   📌 **La moraleja, que es la de la trampa entera:** un test salteado se pudre
+   solo. Este acumuló un espejo de geometría desactualizado (`bottomInset` en 110
+   cuando la escena ya iba en 114), un `sheet.close` tapeado sin guarda —migrado
+   a ciegas mientras estaba salteado— y un supuesto de economía vencido, todo
+   sin que nadie se enterara, porque nadie lo corría. **Si vas a saltear algo,
+   ponele fecha de vencimiento.**
 
    ⚠️ **`PacingTests.strugglingPhaseLength` también está rojo en `main`**
    (verificado con `git stash` el 2026-08-06). No falla un assert: el proceso de
@@ -544,6 +601,18 @@ El panel de debug es el ícono de herramientas del HUD.
    camino. Sólo se vio mirando el simulador. La forma correcta es resolver la
    clave en una función del estado (`upgradeFlavorText(for:)`) y que el test
    ejerza **esa misma función**, la que dibuja la fila.
+
+   ⚠️⚠️ **Y una tercera forma, que muerde al revés: `stale` NO quiere decir
+   borrable.** El reformateo del catálogo que dejó el último build de Xcode
+   (`07789d7`) marcó `extractionState: stale` en **175 de las 459 claves**, y
+   muchas están **VIVAS**: `settings.haptics`, `daily.title`,
+   `notif.daily.title`/`.body` y ~20 de ajustes. El extractor no ve a través de
+   un parámetro `titleKey:` —la clave viaja como `LocalizedStringKey` hasta una
+   vista propia en vez de aparecer como literal de `Text`— ni siempre a través
+   de `String(localized:)`. **Una pasada de limpieza que borre por
+   `extractionState` se lleva claves vivas y deja la clave cruda en pantalla**,
+   que es la misma falla de esta trampa por otra puerta. Verificá por `grep`
+   antes de borrar una sola.
 
 6. **El runner de tests de UI corre la app en INGLÉS**, aunque el idioma de
    desarrollo del proyecto sea `es`. Un test que asserta sobre texto en español
@@ -731,11 +800,21 @@ El panel de debug es el ícono de herramientas del HUD.
 **1. El batch de los 15 iconos lo corre EL DUEÑO, desde Terminal.app.** La
 cola está armada y verificada (tarea 19): 15 prompts `.md` numerados
 **213–227** en `Tools/asset-pipeline/prompts/gemini_pro/` con sus 15 entradas
-gemelas en `prompts.json`, todas en `estado: pendiente` y **sin campo
-`referencia`** (los iconos de UI no adjuntan el Fisura). No se generó ninguna
-imagen a propósito: el runner tipea con `osascript` y el permiso de
-Accesibilidad lo tiene **Terminal.app y nada más** (trampa 11), así que desde
-el shell de un agente falla en el primer asset. La receta, con el Chrome
+gemelas en `prompts.json`, **los 15 sin generar** —cada `.md` con su línea
+`- **estado**: pendiente`— y **sin campo `referencia`** (los iconos de UI no
+adjuntan el Fisura). Cero PNG de esas claves en `ui.atlas`, verificado el
+2026-08-16.
+
+⚠️ **El estado de la cola vive en los `.md`, no en `prompts.json`.** Los dos
+runners parsean esa línea (`STATE_RE` en `gemini_selenium_runner.py`), y
+`pending_assets()` saltea un asset por cuatro caminos: `estado: hecho`, el PNG
+ya en `dropbox/`, el PNG en `dropbox/procesadas/`, o la clave ya presente en
+`assets_manifest.json`. `mark_asset_done` reescribe el `.md` a `hecho` recién
+después de verificar el PNG. Si editás un `.md` a mano, ese es el campo.
+
+No se generó ninguna imagen a propósito: el runner tipea con `osascript` y el
+permiso de Accesibilidad lo tiene **Terminal.app y nada más** (trampa 11), así
+que desde el shell de un agente falla en el primer asset. La receta, con el Chrome
 dedicado en `:9222` logueado en Gemini **Pro**:
 
 ```bash
@@ -754,7 +833,7 @@ riesgo alto son `ui_menu_stats`, `ui_trophy_silver` y `ui_daily_calendar`. El
 que salga hueco **no se integra** — se borran sus `@2x`/`@3x` y su clave de
 `manifest.ui`, y el juego vuelve solo al icono vectorial, que para eso está.
 
-**2. Costura de los 15 iconos: las tres copas ya están; falta el calendario.**
+**2. Costura de los 15 iconos: ✅ COMPLETA — las copas y el calendario.**
 
 ✅ **Los tres `ui_trophy_*` quedaron cableados en la ola final del review**
 (2026-08-16). Eran **DOS** call-sites y no tres —el conteo de tres que figuraba
@@ -770,12 +849,14 @@ de la clave del atlas:
 Mientras el atlas no tenga las claves siguen cayendo al vector y no cambia
 nada en pantalla; el día que el batch entre, entran solas.
 
-⚠️ **El pendiente real es `ui_daily_calendar`.** `VectorCalendarIcon` sólo se
-declara en `GameIcons.swift:543` y no se usa en ninguna vista: no hay dónde
-aterrizarlo sin **decidir antes dónde va el calendario** (la tira de días de
-Regalos tiene su propio dibujo, y meterle un icono es una decisión de diseño
-del dueño, no una costura mecánica). Hasta que esa decisión exista, ese PNG
-entra al atlas y el juego lo ignora.
+✅ **Y `ui_daily_calendar` aterrizó el 2026-08-16** (cierre post-merge, tarea 1:
+cherry-pick de `84a2af6` desde la rama paralela `fix/iconos-gameicon`, esta vez
+sí revisado). El calendario va **al frente de la tarjeta del daily** en
+`FisuEvolution/UI/Gifts/GiftsView.swift`, a 44 pt dentro del mismo plato de
+56 que usan `BoostGlyph` y `ScreenGlyph`, con la nota "se cobra solo" corrida
+al costado. Era el único de los 15 iconos sin call-site: **ya no queda
+ninguno**. Mientras el atlas no tenga la clave, cae al `VectorCalendarIcon` y
+se ve igual de bien — que es exactamente lo que hace el fallback.
 
 **3. Los ajustes ya están listos para App Store.** `SettingsView` trae las
 seis secciones del spec: **idioma** (sistema/es/en, con su clave propia
@@ -786,9 +867,44 @@ las 19:00 vía `NotificationsManager`, y los **dos documentos legales**
 `Resources/Legal`. O sea que RF-02c ya no necesita nada de UI: lo único que
 falta sigue siendo la cuenta de Apple Developer.
 
-**4. Falta el review integral de la rama** —con su ola de fixes sobre los
-minors diferidos de las 20 tareas, que viven en el ledger del workspace SDD—
-y después el **merge a `main`**.
+**4. ✅ El review integral de la rama y el ticket post-merge: los dos HECHOS.**
+El review integral del rediseño corrió con su ola de fixes
+(`ecf35b2..2f71ff3`), y lo que dejó triageado para DESPUÉS del merge se ejecutó
+entero en `fix/cierre-post-merge`: **7 tareas**, y el review integral de esa
+rama dio **ready to merge con CERO ola de fixes de código**. Commits y detalle
+tarea por tarea en **`Docs/SESION-2026-08-16-cierre-post-merge.md`**; lo que
+entró:
+
+- **El calendario del daily**, acá arriba en el punto 2.
+- **El cluster spawn muerto se fue de `GameState`** (`HireOffer`,
+  `showSpawnHint`, `hireOffer` y el cálculo que los refrescaba). No se perdió
+  ninguna aserción: los pins se mudaron a `TowerActions`, que es donde vive la
+  conducta. ⚠️ Lo que ese borrado sí dejó huérfano es un requisito de UX — está
+  en el 📌 de §4, "Gate de contratación".
+- **`StatePill` → `StateBadge`** en Upgrades: una sola gramática de badge, y
+  tocarla ya no castiga con haptic+audio de error.
+- **Un pase de accesibilidad en lote**: `PricePill` dice la moneda y **qué**
+  compra en vez de un monto suelto, `ProgressBar` tiene label, se fueron las
+  paradas mudas de VoiceOver, y el número de piso y el "estás acá" del ascensor
+  escalan con Dynamic Type.
+- **Los residuales de la ola**: la tarjeta de la tienda degradada se centra
+  aunque haya banner de error; el riel fijo de la tienda (**104**, derivado del
+  `minWidth` 92 del `PricePill`, igual que el 96 de FisuJobs) devuelve los
+  títulos de producto a un renglón; `MetaState.init(from:)` decodifica
+  `derivedEffects` con `decodeIfPresent`, así que un sobre sin esa clave ya no
+  se lleva la partida puesta; el migrador estrenó un e2e desde JSON crudo v3; y
+  `ui_pill_currency` salió del manifest y del atlas, y quedó **anotado como
+  "retirado" en el índice de prompts** (la fila 113 sigue ahí, y su `.md`
+  también: es historia de otra tanda, no se borra).
+- ✅ **`AscentRenderingUITests` volvió** — las tres causas están en la trampa 2.
+  La que nadie tenía: el callejón cubre los tiers **1..4**, así que el primer
+  ascenso pide **cuatro** fusiones y no dos. **Ya no queda ningún
+  `-skip-testing:` en la receta de §6.**
+
+**Después de esto quedan dos cosas, y ninguna es código**: el batch de los 15
+iconos del punto 1 —la cola 213–227 está intacta y verificada— y los dos gates
+humanos de F6, la cuenta de Apple Developer (RF-02c) y una fuente de audio
+(RF-14).
 
 ---
 
@@ -816,7 +932,7 @@ handoff que dice "hecho" es exactamente lo que nadie vuelve a comprobar:
 | RF | Bloqueado por | Qué lo destraba |
 |---|---|---|
 | **02c** · alta en App Store Connect | La cuenta de Apple Developer (USD 99) | Que el dueño la saque |
-| **14** · música y efectos | **No hay fuente de audio.** Re-verificado el 2026-08-07: no queda ninguna herramienta de generación de audio en la sesión | Un MCP con música/SFX standalone, o audio CC0 a mano |
+| **14** · música y efectos | **No hay fuente de audio.** Re-verificado el 2026-08-07 y otra vez el **2026-08-16**: el MCP de audio disponible en la sesión hace **sólo TTS**, y su contrato prohíbe usarlo para música o efectos standalone (esos modelos existen, pero para otro pipeline). Detalle en `SESION-2026-08-16-cierre-post-merge.md` | Un MCP con música/SFX standalone, o audio CC0 a mano |
 
 📄 **Los dos están desarrollados hasta donde se puede sin el gate, en
 `Docs/HANDOFF-gates-pendientes.md`**: la lista de los 12 archivos de audio con su
@@ -902,6 +1018,8 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
+| **`SESION-2026-08-16-cierre-post-merge.md`** | **La sesión más reciente: las 7 tareas del ticket post-merge con sus commits, el veredicto del review de rama y el backlog que sobrevive** |
+| **`SESION-2026-08-14-rediseno-ui.md`** | **Las 20 tareas del rediseño de UI, con sus fix rounds, rulings y avisos vivos. La fuente de verdad del detalle de esa rama** |
 | **`SESION-2026-08-06-correcciones-de-playtest.md`** | **El estado de la sesión de las 16 correcciones: qué quedó abierto, qué está en vuelo y los gates humanos. Empezá por acá si retomás ese trabajo** |
 | `SESION-2026-08-05-fallback-de-contratacion.md` | El fallback del botón y la fila trasera invisible |
 | `superpowers/specs/2026-08-10-fusion-asistida-design.md` | Los dos gestos de fusión, con los radios y por qué cada uno |

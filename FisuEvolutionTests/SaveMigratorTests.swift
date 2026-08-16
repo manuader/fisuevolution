@@ -214,6 +214,65 @@ struct SaveMigratorTests {
         #expect(migrated.meta.stats.maxFloorOrdinalEver == 0)
     }
 
+    /// El v3 que NINGÚN otro test cruza de punta a punta: el pre-expansión, con
+    /// las tres claves originales de `upgrades` y ninguna de las cuatro que
+    /// llegaron después.
+    ///
+    /// ⚠️ Entra por `case 3` **derecho** a `migrateV3toV4`, así que se saltea el
+    /// backfill de `migrateV2toV3` que sí protege al v1 de
+    /// `v1SaveMigratesThroughTheWholeChain`. Ese hueco lo tapa hoy el
+    /// `decodeIfPresent` de `UpgradeState`, y del lado de EconomyKit hay un test
+    /// que lo pinea — pero contra un sobre v4 armado a mano, o sea contra el
+    /// DECODER. Si mañana `migrateV3toV4` deja de copiar `upgrades` a
+    /// `derivedEffects`, o le mete las claves en otro lado, aquel test sigue
+    /// verde y el jugador pierde sus mejoras igual. Este corre el blob crudo por
+    /// el migrador de verdad, que es lo único que prueba las dos capas juntas.
+    @Test func v3PreExpansionMigratesEndToEnd() throws {
+        var object = v3Fixture()
+        object["upgrades"] = [
+            "offlineEfficiency": 0.5,
+            "tapMultiplier": 2.0,
+            "critChance": 0.25,
+        ]
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        let migrated = try SaveMigrator.migrate(data)
+
+        // Lo que el v3 SÍ traía cruza el migrador y llega al `PlayerState`.
+        #expect(migrated.schemaVersion == PlayerState.currentSchemaVersion)
+        #expect(migrated.meta.derivedEffects.offlineEfficiency == 0.5)
+        #expect(migrated.meta.derivedEffects.tapMultiplier == 2.0)
+        #expect(migrated.meta.derivedEffects.critChance == 0.25)
+        // Las cuatro que no existían caen a su neutro en vez de reventar.
+        #expect(migrated.meta.derivedEffects.incomeMultiplier == 1.0)
+        #expect(migrated.meta.derivedEffects.goldenChance == 0)
+        #expect(migrated.meta.derivedEffects.spawnDiscount == 0)
+        #expect(migrated.meta.derivedEffects.prestigeBonus == 0)
+        // Y la partida entera sobrevive, que es de lo que se trata.
+        #expect(migrated.run.coins == 123_456.5)
+        #expect(migrated.run.units == ["homeless": 3, "oficinista": 2, "junior_programmer": 1])
+        #expect(migrated.meta.oro == 12)
+        // La fuente de verdad de esos efectos también: se pueden recalcular.
+        #expect(migrated.meta.oroUpgradeLevels == ["offline": 2, "tap": 1])
+    }
+
+    /// El extremo del mismo camino: un v3 SIN la clave `upgrades`.
+    /// `migrateV3toV4` escribe `derivedEffects: [:]` y de ahí sale el neutro
+    /// entero. Tampoco puede costar la partida.
+    @Test func v3SinUpgradesMigratesEndToEnd() throws {
+        var object = v3Fixture()
+        object["upgrades"] = nil
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        let migrated = try SaveMigrator.migrate(data)
+
+        #expect(migrated.meta.derivedEffects == UpgradeState(
+            offlineEfficiency: 0, tapMultiplier: 1.0, critChance: 0
+        ))
+        #expect(migrated.run.coins == 123_456.5)
+        #expect(migrated.meta.oro == 12)
+    }
+
     /// Gotcha real: un v3 guardado antes de elegir carrera serializa
     /// `"chosenCareerPath": null`. JSONSerialization lo trae como NSNull, que
     /// NO castea a String — el migrador tiene que omitir la clave, no copiarla.

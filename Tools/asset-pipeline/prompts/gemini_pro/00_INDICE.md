@@ -157,7 +157,7 @@ Dos cosas que hay que respetar al correrla:
 | 110 | ui_slot_upgrade | `ui_slot_upgrade.png` | hecho |
 | 111 | ui_slot_store | `ui_slot_store.png` | hecho |
 | 112 | ui_header_ribbon | `ui_header_ribbon.png` | hecho |
-| 113 | ui_pill_currency | `ui_pill_currency.png` | hecho |
+| 113 | ui_pill_currency | `ui_pill_currency.png` | retirado (se generó, pero salió del atlas: nadie lo usaba) |
 | 114 | ui_progress_bar | `ui_progress_bar.png` | hecho |
 | 115 | ui_badge | `ui_badge.png` | hecho |
 | 116 | ui_speech_bubble | `ui_speech_bubble.png` | hecho |

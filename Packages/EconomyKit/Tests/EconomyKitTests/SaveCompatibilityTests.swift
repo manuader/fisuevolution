@@ -94,6 +94,59 @@ struct SaveCompatibilityTests {
         #expect(decoded.meta.claimedAchievements == ["ach_primer_merge"])
     }
 
+    /// ⚠️ El agujero que quedaba abierto era de v3, no de v4.
+    /// `SaveMigrator.migrate` entra por `case 3` derecho a `migrateV3toV4`, que
+    /// **no** pasa por el backfill de `migrateV2toV3` y copia `upgrades` tal
+    /// cual. Un v3 pre-expansión —con las tres claves originales y ninguna de
+    /// las cuatro que llegaron después— tiraba `keyNotFound` y se llevaba puesta
+    /// la partida entera.
+    @Test("un dict de upgrades con sólo las 3 claves originales decodifica con defaults")
+    func upgradesV3PreExpansionDecodifica() throws {
+        var object = fixtureV4SinClavesNuevas()
+        var meta = try #require(object["meta"] as? [String: Any])
+        meta["derivedEffects"] = [
+            "offlineEfficiency": 0.6,
+            "tapMultiplier": 3.0,
+            "critChance": 0.2,
+        ] as [String: Any]
+        object["meta"] = meta
+
+        let data = try JSONSerialization.data(withJSONObject: object)
+        let state = try JSONDecoder().decode(PlayerState.self, from: data)
+
+        // Lo que el v3 SÍ traía llega intacto.
+        #expect(state.meta.derivedEffects.offlineEfficiency == 0.6)
+        #expect(state.meta.derivedEffects.tapMultiplier == 3.0)
+        #expect(state.meta.derivedEffects.critChance == 0.2)
+        // Las cuatro de v3 caen a su neutro en vez de reventar.
+        #expect(state.meta.derivedEffects.incomeMultiplier == 1.0)
+        #expect(state.meta.derivedEffects.goldenChance == 0)
+        #expect(state.meta.derivedEffects.spawnDiscount == 0)
+        #expect(state.meta.derivedEffects.prestigeBonus == 0)
+        // Y el resto de la partida sobrevive, que es de lo que se trata.
+        #expect(state.run.coins == 123_456.5)
+        #expect(state.meta.oro == 12)
+    }
+
+    /// El caso extremo del mismo camino: `migrateV3toV4` hace
+    /// `old["upgrades"] as? [String: Any] ?? [:]`, así que un v3 SIN la clave
+    /// llega acá como diccionario vacío. Tampoco puede costar la partida.
+    @Test("un dict de upgrades vacío decodifica entero con defaults")
+    func upgradesVacioDecodifica() throws {
+        var object = fixtureV4SinClavesNuevas()
+        var meta = try #require(object["meta"] as? [String: Any])
+        meta["derivedEffects"] = [String: Any]()
+        object["meta"] = meta
+
+        let data = try JSONSerialization.data(withJSONObject: object)
+        let state = try JSONDecoder().decode(PlayerState.self, from: data)
+
+        #expect(state.meta.derivedEffects == UpgradeState(
+            offlineEfficiency: 0, tapMultiplier: 1.0, critChance: 0
+        ))
+        #expect(state.run.units == ["a": 3, "b": 2])
+    }
+
     @Test("reencarnar borra las compras por tipo de la run")
     func freshRunEmpiezaSinComprasPorTipo() {
         // `hireCountsByType` es curva de costo de ESTA run: reencarnar la resetea.

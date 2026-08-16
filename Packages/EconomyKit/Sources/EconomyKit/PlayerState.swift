@@ -32,6 +32,33 @@ public struct UpgradeState: Codable, Sendable, Equatable {
         self.spawnDiscount = spawnDiscount
         self.prestigeBonus = prestigeBonus
     }
+
+    /// Decodificador a mano, por lo mismo que el de `RunState` y el de
+    /// `MetaState`: el sintetizado exige TODA clave que no sea opcional y se
+    /// saltea los valores por defecto de las propiedades.
+    ///
+    /// ⚠️ **Acá el agujero era un save v3, no un v4.** `SaveMigrator.migrate`
+    /// entra por `case 3` derecho a `migrateV3toV4`, que **no** pasa por el
+    /// backfill de `migrateV2toV3` y copia `old["upgrades"]` tal cual —o `[:]`
+    /// si la clave no está—. O sea: un v3 al que le falte cualquiera de estas
+    /// siete claves reventaba con `keyNotFound`, el repositorio caía a "starting
+    /// fresh" y el jugador perdía la partida entera por un diccionario.
+    ///
+    /// Los siete van con `decodeIfPresent` y no sólo los cuatro de v3: son
+    /// **efectos derivados** —la fuente de verdad es `meta.oroUpgradeLevels`, y
+    /// `UpgradeManager.recomputeDerivedEffects` los reconstruye desde ahí en
+    /// cuanto el jugador compra algo—, así que caer al valor neutro es
+    /// recuperable y perder el save no.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        offlineEfficiency = try container.decodeIfPresent(Double.self, forKey: .offlineEfficiency) ?? 0
+        tapMultiplier = try container.decodeIfPresent(Double.self, forKey: .tapMultiplier) ?? 1.0
+        critChance = try container.decodeIfPresent(Double.self, forKey: .critChance) ?? 0
+        incomeMultiplier = try container.decodeIfPresent(Double.self, forKey: .incomeMultiplier) ?? 1.0
+        goldenChance = try container.decodeIfPresent(Double.self, forKey: .goldenChance) ?? 0
+        spawnDiscount = try container.decodeIfPresent(Double.self, forKey: .spawnDiscount) ?? 0
+        prestigeBonus = try container.decodeIfPresent(Double.self, forKey: .prestigeBonus) ?? 0
+    }
 }
 
 /// Estado del daily reward (ciclo de 7 días).

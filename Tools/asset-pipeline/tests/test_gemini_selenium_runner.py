@@ -1,6 +1,9 @@
 """Pruebas sin navegador para el runner Gemini Selenium."""
 
+import contextlib
+import io
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -435,23 +438,78 @@ class FakeCompleted:
         self.stderr = stderr
 
 
+CHROME = runner_module.CHROME_PROCESS_NAME
+
+
 class FakeSystemEvents:
-    """Emula lo justo de macOS: quién está al frente y qué se tipeó.
+    """Emula lo justo de macOS: quién está al frente, dónde quedó el cursor y en
+    QUÉ app aterriza cada tecla.
 
     `frontmost` es la secuencia de respuestas a "¿quién tiene el frente?"; la
     última se repite para siempre, así se modela tanto la ventana que aparece y
     se va como la que se queda.
+
+    Dos detalles que no son adorno: cada app tiene SU buffer —lo que se teclea
+    con el ladrón adelante no aparece en el de Chrome, igual que en la vida
+    real— y el cursor existe de verdad, así que una tanda se inserta DONDE está
+    el cursor y no siempre al final. Sin eso el test no podría fallar nunca por
+    un prompt barajado, que es justo el fallo que hay que atrapar.
     """
 
-    def __init__(self, frontmost=("Google Chrome",), keystroke_returncode=0,
-                 frontmost_returncode=0):
+    TimeoutExpired = subprocess.TimeoutExpired
+
+    def __init__(self, frontmost=(CHROME,), keystroke_returncode=0,
+                 frontmost_returncode=0, swallow_caret_reset=False,
+                 eat_first_key_after_activate=False):
         self.frontmost = list(frontmost)
         self.keystroke_returncode = keystroke_returncode
         self.frontmost_returncode = frontmost_returncode
-        self.typed = ""
+        # Quill puede comerse el cmd+↓; es la incógnita que obliga a verificar
+        # el texto en vez de confiar en que el cursor volvió al final.
+        self.swallow_caret_reset = swallow_caret_reset
+        # La razón de ser del pre-tipeo descartable: la primera tecla después de
+        # un `activate` se pierde a veces.
+        self.eat_first_key_after_activate = eat_first_key_after_activate
+        self.current = self.frontmost[0]
+        self.buffers = {}
+        self.carets = {}
+        self.keystroke_log = []
         self.activates = 0
         self.frontmost_queries = 0
         self.keystrokes = 0
+        self.caret_resets = 0
+        self.keys_eaten = 0
+        self._just_activated = False
+
+    @property
+    def typed(self) -> str:
+        """Lo que hay en el compose box de Chrome."""
+        return self.buffers.get(CHROME, "")
+
+    @property
+    def foreign_keys(self) -> list:
+        """Todo lo que se tecleó en una app que NO era Chrome."""
+        return [key for app, key in self.keystroke_log if app != CHROME]
+
+    def click_compose(self) -> None:
+        """El click de Selenium cae en el CENTRO del compose box, y ahí queda
+        el cursor: ése es el origen del intercalado."""
+        self.carets[CHROME] = len(self.buffers.get(CHROME, "")) // 2
+
+    def _insert(self, text: str) -> None:
+        app = self.current
+        buffer, caret = self.buffers.get(app, ""), self.carets.get(app, 0)
+        self.buffers[app] = buffer[:caret] + text + buffer[caret:]
+        self.carets[app] = caret + len(text)
+        self.keystroke_log.append((app, text))
+
+    def _backspace(self) -> None:
+        app = self.current
+        buffer, caret = self.buffers.get(app, ""), self.carets.get(app, 0)
+        if caret:
+            self.buffers[app] = buffer[:caret - 1] + buffer[caret:]
+            self.carets[app] = caret - 1
+        self.keystroke_log.append((app, "<borrar>"))
 
     def run(self, command, **_kwargs):
         script = command[-1]
@@ -464,12 +522,27 @@ class FakeSystemEvents:
                            "assistive access. (-25211)",
                 )
             name = self.frontmost.pop(0) if len(self.frontmost) > 1 else self.frontmost[0]
+            self.current = name
             return FakeCompleted(stdout=name + "\n")
         if "to activate" in script:
+            # OJO: `activate` NO cambia quién está al frente en este fake. Es un
+            # pedido, no una garantía: lo único que dice quién ganó es la
+            # consulta siguiente. Modelarlo al revés esconde justo la carrera
+            # que hace falta atrapar (teclear después de activate y antes de
+            # confirmar es teclear a ciegas).
             self.activates += 1
+            self._just_activated = True
+            return FakeCompleted()
+        if self._eats(script):
             return FakeCompleted()
         if "key code 51" in script:  # Delete: se come el pre-tipeo descartable
-            self.typed = self.typed[:-1]
+            self._backspace()
+            return FakeCompleted()
+        if "key code 125" in script:  # cmd+↓: cursor al final del texto
+            self.caret_resets += 1
+            self.keystroke_log.append((self.current, "<cursor al final>"))
+            if not self.swallow_caret_reset:
+                self.carets[self.current] = len(self.buffers.get(self.current, ""))
             return FakeCompleted()
         if " to keystroke " in script:
             self.keystrokes += 1
@@ -479,8 +552,18 @@ class FakeSystemEvents:
                     stderr="System Events got an error: osascript is not allowed "
                            "to send keystrokes. (1002)",
                 )
-            self.typed += unescape_applescript(script.split(" to keystroke ", 1)[1])
+            self._insert(unescape_applescript(script.split(" to keystroke ", 1)[1]))
         return FakeCompleted()
+
+    def _eats(self, script: str) -> bool:
+        """¿Se pierde esta tecla por venir justo después de un `activate`?"""
+        if not ("key code" in script or " to keystroke " in script):
+            return False
+        perdida = self._just_activated and self.eat_first_key_after_activate
+        self._just_activated = False
+        if perdida:
+            self.keys_eaten += 1
+        return perdida
 
 
 class FakeEditor:
@@ -496,13 +579,16 @@ class FakeEditor:
 class HeadlessTyping(GeminiBrowser):
     """GeminiBrowser sin navegador: todo lo que toca Selenium queda anulado."""
 
-    def __init__(self, editor, **kwargs):
+    def __init__(self, system, **kwargs):
         super().__init__(**kwargs)
-        self.editor = editor
+        self.system = system
+        self.editor = FakeEditor(system)
         self.compose_clicks = 0
+        self.sends = 0
 
     def _focus_compose(self):
         self.compose_clicks += 1
+        self.system.click_compose()
 
     def _find_first(self, _selectors):
         return self.editor
@@ -514,6 +600,8 @@ class HeadlessTyping(GeminiBrowser):
         return self
 
     def execute_script(self, *_args):
+        # El click al botón Enviar: acá es donde se gastaría la cuota.
+        self.sends += 1
         return None
 
 
@@ -593,39 +681,119 @@ class TypingUnderFocusTheftTests(unittest.TestCase):
 
     PROMPT = ("Full body standing character, centered, blanco de fondo. " * 40)[:2099]
 
+    #: La 1ª consulta es la del pre-tipeo; después va una por tanda. Con el
+    #: ladrón en la 3ª, el robo cae con la tanda 1 YA escrita: recién ahí la
+    #: posición del cursor puede barajar el prompt (con el editor vacío no).
+    ROBO_EN_LA_TANDA_2 = [CHROME, CHROME, "Otro Agente", CHROME]
+
     def setUp(self):
         self.system = FakeSystemEvents()
         self._patch("subprocess", self.system)
         self._patch("time", NoSleep)
+        self.stderr = io.StringIO()
+        self._enter(contextlib.redirect_stderr(self.stderr))
 
     def _patch(self, name, value):
         original = getattr(runner_module, name)
         setattr(runner_module, name, value)
         self.addCleanup(setattr, runner_module, name, original)
 
+    def _enter(self, manager):
+        manager.__enter__()
+        self.addCleanup(manager.__exit__, None, None, None)
+
     def _browser(self, **kwargs):
         kwargs.setdefault("type_chunk", 250)
         kwargs.setdefault("type_pause", 0)
-        return HeadlessTyping(FakeEditor(self.system), **kwargs)
+        return HeadlessTyping(self.system, **kwargs)
 
     def test_the_whole_prompt_is_typed_in_chunks_and_lands_exact(self):
-        self._browser()._submit(self.PROMPT)
+        browser = self._browser()
+
+        browser._submit(self.PROMPT)
 
         self.assertEqual(self.system.typed, self.PROMPT)
         tandas = -(-len(self.PROMPT) // 250)
         # +1: el espacio descartable del pre-tipeo, que el Delete se lleva.
         self.assertEqual(self.system.keystrokes, tandas + 1)
-        # La pregunta por el frente es POR TANDA: ahí está el arreglo.
-        self.assertEqual(self.system.frontmost_queries, tandas)
+        # Una consulta por tanda MÁS la del pre-tipeo: ahí está el arreglo.
+        self.assertEqual(self.system.frontmost_queries, tandas + 1)
+        self.assertEqual(browser.sends, 1)
+
+    def test_the_sacrificial_keys_never_reach_a_foreign_app(self):
+        # El espacio y el Delete descartables son teclas REALES. Si salen antes
+        # de preguntar quién está al frente, con el ladrón adelante ese Backspace
+        # lo cobra la app ajena: en Mail borra el mail seleccionado.
+        self.system.frontmost = ["Ladrón Fugaz", CHROME]  # se va al primer activate
+
+        self._browser()._submit(self.PROMPT)
+
+        self.assertEqual(self.system.foreign_keys, [])
+        self.assertEqual(self.system.keystroke_log[0], (CHROME, " "))
+        self.assertEqual(self.system.typed, self.PROMPT)
 
     def test_a_window_that_steals_the_focus_mid_prompt_is_recovered(self):
-        self.system.frontmost = ["Google Chrome", "Otro Agente", "Google Chrome"]
+        self.system.frontmost = list(self.ROBO_EN_LA_TANDA_2)
+
+        self._browser()._submit(self.PROMPT)
+
+        # No es una verdad por construcción: el fake tiene cursor, y si el
+        # cmd+↓ no lo devolviera al final esto saldría barajado.
+        self.assertEqual(self.system.typed, self.PROMPT)
+        self.assertEqual(self.system.caret_resets, 2)  # idempotente, va dos veces
+        # El `activate` inicial de _submit más el de la recuperación.
+        self.assertEqual(self.system.activates, 2)
+        self.assertEqual(self.system.foreign_keys, [])
+
+    def test_the_caret_reset_survives_the_key_that_the_activate_eats(self):
+        # La primera tecla después de un `activate` se pierde a veces —para eso
+        # existe el espacio descartable del arranque—. El cmd+↓ que reordena el
+        # cursor corre el mismo riesgo, y por eso se manda dos veces.
+        self.system.frontmost = list(self.ROBO_EN_LA_TANDA_2)
+        self.system.eat_first_key_after_activate = True
 
         self._browser()._submit(self.PROMPT)
 
         self.assertEqual(self.system.typed, self.PROMPT)
-        # El `activate` inicial de _submit más el de la recuperación.
-        self.assertEqual(self.system.activates, 2)
+        self.assertEqual(self.system.keys_eaten, 2)  # el espacio y un cmd+↓
+        self.assertEqual(self.system.caret_resets, 1)  # el que sobrevivió
+
+    def test_a_recovery_is_announced_so_the_owner_can_audit_it(self):
+        self.system.frontmost = list(self.ROBO_EN_LA_TANDA_2)
+
+        self._browser()._submit(self.PROMPT)
+
+        self.assertIn("Otro Agente", self.stderr.getvalue())
+
+    def test_a_swallowed_caret_reset_aborts_instead_of_sending_a_shuffled_prompt(self):
+        """El fallo caro que introduce la recuperación de foco.
+
+        `_focus_compose` clickea el CENTRO del compose box. Si el cmd+↓ no llega
+        al final —Quill puede comérselo— la tanda siguiente entra EN EL MEDIO
+        del texto. El resultado tiene el largo justo y el arranque intacto, así
+        que `prompt_landed` lo aprueba y se gasta cuota contra un prompt
+        barajado. Antes del tipeo por tandas ese caso no existía: toda
+        perturbación de foco daba vacío o truncado.
+        """
+        self.system.frontmost = list(self.ROBO_EN_LA_TANDA_2)
+        self.system.swallow_caret_reset = True
+        browser = self._browser()
+
+        with self.assertRaises(GenerationBlocked) as caught:
+            browser._submit(self.PROMPT)
+
+        self.assertIn("intercal", str(caught.exception))
+        self.assertEqual(browser.sends, 0, "se envió un prompt barajado: cuota gastada")
+        self.assertNotEqual(self.system.typed, self.PROMPT[:len(self.system.typed)])
+
+    def test_prompt_landed_alone_would_have_approved_a_shuffled_prompt(self):
+        # Por qué hace falta comparar contra el prefijo y no alcanza el guard
+        # viejo: barajado, el prompt conserva el largo y los primeros 40.
+        mitad = len(self.PROMPT) // 2
+        barajado = self.PROMPT[:mitad] + self.PROMPT[-250:] + self.PROMPT[mitad:-250]
+
+        self.assertNotEqual(barajado, self.PROMPT)
+        self.assertTrue(GeminiBrowser.prompt_landed(barajado, self.PROMPT))
 
     def test_a_thief_that_never_leaves_aborts_naming_it(self):
         self.system.frontmost = ["Nombre Del Ladrón"]
@@ -635,7 +803,9 @@ class TypingUnderFocusTheftTests(unittest.TestCase):
 
         # El nombre va al checkpoint: le dice al dueño QUÉ ventana cerrar.
         self.assertIn("Nombre Del Ladrón", str(caught.exception))
-        self.assertEqual(self.system.typed, "", "se tipeó dentro de la app ajena")
+        # Ni una tecla, en ninguna app: ni el prompt ni el pre-tipeo descartable.
+        self.assertEqual(self.system.keystroke_log, [])
+        self.assertEqual(self.system.typed, "")
         self.assertEqual(self.system.activates, 1 + runner_module.FOCUS_RECOVERIES)
 
     def test_a_failed_osascript_still_raises_with_the_accessibility_hint(self):
@@ -656,6 +826,7 @@ class TypingUnderFocusTheftTests(unittest.TestCase):
             browser._submit(self.PROMPT)
 
         self.assertIn("el prompt no llegó al editor", str(caught.exception))
+        self.assertEqual(browser.sends, 0)
 
     def test_a_frontmost_query_that_fails_blames_accessibility_not_a_thief(self):
         # Sin permiso de Accesibilidad la consulta falla igual que el keystroke:
@@ -674,3 +845,4 @@ class TypingUnderFocusTheftTests(unittest.TestCase):
         self.assertEqual(browser._ensure_chrome_frontmost(3), 3)
         self.assertEqual(self.system.activates, 0)
         self.assertEqual(browser.compose_clicks, 0)
+        self.assertEqual(self.system.caret_resets, 0)

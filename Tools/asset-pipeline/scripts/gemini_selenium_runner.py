@@ -69,6 +69,9 @@ TYPE_PAUSE_SECONDS = 0.25
 FOCUS_RECOVERIES = 3
 #: Lo que tarda macOS en dejar a Chrome adelante después de `activate`.
 FOCUS_SETTLE_SECONDS = 1.0
+#: Techo para la consulta de frontmost: corre ~9 veces por asset, así que un
+#: System Events colgado frenaría el batch entero si esperara para siempre.
+FRONTMOST_TIMEOUT_SECONDS = 10
 #: Nombre del proceso tal como lo reporta System Events (`launch_gemini_chrome`
 #: abre siempre Chrome estable, nunca Canary).
 CHROME_PROCESS_NAME = "Google Chrome"
@@ -290,9 +293,9 @@ class GeminiBrowser:
         self.port = port
         self.timeout = timeout
         # Tamaño de tanda y respiro entre tandas al tipear el prompt (ver
-        # TYPE_CHUNK_CHARS). Se sanean acá para que un flag absurdo (0, -5) no
-        # explote a mitad de un batch.
-        self.type_chunk = max(1, int(type_chunk))
+        # TYPE_CHUNK_CHARS). El piso del tamaño lo pone `chunk_prompt`, que es
+        # quien tiene que aguantar cualquier número: una sola fuente de verdad.
+        self.type_chunk = int(type_chunk)
         self.type_pause = max(0.0, float(type_pause))
         #: stderr de la última consulta fallida por el proceso al frente.
         self._frontmost_error = ""
@@ -483,9 +486,19 @@ class GeminiBrowser:
 
     def _frontmost_app(self) -> str:
         """Nombre del proceso al frente, o "" si System Events no contestó."""
-        result = subprocess.run(
-            ["osascript", "-e", self.FRONTMOST_SCRIPT], capture_output=True, text=True
-        )
+        try:
+            result = subprocess.run(
+                ["osascript", "-e", self.FRONTMOST_SCRIPT],
+                capture_output=True, text=True, timeout=FRONTMOST_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired:
+            # Esta consulta corre ~9 veces por asset: un System Events colgado no
+            # puede quedarse con el batch entero. Se trata como "no sé quién está
+            # al frente", que ya tiene camino (recuperar y, si insiste, abortar).
+            self._frontmost_error = (
+                f"System Events no contestó en {FRONTMOST_TIMEOUT_SECONDS}s"
+            )
+            return ""
         if result.returncode != 0:
             # Sin permiso de Accesibilidad esta consulta falla igual que el
             # keystroke. Se guarda el error para que el abort lo diga en vez de
@@ -495,16 +508,27 @@ class GeminiBrowser:
         self._frontmost_error = ""
         return result.stdout.strip()
 
-    def _recover_focus(self, restore_caret: bool) -> None:
-        """La misma danza de activación con la que arranca `_submit`, para cuando
-        otra ventana se robó el frente en medio del tipeo."""
+    def _recover_focus(self) -> None:
+        """Pide el frente para Chrome y le devuelve el foco DOM al compose box.
+
+        Acá NO se manda ninguna tecla: `activate` es un pedido, no una garantía,
+        y hasta que la próxima consulta no confirme quién está adelante
+        cualquier keystroke puede aterrizar en la app ajena. El click de Selenium
+        es seguro porque va por CDP al DOM, tenga Chrome el frente o no."""
         subprocess.run(["osascript", "-e", 'tell application "Google Chrome" to activate'])
         time.sleep(FOCUS_SETTLE_SECONDS)
         self._focus_compose()
-        if restore_caret:
-            # `_focus_compose` clickea el CENTRO del compose box: con medio prompt
-            # ya escrito eso deja el cursor en el medio del texto y la tanda
-            # siguiente se intercalaría. cmd+↓ lo manda al final antes de seguir.
+
+    def _restore_caret(self) -> None:
+        """Manda el cursor al final del texto ya escrito (cmd+↓).
+
+        Hace falta porque `_focus_compose` clickea el CENTRO del compose box: con
+        medio prompt adentro, eso deja el cursor en el medio y la tanda siguiente
+        se intercalaría. Va DOS veces a propósito: la tecla es idempotente, así
+        que la primera hace de pre-tipeo descartable para la que se traga la app
+        después de un `activate` —el mismo motivo por el que existe el espacio
+        del arranque—. Y si aun así no llega, `_verify_prefix` lo atrapa."""
+        for _ in range(2):
             subprocess.run([
                 "osascript", "-e",
                 'tell application "System Events" to key code 125 using command down',
@@ -518,6 +542,7 @@ class GeminiBrowser:
         aparece y se va cuesta un intento y la corrida sigue, pero una app que se
         queda adelante agota los tres y aborta ANTES de teclear en ella."""
         frontmost = self._frontmost_app()
+        recuperado = False
         while frontmost != CHROME_PROCESS_NAME:
             if remaining <= 0:
                 quien = (
@@ -531,9 +556,51 @@ class GeminiBrowser:
                     "Cerrá o minimizá esa ventana antes de reintentar."
                 )
             remaining -= 1
-            self._recover_focus(restore_caret)
+            # Que se vea en la corrida: el dueño tiene que poder auditar QUÉ
+            # assets pasaron por el camino raro sin leer el checkpoint.
+            print(
+                f"  ⚠️  el foco se lo llevó «{frontmost or '¿?'}»; recupero y sigo "
+                f"(quedan {remaining} intentos)",
+                file=sys.stderr, flush=True,
+            )
+            self._recover_focus()
+            recuperado = True
             frontmost = self._frontmost_app()
+        if recuperado and restore_caret:
+            # Recién ACÁ, con Chrome confirmado adelante, se toca el teclado.
+            self._restore_caret()
         return remaining
+
+    @staticmethod
+    def _same_text(one: str, other: str) -> bool:
+        """Igualdad con el mismo criterio de espacios que `prompt_landed`."""
+        return " ".join((one or "").split()) == " ".join((other or "").split())
+
+    def _verify_prefix(self, editor, prompt: str, escritos: int, momento: str) -> None:
+        """Aborta si el editor no tiene EXACTAMENTE lo tipeado hasta acá.
+
+        Es la red del único fallo nuevo que trae la recuperación de foco.
+        `_focus_compose` clickea el CENTRO del compose box: si el cursor no
+        vuelve al final del texto —el `cmd+↓` puede no alcanzar— la tanda
+        siguiente se intercala EN EL MEDIO. Lo que queda tiene el largo justo y
+        los primeros 40 caracteres en su lugar, así que `prompt_landed` lo
+        aprueba y se gastaría cuota generando contra un prompt barajado. Ese
+        fallo no existía antes del tipeo por tandas: toda perturbación de foco
+        daba vacío o truncado, y el guard lo atrapaba.
+
+        Compara contra el prefijo esperado, que sí detecta el intercalado, y es
+        estricto a propósito: sobre el camino raro un carácter maltratado cuesta
+        un reintento (cuota: cero), no una imagen contra un prompt roto.
+        """
+        escrito = editor.get_attribute("innerText") or ""
+        if self._same_text(escrito, prompt[:escritos]):
+            return
+        raise GenerationBlocked(
+            f"el editor no coincide con lo tipeado hasta acá ({momento}): tiene "
+            f"{len(escrito.strip())} caracteres y esperaba {escritos}. Probable: "
+            "el cursor quedó en el medio del texto al volver el foco y la tanda "
+            "se intercaló. No envío: sería cuota gastada contra un prompt barajado."
+        )
 
     def _submit(self, prompt: str) -> None:
         # El prompt es el texto EXACTO del .md del asset (nunca inventado).
@@ -549,11 +616,26 @@ class GeminiBrowser:
         self._focus_compose()
         subprocess.run(["osascript", "-e", 'tell application "Google Chrome" to activate'])
         time.sleep(1.0)
+        # ⚠️ La pregunta por el frente va ANTES del pre-tipeo: el espacio y el
+        # Delete descartables son teclas de verdad, y si el ladrón ya está
+        # adelante las cobra él. Un Backspace suelto en Mail borra el mail
+        # seleccionado. Hasta no saber quién está al frente no se teclea NADA.
+        recoveries = self._ensure_chrome_frontmost(FOCUS_RECOVERIES)
         # Pre-tipeo descartable: la app a veces pierde el primer carácter tras activate.
         subprocess.run(["osascript", "-e", 'tell application "System Events" to keystroke " "'])
         time.sleep(0.3)
         subprocess.run(["osascript", "-e", 'tell application "System Events" to key code 51'])  # Delete
         time.sleep(0.2)
+
+        # El editor se busca ACÁ, antes de tipear: además de la verificación
+        # final hace falta para auditar lo ya escrito cada vez que hubo que
+        # recuperar el foco (ver `_verify_prefix`).
+        editor = self._find_first([
+            ("CSS_SELECTOR", "[contenteditable='true']"),
+            ("CSS_SELECTOR", "textarea"),
+        ])
+        if editor is None:
+            raise GenerationBlocked("no encontré el editor para verificar el prompt")
 
         # ⚠️ 2026-08-16: el prompt entero iba en UN `keystroke` de 2000+ caracteres.
         # Esa llamada tarda varios segundos y en una máquina cargada es una eternidad:
@@ -562,10 +644,14 @@ class GeminiBrowser:
         # final. Ahora se tipea en tandas cortas y ANTES DE CADA UNA se pregunta
         # quién está al frente: el robo de foco cuesta una tanda, no el prompt.
         chunks = chunk_prompt(prompt, self.type_chunk)
-        recoveries = FOCUS_RECOVERIES
         escritos = 0
         for index, chunk in enumerate(chunks, 1):
+            quedaban = recoveries
             recoveries = self._ensure_chrome_frontmost(recoveries, restore_caret=escritos > 0)
+            recuperado = recoveries != quedaban
+            if recuperado and escritos:
+                # ¿Volvió intacto lo que ya estaba escrito?
+                self._verify_prefix(editor, prompt, escritos, "al recuperar el foco")
             script = 'tell application "System Events" to keystroke %s' % _applescript_string(chunk)
             result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
             if result.returncode != 0:
@@ -576,17 +662,17 @@ class GeminiBrowser:
                 )
             escritos += len(chunk)
             time.sleep(self.type_pause)
+            if recuperado:
+                # Y sobre todo: ¿entró DONDE correspondía? Esta es la pregunta
+                # cara: si el cursor quedó en el medio, la tanda se intercaló.
+                self._verify_prefix(
+                    editor, prompt, escritos, "en la tanda que siguió a la recuperación"
+                )
 
         # ⚠️ El botón de enviar NO sirve como confirmación de que el texto entró:
         # la imagen adjunta sola ya lo habilita (medido: `disabled == False` con
         # el editor en `ql-blank`). Por eso el runner mandó referencias sin
         # prompt sin enterarse. Se comprueba el editor, que es el único que sabe.
-        editor = self._find_first([
-            ("CSS_SELECTOR", "[contenteditable='true']"),
-            ("CSS_SELECTOR", "textarea"),
-        ])
-        if editor is None:
-            raise GenerationBlocked("no encontré el editor para verificar el prompt")
         escrito = editor.get_attribute("innerText") or ""
         if not self.prompt_landed(escrito, prompt):
             raise GenerationBlocked(

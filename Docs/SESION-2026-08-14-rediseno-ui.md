@@ -41,7 +41,7 @@
 | 10 | ElevatorView | ✅ review clean | `72dc510` | El mapa es un ascensor (GameCard por piso, actual en amarillo, riel, `elevator.title`). Coherencia con FisuJobs CONFIRMADA por review (cabecera literal, mismo Tone, margen 36pt medido) |
 | 11 | Customization Shop | ✅ review clean (1 fix round) | `bd9b64d` + `e539876` | Carrusel de caras + grilla de skins (4 estados); unificó JobStateBadge→StateBadge (FisuJobs intacto, verificado); fixture nuevo `--uitest-storekit-empty` (9º arg). Coherencia con FisuJobs CONFIRMADA. Fix: StoreKit caído ya no miente "no está a la venta" |
 | 12 | Tienda IAP v2 + timeout | ✅ review clean | `e4e7fe6` + `1b71856` | Timeout del Loading con carrera de canal (sin task group — el grupo mudaba el cuelgue), retry real, vidriera restyleada (starter destacado, packs, skins con preview), settings FUERA de la tienda (sin superficie hasta T16). Coherencia con FisuJobs CONFIRMADA. ⚠️ entorno: tras `simctl erase`, correr unit antes de UI o el plazo vence sin tienda local |
-| 13 | GiftsView | ⏳ **PRÓXIMA** | — | Regalos v2 (calendario diario + boosts + videos); borra BonusView; brief en el workspace |
+| 13 | GiftsView | ✅ verde (sin review aún) | `4f64aa2` | Regalos v2: calendario diario NUEVO en pantalla + boosts + videos; BonusView borrada. Retomó un parcial de un agente cortado por API (auditado, conservado casi entero). `rewardText` saca el ×N del dato y no de la copy. Fixture nuevo `--uitest-daily-streak` (10º arg). Coherencia con FisuJobs CONFIRMADA por captura lado a lado; el fix visual salió de la captura, no de leer. ⚠️ el flavor de varios boosts REPITE el efecto (copy a triage) |
 | 14-20 | — | pendientes | — | Ver plan |
 
 **Suites al cierre de T8**: `FisuEvolutionTests` 235 · UI verdes (FisuJobs 2,

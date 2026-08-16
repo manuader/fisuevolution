@@ -1,18 +1,27 @@
 # HANDOFF — FisuEvolution, estado actual
 
-> ✅ **EL REDISEÑO DE UI DE ESTA RAMA ESTÁ COMPLETO** — 20 de 20 tareas
+> ✅ **EL REDISEÑO DE UI ESTÁ COMPLETO Y MERGEADO** — 20 de 20 tareas
 > (`feature/rediseno-ui-cowevolution`, cerrado el 2026-08-16). El estado tarea
 > por tarea, las decisiones del dueño y los avisos vivos siguen en
 > **`Docs/SESION-2026-08-14-rediseno-ui.md`**, que es la fuente de verdad del
-> detalle de esta rama. Lo de abajo describe el juego ANTES del rediseño y
-> sigue siendo válido para todo lo que el rediseño no tocó; el resumen de la
-> sesión, con los números finales de tests, está en §4.
+> detalle de ESA rama. Lo de abajo describe el juego ANTES del rediseño y
+> sigue siendo válido para todo lo que el rediseño no tocó; el resumen de esa
+> sesión, con los números de tests de su cierre, está en §4.
 >
-> ⚠️ **Lo que falta NO es implementación**: el review integral de rama con su
-> ola de fixes, el batch de los 15 iconos que corre el dueño (§8) y el merge
-> a `main`.
+> ✅ **Y el ticket post-merge que ese cierre dejó triageado TAMBIÉN está hecho**
+> — 7 tareas en `fix/cierre-post-merge` (17 commits sobre `89f215a`, mergeada a
+> `main` al cerrar la sesión), con review integral de rama que dio **ready to
+> merge y CERO ola de fixes de código**. El detalle está en
+> **`Docs/SESION-2026-08-16-cierre-post-merge.md`**. Lo que hay que saber en dos
+> líneas: el calendario del daily aterrizó en Regalos, y
+> **`AscentRenderingUITests` volvió de entre los muertos** — la suite de UI
+> corre **43 sin un solo `-skip-testing:`** (§6).
 >
-> **Empezá por acá.** Última actualización: **2026-08-16** (rediseño de UI).
+> ⚠️ **Lo que falta NO es implementación**: el batch de los 15 iconos que corre
+> el dueño (§8) y los dos gates humanos de F6 (cuenta de Apple Developer y
+> RF-14, el audio).
+>
+> **Empezá por acá.** Última actualización: **2026-08-16** (cierre post-merge).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
@@ -204,7 +213,7 @@ v2, Menú) más el Ascensor y las cuatro sub-pantallas del menú
 |---|---|
 | `EconomyKit` (`swift test`) | **180/180** ✅ |
 | `FisuEvolutionTests` | **336/336** ✅ |
-| `FisuEvolutionUITests` | **40/40** ✅ (14 clases; `AscentRenderingUITests` salteada, rojo preexistente de `main` — **des-salteada más tarde ese mismo día**: la receta vigente de §6 corre **43 sin skips**) |
+| `FisuEvolutionUITests` | **40/40** ✅ (**15 clases corriendo de las 16** que tiene la suite; `AscentRenderingUITests` salteada, rojo preexistente de `main` — **recuperada más tarde ese mismo día**: la receta vigente de §6 corre las 16, **43 sin skips**) |
 | `Tools/asset-pipeline` | 27, **1 rojo conocido** (pide Chrome en `:9222`) |
 | Warnings de compilador | **0** |
 
@@ -302,6 +311,18 @@ regla no cambió**: vive en EconomyKit, y la pinean `GameLoopWiringTests` —con
 el `economy.json` real, incluida la exención del urbano— y `EconomyKitTests`
 sobre fixtures sintéticos.
 
+📌 **Lo que se retiró es la proyección, NO el requisito de UX que la
+justificaba**, y este ata a cualquier pantalla de contratación futura: **el
+botón NOMBRABA el piso de destino, para que la compra no pareciera no haber
+pasado.** Contratás parado en tu frontera, el personaje aparece un piso más
+abajo y la cámara no se mueve: sin decirlo en pantalla, el jugador ve que pagó
+y que no cambió nada, y eso se lee como un bug. Hoy la deuda está **latente y
+no visible**, porque nadie ejerce el fallback desde la UI — FisuJobs contrata
+por tipo y su `floorTag` nombra el piso PROPIO de cada fila, que es otro dato,
+y `buySpawn()` quedó sin call-site de UI (sólo lo llaman los tests). El día que
+una pantalla vuelva a ofrecer contratar "acá", **tiene que decir dónde cayó**;
+el dato lo da `TowerActions.hireTargetFloor`.
+
 #### Secuencia de celebraciones
 
 Un merge que asciende y abre piso disparaba **cinco cosas en t=0**. Ahora
@@ -368,13 +389,13 @@ ANTES que UI** — la asimetría es real y direccional, ver abajo.
 ```bash
 UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
 
-cd Packages/EconomyKit && swift test                      # 180
+cd Packages/EconomyKit && swift test                      # 183
 cd - && /opt/homebrew/bin/xcodegen generate               # si agregaste/borraste Swift
 
 # 1) UNIT PRIMERO
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
   -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
-  -only-testing:FisuEvolutionTests test                   # 336
+  -only-testing:FisuEvolutionTests test                   # 346
 
 # 2) UI DESPUÉS
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
@@ -387,18 +408,20 @@ xcrun simctl shutdown $UDID && xcrun simctl delete $UDID   # ⚠️ el cierre es
 ```
 
 Estado el **2026-08-16**:
-**EconomyKit 180 · app 336 · UI 43 · pipeline 27 (1 rojo conocido)**, cero
+**EconomyKit 183 · app 346 · UI 43 · pipeline 27 (1 rojo conocido)**, cero
 warnings de compilador.
 
-EconomyKit, app y pipeline salen de la corrida entera al cierre del rediseño de
-UI. **El 43 de UI sale de sumar** los 3 de `AscentRenderingUITests`
-—des-salteada más tarde ese mismo día y verificada **aparte, 3 corridas verdes**
-(fría, tibia y fría)— a los 40 que ya se medían con esa clase salteada.
+✅ **Los cuatro números salen de la MISMA verificación**, la del cierre de
+`fix/cierre-post-merge`, con la receta de acá arriba tal cual: simulador propio
+por UDID, `-parallel-testing-enabled NO`, unit antes que UI. **Y el 43 de UI se
+tomó de una sola vez y sin un solo skip** —`AscentRenderingUITests` adentro—,
+que era lo único que quedaba pendiente de medir: hasta ese día el 43 salía de
+SUMAR los 3 de esa clase, verificados aparte, a los 40 que se medían con ella
+salteada.
 
-⚠️ **La corrida de los 43 de una sola vez todavía no se tomó**: cuando se
-intentó, la máquina estaba saturada por otros frentes (`load average` **504**) y
-cualquier resultado habría sido ruido, no señal. Si la tomás vos, anotá acá el
-número y el tiempo.
+⚠️ Y se tomó **en malas condiciones a propósito**: arrancó con la máquina en
+`load average` **~156** por frentes ajenos y la suite pasó entera igual, con
+**cero flakies re-corridos**. O sea que el 43 no es un número de laboratorio.
 
 - El rojo del pipeline es `test_wait_for_survives_a_stale_element_and_retries`:
   pide un Chrome escuchando en `:9222`. Es de entorno y es el baseline.
@@ -578,6 +601,18 @@ El panel de debug es el ícono de herramientas del HUD.
    camino. Sólo se vio mirando el simulador. La forma correcta es resolver la
    clave en una función del estado (`upgradeFlavorText(for:)`) y que el test
    ejerza **esa misma función**, la que dibuja la fila.
+
+   ⚠️⚠️ **Y una tercera forma, que muerde al revés: `stale` NO quiere decir
+   borrable.** El reformateo del catálogo que dejó el último build de Xcode
+   (`07789d7`) marcó `extractionState: stale` en **175 de las 459 claves**, y
+   muchas están **VIVAS**: `settings.haptics`, `daily.title`,
+   `notif.daily.title`/`.body` y ~20 de ajustes. El extractor no ve a través de
+   un parámetro `titleKey:` —la clave viaja como `LocalizedStringKey` hasta una
+   vista propia en vez de aparecer como literal de `Text`— ni siempre a través
+   de `String(localized:)`. **Una pasada de limpieza que borre por
+   `extractionState` se lleva claves vivas y deja la clave cruda en pantalla**,
+   que es la misma falla de esta trampa por otra puerta. Verificá por `grep`
+   antes de borrar una sola.
 
 6. **El runner de tests de UI corre la app en INGLÉS**, aunque el idioma de
    desarrollo del proyecto sea `es`. Un test que asserta sobre texto en español
@@ -765,11 +800,13 @@ El panel de debug es el ícono de herramientas del HUD.
 **1. El batch de los 15 iconos lo corre EL DUEÑO, desde Terminal.app.** La
 cola está armada y verificada (tarea 19): 15 prompts `.md` numerados
 **213–227** en `Tools/asset-pipeline/prompts/gemini_pro/` con sus 15 entradas
-gemelas en `prompts.json`, todas en `estado: pendiente` y **sin campo
-`referencia`** (los iconos de UI no adjuntan el Fisura). No se generó ninguna
-imagen a propósito: el runner tipea con `osascript` y el permiso de
-Accesibilidad lo tiene **Terminal.app y nada más** (trampa 11), así que desde
-el shell de un agente falla en el primer asset. La receta, con el Chrome
+gemelas en `prompts.json`, **todas sin generar** —cero PNG de esas claves en
+`ui.atlas`, verificado el 2026-08-16— y **sin campo `referencia`** (los iconos
+de UI no adjuntan el Fisura; `prompts.json` no lleva campo de estado, así que
+la cola se lee por lo que falta en el atlas). No se generó ninguna imagen a
+propósito: el runner tipea con `osascript` y el permiso de Accesibilidad lo
+tiene **Terminal.app y nada más** (trampa 11), así que desde el shell de un
+agente falla en el primer asset. La receta, con el Chrome
 dedicado en `:9222` logueado en Gemini **Pro**:
 
 ```bash
@@ -788,7 +825,7 @@ riesgo alto son `ui_menu_stats`, `ui_trophy_silver` y `ui_daily_calendar`. El
 que salga hueco **no se integra** — se borran sus `@2x`/`@3x` y su clave de
 `manifest.ui`, y el juego vuelve solo al icono vectorial, que para eso está.
 
-**2. Costura de los 15 iconos: las tres copas ya están; falta el calendario.**
+**2. Costura de los 15 iconos: ✅ COMPLETA — las copas y el calendario.**
 
 ✅ **Los tres `ui_trophy_*` quedaron cableados en la ola final del review**
 (2026-08-16). Eran **DOS** call-sites y no tres —el conteo de tres que figuraba
@@ -804,12 +841,14 @@ de la clave del atlas:
 Mientras el atlas no tenga las claves siguen cayendo al vector y no cambia
 nada en pantalla; el día que el batch entre, entran solas.
 
-⚠️ **El pendiente real es `ui_daily_calendar`.** `VectorCalendarIcon` sólo se
-declara en `GameIcons.swift:543` y no se usa en ninguna vista: no hay dónde
-aterrizarlo sin **decidir antes dónde va el calendario** (la tira de días de
-Regalos tiene su propio dibujo, y meterle un icono es una decisión de diseño
-del dueño, no una costura mecánica). Hasta que esa decisión exista, ese PNG
-entra al atlas y el juego lo ignora.
+✅ **Y `ui_daily_calendar` aterrizó el 2026-08-16** (cierre post-merge, tarea 1:
+cherry-pick de `84a2af6` desde la rama paralela `fix/iconos-gameicon`, esta vez
+sí revisado). El calendario va **al frente de la tarjeta del daily** en
+`FisuEvolution/UI/Gifts/GiftsView.swift`, a 44 pt dentro del mismo plato de
+56 que usan `BoostGlyph` y `ScreenGlyph`, con la nota "se cobra solo" corrida
+al costado. Era el único de los 15 iconos sin call-site: **ya no queda
+ninguno**. Mientras el atlas no tenga la clave, cae al `VectorCalendarIcon` y
+se ve igual de bien — que es exactamente lo que hace el fallback.
 
 **3. Los ajustes ya están listos para App Store.** `SettingsView` trae las
 seis secciones del spec: **idioma** (sistema/es/en, con su clave propia
@@ -820,9 +859,42 @@ las 19:00 vía `NotificationsManager`, y los **dos documentos legales**
 `Resources/Legal`. O sea que RF-02c ya no necesita nada de UI: lo único que
 falta sigue siendo la cuenta de Apple Developer.
 
-**4. Falta el review integral de la rama** —con su ola de fixes sobre los
-minors diferidos de las 20 tareas, que viven en el ledger del workspace SDD—
-y después el **merge a `main`**.
+**4. ✅ El review integral de la rama y el ticket post-merge: los dos HECHOS.**
+El review integral del rediseño corrió con su ola de fixes
+(`ecf35b2..2f71ff3`), y lo que dejó triageado para DESPUÉS del merge se ejecutó
+entero en `fix/cierre-post-merge`: **7 tareas**, y el review integral de esa
+rama dio **ready to merge con CERO ola de fixes de código**. Commits y detalle
+tarea por tarea en **`Docs/SESION-2026-08-16-cierre-post-merge.md`**; lo que
+entró:
+
+- **El calendario del daily**, acá arriba en el punto 2.
+- **El cluster spawn muerto se fue de `GameState`** (`HireOffer`,
+  `showSpawnHint`, `hireOffer` y el cálculo que los refrescaba). No se perdió
+  ninguna aserción: los pins se mudaron a `TowerActions`, que es donde vive la
+  conducta. ⚠️ Lo que ese borrado sí dejó huérfano es un requisito de UX — está
+  en el 📌 de §4, "Gate de contratación".
+- **`StatePill` → `StateBadge`** en Upgrades: una sola gramática de badge, y
+  tocarla ya no castiga con haptic+audio de error.
+- **Un pase de accesibilidad en lote**: `PricePill` dice la moneda y **qué**
+  compra en vez de un monto suelto, `ProgressBar` tiene label, se fueron las
+  paradas mudas de VoiceOver, y el número de piso y el "estás acá" del ascensor
+  escalan con Dynamic Type.
+- **Los residuales de la ola**: la tarjeta de la tienda degradada se centra
+  aunque haya banner de error; el riel fijo de la tienda (**104**, derivado del
+  `minWidth` 92 del `PricePill`, igual que el 96 de FisuJobs) devuelve los
+  títulos de producto a un renglón; `MetaState.init(from:)` decodifica
+  `derivedEffects` con `decodeIfPresent`, así que un sobre sin esa clave ya no
+  se lleva la partida puesta; el migrador estrenó un e2e desde JSON crudo v3; y
+  `ui_pill_currency` salió del manifest, del atlas y del índice de prompts.
+- ✅ **`AscentRenderingUITests` volvió** — las tres causas están en la trampa 2.
+  La que nadie tenía: el callejón cubre los tiers **1..4**, así que el primer
+  ascenso pide **cuatro** fusiones y no dos. **Ya no queda ningún
+  `-skip-testing:` en la receta de §6.**
+
+**Después de esto quedan dos cosas, y ninguna es código**: el batch de los 15
+iconos del punto 1 —la cola 213–227 está intacta y verificada— y los dos gates
+humanos de F6, la cuenta de Apple Developer (RF-02c) y una fuente de audio
+(RF-14).
 
 ---
 
@@ -936,6 +1008,8 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
+| **`SESION-2026-08-16-cierre-post-merge.md`** | **La sesión más reciente: las 7 tareas del ticket post-merge con sus commits, el veredicto del review de rama y el backlog que sobrevive** |
+| **`SESION-2026-08-14-rediseno-ui.md`** | **Las 20 tareas del rediseño de UI, con sus fix rounds, rulings y avisos vivos. La fuente de verdad del detalle de esa rama** |
 | **`SESION-2026-08-06-correcciones-de-playtest.md`** | **El estado de la sesión de las 16 correcciones: qué quedó abierto, qué está en vuelo y los gates humanos. Empezá por acá si retomás ese trabajo** |
 | `SESION-2026-08-05-fallback-de-contratacion.md` | El fallback del botón y la fila trasera invisible |
 | `superpowers/specs/2026-08-10-fusion-asistida-design.md` | Los dos gestos de fusión, con los radios y por qué cada uno |

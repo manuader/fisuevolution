@@ -178,6 +178,13 @@ Terminal.app) · logros: la enumeración (39) manda sobre el "36" del titular.
 
 ## Qué queda
 
+> ✅ **Actualizado el 2026-08-16, al cerrar `fix/cierre-post-merge`: de las tres
+> cosas de esta lista quedan CERO abiertas por esta rama.** La 1 ya estaba
+> hecha, la 3 se hizo (merge + el review de la rama paralela resuelto) y la 2
+> —el batch de iconos— sigue esperando al dueño, que es lo único que puede
+> correrlo. Lo que ese cierre agregó, y su propio backlog, están en
+> **`Docs/SESION-2026-08-16-cierre-post-merge.md`**.
+
 Ninguna de las tres cosas es implementación de las 20 tareas: el plan está
 terminado.
 
@@ -189,11 +196,12 @@ terminado.
    degradada centrada, trofeos por GameIcon (listos para el batch),
    StatePill sin castigo, CurrencyPill y 18 claves muertas fuera del
    catálogo, legales por idioma. Los residuales menores y la deuda DEFER
-   triageada quedaron en el ledger para UN ticket post-merge. ⚠️ La rama
-   paralela `fix/iconos-gameicon` (otra sesión): su `84a2af6` cablea el
-   icono del calendario — el único call-site pendiente — pero NO pasó por
-   este pipeline; mergearla aparte si se quiere (conflicto trivial esperado
-   en AchievementsView). Lo que ENTRABA al review era:
+   triageada quedaron en el ledger para UN ticket post-merge — ✅ **ese
+   ticket también está hecho** (`fix/cierre-post-merge`, 2026-08-16). ✅ **Y
+   la rama paralela `fix/iconos-gameicon` quedó RESUELTA**: su `84a2af6` —el
+   icono del calendario— entró por cherry-pick y esta vez SÍ pasó por el
+   pipeline de review; los otros dos se descartaron con motivo (`c361d4d`
+   redundante, `73a1f19` superado). Lo que ENTRABA al review era:
    - los **minors diferidos** de los 19 reviews, que viven en el ledger del
      workspace SDD (`.superpowers/sdd/2026-08-14-rediseno-ui-cowevolution/progress.md`);
      los más jugosos siguen siendo `CurrencyPill` huérfana (T6), el glifo chico
@@ -204,18 +212,30 @@ terminado.
      cosméticos: ninguno impidió verificar ninguna pantalla;
    - el copy de los boosts, cuyo flavor **repite el efecto** en varios (T13).
 
-2. **El batch de los 15 iconos (cola 213–227), que corre EL DUEÑO** desde
-   Terminal.app — receta completa, medición de opacidad post-batch y la
-   costura de los 4 iconos sin call-site en `Docs/HANDOFF.md` §8. La cola está
-   armada y verificada; no se generó ninguna imagen a propósito.
+2. ⏳ **SIGUE PENDIENTE — el batch de los 15 iconos (cola 213–227), que corre
+   EL DUEÑO** desde Terminal.app: receta completa y medición de opacidad
+   post-batch en `Docs/HANDOFF.md` §8. Es lo único de esta lista que sobrevive,
+   y no por falta de trabajo: el runner tipea con `osascript` y ese permiso lo
+   tiene Terminal.app y nada más (trampa 11). Al 2026-08-16 la **cola sigue
+   intacta y verificada** —los 15 `.md` numerados 213–227 con sus 15 entradas
+   gemelas en `prompts.json`, ninguna con campo `referencia`— y **cero PNG
+   generados** de esas claves en `ui.atlas`, a propósito. ✅ Lo que sí se terminó es la **costura**: ya no
+   queda ningún icono sin call-site (el calendario aterrizó en Regalos), así
+   que el día que el batch corra, los 15 entran solos.
 
-3. **El merge a `main`.** ⚠️ Antes, la trampa 7: `main` local está adelante de
-   `origin/main` (3 commits al 2026-08-16), así que conviene pushear para que
-   el próximo frente no arranque de un árbol viejo.
+3. ✅ **HECHO — el merge a `main`** (`89f215a`), y con él se resolvió la rama
+   paralela `fix/iconos-gameicon`: `84a2af6` integrado por cherry-pick **con
+   review**, `c361d4d` descartado por redundante (la ola ya cableaba los
+   trofeos por `GameIcon`) y `73a1f19` descartado por superado. ⚠️ La trampa 7
+   sigue viva igual: `main` local está adelante de `origin/main`, así que el
+   **push es parte del cierre** o el próximo frente arranca de un árbol viejo.
 
 ### Cómo se re-verifica la rama entera
 
 Está en `Docs/HANDOFF.md` §6, actualizado en T20 con los comandos exactos. Lo
 que no hay que olvidar: **simulador propio por UDID**, `-parallel-testing-enabled NO`,
-**unit ANTES que UI**, saltear `AscentRenderingUITests`, y **borrar el
-simulador al terminar**.
+**unit ANTES que UI**, y **borrar el simulador al terminar**.
+
+⚠️ **Lo que ya NO hay que hacer es saltear `AscentRenderingUITests`**: se
+recuperó el 2026-08-16 y la receta corre **43 sin un solo `-skip-testing:`**.
+Si estás leyendo una copia vieja de esta línea, la de `HANDOFF.md` §6 manda.

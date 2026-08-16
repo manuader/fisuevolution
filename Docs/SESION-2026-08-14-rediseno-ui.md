@@ -5,8 +5,11 @@
 > que la anterior esté documentada acá).
 >
 > ✅ **Las 20 tareas del plan están hechas y revisadas** (cerrado el
-> 2026-08-16). Lo que queda no es implementación: está en "Qué queda", al
-> final de este doc.
+> 2026-08-16). ✅ **Y el review integral de rama también**: veredicto READY
+> TO MERGE tras la ola de fixes `ecf35b2..2f71ff3` (13/13 puntos, re-review
+> limpia). Suites finales: EconomyKit **182** · app **342** · UI **40/40**
+> (skip AscentRendering, rojo preexistente) · cero warnings. Lo que queda
+> no es implementación: está en "Qué queda", al final de este doc.
 
 ## Cómo se retoma
 
@@ -178,8 +181,19 @@ Terminal.app) · logros: la enumeración (39) manda sobre el "36" del titular.
 Ninguna de las tres cosas es implementación de las 20 tareas: el plan está
 terminado.
 
-1. **El review integral de la rama, con su ola de fixes.** Lo hace el
-   controller DESPUÉS de esta tarea. Entra:
+1. ✅ **HECHO — el review integral y su ola de fixes** (2026-08-16, commits
+   `ecf35b2..2f71ff3`): CoinFormatter sin "1.000K" en fronteras,
+   TowerNoticeView con la transition viva, el save v3 sin claves de
+   upgrades ya no se pierde, popup diario crema, títulos sin partirse
+   (verificado en ESPAÑOL), copy de boosts/tienda/ascensor, tienda
+   degradada centrada, trofeos por GameIcon (listos para el batch),
+   StatePill sin castigo, CurrencyPill y 18 claves muertas fuera del
+   catálogo, legales por idioma. Los residuales menores y la deuda DEFER
+   triageada quedaron en el ledger para UN ticket post-merge. ⚠️ La rama
+   paralela `fix/iconos-gameicon` (otra sesión): su `84a2af6` cablea el
+   icono del calendario — el único call-site pendiente — pero NO pasó por
+   este pipeline; mergearla aparte si se quiere (conflicto trivial esperado
+   en AchievementsView). Lo que ENTRABA al review era:
    - los **minors diferidos** de los 19 reviews, que viven en el ledger del
      workspace SDD (`.superpowers/sdd/2026-08-14-rediseno-ui-cowevolution/progress.md`);
      los más jugosos siguen siendo `CurrencyPill` huérfana (T6), el glifo chico

@@ -178,4 +178,15 @@ struct GameArtComponentsTests {
         let metals = VectorTrophyIcon.Tier.allCases.map(\.metal)
         #expect(Set(metals.map(\.description)).count == 3)
     }
+
+    @Test("cada metal del trofeo sabe su clave del atlas, la que encoló la T19")
+    func trophyTierArtKeys() {
+        // Las tres claves están pineadas LITERALES a propósito: son las que la
+        // cola de Gemini (213–227) va a dejar en `assets_manifest.json`, y un
+        // rename del enum que las cambiara dejaría los PNG integrados y mudos.
+        #expect(VectorTrophyIcon.Tier.bronze.artKey == "ui_trophy_bronze")
+        #expect(VectorTrophyIcon.Tier.silver.artKey == "ui_trophy_silver")
+        #expect(VectorTrophyIcon.Tier.gold.artKey == "ui_trophy_gold")
+        #expect(Set(VectorTrophyIcon.Tier.allCases.map(\.artKey)).count == 3)
+    }
 }

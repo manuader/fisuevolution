@@ -379,8 +379,7 @@ private struct AchievementToastView: View {
         VStack {
             Spacer()
             HStack(spacing: Tokens.s8) {
-                VectorTrophyIcon(tier: tier)
-                    .frame(width: 34, height: 34)
+                GameIcon(artKey: tier.artKey, size: 34) { VectorTrophyIcon(tier: tier) }
                     .keyframeAnimator(initialValue: 1.0, trigger: pulse) { view, scale in
                         view.scaleEffect(scale)
                     } keyframes: { _ in

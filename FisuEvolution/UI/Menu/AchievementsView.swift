@@ -203,8 +203,7 @@ private struct AchievementCard: View {
 
     private var content: some View {
         HStack(spacing: Tokens.s12) {
-            VectorTrophyIcon(tier: tier)
-                .frame(width: 42, height: 42)
+            GameIcon(artKey: tier.artKey, size: 42) { VectorTrophyIcon(tier: tier) }
                 .accessibilityHidden(true)
             info
                 .frame(maxWidth: .infinity, alignment: .leading)

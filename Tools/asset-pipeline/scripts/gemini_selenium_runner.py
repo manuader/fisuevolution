@@ -54,6 +54,41 @@ def _applescript_string(text: str) -> str:
     return '"' + escaped + '"'
 
 
+#: Tipeo por tandas. El 2026-08-16, con la máquina cargada (varios frontends de
+#: agente abiertos a la vez), escribir el prompt entero en UN `keystroke` falló
+#: tres veces seguidas: `ui_tab_upgrades` escribió 0 de 2099 caracteres y
+#: `ui_tab_gifts` 0 de 2079 —otra ventana se robó el frente DURANTE los varios
+#: segundos que dura esa única llamada, así que las teclas aterrizaron en otra
+#: app— y `ui_tab_skins` 2146 de 2150, la cola de eventos se comió cuatro.
+#: Cortar en tandas acota el daño de cada pérdida y, sobre todo, abre un hueco
+#: entre tanda y tanda para volver a preguntar quién está al frente.
+TYPE_CHUNK_CHARS = 250
+TYPE_PAUSE_SECONDS = 0.25
+#: Intentos de recuperar el frente para TODO el prompt (no por tanda): si tres
+#: `activate` seguidos no alcanzan, el ladrón no es una ventana de paso.
+FOCUS_RECOVERIES = 3
+#: Lo que tarda macOS en dejar a Chrome adelante después de `activate`.
+FOCUS_SETTLE_SECONDS = 1.0
+#: Nombre del proceso tal como lo reporta System Events (`launch_gemini_chrome`
+#: abre siempre Chrome estable, nunca Canary).
+CHROME_PROCESS_NAME = "Google Chrome"
+
+
+def chunk_prompt(prompt: str, size: int = TYPE_CHUNK_CHARS) -> list[str]:
+    """Parte el prompt en tandas de `size` caracteres sin tocar el contenido.
+
+    Invariante que sostiene todo lo demás: ``"".join(chunk_prompt(p, n)) == p``
+    para cualquier `p` y cualquier `n`. Nada de `strip`, nada de normalizar
+    saltos de línea, nada de cortar por palabra: el corte es puramente
+    posicional, así que lo que se tipea en tandas es carácter por carácter lo
+    mismo que tipeaba la llamada única. Si esto se "mejorara" recortando
+    espacios, `prompt_landed` —que compara el arranque— lo rechazaría, y con
+    razón: sería otro prompt.
+    """
+    step = max(1, int(size))
+    return [prompt[index:index + step] for index in range(0, len(prompt), step)]
+
+
 class GenerationBlocked(RuntimeError):
     """Gemini pidió intervención humana o la UI no fue reconocida."""
 
@@ -244,9 +279,23 @@ class AssetRunner:
 class GeminiBrowser:
     """Adaptador pequeño y deliberadamente conservador para la web de Gemini."""
 
-    def __init__(self, port: int = 9222, timeout: int = 180, ref_threshold: float = 12):
+    def __init__(
+        self,
+        port: int = 9222,
+        timeout: int = 180,
+        ref_threshold: float = 12,
+        type_chunk: int = TYPE_CHUNK_CHARS,
+        type_pause: float = TYPE_PAUSE_SECONDS,
+    ):
         self.port = port
         self.timeout = timeout
+        # Tamaño de tanda y respiro entre tandas al tipear el prompt (ver
+        # TYPE_CHUNK_CHARS). Se sanean acá para que un flag absurdo (0, -5) no
+        # explote a mitad de un batch.
+        self.type_chunk = max(1, int(type_chunk))
+        self.type_pause = max(0.0, float(type_pause))
+        #: stderr de la última consulta fallida por el proceso al frente.
+        self._frontmost_error = ""
         # Distancia MAE por debajo de la cual una imagen se considera "es la
         # referencia adjunta" y se descarta. Con referencias de OTRO personaje
         # (los 93 assets originales) 12 es holgado; con skins —donde la
@@ -425,6 +474,67 @@ class GeminiBrowser:
         cabeza = min(40, len(want))
         return got[:cabeza] == want[:cabeza] and len(got) >= int(len(want) * 0.9)
 
+    #: Quién tiene el frente AHORA. Es la única pregunta que distingue "el
+    #: keystroke va a aterrizar en Gemini" de "el keystroke se lo come otra app".
+    FRONTMOST_SCRIPT = (
+        'tell application "System Events" to get name of first application '
+        "process whose frontmost is true"
+    )
+
+    def _frontmost_app(self) -> str:
+        """Nombre del proceso al frente, o "" si System Events no contestó."""
+        result = subprocess.run(
+            ["osascript", "-e", self.FRONTMOST_SCRIPT], capture_output=True, text=True
+        )
+        if result.returncode != 0:
+            # Sin permiso de Accesibilidad esta consulta falla igual que el
+            # keystroke. Se guarda el error para que el abort lo diga en vez de
+            # inventar un ladrón que no existe.
+            self._frontmost_error = result.stderr.strip()
+            return ""
+        self._frontmost_error = ""
+        return result.stdout.strip()
+
+    def _recover_focus(self, restore_caret: bool) -> None:
+        """La misma danza de activación con la que arranca `_submit`, para cuando
+        otra ventana se robó el frente en medio del tipeo."""
+        subprocess.run(["osascript", "-e", 'tell application "Google Chrome" to activate'])
+        time.sleep(FOCUS_SETTLE_SECONDS)
+        self._focus_compose()
+        if restore_caret:
+            # `_focus_compose` clickea el CENTRO del compose box: con medio prompt
+            # ya escrito eso deja el cursor en el medio del texto y la tanda
+            # siguiente se intercalaría. cmd+↓ lo manda al final antes de seguir.
+            subprocess.run([
+                "osascript", "-e",
+                'tell application "System Events" to key code 125 using command down',
+            ])
+            time.sleep(0.2)
+
+    def _ensure_chrome_frontmost(self, remaining: int, restore_caret: bool = False) -> int:
+        """Chrome al frente antes de tipear; devuelve los intentos que sobran.
+
+        El presupuesto es de TODO el prompt, no de cada tanda: una ventana que
+        aparece y se va cuesta un intento y la corrida sigue, pero una app que se
+        queda adelante agota los tres y aborta ANTES de teclear en ella."""
+        frontmost = self._frontmost_app()
+        while frontmost != CHROME_PROCESS_NAME:
+            if remaining <= 0:
+                quien = (
+                    f"«{frontmost}»" if frontmost else
+                    "una app que System Events no supo nombrar (¿falta permiso de "
+                    f"Accesibilidad? {self._frontmost_error})"
+                )
+                raise GenerationBlocked(
+                    "no pude devolverle el foco a Chrome para escribir el prompt: al "
+                    f"frente está {quien} después de {FOCUS_RECOVERIES} intentos. "
+                    "Cerrá o minimizá esa ventana antes de reintentar."
+                )
+            remaining -= 1
+            self._recover_focus(restore_caret)
+            frontmost = self._frontmost_app()
+        return remaining
+
     def _submit(self, prompt: str) -> None:
         # El prompt es el texto EXACTO del .md del asset (nunca inventado).
         # Gemini exige input "trusted": send_keys/CDP no habilitan el botón de
@@ -444,13 +554,28 @@ class GeminiBrowser:
         time.sleep(0.3)
         subprocess.run(["osascript", "-e", 'tell application "System Events" to key code 51'])  # Delete
         time.sleep(0.2)
-        script = 'tell application "System Events" to keystroke %s' % _applescript_string(prompt)
-        result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
-        if result.returncode != 0:
-            raise GenerationBlocked(
-                "System Events no pudo escribir (¿falta permiso de Accesibilidad?): "
-                + result.stderr.strip()
-            )
+
+        # ⚠️ 2026-08-16: el prompt entero iba en UN `keystroke` de 2000+ caracteres.
+        # Esa llamada tarda varios segundos y en una máquina cargada es una eternidad:
+        # si otra ventana se pone adelante mientras dura, TODO el texto se lo lleva
+        # ella (0 de 2099 caracteres, medido) y no hay forma de enterarse hasta el
+        # final. Ahora se tipea en tandas cortas y ANTES DE CADA UNA se pregunta
+        # quién está al frente: el robo de foco cuesta una tanda, no el prompt.
+        chunks = chunk_prompt(prompt, self.type_chunk)
+        recoveries = FOCUS_RECOVERIES
+        escritos = 0
+        for index, chunk in enumerate(chunks, 1):
+            recoveries = self._ensure_chrome_frontmost(recoveries, restore_caret=escritos > 0)
+            script = 'tell application "System Events" to keystroke %s' % _applescript_string(chunk)
+            result = subprocess.run(["osascript", "-e", script], capture_output=True, text=True)
+            if result.returncode != 0:
+                raise GenerationBlocked(
+                    "System Events no pudo escribir (¿falta permiso de Accesibilidad?): "
+                    + result.stderr.strip()
+                    + f" [tanda {index} de {len(chunks)}]"
+                )
+            escritos += len(chunk)
+            time.sleep(self.type_pause)
 
         # ⚠️ El botón de enviar NO sirve como confirmación de que el texto entró:
         # la imagen adjunta sola ya lo habilita (medido: `disabled == False` con
@@ -695,6 +820,11 @@ def main() -> None:
                         help="reintentos por asset ante un fallo transitorio")
     parser.add_argument("--max-consecutive-failures", type=int, default=3,
                         help="frena el batch tras N fallos SEGUIDOS (bloqueo/logout/cuota)")
+    parser.add_argument("--type-chunk", type=int, default=TYPE_CHUNK_CHARS,
+                        help="caracteres por tanda de tipeo. Bajalo si la máquina "
+                             "está cargada y se pierden caracteres")
+    parser.add_argument("--type-pause", type=float, default=TYPE_PAUSE_SECONDS,
+                        help="segundos de respiro entre tandas de tipeo")
     parser.add_argument("--ref-threshold", type=float, default=12,
                         help="distancia MAE bajo la cual se descarta una imagen por "
                              "ser la referencia adjunta. Bajalo (~5) cuando la "
@@ -714,7 +844,10 @@ def main() -> None:
         return
 
     runner = AssetRunner(
-        GeminiBrowser(args.port, args.timeout, args.ref_threshold),
+        GeminiBrowser(
+            args.port, args.timeout, args.ref_threshold,
+            type_chunk=args.type_chunk, type_pause=args.type_pause,
+        ),
         DROPBOX,
         REFERENCE,
         RunCheckpoint(CHECKPOINT),

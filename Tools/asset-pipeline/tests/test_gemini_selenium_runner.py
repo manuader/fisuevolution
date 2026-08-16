@@ -11,10 +11,14 @@ from PIL import Image
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
+import gemini_selenium_runner as runner_module  # noqa: E402
 from gemini_selenium_runner import (  # noqa: E402
     AssetRunner,
     GeminiBrowser,
+    GenerationBlocked,
     RunCheckpoint,
+    _applescript_string,
+    chunk_prompt,
     parse_asset,
     pending_assets,
     verify_png,
@@ -415,3 +419,258 @@ class PromptRegistryTests(unittest.TestCase):
             "estos .md no tienen entrada en prompts.json, así que process_dropbox "
             f"va a rechazar su PNG: {faltan}",
         )
+
+
+def unescape_applescript(literal: str) -> str:
+    """Inversa de `_applescript_string`: qué caracteres tipearía de verdad."""
+    if not (literal.startswith('"') and literal.endswith('"')):
+        raise AssertionError(f"literal AppleScript mal formado: {literal!r}")
+    return literal[1:-1].replace('\\"', '"').replace("\\\\", "\\")
+
+
+class FakeCompleted:
+    def __init__(self, stdout="", returncode=0, stderr=""):
+        self.stdout = stdout
+        self.returncode = returncode
+        self.stderr = stderr
+
+
+class FakeSystemEvents:
+    """Emula lo justo de macOS: quién está al frente y qué se tipeó.
+
+    `frontmost` es la secuencia de respuestas a "¿quién tiene el frente?"; la
+    última se repite para siempre, así se modela tanto la ventana que aparece y
+    se va como la que se queda.
+    """
+
+    def __init__(self, frontmost=("Google Chrome",), keystroke_returncode=0,
+                 frontmost_returncode=0):
+        self.frontmost = list(frontmost)
+        self.keystroke_returncode = keystroke_returncode
+        self.frontmost_returncode = frontmost_returncode
+        self.typed = ""
+        self.activates = 0
+        self.frontmost_queries = 0
+        self.keystrokes = 0
+
+    def run(self, command, **_kwargs):
+        script = command[-1]
+        if "frontmost is true" in script:
+            self.frontmost_queries += 1
+            if self.frontmost_returncode != 0:
+                return FakeCompleted(
+                    returncode=self.frontmost_returncode,
+                    stderr="System Events got an error: osascript is not allowed "
+                           "assistive access. (-25211)",
+                )
+            name = self.frontmost.pop(0) if len(self.frontmost) > 1 else self.frontmost[0]
+            return FakeCompleted(stdout=name + "\n")
+        if "to activate" in script:
+            self.activates += 1
+            return FakeCompleted()
+        if "key code 51" in script:  # Delete: se come el pre-tipeo descartable
+            self.typed = self.typed[:-1]
+            return FakeCompleted()
+        if " to keystroke " in script:
+            self.keystrokes += 1
+            if self.keystroke_returncode != 0:
+                return FakeCompleted(
+                    returncode=self.keystroke_returncode,
+                    stderr="System Events got an error: osascript is not allowed "
+                           "to send keystrokes. (1002)",
+                )
+            self.typed += unescape_applescript(script.split(" to keystroke ", 1)[1])
+        return FakeCompleted()
+
+
+class FakeEditor:
+    """El compose box de Gemini: devuelve lo que el sistema tipeó hasta ahora."""
+
+    def __init__(self, system):
+        self.system = system
+
+    def get_attribute(self, name):
+        return self.system.typed if name == "innerText" else None
+
+
+class HeadlessTyping(GeminiBrowser):
+    """GeminiBrowser sin navegador: todo lo que toca Selenium queda anulado."""
+
+    def __init__(self, editor, **kwargs):
+        super().__init__(**kwargs)
+        self.editor = editor
+        self.compose_clicks = 0
+
+    def _focus_compose(self):
+        self.compose_clicks += 1
+
+    def _find_first(self, _selectors):
+        return self.editor
+
+    def _wait_for(self, _action, _description):
+        return "el botón Enviar mensaje"
+
+    def _driver(self):
+        return self
+
+    def execute_script(self, *_args):
+        return None
+
+
+class NoSleep:
+    """`time` sin esperas: el camino de tipeo sólo usa `sleep`."""
+
+    @staticmethod
+    def sleep(_seconds):
+        return None
+
+    @staticmethod
+    def monotonic():
+        return 0.0
+
+
+class PromptChunkingTests(unittest.TestCase):
+    """El prompt se tipea en tandas, pero tiene que seguir siendo EL prompt.
+
+    Si el corte recortara espacios o normalizara saltos, el texto tipeado ya no
+    sería el del .md: `prompt_landed` lo rechazaría (compara el arranque) o, peor,
+    lo aceptaría y Gemini generaría arte contra un prompt levemente distinto.
+    """
+
+    PROMPT = (
+        'Match EXACTLY the art style — "línea gruesa", barra \\ y comilla ".\n\n'
+        "  Dos espacios al empezar la segunda línea y un salto al final.\n"
+    )
+
+    def test_chunks_concatenate_back_to_the_exact_prompt(self):
+        for size in (1, 7, 64, 250, 10_000):
+            self.assertEqual(
+                "".join(chunk_prompt(self.PROMPT, size)), self.PROMPT,
+                f"el corte de {size} caracteres alteró el prompt",
+            )
+
+    def test_no_chunk_is_longer_than_the_requested_size(self):
+        chunks = chunk_prompt(self.PROMPT, 64)
+        self.assertTrue(all(len(chunk) <= 64 for chunk in chunks))
+        self.assertEqual(len(chunks), -(-len(self.PROMPT) // 64))  # ceil
+
+    def test_empty_and_short_prompts_do_not_invent_chunks(self):
+        self.assertEqual(chunk_prompt("", 250), [])
+        self.assertEqual(chunk_prompt("hola", 250), ["hola"])
+
+    def test_whitespace_and_newlines_survive_the_cut_untouched(self):
+        chunks = chunk_prompt(self.PROMPT, 5)
+        self.assertEqual("".join(chunks), self.PROMPT)
+        self.assertEqual(chunks[0], self.PROMPT[:5])
+        self.assertTrue(chunks[-1].endswith("\n"))
+        self.assertEqual(
+            sum(chunk.count("\n") for chunk in chunks), self.PROMPT.count("\n")
+        )
+
+    def test_an_absurd_chunk_size_still_yields_a_valid_split(self):
+        for size in (0, -5):
+            self.assertEqual("".join(chunk_prompt("hola", size)), "hola")
+
+    def test_each_chunk_is_escaped_on_its_own_without_losing_characters(self):
+        # El escape es por tanda: cortar en el medio de una comilla escapada
+        # rompería el literal AppleScript y osascript se quejaría.
+        rebuilt = "".join(
+            unescape_applescript(_applescript_string(chunk))
+            for chunk in chunk_prompt(self.PROMPT, 7)
+        )
+        self.assertEqual(rebuilt, self.PROMPT)
+
+
+class TypingUnderFocusTheftTests(unittest.TestCase):
+    """El 2026-08-16 tres assets se perdieron por el tipeo de una sola llamada.
+
+    Con la máquina cargada (varios frontends de agente abiertos), el `keystroke`
+    único de 2000+ caracteres tarda segundos: `ui_tab_upgrades` escribió 0 de
+    2099 y `ui_tab_gifts` 0 de 2079 —otra ventana se puso adelante y se llevó
+    TODO el texto— y `ui_tab_skins` 2146 de 2150. El guard `prompt_landed`
+    abortó las tres veces sin gastar cuota, pero el prompt igual no entró.
+    """
+
+    PROMPT = ("Full body standing character, centered, blanco de fondo. " * 40)[:2099]
+
+    def setUp(self):
+        self.system = FakeSystemEvents()
+        self._patch("subprocess", self.system)
+        self._patch("time", NoSleep)
+
+    def _patch(self, name, value):
+        original = getattr(runner_module, name)
+        setattr(runner_module, name, value)
+        self.addCleanup(setattr, runner_module, name, original)
+
+    def _browser(self, **kwargs):
+        kwargs.setdefault("type_chunk", 250)
+        kwargs.setdefault("type_pause", 0)
+        return HeadlessTyping(FakeEditor(self.system), **kwargs)
+
+    def test_the_whole_prompt_is_typed_in_chunks_and_lands_exact(self):
+        self._browser()._submit(self.PROMPT)
+
+        self.assertEqual(self.system.typed, self.PROMPT)
+        tandas = -(-len(self.PROMPT) // 250)
+        # +1: el espacio descartable del pre-tipeo, que el Delete se lleva.
+        self.assertEqual(self.system.keystrokes, tandas + 1)
+        # La pregunta por el frente es POR TANDA: ahí está el arreglo.
+        self.assertEqual(self.system.frontmost_queries, tandas)
+
+    def test_a_window_that_steals_the_focus_mid_prompt_is_recovered(self):
+        self.system.frontmost = ["Google Chrome", "Otro Agente", "Google Chrome"]
+
+        self._browser()._submit(self.PROMPT)
+
+        self.assertEqual(self.system.typed, self.PROMPT)
+        # El `activate` inicial de _submit más el de la recuperación.
+        self.assertEqual(self.system.activates, 2)
+
+    def test_a_thief_that_never_leaves_aborts_naming_it(self):
+        self.system.frontmost = ["Nombre Del Ladrón"]
+
+        with self.assertRaises(GenerationBlocked) as caught:
+            self._browser()._submit(self.PROMPT)
+
+        # El nombre va al checkpoint: le dice al dueño QUÉ ventana cerrar.
+        self.assertIn("Nombre Del Ladrón", str(caught.exception))
+        self.assertEqual(self.system.typed, "", "se tipeó dentro de la app ajena")
+        self.assertEqual(self.system.activates, 1 + runner_module.FOCUS_RECOVERIES)
+
+    def test_a_failed_osascript_still_raises_with_the_accessibility_hint(self):
+        self.system.keystroke_returncode = 1
+
+        with self.assertRaises(GenerationBlocked) as caught:
+            self._browser()._submit(self.PROMPT)
+
+        self.assertIn("Accesibilidad", str(caught.exception))
+
+    def test_a_prompt_that_never_lands_is_still_caught_before_sending(self):
+        # La red de seguridad no se toca: si el editor quedó vacío (o a medias),
+        # se aborta ANTES de tocar Enviar, aunque el tipeo no haya dado error.
+        browser = self._browser()
+        browser.editor = FakeEditor(FakeSystemEvents())  # editor que nunca recibe nada
+
+        with self.assertRaises(GenerationBlocked) as caught:
+            browser._submit(self.PROMPT)
+
+        self.assertIn("el prompt no llegó al editor", str(caught.exception))
+
+    def test_a_frontmost_query_that_fails_blames_accessibility_not_a_thief(self):
+        # Sin permiso de Accesibilidad la consulta falla igual que el keystroke:
+        # el abort tiene que decir eso y no inventar una ventana ajena.
+        self.system.frontmost_returncode = 1
+
+        with self.assertRaises(GenerationBlocked) as caught:
+            self._browser()._submit(self.PROMPT)
+
+        self.assertIn("Accesibilidad", str(caught.exception))
+        self.assertIn("assistive access", str(caught.exception))
+
+    def test_chrome_already_frontmost_costs_no_recovery_attempt(self):
+        browser = self._browser()
+
+        self.assertEqual(browser._ensure_chrome_frontmost(3), 3)
+        self.assertEqual(self.system.activates, 0)
+        self.assertEqual(browser.compose_clicks, 0)

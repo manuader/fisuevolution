@@ -78,8 +78,25 @@ struct GamePanel<Content: View>: View {
             .padding(insets)
             .background(
                 ZStack {
+                    // El mismo interior pergamino-con-luz de `PanelBackground`:
+                    // los popups son el mismo mundo que las hojas, y el crema
+                    // plano dejaba sus tarjetas sin despegar (rediseño v3).
                     RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .fill(Color("PaletteCream"))
+                        .fill(Color("PaletteParchment"))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0.35),
+                                            .clear,
+                                            Color("PaletteBrown").opacity(0.10)
+                                        ],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
+                                )
+                        )
                         .padding(18)
                     if let frame = UIArt.nineSlice(art, cap: 0.32) {
                         frame

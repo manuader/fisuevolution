@@ -111,7 +111,7 @@ struct PrestigeView: View {
         .padding(.vertical, 8)
         .background(
             Capsule().fill(Color("PaletteCream"))
-                .overlay(Capsule().strokeBorder(Color("PaletteInk").opacity(0.85), lineWidth: 3))
+                .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.75), lineWidth: 2.5))
         )
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("prestige.multiplier")

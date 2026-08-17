@@ -13,19 +13,30 @@ struct EventBannerView: View {
             Image(systemName: event.isBuff ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
                 .font(.title3)
             Text(LocalizedStringKey(event.flavorTextKey))
-                .font(.subheadline.weight(.semibold))
+                .font(Tokens.body)
                 .lineLimit(2)
                 .minimumScaleFactor(0.7)
             Spacer(minLength: 4)
             if remainingSeconds > 0 {
                 Text(verbatim: "\(remainingSeconds)s")
-                    .font(.footnote.weight(.bold))
+                    .font(Tokens.caption)
                     .monospacedDigit()
             }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
-        .background((event.isBuff ? Color("PaletteGreen") : Color("PalettePink")).opacity(0.92), in: .rect(cornerRadius: 12))
+        .background {
+            // Materiales v3: el mismo tono con su borde hundido, como todo
+            // chip del juego (la tipografía de sistema y el rect sin borde
+            // eran el único resto del pre-rediseño en el HUD).
+            let fill = (event.isBuff ? Color("PaletteGreen") : Color("PalettePink")).opacity(0.92)
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(fill)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .strokeBorder(fill.deepened(0.3), lineWidth: 2)
+                )
+        }
         .foregroundStyle(Color("PaletteInk"))
         .padding(.horizontal, 16)
         .onReceive(timer) { now = $0 }

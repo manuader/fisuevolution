@@ -547,7 +547,7 @@ private struct AchievementToastView: View {
             .padding(.vertical, 10)
             .background(
                 Capsule().fill(Color("PaletteCream"))
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+                    .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2.5))
             )
             .onTapGesture(perform: dismiss)
             .accessibilityElement(children: .combine)
@@ -605,7 +605,7 @@ private struct TowerNoticeView: View {
                 .foregroundStyle(Color("PaletteInk"))
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
-                .background(Capsule().fill(Color("PaletteCream")).overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3)))
+                .background(Capsule().fill(Color("PaletteCream")).overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2.5)))
                 .onTapGesture(perform: dismiss)
                 .accessibilityIdentifier("tower.notice")
                 .accessibilityAddTraits(.isButton)

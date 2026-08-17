@@ -132,7 +132,7 @@ private struct CareerPortrait: View {
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(Color("PaletteInk"), lineWidth: 2)
+                    .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)
             )
             .accessibilityHidden(true)
     }

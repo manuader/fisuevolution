@@ -34,6 +34,65 @@ final class HUDRedesignUITests: XCTestCase {
         add(attachment)
     }
 
+    /// **Pin de regresión: la barra de estado NO se dibuja.** (Pedido nº1 del
+    /// dueño: el juego es a pantalla completa y el reloj caía ENCIMA del panel
+    /// del HUD, a un par de puntos del contador de plata.)
+    ///
+    /// Existe porque ese pedido lo sostenía **una sola línea sin ninguna red**:
+    /// `RootView.statusBarHidden(true)`. Y al lado, en `project.yml`, vive
+    /// `INFOPLIST_KEY_UIStatusBarHidden: YES`, que **no oculta nada** —hace falta
+    /// `UIViewControllerBasedStatusBarAppearance: NO`, y esa clave Xcode no la
+    /// traduce desde `INFOPLIST_KEY_*`—. O sea que el archivo que *parece* estar
+    /// a cargo es un señuelo: si alguien borra el modificador de `RootView`
+    /// "porque ya está en el plist", el reloj vuelve y nadie se entera.
+    ///
+    /// La moraleja de esta rama es que **un pin que no se corre no avisa**, así
+    /// que éste vive en `HUDRedesignUITests`, que entra en la suite completa y
+    /// corre en las DOS clases de teléfono.
+    ///
+    /// ⚠️ **Cómo se mide, y por qué no de la forma obvia.** `app.statusBars` da
+    /// **0 con la barra visible Y con la barra oculta** —medido con las dos
+    /// versiones del modificador—: un assert sobre eso pasaría siempre, que es
+    /// la trampa 2 (un test de UI que pasa sin probar nada). La barra la dibuja
+    /// SpringBoard, no la app, así que lo que se mira es su árbol. Medido en 16
+    /// Pro con `.statusBarHidden(false)`, sus elementos son
+    /// `[8:06 AM]`, `[Cellular]`, `[3 of 3 Wi-Fi bars]`, `[100 % battery power]`;
+    /// con `true`, la misma barra queda **sin un solo descendiente**.
+    ///
+    /// Se asserta el CONTEO en cero y no esos labels: son del sistema, cambian
+    /// con el idioma del runner (trampa 6), con la hora y con el modelo —el SE
+    /// no tiene los mismos indicadores que el 16 Pro—. El conteo es lo único
+    /// que significa lo mismo en las dos clases.
+    ///
+    /// ⚠️ El `descendants(matching: .any)` que la casa prohíbe es el que barre
+    /// la app ENTERA en un bucle cerrado (ver `BottomMenuUITests`). Éste corre
+    /// **una vez** y sobre el subárbol de una barra de estado, que son cuatro
+    /// elementos cuando está visible y cero cuando no.
+    @MainActor
+    func testLaBarraDeEstadoSigueOculta() throws {
+        let app = launch()
+        // Con la app ADELANTE: la barra de estado refleja al foreground.
+        XCTAssertTrue(app.buttons["hud.coins.plus"].waitForExistence(timeout: 20),
+                      "el HUD nunca apareció: sin la app adelante esto no mide nada")
+        attach(app, named: "T-status barra de estado oculta")
+
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let bars = springboard.statusBars
+        XCTAssertGreaterThan(bars.count, 0,
+                             "SpringBoard dejó de publicar la barra de estado: el mecanismo del pin cambió y hay que re-medirlo")
+
+        var items: [String] = []
+        for index in 0..<bars.count {
+            for element in bars.element(boundBy: index).descendants(matching: .any).allElementsBoundByIndex {
+                items.append("[\(element.identifier)|\(element.label)]")
+            }
+        }
+        XCTAssertTrue(items.isEmpty, """
+                      la barra de estado volvió a dibujarse (\(items.count) elementos: \(items.joined(separator: " "))). \
+                      Quien manda es `RootView.statusBarHidden(true)`, NO el `INFOPLIST_KEY_UIStatusBarHidden` de project.yml.
+                      """)
+    }
+
     /// El atajo de la izquierda de la barra abre la tienda: mismo destino que el
     /// carrito, pero puesto donde el jugador mira cuando le falta plata.
     @MainActor

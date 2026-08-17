@@ -100,15 +100,21 @@ struct GiftsView: View {
                 .padding(.bottom, Tokens.s24)
             }
             .background {
-                PanelBackground(art: "panel_store")
-                    // El moño de la referencia, apoyado sobre el toldo. Vive en
-                    // el background —que ignora la safe area— para poder pisar
-                    // el borde de arriba del marco; el contenido no lo toca.
-                    .overlay(alignment: .top) {
-                        GiftBowOrnament()
-                            .offset(y: -6)
-                            .allowsHitTesting(false)
-                    }
+                // El moño de la referencia va apoyado sobre el TOLDO, así que
+                // el ZStack entero ignora la safe area: su tope es el borde
+                // físico del sheet, que es donde vive el toldo del marco. Un
+                // overlay sobre `PanelBackground` a secas quedaba anclado
+                // DEBAJO del `safeAreaInset` de la cabecera (medido en captura:
+                // el moño flotaba sobre la cinta del daily). Las colas que
+                // pisan la banda crema quedan detrás de ella: el fondo se
+                // dibuja detrás del contenido.
+                ZStack(alignment: .top) {
+                    PanelBackground(art: "panel_store")
+                    GiftBowOrnament()
+                        .offset(y: 8)
+                        .allowsHitTesting(false)
+                }
+                .ignoresSafeArea()
             }
             .safeAreaInset(edge: .top) { header }
             .navigationTitle(Text(verbatim: ""))

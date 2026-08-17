@@ -110,14 +110,14 @@ struct StoreView: View {
     /// navegación deja un escalón).
     private var header: some View {
         VStack(spacing: Tokens.s8) {
-            HStack(spacing: Tokens.s8) {
-                // El mismo glifo que el tab que abre esta hoja, para que el viaje
-                // de un lado al otro se lea como uno solo. Es decoración —el
-                // título ya lo dice— así que no queda como parada muda.
-                GameIcon(artKey: "ui_tab_shop", size: 34) { VectorTabShopIcon() }
-                    .accessibilityHidden(true)
-                PanelTitleBanner(titleKey: "store.title")
-            }
+            // El mismo glifo que el tab que abre esta hoja, ADENTRO de la
+            // cápsula del título (composición de las referencias, igual que
+            // Regalos, Pintas y el Ascensor). El banner ya lo tapa de
+            // VoiceOver: es decoración, el título lo dice.
+            PanelTitleBanner(
+                titleKey: "store.title",
+                icon: AnyView(GameIcon(artKey: "ui_tab_shop", size: 26) { VectorTabShopIcon() })
+            )
             Text("store.subtitle")
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.75))

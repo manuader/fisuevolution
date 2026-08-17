@@ -41,9 +41,18 @@
 > como hijos de AX pase lo que pase**: sólo `accessibilityRepresentation` lo
 > aplana sin romper el hit-testing (la tabla de las 5 formas medidas quedó en
 > `QuickHireButton.swift`).
+> ✅ **Y el rediseño v3 —los MATERIALES de las referencias— está aplicado a
+> las 13 pantallas y los 7 popups** (2026-08-17, `feature/rediseno-v3-referencias`):
+> interior pergamino, bordes tono-sobre-tono, pills caramelo, cinta con
+> pliegues y destellos, la familia del menú en marco de madera vectorial,
+> Regalos en madera+toldo+moño y el Ascensor en metal. Cero lógica tocada,
+> cero strings nuevos, contratos de AX intactos. El detalle vive en
+> **`Docs/SESION-2026-08-17-rediseno-v3.md`**; la trampa nueva que dejó la
+> sesión (el cwd del agente que se vuelve solo al checkout principal) está en
+> §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-17** (rediseño de la
-> pantalla principal).
+> **Empezá por acá.** Última actualización: **2026-08-17** (rediseño v3 de
+> materiales).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
@@ -191,6 +200,28 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-17 (tarde) — Rediseño v3: los materiales de las referencias
+
+**12 tareas + 2 rondas de fix** en `feature/rediseno-v3-referencias`, sobre
+`c4e69ba`. La lectura que ordenó todo: el v2 ya TENÍA la estructura de las
+referencias del dueño; lo que faltaba era la capa de materiales. Cinco
+movimientos: (1) interior **pergamino** bajo todos los marcos (los PNG de
+panel tienen interior transparente, alfa 8–15 — así que fue UN cambio en
+`PanelBackground`/`GamePanel`); (2) bordes **tono-sobre-tono** vía
+`Color.deepened()` (verde con verde oscuro, crema con marrón — la tinta quedó
+sólo donde es decisión del dueño o contorno cartoon); (3) **`PillBackground`**,
+la cápsula caramelo compartida (luz arriba, labio de brillo, borde hundido);
+(4) la **cinta** con colas caídas, pliegues y ✦; (5) los dos marcos fuera de
+idioma reemplazados — la familia del menú a `WoodPanelBackground` (madera
+VECTORIAL con los tonos muestreados de `panel_store`) y Regalos a
+madera+toldo+`GiftBowOrnament`. Detalle, decisiones y capturas en
+**`Docs/SESION-2026-08-17-rediseno-v3.md`**.
+
+⚠️ Dos cosas de esa sesión que valen más que el diff: la trampa 16 (§7, el
+cwd que se vuelve solo), y que `GameCard.locked` ahora tiene dos sabores —el
+misterio gris entero y `contentDimsWhenLocked: false` para el boost bloqueado
+que se muestra a color (así lo pide la referencia de Regalos).
 
 ### Sesión del 2026-08-14/16 — Rediseño de UI estilo Cow Evolution
 
@@ -844,6 +875,25 @@ El panel de debug es el ícono de herramientas del HUD.
    compila. Para reproducir lo que ve Xcode hay que buildear **sin**
    `-derivedDataPath`.
 
+16. **El cwd de una sesión de agente puede volverse SOLO al checkout
+   principal a mitad de sesión** (pasó el 2026-08-17, entre dos corridas de
+   test de la misma sesión). El síntoma es venenoso porque nada falla en el
+   momento: los builds "SUCCEEDED" —del árbol equivocado—, la suite de UI
+   corre —contra el código del dueño, con SUS rojos— y la app instalada en el
+   simulador es la vieja. Se detectó porque una captura mostraba la UI de
+   antes del rediseño y `strings` sobre el binario no encontraba los símbolos
+   nuevos (ni un literal de `Color("...")` recién agregado, que es la prueba
+   más barata).
+
+   **La regla**: en sesiones largas de agente, TODO comando de build/test va
+   con ruta absoluta de `-derivedDataPath` y verificación de `pwd` — y si el
+   resultado de una corrida se contradice con el código (falla algo que no
+   tocaste, en cluster), lo primero que se chequea es QUÉ árbol corrió:
+   `xcrun xcresulttool`/el log imprimen la ruta del xcresult, y esa ruta
+   nombra al culpable. Los commits se salvaron porque cada uno imprime su
+   rama: `[feature/... hash]` en el output es el pinning gratis que siempre
+   hay que mirar.
+
 ---
 
 ## 8. Qué queda
@@ -1089,7 +1139,8 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
-| **`SESION-2026-08-16-cierre-post-merge.md`** | **La sesión más reciente: las 7 tareas del ticket post-merge con sus commits, el veredicto del review de rama y el backlog que sobrevive** |
+| **`SESION-2026-08-17-rediseno-v3.md`** | **La sesión más reciente: los materiales v3 de las referencias, tarea por tarea, con la verificación y la trampa del cwd** |
+| **`SESION-2026-08-16-cierre-post-merge.md`** | **Las 7 tareas del ticket post-merge con sus commits, el veredicto del review de rama y el backlog que sobrevive** |
 | **`SESION-2026-08-14-rediseno-ui.md`** | **Las 20 tareas del rediseño de UI, con sus fix rounds, rulings y avisos vivos. La fuente de verdad del detalle de esa rama** |
 | **`SESION-2026-08-06-correcciones-de-playtest.md`** | **El estado de la sesión de las 16 correcciones: qué quedó abierto, qué está en vuelo y los gates humanos. Empezá por acá si retomás ese trabajo** |
 | `SESION-2026-08-05-fallback-de-contratacion.md` | El fallback del botón y la fila trasera invisible |

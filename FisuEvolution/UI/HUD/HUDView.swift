@@ -286,7 +286,7 @@ struct HUDView: View {
         }
         .padding(.horizontal, Tokens.s8)
         .padding(.vertical, 5)
-        .background(Capsule().fill(Color("PaletteCream")).overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2)))
+        .background(Capsule().fill(Color("PaletteCream")).overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)))
     }
 
     private func towerArrow(systemName: String, direction: Int, enabled: Bool, identifier: String) -> some View {
@@ -335,7 +335,7 @@ struct HUDView: View {
         .padding(.vertical, 3)
         .background(
             Capsule().fill(Color("PaletteCream"))
-                .overlay(Capsule().strokeBorder(Color("PaletteInk").opacity(0.6), lineWidth: 1.5))
+                .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.6), lineWidth: 1.5))
         )
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("hud.prestige.multiplier")

@@ -61,7 +61,7 @@ struct ActiveBonusBar: View {
         .padding(.vertical, 5)
         .background(
             Capsule().fill(Color("PaletteCream"))
-                .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2))
+                .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
                 .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
         )
         .accessibilityElement(children: .ignore)

@@ -107,10 +107,14 @@ struct QuickHireButton: View {
             .padding(.vertical, Tokens.s8)
             .frame(minWidth: 170)
             .background(
-                Capsule()
-                    .fill(best.affordable ? Color("PaletteGreen") : Color("PaletteCream"))
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
-                    .shadow(color: .black.opacity(0.25), radius: 5, y: 3)
+                // La cápsula caramelo del v3 (PillBackground): verde cuando
+                // alcanza, crema con borde marrón cuando no — el mismo material
+                // que PricePill, que es su gemelo de adentro de las hojas.
+                PillBackground(
+                    fill: best.affordable ? Color("PaletteGreen") : Color("PaletteCream"),
+                    border: best.affordable ? nil : Color("PaletteBrown").opacity(0.6)
+                )
+                .shadow(color: .black.opacity(0.12), radius: 3, y: 2)
             )
             .saturation(best.affordable ? 1 : 0.7)
             .contentShape(Capsule())

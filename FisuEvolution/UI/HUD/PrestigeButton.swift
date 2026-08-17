@@ -38,7 +38,7 @@ struct PrestigeButton: View {
                 ZStack {
                     Circle()
                         .fill(Color("PaletteCream"))
-                        .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+                        .overlay(Circle().strokeBorder(Color("PalettePink").deepened(0.3), lineWidth: 2.5))
                     OroIcon(size: 22)
                 }
                 .frame(width: 40, height: 40)
@@ -68,10 +68,10 @@ struct PrestigeButton: View {
             .padding(.horizontal, Tokens.s16)
             .padding(.vertical, Tokens.s8)
             .background(
-                Capsule()
-                    .fill(Color("PalettePink"))
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
-                    .shadow(color: .black.opacity(0.25), radius: 5, y: 3)
+                // El mismo material caramelo que QuickHire, en el rosa del
+                // prestigio.
+                PillBackground(fill: Color("PalettePink"))
+                    .shadow(color: .black.opacity(0.12), radius: 3, y: 2)
             )
             .contentShape(Capsule())
         }

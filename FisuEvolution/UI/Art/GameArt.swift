@@ -136,8 +136,11 @@ struct ArtButton<Label: View>: View {
     @ViewBuilder private var background: some View {
         ZStack {
             // Respaldo teñido: garantiza un botón visible aunque el arte tenga
-            // margen transparente o todavía no exista.
-            Capsule().fill(tint)
+            // margen transparente o todavía no exista. Desde el v3 el respaldo
+            // es la cápsula caramelo de la casa (PillBackground): así el CTA de
+            // un popup y el PricePill de una hoja son el mismo botón, con o sin
+            // arte encima.
+            PillBackground(fill: tint)
             if let img = UIArt.nineSlice(art, cap: 0.17) { img }
         }
     }

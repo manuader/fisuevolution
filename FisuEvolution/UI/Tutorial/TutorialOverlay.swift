@@ -360,7 +360,8 @@ private struct TutorialHand: View {
 }
 
 /// El globo del tutorial: pose del Fisura + texto + progreso, al nivel del resto
-/// del juego (cápsula crema, borde ink, tipografía redondeada).
+/// del juego (tarjeta crema con los materiales v3: borde marrón cálido, el radio
+/// de todas las tarjetas, tipografía redondeada).
 ///
 /// Es horizontal y compacto —y no el Fisura de 300×380 con el globo arriba que
 /// había antes— porque tiene que convivir con el recorte sin taparlo.
@@ -379,7 +380,7 @@ private struct TutorialCard: View {
                 portrait
                 VStack(alignment: .leading, spacing: 8) {
                     Text(text)
-                        .font(.system(.subheadline, design: .rounded).weight(.bold))
+                        .font(Tokens.body)
                         .foregroundStyle(Color("PaletteInk"))
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -405,10 +406,14 @@ private struct TutorialCard: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
+            // Materiales v3: el globo es una tarjeta más del juego — el radio de
+            // TODAS las tarjetas y borde marrón cálido en vez de tinta. Conserva
+            // los 3 pt de trazo (y su sombra grande) porque flota sobre el scrim
+            // oscuro, donde el peso de tarjeta destacada es lo que lo despega.
+            RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
                 .fill(Color("PaletteCream"))
-                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .strokeBorder(Color("PaletteInk"), lineWidth: 3))
+                .overlay(RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
+                    .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 3))
                 .shadow(color: .black.opacity(0.35), radius: 12, y: 5)
         )
     }

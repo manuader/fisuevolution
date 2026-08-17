@@ -143,9 +143,19 @@ extension GameState {
                 // exactamente el bug que esto arregla. La ESCENA es la que
                 // reproduce la cadena, pero el turno lo pide quien sabe primero
                 // que hay algo que celebrar.
+                //
+                // Y se lleva anotado si este ascenso ABRE el piso: la animación
+                // se reproduce igual siempre, pero apagar la UI es exclusivo de
+                // la primera vez (pedido del dueño). `unlockedFloorId` sólo viene
+                // cuando el piso destino no estaba en `unlockedFloors`, así que es
+                // exactamente "primera vez" y no hay que llevar cuenta aparte.
                 var promoted = false
-                if case .promoted = result { promoted = true }
-                if evolvedTo != nil || promoted { celebrate(.boardCelebration) }
+                var opensNewFloor = false
+                if case .promoted(_, _, _, let unlockedFloorId) = result {
+                    promoted = true
+                    opensNewFloor = unlockedFloorId != nil
+                }
+                if evolvedTo != nil || promoted { celebrateBoard(opensNewFloor: opensNewFloor) }
                 // El aviso se asigna y listo: la cola lo ordena. `.towerNotice`
                 // tiene la prioridad más baja, así que sale después del ascenso
                 // y del sheet de skin sin que nadie tenga que encadenarlo.

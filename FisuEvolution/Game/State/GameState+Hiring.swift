@@ -54,6 +54,25 @@ struct JobRow: Identifiable, Equatable {
     let floorID: String
 }
 
+/// La oferta del botón "contratar al mejor" de la pantalla principal: el tipo de
+/// tier más alto que la plata alcanza ENTRE los que FisuJobs ofrece como
+/// contratables. Sin nada pagable, el más barato como meta de ahorro.
+///
+/// Es una fila de FisuJobs recortada a lo que el botón dibuja, y no un `JobRow`
+/// entero, porque el botón no muestra ni el income ni cuántos tenés ni el piso:
+/// publicar los quince campos invitaría a la vista a decidir con ellos, que es
+/// justo lo que esta proyección viene a evitar.
+struct BestHire: Equatable {
+    let typeId: String
+    let displayName: String
+    let faceKey: String
+    let costText: String
+    /// La plata alcanza. Igual que en `JobRow`, `false` NO deshabilita el botón:
+    /// muestra la meta de ahorro y tiembla al tocarlo (patrón `SpawnButtonView`).
+    let affordable: Bool
+    let tier: Int
+}
+
 /// La pantalla FisuJobs: qué se ofrece y qué pasa al comprarlo (§5).
 ///
 /// Separado de `GameState.swift` para que el frente de la tienda de
@@ -109,6 +128,82 @@ extension GameState {
             guard lhs.tier != rhs.tier else { return lhs.id < rhs.id }
             return lhsGroup == 0 ? lhs.tier > rhs.tier : lhs.tier < rhs.tier
         }
+    }
+
+    /// Calcula la oferta del botón "contratar al mejor".
+    ///
+    /// La llama SOLO `refreshProjections` (8 Hz): la vista lee la proyección
+    /// publicada `bestHire` y nunca esto. Vive en ESTE archivo y no junto a las
+    /// otras proyecciones porque se apoya en `jobState`, que es `private` y en
+    /// Swift eso alcanza al tipo y a sus extensiones **del mismo archivo**.
+    ///
+    /// Que la compuerta sea `jobState` y no una regla propia es el punto entero:
+    /// el botón ofrece exactamente lo que la pantalla de laburos da por
+    /// contratable —piso abierto, gate abierto, lugar libre y, sobre todo, tipo
+    /// YA VISTO—, así que no puede espoilear la cadena (RF-03) ni vender algo
+    /// que después `TowerActions.hire` rechace. Duplicar la condición acá sería
+    /// el mismo error que el balance-log documenta para la fórmula de precio.
+    func computeBestHire() -> BestHire? {
+        guard let content, let player else { return nil }
+        let coins = player.run.coins
+
+        struct Candidate {
+            let type: CharacterType
+            let cost: Double
+        }
+        let candidates: [Candidate] = content.tiers.concreteTypes.compactMap { type in
+            guard let quote = currentQuote(player: player, typeId: type.id),
+                  jobState(for: type, ordinal: quote.floorOrdinal, player: player, content: content) == .hirable
+            else { return nil }
+            return Candidate(type: type, cost: quote.cost)
+        }
+        guard !candidates.isEmpty else { return nil }
+
+        let pick: Candidate
+        // ⚠️ Los dos comparadores van al revés uno del otro y es a propósito:
+        // `max(by:)` recibe un "menor que", así que para que gane el MÁS BARATO
+        // hay que declarar barato = mayor (`lhs.cost > rhs.cost`), y para que
+        // gane el id ASCENDENTE hay que declarar id chico = mayor
+        // (`lhs.type.id > rhs.type.id`). En el `min(by:)` de abajo, que devuelve
+        // el mínimo, los mismos dos criterios se escriben derechos. Los tests
+        // `tiesFallBackToTheAscendingID` y `brokePlayerSeesTheCheapestAsAGoal`
+        // son los que sostienen esto: al revés compilan igual.
+        if let best = candidates.filter({ coins >= $0.cost }).max(by: { lhs, rhs in
+            if lhs.type.tier != rhs.type.tier { return lhs.type.tier < rhs.type.tier }
+            if lhs.cost != rhs.cost { return lhs.cost > rhs.cost }
+            return lhs.type.id > rhs.type.id
+        }) {
+            pick = best
+        } else if let goal = candidates.min(by: { lhs, rhs in
+            if lhs.cost != rhs.cost { return lhs.cost < rhs.cost }
+            return lhs.type.id < rhs.type.id
+        }) {
+            // Nada pagable: la oferta es lo más barato que hay, para que el
+            // botón muestre a cuánto tiene que llegar en vez de desaparecer.
+            pick = goal
+        } else {
+            return nil
+        }
+
+        return BestHire(
+            typeId: pick.type.id,
+            displayName: pick.type.displayName,
+            faceKey: "\(pick.type.id)_face",
+            costText: CoinFormatter.string(from: pick.cost),
+            affordable: coins >= pick.cost,
+            tier: pick.type.tier
+        )
+    }
+
+    /// Contrata la oferta vigente; no-op si no hay ninguna.
+    ///
+    /// Reusa `hireCharacter` ENTERO en vez de llamar a `TowerActions.hire` por
+    /// su cuenta: FTUE, hápticos, audio, logros, aviso de piso lleno y save
+    /// salen de ahí, y una segunda ruta de compra sería una segunda lista de
+    /// efectos que mantener sincronizada.
+    func hireBestCharacter() {
+        guard let best = bestHire else { return }
+        hireCharacter(typeId: best.typeId)
     }
 
     /// Contrata un TIPO concreto desde FisuJobs.

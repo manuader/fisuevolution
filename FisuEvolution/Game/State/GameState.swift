@@ -157,6 +157,14 @@ final class GameState {
     /// forma de preguntar "¿ya junta para el primer laburo?" sin que el tutorial
     /// tenga que cotizar por su cuenta.
     private(set) var canAffordSpawn = false
+    /// La oferta del botón "contratar al mejor" de la pantalla principal, o
+    /// `nil` cuando no hay nada contratable (y entonces el botón no se dibuja).
+    ///
+    /// Publicada y no computada —al revés que `jobRows`— porque es UNA fila y la
+    /// dibuja la pantalla que está siempre en cámara: recalcularla en cada
+    /// invalidación de SwiftUI cotizaría los 43 tipos a mano alzada, mientras
+    /// que acá sale del flush de 8 Hz y escribe sólo si cambió.
+    private(set) var bestHire: BestHire?
     private(set) var unitCount = 0
     /// F7: reencarnación disponible = vas a ganar ≥1 ORO.
     private(set) var prestigeAvailable = false
@@ -699,6 +707,9 @@ final class GameState {
         let affordable = target != nil && !targetFull
             && (quote.map { player.run.coins >= $0.cost } ?? false)
         if canAffordSpawn != affordable { canAffordSpawn = affordable }
+
+        let newBestHire = computeBestHire()
+        if bestHire != newBestHire { bestHire = newBestHire }
 
         let total = player.run.totalUnits
         if unitCount != total { unitCount = total }

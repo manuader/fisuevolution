@@ -24,7 +24,7 @@ struct PrestigeView: View {
                 multiplierArrow(preview)
 
                 Text("prestige.body \(gameState.prestigeMultiplierPerOroText)")
-                    .font(.footnote)
+                    .font(.system(.footnote, design: .rounded))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color("PaletteInk").opacity(0.75))
 
@@ -38,7 +38,7 @@ struct PrestigeView: View {
                         systemImage: "sparkles"
                     )
                 }
-                .font(.footnote.weight(.semibold))
+                .font(.system(.footnote, design: .rounded).weight(.semibold))
                 .foregroundStyle(Color("PaletteInk"))
                 // Sin esto las dos filas se truncan con "…" y el jugador no ve
                 // los números, que son justamente lo que vino a leer.
@@ -50,7 +50,9 @@ struct PrestigeView: View {
                     dismiss()
                 } label: {
                     Text("prestige.confirm")
-                        .font(.headline)
+                        // Sólo la cara tipográfica: el flujo del botón y su
+                        // identifier no se tocan.
+                        .font(.system(.headline, design: .rounded))
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
                 }
@@ -80,7 +82,10 @@ struct PrestigeView: View {
         HStack(spacing: 8) {
             OroIcon(size: 30)
             Text("prestige.oro.gain \(String(preview.oroGained))")
-                .font(.system(.title, design: .rounded).weight(.heavy))
+                // `Tokens.display` es este mismo cuerpo (.title rounded) con el
+                // peso de la casa: el número grande del popup habla el idioma
+                // de los otros números grandes del juego.
+                .font(Tokens.display)
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)

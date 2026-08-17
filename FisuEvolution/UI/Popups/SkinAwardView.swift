@@ -25,11 +25,26 @@ struct SkinAwardView: View {
                     .foregroundStyle(Color("PaletteInk"))
 
                 SkinAwardPortrait(type: award.characterType, treatment: treatment)
+                    // El plato de la casa para todo retrato (`JobPortrait`,
+                    // `SkinCard`): amarillo tenue + borde marrón. El padding va
+                    // ANTES del frame para que el plato ocupe los mismos 132 pt
+                    // y el popup —que vive en un detent .medium sin scroll— no
+                    // crezca. Radio 18: acá el retrato es el héroe del popup,
+                    // no una celda de lista.
+                    .padding(6)
                     .frame(width: 132, height: 132)
+                    .background(
+                        RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
+                            .fill(Color("PaletteYellow").opacity(0.35))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
+                            .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)
+                    )
 
                 Text("skin.award.subtitle \(award.characterType.displayName)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(Tokens.body)
+                    .foregroundStyle(Color("PaletteInk").opacity(0.75))
                     .multilineTextAlignment(.center)
                     // Sin esto el texto se trunca a una línea en vez de envolver
                     // cuando el nombre del personaje es largo.

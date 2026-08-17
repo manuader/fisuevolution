@@ -90,65 +90,86 @@ struct CharacterSheetView: View {
                 treatment: selectedTreatment,
                 asSilhouette: !isSelectedOwned
             )
+            // El plato de la casa para todo retrato (`JobPortrait`, `SkinCard`):
+            // amarillo tenue + borde marrón. El padding va ANTES del frame para
+            // que el plato ocupe los mismos 96 pt que ocupaba el retrato pelado
+            // y la ficha no cambie de alto. Radio 18 —el de las tarjetas— y no
+            // 12 porque acá el retrato no es una celda de lista: es el héroe.
+            .padding(6)
             .frame(width: 96, height: 96)
+            .background(
+                RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
+                    .fill(Color("PaletteYellow").opacity(0.35))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
+                    .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)
+            )
             Text(sheet.type.displayName)
                 .font(.system(.title2, design: .rounded).weight(.black))
                 .foregroundStyle(Color("PaletteInk"))
             // Los Int se interpolan como %lld y no matchean la clave declarada
             // con %@: se pasan como String, igual que `passive.explainer`.
             Text("character.count \(String(sheet.instanceCount))")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(Tokens.body)
+                .foregroundStyle(Color("PaletteInk").opacity(0.65))
         }
     }
 
     private var skinPager: some View {
-        VStack(spacing: 9) {
-            HStack(spacing: 14) {
-                Button { moveSelection(by: -1) } label: {
-                    Image(systemName: "chevron.left.circle.fill").font(.title2)
-                }
-                .disabled(selectedIndex == 0)
-                .accessibilityIdentifier("character.skin.previous")
+        // `GameCard` y no el crema translúcido a mano de antes: sobre el
+        // pergamino del panel v3 la que despega es la tarjeta de la casa
+        // (mismo radio, borde marrón y sombra que todas las filas del juego).
+        // El padding interno no cambia: `GameCard` pone los mismos 12.
+        GameCard {
+            VStack(spacing: 9) {
+                HStack(spacing: 14) {
+                    Button { moveSelection(by: -1) } label: {
+                        Image(systemName: "chevron.left.circle.fill").font(.title2)
+                    }
+                    .disabled(selectedIndex == 0)
+                    .accessibilityIdentifier("character.skin.previous")
 
-                VStack(spacing: 3) {
-                    Text(skinName)
-                        .font(.headline)
-                    Text("character.skin.index \(String(selectedIndex + 1)) \(String(options.count))")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity)
+                    VStack(spacing: 3) {
+                        Text(skinName)
+                            .font(.system(.headline, design: .rounded))
+                            .foregroundStyle(Color("PaletteInk"))
+                        Text("character.skin.index \(String(selectedIndex + 1)) \(String(options.count))")
+                            .font(Tokens.caption)
+                            .monospacedDigit()
+                            .foregroundStyle(Color("PaletteInk").opacity(0.65))
+                    }
+                    .frame(maxWidth: .infinity)
 
-                Button { moveSelection(by: 1) } label: {
-                    Image(systemName: "chevron.right.circle.fill").font(.title2)
+                    Button { moveSelection(by: 1) } label: {
+                        Image(systemName: "chevron.right.circle.fill").font(.title2)
+                    }
+                    .disabled(selectedIndex == options.count - 1)
+                    .accessibilityIdentifier("character.skin.next")
                 }
-                .disabled(selectedIndex == options.count - 1)
-                .accessibilityIdentifier("character.skin.next")
-            }
 
-            if isSelectedOwned {
-                Button(isSelectedActive ? "character.skin.equipped" : "character.skin.equip") {
-                    gameState.equipSkin(id: selected.skin?.id, forCharacterType: sheet.type.id)
+                if isSelectedOwned {
+                    Button(isSelectedActive ? "character.skin.equipped" : "character.skin.equip") {
+                        gameState.equipSkin(id: selected.skin?.id, forCharacterType: sheet.type.id)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color("PaletteBlue"))
+                    .disabled(isSelectedActive)
+                    .accessibilityIdentifier("character.skin.equip")
+                } else {
+                    lockedSkinDetails
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Color("PaletteBlue"))
-                .disabled(isSelectedActive)
-                .accessibilityIdentifier("character.skin.equip")
-            } else {
-                lockedSkinDetails
             }
         }
-        .padding(12)
-        .background(Color("PaletteCream").opacity(0.7), in: RoundedRectangle(cornerRadius: 18))
     }
 
     @ViewBuilder private var lockedSkinDetails: some View {
         Label("character.skin.locked", systemImage: "lock.fill")
+            .font(.system(.body, design: .rounded))
             .foregroundStyle(Color("PaletteInk"))
         Text(unlockDescription)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
+            .font(.system(.footnote, design: .rounded))
+            .foregroundStyle(Color("PaletteInk").opacity(0.75))
             .multilineTextAlignment(.center)
         if let product = selected.skin.flatMap(product(for:)) {
             Button(product.displayPrice) { Task { await store.purchase(product) } }

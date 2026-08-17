@@ -36,7 +36,23 @@ marco son transparentes (alfa 8–15, medido), así que el pergamino entra por
 | T11 HUD: QuickHire/Prestigio a PillBackground, chips marrones | `f4ae8b8` | ✅ |
 | — ProgressBar borde cálido (cierre del barrido) | `0091a67` | ✅ |
 | — fix round visual: moño al toldo, glifo de tienda a la cápsula | `321ba88` | ✅ |
-| T12 verificación (tests + capturas vs referencias) | — | ⏳ suite de UI corriendo |
+| **Fase D — el pedido ampliado del dueño ("toda la UI", popups incluidos):** | | |
+| D1 GamePanel pergamino (7 popups de un golpe) + Prestigio/Carrera | `5624bf8` | ✅ |
+| D2 banner de eventos + toasts de RootView | `5624bf8` | ✅ |
+| D3 globo del tutorial (agente paralelo; campo minado 9a/9b intacto) | `9e475b4` | ✅ |
+| D4 ShareCard v3 (agente paralelo) | `bbd1ce7` | ✅ |
+| D5 ArtButton con respaldo caramelo (CTA de popups = pill de hojas) | `ed88326` | ✅ |
+| D6 ficha + premio de skin + reencarnación (agente paralelo) | `b9d2dd8` | ✅ |
+| D7 daily reward + plata offline + drop sorpresa (agente paralelo) | `49c3139` | ✅ |
+| — HANDOFF: sesión v3 + trampa 16 | `3a5a503` | ✅ |
+| T12 verificación (tests + capturas vs referencias) | — | ⏳ suite de UI corriendo; fase D espera build central |
+
+**Cómo se trabajó la fase D**: 4 agentes paralelos sobre archivos DISJUNTOS
+dentro del mismo worktree (tutorial / share / ficha-skin-prestigio /
+premios), con commits selectivos del orquestador por lote — cero builds por
+agente (la máquina estaba saturada), un solo build central al final.
+Identifiers nuevos: `offline.collect` y `special.drop.claim` (los CTA viejos
+no tenían; sus claves de texto ya existían en el catálogo).
 
 ## Decisiones tomadas (con su porqué)
 

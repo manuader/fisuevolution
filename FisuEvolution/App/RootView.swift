@@ -345,9 +345,26 @@ struct GameBoardView: View {
         // Con `allowsHitTesting` atado a lo mismo, además, no se puede tocar algo
         // que no se ve. Sólo esa celebración lo hace — un toast de logro de 4 s
         // no justifica apagar la interfaz.
-        .opacity(gameState.celebrationHidesUI ? 0 : 1)
-        .allowsHitTesting(!gameState.celebrationHidesUI)
-        .animation(.easeInOut(duration: 0.25), value: gameState.celebrationHidesUI)
+        .opacity(hidesUIForCelebration ? 0 : 1)
+        .allowsHitTesting(!hidesUIForCelebration)
+        .animation(.easeInOut(duration: 0.25), value: hidesUIForCelebration)
+    }
+
+    /// Apagar la UI **no** corre durante el tutorial, igual que las diez hojas de
+    /// celebración de más arriba (todas gateadas por `tutorialDone`).
+    ///
+    /// ⚠️ No es higiene preventiva: se vio roto en el simulador con tutorial
+    /// fresco. La primera fusión del FTUE dispara un `boardCelebration`, que
+    /// apaga la columna del HUD ~2 s — pero el overlay del tutorial sigue montado
+    /// y en ese mismo momento avanza al paso "upgrades", así que el globo, el
+    /// recorte y la mano quedan **señalando una barra de tabs invisible**. La
+    /// captura está en el reporte de la Task 4.
+    ///
+    /// El gate es el mínimo posible y vive de ESTE lado: no toca la cola de
+    /// celebraciones ni `celebrationHidesUI`, que sigue publicándose igual para
+    /// quien lo quiera leer. Sólo decide si ESTA columna se apaga.
+    private var hidesUIForCelebration: Bool {
+        gameState.celebrationHidesUI && tutorialDone
     }
 
     /// Abre una pantalla de la barra y avisa al tutorial cuando el paso se

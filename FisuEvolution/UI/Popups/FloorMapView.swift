@@ -17,18 +17,14 @@ struct FloorMapView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
 
-    /// Margen lateral de la columna. **Medido sobre el arte**, no elegido, con el
-    /// mismo método que `UpgradesView` (40 pt contra `panel_upgrades`) y
-    /// `FisuJobsView` (30 contra `panel_store`): el 9-slice dibuja las esquinas a
-    /// tamaño natural, así que el píxel `x` del PNG cae en `x / (anchoPx / 200)`
-    /// puntos del destino. Sondeando `panel_dialog@3x.png` (640², escala 3,2) en
-    /// su franja recta, el contorno del marco ocupa de **32,5 a 35,0 pt** y hacia
-    /// adentro es transparente (el crema lo pone `PanelBackground`); cerca de las
-    /// esquinas el trazo engorda hasta 38,8. Con los 20 pt que había, las filas
-    /// le pasaban por encima al marco entero. A 36 la columna entra justo adentro
-    /// del trazo y el marco se lee completo. Si el arte se re-exporta, se vuelve
-    /// a medir.
-    private static let panelInset: CGFloat = 36
+    /// Margen lateral de la columna. **Medido sobre el arte**, no elegido: son
+    /// los mismos 40 pt que `UpgradesView` midió contra `panel_upgrades`, que
+    /// desde el rediseño v3 también es el marco de esta pantalla — la torre es
+    /// maquinaria y habla el idioma industrial de los caños, no el del marco
+    /// pelado de diálogo que tenía. El método es el de siempre (el 9-slice
+    /// dibuja las esquinas a tamaño natural; el marco metálico ocupa de 27,5 a
+    /// 41,2 pt de cada borde). Si el arte se re-exporta, se vuelve a medir.
+    private static let panelInset: CGFloat = 40
 
     /// Diámetro del botón redondo de piso. El riel se alinea a su centro, así que
     /// las dos medidas salen de acá y no de dos literales que se desincronizan.
@@ -84,7 +80,7 @@ struct FloorMapView: View {
                     proxy.scrollTo(here.id, anchor: .center)
                 }
             }
-            .background { PanelBackground(art: "panel_dialog") }
+            .background { PanelBackground(art: "panel_upgrades") }
             .safeAreaInset(edge: .top) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)

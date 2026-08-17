@@ -16,20 +16,20 @@ extension GameState {
         publishCelebration()
     }
 
-    /// Encola la del tablero anotando si ESA es la que abre un piso por primera
-    /// vez, que es lo único que apaga la UI (ver `celebrationHidesUI`).
+    /// Encola la del tablero anotando si ESA trae algo nuevo —personaje o piso—,
+    /// que es lo único que apaga la UI (ver `celebrationHidesUI`).
     ///
     /// La bandera es del payload y no del turno: mientras la del tablero espera
     /// en la fila la cola la deduplica en un solo casillero y la escena pisa su
     /// payload con el del último merge, así que lo que se reproduce es el último
     /// y la bandera tiene que ser la del último también.
-    func celebrateBoard(opensNewFloor: Bool) {
+    func celebrateBoard(showsSomethingNew: Bool) {
         // Salvo que ya esté EN PANTALLA: ahí la escena tampoco cambia lo que está
         // reproduciendo —se quedó con el vuelo que arrancó y `enqueue` deduplica
         // el turno—, así que pisar la bandera prendería el HUD a la mitad del
         // vuelo que el jugador está mirando.
         if celebrations.current != .boardCelebration {
-            boardCelebrationOpensFloor = opensNewFloor
+            boardCelebrationShowsSomethingNew = showsSomethingNew
         }
         celebrate(.boardCelebration)
     }
@@ -118,11 +118,10 @@ extension GameState {
             announcedEventID = activeEvent?.id
         case .boardCelebration:
             // La bandera describe UNA celebración, no un estado de la partida: si
-            // sobreviviera a la suya, el próximo ascenso común —que no vuelve a
-            // escribirla si no hay piso nuevo— heredaría la pantalla apagada.
-            // Acá caen las tres salidas: el fin que avisa la escena, el tap que
-            // saltea y el watchdog que destraba.
-            boardCelebrationOpensFloor = false
+            // sobreviviera a la suya, el próximo ascenso sin novedad heredaría la
+            // pantalla apagada. Acá caen las tres salidas: el fin que avisa la
+            // escena, el tap que saltea y el watchdog que destraba.
+            boardCelebrationShowsSomethingNew = false
         case .offlineEarnings, .dailyReward,
              .careerChoice, .skinAward, .specialDrop:
             break
@@ -132,7 +131,7 @@ extension GameState {
     private func publishCelebration() {
         let kind = celebrations.current
         if showing != kind { showing = kind }
-        let hides = kind == .boardCelebration && boardCelebrationOpensFloor
+        let hides = kind == .boardCelebration && boardCelebrationShowsSomethingNew
         if celebrationHidesUI != hides { celebrationHidesUI = hides }
     }
 }

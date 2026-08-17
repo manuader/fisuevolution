@@ -23,11 +23,14 @@ struct RootView: View {
         // La UI está pensada para el mundo cálido/crema del juego; forzamos light
         // para que dark mode no rompa los grises/blancos de los menús.
         .preferredColorScheme(.light)
-        // Sin barra de estado: el juego es a pantalla completa y el panel ink del
-        // HUD llega hasta el borde físico, así que el reloj caía ENCIMA del panel.
-        // Y como forzamos light, el sistema lo dibuja en negro sobre el ink
-        // (contraste 1,50:1, ilegible) — el estilo del reloj sale del color scheme
-        // del controller raíz y no hay forma de aclararlo desde SwiftUI.
+        // Sin barra de estado: el juego es a pantalla completa y el panel del HUD
+        // llega hasta el borde físico, así que el reloj cae ENCIMA del panel —a
+        // un par de puntos del contador de plata, que es lo que ese renglón tiene
+        // que decir—. Cuando el panel era ink había además un problema de
+        // contraste (negro sobre ink, 1,50:1, ilegible, y el estilo del reloj sale
+        // del color scheme del controller raíz: desde SwiftUI no hay forma de
+        // aclararlo). Con el panel crema el reloj se lee, pero sigue estorbando:
+        // la razón de ocultarlo pasó a ser de composición, no de contraste.
         //
         // ⚠️ Va acá y NO en `project.yml`: `INFOPLIST_KEY_UIStatusBarHidden` está
         // puesto desde siempre y nunca funcionó, porque manda el view controller
@@ -406,18 +409,30 @@ struct GameBoardView: View {
     #if DEBUG
     /// La llave del panel de debug, flotando arriba a la derecha.
     ///
-    /// ⚠️ Su posición la manda el panel ink del HUD, que desde el rediseño llega
+    /// ⚠️ Su posición la manda el panel del HUD, que desde el rediseño llega
     /// hasta el borde físico y es MÁS ALTO que la isla que reemplazó: con los 68
-    /// pt de antes la llave caía adentro del panel, y siendo ink sobre ink
-    /// desaparecía del todo. Tiene que caer DEBAJO del borde de abajo del panel
-    /// en los dos tamaños de teléfono que soportamos.
+    /// pt de antes la llave caía adentro del panel, y ahí se pierde —era ink
+    /// sobre ink cuando el panel era oscuro, y hoy que es crema sería una llave
+    /// crema sobre crema—. Tiene que caer DEBAJO del borde de abajo del panel en
+    /// los dos tamaños de teléfono que soportamos.
     ///
     /// El padding se cuenta desde la safe area, no desde el borde físico, y eso
     /// invierte cuál es el caso apretado: **el SE**. Ahí la safe area superior
-    /// es 0 —la barra de estado está oculta— y el panel llega a 92 pt, así que
-    /// 104 lo deja con 12 pt de aire. En un teléfono con notch la safe area ya
-    /// pone 62 por su cuenta y el panel termina a 136, así que los mismos 104 lo
-    /// dejan a 166: sobrado, y todavía muy por encima de la barra de abajo.
+    /// es 0 —la barra de estado está oculta— y el panel llega a **90** pt
+    /// (14 del piso de `HUDView.minimumTopGap` + 64 del botón + 12 de padding),
+    /// así que 104 lo deja con **14 pt** de aire. En un teléfono con notch la
+    /// safe area ya pone 62 por su cuenta y el panel termina a **140**
+    /// (62 + 2 + 64 + 12), así que los mismos 104 lo dejan a 166: sobrado por
+    /// 26, y todavía muy por encima de la barra de abajo.
+    ///
+    /// Los dos crecieron 4 pt con los iconos más grandes de la enmienda del
+    /// dueño (el botón del HUD pasó de 60 a 64), y como el 104 se quedó donde
+    /// estaba, el aire del SE se comió esos 4: pasó de 18 a 14. Sigue siendo el
+    /// caso apretado y sigue sobrando, pero **el margen es finito**: si el botón
+    /// del HUD volviera a crecer, a los 14 pt les quedan tres puntos y medio de
+    /// vida antes de que la llave se meta adentro del panel. Medido en captura
+    /// sobre el simulador (SE 3: el contorno ink del panel ocupa 87–90 pt;
+    /// 16 Pro: 137–140), no estimado.
     ///
     /// El glifo va sobre plato crema con contorno ink, como los chips del HUD:
     /// el tablero es un dibujo a todo color y un icono pelado se pierde contra

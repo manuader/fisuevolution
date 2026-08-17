@@ -809,6 +809,7 @@ struct GameTabBar: View {
         // —medido en captura—. Apoyados abajo, los seis nombres comparten
         // renglón y la diferencia de alto se va toda para arriba, que es donde
         // se quiere: los extremos SOBRESALEN, como en Cow Evolution.
+        //
         // ⚠️ El spacing es un literal de 2 y no un `Tokens.s4`: con los platos
         // de 56/62 los seis tabs suman 374 de los 375 del SE (ver la cuenta en
         // `GameTabButton.side`), así que los 4 de la escala ya no entran. Es el

@@ -23,10 +23,14 @@ final class AscentRenderingUITests: XCTestCase {
     /// + `BoardScene.crowdBand`.
     ///
     /// ⚠️ **Si cambiás la geometría del campo, cambiá esto en el mismo commit.**
-    /// Ya se desincronizó tres veces: quedó con el `rowDepth` viejo (no se notó
+    /// Ya se desincronizó CUATRO veces: quedó con el `rowDepth` viejo (no se notó
     /// porque la fila 0 lo multiplica por cero), después con el `frontY` viejo,
-    /// que sí rompió, y por último con `bottomInset` en 110 cuando la escena ya
-    /// lo tenía en 114 (arreglado el 2026-08-16).
+    /// que sí rompió, después con `bottomInset` en 110 cuando la escena ya lo
+    /// tenía en 114 (arreglado el 2026-08-16), y de nuevo con `bottomInset` en
+    /// 114 cuando la barra inferior se fundió con el borde y la escena pasó a
+    /// 116 (2026-08-17). Esta última **la agarró el review, no la suite**: con
+    /// 2 pt de desfasaje los gates siguen en verde, que es exactamente el verde
+    /// falso contra el que avisa este bloque.
     ///
     /// Los gates de `board.units` y de la pill son lo que convierte un desfasaje
     /// en una falla ruidosa en vez de un verde falso. No los saques.
@@ -56,10 +60,11 @@ final class AscentRenderingUITests: XCTestCase {
         // filas se reparten ese alto — el ancla de cada una queda a medio
         // deambular de su extremo.
         //
-        // Espejo de `BoardScene.bottomInset` (114) y de
-        // `BoardScene.crowdTopRatio` (0,44; subió de 0,40 el 2026-08-10, cuando
-        // los diez fondos se regeneraron con más piso).
-        let bottomInset: CGFloat = 114
+        // Espejo de `BoardScene.bottomInset` (116; subió de 114 el 2026-08-17,
+        // cuando la barra inferior se fundió con el borde y estrenó los labels)
+        // y de `BoardScene.crowdTopRatio` (0,44; subió de 0,40 el 2026-08-10,
+        // cuando los diez fondos se regeneraron con más piso).
+        let bottomInset: CGFloat = 116
         let crowdTopRatio: CGFloat = 0.44
         let rows: CGFloat = 2
         let floorY = cell * 0.55

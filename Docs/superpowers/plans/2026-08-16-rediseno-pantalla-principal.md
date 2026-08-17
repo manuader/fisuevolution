@@ -638,6 +638,36 @@ git commit -m "feat(hire): botón de contratar al mejor tier pagable en la panta
 
 ---
 
+### Task 6: Enmienda del dueño — barras gemelas crema e iconos aún más grandes
+
+> Pedido del dueño (2026-08-17, mid-ejecución, tras ver las Tasks 1-2): "hace que
+> la barra superior sea del mismo color que la barra inferior. hace los iconos aun
+> mas grandes". Esta tarea REEMPLAZA la decisión del panel ink de la sección
+> "Referencia visual": el dueño re-decidió con las capturas en mano. Las barras
+> quedan GEMELAS: crema, contorno ink de 3 pt mirando al tablero, esquinas 24
+> hacia el tablero, laterales muriendo fuera de pantalla.
+
+**Files:**
+- Modify: `FisuEvolution/UI/HUD/HUDView.swift` (topPanel crema + colores del contenido de vuelta a ink + iconos más grandes)
+- Modify: `FisuEvolution/UI/Art/GameArtComponents.swift` (`GameTabButton` tamaños, `GameTabBar` spacing)
+- Modify: `FisuEvolution/UI/HUD/BottomMenuBar.swift` (espejos de tamaño)
+- Modify: `FisuEvolution/Scenes/BoardScene.swift` (`bottomInset` re-recalculado)
+- Modify: `FisuEvolutionUITests/AscentRenderingUITests.swift` (espejo, MISMO commit que bottomInset — 3 desincronizaciones históricas + la que esta rama ya pagó)
+- Modify: `FisuEvolution/App/RootView.swift` (paddings de toasts si el alto de la barra cambió; el mecanismo SE del TowerNotice de la ronda 1 de la Task 2 se re-deriva con los números nuevos)
+
+**Interfaces:**
+- Consumes: todo lo que dejaron las Tasks 1-2 (pisos `minimumTopGap`/`minimumBottomGap`, `windowTopInset`/`windowBottomInset`, `glyphScale`).
+- Produces: los números finales de geometría que la Task 4 usa para colocar el botón.
+
+- [ ] **Step 1: Panel superior gemelo del inferior** — en `HUDView.topPanel`: fill `Color("PaletteCream")` (chau ink), overlay `strokeBorder(Color("PaletteInk"), lineWidth: 3)` con `.padding(.horizontal, -3)` y `.padding(.top, -3)` (los laterales y el tope mueren fuera de pantalla, como el gemelo de abajo), sombra `black.opacity(0.2), radius: 6, y: 2`. El stroke crema 0.18 y su `.padding(.top, -4)` se van. `ignoresSafeArea(edges: .top)` queda.
+- [ ] **Step 2: Contenido de vuelta a ink-sobre-crema** — `coinsAmount`: `PaletteCream` → `PaletteInk`, sin la sombra blanca; `incomeRate`: `PaletteInk` opacity 0.7. Los `IconButton` no cambian de receta (crema con borde ink — sobre crema se leen igual que en las tarjetas de siempre). Docstrings de HUDView que digan "panel ink/oscuro" se corrigen.
+- [ ] **Step 3: Iconos aún más grandes** — tabs: platos 54/60 → **56/62**, iconos 44/50 → **48/54**, `HStack` spacing `Tokens.s4` → **2** (con padding horizontal s8: 2×62+4×56+5×2+16 = 374 ≤ 375 del SE — documentar la cuenta en el comentario de `side`). Espejos de `BottomMenuBar` → 48/54. HUD: `IconButton` 60 → **64**, `glyphScale` 0.62 → **0.66**; `CoinIcon` del contador 34 → **36**.
+- [ ] **Step 4: Geometría derivada** — plato destacado +2 → columna 76 (62+2+~12) → barra layout 84 → `bottomInset` 116 → **118** con la aritmética del comentario reescrita; espejo de `AscentRenderingUITests` → 118 EN EL MISMO COMMIT; toasts +2 (los valores exactos según lo que la ronda 1 de la Task 2 haya dejado); el clearance del SE del TowerNotice se re-verifica con el mecanismo que esa ronda haya elegido.
+- [ ] **Step 5: Verificación** — build sin warnings; unit ANTES que UI; `BottomMenuUITests` + `AscentRenderingUITests` + `TutorialUITests` + `HUDRedesignUITests` en 16 Pro y las de HUD/BottomMenu en SE; capturas en las dos clases leídas contra: barras gemelas (mismo crema, mismo contorno), iconos protagonistas, labels en un renglón, contador legible en ink.
+- [ ] **Step 6: Commit** — `feat(ui): las dos barras quedan gemelas en crema y los iconos crecen otro punto`
+
+---
+
 ## Self-review (hecho al escribir)
 
 1. **Cobertura del pedido**: barra superior fundida → Task 1; barra inferior fundida + iconos mucho más grandes → Task 2; botón del mejor tier pagable → Tasks 3+4; "menú no cambia" → constraint global (ids/orden/destinos intactos); "estilo de la imagen con nuestros assets" → sección Referencia visual.

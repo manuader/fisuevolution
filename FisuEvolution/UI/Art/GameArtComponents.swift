@@ -745,6 +745,18 @@ struct GameTabBar: View {
     private static let minimumBottomGap: CGFloat = 12
     private var bottomGap: CGFloat { max(0, Self.minimumBottomGap - windowBottomInset) }
 
+    /// Cuánto SUBE la barra por el piso de arriba, para lo que se apoye sobre
+    /// ella (hoy: los dos toasts de `RootView`, que se posicionan contando desde
+    /// la safe area y por lo tanto no ven el piso por su cuenta).
+    ///
+    /// Es el mismo `max` que `bottomGap`, pero leído en el momento en vez de por
+    /// `@State`: los toasts nacen mucho después del arranque, así que no
+    /// necesitan el valor inicial que le evita el salto del primer frame a la
+    /// barra —y así no hay un segundo `onAppear` que mantener en sincronía—.
+    @MainActor static var bottomFloor: CGFloat {
+        max(0, minimumBottomGap - screenBottomSafeArea)
+    }
+
     /// El inset inferior de la **pantalla**, preguntado a la ventana.
     ///
     /// ⚠️ Se lee de UIKit y no con un `GeometryReader` por la trampa que

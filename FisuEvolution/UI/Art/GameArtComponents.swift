@@ -713,28 +713,106 @@ struct GameTabItem: Identifiable {
 /// Barra inferior de pantallas. No guarda selección —cada tab abre su hoja— así
 /// que el estado "activo" es el destaque de los extremos más el pulso del toque.
 ///
+/// Dejó de ser una isla flotante: ahora es una franja de ancho completo fundida
+/// con el borde de abajo, espejo del panel ink de `HUDView` arriba. La isla
+/// gastaba tres márgenes de pantalla en aire alrededor de una barra que igual
+/// vivía pegada al fondo, y el crema recortado contra el tablero competía con
+/// las tarjetas del juego, que usan la misma forma.
+///
 /// ⚠️ El `HStack` NO lleva identifier: cada botón lleva el suyo (trampa 9a-bis).
 struct GameTabBar: View {
     let items: [GameTabItem]
     let selection: (GameScreen) -> Void
 
+    /// El inset inferior REAL de la pantalla, leído de la ventana al aparecer.
+    ///
+    /// Arranca en 34 —el home indicator de cualquier teléfono que lo tenga— y no
+    /// en 0 por la misma razón que su gemelo de arriba (`HUDView.windowTopInset`):
+    /// el valor de verdad recién llega con el `onAppear`, y arrancando en 0 el
+    /// caso común dibujaría un frame con el piso aplicado y pegaría un salto de
+    /// 12 pt al asentarse. Con 34, el único que se acomoda es el SE.
+    @State private var windowBottomInset: CGFloat = 34
+
+    /// Aire mínimo entre los nombres de los tabs y el borde FÍSICO de abajo.
+    ///
+    /// Es el mismo piso que `HUDView.minimumTopGap` y existe por lo mismo, en el
+    /// otro borde: en un teléfono sin home indicator (SE) la safe area inferior
+    /// es 0, así que el panel fundido —que llega hasta el borde— apoyaba los
+    /// labels contra el bezel. Medido en un SE 3 antes del piso: la 'j' de
+    /// "Mejoras" a **1,5 pt** del borde físico. Con home indicator el inset ya
+    /// pone 34, el `max` devuelve 0 y el layout **no cambia en nada** —de ahí
+    /// que `BoardScene.bottomInset` siga valiendo lo mismo—.
+    private static let minimumBottomGap: CGFloat = 12
+    private var bottomGap: CGFloat { max(0, Self.minimumBottomGap - windowBottomInset) }
+
+    /// El inset inferior de la **pantalla**, preguntado a la ventana.
+    ///
+    /// ⚠️ Se lee de UIKit y no con un `GeometryReader` por la trampa que
+    /// documenta `HUDView.screenTopSafeArea`: acá adentro la safe area ya la
+    /// consumió `RootView`, así que un proxy reporta 0 en TODOS los teléfonos y
+    /// el piso se aplicaría también donde no corresponde. No es reactivo y no
+    /// hace falta: la app es sólo portrait.
+    @MainActor private static var screenBottomSafeArea: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first { $0.isKeyWindow }?
+            .safeAreaInsets.bottom ?? 0
+    }
+
     var body: some View {
-        HStack(spacing: Tokens.s4) {
+        // ⚠️ Alineados abajo y no al centro (el default), que es lo que hacía
+        // falta desde que cada tab lleva su nombre debajo: los dos destacados
+        // son 6 pt más altos, así que centrados repartían esa diferencia arriba
+        // y abajo y sus labels colgaban 3 pt por debajo de los otros cuatro
+        // —medido en captura—. Apoyados abajo, los seis nombres comparten
+        // renglón y la diferencia de alto se va toda para arriba, que es donde
+        // se quiere: los extremos SOBRESALEN, como en Cow Evolution.
+        HStack(alignment: .bottom, spacing: Tokens.s4) {
             ForEach(items) { item in
                 GameTabButton(item: item) { selection(item.screen) }
             }
         }
         .padding(.horizontal, Tokens.s8)
-        .padding(.vertical, Tokens.s8)
-        .background(
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .fill(Color("PaletteCream"))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 26, style: .continuous)
-                        .strokeBorder(Color("PaletteInk"), lineWidth: 3)
-                )
-                .shadow(color: .black.opacity(0.2), radius: 6, y: 3)
+        .padding(.top, Tokens.s8)
+        .padding(.bottom, bottomGap)
+        .frame(maxWidth: .infinity)
+        .background { bottomPanel }
+        .onAppear { windowBottomInset = Self.screenBottomSafeArea }
+    }
+
+    /// Panel crema fundido con el borde inferior.
+    ///
+    /// Redondea **sólo arriba**: abajo no hay esquina que mostrar (está fuera de
+    /// pantalla) y curvarla dejaría dos muescas del tablero asomando en los
+    /// vértices inferiores. El contorno ink sube por los costados hasta salirse
+    /// de la pantalla —de eso se ocupan los paddings negativos— así que lo único
+    /// que se ve del trazo es el borde de arriba, que es el que separa la barra
+    /// del tablero; un panel fundido no puede tener una línea encerrándolo.
+    ///
+    /// El `ignoresSafeArea` es lo que lo estira por debajo del home indicator:
+    /// sin él quedaba una lonja de tablero de 34 pt entre la barra y el borde
+    /// físico, que es exactamente la isla que este rediseño vino a matar. En un
+    /// teléfono sin notch (SE) el inset es 0 y no hay nada que estirar: el panel
+    /// ya nace contra el borde y se ve igual.
+    ///
+    /// ⚠️ La sombra va hacia ARRIBA (`y: -2`), al revés que la de la isla: es la
+    /// única cara que todavía da al tablero.
+    private var bottomPanel: some View {
+        UnevenRoundedRectangle(
+            topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous
         )
+        .fill(Color("PaletteCream"))
+        .overlay(
+            UnevenRoundedRectangle(
+                topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous
+            )
+            .strokeBorder(Color("PaletteInk"), lineWidth: 3)
+            .padding(.horizontal, -3)
+            .padding(.bottom, -3)
+        )
+        .shadow(color: .black.opacity(0.2), radius: 6, y: -2)
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 
@@ -748,28 +826,51 @@ private struct GameTabButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bounce = 0
 
-    private var side: CGFloat { item.prominent ? 56 : 48 }
-    private var iconSide: CGFloat { item.prominent ? 34 : 28 }
+    /// Platos 54/60 e iconos 44/50: el icono ocupa ~82% del plato (antes era
+    /// ~58%), que es lo que pide el mockup —el dibujo tiene que ser el que
+    /// manda, no el plato que lo enmarca—.
+    ///
+    /// El ancho entra justo en el teléfono más angosto que soportamos:
+    /// 2×60 + 4×54 + 5×4 de spacing + 16 de padding = **372 ≤ 375** (SE). Los
+    /// seis tabs son mínimos rígidos para el `HStack`, así que un punto más por
+    /// plato empieza a apretar el label en vez de la barra.
+    private var side: CGFloat { item.prominent ? 60 : 54 }
+    private var iconSide: CGFloat { item.prominent ? 50 : 44 }
 
     var body: some View {
         Button {
             if !reduceMotion { bounce += 1 }
             action()
         } label: {
-            ZStack {
-                plate
-                item.icon
-                    .frame(width: iconSide, height: iconSide)
-            }
-            .frame(width: side, height: side)
-            .keyframeAnimator(initialValue: 1.0, trigger: bounce) { view, scale in
-                view.scaleEffect(scale)
-            } keyframes: { _ in
-                KeyframeTrack {
-                    CubicKeyframe(0.9, duration: 0.08)
-                    SpringKeyframe(1.14, duration: 0.14, spring: .bouncy)
-                    SpringKeyframe(1.0, duration: 0.22, spring: .bouncy)
+            VStack(spacing: 2) {
+                ZStack {
+                    plate
+                    item.icon
+                        .frame(width: iconSide, height: iconSide)
                 }
+                .frame(width: side, height: side)
+                .keyframeAnimator(initialValue: 1.0, trigger: bounce) { view, scale in
+                    view.scaleEffect(scale)
+                } keyframes: { _ in
+                    KeyframeTrack {
+                        CubicKeyframe(0.9, duration: 0.08)
+                        SpringKeyframe(1.14, duration: 0.14, spring: .bouncy)
+                        SpringKeyframe(1.0, duration: 0.22, spring: .bouncy)
+                    }
+                }
+                // El nombre del destino, que hasta ahora sólo existía para
+                // VoiceOver: seis glifos sin texto se aprenden a la larga, pero
+                // la primera partida es adivinanza.
+                //
+                // ⚠️ Usa la MISMA clave que el label de AX de abajo, así lo que
+                // se ve y lo que dicta VoiceOver no pueden divergir. Y vive
+                // DENTRO del label del `Button`, así que no arma una parada de
+                // AX propia: el botón sigue siendo un solo elemento.
+                Text(LocalizedStringKey(item.labelKey))
+                    .font(.system(size: 10, design: .rounded).weight(.heavy))
+                    .foregroundStyle(Color("PaletteInk"))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())

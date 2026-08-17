@@ -127,17 +127,21 @@ final class BoardScene: SKScene {
     /// Origen vertical del campo dentro de la escena: el borde de arriba de la
     /// barra inferior, para que la multitud no camine detrás de ella.
     ///
-    /// Sale de sumar la barra, no de tantear: `GameTabBar` mide 56 (el tab
-    /// destacado) + 8 de padding vertical arriba y abajo = **72**, la franja le
-    /// agrega **8** de aire abajo y la safe area de un teléfono con notch pone
-    /// **34**. Medido en el simulador sobre la captura (iPhone 16 Pro): el borde
-    /// ink de la barra arranca a 114 pt del borde inferior de la pantalla.
+    /// Sale de sumar la barra, no de tantear: `GameTabBar` ya no lleva padding
+    /// abajo —su panel se funde con el borde y no termina donde termina el
+    /// contenido—, así que lo que mide es **8** de padding arriba + la columna
+    /// del tab destacado (**60** de plato + **2** de spacing + **12** de label),
+    /// = **82**; la franja ya no agrega aire abajo y la safe area de un teléfono
+    /// con notch pone **34**. Medido en el simulador sobre la captura
+    /// (iPhone 16 Pro): el borde ink de la barra arranca a 116 pt del borde
+    /// inferior de la pantalla.
     ///
     /// ⚠️ Es UNA constante para todos los tamaños, así que en un teléfono sin
-    /// notch la barra queda 34 pt más abajo y sobra ese margen — el error va
+    /// home indicator la barra mide 94 (los mismos 82 más el piso de 12 de
+    /// `GameTabBar.minimumBottomGap`) y sobran 22 pt de margen — el error va
     /// hacia el lado seguro (nadie queda tapado). `CrowdBandTests` y
     /// `CrowdDepthTests` asertan contra este knob, no contra el número.
-    static let bottomInset: CGFloat = 114
+    static let bottomInset: CGFloat = 116
     private static let horizontalInset: CGFloat = 16
     /// Margen a cada lado para los textos del reveal, que van centrados y a
     /// pantalla completa.

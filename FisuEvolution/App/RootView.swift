@@ -306,13 +306,18 @@ struct GameBoardView: View {
     /// La franja de abajo: el botón flotante de reencarnar y la barra de las 6
     /// pantallas. Conserva `.tutorialAnchor(.bottomBar)`, que no ilumina nada
     /// —es la franja que el globo del tutorial tiene que esquivar—.
+    ///
+    /// ⚠️ Sin paddings propios: la barra se funde con los tres bordes (su panel
+    /// se estira solo bajo el home indicator, ver `GameTabBar.bottomPanel`) y
+    /// cualquier margen acá le dejaría una lonja de tablero al costado, que es
+    /// justo la isla que dejó de ser. El aire lo pide el botón de prestigio, que
+    /// SÍ flota, así que el margen lateral se mudó a él.
     private var bottomBar: some View {
         VStack(spacing: Tokens.s8) {
             prestigeButton
+                .padding(.horizontal, Tokens.s8)
             BottomMenuBar(select: open)
         }
-        .padding(.horizontal, Tokens.s8)
-        .padding(.bottom, Tokens.s8)
         .tutorialAnchor(.bottomBar)
     }
 
@@ -443,7 +448,10 @@ private struct AchievementToastView: View {
                 guard !Task.isCancelled else { return }
                 dismiss()
             }
-            .padding(.bottom, 196)
+            // Un piso más arriba que el aviso de la torre (ver `TowerNoticeView`),
+            // para que los dos se apilen cuando salen juntos. Sube los mismos
+            // 2 pt que creció la barra.
+            .padding(.bottom, 198)
         }
         .padding(.horizontal, 20)
         // Con Reduce Motion el banner se funde en vez de deslizarse: la guía de
@@ -482,7 +490,18 @@ private struct TowerNoticeView: View {
                     guard !Task.isCancelled else { return }
                     dismiss()
                 }
-                .padding(.bottom, 132)
+                // Flota justo encima de la franja de abajo: 82 pt de barra
+                // (medidos desde la safe area) + los ~38 del botón de prestigio
+                // que puede estar apoyado sobre ella + 14 de aire. La barra
+                // creció 2 pt al ganar el label debajo del icono, así que el
+                // aviso sube los mismos 2 y conserva el aire de siempre.
+                //
+                // ⚠️ En un teléfono sin home indicator la barra mide 94 (el piso
+                // de `GameTabBar.minimumBottomGap`), así que ahí el aviso apoya a
+                // 2 pt del botón de prestigio en vez de a 14. No se pisan, pero
+                // es el número que hay que volver a mirar cuando la T4 meta su
+                // botón nuevo encima de la barra.
+                .padding(.bottom, 134)
         }
         .padding(.horizontal, 20)
         .allowsHitTesting(true)

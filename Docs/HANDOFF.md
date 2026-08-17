@@ -361,8 +361,10 @@ progresión—, el ascenso, los sheets de premio, y al final banners y toasts.
 - **El turno del ascenso lo pide `handleDrop`**, no la escena: `updateMaxFloorStat`
   acredita la skin dentro del mismo merge, y si el ascenso encolara después el
   sheet ya tendría el turno y taparía el vuelo.
-- El HUD se atenúa al 20% **sólo** en la celebración a pantalla completa, y el
-  texto del reveal se ancla bajo la banda del HUD (`topInset`, medido en 176).
+- La UI se apaga **del todo** —opacidad 0 y sin hit-testing (`celebrationHidesUI`)—
+  y **sólo** en la celebración a pantalla completa. El reveal va **centrado a
+  pantalla completa**: desde `0d3b96d` ya no se ancla bajo la banda del HUD, así
+  que no tiene nada que esquivar. `BoardScene.topInset` (176) quedó sin uso.
 
 Detalle en `Docs/SESION-2026-08-17-cola-de-celebraciones.md` y su spec.
 

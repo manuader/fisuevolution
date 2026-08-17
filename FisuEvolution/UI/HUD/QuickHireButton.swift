@@ -119,7 +119,8 @@ struct QuickHireButton: View {
         // ⚠️ **UNA sola parada: el botón no puede exponer el nombre del personaje
         // como un elemento suelto.** Es el patrón T8 de la casa —los nombres los
         // anuncia el resumen de quien los contiene, nunca un `StaticText`
-        // propio— y lo cazó `FisuJobsUITests.testContratarSubeElContadorDeLaFila`,
+        // propio— y lo cazó
+        // `FisuJobsUITests.testContratarSubeElPrecioDeLaFilaYPoneLaUnidadEnElTablero`,
         // que asserta `app.staticTexts["El Fisura"].exists == false` sobre la app
         // ENTERA: la hoja de FisuJobs tapa la pantalla principal pero **no** tapa
         // el árbol de AX, así que este botón le metía el nombre suelto en la
@@ -153,6 +154,17 @@ struct QuickHireButton: View {
                 .accessibilityAddTraits(.isButton)
                 .accessibilityLabel(spokenLabel(for: best))
         }
+        // ⚠️ **El identifier va DESPUÉS de `accessibilityRepresentation`, y el
+        // orden es load-bearing**: la representación reemplaza el AX del control
+        // entero, así que un identifier puesto ARRIBA de ella se va con lo que
+        // reemplaza y `app.buttons["hud.quickhire"]` deja de encontrar nada.
+        //
+        // Ojo con la nota de acá abajo, que invita justo a la lectura que lo
+        // rompe: lo que la trampa 9a-bis pide es que el identifier no cuelgue de
+        // un CONTENEDOR de más, no que vaya lo más adentro posible. Las dos
+        // reglas conviven —identifier después de la representación, y el
+        // `keyframeAnimator` después del identifier— porque `offset` no crea
+        // elemento de accesibilidad y la representación sí.
         .accessibilityIdentifier("hud.quickhire")
         // ±4 pt, cuatro tramos, 0,3 s en total — las mismas keyframes que
         // `PricePill`, para que los dos botones de compra del juego digan "no"

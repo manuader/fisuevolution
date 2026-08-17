@@ -96,6 +96,10 @@ concurrencia) y con tests deterministas.
   abajo**, calculada, en vez de en fracciones del alto. Con ratios fijos el bug
   vuelve en otra pantalla: a 568 pt de alto la foto de `0.52 × alto` deja **5 pt**
   libres arriba. Ahora la foto cede y el texto entra siempre.
+  - ⚠️ **Superado desde `0d3b96d`**: la UI se apaga entera durante el reveal y el
+    texto va **centrado a pantalla completa**, así que ya no hay franja que
+    calcular ni banda del HUD que esquivar. `BoardScene.topInset` (176) quedó sin
+    uso. El párrafo de arriba queda como la historia del bug que lo motivó.
 - `BoardScene.topInset` existía y **no lo usaba nadie** — era para esto. Quedó en
   176 (162 medidos + 14 de aire).
 

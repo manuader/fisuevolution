@@ -23,6 +23,19 @@ struct RootView: View {
         // La UI está pensada para el mundo cálido/crema del juego; forzamos light
         // para que dark mode no rompa los grises/blancos de los menús.
         .preferredColorScheme(.light)
+        // Sin barra de estado: el juego es a pantalla completa y el panel ink del
+        // HUD llega hasta el borde físico, así que el reloj caía ENCIMA del panel.
+        // Y como forzamos light, el sistema lo dibuja en negro sobre el ink
+        // (contraste 1,50:1, ilegible) — el estilo del reloj sale del color scheme
+        // del controller raíz y no hay forma de aclararlo desde SwiftUI.
+        //
+        // ⚠️ Va acá y NO en `project.yml`: `INFOPLIST_KEY_UIStatusBarHidden` está
+        // puesto desde siempre y nunca funcionó, porque manda el view controller
+        // salvo que `UIViewControllerBasedStatusBarAppearance` sea NO — y esa clave
+        // Xcode no la traduce desde `INFOPLIST_KEY_*` (no está en su whitelist, así
+        // que se pierde sin avisar). Este modificador ES el mecanismo que el
+        // default espera.
+        .statusBarHidden(true)
         .onChange(of: scenePhase) { _, newPhase in
             gameState.handleScenePhase(newPhase)
         }

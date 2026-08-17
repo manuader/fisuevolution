@@ -206,6 +206,25 @@ struct GameArtComponentsTests {
         #expect(Set(metals.map(\.description)).count == 3)
     }
 
+    // MARK: - Materiales v3
+
+    @Test("deepened hunde el color sin tocar el alfa")
+    func deepenedDarkens() {
+        let base = Color(red: 0.8, green: 0.6, blue: 0.4, opacity: 0.9)
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        UIColor(base.deepened(0.5)).getRed(&r, green: &g, blue: &b, alpha: &a)
+        #expect(abs(r - 0.4) < 0.01)
+        #expect(abs(g - 0.3) < 0.01)
+        #expect(abs(b - 0.2) < 0.01)
+        #expect(abs(a - 0.9) < 0.01)
+    }
+
+    @Test("el radio de tarjeta es uno solo y los grises del locked son compartidos")
+    func cardMaterials() {
+        #expect(CardMaterials.cornerRadius == 18)
+        #expect(CardMaterials.lockedFill != CardMaterials.lockedBorder)
+    }
+
     // MARK: - Marcos v3
 
     @Test("el marco de madera publica el inset que usan sus pantallas")

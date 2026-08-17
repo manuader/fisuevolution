@@ -45,15 +45,49 @@ enum Tokens {
     static let s24: CGFloat = 24
 }
 
+// MARK: - Tono hundido
+
+extension Color {
+    /// El borde tono-sobre-tono del rediseño v3: el mismo color, hundido. Las
+    /// referencias no bordean con tinta —el verde lleva borde verde oscuro, el
+    /// naranja borde ladrillo, el crema borde marrón— y este helper es lo que
+    /// evita seis constantes sueltas que se irían separando.
+    func deepened(_ amount: Double = 0.35) -> Color {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        UIColor(self).getRed(&r, green: &g, blue: &b, alpha: &a)
+        let k = 1 - amount
+        return Color(red: r * k, green: g * k, blue: b * k, opacity: a)
+    }
+}
+
 // MARK: - GameCard
 
-/// La tarjeta de fila universal: crema, radio 14, contorno ink y sombra suave.
-/// Unifica `UpgradesView.cardBackground` y `FloorMapView.rowBackground`.
+/// La tarjeta de fila universal: crema, radio 18, contorno marrón cálido y
+/// sombra suave. Unifica `UpgradesView.cardBackground` y
+/// `FloorMapView.rowBackground`.
 ///
-/// - `highlighted(color)` sube el borde a 3 pt del color de acento y le agrega
-///   un halo del mismo color (piso actual, mejora recomendada, pack destacado).
-/// - `locked` desatura el conjunto —contenido incluido— en vez de usar
-///   `.disabled`, que baja la opacidad del texto hasta volverlo ilegible.
+/// - `highlighted(color)` sube el borde a 3 pt del color de acento, TIÑE el
+///   relleno con él y agrega un halo (piso actual, mejora recomendada, pack
+///   destacado, pinta puesta): la tarjeta elegida de la referencia es amarilla
+///   entera, no crema con un bordecito.
+/// - `locked` es la tarjeta GRIS de la referencia (aviso confidencial, pinta
+///   por ganar): relleno y borde grises + desaturación del contenido, en vez
+///   de `.disabled`, que baja la opacidad del texto hasta volverlo ilegible.
+/// Materiales de tarjeta del v3, fuera del genérico para que los llamadores no
+/// tengan que nombrar una especialización (`GameCard<EmptyView>.x`) y para que
+/// los `let` existan UNA vez.
+enum CardMaterials {
+    /// El radio de TODAS las tarjetas del juego. Expuesto porque los platos y
+    /// retratos que viven adentro derivan el suyo restándole aire, y un radio
+    /// suelto por pantalla es lo que la regla visual del dueño prohíbe.
+    static let cornerRadius: CGFloat = 18
+
+    /// Los grises de la tarjeta bloqueada, compartidos con `StateBadge`: el
+    /// mismo "no todavía" tiene que ser el mismo gris en los dos.
+    static let lockedFill = Color(red: 0.906, green: 0.882, blue: 0.831)   // #E7E1D4
+    static let lockedBorder = Color(red: 0.722, green: 0.690, blue: 0.627) // #B8B0A0
+}
+
 struct GameCard<Content: View>: View {
     enum Style {
         case normal
@@ -79,14 +113,22 @@ struct GameCard<Content: View>: View {
             .padding(Tokens.s12)
             .background(background)
             .saturation(isLocked ? 0.2 : 1)
-            .opacity(isLocked ? 0.78 : 1)
+            .opacity(isLocked ? 0.9 : 1)
     }
 
     private var background: some View {
-        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
-        let border: Color = accent ?? Color("PaletteInk").opacity(isLocked ? 0.3 : 1)
+        let shape = RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
+        let border: Color = accent ?? (isLocked ? CardMaterials.lockedBorder : Color("PaletteBrown").opacity(0.55))
         return shape
-            .fill(Color("PaletteCream"))
+            .fill(isLocked ? CardMaterials.lockedFill : Color("PaletteCream"))
+            .overlay {
+                // El teñido de la tarjeta destacada: el acento por encima del
+                // crema, no en su lugar — así el amarillo de "este" y el verde
+                // de "conviene" salen cálidos y el contenido sigue legible.
+                if let accent {
+                    shape.fill(accent.opacity(0.16))
+                }
+            }
             .overlay(shape.strokeBorder(border, lineWidth: accent == nil ? 2 : 3))
             .shadow(color: .black.opacity(0.16), radius: 5, y: 2)
             .shadow(color: (accent ?? .clear).opacity(0.35), radius: 8)
@@ -509,7 +551,7 @@ struct StateBadge: View {
         HStack(spacing: 4) {
             if let systemImage {
                 Image(systemName: systemImage)
-                    .font(.system(size: 10, weight: .black))
+                    .font(.system(size: 11, weight: .black))
             }
             Text(verbatim: text)
                 .font(Tokens.caption)
@@ -517,15 +559,23 @@ struct StateBadge: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.65)
         }
-        .foregroundStyle(Color("PaletteInk").opacity(muted ? 0.75 : 1))
-        .padding(.horizontal, Tokens.s8)
+        .foregroundStyle(Color("PaletteInk").opacity(muted ? 0.6 : 1))
+        .padding(.horizontal, Tokens.s8 + 2)
         .padding(.vertical, 6)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(muted ? Color("PaletteInk").opacity(0.07) : Color("PaletteOrange").opacity(0.28))
+            // Cápsula y no rectángulo: los badges de la referencia son
+            // píldoras ("Wearing it", "No details", "Unlocks at Corporate").
+            // muted comparte los grises de `GameCard.locked` — el mismo "no
+            // todavía" es el mismo gris en la tarjeta y en su badge — y el
+            // resto va en el naranja teñido con su borde hundido, como los
+            // materiales v3 de las pills.
+            Capsule()
+                .fill(muted ? CardMaterials.lockedFill : Color("PaletteOrange").opacity(0.22))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .strokeBorder(Color("PaletteInk").opacity(muted ? 0.35 : 0.8), lineWidth: 2)
+                    Capsule().strokeBorder(
+                        muted ? CardMaterials.lockedBorder : Color("PaletteOrange").deepened(0.25).opacity(0.75),
+                        lineWidth: 2
+                    )
                 )
         )
     }

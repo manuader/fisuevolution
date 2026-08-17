@@ -36,6 +36,10 @@ struct DailyRewardView: View {
         return gameState.content?.specials.specials.first { $0.id == id }
     }
 
+    /// El plato del glifo de premio: el mismo cuadrado redondeado con el que la
+    /// tira de Regalos encuadra su calendario y el fork sus caras.
+    private static let plateShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+
     var body: some View {
         // ⚠️ Los márgenes laterales y el de abajo son **medidos contra el arte**,
         // no heredados: `panel_reward` trae un marco DOBLE (verde y rojo) y con
@@ -100,7 +104,16 @@ struct DailyRewardView: View {
     @ViewBuilder private var prize: some View {
         if let special {
             VStack(spacing: Tokens.s4) {
+                // El moño sobre su plato amarillo: el glifo del premio es el
+                // retrato del popup, y en los materiales v3 los retratos no
+                // flotan sueltos sobre la tarjeta — el plato con su borde
+                // marrón es lo que los ancla (mismo encuadre que `DailyStrip`
+                // y que el personaje de `SpecialDropView`).
                 GameIcon(artKey: "ui_tab_gifts", size: 52) { VectorTabGiftsIcon() }
+                    .padding(Tokens.s8)
+                    .background(Color("PaletteYellow").opacity(0.3))
+                    .clipShape(Self.plateShape)
+                    .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
                 Text(LocalizedStringKey(special.displayNameKey))
                     .font(Tokens.display)
                     .foregroundStyle(Color("PaletteInk"))

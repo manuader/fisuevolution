@@ -246,6 +246,12 @@ final class GameState {
     /// **opacidad 0**: el reveal ocupa el centro de la pantalla y nada tiene que
     /// competirle. Sólo esa celebración lo hace — un toast de logro de 4 s no
     /// justifica apagar la interfaz entera.
+    ///
+    /// Y dentro de esa celebración, sólo la que ABRE un piso por primera vez
+    /// (pedido del dueño): la animación de subir se reproduce igual en todos los
+    /// ascensos, pero apagar la interfaz es un recurso de una sola vez por piso.
+    /// El ascenso número quince al urbano no es una noticia, y apagar el HUD ahí
+    /// sólo esconde monedas y botones que el jugador está usando.
     var celebrationHidesUI = false
 
 
@@ -255,6 +261,14 @@ final class GameState {
     /// Reemplazó a la cadena a mano (`celebrationChainActive` + dos campos
     /// `pending*`), que cubría un solo camino: el ascenso que abre piso.
     @ObservationIgnored var celebrations = CelebrationQueue()
+    /// Si la celebración del tablero que tiene (o va a tener) el turno es la que
+    /// abre un piso por primera vez.
+    ///
+    /// Es un PAYLOAD, y por eso vive acá y no en la cola: `CelebrationQueue` es
+    /// pura y guarda turnos, no contenidos, igual que `skinAward` o `dailyClaim`.
+    /// Lo escribe `celebrateBoard` y lo suelta `releasePayload`, en
+    /// `+Celebrations`.
+    @ObservationIgnored var boardCelebrationOpensFloor = false
     /// El evento cuyo banner ya tuvo su turno. Sin esto el banner se reencolaría
     /// para siempre: el evento sigue activo 30 s y el banner se cierra a los 6.
     @ObservationIgnored var announcedEventID: String?

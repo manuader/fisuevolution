@@ -188,6 +188,13 @@ class TransientBrowserErrorTests(unittest.TestCase):
         from selenium.common.exceptions import StaleElementReferenceException
 
         browser = GeminiBrowser(timeout=5)
+        # `_wait_for` chequea el bloqueo en cada vuelta, y eso habla con el
+        # Chrome real. Sin este stub el test es FLAKY: con el navegador
+        # levantado cada iteración tarda lo suficiente como para comerse los 5 s
+        # antes del tercer intento, y falla por timeout en vez de por la
+        # conducta que prueba. Lo que se está probando es el reintento ante un
+        # DOM rehecho, no la detección de bloqueo ni la conexión al navegador.
+        browser._check_blocked = lambda: None
         calls = {"n": 0}
 
         def flaky():

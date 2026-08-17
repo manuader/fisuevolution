@@ -402,36 +402,24 @@ struct GameBoardView: View {
     /// `accessibilityReduceMotion` apagándolo.
     private var bottomBar: some View {
         VStack(spacing: Tokens.s8) {
-            prestigeButton
-                .padding(.horizontal, Tokens.s8)
-            QuickHireButton()
+            // Contratar a la izquierda y reencarnar a la derecha, en la MISMA
+            // fila y cada uno contra su borde: los dos extremos de la misma
+            // decisión —lo que comprás y lo que cobrás— leídos de un vistazo.
+            // Antes reencarnar flotaba solo en su propio renglón, lo que lo
+            // dejaba sin par visual y le comía una franja al tablero.
+            //
+            // `alignment: .top` y no `.center`: si con Dynamic Type una cápsula
+            // crece más que la otra, se alinean por arriba en vez de descolgarse
+            // media altura cada una.
+            HStack(alignment: .top, spacing: Tokens.s8) {
+                QuickHireButton()
+                Spacer(minLength: Tokens.s8)
+                PrestigeButton { showPrestige = true }
+            }
+            .padding(.horizontal, Tokens.s8)
             BottomMenuBar(select: open)
         }
         .tutorialAnchor(.bottomBar)
-    }
-
-    /// Reencarnar salió de la barra: es una acción rara y definitiva, y un
-    /// séptimo tab la pondría al lado de la tienda. Queda flotando sobre el
-    /// tablero contra el borde derecho, y sólo cuando hay algo que cobrar.
-    @ViewBuilder private var prestigeButton: some View {
-        if gameState.prestigeAvailable {
-            Button {
-                showPrestige = true
-            } label: {
-                Label {
-                    Text("prestige.button")
-                } icon: {
-                    Image(systemName: "sparkles")
-                }
-                .font(.headline)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(Color("PalettePink"))
-            .accessibilityIdentifier("hud.prestige")
-            .frame(maxWidth: .infinity, alignment: .trailing)
-        }
     }
 
         /// DailyRewardManager.Claim no es Identifiable; wrapper para .sheet(item:).

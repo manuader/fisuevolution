@@ -1,7 +1,7 @@
 # 218 — Moneda con mas (UI · rediseño)
 
 - **archivo**: `ui_coin_plus.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

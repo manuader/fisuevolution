@@ -1,7 +1,7 @@
 # 223 — Ajustes (UI · rediseño)
 
 - **archivo**: `ui_menu_settings.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

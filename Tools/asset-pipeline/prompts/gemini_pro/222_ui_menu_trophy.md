@@ -1,7 +1,7 @@
 # 222 — Logros (UI · rediseño)
 
 - **archivo**: `ui_menu_trophy.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -597,6 +597,21 @@
     "rentista_soles_face": "rentista_soles_face",
     "estanciero_estelar_face": "estanciero_estelar_face",
     "coleccionista_galaxias_face": "coleccionista_galaxias_face",
-    "fondo_buitre_face": "fondo_buitre_face"
+    "fondo_buitre_face": "fondo_buitre_face",
+    "ui_tab_upgrades": "ui_tab_upgrades",
+    "ui_tab_gifts": "ui_tab_gifts",
+    "ui_tab_shop": "ui_tab_shop",
+    "ui_elevator": "ui_elevator",
+    "ui_menu_orgchart": "ui_menu_orgchart",
+    "ui_menu_stats": "ui_menu_stats",
+    "ui_menu_trophy": "ui_menu_trophy",
+    "ui_menu_settings": "ui_menu_settings",
+    "ui_trophy_bronze": "ui_trophy_bronze",
+    "ui_trophy_silver": "ui_trophy_silver",
+    "ui_trophy_gold": "ui_trophy_gold",
+    "ui_daily_calendar": "ui_daily_calendar",
+    "ui_tab_menu": "ui_tab_menu",
+    "ui_coin_plus": "ui_coin_plus",
+    "ui_tab_skins": "ui_tab_skins"
   }
 }

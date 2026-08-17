@@ -1,7 +1,7 @@
 # 213 — Tab Mejoras (UI · rediseño)
 
 - **archivo**: `ui_tab_upgrades.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

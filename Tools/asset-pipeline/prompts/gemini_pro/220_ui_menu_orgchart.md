@@ -1,7 +1,7 @@
 # 220 — Organigrama (UI · rediseño)
 
 - **archivo**: `ui_menu_orgchart.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -1,7 +1,7 @@
 # 216 — Tab Tienda (UI · rediseño)
 
 - **archivo**: `ui_tab_shop.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

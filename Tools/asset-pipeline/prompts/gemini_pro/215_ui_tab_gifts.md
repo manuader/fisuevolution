@@ -1,7 +1,7 @@
 # 215 — Tab Regalos (UI · rediseño)
 
 - **archivo**: `ui_tab_gifts.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

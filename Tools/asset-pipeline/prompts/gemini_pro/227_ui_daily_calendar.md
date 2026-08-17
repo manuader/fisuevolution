@@ -1,7 +1,7 @@
 # 227 — Calendario diario (UI · rediseño)
 
 - **archivo**: `ui_daily_calendar.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -1,7 +1,7 @@
 # 221 — Stats (UI · rediseño)
 
 - **archivo**: `ui_menu_stats.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -1,7 +1,7 @@
 # 219 — Ascensor (UI · rediseño)
 
 - **archivo**: `ui_elevator.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

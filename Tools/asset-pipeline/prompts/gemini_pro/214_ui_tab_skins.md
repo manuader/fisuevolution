@@ -1,7 +1,7 @@
 # 214 — Tab Personalizacion (UI · rediseño)
 
 - **archivo**: `ui_tab_skins.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

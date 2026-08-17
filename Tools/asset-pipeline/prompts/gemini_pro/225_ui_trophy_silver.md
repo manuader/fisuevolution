@@ -1,7 +1,7 @@
 # 225 — Trofeo plata (UI · rediseño)
 
 - **archivo**: `ui_trophy_silver.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

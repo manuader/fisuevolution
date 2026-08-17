@@ -24,7 +24,26 @@
 > gates humanos de F6**: la cuenta de Apple Developer (RF-02c) y la fuente de
 > audio (RF-14). No queda NINGUNA tarea de código pendiente.
 >
-> **Empezá por acá.** Última actualización: **2026-08-16** (cierre post-merge).
+> ✅ **Y el rediseño de la PANTALLA PRINCIPAL está hecho** — 6 tareas en
+> `feature/rediseno-pantalla-principal` (19 commits sobre `4c1e67c`): las 5 del
+> plan más una **enmienda del dueño a mitad de vuelo**, todas cerradas y las de
+> código revisadas. La pantalla dejó de ser un tablero con islas flotando:
+> las **dos barras son gemelas en crema con contorno ink** y están **fundidas a
+> su borde** (arriba y abajo), los **iconos de los 6 tabs son gigantes y llevan
+> su nombre debajo**, la **barra de estado se oculta de verdad** (le faltaba la
+> clave compañera en `project.yml`), y hay un **botón nuevo que contrata al
+> mejor tier que la plata alcanza** sin abrir FisuJobs (`hud.quickhire`). El
+> detalle está en **`Docs/SESION-2026-08-17-rediseno-pantalla-principal.md`**.
+> Números de su cierre: EconomyKit **200** · app **370** · UI **44 sin un solo
+> `-skip-testing:`** (los 183/346/43 de más abajo quedaron viejos). ⚠️ Dos cosas
+> para tener a mano: en **SE la barra va a 374 de 375 pt** —los iconos no crecen
+> más sin sacrificar los labels— y un `Button` de SwiftUI **publica su label
+> como hijos de AX pase lo que pase**: sólo `accessibilityRepresentation` lo
+> aplana sin romper el hit-testing (la tabla de las 5 formas medidas quedó en
+> `QuickHireButton.swift`).
+>
+> **Empezá por acá.** Última actualización: **2026-08-17** (rediseño de la
+> pantalla principal).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >

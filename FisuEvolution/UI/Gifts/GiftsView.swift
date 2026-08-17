@@ -34,18 +34,15 @@ struct GiftsView: View {
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    /// Margen lateral del contenido. **Medido sobre el arte**, con el mismo
-    /// método que `FisuJobsView` (30 pt contra `panel_store`), `UpgradesView`
-    /// (40 contra `panel_upgrades`) y `FloorMapView` (36 contra `panel_dialog`):
-    /// el 9-slice dibuja los bordes a tamaño natural, así que el píxel `x` del
-    /// PNG cae en `x / (anchoPx / 200)` puntos del destino. Sondeando
-    /// `panel_reward@3x.png` (640², escala 3,2) en su franja recta, el marco es
-    /// **doble**: trazo de tinta de 30,6 a 32,8 pt, un hueco claro, y una segunda
-    /// línea de 35,9 a 37,8. Recién a 38 pt la columna entra adentro de las dos.
-    /// Con menos, las tarjetas —crema opaco— pintan por encima del marco y el
-    /// arte del panel se ve cortado. Si `panel_reward` se re-exporta, se vuelve
-    /// a medir.
-    private static let panelInset: CGFloat = 38
+    /// Margen lateral del contenido. **Medido sobre el arte**: es el mismo
+    /// 30 pt de `FisuJobsView` contra `panel_store`, que desde el rediseño v3
+    /// es también el marco de esta pantalla (la referencia de Regalos es la
+    /// madera con toldo y el moño encima — el `panel_reward` verde quedó para
+    /// los popups de premio). El método sigue siendo el de siempre: el 9-slice
+    /// dibuja las esquinas a tamaño natural, el poste va de 21 a 32 pt, y a
+    /// 30 la columna deja el poste entero a la vista. Si `panel_store` se
+    /// re-exporta, se vuelve a medir.
+    private static let panelInset: CGFloat = 30
 
     var body: some View {
         // `effectsVersion` sube al activar un boost o acreditar un video: es lo
@@ -102,7 +99,17 @@ struct GiftsView: View {
                 .padding(.top, Tokens.s4)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { PanelBackground(art: "panel_reward") }
+            .background {
+                PanelBackground(art: "panel_store")
+                    // El moño de la referencia, apoyado sobre el toldo. Vive en
+                    // el background —que ignora la safe area— para poder pisar
+                    // el borde de arriba del marco; el contenido no lo toca.
+                    .overlay(alignment: .top) {
+                        GiftBowOrnament()
+                            .offset(y: -6)
+                            .allowsHitTesting(false)
+                    }
+            }
             .safeAreaInset(edge: .top) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
@@ -130,12 +137,13 @@ struct GiftsView: View {
     /// acá se corta igual que en las otras cuatro pantallas.
     private var header: some View {
         HStack(spacing: Tokens.s8) {
-            // El mismo moño del tab que abre esta hoja: el viaje de un lado al
-            // otro se lee como uno solo. Es decoración —el título ya dice
-            // "Regalos"—, así que se esconde de VoiceOver.
-            GameIcon(artKey: "ui_tab_gifts", size: 34) { VectorTabGiftsIcon() }
-                .accessibilityHidden(true)
-            PanelTitleBanner(titleKey: "gifts.title")
+            // El mismo moño del tab que abre esta hoja, ADENTRO de la cápsula
+            // del título (así componen las referencias). El banner ya lo tapa
+            // de VoiceOver: es decoración, el título dice "Regalos".
+            PanelTitleBanner(
+                titleKey: "gifts.title",
+                icon: AnyView(GameIcon(artKey: "ui_tab_gifts", size: 26) { VectorTabGiftsIcon() })
+            )
         }
         .padding(.horizontal, Self.panelInset)
         .padding(.top, 6)
@@ -380,11 +388,14 @@ private struct BoostCard: View {
 
     var body: some View {
         Group {
-            // El boost que todavía no está se ve, pero apagado: es la zanahoria.
+            // El boost que todavía no está se ve, pero apagado: es la
+            // zanahoria. La tarjeta se pone gris y el CONTENIDO queda a color
+            // (referencia v3): el mate bloqueado se antoja igual, y lo que
+            // falta lo dice el badge del riel.
             if row.isUnlocked {
                 GameCard(style: .normal) { content }
             } else {
-                GameCard(style: .locked) { content }
+                GameCard(style: .locked, contentDimsWhenLocked: false) { content }
             }
         }
         // ⚠️ El elemento de estado va en una capa VACÍA y **detrás** (patrón T8):

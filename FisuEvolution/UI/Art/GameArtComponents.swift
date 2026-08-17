@@ -150,6 +150,12 @@ struct GameCard<Content: View>: View {
     }
 
     var style: Style = .normal
+    /// Si el CONTENIDO se apaga junto con la tarjeta bloqueada. El default es
+    /// el misterio (aviso confidencial, pinta por ganar: todo gris); Regalos lo
+    /// apaga en `false` porque su referencia muestra el boost bloqueado con el
+    /// arte a color sobre la tarjeta gris — la zanahoria se ve, lo que falta lo
+    /// dice el badge.
+    var contentDimsWhenLocked: Bool = true
     @ViewBuilder var content: () -> Content
 
     private var isLocked: Bool {
@@ -166,7 +172,7 @@ struct GameCard<Content: View>: View {
         content()
             .padding(Tokens.s12)
             .background(background)
-            .saturation(isLocked ? 0.2 : 1)
+            .saturation(isLocked && contentDimsWhenLocked ? 0.2 : 1)
             .opacity(isLocked ? 0.9 : 1)
     }
 

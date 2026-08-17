@@ -35,7 +35,8 @@ marco son transparentes (alfa 8–15, medido), así que el pergamino entra por
 | T10 barrido tinta→marrón en shops + glifos adentro del banner | `8bf1ae1` | ✅ |
 | T11 HUD: QuickHire/Prestigio a PillBackground, chips marrones | `f4ae8b8` | ✅ |
 | — ProgressBar borde cálido (cierre del barrido) | `0091a67` | ✅ |
-| T12 verificación (tests + capturas vs referencias) | — | ⏳ EN CURSO |
+| — fix round visual: moño al toldo, glifo de tienda a la cápsula | `321ba88` | ✅ |
+| T12 verificación (tests + capturas vs referencias) | — | ⏳ suite de UI corriendo |
 
 ## Decisiones tomadas (con su porqué)
 
@@ -80,6 +81,28 @@ marco son transparentes (alfa 8–15, medido), así que el pergamino entra por
   corrido).
 - Archivos de la sesión paralela del dueño (`GameState+Upgrades.swift`,
   `UpgradesMenuTests.swift`) NO tocados.
+
+## Verificación (2026-08-17, tarde)
+
+- **EconomyKit 200/200** ✅. **Unit de app: 375 tests, único rojo =
+  `StoreManagerTests.refundRevokesEntitlement`** — el flaky sensible a carga
+  documentado en HANDOFF §6 (la corrida tardó 29 min con load ~465);
+  **verde aislado en 22,9 s** ✅, y la clase entera 10/10.
+- **Capturas de las 13 pantallas contra las 4 referencias: verificadas.**
+  FisuJobs, Upgrades y Pintas clavan la referencia; Regalos necesitó el fix
+  del moño; la familia del menú en madera quedó día-y-noche contra el
+  panel_config; Ascensor en metal; Tienda con Featured teñida. La pantalla
+  principal conserva las decisiones del dueño con los materiales nuevos en
+  QuickHire/chips.
+- ⚠️ **Trampa nueva para el HANDOFF: el cwd de una sesión de agente puede
+  volverse SOLO al checkout principal** (pasó entre dos corridas de esta
+  sesión). La PRIMERA corrida de UI se ejecutó sin querer contra el árbol del
+  dueño —sus fallas eran de ese árbol, no del rediseño— y el `build/DD` del
+  checkout principal quedó tocado por esa corrida. Detectado porque la captura
+  del Menú mostraba v2 y el binario no tenía los símbolos v3. Mitigación de
+  ahí en más: `EnterWorktree` de nuevo + rutas absolutas en los comandos de
+  build/test. La corrida de UI definitiva (worktree, DD absoluto) es la que
+  vale.
 
 ## Cómo retomar (agente nuevo)
 

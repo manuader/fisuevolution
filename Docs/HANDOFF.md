@@ -42,8 +42,8 @@
 > aplana sin romper el hit-testing (la tabla de las 5 formas medidas quedó en
 > `QuickHireButton.swift`).
 >
-> **Empezá por acá.** Última actualización: **2026-08-17** (rediseño de la
-> pantalla principal).
+> **Empezá por acá.** Última actualización: **2026-08-17** (cola de
+> celebraciones, franja de abajo y fork de carrera — §4).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
@@ -245,6 +245,39 @@ v2, Menú) más el Ascensor y las cuatro sub-pantallas del menú
 también. La regla que lo hace reproducible es **correr unit antes que UI**
 (§7).
 
+### Sesión del 2026-08-17 — Celebraciones de a una, y dos pantallas al día
+
+**La cola de celebraciones** (detalle arriba y en su spec). Lo que hay que saber
+si se la toca: el turno del ascenso lo pide `handleDrop` y **no** la escena, y esa
+no es una preferencia de estilo — `updateMaxFloorStat()` acredita la skin de
+milestone DENTRO del mismo merge, así que si la escena encolara después, el sheet
+ya tendría el turno y taparía el vuelo y el reveal. Que es exactamente el bug que
+la cola viene a arreglar. Lo cazó el test de wiring, no el simulador.
+
+**La franja de abajo**: contratar y reencarnar comparten fila, cada uno contra su
+borde. `PrestigeButton` es el espejo de `QuickHireButton` —misma cápsula, mismo
+borde ink, mismo alto derivado de `QuickHireButton.capsuleHeight`— y era el último
+`.buttonStyle(.borderedProminent)` de la pantalla principal.
+
+**El fork de carrera** (`CareerChoiceView`) pasó a la anatomía de fila de
+FisuJobs, con el **retrato de cada carrera**: era la última pantalla con botones
+del sistema, y pedía la decisión más definitiva del juego sin mostrar a quién
+elegías.
+
+⚠️ **Y era la única pantalla del juego sin un solo test de UI** — no por descuido:
+alcanzarla cuesta horas de partida y no vuelve hasta la próxima reencarnación. Por
+eso se hizo vieja sin que nadie lo notara. Ahora hay `--uitest-career` (que además
+marca `fisuTutorialDone`, porque el sheet está gateado por él y `--uitest-reset`
+no lo toca) y `CareerChoiceUITests`. **Si una pantalla no se puede abrir con un
+fixture, se va a poner vieja: es la lección, no el caso puntual.**
+
+**La skin Reparto Cohete**, regenerada. Lo que fallaba era el prompt, no el
+modelo: le sacaba a la vez los DOS anclajes de silueta del Repartidor (la
+mochila-cubo y el casco) y encima pedía naranja, que es el color del personaje
+base. Sin nada a lo que agarrarse, la primera pasada devolvió un vendedor
+callejero con bandeja de golosinas y un gato. La receta que funcionó está en el
+`.md` del prompt: **reskinear los anclajes en vez de borrarlos**.
+
 ### Sesión del 2026-08-10
 
 Cuatro commits, de `853bb1b` a `de9b76e`. **Dos frentes en paralelo** —uno de
@@ -362,9 +395,16 @@ progresión—, el ascenso, los sheets de premio, y al final banners y toasts.
   acredita la skin dentro del mismo merge, y si el ascenso encolara después el
   sheet ya tendría el turno y taparía el vuelo.
 - La UI se apaga **del todo** —opacidad 0 y sin hit-testing (`celebrationHidesUI`)—
-  y **sólo** en la celebración a pantalla completa. El reveal va **centrado a
-  pantalla completa**: desde `0d3b96d` ya no se ancla bajo la banda del HUD, así
-  que no tiene nada que esquivar. `BoardScene.topInset` (176) quedó sin uso.
+  pero **sólo en el primer desbloqueo de cada piso**, no en todo merge que
+  celebre (`6afe1d8`). Apagar el HUD esconde monedas y botones que el jugador
+  está usando: es un recurso de una sola vez y se gana con la noticia, no con el
+  ascenso número quince al urbano. La bandera la lleva el PAYLOAD
+  (`celebrateBoard(opensNewFloor:)`), no el turno, y no se pisa si la celebración
+  ya está en pantalla — si no, el HUD se prendería a mitad del vuelo.
+- El reveal va **centrado a pantalla completa**: desde `0d3b96d` ya no se ancla
+  bajo la banda del HUD, así que no tiene nada que esquivar.
+  `BoardScene.topInset` (176) quedó sin uso, y se conserva sólo porque es el
+  número MEDIDO de la banda del HUD.
 
 Detalle en `Docs/SESION-2026-08-17-cola-de-celebraciones.md` y su spec.
 
@@ -467,6 +507,23 @@ salteada.
 ⚠️ Y se tomó **en malas condiciones a propósito**: arrancó con la máquina en
 `load average` **~156** por frentes ajenos y la suite pasó entera igual, con
 **cero flakies re-corridos**. O sea que el 43 no es un número de laboratorio.
+
+#### Cómo se movieron desde entonces (2026-08-17)
+
+Los cuatro de arriba son **el último cuádruple tomado con la receta completa**.
+Lo que se sumó después está medido, pero cada suite por su lado y en el simulador
+compartido, así que no lo reemplaza:
+
+| Suite | 2026-08-16 | Hoy | Qué entró |
+|---|---|---|---|
+| EconomyKit | 183 | **200** | `CelebrationQueueTests` |
+| app | 346 | **371** | `CelebrationWiringTests`, `RevealLayoutTests` |
+| UI | 43 | **45** | `CareerChoiceUITests` |
+| pipeline | 27 | 45 | frentes de arte ajenos |
+
+**El próximo cuádruple hay que tomarlo con la receta de arriba**, no sumando
+estos. Y ojo con `refundRevokesEntitlement` (StoreKit + `SKTestSession`): falló
+tres veces en corridas completas de este día y pasó aislado todas ellas.
 
 - El rojo del pipeline es `test_wait_for_survives_a_stale_element_and_retries`:
   pide un Chrome escuchando en `:9222`. Es de entorno y es el baseline.
@@ -845,6 +902,21 @@ El panel de debug es el ícono de herramientas del HUD.
    `-derivedDataPath`.
 
 ---
+
+### Trabajar en paralelo con otra sesión (2026-08-17)
+
+Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
+
+1. **El simulador es un recurso compartido.** Otra sesión tomó el mismo
+   simulador dos veces a mitad de una QA visual: aparecía SU app en el
+   foreground y mis taps entraban ahí. Se pierde la captura y, peor, se
+   interfiere con el trabajo del otro. **Creá el tuyo** (`xcrun simctl create` +
+   `bootstatus -b`) y cerralo al terminar, que además es la receta que §6 ya pide
+   para medir.
+2. **`git add` amplio se come trabajo ajeno.** Un `git add -A FisuEvolution` metió
+   un cambio de la otra sesión (`bottomInset` a computado) adentro de un commit de
+   celebraciones. Con dos frentes sobre el mismo checkout, **stagear por archivo**
+   y mirar `git status` antes de cada commit no es ceremonia.
 
 ## 8. Qué queda
 

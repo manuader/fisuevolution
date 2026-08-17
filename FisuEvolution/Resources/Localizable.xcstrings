@@ -4073,6 +4073,23 @@
         }
       }
     },
+    "quickhire.ax.purpose %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hire %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contratar a %@"
+          }
+        }
+      }
+    },
     "settings.about.credits" : {
       "localizations" : {
         "en" : {

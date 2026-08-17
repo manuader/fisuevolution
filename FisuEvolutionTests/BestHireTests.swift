@@ -248,6 +248,42 @@ struct BestHireTests {
         #expect(gameState.boardVersion > boardBefore)
     }
 
+    /// El botón **no** está deshabilitado cuando no alcanza: se toca igual y
+    /// tiembla (patrón `PricePill`, spec §11.2). Eso deja una ruta de compra
+    /// abierta con el saldo corto, y lo que la cierra no es la vista sino
+    /// `TowerActions.hire`, que revalida el saldo. Este test es el que pinea
+    /// que la revalidación esté puesta: si algún día la ruta rápida se saltea
+    /// el guard —o si el botón pasara a recalcular la oferta en el toque en vez
+    /// de leer la proyección—, acá se contrata gratis y el test lo dice.
+    @Test("tocar la oferta sin saldo no compra ni cobra ni cuenta")
+    func tappingAnUnaffordableOfferBuysNothing() async throws {
+        let gameState = await makeGameState()
+        gameState.refreshProjections()
+
+        // Partida nueva: cero monedas y el Fisura a 50 como meta de ahorro.
+        let best = try #require(gameState.bestHire)
+        #expect(!best.affordable, "el escenario del test es justamente el saldo corto")
+
+        let unitsBefore = try #require(gameState.player?.run.units)
+        let totalUnitsBefore = try #require(gameState.player?.run.totalUnits)
+        let coinsBefore = try #require(gameState.player?.run.coins)
+        let hiresBefore = try #require(gameState.player?.meta.stats.totalHiresEver)
+
+        gameState.hireBestCharacter()
+
+        #expect(gameState.player?.run.units == unitsBefore, "no se coloca ninguna unidad")
+        #expect(gameState.player?.run.totalUnits == totalUnitsBefore)
+        #expect(gameState.player?.run.coins == coinsBefore, "no se cobra nada")
+        #expect(gameState.player?.meta.stats.totalHiresEver == hiresBefore, "no cuenta como contratación")
+        #expect(gameState.player?.run.hireCountsByType[best.typeId] == nil,
+                "la curva del tipo no se mueve con una compra que no ocurrió")
+
+        // Y la oferta sigue igual después del rechazo: el botón no se apaga ni
+        // cambia de personaje por haberlo tocado.
+        gameState.refreshProjections()
+        #expect(gameState.bestHire == best)
+    }
+
     @Test("comprar mueve la oferta: la curva del tipo sube y el precio nuevo se publica")
     func buyingMovesTheOffer() async throws {
         let gameState = await makeGameState()

@@ -116,8 +116,44 @@ struct QuickHireButton: View {
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        // ⚠️ **UNA sola parada: el botón no puede exponer el nombre del personaje
+        // como un elemento suelto.** Es el patrón T8 de la casa —los nombres los
+        // anuncia el resumen de quien los contiene, nunca un `StaticText`
+        // propio— y lo cazó `FisuJobsUITests.testContratarSubeElContadorDeLaFila`,
+        // que asserta `app.staticTexts["El Fisura"].exists == false` sobre la app
+        // ENTERA: la hoja de FisuJobs tapa la pantalla principal pero **no** tapa
+        // el árbol de AX, así que este botón le metía el nombre suelto en la
+        // escena a un test más viejo que la rama entera.
+        //
+        // ⚠️⚠️ **Y tiene que ser `accessibilityRepresentation`.** Un `Button` de
+        // SwiftUI publica el contenido de su label como hijos pase lo que pase
+        // —`hud.prestige` expone su 'Reincarnate' y los tabs su 'Outfits',
+        // miralos en cualquier dump—, y las cuatro formas que uno escribiría
+        // NO lo evitan. Medido con dumps del árbol de AX, no supuesto:
+        //
+        //   · `.accessibilityElement(children: .ignore)` sobre el `Button`  → siguen
+        //   · `.accessibilityHidden(true)` sobre el contenido del label       → siguen
+        //   · `.accessibilityElement(children: .ignore)` dentro del label     → siguen
+        //   · `.accessibilityHidden(true)` sobre cada `Text` hoja             → siguen
+        //   · `.accessibilityChildren { EmptyView() }`  → los saca, PERO deja el
+        //     botón `isHittable == false`: rompe el smoke test y, peor, la
+        //     activación por VoiceOver.
+        //
+        // `accessibilityRepresentation` es la única que da las tres cosas a la
+        // vez: sin hijos, sigue siendo `Button` con su label compuesto, y sigue
+        // siendo tocable. Reemplaza la accesibilidad del control por la de este
+        // `Color.clear` —que ocupa el mismo frame— sin tocar el dibujo ni el
+        // hit-testing reales.
+        //
+        // El trait va explícito porque el sustituto es un `Color.clear` pelado:
+        // sin él, `app.buttons["hud.quickhire"]` deja de encontrarlo.
+        .accessibilityRepresentation {
+            Color.clear
+                .accessibilityElement()
+                .accessibilityAddTraits(.isButton)
+                .accessibilityLabel(spokenLabel(for: best))
+        }
         .accessibilityIdentifier("hud.quickhire")
-        .accessibilityLabel(spokenLabel(for: best))
         // ±4 pt, cuatro tramos, 0,3 s en total — las mismas keyframes que
         // `PricePill`, para que los dos botones de compra del juego digan "no"
         // igual. Va **último** para que el identifier quede pegado al botón y no

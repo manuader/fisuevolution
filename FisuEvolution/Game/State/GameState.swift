@@ -436,6 +436,17 @@ final class GameState {
                let slot = visiblePlacements.first?.slot {
                 presentCharacterSheet(cellIndex: slot)
             }
+            // El fork de carrera, abierto.
+            //
+            // Es la pantalla más cara de alcanzar del juego: hay que llegar a T9
+            // y fusionar el par, o sea horas de partida, y una vez elegida NO
+            // vuelve a aparecer hasta la próxima reencarnación. Sin esta puerta
+            // no se puede ni fotografiar ni ejercitar — y de hecho es la única
+            // pantalla que quedó sin un solo test de UI, que es exactamente por
+            // qué se hizo vieja sin que nadie lo notara.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-career") {
+                debugPresentCareerChoice()
+            }
             #endif
             applyOfflineProgressIfNeeded()
             // El primer launch de una cuenta nueva no reclama daily: el jugador

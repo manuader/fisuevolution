@@ -180,6 +180,38 @@ extension GameState {
     /// `max` para no PISAR un save que ya tuviera más: el fixture agrega, no
     /// retrocede.
     ///
+    /// Abre el fork de carrera sin haber llegado a T9.
+    ///
+    /// Toma las opciones del catálogo —el `choiceOptions` del tier que bifurca—
+    /// en vez de nombrarlas acá: la elección de carrera es data-driven, así que
+    /// una quinta rama tiene que aparecer sola en el fixture igual que aparece
+    /// en el juego.
+    ///
+    /// Los slots son los dos primeros del piso visible. No importan para lo que
+    /// el fixture habilita —mirar la pantalla y elegir— porque `chooseCareer`
+    /// resuelve el merge diferido contra lo que haya ahí; si no hay par, la
+    /// elección se acredita igual (RF-15: elegiste, cobrás).
+    func debugPresentCareerChoice() {
+        guard let content else { return }
+        guard let fork = content.tiers.types.first(where: { ($0.choiceOptions?.count ?? 0) > 1 }),
+              let options = fork.choiceOptions
+        else { return }
+        let types = options.compactMap { content.tiers.type(id: $0) }
+        guard types.count > 1 else { return }
+        // El sheet está gateado por `fisuTutorialDone`, y `--uitest-reset` NO lo
+        // toca: sin esto el fixture abre el prompt y la vista no lo muestra, que
+        // es la forma más confusa de fallar. Mismo criterio que
+        // `--uitest-daily-popup`, que también existe para saltear una puerta.
+        UserDefaults.standard.set(true, forKey: "fisuTutorialDone")
+        let slots = visiblePlacements.map(\.slot).sorted()
+        careerPrompt = CareerPrompt(
+            options: types,
+            sourceCell: slots.first ?? 0,
+            targetCell: slots.dropFirst().first ?? 1
+        )
+        syncCelebrations()
+    }
+
     /// ⚠️ Deja los logros desbloqueados y **sin cobrar** a propósito: cobrarlos
     /// es lo que el test ejerce. Corre en `bootstrap` con `phase == .loading`,
     /// así que `evaluateAchievements` acredita sin desfilar tres banners.

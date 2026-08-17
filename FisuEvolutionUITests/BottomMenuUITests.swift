@@ -106,6 +106,54 @@ final class BottomMenuUITests: XCTestCase {
                              "la barra tiene que estar pegada abajo, arrancó en \(jobs.frame.minY)")
     }
 
+    /// El atajo de contratar al mejor vive **encima** de la barra y nunca está
+    /// apagado.
+    ///
+    /// El arranque es el de la suite SIN `--uitest-coins`: partida nueva, cero
+    /// monedas y el pasivo todavía sin comprar (`passiveUnlockCostMultiplier`,
+    /// `economy.json`), así que el saldo no se mueve solo mientras el test
+    /// espera. En ese estado la oferta es el Fisura a 50 como META DE AHORRO:
+    /// el botón se dibuja igual —nunca `.disabled`, patrón `PricePill`—, se
+    /// puede tocar, tiembla, y **no compra nada**. Eso es lo que se pinea:
+    /// tocarlo sin saldo deja el tablero y el saldo donde estaban.
+    ///
+    /// ⚠️ `--uitest-skip-tutorial` no es opcional: con el tutorial puesto el
+    /// scrim se come el toque (trampa 9) y el test pasaría por no tocar nada.
+    @MainActor
+    func testQuickHireButtonExistsAndSurvivesBrokeTap() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
+        app.launch()
+
+        let quickHire = app.buttons["hud.quickhire"]
+        XCTAssertTrue(quickHire.waitForExistence(timeout: 20),
+                      "el atajo de contratar nunca apareció en la pantalla principal")
+        XCTAssertTrue(waitUntilHittable(quickHire), "el atajo nunca quedó tocable")
+        attach(app, named: "T4 atajo de contratar sin saldo")
+
+        // Encima de la barra, no adentro: si algún día cae dentro de la franja
+        // de los tabs, tapa uno.
+        let jobs = app.buttons["hud.hire"]
+        XCTAssertTrue(jobs.exists)
+        XCTAssertLessThanOrEqual(quickHire.frame.maxY, jobs.frame.minY,
+                                 "el atajo se metió adentro de la barra de tabs")
+
+        let unitsBefore = app.otherElements["board.units"].value as? String
+        let coinsBefore = app.otherElements["hud.coins"].value as? String
+        quickHire.tap()
+
+        // El temblor dura 0,3 s; si la compra hubiera entrado, `board.units`
+        // sube en el mismo frame. Se le da aire igual para no medir antes de
+        // tiempo.
+        Thread.sleep(forTimeInterval: 1.0)
+        XCTAssertEqual(app.otherElements["board.units"].value as? String, unitsBefore,
+                       "sin saldo el atajo no puede contratar")
+        XCTAssertEqual(app.otherElements["hud.coins"].value as? String, coinsBefore,
+                       "sin saldo el atajo no puede cobrar")
+        // Y sigue ahí después del toque: un botón de compra no se apaga solo.
+        XCTAssertTrue(quickHire.exists)
+    }
+
     /// Espera a que aparezca ALGUNO de los identifiers, mirando los tres tipos
     /// que usan las pantallas: botón (contratar, comprar, activar), texto de
     /// estado (los placeholders) y contenedor (el cartel de tienda vacía).

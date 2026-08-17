@@ -21,50 +21,128 @@ struct HUDView: View {
     /// El mapa se presenta desde acá y no desde `RootView` a propósito: vive
     /// pegado a la navegación de la torre, que es lo único que reemplaza.
     @State private var showFloorMap = false
+    /// El inset superior REAL de la pantalla, leído de la ventana al aparecer.
+    ///
+    /// Arranca en 44 —el notch más chico que existe— y **no** en 0 a propósito:
+    /// el valor de verdad recién llega con el `onAppear`, y arrancando en 0 los
+    /// teléfonos con notch dibujarían un frame con el piso aplicado y pegarían un
+    /// salto de 12 pt al asentarse. Con 44, el caso común sale bien desde el
+    /// frame uno y el único que se acomoda es el SE.
+    @State private var windowTopInset: CGFloat = 44
+
+    /// Aire mínimo entre el borde FÍSICO de arriba y la fila principal.
+    ///
+    /// Existe por los teléfonos sin notch (SE 2/3, que `TARGETED_DEVICE_FAMILY: 1`
+    /// + iOS 17 siguen incluyendo): ahí la safe area superior **es** la barra de
+    /// estado, así que al esconderla (`RootView.statusBarHidden`) el inset se
+    /// desploma de 20 a 0 y la fila se va contra el bezel. Medido en un SE 3 antes
+    /// del piso: panel de 80 pt y los botones de 60 a 5 pt del borde.
+    private static let minimumTopGap: CGFloat = 14
+
+    /// Cuánto baja la fila principal desde el borde de la safe area.
+    ///
+    /// El diseño la quiere pegada arriba (de ahí el 2), pero nunca más cerca de
+    /// `minimumTopGap` del borde físico. En un teléfono con notch el inset solo
+    /// ya alcanza y de sobra, así que el `max` devuelve el 2 de siempre y el piso
+    /// **no cambia nada**; sólo entra a jugar cuando el inset se desploma.
+    private var mainBarTopPadding: CGFloat {
+        max(2, Self.minimumTopGap - windowTopInset)
+    }
 
     var body: some View {
         VStack(spacing: Tokens.s4) {
             mainBar
+                .padding(.horizontal, Tokens.s12)
+                .padding(.top, mainBarTopPadding)
+                .padding(.bottom, Tokens.s12)
+                .frame(maxWidth: .infinity)
+                .background { topPanel }
             towerNavigator
             prestigeIndicator
         }
-        .padding(.horizontal, 10)
-        .padding(.top, 8)
-        .padding(.bottom, 6)
-        // Scrim crema translúcido: despega el HUD del arte de fondo (tendedero,
-        // graffiti) para que la barra siempre se lea.
-        .background {
-            LinearGradient(
-                colors: [Color("PaletteCream").opacity(0.55), Color("PaletteCream").opacity(0.0)],
-                startPoint: .top, endPoint: .bottom
-            )
-            .padding(.top, -60)   // extiende el scrim bajo la barra de estado
-            .allowsHitTesting(false)
-        }
+        .onAppear { windowTopInset = Self.screenTopSafeArea }
         .sheet(isPresented: $showFloorMap) { FloorMapView() }
         .tutorialAnchor(.hudBar)
     }
 
+    /// El inset superior de la **pantalla**, preguntado a la ventana.
+    ///
+    /// ⚠️ Se lee de UIKit y **no** con un `GeometryReader`, que sería lo natural:
+    /// `RootView` ya consumió la safe area antes de que el HUD exista, así que acá
+    /// adentro un proxy reporta 0 en TODOS los teléfonos —incluso ignorando la
+    /// safe area para estirar la sonda hasta el borde físico, que es el truco
+    /// habitual—. Medido con captura: con la sonda de `GeometryReader`, el piso se
+    /// aplicaba también en un 16 Pro y bajaba la fila 12 pt de más (panel de 148
+    /// en vez de 136). La ventana es el único lugar donde el número sigue siendo
+    /// el de la pantalla y no el que sobró después de repartirlo.
+    ///
+    /// No es reactivo, y no hace falta: la app es sólo portrait
+    /// (`UISupportedInterfaceOrientations`), así que este inset no cambia en toda
+    /// la sesión.
+    @MainActor private static var screenTopSafeArea: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first { $0.isKeyWindow }?
+            .safeAreaInsets.top ?? 0
+    }
+
+    /// El panel crema que reemplazó al scrim degradado y a la isla crema.
+    ///
+    /// Opaco y **fundido con el borde físico de arriba**: el `ignoresSafeArea`
+    /// lo estira por debajo de la barra de estado, así que el reloj y la batería
+    /// se apoyan sobre el panel en vez de sobre el tablero. Es lo que el scrim
+    /// translúcido nunca logró — dejaba pasar el tendedero y el graffiti, y ahí
+    /// arriba el contraste dependía de qué piso estuviera a la vista.
+    ///
+    /// Es el **gemelo** del `bottomPanel` de `GameTabBar`, y eso es el requisito,
+    /// no un parecido: mismo crema, mismo contorno ink de 3 pt, mismas esquinas
+    /// de 24. El panel ink de la primera vuelta partía la pantalla en tres tonos
+    /// —oscuro arriba, tablero al medio, crema abajo— y el dueño lo re-decidió
+    /// con las capturas en mano: las dos franjas encuadran el tablero sólo si son
+    /// la misma cosa.
+    ///
+    /// Redondea **sólo abajo**: arriba no hay esquina que mostrar (está fuera de
+    /// pantalla) y curvarla dejaría dos muescas del tablero asomando en los
+    /// vértices superiores. Y el contorno se sale por los tres lados que no dan
+    /// al tablero (de eso se ocupan los paddings negativos), así que lo único que
+    /// se ve del trazo es el borde de abajo: un panel fundido no puede tener una
+    /// línea encerrándolo.
+    private var topPanel: some View {
+        UnevenRoundedRectangle(
+            bottomLeadingRadius: 24, bottomTrailingRadius: 24, style: .continuous
+        )
+        .fill(Color("PaletteCream"))
+        .overlay(
+            UnevenRoundedRectangle(
+                bottomLeadingRadius: 24, bottomTrailingRadius: 24, style: .continuous
+            )
+            .strokeBorder(Color("PaletteInk"), lineWidth: 3)
+            .padding(.horizontal, -3)
+            .padding(.top, -3)
+        )
+        .shadow(color: .black.opacity(0.2), radius: 6, y: 2)
+        .ignoresSafeArea(edges: .top)
+    }
+
     // MARK: - Barra contigua
 
-    /// La pieza principal del HUD: **una sola** tarjeta crema de ancho completo.
-    /// Reemplaza a la fila de botones sueltos + píldora de monedas de antes, que
-    /// se leía como cinco objetos distintos flotando sobre el tablero.
+    /// La fila principal del HUD: atajo a la tienda, plata y ascensor.
     ///
-    /// Usa `GameCard` y no un fondo propio: es exactamente el panel crema con
-    /// contorno ink del design system v2, y duplicarlo acá sería un estilo más
-    /// que mantener.
+    /// Ya **no** es una `GameCard`: la tarjeta crema con contorno la dibujaba
+    /// como una isla flotando, y el rediseño la quiere fundida con el borde de
+    /// arriba. El fondo lo pone `topPanel` desde el `body`, que es quien puede
+    /// estirarse hasta atrás de la barra de estado; acá adentro queda el `HStack`
+    /// pelado.
     private var mainBar: some View {
-        GameCard {
-            HStack(spacing: Tokens.s8) {
-                coinsPlusButton
-                Spacer(minLength: Tokens.s4)
-                coinsColumn
-                Spacer(minLength: Tokens.s4)
-                elevatorButton
-            }
-            .frame(maxWidth: .infinity)
+        HStack(spacing: Tokens.s8) {
+            coinsPlusButton
+            Spacer(minLength: Tokens.s4)
+            coinsColumn
+            Spacer(minLength: Tokens.s4)
+            elevatorButton
         }
+        .frame(maxWidth: .infinity)
     }
 
     /// Atajo a la tienda: la moneda con el `+` rosa. Mismo destino que el
@@ -74,7 +152,8 @@ struct HUDView: View {
         IconButton(
             artKey: "ui_coin_plus",
             fallback: { AnyView(VectorCoinPlusIcon()) },
-            size: 52,
+            size: 64,
+            glyphScale: 0.66,
             tint: Color("PaletteYellow"),
             labelKey: "hud.coins.plus.label",
             identifier: "hud.coins.plus",
@@ -105,13 +184,17 @@ struct HUDView: View {
     /// alcanza a asentarse entre refrescos.
     private var coinsAmount: some View {
         HStack(spacing: Tokens.s4) {
-            CoinIcon(size: 26)
+            CoinIcon(size: 36)
             Text(verbatim: gameState.coinsText)
                 .font(Tokens.display)
                 .monospacedDigit()
                 .contentTransition(reduceMotion ? .identity : .numericText())
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
+                // Ink sobre crema, como cualquier texto del juego: desde que el
+                // panel es el gemelo del de abajo, el número ya no vive sobre un
+                // fondo oscuro. Y sin fondo oscuro tampoco hace falta la sombra
+                // que lo despegaba: sobre crema sólo lo ensuciaba.
                 .foregroundStyle(Color("PaletteInk"))
         }
         .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: gameState.coinsText)
@@ -154,7 +237,8 @@ struct HUDView: View {
         IconButton(
             artKey: "ui_elevator",
             fallback: { AnyView(VectorElevatorIcon()) },
-            size: 52,
+            size: 64,
+            glyphScale: 0.66,
             tint: Color("PaletteOrange"),
             labelKey: "map.hud.label",
             identifier: "hud.map"
@@ -210,9 +294,9 @@ struct HUDView: View {
             _ = gameState.moveVisibleFloor(by: direction)
         } label: {
             Image(systemName: systemName)
-                .font(.system(size: 13, weight: .heavy))
+                .font(.system(size: 16, weight: .heavy))
                 .foregroundStyle(enabled ? Color("PaletteBlue") : Color("PaletteInk").opacity(0.28))
-                .frame(width: 26, height: 26)
+                .frame(width: 30, height: 30)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)

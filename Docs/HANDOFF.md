@@ -24,7 +24,26 @@
 > gates humanos de F6**: la cuenta de Apple Developer (RF-02c) y la fuente de
 > audio (RF-14). No queda NINGUNA tarea de código pendiente.
 >
-> **Empezá por acá.** Última actualización: **2026-08-16** (cierre post-merge).
+> ✅ **Y el rediseño de la PANTALLA PRINCIPAL está hecho** — 6 tareas en
+> `feature/rediseno-pantalla-principal` (19 commits sobre `4c1e67c`): las 5 del
+> plan más una **enmienda del dueño a mitad de vuelo**, todas cerradas y las de
+> código revisadas. La pantalla dejó de ser un tablero con islas flotando:
+> las **dos barras son gemelas en crema con contorno ink** y están **fundidas a
+> su borde** (arriba y abajo), los **iconos de los 6 tabs son gigantes y llevan
+> su nombre debajo**, la **barra de estado se oculta de verdad** (le faltaba la
+> clave compañera en `project.yml`), y hay un **botón nuevo que contrata al
+> mejor tier que la plata alcanza** sin abrir FisuJobs (`hud.quickhire`). El
+> detalle está en **`Docs/SESION-2026-08-17-rediseno-pantalla-principal.md`**.
+> Números de su cierre: EconomyKit **200** · app **370** · UI **44 sin un solo
+> `-skip-testing:`** (los 183/346/43 de más abajo quedaron viejos). ⚠️ Dos cosas
+> para tener a mano: en **SE la barra va a 374 de 375 pt** —los iconos no crecen
+> más sin sacrificar los labels— y un `Button` de SwiftUI **publica su label
+> como hijos de AX pase lo que pase**: sólo `accessibilityRepresentation` lo
+> aplana sin romper el hit-testing (la tabla de las 5 formas medidas quedó en
+> `QuickHireButton.swift`).
+>
+> **Empezá por acá.** Última actualización: **2026-08-17** (rediseño de la
+> pantalla principal).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
@@ -326,7 +345,30 @@ y `buySpawn()` quedó sin call-site de UI (sólo lo llaman los tests). El día q
 una pantalla vuelva a ofrecer contratar "acá", **tiene que decir dónde cayó**;
 el dato lo da `TowerActions.hireTargetFloor`.
 
-#### Secuencia de celebraciones
+#### Cola de celebraciones (2026-08-17)
+
+**Todo lo que aparece solo se reproduce de a uno.** `CelebrationQueue`
+(EconomyKit, pura) ordena TURNOS sobre identificadores; los payloads siguen donde
+estaban y las vistas se presentan sólo si `GameState.showing` las nombra. Nueve
+ítems con prioridad: offline y diario primero, después la carrera —que bloquea la
+progresión—, el ascenso, los sheets de premio, y al final banners y toasts.
+
+- **Un tap saltea** el ítem entero, pasados 0,6 s. Ese piso no es cosmético: sin
+  él el tap siguiente mataría cada celebración y la cola se vaciaría en un segundo.
+- **Watchdog por ítem**: lo que se cierra solo declara un tope y, si la señal no
+  llega, la cola avanza y loguea. Con cola global, un bug así congelaría TODAS las
+  celebraciones hasta reiniciar.
+- **El turno del ascenso lo pide `handleDrop`**, no la escena: `updateMaxFloorStat`
+  acredita la skin dentro del mismo merge, y si el ascenso encolara después el
+  sheet ya tendría el turno y taparía el vuelo.
+- La UI se apaga **del todo** —opacidad 0 y sin hit-testing (`celebrationHidesUI`)—
+  y **sólo** en la celebración a pantalla completa. El reveal va **centrado a
+  pantalla completa**: desde `0d3b96d` ya no se ancla bajo la banda del HUD, así
+  que no tiene nada que esquivar. `BoardScene.topInset` (176) quedó sin uso.
+
+Detalle en `Docs/SESION-2026-08-17-cola-de-celebraciones.md` y su spec.
+
+### Secuencia de celebraciones
 
 Un merge que asciende y abre piso disparaba **cinco cosas en t=0**. Ahora
 encadena: vuelo → reveal → piso nuevo → `celebrationsDidFinish()` → sheet de skin
@@ -1051,6 +1093,7 @@ Anotado por si algún día importa, con su medición:
 | **`SESION-2026-08-14-rediseno-ui.md`** | **Las 20 tareas del rediseño de UI, con sus fix rounds, rulings y avisos vivos. La fuente de verdad del detalle de esa rama** |
 | **`SESION-2026-08-06-correcciones-de-playtest.md`** | **El estado de la sesión de las 16 correcciones: qué quedó abierto, qué está en vuelo y los gates humanos. Empezá por acá si retomás ese trabajo** |
 | `SESION-2026-08-05-fallback-de-contratacion.md` | El fallback del botón y la fila trasera invisible |
+| `SESION-2026-08-17-cola-de-celebraciones.md` | La cola que reproduce las celebraciones de a una |
 | `superpowers/specs/2026-08-10-fusion-asistida-design.md` | Los dos gestos de fusión, con los radios y por qué cada uno |
 | `superpowers/specs/2026-08-10-contadores-de-bonus-activos-design.md` | Los contadores del HUD y por qué la proyección no lleva el tiempo |
 | `superpowers/specs/`, `superpowers/plans/` | Specs y planes por feature |

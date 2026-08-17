@@ -193,10 +193,15 @@ struct GameLoopWiringTests {
         #expect(gameState.player?.meta.milestoneSkins.contains("urban_trailblazer") == true)
         #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
         // El sheet ya NO aparece en el instante del merge: taparía el vuelo, el
-        // reveal y la celebración del piso, los tres a la vez. Espera a que la
-        // escena termine su cadena.
-        #expect(gameState.skinAward == nil, "el sheet no puede tapar la cadena")
-        gameState.celebrationsDidFinish()
+        // reveal y la celebración del piso, los tres a la vez. Espera su turno.
+        //
+        // El turno del ascenso lo pide `handleDrop` apenas sabe que hay algo que
+        // celebrar, ANTES de acreditar la skin: si lo pidiera después, el sheet
+        // ya estaría en pantalla y taparía el vuelo y el reveal.
+        #expect(gameState.showing == .boardCelebration, "el turno es de la escena")
+        #expect(gameState.skinAward != nil, "el payload se asigna igual; lo que espera es mostrarlo")
+        gameState.celebrationFinished(.boardCelebration)
+        #expect(gameState.showing == .skinAward, "recién ahora le toca al sheet")
         // ⚠️ Acá se pineaba `skinAward?.id == "urban_trailblazer"`, y se rompió al
         // agregar personajes: `urban` ahora otorga TRES skins y el popup muestra
         // la primera alfabéticamente (`GameState.swift`, `newlyUnlocked.sorted().first`),
@@ -243,10 +248,18 @@ struct GameLoopWiringTests {
 
         _ = gameState.handleDrop(fromCell: pair[0], toCell: pair[1])
         #expect(gameState.player?.run.unlockedFloors.contains("luxury") == true)
-        #expect(gameState.towerNotice == nil, "el toast no sale durante la cadena")
 
-        gameState.celebrationsDidFinish()
-        gameState.skinAwardDismissed()        // no-op si no hubo skin que otorgar
+        #expect(gameState.showing == .boardCelebration, "el ascenso pide turno primero")
+        #expect(gameState.showing != .towerNotice, "el toast no sale durante la cadena")
+
+        gameState.celebrationFinished(.boardCelebration)
+        // La skin de milestone tiene más prioridad que el aviso: si el ascenso
+        // otorgó una, el toast espera a que el jugador la cierre.
+        if gameState.showing == .skinAward {
+            gameState.skinAward = nil
+            gameState.celebrationFinished(.skinAward)
+        }
+        #expect(gameState.showing == .towerNotice, "y recién al final sale el aviso")
         #expect(gameState.towerNotice?.kind == .hireUnlocked(floorID: "corporate"))
     }
 

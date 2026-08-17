@@ -595,6 +595,13 @@ struct IconButton: View {
     let artKey: String?
     let fallback: () -> AnyView
     var size: CGFloat = 52
+    /// Qué fracción del plato ocupa el glifo. El default es el histórico —el
+    /// dibujo flotando con aire crema alrededor— y existe justamente para que
+    /// los llamadores que no lo piden no cambien de cara. El HUD rediseñado sube
+    /// a 0,66 por lo mismo que los tabs de abajo crecieron: el dibujo tiene que
+    /// ser el que manda, no el plato que lo enmarca. Con el aire de fábrica, a
+    /// esa escala el plato se lee más que el icono que lleva adentro.
+    var glyphScale: CGFloat = 0.52
     let tint: Color
     let labelKey: String
     let identifier: String
@@ -603,7 +610,7 @@ struct IconButton: View {
     var body: some View {
         Button(action: action) {
             glyph
-                .frame(width: size * 0.52, height: size * 0.52)
+                .frame(width: size * glyphScale, height: size * glyphScale)
                 .frame(width: size, height: size)
                 .background(
                     Circle()
@@ -707,28 +714,170 @@ struct GameTabItem: Identifiable {
 /// Barra inferior de pantallas. No guarda selección —cada tab abre su hoja— así
 /// que el estado "activo" es el destaque de los extremos más el pulso del toque.
 ///
+/// Dejó de ser una isla flotante: ahora es una franja de ancho completo fundida
+/// con el borde de abajo, **gemela** del `topPanel` de `HUDView` arriba —mismo
+/// crema, mismo contorno ink de 3 pt, mismas esquinas de 24, y en cada una el
+/// trazo se ve sólo en la cara que da al tablero—. La isla gastaba tres márgenes
+/// de pantalla en aire alrededor de una barra que igual vivía pegada al fondo, y
+/// el crema recortado contra el tablero competía con las tarjetas del juego, que
+/// usan la misma forma.
+///
 /// ⚠️ El `HStack` NO lleva identifier: cada botón lleva el suyo (trampa 9a-bis).
 struct GameTabBar: View {
     let items: [GameTabItem]
     let selection: (GameScreen) -> Void
 
+    /// El inset inferior REAL de la pantalla, leído de la ventana al aparecer.
+    ///
+    /// Arranca en 34 —el home indicator de cualquier teléfono que lo tenga— y no
+    /// en 0 por la misma razón que su gemelo de arriba (`HUDView.windowTopInset`):
+    /// el valor de verdad recién llega con el `onAppear`, y arrancando en 0 el
+    /// caso común dibujaría un frame con el piso aplicado y pegaría un salto de
+    /// 12 pt al asentarse. Con 34, el único que se acomoda es el SE.
+    @State private var windowBottomInset: CGFloat = 34
+
+    /// Aire mínimo entre los nombres de los tabs y el borde FÍSICO de abajo.
+    ///
+    /// Es el mismo piso que `HUDView.minimumTopGap` y existe por lo mismo, en el
+    /// otro borde: en un teléfono sin home indicator (SE) la safe area inferior
+    /// es 0, así que el panel fundido —que llega hasta el borde— apoyaba los
+    /// labels contra el bezel. Medido en un SE 3 antes del piso: la 'j' de
+    /// "Mejoras" a **1,5 pt** del borde físico. Con home indicator el inset ya
+    /// pone 34, el `max` devuelve 0 y el layout **no cambia en nada** —de ahí
+    /// que `BoardScene.bottomInset` siga valiendo lo mismo—.
+    private static let minimumBottomGap: CGFloat = 12
+    private var bottomGap: CGFloat { max(0, Self.minimumBottomGap - windowBottomInset) }
+
+    /// Cuánto SUBE la barra por el piso de arriba, para lo que se apoye sobre
+    /// ella (hoy: los dos toasts de `RootView`, que se posicionan contando desde
+    /// la safe area y por lo tanto no ven el piso por su cuenta).
+    ///
+    /// Es el mismo `max` que `bottomGap`, pero leído en el momento en vez de por
+    /// `@State`: los toasts nacen mucho después del arranque, así que no
+    /// necesitan el valor inicial que le evita el salto del primer frame a la
+    /// barra —y así no hay un segundo `onAppear` que mantener en sincronía—.
+    @MainActor static var bottomFloor: CGFloat {
+        max(0, minimumBottomGap - screenBottomSafeArea)
+    }
+
+    /// Cuánto mide de alto la barra, sin contar la safe area ni el piso.
+    ///
+    /// Es la suma del layout de `body`, no una medición suelta: **8** de
+    /// `padding(.top)` + la columna del tab destacado, que es el más alto
+    /// (**62** de plato + **2** del spacing del `VStack` + **12** del label).
+    /// La franja no agrega aire abajo —su panel se funde con el borde y no
+    /// termina donde termina el contenido—, así que el padding de abajo es el
+    /// piso y va aparte, en `bottomFloor`.
+    ///
+    /// ⚠️ Existe porque este número lo necesitan TRES lugares fuera de acá y ya
+    /// se movió dos veces (82 cuando la barra estrenó labels, 84 cuando los
+    /// platos crecieron a 62): `BoardScene.bottomInset`, que apoya la multitud
+    /// sobre el borde de arriba de la barra, y los dos toasts de `RootView`, que
+    /// flotan encima de ella. Antes eran tres literales que había que mover a
+    /// mano en el mismo commit; ahora los tres derivan de éste.
+    ///
+    /// El ÚNICO que sigue siendo copia a mano es el espejo de
+    /// `AscentRenderingUITests`, y no se puede evitar: un test de UI corre fuera
+    /// de proceso y no puede importar la app. Ese tiene su propio bloque de
+    /// aviso, que cuenta las cuatro veces que se desincronizó.
+    ///
+    /// ⚠️ **No lleva `@MainActor`, pero SÍ está aislado al main actor.** Este
+    /// docstring decía lo contrario —"no es `@MainActor` a propósito… y así
+    /// `BoardScene` puede armar su `bottomInset` sin arrastrar isolation"— y era
+    /// falso de punta a punta: `GameTabBar` conforma `View`, que es
+    /// `@MainActor @preconcurrency`, así que la conformance aísla al struct
+    /// entero **y a sus statics**. La anotación de su vecino `bottomFloor` no es
+    /// lo que lo diferencia: explicita un aislamiento que la conformance ya le
+    /// daba.
+    ///
+    /// Y `BoardScene.bottomInset` puede consumirlo no porque esto sea
+    /// `nonisolated`, sino porque `BoardScene` es una `SKScene` y **SKScene es
+    /// `@MainActor`**: los dos están del mismo lado, así que no hay isolation
+    /// que arrastrar. Si algún día lo necesitara un contexto `nonisolated`, la
+    /// anotación hay que escribirla —`nonisolated static let`— y no darla por
+    /// puesta.
+    ///
+    /// Comprobado compilando las formas exactas con `-swift-version 6
+    /// -strict-concurrency=complete`: un `static let` de un tipo que conforma
+    /// `View`, leído desde `nonisolated`, es **error**; el mismo static en un
+    /// tipo sin la conformance compila. La regla vale igual para
+    /// `QuickHireButton.capsuleHeight`, que tiene la misma forma y la explica
+    /// desde el otro lado.
+    static let barHeight: CGFloat = 84
+
+    /// El inset inferior de la **pantalla**, preguntado a la ventana.
+    ///
+    /// ⚠️ Se lee de UIKit y no con un `GeometryReader` por la trampa que
+    /// documenta `HUDView.screenTopSafeArea`: acá adentro la safe area ya la
+    /// consumió `RootView`, así que un proxy reporta 0 en TODOS los teléfonos y
+    /// el piso se aplicaría también donde no corresponde. No es reactivo y no
+    /// hace falta: la app es sólo portrait.
+    @MainActor private static var screenBottomSafeArea: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first { $0.isKeyWindow }?
+            .safeAreaInsets.bottom ?? 0
+    }
+
     var body: some View {
-        HStack(spacing: Tokens.s4) {
+        // ⚠️ Alineados abajo y no al centro (el default), que es lo que hacía
+        // falta desde que cada tab lleva su nombre debajo: los dos destacados
+        // son 6 pt más altos, así que centrados repartían esa diferencia arriba
+        // y abajo y sus labels colgaban 3 pt por debajo de los otros cuatro
+        // —medido en captura—. Apoyados abajo, los seis nombres comparten
+        // renglón y la diferencia de alto se va toda para arriba, que es donde
+        // se quiere: los extremos SOBRESALEN, como en Cow Evolution.
+        //
+        // ⚠️ El spacing es un literal de 2 y no un `Tokens.s4`: con los platos
+        // de 56/62 los seis tabs suman 374 de los 375 del SE (ver la cuenta en
+        // `GameTabButton.side`), así que los 4 de la escala ya no entran. Es el
+        // único lugar del juego donde el ancho manda sobre el token.
+        HStack(alignment: .bottom, spacing: 2) {
             ForEach(items) { item in
                 GameTabButton(item: item) { selection(item.screen) }
             }
         }
         .padding(.horizontal, Tokens.s8)
-        .padding(.vertical, Tokens.s8)
-        .background(
-            RoundedRectangle(cornerRadius: 26, style: .continuous)
-                .fill(Color("PaletteCream"))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 26, style: .continuous)
-                        .strokeBorder(Color("PaletteInk"), lineWidth: 3)
-                )
-                .shadow(color: .black.opacity(0.2), radius: 6, y: 3)
+        .padding(.top, Tokens.s8)
+        .padding(.bottom, bottomGap)
+        .frame(maxWidth: .infinity)
+        .background { bottomPanel }
+        .onAppear { windowBottomInset = Self.screenBottomSafeArea }
+    }
+
+    /// Panel crema fundido con el borde inferior.
+    ///
+    /// Redondea **sólo arriba**: abajo no hay esquina que mostrar (está fuera de
+    /// pantalla) y curvarla dejaría dos muescas del tablero asomando en los
+    /// vértices inferiores. El contorno ink sube por los costados hasta salirse
+    /// de la pantalla —de eso se ocupan los paddings negativos— así que lo único
+    /// que se ve del trazo es el borde de arriba, que es el que separa la barra
+    /// del tablero; un panel fundido no puede tener una línea encerrándolo.
+    ///
+    /// El `ignoresSafeArea` es lo que lo estira por debajo del home indicator:
+    /// sin él quedaba una lonja de tablero de 34 pt entre la barra y el borde
+    /// físico, que es exactamente la isla que este rediseño vino a matar. En un
+    /// teléfono sin notch (SE) el inset es 0 y no hay nada que estirar: el panel
+    /// ya nace contra el borde y se ve igual.
+    ///
+    /// ⚠️ La sombra va hacia ARRIBA (`y: -2`), al revés que la de la isla: es la
+    /// única cara que todavía da al tablero.
+    private var bottomPanel: some View {
+        UnevenRoundedRectangle(
+            topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous
         )
+        .fill(Color("PaletteCream"))
+        .overlay(
+            UnevenRoundedRectangle(
+                topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous
+            )
+            .strokeBorder(Color("PaletteInk"), lineWidth: 3)
+            .padding(.horizontal, -3)
+            .padding(.bottom, -3)
+        )
+        .shadow(color: .black.opacity(0.2), radius: 6, y: -2)
+        .ignoresSafeArea(edges: .bottom)
     }
 }
 
@@ -742,28 +891,55 @@ private struct GameTabButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bounce = 0
 
-    private var side: CGFloat { item.prominent ? 56 : 48 }
-    private var iconSide: CGFloat { item.prominent ? 34 : 28 }
+    /// Platos 56/62 e iconos 48/54: el icono ocupa ~86% del plato (era ~58%
+    /// antes del rediseño y ~82% en su primera vuelta), que es lo que pidió el
+    /// dueño mirando las capturas —el dibujo tiene que ser el que manda, no el
+    /// plato que lo enmarca—.
+    ///
+    /// El ancho entra justo en el teléfono más angosto que soportamos:
+    /// 2×62 + 4×56 + 5×2 de spacing + 16 de padding = **374 ≤ 375** (SE), o sea
+    /// 1 pt de sobra. Los seis tabs son mínimos rígidos para el `HStack`, así que
+    /// acá se acabó el margen: crecer otro punto por plato ya no aprieta la
+    /// barra sino el label, que es lo único elástico que queda. Los 2 pt de
+    /// spacing salieron de este mismo cálculo — con los `Tokens.s4` de antes la
+    /// cuenta daba 384 y no entraba.
+    private var side: CGFloat { item.prominent ? 62 : 56 }
+    private var iconSide: CGFloat { item.prominent ? 54 : 48 }
 
     var body: some View {
         Button {
             if !reduceMotion { bounce += 1 }
             action()
         } label: {
-            ZStack {
-                plate
-                item.icon
-                    .frame(width: iconSide, height: iconSide)
-            }
-            .frame(width: side, height: side)
-            .keyframeAnimator(initialValue: 1.0, trigger: bounce) { view, scale in
-                view.scaleEffect(scale)
-            } keyframes: { _ in
-                KeyframeTrack {
-                    CubicKeyframe(0.9, duration: 0.08)
-                    SpringKeyframe(1.14, duration: 0.14, spring: .bouncy)
-                    SpringKeyframe(1.0, duration: 0.22, spring: .bouncy)
+            VStack(spacing: 2) {
+                ZStack {
+                    plate
+                    item.icon
+                        .frame(width: iconSide, height: iconSide)
                 }
+                .frame(width: side, height: side)
+                .keyframeAnimator(initialValue: 1.0, trigger: bounce) { view, scale in
+                    view.scaleEffect(scale)
+                } keyframes: { _ in
+                    KeyframeTrack {
+                        CubicKeyframe(0.9, duration: 0.08)
+                        SpringKeyframe(1.14, duration: 0.14, spring: .bouncy)
+                        SpringKeyframe(1.0, duration: 0.22, spring: .bouncy)
+                    }
+                }
+                // El nombre del destino, que hasta ahora sólo existía para
+                // VoiceOver: seis glifos sin texto se aprenden a la larga, pero
+                // la primera partida es adivinanza.
+                //
+                // ⚠️ Usa la MISMA clave que el label de AX de abajo, así lo que
+                // se ve y lo que dicta VoiceOver no pueden divergir. Y vive
+                // DENTRO del label del `Button`, así que no arma una parada de
+                // AX propia: el botón sigue siendo un solo elemento.
+                Text(LocalizedStringKey(item.labelKey))
+                    .font(.system(size: 10, design: .rounded).weight(.heavy))
+                    .foregroundStyle(Color("PaletteInk"))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())

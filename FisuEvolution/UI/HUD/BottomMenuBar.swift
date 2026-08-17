@@ -67,8 +67,8 @@ struct BottomMenuBar: View {
     /// Espejan a `GameTabButton.iconSide`, que es privado: el icono se dibuja a
     /// su propio tamaño y el botón lo enmarca en el mismo, así que si allá
     /// cambiaran quedarían centrados en el plato en vez de romperse.
-    private static let iconSide: CGFloat = 28
-    private static let prominentIconSide: CGFloat = 34
+    private static let iconSide: CGFloat = 48
+    private static let prominentIconSide: CGFloat = 54
 
     /// El glifo de cada tab, ya type-borrado, **y con el ancla del tutorial
     /// puesta donde corresponde**.
@@ -77,9 +77,12 @@ struct BottomMenuBar: View {
     /// botón, y marcar el contenedor le daría al tutorial el frame de los seis
     /// tabs juntos —un recorte que abarca media pantalla y no enseña nada—. El
     /// icono está centrado en su plato y mide `iconSide`, así que el recorte
-    /// —que `TutorialOverlay` infla 10 pt por lado— cae justo sobre el plato:
-    /// 34+20 = 54 sobre los 56 de un tab destacado, 28+20 = 48 sobre los 48 de
-    /// uno normal.
+    /// —que `TutorialOverlay` infla 10 pt por lado— cae sobre el plato con un
+    /// hilo de aire alrededor: 54+20 = 74 sobre los 62 de un tab destacado,
+    /// 48+20 = 68 sobre los 56 de uno normal. Desde que el icono es el que
+    /// manda, el recorte sobra 6 pt por lado en vez de faltar: sigue leyéndose
+    /// como un halo del tab y no como un cuadrado suelto (verificado en
+    /// captura), y como el label vive debajo del plato, el recorte no lo tapa.
     private func icon(for screen: GameScreen) -> AnyView {
         let side = Self.isProminent(screen) ? Self.prominentIconSide : Self.iconSide
         switch screen {

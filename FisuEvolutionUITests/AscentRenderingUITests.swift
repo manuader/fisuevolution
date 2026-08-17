@@ -23,10 +23,14 @@ final class AscentRenderingUITests: XCTestCase {
     /// + `BoardScene.crowdBand`.
     ///
     /// ⚠️ **Si cambiás la geometría del campo, cambiá esto en el mismo commit.**
-    /// Ya se desincronizó tres veces: quedó con el `rowDepth` viejo (no se notó
+    /// Ya se desincronizó CUATRO veces: quedó con el `rowDepth` viejo (no se notó
     /// porque la fila 0 lo multiplica por cero), después con el `frontY` viejo,
-    /// que sí rompió, y por último con `bottomInset` en 110 cuando la escena ya
-    /// lo tenía en 114 (arreglado el 2026-08-16).
+    /// que sí rompió, después con `bottomInset` en 110 cuando la escena ya lo
+    /// tenía en 114 (arreglado el 2026-08-16), y de nuevo con `bottomInset` en
+    /// 114 cuando la barra inferior se fundió con el borde y la escena pasó a
+    /// 116 (2026-08-17). Esta última **la agarró el review, no la suite**: con
+    /// 2 pt de desfasaje los gates siguen en verde, que es exactamente el verde
+    /// falso contra el que avisa este bloque.
     ///
     /// Los gates de `board.units` y de la pill son lo que convierte un desfasaje
     /// en una falla ruidosa en vez de un verde falso. No los saques.
@@ -56,10 +60,17 @@ final class AscentRenderingUITests: XCTestCase {
         // filas se reparten ese alto — el ancla de cada una queda a medio
         // deambular de su extremo.
         //
-        // Espejo de `BoardScene.bottomInset` (114) y de
-        // `BoardScene.crowdTopRatio` (0,44; subió de 0,40 el 2026-08-10, cuando
-        // los diez fondos se regeneraron con más piso).
-        let bottomInset: CGFloat = 114
+        // Espejo de `BoardScene.bottomInset` (118; subió de 114 a 116 el
+        // 2026-08-17, cuando la barra inferior se fundió con el borde y estrenó
+        // los labels, y de 116 a 118 el mismo día, cuando los platos de los tabs
+        // crecieron a 62) y de `BoardScene.crowdTopRatio` (0,44; subió de 0,40
+        // el 2026-08-10, cuando los diez fondos se regeneraron con más piso).
+        //
+        // ⚠️ Allá el número ya **no** es un literal: es `GameTabBar.barHeight`
+        // (84) + 34 de safe area. Acá sigue siendo copia a mano porque un test
+        // de UI corre fuera de proceso y no puede importar la app — este espejo
+        // es el último que queda, y por eso es el que hay que mirar.
+        let bottomInset: CGFloat = 118
         let crowdTopRatio: CGFloat = 0.44
         let rows: CGFloat = 2
         let floorY = cell * 0.55

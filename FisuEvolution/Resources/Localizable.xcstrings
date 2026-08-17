@@ -3192,13 +3192,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Settings"
+            "value" : "Menu"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ajustes"
+            "value" : "Menú"
           }
         }
       }
@@ -3209,13 +3209,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Customization"
+            "value" : "Outfits"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Personalización"
+            "value" : "Vestimenta"
           }
         }
       }
@@ -4069,6 +4069,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Progreso"
+          }
+        }
+      }
+    },
+    "quickhire.ax.purpose %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hire %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contratar a %@"
           }
         }
       }

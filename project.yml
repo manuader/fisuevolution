@@ -41,6 +41,20 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        # ⚠️ Esta clave sola NO oculta nada, y durante meses no ocultó nada.
+        # `UIStatusBarHidden` sólo se respeta si `UIViewControllerBasedStatusBarAppearance`
+        # es NO, y esa viene en YES de fábrica: manda el view controller, no el
+        # Info.plist. Y la clave compañera **no se puede escribir desde acá** —
+        # Xcode sólo traduce a Info.plist una whitelist de 85 `INFOPLIST_KEY_*`
+        # (medida sobre Xcode 16.4: de la barra de estado sólo conoce
+        # `UIStatusBarHidden` y `UIStatusBarStyle`). Puesta igual, se queda en el
+        # .pbxproj y el Info.plist compilado sale sin ella, en silencio.
+        #
+        # Así que quien oculta la barra de verdad es `RootView.statusBarHidden(true)`,
+        # que es el mecanismo que el default (VC-based) espera. Esta clave se queda
+        # porque describe la intención y cubre la ventana de lanzamiento, pero
+        # **no es la que manda**: si algún día vuelve a aparecer el reloj, el
+        # lugar donde mirar es `RootView`, no este archivo.
         INFOPLIST_KEY_UIStatusBarHidden: YES
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "0.1.0"

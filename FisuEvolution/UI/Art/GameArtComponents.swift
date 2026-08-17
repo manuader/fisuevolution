@@ -427,7 +427,7 @@ struct ProgressBar: View {
                         .frame(width: geo.size.width)
                 }
             }
-            .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2.5))
+            .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2.5))
         }
         .frame(height: 20)
         .accessibilityElement(children: .ignore)

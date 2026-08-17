@@ -243,4 +243,17 @@ struct GameArtComponentsTests {
         #expect(path.boundingRect.width <= rect.width + 0.5)
         #expect(path.boundingRect.height <= rect.height + 0.5)
     }
+
+    @Test("el destello y el pliegue de la cinta llenan su rect sin desbordarlo")
+    func ribbonOrnamentPaths() {
+        let rect = CGRect(x: 0, y: 0, width: 10, height: 10)
+        for path in [SparkleShape().path(in: rect), FoldTriangleShape().path(in: rect)] {
+            #expect(!path.isEmpty)
+            #expect(rect.insetBy(dx: -0.5, dy: -0.5).contains(path.boundingRect))
+        }
+        // Las cuatro puntas del destello tocan los ejes del rect.
+        let sparkle = SparkleShape().path(in: rect).boundingRect
+        #expect(abs(sparkle.width - 10) < 0.5)
+        #expect(abs(sparkle.height - 10) < 0.5)
+    }
 }

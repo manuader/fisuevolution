@@ -290,23 +290,43 @@ struct GameToggle: View {
     }
 }
 
-/// Banner de título consistente para las hojas de menú: cápsula crema + texto
-/// display rounded en ink. Se ubica bajo el ornamento del panel (no encima), así
-/// el título SIEMPRE es legible sin chocar con el arte del marco.
+/// Banner de título consistente para las hojas de menú: cápsula crema con el
+/// doble borde de la referencia (marrón afuera, pinstripe adentro) + texto
+/// display rounded en ink. Se ubica bajo el ornamento del panel (no encima),
+/// así el título SIEMPRE es legible sin chocar con el arte del marco.
+///
+/// `icon` mete el glifo de la pantalla ADENTRO de la cápsula (Regalos, Pintas
+/// — así lo componen las referencias); es decoración, el título ya dice todo,
+/// y por eso va tapado de VoiceOver acá y no en cada llamador.
 struct PanelTitleBanner: View {
     let titleKey: LocalizedStringKey
+    var icon: AnyView?
+
     var body: some View {
-        Text(titleKey)
-            .font(.system(.title3, design: .rounded).weight(.heavy))
-            .foregroundStyle(Color("PaletteInk"))
-            .lineLimit(1)
-            .minimumScaleFactor(0.7)
-            .padding(.horizontal, 22)
-            .padding(.vertical, 9)
-            .background(
-                Capsule().fill(Color("PaletteCream"))
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
-                    .shadow(color: .black.opacity(0.18), radius: 6, y: 2)
-            )
+        HStack(spacing: Tokens.s8) {
+            if let icon {
+                icon
+                    .frame(width: 26, height: 26)
+                    .accessibilityHidden(true)
+            }
+            Text(titleKey)
+                .font(.system(.title3, design: .rounded).weight(.heavy))
+                .foregroundStyle(Color("PaletteInk"))
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+        }
+        .padding(.horizontal, 22)
+        .padding(.vertical, 9)
+        .background(
+            Capsule().fill(Color("PaletteCream"))
+                .overlay(
+                    // El pinstripe interior del doble borde.
+                    Capsule()
+                        .strokeBorder(Color("PaletteBrown").opacity(0.35), lineWidth: 1.5)
+                        .padding(4)
+                )
+                .overlay(Capsule().strokeBorder(Color("PaletteBrown"), lineWidth: 3))
+                .shadow(color: .black.opacity(0.18), radius: 6, y: 2)
+        )
     }
 }

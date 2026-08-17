@@ -220,20 +220,132 @@ struct SectionHeader: View {
     }
 
     var body: some View {
-        label
-            .font(Tokens.title)
-            .foregroundStyle(Color("PaletteCream"))
-            .lineLimit(1)
-            .minimumScaleFactor(0.6)
-            .shadow(color: .black.opacity(0.35), radius: 1, y: 1)
-            .padding(.horizontal, Tokens.s24)
-            .padding(.vertical, Tokens.s8)
-            .background {
-                RibbonShape()
-                    .fill(Color("PaletteOrange"))
-                    .overlay(RibbonShape().strokeBorder(Color("PaletteInk"), lineWidth: 3))
-                    .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
-            }
+        HStack(spacing: Tokens.s8) {
+            Sparkle()
+            label
+                .font(Tokens.title)
+                .foregroundStyle(Color("PaletteCream"))
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .shadow(color: .black.opacity(0.35), radius: 1, y: 1)
+            Sparkle()
+        }
+        .padding(.horizontal, Tokens.s16)
+        .padding(.vertical, Tokens.s8)
+        .background { RibbonBackground() }
+        // Aire para que las colas —que sobresalen de la banda— no queden
+        // recortadas por el borde del scroll.
+        .padding(.horizontal, 20)
+    }
+}
+
+/// El destello crema que flanquea el texto de la cinta (los ✦ de la
+/// referencia). Decoración pura.
+private struct Sparkle: View {
+    var body: some View {
+        SparkleShape()
+            .fill(Color("PaletteCream").opacity(0.9))
+            .frame(width: 10, height: 10)
+            .shadow(color: .black.opacity(0.2), radius: 0.5, y: 0.5)
+            .accessibilityHidden(true)
+    }
+}
+
+/// La cinta v3, en tres capas: colas caídas por detrás, pliegues oscuros donde
+/// la banda las tapa, y la banda con la luz arriba. Todo derivado de
+/// `PaletteOrange` vía `deepened`/`lifted`, así el naranja de la casa sigue
+/// siendo UNO.
+private struct RibbonBackground: View {
+    private static let tailWidth: CGFloat = 30
+
+    var body: some View {
+        ZStack {
+            tails
+            band
+        }
+        .compositingGroup()
+        .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
+    }
+
+    private var band: some View {
+        let shape = RoundedRectangle(cornerRadius: 6, style: .continuous)
+        return shape
+            .fill(
+                LinearGradient(
+                    colors: [Color("PaletteOrange").lifted(0.14), Color("PaletteOrange")],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .overlay(shape.strokeBorder(Color("PaletteOrange").deepened(0.3), lineWidth: 2.5))
+            // Los pliegues: el dobladillo oscuro que asoma bajo cada esquina,
+            // donde la cola pasa por detrás de la banda.
+            .overlay(alignment: .bottomLeading) { fold }
+            .overlay(alignment: .bottomTrailing) { fold }
+    }
+
+    private var fold: some View {
+        FoldTriangleShape()
+            .fill(Color("PaletteOrange").deepened(0.55))
+            .frame(width: 10, height: 7)
+            .offset(y: 6)
+    }
+
+    private var tails: some View {
+        HStack(spacing: 0) {
+            tail.rotationEffect(.degrees(-6), anchor: .trailing)
+            Spacer(minLength: 0)
+            tail.scaleEffect(x: -1).rotationEffect(.degrees(6), anchor: .leading)
+        }
+        .padding(.horizontal, -Self.tailWidth + 12)
+        .offset(y: 7)
+    }
+
+    /// Una cola: el mismo `RibbonShape` de siempre; la muesca interior queda
+    /// escondida detrás de la banda, así que sólo se ve la V del extremo.
+    private var tail: some View {
+        RibbonShape()
+            .fill(Color("PaletteOrange").deepened(0.18))
+            .overlay(RibbonShape().strokeBorder(Color("PaletteOrange").deepened(0.45), lineWidth: 2))
+            .frame(width: Self.tailWidth + 14, height: 30)
+    }
+}
+
+/// Rombo de cuatro puntas (✦): las puntas en los ejes y los valles en las
+/// diagonales.
+struct SparkleShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let outer = min(rect.width, rect.height) / 2
+        let inner = outer * 0.3
+        var path = Path()
+        path.move(to: CGPoint(x: center.x, y: center.y - outer))
+        for index in 0..<4 {
+            let innerAngle = Double(index) * .pi / 2 - .pi / 4
+            let outerAngle = Double(index + 1) * .pi / 2 - .pi / 2
+            path.addLine(to: CGPoint(
+                x: center.x + CGFloat(cos(innerAngle)) * inner,
+                y: center.y + CGFloat(sin(innerAngle)) * inner
+            ))
+            path.addLine(to: CGPoint(
+                x: center.x + CGFloat(cos(outerAngle)) * outer,
+                y: center.y + CGFloat(sin(outerAngle)) * outer
+            ))
+        }
+        path.closeSubpath()
+        return path
+    }
+}
+
+/// El triángulo del pliegue, apuntando hacia abajo.
+struct FoldTriangleShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+        path.closeSubpath()
+        return path
     }
 }
 

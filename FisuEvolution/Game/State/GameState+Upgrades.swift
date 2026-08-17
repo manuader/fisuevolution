@@ -158,9 +158,14 @@ extension GameState {
     /// así que las evoluciones no se espoilean.
     var characterUpgradeTypes: [CharacterType] {
         guard let content, let player else { return [] }
+        // Del más NUEVO al más viejo (decisión del dueño, 2026-08-17). La lista
+        // sólo crece: con veinte tipos desbloqueados, el que acabás de conseguir
+        // —el único cuya mejora todavía podés pagar— quedaba al fondo, detrás de
+        // veinte filas que ya no vas a tocar. La pantalla abre en lo último que
+        // hiciste. Pineado por `rowsAreOrderedNewestFirst`.
         return content.tiers.concreteTypes
             .filter { player.run.seenTypes.contains($0.id) }
-            .sorted { $0.tier < $1.tier }
+            .sorted { $0.tier > $1.tier }
     }
 
     func characterUpgradeLevel(of typeID: String) -> Int {

@@ -273,7 +273,12 @@ struct GameToggle: View {
     var body: some View {
         Capsule()
             .fill(isOn ? Color("PaletteGreen") : Color.black.opacity(0.18))
-            .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+            .overlay(
+                Capsule().strokeBorder(
+                    isOn ? Color("PaletteGreen").deepened() : CardMaterials.lockedBorder,
+                    lineWidth: 2.5
+                )
+            )
             .overlay(alignment: isOn ? .trailing : .leading) {
                 Circle()
                     .fill(.white)

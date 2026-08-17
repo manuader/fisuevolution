@@ -58,6 +58,60 @@ extension Color {
         let k = 1 - amount
         return Color(red: r * k, green: g * k, blue: b * k, opacity: a)
     }
+
+    /// El compañero de `deepened`: el mismo color con luz, para el degradé de
+    /// las pills (arriba claro, abajo el tono).
+    func lifted(_ amount: Double = 0.22) -> Color {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        UIColor(self).getRed(&r, green: &g, blue: &b, alpha: &a)
+        return Color(
+            red: r + (1 - r) * amount,
+            green: g + (1 - g) * amount,
+            blue: b + (1 - b) * amount,
+            opacity: a
+        )
+    }
+}
+
+// MARK: - PillBackground
+
+/// La cápsula 3D del v3, compartida por `PricePill` y `ActionPill`: relleno
+/// con la luz arriba, labio de brillo interior y borde hundido del MISMO tono
+/// (la referencia no bordea los botones con tinta: el verde lleva verde
+/// oscuro, el naranja ladrillo). Vive como componente para que los dos botones
+/// —y cualquier tercero— no puedan separarse.
+struct PillBackground: View {
+    let fill: Color
+    /// Borde a medida (la pill crema de "no te alcanza" lo pide marrón); por
+    /// defecto, el propio relleno hundido.
+    var border: Color?
+
+    var body: some View {
+        Capsule()
+            .fill(
+                LinearGradient(
+                    colors: [fill.lifted(), fill],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            .overlay {
+                // El labio de luz del borde superior — es lo que hace caramelo
+                // al botón. Se desvanece hacia abajo con la máscara.
+                Capsule()
+                    .strokeBorder(Color.white.opacity(0.45), lineWidth: 1.5)
+                    .padding(2.5)
+                    .mask(
+                        LinearGradient(
+                            colors: [.white, .clear],
+                            startPoint: .top,
+                            endPoint: .center
+                        )
+                    )
+            }
+            .overlay(Capsule().strokeBorder(border ?? fill.deepened(), lineWidth: 2.5))
+            .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+    }
 }
 
 // MARK: - GameCard
@@ -427,10 +481,12 @@ struct PricePill: View {
             .padding(.vertical, Tokens.s8)
             .frame(minWidth: 92)
             .background(
-                Capsule()
-                    .fill(affordable ? Color("PaletteGreen") : Color("PaletteCream"))
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
-                    .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
+                // Verde caramelo cuando alcanza; la píldora crema con borde
+                // marrón de la referencia cuando no.
+                PillBackground(
+                    fill: affordable ? Color("PaletteGreen") : Color("PaletteCream"),
+                    border: affordable ? nil : Color("PaletteBrown").opacity(0.6)
+                )
             )
             .saturation(affordable ? 1 : 0.7)
             .contentShape(Capsule())
@@ -494,12 +550,7 @@ struct ActionPill: View {
             .padding(.horizontal, Tokens.s12)
             .padding(.vertical, Tokens.s8)
             .frame(minWidth: 92)
-            .background(
-                Capsule()
-                    .fill(tint)
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
-                    .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
-            )
+            .background(PillBackground(fill: tint))
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
@@ -628,7 +679,7 @@ struct CountBadge: View {
             .background {
                 Capsule()
                     .fill(Color("PaletteCream"))
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk").opacity(dimmed ? 0.4 : 1), lineWidth: 2))
+                    .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(dimmed ? 0.35 : 0.7), lineWidth: 2))
             }
             .opacity(dimmed ? 0.8 : 1)
     }
@@ -665,7 +716,7 @@ struct IconButton: View {
                 .background(
                     Circle()
                         .fill(Color("PaletteCream"))
-                        .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+                        .overlay(Circle().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2.5))
                         .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
                 )
                 .contentShape(Circle())

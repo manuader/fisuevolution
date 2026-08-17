@@ -18,9 +18,11 @@
 > **`AscentRenderingUITests` volvió de entre los muertos** — la suite de UI
 > corre **43 sin un solo `-skip-testing:`** (§6).
 >
-> ⚠️ **Lo que falta NO es implementación**: el batch de los 15 iconos que corre
-> el dueño (§8) y los dos gates humanos de F6 (cuenta de Apple Developer y
-> RF-14, el audio).
+> ✅ **Y el batch de los 15 iconos TAMBIÉN corrió** (2026-08-16, `d304fe3`):
+> los 15 integrados al atlas con opacidad sana y cero descartes — la UI dejó
+> los vectoriales, que quedan de fallback. ⚠️ **Lo único que falta son los dos
+> gates humanos de F6**: la cuenta de Apple Developer (RF-02c) y la fuente de
+> audio (RF-14). No queda NINGUNA tarea de código pendiente.
 >
 > **Empezá por acá.** Última actualización: **2026-08-16** (cierre post-merge).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
@@ -806,7 +808,14 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ### Lo que dejó el rediseño de UI (2026-08-16)
 
-**1. El batch de los 15 iconos lo corre EL DUEÑO, desde Terminal.app.** La
+**1. ✅ HECHO (2026-08-16) — el batch de los 15 iconos corrió entero y está
+integrado y pusheado** (`d304fe3`): opacidad sana en los 15 (18–51%, umbral
+12), cero descartes, suites de las pantallas tocadas en verde, y los
+vectoriales quedan de fallback. Costó dos hallazgos que ya están corregidos y
+documentados: el robo de foco (runner endurecido, ver arriba) y **las vocales
+con tilde que el keystroke pierde** (bug #7 de `HANDOFF-arte-gemini.md`; los
+prompts nuevos van en ASCII). Lo de abajo queda como referencia para el
+próximo batch. — La
 cola está armada y verificada (tarea 19): 15 prompts `.md` numerados
 **213–227** en `Tools/asset-pipeline/prompts/gemini_pro/` con sus 15 entradas
 gemelas en `prompts.json`, **los 15 sin generar** —cada `.md` con su línea

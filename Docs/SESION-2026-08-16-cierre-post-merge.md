@@ -155,7 +155,19 @@ subprocess; hay 20 `.pyc` trackeados de antes.
 
 Dos cosas, y **ninguna de las dos es código**.
 
-1. ⏳ **El batch de los 15 iconos, que corre EL DUEÑO desde Terminal.app.**
+1. ✅ **HECHO — el batch de los 15 iconos corrió entero** (2026-08-16,
+   `d304fe3`): el dueño lo lanzó desde Terminal.app con el runner endurecido;
+   12 entraron a la primera, y los 3 que fallaban dos corridas seguidas
+   tenían una causa nueva — **el keystroke pierde las vocales con tilde** en
+   el Chrome/Quill actual, y los tres eran los únicos con una dentro de los
+   primeros 40 caracteres (la cabeza que `prompt_landed` compara exacta).
+   Transliterados a ASCII (`0623854`, bug #7 de `HANDOFF-arte-gemini.md`),
+   entraron los tres al toque. Opacidad medida en los 15: 18–51% de píxeles
+   opacos (umbral de hueco 12) — **cero descartes**, incluidos los tres
+   candidatos de riesgo. Suites de las pantallas tocadas
+   (BottomMenu/Menu/HUDRedesign/BonusHUD/FloorMap): verdes — el único rojo
+   fue la trampa 9a en frío y pasó 2/2 aislado. Los vectoriales de
+   `GameIcons.swift` quedan de fallback. El punto que sigue es histórico:
    Receta completa y medición de opacidad post-batch en `HANDOFF.md` §8. Al
    cierre de esta sesión la **cola 213–227 está intacta y verificada**: los 15
    `.md` numerados —los 15 en `- **estado**: pendiente` y **ninguno con campo

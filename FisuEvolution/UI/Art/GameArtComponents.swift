@@ -595,6 +595,12 @@ struct IconButton: View {
     let artKey: String?
     let fallback: () -> AnyView
     var size: CGFloat = 52
+    /// Qué fracción del plato ocupa el glifo. El default es el histórico —el
+    /// dibujo flotando con aire crema alrededor— y existe justamente para que
+    /// los llamadores que no lo piden no cambien de cara. El HUD rediseñado sube
+    /// a 0,62 porque sus dos botones son lo ÚNICO claro sobre el panel ink: con
+    /// el aire de fábrica, a esa escala el plato se lee más que el dibujo.
+    var glyphScale: CGFloat = 0.52
     let tint: Color
     let labelKey: String
     let identifier: String
@@ -603,7 +609,7 @@ struct IconButton: View {
     var body: some View {
         Button(action: action) {
             glyph
-                .frame(width: size * 0.52, height: size * 0.52)
+                .frame(width: size * glyphScale, height: size * glyphScale)
                 .frame(width: size, height: size)
                 .background(
                     Circle()

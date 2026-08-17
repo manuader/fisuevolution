@@ -25,46 +25,66 @@ struct HUDView: View {
     var body: some View {
         VStack(spacing: Tokens.s4) {
             mainBar
+                .padding(.horizontal, Tokens.s12)
+                .padding(.top, 2)
+                .padding(.bottom, Tokens.s12)
+                .frame(maxWidth: .infinity)
+                .background { topPanel }
             towerNavigator
             prestigeIndicator
-        }
-        .padding(.horizontal, 10)
-        .padding(.top, 8)
-        .padding(.bottom, 6)
-        // Scrim crema translúcido: despega el HUD del arte de fondo (tendedero,
-        // graffiti) para que la barra siempre se lea.
-        .background {
-            LinearGradient(
-                colors: [Color("PaletteCream").opacity(0.55), Color("PaletteCream").opacity(0.0)],
-                startPoint: .top, endPoint: .bottom
-            )
-            .padding(.top, -60)   // extiende el scrim bajo la barra de estado
-            .allowsHitTesting(false)
         }
         .sheet(isPresented: $showFloorMap) { FloorMapView() }
         .tutorialAnchor(.hudBar)
     }
 
+    /// El panel ink que reemplazó al scrim degradado y a la isla crema.
+    ///
+    /// Opaco y **fundido con el borde físico de arriba**: el `ignoresSafeArea`
+    /// lo estira por debajo de la barra de estado, así que el reloj y la batería
+    /// se apoyan sobre el panel en vez de sobre el tablero. Es lo que el scrim
+    /// translúcido nunca logró — dejaba pasar el tendedero y el graffiti, y ahí
+    /// arriba el contraste dependía de qué piso estuviera a la vista.
+    ///
+    /// Redondea **sólo abajo**: arriba no hay esquina que mostrar (está fuera de
+    /// pantalla) y curvarla dejaría dos muescas del tablero asomando en los
+    /// vértices superiores.
+    private var topPanel: some View {
+        UnevenRoundedRectangle(
+            bottomLeadingRadius: 24, bottomTrailingRadius: 24, style: .continuous
+        )
+        .fill(Color("PaletteInk"))
+        .overlay(
+            UnevenRoundedRectangle(
+                bottomLeadingRadius: 24, bottomTrailingRadius: 24, style: .continuous
+            )
+            // El contorno crema que separa al panel del tablero. Sube 4 pt para
+            // que su tramo superior muera fuera de pantalla: un panel fundido no
+            // puede tener una línea cruzándolo por arriba.
+            .strokeBorder(Color("PaletteCream").opacity(0.18), lineWidth: 2)
+            .padding(.top, -4)
+        )
+        .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
+        .ignoresSafeArea(edges: .top)
+    }
+
     // MARK: - Barra contigua
 
-    /// La pieza principal del HUD: **una sola** tarjeta crema de ancho completo.
-    /// Reemplaza a la fila de botones sueltos + píldora de monedas de antes, que
-    /// se leía como cinco objetos distintos flotando sobre el tablero.
+    /// La fila principal del HUD: atajo a la tienda, plata y ascensor.
     ///
-    /// Usa `GameCard` y no un fondo propio: es exactamente el panel crema con
-    /// contorno ink del design system v2, y duplicarlo acá sería un estilo más
-    /// que mantener.
+    /// Ya **no** es una `GameCard`: la tarjeta crema con contorno la dibujaba
+    /// como una isla flotando, y el rediseño la quiere fundida con el borde de
+    /// arriba. El fondo lo pone `topPanel` desde el `body`, que es quien puede
+    /// estirarse hasta atrás de la barra de estado; acá adentro queda el `HStack`
+    /// pelado.
     private var mainBar: some View {
-        GameCard {
-            HStack(spacing: Tokens.s8) {
-                coinsPlusButton
-                Spacer(minLength: Tokens.s4)
-                coinsColumn
-                Spacer(minLength: Tokens.s4)
-                elevatorButton
-            }
-            .frame(maxWidth: .infinity)
+        HStack(spacing: Tokens.s8) {
+            coinsPlusButton
+            Spacer(minLength: Tokens.s4)
+            coinsColumn
+            Spacer(minLength: Tokens.s4)
+            elevatorButton
         }
+        .frame(maxWidth: .infinity)
     }
 
     /// Atajo a la tienda: la moneda con el `+` rosa. Mismo destino que el
@@ -74,7 +94,8 @@ struct HUDView: View {
         IconButton(
             artKey: "ui_coin_plus",
             fallback: { AnyView(VectorCoinPlusIcon()) },
-            size: 52,
+            size: 60,
+            glyphScale: 0.62,
             tint: Color("PaletteYellow"),
             labelKey: "hud.coins.plus.label",
             identifier: "hud.coins.plus",
@@ -105,14 +126,18 @@ struct HUDView: View {
     /// alcanza a asentarse entre refrescos.
     private var coinsAmount: some View {
         HStack(spacing: Tokens.s4) {
-            CoinIcon(size: 26)
+            CoinIcon(size: 34)
             Text(verbatim: gameState.coinsText)
                 .font(Tokens.display)
                 .monospacedDigit()
                 .contentTransition(reduceMotion ? .identity : .numericText())
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
-                .foregroundStyle(Color("PaletteInk"))
+                // Crema y no ink: el número vive sobre el panel oscuro. La
+                // sombra lo despega del fondo, que es del mismo tono que su
+                // propio contorno y sin ella lo aplana.
+                .foregroundStyle(Color("PaletteCream"))
+                .shadow(color: .black.opacity(0.35), radius: 1, y: 1)
         }
         .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: gameState.coinsText)
         .accessibilityElement(children: .ignore)
@@ -140,7 +165,7 @@ struct HUDView: View {
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-                .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                .foregroundStyle(Color("PaletteCream").opacity(0.75))
         }
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("hud.income")
@@ -154,7 +179,8 @@ struct HUDView: View {
         IconButton(
             artKey: "ui_elevator",
             fallback: { AnyView(VectorElevatorIcon()) },
-            size: 52,
+            size: 60,
+            glyphScale: 0.62,
             tint: Color("PaletteOrange"),
             labelKey: "map.hud.label",
             identifier: "hud.map"
@@ -210,9 +236,9 @@ struct HUDView: View {
             _ = gameState.moveVisibleFloor(by: direction)
         } label: {
             Image(systemName: systemName)
-                .font(.system(size: 13, weight: .heavy))
+                .font(.system(size: 16, weight: .heavy))
                 .foregroundStyle(enabled ? Color("PaletteBlue") : Color("PaletteInk").opacity(0.28))
-                .frame(width: 26, height: 26)
+                .frame(width: 30, height: 30)
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)

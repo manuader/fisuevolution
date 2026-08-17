@@ -598,8 +598,9 @@ struct IconButton: View {
     /// Qué fracción del plato ocupa el glifo. El default es el histórico —el
     /// dibujo flotando con aire crema alrededor— y existe justamente para que
     /// los llamadores que no lo piden no cambien de cara. El HUD rediseñado sube
-    /// a 0,62 porque sus dos botones son lo ÚNICO claro sobre el panel ink: con
-    /// el aire de fábrica, a esa escala el plato se lee más que el dibujo.
+    /// a 0,66 por lo mismo que los tabs de abajo crecieron: el dibujo tiene que
+    /// ser el que manda, no el plato que lo enmarca. Con el aire de fábrica, a
+    /// esa escala el plato se lee más que el icono que lleva adentro.
     var glyphScale: CGFloat = 0.52
     let tint: Color
     let labelKey: String
@@ -714,10 +715,12 @@ struct GameTabItem: Identifiable {
 /// que el estado "activo" es el destaque de los extremos más el pulso del toque.
 ///
 /// Dejó de ser una isla flotante: ahora es una franja de ancho completo fundida
-/// con el borde de abajo, espejo del panel ink de `HUDView` arriba. La isla
-/// gastaba tres márgenes de pantalla en aire alrededor de una barra que igual
-/// vivía pegada al fondo, y el crema recortado contra el tablero competía con
-/// las tarjetas del juego, que usan la misma forma.
+/// con el borde de abajo, **gemela** del `topPanel` de `HUDView` arriba —mismo
+/// crema, mismo contorno ink de 3 pt, mismas esquinas de 24, y en cada una el
+/// trazo se ve sólo en la cara que da al tablero—. La isla gastaba tres márgenes
+/// de pantalla en aire alrededor de una barra que igual vivía pegada al fondo, y
+/// el crema recortado contra el tablero competía con las tarjetas del juego, que
+/// usan la misma forma.
 ///
 /// ⚠️ El `HStack` NO lleva identifier: cada botón lleva el suyo (trampa 9a-bis).
 struct GameTabBar: View {
@@ -757,6 +760,32 @@ struct GameTabBar: View {
         max(0, minimumBottomGap - screenBottomSafeArea)
     }
 
+    /// Cuánto mide de alto la barra, sin contar la safe area ni el piso.
+    ///
+    /// Es la suma del layout de `body`, no una medición suelta: **8** de
+    /// `padding(.top)` + la columna del tab destacado, que es el más alto
+    /// (**62** de plato + **2** del spacing del `VStack` + **12** del label).
+    /// La franja no agrega aire abajo —su panel se funde con el borde y no
+    /// termina donde termina el contenido—, así que el padding de abajo es el
+    /// piso y va aparte, en `bottomFloor`.
+    ///
+    /// ⚠️ Existe porque este número lo necesitan TRES lugares fuera de acá y ya
+    /// se movió dos veces (82 cuando la barra estrenó labels, 84 cuando los
+    /// platos crecieron a 62): `BoardScene.bottomInset`, que apoya la multitud
+    /// sobre el borde de arriba de la barra, y los dos toasts de `RootView`, que
+    /// flotan encima de ella. Antes eran tres literales que había que mover a
+    /// mano en el mismo commit; ahora los tres derivan de éste.
+    ///
+    /// El ÚNICO que sigue siendo copia a mano es el espejo de
+    /// `AscentRenderingUITests`, y no se puede evitar: un test de UI corre fuera
+    /// de proceso y no puede importar la app. Ese tiene su propio bloque de
+    /// aviso, que cuenta las cuatro veces que se desincronizó.
+    ///
+    /// No es `@MainActor` como su vecino de arriba a propósito: no lee la
+    /// ventana, es aritmética del layout, y así `BoardScene` puede armar su
+    /// `bottomInset` sin arrastrar isolation.
+    static let barHeight: CGFloat = 84
+
     /// El inset inferior de la **pantalla**, preguntado a la ventana.
     ///
     /// ⚠️ Se lee de UIKit y no con un `GeometryReader` por la trampa que
@@ -780,7 +809,11 @@ struct GameTabBar: View {
         // —medido en captura—. Apoyados abajo, los seis nombres comparten
         // renglón y la diferencia de alto se va toda para arriba, que es donde
         // se quiere: los extremos SOBRESALEN, como en Cow Evolution.
-        HStack(alignment: .bottom, spacing: Tokens.s4) {
+        // ⚠️ El spacing es un literal de 2 y no un `Tokens.s4`: con los platos
+        // de 56/62 los seis tabs suman 374 de los 375 del SE (ver la cuenta en
+        // `GameTabButton.side`), así que los 4 de la escala ya no entran. Es el
+        // único lugar del juego donde el ancho manda sobre el token.
+        HStack(alignment: .bottom, spacing: 2) {
             ForEach(items) { item in
                 GameTabButton(item: item) { selection(item.screen) }
             }
@@ -838,16 +871,20 @@ private struct GameTabButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bounce = 0
 
-    /// Platos 54/60 e iconos 44/50: el icono ocupa ~82% del plato (antes era
-    /// ~58%), que es lo que pide el mockup —el dibujo tiene que ser el que
-    /// manda, no el plato que lo enmarca—.
+    /// Platos 56/62 e iconos 48/54: el icono ocupa ~86% del plato (era ~58%
+    /// antes del rediseño y ~82% en su primera vuelta), que es lo que pidió el
+    /// dueño mirando las capturas —el dibujo tiene que ser el que manda, no el
+    /// plato que lo enmarca—.
     ///
     /// El ancho entra justo en el teléfono más angosto que soportamos:
-    /// 2×60 + 4×54 + 5×4 de spacing + 16 de padding = **372 ≤ 375** (SE). Los
-    /// seis tabs son mínimos rígidos para el `HStack`, así que un punto más por
-    /// plato empieza a apretar el label en vez de la barra.
-    private var side: CGFloat { item.prominent ? 60 : 54 }
-    private var iconSide: CGFloat { item.prominent ? 50 : 44 }
+    /// 2×62 + 4×56 + 5×2 de spacing + 16 de padding = **374 ≤ 375** (SE), o sea
+    /// 1 pt de sobra. Los seis tabs son mínimos rígidos para el `HStack`, así que
+    /// acá se acabó el margen: crecer otro punto por plato ya no aprieta la
+    /// barra sino el label, que es lo único elástico que queda. Los 2 pt de
+    /// spacing salieron de este mismo cálculo — con los `Tokens.s4` de antes la
+    /// cuenta daba 384 y no entraba.
+    private var side: CGFloat { item.prominent ? 62 : 56 }
+    private var iconSide: CGFloat { item.prominent ? 54 : 48 }
 
     var body: some View {
         Button {

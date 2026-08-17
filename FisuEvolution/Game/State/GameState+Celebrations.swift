@@ -107,7 +107,7 @@ extension GameState {
     private func publishCelebration() {
         let kind = celebrations.current
         if showing != kind { showing = kind }
-        let dims = kind == .boardCelebration
-        if celebrationDimsHUD != dims { celebrationDimsHUD = dims }
+        let hides = kind == .boardCelebration
+        if celebrationHidesUI != hides { celebrationHidesUI = hides }
     }
 }

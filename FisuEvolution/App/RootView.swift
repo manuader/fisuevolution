@@ -337,12 +337,14 @@ struct GameBoardView: View {
             bottomBar
         }
         .animation(.spring(duration: 0.35), value: gameState.activeEvent)
-        // Sólo la celebración a pantalla completa apaga el HUD. El reveal
-        // oscurece el tablero al 72% desde ADENTRO de SpriteKit, y con el HUD a
-        // full brillo encima la composición se veía rota. Un toast de logro de
-        // 4 s no justifica esto.
-        .opacity(gameState.celebrationDimsHUD ? 0.2 : 1)
-        .animation(.easeInOut(duration: 0.25), value: gameState.celebrationDimsHUD)
+        // Durante la celebración a pantalla completa la UI se va del todo: el
+        // reveal va centrado en la pantalla entera y no tiene que esquivar nada.
+        // Con `allowsHitTesting` atado a lo mismo, además, no se puede tocar algo
+        // que no se ve. Sólo esa celebración lo hace — un toast de logro de 4 s
+        // no justifica apagar la interfaz.
+        .opacity(gameState.celebrationHidesUI ? 0 : 1)
+        .allowsHitTesting(!gameState.celebrationHidesUI)
+        .animation(.easeInOut(duration: 0.25), value: gameState.celebrationHidesUI)
     }
 
     /// Abre una pantalla de la barra y avisa al tutorial cuando el paso se
@@ -521,12 +523,16 @@ private struct AchievementToastView: View {
                 dismiss()
             }
             // Un piso más arriba que el aviso de la torre (ver `TowerNoticeView`),
-            // para que los dos se apilen cuando salen juntos. Sube los mismos
-            // 2 pt que creció la barra, y arrastra el MISMO piso de abajo: si el
-            // aviso sube 12 en un teléfono sin home indicator y éste no, la
-            // distancia entre los dos se come esos 12 y dejan de leerse como una
-            // pila.
-            .padding(.bottom, 198 + GameTabBar.bottomFloor)
+            // para que los dos se apilen cuando salen juntos: los mismos
+            // 84 + 8 + 45 = 137 de aquél, más los **63** que mide el aviso de la
+            // torre con su aire —medidos, no estimados—, = 200. Sale de la misma
+            // `barHeight` que el otro, así que los dos suben juntos cuando la
+            // barra crece y la pila no se descuajeringa.
+            //
+            // Y arrastra el MISMO piso de abajo: si el aviso sube 12 en un
+            // teléfono sin home indicator y éste no, la distancia entre los dos
+            // se come esos 12 y dejan de leerse como una pila.
+            .padding(.bottom, GameTabBar.barHeight + 8 + 45 + 63 + GameTabBar.bottomFloor)
         }
         .padding(.horizontal, 20)
         // Con Reduce Motion el banner se funde en vez de deslizarse: la guía de
@@ -571,7 +577,7 @@ private struct TowerNoticeView: View {
                 // safe area, y con los números leídos del árbol de AX de una
                 // corrida real (no estimados):
                 //
-                //     barra                            82  (+ el piso de abajo)
+                //     GameTabBar.barHeight             84  (+ el piso de abajo)
                 //     spacing del VStack                8
                 //     botón de prestigio               45  (mide 44,0 en 3× y
                 //                                          44,5 en 2×: va el
@@ -579,18 +585,24 @@ private struct TowerNoticeView: View {
                 //                                          que un solo número
                 //                                          sirva en los dos)
                 //                                    ----
-                //                                     135  (+ el piso de abajo)
+                //                                     137  (+ el piso de abajo)
+                //
+                // La barra entra por SÍMBOLO y no por literal a propósito: es el
+                // tercer commit seguido en que cambia de alto (80 → 82 → 84), y
+                // las dos veces anteriores hubo que acordarse de mover este
+                // número a mano. Ahora sube sola.
                 //
                 // ⚠️ El `+ GameTabBar.bottomFloor` NO es decorativo: sin home
-                // indicator la barra mide 94 y el botón de prestigio llega a
-                // 146,5, así que un 134 pelado terminaba 12,5 pt POR DEBAJO de su
-                // tope —solapados de verdad, medido—. Sumando el mismo piso que
-                // subió la barra, el aviso despeja al botón en las dos clases de
-                // teléfono. Los 132 de antes del rediseño (80 + 8 + 44) dejaban
-                // al aviso EXACTAMENTE al ras del botón; este pasa a despejarlo
-                // por 1 pt, que es lo que hace falta para que el medio punto que
-                // el botón mide de más en 2× no se lo vuelva a comer.
-                .padding(.bottom, 135 + GameTabBar.bottomFloor)
+                // indicator la barra mide 96 y el botón de prestigio llega a
+                // 148,5, así que un 137 pelado terminaría 11,5 pt POR DEBAJO de
+                // su tope —solapados de verdad, medido en la vuelta anterior—.
+                // Sumando el mismo piso que subió la barra, el aviso despeja al
+                // botón en las dos clases de teléfono: por **1,0 pt** con notch
+                // (137 contra 136,0) y por **0,5 pt** sin él (149 contra 148,5).
+                // Los 132 de antes del rediseño (80 + 8 + 44) dejaban al aviso
+                // EXACTAMENTE al ras; el entero de arriba en el botón es lo que
+                // hace que el medio punto que mide de más en 2× no se lo coma.
+                .padding(.bottom, GameTabBar.barHeight + 8 + 45 + GameTabBar.bottomFloor)
         }
         .padding(.horizontal, 20)
         .allowsHitTesting(true)

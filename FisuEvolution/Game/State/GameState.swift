@@ -234,9 +234,11 @@ final class GameState {
     /// Sin `private(set)` por lo mismo que `player`: lo escribe `+Celebrations`,
     /// que es otro archivo. Nadie más lo toca.
     var showing: CelebrationKind?
-    /// El HUD se atenúa sólo en la celebración a pantalla completa. Un toast de
-    /// logro de 4 s no justifica apagar el HUD entero.
-    var celebrationDimsHUD = false
+    /// Durante la celebración a pantalla completa el resto de la UI se va a
+    /// **opacidad 0**: el reveal ocupa el centro de la pantalla y nada tiene que
+    /// competirle. Sólo esa celebración lo hace — un toast de logro de 4 s no
+    /// justifica apagar la interfaz entera.
+    var celebrationHidesUI = false
 
 
     // MARK: Authoritative state

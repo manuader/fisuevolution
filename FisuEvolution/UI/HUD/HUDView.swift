@@ -87,7 +87,7 @@ struct HUDView: View {
             .safeAreaInsets.top ?? 0
     }
 
-    /// El panel ink que reemplazó al scrim degradado y a la isla crema.
+    /// El panel crema que reemplazó al scrim degradado y a la isla crema.
     ///
     /// Opaco y **fundido con el borde físico de arriba**: el `ignoresSafeArea`
     /// lo estira por debajo de la barra de estado, así que el reloj y la batería
@@ -95,25 +95,33 @@ struct HUDView: View {
     /// translúcido nunca logró — dejaba pasar el tendedero y el graffiti, y ahí
     /// arriba el contraste dependía de qué piso estuviera a la vista.
     ///
+    /// Es el **gemelo** del `bottomPanel` de `GameTabBar`, y eso es el requisito,
+    /// no un parecido: mismo crema, mismo contorno ink de 3 pt, mismas esquinas
+    /// de 24. El panel ink de la primera vuelta partía la pantalla en tres tonos
+    /// —oscuro arriba, tablero al medio, crema abajo— y el dueño lo re-decidió
+    /// con las capturas en mano: las dos franjas encuadran el tablero sólo si son
+    /// la misma cosa.
+    ///
     /// Redondea **sólo abajo**: arriba no hay esquina que mostrar (está fuera de
     /// pantalla) y curvarla dejaría dos muescas del tablero asomando en los
-    /// vértices superiores.
+    /// vértices superiores. Y el contorno se sale por los tres lados que no dan
+    /// al tablero (de eso se ocupan los paddings negativos), así que lo único que
+    /// se ve del trazo es el borde de abajo: un panel fundido no puede tener una
+    /// línea encerrándolo.
     private var topPanel: some View {
         UnevenRoundedRectangle(
             bottomLeadingRadius: 24, bottomTrailingRadius: 24, style: .continuous
         )
-        .fill(Color("PaletteInk"))
+        .fill(Color("PaletteCream"))
         .overlay(
             UnevenRoundedRectangle(
                 bottomLeadingRadius: 24, bottomTrailingRadius: 24, style: .continuous
             )
-            // El contorno crema que separa al panel del tablero. Sube 4 pt para
-            // que su tramo superior muera fuera de pantalla: un panel fundido no
-            // puede tener una línea cruzándolo por arriba.
-            .strokeBorder(Color("PaletteCream").opacity(0.18), lineWidth: 2)
-            .padding(.top, -4)
+            .strokeBorder(Color("PaletteInk"), lineWidth: 3)
+            .padding(.horizontal, -3)
+            .padding(.top, -3)
         )
-        .shadow(color: .black.opacity(0.3), radius: 8, y: 4)
+        .shadow(color: .black.opacity(0.2), radius: 6, y: 2)
         .ignoresSafeArea(edges: .top)
     }
 
@@ -144,8 +152,8 @@ struct HUDView: View {
         IconButton(
             artKey: "ui_coin_plus",
             fallback: { AnyView(VectorCoinPlusIcon()) },
-            size: 60,
-            glyphScale: 0.62,
+            size: 64,
+            glyphScale: 0.66,
             tint: Color("PaletteYellow"),
             labelKey: "hud.coins.plus.label",
             identifier: "hud.coins.plus",
@@ -176,18 +184,18 @@ struct HUDView: View {
     /// alcanza a asentarse entre refrescos.
     private var coinsAmount: some View {
         HStack(spacing: Tokens.s4) {
-            CoinIcon(size: 34)
+            CoinIcon(size: 36)
             Text(verbatim: gameState.coinsText)
                 .font(Tokens.display)
                 .monospacedDigit()
                 .contentTransition(reduceMotion ? .identity : .numericText())
                 .lineLimit(1)
                 .minimumScaleFactor(0.5)
-                // Crema y no ink: el número vive sobre el panel oscuro. La
-                // sombra lo despega del fondo, que es del mismo tono que su
-                // propio contorno y sin ella lo aplana.
-                .foregroundStyle(Color("PaletteCream"))
-                .shadow(color: .black.opacity(0.35), radius: 1, y: 1)
+                // Ink sobre crema, como cualquier texto del juego: desde que el
+                // panel es el gemelo del de abajo, el número ya no vive sobre un
+                // fondo oscuro. Y sin fondo oscuro tampoco hace falta la sombra
+                // que lo despegaba: sobre crema sólo lo ensuciaba.
+                .foregroundStyle(Color("PaletteInk"))
         }
         .animation(reduceMotion ? nil : .snappy(duration: 0.22), value: gameState.coinsText)
         .accessibilityElement(children: .ignore)
@@ -215,7 +223,7 @@ struct HUDView: View {
                 .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
-                .foregroundStyle(Color("PaletteCream").opacity(0.75))
+                .foregroundStyle(Color("PaletteInk").opacity(0.7))
         }
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("hud.income")
@@ -229,8 +237,8 @@ struct HUDView: View {
         IconButton(
             artKey: "ui_elevator",
             fallback: { AnyView(VectorElevatorIcon()) },
-            size: 60,
-            glyphScale: 0.62,
+            size: 64,
+            glyphScale: 0.66,
             tint: Color("PaletteOrange"),
             labelKey: "map.hud.label",
             identifier: "hud.map"

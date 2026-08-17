@@ -138,19 +138,19 @@ struct CelebrationWiringTests {
         #expect(gameState.showing == .skinAward)
     }
 
-    /// El HUD sólo se apaga en la celebración a pantalla completa.
-    @Test("el HUD se atenúa sólo en la del tablero")
-    func onlyTheBoardCelebrationDimsTheHUD() async throws {
+    /// La UI se apaga sólo en la celebración a pantalla completa.
+    @Test("la UI se apaga sólo en la del tablero")
+    func onlyTheBoardCelebrationHidesTheUI() async throws {
         let gameState = await makeGameState()
         gameState.towerNotice = GameState.TowerNotice(kind: .floorFull)
         gameState.flushHUD()
-        #expect(gameState.celebrationDimsHUD == false, "un toast no justifica apagar el HUD")
+        #expect(gameState.celebrationHidesUI == false, "un toast no justifica apagar la interfaz")
 
         gameState.celebrationFinished(.towerNotice)
         gameState.celebrate(.boardCelebration)
-        #expect(gameState.celebrationDimsHUD)
+        #expect(gameState.celebrationHidesUI)
 
         gameState.celebrationFinished(.boardCelebration)
-        #expect(gameState.celebrationDimsHUD == false)
+        #expect(gameState.celebrationHidesUI == false, "y vuelve sola al terminar")
     }
 }

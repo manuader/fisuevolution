@@ -133,29 +133,33 @@ final class BoardScene: SKScene {
     /// Alto de la franja que ocupa el HUD de SwiftUI arriba del tablero.
     ///
     /// **Medido, no estimado**: la pill de piso —una cápsula crema OPACA— termina
-    /// a ~162 pt del borde en un iPhone 16 Pro, y el `SpriteView` está en el
-    /// fondo del `ZStack`, así que todo lo de SpriteKit queda debajo. El reveal
-    /// tenía su texto en `0.82`/`0.76` del alto, o sea 157 y 210 pt: el "¡NUEVO!"
-    /// caía justo abajo de la pill y no se leía. Los 14 pt extra son aire.
+    /// a ~162 pt del borde en un iPhone 16 Pro. Los 14 pt extra son aire.
+    ///
+    /// Hoy no lo consume nadie: el reveal, que era su único cliente, pasó a ir
+    /// centrado en la pantalla entera porque la UI se apaga mientras corre. Queda
+    /// porque es el número medido de la banda del HUD y lo va a necesitar
+    /// cualquier cosa que tenga que esquivarla.
     static let topInset: CGFloat = 176
     /// Origen vertical del campo dentro de la escena: el borde de arriba de la
     /// barra inferior, para que la multitud no camine detrás de ella.
     ///
-    /// Sale de sumar la barra, no de tantear: `GameTabBar` ya no lleva padding
-    /// abajo —su panel se funde con el borde y no termina donde termina el
-    /// contenido—, así que lo que mide es **8** de padding arriba + la columna
-    /// del tab destacado (**60** de plato + **2** de spacing + **12** de label),
-    /// = **82**; la franja ya no agrega aire abajo y la safe area de un teléfono
-    /// con notch pone **34**. Medido en el simulador sobre la captura
-    /// (iPhone 16 Pro): el borde ink de la barra arranca a 116 pt del borde
-    /// inferior de la pantalla.
+    /// Sale de sumar la barra, no de tantear, y ya **no** se copia a mano: son
+    /// los `GameTabBar.barHeight` (hoy **84** = 8 de padding arriba + 62 de
+    /// plato + 2 de spacing + 12 de label; la cuenta vive allá) más los **34**
+    /// de safe area de un teléfono con notch, = **118**. Medido en el simulador
+    /// sobre la captura (iPhone 16 Pro): el borde ink de la barra arranca a
+    /// 118 pt del borde inferior de la pantalla.
     ///
     /// ⚠️ Es UNA constante para todos los tamaños, así que en un teléfono sin
-    /// home indicator la barra mide 94 (los mismos 82 más el piso de 12 de
+    /// home indicator la barra mide 96 (los mismos 84 más el piso de 12 de
     /// `GameTabBar.minimumBottomGap`) y sobran 22 pt de margen — el error va
     /// hacia el lado seguro (nadie queda tapado). `CrowdBandTests` y
     /// `CrowdDepthTests` asertan contra este knob, no contra el número.
-    static let bottomInset: CGFloat = 116
+    ///
+    /// ⚠️ El espejo de `AscentRenderingUITests` **sigue siendo copia a mano** —
+    /// un test de UI no puede importar la app— y va en el MISMO commit que este
+    /// número. Ya se desincronizó cuatro veces.
+    static let bottomInset: CGFloat = GameTabBar.barHeight + 34
     private static let horizontalInset: CGFloat = 16
     /// Margen a cada lado para los textos del reveal, que van centrados y a
     /// pantalla completa.
@@ -199,27 +203,35 @@ final class BoardScene: SKScene {
         let tagY: CGFloat
     }
 
-    /// El reveal se acomoda dentro de la franja libre entre el HUD y la barra de
-    /// abajo, en vez de en fracciones del alto.
+    /// El reveal va **centrado en la pantalla entera**, como un bloque.
     ///
-    /// Con ratios fijos el texto entra en la banda del HUD —el bug reportado— y
-    /// además en una pantalla corta la foto se come el lugar del texto: a 568 pt
-    /// de alto, la foto de `0.52 × alto` deja 5 pt libres arriba. Acá la foto
-    /// cede: se calcula primero el bloque de texto y la foto toma lo que queda.
+    /// Puede ocupar el medio sin esquivar nada porque durante la celebración el
+    /// resto de la UI se va a opacidad 0: no hay HUD ni barra con los que
+    /// competir. Antes tenía que meterse en la franja libre entre los dos, que
+    /// era lo que lo empujaba contra la pill de piso.
+    ///
+    /// Se centra el GRUPO (etiqueta + nombre + foto), no la foto: lo que el ojo
+    /// lee como "la animación" es el bloque completo, y centrar sólo la foto
+    /// dejaría el conjunto cargado hacia arriba.
+    ///
+    /// La foto sigue cediendo si no entra: a 568 pt de alto, `0.52 × alto` más el
+    /// texto se pasa del borde. El tope por ancho (`0.82`) es el que manda en
+    /// pantallas normales.
     static func revealLayout(size: CGSize) -> RevealLayout {
-        let ceiling = size.height - topInset
-        let floor = bottomInset
-        let band = max(0, ceiling - floor)
-        // Tag + nombre + aire entre ellos y con la foto.
+        // Nombre + etiqueta + el aire entre ellos y con la foto.
         let textBlock: CGFloat = 96
-        let side = min(size.width * 0.82, max(120, band - textBlock))
-        let photoY = floor + side / 2
-        let bannerY = min(photoY + side / 2 + 26, ceiling - 40)
+        // 24 pt de margen arriba y abajo para que el bloque no bese el borde.
+        let available = max(120, size.height - 48 - textBlock)
+        let side = min(min(size.width * 0.82, size.height * 0.52), available)
+        let blockHeight = side + textBlock
+        let bottom = (size.height - blockHeight) / 2
+        let photoY = bottom + side / 2
+        let bannerY = bottom + side + 26
         return RevealLayout(
             photoSide: side,
             photoY: photoY,
             bannerY: bannerY,
-            tagY: min(bannerY + 40, ceiling - 8)
+            tagY: bannerY + 40
         )
     }
 

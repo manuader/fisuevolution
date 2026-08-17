@@ -125,7 +125,7 @@ struct UpgradesView: View {
         .background {
             Capsule()
                 .fill(Color("PaletteYellow").opacity(0.35))
-                .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2))
+                .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.6), lineWidth: 2))
         }
     }
 
@@ -143,32 +143,45 @@ struct UpgradesView: View {
         .padding(Tokens.s4)
         .background {
             Capsule()
-                .fill(Color("PaletteInk").opacity(0.09))
-                .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+                .fill(Color("PaletteBrown").opacity(0.12))
+                .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.55), lineWidth: 2))
         }
         .animation(.snappy(duration: 0.2), value: selectedTab)
+    }
+
+    /// El glifo de cada pestaña (referencia v3: la persona para Personajes, la
+    /// estrella para Permanentes). Decoración —el texto de al lado ya lo
+    /// dice—, así que va tapado de VoiceOver.
+    private static func tabGlyph(_ tab: Tab) -> String {
+        switch tab {
+        case .characters: "person.fill"
+        case .permanent: "star.fill"
+        }
     }
 
     private func tabButton(_ tab: Tab, key: LocalizedStringKey, identifier: String) -> some View {
         let selected = selectedTab == tab
         return Button { selectedTab = tab } label: {
-            Text(key)
-                .font(Tokens.body)
-                .foregroundStyle(selected ? Color.white : Color("PaletteInk").opacity(0.7))
-                .shadow(color: .black.opacity(selected ? 0.35 : 0), radius: 1, y: 1)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Tokens.s8)
-                .background {
-                    if selected {
-                        Capsule()
-                            .fill(Color("PaletteBlue"))
-                            .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2))
-                            .shadow(color: .black.opacity(0.2), radius: 3, y: 1)
-                    }
+            HStack(spacing: 6) {
+                Image(systemName: Self.tabGlyph(tab))
+                    .font(.system(size: 13, weight: .black))
+                    .accessibilityHidden(true)
+                Text(key)
+                    .font(Tokens.body)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+            }
+            .foregroundStyle(selected ? Color.white : Color("PaletteInk").opacity(0.55))
+            .shadow(color: .black.opacity(selected ? 0.35 : 0), radius: 1, y: 1)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, Tokens.s8)
+            .background {
+                // Naranja, como la pestaña activa de la referencia (era azul).
+                if selected {
+                    PillBackground(fill: Color("PaletteOrange"))
                 }
-                .contentShape(Capsule())
+            }
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
@@ -214,7 +227,7 @@ struct UpgradesView: View {
     /// izquierdo (la tarjeta se veía partida en dos, con marco sólo alrededor
     /// del texto).
     private func characterRow(_ row: GameState.CharacterUpgradeRow) -> some View {
-        let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
         return HStack(spacing: 0) {
             CharacterPortrait(
                 faceKey: row.faceKey,
@@ -317,7 +330,7 @@ struct UpgradesView: View {
         }
         .background(shape.fill(Color("PaletteCream")))
         .clipShape(shape)
-        .overlay(shape.strokeBorder(Color("PaletteInk"), lineWidth: 2))
+        .overlay(shape.strokeBorder(Color("PaletteBrown").opacity(0.55), lineWidth: 2))
         .shadow(color: .black.opacity(0.16), radius: 5, y: 2)
     }
 
@@ -500,9 +513,9 @@ struct UpgradesView: View {
                 }
                 .padding(5)
             }
-            .background(Color("PaletteYellow").opacity(0.35))
+            .background(Color("PaletteYellow").opacity(0.3))
             .clipShape(shape)
-            .overlay(shape.strokeBorder(Color("PaletteInk"), lineWidth: 2))
+            .overlay(shape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
             .accessibilityHidden(true)
     }
 }
@@ -581,7 +594,7 @@ private struct CharacterPortrait: View {
             // Separa el retrato del texto sin encerrarlo: el marco de la card lo
             // rodea por los otros tres lados.
             .overlay(alignment: .trailing) {
-                Rectangle().fill(Color("PaletteInk")).frame(width: 2)
+                Rectangle().fill(Color("PaletteBrown").opacity(0.55)).frame(width: 2)
             }
             // El identificador va en una capa VACÍA encima, no en el retrato.
             // Medido el 2026-08-07: el frame de accesibilidad de una vista que

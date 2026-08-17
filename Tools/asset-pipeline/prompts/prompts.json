@@ -2763,5 +2763,77 @@
     "assetKey": "ui_daily_calendar",
     "category": "ui",
     "prompt": "Calendario diario is the icon of the DAILY REWARD calendar in the gifts screen of Fisura Evolution, an Argentine merge-idle mobile game: seven days, a prize on the seventh. Design it as a single CALENDAR PAGE, landscape, with a blue #4D96FF binder bar across the top and two chunky ink #2C2C2C ring loops standing up from that bar. The page body is cream #FFF8E7 with a thick ink outline, divided by ink grid lines into exactly SEVEN square cells in one single row — seven cells only, never a full month grid, chunky and evenly spaced. The first three cells each hold a bold green #6BCB77 CHECK MARK drawn as a thick tick shape, the fourth, fifth and sixth cells stay empty cream, and the seventh and last cell is filled pink-red #FF4D6D and holds a big sunny yellow #FFD93D five-point star that marks the weekly prize. No dates, no numbers, no letters anywhere — the ticks and the star are drawn shapes, not typed characters.\n\nThis icon is drawn at about 44 to 60pt on a gifts card, so seven cells is the absolute maximum it can carry: keep the cells large, the grid lines thick and the ticks fat. The background removal step of our pipeline eats large pale flat areas that look like background: this pale surface must be cream #FFF8E7 and never pure white, it must carry a second thin ink rule just inside its outer outline, and it must be covered edge to edge in drawn detail so no big empty area is left anywhere inside the silhouette.\n\nOfficial game asset, same visual language as the rest of the game: 2D flat vector cartoon, single art direction, uniform thick black outline of constant weight, flat colors with minimal cel-shading, NO gradients, no photorealism, single soft light from the top-left. Locked palette — #FFD93D sunny yellow, #FF6B35 orange, #FF4D6D pink-red, #4D96FF blue, #6BCB77 green, plus #FFF8E7 cream, #2C2C2C ink black and #FFFFFF white — use no colors outside that list. Generous safe margin, square canvas, clean readable shapes, mobile-game production quality, cohesive studio look. Simple flat vector game icon, centered, plain white background. No text, no letters, no numbers, no watermark, no cropping."
+  },
+  {
+    "assetKey": "trapito__naranjita",
+    "category": "skin",
+    "atlas": "earth",
+    "family": "skins",
+    "qa_family": "skins",
+    "tanda": 6,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nEl Trapito — ALTERNATE OUTFIT \"Naranjita\". This is the same character as the attached reference. Keep his pose, body proportions, face and expression EXACTLY as in the reference — the silhouette must read as the same character at a glance. Change ONLY the clothing, the props and the palette: he went legit: the informal street parking minder is now a CARD-CARRYING MUNICIPAL PARKING ATTENDANT. The filthy orange rag is replaced by a crisp high-visibility tabard in official municipal orange with reflective silver bands and a printed city crest, a peaked uniform cap with a metal badge, a laminated ID card on a lanyard around his neck, and instead of the fistful of loose coins he holds a handheld ticket printer spitting a paper slip. Same wide-armed pose reserving the spot — the joke is that he does the exact same job, now with paperwork. Palette shifts from grimy browns and dirty fluoro to clean saturated municipal orange, white and navy. The new outfit must be boldly different in color from the reference so the two are never confused at a glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "limpiavidrios__malabarista",
+    "category": "skin",
+    "atlas": "earth",
+    "family": "skins",
+    "qa_family": "skins",
+    "tanda": 6,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nLimpiavidrios — ALTERNATE OUTFIT \"Malabarista\". This is the same character as the attached reference. Keep his pose, body proportions, face and expression EXACTLY as in the reference — the silhouette must read as the same character at a glance. Change ONLY the clothing, the props and the palette: he traded the windshield for an audience: the traffic-light windshield washer is now a TRAFFIC-LIGHT JUGGLER. The rubber squeegee becomes a juggling club mid-spin, the spray bottle becomes a second club, and two more clubs hang in the air around him. He wears a battered harlequin vest in diamond patches of red and yellow, striped leggings, a tiny bowler hat and a painted white clown nose, with a chalk-white face stripe under one eye. Same mid-lunge on the balls of his feet. Palette shifts from soapy blues and greys to circus red, gold and cream. The new outfit must be boldly different in color from the reference so the two are never confused at a glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "mantero__feriante",
+    "category": "skin",
+    "atlas": "earth",
+    "family": "skins",
+    "qa_family": "skins",
+    "tanda": 6,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nEl Mantero — ALTERNATE OUTFIT \"Feriante\". This is the same character as the attached reference. Keep his pose, body proportions, face and expression EXACTLY as in the reference — the silhouette must read as the same character at a glance. Change ONLY the clothing, the props and the palette: he graduated from the sidewalk to the fair: the blanket vendor is now a PROPER MARKET STALLHOLDER. The blanket on the ground is replaced by a small folding trestle stall with a striped green-and-white canvas awning over it, the goods now laid out in neat wooden crates, and he wears a canvas money apron with fat pockets, a pencil behind his ear and a cardboard price sign hanging from the stall. He grips the stall's frame instead of the blanket corners — still ready to fold everything in two seconds. Palette shifts from dusty grey pavement tones to warm market green, white canvas and honey wood. The new outfit must be boldly different in color from the reference so the two are never confused at a glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rey_asteroides__chatarrero",
+    "category": "skin",
+    "atlas": "cosmic",
+    "family": "skins",
+    "qa_family": "skins",
+    "tanda": 6,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nRey de los Asteroides — ALTERNATE OUTFIT \"Chatarrero\". This is the same character as the attached reference. Keep his pose, body proportions, face and expression EXACTLY as in the reference — the silhouette must read as the same character at a glance. Change ONLY the clothing, the props and the palette: the crown comes off and the overalls go on: the asteroid-belt scrap baron is now a WORKING SPACE SCRAP-DEALER. The welded scrap crown is gone, replaced by a dented welding helmet pushed up on his forehead with the visor flipped open, thick grease-stained coveralls with burn marks and a tool belt of wrenches, heavy gauntlets, and the levitating cart of rocks now hangs from an industrial electromagnet on a cable instead of his hand. Same wide-legged stance with one boot on an asteroid. Palette shifts from regal purple and gold to industrial rust orange, oil-stained denim blue and burnt steel grey. The new outfit must be boldly different in color from the reference so the two are never confused at a glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "fondo_buitre__holdout",
+    "category": "skin",
+    "atlas": "cosmic",
+    "family": "skins",
+    "qa_family": "skins",
+    "tanda": 6,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nFondo Buitre Estelar — ALTERNATE OUTFIT \"Holdout\". This is the same character as the attached reference. Keep his pose, body proportions, face and expression EXACTLY as in the reference — the silhouette must read as the same character at a glance. Change ONLY the clothing, the props and the palette: he stopped negotiating and went to court: the impeccable distressed-debt financier is now a LITIGATING HOLDOUT CREDITOR. Over the suit he wears open black courtroom robes, a starched white jabot at the throat, and half-moon reading glasses down his nose. The three foreclosed planets under his arm are now bundled in red legal ribbon like a case file, and the repossession notice he extends has become a thick sheaf of stamped, sealed defaulted bonds with a wax seal, a small judge's gavel tucked in his breast pocket. Same smug outstretched hand. Palette shifts from cold corporate navy and silver to deep courtroom black, oxblood red and aged parchment cream. The new outfit must be boldly different in color from the reference so the two are never confused at a glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "rentista_soles__jubilado",
+    "category": "skin",
+    "atlas": "cosmic",
+    "family": "skins",
+    "qa_family": "skins",
+    "tanda": 6,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nRentista de Soles — ALTERNATE OUTFIT \"Jubilado\". This is the same character as the attached reference. Keep his pose, body proportions, face and expression EXACTLY as in the reference — the silhouette must read as the same character at a glance. Change ONLY the clothing, the props and the palette: the landlord becomes the pensioner: the silk dressing gown and slippers give way to FULL RETIREE-ON-A-PARK-BENCH mode. He wears a buttoned wool cardigan over a shirt, comfortable trousers pulled up high with a belt, sensible walking shoes, a flat cap and a folded newspaper tucked under one arm. The enormous ring of keys is replaced by a bag of breadcrumbs he is scattering, and a couple of small glowing star-pigeons peck near his feet; he still sips the mate gourd through its metal straw. Same at-ease stance. Palette shifts from silky burgundy and gold to muted cardigan beige, olive green and warm brown. The new outfit must be boldly different in color from the reference so the two are never confused at a glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "estanciero_estelar__tropero",
+    "category": "skin",
+    "atlas": "cosmic",
+    "family": "skins",
+    "qa_family": "skins",
+    "tanda": 6,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nEstanciero Estelar — ALTERNATE OUTFIT \"Tropero\". This is the same character as the attached reference. Keep his pose, body proportions, face and expression EXACTLY as in the reference — the silhouette must read as the same character at a glance. Change ONLY the clothing, the props and the palette: he stops surveying and starts driving the herd: the land-owning star rancher is now a WORKING CATTLE DROVER on the move. The wide-brimmed flat hat stays but is weather-beaten and tied under the chin, a heavy dark wool poncho hangs off one shoulder, a leather chest strap crosses his torso, and the coiled lasso on his hip is now swinging in his raised hand along with a set of spinning boleadoras. His thumbs come off the belt: he leans forward mid-stride, driving a few small floating star-cattle ahead of him. Palette shifts from pale landowner cream and tan to deep poncho crimson, charcoal grey and worn saddle leather. The new outfit must be boldly different in color from the reference so the two are never confused at a glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "coleccionista_galaxias__figurita",
+    "category": "skin",
+    "atlas": "cosmic",
+    "family": "skins",
+    "qa_family": "skins",
+    "tanda": 6,
+    "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character — same game, same studio.\n\nColeccionista de Galaxias — ALTERNATE OUTFIT \"Figurita Difícil\". This is the same character as the attached reference. Keep his pose, body proportions, face and expression EXACTLY as in the reference — the silhouette must read as the same character at a glance. Change ONLY the clothing, the props and the palette: the collector becomes the collectible: he is now THE RARE STICKER HIMSELF. The enormous album is gone from his hands; instead he stands inside a thick glossy holographic sticker frame with scalloped die-cut edges and a rainbow foil sheen that catches the light, his own portrait printed on it, one corner of the sticker peeling up behind his shoulder. He wears a shiny prismatic foil tracksuit that matches the sticker's holographic finish, and holds the pinched spiral galaxy up beside his own grinning face like a trophy, striking a proud presentation pose. Palette shifts from cardboard album browns to iridescent holographic silver, magenta and cyan with rainbow sheen. The new outfit must be boldly different in color from the reference so the two are never confused at a glance.\n\nFull body standing character, both feet planted on the ground, hands visible, complete figure with generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
   }
 ]

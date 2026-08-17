@@ -1,7 +1,7 @@
 # 229 — Malabarista (skin de Limpiavidrios)
 
 - **archivo**: `limpiavidrios__malabarista.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/limpiavidrios.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

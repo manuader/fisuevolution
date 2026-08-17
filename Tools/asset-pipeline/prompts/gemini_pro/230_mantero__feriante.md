@@ -1,7 +1,7 @@
 # 230 — Feriante (skin de El Mantero)
 
 - **archivo**: `mantero__feriante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/mantero.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

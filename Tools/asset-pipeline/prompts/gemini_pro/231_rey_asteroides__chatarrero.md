@@ -1,7 +1,7 @@
 # 231 — Chatarrero (skin de Rey de los Asteroides)
 
 - **archivo**: `rey_asteroides__chatarrero.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/rey_asteroides.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

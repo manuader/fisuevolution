@@ -1,7 +1,7 @@
 # 228 — Naranjita (skin de El Trapito)
 
 - **archivo**: `trapito__naranjita.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/trapito.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 234 — Tropero (skin de Estanciero Estelar)
 
 - **archivo**: `estanciero_estelar__tropero.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/estanciero_estelar.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

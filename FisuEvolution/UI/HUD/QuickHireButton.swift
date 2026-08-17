@@ -52,11 +52,22 @@ struct QuickHireButton: View {
     /// a los dos: el número está pineado al tamaño por defecto, que es donde se
     /// midió y lo único que garantiza.
     ///
-    /// No lleva anotación de isolation y no le hace falta: es un `let` inmutable
-    /// de un tipo `Sendable`, así que se lee desde cualquier aislamiento. (Y si
-    /// alguna vez el tipo quedara globalmente aislado, SE-0434 lo dejaría
-    /// implícitamente `nonisolated` igual — no hay nada que anotar en ninguno de
-    /// los dos casos.)
+    /// ⚠️ **Está aislado al main actor, como todo el tipo.** `View` es
+    /// `@MainActor @preconcurrency`, así que la conformance aísla al struct
+    /// ENTERO y a sus statics con él. No lleva anotación porque no le hace
+    /// falta —sus dos consumidores son `body`s de SwiftUI, que ya corren ahí—,
+    /// **no** porque esté exento: la exención de inmutable-`Sendable` es para
+    /// los statics de tipos NO aislados globalmente, y SE-0434 cubre los `let`
+    /// **de instancia**, no los estáticos. Ninguna de las dos aplica acá. Si
+    /// alguna vez lo necesitara un contexto `nonisolated`, la anotación hay que
+    /// escribirla —`nonisolated static let`— y no darla por puesta.
+    ///
+    /// Comprobado compilando las tres formas con `-swift-version 6
+    /// -strict-concurrency=complete`: el static de un tipo que conforma `View`,
+    /// leído desde `nonisolated`, es **error** ("main actor-isolated static
+    /// property 'h' can not be referenced from a nonisolated context"); el mismo
+    /// static en un tipo sin la conformance compila; y un `let` de instancia
+    /// `Sendable` del mismo `View` también.
     static let capsuleHeight: CGFloat = 56
 
     var body: some View {

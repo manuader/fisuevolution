@@ -781,9 +781,28 @@ struct GameTabBar: View {
     /// de proceso y no puede importar la app. Ese tiene su propio bloque de
     /// aviso, que cuenta las cuatro veces que se desincronizó.
     ///
-    /// No es `@MainActor` como su vecino de arriba a propósito: no lee la
-    /// ventana, es aritmética del layout, y así `BoardScene` puede armar su
-    /// `bottomInset` sin arrastrar isolation.
+    /// ⚠️ **No lleva `@MainActor`, pero SÍ está aislado al main actor.** Este
+    /// docstring decía lo contrario —"no es `@MainActor` a propósito… y así
+    /// `BoardScene` puede armar su `bottomInset` sin arrastrar isolation"— y era
+    /// falso de punta a punta: `GameTabBar` conforma `View`, que es
+    /// `@MainActor @preconcurrency`, así que la conformance aísla al struct
+    /// entero **y a sus statics**. La anotación de su vecino `bottomFloor` no es
+    /// lo que lo diferencia: explicita un aislamiento que la conformance ya le
+    /// daba.
+    ///
+    /// Y `BoardScene.bottomInset` puede consumirlo no porque esto sea
+    /// `nonisolated`, sino porque `BoardScene` es una `SKScene` y **SKScene es
+    /// `@MainActor`**: los dos están del mismo lado, así que no hay isolation
+    /// que arrastrar. Si algún día lo necesitara un contexto `nonisolated`, la
+    /// anotación hay que escribirla —`nonisolated static let`— y no darla por
+    /// puesta.
+    ///
+    /// Comprobado compilando las formas exactas con `-swift-version 6
+    /// -strict-concurrency=complete`: un `static let` de un tipo que conforma
+    /// `View`, leído desde `nonisolated`, es **error**; el mismo static en un
+    /// tipo sin la conformance compila. La regla vale igual para
+    /// `QuickHireButton.capsuleHeight`, que tiene la misma forma y la explica
+    /// desde el otro lado.
     static let barHeight: CGFloat = 84
 
     /// El inset inferior de la **pantalla**, preguntado a la ventana.

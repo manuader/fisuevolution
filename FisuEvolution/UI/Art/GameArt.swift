@@ -191,12 +191,30 @@ struct ArtCloseButton: View {
 }
 
 /// Fondo de panel para sheets basadas en `List`: el marco 9-slice enmarca toda la
-/// hoja sin deformarse (crema opaco si el asset todavía no existe).
+/// hoja sin deformarse (pergamino opaco si el asset todavía no existe).
+///
+/// La base es **pergamino** (`PaletteParchment`) y no el crema de las tarjetas:
+/// con el mismo crema en el fondo y en las `GameCard`, las tarjetas no se
+/// despegaban del panel (medido contra las referencias del rediseño v3, donde
+/// el interior es un beige más hundido que las tarjetas). El interior de los
+/// PNG de marco es transparente (alfa 8–15 en el centro, medido sobre
+/// `panel_store@3x`), así que esta capa es la que decide el color de TODAS las
+/// hojas. El gradiente pone la luz arriba y hunde apenas el pie del panel —el
+/// veladero de la referencia— sin tocar el arte.
 struct PanelBackground: View {
     let art: String
     var body: some View {
         ZStack {
-            Color("PaletteCream")
+            Color("PaletteParchment")
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(0.35),
+                    .clear,
+                    Color("PaletteBrown").opacity(0.10)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
             if let frame = UIArt.nineSlice(art, cap: 0.33) {
                 frame
             }

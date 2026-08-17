@@ -554,18 +554,23 @@ private struct AchievementToastView: View {
                 guard !Task.isCancelled else { return }
                 dismiss()
             }
-            // Un piso más arriba que el aviso de la torre (ver `TowerNoticeView`),
-            // para que los dos se apilen cuando salen juntos: los mismos
-            // 84 + 8 + 56 + 8 + 45 = 201 de aquél —el 56 es el atajo de
-            // contratar, que se metió en el medio de la franja—, más los **63**
-            // que mide el aviso de la torre con su aire —medidos, no estimados—,
-            // = 264. Sale de la misma `barHeight` que el otro, así que los dos
-            // suben juntos cuando la barra crece y la pila no se descuajeringa.
+            // Un piso más arriba que el aviso de la torre (ver `TowerNoticeView`,
+            // que es donde está contada la suma entera), para que los dos se
+            // apilen cuando salen juntos: los mismos 84 + 8 + 56 + 8 + 45 = 201
+            // de aquél —el 56 es el atajo de contratar, que se metió en el medio
+            // de la franja—, más los **63** que mide el aviso de la torre con su
+            // aire —medidos, no estimados—, = 264.
+            //
+            // Los dos altos que se mueven entran por SÍMBOLO —`barHeight` y
+            // `capsuleHeight`— así que los dos toasts suben juntos y la pila no
+            // se descuajeringa. Que el atajo esté acá por símbolo es justamente
+            // lo que impide que este renglón y el del aviso se desincronicen.
             //
             // Y arrastra el MISMO piso de abajo: si el aviso sube 12 en un
             // teléfono sin home indicator y éste no, la distancia entre los dos
             // se come esos 12 y dejan de leerse como una pila.
-            .padding(.bottom, GameTabBar.barHeight + 8 + 56 + 8 + 45 + 63 + GameTabBar.bottomFloor)
+            .padding(.bottom, GameTabBar.barHeight + 8 + QuickHireButton.capsuleHeight
+                + 8 + 45 + 63 + GameTabBar.bottomFloor)
         }
         .padding(.horizontal, 20)
         // Con Reduce Motion el banner se funde en vez de deslizarse: la guía de
@@ -612,10 +617,10 @@ private struct TowerNoticeView: View {
                 //
                 //     GameTabBar.barHeight             84  (+ el piso de abajo)
                 //     spacing del VStack                8
-                //     QuickHireButton                  56  (mide 56,0 EXACTOS en
-                //                                          las dos escalas, así
-                //                                          que acá no hay medio
-                //                                          punto que redondear)
+                //     QuickHireButton.capsuleHeight    56  (56,0 EXACTOS en las
+                //                                          dos escalas: acá no
+                //                                          hay medio punto que
+                //                                          redondear)
                 //     spacing del VStack                8
                 //     botón de prestigio               45  (mide 44,0 en 3× y
                 //                                          44,5 en 2×: va el
@@ -625,13 +630,24 @@ private struct TowerNoticeView: View {
                 //                                    ----
                 //                                     201  (+ el piso de abajo)
                 //
-                // La barra entra por SÍMBOLO y no por literal a propósito: es el
-                // tercer commit seguido en que cambia de alto (80 → 82 → 84), y
-                // las dos veces anteriores hubo que acordarse de mover este
-                // número a mano. Ahora sube sola. El 56 del atajo sigue siendo
-                // literal porque su alto no está publicado en ningún símbolo: si
-                // alguna vez le cambian el padding o la carita, se vuelve a medir
-                // acá y en el toast de logros, que arrastra el mismo número.
+                // Los dos altos entran por SÍMBOLO y no por literal a propósito.
+                // La barra, porque fue el tercer commit seguido en que cambiaba
+                // (80 → 82 → 84) y las dos veces anteriores hubo que acordarse de
+                // mover este número a mano. El atajo, porque su alto lo consumen
+                // los DOS toasts —éste y el de logros— y un literal copiado se
+                // arregla en uno y se olvida en el otro.
+                //
+                // ⚠️ El único alto que sigue siendo literal es el **45** del
+                // botón de prestigio, que es de otra tarea y no lo publica nadie.
+                //
+                // ⚠️⚠️ Y el gatillo de que estos números dejen de valer NO es un
+                // rediseño: es **Dynamic Type**. El atajo y el prestigio están
+                // tipografiados con text styles dinámicos y ninguno de los dos
+                // tiene el alto clavado, así que a tamaños de accesibilidad los
+                // dos crecen y el pelo de despeje de acá abajo se puede comer en
+                // RUNTIME. Está contado con nombre y apellido en
+                // `QuickHireButton.capsuleHeight`; los números de este bloque
+                // valen al tamaño por defecto, que es donde se midieron.
                 //
                 // ⚠️ El `+ GameTabBar.bottomFloor` NO es decorativo: sin home
                 // indicator la barra mide 96 y la pila entera llega a 212,5, así
@@ -647,11 +663,12 @@ private struct TowerNoticeView: View {
                 // que volver a medir.
                 //
                 // ⚠️ Cuando `bestHire` es `nil` el atajo no se dibuja y la pila
-                // baja 64 pt (56 + su spacing), pero el aviso NO baja: se queda
-                // donde está y flota esos 64 pt más arriba de lo que necesita.
-                // Es cosmético y es la elección correcta: el número es una
-                // constante y el caso que no se puede pisar es el ALTO.
-                .padding(.bottom, GameTabBar.barHeight + 8 + 56 + 8 + 45 + GameTabBar.bottomFloor)
+                // baja 64 pt (la cápsula + su spacing), pero el aviso NO baja: se
+                // queda donde está y flota esos 64 pt más arriba de lo que
+                // necesita. Es cosmético y es la elección correcta: el número es
+                // una constante y el caso que no se puede pisar es el ALTO.
+                .padding(.bottom, GameTabBar.barHeight + 8 + QuickHireButton.capsuleHeight
+                    + 8 + 45 + GameTabBar.bottomFloor)
         }
         .padding(.horizontal, 20)
         .allowsHitTesting(true)

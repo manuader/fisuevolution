@@ -25,6 +25,40 @@ struct QuickHireButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shake = 0
 
+    /// Cuánto mide de alto la cápsula, para lo que se apoye sobre ella.
+    ///
+    /// Es la suma del layout del label, no una medición suelta: **40** de la
+    /// carita —que es el hijo más alto del `HStack`, porque la columna de texto
+    /// mide ~35 al tamaño por defecto— más los **8 + 8** de
+    /// `padding(.vertical, Tokens.s8)`. Confirmado en el árbol de AX de una
+    /// corrida real: **56,0 exactos** en 3× (16 Pro) y en 2× (SE 3), sin el
+    /// medio punto que sí tiene el botón de prestigio.
+    ///
+    /// ⚠️ Existe por lo mismo que `GameTabBar.barHeight`: este número lo
+    /// necesitan DOS lugares fuera de acá —los dos toasts de `RootView`, que
+    /// flotan sobre la franja de abajo ENTERA— y allá el despeje es de 1,0 pt
+    /// en 3× y 0,5 pt en 2×. Con el alto copiado como literal en cada padding,
+    /// el día que cambie se arregla en uno y se olvida en el otro, que es
+    /// exactamente las dos veces que `barHeight` tuvo que aprender a subir sola.
+    ///
+    /// ⚠️⚠️ **El gatillo de que este número deje de valer es Dynamic Type, no un
+    /// rediseño.** `Tokens.caption` y `Tokens.body` son text styles DINÁMICOS: a
+    /// tamaños de accesibilidad la columna de texto pasa los 40 pt de la carita
+    /// y la cápsula crece por encima de 56. El `minimumScaleFactor` **no** lo
+    /// frena —con `minWidth: 170` y sin ancho máximo, el `HStack` se ensancha
+    /// antes que escalar el texto—, así que el despeje de los toasts se puede
+    /// comer **en runtime** y no en un commit. Es una exposición que este botón
+    /// COMPARTE con el de prestigio, cuyo 45 es igual de estático, y que precede
+    /// a los dos: el número está pineado al tamaño por defecto, que es donde se
+    /// midió y lo único que garantiza.
+    ///
+    /// No lleva anotación de isolation y no le hace falta: es un `let` inmutable
+    /// de un tipo `Sendable`, así que se lee desde cualquier aislamiento. (Y si
+    /// alguna vez el tipo quedara globalmente aislado, SE-0434 lo dejaría
+    /// implícitamente `nonisolated` igual — no hay nada que anotar en ninguno de
+    /// los dos casos.)
+    static let capsuleHeight: CGFloat = 56
+
     var body: some View {
         if let best = gameState.bestHire {
             button(for: best)

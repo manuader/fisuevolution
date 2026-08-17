@@ -19,19 +19,14 @@ import SwiftUI
 struct MenuView: View {
     @Environment(\.dismiss) private var dismiss
 
-    /// Margen lateral del contenido de las CUATRO pantallas del menú. **Medido
-    /// sobre el arte**, con el mismo método que `FisuJobsView` (30 pt contra
-    /// `panel_store`), `UpgradesView` (40 contra `panel_upgrades`),
-    /// `FloorMapView` (36 contra `panel_dialog`) y `GiftsView` (38 contra
-    /// `panel_reward`): el 9-slice dibuja los bordes a tamaño natural, así que el
-    /// píxel `x` del PNG cae en `x / (anchoPx / 200)` puntos del destino.
-    /// Sondeando `panel_config@3x.png` (640², escala 3,2) en su franja recta, el
-    /// marco es **doble** y simétrico: trazo de tinta de 26,9 a 28,4 pt, un hueco
-    /// claro, y una segunda línea de 31,6 a 33,4. Desde 33,8 el lienzo ya es
-    /// transparente, así que a **34 pt** la columna entra adentro de las dos
-    /// líneas. Con menos, las tarjetas —crema opaco— pintan por encima del marco.
-    /// Si `panel_config` se re-exporta, se vuelve a medir.
-    static let panelInset: CGFloat = 34
+    /// Margen lateral del contenido de las CUATRO pantallas del menú. Desde el
+    /// rediseño v3 el marco es `WoodPanelBackground` —geometría propia, no un
+    /// PNG— así que el número ya no se mide contra un arte: lo publica el
+    /// componente (28) y acá se le suman 6 de aire para que las tarjetas no
+    /// apoyen contra el bisel. Da los mismos 34 que se medían contra
+    /// `panel_config`, que es lo que mantiene idéntico el layout de las cinco
+    /// pantallas que lo usan.
+    static let panelInset: CGFloat = WoodPanelBackground.contentInset + 6
 
     /// A dónde va cada tarjeta. Es un enum y no cuatro `NavigationLink` con
     /// vistas inline para que el destino sea `Hashable` y la pila se pueda
@@ -73,7 +68,7 @@ struct MenuView: View {
                 .padding(.top, Tokens.s12)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { PanelBackground(art: "panel_config") }
+            .background { WoodPanelBackground() }
             .safeAreaInset(edge: .top) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)

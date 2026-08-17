@@ -79,7 +79,7 @@ struct OrgChartView: View {
             .padding(.top, Tokens.s4)
             .padding(.bottom, Tokens.s24)
         }
-        .background { PanelBackground(art: "panel_config") }
+        .background { WoodPanelBackground() }
         .safeAreaInset(edge: .top) { header }
         .navigationTitle(Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)

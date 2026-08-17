@@ -54,7 +54,7 @@ struct AchievementsView: View {
             .padding(.top, Tokens.s4)
             .padding(.bottom, Tokens.s24)
         }
-        .background { PanelBackground(art: "panel_config") }
+        .background { WoodPanelBackground() }
         .safeAreaInset(edge: .top) { header(claimed: claimed, total: total) }
         .navigationTitle(Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)

@@ -62,7 +62,7 @@ enum LanguagePreference: String, CaseIterable, Identifiable {
 /// notificaciones, compras, legales y de quién es esto.
 ///
 /// Es la cuarta sub-vista **empujada** del `NavigationStack` del menú y copia el
-/// andamio de Estadísticas y Logros: `panel_config` con el margen de 34 pt
+/// andamio de Estadísticas y Logros: `WoodPanelBackground` con el margen de 34 pt
 /// medido en la T15, cabecera crema opaca, `SectionHeader` por grupo, `GameCard`
 /// por grupo y `ArtCloseButton` que cierra la HOJA (acá `dismiss` desapilaría —
 /// ver el docstring de `MenuView`).
@@ -114,7 +114,7 @@ struct SettingsView: View {
             .padding(.top, Tokens.s4)
             .padding(.bottom, Tokens.s24)
         }
-        .background { PanelBackground(art: "panel_config") }
+        .background { WoodPanelBackground() }
         .safeAreaInset(edge: .top) { header }
         .navigationTitle(Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)

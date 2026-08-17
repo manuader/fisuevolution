@@ -77,7 +77,6 @@ struct EconomyEngineTests {
 @Suite("Curva de hireQuote (F7 §3.3)")
 struct HireQuoteCurveTests {
     let config = fxConfig()
-    let economy = fxEconomy()
     let tiers: TierRepository
     let floorTable: FloorTable
 
@@ -89,7 +88,7 @@ struct HireQuoteCurveTests {
     private func quote(floor ordinal: Int, state: PlayerState) -> HireQuote? {
         TowerActions.hireQuote(
             floorOrdinal: ordinal, state: state, tiers: tiers,
-            floorTable: floorTable, config: config, economy: economy
+            floorTable: floorTable, config: config
         )
     }
 
@@ -103,7 +102,7 @@ struct HireQuoteCurveTests {
         let (state, _, _) = try fxStateAndTower(config: rico)
         let cotizado = try #require(TowerActions.hireQuote(
             floorOrdinal: 1, state: state, tiers: tiers,
-            floorTable: tablaRica, config: rico, economy: StandardEconomy(config: rico)
+            floorTable: tablaRica, config: rico
         ))
         // f2: 100 (default) × tapYield(T3)=14.44 × income 3.0
         #expect(abs(cotizado.cost - 100 * 14.44 * 3.0) < 1e-9)

@@ -83,7 +83,6 @@ struct ActiveModifierTests {
     @Test("spawnCostMultiplier descuenta el hire mientras está vivo; vencido, precio pleno")
     func spawnCostModifierDescuentaElHire() throws {
         let config = fxConfig()
-        let economy = fxEconomy(config: config)
         let tiers = try fxTiers()
         let fixture = try fxStateAndTower(config: config)
         var state = fixture.state
@@ -92,13 +91,13 @@ struct ActiveModifierTests {
         // f1 vende su tier base T1 a 15 (override barato, 0 compras previas).
         let quote = try #require(TowerActions.hireQuote(
             floorOrdinal: 0, state: state, tiers: tiers, floorTable: fixture.floorTable,
-            config: config, economy: economy, now: 50
+            config: config, now: 50
         ))
         #expect(abs(quote.cost - 15 * 0.5) < 1e-9)
 
         let expired = try #require(TowerActions.hireQuote(
             floorOrdinal: 0, state: state, tiers: tiers, floorTable: fixture.floorTable,
-            config: config, economy: economy, now: 200
+            config: config, now: 200
         ))
         #expect(abs(expired.cost - 15) < 1e-9)
     }
@@ -108,7 +107,6 @@ struct ActiveModifierTests {
     @Test("spawnDiscount permanente descuenta el hire y se combina con el modifier")
     func spawnDiscountSeCombinaConElModifier() throws {
         let config = fxConfig()
-        let economy = fxEconomy(config: config)
         let tiers = try fxTiers()
         let fixture = try fxStateAndTower(config: config)
         var state = fixture.state
@@ -117,7 +115,7 @@ struct ActiveModifierTests {
         // Solo el descuento permanente: 15 × (1 − 0.2).
         let solo = try #require(TowerActions.hireQuote(
             floorOrdinal: 0, state: state, tiers: tiers, floorTable: fixture.floorTable,
-            config: config, economy: economy, now: 50
+            config: config, now: 50
         ))
         #expect(abs(solo.cost - 15 * 0.8) < 1e-9)
 
@@ -125,7 +123,7 @@ struct ActiveModifierTests {
         state.run.activeModifiers = [mod(.spawnCostMultiplier, magnitude: 0.5, expiresAt: 100)]
         let combined = try #require(TowerActions.hireQuote(
             floorOrdinal: 0, state: state, tiers: tiers, floorTable: fixture.floorTable,
-            config: config, economy: economy, now: 50
+            config: config, now: 50
         ))
         #expect(abs(combined.cost - 15 * 0.5 * 0.8) < 1e-9)
     }

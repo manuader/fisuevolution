@@ -144,7 +144,7 @@ struct MenuView: View {
                         .background {
                             Circle()
                                 .fill(Color("PaletteYellow").opacity(0.38))
-                                .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 2))
+                                .overlay(Circle().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
                         }
                     Text(titleKey)
                         .font(Tokens.title)

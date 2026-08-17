@@ -110,14 +110,13 @@ struct CustomizationView: View {
     /// navegación deja un escalón).
     private func header(allTypes: [CharacterType], seenIDs: Set<String>, selectedID: String?) -> some View {
         VStack(spacing: Tokens.s8) {
-            HStack(spacing: Tokens.s8) {
-                // El mismo glifo que el tab que abre esta hoja, para que el viaje
-                // de un lado al otro se lea como uno solo. Es decoración —el
-                // título ya lo dice— así que no queda como parada muda.
-                GameIcon(artKey: "ui_tab_skins", size: 34) { VectorTabSkinsIcon() }
-                    .accessibilityHidden(true)
-                PanelTitleBanner(titleKey: "skins.title")
-            }
+            // El mismo glifo que el tab que abre esta hoja, ADENTRO de la
+            // cápsula del título (composición de las referencias). El banner ya
+            // lo tapa de VoiceOver: es decoración, el título lo dice.
+            PanelTitleBanner(
+                titleKey: "skins.title",
+                icon: AnyView(GameIcon(artKey: "ui_tab_skins", size: 26) { VectorTabSkinsIcon() })
+            )
             characterStrip(allTypes: allTypes, seenIDs: seenIDs, selectedID: selectedID)
         }
         .padding(.top, 6)
@@ -190,7 +189,7 @@ struct CustomizationView: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .strokeBorder(
-                            selected ? Color("PaletteYellow") : Color("PaletteInk").opacity(unseen ? 0.35 : 1),
+                            selected ? Color("PaletteYellow") : Color("PaletteBrown").opacity(unseen ? 0.35 : 0.7),
                             lineWidth: selected ? 3 : 2
                         )
                 )
@@ -461,7 +460,7 @@ private struct SkinCard: View {
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(Color("PaletteInk"), lineWidth: 2)
+                    .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)
             )
     }
 

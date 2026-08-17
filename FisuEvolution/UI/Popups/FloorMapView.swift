@@ -110,16 +110,13 @@ struct FloorMapView: View {
     /// igual que en `FisuJobsView` y `UpgradesView`.
     private var header: some View {
         VStack(spacing: Tokens.s4) {
-            HStack(spacing: Tokens.s8) {
-                // La cabina con su display: el mismo glifo que el botón del HUD
-                // que abre esta hoja, así el viaje de un lado al otro se lee como
-                // uno solo. Es decoración pura —el título ya dice "Ascensor"—,
-                // así que se esconde de VoiceOver en vez de quedar como una
-                // parada muda.
-                GameIcon(artKey: "ui_elevator", size: 34) { VectorElevatorIcon() }
-                    .accessibilityHidden(true)
-                PanelTitleBanner(titleKey: "elevator.title")
-            }
+            // La cabina con su display: el mismo glifo que el botón del HUD que
+            // abre esta hoja, ADENTRO de la cápsula del título (composición de
+            // las referencias). El banner ya lo tapa de VoiceOver.
+            PanelTitleBanner(
+                titleKey: "elevator.title",
+                icon: AnyView(GameIcon(artKey: "ui_elevator", size: 26) { VectorElevatorIcon() })
+            )
             // La bajada, con el mismo formato que la de FisuJobs y la de la
             // tienda: `Tokens.caption` en ink al 75%, centrada y a dos renglones.
             // Era la única de las seis hojas que tenía título pelado, y de las
@@ -263,7 +260,7 @@ struct FloorMapView: View {
             .background {
                 Circle()
                     .fill(tone == .current ? Color("PaletteYellow") : Color("PaletteCream"))
-                    .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 2.5))
+                    .overlay(Circle().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2.5))
                     .shadow(color: .black.opacity(0.16), radius: 3, y: 1)
             }
     }
@@ -336,7 +333,7 @@ struct FloorMapView: View {
             .background {
                 Capsule()
                     .fill(Color("PaletteYellow"))
-                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2))
+                    .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
             }
     }
 
@@ -363,7 +360,7 @@ struct FloorMapView: View {
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .strokeBorder(Color("PaletteInk").opacity(0.8), lineWidth: 2)
+                .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)
         )
     }
 }

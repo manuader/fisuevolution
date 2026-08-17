@@ -223,7 +223,7 @@ private struct FisuJobsWordmark: View {
         .padding(.vertical, Tokens.s8)
         .background(
             Capsule().fill(Color("PaletteCream"))
-                .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 3))
+                .overlay(Capsule().strokeBorder(Color("PaletteBrown"), lineWidth: 3))
                 .shadow(color: .black.opacity(0.18), radius: 6, y: 2)
         )
         .accessibilityElement(children: .ignore)
@@ -440,7 +440,7 @@ private struct JobCard: View {
         .background(
             Capsule()
                 .fill(Color("PaletteYellow").opacity(0.55))
-                .overlay(Capsule().strokeBorder(Color("PaletteInk").opacity(0.55), lineWidth: 1.5))
+                .overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.6), lineWidth: 1.5))
         )
     }
 
@@ -569,7 +569,7 @@ private struct JobPortrait: View {
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .strokeBorder(Color("PaletteInk"), lineWidth: 2)
+                    .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)
             )
             .accessibilityHidden(true)
     }

@@ -253,7 +253,7 @@ private struct DailyStrip: View {
                         .padding(6)
                         .background(Color("PaletteYellow").opacity(0.35))
                         .clipShape(Self.plateShape)
-                        .overlay(Self.plateShape.strokeBorder(Color("PaletteInk"), lineWidth: 2))
+                        .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
                         .accessibilityHidden(true)
                     // Por qué no hay botón, dicho en la pantalla y no sólo en
                     // el código: sin esta línea, "el día 3 está resaltado y no
@@ -327,7 +327,9 @@ private struct DayCell: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: 10, style: .continuous)
                         .strokeBorder(
-                            Color("PaletteInk").opacity(day.isToday || day.isClaimed ? 1 : 0.35),
+                            day.isToday
+                                ? Color("PaletteYellow").deepened(0.25)
+                                : Color("PaletteBrown").opacity(day.isClaimed ? 0.7 : 0.35),
                             lineWidth: day.isToday ? 3 : 2
                         )
                 )
@@ -552,7 +554,7 @@ private struct BoostGlyph: View {
             .overlay { glyph.padding(6).opacity(progress == nil ? 1 : 0.45) }
             .background(Color("PaletteYellow").opacity(0.35))
             .clipShape(Self.shape)
-            .overlay(Self.shape.strokeBorder(Color("PaletteInk"), lineWidth: 2))
+            .overlay(Self.shape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
             .overlay {
                 if let progress {
                     Self.shape
@@ -696,7 +698,7 @@ private struct ScreenGlyph: View {
             }
             .background(Color("PaletteBlue").opacity(0.28))
             .clipShape(Self.shape)
-            .overlay(Self.shape.strokeBorder(Color("PaletteInk"), lineWidth: 2))
+            .overlay(Self.shape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
             .overlay {
                 if let progress {
                     Self.shape

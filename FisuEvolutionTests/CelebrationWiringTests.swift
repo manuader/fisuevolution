@@ -176,9 +176,9 @@ struct CelebrationWiringTests {
         #expect(gameState.showing == .skinAward)
     }
 
-    /// La UI se apaga sólo en la celebración a pantalla completa **y sólo cuando
-    /// esa celebración abre un piso por primera vez**.
-    @Test("la UI se apaga sólo en la del tablero, y sólo si abre piso")
+    /// La UI se apaga sólo en la celebración a pantalla completa, **y dentro de
+    /// ésa, sólo cuando hay algo nuevo que mostrar**.
+    @Test("la UI se apaga sólo en la del tablero, y sólo si hay algo nuevo")
     func onlyTheBoardCelebrationHidesTheUI() async throws {
         let gameState = await makeGameState()
         gameState.towerNotice = GameState.TowerNotice(kind: .floorFull)
@@ -186,71 +186,95 @@ struct CelebrationWiringTests {
         #expect(gameState.celebrationHidesUI == false, "un toast no justifica apagar la interfaz")
 
         gameState.celebrationFinished(.towerNotice)
-        gameState.celebrateBoard(opensNewFloor: true)
+        gameState.celebrateBoard(showsSomethingNew: true)
         #expect(gameState.celebrationHidesUI)
 
         gameState.celebrationFinished(.boardCelebration)
         #expect(gameState.celebrationHidesUI == false, "y vuelve sola al terminar")
     }
 
-    // MARK: Apagar la UI es exclusivo del primer desbloqueo de un piso
+    // MARK: Apagar la UI es de lo que trae algo nuevo
 
-    /// El pedido del dueño: la animación de subir al piso siguiente apaga la UI
-    /// **sólo la primera vez que ese piso se desbloquea**.
-    @Test("el ascenso que abre un piso por primera vez apaga la UI")
-    func theFirstUnlockOfAFloorHidesTheUI() async throws {
-        let gameState = await makeGameState()
-        gameState.debugSetMaxTier(4)
-        gameState.debugGrantPair()   // dos cartoneros (T4) en el callejón
+    // Regla del dueño, en dos frases suyas: "la animacion de personaje subiendo
+    // al siguiente piso debe esconder la ui unicamente si es la primera vez que
+    // se desbloquea ese piso" + "la animacion de nuevo personaje si debe esconder
+    // la UI. siempre. independientemente de si se desbloquea un piso nuevo o no."
+    //
+    // O sea, dos causas independientes: personaje nuevo (reveal de tier) o piso
+    // nuevo. Los tres tests que siguen las aíslan —cada uno enciende UNA— porque
+    // el caso natural las trae juntas y ahí un `||` roto pasaría igual.
 
-        guard case .merged(_, _, _, _, let unlockedFloorId) = try mergePair(of: "cartonero", in: gameState) else {
-            Issue.record("se esperaba el ascenso a urbano")
-            return
-        }
-        #expect(unlockedFloorId == "urban", "este merge tiene que ABRIR el piso")
-        #expect(gameState.showing == .boardCelebration, "la celebración se reproduce igual")
-        #expect(gameState.celebrationHidesUI, "el momento más grande del juego se ve solo")
-    }
-
-    /// El mismo ascenso, con el piso destino YA abierto: la animación se
-    /// reproduce igual, pero no hay nada que justifique apagar la interfaz.
-    @Test("ascender a un piso ya desbloqueado no apaga la UI")
-    func promotingToAnAlreadyUnlockedFloorKeepsTheUI() async throws {
-        let gameState = await makeGameState()
-        gameState.debugSetMaxTier(4)
-        gameState.debugUnlockFloors(throughTier: 5)   // urbano ya abierto
-        gameState.debugGrantPair()
-
-        guard case .merged(_, _, let promotedType, _, let unlockedFloorId) = try mergePair(of: "cartonero", in: gameState) else {
-            Issue.record("se esperaba el ascenso a urbano")
-            return
-        }
-        #expect(promotedType?.id == "mantero", "ascendió igual")
-        #expect(unlockedFloorId == nil, "pero no abrió nada: el piso ya estaba")
-        #expect(gameState.showing == .boardCelebration, "la celebración se reproduce igual")
-        #expect(gameState.celebrationHidesUI == false)
-    }
-
-    /// El reveal que se queda en el mismo piso tampoco apaga nada: no hay
-    /// ascenso, y mucho menos un piso nuevo.
-    @Test("el reveal en el mismo piso no apaga la UI")
-    func aSameFloorRevealKeepsTheUI() async throws {
+    /// Causa 1 sola: personaje nuevo sin piso nuevo. El reveal se queda en el
+    /// callejón y aun así apaga la UI, porque la cara nueva es la noticia.
+    @Test("un personaje nuevo apaga la UI aunque no abra piso")
+    func aRevealHidesTheUIEvenWithoutANewFloor() async throws {
         let gameState = await makeGameState()
         gameState.debugGrantPair()   // dos fisuras (T1) en el callejón
 
-        guard case .merged(_, let evolvedTo, _, let promotedToFloor, _) = try mergePair(of: "homeless", in: gameState) else {
+        guard case .merged(_, let evolvedTo, _, let promotedToFloor, let unlockedFloorId)
+            = try mergePair(of: "homeless", in: gameState) else {
             Issue.record("se esperaba la fusión a trapito")
             return
         }
-        #expect(evolvedTo?.id == "trapito", "hay reveal")
-        #expect(promotedToFloor == nil, "pero se queda en el callejón")
-        #expect(gameState.showing == .boardCelebration, "la celebración se reproduce igual")
-        #expect(gameState.celebrationHidesUI == false)
+        #expect(evolvedTo?.id == "trapito", "hay personaje nuevo")
+        #expect(promotedToFloor == nil, "y se queda en el callejón")
+        #expect(unlockedFloorId == nil, "sin piso nuevo de por medio")
+        #expect(gameState.showing == .boardCelebration)
+        #expect(gameState.celebrationHidesUI, "el personaje nuevo se ve solo")
+    }
+
+    /// Causa 2 sola: piso nuevo sin personaje nuevo. El Mantero ya se conocía —el
+    /// tier máximo no se mueve, así que no hay reveal— pero el urbano se abre por
+    /// primera vez y eso sí es noticia.
+    @Test("abrir un piso apaga la UI aunque el personaje ya se conozca")
+    func aFirstFloorUnlockHidesTheUIEvenWithoutAReveal() async throws {
+        let gameState = await makeGameState()
+        gameState.debugSetMaxTier(4)
+        gameState.debugGrantPair()   // dos cartoneros (T4) en el callejón
+        // El Mantero pasa a estar visto SIN abrir el urbano: así el merge de
+        // abajo asciende sin reveal, que es lo que aísla la causa del piso.
+        gameState.debugSetMaxTier(5)
+
+        guard case .merged(_, let evolvedTo, let promotedType, _, let unlockedFloorId)
+            = try mergePair(of: "cartonero", in: gameState) else {
+            Issue.record("se esperaba el ascenso a urbano")
+            return
+        }
+        #expect(evolvedTo == nil, "el tier máximo no se movió: no hay personaje nuevo")
+        #expect(promotedType?.id == "mantero")
+        #expect(unlockedFloorId == "urban", "pero el piso se abre por primera vez")
+        #expect(gameState.showing == .boardCelebration)
+        #expect(gameState.celebrationHidesUI, "abrir un piso sigue siendo el hito grande")
+    }
+
+    /// Ninguna de las dos: personaje conocido que asciende a un piso conocido.
+    /// **Es el único caso con la UI en pantalla**, y es el que el dueño ve todo
+    /// el tiempo una vez que la torre arrancó: la animación se reproduce igual,
+    /// pero apagar el HUD ahí sólo le esconde monedas y botones que está usando.
+    @Test("un personaje conocido a un piso conocido no apaga la UI")
+    func aKnownCharacterAscendingToAKnownFloorKeepsTheUI() async throws {
+        let gameState = await makeGameState()
+        gameState.debugSetMaxTier(4)
+        gameState.debugGrantPair()                    // dos cartoneros (T4)
+        gameState.debugUnlockFloors(throughTier: 5)   // urbano ya abierto
+        gameState.debugSetMaxTier(5)                  // y El Mantero ya visto
+
+        guard case .merged(_, let evolvedTo, let promotedType, let promotedToFloor, let unlockedFloorId)
+            = try mergePair(of: "cartonero", in: gameState) else {
+            Issue.record("se esperaba el ascenso a urbano")
+            return
+        }
+        #expect(evolvedTo == nil, "nada nuevo que revelar")
+        #expect(unlockedFloorId == nil, "y nada nuevo que abrir")
+        #expect(promotedType?.id == "mantero", "pero ascendió igual…")
+        #expect(promotedToFloor == 1)
+        #expect(gameState.showing == .boardCelebration, "…y celebra igual")
+        #expect(gameState.celebrationHidesUI == false, "sólo que sin apagar nada")
     }
 
     /// La bandera describe UNA celebración, no un estado del juego: si sobrevive
-    /// a la suya, el próximo ascenso común hereda la pantalla apagada. Se prueban
-    /// las tres salidas de la cola, que es donde tiene que soltarse.
+    /// a la suya, el próximo ascenso sin novedad hereda la pantalla apagada. Se
+    /// prueban las tres salidas de la cola, que es donde tiene que soltarse.
     @Test("apagar la UI no sobrevive a su propia celebración")
     func theHidingFlagDoesNotOutliveItsCelebration() async throws {
         for exit in ["finish", "skip", "watchdog"] {
@@ -258,7 +282,7 @@ struct CelebrationWiringTests {
             gameState.debugSetMaxTier(4)
             gameState.debugGrantPair()
             try mergePair(of: "cartonero", in: gameState)
-            #expect(gameState.celebrationHidesUI, "\(exit): el desbloqueo apaga la UI")
+            #expect(gameState.celebrationHidesUI, "\(exit): personaje y piso nuevos apagan la UI")
 
             switch exit {
             case "finish":
@@ -273,8 +297,8 @@ struct CelebrationWiringTests {
             drainCelebrations(gameState)
             #expect(gameState.showing == nil)
 
-            // Una del tablero que nadie marcó como desbloqueo: si la bandera
-            // quedó puesta, ésta hereda la pantalla apagada.
+            // Una del tablero que nadie marcó con novedad: si la bandera quedó
+            // puesta, ésta hereda la pantalla apagada.
             gameState.celebrate(.boardCelebration)
             #expect(gameState.showing == .boardCelebration)
             #expect(gameState.celebrationHidesUI == false, "\(exit): quedó una bandera vieja")
@@ -284,6 +308,9 @@ struct CelebrationWiringTests {
     /// Mientras la del tablero ESPERA turno, la cola la deduplica en un solo
     /// casillero y la escena pisa el payload con el del último merge: lo que se
     /// reproduce es el último, así que la bandera tiene que ser la del último.
+    ///
+    /// Va en la dirección difícil —primero el que apaga, después el que no— que
+    /// es la que delata una bandera pegada en `true`.
     @Test("mientras espera turno, gana el último merge")
     func whileQueuedTheLastMergeWins() async throws {
         let gameState = await makeGameState()
@@ -295,14 +322,18 @@ struct CelebrationWiringTests {
         #expect(gameState.showing == .offlineEarnings)
 
         gameState.debugGrantPair()
-        try mergePair(of: "homeless", in: gameState)   // común: no abre piso
+        try mergePair(of: "homeless", in: gameState)   // personaje nuevo: apagaría
+        #expect(gameState.showing == .offlineEarnings, "la del tablero quedó esperando")
+
         gameState.debugSetMaxTier(4)
         gameState.debugGrantPair()
-        try mergePair(of: "cartonero", in: gameState)  // y encima cae el que SÍ abre
+        gameState.debugUnlockFloors(throughTier: 5)
+        gameState.debugSetMaxTier(5)
+        try mergePair(of: "cartonero", in: gameState)  // y encima cae uno sin novedad
 
         gameState.offlineReward = nil
         gameState.celebrationFinished(.offlineEarnings)
         #expect(gameState.showing == .boardCelebration)
-        #expect(gameState.celebrationHidesUI, "se reproduce el último, y ése abre piso")
+        #expect(gameState.celebrationHidesUI == false, "se reproduce el último, y ése no trae nada nuevo")
     }
 }

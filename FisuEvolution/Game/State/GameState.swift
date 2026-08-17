@@ -247,11 +247,20 @@ final class GameState {
     /// competirle. Sólo esa celebración lo hace — un toast de logro de 4 s no
     /// justifica apagar la interfaz entera.
     ///
-    /// Y dentro de esa celebración, sólo la que ABRE un piso por primera vez
-    /// (pedido del dueño): la animación de subir se reproduce igual en todos los
-    /// ascensos, pero apagar la interfaz es un recurso de una sola vez por piso.
-    /// El ascenso número quince al urbano no es una noticia, y apagar el HUD ahí
-    /// sólo esconde monedas y botones que el jugador está usando.
+    /// Y dentro de esa celebración, sólo cuando hay **algo nuevo** que mostrar.
+    /// El dueño lo pidió en dos frases, y son dos causas independientes:
+    ///
+    /// > "la animacion de personaje subiendo al siguiente piso debe esconder la ui
+    /// > unicamente si es la primera vez que se desbloquea ese piso."
+    /// > "la animacion de nuevo personaje si debe esconder la UI. siempre.
+    /// > independientemente de si se desbloquea un piso nuevo o no."
+    ///
+    /// O sea: personaje nuevo **o** piso nuevo. El único caso que deja la interfaz
+    /// en pantalla es el ascenso de un personaje ya conocido a un piso ya abierto
+    /// —el que el jugador ve todo el tiempo una vez que la torre arrancó—, y ahí
+    /// apagar el HUD sólo le esconde monedas y botones que está usando. La
+    /// animación se reproduce igual en los tres casos: lo único condicional es
+    /// esto.
     var celebrationHidesUI = false
 
 
@@ -261,14 +270,15 @@ final class GameState {
     /// Reemplazó a la cadena a mano (`celebrationChainActive` + dos campos
     /// `pending*`), que cubría un solo camino: el ascenso que abre piso.
     @ObservationIgnored var celebrations = CelebrationQueue()
-    /// Si la celebración del tablero que tiene (o va a tener) el turno es la que
-    /// abre un piso por primera vez.
+    /// Si la celebración del tablero que tiene (o va a tener) el turno trae algo
+    /// nuevo: un personaje que no se había visto, un piso que no estaba abierto,
+    /// o las dos cosas. Es lo único que apaga la UI (ver `celebrationHidesUI`).
     ///
     /// Es un PAYLOAD, y por eso vive acá y no en la cola: `CelebrationQueue` es
     /// pura y guarda turnos, no contenidos, igual que `skinAward` o `dailyClaim`.
     /// Lo escribe `celebrateBoard` y lo suelta `releasePayload`, en
     /// `+Celebrations`.
-    @ObservationIgnored var boardCelebrationOpensFloor = false
+    @ObservationIgnored var boardCelebrationShowsSomethingNew = false
     /// El evento cuyo banner ya tuvo su turno. Sin esto el banner se reencolaría
     /// para siempre: el evento sigue activo 30 s y el banner se cierra a los 6.
     @ObservationIgnored var announcedEventID: String?

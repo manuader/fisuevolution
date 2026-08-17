@@ -144,18 +144,26 @@ extension GameState {
                 // reproduce la cadena, pero el turno lo pide quien sabe primero
                 // que hay algo que celebrar.
                 //
-                // Y se lleva anotado si este ascenso ABRE el piso: la animación
-                // se reproduce igual siempre, pero apagar la UI es exclusivo de
-                // la primera vez (pedido del dueño). `unlockedFloorId` sólo viene
-                // cuando el piso destino no estaba en `unlockedFloors`, así que es
-                // exactamente "primera vez" y no hay que llevar cuenta aparte.
+                // Y se lleva anotado si este merge trae algo NUEVO: la animación se
+                // reproduce igual siempre, pero apagar la UI es exclusivo de la
+                // novedad (pedido del dueño, citado en `celebrationHidesUI`). Son
+                // dos causas independientes y las dos salen de acá sin consultar
+                // nada más:
+                //
+                // - `evolvedTo` ya es "personaje nuevo": se arma unas líneas más
+                //   arriba comparando el tier máximo contra el de antes del merge.
+                // - `unlockedFloorId` sólo viene cuando el piso destino no estaba
+                //   en `unlockedFloors`, así que ya es "primera vez" y no hay que
+                //   llevar una cuenta aparte.
                 var promoted = false
                 var opensNewFloor = false
                 if case .promoted(_, _, _, let unlockedFloorId) = result {
                     promoted = true
                     opensNewFloor = unlockedFloorId != nil
                 }
-                if evolvedTo != nil || promoted { celebrateBoard(opensNewFloor: opensNewFloor) }
+                if evolvedTo != nil || promoted {
+                    celebrateBoard(showsSomethingNew: evolvedTo != nil || opensNewFloor)
+                }
                 // El aviso se asigna y listo: la cola lo ordena. `.towerNotice`
                 // tiene la prioridad más baja, así que sale después del ascenso
                 // y del sheet de skin sin que nadie tenga que encadenarlo.

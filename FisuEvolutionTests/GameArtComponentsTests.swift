@@ -205,4 +205,23 @@ struct GameArtComponentsTests {
         let metals = VectorTrophyIcon.Tier.allCases.map(\.metal)
         #expect(Set(metals.map(\.description)).count == 3)
     }
+
+    // MARK: - Marcos v3
+
+    @Test("el marco de madera publica el inset que usan sus pantallas")
+    func woodFrameInset() {
+        // 22 de banda + 6 de aire hasta el bisel: el equivalente del 30 que
+        // las pantallas de arte miden contra su PNG.
+        #expect(WoodPanelBackground.contentInset == 28)
+        #expect(GiftBowOrnament.defaultWidth == 150)
+    }
+
+    @Test("la cola del moño es un banderín cerrado que no se sale de su rect")
+    func bowTailPath() {
+        let rect = CGRect(x: 0, y: 0, width: 30, height: 40)
+        let path = BowTailShape().path(in: rect)
+        #expect(!path.isEmpty)
+        #expect(path.boundingRect.width <= rect.width + 0.5)
+        #expect(path.boundingRect.height <= rect.height + 0.5)
+    }
 }

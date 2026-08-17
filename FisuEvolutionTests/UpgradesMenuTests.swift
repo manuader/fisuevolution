@@ -8,6 +8,33 @@ import Testing
 @Suite("Menú de mejoras")
 @MainActor
 struct UpgradesMenuTests {
+    // MARK: Orden de la lista
+
+    /// **Decisión del dueño (2026-08-17)**: los personajes MÁS NUEVOS arriba y
+    /// los más viejos abajo.
+    ///
+    /// El orden importa porque la lista sólo crece: para cuando desbloqueaste
+    /// veinte tipos, el que acabás de conseguir —el único cuya mejora todavía
+    /// podés pagar— quedaba al fondo, detrás de veinte filas que ya no vas a
+    /// tocar. La pantalla se abre en lo último que hiciste.
+    @Test("la lista muestra los personajes más nuevos primero")
+    func rowsAreOrderedNewestFirst() async throws {
+        let gameState = await makeGameState()
+        // La partida nueva ve un solo tipo: hay que declarar varios vistos para
+        // que haya orden que juzgar.
+        var player = try #require(gameState.player)
+        let types = try #require(gameState.content?.tiers.concreteTypes)
+        let primeros = Array(types.prefix(4))
+        #expect(primeros.count == 4, "el fixture necesita al menos 4 tipos concretos")
+        player.run.seenTypes = Set(primeros.map(\.id))
+        gameState.player = player
+
+        let tiers = gameState.characterUpgradeRows.map(\.tier)
+
+        #expect(tiers == tiers.sorted(by: >), "la lista quedó de más viejo a más nuevo: \(tiers)")
+        #expect(tiers.count == 4)
+    }
+
     // MARK: RF-03 — la lista no se borra
 
     @Test("mergear el último Fisura no lo saca de la lista de mejoras")

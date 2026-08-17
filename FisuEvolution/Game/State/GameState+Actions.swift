@@ -133,11 +133,23 @@ extension GameState {
                 let evolvedTo = player.run.maxTierReached > tierBefore ? content.tiers.type(id: newTypeId) : nil
                 self.player = player
                 self.tower = tower
-                // El sheet de skin y el toast esperan a que la escena termine su
-                // cadena. Marcarlo ANTES de `updateMaxFloorStat()`, que es quien
-                // acredita la skin de milestone.
+                // ⚠️ Se pide el turno ACÁ, antes que nada.
+                //
+                // `updateMaxFloorStat()` (más abajo) acredita la skin de
+                // milestone y `rollSpecialDrop()` puede soltar un special: los
+                // dos asignan su payload y piden turno. Si el ascenso encolara
+                // después, la cola ya estaría ocupada —no se expropia lo que está
+                // en pantalla— y el sheet taparía el vuelo y el reveal, que es
+                // exactamente el bug que esto arregla. La ESCENA es la que
+                // reproduce la cadena, pero el turno lo pide quien sabe primero
+                // que hay algo que celebrar.
+                var promoted = false
+                if case .promoted = result { promoted = true }
+                if evolvedTo != nil || promoted { celebrate(.boardCelebration) }
+                // El aviso se asigna y listo: la cola lo ordena. `.towerNotice`
+                // tiene la prioridad más baja, así que sale después del ascenso
+                // y del sheet de skin sin que nadie tenga que encadenarlo.
                 if case .promoted = result {
-                    celebrationChainActive = true
                     let newlyHireable = TowerActions.newlyHireableFloors(
                         unlockedBefore: unlockedBefore,
                         unlockedAfter: player.run.unlockedFloors,
@@ -145,7 +157,7 @@ extension GameState {
                     )
                     // El más bajo: es el que el jugador va a querer rellenar.
                     if let ordinal = newlyHireable.first {
-                        pendingHireUnlockedFloorID = content.floorTable[ordinal].id
+                        towerNotice = TowerNotice(kind: .hireUnlocked(floorID: content.floorTable[ordinal].id))
                     }
                 }
                 if !ftueMerged {
@@ -217,6 +229,7 @@ extension GameState {
         else {
             self.player = player
             careerPrompt = nil
+            celebrationFinished(.careerChoice)
             // Elegiste igual, así que cobrás igual (RF-15).
             grantCareerReward(optionId: optionId)
             refreshProjections()
@@ -240,6 +253,7 @@ extension GameState {
         self.player = player
         self.tower = tower
         careerPrompt = nil
+        celebrationFinished(.careerChoice)
         // El premio de una vez que hace que elegir carrera defina algo (RF-15).
         // Vive en `+Bonus`: es un bonus más, y este archivo sólo lo dispara.
         grantCareerReward(optionId: optionId)
@@ -253,6 +267,7 @@ extension GameState {
     func dismissTowerNotice(id: UUID) {
         guard towerNotice?.id == id else { return }
         towerNotice = nil
+        celebrationFinished(.towerNotice)
     }
 
     private func reportMergeMilestones() {
@@ -286,6 +301,7 @@ extension GameState {
 
     func dismissSpecialDrop() {
         specialDrop = nil
+        celebrationFinished(.specialDrop)
     }
 
     /// Long-press on a unit → ficha por personaje (§2.3 regla 3).

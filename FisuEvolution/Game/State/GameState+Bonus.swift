@@ -275,6 +275,7 @@ extension GameState {
 
     func dismissDailyClaim() {
         dailyClaim = nil
+        celebrationFinished(.dailyReward)
     }
 
     /// La semana del daily como la dibuja `GiftsView` (spec §9).

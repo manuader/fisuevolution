@@ -62,6 +62,13 @@ final class BoardScene: SKScene {
     private static let ascentDuration: TimeInterval = 0.7
     private static let ascentDistanceRatio: CGFloat = 0.78
     private static let specialNodePrefix = "special."
+    /// Con esto `abortBoardCelebration` encuentra y borra todo lo que la
+    /// celebración puso en escena, sin llevar una lista a mano.
+    static let celebrationNodePrefix = "celebration."
+
+    // Celebración del tablero (un ítem de la cola: vuelo + reveal + piso nuevo).
+    private var pendingBoardCelebration: PendingBoardCelebration?
+    private var boardCelebrationRunning = false
     private static let floorCameraKey = "floorCamera"
     /// Cambiar de piso con las flechas o el deslizamiento: un salto corto.
     private static let floorHopDuration: TimeInterval = 0.35
@@ -123,7 +130,14 @@ final class BoardScene: SKScene {
     private static let hudFlushEveryNFrames = 8
 
     /// Vertical insets leaving room for the SwiftUI HUD above and controls below.
-    private static let topInset: CGFloat = 130
+    /// Alto de la franja que ocupa el HUD de SwiftUI arriba del tablero.
+    ///
+    /// **Medido, no estimado**: la pill de piso —una cápsula crema OPACA— termina
+    /// a ~162 pt del borde en un iPhone 16 Pro, y el `SpriteView` está en el
+    /// fondo del `ZStack`, así que todo lo de SpriteKit queda debajo. El reveal
+    /// tenía su texto en `0.82`/`0.76` del alto, o sea 157 y 210 pt: el "¡NUEVO!"
+    /// caía justo abajo de la pill y no se leía. Los 14 pt extra son aire.
+    static let topInset: CGFloat = 176
     /// Origen vertical del campo dentro de la escena: el borde de arriba de la
     /// barra inferior, para que la multitud no camine detrás de ella.
     ///
@@ -175,6 +189,39 @@ final class BoardScene: SKScene {
     /// la multitud vuelve a parecer un cuadro.
     private static let facingFlipPeriod: TimeInterval = 7.5
     private static let facingFlipJitter: TimeInterval = 5
+
+    /// Dónde va cada pieza del reveal, resuelto para una pantalla concreta.
+    struct RevealLayout: Equatable {
+        let photoSide: CGFloat
+        /// Centro de la foto, en coordenadas de escena (desde abajo).
+        let photoY: CGFloat
+        let bannerY: CGFloat
+        let tagY: CGFloat
+    }
+
+    /// El reveal se acomoda dentro de la franja libre entre el HUD y la barra de
+    /// abajo, en vez de en fracciones del alto.
+    ///
+    /// Con ratios fijos el texto entra en la banda del HUD —el bug reportado— y
+    /// además en una pantalla corta la foto se come el lugar del texto: a 568 pt
+    /// de alto, la foto de `0.52 × alto` deja 5 pt libres arriba. Acá la foto
+    /// cede: se calcula primero el bloque de texto y la foto toma lo que queda.
+    static func revealLayout(size: CGSize) -> RevealLayout {
+        let ceiling = size.height - topInset
+        let floor = bottomInset
+        let band = max(0, ceiling - floor)
+        // Tag + nombre + aire entre ellos y con la foto.
+        let textBlock: CGFloat = 96
+        let side = min(size.width * 0.82, max(120, band - textBlock))
+        let photoY = floor + side / 2
+        let bannerY = min(photoY + side / 2 + 26, ceiling - 40)
+        return RevealLayout(
+            photoSide: side,
+            photoY: photoY,
+            bannerY: bannerY,
+            tagY: min(bannerY + 40, ceiling - 8)
+        )
+    }
 
     /// Base de profundidad del campo de personajes.
     ///
@@ -289,9 +336,94 @@ final class BoardScene: SKScene {
         }
 
         if isFlying { streamFloorsAlongFlight() }
+        startBoardCelebrationIfItsTurn()
         refreshCrowdDepth()
         updateFTUEHint()
         publishTutorialSpotlight()
+    }
+
+    // MARK: - Celebración del tablero (vuelo + reveal + piso nuevo)
+
+    /// Lo que un merge dejó listo para celebrar, esperando su turno en la cola.
+    struct PendingBoardCelebration {
+        let evolvedTo: CharacterType?
+        let promotedType: CharacterType?
+        let promotionStart: CGPoint?
+        let promotedToFloor: Int?
+        let unlockedFloorID: String?
+        let revealAt: CGPoint?
+        /// El piso que estaba a la vista cuando se encoló.
+        let floorOrdinal: Int
+    }
+
+    /// Arranca la cadena cuando la cola le da el turno.
+    ///
+    /// Se consulta por frame en vez de observar `showing`: la escena ya corre
+    /// acá, así que no hay nada que montar.
+    private func startBoardCelebrationIfItsTurn() {
+        guard gameState.showing == .boardCelebration, !boardCelebrationRunning,
+              let pending = pendingBoardCelebration
+        else { return }
+        boardCelebrationRunning = true
+        pendingBoardCelebration = nil
+        runBoardCelebration(pending)
+    }
+
+    /// Vuelo → reveal → piso nuevo, encadenados por **completion y no por delays
+    /// fijos**: con Reduce Motion las duraciones colapsan y un offset calculado
+    /// quedaría desalineado.
+    private func runBoardCelebration(_ pending: PendingBoardCelebration) {
+        let finish: () -> Void = { [weak self] in
+            // Si el jugador ya lo salteó, `boardCelebrationRunning` quedó en
+            // false y este completion tardío no puede liberar el turno del ítem
+            // SIGUIENTE, que es lo que se comería una celebración.
+            guard let self, self.boardCelebrationRunning else { return }
+            self.boardCelebrationRunning = false
+            self.gameState.celebrationFinished(.boardCelebration)
+        }
+        let celebrateFloor: () -> Void = { [weak self] in
+            guard let self, let floorID = pending.unlockedFloorID,
+                  let destination = pending.promotedToFloor
+            else {
+                finish()
+                return
+            }
+            self.runFloorUnlockCelebration(
+                floorID: floorID,
+                destinationOrdinal: destination,
+                completion: finish
+            )
+        }
+        let revealEvolution: () -> Void = { [weak self] in
+            guard let self, let evolvedTo = pending.evolvedTo else {
+                celebrateFloor()
+                return
+            }
+            self.gameState.playHaptic(.evolution)
+            self.runEvolutionReveal(for: evolvedTo, at: pending.revealAt, completion: celebrateFloor)
+        }
+        // El vuelo sale de una coordenada capturada antes del relayout. Si el
+        // jugador navegó de piso mientras el ítem esperaba turno, esa coordenada
+        // quedó vieja y el clon volaría en el lugar equivocado: se saltea.
+        if let promotedType = pending.promotedType, let start = pending.promotionStart,
+           pending.floorOrdinal == gameState.visibleFloorOrdinal {
+            runAscentAnimation(type: promotedType, from: start, completion: revealEvolution)
+        } else {
+            revealEvolution()
+        }
+    }
+
+    /// El jugador salteó: se corta lo que esté corriendo en la escena. El turno
+    /// lo libera `GameState`, que es quien recibió el tap.
+    private func abortBoardCelebration() {
+        boardCelebrationRunning = false
+        pendingBoardCelebration = nil
+        for layer in [cameraOverlay, backgroundLayer] {
+            for node in layer.children where node.name?.hasPrefix(Self.celebrationNodePrefix) == true {
+                node.removeAllActions()
+                node.removeFromParent()
+            }
+        }
     }
 
     /// La profundidad se recalcula con el personaje ya movido, no una sola vez
@@ -483,6 +615,14 @@ final class BoardScene: SKScene {
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard dragNode == nil, let touch = touches.first else { return }
+
+        // Un tap saltea la celebración en curso, pasado el piso de tiempo. NO se
+        // consume: el tap es el verbo principal del juego y comérselo se
+        // sentiría como un tap perdido, así que sigue de largo y también juega.
+        if gameState.skipCurrentCelebration() {
+            abortBoardCelebration()
+        }
+
         guard let node = characterNode(at: touch.location(in: self)) else {
             emptyTouchStart = touch.location(in: self)
             return
@@ -605,44 +745,27 @@ final class BoardScene: SKScene {
                     .scale(to: 1.0, duration: 0.12),
                 ]))
             }
-            // Cadena: vuelo → reveal del personaje → piso nuevo → avisarle a
-            // GameState, que recién ahí suelta el sheet de skin y el toast.
-            // Antes los tres arrancaban juntos en t=0 y el sheet aparecía encima,
-            // así que no se apreciaba ninguno — y es el momento más importante
-            // del juego. Encadena por completion y no por delays fijos: con
-            // Reduce Motion las duraciones colapsan y un offset quedaría
-            // desalineado.
-            let finish: () -> Void = { [weak self] in
-                self?.gameState.celebrationsDidFinish()
-            }
-            let celebrateFloor: () -> Void = { [weak self] in
-                guard let self, let unlockedFloorID, let promotedToFloor else {
-                    finish()
-                    return
-                }
-                self.runFloorUnlockCelebration(
-                    floorID: unlockedFloorID,
-                    destinationOrdinal: promotedToFloor,
-                    completion: finish
+            // El vuelo, el reveal y la celebración de piso son UN ítem de la
+            // cola: se encadenan entre sí y esperan su turno juntos. Antes
+            // arrancaban en t=0 y encima les caía el sheet de skin, así que no se
+            // apreciaba ninguno — y es el momento más importante del juego.
+            //
+            // El pop y las partículas de arriba NO esperan: son la respuesta
+            // directa al gesto, y demorarlas haría sentir el juego trabado.
+            if evolvedTo != nil || promotedType != nil {
+                pendingBoardCelebration = PendingBoardCelebration(
+                    evolvedTo: evolvedTo,
+                    promotedType: promotedType,
+                    promotionStart: promotionStart,
+                    promotedToFloor: promotedToFloor,
+                    unlockedFloorID: unlockedFloorID,
+                    revealAt: mergedNode?.position,
+                    floorOrdinal: gameState.visibleFloorOrdinal
                 )
-            }
-            let revealEvolution: () -> Void = { [weak self] in
-                guard let self, let evolvedTo else {
-                    celebrateFloor()
-                    return
-                }
-                self.gameState.playHaptic(.evolution)
-                self.runEvolutionReveal(
-                    for: evolvedTo,
-                    at: mergedNode?.position,
-                    completion: celebrateFloor
-                )
-            }
-            if let promotedType, let promotionStart {
-                runAscentAnimation(type: promotedType, from: promotionStart, completion: revealEvolution)
+                // El turno ya lo pidió `handleDrop`: acá sólo se guarda con qué
+                // reproducirlo cuando la cola lo llame.
             } else {
-                if evolvedTo == nil { gameState.playHaptic(.merge) }
-                revealEvolution()
+                gameState.playHaptic(.merge)
             }
         case .moved:
             layoutBoard()
@@ -950,6 +1073,7 @@ final class BoardScene: SKScene {
         flash.strokeColor = .clear
         flash.alpha = 0
         flash.zPosition = 200
+        flash.name = Self.celebrationNodePrefix + "flash"
         cameraOverlay.addChild(flash)
         flash.run(.sequence([
             .fadeAlpha(to: reduceMotion ? 0.35 : 0.75, duration: 0.08),
@@ -962,11 +1086,13 @@ final class BoardScene: SKScene {
         }
 
         // Scrim para enfocar la atención en el personaje recién desbloqueado.
+        let layout = Self.revealLayout(size: size)
         let scrim = SKSpriteNode(color: SKColor.black.withAlphaComponent(0.72), size: size)
         scrim.anchorPoint = .zero
         scrim.position = .zero
         scrim.zPosition = 195
         scrim.alpha = 0
+        scrim.name = Self.celebrationNodePrefix + "scrim"
         cameraOverlay.addChild(scrim)
         scrim.run(.sequence([
             .fadeAlpha(to: 1.0, duration: 0.2),
@@ -978,12 +1104,12 @@ final class BoardScene: SKScene {
         // Foto del personaje: el arte real (o el placeholder) en grande y centrado.
         if let content = gameState.content,
            let texture = renderer.texture(for: type, manifest: content.manifest) {
-            let side = min(size.width * 0.82, size.height * 0.52)
             let photo = SKSpriteNode(texture: texture)
-            photo.size = CGSize(width: side, height: side)
-            photo.position = CGPoint(x: size.width / 2, y: size.height * 0.45)
+            photo.size = CGSize(width: layout.photoSide, height: layout.photoSide)
+            photo.position = CGPoint(x: size.width / 2, y: layout.photoY)
             photo.zPosition = 208
             photo.alpha = 0
+            photo.name = Self.celebrationNodePrefix + "photo"
             photo.setScale(reduceMotion ? 1.0 : 0.5)
             cameraOverlay.addChild(photo)
             let photoIn: SKAction = reduceMotion
@@ -1002,9 +1128,10 @@ final class BoardScene: SKScene {
         tag.text = "¡NUEVO!"
         tag.fontSize = 24
         tag.fontColor = Palette.yellow
-        tag.position = CGPoint(x: size.width / 2, y: size.height * 0.82)
+        tag.position = CGPoint(x: size.width / 2, y: layout.tagY)
         tag.zPosition = 210
         tag.alpha = 0
+        tag.name = Self.celebrationNodePrefix + "tag"
         tag.run(.sequence([
             .fadeIn(withDuration: 0.2),
             .wait(forDuration: hold + 0.1),
@@ -1022,9 +1149,10 @@ final class BoardScene: SKScene {
         let peakScale: CGFloat = reduceMotion ? 1.0 : 1.15
         BoardScene.shrinkToFit(banner, maxWidth: (size.width - Self.revealMargin * 2) / peakScale)
         banner.fontColor = SKColor(named: "PalettePink") ?? .magenta
-        banner.position = CGPoint(x: size.width / 2, y: size.height * 0.76)
+        banner.position = CGPoint(x: size.width / 2, y: layout.bannerY)
         banner.zPosition = 210
         banner.alpha = 0
+        banner.name = Self.celebrationNodePrefix + "banner"
         banner.setScale(reduceMotion ? 1.0 : 0.4)
         cameraOverlay.addChild(banner)
 
@@ -1291,6 +1419,7 @@ final class BoardScene: SKScene {
         )
         flight.position = start
         flight.zPosition = 120
+        flight.name = Self.celebrationNodePrefix + "flight"
         flight.setScale(0.92)
         backgroundLayer.addChild(flight)
         gameState.playAscentFeedback()
@@ -1350,6 +1479,7 @@ final class BoardScene: SKScene {
         title.position = CGPoint(x: size.width / 2, y: size.height * 0.63)
         title.zPosition = 220
         title.alpha = 0
+        title.name = Self.celebrationNodePrefix + "floorTitle"
         cameraOverlay.addChild(title)
         let titleEntrance: SKAction = reduceMotion
             ? .fadeIn(withDuration: 0.01)

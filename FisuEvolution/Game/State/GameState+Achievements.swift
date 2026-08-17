@@ -337,9 +337,14 @@ extension GameState {
 
     /// El banner en pantalla se cerró (por toque o por vencimiento): pasa el
     /// siguiente de la cola.
+    /// Los logros ocupan UN casillero de la cola global: mientras la sub-cola
+    /// tenga toasts sigue siendo su turno, y recién cuando se vacía libera el
+    /// lugar. Así una tanda de tres logros no se interleava con el reveal ni con
+    /// el premio diario, pero cada uno conserva su título.
     func dismissAchievementToast(id: String) {
         guard achievementToast?.id == id else { return }
         achievementToast = pendingAchievementToasts.isEmpty ? nil : pendingAchievementToasts.removeFirst()
+        if achievementToast == nil { celebrationFinished(.achievements) }
     }
 
     // MARK: Proyección

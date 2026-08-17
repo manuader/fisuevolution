@@ -227,18 +227,27 @@ final class GameState {
     var offlineReward: OfflineReward?
     var skinAward: SkinAward?
 
+    /// Qué celebración tiene el turno. **Es la única fuente que miran las
+    /// vistas** para decidir si les toca aparecer: los payloads siguen donde
+    /// estaban, pero ahora se muestran de a uno.
+    ///
+    /// Sin `private(set)` por lo mismo que `player`: lo escribe `+Celebrations`,
+    /// que es otro archivo. Nadie más lo toca.
+    var showing: CelebrationKind?
+    /// El HUD se atenúa sólo en la celebración a pantalla completa. Un toast de
+    /// logro de 4 s no justifica apagar el HUD entero.
+    var celebrationDimsHUD = false
+
+
     // MARK: Authoritative state
 
-    /// Un merge que abre piso dispara una cadena de celebraciones en la escena.
-    /// Mientras corre, las superficies de SwiftUI esperan su turno: si el sheet
-    /// de skin apareciera en el instante del merge taparía el vuelo, el reveal y
-    /// la celebración del piso —los tres a la vez, que es el bug que esto
-    /// arregla—.
-    /// Lo escribe `+Actions`: el merge que asciende abre la cadena.
-    @ObservationIgnored var celebrationChainActive = false
-    @ObservationIgnored private var pendingSkinAward: SkinAward?
-    /// Lo escribe `+Actions` cuando el ascenso destraba un piso nuevo.
-    @ObservationIgnored var pendingHireUnlockedFloorID: String?
+    /// La cola que hace que las celebraciones se reproduzcan de a una.
+    /// Reemplazó a la cadena a mano (`celebrationChainActive` + dos campos
+    /// `pending*`), que cubría un solo camino: el ascenso que abre piso.
+    @ObservationIgnored var celebrations = CelebrationQueue()
+    /// El evento cuyo banner ya tuvo su turno. Sin esto el banner se reencolaría
+    /// para siempre: el evento sigue activo 30 s y el banner se cierra a los 6.
+    @ObservationIgnored var announcedEventID: String?
 
     /// Era `private(set)`. Lo mutan los seis dominios: cada acción del jugador
     /// escribe el estado autoritativo y ninguno vive ya en este archivo.
@@ -532,39 +541,17 @@ final class GameState {
 
         // Se celebra UNA: encadenar popups interrumpe el loop, y el crédito ya
         // quedó hecho para todas. La ficha muestra el resto.
+        //
+        // Ya no hace falta preguntar si hay una cadena corriendo: se asigna el
+        // payload y la cola decide cuándo le toca. `.skinAward` tiene menos
+        // prioridad que `.boardCelebration`, así que el ascenso que la otorgó se
+        // ve entero antes que el sheet.
         if let first = newlyUnlocked.sorted().first,
            let entry = content.skins.entry(id: first),
            let type = content.tiers.type(id: entry.characterType) {
-            let award = SkinAward(id: first, characterType: type)
-            if celebrationChainActive {
-                pendingSkinAward = award
-            } else {
-                skinAward = award
-            }
+            skinAward = SkinAward(id: first, characterType: type)
+            syncCelebrations()
         }
-    }
-
-    /// La escena terminó de reproducir la cadena del ascenso (vuelo → reveal →
-    /// piso nuevo). Recién ahora SwiftUI puede poner su parte arriba.
-    func celebrationsDidFinish() {
-        celebrationChainActive = false
-        if let award = pendingSkinAward {
-            pendingSkinAward = nil
-            skinAward = award
-            return  // el toast espera a que el jugador cierre el sheet
-        }
-        flushPendingHireNotice()
-    }
-
-    /// El sheet de skin se cerró (por botón o por gesto).
-    func skinAwardDismissed() {
-        flushPendingHireNotice()
-    }
-
-    private func flushPendingHireNotice() {
-        guard let floorID = pendingHireUnlockedFloorID else { return }
-        pendingHireUnlockedFloorID = nil
-        towerNotice = TowerNotice(kind: .hireUnlocked(floorID: floorID))
     }
 
     // MARK: Frame loop (called by BoardScene)
@@ -581,6 +568,10 @@ final class GameState {
             now: Date().timeIntervalSince1970
         )
         self.player = player
+        // El watchdog de la cola de celebraciones corre acá y no en un `Timer`
+        // (regla 2 de concurrencia). `delta` sin `debugTimeScale`: el time-warp
+        // acelera la economía, no el tiempo que el jugador tiene para mirar.
+        advanceCelebrations(delta: delta)
     }
 
     /// 8 Hz projection flush driven by the scene's frame counter. Also prunes
@@ -680,6 +671,12 @@ final class GameState {
     /// La llaman `+Actions`, `+Upgrades`, `+Bonus` y `+Debug`.
     func refreshProjections() {
         guard let content, let player else { return }
+
+        // Único enganche de la cola de celebraciones: acá pasa todo lo que puede
+        // haber creado una. Colgarlo de una sola función es lo que hace que
+        // ningún call site pueda olvidarse de encolar (mismo criterio que
+        // `evaluateAchievements` con `phase`).
+        syncCelebrations()
 
         let newCoins = CoinFormatter.string(from: player.run.coins)
         if coinsText != newCoins { coinsText = newCoins }

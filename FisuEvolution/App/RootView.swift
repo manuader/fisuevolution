@@ -129,28 +129,7 @@ struct GameBoardView: View {
                     .ignoresSafeArea()
                 #endif
             }
-            VStack(spacing: 8) {
-                HUDView(
-                    onStoreTap: { open(.store) },
-                    onMapOpen: { tutorialEvents.insert(.openedMap) }
-                )
-                // Los contadores de bonus van pegados al HUD y a la izquierda;
-                // el banner del evento, que es ancho y centrado, va debajo. Se
-                // monta sólo cuando hay algo que contar: así el timer de 1 Hz
-                // de la barra no existe durante una partida sin boosts.
-                if !gameState.activeBonuses.isEmpty {
-                    ActiveBonusBar(bonuses: gameState.activeBonuses)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.leading, 12)
-                }
-                if let event = gameState.activeEvent {
-                    EventBannerView(event: event)
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
-                Spacer()
-                bottomBar
-            }
-            .animation(.spring(duration: 0.35), value: gameState.activeEvent)
+            hudColumn
             #if DEBUG
             debugButton
             #endif
@@ -162,7 +141,7 @@ struct GameBoardView: View {
             // pero muerta y el aviso de piso aparecía de golpe. Es el defecto que
             // la T18 le arregló al toast y que quedó confirmado y diferido acá.
             ZStack {
-                if let notice = gameState.towerNotice {
+                if let notice = gameState.towerNotice, gameState.showing == .towerNotice {
                     TowerNoticeView(notice: notice) {
                         gameState.dismissTowerNotice(id: notice.id)
                     }
@@ -197,7 +176,7 @@ struct GameBoardView: View {
             // Y acota el alcance al toast, para no teñir de spring los cambios
             // del HUD que caigan en el mismo frame.
             ZStack {
-                if let toast = gameState.achievementToast {
+                if let toast = gameState.achievementToast, gameState.showing == .achievements {
                     AchievementToastView(toast: toast) {
                         gameState.dismissAchievementToast(id: toast.id)
                     }
@@ -223,10 +202,7 @@ struct GameBoardView: View {
                 scene = BoardScene(gameState: gameState)
             }
         }
-        .sheet(item: Binding(
-            get: { tutorialDone ? gameState.careerPrompt : nil },
-            set: { gameState.careerPrompt = $0 }
-        )) { prompt in
+        .sheet(item: careerPromptBinding) { prompt in
             CareerChoiceView(prompt: prompt)
         }
         .sheet(item: Binding(
@@ -235,16 +211,10 @@ struct GameBoardView: View {
         )) { sheet in
             CharacterSheetView(sheet: sheet)
         }
-        .sheet(item: Binding(
-            get: { tutorialDone ? gameState.skinAward : nil },
-            set: { gameState.skinAward = $0 }
-        ), onDismiss: { gameState.skinAwardDismissed() }) { award in
+        .sheet(item: skinAwardBinding, onDismiss: { gameState.celebrationFinished(.skinAward) }) { award in
             SkinAwardView(award: award)
         }
-        .sheet(item: Binding(
-            get: { tutorialDone ? gameState.offlineReward : nil },
-            set: { gameState.offlineReward = $0 }
-        )) { reward in
+        .sheet(item: offlineRewardBinding, onDismiss: { gameState.celebrationFinished(.offlineEarnings) }) { reward in
             OfflineEarningsView(reward: reward)
         }
         .sheet(isPresented: $showPrestige) {
@@ -263,10 +233,7 @@ struct GameBoardView: View {
             case .menu: MenuView()
             }
         }
-        .sheet(item: Binding(
-            get: { tutorialDone ? gameState.specialDrop : nil },
-            set: { if $0 == nil { gameState.dismissSpecialDrop() } }
-        )) { special in
+        .sheet(item: specialDropBinding) { special in
             SpecialDropView(special: special)
         }
         .sheet(item: Binding(
@@ -275,10 +242,7 @@ struct GameBoardView: View {
         )) { subject in
             ShareCardSheet(subject: subject)
         }
-        .sheet(item: Binding(
-            get: { tutorialDone ? gameState.dailyClaim.map { IdentifiedClaim(claim: $0) } : nil },
-            set: { if $0 == nil { gameState.dismissDailyClaim() } }
-        )) { wrapped in
+        .sheet(item: dailyClaimBinding) { wrapped in
             DailyRewardView(claim: wrapped.claim)
         }
         #if DEBUG
@@ -293,6 +257,92 @@ struct GameBoardView: View {
                 .accessibilityIdentifier("board.units")
                 .accessibilityValue(Text(verbatim: String(gameState.unitCount)))
         )
+    }
+
+    // MARK: Bindings de las celebraciones
+    //
+    // Cada una es una propiedad con TIPO EXPLÍCITO y no un `Binding(...)` inline
+    // en el `body`. Con el gate de la cola adentro del `get`, las diez hojas
+    // encadenadas hacían caer al type-checker de SwiftUI ("unable to type-check
+    // this expression in reasonable time"). Declaradas por separado, cada una se
+    // resuelve sola y el `body` sólo las referencia.
+    //
+    // El patrón es siempre el mismo: se muestra si el tutorial ya pasó **y es su
+    // turno en la cola**. El payload sigue viviendo donde siempre.
+
+    private var careerPromptBinding: Binding<GameState.CareerPrompt?> {
+        Binding(
+            get: { tutorialDone && gameState.showing == .careerChoice ? gameState.careerPrompt : nil },
+            set: { gameState.careerPrompt = $0 }
+        )
+    }
+
+    private var skinAwardBinding: Binding<GameState.SkinAward?> {
+        Binding(
+            get: { tutorialDone && gameState.showing == .skinAward ? gameState.skinAward : nil },
+            set: { gameState.skinAward = $0 }
+        )
+    }
+
+    private var offlineRewardBinding: Binding<GameState.OfflineReward?> {
+        Binding(
+            get: { tutorialDone && gameState.showing == .offlineEarnings ? gameState.offlineReward : nil },
+            set: { gameState.offlineReward = $0 }
+        )
+    }
+
+    private var specialDropBinding: Binding<SpecialsConfig.Special?> {
+        Binding(
+            get: { tutorialDone && gameState.showing == .specialDrop ? gameState.specialDrop : nil },
+            set: { if $0 == nil { gameState.dismissSpecialDrop() } }
+        )
+    }
+
+    private var dailyClaimBinding: Binding<IdentifiedClaim?> {
+        Binding(
+            get: {
+                guard tutorialDone, gameState.showing == .dailyReward, let claim = gameState.dailyClaim else { return nil }
+                return IdentifiedClaim(claim: claim)
+            },
+            set: { if $0 == nil { gameState.dismissDailyClaim() } }
+        )
+    }
+
+    /// El HUD y todo lo que va encima del tablero.
+    ///
+    /// Vive fuera del `body` porque agregarle la atenuación de celebraciones lo
+    /// hizo caer en "the compiler is unable to type-check this expression in
+    /// reasonable time": el `ZStack` del `body` ya venía al límite. Extraer una
+    /// rama es el remedio estándar y además hace legible el orden de capas.
+    @ViewBuilder private var hudColumn: some View {
+        VStack(spacing: 8) {
+            HUDView(
+                onStoreTap: { open(.store) },
+                onMapOpen: { tutorialEvents.insert(.openedMap) }
+            )
+            // Los contadores de bonus van pegados al HUD y a la izquierda; el
+            // banner del evento, que es ancho y centrado, va debajo. Se monta
+            // sólo cuando hay algo que contar: así el timer de 1 Hz de la barra
+            // no existe durante una partida sin boosts.
+            if !gameState.activeBonuses.isEmpty {
+                ActiveBonusBar(bonuses: gameState.activeBonuses)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 12)
+            }
+            if let event = gameState.activeEvent, gameState.eventBannerIsVisible {
+                EventBannerView(event: event)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+            }
+            Spacer()
+            bottomBar
+        }
+        .animation(.spring(duration: 0.35), value: gameState.activeEvent)
+        // Sólo la celebración a pantalla completa apaga el HUD. El reveal
+        // oscurece el tablero al 72% desde ADENTRO de SpriteKit, y con el HUD a
+        // full brillo encima la composición se veía rota. Un toast de logro de
+        // 4 s no justifica esto.
+        .opacity(gameState.celebrationDimsHUD ? 0.2 : 1)
+        .animation(.easeInOut(duration: 0.25), value: gameState.celebrationDimsHUD)
     }
 
     /// Abre una pantalla de la barra y avisa al tutorial cuando el paso se
@@ -472,8 +522,11 @@ private struct AchievementToastView: View {
             }
             // Un piso más arriba que el aviso de la torre (ver `TowerNoticeView`),
             // para que los dos se apilen cuando salen juntos. Sube los mismos
-            // 2 pt que creció la barra.
-            .padding(.bottom, 198)
+            // 2 pt que creció la barra, y arrastra el MISMO piso de abajo: si el
+            // aviso sube 12 en un teléfono sin home indicator y éste no, la
+            // distancia entre los dos se come esos 12 y dejan de leerse como una
+            // pila.
+            .padding(.bottom, 198 + GameTabBar.bottomFloor)
         }
         .padding(.horizontal, 20)
         // Con Reduce Motion el banner se funde en vez de deslizarse: la guía de
@@ -512,18 +565,32 @@ private struct TowerNoticeView: View {
                     guard !Task.isCancelled else { return }
                     dismiss()
                 }
-                // Flota justo encima de la franja de abajo: 82 pt de barra
-                // (medidos desde la safe area) + los ~38 del botón de prestigio
-                // que puede estar apoyado sobre ella + 14 de aire. La barra
-                // creció 2 pt al ganar el label debajo del icono, así que el
-                // aviso sube los mismos 2 y conserva el aire de siempre.
+                // Flota justo encima de la franja de abajo ENTERA, que no es sólo
+                // la barra: `bottomBar` es un `VStack(spacing: Tokens.s8)` con el
+                // botón de prestigio apoyado arriba de ella. Contando desde la
+                // safe area, y con los números leídos del árbol de AX de una
+                // corrida real (no estimados):
                 //
-                // ⚠️ En un teléfono sin home indicator la barra mide 94 (el piso
-                // de `GameTabBar.minimumBottomGap`), así que ahí el aviso apoya a
-                // 2 pt del botón de prestigio en vez de a 14. No se pisan, pero
-                // es el número que hay que volver a mirar cuando la T4 meta su
-                // botón nuevo encima de la barra.
-                .padding(.bottom, 134)
+                //     barra                            82  (+ el piso de abajo)
+                //     spacing del VStack                8
+                //     botón de prestigio               45  (mide 44,0 en 3× y
+                //                                          44,5 en 2×: va el
+                //                                          entero de arriba para
+                //                                          que un solo número
+                //                                          sirva en los dos)
+                //                                    ----
+                //                                     135  (+ el piso de abajo)
+                //
+                // ⚠️ El `+ GameTabBar.bottomFloor` NO es decorativo: sin home
+                // indicator la barra mide 94 y el botón de prestigio llega a
+                // 146,5, así que un 134 pelado terminaba 12,5 pt POR DEBAJO de su
+                // tope —solapados de verdad, medido—. Sumando el mismo piso que
+                // subió la barra, el aviso despeja al botón en las dos clases de
+                // teléfono. Los 132 de antes del rediseño (80 + 8 + 44) dejaban
+                // al aviso EXACTAMENTE al ras del botón; este pasa a despejarlo
+                // por 1 pt, que es lo que hace falta para que el medio punto que
+                // el botón mide de más en 2× no se lo vuelva a comer.
+                .padding(.bottom, 135 + GameTabBar.bottomFloor)
         }
         .padding(.horizontal, 20)
         .allowsHitTesting(true)

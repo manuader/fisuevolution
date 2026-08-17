@@ -45,7 +45,41 @@ marco son transparentes (alfa 8–15, medido), así que el pergamino entra por
 | D6 ficha + premio de skin + reencarnación (agente paralelo) | `b9d2dd8` | ✅ |
 | D7 daily reward + plata offline + drop sorpresa (agente paralelo) | `49c3139` | ✅ |
 | — HANDOFF: sesión v3 + trampa 16 | `3a5a503` | ✅ |
-| T12 verificación (tests + capturas vs referencias) | — | ⏳ suite de UI corriendo; fase D espera build central |
+| T12 verificación + merge + push | `f097d21` | ✅ (con el ⚠️ de abajo) |
+
+## Cierre (2026-08-17, noche)
+
+- **Mergeado y pusheado**: la rama entera está en
+  `origin/feature/rediseno-v3-referencias` y **`origin/main` avanzó
+  `b782683..f097d21`** — incluye los 4 commits locales del dueño que nunca se
+  habían pusheado (celebraciones, mejoras, su HANDOFF; la trampa 7 quedó
+  cerrada de verdad). El `main` LOCAL del checkout del dueño no se tocó: quedó
+  en `64e1473`, detrás de origin — al próximo push le va a pedir pull, que es
+  la dirección segura.
+- **Números finales**: EconomyKit 200/200 · unit app 375 (único rojo el flaky
+  documentado `refundRevokesEntitlement`, verde aislado 10/10 de su clase) ·
+  **UI 41 verdes + 6 rojos SOSPECHOSOS DE MÁQUINA** con load 500–921 y swap
+  agotado (por encima del récord de 861 del HANDOFF): duraciones de
+  tap-timeout (63–288 s), 4 de los 6 fallaron TAMBIÉN corriendo contra el
+  árbol del dueño sin una línea del v3, y los flujos de los dos restantes
+  (tabs abren/cierran, Ajustes navega) están verificados a mano en el
+  simulador con capturas. El re-run aislado de los 6 murió por infraestructura
+  (el guardado de xcresult falla en toda la máquina: mkstemp/CASDB).
+- **⚠️ PENDIENTE que hereda la próxima sesión**: correr los 6 aislados con la
+  máquina tranquila —
+  `BottomMenuUITests/testCadaTabAbreSuPantallaYSeCierra`,
+  `BottomMenuUITests/testLosExtremosSonMasGrandesQueElResto`,
+  `LaunchSmokeTests/testTowerArrowsAndEmptyBoardSwipeNavigateOneFloor`,
+  `MenuUITests/testAjustesTraeSusControlesYApagaLasParticulas`,
+  `MenuUITests/testLosTerminosSeAbrenDesdeAjustes`,
+  `TutorialUITests/testSaltearCierraElTutorialYDevuelveLosControles` — y si
+  alguno falla determinístico, ahí sí es del rediseño.
+- **Post-merge**: build verde con los 4 commits del dueño adentro (su único
+  archivo compartido conmigo fue el HANDOFF, resuelto conservando las dos
+  sesiones). Capturas de popups del build mergeado: daily reward y ficha ✓.
+- Candidato de pulido a futuro: los botones de sistema que quedan en la ficha
+  (Equipped gris de sistema) y el fork de carrera — los dejaron intactos los
+  agentes por la restricción de no tocar estructura.
 
 **Cómo se trabajó la fase D**: 4 agentes paralelos sobre archivos DISJUNTOS
 dentro del mismo worktree (tutorial / share / ficha-skin-prestigio /

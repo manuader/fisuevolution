@@ -60,7 +60,13 @@ struct HUDView: View {
             prestigeIndicator
         }
         .onAppear { windowTopInset = Self.screenTopSafeArea }
-        .sheet(isPresented: $showFloorMap) { FloorMapView() }
+        .sheet(isPresented: $showFloorMap) {
+            FloorMapView()
+                // El panel del `panelSheet` ES la hoja: flota sobre el juego
+                // atenuado con la banda inferior a la vista (como las seis de
+                // la barra, en `RootView`).
+                .presentationBackground(.clear)
+        }
         .tutorialAnchor(.hudBar)
     }
 
@@ -151,7 +157,9 @@ struct HUDView: View {
         IconButton(
             artKey: "ui_coin_plus",
             fallback: { AnyView(VectorCoinPlusIcon()) },
-            size: 60,
+            // El 0,85 del primer tamaño grande (66): el dueño los quiso apenas
+            // más discretos después de verlos en pantalla (2026-08-18).
+            size: 56,
             showsPlate: false,
             tint: Color("PaletteYellow"),
             labelKey: "hud.coins.plus.label",
@@ -236,8 +244,13 @@ struct HUDView: View {
         IconButton(
             artKey: "ui_elevator",
             fallback: { AnyView(VectorElevatorIcon()) },
-            size: 60,
+            // El 0,85 del primer tamaño grande (72), como la moneda.
+            size: 61,
             showsPlate: false,
+            // La cabina del arte es angosta: estirada a 0,86 del alto queda el
+            // ascensor ancho que pidió el dueño (2026-08-18), sin que el trazo
+            // ink se note deformado.
+            glyphAspect: 0.86,
             tint: Color("PaletteOrange"),
             labelKey: "map.hud.label",
             identifier: "hud.map"

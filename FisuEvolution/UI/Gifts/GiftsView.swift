@@ -93,35 +93,21 @@ struct GiftsView: View {
                     }
                 }
                 .padding(.horizontal, Self.panelInset)
-                .padding(.top, Tokens.s4)
+                .padding(.top, Tokens.s12)
                 .padding(.bottom, Tokens.s24)
             }
-            .background {
-                // El moño de la referencia va apoyado sobre el TOLDO, así que
-                // el ZStack entero ignora la safe area: su tope es el borde
-                // físico del sheet, que es donde vive el toldo del marco. Un
-                // overlay sobre `PanelBackground` a secas quedaba anclado
-                // DEBAJO del `safeAreaInset` de la cabecera (medido en captura:
-                // el moño flotaba sobre la cinta del daily). Las colas que
-                // pisan la banda crema quedan detrás de ella: el fondo se
-                // dibuja detrás del contenido.
-                ZStack(alignment: .top) {
-                    WoodPanelBackground(awning: true)
-                    GiftBowOrnament()
-                        .offset(y: 8)
-                        .allowsHitTesting(false)
-                }
-                .ignoresSafeArea()
+            .panelSheet(awning: true) {
+                header
+            } ornament: {
+                // El moño de la referencia, apoyado sobre el TOLDO del marco.
+                // Va como ornamento del panel —en el plano del fondo, detrás
+                // del contenido— anclado al tope, que es donde vive el toldo.
+                GiftBowOrnament()
+                    .offset(y: 8)
+                    .allowsHitTesting(false)
             }
-            .safeAreaInset(edge: .top) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
-            // La barra de navegación aparece recién al scrollear y de fábrica lo
-            // hace con el material blanco del sistema: contra el marco del panel
-            // quedaba una banda blanca cruzándolo. Pintada de crema empalma con
-            // la cabecera de abajo y las dos se leen como UNA barra fija (mismo
-            // criterio que `FisuJobsView`, `UpgradesView` y `FloorMapView`).
-            .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
@@ -131,31 +117,17 @@ struct GiftsView: View {
 
     // MARK: Cabecera
 
-    /// El moño y el título, fijos arriba de la lista.
-    ///
-    /// ⚠️ **El fondo crema opaco no es decoración.** Un `safeAreaInset` recorta el
-    /// área segura pero el contenido del scroll sigue pasando POR DEBAJO: con la
-    /// banda transparente las tarjetas desfilan a través del título. Es el
-    /// defecto que el HANDOFF §8 anota para "el título flotante de los paneles" y
-    /// acá se corta igual que en las otras cuatro pantallas.
+    /// El título con su moño, ADENTRO del pergamino, debajo del toldo. Sin
+    /// banda opaca: el `panelSheet` recorta el scroll por debajo de la
+    /// cabecera, y la banda tapaba el toldo y los postes (2026-08-18).
     private var header: some View {
-        HStack(spacing: Tokens.s8) {
-            // El mismo moño del tab que abre esta hoja, ADENTRO de la cápsula
-            // del título (así componen las referencias). El banner ya lo tapa
-            // de VoiceOver: es decoración, el título dice "Regalos".
-            PanelTitleBanner(
-                titleKey: "gifts.title",
-                icon: AnyView(GameIcon(artKey: "ui_tab_gifts", size: 26) { VectorTabGiftsIcon() })
-            )
-        }
-        .padding(.horizontal, Self.panelInset)
-        .padding(.top, 6)
-        .padding(.bottom, Tokens.s12)
-        .frame(maxWidth: .infinity)
-        .background {
-            Color("PaletteCream")
-                .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
-        }
+        // El mismo moño del tab que abre esta hoja, ADENTRO de la cápsula
+        // del título (así componen las referencias). El banner ya lo tapa
+        // de VoiceOver: es decoración, el título dice "Regalos".
+        PanelTitleBanner(
+            titleKey: "gifts.title",
+            icon: AnyView(GameIcon(artKey: "ui_tab_gifts", size: 26) { VectorTabGiftsIcon() })
+        )
     }
 
     private func section(_ titleKey: LocalizedStringKey) -> some View {

@@ -46,19 +46,15 @@ struct UpgradesView: View {
                     }
                 }
                 .padding(.horizontal, Self.panelInset)
-                .padding(.top, Tokens.s8)
+                .padding(.top, Tokens.s12)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { WoodPanelBackground(material: .metal) }
-            .safeAreaInset(edge: .top) { header }
+            // Madera como el resto de los negocios (pedido del dueño,
+            // 2026-08-18: el metal la hacía "de otra familia"). El metal quedó
+            // para el Ascensor, que es la única maquinaria de verdad.
+            .panelSheet(awning: true) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
-            // La barra de navegación aparece recién al scrollear y de fábrica lo
-            // hace con el material blanco del sistema: contra el marco metálico
-            // quedaba una banda blanca cruzando el panel. Pintada de crema
-            // empalma con la cabecera de abajo y las dos se leen como UNA barra
-            // fija. Mismo arreglo que `FisuJobsView`.
-            .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
@@ -67,34 +63,26 @@ struct UpgradesView: View {
 
     // MARK: Cabecera
 
-    /// Título, pestañas y —en Permanentes— el saldo de ORO, fijos arriba de la
-    /// lista.
+    /// Título, pestañas y —en Permanentes— el saldo de ORO, ADENTRO del panel
+    /// metálico. Sin banda opaca: el `panelSheet` recorta el scroll por debajo
+    /// de la cabecera, y la banda tapaba el marco (2026-08-18).
     ///
-    /// ⚠️ **El fondo opaco no es decoración.** Un `safeAreaInset` recorta el área
-    /// segura pero el contenido del scroll sigue pasando POR DEBAJO: con la banda
-    /// transparente las tarjetas desfilaban a través del título y asomaban a los
-    /// costados de la cápsula. Es el defecto que el HANDOFF §8 anota para "el
-    /// título flotante de los paneles" —el de todas las hojas—, y acá se corta
-    /// igual que en `FisuJobsView`.
-    ///
-    /// Las pestañas subieron acá desde el cuerpo del scroll: son el control que
+    /// Las pestañas viven acá y no en el cuerpo del scroll: son el control que
     /// gobierna la lista y quedarse sin ellas al bajar dos filas obligaba a
     /// volver arriba para cambiar de bolsillo.
     private var header: some View {
         VStack(spacing: Tokens.s8) {
-            PanelTitleBanner(titleKey: "upgrades.title")
+            // El mismo glifo que el tab que abre esta hoja, ADENTRO de la
+            // cápsula del título (composición de las referencias, igual que
+            // Regalos, Pintas y la Tienda). El banner ya lo tapa de VoiceOver.
+            PanelTitleBanner(
+                titleKey: "upgrades.title",
+                icon: AnyView(GameIcon(artKey: "ui_tab_upgrades", size: 26) { VectorTabUpgradesIcon() })
+            )
             tabPicker
             if selectedTab == .permanent {
                 oroBalance
             }
-        }
-        .padding(.horizontal, Self.panelInset)
-        .padding(.top, 6)
-        .padding(.bottom, Tokens.s12)
-        .frame(maxWidth: .infinity)
-        .background {
-            Color("PaletteCream")
-                .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
         }
     }
 

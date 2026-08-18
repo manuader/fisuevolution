@@ -75,19 +75,11 @@ struct CustomizationView: View {
                 .padding(.horizontal, Self.panelInset)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { WoodPanelBackground(awning: true) }
-            .safeAreaInset(edge: .top) {
+            .panelSheet(awning: true) {
                 header(allTypes: allTypes, seenIDs: seenIDs, selectedID: selected?.id)
             }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
-            // La barra de navegación aparece recién al scrollear, y de fábrica lo
-            // hace con el material blanco del sistema: contra el marco de madera
-            // quedaba una banda blanca cruzando el panel. Pintada de crema empalma
-            // con la cabecera de abajo y las dos se leen como UNA sola barra fija.
-            // No se fuerza `.visible`: en reposo sigue transparente y el toldo del
-            // `panel_store` se ve entero (mismo criterio que `FisuJobsView`).
-            .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
@@ -96,15 +88,12 @@ struct CustomizationView: View {
 
     // MARK: Cabecera
 
-    /// Título + carrusel de caras, fijos arriba de la grilla.
+    /// Título + carrusel de caras, ADENTRO del pergamino, debajo del toldo.
     ///
-    /// ⚠️ **El fondo crema opaco no es decoración.** Un `safeAreaInset` recorta el
-    /// área segura pero el contenido del scroll sigue pasando POR DEBAJO: sin la
-    /// banda opaca las tarjetas desfilan a través de las caras. Es el defecto que
-    /// el HANDOFF §8 anota para "el título flotante de los paneles" y que la T8
-    /// cortó en FisuJobs; acá se hereda el arreglo entero, banda de borde a borde
-    /// incluida (una banda angosta debajo del fondo full-width de la barra de
-    /// navegación deja un escalón).
+    /// Sin banda opaca: el `panelSheet` recorta la grilla por debajo de la
+    /// cabecera, y la banda crema de borde a borde tapaba el toldo y los postes
+    /// (2026-08-18). El carrusel también queda contenido: su scroll horizontal
+    /// se recorta al ancho de la columna, como todo lo demás.
     private func header(allTypes: [CharacterType], seenIDs: Set<String>, selectedID: String?) -> some View {
         VStack(spacing: Tokens.s8) {
             // El mismo glifo que el tab que abre esta hoja, ADENTRO de la
@@ -115,13 +104,6 @@ struct CustomizationView: View {
                 icon: AnyView(GameIcon(artKey: "ui_tab_skins", size: 26) { VectorTabSkinsIcon() })
             )
             characterStrip(allTypes: allTypes, seenIDs: seenIDs, selectedID: selectedID)
-        }
-        .padding(.top, 6)
-        .padding(.bottom, Tokens.s8)
-        .frame(maxWidth: .infinity)
-        .background {
-            Color("PaletteCream")
-                .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
         }
     }
 
@@ -164,9 +146,10 @@ struct CustomizationView: View {
                     }
                 }
             }
-            .padding(.horizontal, Self.panelInset)
-            // Aire para que el marco de la cara elegida y su sombra no queden
-            // cortados por el borde del scroll.
+            // El margen lateral de la columna ya lo pone la cabecera del
+            // `panelSheet`; acá sólo el aire para que el marco de la cara
+            // elegida y su sombra no queden cortados por el borde del scroll.
+            .padding(.horizontal, Tokens.s4)
             .padding(.vertical, 4)
         }
     }

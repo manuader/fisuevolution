@@ -76,14 +76,12 @@ struct OrgChartView: View {
                 }
             }
             .padding(.horizontal, MenuView.panelInset)
-            .padding(.top, Tokens.s4)
+            .padding(.top, Tokens.s12)
             .padding(.bottom, Tokens.s24)
         }
-        .background { WoodPanelBackground() }
-        .safeAreaInset(edge: .top) { header }
+        .panelSheet { header }
         .navigationTitle(Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) { ArtCloseButton(action: close) }
         }
@@ -91,17 +89,10 @@ struct OrgChartView: View {
 
     // MARK: Cabecera
 
-    /// El título, fijo arriba de la cadena. Fondo crema OPACO por lo mismo que
-    /// en las otras cinco hojas: sin él los nodos desfilan por detrás del título.
+    /// El título, ADENTRO del pergamino. Sin banda opaca: el `panelSheet`
+    /// recorta la cadena por debajo de la cabecera (2026-08-18).
     private var header: some View {
         PanelTitleBanner(titleKey: "orgchart.title")
-            .padding(.top, 6)
-            .padding(.bottom, Tokens.s8)
-            .frame(maxWidth: .infinity)
-            .background {
-                Color("PaletteCream")
-                    .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
-            }
     }
 
     // MARK: Agrupado

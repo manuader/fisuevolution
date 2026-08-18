@@ -51,14 +51,12 @@ struct AchievementsView: View {
                 }
             }
             .padding(.horizontal, MenuView.panelInset)
-            .padding(.top, Tokens.s4)
+            .padding(.top, Tokens.s12)
             .padding(.bottom, Tokens.s24)
         }
-        .background { WoodPanelBackground() }
-        .safeAreaInset(edge: .top) { header(claimed: claimed, total: total) }
+        .panelSheet { header(claimed: claimed, total: total) }
         .navigationTitle(Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) { ArtCloseButton(action: close) }
         }
@@ -66,8 +64,8 @@ struct AchievementsView: View {
 
     // MARK: Cabecera
 
-    /// El título y el marcador, fijos arriba de la lista. Fondo crema OPACO: sin
-    /// él las tarjetas desfilan por detrás del título.
+    /// El título y el marcador, ADENTRO del pergamino. Sin banda opaca: el
+    /// `panelSheet` recorta la lista por debajo de la cabecera (2026-08-18).
     private func header(claimed: Int, total: Int) -> some View {
         // ⚠️ El contador se arma como `String` ANTES de entrar en la clave. Con
         // `Text("ach.header.count \(claimed)/\(total)")`, `LocalizedStringKey`
@@ -82,13 +80,6 @@ struct AchievementsView: View {
                 .monospacedDigit()
                 .foregroundStyle(Color("PaletteInk").opacity(0.75))
                 .lineLimit(1)
-        }
-        .padding(.top, 6)
-        .padding(.bottom, Tokens.s8)
-        .frame(maxWidth: .infinity)
-        .background {
-            Color("PaletteCream")
-                .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
         }
     }
 

@@ -219,14 +219,12 @@ struct LegalView: View {
                 }
             }
             .padding(.horizontal, MenuView.panelInset)
-            .padding(.top, Tokens.s4)
+            .padding(.top, Tokens.s12)
             .padding(.bottom, Tokens.s24)
         }
-        .background { WoodPanelBackground() }
-        .safeAreaInset(edge: .top) { header }
+        .panelSheet { header }
         .navigationTitle(Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) { ArtCloseButton(action: close) }
         }
@@ -234,17 +232,11 @@ struct LegalView: View {
 
     // MARK: Cabecera
 
-    /// Fondo crema OPACO: sin él el texto desfila por detrás del título.
+    /// El título, ADENTRO del pergamino. Sin banda opaca: el `panelSheet`
+    /// recorta el texto por debajo de la cabecera (2026-08-18).
     private var header: some View {
         PanelTitleBanner(titleKey: document.titleKey)
             .accessibilityIdentifier("legal.\(document.rawValue)")
-            .padding(.top, 6)
-            .padding(.bottom, Tokens.s8)
-            .frame(maxWidth: .infinity)
-            .background {
-                Color("PaletteCream")
-                    .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
-            }
     }
 
     /// El `.md` no está en el bundle. No es un estado que el jugador pueda

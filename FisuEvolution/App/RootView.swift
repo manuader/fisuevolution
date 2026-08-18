@@ -227,14 +227,20 @@ struct GameBoardView: View {
         // ningún placeholder: el Menú es la última que se construyó (T15) y es
         // la única que navega hacia adentro.
         .sheet(item: $activeScreen) { screen in
-            switch screen {
-            case .jobs: FisuJobsView()
-            case .upgrades: UpgradesView()
-            case .skins: CustomizationView()
-            case .gifts: GiftsView(adsProvider: adsProvider)
-            case .store: StoreView()
-            case .menu: MenuView()
+            Group {
+                switch screen {
+                case .jobs: FisuJobsView()
+                case .upgrades: UpgradesView()
+                case .skins: CustomizationView()
+                case .gifts: GiftsView(adsProvider: adsProvider)
+                case .store: StoreView()
+                case .menu: MenuView()
+                }
             }
+            // El panel del `panelSheet` ES la hoja: sin el material del sistema
+            // debajo, flota sobre el juego atenuado con su banda inferior a la
+            // vista — como los popups, que es como componen las referencias.
+            .presentationBackground(.clear)
         }
         .sheet(item: specialDropBinding) { special in
             SpecialDropView(special: special)

@@ -8,8 +8,8 @@ import SwiftUI
 /// `panel_store`, con los MISMOS tonos muestreados del PNG (madera
 /// #C98F52→#A9713C, línea interna #2F1915, bisel #D3B788) y los tornillos en
 /// las esquinas, sin el toldo — el toldo es de negocio, y el menú no vende
-/// nada. El día que un `panel_menu` de arte exista en el atlas, entra por
-/// `PanelBackground(art:)` sin tocar más que la vista que lo usa.
+/// nada. (`panel_menu` de arte existe en el atlas como reserva, pero un marco
+/// 9-slice full-screen devolvería el estiramiento que esta familia mató.)
 ///
 /// Reglas de la casa que también rigen acá: nada de identifiers en
 /// contenedores, cero animación viva en reposo, y los ornamentos son
@@ -56,6 +56,13 @@ struct WoodPanelBackground: View {
     /// Alto del toldo de los negocios. Publicado para quien necesite despejarlo.
     static let awningHeight: CGFloat = 40
 
+    /// Desde dónde arranca la cabecera de una hoja contenida, medido desde el
+    /// TOPE del panel (la hoja ignora la safe area de arriba, así el número no
+    /// depende del alto de la barra de navegación): despeja el toldo entero
+    /// —festón que desborda su banda y sombra incluidos— o la banda con su
+    /// bisel cuando no hay negocio.
+    static func headerTopInset(awning: Bool) -> CGFloat { awning ? 88 : 60 }
+
     /// Ancho de la banda del marco.
     private static let band: CGFloat = 22
 
@@ -96,7 +103,12 @@ struct WoodPanelBackground: View {
             )
             frame
         }
-        .ignoresSafeArea()
+        // El panel es una PIEZA con esquinas redondeadas, no un empapelado:
+        // recortado acá, el pergamino no asoma por afuera de la banda cuando la
+        // hoja flota sobre el juego (fondo de presentación transparente). El
+        // sangrado contra los bordes ya no lo decide el componente: lo decide
+        // la hoja (`panelSheet`), que es quien sabe hasta dónde debe llegar.
+        .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
     }
 
     private var frame: some View {
@@ -128,7 +140,6 @@ struct WoodPanelBackground: View {
                 screws(in: geo.size)
             }
         }
-        .ignoresSafeArea()
     }
 
     /// Los cuatro tornillos, apoyados sobre la banda en cada esquina.
@@ -147,11 +158,181 @@ struct WoodPanelBackground: View {
     }
 }
 
+// MARK: - Hoja contenida
+
+/// La hoja CONTENIDA por su marco (pedido del dueño, 2026-08-18): la cabecera
+/// vive ADENTRO del pergamino —debajo del toldo, sin banda opaca que tape los
+/// postes— y el scroll es una región recortada que se funde contra la banda
+/// inferior, que queda A LA VISTA porque el panel respeta el borde de abajo.
+/// El "desfile por detrás del título" que las bandas opacas cortaban muere acá
+/// de raíz: el scroll arranca DEBAJO de la cabecera y no puede pasarle por
+/// atrás, así que la banda, la barra de navegación crema y sus escalones
+/// quedaron sin trabajo.
+///
+/// Se aplica sobre el `ScrollView` de la hoja, y la hoja se presenta con
+/// `.presentationBackground(.clear)`: el panel flota sobre el juego atenuado,
+/// como los popups — que es como componen las referencias.
+private struct PanelSheetLayout<Header: View, Ornament: View>: ViewModifier {
+    let material: WoodPanelBackground.Material
+    let awning: Bool
+    let header: Header
+    /// Decoración apoyada sobre el marco (el moño de Regalos). Se dibuja en el
+    /// plano del FONDO, detrás del contenido, anclada al tope del panel.
+    let ornament: Ornament
+
+    func body(content: Content) -> some View {
+        VStack(spacing: 0) {
+            header
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, WoodPanelBackground.columnInset)
+                .padding(.top, WoodPanelBackground.headerTopInset(awning: awning))
+                .padding(.bottom, Tokens.s8)
+            content
+                .mask { edgeFade }
+        }
+        .padding(.bottom, WoodPanelBackground.contentInset)
+        .background {
+            ZStack(alignment: .top) {
+                WoodPanelBackground(material: material, awning: awning)
+                ornament
+            }
+            // La sombra del panel flotando sobre el juego: sin el material del
+            // sheet del sistema, la profundidad la pone el propio panel.
+            .shadow(color: .black.opacity(0.30), radius: 16, y: 6)
+        }
+        // Arriba el panel llega al borde del sheet (la barra de navegación
+        // flota transparente sobre la banda); abajo NO: respeta la safe area,
+        // que es lo que deja la banda inferior a la vista.
+        .ignoresSafeArea(edges: .top)
+    }
+
+    /// El fundido que hace que las tarjetas SALGAN de adentro del panel en vez
+    /// de cortarse contra una línea invisible: opaco en el medio, y disuelto en
+    /// los últimos puntos contra la cabecera y contra la banda inferior.
+    private var edgeFade: some View {
+        VStack(spacing: 0) {
+            LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom)
+                .frame(height: 12)
+            Color.black
+            LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom)
+                .frame(height: 18)
+        }
+    }
+}
+
+extension View {
+    /// Enmarca el `ScrollView` de una hoja dentro del panel contenedor: la
+    /// cabecera adentro del pergamino y el contenido recortado contra el marco.
+    func panelSheet(
+        material: WoodPanelBackground.Material = .wood,
+        awning: Bool = false,
+        @ViewBuilder header: () -> some View
+    ) -> some View {
+        modifier(PanelSheetLayout(
+            material: material,
+            awning: awning,
+            header: header(),
+            ornament: EmptyView()
+        ))
+    }
+
+    /// Variante con decoración apoyada sobre el marco (el moño de Regalos).
+    func panelSheet(
+        material: WoodPanelBackground.Material = .wood,
+        awning: Bool = false,
+        @ViewBuilder header: () -> some View,
+        @ViewBuilder ornament: () -> some View
+    ) -> some View {
+        modifier(PanelSheetLayout(
+            material: material,
+            awning: awning,
+            header: header(),
+            ornament: ornament()
+        ))
+    }
+}
+
+// MARK: - PanelCard
+
+/// El tablón en escala de TARJETA: el mismo lenguaje del marco de las hojas
+/// —pergamino con luz, banda de madera con bisel, línea oscura, contorno ink
+/// y tornillos— para los popups. Reemplaza a los marcos de arte 9-slice
+/// (`panel_reward`, `panel_career`, `panel_prestige`, `panel_dialog`): eran
+/// CUATRO estéticas distintas conviviendo con el tablón vectorial, y encima
+/// cada una pedía insets medidos contra su PNG (pedido del dueño, 2026-08-18:
+/// una sola familia visual, el fondo contiene y nada se superpone).
+///
+/// La banda es más finita que la del tablón (14 contra 22): a escala de popup
+/// la banda llena domina la tarjeta en vez de enmarcarla.
+struct PanelCard<Content: View>: View {
+    private static var band: CGFloat { 14 }
+    /// El margen que el contenido necesita para no pisar el marco: banda + aire.
+    static var contentInset: CGFloat { 28 }
+
+    var material: WoodPanelBackground.Material = .wood
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        content()
+            .padding(Self.contentInset)
+            .background { frame }
+    }
+
+    private var frame: some View {
+        GeometryReader { geo in
+            let outer = RoundedRectangle(cornerRadius: 26, style: .continuous)
+            let inner = RoundedRectangle(cornerRadius: 16, style: .continuous)
+            let wood = material == .wood
+            let bandFill = LinearGradient(
+                colors: wood ? [WoodTone.light, WoodTone.base] : [MetalTone.light, MetalTone.base],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            let line = wood ? WoodTone.dark : MetalTone.dark
+            let bevel = wood ? WoodTone.bevel : MetalTone.bevel
+            let screw = wood ? WoodTone.screw : MetalTone.screw
+            ZStack {
+                Color("PaletteParchment")
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.35),
+                        .clear,
+                        Color("PaletteBrown").opacity(0.10)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                outer.strokeBorder(bandFill, lineWidth: Self.band)
+                inner
+                    .strokeBorder(line, lineWidth: 2.5)
+                    .padding(Self.band - 2.5)
+                inner
+                    .strokeBorder(bevel.opacity(0.9), lineWidth: 2)
+                    .padding(Self.band)
+                outer.strokeBorder(Color("PaletteInk").opacity(0.9), lineWidth: 3)
+                ForEach(0..<4, id: \.self) { corner in
+                    PanelScrew(fill: screw, line: line, diameter: 10)
+                        .position(
+                            x: corner.isMultiple(of: 2) ? 15 : geo.size.width - 15,
+                            y: corner < 2 ? 15 : geo.size.height - 15
+                        )
+                }
+            }
+            .clipShape(outer)
+            // La sombra del popup flotando sobre el juego atenuado, hermana de
+            // la del tablón de las hojas.
+            .shadow(color: .black.opacity(0.28), radius: 12, y: 5)
+        }
+    }
+}
+
 /// Un tornillo del marco: plato con borde oscuro y la ranura en diagonal.
 /// En metal es un remache: mismo dibujo, tonos fríos.
 private struct PanelScrew: View {
     let fill: Color
     let line: Color
+    /// 12 en el tablón de las hojas; `PanelCard` lo baja a 10.
+    var diameter: CGFloat = 12
 
     var body: some View {
         ZStack {
@@ -160,10 +341,10 @@ private struct PanelScrew: View {
                 .overlay(Circle().strokeBorder(line, lineWidth: 2))
             RoundedRectangle(cornerRadius: 1, style: .continuous)
                 .fill(line)
-                .frame(width: 7, height: 1.8)
+                .frame(width: diameter * 0.58, height: 1.8)
                 .rotationEffect(.degrees(45))
         }
-        .frame(width: 12, height: 12)
+        .frame(width: diameter, height: diameter)
         .accessibilityHidden(true)
     }
 }

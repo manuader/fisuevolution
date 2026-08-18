@@ -68,14 +68,9 @@ struct MenuView: View {
                 .padding(.top, Tokens.s12)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { WoodPanelBackground() }
-            .safeAreaInset(edge: .top) { header }
+            .panelSheet { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
-            // Mismo criterio que las otras cinco hojas: sin esto la barra de
-            // navegación aparece al scrollear con el material blanco del sistema
-            // y corta el marco de madera con una banda clara.
-            .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
@@ -96,15 +91,18 @@ struct MenuView: View {
 
     // MARK: Cabecera
 
-    /// El título y la bajada, fijos arriba de la grilla.
-    ///
-    /// ⚠️ **El fondo crema opaco no es decoración** (mismo defecto que corta
-    /// `FisuJobsView`): un `safeAreaInset` recorta el área segura pero el
-    /// contenido del scroll sigue pasando POR DEBAJO, así que con la banda
-    /// transparente las tarjetas desfilarían a través del título.
+    /// El título y la bajada, ADENTRO del pergamino. Sin banda opaca: el
+    /// `panelSheet` recorta la grilla por debajo de la cabecera, y la banda
+    /// tapaba el marco (2026-08-18).
     private var header: some View {
         VStack(spacing: Tokens.s4) {
-            PanelTitleBanner(titleKey: "menu.title")
+            // El mismo glifo que el tab que abre esta hoja, ADENTRO de la
+            // cápsula del título — como Regalos, Pintas, Tienda y Mejoras. El
+            // banner ya lo tapa de VoiceOver: es decoración, el título lo dice.
+            PanelTitleBanner(
+                titleKey: "menu.title",
+                icon: AnyView(GameIcon(artKey: "ui_tab_menu", size: 26) { VectorTabMenuIcon() })
+            )
             Text("menu.subtitle")
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.75))
@@ -112,13 +110,6 @@ struct MenuView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
                 .padding(.horizontal, Tokens.s24)
-        }
-        .padding(.top, 6)
-        .padding(.bottom, Tokens.s12)
-        .frame(maxWidth: .infinity)
-        .background {
-            Color("PaletteCream")
-                .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
         }
     }
 
@@ -139,13 +130,11 @@ struct MenuView: View {
         NavigationLink(value: destination) {
             GameCard(style: .normal) {
                 VStack(spacing: Tokens.s12) {
-                    GameIcon(artKey: Self.artKey(for: destination), size: 56) { icon() }
-                        .frame(width: 92, height: 92)
-                        .background {
-                            Circle()
-                                .fill(Color("PaletteYellow").opacity(0.38))
-                                .overlay(Circle().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
-                        }
+                    // El dibujo pelado y GRANDE, sin plato circular (pedido del
+                    // dueño, 2026-08-18): el aro achicaba el icono y a este
+                    // tamaño el glifo se explica solo — mismo criterio que los
+                    // dos accesos de la barra superior.
+                    GameIcon(artKey: Self.artKey(for: destination), size: 84) { icon() }
                     Text(titleKey)
                         .font(Tokens.title)
                         .foregroundStyle(Color("PaletteInk"))

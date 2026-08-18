@@ -47,7 +47,7 @@ struct BestHireTests {
         #expect(best.tier == 1, "el firstTier del callejón (floorTable: alley 1-4)")
         #expect(best.displayName == "El Fisura")
         #expect(best.faceKey == "homeless_face")
-        #expect(best.costText == "50", "el primer Fisura cuesta 50 (decisión del dueño)")
+        #expect(best.costText == "25", "el primer Fisura cuesta 25 (decisión del dueño)")
         #expect(best.affordable)
     }
 
@@ -60,7 +60,7 @@ struct BestHireTests {
         // cuánto hay que llegar), pero desaturada.
         let best = try #require(gameState.bestHire)
         #expect(best.typeId == "homeless")
-        #expect(best.costText == "50")
+        #expect(best.costText == "25")
         #expect(!best.affordable, "sin plata la oferta es meta, no compra")
     }
 
@@ -140,7 +140,7 @@ struct BestHireTests {
         let best = try #require(gameState.bestHire)
         #expect(best.typeId == "homeless", "el de 50, no el de 9.442.891")
         #expect(best.tier == 1)
-        #expect(best.costText == "50")
+        #expect(best.costText == "25")
         #expect(!best.affordable)
     }
 
@@ -289,7 +289,7 @@ struct BestHireTests {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
         gameState.refreshProjections()
-        #expect(gameState.bestHire?.costText == "50")
+        #expect(gameState.bestHire?.costText == "25")
 
         gameState.hireBestCharacter()
         gameState.refreshProjections()
@@ -297,7 +297,7 @@ struct BestHireTests {
         // Mismo tipo (sigue siendo el único visto) pero un escalón más caro:
         // 50 × 1,2 = 60, la curva por tipo de `hireCountsByType`.
         #expect(gameState.bestHire?.typeId == "homeless")
-        #expect(gameState.bestHire?.costText == "60", "el segundo Fisura cuesta 60 (growth 1,2)")
+        #expect(gameState.bestHire?.costText == "30", "el segundo Fisura cuesta 30 (growth 1,2)")
     }
 
     // MARK: La proyección

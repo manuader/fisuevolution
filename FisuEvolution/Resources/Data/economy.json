@@ -31,7 +31,7 @@
       "lastTier": 4,
       "capacity": 10,
       "incomeMultiplier": 1.0,
-      "hireCostMultiplier": 50
+      "hireCostMultiplier": 25
     },
     {
       "id": "urban",

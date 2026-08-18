@@ -133,10 +133,11 @@ struct TypeHireQuoteTests {
                 #expect(alto > 2 * bajo)
             }
         }
-        // Y el tier base sigue anclado donde el dueño lo dejó: 50 y 60.
+        // Y el tier base sigue anclado donde el dueño lo dejó: 25 y 30 (bajó de
+        // 50/60 el 2026-08-18 para acortar el tutorial).
         let alley = real.floors[0]
-        #expect(real.hireCost(floor: alley, tier: 1, purchases: 0) == 50)
-        #expect(abs(real.hireCost(floor: alley, tier: 1, purchases: 1) - 60) < 1e-9)
+        #expect(real.hireCost(floor: alley, tier: 1, purchases: 0) == 25)
+        #expect(abs(real.hireCost(floor: alley, tier: 1, purchases: 1) - 30) < 1e-9)
     }
 
     // MARK: La curva es por TIPO

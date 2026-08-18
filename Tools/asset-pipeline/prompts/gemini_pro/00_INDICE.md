@@ -271,14 +271,16 @@ Dos cosas que hay que respetar al correrla:
 | 225 | ui_trophy_silver | `ui_trophy_silver.png` | pendiente |
 | 226 | ui_trophy_gold | `ui_trophy_gold.png` | pendiente |
 | 227 | ui_daily_calendar | `ui_daily_calendar.png` | pendiente |
-| 236 | ui_gift_bow | `ui_gift_bow.png` | pendiente |
-| 237 | panel_menu | `panel_menu.png` | pendiente |
+| 236 | ui_gift_bow | `ui_gift_bow.png` | hecho |
+| 237 | panel_menu | `panel_menu.png` | hecho |
 
-**Progreso** (contado sobre los `.md`, no sobre esta tabla): **234/236 hechos, 2 pendientes** —
-los 2 pendientes son los opcionales del rediseño v3 (236–237): reemplazan al moño y al marco de
-madera VECTORIALES que hoy dibujan `GiftBowOrnament` y `WoodPanelBackground`; integrarlos es
-sumar la clave al manifest (el moño entra solo por `GameIcon`; el panel pide además cambiar
-`WoodPanelBackground()` por `PanelBackground(art: "panel_menu")` en la familia del menú y re-medir
-su `panelInset`). Los 228–235 (caras y skins nuevas) no tienen fila en esta tabla y están hechos.
+**Progreso** (contado sobre los `.md`, no sobre esta tabla): **236/236 hechos, 0 pendientes**
+(el batch v3 corrió el 2026-08-18 desde agente — ver la memoria del batch: tildes en el cuerpo
+del prompt son tecla muerta, y `process_dropbox.py` exige el alta en `prompts.json`).
+`ui_gift_bow` quedó CABLEADO arte-primero en `GiftBowOrnament`; `panel_menu` está en el atlas
+como RESERVA sin call-site: volver a un 9-slice de pantalla completa reintroduciría el
+estiramiento que los marcos vectoriales del 2026-08-18 vinieron a matar (y su interior salió
+gris, no pergamino) — puede servir para paneles chicos. Los 228–235 (caras y skins nuevas) no
+tienen fila en esta tabla y están hechos.
 ⚠️ Las filas 158–227 de arriba pueden decir `pendiente` con el `.md` ya en `hecho`: **el estado
 real lo tiene el `.md`, no la tabla** (el runner reescribe el `.md`, nunca esta fila).

@@ -258,6 +258,24 @@ struct GiftBowOrnament: View {
     private var loopSize: CGSize { CGSize(width: width * 0.42, height: width * 0.30) }
 
     var body: some View {
+        // El arte del atlas manda (batch 236, 2026-08-18); el vectorial queda
+        // de fallback, como todo GameIcon. El PNG se encaja en el MISMO
+        // footprint que dibuja el vector, así el offset que lo apoya sobre el
+        // toldo en Regalos no depende de cuál de los dos esté.
+        Group {
+            if let art = UIArt.image("ui_gift_bow") {
+                art
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                vectorBow
+            }
+        }
+        .frame(width: width, height: width * 0.46)
+        .accessibilityHidden(true)
+    }
+
+    private var vectorBow: some View {
         ZStack {
             // Las colas, por detrás de todo, cayendo en V hacia afuera.
             tail(angle: 24)
@@ -274,8 +292,6 @@ struct GiftBowOrnament: View {
                 )
                 .frame(width: width * 0.20, height: width * 0.17)
         }
-        .frame(width: width, height: width * 0.46)
-        .accessibilityHidden(true)
     }
 
     private func loop(rotation: Double, offsetX: CGFloat) -> some View {

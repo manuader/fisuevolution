@@ -1,7 +1,7 @@
 # 236 — Moño de Regalos (UI)
 
 - **archivo**: `ui_gift_bow.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

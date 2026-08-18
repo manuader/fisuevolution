@@ -222,3 +222,16 @@ de mejoras). Comportamiento CONSERVADO; los tests eligen personaje explícito.
 aunque VoiceOver las lea) — por eso los tests leen `board.floor` y no el
 "estás acá". Y el guardado de xcresult está roto en esta máquina
 (mkstemp/CASDB) con o sin carga: los veredictos salen del log crudo.
+
+## El batch de arte corrió (2026-08-18, mañana)
+
+Los 2 opcionales del v3 se generaron DESDE AGENTE con la ruta
+`.command`→Terminal.app: **`ui_gift_bow` está integrado y CABLEADO**
+(arte-primero en `GiftBowOrnament`, vector de fallback — verificado en
+captura) y **`panel_menu` quedó en el atlas como reserva sin call-site**
+(re-cablearlo como fondo full-screen devolvería el estiramiento del 9-slice;
+su interior salió gris — sirve para paneles chicos, o se borra si pesa).
+Tres trampas nuevas del batch quedaron en la memoria del agente: tildes en el
+cuerpo del prompt (tecla muerta, pérdida determinística), la venv symlinkeada
+para correr desde worktree, y el alta obligatoria en `prompts.json` para que
+`process_dropbox.py` integre. La cola quedó 236/236.

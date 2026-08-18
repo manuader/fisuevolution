@@ -134,12 +134,13 @@ struct GameContentValidationTests {
 
     @Test func floorHireOverridesMatchTunedValues() {
         // La regla de precios es ÚNICA para toda la torre, así que el único
-        // override legítimo es el del alley: baja el multiplicador a 50 para
-        // anclar el primer Fisura en 50 monedas. Cualquier otro override
+        // override legítimo es el del alley: baja el multiplicador a 25 para
+        // anclar el primer Fisura en 25 monedas (era 50; el dueño lo bajó a la
+        // mitad para acortar el tutorial). Cualquier otro override
         // rompería la regla y es drift, no tuning.
         for floor in content.floorTable.floors {
             if floor.id == "alley" {
-                #expect(floor.hireCostMultiplierOverride == 50)
+                #expect(floor.hireCostMultiplierOverride == 25)
             } else {
                 #expect(floor.hireCostMultiplierOverride == nil, "override de hire inesperado en \(floor.id)")
             }
@@ -162,9 +163,9 @@ struct GameContentValidationTests {
     @Test func hirePricesFollowTheOwnersRule() throws {
         let economy = StandardEconomy(config: content.economy)
         let alley = content.floorTable[0]
-        #expect(content.economy.hireCost(floor: alley, tier: 1, purchases: 0) == 50)
+        #expect(content.economy.hireCost(floor: alley, tier: 1, purchases: 0) == 25)
         let segundo = content.economy.hireCost(floor: alley, tier: 1, purchases: 1)
-        #expect(abs(segundo - 60) < 1e-9)
+        #expect(abs(segundo - 30) < 1e-9)
 
         for ordinal in 1..<content.floorTable.count {
             let floor = content.floorTable[ordinal]

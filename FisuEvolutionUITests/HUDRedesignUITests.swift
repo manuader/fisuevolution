@@ -129,9 +129,12 @@ final class HUDRedesignUITests: XCTestCase {
         // "/s" no se traduce, así que este assert no cae en la trampa 6.
         XCTAssertTrue(rate.hasSuffix("/s"), "el value tiene que leerse como una tasa, salió: \(rate)")
 
-        XCTAssertTrue(app.otherElements["tower.pill"].exists, "la fila de torre perdió su píldora")
-        XCTAssertTrue(app.buttons["tower.arrow.up"].exists, "la píldora perdió la flecha de subir")
-        XCTAssertTrue(app.buttons["tower.arrow.down"].exists, "la píldora perdió la flecha de bajar")
+        // La fila de torre se RETIRÓ (decisión del dueño 2026-08-18): el piso
+        // se cambia scrolleando el tablero o por el ascensor. Verla volver es
+        // una regresión, no una feature.
+        XCTAssertFalse(app.otherElements["tower.pill"].exists, "la píldora de piso volvió: se retiró el 2026-08-18")
+        XCTAssertFalse(app.buttons["tower.arrow.up"].exists, "la flecha de subir volvió: se retiró con la píldora")
+        XCTAssertFalse(app.buttons["tower.arrow.down"].exists, "la flecha de bajar volvió: se retiró con la píldora")
         XCTAssertTrue(app.otherElements["hud.coins"].exists, "el contador de monedas se perdió al entrar a la barra")
         XCTAssertTrue(app.buttons["hud.map"].exists, "el ascensor tiene que seguir siendo el acceso al mapa")
     }

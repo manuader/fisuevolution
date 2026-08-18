@@ -98,6 +98,20 @@ struct FloorMapView: View {
         }
     }
 
+
+    /// El value de una fila: ocupación o candado, con el "estás acá" adelante
+    /// cuando la fila es el piso visible. Con la píldora del HUD retirada
+    /// (decisión del dueño 2026-08-18: el piso se cambia scrolleando o por
+    /// acá), este value es el único lugar donde VoiceOver —y los tests de
+    /// UI— pueden saber en qué piso está parado el jugador.
+    private func visibleAwareValue(for entry: FloorMapEntry) -> Text {
+        let base: Text = entry.isUnlocked
+            ? Text(verbatim: "\(entry.occupied)/\(entry.capacity)")
+            : Text("map.locked")
+        guard entry.isVisible else { return base }
+        return Text("map.here") + Text(verbatim: ", ") + base
+    }
+
     // MARK: Cabecera
 
     /// El cartel del ascensor, fijo arriba de la columna.
@@ -200,11 +214,7 @@ struct FloorMapView: View {
                 + Text(verbatim: ", ")
                 + Text(TowerNaming.floorNameKey(for: entry.id))
         )
-        .accessibilityValue(
-            entry.isUnlocked
-                ? Text(verbatim: "\(entry.occupied)/\(entry.capacity)")
-                : Text("map.locked")
-        )
+        .accessibilityValue(visibleAwareValue(for: entry))
     }
 
     /// Anatomía de la fila: botón numerado, miniatura del fondo real y los datos.

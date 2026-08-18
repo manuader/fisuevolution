@@ -188,15 +188,6 @@ final class AscentRenderingUITests: XCTestCase {
     ///
     /// Se poletea en vez de usar `NSPredicate` sobre `enabled` para no depender
     /// del nombre KVC de la propiedad. Cada consulta al runner cuesta lo suyo,
-    /// así que el bucle se autorregula solo.
-    @MainActor
-    private func waitUntilEnabled(_ element: XCUIElement, timeout: TimeInterval) -> Bool {
-        let deadline = Date().addingTimeInterval(timeout)
-        repeat {
-            if element.exists && element.isEnabled { return true }
-        } while Date() < deadline
-        return false
-    }
 
     // MARK: - Fusión
 
@@ -286,8 +277,11 @@ final class AscentRenderingUITests: XCTestCase {
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
-        let pill = app.otherElements["tower.pill"]
-        XCTAssertTrue(pill.waitForExistence(timeout: 15))
+        // La píldora se retiró (2026-08-18): el piso se lee de `board.floor`,
+        // que publica el ID crudo y sobrevive a la celebración que apaga la UI
+        // (exists y value se leen igual con la opacidad en 0).
+        let floor = app.otherElements["board.floor"]
+        XCTAssertTrue(floor.waitForExistence(timeout: 15))
         XCTAssertTrue(units(app).waitForExistence(timeout: 15))
 
         // 1) Escalar el callejón a fuerza de pares hasta que una fusión dispare
@@ -313,36 +307,34 @@ final class AscentRenderingUITests: XCTestCase {
             // y seguía fusionando sobre un piso que ya se estaba moviendo. Se
             // espera por el efecto, con deadline: la fusión que no asciende lo
             // agota y sigue de largo —cuesta tiempo, no correctitud—.
-            if waitFor(pill, labelOtherThan: "Alley", timeout: 15) {
+            if waitFor(floor, valueOtherThan: "alley", timeout: 15) {
                 ascendio = true
                 break
             }
         }
         XCTAssertTrue(ascendio, """
                       ninguna de las \(fusiones) fusiones ascendió; \
-                      la pill sigue en "\(pill.label)"
+                      board.floor sigue en "\(floor.value ?? "?")"
                       """)
         dismissSkinAward(app)
         add(shot(app, "1 tras el ascenso a Urban"))
 
         // Gate del test: si no ascendimos, nada de lo que sigue prueba el fix.
-        // El label accesible de la pill es el NOMBRE del piso, no el contador, y
-        // el runner corre la app en INGLÉS: "City" es `tower.floor.urban`.
-        XCTAssertTrue(waitFor(pill, label: "City", timeout: 10), """
+        // `board.floor` publica el ID crudo, así que acá no hay idioma que
+        // pueda mentir (la vieja trampa 6 de "City" quedó atrás con la pill).
+        XCTAssertTrue(waitFor(floor, value: "urban", timeout: 10), """
                       esperaba que el ascenso llevara la cámara a Urban tras \
-                      \(fusiones) fusiones; la pill dice "\(pill.label)"
+                      \(fusiones) fusiones; board.floor dice "\(floor.value ?? "?")"
                       """)
 
-        // 2) Volver al callejón: acá es donde se veían los personajes invisibles.
-        let down = app.buttons["tower.arrow.down"]
-        // ⚠️ El `isEnabled` iba sin esperar a que el control existiera siquiera:
-        // sobre un elemento que todavía no está, `isEnabled` es `false` y el
-        // assert moría sin haberle dado tiempo a nada.
-        XCTAssertTrue(waitUntilEnabled(down, timeout: 10),
-                      "tras el ascenso la flecha de bajar tiene que aparecer y estar viva")
-        tapHUD(down, "la flecha de bajar de la torre")
-        XCTAssertTrue(waitFor(pill, label: "Alley", timeout: 10),
-                      "la flecha de bajar tiene que devolver al callejón; la pill dice \"\(pill.label)\"")
+        // 2) Volver al callejón: acá es donde se veían los personajes
+        //    invisibles. Sin flechas (retiradas con la píldora), se vuelve como
+        //    el jugador: por el ascensor. `tapHUD` ya espera a que el control
+        //    sea hittable, que es lo que cubre la ventana de la celebración.
+        tapHUD(app.buttons["hud.map"], "el ascensor del HUD")
+        tap(app.buttons["map.floor.alley"], "la fila del callejón en el ascensor")
+        XCTAssertTrue(waitFor(floor, value: "alley", timeout: 10),
+                      "el ascensor tenía que devolver al callejón; board.floor dice \"\(floor.value ?? "?")\"")
         add(shot(app, "2 de vuelta en el callejon"))
 
         // 3) Comprar un Fisura nuevo: era el que salía invisible. Desde que el
@@ -371,7 +363,7 @@ final class AscentRenderingUITests: XCTestCase {
                       el Fisura contratado tras el ascenso tiene que entrar al tablero; \
                       board.units quedó en \(units(app).value ?? "?")
                       """)
-        XCTAssertTrue(pill.exists, "el HUD debe seguir vivo")
+        XCTAssertTrue(app.buttons["hud.map"].exists, "el HUD debe seguir vivo")
     }
 
     /// El fondo se sobredimensiona 18% y va anclado abajo, así que el sobrante
@@ -384,23 +376,33 @@ final class AscentRenderingUITests: XCTestCase {
         app.launchArguments = ["--uitest-reset", "--uitest-unlock-tower", "--uitest-skip-tutorial"]
         app.launch()
 
-        let pill = app.otherElements["tower.pill"]
-        XCTAssertTrue(pill.waitForExistence(timeout: 15))
+        let floor = app.otherElements["board.floor"]
+        XCTAssertTrue(floor.waitForExistence(timeout: 15))
         add(shot(app, "piso 1 alley"))
 
-        let up = app.buttons["tower.arrow.up"]
-        XCTAssertTrue(up.isEnabled, "el fixture debe dejar la torre abierta")
-        tapHUD(up, "la flecha de subir de la torre")
+        // Las flechas se retiraron con la píldora (2026-08-18): se navega como
+        // el jugador, arrastrando el tablero. El determinismo que las flechas
+        // le daban a este test lo pone ahora el `waitFor` sobre `board.floor`:
+        // cada arrastre se CONFIRMA antes del siguiente.
+        dragBoardUpOneFloor(app)
+        XCTAssertTrue(waitFor(floor, value: "urban", timeout: 10), "no llegué al piso 2")
         Thread.sleep(forTimeInterval: 1.2)
-        // El label accesible de la pill es el NOMBRE del piso, no el contador.
-        XCTAssertEqual(pill.label, "City", "no llegué al piso 2")
         add(shot(app, "piso 2 urban"))
 
-        if app.buttons["tower.arrow.up"].isEnabled {
-            tapHUD(app.buttons["tower.arrow.up"], "la flecha de subir de la torre")
+        dragBoardUpOneFloor(app)
+        if waitFor(floor, value: "corporate", timeout: 5) {
             Thread.sleep(forTimeInterval: 1.2)
             add(shot(app, "piso 3 corporate"))
         }
+    }
+
+    /// Arrastre que SUBE un piso (RF-09, metáfora de scroll: arrastrar hacia
+    /// abajo sube la torre). Centro del campo vacío para no agarrar una unidad.
+    @MainActor
+    private func dragBoardUpOneFloor(_ app: XCUIApplication) {
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+        start.press(forDuration: 0.05, thenDragTo: end)
     }
 
     @MainActor
@@ -454,7 +456,7 @@ final class AscentRenderingUITests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
-        XCTAssertTrue(app.otherElements["tower.pill"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.otherElements["board.floor"].waitForExistence(timeout: 15))
 
         for _ in 0..<4 { grantPair(app) }       // 8 unidades + la inicial
         Thread.sleep(forTimeInterval: 3.0)      // dejar que el wander se estabilice

@@ -56,9 +56,10 @@ final class CareerChoiceUITests: XCTestCase {
         expectation(for: gone, evaluatedWith: pick)
         waitForExpectations(timeout: 10)
 
-        // Y el juego sigue: la pill de la torre es lo que prueba que volvimos al
-        // tablero y no quedamos en un sheet vacío.
-        XCTAssertTrue(app.otherElements["tower.pill"].waitForExistence(timeout: 10),
+        // Y el juego sigue: el HUD vivo (el ascensor es su control fijo) es lo
+        // que prueba que volvimos al tablero y no quedamos en un sheet vacío.
+        // (La píldora de piso se retiró el 2026-08-18.)
+        XCTAssertTrue(app.buttons["hud.map"].waitForExistence(timeout: 10),
                       "tras elegir hay que volver al tablero")
     }
 }

@@ -34,15 +34,12 @@ struct GiftsView: View {
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    /// Margen lateral del contenido. **Medido sobre el arte**: es el mismo
-    /// 30 pt de `FisuJobsView` contra `panel_store`, que desde el rediseño v3
-    /// es también el marco de esta pantalla (la referencia de Regalos es la
-    /// madera con toldo y el moño encima — el `panel_reward` verde quedó para
-    /// los popups de premio). El método sigue siendo el de siempre: el 9-slice
-    /// dibuja las esquinas a tamaño natural, el poste va de 21 a 32 pt, y a
-    /// 30 la columna deja el poste entero a la vista. Si `panel_store` se
-    /// re-exporta, se vuelve a medir.
-    private static let panelInset: CGFloat = 30
+    /// Margen lateral de la columna: el del marco vectorial, publicado por el
+    /// componente. Un solo número para las nueve hojas — el marco es el
+    /// contenedor y las tarjetas viven ADENTRO (pedido del dueño, 2026-08-18;
+    /// antes eran cuatro insets medidos PNG por PNG contra el arte 9-slice,
+    /// que además se deformaba al estirarse).
+    private static let panelInset: CGFloat = WoodPanelBackground.columnInset
 
     var body: some View {
         // `effectsVersion` sube al activar un boost o acreditar un video: es lo
@@ -109,7 +106,7 @@ struct GiftsView: View {
                 // pisan la banda crema quedan detrás de ella: el fondo se
                 // dibuja detrás del contenido.
                 ZStack(alignment: .top) {
-                    PanelBackground(art: "panel_store")
+                    WoodPanelBackground(awning: true)
                     GiftBowOrnament()
                         .offset(y: 8)
                         .allowsHitTesting(false)

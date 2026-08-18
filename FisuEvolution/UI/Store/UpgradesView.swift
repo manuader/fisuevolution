@@ -24,16 +24,12 @@ struct UpgradesView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: Tab = .characters
 
-    /// Margen lateral de la lista. **Medido sobre el arte**, no elegido: el
-    /// marco metálico de `panel_upgrades` ocupa de 27,5 a 41,2 pt de cada borde
-    /// una vez que el 9-slice lo dibuja (la esquina va a tamaño natural, así que
-    /// el píxel `x` del PNG cae en `x / (ancho / 200)` puntos). Con los 22 pt
-    /// que había, las tarjetas le pasaban por encima al marco entero y sólo
-    /// asomaba en los huecos entre fila y fila. Es el mismo método con el que
-    /// `FisuJobsView` sacó sus 30 pt contra `panel_store` —donde el poste de
-    /// madera termina en 31,2— así que los dos números salen de la misma regla y
-    /// no de dos gustos distintos. Si el arte se re-exporta, se vuelve a medir.
-    private static let panelInset: CGFloat = 40
+    /// Margen lateral de la columna: el del marco vectorial, publicado por el
+    /// componente. Un solo número para las nueve hojas — el marco es el
+    /// contenedor y las tarjetas viven ADENTRO (pedido del dueño, 2026-08-18;
+    /// antes eran cuatro insets medidos PNG por PNG contra el arte 9-slice,
+    /// que además se deformaba al estirarse).
+    private static let panelInset: CGFloat = WoodPanelBackground.columnInset
 
     var body: some View {
         let _ = gameState.effectsVersion
@@ -53,7 +49,7 @@ struct UpgradesView: View {
                 .padding(.top, Tokens.s8)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { PanelBackground(art: "panel_upgrades") }
+            .background { WoodPanelBackground(material: .metal) }
             .safeAreaInset(edge: .top) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)

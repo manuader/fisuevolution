@@ -52,18 +52,32 @@ struct SkinAwardView: View {
 
                 // Equipar desde acá: el premio se gana en medio del loop y
                 // mandarlo a buscar la ficha para usarlo es fricción de más.
-                Button("skin.award.equip") {
+                // La cápsula caramelo de la casa (ActionPill ES un Button con
+                // este identifier: la semántica que tapean los tests no cambia).
+                ActionPill(
+                    titleKey: "skin.award.equip",
+                    systemImage: "tshirt.fill",
+                    identifier: "skin.award.equip"
+                ) {
                     gameState.equipSkin(id: award.id, forCharacterType: award.characterType.id)
                     dismiss()
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Color("PaletteGreen"))
-                .accessibilityIdentifier("skin.award.equip")
 
-                Button("skin.award.dismiss") { dismiss() }
-                    .buttonStyle(.bordered)
-                    .tint(Color("PaletteBlue"))
-                    .accessibilityIdentifier("skin.award.dismiss")
+                // El "ahora no" va mudo, como el cancelar del prestigio y el
+                // saltar del tutorial: al lado del premio, el botón que no hace
+                // nada no compite.
+                Button {
+                    dismiss()
+                } label: {
+                    Text("skin.award.dismiss")
+                        .font(Tokens.body)
+                        .foregroundStyle(Color("PaletteInk").opacity(0.6))
+                        .padding(.vertical, Tokens.s4)
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("skin.award.dismiss")
             }
             .padding(.vertical, 6)
             // Sin esto el panel se encoge al ancho ideal de su contenido y el

@@ -17,14 +17,12 @@ struct FisuJobsView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
 
-    /// Margen lateral de la lista. **Medido sobre una captura**, no elegido: el
-    /// marco de madera de `panel_store` tiene su poste entre los 23 y los 31 pt
-    /// de cada borde, así que con los 16 pt de la escala de `Tokens` las tarjetas
-    /// le pasaban por encima y el poste sólo asomaba en los huecos entre fila y
-    /// fila. A 30 pt la columna entra adentro del marco y el arte del panel se
-    /// lee entero. Es un valor con nombre y no un literal suelto justamente
-    /// porque depende del arte: si `panel_store` se re-exporta, se vuelve a medir.
-    private static let panelInset: CGFloat = 30
+    /// Margen lateral de la columna: el del marco vectorial, publicado por el
+    /// componente. Un solo número para las nueve hojas — el marco es el
+    /// contenedor y las tarjetas viven ADENTRO (pedido del dueño, 2026-08-18;
+    /// antes eran cuatro insets medidos PNG por PNG contra el arte 9-slice,
+    /// que además se deformaba al estirarse).
+    private static let panelInset: CGFloat = WoodPanelBackground.columnInset
 
     var body: some View {
         // Las tres cosas que mueven una fila, leídas explícitamente para que la
@@ -78,7 +76,7 @@ struct FisuJobsView: View {
                 .padding(.top, Tokens.s4)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { PanelBackground(art: "panel_store") }
+            .background { WoodPanelBackground(awning: true) }
             .safeAreaInset(edge: .top) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)

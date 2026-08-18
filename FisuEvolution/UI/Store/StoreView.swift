@@ -30,12 +30,12 @@ struct StoreView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
 
-    /// Margen lateral de la columna. **Medido sobre el arte** en la T8 y
-    /// reusado por Pintas en la T11: el poste de madera de `panel_store` va de 21
-    /// a 32 pt, así que a 30 la columna entra adentro del marco y el toldo se lee
-    /// entero. Las tres pantallas del mismo panel quedan alineadas al mismo
-    /// punto; si `panel_store` se re-exporta, se vuelve a medir.
-    private static let panelInset: CGFloat = 30
+    /// Margen lateral de la columna: el del marco vectorial, publicado por el
+    /// componente. Un solo número para las nueve hojas — el marco es el
+    /// contenedor y las tarjetas viven ADENTRO (pedido del dueño, 2026-08-18;
+    /// antes eran cuatro insets medidos PNG por PNG contra el arte 9-slice,
+    /// que además se deformaba al estirarse).
+    private static let panelInset: CGFloat = WoodPanelBackground.columnInset
 
     /// Segundos que la PANTALLA lleva esperando a StoreKit.
     ///
@@ -77,7 +77,7 @@ struct StoreView: View {
                 .padding(.top, Tokens.s4)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { PanelBackground(art: "panel_store") }
+            .background { WoodPanelBackground(awning: true) }
             .safeAreaInset(edge: .top) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)

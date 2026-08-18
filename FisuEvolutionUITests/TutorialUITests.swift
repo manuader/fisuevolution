@@ -170,10 +170,19 @@ final class TutorialUITests: XCTestCase {
         let app = launchWithTutorial(coins: false)
         XCTAssertTrue(app.otherElements["tutorial.step"].waitForExistence(timeout: 20))
         app.buttons["tutorial.skip"].tap()
-        XCTAssertFalse(app.otherElements["tutorial.step"].waitForExistence(timeout: 3),
+        // ⚠️ Espera de DESAPARICIÓN, no `XCTAssertFalse(waitForExistence(3))`:
+        // aquello devolvía true al primer poll si el overlay seguía
+        // desvaneciéndose, así que el test perdía la carrera contra la
+        // animación cuando el sistema venía ocupado (fallaba en suite tras el
+        // recorrido completo y pasaba aislado — medido 2026-08-18).
+        let stepGone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == 0"),
+            object: app.otherElements["tutorial.step"]
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [stepGone], timeout: 8), .completed,
                        "saltear tiene que cerrar el tutorial")
         app.buttons["hud.upgrades"].tap()
-        XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 6),
+        XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 12),
                       "sin tutorial, el HUD tiene que volver a responder")
     }
 

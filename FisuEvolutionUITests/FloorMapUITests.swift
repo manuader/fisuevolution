@@ -24,10 +24,12 @@ final class FloorMapUITests: XCTestCase {
         app.launchArguments = ["--uitest-reset", "--uitest-unlock-tower"]
         app.launch()
 
-        let pill = app.otherElements["tower.pill"]
-        XCTAssertTrue(pill.waitForExistence(timeout: 15), "tower pill never appeared")
+        // La píldora se retiró (2026-08-18): el piso visible se lee de
+        // `board.floor`, que publica el ID crudo (a prueba de la trampa 6).
+        let floor = app.otherElements["board.floor"]
+        XCTAssertTrue(floor.waitForExistence(timeout: 15), "board.floor never appeared")
         skipTutorialIfPresent(app)
-        let startingLabel = pill.label
+        let startingFloor = (floor.value as? String) ?? ""
 
         let map = app.buttons["hud.map"]
         XCTAssertTrue(map.waitForExistence(timeout: 5), "map action missing from the HUD")
@@ -41,7 +43,7 @@ final class FloorMapUITests: XCTestCase {
         urban.tap()
 
         let moved = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "label != %@", startingLabel), object: pill
+            predicate: NSPredicate(format: "value != %@", startingFloor), object: floor
         )
         XCTAssertEqual(
             XCTWaiter().wait(for: [moved], timeout: 5), .completed,
@@ -60,7 +62,7 @@ final class FloorMapUITests: XCTestCase {
         app.launchArguments = ["--uitest-reset", "--uitest-unlock-tower"]
         app.launch()
 
-        XCTAssertTrue(app.otherElements["tower.pill"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.otherElements["board.floor"].waitForExistence(timeout: 15))
         skipTutorialIfPresent(app)
         app.buttons["hud.map"].tap()
 

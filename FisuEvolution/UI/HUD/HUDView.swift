@@ -57,7 +57,6 @@ struct HUDView: View {
                 .padding(.bottom, Tokens.s12)
                 .frame(maxWidth: .infinity)
                 .background { topPanel }
-            towerNavigator
             prestigeIndicator
         }
         .onAppear { windowTopInset = Self.screenTopSafeArea }
@@ -152,8 +151,8 @@ struct HUDView: View {
         IconButton(
             artKey: "ui_coin_plus",
             fallback: { AnyView(VectorCoinPlusIcon()) },
-            size: 64,
-            glyphScale: 0.66,
+            size: 60,
+            showsPlate: false,
             tint: Color("PaletteYellow"),
             labelKey: "hud.coins.plus.label",
             identifier: "hud.coins.plus",
@@ -237,8 +236,8 @@ struct HUDView: View {
         IconButton(
             artKey: "ui_elevator",
             fallback: { AnyView(VectorElevatorIcon()) },
-            size: 64,
-            glyphScale: 0.66,
+            size: 60,
+            showsPlate: false,
             tint: Color("PaletteOrange"),
             labelKey: "map.hud.label",
             identifier: "hud.map"
@@ -247,62 +246,6 @@ struct HUDView: View {
             onMapOpen()
         }
         .tutorialAnchor(.map)
-    }
-
-    // MARK: - Fila de torre
-
-    /// Bajar · piso · subir. El coins/sec se mudó a la barra de arriba, así que
-    /// acá queda lo que describe al piso: cómo se llama y cuánta gente entra.
-    private var towerNavigator: some View {
-        let navigation = gameState.towerNavigation
-        // ⚠️ Trampa 5 del handoff, viva hasta hoy en esta línea: la versión
-        // anterior metía cuatro `Int` en un `Text(_:)`, que arma la clave
-        // `%lld/%lld · …` y jamás encuentra la del catálogo (que es `%@`) — la
-        // clave `%@/%@ · %@/%@ · %@/s` estaba MUERTA y se borró con este commit.
-        // Un cociente de números no se traduce: va `verbatim`, sin clave y sin
-        // lookup posible. El tipo va anotado para que nadie lo vuelva a
-        // convertir en `LocalizedStringKey` sin darse cuenta.
-        let occupancy: String = "\(navigation.occupied)/\(navigation.capacity)"
-        return HStack(spacing: Tokens.s8) {
-            towerArrow(systemName: "chevron.down", direction: -1, enabled: navigation.canNavigateDown, identifier: "tower.arrow.down")
-            HStack(spacing: 6) {
-                Text(floorNameKey(for: navigation.floorID))
-                    .font(Tokens.body)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.7)
-                Text(verbatim: occupancy)
-                    .font(Tokens.caption)
-                    .monospacedDigit()
-                    .lineLimit(1)
-                    .foregroundStyle(Color("PaletteInk").opacity(0.65))
-            }
-            .foregroundStyle(Color("PaletteInk"))
-            .frame(minWidth: 120)
-            .accessibilityElement(children: .ignore)
-            .accessibilityIdentifier("tower.pill")
-            .accessibilityLabel(Text(floorNameKey(for: navigation.floorID)))
-            .accessibilityValue(Text(verbatim: occupancy))
-            towerArrow(systemName: "chevron.up", direction: 1, enabled: navigation.canNavigateUp, identifier: "tower.arrow.up")
-        }
-        .padding(.horizontal, Tokens.s8)
-        .padding(.vertical, 5)
-        .background(Capsule().fill(Color("PaletteCream")).overlay(Capsule().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)))
-    }
-
-    private func towerArrow(systemName: String, direction: Int, enabled: Bool, identifier: String) -> some View {
-        Button {
-            _ = gameState.moveVisibleFloor(by: direction)
-        } label: {
-            Image(systemName: systemName)
-                .font(.system(size: 16, weight: .heavy))
-                .foregroundStyle(enabled ? Color("PaletteBlue") : Color("PaletteInk").opacity(0.28))
-                .frame(width: 30, height: 30)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
-        .disabled(!enabled)
-        .accessibilityIdentifier(identifier)
-        .accessibilityLabel(Text(direction > 0 ? "tower.navigate.up" : "tower.navigate.down"))
     }
 
     // MARK: - Reencarnación
@@ -345,7 +288,4 @@ struct HUDView: View {
             : "×\(preview.multiplierBeforeText)"))
     }
 
-    private func floorNameKey(for floorID: String) -> LocalizedStringKey {
-        TowerNaming.floorNameKey(for: floorID)
-    }
 }

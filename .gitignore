@@ -30,3 +30,7 @@ scratchpad/
 
 # Workspace de subagent-driven-development (ledger, briefs, reports)
 .superpowers/
+
+# Handoffs locales entre agentes (pedido del dueño 2026-08-18): documentación
+# de traspaso por máquina, no se versiona.
+handoffs/

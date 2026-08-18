@@ -21,7 +21,7 @@ struct JobRowsTests {
 
     // MARK: La proyección
 
-    @Test("partida nueva: el Fisura se contrata a 50 y nadie más se espoilea")
+    @Test("partida nueva: el Fisura se contrata a 25 y nadie más se espoilea")
     func newGameOffersOnlyTheFisura() async throws {
         let gameState = await makeGameState()
         let rows = gameState.jobRows
@@ -29,7 +29,7 @@ struct JobRowsTests {
         let first = try #require(rows.first)
         #expect(first.id == "homeless")
         #expect(first.state == .hirable)
-        #expect(first.costText == "50", "el primer Fisura cuesta 50 (decisión del dueño)")
+        #expect(first.costText == "25", "el primer Fisura cuesta 25 (decisión del dueño)")
         #expect(first.displayName == "El Fisura")
         #expect(first.faceKey == "homeless_face")
         #expect(first.hiredCount == 1, "la unidad con la que arranca la partida")
@@ -157,7 +157,7 @@ struct JobRowsTests {
         #expect(gameState.player?.run.units["homeless"] == 2)
         #expect(gameState.player?.run.hireCountsByType["homeless"] == 1)
         #expect(gameState.player?.meta.stats.totalHiresEver == 1)
-        #expect(gameState.player?.run.coins == coinsBefore - 50)
+        #expect(gameState.player?.run.coins == coinsBefore - 25)
         #expect(gameState.boardVersion > boardBefore, "la escena tiene que redibujar el piso")
         #expect(gameState.ftueSpawned)
         #expect(gameState.ftueMilestones.spawned, "el tutorial avanza con esta bandera")
@@ -173,7 +173,7 @@ struct JobRowsTests {
         gameState.hireCharacter(typeId: "homeless")
 
         let row = try jobRow(gameState, "homeless")
-        #expect(row.costText == "60", "el segundo Fisura cuesta 60 (growth 1,2)")
+        #expect(row.costText == "30", "el segundo Fisura cuesta 30 (growth 1,2)")
         #expect(row.purchases == 1)
         #expect(row.hiredCount == 2)
         #expect(try jobRow(gameState, "trapito").costText == neighbourBefore)

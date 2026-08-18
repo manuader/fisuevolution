@@ -3,7 +3,7 @@
 export @2x/@3x al atlas correcto → entrada en assets_manifest.json.
 
 El nombre del archivo debe ser `<assetKey>.png` (el que indica el .md de
-prompts). Corre con el venv del pipeline (rembg/PIL):
+prompts). Corre con el venv del pipeline (PIL/numpy/scipy):
 
     Tools/asset-pipeline/.venv/bin/python scripts/process_dropbox.py
 """
@@ -11,6 +11,8 @@ prompts). Corre con el venv del pipeline (rembg/PIL):
 import json
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 PIPELINE = Path(__file__).resolve().parent.parent
 DROPBOX = PIPELINE / "dropbox"
@@ -67,10 +69,8 @@ def load_entries() -> dict[str, dict]:
     return {e["assetKey"]: e for e in prompts}
 
 
-def process(image_path: Path, entry: dict, session) -> None:
-    from PIL import Image
-    from rembg import remove
-
+def destination(entry: dict) -> tuple[str, str, str | None]:
+    """(carpeta del atlas, nombre del archivo sin @Nx, sección del manifest)."""
     category = entry.get("category", "character")
     atlas_template, manifest_section, key_suffix = ATLAS_BY_CATEGORY[category]
     atlas_name = atlas_template.format(phase=entry.get("atlas", "earth"))
@@ -78,11 +78,12 @@ def process(image_path: Path, entry: dict, session) -> None:
         skin_asset_key(entry["assetKey"]) if category == "skin"
         else entry["assetKey"] + key_suffix
     )
+    return atlas_name, asset_key, manifest_section
 
-    img = Image.open(image_path).convert("RGBA")
 
-    if category != "background":
-        img = remove(img, session=session)
+def export_atlas(img, entry: dict, atlas_name: str, asset_key: str) -> None:
+    """Escribe el @2x/@3x del asset ya recortado en su atlas."""
+    from PIL import Image
 
     target_dir = RESOURCES / atlas_name
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -91,9 +92,27 @@ def process(image_path: Path, entry: dict, session) -> None:
     # entran juntas y el packer ponía UNA POR PÁGINA — el atlas no agrupaba nada
     # y cada sprite era su propio draw call. Ver scripts/rightsize_assets.py, que
     # es el que arregló los assets ya generados.
-    at2x, at3x = export_size(category, entry["assetKey"])
+    at2x, at3x = export_size(entry.get("category", "character"), entry["assetKey"])
     img.resize((at3x, at3x), Image.LANCZOS).save(target_dir / f"{asset_key}@3x.png")
     img.resize((at2x, at2x), Image.LANCZOS).save(target_dir / f"{asset_key}@2x.png")
+
+
+def process(image_path: Path, entry: dict) -> None:
+    from PIL import Image
+
+    from whitebg_cutout import cutout
+
+    category = entry.get("category", "character")
+    atlas_name, asset_key, manifest_section = destination(entry)
+
+    img = Image.open(image_path).convert("RGBA")
+
+    if category != "background":
+        # Recorte por conectividad, NO por saliencia: `rembg` dejaba transparente
+        # todo lo blanco del personaje (ver el guardapolvo del `senior_doctor`).
+        img = cutout(img, entry["assetKey"])
+
+    export_atlas(img, entry, atlas_name, asset_key)
 
     if manifest_section is None:
         # Skins: el catálogo vive en skins.json y el arte se busca por nombre.
@@ -132,9 +151,6 @@ def main() -> None:
         print(f"dropbox vacío: soltá PNGs con nombre <assetKey>.png en {DROPBOX}")
         return
 
-    from rembg import new_session
-    session = new_session("isnet-general-use")
-
     unknown = []
     for image_path in pending:
         key = image_path.stem
@@ -143,7 +159,7 @@ def main() -> None:
             unknown.append(key)
             continue
         print(f"procesando {key}…")
-        process(image_path, entry, session)
+        process(image_path, entry)
 
     if unknown:
         print(f"\nNOMBRES DESCONOCIDOS (revisar contra el .md): {unknown}")

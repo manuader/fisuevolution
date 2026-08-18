@@ -235,3 +235,47 @@ Tres trampas nuevas del batch quedaron en la memoria del agente: tildes en el
 cuerpo del prompt (tecla muerta, pérdida determinística), la venv symlinkeada
 para correr desde worktree, y el alta obligatoria en `prompts.json` para que
 `process_dropbox.py` integre. La cola quedó 236/236.
+
+## Tercer arco: la hoja CONTENIDA (2026-08-18, tarde)
+
+Dos correcciones del dueño mirando FisuJobs en vivo: la cabecera crema tapaba
+el toldo y los postes ("la card del título no está contenida"), y las
+tarjetas salían por abajo de la pantalla en vez de morir contra el marco
+("deben salir desde adentro de la card contenedora"). Más un pedido de HUD:
+los dos accesos más grandes, y el ascensor **más ancho** — su aspect ratio se
+veía raro.
+
+**El diagnóstico**: el marco era un FONDO, no un contenedor. `ignoresSafeArea`
+lo estiraba hasta el borde físico (banda inferior fuera de pantalla), el
+`ScrollView` raíz sangraba por debajo de la safe area (las tarjetas desfilaban
+POR ENCIMA de la banda hasta el borde), y la única forma de que no desfilaran
+por atrás del título era la banda opaca full-width que el HANDOFF §8 anotaba
+como parche.
+
+**El arreglo** (`panelSheet`, en `PanelFrames.swift`): la hoja es un
+`VStack { cabecera; scroll }` donde la cabecera vive ADENTRO del pergamino
+—debajo del toldo, al ancho de la columna, sin fondo propio— y el scroll es
+una región RECORTADA con fundido en los bordes: las tarjetas se disuelven
+contra la cabecera arriba y contra la banda abajo. El panel respeta la safe
+area inferior (banda y tornillos a la vista), se recorta a sus esquinas
+redondeadas, tira sombra y **flota sobre el juego atenuado** con
+`presentationBackground(.clear)` — como los popups, que es como componen las
+referencias. Migraron las 12 hojas (las 6 de la barra, ascensor, las 4 del
+menú y Legales); murieron las 12 bandas opacas y los `toolbarBackground`
+crema, porque el defecto que los justificaba ya no puede ocurrir.
+
+**Popups**: Prestige, CareerChoice y SkinAward todavía mostraban el
+rectángulo del material de sistema alrededor de su marco de arte — ahora
+flotan transparentes como sus gemelos (Daily/AFK/Sorpresa ya venían bien).
+
+**HUD**: los PNG `ui_elevator` y `ui_coin_plus` traían ~55 % de lienzo
+transparente — el dibujo flotaba chico y angosto dentro del botón. Se
+recortaron al bbox del alfa (+2 % de aire), la moneda subió a 66 pt y el
+ascensor a **72 pt estirado a 0,86 de aspecto** (`IconButton.glyphAspect`,
+probado contra 0,72 y 1,0 en previsualización: a 0,86 la cabina queda robusta
+sin que el trazo se lea deformado). `ui_gift_bow` tenía el mismo lienzo
+muerto: recortado, el moño de Regalos por fin rinde los 150 pt del diseño.
+
+Verificado en capturas (16 Pro): las 6 hojas + ascensor + menú/Logros +
+daily/fork/ficha/prestigio. La ficha del personaje y los popups de premio ya
+estaban contenidos por sus insets medidos y no se tocaron.

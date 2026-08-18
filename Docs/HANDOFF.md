@@ -427,12 +427,17 @@ progresión—, el ascenso, los sheets de premio, y al final banners y toasts.
   acredita la skin dentro del mismo merge, y si el ascenso encolara después el
   sheet ya tendría el turno y taparía el vuelo.
 - La UI se apaga **del todo** —opacidad 0 y sin hit-testing (`celebrationHidesUI`)—
-  pero **sólo en el primer desbloqueo de cada piso**, no en todo merge que
-  celebre (`6afe1d8`). Apagar el HUD esconde monedas y botones que el jugador
-  está usando: es un recurso de una sola vez y se gana con la noticia, no con el
-  ascenso número quince al urbano. La bandera la lleva el PAYLOAD
-  (`celebrateBoard(opensNewFloor:)`), no el turno, y no se pisa si la celebración
-  ya está en pantalla — si no, el HUD se prendería a mitad del vuelo.
+  pero **sólo cuando el merge trae algo NUEVO**: un personaje que no se había
+  visto (reveal de tier — apaga SIEMPRE, abra piso o no) o un piso que se
+  desbloquea por primera vez (`6afe1d8` + `7b0d613`, las dos frases del dueño
+  citadas en `GameState.swift`). El único ascenso con el HUD a la vista es el de
+  un personaje conocido a un piso ya abierto — el de todos los días, donde apagar
+  escondería monedas y botones que el jugador está usando. La bandera la lleva el
+  PAYLOAD (`celebrateBoard(showsSomethingNew:)`), no el turno, y no se pisa si la
+  celebración ya está en pantalla — si no, el HUD se prendería a mitad del vuelo.
+  ⚠️ Hueco conocido para decidir: `chooseCareer` nunca encola `.boardCelebration`,
+  y el merge de carrera SIEMPRE produce personaje nuevo — por la regla debería
+  apagar, hoy no celebra nada (concern 3 del report de la rama).
 - El reveal va **centrado a pantalla completa**: desde `0d3b96d` ya no se ancla
   bajo la banda del HUD, así que no tiene nada que esquivar.
   `BoardScene.topInset` (176) quedó sin uso, y se conserva sólo porque es el

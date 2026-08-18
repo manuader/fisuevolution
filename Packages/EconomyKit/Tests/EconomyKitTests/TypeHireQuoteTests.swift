@@ -116,7 +116,7 @@ struct TypeHireQuoteTests {
             floors: [
                 FloorDef(
                     id: "alley", background: "alley", firstTier: 1, lastTier: 4,
-                    capacity: 10, incomeMultiplier: 1.0, hireCostMultiplierOverride: 50
+                    capacity: 10, incomeMultiplier: 1.0, hireCostMultiplierOverride: 25
                 ),
                 FloorDef(
                     id: "urban", background: "urban", firstTier: 5, lastTier: 8,

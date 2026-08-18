@@ -3,8 +3,9 @@ import SwiftUI
 /// Celebración de rare drop (bible §1). F5.2 le suma partículas y SFX de rareza.
 ///
 /// Tercer gemelo de los popups de premio (`DailyRewardView`,
-/// `OfflineEarningsView`): mismo marco `panel_reward`, banner de título, el
-/// premio sobre la `GameCard` amarilla y `ActionPill` verde de salida. La
+/// `OfflineEarningsView`): mismo `PanelCard` con el moño asomando, banner de
+/// título, el premio sobre la `GameCard` amarilla y `ActionPill` verde de
+/// salida. La
 /// estrella no es arte del personaje —es el glifo de "sorpresa"— y por eso va
 /// sobre el plato de retrato de la casa, el mismo encuadre con el que el fork
 /// de carrera muestra sus caras.
@@ -17,10 +18,11 @@ struct SpecialDropView: View {
     private static let plateShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
 
     var body: some View {
-        // ⚠️ Márgenes medidos contra el arte, no heredados (ver
-        // `DailyRewardView`, mismo marco doble): con los 22/24 de antes la
-        // tarjeta amarilla pisaría las dos líneas del marco.
-        GamePanel(art: "panel_reward", insets: EdgeInsets(top: 84, leading: 40, bottom: 44, trailing: 40)) {
+        // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
+        // insets son suyos, no medidos contra ningún arte (pedido del dueño,
+        // 2026-08-18: una sola familia visual). El moño asomando sobre el
+        // marco es la firma de la familia de premio: se abre como un regalo.
+        PanelCard {
             VStack(spacing: Tokens.s16) {
                 PanelTitleBanner(titleKey: "special.drop.title")
                 GameCard(style: .highlighted(Color("PaletteYellow"))) {
@@ -58,16 +60,27 @@ struct SpecialDropView: View {
                 )
             }
             .frame(maxWidth: .infinity)
+            // El moño invade el tope del marco: este aire corre el banner
+            // para que no se pisen.
+            .padding(.top, Tokens.s8)
+        }
+        .overlay(alignment: .top) {
+            GiftBowOrnament(width: 110)
+                .offset(y: -24)
+                .allowsHitTesting(false)
         }
         .overlay(alignment: .topTrailing) {
             ArtCloseButton { gameState.dismissSpecialDrop() }
                 .padding(10)
         }
+        // Aire para la parte del moño que sobresale del marco: sin esto el
+        // borde de la hoja lo recorta.
+        .padding(.top, 26)
         .padding(16)
         .presentationDetents([.fraction(0.55)])
         // Sin esto el fondo de sistema deja un rectángulo BLANCO alrededor del
-        // moño de `panel_reward` (el defecto que `DailyRewardView` ya
-        // corrigió): transparente, el panel flota sobre el tablero.
+        // tablón (el defecto que `DailyRewardView` ya corrigió): transparente,
+        // el panel flota sobre el tablero.
         .presentationBackground(.clear)
     }
 }

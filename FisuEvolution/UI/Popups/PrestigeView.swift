@@ -14,7 +14,10 @@ struct PrestigeView: View {
         // historia aunque el refresco de 8 Hz caiga en el medio del layout.
         let preview = gameState.prestigePreview
 
-        return GamePanel(art: "panel_prestige", insets: EdgeInsets(top: 76, leading: 22, bottom: 24, trailing: 22)) {
+        // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
+        // insets son del componente, no medidos contra un PNG (pedido del
+        // dueño 2026-08-18: una sola familia visual para hojas y popups).
+        return PanelCard {
             VStack(spacing: 14) {
                 Text("prestige.title")
                     .font(.system(.title2, design: .rounded).weight(.heavy))
@@ -74,6 +77,9 @@ struct PrestigeView: View {
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("prestige.cancel")
             }
+            // Un suspiro sobre los 28 del marco: que el título no nazca pegado
+            // a la banda (el aire que antes regalaba el ornamento del arte).
+            .padding(.top, Tokens.s4)
         }
         .overlay(alignment: .topTrailing) {
             ArtCloseButton { dismiss() }
@@ -81,6 +87,11 @@ struct PrestigeView: View {
         }
         .padding(16)
         .presentationDetents([.fraction(0.68)])
+        // El tablón no llega a los bordes de la hoja: sin esto el fondo de
+        // sistema deja un rectángulo alrededor del panel (el defecto que
+        // `DailyRewardView` corrigió). Transparente, el panel flota sobre el
+        // tablero como sus tres gemelos de premio.
+        .presentationBackground(.clear)
     }
 
     private func oroGain(_ preview: PrestigePreview) -> some View {

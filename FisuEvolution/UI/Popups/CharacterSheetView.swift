@@ -50,7 +50,10 @@ struct CharacterSheetView: View {
         // `.large` a secas el marco decorativo se estiraba a toda la pantalla y
         // quedaba media hoja vacía abajo.
         VStack(spacing: 0) {
-            GamePanel(art: "panel_dialog", insets: EdgeInsets(top: 58, leading: 34, bottom: 44, trailing: 34)) {
+            // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
+            // insets son del componente, no medidos contra un PNG (pedido del
+            // dueño 2026-08-18: una sola familia visual para hojas y popups).
+            PanelCard {
                 ScrollView {
                     VStack(spacing: 12) {
                         header

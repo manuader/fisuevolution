@@ -18,7 +18,10 @@ struct SkinAwardView: View {
     }
 
     var body: some View {
-        GamePanel(art: "panel_dialog", insets: EdgeInsets(top: 58, leading: 24, bottom: 26, trailing: 24)) {
+        // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
+        // insets son del componente, no medidos contra un PNG (pedido del
+        // dueño 2026-08-18: una sola familia visual para hojas y popups).
+        PanelCard {
             VStack(spacing: 14) {
                 Text("skin.award.title")
                     .font(.system(.title2, design: .rounded).weight(.black))
@@ -86,6 +89,10 @@ struct SkinAwardView: View {
         }
         .padding(16)
         .presentationDetents([.medium])
+        // El marco del premio no llega a los bordes de la hoja: sin esto el
+        // fondo de sistema deja un rectángulo alrededor del panel. Transparente,
+        // el premio flota sobre el tablero como sus gemelos.
+        .presentationBackground(.clear)
     }
 }
 

@@ -66,48 +66,11 @@ enum UIArt {
     }
 }
 
-/// Un panel/diálogo con arte propio: fondo crema opaco + marco decorativo 9-slice
-/// por encima (no se deforma). Si el arte no existe, cae a una tarjeta crema.
-struct GamePanel<Content: View>: View {
-    let art: String
-    var insets: EdgeInsets = EdgeInsets(top: 72, leading: 30, bottom: 34, trailing: 30)
-    @ViewBuilder var content: () -> Content
-
-    var body: some View {
-        content()
-            .padding(insets)
-            .background(
-                ZStack {
-                    // El mismo interior pergamino-con-luz de `PanelBackground`:
-                    // los popups son el mismo mundo que las hojas, y el crema
-                    // plano dejaba sus tarjetas sin despegar (rediseño v3).
-                    RoundedRectangle(cornerRadius: 30, style: .continuous)
-                        .fill(Color("PaletteParchment"))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.white.opacity(0.35),
-                                            .clear,
-                                            Color("PaletteBrown").opacity(0.10)
-                                        ],
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    )
-                                )
-                        )
-                        .padding(18)
-                    if let frame = UIArt.nineSlice(art, cap: 0.32) {
-                        frame
-                    } else {
-                        RoundedRectangle(cornerRadius: 30, style: .continuous)
-                            .strokeBorder(Color("PaletteInk"), lineWidth: 3)
-                    }
-                }
-            )
-    }
-}
+// `GamePanel` (marco 9-slice de popups) se retiró el 2026-08-18: los siete
+// popups hablan `PanelCard` (PanelFrames.swift) — el tablón de las hojas en
+// escala de tarjeta, una sola familia visual. Los PNG `panel_reward`,
+// `panel_career`, `panel_prestige` y `panel_dialog` siguen en el atlas como
+// reserva de arte, igual que `panel_menu`.
 
 /// Botón con arte propio (imagen sin texto) 9-slice + label encima con padding
 /// generoso y auto-encogido para que el texto SIEMPRE entre. Sin arte, cae a una
@@ -210,38 +173,9 @@ struct ArtCloseButton: View {
     }
 }
 
-/// Fondo de panel para sheets basadas en `List`: el marco 9-slice enmarca toda la
-/// hoja sin deformarse (pergamino opaco si el asset todavía no existe).
-///
-/// La base es **pergamino** (`PaletteParchment`) y no el crema de las tarjetas:
-/// con el mismo crema en el fondo y en las `GameCard`, las tarjetas no se
-/// despegaban del panel (medido contra las referencias del rediseño v3, donde
-/// el interior es un beige más hundido que las tarjetas). El interior de los
-/// PNG de marco es transparente (alfa 8–15 en el centro, medido sobre
-/// `panel_store@3x`), así que esta capa es la que decide el color de TODAS las
-/// hojas. El gradiente pone la luz arriba y hunde apenas el pie del panel —el
-/// veladero de la referencia— sin tocar el arte.
-struct PanelBackground: View {
-    let art: String
-    var body: some View {
-        ZStack {
-            Color("PaletteParchment")
-            LinearGradient(
-                colors: [
-                    Color.white.opacity(0.35),
-                    .clear,
-                    Color("PaletteBrown").opacity(0.10)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            if let frame = UIArt.nineSlice(art, cap: 0.33) {
-                frame
-            }
-        }
-        .ignoresSafeArea()
-    }
-}
+// `PanelBackground` (marco 9-slice full-screen de hojas) se retiró el
+// 2026-08-18: las hojas hablan `panelSheet`/`WoodPanelBackground`
+// (PanelFrames.swift). Su interior pergamino-con-luz vive ahí, calcado.
 
 /// Burbuja de diálogo con arte propio 9-slice + texto encima que SIEMPRE entra
 /// (padding acorde a la forma + auto-encogido). Cola abajo-izquierda.

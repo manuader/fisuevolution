@@ -21,7 +21,7 @@ struct JobRowsTests {
 
     // MARK: La proyección
 
-    @Test("partida nueva: el Fisura se contrata a 50 y nadie más se espoilea")
+    @Test("partida nueva: el Fisura se contrata a 25 y nadie más se espoilea")
     func newGameOffersOnlyTheFisura() async throws {
         let gameState = await makeGameState()
         let rows = gameState.jobRows
@@ -157,7 +157,7 @@ struct JobRowsTests {
         #expect(gameState.player?.run.units["homeless"] == 2)
         #expect(gameState.player?.run.hireCountsByType["homeless"] == 1)
         #expect(gameState.player?.meta.stats.totalHiresEver == 1)
-        #expect(gameState.player?.run.coins == coinsBefore - 50)
+        #expect(gameState.player?.run.coins == coinsBefore - 25)
         #expect(gameState.boardVersion > boardBefore, "la escena tiene que redibujar el piso")
         #expect(gameState.ftueSpawned)
         #expect(gameState.ftueMilestones.spawned, "el tutorial avanza con esta bandera")

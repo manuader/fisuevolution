@@ -21,7 +21,7 @@ struct BestHireTests {
     /// Plata suficiente, escrita directo sobre el saldo.
     ///
     /// `debugGrantCoins()` acredita **un millón fijo** en estos escenarios (su
-    /// cotización de referencia es el tier base del callejón, que sale 50 y no
+    /// cotización de referencia es el tier base del callejón, que sale 25 y no
     /// se mueve mientras no compres ahí), y un Senior de corporativo cuesta
     /// 1.218.867.229: llegar ahí serían 1.219 llamadas con su
     /// `refreshProjections` cada una. Donde alcanza el millón se usa el helper
@@ -138,7 +138,7 @@ struct BestHireTests {
         gameState.refreshProjections()
 
         let best = try #require(gameState.bestHire)
-        #expect(best.typeId == "homeless", "el de 50, no el de 9.442.891")
+        #expect(best.typeId == "homeless", "el de 25, no el de 9.442.891")
         #expect(best.tier == 1)
         #expect(best.costText == "25")
         #expect(!best.affordable)
@@ -242,7 +242,7 @@ struct BestHireTests {
         #expect(gameState.player?.run.units[best.typeId] == 2, "la unidad es la que ofrecía el botón")
         // Los efectos de `hireCharacter` entero, no una compra paralela: el
         // cobro, el contador por tipo, la estadística y el redibujo.
-        #expect(gameState.player?.run.coins == coinsBefore - 50)
+        #expect(gameState.player?.run.coins == coinsBefore - 25)
         #expect(gameState.player?.run.hireCountsByType[best.typeId] == 1)
         #expect(gameState.player?.meta.stats.totalHiresEver == 1)
         #expect(gameState.boardVersion > boardBefore)
@@ -260,7 +260,7 @@ struct BestHireTests {
         let gameState = await makeGameState()
         gameState.refreshProjections()
 
-        // Partida nueva: cero monedas y el Fisura a 50 como meta de ahorro.
+        // Partida nueva: cero monedas y el Fisura a 25 como meta de ahorro.
         let best = try #require(gameState.bestHire)
         #expect(!best.affordable, "el escenario del test es justamente el saldo corto")
 
@@ -295,7 +295,7 @@ struct BestHireTests {
         gameState.refreshProjections()
 
         // Mismo tipo (sigue siendo el único visto) pero un escalón más caro:
-        // 50 × 1,2 = 60, la curva por tipo de `hireCountsByType`.
+        // 25 × 1,2 = 30, la curva por tipo de `hireCountsByType`.
         #expect(gameState.bestHire?.typeId == "homeless")
         #expect(gameState.bestHire?.costText == "30", "el segundo Fisura cuesta 30 (growth 1,2)")
     }

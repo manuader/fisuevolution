@@ -157,7 +157,7 @@ struct GameContentValidationTests {
     }
 
     /// La regla en números concretos, contra el contenido real: el primer Fisura
-    /// sale 50, el segundo 60 (+20%), y en un piso superior el tier base cuesta
+    /// sale 25, el segundo 30 (+20%), y en un piso superior el tier base cuesta
     /// 600 veces lo que rinde un click suyo ahí. Contratar un Fisura es siempre
     /// barato: el callejón queda deliberadamente fuera de la regla cara.
     @Test func hirePricesFollowTheOwnersRule() throws {

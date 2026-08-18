@@ -164,3 +164,23 @@ no tenían; sus claves de texto ya existían en el catálogo).
    si desentona, merge a `main` desde worktree temporal.
 3. El simulador `rediseno-v3` puede existir de antes (`simctl list`); borrarlo
    al terminar es parte del trabajo.
+
+## Remate nocturno (post-push)
+
+- **Últimos controles de sistema** → v3 en `f696fa7` (ficha: chevrons y
+  equipar con label que lee `isEnabled`; prestigio: ActionPill rosa +
+  cancelar mudo). No queda superficie de juego fuera del lenguaje.
+- **Panel de debug: evaluado y descartado a propósito** — es QA que jamás
+  shippea y su docstring lo declara fuera del catálogo; que parezca sistema
+  es correcto.
+- **Assets opcionales encolados** (`bda35f0`): `236_ui_gift_bow` y
+  `237_panel_menu` en `pendiente`. El batch lo corre el dueño con la máquina
+  quieta y frontends cerrados (trampa 11):
+
+  `cd Tools/asset-pipeline && caffeinate -is .venv/bin/python scripts/gemini_selenium_runner.py --process --pause 3 --timeout 260`
+
+  Integración: el moño entra solo por `GameIcon`/manifest; `panel_menu` pide
+  además cambiar `WoodPanelBackground()` por `PanelBackground(art: "panel_menu")`
+  en la familia del menú y re-medir su `panelInset` (hoy 34, del vector).
+- **Los 6 tests sospechosos**: la máquina se reinició (swap limpio) — la
+  re-corrida aislada quedó armada para cuando el load asiente.

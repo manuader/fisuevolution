@@ -271,8 +271,14 @@ Dos cosas que hay que respetar al correrla:
 | 225 | ui_trophy_silver | `ui_trophy_silver.png` | pendiente |
 | 226 | ui_trophy_gold | `ui_trophy_gold.png` | pendiente |
 | 227 | ui_daily_calendar | `ui_daily_calendar.png` | pendiente |
+| 236 | ui_gift_bow | `ui_gift_bow.png` | pendiente |
+| 237 | panel_menu | `panel_menu.png` | pendiente |
 
-**Progreso** (contado sobre los `.md`, no sobre esta tabla): **211/226 hechos, 15 pendientes** —
-los 15 pendientes son los del rediseño, 213–227. ⚠️ Las filas 158–212 de arriba quedaron escritas
-`pendiente` pero sus `.md` ya están en `hecho`: **el estado real lo tiene el `.md`, no la tabla**
-(el runner reescribe el `.md`, nunca esta fila).
+**Progreso** (contado sobre los `.md`, no sobre esta tabla): **234/236 hechos, 2 pendientes** —
+los 2 pendientes son los opcionales del rediseño v3 (236–237): reemplazan al moño y al marco de
+madera VECTORIALES que hoy dibujan `GiftBowOrnament` y `WoodPanelBackground`; integrarlos es
+sumar la clave al manifest (el moño entra solo por `GameIcon`; el panel pide además cambiar
+`WoodPanelBackground()` por `PanelBackground(art: "panel_menu")` en la familia del menú y re-medir
+su `panelInset`). Los 228–235 (caras y skins nuevas) no tienen fila en esta tabla y están hechos.
+⚠️ Las filas 158–227 de arriba pueden decir `pendiente` con el `.md` ya en `hecho`: **el estado
+real lo tiene el `.md`, no la tabla** (el runner reescribe el `.md`, nunca esta fila).

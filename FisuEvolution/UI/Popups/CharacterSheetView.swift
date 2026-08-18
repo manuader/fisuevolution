@@ -125,8 +125,9 @@ struct CharacterSheetView: View {
             VStack(spacing: 9) {
                 HStack(spacing: 14) {
                     Button { moveSelection(by: -1) } label: {
-                        Image(systemName: "chevron.left.circle.fill").font(.title2)
+                        PagerChevronLabel(systemName: "chevron.left")
                     }
+                    .buttonStyle(.plain)
                     .disabled(selectedIndex == 0)
                     .accessibilityIdentifier("character.skin.previous")
 
@@ -142,18 +143,25 @@ struct CharacterSheetView: View {
                     .frame(maxWidth: .infinity)
 
                     Button { moveSelection(by: 1) } label: {
-                        Image(systemName: "chevron.right.circle.fill").font(.title2)
+                        PagerChevronLabel(systemName: "chevron.right")
                     }
+                    .buttonStyle(.plain)
                     .disabled(selectedIndex == options.count - 1)
                     .accessibilityIdentifier("character.skin.next")
                 }
 
                 if isSelectedOwned {
-                    Button(isSelectedActive ? "character.skin.equipped" : "character.skin.equip") {
+                    // El Button y su `.disabled` se conservan tal cual —los
+                    // tests pinean esa semántica—: el v3 vive en el label, que
+                    // lee `isEnabled` y dibuja cápsula caramelo o badge gris.
+                    Button {
                         gameState.equipSkin(id: selected.skin?.id, forCharacterType: sheet.type.id)
+                    } label: {
+                        EquipButtonLabel(
+                            titleKey: isSelectedActive ? "character.skin.equipped" : "character.skin.equip"
+                        )
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(Color("PaletteBlue"))
+                    .buttonStyle(.plain)
                     .disabled(isSelectedActive)
                     .accessibilityIdentifier("character.skin.equip")
                 } else {
@@ -172,9 +180,17 @@ struct CharacterSheetView: View {
             .foregroundStyle(Color("PaletteInk").opacity(0.75))
             .multilineTextAlignment(.center)
         if let product = selected.skin.flatMap(product(for:)) {
-            Button(product.displayPrice) { Task { await store.purchase(product) } }
-                .buttonStyle(.borderedProminent)
-                .tint(Color("PaletteGreen"))
+            // La misma cápsula que cobra en toda la casa; gana identifier
+            // (regla: todo control interactivo lleva el suyo — este no tenía).
+            PricePill(
+                text: product.displayPrice,
+                currency: .money,
+                affordable: true,
+                identifier: "character.skin.buy",
+                accessibilityPurpose: Text("skins.buy.ax \(skinName)")
+            ) {
+                Task { await store.purchase(product) }
+            }
         }
     }
 
@@ -281,5 +297,70 @@ private struct CharacterPortrait: View {
 
     private var tintColor: Color? {
         SkinResolver.swiftUITint(for: treatment)
+    }
+}
+
+// MARK: - Labels v3 de los controles de sistema
+
+/// La cara v3 del chevron del pager. El `Button` de afuera conserva su
+/// `.disabled` —`LaunchSmokeTests` pinea que el del borde está deshabilitado—
+/// así que el estado se dibuja acá, leyendo `isEnabled`, sin depender del
+/// dimming del sistema (que deja el glifo ilegible, la razón por la que la
+/// casa evita `.disabled` en todo lo demás).
+private struct PagerChevronLabel: View {
+    let systemName: String
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 15, weight: .black))
+            .foregroundStyle(Color("PaletteInk").opacity(isEnabled ? 1 : 0.3))
+            .frame(width: 34, height: 34)
+            .background(
+                Circle()
+                    .fill(Color("PaletteCream"))
+                    .overlay(
+                        Circle().strokeBorder(
+                            Color("PaletteBrown").opacity(isEnabled ? 0.7 : 0.3),
+                            lineWidth: 2
+                        )
+                    )
+            )
+            .contentShape(Circle())
+    }
+}
+
+/// El botón de ponerse la pinta: cápsula caramelo azul cuando se puede, y el
+/// gris de estado de la casa cuando ya está puesta — el mismo lenguaje que el
+/// par ActionPill/StateBadge de Pintas, pero acá sigue siendo UN `Button`
+/// deshabilitado porque los tests pinean esa semántica.
+private struct EquipButtonLabel: View {
+    let titleKey: LocalizedStringKey
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: isEnabled ? "tshirt.fill" : "checkmark.circle.fill")
+                .font(.system(size: 15, weight: .black))
+            Text(titleKey)
+                .font(Tokens.body)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+        }
+        .foregroundStyle(isEnabled ? .white : Color("PaletteInk").opacity(0.6))
+        .shadow(color: .black.opacity(isEnabled ? 0.45 : 0), radius: 1, y: 1)
+        .padding(.horizontal, Tokens.s12)
+        .padding(.vertical, Tokens.s8)
+        .frame(minWidth: 92)
+        .background {
+            if isEnabled {
+                PillBackground(fill: Color("PaletteBlue"))
+            } else {
+                Capsule()
+                    .fill(CardMaterials.lockedFill)
+                    .overlay(Capsule().strokeBorder(CardMaterials.lockedBorder, lineWidth: 2))
+            }
+        }
+        .contentShape(Capsule())
     }
 }

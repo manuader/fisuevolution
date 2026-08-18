@@ -45,28 +45,33 @@ struct PrestigeView: View {
                 .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-                Button {
+                // La cápsula caramelo de la casa, centrada como el Collect
+                // del daily: mismo control (ActionPill ES un Button con este
+                // identifier), la semántica que el test tapea no cambia.
+                ActionPill(
+                    titleKey: "prestige.confirm",
+                    systemImage: "arrow.triangle.2.circlepath",
+                    tint: Color("PalettePink"),
+                    identifier: "prestige.confirm"
+                ) {
                     gameState.confirmPrestige()
                     dismiss()
-                } label: {
-                    Text("prestige.confirm")
-                        // Sólo la cara tipográfica: el flujo del botón y su
-                        // identifier no se tocan.
-                        .font(.system(.headline, design: .rounded))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 6)
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(Color("PalettePink"))
-                .accessibilityIdentifier("prestige.confirm")
 
+                // El "mejor no" va mudo a propósito, como el saltar del
+                // tutorial: al lado de una decisión irreversible, el botón
+                // que no hace nada no compite.
                 Button {
                     dismiss()
                 } label: {
                     Text("prestige.cancel")
+                        .font(Tokens.body)
+                        .foregroundStyle(Color("PaletteInk").opacity(0.6))
                         .frame(maxWidth: .infinity)
+                        .padding(.vertical, Tokens.s4)
+                        .contentShape(Rectangle())
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
                 .accessibilityIdentifier("prestige.cancel")
             }
         }

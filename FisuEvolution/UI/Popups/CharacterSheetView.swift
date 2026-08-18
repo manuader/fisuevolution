@@ -196,12 +196,29 @@ struct CharacterSheetView: View {
 
     @ViewBuilder private var dismissalSection: some View {
         if sheet.canDismiss {
+            // Destructivo pero subordinado: cápsula crema de la casa con la
+            // firma rosa (texto y borde), no la pill llena — despedir no puede
+            // competir con equipar. Button + role intactos: los tests lo listan.
             Button(role: .destructive) { confirmingDismissal = true } label: {
-                Label("character.dismiss", systemImage: "person.fill.xmark")
-                    .frame(maxWidth: .infinity)
+                HStack(spacing: 6) {
+                    Image(systemName: "person.fill.xmark")
+                        .font(.system(size: 14, weight: .black))
+                    Text("character.dismiss")
+                        .font(Tokens.body)
+                }
+                .foregroundStyle(Color("PalettePink").deepened(0.25))
+                .padding(.horizontal, Tokens.s12)
+                .padding(.vertical, Tokens.s8)
+                .frame(maxWidth: .infinity)
+                .background(
+                    PillBackground(
+                        fill: Color("PaletteCream"),
+                        border: Color("PalettePink").deepened(0.15).opacity(0.75)
+                    )
+                )
+                .contentShape(Capsule())
             }
-            .buttonStyle(.bordered)
-            .tint(Color("PalettePink"))
+            .buttonStyle(.plain)
             .accessibilityIdentifier("character.dismiss")
         }
     }

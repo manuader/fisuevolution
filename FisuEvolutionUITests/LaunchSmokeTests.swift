@@ -23,29 +23,36 @@ final class LaunchSmokeTests: XCTestCase {
     // MARK: Navegación de pisos sin píldora
     //
     // La fila de torre del HUD se retiró (decisión del dueño 2026-08-18): el
-    // piso se cambia arrastrando el tablero o por el ascensor. El piso ACTUAL
-    // ya no tiene elemento propio en el HUD: vive en el value de su fila del
-    // ascensor ("estás acá", `visibleAwareValue`). Los tests de acá abajo leen
-    // ESO, comparando los values de las filas entre dos momentos — nunca texto
-    // traducido, que es la trampa 6 (el runner corre la app en inglés).
+    // piso se cambia arrastrando el tablero o por el ascensor. El observable
+    // del piso actual es `board.floor`, que publica el ID crudo (a prueba de
+    // la trampa 6) y sobrevive a las celebraciones que apagan la UI.
+    //
+    // ⚠️ El value de las filas del ascensor —que también dice "estás acá",
+    // para VoiceOver— NO sirve de observable: XCUITest no surfacea el
+    // accessibilityValue de esos Buttons (medido 2026-08-18: las diez filas
+    // devuelven cadena vacía aunque VoiceOver las lea bien). El estás-acá se
+    // queda porque es para personas; los tests leen board.floor.
 
-    /// Abre el ascensor, junta identifier→value de todas las filas y lo
-    /// cierra. Es el "dónde estoy" de estos tests.
+    /// El piso visible, como ID crudo.
     @MainActor
-    private func floorMapValues(_ app: XCUIApplication) -> [String: String] {
-        app.buttons["hud.map"].tap()
-        let rows = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'map.floor.'"))
-        XCTAssertTrue(rows.firstMatch.waitForExistence(timeout: 8), "el ascensor no mostró filas")
-        var values: [String: String] = [:]
-        for index in 0..<rows.count {
-            let row = rows.element(boundBy: index)
-            values[row.identifier] = (row.value as? String) ?? ""
+    private func visibleFloor(_ app: XCUIApplication) -> String {
+        (app.otherElements["board.floor"].value as? String) ?? ""
+    }
+
+    /// Espera a que `board.floor` publique (o abandone) un ID.
+    @MainActor
+    private func waitFloor(_ app: XCUIApplication, equals expected: String?,
+                           otherThan stale: String? = nil,
+                           timeout: TimeInterval) -> Bool {
+        let element = app.otherElements["board.floor"]
+        let predicate: NSPredicate
+        if let expected {
+            predicate = NSPredicate(format: "value == %@", expected)
+        } else {
+            predicate = NSPredicate(format: "value != %@", stale ?? "")
         }
-        app.buttons["sheet.close"].tap()
-        // El próximo gesto tiene que caer al TABLERO: esperar a que la hoja
-        // termine de cerrarse (el botón del HUD vuelve a ser hittable).
-        XCTAssertTrue(app.buttons["hud.map"].waitForExistence(timeout: 8), "la hoja del ascensor no cerró")
-        return values
+        let reached = XCTNSPredicateExpectation(predicate: predicate, object: element)
+        return XCTWaiter().wait(for: [reached], timeout: timeout) == .completed
     }
 
     /// Arrastre vertical en el centro del campo vacío. RF-09, metáfora de
@@ -63,23 +70,24 @@ final class LaunchSmokeTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
-        XCTAssertTrue(app.buttons["hud.map"].waitForExistence(timeout: 15))
 
-        let atAlley = floorMapValues(app)
+        let floor = app.otherElements["board.floor"]
+        XCTAssertTrue(floor.waitForExistence(timeout: 15), "board.floor nunca apareció")
+        let home = visibleFloor(app)
+        XCTAssertFalse(home.isEmpty, "board.floor tiene que publicar el piso inicial")
 
-        // Subir al preview del piso bloqueado: el "estás acá" tiene que mudarse
-        // (exactamente dos filas cambian su value: la que lo pierde y la que lo
-        // gana).
+        // Subir al preview del piso bloqueado.
         dragBoard(app, fromY: 0.45, toY: 0.75)
-        let atPreview = floorMapValues(app)
-        let movedRows = atAlley.keys.filter { atAlley[$0] != atPreview[$0] }
-        XCTAssertEqual(movedRows.count, 2, "el estás-acá tenía que mudarse de una fila a otra; cambiaron: \(movedRows)")
+        XCTAssertTrue(waitFloor(app, equals: nil, otherThan: home, timeout: 5),
+                      "el arrastre hacia abajo tenía que subir al preview; sigue en \(visibleFloor(app))")
+        let preview = visibleFloor(app)
 
         // Y NO más arriba: un segundo arrastre no puede saltear otro piso
-        // bloqueado. Los values quedan idénticos al preview.
+        // bloqueado. Se le da tiempo real a equivocarse antes de mirar.
         dragBoard(app, fromY: 0.45, toY: 0.75)
-        let afterSecondDrag = floorMapValues(app)
-        XCTAssertEqual(atPreview, afterSecondDrag, "el preview permitió saltear un segundo piso bloqueado")
+        _ = waitFloor(app, equals: nil, otherThan: preview, timeout: 3)
+        XCTAssertEqual(visibleFloor(app), preview,
+                       "el preview permitió saltear un segundo piso bloqueado")
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "F7.3 locked-floor-preview"
@@ -92,20 +100,22 @@ final class LaunchSmokeTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-unlock-tower", "--uitest-skip-tutorial"]
         app.launch()
-        XCTAssertTrue(app.buttons["hud.map"].waitForExistence(timeout: 15))
 
-        let initial = floorMapValues(app)
+        let floor = app.otherElements["board.floor"]
+        XCTAssertTrue(floor.waitForExistence(timeout: 15), "board.floor nunca apareció")
+        let home = visibleFloor(app)
+        XCTAssertFalse(home.isEmpty)
 
         // Centro del campo vacío: el arrastre no debe iniciar tap/drag de
         // unidad. Hacia abajo = subir un piso.
         dragBoard(app, fromY: 0.45, toY: 0.75)
-        let up = floorMapValues(app)
-        XCTAssertNotEqual(initial, up, "el arrastre hacia abajo tenía que subir un piso")
+        XCTAssertTrue(waitFloor(app, equals: nil, otherThan: home, timeout: 5),
+                      "el arrastre hacia abajo tenía que subir un piso; sigue en \(visibleFloor(app))")
 
         // Y la vuelta: hacia arriba = bajar.
         dragBoard(app, fromY: 0.75, toY: 0.45)
-        let back = floorMapValues(app)
-        XCTAssertEqual(initial, back, "el arrastre de vuelta tenía que devolver al piso inicial")
+        XCTAssertTrue(waitFloor(app, equals: home, timeout: 5),
+                      "el arrastre de vuelta tenía que devolver a \(home); quedó \(visibleFloor(app))")
     }
 
     @MainActor

@@ -31,15 +31,12 @@ struct CustomizationView: View {
     /// tiene.
     @State private var selectedTypeID: String?
 
-    /// Margen lateral de la columna. **Medido sobre el arte**, no elegido: el
-    /// 9-slice dibuja las esquinas a tamaño natural, así que el píxel `x` del PNG
-    /// cae en `x / (anchoPx / 200)` puntos del destino. Sondeando
-    /// `panel_store@3x.png` (640², escala 3,2) en su franja recta, el poste de
-    /// madera va de **21 a 32 pt** y el bisel claro de adentro termina en 35.
-    /// A 30 pt las tarjetas dejan el poste entero a la vista —es el número que
-    /// midió la T8 para el mismo arte, y las dos tiendas quedan alineadas al
-    /// mismo punto—. Si `panel_store` se re-exporta, se vuelve a medir.
-    private static let panelInset: CGFloat = 30
+    /// Margen lateral de la columna: el del marco vectorial, publicado por el
+    /// componente. Un solo número para las nueve hojas — el marco es el
+    /// contenedor y las tarjetas viven ADENTRO (pedido del dueño, 2026-08-18;
+    /// antes eran cuatro insets medidos PNG por PNG contra el arte 9-slice,
+    /// que además se deformaba al estirarse).
+    private static let panelInset: CGFloat = WoodPanelBackground.columnInset
 
     /// Lado de la carita del carrusel y ancho de su celda (la celda es más ancha
     /// porque abajo va el nombre, que casi siempre es más largo que la cara).
@@ -78,7 +75,7 @@ struct CustomizationView: View {
                 .padding(.horizontal, Self.panelInset)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { PanelBackground(art: "panel_store") }
+            .background { WoodPanelBackground(awning: true) }
             .safeAreaInset(edge: .top) {
                 header(allTypes: allTypes, seenIDs: seenIDs, selectedID: selected?.id)
             }

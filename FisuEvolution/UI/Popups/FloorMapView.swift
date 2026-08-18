@@ -17,14 +17,12 @@ struct FloorMapView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
 
-    /// Margen lateral de la columna. **Medido sobre el arte**, no elegido: son
-    /// los mismos 40 pt que `UpgradesView` midió contra `panel_upgrades`, que
-    /// desde el rediseño v3 también es el marco de esta pantalla — la torre es
-    /// maquinaria y habla el idioma industrial de los caños, no el del marco
-    /// pelado de diálogo que tenía. El método es el de siempre (el 9-slice
-    /// dibuja las esquinas a tamaño natural; el marco metálico ocupa de 27,5 a
-    /// 41,2 pt de cada borde). Si el arte se re-exporta, se vuelve a medir.
-    private static let panelInset: CGFloat = 40
+    /// Margen lateral de la columna: el del marco vectorial, publicado por el
+    /// componente. Un solo número para las nueve hojas — el marco es el
+    /// contenedor y las tarjetas viven ADENTRO (pedido del dueño, 2026-08-18;
+    /// antes eran cuatro insets medidos PNG por PNG contra el arte 9-slice,
+    /// que además se deformaba al estirarse).
+    private static let panelInset: CGFloat = WoodPanelBackground.columnInset
 
     /// Diámetro del botón redondo de piso. El riel se alinea a su centro, así que
     /// las dos medidas salen de acá y no de dos literales que se desincronizan.
@@ -80,7 +78,7 @@ struct FloorMapView: View {
                     proxy.scrollTo(here.id, anchor: .center)
                 }
             }
-            .background { PanelBackground(art: "panel_upgrades") }
+            .background { WoodPanelBackground(material: .metal) }
             .safeAreaInset(edge: .top) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
@@ -197,7 +195,7 @@ struct FloorMapView: View {
                 case .locked: GameCard(style: .locked) { row(entry, tone: tone) }
                 }
             }
-            .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .contentShape(RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous))
         }
         .buttonStyle(.plain)
         // Un piso cerrado no es un destino: el preview es premio de las flechas

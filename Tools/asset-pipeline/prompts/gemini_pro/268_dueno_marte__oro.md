@@ -1,7 +1,7 @@
 # 268 - Oro (skin de Dueno de Marte)
 
 - **archivo**: `dueno_marte__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/dueno_marte.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

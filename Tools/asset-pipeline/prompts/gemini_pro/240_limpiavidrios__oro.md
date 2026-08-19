@@ -1,7 +1,7 @@
 # 240 - Oro (skin de Limpiavidrios)
 
 - **archivo**: `limpiavidrios__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/limpiavidrios.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

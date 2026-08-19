@@ -358,6 +358,651 @@
       "treatment": "texture",
       "textureKey": "god_idle__parrillero",
       "displayNameKey": "skin.name.parrillero"
+    },
+    {
+      "id": "oro",
+      "characterType": "homeless",
+      "treatment": "texture",
+      "textureKey": "homeless_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "homeless",
+      "treatment": "texture",
+      "textureKey": "homeless_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "trapito",
+      "treatment": "texture",
+      "textureKey": "trapito_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "trapito",
+      "treatment": "texture",
+      "textureKey": "trapito_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "limpiavidrios",
+      "treatment": "texture",
+      "textureKey": "limpiavidrios_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "limpiavidrios",
+      "treatment": "texture",
+      "textureKey": "limpiavidrios_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "cartonero",
+      "treatment": "texture",
+      "textureKey": "cartonero_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "cartonero",
+      "treatment": "texture",
+      "textureKey": "cartonero_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "mantero",
+      "treatment": "texture",
+      "textureKey": "mantero_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "mantero",
+      "treatment": "texture",
+      "textureKey": "mantero_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "repartidor",
+      "treatment": "texture",
+      "textureKey": "repartidor_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "repartidor",
+      "treatment": "texture",
+      "textureKey": "repartidor_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "chofer_app",
+      "treatment": "texture",
+      "textureKey": "chofer_app_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "chofer_app",
+      "treatment": "texture",
+      "textureKey": "chofer_app_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "fast_food",
+      "treatment": "texture",
+      "textureKey": "fast_food_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "fast_food",
+      "treatment": "texture",
+      "textureKey": "fast_food_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "oficinista",
+      "treatment": "texture",
+      "textureKey": "oficinista_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "oficinista",
+      "treatment": "texture",
+      "textureKey": "oficinista_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "administrativo",
+      "treatment": "texture",
+      "textureKey": "administrativo_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "administrativo",
+      "treatment": "texture",
+      "textureKey": "administrativo_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "junior_programmer",
+      "treatment": "texture",
+      "textureKey": "junior_programmer_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "junior_programmer",
+      "treatment": "texture",
+      "textureKey": "junior_programmer_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "junior_architect",
+      "treatment": "texture",
+      "textureKey": "junior_architect_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "junior_architect",
+      "treatment": "texture",
+      "textureKey": "junior_architect_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "junior_doctor",
+      "treatment": "texture",
+      "textureKey": "junior_doctor_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "junior_doctor",
+      "treatment": "texture",
+      "textureKey": "junior_doctor_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "junior_lawyer",
+      "treatment": "texture",
+      "textureKey": "junior_lawyer_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "junior_lawyer",
+      "treatment": "texture",
+      "textureKey": "junior_lawyer_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "senior_programmer",
+      "treatment": "texture",
+      "textureKey": "senior_programmer_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "senior_programmer",
+      "treatment": "texture",
+      "textureKey": "senior_programmer_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "senior_architect",
+      "treatment": "texture",
+      "textureKey": "senior_architect_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "senior_architect",
+      "treatment": "texture",
+      "textureKey": "senior_architect_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "senior_doctor",
+      "treatment": "texture",
+      "textureKey": "senior_doctor_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "senior_doctor",
+      "treatment": "texture",
+      "textureKey": "senior_doctor_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "senior_lawyer",
+      "treatment": "texture",
+      "textureKey": "senior_lawyer_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "senior_lawyer",
+      "treatment": "texture",
+      "textureKey": "senior_lawyer_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "director",
+      "treatment": "texture",
+      "textureKey": "director_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "director",
+      "treatment": "texture",
+      "textureKey": "director_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "fundador_startup",
+      "treatment": "texture",
+      "textureKey": "fundador_startup_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "fundador_startup",
+      "treatment": "texture",
+      "textureKey": "fundador_startup_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "dueno_pyme",
+      "treatment": "texture",
+      "textureKey": "dueno_pyme_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "dueno_pyme",
+      "treatment": "texture",
+      "textureKey": "dueno_pyme_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "emprendedor",
+      "treatment": "texture",
+      "textureKey": "emprendedor_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "emprendedor",
+      "treatment": "texture",
+      "textureKey": "emprendedor_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "ceo",
+      "treatment": "texture",
+      "textureKey": "ceo_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "ceo",
+      "treatment": "texture",
+      "textureKey": "ceo_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "millonario",
+      "treatment": "texture",
+      "textureKey": "millonario_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "millonario",
+      "treatment": "texture",
+      "textureKey": "millonario_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "multimillonario",
+      "treatment": "texture",
+      "textureKey": "multimillonario_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "multimillonario",
+      "treatment": "texture",
+      "textureKey": "multimillonario_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "rey_ladrillo",
+      "treatment": "texture",
+      "textureKey": "rey_ladrillo_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "rey_ladrillo",
+      "treatment": "texture",
+      "textureKey": "rey_ladrillo_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "magnate_petrolero",
+      "treatment": "texture",
+      "textureKey": "magnate_petrolero_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "magnate_petrolero",
+      "treatment": "texture",
+      "textureKey": "magnate_petrolero_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "space_billionaire",
+      "treatment": "texture",
+      "textureKey": "space_billionaire_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "space_billionaire",
+      "treatment": "texture",
+      "textureKey": "space_billionaire_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "trillonario",
+      "treatment": "texture",
+      "textureKey": "trillonario_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "trillonario",
+      "treatment": "texture",
+      "textureKey": "trillonario_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "dueno_luna",
+      "treatment": "texture",
+      "textureKey": "dueno_luna_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "dueno_luna",
+      "treatment": "texture",
+      "textureKey": "dueno_luna_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "dueno_marte",
+      "treatment": "texture",
+      "textureKey": "dueno_marte_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "dueno_marte",
+      "treatment": "texture",
+      "textureKey": "dueno_marte_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "rey_asteroides",
+      "treatment": "texture",
+      "textureKey": "rey_asteroides_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "rey_asteroides",
+      "treatment": "texture",
+      "textureKey": "rey_asteroides_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "magnate_solar",
+      "treatment": "texture",
+      "textureKey": "magnate_solar_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "magnate_solar",
+      "treatment": "texture",
+      "textureKey": "magnate_solar_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "fondo_buitre",
+      "treatment": "texture",
+      "textureKey": "fondo_buitre_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "fondo_buitre",
+      "treatment": "texture",
+      "textureKey": "fondo_buitre_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "rentista_soles",
+      "treatment": "texture",
+      "textureKey": "rentista_soles_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "rentista_soles",
+      "treatment": "texture",
+      "textureKey": "rentista_soles_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "estanciero_estelar",
+      "treatment": "texture",
+      "textureKey": "estanciero_estelar_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "estanciero_estelar",
+      "treatment": "texture",
+      "textureKey": "estanciero_estelar_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "senor_galaxia",
+      "treatment": "texture",
+      "textureKey": "senor_galaxia_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "senor_galaxia",
+      "treatment": "texture",
+      "textureKey": "senor_galaxia_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "coleccionista_galaxias",
+      "treatment": "texture",
+      "textureKey": "coleccionista_galaxias_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "coleccionista_galaxias",
+      "treatment": "texture",
+      "textureKey": "coleccionista_galaxias_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "emperador_cosmico",
+      "treatment": "texture",
+      "textureKey": "emperador_cosmico_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "emperador_cosmico",
+      "treatment": "texture",
+      "textureKey": "emperador_cosmico_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "ser_ascendido",
+      "treatment": "texture",
+      "textureKey": "ser_ascendido_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "ser_ascendido",
+      "treatment": "texture",
+      "textureKey": "ser_ascendido_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "semidios",
+      "treatment": "texture",
+      "textureKey": "semidios_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "semidios",
+      "treatment": "texture",
+      "textureKey": "semidios_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "deidad",
+      "treatment": "texture",
+      "textureKey": "deidad_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "deidad",
+      "treatment": "texture",
+      "textureKey": "deidad_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "oro",
+      "characterType": "god",
+      "treatment": "texture",
+      "textureKey": "god_idle__oro",
+      "displayNameKey": "skin.name.oro",
+      "upgradesMaxed": true
+    },
+    {
+      "id": "diamante",
+      "characterType": "god",
+      "treatment": "texture",
+      "textureKey": "god_idle__diamante",
+      "displayNameKey": "skin.name.diamante"
     }
   ]
 }

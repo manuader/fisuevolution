@@ -60,6 +60,12 @@
       "type": "nonConsumable",
       "entitlement": "skin",
       "skinId": "parrillero"
+    },
+    {
+      "id": "com.fisuevolution.iap.skins_diamante",
+      "type": "nonConsumable",
+      "entitlement": "skin",
+      "skinId": "diamante"
     }
   ]
 }

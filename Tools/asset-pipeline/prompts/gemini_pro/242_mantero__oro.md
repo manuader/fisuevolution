@@ -1,7 +1,7 @@
 # 242 - Oro (skin de El Mantero)
 
 - **archivo**: `mantero__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/mantero.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 290 - Diamante (skin de Administrativo)
 
 - **archivo**: `administrativo__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/administrativo.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

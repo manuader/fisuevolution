@@ -1,7 +1,7 @@
 # 245 - Oro (skin de Empleado de Fast Food)
 
 - **archivo**: `fast_food__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/fast_food.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

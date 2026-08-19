@@ -1,7 +1,7 @@
 # 239 - Oro (skin de El Trapito)
 
 - **archivo**: `trapito__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/trapito.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

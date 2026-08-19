@@ -1,7 +1,7 @@
 # 271 - Oro (skin de Fondo Buitre Estelar)
 
 - **archivo**: `fondo_buitre__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/fondo_buitre.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

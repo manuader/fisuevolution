@@ -1,7 +1,7 @@
 # 315 - Diamante (skin de Rentista de Soles)
 
 - **archivo**: `rentista_soles__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/rentista_soles.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

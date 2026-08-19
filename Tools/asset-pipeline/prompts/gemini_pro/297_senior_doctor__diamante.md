@@ -1,7 +1,7 @@
 # 297 - Diamante (skin de Medico Sr.)
 
 - **archivo**: `senior_doctor__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_doctor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

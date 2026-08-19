@@ -1,7 +1,7 @@
 # 298 - Diamante (skin de Abogado Sr.)
 
 - **archivo**: `senior_lawyer__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_lawyer.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

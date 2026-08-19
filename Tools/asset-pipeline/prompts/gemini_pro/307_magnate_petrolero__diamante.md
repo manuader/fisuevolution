@@ -1,7 +1,7 @@
 # 307 - Diamante (skin de Magnate Petrolero)
 
 - **archivo**: `magnate_petrolero__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/magnate_petrolero.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -286,7 +286,7 @@ class GeminiBrowser:
         self,
         port: int = 9222,
         timeout: int = 180,
-        ref_threshold: float = 12,
+        ref_threshold: float = 4,
         type_chunk: int = TYPE_CHUNK_CHARS,
         type_pause: float = TYPE_PAUSE_SECONDS,
     ):
@@ -300,6 +300,14 @@ class GeminiBrowser:
         #: stderr de la última consulta fallida por el proceso al frente.
         self._frontmost_error = ""
         # Distancia MAE por debajo de la cual una imagen se considera "es la
+        # referencia". Bajó de 12 a 4 con las skins de oro (2026-08-19): la
+        # huella es un thumbnail de 32x32 y el fondo blanco ocupa el 74% del
+        # cuadro, así que una variante que conserva la pose queda MUY cerca del
+        # original — el dorado del Fisura medía 9.51 y se descartaba solo, y ni
+        # un personaje enteramente NEGRO pasa de 25.8. Medido del otro lado: la
+        # misma imagen re-codificada o reescalada no supera 0.14, así que 4
+        # separa las dos poblaciones con margen. Con 12 el runner esperaba el
+        # timeout entero de cada asset sin encontrar nunca un candidato válido.
         # referencia adjunta" y se descarta. Con referencias de OTRO personaje
         # (los 93 assets originales) 12 es holgado; con skins —donde la
         # referencia es el MISMO personaje con otra ropa— hay que bajarlo o el
@@ -798,6 +806,9 @@ class GeminiBrowser:
         queda "tainted" (cross-origin) y `toDataURL` lanza SecurityError; en ese caso
         se baja el `src` con las cookies de la sesión y se re-codifica a PNG."""
         import base64
+        from io import BytesIO
+
+        from PIL import Image
 
         driver = self._driver()
         ref_fp = None
@@ -811,8 +822,21 @@ class GeminiBrowser:
                 self._ref_fp_cache[key] = self._fingerprint(reference.read_bytes())
             ref_fp = self._ref_fp_cache[key]
 
+        todas = driver.find_elements("tag name", "img")
+        medidas = sorted(
+            (int(i.get_attribute("naturalWidth") or 0) for i in todas), reverse=True
+        )
+        # Diagnóstico: si la generada entra como preview chico, el filtro de 512
+        # la deja afuera y el único candidato es la referencia. Se imprime sólo
+        # cuando cambia, para no inundar el log en cada poll de `_wait_for`.
+        reporte = ",".join(str(m) for m in medidas[:8] if m)
+        if getattr(self, "_ultimo_reporte", None) != reporte:
+            self._ultimo_reporte = reporte
+            print(f"  · imgs en pantalla (ancho natural): {reporte or 'ninguna'}",
+                  file=sys.stderr, flush=True)
+
         candidates = sorted(
-            (i for i in driver.find_elements("tag name", "img")
+            (i for i in todas
              if int(i.get_attribute("naturalWidth") or 0) >= 512),
             key=lambda i: int(i.get_attribute("naturalWidth")),
             reverse=True,
@@ -835,12 +859,29 @@ class GeminiBrowser:
                 # bajar el original con las cookies de Google de la sesión.
                 raw = self._download_cross_origin(image.get_attribute("src"))
                 if raw is None:
+                    print("  · descarte: no se pudo bajar la imagen cross-origin",
+                          file=sys.stderr, flush=True)
                     continue
             if not self._has_content(raw):
+                print("  · descarte: imagen vacía o de color plano (aún renderizando)",
+                      file=sys.stderr, flush=True)
                 continue  # placeholder vacío/transparente: esperar el render real
             if ref_fp is not None:
-                if self._fingerprint_distance(self._fingerprint(raw), ref_fp) < self.ref_threshold:
+                distancia = self._fingerprint_distance(self._fingerprint(raw), ref_fp)
+                if distancia < self.ref_threshold:
+                    # Se guarda lo descartado para poder MIRARLO: distinguir "es
+                    # la referencia" de "es el generado que se parece demasiado"
+                    # no se puede hacer con el numero solo.
+                    depurar = PIPELINE / "state" / "descartes"
+                    depurar.mkdir(parents=True, exist_ok=True)
+                    ancho = Image.open(BytesIO(raw)).width
+                    (depurar / f"mae{distancia:05.2f}_w{ancho}.png").write_bytes(raw)
+                    print(f"  · descarte: se parece a la referencia "
+                          f"(MAE {distancia:.2f} < {self.ref_threshold})",
+                          file=sys.stderr, flush=True)
                     continue  # es la referencia; seguir buscando/esperando
+                print(f"  · candidato aceptado (MAE {distancia:.2f})",
+                      file=sys.stderr, flush=True)
             return raw
         return None
 
@@ -911,7 +952,7 @@ def main() -> None:
                              "está cargada y se pierden caracteres")
     parser.add_argument("--type-pause", type=float, default=TYPE_PAUSE_SECONDS,
                         help="segundos de respiro entre tandas de tipeo")
-    parser.add_argument("--ref-threshold", type=float, default=12,
+    parser.add_argument("--ref-threshold", type=float, default=4,
                         help="distancia MAE bajo la cual se descarta una imagen por "
                              "ser la referencia adjunta. Bajalo (~5) cuando la "
                              "referencia sea el MISMO personaje que se genera (skins)")

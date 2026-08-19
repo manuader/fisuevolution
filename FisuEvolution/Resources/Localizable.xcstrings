@@ -2190,7 +2190,6 @@
       }
     },
     "character.dismiss" : {
-      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3692,6 +3691,7 @@
       }
     },
     "offline.collect" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3708,6 +3708,7 @@
       }
     },
     "offline.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3925,6 +3926,7 @@
       }
     },
     "prestige.confirm" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5936,6 +5938,7 @@
       }
     },
     "special.drop.claim" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5952,6 +5955,7 @@
       }
     },
     "special.drop.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -7774,6 +7778,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mejoras"
+          }
+        }
+      }
+    },
+    "skin.name.diamante" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diamond"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Diamante"
+          }
+        }
+      }
+    },
+    "skin.name.oro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Golden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Oro"
           }
         }
       }

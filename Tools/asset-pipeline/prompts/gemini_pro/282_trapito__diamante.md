@@ -1,7 +1,7 @@
 # 282 - Diamante (skin de El Trapito)
 
 - **archivo**: `trapito__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/trapito.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

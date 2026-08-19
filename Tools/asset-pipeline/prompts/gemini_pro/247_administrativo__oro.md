@@ -1,7 +1,7 @@
 # 247 - Oro (skin de Administrativo)
 
 - **archivo**: `administrativo__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/administrativo.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

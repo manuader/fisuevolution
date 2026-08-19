@@ -577,7 +577,17 @@ final class GameState {
     /// `ownedSkins` aparte y por eso esta unión nunca borra una compra.
     private func awardEligibleMilestoneSkins() {
         guard let content, var player else { return }
-        let newlyUnlocked = SkinMilestones.newlyUnlocked(state: player, config: content.skins)
+        // Las skins de oro no se venden: la única vía es tener las siete líneas
+        // de mejora permanente en su tope. El flag se calcula acá, que es donde
+        // vive `upgradesConfig`; EconomyKit no conoce `upgrades.json` y pasárselo
+        // ya resuelto lo deja puro.
+        let lineasDeOro = content.upgradesConfig.upgrades.filter { $0.currency == .oro }
+        let todoAlMaximo = !lineasDeOro.isEmpty && lineasDeOro.allSatisfy {
+            (player.meta.oroUpgradeLevels[$0.id] ?? 0) >= $0.maxLevel
+        }
+        let newlyUnlocked = SkinMilestones.newlyUnlocked(
+            state: player, config: content.skins, allUpgradesMaxed: todoAlMaximo
+        )
         guard !newlyUnlocked.isEmpty else { return }
         player.meta.milestoneSkins = Array(Set(player.meta.milestoneSkins).union(newlyUnlocked)).sorted()
         self.player = player

@@ -1,7 +1,7 @@
 # 313 - Diamante (skin de Magnate del Sistema Solar)
 
 - **archivo**: `magnate_solar__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/magnate_solar.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

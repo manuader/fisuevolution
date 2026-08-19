@@ -1,7 +1,7 @@
 # 299 - Diamante (skin de Director)
 
 - **archivo**: `director__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/director.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -51,3 +51,57 @@ struct SkinMilestonesTests {
         }
     }
 }
+
+// MARK: - Skins de oro (2026-08-19)
+
+/// El oro NO se vende: la única vía es tener todas las mejoras permanentes al
+/// tope. El diamante es al revés — sin condición de milestone, sólo el bundle.
+@Suite("Skins de material")
+struct SkinsDeMaterialTests {
+    private func catalogo() -> SkinsConfig {
+        SkinsConfig(schemaVersion: 1, skins: [
+            .init(id: "oro", characterType: "homeless", treatment: .texture,
+                  textureKey: "homeless_idle__oro", upgradesMaxed: true),
+            .init(id: "oro", characterType: "ceo", treatment: .texture,
+                  textureKey: "ceo_idle__oro", upgradesMaxed: true),
+            .init(id: "diamante", characterType: "homeless", treatment: .texture,
+                  textureKey: "homeless_idle__diamante"),
+        ])
+    }
+
+    @Test("el mismo id se repite por personaje sin romper la validación")
+    func idCompartidoEntrePersonajes() throws {
+        try catalogo().validate(
+            characterTypeIDs: ["homeless", "ceo"], floorIDs: []
+        )
+    }
+
+    @Test("dos entradas del MISMO personaje con el mismo id siguen siendo un error")
+    func idDuplicadoEnUnPersonaje() {
+        let roto = SkinsConfig(schemaVersion: 1, skins: [
+            .init(id: "oro", characterType: "ceo", treatment: .texture, textureKey: "a"),
+            .init(id: "oro", characterType: "ceo", treatment: .texture, textureKey: "b"),
+        ])
+        #expect(throws: SkinsConfig.ValidationError.duplicateID("oro")) {
+            try roto.validate(characterTypeIDs: ["ceo"], floorIDs: [])
+        }
+    }
+
+    @Test("el oro entra sólo con todas las mejoras al máximo")
+    func oroPideMejorasAlMaximo() {
+        let state = fxState()
+        #expect(SkinMilestones.newlyUnlocked(
+            state: state, config: catalogo(), allUpgradesMaxed: false) == [])
+        #expect(SkinMilestones.newlyUnlocked(
+            state: state, config: catalogo(), allUpgradesMaxed: true) == ["oro", "oro"])
+    }
+
+    @Test("el diamante nunca sale por milestone: es sólo del bundle")
+    func diamanteNoEsMilestone() {
+        let diamante = catalogo().skins.first { $0.id == "diamante" }
+        #expect(diamante?.isMilestone == false)
+        #expect(!SkinMilestones.newlyUnlocked(
+            state: fxState(), config: catalogo(), allUpgradesMaxed: true
+        ).contains("diamante"))
+    }
+}

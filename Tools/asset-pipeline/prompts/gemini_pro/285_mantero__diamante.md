@@ -1,7 +1,7 @@
 # 285 - Diamante (skin de El Mantero)
 
 - **archivo**: `mantero__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/mantero.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 289 - Diamante (skin de Oficinista)
 
 - **archivo**: `oficinista__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/oficinista.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

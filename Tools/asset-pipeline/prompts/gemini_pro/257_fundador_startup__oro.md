@@ -1,7 +1,7 @@
 # 257 - Oro (skin de Fundador de Startup)
 
 - **archivo**: `fundador_startup__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/fundador_startup.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 306 - Diamante (skin de Rey del Ladrillo)
 
 - **archivo**: `rey_ladrillo__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/rey_ladrillo.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 295 - Diamante (skin de Programador Sr.)
 
 - **archivo**: `senior_programmer__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_programmer.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

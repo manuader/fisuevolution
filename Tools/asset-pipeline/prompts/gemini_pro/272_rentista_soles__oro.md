@@ -1,7 +1,7 @@
 # 272 - Oro (skin de Rentista de Soles)
 
 - **archivo**: `rentista_soles__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/rentista_soles.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 262 - Oro (skin de Multimillonario)
 
 - **archivo**: `multimillonario__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/multimillonario.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

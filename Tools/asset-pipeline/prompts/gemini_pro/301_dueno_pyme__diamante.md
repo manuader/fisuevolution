@@ -1,7 +1,7 @@
 # 301 - Diamante (skin de Dueno de PYME)
 
 - **archivo**: `dueno_pyme__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/dueno_pyme.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

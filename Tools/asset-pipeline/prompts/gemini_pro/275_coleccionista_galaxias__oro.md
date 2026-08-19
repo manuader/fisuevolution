@@ -1,7 +1,7 @@
 # 275 - Oro (skin de Coleccionista de Galaxias)
 
 - **archivo**: `coleccionista_galaxias__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/coleccionista_galaxias.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

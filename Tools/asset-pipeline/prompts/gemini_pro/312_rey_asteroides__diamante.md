@@ -1,7 +1,7 @@
 # 312 - Diamante (skin de Rey de los Asteroides)
 
 - **archivo**: `rey_asteroides__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/rey_asteroides.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

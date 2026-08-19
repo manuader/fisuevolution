@@ -1,7 +1,7 @@
 # 252 - Oro (skin de Programador Sr.)
 
 - **archivo**: `senior_programmer__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_programmer.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

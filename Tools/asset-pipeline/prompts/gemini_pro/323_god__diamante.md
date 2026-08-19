@@ -1,7 +1,7 @@
 # 323 - Diamante (skin de Dios)
 
 - **archivo**: `god__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/god.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

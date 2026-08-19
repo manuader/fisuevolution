@@ -1,7 +1,7 @@
 # 291 - Diamante (skin de Programador Jr.)
 
 - **archivo**: `junior_programmer__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/junior_programmer__hacker.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

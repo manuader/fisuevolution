@@ -1,7 +1,7 @@
 # 280 - Oro (skin de Dios)
 
 - **archivo**: `god__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/god.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

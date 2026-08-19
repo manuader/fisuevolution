@@ -1,7 +1,7 @@
 # 254 - Oro (skin de Medico Sr.)
 
 - **archivo**: `senior_doctor__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_doctor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

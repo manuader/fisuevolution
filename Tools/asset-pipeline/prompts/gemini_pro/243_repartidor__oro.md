@@ -1,7 +1,7 @@
 # 243 - Oro (skin de Repartidor)
 
 - **archivo**: `repartidor__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/repartidor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

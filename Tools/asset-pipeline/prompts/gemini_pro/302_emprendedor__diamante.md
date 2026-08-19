@@ -1,7 +1,7 @@
 # 302 - Diamante (skin de Emprendedor)
 
 - **archivo**: `emprendedor__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/emprendedor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 251 - Oro (skin de Abogado Jr.)
 
 - **archivo**: `junior_lawyer__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/junior_lawyer.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

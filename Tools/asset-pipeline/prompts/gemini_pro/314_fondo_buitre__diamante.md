@@ -1,7 +1,7 @@
 # 314 - Diamante (skin de Fondo Buitre Estelar)
 
 - **archivo**: `fondo_buitre__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/fondo_buitre.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -1,7 +1,7 @@
 # 304 - Diamante (skin de Millonario)
 
 - **archivo**: `millonario__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/millonario.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

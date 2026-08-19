@@ -1,7 +1,7 @@
 # 246 - Oro (skin de Oficinista)
 
 - **archivo**: `oficinista__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/oficinista.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

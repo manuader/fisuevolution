@@ -1,7 +1,7 @@
 # 317 - Diamante (skin de Senor de la Galaxia)
 
 - **archivo**: `senor_galaxia__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senor_galaxia.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

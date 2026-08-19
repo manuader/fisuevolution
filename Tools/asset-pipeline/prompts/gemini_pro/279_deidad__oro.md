@@ -1,7 +1,7 @@
 # 279 - Oro (skin de Deidad)
 
 - **archivo**: `deidad__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/deidad.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

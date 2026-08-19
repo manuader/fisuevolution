@@ -1,7 +1,7 @@
 # 303 - Diamante (skin de CEO)
 
 - **archivo**: `ceo__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/ceo.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

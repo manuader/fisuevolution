@@ -1,7 +1,7 @@
 # 259 - Oro (skin de Emprendedor)
 
 - **archivo**: `emprendedor__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/emprendedor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

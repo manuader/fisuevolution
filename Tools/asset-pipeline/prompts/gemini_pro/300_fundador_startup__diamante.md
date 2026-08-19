@@ -1,7 +1,7 @@
 # 300 - Diamante (skin de Fundador de Startup)
 
 - **archivo**: `fundador_startup__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/fundador_startup.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

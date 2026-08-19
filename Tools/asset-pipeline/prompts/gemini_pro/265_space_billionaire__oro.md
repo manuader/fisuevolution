@@ -1,7 +1,7 @@
 # 265 - Oro (skin de Space Billionaire)
 
 - **archivo**: `space_billionaire__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/space_billionaire.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

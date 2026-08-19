@@ -1,7 +1,7 @@
 # 309 - Diamante (skin de Trillonario)
 
 - **archivo**: `trillonario__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/trillonario.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

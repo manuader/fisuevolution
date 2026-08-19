@@ -1,7 +1,7 @@
 # 286 - Diamante (skin de Repartidor)
 
 - **archivo**: `repartidor__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/repartidor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

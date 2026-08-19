@@ -1,7 +1,7 @@
 # 253 - Oro (skin de Arquitecto Sr.)
 
 - **archivo**: `senior_architect__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/senior_architect.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

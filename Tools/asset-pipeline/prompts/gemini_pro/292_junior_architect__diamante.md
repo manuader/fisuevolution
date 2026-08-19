@@ -1,7 +1,7 @@
 # 292 - Diamante (skin de Arquitecto Jr.)
 
 - **archivo**: `junior_architect__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/junior_architect.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

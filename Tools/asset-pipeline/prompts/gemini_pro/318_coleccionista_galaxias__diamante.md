@@ -1,7 +1,7 @@
 # 318 - Diamante (skin de Coleccionista de Galaxias)
 
 - **archivo**: `coleccionista_galaxias__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/coleccionista_galaxias.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

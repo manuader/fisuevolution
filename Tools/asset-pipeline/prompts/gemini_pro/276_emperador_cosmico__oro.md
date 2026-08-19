@@ -1,7 +1,7 @@
 # 276 - Oro (skin de Emperador Cosmico)
 
 - **archivo**: `emperador_cosmico__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/emperador_cosmico.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

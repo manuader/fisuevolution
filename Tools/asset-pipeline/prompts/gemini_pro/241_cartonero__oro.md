@@ -1,7 +1,7 @@
 # 241 - Oro (skin de Cartonero)
 
 - **archivo**: `cartonero__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/cartonero.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

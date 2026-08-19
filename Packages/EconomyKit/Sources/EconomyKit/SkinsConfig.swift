@@ -21,6 +21,10 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         public let floorReached: String?
         /// Reencarnaciones acumuladas que desbloquean esta skin de milestone.
         public let reincarnations: Int?
+        /// Se desbloquea al tener TODAS las líneas de mejora permanente en su
+        /// nivel máximo. Es la vía gratuita de las skins de oro; la de pago es
+        /// el paquete, que las entrega por `ownedSkins`.
+        public let upgradesMaxed: Bool?
         /// Clave de localización del nombre visible (spec §3.9). Opcional: sin
         /// ella la ficha muestra el id embellecido, que alcanza para una skin
         /// de prueba pero no para una que se shippea.
@@ -37,6 +41,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             textureKey: String? = nil,
             floorReached: String? = nil,
             reincarnations: Int? = nil,
+            upgradesMaxed: Bool? = nil,
             displayNameKey: String? = nil
         ) {
             self.id = id
@@ -46,10 +51,13 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             self.textureKey = textureKey
             self.floorReached = floorReached
             self.reincarnations = reincarnations
+            self.upgradesMaxed = upgradesMaxed
             self.displayNameKey = displayNameKey
         }
 
-        public var isMilestone: Bool { floorReached != nil || reincarnations != nil }
+        public var isMilestone: Bool {
+            floorReached != nil || reincarnations != nil || upgradesMaxed == true
+        }
     }
 
     public enum ValidationError: Error, Equatable {
@@ -79,9 +87,17 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
     }
 
     public func validate(characterTypeIDs: Set<String>, floorIDs: Set<String>) throws {
-        var ids = Set<String>()
+        // La unicidad es por (personaje, id), no por id global. Una variante como
+        // "oro" existe una vez por personaje, y que las 43 compartan el id es
+        // justamente lo que hace que un solo paquete las desbloquee todas: la
+        // propiedad se guarda por id en `allOwnedSkins`, así que tener "oro"
+        // significa tenerlo en todos. Con unicidad global habría que inventar
+        // ids por personaje y romper la convención `<baseKey>__<skinId>`.
+        var vistas = Set<String>()
         for skin in skins {
-            guard ids.insert(skin.id).inserted else { throw ValidationError.duplicateID(skin.id) }
+            guard vistas.insert("\(skin.characterType)/\(skin.id)").inserted else {
+                throw ValidationError.duplicateID(skin.id)
+            }
             guard skin.characterType == "*" || characterTypeIDs.contains(skin.characterType) else {
                 throw ValidationError.unknownCharacterType(skin.characterType)
             }
@@ -105,13 +121,21 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
 /// IAP en `ownedSkins`; este tipo sólo propone las que deben entrar en
 /// `milestoneSkins` y por eso jamás pisa entitlements.
 public enum SkinMilestones {
-    public static func newlyUnlocked(state: PlayerState, config: SkinsConfig) -> [String] {
+    /// `allUpgradesMaxed` lo calcula quien tiene el catálogo de mejoras a mano:
+    /// EconomyKit no conoce `upgrades.json`, y pasarlo ya resuelto mantiene este
+    /// evaluador puro en vez de arrastrarle otra dependencia.
+    public static func newlyUnlocked(
+        state: PlayerState,
+        config: SkinsConfig,
+        allUpgradesMaxed: Bool = false
+    ) -> [String] {
         let owned = state.meta.allOwnedSkins
         return config.skins.compactMap { skin in
             guard skin.isMilestone, !owned.contains(skin.id) else { return nil }
             let reachedFloor = skin.floorReached.map { state.run.unlockedFloors.contains($0) } ?? true
             let reachedPrestige = skin.reincarnations.map { state.meta.prestigeLevel >= $0 } ?? true
-            return reachedFloor && reachedPrestige ? skin.id : nil
+            let reachedUpgrades = skin.upgradesMaxed == true ? allUpgradesMaxed : true
+            return reachedFloor && reachedPrestige && reachedUpgrades ? skin.id : nil
         }
     }
 }

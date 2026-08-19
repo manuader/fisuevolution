@@ -1,7 +1,7 @@
 # 244 - Oro (skin de Chofer de App)
 
 - **archivo**: `chofer_app__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/chofer_app.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

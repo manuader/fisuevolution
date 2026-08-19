@@ -201,6 +201,26 @@
       "productID": "com.fisuevolution.iap.skin_parrillero",
       "referenceName": "Skin Parrillero",
       "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "19.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000BA",
+      "localizations": [
+        {
+          "locale": "es",
+          "displayName": "Todas las skins de Diamante",
+          "description": "Los 43 personajes tallados en diamante, de una"
+        },
+        {
+          "locale": "en",
+          "displayName": "All Diamond Skins",
+          "description": "All 43 characters carved in diamond, at once"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.skins_diamante",
+      "referenceName": "Skins Diamante",
+      "type": "NonConsumable"
     }
   ],
   "settings": {

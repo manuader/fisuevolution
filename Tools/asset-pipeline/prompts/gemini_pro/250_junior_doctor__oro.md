@@ -1,7 +1,7 @@
 # 250 - Oro (skin de Medico Jr.)
 
 - **archivo**: `junior_doctor__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/junior_doctor.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

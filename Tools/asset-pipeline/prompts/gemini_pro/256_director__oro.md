@@ -1,7 +1,7 @@
 # 256 - Oro (skin de Director)
 
 - **archivo**: `director__oro.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/director.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

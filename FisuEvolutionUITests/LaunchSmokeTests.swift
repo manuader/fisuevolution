@@ -20,20 +20,49 @@ final class LaunchSmokeTests: XCTestCase {
         XCTAssertTrue(coins.waitForExistence(timeout: 15), "HUD coin counter never appeared")
     }
 
-    @MainActor
-    func testLaunchShowsBoundedTowerNavigator() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
-        app.launch()
+    // MARK: Navegación de pisos sin píldora
+    //
+    // La fila de torre del HUD se retiró (decisión del dueño 2026-08-18): el
+    // piso se cambia arrastrando el tablero o por el ascensor. El observable
+    // del piso actual es `board.floor`, que publica el ID crudo (a prueba de
+    // la trampa 6) y sobrevive a las celebraciones que apagan la UI.
+    //
+    // ⚠️ El value de las filas del ascensor —que también dice "estás acá",
+    // para VoiceOver— NO sirve de observable: XCUITest no surfacea el
+    // accessibilityValue de esos Buttons (medido 2026-08-18: las diez filas
+    // devuelven cadena vacía aunque VoiceOver las lea bien). El estás-acá se
+    // queda porque es para personas; los tests leen board.floor.
 
-        let pill = app.otherElements["tower.pill"]
-        XCTAssertTrue(pill.waitForExistence(timeout: 15), "tower pill never appeared")
-        let down = app.buttons["tower.arrow.down"]
-        let up = app.buttons["tower.arrow.up"]
-        XCTAssertTrue(down.exists, "down arrow missing")
-        XCTAssertTrue(up.exists, "up arrow missing")
-        XCTAssertFalse(down.isEnabled, "new game must not navigate below the alley")
-        XCTAssertTrue(up.isEnabled, "new game should preview its next locked floor")
+    /// El piso visible, como ID crudo.
+    @MainActor
+    private func visibleFloor(_ app: XCUIApplication) -> String {
+        (app.otherElements["board.floor"].value as? String) ?? ""
+    }
+
+    /// Espera a que `board.floor` publique (o abandone) un ID.
+    @MainActor
+    private func waitFloor(_ app: XCUIApplication, equals expected: String?,
+                           otherThan stale: String? = nil,
+                           timeout: TimeInterval) -> Bool {
+        let element = app.otherElements["board.floor"]
+        let predicate: NSPredicate
+        if let expected {
+            predicate = NSPredicate(format: "value == %@", expected)
+        } else {
+            predicate = NSPredicate(format: "value != %@", stale ?? "")
+        }
+        let reached = XCTNSPredicateExpectation(predicate: predicate, object: element)
+        return XCTWaiter().wait(for: [reached], timeout: timeout) == .completed
+    }
+
+    /// Arrastre vertical en el centro del campo vacío. RF-09, metáfora de
+    /// scroll: arrastrar hacia ABAJO (0.45 → 0.75) SUBE un piso; hacia ARRIBA
+    /// (0.75 → 0.45) BAJA.
+    @MainActor
+    private func dragBoard(_ app: XCUIApplication, fromY: CGFloat, toY: CGFloat) {
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: fromY))
+        let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: toY))
+        start.press(forDuration: 0.05, thenDragTo: end)
     }
 
     @MainActor
@@ -42,17 +71,23 @@ final class LaunchSmokeTests: XCTestCase {
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
-        let pill = app.otherElements["tower.pill"]
-        XCTAssertTrue(pill.waitForExistence(timeout: 15))
-        let initialLabel = pill.label
-        let up = app.buttons["tower.arrow.up"]
-        up.tap()
-        let reachedPreview = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "label != %@", initialLabel), object: pill
-        )
-        XCTAssertEqual(XCTWaiter().wait(for: [reachedPreview], timeout: 3), .completed)
-        XCTAssertFalse(up.isEnabled, "preview must not allow skipping another locked floor")
-        XCTAssertTrue(app.buttons["tower.arrow.down"].isEnabled)
+        let floor = app.otherElements["board.floor"]
+        XCTAssertTrue(floor.waitForExistence(timeout: 15), "board.floor nunca apareció")
+        let home = visibleFloor(app)
+        XCTAssertFalse(home.isEmpty, "board.floor tiene que publicar el piso inicial")
+
+        // Subir al preview del piso bloqueado.
+        dragBoard(app, fromY: 0.45, toY: 0.75)
+        XCTAssertTrue(waitFloor(app, equals: nil, otherThan: home, timeout: 5),
+                      "el arrastre hacia abajo tenía que subir al preview; sigue en \(visibleFloor(app))")
+        let preview = visibleFloor(app)
+
+        // Y NO más arriba: un segundo arrastre no puede saltear otro piso
+        // bloqueado. Se le da tiempo real a equivocarse antes de mirar.
+        dragBoard(app, fromY: 0.45, toY: 0.75)
+        _ = waitFloor(app, equals: nil, otherThan: preview, timeout: 3)
+        XCTAssertEqual(visibleFloor(app), preview,
+                       "el preview permitió saltear un segundo piso bloqueado")
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "F7.3 locked-floor-preview"
@@ -61,34 +96,26 @@ final class LaunchSmokeTests: XCTestCase {
     }
 
     @MainActor
-    func testTowerArrowsAndEmptyBoardSwipeNavigateOneFloor() throws {
+    func testBoardSwipeNavigatesOneFloorEachWay() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-unlock-tower", "--uitest-skip-tutorial"]
         app.launch()
 
-        let pill = app.otherElements["tower.pill"]
-        XCTAssertTrue(pill.waitForExistence(timeout: 15))
-        let up = app.buttons["tower.arrow.up"]
-        XCTAssertTrue(up.isEnabled, "fixture should unlock the urban floor")
-        let initialLabel = pill.label
+        let floor = app.otherElements["board.floor"]
+        XCTAssertTrue(floor.waitForExistence(timeout: 15), "board.floor nunca apareció")
+        let home = visibleFloor(app)
+        XCTAssertFalse(home.isEmpty)
 
-        up.tap()
-        let movedByArrow = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "label != %@", initialLabel), object: pill
-        )
-        XCTAssertEqual(XCTWaiter().wait(for: [movedByArrow], timeout: 3), .completed)
-        XCTAssertTrue(app.buttons["tower.arrow.down"].isEnabled)
+        // Centro del campo vacío: el arrastre no debe iniciar tap/drag de
+        // unidad. Hacia abajo = subir un piso.
+        dragBoard(app, fromY: 0.45, toY: 0.75)
+        XCTAssertTrue(waitFloor(app, equals: nil, otherThan: home, timeout: 5),
+                      "el arrastre hacia abajo tenía que subir un piso; sigue en \(visibleFloor(app))")
 
-        // Centro del campo vacío: el swipe no debe iniciar tap/drag de unidad.
-        // RF-09: metáfora de scroll — para BAJAR un piso hay que arrastrar la
-        // torre hacia ARRIBA. Antes este gesto iba al revés (0.45 → 0.75).
-        let swipeStart = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
-        let swipeEnd = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.45))
-        swipeStart.press(forDuration: 0.05, thenDragTo: swipeEnd)
-        let returnedBySwipe = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "label == %@", initialLabel), object: pill
-        )
-        XCTAssertEqual(XCTWaiter().wait(for: [returnedBySwipe], timeout: 3), .completed)
+        // Y la vuelta: hacia arriba = bajar.
+        dragBoard(app, fromY: 0.75, toY: 0.45)
+        XCTAssertTrue(waitFloor(app, equals: home, timeout: 5),
+                      "el arrastre de vuelta tenía que devolver a \(home); quedó \(visibleFloor(app))")
     }
 
     @MainActor

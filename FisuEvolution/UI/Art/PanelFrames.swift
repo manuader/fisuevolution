@@ -32,20 +32,55 @@ private enum WoodTone {
 /// línea oscura y tornillos. Drop-in de `PanelBackground` para la familia del
 /// menú.
 struct WoodPanelBackground: View {
+    /// Los dos materiales del juego: madera para casi todo, metal con remaches
+    /// para la maquinaria (Mejoras y el Ascensor). El engranaje del arte viejo
+    /// se retiró a pedido del dueño: leía "ajustes", no "mejoras".
+    enum Material {
+        case wood
+        case metal
+    }
+
     /// El margen que el CONTENIDO de la pantalla necesita para no pisar el
     /// marco: 22 de banda + 6 de aire hasta el bisel. Es el equivalente del
     /// `panelInset` que cada pantalla medía contra su PNG, ahora publicado por
     /// el componente porque acá la geometría es propia y no del arte.
     static let contentInset: CGFloat = 28
 
-    /// Ancho de la banda de madera.
+    /// El margen de la COLUMNA de tarjetas: el del contenido + el aire que las
+    /// separa del bisel. Es UN número para las nueve hojas — el dueño pidió que
+    /// el marco actúe de contenedor, y un contenedor con nueve márgenes
+    /// distintos no es un sistema (2026-08-18; reemplaza a los `panelInset`
+    /// medidos PNG por PNG contra el arte que se retiró).
+    static let columnInset: CGFloat = 34
+
+    /// Alto del toldo de los negocios. Publicado para quien necesite despejarlo.
+    static let awningHeight: CGFloat = 40
+
+    /// Ancho de la banda del marco.
     private static let band: CGFloat = 22
+
+    var material: Material = .wood
+    /// El toldo rayado de los negocios (FisuJobs, Pintas, Tienda, Regalos).
+    /// Vectorial: el del arte 9-slice se estiraba con el ancho de pantalla y
+    /// las franjas quedaban deformes — éste reparte SUS franjas al ancho real.
+    var awning: Bool = false
 
     private static let wood = LinearGradient(
         colors: [WoodTone.light, WoodTone.base],
         startPoint: .top,
         endPoint: .bottom
     )
+
+    private static let metal = LinearGradient(
+        colors: [MetalTone.light, MetalTone.base],
+        startPoint: .top,
+        endPoint: .bottom
+    )
+
+    private var bandFill: LinearGradient { material == .wood ? Self.wood : Self.metal }
+    private var lineTone: Color { material == .wood ? WoodTone.dark : MetalTone.dark }
+    private var bevelTone: Color { material == .wood ? WoodTone.bevel : MetalTone.bevel }
+    private var screwTone: Color { material == .wood ? WoodTone.screw : MetalTone.screw }
 
     var body: some View {
         ZStack {
@@ -68,17 +103,25 @@ struct WoodPanelBackground: View {
         GeometryReader { geo in
             let outer = RoundedRectangle(cornerRadius: 34, style: .continuous)
             let inner = RoundedRectangle(cornerRadius: 18, style: .continuous)
-            ZStack {
-                // La banda de madera, del borde hacia adentro.
-                outer.strokeBorder(Self.wood, lineWidth: Self.band)
-                // La línea oscura donde la madera encuentra el pergamino
+            ZStack(alignment: .top) {
+                // El toldo va primero en z: sus puntas se meten POR DETRÁS de
+                // la banda del marco y no hay costura que disimular.
+                if awning {
+                    AwningBand()
+                        .frame(height: Self.awningHeight)
+                        .padding(.horizontal, Self.band - 6)
+                        .padding(.top, Self.band - 2)
+                }
+                // La banda del marco, del borde hacia adentro.
+                outer.strokeBorder(bandFill, lineWidth: Self.band)
+                // La línea oscura donde el marco encuentra el pergamino
                 // (ocupa los últimos 3 pt de la banda).
                 inner
-                    .strokeBorder(WoodTone.dark, lineWidth: 3)
+                    .strokeBorder(lineTone, lineWidth: 3)
                     .padding(Self.band - 3)
                 // El bisel de luz, ya sobre el pergamino.
                 inner
-                    .strokeBorder(WoodTone.bevel.opacity(0.9), lineWidth: 2)
+                    .strokeBorder(bevelTone.opacity(0.9), lineWidth: 2)
                     .padding(Self.band)
                 // El contorno ink de afuera de todo, como el arte.
                 outer.strokeBorder(Color("PaletteInk").opacity(0.9), lineWidth: 3)
@@ -98,26 +141,105 @@ struct WoodPanelBackground: View {
             CGPoint(x: size.width - inset, y: size.height - inset)
         ]
         return ForEach(Array(positions.enumerated()), id: \.offset) { _, point in
-            PanelScrew()
+            PanelScrew(fill: screwTone, line: lineTone)
                 .position(point)
         }
     }
 }
 
 /// Un tornillo del marco: plato con borde oscuro y la ranura en diagonal.
+/// En metal es un remache: mismo dibujo, tonos fríos.
 private struct PanelScrew: View {
+    let fill: Color
+    let line: Color
+
     var body: some View {
         ZStack {
             Circle()
-                .fill(WoodTone.screw)
-                .overlay(Circle().strokeBorder(WoodTone.dark, lineWidth: 2))
+                .fill(fill)
+                .overlay(Circle().strokeBorder(line, lineWidth: 2))
             RoundedRectangle(cornerRadius: 1, style: .continuous)
-                .fill(WoodTone.dark)
+                .fill(line)
                 .frame(width: 7, height: 1.8)
                 .rotationEffect(.degrees(45))
         }
         .frame(width: 12, height: 12)
         .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Tonos del metal (fríos, hermanos de los del arte panel_upgrades)
+
+private enum MetalTone {
+    static let light = Color(red: 0.784, green: 0.820, blue: 0.824)   // #C8D1D2
+    static let base = Color(red: 0.624, green: 0.667, blue: 0.671)    // #9FAAAB
+    static let dark = Color(red: 0.157, green: 0.180, blue: 0.188)    // #282E30
+    static let bevel = Color(red: 0.882, green: 0.910, blue: 0.914)   // #E1E8E9
+    static let screw = Color(red: 0.529, green: 0.573, blue: 0.580)   // #879294
+}
+
+// MARK: - AwningBand
+
+/// El toldo rayado de los negocios, dibujado: franjas rojas y crema con el
+/// festón de semicírculos abajo y su contorno ink. A diferencia del toldo del
+/// arte —que el 9-slice estiraba junto con el resto del marco— éste reparte
+/// SUS franjas sobre el ancho real de la pantalla, así que nunca se deforma.
+private struct AwningBand: View {
+    /// Impar, para que las dos puntas sean rojas como en el arte del atlas.
+    private static let stripes = 7
+
+    private static let red = Color(red: 0.851, green: 0.365, blue: 0.278)     // #D95D47
+    private static let cream = Color(red: 0.973, green: 0.945, blue: 0.898)   // #F8F1E5
+
+    var body: some View {
+        GeometryReader { geo in
+            let stripeWidth = geo.size.width / CGFloat(Self.stripes)
+            ZStack {
+                HStack(spacing: 0) {
+                    ForEach(0..<Self.stripes, id: \.self) { index in
+                        (index.isMultiple(of: 2) ? Self.red : Self.cream)
+                            .frame(width: stripeWidth)
+                    }
+                }
+                .clipShape(AwningShape(scallops: Self.stripes))
+                AwningShape(scallops: Self.stripes)
+                    .stroke(Color("PaletteInk"), lineWidth: 3)
+            }
+            // La sombra que el festón tira sobre el pergamino: el toldo se lee
+            // VOLANDO sobre el panel, no pegado.
+            .shadow(color: .black.opacity(0.18), radius: 3, y: 3)
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// La silueta del toldo: techo recto y festón de semicírculos abajo, uno por
+/// franja.
+struct AwningShape: Shape {
+    let scallops: Int
+
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let scallopWidth = rect.width / CGFloat(max(scallops, 1))
+        let straightBottom = rect.maxY - scallopWidth * 0.28
+        path.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: straightBottom))
+        for index in stride(from: scallops - 1, through: 0, by: -1) {
+            let center = CGPoint(
+                x: rect.minX + scallopWidth * (CGFloat(index) + 0.5),
+                y: straightBottom
+            )
+            path.addArc(
+                center: center,
+                radius: scallopWidth * 0.5,
+                startAngle: .degrees(0),
+                endAngle: .degrees(180),
+                clockwise: false
+            )
+        }
+        path.closeSubpath()
+        return path
     }
 }
 
@@ -136,6 +258,24 @@ struct GiftBowOrnament: View {
     private var loopSize: CGSize { CGSize(width: width * 0.42, height: width * 0.30) }
 
     var body: some View {
+        // El arte del atlas manda (batch 236, 2026-08-18); el vectorial queda
+        // de fallback, como todo GameIcon. El PNG se encaja en el MISMO
+        // footprint que dibuja el vector, así el offset que lo apoya sobre el
+        // toldo en Regalos no depende de cuál de los dos esté.
+        Group {
+            if let art = UIArt.image("ui_gift_bow") {
+                art
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                vectorBow
+            }
+        }
+        .frame(width: width, height: width * 0.46)
+        .accessibilityHidden(true)
+    }
+
+    private var vectorBow: some View {
         ZStack {
             // Las colas, por detrás de todo, cayendo en V hacia afuera.
             tail(angle: 24)
@@ -152,8 +292,6 @@ struct GiftBowOrnament: View {
                 )
                 .frame(width: width * 0.20, height: width * 0.17)
         }
-        .frame(width: width, height: width * 0.46)
-        .accessibilityHidden(true)
     }
 
     private func loop(rotation: Double, offsetX: CGFloat) -> some View {

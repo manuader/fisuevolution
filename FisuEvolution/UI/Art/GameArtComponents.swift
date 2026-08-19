@@ -814,6 +814,10 @@ struct IconButton: View {
     let artKey: String?
     let fallback: () -> AnyView
     var size: CGFloat = 52
+    /// Si el glifo lleva su plato circular crema detrás. El HUD rediseñado lo
+    /// apaga (decisión del dueño 2026-08-18): los dos accesos de la barra
+    /// superior son el dibujo pelado y grande, sin aro que lo achique.
+    var showsPlate: Bool = true
     /// Qué fracción del plato ocupa el glifo. El default es el histórico —el
     /// dibujo flotando con aire crema alrededor— y existe justamente para que
     /// los llamadores que no lo piden no cambien de cara. El HUD rediseñado sube
@@ -829,14 +833,17 @@ struct IconButton: View {
     var body: some View {
         Button(action: action) {
             glyph
-                .frame(width: size * glyphScale, height: size * glyphScale)
+                .frame(width: size * (showsPlate ? glyphScale : 1),
+                       height: size * (showsPlate ? glyphScale : 1))
                 .frame(width: size, height: size)
-                .background(
-                    Circle()
-                        .fill(Color("PaletteCream"))
-                        .overlay(Circle().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2.5))
-                        .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
-                )
+                .background {
+                    if showsPlate {
+                        Circle()
+                            .fill(Color("PaletteCream"))
+                            .overlay(Circle().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2.5))
+                            .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
+                    }
+                }
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)

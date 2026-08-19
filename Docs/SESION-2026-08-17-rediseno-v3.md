@@ -164,3 +164,74 @@ no tenían; sus claves de texto ya existían en el catálogo).
    si desentona, merge a `main` desde worktree temporal.
 3. El simulador `rediseno-v3` puede existir de antes (`simctl list`); borrarlo
    al terminar es parte del trabajo.
+
+## Remate nocturno (post-push)
+
+- **Últimos controles de sistema** → v3 en `f696fa7` (ficha: chevrons y
+  equipar con label que lee `isEnabled`; prestigio: ActionPill rosa +
+  cancelar mudo). No queda superficie de juego fuera del lenguaje.
+- **Panel de debug: evaluado y descartado a propósito** — es QA que jamás
+  shippea y su docstring lo declara fuera del catálogo; que parezca sistema
+  es correcto.
+- **Assets opcionales encolados** (`bda35f0`): `236_ui_gift_bow` y
+  `237_panel_menu` en `pendiente`. El batch lo corre el dueño con la máquina
+  quieta y frontends cerrados (trampa 11):
+
+  `cd Tools/asset-pipeline && caffeinate -is .venv/bin/python scripts/gemini_selenium_runner.py --process --pause 3 --timeout 260`
+
+  Integración: el moño entra solo por `GameIcon`/manifest; `panel_menu` pide
+  además cambiar `WoodPanelBackground()` por `PanelBackground(art: "panel_menu")`
+  en la familia del menú y re-medir su `panelInset` (hoy 34, del vector).
+- **Los 6 tests sospechosos**: la máquina se reinició (swap limpio) — la
+  re-corrida aislada quedó armada para cuando el load asiente.
+
+## Segundo arco (2026-08-18, madrugada) — iteración del dueño con capturas
+
+El dueño pidió tres cosas mirando el juego corriendo, y las tres están:
+
+1. **Fuera la píldora de piso del HUD** (`acb81ba`): el piso se cambia
+   scrolleando o por el ascensor. Los dos accesos de la barra (moneda+ y
+   ascensor) quedaron pelados a 60 pt (`IconButton` ganó `showsPlate`). El
+   piso actual ganó dos observables: el value de la fila del ascensor dice
+   "estás acá" (VoiceOver) y `board.floor` publica el ID crudo junto a
+   `board.units` — sobrevive a las celebraciones y es a prueba de trampa 6.
+2. **Los marcos son CONTENEDORES** (`b2b3cf1`): las seis hojas de arte dejaron
+   el 9-slice (se estiraba: toldo deforme, caños chicle, y el engranaje hacía
+   leer "ajustes" en Mejoras) por el marco VECTORIAL con material
+   (.wood/.metal con remaches) y toldo dibujado al ancho real. `columnInset`
+   = 34 único para las nueve hojas, publicado por el componente. Los popups
+   siguen en su arte (tamaños chicos, sin queja).
+3. **Auditoría de coherencia**: los 3 últimos botones de sistema (premio de
+   skin ×2, despedir) a la gramática de la casa; hit-area del ascensor al
+   radio de tarjeta.
+
+**Los "6 sospechosos" quedaron CERRADOS con máquina quieta (load 4):**
+
+| Test | Veredicto |
+|---|---|
+| BottomMenu ×2, Menú ×2 | flakies de carga: verdes aislados y en la suite final |
+| LaunchSmoke tower-arrows | reemplazado: la feature de flechas se retiró; los 2 tests nuevos navegan por swipe y leen `board.floor` |
+| Tutorial skip | **bug del test**: `XCTAssertFalse(waitForExistence(3))` perdía la carrera contra la animación de cierre — reproducido determinístico en clase, arreglado con espera de desaparición (`fb05be8`), 5/5 |
+
+Además: los 3 rojos nuevos de Pintas eran interacción con `f541bde` del dueño
+(la pantalla abre en el personaje MÁS NUEVO — Pintas comparte la proyección
+de mejoras). Comportamiento CONSERVADO; los tests eligen personaje explícito.
+
+⚠️ Dato de entorno que quedó medido: **XCUITest no surfacea el
+`accessibilityValue` de los Buttons del ascensor** (las 10 filas devuelven ""
+aunque VoiceOver las lea) — por eso los tests leen `board.floor` y no el
+"estás acá". Y el guardado de xcresult está roto en esta máquina
+(mkstemp/CASDB) con o sin carga: los veredictos salen del log crudo.
+
+## El batch de arte corrió (2026-08-18, mañana)
+
+Los 2 opcionales del v3 se generaron DESDE AGENTE con la ruta
+`.command`→Terminal.app: **`ui_gift_bow` está integrado y CABLEADO**
+(arte-primero en `GiftBowOrnament`, vector de fallback — verificado en
+captura) y **`panel_menu` quedó en el atlas como reserva sin call-site**
+(re-cablearlo como fondo full-screen devolvería el estiramiento del 9-slice;
+su interior salió gris — sirve para paneles chicos, o se borra si pesa).
+Tres trampas nuevas del batch quedaron en la memoria del agente: tildes en el
+cuerpo del prompt (tecla muerta, pérdida determinística), la venv symlinkeada
+para correr desde worktree, y el alta obligatoria en `prompts.json` para que
+`process_dropbox.py` integre. La cola quedó 236/236.

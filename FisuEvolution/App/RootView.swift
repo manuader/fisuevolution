@@ -260,6 +260,16 @@ struct GameBoardView: View {
                 .accessibilityIdentifier("board.units")
                 .accessibilityValue(Text(verbatim: String(gameState.unitCount)))
         )
+        // El piso visible, como ID crudo (no nombre traducido: a prueba de la
+        // trampa 6). Desde que la píldora del HUD se retiró (2026-08-18) es el
+        // único observable del piso que sobrevive a las celebraciones que
+        // apagan la UI — `exists` y `value` se leen igual con la opacidad en 0.
+        .background(
+            Color.clear
+                .accessibilityElement()
+                .accessibilityIdentifier("board.floor")
+                .accessibilityValue(Text(verbatim: gameState.towerNavigation.floorID))
+        )
     }
 
     // MARK: Bindings de las celebraciones

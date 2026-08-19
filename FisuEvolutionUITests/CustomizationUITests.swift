@@ -34,9 +34,12 @@ final class CustomizationUITests: XCTestCase {
         ]
         app.launch()
 
-        // La pantalla abre sola en el primer personaje visto: su grilla tiene
-        // que estar dibujada sin tocar nada.
-        let base = openSkins(app)
+        // Desde f541bde la pantalla abre en el personaje MÁS NUEVO: para
+        // assertar sobre las pintas del Fisura hay que elegirlo primero.
+        openSkins(app)
+        selectCharacter(app, id: Self.firstType)
+        let base = app.otherElements["skins.row.base"]
+        XCTAssertTrue(base.waitForExistence(timeout: 10))
         let owned = app.otherElements["skins.row.\(Self.ownedSkin)"]
         XCTAssertTrue(owned.waitForExistence(timeout: 10), "falta la tarjeta de la skin ganada")
         let equip = app.buttons["skins.equip.\(Self.ownedSkin)"]
@@ -113,6 +116,9 @@ final class CustomizationUITests: XCTestCase {
         _ = openSkins(app)
         let first = app.buttons["skins.character.\(Self.firstType)"]
         XCTAssertTrue(first.waitForExistence(timeout: 10), "el carrusel no dibujó al primer personaje")
+        // Desde f541bde el default es el personaje más nuevo: este test razona
+        // desde la grilla del Fisura, así que lo elige explícitamente.
+        first.tap()
         attach(app, named: "T11 carrusel de personajes")
 
         // Lo nunca visto se dibuja en silueta pero NO es un botón: elegirlo
@@ -172,6 +178,7 @@ final class CustomizationUITests: XCTestCase {
         app.launch()
 
         _ = openSkins(app)
+        selectCharacter(app, id: Self.firstType)
         let paid = app.otherElements["skins.row.\(Self.paidSkin)"]
         XCTAssertTrue(paid.waitForExistence(timeout: 10),
                       "la skin paga tiene que seguir en la grilla aunque no haya precio")
@@ -209,6 +216,18 @@ final class CustomizationUITests: XCTestCase {
     /// anotada por la T8)—. Tocar el centro del frame del botón esquiva el
     /// `scrollToVisible` que falla, y el reintento cubre el caso de que la hoja no
     /// llegue a presentarse.
+    /// Selecciona un personaje del carrusel y espera su grilla. Existe porque
+    /// desde `f541bde` la pantalla abre en el personaje MÁS NUEVO (la lista de
+    /// mejoras abre en lo nuevo y Pintas comparte la proyección): un test que
+    /// asserta sobre las pintas de un personaje CONCRETO tiene que elegirlo,
+    /// no confiar en el orden del default.
+    @MainActor
+    private func selectCharacter(_ app: XCUIApplication, id: String) {
+        let face = app.buttons["skins.character.\(id)"]
+        XCTAssertTrue(face.waitForExistence(timeout: 10), "el carrusel no dibujó a \(id)")
+        face.tap()
+    }
+
     @MainActor
     @discardableResult
     private func openSkins(_ app: XCUIApplication) -> XCUIElement {

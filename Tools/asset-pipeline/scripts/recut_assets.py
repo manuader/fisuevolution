@@ -20,9 +20,7 @@ import json
 import sys
 from pathlib import Path
 
-import numpy as np
 from PIL import Image
-from scipy import ndimage
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -35,38 +33,37 @@ ORIGINALS = PIPELINE / "dropbox" / "procesadas"
 # referencia de estilo aprobada a mano con la que se genero todo lo demas.
 ORIGINALES_APARTE = {"homeless": PIPELINE / "heroes" / "approved" / "fisura.png"}
 
-# Los dos originales que NO tienen fondo blanco: Gemini los devolvio como escena
-# entera (el estanciero contra un campo estrellado, el cirujano en el quirofano).
-# Recortar por conectividad ahi no saca nada — el fondo no es blanco — y dejaria
-# el mosaico completo como si fuera el personaje. La silueta que ya esta en el
-# juego es buena, asi que a estos se les respeta el recorte y solo se les tapan
-# los huecos de adentro, que es la parte del bug que si los toco.
-SIN_FONDO_BLANCO = frozenset({"estanciero_estelar", "senior_doctor__cirujano"})
+# Los que el dueno prefirio con el recorte viejo (revision del 2026-08-18).
+#
+# En los doce, lo que el recorte por conectividad suma es la SOMBRA del piso o el
+# telon de la escena: el toldo del mantero, la cupula del terraformador, la
+# plataforma del rey de asteroides, el campo estrellado del estanciero, el
+# quirofano del cirujano, la figurita del coleccionista. El dibujo los encierra,
+# asi que por topologia son personaje y no hay forma de distinguirlos — es la
+# contracara del criterio que salva los guardapolvos. Parado sobre el tablero eso
+# se lee como una loza blanca a los pies. El recorte por saliencia se los comia, y
+# en estos doce conviene que se los coma.
+#
+# Se saltean enteros: el PNG que esta en el juego es el que vale, y volver a
+# correr este script no se lo lleva puesto.
+RECORTE_VIEJO_A_PEDIDO = frozenset({
+    "cartonero",
+    "cartonero__urban_trailblazer",
+    "coleccionista_galaxias__figurita",
+    "dueno_marte__terraformador",
+    "estanciero_estelar",
+    "magnate_solar",
+    "magnate_solar__corona_solar",
+    "mantero",
+    "mantero__feriante",
+    "rey_asteroides",
+    "rey_asteroides__chatarrero",
+    "senior_doctor__cirujano",
+})
 
 
 def original_de(asset_key: str) -> Path:
     return ORIGINALES_APARTE.get(asset_key, ORIGINALS / f"{asset_key}.png")
-
-
-def tapar_huecos(original: Image.Image, integrado: Image.Image) -> Image.Image:
-    """Silueta la del asset ya integrado, color el del original, sin huecos.
-
-    Para los assets de `SIN_FONDO_BLANCO`: el recorte de hoy separo bien al
-    personaje de su escena, pero le dejo agujeros adentro. Rellenar los huecos de
-    la mascara los cierra sin tocar el contorno, y el color sale del original —
-    no del PNG ya reescalado— asi no se arrastra la mezcla del borde."""
-    alpha = np.array(
-        integrado.convert("RGBA").resize(original.size, Image.LANCZOS)
-    )[..., 3].astype(np.float32) / 255.0
-    solid = alpha > 0.5
-    alpha[ndimage.binary_fill_holes(solid) & ~solid] = 1.0
-    return Image.fromarray(
-        np.dstack([
-            np.array(original.convert("RGB")),
-            (alpha * 255).round().astype(np.uint8),
-        ]),
-        mode="RGBA",
-    )
 
 
 def entries() -> list[dict]:
@@ -84,17 +81,19 @@ def main() -> int:
     if args.only:
         todo = [e for e in todo if e["assetKey"] in set(args.only)]
 
-    rehechos, sin_original, sin_integrar = [], [], []
+    rehechos, sin_original, sin_integrar, a_pedido = [], [], [], []
     for entry in sorted(todo, key=lambda e: e["assetKey"]):
         key = entry["assetKey"]
         original = original_de(key)
         atlas_name, asset_key, _ = destination(entry)
 
+        if key in RECORTE_VIEJO_A_PEDIDO:
+            a_pedido.append(key)
+            continue
         if not original.exists():
             sin_original.append(key)
             continue
-        integrado = RESOURCES / atlas_name / f"{asset_key}@3x.png"
-        if not integrado.exists():
+        if not (RESOURCES / atlas_name / f"{asset_key}@3x.png").exists():
             # El asset no esta en el juego; recortarlo ahora seria integrarlo por
             # la ventana, que no es lo que este script viene a hacer.
             sin_integrar.append(key)
@@ -103,18 +102,13 @@ def main() -> int:
         rehechos.append(key)
         if args.dry_run:
             continue
-        src = Image.open(original)
-        if key in SIN_FONDO_BLANCO:
-            recorte = tapar_huecos(src, Image.open(integrado))
-            nota = " (silueta de hoy, huecos tapados)"
-        else:
-            recorte = cutout(src, key)
-            nota = ""
-        export_atlas(recorte, entry, atlas_name, asset_key)
-        print(f"  ✓ {key} → {atlas_name}/{asset_key}@2x/@3x{nota}", flush=True)
+        export_atlas(cutout(Image.open(original), key), entry, atlas_name, asset_key)
+        print(f"  ✓ {key} → {atlas_name}/{asset_key}@2x/@3x", flush=True)
 
     verbo = "se rehacen" if args.dry_run else "rehechos"
     print(f"\n{verbo}: {len(rehechos)}")
+    if a_pedido:
+        print(f"con el recorte viejo a pedido ({len(a_pedido)}): {a_pedido}")
     if sin_integrar:
         print(f"con original pero fuera del juego ({len(sin_integrar)}): {sin_integrar}")
     if sin_original:

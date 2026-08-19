@@ -11,7 +11,10 @@ xcuserdata/
 .swiftpm/
 
 # Asset pipeline (F3)
-Tools/asset-pipeline/.venv/
+# Sin barra final: con barra la regla solo matchea directorios, y un `.venv` que
+# fuera un symlink se coló al repo apuntando a si mismo (2334083). Al mergearlo,
+# git reemplazo el entorno real de quien lo bajara por un enlace circular.
+Tools/asset-pipeline/.venv
 Tools/asset-pipeline/raw/
 Tools/asset-pipeline/cutout/
 Tools/asset-pipeline/ComfyUI/

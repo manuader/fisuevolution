@@ -71,13 +71,26 @@ mantero). El color no las distingue —un guardapolvo blanco puro mide igual que
 fondo—, así que el default es tratarlas como personaje y la excepción se declara
 a mano en `HUECOS_CALADOS`: `fx_tap` y las tres copas. Se verificó mirando.
 
-### Los dos que no tienen fondo blanco
+### Los doce que se quedan con el recorte viejo
 
-`estanciero_estelar` y `senior_doctor__cirujano` volvieron de Gemini como escena
-entera (campo estrellado, quirófano). Ahí el recorte por conectividad no aplica.
-El recorte que ya estaba en el juego los separaba bien de su escena, así que a
-esos dos se les respeta la silueta y solo se les **tapan los huecos de adentro**,
-que es la parte del bug que sí los tocó.
+Revisión del dueño sobre el contacto antes/después: doce assets se quedan como
+estaban. En todos, lo que el recorte por conectividad suma es **la sombra del piso
+o el telón de la escena** — el toldo del mantero, la cúpula del terraformador, la
+plataforma del rey de asteroides, el campo estrellado del estanciero, el quirófano
+del cirujano, la figurita del coleccionista. El dibujo los encierra, así que por
+topología son personaje: es la contracara exacta del criterio que salva los
+guardapolvos, y no hay señal en la imagen que los separe. Parado sobre el tablero
+eso se lee como una loza blanca a los pies, así que acá conviene que la saliencia
+se los coma.
+
+Están en `recut_assets.RECORTE_VIEJO_A_PEDIDO` y el script los **saltea entero**,
+para que volver a correrlo no se lleve puesta la decisión. El barrido del atlas
+los tiene en su lista de permitidos por la misma razón.
+
+`cartonero`, `cartonero__urban_trailblazer`, `coleccionista_galaxias__figurita`,
+`dueno_marte__terraformador`, `estanciero_estelar`, `magnate_solar`,
+`magnate_solar__corona_solar`, `mantero`, `mantero__feriante`, `rey_asteroides`,
+`rey_asteroides__chatarrero`, `senior_doctor__cirujano`.
 
 ## Lo que quedó afuera
 
@@ -102,10 +115,11 @@ adelante no vuelve a pasar por `rembg`. El pipeline ya no necesita `rembg` ni
 
 ## Cómo quedó
 
-- **218 assets rehechos** desde su original; los 219 integrados verificados.
-- **0 assets con más del 1% de la silueta calada** fuera de los cuatro declarados
-  en `HUECOS_CALADOS` (`fx_tap` 32%, las tres copas 6-8%, que es su hueco de
-  diseño). Antes eran 73 con más del 5%.
+- **206 assets rehechos** desde su original (218 menos los doce que se quedan con
+  el recorte viejo); los 219 integrados verificados.
+- **0 assets con más del 1% de la silueta calada** fuera de los declarados: los
+  cuatro de `HUECOS_CALADOS` (`fx_tap` 32%, las tres copas 6-8%, que es su hueco
+  de diseño) y los doce elegidos a mano. Antes eran 73 con más del 5%.
 - **0 assets transparentes enteros.**
 - 8 pruebas nuevas en verde (6 del recorte + 2 de barrido sobre el atlas).
 - Los atlas crecen de 49 MB a 56 MB en disco: hay más píxeles opacos que antes.

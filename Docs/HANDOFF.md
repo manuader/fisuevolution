@@ -72,6 +72,39 @@
 
 ---
 
+## 0. Cómo se usa este documento
+
+**Si sos un agente que recién llega, leé dos cosas y sólo dos**: este documento
+(el general) y el handoff más reciente de `handoffs/`. Con eso sabés dónde está
+parado el proyecto sin leer las doce sesiones.
+
+El reparto es a propósito:
+
+| Dónde | Qué va | Vida |
+|---|---|---|
+| **este general** (`Docs/HANDOFF.md`) | lo que sigue siendo cierto: arquitectura, reglas, decisiones que no se re-litigan, trampas ya pagadas, y §4 con una entrada por sesión | permanente, se ACUMULA |
+| `Docs/SESION-<fecha>-<tema>.md` | el detalle de UNA sesión: qué se pidió, qué se midió, qué se decidió y por qué | permanente, no se toca después |
+| `handoffs/HANDOFF-<fecha>-<tema>.md` | el estado AL CIERRE: qué quedó abierto, qué está en vuelo, qué romper no hay que | efímero, **gitignored** |
+
+**Al terminar tu trabajo, siempre hacés tres cosas:**
+
+1. Escribís tu `Docs/SESION-…` con el detalle y el PORQUÉ de cada decisión.
+2. Dejás tu `handoffs/HANDOFF-…` con lo que queda abierto para el que sigue.
+3. **Actualizás este general**: una entrada nueva arriba de §4, y lo que
+   corresponda en §5 (decisiones), §7 (trampas nuevas) y §9 (mapa).
+
+El paso 3 es el que se olvida y el que sostiene todo: sin él, el próximo agente
+tiene que leer doce sesiones para entender el presente. Si encontrás acá un dato
+vencido, **corregilo** — un general desactualizado es peor que no tenerlo,
+porque se le cree.
+
+Regla de oro para lo que escribas: **anotá lo que costó tiempo y no se deduce
+del código**. Los números que calibraron una decisión, el diagnóstico que
+resultó falso, el orden en que hay que hacer las cosas. Lo que el código ya
+dice, no lo repitas.
+
+---
+
 ## 1. Qué es
 
 **FisuEvolution** ("Hobo Evolution"): juego iOS merge-idle con humor argentino.
@@ -203,6 +236,46 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-19 — Oro y diamante para los 43
+
+**86 skins nuevas** (43 de oro macizo + 43 de diamante tallado), una por cada
+personaje con arte: los 44 tipos menos `junior`, que es el nodo de carrera y no
+tiene sprite. Detalle en **`Docs/SESION-2026-08-19-skins-oro-diamante.md`**.
+
+Lo que hay que saber sin abrirlo:
+
+- **Un id por material, no por personaje.** Las 43 de oro comparten `id: "oro"`
+  y las de diamante `id: "diamante"`. Eso movió la unicidad de
+  `SkinsConfig.validate` de global a **(personaje, id)** — la convención
+  `<baseKey>__<skinId>` exige que el id sea el sufijo. A cambio sale gratis lo
+  que se quería: la propiedad se guarda POR ID, así que **un único producto
+  desbloquea el bundle entero** sin inventar un campo de paquete.
+- **Desbloqueo**: el oro NO se vende (`upgradesMaxed`, las siete mejoras
+  permanentes al tope); el diamante sólo por
+  `com.fisuevolution.iap.skins_diamante` (19,99).
+- **La silueta es el argumento de venta**: la ficha esconde TODO lo no
+  adquirido, también lo que está a la venta. La tienda las muestra a color a
+  propósito.
+- **El recorte se eligió a mano, asset por asset**: las 43 de oro con saliencia,
+  33 de diamante con conectividad y 10 con saliencia. Ninguna herramienta gana
+  siempre — ver §5.
+- Tres bugs del pipeline de generación quedaron medidos y arreglados (el umbral
+  de descarte, la cola compartida y la multiplicación de reintentos): §7.
+
+### Sesión del 2026-08-18 — El recorte deja de comerse lo blanco
+
+`process_dropbox.py` recortaba con `rembg`, un modelo de **saliencia**: con arte
+cartoon sobre fondo blanco leía como fondo cualquier blanco del dibujo. Medido
+sobre los 219 assets integrados, **102 tenían al menos un 2% del dibujo calado y
+73 pasaban el 5%** — el guardapolvo del `senior_doctor` entero, las caras
+translúcidas, los paneles sin su pergamino.
+
+El criterio nuevo (`scripts/whitebg_cutout.py`) es **topológico**: fondo es lo
+blanco que se toca con el borde del lienzo. Una camisa blanca está rodeada por
+la línea del dibujo y por lo tanto no se puede recortar. **206 assets rehechos**
+desde sus originales, que ya estaban en git. Detalle en
+**`Docs/SESION-2026-08-18-recorte-de-fondo.md`**.
 
 ### Sesión del 2026-08-18 (tarde) — La hoja contenida
 
@@ -539,7 +612,8 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
 
 ## 5. Decisiones del dueño que NO se re-litigan
 
-1. **El primer Fisura cuesta 50** y los targets de pacing se bajaron a la
+1. **El primer Fisura cuesta 25** (el dueño lo bajó de 50 el 2026-08-18; pineado
+   en `GameContentValidationTests`) y los targets de pacing se bajaron a la
    conducta real en vez de recalibrar knobs. Costo medido en `balance-log §F7.6`.
 2. **Contratar arriba cuesta 600×** lo que rinde un click ahí; el callejón, 50×.
 3. **El gate es de UN piso**, no dos: con dos el juego no se puede terminar.
@@ -552,6 +626,15 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
 5. `PacingTests` está pineado a la **conducta actual**, no al pacing que el spec
    pedía. `pacing-sim` sigue imprimiendo los targets de DISEÑO para que la brecha
    quede visible.
+6. **El recorte de fondo se elige a ojo, asset por asset, y no lo decide el
+   pipeline.** Ninguna de las dos herramientas gana siempre: la conectividad
+   conserva el blanco encerrado del dibujo (una camisa, pero también la sombra
+   del piso) y la saliencia se lo come (la sombra, pero también la camisa). Hoy
+   hay **98 assets elegidos a mano** —las 86 skins de material y 12 personajes—
+   y `recut_assets.py` y el barrido del atlas los SALTEAN para no pisar la
+   decisión. Cambiar uno es una corrida de `scripts/elegir_recorte.py`.
+7. **Las skins de oro no se venden.** Su única vía es maxear las siete mejoras
+   permanentes. El diamante es al revés: sólo el bundle, sin condición.
 
 ---
 
@@ -1026,6 +1109,45 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
    celebraciones. Con dos frentes sobre el mismo checkout, **stagear por archivo**
    y mirar `git status` antes de cada commit no es ceremonia.
 
+### Del pipeline de arte (2026-08-19)
+
+17. **El descarte por huella se come lo bueno si la variante conserva la pose.**
+    El runner tira la imagen extraída si queda a menos de `--ref-threshold` de la
+    referencia, pero la huella es un thumbnail de **32×32** y el fondo blanco
+    ocupa el **74%** del cuadro. Medido: la referencia re-codificada da ≤ 0,37,
+    un dorado típico 9,51, y el peor caso —`magnate_solar`, que ya vestía de
+    amarillo— **3,84**. Ni un personaje enteramente NEGRO pasa de 25,80. El
+    default quedó en **1,5**; con 12 no pasaba ninguna y el runner agotaba el
+    timeout de cada asset sin encontrar candidato.
+
+18. **El timeout de generación no puede bajar de ~250 s.** Es el piso real
+    medido. Con un cap de 200 s se mata la imagen unos segundos antes de que
+    Gemini la renderice, y como no se guarda PNG el asset **nunca sale de la
+    cola**: se regenera para siempre. Se vio al Fisura generarse diez veces.
+
+19. **`--retries N` son N+1 generaciones** (`range(retries + 1)`). Multiplicado
+    por un driver que también reintenta daban cuatro por asset: 344 en vez de
+    86. `batch_uno_por_uno.py` fija `--retries 0` y la política de reintento vive
+    en un solo lugar. Y **`--only` NO es acumulable**: es un valor único, así que
+    un `--only a --only b` se queda callado con el último.
+
+20. **La cola compartida regenera desde el principio.** Los 86 assets comparten
+    un proceso: si uno se cuelga hay que matar la corrida entera y al relanzar
+    empieza por el primero. Un asset por proceso (`--only`) lo aísla.
+
+21. **Al integrar arte hay que stagear DOS lugares.** Marcar el `.md` como
+    `hecho` no versiona el PNG: van el atlas Y `dropbox/procesadas/`. Un commit
+    que staged sólo los `.md` dejó `origin/main` con 84 de 86 skins, detectado
+    recién al verificar el push.
+
+22. **Instrumentar antes que deducir.** Dos diagnósticos seguidos salieron
+    erróneos razonando desde los números (primero "el umbral descarta el
+    dorado", después "el filtro de 512 px lo deja afuera"). El que acertó salió
+    de imprimir los anchos de las imágenes en pantalla: `imgs en pantalla:
+    1024,150,150,128,64,32` mostró que la generada **no existía todavía** cuando
+    el runner miraba. Cuando el log no alcanza, agregale una línea al código en
+    vez de inferir.
+
 ## 8. Qué queda
 
 ### Lo que dejó el rediseño de UI (2026-08-16)
@@ -1288,6 +1410,8 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
+| **`SESION-2026-08-19-skins-oro-diamante.md`** | **Las 86 skins de material: el catálogo de un id por material, el desbloqueo de cada una y los tres bugs medidos del pipeline de generación** |
+| **`SESION-2026-08-18-recorte-de-fondo.md`** | **Por qué el recorte dejó de ser por saliencia, con la medición de los 219 assets y el criterio topológico que lo reemplazó** |
 | **`SESION-2026-08-17-rediseno-v3.md`** | **La sesión más reciente: los materiales v3 de las referencias, tarea por tarea, con la verificación y la trampa del cwd — y sus arcos del 2026-08-18, el tercero es la hoja contenida** |
 | **`SESION-2026-08-16-cierre-post-merge.md`** | **Las 7 tareas del ticket post-merge con sus commits, el veredicto del review de rama y el backlog que sobrevive** |
 | **`SESION-2026-08-14-rediseno-ui.md`** | **Las 20 tareas del rediseño de UI, con sus fix rounds, rulings y avisos vivos. La fuente de verdad del detalle de esa rama** |

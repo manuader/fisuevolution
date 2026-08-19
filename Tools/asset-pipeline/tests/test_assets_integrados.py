@@ -17,11 +17,17 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from process_dropbox import PIPELINE, RESOURCES, destination  # noqa: E402
+from recut_assets import RECORTE_VIEJO_A_PEDIDO  # noqa: E402
 from whitebg_cutout import HUECOS_CALADOS  # noqa: E402
 
 # Un uno por ciento cubre el ruido del reescalado a @2x sin dejar pasar un hueco
 # de verdad: los rotos que se encontraron iban del 5% al 91%.
 MAXIMO_HUECO = 1.0
+
+# Los que pueden tener hueco sin que sea el bug: los que lo tienen de diseno y los
+# doce que el dueno prefirio con el recorte viejo, donde el hueco es el precio de
+# no cargar con la sombra del piso (ver `recut_assets.RECORTE_VIEJO_A_PEDIDO`).
+CON_PERMISO = HUECOS_CALADOS | RECORTE_VIEJO_A_PEDIDO
 
 
 def integrados():
@@ -50,7 +56,7 @@ class AssetsIntegradosTests(unittest.TestCase):
         agujereados = [
             (key, png.name, round(hueco, 2))
             for key, png in integrados()
-            if key not in HUECOS_CALADOS
+            if key not in CON_PERMISO
             and (hueco := porcentaje_de_hueco(png)) > MAXIMO_HUECO
         ]
         self.assertEqual(agujereados, [], f"assets con el dibujo calado: {agujereados}")

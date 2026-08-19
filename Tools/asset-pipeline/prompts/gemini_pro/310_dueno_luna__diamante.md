@@ -1,7 +1,7 @@
 # 310 - Diamante (skin de Dueno de la Luna)
 
 - **archivo**: `dueno_luna__diamante.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **referencia**: adjuntar `dropbox/procesadas/dueno_luna.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

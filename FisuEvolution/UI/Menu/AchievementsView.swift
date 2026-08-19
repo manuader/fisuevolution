@@ -197,14 +197,11 @@ private struct AchievementCard: View {
     private var content: some View {
         HStack(spacing: Tokens.s12) {
             // La copa pasa por `GameIcon` para que el PNG del atlas la pueda
-            // reemplazar: el `rawValue` del metal ES el sufijo de la clave
-            // (`ui_trophy_bronze/silver/gold`), que es como se llaman los tres
-            // prompts 224–226 de la cola. Mientras el atlas no las tenga, cae al
-            // vector y no cambia nada; el día que el batch entre, entra sola.
-            GameIcon(artKey: "ui_trophy_\(tier.rawValue)", size: 42) {
-                VectorTrophyIcon(tier: tier)
-            }
-            .accessibilityHidden(true)
+            // reemplazar; la clave vive en el enum (`Tier.artKey`) porque el
+            // toast de `RootView` resuelve el MISMO trofeo y dos
+            // interpolaciones sueltas podían divergir.
+            GameIcon(artKey: tier.artKey, size: 42) { VectorTrophyIcon(tier: tier) }
+                .accessibilityHidden(true)
             info
                 .frame(maxWidth: .infinity, alignment: .leading)
                 // Todo lo que dice esta columna ya lo dice `axLabel`, que es el

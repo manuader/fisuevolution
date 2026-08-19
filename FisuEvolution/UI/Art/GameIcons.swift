@@ -465,6 +465,13 @@ struct VectorTrophyIcon: View {
             case .gold: Color("PaletteYellow")
             }
         }
+
+        /// La clave del atlas de este metal (`ui_trophy_bronze/silver/gold`),
+        /// la misma que encoló la T19. Vive en el enum porque los DOS
+        /// call-sites del trofeo —la fila de Logros y el toast— tienen que
+        /// resolver la misma clave: duplicada en cada vista, un batch que
+        /// aterriza en una y no en la otra mostraría dos trofeos distintos.
+        var artKey: String { "ui_trophy_\(rawValue)" }
     }
 
     let tier: Tier

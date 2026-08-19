@@ -533,13 +533,11 @@ private struct AchievementToastView: View {
         VStack {
             Spacer()
             HStack(spacing: Tokens.s8) {
-                // Misma costura que la fila de Logros: el `rawValue` del metal es
-                // el sufijo de la clave del atlas (`ui_trophy_bronze/silver/gold`,
-                // prompts 224–226 de la cola). Sin PNG cae al vector, así que el
-                // pulso de abajo sigue midiendo lo mismo.
-                GameIcon(artKey: "ui_trophy_\(tier.rawValue)", size: 34) {
-                    VectorTrophyIcon(tier: tier)
-                }
+                // Misma costura que la fila de Logros, con la MISMA clave: vive
+                // en `Tier.artKey` para que un batch que aterrice no muestre dos
+                // trofeos distintos. Sin PNG cae al vector y el pulso de abajo
+                // sigue midiendo lo mismo.
+                GameIcon(artKey: tier.artKey, size: 34) { VectorTrophyIcon(tier: tier) }
                     .keyframeAnimator(initialValue: 1.0, trigger: pulse) { view, scale in
                         view.scaleEffect(scale)
                     } keyframes: { _ in

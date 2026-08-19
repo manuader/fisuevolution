@@ -474,9 +474,18 @@ private struct SkinCard: View {
         return UIArt.characterImage(atlas: atlas, key: baseKey)
     }
 
+    /// Todo lo que no tenés se ve en silueta, también lo que está a la venta.
+    ///
+    /// Antes sólo la de milestone se ocultaba y la paga se enseñaba a color, que
+    /// es regalar justo lo que se quiere vender: las de material se compran por
+    /// bundle, así que ver una sola ya saca las ganas de pagar por las 43. La
+    /// tienda sí las muestra a color — ahí el arte es el argumento de venta; acá
+    /// el argumento es la expectativa.
     private var isSilhouette: Bool {
-        if case .milestoneLocked = row.state { return true }
-        return false
+        switch row.state {
+        case .equipped, .owned: false
+        case .milestoneLocked, .purchasable: true
+        }
     }
 
     /// El slot de abajo: el único control de la tarjeta, o el badge que explica

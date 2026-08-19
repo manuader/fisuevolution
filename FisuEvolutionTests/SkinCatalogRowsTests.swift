@@ -159,3 +159,33 @@ struct SkinCatalogRowsTests {
         #expect(try row(gameState, "god", "base").state == .equipped)
     }
 }
+
+// MARK: - Qué se enseña y qué se esconde (2026-08-19)
+
+/// La regla comercial del bundle: en la ficha, todo lo que no tenés va en
+/// silueta —también lo que está a la venta— para que el arte sea la razón de
+/// comprar y no un regalo. La tienda es el único lugar donde se ve a color.
+@Suite("Silueta de lo no adquirido")
+@MainActor
+struct SkinSilhouetteTests {
+    /// Espeja `SkinCard.isSilhouette`: la vista no es testeable desde acá, pero
+    /// la REGLA sí, y es la que no se puede perder en el próximo rediseño.
+    private func enSilueta(_ state: SkinCatalogRow.State) -> Bool {
+        switch state {
+        case .equipped, .owned: false
+        case .milestoneLocked, .purchasable: true
+        }
+    }
+
+    @Test("lo que tenés se ve a color")
+    func loAdquiridoSeVe() {
+        #expect(!enSilueta(.equipped))
+        #expect(!enSilueta(.owned))
+    }
+
+    @Test("lo que está a la venta también se esconde: es lo que se quiere vender")
+    func loPagoSeEsconde() {
+        #expect(enSilueta(.purchasable(productID: "com.fisuevolution.iap.skins_diamante")))
+        #expect(enSilueta(.milestoneLocked(conditionText: "Maxeá todas las mejoras")))
+    }
+}

@@ -7815,6 +7815,23 @@
           }
         }
       }
+    },
+    "skins.unlock.upgrades_maxed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max out every upgrade"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maxeá todas las mejoras"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

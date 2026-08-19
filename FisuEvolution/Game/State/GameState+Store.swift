@@ -120,6 +120,11 @@ extension GameState {
             // El id crudo del piso ("urban") no es un nombre.
             return String(localized: "skins.unlock.floor \(TowerNaming.floorName(for: floorID))")
         }
+        if entry.upgradesMaxed == true {
+            // El oro no se vende: el texto genérico ("todavía no está a la
+            // venta") decía justo lo contrario de su única vía.
+            return String(localized: "skins.unlock.upgrades_maxed")
+        }
         if let lives = entry.reincarnations {
             // `String(lives)`: interpolar un Int manda `%lld`, la clave declarada
             // con `%@` no matchea y en pantalla queda la clave cruda (trampa 5).

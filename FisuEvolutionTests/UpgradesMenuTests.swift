@@ -103,6 +103,33 @@ struct UpgradesMenuTests {
         #expect(row.multiplierText.contains(factor.formatted(.number.precision(.fractionLength(0...1)))))
     }
 
+    @Test("la fila al tope deja de vender: 20/20, maxeada y la compra no mueve nada")
+    func rowAtCapStopsSelling() async throws {
+        let gameState = await makeGameState()
+        let typeId = try #require(gameState.characterUpgradeRows.first?.id)
+        let cap = try #require(gameState.content?.economy.charUpgrades.maxLevel)
+
+        var player = try #require(gameState.player)
+        player.run.charUpgradeLevels[typeId] = cap
+        gameState.player = player
+
+        let row = try #require(gameState.characterUpgradeRows.first)
+        #expect(row.upgradeMaxed)
+        #expect(row.upgradeLevel == cap)
+        #expect(row.upgradeMaxLevel == cap)
+        #expect(row.canAffordUpgrade == false)
+        // El contador n/tope viaja en la línea del multiplicador (pedido del
+        // dueño, 2026-08-19): sin abrir la fila se ve cuánto camino queda.
+        #expect(gameState.characterIncomeText(for: row).contains("\(cap)"))
+
+        // Y la acción canónica rechaza sin tocar el estado, con plata de sobra.
+        gameState.debugGrantCoins()
+        let coinsBefore = try #require(gameState.player?.run.coins)
+        gameState.buyCharacterUpgrade(typeID: typeId)
+        #expect(gameState.characterUpgradeLevel(of: typeId) == cap)
+        #expect(gameState.player?.run.coins == coinsBefore)
+    }
+
     @Test("se compra el pasivo desde el menú y el income del tipo sube")
     func buyPassiveFromMenu() async throws {
         let gameState = await makeGameState()

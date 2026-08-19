@@ -75,6 +75,23 @@ targets:
           # así que sólo Debug lo busca; en Release no hay import y el
           # autolink —que sigue al import— tampoco lo linkea.
           ENABLE_TESTING_SEARCH_PATHS: YES
+          # ⚠️ WEAK y no fuerte: StoreKitTest depende de XCTest, que fuera del
+          # entorno de tests (o de un bundle que los embeba) NO está en ningún
+          # rpath — con el link fuerte, una instalación a pelo por `simctl`
+          # ABORTABA EN DYLD al lanzar ("Library not loaded: XCTest", medido
+          # 2026-08-18). Débil, dyld tolera la falta y `StoreManager` pregunta
+          # por la clase antes de tocarla: sin frameworks la app arranca igual
+          # y la tienda cae al camino de siempre.
+          OTHER_LDFLAGS: -weak_framework StoreKitTest
+          # Y estos DOS rpaths son los que hacen que la tienda local funcione
+          # también instalada a pelo: XCTest (la dependencia de StoreKitTest) y
+          # sus re-exports (XCTestCore, XCUIAutomation) viven en el platform
+          # dir del HOST, que un proceso del simulador puede cargar — es
+          # exactamente lo que el runner de tests inyecta por DYLD_* cuando
+          # corre la suite. Rutas absolutas de esta máquina horneadas en el
+          # binario de DEBUG: en otra máquina con Xcode en otro lado, el weak
+          # link de arriba degrada limpio (app viva, tienda sin catálogo).
+          LD_RUNPATH_SEARCH_PATHS: $(inherited) $(PLATFORM_DIR)/Developer/Library/Frameworks $(PLATFORM_DIR)/Developer/Library/PrivateFrameworks
     # Entitlements futuros (F6, detrás de feature flags — NO habilitar antes):
     #   com.apple.developer.game-center, iCloud/CloudKit container
   FisuEvolutionTests:

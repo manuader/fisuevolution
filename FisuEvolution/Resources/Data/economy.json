@@ -12,7 +12,8 @@
   "charUpgrades": {
     "baseCostMultiplier": 50,
     "costGrowth": 4.0,
-    "effectFactorPerLevel": 2.0
+    "effectFactorPerLevel": 2.0,
+    "maxLevel": 20
   },
   "oro": {
     "divisor": 3000000,

@@ -120,6 +120,10 @@ struct GameContentValidationTests {
         #expect(economy.charUpgrades.baseCostMultiplier == 50)
         #expect(economy.charUpgrades.costGrowth == 4.0)
         #expect(economy.charUpgrades.effectFactorPerLevel == 2.0)
+        // Tope de niveles por personaje (dueño, 2026-08-19): máximo = base ×
+        // 2^20. Sin techo, el exponencial terminaba en overflow y el juego se
+        // caía. Cambiarlo es una decisión de balance, no un ajuste.
+        #expect(economy.charUpgrades.maxLevel == 20)
         #expect(economy.oro.divisor == 3_000_000)
         // RF-07 (Ola 3): el exponente bajó de 0.5 a 0.45 —el spec pedía ~0.40,
         // pero 0.40 medido deja el juego en 1094 h— y el multiplicador por ORO

@@ -16,6 +16,13 @@ extension GameState {
         let faceKey: String?
         /// "×4" — lo que rinde HOY.
         let multiplierText: String
+        /// En qué mejora va (clampeado al tope: un save tocado no muestra 33/20).
+        let upgradeLevel: Int
+        /// El tope del config (20: máximo = base × 2^20, o el exponencial
+        /// termina en overflow — decisión del dueño, 2026-08-19).
+        let upgradeMaxLevel: Int
+        /// Al tope: la fila deja de vender el multiplicador e informa.
+        let upgradeMaxed: Bool
         let upgradeCost: Double
         let canAffordUpgrade: Bool
         let passiveUnlocked: Bool
@@ -77,17 +84,22 @@ extension GameState {
         guard let content, let player else { return [] }
         let coins = player.run.coins
         let factor = content.economy.charUpgrades.effectFactorPerLevel
+        let maxLevel = content.economy.charUpgrades.maxLevel
         return characterUpgradeTypes.map { type in
-            let level = characterUpgradeLevel(of: type.id)
-            let cost = characterUpgradeCost(of: type) ?? .infinity
+            let level = min(characterUpgradeLevel(of: type.id), maxLevel)
+            // `nil` = al tope: no hay próximo nivel que cotizar.
+            let cost = characterUpgradeCost(of: type)
             return CharacterUpgradeRow(
                 id: type.id,
                 displayName: type.displayName,
                 tier: type.tier,
                 faceKey: faceKey(for: type.id),
                 multiplierText: multiplierText(pow(factor, Double(level))),
-                upgradeCost: cost,
-                canAffordUpgrade: coins >= cost,
+                upgradeLevel: level,
+                upgradeMaxLevel: maxLevel,
+                upgradeMaxed: cost == nil,
+                upgradeCost: cost ?? .infinity,
+                canAffordUpgrade: cost.map { coins >= $0 } ?? false,
                 passiveUnlocked: player.run.passiveUnlocked[type.id] == true,
                 passiveCost: type.passiveUnlockCost,
                 canAffordPassive: coins >= type.passiveUnlockCost,
@@ -118,12 +130,19 @@ extension GameState {
         EffectFormatter.text(EffectAmount(unit: .multiplier, value: value, isCapped: false))
     }
 
-    /// Qué rinde HOY este personaje, y nada más. Decía "Plata ×1 → ×2 para El
-    /// Fisura": tres datos en una línea, con el nombre repetido de la cabecera de
-    /// la card y un "después" que el botón ya insinúa con su precio. La fila
-    /// entra en el ancho que le deja el retrato sin achicar la letra.
+    /// Qué rinde HOY este personaje y en qué mejora va: "Plata ×8 · Nivel
+    /// 3 / 20". El contador es el pedido del dueño (2026-08-19): con tope de
+    /// 20, la fila tiene que decir cuánto camino queda — la misma clave
+    /// `upgrades.level` que ya usan las barras de las permanentes, para que
+    /// las dos pestañas cuenten los niveles con las mismas palabras.
+    ///
+    /// ⚠️ Los dos `Int` van por `String(_:)` ANTES de entrar en la clave
+    /// (trampa 5: interpolarlos armaría `upgrades.level %lld %lld`, que no
+    /// existe en el catálogo).
     func characterIncomeText(for row: CharacterUpgradeRow) -> String {
-        String(localized: "upgrades.character.income_now \(row.multiplierText)")
+        let income = String(localized: "upgrades.character.income_now \(row.multiplierText)")
+        let level = String(localized: "upgrades.level \(String(row.upgradeLevel)) \(String(row.upgradeMaxLevel))")
+        return "\(income) · \(level)"
     }
 
     /// Lo que rinde por segundo UNA instancia de este tipo con el pasivo puesto:

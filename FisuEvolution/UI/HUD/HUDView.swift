@@ -117,7 +117,11 @@ struct HUDView: View {
         UnevenRoundedRectangle(
             bottomLeadingRadius: 24, bottomTrailingRadius: 24, style: .continuous
         )
-        .fill(Color("PaletteCream"))
+        // Al 80% el tablero se adivina detrás de la barra (pedido del dueño,
+        // 2026-08-19; la inferior va al 90% — el contador de arriba tolera más
+        // fondo que los labels chicos de los tabs). El contorno ink queda
+        // opaco: es el trazo, no el fondo.
+        .fill(Color("PaletteCream").opacity(0.8))
         .overlay(
             UnevenRoundedRectangle(
                 bottomLeadingRadius: 24, bottomTrailingRadius: 24, style: .continuous

@@ -236,19 +236,39 @@ struct UpgradesView: View {
                     .accessibilityHidden(true)
 
                 upgradeLine(text: gameState.characterIncomeText(for: row), accent: Color("PaletteBlue")) {
-                    PricePill(
-                        text: CoinFormatter.string(from: row.upgradeCost),
-                        currency: .coins,
-                        affordable: row.canAffordUpgrade,
-                        identifier: "upgrades.character.\(row.id).multiplier",
-                        // Las dos cápsulas de la fila son verdes, dicen un monto
-                        // en monedas y están una debajo de la otra: sin decir cuál
-                        // es cuál, la única forma de saberlo es el orden de
-                        // lectura. El nombre va porque en el rotor las N filas
-                        // repiten estos dos botones.
-                        accessibilityPurpose: Text("upgrades.ax.multiplier \(row.displayName)")
-                    ) {
-                        gameState.buyCharacterUpgrade(typeID: row.id)
+                    if row.upgradeMaxed {
+                        // Nivel 20/20: la fila deja de vender e informa, con el
+                        // MISMO badge y las mismas palabras que una permanente
+                        // al máximo ("Al máximo" es una felicitación, no un
+                        // límite que el jugador esté chocando — y `purchase`
+                        // rechaza con `maxLevelReached`, que sonaría a error).
+                        StateBadge(
+                            text: String(localized: "upgrades.maxed"),
+                            systemImage: "star.circle.fill",
+                            textAlignment: .center,
+                            muted: false
+                        )
+                        // El mismo hueco que el `PricePill` (riel de 92): sin él,
+                        // el renglón del contador se estira SÓLO en las filas al
+                        // tope y la lista baila entre estados.
+                        .frame(minWidth: 92, alignment: .trailing)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("upgrades.character.\(row.id).maxed")
+                    } else {
+                        PricePill(
+                            text: CoinFormatter.string(from: row.upgradeCost),
+                            currency: .coins,
+                            affordable: row.canAffordUpgrade,
+                            identifier: "upgrades.character.\(row.id).multiplier",
+                            // Las dos cápsulas de la fila son verdes, dicen un monto
+                            // en monedas y están una debajo de la otra: sin decir cuál
+                            // es cuál, la única forma de saberlo es el orden de
+                            // lectura. El nombre va porque en el rotor las N filas
+                            // repiten estos dos botones.
+                            accessibilityPurpose: Text("upgrades.ax.multiplier \(row.displayName)")
+                        ) {
+                            gameState.buyCharacterUpgrade(typeID: row.id)
+                        }
                     }
                 }
 

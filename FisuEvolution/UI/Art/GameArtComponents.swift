@@ -1106,7 +1106,10 @@ struct GameTabBar: View {
         UnevenRoundedRectangle(
             topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous
         )
-        .fill(Color("PaletteCream"))
+        // Al 90% la multitud apenas se adivina detrás de los tabs (pedido del
+        // dueño, 2026-08-19; la superior va al 80%). El contorno ink queda
+        // opaco: es el trazo, no el fondo.
+        .fill(Color("PaletteCream").opacity(0.9))
         .overlay(
             UnevenRoundedRectangle(
                 topLeadingRadius: 24, topTrailingRadius: 24, style: .continuous

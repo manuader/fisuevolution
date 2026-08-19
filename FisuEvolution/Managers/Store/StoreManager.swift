@@ -107,11 +107,20 @@ final class StoreManager {
         guard localStoreSession == nil,
               ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
         else { return }
+        // StoreKitTest va linkeado DÉBIL (ver project.yml): si dyld no pudo
+        // cargarlo —su dependencia XCTest no existe fuera del entorno de tests
+        // ni de un bundle que la embeba— la clase no está y tocar el símbolo
+        // abortaría. Se pregunta antes: sin framework no hay tienda local y la
+        // carga sigue el camino de siempre (el scheme de Xcode o el sandbox).
+        guard NSClassFromString("SKTestSession") != nil else {
+            Log.store.info("StoreKitTest ausente: sin tienda local en este entorno")
+            return
+        }
         do {
             localStoreSession = try SKTestSession(configurationFileNamed: "FisuEvolution")
         } catch {
-            // Sin el recurso en el bundle no hay tienda local: la carga sigue
-            // el camino de siempre (el scheme de Xcode o el sandbox real).
+            // Con el framework pero sin el recurso en el bundle tampoco hay
+            // tienda local: mismo camino de siempre.
             Log.store.info("local StoreKit session unavailable: \(error.localizedDescription)")
         }
     }

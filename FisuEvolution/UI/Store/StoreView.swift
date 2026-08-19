@@ -74,19 +74,12 @@ struct StoreView: View {
                     }
                 }
                 .padding(.horizontal, Self.panelInset)
-                .padding(.top, Tokens.s4)
+                .padding(.top, Tokens.s12)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { WoodPanelBackground(awning: true) }
-            .safeAreaInset(edge: .top) { header }
+            .panelSheet(awning: true) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
-            // La barra de navegación aparece recién al scrollear, y de fábrica lo
-            // hace con el material blanco del sistema: contra el marco de madera
-            // quedaba una banda blanca cruzando el panel. Pintada de crema empalma
-            // con la cabecera de abajo y las dos se leen como UNA barra fija
-            // (mismo criterio que `FisuJobsView` y `CustomizationView`).
-            .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
@@ -99,15 +92,9 @@ struct StoreView: View {
 
     // MARK: Cabecera
 
-    /// Título, bajada y restaurar compras, fijos arriba de la vidriera.
-    ///
-    /// ⚠️ **El fondo crema opaco no es decoración.** Un `safeAreaInset` recorta el
-    /// área segura pero el contenido del scroll sigue pasando POR DEBAJO: sin la
-    /// banda opaca las tarjetas desfilan a través del título. Es el defecto que el
-    /// HANDOFF §8 anota para "el título flotante de los paneles" y que la T8 cortó
-    /// en FisuJobs; acá se hereda el arreglo entero, banda de borde a borde
-    /// incluida (una banda angosta debajo del fondo full-width de la barra de
-    /// navegación deja un escalón).
+    /// Título, bajada y restaurar compras, ADENTRO del pergamino, debajo del
+    /// toldo. Sin banda opaca: el `panelSheet` recorta el scroll por debajo de
+    /// la cabecera, y la banda de borde a borde tapaba el marco (2026-08-18).
     private var header: some View {
         VStack(spacing: Tokens.s8) {
             // El mismo glifo que el tab que abre esta hoja, ADENTRO de la
@@ -137,13 +124,6 @@ struct StoreView: View {
             ) {
                 Task { await store.restore() }
             }
-        }
-        .padding(.top, 6)
-        .padding(.bottom, Tokens.s8)
-        .frame(maxWidth: .infinity)
-        .background {
-            Color("PaletteCream")
-                .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
         }
     }
 

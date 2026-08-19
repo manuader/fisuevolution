@@ -32,6 +32,15 @@ targets:
     platform: iOS
     sources:
       - FisuEvolution
+      # El .storekit viaja en el bundle para que la tienda local funcione en
+      # builds lanzadas SIN Xcode (simctl, tocar el icono): el
+      # `storeKitConfiguration` del scheme sólo se inyecta cuando Xcode lanza
+      # la app, y sin él StoreKit devuelve el catálogo vacío — la tienda
+      # mostraba "sin conexión" para siempre (lo vio el dueño, 2026-08-18).
+      # Quien lo usa es el bootstrap DEBUG de `StoreManager` (SKTestSession);
+      # en Release el archivo es un JSON inerte de ~4 KB.
+      - path: StoreKitConfig/FisuEvolution.storekit
+        buildPhase: resources
     dependencies:
       - package: EconomyKit
     settings:
@@ -58,6 +67,14 @@ targets:
         INFOPLIST_KEY_UIStatusBarHidden: YES
         CURRENT_PROJECT_VERSION: "1"
         MARKETING_VERSION: "0.1.0"
+      configs:
+        Debug:
+          # StoreKitTest (la tienda local DEBUG de `StoreManager`) vive en
+          # `$(SDKROOT)/Developer/Library/Frameworks`, fuera de los search
+          # paths de un target de app. Sólo Debug lo importa (`#if DEBUG`),
+          # así que sólo Debug lo busca; en Release no hay import y el
+          # autolink —que sigue al import— tampoco lo linkea.
+          ENABLE_TESTING_SEARCH_PATHS: YES
     # Entitlements futuros (F6, detrás de feature flags — NO habilitar antes):
     #   com.apple.developer.game-center, iCloud/CloudKit container
   FisuEvolutionTests:

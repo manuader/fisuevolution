@@ -235,3 +235,82 @@ Tres trampas nuevas del batch quedaron en la memoria del agente: tildes en el
 cuerpo del prompt (tecla muerta, pérdida determinística), la venv symlinkeada
 para correr desde worktree, y el alta obligatoria en `prompts.json` para que
 `process_dropbox.py` integre. La cola quedó 236/236.
+
+## Tercer arco: la hoja CONTENIDA (2026-08-18, tarde)
+
+Dos correcciones del dueño mirando FisuJobs en vivo: la cabecera crema tapaba
+el toldo y los postes ("la card del título no está contenida"), y las
+tarjetas salían por abajo de la pantalla en vez de morir contra el marco
+("deben salir desde adentro de la card contenedora"). Más un pedido de HUD:
+los dos accesos más grandes, y el ascensor **más ancho** — su aspect ratio se
+veía raro.
+
+**El diagnóstico**: el marco era un FONDO, no un contenedor. `ignoresSafeArea`
+lo estiraba hasta el borde físico (banda inferior fuera de pantalla), el
+`ScrollView` raíz sangraba por debajo de la safe area (las tarjetas desfilaban
+POR ENCIMA de la banda hasta el borde), y la única forma de que no desfilaran
+por atrás del título era la banda opaca full-width que el HANDOFF §8 anotaba
+como parche.
+
+**El arreglo** (`panelSheet`, en `PanelFrames.swift`): la hoja es un
+`VStack { cabecera; scroll }` donde la cabecera vive ADENTRO del pergamino
+—debajo del toldo, al ancho de la columna, sin fondo propio— y el scroll es
+una región RECORTADA con fundido en los bordes: las tarjetas se disuelven
+contra la cabecera arriba y contra la banda abajo. El panel respeta la safe
+area inferior (banda y tornillos a la vista), se recorta a sus esquinas
+redondeadas, tira sombra y **flota sobre el juego atenuado** con
+`presentationBackground(.clear)` — como los popups, que es como componen las
+referencias. Migraron las 12 hojas (las 6 de la barra, ascensor, las 4 del
+menú y Legales); murieron las 12 bandas opacas y los `toolbarBackground`
+crema, porque el defecto que los justificaba ya no puede ocurrir.
+
+**Popups**: Prestige, CareerChoice y SkinAward todavía mostraban el
+rectángulo del material de sistema alrededor de su marco de arte — ahora
+flotan transparentes como sus gemelos (Daily/AFK/Sorpresa ya venían bien).
+
+**HUD**: los PNG `ui_elevator` y `ui_coin_plus` traían ~55 % de lienzo
+transparente — el dibujo flotaba chico y angosto dentro del botón. Se
+recortaron al bbox del alfa (+2 % de aire), la moneda subió a 66 pt y el
+ascensor a **72 pt estirado a 0,86 de aspecto** (`IconButton.glyphAspect`,
+probado contra 0,72 y 1,0 en previsualización: a 0,86 la cabina queda robusta
+sin que el trazo se lea deformado). `ui_gift_bow` tenía el mismo lienzo
+muerto: recortado, el moño de Regalos por fin rinde los 150 pt del diseño.
+
+Verificado en capturas (16 Pro): las 6 hojas + ascensor + menú/Logros +
+daily/fork/ficha/prestigio. Y en pantalla chica: un agente barrió iPhone SE
+(375×667) — cero colisiones ni clipping; dos truncaciones elegantes con
+ellipsis quedaron como pulido opcional ("1 on pay…", el banner largo de
+Pintas).
+
+## Cuarto tramo: los ajustes en caliente + la tienda + los popups en familia
+
+El dueño, mirando capturas, pidió cuatro cosas más — y todas cerraron en la
+misma tarde:
+
+1. **Mejoras vuelve a madera con toldo** y gana el glifo de su tab en el
+   título; el metal queda SOLO para el Ascensor, la única maquinaria real.
+   El Menú gana su glifo también, y sus cuatro tarjetas muestran el icono
+   pelado a 84 pt — el plato circular con aro achicaba el dibujo.
+2. **HUD ×0,85**: los accesos quedaron en 56/61 pt (el ascensor conserva el
+   estirado 0,86 — ancho, pero más discreto).
+3. **La tienda "sin conexión" para siempre**: el `.storekit` del scheme sólo
+   se inyecta cuando Xcode lanza la app — instalada por `simctl` (como la v4
+   del dueño), StoreKit devolvía catálogo vacío. Ahora el `.storekit` viaja
+   en el bundle y `StoreManager` levanta en DEBUG una `SKTestSession` con esa
+   misma configuración (bajo XCTest NO: los tests manejan la suya).
+   `StoreKitTest` vive fuera de los search paths de una app: Debug —y sólo
+   Debug— prende `ENABLE_TESTING_SEARCH_PATHS`; Release ni importa ni linkea.
+4. **Los siete popups hablan `PanelCard`**: el tablón de las hojas en escala
+   de tarjeta (banda fina, tornillos, pergamino, ink, sombra) reemplaza a los
+   CUATRO marcos de arte con insets medidos por PNG. La familia de premio
+   (daily, AFK, sorpresa) lleva el moño asomando arriba del marco, como un
+   regalo. `GamePanel` y `PanelBackground` quedaron sin llamadores y se
+   retiraron; sus PNG siguen en el atlas como reserva.
+
+**Números del cierre** (máquina cargada, rojos re-verificados aislados según
+protocolo): EconomyKit **200/200** · unit **381/381** · UI **46/46** (44 en
+suite + 2 flakes de carga confirmados verdes aislados: el recorte del
+tutorial que no publicó a tiempo y un `scrollToVisible` de AX sobre un botón
+visible). El merge con el balance del dueño (Fisura a 25) entró limpio —
+cero archivos en común — y unit+EconomyKit se re-corrieron sobre el
+resultado integrado.

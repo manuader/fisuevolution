@@ -73,21 +73,12 @@ struct FisuJobsView: View {
                     }
                 }
                 .padding(.horizontal, Self.panelInset)
-                .padding(.top, Tokens.s4)
+                .padding(.top, Tokens.s12)
                 .padding(.bottom, Tokens.s24)
             }
-            .background { WoodPanelBackground(awning: true) }
-            .safeAreaInset(edge: .top) { header }
+            .panelSheet(awning: true) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
-            // La barra de navegación aparece recién al scrollear, y de fábrica lo
-            // hace con el material blanco del sistema: contra el marco de madera
-            // quedaba una banda blanca cruzando el panel. Pintada de crema
-            // empalma con la cabecera de abajo y las dos se leen como UNA sola
-            // barra fija. No se fuerza `.visible`: en reposo sigue transparente y
-            // el toldo del `panel_store` se ve entero, que es la mitad de la
-            // gracia de la pantalla.
-            .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
@@ -96,20 +87,12 @@ struct FisuJobsView: View {
 
     // MARK: Cabecera
 
-    /// El logo y la bajada, fijos arriba de la lista.
+    /// El logo y la bajada, ADENTRO del pergamino, debajo del toldo.
     ///
-    /// ⚠️ **El fondo opaco no es decoración: sin él la cabecera no tapa nada.**
-    /// Un `safeAreaInset` recorta el área segura pero el contenido del scroll
-    /// sigue pasando POR DEBAJO, así que con la banda transparente las tarjetas
-    /// desfilaban a través de la bajada y asomaban a los costados de la cápsula
-    /// del logo. Es el mismo defecto que el HANDOFF §8 anota para "el título
-    /// flotante de los paneles" —el de todas las hojas—, y acá se corta.
-    ///
-    /// La banda va de borde a borde y no recortada al ancho de la columna, aun
-    /// sabiendo que así tapa los postes del marco en su franja: el fondo de la
-    /// barra de navegación —que es de sistema— es full width y no se puede
-    /// recortar, y una banda angosta debajo de una ancha da un escalón. Enteras
-    /// y del mismo crema, las dos se leen como UNA cabecera fija.
+    /// Sin banda opaca ni fondo propio: el `panelSheet` recorta el scroll por
+    /// DEBAJO de la cabecera, así que ya no hay desfile que tapar — la banda
+    /// crema de borde a borde que vivía acá tapaba el toldo y los postes del
+    /// marco, que es exactamente lo que el dueño pidió que no pase (2026-08-18).
     private var header: some View {
         VStack(spacing: Tokens.s4) {
             FisuJobsWordmark()
@@ -120,13 +103,6 @@ struct FisuJobsView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
                 .padding(.horizontal, Tokens.s24)
-        }
-        .padding(.top, 6)
-        .padding(.bottom, Tokens.s12)
-        .frame(maxWidth: .infinity)
-        .background {
-            Color("PaletteCream")
-                .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
         }
     }
 

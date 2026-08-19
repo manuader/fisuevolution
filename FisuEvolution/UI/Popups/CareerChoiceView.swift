@@ -20,15 +20,10 @@ struct CareerChoiceView: View {
     let prompt: GameState.CareerPrompt
 
     var body: some View {
-        // ⚠️ Los insets laterales son 38 y no los 24 de antes: el marco del panel
-        // es un 9-slice cuyo dibujo entra ~18 pt hacia adentro (el relleno crema
-        // de `GamePanel` va con ese mismo `padding(18)`), así que con 24 las
-        // tarjetas quedaban PISANDO el borde ink en vez de adentro de él. Con los
-        // botones azules de antes no se notaba porque eran más angostos que el
-        // marco; una tarjeta que ocupa todo el ancho lo destapó. El de abajo es
-        // 48 por lo mismo: el marco tiene más dibujo abajo que a los costados y
-        // con 30 la última tarjeta se le montaba encima.
-        GamePanel(art: "panel_career", insets: EdgeInsets(top: 74, leading: 38, bottom: 48, trailing: 38)) {
+        // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
+        // insets son del componente, no medidos contra un PNG (pedido del
+        // dueño 2026-08-18: una sola familia visual para hojas y popups).
+        PanelCard {
             VStack(spacing: Tokens.s16) {
                 header
                 // La recompensa se muestra ANTES de tocar (RF-15): una elección a
@@ -40,10 +35,18 @@ struct CareerChoiceView: View {
                     }
                 }
             }
+            // Un suspiro sobre los 28 del marco: que el título no nazca pegado
+            // a la banda (el aire que antes regalaba el ornamento del arte).
+            .padding(.top, Tokens.s4)
         }
         .padding(Tokens.s16)
         .presentationDetents([.large])
         .interactiveDismissDisabled()
+        // El tablón no llega a los bordes de la hoja: sin esto el fondo de
+        // sistema deja un rectángulo alrededor del panel. Transparente, el
+        // fork flota sobre el tablero que está por bifurcar (mismo criterio
+        // que la ficha y los popups de premio).
+        .presentationBackground(.clear)
     }
 
     private var header: some View {

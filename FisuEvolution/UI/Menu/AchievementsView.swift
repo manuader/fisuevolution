@@ -51,14 +51,12 @@ struct AchievementsView: View {
                 }
             }
             .padding(.horizontal, MenuView.panelInset)
-            .padding(.top, Tokens.s4)
+            .padding(.top, Tokens.s12)
             .padding(.bottom, Tokens.s24)
         }
-        .background { WoodPanelBackground() }
-        .safeAreaInset(edge: .top) { header(claimed: claimed, total: total) }
+        .panelSheet { header(claimed: claimed, total: total) }
         .navigationTitle(Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) { ArtCloseButton(action: close) }
         }
@@ -66,8 +64,8 @@ struct AchievementsView: View {
 
     // MARK: Cabecera
 
-    /// El título y el marcador, fijos arriba de la lista. Fondo crema OPACO: sin
-    /// él las tarjetas desfilan por detrás del título.
+    /// El título y el marcador, ADENTRO del pergamino. Sin banda opaca: el
+    /// `panelSheet` recorta la lista por debajo de la cabecera (2026-08-18).
     private func header(claimed: Int, total: Int) -> some View {
         // ⚠️ El contador se arma como `String` ANTES de entrar en la clave. Con
         // `Text("ach.header.count \(claimed)/\(total)")`, `LocalizedStringKey`
@@ -82,13 +80,6 @@ struct AchievementsView: View {
                 .monospacedDigit()
                 .foregroundStyle(Color("PaletteInk").opacity(0.75))
                 .lineLimit(1)
-        }
-        .padding(.top, 6)
-        .padding(.bottom, Tokens.s8)
-        .frame(maxWidth: .infinity)
-        .background {
-            Color("PaletteCream")
-                .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
         }
     }
 
@@ -206,14 +197,11 @@ private struct AchievementCard: View {
     private var content: some View {
         HStack(spacing: Tokens.s12) {
             // La copa pasa por `GameIcon` para que el PNG del atlas la pueda
-            // reemplazar: el `rawValue` del metal ES el sufijo de la clave
-            // (`ui_trophy_bronze/silver/gold`), que es como se llaman los tres
-            // prompts 224–226 de la cola. Mientras el atlas no las tenga, cae al
-            // vector y no cambia nada; el día que el batch entre, entra sola.
-            GameIcon(artKey: "ui_trophy_\(tier.rawValue)", size: 42) {
-                VectorTrophyIcon(tier: tier)
-            }
-            .accessibilityHidden(true)
+            // reemplazar; la clave vive en el enum (`Tier.artKey`) porque el
+            // toast de `RootView` resuelve el MISMO trofeo y dos
+            // interpolaciones sueltas podían divergir.
+            GameIcon(artKey: tier.artKey, size: 42) { VectorTrophyIcon(tier: tier) }
+                .accessibilityHidden(true)
             info
                 .frame(maxWidth: .infinity, alignment: .leading)
                 // Todo lo que dice esta columna ya lo dice `axLabel`, que es el

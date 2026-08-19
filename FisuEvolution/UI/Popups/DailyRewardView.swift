@@ -13,8 +13,9 @@ import SwiftUI
 /// `.system(.title2)` sueltos y un `borderedProminent` de sistema: se leía como
 /// una alerta de iOS pegada adentro del moño.
 ///
-/// El marco sigue siendo `panel_reward`, el mismo que enmarca la pantalla de
-/// Regalos: el popup y el calendario que lo explica son parientes a la vista.
+/// El marco es `PanelCard` —el tablón de las hojas en escala de tarjeta— con el
+/// moño de Regalos asomando arriba: el popup y el calendario que lo explica
+/// siguen siendo parientes a la vista.
 struct DailyRewardView: View {
     @Environment(GameState.self) private var gameState
     let claim: DailyRewardManager.Claim
@@ -41,14 +42,11 @@ struct DailyRewardView: View {
     private static let plateShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
 
     var body: some View {
-        // ⚠️ Los márgenes laterales y el de abajo son **medidos contra el arte**,
-        // no heredados: `panel_reward` trae un marco DOBLE (verde y rojo) y con
-        // los 22/24 que traía esta hoja —que le alcanzaban cuando el contenido
-        // era texto centrado que nunca llegaba a los bordes— la tarjeta de premio
-        // y el botón le pisaban las dos líneas. Medido sobre una captura a 3×: el
-        // interior dorado empieza a 163 px del borde de pantalla y la tarjeta
-        // arrancaba en 118. A 40 pt entra adentro con aire.
-        GamePanel(art: "panel_reward", insets: EdgeInsets(top: 84, leading: 40, bottom: 44, trailing: 40)) {
+        // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
+        // insets son suyos, no medidos contra ningún arte (pedido del dueño,
+        // 2026-08-18: una sola familia visual). El moño asomando sobre el
+        // marco es la firma de la familia de premio: se abre como un regalo.
+        PanelCard {
             VStack(spacing: Tokens.s16) {
                 PanelTitleBanner(titleKey: "daily.title")
                 prizeCard
@@ -61,17 +59,28 @@ struct DailyRewardView: View {
                 )
             }
             .frame(maxWidth: .infinity)
+            // El moño invade el tope del marco: este aire corre el banner
+            // para que no se pisen.
+            .padding(.top, Tokens.s8)
+        }
+        .overlay(alignment: .top) {
+            GiftBowOrnament(width: 110)
+                .offset(y: -24)
+                .allowsHitTesting(false)
         }
         .overlay(alignment: .topTrailing) {
             ArtCloseButton { gameState.dismissDailyClaim() }
                 .padding(10)
         }
+        // Aire para la parte del moño que sobresale del marco: sin esto el
+        // borde de la hoja lo recorta.
+        .padding(.top, 26)
         .padding(16)
         .presentationDetents([.fraction(0.52)])
-        // El moño de `panel_reward` no llega a los bordes de la hoja, así que el
-        // fondo de sistema dejaba un rectángulo BLANCO alrededor del panel —el
-        // único blanco puro de todo el juego, y justo en la pantalla que celebra
-        // la racha—. Transparente, el moño flota sobre el tablero, igual que la
+        // El tablón no llega a los bordes de la hoja, así que el fondo de
+        // sistema dejaba un rectángulo BLANCO alrededor del panel —el único
+        // blanco puro de todo el juego, y justo en la pantalla que celebra la
+        // racha—. Transparente, el panel flota sobre el tablero, igual que la
         // ficha del personaje (`CharacterSheetView`), que resolvió lo mismo.
         .presentationBackground(.clear)
     }

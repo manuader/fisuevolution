@@ -1,6 +1,9 @@
 import Foundation
 import Observation
 import StoreKit
+#if DEBUG
+import StoreKitTest
+#endif
 
 /// StoreKit 2 front-end. StoreKit is the source of truth for entitlements;
 /// `PlayerState` only caches them (survives reinstalls via restore/sync).
@@ -44,6 +47,18 @@ final class StoreManager {
     /// "Reintentar"— no puede pisar el resultado de la nueva.
     @ObservationIgnored private var loadGeneration = 0
 
+    #if DEBUG
+    /// La tienda local para builds que corren SIN Xcode (instaladas por
+    /// `simctl`, abiertas tocando el icono): el `.storekit` del scheme sólo se
+    /// inyecta cuando Xcode lanza la app, y sin él StoreKit devuelve el
+    /// catálogo vacío — la pantalla mostraba "sin conexión" para siempre (lo
+    /// vio el dueño probando la v4 instalada a mano, 2026-08-18). La sesión
+    /// levanta la MISMA configuración desde el bundle; corriendo desde Xcode
+    /// simplemente la pisa con una idéntica. Vive en una propiedad porque
+    /// soltarla cierra la sesión.
+    @ObservationIgnored private var localStoreSession: SKTestSession?
+    #endif
+
     init() {}
 
     /// **Sólo para tests**: el manager con el catálogo ya puesto y sin el
@@ -77,9 +92,30 @@ final class StoreManager {
             }
         }
 
+        #if DEBUG
+        startLocalStoreIfNeeded()
+        #endif
         await loadProducts()
         await refreshEntitlements()
     }
+
+    #if DEBUG
+    /// Ver `localStoreSession`. Bajo XCTest NO se arranca: `StoreManagerTests`
+    /// crea su propia `SKTestSession` por test y la del host le pisaría el
+    /// estado (es la asimetría de la trampa 4 del HANDOFF, no se la agranda).
+    private func startLocalStoreIfNeeded() {
+        guard localStoreSession == nil,
+              ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
+        else { return }
+        do {
+            localStoreSession = try SKTestSession(configurationFileNamed: "FisuEvolution")
+        } catch {
+            // Sin el recurso en el bundle no hay tienda local: la carga sigue
+            // el camino de siempre (el scheme de Xcode o el sandbox real).
+            Log.store.info("local StoreKit session unavailable: \(error.localizedDescription)")
+        }
+    }
+    #endif
 
     func loadProducts() async {
         guard let catalog else { return }

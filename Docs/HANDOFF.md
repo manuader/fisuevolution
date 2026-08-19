@@ -51,9 +51,11 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-17** (dos frentes del
-> mismo día: el rediseño v3 de materiales, y la cola de celebraciones + franja
-> de abajo + fork de carrera — §4 tiene las dos sesiones).
+> **Empezá por acá.** Última actualización: **2026-08-18** (la hoja
+> contenida: los marcos pasaron a CONTENER a sus hojas — la sesión en §4, el
+> patrón en §8. El 2026-08-17 tuvo dos frentes del mismo día: el rediseño v3
+> de materiales, y la cola de celebraciones + franja de abajo + fork de
+> carrera — §4 tiene las dos sesiones).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
@@ -202,6 +204,54 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-08-18 (tarde) — La hoja contenida
+
+**Todas las hojas cambiaron de anatomía** (pedido del dueño, mismo
+`feature/rediseno-v3-referencias`): el marco dejó de entrar como `.background`
+y pasó a CONTENER a su hoja — cabecera adentro del pergamino y scroll
+recortado que muere contra la banda inferior del marco, que quedó a la vista.
+El patrón es `panelSheet(material:awning:header:ornament:)` en
+`FisuEvolution/UI/Art/PanelFrames.swift`; por qué esto mata de raíz el
+"título flotante" está contado en §8. Migraron las 12 hojas —FisuJobs,
+Tienda, Mejoras, Pintas, Regalos (su `GiftBowOrnament` ahora entra por el
+slot `ornament`), Menú, el mapa del Ascensor, organigrama, stats, logros,
+ajustes y Legales— y todas se presentan con `.presentationBackground(.clear)`:
+aplicado en `RootView` para las 6 de la barra y en `HUDView` para el
+ascensor. `PrestigeView`, `CareerChoiceView` y `SkinAwardView` lo ganaron
+también (los otros popups ya lo tenían): ya ningún popup muestra el
+rectángulo del material de sistema alrededor de su marco de arte. El detalle
+vive en el tercer arco de **`Docs/SESION-2026-08-17-rediseno-v3.md`**.
+
+Cinco cosas más del día:
+
+- **`IconButton` ganó `glyphAspect`** — el ancho del glifo como fracción del
+  alto; con un valor ≠ 1 el arte se ESTIRA a propósito (pedido del dueño para
+  el ascensor). Tras una ronda de ajuste en caliente (×0,85), la moneda+
+  quedó en **56 pt** y el ascensor en **61 pt** con `glyphAspect` 0,86.
+- **`ui_elevator`, `ui_coin_plus` y `ui_gift_bow` se recortaron al bbox del
+  alfa** (+2% de aire): traían ~40–60% de lienzo transparente y por eso
+  rendían chicos. ⚠️ Si el batch los regenera, vuelven con márgenes — la
+  advertencia quedó en §8, punto 1.
+- **Mejoras volvió a MADERA con toldo** (y el glifo de su tab en el título,
+  como Pintas/Regalos/Tienda; el Menú ganó el suyo y sus tarjetas muestran el
+  icono pelado a 84 pt). El metal quedó SOLO para el Ascensor: dos materiales,
+  un criterio — metal = maquinaria de verdad.
+- **La tienda funciona fuera de Xcode** (`fix(store)`): el `.storekit` del
+  scheme sólo se inyecta cuando Xcode lanza la app; instalada por `simctl`
+  StoreKit devolvía catálogo vacío y la pantalla quedaba en "sin conexión"
+  eterno. Ahora el `.storekit` viaja en el bundle y `StoreManager` levanta en
+  DEBUG una `SKTestSession` idéntica (bajo XCTest NO — los tests manejan la
+  suya; trampa 4 sin agrandar). `StoreKitTest` vive fuera de los search paths
+  de una app: sólo Debug prende `ENABLE_TESTING_SEARCH_PATHS`, y Release ni
+  importa ni linkea el framework (el autolink sigue al `#if DEBUG import`).
+- **Los siete popups hablan `PanelCard`** (PanelFrames.swift): el tablón de
+  las hojas en escala de tarjeta —banda fina, tornillos, pergamino, ink,
+  sombra— reemplazó a los CUATRO marcos de arte 9-slice con insets medidos
+  por PNG. La familia de premio (daily/AFK/sorpresa) lleva el moño asomando
+  arriba. `GamePanel` y `PanelBackground` quedaron sin llamadores y se
+  RETIRARON de `GameArt.swift`; sus PNG (`panel_reward/career/prestige/
+  dialog`) siguen en el atlas como reserva, igual que `panel_menu`.
+
 ### Sesión del 2026-08-17 (tarde) — Rediseño v3: los materiales de las referencias
 
 **12 tareas + 2 rondas de fix** en `feature/rediseno-v3-referencias`, sobre
@@ -244,7 +294,9 @@ v2, Menú) más el Ascensor y las cuatro sub-pantallas del menú
   visual canónica**: toda pantalla nueva se revisó contra ella (regla del
   dueño, ver el doc de sesión). Gramática compartida: `GameCard` para filas,
   `PricePill` para precios, `ProgressBar` para progreso, paleta sólo
-  `Palette*`, tipografía `Tokens.*`, cabecera crema opaca, `ArtCloseButton`.
+  `Palette*`, tipografía `Tokens.*`, cabecera crema opaca (retirada el
+  2026-08-18: la cabecera vive adentro del panel — `panelSheet`, ver §8),
+  `ArtCloseButton`.
 - **Curva de contratación por tipo** con `tierPremium` (1,8): cada tipo
   desbloqueado se contrata con precio propio. El gate de un piso y el Fisura a
   50 quedaron intactos.
@@ -1032,6 +1084,13 @@ riesgo alto son `ui_menu_stats`, `ui_trophy_silver` y `ui_daily_calendar`. El
 que salga hueco **no se integra** — se borran sus `@2x`/`@3x` y su clave de
 `manifest.ui`, y el juego vuelve solo al icono vectorial, que para eso está.
 
+⚠️ **Y tres claves del atlas están recortadas A MANO, cosa que el pipeline no
+sabe**: `ui_elevator`, `ui_coin_plus` y `ui_gift_bow` (`@2x`/`@3x`) se
+recortaron al bbox del alfa +2% de aire el 2026-08-18, porque salían con
+~40–60% de lienzo transparente y el dibujo rendía chico en pantalla. Si el
+batch los regenera, vuelven con esos márgenes: hay que re-recortarlos antes
+de integrar.
+
 **2. Costura de los 15 iconos: ✅ COMPLETA — las copas y el calendario.**
 
 ✅ **Los tres `ui_trophy_*` quedaron cableados en la ola final del review**
@@ -1158,8 +1217,20 @@ Encontrado de paso y sin dueño. Ninguno es urgente:
 - **La fila de mejoras dice el nombre dos veces con VoiceOver**: la carita quedó
   como elemento de accesibilidad con el nombre de etiqueta, y el `Text` de al
   lado sigue ahí.
-- **El título flotante de los paneles deja pasar el texto por detrás** al
-  scrollear. Es de todos los paneles, no de uno.
+- ~~**El título flotante de los paneles deja pasar el texto por detrás** al
+  scrollear. Es de todos los paneles, no de uno.~~ **MUERTO DE RAÍZ
+  (2026-08-18, la hoja contenida).** El parche eran las bandas crema opacas de
+  las 12 cabeceras (y sus `.toolbarBackground(Color("PaletteCream"))`); se
+  retiraron junto con el defecto que tapaban. Las hojas ya no ponen el marco
+  como `.background`: se envuelven en
+  `panelSheet(material:awning:header:ornament:)` (`UI/Art/PanelFrames.swift`),
+  que mete la cabecera ADENTRO del pergamino —debajo del toldo, al ancho de
+  la columna, sin banda opaca— y hace del `ScrollView` una región recortada
+  con fundido en los bordes que muere contra la banda inferior del marco,
+  ahora a la vista. El texto no PUEDE pasar por detrás del título: el scroll
+  arranca debajo de la cabecera y está clipeado. La hoja flota recortada a
+  sus esquinas y con sombra sobre el juego atenuado
+  (`.presentationBackground(.clear)`).
 - **~81 MB de los ~115 del `.app` son los fondos**, con ~54% de píxeles que no
   se ven nunca (`HANDOFF-perf.md`).
 
@@ -1217,7 +1288,7 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
-| **`SESION-2026-08-17-rediseno-v3.md`** | **La sesión más reciente: los materiales v3 de las referencias, tarea por tarea, con la verificación y la trampa del cwd** |
+| **`SESION-2026-08-17-rediseno-v3.md`** | **La sesión más reciente: los materiales v3 de las referencias, tarea por tarea, con la verificación y la trampa del cwd — y sus arcos del 2026-08-18, el tercero es la hoja contenida** |
 | **`SESION-2026-08-16-cierre-post-merge.md`** | **Las 7 tareas del ticket post-merge con sus commits, el veredicto del review de rama y el backlog que sobrevive** |
 | **`SESION-2026-08-14-rediseno-ui.md`** | **Las 20 tareas del rediseño de UI, con sus fix rounds, rulings y avisos vivos. La fuente de verdad del detalle de esa rama** |
 | **`SESION-2026-08-06-correcciones-de-playtest.md`** | **El estado de la sesión de las 16 correcciones: qué quedó abierto, qué está en vuelo y los gates humanos. Empezá por acá si retomás ese trabajo** |

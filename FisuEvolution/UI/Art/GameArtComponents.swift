@@ -825,6 +825,12 @@ struct IconButton: View {
     /// ser el que manda, no el plato que lo enmarca. Con el aire de fábrica, a
     /// esa escala el plato se lee más que el icono que lleva adentro.
     var glyphScale: CGFloat = 0.52
+    /// Ancho del botón como fracción del alto (`size`). Con 1 el botón es el
+    /// cuadrado histórico y el arte conserva su proporción; con otro valor el
+    /// glifo se ESTIRA deliberadamente a ese ancho — es lo que pidió el dueño
+    /// para el ascensor del HUD (2026-08-18): el arte de la cabina es angosto
+    /// y lo quiere más ancho, no más chico dentro de un cuadrado más grande.
+    var glyphAspect: CGFloat = 1
     let tint: Color
     let labelKey: String
     let identifier: String
@@ -833,9 +839,9 @@ struct IconButton: View {
     var body: some View {
         Button(action: action) {
             glyph
-                .frame(width: size * (showsPlate ? glyphScale : 1),
+                .frame(width: size * glyphAspect * (showsPlate ? glyphScale : 1),
                        height: size * (showsPlate ? glyphScale : 1))
-                .frame(width: size, height: size)
+                .frame(width: size * glyphAspect, height: size)
                 .background {
                     if showsPlate {
                         Circle()
@@ -853,7 +859,14 @@ struct IconButton: View {
 
     @ViewBuilder private var glyph: some View {
         if let artKey, let image = UIArt.image(artKey) {
-            image.resizable().scaledToFit()
+            if glyphAspect == 1 {
+                image.resizable().scaledToFit()
+            } else {
+                // Estirado al marco pedido: es la mitad del contrato de
+                // `glyphAspect` — sin esto, `scaledToFit` devolvería el dibujo
+                // angosto centrado en un botón ancho.
+                image.resizable()
+            }
         } else {
             // El tint pinta los fallbacks monocromos (SF Symbols); los iconos
             // vectoriales traen sus propios rellenos de paleta y lo ignoran.

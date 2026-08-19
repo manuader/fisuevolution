@@ -68,7 +68,7 @@ struct FloorMapView: View {
                     // es lo que convierte una lista en un panel de ascensor.
                     .background(alignment: .leading) { shaft }
                     .padding(.horizontal, Self.panelInset)
-                    .padding(.top, Tokens.s8)
+                    .padding(.top, Tokens.s12)
                     .padding(.bottom, Tokens.s24)
                 }
                 .onAppear {
@@ -78,18 +78,9 @@ struct FloorMapView: View {
                     proxy.scrollTo(here.id, anchor: .center)
                 }
             }
-            .background { WoodPanelBackground(material: .metal) }
-            .safeAreaInset(edge: .top) { header }
+            .panelSheet(material: .metal) { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
-            // La barra de navegación aparece recién al scrollear y de fábrica lo
-            // hace con el material blanco del sistema: contra el crema del panel
-            // quedaba una banda blanca, la única superficie del juego que se ve
-            // así. Pintada de crema empalma con la cabecera de abajo y las dos se
-            // leen como UNA barra fija. No se fuerza `.visible`: en reposo sigue
-            // transparente y el contorno de arriba del panel se ve entero (mismo
-            // criterio que `FisuJobsView` y `UpgradesView`).
-            .toolbarBackground(Color("PaletteCream"), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
@@ -112,14 +103,9 @@ struct FloorMapView: View {
 
     // MARK: Cabecera
 
-    /// El cartel del ascensor, fijo arriba de la columna.
-    ///
-    /// ⚠️ **El fondo opaco no es decoración.** Un `safeAreaInset` recorta el área
-    /// segura pero el contenido del scroll sigue pasando POR DEBAJO: con la banda
-    /// transparente las filas desfilaban a través del título y asomaban a los
-    /// costados de la cápsula. Es el defecto que el HANDOFF §8 anota para "el
-    /// título flotante de los paneles" —el de todas las hojas—, y acá se corta
-    /// igual que en `FisuJobsView` y `UpgradesView`.
+    /// El cartel del ascensor, ADENTRO del panel metálico. Sin banda opaca: el
+    /// `panelSheet` recorta la columna por debajo de la cabecera, y la banda
+    /// tapaba el marco (2026-08-18).
     private var header: some View {
         VStack(spacing: Tokens.s4) {
             // La cabina con su display: el mismo glifo que el botón del HUD que
@@ -141,14 +127,6 @@ struct FloorMapView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
                 .padding(.horizontal, Tokens.s24)
-        }
-        .padding(.horizontal, Self.panelInset)
-        .padding(.top, 6)
-        .padding(.bottom, Tokens.s12)
-        .frame(maxWidth: .infinity)
-        .background {
-            Color("PaletteCream")
-                .shadow(color: .black.opacity(0.14), radius: 5, y: 3)
         }
     }
 

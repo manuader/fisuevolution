@@ -62,6 +62,22 @@ RECORTE_VIEJO_A_PEDIDO = frozenset({
 })
 
 
+def recorte_elegido_a_mano(asset_key: str) -> bool:
+    """Assets cuyo recorte lo eligio el dueno mirando, no el pipeline.
+
+    Las skins de oro y diamante van con el recorte por saliencia (`rembg`), que
+    en ellas gana por una razon concreta: el material es un mismo tono en toda la
+    figura, asi que el blanco encerrado que el criterio topologico conserva —la
+    sombra del piso, la tarima del emprendedor, la tarjeta del magnate solar— no
+    se distingue del personaje por conectividad, y sobre el tablero se lee como
+    una loza blanca a los pies. El costo esta medido y asumido: en diamante la
+    saliencia se come parte del cuerpo palido (hasta 18% de la silueta en
+    `rey_asteroides__diamante`), y aun asi el dueno prefirio esa version.
+
+    Se saltean enteros: el PNG que esta en el juego es el que vale."""
+    return asset_key.endswith(("__oro", "__diamante"))
+
+
 def original_de(asset_key: str) -> Path:
     return ORIGINALES_APARTE.get(asset_key, ORIGINALS / f"{asset_key}.png")
 
@@ -87,7 +103,7 @@ def main() -> int:
         original = original_de(key)
         atlas_name, asset_key, _ = destination(entry)
 
-        if key in RECORTE_VIEJO_A_PEDIDO:
+        if key in RECORTE_VIEJO_A_PEDIDO or recorte_elegido_a_mano(key):
             a_pedido.append(key)
             continue
         if not original.exists():
@@ -108,7 +124,7 @@ def main() -> int:
     verbo = "se rehacen" if args.dry_run else "rehechos"
     print(f"\n{verbo}: {len(rehechos)}")
     if a_pedido:
-        print(f"con el recorte viejo a pedido ({len(a_pedido)}): {a_pedido}")
+        print(f"con el recorte elegido a mano, no se tocan: {len(a_pedido)}")
     if sin_integrar:
         print(f"con original pero fuera del juego ({len(sin_integrar)}): {sin_integrar}")
     if sin_original:

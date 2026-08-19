@@ -17,7 +17,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from process_dropbox import PIPELINE, RESOURCES, destination  # noqa: E402
-from recut_assets import RECORTE_VIEJO_A_PEDIDO  # noqa: E402
+from recut_assets import RECORTE_VIEJO_A_PEDIDO, recorte_elegido_a_mano  # noqa: E402
 from whitebg_cutout import HUECOS_CALADOS  # noqa: E402
 
 # Un uno por ciento cubre el ruido del reescalado a @2x sin dejar pasar un hueco
@@ -57,6 +57,7 @@ class AssetsIntegradosTests(unittest.TestCase):
             (key, png.name, round(hueco, 2))
             for key, png in integrados()
             if key not in CON_PERMISO
+            and not recorte_elegido_a_mano(key)
             and (hueco := porcentaje_de_hueco(png)) > MAXIMO_HUECO
         ]
         self.assertEqual(agujereados, [], f"assets con el dibujo calado: {agujereados}")

@@ -63,6 +63,9 @@ struct StoreManagerTests {
             "com.fisuevolution.iap.oro_large",
             "com.fisuevolution.iap.skin_mundialista",
             "com.fisuevolution.iap.skin_parrillero",
+            // El bundle de diamante: un solo producto para las 43, porque la
+            // propiedad se guarda por id de skin y las 43 comparten "diamante".
+            "com.fisuevolution.iap.skins_diamante",
         ])
     }
 

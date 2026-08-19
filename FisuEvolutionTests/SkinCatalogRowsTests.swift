@@ -43,9 +43,10 @@ struct SkinCatalogRowsTests {
 
         let rows = rows(gameState, "homeless")
 
-        // El Fisura tiene dos skins en el catálogo: una de reencarnación y una
-        // paga. La base va delante de las dos y no se persiste como id.
-        #expect(rows.map(\.id) == ["base", "second_life", "mundialista"])
+        // El Fisura tiene cuatro skins en el catálogo: una de reencarnación, una
+        // paga y las dos de material (oro y diamante, que existen para los 43).
+        // La base va delante de todas y no se persiste como id.
+        #expect(rows.map(\.id) == ["base", "second_life", "mundialista", "oro", "diamante"])
         let base = try #require(rows.first)
         #expect(base.state == .equipped, "sin skin activa, la que está puesta es la base")
         #expect(base.textureKey == nil, "la base no tiene textura: es el arte del personaje")

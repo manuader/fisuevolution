@@ -65,11 +65,21 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         public let baseCostMultiplier: Double
         public let costGrowth: Double
         public let effectFactorPerLevel: Double
+        /// Tope de niveles por personaje. Sin él, `effectFactorPerLevel^nivel`
+        /// crece sin techo y el número termina en overflow (decisión del dueño,
+        /// 2026-08-19: máximo = valor inicial × 2^20).
+        public let maxLevel: Int
 
-        public init(baseCostMultiplier: Double, costGrowth: Double, effectFactorPerLevel: Double) {
+        public init(
+            baseCostMultiplier: Double,
+            costGrowth: Double,
+            effectFactorPerLevel: Double,
+            maxLevel: Int = 20
+        ) {
             self.baseCostMultiplier = baseCostMultiplier
             self.costGrowth = costGrowth
             self.effectFactorPerLevel = effectFactorPerLevel
+            self.maxLevel = maxLevel
         }
     }
 

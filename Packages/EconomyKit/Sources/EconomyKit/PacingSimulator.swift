@@ -209,12 +209,14 @@ public struct PacingSimulator: Sendable {
             }
         }
 
-        // 2. CharUpgrade del tipo que más aporta, payback corto.
+        // 2. CharUpgrade del tipo que más aporta, payback corto. El costo en
+        // `nil` es el tipo al tope: el bot no tiene esa jugada, igual que el
+        // jugador.
         if let best = state.run.units.keys
             .compactMap({ tiers.type(id: $0) })
             .filter({ state.run.passiveUnlocked[$0.id] == true })
-            .max(by: { contribution(of: $0, state: state) < contribution(of: $1, state: state) }) {
-            let cost = CharUpgrades.nextLevelCost(type: best, levels: state.run.charUpgradeLevels, config: config, economy: economy)
+            .max(by: { contribution(of: $0, state: state) < contribution(of: $1, state: state) }),
+           let cost = CharUpgrades.nextLevelCost(type: best, levels: state.run.charUpgradeLevels, config: config, economy: economy) {
             let currentContribution = contribution(of: best, state: state)
             let gain = currentContribution * (config.charUpgrades.effectFactorPerLevel - 1)
             if gain > 0, cost / gain <= maxPaybackSeconds {

@@ -277,5 +277,40 @@ sin que el trazo se lea deformado). `ui_gift_bow` tenía el mismo lienzo
 muerto: recortado, el moño de Regalos por fin rinde los 150 pt del diseño.
 
 Verificado en capturas (16 Pro): las 6 hojas + ascensor + menú/Logros +
-daily/fork/ficha/prestigio. La ficha del personaje y los popups de premio ya
-estaban contenidos por sus insets medidos y no se tocaron.
+daily/fork/ficha/prestigio. Y en pantalla chica: un agente barrió iPhone SE
+(375×667) — cero colisiones ni clipping; dos truncaciones elegantes con
+ellipsis quedaron como pulido opcional ("1 on pay…", el banner largo de
+Pintas).
+
+## Cuarto tramo: los ajustes en caliente + la tienda + los popups en familia
+
+El dueño, mirando capturas, pidió cuatro cosas más — y todas cerraron en la
+misma tarde:
+
+1. **Mejoras vuelve a madera con toldo** y gana el glifo de su tab en el
+   título; el metal queda SOLO para el Ascensor, la única maquinaria real.
+   El Menú gana su glifo también, y sus cuatro tarjetas muestran el icono
+   pelado a 84 pt — el plato circular con aro achicaba el dibujo.
+2. **HUD ×0,85**: los accesos quedaron en 56/61 pt (el ascensor conserva el
+   estirado 0,86 — ancho, pero más discreto).
+3. **La tienda "sin conexión" para siempre**: el `.storekit` del scheme sólo
+   se inyecta cuando Xcode lanza la app — instalada por `simctl` (como la v4
+   del dueño), StoreKit devolvía catálogo vacío. Ahora el `.storekit` viaja
+   en el bundle y `StoreManager` levanta en DEBUG una `SKTestSession` con esa
+   misma configuración (bajo XCTest NO: los tests manejan la suya).
+   `StoreKitTest` vive fuera de los search paths de una app: Debug —y sólo
+   Debug— prende `ENABLE_TESTING_SEARCH_PATHS`; Release ni importa ni linkea.
+4. **Los siete popups hablan `PanelCard`**: el tablón de las hojas en escala
+   de tarjeta (banda fina, tornillos, pergamino, ink, sombra) reemplaza a los
+   CUATRO marcos de arte con insets medidos por PNG. La familia de premio
+   (daily, AFK, sorpresa) lleva el moño asomando arriba del marco, como un
+   regalo. `GamePanel` y `PanelBackground` quedaron sin llamadores y se
+   retiraron; sus PNG siguen en el atlas como reserva.
+
+**Números del cierre** (máquina cargada, rojos re-verificados aislados según
+protocolo): EconomyKit **200/200** · unit **381/381** · UI **46/46** (44 en
+suite + 2 flakes de carga confirmados verdes aislados: el recorte del
+tutorial que no publicó a tiempo y un `scrollToVisible` de AX sobre un botón
+visible). El merge con el balance del dueño (Fisura a 25) entró limpio —
+cero archivos en común — y unit+EconomyKit se re-corrieron sobre el
+resultado integrado.

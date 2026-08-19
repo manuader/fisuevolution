@@ -222,16 +222,35 @@ también (los otros popups ya lo tenían): ya ningún popup muestra el
 rectángulo del material de sistema alrededor de su marco de arte. El detalle
 vive en el tercer arco de **`Docs/SESION-2026-08-17-rediseno-v3.md`**.
 
-Dos cosas más del día:
+Cinco cosas más del día:
 
 - **`IconButton` ganó `glyphAspect`** — el ancho del glifo como fracción del
   alto; con un valor ≠ 1 el arte se ESTIRA a propósito (pedido del dueño para
-  el ascensor). La moneda+ quedó en 66 pt; el ascensor, en 72 pt con
-  `glyphAspect` 0,86.
+  el ascensor). Tras una ronda de ajuste en caliente (×0,85), la moneda+
+  quedó en **56 pt** y el ascensor en **61 pt** con `glyphAspect` 0,86.
 - **`ui_elevator`, `ui_coin_plus` y `ui_gift_bow` se recortaron al bbox del
   alfa** (+2% de aire): traían ~40–60% de lienzo transparente y por eso
   rendían chicos. ⚠️ Si el batch los regenera, vuelven con márgenes — la
   advertencia quedó en §8, punto 1.
+- **Mejoras volvió a MADERA con toldo** (y el glifo de su tab en el título,
+  como Pintas/Regalos/Tienda; el Menú ganó el suyo y sus tarjetas muestran el
+  icono pelado a 84 pt). El metal quedó SOLO para el Ascensor: dos materiales,
+  un criterio — metal = maquinaria de verdad.
+- **La tienda funciona fuera de Xcode** (`fix(store)`): el `.storekit` del
+  scheme sólo se inyecta cuando Xcode lanza la app; instalada por `simctl`
+  StoreKit devolvía catálogo vacío y la pantalla quedaba en "sin conexión"
+  eterno. Ahora el `.storekit` viaja en el bundle y `StoreManager` levanta en
+  DEBUG una `SKTestSession` idéntica (bajo XCTest NO — los tests manejan la
+  suya; trampa 4 sin agrandar). `StoreKitTest` vive fuera de los search paths
+  de una app: sólo Debug prende `ENABLE_TESTING_SEARCH_PATHS`, y Release ni
+  importa ni linkea el framework (el autolink sigue al `#if DEBUG import`).
+- **Los siete popups hablan `PanelCard`** (PanelFrames.swift): el tablón de
+  las hojas en escala de tarjeta —banda fina, tornillos, pergamino, ink,
+  sombra— reemplazó a los CUATRO marcos de arte 9-slice con insets medidos
+  por PNG. La familia de premio (daily/AFK/sorpresa) lleva el moño asomando
+  arriba. `GamePanel` y `PanelBackground` quedaron sin llamadores y se
+  RETIRARON de `GameArt.swift`; sus PNG (`panel_reward/career/prestige/
+  dialog`) siguen en el atlas como reserva, igual que `panel_menu`.
 
 ### Sesión del 2026-08-17 (tarde) — Rediseño v3: los materiales de las referencias
 

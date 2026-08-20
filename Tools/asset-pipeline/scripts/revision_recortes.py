@@ -108,22 +108,23 @@ def sprites_integrados() -> list[tuple[str, str]]:
 
 
 PLANTILLA = """<meta charset="utf-8">
-<title>Revisión de skins — recorte por conectividad vs rembg</title>
+<title>Revisión de skins — qué recorte queda en el juego</title>
 <style>
   :root {
     --papel: #e9e3d7; --tinta: #23201b; --suave: #6f6858;
-    --linea: #cdc4b2; --panel: #f3efe6; --rojo: #a02622; --vivo: #2e6b46;
+    --linea: #cdc4b2; --panel: #f3efe6; --rojo: #a02622; --verde: #2e6b46;
   }
   * { box-sizing: border-box; }
   body { margin: 0; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
          background: var(--papel); color: var(--tinta); }
-  #marco { display: grid; grid-template-columns: 1fr 300px; grid-template-rows: auto 1fr;
+  #marco { display: grid; grid-template-columns: 1fr 320px; grid-template-rows: auto 1fr;
            height: 100vh; }
   header { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 10px 16px;
            background: var(--panel); border-bottom: 1px solid var(--linea); }
   h1 { font-size: 17px; margin: 0; }
   #cuenta { color: var(--suave); }
-  #pendientes { font-weight: 600; }
+  #tablero { display: flex; gap: 12px; font-size: 13px; }
+  #tablero b { font-weight: 600; }
   .crece { flex: 1; }
   select, button { font: inherit; padding: 6px 12px; border: 1px solid var(--linea);
                    border-radius: 8px; background: #fff; color: inherit; cursor: pointer; }
@@ -136,51 +137,59 @@ PLANTILLA = """<meta charset="utf-8">
   #recorte button:disabled { opacity: .35; cursor: not-allowed; }
   main { display: flex; flex-direction: column; align-items: center; justify-content: center;
          gap: 12px; padding: 16px; overflow: auto; }
-  #lienzo { width: 520px; height: 520px; max-width: 60vw; max-height: 60vh; display: grid;
+  #lienzo { width: 500px; height: 500px; max-width: 58vw; max-height: 56vh; display: grid;
             place-items: center; border-radius: 14px; border: 3px solid transparent; }
   #lienzo.damero { background-image:
       linear-gradient(45deg, #bdb6a8 25%, transparent 25%, transparent 75%, #bdb6a8 75%),
       linear-gradient(45deg, #bdb6a8 25%, transparent 25%, transparent 75%, #bdb6a8 75%);
       background-size: 28px 28px; background-position: 0 0, 14px 14px; background-color: #fff; }
-  #lienzo.marcada { border-color: var(--rojo); }
+  #lienzo.elegida { border-color: var(--verde); }
+  #lienzo.regenerar { border-color: var(--rojo); }
   #lienzo img { max-width: 100%; max-height: 100%; }
   #nombre { font-size: 22px; font-weight: 700; }
   #etiquetas { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
                align-items: center; color: var(--suave); font-size: 13px; }
   .chip { background: #fff; border: 1px solid var(--linea); border-radius: 999px; padding: 2px 10px; }
-  .chip.enjuego { border-color: var(--vivo); color: var(--vivo); font-weight: 600; }
+  .chip.buena { border-color: var(--verde); color: var(--verde); font-weight: 600; }
   .chip.aviso { border-color: var(--rojo); color: var(--rojo); }
   code { font: 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace; color: var(--suave); }
-  #controles { display: flex; gap: 10px; align-items: center; }
-  #marcar { padding: 10px 26px; font-weight: 600; }
+  #controles { display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+               justify-content: center; }
+  #elegir { padding: 10px 22px; font-weight: 600; }
+  #elegir.puesta { background: var(--verde); border-color: var(--verde); color: #fff; }
   #marcar.activa { background: var(--rojo); border-color: var(--rojo); color: #fff; }
-  #ayuda { color: var(--suave); font-size: 13px; }
+  #ayuda { color: var(--suave); font-size: 13px; text-align: center; }
   #lista { border-left: 1px solid var(--linea); overflow-y: auto; background: var(--panel); }
   #lista div { display: flex; gap: 8px; align-items: center; padding: 7px 12px; cursor: pointer;
                border-bottom: 1px solid rgba(0,0,0,.04); font-size: 14px; }
   #lista div:hover { background: rgba(0,0,0,.04); }
   #lista div.actual { background: var(--tinta); color: #fff; }
-  #lista .punto { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+  #lista .punto { width: 7px; height: 7px; border-radius: 50%; flex: none; background: transparent; }
+  #lista div.decidida .punto { background: var(--verde); }
   #lista div.pendiente .punto { background: var(--rojo); }
   #lista .quien { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   #lista .cual { font-size: 12px; opacity: .65; }
-  dialog { border: 1px solid var(--linea); border-radius: 14px; padding: 22px; max-width: 640px;
+  dialog { border: 1px solid var(--linea); border-radius: 14px; padding: 22px; max-width: 700px;
            background: var(--panel); color: inherit; }
   dialog::backdrop { background: rgba(0,0,0,.45); }
-  dialog h2 { margin: 0 0 12px; font-size: 18px; }
-  textarea { width: 100%; height: 260px; font: 13px/1.5 ui-monospace, Menlo, monospace;
-             padding: 10px; border: 1px solid var(--rojo); border-radius: 10px; resize: vertical; }
-  .pie { display: flex; gap: 10px; margin-top: 12px; }
-  .pie .crece { flex: 1; }
-  #copiar { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+  dialog h2 { margin: 0 0 4px; font-size: 18px; }
+  dialog h3 { margin: 18px 0 6px; font-size: 14px; }
+  #resumen { color: var(--suave); font-size: 13px; margin: 0; }
+  textarea { width: 100%; height: 150px; font: 13px/1.5 ui-monospace, Menlo, monospace;
+             padding: 10px; border: 1px solid var(--linea); border-radius: 10px; resize: vertical;
+             background: #fff; color: inherit; }
+  pre { background: #fff; border: 1px solid var(--linea); border-radius: 10px; padding: 10px;
+        font: 12px/1.5 ui-monospace, Menlo, monospace; overflow-x: auto; margin: 0; }
+  .pie { display: flex; gap: 10px; margin-top: 16px; align-items: center; }
+  #bajar { background: var(--verde); border-color: var(--verde); color: #fff; font-weight: 600; }
   .nota { color: var(--suave); font-size: 13px; margin: 8px 0 0; }
 
   @media (max-width: 900px) {
     #marco { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
     header { flex-wrap: wrap; }
     header .crece { flex-basis: 100%; height: 0; }
-    #lista { border-left: 0; border-top: 1px solid var(--linea); max-height: 32vh; }
-    #lienzo { width: 92vw; height: 92vw; max-width: none; max-height: 42vh; }
+    #lista { border-left: 0; border-top: 1px solid var(--linea); max-height: 30vh; }
+    #lienzo { width: 92vw; height: 92vw; max-width: none; max-height: 38vh; }
     #etiquetas { padding: 0 10px; }
   }
 </style>
@@ -189,20 +198,22 @@ PLANTILLA = """<meta charset="utf-8">
   <header>
     <h1>Revisión de skins</h1>
     <span id="cuenta"></span>
-    <span id="pendientes"></span>
+    <span id="tablero"></span>
     <span class="crece"></span>
     <div id="recorte">
       <button data-recorte="conectividad">Conectividad</button>
       <button data-recorte="rembg">rembg</button>
     </div>
     <select id="filtro">
+      <option value="pendientes">Sin decidir</option>
       <option value="todas">Todas</option>
       <option value="difieren">Donde el recorte cambia algo</option>
+      <option value="decididas">Ya decididas</option>
+      <option value="regenerar">A regenerar</option>
       <option value="base">Sólo base</option>
       <option value="oro">Sólo oro</option>
       <option value="diamante">Sólo diamante</option>
       <option value="unica">Sólo skins propias</option>
-      <option value="marcadas">Sólo marcadas</option>
     </select>
     <select id="fondo">
       <option value="damero">Damero</option>
@@ -211,7 +222,7 @@ PLANTILLA = """<meta charset="utf-8">
       <option value="#ffffff">Blanco</option>
       <option value="#c9a227">Dorado</option>
     </select>
-    <button id="verlista">Ver lista</button>
+    <button id="cerrar-revision">Cerrar revisión</button>
   </header>
 
   <main>
@@ -220,24 +231,38 @@ PLANTILLA = """<meta charset="utf-8">
     <div id="etiquetas"></div>
     <div id="controles">
       <button id="antes">← Anterior</button>
+      <button id="elegir"></button>
       <button id="marcar"></button>
       <button id="despues">Siguiente →</button>
     </div>
-    <div id="ayuda">← → para moverte · R o barra espaciadora para marcar · T para cambiar el recorte</div>
+    <div id="ayuda">← → moverte · T cambiar el recorte · Enter dejar la que estás viendo ·
+      R marcar para regenerar</div>
   </main>
 
   <div id="lista"></div>
 </div>
 
 <dialog id="salida">
-  <h2>Skins a regenerar (<span id="cuantas">0</span>)</h2>
+  <h2>Cierre de la revisión</h2>
+  <p id="resumen"></p>
+
+  <h3>1 · Bajá tus decisiones</h3>
+  <button id="bajar">Bajar decisiones.json</button>
+  <p class="nota">Se guardan solas en este navegador, podés cerrar y seguir después.</p>
+
+  <h3>2 · Aplicalas al juego</h3>
+  <pre id="comando"></pre>
+  <p class="nota">Deja en el atlas el recorte que elegiste y anota la elección en el pipeline,
+    para que una corrida futura de <code>recut_assets.py</code> no te la pise.</p>
+
+  <h3>3 · Las que hay que regenerar (<span id="cuantas">0</span>)</h3>
   <textarea id="texto" readonly></textarea>
-  <p class="nota">Pegámelas y las vuelvo a generar. Se guardan solas en este navegador.</p>
+
   <div class="pie">
-    <button id="copiar">Copiar</button>
-    <button id="borrar">Borrar marcas</button>
+    <button id="copiar">Copiar la lista</button>
+    <button id="borrar">Empezar de cero</button>
     <span class="crece"></span>
-    <button id="cerrar">Cerrar</button>
+    <button id="cerrar">Volver</button>
   </div>
 </dialog>
 
@@ -245,16 +270,20 @@ PLANTILLA = """<meta charset="utf-8">
 const SKINS = __DATOS__;
 const NOMBRE_VARIANTE = { base: "Base", oro: "Oro", diamante: "Diamante", unica: "Skin propia" };
 const NOMBRE_RECORTE = { conectividad: "conectividad", rembg: "rembg", juego: "la que está en el juego" };
-const ALMACEN = "skins-a-regenerar";
+const COMANDO = "Tools/asset-pipeline/.venv/bin/python \\\\\\n" +
+  "  Tools/asset-pipeline/scripts/aplicar_revision.py ~/Downloads/decisiones.json";
 
-const guardadas = (() => {
-  try { return new Set(JSON.parse(localStorage.getItem(ALMACEN) || "[]")); }
-  catch { return new Set(); }
-})();
-const guardar = () => {
-  try { localStorage.setItem(ALMACEN, JSON.stringify([...marcadas])); } catch {}
+const leer = (clave, porDefecto) => {
+  try { return JSON.parse(localStorage.getItem(clave)) ?? porDefecto; } catch { return porDefecto; }
 };
-const marcadas = guardadas;
+const escribir = (clave, valor) => { try { localStorage.setItem(clave, JSON.stringify(valor)); } catch {} };
+
+const elecciones = new Map(Object.entries(leer("skins-eleccion-recorte", {})));
+const marcadas = new Set(leer("skins-a-regenerar", []));
+const guardar = () => {
+  escribir("skins-eleccion-recorte", Object.fromEntries(elecciones));
+  escribir("skins-a-regenerar", [...marcadas]);
+};
 
 let recorte = "conectividad";
 let visibles = SKINS.slice();
@@ -263,15 +292,18 @@ let i = 0;
 const $ = (id) => document.getElementById(id);
 const actual = () => visibles[i];
 const rutaDe = (skin, cual) => `img/${skin.tiene.includes(cual) ? cual : skin.tiene[0]}/${skin.key}.png`;
+const comparable = (skin) => skin.tiene.length > 1;
 
 function filtrar() {
   const cual = $("filtro").value;
   const anterior = actual()?.key;
   visibles = SKINS.filter((s) =>
     cual === "todas" ? true :
-    cual === "marcadas" ? marcadas.has(s.key) :
+    cual === "pendientes" ? !elecciones.has(s.key) && !marcadas.has(s.key) :
+    cual === "decididas" ? elecciones.has(s.key) :
+    cual === "regenerar" ? marcadas.has(s.key) :
     cual === "difieren" ? s.dif >= 1 : s.variante === cual);
-  if (!visibles.length) visibles = SKINS.slice();
+  if (!visibles.length) { visibles = SKINS.slice(); $("filtro").value = "todas"; }
   i = Math.max(0, visibles.findIndex((s) => s.key === anterior));
   construirLista();
   pintar();
@@ -292,43 +324,49 @@ function construirLista() {
 function precargar() {
   const s = actual();
   if (!s) return;
-  const otras = [rutaDe(s, recorte === "rembg" ? "conectividad" : "rembg")];
+  const urls = [rutaDe(s, recorte === "rembg" ? "conectividad" : "rembg")];
   for (const paso of [1, -1]) {
     const vecina = visibles[i + paso];
-    if (vecina) otras.push(rutaDe(vecina, recorte));
+    if (vecina) urls.push(rutaDe(vecina, recorte));
   }
-  otras.forEach((url) => { new Image().src = url; });
+  urls.forEach((url) => { new Image().src = url; });
 }
 
 function pintar() {
   const s = actual();
   if (!s) return;
-  const marcada = marcadas.has(s.key);
+  const elegida = elecciones.get(s.key);
+  const regenerar = marcadas.has(s.key);
   const disponible = s.tiene.includes(recorte);
-  const enElJuego = s.vivo === recorte;
 
   $("arte").src = rutaDe(s, recorte);
-  $("lienzo").className = ($("fondo").value === "damero" ? "damero" : "") + (marcada ? " marcada" : "");
+  $("lienzo").className = ($("fondo").value === "damero" ? "damero " : "") +
+    (regenerar ? "regenerar" : elegida ? "elegida" : "");
   $("lienzo").style.background = $("fondo").value === "damero" ? "" : $("fondo").value;
   $("nombre").textContent = s.personaje;
   $("cuenta").textContent = `${i + 1} / ${visibles.length}`;
-  $("pendientes").innerHTML = marcadas.size
-    ? `a regenerar: <span style="color:var(--rojo)">${marcadas.size}</span>` : "";
+
+  const pendientes = SKINS.length - elecciones.size - marcadas.size;
+  $("tablero").innerHTML =
+    `<span style="color:var(--verde)">elegidas <b>${elecciones.size}</b></span>` +
+    `<span style="color:var(--rojo)">a regenerar <b>${marcadas.size}</b></span>` +
+    `<span>sin decidir <b>${pendientes}</b></span>`;
 
   const chips = [`<span class="chip">${NOMBRE_VARIANTE[s.variante]}</span>`];
   if (s.skin) chips.push(`<span class="chip">${s.skin}</span>`);
+  if (regenerar) {
+    chips.push(`<span class="chip aviso">las dos están mal — a regenerar</span>`);
+  } else if (elegida) {
+    chips.push(`<span class="chip buena">va al juego la de ${NOMBRE_RECORTE[elegida]}</span>`);
+  } else {
+    chips.push(`<span class="chip">sin decidir · hoy está la de ${NOMBRE_RECORTE[s.vivo]}</span>`);
+  }
   if (!disponible) {
     chips.push(`<span class="chip aviso">${s.tiene[0] === "juego"
       ? "no está el original: sólo se puede mirar la que está en el juego"
       : `no hay versión de ${recorte}, se muestra la de ${NOMBRE_RECORTE[s.tiene[0]]}`}</span>`);
-  } else if (enElJuego) {
-    chips.push(`<span class="chip enjuego">✓ ésta está en el juego</span>`);
-  } else if (s.vivo === "otro") {
-    chips.push(`<span class="chip aviso">el atlas no coincide con ninguna de las dos</span>`);
-  } else {
-    chips.push(`<span class="chip aviso">en el juego está la de ${NOMBRE_RECORTE[s.vivo]}</span>`);
   }
-  chips.push(s.tiene.length < 2
+  chips.push(!comparable(s)
     ? `<span class="chip">no hay con qué comparar</span>`
     : s.dif >= 1
       ? `<span class="chip">el recorte cambia ${s.dif}% de la silueta</span>`
@@ -336,53 +374,98 @@ function pintar() {
   chips.push(`<code>${s.key}</code>`);
   $("etiquetas").innerHTML = chips.join("");
 
-  $("marcar").textContent = marcada ? "✓ Marcada — desmarcar" : "Marcar para regenerar";
-  $("marcar").className = marcada ? "activa" : "";
+  const yaEsta = elegida === recorte;
+  $("elegir").textContent = !disponible ? "No se puede elegir ésta"
+    : yaEsta ? `✓ Queda la de ${NOMBRE_RECORTE[recorte]}`
+    : `Que quede la de ${NOMBRE_RECORTE[recorte]}`;
+  $("elegir").className = yaEsta ? "puesta" : "";
+  $("elegir").disabled = !disponible;
+  $("marcar").textContent = regenerar ? "✓ A regenerar — sacar" : "Las dos están mal";
+  $("marcar").className = regenerar ? "activa" : "";
+
   document.querySelectorAll("#recorte button").forEach((b) => {
     b.setAttribute("aria-pressed", String(b.dataset.recorte === recorte));
     b.disabled = !s.tiene.includes(b.dataset.recorte);
   });
   [...$("lista").children].forEach((fila, n) => {
     fila.classList.toggle("actual", n === i);
+    fila.classList.toggle("decidida", elecciones.has(visibles[n].key));
     fila.classList.toggle("pendiente", marcadas.has(visibles[n].key));
   });
   precargar();
 }
 
 const mover = (paso) => { i = (i + paso + visibles.length) % visibles.length; pintar(); };
-const alternar = () => {
+
+function elegirActual() {
   const s = actual();
-  if (!s) return;
-  marcadas.has(s.key) ? marcadas.delete(s.key) : marcadas.add(s.key);
+  if (!s || !s.tiene.includes(recorte)) return;
+  if (elecciones.get(s.key) === recorte) elecciones.delete(s.key);
+  else { elecciones.set(s.key, recorte); marcadas.delete(s.key); }
   guardar();
   pintar();
-};
+}
+
+function marcarActual() {
+  const s = actual();
+  if (!s) return;
+  if (marcadas.has(s.key)) marcadas.delete(s.key);
+  else { marcadas.add(s.key); elecciones.delete(s.key); }
+  guardar();
+  pintar();
+}
+
+function alternarRecorte() {
+  const s = actual();
+  const otro = recorte === "rembg" ? "conectividad" : "rembg";
+  if (s?.tiene.includes(otro)) { recorte = otro; pintar(); }
+}
+
+const decisiones = () => ({
+  elecciones: Object.fromEntries(elecciones),
+  regenerar: [...marcadas],
+});
 
 $("antes").onclick = () => mover(-1);
 $("despues").onclick = () => mover(1);
-$("marcar").onclick = alternar;
+$("elegir").onclick = elegirActual;
+$("marcar").onclick = marcarActual;
 $("filtro").onchange = filtrar;
 $("fondo").onchange = pintar;
 document.querySelectorAll("#recorte button").forEach((b) => {
   b.onclick = () => { recorte = b.dataset.recorte; pintar(); };
 });
 
-$("verlista").onclick = () => {
-  const elegidas = SKINS.filter((s) => marcadas.has(s.key));
-  $("cuantas").textContent = elegidas.length;
-  $("texto").value = elegidas
+$("cerrar-revision").onclick = () => {
+  const pendientes = SKINS.length - elecciones.size - marcadas.size;
+  $("resumen").textContent = `${elecciones.size} elegidas · ${marcadas.size} a regenerar · ` +
+    `${pendientes} sin decidir` + (pendientes ? " (las sin decidir quedan como están)" : "");
+  $("cuantas").textContent = marcadas.size;
+  $("comando").textContent = COMANDO;
+  $("texto").value = SKINS.filter((s) => marcadas.has(s.key))
     .map((s) => `${s.key}  (${s.personaje} — ${s.skin || NOMBRE_VARIANTE[s.variante]})`)
     .join("\\n");
   $("salida").showModal();
 };
+$("bajar").onclick = () => {
+  const blob = new Blob([JSON.stringify(decisiones(), null, 2)], { type: "application/json" });
+  const enlace = document.createElement("a");
+  enlace.href = URL.createObjectURL(blob);
+  enlace.download = "decisiones.json";
+  enlace.click();
+  URL.revokeObjectURL(enlace.href);
+  $("bajar").textContent = "✓ Bajado";
+  setTimeout(() => ($("bajar").textContent = "Bajar decisiones.json"), 1500);
+};
 $("copiar").onclick = () => {
   $("texto").select();
   navigator.clipboard?.writeText($("texto").value);
-  $("copiar").textContent = "¡Copiado!";
-  setTimeout(() => ($("copiar").textContent = "Copiar"), 1200);
+  $("copiar").textContent = "¡Copiada!";
+  setTimeout(() => ($("copiar").textContent = "Copiar la lista"), 1200);
 };
 $("borrar").onclick = () => {
-  if (!confirm("¿Borrar todas las marcas?")) return;
+  if (!confirm("¿Borrar TODAS las decisiones y empezar de cero?")) return;
+  elecciones.clear();
   marcadas.clear();
   guardar();
   $("salida").close();
@@ -394,12 +477,9 @@ addEventListener("keydown", (e) => {
   if ($("salida").open) return;
   if (e.key === "ArrowLeft") mover(-1);
   else if (e.key === "ArrowRight") mover(1);
-  else if (e.key === "r" || e.key === "R" || e.key === " ") { e.preventDefault(); alternar(); }
-  else if (e.key === "t" || e.key === "T") {
-    const s = actual();
-    const otro = recorte === "rembg" ? "conectividad" : "rembg";
-    if (s?.tiene.includes(otro)) { recorte = otro; pintar(); }
-  }
+  else if (e.key === "Enter") { e.preventDefault(); elegirActual(); }
+  else if (e.key === "r" || e.key === "R") marcarActual();
+  else if (e.key === "t" || e.key === "T") alternarRecorte();
 });
 
 filtrar();

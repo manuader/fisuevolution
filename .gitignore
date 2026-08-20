@@ -22,7 +22,12 @@ Tools/asset-pipeline/ComfyUI/
 build-ci/
 Tools/asset-pipeline/.secrets/
 Tools/asset-pipeline/.chrome-profile/
-Tools/asset-pipeline/state/selenium-run.json
+
+# Intermedios del pipeline de assets: backups de recortes, descartes, logs y
+# corridas de prueba. Los regeneran los scripts y son ~60 MB que no van a la
+# historia (pedido del dueño 2026-08-20).
+Tools/asset-pipeline/state/*
+!Tools/asset-pipeline/state/.gitkeep
 
 # Graphify knowledge graph (generated, ~4MB; rebuild with `graphify update .`)
 graphify-out/

@@ -19,6 +19,10 @@ por umbral.
 
 from __future__ import annotations
 
+import json
+
+from pathlib import Path
+
 import numpy as np
 from PIL import Image
 from scipy import ndimage
@@ -68,6 +72,13 @@ PAPEL_MEDIDO = frozenset({
     "mantero__diamante",
 })
 
+# Las islas que el ojo decidio, por encima de lo que mide el color. Las escribe
+# `aplicar_islas.py` desde la pagina de revision; {assetKey: [id de isla, ...]}.
+_ARCHIVO_ISLAS = Path(__file__).resolve().parent.parent / "prompts" / "islas_de_papel.json"
+ISLAS_DE_PAPEL: dict[str, list[int]] = (
+    json.loads(_ARCHIVO_ISLAS.read_text()) if _ARCHIVO_ISLAS.exists() else {}
+)
+
 # Distancia máxima al blanco del lienzo para considerar que una isla ES el lienzo.
 DISTANCIA_PAPEL = 0.8
 
@@ -94,6 +105,15 @@ def islas_de_papel(rgb: np.ndarray, background: np.ndarray, whiteish: np.ndarray
         if distancia < DISTANCIA_PAPEL:
             papel |= isla
     return papel
+
+
+def islas_elegidas(whiteish: np.ndarray, background: np.ndarray, ids: list[int]) -> np.ndarray:
+    """Las islas que la revision marco como fondo, por id de `ndimage.label`."""
+    interior = whiteish & ~background
+    etiquetas, cuantas = ndimage.label(interior)
+    if not cuantas:
+        return np.zeros_like(interior)
+    return np.isin(etiquetas, list(ids))
 
 
 def white_distance(rgb: np.ndarray) -> np.ndarray:
@@ -183,7 +203,10 @@ def cutout(image: Image.Image, asset_key: str = "") -> Image.Image:
     rgb = np.array(image.convert("RGB"))
     distance = white_distance(rgb)
     background = background_mask(distance, punch_holes=asset_key in HUECOS_CALADOS)
-    if asset_key in PAPEL_MEDIDO:
+    elegidas = ISLAS_DE_PAPEL.get(asset_key)
+    if elegidas is not None:
+        background = background | islas_elegidas(distance <= WHITE_TOLERANCE, background, elegidas)
+    elif asset_key in PAPEL_MEDIDO:
         background = background | islas_de_papel(rgb, background, distance <= WHITE_TOLERANCE)
     alpha = alpha_from_background(distance, background)
     clean = undo_white_matte(rgb, alpha)

@@ -52,6 +52,19 @@ enum SaveMigrator {
     ///
     /// Así, `crit 25/25` → `10/10` conserva el logro del que sí maxeó y
     /// `crit 10/25` → `4/10` no le regala nada al que no.
+    ///
+    /// ⚠️ **El redondeo no es neutro en los bordes, y se acepta a sabiendas.**
+    /// Regala hasta un nivel arriba (`income`/`tap` 19 → 10 y `crit` 24 → 10
+    /// quedan al tope sin haber estado) y destruye el último nivel abajo
+    /// (`crit` 1 → 0). Las dos puntas son de UN nivel; la alternativa —guardar
+    /// el nivel original para poder deshacer— pide un bump de schema.
+    ///
+    /// ⚠️ **Y no es idempotente**: cada pasada vuelve a dividir por el tope
+    /// viejo, así que `crit 25 → 10 → 4 → 2 → 1 → 0`. Lo que la hace segura es
+    /// el cableado y no la función: la llama UN SOLO call site (`migrateV3toV4`)
+    /// y `migrate` despacha por versión, así que un save la cruza exactamente
+    /// una vez y lo que se guarda después ya es v4. `SaveMigratorTests` pinea
+    /// las dos cosas.
     static func rescaleUpgradeLevelsForRebalance(_ levels: [String: Int]) -> [String: Int] {
         var rescaled = levels
         for (id, caps) in rebalanceLevelCaps {

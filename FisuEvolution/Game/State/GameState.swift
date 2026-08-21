@@ -595,10 +595,16 @@ final class GameState {
         // `>=` y no `==`, y hay que decir exactamente qué regala.
         //
         // Un save v3 llega acá con los niveles ya reescalados por
-        // `SaveMigrator.rescaleUpgradeLevelsForRebalance`, así que su lectura es
-        // exacta. Lo que el `>=` sí deja pasar es un save **v4 anterior al
-        // rebalance de pacing**: uno con `crit` entre 10 y 24 no había maxeado
-        // esa línea —con la curva vieja (3 × 2,5ⁿ) llegar a crit 10 costaba
+        // `SaveMigrator.rescaleUpgradeLevelsForRebalance`. Ese reescalado es
+        // PROPORCIONAL Y REDONDEADO, no exacto, y en los dos bordes se nota:
+        // redondea PARA ARRIBA hasta el tope (`income`/`tap` 19 → 10 y `crit`
+        // 24 → 10 quedan maxeados sin haberlo estado) y redondea A CERO abajo
+        // (`crit` 1 → 0 borra el único nivel que el jugador tenía). Los dos
+        // casos son de un solo nivel de distancia y se aceptan: la alternativa
+        // —guardar el nivel viejo para poder deshacer— pide un bump de schema.
+        // Lo que el `>=` sí deja pasar, y es más grande, es un save **v4
+        // anterior al rebalance de pacing**: uno con `crit` entre 10 y 24 no
+        // había maxeado esa línea —con la curva vieja (3 × 2,5ⁿ) llegar a crit 10 costaba
         // ~19.100 ORO de los 1,776e10 que valía la línea, el 0,0001 %— y desde
         // el rebalance cuenta como tope y se lleva las skins doradas.
         //

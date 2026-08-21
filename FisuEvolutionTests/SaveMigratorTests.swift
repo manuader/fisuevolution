@@ -28,7 +28,13 @@ struct SaveMigratorTests {
                 ["cellIndex": 7, "typeId": "junior_programmer"],
             ],
             "soulPoints": 12,
-            "upgradeLevels": ["offline": 2, "tap": 1],
+            // ⚠️ `tap: 3` y no `tap: 1`: **1 es punto fijo del reescalado**
+            // (1/20 × 10 = 0,5 → 1), así que con él borrar la llamada a
+            // `rescaleUpgradeLevelsForRebalance` de `migrateV3toV4` dejaba la
+            // suite entera VERDE — la migración estaba probada como función y
+            // sin cablear. Con 3 el valor migrado es 2 y el cableado queda
+            // cubierto por los dos tests de punta a punta.
+            "upgradeLevels": ["offline": 2, "tap": 3],
             "upgrades": [
                 "offlineEfficiency": 0.5,
                 "tapMultiplier": 2.0,
@@ -93,8 +99,25 @@ struct SaveMigratorTests {
         let intactas = SaveMigrator.rescaleUpgradeLevelsForRebalance(["offline": 7, "golden": 3])
         #expect(intactas == ["offline": 7, "golden": 3])
 
-        // Idempotente sobre lo ya reescalado que sigue en rango.
-        #expect(SaveMigrator.rescaleUpgradeLevelsForRebalance([:]).isEmpty)
+        // ⚠️ **NO es idempotente**, y decirlo importa porque éste es el camino
+        // más peligroso de la rama: cada pasada vuelve a dividir por el tope
+        // VIEJO, así que aplicarla de nuevo sobre su propio resultado degrada la
+        // línea hasta borrarla.
+        var repetido = SaveMigrator.rescaleUpgradeLevelsForRebalance(["crit": 25])
+        var cadena = [repetido["crit"] ?? -1]
+        for _ in 0..<4 {
+            repetido = SaveMigrator.rescaleUpgradeLevelsForRebalance(repetido)
+            cadena.append(repetido["crit"] ?? -1)
+        }
+        #expect(cadena == [10, 4, 2, 1, 0], "crit 25 reescalado cinco veces: \(cadena)")
+
+        // Lo que la hace segura NO es la función sino el cableado, y es lo único
+        // que hay que cuidar si algún día se agrega otra migración: hay UN SOLO
+        // call site (`SaveMigrator.migrateV3toV4`) y `migrate` despacha POR
+        // VERSIÓN, así que un save cruza el reescalado exactamente una vez y lo
+        // que se guarda después ya es v4. Un v4 nunca vuelve a entrar.
+        #expect(SaveMigrator.rescaleUpgradeLevelsForRebalance([:]).isEmpty,
+                "sin niveles no hay nada que reescalar")
     }
 
     @Test func currentVersionDecodesUnchanged() throws {
@@ -212,7 +235,9 @@ struct SaveMigratorTests {
         #expect(migrated.meta.oro == 12)
         #expect(migrated.meta.oroEarnedLifetime == 12)
         #expect(migrated.meta.prestigeLevel == 2)
-        #expect(migrated.meta.oroUpgradeLevels == ["offline": 2, "tap": 1])
+        // `tap: 3` del fixture → 2: 3/20 × 10 = 1,5, redondeado. `offline` no
+        // está en `rebalanceLevelCaps` (su tope no cambió) y pasa intacto.
+        #expect(migrated.meta.oroUpgradeLevels == ["offline": 2, "tap": 2])
         #expect(migrated.meta.derivedEffects == UpgradeState(
             offlineEfficiency: 0.5,
             tapMultiplier: 2.0,
@@ -279,8 +304,9 @@ struct SaveMigratorTests {
         #expect(migrated.run.coins == 123_456.5)
         #expect(migrated.run.units == ["homeless": 3, "oficinista": 2, "junior_programmer": 1])
         #expect(migrated.meta.oro == 12)
-        // La fuente de verdad de esos efectos también: se pueden recalcular.
-        #expect(migrated.meta.oroUpgradeLevels == ["offline": 2, "tap": 1])
+        // La fuente de verdad de esos efectos también: se pueden recalcular, y
+        // llegan REESCALADOS (`tap: 3` → 2).
+        #expect(migrated.meta.oroUpgradeLevels == ["offline": 2, "tap": 2])
     }
 
     /// El extremo del mismo camino: un v3 SIN la clave `upgrades`.

@@ -191,6 +191,67 @@ floors[]: incomeMultiplier 1 → 2 → 4,2 → 8,5 → 17 → 35 → 72 → 150 
 `FisuEvolution/Resources/Config/upgrades.json`: las 7 líneas de arriba.
 `FisuEvolution/Resources/Data/tiers.json`: 37 tiers en 10 pisos, 10 slots por piso.
 
+### 2.6 Por qué el jugador reencarna 3 veces y no 47: reencarnar NO CONVIENE
+
+Observación del dueño, y es el mecanismo que faltaba para explicar todo lo demás:
+
+> "como es muy facil avanzar en el juego (mergear y clickear y comprar mas
+> personajes), casi nunca es worth reencarnar hasta estar muy avanzado en la
+> partida. de manera que te da un monton de oro ya que tenes muchisimos earnings."
+
+Reencarnar cuesta **la run entera** (`run = .fresh(...)`: unidades, pisos,
+passives y char upgrades mueren) y paga **`1 + oro × 0,18`**. Como subir es
+barato y rápido —merge + click + comprar el tier alto por el atajo del HUD—,
+volver a empezar es pura pérdida hasta que la run se choca contra una pared. Y
+cuando eso pasa, `lifetimeEarnings` ya es astronómico y `oro = (earnings/3e6)^0,45`
+entrega una montaña de una sola vez.
+
+O sea: **el prestigio no es una decisión, es un trámite de final de partida**. Las
+dos quejas del dueño —"los multiplicadores al reencarnar están mal" y "el oro que
+da es tanto que es muy fácil ganar"— son este defecto visto desde los dos lados,
+y explican por qué él hizo 3-4 reencarnaciones donde el bot hace 47: el bot
+reencarna cuando DUPLICA el oro histórico (regla de sim), el humano cuando ya no
+le queda otra.
+
+⚠️ Esto sube el listón de §4.2: no alcanza con aplanar el ORO. Hay que hacer que
+reencarnar **convenga temprano** —que el multiplicador de UNA reencarnación pague
+el re-ascenso— y que la run tenga un techo que se sienta antes. Si después del
+rebalance sigue sin convenir hasta el final, el jugador va a seguir haciendo 3
+reencarnaciones gigantes y el problema queda igual con otros números.
+
+### 2.7 Dos fuentes de plata que nadie calibró contra el progreso
+
+**Los logros pagan un múltiplo de un COSTO, no de lo que producís.**
+`GameState+Achievements.swift:262` da
+`passiveUnlockCost(tierDeReferencia) × factor` = `60 × tapYield(tier) × factor`,
+con factores de 2 a 40 repartidos en 27 logros de monedas (los otros 12 dan ORO
+fijo, 20-120). Ese ancla no ve el `globalMultiplier` ni las char upgrades ni el
+multiplicador de piso, así que el premio **no guarda relación con la plata que
+tenés en ese momento**: es un lingote temprano y es polvo tarde.
+
+Lo pidió el dueño así: *"los achievements te dan bastante plata. hace que sea mas
+acorde a la cantidad de plata que podes tener en el momento en el que ganaste"*.
+
+**Y el juego ya tiene la fórmula correcta, a dos archivos de distancia**: el
+evento Aguinaldo (`ContentSystems.swift:201`) paga
+`IncomeTicker.passivePerSecond(...) × magnitude`, o sea **segundos de tu producción
+actual**. Ese es el molde para los 27 logros de monedas — con el número de
+segundos calibrado, no heredado (hoy el aguinaldo regala 900 s = 15 minutos de
+producción, que también hay que mirar).
+
+**Los banners de evento aparecen cada 2 a 8 minutos.**
+`events.json`: `baseIntervalSeconds: 300`, `intervalJitterSeconds: 180`, 8 eventos
+con cooldowns de 900-3600 s. En una partida de 3 h eso son ~35 apariciones. Y los
+que más pesan son los que aceleran: `plan_platita` (peso 20, **×5 de income** por
+60 s), `inversion_alienigena` (**×10** por 30 s), `aguinaldo` (peso 12, 15 min de
+producción de regalo), `blanqueo` (dos personajes de tier alto gratis).
+
+Queja del dueño: *"lo mismo con los banners (tipo plan platita, o app payment
+down). aparecen muy seguido"*. Los knobs son `baseIntervalSeconds`, el jitter, el
+`weight` y el `cooldownSeconds` de cada evento, y sus `magnitude`/`durationSeconds`.
+Ojo: los eventos también son el color del juego (el humor argentino vive ahí), así
+que la respuesta no es apagarlos sino espaciarlos y dosificar los que regalan.
+
 ---
 
 ## 3. Lo que NO se toca (decisiones cerradas del dueño — `HANDOFF.md` §5)
@@ -249,6 +310,12 @@ escribí por qué descartaste las otras**:
   `1 + k·oro^0,7` o un logarítmico cambian el late game entero).
 - **Techo blando**: rendimientos decrecientes por encima de cierto multiplicador.
 
+**Criterio de aceptación de este punto** (sale de §2.6): reencarnar tiene que
+**convenir antes de la pared**. Medilo explícitamente — en qué momento de la run
+el multiplicador que te llevás supera lo que cuesta re-ascender— y dejá ese número
+en la bitácora. Si el óptimo sigue siendo "reencarnar recién cuando no podés
+avanzar más", el arreglo no funcionó por más que el ORO sea más chico.
+
 ⚠️ El dueño dijo "los multiplicadores al reencarnar están mal" **y** "el oro que
 da es tanto que es muy fácil ganar": son las dos caras de esto. Un arreglo que
 sólo baje el ORO sin tocar la relación costo/ingreso deja el defecto vivo y hace
@@ -297,6 +364,32 @@ saltea el merge).
 - Actualizá el docstring de `BestHire` y el del botón: hoy dicen "el mejor
   contratable que la plata alcanza" y pasarían a mentir.
 
+### 4.6 Los logros pagan segundos de producción, no un múltiplo de un costo
+
+Migrar los 27 logros de monedas al molde del Aguinaldo: el premio es **N segundos
+de tu `passivePerSecond` actual** (o de tap+passive, decidilo y documentalo), con
+N calibrado por familia de logro en vez del `factor` sobre `passiveUnlockCost` de
+hoy. Con eso el premio queda "acorde a la plata que podés tener en ese momento",
+que es el pedido textual.
+
+- Es `achievements.json` + `GameState+Achievements.swift:262`.
+- Revisá de paso los 12 logros que dan ORO fijo (20-120): si §4.2 achica la escala
+  del ORO, esos montos pasan de decorativos a decisivos y hay que re-mirarlos.
+- Y mirá el propio Aguinaldo (900 s de producción de regalo, peso 12): con la
+  misma vara, 15 minutos gratis cada vez que sale es mucho.
+
+### 4.7 Los eventos, más espaciados y menos regaladores
+
+`events.json`: subir `baseIntervalSeconds` (hoy 300 con jitter 180 → uno cada 2-8
+min), subir los `cooldownSeconds` de los que aceleran, y bajar `weight`/`magnitude`
+de `plan_platita` (×5), `inversion_alienigena` (×10), `aguinaldo` y `blanqueo`.
+
+⚠️ **No los apagues**: los eventos son el humor del juego y el dueño los quiere
+—se queja de la FRECUENCIA, no de que existan—. Y son la única fuente de tensión
+negativa (devaluación, corralito, cayó Mercado Pago): si al espaciarlos se caen
+sólo los malos, el juego queda más fácil todavía. Mantené la proporción entre
+buenos y malos, o mejorala a favor de los malos.
+
 ---
 
 ## 5. Cómo verificar (protocolo de la casa — `HANDOFF.md` §6)
@@ -329,6 +422,10 @@ saltea el merge).
       demuestra a lo largo de toda la partida (no sólo al final).
 - [ ] Las siete líneas cuestan algo comparable entre sí; ninguna es el 99 %.
 - [ ] El atajo del HUD vende sólo tier base de piso; FisuJobs sigue igual.
+- [ ] **Reencarnar conviene antes de la pared**, con el momento medido y escrito.
+- [ ] El bot reencarna un número parecido al del humano (≤8), no decenas.
+- [ ] Los logros pagan segundos de producción actual; los eventos se espacian sin
+      perder su cara mala.
 - [ ] `PacingTests` verde y re-pineado con los números de la corrida nueva.
 - [ ] EconomyKit + unit + UI verdes, cero warnings.
 - [ ] `Docs/balance-log.md` con una entrada nueva: qué se movió, qué se descartó

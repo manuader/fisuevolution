@@ -4,6 +4,7 @@
   "yieldGrowthPerTier": 2.8,
   "passiveRatio": 0.5,
   "passiveUnlockCostMultiplier": 60,
+  "tapFloorMultiplierExponent": 0,
   "hire": {
     "defaultCostMultiplier": 600,
     "defaultCostGrowth": 1.2,

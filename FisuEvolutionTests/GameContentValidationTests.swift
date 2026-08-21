@@ -106,6 +106,12 @@ struct GameContentValidationTests {
         #expect(economy.yieldGrowthPerTier == 2.8)
         #expect(economy.passiveRatio == 0.5)
         #expect(economy.passiveUnlockCostMultiplier == 60)
+        // Rebalance de pacing §4.3: el TAP dejó de cobrar el `incomeMultiplier`
+        // del piso (1 → 620) y el pasivo lo sigue cobrando entero. Es lo que
+        // separa las dos curvas, que hasta acá eran la misma con un factor. En
+        // el callejón el multiplicador es 1, así que el early game —el tutorial
+        // y la primera contratación— no se mueve ni un peso.
+        #expect(economy.tapFloorMultiplierExponent == 0)
         // Regla de precios del dueño (2026-08-04): contratar el tier base de un
         // piso cuesta 600× lo que rinde un click de ese personaje ahí, y cada
         // compra sube el precio 20%. El callejón es la excepción barata.

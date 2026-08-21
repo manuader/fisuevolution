@@ -480,12 +480,15 @@ public struct PacingSimulator: Sendable {
                 .map { type in
                     type.tapYield
                         * CharUpgrades.multiplier(typeId: type.id, levels: state.run.charUpgradeLevels, config: config)
-                        * floorTable.floor(forTier: type.tier).incomeMultiplier
+                        * config.tapFloorMultiplier(for: floorTable.floor(forTier: type.tier))
                 }
                 .max() ?? 0
             // Los mismos factores que `GameActions.applyTap`, incluido el
             // `incomeMultiplier` que al bot le faltaba: el tap del juego lo
-            // lleva, así que sin él el simulador cobraba de menos cada toque.
+            // lleva, así que sin él el simulador cobraba de menos cada toque. El
+            // de piso pasa por `tapFloorMultiplier` por el mismo motivo: si acá
+            // se leyera `incomeMultiplier` crudo, el bot cobraría un tap que el
+            // juego ya no paga.
             rate += bestTap * human.tapsPerSecond
                 * state.meta.derivedEffects.tapMultiplier
                 * state.meta.derivedEffects.incomeMultiplier

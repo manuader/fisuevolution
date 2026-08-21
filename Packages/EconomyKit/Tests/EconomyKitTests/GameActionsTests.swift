@@ -55,6 +55,45 @@ struct TapActionTests {
         #expect(abs(gainF1 - 1) < 1e-12)
     }
 
+    @Test("tapFloorMultiplierExponent separa la curva del tap de la del pasivo")
+    func tapFloorExponentSeparatesTapFromPassive() throws {
+        // Rebalance de pacing §4.3: `passiveYield = tapYield × passiveRatio` era
+        // UN knob para dos curvas que el diseño necesita distintas. El exponente
+        // las separa por el único factor que crece con la altura de la torre:
+        // con 0 el tap cobra el tier pelado y el pasivo sigue cobrando el piso
+        // entero. Un piso ×620 (el reino divino real) lo hace visible.
+        let sinPiso = fxConfig(f2IncomeMultiplier: 620, tapFloorMultiplierExponent: 0)
+        let table = try fxFloorTable(config: sinPiso)
+        var state = fxState()
+        let cLaw = try #require(tiers.type(id: "c_law"))
+        let gain = StandardEconomy(config: sinPiso).applyTap(
+            type: cLaw, state: &state, floorTable: table, now: 0
+        )
+        #expect(abs(gain - 14.44) < 1e-9, "el tap del tier alto ya no cobra el ×620 del piso")
+
+        // El pasivo del MISMO tipo en el MISMO piso sigue cobrándolo entero.
+        state.run.units = ["c_law": 1]
+        state.run.passiveUnlocked["c_law"] = true
+        let passive = IncomeTicker.passivePerSecond(
+            state: state, tiers: tiers, floorTable: table, config: sinPiso, now: 0
+        )
+        #expect(abs(passive - 14.44 * 0.3 * 620) < 1e-9)
+    }
+
+    @Test("sin el exponente declarado el tap cobra el piso entero, como siempre")
+    func tapFloorExponentDefaultsToOne() throws {
+        // El knob se agregó en el rebalance: un `economy.json` (o una fixture)
+        // que no lo declare tiene que seguir midiendo lo de antes.
+        let sinDeclarar = fxConfig(f2IncomeMultiplier: 620)
+        let table = try fxFloorTable(config: sinDeclarar)
+        var state = fxState()
+        let cLaw = try #require(tiers.type(id: "c_law"))
+        let gain = StandardEconomy(config: sinDeclarar).applyTap(
+            type: cLaw, state: &state, floorTable: table, now: 0
+        )
+        #expect(abs(gain - 14.44 * 620) < 1e-9)
+    }
+
     @Test func derivedTapAndIncomeMultipliersStack() throws {
         var state = fxState()
         state.meta.derivedEffects.tapMultiplier = 2

@@ -10,8 +10,11 @@ public enum PassiveUnlockError: Error, Equatable {
 /// (La contratación vive en `TowerActions` — F7 §3.3; acá quedan tap y passive.)
 extension StandardEconomy {
     /// Tap income sobre una unidad del piso visible. Aplica los multiplicadores
-    /// por tipo (charUpgrades) y por piso (floors[].incomeMultiplier) además de
-    /// los globales. Returns the gain so the scene can show feedback.
+    /// por tipo (charUpgrades) y por piso además de los globales. El de piso entra
+    /// por `config.tapFloorMultiplier(for:)` y no crudo: el tap y el pasivo dejaron
+    /// de compartir esa curva en el rebalance de pacing (el click del tier alto
+    /// financiaba el piso siguiente en un minuto).
+    /// Returns the gain so the scene can show feedback.
     public func applyTap(
         type: CharacterType,
         state: inout PlayerState,
@@ -22,7 +25,7 @@ extension StandardEconomy {
             * ModifierMath.factor(state.run.activeModifiers, effect: .tapMultiplier, now: now)
         let gain = type.tapYield
             * CharUpgrades.multiplier(typeId: type.id, levels: state.run.charUpgradeLevels, config: config)
-            * floorTable.floor(forTier: type.tier).incomeMultiplier
+            * config.tapFloorMultiplier(for: floorTable.floor(forTier: type.tier))
             * state.meta.derivedEffects.tapMultiplier
             * state.meta.derivedEffects.incomeMultiplier
             * state.meta.globalMultiplier

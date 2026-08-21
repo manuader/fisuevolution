@@ -104,6 +104,24 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     public let yieldGrowthPerTier: Double
     public let passiveRatio: Double
     public let passiveUnlockCostMultiplier: Double
+    /// Con qué exponente el TAP recibe el `incomeMultiplier` del piso (el pasivo
+    /// lo recibe siempre entero). Default `1` = la conducta histórica.
+    ///
+    /// Es lo que separa la curva del tap de la del pasivo, que hasta el rebalance
+    /// eran la misma con un factor (`passiveYield = tapYield × passiveRatio`): un
+    /// solo knob para dos curvas que el diseño necesita distintas. El
+    /// multiplicador de piso es el único factor que crece con la ALTURA de la
+    /// torre (1 → 620), así que bajarle el exponente le saca plata al click del
+    /// tier alto —la queja del dueño— **sin tocar el early game**: en el callejón
+    /// el multiplicador es 1, y 1^x = 1 para cualquier exponente.
+    ///
+    /// Opcional para que un `economy.json` viejo o una fixture sin la clave sigan
+    /// decodificando: el Codable sintetizado usa `decodeIfPresent` sólo en las
+    /// propiedades opcionales, y escribir un `init(from:)` entero por esta sola
+    /// clave obligaría a mantener a mano las trece que ya funcionan. El valor
+    /// efectivo sale de `tapFloorMultiplier(for:)`, el único lugar donde vive el
+    /// default. [TUNEABLE]
+    public let tapFloorMultiplierExponent: Double?
     public let hire: HireConfig
     public let charUpgrades: CharUpgradesConfig
     public let oro: OroConfig
@@ -120,6 +138,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         yieldGrowthPerTier: Double,
         passiveRatio: Double,
         passiveUnlockCostMultiplier: Double,
+        tapFloorMultiplierExponent: Double? = nil,
         hire: HireConfig,
         charUpgrades: CharUpgradesConfig,
         oro: OroConfig,
@@ -134,6 +153,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         self.yieldGrowthPerTier = yieldGrowthPerTier
         self.passiveRatio = passiveRatio
         self.passiveUnlockCostMultiplier = passiveUnlockCostMultiplier
+        self.tapFloorMultiplierExponent = tapFloorMultiplierExponent
         self.hire = hire
         self.charUpgrades = charUpgrades
         self.oro = oro
@@ -152,6 +172,18 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     /// Growth de hire efectivo del piso (override o default).
     public func hireCostGrowth(for floor: FloorDef) -> Double {
         floor.hireCostGrowthOverride ?? hire.defaultCostGrowth
+    }
+
+    /// El multiplicador de piso que recibe **el tap** (el pasivo y el precio de
+    /// contratación reciben `floor.incomeMultiplier` entero, siempre).
+    ///
+    /// Único lugar donde vive el default del exponente: repetir el `?? 1` en cada
+    /// llamador es exactamente cómo se desincronizaron los dos literales `1.8` de
+    /// `tierPremium` antes de que ese default se mudara a una constante.
+    public func tapFloorMultiplier(for floor: FloorDef) -> Double {
+        let exponent = tapFloorMultiplierExponent ?? 1.0
+        guard exponent != 1.0 else { return floor.incomeMultiplier }
+        return pow(floor.incomeMultiplier, exponent)
     }
 
     /// Costo de contratar UN TIER CONCRETO en su piso, ANTES de descuentos

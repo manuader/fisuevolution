@@ -105,7 +105,9 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     public let passiveRatio: Double
     public let passiveUnlockCostMultiplier: Double
     /// Con qué exponente el TAP recibe el `incomeMultiplier` del piso (el pasivo
-    /// lo recibe siempre entero). Default `1` = la conducta histórica.
+    /// lo recibe siempre entero; el PRECIO de contratación lo recibe con este
+    /// mismo exponente desde el rebalance de pacing — ver `hireCost`).
+    /// Default `1` = la conducta histórica.
     ///
     /// Es lo que separa la curva del tap de la del pasivo, que hasta el rebalance
     /// eran la misma con un factor (`passiveYield = tapYield × passiveRatio`): un
@@ -174,8 +176,10 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         floor.hireCostGrowthOverride ?? hire.defaultCostGrowth
     }
 
-    /// El multiplicador de piso que recibe **el tap** (el pasivo y el precio de
-    /// contratación reciben `floor.incomeMultiplier` entero, siempre).
+    /// El multiplicador de piso que recibe **el tap** — y, desde el rebalance de
+    /// pacing, también **el precio de contratación** (ver `hireCost`), que es lo
+    /// que mantiene literal la regla de los 600 clicks. El único que sigue
+    /// recibiendo `floor.incomeMultiplier` entero y siempre es **el pasivo**.
     ///
     /// Único lugar donde vive el default del exponente: repetir el `?? 1` en cada
     /// llamador es exactamente cómo se desincronizaron los dos literales `1.8` de
@@ -203,7 +207,9 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     /// multiplicador de piso, con el `incomeMultiplier` crudo acá contratar el
     /// tier base del reino divino pasaba de 600 clicks a 600 × 620 = 372.000, y
     /// la regla dejaba de ser cierta sin que nada hiciera ruido. Atado al mismo
-    /// factor, vale 600 clicks en los diez pisos para cualquier exponente.
+    /// factor, vale 600 clicks en los nueve pisos de arriba para cualquier
+    /// exponente (el callejón overridea el multiplicador a 25 y su Fisura sale
+    /// 25 clicks: decisión aparte del dueño, no una excepción de la regla).
     /// (Decisión del dueño, fix round 2 — ver Docs/balance-log.md.)
     ///
     /// El factor nuevo es `tierPremium^(tier − firstTier)`: para el tier BASE de

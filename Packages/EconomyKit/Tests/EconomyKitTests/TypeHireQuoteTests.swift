@@ -69,8 +69,21 @@ struct TypeHireQuoteTests {
 
     /// Regla del spec §5.2: comprar el tier de arriba NUNCA puede convenir
     /// contra comprar dos del de abajo y mergear. O sea `costo(t+1) > 2 × costo(t)`
-    /// para todo par de tiers vecinos DENTRO de un piso (cruzar de piso cambia
-    /// también el multiplicador del piso, y ese salto es mucho mayor).
+    /// para todo par de tiers vecinos DENTRO de un piso.
+    ///
+    /// ⚠️ **Cruzar de piso es el caso contrario, y desde el rebalance de pacing
+    /// hay que decirlo al revés de como estaba escrito acá.** El `tierPremium`
+    /// se reinicia en cada `firstTier`, así que el salto de piso vale
+    /// `yieldGrowth / tierPremium³` = 2,8 / 5,832 = **0,48×**: el tier base del
+    /// piso de arriba sale MENOS que el tope del de abajo (en el juego
+    /// embarcado, 139,3 M el Director contra 290,2 M un Senior) y rinde más.
+    /// Adentro del piso el salto es 2,8 × 1,8 = 5,04×.
+    ///
+    /// No es explotable y por eso la regla sigue siendo de piso para adentro: un
+    /// piso **se abre mergeando**, no comprando, así que nadie puede saltar al
+    /// tier base de arriba sin haber llegado primero por la escalera. Lo que sí
+    /// significa es que, con el piso ya abierto, backfillear abajo no conviene —
+    /// que es exactamente el pacing que el dueño quería.
     @Test("subir un tier dentro del piso cuesta más que el doble")
     func subirUnTierMasQueDuplica() throws {
         for ordinal in 0..<floorTable.count {

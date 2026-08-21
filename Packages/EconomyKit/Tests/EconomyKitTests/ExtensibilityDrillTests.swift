@@ -113,14 +113,21 @@ struct ExtensibilityDrillTests {
 
         // Y su tier base se contrata con la curva que declara la config, sin
         // ninguna tabla por etapa: el precio es el multiplicador por lo que
-        // RINDE UN CLICK en ese piso (tapYield × incomeMultiplier del piso).
+        // RINDE UN CLICK en ese piso.
+        //
+        // ⚠️ El factor de piso es `tapFloorMultiplier(for:)` y no
+        // `incomeMultiplier` crudo: son el MISMO número mientras el exponente
+        // valga 1 —el default, y lo que esta config del futuro no declara—, pero
+        // el juego embarcado lo tiene en 0 desde el rebalance de pacing. Escrito
+        // con el crudo, este assert pineaba una propiedad que el juego ya no
+        // tiene y seguía verde por su propio fixture.
         let floor12 = table[11]
         let quote = try #require(TowerActions.hireQuote(
             floorOrdinal: 11, state: state, tiers: tiers,
             floorTable: table, config: config
         ))
         #expect(quote.type.id == "t12")
-        #expect(quote.cost == 10 * economy.tapYield(forTier: 12) * floor12.incomeMultiplier)
+        #expect(quote.cost == 10 * economy.tapYield(forTier: 12) * config.tapFloorMultiplier(for: floor12))
         try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: table)
         #expect(state.run.units["t12"] == 2)
         #expect(state.run.hireCounts["floor12"] == 1)

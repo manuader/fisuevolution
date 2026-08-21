@@ -1,13 +1,5 @@
 import SwiftUI
 
-/// Eventos de la propia UI que completan un paso y no se pueden leer de una
-/// proyección de `GameState` (abrir una hoja no cambia la economía).
-struct TutorialEvents: OptionSet, Equatable {
-    let rawValue: Int
-    static let openedUpgrades = TutorialEvents(rawValue: 1 << 0)
-    static let openedMap = TutorialEvents(rawValue: 1 << 1)
-}
-
 /// Tutorial interactivo (RF-01), patrón Clash of Clans.
 ///
 /// Cada paso recorta un agujero sobre el control **real** —resuelto por
@@ -22,7 +14,6 @@ struct TutorialOverlay: View {
     /// Frames reales de los controles, ya resueltos por el `GeometryProxy` que
     /// monta el overlay. Nunca coordenadas escritas a mano.
     let anchors: [TutorialTarget: CGRect]
-    let events: TutorialEvents
 
     @Environment(GameState.self) private var gameState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -42,7 +33,6 @@ struct TutorialOverlay: View {
         case earnedEnoughToHire
         case hired
         case merged
-        case ui(TutorialEvents)
         /// Lo cierra el botón del paso final.
         case explicitButton
     }
@@ -59,24 +49,34 @@ struct TutorialOverlay: View {
         let completion: Completion
     }
 
-    /// ⚠️ Los controles que se iluminan son los de HOY: los **tabs** de FisuJobs
-    /// (`hud.hire`) y de mejoras (`hud.upgrades`) en la barra inferior, y el
-    /// botón de mapa (`hud.map`, que vive en la cápsula de la torre). El paso
-    /// viejo que explicaba las flechas de la torre lo reemplaza el mapa, que es
-    /// lo que las reemplazó a ellas.
+    /// La fase obligatoria, corta a propósito: tap → contratar → fusionar →
+    /// cierre, 2-3 minutos, y termina justo después del reveal del primer
+    /// merge — que se reproduce LIMPIO, porque al completarse "merge" la
+    /// celebración toma el turno y este overlay entero se esconde (ver `body`).
+    /// El resto de la app no se enseña acá: cada pantalla tiene su lección
+    /// contextual (`TutorialTipView` + `GameState+TutorialTips`), disparada la
+    /// primera vez que hay algo que HACER en ella. Los pasos viejos de "abrí
+    /// Mejoras" y "abrí el mapa" murieron por eso: abrían vidrieras vacías
+    /// (mejoras impagables, un mapa con un solo piso), y sus claves
+    /// `tutorial.step.upgrades`/`.map` quedan en el catálogo como reserva.
     ///
-    /// ⚠️ El paso de contratar ya no ilumina un botón que compra: ilumina el tab
+    /// ⚠️ El paso de contratar no ilumina un botón que compra: ilumina el tab
     /// que abre una PANTALLA. La hoja se presenta **por encima** del overlay
-    /// —que es lo correcto: el scrim sólo tiene que gobernar el tablero—, el
-    /// jugador contrata adentro y `hireCharacter` marca `ftue.spawned`, así que
-    /// el paso se completa aunque el globo esté tapado y el tutorial ya está en
-    /// "fusioná" cuando la hoja se cierra.
+    /// —que es lo correcto: el scrim sólo tiene que gobernar el tablero—, la
+    /// guía sigue DENTRO de FisuJobs (su banda del tutorial), el jugador
+    /// contrata y `hireCharacter` marca `ftue.spawned`, así que el paso se
+    /// completa aunque el globo esté tapado y el tutorial ya está en "fusioná"
+    /// cuando la hoja se cierra.
+    ///
+    /// ⚠️ Poses: mientras `fisura_point` y `fisura_explain` no se regeneren
+    /// (siguen en el estilo viejo — prompts 117/118 del pipeline), el guion usa
+    /// sólo las dos sanas: `wave` y `celebrate`.
     private var steps: [Step] {
         [
             Step(id: "tap", target: .boardUnit, windows: [.coins], boardTarget: .anyUnit,
                  text: "tutorial.step.tap", pose: "fisura_wave", completion: .earnedEnoughToHire),
             Step(id: "hire", target: .hire, windows: [.coins],
-                 text: "tutorial.step.hire", pose: "fisura_point", completion: .hired),
+                 text: "tutorial.step.hire", pose: "fisura_wave", completion: .hired),
             // Enseña los DOS gestos de fusión y se completa con cualquiera de
             // los dos. No son dos pasos porque después de contratar hay un solo
             // par mergeable: darle un paso propio al doble toque deja al del
@@ -84,11 +84,11 @@ struct TutorialOverlay: View {
             // plata, contratar, fusionar— porque el paso de contratar tiene el
             // tablero bajo el scrim y no se puede tapear para ganar.
             Step(id: "merge", target: .boardUnit, boardTarget: .mergePair,
-                 text: "tutorial.step.merge", pose: "fisura_explain", completion: .merged),
-            Step(id: "upgrades", target: .upgrades,
-                 text: "tutorial.step.upgrades", pose: "fisura_explain", completion: .ui(.openedUpgrades)),
-            Step(id: "map", target: .map,
-                 text: "tutorial.step.map", pose: "fisura_point", completion: .ui(.openedMap)),
+                 text: "tutorial.step.merge", pose: "fisura_wave", completion: .merged),
+            // El cierre deja UN objetivo (fusionar hasta el T5, que abre el
+            // piso 2) y aparece recién cuando el reveal terminó de
+            // reproducirse: la escena avisa `celebrationFinished` y este
+            // overlay reaparece ya avanzado.
             Step(id: "finish", target: nil,
                  text: "tutorial.step.finish", pose: "fisura_celebrate", completion: .explicitButton),
         ]
@@ -268,23 +268,25 @@ struct TutorialOverlay: View {
     private var progress: Progress {
         Progress(
             milestones: gameState.ftueMilestones,
-            canAffordSpawn: gameState.canAffordSpawn,
-            events: events
+            canAffordSpawn: gameState.canAffordSpawn
         )
     }
 
     private struct Progress: Equatable {
         let milestones: GameState.FTUEMilestones
         let canAffordSpawn: Bool
-        let events: TutorialEvents
     }
 
+    /// Todo sale de los milestones `ftue.*`, que PERSISTEN: matar la app a
+    /// mitad de guion no rehace nada al volver — el bucle de
+    /// `advanceWhileSatisfied` retoma en el primer paso no cumplido. (Los
+    /// pasos viejos por evento de UI no persistían y se rehacían; murieron con
+    /// este guion.)
     private func isSatisfied(_ completion: Completion) -> Bool {
         switch completion {
         case .earnedEnoughToHire: gameState.ftueMilestones.tapped && gameState.canAffordSpawn
         case .hired: gameState.ftueMilestones.spawned
         case .merged: gameState.ftueMilestones.merged
-        case .ui(let event): events.contains(event)
         case .explicitButton: false
         }
     }

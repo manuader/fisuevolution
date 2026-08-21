@@ -101,13 +101,25 @@ struct BottomMenuBar: View {
                     .tutorialAnchor(.upgrades)
             )
         case .skins:
-            return AnyView(GameIcon(artKey: "ui_tab_skins", size: side) { VectorTabSkinsIcon() })
+            return AnyView(
+                GameIcon(artKey: "ui_tab_skins", size: side) { VectorTabSkinsIcon() }
+                    .tutorialAnchor(.skins)
+            )
         case .gifts:
-            return AnyView(GameIcon(artKey: "ui_tab_gifts", size: side) { VectorTabGiftsIcon() })
+            return AnyView(
+                GameIcon(artKey: "ui_tab_gifts", size: side) { VectorTabGiftsIcon() }
+                    .tutorialAnchor(.gifts)
+            )
         case .store:
-            return AnyView(GameIcon(artKey: "ui_tab_shop", size: side) { VectorTabShopIcon() })
+            return AnyView(
+                GameIcon(artKey: "ui_tab_shop", size: side) { VectorTabShopIcon() }
+                    .tutorialAnchor(.store)
+            )
         case .menu:
-            return AnyView(GameIcon(artKey: "ui_tab_menu", size: side) { VectorTabMenuIcon() })
+            return AnyView(
+                GameIcon(artKey: "ui_tab_menu", size: side) { VectorTabMenuIcon() }
+                    .tutorialAnchor(.menu)
+            )
         }
     }
 }

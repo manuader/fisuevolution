@@ -80,7 +80,7 @@ struct CelebrationWiringTests {
         case .achievements:
             #expect(gameState.achievementToast != nil || !gameState.pendingAchievementToasts.isEmpty)
         case .eventBanner: #expect(gameState.activeEvent != nil)
-        case .tutorialTip: break   // su payload llega con las lecciones contextuales
+        case .tutorialTip: #expect(gameState.tutorialTip != nil)
         }
     }
 

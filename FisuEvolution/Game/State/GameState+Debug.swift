@@ -37,6 +37,14 @@ extension GameState {
             defaults.removeObject(forKey: NotificationsManager.defaultsKey)
             defaults.removeObject(forKey: LanguagePreference.defaultsKey)
             defaults.removeObject(forKey: LanguagePreference.systemKey)
+            // Las lecciones contextuales son la misma trampa que el tutorial y
+            // los ajustes: viven en UserDefaults y sobrevivirían al reset — un
+            // test que dispara la lección de Mejoras se la dejaría "dada" al
+            // siguiente.
+            for lesson in TutorialLesson.allCases {
+                defaults.removeObject(forKey: lesson.defaultsKey)
+            }
+            defaults.removeObject(forKey: Self.sessionsAfterPhaseKey)
         }
         // `--uitest-open-sheet` presenta una hoja modal: el tutorial no puede
         // estar adelante, así que implica saltearlo.

@@ -100,11 +100,9 @@ struct GameBoardView: View {
     /// `true` y SwiftUI presentar una sola. El enum lo hace imposible.
     @State private var activeScreen: GameScreen?
     @State private var adsProvider = StubAdsProvider()
-    // Los popups automáticos no deben pisar el tutorial en el primer arranque.
+    // La ficha de personaje espera al tutorial: no es una celebración de la
+    // cola, así que éste es su único gate.
     @AppStorage("fisuTutorialDone") private var tutorialDone = false
-    /// Los pasos del tutorial que se completan abriendo una hoja: la economía no
-    /// cambia, así que no hay proyección de `GameState` que los delate.
-    @State private var tutorialEvents: TutorialEvents = []
     #if DEBUG
     @State private var showDebugPanel = false
     #endif
@@ -193,12 +191,25 @@ struct GameBoardView: View {
         // los resuelve a puntos sin que nadie tenga que restar safe areas a mano.
         .overlayPreferenceValue(TutorialAnchorKey.self) { anchors in
             GeometryReader { proxy in
-                TutorialOverlay(
-                    anchors: anchors.mapValues { proxy[$0] },
-                    events: tutorialEvents
-                )
+                let resolved = anchors.mapValues { proxy[$0] }
+                ZStack {
+                    TutorialOverlay(anchors: resolved)
+                    // Las lecciones contextuales. Nunca conviven con la fase:
+                    // el director no dispara ninguna hasta que la fase termina.
+                    TutorialTipView(anchors: resolved)
+                }
             }
             .ignoresSafeArea()
+        }
+        // El director no dispara lecciones con una hoja (o el popup de
+        // prestigio) tapando el tablero: el coach señala controles de ESTA
+        // pantalla. `GameState` no puede ver estos `@State`, así que se los
+        // publica esta vista.
+        .onChange(of: activeScreen) { _, screen in
+            gameState.uiCoversBoard = screen != nil || showPrestige
+        }
+        .onChange(of: showPrestige) { _, prestige in
+            gameState.uiCoversBoard = prestige || activeScreen != nil
         }
         .onAppear {
             if scene == nil {
@@ -341,7 +352,7 @@ struct GameBoardView: View {
         VStack(spacing: 8) {
             HUDView(
                 onStoreTap: { open(.store) },
-                onMapOpen: { tutorialEvents.insert(.openedMap) }
+                onMapOpen: { gameState.tutorialTipCompleted(.elevator) }
             )
             // Los contadores de bonus van pegados al HUD y a la izquierda; el
             // banner del evento, que es ancho y centrado, va debajo. Se monta
@@ -381,11 +392,11 @@ struct GameBoardView: View {
         gameState.celebrationHidesUI
     }
 
-    /// Abre una pantalla de la barra y avisa al tutorial cuando el paso se
-    /// completa **por abrir la hoja** (la economía no cambia, así que no hay
-    /// proyección de `GameState` que lo delate).
+    /// Abre una pantalla de la barra. Si la lección contextual en pantalla
+    /// señalaba justo esta hoja, abrirla la da por cumplida — la mejor de sus
+    /// tres salidas.
     private func open(_ screen: GameScreen) {
-        if screen == .upgrades { tutorialEvents.insert(.openedUpgrades) }
+        gameState.tutorialTipHandled(opening: screen)
         activeScreen = screen
     }
 
@@ -427,8 +438,13 @@ struct GameBoardView: View {
             // media altura cada una.
             HStack(alignment: .top, spacing: Tokens.s8) {
                 QuickHireButton()
+                    .tutorialAnchor(.quickHire)
                 Spacer(minLength: Tokens.s8)
-                PrestigeButton { showPrestige = true }
+                PrestigeButton {
+                    gameState.tutorialTipCompleted(.prestige)
+                    showPrestige = true
+                }
+                .tutorialAnchor(.prestige)
             }
             .padding(.horizontal, Tokens.s8)
             BottomMenuBar(select: open)

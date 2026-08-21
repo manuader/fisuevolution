@@ -1683,6 +1683,23 @@
         }
       }
     },
+    "board.reveal.new" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NEW!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡NUEVO!"
+          }
+        }
+      }
+    },
     "bonus.activate" : {
       "localizations" : {
         "en" : {
@@ -7157,6 +7174,23 @@
         }
       }
     },
+    "tutorial.jobs.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the row with the green glow: you can already afford that job."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá la fila con halo verde: ese laburo ya lo podés pagar."
+          }
+        }
+      }
+    },
     "tutorial.progress.label" : {
       "localizations" : {
         "en" : {
@@ -7195,13 +7229,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You are set. The block is counting on you. Time to make millions! 🚀"
+            "value" : "That's it! Keep merging: a T5 opens floor 2. The block is counting on you. 🚀"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Listo, capo! El barrio cuenta con vos. A hacerse millonario. 🚀"
+            "value" : "¡Eso es todo, capo! Seguí fusionando: con un T5 se abre el piso 2. El barrio cuenta con vos. 🚀"
           }
         }
       }
@@ -7287,6 +7321,159 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En Mejoras potenciás tus ganancias para siempre. ¡No seas amarrete!"
+          }
+        }
+      }
+    },
+    "tutorial.tip.achievements" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "See the red dot on the Menu? There's an achievement to claim. Go grab your reward!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Ves el puntito rojo en el Menú? Hay un logro para cobrar. ¡Entrá y llevate el premio!"
+          }
+        }
+      }
+    },
+    "tutorial.tip.elevator" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New floor! Tap the elevator and jump straight to any unlocked floor."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Piso nuevo! Tocá el ascensor y saltá directo a cualquier piso desbloqueado."
+          }
+        }
+      }
+    },
+    "tutorial.tip.gifts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The reward calendar lives in Gifts. Drop by every day to grab yours."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El calendario de premios vive en Regalos. Pasá todos los días a buscar el tuyo."
+          }
+        }
+      }
+    },
+    "tutorial.tip.gotit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Dale!"
+          }
+        }
+      }
+    },
+    "tutorial.tip.prestige" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reincarnate just lit up: you start over, but with GOLD that multiplies everything forever."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se encendió Reencarnar: arrancás de cero, pero con ORO que multiplica todo para siempre."
+          }
+        }
+      }
+    },
+    "tutorial.tip.quickhire" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This button hires the best one you can afford, no menus. Try it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este botón contrata al mejor que te alcance, sin abrir nada. Probalo."
+          }
+        }
+      }
+    },
+    "tutorial.tip.skins" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You earned your first outfit! Open Outfits and put it on."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Ganaste tu primera pinta! Entrá a Pintas y ponésela a tu personaje."
+          }
+        }
+      }
+    },
+    "tutorial.tip.store" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Store has packs and extras. Check it out whenever you like, no rush."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En la Tienda hay packs y extras. Mirala cuando quieras, sin apuro."
+          }
+        }
+      }
+    },
+    "tutorial.tip.upgrades" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can afford an upgrade! Open Upgrades and boost your earnings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Te alcanza para una mejora! Entrá a Mejoras y potenciá tus ganancias."
           }
         }
       }

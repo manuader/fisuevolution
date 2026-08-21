@@ -54,6 +54,7 @@ extension GameState {
         if let event = activeEvent, event.id != announcedEventID {
             celebrations.enqueue(.eventBanner)
         }
+        if tutorialTip != nil { celebrations.enqueue(.tutorialTip) }
         publishCelebration()
     }
 
@@ -145,8 +146,15 @@ extension GameState {
             // pantalla apagada. Acá caen las tres salidas: el fin que avisa la
             // escena, el tap que saltea y el watchdog que destraba.
             boardCelebrationShowsSomethingNew = false
+        case .tutorialTip:
+            // Estuvo en pantalla y su turno terminó —por el botón, por el tap
+            // que saltea o por el timeout—: no vuelve. La retirada SIN marcar
+            // (la condición que murió esperando turno) no pasa por acá: la
+            // maneja el director (`refreshTutorialTip`).
+            if let tip = tutorialTip { markLessonDone(tip.lesson) }
+            tutorialTip = nil
         case .offlineEarnings, .dailyReward,
-             .careerChoice, .skinAward, .specialDrop, .tutorialTip:
+             .careerChoice, .skinAward, .specialDrop:
             break
         }
     }

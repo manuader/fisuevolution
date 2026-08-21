@@ -28,17 +28,30 @@ public struct PacingSimulator: Sendable {
         /// Offsets de inicio de sesión dentro del día (segundos desde las 0 hs).
         public var sessionStartOffsets: [Double]
         public var daySeconds: Double
+        /// Cuántas veces el ORO por reencarnar tiene que superar al ORO ganado
+        /// histórico para que el bot reencarne. **1 = duplicar**, la regla idle
+        /// estándar y la conducta de siempre.
+        ///
+        /// Existe para MEDIR la pregunta del dueño ("casi nunca es worth
+        /// reencarnar hasta estar muy avanzado"): con 1 el bot reencarna
+        /// temprano y seguido, con un número grande se guarda hasta chocar la
+        /// pared. Correr las dos y comparar el tiempo hasta maxear es el único
+        /// modo honesto de contestar si reencarnar temprano CONVIENE, en vez de
+        /// decidirlo por intuición. [TUNEABLE]
+        public var reincarnationThresholdMultiple: Double
 
         public init(
             tapsPerSecond: Double = 6,
             sessionSeconds: Double = 1200,
             sessionStartOffsets: [Double] = [0, 4 * 3600, 9 * 3600, 14 * 3600],
-            daySeconds: Double = 86_400
+            daySeconds: Double = 86_400,
+            reincarnationThresholdMultiple: Double = 1
         ) {
             self.tapsPerSecond = tapsPerSecond
             self.sessionSeconds = sessionSeconds
             self.sessionStartOffsets = sessionStartOffsets
             self.daySeconds = daySeconds
+            self.reincarnationThresholdMultiple = reincarnationThresholdMultiple
         }
     }
 
@@ -47,7 +60,21 @@ public struct PacingSimulator: Sendable {
         public var floorUnlockActiveSeconds: [String: Double] = [:]
         /// Tiempo de PARED (wall clock) al desbloquear cada piso.
         public var floorUnlockWallSeconds: [String: Double] = [:]
+        /// Cuántos SEGUNDOS de income cuesta contratar el tier base de cada piso
+        /// en el momento en que ese piso se abre.
+        ///
+        /// Es la evidencia de la divergencia costos-vs-ingresos
+        /// (`Docs/PROMPT-rebalance-pacing.md` §2.3): los precios están anclados a
+        /// `tapYield(tier)`, que es una constante, y el income pasa por el
+        /// multiplicador global, que no tiene techo. Si la serie se desploma piso
+        /// a piso, progresar es cada vez más gratis; si se mantiene, el costo
+        /// sigue el ritmo del ingreso y el defecto está cerrado.
+        public var floorUnlockHireSeconds: [String: Double] = [:]
         public var firstReincarnationWall: Double?
+        /// Tiempo ACTIVO de CADA reencarnación, en orden. La métrica del dueño es
+        /// la cadencia ("una reencarnación cada 2,5-4 h de juego activo"), y para
+        /// leerla hace falta la serie entera, no sólo la primera y el total.
+        public var reincarnationActiveSeconds: [Double] = []
         public var godWall: Double?
         public var reincarnations = 0
         /// Segundos ACTIVOS hasta tener las siete líneas permanentes al tope.
@@ -57,6 +84,11 @@ public struct PacingSimulator: Sendable {
         public var finalPermanentUpgradeLevels: [String: Int] = [:]
         public var finalLifetimeEarnings: Double = 0
         public var finalMaxTier = 0
+
+        /// Tiempo ACTIVO de la primera reencarnación (la de pared es
+        /// `firstReincarnationWall`). El dueño mide en horas de dedo, no de
+        /// calendario.
+        public var firstReincarnationActive: Double? { reincarnationActiveSeconds.first }
 
         public init() {}
     }
@@ -373,10 +405,16 @@ public struct PacingSimulator: Sendable {
 
     private func maybeReincarnate(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
         let gained = PrestigeCalculator.oroGained(state: state, economy: economy)
-        // Regla idle estándar: reencarnar cuando al menos duplica lo ganado histórico.
-        guard gained >= max(1, state.meta.oroEarnedLifetime) else { return }
+        // Regla idle estándar: reencarnar cuando al menos DUPLICA lo ganado
+        // histórico (`reincarnationThresholdMultiple` = 1). La cuenta va en
+        // Double a propósito: `oroEarnedLifetime` llega a órdenes en los que
+        // multiplicarlo en Int desborda, y un desborde acá sería un crash en
+        // mitad de una calibración.
+        let threshold = max(1, Double(state.meta.oroEarnedLifetime) * human.reincarnationThresholdMultiple)
+        guard Double(gained) >= threshold else { return }
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: wall)
         report.reincarnations += 1
+        report.reincarnationActiveSeconds.append(active)
         if report.firstReincarnationWall == nil { report.firstReincarnationWall = wall }
         buyPermanentUpgrades(state: &state, report: &report, wall: wall, active: active)
     }
@@ -520,6 +558,16 @@ public struct PacingSimulator: Sendable {
         }
     }
 
+    /// Cuántos segundos de income cuesta el PRIMER hire del tier base del piso.
+    /// Cotiza por `config.hireCost` —sin descuentos ni modificadores, que el bot
+    /// no tiene— y divide por el income de juego activo, que es el que el jugador
+    /// tiene en la mano cuando abre el piso.
+    private func hireSeconds(floor: FloorDef, state: PlayerState) -> Double {
+        let rate = incomeRate(state: state, active: true)
+        guard rate > 0 else { return .infinity }
+        return config.hireCost(floor: floor, tier: floor.firstTier, purchases: 0) / rate
+    }
+
     /// Registra pisos recién alcanzados (unlockTier ≤ maxTier) con sus tiempos.
     private func recordUnlocks(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
         for floor in floorTable.floors where state.run.maxTierReached >= floor.unlockTier {
@@ -529,6 +577,7 @@ public struct PacingSimulator: Sendable {
             if report.floorUnlockWallSeconds[floor.id] == nil {
                 report.floorUnlockWallSeconds[floor.id] = wall
                 report.floorUnlockActiveSeconds[floor.id] = active
+                report.floorUnlockHireSeconds[floor.id] = hireSeconds(floor: floor, state: state)
             }
         }
     }

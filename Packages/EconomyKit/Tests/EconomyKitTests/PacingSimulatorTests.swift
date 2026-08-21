@@ -147,6 +147,60 @@ struct PacingSimulatorUpgradeTests {
     }
 }
 
+/// El instrumental del rebalance: cuándo conviene reencarnar y si el costo de
+/// progresar sigue el ritmo del ingreso. Los dos son mediciones —no cambian la
+/// conducta del bot por defecto—, pero sin ellos las decisiones de la Task 5 se
+/// defienden con intuición y esta bitácora ya documenta dos veces que la
+/// intuición falla en esta economía.
+@Suite("PacingSimulator: el instrumental del rebalance")
+struct PacingSimulatorInstrumentTests {
+    @Test("el umbral de reencarnación por defecto es duplicar, como siempre")
+    func defaultThresholdIsDoubling() {
+        #expect(PacingSimulator.HumanModel().reincarnationThresholdMultiple == 1)
+    }
+
+    @Test("subir el umbral hace que el bot reencarne menos veces")
+    func aHigherThresholdMeansFewerReincarnations() throws {
+        let doubling = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
+        let atTheWall = try PacingSimulator(
+            config: upConfig(),
+            tiers: upTiers(),
+            human: .init(reincarnationThresholdMultiple: 1_000),
+            upgrades: upCheapLines()
+        ).run(maxDays: 5)
+        #expect(
+            atTheWall.reincarnations < doubling.reincarnations,
+            "con umbral 1000: \(atTheWall.reincarnations) vs duplicando: \(doubling.reincarnations)"
+        )
+    }
+
+    @Test("el reporte guarda el tiempo ACTIVO de cada reencarnación")
+    func everyReincarnationIsTimestamped() throws {
+        let report = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
+        #expect(report.reincarnations > 1)
+        #expect(report.reincarnationActiveSeconds.count == report.reincarnations)
+        // La cadencia es la métrica del dueño ("una reencarnación cada 2,5-4 h
+        // de juego activo"): sin orden creciente no se puede leer.
+        #expect(report.reincarnationActiveSeconds == report.reincarnationActiveSeconds.sorted())
+        #expect(report.reincarnationActiveSeconds.first == report.firstReincarnationActive)
+    }
+
+    @Test("el reporte guarda cuántos segundos de income cuesta el hire de cada piso")
+    func hireCostIsRecordedInSecondsOfIncome() throws {
+        let report = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
+        // Es LA evidencia de la divergencia costos-vs-ingresos: si el número se
+        // desploma piso a piso, los precios se quedaron quietos mientras el
+        // ingreso se multiplicaba.
+        for (floorId, wall) in report.floorUnlockWallSeconds {
+            let seconds = try #require(
+                report.floorUnlockHireSeconds[floorId],
+                "el piso \(floorId) se abrió en \(wall) y no dejó su costo"
+            )
+            #expect(seconds > 0)
+        }
+    }
+}
+
 /// La traducción niveles → `derivedEffects` es la misma que hace la app en
 /// `UpgradeManager.recomputeDerivedEffects`. Vive acá porque el simulador es
 /// puro y no puede llamar al app target; este test es lo que impide que las dos

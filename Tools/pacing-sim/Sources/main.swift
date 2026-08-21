@@ -24,6 +24,11 @@ struct SimArguments {
     let upgradesURL: URL?
     let maxDays: Int
     let csvURL: URL?
+    /// Cuántas veces el ORO por reencarnar tiene que superar al histórico para
+    /// que el bot reencarne (1 = duplicar, la conducta de siempre). Correr la
+    /// misma economía con 1 y con un número grande contesta, con un número, si
+    /// reencarnar temprano conviene o si el óptimo es esperar a la pared.
+    let prestigeThreshold: Double
 }
 
 func parseArguments() throws -> SimArguments {
@@ -32,6 +37,7 @@ func parseArguments() throws -> SimArguments {
     var upgradesPath: String?
     var csvPath: String?
     var maxDays = 90
+    var prestigeThreshold = 1.0
     var iterator = CommandLine.arguments.dropFirst().makeIterator()
     while let argument = iterator.next() {
         switch argument {
@@ -40,11 +46,12 @@ func parseArguments() throws -> SimArguments {
         case "--upgrades": upgradesPath = iterator.next()
         case "--csv": csvPath = iterator.next()
         case "--max-days": maxDays = iterator.next().flatMap { Int($0) } ?? maxDays
+        case "--prestige-threshold": prestigeThreshold = iterator.next().flatMap { Double($0) } ?? prestigeThreshold
         default: throw SimToolError(description: "unknown argument '\(argument)'")
         }
     }
     guard let economyPath, let tiersPath else {
-        throw SimToolError(description: "usage: pacing-sim --economy <economy.json> --tiers <tiers.json> [--upgrades <upgrades.json>] [--max-days N] [--csv <out.csv>]")
+        throw SimToolError(description: "usage: pacing-sim --economy <economy.json> --tiers <tiers.json> [--upgrades <upgrades.json>] [--max-days N] [--csv <out.csv>] [--prestige-threshold X]")
     }
     let economyURL = URL(fileURLWithPath: economyPath)
     return SimArguments(
@@ -52,7 +59,8 @@ func parseArguments() throws -> SimArguments {
         tiersURL: URL(fileURLWithPath: tiersPath),
         upgradesURL: upgradesPath.map { URL(fileURLWithPath: $0) } ?? resolveUpgradesURL(nextTo: economyURL),
         maxDays: maxDays,
-        csvURL: csvPath.map { URL(fileURLWithPath: $0) }
+        csvURL: csvPath.map { URL(fileURLWithPath: $0) },
+        prestigeThreshold: prestigeThreshold
     )
 }
 
@@ -143,7 +151,12 @@ do {
         try JSONDecoder().decode(UpgradesFile.self, from: Data(contentsOf: $0)).permanentLines
     } ?? []
 
-    let simulator = try PacingSimulator(config: config, tiers: tiers, upgrades: upgradeLines)
+    let simulator = try PacingSimulator(
+        config: config,
+        tiers: tiers,
+        human: .init(reincarnationThresholdMultiple: arguments.prestigeThreshold),
+        upgrades: upgradeLines
+    )
     let report = simulator.run(maxDays: maxDays)
 
     print("== pacing-sim — horizonte \(maxDays) días ==")
@@ -153,7 +166,7 @@ do {
         print("   ⚠️ SIN catálogo de mejoras permanentes: el bot no gasta ORO y")
         print("      derivedEffects viaja en cero. Pasá --upgrades <upgrades.json>.")
     }
-    print("\n-- Desbloqueo de pisos (activo / pared) --")
+    print("\n-- Desbloqueo de pisos (activo / pared / lo que cuesta su hire) --")
     for (ordinal, floor) in floorTable.floors.enumerated() where ordinal > 0 {
         guard let wall = report.floorUnlockWallSeconds[floor.id],
               let active = report.floorUnlockActiveSeconds[floor.id]
@@ -161,12 +174,24 @@ do {
             print("  \(pad(floor.id, 10)) —")
             continue
         }
-        print("  \(pad(floor.id, 10)) \(minutes(active))  \(hours(wall))")
+        // La tercera columna es la evidencia de §2.3: cuántos SEGUNDOS de tu
+        // income cuesta contratar el tier base del piso al abrirlo. Si la serie
+        // se desploma, los precios se quedaron quietos mientras el ingreso se
+        // multiplicaba; si se mantiene, el costo sigue al ingreso.
+        let cost = report.floorUnlockHireSeconds[floor.id].map { String(format: "%9.1f s de income", $0) } ?? "—"
+        print("  \(pad(floor.id, 10)) \(minutes(active))  \(hours(wall))  \(cost)")
     }
 
     print("\n-- Hitos --")
-    print("  reencarnaciones: \(report.reincarnations)")
-    print("  1ª reencarnación: \(report.firstReincarnationWall.map(hours) ?? "—")")
+    print("  reencarnaciones: \(report.reincarnations)  (umbral ×\(arguments.prestigeThreshold) del ORO histórico)")
+    print("  1ª reencarnación: \(report.firstReincarnationWall.map(hours) ?? "—") de pared"
+        + "  (\(report.firstReincarnationActive.map(hours) ?? "—") ACTIVAS)")
+    // La cadencia que pidió el dueño: "una reencarnación cada 2,5-4 h de juego
+    // activo, cada una un hito que se prepara y se nota".
+    let cadence = report.reincarnationActiveSeconds.prefix(12)
+        .map { String(format: "%.1f", $0 / 3600) }
+        .joined(separator: " · ")
+    print("  cadencia (h ACTIVAS de cada una): \(cadence.isEmpty ? "—" : cadence)\(report.reincarnations > 12 ? " · …" : "")")
     // La métrica que pidió el dueño: horas ACTIVAS hasta maxear las siete líneas
     // permanentes, o sea hasta las skins doradas ("ganarlo al máximo").
     let maxedReincarnations = report.reincarnationsAtMaxedUpgrades.map { "\($0) reencarnaciones" } ?? "—"
@@ -226,6 +251,13 @@ do {
             rows.append("piso,\(floor.id)_pared,\(wall),h")
         }
         rows.append("hito,reencarnaciones,\(report.reincarnations),conteo")
+        for (index, active) in report.reincarnationActiveSeconds.enumerated() {
+            rows.append("reencarnacion,\(index + 1),\(String(format: "%.3f", active / 3600)),h activas")
+        }
+        for floor in floorTable.floors {
+            guard let seconds = report.floorUnlockHireSeconds[floor.id] else { continue }
+            rows.append("costo,\(floor.id)_hire_en_segundos,\(String(format: "%.2f", seconds)),s de income")
+        }
         rows.append("hito,siete_al_tope_activo,\(report.maxedUpgradesActiveSeconds.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
         rows.append("hito,siete_al_tope_pared,\(report.maxedUpgradesWall.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
         rows.append("hito,reencarnaciones_al_maxear,\(report.reincarnationsAtMaxedUpgrades.map(String.init) ?? ""),conteo")

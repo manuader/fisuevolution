@@ -56,6 +56,15 @@ struct FisuJobsView: View {
                 // `UIImage`—, así que el costo de construirlas todas es el del
                 // primer armado y no el de cada invalidación.
                 VStack(spacing: Tokens.s12) {
+                    // La guía del paso "contratar" de la fase obligatoria: la
+                    // hoja se presenta ENCIMA del overlay del tutorial (decisión
+                    // documentada en `TutorialOverlay.steps`), así que el guía
+                    // tiene que vivir TAMBIÉN acá adentro — la fila verde de
+                    // affordable orienta, pero no es una instrucción. Muere al
+                    // contratar y no vuelve.
+                    if gameState.tutorialPhaseActive, !gameState.ftueMilestones.spawned {
+                        TutorialJobsHint()
+                    }
                     ForEach(Self.groups(of: rows)) { group in
                         SectionHeader(group.section.titleKey)
                             .frame(maxWidth: .infinity)
@@ -574,3 +583,35 @@ private struct JobPortrait: View {
 // `JobStateBadge` se mudó a `GameArtComponents` como `StateBadge` (T11): el
 // Customization Shop necesitaba el mismo badge y una segunda copia privada era
 // el camino corto para que los dos dibujos se separaran.
+
+/// La banda compacta del tutorial dentro de FisuJobs: pose del Fisura + una
+/// instrucción, en el pergamino v3 a escala de fila. Sin botones: se va sola
+/// cuando el jugador contrata, que es lo único que pide.
+private struct TutorialJobsHint: View {
+    var body: some View {
+        HStack(spacing: Tokens.s8) {
+            if let art = UIArt.image("fisura_wave") ?? UIArt.image("fisura_celebrate") {
+                art.resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 48)
+                    .accessibilityHidden(true)
+            }
+            Text("tutorial.jobs.hint")
+                .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                .foregroundStyle(Color("PaletteInk"))
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .padding(.horizontal, Tokens.s12)
+        .padding(.vertical, Tokens.s8)
+        .background {
+            let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
+            shape
+                .fill(Color("PaletteParchment"))
+                .overlay(shape.strokeBorder(Color("PaletteYellow"), lineWidth: 2.5))
+                .shadow(color: Color("PaletteYellow").opacity(0.45), radius: 6)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("tutorial.jobs.hint")
+    }
+}

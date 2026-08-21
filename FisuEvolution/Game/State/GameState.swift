@@ -172,6 +172,19 @@ final class GameState {
     /// RF-16: el antes/después del multiplicador. Lo escribe `+Prestige`.
     var prestigePreview = PrestigePreview.empty
     private(set) var ownedSkins: [String] = []
+    /// Hay una mejora PAGABLE en la pantalla de Mejoras (personaje, pasivo o
+    /// permanente). Es la señal del gating de su lección: se calcula barato en
+    /// `refreshProjections` cotizando costos crudos — NO sale de
+    /// `characterUpgradeRows`, que arma textos localizados por fila y es cara.
+    private(set) var canAffordAnyUpgrade = false
+    /// Cuántos pisos están desbloqueados. La lección del ascensor espera al
+    /// segundo: con uno solo, el mapa es una lista de candados.
+    private(set) var unlockedFloorsCount = 0
+    /// Hay al menos un logro conseguido y sin cobrar. Es la resta de sets
+    /// `unlockedAchievements − claimedAchievements` publicada acá porque
+    /// `player` es `@ObservationIgnored`: la leen el badge del tab Menú, la
+    /// tarjeta de Logros y el gating de su lección.
+    private(set) var hasClaimableAchievements = false
     /// Invalida la ficha cuando llega un entitlement, milestone o equipamiento.
     /// Lo escriben `+Store` (entitlements y equipar) y `+Debug`.
     var skinSelectionVersion = 0
@@ -200,9 +213,33 @@ final class GameState {
     /// necesita verlas desde una vista: esto las publica una sola vez por
     /// `refreshProjections`, escribiendo sólo si cambiaron.
     private(set) var ftueMilestones = FTUEMilestones()
+    /// La fase obligatoria del tutorial está corriendo (RF-01: tap → contratar
+    /// → fusionar → cierre). Mientras es `true`, la cola de celebraciones sólo
+    /// promueve lo que el tutorial pide (`+Celebrations`, `beginTutorialPhase`)
+    /// y las lecciones contextuales todavía no existen.
+    ///
+    /// La fuente es `fisuTutorialDone` en `UserDefaults` —la misma bandera del
+    /// overlay—, leída UNA vez en el bootstrap: la cola no lee `AppStorage`, le
+    /// llega como estado. La apaga `tutorialPhaseFinished()`, que llama el
+    /// overlay al cerrar (por el botón del final o por "Saltar").
+    ///
+    /// Sin `private(set)` por lo mismo que `showing`: la escribe
+    /// `+Celebrations`, que es otro archivo. Nadie más la toca.
+    var tutorialPhaseActive = false
     /// Qué quiere iluminar el tutorial en el TABLERO, o nil si el paso actual no
     /// es de tablero. Lo escribe el overlay; lo lee el frame loop de la escena.
     @ObservationIgnored var tutorialBoardTarget: TutorialBoardTarget?
+    /// Una hoja de la barra (o el popup de prestigio) está tapando el tablero.
+    /// Lo escribe `RootView` —es estado de SU `@State`, invisible desde acá— y
+    /// lo lee el director de lecciones: un coach-mark que señala la barra
+    /// inferior no puede nacer debajo de una hoja abierta.
+    @ObservationIgnored var uiCoversBoard = false
+    /// El director de lecciones corre solo (en cada refresh) en la app real;
+    /// bajo XCTest arranca apagado —el mismo criterio que el gate del bootstrap
+    /// y la `SKTestSession` de StoreManager— y cada test lo prende explícito:
+    /// los tests de wiring cuentan con que nada se encole solo.
+    @ObservationIgnored var tutorialLessonsAutorun =
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
     /// Recorte resuelto para `tutorialBoardTarget`, en puntos de la VISTA.
     ///
     /// Lo publica `BoardScene` porque es la única que sabe dónde quedó parado el
@@ -234,6 +271,9 @@ final class GameState {
     var characterSheet: CharacterSheet?
     var offlineReward: OfflineReward?
     var skinAward: SkinAward?
+    /// La lección contextual que está esperando turno o en pantalla, o `nil`.
+    /// La escribe `+TutorialTips` (el director) y la suelta `releasePayload`.
+    var tutorialTip: TutorialTip?
 
     /// Qué celebración tiene el turno. **Es la única fuente que miran las
     /// vistas** para decidir si les toca aparecer: los payloads siguen donde
@@ -482,6 +522,28 @@ final class GameState {
                 debugPresentCareerChoice()
             }
             #endif
+            // El tutorial entra a la cola ANTES de que nadie encole nada: el
+            // offline, el daily del día 2 y los logros de un save viejo pasan
+            // todos por `syncCelebrations`, y el gate tiene que estar puesto
+            // primero o alguno toma el turno con el tutorial arriba (el
+            // deadlock medido el 2026-08-21: sheet gateado que nunca se
+            // presenta y cola congelada).
+            //
+            // Bajo XCTest no: el host de los unit tests arranca con los
+            // defaults en cualquier estado y cada test arma su propio
+            // escenario con `beginTutorialPhase()` (mismo criterio que
+            // `StoreManager` con su `SKTestSession`).
+            if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+                if !UserDefaults.standard.bool(forKey: "fisuTutorialDone") {
+                    beginTutorialPhase()
+                } else {
+                    // La lección de Tienda espera a la SEGUNDA sesión con la
+                    // fase hecha ("una vez, suave": nunca en el mismo arranque
+                    // en el que el jugador recién aprendió a jugar).
+                    let sessions = UserDefaults.standard.integer(forKey: Self.sessionsAfterPhaseKey)
+                    UserDefaults.standard.set(sessions + 1, forKey: Self.sessionsAfterPhaseKey)
+                }
+            }
             applyOfflineProgressIfNeeded()
             // El primer launch de una cuenta nueva no reclama daily: el jugador
             // todavía no jugó y el popup compite con el tutorial (FTUE).
@@ -830,6 +892,18 @@ final class GameState {
 
         let milestones = FTUEMilestones(tapped: ftueTapped, spawned: ftueSpawned, merged: ftueMerged)
         if ftueMilestones != milestones { ftueMilestones = milestones }
+
+        let affordsUpgrade = computeCanAffordAnyUpgrade(player: player, content: content)
+        if canAffordAnyUpgrade != affordsUpgrade { canAffordAnyUpgrade = affordsUpgrade }
+
+        let floors = player.run.unlockedFloors.count
+        if unlockedFloorsCount != floors { unlockedFloorsCount = floors }
+
+        let claimable = !player.meta.unlockedAchievements
+            .subtracting(player.meta.claimedAchievements).isEmpty
+        if hasClaimableAchievements != claimable { hasClaimableAchievements = claimable }
+
+        refreshTutorialTip()
     }
 
     private func makeTowerNavigation(content: GameContent, player: PlayerState) -> TowerNavigation {

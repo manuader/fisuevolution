@@ -22,6 +22,11 @@ struct BottomMenuBar: View {
     /// de las seis vive en `GameBoardView`.
     let select: (GameScreen) -> Void
 
+    /// Para el puntito de logros cobrables del tab Menú
+    /// (`hasClaimableAchievements`, publicada a 8 Hz escribiendo sólo si
+    /// cambió: la barra no se recompone por nada más).
+    @Environment(GameState.self) private var gameState
+
     var body: some View {
         GameTabBar(items: items, selection: select)
     }
@@ -35,7 +40,11 @@ struct BottomMenuBar: View {
                 icon: icon(for: screen),
                 labelKey: Self.labelKey(for: screen),
                 identifier: screen.identifier,
-                prominent: Self.isProminent(screen)
+                prominent: Self.isProminent(screen),
+                // El circuito del puntito: nace acá con el primer logro
+                // cobrable, sigue en la tarjeta de Logros adentro del Menú, y
+                // muere al cobrar el último.
+                showsBadge: screen == .menu && gameState.hasClaimableAchievements
             )
         }
     }
@@ -101,13 +110,25 @@ struct BottomMenuBar: View {
                     .tutorialAnchor(.upgrades)
             )
         case .skins:
-            return AnyView(GameIcon(artKey: "ui_tab_skins", size: side) { VectorTabSkinsIcon() })
+            return AnyView(
+                GameIcon(artKey: "ui_tab_skins", size: side) { VectorTabSkinsIcon() }
+                    .tutorialAnchor(.skins)
+            )
         case .gifts:
-            return AnyView(GameIcon(artKey: "ui_tab_gifts", size: side) { VectorTabGiftsIcon() })
+            return AnyView(
+                GameIcon(artKey: "ui_tab_gifts", size: side) { VectorTabGiftsIcon() }
+                    .tutorialAnchor(.gifts)
+            )
         case .store:
-            return AnyView(GameIcon(artKey: "ui_tab_shop", size: side) { VectorTabShopIcon() })
+            return AnyView(
+                GameIcon(artKey: "ui_tab_shop", size: side) { VectorTabShopIcon() }
+                    .tutorialAnchor(.store)
+            )
         case .menu:
-            return AnyView(GameIcon(artKey: "ui_tab_menu", size: side) { VectorTabMenuIcon() })
+            return AnyView(
+                GameIcon(artKey: "ui_tab_menu", size: side) { VectorTabMenuIcon() }
+                    .tutorialAnchor(.menu)
+            )
         }
     }
 }

@@ -53,11 +53,10 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-18** (la hoja
-> contenida: los marcos pasaron a CONTENER a sus hojas — la sesión en §4, el
-> patrón en §8. El 2026-08-17 tuvo dos frentes del mismo día: el rediseño v3
-> de materiales, y la cola de celebraciones + franja de abajo + fork de
-> carrera — §4 tiene las dos sesiones).
+> **Empezá por acá.** Última actualización: **2026-08-21** (el tutorial
+> high-end: fase corta arbitrada por la cola, lecciones contextuales y el
+> puntito rojo de logros — la sesión en §4, las trampas 24/25 en §7. El mismo
+> día, más temprano: el telón de las empujadas).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
@@ -269,6 +268,27 @@ Lo que hay que saber sin abrirlo:
   el objetivo del dueño (20-30 h activas, ≤8 reencarnaciones). El bot que medían
   las bandas viejas no era el jugador: se construía sin catálogo de mejoras
   permanentes.
+### Sesión del 2026-08-21 (tarde) — El tutorial high-end
+
+El tutorial se rehizo entero contra `PROMPT-tutorial-high-end.md`: la **fase
+obligatoria quedó en 4 pasos** (tap → contratar → fusionar → cierre; murieron
+los dos pasos que abrían vidrieras vacías) y **el resto de la app se enseña en
+lecciones contextuales** — kind nuevo `.tutorialTip` en la CelebrationQueue,
+una por vez, disparada la primera vez que hay algo que HACER en su pantalla
+(la regla de oro del dueño; tabla de señales en la doc de sesión). La cola
+ganó `restrict(to:)`: con la fase viva sólo el reveal del tablero toma el
+turno, el resto espera en `pending` — eso mató el deadlock del daily
+día-2-a-medias (repro en `CelebrationWiringTests`) y el reveal del primer
+merge se ve **entero y limpio** (el overlay entero se esconde mientras dura).
+El puntito rojo de logros (`ui_badge`, recortado al bbox: traía 86% de aire)
+vive como `.overlay` en el tab Menú y la tarjeta de Logros, avisando por
+`accessibilityValue`; su señal es la proyección nueva
+`hasClaimableAchievements`. La tarjeta habla v3 (pergamino, retrato 96 pt
+pisando el borde, pop de spring) y la mano es vectorial de la casa. Poses:
+sólo `wave`/`celebrate` hasta que 117/118 se regeneren. Detalle y por qué de
+cada decisión en **`Docs/SESION-2026-08-21-tutorial-high-end.md`**; trampas
+nuevas 24 y 25 en §7. Números del cierre: EconomyKit **213** · app **395**
+(3 rojos Pacing preexistentes) · UI **48 sin fallos ni skips**.
 
 ### Sesión del 2026-08-21 — El telón de las empujadas
 
@@ -770,12 +790,17 @@ Los cuatro de arriba son **el último cuádruple tomado con la receta completa**
 Lo que se sumó después está medido, pero cada suite por su lado y en el simulador
 compartido, así que no lo reemplaza:
 
-| Suite | 2026-08-16 | Hoy | Qué entró |
+| Suite | 2026-08-16 | Hoy (2026-08-21) | Qué entró |
 |---|---|---|---|
-| EconomyKit | 183 | **200** | `CelebrationQueueTests` |
-| app | 346 | **371** | `CelebrationWiringTests`, `RevealLayoutTests` |
-| UI | 43 | **45** | `CareerChoiceUITests` |
-| pipeline | 27 | 45 | frentes de arte ajenos |
+| EconomyKit | 183 | **213** | `CelebrationQueueTests` + la restricción del tutorial |
+| app | 346 | **395** | `CelebrationWiringTests` (+fase), `TutorialTipsTests`, `RevealLayoutTests` — 3 rojos de `PacingTests` preexistentes (prompt de pacing) |
+| UI | 43 | **48** | `CareerChoiceUITests`, `MenuUITests`, `TutorialUITests` reescrita (lección + puntito) |
+| pipeline | 27 | 53 | frentes de arte ajenos; 1 rojo nuevo ajeno (4 PNG calados de `estanciero_estelar__tropero`) |
+
+⚠️ Los cuatro de la columna «Hoy» salieron de la verificación del cierre del
+tutorial (2026-08-21): EconomyKit por `swift test`, y app + UI en el MISMO
+simulador propio por UDID con la receta completa (unit antes que UI,
+`-parallel-testing-enabled NO`, sin skips).
 
 **El próximo cuádruple hay que tomarlo con la receta de arriba**, no sumando
 estos. Y ojo con `refundRevokesEntitlement` (StoreKit + `SKTestSession`): falló
@@ -831,7 +856,8 @@ Fixtures DEBUG por launch argument — **son doce, no tres**:
 | `--uitest-storekit-empty` | `StoreManager` no carga productos: simula la tienda que no contesta. Es la ÚNICA forma de ejercer desde un test la rama "Precio no disponible", porque el runner inyecta la configuración de StoreKit del scheme y si no los productos cargan siempre |
 | `--uitest-daily-streak` | Deja el ciclo del daily en el día 4: la tira del calendario de Regalos con días cobrados atrás. El único otro camino a un día con tilde es **volver mañana** |
 | `--uitest-achievements` | Siembra los contadores históricos que cruzan tres logros (`ach_merges_1`, `ach_taps_1000`, `ach_videos_1`) y los deja **conseguidos y sin cobrar**: es lo único que llena la sección "Para cobrar" de la pantalla de Logros. Conseguir uno jugando pide fusionar, mirar un video con el proveedor real o dar mil toques — nada automatizable. Usa `max`, así que no pisa un save con más. ⚠️ Acredita durante `phase == .loading`, así que **NO desfila los tres banners**, y un logro ya acreditado no vuelve a cruzarse: para filmar el toast hay que cruzar uno EN RUNTIME y con el tablero despejado. El único barato es `ach_merges_1` — contratar uno en FisuJobs, cerrar la hoja y fusionar el par con doble toque. Contratar diez cruza `ach_hires_10` pero deja el banner tapado por la hoja |
-| `--uitest-daily-popup` | El popup del premio del día, ya abierto (T18). Retrocede `lastClaimDay` a **ayer** —no lo borra, que un día salteado resetea el ciclo a 1— y corre el claim real, el mismo que acredita al volver a foreground. Existe porque el daily se cobra solo y una sola vez por día, y una partida nueva marca `lastClaimDay` en HOY para no pisar el tutorial: sin esta puerta, la única pantalla que celebra la racha no se puede ni fotografiar ni ejercitar sin cambiarle la fecha al simulador. Combinado con `--uitest-daily-streak` muestra el día 4. ⚠️ **Va con `--uitest-skip-tutorial`: la hoja está gateada por `tutorialDone`** |
+| `--uitest-daily-popup` | El popup del premio del día, ya abierto (T18). Retrocede `lastClaimDay` a **ayer** —no lo borra, que un día salteado resetea el ciclo a 1— y corre el claim real, el mismo que acredita al volver a foreground. Existe porque el daily se cobra solo y una sola vez por día, y una partida nueva marca `lastClaimDay` en HOY para no pisar el tutorial: sin esta puerta, la única pantalla que celebra la racha no se puede ni fotografiar ni ejercitar sin cambiarle la fecha al simulador. Combinado con `--uitest-daily-streak` muestra el día 4. Desde el 2026-08-21 **ya no necesita `--uitest-skip-tutorial`**: la cola arbitra (con la fase viva el popup espera su turno y aparece al cerrarla — usarlo SIN skip es justamente el repro del viejo deadlock) |
+| `--uitest-lessons` | Prende las lecciones contextuales del tutorial, que en cualquier corrida `--uitest-*` arrancan APAGADAS (trampa 24). Sólo lo usa el test que ejercita el coach-mark |
 
 El panel de debug es el ícono de herramientas del HUD.
 
@@ -1275,6 +1301,27 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     compounding están `floorUnlockPeakHire{Type,Purchases,Seconds}`, que publican
     el tipo más comprado de la run (en el árbol de hoy el bot llega a **785
     compras** del mismo tipo; 870 en el A/B pre-(a) de la bitácora).
+24. **Una lección contextual del tutorial puede nacer EN MEDIO de un test de
+    UI ajeno y comerse sus taps por coordenada.** SÍNTOMA: un test que venía
+    verde falla con "no apareció X" tras darse monedas o abrir pisos con el
+    panel de debug — medido con `AscentRenderingUITests` (113 s): su +1M
+    encendió `canAffordAnyUpgrade`, la lección de Mejoras nació y su globo,
+    en la mitad superior, se comió el tap por coordenada a `hud.debug`.
+    ARREGLO de diseño: en cualquier corrida `--uitest-*` las lecciones
+    arrancan APAGADAS (`tutorialLessonsAutorun`, `+Debug`); el único test que
+    las quiere las pide con `--uitest-lessons`. Bajo unit tests (XCTest en el
+    host) el director y el gate del bootstrap también arrancan apagados —
+    `XCTestConfigurationFilePath`, mismo criterio que StoreManager — y cada
+    test arma su escenario (`beginTutorialPhase()` /
+    `tutorialLessonsAutorun = true`).
+
+25. **El tap sintético del MCP del simulador no activa las filas-botón del
+    `ScrollView` de FisuJobs** (medido: tres taps al centro exacto de la fila
+    con `ftue.spawned` en falso), aunque sí activa tabs, cierres y tablero.
+    XCUITest (`.tap()` sobre el elemento) compra sin drama, y el dedo humano
+    también. Si un recorrido manual por agente "no compra": verificar el
+    efecto en el plist del contenedor (`simctl get_app_container … data`)
+    antes de sospechar del juego, y hacer ese paso vía XCUITest.
 
 ## 8. Qué queda
 
@@ -1539,6 +1586,7 @@ Anotado por si algún día importa, con su medición:
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
 | **`SESION-2026-08-21-rebalance-pacing.md`** | **El rebalance de pacing: las tres métricas antes/después, los dos knobs que hacen cosas distintas, las tres decisiones del dueño con lo descartado y su número, y los cuatro diagnósticos que salieron errados antes del bueno** |
+| **`SESION-2026-08-21-tutorial-high-end.md`** | **La sesión más reciente: el tutorial rehecho — la fase corta arbitrada por la cola, las 8 lecciones con sus señales, el puntito de logros y las trampas 24/25** |
 | **`SESION-2026-08-21-telon-del-menu.md`** | **El telón blanco de las pantallas empujadas del menú: la medición, el arreglo por versión de iOS y qué quedó sin verificar** |
 | **`SESION-2026-08-19-skins-oro-diamante.md`** | **Las 86 skins de material: el catálogo de un id por material, el desbloqueo de cada una y los tres bugs medidos del pipeline de generación** |
 | **`SESION-2026-08-18-recorte-de-fondo.md`** | **Por qué el recorte dejó de ser por saliencia, con la medición de los 219 assets y el criterio topológico que lo reemplazó** |

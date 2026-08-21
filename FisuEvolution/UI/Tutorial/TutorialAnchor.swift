@@ -11,6 +11,15 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case upgrades
     case map
     case coins
+    // Los destinos de las lecciones contextuales: los cuatro tabs restantes y
+    // los dos botones flotantes de la franja de abajo. La fase obligatoria no
+    // los usa; los señala el coach-mark (`TutorialTipView`).
+    case skins
+    case gifts
+    case store
+    case menu
+    case quickHire
+    case prestige
     /// No se ilumina: es la franja que el globo tiene que ESQUIVAR. Sin esto el
     /// globo se apoyaba encima del HUD y lo tapaba entero — y como el HUD es
     /// justamente lo que los pasos siguientes iluminan, el tutorial terminaba

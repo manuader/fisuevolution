@@ -100,11 +100,9 @@ struct GameBoardView: View {
     /// `true` y SwiftUI presentar una sola. El enum lo hace imposible.
     @State private var activeScreen: GameScreen?
     @State private var adsProvider = StubAdsProvider()
-    // Los popups automáticos no deben pisar el tutorial en el primer arranque.
+    // La ficha de personaje espera al tutorial: no es una celebración de la
+    // cola, así que éste es su único gate.
     @AppStorage("fisuTutorialDone") private var tutorialDone = false
-    /// Los pasos del tutorial que se completan abriendo una hoja: la economía no
-    /// cambia, así que no hay proyección de `GameState` que los delate.
-    @State private var tutorialEvents: TutorialEvents = []
     #if DEBUG
     @State private var showDebugPanel = false
     #endif
@@ -193,12 +191,25 @@ struct GameBoardView: View {
         // los resuelve a puntos sin que nadie tenga que restar safe areas a mano.
         .overlayPreferenceValue(TutorialAnchorKey.self) { anchors in
             GeometryReader { proxy in
-                TutorialOverlay(
-                    anchors: anchors.mapValues { proxy[$0] },
-                    events: tutorialEvents
-                )
+                let resolved = anchors.mapValues { proxy[$0] }
+                ZStack {
+                    TutorialOverlay(anchors: resolved)
+                    // Las lecciones contextuales. Nunca conviven con la fase:
+                    // el director no dispara ninguna hasta que la fase termina.
+                    TutorialTipView(anchors: resolved)
+                }
             }
             .ignoresSafeArea()
+        }
+        // El director no dispara lecciones con una hoja (o el popup de
+        // prestigio) tapando el tablero: el coach señala controles de ESTA
+        // pantalla. `GameState` no puede ver estos `@State`, así que se los
+        // publica esta vista.
+        .onChange(of: activeScreen) { _, screen in
+            gameState.uiCoversBoard = screen != nil || showPrestige
+        }
+        .onChange(of: showPrestige) { _, prestige in
+            gameState.uiCoversBoard = prestige || activeScreen != nil
         }
         .onAppear {
             if scene == nil {
@@ -286,33 +297,37 @@ struct GameBoardView: View {
     // this expression in reasonable time"). Declaradas por separado, cada una se
     // resuelve sola y el `body` sólo las referencia.
     //
-    // El patrón es siempre el mismo: se muestra si el tutorial ya pasó **y es su
-    // turno en la cola**. El payload sigue viviendo donde siempre.
+    // El patrón es siempre el mismo: se muestra **si es su turno en la cola**.
+    // El payload sigue viviendo donde siempre. El gate por `tutorialDone` que
+    // tenían estas cinco se retiró: la cola es el único árbitro —con la fase
+    // obligatoria viva ninguno de estos kinds toma el turno
+    // (`beginTutorialPhase`)—, y el doble gate era justamente lo que congelaba
+    // la cola cuando un kind de sheet tomaba `current` con el tutorial arriba.
 
     private var careerPromptBinding: Binding<GameState.CareerPrompt?> {
         Binding(
-            get: { tutorialDone && gameState.showing == .careerChoice ? gameState.careerPrompt : nil },
+            get: { gameState.showing == .careerChoice ? gameState.careerPrompt : nil },
             set: { gameState.careerPrompt = $0 }
         )
     }
 
     private var skinAwardBinding: Binding<GameState.SkinAward?> {
         Binding(
-            get: { tutorialDone && gameState.showing == .skinAward ? gameState.skinAward : nil },
+            get: { gameState.showing == .skinAward ? gameState.skinAward : nil },
             set: { gameState.skinAward = $0 }
         )
     }
 
     private var offlineRewardBinding: Binding<GameState.OfflineReward?> {
         Binding(
-            get: { tutorialDone && gameState.showing == .offlineEarnings ? gameState.offlineReward : nil },
+            get: { gameState.showing == .offlineEarnings ? gameState.offlineReward : nil },
             set: { gameState.offlineReward = $0 }
         )
     }
 
     private var specialDropBinding: Binding<SpecialsConfig.Special?> {
         Binding(
-            get: { tutorialDone && gameState.showing == .specialDrop ? gameState.specialDrop : nil },
+            get: { gameState.showing == .specialDrop ? gameState.specialDrop : nil },
             set: { if $0 == nil { gameState.dismissSpecialDrop() } }
         )
     }
@@ -320,7 +335,7 @@ struct GameBoardView: View {
     private var dailyClaimBinding: Binding<IdentifiedClaim?> {
         Binding(
             get: {
-                guard tutorialDone, gameState.showing == .dailyReward, let claim = gameState.dailyClaim else { return nil }
+                guard gameState.showing == .dailyReward, let claim = gameState.dailyClaim else { return nil }
                 return IdentifiedClaim(claim: claim)
             },
             set: { if $0 == nil { gameState.dismissDailyClaim() } }
@@ -337,7 +352,7 @@ struct GameBoardView: View {
         VStack(spacing: 8) {
             HUDView(
                 onStoreTap: { open(.store) },
-                onMapOpen: { tutorialEvents.insert(.openedMap) }
+                onMapOpen: { gameState.tutorialTipCompleted(.elevator) }
             )
             // Los contadores de bonus van pegados al HUD y a la izquierda; el
             // banner del evento, que es ancho y centrado, va debajo. Se monta
@@ -366,28 +381,22 @@ struct GameBoardView: View {
         .animation(.easeInOut(duration: 0.25), value: hidesUIForCelebration)
     }
 
-    /// Apagar la UI **no** corre durante el tutorial, igual que las diez hojas de
-    /// celebración de más arriba (todas gateadas por `tutorialDone`).
-    ///
-    /// ⚠️ No es higiene preventiva: se vio roto en el simulador con tutorial
-    /// fresco. La primera fusión del FTUE dispara un `boardCelebration`, que
-    /// apaga la columna del HUD ~2 s — pero el overlay del tutorial sigue montado
-    /// y en ese mismo momento avanza al paso "upgrades", así que el globo, el
-    /// recorte y la mano quedan **señalando una barra de tabs invisible**. La
-    /// captura está en el reporte de la Task 4.
-    ///
-    /// El gate es el mínimo posible y vive de ESTE lado: no toca la cola de
-    /// celebraciones ni `celebrationHidesUI`, que sigue publicándose igual para
-    /// quien lo quiera leer. Sólo decide si ESTA columna se apaga.
+    /// Apagar la UI vuelve a correr TAMBIÉN durante el tutorial: desde que la
+    /// fase obligatoria arbitra en la cola (`beginTutorialPhase`), el overlay
+    /// entero se esconde mientras el reveal tiene el turno —ver el `body` de
+    /// `TutorialOverlay`—, así que ya no queda nada señalando una barra
+    /// invisible (el bug que el viejo parche `&& tutorialDone` tapaba) y el
+    /// reveal del primer merge se ve limpio y a pantalla completa, que es
+    /// exactamente lo que la fase quiere mostrar.
     private var hidesUIForCelebration: Bool {
-        gameState.celebrationHidesUI && tutorialDone
+        gameState.celebrationHidesUI
     }
 
-    /// Abre una pantalla de la barra y avisa al tutorial cuando el paso se
-    /// completa **por abrir la hoja** (la economía no cambia, así que no hay
-    /// proyección de `GameState` que lo delate).
+    /// Abre una pantalla de la barra. Si la lección contextual en pantalla
+    /// señalaba justo esta hoja, abrirla la da por cumplida — la mejor de sus
+    /// tres salidas.
     private func open(_ screen: GameScreen) {
-        if screen == .upgrades { tutorialEvents.insert(.openedUpgrades) }
+        gameState.tutorialTipHandled(opening: screen)
         activeScreen = screen
     }
 
@@ -429,8 +438,13 @@ struct GameBoardView: View {
             // media altura cada una.
             HStack(alignment: .top, spacing: Tokens.s8) {
                 QuickHireButton()
+                    .tutorialAnchor(.quickHire)
                 Spacer(minLength: Tokens.s8)
-                PrestigeButton { showPrestige = true }
+                PrestigeButton {
+                    gameState.tutorialTipCompleted(.prestige)
+                    showPrestige = true
+                }
+                .tutorialAnchor(.prestige)
             }
             .padding(.horizontal, Tokens.s8)
             BottomMenuBar(select: open)

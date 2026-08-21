@@ -126,6 +126,11 @@ final class TutorialUITests: XCTestCase {
 
     // MARK: - El recorrido entero
 
+    /// La fase corta: tap → contratar → fusionar → cierre. Entre el merge y el
+    /// cierre está EL assert del arbitraje: el overlay entero se esconde
+    /// mientras el reveal del primer merge tiene el turno —cero scrims
+    /// superpuestos— y el paso del cierre aparece recién cuando la escena
+    /// avisa que terminó.
     @MainActor
     func testRecorreElTutorialEnteroHastaElFinal() throws {
         let app = launchWithTutorial()
@@ -136,20 +141,17 @@ final class TutorialUITests: XCTestCase {
         try hireFromFisuJobs(app)
         XCTAssertTrue(waitForStep(app, "merge"))
 
+        // `mergeTheHighlightedPair` ya verificó la mitad del arbitraje: su
+        // señal de éxito ES que el marker desaparezca del árbol, o sea que el
+        // overlay entero se escondió mientras el reveal tiene el turno (cero
+        // scrims superpuestos). Esperarla de nuevo acá perdería la carrera: el
+        // reveal dura ~2,4 s y una consulta del runner cuesta ~2 s.
         try mergeTheHighlightedPair(app)
-        XCTAssertTrue(waitForStep(app, "upgrades", timeout: 8))
 
-        app.buttons["hud.upgrades"].tap()
-        XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 6),
-                      "el paso de mejoras tiene que dejar abrir Mejoras")
-        dismissSheet(app)
-        XCTAssertTrue(waitForStep(app, "map"))
-
-        app.buttons["hud.map"].tap()
-        XCTAssertTrue(app.buttons["map.floor.alley"].waitForExistence(timeout: 6),
-                      "el paso del mapa tiene que dejar abrir el mapa")
-        dismissSheet(app)
-        XCTAssertTrue(waitForStep(app, "finish"))
+        // La otra mitad: cuando la escena avisa que terminó, el cierre
+        // aparece solo.
+        XCTAssertTrue(waitForStep(app, "finish", timeout: 12),
+                      "el paso del cierre tiene que aparecer al terminar el reveal")
 
         let shot = XCTAttachment(screenshot: app.screenshot())
         shot.name = "RF-01 último paso"
@@ -157,7 +159,11 @@ final class TutorialUITests: XCTestCase {
         add(shot)
 
         app.buttons["tutorial.done"].tap()
-        XCTAssertFalse(app.otherElements["tutorial.step"].waitForExistence(timeout: 3),
+        let stepGone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == 0"),
+            object: app.otherElements["tutorial.step"]
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [stepGone], timeout: 8), .completed,
                        "el botón final tiene que cerrar el tutorial")
         // Y con el tutorial cerrado el juego vuelve a responder entero.
         app.buttons["hud.upgrades"].tap()
@@ -169,21 +175,104 @@ final class TutorialUITests: XCTestCase {
     func testSaltearCierraElTutorialYDevuelveLosControles() throws {
         let app = launchWithTutorial(coins: false)
         XCTAssertTrue(app.otherElements["tutorial.step"].waitForExistence(timeout: 20))
-        app.buttons["tutorial.skip"].tap()
-        // ⚠️ Espera de DESAPARICIÓN, no `XCTAssertFalse(waitForExistence(3))`:
-        // aquello devolvía true al primer poll si el overlay seguía
-        // desvaneciéndose, así que el test perdía la carrera contra la
-        // animación cuando el sistema venía ocupado (fallaba en suite tras el
-        // recorrido completo y pasaba aislado — medido 2026-08-18).
-        let stepGone = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "exists == 0"),
-            object: app.otherElements["tutorial.step"]
-        )
-        XCTAssertEqual(XCTWaiter().wait(for: [stepGone], timeout: 8), .completed,
-                       "saltear tiene que cerrar el tutorial")
+        // ⚠️ El tap se REINTENTA (patrón `tapSpotlight`): la tarjeta entra con
+        // pop de spring, y bajo carga el primer tap puede caer con el botón
+        // todavía en su frame de entrada (a escala 0.92) — medido 2026-08-21:
+        // fallaba en suite y pasaba aislado. Y la espera es de DESAPARICIÓN,
+        // no `XCTAssertFalse(waitForExistence(3))`: aquello devolvía true al
+        // primer poll si el overlay seguía desvaneciéndose (medido
+        // 2026-08-18). Tres intentos no esconden una regresión real: un skip
+        // roto falla los tres.
+        let marker = app.otherElements["tutorial.step"]
+        var closed = false
+        for _ in 0..<3 where !closed {
+            app.buttons["tutorial.skip"].tap()
+            let stepGone = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "exists == 0"), object: marker
+            )
+            closed = XCTWaiter().wait(for: [stepGone], timeout: 4) == .completed
+        }
+        XCTAssertTrue(closed, "saltear tiene que cerrar el tutorial")
         app.buttons["hud.upgrades"].tap()
         XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 12),
                       "sin tutorial, el HUD tiene que volver a responder")
+    }
+
+    // MARK: - Las lecciones contextuales
+
+    /// La lección de Mejoras: nace sólo cuando hay una mejora PAGABLE (la regla
+    /// de oro del gating), señala el tab sin congelar nada, y hacer lo que
+    /// señala la cumple y la retira para siempre.
+    @MainActor
+    func testLaLeccionDeMejorasSenalaYSeCumpleAlAbrir() throws {
+        let app = XCUIApplication()
+        // `--uitest-lessons`: las lecciones arrancan apagadas en cualquier
+        // corrida de UI tests (taparían coordenadas de tests ajenos); éste es
+        // EL test de la lección, así que las pide.
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins", "--uitest-lessons"]
+        app.launch()
+
+        let tip = app.otherElements["tutorial.tip"]
+        XCTAssertTrue(tip.waitForExistence(timeout: 20),
+                      "con plata para pagar una mejora, la lección tiene que nacer")
+        XCTAssertEqual(tip.value as? String, "upgrades",
+                       "la primera lección con plata es la de Mejoras")
+        XCTAssertTrue(app.buttons["tutorial.tip.dismiss"].exists, "el globo trae su botón")
+
+        // El coach no congela el juego: el tab señalado se puede tocar, y
+        // tocarlo CUMPLE la lección.
+        app.buttons["hud.upgrades"].tap()
+        XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 6),
+                      "la lección no puede interceptar la apertura de la hoja")
+        let gone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == 0"), object: tip
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 6), .completed,
+                       "abrir el destino tiene que retirar el globo")
+        dismissSheet(app)
+        // Dada es dada: si nace otra lección será otra, nunca la de Mejoras.
+        if tip.waitForExistence(timeout: 3) {
+            XCTAssertNotEqual(tip.value as? String, "upgrades",
+                              "una lección dada no puede volver")
+        }
+    }
+
+    /// El circuito del puntito rojo: nace en el tab Menú con el primer logro
+    /// cobrable, sigue en la tarjeta de Logros, y muere al cobrar el último.
+    /// El aviso viaja por `accessibilityValue` (trampa 9a: jamás un elemento
+    /// nuevo adentro del label), y el runner corre la app en inglés (trampa 6).
+    @MainActor
+    func testElPuntitoDeLogrosNaceEnElTabYMuereAlCobrarElUltimo() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-achievements"]
+        app.launch()
+
+        let menuTab = app.buttons["hud.settings"]
+        XCTAssertTrue(menuTab.waitForExistence(timeout: 20))
+        XCTAssertEqual(menuTab.value as? String, "Rewards to claim",
+                       "tres logros sin cobrar: el tab Menú tiene que avisar")
+
+        menuTab.tap()
+        let card = app.buttons["menu.card.achievements"]
+        XCTAssertTrue(card.waitForExistence(timeout: 6))
+        XCTAssertEqual(card.value as? String, "Rewards to claim",
+                       "la tarjeta repite el aviso para que el rastro no se corte")
+
+        card.tap()
+        for id in ["ach_merges_1", "ach_taps_1000", "ach_videos_1"] {
+            let claim = app.buttons["ach.claim.\(id)"]
+            XCTAssertTrue(claim.waitForExistence(timeout: 6),
+                          "el logro \(id) del fixture tiene que estar cobrable")
+            claim.tap()
+        }
+
+        // Cobrado el último, el aviso muere en las dos superficies.
+        app.buttons["sheet.close"].tap()
+        let valueGone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == %@", ""), object: menuTab
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [valueGone], timeout: 8), .completed,
+                       "sin cobrables no puede quedar puntito en el tab")
     }
 
     // MARK: - Helpers
@@ -262,7 +351,12 @@ final class TutorialUITests: XCTestCase {
             app.coordinate(withNormalizedOffset: .zero)
                 .withOffset(CGVector(dx: hole.minX + hole.width * 0.25, dy: hole.midY))
                 .doubleTap()
-            if waitForStep(app, "upgrades", timeout: 3) { return }
+            // La fusión dispara el reveal y el overlay entero se esconde: que
+            // el marker se haya IDO es la señal de que el par se fundió.
+            let gone = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "exists == 0"), object: marker
+            )
+            if XCTWaiter().wait(for: [gone], timeout: 3) == .completed { return }
         }
         XCTFail("el doble toque no fusionó el par iluminado en \(attempts) intentos")
     }

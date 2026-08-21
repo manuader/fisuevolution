@@ -83,6 +83,7 @@ struct QuickHireButton: View {
 
     private func button(for best: BestHire) -> some View {
         Button {
+            gameState.tutorialTipCompleted(.quickHire)
             // El temblor reemplaza al `.disabled` (patrón `PricePill`): dice "no
             // te alcanza" sin apagar el botón. Va ANTES de la acción, que en el
             // caso caro no va a comprar nada.

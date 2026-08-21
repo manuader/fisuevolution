@@ -183,6 +183,55 @@ struct CelebrationQueueTests {
         #expect(skipped == false)
     }
 
+    // MARK: La restricción del tutorial
+
+    @Test("con la restricción puesta, lo no permitido espera sin perderse")
+    func restrictionHoldsPendingKinds() {
+        var queue = CelebrationQueue()
+        queue.restrict(to: [.boardCelebration])
+        queue.enqueue(.dailyReward)
+        #expect(queue.current == nil, "el daily no puede tomar el turno con la fase del tutorial viva")
+        queue.restrict(to: nil)
+        #expect(queue.current == .dailyReward, "levantar la restricción lo promueve en el acto")
+    }
+
+    @Test("lo permitido toma el turno aunque haya restricción")
+    func allowedKindPromotesUnderRestriction() {
+        var queue = CelebrationQueue()
+        queue.restrict(to: [.boardCelebration])
+        queue.enqueue(.dailyReward)
+        queue.enqueue(.boardCelebration)
+        #expect(queue.current == .boardCelebration, "el reveal es EL momento de la fase, no un estorbo")
+        queue.finish(.boardCelebration)
+        #expect(queue.current == nil, "el daily sigue esperando a que la fase termine")
+    }
+
+    @Test("al levantar la restricción, lo retenido desfila por prioridad")
+    func liftingRestrictionKeepsPriorityOrder() {
+        var queue = CelebrationQueue()
+        queue.restrict(to: [.boardCelebration])
+        queue.enqueue(.towerNotice)    // prioridad 6
+        queue.enqueue(.skinAward)      // prioridad 4
+        queue.enqueue(.dailyReward)    // prioridad 1
+        #expect(queue.current == nil)
+        queue.restrict(to: nil)
+        #expect(queue.current == .dailyReward)
+        queue.finish(.dailyReward)
+        #expect(queue.current == .skinAward)
+        queue.finish(.skinAward)
+        #expect(queue.current == .towerNotice)
+    }
+
+    @Test("restringir no mata lo que ya está en pantalla")
+    func restrictionLeavesCurrentAlone() {
+        var queue = CelebrationQueue()
+        queue.enqueue(.skinAward)
+        queue.restrict(to: [.boardCelebration])
+        #expect(queue.current == .skinAward, "matarlo perdería una celebración que el jugador está viendo")
+        queue.finish(.skinAward)
+        #expect(queue.current == nil, "y al terminar, nada no-permitido lo reemplaza")
+    }
+
     // MARK: Invariantes del catálogo
 
     /// Se puede saltear exactamente lo que se cierra solo. Lo que espera al

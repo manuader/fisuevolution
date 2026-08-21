@@ -37,11 +37,30 @@ extension GameState {
             defaults.removeObject(forKey: NotificationsManager.defaultsKey)
             defaults.removeObject(forKey: LanguagePreference.defaultsKey)
             defaults.removeObject(forKey: LanguagePreference.systemKey)
+            // Las lecciones contextuales son la misma trampa que el tutorial y
+            // los ajustes: viven en UserDefaults y sobrevivirían al reset — un
+            // test que dispara la lección de Mejoras se la dejaría "dada" al
+            // siguiente.
+            for lesson in TutorialLesson.allCases {
+                defaults.removeObject(forKey: lesson.defaultsKey)
+            }
+            defaults.removeObject(forKey: Self.sessionsAfterPhaseKey)
         }
         // `--uitest-open-sheet` presenta una hoja modal: el tutorial no puede
         // estar adelante, así que implica saltearlo.
         if arguments.contains("--uitest-skip-tutorial") || arguments.contains("--uitest-open-sheet") {
             defaults.set(true, forKey: "fisuTutorialDone")
+        }
+        // En una corrida de UI tests las lecciones contextuales arrancan
+        // APAGADAS salvo que el test las pida (`--uitest-lessons`): un coach
+        // nacido en medio de un test ajeno tapa coordenadas que ese test toca
+        // — medido con `AscentRenderingUITests`, cuyo tap a `hud.debug` se lo
+        // comió el globo de la lección de Mejoras (nacida por el fixture de
+        // monedas). Mismo criterio que el resto de los fixtures: el estado
+        // del tutorial lo decide cada test, nunca el azar del gating.
+        if arguments.contains(where: { $0.hasPrefix("--uitest") }),
+           !arguments.contains("--uitest-lessons") {
+            tutorialLessonsAutorun = false
         }
     }
 

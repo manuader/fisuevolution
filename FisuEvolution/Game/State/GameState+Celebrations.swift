@@ -54,7 +54,31 @@ extension GameState {
         if let event = activeEvent, event.id != announcedEventID {
             celebrations.enqueue(.eventBanner)
         }
+        if tutorialTip != nil { celebrations.enqueue(.tutorialTip) }
         publishCelebration()
+    }
+
+    // MARK: El tutorial como cliente
+
+    /// Arranca la fase obligatoria del tutorial: desde acá y hasta
+    /// `tutorialPhaseFinished()`, la cola sólo promueve el reveal del tablero
+    /// —que es EL momento de la fase, no un estorbo— y todo lo demás queda en
+    /// `pending`: no se presenta (su sheet está gateado por el tutorial y
+    /// congelaría la cola) ni se pierde.
+    func beginTutorialPhase() {
+        tutorialPhaseActive = true
+        celebrations.restrict(to: [.boardCelebration])
+        publishCelebration()
+    }
+
+    /// La fase terminó (el botón del cierre o "Saltar"): se levanta la
+    /// restricción y lo que esperó su turno desfila en su orden de siempre —
+    /// el daily del día 2 primero, después la skin, al final los toasts.
+    func tutorialPhaseFinished() {
+        guard tutorialPhaseActive else { return }
+        tutorialPhaseActive = false
+        celebrations.restrict(to: nil)
+        syncCelebrations()
     }
 
     // MARK: Salir de la cola
@@ -122,6 +146,13 @@ extension GameState {
             // pantalla apagada. Acá caen las tres salidas: el fin que avisa la
             // escena, el tap que saltea y el watchdog que destraba.
             boardCelebrationShowsSomethingNew = false
+        case .tutorialTip:
+            // Estuvo en pantalla y su turno terminó —por el botón, por el tap
+            // que saltea o por el timeout—: no vuelve. La retirada SIN marcar
+            // (la condición que murió esperando turno) no pasa por acá: la
+            // maneja el director (`refreshTutorialTip`).
+            if let tip = tutorialTip { markLessonDone(tip.lesson) }
+            tutorialTip = nil
         case .offlineEarnings, .dailyReward,
              .careerChoice, .skinAward, .specialDrop:
             break

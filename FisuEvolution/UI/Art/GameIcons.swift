@@ -608,3 +608,52 @@ struct VectorCalendarIcon: View {
         }
     }
 }
+
+// MARK: - La mano del tutorial
+
+/// El guante sin dedos del Fisura señalando: reemplaza al SF Symbol blanco del
+/// overlay, que era el único elemento fuera del idioma del juego en toda la
+/// pantalla del tutorial. Punta del índice y pulgar al aire (piel), el resto
+/// guante, y el puño de lana — mismo lienzo 100×100 y mismo `inked` que los
+/// demás.
+struct VectorTutorialHandIcon: View {
+    private let glove = Color("PaletteGreen")
+    private let skin = Color(red: 0.96, green: 0.78, blue: 0.62)
+
+    var body: some View {
+        IconCanvas {
+            ZStack {
+                // El índice señalando arriba-izquierda: la punta descubierta.
+                Capsule()
+                    .inked(skin, lineWidth: IconSpec.detail)
+                    .frame(width: 19, height: 48)
+                    .rotationEffect(.degrees(28))
+                    .position(x: 37, y: 33)
+                // El pulgar, también al aire.
+                Capsule()
+                    .inked(skin, lineWidth: IconSpec.detail)
+                    .frame(width: 15, height: 28)
+                    .rotationEffect(.degrees(-42))
+                    .position(x: 31, y: 60)
+                // El puño enguantado.
+                RoundedRectangle(cornerRadius: 15, style: .continuous)
+                    .inked(glove)
+                    .frame(width: 46, height: 42)
+                    .rotationEffect(.degrees(28))
+                    .position(x: 56, y: 61)
+                // La banda de nudillos del guante cortando el índice.
+                Capsule()
+                    .inked(glove, lineWidth: IconSpec.detail)
+                    .frame(width: 24, height: 17)
+                    .rotationEffect(.degrees(28))
+                    .position(x: 46, y: 46)
+                // El puño de lana.
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .inked(Color("PaletteBrown"), lineWidth: IconSpec.detail)
+                    .frame(width: 32, height: 17)
+                    .rotationEffect(.degrees(28))
+                    .position(x: 72, y: 81)
+            }
+        }
+    }
+}

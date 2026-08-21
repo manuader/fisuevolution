@@ -803,6 +803,28 @@ struct CountBadge: View {
     }
 }
 
+
+/// El puntito rojo de "hay algo para cobrar": `ui_badge` del atlas (el círculo
+/// de alerta con su colita, ya recortado al bbox del alfa) con fallback
+/// vectorial en el rojo muestreado del PNG.
+///
+/// ⚠️ Va SIEMPRE como `.overlay` del plato o la tarjeta que avisa — nunca un
+/// hijo del layout (la barra inferior va 374 ≤ 375 pt en SE y no hay margen
+/// para un solo punto más) ni un elemento de AX propio (trampa 9a): el aviso
+/// viaja en el `accessibilityValue` del control que lo lleva.
+struct NotificationBadge: View {
+    var size: CGFloat = 20
+
+    var body: some View {
+        GameIcon(artKey: "ui_badge", size: size) {
+            Circle()
+                .fill(Color(red: 227 / 255, green: 58 / 255, blue: 51 / 255))
+                .overlay(Circle().strokeBorder(Color("PaletteInk"), lineWidth: 2))
+        }
+        .accessibilityHidden(true)
+    }
+}
+
 // MARK: - IconButton
 
 /// Botón circular de icono (52×52 por defecto): base crema con borde ink y el
@@ -934,6 +956,8 @@ struct GameTabItem: Identifiable {
     let labelKey: String
     let identifier: String
     let prominent: Bool
+    /// El puntito de "hay algo para cobrar" (hoy: logros, en el tab Menú).
+    let showsBadge: Bool
 
     var id: String { screen.rawValue }
 
@@ -941,12 +965,14 @@ struct GameTabItem: Identifiable {
          icon: AnyView,
          labelKey: String,
          identifier: String,
-         prominent: Bool = false) {
+         prominent: Bool = false,
+         showsBadge: Bool = false) {
         self.screen = screen
         self.icon = icon
         self.labelKey = labelKey
         self.identifier = identifier
         self.prominent = prominent
+        self.showsBadge = showsBadge
     }
 }
 
@@ -1160,6 +1186,15 @@ private struct GameTabButton: View {
                         .frame(width: iconSide, height: iconSide)
                 }
                 .frame(width: side, height: side)
+                // `.overlay`, no un hijo: el badge no puede mover ni un punto
+                // del layout (374 ≤ 375 en SE). Dentro del `keyframeAnimator`
+                // a propósito: el puntito rebota con su tab.
+                .overlay(alignment: .topTrailing) {
+                    if item.showsBadge {
+                        NotificationBadge()
+                            .offset(x: 5, y: -3)
+                    }
+                }
                 .keyframeAnimator(initialValue: 1.0, trigger: bounce) { view, scale in
                     view.scaleEffect(scale)
                 } keyframes: { _ in
@@ -1189,6 +1224,9 @@ private struct GameTabButton: View {
         .buttonStyle(.plain)
         .accessibilityIdentifier(item.identifier)
         .accessibilityLabel(Text(LocalizedStringKey(item.labelKey)))
+        // El badge avisa por acá (trampa 9a: jamás un elemento de AX adentro
+        // del label de un botón). Vacío cuando no hay nada que cobrar.
+        .accessibilityValue(item.showsBadge ? Text("badge.claimable.ax") : Text(verbatim: ""))
     }
 
     /// El plato del tab. `ui_tab_active` para los destacados y `ui_tab_inactive`

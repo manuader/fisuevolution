@@ -112,7 +112,7 @@ final class BottomMenuUITests: XCTestCase {
     /// El arranque es el de la suite SIN `--uitest-coins`: partida nueva, cero
     /// monedas y el pasivo todavía sin comprar (`passiveUnlockCostMultiplier`,
     /// `economy.json`), así que el saldo no se mueve solo mientras el test
-    /// espera. En ese estado la oferta es el Fisura a 50 como META DE AHORRO:
+    /// espera. En ese estado la oferta es el Fisura a 25 como META DE AHORRO:
     /// el botón se dibuja igual —nunca `.disabled`, patrón `PricePill`—, se
     /// puede tocar, tiembla, y **no compra nada**. Eso es lo que se pinea:
     /// tocarlo sin saldo deja el tablero y el saldo donde estaban.

@@ -442,8 +442,8 @@ final class GameState {
             if ProcessInfo.processInfo.arguments.contains("--uitest-prestige") {
                 giveEarningsForPrestigeTesting(oro: 9)
             }
-            // El primer Fisura cuesta 50 y un tap rinde 1: llegar a contratar
-            // jugando son ~50 toques sobre un personaje que deambula. El fixture
+            // El primer Fisura cuesta 25 y un tap rinde 1: llegar a contratar
+            // jugando son ~25 toques sobre un personaje que deambula. El fixture
             // acredita la plata para que el test del tutorial mida el TUTORIAL y
             // no la puntería del runner.
             if ProcessInfo.processInfo.arguments.contains("--uitest-coins") {

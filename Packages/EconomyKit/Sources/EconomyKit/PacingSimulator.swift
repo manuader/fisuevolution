@@ -12,10 +12,17 @@ import Foundation
 ///   offline entre sesiones (fórmula de OfflineCalculator).
 /// - **Política greedy** (prioridad): merges legales gratis → passive unlock con
 ///   payback corto → charUpgrade con payback corto → hire (piso 1 o backfill
-///   rentable) → reencarnar cuando duplica el ORO ganado histórico.
+///   rentable) → reencarnar cuando duplica el ORO ganado histórico → gastar el
+///   ORO en mejoras permanentes.
 /// - Determinístico: sin RNG (crit/golden apagados), carrera fija.
 public struct PacingSimulator: Sendable {
     public struct HumanModel: Sendable {
+        /// Toques por segundo sostenidos durante la sesión. **6**: el medio del
+        /// rango 5-8 que un humano sostiene tapeando en ráfaga sobre el mismo
+        /// personaje, que es como se juega (y el dueño tapea rápido). Los 3/s
+        /// que había eran el techo conservador que F2 heredó de `balance-sim`
+        /// y subestimaban el tap a la mitad, justo el verbo del que el dueño se
+        /// queja. [TUNEABLE]
         public var tapsPerSecond: Double
         public var sessionSeconds: Double
         /// Offsets de inicio de sesión dentro del día (segundos desde las 0 hs).
@@ -23,7 +30,7 @@ public struct PacingSimulator: Sendable {
         public var daySeconds: Double
 
         public init(
-            tapsPerSecond: Double = 3,
+            tapsPerSecond: Double = 6,
             sessionSeconds: Double = 1200,
             sessionStartOffsets: [Double] = [0, 4 * 3600, 9 * 3600, 14 * 3600],
             daySeconds: Double = 86_400
@@ -43,6 +50,11 @@ public struct PacingSimulator: Sendable {
         public var firstReincarnationWall: Double?
         public var godWall: Double?
         public var reincarnations = 0
+        /// Segundos ACTIVOS hasta tener las siete líneas permanentes al tope.
+        public var maxedUpgradesActiveSeconds: Double?
+        public var maxedUpgradesWall: Double?
+        public var reincarnationsAtMaxedUpgrades: Int?
+        public var finalPermanentUpgradeLevels: [String: Int] = [:]
         public var finalLifetimeEarnings: Double = 0
         public var finalMaxTier = 0
 
@@ -57,13 +69,17 @@ public struct PacingSimulator: Sendable {
     /// Payback máximo aceptado para compras de eficiencia (passive/charUpgrade).
     let maxPaybackSeconds: Double
     let careerPath: String
+    /// Catálogo de mejoras permanentes que el bot puede comprar con ORO. Vacío
+    /// = el bot no compra ninguna, que es el modelo viejo. [TUNEABLE]
+    let permanentUpgrades: [PermanentUpgradeLine]
 
     public init(
         config: EconomyConfig,
         tiers: TierRepository,
         human: HumanModel = HumanModel(),
         maxPaybackSeconds: Double = 1800,
-        careerPath: String = "programmer"
+        careerPath: String = "programmer",
+        upgrades: [PermanentUpgradeLine] = []
     ) throws {
         self.config = config
         self.tiers = tiers
@@ -72,6 +88,7 @@ public struct PacingSimulator: Sendable {
         self.human = human
         self.maxPaybackSeconds = maxPaybackSeconds
         self.careerPath = careerPath
+        self.permanentUpgrades = upgrades
     }
 
     // MARK: - Run
@@ -129,6 +146,7 @@ public struct PacingSimulator: Sendable {
 
         report.finalLifetimeEarnings = state.meta.lifetimeEarnings
         report.finalMaxTier = state.run.maxTierReached
+        report.finalPermanentUpgradeLevels = state.meta.oroUpgradeLevels
         return report
     }
 
@@ -149,7 +167,10 @@ public struct PacingSimulator: Sendable {
                 report.godWall = wallStart + elapsed
                 return (elapsed, elapsed)
             }
-            maybeReincarnate(state: &state, report: &report, wall: wallStart + elapsed)
+            maybeReincarnate(
+                state: &state, report: &report,
+                wall: wallStart + elapsed, active: activeStart + elapsed
+            )
 
             let rate = incomeRate(state: state, active: true)
             guard rate > 0 else {
@@ -350,13 +371,81 @@ public struct PacingSimulator: Sendable {
 
     // MARK: - Reencarnación
 
-    private func maybeReincarnate(state: inout PlayerState, report: inout Report, wall: Double) {
+    private func maybeReincarnate(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
         let gained = PrestigeCalculator.oroGained(state: state, economy: economy)
         // Regla idle estándar: reencarnar cuando al menos duplica lo ganado histórico.
         guard gained >= max(1, state.meta.oroEarnedLifetime) else { return }
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: wall)
         report.reincarnations += 1
         if report.firstReincarnationWall == nil { report.firstReincarnationWall = wall }
+        buyPermanentUpgrades(state: &state, report: &report, wall: wall, active: active)
+    }
+
+    // MARK: - Mejoras permanentes (ORO)
+
+    /// Gasta el ORO en mejoras permanentes: **la más barata primero**, hasta que
+    /// no alcance para ninguna.
+    ///
+    /// Es la política del jugador que va por las skins doradas, que es el
+    /// objetivo que el dueño llama "ganarlo al máximo": para maxear las siete
+    /// líneas hay que comprar TODOS los niveles igual, así que lo único que se
+    /// elige es el orden — y comprar de menor a mayor precio es el que más
+    /// niveles pone en juego por ORO gastado y el que menos tiempo deja el ORO
+    /// quieto en el bolsillo. La alternativa ("la de mejor payback") sólo
+    /// tendría sentido si el jugador pudiera saltearse líneas, y no puede.
+    ///
+    /// Se llama sólo al reencarnar porque es el único momento en que entra ORO:
+    /// entre reencarnaciones el saldo no cambia y los precios tampoco, así que
+    /// lo que no alcanzó acá no va a alcanzar después.
+    ///
+    /// ⚠️ El bot **paga** `crit` y `golden` pero no cobra su efecto: el
+    /// simulador es determinístico y no tira dados. Como `crit` es hoy el
+    /// 99,99 % del costo de maxear, eso lo vuelve un techo pesimista —el
+    /// jugador real, con los mismos niveles, gana más—.
+    private func buyPermanentUpgrades(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
+        guard !permanentUpgrades.isEmpty else { return }
+        var bought = false
+        while let line = cheapestAffordableUpgrade(state: state) {
+            let level = state.meta.oroUpgradeLevels[line.id] ?? 0
+            state.meta.oro -= oroPrice(of: line, atLevel: level)
+            state.meta.oroUpgradeLevels[line.id] = level + 1
+            bought = true
+        }
+        guard bought else { return }
+        // Recalcula efectos (y el multiplicador global, que depende del
+        // `prestigeBonus` recién comprado) con la misma fórmula que la app.
+        PermanentUpgrades.recomputeDerivedEffects(state: &state, lines: permanentUpgrades, economy: economy)
+        guard report.maxedUpgradesActiveSeconds == nil,
+              PermanentUpgrades.allMaxed(levels: state.meta.oroUpgradeLevels, lines: permanentUpgrades)
+        else { return }
+        report.maxedUpgradesActiveSeconds = active
+        report.maxedUpgradesWall = wall
+        report.reincarnationsAtMaxedUpgrades = report.reincarnations
+    }
+
+    /// La línea no-maxeada más barata que el ORO alcanza. Empates por `id`, para
+    /// que la corrida siga siendo determinística.
+    private func cheapestAffordableUpgrade(state: PlayerState) -> PermanentUpgradeLine? {
+        permanentUpgrades
+            .filter { line in
+                let level = state.meta.oroUpgradeLevels[line.id] ?? 0
+                guard level < line.maxLevel else { return false }
+                return oroPrice(of: line, atLevel: level) <= state.meta.oro
+            }
+            .min { lhs, rhs in
+                let lhsCost = lhs.cost(atLevel: state.meta.oroUpgradeLevels[lhs.id] ?? 0)
+                let rhsCost = rhs.cost(atLevel: state.meta.oroUpgradeLevels[rhs.id] ?? 0)
+                return lhsCost == rhsCost ? lhs.id < rhs.id : lhsCost < rhsCost
+            }
+    }
+
+    /// Precio en ORO, entero y redondeado para arriba como en la app
+    /// (`UpgradeManager.purchase`), pero **clampeado**: `Int(_:)` sobre un Double
+    /// de 2^63 o más CRASHEA, y estos catálogos se calibran a mano. Una línea
+    /// que se pase de ese orden queda simplemente impagable y el reporte la
+    /// muestra trabada en su nivel, que es lo que hay que ver.
+    private func oroPrice(of line: PermanentUpgradeLine, atLevel level: Int) -> Int {
+        StandardEconomy.clampedFloor(line.cost(atLevel: level).rounded(.up))
     }
 
     // MARK: - Income
@@ -394,8 +483,12 @@ public struct PacingSimulator: Sendable {
                         * floorTable.floor(forTier: type.tier).incomeMultiplier
                 }
                 .max() ?? 0
+            // Los mismos factores que `GameActions.applyTap`, incluido el
+            // `incomeMultiplier` que al bot le faltaba: el tap del juego lo
+            // lleva, así que sin él el simulador cobraba de menos cada toque.
             rate += bestTap * human.tapsPerSecond
                 * state.meta.derivedEffects.tapMultiplier
+                * state.meta.derivedEffects.incomeMultiplier
                 * state.meta.globalMultiplier
         }
         return rate

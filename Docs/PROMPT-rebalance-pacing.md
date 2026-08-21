@@ -29,13 +29,21 @@
 >
 > "deberias dedicarle 20/30hs para ganarlo al maximo."
 
-**El objetivo, hecho métrica**: maxear las **siete líneas permanentes** —que es
-lo que desbloquea las skins de oro y lo que el dueño llama "ganarlo al
-máximo"— tiene que costar **20-30 horas de juego ACTIVO** (no de pared). Hoy
-cuesta **3 horas activas** medidas por el dueño jugando.
+**El objetivo, hecho métrica** (confirmado por el dueño, ver §7):
 
-Métrica secundaria, no negociable en su forma: llegar a **Dios (tier 37)** debe
-seguir siendo un viaje más largo que maxear las mejoras, no uno más corto.
+1. Maxear las **siete líneas permanentes** —lo que desbloquea las skins de oro y
+   lo que él llama "ganarlo al máximo"— cuesta **20-30 horas de juego ACTIVO**
+   (dedo en la pantalla, no calendario). Hoy cuesta **3 h activas**, medidas
+   jugando.
+2. Llegar a **Dios (tier 37)** queda **más lejos todavía**: es el viaje del que
+   sigue jugando después de ganar, no el mismo hito.
+3. Ese recorrido entero se hace con **8 reencarnaciones COMO MÁXIMO**. El dueño
+   ganó el juego con **3 o 4**; el simulador hace **47**. O sea: una
+   reencarnación cada 2,5-4 h de juego activo, cada una un hito que se prepara y
+   se nota — no una rutina.
+4. El **offline se queda como está** (35 %, tope 10 h) o incluso más generoso:
+   sirve para volver y encontrar plata, no para ganar durmiendo. Las 20-30 h son
+   de juego activo y el idle no las paga.
 
 ---
 
@@ -330,13 +338,27 @@ saltea el merge).
 
 ---
 
-## 7. Preguntas abiertas para el dueño (preguntar, no asumir)
+## 7. Decisiones del dueño — ya respondidas, no volver a preguntar
 
-1. **20-30 h activas: ¿hasta maxear las siete líneas, o hasta Dios?** Este prompt
-   asume "hasta maxear" (que es lo que él midió en 3 h) y deja a Dios más lejos.
-2. **¿Cuánto vale el idle?** El juego tiene offline al 35 % con tope de 10 h. Si
-   las 20-30 h son activas, el offline puede seguir siendo generoso; si son de
-   pared, hay que tocarlo también.
-3. **¿La reencarnación tiene que seguir siendo tan frecuente?** El sim hace 47 en
-   una partida. Un idle típico hace 10-20 y cada una se siente. Es una decisión
-   de diseño, no un knob.
+Las tres dudas que este prompt tenía abiertas se preguntaron el 2026-08-20 y
+están cerradas. Van acá con sus palabras para que nadie las re-litigue:
+
+| Pregunta | Respuesta |
+|---|---|
+| ¿Las 20-30 h son hasta maxear las siete, o hasta Dios? | **Hasta maxear las siete.** Dios queda más lejos, como viaje aparte. |
+| ¿Horas activas o de calendario? ¿Qué pasa con el offline? | **Activas**, con el **offline como está** (35 %, tope 10 h) o más generoso. |
+| ¿Cuántas reencarnaciones por partida? | **"8 como mucho. yo cuando gane el juego reencarne 3 o 4 veces nada mas."** |
+
+⚠️ **La tercera es la que más cambia el trabajo, y es también un dato de
+medición**: el dueño ganó con 3-4 reencarnaciones y el simulador hace 47. Con un
+techo de 8 para un recorrido de 20-30 h activas, el ORO ya no puede llegar en
+goteo: tiene que venir en **pocas entregas grandes**, y la curva
+`oro = (earnings / 3e6)^0,45` con multiplicador **lineal** (`1 + oro × 0,18`) es
+justo la forma que produce lo contrario. Cualquier arreglo de §4.2 tiene que
+hacer que el ORO de UNA reencarnación valga mucho y que haya pocas, en vez de
+muchas que valen poco cada una pero infinito en conjunto.
+
+Es también la prueba más dura de que el bot no representa al jugador: **47 contra
+3-4** en la misma partida. Si después de §4.1 el bot sigue reencarnando decenas
+de veces, el modelo todavía está mal y los knobs que se calibren contra él van a
+seguir mintiendo.

@@ -19,6 +19,8 @@ que permite darse cuenta si el original cambio debajo.
 from __future__ import annotations
 
 import argparse
+import base64
+import io
 import json
 import sys
 from pathlib import Path
@@ -194,6 +196,14 @@ const estado = leer();
 let n = 0, mapa = null, ancho = 0, alto = 0, resaltada = null;
 
 const $ = (id) => document.getElementById(id);
+
+function avisarRoto(motivo) {
+  const aviso = document.createElement("div");
+  aviso.style.cssText = "position:fixed;inset:auto 16px 16px 16px;z-index:99;padding:12px 16px;" +
+    "background:#a02622;color:#fff;border-radius:10px;font-size:14px";
+  aviso.textContent = "⚠ " + motivo + " — los clics no van a funcionar.";
+  document.body.append(aviso);
+}
 const actual = () => ASSETS[n];
 const decision = (key, isla) => estado[key]?.[isla.id] ?? (isla.saca ? "saca" : "conserva");
 const COLOR = { saca: [160, 38, 34], conserva: [46, 107, 70], duda: [201, 138, 0] };
@@ -216,17 +226,23 @@ function cargarAsset() {
   $("asset").value = String(n);
   $("arte").src = `img/${a.key}.png`;
   const img = new Image();
+  img.onerror = () => avisarRoto("No cargó el mapa de islas de " + a.key);
   img.onload = () => {
     ancho = img.naturalWidth; alto = img.naturalHeight;
     const off = document.createElement("canvas");
     off.width = ancho; off.height = alto;
     const octx = off.getContext("2d", { willReadFrequently: true });
     octx.drawImage(img, 0, 0);
-    mapa = octx.getImageData(0, 0, ancho, alto);
+    try {
+      mapa = octx.getImageData(0, 0, ancho, alto);
+    } catch (error) {
+      avisarRoto("No puedo leer el mapa de islas: " + error.message);
+      return;
+    }
     $("capa").width = ancho; $("capa").height = alto;
     pintar();
   };
-  img.src = `img/${a.key}__mapa.png`;
+  img.src = a.mapa;
   construirLista();
 }
 
@@ -379,8 +395,13 @@ def main() -> int:
         recorte = W.cutout(imagen, "")
         lado = 700
         recorte.resize((lado, lado), Image.LANCZOS).save(destino / "img" / f"{clave}.png", optimize=True)
-        mapa_de_islas(dentro, fichas).resize((lado, lado), Image.NEAREST).save(
-            destino / "img" / f"{clave}__mapa.png")
+        # El mapa va INCRUSTADO y no como archivo: abierta con doble clic la pagina
+        # es `file://`, y ahi dibujar un archivo en un canvas lo contamina — el
+        # `getImageData` que necesita el clic tira SecurityError. Un data: URI es
+        # del mismo origen y no contamina.
+        crudo = io.BytesIO()
+        mapa_de_islas(dentro, fichas).resize((lado, lado), Image.NEAREST).save(crudo, format="PNG")
+        mapa = "data:image/png;base64," + base64.b64encode(crudo.getvalue()).decode()
 
         base, _, skin = clave.partition("__")
         assets.append({
@@ -388,6 +409,7 @@ def main() -> int:
             "personaje": personajes.get(base, base.replace("_", " ").title()),
             "skin": skins.get(skin, ""),
             "variante": variante(clave),
+            "mapa": mapa,
             "islas": fichas,
         })
         saca = sum(1 for f in fichas if f["saca"])

@@ -251,8 +251,12 @@ do {
     check("dios (pared)", value: report.godWall, range: (21.0 * 3600)...(65.0 * 3600), format: hours)
     check("reencarnaciones al llegar", value: Double(report.reincarnations), range: 3...1000, format: { String(format: "%.0f", $0) })
     print("\n  Nota: estos rangos son los OBJETIVOS DE DISEÑO del plan F7.1c.")
-    print("  Los asserts de PacingTests se re-pinearon en F7.6 a la conducta real")
-    print("  (ver Docs/balance-log.md §F7.6): el Fisura a 50 acortó el early game.")
+    print("  Los asserts de PacingTests miden otra cosa: sus cuatro BANDAS se")
+    print("  re-pinearon el 2026-08-21 a la conducta real del rebalance de pacing")
+    print("  (ver Docs/balance-log.md), y aparte assertean el objetivo del dueño")
+    print("  —maxear las siete en 20-30 h activas con <=8 reencarnaciones—, que sí")
+    print("  se cumple. La brecha que queda es la fase fisura: el spec pide 20-30")
+    print("  min activos y el Fisura a 25 la deja en segundos.")
 
     if let csvURL = arguments.csvURL {
         var rows = ["seccion,clave,valor,unidad"]

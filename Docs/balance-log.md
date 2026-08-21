@@ -1174,29 +1174,54 @@ Medido con `--prestige-threshold N`, el knob nuevo del simulador: el bot
 reencarna cuando el ORO por reencarnar supera N veces su histórico. Misma
 economía en cada columna; lo único que cambia es la política del jugador.
 
-| política | antes: maxear / reenc | después: maxear / reenc |
-|---|---|---|
-| ×1 (duplicar — el default) | 15,49 h / 34 | 25,33 h / 8 |
-| ×2 | 14,18 h / 22 | 20,67 h / 6 |
-| ×4 | — | 19,67 h / 5 |
-| ×8 | **13,09 h / 12** | **17,90 h / 4** |
-| ×30 | 21,40 h / 8 | 17,67 h / 3 |
-| ×1000 (contra la pared) | 864,97 h / 5 | 24,00 h / 2 |
+✅ **La columna "después" se RE-CORRIÓ sobre el árbol final** (2026-08-21, cierre
+de la rama): la versión anterior de esta tabla publicaba mediciones de la salida
+**(c)**, que se descartó — y es justo la tabla que contesta el criterio de
+aceptación. Receta, `--max-days 3000` para que el horizonte no corte ninguna
+política (ver el aviso del final de este documento):
 
-**El óptimo del jugador pasó de 12 reencarnaciones con la primera a los 0,1 h
-activas —seis minutos, y 8 de las 12 dentro de las dos primeras horas: un
-trámite— a 4 reencarnaciones con la primera a las 2,0 h activas**, que es
-exactamente lo que hizo el dueño ("yo cuando gané el juego reencarné 3 o 4 veces
-nada más").
+```bash
+cd Tools/pacing-sim && swift run -c release pacing-sim \
+  --economy ../../FisuEvolution/Resources/Data/economy.json \
+  --tiers ../../FisuEvolution/Resources/Data/tiers.json \
+  --max-days 3000 --prestige-threshold N
+```
+
+| política | antes: maxear / reenc | **después (árbol final): maxear / reenc** |
+|---|---|---|
+| **×1 (duplicar — el default)** | 15,49 h / 34 | **24,00 h / 8** ✅ |
+| ×2 | 14,18 h / 22 | 19,33 h / 6 |
+| ×4 | — | 16,67 h / 5 |
+| ×8 | 13,09 h / 12 | 15,29 h / 4 |
+| ×30 | 21,40 h / 8 | **no maxea antes de dios** (2 reenc · dios a 249,21 h) |
+| ×1000 (contra la pared) | 864,97 h / 5 | **no maxea antes de dios** (1 reenc · dios a 230,13 h) |
+
+⚠️ **"No maxea antes de dios" es literal y hay que leerlo con su límite**: la
+simulación TERMINA cuando el bot llega a dios (`PacingSimulator.run` corta ahí),
+así que lo que dice la fila es que con esas políticas dios llega **antes** que las
+siete líneas al tope — no que sean imposibles de maxear jugando después del final.
+
+**El resultado del barrido, y es el que contesta el criterio**: guardarse las
+reencarnaciones ya no es lo óptimo. Esperar acorta el camino en horas activas
+(×8 maxea en 15,29 h contra las 24,00 h del default) pero **te saca de la banda
+que el dueño pidió** y, si esperás mucho, te deja llegando a dios sin las skins
+doradas. Contra la pared costaba **864,97 h** antes de esta rama; ahora esa
+política directamente no llega a maxear dentro de la run.
+
+⚠️ **El umbral NO mueve la PRIMERA reencarnación**, y conviene saberlo antes de
+leer la tabla: el múltiplo es sobre el ORO HISTÓRICO, que arranca en cero, y
+`N × 0 = 0` para cualquier N. En las seis corridas la primera cae en el mismo
+lugar —**62,00 h de pared, 3,67 h ACTIVAS**—; lo que la política cambia es todo
+lo que viene después.
 
 Cadencia del bot por defecto, en horas ACTIVAS de cada reencarnación:
 
 ```
 antes:    0,2 · 0,3 · 0,6 · 0,7 · 1,0 · 1,2 · 1,3 · 1,5 · 1,7 · 1,8 · 2,0 · 2,1 · …  (52 en total)
-después:  2,0 · 6,9 · 12,0 · 16,7 · 20,0 · 22,7 · 24,0 · 25,3                        (8 al maxear)
+después:  3,7 · 8,0 · 12,7 · 16,4 · 19,3 · 21,2 · 22,9 · 24,0                        (8 al maxear)
 ```
 
-Los huecos de la serie nueva se ACORTAN de 4,9 h a 1,3 h: cada reencarnación
+Los huecos de la serie nueva se ACORTAN de 4,7 h a 1,1 h: cada reencarnación
 hace que la siguiente llegue antes, o sea que el multiplicador que te llevás
 paga el re-ascenso con ganancia. Los de la serie vieja eran de 0,1-0,3 h de
 punta a punta: reencarnar no cambiaba nada.
@@ -1205,13 +1230,14 @@ Y el valor de la PRIMERA: antes 1 ORO sobre 1,778e10 = **6e-9 %** de la
 condición de victoria. Ahora 1 ORO sobre 193 = **0,5 %**, y compra un nivel
 entero de income (+20 % permanente).
 
-⚠️ **Honestidad sobre este punto**: el óptimo medido no es "reencarnar
-apenas podés" sino "cada ×4-×8", o sea 4-5 veces repartidas en la run. Es la
-conducta que el dueño describió como propia y entra en el techo de 8, pero el
-bot que reencarna en cuanto duplica sigue tardando 25,33 h contra las 17,90 h
-del que espera un poco. Reencarnar temprano ya no es una trampa (contra la
-pared costaba 864,97 h y ahora cuesta 24,00 h), pero tampoco es estrictamente
-lo óptimo.
+⚠️ **Honestidad sobre este punto**: el dueño describió su propia conducta como
+"reencarné 3 o 4 veces nada más", y ésa sigue siendo una forma jugable —es la
+fila ×8, con 4 reencarnaciones—, pero **es más corta que la banda que él mismo
+puso**: 15,29 h contra el piso de 20 h. Las 20-30 h se cumplen con la política
+por defecto (duplicar), que es la que el simulador modela y la que `PacingTests`
+assertea. Un jugador que se guarde las reencarnaciones a propósito termina antes;
+eso no es una trampa que quede abierta, es el techo de lo que un bot greedy puede
+prometer sobre estilos de juego que no modela.
 
 ## El tap del tier alto
 

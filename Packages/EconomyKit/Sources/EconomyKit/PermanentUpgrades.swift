@@ -65,8 +65,15 @@ public struct PermanentUpgradeLine: Sendable, Equatable, Identifiable {
 /// `UpgradeManager.recomputeDerivedEffects` (app target) restringido a las
 /// líneas: acá no hay specials, ni referidos, ni la milanesa, porque el bot no
 /// los tiene. Están separadas porque EconomyKit no puede llamar al app target,
-/// no porque la fórmula sea otra — `PermanentUpgradesTests` la pinea justamente
-/// para que no se separen sin que nadie se entere.
+/// no porque la fórmula sea otra.
+///
+/// Lo que impide que se separen sin que nadie se entere es
+/// **`PermanentUpgradesMirrorTests`**, que vive en `FisuEvolutionTests` porque
+/// es el único target que importa las DOS: corre las dos derivaciones sobre
+/// `content.upgradesConfig` y las compara campo a campo. `PermanentUpgradesTests`
+/// —acá, en EconomyKitTests— **no puede ser ese guard** y este docstring decía
+/// que lo era: desde adentro del paquete no hay forma de ver `UpgradeManager`,
+/// así que sólo prueba este lado contra líneas escritas a mano.
 public enum PermanentUpgrades {
     /// Reconstruye `meta.derivedEffects` desde `meta.oroUpgradeLevels` × el
     /// catálogo, y recalcula el `globalMultiplier` (que depende del

@@ -126,6 +126,32 @@ orden entero del catálogo y ninguno pasa a pagar cero.
 
 ---
 
+## La queja 2, contestada con un barrido: ¿conviene reencarnar temprano?
+
+El criterio de aceptación del prompt (§4.2) pide medirlo, no opinarlo: si el
+óptimo sigue siendo "reencarnar recién cuando no podés avanzar más", el arreglo
+no funcionó. Barrido con `--prestige-threshold N` sobre el árbol FINAL
+(`--max-days 3000`, la tabla completa en `balance-log.md`):
+
+| política | maxear / reencarnaciones |
+|---|---|
+| **×1 (duplicar — el default)** | **24,00 h / 8** |
+| ×8 | 15,29 h / 4 |
+| ×1000 (contra la pared) | **no maxea antes de dios** (1 reenc · dios a 230,13 h) |
+
+Antes de la rama, esperar contra la pared costaba **864,97 h**. Ahora esa
+política ni siquiera llega a maxear dentro de la run: dios aparece primero.
+Guardarse las reencarnaciones dejó de ser lo óptimo, que era exactamente lo que
+había que arreglar.
+
+⚠️ Dos cosas que hay que leer con la tabla. **El umbral no mueve la PRIMERA
+reencarnación** —el múltiplo es sobre el ORO histórico, que arranca en cero, así
+que `N × 0 = 0` para cualquier N y la primera cae siempre a las 3,67 h activas—,
+y **"no maxea antes de dios" es literal**: la simulación corta cuando el bot llega
+a dios, así que la fila dice que dios llega primero, no que maxear sea imposible.
+
+---
+
 ## Lo que se descartó, con su número
 
 Ninguno de estos se re-litiga sin traer un número mejor.

@@ -159,8 +159,9 @@ struct ContentSystemsTests {
         ))
         #expect(roll.event.id == "blanqueo")
         let granted = try #require(roll.grantedUnitTypeId)
-        // magnitude 2 → tier máximo alcanzado − 2.
-        #expect(content.tiers.type(id: granted)?.tier == 7)
+        // magnitude 3 → tier máximo alcanzado − 3 (era 2, ver
+        // `theGenerousEventsWereDialedDown`).
+        #expect(content.tiers.type(id: granted)?.tier == 6)
         #expect(roll.unitsChanged == false)
         #expect(state.run.units == unitsBefore)
     }
@@ -184,6 +185,65 @@ struct ContentSystemsTests {
         #expect(state.run.units[nextId] == 1)
         // Evolucionar a T2 no baja el máximo histórico de la run.
         #expect(state.run.maxTierReached == 5)
+    }
+
+    // MARK: Cadencia y dosis de los eventos
+
+    /// La queja del dueño fue la FRECUENCIA, no la existencia: "los banners
+    /// aparecen muy seguido". 300 + 180 daban un banner cada 5-8 min (~35 en una
+    /// partida de 3 h); 900 + 300 lo llevan a uno cada 15-20 min.
+    @Test func eventCadenceIsFifteenToTwentyMinutes() {
+        #expect(content.events.baseIntervalSeconds == 900)
+        #expect(content.events.intervalJitterSeconds == 300)
+        // La cuenta que hace `GameState.scheduleNextEvent`: base + jitter.
+        let shortest = content.events.baseIntervalSeconds
+        let longest = content.events.baseIntervalSeconds + content.events.intervalJitterSeconds
+        #expect(shortest >= 15 * 60)
+        #expect(longest <= 20 * 60)
+    }
+
+    /// Devaluación, corralito y cayó Mercado Pago son la ÚNICA tensión negativa
+    /// del juego. Espaciar la cadencia y dosificar a los buenos no puede
+    /// convertir la torre en un jardín: el peso de los malos tiene que seguir
+    /// siendo al menos el de los buenos.
+    @Test func badEventsCarryAtLeastHalfTheWeight() {
+        let good = content.events.events.filter(\.isBuff).map(\.weight).reduce(0, +)
+        let bad = content.events.events.filter { !$0.isBuff }.map(\.weight).reduce(0, +)
+        #expect(bad >= good, "peso buenos \(good) vs malos \(bad)")
+        #expect(good > 0, "sin eventos buenos se pierde el humor, que no es lo que se estaba dosificando")
+    }
+
+    /// Y no se apagó ninguno: los ocho siguen en el sorteo.
+    @Test func everyEventStaysInTheDraw() {
+        #expect(content.events.events.count == 8)
+        #expect(content.events.events.allSatisfy { $0.weight > 0 })
+    }
+
+    /// Los cinco que aceleran, dosificados: menos magnitud y más espera entre
+    /// apariciones.
+    @Test func theGenerousEventsWereDialedDown() throws {
+        let byId = Dictionary(uniqueKeysWithValues: content.events.events.map { ($0.id, $0) })
+        let planPlatita = try #require(byId["plan_platita"])
+        let alienigena = try #require(byId["inversion_alienigena"])
+        let aguinaldo = try #require(byId["aguinaldo"])
+        let blanqueo = try #require(byId["blanqueo"])
+        let startup = try #require(byId["startup_comprada"])
+
+        #expect(planPlatita.magnitude == 3)   // era ×5 de income
+        #expect(alienigena.magnitude == 5)    // era ×10
+        #expect(aguinaldo.magnitude == 300)   // eran 900 s (15 min) de producción regalados
+
+        // ⚠️ `blanqueo.magnitude` es un OFFSET DE TIER, no una cantidad de
+        // personajes: el evento regala UNO solo, de `maxTierReached − magnitude`
+        // (ver `EventManager.apply`, caso `.freeHighTier`). BAJARLA lo haría más
+        // generoso; subirla es lo que lo dosifica.
+        #expect(blanqueo.magnitude == 3)      // era 2 → el regalo baja un tier
+
+        #expect(planPlatita.cooldownSeconds >= 1800)
+        #expect(startup.cooldownSeconds >= 2700)
+        #expect(alienigena.cooldownSeconds >= 7200)
+        #expect(aguinaldo.cooldownSeconds >= 5400)
+        #expect(blanqueo.cooldownSeconds >= 5400)
     }
 
     // MARK: Boosts

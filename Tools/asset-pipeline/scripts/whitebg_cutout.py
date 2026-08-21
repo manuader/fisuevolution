@@ -53,6 +53,49 @@ HUECOS_CALADOS = frozenset({
 })
 
 
+# Assets donde el blanco encerrado se decide MIDIENDO, isla por isla.
+#
+# Una isla encerrada es ambigua sólo si se la mira por su forma. Por su COLOR no:
+# el papel atrapado —el óvalo que deja un lazo cerrado, el aire entre las piernas
+# que cierra la sombra del piso— es literalmente el fondo del lienzo y mide 0.06
+# de distancia contra él; un guardapolvo blanco está pintado, tiene sombreado, y
+# mide 4.9. La franja del medio existe (ojos, chispas, dientes) y por eso el
+# criterio es conservador: sólo se saca lo que mide como papel, y ante la duda
+# gana el personaje, que es no perder dibujo.
+PAPEL_MEDIDO = frozenset({
+    "estanciero_estelar__tropero",
+    "cartonero__diamante",
+    "mantero__diamante",
+})
+
+# Distancia máxima al blanco del lienzo para considerar que una isla ES el lienzo.
+DISTANCIA_PAPEL = 0.8
+
+
+def islas_de_papel(rgb: np.ndarray, background: np.ndarray, whiteish: np.ndarray) -> np.ndarray:
+    """Las islas encerradas cuyo color es el del fondo, no el de un blanco pintado."""
+    interior = whiteish & ~background
+    etiquetas, cuantas = ndimage.label(interior)
+    if not cuantas:
+        return np.zeros_like(interior)
+
+    referencia = rgb[background].astype(float).mean(axis=0)
+    areas = ndimage.sum_labels(interior, etiquetas, index=np.arange(1, cuantas + 1))
+    papel = np.zeros_like(interior)
+    for indice, area in enumerate(areas):
+        if area < MIN_HOLE_AREA:
+            continue
+        isla = etiquetas == indice + 1
+        # Sin el anillo de antialias, que siempre tira hacia el color del vecino.
+        nucleo = ndimage.binary_erosion(isla, iterations=2)
+        if nucleo.sum() < 30:
+            nucleo = isla
+        distancia = np.abs(rgb[nucleo].astype(float).mean(axis=0) - referencia).mean()
+        if distancia < DISTANCIA_PAPEL:
+            papel |= isla
+    return papel
+
+
 def white_distance(rgb: np.ndarray) -> np.ndarray:
     """Cuanto se aleja cada pixel del blanco puro, por el canal que mas se aleja.
 
@@ -140,6 +183,8 @@ def cutout(image: Image.Image, asset_key: str = "") -> Image.Image:
     rgb = np.array(image.convert("RGB"))
     distance = white_distance(rgb)
     background = background_mask(distance, punch_holes=asset_key in HUECOS_CALADOS)
+    if asset_key in PAPEL_MEDIDO:
+        background = background | islas_de_papel(rgb, background, distance <= WHITE_TOLERANCE)
     alpha = alpha_from_background(distance, background)
     clean = undo_white_matte(rgb, alpha)
     return Image.fromarray(

@@ -1,7 +1,7 @@
 # 118 — Fisura Explicando (Tutorial — El Fisura)
 
 - **archivo**: `fisura_explain.png`
-- **estado**: hecho
+- **estado**: pendiente
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

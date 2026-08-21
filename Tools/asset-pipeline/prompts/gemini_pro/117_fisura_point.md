@@ -1,7 +1,7 @@
 # 117 — Fisura Señalando (Tutorial — El Fisura)
 
 - **archivo**: `fisura_point.png`
-- **estado**: hecho
+- **estado**: pendiente
 - **referencia**: adjuntar `heroes/approved/fisura.png`
 - **destino**: Tools/asset-pipeline/dropbox/
 

@@ -517,7 +517,9 @@ struct AchievementEngineTests {
         let lifetimeBefore = state.player?.meta.oroEarnedLifetime ?? 0
 
         state.claimAchievement(id: "ach_prestige_3")
-        #expect(state.player?.meta.oro == oroBefore + 25)
+        // 2 y no 25: el re-escalado de los doce logros de ORO
+        // (`fixedOroAchievementsFundAFifthOfTheRun`).
+        #expect(state.player?.meta.oro == oroBefore + 2)
         #expect(state.player?.meta.oroEarnedLifetime == lifetimeBefore)
         #expect(state.player?.meta.lifetimeEarnings == 0, "el oro no es plata: no toca lifetimeEarnings")
     }

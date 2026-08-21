@@ -227,6 +227,49 @@ struct GameContentValidationTests {
         #expect(Double(masCara) / Double(masBarata) < 2.0, "\(masCara) vs \(masBarata)")
     }
 
+    /// Pin de los DOCE logros que pagan ORO fijo, contra los 193 que cuesta
+    /// maxear las siete líneas.
+    ///
+    /// Existe porque la calibración del rebalance dejó una regla en pie que
+    /// nadie estaba midiendo: los doce sumaban **620 ORO** contra un camino de
+    /// 193, o sea que juntar logros **ganaba el juego 3,2 veces** y las siete
+    /// líneas dejaban de ser el objetivo. La decisión del dueño (2026-08-21) fue
+    /// re-escalarlos a **montos fijos** —no a un porcentaje del costo, que es
+    /// menos legible en la ficha del logro— para que los logros **aporten** el
+    /// camino en vez de reemplazarlo: **15-20 %**.
+    ///
+    /// La regla del re-escalado, para que el próximo logro de ORO tenga de dónde
+    /// salir en vez de inventarse: **el monto viejo dividido 20, redondeado para
+    /// arriba, con piso en 1**. Conserva el orden entero del catálogo (el más
+    /// caro sigue siendo `ach_skins_all`) y ningún logro pasa a pagar cero.
+    ///
+    /// El assert que importa es el TOTAL, no los doce montos: los montos son
+    /// tuning y el total es la regla de diseño.
+    @Test func fixedOroAchievementsFundAFifthOfTheRun() {
+        let deOro = content.achievements.achievements.filter { $0.reward.rewardKind == .oro }
+        #expect(deOro.count == 12)
+
+        var total = 0
+        for logro in deOro {
+            let monto = logro.reward.amount ?? 0
+            #expect(monto > 0, "\(logro.id) paga \(monto) de ORO: un logro que no paga nada")
+            total += monto
+        }
+        #expect(total == 33, "los doce logros de ORO suman \(total)")
+
+        // Contra el costo REAL de maxear, derivado del catálogo y no un literal:
+        // si mañana `upgrades.json` se encarece, esta proporción se mueve sola y
+        // el test lo dice.
+        let maxear = content.upgradesConfig.upgrades
+            .filter { $0.currency == .oro }
+            .reduce(0) { acumulado, line in
+                acumulado + (0..<line.maxLevel).reduce(0) { $0 + Int(UpgradeManager.cost(of: line, level: $1).rounded(.up)) }
+            }
+        let porcentaje = Double(total) / Double(maxear)
+        #expect(porcentaje >= 0.15 && porcentaje <= 0.20,
+                "los logros aportan \(porcentaje * 100) % del camino (\(total) de \(maxear))")
+    }
+
     @Test func floorHireOverridesMatchTunedValues() {
         // La regla de precios es ÚNICA para toda la torre, así que el único
         // override legítimo es el del alley: baja el multiplicador a 25 para

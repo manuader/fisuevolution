@@ -295,9 +295,11 @@ struct BestHireTests {
         gameState.refreshProjections()
 
         // Mismo tipo (sigue siendo el único visto) pero un escalón más caro:
-        // 25 × 1,2 = 30, la curva por tipo de `hireCountsByType`.
+        // 25 × 1,06 = 26,5, la curva por tipo de `hireCountsByType`. Era 30 con
+        // el growth en 1,2; el rebalance de pacing lo bajó a 1,06 (el PRIMER
+        // Fisura sigue en 25: cambia la pendiente, no el ancla).
         #expect(gameState.bestHire?.typeId == "homeless")
-        #expect(gameState.bestHire?.costText == "30", "el segundo Fisura cuesta 30 (growth 1,2)")
+        #expect(gameState.bestHire?.costText == "26", "el segundo Fisura cuesta 26,5 (growth 1,06)")
     }
 
     // MARK: La proyección

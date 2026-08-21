@@ -22,7 +22,7 @@ struct PrestigePreviewTests {
     @Test("el multiplicador que promete el popup es el que queda después de confirmar")
     func previewMatchesReality() async throws {
         let gameState = await makeGameState()
-        gameState.giveLifetimeEarningsForTesting(50_000_000)
+        gameState.giveEarningsForPrestigeTesting(oro: 3)
         let preview = gameState.prestigePreview
         gameState.confirmPrestige()
         let real = try #require(gameState.player?.meta.globalMultiplier)
@@ -33,9 +33,9 @@ struct PrestigePreviewTests {
     @Test("el ORO prometido es el que se acredita")
     func previewOroMatchesReality() async throws {
         let gameState = await makeGameState()
-        gameState.giveLifetimeEarningsForTesting(50_000_000)
+        gameState.giveEarningsForPrestigeTesting(oro: 3)
         let preview = gameState.prestigePreview
-        #expect(preview.oroGained > 0, "con 50M de lifetime hay ORO que ganar")
+        #expect(preview.oroGained > 0, "con lifetime para 3 ORO hay ORO que ganar")
         let oroBefore = try #require(gameState.player?.meta.oro)
         gameState.confirmPrestige()
         let oroAfter = try #require(gameState.player?.meta.oro)
@@ -51,7 +51,7 @@ struct PrestigePreviewTests {
         let cached = try #require(gameState.player?.meta.globalMultiplier)
         #expect(abs(gameState.prestigePreview.multiplierBefore - cached) < 0.000_1)
 
-        gameState.giveLifetimeEarningsForTesting(50_000_000)
+        gameState.giveEarningsForPrestigeTesting(oro: 3)
         let preview = gameState.prestigePreview
         #expect(preview.multiplierAfter >= preview.multiplierBefore)
         gameState.confirmPrestige()
@@ -67,7 +67,7 @@ struct PrestigePreviewTests {
     @Test("la vista previa cuenta lo que muere con la run")
     func previewCountsWhatDies() async throws {
         let gameState = await makeGameState()
-        gameState.giveLifetimeEarningsForTesting(50_000_000)
+        gameState.giveEarningsForPrestigeTesting(oro: 3)
         gameState.debugSetMaxTier(5)
         gameState.debugGrantPair()
 
@@ -91,9 +91,9 @@ struct PrestigePreviewTests {
         let gameState = await makeGameState()
         #expect(gameState.prestigePreview.oroGained == 0)
 
-        gameState.giveLifetimeEarningsForTesting(50_000_000)
+        gameState.giveEarningsForPrestigeTesting(oro: 3)
         #expect(gameState.prestigePreview.oroGained > 0,
-                "giveLifetimeEarningsForTesting refresca proyecciones")
+                "giveEarningsForPrestigeTesting refresca proyecciones")
         #expect(gameState.prestigePreview == gameState.prestigePreviewNow,
                 "la proyección publicada no puede quedar atrasada respecto del cálculo")
     }

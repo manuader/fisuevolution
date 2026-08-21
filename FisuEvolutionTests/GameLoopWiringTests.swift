@@ -525,11 +525,10 @@ struct GameLoopWiringTests {
         #expect(gameState.activeSkinID(forCharacterType: "homeless") == "second_life")
         #expect(gameState.activeSkinID(forCharacterType: "cartonero") == nil)
 
-        var fuse = 0
-        while !gameState.prestigeAvailable && fuse < 64 {
-            gameState.debugGrantCoins()
-            fuse += 1
-        }
+        // El gate es ≥1 ORO. Antes se llegaba sumando `debugGrantCoins()` hasta
+        // 64 veces; con el divisor del rebalance (3e11) esa suma ya no alcanza,
+        // así que se pide el ORO derivado de la config y no monedas a ojo.
+        gameState.giveEarningsForPrestigeTesting()
         #expect(gameState.prestigeAvailable)
         gameState.confirmPrestige()
         #expect(gameState.activeSkinID(forCharacterType: "homeless") == "second_life")
@@ -577,11 +576,10 @@ struct GameLoopWiringTests {
         #expect(gameState.characterUpgradeLevel(of: fisura.id) == 1)
         #expect((gameState.player?.run.coins ?? coinsBeforeCharacterUpgrade) < coinsBeforeCharacterUpgrade)
         // Gate: reencarnar ⟺ ganar ≥1 ORO ⟺ lifetimeEarnings alcanza el divisor.
-        var fuse = 0
-        while !gameState.prestigeAvailable && fuse < 64 {
-            gameState.debugGrantCoins()
-            fuse += 1
-        }
+        // El gate es ≥1 ORO. Antes se llegaba sumando `debugGrantCoins()` hasta
+        // 64 veces; con el divisor del rebalance (3e11) esa suma ya no alcanza,
+        // así que se pide el ORO derivado de la config y no monedas a ojo.
+        gameState.giveEarningsForPrestigeTesting()
         #expect(gameState.prestigeAvailable)
         #expect((gameState.player?.meta.lifetimeEarnings ?? 0) >= divisor)
         #expect(gameState.prestigeOroGained > 0)
@@ -608,11 +606,10 @@ struct GameLoopWiringTests {
         let gameState = await makeGameState()
         let baseCost = try #require(gameState.spawnQuote?.cost)
 
-        var fuse = 0
-        while !gameState.prestigeAvailable && fuse < 64 {
-            gameState.debugGrantCoins()
-            fuse += 1
-        }
+        // El gate es ≥1 ORO. Antes se llegaba sumando `debugGrantCoins()` hasta
+        // 64 veces; con el divisor del rebalance (3e11) esa suma ya no alcanza,
+        // así que se pide el ORO derivado de la config y no monedas a ojo.
+        gameState.giveEarningsForPrestigeTesting()
         gameState.confirmPrestige()
 
         // El descuento fluye por prestige_unlocks → costMultiplier del hireQuote

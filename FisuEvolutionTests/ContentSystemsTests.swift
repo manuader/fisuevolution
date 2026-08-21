@@ -66,15 +66,21 @@ struct ContentSystemsTests {
             economy: economy
         )
         #expect(state.meta.oroUpgradeLevels["tap"] == 1)
-        #expect(abs(state.meta.derivedEffects.tapMultiplier - 1.25) < 1e-9)
+        // La línea `tap` pasó de 20 niveles × 0,25 a 10 × 0,5 en el rebalance
+        // (mismo efecto TOTAL al tope, +5,0): un nivel ahora vale 0,5.
+        #expect(abs(state.meta.derivedEffects.tapMultiplier - 1.5) < 1e-9)
         #expect(state.meta.oro == 9)
         #expect(state.run.coins == 10_000)
     }
 
     @Test func upgradeCostGrowsExponentially() throws {
         let line = try #require(content.upgradesConfig.upgrades.first { $0.id == "income" })
+        // `baseCost × costGrowth^nivel`. El rebalance bajó el growth de `income`
+        // de 2,0 a 1,10 para que las siete líneas cuesten algo comparable
+        // (`crit` era el 99,99 % del costo de ganar): 1 × 1,10² = 1,21.
         #expect(UpgradeManager.cost(of: line, level: 0) == 1)
-        #expect(UpgradeManager.cost(of: line, level: 2) == 4)
+        #expect(abs(UpgradeManager.cost(of: line, level: 2) - 1.21) < 1e-9)
+        #expect(UpgradeManager.cost(of: line, level: 2) > UpgradeManager.cost(of: line, level: 1))
     }
 
     @Test func oroUpgradeRespectsMaxLevelAndBalance() throws {

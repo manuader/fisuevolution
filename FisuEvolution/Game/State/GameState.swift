@@ -435,10 +435,12 @@ final class GameState {
                 player.run.charUpgradeLevels["homeless"] = content.economy.charUpgrades.maxLevel
                 self.player = player
             }
-            // RF-16: el ORO va con la raíz de lifetime/3M, así que llegar al
-            // prestigio jugando no es automatizable. El fixture lo acredita.
+            // RF-16: el ORO va con la raíz de lifetime/divisor, así que llegar
+            // al prestigio jugando no es automatizable. El fixture lo acredita —
+            // derivado de la config y no un literal, que es lo que se rompía en
+            // silencio cada vez que el balance movía el divisor.
             if ProcessInfo.processInfo.arguments.contains("--uitest-prestige") {
-                giveLifetimeEarningsForTesting(300_000_000)
+                giveEarningsForPrestigeTesting(oro: 9)
             }
             // El primer Fisura cuesta 50 y un tap rinde 1: llegar a contratar
             // jugando son ~50 toques sobre un personaje que deambula. El fixture

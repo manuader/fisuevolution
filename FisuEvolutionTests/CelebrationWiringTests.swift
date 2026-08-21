@@ -80,6 +80,7 @@ struct CelebrationWiringTests {
         case .achievements:
             #expect(gameState.achievementToast != nil || !gameState.pendingAchievementToasts.isEmpty)
         case .eventBanner: #expect(gameState.activeEvent != nil)
+        case .tutorialTip: break   // su payload llega con las lecciones contextuales
         }
     }
 
@@ -335,5 +336,56 @@ struct CelebrationWiringTests {
         gameState.celebrationFinished(.offlineEarnings)
         #expect(gameState.showing == .boardCelebration)
         #expect(gameState.celebrationHidesUI == false, "se reproduce el último, y ése no trae nada nuevo")
+    }
+
+    // MARK: La fase del tutorial
+
+    /// El repro del deadlock medido el 2026-08-21: un kind de hoja (timeout
+    /// `nil`) tomaba `current` con el tutorial arriba, su sheet no se
+    /// presentaba y la cola entera quedaba congelada hasta terminar el
+    /// tutorial. Con la fase adentro de la cola, espera en `pending`.
+    @Test("con la fase viva, un premio de hoja no toma el turno — y no se pierde")
+    func tutorialPhaseHoldsSheetKinds() async throws {
+        let gameState = await makeGameState()
+        gameState.beginTutorialPhase()
+        gameState.skinAward = try anAward(gameState)
+        gameState.syncCelebrations()
+        #expect(gameState.showing == nil,
+                "el sheet está gateado por el tutorial: si tomara el turno acá, congelaría la cola")
+        gameState.tutorialPhaseFinished()
+        #expect(gameState.showing == .skinAward, "al terminar la fase, lo que esperó desfila")
+        assertPayloadExists(gameState)
+    }
+
+    /// La ruta viva del deadlock: el freno del daily sólo cubre el día 1
+    /// (`isFreshInstall` marca `lastClaimDay` en hoy), así que un jugador que
+    /// abandona el tutorial a medias y vuelve mañana dispara el claim con la
+    /// fase viva. Prioridad 1 y timeout `nil`: era la congelada perfecta.
+    @Test("el daily del día 2 con el tutorial a medias espera su turno")
+    func day2DailyWaitsForTheTutorial() async throws {
+        let gameState = await makeGameState()
+        gameState.beginTutorialPhase()
+        gameState.debugClaimDailyAgain()
+        #expect(gameState.dailyClaim != nil, "el claim del día 2 corre aunque la fase esté viva")
+        #expect(gameState.showing == nil, "pero el popup no toma el turno hasta que la fase termine")
+        gameState.tutorialPhaseFinished()
+        #expect(gameState.showing == .dailyReward)
+        assertPayloadExists(gameState)
+    }
+
+    /// El reveal del primer merge es EL momento de la fase, no un estorbo: es
+    /// lo único que la fase deja pasar, y el resto desfila recién al terminar.
+    @Test("el reveal del tablero sí toma el turno con la fase viva")
+    func boardCelebrationPlaysDuringTheTutorial() async throws {
+        let gameState = await makeGameState()
+        gameState.beginTutorialPhase()
+        gameState.towerNotice = GameState.TowerNotice(kind: .floorFull)
+        gameState.celebrateBoard(showsSomethingNew: true)
+        #expect(gameState.showing == .boardCelebration, "el reveal se reproduce limpio durante la fase")
+        #expect(gameState.celebrationHidesUI, "y apaga la UI como siempre: el overlay se esconde solo")
+        gameState.celebrationFinished(.boardCelebration)
+        #expect(gameState.showing == nil, "el aviso de torre sigue esperando a que la fase termine")
+        gameState.tutorialPhaseFinished()
+        #expect(gameState.showing == .towerNotice)
     }
 }

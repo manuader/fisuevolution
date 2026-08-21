@@ -97,7 +97,14 @@ struct TutorialOverlay: View {
     // MARK: - Cuerpo
 
     var body: some View {
-        if !done, step < steps.count {
+        // Mientras una celebración tiene el turno, el overlay ENTERO se esconde
+        // —scrim, recorte, mano y globo—. Durante la fase la única que puede
+        // tomarlo es el reveal del tablero (`beginTutorialPhase` restringe la
+        // cola), y ése es EL momento del primer merge: se reproduce limpio, a
+        // pantalla completa y sin un segundo scrim encima, y el paso siguiente
+        // aparece recién cuando la escena avisa `celebrationFinished`. Regla
+        // dura: nunca dos scrims a la vez.
+        if !done, step < steps.count, gameState.showing == nil {
             overlay(steps[step])
         }
     }
@@ -297,11 +304,20 @@ struct TutorialOverlay: View {
             step = next
             if step >= script.count { done = true }
         }
+        // Fuera del `withAnimation`: soltar la cola no es un cambio visual de
+        // esta vista. Con el guion actual no se llega acá (el último paso lo
+        // cierra su botón), pero si un guion futuro vuelve a terminar por
+        // acción, la cola no puede quedarse restringida para siempre.
+        if done { gameState.tutorialPhaseFinished() }
     }
 
     private func finish() {
         gameState.tutorialBoardTarget = nil
         withAnimation(motion(.easeInOut(duration: 0.3))) { done = true }
+        // Las dos salidas —"¡Vamos!" y "Saltar"— terminan la fase: la cola
+        // levanta la restricción y lo que esperó su turno (el daily del día 2,
+        // la skin, los toasts) desfila recién ahora, de a uno.
+        gameState.tutorialPhaseFinished()
     }
 
     /// ⚠️ Con Reduce Motion las transiciones **colapsan**: se devuelve `nil`, que

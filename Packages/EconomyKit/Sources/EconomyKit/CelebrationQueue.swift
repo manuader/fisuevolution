@@ -27,6 +27,11 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     case achievements
     /// El aviso de la torre (piso lleno, ya podés contratar acá…).
     case towerNotice
+    /// Una lección contextual del tutorial: el coach-mark que enseña una
+    /// pantalla la primera vez que hay algo que HACER en ella. Viaja por la
+    /// cola como cualquier celebración: así el "de a una" y el no-pisarse no
+    /// son un caso especial del tutorial, son la regla de siempre.
+    case tutorialTip
 
     /// Menor es antes. Los de arranque de sesión primero —cobrás y seguís—, la
     /// carrera antes que las celebraciones porque BLOQUEA la progresión (hasta
@@ -40,6 +45,9 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         case .skinAward, .specialDrop: 4
         case .eventBanner: 5
         case .achievements, .towerNotice: 6
+        // Una lección puede esperar a todo el mundo: enseña una pantalla que
+        // no se va a ir a ningún lado.
+        case .tutorialTip: 7
         }
     }
 
@@ -58,6 +66,9 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         // Cubre unos diez toasts seguidos; pasado eso corta y lo loguea.
         case .achievements: 30
         case .towerNotice: 4
+        // Lo que tarda en leerse el globo con margen: una lección ignorada se
+        // va sola, nunca deja la pantalla ocupada.
+        case .tutorialTip: 12
         }
     }
 
@@ -86,10 +97,34 @@ public struct CelebrationQueue: Sendable, Equatable {
     public private(set) var current: CelebrationKind?
     /// Segundos que lleva `current` en pantalla.
     public private(set) var elapsed: TimeInterval = 0
+    /// Mientras está puesto, sólo estos kinds pueden tomar el turno; el resto
+    /// queda en `pending` — no se presenta ni se pierde. `nil` = sin
+    /// restricción.
+    ///
+    /// Es lo que hace que la fase obligatoria del tutorial no comparta pantalla
+    /// con nada: el daily del día 2, la skin, los toasts — todos esperan a que
+    /// la fase termine y recién ahí desfilan, en su orden de siempre. Sin esto
+    /// un kind de sheet con `timeout == nil` podía tomar `current` con el
+    /// tutorial arriba, su hoja no se presentaba y la cola entera quedaba
+    /// congelada.
+    public private(set) var allowedKinds: Set<CelebrationKind>?
 
     private var pending: [CelebrationKind] = []
 
     public init() {}
+
+    /// Restringe qué kinds pueden tomar el turno (`nil` levanta la
+    /// restricción). Levantarla promueve en el acto lo que estaba esperando,
+    /// respetando prioridad y orden de llegada.
+    ///
+    /// No toca `current`: si algo ya estaba en pantalla al restringir, se lo
+    /// deja terminar — matarlo perdería una celebración que el jugador está
+    /// viendo. El que restringe tiene que hacerlo antes de encolar (el
+    /// tutorial lo hace en el bootstrap, antes del primer sync).
+    public mutating func restrict(to allowed: Set<CelebrationKind>?) {
+        allowedKinds = allowed
+        promoteIfIdle()
+    }
 
     /// Pone un ítem en la fila. **Deduplica**: encolar `.achievements` tres veces
     /// deja un solo casillero, que es lo que agrupa la tanda de logros sin
@@ -140,13 +175,20 @@ public struct CelebrationQueue: Sendable, Equatable {
     }
 
     private mutating func promoteIfIdle() {
-        guard current == nil, !pending.isEmpty else { return }
-        // `min(by:)` sobre el índice conserva el orden de llegada dentro de la
-        // misma prioridad; ordenar el array entero no lo garantiza.
-        var bestIndex = 0
-        for index in pending.indices where pending[index].priority < pending[bestIndex].priority {
-            bestIndex = index
+        guard current == nil else { return }
+        // El barrido conserva el orden de llegada dentro de la misma prioridad
+        // (ordenar el array entero no lo garantiza), y saltea lo que la
+        // restricción no deja pasar: eso queda en `pending`, no se pierde.
+        var bestIndex: Int?
+        for index in pending.indices {
+            guard allowedKinds?.contains(pending[index]) ?? true else { continue }
+            if let best = bestIndex {
+                if pending[index].priority < pending[best].priority { bestIndex = index }
+            } else {
+                bestIndex = index
+            }
         }
+        guard let bestIndex else { return }
         current = pending.remove(at: bestIndex)
         elapsed = 0
     }

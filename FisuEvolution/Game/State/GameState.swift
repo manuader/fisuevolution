@@ -200,6 +200,19 @@ final class GameState {
     /// necesita verlas desde una vista: esto las publica una sola vez por
     /// `refreshProjections`, escribiendo sólo si cambiaron.
     private(set) var ftueMilestones = FTUEMilestones()
+    /// La fase obligatoria del tutorial está corriendo (RF-01: tap → contratar
+    /// → fusionar → cierre). Mientras es `true`, la cola de celebraciones sólo
+    /// promueve lo que el tutorial pide (`+Celebrations`, `beginTutorialPhase`)
+    /// y las lecciones contextuales todavía no existen.
+    ///
+    /// La fuente es `fisuTutorialDone` en `UserDefaults` —la misma bandera del
+    /// overlay—, leída UNA vez en el bootstrap: la cola no lee `AppStorage`, le
+    /// llega como estado. La apaga `tutorialPhaseFinished()`, que llama el
+    /// overlay al cerrar (por el botón del final o por "Saltar").
+    ///
+    /// Sin `private(set)` por lo mismo que `showing`: la escribe
+    /// `+Celebrations`, que es otro archivo. Nadie más la toca.
+    var tutorialPhaseActive = false
     /// Qué quiere iluminar el tutorial en el TABLERO, o nil si el paso actual no
     /// es de tablero. Lo escribe el overlay; lo lee el frame loop de la escena.
     @ObservationIgnored var tutorialBoardTarget: TutorialBoardTarget?
@@ -480,6 +493,21 @@ final class GameState {
                 debugPresentCareerChoice()
             }
             #endif
+            // El tutorial entra a la cola ANTES de que nadie encole nada: el
+            // offline, el daily del día 2 y los logros de un save viejo pasan
+            // todos por `syncCelebrations`, y el gate tiene que estar puesto
+            // primero o alguno toma el turno con el tutorial arriba (el
+            // deadlock medido el 2026-08-21: sheet gateado que nunca se
+            // presenta y cola congelada).
+            //
+            // Bajo XCTest no: el host de los unit tests arranca con los
+            // defaults en cualquier estado y cada test arma su propio
+            // escenario con `beginTutorialPhase()` (mismo criterio que
+            // `StoreManager` con su `SKTestSession`).
+            if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil,
+               !UserDefaults.standard.bool(forKey: "fisuTutorialDone") {
+                beginTutorialPhase()
+            }
             applyOfflineProgressIfNeeded()
             // El primer launch de una cuenta nueva no reclama daily: el jugador
             // todavía no jugó y el popup compite con el tutorial (FTUE).

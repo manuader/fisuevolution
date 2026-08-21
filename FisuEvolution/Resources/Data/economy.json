@@ -7,7 +7,7 @@
   "tapFloorMultiplierExponent": 0,
   "hire": {
     "defaultCostMultiplier": 600,
-    "defaultCostGrowth": 1.2,
+    "defaultCostGrowth": 1.06,
     "tierPremium": 1.8
   },
   "charUpgrades": {
@@ -17,8 +17,8 @@
     "maxLevel": 20
   },
   "oro": {
-    "divisor": 3000000,
-    "exponent": 0.45,
+    "divisor": 300000000000,
+    "exponent": 0.25,
     "globalMultiplierPerOro": 0.18
   },
   "critChanceBase": 0.0,

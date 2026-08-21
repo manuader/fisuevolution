@@ -117,7 +117,17 @@ struct GameContentValidationTests {
         // compra sube el precio 20%. El callejón es la excepción barata.
         // Era 300 y el dueño lo duplicó el mismo día; ver Docs/balance-log.md.
         #expect(economy.hire.defaultCostMultiplier == 600)
-        #expect(economy.hire.defaultCostGrowth == 1.2)
+        // El 20% por compra bajó a 6% en el rebalance de pacing, y NO es un
+        // ajuste fino: es el arreglo de la divergencia costos-vs-ingresos.
+        // El gate de un piso obliga a ~256 contrataciones en el piso de abajo
+        // por cada piso que se cruza, así que el 20% componía a 1,2^256 ≈ 4e20
+        // y la ÚNICA moneda capaz de pagar esa pared era un multiplicador
+        // global explotando sin techo. Medido: con 1,2 el bot necesita ×3,6e15
+        // para llegar a Dios y contratar pasa a costar 0,0 s de income desde el
+        // cuarto piso; con 1,06 llega con ×10⁴ y el precio del piso siguiente
+        // sigue costando entre 8 y 824 s de income hasta galaxy.
+        // ⚠️ Toca la regla de precios del dueño (2026-08-04): confirmar.
+        #expect(economy.hire.defaultCostGrowth == 1.06)
         // Recargo por tier no-base (rediseño §5.2): 2,8 (yieldGrowthPerTier) ×
         // 1,8 ≈ 5× por tier, o sea que comprar el tier alto directo nunca gana
         // contra comprar dos del de abajo y mergear. Bajarlo de 2,0 abriría ese
@@ -130,16 +140,50 @@ struct GameContentValidationTests {
         // 2^20. Sin techo, el exponencial terminaba en overflow y el juego se
         // caía. Cambiarlo es una decisión de balance, no un ajuste.
         #expect(economy.charUpgrades.maxLevel == 20)
-        #expect(economy.oro.divisor == 3_000_000)
-        // RF-07 (Ola 3): el exponente bajó de 0.5 a 0.45 —el spec pedía ~0.40,
-        // pero 0.40 medido deja el juego en 1094 h— y el multiplicador por ORO
-        // subió de 0.12 a 0.18 para compensar el largo. Ver Docs/balance-log.md.
-        #expect(economy.oro.exponent == 0.45)
+        // Rebalance de pacing: el ORO se volvió ESCASO y CHUNKY. Con el divisor
+        // en 3e6 y el exponente en 0,45 la primera reencarnación caía a los 6
+        // minutos y valía 6e-9 % de la condición de victoria; ahora cae a las
+        // 2,0 h ACTIVAS y vale 0,5 % (un nivel entero de income). Medido: 8
+        // reencarnaciones para maxear las siete, con la cadencia 2,0 · 6,9 ·
+        // 12,0 · 16,7 · 20,0 · 22,7 · 24,0 · 25,3 h activas.
+        #expect(economy.oro.divisor == 300_000_000_000)
+        // RF-07 (Ola 3) lo había bajado de 0.5 a 0.45; el rebalance lo baja a
+        // 0.25 porque con 0,45 hacen falta ×4,65 de ganancias por duplicar el
+        // ORO y las 8 entregas entraban en 1,3 h activas. Con 0,25 hacen falta
+        // ×16 y las 8 se reparten en 25 h. Ver Docs/balance-log.md.
+        #expect(economy.oro.exponent == 0.25)
         #expect(economy.oro.globalMultiplierPerOro == 0.18)
         #expect(economy.critChanceBase == 0.0)
         #expect(economy.critMultiplier == 5.0)
         #expect(economy.offlineEfficiencyBase == 0.35)
         #expect(economy.offlineCapHours == 10)
+    }
+
+    /// El catálogo de las siete líneas nunca puede pasarse de su `EffectCaps`.
+    ///
+    /// No es cosmético: `UpgradeManager.recomputeDerivedEffects` (app) CLAMPEA
+    /// con esos topes y `PermanentUpgrades.recomputeDerivedEffects` (EconomyKit,
+    /// que es lo que corre el simulador) NO. Mientras ninguna línea llegue a su
+    /// tope los dos coinciden; en cuanto una lo pase, el simulador mide un
+    /// efecto que el juego recorta y la calibración entera queda mintiendo —en
+    /// silencio, que es lo peor. Este test es el que hace ruido.
+    @Test func upgradeLinesNeverReachTheirEffectCaps() {
+        let economy = content.economy
+        for line in content.upgradesConfig.upgrades {
+            let total = Double(line.maxLevel) * line.magnitudePerLevel
+            switch line.effectType {
+            case .critChance:
+                #expect(economy.critChanceBase + total <= EffectCaps.crit, "\(line.id): \(total)")
+            case .offlineEfficiency:
+                #expect(economy.offlineEfficiencyBase + total <= EffectCaps.offline, "\(line.id): \(total)")
+            case .goldenTouchChance:
+                #expect(total <= EffectCaps.golden, "\(line.id): \(total)")
+            case .spawnCostDiscount:
+                #expect(total <= EffectCaps.spawnDiscount, "\(line.id): \(total)")
+            case .incomeMultiplier, .tapMultiplier, .prestigeBonusPerSoulPoint:
+                #expect(total > 0, "\(line.id) no aporta nada")
+            }
+        }
     }
 
     @Test func floorHireOverridesMatchTunedValues() {
@@ -173,9 +217,12 @@ struct GameContentValidationTests {
     @Test func hirePricesFollowTheOwnersRule() throws {
         let economy = StandardEconomy(config: content.economy)
         let alley = content.floorTable[0]
+        // El primer Fisura sigue costando 25 (decisión cerrada del dueño): la
+        // curva sólo cambia de PENDIENTE, no de arranque. El segundo pasa de 30
+        // a 26,5 porque el 20% por compra bajó a 6% — 25 × 1,06.
         #expect(content.economy.hireCost(floor: alley, tier: 1, purchases: 0) == 25)
         let segundo = content.economy.hireCost(floor: alley, tier: 1, purchases: 1)
-        #expect(abs(segundo - 30) < 1e-9)
+        #expect(abs(segundo - 26.5) < 1e-9)
 
         for ordinal in 1..<content.floorTable.count {
             let floor = content.floorTable[ordinal]

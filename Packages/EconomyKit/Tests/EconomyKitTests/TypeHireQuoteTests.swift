@@ -106,9 +106,9 @@ struct TypeHireQuoteTests {
             yieldGrowthPerTier: 2.8,
             passiveRatio: 0.5,
             passiveUnlockCostMultiplier: 60,
-            hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.2),
+            hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.06),
             charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4, effectFactorPerLevel: 2),
-            oro: .init(divisor: 3_000_000, exponent: 0.45, globalMultiplierPerOro: 0.18),
+            oro: .init(divisor: 300_000_000_000, exponent: 0.25, globalMultiplierPerOro: 0.18),
             critChanceBase: 0,
             critMultiplier: 5,
             offlineEfficiencyBase: 0.35,
@@ -133,11 +133,13 @@ struct TypeHireQuoteTests {
                 #expect(alto > 2 * bajo)
             }
         }
-        // Y el tier base sigue anclado donde el dueño lo dejó: 25 y 30 (bajó de
-        // 50/60 el 2026-08-18 para acortar el tutorial).
+        // Y el tier base sigue anclado donde el dueño lo dejó: 25 el primero
+        // (bajó de 50 el 2026-08-18 para acortar el tutorial). El SEGUNDO pasó
+        // de 30 a 26,5 en el rebalance de pacing, que bajó el `defaultCostGrowth`
+        // de 1,2 a 1,06: 25 × 1,06 = 26,5. El ancla del dueño es el primero.
         let alley = real.floors[0]
         #expect(real.hireCost(floor: alley, tier: 1, purchases: 0) == 25)
-        #expect(abs(real.hireCost(floor: alley, tier: 1, purchases: 1) - 30) < 1e-9)
+        #expect(abs(real.hireCost(floor: alley, tier: 1, purchases: 1) - 26.5) < 1e-9)
     }
 
     // MARK: La curva es por TIPO

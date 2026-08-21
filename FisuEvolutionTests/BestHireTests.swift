@@ -7,15 +7,26 @@ import Testing
 ///
 /// Lo que se pinea acá es la REGLA DE SELECCIÓN contra el `economy.json`
 /// bundleado, que es la única forma de saber que el botón ofrece lo que el
-/// jugador puede comprar de verdad: tier más alto pagable **entre los que
-/// FisuJobs da por contratables**, el más barato como meta de ahorro cuando no
-/// alcanza, y nada cuando no hay nada.
+/// jugador puede comprar de verdad: el **tier base** (`floor.firstTier`) del
+/// piso más alto pagable **entre los que FisuJobs da por contratables**, el más
+/// barato como meta de ahorro cuando no alcanza, y nada cuando no hay nada.
+///
+/// ⚠️ **Media suite cambió de significado el 2026-08-21** y por eso varios
+/// tests tienen el escenario de antes con el assert dado vuelta: hasta ese día
+/// la regla era "el tier MÁS ALTO pagable", que es justo lo que saltea el merge
+/// y acelera el juego (`Docs/PROMPT-rebalance-pacing.md` §4.5). Los escenarios
+/// se conservaron a propósito —los Senior de corporativo, el techo del urbano—
+/// porque son los que prueban que lo que queda afuera del atajo **estaba
+/// pagable y contratable**, y no simplemente fuera de alcance.
+///
+/// FisuJobs **no** cambió: sigue vendiendo todo lo desbloqueado. Lo que se
+/// recorta es el atajo, y sólo el atajo.
 ///
 /// La compuerta la sigue repartiendo `jobRows`/`jobState` (piso abierto, gate,
 /// lugar libre y —sobre todo— tipo YA VISTO): esta proyección no inventa
 /// autorización propia, la consume. Por eso el test del `unseen` es el que más
 /// importa: es el único que impide que el botón espoilee la cadena (RF-03).
-@Suite("bestHire: el mejor contratable que la plata alcanza", .serialized)
+@Suite("bestHire: el tier base del piso más alto que la plata alcanza", .serialized)
 @MainActor
 struct BestHireTests {
     /// Plata suficiente, escrita directo sobre el saldo.
@@ -23,9 +34,9 @@ struct BestHireTests {
     /// `debugGrantCoins()` acredita **un millón fijo** en estos escenarios (su
     /// cotización de referencia es el tier base del callejón, que sale 25 y no
     /// se mueve mientras no compres ahí), y un Senior de corporativo cuesta
-    /// 1.218.867.229: llegar ahí serían 1.219 llamadas con su
-    /// `refreshProjections` cada una. Donde alcanza el millón se usa el helper
-    /// de debug; donde no, se escribe el saldo.
+    /// 290.206.483: llegar ahí serían 291 llamadas con su `refreshProjections`
+    /// cada una. Donde alcanza el millón se usa el helper de debug; donde no, se
+    /// escribe el saldo.
     private func giveCoins(_ amount: Double, to gameState: GameState) throws {
         var player = try #require(gameState.player)
         player.run.coins = amount
@@ -64,57 +75,130 @@ struct BestHireTests {
         #expect(!best.affordable, "sin plata la oferta es meta, no compra")
     }
 
-    /// El techo de la oferta lo pone el GATE, no el saldo.
+    /// El corazón de la regla: un tier NO-base, **pagable y contratable**, no es
+    /// la oferta. El del piso más alto que sí lo es, sí.
+    ///
+    /// Derivado a mano de `economy.json`, ya con el rebalance de pacing puesto:
+    /// el precio dejó de llevar el `incomeMultiplier` crudo del piso y lleva el
+    /// MISMO factor que cobra el tap (`tapFloorMultiplier`, hoy con el exponente
+    /// en 0 y por lo tanto 1 en los diez pisos). Con corporativo abierto y sus
+    /// cuatro tiers vistos, un Senior (tier 12) cotiza 600 × 2,8¹¹ × 1,8³ =
+    /// 290.206.483,29 y el Oficinista —el `firstTier` del piso— 600 × 2,8⁸ =
+    /// 2.266.811,99 (el `tierPremium` del tier base es 1,8⁰). Con dos mil
+    /// millones en la mano los dos se pagan y los dos salen `hirable`, así que
+    /// lo único que puede elegir al Oficinista es la regla del tier base.
+    @Test("un tier no-base pagable y contratable no es la oferta")
+    func payableNonBaseTiersAreNeverOffered() async throws {
+        let gameState = await makeGameState()
+        // Abrir hasta lujo es lo que le abre el gate a corporativo. El Director
+        // queda afuera por DOS razones a la vez —sin ver, y con el gate de lujo
+        // cerrado porque isla sigue bloqueada—, así que no compite ni aunque una
+        // de las dos se caiga.
+        gameState.debugUnlockFloors(throughTier: 13)
+        gameState.debugMarkTypesSeen(throughTier: 12)
+        try giveCoins(2_000_000_000, to: gameState)
+        gameState.refreshProjections()
+
+        // El escenario, antes del assert: el Senior es una fila que FisuJobs
+        // vende hoy mismo. Si dejara de serlo, este test probaría otra cosa.
+        let senior = try #require(gameState.jobRows.first { $0.id == "senior_architect" })
+        #expect(senior.state == .hirable, "el tier 12 está contratable de verdad")
+        #expect(senior.affordable, "y la plata le alcanza")
+
+        let best = try #require(gameState.bestHire)
+        #expect(best.typeId == "oficinista", "el firstTier de corporativo, no el Senior pagable")
+        #expect(best.tier == 9)
+        #expect(best.affordable)
+
+        let player = try #require(gameState.player)
+        let cost = try #require(gameState.currentQuote(player: player, typeId: "oficinista")?.cost)
+        #expect(abs(cost - 2_266_811.99) < 0.01, "600 × 2,8⁸, sin factor de piso ni tierPremium")
+    }
+
+    /// Abrir un piso sube la oferta a SU tier base, no al tier más alto que ese
+    /// piso vende.
+    ///
+    /// **Antes pineaba lo contrario** (`unlockedFloorsRaiseTheOfferUpToTheGate`:
+    /// tier 8, el Fast Food) y el escenario se dejó igual justamente por eso —
+    /// el Fast Food sigue estando `hirable` y sigue estando pagado, así que lo
+    /// único que puede dejarlo afuera es la regla nueva.
     ///
     /// Verificado a mano contra `economy.json`: con el callejón y el urbano
     /// abiertos, el urbano es `hireGateExempt` (se contrata sin abrir
     /// corporativo) y llega hasta el tier 8 (`urban` = 5-8), mientras que
-    /// corporativo (9-12) ni siquiera está desbloqueado. Así que el tier más
-    /// alto contratable es 8 — "Empleado de Fast Food"— y no 9, por más plata
-    /// que haya.
-    @Test("con el urbano abierto la oferta sube al tier 8, que es su techo")
-    func unlockedFloorsRaiseTheOfferUpToTheGate() async throws {
+    /// corporativo (9-12) ni siquiera está desbloqueado. El techo de PISO lo
+    /// sigue poniendo el gate; adentro del piso, el que se ofrece es el
+    /// `firstTier`: el Mantero, 600 × 2,8⁴ = 36.879,36.
+    @Test("con el urbano abierto la oferta sube a su tier base, no a su tier más alto")
+    func unlockedFloorsRaiseTheOfferUpToTheirBaseTier() async throws {
         let gameState = await makeGameState()
         gameState.debugUnlockFloors(throughTier: 8)   // abre alley + urban
         gameState.debugMarkTypesSeen(throughTier: 8)
-        // 600 × 2,8⁷ × 2,0 × 1,8³ = 9.442.891,09 es el Fast Food: el millón de
+        // 600 × 2,8⁷ × 1,8³ = 4.721.445,54 es el Fast Food: el millón de
         // `debugGrantCoins` no lo cubre solo.
         try giveCoins(10_000_000, to: gameState)
         gameState.refreshProjections()
 
         let best = try #require(gameState.bestHire)
-        #expect(best.tier == 8, "el techo del urbano, no el tier más alto del juego")
-        #expect(best.typeId == "fast_food")
+        #expect(best.tier == 5, "el firstTier del urbano, no el 8 que el mismo piso vende")
+        #expect(best.typeId == "mantero")
         #expect(best.affordable)
+
+        // El Fast Food estaba ahí y estaba pagado: lo que lo deja afuera del
+        // atajo es la regla del tier base, no la plata ni la compuerta.
+        let fastFood = try #require(gameState.jobRows.first { $0.id == "fast_food" })
+        #expect(fastFood.state == .hirable)
+        #expect(fastFood.affordable)
 
         let player = try #require(gameState.player)
         #expect(
             !player.run.unlockedFloors.contains("corporate"),
-            "corporativo tiene que seguir cerrado: es lo que hace que el techo sea 8"
+            "corporativo tiene que seguir cerrado: es lo que hace que el techo sea el urbano"
         )
+        let cost = try #require(gameState.currentQuote(player: player, typeId: "mantero")?.cost)
+        #expect(abs(cost - 36_879.36) < 0.01, "600 × 2,8⁴, sin factor de piso ni tierPremium")
     }
 
-    /// Un peso menos que el Fast Food y la oferta baja un escalón: lo que corta
-    /// es el saldo, y baja al tier más alto que SÍ se paga.
-    @Test("con un peso menos la oferta baja al tier que sí se paga")
+    /// Cuando el tier base del piso más alto no se paga, la oferta baja al tier
+    /// base del piso de ABAJO: el escalón es de piso, no de tier.
+    ///
+    /// **Antes bajaba de tier dentro del mismo piso** (tier 8 → tier 7, el
+    /// Chofer de App); ese escalón ya no existe.
+    ///
+    /// El saldo se DERIVA de la config y no es un literal, y ésa es la otra
+    /// mitad de este test: el 9.000.000 que traía —"un peso menos que el Fast
+    /// Food"— quedó viejo con el rebalance de pacing, que le cambió el factor de
+    /// piso al precio. Un literal que dejó de caer donde su nombre dice sigue
+    /// pareciendo válido y pasa a medir lo contrario, así que acá se pide
+    /// exactamente un peso menos que el tier base de corporativo: el Oficinista
+    /// (2.266.811,99) no entra y el Mantero (36.879,36) sí.
+    @Test("si el tier base del piso más alto no se paga, la oferta baja un piso")
     func theOfferFallsBackToWhatTheCoinsActuallyCover() async throws {
         let gameState = await makeGameState()
-        gameState.debugUnlockFloors(throughTier: 8)
-        gameState.debugMarkTypesSeen(throughTier: 8)
-        // Un peso menos que el Fast Food, DERIVADO de la config y no un literal:
-        // el rebalance de pacing cambió el factor de piso del precio y el
-        // 9.000.000 de antes pasó a alcanzar para el tier 8, con lo que el test
-        // medía lo contrario de lo que dice su nombre y seguía pareciendo válido.
+        // Hasta lujo, que es lo que le abre el gate a corporativo; el Director
+        // (tier 13) queda sin ver Y con el gate de lujo cerrado, así que no
+        // compite por ninguno de los dos lados.
+        gameState.debugUnlockFloors(throughTier: 13)
+        gameState.debugMarkTypesSeen(throughTier: 12)
+        // Un peso menos que el tier base de corporativo, derivado de la config
+        // (ver el docstring): el corte tiene que seguir cayendo donde el nombre
+        // del test dice, y no donde lo dejó el rebalance anterior.
         let content = try #require(gameState.content)
-        let urban = content.floorTable[1]
-        let fastFood = content.economy.hireCost(floor: urban, tier: 8, purchases: 0)
-        try giveCoins(fastFood - 1, to: gameState)
+        let corporate = try #require(content.floorTable.floors.first { $0.id == "corporate" })
+        let oficinistaCost = content.economy.hireCost(floor: corporate, tier: 9, purchases: 0)
+        try giveCoins(oficinistaCost - 1, to: gameState)
         gameState.refreshProjections()
 
         let best = try #require(gameState.bestHire)
-        #expect(best.tier == 7)
-        #expect(best.typeId == "chofer_app")
+        #expect(best.tier == 5, "el firstTier del urbano")
+        #expect(best.typeId == "mantero")
         #expect(best.affordable)
+
+        // Y corporativo estaba abierto y contratable: lo único que lo frenó fue
+        // el precio de SU tier base.
+        let oficinista = try #require(gameState.jobRows.first { $0.id == "oficinista" })
+        #expect(oficinista.state == .hirable)
+        #expect(!oficinista.affordable, "el saldo es exactamente un peso menos que su tier base")
     }
 
     @Test("el tipo que nunca viste no se ofrece, por más que su piso esté abierto")
@@ -129,64 +213,82 @@ struct BestHireTests {
         let best = try #require(gameState.bestHire)
         let player = try #require(gameState.player)
         #expect(player.run.seenTypes.contains(best.typeId), "RF-03: no se espoilea la cadena")
-        #expect(best.tier == 1, "con plata y piso abierto, lo único que frena la oferta es no haberlo visto")
+        #expect(best.tier == 1,
+                "con plata y piso abierto, lo único que frena la oferta en el Fisura es no haber visto al Mantero")
         #expect(best.typeId == "homeless")
     }
 
-    @Test("sin plata, la meta es el más barato de TODOS los contratables")
+    @Test("sin plata, la meta es el más barato de todos los tier base contratables")
     func withoutCoinsTheGoalIsTheCheapestOfMany() async throws {
         let gameState = await makeGameState()
-        // Ocho contratables en pantalla (callejón + urbano) y cero monedas: acá
-        // el que elige es el `min` por costo, no el único candidato que hay.
-        gameState.debugUnlockFloors(throughTier: 8)
-        gameState.debugMarkTypesSeen(throughTier: 8)
+        // Tres tier base contratables (Fisura, Mantero y Oficinista) y cero
+        // monedas: acá el que elige es el `min` por costo, no el único candidato
+        // que hay. Es la única rama de `computeBestHire` donde el criterio de
+        // PRECIO sigue teniendo con qué comparar; el desempate por id de ese
+        // mismo `min` es tan inalcanzable como los dos del `max`, porque después
+        // del filtro de tier base dos candidatos distintos no cotizan igual.
+        gameState.debugUnlockFloors(throughTier: 13)
+        gameState.debugMarkTypesSeen(throughTier: 12)
         try giveCoins(0, to: gameState)
         gameState.refreshProjections()
 
         let best = try #require(gameState.bestHire)
-        #expect(best.typeId == "homeless", "el de 25, no el de 9.442.891")
+        #expect(best.typeId == "homeless", "el de 25, no el de 2.266.811,99")
         #expect(best.tier == 1)
         #expect(best.costText == "25")
         #expect(!best.affordable)
     }
 
-    /// El desempate de PRECIO dentro del mismo tier, que es un `if` distinto del
-    /// desempate por id y hay que romperlo por separado.
+    /// Comprar un tier NO-base desde FisuJobs no mueve la oferta del atajo.
     ///
-    /// Los cuatro Senior arrancan costando lo mismo, así que la única forma de
-    /// separarlos es comprar uno: la curva es POR TIPO
-    /// (`run.hireCountsByType`), así que ese sube un `growth` (×1,06) y los otros
-    /// tres se quedan donde estaban. Si el comparador prefiriera el más caro, o
-    /// si mirara el id antes que el precio, acá seguiría ganando el Arquitecto.
-    @Test("empate de tier con precios distintos: gana el más barato")
-    func tiesOnTierPreferTheCheapest() async throws {
+    /// **Antes este escenario probaba el desempate de precio** (`tiesOnTierPreferTheCheapest`):
+    /// los cuatro Senior arrancan costando lo mismo, comprar uno le sube la
+    /// curva —que es POR TIPO, `run.hireCountsByType`, un `growth` de ×1,06
+    /// desde el rebalance (era ×1,2)— y la oferta pasaba del Arquitecto al
+    /// Médico. Ahora ninguno de los cuatro es la oferta, así que lo que el mismo
+    /// escenario pinea es que el atajo **no escucha** las compras que se hacen
+    /// por afuera de él: sigue siendo el Oficinista, y al mismo precio, porque
+    /// la curva que lo mueve es la suya.
+    @Test("comprar un tier no-base desde FisuJobs no mueve la oferta")
+    func buyingANonBaseTypeDoesNotMoveTheOffer() async throws {
         let gameState = await makeGameState()
         gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugMarkTypesSeen(throughTier: 12)
         try giveCoins(4_000_000_000, to: gameState)
         gameState.refreshProjections()
-        #expect(gameState.bestHire?.typeId == "senior_architect", "de arranque empatan y manda el id")
+        let before = try #require(gameState.bestHire)
+        #expect(before.typeId == "oficinista")
 
         gameState.hireCharacter(typeId: "senior_architect")
         gameState.refreshProjections()
 
+        // La compra entró de verdad —si no, el test no probaría nada— y la
+        // oferta no se enteró.
+        #expect(gameState.player?.run.hireCountsByType["senior_architect"] == 1)
         let best = try #require(gameState.bestHire)
-        #expect(best.tier == 12, "sigue siendo el tier más alto que la plata alcanza")
-        #expect(best.typeId == "senior_doctor", "en el mismo tier gana el más barato, no el id más chico")
+        #expect(best.tier == 9, "el firstTier de corporativo, antes y después")
+        #expect(best.typeId == "oficinista")
+        #expect(best.costText == before.costText, "la curva que mueve la oferta es la del Oficinista")
     }
 
-    /// El desempate, contra los cuatro Senior de corporativo.
+    /// Las ocho ramas de carrera de corporativo —los cuatro Jr. y los cuatro
+    /// Sr.— no son la oferta, ni una.
     ///
-    /// Verificado a mano: el tier 12 tiene CUATRO tipos concretos
-    /// (`senior_architect`, `senior_doctor`, `senior_lawyer`,
-    /// `senior_programmer`) y el precio no depende del id —`hireCost` es
-    /// `multiplicador × tapYield(tier) × incomeMultiplier × tierPremium^(tier −
-    /// firstTier) × growth^compras`, y las compras de los cuatro están en 0—,
-    /// así que empatan en tier Y en costo: 600 × 2,8¹¹ × 4,2 × 1,8³ =
-    /// 1.218.867.229,80 cada uno. El único desempate que queda es el id
-    /// ascendente, y ése es el que pinea este test.
-    @Test("empate de tier y de precio: gana el id más chico")
-    func tiesFallBackToTheAscendingID() async throws {
+    /// **Antes este escenario pineaba el desempate por id**
+    /// (`tiesFallBackToTheAscendingID`): el tier 12 tiene CUATRO tipos concretos
+    /// y el precio no depende del id —`hireCost` es `multiplicador ×
+    /// tapYield(tier) × tapFloorMultiplier(piso) × tierPremium^(tier − firstTier)
+    /// × growth^compras`, y las compras de los cuatro están en 0—, así que
+    /// empataban en tier Y en costo (600 × 2,8¹¹ × 1,8³ = 290.206.483,29 cada
+    /// uno) y ganaba el id ascendente.
+    ///
+    /// El empate se conserva como assert porque es lo que hace fuerte al test
+    /// nuevo: los ocho están vistos, contratables y pagados, y aun así el atajo
+    /// ofrece el tier 9. Ese desempate ya **no es alcanzable** —después del
+    /// filtro cada piso aporta un solo candidato— y el comentario de
+    /// `computeBestHire` explica por qué los comparadores se conservan igual.
+    @Test("las ramas de carrera no son la oferta, aunque estén pagadas")
+    func careerBranchesAreNeverTheOffer() async throws {
         let gameState = await makeGameState()
         // Abrir hasta lujo es lo que le abre el gate a corporativo (necesita el
         // piso de arriba); lujo mismo queda gated y sin ver, así que no compite.
@@ -195,17 +297,30 @@ struct BestHireTests {
         try giveCoins(2_000_000_000, to: gameState)
         gameState.refreshProjections()
 
+        let branches = [
+            "junior_architect", "junior_doctor", "junior_lawyer", "junior_programmer",
+            "senior_architect", "senior_doctor", "senior_lawyer", "senior_programmer",
+        ]
+        // Las ocho son ofertas vivas de FisuJobs en este mismo estado.
+        for id in branches {
+            let row = try #require(gameState.jobRows.first { $0.id == id })
+            #expect(row.state == .hirable, "\(id) tiene que estar contratable para que el test pruebe algo")
+            #expect(row.affordable, "\(id) tiene que estar pagado para que el test pruebe algo")
+        }
+
         let best = try #require(gameState.bestHire)
-        #expect(best.tier == 12)
-        #expect(best.typeId == "senior_architect", "los cuatro empatan: manda el id ascendente")
+        #expect(!branches.contains(best.typeId), "ninguna rama de carrera es tier base de su piso")
+        #expect(best.tier == 9)
+        #expect(best.typeId == "oficinista")
         #expect(best.affordable)
 
-        // Y el empate es real: los cuatro cotizan exactamente lo mismo.
+        // Y el empate de los cuatro Sr. sigue siendo real: es lo que el atajo
+        // ya no tiene que desempatar.
         let player = try #require(gameState.player)
         let quotes = ["senior_architect", "senior_doctor", "senior_lawyer", "senior_programmer"]
             .compactMap { gameState.currentQuote(player: player, typeId: $0)?.cost }
         #expect(quotes.count == 4)
-        #expect(Set(quotes).count == 1, "si dejaran de empatar, este test dejaría de probar el desempate")
+        #expect(Set(quotes).count == 1, "los cuatro cotizan 290.206.483,29")
     }
 
     @Test("sin ningún contratable no hay oferta, y el botón no contrata nada")

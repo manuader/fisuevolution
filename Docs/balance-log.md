@@ -1239,7 +1239,36 @@ cd Tools/pacing-sim && swift run -c release pacing-sim \
   --max-days 1200 [--prestige-threshold N]
 ```
 
-## Lo que este rebalance ROMPIÓ y hay que arreglar antes de cerrar
+## Lo que este rebalance ROMPIÓ — y cómo se cerró (Task 6, 2026-08-21)
+
+✅ **CERRADO.** Los doce logros de ORO pasaron de **620 a 33**. La decisión del
+dueño fue montos **FIJOS** —no un porcentaje del costo, que es menos legible en
+la ficha del logro— calibrados para que los logros **aporten el 15-20 % del
+camino** en vez de reemplazarlo.
+
+Regla del re-escalado, escrita para que el próximo logro de ORO tenga de dónde
+salir en vez de inventarse: **el monto viejo ÷ 20, redondeado para ARRIBA, con
+piso en 1**. Conserva el orden entero del catálogo (el más caro sigue siendo
+`ach_skins_all`) y ningún logro pasa a pagar cero.
+
+| monto viejo | nuevo | logros |
+|---:|---:|---|
+| 20 | 1 | `skins_20` · `wealth_1b` |
+| 25 | 2 | `prestige_3` · `specials_10` |
+| 30 | 2 | `hires_1000` |
+| 40 | 2 | `floor_god_realm` · `seen_all` |
+| 60 | 3 | `merges_10000` · `wealth_1q` |
+| 80 | 4 | `prestige_8` |
+| 100 | 5 | `tier_37` |
+| 120 | 6 | `skins_all` |
+
+**Total: 33 ORO = 17,1 % de los 193** que cuesta maxear las siete líneas. Lo
+pinea `fixedOroAchievementsFundAFifthOfTheRun`, que assertea el TOTAL (los montos
+son tuning, el total es la regla de diseño) y la proporción contra el costo de
+maxear **derivado de `upgrades.json`**, no contra un literal: si el catálogo se
+encarece, la proporción se mueve sola y el test lo dice.
+
+El diagnóstico original, para el registro:
 
 🔴 **Los 12 logros de ORO fijo regalan 620 ORO y maxear las siete cuesta 193.**
 `achievements.json` paga ORO fijo en 12 logros (120 · 100 · 80 · 60 · 60 · …),

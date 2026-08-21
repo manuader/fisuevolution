@@ -1,0 +1,41 @@
+seccion,clave,valor,unidad
+piso,urban_activo,0.8,min
+piso,urban_pared,0.01,h
+piso,corporate_activo,33.1,min
+piso,corporate_pared,4.22,h
+piso,luxury_activo,580.1,min
+piso,luxury_pared,172.00,h
+piso,island_activo,840.9,min
+piso,island_pared,249.01,h
+piso,moon_activo,1040.7,min
+piso,moon_pared,312.01,h
+piso,mars_activo,1226.9,min
+piso,mars_pared,364.11,h
+piso,solar_activo,1446.5,min
+piso,solar_pared,432.11,h
+piso,galaxy_activo,1506.8,min
+piso,galaxy_pared,446.11,h
+piso,god_realm_activo,1918.0,min
+piso,god_realm_pared,566.30,h
+hito,reencarnaciones,52,conteo
+hito,siete_al_tope_activo,15.49,h
+hito,siete_al_tope_pared,273.16,h
+hito,reencarnaciones_al_maxear,34,conteo
+hito,primera_reencarnacion,0.10,h
+hito,dios,566.30,h
+hito,max_tier_final,37,tier
+hito,lifetime_earnings,3.3198e+43,monedas
+mejora,income,20,de 20
+mejora,spawn,10,de 10
+mejora,offline,10,de 10
+mejora,tap,20,de 20
+mejora,crit,25,de 25
+mejora,golden,10,de 10
+mejora,prestige,10,de 10
+knob,hire_defaultCostGrowth,1.2,
+knob,hire_defaultCostMultiplier,600.0,
+knob,offlineEfficiencyBase,0.35,
+knob,oro_divisor,3000000.0,
+knob,oro_globalMultiplierPerOro,0.18,
+knob,yieldGrowthPerTier,2.8,
+knob,alley_hireCostMultiplier,25.0,

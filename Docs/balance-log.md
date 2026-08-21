@@ -801,3 +801,105 @@ cd Tools/pacing-sim && swift run pacing-sim \
   --economy ../../FisuEvolution/Resources/Data/economy.json \
   --tiers ../../FisuEvolution/Resources/Data/tiers.json
 ```
+
+---
+
+# El simulador vuelve a modelar al jugador — línea de base NUEVA (2026-08-21)
+
+**Ningún knob de economía se movió en esta entrada.** `git diff` sobre
+`FisuEvolution/Resources/` es vacío: `economy.json`, `upgrades.json` y
+`tiers.json` están byte a byte como estaban. Todo lo que cambia abajo lo cambia
+el **modelo del bot**, no la economía. Es la Task 1 del rebalance de pacing
+(`Docs/superpowers/plans/2026-08-20-rebalance-pacing.md`), y existe porque
+calibrar contra el bot viejo era tunear contra una ficción
+(`Docs/PROMPT-rebalance-pacing.md` §2.2).
+
+## Qué le faltaba al bot
+
+1. **No compraba ninguna de las siete mejoras permanentes con ORO.** Todo
+   `meta.derivedEffects` viajaba en cero durante la simulación entera: sin el
+   `tap +5,0` ni el `income +3,0` que el jugador real tiene maxeados —de hecho
+   maxearlas ES ganar—, sin `offline`, sin `spawnCostDiscount` y sin
+   `prestigeBonus`.
+2. **Tapeaba 3 veces por segundo**, el techo conservador que F2 le había
+   heredado a `balance-sim`. Ahora tapea **6/s**, el medio del rango 5-8 que un
+   humano sostiene en ráfaga.
+3. **Al tap le faltaba un multiplicador**: `GameActions.applyTap` lleva
+   `derivedEffects.incomeMultiplier` y el bot no. Con el bot viejo daba igual
+   (valía 1 siempre); con mejoras compradas, no.
+
+Y no publicaba **el número que el dueño pidió**: horas ACTIVAS hasta tener las
+siete líneas al tope, o sea hasta las skins doradas.
+
+## Las tres corridas, lado a lado
+
+`--max-days 400`, mismos JSON. La del medio aísla cuánto pesa el tapeo solo.
+
+| | modelo VIEJO (3 taps/s, sin mejoras) | sólo 6 taps/s | modelo NUEVO (6 taps/s + 7 mejoras) |
+|---|---|---|---|
+| urban (activo / pared) | 1,3 min / 0,02 h | 0,8 min / 0,01 h | 0,8 min / 0,01 h |
+| corporate | 57,2 min / 9,29 h | 38,3 min / 4,31 h | 33,1 min / 4,22 h |
+| luxury | 6260,1 min / 1876,00 h | 4880,1 min / 1464,00 h | 580,1 min / 172,00 h |
+| island | 9420,1 min / 2822,00 h | 6940,1 min / 2078,00 h | 840,9 min / 249,01 h |
+| moon | 10400,2 min / 3120,00 h | 7720,2 min / 2313,00 h | 1040,7 min / 312,01 h |
+| mars | 10621,3 min / 3182,02 h | 7941,1 min / 2380,02 h | 1226,9 min / 364,11 h |
+| solar | 11002,2 min / 3297,04 h | 8246,4 min / 2472,10 h | 1446,5 min / 432,11 h |
+| galaxy | 11008,8 min / 3297,15 h | 8368,6 min / 2505,14 h | 1506,8 min / 446,11 h |
+| god_realm | 11455,7 min / 3432,26 h | 8815,6 min / 2640,26 h | 1918,0 min / 566,30 h |
+| **dios, en horas ACTIVAS** | **190,9 h** | 146,9 h | **32,0 h** |
+| **las 7 al tope (activo)** | no lo medía | — (nunca compra) | **15,49 h** |
+| las 7 al tope (pared) | — | — | 273,16 h |
+| **reencarnaciones al maxear** | — | — | **34** |
+| reencarnaciones totales | 47 | 50 | 52 |
+| 1ª reencarnación (pared) | 0,17 h | 0,10 h | 0,10 h |
+| lifetimeEarnings final | 4,740e+40 | 9,807e+40 | 3,320e+43 |
+
+**El 191 h activas que citaba el prompt queda derogado.** La línea de base real,
+contra la economía de hoy sin tocar, es la columna de la derecha.
+
+## Lo que dice el número nuevo
+
+- Maxear las siete cuesta **15,49 h ACTIVAS**. El objetivo del dueño son
+  **20-30 h**: el juego está corto, que es exactamente la queja, y ahora hay un
+  número con el que discutirlo. (Él lo ganó en 3 h; el bot es peor jugador que
+  él, así que su 3 h y este 15,5 h son las dos puntas de la misma banda.)
+- Se maxea con **34 reencarnaciones**, contra el techo de **8** que puso el
+  dueño. La brecha bajó de ×12 (47 vs 3-4) a ×4, pero el defecto de fondo sigue
+  vivo: reencarnar es un trámite barato y frecuente en vez de un hito.
+- Dios queda a **32 h activas**, o sea **2× el costo de maxear**. La forma que
+  el dueño pidió —"Dios más lejos que las skins"— ya está; lo que falta es la
+  escala.
+- El arco de arriba dejó de ser plano: los ratios activos de moon, mars y solar
+  entran en la banda de diseño (×1,18-1,24) por primera vez desde la Ola 3, sin
+  que nadie tocara un knob. Los ratios viejos ×1,02-1,10 eran del bot, no del
+  juego.
+
+## Lo que esto NO mide
+
+- **Crit y golden siguen apagados**: el simulador es determinístico y no tira
+  dados. El bot COMPRA las dos líneas (y las paga: `crit` es el 99,99 % del
+  costo de ganar) pero no cobra su efecto. O sea que subestima al jugador real
+  justo en la línea más cara — y por eso el 15,49 h es un techo, no un piso.
+- **Los topes de `EffectCaps`** (crit 0,5 · offline 1,0 · golden 0,1 · spawn
+  0,6) viven en el app target y el bot no los aplica. Con el catálogo de hoy
+  ninguna línea los alcanza (offline llega a 0,85 y spawn a 0,30), así que el
+  bot y el juego coinciden. **Si la Task 5 sube un `maxLevel` o una
+  `magnitudePerLevel`, esto deja de ser cierto** y hay que pasarle los topes.
+- **El atajo del HUD** (`QuickHireButton`) sigue sin modelarse. No hace falta
+  todavía: el bot compra sólo el tier base de cada piso, que es justo la regla
+  a la que la Task 2 va a acotar el atajo.
+- **Eventos, logros y daily** siguen fuera del simulador, como siempre.
+
+## Cómo re-correr
+
+```bash
+cd Tools/pacing-sim && swift run -c release pacing-sim \
+  --economy ../../FisuEvolution/Resources/Data/economy.json \
+  --tiers ../../FisuEvolution/Resources/Data/tiers.json \
+  --max-days 400
+```
+
+Sin `--upgrades` el tool busca `Resources/Config/upgrades.json` solo y lo dice en
+la primera línea de la salida; si no lo encuentra avisa fuerte que el bot está
+corriendo el modelo viejo. La corrida de arriba está en
+`Docs/balance-run-sim-arreglado.csv` (`--csv`).

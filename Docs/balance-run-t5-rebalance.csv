@@ -1,71 +1,67 @@
 seccion,clave,valor,unidad
 piso,urban_activo,0.5,min
 piso,urban_pared,0.01,h
-piso,corporate_activo,10.2,min
-piso,corporate_pared,0.17,h
-piso,luxury_activo,400.1,min
-piso,luxury_pared,120.00,h
-piso,island_activo,980.1,min
-piso,island_pared,292.00,h
-piso,moon_activo,1340.1,min
-piso,moon_pared,398.00,h
-piso,mars_activo,1571.5,min
-piso,mars_pared,465.19,h
-piso,solar_activo,1643.2,min
-piso,solar_pared,489.05,h
-piso,galaxy_activo,1654.6,min
-piso,galaxy_pared,489.24,h
-piso,god_realm_activo,1819.8,min
-piso,god_realm_pared,537.33,h
-hito,reencarnaciones,11,conteo
-reencarnacion,1,2.000,h activas
-reencarnacion,2,6.922,h activas
-reencarnacion,3,12.000,h activas
-reencarnacion,4,16.667,h activas
-reencarnacion,5,20.000,h activas
-reencarnacion,6,22.663,h activas
-reencarnacion,7,24.000,h activas
-reencarnacion,8,25.334,h activas
-reencarnacion,9,26.334,h activas
-reencarnacion,10,27.667,h activas
-reencarnacion,11,29.001,h activas
+piso,corporate_activo,8.1,min
+piso,corporate_pared,0.13,h
+piso,luxury_activo,200.1,min
+piso,luxury_pared,57.00,h
+piso,island_activo,740.1,min
+piso,island_pared,220.00,h
+piso,moon_activo,980.5,min
+piso,moon_pared,292.01,h
+piso,mars_activo,1263.0,min
+piso,mars_pared,374.05,h
+piso,solar_activo,1370.2,min
+piso,solar_pared,408.17,h
+piso,galaxy_activo,1511.4,min
+piso,galaxy_pared,446.19,h
+piso,god_realm_activo,1595.4,min
+piso,god_realm_pared,470.26,h
+hito,reencarnaciones,9,conteo
+reencarnacion,1,3.667,h activas
+reencarnacion,2,8.000,h activas
+reencarnacion,3,12.667,h activas
+reencarnacion,4,16.407,h activas
+reencarnacion,5,19.333,h activas
+reencarnacion,6,21.207,h activas
+reencarnacion,7,22.916,h activas
+reencarnacion,8,24.000,h activas
+reencarnacion,9,25.334,h activas
 costo,alley_hire_en_segundos,4.17,s de income
-costo,alley_pico_compras,0,compras del mismo tipo
-costo,alley_pico_en_segundos,0.00,s de income
-costo,urban_hire_en_segundos,200.00,s de income
-costo,urban_pico_compras,15,compras del mismo tipo
-costo,urban_pico_en_segundos,0.16,s de income
-costo,corporate_hire_en_segundos,419.70,s de income
-costo,corporate_pico_compras,144,compras del mismo tipo
-costo,corporate_pico_en_segundos,4.86,s de income
-costo,luxury_hire_en_segundos,720.07,s de income
-costo,luxury_pico_compras,381,compras del mismo tipo
-costo,luxury_pico_en_segundos,66585.94,s de income
-costo,island_hire_en_segundos,823.56,s de income
-costo,island_pico_compras,459,compras del mismo tipo
-costo,island_pico_en_segundos,58330.98,s de income
-costo,moon_hire_en_segundos,270.11,s de income
-costo,moon_pico_compras,553,compras del mismo tipo
-costo,moon_pico_en_segundos,36161.03,s de income
-costo,mars_hire_en_segundos,8.02,s de income
-costo,mars_pico_compras,620,compras del mismo tipo
-costo,mars_pico_en_segundos,420.94,s de income
-costo,solar_hire_en_segundos,4.15,s de income
-costo,solar_pico_compras,776,compras del mismo tipo
-costo,solar_pico_en_segundos,15104.79,s de income
-costo,galaxy_hire_en_segundos,9.76,s de income
-costo,galaxy_pico_compras,787,compras del mismo tipo
-costo,galaxy_pico_en_segundos,539.11,s de income
-costo,god_realm_hire_en_segundos,0.85,s de income
-costo,god_realm_pico_compras,870,compras del mismo tipo
-costo,god_realm_pico_en_segundos,47.55,s de income
-hito,siete_al_tope_activo,25.33,h
-hito,siete_al_tope_pared,456.00,h
+costo,urban_hire_en_segundos,100.00,s de income
+costo,urban_tipo_mas_comprado_de_la_run,homeless,15 compras
+costo,urban_proximo_del_mas_comprado_en_segundos,0.16,s de income
+costo,corporate_hire_en_segundos,99.81,s de income
+costo,corporate_tipo_mas_comprado_de_la_run,homeless,133 compras
+costo,corporate_proximo_del_mas_comprado_en_segundos,2.55,s de income
+costo,luxury_hire_en_segundos,100.00,s de income
+costo,luxury_tipo_mas_comprado_de_la_run,homeless,367 compras
+costo,luxury_proximo_del_mas_comprado_en_segundos,34765.22,s de income
+costo,island_hire_en_segundos,73.52,s de income
+costo,island_tipo_mas_comprado_de_la_run,homeless,436 compras
+costo,island_proximo_del_mas_comprado_en_segundos,23173.61,s de income
+costo,moon_hire_en_segundos,48.24,s de income
+costo,moon_tipo_mas_comprado_de_la_run,homeless,506 compras
+costo,moon_proximo_del_mas_comprado_en_segundos,14615.18,s de income
+costo,mars_hire_en_segundos,4.81,s de income
+costo,mars_tipo_mas_comprado_de_la_run,homeless,595 compras
+costo,mars_proximo_del_mas_comprado_en_segundos,4238.53,s de income
+costo,solar_hire_en_segundos,1.50,s de income
+costo,solar_tipo_mas_comprado_de_la_run,homeless,643 compras
+costo,solar_proximo_del_mas_comprado_en_segundos,351.61,s de income
+costo,galaxy_hire_en_segundos,0.09,s de income
+costo,galaxy_tipo_mas_comprado_de_la_run,homeless,729 compras
+costo,galaxy_proximo_del_mas_comprado_en_segundos,53.51,s de income
+costo,god_realm_hire_en_segundos,0.01,s de income
+costo,god_realm_tipo_mas_comprado_de_la_run,homeless,785 compras
+costo,god_realm_proximo_del_mas_comprado_en_segundos,2.38,s de income
+hito,siete_al_tope_activo,24.00,h
+hito,siete_al_tope_pared,432.00,h
 hito,reencarnaciones_al_maxear,8,conteo
-hito,primera_reencarnacion,33.00,h
-hito,dios,537.33,h
+hito,primera_reencarnacion,62.00,h
+hito,dios,470.26,h
 hito,max_tier_final,37,tier
-hito,lifetime_earnings,5.1761e+28,monedas
+hito,lifetime_earnings,2.4397e+26,monedas
 mejora,income,10,de 10
 mejora,spawn,10,de 10
 mejora,offline,10,de 10
@@ -76,7 +72,7 @@ mejora,prestige,10,de 10
 knob,hire_defaultCostGrowth,1.06,
 knob,hire_defaultCostMultiplier,600.0,
 knob,offlineEfficiencyBase,0.35,
-knob,oro_divisor,300000000000.0,
+knob,oro_divisor,3000000000000.0,
 knob,oro_globalMultiplierPerOro,0.18,
 knob,yieldGrowthPerTier,2.8,
 knob,alley_hireCostMultiplier,25.0,

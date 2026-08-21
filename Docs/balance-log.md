@@ -915,31 +915,47 @@ no el 191 h derogado del prompt.
 
 ## Los tres números
 
-`swift run -c release pacing-sim … --max-days 1200`
+`swift run -c release pacing-sim … --max-days 1500`, contra el árbol FINAL (con
+la salida (a) que eligió el dueño — ver más abajo).
 
 | | línea de base (Task 1) | después | objetivo del dueño |
 |---|---|---|---|
-| **maxear las 7 (activo)** | 15,49 h | **25,33 h** | 20-30 h |
-| **reencarnaciones al maxear** | 34 | **8** | ≤ 8 |
-| **Dios (activo)** | 32,0 h | **30,33 h** | más lejos que maxear |
-| Dios (pared) | 566,30 h | 537,33 h | — |
-| reencarnaciones totales | 52 | 11 | — |
-| 1ª reencarnación (activo) | 0,17 h | 2,00 h | — |
-| lifetimeEarnings final | 3,320e+43 | 5,176e+28 | — |
+| **maxear las 7 (activo)** | 15,49 h | **24,00 h** | 20-30 h ✅ |
+| **reencarnaciones al maxear** | 34 | **8** | ≤ 8 ✅ |
+| **Dios (activo)** | 32,0 h | **26,59 h** | más lejos que maxear ✅ |
+| Dios (pared) | 566,30 h | 470,26 h | — |
+| reencarnaciones totales | 52 | 9 | — |
+| 1ª reencarnación (activo) | 0,17 h | 3,67 h | — |
+| lifetimeEarnings final | 3,320e+43 | 2,440e+26 | — |
 
-Dios queda ×1,20 más lejos que maxear en horas activas (antes ×2,07, pero con
-maxear a las 15,49 h). El CSV de la corrida está en
+Dios queda ×1,11 más lejos que maxear en horas activas. La cadencia de las
+reencarnaciones, en horas ACTIVAS de cada una:
+
+```
+antes:   0,2 · 0,3 · 0,6 · 0,7 · 1,0 · 1,2 · 1,3 · 1,5 · 1,7 · 1,8 · 2,0 · 2,1 · …  (52)
+después: 3,7 · 8,0 · 12,7 · 16,4 · 19,3 · 21,2 · 22,9 · 24,0 · 25,3                 (9)
+```
+
+O sea: de una cada seis minutos a una cada 2-4 h activas, que es lo que el dueño
+pidió ("cada una un hito que se prepara y se nota"). El CSV está en
 `Docs/balance-run-t5-rebalance.csv`.
 
-## Los cuatro knobs, uno por vez
+## Los cinco knobs, uno por vez
 
 | knob | antes | después | qué movió (medido, sólo ese knob) |
 |---|---|---|---|
-| `tapFloorMultiplierExponent` | — (=1) | **0** | maxear 15,49 → **24,67 h** |
-| `hire.defaultCostGrowth` | 1,2 | **1,06** | el hire del piso 4 deja de costar 0,0 s de income |
-| `oro.divisor` | 3e6 | **3e11** | 1ª reencarnación 0,17 → 2,00 h activas |
-| `oro.exponent` | 0,45 | **0,25** | ×4,65 de ganancias por duplicar ORO → ×16 |
-| `upgrades.json` | crit = 99,99 % | 7 líneas de 21-37 ORO | 34 → 8 reencarnaciones |
+| `tapFloorMultiplierExponent` | — (=1) | **0** | maxear 15,49 → **24,67 h**; el click del tier alto deja de financiar el piso siguiente |
+| `EconomyConfig.hireCost`: el factor de piso | `floor.incomeMultiplier` | **`tapFloorMultiplier(for:)`** | contratar el tier base vuelve a costar **600 clicks** en los diez pisos (con el crudo eran 372.000 en el reino divino) |
+| `hire.defaultCostGrowth` | 1,2 | **1,06** | **decide si la torre es escalable**: con 1,2 la run se traba en el tier 11 y la partida no se termina |
+| `oro.divisor` · `oro.exponent` | 3e6 · 0,45 | **3e12 · 0,25** | **cierra la divergencia costos-vs-ingresos**: entrar a luxury pasa de 0,0 s a 100,0 s de income. Y la 1ª reencarnación de 0,17 a 3,67 h activas |
+| `upgrades.json` | crit = 99,99 % | 7 líneas de 21-37 ORO | 34 → **8** reencarnaciones |
+
+⚠️ **Corrección (fix round 1).** La primera versión de esta tabla le atribuía a
+`hire.defaultCostGrowth` el "0,0 s → 720 s" y acreditaba a `oro.divisor` sólo con
+la primera reencarnación. Las dos cosas estaban mal y la aritmética de más abajo
+las desmiente: **la divergencia la cierra la curva de ORO** y **el growth decide
+otra cosa —si la torre se puede subir—**. Están separadas arriba porque la tabla
+resumen es lo que se lee primero.
 
 ## Piso por piso, antes y después
 
@@ -1042,8 +1058,9 @@ obliga a "~256 contrataciones del mismo tipo por piso cruzado" y que
 - **256 es aritmética de la política del BOT, no del juego.** El bot compra
   siempre el tier base; un jugador real tiene FisuJobs, que vende los cuatro
   tipos del piso con un contador por tipo, y con growth 1,2 el tier de arriba
-  se vuelve más barato que seguir con el de abajo a partir de ~4,5 compras.
-  Nadie llega a 256 del mismo tipo jugando.
+  se vuelve más barato **por unidad de yield** en cuanto `growth^n > tierPremium`,
+  o sea `n = ln(1,8)/ln(1,2) = 3,22` compras hechas — entre la 4ª y la 5ª. Nadie
+  llega a 256 del mismo tipo jugando.
 
 Lo MEDIDO —y es lo que sostiene el cambio— es el pico real del bot: **70 compras
 del mismo tipo al abrir corporativo, donde la siguiente ya cuesta 384 s de
@@ -1055,6 +1072,49 @@ sube el precio 20%"). El **primer Fisura sigue costando 25** —decisión cerrad
 no se movió— y `defaultCostMultiplier` sigue en **600**; lo que cambia es la
 PENDIENTE de la curva: el segundo Fisura pasa de 30 a 26,5. **Necesita la
 confirmación del dueño.**
+
+## La regla de precios del dueño: las tres salidas, y cuál eligió
+
+La regla (2026-08-04) es: **"el tier base de un piso superior cuesta 600 veces lo
+que rinde un click suyo ahí"**. El rebalance la rompió **en significado, no sólo
+en pendiente**, y la primera versión de esta entrada no lo declaró.
+
+El motivo: `tapFloorMultiplierExponent: 0` le sacó al TAP el `incomeMultiplier`
+del piso, pero el PRECIO lo seguía llevando crudo. Los dos habían quedado atados
+por casualidad, no por construcción. Con las dos puntas sueltas:
+
+| piso | `incomeMultiplier` | contratar el tier base, en clicks |
+|---|---:|---:|
+| alley | 1 | 600 |
+| corporate | 4,2 | 2.520 |
+| luxury | 8,5 | 5.100 |
+| **god_realm** | **620** | **372.000** |
+
+El test que debía protegerlo seguía verde porque **replicaba la fórmula VIEJA del
+click**: exactamente "un test que cambió de significado y quedó verde".
+
+### Las tres salidas, cada una corrida entera
+
+| | maxear las 7 | reenc | Dios (activo) | la regla | serie de entrada (s de income) |
+|---|---|---|---|---|---|
+| **(a)** el precio usa el mismo factor de piso que el click (`tapFloorMultiplier`) + `oro.divisor` 3e12 | **24,00 h** ✅ | **8** ✅ | **26,59 h** ✅ | **vale literal**: 600 clicks en los diez pisos, para cualquier exponente futuro | 100 · 99,8 · 100,0 · 73,5 · 48,2 · 4,8 · 1,5 · 0,1 · 0,0 |
+| **(b)** devolverle al tap el multiplicador de piso (exponente 1) | 15,26 h ❌ | 9 ❌ | 20,32 h | vale como siempre | 100 · 100 · 84,7 · 48,4 · 9,2 · 0,1 · 0,0 · 0,0 · 0,0 |
+| **(c)** dejarlo y re-enunciar la regla | 25,33 h ✅ | 8 ✅ | 30,33 h ✅ | **cambia de significado**: 600 × `incomeMultiplier` clicks | 200 · 419,7 · 720,1 · 823,6 · 270,1 · 8,0 · 4,2 · 9,8 · 0,9 |
+
+(a) sin el bump de divisor daba 19,00 h; con `oro.divisor` en 3e12 entra en banda.
+(b) falla dos de los tres targets y necesitaría otro lever.
+
+### 👉 El dueño eligió (a)
+
+`EconomyConfig.hireCost` pasa a multiplicar por `tapFloorMultiplier(for: floor)`
+en vez de `floor.incomeMultiplier`. Las dos puntas quedan atadas **por
+construcción**: si mañana el exponente del tap cambia, el precio lo sigue solo y
+la regla del dueño no se puede romper en silencio. El costo medido es 1,3 h de
+largo (25,33 → 24,00) y una serie de entrada que se apaga un piso antes.
+
+Lo pinea `hirePricesFollowTheOwnersRule`, que ahora mide **en clicks** —con el
+mismo `tapFloorMultiplier` que cobra `applyTap`, no una copia de la fórmula— y
+asserta 600 en los diez pisos.
 
 ## Las siete líneas
 

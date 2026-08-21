@@ -70,6 +70,33 @@ struct SaveMigratorTests {
 
     // MARK: - Schema actual
 
+    /// El rebalance de pacing (2026-08-21) bajó `income` y `tap` de 20 niveles a
+    /// 10 y `crit` de 25 a 10. Un save v3 trae los números viejos, y `v3→v4`
+    /// resetea `milestoneSkins`: si los niveles llegaran sin reescalar, cualquier
+    /// save con `crit` ≥ 10 contaría como "las siete al tope" y se llevaría las
+    /// skins doradas de "ganarlo al máximo".
+    @Test func rebalanceRescaleKeepsTheAchievementAndNotTheGift() {
+        // El que MAXEÓ de verdad conserva su logro.
+        let maxeado = SaveMigrator.rescaleUpgradeLevelsForRebalance(
+            ["income": 20, "tap": 20, "crit": 25, "spawn": 10]
+        )
+        #expect(maxeado == ["income": 10, "tap": 10, "crit": 10, "spawn": 10])
+
+        // El que apenas la empezó NO: con la curva vieja (3 × 2,5ⁿ) crit 10
+        // costaba ~19.100 ORO de 1,776e10, el 0,0001 % de la línea. Un clamp lo
+        // habría dejado en 10 —al tope— y le habría regalado las skins.
+        let apenas = SaveMigrator.rescaleUpgradeLevelsForRebalance(["crit": 10, "income": 12])
+        #expect(apenas["crit"] == 4)
+        #expect(apenas["income"] == 6)
+
+        // Las líneas cuyo tope no cambió pasan intactas.
+        let intactas = SaveMigrator.rescaleUpgradeLevelsForRebalance(["offline": 7, "golden": 3])
+        #expect(intactas == ["offline": 7, "golden": 3])
+
+        // Idempotente sobre lo ya reescalado que sigue en rango.
+        #expect(SaveMigrator.rescaleUpgradeLevelsForRebalance([:]).isEmpty)
+    }
+
     @Test func currentVersionDecodesUnchanged() throws {
         let state = PlayerState.newGame(
             startTypeId: "homeless",

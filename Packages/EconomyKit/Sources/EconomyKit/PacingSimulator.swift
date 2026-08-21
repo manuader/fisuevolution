@@ -75,14 +75,19 @@ public struct PacingSimulator: Sendable {
         /// su tier base suele valer 0 al abrirlo y `growth^0 = 1`. Para el
         /// compounding están las dos series de abajo.
         public var floorUnlockHireSeconds: [String: Double] = [:]
-        /// El contador de compras más alto que el bot alcanzó sobre UN tipo
-        /// cuando cada piso se abrió, y lo que cuesta el próximo de ESE tipo en
-        /// segundos de income.
+        /// El tipo MÁS COMPRADO de la run cuando cada piso se abrió, su contador
+        /// y lo que cuesta el próximo de ESE tipo en segundos de income.
         ///
         /// Éstas sí ven `hireCostGrowth`: el factor que se paga es
-        /// `growth^compras`, y estas dos dicen cuántas compras llega a acumular
-        /// el bot de verdad — que es el número con el que hay que discutir la
-        /// curva, no uno supuesto.
+        /// `growth^compras`, y dicen cuántas compras llega a acumular el bot de
+        /// verdad — el número con el que hay que discutir la curva, no uno
+        /// supuesto.
+        ///
+        /// ⚠️ El tipo NO es el del piso de la clave: con la política del bot es
+        /// casi siempre el tier base del callejón. La clave es el piso sólo
+        /// porque es el momento en que se tomó la foto; el tipo va en
+        /// `floorUnlockPeakHireType` para que no se lea mal.
+        public var floorUnlockPeakHireType: [String: String] = [:]
         public var floorUnlockPeakHirePurchases: [String: Int] = [:]
         public var floorUnlockPeakHireSeconds: [String: Double] = [:]
         public var firstReincarnationWall: Double?
@@ -603,14 +608,28 @@ public struct PacingSimulator: Sendable {
     /// segundos de income. Es donde vive el compounding de `hireCostGrowth`: el
     /// bot compra una y otra vez sobre el mismo tier base y su precio sube
     /// `growth` por compra.
-    private func peakHire(state: PlayerState) -> (purchases: Int, seconds: Double) {
-        guard let (typeId, purchases) = state.run.hireCountsByType.max(by: { $0.value < $1.value }),
-              let type = tiers.type(id: typeId)
-        else { return (0, 0) }
+    ///
+    /// **No es el tier base del piso de la fila**: es el tipo más comprado de
+    /// toda la run, que con la política del bot es casi siempre el Fisura del
+    /// callejón. La fila lo etiqueta con su `typeId` justamente para que no se
+    /// lea como "lo que cuesta este piso".
+    ///
+    /// Empata por `id`, como `cheapestAffordableUpgrade`: el orden de iteración
+    /// de un `Dictionary` cambia por proceso, y este simulador promete ser
+    /// determinístico.
+    ///
+    /// Devuelve `nil` si el bot todavía no compró nada. El centinela importa: en
+    /// este reporte `0,0 s` significa "contratar es gratis", que es el hallazgo
+    /// central del documento, y usarlo también para "no hay dato" los confundía.
+    private func peakHire(state: PlayerState) -> (typeId: String, purchases: Int, seconds: Double)? {
+        let ordered = state.run.hireCountsByType
+            .filter { $0.value > 0 }
+            .sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }
+        guard let (typeId, purchases) = ordered.first, let type = tiers.type(id: typeId) else { return nil }
         let rate = incomeRate(state: state, active: true)
-        guard rate > 0 else { return (purchases, .infinity) }
+        guard rate > 0 else { return (typeId, purchases, .infinity) }
         let floor = floorTable.floor(forTier: type.tier)
-        return (purchases, config.hireCost(floor: floor, tier: type.tier, purchases: purchases) / rate)
+        return (typeId, purchases, config.hireCost(floor: floor, tier: type.tier, purchases: purchases) / rate)
     }
 
     /// Registra pisos recién alcanzados (unlockTier ≤ maxTier) con sus tiempos.
@@ -623,9 +642,11 @@ public struct PacingSimulator: Sendable {
                 report.floorUnlockWallSeconds[floor.id] = wall
                 report.floorUnlockActiveSeconds[floor.id] = active
                 report.floorUnlockHireSeconds[floor.id] = hireSeconds(floor: floor, state: state)
-                let peak = peakHire(state: state)
-                report.floorUnlockPeakHirePurchases[floor.id] = peak.purchases
-                report.floorUnlockPeakHireSeconds[floor.id] = peak.seconds
+                if let peak = peakHire(state: state) {
+                    report.floorUnlockPeakHireType[floor.id] = peak.typeId
+                    report.floorUnlockPeakHirePurchases[floor.id] = peak.purchases
+                    report.floorUnlockPeakHireSeconds[floor.id] = peak.seconds
+                }
             }
         }
     }

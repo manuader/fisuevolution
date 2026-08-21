@@ -191,12 +191,20 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     /// contratación, y la única**: no hay otra copia ni otra firma.
     ///
     /// Regla del dueño (2026-08-04): el precio es `multiplicador ×` **lo que
-    /// realmente rinde un click de ese personaje en ese piso** — o sea el
-    /// tapYield del tier POR el `incomeMultiplier` del piso, no el tapYield
-    /// pelado. Con el default en 100, contratar cuesta 100 taps de ese mismo
-    /// personaje; el piso 1 overridea a 50 para que el primer Fisura sea 50.
-    /// Cada compra sube la curva un `hireCostGrowth` (6% por defecto desde el
-    /// rebalance de pacing; era 20%).
+    /// realmente rinde un click de ese personaje en ese piso**. Con el default
+    /// en 600, contratar cuesta 600 taps de ese mismo personaje; el callejón
+    /// overridea a 25 para que el primer Fisura sea 25. Cada compra sube la
+    /// curva un `hireCostGrowth` (6% por defecto desde el rebalance de pacing;
+    /// era 20%).
+    ///
+    /// El factor de piso es `tapFloorMultiplier(for:)` —el MISMO que cobra
+    /// `GameActions.applyTap`— y no `floor.incomeMultiplier` crudo. Es lo que
+    /// mantiene la regla literal: cuando el rebalance le sacó al tap el
+    /// multiplicador de piso, con el `incomeMultiplier` crudo acá contratar el
+    /// tier base del reino divino pasaba de 600 clicks a 600 × 620 = 372.000, y
+    /// la regla dejaba de ser cierta sin que nada hiciera ruido. Atado al mismo
+    /// factor, vale 600 clicks en los diez pisos para cualquier exponente.
+    /// (Decisión del dueño, fix round 2 — ver Docs/balance-log.md.)
     ///
     /// El factor nuevo es `tierPremium^(tier − firstTier)`: para el tier BASE de
     /// un piso vale 1, así que los precios de siempre —y sus pins— no se mueven;
@@ -208,7 +216,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     public func hireCost(floor: FloorDef, tier: Int, purchases: Int) -> Double {
         hireCostMultiplier(for: floor)
             * StandardEconomy(config: self).tapYield(forTier: tier)
-            * floor.incomeMultiplier
+            * tapFloorMultiplier(for: floor)
             * pow(hire.tierPremium, Double(tier - floor.firstTier))
             * pow(hireCostGrowth(for: floor), Double(purchases))
     }

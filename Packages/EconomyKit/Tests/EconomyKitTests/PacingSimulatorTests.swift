@@ -199,7 +199,22 @@ struct PacingSimulatorInstrumentTests {
             // `isFinite` y no `> 0`: el escape de income cero devuelve
             // `.infinity`, que es > 0 y colaba una métrica sin medir.
             #expect(seconds.isFinite && seconds > 0, "\(floorId): \(seconds)")
-            #expect(report.floorUnlockPeakHireSeconds[floorId]?.isFinite == true)
+        }
+    }
+
+    @Test("sin compras todavía, el pico no inventa un 0,0 s")
+    func peakHireIsAbsentBeforeAnyPurchase() throws {
+        let report = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
+        // El piso 0 se registra en el segundo cero, antes de comprar nada. Un
+        // `0,0 s` ahí colisionaría con el "0,0 s = contratar es gratis" que es el
+        // hallazgo central del rebalance, así que la serie no trae la clave.
+        let ground = try #require(report.floorUnlockWallSeconds.keys.sorted().first { report.floorUnlockWallSeconds[$0] == 0 })
+        #expect(report.floorUnlockPeakHireSeconds[ground] == nil, "el piso \(ground) no compró nada todavía")
+        #expect(report.floorUnlockPeakHireType[ground] == nil)
+        // Y donde SÍ hay dato, es un número real y trae de qué tipo es.
+        for (floorId, seconds) in report.floorUnlockPeakHireSeconds {
+            #expect(seconds.isFinite, "\(floorId): \(seconds)")
+            #expect(report.floorUnlockPeakHireType[floorId] != nil)
         }
     }
 
@@ -213,6 +228,12 @@ struct PacingSimulatorInstrumentTests {
         let peaks = report.floorUnlockPeakHirePurchases
         #expect(!peaks.isEmpty)
         #expect(peaks.values.contains { $0 > 0 }, "el bot compró algo: \(peaks)")
+        // Determinístico: dos corridas de la misma economía tienen que elegir el
+        // MISMO tipo. Sin desempate por `id` el orden de un `Dictionary` cambia
+        // por proceso y esta serie sería ruido con forma de dato.
+        let otra = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
+        #expect(otra.floorUnlockPeakHireType == report.floorUnlockPeakHireType)
+        #expect(otra.floorUnlockPeakHirePurchases == peaks)
     }
 }
 

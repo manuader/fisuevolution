@@ -143,10 +143,10 @@ struct GameContentValidationTests {
         // Rebalance de pacing: el ORO se volvió ESCASO y CHUNKY. Con el divisor
         // en 3e6 y el exponente en 0,45 la primera reencarnación caía a los 6
         // minutos y valía 6e-9 % de la condición de victoria; ahora cae a las
-        // 2,0 h ACTIVAS y vale 0,5 % (un nivel entero de income). Medido: 8
-        // reencarnaciones para maxear las siete, con la cadencia 2,0 · 6,9 ·
-        // 12,0 · 16,7 · 20,0 · 22,7 · 24,0 · 25,3 h activas.
-        #expect(economy.oro.divisor == 300_000_000_000)
+        // 3,67 h ACTIVAS y vale 0,5 % (un nivel entero de income). Medido: 8
+        // reencarnaciones para maxear las siete, con la cadencia 3,7 · 8,0 ·
+        // 12,7 · 16,4 · 19,3 · 21,2 · 22,9 · 24,0 h activas.
+        #expect(economy.oro.divisor == 3_000_000_000_000)
         // RF-07 (Ola 3) lo había bajado de 0.5 a 0.45; el rebalance lo baja a
         // 0.25 porque con 0,45 hacen falta ×4,65 de ganancias por duplicar el
         // ORO y las 8 entregas entraban en 1,3 h activas. Con 0,25 hacen falta
@@ -253,19 +253,19 @@ struct GameContentValidationTests {
 
     /// La regla en números concretos, contra el contenido real.
     ///
-    /// ⚠️ **La regla del dueño se enunció como "el tier base de un piso superior
-    /// cuesta 600 veces lo que rinde un click suyo ahí" y desde el rebalance de
-    /// pacing eso YA NO ES CIERTO**, porque el precio y el click dejaron de
-    /// compartir el multiplicador de piso: `hireCost` lleva
-    /// `floor.incomeMultiplier` entero y el tap lleva
-    /// `tapFloorMultiplier(for:)`, que con el exponente en 0 vale 1.
+    /// La regla del dueño —"el tier base de un piso superior cuesta 600 veces lo
+    /// que rinde un click suyo ahí"— **vale literal en los diez pisos**, y este
+    /// test la mide en CLICKS y no replicando la fórmula del precio: el factor
+    /// de piso sale de `tapFloorMultiplier(for:)`, el mismo que cobra
+    /// `GameActions.applyTap`.
     ///
-    /// Este test pinea las DOS cosas por separado —lo que el precio lleva y
-    /// cuántos clicks es de verdad— justamente para que la diferencia esté a la
-    /// vista y no escondida detrás de una fórmula vieja replicada en el test.
-    /// **Es una decisión pendiente del dueño** (ver `.superpowers/t5-report.md`,
-    /// CRITICAL 2): o el precio deja de llevar el multiplicador de piso, o la
-    /// regla se re-enuncia con el número real.
+    /// Que sea en clicks no es cosmético. Cuando el rebalance le sacó al tap el
+    /// multiplicador de piso, el precio lo seguía llevando crudo y contratar el
+    /// tier base del reino divino pasó de 600 clicks a 600 × 620 = 372.000 sin
+    /// que nada hiciera ruido — la versión anterior de este test seguía verde
+    /// porque replicaba la fórmula VIEJA del click. El dueño eligió atar las dos
+    /// puntas (`Docs/balance-log.md`, "La regla de precios: las tres salidas"),
+    /// y este assert es el que impide que se vuelvan a separar.
     @Test func hirePricesFollowTheOwnersRule() throws {
         let economy = StandardEconomy(config: content.economy)
         let alley = content.floorTable[0]
@@ -280,31 +280,22 @@ struct GameContentValidationTests {
             let floor = content.floorTable[ordinal]
             let precio = content.economy.hireCost(floor: floor, tier: floor.firstTier, purchases: 0)
 
-            // 1) Lo que el PRECIO lleva: 600 × tapYield × incomeMultiplier del
-            //    piso. Esta parte de la regla no se movió.
-            let anclaDelPrecio = economy.tapYield(forTier: floor.firstTier) * floor.incomeMultiplier
-            #expect(abs(precio - 600 * anclaDelPrecio) < precio * 1e-12, "\(floor.id): \(precio) ≠ 600× \(anclaDelPrecio)")
-
-            // 2) Lo que RINDE un click ahí — el mismo factor que usa
-            //    `GameActions.applyTap`, no una copia de la fórmula vieja. En
-            //    clicks, el precio es 600 × incomeMultiplier, no 600.
+            // Lo que RINDE un click ahí, con el MISMO factor de piso que cobra
+            // `applyTap`. En clicks el precio es 600, en todos los pisos y para
+            // cualquier valor futuro de `tapFloorMultiplierExponent`.
             let click = economy.tapYield(forTier: floor.firstTier)
                 * content.economy.tapFloorMultiplier(for: floor)
             let clicks = precio / click
-            #expect(
-                abs(clicks - 600 * floor.incomeMultiplier) < clicks * 1e-9,
-                "\(floor.id): contratarlo son \(clicks) clicks"
-            )
+            #expect(abs(clicks - 600) < 1e-9, "\(floor.id): contratarlo son \(clicks) clicks, no 600")
         }
 
-        // El número que hay que mirarle a la cara antes de decidir: en el reino
-        // divino (incomeMultiplier 620) contratar el tier base son 372.000
-        // clicks, no 600. Es la consecuencia de `tapFloorMultiplierExponent: 0`
-        // y está pineada acá para que ningún cambio futuro la mueva sin ruido.
+        // El reino divino es donde más se notaría si las dos puntas se volvieran
+        // a separar: con el `incomeMultiplier` crudo en el precio serían 372.000
+        // clicks en vez de 600.
         let god = content.floorTable[content.floorTable.count - 1]
         let clicksEnDios = content.economy.hireCost(floor: god, tier: god.firstTier, purchases: 0)
             / (economy.tapYield(forTier: god.firstTier) * content.economy.tapFloorMultiplier(for: god))
-        #expect(abs(clicksEnDios - 372_000) < 1e-6, "clicks en \(god.id): \(clicksEnDios)")
+        #expect(abs(clicksEnDios - 600) < 1e-9, "clicks en \(god.id): \(clicksEnDios)")
     }
 
     @Test func towerFloorsMatchCalibratedLayout() throws {

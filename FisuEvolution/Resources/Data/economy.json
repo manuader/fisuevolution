@@ -17,7 +17,7 @@
     "maxLevel": 20
   },
   "oro": {
-    "divisor": 300000000000,
+    "divisor": 3000000000000,
     "exponent": 0.25,
     "globalMultiplierPerOro": 0.18
   },

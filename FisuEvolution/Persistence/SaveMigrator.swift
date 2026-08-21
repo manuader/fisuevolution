@@ -30,6 +30,38 @@ enum SaveMigrator {
         }
     }
 
+    /// Topes de las siete líneas ANTES y DESPUÉS del rebalance de pacing
+    /// (2026-08-21), que bajó `income` y `tap` de 20 niveles a 10 y `crit` de 25
+    /// a 10 con las magnitudes multiplicadas para que el efecto total no se
+    /// moviera. Las dos formas van hardcodeadas acá porque un migrador es, por
+    /// definición, una foto de un momento: leer el catálogo vigente haría que
+    /// esta conversión cambiara de significado con el próximo rebalance.
+    static let rebalanceLevelCaps: [String: (legacy: Int, actual: Int)] = [
+        "income": (20, 10), "tap": (20, 10), "crit": (25, 10),
+    ]
+
+    /// Reescala PROPORCIONALMENTE los niveles de un save v3 a los topes de hoy.
+    ///
+    /// Proporcional y no un clamp, y el motivo es concreto:
+    /// `GameState.awardEligibleMilestoneSkins` pregunta `nivel >= maxLevel`, y un
+    /// save v3 arranca con `milestoneSkins` vacío (se resetea unas líneas más
+    /// abajo). Con un clamp, cualquier save con `crit` ≥ 10 pasaría a contar como
+    /// "las siete al tope" y se llevaría las skins doradas de "ganarlo al
+    /// máximo" — y con la curva vieja (`3 × 2,5ⁿ`) llegar a crit 10 costaba
+    /// ~19.100 ORO de los 1,776e10 que valía maxear esa línea: el 0,0001 %.
+    ///
+    /// Así, `crit 25/25` → `10/10` conserva el logro del que sí maxeó y
+    /// `crit 10/25` → `4/10` no le regala nada al que no.
+    static func rescaleUpgradeLevelsForRebalance(_ levels: [String: Int]) -> [String: Int] {
+        var rescaled = levels
+        for (id, caps) in rebalanceLevelCaps {
+            guard let stored = levels[id] else { continue }
+            let escalado = Double(stored) / Double(caps.legacy) * Double(caps.actual)
+            rescaled[id] = min(caps.actual, max(0, Int(escalado.rounded())))
+        }
+        return rescaled
+    }
+
     /// v1 → v2: aparece `activeModifiers` (F4). Transformación por diccionario para
     /// no depender de un tipo `PlayerStateV1` congelado.
     private static func migrateV1toV2(_ data: Data) throws -> Data {
@@ -115,8 +147,8 @@ enum SaveMigrator {
             "oro": soulPoints,
             "oroEarnedLifetime": soulPoints,
             "prestigeLevel": old["prestigeLevel"] as? Int ?? 0,
-            // Mejoras globales ya compradas se convierten nivel a nivel.
-            "oroUpgradeLevels": old["upgradeLevels"] as? [String: Int] ?? [:],
+            // Mejoras globales ya compradas: reescaladas al catálogo de hoy.
+            "oroUpgradeLevels": rescaleUpgradeLevelsForRebalance(old["upgradeLevels"] as? [String: Int] ?? [:]),
             "derivedEffects": old["upgrades"] as? [String: Any] ?? [:],
             "globalMultiplier": old["globalMultiplier"] as? Double ?? 1.0,
             "ownedSpecials": old["ownedSpecials"] as? [String] ?? [],

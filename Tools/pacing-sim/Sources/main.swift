@@ -166,7 +166,11 @@ do {
         print("   ⚠️ SIN catálogo de mejoras permanentes: el bot no gasta ORO y")
         print("      derivedEffects viaja en cero. Pasá --upgrades <upgrades.json>.")
     }
-    print("\n-- Desbloqueo de pisos (activo / pared / entrar al piso / pico de compounding) --")
+    // "entrar" es lo que cuesta el tier base DE ESE PISO; "más comprado" es el
+    // tipo con más compras acumuladas de toda la run —casi siempre el del
+    // callejón—, que es donde se ve el compounding de `hireCostGrowth`. Son dos
+    // cosas distintas y la fila las separa a propósito.
+    print("\n-- Pisos: activo / pared / entrar al piso / el tipo más comprado de la run --")
     for (ordinal, floor) in floorTable.floors.enumerated() where ordinal > 0 {
         guard let wall = report.floorUnlockWallSeconds[floor.id],
               let active = report.floorUnlockActiveSeconds[floor.id]
@@ -185,8 +189,9 @@ do {
         // de su tier base vale 0 y `growth^0 = 1`—, y confundirlas fue el error
         // de la primera versión de esta métrica.
         let peakN = report.floorUnlockPeakHirePurchases[floor.id].map { String(format: "%4d", $0) } ?? "   —"
-        let peakS = report.floorUnlockPeakHireSeconds[floor.id].map { String(format: "%9.1f s", $0) } ?? "—"
-        print("  \(pad(floor.id, 10)) \(minutes(active))  \(hours(wall))  entrar \(cost)  ·  pico \(peakN) compras \(peakS)")
+        let peakS = report.floorUnlockPeakHireSeconds[floor.id].map { String(format: "%9.1f s", $0) } ?? "        —"
+        let peakT = report.floorUnlockPeakHireType[floor.id] ?? "—"
+        print("  \(pad(floor.id, 10)) \(minutes(active))  \(hours(wall))  entrar \(cost)  ·  más comprado \(pad(peakT, 12)) \(peakN) compras \(peakS)")
     }
 
     print("\n-- Hitos --")
@@ -264,11 +269,12 @@ do {
         for floor in floorTable.floors {
             guard let seconds = report.floorUnlockHireSeconds[floor.id] else { continue }
             rows.append("costo,\(floor.id)_hire_en_segundos,\(String(format: "%.2f", seconds)),s de income")
+            let peakType = report.floorUnlockPeakHireType[floor.id] ?? ""
             if let purchases = report.floorUnlockPeakHirePurchases[floor.id] {
-                rows.append("costo,\(floor.id)_pico_compras,\(purchases),compras del mismo tipo")
+                rows.append("costo,\(floor.id)_tipo_mas_comprado_de_la_run,\(peakType),\(purchases) compras")
             }
             if let peak = report.floorUnlockPeakHireSeconds[floor.id] {
-                rows.append("costo,\(floor.id)_pico_en_segundos,\(String(format: "%.2f", peak)),s de income")
+                rows.append("costo,\(floor.id)_proximo_del_mas_comprado_en_segundos,\(String(format: "%.2f", peak)),s de income")
             }
         }
         rows.append("hito,siete_al_tope_activo,\(report.maxedUpgradesActiveSeconds.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")

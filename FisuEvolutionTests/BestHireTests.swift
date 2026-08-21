@@ -101,8 +101,14 @@ struct BestHireTests {
         let gameState = await makeGameState()
         gameState.debugUnlockFloors(throughTier: 8)
         gameState.debugMarkTypesSeen(throughTier: 8)
-        // Entre el Chofer de App (1.873.589,50) y el Fast Food (9.442.891,09).
-        try giveCoins(9_000_000, to: gameState)
+        // Un peso menos que el Fast Food, DERIVADO de la config y no un literal:
+        // el rebalance de pacing cambió el factor de piso del precio y el
+        // 9.000.000 de antes pasó a alcanzar para el tier 8, con lo que el test
+        // medía lo contrario de lo que dice su nombre y seguía pareciendo válido.
+        let content = try #require(gameState.content)
+        let urban = content.floorTable[1]
+        let fastFood = content.economy.hireCost(floor: urban, tier: 8, purchases: 0)
+        try giveCoins(fastFood - 1, to: gameState)
         gameState.refreshProjections()
 
         let best = try #require(gameState.bestHire)

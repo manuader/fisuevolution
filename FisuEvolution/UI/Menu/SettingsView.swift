@@ -124,6 +124,7 @@ struct SettingsView: View {
         // pantalla de un viaje, no una hoja nueva encima de otra hoja.
         .navigationDestination(for: LegalDocument.Kind.self) { document in
             LegalView(document: document, close: close)
+                .clearNavigationBackdrop()
         }
         .alert("settings.restart.title", isPresented: $showRestartAlert) {
             Button("settings.restart.ok", role: .cancel) {}

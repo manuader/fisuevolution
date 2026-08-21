@@ -237,6 +237,18 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-08-21 — El telón de las empujadas
+
+Las cinco pantallas EMPUJADAS del menú (las cuatro de gabinete y los legales)
+mostraban un telón blanco donde todas las demás hojas muestran el juego
+atenuado: UIKit le pinta `systemBackground` al hosting controller de un destino
+empujado y el `.presentationBackground(.clear)` de la hoja no alcanza. Arreglo:
+`clearNavigationBackdrop()` (PanelFrames.swift) sobre el contenido de los dos
+`navigationDestination` — en iOS 18 la API, en 17 una sonda UIKit **que quedó
+sin verificar** (no hay runtime 17 instalado). Medido antes/después con
+píxeles de captura. Detalle en **`Docs/SESION-2026-08-21-telon-del-menu.md`**;
+la trampa es la 23.
+
 ### Sesión del 2026-08-19 — Oro y diamante para los 43
 
 **86 skins nuevas** (43 de oro macizo + 43 de diamante tallado), una por cada
@@ -1148,6 +1160,18 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     el runner miraba. Cuando el log no alcanza, agregale una línea al código en
     vez de inferir.
 
+### De SwiftUI (2026-08-21)
+
+23. **Una vista EMPUJADA en `NavigationStack` no hereda el telón transparente
+    de su hoja.** SÍNTOMA: la franja bajo la banda de madera (y todo lo que
+    rodea al panel) se ve blanca —gris 240 medido— en vez del juego atenuado,
+    sólo en pantallas empujadas. CAUSA: UIKit le pinta `systemBackground` al
+    hosting controller del destino; el `.presentationBackground(.clear)` de la
+    hoja no lo cubre. ARREGLO: `clearNavigationBackdrop()` (PanelFrames.swift)
+    sobre el contenido de cada `navigationDestination`. Ojo: el placement
+    `.navigation` de `containerBackground` es **iOS 18+** —verificado en la
+    swiftinterface del SDK—, por eso hay un fallback UIKit para 17.
+
 ## 8. Qué queda
 
 ### Lo que dejó el rediseño de UI (2026-08-16)
@@ -1410,6 +1434,7 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
+| **`SESION-2026-08-21-telon-del-menu.md`** | **El telón blanco de las pantallas empujadas del menú: la medición, el arreglo por versión de iOS y qué quedó sin verificar** |
 | **`SESION-2026-08-19-skins-oro-diamante.md`** | **Las 86 skins de material: el catálogo de un id por material, el desbloqueo de cada una y los tres bugs medidos del pipeline de generación** |
 | **`SESION-2026-08-18-recorte-de-fondo.md`** | **Por qué el recorte dejó de ser por saliencia, con la medición de los 219 assets y el criterio topológico que lo reemplazó** |
 | **`SESION-2026-08-17-rediseno-v3.md`** | **La sesión más reciente: los materiales v3 de las referencias, tarea por tarea, con la verificación y la trampa del cwd — y sus arcos del 2026-08-18, el tercero es la hoja contenida** |

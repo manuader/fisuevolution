@@ -75,12 +75,17 @@ struct MenuView: View {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
             .navigationDestination(for: Destination.self) { destination in
-                switch destination {
-                case .orgChart: OrgChartView(close: { dismiss() })
-                case .stats: StatsView(close: { dismiss() })
-                case .achievements: AchievementsView(close: { dismiss() })
-                case .settings: SettingsView(close: { dismiss() })
+                Group {
+                    switch destination {
+                    case .orgChart: OrgChartView(close: { dismiss() })
+                    case .stats: StatsView(close: { dismiss() })
+                    case .achievements: AchievementsView(close: { dismiss() })
+                    case .settings: SettingsView(close: { dismiss() })
+                    }
                 }
+                // Empujada, la vista pierde el telón transparente de la hoja:
+                // sin esto la franja de abajo se ve blanca y no el juego.
+                .clearNavigationBackdrop()
             }
         }
         // El chevron de "atrás" es de sistema y de fábrica sale azul: contra el

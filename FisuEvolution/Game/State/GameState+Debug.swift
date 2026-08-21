@@ -70,8 +70,9 @@ extension GameState {
     /// Los tests piden ORO y no monedas A PROPÓSITO: cuántas monedas hacen falta
     /// sale de `oro.divisor` y `oro.exponent`, que son knobs de balance. Un
     /// literal calibrado contra el divisor de ayer deja de significar lo mismo
-    /// mañana — el rebalance de pacing lo movió de 3e6 a 3e11 y dejó en rojo
-    /// nueve tests que creían estar pidiendo "suficiente para reencarnar".
+    /// mañana — el rebalance de pacing lo movió de 3e6 a 3e12 (pasó por 3e11 en
+    /// la ronda anterior) y dejó en rojo nueve tests que creían estar pidiendo
+    /// "suficiente para reencarnar".
     ///
     /// El margen es por el `floor()` de `oroTotal`: sin él, el error de punto
     /// flotante puede dejar el resultado un ORO por debajo del pedido.

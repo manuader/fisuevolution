@@ -344,8 +344,14 @@ public struct PacingSimulator: Sendable {
         let candidates = tiers.concreteTypes.filter { $0.tier == floor.firstTier }
         guard let type = candidates.first(where: { $0.id.hasSuffix(careerPath) }) ?? candidates.sorted(by: { $0.id < $1.id }).first
         else { return nil }
-        // `now: 0` alcanza: el bot no tiene modificadores temporales ni descuento
-        // permanente de prestigio, así que los dos factores valen 1.
+        // `now: 0` alcanza porque el bot no tiene modificadores temporales: el
+        // factor de `ModifierMath` vale 1 y no mira el reloj.
+        //
+        // ⚠️ El TERCER factor del quote —`1 − derivedEffects.spawnDiscount`— SÍ
+        // varía desde que el bot compra mejoras permanentes: la línea `spawn`
+        // llega a 0,30 y le abarata las contrataciones un 30 %. Que entre está
+        // bien (el jugador la tiene igual), pero ya no es un factor neutro, y
+        // darlo por 1 es leer el precio del bot como si fuera el de catálogo.
         guard let quote = TowerActions.hireQuote(
             typeId: type.id, state: state, config: config,
             floorTable: floorTable, tiers: tiers
@@ -483,6 +489,21 @@ public struct PacingSimulator: Sendable {
 
     /// La línea no-maxeada más barata que el ORO alcanza. Empates por `id`, para
     /// que la corrida siga siendo determinística.
+    /// La más barata que el bot puede pagar AHORA.
+    ///
+    /// ⚠️ **El filtro y el orden no miran el mismo número, y es deuda declarada.**
+    /// El filtro usa `oroPrice` —el entero redondeado para arriba que la app
+    /// cobra de verdad— y el `min` ordena por el `Double` crudo, así que entre
+    /// dos líneas que la app cobra IGUAL (dos precios distintos que redondean al
+    /// mismo entero) el bot prefiere la de fracción más chica, una diferencia
+    /// que el juego nunca cobra.
+    ///
+    /// Se deja como está a propósito: unificar los dos en `oroPrice` está
+    /// medido y **no mueve ninguna de las cuatro métricas** (maxear 24,00 h · 8
+    /// reencarnaciones · dios 470,26 h de pared · la cadencia entera), pero SÍ
+    /// mueve la conducta —el `lifetimeEarnings` final pasa de 2,440e26 a
+    /// 2,349e26—, o sea que es un cambio de comportamiento del bot y le
+    /// corresponde su propio test, no un arreglo de paso en la tarea de cierre.
     private func cheapestAffordableUpgrade(state: PlayerState) -> PermanentUpgradeLine? {
         permanentUpgrades
             .filter { line in

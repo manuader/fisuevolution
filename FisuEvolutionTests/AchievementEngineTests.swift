@@ -387,7 +387,7 @@ struct AchievementEngineTests {
 
     /// Cobrar es una decisión del jugador, no un tiro del reloj: si el premio
     /// cotizara los modificadores temporales, guardarse los 27 logros para el
-    /// próximo Plan Platita pagaría ×5 por esperar. El Aguinaldo puede mirarlos
+    /// próximo Plan Platita pagaría ×3 por esperar. El Aguinaldo puede mirarlos
     /// porque el que elige el momento es el juego; acá no.
     @Test("un evento de income no infla el premio del logro")
     func coinRewardIgnoresTemporaryModifiers() async throws {
@@ -398,9 +398,13 @@ struct AchievementEngineTests {
                 player.run.units["homeless"] = 4
                 player.run.passiveUnlocked["homeless"] = true
                 if withEvent {
+                    // La magnitud del Plan Platita REAL (`events.json`): era 5
+                    // y la dosificación de premios/eventos la bajó a 3. El test
+                    // pasa con cualquier magnitud ≠ 1, pero un fixture que dice
+                    // llamarse como un evento tiene que cotizar como él.
                     player.run.activeModifiers.append(ActiveModifier(
                         effect: .incomeMultiplier,
-                        magnitude: 5,
+                        magnitude: 3,
                         expiresAt: .greatestFiniteMagnitude,
                         sourceKey: "event.plan_platita"
                     ))

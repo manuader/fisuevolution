@@ -421,7 +421,7 @@ extension GameState {
     ///
     /// 1. **Los modificadores temporales no cotizan.** Cobrar es una decisión
     ///    del jugador, no un tiro del reloj: si el premio los mirara, guardarse
-    ///    los 27 logros para el próximo Plan Platita pagaría ×5 por esperar. El
+    ///    los 27 logros para el próximo Plan Platita pagaría ×3 por esperar. El
     ///    Aguinaldo sí puede mirarlos porque el momento lo elige el juego.
     /// 2. **Piso: el rinde de catálogo de UN personaje del tier de referencia.**
     ///    Al arrancar —o al volver de reencarnar, antes del primer pasivo— la

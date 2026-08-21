@@ -818,9 +818,11 @@ calibrar contra el bot viejo era tunear contra una ficción
 
 1. **No compraba ninguna de las siete mejoras permanentes con ORO.** Todo
    `meta.derivedEffects` viajaba en cero durante la simulación entera: sin el
-   `tap +5,0` ni el `income +3,0` que el jugador real tiene maxeados —de hecho
-   maxearlas ES ganar—, sin `offline`, sin `spawnCostDiscount` y sin
-   `prestigeBonus`.
+   **tap ×6,0** ni el **income ×3,0** que el jugador real tiene maxeados —de
+   hecho maxearlas ES ganar—, sin `offline`, sin `spawnCostDiscount` y sin
+   `prestigeBonus`. (Los dos como MULTIPLICADOR: las líneas suman —`tap` 10 ×
+   0,5 = +5,0 sobre la base 1,0—, y la primera versión de esta entrada escribía
+   uno de cada forma.)
 2. **Tapeaba 3 veces por segundo**, el techo conservador que F2 le había
    heredado a `balance-sim`. Ahora tapea **6/s**, el medio del rango 5-8 que un
    humano sostiene en ráfaga.
@@ -834,6 +836,12 @@ siete líneas al tope, o sea hasta las skins doradas.
 ## Las tres corridas, lado a lado
 
 `--max-days 400`, mismos JSON. La del medio aísla cuánto pesa el tapeo solo.
+
+> **Cómo se reproduce la columna del medio.** `pacing-sim` resuelve
+> `upgrades.json` solo cuando no se lo pasan, así que no alcanza con omitir la
+> flag: hay que apuntarle a un catálogo VACÍO —`{"schemaVersion": 1,
+> "upgrades": []}`— con `--upgrades`. Con la lista vacía el bot no compra
+> ninguna línea y la salida lo dice.
 
 | | modelo VIEJO (3 taps/s, sin mejoras) | sólo 6 taps/s | modelo NUEVO (6 taps/s + 7 mejoras) |
 |---|---|---|---|
@@ -945,7 +953,7 @@ pidió ("cada una un hito que se prepara y se nota"). El CSV está en
 | knob | antes | después | qué movió (medido, sólo ese knob) |
 |---|---|---|---|
 | `tapFloorMultiplierExponent` | — (=1) | **0** | maxear 15,49 → **24,67 h**; el click del tier alto deja de financiar el piso siguiente |
-| `EconomyConfig.hireCost`: el factor de piso | `floor.incomeMultiplier` | **`tapFloorMultiplier(for:)`** | contratar el tier base vuelve a costar **600 clicks** en los diez pisos (con el crudo eran 372.000 en el reino divino) |
+| `EconomyConfig.hireCost`: el factor de piso | `floor.incomeMultiplier` | **`tapFloorMultiplier(for:)`** | contratar el tier base vuelve a costar **600 clicks** en los NUEVE pisos de arriba (el callejón overridea el multiplicador a 25 y su Fisura sale 25 clicks, decisión aparte del dueño); con el crudo eran 372.000 en el reino divino |
 | `hire.defaultCostGrowth` | 1,2 | **1,06** | **decide si la torre es escalable**: con 1,2 la run se traba en el tier 11 y la partida no se termina |
 | `oro.divisor` · `oro.exponent` | 3e6 · 0,45 | **3e12 · 0,25** | **cierra la divergencia costos-vs-ingresos**: entrar a luxury pasa de 0,0 s a 100,0 s de income. Y la 1ª reencarnación de 0,17 a 3,67 h activas |
 | `upgrades.json` | crit = 99,99 % | 7 líneas de 21-37 ORO | 34 → **8** reencarnaciones |
@@ -977,7 +985,7 @@ Mide la divergencia costos-vs-ingresos, y **la explica la curva de ORO**, no el
 `defaultCostGrowth`. A/B con `growth` fijo en 1,06 y `tapFloorMultiplierExponent`
 en 0 en las dos columnas; lo único que cambia es `oro`:
 
-| piso | ORO 3e6 / 0,45 (vieja) | ORO 3e11 / 0,25 (nueva) |
+| piso | ORO 3e6 / 0,45 (vieja) | ORO 3e11 / 0,25 (la de esta ronda) |
 |---|---:|---:|
 | urban | 200,0 s | 200,0 s |
 | corporate | 419,7 s | 419,7 s |
@@ -992,6 +1000,10 @@ en 0 en las dos columnas; lo único que cambia es `oro`:
 Con la curva vieja el multiplicador se desborda y del cuarto piso en adelante
 entrar es literalmente gratis; con la nueva sigue costando plata hasta galaxy.
 **El arreglo de la divergencia es la curva de ORO.**
+
+⚠️ **El 3e11 de esta tabla NO es el divisor que quedó embarcado.** La salida (a)
+lo subió después a **3e12** (ver "Las tres salidas"); la columna se deja con su
+número porque es el A/B que se corrió ese día, no el estado final del árbol.
 
 ### Serie 2 — el compounding (pico de compras del mismo tipo · la siguiente)
 
@@ -1015,6 +1027,11 @@ ORO nueva, mismo catálogo, tap en 0 en las dos— y sólo el growth cambiando:
 Con el 20 % por compra la partida **no se puede terminar**. Con el 6 % la misma
 economía se juega entera. El growth no explica la serie de entrada: explica **si
 la torre es escalable**.
+
+⚠️ **Las 25,33 h de esta tabla son PRE-(a)**: salieron del árbol con el precio
+todavía llevando el `incomeMultiplier` crudo, o sea la salida (c). El número
+final, con (a) aplicada, es **24,00 h** (ver "Las tres salidas"). La columna se
+deja como se midió porque lo que este A/B compara es el growth, no la salida.
 
 ## Lo que se descartó, con su número
 
@@ -1043,7 +1060,8 @@ cierra) y habría agregado una fórmula nueva sin resolver lo que (b) no resuelv
 **La salida elegida son DOS knobs con dos efectos distintos**, y la primera
 versión de esta entrada los había fundido en uno:
 
-- **La curva de ORO (`divisor` 3e6 → 3e11, `exponent` 0,45 → 0,25) cierra la
+- **La curva de ORO (`divisor` 3e6 → 3e11, y después a 3e12 con la salida (a);
+  `exponent` 0,45 → 0,25) cierra la
   divergencia**: acota la escala del multiplicador global y con eso entrar a un
   piso vuelve a costar segundos de income en vez de cero (serie 1).
 - **`hire.defaultCostGrowth` (1,2 → 1,06) hace la torre escalable** con un
@@ -1085,7 +1103,7 @@ por casualidad, no por construcción. Con las dos puntas sueltas:
 
 | piso | `incomeMultiplier` | contratar el tier base, en clicks |
 |---|---:|---:|
-| alley | 1 | 600 |
+| alley | 1 | 25 (override del piso) |
 | corporate | 4,2 | 2.520 |
 | luxury | 8,5 | 5.100 |
 | **god_realm** | **620** | **372.000** |
@@ -1097,7 +1115,7 @@ click**: exactamente "un test que cambió de significado y quedó verde".
 
 | | maxear las 7 | reenc | Dios (activo) | la regla | serie de entrada (s de income) |
 |---|---|---|---|---|---|
-| **(a)** el precio usa el mismo factor de piso que el click (`tapFloorMultiplier`) + `oro.divisor` 3e12 | **24,00 h** ✅ | **8** ✅ | **26,59 h** ✅ | **vale literal**: 600 clicks en los diez pisos, para cualquier exponente futuro | 100 · 99,8 · 100,0 · 73,5 · 48,2 · 4,8 · 1,5 · 0,1 · 0,0 |
+| **(a)** el precio usa el mismo factor de piso que el click (`tapFloorMultiplier`) + `oro.divisor` 3e12 | **24,00 h** ✅ | **8** ✅ | **26,59 h** ✅ | **vale literal**: 600 clicks en los nueve pisos de arriba (el callejón, 25 por override), para cualquier exponente futuro | 100 · 99,8 · 100,0 · 73,5 · 48,2 · 4,8 · 1,5 · 0,1 · 0,0 |
 | **(b)** devolverle al tap el multiplicador de piso (exponente 1) | 15,26 h ❌ | 9 ❌ | 20,32 h | vale como siempre | 100 · 100 · 84,7 · 48,4 · 9,2 · 0,1 · 0,0 · 0,0 · 0,0 |
 | **(c)** dejarlo y re-enunciar la regla | 25,33 h ✅ | 8 ✅ | 30,33 h ✅ | **cambia de significado**: 600 × `incomeMultiplier` clicks | 200 · 419,7 · 720,1 · 823,6 · 270,1 · 8,0 · 4,2 · 9,8 · 0,9 |
 
@@ -1114,7 +1132,9 @@ largo (25,33 → 24,00) y una serie de entrada que se apaga un piso antes.
 
 Lo pinea `hirePricesFollowTheOwnersRule`, que ahora mide **en clicks** —con el
 mismo `tapFloorMultiplier` que cobra `applyTap`, no una copia de la fórmula— y
-asserta 600 en los diez pisos.
+asserta 600 en los nueve pisos de arriba. El callejón va aparte y con su propio
+assert: su `hireCostMultiplierOverride` es 25, así que el primer Fisura sale 25
+clicks y no 600. "Los diez pisos" era la forma corta y estaba mal.
 
 ## Las siete líneas
 

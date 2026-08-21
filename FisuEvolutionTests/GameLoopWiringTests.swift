@@ -526,7 +526,7 @@ struct GameLoopWiringTests {
         #expect(gameState.activeSkinID(forCharacterType: "cartonero") == nil)
 
         // El gate es ≥1 ORO. Antes se llegaba sumando `debugGrantCoins()` hasta
-        // 64 veces; con el divisor del rebalance (3e11) esa suma ya no alcanza,
+        // 64 veces; con el divisor del rebalance (3e12) esa suma ya no alcanza,
         // así que se pide el ORO derivado de la config y no monedas a ojo.
         gameState.giveEarningsForPrestigeTesting()
         #expect(gameState.prestigeAvailable)
@@ -577,7 +577,7 @@ struct GameLoopWiringTests {
         #expect((gameState.player?.run.coins ?? coinsBeforeCharacterUpgrade) < coinsBeforeCharacterUpgrade)
         // Gate: reencarnar ⟺ ganar ≥1 ORO ⟺ lifetimeEarnings alcanza el divisor.
         // El gate es ≥1 ORO. Antes se llegaba sumando `debugGrantCoins()` hasta
-        // 64 veces; con el divisor del rebalance (3e11) esa suma ya no alcanza,
+        // 64 veces; con el divisor del rebalance (3e12) esa suma ya no alcanza,
         // así que se pide el ORO derivado de la config y no monedas a ojo.
         gameState.giveEarningsForPrestigeTesting()
         #expect(gameState.prestigeAvailable)
@@ -607,7 +607,7 @@ struct GameLoopWiringTests {
         let baseCost = try #require(gameState.spawnQuote?.cost)
 
         // El gate es ≥1 ORO. Antes se llegaba sumando `debugGrantCoins()` hasta
-        // 64 veces; con el divisor del rebalance (3e11) esa suma ya no alcanza,
+        // 64 veces; con el divisor del rebalance (3e12) esa suma ya no alcanza,
         // así que se pide el ORO derivado de la config y no monedas a ojo.
         gameState.giveEarningsForPrestigeTesting()
         gameState.confirmPrestige()

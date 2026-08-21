@@ -85,10 +85,15 @@ private func upSimulator(upgrades: [PermanentUpgradeLine] = []) throws -> Pacing
 // MARK: - Tests
 
 /// El bot compra las siete mejoras permanentes con ORO. Sin esto todo
-/// `derivedEffects` viajaba en cero durante la simulación entera —le faltaban
-/// el `tap +5,0` y el `income +3,0` que el jugador real sí tiene— y calibrar
+/// `derivedEffects` viajaba en cero durante la simulación entera —le faltaban el
+/// **tap ×6,0** y el **income ×3,0** que el jugador real sí tiene— y calibrar
 /// knobs contra ese bot era tunear contra una ficción
 /// (`Docs/PROMPT-rebalance-pacing.md` §2.2).
+///
+/// Los dos números van como MULTIPLICADOR y no como sumando a propósito: las
+/// líneas suman (`tap` 10 × 0,5 = +5,0 sobre una base de 1,0), y escribir uno de
+/// cada forma —"tap +5,0" y "income +3,0"— mezclaba las unidades en la misma
+/// frase.
 @Suite("PacingSimulator: las mejoras permanentes")
 struct PacingSimulatorUpgradeTests {
     @Test("el bot gasta el ORO de la reencarnación en mejoras permanentes")
@@ -228,9 +233,16 @@ struct PacingSimulatorInstrumentTests {
         let peaks = report.floorUnlockPeakHirePurchases
         #expect(!peaks.isEmpty)
         #expect(peaks.values.contains { $0 > 0 }, "el bot compró algo: \(peaks)")
-        // Determinístico: dos corridas de la misma economía tienen que elegir el
-        // MISMO tipo. Sin desempate por `id` el orden de un `Dictionary` cambia
-        // por proceso y esta serie sería ruido con forma de dato.
+        // Dos corridas de la misma economía eligen el MISMO tipo.
+        //
+        // ⚠️ Y lo que este assert NO puede probar es lo que su versión anterior
+        // decía probar: el seed de hashing de `Dictionary` es POR PROCESO, así
+        // que dos corridas adentro del mismo test recorren el diccionario en el
+        // mismo orden aunque el desempate no existiera. Lo que descarta el seed
+        // es el `sorted` de `peakHire` —empate de compras se rompe por `key`
+        // ascendente, no por orden de iteración—, y eso se lee en el código, no
+        // acá. Lo que este test sí atrapa es una corrida que dependa de estado
+        // mutable compartido entre instancias del simulador.
         let otra = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
         #expect(otra.floorUnlockPeakHireType == report.floorUnlockPeakHireType)
         #expect(otra.floorUnlockPeakHirePurchases == peaks)

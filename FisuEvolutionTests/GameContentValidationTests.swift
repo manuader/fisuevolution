@@ -296,11 +296,16 @@ struct GameContentValidationTests {
 
     /// La regla en números concretos, contra el contenido real.
     ///
-    /// La regla del dueño —"el tier base de un piso superior cuesta 600 veces lo
-    /// que rinde un click suyo ahí"— **vale literal en los diez pisos**, y este
-    /// test la mide en CLICKS y no replicando la fórmula del precio: el factor
-    /// de piso sale de `tapFloorMultiplier(for:)`, el mismo que cobra
-    /// `GameActions.applyTap`.
+    /// La regla del dueño —"el tier base de un piso SUPERIOR cuesta 600 veces lo
+    /// que rinde un click suyo ahí"— **vale literal en los nueve pisos de
+    /// arriba**, y este test la mide en CLICKS y no replicando la fórmula del
+    /// precio: el factor de piso sale de `tapFloorMultiplier(for:)`, el mismo
+    /// que cobra `GameActions.applyTap`.
+    ///
+    /// El callejón queda afuera del loop y con su propio assert porque no es una
+    /// excepción sino OTRA decisión del dueño: `hireCostMultiplierOverride: 25`
+    /// ancla al primer Fisura en 25 monedas, o sea 25 clicks. "Los diez pisos"
+    /// era la forma corta y estaba mal.
     ///
     /// Que sea en clicks no es cosmético. Cuando el rebalance le sacó al tap el
     /// multiplicador de piso, el precio lo seguía llevando crudo y contratar el

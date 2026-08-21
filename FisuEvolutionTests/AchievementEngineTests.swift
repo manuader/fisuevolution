@@ -334,9 +334,99 @@ struct AchievementEngineTests {
         #expect(state.player?.meta.claimedAchievements.isEmpty == true)
     }
 
-    /// El premio en monedas es un FACTOR sobre `passiveUnlockCost(maxTier)`, no
-    /// un número escrito: cobrarlo tarde paga más, igual que el cofre del Asado.
-    @Test("el premio en monedas escala con el tier máximo alcanzado")
+    /// El premio en monedas son **segundos de tu producción** (el molde del
+    /// Aguinaldo), no un múltiplo de un costo: dos jugadores parados en el mismo
+    /// tier pero con torres distintas cobran distinto, y en la proporción exacta
+    /// de lo que cada torre produce.
+    @Test("el premio en monedas escala con lo que produce la torre")
+    func coinRewardScalesWithTowerProduction() async throws {
+        let content = try GameContentLoader.load(from: .main)
+        let producer = content.tiers.baseType.id
+
+        func gain(units: Int) async -> Double {
+            let state = await makeState {
+                $0.meta.stats.totalMergesEver = 1
+                // Tier de referencia 1: el piso mínimo del premio es un solo
+                // personaje, así que lo que manda es la torre y no el piso.
+                $0.run.maxTierReached = 1
+                $0.meta.stats.maxFloorOrdinalEver = 0
+                $0.run.units[producer] = units
+                $0.run.passiveUnlocked[producer] = true
+            }
+            state.evaluateAchievements()
+            let before = state.player?.run.coins ?? 0
+            state.claimAchievement(id: "ach_merges_1")
+            return (state.player?.run.coins ?? 0) - before
+        }
+
+        let small = await gain(units: 2)
+        let big = await gain(units: 8)
+        #expect(small > 0)
+        #expect(abs(big - small * 4) < big * 1e-9, "cuatro veces la torre, cuatro veces el premio")
+    }
+
+    /// El caso que convierte el molde nuevo en un bug si no se lo atiende: al
+    /// arrancar —o después de reencarnar, antes de comprar el primer pasivo— la
+    /// producción es CERO, y `producción × segundos` sería un logro que no paga
+    /// nada. El piso es un personaje del tier de referencia produciendo solo.
+    @Test("con la torre sin producir, el premio sigue pagando")
+    func coinRewardNeverPaysZero() async throws {
+        let state = await makeState { $0.meta.stats.totalMergesEver = 1 }
+        #expect(state.player?.run.passiveUnlocked.isEmpty == true, "arranque sin un solo pasivo comprado")
+        state.evaluateAchievements()
+
+        let before = state.player?.run.coins ?? 0
+        state.claimAchievement(id: "ach_merges_1")
+        let gain = (state.player?.run.coins ?? 0) - before
+
+        let economy = try #require(state.economy)
+        let content = try GameContentLoader.load(from: .main)
+        let lonelyWorker = economy.passiveYield(forTier: 1) * content.floorTable.floor(forTier: 1).incomeMultiplier
+        #expect(abs(gain - lonelyWorker * (try Self.seconds(of: "ach_merges_1"))) < gain * 1e-9)
+        #expect(gain > 0)
+    }
+
+    /// Cobrar es una decisión del jugador, no un tiro del reloj: si el premio
+    /// cotizara los modificadores temporales, guardarse los 27 logros para el
+    /// próximo Plan Platita pagaría ×5 por esperar. El Aguinaldo puede mirarlos
+    /// porque el que elige el momento es el juego; acá no.
+    @Test("un evento de income no infla el premio del logro")
+    func coinRewardIgnoresTemporaryModifiers() async throws {
+        func gain(withEvent: Bool) async -> Double {
+            let state = await makeState { player in
+                player.meta.stats.totalMergesEver = 1
+                player.run.maxTierReached = 1
+                player.run.units["homeless"] = 4
+                player.run.passiveUnlocked["homeless"] = true
+                if withEvent {
+                    player.run.activeModifiers.append(ActiveModifier(
+                        effect: .incomeMultiplier,
+                        magnitude: 5,
+                        expiresAt: .greatestFiniteMagnitude,
+                        sourceKey: "event.plan_platita"
+                    ))
+                }
+            }
+            state.evaluateAchievements()
+            let before = state.player?.run.coins ?? 0
+            state.claimAchievement(id: "ach_merges_1")
+            return (state.player?.run.coins ?? 0) - before
+        }
+
+        let plain = await gain(withEvent: false)
+        let boosted = await gain(withEvent: true)
+        #expect(plain > 0)
+        #expect(abs(boosted - plain) < plain * 1e-9, "el banner de turno no cotiza el premio")
+    }
+
+    /// El PISO del premio (lo que paga con la torre sin producir) sale del tier
+    /// de referencia, así que sigue creciendo con el progreso.
+    ///
+    /// ⚠️ Este test antes pineaba `passiveUnlockCost(maxTier) × factor`. Cambió
+    /// de significado con el molde nuevo —el premio ya no cotiza un costo— y por
+    /// eso se reescribe en vez de borrarse: lo que se conserva es la propiedad
+    /// que le importaba al jugador (cobrarlo más arriba paga más).
+    @Test("el piso del premio en monedas escala con el tier máximo alcanzado")
     func coinRewardScalesWithMaxTier() async throws {
         let low = await makeState {
             $0.meta.stats.totalMergesEver = 1
@@ -357,9 +447,13 @@ struct AchievementEngineTests {
         let highGain = (high.player?.run.coins ?? 0) - highBefore
 
         #expect(highGain > lowGain)
-        // El factor del catálogo, exacto: 2× el costo de pasivo del tier máximo.
+        // El número del catálogo, exacto: un trabajador del tier 12 produciendo
+        // solo, por los segundos que paga el logro.
         let economy = try #require(high.economy)
-        let expected = economy.passiveUnlockCost(forTier: 12) * 2.0
+        let content = try GameContentLoader.load(from: .main)
+        let expected = economy.passiveYield(forTier: 12)
+            * content.floorTable.floor(forTier: 12).incomeMultiplier
+            * (try Self.seconds(of: "ach_merges_1"))
         #expect(abs(highGain - expected) < expected * 1e-9)
     }
 
@@ -391,10 +485,13 @@ struct AchievementEngineTests {
         let gain = (state.player?.run.coins ?? 0) - before
 
         let economy = try #require(state.economy)
-        let expected = economy.passiveUnlockCost(forTier: content.floorTable[ordinal].firstTier) * 2.0
+        let referenceTier = content.floorTable[ordinal].firstTier
+        let expected = economy.passiveYield(forTier: referenceTier)
+            * content.floorTable.floor(forTier: referenceTier).incomeMultiplier
+            * (try Self.seconds(of: "ach_merges_1"))
         #expect(abs(gain - expected) < expected * 1e-9, "el suelo es el primer tier del piso más alto de su vida")
         // Y no es una diferencia cosmética: cobrarlo como T1 pagaba ~1e13 veces menos.
-        #expect(gain > economy.passiveUnlockCost(forTier: 1) * 2.0 * 1_000_000)
+        #expect(gain > economy.passiveYield(forTier: 1) * 1_000_000)
     }
 
     /// La fila cotiza con el MISMO tier con el que después paga el cobro: si no,
@@ -505,23 +602,23 @@ struct AchievementEngineTests {
     @Test("una recompensa mal formada rompe la carga")
     func validationRejectsMalformedReward() throws {
         let content = try GameContentLoader.load(from: .main)
-        // `coins` sin `factor`: pagaría cero para siempre, en silencio.
-        let sinFactor = Self.config(reward: .init(kind: "coins", factor: nil, amount: 30, boostId: nil))
+        // `coins` sin `seconds`: pagaría cero para siempre, en silencio.
+        let sinFactor = Self.config(reward: .init(kind: "coins", seconds: nil, amount: 30, boostId: nil))
         #expect(throws: GameError.self) {
             try GameContentLoader.validate(achievements: sinFactor, floorTable: content.floorTable, boosts: content.boosts)
         }
         // `oro` sin `amount`.
-        let sinAmount = Self.config(reward: .init(kind: "oro", factor: 2, amount: nil, boostId: nil))
+        let sinAmount = Self.config(reward: .init(kind: "oro", seconds: 2, amount: nil, boostId: nil))
         #expect(throws: GameError.self) {
             try GameContentLoader.validate(achievements: sinAmount, floorTable: content.floorTable, boosts: content.boosts)
         }
         // Un kind que no existe.
-        let kindRaro = Self.config(reward: .init(kind: "chapita", factor: nil, amount: 1, boostId: nil))
+        let kindRaro = Self.config(reward: .init(kind: "chapita", seconds: nil, amount: 1, boostId: nil))
         #expect(throws: GameError.self) {
             try GameContentLoader.validate(achievements: kindRaro, floorTable: content.floorTable, boosts: content.boosts)
         }
         // `freeBoost` apuntando a un boost que no existe.
-        let boostFantasma = Self.config(reward: .init(kind: "freeBoost", factor: nil, amount: nil, boostId: "no_existe"))
+        let boostFantasma = Self.config(reward: .init(kind: "freeBoost", seconds: nil, amount: nil, boostId: "no_existe"))
         #expect(throws: GameError.self) {
             try GameContentLoader.validate(achievements: boostFantasma, floorTable: content.floorTable, boosts: content.boosts)
         }
@@ -575,10 +672,17 @@ struct AchievementEngineTests {
         return content.tiers.concreteTypes.map(\.id).filter { !branchTypes.contains($0) }
     }
 
+    /// Los segundos que el catálogo REAL le paga a un logro: clavarlos en el
+    /// test convertiría cada recalibración de `achievements.json` en un rojo.
+    private static func seconds(of id: String) throws -> Double {
+        let content = try GameContentLoader.load(from: .main)
+        return try #require(content.achievements.achievements.first { $0.id == id }?.reward.seconds)
+    }
+
     private static func achievement(
         id: String = "ach_test",
         trigger: AchievementsConfig.Trigger = .init(type: "totalMerges", value: 1, floorId: nil),
-        reward: AchievementsConfig.Reward = .init(kind: "coins", factor: 2, amount: nil, boostId: nil)
+        reward: AchievementsConfig.Reward = .init(kind: "coins", seconds: 30, amount: nil, boostId: nil)
     ) -> AchievementsConfig.Achievement {
         AchievementsConfig.Achievement(
             id: id,
@@ -592,7 +696,7 @@ struct AchievementEngineTests {
 
     private static func config(
         trigger: AchievementsConfig.Trigger = .init(type: "totalMerges", value: 1, floorId: nil),
-        reward: AchievementsConfig.Reward = .init(kind: "coins", factor: 2, amount: nil, boostId: nil)
+        reward: AchievementsConfig.Reward = .init(kind: "coins", seconds: 30, amount: nil, boostId: nil)
     ) -> AchievementsConfig {
         AchievementsConfig(schemaVersion: 1, achievements: [achievement(trigger: trigger, reward: reward)])
     }

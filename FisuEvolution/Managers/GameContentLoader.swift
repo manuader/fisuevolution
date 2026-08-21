@@ -147,8 +147,8 @@ enum GameContentLoader {
             }
             switch reward {
             case .coins:
-                guard let factor = achievement.reward.factor, factor > 0 else {
-                    throw fail("\(achievement.id): coins necesita factor > 0")
+                guard let seconds = achievement.reward.seconds, seconds > 0 else {
+                    throw fail("\(achievement.id): coins necesita seconds > 0")
                 }
             case .oro:
                 guard let amount = achievement.reward.amount, amount > 0 else {

@@ -262,8 +262,9 @@ struct AchievementsConfig: Codable, Sendable, Equatable {
 
     /// Las tres formas de pagar un logro.
     enum RewardKind: String, Sendable, CaseIterable {
-        /// `factor` × `passiveUnlockCost(tier máximo)`, igual que el cofre del
-        /// Asado: cobrarlo tarde paga más y nunca queda ridículo.
+        /// `seconds` × lo que la torre produce por segundo, igual que el
+        /// Aguinaldo: el premio es **tiempo de tu producción de hoy**, así que
+        /// nunca queda ni de lingote ni de polvo (ver `GameState.coinReward`).
         case coins
         /// `amount` de ORO al BALANCE. Nunca a `oroEarnedLifetime`.
         case oro
@@ -281,7 +282,12 @@ struct AchievementsConfig: Codable, Sendable, Equatable {
 
     struct Reward: Codable, Sendable, Equatable {
         let kind: String
-        let factor: Double?
+        /// Sólo `coins`: **cuántos segundos de la producción actual** paga el
+        /// logro. Se llamaba `factor` y multiplicaba un COSTO, que no veía ni el
+        /// multiplicador global ni las char upgrades: el premio era un lingote
+        /// temprano y polvo tarde. Ahora la unidad es la del Aguinaldo y el
+        /// nombre lo dice.
+        let seconds: Double?
         let amount: Int?
         let boostId: String?
 

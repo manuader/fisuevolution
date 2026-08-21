@@ -258,11 +258,9 @@ extension GameState {
 
         switch kind {
         case .coins:
-            // Mismo cálculo que el cofre del Asado y el premio de la carrera: un
-            // factor sobre lo que cuesta el pasivo del tier de referencia, así el
-            // premio nunca queda ridículo por cobrarlo tarde.
-            let chest = economy.passiveUnlockCost(forTier: Self.rewardTier(player: player, content: content))
-                * (achievement.reward.factor ?? 0)
+            let chest = Self.coinReward(
+                seconds: achievement.reward.seconds ?? 0, player: player, content: content, economy: economy
+            )
             player.run.coins += chest
             player.meta.lifetimeEarnings += chest
             audio?.play(.coin)
@@ -393,10 +391,10 @@ extension GameState {
     ) -> String {
         switch reward.rewardKind {
         case .coins:
-            // El MISMO tier que va a usar `claimAchievement`: si la fila cotizara
-            // por un lado y el cobro pagara por otro, la pantalla mentiría.
-            let chest = economy.passiveUnlockCost(forTier: rewardTier(player: player, content: content))
-                * (reward.factor ?? 0)
+            // La MISMA cuenta que va a hacer `claimAchievement`: si la fila
+            // cotizara por un lado y el cobro pagara por otro, la pantalla
+            // mentiría.
+            let chest = coinReward(seconds: reward.seconds ?? 0, player: player, content: content, economy: economy)
             return String(localized: "ach.reward.coins \(CoinFormatter.string(from: chest))")
         case .oro:
             return String(localized: "ach.reward.oro \(String(reward.amount ?? 0))")
@@ -410,13 +408,61 @@ extension GameState {
         }
     }
 
-    /// Con qué tier se cotiza un premio en monedas.
+    /// Cuántas monedas paga un logro de `coins`: **segundos de tu producción**,
+    /// el mismo molde que el Aguinaldo (`ContentSystems.apply(event:)`, caso
+    /// `.bonusCoins`). El premio anterior era un múltiplo de
+    /// `passiveUnlockCost`, un COSTO que no ve el multiplicador global ni las
+    /// char upgrades ni el multiplicador de piso: pagaba un lingote temprano y
+    /// polvo tarde, que es justo lo contrario de "acorde a la plata que podés
+    /// tener en ese momento".
+    ///
+    /// Dos correcciones sobre `passivePerSecond` a secas, y las dos son la
+    /// diferencia entre un premio y un bug:
+    ///
+    /// 1. **Los modificadores temporales no cotizan.** Cobrar es una decisión
+    ///    del jugador, no un tiro del reloj: si el premio los mirara, guardarse
+    ///    los 27 logros para el próximo Plan Platita pagaría ×5 por esperar. El
+    ///    Aguinaldo sí puede mirarlos porque el momento lo elige el juego.
+    /// 2. **Piso: un personaje del tier de referencia produciendo solo.** Al
+    ///    arrancar —o al volver de reencarnar, antes del primer pasivo— la torre
+    ///    produce CERO y `producción × segundos` sería un logro que no paga
+    ///    nada. El piso sale del MISMO `rewardTier` que cotizaba el premio
+    ///    viejo, así que también sobrevive a la reencarnación: nunca vale menos
+    ///    que un trabajador del piso más alto que el jugador tocó en su vida.
+    ///
+    /// ⚠️ Los 12 logros que pagan ORO fijo (20-120) no pasan por acá y quedaron
+    /// como estaban a propósito: su escala se re-mira cuando cambie la del ORO
+    /// (Task 5 del plan `2026-08-20-rebalance-pacing.md`).
+    private static func coinReward(
+        seconds: Double,
+        player: PlayerState,
+        content: GameContent,
+        economy: StandardEconomy
+    ) -> Double {
+        var quoted = player
+        quoted.run.activeModifiers = []
+        let produced = IncomeTicker.passivePerSecond(
+            state: quoted,
+            tiers: content.tiers,
+            floorTable: content.floorTable,
+            config: economy.config,
+            now: 0
+        )
+        let tier = rewardTier(player: player, content: content)
+        let lonelyWorker = economy.passiveYield(forTier: tier)
+            * content.floorTable.floor(forTier: tier).incomeMultiplier
+            * player.meta.globalMultiplier
+            * player.meta.derivedEffects.incomeMultiplier
+        return max(produced, lonelyWorker) * seconds
+    }
+
+    /// Con qué tier se cotiza el PISO de un premio en monedas (ver `coinReward`).
     ///
     /// ⚠️ **No es `run.maxTierReached` a secas.** Ese vuelve a 1 al reencarnar y
-    /// `passiveUnlockCost` es exponencial: un logro conseguido en el reino divino
-    /// y cobrado después de reencarnar pagaría órdenes de magnitud menos. Y como
-    /// `claimedAchievements` es de una sola vía, el premio quedaría **quemado**:
-    /// el jugador no puede volver a intentarlo mejor.
+    /// `passiveYield` es exponencial: un logro conseguido en el reino divino y
+    /// cobrado después de reencarnar caería a un piso de órdenes de magnitud
+    /// menos. Y como `claimedAchievements` es de una sola vía, el premio quedaría
+    /// **quemado**: el jugador no puede volver a intentarlo mejor.
     ///
     /// El suelo es el primer tier del piso más alto que tocó **en su vida**
     /// (`meta.stats.maxFloorOrdinalEver`, que sobrevive a la reencarnación), así

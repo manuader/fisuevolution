@@ -5,8 +5,11 @@
 dos recortes queda en el juego, y se marcan las que estan mal con los dos y hay
 que regenerar. La pagina baja un `decisiones.json`; este script lo ejecuta.
 
-    .venv/bin/python scripts/aplicar_revision.py ~/Downloads/decisiones.json --dry-run
+    pbpaste | .venv/bin/python scripts/aplicar_revision.py -          # copiando el JSON
     .venv/bin/python scripts/aplicar_revision.py ~/Downloads/decisiones.json
+    .venv/bin/python scripts/aplicar_revision.py                        # busca el mas reciente
+
+Con `--dry-run` dice que haria sin escribir nada.
 
 Ademas de escribir los PNG, anota la eleccion en `recut_assets.py`: una corrida
 futura del recut recorta TODO por conectividad salvo lo que este en su lista de
@@ -38,6 +41,39 @@ ORIGINALES = PIPELINE / "dropbox" / "procesadas"
 RECUT = Path(__file__).resolve().parent / "recut_assets.py"
 ABRE = "RECORTE_VIEJO_A_PEDIDO = frozenset({"
 CIERRA = "})"
+
+
+BUSCAR_EN = (Path.home() / "Downloads", Path.home() / "Desktop", Path.cwd())
+
+
+def leer_decisiones(donde: str | None) -> dict:
+    """El JSON de la pagina, venga por stdin, por ruta, o buscandolo."""
+    if donde == "-":
+        crudo = sys.stdin.read()
+        if not crudo.strip():
+            raise SystemExit("No llego nada por stdin. ¿Copiaste el JSON en la pagina?")
+        return json.loads(crudo)
+
+    if donde:
+        ruta = Path(donde).expanduser()
+        if not ruta.exists():
+            raise SystemExit(
+                f"No existe {ruta}.\n\n"
+                "La pagina lo baja con «Bajar decisiones.json», pero si el navegador no\n"
+                "descarga nada usa «Copiar el JSON» y pasamelo por stdin:\n"
+                f"    pbpaste | {Path(sys.argv[0]).name} -"
+            )
+        return json.loads(ruta.read_text())
+
+    encontrados = [f for d in BUSCAR_EN for f in d.glob("decisiones*.json") if f.is_file()]
+    if not encontrados:
+        raise SystemExit(
+            "No encontre ningun decisiones*.json en Downloads, Desktop ni aca.\n"
+            f"Pasame la ruta, o el JSON por stdin:  pbpaste | {Path(sys.argv[0]).name} -"
+        )
+    reciente = max(encontrados, key=lambda f: f.stat().st_mtime)
+    print(f"usando {reciente}")
+    return json.loads(reciente.read_text())
 
 
 def catalogo() -> dict[str, dict]:
@@ -81,13 +117,17 @@ def poner_conectividad(entrada: dict) -> str | None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("decisiones", type=Path, help="el decisiones.json que baja la pagina")
+    parser.add_argument("decisiones", nargs="?", default=None,
+                        help="el decisiones.json de la pagina, o «-» para leerlo de stdin; "
+                             "sin nada, busca el mas reciente")
     parser.add_argument("--dry-run", action="store_true", help="decir que haria, sin tocar nada")
     args = parser.parse_args()
 
-    decisiones = json.loads(args.decisiones.read_text())
+    decisiones = leer_decisiones(args.decisiones)
     elecciones: dict[str, str] = decisiones.get("elecciones", {})
     regenerar: list[str] = decisiones.get("regenerar", [])
+    if not elecciones and not regenerar:
+        raise SystemExit("El JSON no trae ninguna decision: no hay nada que aplicar.")
     entradas = catalogo()
 
     puestas, fallaron, desconocidas = [], [], []

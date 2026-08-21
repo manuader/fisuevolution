@@ -246,9 +246,14 @@ PLANTILLA = """<meta charset="utf-8">
   <h2>Cierre de la revisión</h2>
   <p id="resumen"></p>
 
-  <h3>1 · Bajá tus decisiones</h3>
-  <button id="bajar">Bajar decisiones.json</button>
-  <p class="nota">Se guardan solas en este navegador, podés cerrar y seguir después.</p>
+  <h3>1 · Sacá tus decisiones de acá</h3>
+  <div class="pie" style="margin:0 0 8px">
+    <button id="bajar">Bajar decisiones.json</button>
+    <button id="copiar-json">Copiar el JSON</button>
+  </div>
+  <textarea id="json" readonly style="height:110px"></textarea>
+  <p class="nota">Con el botón de copiar no hace falta descargar nada. Las decisiones se
+    guardan solas en este navegador: podés cerrar y seguir después.</p>
 
   <h3>2 · Aplicalas al juego</h3>
   <pre id="comando"></pre>
@@ -270,8 +275,10 @@ PLANTILLA = """<meta charset="utf-8">
 const SKINS = __DATOS__;
 const NOMBRE_VARIANTE = { base: "Base", oro: "Oro", diamante: "Diamante", unica: "Skin propia" };
 const NOMBRE_RECORTE = { conectividad: "conectividad", rembg: "rembg", juego: "la que está en el juego" };
-const COMANDO = "Tools/asset-pipeline/.venv/bin/python \\\\\\n" +
-  "  Tools/asset-pipeline/scripts/aplicar_revision.py ~/Downloads/decisiones.json";
+const PY = "Tools/asset-pipeline/.venv/bin/python Tools/asset-pipeline/scripts/aplicar_revision.py";
+const COMANDO = `# si copiaste el JSON:\\npbpaste | ${PY} -\\n\\n` +
+  `# si bajaste el archivo:\\n${PY} ~/Downloads/decisiones.json\\n\\n` +
+  `# para ver qué haría sin tocar nada, agregale  --dry-run`;
 
 const leer = (clave, porDefecto) => {
   try { return JSON.parse(localStorage.getItem(clave)) ?? porDefecto; } catch { return porDefecto; }
@@ -421,6 +428,11 @@ function alternarRecorte() {
   if (s?.tiene.includes(otro)) { recorte = otro; pintar(); }
 }
 
+function avisar(boton, dice, vuelveA, cuanto = 1800) {
+  $(boton).textContent = dice;
+  setTimeout(() => ($(boton).textContent = vuelveA), cuanto);
+}
+
 const decisiones = () => ({
   elecciones: Object.fromEntries(elecciones),
   regenerar: [...marcadas],
@@ -442,26 +454,49 @@ $("cerrar-revision").onclick = () => {
     `${pendientes} sin decidir` + (pendientes ? " (las sin decidir quedan como están)" : "");
   $("cuantas").textContent = marcadas.size;
   $("comando").textContent = COMANDO;
+  $("json").value = JSON.stringify(decisiones(), null, 2);
   $("texto").value = SKINS.filter((s) => marcadas.has(s.key))
     .map((s) => `${s.key}  (${s.personaje} — ${s.skin || NOMBRE_VARIANTE[s.variante]})`)
     .join("\\n");
   $("salida").showModal();
 };
 $("bajar").onclick = () => {
-  const blob = new Blob([JSON.stringify(decisiones(), null, 2)], { type: "application/json" });
-  const enlace = document.createElement("a");
-  enlace.href = URL.createObjectURL(blob);
-  enlace.download = "decisiones.json";
-  enlace.click();
-  URL.revokeObjectURL(enlace.href);
-  $("bajar").textContent = "✓ Bajado";
-  setTimeout(() => ($("bajar").textContent = "Bajar decisiones.json"), 1500);
+  // El <a> va al documento y la URL se revoca MUCHO despues del click: revocarla
+  // en la linea siguiente mata el blob antes de que la descarga lo lea, y un <a>
+  // suelto no dispara nada en varios navegadores. Las dos cosas fallan calladas.
+  try {
+    const blob = new Blob([JSON.stringify(decisiones(), null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement("a");
+    enlace.href = url;
+    enlace.download = "decisiones.json";
+    document.body.append(enlace);
+    enlace.click();
+    enlace.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+    avisar("bajar", "Fijate en Descargas", "Bajar decisiones.json");
+  } catch (error) {
+    avisar("bajar", "No se pudo — copiá el JSON", "Bajar decisiones.json", 4000);
+  }
 };
-$("copiar").onclick = () => {
+$("copiar-json").onclick = async () => {
+  const texto = JSON.stringify(decisiones(), null, 2);
+  $("json").select();
+  try {
+    await navigator.clipboard.writeText(texto);
+    avisar("copiar-json", "✓ Copiado", "Copiar el JSON");
+  } catch {
+    avisar("copiar-json", "Copialo a mano del cuadro", "Copiar el JSON", 4000);
+  }
+};
+$("copiar").onclick = async () => {
   $("texto").select();
-  navigator.clipboard?.writeText($("texto").value);
-  $("copiar").textContent = "¡Copiada!";
-  setTimeout(() => ($("copiar").textContent = "Copiar la lista"), 1200);
+  try {
+    await navigator.clipboard.writeText($("texto").value);
+    avisar("copiar", "✓ Copiada", "Copiar la lista");
+  } catch {
+    avisar("copiar", "Copiala a mano del cuadro", "Copiar la lista", 4000);
+  }
 };
 $("borrar").onclick = () => {
   if (!confirm("¿Borrar TODAS las decisiones y empezar de cero?")) return;

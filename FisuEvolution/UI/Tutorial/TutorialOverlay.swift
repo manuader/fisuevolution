@@ -126,7 +126,9 @@ struct TutorialOverlay: View {
         }
         .ignoresSafeArea()
         .animation(motion(.easeInOut(duration: 0.32)), value: hole)
-        .animation(motion(.easeInOut(duration: 0.32)), value: step)
+        // El cambio de paso entra con pop de spring (la familia del
+        // `keyframeAnimator` de los tabs), no con el fundido de formulario.
+        .animation(motion(.spring(duration: 0.42, bounce: 0.24)), value: step)
         .onAppear {
             gameState.tutorialBoardTarget = current.boardTarget
         }
@@ -209,7 +211,9 @@ struct TutorialOverlay: View {
             .padding(.bottom, hasHole && !holeIsLow ? bottomInset : 0)
             if holeIsLow || !hasHole { Spacer(minLength: 0) }
         }
-        .transition(.opacity)
+        .transition(reduceMotion
+            ? .opacity
+            : .scale(scale: 0.92).combined(with: .opacity))
         .id(step)
     }
 
@@ -355,9 +359,10 @@ private struct TutorialHand: View {
     private static let size: CGFloat = 46
 
     var body: some View {
-        Image(systemName: "hand.point.up.left.fill")
-            .font(.system(size: Self.size, weight: .black))
-            .foregroundStyle(.white)
+        // La mano de la casa (el guante sin dedos del Fisura), no un SF Symbol:
+        // era el único elemento fuera del idioma del juego en todo el overlay.
+        VectorTutorialHandIcon()
+            .frame(width: Self.size, height: Self.size)
             .shadow(color: .black.opacity(0.6), radius: 5, y: 3)
             .scaleEffect(up ? 1.14 : 0.92)
             .offset(x: up ? 5 : 0, y: up ? 7 : 0)
@@ -377,9 +382,10 @@ private struct TutorialHand: View {
     }
 }
 
-/// El globo del tutorial: pose del Fisura + texto + progreso, al nivel del resto
-/// del juego (tarjeta crema con los materiales v3: borde marrón cálido, el radio
-/// de todas las tarjetas, tipografía redondeada).
+/// El globo del tutorial: pose del Fisura + texto + progreso, en la gramática
+/// v3 entera — pergamino con su luz, borde tono-sobre-tono, dots caramelo — y
+/// con el retrato GRANDE pisando el borde de la tarjeta, como componen las
+/// referencias.
 ///
 /// Es horizontal y compacto —y no el Fisura de 300×380 con el globo arriba que
 /// había antes— porque tiene que convivir con el recorte sin taparlo.
@@ -394,7 +400,7 @@ private struct TutorialCard: View {
 
     var body: some View {
         VStack(spacing: 12) {
-            HStack(alignment: .center, spacing: 10) {
+            HStack(alignment: .center, spacing: 12) {
                 portrait
                 VStack(alignment: .leading, spacing: 8) {
                     Text(text)
@@ -421,34 +427,51 @@ private struct TutorialCard: View {
                 .accessibilityIdentifier("tutorial.done")
             }
         }
-        .padding(.horizontal, 14)
+        .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(
-            // Materiales v3: el globo es una tarjeta más del juego — el radio de
-            // TODAS las tarjetas y borde marrón cálido en vez de tinta. Conserva
-            // los 3 pt de trazo (y su sombra grande) porque flota sobre el scrim
-            // oscuro, donde el peso de tarjeta destacada es lo que lo despega.
-            RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
-                .fill(Color("PaletteCream"))
-                .overlay(RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
-                    .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 3))
-                .shadow(color: .black.opacity(0.35), radius: 12, y: 5)
+            // Materiales v3: pergamino con su luz —claridad arriba, sombra
+            // cálida abajo, la receta de `PanelCard` a escala de tarjeta— y
+            // borde tono-sobre-tono. Conserva la sombra grande porque flota
+            // sobre el scrim oscuro, donde ese peso es lo que la despega.
+            parchment
         )
     }
 
-    @ViewBuilder private var portrait: some View {
-        let art = UIArt.image(pose) ?? UIArt.image("fisura_point") ?? UIArt.image("fisura_explain")
-        Group {
-            if let art {
-                art.resizable().scaledToFit()
-            } else {
-                Image(systemName: "person.fill")
-                    .resizable().scaledToFit()
-                    .foregroundStyle(Color("PaletteInk"))
+    private var parchment: some View {
+        let shape = RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
+        return shape
+            .fill(Color("PaletteParchment"))
+            .overlay {
+                shape.fill(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.35),
+                            .clear,
+                            Color("PaletteBrown").opacity(0.10),
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
             }
+            .overlay(shape.strokeBorder(Color("PaletteBrown").opacity(0.55), lineWidth: 3))
+            .shadow(color: .black.opacity(0.35), radius: 12, y: 5)
+    }
+
+    /// Sólo poses del Fisura, y GRANDE: la pose pisa el borde superior de la
+    /// tarjeta (el `offset` sobresale sin mover el layout — la tarjeta no
+    /// recorta). Sin atlas se cae a las otras poses sanas, y si no hay ninguna
+    /// el globo habla solo: el SF Symbol de persona gris murió con la regla
+    /// "sólo fotos del Fisura".
+    @ViewBuilder private var portrait: some View {
+        if let art = UIArt.image(pose) ?? UIArt.image("fisura_wave") ?? UIArt.image("fisura_celebrate") {
+            art.resizable()
+                .scaledToFit()
+                .frame(width: 96, height: 112)
+                .offset(y: -12)
+                .accessibilityHidden(true)
         }
-        .frame(width: 76, height: 92)
-        .accessibilityHidden(true)
     }
 
     /// Vive DENTRO del globo: suelto arriba a la derecha se apoyaba sobre el
@@ -471,9 +494,24 @@ private struct TutorialCard: View {
     private var dots: some View {
         HStack(spacing: 6) {
             ForEach(0..<total, id: \.self) { i in
+                // El activo es una pill caramelo en miniatura: relleno con luz
+                // y borde hundido del mismo tono (v3), no un chip plano.
                 Capsule()
-                    .fill(i == index ? Color("PaletteOrange") : Color("PaletteInk").opacity(0.22))
-                    .frame(width: i == index ? 18 : 8, height: 8)
+                    .fill(
+                        i == index
+                            ? AnyShapeStyle(LinearGradient(
+                                colors: [Color("PaletteOrange").lifted(), Color("PaletteOrange")],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ))
+                            : AnyShapeStyle(Color("PaletteInk").opacity(0.18))
+                    )
+                    .overlay {
+                        if i == index {
+                            Capsule().strokeBorder(Color("PaletteOrange").deepened(), lineWidth: 1.5)
+                        }
+                    }
+                    .frame(width: i == index ? 20 : 8, height: 8)
             }
         }
         .accessibilityElement(children: .ignore)

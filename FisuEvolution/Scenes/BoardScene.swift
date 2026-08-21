@@ -1135,9 +1135,10 @@ final class BoardScene: SKScene {
             ]))
         }
 
-        // Etiqueta "¡NUEVO!" arriba de todo.
+        // Etiqueta "¡NUEVO!" arriba de todo. Por el catálogo como todo lo demás:
+        // hardcodeada gritaba ¡NUEVO! también en la UI inglesa.
         let tag = SKLabelNode(fontNamed: "AvenirNext-Heavy")
-        tag.text = "¡NUEVO!"
+        tag.text = String(localized: "board.reveal.new")
         tag.fontSize = 24
         tag.fontColor = Palette.yellow
         tag.position = CGPoint(x: size.width / 2, y: layout.tagY)

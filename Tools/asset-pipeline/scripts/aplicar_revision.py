@@ -38,6 +38,10 @@ from whitebg_cutout import cutout  # noqa: E402
 
 REMBG = PIPELINE / "state" / "rembg"
 ORIGINALES = PIPELINE / "dropbox" / "procesadas"
+
+# `homeless` es El Fisura: su original nunca paso por el dropbox, es la referencia
+# de estilo aprobada a mano con la que se genero todo lo demas.
+ORIGINALES_APARTE = {"homeless": PIPELINE / "heroes" / "approved" / "fisura.png"}
 RECUT = Path(__file__).resolve().parent / "recut_assets.py"
 ABRE = "RECORTE_VIEJO_A_PEDIDO = frozenset({"
 CIERRA = "})"
@@ -107,7 +111,7 @@ def poner_rembg(entrada: dict) -> str | None:
 
 def poner_conectividad(entrada: dict) -> str | None:
     clave = entrada["assetKey"]
-    original = ORIGINALES / f"{clave}.png"
+    original = ORIGINALES_APARTE.get(clave, ORIGINALES / f"{clave}.png")
     if not original.exists():
         return f"falta el original {original.name}"
     atlas, sprite, _ = destination(entrada)

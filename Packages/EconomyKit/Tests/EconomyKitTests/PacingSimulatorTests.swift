@@ -196,8 +196,23 @@ struct PacingSimulatorInstrumentTests {
                 report.floorUnlockHireSeconds[floorId],
                 "el piso \(floorId) se abrió en \(wall) y no dejó su costo"
             )
-            #expect(seconds > 0)
+            // `isFinite` y no `> 0`: el escape de income cero devuelve
+            // `.infinity`, que es > 0 y colaba una métrica sin medir.
+            #expect(seconds.isFinite && seconds > 0, "\(floorId): \(seconds)")
+            #expect(report.floorUnlockPeakHireSeconds[floorId]?.isFinite == true)
         }
+    }
+
+    @Test("el compounding de hireCostGrowth se mide donde el bot compra de verdad")
+    func peakHirePurchasesAreRecorded() throws {
+        let report = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
+        // `floorUnlockHireSeconds` NO puede ver `hireCostGrowth`: un piso se
+        // abre mergeando, así que el contador de su tier base vale 0 al abrirlo
+        // y `growth^0 = 1`. El compounding vive en el tipo que el bot compra una
+        // y otra vez, y es esta serie la que lo publica.
+        let peaks = report.floorUnlockPeakHirePurchases
+        #expect(!peaks.isEmpty)
+        #expect(peaks.values.contains { $0 > 0 }, "el bot compró algo: \(peaks)")
     }
 }
 
@@ -266,6 +281,33 @@ struct PermanentUpgradesTests {
         )
         #expect(crit.cost(atLevel: 0) == 3)
         #expect(abs(crit.cost(atLevel: 3) - 3 * 2.5 * 2.5 * 2.5) < 1e-9)
+    }
+
+    @Test("un nivel guardado por encima del tope no cobra de más")
+    func storedLevelsAboveTheCapAreClamped() {
+        // El rebalance de pacing bajó `income` y `tap` de 20 niveles a 10 y
+        // `crit` de 25 a 10. Un save anterior trae los niveles viejos, y sin
+        // clamp cobraría un efecto que ya no se puede comprar: income ×5,0
+        // donde el tope es 3,0, tap ×11,0 donde el tope es 6,0, y un crit de
+        // 0,25 que la app recorta por `EffectCaps` y este espejo no.
+        let catalogoNuevo: [PermanentUpgradeLine] = [
+            .init(id: "income", effect: .incomeMultiplier, magnitudePerLevel: 0.2, maxLevel: 10, baseCost: 1, costGrowth: 1.1),
+            .init(id: "tap", effect: .tapMultiplier, magnitudePerLevel: 0.5, maxLevel: 10, baseCost: 1, costGrowth: 1.1),
+            .init(id: "crit", effect: .critChance, magnitudePerLevel: 0.025, maxLevel: 10, baseCost: 1, costGrowth: 1.2),
+        ]
+        var viejo = fxState()
+        viejo.meta.oroUpgradeLevels = ["income": 20, "tap": 20, "crit": 25]
+        PermanentUpgrades.recomputeDerivedEffects(state: &viejo, lines: catalogoNuevo, economy: fxEconomy())
+        #expect(abs(viejo.meta.derivedEffects.incomeMultiplier - 3.0) < 1e-9)
+        #expect(abs(viejo.meta.derivedEffects.tapMultiplier - 6.0) < 1e-9)
+        #expect(abs(viejo.meta.derivedEffects.critChance - 0.25) < 1e-9)
+
+        // Y da exactamente lo mismo que un save al tope nuevo: el save viejo no
+        // puede quedar ni mejor ni peor que el que compró las diez.
+        var alTope = fxState()
+        alTope.meta.oroUpgradeLevels = ["income": 10, "tap": 10, "crit": 10]
+        PermanentUpgrades.recomputeDerivedEffects(state: &alTope, lines: catalogoNuevo, economy: fxEconomy())
+        #expect(viejo.meta.derivedEffects == alTope.meta.derivedEffects)
     }
 
     @Test("un catálogo vacío nunca cuenta como maxeado")

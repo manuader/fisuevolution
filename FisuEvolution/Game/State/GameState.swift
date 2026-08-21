@@ -592,6 +592,12 @@ final class GameState {
         // vive `upgradesConfig`; EconomyKit no conoce `upgrades.json` y pasárselo
         // ya resuelto lo deja puro.
         let lineasDeOro = content.upgradesConfig.upgrades.filter { $0.currency == .oro }
+        // `>=` y no `==`: un save anterior al rebalance de pacing puede traer una
+        // línea POR ENCIMA del tope de hoy (`income: 20` contra un tope de 10).
+        // La lectura es deliberadamente generosa —cuenta como maxeada— porque el
+        // catálogo viejo ya no existe para saber si además le faltaba: el jugador
+        // pagó esos niveles y las skins de oro son cosméticas. Lo que NO se le
+        // regala es el efecto: las dos derivaciones clampean al tope vigente.
         let todoAlMaximo = !lineasDeOro.isEmpty && lineasDeOro.allSatisfy {
             (player.meta.oroUpgradeLevels[$0.id] ?? 0) >= $0.maxLevel
         }

@@ -30,15 +30,35 @@ reencarnacion,9,26.334,h activas
 reencarnacion,10,27.667,h activas
 reencarnacion,11,29.001,h activas
 costo,alley_hire_en_segundos,4.17,s de income
+costo,alley_pico_compras,0,compras del mismo tipo
+costo,alley_pico_en_segundos,0.00,s de income
 costo,urban_hire_en_segundos,200.00,s de income
+costo,urban_pico_compras,15,compras del mismo tipo
+costo,urban_pico_en_segundos,0.16,s de income
 costo,corporate_hire_en_segundos,419.70,s de income
+costo,corporate_pico_compras,144,compras del mismo tipo
+costo,corporate_pico_en_segundos,4.86,s de income
 costo,luxury_hire_en_segundos,720.07,s de income
+costo,luxury_pico_compras,381,compras del mismo tipo
+costo,luxury_pico_en_segundos,66585.94,s de income
 costo,island_hire_en_segundos,823.56,s de income
+costo,island_pico_compras,459,compras del mismo tipo
+costo,island_pico_en_segundos,58330.98,s de income
 costo,moon_hire_en_segundos,270.11,s de income
+costo,moon_pico_compras,553,compras del mismo tipo
+costo,moon_pico_en_segundos,36161.03,s de income
 costo,mars_hire_en_segundos,8.02,s de income
+costo,mars_pico_compras,620,compras del mismo tipo
+costo,mars_pico_en_segundos,420.94,s de income
 costo,solar_hire_en_segundos,4.15,s de income
+costo,solar_pico_compras,776,compras del mismo tipo
+costo,solar_pico_en_segundos,15104.79,s de income
 costo,galaxy_hire_en_segundos,9.76,s de income
+costo,galaxy_pico_compras,787,compras del mismo tipo
+costo,galaxy_pico_en_segundos,539.11,s de income
 costo,god_realm_hire_en_segundos,0.85,s de income
+costo,god_realm_pico_compras,870,compras del mismo tipo
+costo,god_realm_pico_en_segundos,47.55,s de income
 hito,siete_al_tope_activo,25.33,h
 hito,siete_al_tope_pared,456.00,h
 hito,reencarnaciones_al_maxear,8,conteo

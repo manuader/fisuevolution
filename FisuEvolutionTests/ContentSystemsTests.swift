@@ -88,7 +88,11 @@ struct ContentSystemsTests {
         #expect(throws: UpgradeManager.PurchaseError.insufficientOro) {
             try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
         }
-        state.meta.oroUpgradeLevels["income"] = 20
+        // El tope sale del catálogo y no de un literal: el rebalance de pacing
+        // bajó `income` de 20 niveles a 10, y un 20 hardcodeado acá seguía
+        // "pasando" por estar POR ENCIMA del tope en vez de EN el tope.
+        let income = try #require(content.upgradesConfig.upgrades.first { $0.id == "income" })
+        state.meta.oroUpgradeLevels["income"] = income.maxLevel
         state.meta.oro = 1_000
         #expect(throws: UpgradeManager.PurchaseError.maxLevelReached) {
             try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)

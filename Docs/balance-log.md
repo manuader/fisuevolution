@@ -943,24 +943,62 @@ maxear a las 15,49 h). El CSV de la corrida está en
 
 ## Piso por piso, antes y después
 
-La tercera columna es la métrica nueva del simulador: **cuántos SEGUNDOS de tu
-income cuesta contratar el tier base del piso en el momento en que se abre**. Es
-la evidencia de la divergencia costos-vs-ingresos que pedía la definición de
-hecho, "a lo largo de toda la partida y no sólo al final".
+⚠️ **Corrección (fix round 1 del review).** La primera versión de esta entrada
+publicaba una sola columna de costo y se la atribuía a `hire.defaultCostGrowth`.
+Estaba mal por dos motivos, y los dos los encontró el review:
 
-| piso | antes (activo) | después (activo) | antes (costo) | después (costo) |
-|---|---:|---:|---:|---:|
-| urban | 0,8 min | 0,5 min | 200,0 s | 200,0 s |
-| corporate | 33,1 min | 10,2 min | 114,5 s | 419,7 s |
-| luxury | 580,1 min | 400,1 min | **0,0 s** | 720,1 s |
-| island | 840,9 min | 980,1 min | 0,0 s | 823,6 s |
-| moon | 1040,7 min | 1340,1 min | 0,0 s | 270,1 s |
-| mars | 1226,9 min | 1571,5 min | 0,0 s | 8,0 s |
-| solar | 1446,5 min | 1643,2 min | 0,0 s | 4,2 s |
-| galaxy | 1506,8 min | 1654,6 min | 0,0 s | 9,8 s |
-| god_realm | 1918,0 min | 1819,8 min | 0,0 s | 0,9 s |
+1. La métrica cotizaba el hire con `purchases: 0`, y `growth^0 = 1`: era
+   **matemáticamente ciega al knob que decía estar midiendo**.
+2. La columna "antes" venía de una corrida con el tap cobrando el ×620 del piso
+   y la "después" sin él, así que los dos denominadores eran distintos.
 
-**Antes, del cuarto piso en adelante contratar era literalmente gratis.**
+Ahora hay DOS series, cotizadas al contador de compras real, y cada comparación
+mueve **un solo knob** con el tap tratado igual en las dos columnas.
+
+### Serie 1 — entrar a un piso (su tier base, en segundos de income)
+
+Mide la divergencia costos-vs-ingresos, y **la explica la curva de ORO**, no el
+`defaultCostGrowth`. A/B con `growth` fijo en 1,06 y `tapFloorMultiplierExponent`
+en 0 en las dos columnas; lo único que cambia es `oro`:
+
+| piso | ORO 3e6 / 0,45 (vieja) | ORO 3e11 / 0,25 (nueva) |
+|---|---:|---:|
+| urban | 200,0 s | 200,0 s |
+| corporate | 419,7 s | 419,7 s |
+| luxury | **0,0 s** | 720,1 s |
+| island | 0,0 s | 823,6 s |
+| moon | 0,0 s | 270,1 s |
+| mars | 0,0 s | 8,0 s |
+| solar | 0,0 s | 4,2 s |
+| galaxy | 0,0 s | 9,8 s |
+| god_realm | 0,0 s | 0,9 s |
+
+Con la curva vieja el multiplicador se desborda y del cuarto piso en adelante
+entrar es literalmente gratis; con la nueva sigue costando plata hasta galaxy.
+**El arreglo de la divergencia es la curva de ORO.**
+
+### Serie 2 — el compounding (pico de compras del mismo tipo · la siguiente)
+
+Ésta sí ve `hire.defaultCostGrowth`. A/B con todo lo demás igual —misma curva de
+ORO nueva, mismo catálogo, tap en 0 en las dos— y sólo el growth cambiando:
+
+| piso | growth 1,2 | growth 1,06 |
+|---|---|---|
+| urban | 15 compras · 1,0 s | 15 compras · 0,2 s |
+| corporate | 70 compras · **384,0 s** | 144 compras · 4,9 s |
+| luxury | **nunca se abre** | 381 compras · 66.586 s |
+| island | — | 459 compras · 58.331 s |
+| moon | — | 553 compras · 36.161 s |
+| mars | — | 620 compras · 420,9 s |
+| solar | — | 776 compras · 15.105 s |
+| galaxy | — | 787 compras · 539,1 s |
+| god_realm | — | 870 compras · 47,5 s |
+| **maxear las 7** | **nunca** (maxTier 11, las siete en 1/10) | 25,33 h activas |
+| reencarnaciones | 4 (cadencia 2,3 · 17,0 · 177,3 · 986,7 h) | 11 |
+
+Con el 20 % por compra la partida **no se puede terminar**. Con el 6 % la misma
+economía se juega entera. El growth no explica la serie de entrada: explica **si
+la torre es escalable**.
 
 ## Lo que se descartó, con su número
 
@@ -986,14 +1024,31 @@ deja el defecto intacto, que es exactamente lo que el prompt advertía.
 implementó** — es una variante de (b) (acota la velocidad del desborde, no lo
 cierra) y habría agregado una fórmula nueva sin resolver lo que (b) no resuelve.
 
-**La salida elegida es la causa, no el síntoma.** La divergencia no la generaba
-el multiplicador: la generaba el **20 % por compra**. El gate de un piso obliga
-a ~256 contrataciones en el piso de abajo por cada piso que se cruza (2 unidades
-del tier de arriba = 16 del tier base = 256 del piso anterior), y `1,2^256 ≈
-4e20`. La única moneda capaz de pagar esa pared es un multiplicador global
-explotando sin techo — el multiplicador astronómico era la CONSECUENCIA. Con
-`defaultCostGrowth` en 1,06 la pared se vuelve pagable con multiplicadores de
-orden 10⁴, y ahí el ORO puede volverse escaso sin que Dios quede inalcanzable.
+**La salida elegida son DOS knobs con dos efectos distintos**, y la primera
+versión de esta entrada los había fundido en uno:
+
+- **La curva de ORO (`divisor` 3e6 → 3e11, `exponent` 0,45 → 0,25) cierra la
+  divergencia**: acota la escala del multiplicador global y con eso entrar a un
+  piso vuelve a costar segundos de income en vez de cero (serie 1).
+- **`hire.defaultCostGrowth` (1,2 → 1,06) hace la torre escalable** con un
+  multiplicador acotado. Con el 20 % por compra y el ORO ya escaso, la partida
+  no se termina: el bot se traba en el tier 11 (serie 2).
+
+⚠️ **Corrección del enunciado (fix round 1).** Esta entrada decía que el gate
+obliga a "~256 contrataciones del mismo tipo por piso cruzado" y que
+`1,2^256 ≈ 4e20` era LA causa. Dos cosas mal:
+
+- el número es `1,2^256 = 1,86e20` (y `1,06^256 = 3,0e6`), no 4e20;
+- **256 es aritmética de la política del BOT, no del juego.** El bot compra
+  siempre el tier base; un jugador real tiene FisuJobs, que vende los cuatro
+  tipos del piso con un contador por tipo, y con growth 1,2 el tier de arriba
+  se vuelve más barato que seguir con el de abajo a partir de ~4,5 compras.
+  Nadie llega a 256 del mismo tipo jugando.
+
+Lo MEDIDO —y es lo que sostiene el cambio— es el pico real del bot: **70 compras
+del mismo tipo al abrir corporativo, donde la siguiente ya cuesta 384 s de
+income**, y ahí se traba. Con 1,06 la compra 144 cuesta 4,9 s. La dirección se
+sostiene; la magnitud del argumento estaba inflada.
 
 ⚠️ **Esto toca la regla de precios del dueño** (2026-08-04: "600× y cada compra
 sube el precio 20%"). El **primer Fisura sigue costando 25** —decisión cerrada,

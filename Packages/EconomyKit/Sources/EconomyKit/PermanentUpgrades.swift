@@ -92,7 +92,13 @@ public enum PermanentUpgrades {
         var prestigeBonus = 0.0
 
         for line in lines {
-            let level = Double(state.meta.oroUpgradeLevels[line.id] ?? 0)
+            // CLAMPEADO al tope, igual que `CharUpgrades.multiplier`: un save
+            // viejo puede traer más niveles de los que la línea admite hoy (el
+            // rebalance de pacing bajó `income` y `tap` de 20 a 10 y `crit` de
+            // 25 a 10), y sin el clamp ese save cobraría ×5,0 de income donde el
+            // tope es 3,0. Que el catálogo se achique no puede resucitar un
+            // efecto que ya no existe.
+            let level = Double(min(state.meta.oroUpgradeLevels[line.id] ?? 0, line.maxLevel))
             guard level > 0 else { continue }
             switch line.effect {
             case .incomeMultiplier: income += level * line.magnitudePerLevel

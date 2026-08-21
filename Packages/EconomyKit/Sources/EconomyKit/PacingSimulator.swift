@@ -60,16 +60,31 @@ public struct PacingSimulator: Sendable {
         public var floorUnlockActiveSeconds: [String: Double] = [:]
         /// Tiempo de PARED (wall clock) al desbloquear cada piso.
         public var floorUnlockWallSeconds: [String: Double] = [:]
-        /// Cuántos SEGUNDOS de income cuesta contratar el tier base de cada piso
-        /// en el momento en que ese piso se abre.
+        /// Cuántos SEGUNDOS de income cuesta ENTRAR a cada piso: el próximo hire
+        /// de su tier base, al contador de compras que el bot tiene de ese tipo,
+        /// en el momento en que el piso se abre.
         ///
         /// Es la evidencia de la divergencia costos-vs-ingresos
         /// (`Docs/PROMPT-rebalance-pacing.md` §2.3): los precios están anclados a
         /// `tapYield(tier)`, que es una constante, y el income pasa por el
         /// multiplicador global, que no tiene techo. Si la serie se desploma piso
-        /// a piso, progresar es cada vez más gratis; si se mantiene, el costo
-        /// sigue el ritmo del ingreso y el defecto está cerrado.
+        /// a piso, progresar es cada vez más gratis.
+        ///
+        /// ⚠️ **Lo que esta serie NO puede medir es `hireCostGrowth`**: un piso
+        /// se abre mergeando hacia arriba, no comprando, así que el contador de
+        /// su tier base suele valer 0 al abrirlo y `growth^0 = 1`. Para el
+        /// compounding están las dos series de abajo.
         public var floorUnlockHireSeconds: [String: Double] = [:]
+        /// El contador de compras más alto que el bot alcanzó sobre UN tipo
+        /// cuando cada piso se abrió, y lo que cuesta el próximo de ESE tipo en
+        /// segundos de income.
+        ///
+        /// Éstas sí ven `hireCostGrowth`: el factor que se paga es
+        /// `growth^compras`, y estas dos dicen cuántas compras llega a acumular
+        /// el bot de verdad — que es el número con el que hay que discutir la
+        /// curva, no uno supuesto.
+        public var floorUnlockPeakHirePurchases: [String: Int] = [:]
+        public var floorUnlockPeakHireSeconds: [String: Double] = [:]
         public var firstReincarnationWall: Double?
         /// Tiempo ACTIVO de CADA reencarnación, en orden. La métrica del dueño es
         /// la cadencia ("una reencarnación cada 2,5-4 h de juego activo"), y para
@@ -558,14 +573,44 @@ public struct PacingSimulator: Sendable {
         }
     }
 
-    /// Cuántos segundos de income cuesta el PRIMER hire del tier base del piso.
-    /// Cotiza por `config.hireCost` —sin descuentos ni modificadores, que el bot
-    /// no tiene— y divide por el income de juego activo, que es el que el jugador
-    /// tiene en la mano cuando abre el piso.
+    /// Cuántos segundos de income cuesta el PRÓXIMO hire del tier base del piso,
+    /// al contador de compras que el bot tiene de ese tipo. Cotiza por
+    /// `config.hireCost` —sin descuentos ni modificadores, que el bot no tiene—
+    /// y divide por el income de juego activo, que es el que el jugador tiene en
+    /// la mano cuando abre el piso.
+    ///
+    /// El contador sale de `hireCountsByType`, el mismo que alimenta la curva en
+    /// `TowerActions.hireQuote(typeId:)`: cotizar siempre con `purchases: 0`
+    /// —como hacía la primera versión de esta métrica— la volvía
+    /// matemáticamente ciega a `hireCostGrowth`, porque `growth^0 = 1`.
     private func hireSeconds(floor: FloorDef, state: PlayerState) -> Double {
         let rate = incomeRate(state: state, active: true)
         guard rate > 0 else { return .infinity }
-        return config.hireCost(floor: floor, tier: floor.firstTier, purchases: 0) / rate
+        let typeId = baseTypeId(of: floor)
+        let purchases = typeId.map { state.run.hireCountsByType[$0] ?? 0 } ?? 0
+        return config.hireCost(floor: floor, tier: floor.firstTier, purchases: purchases) / rate
+    }
+
+    /// El tipo del tier base del piso, elegido igual que en `hireAction` (misma
+    /// carrera, mismo desempate) para que la métrica cotice lo que el bot compra.
+    private func baseTypeId(of floor: FloorDef) -> String? {
+        let candidates = tiers.concreteTypes.filter { $0.tier == floor.firstTier }
+        return (candidates.first(where: { $0.id.hasSuffix(careerPath) })
+            ?? candidates.sorted(by: { $0.id < $1.id }).first)?.id
+    }
+
+    /// El tipo con MÁS compras acumuladas y lo que cuesta el próximo, en
+    /// segundos de income. Es donde vive el compounding de `hireCostGrowth`: el
+    /// bot compra una y otra vez sobre el mismo tier base y su precio sube
+    /// `growth` por compra.
+    private func peakHire(state: PlayerState) -> (purchases: Int, seconds: Double) {
+        guard let (typeId, purchases) = state.run.hireCountsByType.max(by: { $0.value < $1.value }),
+              let type = tiers.type(id: typeId)
+        else { return (0, 0) }
+        let rate = incomeRate(state: state, active: true)
+        guard rate > 0 else { return (purchases, .infinity) }
+        let floor = floorTable.floor(forTier: type.tier)
+        return (purchases, config.hireCost(floor: floor, tier: type.tier, purchases: purchases) / rate)
     }
 
     /// Registra pisos recién alcanzados (unlockTier ≤ maxTier) con sus tiempos.
@@ -578,6 +623,9 @@ public struct PacingSimulator: Sendable {
                 report.floorUnlockWallSeconds[floor.id] = wall
                 report.floorUnlockActiveSeconds[floor.id] = active
                 report.floorUnlockHireSeconds[floor.id] = hireSeconds(floor: floor, state: state)
+                let peak = peakHire(state: state)
+                report.floorUnlockPeakHirePurchases[floor.id] = peak.purchases
+                report.floorUnlockPeakHireSeconds[floor.id] = peak.seconds
             }
         }
     }

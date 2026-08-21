@@ -149,7 +149,7 @@ struct BestHireTests {
     ///
     /// Los cuatro Senior arrancan costando lo mismo, así que la única forma de
     /// separarlos es comprar uno: la curva es POR TIPO
-    /// (`run.hireCountsByType`), así que ese sube un `growth` (×1,2) y los otros
+    /// (`run.hireCountsByType`), así que ese sube un `growth` (×1,06) y los otros
     /// tres se quedan donde estaban. Si el comparador prefiriera el más caro, o
     /// si mirara el id antes que el precio, acá seguiría ganando el Arquitecto.
     @Test("empate de tier con precios distintos: gana el más barato")

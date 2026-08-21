@@ -67,7 +67,7 @@
 **Files:** `FisuEvolution/Resources/Config/events.json`, tests que pineen la config
 
 - [ ] **4.1** `baseIntervalSeconds` 300 → **900** y jitter 180 → **300** (uno cada 10-20 min en vez de 2-8).
-- [ ] **4.2** Subir `cooldownSeconds` de los que aceleran y bajar `magnitude`/`weight`: `plan_platita` (×5 → ×3), `inversion_alienigena` (×10 → ×5), `aguinaldo` (900 s → 300 s de producción), `blanqueo` (2 personajes → 1).
+- [ ] **4.2** Subir `cooldownSeconds` de los que aceleran y bajar `magnitude`/`weight`: `plan_platita` (×5 → ×3), `inversion_alienigena` (×10 → ×5), `aguinaldo` (900 s → 300 s de producción), `blanqueo` (⚠️ su `magnitude` es un OFFSET DE TIER, no una cantidad: regala UN personaje N tiers arriba, así que para hacerlo MENOS generoso hay que SUBIRLA).
 - [ ] **4.3** **Mantener o mejorar la proporción de eventos malos** (devaluación, corralito, cayó Mercado Pago): son la única tensión negativa. Verificar la suma de `weight` buenos vs malos antes y después y dejarla escrita en el commit.
 - [ ] **4.4** Test que pinee la nueva cadencia y la proporción. Commit: `balance(eventos): más espaciados y menos regaladores, sin perder la cara mala`
 

@@ -244,7 +244,7 @@ producción, que también hay que mirar).
 con cooldowns de 900-3600 s. En una partida de 3 h eso son ~35 apariciones. Y los
 que más pesan son los que aceleran: `plan_platita` (peso 20, **×5 de income** por
 60 s), `inversion_alienigena` (**×10** por 30 s), `aguinaldo` (peso 12, 15 min de
-producción de regalo), `blanqueo` (dos personajes de tier alto gratis).
+producción de regalo), `blanqueo` (un personaje gratis N tiers por encima del tuyo — su `magnitude` es ese OFFSET, no una cantidad).
 
 Queja del dueño: *"lo mismo con los banners (tipo plan platita, o app payment
 down). aparecen muy seguido"*. Los knobs son `baseIntervalSeconds`, el jitter, el

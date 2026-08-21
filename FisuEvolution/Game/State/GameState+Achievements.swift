@@ -423,12 +423,29 @@ extension GameState {
     ///    del jugador, no un tiro del reloj: si el premio los mirara, guardarse
     ///    los 27 logros para el próximo Plan Platita pagaría ×5 por esperar. El
     ///    Aguinaldo sí puede mirarlos porque el momento lo elige el juego.
-    /// 2. **Piso: un personaje del tier de referencia produciendo solo.** Al
-    ///    arrancar —o al volver de reencarnar, antes del primer pasivo— la torre
-    ///    produce CERO y `producción × segundos` sería un logro que no paga
-    ///    nada. El piso sale del MISMO `rewardTier` que cotizaba el premio
+    /// 2. **Piso: el rinde de catálogo de UN personaje del tier de referencia.**
+    ///    Al arrancar —o al volver de reencarnar, antes del primer pasivo— la
+    ///    torre produce CERO y `producción × segundos` sería un logro que no
+    ///    paga nada. El piso sale del MISMO `rewardTier` que cotizaba el premio
     ///    viejo, así que también sobrevive a la reencarnación: nunca vale menos
     ///    que un trabajador del piso más alto que el jugador tocó en su vida.
+    ///
+    ///    ⚠️ **Es `passiveYield(tier)` PELADO: sin el multiplicador de piso, sin
+    ///    el global y sin el de las upgrades.** Con ellos el piso llegaba a
+    ///    pagar **77× más que el molde viejo** en el reino divino (el de piso
+    ///    solo ya vale 620 ahí), y encima mandaba justo cuando `run` se
+    ///    resetea —o sea al arrancar la run DESPUÉS de reencarnar—, así que
+    ///    guardarse un logro y reencarnar era un windfall. Y el global crece
+    ///    ÚNICAMENTE al reencarnar, que es exactamente el momento en el que el
+    ///    piso decide: dejarlo adentro era pagarle al que espera.
+    ///
+    ///    Pelado, la garantía es medible y no depende del tier: el piso paga
+    ///    `passiveYield(t) × seconds` contra los `passiveUnlockCost(t) × factor`
+    ///    de antes, y como los dos escalan con `tapYield(t)` la razón es
+    ///    `seconds / (120 × factor)` — **constante, y ≤ 1/8 para los 27
+    ///    logros, en todos los tiers del 1 al 37**. El piso es un piso: existe
+    ///    para que un logro no pague cero, no para pagar como una torre madura.
+    ///    Lo pinea `coinRewardFloorNeverBeatsTheOldMold`.
     ///
     /// ⚠️ Los 12 logros que pagan ORO fijo (20-120) no pasan por acá y quedaron
     /// como estaban a propósito: su escala se re-mira cuando cambie la del ORO
@@ -448,11 +465,7 @@ extension GameState {
             config: economy.config,
             now: 0
         )
-        let tier = rewardTier(player: player, content: content)
-        let lonelyWorker = economy.passiveYield(forTier: tier)
-            * content.floorTable.floor(forTier: tier).incomeMultiplier
-            * player.meta.globalMultiplier
-            * player.meta.derivedEffects.incomeMultiplier
+        let lonelyWorker = economy.passiveYield(forTier: rewardTier(player: player, content: content))
         return max(produced, lonelyWorker) * seconds
     }
 

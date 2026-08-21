@@ -380,8 +380,7 @@ struct AchievementEngineTests {
         let gain = (state.player?.run.coins ?? 0) - before
 
         let economy = try #require(state.economy)
-        let content = try GameContentLoader.load(from: .main)
-        let lonelyWorker = economy.passiveYield(forTier: 1) * content.floorTable.floor(forTier: 1).incomeMultiplier
+        let lonelyWorker = economy.passiveYield(forTier: 1)
         #expect(abs(gain - lonelyWorker * (try Self.seconds(of: "ach_merges_1"))) < gain * 1e-9)
         #expect(gain > 0)
     }
@@ -450,15 +449,12 @@ struct AchievementEngineTests {
         // El número del catálogo, exacto: un trabajador del tier 12 produciendo
         // solo, por los segundos que paga el logro.
         let economy = try #require(high.economy)
-        let content = try GameContentLoader.load(from: .main)
-        let expected = economy.passiveYield(forTier: 12)
-            * content.floorTable.floor(forTier: 12).incomeMultiplier
-            * (try Self.seconds(of: "ach_merges_1"))
+        let expected = economy.passiveYield(forTier: 12) * (try Self.seconds(of: "ach_merges_1"))
         #expect(abs(highGain - expected) < expected * 1e-9)
     }
 
     /// Reencarnar antes de cobrar NO puede evaporar el premio: `run.maxTierReached`
-    /// vuelve a 1 y `passiveUnlockCost` es exponencial, así que cobrar después
+    /// vuelve a 1 y `passiveYield` es exponencial, así que cobrar después
     /// pagaría órdenes de magnitud menos — y como `claimed` es de una sola vía,
     /// el premio quedaría quemado sin forma de recuperarlo.
     @Test("el premio en monedas conserva el suelo histórico al reencarnar")
@@ -486,9 +482,7 @@ struct AchievementEngineTests {
 
         let economy = try #require(state.economy)
         let referenceTier = content.floorTable[ordinal].firstTier
-        let expected = economy.passiveYield(forTier: referenceTier)
-            * content.floorTable.floor(forTier: referenceTier).incomeMultiplier
-            * (try Self.seconds(of: "ach_merges_1"))
+        let expected = economy.passiveYield(forTier: referenceTier) * (try Self.seconds(of: "ach_merges_1"))
         #expect(abs(gain - expected) < expected * 1e-9, "el suelo es el primer tier del piso más alto de su vida")
         // Y no es una diferencia cosmética: cobrarlo como T1 pagaba ~1e13 veces menos.
         #expect(gain > economy.passiveYield(forTier: 1) * 1_000_000)
@@ -670,6 +664,46 @@ struct AchievementEngineTests {
         let content = try GameContentLoader.load(from: .main)
         let branchTypes = Set(doctorBranch + foreignBranches)
         return content.tiers.concreteTypes.map(\.id).filter { !branchTypes.contains($0) }
+    }
+
+    /// El criterio que hace que el piso sea un PISO y no un premio: **nunca puede
+    /// pagar más que el molde viejo** (`passiveUnlockCost(tier) × factor`), que
+    /// es justo el que esta rama vino a bajar.
+    ///
+    /// Se mide en los DOS extremos de la torre porque el bug que esto pinea era
+    /// exponencial en el tier: el piso llevaba puesto el multiplicador de piso
+    /// (620 en el reino divino) y ahí pagaba 77× el molde viejo, mandando
+    /// exactamente cuando `run` se resetea al reencarnar. Pelado a
+    /// `passiveYield(tier)` la razón es `seconds / (120 × factor)`: constante en
+    /// el tier, porque los dos lados escalan con `tapYield(tier)`.
+    @Test("el piso nunca paga más que el molde viejo, ni en el tier 1 ni en el 37")
+    func coinRewardFloorNeverBeatsTheOldMold() async throws {
+        let content = try GameContentLoader.load(from: .main)
+        // El `factor` que `ach_merges_1` tenía ANTES de la migración a segundos
+        // (commit f2c5b37). Va escrito porque es una constante histórica: es
+        // contra ese número que se promete no pasarse.
+        let oldFactor = 2.0
+
+        /// El premio con la torre SIN producir, o sea el piso puro.
+        func floorPayout(referenceTier: Int, floorOrdinal: Int) async -> Double {
+            let state = await makeState {
+                $0.meta.stats.totalMergesEver = 1
+                $0.run.maxTierReached = referenceTier
+                $0.meta.stats.maxFloorOrdinalEver = floorOrdinal
+            }
+            state.evaluateAchievements()
+            let before = state.player?.run.coins ?? 0
+            state.claimAchievement(id: "ach_merges_1")
+            return (state.player?.run.coins ?? 0) - before
+        }
+
+        let economy = StandardEconomy(config: content.economy)
+        for (tier, ordinal) in [(1, 0), (37, content.floorTable.floors.count - 1)] {
+            let paid = await floorPayout(referenceTier: tier, floorOrdinal: ordinal)
+            let oldMold = economy.passiveUnlockCost(forTier: tier) * oldFactor
+            #expect(paid > 0, "un logro que no paga nada es un bug (tier \(tier))")
+            #expect(paid <= oldMold, "el piso se pasó del molde viejo en el tier \(tier): \(paid) > \(oldMold)")
+        }
     }
 
     /// Los segundos que el catálogo REAL le paga a un logro: clavarlos en el

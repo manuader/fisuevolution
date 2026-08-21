@@ -206,7 +206,10 @@ final class TutorialUITests: XCTestCase {
     @MainActor
     func testLaLeccionDeMejorasSenalaYSeCumpleAlAbrir() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins"]
+        // `--uitest-lessons`: las lecciones arrancan apagadas en cualquier
+        // corrida de UI tests (taparían coordenadas de tests ajenos); éste es
+        // EL test de la lección, así que las pide.
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins", "--uitest-lessons"]
         app.launch()
 
         let tip = app.otherElements["tutorial.tip"]

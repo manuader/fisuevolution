@@ -903,3 +903,220 @@ Sin `--upgrades` el tool busca `Resources/Config/upgrades.json` solo y lo dice e
 la primera línea de la salida; si no lo encuentra avisa fuerte que el bot está
 corriendo el modelo viejo. La corrida de arriba está en
 `Docs/balance-run-sim-arreglado.csv` (`--csv`).
+
+---
+
+# El rebalance de fondo: 20-30 h activas con 8 reencarnaciones (Task 5, 2026-08-21)
+
+Es el corazón del rebalance de pacing
+(`Docs/superpowers/plans/2026-08-20-rebalance-pacing.md`, Task 5). La línea de
+base es la que dejó la Task 1 —el bot arreglado contra la economía sin tocar—,
+no el 191 h derogado del prompt.
+
+## Los tres números
+
+`swift run -c release pacing-sim … --max-days 1200`
+
+| | línea de base (Task 1) | después | objetivo del dueño |
+|---|---|---|---|
+| **maxear las 7 (activo)** | 15,49 h | **25,33 h** | 20-30 h |
+| **reencarnaciones al maxear** | 34 | **8** | ≤ 8 |
+| **Dios (activo)** | 32,0 h | **30,33 h** | más lejos que maxear |
+| Dios (pared) | 566,30 h | 537,33 h | — |
+| reencarnaciones totales | 52 | 11 | — |
+| 1ª reencarnación (activo) | 0,17 h | 2,00 h | — |
+| lifetimeEarnings final | 3,320e+43 | 5,176e+28 | — |
+
+Dios queda ×1,20 más lejos que maxear en horas activas (antes ×2,07, pero con
+maxear a las 15,49 h). El CSV de la corrida está en
+`Docs/balance-run-t5-rebalance.csv`.
+
+## Los cuatro knobs, uno por vez
+
+| knob | antes | después | qué movió (medido, sólo ese knob) |
+|---|---|---|---|
+| `tapFloorMultiplierExponent` | — (=1) | **0** | maxear 15,49 → **24,67 h** |
+| `hire.defaultCostGrowth` | 1,2 | **1,06** | el hire del piso 4 deja de costar 0,0 s de income |
+| `oro.divisor` | 3e6 | **3e11** | 1ª reencarnación 0,17 → 2,00 h activas |
+| `oro.exponent` | 0,45 | **0,25** | ×4,65 de ganancias por duplicar ORO → ×16 |
+| `upgrades.json` | crit = 99,99 % | 7 líneas de 21-37 ORO | 34 → 8 reencarnaciones |
+
+## Piso por piso, antes y después
+
+La tercera columna es la métrica nueva del simulador: **cuántos SEGUNDOS de tu
+income cuesta contratar el tier base del piso en el momento en que se abre**. Es
+la evidencia de la divergencia costos-vs-ingresos que pedía la definición de
+hecho, "a lo largo de toda la partida y no sólo al final".
+
+| piso | antes (activo) | después (activo) | antes (costo) | después (costo) |
+|---|---:|---:|---:|---:|
+| urban | 0,8 min | 0,5 min | 200,0 s | 200,0 s |
+| corporate | 33,1 min | 10,2 min | 114,5 s | 419,7 s |
+| luxury | 580,1 min | 400,1 min | **0,0 s** | 720,1 s |
+| island | 840,9 min | 980,1 min | 0,0 s | 823,6 s |
+| moon | 1040,7 min | 1340,1 min | 0,0 s | 270,1 s |
+| mars | 1226,9 min | 1571,5 min | 0,0 s | 8,0 s |
+| solar | 1446,5 min | 1643,2 min | 0,0 s | 4,2 s |
+| galaxy | 1506,8 min | 1654,6 min | 0,0 s | 9,8 s |
+| god_realm | 1918,0 min | 1819,8 min | 0,0 s | 0,9 s |
+
+**Antes, del cuarto piso en adelante contratar era literalmente gratis.**
+
+## Lo que se descartó, con su número
+
+**(a) Que los costos escalen con el multiplicador (`M^0,8`), la opción que el
+prompt llamaba "el arreglo estándar de los idle": DESCARTADA, medida.** En esta
+torre la profundidad se COMPRA con el multiplicador: cada tier extra cuesta un
+factor entero de `yieldGrowthPerTier`, así que `ΔT = (1−k)·log(M)/log(2,8)`. Con
+k = 0,8 el multiplicador efectivo de los ×3,6e15 que hoy hacen falta para Dios
+queda en ×1000, y está medido que con multiplicadores de ese orden el bot se
+traba en el tier 12: la corrida `divisor 3e10 / perOro 0,18` hace 22
+reencarnaciones (multiplicador ≈ 7,5e5) y termina en **T12**. O sea que anclar
+los precios al multiplicador vuelve la torre inescalable y Dios inalcanzable.
+
+**(b) Aplanar sólo el ORO, dejando la relación costo/ingreso como estaba: es la
+trampa que este documento ya documentó una vez, y ahora tiene número.** Con
+`defaultCostGrowth` en 1,2 y sólo el ORO tocado, el mejor punto encontrado es
+`divisor 2e10 / exponente 0,45`: maxear 29,67 h ✅, pero **9** reencarnaciones,
+Dios a **915,82 h activas** (×31 más lejos que maxear: contenido muerto) y la
+serie de costos sigue en 200 / 419 / **0,0** / 0,0 / … O sea: pasa el titular y
+deja el defecto intacto, que es exactamente lo que el prompt advertía.
+
+**(c) Techo blando con rendimientos decrecientes sobre el multiplicador: no se
+implementó** — es una variante de (b) (acota la velocidad del desborde, no lo
+cierra) y habría agregado una fórmula nueva sin resolver lo que (b) no resuelve.
+
+**La salida elegida es la causa, no el síntoma.** La divergencia no la generaba
+el multiplicador: la generaba el **20 % por compra**. El gate de un piso obliga
+a ~256 contrataciones en el piso de abajo por cada piso que se cruza (2 unidades
+del tier de arriba = 16 del tier base = 256 del piso anterior), y `1,2^256 ≈
+4e20`. La única moneda capaz de pagar esa pared es un multiplicador global
+explotando sin techo — el multiplicador astronómico era la CONSECUENCIA. Con
+`defaultCostGrowth` en 1,06 la pared se vuelve pagable con multiplicadores de
+orden 10⁴, y ahí el ORO puede volverse escaso sin que Dios quede inalcanzable.
+
+⚠️ **Esto toca la regla de precios del dueño** (2026-08-04: "600× y cada compra
+sube el precio 20%"). El **primer Fisura sigue costando 25** —decisión cerrada,
+no se movió— y `defaultCostMultiplier` sigue en **600**; lo que cambia es la
+PENDIENTE de la curva: el segundo Fisura pasa de 30 a 26,5. **Necesita la
+confirmación del dueño.**
+
+## Las siete líneas
+
+`crit` costaba 1,776e10 de un total de 1,778e10: **99,99 %**. Ahora:
+
+| línea | niveles | magnitud/nivel | baseCost | growth | costo total | % del total |
+|---|---:|---:|---:|---:|---:|---:|
+| income | 10 | 0,2 | 1 | 1,10 | 21 | 10,9 % |
+| tap | 10 | 0,5 | 1 | 1,10 | 21 | 10,9 % |
+| offline | 10 | 0,05 | 1 | 1,15 | 26 | 13,5 % |
+| spawn | 10 | 0,03 | 1 | 1,15 | 26 | 13,5 % |
+| crit | 10 | 0,025 | 1 | 1,20 | 31 | 16,1 % |
+| golden | 10 | 0,005 | 1 | 1,20 | 31 | 16,1 % |
+| prestige | 10 | 0,005 | 1 | 1,25 | 37 | 19,2 % |
+
+**Total 193 ORO** contra 1,778e10. La más cara cuesta 1,76× la más barata en vez
+de 8.000.000×.
+
+Los **efectos totales al tope no se movieron ni un decimal** (income +2,0 · tap
++5,0 · crit 0,25 · offline +0,50 · golden 0,05 · spawn 0,30 · prestige 0,05):
+los niveles se dividieron por 2 (por 2,5 en crit) y las magnitudes se
+multiplicaron por lo mismo. Es la verificación del **riesgo del ledger**:
+ninguna línea se acerca más que antes a su `EffectCaps` (crit 0,25 de 0,5 ·
+offline 0,85 de 1,0 · golden 0,05 de 0,1 · spawn 0,30 de 0,6), así que el espejo
+de EconomyKit —que no clampea— y el juego —que sí— siguen coincidiendo. Lo
+vigila el test nuevo `upgradeLinesNeverReachTheirEffectCaps`.
+
+**Por qué 193 y no otro número**: el bot reencarna cuando DUPLICA su ORO
+histórico, así que las reencarnaciones para maxear son `log₂(costo total)`.
+`log₂(1,778e10) = 34,05` y el simulador medía **34** — exacto. `log₂(193) =
+7,59` y mide **8**. Cualquier catálogo por encima de ~450 ORO totales rompe el
+techo de 8.
+
+## ¿Cuándo conviene reencarnar? (el criterio de aceptación de §4.2)
+
+Medido con `--prestige-threshold N`, el knob nuevo del simulador: el bot
+reencarna cuando el ORO por reencarnar supera N veces su histórico. Misma
+economía en cada columna; lo único que cambia es la política del jugador.
+
+| política | antes: maxear / reenc | después: maxear / reenc |
+|---|---|---|
+| ×1 (duplicar — el default) | 15,49 h / 34 | 25,33 h / 8 |
+| ×2 | 14,18 h / 22 | 20,67 h / 6 |
+| ×4 | — | 19,67 h / 5 |
+| ×8 | **13,09 h / 12** | **17,90 h / 4** |
+| ×30 | 21,40 h / 8 | 17,67 h / 3 |
+| ×1000 (contra la pared) | 864,97 h / 5 | 24,00 h / 2 |
+
+**El óptimo del jugador pasó de 12 reencarnaciones con la primera a los 0,1 h
+activas —seis minutos, y 8 de las 12 dentro de las dos primeras horas: un
+trámite— a 4 reencarnaciones con la primera a las 2,0 h activas**, que es
+exactamente lo que hizo el dueño ("yo cuando gané el juego reencarné 3 o 4 veces
+nada más").
+
+Cadencia del bot por defecto, en horas ACTIVAS de cada reencarnación:
+
+```
+antes:    0,2 · 0,3 · 0,6 · 0,7 · 1,0 · 1,2 · 1,3 · 1,5 · 1,7 · 1,8 · 2,0 · 2,1 · …  (52 en total)
+después:  2,0 · 6,9 · 12,0 · 16,7 · 20,0 · 22,7 · 24,0 · 25,3                        (8 al maxear)
+```
+
+Los huecos de la serie nueva se ACORTAN de 4,9 h a 1,3 h: cada reencarnación
+hace que la siguiente llegue antes, o sea que el multiplicador que te llevás
+paga el re-ascenso con ganancia. Los de la serie vieja eran de 0,1-0,3 h de
+punta a punta: reencarnar no cambiaba nada.
+
+Y el valor de la PRIMERA: antes 1 ORO sobre 1,778e10 = **6e-9 %** de la
+condición de victoria. Ahora 1 ORO sobre 193 = **0,5 %**, y compra un nivel
+entero de income (+20 % permanente).
+
+⚠️ **Honestidad sobre este punto**: el óptimo medido no es "reencarnar
+apenas podés" sino "cada ×4-×8", o sea 4-5 veces repartidas en la run. Es la
+conducta que el dueño describió como propia y entra en el techo de 8, pero el
+bot que reencarna en cuanto duplica sigue tardando 25,33 h contra las 17,90 h
+del que espera un poco. Reencarnar temprano ya no es una trampa (contra la
+pared costaba 864,97 h y ahora cuesta 24,00 h), pero tampoco es estrictamente
+lo óptimo.
+
+## El tap del tier alto
+
+`tapFloorMultiplierExponent` separa la curva del tap de la del pasivo por el
+único factor que crece con la ALTURA de la torre: el `incomeMultiplier` del piso
+(1 → 620). Con 0 el tap cobra el tier pelado y el pasivo lo sigue cobrando
+entero. **El early game no se mueve ni un peso**: en el callejón el
+multiplicador es 1 y 1^x = 1 para cualquier exponente, así que el tutorial y el
+primer Fisura a 25 quedan idénticos.
+
+| exponente | maxear las 7 | Dios (activo) |
+|---|---|---|
+| ausente (= 1, la conducta vieja) | 15,49 h | 31,97 h |
+| 0,5 | 18,98 h | 31,25 h |
+| 0,25 | 23,00 h | 37,30 h |
+| **0 (elegido)** | **24,67 h** | 37,64 h |
+
+## Cómo re-correr
+
+```bash
+cd Tools/pacing-sim && swift run -c release pacing-sim \
+  --economy ../../FisuEvolution/Resources/Data/economy.json \
+  --tiers ../../FisuEvolution/Resources/Data/tiers.json \
+  --upgrades ../../FisuEvolution/Resources/Config/upgrades.json \
+  --max-days 1200 [--prestige-threshold N]
+```
+
+## Lo que este rebalance ROMPIÓ y hay que arreglar antes de cerrar
+
+🔴 **Los 12 logros de ORO fijo regalan 620 ORO y maxear las siete cuesta 193.**
+`achievements.json` paga ORO fijo en 12 logros (120 · 100 · 80 · 60 · 60 · …),
+620 en total. Contra el catálogo viejo de 1,778e10 eran polvo; contra el nuevo
+son **3,2× la condición de victoria entera** — o sea que un jugador maxea las
+siete líneas sólo con logros. El simulador no modela logros, así que las
+mediciones de arriba no están contaminadas, pero el juego sí. Es la Task 3.4 del
+plan ("los 12 logros de ORO fijo se re-miran DESPUÉS de la Task 5") y con estos
+números deja de ser opcional.
+
+⚠️ **El horizonte importa**: el bot juega 80 min por día, así que 400 días son
+sólo 533 h ACTIVAS. Varias corridas de este barrido decían "dios —" y en
+realidad era el horizonte, no la economía: con `--max-days 3000` la misma
+configuración llegaba a Dios a las 743 h activas. Cualquier conclusión de "no
+llega" hay que verificarla con horizonte largo antes de escribirla.

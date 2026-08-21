@@ -1,0 +1,62 @@
+seccion,clave,valor,unidad
+piso,urban_activo,0.5,min
+piso,urban_pared,0.01,h
+piso,corporate_activo,10.2,min
+piso,corporate_pared,0.17,h
+piso,luxury_activo,400.1,min
+piso,luxury_pared,120.00,h
+piso,island_activo,980.1,min
+piso,island_pared,292.00,h
+piso,moon_activo,1340.1,min
+piso,moon_pared,398.00,h
+piso,mars_activo,1571.5,min
+piso,mars_pared,465.19,h
+piso,solar_activo,1643.2,min
+piso,solar_pared,489.05,h
+piso,galaxy_activo,1654.6,min
+piso,galaxy_pared,489.24,h
+piso,god_realm_activo,1819.8,min
+piso,god_realm_pared,537.33,h
+hito,reencarnaciones,11,conteo
+reencarnacion,1,2.000,h activas
+reencarnacion,2,6.922,h activas
+reencarnacion,3,12.000,h activas
+reencarnacion,4,16.667,h activas
+reencarnacion,5,20.000,h activas
+reencarnacion,6,22.663,h activas
+reencarnacion,7,24.000,h activas
+reencarnacion,8,25.334,h activas
+reencarnacion,9,26.334,h activas
+reencarnacion,10,27.667,h activas
+reencarnacion,11,29.001,h activas
+costo,alley_hire_en_segundos,4.17,s de income
+costo,urban_hire_en_segundos,200.00,s de income
+costo,corporate_hire_en_segundos,419.70,s de income
+costo,luxury_hire_en_segundos,720.07,s de income
+costo,island_hire_en_segundos,823.56,s de income
+costo,moon_hire_en_segundos,270.11,s de income
+costo,mars_hire_en_segundos,8.02,s de income
+costo,solar_hire_en_segundos,4.15,s de income
+costo,galaxy_hire_en_segundos,9.76,s de income
+costo,god_realm_hire_en_segundos,0.85,s de income
+hito,siete_al_tope_activo,25.33,h
+hito,siete_al_tope_pared,456.00,h
+hito,reencarnaciones_al_maxear,8,conteo
+hito,primera_reencarnacion,33.00,h
+hito,dios,537.33,h
+hito,max_tier_final,37,tier
+hito,lifetime_earnings,5.1761e+28,monedas
+mejora,income,10,de 10
+mejora,spawn,10,de 10
+mejora,offline,10,de 10
+mejora,tap,10,de 10
+mejora,crit,10,de 10
+mejora,golden,10,de 10
+mejora,prestige,10,de 10
+knob,hire_defaultCostGrowth,1.06,
+knob,hire_defaultCostMultiplier,600.0,
+knob,offlineEfficiencyBase,0.35,
+knob,oro_divisor,300000000000.0,
+knob,oro_globalMultiplierPerOro,0.18,
+knob,yieldGrowthPerTier,2.8,
+knob,alley_hireCostMultiplier,25.0,

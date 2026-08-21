@@ -12,7 +12,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 4.0
+        "seconds": 40
       }
     },
     {
@@ -26,7 +26,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 6.0
+        "seconds": 60
       }
     },
     {
@@ -40,7 +40,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 8.0
+        "seconds": 80
       }
     },
     {
@@ -54,7 +54,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 10.0
+        "seconds": 100
       }
     },
     {
@@ -68,7 +68,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 12.0
+        "seconds": 120
       }
     },
     {
@@ -82,7 +82,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 16.0
+        "seconds": 160
       }
     },
     {
@@ -96,7 +96,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 20.0
+        "seconds": 200
       }
     },
     {
@@ -110,7 +110,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 26.0
+        "seconds": 260
       }
     },
     {
@@ -138,7 +138,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 2.0
+        "seconds": 30
       }
     },
     {
@@ -152,7 +152,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 12.0
+        "seconds": 120
       }
     },
     {
@@ -166,7 +166,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 40.0
+        "seconds": 300
       }
     },
     {
@@ -194,7 +194,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 4.0
+        "seconds": 40
       }
     },
     {
@@ -208,7 +208,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 16.0
+        "seconds": 160
       }
     },
     {
@@ -236,7 +236,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 10.0
+        "seconds": 100
       }
     },
     {
@@ -250,7 +250,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 30.0
+        "seconds": 300
       }
     },
     {
@@ -278,7 +278,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 20.0
+        "seconds": 200
       }
     },
     {
@@ -320,7 +320,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 10.0
+        "seconds": 100
       }
     },
     {
@@ -361,7 +361,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 6.0
+        "seconds": 60
       }
     },
     {
@@ -389,7 +389,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 4.0
+        "seconds": 40
       }
     },
     {
@@ -403,7 +403,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 16.0
+        "seconds": 160
       }
     },
     {
@@ -417,7 +417,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 4.0
+        "seconds": 40
       }
     },
     {
@@ -431,7 +431,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 16.0
+        "seconds": 160
       }
     },
     {
@@ -445,7 +445,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 2.0
+        "seconds": 30
       }
     },
     {
@@ -459,7 +459,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 20.0
+        "seconds": 200
       }
     },
     {
@@ -473,7 +473,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 6.0
+        "seconds": 60
       }
     },
     {
@@ -528,7 +528,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 12.0
+        "seconds": 120
       }
     },
     {
@@ -542,7 +542,7 @@
       },
       "reward": {
         "kind": "coins",
-        "factor": 6.0
+        "seconds": 60
       }
     }
   ]

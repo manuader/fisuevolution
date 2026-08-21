@@ -18,6 +18,9 @@ import SwiftUI
 /// lugar donde `dismiss` significa "cerrar el menú".
 struct MenuView: View {
     @Environment(\.dismiss) private var dismiss
+    /// Para el puntito de logros cobrables en la tarjeta de Logros (el mismo
+    /// que trae al jugador desde el tab Menú).
+    @Environment(GameState.self) private var gameState
 
     /// Margen lateral del contenido de las CUATRO pantallas del menú. Desde el
     /// rediseño v3 el marco es `WoodPanelBackground` —geometría propia, no un
@@ -56,7 +59,8 @@ struct MenuView: View {
                         }
                     }
                     HStack(spacing: Tokens.s12) {
-                        card(.achievements, "menu.card.achievements", identifier: "menu.card.achievements") {
+                        card(.achievements, "menu.card.achievements", identifier: "menu.card.achievements",
+                             showsBadge: gameState.hasClaimableAchievements) {
                             AnyView(VectorTrophyIcon(tier: .gold))
                         }
                         card(.settings, "menu.card.settings", identifier: "menu.card.settings") {
@@ -130,6 +134,7 @@ struct MenuView: View {
         _ destination: Destination,
         _ titleKey: LocalizedStringKey,
         identifier: String,
+        showsBadge: Bool = false,
         @ViewBuilder icon: @escaping () -> AnyView
     ) -> some View {
         NavigationLink(value: destination) {
@@ -140,6 +145,15 @@ struct MenuView: View {
                     // tamaño el glifo se explica solo — mismo criterio que los
                     // dos accesos de la barra superior.
                     GameIcon(artKey: Self.artKey(for: destination), size: 84) { icon() }
+                        // El mismo puntito que trae al jugador desde el tab
+                        // Menú: la tarjeta lo repite para que el rastro no se
+                        // corte hasta el premio. `.overlay`, como siempre.
+                        .overlay(alignment: .topTrailing) {
+                            if showsBadge {
+                                NotificationBadge(size: 24)
+                                    .offset(x: 8, y: -4)
+                            }
+                        }
                     Text(titleKey)
                         .font(Tokens.title)
                         .foregroundStyle(Color("PaletteInk"))
@@ -157,6 +171,7 @@ struct MenuView: View {
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
         .accessibilityLabel(Text(titleKey))
+        .accessibilityValue(showsBadge ? Text("badge.claimable.ax") : Text(verbatim: ""))
     }
 
     /// La clave del atlas de cada icono. Los cuatro PNG todavía no existen

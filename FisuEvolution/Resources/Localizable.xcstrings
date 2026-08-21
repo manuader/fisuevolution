@@ -1683,6 +1683,23 @@
         }
       }
     },
+    "badge.claimable.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rewards to claim"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay premios para cobrar"
+          }
+        }
+      }
+    },
     "board.reveal.new" : {
       "extractionState" : "manual",
       "localizations" : {

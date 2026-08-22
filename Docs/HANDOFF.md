@@ -241,7 +241,8 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ### Sesión del 2026-08-21 — El rebalance de pacing: ganarlo al máximo cuesta 24 h
 
 `fix/rebalance-pacing`, con `fix/atajo-tier-base` y `fix/premios-y-eventos`
-integradas. **Maxear las siete líneas permanentes —"ganarlo al máximo", lo que
+integradas — **y mergeada a `main` en `9efc8f7` el mismo día** (verificación
+del árbol final en `Docs/SESION-2026-08-21-merge-rebalance-y-manito.md`). **Maxear las siete líneas permanentes —"ganarlo al máximo", lo que
 desbloquea las skins doradas— pasó de 15,49 h a 24,00 h ACTIVAS y de 34
 reencarnaciones a 8**; dios quedó a 26,59 h activas, o sea DESPUÉS de las skins.
 Detalle en **`Docs/SESION-2026-08-21-rebalance-pacing.md`**, calibración corrida
@@ -284,8 +285,9 @@ El puntito rojo de logros (`ui_badge`, recortado al bbox: traía 86% de aire)
 vive como `.overlay` en el tab Menú y la tarjeta de Logros, avisando por
 `accessibilityValue`; su señal es la proyección nueva
 `hasClaimableAchievements`. La tarjeta habla v3 (pergamino, retrato 96 pt
-pisando el borde, pop de spring) y la mano es vectorial de la casa. Poses:
-sólo `wave`/`celebrate` hasta que 117/118 se regeneren. Detalle y por qué de
+pisando el borde, pop de spring); la mano probó un vectorial de la casa y
+volvió al SF Symbol del sistema por pedido del dueño (2026-08-21, post-merge
+del rebalance). Poses: sólo `wave`/`celebrate` hasta que 117/118 se regeneren. Detalle y por qué de
 cada decisión en **`Docs/SESION-2026-08-21-tutorial-high-end.md`**; trampas
 nuevas 24 y 25 en §7. Números del cierre: EconomyKit **213** · app **395**
 (3 rojos Pacing preexistentes) · UI **48 sin fallos ni skips**.
@@ -790,17 +792,20 @@ Los cuatro de arriba son **el último cuádruple tomado con la receta completa**
 Lo que se sumó después está medido, pero cada suite por su lado y en el simulador
 compartido, así que no lo reemplaza:
 
-| Suite | 2026-08-16 | Hoy (2026-08-21) | Qué entró |
+| Suite | 2026-08-16 | Hoy (2026-08-21, main `9efc8f7`+manito) | Qué entró |
 |---|---|---|---|
-| EconomyKit | 183 | **213** | `CelebrationQueueTests` + la restricción del tutorial |
-| app | 346 | **395** | `CelebrationWiringTests` (+fase), `TutorialTipsTests`, `RevealLayoutTests` — 3 rojos de `PacingTests` preexistentes (prompt de pacing) |
-| UI | 43 | **48** | `CareerChoiceUITests`, `MenuUITests`, `TutorialUITests` reescrita (lección + puntito) |
-| pipeline | 27 | 53 | frentes de arte ajenos; 1 rojo nuevo ajeno (4 PNG calados de `estanciero_estelar__tropero`) |
+| EconomyKit | 183 | **234, cero rojos** | `CelebrationQueueTests` + la restricción del tutorial (sesión tutorial) y `PacingSimulatorTests` + `PermanentUpgrades` (rebalance) |
+| app | 346 | **411, cero rojos** | tutorial: `CelebrationWiringTests` (+fase), `TutorialTipsTests`; rebalance: `PacingTests` re-pineado ENTERO (los «3 rojos conocidos» YA NO EXISTEN como categoría), `BestHireTests`, `SaveMigratorTests` |
+| UI | 43 | **48, cero rojos, sin skips** | `CareerChoiceUITests`, `MenuUITests`, `TutorialUITests` reescrita (lección + puntito) |
+| pipeline | 27 | 53 | frentes de arte ajenos; 1 rojo ajeno (4 PNG calados de `estanciero_estelar__tropero`) |
 
-⚠️ Los cuatro de la columna «Hoy» salieron de la verificación del cierre del
-tutorial (2026-08-21): EconomyKit por `swift test`, y app + UI en el MISMO
-simulador propio por UDID con la receta completa (unit antes que UI,
-`-parallel-testing-enabled NO`, sin skips).
+⚠️ Los cuatro de la columna «Hoy» son del árbol FINAL del 2026-08-21 —el
+merge del rebalance a main más la manito— tomados en la verificación del
+merge (`SESION-2026-08-21-merge-rebalance-y-manito.md`): EconomyKit por
+`swift test`, app + UI en el MISMO simulador propio por UDID con la receta
+completa (unit antes que UI, `-parallel-testing-enabled NO`, sin skips). El
+quinto número de ese cierre es el `pacing-sim`: **24,00 h activas · 8
+reencarnaciones**, que es el contrato del dueño.
 
 **El próximo cuádruple hay que tomarlo con la receta de arriba**, no sumando
 estos. Y ojo con `refundRevokesEntitlement` (StoreKit + `SKTestSession`): falló

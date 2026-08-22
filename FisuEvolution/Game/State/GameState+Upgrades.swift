@@ -99,7 +99,7 @@ extension GameState {
             let cost = characterUpgradeCost(of: type)
             return CharacterUpgradeRow(
                 id: type.id,
-                displayName: type.displayName,
+                displayName: type.localizedName,
                 tier: type.tier,
                 faceKey: faceKey(for: type.id),
                 multiplierText: multiplierText(pow(factor, Double(level))),

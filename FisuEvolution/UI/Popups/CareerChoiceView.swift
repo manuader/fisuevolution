@@ -71,7 +71,7 @@ struct CareerChoiceView: View {
                 HStack(spacing: Tokens.s12) {
                     CareerPortrait(faceKey: "\(option.id)_face")
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(verbatim: option.displayName)
+                        Text(verbatim: option.localizedName)
                             .font(Tokens.title)
                             .foregroundStyle(Color("PaletteInk"))
                             // Dos renglones y no uno, por lo mismo que en
@@ -108,7 +108,7 @@ struct CareerChoiceView: View {
             Color.clear
                 .accessibilityElement()
                 .accessibilityAddTraits(.isButton)
-                .accessibilityLabel(Text(verbatim: option.displayName))
+                .accessibilityLabel(Text(verbatim: option.localizedName))
                 .accessibilityValue(Text(verbatim: reward ?? ""))
         }
         .accessibilityIdentifier("career.option.\(option.id)")

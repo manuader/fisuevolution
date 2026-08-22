@@ -45,7 +45,7 @@ struct SkinAwardView: View {
                             .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)
                     )
 
-                Text("skin.award.subtitle \(award.characterType.displayName)")
+                Text("skin.award.subtitle \(award.characterType.localizedName)")
                     .font(Tokens.body)
                     .foregroundStyle(Color("PaletteInk").opacity(0.75))
                     .multilineTextAlignment(.center)

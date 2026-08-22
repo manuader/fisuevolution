@@ -56,7 +56,9 @@ struct BestHireTests {
         let best = try #require(gameState.bestHire)
         #expect(best.typeId == "homeless")
         #expect(best.tier == 1, "el firstTier del callejón (floorTable: alley 1-4)")
-        #expect(best.displayName == "El Fisura")
+        // Traducido y con el runner en inglés: se pinea que haya nombre, no cuál
+        // (ver `JobRowsTests.newGameOffersOnlyTheFisura`).
+        #expect(best.displayName != "???")
         #expect(best.faceKey == "homeless_face")
         #expect(best.costText == "25", "el primer Fisura cuesta 25 (decisión del dueño)")
         #expect(best.affordable)

@@ -197,7 +197,7 @@ extension GameState {
             let ordinal = content.floorTable.ordinal(forTier: type.tier)
             return OrgChartRow(
                 id: type.id,
-                displayName: seen ? type.displayName : "???",
+                displayName: seen ? type.localizedName : "???",
                 faceKey: "\(type.id)_face",
                 count: player.run.units[type.id] ?? 0,
                 tier: type.tier,

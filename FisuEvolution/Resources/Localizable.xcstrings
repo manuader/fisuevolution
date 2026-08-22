@@ -347,7 +347,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "One Small Step for Fisura"
+            "value" : "One Small Step for the Hobo"
           }
         },
         "es" : {
@@ -4883,6 +4883,23 @@
         }
       }
     },
+    "skin.name.diamante" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diamond"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Diamante"
+          }
+        }
+      }
+    },
     "skin.name.dinastia" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5253,6 +5270,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oráculo"
+          }
+        }
+      }
+    },
+    "skin.name.oro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Golden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "De Oro"
           }
         }
       }
@@ -5733,6 +5767,23 @@
         }
       }
     },
+    "skins.unlock.upgrades_maxed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max out every upgrade"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maxeá todas las mejoras"
+          }
+        }
+      }
+    },
     "special.alien_investor.flavor" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6011,7 +6062,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "\"Guys, use code FISURA for 2% off EVERYTHING. Link in bio.\""
+            "value" : "\"Guys, use code HOBO for 2% off EVERYTHING. Link in bio.\""
           }
         },
         "es" : {
@@ -6835,6 +6886,754 @@
         }
       }
     },
+    "tier.name.administrativo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paper Pusher"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Administrativo"
+          }
+        }
+      }
+    },
+    "tier.name.cartonero" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cardboard Collector"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cartonero"
+          }
+        }
+      }
+    },
+    "tier.name.ceo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CEO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CEO"
+          }
+        }
+      }
+    },
+    "tier.name.chofer_app" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rideshare Driver"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chofer de App"
+          }
+        }
+      }
+    },
+    "tier.name.coleccionista_galaxias" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Galaxy Collector"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coleccionista de Galaxias"
+          }
+        }
+      }
+    },
+    "tier.name.deidad" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deity"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deidad"
+          }
+        }
+      }
+    },
+    "tier.name.director" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Director"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Director"
+          }
+        }
+      }
+    },
+    "tier.name.dueno_luna" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Owner of the Moon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dueño de la Luna"
+          }
+        }
+      }
+    },
+    "tier.name.dueno_marte" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Owner of Mars"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dueño de Marte"
+          }
+        }
+      }
+    },
+    "tier.name.dueno_pyme" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Small Business Owner"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dueño de PYME"
+          }
+        }
+      }
+    },
+    "tier.name.emperador_cosmico" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cosmic Emperor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emperador Cósmico"
+          }
+        }
+      }
+    },
+    "tier.name.emprendedor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hustle Guru"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Emprendedor"
+          }
+        }
+      }
+    },
+    "tier.name.estanciero_estelar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Star Rancher"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estanciero Estelar"
+          }
+        }
+      }
+    },
+    "tier.name.fast_food" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Burger Flipper"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empleado de Fast Food"
+          }
+        }
+      }
+    },
+    "tier.name.fondo_buitre" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stellar Vulture Fund"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fondo Buitre Estelar"
+          }
+        }
+      }
+    },
+    "tier.name.fundador_startup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startup Founder"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fundador de Startup"
+          }
+        }
+      }
+    },
+    "tier.name.god" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "God"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dios"
+          }
+        }
+      }
+    },
+    "tier.name.homeless" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Hobo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Fisura"
+          }
+        }
+      }
+    },
+    "tier.name.junior" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fresh Grad"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recién Recibido"
+          }
+        }
+      }
+    },
+    "tier.name.junior_architect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Junior Architect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquitecto Jr."
+          }
+        }
+      }
+    },
+    "tier.name.junior_doctor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medical Resident"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Médico Jr."
+          }
+        }
+      }
+    },
+    "tier.name.junior_lawyer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Junior Associate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abogado Jr."
+          }
+        }
+      }
+    },
+    "tier.name.junior_programmer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Junior Developer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programador Jr."
+          }
+        }
+      }
+    },
+    "tier.name.limpiavidrios" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Squeegee Guy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limpiavidrios"
+          }
+        }
+      }
+    },
+    "tier.name.magnate_petrolero" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oil Baron"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Magnate Petrolero"
+          }
+        }
+      }
+    },
+    "tier.name.magnate_solar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solar System Tycoon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Magnate del Sistema Solar"
+          }
+        }
+      }
+    },
+    "tier.name.mantero" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Bootleg Vendor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Mantero"
+          }
+        }
+      }
+    },
+    "tier.name.millonario" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Millionaire"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Millonario"
+          }
+        }
+      }
+    },
+    "tier.name.multimillonario" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multimillionaire"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Multimillonario"
+          }
+        }
+      }
+    },
+    "tier.name.oficinista" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Office Drone"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oficinista"
+          }
+        }
+      }
+    },
+    "tier.name.rentista_soles" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Landlord of Suns"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rentista de Soles"
+          }
+        }
+      }
+    },
+    "tier.name.repartidor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delivery Guy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repartidor"
+          }
+        }
+      }
+    },
+    "tier.name.rey_asteroides" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "King of the Asteroids"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rey de los Asteroides"
+          }
+        }
+      }
+    },
+    "tier.name.rey_ladrillo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Real Estate King"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rey del Ladrillo"
+          }
+        }
+      }
+    },
+    "tier.name.semidios" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demigod"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Semidiós"
+          }
+        }
+      }
+    },
+    "tier.name.senior_architect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senior Architect"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquitecto Sr."
+          }
+        }
+      }
+    },
+    "tier.name.senior_doctor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attending Physician"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Médico Sr."
+          }
+        }
+      }
+    },
+    "tier.name.senior_lawyer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senior Partner"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abogado Sr."
+          }
+        }
+      }
+    },
+    "tier.name.senior_programmer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senior Developer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Programador Sr."
+          }
+        }
+      }
+    },
+    "tier.name.senor_galaxia" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lord of the Galaxy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Señor de la Galaxia"
+          }
+        }
+      }
+    },
+    "tier.name.ser_ascendido" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ascended Being"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ser Ascendido"
+          }
+        }
+      }
+    },
+    "tier.name.space_billionaire" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Space Billionaire"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Space Billionaire"
+          }
+        }
+      }
+    },
+    "tier.name.trapito" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Fake Valet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Trapito"
+          }
+        }
+      }
+    },
+    "tier.name.trillonario" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trillionaire"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trillonario"
+          }
+        }
+      }
+    },
     "tower.floor.alley" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -7314,7 +8113,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hi! I am El Fisura. Tap me to earn coins until you can afford to hire another one. 💰"
+            "value" : "Hi! I'm the Hobo. Tap me to earn coins until you can afford to hire another one. 💰"
           }
         },
         "es" : {
@@ -7982,57 +8781,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mejoras"
-          }
-        }
-      }
-    },
-    "skin.name.diamante" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diamond"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "De Diamante"
-          }
-        }
-      }
-    },
-    "skin.name.oro" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Golden"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "De Oro"
-          }
-        }
-      }
-    },
-    "skins.unlock.upgrades_maxed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Max out every upgrade"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Maxeá todas las mejoras"
           }
         }
       }

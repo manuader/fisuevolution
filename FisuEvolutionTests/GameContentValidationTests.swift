@@ -447,6 +447,33 @@ struct GameContentValidationTests {
         }
     }
 
+    /// El nombre del personaje sale de `tiers.json`, que es **dato en
+    /// castellano**: dibujado tal cual, el juego en inglés mostraba "El Fisura".
+    /// La traducción vive en `tier.name.<id>` y este test es lo único que la
+    /// mantiene completa — `localizedName` cae al castellano del dato cuando
+    /// falta la clave, así que un tier nuevo se shippearía en castellano en
+    /// silencio, que es exactamente el bug que esto arregló.
+    ///
+    /// Los dos bundles se abren a mano porque `Bundle.main` sólo responde en el
+    /// idioma con el que corre el runner (inglés, trampa 6): preguntarle a él
+    /// dejaría el castellano sin chequear.
+    @Test("cada tier tiene su nombre en los dos idiomas y el castellano es el del dato")
+    func everyTierHasItsNameInBothLanguages() throws {
+        let missing = "(falta)"
+        for language in ["es", "en"] {
+            let path = try #require(Bundle.main.path(forResource: language, ofType: "lproj"))
+            let bundle = try #require(Bundle(path: path))
+            for type in content.tiers.types {
+                let key = "tier.name.\(type.id)"
+                let name = bundle.localizedString(forKey: key, value: missing, table: nil)
+                #expect(name != missing, "\(key): sin nombre en \(language)")
+                if language == "es" {
+                    #expect(name == type.displayName, "\(key): el catálogo se separó de tiers.json")
+                }
+            }
+        }
+    }
+
     /// La convención de textura es `<baseKey>__<skinId>` (spec §5): el arte de
     /// una skin vive en el atlas de SU personaje, con el `__` DESPUÉS de `_idle`.
     /// Romperla no falla en runtime —hay fallback a la base— pero deja la skin

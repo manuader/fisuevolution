@@ -180,7 +180,9 @@ struct StatsSnapshotTests {
 
         let fisura = try #require(rows.first { $0.id == "homeless" })
         #expect(fisura.seen)
-        #expect(fisura.displayName == "El Fisura")
+        // Traducido y con el runner en inglés: se pinea que haya nombre, no cuál
+        // (ver `JobRowsTests.newGameOffersOnlyTheFisura`).
+        #expect(fisura.displayName != "???")
         #expect(fisura.faceKey == "homeless_face")
         #expect(fisura.count == 1)
         #expect(fisura.tier == 1)

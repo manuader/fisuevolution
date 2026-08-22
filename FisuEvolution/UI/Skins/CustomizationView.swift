@@ -67,7 +67,7 @@ struct CustomizationView: View {
                         // marco amarillo de la cara elegida: el carrusel puede
                         // quedar scrolleado lejos y la grilla tiene que poder
                         // leerse sola.
-                        SectionHeader(verbatim: String(localized: "skins.grid.title \(selected.displayName)"))
+                        SectionHeader(verbatim: String(localized: "skins.grid.title \(selected.localizedName)"))
                             .padding(.top, Tokens.s8)
                         grid(for: selected)
                     }
@@ -127,9 +127,9 @@ struct CustomizationView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("skins.character.\(type.id)")
-                        // El nombre sale de `tiers.json` (es dato, no catálogo de
-                        // strings), así que va verbatim.
-                        .accessibilityLabel(Text(verbatim: type.displayName))
+                        // El nombre ya viene traducido de `tier.name.<id>`, así
+                        // que va verbatim: como clave se buscaría de nuevo.
+                        .accessibilityLabel(Text(verbatim: type.localizedName))
                         .accessibilityAddTraits(type.id == selectedID ? [.isSelected] : [])
                     } else {
                         // Nunca visto: silueta y "???", sin botón (RF-03, no
@@ -174,7 +174,7 @@ struct CustomizationView: View {
                         )
                 )
                 .shadow(color: Color("PaletteYellow").opacity(selected ? 0.55 : 0), radius: 7)
-            Text(verbatim: unseen ? "???" : type.displayName)
+            Text(verbatim: unseen ? "???" : type.localizedName)
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(unseen ? 0.45 : (selected ? 1 : 0.75)))
                 .lineLimit(1)

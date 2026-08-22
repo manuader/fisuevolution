@@ -1155,7 +1155,7 @@ final class BoardScene: SKScene {
 
         // Nombre del personaje ARRIBA de la foto.
         let banner = SKLabelNode(fontNamed: "AvenirNext-Heavy")
-        banner.text = type.displayName.uppercased()
+        banner.text = type.localizedName.uppercased()
         banner.fontSize = 38
         // La entrada agranda el banner un 15% en su pico, así que el ancho útil
         // se descuenta: si no, un nombre que entra justo se corta al aparecer.

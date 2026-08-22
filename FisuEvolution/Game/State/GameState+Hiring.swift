@@ -113,7 +113,7 @@ extension GameState {
             let unseen = state == .unseen
             return JobRow(
                 id: type.id,
-                displayName: unseen ? "???" : type.displayName,
+                displayName: unseen ? "???" : type.localizedName,
                 faceKey: "\(type.id)_face",
                 incomeText: passiveEffectText(for: type),
                 hiredCount: player.run.units[type.id] ?? 0,
@@ -218,7 +218,7 @@ extension GameState {
 
         return BestHire(
             typeId: pick.type.id,
-            displayName: pick.type.displayName,
+            displayName: pick.type.localizedName,
             faceKey: "\(pick.type.id)_face",
             costText: CoinFormatter.string(from: pick.cost),
             affordable: coins >= pick.cost,

@@ -123,7 +123,7 @@ final class CharacterNode: SKNode {
         tierLabel.fontColor = Palette.ink
         tierLabel.position = CGPoint(x: 0, y: plateSize * 0.46)
 
-        setLabel(nameLabel, text: type.displayName, fontSize: plateSize * 0.11)
+        setLabel(nameLabel, text: type.localizedName, fontSize: plateSize * 0.11)
         nameLabel.fontColor = Palette.ink
         nameLabel.position = CGPoint(x: 0, y: -plateSize * 0.46)
     }

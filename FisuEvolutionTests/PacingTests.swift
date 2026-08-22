@@ -8,6 +8,14 @@ import Testing
 /// sobre la conducta medida. El reloj del sim salta por evento: ~470 h simuladas
 /// corren en segundos.
 ///
+/// ⚠️ **RE-PINEADO EL 2026-08-22 (segunda ronda de balance).** El efecto de las
+/// mejoras POR PERSONAJE pasó de `2^nivel` a `1 + nivel` (pedido del dueño), y
+/// con eso el ingreso del juego se derrumbó: maxear las siete pasó de 24,00 h a
+/// **322,00 h**. La recalibración que lo devuelve al contrato movió dos knobs
+/// —`charUpgrades.costGrowth` 4,0 → 1,5 y `oro.divisor` 3e12 → 1e9— y las cuatro
+/// bandas se re-derivaron de la corrida nueva. La corrida está en
+/// `Docs/balance-run-t7-secuencial.csv` y el porqué en `Docs/balance-log.md`.
+///
 /// ⚠️ **RE-PINEADO ENTERO EL 2026-08-21 (rebalance de pacing).** Las bandas de
 /// antes medían un bot que **no era el jugador**: se construía sin catálogo de
 /// mejoras permanentes, así que `meta.derivedEffects` viajaba en cero toda la
@@ -28,8 +36,8 @@ import Testing
 ///       --economy ../../FisuEvolution/Resources/Data/economy.json \
 ///       --tiers ../../FisuEvolution/Resources/Data/tiers.json --max-days 90
 ///
-/// (el CSV commiteado de esa corrida es `Docs/balance-run-t5-rebalance.csv`;
-/// `--max-days 400` da los mismos hitos, porque dios llega a los 19,6 días).
+/// (el CSV commiteado de esa corrida es `Docs/balance-run-t7-secuencial.csv`;
+/// `--max-days 400` da los mismos hitos, porque dios llega a los 24,6 días).
 ///
 /// ⚠️ **Las bandas fijan la CONDUCTA, los dos asserts del final fijan el
 /// OBJETIVO.** Son cosas distintas y por eso están separadas: una banda de ±30 %
@@ -96,6 +104,10 @@ struct PacingTests {
     /// mejoras permanentes cortan el arranque a la mitad, y el resto lo hizo el
     /// rebalance.
     ///
+    /// El efecto secuencial del 2026-08-22 **no la movió** (28,008 s antes y
+    /// después): el arranque no llega ni al segundo nivel de una mejora por
+    /// personaje, y en el nivel 1 las dos fórmulas dan lo mismo (×2).
+    ///
     /// ⚠️ **Sigue sin cumplir el §4 del spec** ("fase fisura ≥20-30 min
     /// activos"), y por lejos. No es un descuido: el dueño priorizó el largo
     /// TOTAL (maxear en 20-30 h) y el tutorial corto es parte del pedido —el
@@ -117,12 +129,20 @@ struct PacingTests {
     /// urban→island más una guarda anti-acantilado por paso. Post-island los
     /// ratios tienden a 1 POR DISEÑO (sweep de reencarnación) y quedan afuera.
     ///
-    /// **Medido en la corrida del encabezado**: ×17,28 (corporate) · ×24,80
-    /// (luxury) · ×3,70 (island), geomean **×11,66**. Bandas: geomean ±30 % y la
-    /// guarda en el peor paso +30 % (24,80 × 1,3 = 32,2). Venían de una geomean
-    /// de 4,0-7,5 y una guarda de 32 contra el bot viejo — la guarda queda en el
-    /// mismo número por coincidencia de dos calibraciones distintas.
-    @Test("el gradiente del arco pre-prestigio es ~8-15× por piso")
+    /// **Medido en la corrida del encabezado**: ×18,86 (corporate) · ×90,86
+    /// (luxury) · ×1,60 (island), geomean **×13,99**. Bandas: geomean ±30 %
+    /// (9,80-18,19) y la guarda en el peor paso +30 % (90,86 × 1,3 = 118,1).
+    ///
+    /// ⚠️ **La guarda saltó de 32,2 a 118,1 y eso es un costo declarado, no un
+    /// aflojamiento.** El acantilado vive siempre en el mismo lugar —el paso
+    /// corporate → luxury, que es donde el gate de un piso muerde: corporativo
+    /// no se puede contratar hasta que lujo abra, así que hay que cruzarlo
+    /// mergeando 256 unidades del piso de abajo— y el efecto secuencial le sacó
+    /// al jugador la plata con la que antes lo pasaba de corrido: ese cruce pasó
+    /// de 3,2 h activas a 13,3 h. Es literalmente lo que pidió el dueño
+    /// ("hacé que sea más difícil subir de piso"), concentrado en el único paso
+    /// donde el gate cobra. La banda lo mide; no lo aprueba.
+    @Test("el gradiente del arco pre-prestigio es ~10-18× por piso")
     func floorGradient() throws {
         // Pisos 2..5 (urban→island): el arco antes de que las reencarnaciones
         // barran pisos enteros de una pasada.
@@ -132,37 +152,47 @@ struct PacingTests {
         }
         for index in 1..<actives.count {
             let ratio = actives[index] / actives[index - 1]
-            #expect(ratio >= 1.0 && ratio <= 32.2, "acantilado en \(arc[index]): ×\(ratio)")
+            #expect(ratio >= 1.0 && ratio <= 118.1, "acantilado en \(arc[index]): ×\(ratio)")
         }
         let geomean = pow(actives[actives.count - 1] / actives[0], 1.0 / Double(actives.count - 1))
-        #expect(geomean >= 8.16 && geomean <= 15.16, "gradiente geomean ×\(geomean)")
+        #expect(geomean >= 9.80 && geomean <= 18.19, "gradiente geomean ×\(geomean)")
     }
 
-    /// **62,00 h de PARED medidas** en la corrida del encabezado, ±30 %. Venía
-    /// de una banda de 0,05-0,25 h: con el bot viejo reencarnar era un trámite
-    /// del primer minuto, y el rebalance lo convirtió en un hito —que era el
-    /// pedido del dueño ("casi nunca conviene reencarnar hasta estar muy
-    /// avanzado").
+    /// **4,07 h de PARED medidas** en la corrida del encabezado, ±30 %
+    /// (0,41 h ACTIVAS). De pared y no activas a propósito: el número que mide
+    /// la espera del jugador es el de calendario.
     ///
-    /// De pared y no activas a propósito: 62 h de pared son **3,67 h activas**,
-    /// y el número que mide la espera del jugador es el de calendario.
-    @Test("la 1ª reencarnación cae entre 43 y 81 h de pared")
+    /// ⚠️ **Volvió a caer temprano, y es el costo declarado de la ronda 2.** El
+    /// rebalance de la ronda 1 la había llevado a 62,00 h de pared (3,67 h
+    /// activas) subiendo `oro.divisor` a 3e12, para que reencarnar dejara de ser
+    /// un trámite del primer minuto. Con el efecto secuencial el ingreso cayó
+    /// tanto que ESE divisor pone la primera reencarnación a las **25,67 h
+    /// activas** y maxear a 122 h: el hito llega tan tarde que el juego se
+    /// vuelve otra cosa. El divisor bajó a 1e9 para recuperar el contrato de
+    /// 20-30 h, y con él la primera reencarnación se adelanta.
+    ///
+    /// Lo que **sí** se conservó es la pregunta que de verdad importaba
+    /// ("¿conviene reencarnar temprano?"), y ahora se contesta mejor que en la
+    /// ronda 1: el barrido de `--prestige-threshold` es MONÓTONO (×1 → 24,67 h ·
+    /// ×8 → 30,54 h · ×1000 → 50,51 h · nunca → dios a 66,34 h). Antes ×8 daba
+    /// 15,29 h, o sea guardarse las reencarnaciones ganaba. Ver `balance-log`.
+    @Test("la 1ª reencarnación cae entre 2,8 y 5,3 h de pared")
     func firstReincarnation() throws {
         let wall = try #require(report.firstReincarnationWall, "nunca reencarnó")
-        #expect(wall >= 43.40 * 3600 && wall <= 80.60 * 3600, "1ª reencarnación: \(wall / 3600) h")
+        #expect(wall >= 2.85 * 3600 && wall <= 5.29 * 3600, "1ª reencarnación: \(wall / 3600) h")
     }
 
-    /// **470,26 h de PARED medidas** (26,59 h ACTIVAS), ±30 %, con **9
-    /// reencarnaciones**. Venía de 242-449 h con ≥3.
+    /// **590,23 h de PARED medidas** (33,23 h ACTIVAS), ±30 %, con **13
+    /// reencarnaciones**. Venía de 329-611 h con ≥3.
     ///
     /// El assert de forma que importa no es el largo sino la relación: dios
-    /// (26,59 h activas) queda **×1,11 más lejos que maxear** (24,00 h), o sea
-    /// las skins doradas llegan antes que el final. Eso lo asserta
-    /// `theOwnersTargetsAreMet`.
-    @Test("dios llega entre 329 y 611 h de pared con ≥3 reencarnaciones")
+    /// (33,23 h activas) queda **×1,35 más lejos que maxear** (24,67 h), o sea
+    /// las skins doradas llegan antes que el final —y con más aire que el ×1,11
+    /// de la ronda 1—. Eso lo asserta `theOwnersTargetsAreMet`.
+    @Test("dios llega entre 413 y 767 h de pared con ≥3 reencarnaciones")
     func godTiming() throws {
         let wall = try #require(report.godWall, "dios nunca llegó (maxTier \(report.finalMaxTier))")
-        #expect(wall >= 329.18 * 3600 && wall <= 611.33 * 3600, "dios: \(wall / 3600) h")
+        #expect(wall >= 413.16 * 3600 && wall <= 767.30 * 3600, "dios: \(wall / 3600) h")
         #expect(report.reincarnations >= 3, "reencarnaciones: \(report.reincarnations)")
     }
 
@@ -172,9 +202,8 @@ struct PacingTests {
     /// único test del suite que **no** es una banda alrededor de lo medido:
     ///
     /// 1. **Ganarlo al máximo —las siete líneas al tope, que es lo que
-    ///    desbloquea las skins doradas— cuesta 20-30 h ACTIVAS.** Medido: 24,00
-    ///    h, el medio de la banda. Venía de 15,49 h (corto) y el rebalance lo
-    ///    subió sin volver a alargar la pared.
+    ///    desbloquea las skins doradas— cuesta 20-30 h ACTIVAS.** Medido: 24,67
+    ///    h, el medio de la banda (eran 24,00 h antes del efecto secuencial).
     /// 2. **Se llega con 8 reencarnaciones o menos.** Medido: 8, justo en el
     ///    techo. El bot reencarna al DUPLICAR su ORO histórico, así que las
     ///    reencarnaciones para maxear son ≈ log₂(costo total en ORO) y

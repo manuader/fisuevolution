@@ -84,10 +84,15 @@ struct UpgradesMenuTests {
         )
     }
 
+    /// La fila mostraba el multiplicador con una COPIA de la fórmula
+    /// (`pow(factor, nivel)`) en vez de llamar a `CharUpgrades.multiplier`.
+    /// Mientras el efecto fue `2^nivel` las dos daban lo mismo; cuando pasó a
+    /// ser secuencial (2026-08-22) la pantalla habría prometido ×2^n con la
+    /// economía pagando ×(1+n). Este test compara la fila contra la función que
+    /// cobra, que es la única forma de que no se puedan volver a separar.
     @Test("el multiplicador que muestra la fila es el que aplica la economía")
     func multiplierTextTracksTheConfig() async throws {
         let gameState = await makeGameState()
-        let factor = try #require(gameState.content?.economy.charUpgrades.effectFactorPerLevel)
         let typeId = try #require(gameState.characterUpgradeRows.first?.id)
         gameState.debugGrantCoins()
         gameState.buyCharacterUpgrade(typeID: typeId)
@@ -99,11 +104,13 @@ struct UpgradesMenuTests {
             levels: try #require(gameState.player?.run.charUpgradeLevels),
             config: try #require(gameState.content?.economy)
         )
-        #expect(applied == factor)
-        #expect(row.multiplierText.contains(factor.formatted(.number.precision(.fractionLength(0...1)))))
+        // El primer nivel duplica: `1 + 1 × 1,0`. Escrito y no derivado de la
+        // config, que es lo que dejó verde a la copia vieja.
+        #expect(applied == 2.0)
+        #expect(row.multiplierText.contains(applied.formatted(.number.precision(.fractionLength(0...1)))))
     }
 
-    @Test("la fila al tope deja de vender: 20/20, maxeada y la compra no mueve nada")
+    @Test("la fila al tope deja de vender: 19/19, maxeada y la compra no mueve nada")
     func rowAtCapStopsSelling() async throws {
         let gameState = await makeGameState()
         let typeId = try #require(gameState.characterUpgradeRows.first?.id)

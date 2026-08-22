@@ -314,7 +314,14 @@ public struct PacingSimulator: Sendable {
             .max(by: { contribution(of: $0, state: state) < contribution(of: $1, state: state) }),
            let cost = CharUpgrades.nextLevelCost(type: best, levels: state.run.charUpgradeLevels, config: config, economy: economy) {
             let currentContribution = contribution(of: best, state: state)
-            let gain = currentContribution * (config.charUpgrades.effectFactorPerLevel - 1)
+            // La ganancia sale de `CharUpgrades`, no de una cuenta escrita acá:
+            // con el efecto secuencial ya no es constante (el primer nivel
+            // duplica, el último suma 5,3 %), y el `factor − 1` que había —válido
+            // sólo para la potencia— le habría hecho creer al bot que el nivel 19
+            // rinde lo mismo que el 1.
+            let gain = currentContribution * CharUpgrades.nextLevelGainFactor(
+                typeId: best.id, levels: state.run.charUpgradeLevels, config: config
+            )
             if gain > 0, cost / gain <= maxPaybackSeconds {
                 candidates.append(Action(cost: cost) { s in
                     s.run.coins -= cost

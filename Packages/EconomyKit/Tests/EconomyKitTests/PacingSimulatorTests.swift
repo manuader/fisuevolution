@@ -43,7 +43,7 @@ private func upConfig(maxTier: Int = 20) -> EconomyConfig {
         passiveRatio: 0.5,
         passiveUnlockCostMultiplier: 60,
         hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.2, tierPremium: 1.8),
-        charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4.0, effectFactorPerLevel: 2.0, maxLevel: 20),
+        charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4.0, effectStepPerLevel: 1.0, maxLevel: 19),
         oro: .init(divisor: 1000, exponent: 0.45, globalMultiplierPerOro: 0.18),
         critChanceBase: 0,
         critMultiplier: 5,

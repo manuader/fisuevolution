@@ -70,7 +70,7 @@ struct ExtensibilityDrillTests {
             passiveRatio: 0.5,
             passiveUnlockCostMultiplier: 60,
             hire: .init(defaultCostMultiplier: 10, defaultCostGrowth: 1.5),
-            charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4, effectFactorPerLevel: 2),
+            charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4, effectStepPerLevel: 1),
             oro: .init(divisor: 1_000_000, exponent: 0.5, globalMultiplierPerOro: 0.12),
             critChanceBase: 0,
             critMultiplier: 5,

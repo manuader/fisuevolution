@@ -16,10 +16,10 @@ extension GameState {
         let faceKey: String?
         /// "×4" — lo que rinde HOY.
         let multiplierText: String
-        /// En qué mejora va (clampeado al tope: un save tocado no muestra 33/20).
+        /// En qué mejora va (clampeado al tope: un save tocado no muestra 33/19).
         let upgradeLevel: Int
-        /// El tope del config (20: máximo = base × 2^20, o el exponencial
-        /// termina en overflow — decisión del dueño, 2026-08-19).
+        /// El tope del config (19: `1 + 19 × 1` = el ×20 que pidió el dueño el
+        /// 2026-08-22).
         let upgradeMaxLevel: Int
         /// Al tope: la fila deja de vender el multiplicador e informa.
         let upgradeMaxed: Bool
@@ -91,7 +91,6 @@ extension GameState {
     var characterUpgradeRows: [CharacterUpgradeRow] {
         guard let content, let player else { return [] }
         let coins = player.run.coins
-        let factor = content.economy.charUpgrades.effectFactorPerLevel
         let maxLevel = content.economy.charUpgrades.maxLevel
         return characterUpgradeTypes.map { type in
             let level = min(characterUpgradeLevel(of: type.id), maxLevel)
@@ -102,7 +101,15 @@ extension GameState {
                 displayName: type.displayName,
                 tier: type.tier,
                 faceKey: faceKey(for: type.id),
-                multiplierText: multiplierText(pow(factor, Double(level))),
+                // Por `CharUpgrades.multiplier` y no por una fórmula escrita
+                // acá: esta línea replicaba el `pow(factor, nivel)` viejo, así
+                // que cuando el efecto pasó a ser secuencial la pantalla habría
+                // seguido prometiendo ×2^n mientras la economía pagaba ×(1+n).
+                multiplierText: multiplierText(
+                    CharUpgrades.multiplier(
+                        typeId: type.id, levels: player.run.charUpgradeLevels, config: content.economy
+                    )
+                ),
                 upgradeLevel: level,
                 upgradeMaxLevel: maxLevel,
                 upgradeMaxed: cost == nil,
@@ -138,9 +145,9 @@ extension GameState {
         EffectFormatter.text(EffectAmount(unit: .multiplier, value: value, isCapped: false))
     }
 
-    /// Qué rinde HOY este personaje y en qué mejora va: "Plata ×8 · Nivel
-    /// 3 / 20". El contador es el pedido del dueño (2026-08-19): con tope de
-    /// 20, la fila tiene que decir cuánto camino queda — la misma clave
+    /// Qué rinde HOY este personaje y en qué mejora va: "Plata ×4 · Nivel
+    /// 3 / 19". El contador es el pedido del dueño (2026-08-19): con tope de
+    /// 19, la fila tiene que decir cuánto camino queda — la misma clave
     /// `upgrades.level` que ya usan las barras de las permanentes, para que
     /// las dos pestañas cuenten los niveles con las mismas palabras.
     ///

@@ -120,7 +120,7 @@ struct TypeHireQuoteTests {
             passiveRatio: 0.5,
             passiveUnlockCostMultiplier: 60,
             hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.06),
-            charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4, effectFactorPerLevel: 2),
+            charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4, effectStepPerLevel: 1),
             oro: .init(divisor: 3_000_000_000_000, exponent: 0.25, globalMultiplierPerOro: 0.18),
             critChanceBase: 0,
             critMultiplier: 5,

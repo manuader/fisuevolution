@@ -134,19 +134,32 @@ struct GameContentValidationTests {
         // atajo; subirlo vuelve inalcanzables los tiers de arriba de cada piso.
         #expect(economy.hire.tierPremium == 1.8)
         #expect(economy.charUpgrades.baseCostMultiplier == 50)
-        #expect(economy.charUpgrades.costGrowth == 4.0)
-        #expect(economy.charUpgrades.effectFactorPerLevel == 2.0)
-        // Tope de niveles por personaje (dueño, 2026-08-19): máximo = base ×
-        // 2^20. Sin techo, el exponencial terminaba en overflow y el juego se
-        // caía. Cambiarlo es una decisión de balance, no un ajuste.
-        #expect(economy.charUpgrades.maxLevel == 20)
-        // Rebalance de pacing: el ORO se volvió ESCASO y CHUNKY. Con el divisor
-        // en 3e6 y el exponente en 0,45 la primera reencarnación caía a los 6
-        // minutos y valía 6e-9 % de la condición de victoria; ahora cae a las
-        // 3,67 h ACTIVAS y vale 0,5 % (un nivel entero de income). Medido: 8
-        // reencarnaciones para maxear las siete, con la cadencia 3,7 · 8,0 ·
-        // 12,7 · 16,4 · 19,3 · 21,2 · 22,9 · 24,0 h activas.
-        #expect(economy.oro.divisor == 3_000_000_000_000)
+        // Bajó de 4,0 el 2026-08-22, y no es un ajuste de precio sino la
+        // consecuencia del efecto secuencial: contra un efecto LINEAL, un costo
+        // ×4 por nivel mata la línea. Medido sobre la partida entera, el bot
+        // llegaba como mucho al nivel 7 de 19 y la mediana era 4 — doce niveles
+        // que nadie compra nunca, y un ×20 que nadie ve. Con 1,5 la mediana
+        // queda en 11/19 y los tipos mejor puestos sí llegan al tope.
+        #expect(economy.charUpgrades.costGrowth == 1.5)
+        // Efecto SECUENCIAL (dueño, 2026-08-22): el multiplicador es
+        // `1 + nivel × paso`, o sea ×2, ×3, ×4 … y no el `2^nivel` de antes,
+        // que llegaba a ×1.048.576 y tapaba a la torre entera.
+        #expect(economy.charUpgrades.effectStepPerLevel == 1.0)
+        // 19 niveles es lo que clava el tope en el ×20 que escribió el dueño
+        // (`1 + 19 × 1`). Con 20 sería ×21, que nadie pidió. Cambiarlo es una
+        // decisión de balance, no un ajuste.
+        #expect(economy.charUpgrades.maxLevel == 19)
+        // Bajó de 3e12 a 1e9 el 2026-08-22 para recuperar el contrato del dueño
+        // después del efecto secuencial: con el divisor viejo, maxear las siete
+        // pasaba a 122 h activas y la primera reencarnación a las 25,67 h. Con
+        // 1e9 vuelve a 24,67 h y 8 reencarnaciones.
+        //
+        // Lo que se paga: la primera reencarnación se adelanta a 4,07 h de pared
+        // (0,41 h activas) contra las 62,00 h que dejó la ronda 1. Lo que se
+        // conserva —y era el objetivo real de aquel cambio— es que reencarnar
+        // temprano CONVENGA: el barrido de umbral quedó monótono (×1 → 24,67 h ·
+        // ×8 → 30,54 h · ×1000 → 50,51 h · sin reencarnar, dios a 66,34 h).
+        #expect(economy.oro.divisor == 1_000_000_000)
         // RF-07 (Ola 3) lo había bajado de 0.5 a 0.45; el rebalance lo baja a
         // 0.25 porque con 0,45 hacen falta ×4,65 de ganancias por duplicar el
         // ORO y las 8 entregas entraban en 1,3 h activas. Con 0,25 hacen falta

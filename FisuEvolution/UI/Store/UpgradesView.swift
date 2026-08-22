@@ -237,7 +237,7 @@ struct UpgradesView: View {
 
                 upgradeLine(text: gameState.characterIncomeText(for: row), accent: Color("PaletteBlue")) {
                     if row.upgradeMaxed {
-                        // Nivel 20/20: la fila deja de vender e informa, con el
+                        // Nivel 19/19: la fila deja de vender e informa, con el
                         // MISMO badge y las mismas palabras que una permanente
                         // al máximo ("Al máximo" es una felicitación, no un
                         // límite que el jugador esté chocando — y `purchase`

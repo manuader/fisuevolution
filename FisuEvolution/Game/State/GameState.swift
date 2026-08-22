@@ -467,8 +467,8 @@ final class GameState {
                         .map(\.id)
                 )
             }
-            // El Fisura con el multiplicador al tope (20/20). Llegar jugando
-            // pide pagar 4^19 veces el costo base: sin esta puerta, el estado
+            // El Fisura con el multiplicador al tope (19/19). Llegar jugando
+            // pide pagar 4^18 veces el costo base: sin esta puerta, el estado
             // "Al máximo" de la fila no se puede ni fotografiar ni ejercitar.
             if ProcessInfo.processInfo.arguments.contains("--uitest-char-upgrades-maxed"),
                var player {

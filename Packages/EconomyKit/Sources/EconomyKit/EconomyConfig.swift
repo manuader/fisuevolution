@@ -59,26 +59,39 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     }
 
     /// Mejoras POR PERSONAJE compradas con plata (se pierden al reencarnar).
-    /// Efecto: `effectFactorPerLevel^nivel` sobre el income del tipo (×2/nivel,
-    /// default ⚠️4). Costo: `baseCostMultiplier × tapYield(tier) × costGrowth^nivel`.
+    /// Efecto: `1 + nivel × effectStepPerLevel` sobre el income del tipo.
+    /// Costo: `baseCostMultiplier × tapYield(tier) × costGrowth^nivel`.
     public struct CharUpgradesConfig: Codable, Sendable, Equatable {
         public let baseCostMultiplier: Double
         public let costGrowth: Double
-        public let effectFactorPerLevel: Double
-        /// Tope de niveles por personaje. Sin él, `effectFactorPerLevel^nivel`
-        /// crece sin techo y el número termina en overflow (decisión del dueño,
-        /// 2026-08-19: máximo = valor inicial × 2^20).
+        /// Cuánto SUMA cada nivel al multiplicador del tipo. Con 1,0 la
+        /// secuencia es ×2, ×3, ×4 … ×20, que es la que pidió el dueño el
+        /// 2026-08-22.
+        ///
+        /// Se llamaba `effectFactorPerLevel` y era la BASE de una potencia
+        /// (`2^nivel`, o sea ×1.048.576 al nivel 20). El nombre viejo mentiría
+        /// sobre la fórmula nueva, y esta rama ya pagó dos veces por comentarios
+        /// y nombres que mentían. [TUNEABLE]
+        public let effectStepPerLevel: Double
+        /// Tope de niveles por personaje.
+        ///
+        /// **19**, que con el paso en 1,0 clava el tope en ×20 —el número que
+        /// escribió el dueño—. Con 20 niveles el tope sería ×21, que nadie pidió.
+        ///
+        /// Ya no existe para frenar un overflow: eso era problema del `2^nivel`
+        /// viejo (decisión del dueño 2026-08-19), y una recta no desborda. Hoy
+        /// su único trabajo es ser ese ×20. [TUNEABLE]
         public let maxLevel: Int
 
         public init(
             baseCostMultiplier: Double,
             costGrowth: Double,
-            effectFactorPerLevel: Double,
-            maxLevel: Int = 20
+            effectStepPerLevel: Double,
+            maxLevel: Int = 19
         ) {
             self.baseCostMultiplier = baseCostMultiplier
             self.costGrowth = costGrowth
-            self.effectFactorPerLevel = effectFactorPerLevel
+            self.effectStepPerLevel = effectStepPerLevel
             self.maxLevel = maxLevel
         }
     }

@@ -37,8 +37,9 @@ struct TapActionTests {
         state.run.charUpgradeLevels["a"] = 2
         let a = try #require(tiers.type(id: "a"))
         let gain = economy.applyTap(type: a, state: &state, floorTable: floorTable, now: 0)
-        // Efecto ×2 por nivel: nivel 2 ⇒ ×4.
-        #expect(abs(gain - 4) < 1e-12)
+        // Efecto SECUENCIAL desde el 2026-08-22 (`1 + nivel`): nivel 2 ⇒ ×3.
+        // Con la potencia vieja este mismo nivel valía ×4, y el tap de "a" es 1.
+        #expect(abs(gain - 3) < 1e-12)
     }
 
     @Test func floorMultiplierScalesTapOnlyForItsFloor() throws {

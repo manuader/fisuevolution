@@ -53,10 +53,12 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-21** (el tutorial
-> high-end: fase corta arbitrada por la cola, lecciones contextuales y el
-> puntito rojo de logros — la sesión en §4, las trampas 24/25 en §7. El mismo
-> día, más temprano: el telón de las empujadas).
+> **Empezá por acá.** Última actualización: **2026-08-21, noche** (los
+> personajes ya salen en inglés cuando el juego está en inglés: 44 claves
+> `tier.name.<id>`, traducidas culturalmente para EE.UU. — la sesión en §4, la
+> trampa 29 en §7, y ⚠️ **el tono todavía no lo aprobó el dueño**. El mismo
+> día, más temprano: el merge del rebalance a `main`, el tutorial high-end
+> —trampas 27/28— y el telón de las empujadas).
 > Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
 > fuente de verdad de SU tema y están linkeados donde corresponde.
 >
@@ -133,6 +135,8 @@ gates humanos, nada técnico.
 - ⚠️ **No edites el catálogo de strings con scripts.** Xcode lo reescribe a su
   formato canónico en el primer build y te deja un diff de 2.400 líneas. Si lo
   hacés igual, commiteá después el reformateo de Xcode (pasó, ver `13def46`).
+  **Salvo que el script escriba el formato canónico**: se puede, y la receta
+  —con la forma de verificarla antes de escribir nada— está en la trampa 29.
 - **Accessibility identifier** en todo control interactivo.
 - **Commits en español**, atómicos.
 - Convenciones de concurrencia: `Docs/concurrency-conventions.md`. Resumen: el
@@ -164,14 +168,21 @@ Ningún conteo, rango ni switch por etapa vive en código. Todo sale de JSON en
 | Archivo | Qué define |
 |---|---|
 | `Data/economy.json` | Curvas, los 10 pisos (`floors[]`), costos de contratación, ORO |
-| `Data/tiers.json` | Los 37 tiers y la cadena de evolución. **Generado** desde `Tools/generate-tiers/Sources/main.swift` — editar el JSON a mano lo pisa la próxima regeneración |
+| `Data/tiers.json` | Los 37 tiers y la cadena de evolución. **Generado** desde `Tools/generate-tiers/Sources/main.swift` — editar el JSON a mano lo pisa la próxima regeneración. Su `displayName` es el **castellano**; el inglés vive en el catálogo bajo `tier.name.<id>` |
 | `Data/assets_manifest.json` | **Único puente código→arte.** Sin entrada acá, placeholder programático — ⚠️ **salvo los fondos**, ver abajo |
 | `Config/skins.json` | Catálogo de apariencias |
 | `Config/*.json` | Eventos, specials, upgrades, boosts, daily, feature flags |
 
 Agregar un piso = una entrada en `floors[]` + el PNG del fondo. Agregar un
-personaje = PNGs al atlas + entrada en manifest/tiers. **Cero código.** Hay un
-`ExtensibilityDrillTests` que lo prueba con un piso 12 declarado sólo como dato.
+personaje = PNGs al atlas + entrada en manifest/tiers **+ su `tier.name.<id>` en
+el catálogo de strings**. **Cero código.** Hay un `ExtensibilityDrillTests` que
+lo prueba con un piso 12 declarado sólo como dato.
+
+⚠️ La clave del nombre es la que se olvida, y falta **en silencio**: sin ella el
+personaje se ve en castellano con el juego en inglés, porque `localizedName` cae
+al dato. Quien avisa es
+`GameContentValidationTests.everyTierHasItsNameInBothLanguages` (§4, sesión de
+los nombres en inglés).
 
 ⚠️ **El fallback a placeholder NO cubre los fondos.** Un personaje sin entrada en
 el manifest se dibuja con su placeholder programático y el juego sigue; **un piso
@@ -237,6 +248,32 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-21 (noche) — Los personajes se llaman en inglés cuando el juego está en inglés
+
+Lo vio el dueño jugando: con el idioma en English el personaje seguía diciendo
+"El Fisura". No era un hueco del catálogo —**las 475 claves tenían su
+`en`**— sino que el nombre nunca pasaba por el catálogo: sale de `tiers.json`,
+que es dato en castellano, y las 15 vistas lo dibujaban `verbatim`. Ahora pasa
+por `CharacterType.localizedName`, que busca `tier.name.<id>` y **cae al
+castellano del dato si la clave falta**, igual que las skins con
+`skin.name.<id>`. Se sumaron las 44 claves y se corrigieron los 3 textos ya
+traducidos que nombraban al personaje en castellano (el tutorial decía "I am El
+Fisura").
+
+La traducción es **cultural, no literal**, y el arte manda: el trapito es "The
+Fake Valet", el limpiavidrios es "Squeegee Guy", el médico Jr. es "Medical
+Resident" (que es lo que sos en EE.UU. cuando te recibís) y el dueño de PYME es
+"Small Business Owner". Las 17 que no son literales están en una tabla con su
+porqué en **`Docs/SESION-2026-08-21-nombres-en-ingles.md`**. ⚠️ **El tono no lo
+aprobó el dueño todavía**: cambiar cualquiera es editar un `value` del catálogo,
+no hay código atado a un nombre.
+
+Números del cierre: app **413** · UI **48 sin skips** · EconomyKit **234** (no se
+tocó el paquete). Cuatro asserts que pineaban el nombre en castellano pasaban
+**por casualidad** —el runner corre en inglés (trampa 6) y el nombre no era
+traducible— y pasaron a pinear lo que querían probar; `RevealBannerFitTests` ahora
+mide los dos idiomas.
 
 ### Sesión del 2026-08-21 — El rebalance de pacing: ganarlo al máximo cuesta 24 h
 
@@ -1306,7 +1343,7 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     compounding están `floorUnlockPeakHire{Type,Purchases,Seconds}`, que publican
     el tipo más comprado de la run (en el árbol de hoy el bot llega a **785
     compras** del mismo tipo; 870 en el A/B pre-(a) de la bitácora).
-24. **Una lección contextual del tutorial puede nacer EN MEDIO de un test de
+27. **Una lección contextual del tutorial puede nacer EN MEDIO de un test de
     UI ajeno y comerse sus taps por coordenada.** SÍNTOMA: un test que venía
     verde falla con "no apareció X" tras darse monedas o abrir pisos con el
     panel de debug — medido con `AscentRenderingUITests` (113 s): su +1M
@@ -1320,13 +1357,29 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     test arma su escenario (`beginTutorialPhase()` /
     `tutorialLessonsAutorun = true`).
 
-25. **El tap sintético del MCP del simulador no activa las filas-botón del
+28. **El tap sintético del MCP del simulador no activa las filas-botón del
     `ScrollView` de FisuJobs** (medido: tres taps al centro exacto de la fila
     con `ftue.spawned` en falso), aunque sí activa tabs, cierres y tablero.
     XCUITest (`.tap()` sobre el elemento) compra sin drama, y el dedo humano
     también. Si un recorrido manual por agente "no compra": verificar el
     efecto en el plist del contenedor (`simctl get_app_container … data`)
     antes de sospechar del juego, y hacer ese paso vía XCUITest.
+
+29. **El catálogo de strings SÍ se puede editar con un script — si el script
+    escribe el formato de Xcode.** La regla del §2 (no lo toques, te deja un
+    diff de 2.400 líneas) describe la consecuencia, no una imposibilidad: lo que
+    la desactiva es reproducir el formato canónico. Son tres cosas —dos espacios
+    de sangría, `" : "` como separador, y las claves en **orden natural**— y la
+    tercera es la que se hace mal sola: Xcode compara los números como números,
+    así que `skins_5` va ANTES que `skins_20` y un `sorted()` pelado los da
+    vuelta. La verificación es barata y va ANTES de escribir: serializá el
+    archivo sin cambiarle nada y exigí `diff` vacío.
+
+    Con eso medido salió también que el archivo tenía **3 claves fuera de orden
+    al final** (`skin.name.diamante`, `skin.name.oro`,
+    `skins.unlock.upgrades_maxed`), de algún append anterior a mano. Al
+    reescribirlo ordenado se acomodaron; el orden relativo de las otras 472
+    quedó intacto.
 
 ## 8. Qué queda
 
@@ -1590,6 +1643,7 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
+| **`SESION-2026-08-21-nombres-en-ingles.md`** | **La sesión más reciente: por qué el nombre del personaje no se traducía, la mesa de las 17 traducciones culturales con su porqué, y qué se descartó (un campo por idioma en `tiers.json`)** |
 | **`SESION-2026-08-21-rebalance-pacing.md`** | **El rebalance de pacing: las tres métricas antes/después, los dos knobs que hacen cosas distintas, las tres decisiones del dueño con lo descartado y su número, y los cuatro diagnósticos que salieron errados antes del bueno** |
 | **`SESION-2026-08-21-tutorial-high-end.md`** | **La sesión más reciente: el tutorial rehecho — la fase corta arbitrada por la cola, las 8 lecciones con sus señales, el puntito de logros y las trampas 24/25** |
 | **`SESION-2026-08-21-telon-del-menu.md`** | **El telón blanco de las pantallas empujadas del menú: la medición, el arreglo por versión de iOS y qué quedó sin verificar** |

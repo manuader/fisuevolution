@@ -359,10 +359,12 @@ private struct TutorialHand: View {
     private static let size: CGFloat = 46
 
     var body: some View {
-        // La mano de la casa (el guante sin dedos del Fisura), no un SF Symbol:
-        // era el único elemento fuera del idioma del juego en todo el overlay.
-        VectorTutorialHandIcon()
-            .frame(width: Self.size, height: Self.size)
+        // El SF Symbol a propósito: se probó una mano vectorial de la casa (el
+        // guante del Fisura) y el dueño prefirió la manito del sistema
+        // apretando el botón (2026-08-21) — más legible como "tocá acá".
+        Image(systemName: "hand.point.up.left.fill")
+            .font(.system(size: Self.size, weight: .black))
+            .foregroundStyle(.white)
             .shadow(color: .black.opacity(0.6), radius: 5, y: 3)
             .scaleEffect(up ? 1.14 : 0.92)
             .offset(x: up ? 5 : 0, y: up ? 7 : 0)

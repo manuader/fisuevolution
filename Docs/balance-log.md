@@ -1310,3 +1310,199 @@ sólo 533 h ACTIVAS. Varias corridas de este barrido decían "dios —" y en
 realidad era el horizonte, no la economía: con `--max-days 3000` la misma
 configuración llegaba a Dios a las 743 h activas. Cualquier conclusión de "no
 llega" hay que verificarla con horizonte largo antes de escribirla.
+
+---
+
+# Segunda ronda (2026-08-22) — el multiplicador secuencial
+
+El dueño jugó la rama ya rebalanceada y pidió dos cosas, textuales:
+
+> "en menos de una hora llegue de fisura a dios sin reiniciar. es muy facil
+> porque cuando subis de piso tenes tanta plata que te podes comprar un monton
+> de personajes del piso de abajo y subir mas pisos super rapidos. hace que sea
+> mas dificil subir de piso."
+>
+> "por otra parte, los multiplacadores estan muy op. en lugar de multiplicar x2
+> (hasta llegar a 2^20) cada vez, hace que sea secuencial. (ej: x2 -> x3 -> x4
+> -> x5 -> ... -> x20) esto va a reducir mucho las ganacias de plata y hacer que
+> los personajes ganen una cantidad de plata 'real'."
+
+## Primero el instrumento: la queja no se podía medir
+
+Su partida —de fisura a dios **sin reencarnar**— era **inexpresable** para el
+simulador. La única palanca era `reincarnationThresholdMultiple`, un múltiplo
+sobre el ORO ganado histórico, y ese arranca en CERO: `N × 0 = 0` para cualquier
+N finito, así que la primera reencarnación caía igual con umbral 1 que con 1.000.
+"Nunca" no era ningún número.
+
+El Double se cambió por un enum (`ReincarnationPolicy`), y dios ganó su tiempo
+ACTIVO (`godActive`) al lado del de pared, porque el dueño mide en horas de dedo.
+
+**La línea de base que faltaba, contra el árbol de la ronda 1:**
+
+| política | dios (h ACTIVAS) |
+|---|---:|
+| duplicar el ORO (la de siempre) | 26,59 |
+| **sin reencarnar** | **10,47** |
+
+No reencarnar era **2,5× MÁS RÁPIDO**. Ése es el atajo del que se queja, y hasta
+ese momento no existía como número.
+
+Verificado que el bot sí hace lo que él hace (comprar en masa abajo para subir):
+en la corrida sin reencarnar acumula 3.919 contrataciones repartidas en los ocho
+tiers base contratables — homeless 785 · mantero 660 · oficinista 589 · director
+518 · ceo 448 · magnate_petrolero 377 · dueno_marte 306 · rentista_soles 236.
+
+⚠️ **Lo que el bot NO tiene y él sí**: logros, eventos, crits, golden touch y la
+pantalla de laburos vendiéndole tiers no-base. Por eso 10,47 h activas y no la
+hora que él midió. El número que vale acá es la RELACIÓN entre las dos políticas,
+no el absoluto.
+
+## El cambio de fórmula
+
+`CharUpgrades.multiplier` pasó de `effectFactorPerLevel ^ nivel` a
+`1 + nivel × effectStepPerLevel`. El knob se renombró porque el viejo mentía:
+dejó de ser la BASE de una potencia y pasó a ser lo que SUMA cada nivel.
+
+**Tope: `maxLevel` 20 → 19.** El dueño escribió la serie terminando en ×20 y
+`1 + 19 × 1 = 20` la clava; con 20 niveles el tope sería ×21, que nadie pidió. Y
+el tope dejó de existir para frenar un overflow (el motivo de 2026-08-19 con el
+`2^nivel`): una recta no desborda.
+
+Costo del cambio, medido solo, sin tocar nada más:
+
+| | ronda 1 | sólo la fórmula secuencial |
+|---|---:|---:|
+| maxear las siete (h activas) | 24,00 | **322,00** |
+| dios (h activas) | 26,59 | 324,21 |
+| dios SIN reencarnar (h activas) | 10,47 | 168,01 |
+
+El efecto al nivel máximo pasó de ×1.048.576 a ×20: son **52.000×** menos, y el
+juego entero se fue 13× de largo. Todo lo que sigue es recuperar el contrato.
+
+## `charUpgrades.costGrowth` 4,0 → 1,5 — la línea estaba muerta
+
+Contra un efecto LINEAL, un costo ×4 por nivel hace que los niveles altos sean
+pésima compra. Medido con los niveles finales de la partida sin reencarnar (la
+única donde no los borra la reencarnación):
+
+| costGrowth | niveles comprados sobre 19 | mediana | maxear | dios sin reenc. |
+|---:|---|---:|---:|---:|
+| 4,0 | 2 – 7 | **4** | 322,00 h | 168,01 h |
+| 3,0 | — | — | 289,00 h | 154,67 h |
+| 2,0 | 4 – 13 | 7 | 195,33 h | 102,33 h |
+| **1,5** | **6 – 19** | **11** | **122,00 h** | **66,34 h** |
+| 1,2 | 16 – 19 | 19 | 81,33 h | 43,01 h |
+| 1,0 | — | — | 75,33 h | 38,34 h |
+
+Con 4,0 **doce de los diecinueve niveles no los compra nadie nunca** y el ×20 del
+pedido no lo ve ningún personaje: el tope real es ×8. Con 1,2 los compra todos y
+la línea deja de tener decisión. **1,5** es donde la mediana queda a mitad de
+camino (11/19 = ×12), los tipos mejor puestos llegan al tope (`deidad` y
+`coleccionista_galaxias` a 19/19 = ×20) y los peores igual se llevan ×7-×9.
+
+La cuenta que lo explica: una mejora gana contra una contratación mientras
+`50 × growth^n / 600 < unidades del tipo`. Con 10 unidades y growth 1,5 el cruce
+cae en el nivel 11,8 — exactamente la mediana medida.
+
+## `oro.divisor` 3e12 → 1e9 — recuperar el contrato
+
+`costGrowth` solo no alcanza: ni con 1,0 (todos los niveles regalados) baja de
+75 h. El tope de ×20 no se puede compensar con precio.
+
+Barrido del divisor con `costGrowth` ya en 1,5:
+
+| divisor | maxear | reenc. | dios | dios SIN reenc. |
+|---:|---:|---:|---:|---:|
+| 3e12 (ronda 1) | 122,00 h | 9 | 123,98 h | 66,34 h |
+| 3e10 | 58,00 h | 9 | 63,10 h | 66,34 h |
+| 3e9 | 30,67 h | 8 | 38,00 h | 66,34 h |
+| 2e9 | 30,00 h | 8 | 37,33 h | 66,34 h |
+| **1e9** | **24,67 h** | **8** | **33,23 h** | **66,34 h** |
+| 8e8 | 24,33 h | **9** ❌ | 30,00 h | 66,34 h |
+| 3e8 | 20,00 h | **9** ❌ | 25,67 h | 66,34 h |
+
+**1e9**: 24,67 h es lo más cerca de las 24,00 h que el dueño ya aprobó, con 8
+reencarnaciones y margen a los dos lados de la banda.
+
+La columna de la derecha es la prueba de que las dos mitades del pedido no se
+pisan: **la partida sin reencarnar no toca el ORO, así que el divisor no la mueve
+ni un minuto**. Lo que baja el divisor es el camino que SÍ reencarna.
+
+## Lo que se descartó, con su número
+
+- **`oro.exponent`** (subirlo en vez de bajar el divisor, para no abaratar el ORO
+  temprano): no llega. Con divisor 3e12 el mejor caso es 0,45 → **99,63 h** de
+  maxear, y la primera reencarnación se va a **25,67 h ACTIVAS**. Sube el ORO
+  tardío pero mata el snowball del `globalMultiplier`, que es lo que hace posible
+  el contrato de 24 h.
+- **`hire.defaultCostGrowth`** (la sospecha del prompt: 1,06 es lo que abarata
+  comprar en masa). Re-medido sobre el árbol nuevo, **es un acantilado, no un
+  dial**: 1,06 → 24,67 h · 1,08 → **482,00 h** (y sin reencarnar no llega a dios
+  en 800 días) · **1,10, 1,12 y 1,15 → la partida no se puede terminar**, el bot
+  no pasa de corporativo. No hay ningún valor entre "el atajo existe" y "el juego
+  es injugable". La ronda 1 lo había encontrado con 1,2; el árbol nuevo lo
+  adelanta a 1,08.
+- **La curva de `incomeMultiplier` de `floors[]`** (×2,05 por piso, tope 620): no
+  toca lo que venía a tocar. Con ×1,85 (tope 254) maxear se va a 30,00 h, con
+  ×1,7 (tope 119) a 37,67 h y con ×1,4 (tope 21) a 60,48 h, y la serie "entrar al
+  piso" queda **idéntica** (48 · 8 · 2 · 0 · 0 · 0 · 0 s) en las cuatro. Alarga el
+  juego sin mover la divergencia. Ojo: ×1,85 da la mejor cifra sin reencarnar
+  (87,67 h) pero deja maxear clavado en el borde de la banda, sin margen.
+- **`tierPremium`** (1,8): el bot sólo compra tiers base, así que el simulador es
+  CIEGO a este knob — no se puede calibrar con él, y moverlo a ojo sobre la
+  pantalla de laburos sería adivinar. Queda como deuda declarada.
+
+## Las cuatro métricas finales
+
+Corrida: `--max-days 90`, CSV en `Docs/balance-run-t7-secuencial.csv`.
+
+| | ronda 1 | ronda 2 |
+|---|---:|---:|
+| **maxear las siete (h ACTIVAS)** | 24,00 | **24,67** |
+| **reencarnaciones al maxear** | 8 | **8** |
+| **dios (h ACTIVAS)** | 26,59 | **33,23** |
+| **dios SIN REENCARNAR (h ACTIVAS)** | **10,47** | **66,34** |
+
+Dios queda ×1,35 más lejos que maxear (era ×1,11): las skins doradas llegan con
+más aire antes del final.
+
+**Y el atajo se dio vuelta.** No reencarnar era 2,5× más rápido que reencarnar;
+ahora es 2,0× más LENTO. El barrido de política, que en la ronda 1 no era
+monótono (×8 daba 15,29 h, o sea guardarse las reencarnaciones ganaba), ahora lo
+es de punta a punta:
+
+| política | maxear (h activas) | dios (h activas) |
+|---|---:|---:|
+| **×1 (duplicar — el default)** | **24,67** | **33,23** |
+| ×8 | 30,54 | 33,42 |
+| ×1000 (contra la pared) | 50,51 | 52,15 |
+| **nunca reencarnar** | **no maxea** (no hay ORO) | **66,34** |
+
+Cuanto más se posterga la reencarnación, peor: en las DOS métricas, en las cuatro
+políticas. Ésa es la contestación con número a "hace que sea más difícil subir de
+piso" sin romper "reencarnar tiene que ser lo que conviene".
+
+## Lo que esto costó, declarado
+
+- **La primera reencarnación volvió a caer temprano**: 4,07 h de pared (0,41 h
+  activas) contra las 62,00 h (3,67 h activas) que dejó la ronda 1. Es el precio
+  del divisor. Con el divisor de la ronda 1 el hito se iba a las 25,67 h ACTIVAS
+  y maxear a 122 h — más tarde, pero con el juego entero fuera del contrato.
+- **El acantilado corporate → luxury pasó de ×24,80 a ×90,86** (de 3,2 h activas
+  a 13,3 h). Vive donde el gate de un piso muerde: corporativo no se puede
+  contratar hasta que lujo abra, así que ese cruce se hace mergeando 256 unidades
+  del piso de abajo, y el efecto secuencial le sacó al jugador la plata con la
+  que lo pasaba de corrido. Es literalmente "más difícil subir de piso",
+  concentrado en un solo paso; queda medido, no aprobado.
+- **La serie "entrar al piso" se desploma un piso antes**: era 100 · 100 · 100 ·
+  73 · 48 · 4,8 · 1,5 · 0,1 · 0,0 s y ahora es 100 · 100 · 48 · 8 · 2 · 0,1 · 0,1
+  · 0,0 · 0,0. La causa es la misma que la ronda 1 ya diagnosticó y descartó
+  arreglar con número (anclar los costos al multiplicador traba al bot en el tier
+  12): el `globalMultiplier` multiplica el ingreso y no el precio de contratar, y
+  con el divisor en 1e9 el ORO final es 51.135 contra los ~3.000 de la ronda 1.
+  **En la partida SIN reencarnar la serie se queda en ~99-100 s hasta dios**, que
+  es la prueba de que la divergencia la produce el ORO y nada más.
+- El bot sigue **ciego a `tierPremium`** y a la pantalla de laburos vendiendo
+  tiers no-base: si el dueño vuelve a llegar rápido, ése es el primer lugar donde
+  mirar.

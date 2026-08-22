@@ -238,6 +238,27 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-08-22 — El multiplicador secuencial, y el atajo de no reencarnar
+
+`fix/rebalance-pacing`, segunda ronda. **Las mejoras POR PERSONAJE dejaron de ser
+`2^nivel` y pasaron a ser `1 + nivel`: ×2, ×3, ×4 … ×20** (pedido textual del
+dueño). El efecto al tope cayó de ×1.048.576 a ×20 y el knob se renombró
+(`effectFactorPerLevel` → `effectStepPerLevel`) porque ya no es la base de una
+potencia; `maxLevel` bajó de 20 a 19, que es lo que clava el ×20 que él escribió.
+
+La otra mitad del pedido —"hacé que sea más difícil subir de piso"— se contestó
+midiendo la partida que él describió, que **el simulador no podía correr**: de
+fisura a dios SIN REENCARNAR. Eran **10,47 h activas** contra las 26,59 h de
+reencarnar, o sea el atajo era 2,5× más rápido; ahora son **66,34 h**, 2,0× más
+lento. Y el barrido de política quedó monótono: cuanto más se posterga la
+reencarnación, peor, en las dos métricas.
+
+Las cuatro métricas: **maxear 24,67 h activas · 8 reencarnaciones · dios 33,23 h
+activas · dios sin reencarnar 66,34 h**. Calibrado con dos knobs
+(`charUpgrades.costGrowth` 4,0 → 1,5 y `oro.divisor` 3e12 → 1e9), cada uno medido
+solo. Detalle y descartes en `Docs/SESION-2026-08-22-multiplicador-secuencial.md`
+y `Docs/balance-log.md`.
+
 ### Sesión del 2026-08-21 — El rebalance de pacing: ganarlo al máximo cuesta 24 h
 
 `fix/rebalance-pacing`, con `fix/atajo-tier-base` y `fix/premios-y-eventos`
@@ -691,6 +712,17 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    income, así que **se traba en el tier 11 y la partida no se puede terminar**.
    ⚠️⚠️ **Y el "600 veces lo que rinde un click" vale para los NUEVE pisos de
    arriba, no para los diez**: el callejón son 25 clicks por el override.
+2bis. **Las mejoras por personaje son SECUENCIALES** (dueño, 2026-08-22): el
+   multiplicador es `1 + nivel`, o sea ×2, ×3, ×4 … **×20**, y no el `2^nivel`
+   que llegaba a ×1.048.576. Su palabra: *"esto va a reducir mucho las ganancias
+   de plata y hacer que los personajes ganen una cantidad de plata 'real'"*.
+   `maxLevel` es **19** porque `1 + 19 × 1` es el ×20 que él escribió (con 20
+   niveles el tope sería ×21). Pineado en `GameContentValidationTests` y en
+   `CharUpgradesTests.theMultiplierIsSequential`.
+   ⚠️ `charUpgrades.costGrowth` bajó de 4,0 a 1,5 como CONSECUENCIA, no como
+   ajuste suelto: contra un efecto lineal un costo ×4 por nivel mata la línea
+   —medido, el bot no pasaba del nivel 7 de 19 y la mediana era 4—, así que el
+   ×20 del pedido no lo veía nadie.
 3. **El gate es de UN piso**, no dos: con dos el juego no se puede terminar.
    ⚠️ Su PROFUNDIDAD es la decisión; su COBERTURA no. En la Ola 3 el piso urbano
    se declaró exento (`hireGateExempt` en `floors[]`) porque el gate, combinado

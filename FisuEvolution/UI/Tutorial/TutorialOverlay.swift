@@ -130,6 +130,15 @@ struct TutorialOverlay: View {
         // `keyframeAnimator` de los tabs), no con el fundido de formulario.
         .animation(motion(.spring(duration: 0.42, bounce: 0.24)), value: step)
         .onAppear {
+            // Si el paso guardado no pudo haberse ganado —su paso ANTERIOR no
+            // está cumplido—, esto no es una reaparición (el overlay se
+            // esconde y vuelve con cada reveal): es el tutorial REVIVIDO por
+            // el "Resetear partida" del panel de debug sobre una partida
+            // nueva. `step` es @State y sobrevive al reset de todo lo demás,
+            // así que sin este guard el tutorial resucitaba en el paso viejo.
+            if step > 0, !isSatisfied(steps[step - 1].completion) {
+                step = 0
+            }
             gameState.tutorialBoardTarget = current.boardTarget
         }
         .onDisappear {

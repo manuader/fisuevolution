@@ -87,6 +87,19 @@ extension GameState {
 
     static let sessionsAfterPhaseKey = "tutorial.sessionsAfterPhase"
 
+    /// Borra el progreso persistido de las lecciones (los flags por lección y
+    /// el contador de sesiones). Lo comparten `--uitest-reset` y el "Resetear
+    /// partida" del panel de debug: las lecciones viven en `UserDefaults` y
+    /// sobrevivirían a cualquier partida nueva — la misma trampa que el
+    /// tutorial y los ajustes.
+    func wipeTutorialLessonProgress() {
+        let defaults = UserDefaults.standard
+        for lesson in TutorialLesson.allCases {
+            defaults.removeObject(forKey: lesson.defaultsKey)
+        }
+        defaults.removeObject(forKey: Self.sessionsAfterPhaseKey)
+    }
+
     // MARK: El director
 
     /// Decide si nace una lección. Corre al final de `refreshProjections` (8 Hz,

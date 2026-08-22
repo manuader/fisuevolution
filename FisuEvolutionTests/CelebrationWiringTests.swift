@@ -388,4 +388,35 @@ struct CelebrationWiringTests {
         gameState.tutorialPhaseFinished()
         #expect(gameState.showing == .towerNotice)
     }
+
+    /// El "Resetear partida" del panel de debug es una instalación fresca DE
+    /// VERDAD: el tutorial vuelve (con su restricción en la cola), las
+    /// lecciones quedan por dar, y la partida vieja se lleva sus
+    /// celebraciones — sin esto, un sheet pendiente del save anterior
+    /// aparecía encima del tutorial recién revivido.
+    @Test("resetear la partida desde debug revive el tutorial entero")
+    func debugResetRevivesTheTutorial() async throws {
+        let gameState = await makeGameState()
+        let defaults = UserDefaults.standard
+        defaults.set(true, forKey: "fisuTutorialDone")
+        defaults.set(true, forKey: "tutorial.lesson.upgrades")
+        gameState.skinAward = try anAward(gameState)
+        gameState.syncCelebrations()
+        #expect(gameState.showing == .skinAward, "fixture: la partida vieja tenía un sheet en pantalla")
+
+        gameState.debugResetSave()
+
+        #expect(gameState.tutorialPhaseActive, "la fase vuelve a estar viva")
+        #expect(gameState.showing == nil, "la partida vieja se llevó sus celebraciones")
+        #expect(gameState.skinAward == nil)
+        #expect(defaults.bool(forKey: "fisuTutorialDone") == false)
+        #expect(defaults.object(forKey: "tutorial.lesson.upgrades") == nil,
+                "las lecciones quedan por dar de nuevo")
+        // Y la restricción quedó puesta: un premio nuevo espera a la fase.
+        gameState.skinAward = try anAward(gameState)
+        gameState.syncCelebrations()
+        #expect(gameState.showing == nil, "con la fase revivida, el sheet espera su turno")
+        gameState.tutorialPhaseFinished()
+        #expect(gameState.showing == .skinAward)
+    }
 }

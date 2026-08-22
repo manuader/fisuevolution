@@ -69,8 +69,21 @@ struct TypeHireQuoteTests {
 
     /// Regla del spec §5.2: comprar el tier de arriba NUNCA puede convenir
     /// contra comprar dos del de abajo y mergear. O sea `costo(t+1) > 2 × costo(t)`
-    /// para todo par de tiers vecinos DENTRO de un piso (cruzar de piso cambia
-    /// también el multiplicador del piso, y ese salto es mucho mayor).
+    /// para todo par de tiers vecinos DENTRO de un piso.
+    ///
+    /// ⚠️ **Cruzar de piso es el caso contrario, y desde el rebalance de pacing
+    /// hay que decirlo al revés de como estaba escrito acá.** El `tierPremium`
+    /// se reinicia en cada `firstTier`, así que el salto de piso vale
+    /// `yieldGrowth / tierPremium³` = 2,8 / 5,832 = **0,48×**: el tier base del
+    /// piso de arriba sale MENOS que el tope del de abajo (en el juego
+    /// embarcado, 139,3 M el Director contra 290,2 M un Senior) y rinde más.
+    /// Adentro del piso el salto es 2,8 × 1,8 = 5,04×.
+    ///
+    /// No es explotable y por eso la regla sigue siendo de piso para adentro: un
+    /// piso **se abre mergeando**, no comprando, así que nadie puede saltar al
+    /// tier base de arriba sin haber llegado primero por la escalera. Lo que sí
+    /// significa es que, con el piso ya abierto, backfillear abajo no conviene —
+    /// que es exactamente el pacing que el dueño quería.
     @Test("subir un tier dentro del piso cuesta más que el doble")
     func subirUnTierMasQueDuplica() throws {
         for ordinal in 0..<floorTable.count {
@@ -106,9 +119,9 @@ struct TypeHireQuoteTests {
             yieldGrowthPerTier: 2.8,
             passiveRatio: 0.5,
             passiveUnlockCostMultiplier: 60,
-            hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.2),
+            hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.06),
             charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4, effectFactorPerLevel: 2),
-            oro: .init(divisor: 3_000_000, exponent: 0.45, globalMultiplierPerOro: 0.18),
+            oro: .init(divisor: 3_000_000_000_000, exponent: 0.25, globalMultiplierPerOro: 0.18),
             critChanceBase: 0,
             critMultiplier: 5,
             offlineEfficiencyBase: 0.35,
@@ -133,11 +146,13 @@ struct TypeHireQuoteTests {
                 #expect(alto > 2 * bajo)
             }
         }
-        // Y el tier base sigue anclado donde el dueño lo dejó: 25 y 30 (bajó de
-        // 50/60 el 2026-08-18 para acortar el tutorial).
+        // Y el tier base sigue anclado donde el dueño lo dejó: 25 el primero
+        // (bajó de 50 el 2026-08-18 para acortar el tutorial). El SEGUNDO pasó
+        // de 30 a 26,5 en el rebalance de pacing, que bajó el `defaultCostGrowth`
+        // de 1,2 a 1,06: 25 × 1,06 = 26,5. El ancla del dueño es el primero.
         let alley = real.floors[0]
         #expect(real.hireCost(floor: alley, tier: 1, purchases: 0) == 25)
-        #expect(abs(real.hireCost(floor: alley, tier: 1, purchases: 1) - 30) < 1e-9)
+        #expect(abs(real.hireCost(floor: alley, tier: 1, purchases: 1) - 26.5) < 1e-9)
     }
 
     // MARK: La curva es por TIPO

@@ -99,7 +99,7 @@ struct StatsSnapshotTests {
         gameState.player = player
         #expect(gameState.statsSnapshot.maxTier == "12", "antes de reencarnar, el tier es el de la run vigente")
 
-        gameState.giveLifetimeEarningsForTesting(500_000_000)
+        gameState.giveEarningsForPrestigeTesting(oro: 9)
         gameState.confirmPrestige()
 
         let snapshot = gameState.statsSnapshot
@@ -137,13 +137,13 @@ struct StatsSnapshotTests {
         #expect(gameState.globalMultiplierText == gameState.prestigePreview.multiplierBeforeText,
                 "partida nueva: el multiplicador neutro")
 
-        gameState.giveLifetimeEarningsForTesting(500_000_000)
+        gameState.giveEarningsForPrestigeTesting(oro: 9)
         gameState.confirmPrestige()
 
         #expect(gameState.globalMultiplierText == gameState.prestigePreview.multiplierBeforeText,
                 "con ORO cobrado tampoco pueden divergir")
         #expect(gameState.globalMultiplierText != PrestigePreview.empty.multiplierBeforeText,
-                "reencarnar con 500M tiene que mover el multiplicador")
+                "reencarnar con 9 ORO tiene que mover el multiplicador")
     }
 
     // MARK: orgChartRows

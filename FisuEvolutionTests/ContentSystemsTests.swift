@@ -66,15 +66,21 @@ struct ContentSystemsTests {
             economy: economy
         )
         #expect(state.meta.oroUpgradeLevels["tap"] == 1)
-        #expect(abs(state.meta.derivedEffects.tapMultiplier - 1.25) < 1e-9)
+        // La línea `tap` pasó de 20 niveles × 0,25 a 10 × 0,5 en el rebalance
+        // (mismo efecto TOTAL al tope, +5,0): un nivel ahora vale 0,5.
+        #expect(abs(state.meta.derivedEffects.tapMultiplier - 1.5) < 1e-9)
         #expect(state.meta.oro == 9)
         #expect(state.run.coins == 10_000)
     }
 
     @Test func upgradeCostGrowsExponentially() throws {
         let line = try #require(content.upgradesConfig.upgrades.first { $0.id == "income" })
+        // `baseCost × costGrowth^nivel`. El rebalance bajó el growth de `income`
+        // de 2,0 a 1,10 para que las siete líneas cuesten algo comparable
+        // (`crit` era el 99,99 % del costo de ganar): 1 × 1,10² = 1,21.
         #expect(UpgradeManager.cost(of: line, level: 0) == 1)
-        #expect(UpgradeManager.cost(of: line, level: 2) == 4)
+        #expect(abs(UpgradeManager.cost(of: line, level: 2) - 1.21) < 1e-9)
+        #expect(UpgradeManager.cost(of: line, level: 2) > UpgradeManager.cost(of: line, level: 1))
     }
 
     @Test func oroUpgradeRespectsMaxLevelAndBalance() throws {
@@ -82,7 +88,11 @@ struct ContentSystemsTests {
         #expect(throws: UpgradeManager.PurchaseError.insufficientOro) {
             try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
         }
-        state.meta.oroUpgradeLevels["income"] = 20
+        // El tope sale del catálogo y no de un literal: el rebalance de pacing
+        // bajó `income` de 20 niveles a 10, y un 20 hardcodeado acá seguía
+        // "pasando" por estar POR ENCIMA del tope en vez de EN el tope.
+        let income = try #require(content.upgradesConfig.upgrades.first { $0.id == "income" })
+        state.meta.oroUpgradeLevels["income"] = income.maxLevel
         state.meta.oro = 1_000
         #expect(throws: UpgradeManager.PurchaseError.maxLevelReached) {
             try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
@@ -159,8 +169,9 @@ struct ContentSystemsTests {
         ))
         #expect(roll.event.id == "blanqueo")
         let granted = try #require(roll.grantedUnitTypeId)
-        // magnitude 2 → tier máximo alcanzado − 2.
-        #expect(content.tiers.type(id: granted)?.tier == 7)
+        // magnitude 3 → tier máximo alcanzado − 3 (era 2, ver
+        // `theGenerousEventsWereDialedDown`).
+        #expect(content.tiers.type(id: granted)?.tier == 6)
         #expect(roll.unitsChanged == false)
         #expect(state.run.units == unitsBefore)
     }
@@ -184,6 +195,65 @@ struct ContentSystemsTests {
         #expect(state.run.units[nextId] == 1)
         // Evolucionar a T2 no baja el máximo histórico de la run.
         #expect(state.run.maxTierReached == 5)
+    }
+
+    // MARK: Cadencia y dosis de los eventos
+
+    /// La queja del dueño fue la FRECUENCIA, no la existencia: "los banners
+    /// aparecen muy seguido". 300 + 180 daban un banner cada 5-8 min (~35 en una
+    /// partida de 3 h); 900 + 300 lo llevan a uno cada 15-20 min.
+    @Test func eventCadenceIsFifteenToTwentyMinutes() {
+        #expect(content.events.baseIntervalSeconds == 900)
+        #expect(content.events.intervalJitterSeconds == 300)
+        // La cuenta que hace `GameState.scheduleNextEvent`: base + jitter.
+        let shortest = content.events.baseIntervalSeconds
+        let longest = content.events.baseIntervalSeconds + content.events.intervalJitterSeconds
+        #expect(shortest >= 15 * 60)
+        #expect(longest <= 20 * 60)
+    }
+
+    /// Devaluación, corralito y cayó Mercado Pago son la ÚNICA tensión negativa
+    /// del juego. Espaciar la cadencia y dosificar a los buenos no puede
+    /// convertir la torre en un jardín: el peso de los malos tiene que seguir
+    /// siendo al menos el de los buenos.
+    @Test func badEventsCarryAtLeastHalfTheWeight() {
+        let good = content.events.events.filter(\.isBuff).map(\.weight).reduce(0, +)
+        let bad = content.events.events.filter { !$0.isBuff }.map(\.weight).reduce(0, +)
+        #expect(bad >= good, "peso buenos \(good) vs malos \(bad)")
+        #expect(good > 0, "sin eventos buenos se pierde el humor, que no es lo que se estaba dosificando")
+    }
+
+    /// Y no se apagó ninguno: los ocho siguen en el sorteo.
+    @Test func everyEventStaysInTheDraw() {
+        #expect(content.events.events.count == 8)
+        #expect(content.events.events.allSatisfy { $0.weight > 0 })
+    }
+
+    /// Los cinco que aceleran, dosificados: menos magnitud y más espera entre
+    /// apariciones.
+    @Test func theGenerousEventsWereDialedDown() throws {
+        let byId = Dictionary(uniqueKeysWithValues: content.events.events.map { ($0.id, $0) })
+        let planPlatita = try #require(byId["plan_platita"])
+        let alienigena = try #require(byId["inversion_alienigena"])
+        let aguinaldo = try #require(byId["aguinaldo"])
+        let blanqueo = try #require(byId["blanqueo"])
+        let startup = try #require(byId["startup_comprada"])
+
+        #expect(planPlatita.magnitude == 3)   // era ×5 de income
+        #expect(alienigena.magnitude == 5)    // era ×10
+        #expect(aguinaldo.magnitude == 300)   // eran 900 s (15 min) de producción regalados
+
+        // ⚠️ `blanqueo.magnitude` es un OFFSET DE TIER, no una cantidad de
+        // personajes: el evento regala UNO solo, de `maxTierReached − magnitude`
+        // (ver `EventManager.apply`, caso `.freeHighTier`). BAJARLA lo haría más
+        // generoso; subirla es lo que lo dosifica.
+        #expect(blanqueo.magnitude == 3)      // era 2 → el regalo baja un tier
+
+        #expect(planPlatita.cooldownSeconds >= 1800)
+        #expect(startup.cooldownSeconds >= 2700)
+        #expect(alienigena.cooldownSeconds >= 7200)
+        #expect(aguinaldo.cooldownSeconds >= 5400)
+        #expect(blanqueo.cooldownSeconds >= 5400)
     }
 
     // MARK: Boosts

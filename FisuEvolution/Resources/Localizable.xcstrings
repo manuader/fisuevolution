@@ -2770,13 +2770,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aliens are investing in you: x10. They don't get the local economy either, but they're all in."
+            "value" : "Aliens are investing in you: x5. They don't get the local economy either, but they're all in."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aliens invierten en vos: x10. No entienden la economía argentina, pero le ponen fichas."
+            "value" : "Aliens invierten en vos: x5. No entienden la economía argentina, pero le ponen fichas."
           }
         }
       }
@@ -2787,13 +2787,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Plan Platita just dropped! Printing happiness at x5. Don't ask where it comes from."
+            "value" : "Plan Platita just dropped! Printing happiness at x3. Don't ask where it comes from."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Cayó el Plan Platita! Imprimimos alegría x5. No preguntes de dónde sale."
+            "value" : "¡Cayó el Plan Platita! Imprimimos alegría x3. No preguntes de dónde sale."
           }
         }
       }

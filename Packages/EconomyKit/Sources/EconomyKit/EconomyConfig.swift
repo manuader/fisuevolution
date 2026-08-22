@@ -104,6 +104,26 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     public let yieldGrowthPerTier: Double
     public let passiveRatio: Double
     public let passiveUnlockCostMultiplier: Double
+    /// Con qué exponente el TAP recibe el `incomeMultiplier` del piso (el pasivo
+    /// lo recibe siempre entero; el PRECIO de contratación lo recibe con este
+    /// mismo exponente desde el rebalance de pacing — ver `hireCost`).
+    /// Default `1` = la conducta histórica.
+    ///
+    /// Es lo que separa la curva del tap de la del pasivo, que hasta el rebalance
+    /// eran la misma con un factor (`passiveYield = tapYield × passiveRatio`): un
+    /// solo knob para dos curvas que el diseño necesita distintas. El
+    /// multiplicador de piso es el único factor que crece con la ALTURA de la
+    /// torre (1 → 620), así que bajarle el exponente le saca plata al click del
+    /// tier alto —la queja del dueño— **sin tocar el early game**: en el callejón
+    /// el multiplicador es 1, y 1^x = 1 para cualquier exponente.
+    ///
+    /// Opcional para que un `economy.json` viejo o una fixture sin la clave sigan
+    /// decodificando: el Codable sintetizado usa `decodeIfPresent` sólo en las
+    /// propiedades opcionales, y escribir un `init(from:)` entero por esta sola
+    /// clave obligaría a mantener a mano las trece que ya funcionan. El valor
+    /// efectivo sale de `tapFloorMultiplier(for:)`, el único lugar donde vive el
+    /// default. [TUNEABLE]
+    public let tapFloorMultiplierExponent: Double?
     public let hire: HireConfig
     public let charUpgrades: CharUpgradesConfig
     public let oro: OroConfig
@@ -120,6 +140,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         yieldGrowthPerTier: Double,
         passiveRatio: Double,
         passiveUnlockCostMultiplier: Double,
+        tapFloorMultiplierExponent: Double? = nil,
         hire: HireConfig,
         charUpgrades: CharUpgradesConfig,
         oro: OroConfig,
@@ -134,6 +155,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         self.yieldGrowthPerTier = yieldGrowthPerTier
         self.passiveRatio = passiveRatio
         self.passiveUnlockCostMultiplier = passiveUnlockCostMultiplier
+        self.tapFloorMultiplierExponent = tapFloorMultiplierExponent
         self.hire = hire
         self.charUpgrades = charUpgrades
         self.oro = oro
@@ -154,16 +176,41 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         floor.hireCostGrowthOverride ?? hire.defaultCostGrowth
     }
 
+    /// El multiplicador de piso que recibe **el tap** — y, desde el rebalance de
+    /// pacing, también **el precio de contratación** (ver `hireCost`), que es lo
+    /// que mantiene literal la regla de los 600 clicks. El único que sigue
+    /// recibiendo `floor.incomeMultiplier` entero y siempre es **el pasivo**.
+    ///
+    /// Único lugar donde vive el default del exponente: repetir el `?? 1` en cada
+    /// llamador es exactamente cómo se desincronizaron los dos literales `1.8` de
+    /// `tierPremium` antes de que ese default se mudara a una constante.
+    public func tapFloorMultiplier(for floor: FloorDef) -> Double {
+        let exponent = tapFloorMultiplierExponent ?? 1.0
+        guard exponent != 1.0 else { return floor.incomeMultiplier }
+        return pow(floor.incomeMultiplier, exponent)
+    }
+
     /// Costo de contratar UN TIER CONCRETO en su piso, ANTES de descuentos
     /// permanentes y modificadores temporales. **Ésta es LA fórmula de precio de
     /// contratación, y la única**: no hay otra copia ni otra firma.
     ///
     /// Regla del dueño (2026-08-04): el precio es `multiplicador ×` **lo que
-    /// realmente rinde un click de ese personaje en ese piso** — o sea el
-    /// tapYield del tier POR el `incomeMultiplier` del piso, no el tapYield
-    /// pelado. Con el default en 100, contratar cuesta 100 taps de ese mismo
-    /// personaje; el piso 1 overridea a 50 para que el primer Fisura sea 50.
-    /// Cada compra sube la curva un `hireCostGrowth` (20% por defecto).
+    /// realmente rinde un click de ese personaje en ese piso**. Con el default
+    /// en 600, contratar cuesta 600 taps de ese mismo personaje; el callejón
+    /// overridea a 25 para que el primer Fisura sea 25. Cada compra sube la
+    /// curva un `hireCostGrowth` (6% por defecto desde el rebalance de pacing;
+    /// era 20%).
+    ///
+    /// El factor de piso es `tapFloorMultiplier(for:)` —el MISMO que cobra
+    /// `GameActions.applyTap`— y no `floor.incomeMultiplier` crudo. Es lo que
+    /// mantiene la regla literal: cuando el rebalance le sacó al tap el
+    /// multiplicador de piso, con el `incomeMultiplier` crudo acá contratar el
+    /// tier base del reino divino pasaba de 600 clicks a 600 × 620 = 372.000, y
+    /// la regla dejaba de ser cierta sin que nada hiciera ruido. Atado al mismo
+    /// factor, vale 600 clicks en los nueve pisos de arriba para cualquier
+    /// exponente (el callejón overridea el multiplicador a 25 y su Fisura sale
+    /// 25 clicks: decisión aparte del dueño, no una excepción de la regla).
+    /// (Decisión del dueño, fix round 2 — ver Docs/balance-log.md.)
     ///
     /// El factor nuevo es `tierPremium^(tier − firstTier)`: para el tier BASE de
     /// un piso vale 1, así que los precios de siempre —y sus pins— no se mueven;
@@ -175,7 +222,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     public func hireCost(floor: FloorDef, tier: Int, purchases: Int) -> Double {
         hireCostMultiplier(for: floor)
             * StandardEconomy(config: self).tapYield(forTier: tier)
-            * floor.incomeMultiplier
+            * tapFloorMultiplier(for: floor)
             * pow(hire.tierPremium, Double(tier - floor.firstTier))
             * pow(hireCostGrowth(for: floor), Double(purchases))
     }

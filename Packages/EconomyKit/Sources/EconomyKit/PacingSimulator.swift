@@ -12,26 +12,46 @@ import Foundation
 ///   offline entre sesiones (fórmula de OfflineCalculator).
 /// - **Política greedy** (prioridad): merges legales gratis → passive unlock con
 ///   payback corto → charUpgrade con payback corto → hire (piso 1 o backfill
-///   rentable) → reencarnar cuando duplica el ORO ganado histórico.
+///   rentable) → reencarnar cuando duplica el ORO ganado histórico → gastar el
+///   ORO en mejoras permanentes.
 /// - Determinístico: sin RNG (crit/golden apagados), carrera fija.
 public struct PacingSimulator: Sendable {
     public struct HumanModel: Sendable {
+        /// Toques por segundo sostenidos durante la sesión. **6**: el medio del
+        /// rango 5-8 que un humano sostiene tapeando en ráfaga sobre el mismo
+        /// personaje, que es como se juega (y el dueño tapea rápido). Los 3/s
+        /// que había eran el techo conservador que F2 heredó de `balance-sim`
+        /// y subestimaban el tap a la mitad, justo el verbo del que el dueño se
+        /// queja. [TUNEABLE]
         public var tapsPerSecond: Double
         public var sessionSeconds: Double
         /// Offsets de inicio de sesión dentro del día (segundos desde las 0 hs).
         public var sessionStartOffsets: [Double]
         public var daySeconds: Double
+        /// Cuántas veces el ORO por reencarnar tiene que superar al ORO ganado
+        /// histórico para que el bot reencarne. **1 = duplicar**, la regla idle
+        /// estándar y la conducta de siempre.
+        ///
+        /// Existe para MEDIR la pregunta del dueño ("casi nunca es worth
+        /// reencarnar hasta estar muy avanzado"): con 1 el bot reencarna
+        /// temprano y seguido, con un número grande se guarda hasta chocar la
+        /// pared. Correr las dos y comparar el tiempo hasta maxear es el único
+        /// modo honesto de contestar si reencarnar temprano CONVIENE, en vez de
+        /// decidirlo por intuición. [TUNEABLE]
+        public var reincarnationThresholdMultiple: Double
 
         public init(
-            tapsPerSecond: Double = 3,
+            tapsPerSecond: Double = 6,
             sessionSeconds: Double = 1200,
             sessionStartOffsets: [Double] = [0, 4 * 3600, 9 * 3600, 14 * 3600],
-            daySeconds: Double = 86_400
+            daySeconds: Double = 86_400,
+            reincarnationThresholdMultiple: Double = 1
         ) {
             self.tapsPerSecond = tapsPerSecond
             self.sessionSeconds = sessionSeconds
             self.sessionStartOffsets = sessionStartOffsets
             self.daySeconds = daySeconds
+            self.reincarnationThresholdMultiple = reincarnationThresholdMultiple
         }
     }
 
@@ -40,11 +60,55 @@ public struct PacingSimulator: Sendable {
         public var floorUnlockActiveSeconds: [String: Double] = [:]
         /// Tiempo de PARED (wall clock) al desbloquear cada piso.
         public var floorUnlockWallSeconds: [String: Double] = [:]
+        /// Cuántos SEGUNDOS de income cuesta ENTRAR a cada piso: el próximo hire
+        /// de su tier base, al contador de compras que el bot tiene de ese tipo,
+        /// en el momento en que el piso se abre.
+        ///
+        /// Es la evidencia de la divergencia costos-vs-ingresos
+        /// (`Docs/PROMPT-rebalance-pacing.md` §2.3): los precios están anclados a
+        /// `tapYield(tier)`, que es una constante, y el income pasa por el
+        /// multiplicador global, que no tiene techo. Si la serie se desploma piso
+        /// a piso, progresar es cada vez más gratis.
+        ///
+        /// ⚠️ **Lo que esta serie NO puede medir es `hireCostGrowth`**: un piso
+        /// se abre mergeando hacia arriba, no comprando, así que el contador de
+        /// su tier base suele valer 0 al abrirlo y `growth^0 = 1`. Para el
+        /// compounding están las dos series de abajo.
+        public var floorUnlockHireSeconds: [String: Double] = [:]
+        /// El tipo MÁS COMPRADO de la run cuando cada piso se abrió, su contador
+        /// y lo que cuesta el próximo de ESE tipo en segundos de income.
+        ///
+        /// Éstas sí ven `hireCostGrowth`: el factor que se paga es
+        /// `growth^compras`, y dicen cuántas compras llega a acumular el bot de
+        /// verdad — el número con el que hay que discutir la curva, no uno
+        /// supuesto.
+        ///
+        /// ⚠️ El tipo NO es el del piso de la clave: con la política del bot es
+        /// casi siempre el tier base del callejón. La clave es el piso sólo
+        /// porque es el momento en que se tomó la foto; el tipo va en
+        /// `floorUnlockPeakHireType` para que no se lea mal.
+        public var floorUnlockPeakHireType: [String: String] = [:]
+        public var floorUnlockPeakHirePurchases: [String: Int] = [:]
+        public var floorUnlockPeakHireSeconds: [String: Double] = [:]
         public var firstReincarnationWall: Double?
+        /// Tiempo ACTIVO de CADA reencarnación, en orden. La métrica del dueño es
+        /// la cadencia ("una reencarnación cada 2,5-4 h de juego activo"), y para
+        /// leerla hace falta la serie entera, no sólo la primera y el total.
+        public var reincarnationActiveSeconds: [Double] = []
         public var godWall: Double?
         public var reincarnations = 0
+        /// Segundos ACTIVOS hasta tener las siete líneas permanentes al tope.
+        public var maxedUpgradesActiveSeconds: Double?
+        public var maxedUpgradesWall: Double?
+        public var reincarnationsAtMaxedUpgrades: Int?
+        public var finalPermanentUpgradeLevels: [String: Int] = [:]
         public var finalLifetimeEarnings: Double = 0
         public var finalMaxTier = 0
+
+        /// Tiempo ACTIVO de la primera reencarnación (la de pared es
+        /// `firstReincarnationWall`). El dueño mide en horas de dedo, no de
+        /// calendario.
+        public var firstReincarnationActive: Double? { reincarnationActiveSeconds.first }
 
         public init() {}
     }
@@ -57,13 +121,17 @@ public struct PacingSimulator: Sendable {
     /// Payback máximo aceptado para compras de eficiencia (passive/charUpgrade).
     let maxPaybackSeconds: Double
     let careerPath: String
+    /// Catálogo de mejoras permanentes que el bot puede comprar con ORO. Vacío
+    /// = el bot no compra ninguna, que es el modelo viejo. [TUNEABLE]
+    let permanentUpgrades: [PermanentUpgradeLine]
 
     public init(
         config: EconomyConfig,
         tiers: TierRepository,
         human: HumanModel = HumanModel(),
         maxPaybackSeconds: Double = 1800,
-        careerPath: String = "programmer"
+        careerPath: String = "programmer",
+        upgrades: [PermanentUpgradeLine] = []
     ) throws {
         self.config = config
         self.tiers = tiers
@@ -72,6 +140,7 @@ public struct PacingSimulator: Sendable {
         self.human = human
         self.maxPaybackSeconds = maxPaybackSeconds
         self.careerPath = careerPath
+        self.permanentUpgrades = upgrades
     }
 
     // MARK: - Run
@@ -129,6 +198,7 @@ public struct PacingSimulator: Sendable {
 
         report.finalLifetimeEarnings = state.meta.lifetimeEarnings
         report.finalMaxTier = state.run.maxTierReached
+        report.finalPermanentUpgradeLevels = state.meta.oroUpgradeLevels
         return report
     }
 
@@ -149,7 +219,10 @@ public struct PacingSimulator: Sendable {
                 report.godWall = wallStart + elapsed
                 return (elapsed, elapsed)
             }
-            maybeReincarnate(state: &state, report: &report, wall: wallStart + elapsed)
+            maybeReincarnate(
+                state: &state, report: &report,
+                wall: wallStart + elapsed, active: activeStart + elapsed
+            )
 
             let rate = incomeRate(state: state, active: true)
             guard rate > 0 else {
@@ -271,8 +344,14 @@ public struct PacingSimulator: Sendable {
         let candidates = tiers.concreteTypes.filter { $0.tier == floor.firstTier }
         guard let type = candidates.first(where: { $0.id.hasSuffix(careerPath) }) ?? candidates.sorted(by: { $0.id < $1.id }).first
         else { return nil }
-        // `now: 0` alcanza: el bot no tiene modificadores temporales ni descuento
-        // permanente de prestigio, así que los dos factores valen 1.
+        // `now: 0` alcanza porque el bot no tiene modificadores temporales: el
+        // factor de `ModifierMath` vale 1 y no mira el reloj.
+        //
+        // ⚠️ El TERCER factor del quote —`1 − derivedEffects.spawnDiscount`— SÍ
+        // varía desde que el bot compra mejoras permanentes: la línea `spawn`
+        // llega a 0,30 y le abarata las contrataciones un 30 %. Que entre está
+        // bien (el jugador la tiene igual), pero ya no es un factor neutro, y
+        // darlo por 1 es leer el precio del bot como si fuera el de catálogo.
         guard let quote = TowerActions.hireQuote(
             typeId: type.id, state: state, config: config,
             floorTable: floorTable, tiers: tiers
@@ -350,13 +429,102 @@ public struct PacingSimulator: Sendable {
 
     // MARK: - Reencarnación
 
-    private func maybeReincarnate(state: inout PlayerState, report: inout Report, wall: Double) {
+    private func maybeReincarnate(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
         let gained = PrestigeCalculator.oroGained(state: state, economy: economy)
-        // Regla idle estándar: reencarnar cuando al menos duplica lo ganado histórico.
-        guard gained >= max(1, state.meta.oroEarnedLifetime) else { return }
+        // Regla idle estándar: reencarnar cuando al menos DUPLICA lo ganado
+        // histórico (`reincarnationThresholdMultiple` = 1). La cuenta va en
+        // Double a propósito: `oroEarnedLifetime` llega a órdenes en los que
+        // multiplicarlo en Int desborda, y un desborde acá sería un crash en
+        // mitad de una calibración.
+        let threshold = max(1, Double(state.meta.oroEarnedLifetime) * human.reincarnationThresholdMultiple)
+        guard Double(gained) >= threshold else { return }
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: wall)
         report.reincarnations += 1
+        report.reincarnationActiveSeconds.append(active)
         if report.firstReincarnationWall == nil { report.firstReincarnationWall = wall }
+        buyPermanentUpgrades(state: &state, report: &report, wall: wall, active: active)
+    }
+
+    // MARK: - Mejoras permanentes (ORO)
+
+    /// Gasta el ORO en mejoras permanentes: **la más barata primero**, hasta que
+    /// no alcance para ninguna.
+    ///
+    /// Es la política del jugador que va por las skins doradas, que es el
+    /// objetivo que el dueño llama "ganarlo al máximo": para maxear las siete
+    /// líneas hay que comprar TODOS los niveles igual, así que lo único que se
+    /// elige es el orden — y comprar de menor a mayor precio es el que más
+    /// niveles pone en juego por ORO gastado y el que menos tiempo deja el ORO
+    /// quieto en el bolsillo. La alternativa ("la de mejor payback") sólo
+    /// tendría sentido si el jugador pudiera saltearse líneas, y no puede.
+    ///
+    /// Se llama sólo al reencarnar porque es el único momento en que entra ORO:
+    /// entre reencarnaciones el saldo no cambia y los precios tampoco, así que
+    /// lo que no alcanzó acá no va a alcanzar después.
+    ///
+    /// ⚠️ El bot **paga** `crit` y `golden` pero no cobra su efecto: el
+    /// simulador es determinístico y no tira dados. Como `crit` es hoy el
+    /// 99,99 % del costo de maxear, eso lo vuelve un techo pesimista —el
+    /// jugador real, con los mismos niveles, gana más—.
+    private func buyPermanentUpgrades(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
+        guard !permanentUpgrades.isEmpty else { return }
+        var bought = false
+        while let line = cheapestAffordableUpgrade(state: state) {
+            let level = state.meta.oroUpgradeLevels[line.id] ?? 0
+            state.meta.oro -= oroPrice(of: line, atLevel: level)
+            state.meta.oroUpgradeLevels[line.id] = level + 1
+            bought = true
+        }
+        guard bought else { return }
+        // Recalcula efectos (y el multiplicador global, que depende del
+        // `prestigeBonus` recién comprado) con la misma fórmula que la app.
+        PermanentUpgrades.recomputeDerivedEffects(state: &state, lines: permanentUpgrades, economy: economy)
+        guard report.maxedUpgradesActiveSeconds == nil,
+              PermanentUpgrades.allMaxed(levels: state.meta.oroUpgradeLevels, lines: permanentUpgrades)
+        else { return }
+        report.maxedUpgradesActiveSeconds = active
+        report.maxedUpgradesWall = wall
+        report.reincarnationsAtMaxedUpgrades = report.reincarnations
+    }
+
+    /// La línea no-maxeada más barata que el ORO alcanza. Empates por `id`, para
+    /// que la corrida siga siendo determinística.
+    /// La más barata que el bot puede pagar AHORA.
+    ///
+    /// ⚠️ **El filtro y el orden no miran el mismo número, y es deuda declarada.**
+    /// El filtro usa `oroPrice` —el entero redondeado para arriba que la app
+    /// cobra de verdad— y el `min` ordena por el `Double` crudo, así que entre
+    /// dos líneas que la app cobra IGUAL (dos precios distintos que redondean al
+    /// mismo entero) el bot prefiere la de fracción más chica, una diferencia
+    /// que el juego nunca cobra.
+    ///
+    /// Se deja como está a propósito: unificar los dos en `oroPrice` está
+    /// medido y **no mueve ninguna de las cuatro métricas** (maxear 24,00 h · 8
+    /// reencarnaciones · dios 470,26 h de pared · la cadencia entera), pero SÍ
+    /// mueve la conducta —el `lifetimeEarnings` final pasa de 2,440e26 a
+    /// 2,349e26—, o sea que es un cambio de comportamiento del bot y le
+    /// corresponde su propio test, no un arreglo de paso en la tarea de cierre.
+    private func cheapestAffordableUpgrade(state: PlayerState) -> PermanentUpgradeLine? {
+        permanentUpgrades
+            .filter { line in
+                let level = state.meta.oroUpgradeLevels[line.id] ?? 0
+                guard level < line.maxLevel else { return false }
+                return oroPrice(of: line, atLevel: level) <= state.meta.oro
+            }
+            .min { lhs, rhs in
+                let lhsCost = lhs.cost(atLevel: state.meta.oroUpgradeLevels[lhs.id] ?? 0)
+                let rhsCost = rhs.cost(atLevel: state.meta.oroUpgradeLevels[rhs.id] ?? 0)
+                return lhsCost == rhsCost ? lhs.id < rhs.id : lhsCost < rhsCost
+            }
+    }
+
+    /// Precio en ORO, entero y redondeado para arriba como en la app
+    /// (`UpgradeManager.purchase`), pero **clampeado**: `Int(_:)` sobre un Double
+    /// de 2^63 o más CRASHEA, y estos catálogos se calibran a mano. Una línea
+    /// que se pase de ese orden queda simplemente impagable y el reporte la
+    /// muestra trabada en su nivel, que es lo que hay que ver.
+    private func oroPrice(of line: PermanentUpgradeLine, atLevel level: Int) -> Int {
+        StandardEconomy.clampedFloor(line.cost(atLevel: level).rounded(.up))
     }
 
     // MARK: - Income
@@ -391,11 +559,18 @@ public struct PacingSimulator: Sendable {
                 .map { type in
                     type.tapYield
                         * CharUpgrades.multiplier(typeId: type.id, levels: state.run.charUpgradeLevels, config: config)
-                        * floorTable.floor(forTier: type.tier).incomeMultiplier
+                        * config.tapFloorMultiplier(for: floorTable.floor(forTier: type.tier))
                 }
                 .max() ?? 0
+            // Los mismos factores que `GameActions.applyTap`, incluido el
+            // `incomeMultiplier` que al bot le faltaba: el tap del juego lo
+            // lleva, así que sin él el simulador cobraba de menos cada toque. El
+            // de piso pasa por `tapFloorMultiplier` por el mismo motivo: si acá
+            // se leyera `incomeMultiplier` crudo, el bot cobraría un tap que el
+            // juego ya no paga.
             rate += bestTap * human.tapsPerSecond
                 * state.meta.derivedEffects.tapMultiplier
+                * state.meta.derivedEffects.incomeMultiplier
                 * state.meta.globalMultiplier
         }
         return rate
@@ -424,6 +599,60 @@ public struct PacingSimulator: Sendable {
         }
     }
 
+    /// Cuántos segundos de income cuesta el PRÓXIMO hire del tier base del piso,
+    /// al contador de compras que el bot tiene de ese tipo. Cotiza por
+    /// `config.hireCost` —sin descuentos ni modificadores, que el bot no tiene—
+    /// y divide por el income de juego activo, que es el que el jugador tiene en
+    /// la mano cuando abre el piso.
+    ///
+    /// El contador sale de `hireCountsByType`, el mismo que alimenta la curva en
+    /// `TowerActions.hireQuote(typeId:)`: cotizar siempre con `purchases: 0`
+    /// —como hacía la primera versión de esta métrica— la volvía
+    /// matemáticamente ciega a `hireCostGrowth`, porque `growth^0 = 1`.
+    private func hireSeconds(floor: FloorDef, state: PlayerState) -> Double {
+        let rate = incomeRate(state: state, active: true)
+        guard rate > 0 else { return .infinity }
+        let typeId = baseTypeId(of: floor)
+        let purchases = typeId.map { state.run.hireCountsByType[$0] ?? 0 } ?? 0
+        return config.hireCost(floor: floor, tier: floor.firstTier, purchases: purchases) / rate
+    }
+
+    /// El tipo del tier base del piso, elegido igual que en `hireAction` (misma
+    /// carrera, mismo desempate) para que la métrica cotice lo que el bot compra.
+    private func baseTypeId(of floor: FloorDef) -> String? {
+        let candidates = tiers.concreteTypes.filter { $0.tier == floor.firstTier }
+        return (candidates.first(where: { $0.id.hasSuffix(careerPath) })
+            ?? candidates.sorted(by: { $0.id < $1.id }).first)?.id
+    }
+
+    /// El tipo con MÁS compras acumuladas y lo que cuesta el próximo, en
+    /// segundos de income. Es donde vive el compounding de `hireCostGrowth`: el
+    /// bot compra una y otra vez sobre el mismo tier base y su precio sube
+    /// `growth` por compra.
+    ///
+    /// **No es el tier base del piso de la fila**: es el tipo más comprado de
+    /// toda la run, que con la política del bot es casi siempre el Fisura del
+    /// callejón. La fila lo etiqueta con su `typeId` justamente para que no se
+    /// lea como "lo que cuesta este piso".
+    ///
+    /// Empata por `id`, como `cheapestAffordableUpgrade`: el orden de iteración
+    /// de un `Dictionary` cambia por proceso, y este simulador promete ser
+    /// determinístico.
+    ///
+    /// Devuelve `nil` si el bot todavía no compró nada. El centinela importa: en
+    /// este reporte `0,0 s` significa "contratar es gratis", que es el hallazgo
+    /// central del documento, y usarlo también para "no hay dato" los confundía.
+    private func peakHire(state: PlayerState) -> (typeId: String, purchases: Int, seconds: Double)? {
+        let ordered = state.run.hireCountsByType
+            .filter { $0.value > 0 }
+            .sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }
+        guard let (typeId, purchases) = ordered.first, let type = tiers.type(id: typeId) else { return nil }
+        let rate = incomeRate(state: state, active: true)
+        guard rate > 0 else { return (typeId, purchases, .infinity) }
+        let floor = floorTable.floor(forTier: type.tier)
+        return (typeId, purchases, config.hireCost(floor: floor, tier: type.tier, purchases: purchases) / rate)
+    }
+
     /// Registra pisos recién alcanzados (unlockTier ≤ maxTier) con sus tiempos.
     private func recordUnlocks(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
         for floor in floorTable.floors where state.run.maxTierReached >= floor.unlockTier {
@@ -433,6 +662,12 @@ public struct PacingSimulator: Sendable {
             if report.floorUnlockWallSeconds[floor.id] == nil {
                 report.floorUnlockWallSeconds[floor.id] = wall
                 report.floorUnlockActiveSeconds[floor.id] = active
+                report.floorUnlockHireSeconds[floor.id] = hireSeconds(floor: floor, state: state)
+                if let peak = peakHire(state: state) {
+                    report.floorUnlockPeakHireType[floor.id] = peak.typeId
+                    report.floorUnlockPeakHirePurchases[floor.id] = peak.purchases
+                    report.floorUnlockPeakHireSeconds[floor.id] = peak.seconds
+                }
             }
         }
     }

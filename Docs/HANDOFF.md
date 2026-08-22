@@ -31,8 +31,10 @@
 > las **dos barras son gemelas en crema con contorno ink** y están **fundidas a
 > su borde** (arriba y abajo), los **iconos de los 6 tabs son gigantes y llevan
 > su nombre debajo**, la **barra de estado se oculta de verdad** (le faltaba la
-> clave compañera en `project.yml`), y hay un **botón nuevo que contrata al
-> mejor tier que la plata alcanza** sin abrir FisuJobs (`hud.quickhire`). El
+> clave compañera en `project.yml`), y hay un **botón nuevo que contrata sin
+> abrir FisuJobs** (`hud.quickhire`) — nació vendiendo "el mejor tier que la
+> plata alcanza" y **desde el 2026-08-21 vende el TIER BASE del piso más alto**
+> (§4, rebalance de pacing). El
 > detalle está en **`Docs/SESION-2026-08-17-rediseno-pantalla-principal.md`**.
 > Números de su cierre: EconomyKit **200** · app **370** · UI **44 sin un solo
 > `-skip-testing:`** (los 183/346/43 de más abajo quedaron viejos). ⚠️ Dos cosas
@@ -236,6 +238,36 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-08-21 — El rebalance de pacing: ganarlo al máximo cuesta 24 h
+
+`fix/rebalance-pacing`, con `fix/atajo-tier-base` y `fix/premios-y-eventos`
+integradas. **Maxear las siete líneas permanentes —"ganarlo al máximo", lo que
+desbloquea las skins doradas— pasó de 15,49 h a 24,00 h ACTIVAS y de 34
+reencarnaciones a 8**; dios quedó a 26,59 h activas, o sea DESPUÉS de las skins.
+Detalle en **`Docs/SESION-2026-08-21-rebalance-pacing.md`**, calibración corrida
+por corrida en `balance-log.md`.
+
+Lo que hay que saber sin abrirlo:
+
+- **Son DOS knobs con dos efectos distintos**, y confundirlos costó una ronda: la
+  **curva de ORO** (`divisor` 3e6 → 3e12, `exponent` 0,45 → 0,25) cierra la
+  divergencia costos-vs-ingresos —entrar a un piso volvió a costar segundos de
+  income en vez de 0,0 s—, y **`hire.defaultCostGrowth` (1,2 → 1,06)** es lo que
+  hace la torre escalable: con el 20 % por compra **la partida no se puede
+  terminar** (el bot se traba en el tier 11).
+- **El atajo del HUD cambió de regla**: vende el **tier base** del piso más alto
+  pagable, no el tier más alto. Ofrecer el más alto te saltea el merge, que es el
+  juego. FisuJobs no cambió: sigue vendiendo todo lo desbloqueado.
+- **Los premios de logros son SEGUNDOS de tu producción**, no un múltiplo de un
+  costo: dos jugadores en el mismo tier con torres distintas cobran distinto. Y
+  los **doce logros de ORO fijo bajaron de 620 a 33** — sumaban 3,2 veces lo que
+  cuesta ganar el juego (§5).
+- **Los eventos se espaciaron** de uno cada 5-8 min a uno cada 15-20 min, y la
+  cara mala pasó a ser mayoría de peso sin apagar ninguno.
+- **`PacingTests` se re-pineó entero** y ganó dos asserts que NO son bandas sino
+  el objetivo del dueño (20-30 h activas, ≤8 reencarnaciones). El bot que medían
+  las bandas viejas no era el jugador: se construía sin catálogo de mejoras
+  permanentes.
 ### Sesión del 2026-08-21 (tarde) — El tutorial high-end
 
 El tutorial se rehizo entero contra `PROMPT-tutorial-high-end.md`: la **fase
@@ -648,7 +680,17 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
 1. **El primer Fisura cuesta 25** (el dueño lo bajó de 50 el 2026-08-18; pineado
    en `GameContentValidationTests`) y los targets de pacing se bajaron a la
    conducta real en vez de recalibrar knobs. Costo medido en `balance-log §F7.6`.
-2. **Contratar arriba cuesta 600×** lo que rinde un click ahí; el callejón, 50×.
+2. **Contratar arriba cuesta 600×** lo que rinde un click ahí. El callejón va
+   aparte y barato: su `hireCostMultiplierOverride` es **25**, que es lo que
+   ancla al primer Fisura en 25 monedas.
+   ⚠️ **Enmienda del 2026-08-21 (rebalance de pacing): `hire.defaultCostGrowth`
+   baja de 1,2 a 1,06** — de +20 % a +6 % por compra. El ancla NO se mueve (el
+   primer Fisura sigue en 25 y `defaultCostMultiplier` en 600): cambia sólo la
+   PENDIENTE, y el segundo Fisura pasa de 30 a 26,5. El motivo, medido: con el
+   20 % el bot llega a un pico de 70 compras y la siguiente cuesta 384 s de
+   income, así que **se traba en el tier 11 y la partida no se puede terminar**.
+   ⚠️⚠️ **Y el "600 veces lo que rinde un click" vale para los NUEVE pisos de
+   arriba, no para los diez**: el callejón son 25 clicks por el override.
 3. **El gate es de UN piso**, no dos: con dos el juego no se puede terminar.
    ⚠️ Su PROFUNDIDAD es la decisión; su COBERTURA no. En la Ola 3 el piso urbano
    se declaró exento (`hireGateExempt` en `floors[]`) porque el gate, combinado
@@ -656,9 +698,13 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    siendo un gate de un piso. Ver `balance-log`, "El muro de ×368, cerrado".
 4. **Los tintes IAP se retiraron** aunque eran los únicos productos pagos además
    de remove_ads.
-5. `PacingTests` está pineado a la **conducta actual**, no al pacing que el spec
-   pedía. `pacing-sim` sigue imprimiendo los targets de DISEÑO para que la brecha
-   quede visible.
+5. `PacingTests` tiene **dos clases de assert y no hay que confundirlas**: las
+   cuatro BANDAS son ±30 % de la conducta medida (se re-pinean cada vez que el
+   dueño cambia el balance a propósito), y `theOwnersTargetsAreMet` es el
+   OBJETIVO —maxear las siete en 20-30 h activas con ≤8 reencarnaciones— que
+   **no se re-pinea**: si se pone en rojo, el juego dejó de cumplir lo que se
+   pidió. `pacing-sim` sigue imprimiendo los targets de DISEÑO del plan F7.1c
+   para que la brecha que queda (la fase fisura) siga visible.
 6. **El recorte de fondo se elige a ojo, asset por asset, y no lo decide el
    pipeline.** Ninguna de las dos herramientas gana siempre: la conectividad
    conserva el blanco encerrado del dibujo (una camisa, pero también la sombra
@@ -668,6 +714,29 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    decisión. Cambiar uno es una corrida de `scripts/elegir_recorte.py`.
 7. **Las skins de oro no se venden.** Su única vía es maxear las siete mejoras
    permanentes. El diamante es al revés: sólo el bundle, sin condición.
+8. **El precio de contratar usa el MISMO factor de piso que el click**
+   (`tapFloorMultiplier(for:)`), no el `incomeMultiplier` crudo — salida (a),
+   elegida por el dueño el 2026-08-21 sobre otras dos corridas enteras.
+   El motivo: `tapFloorMultiplierExponent: 0` le sacó al TAP el multiplicador de
+   piso y el precio lo seguía llevando crudo, así que contratar el tier base del
+   reino divino pasó de 600 clicks a **372.000** sin que nada hiciera ruido — y
+   el test que debía protegerlo seguía verde porque replicaba la fórmula vieja
+   del click. Atadas por construcción (las dos llaman a la MISMA función), la
+   regla no se puede volver a romper en silencio. Costo medido: 1,3 h de largo
+   (25,33 → 24,00 h). Las descartadas: devolverle el multiplicador al tap da
+   15,26 h y 9 reencarnaciones (no cumple ninguno de los dos objetivos), y
+   dejarlo como estaba obliga a re-enunciar la regla como "600 ×
+   `incomeMultiplier` clicks".
+9. **El atajo del HUD vende el TIER BASE del piso más alto pagable**, no el tier
+   más alto. FisuJobs sigue vendiendo todo lo desbloqueado: el recorte es de
+   PACING y sólo del atajo. Ofrecer el tier más alto te saltea la profundidad de
+   merge del piso, que es lo que el juego cobra.
+10. **Los doce logros de ORO fijo suman 33, no 620.** Con 620 contra los 193 que
+   cuesta maxear las siete líneas, juntando logros se ganaba el juego 3,2 veces.
+   El dueño los quiso en montos FIJOS (más legibles en la ficha que un
+   porcentaje) aportando el 15-20 % del camino; la regla del re-escalado es el
+   monto viejo ÷ 20 redondeado para arriba, con piso en 1. Pineado en
+   `fixedOroAchievementsFundAFifthOfTheRun`.
 
 ---
 
@@ -679,35 +748,37 @@ ANTES que UI** — la asimetría es real y direccional, ver abajo.
 ```bash
 UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
 
-cd Packages/EconomyKit && swift test                      # 183
+cd Packages/EconomyKit && swift test                      # 230
 cd - && /opt/homebrew/bin/xcodegen generate               # si agregaste/borraste Swift
 
 # 1) UNIT PRIMERO
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
   -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
-  -only-testing:FisuEvolutionTests test                   # 346
+  -only-testing:FisuEvolutionTests test                   # 401
 
 # 2) UI DESPUÉS
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
   -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
-  -only-testing:FisuEvolutionUITests test                  # 43, sin skips
+  -only-testing:FisuEvolutionUITests test                  # 46, sin skips
 
 cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 27, 1 rojo
 
 xcrun simctl shutdown $UDID && xcrun simctl delete $UDID   # ⚠️ el cierre es parte del trabajo
 ```
 
-Estado el **2026-08-16**:
-**EconomyKit 183 · app 346 · UI 43 · pipeline 27 (1 rojo conocido)**, cero
-warnings de compilador.
+Estado el **2026-08-21** (cierre del rebalance de pacing):
+**EconomyKit 230 · app 401 · UI 46 · pipeline 27 (1 rojo conocido)**, cero
+warnings de compilador. Los tres primeros salen de la MISMA verificación, con la
+receta de acá arriba tal cual y **la suite de UI entera en una sola corrida, sin
+un solo `-skip-testing:`**.
 
-✅ **Los cuatro números salen de la MISMA verificación**, la del cierre de
-`fix/cierre-post-merge`, con la receta de acá arriba tal cual: simulador propio
-por UDID, `-parallel-testing-enabled NO`, unit antes que UI. **Y el 43 de UI se
-tomó de una sola vez y sin un solo skip** —`AscentRenderingUITests` adentro—,
-que era lo único que quedaba pendiente de medir: hasta ese día el 43 salía de
-SUMAR los 3 de esa clase, verificados aparte, a los 40 que se medían con ella
-salteada.
+ℹ️ El **27 del pipeline** es el único que no se re-midió el 2026-08-21 (es Python
+y esta rama no lo tocó): viene del cierre de `fix/cierre-post-merge`.
+
+⚠️ **El número de UI se toma de UNA sola corrida y sin un solo skip**
+—`AscentRenderingUITests` adentro—, que fue lo último que quedó pendiente de
+medir en `fix/cierre-post-merge`: hasta ese día salía de SUMAR los 3 de esa clase,
+verificados aparte, a los que se medían con ella salteada.
 
 ⚠️ Y se tomó **en malas condiciones a propósito**: arrancó con la máquina en
 `load average` **~156** por frentes ajenos y la suite pasó entera igual, con
@@ -1199,6 +1270,37 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     `.navigation` de `containerBackground` es **iOS 18+** —verificado en la
     swiftinterface del SDK—, por eso hay un fallback UIKit para 17.
 
+### De tests y calibración (2026-08-21)
+
+24. **Un test puede CAMBIAR DE SIGNIFICADO y quedar verde**, y en una rama de
+    balance pasa de a tres. SÍNTOMA: el test sigue en verde después de mover un
+    knob que debería haberlo roto. CAUSA: o replica la fórmula vieja en vez de
+    llamar a la del código (`hirePricesFollowTheOwnersRule` seguía calculando el
+    click a la vieja, así que no vio que contratar en el reino divino pasó de
+    600 a **372.000** clicks), o su fixture deja el knob nuevo en su valor
+    neutro (dos tests de EconomyKit pineaban que el precio lleva el
+    `incomeMultiplier` crudo: verdes sólo porque sus fixtures dejan el exponente
+    en 1), o el literal del escenario **dejó de caer donde su nombre dice** (el
+    "9.000.000, un peso menos que el Fast Food" de `BestHireTests` pasó a
+    alcanzarle). REMEDIO: derivá el corte de la config y llamá a la función del
+    código en vez de replicarla; y cuando un knob cambia, **grepeá también el
+    código y los comentarios**, no sólo el catálogo.
+
+25. **Un fixture puede ser PUNTO FIJO de la transformación que dice cubrir.** El
+    save v3 de `SaveMigratorTests` traía `tap: 1` y el reescalado del rebalance
+    manda `1 → 1`, así que **borrar la llamada de `migrateV3toV4` dejaba la
+    suite entera verde**: la conversión estaba probada como función y no como
+    parte de la migración. Al escribir un fixture para una transformación,
+    elegí un valor que la transformación MUEVA.
+
+26. **Una serie de métricas puede no poder medir el knob que se está
+    discutiendo.** `floorUnlockHireSeconds` (lo que cuesta entrar a cada piso)
+    **no puede ver `hireCostGrowth`**: un piso se abre mergeando, no comprando,
+    así que el contador de compras de su tier base vale 0 y `growth^0 = 1`. Se
+    defendió el growth con esa serie durante una ronda entera. Para el
+    compounding están `floorUnlockPeakHire{Type,Purchases,Seconds}`, que publican
+    el tipo más comprado de la run (en el árbol de hoy el bot llega a **785
+    compras** del mismo tipo; 870 en el A/B pre-(a) de la bitácora).
 24. **Una lección contextual del tutorial puede nacer EN MEDIO de un test de
     UI ajeno y comerse sus taps por coordenada.** SÍNTOMA: un test que venía
     verde falla con "no apareció X" tras darse monedas o abrir pisos con el
@@ -1483,6 +1585,7 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
+| **`SESION-2026-08-21-rebalance-pacing.md`** | **El rebalance de pacing: las tres métricas antes/después, los dos knobs que hacen cosas distintas, las tres decisiones del dueño con lo descartado y su número, y los cuatro diagnósticos que salieron errados antes del bueno** |
 | **`SESION-2026-08-21-tutorial-high-end.md`** | **La sesión más reciente: el tutorial rehecho — la fase corta arbitrada por la cola, las 8 lecciones con sus señales, el puntito de logros y las trampas 24/25** |
 | **`SESION-2026-08-21-telon-del-menu.md`** | **El telón blanco de las pantallas empujadas del menú: la medición, el arreglo por versión de iOS y qué quedó sin verificar** |
 | **`SESION-2026-08-19-skins-oro-diamante.md`** | **Las 86 skins de material: el catálogo de un id por material, el desbloqueo de cada una y los tres bugs medidos del pipeline de generación** |

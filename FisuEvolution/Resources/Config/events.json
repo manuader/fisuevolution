@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
-  "baseIntervalSeconds": 300,
-  "intervalJitterSeconds": 180,
+  "baseIntervalSeconds": 900,
+  "intervalJitterSeconds": 300,
   "events": [
     {
       "id": "plan_platita",
       "effectType": "incomeMultiplier",
-      "magnitude": 5.0,
+      "magnitude": 3.0,
       "durationSeconds": 60,
-      "weight": 20,
+      "weight": 12,
       "minTier": 2,
-      "cooldownSeconds": 900,
+      "cooldownSeconds": 1800,
       "flavorTextKey": "event.plan_platita.flavor",
       "isBuff": true
     },
@@ -19,9 +19,9 @@
       "effectType": "instantEvolution",
       "magnitude": 1,
       "durationSeconds": 0,
-      "weight": 10,
+      "weight": 8,
       "minTier": 5,
-      "cooldownSeconds": 1800,
+      "cooldownSeconds": 2700,
       "flavorTextKey": "event.startup_comprada.flavor",
       "isBuff": true
     },
@@ -39,11 +39,11 @@
     {
       "id": "blanqueo",
       "effectType": "freeHighTier",
-      "magnitude": 2,
+      "magnitude": 3,
       "durationSeconds": 0,
-      "weight": 6,
+      "weight": 4,
       "minTier": 9,
-      "cooldownSeconds": 3600,
+      "cooldownSeconds": 5400,
       "flavorTextKey": "event.blanqueo.flavor",
       "isBuff": true
     },
@@ -61,11 +61,11 @@
     {
       "id": "inversion_alienigena",
       "effectType": "incomeMultiplier",
-      "magnitude": 10.0,
+      "magnitude": 5.0,
       "durationSeconds": 30,
       "weight": 3,
       "minTier": 20,
-      "cooldownSeconds": 5400,
+      "cooldownSeconds": 7200,
       "flavorTextKey": "event.inversion_alienigena.flavor",
       "isBuff": true
     },
@@ -83,11 +83,11 @@
     {
       "id": "aguinaldo",
       "effectType": "bonusCoins",
-      "magnitude": 900,
+      "magnitude": 300,
       "durationSeconds": 0,
-      "weight": 12,
+      "weight": 8,
       "minTier": 7,
-      "cooldownSeconds": 3600,
+      "cooldownSeconds": 5400,
       "flavorTextKey": "event.aguinaldo.flavor",
       "isBuff": true
     }

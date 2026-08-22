@@ -475,13 +475,15 @@ final class GameState {
                 player.run.charUpgradeLevels["homeless"] = content.economy.charUpgrades.maxLevel
                 self.player = player
             }
-            // RF-16: el ORO va con la raíz de lifetime/3M, así que llegar al
-            // prestigio jugando no es automatizable. El fixture lo acredita.
+            // RF-16: el ORO va con la raíz de lifetime/divisor, así que llegar
+            // al prestigio jugando no es automatizable. El fixture lo acredita —
+            // derivado de la config y no un literal, que es lo que se rompía en
+            // silencio cada vez que el balance movía el divisor.
             if ProcessInfo.processInfo.arguments.contains("--uitest-prestige") {
-                giveLifetimeEarningsForTesting(300_000_000)
+                giveEarningsForPrestigeTesting(oro: 9)
             }
-            // El primer Fisura cuesta 50 y un tap rinde 1: llegar a contratar
-            // jugando son ~50 toques sobre un personaje que deambula. El fixture
+            // El primer Fisura cuesta 25 y un tap rinde 1: llegar a contratar
+            // jugando son ~25 toques sobre un personaje que deambula. El fixture
             // acredita la plata para que el test del tutorial mida el TUTORIAL y
             // no la puntería del runner.
             if ProcessInfo.processInfo.arguments.contains("--uitest-coins") {
@@ -652,6 +654,25 @@ final class GameState {
         // vive `upgradesConfig`; EconomyKit no conoce `upgrades.json` y pasárselo
         // ya resuelto lo deja puro.
         let lineasDeOro = content.upgradesConfig.upgrades.filter { $0.currency == .oro }
+        // `>=` y no `==`, y hay que decir exactamente qué regala.
+        //
+        // Un save v3 llega acá con los niveles ya reescalados por
+        // `SaveMigrator.rescaleUpgradeLevelsForRebalance`. Ese reescalado es
+        // PROPORCIONAL Y REDONDEADO, no exacto, y en los dos bordes se nota:
+        // redondea PARA ARRIBA hasta el tope (`income`/`tap` 19 → 10 y `crit`
+        // 24 → 10 quedan maxeados sin haberlo estado) y redondea A CERO abajo
+        // (`crit` 1 → 0 borra el único nivel que el jugador tenía). Los dos
+        // casos son de un solo nivel de distancia y se aceptan: la alternativa
+        // —guardar el nivel viejo para poder deshacer— pide un bump de schema.
+        // Lo que el `>=` sí deja pasar, y es más grande, es un save **v4
+        // anterior al rebalance de pacing**: uno con `crit` entre 10 y 24 no
+        // había maxeado esa línea —con la curva vieja (3 × 2,5ⁿ) llegar a crit 10 costaba
+        // ~19.100 ORO de los 1,776e10 que valía la línea, el 0,0001 %— y desde
+        // el rebalance cuenta como tope y se lleva las skins doradas.
+        //
+        // Se acepta a sabiendas: distinguirlo pediría un bump de schema (v5)
+        // para marcar qué saves son pre-rebalance, y las skins son cosméticas.
+        // Lo que NO se regala es el efecto: las dos derivaciones clampean.
         let todoAlMaximo = !lineasDeOro.isEmpty && lineasDeOro.allSatisfy {
             (player.meta.oroUpgradeLevels[$0.id] ?? 0) >= $0.maxLevel
         }

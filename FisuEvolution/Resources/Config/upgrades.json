@@ -6,10 +6,10 @@
       "titleKey": "upgrade.income.title",
       "iconKey": "ui_up_income",
       "effectType": "incomeMultiplier",
-      "magnitudePerLevel": 0.1,
-      "maxLevel": 20,
+      "magnitudePerLevel": 0.2,
+      "maxLevel": 10,
       "baseCost": 1,
-      "costGrowth": 2.0,
+      "costGrowth": 1.1,
       "currency": "oro"
     },
     {
@@ -20,7 +20,7 @@
       "magnitudePerLevel": 0.03,
       "maxLevel": 10,
       "baseCost": 1,
-      "costGrowth": 2.2,
+      "costGrowth": 1.15,
       "currency": "oro"
     },
     {
@@ -30,8 +30,8 @@
       "effectType": "offlineEfficiency",
       "magnitudePerLevel": 0.05,
       "maxLevel": 10,
-      "baseCost": 2,
-      "costGrowth": 2.3,
+      "baseCost": 1,
+      "costGrowth": 1.15,
       "currency": "oro"
     },
     {
@@ -39,10 +39,10 @@
       "titleKey": "upgrade.tap.title",
       "iconKey": "ui_up_tap",
       "effectType": "tapMultiplier",
-      "magnitudePerLevel": 0.25,
-      "maxLevel": 20,
+      "magnitudePerLevel": 0.5,
+      "maxLevel": 10,
       "baseCost": 1,
-      "costGrowth": 2.0,
+      "costGrowth": 1.1,
       "currency": "oro"
     },
     {
@@ -50,10 +50,10 @@
       "titleKey": "upgrade.crit.title",
       "iconKey": "ui_up_crit",
       "effectType": "critChance",
-      "magnitudePerLevel": 0.01,
-      "maxLevel": 25,
-      "baseCost": 3,
-      "costGrowth": 2.5,
+      "magnitudePerLevel": 0.025,
+      "maxLevel": 10,
+      "baseCost": 1,
+      "costGrowth": 1.2,
       "currency": "oro"
     },
     {
@@ -63,8 +63,8 @@
       "effectType": "goldenTouchChance",
       "magnitudePerLevel": 0.005,
       "maxLevel": 10,
-      "baseCost": 4,
-      "costGrowth": 2.7,
+      "baseCost": 1,
+      "costGrowth": 1.2,
       "currency": "oro"
     },
     {
@@ -74,8 +74,8 @@
       "effectType": "prestigeBonusPerSoulPoint",
       "magnitudePerLevel": 0.005,
       "maxLevel": 10,
-      "baseCost": 5,
-      "costGrowth": 3.0,
+      "baseCost": 1,
+      "costGrowth": 1.25,
       "currency": "oro"
     }
   ]

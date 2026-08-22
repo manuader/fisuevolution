@@ -54,9 +54,16 @@ struct JobRow: Identifiable, Equatable {
     let floorID: String
 }
 
-/// La oferta del botón "contratar al mejor" de la pantalla principal: el tipo de
-/// tier más alto que la plata alcanza ENTRE los que FisuJobs ofrece como
-/// contratables. Sin nada pagable, el más barato como meta de ahorro.
+/// La oferta del botón "contratar al mejor" de la pantalla principal: el
+/// PERSONAJE INICIAL —el tier base— del piso más alto que la plata alcanza,
+/// entre los que FisuJobs ofrece como contratables. Sin nada pagable, el más
+/// barato como meta de ahorro.
+///
+/// ⚠️ Los tiers de arriba de cada piso quedan afuera **a propósito**, y no
+/// porque no se puedan comprar: FisuJobs los sigue vendiendo todos. El atajo
+/// vende sólo el base porque ofrecerte el más alto que podés pagar te saltea el
+/// merge, que es el juego (pedido del dueño, `Docs/PROMPT-rebalance-pacing.md`
+/// §4.5).
 ///
 /// Es una fila de FisuJobs recortada a lo que el botón dibuja, y no un `JobRow`
 /// entero, porque el botón no muestra ni el income ni cuántos tenés ni el piso:
@@ -143,6 +150,14 @@ extension GameState {
     /// YA VISTO—, así que no puede espoilear la cadena (RF-03) ni vender algo
     /// que después `TowerActions.hire` rechace. Duplicar la condición acá sería
     /// el mismo error que el balance-log documenta para la fórmula de precio.
+    ///
+    /// Encima de esa compuerta va el ÚNICO recorte propio del atajo: el
+    /// candidato tiene que ser el tier base de su piso (`floorTable[…].firstTier`).
+    /// Es un recorte de PACING, no de autorización —lo que queda afuera se
+    /// compra igual desde FisuJobs, que sigue vendiendo todo lo desbloqueado—,
+    /// y vive acá porque es la regla de ESTE botón: venderte el tier más alto
+    /// que la plata alcanza te saltea la profundidad de merge del piso, que es
+    /// justo lo que el juego cobra (§4.5 del prompt del rebalance).
     func computeBestHire() -> BestHire? {
         guard let content, let player else { return nil }
         let coins = player.run.coins
@@ -153,6 +168,11 @@ extension GameState {
         }
         let candidates: [Candidate] = content.tiers.concreteTypes.compactMap { type in
             guard let quote = currentQuote(player: player, typeId: type.id),
+                  // El personaje inicial del piso y nada más. El ordinal sale
+                  // del quote y no de `floorTable.ordinal(forTier:)` a mano: es
+                  // el mismo número, y leerlo de donde salió el precio impide
+                  // que el filtro y la cotización miren pisos distintos.
+                  type.tier == content.floorTable[quote.floorOrdinal].firstTier,
                   jobState(for: type, ordinal: quote.floorOrdinal, player: player, content: content) == .hirable
             else { return nil }
             return Candidate(type: type, cost: quote.cost)
@@ -165,9 +185,20 @@ extension GameState {
         // hay que declarar barato = mayor (`lhs.cost > rhs.cost`), y para que
         // gane el id ASCENDENTE hay que declarar id chico = mayor
         // (`lhs.type.id > rhs.type.id`). En el `min(by:)` de abajo, que devuelve
-        // el mínimo, los mismos dos criterios se escriben derechos. Los tests
-        // `tiesFallBackToTheAscendingID` y `brokePlayerSeesTheCheapestAsAGoal`
-        // son los que sostienen esto: al revés compilan igual.
+        // el mínimo, los mismos dos criterios se escriben derechos.
+        //
+        // ⚠️⚠️ **Los desempates del `max` ya no los cubre ningún test, y no es
+        // un olvido.** Con el filtro de tier base cada piso aporta como mucho UN
+        // candidato, y en el `floorTable` de hoy ningún `firstTier` se bifurca
+        // en carreras —las cuatro ramas viven en los tiers 11 y 12, en el medio
+        // de corporativo, cuyo base es el 9—, así que dos candidatos no pueden
+        // empatar en tier. Se conservan porque la regla sigue siendo "el tier
+        // base del piso más alto **y ante empate el más barato**", y el día que
+        // un `firstTier` se bifurque eso vuelve a decidir (es un cambio de
+        // config, no de código, y ahí ningún test avisaría). Lo que sí sigue
+        // pineado es el `min` de la meta de ahorro:
+        // `brokePlayerSeesTheCheapestAsAGoal` y
+        // `withoutCoinsTheGoalIsTheCheapestOfMany`.
         if let best = candidates.filter({ coins >= $0.cost }).max(by: { lhs, rhs in
             if lhs.type.tier != rhs.type.tier { return lhs.type.tier < rhs.type.tier }
             if lhs.cost != rhs.cost { return lhs.cost > rhs.cost }

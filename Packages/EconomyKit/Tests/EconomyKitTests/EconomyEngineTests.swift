@@ -93,19 +93,55 @@ struct HireQuoteCurveTests {
     }
 
     /// La regla del dueño (2026-08-04): el precio es el multiplicador POR lo que
-    /// rinde un click de ese personaje EN ESE PISO — o sea incluye el
-    /// `incomeMultiplier` del piso, no sólo el tapYield pelado.
-    @Test("el precio incluye el incomeMultiplier del piso")
-    func precioEscalaConElIncomeDelPiso() throws {
+    /// rinde un click de ese personaje EN ESE PISO.
+    ///
+    /// ⚠️ **"Lo que rinde un click" es `tapFloorMultiplier(for:)`, no el
+    /// `incomeMultiplier` crudo**, y la diferencia es todo el punto del test.
+    /// Hasta el rebalance de pacing eran el mismo número y este test decía
+    /// "incluye el `incomeMultiplier` del piso": el rebalance le sacó al tap el
+    /// multiplicador de piso (`tapFloorMultiplierExponent: 0` en el
+    /// `economy.json` embarcado) y el precio lo siguió, así que **el juego de
+    /// hoy NO cumple el enunciado viejo**. El test seguía verde nada más que
+    /// porque su fixture deja el exponente en 1.
+    ///
+    /// Por eso se corre en las DOS configuraciones: la del exponente 1, donde el
+    /// precio lleva el multiplicador entero, y la del exponente 0 —la embarcada—
+    /// donde no lo lleva. Lo que queda pineado es la regla que sí vale siempre:
+    /// **el precio y el tap usan el mismo factor de piso**.
+    @Test("el precio escala con el MISMO factor de piso que cobra el tap")
+    func precioEscalaConElFactorDePisoDelTap() throws {
+        // Exponente 1 (el default): el factor es el `incomeMultiplier` entero.
         let rico = fxConfig(f2IncomeMultiplier: 3.0)
         let tablaRica = try fxFloorTable(config: rico)
-        let (state, _, _) = try fxStateAndTower(config: rico)
+        let (stateRico, _, _) = try fxStateAndTower(config: rico)
         let cotizado = try #require(TowerActions.hireQuote(
-            floorOrdinal: 1, state: state, tiers: tiers,
+            floorOrdinal: 1, state: stateRico, tiers: tiers,
             floorTable: tablaRica, config: rico
         ))
-        // f2: 100 (default) × tapYield(T3)=14.44 × income 3.0
+        #expect(abs(rico.tapFloorMultiplier(for: tablaRica[1]) - 3.0) < 1e-9)
+        // f2: 100 (default) × tapYield(T3)=14.44 × factor de piso 3.0
         #expect(abs(cotizado.cost - 100 * 14.44 * 3.0) < 1e-9)
+
+        // Exponente 0 (el del `economy.json` embarcado): el tap deja de cobrar el
+        // multiplicador de piso y el precio TAMPOCO. Mismo piso, mismo
+        // `incomeMultiplier` de 3,0, y el precio baja a un tercio.
+        let plano = fxConfig(f2IncomeMultiplier: 3.0, tapFloorMultiplierExponent: 0)
+        let tablaPlana = try fxFloorTable(config: plano)
+        let (statePlano, _, _) = try fxStateAndTower(config: plano)
+        let cotizadoPlano = try #require(TowerActions.hireQuote(
+            floorOrdinal: 1, state: statePlano, tiers: tiers,
+            floorTable: tablaPlana, config: plano
+        ))
+        #expect(abs(plano.tapFloorMultiplier(for: tablaPlana[1]) - 1.0) < 1e-9)
+        #expect(abs(cotizadoPlano.cost - 100 * 14.44) < 1e-9)
+
+        // Y la regla, escrita una sola vez: en las dos configuraciones el precio
+        // es el multiplicador por lo que rinde un click ahí.
+        for (config, tabla, quote) in [(rico, tablaRica, cotizado), (plano, tablaPlana, cotizadoPlano)] {
+            let click = StandardEconomy(config: config).tapYield(forTier: 3)
+                * config.tapFloorMultiplier(for: tabla[1])
+            #expect(abs(quote.cost / click - 100) < 1e-9, "son \(quote.cost / click) clicks, no 100")
+        }
     }
 
     @Test("f1 usa su override barato: 15 × 1.15^n")

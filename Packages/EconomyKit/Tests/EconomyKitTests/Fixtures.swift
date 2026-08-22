@@ -15,7 +15,8 @@ func fxConfig(
     f2IncomeMultiplier: Double = 1.0,
     hireDefaultMultiplier: Double = 100,
     hireDefaultGrowth: Double = 2.0,
-    tierPremium: Double = 1.8
+    tierPremium: Double = 1.8,
+    tapFloorMultiplierExponent: Double? = nil
 ) -> EconomyConfig {
     EconomyConfig(
         schemaVersion: 2,
@@ -23,6 +24,7 @@ func fxConfig(
         yieldGrowthPerTier: 3.8,
         passiveRatio: 0.3,
         passiveUnlockCostMultiplier: 100,
+        tapFloorMultiplierExponent: tapFloorMultiplierExponent,
         hire: .init(
             defaultCostMultiplier: hireDefaultMultiplier,
             defaultCostGrowth: hireDefaultGrowth,

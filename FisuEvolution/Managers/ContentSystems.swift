@@ -65,7 +65,14 @@ enum UpgradeManager {
         var prestigeBonus = 0.0
 
         for line in config.upgrades {
-            let level = Double(state.meta.oroUpgradeLevels[line.id] ?? 0)
+            // CLAMPEADO al tope, igual que `CharUpgrades.multiplier` y que el
+            // espejo de EconomyKit. Un save anterior al rebalance de pacing
+            // trae `income: 20` contra un tope que hoy es 10: sin el clamp ese
+            // save cobra ×5,0 donde el máximo comprable es 3,0, y con `crit: 25`
+            // el juego lo recorta por `EffectCaps` mientras el simulador no —
+            // justo la divergencia que `upgradeLinesNeverReachTheirEffectCaps`
+            // existe para prevenir.
+            let level = Double(min(state.meta.oroUpgradeLevels[line.id] ?? 0, line.maxLevel))
             guard level > 0 else { continue }
             switch line.effectType {
             case .incomeMultiplier: income += level * line.magnitudePerLevel

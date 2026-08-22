@@ -173,7 +173,7 @@ struct JobRowsTests {
         gameState.hireCharacter(typeId: "homeless")
 
         let row = try jobRow(gameState, "homeless")
-        #expect(row.costText == "30", "el segundo Fisura cuesta 30 (growth 1,2)")
+        #expect(row.costText == "26", "el segundo Fisura cuesta 26,5 (growth 1,06)")
         #expect(row.purchases == 1)
         #expect(row.hiredCount == 2)
         #expect(try jobRow(gameState, "trapito").costText == neighbourBefore)

@@ -33,8 +33,16 @@ extension GameState {
         let passiveEffectText: String
     }
 
+    /// Nivel comprado de una línea, CLAMPEADO al tope vigente del catálogo.
+    ///
+    /// Un save anterior al rebalance de pacing trae `income: 20` contra un tope
+    /// que hoy es 10; sin el clamp la fila diría "20/10" y el precio del
+    /// "próximo nivel" saldría de una potencia que no existe. Es la misma regla
+    /// que `CharUpgrades.multiplier` y que las dos derivaciones de efectos.
     func upgradeLevel(of lineId: String) -> Int {
-        player?.meta.oroUpgradeLevels[lineId] ?? 0
+        let stored = player?.meta.oroUpgradeLevels[lineId] ?? 0
+        guard let line = content?.upgradesConfig.upgrades.first(where: { $0.id == lineId }) else { return stored }
+        return min(stored, line.maxLevel)
     }
 
     func upgradeCost(of line: UpgradesConfig.Line) -> Double {

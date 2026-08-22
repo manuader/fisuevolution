@@ -5,7 +5,8 @@ import Foundation
 /// reporte con el semáforo de targets (PLAN-F7 §F7.1c, tolerancia ±30% ya aplicada).
 ///
 ///     swift run pacing-sim --economy <economy.json> --tiers <tiers.json> \
-///         [--upgrades <upgrades.json>] [--max-days 90] [--csv <out.csv>]
+///         [--upgrades <upgrades.json>] [--max-days 90] [--csv <out.csv>] \
+///         [--prestige-threshold X | --no-reincarnation]
 ///
 /// Sin `--upgrades` busca el catálogo real al lado de `economy.json` (ver
 /// `resolveUpgradesURL`). Sin catálogo el bot NO compra mejoras permanentes, o
@@ -24,11 +25,13 @@ struct SimArguments {
     let upgradesURL: URL?
     let maxDays: Int
     let csvURL: URL?
-    /// Cuántas veces el ORO por reencarnar tiene que superar al histórico para
-    /// que el bot reencarne (1 = duplicar, la conducta de siempre). Correr la
-    /// misma economía con 1 y con un número grande contesta, con un número, si
-    /// reencarnar temprano conviene o si el óptimo es esperar a la pared.
-    let prestigeThreshold: Double
+    /// Cuándo reencarna el bot. `--prestige-threshold X` sube el múltiplo (1 =
+    /// duplicar, la conducta de siempre) y contesta si reencarnar temprano
+    /// conviene o si el óptimo es esperar a la pared; `--no-reincarnation`
+    /// apaga la reencarnación entera, que es la partida de la queja del dueño
+    /// del 2026-08-22 y que **ningún múltiplo puede expresar** (el umbral se
+    /// calcula sobre el ORO histórico, que arranca en cero).
+    let reincarnation: PacingSimulator.ReincarnationPolicy
 }
 
 func parseArguments() throws -> SimArguments {
@@ -38,6 +41,7 @@ func parseArguments() throws -> SimArguments {
     var csvPath: String?
     var maxDays = 90
     var prestigeThreshold = 1.0
+    var noReincarnation = false
     var iterator = CommandLine.arguments.dropFirst().makeIterator()
     while let argument = iterator.next() {
         switch argument {
@@ -47,11 +51,12 @@ func parseArguments() throws -> SimArguments {
         case "--csv": csvPath = iterator.next()
         case "--max-days": maxDays = iterator.next().flatMap { Int($0) } ?? maxDays
         case "--prestige-threshold": prestigeThreshold = iterator.next().flatMap { Double($0) } ?? prestigeThreshold
+        case "--no-reincarnation": noReincarnation = true
         default: throw SimToolError(description: "unknown argument '\(argument)'")
         }
     }
     guard let economyPath, let tiersPath else {
-        throw SimToolError(description: "usage: pacing-sim --economy <economy.json> --tiers <tiers.json> [--upgrades <upgrades.json>] [--max-days N] [--csv <out.csv>] [--prestige-threshold X]")
+        throw SimToolError(description: "usage: pacing-sim --economy <economy.json> --tiers <tiers.json> [--upgrades <upgrades.json>] [--max-days N] [--csv <out.csv>] [--prestige-threshold X | --no-reincarnation]")
     }
     let economyURL = URL(fileURLWithPath: economyPath)
     return SimArguments(
@@ -60,7 +65,7 @@ func parseArguments() throws -> SimArguments {
         upgradesURL: upgradesPath.map { URL(fileURLWithPath: $0) } ?? resolveUpgradesURL(nextTo: economyURL),
         maxDays: maxDays,
         csvURL: csvPath.map { URL(fileURLWithPath: $0) },
-        prestigeThreshold: prestigeThreshold
+        reincarnation: noReincarnation ? .never : .whenOroMultiplies(prestigeThreshold)
     )
 }
 
@@ -154,7 +159,7 @@ do {
     let simulator = try PacingSimulator(
         config: config,
         tiers: tiers,
-        human: .init(reincarnationThresholdMultiple: arguments.prestigeThreshold),
+        human: .init(reincarnation: arguments.reincarnation),
         upgrades: upgradeLines
     )
     let report = simulator.run(maxDays: maxDays)
@@ -195,7 +200,12 @@ do {
     }
 
     print("\n-- Hitos --")
-    print("  reencarnaciones: \(report.reincarnations)  (umbral ×\(arguments.prestigeThreshold) del ORO histórico)")
+    let politica: String
+    switch arguments.reincarnation {
+    case .whenOroMultiplies(let multiple): politica = "umbral ×\(multiple) del ORO histórico"
+    case .never: politica = "SIN REENCARNAR"
+    }
+    print("  reencarnaciones: \(report.reincarnations)  (\(politica))")
     print("  1ª reencarnación: \(report.firstReincarnationWall.map(hours) ?? "—") de pared"
         + "  (\(report.firstReincarnationActive.map(hours) ?? "—") ACTIVAS)")
     // La cadencia que pidió el dueño: "una reencarnación cada 2,5-4 h de juego
@@ -210,7 +220,8 @@ do {
     print("  las 7 al tope: \(report.maxedUpgradesActiveSeconds.map(hours) ?? "      — ") ACTIVAS"
         + "  (\(report.maxedUpgradesWall.map(hours) ?? "—") de pared, \(maxedReincarnations))")
     print("  niveles finales: \(upgradeLevelsSummary(report: report, lines: upgradeLines))")
-    print("  dios: \(report.godWall.map(hours) ?? "—")  (maxTier final \(report.finalMaxTier))")
+    print("  dios: \(report.godActive.map(hours) ?? "      — ") ACTIVAS"
+        + "  (\(report.godWall.map(hours) ?? "—") de pared, maxTier final \(report.finalMaxTier))")
     print("  lifetimeEarnings final: \(String(format: "%.3e", report.finalLifetimeEarnings))")
 
     print("\n-- Targets (±30% ya aplicado) --")
@@ -286,6 +297,7 @@ do {
         rows.append("hito,reencarnaciones_al_maxear,\(report.reincarnationsAtMaxedUpgrades.map(String.init) ?? ""),conteo")
         rows.append("hito,primera_reencarnacion,\(report.firstReincarnationWall.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
         rows.append("hito,dios,\(report.godWall.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
+        rows.append("hito,dios_activo,\(report.godActive.map { String(format: "%.2f", $0 / 3600) } ?? ""),h activas")
         rows.append("hito,max_tier_final,\(report.finalMaxTier),tier")
         rows.append("hito,lifetime_earnings,\(String(format: "%.4e", report.finalLifetimeEarnings)),monedas")
         for line in upgradeLines {

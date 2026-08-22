@@ -159,9 +159,9 @@ struct PacingSimulatorUpgradeTests {
 /// intuición falla en esta economía.
 @Suite("PacingSimulator: el instrumental del rebalance")
 struct PacingSimulatorInstrumentTests {
-    @Test("el umbral de reencarnación por defecto es duplicar, como siempre")
-    func defaultThresholdIsDoubling() {
-        #expect(PacingSimulator.HumanModel().reincarnationThresholdMultiple == 1)
+    @Test("la política de reencarnación por defecto es duplicar, como siempre")
+    func defaultPolicyIsDoubling() {
+        #expect(PacingSimulator.HumanModel().reincarnation == .whenOroMultiplies(1))
     }
 
     @Test("subir el umbral hace que el bot reencarne menos veces")
@@ -170,13 +170,61 @@ struct PacingSimulatorInstrumentTests {
         let atTheWall = try PacingSimulator(
             config: upConfig(),
             tiers: upTiers(),
-            human: .init(reincarnationThresholdMultiple: 1_000),
+            human: .init(reincarnation: .whenOroMultiplies(1_000)),
             upgrades: upCheapLines()
         ).run(maxDays: 5)
         #expect(
             atTheWall.reincarnations < doubling.reincarnations,
             "con umbral 1000: \(atTheWall.reincarnations) vs duplicando: \(doubling.reincarnations)"
         )
+    }
+
+    /// La queja del dueño del 2026-08-22 —"en menos de una hora llegué de fisura
+    /// a dios SIN REINICIAR"— es una política que el simulador no podía correr:
+    /// subir el umbral no alcanza, porque el múltiplo se aplica sobre el ORO
+    /// histórico y ése arranca en CERO. `N × 0 = 0` para cualquier N finito, así
+    /// que la primera reencarnación caía igual con umbral 1 que con 1.000 y la
+    /// corrida "sin reencarnar" era inexpresable.
+    @Test("con la política `never` el bot no reencarna ni una vez")
+    func theNeverPolicyNeverReincarnates() throws {
+        let sinReencarnar = try PacingSimulator(
+            config: upConfig(),
+            tiers: upTiers(),
+            human: .init(reincarnation: .never),
+            upgrades: upCheapLines()
+        ).run(maxDays: 5)
+
+        #expect(sinReencarnar.reincarnations == 0)
+        #expect(sinReencarnar.reincarnationActiveSeconds.isEmpty)
+        #expect(sinReencarnar.firstReincarnationWall == nil)
+        // Sin reencarnar no entra ORO, y sin ORO no hay mejoras permanentes: es
+        // exactamente el jugador del que se queja el dueño.
+        #expect(sinReencarnar.finalPermanentUpgradeLevels.isEmpty)
+        #expect(sinReencarnar.maxedUpgradesActiveSeconds == nil)
+
+        // Y que el cero lo produce la POLÍTICA, no un horizonte corto: la misma
+        // economía con el umbral de siempre sí reencarna.
+        let duplicando = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
+        #expect(duplicando.reincarnations > 0)
+    }
+
+    /// Dios publicaba sólo el reloj de PARED y el dueño mide en horas de dedo.
+    /// Con la economía embarcada los dos números se podían sacar de la tabla de
+    /// pisos —`god_realm` va del tier 37 al 37, o sea abre justo en el tier
+    /// máximo—, pero eso es una coincidencia de ESA config: un piso final con
+    /// varios tiers abre antes de que se llegue a dios.
+    @Test("dios publica su tiempo ACTIVO, no sólo el de pared")
+    func godPublishesActiveTime() throws {
+        let report = try PacingSimulator(
+            config: upConfig(maxTier: 8), tiers: upTiers(maxTier: 8)
+        ).run(maxDays: 5)
+        let wall = try #require(report.godWall, "la escalera corta tiene que llegar a dios")
+        let active = try #require(report.godActive)
+        #expect(active > 0 && active <= wall, "activo \(active) vs pared \(wall)")
+        // El piso de arriba de esta fixture abre en su firstTier (5) y dios es
+        // el 8: por eso `godActive` no puede derivarse de la tabla de pisos.
+        let topFloor = try #require(report.floorUnlockActiveSeconds["f2"])
+        #expect(topFloor < active, "f2 abre en el tier 5 y dios es el 8")
     }
 
     @Test("el reporte guarda el tiempo ACTIVO de cada reencarnación")

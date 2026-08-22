@@ -12,8 +12,8 @@ import Foundation
 ///   offline entre sesiones (fórmula de OfflineCalculator).
 /// - **Política greedy** (prioridad): merges legales gratis → passive unlock con
 ///   payback corto → charUpgrade con payback corto → hire (piso 1 o backfill
-///   rentable) → reencarnar cuando duplica el ORO ganado histórico → gastar el
-///   ORO en mejoras permanentes.
+///   rentable) → reencarnar según `HumanModel.reincarnation` (por defecto, al
+///   duplicar el ORO ganado histórico) → gastar el ORO en mejoras permanentes.
 /// - Determinístico: sin RNG (crit/golden apagados), carrera fija.
 public struct PacingSimulator: Sendable {
     public struct HumanModel: Sendable {
@@ -28,31 +28,45 @@ public struct PacingSimulator: Sendable {
         /// Offsets de inicio de sesión dentro del día (segundos desde las 0 hs).
         public var sessionStartOffsets: [Double]
         public var daySeconds: Double
-        /// Cuántas veces el ORO por reencarnar tiene que superar al ORO ganado
-        /// histórico para que el bot reencarne. **1 = duplicar**, la regla idle
-        /// estándar y la conducta de siempre.
-        ///
-        /// Existe para MEDIR la pregunta del dueño ("casi nunca es worth
-        /// reencarnar hasta estar muy avanzado"): con 1 el bot reencarna
-        /// temprano y seguido, con un número grande se guarda hasta chocar la
-        /// pared. Correr las dos y comparar el tiempo hasta maxear es el único
-        /// modo honesto de contestar si reencarnar temprano CONVIENE, en vez de
-        /// decidirlo por intuición. [TUNEABLE]
-        public var reincarnationThresholdMultiple: Double
+        /// Cuándo reencarna el bot. [TUNEABLE]
+        public var reincarnation: ReincarnationPolicy
 
         public init(
             tapsPerSecond: Double = 6,
             sessionSeconds: Double = 1200,
             sessionStartOffsets: [Double] = [0, 4 * 3600, 9 * 3600, 14 * 3600],
             daySeconds: Double = 86_400,
-            reincarnationThresholdMultiple: Double = 1
+            reincarnation: ReincarnationPolicy = .whenOroMultiplies(1)
         ) {
             self.tapsPerSecond = tapsPerSecond
             self.sessionSeconds = sessionSeconds
             self.sessionStartOffsets = sessionStartOffsets
             self.daySeconds = daySeconds
-            self.reincarnationThresholdMultiple = reincarnationThresholdMultiple
+            self.reincarnation = reincarnation
         }
+    }
+
+    /// Cuándo reencarna el bot: las dos políticas que la calibración necesita
+    /// poder correr.
+    ///
+    /// Es un enum y no un Double con valores mágicos porque las dos preguntas
+    /// del dueño **no viven en la misma escala**. "¿Conviene guardarse las
+    /// reencarnaciones?" se contesta subiendo el múltiplo; "¿cuánto tarda el que
+    /// NO reencarna nunca?" no se puede contestar con ningún múltiplo, por chico
+    /// o grande que sea: el umbral se calcula sobre el ORO ganado histórico, que
+    /// arranca en CERO, y `N × 0 = 0` para cualquier `N`. Con un Double la
+    /// política "nunca" quedaba inexpresable y el bug era silencioso —parecía
+    /// que un umbral gigante alcanzaba—.
+    public enum ReincarnationPolicy: Sendable, Equatable {
+        /// Reencarnar cuando el ORO por reencarnar supere `multiple` veces el
+        /// ORO ganado histórico. **1 = duplicar**, la regla idle estándar y la
+        /// conducta de siempre.
+        case whenOroMultiplies(Double)
+        /// No reencarnar nunca. Es el jugador de la queja del dueño del
+        /// 2026-08-22 ("llegué de fisura a dios sin reiniciar"): sin ORO no
+        /// compra ninguna mejora permanente y sube la torre sólo con la plata de
+        /// la run.
+        case never
     }
 
     public struct Report: Sendable {
@@ -96,6 +110,14 @@ public struct PacingSimulator: Sendable {
         /// leerla hace falta la serie entera, no sólo la primera y el total.
         public var reincarnationActiveSeconds: [Double] = []
         public var godWall: Double?
+        /// Tiempo ACTIVO acumulado al llegar a dios (el de pared es `godWall`).
+        ///
+        /// El dueño mide en horas de dedo, no de calendario, y hasta el
+        /// 2026-08-22 este número había que sacarlo de `floorUnlockActiveSeconds`
+        /// del último piso. Eso funciona **sólo** porque `god_realm` va del tier
+        /// 37 al 37 y abre justo en el tier máximo: un piso final con varios
+        /// tiers abre ANTES de que se llegue a dios y los dos números se separan.
+        public var godActive: Double?
         public var reincarnations = 0
         /// Segundos ACTIVOS hasta tener las siete líneas permanentes al tope.
         public var maxedUpgradesActiveSeconds: Double?
@@ -217,6 +239,7 @@ public struct PacingSimulator: Sendable {
             doAllMerges(state: &state, report: &report, wall: wallStart + elapsed, active: activeStart + elapsed)
             if state.run.maxTierReached >= tiers.maxTier, report.godWall == nil {
                 report.godWall = wallStart + elapsed
+                report.godActive = activeStart + elapsed
                 return (elapsed, elapsed)
             }
             maybeReincarnate(
@@ -430,13 +453,13 @@ public struct PacingSimulator: Sendable {
     // MARK: - Reencarnación
 
     private func maybeReincarnate(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
+        guard case .whenOroMultiplies(let multiple) = human.reincarnation else { return }
         let gained = PrestigeCalculator.oroGained(state: state, economy: economy)
         // Regla idle estándar: reencarnar cuando al menos DUPLICA lo ganado
-        // histórico (`reincarnationThresholdMultiple` = 1). La cuenta va en
-        // Double a propósito: `oroEarnedLifetime` llega a órdenes en los que
-        // multiplicarlo en Int desborda, y un desborde acá sería un crash en
-        // mitad de una calibración.
-        let threshold = max(1, Double(state.meta.oroEarnedLifetime) * human.reincarnationThresholdMultiple)
+        // histórico (`multiple` = 1). La cuenta va en Double a propósito:
+        // `oroEarnedLifetime` llega a órdenes en los que multiplicarlo en Int
+        // desborda, y un desborde acá sería un crash en mitad de una calibración.
+        let threshold = max(1, Double(state.meta.oroEarnedLifetime) * multiple)
         guard Double(gained) >= threshold else { return }
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: wall)
         report.reincarnations += 1

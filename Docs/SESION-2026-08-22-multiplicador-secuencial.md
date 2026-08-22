@@ -229,8 +229,16 @@ histórico, que arranca en cero.
 
 ## Cómo terminó
 
-**EconomyKit 238 · unit 411 · UI 46**, sin un solo `-skip-testing:`, cero
+**EconomyKit 238 · unit 411 · UI 48**, sin un solo `-skip-testing:`, cero
 warnings de compilador, simulador propio por UDID y `-parallel-testing-enabled NO`.
+
+⚠️ La primera corrida de UI dio `AscentRenderingUITests` en rojo ("el doble toque
+no fusionó nada en 18 intentos"). Era carga de máquina —el load average estaba en
+10,58 porque los barridos del simulador corrían en paralelo— y no una regresión:
+ese test arranca con `--uitest-reset`, o sea sin ORO y sin mejoras por personaje,
+así que ninguno de los tres knobs de esta ronda puede alcanzarlo. Con la máquina
+quieta pasa en 120,2 s. Es la trampa 2 del general, al pie de la letra: *"mirá el
+reloj antes que el código"*.
 
 Las cuatro bandas de `PacingTests` se re-derivaron a mano de la corrida nueva
 (CSV commiteado en `Docs/balance-run-t7-secuencial.csv`) y **`theOwnersTargetsAreMet`

@@ -5,7 +5,7 @@ import Testing
 
 /// Guardián del pacing (F7 §4): corre `PacingSimulator` (bot greedy, 4 sesiones
 /// ×20 min/día + offline) contra el CONTENIDO REAL bundleado y asserta bandas
-/// sobre la conducta medida. El reloj del sim salta por evento: ~470 h simuladas
+/// sobre la conducta medida. El reloj del sim salta por evento: ~590 h simuladas
 /// corren en segundos.
 ///
 /// ⚠️ **RE-PINEADO EL 2026-08-22 (segunda ronda de balance).** El efecto de las

@@ -65,3 +65,25 @@ presente.
 | Merge `--no-ff` con mensaje propio, no fast-forward | el historial de la casa marca los merges de rama (`e4d4ce6`, `9ac8e0d`); un ff habría escondido el evento |
 | La manito del sistema vuelve y el vectorial se borra (no queda «de reserva») | pedido textual del dueño + regla de prolijidad: código sin llamadores se retira; si alguna vez se quiere de vuelta, está en git (`39dd336`) |
 | Los 3 rojos «preexistentes» de PacingTests ya no existen como categoría | el rebalance re-pineó la suite entera; la memoria del proyecto y el §6 del general quedaron sin la nota de «3 rojos conocidos» |
+
+## Post-cierre: «Resetear partida» revive el tutorial (pedido del dueño)
+
+El botón del panel de debug rehacía el save pero dejaba el tutorial «hecho»:
+`fisuTutorialDone`, las banderas `ftue.*` y las lecciones viven en
+`UserDefaults`, no en la partida. Ahora `debugResetSave()` es una instalación
+fresca DE VERDAD: barre esos defaults (con el espejo en memoria), borra el
+progreso de lecciones (`wipeTutorialLessonProgress()`, compartido con
+`--uitest-reset`), marca `lastClaimDay` en hoy (el freno del día 1 del FTUE,
+igual que el bootstrap), **se lleva las celebraciones de la partida vieja**
+(payloads y cola virgen — sin esto un sheet pendiente aparecía encima del
+tutorial revivido) y vuelve a poner la fase con `beginTutorialPhase()`.
+
+La trampa que esto destapó: **`step` es `@State` del overlay y sobrevive a
+todo el barrido** — el tutorial resucitaba en el paso viejo. El guard no
+compara banderas sueltas: al reaparecer, si el paso ANTERIOR al guardado no
+está cumplido, ese `step` no pudo haberse ganado y se vuelve a 0. La misma
+condición distingue el revivir (milestones en falso → 0) de la reaparición
+legítima tras cada reveal (el paso previo quedó satisfecho → sigue donde
+estaba). Pineado en `debugResetRevivesTheTutorial` (CelebrationWiringTests) y
+verificado en vivo en simulador.
+

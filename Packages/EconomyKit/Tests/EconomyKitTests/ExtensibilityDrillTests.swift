@@ -128,7 +128,7 @@ struct ExtensibilityDrillTests {
         ))
         #expect(quote.type.id == "t12")
         #expect(quote.cost == 10 * economy.tapYield(forTier: 12) * config.tapFloorMultiplier(for: floor12))
-        try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: table)
+        try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: table, config: config)
         #expect(state.run.units["t12"] == 2)
         #expect(state.run.hireCounts["floor12"] == 1)
         #expect(tower.unitCounts == state.run.units)

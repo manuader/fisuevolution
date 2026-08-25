@@ -149,10 +149,19 @@ extension GameState {
 
     /// Fixture de UI test: desbloquea pisos por la tabla data-driven, sin tocar
     /// el binario Release ni depender de un save preexistente en el simulador.
+    ///
+    /// ⚠️ **Sube también la frontera**, porque un piso abierto sin frontera es
+    /// un estado que el juego no produce: los pisos se abren creando el tier que
+    /// los estrena, así que llegar al piso del tier T implica `maxTierReached ==
+    /// T`. Antes daba igual —la compuerta de contratación se medía en pisos—,
+    /// y desde que se mide en tiers un fixture que abriera pisos sin frontera
+    /// dejaría la torre abierta y **nada contratable salvo el Fisura**, que no
+    /// es lo que ningún test que lo usa quiere decir.
     func debugUnlockFloors(throughTier tier: Int) {
         guard var player, let content else { return }
         let highestOrdinal = content.floorTable.ordinal(forTier: tier)
         player.run.unlockedFloors = content.floorTable.floors.prefix(highestOrdinal + 1).map(\.id)
+        player.run.maxTierReached = max(player.run.maxTierReached, tier)
         self.player = player
         visibleFloorOrdinal = 0
         refreshProjections()

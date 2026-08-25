@@ -4,12 +4,12 @@ import Foundation
 /// Una fila de FisuJobs (§5.1), ya resuelta: la vista la dibuja sin volver a
 /// preguntarle nada al estado ni conocer `PlayerState`.
 ///
-/// ⚠️ **Los payloads de `gated` y `lockedFloor` son el NOMBRE del piso ya
-/// resuelto** ("Callejón"), no una clave de localización — el label dice `Key`
-/// porque así quedó fijada la firma que consume la vista, pero armar un
+/// ⚠️ **El payload de `lockedFloor` es el NOMBRE del piso ya resuelto**
+/// ("Callejón"), no una clave de localización — el label dice `Key` porque así
+/// quedó fijada la firma que consume la vista, pero armar un
 /// `LocalizedStringKey` con esto es exactamente la trampa 5 del HANDOFF. La
-/// vista los interpola dentro de SU clave (`jobs.gated %@`, `jobs.locked %@`),
-/// que es el único camino que el catálogo resuelve.
+/// vista lo interpola dentro de SU clave (`jobs.state.locked %@`), que es el
+/// único camino que el catálogo resuelve.
 struct JobRow: Identifiable, Equatable {
     /// Por qué esta fila se puede comprar o no. La plata NO entra acá: un tipo
     /// contratable que no podés pagar sigue siendo `hirable` con
@@ -20,9 +20,17 @@ struct JobRow: Identifiable, Equatable {
         case hirable
         /// Todo en orden salvo el espacio: el piso destino está lleno.
         case floorFull
-        /// El piso está abierto pero su gate pide el de arriba. El payload es el
-        /// NOMBRE de ese piso de arriba, ya resuelto.
-        case gated(aboveFloorNameKey: String)
+        /// El piso está abierto pero a este personaje le falta compuerta: tu
+        /// frontera de merge todavía no llegó `hire.gateTierDistance` tiers por
+        /// encima del suyo. El payload es el TIER al que hay que llegar, que es
+        /// lo que el jugador puede ir a mirar en sus estadísticas.
+        ///
+        /// ⚠️ **Cambió de significado el 2026-08-22.** Era
+        /// `gated(aboveFloorNameKey:)` —"falta desbloquear el piso de arriba"—
+        /// cuando la compuerta se medía en pisos. Ahora se mide en tiers, así
+        /// que el piso de arriba ya no dice nada: dos tipos del MISMO piso
+        /// pueden estar uno contratable y el otro no.
+        case gated(requiredTier: Int)
         /// El piso del tipo todavía no se abrió. El payload es el NOMBRE de ese
         /// piso —el propio, no el de arriba—, ya resuelto.
         case lockedFloor(floorNameKey: String)
@@ -243,13 +251,14 @@ extension GameState {
     /// tipo en vez de por el tier base del piso visible. Las dos conviven hasta
     /// que la Task 7 borre el botón viejo.
     ///
-    /// ⚠️ **La autorización no está acá abajo.** `TowerActions.hire` gatea piso
-    /// abierto, gate del piso, saldo y slot, pero **no mira el tipo** (su
-    /// docstring lo dice: cotizar un tipo no es autorizarlo). Alcanza porque la
-    /// regla de FisuJobs es POR PISO: cualquier tier de un piso abierto con el
-    /// gate abierto se puede comprar, y el `tierPremium` lo hace carísimo. Lo
-    /// único que no cubre ese guard es el tipo nunca visto de un piso abierto —
-    /// la fila sale "???" y sin precio, así que la pantalla no lo ofrece.
+    /// **La autorización ya no depende de esta pantalla.** `TowerActions.hire`
+    /// gatea piso abierto, saldo, slot y —desde el 2026-08-22— la compuerta del
+    /// TIPO, con la misma función que usa `jobState` para pintar la fila. Antes
+    /// sus guards eran todos del PISO y la única compuerta por tipo del juego
+    /// era esta proyección: un `hireCharacter` llamado con un id de tier alto se
+    /// lo vendía igual. Lo único que sigue cubriendo sólo la vista es el tipo
+    /// nunca visto de un piso abierto — la fila sale "???" y sin precio, así que
+    /// la pantalla no lo ofrece.
     func hireCharacter(typeId: String) {
         guard let content, var player = player, var tower,
               let quote = currentQuote(player: player, typeId: typeId)
@@ -259,7 +268,8 @@ extension GameState {
                 quote: quote,
                 state: &player,
                 tower: &tower,
-                floorTable: content.floorTable
+                floorTable: content.floorTable,
+                config: content.economy
             )
             self.player = player
             self.tower = tower
@@ -325,15 +335,15 @@ extension GameState {
             return .lockedFloor(floorNameKey: TowerNaming.floorName(for: floor.id))
         }
         guard TowerActions.canHire(
-            floorOrdinal: ordinal,
-            unlockedFloors: player.run.unlockedFloors,
-            floorTable: content.floorTable
+            tier: type.tier,
+            maxTierReached: player.run.maxTierReached,
+            floorTable: content.floorTable,
+            config: content.economy
         ) else {
-            // El gate es de UN piso, así que el que falta es siempre el de
-            // arriba. El `min` es defensivo: el último piso desbloqueado se
-            // habilita a sí mismo, así que no puede caer acá.
-            let above = min(ordinal + 1, content.floorTable.count - 1)
-            return .gated(aboveFloorNameKey: TowerNaming.floorName(for: content.floorTable[above].id))
+            // El tier que destraba esta fila. Se arma con el MISMO knob que la
+            // regla acaba de aplicar, así que el mensaje no puede prometer un
+            // número que la compuerta no exija.
+            return .gated(requiredTier: type.tier + content.economy.hire.gateTierDistance)
         }
         // El `max` es por el `(0, 0)` que `floorOccupancy` devuelve cuando la
         // torre todavía no cargó: sin él, un piso sin capacidad conocida saldría

@@ -30,14 +30,48 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         /// para mergearlo: fusionar siempre gana. [TUNEABLE]
         public let tierPremium: Double
 
+        /// Cuántos tiers por ENCIMA de un personaje tiene que estar tu frontera
+        /// de merge (`run.maxTierReached`) para poder contratarlo.
+        ///
+        /// Es la compuerta de contratación, y desde el 2026-08-22 se mide en
+        /// TIERS y no en pisos (decisión del dueño; el diagnóstico completo está
+        /// en `Docs/superpowers/specs/2026-08-22-compuerta-por-distancia-design.md`).
+        /// La regla vieja pedía el PISO de arriba desbloqueado, pero un piso son
+        /// cuatro tiers y la pantalla de laburos los vende todos: lo que ataba
+        /// era el caso más barato —el TOPE del piso habilitado, a UN tier de la
+        /// frontera, o sea DOS unidades de merge—, así que todo pasaba entre dos
+        /// pisos contiguos y el ascensor no hacía falta. Medida en tiers, la
+        /// distancia es la misma compres lo que compres: `2^distancia` unidades.
+        ///
+        /// El tier base de la torre queda EXENTO —es el motor del early game y
+        /// el tutorial lo enseña—: la regla corre del segundo tier para arriba.
+        /// Es la única excepción, y por eso los dos parches por piso que había
+        /// (el callejón entero y `hireGateExempt` del urbano) ya no existen.
+        /// [TUNEABLE]
+        public let gateTierDistance: Int
+
+        /// La compuerta APAGADA: cualquier tier se contrata con sólo tener el
+        /// piso abierto.
+        ///
+        /// Es un sentinel, no una distancia de cero tiers —que sería "podés
+        /// contratar lo que ya alcanzaste" y es otra regla—: `canHire` trata
+        /// cualquier valor ≤ 0 como apagada. Existe para las FIXTURES, no para
+        /// el juego: el `economy.json` real declara la clave o no carga (ver
+        /// `init(from:)`), así que un test que no habla de la compuerta no tiene
+        /// que declararla y ninguna config de producción puede caer acá por
+        /// olvido.
+        public static let noTierGate = 0
+
         public init(
             defaultCostMultiplier: Double,
             defaultCostGrowth: Double,
-            tierPremium: Double = HireConfig.defaultTierPremium
+            tierPremium: Double = HireConfig.defaultTierPremium,
+            gateTierDistance: Int = HireConfig.noTierGate
         ) {
             self.defaultCostMultiplier = defaultCostMultiplier
             self.defaultCostGrowth = defaultCostGrowth
             self.tierPremium = tierPremium
+            self.gateTierDistance = gateTierDistance
         }
 
         /// Decoder a mano por `tierPremium`, que se agregó después: el Codable
@@ -51,10 +85,17 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             defaultCostGrowth = try container.decode(Double.self, forKey: .defaultCostGrowth)
             tierPremium = try container.decodeIfPresent(Double.self, forKey: .tierPremium)
                 ?? HireConfig.defaultTierPremium
+            // Ésta va con `decode` y no con `decodeIfPresent` a propósito, al
+            // revés que `tierPremium`: aquél tiene un valor histórico razonable
+            // (1,8, el de siempre) y éste no —el único default posible es CERO,
+            // que apaga la compuerta entera—, así que un `economy.json` al que
+            // se le caiga la clave tiene que no cargar en vez de quedarse sin
+            // regla en silencio.
+            gateTierDistance = try container.decode(Int.self, forKey: .gateTierDistance)
         }
 
         enum CodingKeys: String, CodingKey {
-            case defaultCostMultiplier, defaultCostGrowth, tierPremium
+            case defaultCostMultiplier, defaultCostGrowth, tierPremium, gateTierDistance
         }
     }
 

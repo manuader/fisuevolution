@@ -776,16 +776,18 @@ final class GameState {
 
     // MARK: Internals
 
-    /// El piso donde cae la contratación: el visible, salvo que el gate lo haya
-    /// cerrado y haya que bajar uno. `nil` si desde acá no se contrata en ningún
-    /// lado (piso visible todavía cerrado).
+    /// El piso donde cae la contratación: el visible, salvo que la compuerta lo
+    /// haya cerrado y haya que bajar (lo que haga falta, no un piso). `nil` si
+    /// desde acá no se contrata en ningún lado (piso visible todavía cerrado).
     /// La llaman `+Actions` (contratar) y `+Debug` (cotizar el regalo de coins).
     func hireTargetOrdinal(player: PlayerState) -> Int? {
         guard let content else { return nil }
         return TowerActions.hireTargetFloor(
             visibleOrdinal: visibleFloorOrdinal,
             unlockedFloors: player.run.unlockedFloors,
-            floorTable: content.floorTable
+            maxTierReached: player.run.maxTierReached,
+            floorTable: content.floorTable,
+            config: content.economy
         )
     }
 

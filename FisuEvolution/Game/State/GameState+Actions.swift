@@ -67,7 +67,8 @@ extension GameState {
                 quote: quote,
                 state: &player,
                 tower: &tower,
-                floorTable: content.floorTable
+                floorTable: content.floorTable,
+                config: content.economy
             )
             self.player = player
             self.tower = tower
@@ -115,10 +116,10 @@ extension GameState {
             tiers: content.tiers
         ) {
         case .merged(let newTypeId):
+            // `applyMerge` muta `maxTierReached`: hay que fotografiarlo antes,
+            // porque de él cuelgan las dos cosas que este merge puede haber
+            // producido —un personaje nuevo y una compuerta que se abre—.
             let tierBefore = player.run.maxTierReached
-            // `applyMerge` muta `unlockedFloors`: hay que fotografiarlo antes
-            // para saber qué destrabó el ascenso.
-            let unlockedBefore = player.run.unlockedFloors
             do {
                 let result = try TowerActions.applyMerge(
                     floorOrdinal: visibleFloorOrdinal,
@@ -167,16 +168,20 @@ extension GameState {
                 // El aviso se asigna y listo: la cola lo ordena. `.towerNotice`
                 // tiene la prioridad más baja, así que sale después del ascenso
                 // y del sheet de skin sin que nadie tenga que encadenarlo.
-                if case .promoted = result {
-                    let newlyHireable = TowerActions.newlyHireableFloors(
-                        unlockedBefore: unlockedBefore,
-                        unlockedAfter: player.run.unlockedFloors,
-                        floorTable: content.floorTable
-                    )
-                    // El más bajo: es el que el jugador va a querer rellenar.
-                    if let ordinal = newlyHireable.first {
-                        towerNotice = TowerNotice(kind: .hireUnlocked(floorID: content.floorTable[ordinal].id))
-                    }
+                // ⚠️ Lo dispara la FRONTERA, no el ascenso de piso. Con la
+                // compuerta por pisos las dos cosas eran la misma —se abría un
+                // piso y el de abajo se habilitaba—, y con la compuerta por
+                // tiers no: una fusión que ni cambia de piso puede subir la
+                // frontera y destrabar un piso cuatro más abajo.
+                let newlyHireable = TowerActions.newlyHireableFloors(
+                    maxTierBefore: tierBefore,
+                    maxTierAfter: player.run.maxTierReached,
+                    floorTable: content.floorTable,
+                    config: content.economy
+                )
+                // El más bajo: es el que el jugador va a querer rellenar.
+                if let ordinal = newlyHireable.first {
+                    towerNotice = TowerNotice(kind: .hireUnlocked(floorID: content.floorTable[ordinal].id))
                 }
                 if !ftueMerged {
                     ftueMerged = true

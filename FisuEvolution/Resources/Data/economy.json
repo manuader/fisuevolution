@@ -8,7 +8,8 @@
   "hire": {
     "defaultCostMultiplier": 600,
     "defaultCostGrowth": 1.06,
-    "tierPremium": 1.8
+    "tierPremium": 1.8,
+    "gateTierDistance": 5
   },
   "charUpgrades": {
     "baseCostMultiplier": 50,
@@ -42,8 +43,7 @@
       "lastTier": 8,
       "capacity": 10,
       "incomeMultiplier": 2.0,
-      "backgroundOffset": 0,
-      "hireGateExempt": true
+      "backgroundOffset": 0
     },
     {
       "id": "corporate",

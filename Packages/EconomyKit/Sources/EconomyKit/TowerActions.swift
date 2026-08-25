@@ -26,9 +26,10 @@ public enum TowerError: Error, Equatable {
     case insufficientCoins
     case invalidSlot
     case noHireableType
-    /// El piso está abierto, pero todavía no habilita contratar: falta
-    /// desbloquear el piso de arriba. Distinto de `floorLocked` a propósito —
-    /// un piso puede estar abierto y aun así no dejar contratar.
+    /// El piso está abierto, pero a este personaje todavía le falta compuerta:
+    /// tu frontera de merge no llegó `hire.gateTierDistance` tiers por encima
+    /// de su tier. Distinto de `floorLocked` a propósito — un piso puede estar
+    /// abierto y aun así no dejar contratar a la mitad de sus tipos.
     case hireLocked
 }
 
@@ -93,23 +94,15 @@ public enum TowerActions {
     ///   la pantalla muestra ("— N contratados").
     /// - El precio lleva el `tierPremium` de los tiers no-base (ver `hireCost`).
     ///
-    /// No mira gate ni saldo: cotizar es sólo poner precio, y la pantalla también
-    /// muestra el precio de lo que todavía no podés comprar.
+    /// No mira compuerta ni saldo: cotizar es sólo poner precio, y la pantalla
+    /// también muestra el precio de lo que todavía no podés comprar.
     ///
-    /// ⚠️ **Y nadie más abajo lo mira por vos.** Este quote entra a `hire(quote:)`
-    /// sin cambios de firma, pero los guards de `hire` son del PISO: piso
-    /// desbloqueado, `canHire` de ese piso, saldo y slot libre. **Ninguno mira el
-    /// tipo.** Con la cotización por piso eso alcanzaba —el único tipo cotizable
-    /// era el tier base—, pero acá ya no: si le pasás el quote de un T4 del
-    /// callejón a alguien que nunca mergeó, `hire` se lo vende, se lo coloca y
-    /// hasta se lo marca como visto.
-    ///
-    /// La compuerta por tipo **no existe en EconomyKit todavía**, y es a
-    /// propósito: quién puede contratar qué es una decisión de la pantalla de
-    /// laburos (la proyección `jobRows` decide qué fila se ofrece como
-    /// contratable y cuál sale bloqueada). Mientras tanto, **cotizar un tipo no
-    /// es autorizarlo**: quien construya el quote es responsable de que el tipo
-    /// sea uno que el jugador puede comprar.
+    /// **Cotizar un tipo sigue sin autorizarlo** — pero desde el 2026-08-22 el
+    /// que autoriza es `hire`, y no la vista. Su guard de compuerta mira el TIPO
+    /// (`canHire(tier:)`), así que el quote de un T4 del callejón en manos de
+    /// alguien que nunca mergeó vuelve rebotado con `hireLocked` en vez de
+    /// venderse. Antes los guards de `hire` eran todos del PISO y este hueco era
+    /// real: la proyección `jobRows` era la única compuerta por tipo del juego.
     public static func hireQuote(
         typeId: String,
         state: PlayerState,
@@ -146,114 +139,157 @@ public enum TowerActions {
         return candidates.sorted { $0.id < $1.id }.first
     }
 
-    /// ¿Este piso habilita contratar?
+    /// ¿Se puede contratar un personaje de este TIER?
     ///
-    /// El backfill sólo tiene sentido cuando tu frontera ya está bastante más
-    /// arriba. El precio punitivo lo desalentaba de forma implícita —el jugador
-    /// tenía que deducirlo de los números— y esto lo vuelve una regla explícita.
+    /// **La regla se mide en tiers**: hace falta que tu frontera de merge
+    /// (`run.maxTierReached`) esté `hire.gateTierDistance` tiers por encima del
+    /// que querés comprar. O sea que cada personaje nuevo sale de `2^distancia`
+    /// compras del más alto que sí podés comprar, y eso vale compres donde
+    /// compres.
     ///
-    /// - El piso de abajo de todo (ordinal 0) SIEMPRE deja contratar: es el motor
-    ///   del early game y ya es la excepción de precio.
-    /// - El último piso no tiene ninguno por encima, así que desbloquearlo lo
-    ///   habilita a sí mismo.
-    /// - Un piso puede declararse EXENTO en `economy.json` (`hireGateExempt`).
-    ///   Eso cambia la COBERTURA del gate, no su profundidad: sigue siendo de un
-    ///   piso. Se agregó para el urbano en la Ola 3, donde el gate se combinaba
-    ///   con el remapeo de tiers para dejar 268 h de pared antes de corporativo
-    ///   (`balance-log`, "El muro de ×368").
+    /// **El tier base de la torre está exento** (el Fisura): es el motor del
+    /// early game, el tutorial lo enseña y de él sale todo lo demás. Es la ÚNICA
+    /// excepción.
     ///
-    /// **Por qué UNO y no dos**: con dos, el juego deja de poder terminarse. El
-    /// spec de F7 §3.3 dice que el merge puro es matemáticamente inviable
-    /// (T30 = 2²⁹ fisuras) y que el backfill es el puente; pedir dos pisos saca
-    /// ese puente justo donde hace falta —no podés comprar material en el piso
-    /// que estás atravesando— y queda un huevo-y-gallina, porque la frontera
-    /// avanza GRACIAS al backfill. Medido: sin gate Dios cae a las 38 h, con
-    /// gate de uno a las 264 h, y con gate de dos el bot se traba en tier 12 y
-    /// no llega nunca.
+    /// ⚠️ **Antes se medía en PISOS y por eso había un borde dentado.** La regla
+    /// vieja pedía el piso de arriba desbloqueado, pero un piso son cuatro tiers
+    /// y la pantalla de laburos los vende todos: comprar el TOPE del piso
+    /// habilitado dejaba la frontera a UN tier, o sea a DOS unidades de merge, y
+    /// comprar la BASE la dejaba a cuatro (dieciséis unidades). La regla decía
+    /// "un piso de profundidad" y lo que ataba era el caso más barato, así que
+    /// todo pasaba entre dos pisos contiguos y el ascensor no se usaba nunca
+    /// (queja del dueño, 2026-08-22). Medida en tiers, la distancia es la misma
+    /// por todos lados y el borde desaparece por construcción.
     ///
-    /// La usan `hire` y `PacingSimulator`. **No duplicar la condición**: es el
-    /// mismo error que el balance-log documenta para la fórmula de costo, que
-    /// hacía que el simulador cotizara distinto que el juego.
+    /// La usan `hire`, la pantalla de laburos y `PacingSimulator`. **No duplicar
+    /// la condición**: es el mismo error que el balance-log documenta para la
+    /// fórmula de costo, que hacía que el simulador cotizara distinto que el
+    /// juego.
     public static func canHire(
-        floorOrdinal: Int,
-        unlockedFloors: [String],
-        floorTable: FloorTable
+        tier: Int,
+        maxTierReached: Int,
+        floorTable: FloorTable,
+        config: EconomyConfig
     ) -> Bool {
-        guard floorOrdinal >= 0, floorOrdinal < floorTable.count else { return false }
-        if floorOrdinal == 0 { return true }
-        if floorTable[floorOrdinal].hireGateExempt { return true }
-        let unlocked = Set(unlockedFloors)
-        if let top = floorTable.floors.last, unlocked.contains(top.id) { return true }
-        let required = floorOrdinal + 1
-        guard required < floorTable.count else { return false }
-        return unlocked.contains(floorTable[required].id)
+        // Cero (o menos) es la compuerta APAGADA, no una distancia de cero
+        // tiers: ver `HireConfig.noTierGate`. Vive acá y no repetido en cada
+        // llamador porque el sentido del sentinel es parte de la regla.
+        let distance = config.hire.gateTierDistance
+        guard distance > 0 else { return true }
+        // El exento sale del `floorTable` y no de un `1` escrito acá: la torre
+        // es data-driven y su tier base es el que diga la config.
+        guard let base = floorTable.floors.first?.firstTier, tier > base else { return true }
+        return maxTierReached >= tier + distance
     }
 
-    /// El piso donde CAE una contratación hecha parado en `visibleOrdinal`.
+    /// ¿Este piso habilita contratar? Es la regla de arriba aplicada al tier
+    /// BASE del piso, que es lo único que el botón de la torre vende.
     ///
-    /// Normalmente es el piso que estás mirando. Pero cuando el gate lo cierra
-    /// —estás en tu frontera y todavía no abriste el de arriba— el botón quedaba
+    /// Existe como envoltorio y no como regla propia para que la torre y la
+    /// pantalla de laburos no puedan contestar distinto sobre el mismo
+    /// personaje.
+    public static func canHire(
+        floorOrdinal: Int,
+        maxTierReached: Int,
+        floorTable: FloorTable,
+        config: EconomyConfig
+    ) -> Bool {
+        guard floorOrdinal >= 0, floorOrdinal < floorTable.count else { return false }
+        return canHire(
+            tier: floorTable[floorOrdinal].firstTier,
+            maxTierReached: maxTierReached,
+            floorTable: floorTable,
+            config: config
+        )
+    }
+
+    /// El piso donde CAE una contratación hecha parado en `visibleOrdinal`: el
+    /// más alto, de acá para abajo, que esté abierto y cuya compuerta pase.
+    ///
+    /// Normalmente es el piso que estás mirando. Pero cuando la compuerta lo
+    /// cierra —estás en tu frontera y todavía te faltan tiers— el botón quedaba
     /// muerto, y quedarse sin nada que comprar en el piso donde más falta hace
-    /// material de merge es justo lo contrario de lo que el gate busca. Así que
-    /// la compra cae al piso de abajo, que por la propia regla del gate es
-    /// siempre el más alto donde SÍ se puede contratar.
+    /// material de merge es justo lo contrario de lo que la compuerta busca. Así
+    /// que la compra cae más abajo.
     ///
-    /// Baja un solo piso a propósito: no hay caso donde haga falta más, porque
-    /// si el piso visible está abierto entonces el de abajo tiene el de arriba
-    /// abierto y su gate pasa.
+    /// ⚠️ **Baja lo que haga falta, no un piso.** Con la compuerta por pisos
+    /// alcanzaba con bajar uno —si el visible estaba abierto, el de abajo tenía
+    /// el de arriba abierto y su gate pasaba por construcción—, y esa garantía
+    /// se fue con la regla vieja: parado en un piso cuya base pide `firstTier +
+    /// N`, la base del piso de abajo pide `firstTier − 4 + N`, que tampoco tiene
+    /// por qué estar alcanzada. El fondo siempre contesta, eso sí: el tier base
+    /// de la torre está exento.
     ///
     /// `nil` cuando no se puede contratar desde acá: el piso visible ni siquiera
     /// está abierto (es el preview con candado al que la torre deja asomarse).
     public static func hireTargetFloor(
         visibleOrdinal: Int,
         unlockedFloors: [String],
-        floorTable: FloorTable
+        maxTierReached: Int,
+        floorTable: FloorTable,
+        config: EconomyConfig
     ) -> Int? {
         guard visibleOrdinal >= 0, visibleOrdinal < floorTable.count else { return nil }
         let unlocked = Set(unlockedFloors)
         guard unlocked.contains(floorTable[visibleOrdinal].id) else { return nil }
-        if canHire(floorOrdinal: visibleOrdinal, unlockedFloors: unlockedFloors, floorTable: floorTable) {
-            return visibleOrdinal
+        return (0...visibleOrdinal).reversed().first { ordinal in
+            unlocked.contains(floorTable[ordinal].id)
+                && canHire(
+                    floorOrdinal: ordinal, maxTierReached: maxTierReached,
+                    floorTable: floorTable, config: config
+                )
         }
-        let below = visibleOrdinal - 1
-        guard below >= 0, unlocked.contains(floorTable[below].id),
-              canHire(floorOrdinal: below, unlockedFloors: unlockedFloors, floorTable: floorTable)
-        else { return nil }
-        return below
     }
 
-    /// Pisos que pasan de NO contratables a contratables por un desbloqueo.
+    /// Pisos que pasan de NO contratables a contratables porque la frontera
+    /// subió.
     ///
-    /// En el caso normal es uno solo: el que está justo abajo del que se abrió.
-    /// Se calcula comparando la regla contra sí misma en vez de restar ordinales
-    /// a mano, así el caso normal y el del escape del tope salen de la misma
-    /// fuente y no pueden desincronizarse.
+    /// ⚠️ **El disparador es la FRONTERA, no el desbloqueo de un piso.** Con la
+    /// regla vieja las dos cosas eran la misma —un piso se abría y el de abajo
+    /// se habilitaba—, y ahora no: la frontera sube con cualquier fusión, hasta
+    /// con una que no cambia de piso, y lo que se destraba puede estar cuatro
+    /// pisos más abajo.
+    ///
+    /// Se calcula comparando la regla contra sí misma en vez de hacer cuentas de
+    /// tiers a mano, así el caso normal y los bordes salen de la misma fuente y
+    /// no pueden desincronizarse.
     public static func newlyHireableFloors(
-        unlockedBefore: [String],
-        unlockedAfter: [String],
-        floorTable: FloorTable
+        maxTierBefore: Int,
+        maxTierAfter: Int,
+        floorTable: FloorTable,
+        config: EconomyConfig
     ) -> [Int] {
         (0..<floorTable.count).filter { ordinal in
-            !canHire(floorOrdinal: ordinal, unlockedFloors: unlockedBefore, floorTable: floorTable)
-                && canHire(floorOrdinal: ordinal, unlockedFloors: unlockedAfter, floorTable: floorTable)
+            !canHire(floorOrdinal: ordinal, maxTierReached: maxTierBefore, floorTable: floorTable, config: config)
+                && canHire(floorOrdinal: ordinal, maxTierReached: maxTierAfter, floorTable: floorTable, config: config)
         }
     }
 
-    /// Contrata en el piso del quote. Requiere piso desbloqueado, gate abierto,
-    /// slot libre y saldo.
+    /// Contrata el TIPO del quote. Requiere piso desbloqueado, compuerta abierta
+    /// para ese tipo, slot libre y saldo.
+    ///
+    /// ⚠️ **La autorización por tipo vive acá desde el 2026-08-22**, y antes no
+    /// existía en ningún lado: los guards eran todos del PISO, así que el quote
+    /// de un T4 del callejón se le vendía a alguien que nunca mergeó. El
+    /// docstring de `hireQuote(typeId:)` lo declaraba ("cotizar un tipo no es
+    /// autorizarlo") y dejaba la compuerta en manos de la pantalla. Con la regla
+    /// medida en tiers ese hueco se cierra: cotizar sigue sin autorizar, pero
+    /// ahora quien autoriza es esta función y no la vista.
     @discardableResult
     public static func hire(
         quote: HireQuote,
         state: inout PlayerState,
         tower: inout TowerState,
-        floorTable: FloorTable
+        floorTable: FloorTable,
+        config: EconomyConfig
     ) throws -> TowerPlacement {
         let floor = floorTable[quote.floorOrdinal]
         guard state.run.unlockedFloors.contains(floor.id) else { throw TowerError.floorLocked }
         guard canHire(
-            floorOrdinal: quote.floorOrdinal,
-            unlockedFloors: state.run.unlockedFloors,
-            floorTable: floorTable
+            tier: quote.type.tier,
+            maxTierReached: state.run.maxTierReached,
+            floorTable: floorTable,
+            config: config
         ) else { throw TowerError.hireLocked }
         guard state.run.coins >= quote.cost else { throw TowerError.insufficientCoins }
         guard let slot = tower.floors[quote.floorOrdinal].firstFreeSlot() else { throw TowerError.floorFull }

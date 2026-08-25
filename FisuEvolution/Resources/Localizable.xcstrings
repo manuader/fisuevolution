@@ -3406,19 +3406,19 @@
         }
       }
     },
-    "jobs.state.gated %@" : {
+    "jobs.state.gated %lld" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Open %@ first"
+            "value" : "Merge up to tier %lld"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Abrí %@ primero"
+            "value" : "Fusioná hasta el tier %lld"
           }
         }
       }
@@ -7246,13 +7246,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "That's it! Keep merging: a T5 opens floor 2. The block is counting on you. 🚀"
+            "value" : "That's it! Buy Fisuras, merge them, and the new guys show up on the floors above. That is the whole game. 🚀"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Eso es todo, capo! Seguí fusionando: con un T5 se abre el piso 2. El barrio cuenta con vos. 🚀"
+            "value" : "¡Eso es todo, capo! Comprá Fisuras, fusionalos, y los nuevos aparecen en los pisos de arriba. Ése es el juego. 🚀"
           }
         }
       }
@@ -7263,13 +7263,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "There it is! Open FisuJobs — the little face down there — and hire another one for the alley."
+            "value" : "There it is! Open FisuJobs — the little face down there — and hire another Fisura. He is the only one you can hire straight up."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Ahí está! Abrí FisuJobs —la carita de abajo— y contratá a otro para el callejón."
+            "value" : "¡Ahí está! Abrí FisuJobs —la carita de abajo— y contratá otro Fisura. Es el único que se compra de una."
           }
         }
       }
@@ -7433,13 +7433,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This button hires the best one you can afford, no menus. Try it."
+            "value" : "This button hires the best one you have unlocked, no menus. Try it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Este botón contrata al mejor que te alcance, sin abrir nada. Probalo."
+            "value" : "Este botón contrata al mejor que tengas habilitado, sin abrir nada. Probalo."
           }
         }
       }

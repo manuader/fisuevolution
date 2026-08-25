@@ -33,18 +33,21 @@ struct GameLoopWiringTests {
     /// FisuJobs. `nil` cuando desde el piso visible no se puede contratar.
     ///
     /// ⚠️ Se lee acá y no de una proyección de `GameState` a propósito: lo que
-    /// estos tests pinean es la semántica del gate **contra el `economy.json`
-    /// real** (el urbano exento, la profundidad de un piso), no la forma que le
+    /// estos tests pinean es la semántica de la compuerta **contra el
+    /// `economy.json` real** —hoy, la distancia en tiers—, no la forma que le
     /// daba la vista que la dibujaba. `EconomyKitTests` ya cubre la regla sobre
     /// fixtures sintéticos; lo que sólo se puede pinear acá es que el CONTENIDO
     /// bundleado siga produciendo esta conducta.
     private func hireTarget(in gameState: GameState) throws -> Int? {
         let floorTable = try #require(gameState.floorTable)
         let player = try #require(gameState.player)
+        let content = try #require(gameState.content)
         return TowerActions.hireTargetFloor(
             visibleOrdinal: gameState.visibleFloorOrdinal,
             unlockedFloors: player.run.unlockedFloors,
-            floorTable: floorTable
+            maxTierReached: player.run.maxTierReached,
+            floorTable: floorTable,
+            config: content.economy
         )
     }
 
@@ -225,62 +228,69 @@ struct GameLoopWiringTests {
         gameState.content?.skins.skins.first { $0.id == award.id }
     }
 
-    /// Con el gate de contratación, abrir luxury (ordinal 3) es lo que destraba
-    /// corporate (ordinal 2): recién ahí corporate tiene el piso de arriba.
-    ///
-    /// ⚠️ Antes este test usaba el par urban/corporate. Dejó de servir cuando el
-    /// urbano quedó EXENTO del gate (Ola 3, ver balance-log): un piso exento es
-    /// contratable desde siempre, así que nunca emite el aviso. Corporate es hoy
-    /// el primer piso que el gate sí cierra.
+    /// ⚠️ **El aviso lo dispara la FRONTERA, no el ascenso de piso, y por eso
+    /// este escenario cambió entero el 2026-08-22.** Antes fusionaba dos T12
+    /// —el tope de corporativo— porque el ascenso a lujo era lo que destrababa
+    /// corporativo. Con la compuerta medida en tiers lo que la destraba es
+    /// llegar al 14 (su tier base es el 9 y la distancia es 5), así que el merge
+    /// que hay que hacer es de dos T13 **y ni siquiera cambia de piso**: es
+    /// justo el caso que la regla vieja no podía expresar.
     @Test func hireUnlockedNoticeWaitsItsTurn() async throws {
         let gameState = await makeGameState()
-        // tier 12 es el ÚLTIMO de corporate (9-12), así que su merge cruza a
-        // luxury. Hay que abrir corporate y pararse ahí: `slots(ofTier:in:)` y
-        // `handleDrop` miran el piso VISIBLE.
-        gameState.debugUnlockFloors(throughTier: 12)
-        gameState.debugSetMaxTier(12)
+        // Lujo abierto y la frontera en 13; hay que pararse AHÍ, porque
+        // `slots(ofTier:in:)` y `handleDrop` miran el piso VISIBLE.
+        gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugGrantPair()
         // `moveVisibleFloor` sólo acepta ±1: hay que subir de a un piso.
-        #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
-        #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a corporate")
-        let pair = slots(ofTier: 12, in: gameState)
+        for piso in ["urban", "corporate", "luxury"] {
+            #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a \(piso)")
+        }
+        let pair = slots(ofTier: 13, in: gameState)
         #expect(pair.count >= 2)
 
         _ = gameState.handleDrop(fromCell: pair[0], toCell: pair[1])
-        #expect(gameState.player?.run.unlockedFloors.contains("luxury") == true)
+        #expect(gameState.player?.run.maxTierReached == 14, "el merge tiene que mover la frontera")
 
-        #expect(gameState.showing == .boardCelebration, "el ascenso pide turno primero")
+        #expect(gameState.showing == .boardCelebration, "el reveal pide turno primero")
         #expect(gameState.showing != .towerNotice, "el toast no sale durante la cadena")
 
-        gameState.celebrationFinished(.boardCelebration)
-        // La skin de milestone tiene más prioridad que el aviso: si el ascenso
-        // otorgó una, el toast espera a que el jugador la cierre.
-        if gameState.showing == .skinAward {
-            gameState.skinAward = nil
-            gameState.celebrationFinished(.skinAward)
+        // El aviso tiene la prioridad MÁS BAJA de la cola, así que se drena lo
+        // que haya delante (la skin de milestone y la tanda de logros llegan
+        // primero) hasta que le toca. El tope es por si una regresión deja la
+        // cola sin avanzar: un `while` acá cuelga la suite en vez de fallarla.
+        for _ in 0..<CelebrationKind.allCases.count {
+            guard let showing = gameState.showing, showing != .towerNotice else { break }
+            if showing == .skinAward { gameState.skinAward = nil }
+            gameState.celebrationFinished(showing)
         }
         #expect(gameState.showing == .towerNotice, "y recién al final sale el aviso")
         #expect(gameState.towerNotice?.kind == .hireUnlocked(floorID: "corporate"))
     }
 
-    /// El piso exento del gate (urbano) se contrata sin abrir el de arriba: es
-    /// justamente lo que cerró el muro de 268 h de la Ola 3.
-    @Test func theExemptFloorHiresWithoutTheOneAbove() async throws {
+    /// ⚠️ **Reemplaza a `theExemptFloorHiresWithoutTheOneAbove`, y assertea lo
+    /// CONTRARIO.** El urbano estaba declarado exento (`hireGateExempt`) para
+    /// cerrar el muro de 268 h de la Ola 3; con la compuerta medida en tiers esa
+    /// excepción se sacó del `economy.json`, así que el urbano vuelve a la fila
+    /// como cualquier otro piso. Lo único exento hoy es el tier base de la torre.
+    @Test func theCityFloorIsNoLongerExemptFromTheGate() async throws {
         let gameState = await makeGameState()
-        gameState.debugUnlockFloors(throughTier: 5)   // abre alley + urban, corporate no
+        gameState.debugUnlockFloors(throughTier: 5)   // abre alley + urban, y frontera 5
         #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
 
         let floorTable = try #require(gameState.floorTable)
-        let unlocked = try #require(gameState.player?.run.unlockedFloors)
-        #expect(unlocked.contains("corporate") == false, "el piso de arriba tiene que seguir cerrado")
-        // Con el de arriba cerrado el gate igual pasa: la exención del urbano
-        // (`hireGateExempt`) vive en el `economy.json` bundleado.
-        #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: unlocked, floorTable: floorTable))
-        // Y por eso la contratación cae ACÁ y no en el piso de abajo.
+        let content = try #require(gameState.content)
+        let player = try #require(gameState.player)
+        // El mantero es T5 y la frontera es 5: le falta exactamente la distancia.
+        #expect(!TowerActions.canHire(
+            tier: 5, maxTierReached: player.run.maxTierReached,
+            floorTable: floorTable, config: content.economy
+        ))
+        // Y por eso la contratación cae en el callejón, cuyo tier base es el
+        // único exento de la torre.
         let target = try hireTarget(in: gameState)
-        #expect(target == gameState.visibleFloorOrdinal, "el urbano está exento: se contrata acá")
-        #expect(gameState.spawnQuote?.floorOrdinal == 1)
-        #expect(gameState.spawnQuote?.type.id == "mantero", "cotiza el tier base del urbano")
+        #expect(target == 0, "sin la exención, parado en el urbano se compra abajo")
+        #expect(gameState.spawnQuote?.floorOrdinal == 0)
+        #expect(gameState.spawnQuote?.type.id == "homeless", "cotiza el Fisura, la única compra libre")
     }
 
     /// Parado en la frontera, el gate cierra la contratación de ese piso. En vez
@@ -288,18 +298,19 @@ struct GameLoopWiringTests {
     /// justamente donde hace falta material de merge — hasta que ese piso se
     /// llena.
     ///
-    /// ⚠️ Usa corporate/urban y no urban/alley: desde la Ola 3 el urbano está
-    /// exento del gate, así que parado ahí NO hay fallback que probar.
+    /// ⚠️ Los números salen de la compuerta bundleada: con la frontera en 12, el
+    /// tier base de corporativo (9) pide 14 y no pasa, y el del urbano (5) pide
+    /// 10 y sí. Por eso la oferta baja UN piso y no dos.
     @Test func hiringOnTheFrontierFallsBackToTheFloorBelow() async throws {
         let gameState = await makeGameState()
-        gameState.debugUnlockFloors(throughTier: 9)   // abre hasta corporate, luxury no
+        gameState.debugUnlockFloors(throughTier: 12)   // abre hasta corporate, y frontera 12
         // `moveVisibleFloor` sólo acepta ±1: hay que subir de a un piso.
         #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
         #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a corporate")
 
-        // El gate de corporate no pasa (luxury cerrado), así que la oferta baja.
+        // La compuerta de corporativo no pasa, así que la oferta baja.
         let target = try hireTarget(in: gameState)
-        #expect(target != gameState.visibleFloorOrdinal, "parado en corporate el gate no deja contratar acá")
+        #expect(target != gameState.visibleFloorOrdinal, "parado en corporate la compuerta no deja contratar acá")
         #expect(floorID(ofOrdinal: target, in: gameState) == "urban", "la contratación cae en el piso de abajo")
         #expect(gameState.spawnQuote?.floorOrdinal == 1)
         #expect(gameState.spawnQuote?.type.id == "mantero", "cotiza el tier base del urbano")
@@ -316,8 +327,11 @@ struct GameLoopWiringTests {
         #expect(gameState.visibleFloorOrdinal == 2, "comprar no mueve la cámara")
 
         // Y cuando el urbano se llena, el botón lo dice en vez de seguir cobrando.
+        // Acotado por la capacidad: sin el tope, una regresión que mande la
+        // compra a otro piso deja este `while` girando para siempre y la suite
+        // no falla, se cuelga (pasó el 2026-08-22).
         let capacity = gameState.floorOccupancy(ordinal: 1).capacity
-        while gameState.floorOccupancy(ordinal: 1).occupied < capacity {
+        for _ in 0..<capacity where gameState.floorOccupancy(ordinal: 1).occupied < capacity {
             let before = gameState.floorOccupancy(ordinal: 1).occupied
             gameState.debugGrantCoins()
             gameState.buySpawn()
@@ -336,14 +350,14 @@ struct GameLoopWiringTests {
         #expect(gameState.canAffordSpawn == false, "con el piso lleno el botón no cobra, aunque sobre plata")
     }
 
-    /// Con el piso de arriba abierto no hay fallback: se contrata donde estás.
+    /// Con la frontera alcanzada no hay fallback: se contrata donde estás.
     @Test func hiringStaysOnTheVisibleFloorWhenTheGateIsOpen() async throws {
         let gameState = await makeGameState()
-        gameState.debugUnlockFloors(throughTier: 9)   // alley + urban + corporate
+        gameState.debugUnlockFloors(throughTier: 12)   // alley + urban + corporate, frontera 12
         #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a urban")
 
         let target = try hireTarget(in: gameState)
-        #expect(target == gameState.visibleFloorOrdinal, "con el de arriba abierto se contrata donde estás")
+        #expect(target == gameState.visibleFloorOrdinal, "el T5 con la frontera en 12 se contrata donde estás")
         #expect(gameState.spawnQuote?.floorOrdinal == 1)
 
         gameState.debugGrantCoins()

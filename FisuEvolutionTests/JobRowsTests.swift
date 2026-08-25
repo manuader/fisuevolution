@@ -60,15 +60,19 @@ struct JobRowsTests {
         // Abre callejón + urbano + corporativo, y muestra hasta lujo.
         gameState.debugUnlockFloors(throughTier: 9)
         gameState.debugMarkTypesSeen(throughTier: 16)
+        // Frontera 10 y no 9: con la compuerta en 5 tiers, 10 deja el corte en
+        // el MEDIO del urbano (5-8) en vez de justo en el borde del callejón, y
+        // el corte a mitad de piso es lo único que la regla vieja no podía
+        // producir.
+        gameState.debugSetMaxTier(10)
 
         let rows = gameState.jobRows
         let hirable = rows.prefix { $0.state == .hirable || $0.state == .floorFull }
-        // Callejón (1-4) y urbano (5-8): el urbano es `hireGateExempt`.
-        #expect(hirable.map(\.tier) == [8, 7, 6, 5, 4, 3, 2, 1], "el mejor arriba, como el Animal Shop")
+        #expect(hirable.map(\.tier) == [5, 4, 3, 2, 1], "el mejor arriba, como el Animal Shop")
 
         let blocked = rows.dropFirst(hirable.count).prefix { $0.state != .unseen }
         #expect(blocked.map(\.tier) == blocked.map(\.tier).sorted(), "los bloqueados suben: el próximo primero")
-        #expect(blocked.first?.tier == 9)
+        #expect(blocked.first?.tier == 6, "el 6 está en un piso ABIERTO y aun así no se contrata")
         #expect(blocked.last?.tier == 16)
 
         let unseen = rows.dropFirst(hirable.count + blocked.count)
@@ -77,16 +81,26 @@ struct JobRowsTests {
         #expect(unseen.allSatisfy { $0.tier >= 17 })
     }
 
-    @Test("piso abierto con el gate cerrado dice qué piso hay que abrir")
-    func closedGateNamesTheFloorAbove() async throws {
+    /// ⚠️ **Reescrito el 2026-08-22: la compuerta cambió de significado.** Decía
+    /// "piso abierto con el gate cerrado dice qué piso hay que abrir" y
+    /// asserteaba el nombre del piso de arriba. Ahora el estado dice a qué TIER
+    /// hay que llegar, y el número está derivado a mano: tier del personaje +
+    /// `hire.gateTierDistance`.
+    @Test("piso abierto con la compuerta cerrada dice a qué tier hay que llegar")
+    func closedGateNamesTheRequiredTier() async throws {
         let gameState = await makeGameState()
         gameState.debugUnlockFloors(throughTier: 9)
         gameState.debugMarkTypesSeen(throughTier: 16)
+        let distancia = try #require(gameState.content?.economy.hire.gateTierDistance)
 
-        // Corporativo está ABIERTO pero su gate pide lujo.
+        // El oficinista es T9 y su piso está ABIERTO: lo que falta es frontera.
         let oficinista = try jobRow(gameState, "oficinista")
-        #expect(oficinista.state == .gated(aboveFloorNameKey: TowerNaming.floorName(for: "luxury")))
+        #expect(oficinista.state == .gated(requiredTier: 9 + distancia))
         #expect(!oficinista.costText.isEmpty, "la fila bloqueada igual dice a cuánto va a salir")
+
+        // Y dos tipos del MISMO piso piden tiers distintos, que es justo lo que
+        // la compuerta por pisos no podía expresar.
+        #expect(try jobRow(gameState, "repartidor").state == .gated(requiredTier: 6 + distancia))
 
         // Lujo ni siquiera está abierto: es otro estado y nombra su PROPIO piso.
         let director = try jobRow(gameState, "director")
@@ -132,8 +146,8 @@ struct JobRowsTests {
             #expect(row.incomeText.contains("/s"), "la fila perdió la unidad, que es lo que la hace legible")
             #expect(!row.incomeText.contains("upgrades.character"), "quedó la clave cruda en pantalla")
         }
-        guard case .gated(let floorName) = try jobRow(gameState, "oficinista").state else {
-            Issue.record("el corporativo con el gate cerrado tiene que salir gated")
+        guard case .lockedFloor(let floorName) = try jobRow(gameState, "director").state else {
+            Issue.record("lujo todavía cerrado tiene que salir lockedFloor")
             return
         }
         #expect(!floorName.isEmpty)

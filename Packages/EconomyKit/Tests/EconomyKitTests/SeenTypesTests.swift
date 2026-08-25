@@ -68,8 +68,8 @@ import Testing
             floorOrdinal: 0, state: state, tiers: tiers, floorTable: floorTable,
             config: config
         ))
-        let first = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
-        let second = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
+        let first = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
+        let second = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
         #expect(state.run.seenTypes.contains(quote.type.id))
 
         _ = try TowerActions.applyMerge(

@@ -474,16 +474,19 @@ private struct JobCard: View {
     /// El mensaje del estado, ya resuelto a `String` **una sola vez**: lo dibuja
     /// el badge y lo lee el valor de accesibilidad, así que no pueden divergir.
     ///
-    /// ⚠️ Los payloads de `gated` y `lockedFloor` son el NOMBRE del piso ya
-    /// resuelto, no una clave (lo avisa el docstring de `JobRow`). Se interpolan
-    /// como ARGUMENTO dentro de una clave propia —`jobs.state.gated %@`—, que es
-    /// lo único que el catálogo resuelve; envolverlos en `LocalizedStringKey`
-    /// sería la trampa 5.
+    /// ⚠️ El payload de `lockedFloor` es el NOMBRE del piso ya resuelto, no una
+    /// clave (lo avisa el docstring de `JobRow`). Se interpola como ARGUMENTO
+    /// dentro de una clave propia —`jobs.state.locked %@`—, que es lo único que
+    /// el catálogo resuelve; envolverlo en `LocalizedStringKey` sería la
+    /// trampa 5.
+    ///
+    /// El de `gated` es un TIER, y dice la regla nueva: la compuerta se abre
+    /// fusionando hasta ese número, no desbloqueando el piso de arriba.
     private var stateText: String? {
         switch row.state {
         case .hirable: nil
         case .floorFull: String(localized: "jobs.state.full")
-        case .gated(let aboveFloorName): String(localized: "jobs.state.gated \(aboveFloorName)")
+        case .gated(let requiredTier): String(localized: "jobs.state.gated \(requiredTier)")
         case .lockedFloor(let floorName): String(localized: "jobs.state.locked \(floorName)")
         case .unseen: String(localized: "jobs.state.unseen")
         }

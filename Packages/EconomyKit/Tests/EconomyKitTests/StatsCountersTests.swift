@@ -169,7 +169,7 @@ struct HireCounterTests {
 
         for _ in 0..<2 {
             let quote = try makeQuote(on: 0, state: state, floorTable: floorTable)
-            _ = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
+            _ = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
         }
 
         #expect(state.meta.stats.totalHiresEver == 2)
@@ -185,7 +185,7 @@ struct HireCounterTests {
         let quote = try makeQuote(on: 0, state: state, floorTable: floorTable)
 
         #expect(throws: TowerError.insufficientCoins) {
-            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
+            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
         }
 
         #expect(state.meta.stats.totalHiresEver == 0)
@@ -200,9 +200,9 @@ struct HireCounterTests {
         state.run.coins = 100_000
 
         let f1Quote = try makeQuote(on: 0, state: state, floorTable: floorTable)
-        _ = try TowerActions.hire(quote: f1Quote, state: &state, tower: &tower, floorTable: floorTable)
+        _ = try TowerActions.hire(quote: f1Quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
         let f2Quote = try makeQuote(on: 1, state: state, floorTable: floorTable)
-        _ = try TowerActions.hire(quote: f2Quote, state: &state, tower: &tower, floorTable: floorTable)
+        _ = try TowerActions.hire(quote: f2Quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
 
         #expect(state.meta.stats.totalHiresEver == 2)
         #expect(state.run.hireCountsByType["a"] == 1)

@@ -90,12 +90,13 @@ struct BestHireTests {
     @Test("un tier no-base pagable y contratable no es la oferta")
     func payableNonBaseTiersAreNeverOffered() async throws {
         let gameState = await makeGameState()
-        // Abrir hasta lujo es lo que le abre el gate a corporativo. El Director
-        // queda afuera por DOS razones a la vez —sin ver, y con el gate de lujo
-        // cerrado porque isla sigue bloqueada—, así que no compite ni aunque una
+        // La frontera en 17 es lo que le abre la compuerta al Senior (T12 + 5).
+        // El Director queda afuera por DOS razones a la vez —sin ver, y con su
+        // compuerta cerrada, que pediría 18—, así que no compite ni aunque una
         // de las dos se caiga.
         gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugMarkTypesSeen(throughTier: 12)
+        gameState.debugSetMaxTier(17)
         try giveCoins(2_000_000_000, to: gameState)
         gameState.refreshProjections()
 
@@ -123,17 +124,24 @@ struct BestHireTests {
     /// el Fast Food sigue estando `hirable` y sigue estando pagado, así que lo
     /// único que puede dejarlo afuera es la regla nueva.
     ///
-    /// Verificado a mano contra `economy.json`: con el callejón y el urbano
-    /// abiertos, el urbano es `hireGateExempt` (se contrata sin abrir
-    /// corporativo) y llega hasta el tier 8 (`urban` = 5-8), mientras que
-    /// corporativo (9-12) ni siquiera está desbloqueado. El techo de PISO lo
-    /// sigue poniendo el gate; adentro del piso, el que se ofrece es el
-    /// `firstTier`: el Mantero, 600 × 2,8⁴ = 36.879,36.
-    @Test("con el urbano abierto la oferta sube a su tier base, no a su tier más alto")
+    /// Verificado a mano contra `economy.json`: con la frontera en 13 y la
+    /// compuerta en 5 tiers, lo contratable llega hasta el tier 8 —el TOPE del
+    /// urbano—, y el tier base de corporativo (9) pediría 14. Adentro de lo
+    /// contratable, el que se ofrece es el `firstTier` del piso más alto: el
+    /// Mantero, 600 × 2,8⁴ = 36.879,36.
+    ///
+    /// ⚠️ El techo lo pone ahora la COMPUERTA y no el piso cerrado: el escenario
+    /// abre corporativo a propósito, para que quede claro que lo que deja al
+    /// Oficinista afuera es la frontera y no un candado de piso.
+    @Test("con el urbano al tope la oferta sube a su tier base, no a su tier más alto")
     func unlockedFloorsRaiseTheOfferUpToTheirBaseTier() async throws {
         let gameState = await makeGameState()
-        gameState.debugUnlockFloors(throughTier: 8)   // abre alley + urban
-        gameState.debugMarkTypesSeen(throughTier: 8)
+        // Frontera 13: el Fast Food (T8) pide 13 y el Oficinista (T9) pide 14,
+        // así que lo contratable termina JUSTO en el tope del urbano.
+        gameState.debugUnlockFloors(throughTier: 13)
+        // Hasta 9 y no hasta 8: el Oficinista tiene que estar VISTO para que su
+        // fila diga `gated` y no `unseen`, que gana sobre todo lo demás.
+        gameState.debugMarkTypesSeen(throughTier: 9)
         // 600 × 2,8⁷ × 1,8³ = 4.721.445,54 es el Fast Food: el millón de
         // `debugGrantCoins` no lo cubre solo.
         try giveCoins(10_000_000, to: gameState)
@@ -150,11 +158,11 @@ struct BestHireTests {
         #expect(fastFood.state == .hirable)
         #expect(fastFood.affordable)
 
+        // Y el Oficinista, que sí es tier base, queda afuera por la compuerta:
+        // es lo que hace que el techo del atajo sea el urbano.
+        #expect(try #require(gameState.jobRows.first { $0.id == "oficinista" }).state == .gated(requiredTier: 14))
+
         let player = try #require(gameState.player)
-        #expect(
-            !player.run.unlockedFloors.contains("corporate"),
-            "corporativo tiene que seguir cerrado: es lo que hace que el techo sea el urbano"
-        )
         let cost = try #require(gameState.currentQuote(player: player, typeId: "mantero")?.cost)
         #expect(abs(cost - 36_879.36) < 0.01, "600 × 2,8⁴, sin factor de piso ni tierPremium")
     }
@@ -175,11 +183,12 @@ struct BestHireTests {
     @Test("si el tier base del piso más alto no se paga, la oferta baja un piso")
     func theOfferFallsBackToWhatTheCoinsActuallyCover() async throws {
         let gameState = await makeGameState()
-        // Hasta lujo, que es lo que le abre el gate a corporativo; el Director
-        // (tier 13) queda sin ver Y con el gate de lujo cerrado, así que no
-        // compite por ninguno de los dos lados.
+        // Frontera 14, que es lo que le abre la compuerta al Oficinista (T9 + 5);
+        // el Director (T13) queda sin ver Y con la suya cerrada —pediría 18—,
+        // así que no compite por ninguno de los dos lados.
         gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugMarkTypesSeen(throughTier: 12)
+        gameState.debugSetMaxTier(14)
         // Un peso menos que el tier base de corporativo, derivado de la config
         // (ver el docstring): el corte tiene que seguir cayendo donde el nombre
         // del test dice, y no donde lo dejó el rebalance anterior.
@@ -254,6 +263,7 @@ struct BestHireTests {
         let gameState = await makeGameState()
         gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugMarkTypesSeen(throughTier: 12)
+        gameState.debugSetMaxTier(17)   // la compuerta del Senior (T12) pide 17
         try giveCoins(4_000_000_000, to: gameState)
         gameState.refreshProjections()
         let before = try #require(gameState.bestHire)
@@ -290,10 +300,12 @@ struct BestHireTests {
     @Test("las ramas de carrera no son la oferta, aunque estén pagadas")
     func careerBranchesAreNeverTheOffer() async throws {
         let gameState = await makeGameState()
-        // Abrir hasta lujo es lo que le abre el gate a corporativo (necesita el
-        // piso de arriba); lujo mismo queda gated y sin ver, así que no compite.
+        // La frontera en 17 es lo que le abre la compuerta a los ocho (el Sr.
+        // es T12 y pide 17); lujo queda con la suya cerrada y sin ver, así que
+        // no compite.
         gameState.debugUnlockFloors(throughTier: 13)
         gameState.debugMarkTypesSeen(throughTier: 12)
+        gameState.debugSetMaxTier(17)
         try giveCoins(2_000_000_000, to: gameState)
         gameState.refreshProjections()
 

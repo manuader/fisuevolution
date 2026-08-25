@@ -81,9 +81,16 @@ struct TypeHireQuoteTests {
     ///
     /// No es explotable y por eso la regla sigue siendo de piso para adentro: un
     /// piso **se abre mergeando**, no comprando, así que nadie puede saltar al
-    /// tier base de arriba sin haber llegado primero por la escalera. Lo que sí
-    /// significa es que, con el piso ya abierto, backfillear abajo no conviene —
-    /// que es exactamente el pacing que el dueño quería.
+    /// tier base de arriba sin haber llegado primero por la escalera.
+    ///
+    /// ⚠️ **Lo que este docstring decía después era falso y la ronda 3 lo midió.**
+    /// Afirmaba que "con el piso ya abierto, backfillear abajo no conviene". Es
+    /// al revés: `yieldGrowthPerTier` (2,8) le gana al factor de merge (2), así
+    /// que bajar un tier abarata la unidad 2,8× y sólo duplica cuántas hacen
+    /// falta — comprar hondo **siempre** sale más barato, y bajar un piso entero
+    /// sale 16/2,8⁴ = 0,26× (el `tierPremium` se reinicia, así que no lo frena).
+    /// Eso es lo que hace que la compuerta por distancia no encarezca el juego,
+    /// y está medido en `Docs/balance-log.md`, tercera ronda.
     @Test("subir un tier dentro del piso cuesta más que el doble")
     func subirUnTierMasQueDuplica() throws {
         for ordinal in 0..<floorTable.count {
@@ -187,7 +194,7 @@ struct TypeHireQuoteTests {
         state.run.coins = 10_000
 
         let primero = try #require(quote(type: "b", state: state))
-        let colocado = try TowerActions.hire(quote: primero, state: &state, tower: &tower, floorTable: table)
+        let colocado = try TowerActions.hire(quote: primero, state: &state, tower: &tower, floorTable: table, config: config)
         #expect(colocado.floorOrdinal == 0)
         #expect(colocado.typeId == "b")
         #expect(state.run.hireCountsByType["b"] == 1)
@@ -254,12 +261,25 @@ struct TypeHireQuoteTests {
     /// por defecto de las propiedades: sin decoder manual esto tira `keyNotFound`.
     @Test("hire sin tierPremium decodifica al default 1,8")
     func tierPremiumEsOpcionalEnElJSON() throws {
-        let viejo = Data(#"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2}"#.utf8)
+        let viejo = Data(#"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2, "gateTierDistance": 5}"#.utf8)
         let decodificado = try JSONDecoder().decode(EconomyConfig.HireConfig.self, from: viejo)
         #expect(decodificado.tierPremium == 1.8)
 
-        let nuevo = Data(#"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2, "tierPremium": 2.5}"#.utf8)
+        let nuevo = Data(#"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2, "tierPremium": 2.5, "gateTierDistance": 5}"#.utf8)
         #expect(try JSONDecoder().decode(EconomyConfig.HireConfig.self, from: nuevo).tierPremium == 2.5)
+    }
+
+    /// Y la compuerta va al revés que el premium, a propósito: **sin la clave el
+    /// JSON no carga**. El premium tiene un valor histórico razonable (1,8, el
+    /// de siempre) y la compuerta no —el único default posible sería apagarla—,
+    /// así que un `economy.json` al que se le caiga la clave tiene que romper en
+    /// vez de dejar el juego sin regla en silencio.
+    @Test("hire SIN gateTierDistance no decodifica")
+    func laCompuertaEsObligatoriaEnElJSON() {
+        let sinClave = Data(#"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2}"#.utf8)
+        #expect(throws: DecodingError.self) {
+            try JSONDecoder().decode(EconomyConfig.HireConfig.self, from: sinClave)
+        }
     }
 
     /// El premium sale de la config, no de una constante escondida en el código.

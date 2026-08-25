@@ -23,7 +23,13 @@ private func upTiers(maxTier: Int = 20) throws -> TierRepository {
 /// Espejo chico de `economy.json`: las mismas fórmulas con un `oro.divisor`
 /// bajísimo, para que el ORO llegue dentro del horizonte del test (con el
 /// divisor real harían falta cientos de días simulados por assert).
-private func upConfig(maxTier: Int = 20) -> EconomyConfig {
+///
+/// La compuerta va con la distancia REAL del juego: el bot la consume
+/// (`nextAction` filtra el backfill con `TowerActions.canHire`), así que una
+/// fixture sin compuerta mediría un bot que compra donde el jugador no puede.
+/// Lo que la compuerta hace por sí sola lo mide `HireGateTests`; acá está para
+/// que el instrumental corra contra la torre que existe.
+private func upConfig(maxTier: Int = 20, gateTierDistance: Int = 5) -> EconomyConfig {
     let floors = stride(from: 1, through: maxTier, by: 4).enumerated().map { index, first in
         FloorDef(
             id: "f\(index + 1)",
@@ -32,8 +38,7 @@ private func upConfig(maxTier: Int = 20) -> EconomyConfig {
             lastTier: first + 3,
             capacity: 10,
             incomeMultiplier: pow(2.0, Double(index)),
-            hireCostMultiplierOverride: index == 0 ? 25 : nil,
-            hireGateExempt: index == 1
+            hireCostMultiplierOverride: index == 0 ? 25 : nil
         )
     }
     return EconomyConfig(
@@ -42,7 +47,8 @@ private func upConfig(maxTier: Int = 20) -> EconomyConfig {
         yieldGrowthPerTier: 2.8,
         passiveRatio: 0.5,
         passiveUnlockCostMultiplier: 60,
-        hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.2, tierPremium: 1.8),
+        hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.2,
+                    tierPremium: 1.8, gateTierDistance: gateTierDistance),
         charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4.0, effectStepPerLevel: 1.0, maxLevel: 19),
         oro: .init(divisor: 1000, exponent: 0.45, globalMultiplierPerOro: 0.18),
         critChanceBase: 0,
@@ -78,8 +84,8 @@ private func upUnreachableLines() -> [PermanentUpgradeLine] {
     ]
 }
 
-private func upSimulator(upgrades: [PermanentUpgradeLine] = []) throws -> PacingSimulator {
-    try PacingSimulator(config: upConfig(), tiers: upTiers(), upgrades: upgrades)
+private func upSimulator(upgrades: [PermanentUpgradeLine] = [], maxTier: Int = 20) throws -> PacingSimulator {
+    try PacingSimulator(config: upConfig(maxTier: maxTier), tiers: upTiers(maxTier: maxTier), upgrades: upgrades)
 }
 
 // MARK: - Tests
@@ -113,8 +119,12 @@ struct PacingSimulatorUpgradeTests {
 
     @Test("los efectos comprados entran en las fórmulas: con mejoras el bot gana más")
     func boughtUpgradesRaiseIncome() throws {
-        let without = try upSimulator().run(maxDays: 2)
-        let with = try upSimulator(upgrades: upCheapLines()).run(maxDays: 2)
+        // La escalera va a 40 tiers y no a los 20 de siempre: desde que el bot
+        // compra cualquier tier habilitado (y no sólo los bases) los 20 se
+        // terminan dentro del horizonte, `run` corta en dios y la comparación
+        // deja de ser justa — que es lo que el assert de abajo vigila.
+        let without = try upSimulator(maxTier: 40).run(maxDays: 2)
+        let with = try upSimulator(upgrades: upCheapLines(), maxTier: 40).run(maxDays: 2)
         // La comparación sólo es justa si ninguna de las dos corridas terminó
         // temprano por llegar a dios (`run` corta ahí).
         #expect(without.godWall == nil && with.godWall == nil, "el horizonte del test tiene que quedar corto de dios")
@@ -215,8 +225,13 @@ struct PacingSimulatorInstrumentTests {
     /// varios tiers abre antes de que se llegue a dios.
     @Test("dios publica su tiempo ACTIVO, no sólo el de pared")
     func godPublishesActiveTime() throws {
+        // La compuerta baja a 1 porque la torre baja a 8 tiers: con la distancia
+        // real (5) sobre una escalera de 8, contratar cualquier cosa que no sea
+        // el tier base es imposible POR CONSTRUCCIÓN —el t5 pediría una frontera
+        // de 10, que no existe— y el bot se queda mergeando fisuras. La
+        // proporción del juego (37 tiers, distancia 5) acá son ~1.
         let report = try PacingSimulator(
-            config: upConfig(maxTier: 8), tiers: upTiers(maxTier: 8)
+            config: upConfig(maxTier: 8, gateTierDistance: 1), tiers: upTiers(maxTier: 8)
         ).run(maxDays: 5)
         let wall = try #require(report.godWall, "la escalera corta tiene que llegar a dios")
         let active = try #require(report.godActive)

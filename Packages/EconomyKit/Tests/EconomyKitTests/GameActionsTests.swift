@@ -213,7 +213,7 @@ struct HireActionTests {
         var (state, tower, floorTable) = try fxStateAndTower(units: ["a": 1])
         state.run.coins = 20
         let quote = try makeQuote(on: 0, state: state, floorTable: floorTable)
-        let placement = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
+        let placement = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
         // f1 overridea a 15 × tapYield(T1)=1, cero compras previas ⇒ 15.
         #expect(abs(state.run.coins - 5) < 1e-9)
         #expect(state.run.hireCounts["f1"] == 1)
@@ -231,7 +231,7 @@ struct HireActionTests {
         let quote = try makeQuote(on: 1, state: state, floorTable: floorTable)
         let before = (state, tower)
         #expect(throws: TowerError.floorLocked) {
-            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
+            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
         }
         #expect(state == before.0)
         #expect(tower == before.1)
@@ -243,7 +243,7 @@ struct HireActionTests {
         let quote = try makeQuote(on: 0, state: state, floorTable: floorTable)
         let before = (state, tower)
         #expect(throws: TowerError.insufficientCoins) {
-            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
+            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
         }
         #expect(state == before.0)
         #expect(tower == before.1)
@@ -256,163 +256,260 @@ struct HireActionTests {
         let quote = try makeQuote(on: 0, state: state, floorTable: floorTable)
         let before = (state, tower)
         #expect(throws: TowerError.floorFull) {
-            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
+            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
         }
         #expect(state == before.0)
         #expect(tower == before.1)
     }
 }
 
-// MARK: - Gate de contratación (el piso de arriba desbloqueado)
+// MARK: - La compuerta de contratación (distancia en TIERS)
 //
-// El fixture de la torre tiene sólo DOS pisos, y con dos pisos el gate es
-// invisible: el ordinal 1 siempre cae en el escape del tope, así que
-// `hireLocked` es inalcanzable. Este suite arma su propia tabla de CUATRO pisos
-// de un tier cada uno, que sigue entrando en `maxTier: 4` y por lo tanto sirve
-// con `fxTiers()` sin tocarlo.
+// ⚠️ **Reescrita entera el 2026-08-22 porque la regla cambió de significado.**
+// Antes la compuerta se medía en PISOS —para contratar en el piso F hacía falta
+// F+1 desbloqueado— y estos tests pineaban esa conducta. Ahora se mide en TIERS
+// contra `run.maxTierReached`, así que ni los asserts ni el fixture podían
+// sobrevivir: no se aflojaron rangos, se reemplazó lo que se mide.
+//
+// El fixture es una torre de 3 pisos × 4 tiers (12 tiers), que es la forma de la
+// real: hace falta un piso con VARIOS tiers para poder mostrar lo único que la
+// regla nueva arregla —que dos tipos del mismo piso se habiliten en momentos
+// distintos—, y el fixture chico de dos pisos de un tier no puede.
+//
+// `gateTierDistance: 3` y no el 5 del juego: los números quedan chicos y se
+// derivan a mano en una línea (t2 pide 5, t3 pide 6, t4 pide 7…), y una torre de
+// 12 tiers con distancia 5 dejaría medio catálogo inalcanzable.
 
-private func gateFloor(_ id: String, _ tier: Int) -> FloorDef {
-    FloorDef(
-        id: id, background: "alley", firstTier: tier, lastTier: tier,
-        capacity: 5, incomeMultiplier: 1.0
+private func gateTiers() throws -> TierRepository {
+    try TierRepository(types: (1...12).map {
+        fxType("t\($0)", tier: $0, tapYield: pow(2.8, Double($0 - 1)),
+               mergesInto: $0 < 12 ? "t\($0 + 1)" : nil)
+    })
+}
+
+private func gateConfig(distance: Int = 3) -> EconomyConfig {
+    EconomyConfig(
+        schemaVersion: 2,
+        baseTapYieldTier1: 1,
+        yieldGrowthPerTier: 2.8,
+        passiveRatio: 0.5,
+        passiveUnlockCostMultiplier: 60,
+        hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.06,
+                    tierPremium: 1.8, gateTierDistance: distance),
+        charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 1.5, effectStepPerLevel: 1.0),
+        oro: .init(divisor: 1e9, exponent: 0.25, globalMultiplierPerOro: 0.18),
+        critChanceBase: 0,
+        critMultiplier: 5,
+        offlineEfficiencyBase: 0.35,
+        offlineCapHours: 10,
+        floors: (0..<3).map { index in
+            FloorDef(
+                id: "g\(index + 1)", background: "alley",
+                firstTier: index * 4 + 1, lastTier: index * 4 + 4,
+                capacity: 5, incomeMultiplier: 1.0
+            )
+        }
     )
 }
 
-@Suite("Gate de contratación")
+@Suite("Compuerta de contratación (distancia en tiers)")
 struct HireGateTests {
-    let config = fxConfig()
+    let config = gateConfig()
     let tiers: TierRepository
     let floorTable: FloorTable
 
     init() throws {
-        tiers = try fxTiers()
-        floorTable = try FloorTable(
-            floors: [gateFloor("g1", 1), gateFloor("g2", 2), gateFloor("g3", 3), gateFloor("g4", 4)],
-            maxTier: 4
-        )
+        tiers = try gateTiers()
+        floorTable = try FloorTable(floors: config.floors, maxTier: 12)
     }
 
-    @Test("el piso de abajo siempre deja contratar, aunque no haya nada arriba")
-    func groundFloorIsAlwaysHireable() {
-        #expect(TowerActions.canHire(floorOrdinal: 0, unlockedFloors: ["g1"], floorTable: floorTable))
+    // MARK: La regla
+
+    /// El Fisura es la única compra libre: sin él no hay de dónde sacar material
+    /// de merge y la torre entera queda en un huevo-y-gallina.
+    @Test("el tier base de la torre no tiene compuerta")
+    func theBaseTierIsExempt() {
+        #expect(TowerActions.canHire(tier: 1, maxTierReached: 1, floorTable: floorTable, config: config))
+        #expect(TowerActions.canHire(tier: 1, maxTierReached: 12, floorTable: floorTable, config: config))
     }
 
-    @Test("un piso necesita el de arriba desbloqueado")
-    func upperFloorNeedsTheOneAbove() {
-        #expect(!TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2"], floorTable: floorTable))
-        #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
+    /// Derivado a mano: con distancia 3, el t2 pide frontera 5 y el t5 pide 8.
+    @Test("de ahí para arriba hace falta la frontera N tiers más alta")
+    func everyOtherTierNeedsTheFrontierAbove() {
+        #expect(!TowerActions.canHire(tier: 2, maxTierReached: 4, floorTable: floorTable, config: config))
+        #expect(TowerActions.canHire(tier: 2, maxTierReached: 5, floorTable: floorTable, config: config))
+        #expect(!TowerActions.canHire(tier: 5, maxTierReached: 7, floorTable: floorTable, config: config))
+        #expect(TowerActions.canHire(tier: 5, maxTierReached: 8, floorTable: floorTable, config: config))
     }
 
-    @Test("un piso exento contrata con el de arriba cerrado")
-    func exemptFloorIgnoresTheGate() throws {
-        // Cobertura del gate, no profundidad: sigue siendo de UN piso. El urbano
-        // se declaró exento en la Ola 3 porque el gate + el remapeo de tiers
-        // dejaban 268 h de pared antes de corporativo (ver balance-log).
-        let exempt = try FloorTable(
-            floors: [
-                gateFloor("g1", 1),
-                FloorDef(
-                    id: "g2", background: "alley", firstTier: 2, lastTier: 2,
-                    capacity: 5, incomeMultiplier: 1.0, hireGateExempt: true
-                ),
-                gateFloor("g3", 3),
-                gateFloor("g4", 4),
-            ],
-            maxTier: 4
-        )
-        #expect(TowerActions.canHire(floorOrdinal: 1, unlockedFloors: ["g1", "g2"], floorTable: exempt))
-        // El resto de la torre no se contagia: g3 sigue pidiendo g4.
-        #expect(!TowerActions.canHire(floorOrdinal: 2, unlockedFloors: ["g1", "g2", "g3"], floorTable: exempt))
+    /// **El borde dentado, que es lo que esta regla viene a matar.** Con la
+    /// compuerta por pisos, habilitar g1 habilitaba sus cuatro tiers de una, y
+    /// el jugador compraba el más alto —a un tier de su frontera, dos unidades—.
+    /// Ahora cada tier del mismo piso abre en su propio momento.
+    @Test("dos tipos del MISMO piso se habilitan en momentos distintos")
+    func typesOfTheSameFloorOpenAtDifferentTimes() {
+        // Frontera en 6: t2 (pide 5) y t3 (pide 6) sí, t4 (pide 7) todavía no.
+        // Los tres viven en g1.
+        #expect(TowerActions.canHire(tier: 2, maxTierReached: 6, floorTable: floorTable, config: config))
+        #expect(TowerActions.canHire(tier: 3, maxTierReached: 6, floorTable: floorTable, config: config))
+        #expect(!TowerActions.canHire(tier: 4, maxTierReached: 6, floorTable: floorTable, config: config))
+        #expect(floorTable.ordinal(forTier: 2) == 0)
+        #expect(floorTable.ordinal(forTier: 4) == 0)
     }
 
-    @Test("el último piso se destraba a sí mismo al abrirse")
-    func topOfTowerEscapes() {
-        // g4 no tiene ninguno por encima: sin el escape nunca dejaría contratar.
-        #expect(!TowerActions.canHire(floorOrdinal: 3, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
-        #expect(!TowerActions.canHire(floorOrdinal: 2, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable))
-        let all = ["g1", "g2", "g3", "g4"]
-        #expect(TowerActions.canHire(floorOrdinal: 3, unlockedFloors: all, floorTable: floorTable))
-        #expect(TowerActions.canHire(floorOrdinal: 2, unlockedFloors: all, floorTable: floorTable))
+    /// El piso de abajo ya no está exento ENTERO: lo que está exento es un tier.
+    /// Era uno de los dos parches por piso que la regla nueva deja sin trabajo.
+    @Test("el piso de abajo sólo trae libre su tier base")
+    func theGroundFloorIsNotExemptAsAWhole() {
+        #expect(TowerActions.canHire(floorOrdinal: 0, maxTierReached: 1, floorTable: floorTable, config: config))
+        #expect(!TowerActions.canHire(tier: 4, maxTierReached: 4, floorTable: floorTable, config: config))
     }
 
-    @Test("hire rechaza con hireLocked y no muta nada")
-    func hireRejectsWhenGateClosed() throws {
+    /// El default de fixture (`noTierGate`): con 0, la compuerta no existe y
+    /// queda sólo el guard de piso abierto, que es la conducta histórica.
+    @Test("con la distancia en cero la compuerta no gatea nada")
+    func zeroDistanceDisablesTheGate() throws {
+        let sinCompuerta = gateConfig(distance: 0)
+        let tabla = try FloorTable(floors: sinCompuerta.floors, maxTier: 12)
+        for tier in 1...12 {
+            #expect(TowerActions.canHire(tier: tier, maxTierReached: 1, floorTable: tabla, config: sinCompuerta))
+        }
+    }
+
+    // MARK: `hire` la hace cumplir — y la mira POR TIPO
+
+    /// **El hueco que esta ronda cierra.** `hire` gateaba por PISO, así que el
+    /// quote de un tier alto de un piso abierto se vendía igual: el docstring de
+    /// `hireQuote(typeId:)` lo declaraba y le dejaba la compuerta a la vista.
+    @Test("hire rechaza por TIPO, no por piso, y no muta nada")
+    func hireRejectsByTypeAndDoesNotMutate() throws {
         var state = PlayerState.newGame(
-            startTypeId: "a", startFloorId: "g1",
+            startTypeId: "t1", startFloorId: "g1",
             offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 1000
         )
-        state.run.units = ["a": 1, "b": 1]
+        state.run.units = ["t1": 1]
         var tower = TowerReconciler.reconcile(run: &state.run, floorTable: floorTable, tiers: tiers).tower
-        // Después del reconcile: el reconciliador sincroniza unlockedFloors por
-        // unidades, así que fijar el escenario acá y no antes.
-        state.run.unlockedFloors = ["g1", "g2"]   // g3 cerrado ⇒ el gate de g2 no pasa
-        state.run.coins = 1_000_000
+        state.run.unlockedFloors = ["g1"]      // el piso del t4 está ABIERTO
+        state.run.maxTierReached = 4           // …y la frontera es 4: el t4 pide 7
+        state.run.coins = 1_000_000_000
         let quote = try #require(TowerActions.hireQuote(
-            floorOrdinal: 1, state: state, tiers: tiers,
-            floorTable: floorTable, config: config
+            typeId: "t4", state: state, config: config, floorTable: floorTable, tiers: tiers
         ))
         let before = (state, tower)
 
         #expect(throws: TowerError.hireLocked) {
-            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable)
+            try TowerActions.hire(
+                quote: quote, state: &state, tower: &tower,
+                floorTable: floorTable, config: config
+            )
         }
         #expect(state == before.0, "un hire rechazado no puede cobrar")
         #expect(tower == before.1, "ni ocupar un slot")
+
+        // Y con la frontera en 7 el MISMO quote pasa: lo que rechazaba era la
+        // compuerta y nada más.
+        state.run.maxTierReached = 7
+        #expect(throws: Never.self) {
+            try TowerActions.hire(
+                quote: quote, state: &state, tower: &tower,
+                floorTable: floorTable, config: config
+            )
+        }
+        #expect(state.run.units["t4"] == 1)
     }
 
-    @Test("desbloquear un piso destraba la contratación del que está justo abajo")
-    func unlockingAFloorOpensHiringRightBelow() {
+    @Test("hire sigue exigiendo el piso abierto")
+    func hireStillNeedsTheFloorUnlocked() throws {
+        var state = PlayerState.newGame(
+            startTypeId: "t1", startFloorId: "g1",
+            offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 1000
+        )
+        state.run.units = ["t1": 1]
+        var tower = TowerReconciler.reconcile(run: &state.run, floorTable: floorTable, tiers: tiers).tower
+        state.run.unlockedFloors = ["g1"]
+        state.run.maxTierReached = 12   // la compuerta del t5 (pide 8) pasa…
+        state.run.coins = 1_000_000_000
+        let quote = try #require(TowerActions.hireQuote(
+            typeId: "t5", state: state, config: config, floorTable: floorTable, tiers: tiers
+        ))
+        #expect(throws: TowerError.floorLocked) {   // …pero g2 no está abierto
+            try TowerActions.hire(
+                quote: quote, state: &state, tower: &tower,
+                floorTable: floorTable, config: config
+            )
+        }
+    }
+
+    // MARK: Qué se destraba cuando la frontera sube
+
+    @Test("subir la frontera destraba el piso cuya base acaba de alcanzar")
+    func raisingTheFrontierOpensTheFloorItReaches() {
+        // g2 arranca en t5, que con distancia 3 pide frontera 8.
         #expect(
             TowerActions.newlyHireableFloors(
-                unlockedBefore: ["g1", "g2"], unlockedAfter: ["g1", "g2", "g3"], floorTable: floorTable
-            ) == [1],
-            "abrir g3 sólo destraba g2"
+                maxTierBefore: 7, maxTierAfter: 8, floorTable: floorTable, config: config
+            ) == [1]
         )
     }
 
-    @Test("abrir el último piso destraba también al último por el escape")
-    func unlockingTheTopAlsoOpensItself() {
-        let before = ["g1", "g2", "g3"]
+    @Test("una fusión que no mueve la frontera no destraba nada")
+    func aMergeThatDoesNotRaiseTheFrontierOpensNothing() {
         #expect(
             TowerActions.newlyHireableFloors(
-                unlockedBefore: before, unlockedAfter: before + ["g4"], floorTable: floorTable
-            ) == [2, 3],
-            "g3 por la regla y g4 por el escape, que si no nunca se abriría"
+                maxTierBefore: 8, maxTierAfter: 8, floorTable: floorTable, config: config
+            ).isEmpty
         )
-    }
-
-    @Test("un unlock que no destraba a nadie devuelve vacío")
-    func unlockingNothingNewReturnsEmpty() {
+        // Y subir de 5 a 6 tampoco: ninguna base de piso cae en ese tramo (g2
+        // pide 8 y g3 pide 12).
         #expect(
             TowerActions.newlyHireableFloors(
-                unlockedBefore: ["g1"], unlockedAfter: ["g1", "g2"], floorTable: floorTable
-            ).isEmpty,
-            "abrir g2 no le da el piso de arriba a nadie: g1 ya podía y g2 necesita g3"
+                maxTierBefore: 5, maxTierAfter: 6, floorTable: floorTable, config: config
+            ).isEmpty
         )
     }
 
     // MARK: A dónde cae la contratación
 
-    @Test("con el gate abierto, la contratación cae en el piso que estás mirando")
+    @Test("con la compuerta abierta, la contratación cae en el piso que estás mirando")
     func hireTargetIsTheVisibleFloorWhenTheGateIsOpen() {
-        let open = ["g1", "g2", "g3"]
-        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 1, unlockedFloors: open, floorTable: floorTable) == 1)
-        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 0, unlockedFloors: ["g1"], floorTable: floorTable) == 0)
+        let abiertos = ["g1", "g2", "g3"]
+        #expect(TowerActions.hireTargetFloor(
+            visibleOrdinal: 1, unlockedFloors: abiertos, maxTierReached: 8,
+            floorTable: floorTable, config: config
+        ) == 1)
+        #expect(TowerActions.hireTargetFloor(
+            visibleOrdinal: 0, unlockedFloors: ["g1"], maxTierReached: 1,
+            floorTable: floorTable, config: config
+        ) == 0)
     }
 
-    @Test("con el gate cerrado, la contratación cae en el piso de abajo")
-    func hireTargetFallsToTheFloorBelowWhenTheGateIsClosed() {
-        // Parado en g2, que es la frontera: g3 sigue cerrado, así que el gate de
-        // g2 no pasa y la compra tiene que caer en g1 en vez de no hacer nada.
-        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 1, unlockedFloors: ["g1", "g2"], floorTable: floorTable) == 0)
-        // Y baja UN piso, no hasta el fondo: parado en g3 cae en g2.
-        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 2, unlockedFloors: ["g1", "g2", "g3"], floorTable: floorTable) == 1)
+    /// La garantía que se fue con la regla vieja: antes bajar UN piso alcanzaba
+    /// siempre, porque el de abajo tenía el de arriba abierto por construcción.
+    @Test("con la compuerta cerrada baja los pisos que haga falta, no uno")
+    func hireTargetFallsAsManyFloorsAsNeeded() {
+        let abiertos = ["g1", "g2", "g3"]
+        // Parado en g3 (base t9, pide 12) con la frontera en 7: g2 (base t5,
+        // pide 8) tampoco pasa, así que la compra cae DOS pisos abajo, en g1.
+        #expect(TowerActions.hireTargetFloor(
+            visibleOrdinal: 2, unlockedFloors: abiertos, maxTierReached: 7,
+            floorTable: floorTable, config: config
+        ) == 0)
+        // Con la frontera en 8, g2 ya pasa y cae uno solo.
+        #expect(TowerActions.hireTargetFloor(
+            visibleOrdinal: 2, unlockedFloors: abiertos, maxTierReached: 8,
+            floorTable: floorTable, config: config
+        ) == 1)
     }
 
     @Test("desde un piso todavía cerrado no se contrata en ningún lado")
     func lockedFloorHasNoHireTarget() {
-        // El preview con candado: estás mirando g3 sin haberlo abierto.
-        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 2, unlockedFloors: ["g1", "g2"], floorTable: floorTable) == nil)
-        #expect(TowerActions.hireTargetFloor(visibleOrdinal: 9, unlockedFloors: ["g1"], floorTable: floorTable) == nil)
+        #expect(TowerActions.hireTargetFloor(
+            visibleOrdinal: 2, unlockedFloors: ["g1", "g2"], maxTierReached: 12,
+            floorTable: floorTable, config: config
+        ) == nil)
+        #expect(TowerActions.hireTargetFloor(
+            visibleOrdinal: 9, unlockedFloors: ["g1"], maxTierReached: 12,
+            floorTable: floorTable, config: config
+        ) == nil)
     }
 }

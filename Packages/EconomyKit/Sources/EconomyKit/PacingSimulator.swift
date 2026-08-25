@@ -299,7 +299,6 @@ public struct PacingSimulator: Sendable {
     /// La próxima compra deseable más barata (la espera la decide el caller).
     private func nextAction(state: PlayerState) -> Action? {
         var candidates: [Action] = []
-        let passiveRate = passivePerSecond(state: state)
 
         // 1. Passive unlocks con payback corto (o el primero del tipo base, siempre).
         for (typeId, count) in state.run.units where count > 0 && state.run.passiveUnlocked[typeId] != true {
@@ -325,48 +324,72 @@ public struct PacingSimulator: Sendable {
             })
         }
 
-        // 3. Hire piso 1 (motor del early game) si hay lugar.
-        if let hire = hireAction(floorOrdinal: 0, state: state, requireProfit: false, passiveRate: passiveRate) {
-            candidates.append(hire)
-        }
+        // 3. Hire en el piso 1 (motor del early game) si hay lugar. Su tier base
+        //    es el exento de la compuerta, así que siempre está disponible — que
+        //    es justo el rol que el diseño le da al Fisura.
+        candidates.append(contentsOf: hireActions(floorOrdinal: 0, state: state, requireProfit: false))
 
         // 4. Backfill: hire en pisos superiores desbloqueados SOLO si es rentable
         //    (precio punitivo: recién conviene con la frontera pisos arriba).
-        //    El gate del piso de arriba sale de `TowerActions.canHire`, la
-        //    MISMA función que usa el juego: si acá se copiara la condición, el
-        //    simulador podría modelar un jugador que hace algo que el juego no
-        //    permite.
-        for ordinal in 1..<floorTable.count
-        where state.run.unlockedFloors.contains(floorTable[ordinal].id)
-            && TowerActions.canHire(
-                floorOrdinal: ordinal,
-                unlockedFloors: state.run.unlockedFloors,
-                floorTable: floorTable
-            ) {
-            if let hire = hireAction(floorOrdinal: ordinal, state: state, requireProfit: true, passiveRate: passiveRate) {
-                candidates.append(hire)
-            }
+        for ordinal in 1..<floorTable.count where state.run.unlockedFloors.contains(floorTable[ordinal].id) {
+            candidates.append(contentsOf: hireActions(floorOrdinal: ordinal, state: state, requireProfit: true))
         }
 
         return candidates.min { $0.cost < $1.cost }
     }
 
-    /// El bot compra SIEMPRE el tier base del piso —comprar más arriba nunca le
-    /// conviene, que es justo lo que `tierPremium` garantiza (§5.2)— pero cotiza
-    /// por el camino real: `TowerActions.hireQuote(typeId:)`, la misma función
-    /// que la pantalla de laburos. Antes armaba el precio con `config.hireCost`
-    /// por su cuenta, y ese es exactamente el modo en que el simulador y el juego
-    /// se desincronizaron una vez.
+    /// Las contrataciones que este piso ofrece: **TODOS sus tiers habilitados**,
+    /// no sólo el base.
+    ///
+    /// ⚠️ **El bot compraba sólo el tier base de cada piso, y eso dejó de ser
+    /// una aproximación aceptable el 2026-08-22.** El argumento era que comprar
+    /// más arriba nunca conviene —lo garantiza `tierPremium`— y valía mientras
+    /// la compuerta se midiera en PISOS: habilitado un piso, su base era la
+    /// compra más barata y punto. Con la compuerta medida en tiers, el tier más
+    /// alto que podés comprar es `frontera − N`, que **casi nunca es un tier
+    /// base**: un bot que sólo compra bases redondea su distancia hacia arriba
+    /// hasta el próximo borde de piso, y con la distancia real se queda
+    /// mergeando fisuras hasta que la partida no se termina (medido: con N=5 el
+    /// bot no pasaba del tier 9 en 90 días). El jugador, mientras tanto, tiene
+    /// esa fila en FisuJobs.
+    ///
+    /// Quién gana entre todas sigue decidiéndolo la regla de siempre —la compra
+    /// deseable MÁS BARATA, en `nextAction`—, así que el `tierPremium` sigue
+    /// mandando: el tier base es más barato hasta que su propia curva
+    /// (`growth^compras`, por TIPO) lo pasa. Ahí el bot cambia solo, que es
+    /// exactamente lo que hace el jugador cuando el Fisura número doscientos
+    /// sale más que un Trapito.
+    ///
+    /// No hace falta filtrar por "visto": la compuerta ya lo garantiza (exige
+    /// `maxTierReached ≥ tier + N`, así que el tipo se creó alguna vez) y el
+    /// exento es el tier con el que arranca la partida.
+    ///
+    /// Cotiza por el camino real —`TowerActions.hireQuote(typeId:)`, la misma
+    /// función que la pantalla de laburos—. Antes armaba el precio con
+    /// `config.hireCost` por su cuenta, y ese es exactamente el modo en que el
+    /// simulador y el juego se desincronizaron una vez.
     ///
     /// Lo que sí sigue haciendo a mano es la MUTACIÓN: `TowerActions.hire` pide
     /// un `TowerState` con slots, y el simulador no lo mantiene (deriva la
     /// ocupación de `run.units`). Por eso replica los dos contadores que la curva
     /// necesita —el del piso y el del TIPO—: si se olvidara del segundo, cotizaría
     /// siempre el precio de la primera compra.
-    private func hireAction(floorOrdinal: Int, state: PlayerState, requireProfit: Bool, passiveRate: Double) -> Action? {
+    private func hireActions(floorOrdinal: Int, state: PlayerState, requireProfit: Bool) -> [Action] {
         let floor = floorTable[floorOrdinal]
-        guard floorCount(floorOrdinal, state: state) < floor.capacity else { return nil }
-        let candidates = tiers.concreteTypes.filter { $0.tier == floor.firstTier }
+        guard floorCount(floorOrdinal, state: state) < floor.capacity else { return [] }
+        return (floor.firstTier...floor.lastTier).compactMap { tier in
+            guard TowerActions.canHire(
+                tier: tier, maxTierReached: state.run.maxTierReached,
+                floorTable: floorTable, config: config
+            ) else { return nil }
+            return hireAction(tier: tier, floor: floor, state: state, requireProfit: requireProfit)
+        }
+    }
+
+    /// Una contratación concreta: el tipo de este tier (respetando la carrera
+    /// elegida cuando el tier se bifurca), cotizado y con su regla de payback.
+    private func hireAction(tier: Int, floor: FloorDef, state: PlayerState, requireProfit: Bool) -> Action? {
+        let candidates = tiers.concreteTypes.filter { $0.tier == tier }
         guard let type = candidates.first(where: { $0.id.hasSuffix(careerPath) }) ?? candidates.sorted(by: { $0.id < $1.id }).first
         else { return nil }
         // `now: 0` alcanza porque el bot no tiene modificadores temporales: el

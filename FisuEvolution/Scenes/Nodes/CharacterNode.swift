@@ -20,7 +20,6 @@ final class CharacterNode: SKNode {
     private let shadow = SKShapeNode()
     private let plate = SKShapeNode()
     private let sprite = SKSpriteNode()
-    private let tierLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let nameLabel = SKLabelNode(fontNamed: "AvenirNext-Medium")
 
     private(set) var typeId: String = ""
@@ -39,10 +38,6 @@ final class CharacterNode: SKNode {
 
         sprite.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         addChild(sprite)
-
-        tierLabel.horizontalAlignmentMode = .center
-        tierLabel.verticalAlignmentMode = .top
-        addChild(tierLabel)
 
         nameLabel.horizontalAlignmentMode = .center
         nameLabel.verticalAlignmentMode = .bottom
@@ -89,11 +84,6 @@ final class CharacterNode: SKNode {
             sprite.position = CGPoint(x: 0, y: (artSide - plateSize) / 2)
             sprite.color = skinTint ?? .white
             sprite.colorBlendFactor = skinTint == nil ? 0 : 0.25
-
-            tierLabel.isHidden = false
-            setLabel(tierLabel, text: "T\(type.tier)", fontSize: plateSize * 0.14)
-            tierLabel.fontColor = Palette.ink
-            tierLabel.position = CGPoint(x: 0, y: sprite.position.y + artSide * 0.5 + plateSize * 0.03)
             return
         }
 
@@ -117,11 +107,6 @@ final class CharacterNode: SKNode {
         let spriteSide = plateSize * 0.52
         sprite.size = CGSize(width: spriteSide, height: spriteSide)
         sprite.position = CGPoint(x: 0, y: plateSize * 0.04)
-
-        tierLabel.isHidden = false
-        setLabel(tierLabel, text: "T\(type.tier)", fontSize: plateSize * 0.2)
-        tierLabel.fontColor = Palette.ink
-        tierLabel.position = CGPoint(x: 0, y: plateSize * 0.46)
 
         setLabel(nameLabel, text: type.displayName, fontSize: plateSize * 0.11)
         nameLabel.fontColor = Palette.ink

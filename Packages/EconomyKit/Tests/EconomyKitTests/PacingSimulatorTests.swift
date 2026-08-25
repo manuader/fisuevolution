@@ -48,7 +48,7 @@ private func upConfig(maxTier: Int = 20, gateTierDistance: Int = 5) -> EconomyCo
         passiveRatio: 0.5,
         passiveUnlockCostMultiplier: 60,
         hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.2,
-                    tierPremium: 1.8, gateTierDistance: gateTierDistance),
+                    priceGrowthPerTier: 1.5, gateTierDistance: gateTierDistance),
         charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 4.0, effectStepPerLevel: 1.0, maxLevel: 19),
         oro: .init(divisor: 1000, exponent: 0.45, globalMultiplierPerOro: 0.18),
         critChanceBase: 0,
@@ -240,6 +240,59 @@ struct PacingSimulatorInstrumentTests {
         // el 8: por eso `godActive` no puede derivarse de la tabla de pisos.
         let topFloor = try #require(report.floorUnlockActiveSeconds["f2"])
         #expect(topFloor < active, "f2 abre en el tier 5 y dios es el 8")
+    }
+
+    /// **La regla de selección de contrataciones, pineada el 2026-08-23 con el
+    /// precio anclado a la frontera.**
+    ///
+    /// Escenario: la frontera en el tier 10, la compuerta en 5. Lo contratable
+    /// va del t1 —el exento— al t5, y el que gana es el **t4**: el tope del piso
+    /// barato. El t1 es MÁS BARATO en pesos (mismo piso, mismo multiplicador de
+    /// 25, tres tiers más abajo) y aun así es peor negocio, porque hacen falta
+    /// 2⁹ = 512 para una unidad de frontera contra 2⁶ = 64 del t4.
+    ///
+    /// ⚠️ **La regla vieja (`min(by: cost)`) habría elegido el t1**, y ésa era
+    /// la respuesta correcta hasta que el precio dejó de seguir a
+    /// `tapYield(tier)`: con la curva vieja lo más barato era también lo más
+    /// eficiente. Un bot que siga comparando precios mide a un jugador que se
+    /// queda mergeando fisuras mientras la tienda le vende arriba.
+    ///
+    /// Que gane el t4 y no el t5 es la COSTURA del piso barato (25 contra 600),
+    /// la misma que `elDescuentoDelCallejonSeAgotaSolo` pinea contra el juego
+    /// real: adentro de un mismo multiplicador gana el más alto, y el salto de
+    /// multiplicador es lo único que puede darlo vuelta.
+    @Test("el bot contrata lo más barato POR UNIDAD DE FRONTERA, no lo más barato")
+    func theBotHiresTheBestCostPerFrontierUnit() throws {
+        let simulator = try upSimulator()
+        var state = PlayerState.newGame(
+            startTypeId: "t1", startFloorId: "f1",
+            offlineEfficiencyBase: 0.35, critChanceBase: 0, now: 0
+        )
+        state.run.unlockedFloors = ["f1", "f2", "f3"]
+        state.run.maxTierReached = 10
+        state.run.coins = 1e12
+
+        let elegido = try #require(simulator.bestHire(state: state))
+        #expect(elegido.typeId == "t4", "el tope del piso barato, no el t1 que sale menos")
+
+        // Y el escenario prueba algo: el t1 estaba ahí, era legal y era MÁS
+        // BARATO. Lo que lo deja afuera es que su unidad de frontera sale
+        // 2³/1,5³ = 2,37 veces más — 512 fisuras contra 64 t4.
+        let config = upConfig()
+        let unidad = { (tier: Int, piso: Int) in
+            pow(2, Double(10 - tier)) * config.hireCost(
+                floor: config.floors[piso], tier: tier, frontierTier: 10, purchases: 0
+            )
+        }
+        #expect(
+            config.hireCost(floor: config.floors[0], tier: 1, frontierTier: 10, purchases: 0)
+                < config.hireCost(floor: config.floors[0], tier: 4, frontierTier: 10, purchases: 0),
+            "el t1 tiene que ser el barato para que el test pruebe la regla"
+        )
+        #expect(abs(unidad(1, 0) / unidad(4, 0) - pow(2 / 1.5, 3)) < 1e-9)
+        // Y dentro del piso caro pasa lo mismo: el t5 le gana al t8 por el salto
+        // de multiplicador, pero entre t5 y t6 gana el más alto.
+        #expect(unidad(5, 1) > unidad(6, 1))
     }
 
     /// La regla que el efecto secuencial invalidó, pineada para que no se

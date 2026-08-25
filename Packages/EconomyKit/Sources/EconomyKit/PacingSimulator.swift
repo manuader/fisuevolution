@@ -279,9 +279,24 @@ public struct PacingSimulator: Sendable {
 
     // MARK: - Acciones
 
-    private struct Action {
+    struct Action {
         let cost: Double
         let perform: (inout PlayerState) -> Void
+    }
+
+    /// Una contratación candidata: lo que sale, y lo que sale **por unidad de tu
+    /// frontera**, que es la moneda en la que el jugador compara dos filas de
+    /// FisuJobs. Un tipo `d` tiers por debajo de tu frontera necesita `2^d`
+    /// compras para convertirse en una unidad de arriba, así que el número que
+    /// decide es `precio × 2^d` y no el precio.
+    ///
+    /// El desempate va por `typeId` para que la corrida siga siendo
+    /// determinística: el orden de iteración de un `Dictionary` cambia por
+    /// proceso.
+    struct HireCandidate {
+        let typeId: String
+        let action: Action
+        let frontierUnitCost: Double
     }
 
     /// La mejora por personaje elegida: qué tipo, qué cuesta y cuánto income por
@@ -297,6 +312,22 @@ public struct PacingSimulator: Sendable {
     }
 
     /// La próxima compra deseable más barata (la espera la decide el caller).
+    ///
+    /// ⚠️ **Entre CONTRATACIONES no gana la más barata, gana la más barata POR
+    /// UNIDAD DE FRONTERA**, y la distinción nació el 2026-08-23 con el precio
+    /// anclado a la frontera. Hasta entonces las dos preguntas tenían la misma
+    /// respuesta —el precio seguía a `tapYield(tier)`, que crece 2,8 por tier
+    /// contra el 2 del merge, así que lo más barato era también lo más eficiente
+    /// y bastaba con un `min` por precio—. Con la pendiente del precio por
+    /// debajo del factor de merge las dos respuestas se dan vuelta: el Fisura
+    /// sigue siendo lo más barato del catálogo y pasa a ser lo MENOS eficiente,
+    /// y un bot que compre por precio se queda mergeando fisuras mientras el
+    /// jugador compra arriba. Medido: con la compuerta en 7 tiers, el bot por
+    /// precio tardaba 188,33 h en maxear y el bot por eficiencia 25,33 h.
+    ///
+    /// Las otras dos categorías siguen compitiendo por PRECIO, y también está
+    /// bien: un passive unlock o un nivel de mejora no producen frontera, así
+    /// que su moneda es la de siempre.
     private func nextAction(state: PlayerState) -> Action? {
         var candidates: [Action] = []
 
@@ -327,15 +358,33 @@ public struct PacingSimulator: Sendable {
         // 3. Hire en el piso 1 (motor del early game) si hay lugar. Su tier base
         //    es el exento de la compuerta, así que siempre está disponible — que
         //    es justo el rol que el diseño le da al Fisura.
-        candidates.append(contentsOf: hireActions(floorOrdinal: 0, state: state, requireProfit: false))
-
-        // 4. Backfill: hire en pisos superiores desbloqueados SOLO si es rentable
-        //    (precio punitivo: recién conviene con la frontera pisos arriba).
-        for ordinal in 1..<floorTable.count where state.run.unlockedFloors.contains(floorTable[ordinal].id) {
-            candidates.append(contentsOf: hireActions(floorOrdinal: ordinal, state: state, requireProfit: true))
+        //    Y 4. el backfill de los pisos superiores: los dos compiten en
+        //    `bestHire`, que elige por unidad de frontera.
+        if let mejor = bestHire(state: state) {
+            candidates.append(mejor.action)
         }
 
         return candidates.min { $0.cost < $1.cost }
+    }
+
+    /// La contratación que el bot elige: **la más barata por unidad de tu
+    /// frontera**, entre el piso 1 (siempre disponible) y el backfill rentable
+    /// de los pisos abiertos.
+    ///
+    /// `internal` por lo mismo que `bestCharUpgrade`: es una regla de selección
+    /// del bot, o sea de las pocas cosas que deciden en qué se gasta la plata de
+    /// la run, y ya se demostró dos veces que una regla de selección sin test
+    /// propio se queda vieja en silencio cuando cambia la economía.
+    func bestHire(state: PlayerState) -> HireCandidate? {
+        var hires = hireActions(floorOrdinal: 0, state: state, requireProfit: false)
+        for ordinal in 1..<floorTable.count where state.run.unlockedFloors.contains(floorTable[ordinal].id) {
+            hires += hireActions(floorOrdinal: ordinal, state: state, requireProfit: true)
+        }
+        return hires.min {
+            $0.frontierUnitCost == $1.frontierUnitCost
+                ? $0.typeId < $1.typeId
+                : $0.frontierUnitCost < $1.frontierUnitCost
+        }
     }
 
     /// Las contrataciones que este piso ofrece: **TODOS sus tiers habilitados**,
@@ -343,22 +392,23 @@ public struct PacingSimulator: Sendable {
     ///
     /// ⚠️ **El bot compraba sólo el tier base de cada piso, y eso dejó de ser
     /// una aproximación aceptable el 2026-08-22.** El argumento era que comprar
-    /// más arriba nunca conviene —lo garantiza `tierPremium`— y valía mientras
-    /// la compuerta se midiera en PISOS: habilitado un piso, su base era la
-    /// compra más barata y punto. Con la compuerta medida en tiers, el tier más
-    /// alto que podés comprar es `frontera − N`, que **casi nunca es un tier
-    /// base**: un bot que sólo compra bases redondea su distancia hacia arriba
-    /// hasta el próximo borde de piso, y con la distancia real se queda
+    /// más arriba nunca conviene —lo garantizaba el `tierPremium` de entonces— y
+    /// valía mientras la compuerta se midiera en PISOS: habilitado un piso, su
+    /// base era la compra más barata y punto. Con la compuerta medida en tiers,
+    /// el tier más alto que podés comprar es `frontera − N`, que **casi nunca es
+    /// un tier base**: un bot que sólo compra bases redondea su distancia hacia
+    /// arriba hasta el próximo borde de piso, y con la distancia real se queda
     /// mergeando fisuras hasta que la partida no se termina (medido: con N=5 el
     /// bot no pasaba del tier 9 en 90 días). El jugador, mientras tanto, tiene
     /// esa fila en FisuJobs.
     ///
     /// Quién gana entre todas sigue decidiéndolo la regla de siempre —la compra
-    /// deseable MÁS BARATA, en `nextAction`—, así que el `tierPremium` sigue
-    /// mandando: el tier base es más barato hasta que su propia curva
-    /// (`growth^compras`, por TIPO) lo pasa. Ahí el bot cambia solo, que es
-    /// exactamente lo que hace el jugador cuando el Fisura número doscientos
-    /// sale más que un Trapito.
+    /// deseable MÁS BARATA, en `nextAction`—, y desde el precio anclado a la
+    /// frontera (2026-08-23) esa regla apunta al tier **más alto** que la
+    /// compuerta habilita: bajar uno abarata el precio 1,5× pero duplica cuántas
+    /// unidades hacen falta. La excepción medida es el callejón, 24× barato por
+    /// el ancla del Fisura, y el bot la aprovecha igual que el jugador hasta que
+    /// su propia curva (`growth^compras`, por TIPO) la apaga.
     ///
     /// No hace falta filtrar por "visto": la compuerta ya lo garantiza (exige
     /// `maxTierReached ≥ tier + N`, así que el tipo se creó alguna vez) y el
@@ -374,7 +424,7 @@ public struct PacingSimulator: Sendable {
     /// ocupación de `run.units`). Por eso replica los dos contadores que la curva
     /// necesita —el del piso y el del TIPO—: si se olvidara del segundo, cotizaría
     /// siempre el precio de la primera compra.
-    private func hireActions(floorOrdinal: Int, state: PlayerState, requireProfit: Bool) -> [Action] {
+    private func hireActions(floorOrdinal: Int, state: PlayerState, requireProfit: Bool) -> [HireCandidate] {
         let floor = floorTable[floorOrdinal]
         guard floorCount(floorOrdinal, state: state) < floor.capacity else { return [] }
         return (floor.firstTier...floor.lastTier).compactMap { tier in
@@ -388,7 +438,9 @@ public struct PacingSimulator: Sendable {
 
     /// Una contratación concreta: el tipo de este tier (respetando la carrera
     /// elegida cuando el tier se bifurca), cotizado y con su regla de payback.
-    private func hireAction(tier: Int, floor: FloorDef, state: PlayerState, requireProfit: Bool) -> Action? {
+    private func hireAction(
+        tier: Int, floor: FloorDef, state: PlayerState, requireProfit: Bool
+    ) -> HireCandidate? {
         let candidates = tiers.concreteTypes.filter { $0.tier == tier }
         guard let type = candidates.first(where: { $0.id.hasSuffix(careerPath) }) ?? candidates.sorted(by: { $0.id < $1.id }).first
         else { return nil }
@@ -424,12 +476,18 @@ public struct PacingSimulator: Sendable {
 
         let floorId = floor.id
         let typeId = type.id
-        return Action(cost: cost) { s in
+        let action = Action(cost: cost) { s in
             s.run.coins -= cost
             s.run.hireCounts[floorId, default: 0] += 1
             s.run.hireCountsByType[typeId, default: 0] += 1
             s.run.units[typeId, default: 0] += 1
         }
+        // Cuántas de éstas hacen falta para una unidad de tu frontera: `2^d`.
+        // Con la frontera POR DEBAJO del tier —imposible con la compuerta puesta,
+        // posible con la compuerta apagada— el exponente es negativo y el número
+        // sigue significando lo mismo: comprar arriba te ahorra merges.
+        let profundidad = Double(state.run.maxTierReached - tier)
+        return HireCandidate(typeId: typeId, action: action, frontierUnitCost: cost * pow(2, profundidad))
     }
 
     // MARK: - Merges
@@ -714,7 +772,10 @@ public struct PacingSimulator: Sendable {
         guard rate > 0 else { return .infinity }
         let typeId = baseTypeId(of: floor)
         let purchases = typeId.map { state.run.hireCountsByType[$0] ?? 0 } ?? 0
-        return config.hireCost(floor: floor, tier: floor.firstTier, purchases: purchases) / rate
+        return config.hireCost(
+            floor: floor, tier: floor.firstTier,
+            frontierTier: state.run.maxTierReached, purchases: purchases
+        ) / rate
     }
 
     /// El tipo del tier base del piso, elegido igual que en `hireAction` (misma
@@ -750,7 +811,11 @@ public struct PacingSimulator: Sendable {
         let rate = incomeRate(state: state, active: true)
         guard rate > 0 else { return (typeId, purchases, .infinity) }
         let floor = floorTable.floor(forTier: type.tier)
-        return (typeId, purchases, config.hireCost(floor: floor, tier: type.tier, purchases: purchases) / rate)
+        let cost = config.hireCost(
+            floor: floor, tier: type.tier,
+            frontierTier: state.run.maxTierReached, purchases: purchases
+        )
+        return (typeId, purchases, cost / rate)
     }
 
     /// Registra pisos recién alcanzados (unlockTier ≤ maxTier) con sus tiempos.

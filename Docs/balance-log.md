@@ -1688,3 +1688,237 @@ cd Tools/pacing-sim && swift run -c release pacing-sim \
 # la partida del dueño (sin reencarnar), que es el contrapunto:
 #   … --no-reincarnation
 ```
+
+---
+
+# Cuarta ronda — El precio anclado a la frontera (2026-08-23)
+
+> **El titular**: la causa raíz que midió la tercera ronda **está cerrada**.
+> Comprar hondo pasó de costar `0,71^d` a costar `1,33^d`, y con eso la
+> compuerta se volvió por primera vez un dial de dificultad real (N=5 → 4,14 h ·
+> N=6 → 7,27 h · N=7 → 185,63 h). **El contrato de 20-30 h sigue sin cumplirse**,
+> y la causa que queda también está medida y es otra: **la mitad del tiempo
+> activo del bot es apretar el botón, no esperar plata**.
+
+Commits: `e7a9b08` (el precio) · `9e698fc` (el bot) · `c90a0aa` (la compuerta a 6).
+Corrida: `Docs/balance-run-t9-precio-frontera.csv`.
+
+## La fórmula nueva, y por qué el ancla tiene que ser la frontera
+
+    mult(piso) × tapYield(FRONTERA) × factorDePiso
+              × priceGrowthPerTier^(tier − frontera) × growth^compras
+
+El diseño quiere dos cosas a la vez y no puede tenerlas con un precio que
+dependa sólo del tier:
+
+1. que subir un tier cueste siempre lo mismo en **tiempo** ⇒ precio ∝ rendimiento
+   de tu frontera, que es de donde sale tu ingreso ⇒ pendiente 2,8 por tier;
+2. que la **pendiente del precio por tier** sea ≤ 2, el factor de merge, o si no
+   comprar hondo es más barato.
+
+Las dos juntas son contradictorias mientras el precio sea `f(tier)`: la primera
+le fija la pendiente en 2,8. Anclarlo a la frontera separa el **nivel** (2,8 por
+tier de frontera, que mantiene el pacing plano) de la **pendiente** (1,5 por tier
+comprado, que cierra el atajo). Ésa es toda la idea, y es la Opción 1 de la ronda
+anterior llevada a su forma mínima.
+
+`priceGrowthPerTier` = **1,5**, y lo que importa del número es que esté por
+debajo de 2:
+
+| `P` | una unidad de frontera comprada `d` tiers abajo |
+|---|---|
+| > 2 | `(2/P)^d < 1` → comprar hondo sale más barato (el agujero de siempre) |
+| = 2 | exactamente igual: la indiferencia |
+| **1,5** | **`1,33^d` más caro por cada tier de profundidad** |
+
+`tierPremium` (1,8) se borra, y no por inerte: bajo la fórmula nueva dejaría la
+pendiente real DENTRO del piso en 2,8 × 1,8 = 5,04, o sea el agujero otra vez. Su
+trabajo —que comprar arriba no sea un atajo contra mergear— ya lo hace la
+compuerta, que no autoriza nada por encima de `frontera − N`.
+
+## La regla de precios nueva (reemplaza a la de los 600 clicks)
+
+> 1. Contratar **a tu frontera** cuesta **600 clicks** de ese personaje (el
+>    callejón, 25 — el primer Fisura sigue saliendo 25).
+> 2. Cada tier que bajás descuenta sólo un tercio (÷1,5) y fusionar necesita el
+>    doble de unidades: **bajar un tier deja la unidad de tu frontera 1,33× más
+>    cara**. Comprar hondo dejó de ser un atajo.
+
+La pinea `hirePricesFollowTheOwnersRule`, con las dos mitades y sobre los treinta
+y siete tiers (antes sólo sobre los diez tier base).
+
+**La única costura es el callejón**, y es el precio de la decisión cerrada del
+Fisura a 25: su multiplicador (25 contra 600) lo deja 24× barato, así que comprar
+ahí y subir es un descuento **acotado y no compuesto** que se agota solo en el
+tier 22 de 37 (`25 × 1,33^(f−4)` alcanza a `600 × 1,33^6`). Lo pinea
+`elDescuentoDelCallejonSeAgotaSolo`.
+
+## La tercera ceguera del bot
+
+`nextAction` elegía la contratación con el `min` por PRECIO. Eso valía mientras lo
+más barato fuera también lo más eficiente, que es exactamente lo que el precio
+viejo garantizaba. Con el precio nuevo las dos respuestas se dan vuelta: el Fisura
+sigue siendo lo más barato del catálogo y pasa a ser lo MENOS eficiente. Ahora
+gana la más barata **por unidad de frontera** (`precio × 2^(frontera − tier)`).
+
+| | maxear | dios | con N=7 |
+|---|---:|---:|---:|
+| bot por precio | 5,33 h | 7,66 h | 188,33 h |
+| bot por eficiencia | **4,14 h** | **4,59 h** | **185,63 h** |
+
+## El barrido de la compuerta, con el bot arreglado
+
+| N | maxear | reenc al maxear | dios | 1ª reenc (pared) | peor paso | salto máx |
+|---:|---:|---:|---:|---:|---:|---:|
+| 3 | 1,81 h | 9 | 1,98 h | 0,24 h | ×3,18 | 0,47 h |
+| 4 | 2,33 h | 8 | 2,57 h | 4,00 h | ×11,18 | 0,91 h |
+| 5 | 4,14 h | 9 | 4,59 h | 4,00 h | ×7,64 | 1,35 h |
+| **6 (elegido)** | **7,27 h** | **8** | **9,40 h** | **4,28 h** | **×16,37** | **2,02 h** |
+| 7 | 185,63 h | 8 | 189,62 h | 28,29 h | ×4.441,72 | 96,31 h |
+| 8 | — (maxTier 9 a los 400 días) | — | — | 28,29 h | ×4.441,72 | — |
+
+**Por qué 6 y no 7.** El 7 no falla por el largo sino por el muro del early game:
+hasta que la frontera llega a `N+2` lo único contratable es el Fisura, así que hay
+que mergear `2^(N+1)` de ellos contra `1,06^compras`. Con el callejón destrabado
+(`hireCostGrowth` 1,02 sólo en el callejón) el muro se va y N=7 mide 10,34 h — pero
+el peor paso queda en ×19,43 y la primera reencarnación a 9 h de pared.
+
+## El hallazgo de esta ronda: el juego es *action-bound*, no *money-bound*
+
+El simulador cobra **1 s de manipulación por compra**, y con la compuerta en `N`
+cada tier de frontera cuesta `2^N` compras. Experimento (no commiteado): poniendo
+ese segundo en cero,
+
+| | con 1 s por compra | sin manipulación |
+|---|---:|---:|
+| N=5 | 4,14 h | **2,19 h** (−47 %) |
+| N=8 + growth 1,02 | 11,67 h | 9,67 h (−17 %) |
+
+O sea que **la mitad del tiempo activo del bot es apretar el botón**. Tres
+consecuencias, y explican todo lo demás de la ronda:
+
+1. **Los knobs de precio son sublineales.** `defaultCostMultiplier` ×16 (600 →
+   10.000) compra ×1,75 de partida. Y parte de eso ni siquiera es el precio: el
+   bot compensa comprando mejoras por personaje, que suben el ingreso.
+2. **El atajo viejo estaba sosteniendo la mitad del largo del juego sin que nadie
+   lo hubiera diseñado.** Comprar hondo era barato pero pedía `2^(frontera−1)`
+   compras; comprar en la compuerta es caro y pide `2^N`. Cerrar el atajo bajó las
+   compras y por eso la partida se acortó (6,67 → 4,14 h) antes de subir la
+   compuerta.
+3. **Reencarnar no puede pagar mientras el reloj sea de manipulación.** El ORO te
+   saca la ESPERA, no las compras, y la torre vuelve al tier 1 cada vez.
+
+Y hay un segundo acelerador abierto: el `incomeMultiplier` del piso (1 → 620) lo
+cobra el **pasivo** y no lo cobra el precio, así que el ingreso crece 3,33× por
+tier contra los 2,8× del precio. Se ve en la columna "entrar al piso" de la
+corrida: **100 s en el callejón, 0,0 s en el reino divino**, y la mitad del tiempo
+de una subida entera se va en los dos primeros pisos.
+
+## Lo descartado, con su número
+
+Todo con el bot arreglado, precio nuevo y N=5 salvo donde se indique.
+
+- **`hire.priceGrowthPerTier`** (el knob nuevo): dial DÉBIL. 1,20 → 5,58 h ·
+  1,35 → 4,56 · **1,50 → 4,14** · 1,70 → 3,52 · 1,90 → 3,65 · 2,00 → 2,67. Con
+  N=6 y el callejón destrabado: 1,2 → 8,00 h · 1,0 → 9,33 h, y 1,0 aplana los
+  precios de toda la vitrina (todos los personajes salen lo mismo).
+- **`hire.defaultCostMultiplier`**: SUBLINEAL. 600 → 4,14 h · 1.200 → 4,33 ·
+  3.000 → 5,00 · 10.000 → 7,23. ×16 de precio compra ×1,75 de partida.
+- **`hire.defaultCostGrowth`**: 1,02 → 3,00 h · **1,06 → 4,14** · 1,12 → 5,98.
+  Sirve para lo contrario de lo que parece: BAJARLO es lo que destraba el muro
+  del early game con la compuerta profunda (N=7: 185,63 h → 6,00 h con 1,02
+  global, → 10,34 h con 1,02 sólo en el callejón).
+- **`charUpgrades.baseCostMultiplier`**: 50 → 4,14 h · 200 → 5,00 · 1.000 → 7,54,
+  y 1.000 manda la 1ª reencarnación a 9 h de pared.
+- **`charUpgrades.costGrowth`**: INERTE otra vez. 1,5 → 4,14 h · 2,5 → 4,33 ·
+  4,0 → 4,49.
+- **`oro.divisor`**: 1e9 → 4,14 h · 1e11 → 5,00 (1ª reenc 9,05 h de pared) ·
+  3e12 → 5,33 (1ª reenc 14,00 h). Mismo techo y mismo costo que en la ronda 3.
+- **`oro.globalMultiplierPerOro`**: 0,18 → 4,14 h · 0,05 → 4,47. INERTE.
+- **`passiveRatio`**: inerte **por construcción** (los pasivos están horneados en
+  `tiers.json`). 0,5 y 0,2 dan corridas idénticas al último decimal. Confirmado
+  por segunda vez.
+- **`tapFloorMultiplierExponent`**: casi INERTE, y ahora se entiende por qué: el
+  mismo factor lo cobran el precio Y el tap, así que subirlo encarece y financia
+  a la vez. 0 → 4,14 h · 0,3 → 3,67 · 0,6 → 4,23 · 1,0 → 4,50.
+- **Curva de `incomeMultiplier` de `floors[]`**: r=2,04 (embarcada) → 4,14 h ·
+  r=1,5 → 4,33 · r=1,3 → 5,91 · r=1,2 → 5,67 · **r=1,0 (plana) → 6,83 h**, y con
+  N=6, **12,16 h** (pero 9 reencarnaciones al maxear, o sea rompe el ≤8).
+- **Precio anclado al `incomeMultiplier` de la frontera** (experimento, no
+  commiteado): N=3 → 2,85 h · N=4 → 4,00 · N=5 → **6,63** · N=6 → 10,49 h con
+  **13 reencarnaciones** (rompe el ≤8).
+- **Cobrar 1 s por MERGE además de por compra** (experimento de instrumental, no
+  commiteado): N=5 → 5,33 h · N=6 → 6,67 h · N=7 con el callejón destrabado →
+  13,33 h y dios a 21,21 h. Sube todo ~30 %. **No se adoptó**: cambiaría lo que
+  mide el instrumento, no lo que dura el juego, y re-pinearía todas las bandas
+  históricas de la rama. Es decisión del dueño.
+
+**Combinaciones**, las mejores medidas (todas con el callejón en `hireCostGrowth`
+1,02, que es lo que destraba la compuerta profunda):
+
+| combinación | maxear | reenc al maxear | dios | peor paso | salto máx |
+|---|---:|---:|---:|---:|---:|
+| N=6, mult 8.000 | 9,67 h | 8 ✅ | 11,69 h | ×9,08 | 2,77 h |
+| N=6, P=1,0 | 9,33 h | 8 ✅ | 12,46 h | ×8,48 | 3,27 h |
+| N=7 | 10,34 h | 8 ✅ | 14,87 h | ×19,43 | 3,33 h |
+| N=7, mult 3.000 | 12,94 h | 8 ✅ | 16,33 h | ×19,43 | 5,29 h |
+| N=6, mult 3.000, chUp 200 | 10,93 h | 9 🔴 | 12,59 h | ×10,35 | 4,01 h |
+
+**Ninguna llega a 20-30 h**, y las que más se acercan lo pagan con el peor paso o
+con el ≤8. Las dos de arriba mueven el 600 del dueño (×13) o aplanan la vitrina
+entera, así que **no se shippearon**: no vale contorsionar sus números por 2 h que
+igual no cierran el contrato.
+
+## Las cinco métricas
+
+Corrida: `Docs/balance-run-t9-precio-frontera.csv` (N=6, árbol embarcado,
+`--max-days 400`).
+
+| métrica | contrato | ronda 3 | ahora | |
+|---|---|---:|---:|---|
+| maxear las siete | 20-30 h activas | 6,67 h | **7,27 h** | 🔴 |
+| reencarnaciones al maxear | ≤ 8 | 7 | **8** | ✅ |
+| cadencia entre reencarnaciones | 2,5-4 h activas | 0,6-2,3 h | **0,6-1,4 h** | 🔴 |
+| dios después de maxear | sí | ×2,04 | **9,40 h vs 7,27 h (×1,29)** | ✅ |
+| sin reencarnar más lento | sí | 3,28 vs 13,64 (×0,24) | **2,84 vs 9,40 (×0,30)** | 🔴 |
+
+Cadencia (h activas de cada reencarnación): 0,6 · 1,3 · 2,7 · 3,9 · 5,0 · 5,9 ·
+6,6 · 7,3 · 8,0 · 8,7.
+
+## Lo que sí quedó mejor
+
+- **La fase fisura casi se triplicó**: 28,0 → **78,0 s** activos, sin tocar el
+  Fisura ni un peso. Es la compuerta: con 6 tiers hacen falta 64 Fisuras para el
+  primer T7 y no 32.
+- **Ningún salto entre hitos pasa de 2,02 h activas** (contra 4,45 h en la ronda 3
+  y 10,0 h en la segunda), y ahora hay un test que lo mide en HORAS y sobre los
+  diez pisos: `noHitoJumpIsLongerThanFourActiveHours`.
+- **La compuerta es un dial.** Es lo que el diseño esperaba de ella desde el
+  2026-08-22 y es lo único que esta ronda tenía que devolver.
+
+## Lo que hay que decidir (no es una calibración)
+
+1. **Cobrar el merge en el simulador.** Si el reloj del dueño es "horas de dedo",
+   el instrumento hoy cuenta las compras y no las fusiones, que son el verbo
+   central del juego. Sube todo ~30 % y re-pinea todas las bandas. Medido arriba.
+2. **Cerrar el segundo acelerador**: el `incomeMultiplier` del piso lo cobra el
+   pasivo y no el precio. Aplanarlo a 1,0 → 6,83 h (12,16 h con N=6); anclarle el
+   precio al `incomeMultiplier` de la frontera → 6,63 h. Las dos rompen algo (la
+   progresión de pisos, o el ≤8 reencarnaciones).
+3. **Que reencarnar valga la pena** pide algo que hoy no existe: una mejora
+   permanente que acorte la SUBIDA (menos compras por tier), no el ahorro. Con el
+   reloj de manipulación, ningún multiplicador de ingreso puede hacer que
+   reencarnar gane.
+4. **Re-enunciar el contrato** sobre lo que el juego mide: 7,27 h a maxear y
+   9,40 h a dios.
+
+## Cómo re-correr
+
+```bash
+swift run --package-path Tools/pacing-sim pacing-sim \
+  --economy FisuEvolution/Resources/Data/economy.json \
+  --tiers FisuEvolution/Resources/Data/tiers.json \
+  --upgrades FisuEvolution/Resources/Config/upgrades.json --max-days 400
+# la partida del dueño (sin reencarnar), que es el contrapunto:
+#   … --no-reincarnation
+```

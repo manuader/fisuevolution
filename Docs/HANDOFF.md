@@ -238,6 +238,49 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-08-23 — El precio atado a la frontera, y el reloj que no era de plata
+
+`fix/rebalance-pacing`, cuarta ronda. **El precio de contratar dejó de seguir a
+`tapYield(tier)` y pasa a anclarse en tu FRONTERA de merge** (decisión del dueño,
+Opción 1 de la ronda anterior):
+
+    mult(piso) × tapYield(FRONTERA) × factorDePiso
+              × priceGrowthPerTier^(tier − frontera) × growth^compras
+
+La derivación, que es lo que hace que no sea una preferencia: el diseño quiere
+que subir un tier cueste siempre lo mismo en TIEMPO (⇒ precio ∝ rendimiento de tu
+frontera ⇒ pendiente 2,8 por tier) **y** que la pendiente del precio sea ≤ 2, el
+factor de merge (⇒ o si no comprar hondo es más barato). Con un precio `f(tier)`
+las dos son contradictorias. Anclarlo a la frontera separa el **nivel** (2,8 por
+tier de frontera, pacing plano) de la **pendiente** (`priceGrowthPerTier` = 1,5,
+atajo cerrado). Comprar hondo pasó de costar `0,71^d` a costar **`1,33^d`**.
+`tierPremium` se borró: bajo la fórmula nueva dejaría la pendiente dentro del
+piso en 2,8 × 1,8 = 5,04, o sea el agujero otra vez.
+
+Con eso **la compuerta se volvió por fin un dial de dificultad** (N=5 → 4,14 h ·
+N=6 → 7,27 h · N=7 → 185,63 h) y subió a **6**.
+
+⚠️ **El contrato de 20-30 h sigue sin cumplirse (7,27 h), y la causa que queda es
+otra**: el simulador cobra 1 s por compra y **la mitad del tiempo activo del bot
+es apretar el botón, no esperar plata** (sin ese segundo, maxear cae de 4,14 h a
+2,19 h). Por eso todos los knobs de precio son sublineales —×16 en
+`defaultCostMultiplier` compra ×1,75 de partida— y por eso el atajo viejo estaba
+sosteniendo la mitad del largo del juego sin que nadie lo hubiera diseñado.
+`PacingTests.theOwnersTargetsAreMet` **sigue en rojo**.
+
+Tercera ceguera del bot arreglada, misma clase que las dos anteriores: elegía la
+contratación **más barata**, que con el precio nuevo es la PEOR (el Fisura). Ahora
+elige la más barata **por unidad de frontera**.
+
+Lo que mejoró, medido: la **fase fisura casi se triplicó** (28,0 → 78,0 s activos)
+sin tocar el Fisura, el **peor salto entre hitos bajó a 2,02 h** (4,45 h en la
+ronda 3, 10,0 h en la segunda) y ahora hay un test que lo mide en HORAS y sobre
+los diez pisos (`noHitoJumpIsLongerThanFourActiveHours`).
+
+Detalle: **`Docs/SESION-2026-08-23-precio-atado-a-la-frontera.md`**. Números y
+barridos: `balance-log.md`, "Cuarta ronda". Corrida:
+`balance-run-t9-precio-frontera.csv`.
+
 ### Sesión del 2026-08-22 — La compuerta por distancia, y el bot que no era el jugador
 
 `fix/rebalance-pacing`, tercera ronda. **La compuerta de contratación pasó de
@@ -736,17 +779,40 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
 1. **El primer Fisura cuesta 25** (el dueño lo bajó de 50 el 2026-08-18; pineado
    en `GameContentValidationTests`) y los targets de pacing se bajaron a la
    conducta real en vez de recalibrar knobs. Costo medido en `balance-log §F7.6`.
-2. **Contratar arriba cuesta 600×** lo que rinde un click ahí. El callejón va
-   aparte y barato: su `hireCostMultiplierOverride` es **25**, que es lo que
-   ancla al primer Fisura en 25 monedas.
-   ⚠️ **Enmienda del 2026-08-21 (rebalance de pacing): `hire.defaultCostGrowth`
-   baja de 1,2 a 1,06** — de +20 % a +6 % por compra. El ancla NO se mueve (el
-   primer Fisura sigue en 25 y `defaultCostMultiplier` en 600): cambia sólo la
-   PENDIENTE, y el segundo Fisura pasa de 30 a 26,5. El motivo, medido: con el
-   20 % el bot llega a un pico de 70 compras y la siguiente cuesta 384 s de
-   income, así que **se traba en el tier 11 y la partida no se puede terminar**.
-   ⚠️⚠️ **Y el "600 veces lo que rinde un click" vale para los NUEVE pisos de
-   arriba, no para los diez**: el callejón son 25 clicks por el override.
+2. **LA REGLA DE PRECIOS, reescrita el 2026-08-23 (decisión del dueño).** La
+   vieja —"el tier base de un piso cuesta 600 veces lo que rinde un click SUYO
+   ahí"— **ya no vale**, y su reemplazo son dos renglones:
+
+   > **(a)** Contratar **a tu frontera** cuesta **600 clicks** de ese personaje
+   > (el callejón, **25** por su `hireCostMultiplierOverride` — el primer Fisura
+   > sigue saliendo 25).
+   > **(b)** Cada tier que **bajás** descuenta sólo un tercio (÷`priceGrowthPerTier`
+   > = 1,5) y fusionar necesita el **doble** de unidades: bajar un tier deja la
+   > unidad de tu frontera **1,33× más cara**. Comprar hondo dejó de ser un atajo.
+
+   Por qué cambió: la vieja ataba el precio a `tapYield(tier)`, la MISMA curva que
+   el rendimiento (2,8 por tier), y como fusionar sólo multiplica por 2, comprar
+   `d` tiers abajo salía `(2/2,8)^d`. Comprar hondo siempre ganaba, y por eso una
+   compuerta más profunda ABARATABA el juego. El ancla en la frontera separa el
+   NIVEL del precio (2,8 por tier de frontera, que mantiene el pacing plano) de su
+   PENDIENTE (1,5 por tier comprado). Ningún precio que dependa sólo del tier
+   puede tener las dos cosas.
+   Pineada en `GameContentValidationTests.hirePricesFollowTheOwnersRule`, con las
+   dos mitades y sobre los 37 tiers.
+   ⚠️ **Consecuencia user-visible**: los precios de FisuJobs **suben cada vez que
+   la torre sube** (×2,8/1,5 = ×1,867 por tier de frontera). Lo que se mantiene
+   plano es el TIEMPO, porque tu ingreso también sale de la frontera.
+   ⚠️ **La única costura es el callejón** (25 contra 600): comprar ahí sale 24×
+   menos y la mitad (b) no vale al cruzar ese borde. Es un descuento ACOTADO y no
+   compuesto que se agota solo en el tier 22 de 37; lo pinea
+   `elDescuentoDelCallejonSeAgotaSolo`.
+   ⚠️ **`hire.tierPremium` ya no existe.** Su trabajo —que comprar arriba no sea
+   un atajo contra mergear— lo hace la compuerta; y con la fórmula nueva dejaría
+   la pendiente real dentro del piso en 2,8 × 1,8 = 5,04, o sea el agujero otra vez.
+   ⚠️ **Enmienda del 2026-08-21 que sigue en pie: `hire.defaultCostGrowth` es
+   1,06** — de +20 % a +6 % por compra. El motivo, medido: con el 20 % el bot
+   llega a un pico de 70 compras y la siguiente cuesta 384 s de income, así que
+   **se traba en el tier 11 y la partida no se puede terminar**.
 2bis. **Las mejoras por personaje son SECUENCIALES** (dueño, 2026-08-22): el
    multiplicador es `1 + nivel`, o sea ×2, ×3, ×4 … **×20**, y no el `2^nivel`
    que llegaba a ×1.048.576. Su palabra: *"esto va a reducir mucho las ganancias
@@ -770,18 +836,26 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    `hireGateExempt` del urbano (que cerró el muro de 268 h de la Ola 3) se
    borraron, y la clave salió de `FloorDef` y del JSON. La única excepción es el
    tier base de la torre, que es una regla de diseño y no un parche.
-   ⚠️ **Y N no es un dial de dificultad en esta economía**: con
-   `yieldGrowthPerTier` (2,8) por encima del factor de merge (2), comprar hondo
-   siempre sale más barato y una compuerta más profunda ABARATA el juego. Lo
-   único que la profundidad agrega es el muro del early game, que es lo que rompe
-   la partida con N≥8. Los números, en `balance-log`, "Tercera ronda".
+   ⚠️ **N = 6 desde el 2026-08-23, y recién ahí pasó a ser un dial de verdad.**
+   Mientras el precio siguió a `tapYield(tier)`, una compuerta más profunda
+   ABARATABA el juego (N=4 → 6,67 h · N=6 → 5,34 h). Con el precio anclado a la
+   frontera va para el lado que el diseño esperaba: **N=5 → 4,14 h · N=6 → 7,27 h
+   · N=7 → 185,63 h**, porque cada tier de profundidad duplica las compras que
+   hacen falta. Arriba de 6 se despierta el muro del early game —hasta que la
+   frontera llega a `N+2` lo único contratable es el Fisura—: es lo que pone el
+   peor paso en ×4.441 y la primera reencarnación a 28 h de pared. Los números,
+   en `balance-log`, "Cuarta ronda".
 4. **Los tintes IAP se retiraron** aunque eran los únicos productos pagos además
    de remove_ads.
 5. 🔴 **`PacingTests.theOwnersTargetsAreMet` está en ROJO desde el 2026-08-22 y
-   es la verdad, no un descuido**: maxear las siete mide 6,67 h contra las 20-30
-   pedidas. Se descubrió arreglando el simulador, no cambiando la economía. Antes
-   de tocar nada leé `Docs/SESION-2026-08-22-compuerta-por-distancia.md` §5: la
-   salida es una decisión del dueño y hay tres, medidas.
+   es la verdad, no un descuido**: maxear las siete mide **7,27 h** contra las
+   20-30 pedidas. Se descubrió arreglando el simulador, no cambiando la economía.
+   La causa de la ronda 3 (el precio atado a `tapYield(tier)`) **ya está
+   cerrada**; la que queda es otra y también está medida: **la mitad del tiempo
+   activo del bot es apretar el botón, no esperar plata**, así que los knobs de
+   precio son sublineales. Antes de tocar nada leé
+   `Docs/SESION-2026-08-23-precio-atado-a-la-frontera.md` §3 y §7: las salidas
+   son decisiones del dueño y hay cuatro, medidas.
    `PacingTests` tiene **dos clases de assert y no hay que confundirlas**: las
    cuatro BANDAS son ±30 % de la conducta medida (se re-pinean cada vez que el
    dueño cambia el balance a propósito), y `theOwnersTargetsAreMet` es el
@@ -850,18 +924,30 @@ cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   #
 xcrun simctl shutdown $UDID && xcrun simctl delete $UDID   # ⚠️ el cierre es parte del trabajo
 ```
 
-Estado el **2026-08-22** (cierre de la compuerta por distancia):
-**EconomyKit 242 · app 411 con 1 ROJO DECLARADO · UI 48 · pipeline 27 (1 rojo
-conocido)**, cero warnings de compilador. Los tres primeros salen de la MISMA
-verificación y **la suite de UI entera corrió en una sola pasada, sin un solo
-`-skip-testing:` y sin flakies**.
+Estado el **2026-08-23** (cierre del precio anclado a la frontera):
+**EconomyKit 243 · app 413 con 12 rojos (1 DECLARADO + 11 de máquina) · UI 48 ·
+pipeline 27 (1 rojo conocido)**, cero warnings de compilador. Los tres primeros
+salen de la MISMA verificación y **la suite de UI entera corrió en una sola
+pasada, sin un solo `-skip-testing:` y sin flakies**.
 
-🔴 El rojo de app es **`PacingTests.theOwnersTargetsAreMet`** y es la verdad, no
-un flaky: maxear las siete mide 6,67 h contra las 20-30 pedidas. Ver §5.5.
+🔴 El rojo declarado es **`PacingTests.theOwnersTargetsAreMet`** y es la verdad,
+no un flaky: maxear las siete mide 7,27 h contra las 20-30 pedidas. Ver §5.5.
 
-⚠️⚠️ **Xcode 26.6 (2026-08-24) dejó la máquina sin runtime de simulador iOS 26** y
-la receta de arriba NO CORRE tal cual. Tres parches encadenados, y cada uno tapa
-al siguiente:
+🔴 Los otros 11 son **StoreKit y NO son del proyecto**: contra el runtime iOS
+26.5 la tienda local vuelve vacía (`store.products == []`), así que caen las 10
+de `StoreManagerTests` y la de `StoreProductsTests`. **Verificado a mano en un
+worktree limpio en `8f884ea`**, con el mismo simulador y el mismo comando: fallan
+igual sin ningún cambio encima. Es un gate de máquina.
+
+✅ **El runtime de iOS 26 ya está instalado** (26.5 - 23F77): el gate humano del
+2026-08-22 está resuelto y **`Assets.xcassets` NO hay que sacarlo del target**.
+Lo que sigue haciendo falta es el flag de `StoreKitTest`:
+
+```bash
+xcodebuild … OTHER_SWIFT_FLAGS='$(inherited) -Xcc -Wno-deprecated-declarations'
+```
+
+<details><summary>La receta de la ronda 3, cuando la máquina no tenía runtime de iOS 26 (histórica)</summary>
 
 ```bash
 # 1) sin esto xcodebuild no lista NINGÚN destino de simulador
@@ -880,9 +966,12 @@ los `Color("Palette…")` caen al default. No afecta a unit; la suite de UI pas�
 igual (48/48), pero un test que juzgue color no serviría así.
 `xcodebuild -downloadPlatform iOS` **no sirve** (cree que la plataforma ya está
 por el 18.6 y ninguna 26.x figura disponible). El arreglo de verdad es instalar
-el runtime desde **Xcode > Settings > Components**: es un gate humano.
+el runtime desde **Xcode > Settings > Components**: es un gate humano — y el
+2026-08-25 alguien lo hizo, así que esto es historia.
 ⚠️ Y al terminar, **volvé a poner `Assets.xcassets` en su lugar antes de
 commitear** — es fácil dejarse una veintena de borrados en el `git status`.
+
+</details>
 
 ℹ️ El **27 del pipeline** es el único que no se re-midió el 2026-08-21 (es Python
 y esta rama no lo tocó): viene del cierre de `fix/cierre-post-merge`.
@@ -1382,6 +1471,38 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     `.navigation` de `containerBackground` es **iOS 18+** —verificado en la
     swiftinterface del SDK—, por eso hay un fallback UIKit para 17.
 
+### De tests y calibración (2026-08-23)
+
+30. **Antes de barrer knobs, medí si el bot es *money-bound* o *action-bound*.**
+    `PacingSimulator` cobra **1 s de manipulación por compra** (`elapsed += wait + 1`)
+    y ese segundo era, medido, **la mitad del tiempo activo** de la partida
+    embarcada — con la compuerta en 5, maxear pasa de 4,14 h a 2,19 h poniéndolo
+    en cero. Es por qué todos los knobs de precio de tres rondas dieron
+    sublineales (×16 en `defaultCostMultiplier` compra ×1,75 de partida) y por qué
+    el barrido tenía techo. La pregunta se contesta con un experimento de dos
+    líneas y ahorra un día de barridos.
+    ⚠️ Y el corolario: **cerrar un atajo puede ACORTAR el juego.** Comprar hondo
+    era barato pero pedía `2^(frontera−1)` compras, así que estaba sosteniendo la
+    mitad del largo sin que nadie lo hubiera diseñado. Cerrarlo bajó la partida
+    de 6,67 h a 4,14 h ANTES de subir la compuerta.
+
+31. **Dos invariantes de precio pueden ser complementarios y no poder valer
+    juntos.** "Comprar el tier de arriba nunca conviene contra mergear dos del de
+    abajo" es `costo(t+1) > 2 × costo(t)`; "comprar hondo nunca sale más barato"
+    es `costo(t+1) < 2 × costo(t)`. El filo es el factor de merge y no hay tercera
+    opción: elegís un lado, y el otro lo tiene que cubrir OTRA regla (acá, la
+    compuerta). Un test que assertee los dos está pidiendo un imposible, y uno que
+    assertee el viejo después de cambiar la política parece un aflojamiento y no
+    lo es.
+
+32. **Un ratio no distingue una pared de un arranque corto.** La guarda de
+    `PacingTests.floorGradient` mide RATIOS entre hitos, y con la compuerta en 6
+    el peor paso da ×16,38 — que son **1,3 min → 21,3 min**. El acantilado que esa
+    guarda nació para cazar eran **13,3 h de un solo salto**. Si vas a moverle el
+    techo, ponele al lado el assert en HORAS
+    (`noHitoJumpIsLongerThanFourActiveHours`), o la banda se debilita justo en la
+    dimensión que importa.
+
 ### De tests y calibración (2026-08-22)
 
 27. **Cuando una regla del juego cambia, preguntate qué SUPUESTO del bot
@@ -1722,6 +1843,7 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
+| **`SESION-2026-08-23-precio-atado-a-la-frontera.md`** | **La cuarta ronda de balance: el precio de contratar anclado a tu FRONTERA (la regla de precios nueva, que reemplaza a la de los 600 clicks), la compuerta convertida por fin en dial de dificultad, la tercera ceguera del bot, y el hallazgo de que la mitad del tiempo activo es apretar el botón y no esperar plata — con las cuatro salidas que el dueño tiene que elegir** |
 | **`SESION-2026-08-22-compuerta-por-distancia.md`** | **La tercera ronda de balance: la compuerta medida en tiers, las dos cegueras del simulador y el hallazgo de que el contrato de 20-30 h nunca se cumplió — con las tres salidas que el dueño tiene que elegir. Y la trampa del Xcode 26.6 sin runtime de iOS 26** |
 | **`SESION-2026-08-21-rebalance-pacing.md`** | **El rebalance de pacing: las tres métricas antes/después, los dos knobs que hacen cosas distintas, las tres decisiones del dueño con lo descartado y su número, y los cuatro diagnósticos que salieron errados antes del bueno** |
 | **`SESION-2026-08-21-tutorial-high-end.md`** | **La sesión más reciente: el tutorial rehecho — la fase corta arbitrada por la cola, las 8 lecciones con sus señales, el puntito de logros y las trampas 24/25** |

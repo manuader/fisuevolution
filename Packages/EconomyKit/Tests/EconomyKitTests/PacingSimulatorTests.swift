@@ -227,6 +227,69 @@ struct PacingSimulatorInstrumentTests {
         #expect(topFloor < active, "f2 abre en el tier 5 y dios es el 8")
     }
 
+    /// La regla que el efecto secuencial invalidó, pineada para que no se
+    /// vuelva a ir sola.
+    ///
+    /// Escenario: dos tipos con el MISMO aporte base, uno en nivel 0 y otro ya
+    /// mejorado. El mejorado aporta más —su multiplicador comprado está adentro
+    /// de `contribution`— pero su próximo nivel gana lo mismo en absoluto y
+    /// cuesta `costGrowth^nivel` más. **La regla vieja (`max(by: contribution)`)
+    /// habría elegido al mejorado**, que es la peor compra del tablero.
+    @Test("el bot mejora al que da más income por moneda, no al que más aporta")
+    func theBotPicksTheBestGainPerCoin() throws {
+        let simulator = try upSimulator()
+        var state = PlayerState.newGame(
+            startTypeId: "t1", startFloorId: "f1",
+            offlineEfficiencyBase: 0.35, critChanceBase: 0, now: 0
+        )
+        // Mismo tier ⇒ mismo `tapYield`, así que los dos tienen el mismo aporte
+        // base y el mismo precio base: lo único que los diferencia es el nivel.
+        state.run.units = ["t1": 1, "t2": 1]
+        state.run.passiveUnlocked = ["t1": true, "t2": true]
+        state.run.charUpgradeLevels = ["t2": 4]
+
+        let elegido = try #require(simulator.bestCharUpgrade(state: state))
+        #expect(elegido.typeId == "t1", "eligió \(elegido.typeId)")
+
+        // Y los números que lo justifican, cotizando cada uno por separado.
+        func soloUno(_ typeId: String) throws -> PacingSimulator.CharUpgradeChoice {
+            var solo = state
+            solo.run.units = [typeId: 1]
+            return try #require(simulator.bestCharUpgrade(state: solo))
+        }
+        let barato = try soloUno("t1")
+        let caro = try soloUno("t2")
+
+        // Precio: `baseCostMultiplier × tapYield(tier) × costGrowth^nivel`, con
+        // la fixture en 50 · 4,0 y `yieldGrowthPerTier` 2,8. t1 en nivel 0 sale
+        // 50 × 1 × 1; t2 en el nivel 4 sale 50 × 2,8 × 4⁴ = 35.840, o sea 716,8
+        // veces más caro.
+        #expect(barato.cost == 50)
+        #expect(caro.cost == 35_840)
+
+        // Y la regla vieja lo habría elegido POR PARTIDA DOBLE: t2 no sólo
+        // aporta más (su multiplicador ×5 está adentro de `contribution`), sino
+        // que su próximo nivel gana más en ABSOLUTO, porque vive un tier arriba.
+        #expect(caro.gain > barato.gain)
+        // Aun así es la peor compra del tablero: 716,8× el precio por 2,8× la
+        // ganancia.
+        #expect(caro.gain / caro.cost < barato.gain / barato.cost)
+    }
+
+    /// Nadie con nivel que comprar ⇒ `nil`, y no una elección inventada sobre un
+    /// tipo al tope que `nextLevelCost` ya rechaza.
+    @Test("sin pasivo desbloqueado no hay mejora que elegir")
+    func noUnlockedPassiveMeansNoChoice() throws {
+        let simulator = try upSimulator()
+        var state = PlayerState.newGame(
+            startTypeId: "t1", startFloorId: "f1",
+            offlineEfficiencyBase: 0.35, critChanceBase: 0, now: 0
+        )
+        state.run.units = ["t1": 1]
+        state.run.passiveUnlocked = [:]
+        #expect(simulator.bestCharUpgrade(state: state) == nil)
+    }
+
     @Test("el reporte guarda el tiempo ACTIVO de cada reencarnación")
     func everyReincarnationIsTimestamped() throws {
         let report = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)

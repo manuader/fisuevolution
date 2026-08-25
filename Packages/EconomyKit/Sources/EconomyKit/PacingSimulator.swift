@@ -284,6 +284,18 @@ public struct PacingSimulator: Sendable {
         let perform: (inout PlayerState) -> Void
     }
 
+    /// La mejora por personaje elegida: qué tipo, qué cuesta y cuánto income por
+    /// segundo agrega. `internal` porque su regla de selección es lo único que
+    /// decide en qué se gasta la plata de la run, y ya se desincronizó una vez
+    /// de la fórmula del efecto sin que ningún test lo viera.
+    struct CharUpgradeChoice: Equatable, Sendable {
+        let typeId: String
+        let cost: Double
+        /// Income por segundo que suma el próximo nivel, con todos los
+        /// multiplicadores que el jugador tiene puestos.
+        let gain: Double
+    }
+
     /// La próxima compra deseable más barata (la espera la decide el caller).
     private func nextAction(state: PlayerState) -> Action? {
         var candidates: [Action] = []
@@ -305,29 +317,12 @@ public struct PacingSimulator: Sendable {
             }
         }
 
-        // 2. CharUpgrade del tipo que más aporta, payback corto. El costo en
-        // `nil` es el tipo al tope: el bot no tiene esa jugada, igual que el
-        // jugador.
-        if let best = state.run.units.keys
-            .compactMap({ tiers.type(id: $0) })
-            .filter({ state.run.passiveUnlocked[$0.id] == true })
-            .max(by: { contribution(of: $0, state: state) < contribution(of: $1, state: state) }),
-           let cost = CharUpgrades.nextLevelCost(type: best, levels: state.run.charUpgradeLevels, config: config, economy: economy) {
-            let currentContribution = contribution(of: best, state: state)
-            // La ganancia sale de `CharUpgrades`, no de una cuenta escrita acá:
-            // con el efecto secuencial ya no es constante (el primer nivel
-            // duplica, el último suma 5,3 %), y el `factor − 1` que había —válido
-            // sólo para la potencia— le habría hecho creer al bot que el nivel 19
-            // rinde lo mismo que el 1.
-            let gain = currentContribution * CharUpgrades.nextLevelGainFactor(
-                typeId: best.id, levels: state.run.charUpgradeLevels, config: config
-            )
-            if gain > 0, cost / gain <= maxPaybackSeconds {
-                candidates.append(Action(cost: cost) { s in
-                    s.run.coins -= cost
-                    s.run.charUpgradeLevels[best.id, default: 0] += 1
-                })
-            }
+        // 2. CharUpgrade: la de mejor relación ganancia/precio, con payback corto.
+        if let best = bestCharUpgrade(state: state), best.cost / best.gain <= maxPaybackSeconds {
+            candidates.append(Action(cost: best.cost) { s in
+                s.run.coins -= best.cost
+                s.run.charUpgradeLevels[best.typeId, default: 0] += 1
+            })
         }
 
         // 3. Hire piso 1 (motor del early game) si hay lugar.
@@ -570,7 +565,59 @@ public struct PacingSimulator: Sendable {
         return total * state.meta.globalMultiplier * state.meta.derivedEffects.incomeMultiplier
     }
 
-    /// Aporte de un tipo al passive (para elegir el mejor charUpgrade).
+    /// Qué mejora por personaje comprar: la de mejor **income por moneda**.
+    ///
+    /// ⚠️ **Esta regla la invalidó el efecto secuencial del 2026-08-22 y hay que
+    /// leer por qué antes de volver a tocarla.** El bot elegía
+    /// `max(by: contribution)` —el tipo que más aporta—, y eso alcanzaba **sólo
+    /// mientras la ganancia fuera un factor CONSTANTE**: con `2^nivel`, subirle
+    /// un nivel a cualquiera duplicaba su aporte, así que el que más aportaba
+    /// era también el que más ganaba. Con la recta la ganancia marginal es
+    /// `aporte × 1/(1+nivel)` y `contribution` **ya incluye** el multiplicador
+    /// comprado, o sea que el tipo más mejorado encabezaba el ranking justo
+    /// cuando su próximo nivel es la peor compra del tablero: ganancia plana
+    /// contra un precio que va por `costGrowth^nivel`.
+    ///
+    /// Y como el bot toma UN candidato de mejora por tick, si ése no pasaba el
+    /// payback se quedaba **sin comprar ninguna** aunque al lado hubiera un tipo
+    /// en nivel 0 que duplica por `50 × tapYield`. El sesgo iba para el lado
+    /// peligroso: el bot subestimaba la línea, así que el juego medido tardaba
+    /// MÁS que el real y los barridos de calibración estaban midiendo dónde
+    /// tropieza el bot en vez de dónde está el óptimo.
+    ///
+    /// La ganancia sale de `CharUpgrades.nextLevelGainFactor` y el precio de
+    /// `CharUpgrades.nextLevelCost`: las dos, del mismo lugar que cobra el juego.
+    /// `nil` = nadie tiene un nivel que comprar (todos al tope o sin pasivo).
+    func bestCharUpgrade(state: PlayerState) -> CharUpgradeChoice? {
+        state.run.units.keys
+            .compactMap { tiers.type(id: $0) }
+            .filter { state.run.passiveUnlocked[$0.id] == true }
+            .compactMap { type -> CharUpgradeChoice? in
+                guard let cost = CharUpgrades.nextLevelCost(
+                    type: type, levels: state.run.charUpgradeLevels, config: config, economy: economy
+                ), cost > 0 else { return nil }
+                let gain = contribution(of: type, state: state) * CharUpgrades.nextLevelGainFactor(
+                    typeId: type.id, levels: state.run.charUpgradeLevels, config: config
+                )
+                guard gain > 0 else { return nil }
+                return CharUpgradeChoice(typeId: type.id, cost: cost, gain: gain)
+            }
+            // Empate por `id` ASCENDENTE (de ahí el `>`): el orden de iteración
+            // de un `Dictionary` cambia por proceso y esta corrida promete ser
+            // determinística.
+            .max { lhs, rhs in
+                let left = lhs.gain / lhs.cost
+                let right = rhs.gain / rhs.cost
+                return left == right ? lhs.typeId > rhs.typeId : left < right
+            }
+    }
+
+    /// Lo que un tipo aporta HOY al passive, con su multiplicador comprado ya
+    /// puesto. Es el punto de partida de la ganancia del próximo nivel
+    /// (`aporte × nextLevelGainFactor`), **no** un criterio para elegir a quién
+    /// mejorar: justamente porque incluye lo ya comprado, ordenar por este
+    /// número pone primero al tipo cuyo próximo nivel es la PEOR compra. Quién
+    /// se mejora lo decide `bestCharUpgrade`.
     private func contribution(of type: CharacterType, state: PlayerState) -> Double {
         let count = state.run.units[type.id] ?? 0
         guard count > 0 else { return 0 }

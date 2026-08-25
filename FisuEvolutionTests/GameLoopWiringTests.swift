@@ -232,24 +232,24 @@ struct GameLoopWiringTests {
     /// este escenario cambió entero el 2026-08-22.** Antes fusionaba dos T12
     /// —el tope de corporativo— porque el ascenso a lujo era lo que destrababa
     /// corporativo. Con la compuerta medida en tiers lo que la destraba es
-    /// llegar al 14 (su tier base es el 9 y la distancia es 5), así que el merge
-    /// que hay que hacer es de dos T13 **y ni siquiera cambia de piso**: es
+    /// llegar al 15 (su tier base es el 9 y la distancia es 6), así que el merge
+    /// que hay que hacer es de dos T14 **y ni siquiera cambia de piso**: es
     /// justo el caso que la regla vieja no podía expresar.
     @Test func hireUnlockedNoticeWaitsItsTurn() async throws {
         let gameState = await makeGameState()
-        // Lujo abierto y la frontera en 13; hay que pararse AHÍ, porque
+        // Lujo abierto y la frontera en 14; hay que pararse AHÍ, porque
         // `slots(ofTier:in:)` y `handleDrop` miran el piso VISIBLE.
-        gameState.debugUnlockFloors(throughTier: 13)
+        gameState.debugUnlockFloors(throughTier: 14)
         gameState.debugGrantPair()
         // `moveVisibleFloor` sólo acepta ±1: hay que subir de a un piso.
         for piso in ["urban", "corporate", "luxury"] {
             #expect(gameState.moveVisibleFloor(by: 1), "no pude subir a \(piso)")
         }
-        let pair = slots(ofTier: 13, in: gameState)
+        let pair = slots(ofTier: 14, in: gameState)
         #expect(pair.count >= 2)
 
         _ = gameState.handleDrop(fromCell: pair[0], toCell: pair[1])
-        #expect(gameState.player?.run.maxTierReached == 14, "el merge tiene que mover la frontera")
+        #expect(gameState.player?.run.maxTierReached == 15, "el merge tiene que mover la frontera")
 
         #expect(gameState.showing == .boardCelebration, "el reveal pide turno primero")
         #expect(gameState.showing != .towerNotice, "el toast no sale durante la cadena")

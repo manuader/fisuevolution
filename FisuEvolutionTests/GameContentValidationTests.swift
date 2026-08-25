@@ -140,6 +140,15 @@ struct GameContentValidationTests {
             economy.hire.priceGrowthPerTier < 2,
             "por encima del factor de merge, comprar hondo vuelve a ser más barato"
         )
+        // La compuerta de contratación, en TIERS. Subió de 5 a 6 en la cuarta
+        // ronda, y recién ahí fue un cambio de dificultad de verdad: con el
+        // precio atado a `tapYield(tier)` una compuerta más profunda ABARATABA
+        // el juego (N=4 → 6,67 h · N=6 → 5,34 h). Con el precio anclado a la
+        // frontera va para el lado que el diseño esperaba — medido, 5 → 4,14 h y
+        // 6 → 7,27 h—, porque cada tier de profundidad duplica las unidades que
+        // hay que comprar. Arriba de 6 se despierta el muro del early game: hasta
+        // que la frontera llega a N+2 lo único contratable es el Fisura.
+        #expect(economy.hire.gateTierDistance == 6)
         #expect(economy.charUpgrades.baseCostMultiplier == 50)
         // Bajó de 4,0 el 2026-08-22, y no es un ajuste de precio sino la
         // consecuencia del efecto secuencial: contra un efecto LINEAL, un costo
@@ -409,10 +418,10 @@ struct GameContentValidationTests {
     /// compone**: comprar el tope del callejón (T4) y subir mergeando sale
     /// `25 × 1,33^(frontera − 4)`, que CRECE con la frontera, mientras que
     /// comprar lo más alto que la compuerta habilita sale `600 × 1,33^N` y es
-    /// constante. El callejón deja de ser el camino barato en el **tier 21** de
-    /// 37 —a mitad de la torre— y con el tier 9, que es la primera frontera que
+    /// constante. El callejón deja de ser el camino barato en el **tier 22** de
+    /// 37 —a mitad de la torre— y con el tier 10, que es la primera frontera que
     /// habilita el tope del callejón, el descuento vale exactamente 24× (600/25:
-    /// las dos ramas llevan el mismo `1,33^5` y sólo queda el multiplicador).
+    /// las dos ramas llevan el mismo `1,33^6` y sólo queda el multiplicador).
     /// Está medido en la cuarta ronda y este test lo pinea.
     @Test func elDescuentoDelCallejonSeAgotaSolo() throws {
         let alley = content.floorTable[0]
@@ -434,7 +443,7 @@ struct GameContentValidationTests {
         #expect(abs(porLaCompuerta / porElCallejón(primeraFrontera) - 24) < 1e-9)
         // Y se da vuelta a mitad de la torre.
         let cruce = try #require((5...content.tiers.maxTier).first { porElCallejón($0) >= porLaCompuerta })
-        #expect(cruce == 21, "el callejón deja de ser el camino barato en el tier \(cruce)")
+        #expect(cruce == 22, "el callejón deja de ser el camino barato en el tier \(cruce)")
     }
 
     @Test func towerFloorsMatchCalibratedLayout() throws {

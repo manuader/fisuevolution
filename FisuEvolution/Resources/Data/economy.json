@@ -9,7 +9,7 @@
     "defaultCostMultiplier": 600,
     "defaultCostGrowth": 1.06,
     "priceGrowthPerTier": 1.5,
-    "gateTierDistance": 5
+    "gateTierDistance": 6
   },
   "charUpgrades": {
     "baseCostMultiplier": 50,

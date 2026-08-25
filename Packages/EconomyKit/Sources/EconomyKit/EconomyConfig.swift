@@ -314,7 +314,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     /// ⚠️ **La única costura es el callejón**, y es el precio de la decisión
     /// cerrada del Fisura a 25: su multiplicador (25 contra 600) lo deja 24×
     /// barato, así que comprar en el callejón y subir es un descuento acotado —no
-    /// compuesto— que **se agota solo** en el tier 21 de 37, a mitad de la torre
+    /// compuesto— que **se agota solo** en el tier 22 de 37, a mitad de la torre
     /// (`25 × 1,33^(f−4)` alcanza a `600 × 1,33^gate`). Medido en la cuarta
     /// ronda; lo pinea `elDescuentoDelCallejonSeAgotaSolo`.
     ///

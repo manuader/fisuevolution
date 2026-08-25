@@ -60,11 +60,11 @@ struct JobRowsTests {
         // Abre callejón + urbano + corporativo, y muestra hasta lujo.
         gameState.debugUnlockFloors(throughTier: 9)
         gameState.debugMarkTypesSeen(throughTier: 16)
-        // Frontera 10 y no 9: con la compuerta en 5 tiers, 10 deja el corte en
+        // Frontera 11 y no 10: con la compuerta en 6 tiers, 11 deja el corte en
         // el MEDIO del urbano (5-8) en vez de justo en el borde del callejón, y
         // el corte a mitad de piso es lo único que la regla vieja no podía
         // producir.
-        gameState.debugSetMaxTier(10)
+        gameState.debugSetMaxTier(11)
 
         let rows = gameState.jobRows
         let hirable = rows.prefix { $0.state == .hirable || $0.state == .floorFull }

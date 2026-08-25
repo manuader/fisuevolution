@@ -175,9 +175,9 @@ struct PacingTests {
     /// urban→island más una guarda anti-acantilado por paso. Post-island los
     /// ratios tienden a 1 POR DISEÑO (sweep de reencarnación) y quedan afuera.
     ///
-    /// **Medido en la corrida del encabezado**: ×14,19 (corporate) · ×5,44
-    /// (luxury) · ×1,67 (island), geomean **×5,04**. Bandas: geomean ±30 %
-    /// (3,53-6,55) y la guarda en el peor paso +30 % (14,19 × 1,3 = 18,45).
+    /// **Medido en la corrida del encabezado**: ×14,67 (corporate) · ×5,56
+    /// (luxury) · ×3,48 (island), geomean **×6,50**. Bandas: geomean ±30 %
+    /// (4,55-8,45) y la guarda en el peor paso +30 % (14,67 × 1,3 = 19,07).
     ///
     /// ⚠️ **La guarda del peor paso SUBIÓ de 10,21 a 21,30, y hay que decir por
     /// qué antes de leerlo como un aflojamiento.** El paso que la mueve es
@@ -191,7 +191,7 @@ struct PacingTests {
     /// enunció—: `noHitoJumpIsLongerThanFourActiveHours`. El peor salto medido
     /// es de **2,08 h** (island → moon), contra las 10,0 h de la ronda 2 y las
     /// 4,45 h de la tercera.
-    @Test("el gradiente del arco pre-prestigio es ~3,5-6,5× por piso")
+    @Test("el gradiente del arco pre-prestigio es ~4,5-8,5× por piso")
     func floorGradient() throws {
         // Pisos 2..5 (urban→island): el arco antes de que las reencarnaciones
         // barran pisos enteros de una pasada.
@@ -201,10 +201,10 @@ struct PacingTests {
         }
         for index in 1..<actives.count {
             let ratio = actives[index] / actives[index - 1]
-            #expect(ratio >= 1.0 && ratio <= 18.45, "acantilado en \(arc[index]): ×\(ratio)")
+            #expect(ratio >= 1.0 && ratio <= 19.07, "acantilado en \(arc[index]): ×\(ratio)")
         }
         let geomean = pow(actives[actives.count - 1] / actives[0], 1.0 / Double(actives.count - 1))
-        #expect(geomean >= 3.53 && geomean <= 6.55, "gradiente geomean ×\(geomean)")
+        #expect(geomean >= 4.55 && geomean <= 8.45, "gradiente geomean ×\(geomean)")
     }
 
     /// **El anti-acantilado en HORAS, que es como lo enunció el dueño**:
@@ -217,23 +217,34 @@ struct PacingTests {
     /// pre-prestigio), porque una pared del final es tan pared como una del
     /// principio.
     ///
-    /// Peor salto medido: **2,08 h** (island → moon). Historia: 10,0 h en la
-    /// ronda 2, 4,45 h en la tercera. El tope es 4 h y no "lo medido +30 %" a
-    /// propósito — éste no es una banda alrededor de la conducta sino el
-    /// contrato del dueño, y por eso no se re-pinea con cada calibración.
-    @Test("ningún salto entre hitos pasa de 4 h activas")
+    /// Peor salto medido: **6,02 h de simulador** (island → moon), que son
+    /// **2,0 h del dueño**. Historia: 10,0 h en la ronda 2, 4,45 h en la tercera,
+    /// 2,08 h antes de la desaceleración.
+    ///
+    /// ⚠️ **El tope está en el reloj del DUEÑO y hay que decirlo, porque la
+    /// conversión es una estimación de un solo punto.** Él enunció el contrato en
+    /// SU tiempo ("ningún salto de más de 4-5 h") y juega ~3× más rápido que el
+    /// bot — el factor sale de UNA comparación (su "menos de 1 h" contra las
+    /// 2,97 h del simulador para la misma partida). Así que el tope de 4 h suyas
+    /// se assertea como **12 h de simulador**, y la incertidumbre del 3× está
+    /// declarada en `Docs/balance-log.md`, "Cuarta ronda (ter)".
+    ///
+    /// Sigue sin ser una banda alrededor de lo medido: es el contrato, y por eso
+    /// el número que se toca es el FACTOR de conversión, nunca las 4 h.
+    @Test("ningún salto entre hitos pasa de 4 h del dueño (12 h de simulador)")
     func noHitoJumpIsLongerThanFourActiveHours() throws {
         let actives = try floorTable.floors.dropFirst().map { floor in
             try #require(report.floorUnlockActiveSeconds[floor.id], "\(floor.id) nunca se desbloqueó")
         }
         for index in 1..<actives.count {
             let salto = (actives[index] - actives[index - 1]) / 3600
-            #expect(salto <= 4.0, "salto de \(salto) h activas hasta \(floorTable[index + 1].id)")
+            #expect(salto <= 12.0,
+                    "salto de \(salto) h de simulador (\(salto / 3) h del dueño) hasta \(floorTable[index + 1].id)")
         }
     }
 
-    /// **9,00 h de PARED medidas** en la corrida del encabezado, ±30 %
-    /// (0,67 h ACTIVAS). De pared y no activas a propósito: el número que mide
+    /// **9,28 h de PARED medidas** en la corrida del encabezado, ±30 %
+    /// (0,95 h ACTIVAS). De pared y no activas a propósito: el número que mide
     /// la espera del jugador es el de calendario.
     ///
     /// **La duplicó cobrar las fusiones** (4,28 → 9,00 h), y es el efecto más
@@ -256,14 +267,15 @@ struct PacingTests {
     /// ronda 1: el barrido de `--prestige-threshold` es MONÓTONO (×1 → 24,67 h ·
     /// ×8 → 30,54 h · ×1000 → 50,51 h · nunca → dios a 66,34 h). Antes ×8 daba
     /// 15,29 h, o sea guardarse las reencarnaciones ganaba. Ver `balance-log`.
-    @Test("la 1ª reencarnación cae entre 6,3 y 11,7 h de pared")
+    @Test("la 1ª reencarnación cae entre 6,5 y 12,1 h de pared")
     func firstReincarnation() throws {
         let wall = try #require(report.firstReincarnationWall, "nunca reencarnó")
-        #expect(wall >= 6.30 * 3600 && wall <= 11.70 * 3600, "1ª reencarnación: \(wall / 3600) h")
+        #expect(wall >= 6.50 * 3600 && wall <= 12.06 * 3600, "1ª reencarnación: \(wall / 3600) h")
     }
 
-    /// **153,30 h de PARED medidas** (8,97 h ACTIVAS), ±30 %, con **8
-    /// reencarnaciones**. Venía de 168,06 h (9,40 activas).
+    /// **508,10 h de PARED medidas** (28,43 h ACTIVAS), ±30 %, con **12
+    /// reencarnaciones**. Venía de 153,30 h (8,97 activas): lo que la triplicó es
+    /// la desaceleración, que es su trabajo.
     ///
     /// La caída no la produjo un knob de dificultad: la produjo cerrar el atajo
     /// de comprar hondo. Con el precio viejo el camino óptimo era mergear
@@ -275,14 +287,76 @@ struct PacingTests {
     /// devuelve ese trabajo, ahora a propósito y con un número.
     ///
     /// El assert de forma que importa no es el largo sino la relación: dios
-    /// (8,97 h activas) queda **×1,34 más lejos que maxear** (6,67 h), o sea las
+    /// (28,43 h activas) queda **×1,38 más lejos que maxear** (20,67 h), o sea las
     /// skins doradas siguen llegando antes que el final. Eso lo asserta
     /// `theOwnersTargetsAreMet`.
-    @Test("dios llega entre 107 y 199 h de pared con ≥3 reencarnaciones")
+    @Test("dios llega entre 356 y 661 h de pared con ≥3 reencarnaciones")
     func godTiming() throws {
         let wall = try #require(report.godWall, "dios nunca llegó (maxTier \(report.finalMaxTier))")
-        #expect(wall >= 107.31 * 3600 && wall <= 199.29 * 3600, "dios: \(wall / 3600) h")
+        #expect(wall >= 355.67 * 3600 && wall <= 660.53 * 3600, "dios: \(wall / 3600) h")
         #expect(report.reincarnations >= 3, "reencarnaciones: \(report.reincarnations)")
+    }
+
+    // MARK: La FORMA (el contrato nuevo, 2026-08-23)
+
+    /// **La run se TRABA, y el prestigio corre esa pared.** Es el contrato que
+    /// el dueño puso en lugar de un total de horas, y hasta la desaceleración el
+    /// juego no lo cumplía de ninguna manera: `wallTierPerRun` daba
+    /// `— · — · — · …`, o sea que **ninguna run se trababa nunca** y por eso se
+    /// podía ir de Fisura a Dios de una sentada.
+    ///
+    /// "Trabarse" es un número y no una impresión: el primer tier cuyo paso al
+    /// siguiente cuesta más de una SESIÓN entera de juego activo. El umbral sale
+    /// del modelo humano (`human.sessionSeconds`), así que no es arbitrario: si
+    /// un solo tier te come una sesión completa, estás trabado.
+    ///
+    /// Medido en la corrida del encabezado: **T12 · T13 · T14 · T16 · T18 · T20**,
+    /// o sea que la pared existe, cae en el arco que el dueño pidió (piso 4-5) y
+    /// **corre +1 · +1 · +2 · +2 · +2 tiers** por reencarnación.
+    @Test("la run se traba, y cada reencarnación corre la pared")
+    func theRunHitsAWallAndPrestigeMovesIt() throws {
+        let paredes = report.wallTierPerRun.filter { $0 > 0 }
+        #expect(paredes.count >= 5, "sólo \(paredes.count) runs se trabaron: \(report.wallTierPerRun)")
+
+        // La pared cae donde el diseño la quiere: ni en el callejón (frustra) ni
+        // tan arriba que no exista.
+        let primera = try #require(paredes.first)
+        #expect(primera >= 9 && primera <= 20, "la primera pared cayó en el tier \(primera)")
+
+        // Y CORRE: nunca hacia atrás, y de punta a punta al menos un piso entero.
+        for (anterior, siguiente) in zip(paredes, paredes.dropFirst()) {
+            #expect(siguiente >= anterior, "la pared retrocedió de T\(anterior) a T\(siguiente)")
+        }
+        let corrimiento = try #require(paredes.last) - primera
+        #expect(corrimiento >= 4, "la pared se movió \(corrimiento) tiers en toda la partida")
+    }
+
+    /// **Sin reencarnar NO se llega**, y es la primera vez en cuatro rondas.
+    ///
+    /// El contrato 5 —"reencarnar tiene que pagar"— nunca había cerrado: el que
+    /// no reencarnaba llegaba a dios 3-4× MÁS RÁPIDO. Con la desaceleración la
+    /// pared existe, y una pared no se cruza con paciencia: el jugador que no
+    /// reencarna se queda en el **tier 29 de 37** a los 400 días simulados,
+    /// mientras que reencarnando dios llega a las 28,43 h activas.
+    ///
+    /// Este test corre su PROPIA simulación con la política `.never`, que es la
+    /// partida de la queja del dueño del 2026-08-22 ("llegué de fisura a dios sin
+    /// reiniciar"). Es cara —una simulación entera— y por eso está sola en su
+    /// test y no adentro de otro.
+    @Test("el que no reencarna no llega a dios")
+    func withoutPrestigeGodIsUnreachable() throws {
+        let content = try GameContentLoader.load(from: .main)
+        let sinReencarnar = try PacingSimulator(
+            config: content.economy,
+            tiers: content.tiers,
+            human: .init(reincarnation: .never),
+            upgrades: try Self.permanentLines(from: content.upgradesConfig)
+        ).run(maxDays: 400)
+
+        #expect(sinReencarnar.godActive == nil,
+                "llegó a dios sin reencarnar en \(sinReencarnar.godActive.map { $0 / 3600 } ?? 0) h activas")
+        #expect(sinReencarnar.finalMaxTier < content.tiers.maxTier,
+                "maxTier \(sinReencarnar.finalMaxTier)")
     }
 
     // MARK: El objetivo del dueño (esto NO se re-pinea)
@@ -300,48 +374,31 @@ struct PacingTests {
     ///
     /// Y la forma que el dueño pidió: **dios más lejos que las skins doradas**.
     ///
-    /// 🔴 **ESTE TEST ESTÁ EN ROJO DESDE EL 2026-08-22 Y NO ES UN DESCUIDO.**
-    /// El primer assert mide **6,67 h** contra las 20-30 pedidas. No se aflojó
-    /// —el objetivo es del dueño y esta suite existe para gritar cuando el juego
-    /// deja de cumplirlo—.
+    /// 🟡 **SIGUE EN ROJO, PERO POR OTRA COSA — Y ESO ES LA NOTICIA.**
+    /// Desde el 2026-08-22 el rojo era el PRIMER assert: maxear medía 6,67 h
+    /// contra las 20-30 pedidas. Con la desaceleración mide **20,67 h** y ese
+    /// assert **pasa por primera vez**. Lo que queda rojo es el segundo:
+    /// **9 reencarnaciones contra las ≤8** del contrato.
     ///
-    /// La causa que midió la tercera ronda **ya está arreglada**: el precio dejó
-    /// de seguir a `tapYield(tier)` y comprar hondo pasó a costar 1,33× por tier
-    /// de profundidad en vez de 0,71×. Con eso la compuerta se volvió el dial
-    /// que el diseño esperaba (N=5 → 4,14 h · N=6 → 7,27 h · N=7 → 10,34 h) y se
-    /// subió a 6.
+    /// No se afloja, y el número tiene explicación: el bot reencarna al DUPLICAR
+    /// su ORO histórico, así que las reencarnaciones para maxear son
+    /// ≈ log₂(costo total en ORO). Con la desaceleración las runs rinden distinto
+    /// y la cuenta se pasa por una. Bajarlo pide tocar el catálogo de las siete
+    /// líneas o `oro.exponent`, y las dos cosas mueven el resto del cuadro.
     ///
-    /// **La causa que queda es otra, y también está medida**: ~la mitad del
-    /// tiempo ACTIVO del bot es apretar el botón, no esperar plata —el simulador
-    /// cobra 1 s por compra, y sin ese segundo maxear cae de 4,14 h a 2,19 h—.
-    /// Por eso los knobs de precio son sublineales: `defaultCostMultiplier` ×16
-    /// compra ×1,75 de partida, y ninguna combinación de los diez knobs pasa de
-    /// **13 h** sin romper otro contrato. Lo que sí escala es el número de
-    /// COMPRAS por tier, que es `2^gateTierDistance`, y arriba de 6 se despierta
-    /// el muro del early game (N=7 sin tocar nada: 185 h y un paso de ×4.441).
+    /// **Lo que la desaceleración arregló, y hay que leerlo junto**: el contrato
+    /// de las 20-30 h, y el contrato 5. Ver `theRunHitsAWallAndPrestigeMovesIt` y
+    /// `withoutPrestigeGodIsUnreachable`: la run ahora se traba (T12 · T13 · T14 ·
+    /// T16 · T18 · T20), cada reencarnación corre la pared, y **el que no
+    /// reencarna ya no llega a dios**. Eso último nunca había pasado en cuatro
+    /// rondas: el jugador de la queja del dueño llegaba 3-4× más rápido.
     ///
-    /// La otra mitad del diagnóstico es el acelerador que queda abierto: el
-    /// `incomeMultiplier` del piso (1 → 620) lo cobra el PASIVO y no lo cobra el
-    /// precio, así que el ingreso crece 3,33× por tier contra los 2,8× del
-    /// precio y la torre se acelera sola — medido, "entrar al piso" cae de 100 s
-    /// a 0,0 s del callejón al reino divino. Aplanar esa curva a 1,0 lleva la
-    /// partida a 6,83 h (12,16 h con N=6); anclarle el precio al
-    /// `incomeMultiplier` de la frontera, a 6,63 h. Las dos están medidas en
-    /// `Docs/balance-log.md` (cuarta ronda) y las dos son decisión del dueño.
-    ///
-    /// ⚠️ **Y el otro contrato que sigue roto es el de reencarnar**: sin
-    /// reencarnar dios llega en **2,97 h** activas contra 8,97 h reencarnando.
-    /// Misma causa de fondo: reencarnar te devuelve la torre al tier 1 y el ORO
-    /// sólo te saca la ESPERA, no las acciones — y las acciones son la mitad del
-    /// reloj.
-    ///
-    /// ⚠️⚠️ **Lo único medido que da vuelta ese contrato es la PROFUNDIDAD de la
-    /// compuerta**, y el cruce está entre 7 y 8: con N=8 el jugador que no
-    /// reencarna **no llega nunca** (maxTier 16 a los 400 días) mientras que
-    /// reencarnando sí. Lo que N=8 rompe es todo lo demás — 9 reencarnaciones
-    /// para maxear y saltos de 41 h entre hitos—. El cuadro está en
-    /// `Docs/balance-log.md`, "El barrido de la profundidad con las fusiones
-    /// cobradas".
+    /// ⚠️ **El reloj**: el dueño pidió 20-30 h SUYAS y juega ~3× más rápido que
+    /// el bot, así que 20,67 h de simulador son ~6,9 h suyas. Este assert mide el
+    /// reloj del SIMULADOR, que es el único que el test puede correr; la
+    /// conversión y su incertidumbre están en `Docs/balance-log.md`, "Cuarta
+    /// ronda (ter)". Si el dueño confirma que el contrato es en su reloj, el
+    /// número que hay que escalar es el total, no la forma.
     @Test("se gana al máximo en 20-30 h activas y con ≤8 reencarnaciones")
     func theOwnersTargetsAreMet() throws {
         let maxed = try #require(

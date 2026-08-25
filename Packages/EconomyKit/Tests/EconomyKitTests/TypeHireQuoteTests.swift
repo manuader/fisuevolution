@@ -315,16 +315,17 @@ struct TypeHireQuoteTests {
     ///
     /// El default 2,0 existe igual, pero sólo en el init de Swift y para las
     /// FIXTURES: un test que no habla de precios no tiene que elegir una política.
-    @Test("hire SIN priceGrowthPerTier o SIN gateTierDistance no decodifica")
+    @Test("hire sin alguna de las TRES claves de política no decodifica")
     func lasClavesDePoliticaSonObligatoriasEnElJSON() throws {
-        let completo = #"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2, "priceGrowthPerTier": 1.5, "gateTierDistance": 5}"#
+        let completo = #"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2, "priceGrowthPerTier": 1.5, "gateTierDistance": 5, "frontierEscalationPerTier": 1.1}"#
         let decodificado = try JSONDecoder().decode(EconomyConfig.HireConfig.self, from: Data(completo.utf8))
         #expect(decodificado.priceGrowthPerTier == 1.5)
         #expect(decodificado.gateTierDistance == 5)
 
         for sinClave in [
-            #"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2, "gateTierDistance": 5}"#,
-            #"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2, "priceGrowthPerTier": 1.5}"#,
+            #"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2, "gateTierDistance": 5, "frontierEscalationPerTier": 1.1}"#,
+            #"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2, "priceGrowthPerTier": 1.5, "frontierEscalationPerTier": 1.1}"#,
+            #"{"defaultCostMultiplier": 600, "defaultCostGrowth": 1.2, "priceGrowthPerTier": 1.5, "gateTierDistance": 5}"#,
         ] {
             #expect(throws: DecodingError.self) {
                 try JSONDecoder().decode(EconomyConfig.HireConfig.self, from: Data(sinClave.utf8))

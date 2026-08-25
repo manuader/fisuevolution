@@ -9,7 +9,9 @@
     "defaultCostMultiplier": 600,
     "defaultCostGrowth": 1.06,
     "priceGrowthPerTier": 1.5,
-    "gateTierDistance": 6
+    "gateTierDistance": 6,
+    "frontierEscalationPerTier": 1.6,
+    "frontierEscalationFromTier": 7
   },
   "charUpgrades": {
     "baseCostMultiplier": 50,
@@ -18,7 +20,7 @@
     "maxLevel": 19
   },
   "oro": {
-    "divisor": 1000000000,
+    "divisor": 10000000000,
     "exponent": 0.25,
     "globalMultiplierPerOro": 0.18
   },

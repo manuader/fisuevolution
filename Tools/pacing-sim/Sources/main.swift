@@ -224,6 +224,27 @@ do {
         + "  (\(report.godWall.map(hours) ?? "—") de pared, maxTier final \(report.finalMaxTier))")
     print("  lifetimeEarnings final: \(String(format: "%.3e", report.finalLifetimeEarnings))")
 
+    // La FORMA de la curva (decisión del dueño, 2026-08-23): el contrato dejó de
+    // ser un total de horas y pasó a ser "la run se traba, el prestigio corre esa
+    // pared, y volver a ella cuesta una fracción". Sin estas tres series no se
+    // puede medir una pared.
+    print("\n-- La forma: dónde se traba cada run --")
+    let paredes = report.wallTierPerRun
+        .map { $0 == 0 ? "—" : "T\($0)" }
+        .joined(separator: " · ")
+    print("  pared de cada run: \(paredes.isEmpty ? "—" : paredes)")
+    let corrimiento = zip(report.wallTierPerRun, report.wallTierPerRun.dropFirst())
+        .map { anterior, siguiente in
+            anterior > 0 && siguiente > 0 ? "+\(siguiente - anterior)" : "—"
+        }
+        .joined(separator: " · ")
+    print("  cuánto corre la pared:  \(corrimiento.isEmpty ? "—" : corrimiento) tiers")
+    let pago = report.prestigePayoffPerRun
+        .map { String(format: "%.0f%%", $0 * 100) }
+        .joined(separator: " · ")
+    print("  reencarnar paga (ahorro al volver a tu pared): \(pago.isEmpty ? "—" : pago)")
+    print("     (contrato del dueño: ≥67 %, o sea volver cuesta menos de un tercio)")
+
     print("\n-- Targets (±30% ya aplicado) --")
     let secondFloorId = floorTable.floors.count > 1 ? floorTable[1].id : floorTable[0].id
     check(
@@ -298,6 +319,12 @@ do {
         rows.append("hito,primera_reencarnacion,\(report.firstReincarnationWall.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
         rows.append("hito,dios,\(report.godWall.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
         rows.append("hito,dios_activo,\(report.godActive.map { String(format: "%.2f", $0 / 3600) } ?? ""),h activas")
+        for (index, pared) in report.wallTierPerRun.enumerated() {
+            rows.append("forma,pared_run_\(index + 1),\(pared),tier (0 = no se trabó)")
+        }
+        for (index, pago) in report.prestigePayoffPerRun.enumerated() {
+            rows.append("forma,reencarnar_paga_run_\(index + 2),\(String(format: "%.3f", pago)),fracción ahorrada")
+        }
         rows.append("hito,max_tier_final,\(report.finalMaxTier),tier")
         rows.append("hito,lifetime_earnings,\(String(format: "%.4e", report.finalLifetimeEarnings)),monedas")
         for line in upgradeLines {

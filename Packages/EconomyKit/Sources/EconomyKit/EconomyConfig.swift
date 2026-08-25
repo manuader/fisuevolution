@@ -45,6 +45,51 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         /// [TUNEABLE]
         public let priceGrowthPerTier: Double
 
+        /// Cuánto se encarece **tu propia frontera** por cada tier que subís,
+        /// POR ENCIMA de lo que ya sube por rendir más. Es la desaceleración
+        /// dentro de la run (decisión del dueño, 2026-08-23).
+        ///
+        /// **El problema que arregla.** Con el precio anclado a la frontera y
+        /// nada más, el precio de avanzar crece `yieldGrowthPerTier` por tier y
+        /// tu ingreso también: cada tier cuesta el MISMO tiempo que el anterior.
+        /// 37 tiers × constante da una duración fija y —lo que importa— **una run
+        /// que nunca se traba**. Por eso se podía ir de Fisura a Dios de una
+        /// sentada y por eso reencarnar no pagaba: se reencarna para correr una
+        /// pared, y no había pared.
+        ///
+        /// Con `D` puesto, el precio de avanzar crece `yieldGrowthPerTier × D` y
+        /// el ingreso sigue creciendo `yieldGrowthPerTier`: **el tiempo por tier
+        /// se multiplica por `D` cada vez**. Los primeros pisos quedan ágiles y
+        /// los últimos se ponen densos hasta que la run se traba de verdad. Ahí
+        /// el prestigio pasa a ser la forma de correr esa pared, que es el rol
+        /// que el diseño siempre le dio y que nunca había tenido.
+        ///
+        /// ⚠️ **El exponente es `frontera − 1`, así que con la frontera en el
+        /// tier 1 vale exactamente 1**: el primer Fisura sigue costando 25 sin
+        /// ningún caso especial, y el tutorial no se entera. Decisión cerrada del
+        /// dueño, respetada por construcción.
+        ///
+        /// ⚠️ **No toca el invariante de profundidad.** Depende SÓLO de la
+        /// frontera, así que a frontera fija no cambia nada entre dos tiers
+        /// comprados: comprar hondo sigue costando `(2/priceGrowthPerTier)^d` más
+        /// caro. Lo pinea `laEscaladaNoTocaElInvarianteDeProfundidad`.
+        /// [TUNEABLE]
+        public let frontierEscalationPerTier: Double
+
+        /// **Desde qué tier de frontera empieza a cobrarse la desaceleración.**
+        /// Por debajo de este tier la escalada vale 1 y el juego corre como antes.
+        ///
+        /// Sin esto la escalada es una exponencial desde el tier 1, y una
+        /// exponencial no tiene cómo ser suave abajo y densa arriba: o muerde
+        /// temprano (medido con `D` 1,6 desde el tier 1: las primeras CINCO runs
+        /// se trababan en el tier 7, o sea en el callejón, que es la frustración
+        /// que el diseño quiere evitar) o no muerde nunca. El umbral es lo que
+        /// compra las dos mitades de la forma que pidió el dueño: **los primeros
+        /// pisos ágiles —el tutorial no se toca— y los últimos densos**.
+        ///
+        /// Con `1` la escalada corre desde el principio, que es la conducta sin
+        /// umbral. [TUNEABLE]
+        public let frontierEscalationFromTier: Int
         /// Cuántos tiers por ENCIMA de un personaje tiene que estar tu frontera
         /// de merge (`run.maxTierReached`) para poder contratarlo.
         ///
@@ -73,6 +118,16 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         /// carga (ver `init(from:)`).
         public static let neutralPriceGrowthPerTier = 2.0
 
+        /// La desaceleración APAGADA: con 1,0 la fórmula queda idéntica a la de
+        /// antes del 2026-08-23 (cada tier cuesta lo mismo que el anterior y la
+        /// run no se traba nunca). Es el default del init para las FIXTURES —un
+        /// test que no habla de desaceleración no tiene que elegir una política—
+        /// y es justo por eso que en el JSON la clave es obligatoria.
+        public static let noFrontierEscalation = 1.0
+
+        /// El umbral que no recorta nada: la escalada corre desde el primer tier.
+        public static let escalationFromFirstTier = 1
+
         /// La compuerta APAGADA: cualquier tier se contrata con sólo tener el
         /// piso abierto.
         ///
@@ -89,12 +144,16 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             defaultCostMultiplier: Double,
             defaultCostGrowth: Double,
             priceGrowthPerTier: Double = HireConfig.neutralPriceGrowthPerTier,
-            gateTierDistance: Int = HireConfig.noTierGate
+            gateTierDistance: Int = HireConfig.noTierGate,
+            frontierEscalationPerTier: Double = HireConfig.noFrontierEscalation,
+            frontierEscalationFromTier: Int = HireConfig.escalationFromFirstTier
         ) {
             self.defaultCostMultiplier = defaultCostMultiplier
             self.defaultCostGrowth = defaultCostGrowth
             self.priceGrowthPerTier = priceGrowthPerTier
             self.gateTierDistance = gateTierDistance
+            self.frontierEscalationPerTier = frontierEscalationPerTier
+            self.frontierEscalationFromTier = frontierEscalationFromTier
         }
 
         /// Decoder a mano porque los dos knobs de abajo se agregaron después: el
@@ -103,22 +162,35 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         /// dejaría a las fixtures tirando `keyNotFound`. Es el mismo motivo por
         /// el que `RunState` y `FloorDef` decodifican a mano.
         ///
-        /// Los dos van con `decode` y no con `decodeIfPresent`: **ninguno tiene
-        /// un default histórico inocente**. El de la compuerta sería CERO, que
-        /// la apaga entera; el del precio sería 2,0, que es justo el filo del
-        /// cuchillo (`P = 2` = comprar hondo cuesta exactamente lo mismo). Un
-        /// `economy.json` al que se le caiga cualquiera de las dos claves tiene
-        /// que no cargar, en vez de quedarse sin regla en silencio.
+        /// Los tres van con `decode` y no con `decodeIfPresent`: **ninguno tiene
+        /// un default histórico inocente**. El de la compuerta sería CERO, que la
+        /// apaga entera; el del precio sería 2,0, que es justo el filo del
+        /// cuchillo (`P = 2` = comprar hondo cuesta exactamente lo mismo); y el
+        /// de la escalada sería 1,0, que es "la run no se traba nunca" — la forma
+        /// de curva que la ronda del 2026-08-23 vino a arreglar. Un
+        /// `economy.json` al que se le caiga cualquiera de las tres tiene que no
+        /// cargar, en vez de quedarse sin regla en silencio.
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             defaultCostMultiplier = try container.decode(Double.self, forKey: .defaultCostMultiplier)
             defaultCostGrowth = try container.decode(Double.self, forKey: .defaultCostGrowth)
             priceGrowthPerTier = try container.decode(Double.self, forKey: .priceGrowthPerTier)
             gateTierDistance = try container.decode(Int.self, forKey: .gateTierDistance)
+            frontierEscalationPerTier = try container.decode(
+                Double.self, forKey: .frontierEscalationPerTier
+            )
+            // Ésta SÍ con `decodeIfPresent`, al revés que las tres de arriba: su
+            // default (1) es "la escalada corre desde el principio", que es la
+            // conducta sin umbral y no una política escondida. Con la escalada
+            // apagada (`D = 1`) el umbral no significa nada.
+            frontierEscalationFromTier = try container.decodeIfPresent(
+                Int.self, forKey: .frontierEscalationFromTier
+            ) ?? HireConfig.escalationFromFirstTier
         }
 
         enum CodingKeys: String, CodingKey {
-            case defaultCostMultiplier, defaultCostGrowth, priceGrowthPerTier, gateTierDistance
+            case defaultCostMultiplier, defaultCostGrowth, priceGrowthPerTier
+            case gateTierDistance, frontierEscalationPerTier, frontierEscalationFromTier
         }
     }
 
@@ -328,6 +400,10 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         hireCostMultiplier(for: floor)
             * StandardEconomy(config: self).tapYield(forTier: frontierTier)
             * tapFloorMultiplier(for: floor)
+            * pow(
+                hire.frontierEscalationPerTier,
+                Double(max(0, frontierTier - hire.frontierEscalationFromTier))
+            )
             * pow(hire.priceGrowthPerTier, Double(tier - frontierTier))
             * pow(hireCostGrowth(for: floor), Double(purchases))
     }

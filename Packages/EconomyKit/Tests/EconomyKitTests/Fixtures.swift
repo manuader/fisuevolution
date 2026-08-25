@@ -16,6 +16,8 @@ func fxConfig(
     hireDefaultMultiplier: Double = 100,
     hireDefaultGrowth: Double = 2.0,
     priceGrowthPerTier: Double = 1.5,
+    frontierEscalationPerTier: Double = EconomyConfig.HireConfig.noFrontierEscalation,
+    frontierEscalationFromTier: Int = EconomyConfig.HireConfig.escalationFromFirstTier,
     tapFloorMultiplierExponent: Double? = nil
 ) -> EconomyConfig {
     EconomyConfig(
@@ -28,7 +30,9 @@ func fxConfig(
         hire: .init(
             defaultCostMultiplier: hireDefaultMultiplier,
             defaultCostGrowth: hireDefaultGrowth,
-            priceGrowthPerTier: priceGrowthPerTier
+            priceGrowthPerTier: priceGrowthPerTier,
+            frontierEscalationPerTier: frontierEscalationPerTier,
+            frontierEscalationFromTier: frontierEscalationFromTier
         ),
         charUpgrades: .init(baseCostMultiplier: 10, costGrowth: 2.0, effectStepPerLevel: 1.0),
         oro: .init(divisor: 1_000_000, exponent: 0.5, globalMultiplierPerOro: 0.02),

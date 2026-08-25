@@ -144,6 +144,50 @@ public struct PacingSimulator: Sendable {
         /// tiers abre ANTES de que se llegue a dios y los dos números se separan.
         public var godActive: Double?
         public var reincarnations = 0
+
+        // MARK: La FORMA de la curva (2026-08-23, decisión del dueño)
+        //
+        // El contrato dejó de ser un total de horas y pasó a ser una forma: la
+        // run se traba, el prestigio corre esa pared, y volver a ella cuesta una
+        // fracción de lo que costó la primera vez. Sin estas tres series no se
+        // puede medir una pared, y por lo tanto no se puede calibrar una.
+
+        /// **Dónde se traba cada run**: el primer tier cuyo paso al siguiente
+        /// costó más de una sesión ENTERA de juego activo (`wallSeconds`, que se
+        /// deriva de `human.sessionSeconds` y no es un número inventado: si un
+        /// solo tier te come una sesión completa, estás trabado).
+        ///
+        /// `0` significa "esa run no se trabó", y el cero importa: una partida
+        /// entera sin ningún cero en esta serie es una partida que nunca pide
+        /// reencarnar, que es exactamente el defecto que esta ronda vino a
+        /// arreglar.
+        public var wallTierPerRun: [Int] = []
+        /// Lo que tardó la run que se está cerrando en llegar a SU propia pared.
+        /// Es el puente entre dos runs consecutivas —el denominador de
+        /// `prestigePayoffPerRun`— y por eso vive en el reporte y no en el
+        /// tracker, que se recicla en cada reencarnación. `nil` = la run
+        /// anterior no se trabó, así que no hay contra qué comparar.
+        public var secondsToOwnWallCandidate: Double?
+        /// Segundos ACTIVOS que tardó cada run en llegar **a la pared de la run
+        /// anterior**. Es el contrato 5 medido de frente: si reencarnar paga,
+        /// este número tiene que ser una fracción chica del de abajo.
+        ///
+        /// Arranca en la segunda run (la primera no tiene pared anterior), así
+        /// que el índice `i` es la run `i + 2`.
+        public var secondsBackToPreviousWall: [Double] = []
+        /// Segundos ACTIVOS que le costó a la run ANTERIOR llegar por primera vez
+        /// a esa misma pared. Es el denominador de la comparación de arriba y va
+        /// alineado índice a índice.
+        public var secondsToOwnWallFirstTime: [Double] = []
+
+        /// Cuánto paga reencarnar, por run: `1 − vuelta/primera`. 0,75 quiere
+        /// decir "volver a tu pared costó un cuarto de lo que costó llegar".
+        /// El contrato del dueño pide **≥ 0,67** (menos de un tercio).
+        public var prestigePayoffPerRun: [Double] {
+            zip(secondsBackToPreviousWall, secondsToOwnWallFirstTime).map { vuelta, primera in
+                primera > 0 ? 1 - vuelta / primera : 0
+            }
+        }
         /// Segundos ACTIVOS hasta tener las siete líneas permanentes al tope.
         public var maxedUpgradesActiveSeconds: Double?
         public var maxedUpgradesWall: Double?
@@ -203,6 +247,7 @@ public struct PacingSimulator: Sendable {
         )
         var wall = 0.0
         var activeTotal = 0.0
+        var tracker = RunTracker()
         recordUnlocks(state: &state, report: &report, wall: wall, active: activeTotal)
 
         let horizon = Double(maxDays) * human.daySeconds
@@ -219,6 +264,7 @@ public struct PacingSimulator: Sendable {
                 let consumed = playSession(
                     state: &state,
                     report: &report,
+                    tracker: &tracker,
                     wallStart: wall,
                     activeStart: activeTotal
                 )
@@ -244,9 +290,55 @@ public struct PacingSimulator: Sendable {
         }
 
         report.finalLifetimeEarnings = state.meta.lifetimeEarnings
+        // La run que quedó abierta (la que llega a dios, o la que corta el
+        // horizonte) también tiene forma y también se publica.
+        closeRun(tracker: &tracker, report: &report, active: activeTotal)
         report.finalMaxTier = state.run.maxTierReached
         report.finalPermanentUpgradeLevels = state.meta.oroUpgradeLevels
         return report
+    }
+
+    /// Lo que hay que recordar DENTRO de una run para poder decir dónde se
+    /// trabó. Vive acá y no en `PlayerState` a propósito: es instrumental del
+    /// simulador, no estado de juego, y meterlo en el save sería contaminar el
+    /// modelo con la medición.
+    struct RunTracker {
+        /// Segundos ACTIVOS acumulados cuando arrancó esta run.
+        var startActive: Double = 0
+        /// Tier de frontera → segundos activos DESDE el inicio de la run en que
+        /// se alcanzó por primera vez. El tier 1 está desde el segundo cero.
+        var tierReached: [Int: Double] = [1: 0]
+    }
+
+    /// Cuándo se considera que la run se TRABÓ: cuando un solo tier de frontera
+    /// se come una sesión entera de juego activo. No es un número inventado —
+    /// sale del modelo humano—, y es el que hace medible la palabra "pared".
+    var wallSeconds: Double { human.sessionSeconds }
+
+    /// El primer tier de `tracker` cuyo paso al siguiente pasó de `wallSeconds`.
+    /// `0` = esta run no se trabó.
+    func wallTier(in tracker: RunTracker) -> Int {
+        for tier in tracker.tierReached.keys.sorted() {
+            guard let acá = tracker.tierReached[tier],
+                  let arriba = tracker.tierReached[tier + 1] else { continue }
+            if arriba - acá > wallSeconds { return tier }
+        }
+        return 0
+    }
+
+    /// Cierra la run que termina: publica dónde se trabó y, si había una pared
+    /// anterior, cuánto costó volver a ella contra lo que costó la primera vez.
+    private func closeRun(tracker: inout RunTracker, report: inout Report, active: Double) {
+        let pared = wallTier(in: tracker)
+        if let anterior = report.wallTierPerRun.last, anterior > 0,
+           let vuelta = tracker.tierReached[anterior],
+           let primera = report.secondsToOwnWallCandidate {
+            report.secondsBackToPreviousWall.append(vuelta)
+            report.secondsToOwnWallFirstTime.append(primera)
+        }
+        report.wallTierPerRun.append(pared)
+        report.secondsToOwnWallCandidate = pared > 0 ? tracker.tierReached[pared] : nil
+        tracker = RunTracker(startActive: active, tierReached: [1: 0])
     }
 
     // MARK: - Sesión activa
@@ -256,13 +348,14 @@ public struct PacingSimulator: Sendable {
     private func playSession(
         state: inout PlayerState,
         report: inout Report,
+        tracker: inout RunTracker,
         wallStart: Double,
         activeStart: Double
     ) -> (wall: Double, active: Double) {
         var elapsed = 0.0
         while elapsed < human.sessionSeconds {
             doAllMerges(
-                state: &state, report: &report,
+                state: &state, report: &report, tracker: &tracker,
                 wallStart: wallStart, activeStart: activeStart, elapsed: &elapsed
             )
             if state.run.maxTierReached >= tiers.maxTier, report.godWall == nil {
@@ -271,7 +364,7 @@ public struct PacingSimulator: Sendable {
                 return (elapsed, elapsed)
             }
             maybeReincarnate(
-                state: &state, report: &report,
+                state: &state, report: &report, tracker: &tracker,
                 wall: wallStart + elapsed, active: activeStart + elapsed
             )
 
@@ -531,6 +624,7 @@ public struct PacingSimulator: Sendable {
     private func doAllMerges(
         state: inout PlayerState,
         report: inout Report,
+        tracker: inout RunTracker,
         wallStart: Double,
         activeStart: Double,
         elapsed: inout Double
@@ -565,7 +659,14 @@ public struct PacingSimulator: Sendable {
                 state.run.units[type.id, default: 0] -= 2
                 if state.run.units[type.id] == 0 { state.run.units[type.id] = nil }
                 state.run.units[newTypeId, default: 0] += 1
-                state.run.maxTierReached = max(state.run.maxTierReached, newType.tier)
+                if newType.tier > state.run.maxTierReached {
+                    state.run.maxTierReached = newType.tier
+                    // El reloj de la pared es ACTIVO y relativo al inicio de la
+                    // run: reencarnar reinicia la cuenta, que es lo que permite
+                    // comparar "volver a la pared" contra "llegar la primera vez".
+                    tracker.tierReached[newType.tier] =
+                        activeStart + elapsed + human.mergeSeconds - tracker.startActive
+                }
                 merged = true
                 elapsed += human.mergeSeconds
                 recordUnlocks(
@@ -579,7 +680,10 @@ public struct PacingSimulator: Sendable {
 
     // MARK: - Reencarnación
 
-    private func maybeReincarnate(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
+    private func maybeReincarnate(
+        state: inout PlayerState, report: inout Report,
+        tracker: inout RunTracker, wall: Double, active: Double
+    ) {
         guard case .whenOroMultiplies(let multiple) = human.reincarnation else { return }
         let gained = PrestigeCalculator.oroGained(state: state, economy: economy)
         // Regla idle estándar: reencarnar cuando al menos DUPLICA lo ganado
@@ -589,6 +693,7 @@ public struct PacingSimulator: Sendable {
         let threshold = max(1, Double(state.meta.oroEarnedLifetime) * multiple)
         guard Double(gained) >= threshold else { return }
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: wall)
+        closeRun(tracker: &tracker, report: &report, active: active)
         report.reincarnations += 1
         report.reincarnationActiveSeconds.append(active)
         if report.firstReincarnationWall == nil { report.firstReincarnationWall = wall }

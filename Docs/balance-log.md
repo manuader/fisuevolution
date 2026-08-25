@@ -1922,3 +1922,110 @@ swift run --package-path Tools/pacing-sim pacing-sim \
 # la partida del dueño (sin reencarnar), que es el contrapunto:
 #   … --no-reincarnation
 ```
+
+---
+
+# Cuarta ronda (bis) — Las fusiones se cobran, y el barrido de la profundidad (2026-08-23)
+
+> **Lo primero, porque invalida comparaciones**: el simulador **empezó a cobrar
+> las fusiones** (`HumanModel.mergeSeconds`, 1 s). Hasta acá valían cero, y eso
+> era un **sesgo** y no una simplificación: fusionar es el verbo central del
+> juego —una acción por fusión— y subir un tier de frontera pide `2^N − 1` de
+> ellas, así que el instrumento medía a un jugador que compra con el dedo y
+> fusiona con la mente. **Todo número de esta bitácora anterior a esta sección
+> se midió con el merge gratis y no es comparable renglón a renglón.**
+
+Commit: `800755c`. Corrida base: `Docs/balance-run-t10-merges-cobrados.csv`.
+
+## Qué movió cobrar las fusiones
+
+| | merge gratis | merge a 1 s |
+|---|---:|---:|
+| maxear las siete | 7,27 h | **6,67 h** |
+| dios (activas) | 9,40 h | **8,97 h** |
+| 1ª reencarnación (pared) | 4,28 h | **9,00 h** |
+| fase fisura | 78,0 s | **96,0 s** |
+| reencarnaciones al maxear | 8 | 7 |
+
+**Y sí, las horas activas BAJARON**, que es lo contrario de lo que uno espera al
+agregar un costo. El mecanismo: cobrar las fusiones quema presupuesto de SESIÓN
+(20 min), así que el bot llega antes al final de cada una y una parte del
+progreso se paga con income **offline** — que es reloj de pared y no de dedo. Lo
+que sube es la espera (la 1ª reencarnación se duplica) y el arranque, que es puro
+Fisura: los 18 s que le crecen a la fase fisura son 63 fusiones que hasta ahora
+salían gratis.
+
+## El barrido de la profundidad con las fusiones cobradas
+
+`--max-days 400`, árbol embarcado salvo lo indicado. "callejón 1,0X" es
+`floors[0].hireCostGrowth`, que es lo único que destraba el muro del early game
+—hasta que la frontera llega a `N+2` lo único contratable es el Fisura, así que
+hay que mergear `2^(N+1)` de ellos contra `1,06^compras`—.
+
+| N | maxear | reenc al maxear | dios (act.) | 1ª reenc (pared) | peor paso | salto máx | sin reencarnar |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **6 (embarcado)** | **6,67 h** | **7** ✅ | **8,97 h** | 9,00 h | ×14,65 | 2,15 h | 2,97 h (×0,33) 🔴 |
+| 7 | 186,33 h | 8 ✅ | 193,03 h | 28,32 h 🔴 | ×3.726 🔴 | 96,31 h 🔴 | — |
+| **7 + callejón 1,02** | **13,33 h** | **8** ✅ | **21,21 h** | 9,23 h | ×16,86 | 4,94 h | 7,41 h (×0,35) 🔴 |
+| 8 | **no termina** (maxTier 9 a los 400 días) | — | — | 28,32 h 🔴 | ×3.726 🔴 | — | — |
+| 8 + callejón 1,02 | 77,33 h | 9 🔴 | 108,66 h | 9,27 h | ×16,86 | 41,11 h 🔴 | **nunca llega** (maxTier 16) ✅ |
+| 8 + callejón 1,01 | 48,67 h | 9 🔴 | 87,97 h | 24,00 h 🔴 | ×16,47 | 29,67 h 🔴 | — |
+
+Cadencias completas (h ACTIVAS acumuladas de cada reencarnación):
+
+- **N=6**: 0,7 · 1,3 · 2,5 · 3,7 · 4,7 · 5,7 · 6,7 · 7,7 — saltos de **0,6 a 1,2 h**
+- **N=7** (pelado): 2,0 · 17,7 · 97,6 · 143,3 · 169,0 · 180,3 · 184,3 · 186,3 · 188,3 · 190,7
+- **N=7 + callejón 1,02**: 0,9 · 2,0 · 3,3 · 5,1 · 7,1 · 9,3 · 11,3 · 13,3 · 15,7 · 18,3 —
+  saltos de **1,1 a 2,6 h**, creciendo parejo
+- **N=8 + callejón 1,02**: 0,9 · 3,0 · 5,3 · 8,3 · 14,7 · 29,3 · 52,3 · 69,3 · 77,3 · 83,7 · 88,7 · 93,3 · …
+- **N=8 + callejón 1,01**: 1,3 · 3,0 · 5,0 · 7,3 · 11,5 · 19,0 · 29,3 · 40,7 · 48,7 · 55,7 · 62,0 · 68,0 · …
+
+### Las tres lecturas
+
+1. **N=7 con el callejón destrabado es lo único jugable que alarga.** 13,33 h a
+   maxear (×2 sobre N=6), dios ×1,6 más lejos, 8 reencarnaciones, y la cadencia
+   sube pareja de 1,1 a 2,6 h — la primera vez en cuatro rondas que se acerca a
+   las 2,5-4 h pedidas. Lo paga con un salto de 4,94 h entre dos hitos, que raspa
+   el techo de "4-5 h".
+2. **N=8 no es jugable.** Pelado la partida no se termina (maxTier 9 a los 400
+   días). Con el callejón destrabado termina, pero pide **9 reencarnaciones**
+   —rompe el ≤8— y mete saltos de **29 a 41 h activas** entre dos hitos: eso no
+   es una curva de dificultad, es una pared con otro nombre.
+3. ⚠️ **La profundidad es lo ÚNICO medido que da vuelta la trampa de
+   reencarnar**, y el cruce está entre 7 y 8. Con N=6 y N=7 el que no reencarna
+   sigue llegando ~3× más rápido (2,97 h contra 8,97 · 7,41 contra 21,21); **con
+   N=8 no llega nunca** (maxTier 16 a los 400 días). O sea que el contrato 5 y los
+   contratos 2-3 tiran para lados opuestos del mismo dial.
+
+## En horas del DUEÑO
+
+El dueño hizo en **menos de 1 h** la partida que el bot tarda **2,97 h** (dios sin
+reencarnar, N=6, fusiones cobradas): juega **~3× más rápido**. Con ese factor, la
+misma tabla en su reloj:
+
+| configuración | maxear (sim) | **maxear (dueño)** | dios (sim) | **dios (dueño)** |
+|---|---:|---:|---:|---:|
+| N=6 (embarcado) | 6,67 h | **2,2 h** | 8,97 h | **3,0 h** |
+| N=7 + callejón 1,02 | 13,33 h | **4,4 h** | 21,21 h | **7,1 h** |
+| N=8 + callejón 1,01 | 48,67 h | **16,2 h** | 87,97 h | **29,3 h** |
+| N=8 + callejón 1,02 | 77,33 h | **25,8 h** | 108,66 h | **36,2 h** |
+
+**Y ahí está la pregunta que hay que hacerle al dueño, porque no la puede
+contestar una calibración**: las 20-30 h, ¿son del reloj del simulador o del
+suyo?
+
+- **Del simulador**: nada jugable llega. El techo es N=7 + callejón = 13,33 h, y
+  para pasar de ahí hay que romper el ≤8 o meter saltos de 30-40 h.
+- **Del dueño (÷3)**: N=8 + callejón 1,02 cae **adentro de la banda** (25,8 h) —
+  pero sigue costando 9 reencarnaciones y un salto de 41 h de simulador (13,7 h
+  suyas) entre dos hitos. Y N=7 + callejón, que es el sano, da 4,4 h suyas.
+
+## Cómo re-correr
+
+```bash
+swift run --package-path Tools/pacing-sim pacing-sim \
+  --economy FisuEvolution/Resources/Data/economy.json \
+  --tiers FisuEvolution/Resources/Data/tiers.json \
+  --upgrades FisuEvolution/Resources/Config/upgrades.json --max-days 400
+#   … --no-reincarnation   ← el contrato 5
+```

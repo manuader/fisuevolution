@@ -238,6 +238,44 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-08-23 (bis) — Las fusiones se cobran, y el barrido de la profundidad
+
+`fix/rebalance-pacing`. **El simulador dejó de regalar las fusiones**
+(`HumanModel.mergeSeconds`, 1 s). Era un sesgo y no una simplificación: fusionar
+es el verbo central del juego —una acción por fusión— y subir un tier de frontera
+pide `2^N − 1` de ellas, así que el instrumento medía a un jugador que compra con
+el dedo y fusiona con la mente. Sesga justo el eje sobre el que se calibra: la
+proporción compras/fusiones es lo que mueve la profundidad de la compuerta.
+
+⚠️⚠️ **Acá se corta la comparación con todas las bandas anteriores de la rama**:
+cualquier número previo al `800755c` se midió con el merge gratis.
+
+Efecto: maxear 7,27 → **6,67 h**, dios 9,40 → **8,97 h**, y la 1ª reencarnación
+4,28 → **9,00 h de pared**. Las horas ACTIVAS bajaron, que es lo contrario de lo
+esperado: cobrar las fusiones quema presupuesto de SESIÓN, el bot llega antes al
+final de cada una y parte del progreso se paga con income offline —reloj de
+pared, no de dedo—.
+
+**El barrido de la profundidad, con el instrumento corregido**: N=6 → 6,67 h ·
+N=7 → 186,33 h (muro del early game) · **N=7 con el callejón destrabado
+(`floors[0].hireCostGrowth` 1,02) → 13,33 h**, 8 reencarnaciones, dios a 21,21 h
+y cadencia que sube pareja de 1,1 a 2,6 h · N=8 **no es jugable** (pelado no
+termina; destrabado pide 9 reencarnaciones y saltos de 29-41 h).
+
+⚠️ **La profundidad es lo ÚNICO medido que da vuelta la trampa de reencarnar**, y
+el cruce cae entre 7 y 8: con N≤7 el que no reencarna llega ~3× más rápido, con
+N=8 no llega nunca. El contrato 5 y los contratos 2-3 tiran para lados opuestos
+del MISMO dial.
+
+**La compra en lote se empezó y se descartó** (objeción del dueño, correcta: sólo
+entran 10 por piso, comprar de a más ACORTA el juego, y por lo tanto no es una
+palanca de duración). No quedó nada en el árbol; el porqué está en el doc de
+sesión §4 para que no se re-proponga sin leerlo.
+
+Detalle: **`Docs/SESION-2026-08-23-fusiones-cobradas.md`**. Números:
+`balance-log.md`, "Cuarta ronda (bis)". Corrida:
+`balance-run-t10-merges-cobrados.csv`.
+
 ### Sesión del 2026-08-23 — El precio atado a la frontera, y el reloj que no era de plata
 
 `fix/rebalance-pacing`, cuarta ronda. **El precio de contratar dejó de seguir a
@@ -848,8 +886,14 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
 4. **Los tintes IAP se retiraron** aunque eran los únicos productos pagos además
    de remove_ads.
 5. 🔴 **`PacingTests.theOwnersTargetsAreMet` está en ROJO desde el 2026-08-22 y
-   es la verdad, no un descuido**: maxear las siete mide **7,27 h** contra las
-   20-30 pedidas. Se descubrió arreglando el simulador, no cambiando la economía.
+   es la verdad, no un descuido**: maxear las siete mide **6,67 h** contra las
+   20-30 pedidas.
+   ⚠️ **Y antes de calibrar contra ese número hay una pregunta abierta para el
+   dueño**: las 20-30 h, ¿son del reloj del SIMULADOR o del suyo? Él hizo en
+   menos de 1 h la partida que el bot tarda 2,97 h, o sea que juega **~3× más
+   rápido**. En su reloj, N=7 con el callejón destrabado da 4,4 h y N=8 da 25,8 h.
+   La respuesta cambia qué configuración es la correcta y no la puede contestar
+   una calibración. Cuadro completo en `balance-log.md`, "Cuarta ronda (bis)". Se descubrió arreglando el simulador, no cambiando la economía.
    La causa de la ronda 3 (el precio atado a `tapYield(tier)`) **ya está
    cerrada**; la que queda es otra y también está medida: **la mitad del tiempo
    activo del bot es apretar el botón, no esperar plata**, así que los knobs de
@@ -1471,6 +1515,25 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     `.navigation` de `containerBackground` es **iOS 18+** —verificado en la
     swiftinterface del SDK—, por eso hay un fallback UIKit para 17.
 
+### De tests y calibración (2026-08-23, bis)
+
+33. **El device de simulador es de UNA corrida por vez, y el segundo proceso
+    puede ser tuyo.** Lanzar `-only-testing:FisuEvolutionTests/PacingTests`
+    mientras la suite de UI corría en el MISMO simulador tiró **31 de 48** tests
+    con "la app no está corriendo", `board.floor never appeared` y
+    `kAXError -25218`. El general ya decía "dos agentes en paralelo no pueden
+    compartir el device"; la ampliación es que **no hace falta otro agente**.
+    Si una suite de UI empieza a fallar en masa con "la app no está corriendo",
+    mirá `ps aux | grep xcodebuild` ANTES que el diff.
+
+34. **Un costo agregado al instrumento puede BAJAR la métrica.** Cobrar las
+    fusiones (0 → 1 s) bajó maxear de 7,27 a 6,67 h activas, que es lo contrario
+    de lo que uno espera. El mecanismo: el costo quema presupuesto de SESIÓN (20
+    min), el bot llega antes al final de cada una y parte del progreso se paga con
+    income **offline**, que es reloj de pared y no de dedo. Cuando un cambio de
+    instrumento mueva una métrica para el lado raro, mirá si el modelo tiene un
+    presupuesto por sesión antes de buscar el bug.
+
 ### De tests y calibración (2026-08-23)
 
 30. **Antes de barrer knobs, medí si el bot es *money-bound* o *action-bound*.**
@@ -1843,6 +1906,7 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
+| **`SESION-2026-08-23-fusiones-cobradas.md`** | **Las fusiones dejan de ser gratis en el simulador (y por qué eso era un sesgo, no una simplificación), el barrido de la profundidad N=6/7/8 con las cinco métricas, la conversión a horas del dueño con el factor de 3×, y por qué la compra en lote se empezó y se descartó** |
 | **`SESION-2026-08-23-precio-atado-a-la-frontera.md`** | **La cuarta ronda de balance: el precio de contratar anclado a tu FRONTERA (la regla de precios nueva, que reemplaza a la de los 600 clicks), la compuerta convertida por fin en dial de dificultad, la tercera ceguera del bot, y el hallazgo de que la mitad del tiempo activo es apretar el botón y no esperar plata — con las cuatro salidas que el dueño tiene que elegir** |
 | **`SESION-2026-08-22-compuerta-por-distancia.md`** | **La tercera ronda de balance: la compuerta medida en tiers, las dos cegueras del simulador y el hallazgo de que el contrato de 20-30 h nunca se cumplió — con las tres salidas que el dueño tiene que elegir. Y la trampa del Xcode 26.6 sin runtime de iOS 26** |
 | **`SESION-2026-08-21-rebalance-pacing.md`** | **El rebalance de pacing: las tres métricas antes/después, los dos knobs que hacen cosas distintas, las tres decisiones del dueño con lo descartado y su número, y los cuatro diagnósticos que salieron errados antes del bueno** |

@@ -47,6 +47,15 @@ struct TutorialTipView: View {
             ZStack {
                 if let anchor {
                     TipRing(rect: anchor.insetBy(dx: -8, dy: -8), reduceMotion: reduceMotion)
+                    // La manito sobre el control, como en la fase: el anillo
+                    // marca DÓNDE y la mano dice QUÉ hacer — sin ella, varios
+                    // "tocá el tab" no se leían como un toque (corrección del
+                    // dueño, 2026-08-21). Mismos clamps que `TutorialHand`.
+                    TapHereHand(size: 40)
+                        .position(
+                            x: min(max(anchor.maxX - 4, 40), proxy.size.width - 20),
+                            y: min(max(anchor.maxY - 2, 40), proxy.size.height - 40)
+                        )
                 }
                 balloon(tip, anchor: anchor, screen: proxy.size)
             }

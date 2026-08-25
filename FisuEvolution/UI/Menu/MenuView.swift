@@ -154,6 +154,16 @@ struct MenuView: View {
                                     .offset(x: 8, y: -4)
                             }
                         }
+                        // Y la manito abajo del icono mientras el puntito
+                        // viva: el badge avisa, la mano pide el toque
+                        // (corrección del dueño, 2026-08-21). Muere junto con
+                        // él al cobrar el último logro.
+                        .overlay(alignment: .bottomTrailing) {
+                            if showsBadge {
+                                TapHereHand(size: 34)
+                                    .offset(x: 10, y: 10)
+                            }
+                        }
                     Text(titleKey)
                         .font(Tokens.title)
                         .foregroundStyle(Color("PaletteInk"))

@@ -249,6 +249,16 @@ struct CustomizationView: View {
             equip: { equip(row, on: type.id) },
             buy: { buy(row) }
         )
+        // La manito sobre la pinta sin estrenar, SOLO hasta que el jugador se
+        // ponga la primera (corrección del dueño, 2026-08-21: donde haya que
+        // hacer click, se ve el click). Con `anySkinEverEquipped` la guía
+        // muere para siempre: el gesto ya está aprendido.
+        .overlay(alignment: .bottomTrailing) {
+            if case .owned = row.state, !gameState.anySkinEverEquipped {
+                TapHereHand(size: 34)
+                    .padding([.bottom, .trailing], Tokens.s12)
+            }
+        }
     }
 
     /// Las filas de a pares, conservando el orden del catálogo.

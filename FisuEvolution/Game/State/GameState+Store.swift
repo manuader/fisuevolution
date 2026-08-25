@@ -224,6 +224,14 @@ extension GameState {
     /// Equipa una skin en UN personaje. Valida tanto la pertenencia de la skin
     /// al catálogo como la propiedad del jugador; StoreKit nunca puede inyectar
     /// una apariencia que `skins.json` no declare para esa ficha.
+    /// El jugador ya se puso ALGUNA pinta alguna vez (vive en `meta`, así que
+    /// sobrevive al prestigio). Computada y no proyectada por el mismo motivo
+    /// que `characterUpgradeRows`: la única pantalla que la lee es un modal que
+    /// ya se re-evalúa contra `skinSelectionVersion`.
+    var anySkinEverEquipped: Bool {
+        player?.meta.activeSkinByType.isEmpty == false
+    }
+
     func equipSkin(id skinID: String?, forCharacterType typeID: String) {
         guard let content, var player,
               content.tiers.type(id: typeID) != nil

@@ -2029,3 +2029,122 @@ swift run --package-path Tools/pacing-sim pacing-sim \
   --upgrades FisuEvolution/Resources/Config/upgrades.json --max-days 400
 #   … --no-reincarnation   ← el contrato 5
 ```
+
+---
+
+# Cuarta ronda (ter) — La desaceleración y la pared (2026-08-23)
+
+> **El diagnóstico que cerró el argumento**: con el precio anclado a la frontera
+> y nada más, cada tier cuesta el MISMO tiempo que el anterior. 37 tiers ×
+> constante da una duración fija y —lo que importa— **una run que nunca se traba**.
+> El simulador lo dice en una línea: `pared de cada run: — · — · — · …`. Un solo
+> dial no podía arreglarlo porque **el problema no era la constante sino la FORMA
+> de la curva**.
+
+Commit: `c82ccf5`. Corrida: `Docs/balance-run-t11-desaceleracion.csv`.
+
+## La regla de precios, re-enunciada (hay que aprobarla)
+
+> 1. Contratar **a tu frontera** cuesta **600 clicks** de ese personaje (el
+>    callejón, 25 — el primer Fisura sigue saliendo 25).
+> 2. Cada tier que **bajás** descuenta un tercio (÷1,5) y fusionar necesita el
+>    doble: bajar un tier sale **1,33× más caro**.
+> 3. **Y del tier 7 para arriba, tu propia frontera se encarece un 60 % por tier,
+>    por encima de lo que ya sube por rendir más. Eso es lo que pone densa la
+>    torre arriba y lo que hace que la run se trabe.**
+
+El (3) es lo nuevo. El umbral del tier 7 no es adorno: sin él la escalada es una
+exponencial desde el tier 1 y no tiene cómo ser suave abajo y densa arriba.
+
+## El barrido, un knob por vez
+
+**`frontierEscalationPerTier`** (con N=6, umbral en 1 salvo donde se indique):
+
+| D | maxear | dios | paredes por run | reencarnar paga |
+|---:|---:|---:|---|---|
+| 1,00 (apagada) | 6,67 h | 8,97 h | — · — · — · … (ninguna) | — |
+| 1,25 | 14,28 h | 19,67 h | T7 · — · T7 | 11 % · 22 % |
+| 1,35 | 19,00 h | 25,43 h | T7 · T7 · T7 · T12 · T13 · T13 | 12 % · 10 % · 23 % · 3 % · 28 % · 42 % |
+| 1,60 | 54,84 h | 76,72 h | T7 ×5 · T12 · T13 · T15 · T19 · T21 · T24 · T28 · T29 | 12-49 % |
+| 2,00 | 396,67 h | no llega | T7 ×5 · T11 · T12 · T13 · T15 · T15 · T16 | 4-49 % |
+
+⚠️ **1,00 reproduce la corrida anterior al último decimal**: la fórmula es inerte
+apagada, que es lo que hace limpio el antes/después.
+
+**`frontierEscalationFromTier`** (con D=1,6, N=6):
+
+| umbral | maxear | dios | paredes por run |
+|---:|---:|---:|---|
+| 1 | 54,84 h | 76,72 h | **T7 ×5** · T12 · T13 · T15 · T19 · T21 · T24 · T28 · T29 |
+| 5 | 21,52 h | 35,77 h | T7 · — · T12 · T12 · T13 · T16 · T16 · T21 |
+| **7** | **14,91 h** | **24,39 h** | — · — · — · T13 · T14 · T17 |
+| 9 | 12,67 h | 22,46 h | ninguna |
+| 13 | 8,67 h | 14,75 h | ninguna |
+
+**Por qué 7.** Con el umbral en 1 las primeras CINCO runs se traban en el **tier
+7**, o sea en el callejón: es la frustración que el diseño evita y el dueño
+descartó explícitamente ("ni antes, que frustra"). Del 9 para arriba la pared
+**desaparece**, y el motivo es que el bot reencarna al duplicar el ORO mucho
+antes de llegar a la zona con escalada: una pared que la run nunca alcanza no
+existe.
+
+**`oro.divisor`** (con D=1,6 desde el tier 7, N=6) — el que hace que las runs
+duren lo suficiente para llegar a la pared:
+
+| divisor | maxear | dios | paredes por run | corre |
+|---:|---:|---:|---|---|
+| 1e9 | 14,91 h | 24,39 h | — · — · — · T13 · T14 · T17 | +1 · +3 |
+| **1e10** | **20,67 h** | **28,43 h** | **— · T12 · T13 · T14 · T16 · T18 · T20** | **+1 · +1 · +2 · +2 · +2** |
+| 1e11 | 30,33 h | 39,36 h | T12 · T13 · T13 · T13 · T15 · T17 · T21 | +1 · +0 · +0 · +2 · +2 · +4 |
+
+Se elige **1e10**: es el que hace que la pared corra **parejo** en vez de a
+saltos, y el que pone maxear adentro de la banda.
+
+**Lo descartado en esta ronda, con su número**: la compuerta **no** se movió a 7.
+Estaba medida como el punto de partida jugable (13,33 h), pero con la
+desaceleración proveyendo el largo, **N=7 empeora la forma**: su piso de acciones
+—`2^7` compras + 127 fusiones por tier— es lo que le pone techo a cuánto puede
+pagar reencarnar, porque volver a la pared cuesta las mismas acciones tengas la
+plata que tengas. Medido con D=1,25: N=7 paga 6-31 % contra el 7-40 % de N=6, y
+con saltos entre hitos de 11,60 h contra 6,74 h. **N se queda en 6.**
+
+## La FORMA medida (el contrato nuevo)
+
+    pared de cada run:      — · T12 · T13 · T14 · T16 · T18 · T20
+    cuánto corre la pared:      +1 · +1 · +2 · +2 · +2 tiers
+    reencarnar paga:         7 % · 18 % · 40 % · 24 % · 37 % · 35 %
+
+- ✅ **La pared existe** (antes: ninguna run se trababa jamás) y cae en el arco
+  que el dueño pidió — T12 a T20, o sea pisos 3 a 5.
+- ✅ **Corre en cada reencarnación**, y parejo.
+- 🔴 **Reencarnar paga 7-40 %, contra el ≥67 % pedido.** El techo es estructural
+  y está medido: volver a la pared cuesta las mismas ACCIONES que la primera vez
+  (`2^N` compras + `2^N − 1` fusiones por tier), y el ORO saca la espera pero no
+  las acciones. Con N=6 el piso de acciones para volver al tier 20 es ~0,7 h, así
+  que el pago no puede pasar de `1 − 0,7/primera`. Para llegar al 67 % haría falta
+  una mejora permanente que acorte **la subida** (menos acciones por tier), que
+  hoy no existe en el catálogo.
+
+## Las cinco métricas, en los dos relojes
+
+| métrica | contrato | sim | **dueño (÷3)** | |
+|---|---|---:|---:|---|
+| maxear las siete | 20-30 h suyas | **20,67 h** | **6,9 h** | ✅ en sim · 🔴 en su reloj |
+| reencarnaciones al maxear | ≤ 8 | **9** | — | 🔴 |
+| cadencia | 2,5-4 h suyas | 1,3-3,2 h | 0,4-1,1 h | 🔴 |
+| dios después de maxear | sí | 28,43 h (×1,38) | 9,5 h | ✅ |
+| sin reencarnar más lento | sí | **no llega** (tier 29/37) | — | ✅ **por primera vez** |
+
+Peor salto entre hitos: **6,02 h de sim = 2,0 h suyas** (contrato: 4-5 h suyas) ✅.
+Fase fisura: 96,0 s (no se movió — la escalada arranca en el tier 7).
+
+## ⚠️ La incertidumbre con la que se está trabajando
+
+El factor de **3×** entre el reloj del simulador y el del dueño sale de **UNA
+comparación**: él reportó "menos de 1 h" para la partida que el bot tarda 2,97 h
+(dios sin reencarnar). Es una estimación de un punto, sin dispersión y sin
+repetición, y **todo el renglón "dueño" de la tabla de arriba hereda esa
+incertidumbre**. Por eso esta ronda priorizó la FORMA sobre el total: la forma se
+mide adentro del simulador y no depende del factor. El total se escala con
+`oro.divisor` cuando el dueño confirme cuál reloj vale, y el veredicto real lo da
+su playtest.

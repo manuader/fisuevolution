@@ -238,6 +238,49 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-08-23 (ter) — La desaceleración: la run se traba y el prestigio corre la pared
+
+`fix/rebalance-pacing`. **El diagnóstico**: con el precio anclado a la frontera y
+nada más, cada tier costaba el MISMO tiempo que el anterior — 37 tiers ×
+constante— y **la run no se trababa nunca**. Por eso se podía ir de Fisura a Dios
+de una sentada y por eso reencarnar no pagaba: se reencarna para correr una
+pared, y no había pared. Un solo dial no podía arreglarlo porque el problema no
+era la constante sino **la forma de la curva**.
+
+**La regla de precios suma un tercer renglón** (ver §5.2): del **tier 7** para
+arriba tu propia frontera se encarece un **60 %** por tier, por encima de lo que
+ya sube por rendir más (`frontierEscalationPerTier` 1,6 con
+`frontierEscalationFromTier` 7). El umbral no es adorno: sin él la escalada es
+una exponencial desde el tier 1 y las primeras cinco runs se traban **en el
+callejón**, que es la frustración que el diseño evita.
+
+**El contrato pasó a ser una FORMA y ahora es medible.** `Report` publica tres
+series nuevas y `pacing-sim` las imprime: dónde se traba cada run, cuánto corre
+la pared, y cuánto paga reencarnar. "Trabarse" es un número —el primer tier cuyo
+paso al siguiente cuesta más de una SESIÓN entera de juego activo— y el umbral
+sale del modelo humano, no de un literal a dedo.
+
+Medido: `— · T12 · T13 · T14 · T16 · T18 · T20`, corriendo `+1 · +1 · +2 · +2 · +2`.
+
+**Los dos contratos que se destrabaron**: maxear las siete mide **20,67 h
+activas** (el primer assert de `theOwnersTargetsAreMet` pasa por primera vez), y
+**el que no reencarna ya no llega a dios** (tier 29 de 37 a los 400 días, contra
+28,43 h reencarnando) — el contrato 5 nunca había cerrado en cuatro rondas.
+
+🔴 **Lo que queda**: 9 reencarnaciones contra las ≤8, y reencarnar paga 7-40 %
+contra el ≥67 % pedido. El techo del pago es estructural y está medido: volver a
+la pared cuesta las mismas ACCIONES que la primera vez y el ORO saca la espera,
+no las acciones. Pide una mejora permanente que acorte la SUBIDA, que hoy no
+existe en el catálogo.
+
+⚠️ **La compuerta NO se movió a 7** aunque estaba medida como jugable: con la
+desaceleración dando el largo, N=7 empeora la FORMA (su piso de acciones le pone
+techo a lo que puede pagar reencarnar). Se queda en 6, con el número en la
+bitácora.
+
+Detalle y barridos: `balance-log.md`, "Cuarta ronda (ter)". Corrida:
+`balance-run-t11-desaceleracion.csv`.
+
 ### Sesión del 2026-08-23 (bis) — Las fusiones se cobran, y el barrido de la profundidad
 
 `fix/rebalance-pacing`. **El simulador dejó de regalar las fusiones**
@@ -827,6 +870,17 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    > **(b)** Cada tier que **bajás** descuenta sólo un tercio (÷`priceGrowthPerTier`
    > = 1,5) y fusionar necesita el **doble** de unidades: bajar un tier deja la
    > unidad de tu frontera **1,33× más cara**. Comprar hondo dejó de ser un atajo.
+   > **(c)** Y del **tier 7** para arriba, tu propia frontera se encarece un
+   > **60 %** por tier (`frontierEscalationPerTier` 1,6 desde
+   > `frontierEscalationFromTier` 7), **por encima** de lo que ya sube por rendir
+   > más. Eso es lo que pone densa la torre arriba y lo que hace que la run **se
+   > trabe** — que es lo que le da trabajo al prestigio.
+
+   El renglón (c) es del 2026-08-23 (ter) y es lo que convirtió el contrato en una
+   FORMA: la run se traba, cada reencarnación corre la pared, y sin reencarnar ya
+   no se llega a dios. El umbral del tier 7 es lo que deja el early game y el
+   tutorial intactos —el exponente es `max(0, frontera − 7)`— y sin él las
+   primeras cinco runs se traban en el callejón (medido).
 
    Por qué cambió: la vieja ataba el precio a `tapYield(tier)`, la MISMA curva que
    el rendimiento (2,8 por tier), y como fusionar sólo multiplica por 2, comprar

@@ -149,6 +149,14 @@ struct GameContentValidationTests {
         // hay que comprar. Arriba de 6 se despierta el muro del early game: hasta
         // que la frontera llega a N+2 lo único contratable es el Fisura.
         #expect(economy.hire.gateTierDistance == 6)
+        // La desaceleración (cuarta ronda, ter): del tier 7 para arriba tu propia
+        // frontera se encarece un 60 % por tier. Es lo que hace que la run se
+        // TRABE y, con eso, lo que le da trabajo al prestigio — sin esto ninguna
+        // run se trababa nunca y se podía ir de Fisura a Dios de una sentada.
+        // El umbral en 7 deja el callejón y el tutorial intactos: con la escalada
+        // desde el tier 1 las primeras cinco runs se traban EN el callejón.
+        #expect(economy.hire.frontierEscalationPerTier == 1.6)
+        #expect(economy.hire.frontierEscalationFromTier == 7)
         #expect(economy.charUpgrades.baseCostMultiplier == 50)
         // Bajó de 4,0 el 2026-08-22, y no es un ajuste de precio sino la
         // consecuencia del efecto secuencial: contra un efecto LINEAL, un costo
@@ -175,7 +183,12 @@ struct GameContentValidationTests {
         // conserva —y era el objetivo real de aquel cambio— es que reencarnar
         // temprano CONVENGA: el barrido de umbral quedó monótono (×1 → 24,67 h ·
         // ×8 → 30,54 h · ×1000 → 50,51 h · sin reencarnar, dios a 66,34 h).
-        #expect(economy.oro.divisor == 1_000_000_000)
+        // Subió de 1e9 a 1e10 en la cuarta ronda (ter), y no es un ajuste de
+        // precio: es lo que hace que las runs duren lo suficiente para LLEGAR a
+        // la pared que construyó la desaceleración. Con 1e9 la pared corría
+        // +1 · +3 y a los saltos; con 1e10 corre +1 · +1 · +2 · +2 · +2, parejo,
+        // y maxear entra en la banda de 20-30 h. Medido en `balance-log.md`.
+        #expect(economy.oro.divisor == 10_000_000_000)
         // RF-07 (Ola 3) lo había bajado de 0.5 a 0.45; el rebalance lo baja a
         // 0.25 porque con 0,45 hacen falta ×4,65 de ganancias por duplicar el
         // ORO y las 8 entregas entraban en 1,3 h activas. Con 0,25 hacen falta
@@ -378,9 +391,20 @@ struct GameContentValidationTests {
                 let click = economy.tapYield(forTier: tier)
                     * content.economy.tapFloorMultiplier(for: floor)
                 let clicks = precio / click
-                let esperado = content.economy.hireCostMultiplier(for: floor)
+                // Del tier `frontierEscalationFromTier` para arriba se suma la
+                // DESACELERACIÓN: tu propia frontera se encarece
+                // `frontierEscalationPerTier` por tier. Es el renglón (3) de la
+                // regla y es lo que pone densa la torre arriba.
+                let escalada = pow(
+                    content.economy.hire.frontierEscalationPerTier,
+                    Double(max(0, tier - content.economy.hire.frontierEscalationFromTier))
+                )
+                let esperado = content.economy.hireCostMultiplier(for: floor) * escalada
+                // Tolerancia RELATIVA y no absoluta: con la desaceleración el
+                // número esperado llega a 600 × 1,6³⁰, y a esa escala un `1e-9`
+                // absoluto mide el error de redondeo del `pow`, no la regla.
                 #expect(
-                    abs(clicks - esperado) < 1e-9,
+                    abs(clicks / esperado - 1) < 1e-12,
                     "\(floor.id) T\(tier): contratarlo son \(clicks) clicks, no \(esperado)"
                 )
             }

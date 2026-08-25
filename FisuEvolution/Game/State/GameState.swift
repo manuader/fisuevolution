@@ -269,6 +269,11 @@ final class GameState {
     var effectsVersion = 0
     var careerPrompt: CareerPrompt?
     var characterSheet: CharacterSheet?
+    /// La carta informativa de un special ACTIVO del tablero, reabierta por el
+    /// jugador manteniendo apretado al personaje (pedido del dueño,
+    /// 2026-08-21: poder volver a ver qué beneficio te está dando). No pasa
+    /// por la cola de celebraciones: como la ficha, la pidió él.
+    var specialInfo: SpecialsConfig.Special?
     var offlineReward: OfflineReward?
     var skinAward: SkinAward?
     /// La lección contextual que está esperando turno o en pantalla, o `nil`.
@@ -495,6 +500,13 @@ final class GameState {
             // el `cycleDay` que se pone acá es el que termina en pantalla.
             if ProcessInfo.processInfo.arguments.contains("--uitest-daily-streak") {
                 debugSetDailyCycleDay(4)
+            }
+            // El primer special del catálogo, cayendo ya mismo: el drop real es
+            // RNG sobre merges (la carta no se puede ni fotografiar ni
+            // ejercitar sin suerte) y activarlo deja al personaje en el
+            // tablero, que es lo que necesita el recap del mantener-apretado.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-special") {
+                debugDropFirstSpecial()
             }
             // Tres logros conseguidos y sin cobrar: es la única forma de ver la
             // sección "Para cobrar" de la pantalla de Logros con algo adentro.

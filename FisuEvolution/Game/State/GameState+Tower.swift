@@ -79,6 +79,19 @@ extension GameState {
         }
     }
 
+    /// El jugador mantuvo apretado un special del tablero: se reabre su carta.
+    /// El id viene del nodo de la escena; acá se resuelve contra el catálogo —
+    /// si el special ya no existe (venció entre el toque y el frame), no pasa
+    /// nada, que es lo correcto.
+    func presentSpecialInfo(id: String) {
+        guard let special = content?.specials.specials.first(where: { $0.id == id }) else { return }
+        specialInfo = special
+    }
+
+    func dismissSpecialInfo() {
+        specialInfo = nil
+    }
+
     /// Placements del piso visible (la escena solo dibuja este piso en F7.1).
     var visiblePlacements: [TowerPlacement] {
         tower?.placements(onFloor: visibleFloorOrdinal) ?? []

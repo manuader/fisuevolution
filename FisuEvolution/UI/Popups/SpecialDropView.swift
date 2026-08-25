@@ -5,17 +5,23 @@ import SwiftUI
 /// Tercer gemelo de los popups de premio (`DailyRewardView`,
 /// `OfflineEarningsView`): mismo `PanelCard` con el moño asomando, banner de
 /// título, el premio sobre la `GameCard` amarilla y `ActionPill` verde de
-/// salida. La
-/// estrella no es arte del personaje —es el glifo de "sorpresa"— y por eso va
-/// sobre el plato de retrato de la casa, el mismo encuadre con el que el fork
-/// de carrera muestra sus caras.
+/// salida. El protagonista es la SKIN del personaje, grande (corrección del
+/// dueño, 2026-08-21: antes iba un glifo de estrella y no se apreciaba a
+/// quién te ganaste); la estrella queda de fallback para un special sin arte.
+///
+/// La misma carta sirve dos momentos: el DROP (celebración, con "¡Es mío!")
+/// y el RECAP — el jugador mantiene apretado al special en el tablero y la
+/// carta vuelve para contarle qué beneficio le está dando. Cambian el título,
+/// el botón y a quién se avisa al cerrar; el cuerpo es idéntico a propósito.
 struct SpecialDropView: View {
     @Environment(GameState.self) private var gameState
     let special: SpecialsConfig.Special
+    var isRecap = false
 
-    /// El plato del glifo: el mismo cuadrado redondeado de `CareerPortrait` y
-    /// de los glifos de Regalos.
-    private static let plateShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+    /// El plato del retrato: el mismo cuadrado redondeado de `CareerPortrait`
+    /// y de los glifos de Regalos, a escala de protagonista.
+    private static let plateShape = RoundedRectangle(cornerRadius: 18, style: .continuous)
+    private static let portraitSide: CGFloat = 168
 
     var body: some View {
         // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
@@ -24,16 +30,10 @@ struct SpecialDropView: View {
         // marco es la firma de la familia de premio: se abre como un regalo.
         PanelCard {
             VStack(spacing: Tokens.s16) {
-                PanelTitleBanner(titleKey: "special.drop.title")
+                PanelTitleBanner(titleKey: isRecap ? "special.info.title" : "special.drop.title")
                 GameCard(style: .highlighted(Color("PaletteYellow"))) {
                     VStack(spacing: Tokens.s12) {
-                        Image(systemName: "star.circle.fill")
-                            .font(.system(size: 56))
-                            .foregroundStyle(Color("PaletteYellow"))
-                            .padding(Tokens.s8)
-                            .background(Color("PaletteYellow").opacity(0.3))
-                            .clipShape(Self.plateShape)
-                            .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+                        portrait
                         Text(LocalizedStringKey(special.displayNameKey))
                             .font(Tokens.title)
                             .foregroundStyle(Color("PaletteInk"))
@@ -52,11 +52,11 @@ struct SpecialDropView: View {
                     .padding(.vertical, Tokens.s4)
                 }
                 ActionPill(
-                    titleKey: "special.drop.claim",
+                    titleKey: isRecap ? "special.info.ok" : "special.drop.claim",
                     systemImage: "checkmark",
                     tint: Color("PaletteGreen"),
                     identifier: "special.drop.claim",
-                    action: { gameState.dismissSpecialDrop() }
+                    action: dismiss
                 )
             }
             .frame(maxWidth: .infinity)
@@ -70,17 +70,51 @@ struct SpecialDropView: View {
                 .allowsHitTesting(false)
         }
         .overlay(alignment: .topTrailing) {
-            ArtCloseButton { gameState.dismissSpecialDrop() }
+            ArtCloseButton(action: dismiss)
                 .padding(10)
         }
         // Aire para la parte del moño que sobresale del marco: sin esto el
         // borde de la hoja lo recorta.
         .padding(.top, 26)
         .padding(16)
-        .presentationDetents([.fraction(0.55)])
+        // Más alto que sus gemelos: el retrato de 168 pt es el pedido — la
+        // carta grande para apreciar la skin.
+        .presentationDetents([.fraction(0.66)])
         // Sin esto el fondo de sistema deja un rectángulo BLANCO alrededor del
         // tablón (el defecto que `DailyRewardView` ya corrigió): transparente,
         // el panel flota sobre el tablero.
         .presentationBackground(.clear)
+    }
+
+    /// La skin del personaje especial, por el mismo camino que la dibuja el
+    /// tablero (`manifest.characters[special.id]`). Sin arte, la estrella de
+    /// "sorpresa" de siempre: la carta no espera al batch para construirse.
+    @ViewBuilder private var portrait: some View {
+        Group {
+            if let asset = gameState.content?.manifest.characters[special.id],
+               let image = UIArt.characterImage(atlas: asset.atlas, key: asset.key) {
+                image
+                    .resizable()
+                    .scaledToFit()
+                    .padding(Tokens.s8)
+            } else {
+                Image(systemName: "star.circle.fill")
+                    .font(.system(size: 76))
+                    .foregroundStyle(Color("PaletteYellow"))
+            }
+        }
+        .frame(width: Self.portraitSide, height: Self.portraitSide)
+        .background(Color("PaletteYellow").opacity(0.3))
+        .clipShape(Self.plateShape)
+        .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+        .accessibilityHidden(true)
+    }
+
+    private func dismiss() {
+        if isRecap {
+            gameState.dismissSpecialInfo()
+        } else {
+            gameState.dismissSpecialDrop()
+        }
     }
 }

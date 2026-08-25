@@ -116,6 +116,20 @@ final class StoreManager {
             Log.store.info("StoreKitTest ausente: sin tienda local en este entorno")
             return
         }
+        // El `StoreKitTest` del RUNTIME 26 aborta el init de `SKTestSession`
+        // fuera de un runner XCTest (SIGABRT medido dos veces el 2026-08-25:
+        // `-[SKTestSession bundleID]` → `__getXCTestConfigurationClass` →
+        // `abort_report_np`; cargar XCTest a mano con `dlopen` NO alcanza —
+        // exige la sesión de test real). El framework lo sirve el runtime del
+        // simulador, así que el check es `#available` del OS y no del SDK: en
+        // 18.6 sirve el framework viejo y el truco sigue andando. En 26+ la
+        // tienda local queda ausente —"sin conexión" al instalar por simctl,
+        // como antes del 2026-08-18— y la carga sigue el camino de siempre
+        // (el scheme de Xcode la inyecta igual).
+        if #available(iOS 26.0, *) {
+            Log.store.info("runtime 26: sin tienda local (SKTestSession exige un runner XCTest)")
+            return
+        }
         do {
             localStoreSession = try SKTestSession(configurationFileNamed: "FisuEvolution")
         } catch {

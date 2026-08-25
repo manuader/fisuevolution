@@ -53,25 +53,11 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-21, noche** (los
-> personajes ya salen en inglés cuando el juego está en inglés: 44 claves
-> `tier.name.<id>`, traducidas culturalmente para EE.UU. — la sesión en §4, la
-> trampa 29 en §7, y ⚠️ **el tono todavía no lo aprobó el dueño**. El mismo
-> día, más temprano: el merge del rebalance a `main`, el tutorial high-end
-> —trampas 27/28— y el telón de las empujadas).
-> Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
-> fuente de verdad de SU tema y están linkeados donde corresponde.
->
-> ⚠️ **Lo más importante que cambió**: el programa de las 16 correcciones del
-> playtest **se terminó**. Lo único que queda son dos gates humanos (§8). No hay
-> tarea de código pendiente en ese spec.
->
-> **La sesión del 2026-08-10** sumó tres cosas de jugabilidad y arte, todas
-> commiteadas y verdes (§4): fusionar dejó de ser fiddly, los bonus activos se
-> ven en el HUD, y los 10 pisos tienen su fondo en perspectiva.
->
-> ⚠️ **`main` está adelante de `origin/main`.** Mientras no se pushee, cada
-> frente nuevo arranca desde un árbol viejo — es la trampa 7.
+> **Empezá por acá.** Última actualización: **2026-08-25** (tres correcciones
+> de UI del tutorial y los specials, y la cadena post-Xcode-26.6 desarmada —
+> la sesión en §4, la trampa 30 en §7. ⚠️ Desde hoy los sims de verificación
+> van con runtime **iOS 26.5**: una app compilada con el SDK 26 sobre un sim
+> 18.6 se ve rota).
 
 ---
 
@@ -248,6 +234,23 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-25 — Tres correcciones de UI, y Xcode 26.6
+
+El botón del cierre del tutorial ganó su aire; **la manito de «tocá acá» se
+volvió UN componente (`TapHereHand`)** y vive ahora también en el coach de
+lecciones, la fila recomendada de FisuJobs, la tarjeta de Logros (junto al
+badge) y las pintas sin estrenar; y **la carta del personaje especial muestra
+la SKIN en grande** (168 pt, detent 0,66) y se REABRE manteniendo apretado al
+personaje en el tablero (`specialInfo`, fuera de la cola; fixture nuevo
+`--uitest-special`; UI test del circuito completo). En el medio, **Xcode
+saltó a 26.6 y el juego «se veía espantoso»**: era la cadena post-update —
+override de runtime, runtime 26 ausente, module cache mixto, el -Werror del
+importer y el abort de SKTestSession — desarmada eslabón por eslabón en la
+**trampa 30**. Detalle en
+**`Docs/SESION-2026-08-25-correcciones-ui-y-xcode-26.md`**. Números del
+cierre (sim iOS 26.5, receta §6): EconomyKit **234** · unit **413** · UI
+**49 sin fallos ni skips**.
 
 ### Sesión del 2026-08-21 (noche) — Los personajes se llaman en inglés cuando el juego está en inglés
 
@@ -899,7 +902,8 @@ Fixtures DEBUG por launch argument — **son doce, no tres**:
 | `--uitest-daily-streak` | Deja el ciclo del daily en el día 4: la tira del calendario de Regalos con días cobrados atrás. El único otro camino a un día con tilde es **volver mañana** |
 | `--uitest-achievements` | Siembra los contadores históricos que cruzan tres logros (`ach_merges_1`, `ach_taps_1000`, `ach_videos_1`) y los deja **conseguidos y sin cobrar**: es lo único que llena la sección "Para cobrar" de la pantalla de Logros. Conseguir uno jugando pide fusionar, mirar un video con el proveedor real o dar mil toques — nada automatizable. Usa `max`, así que no pisa un save con más. ⚠️ Acredita durante `phase == .loading`, así que **NO desfila los tres banners**, y un logro ya acreditado no vuelve a cruzarse: para filmar el toast hay que cruzar uno EN RUNTIME y con el tablero despejado. El único barato es `ach_merges_1` — contratar uno en FisuJobs, cerrar la hoja y fusionar el par con doble toque. Contratar diez cruza `ach_hires_10` pero deja el banner tapado por la hoja |
 | `--uitest-daily-popup` | El popup del premio del día, ya abierto (T18). Retrocede `lastClaimDay` a **ayer** —no lo borra, que un día salteado resetea el ciclo a 1— y corre el claim real, el mismo que acredita al volver a foreground. Existe porque el daily se cobra solo y una sola vez por día, y una partida nueva marca `lastClaimDay` en HOY para no pisar el tutorial: sin esta puerta, la única pantalla que celebra la racha no se puede ni fotografiar ni ejercitar sin cambiarle la fecha al simulador. Combinado con `--uitest-daily-streak` muestra el día 4. Desde el 2026-08-21 **ya no necesita `--uitest-skip-tutorial`**: la cola arbitra (con la fase viva el popup espera su turno y aparece al cerrarla — usarlo SIN skip es justamente el repro del viejo deadlock) |
-| `--uitest-lessons` | Prende las lecciones contextuales del tutorial, que en cualquier corrida `--uitest-*` arrancan APAGADAS (trampa 24). Sólo lo usa el test que ejercita el coach-mark |
+| `--uitest-lessons` | Prende las lecciones contextuales del tutorial, que en cualquier corrida `--uitest-*` arrancan APAGADAS (trampa 27). Sólo lo usa el test que ejercita el coach-mark |
+| `--uitest-special` | El primer special del catálogo, caído y ANCLADO al piso visible, con la carta del drop abierta. Es la única forma de ver la carta (el drop real es RNG sobre merges) y de ejercitar el recap del mantener-apretado |
 
 El panel de debug es el ícono de herramientas del HUD.
 
@@ -1381,6 +1385,28 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     reescribirlo ordenado se acomodaron; el orden relativo de las otras 472
     quedó intacto.
 
+30. **Actualizar Xcode A MITAD de un frente rompe en cadena, y cada eslabón
+    engaña distinto** (Xcode 26.6, medido el 2026-08-25). Los cinco eslabones
+    y sus arreglos, EN ORDEN: (1) un **`runtime match` override**
+    (`xcrun simctl runtime match list` → «User Override») puede dejar el SDK
+    nuevo corriendo sobre el runtime viejo: la app compila pero **se ve
+    espantosa** — los colores y paneles del asset catalog no decodifican y
+    SpriteKit se ve bien (el síntoma es «la UI de SwiftUI desnuda») — y el
+    override además le miente al descargador («iOS is already downloaded»).
+    Fix: `runtime match set <sdk> --default`. (2) Recién ahí
+    `xcodebuild -downloadPlatform iOS` resuelve y baja el runtime que
+    corresponde. (3) `build/DD` con module cache de dos SDKs se borra entero
+    (trampa 1 agravada). (4) `SWIFT_TREAT_WARNINGS_AS_ERRORS` ahora alcanza
+    al clang importer: un header DEPRECADO del propio SDK (StoreKitTest) mata
+    el build — `OTHER_SWIFT_FLAGS: -Xcc -Wno-error=deprecated-declarations`
+    en `project.yml` (los warnings de NUESTRO Swift siguen siendo errores).
+    (5) El `StoreKitTest` del **runtime 26 aborta** `SKTestSession` fuera de
+    un runner XCTest (SIGABRT; cargar XCTest con `dlopen` NO alcanza) —
+    `StoreManager` degrada con `#available(iOS 26.0, *)`: la tienda local por
+    `simctl` queda ausente en 26 (por Xcode el scheme la inyecta igual). Y la
+    asimetría de §6 (unit ANTES que UI) **sigue viva en runtime 26**: se
+    re-midió con los 11 rojos exactos de StoreKit.
+
 ## 8. Qué queda
 
 ### Lo que dejó el rediseño de UI (2026-08-16)
@@ -1645,6 +1671,7 @@ Anotado por si algún día importa, con su medición:
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
 | **`SESION-2026-08-21-nombres-en-ingles.md`** | **La sesión más reciente: por qué el nombre del personaje no se traducía, la mesa de las 17 traducciones culturales con su porqué, y qué se descartó (un campo por idioma en `tiers.json`)** |
 | **`SESION-2026-08-21-rebalance-pacing.md`** | **El rebalance de pacing: las tres métricas antes/después, los dos knobs que hacen cosas distintas, las tres decisiones del dueño con lo descartado y su número, y los cuatro diagnósticos que salieron errados antes del bueno** |
+| **`SESION-2026-08-25-correcciones-ui-y-xcode-26.md`** | **La sesión más reciente: el aire del botón, la manito única, la carta del special con recap, y los cinco eslabones de Xcode 26.6** |
 | **`SESION-2026-08-21-tutorial-high-end.md`** | **La sesión más reciente: el tutorial rehecho — la fase corta arbitrada por la cola, las 8 lecciones con sus señales, el puntito de logros y las trampas 24/25** |
 | **`SESION-2026-08-21-telon-del-menu.md`** | **El telón blanco de las pantallas empujadas del menú: la medición, el arreglo por versión de iOS y qué quedó sin verificar** |
 | **`SESION-2026-08-19-skins-oro-diamante.md`** | **Las 86 skins de material: el catálogo de un id por material, el desbloqueo de cada una y los tres bugs medidos del pipeline de generación** |

@@ -1506,3 +1506,185 @@ piso" sin romper "reencarnar tiene que ser lo que conviene".
 - El bot sigue **ciego a `tierPremium`** y a la pantalla de laburos vendiendo
   tiers no-base: si el dueño vuelve a llegar rápido, ése es el primer lugar donde
   mirar.
+
+---
+
+# Tercera ronda (2026-08-22) — la compuerta por distancia, y el bot que no era el jugador
+
+> **El titular, y es incómodo**: arreglar dos cegueras del simulador destapó que
+> **el contrato de 20-30 h nunca se cumplió**. Lo cumplía un bot que jugaba mal.
+> La partida embarcada dura **13,64 h activas hasta dios** y **6,67 h hasta
+> maxear las siete** — y sin reencarnar, dios llega en **3,28 h activas**, que es
+> al minuto lo que el dueño reportó a mano el 2026-08-20 ("me lo gané en 3
+> horas"). Las rondas 1 y 2 calibraron contra una ficción; ésta la corrigió.
+
+## Las dos cegueras, y qué medía cada una de menos
+
+**1. El bot elegía la peor mejora por personaje.** `nextAction` rankeaba con
+`max(by: contribution)`, y eso valía sólo mientras la ganancia de un nivel fuera
+un factor CONSTANTE: con `2^nivel` el que más aportaba era también el que más
+ganaba. Con el efecto secuencial (`1 + nivel`) la ganancia marginal es
+`aporte × 1/(1+nivel)` y `contribution` YA INCLUYE el multiplicador comprado, así
+que el tipo más mejorado encabezaba el ranking justo cuando su próximo nivel es
+la peor compra del tablero. Y como el bot toma UN candidato de mejora por tick,
+si ése no pasaba el payback se quedaba sin comprar ninguna.
+
+| | maxear | reenc | dios | dios sin reencarnar |
+|---|---:|---:|---:|---:|
+| bot ciego (ronda 2) | 24,67 h | 8 | 33,23 h | 66,34 h |
+| bot arreglado | **22,33 h** | 8 | **29,70 h** | **57,00 h** |
+
+**2. El bot compraba sólo el tier BASE de cada piso.** Ésta es la grande. El
+argumento viejo —comprar más arriba nunca conviene, lo garantiza `tierPremium`—
+valía mientras la compuerta se midiera en pisos. Con la distancia en tiers, el
+tier más alto que podés comprar es `frontera − N`, que **casi nunca es un tier
+base**, así que el bot redondeaba su distancia hasta el próximo borde de piso.
+Medido con la compuerta ya en tiers y N=4:
+
+| | maxear | reenc | dios | peor paso del arco |
+|---|---:|---:|---:|---:|
+| sólo tiers base | 26,00 h | 8 | 33,30 h | ×342,95 |
+| lo que FisuJobs vende | **6,67 h** | 7 | **13,64 h** | **×7,47** |
+
+**Un factor 3,9 de largo, y el acantilado que la ronda 2 dejó abierto se
+evaporó.** Las 590 h de pared de la ronda 2 eran el reloj de un jugador que no
+usa la mitad de la tienda.
+
+## La regla nueva, y por qué N=5
+
+Un tipo de tier `T` se contrata sólo si `maxTierReached >= T + N`
+(`hire.gateTierDistance`), con el tier base de la torre exento. El diagnóstico
+está en `Docs/superpowers/specs/2026-08-22-compuerta-por-distancia-design.md`.
+
+Barrido completo, bot arreglado, `--max-days 90`:
+
+| N | maxear | reenc | dios | 1ª reenc (pared) | peor paso |
+|---:|---:|---:|---:|---:|---:|
+| 4 | 6,67 h | 7 | 13,64 h | 4,10 h | ×7,47 |
+| **5** | **6,67 h** | **7** | **13,64 h** | **4,13 h** | **×7,85** |
+| 6 | 5,34 h | 6 | 14,72 h | 4,22 h | ×17,33 |
+| 7 | 12,33 h | 8 | 23,07 h | **24,07 h** | **×342,95** |
+| 8, 9, 10 | **no se termina** (maxTier 9 a los 90 días) | — | — | 24,07 h | ×342,95 |
+
+- **N ≥ 8 rompe el juego**, y el mecanismo es el early game: hasta que la frontera
+  llega a `N+2` lo único contratable es el Fisura, así que hay que mergear
+  `2^(N+1)` fisuras (512 con N=8) contra una curva de `1,06^compras`.
+- **N=7 concentra ese mismo muro** en el paso a corporativo (×342,95) y manda la
+  primera reencarnación a 24 h de pared.
+- **N=6 empeora el gradiente** (×17,33) sin alargar nada.
+- **N=5 y N=4 miden igual**; se elige 5 por el pedido del dueño (que sea más
+  profundo) y porque deja el corte de lo contratable a mitad de piso en más
+  tramos.
+
+## El hallazgo estructural: la compuerta no puede encarecer este juego
+
+`yieldGrowthPerTier` es **2,8** y el factor de merge es **2**. Bajar un tier
+abarata la unidad 2,8× y sólo duplica cuántas hacen falta: comprar hondo **siempre**
+sale más barato. Y el `tierPremium` no lo frena, porque se reinicia en cada piso:
+bajar un piso entero sale `2⁴ / 2,8⁴ = 0,26×`.
+
+Consecuencia medida: **una compuerta más profunda ABARATA el juego** (N=4 → 6,67 h,
+N=6 → 5,34 h). Lo único que la profundidad agrega es el muro del early game, que
+es de otra naturaleza (la curva `1,06^compras` sobre un solo tipo) y que es lo que
+rompe en N≥8.
+
+Es también por qué reencarnar volvió a ser una trampa: si la torre se sube con
+monedas y backfill barato, el ORO no hace falta. **Sin reencarnar, dios llega en
+3,28 h activas contra 13,64 h reencarnando.**
+
+## Lo que se descartó, con su número
+
+Todo esto es **con el bot arreglado**, y varios re-abren descartes de la ronda 2
+que se habían hecho con el bot ciego.
+
+- **`charUpgrades.costGrowth`**: INERTE. 1,5 → 6,67 h · 2,0 → 6,00 · 2,5 → 6,33 ·
+  3,0 → 4,67 · 4,0 → 5,33. (La ronda 2 lo bajó de 4,0 a 1,5 porque con el bot
+  ciego 4,0 dejaba la línea muerta en el nivel 7 de 19; re-corrido con el bot
+  arreglado, 4,0 llega al tope igual y el knob no mueve el largo.)
+- **`oro.divisor`**: techo en 13,34 h y a costa del arranque. 1e9 → 6,67 h ·
+  1e10 → 10,00 · 1e11 → 11,00 · 1e12 → 11,00 (1ª reenc 14 h de pared) ·
+  3e12 → 13,34 (1ª reenc 14 h) · 1e13 → 9,00 (1ª reenc 24 h).
+- **`oro.exponent`**: no mueve maxear. 0,25 → 6,67 h · 0,35 → 5,00 · 0,45 → 5,00 ·
+  0,55 → 4,00 (dios sí se va a 29,98 h, pero maxear queda en 4).
+- **`oro.globalMultiplierPerOro`**: INERTE. 0,18 → 6,67 h · 0,08 → 5,67 ·
+  0,03 → 7,00 · 0,01 → 7,33.
+- **`hire.tierPremium`**: INERTE, y ahora se entiende por qué. 1,8 → 6,67 h ·
+  2,2 → 6,67 · 2,6 → 6,67 · 3,0 → 6,67 · 3,5 → 5,33. Subirlo empuja al bot a
+  comprar tiers BASE de pisos más bajos, que es más hondo y más barato.
+- **`hire.defaultCostGrowth`**: **ya no es un acantilado** — ése era el bot ciego.
+  1,06 → 6,67 h · 1,08 → 5,33 · 1,10 → 4,00 · 1,12 → 4,00 · 1,15 → 4,00, y las
+  cinco terminan la partida. (La ronda 2 midió 1,08 → 482 h y 1,10 en adelante
+  "no se termina".) Además va para el lado contrario: subirlo ACORTA.
+- **Curva de `incomeMultiplier` de `floors[]`**: techo en 11 h. ×2,06 → 7,67 h ·
+  ×1,7 → 6,67 · ×1,4 → 7,00 · ×1,2 → 10,67 · ×1,0 (plana) → 11,00.
+- **`tapFloorMultiplierExponent`**: techo en 9,67 h. 0 → 6,67 h · −0,3 → 9,00 ·
+  −0,6 → 8,67 · −1,0 → 9,67 · +1,0 → 4,00.
+- **Catálogo de las siete líneas (`baseCost` ×K)**: techo en 12,34 h, y arriba de
+  ×16 el juego **termina antes de maxear**. ×1 → 6,67 h · ×4 → 10,00 · ×16 →
+  12,34 · ×64 → no maxea (dios a 12,98 h) · ×256 → no maxea.
+- **`passiveRatio` y `passiveUnlockCostMultiplier`**: inertes **por construcción**,
+  no por balance. Los rendimientos pasivos y el precio de desbloquearlos están
+  HORNEADOS en `tiers.json` (`passiveYieldPerInstance`, `passiveUnlockCost`); las
+  claves de `economy.json` sólo las usa `StandardEconomy` para los premios. Tres
+  corridas dieron resultados idénticos hasta el último decimal.
+
+**Ninguna combinación llegó a 20-30 h.** La mejor medida —N=5 con
+`tapFloorMultiplierExponent` −0,6 y el catálogo ×8— da maxear 14,34 h y dios
+16,71 h, y **rompe el otro contrato**: sin reencarnar dios llega en 3,42 h.
+
+## Las cuatro métricas, y cuál queda rota
+
+Corrida: `Docs/balance-run-t8-compuerta.csv` (N=5, árbol embarcado, `--max-days 90`).
+
+| métrica | contrato | medido | |
+|---|---|---:|---|
+| maxear las siete | 20-30 h activas | **6,67 h** | 🔴 |
+| reencarnaciones al maxear | ≤ 8 | 7 | ✅ |
+| dios después de maxear | sí | 13,64 h vs 6,67 h (×2,04) | ✅ |
+| sin reencarnar más lento | sí | **3,28 h vs 13,64 h (×0,24)** | 🔴 |
+
+Cadencia de las reencarnaciones (h activas): 0,5 · 1,1 · 1,9 · 2,9 · 4,1 · 5,3 ·
+6,7 · 8,7 · 11,0. Los saltos van de 0,6 a 2,3 h — **más seguidas que las 2,5-4 h
+que pidió el dueño**, y por la misma causa: el juego dura un tercio de lo que
+debería.
+
+## Lo que sí quedó mejor, medido
+
+- **El acantilado se fue.** El paso corporate → luxury pasó de **×90,86 a ×5,27**
+  y el peor paso del arco de ×90,86 a ×7,85. La guarda de `PacingTests.floorGradient`
+  bajó de 118,1 a **10,21**: hoy aprieta once veces más que ayer.
+- **Ningún salto entre hitos pasa de 4,45 h activas** (mars → solar), contra el
+  agujero de 10,0 h de la ronda 2.
+- **Los dos parches por piso desaparecieron.** El callejón entero exento y
+  `hireGateExempt` del urbano (que cerró el muro de 268 h de la Ola 3) ya no hacen
+  falta: la única excepción es el tier base de la torre.
+- **La autorización por tipo existe.** `TowerActions.hire` la hace cumplir; antes
+  el único lugar del juego que gateaba por tipo era la proyección `jobRows`, y un
+  `hireCharacter` con un id de tier alto se lo vendía igual.
+
+## Lo que hay que decidir (no es una calibración)
+
+Para que el contrato de 20-30 h vuelva a ser alcanzable hay que tocar algo que no
+es un knob. Las tres salidas, con lo que cuesta cada una:
+
+1. **Que el precio de contratar deje de seguir a `tapYield(tier)` tan de cerca.**
+   Es la causa raíz: mientras el costo caiga 2,8× por tier y el merge sólo pida
+   2×, backfillear hondo siempre gana. Toca la regla de "600 clicks" del dueño.
+2. **Que `tierPremium` deje de reiniciarse en cada piso** (medirlo desde el tier
+   base de la torre). Cierra el agujero sin tocar la regla de los 600 clicks
+   dentro de un piso, pero `1,8³⁶` hace impagable el tope de la torre: pediría
+   una constante mucho más chica y re-pinear los precios.
+3. **Re-enunciar el contrato sobre la partida real.** 13,64 h a dios y 6,67 h a
+   maxear es lo que el juego mide hoy con el jugador de verdad; si al dueño le
+   sirve ese largo, lo que hay que cambiar es el número del contrato y no la
+   economía.
+
+## Cómo re-correr
+
+```bash
+cd Tools/pacing-sim && swift run -c release pacing-sim \
+  --economy ../../FisuEvolution/Resources/Data/economy.json \
+  --tiers ../../FisuEvolution/Resources/Data/tiers.json --max-days 90
+# la partida del dueño (sin reencarnar), que es el contrapunto:
+#   … --no-reincarnation
+```

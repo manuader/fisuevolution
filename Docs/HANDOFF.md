@@ -238,6 +238,41 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-08-22 — La compuerta por distancia, y el bot que no era el jugador
+
+`fix/rebalance-pacing`, tercera ronda. **La compuerta de contratación pasó de
+medirse en PISOS a medirse en TIERS**: un tipo de tier `T` se contrata sólo si
+`run.maxTierReached >= T + N`, con `N = 5` en `economy.json`
+(`hire.gateTierDistance`) y el tier base de la torre exento. La regla vieja tenía
+un borde dentado —un piso son cuatro tiers y FisuJobs los vende todos, así que lo
+que ataba era el TOPE del piso habilitado, a UN tier de la frontera— y por eso
+todo pasaba entre dos pisos contiguos y el ascensor no se usaba nunca.
+
+⚠️ **Y el titular es otro, incómodo: el contrato de 20-30 h nunca se cumplió.**
+Arreglar dos cegueras del simulador —elegía la peor mejora por personaje, y sólo
+compraba el tier BASE de cada piso cuando FisuJobs vende todo lo contratable—
+destapó que la partida embarcada dura **13,64 h activas hasta dios y 6,67 h hasta
+maxear las siete**, no las 24,67 h que la ronda 2 creyó medir. Sin reencarnar,
+dios llega en **3,28 h**, que es al minuto lo que el dueño reportó a mano ("me lo
+gané en 3 horas"). `PacingTests.theOwnersTargetsAreMet` **queda en rojo a
+propósito** (unit 410/411): no se afloja y no se re-pinea.
+
+La causa es estructural y está medida: `yieldGrowthPerTier` (2,8) le gana al
+factor de merge (2), así que comprar hondo siempre sale más barato y **una
+compuerta más profunda ABARATA el juego** (N=4 → 6,67 h · N=6 → 5,34 h · N=8 → la
+partida no se termina). Ningún knob llega a 20-30 h: los nueve están medidos en
+`balance-log.md` y ninguno pasa de ~13-17 h porque la torre entera dura eso. Las
+tres salidas —y son decisión del dueño— están en el doc de sesión.
+
+Lo que sí mejoró: el acantilado corporate → luxury pasó de **×90,86 a ×5,27** (la
+guarda de `floorGradient` bajó de 118,1 a 10,21), ningún salto entre hitos pasa
+de 4,45 h activas, los dos parches por piso (callejón exento y `hireGateExempt`
+del urbano) desaparecieron, y **la autorización por tipo existe**: antes el único
+lugar del juego que gateaba por tipo era la proyección `jobRows`.
+
+Detalle: **`Docs/SESION-2026-08-22-compuerta-por-distancia.md`**. Números y
+barridos: `balance-log.md`, "Tercera ronda". Corrida: `balance-run-t8-compuerta.csv`.
+
 ### Sesión del 2026-08-22 — El multiplicador secuencial, y el atajo de no reencarnar
 
 `fix/rebalance-pacing`, segunda ronda. **Las mejoras POR PERSONAJE dejaron de ser
@@ -723,14 +758,31 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    ajuste suelto: contra un efecto lineal un costo ×4 por nivel mata la línea
    —medido, el bot no pasaba del nivel 7 de 19 y la mediana era 4—, así que el
    ×20 del pedido no lo veía nadie.
-3. **El gate es de UN piso**, no dos: con dos el juego no se puede terminar.
-   ⚠️ Su PROFUNDIDAD es la decisión; su COBERTURA no. En la Ola 3 el piso urbano
-   se declaró exento (`hireGateExempt` en `floors[]`) porque el gate, combinado
-   con el remapeo a 37 tiers, dejaba 268 h de pared antes de corporativo. Sigue
-   siendo un gate de un piso. Ver `balance-log`, "El muro de ×368, cerrado".
+3. ~~**El gate es de UN piso**, no dos~~ — **REEMPLAZADA el 2026-08-22 por
+   decisión del dueño: la compuerta se mide en TIERS.** Un tipo de tier `T` se
+   contrata sólo si `run.maxTierReached >= T + hire.gateTierDistance` (**5**), con
+   el tier base de la torre EXENTO. La regla por pisos tenía un borde dentado —un
+   piso son cuatro tiers y FisuJobs los vende todos, así que lo que ataba era el
+   TOPE del piso habilitado, a UN tier de la frontera— y por eso el jugador nunca
+   usaba el ascensor. Medida en tiers, la distancia es la misma compres donde
+   compres.
+   ⚠️ **Los dos parches por piso ya no existen**: el callejón entero exento y el
+   `hireGateExempt` del urbano (que cerró el muro de 268 h de la Ola 3) se
+   borraron, y la clave salió de `FloorDef` y del JSON. La única excepción es el
+   tier base de la torre, que es una regla de diseño y no un parche.
+   ⚠️ **Y N no es un dial de dificultad en esta economía**: con
+   `yieldGrowthPerTier` (2,8) por encima del factor de merge (2), comprar hondo
+   siempre sale más barato y una compuerta más profunda ABARATA el juego. Lo
+   único que la profundidad agrega es el muro del early game, que es lo que rompe
+   la partida con N≥8. Los números, en `balance-log`, "Tercera ronda".
 4. **Los tintes IAP se retiraron** aunque eran los únicos productos pagos además
    de remove_ads.
-5. `PacingTests` tiene **dos clases de assert y no hay que confundirlas**: las
+5. 🔴 **`PacingTests.theOwnersTargetsAreMet` está en ROJO desde el 2026-08-22 y
+   es la verdad, no un descuido**: maxear las siete mide 6,67 h contra las 20-30
+   pedidas. Se descubrió arreglando el simulador, no cambiando la economía. Antes
+   de tocar nada leé `Docs/SESION-2026-08-22-compuerta-por-distancia.md` §5: la
+   salida es una decisión del dueño y hay tres, medidas.
+   `PacingTests` tiene **dos clases de assert y no hay que confundirlas**: las
    cuatro BANDAS son ±30 % de la conducta medida (se re-pinean cada vez que el
    dueño cambia el balance a propósito), y `theOwnersTargetsAreMet` es el
    OBJETIVO —maxear las siete en 20-30 h activas con ≤8 reencarnaciones— que
@@ -798,11 +850,39 @@ cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   #
 xcrun simctl shutdown $UDID && xcrun simctl delete $UDID   # ⚠️ el cierre es parte del trabajo
 ```
 
-Estado el **2026-08-21** (cierre del rebalance de pacing):
-**EconomyKit 230 · app 401 · UI 46 · pipeline 27 (1 rojo conocido)**, cero
-warnings de compilador. Los tres primeros salen de la MISMA verificación, con la
-receta de acá arriba tal cual y **la suite de UI entera en una sola corrida, sin
-un solo `-skip-testing:`**.
+Estado el **2026-08-22** (cierre de la compuerta por distancia):
+**EconomyKit 242 · app 411 con 1 ROJO DECLARADO · UI 48 · pipeline 27 (1 rojo
+conocido)**, cero warnings de compilador. Los tres primeros salen de la MISMA
+verificación y **la suite de UI entera corrió en una sola pasada, sin un solo
+`-skip-testing:` y sin flakies**.
+
+🔴 El rojo de app es **`PacingTests.theOwnersTargetsAreMet`** y es la verdad, no
+un flaky: maxear las siete mide 6,67 h contra las 20-30 pedidas. Ver §5.5.
+
+⚠️⚠️ **Xcode 26.6 (2026-08-24) dejó la máquina sin runtime de simulador iOS 26** y
+la receta de arriba NO CORRE tal cual. Tres parches encadenados, y cada uno tapa
+al siguiente:
+
+```bash
+# 1) sin esto xcodebuild no lista NINGÚN destino de simulador
+xcrun simctl runtime match set iphoneos26.5 22G86
+# 2) actool no puede compilar el catálogo: AssetCatalogSimulatorAgent está
+#    compilado para iOS-simulator 26.4 y el runtime 18.6 no tiene
+#    _swift_coroFrameAlloc. No hay flag que lo evite.
+mv FisuEvolution/Resources/Assets.xcassets /tmp/ && /opt/homebrew/bin/xcodegen generate
+# 3) el header de StoreKitTest usa API deprecada en iOS 18 y el target compila
+#    con -warnings-as-errors
+xcodebuild … OTHER_SWIFT_FLAGS='$(inherited) -Xcc -Wno-deprecated-declarations'
+```
+
+**El parche 2 cambia lo que se ejecuta**: la app corre sin catálogo de colores y
+los `Color("Palette…")` caen al default. No afecta a unit; la suite de UI pasó
+igual (48/48), pero un test que juzgue color no serviría así.
+`xcodebuild -downloadPlatform iOS` **no sirve** (cree que la plataforma ya está
+por el 18.6 y ninguna 26.x figura disponible). El arreglo de verdad es instalar
+el runtime desde **Xcode > Settings > Components**: es un gate humano.
+⚠️ Y al terminar, **volvé a poner `Assets.xcassets` en su lugar antes de
+commitear** — es fácil dejarse una veintena de borrados en el `git status`.
 
 ℹ️ El **27 del pipeline** es el único que no se re-midió el 2026-08-21 (es Python
 y esta rama no lo tocó): viene del cierre de `fix/cierre-post-merge`.
@@ -1302,6 +1382,31 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     `.navigation` de `containerBackground` es **iOS 18+** —verificado en la
     swiftinterface del SDK—, por eso hay un fallback UIKit para 17.
 
+### De tests y calibración (2026-08-22)
+
+27. **Cuando una regla del juego cambia, preguntate qué SUPUESTO del bot
+    dependía de la regla vieja** — no sólo qué llamada. El simulador compraba
+    sólo el tier BASE de cada piso, con una justificación escrita al lado
+    ("comprar más arriba nunca conviene, lo garantiza `tierPremium`") que era
+    cierta **mientras la compuerta se midiera en pisos**. Medida en tiers, el
+    tier más alto que podés comprar casi nunca es un tier base, y el mismo bot
+    pasó de medir 6,67 h a medir 26,00 h — y con la distancia real ni terminaba
+    la partida. Un supuesto escrito como optimización no se lee como supuesto.
+
+28. **Un knob de `economy.json` puede estar HORNEADO en el contenido y no hacer
+    nada.** `passiveRatio` y `passiveUnlockCostMultiplier` dieron corridas
+    idénticas hasta el último decimal en tres valores cada uno: los rendimientos
+    pasivos y el precio de desbloquearlos viven en `tiers.json`
+    (`passiveYieldPerInstance`, `passiveUnlockCost`, generados) y las claves de
+    `economy.json` sólo las usa `StandardEconomy` para los premios. Antes de
+    descartar un knob "porque no mueve la aguja", verificá que el sim lo LEA.
+
+29. **Un `while` de test que espera que el estado avance cuelga la suite en vez
+    de fallarla.** `hiringOnTheFrontierFallsBackToTheFloorBelow` llenaba un piso
+    con `while occupied < capacity`; cuando la compra empezó a caer en otro
+    piso, el `#expect` de adentro falló en cada vuelta y el loop giró hasta un
+    log de **141 MB**. Acotá el loop por la capacidad, no por la condición.
+
 ### De tests y calibración (2026-08-21)
 
 24. **Un test puede CAMBIAR DE SIGNIFICADO y quedar verde**, y en una rama de
@@ -1617,6 +1722,7 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
+| **`SESION-2026-08-22-compuerta-por-distancia.md`** | **La tercera ronda de balance: la compuerta medida en tiers, las dos cegueras del simulador y el hallazgo de que el contrato de 20-30 h nunca se cumplió — con las tres salidas que el dueño tiene que elegir. Y la trampa del Xcode 26.6 sin runtime de iOS 26** |
 | **`SESION-2026-08-21-rebalance-pacing.md`** | **El rebalance de pacing: las tres métricas antes/después, los dos knobs que hacen cosas distintas, las tres decisiones del dueño con lo descartado y su número, y los cuatro diagnósticos que salieron errados antes del bueno** |
 | **`SESION-2026-08-21-tutorial-high-end.md`** | **La sesión más reciente: el tutorial rehecho — la fase corta arbitrada por la cola, las 8 lecciones con sus señales, el puntito de logros y las trampas 24/25** |
 | **`SESION-2026-08-21-telon-del-menu.md`** | **El telón blanco de las pantallas empujadas del menú: la medición, el arreglo por versión de iOS y qué quedó sin verificar** |

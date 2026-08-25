@@ -153,6 +153,13 @@ final class TutorialUITests: XCTestCase {
         XCTAssertTrue(waitForStep(app, "finish", timeout: 12),
                       "el paso del cierre tiene que aparecer al terminar el reveal")
 
+        // La captura espera al BOTÓN y un respiro más: el marker cambia a
+        // "finish" apenas el guion avanza, pero el globo todavía está en el
+        // pop de spring y el scrim del reveal en su fade — capturar ahí deja
+        // la foto del paso anterior a medio fundir (pasó: la primera foto de
+        // "último paso" mostraba el globo de merge atenuado).
+        XCTAssertTrue(app.buttons["tutorial.done"].waitForExistence(timeout: 4))
+        Thread.sleep(forTimeInterval: 0.8)
         let shot = XCTAttachment(screenshot: app.screenshot())
         shot.name = "RF-01 último paso"
         shot.lifetime = .keepAlways
@@ -367,5 +374,60 @@ final class TutorialUITests: XCTestCase {
         let close = app.buttons["sheet.close"]
         XCTAssertTrue(close.waitForExistence(timeout: 5), "la hoja no trae botón de cerrar")
         close.tap()
+    }
+
+    /// El personaje especial muestra su SKIN en la carta (no el glifo de
+    /// estrella) y, ya reclamado, un "mantener" sobre él en el tablero REABRE
+    /// la carta para consultar el beneficio (corrección del dueño,
+    /// 2026-08-25). El fixture ancla el primer special del catálogo al piso
+    /// visible: sin él, el drop es RNG sobre merges.
+    @MainActor
+    func testElSpecialMuestraSuSkinYElMantenerReabreSuCarta() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-special"]
+        app.launch()
+
+        // La carta del drop, con el retrato grande.
+        let claim = app.buttons["special.drop.claim"]
+        XCTAssertTrue(claim.waitForExistence(timeout: 12), "el fixture tiene que dejar la carta del drop abierta")
+        let dropShot = XCTAttachment(screenshot: app.screenshot())
+        dropShot.name = "special: carta del drop"
+        dropShot.lifetime = .keepAlways
+        add(dropShot)
+        claim.tap()
+        let claimGone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == 0"), object: claim
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [claimGone], timeout: 6), .completed)
+
+        // El special queda ANCLADO abajo a la izquierda del campo
+        // (`renderAnchoredSpecials`: índice 0 → isLeft). Con los números del
+        // callejón (capacity 10 / 2 filas → celda 74 pt) el ancla cae en
+        // ≈(0,10 · ancho, 0,71 · alto). Un personaje deambulando puede pisar
+        // el punto y ganarse el long-press —los personajes MANDAN por diseño,
+        // eso abre su ficha—, así que cada intento fallido cierra el sheet
+        // accidental antes de reintentar en un punto vecino.
+        var reopened = false
+        for fy in [0.71, 0.69, 0.73, 0.71] {
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.10, dy: fy))
+                .press(forDuration: 0.8)
+            if claim.waitForExistence(timeout: 3) { reopened = true; break }
+            // La ficha del personaje (u otro sheet) se comió el press: abajo.
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
+                .press(forDuration: 0.05,
+                       thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95)))
+            Thread.sleep(forTimeInterval: 0.6)
+        }
+        XCTAssertTrue(reopened, "mantener apretado el special tiene que reabrir su carta")
+        let recapShot = XCTAttachment(screenshot: app.screenshot())
+        recapShot.name = "special: recap por mantener"
+        recapShot.lifetime = .keepAlways
+        add(recapShot)
+
+        // Y la carta del recap se cierra por su botón, sin dejar nada colgado.
+        claim.tap()
+        XCTAssertEqual(XCTWaiter().wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == 0"), object: claim
+        )], timeout: 6), .completed)
     }
 }

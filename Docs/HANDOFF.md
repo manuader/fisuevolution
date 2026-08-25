@@ -787,6 +787,15 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
 ⚠️ **Creá tu propio simulador y apuntá por UDID** (trampa 2), y **corré unit
 ANTES que UI** — la asimetría es real y direccional, ver abajo.
 
+⚠️⚠️ **Desde Xcode 26.6 (2026-08-25) la verificación es una MATRIZ de dos
+runtimes** (trampa 30, eslabón 6): TODO corre en un sim **iOS 26.5** SALVO
+las tres suites de Store —`StoreManagerTests`, `StoreProductsTests`,
+`StoreUITests`—, que corren en un sim **iOS 18.6** porque StoreKit Testing
+está roto entero en el runtime 26. En 26 se las saltea con
+`-skip-testing:` (las tres, nada más); en 18.6 se corren solas con
+`-only-testing:`. Señal de re-unificación: `StoreProductsTests` verde en un
+sim 26 virgen.
+
 ```bash
 UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
 

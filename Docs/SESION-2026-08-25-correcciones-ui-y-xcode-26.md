@@ -75,17 +75,28 @@ ahora alcanza al clang importer y un header DEPRECADO de StoreKitTest (SDK
 siendo errores); (5) el `StoreKitTest` del **runtime 26 aborta**
 `SKTestSession` fuera de un runner (SIGABRT ×2, y `dlopen` de XCTest NO
 alcanza) → `StoreManager` degrada con `#available(iOS 26.0, *)`: la tienda
-local por `simctl` queda ausente en 26 (deuda anotada; por Xcode el scheme la
-inyecta igual).
+local por `simctl` queda ausente en 26; (6) y **StoreKit Testing está roto
+ENTERO en el runtime 26** — mapeado con sims vírgenes: la sesión de los unit
+tests no publica el catálogo (y no es timing: 14 s de reintentos dieron
+vacío), el nodo de StoreKit en el TestAction del scheme no hace nada, y los
+UI tests de la tienda también fallan. Respuesta: **split de destino** — las 3
+suites de Store corren en 18.6, el resto en 26, documentado en la trampa 30 y
+en §6 del general, con la señal de re-unificación anotada.
 
-## La verificación (sim iOS 26.5 propio, receta §6)
+## La verificación: la matriz del split (receta §6, sims propios)
 
-| qué | resultado |
-|---|---|
-| EconomyKit | **234/234** ✅ |
-| Unit (`FisuEvolutionTests`) | **413/413** ✅ (nuevo: el orden unit-antes-que-UI sigue siendo LEY en runtime 26 — la primera corrida, tras 3 pasadas de UI en el mismo sim, dio los 11 rojos de StoreKit exactos que la trampa §6 describe) |
-| UI (`FisuEvolutionUITests`) completa, sin skips | **49/49** ✅ (+1: el recap del special) |
-| Smokes visuales (capturas) | arranque sano en 26 · paso final con aire · coach con manito · card del special con skin · recap por mantener ✅ |
+| qué | dónde | resultado |
+|---|---|---|
+| EconomyKit | `swift test` | **234/234** ✅ |
+| Unit sin Store | sim iOS **26.5** | **401/401** ✅ |
+| `StoreManagerTests` + `StoreProductsTests` | sim iOS **18.6** | **12/12** ✅ |
+| UI sin Store | sim iOS **26.5** | **47/47** ✅ (+1: el recap del special, determinístico por la puerta de debug tras el press-lotería que costó una corrida) |
+| `StoreUITests` | sim iOS **18.6** | **2/2** ✅ |
+| **Totales** | | **unit 413 · UI 49 · cero rojos** |
+| Smokes visuales (capturas) | sim 26.5 | arranque sano · paso final con aire · coach con manito · card del special con skin · recap por mantener ✅ |
+
+El `pacing-sim` no se re-corrió: esta tanda no tocó un solo knob de economía
+(el contrato del dueño quedó pineado en la verificación del merge).
 
 ## Decisiones de esta tanda
 

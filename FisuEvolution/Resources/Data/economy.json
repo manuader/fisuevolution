@@ -8,7 +8,7 @@
   "hire": {
     "defaultCostMultiplier": 600,
     "defaultCostGrowth": 1.06,
-    "tierPremium": 1.8,
+    "priceGrowthPerTier": 1.5,
     "gateTierDistance": 5
   },
   "charUpgrades": {

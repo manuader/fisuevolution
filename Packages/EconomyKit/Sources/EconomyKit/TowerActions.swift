@@ -74,7 +74,10 @@ public enum TowerActions {
         // `floor.firstTier` y no `type.tier`: son el mismo número —`baseHireType`
         // filtra por `tier == floor.firstTier`— pero acá lo que se cotiza es "el
         // tier base de este piso", que es el contrato de esta función.
-        let base = config.hireCost(floor: floor, tier: floor.firstTier, purchases: purchases)
+        let base = config.hireCost(
+            floor: floor, tier: floor.firstTier,
+            frontierTier: state.run.maxTierReached, purchases: purchases
+        )
         let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
         let cost = base * costMultiplier * modifier * discount
@@ -92,7 +95,9 @@ public enum TowerActions {
     /// - El exponente de la curva es `run.hireCountsByType[typeId]`, no el
     ///   contador por piso: cada personaje tiene su propia curva, que es lo que
     ///   la pantalla muestra ("— N contratados").
-    /// - El precio lleva el `tierPremium` de los tiers no-base (ver `hireCost`).
+    /// - El precio de un tier por ENCIMA de tu frontera sube `priceGrowthPerTier`
+    ///   por tier (ver `hireCost`), que es lo que ordena la vitrina: la fila
+    ///   bloqueada de arriba se ve más cara que la de abajo.
     ///
     /// No mira compuerta ni saldo: cotizar es sólo poner precio, y la pantalla
     /// también muestra el precio de lo que todavía no podés comprar.
@@ -116,7 +121,10 @@ public enum TowerActions {
         let ordinal = floorTable.ordinal(forTier: type.tier)
         let floor = floorTable[ordinal]
         let purchases = state.run.hireCountsByType[typeId] ?? 0
-        let base = config.hireCost(floor: floor, tier: type.tier, purchases: purchases)
+        let base = config.hireCost(
+            floor: floor, tier: type.tier,
+            frontierTier: state.run.maxTierReached, purchases: purchases
+        )
         let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
         let cost = base * costMultiplier * modifier * discount

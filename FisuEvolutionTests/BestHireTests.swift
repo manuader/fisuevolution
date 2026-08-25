@@ -1,4 +1,5 @@
 import EconomyKit
+import Foundation
 import Observation
 import Testing
 @testable import FisuEvolution
@@ -78,15 +79,15 @@ struct BestHireTests {
     /// El corazón de la regla: un tier NO-base, **pagable y contratable**, no es
     /// la oferta. El del piso más alto que sí lo es, sí.
     ///
-    /// Derivado a mano de `economy.json`, ya con el rebalance de pacing puesto:
-    /// el precio dejó de llevar el `incomeMultiplier` crudo del piso y lleva el
-    /// MISMO factor que cobra el tap (`tapFloorMultiplier`, hoy con el exponente
-    /// en 0 y por lo tanto 1 en los diez pisos). Con corporativo abierto y sus
-    /// cuatro tiers vistos, un Senior (tier 12) cotiza 600 × 2,8¹¹ × 1,8³ =
-    /// 290.206.483,29 y el Oficinista —el `firstTier` del piso— 600 × 2,8⁸ =
-    /// 2.266.811,99 (el `tierPremium` del tier base es 1,8⁰). Con dos mil
-    /// millones en la mano los dos se pagan y los dos salen `hirable`, así que
-    /// lo único que puede elegir al Oficinista es la regla del tier base.
+    /// Derivado a mano de `economy.json`, ya con el precio anclado a la frontera
+    /// (2026-08-23): el factor de piso es el MISMO que cobra el tap
+    /// (`tapFloorMultiplier`, hoy con el exponente en 0 y por lo tanto 1 en los
+    /// diez pisos) y el ancla es `tapYield(frontera)`, con `1,5^(tier − frontera)`
+    /// por la distancia. Con la frontera en 17, un Senior (tier 12) cotiza
+    /// 600 × 2,8¹⁶ × 1,5⁻⁵ = 1.127.777.579,83 y el Oficinista —el `firstTier`
+    /// del piso— 600 × 2,8¹⁶ × 1,5⁻⁸ = 334.156.319,95. Con dos mil millones en
+    /// la mano los dos se pagan y los dos salen `hirable`, así que lo único que
+    /// puede elegir al Oficinista es la regla del tier base.
     @Test("un tier no-base pagable y contratable no es la oferta")
     func payableNonBaseTiersAreNeverOffered() async throws {
         let gameState = await makeGameState()
@@ -113,7 +114,7 @@ struct BestHireTests {
 
         let player = try #require(gameState.player)
         let cost = try #require(gameState.currentQuote(player: player, typeId: "oficinista")?.cost)
-        #expect(abs(cost - 2_266_811.99) < 0.01, "600 × 2,8⁸, sin factor de piso ni tierPremium")
+        #expect(abs(cost - 334_156_319.95) < 0.01, "600 × 2,8¹⁶ × 1,5⁻⁸, sin factor de piso")
     }
 
     /// Abrir un piso sube la oferta a SU tier base, no al tier más alto que ese
@@ -128,7 +129,7 @@ struct BestHireTests {
     /// compuerta en 5 tiers, lo contratable llega hasta el tier 8 —el TOPE del
     /// urbano—, y el tier base de corporativo (9) pediría 14. Adentro de lo
     /// contratable, el que se ofrece es el `firstTier` del piso más alto: el
-    /// Mantero, 600 × 2,8⁴ = 36.879,36.
+    /// Mantero, 600 × 2,8¹² × 1,5⁻⁸ = 5.436.476,99.
     ///
     /// ⚠️ El techo lo pone ahora la COMPUERTA y no el piso cerrado: el escenario
     /// abre corporativo a propósito, para que quede claro que lo que deja al
@@ -139,12 +140,14 @@ struct BestHireTests {
         // Frontera 13: el Fast Food (T8) pide 13 y el Oficinista (T9) pide 14,
         // así que lo contratable termina JUSTO en el tope del urbano.
         gameState.debugUnlockFloors(throughTier: 13)
+        gameState.debugSetMaxTier(13)
         // Hasta 9 y no hasta 8: el Oficinista tiene que estar VISTO para que su
         // fila diga `gated` y no `unseen`, que gana sobre todo lo demás.
         gameState.debugMarkTypesSeen(throughTier: 9)
-        // 600 × 2,8⁷ × 1,8³ = 4.721.445,54 es el Fast Food: el millón de
-        // `debugGrantCoins` no lo cubre solo.
-        try giveCoins(10_000_000, to: gameState)
+        // 600 × 2,8¹² × 1,5⁻⁵ = 18.348.109,83 es el Fast Food: el millón de
+        // `debugGrantCoins` no lo cubre solo, y el saldo tiene que cubrirlo para
+        // que el test pueda decir que lo dejó afuera la regla y no la plata.
+        try giveCoins(20_000_000, to: gameState)
         gameState.refreshProjections()
 
         let best = try #require(gameState.bestHire)
@@ -164,7 +167,7 @@ struct BestHireTests {
 
         let player = try #require(gameState.player)
         let cost = try #require(gameState.currentQuote(player: player, typeId: "mantero")?.cost)
-        #expect(abs(cost - 36_879.36) < 0.01, "600 × 2,8⁴, sin factor de piso ni tierPremium")
+        #expect(abs(cost - 5_436_476.99) < 0.01, "600 × 2,8¹² × 1,5⁻⁸, sin factor de piso")
     }
 
     /// Cuando el tier base del piso más alto no se paga, la oferta baja al tier
@@ -178,8 +181,9 @@ struct BestHireTests {
     /// Food"— quedó viejo con el rebalance de pacing, que le cambió el factor de
     /// piso al precio. Un literal que dejó de caer donde su nombre dice sigue
     /// pareciendo válido y pasa a medir lo contrario, así que acá se pide
-    /// exactamente un peso menos que el tier base de corporativo: el Oficinista
-    /// (2.266.811,99) no entra y el Mantero (36.879,36) sí.
+    /// exactamente un peso menos que el tier base de corporativo: con la
+    /// frontera en 14 el Oficinista (51.374.707,54) no entra y el Mantero
+    /// (10.148.090,38, cuatro tiers más abajo o sea `1,5⁻⁴`) sí.
     @Test("si el tier base del piso más alto no se paga, la oferta baja un piso")
     func theOfferFallsBackToWhatTheCoinsActuallyCover() async throws {
         let gameState = await makeGameState()
@@ -194,7 +198,10 @@ struct BestHireTests {
         // del test dice, y no donde lo dejó el rebalance anterior.
         let content = try #require(gameState.content)
         let corporate = try #require(content.floorTable.floors.first { $0.id == "corporate" })
-        let oficinistaCost = content.economy.hireCost(floor: corporate, tier: 9, purchases: 0)
+        let player0 = try #require(gameState.player)
+        let oficinistaCost = content.economy.hireCost(
+            floor: corporate, tier: 9, frontierTier: player0.run.maxTierReached, purchases: 0
+        )
         try giveCoins(oficinistaCost - 1, to: gameState)
         gameState.refreshProjections()
 
@@ -242,9 +249,18 @@ struct BestHireTests {
         gameState.refreshProjections()
 
         let best = try #require(gameState.bestHire)
-        #expect(best.typeId == "homeless", "el de 25, no el de 2.266.811,99")
+        #expect(best.typeId == "homeless", "el más barato de los tier base contratables")
         #expect(best.tier == 1)
-        #expect(best.costText == "25")
+        // ⚠️ **Acá el Fisura ya no sale 25, y es la consecuencia user-visible de
+        // la regla de precios nueva**: con la frontera en 13 el ancla es lo que
+        // rinde un click de TU frontera, así que el catálogo entero subió
+        // (2,8/1,5)¹² = 1.789,8×. 25 × 1.789,8 = 44.744,67, contra los
+        // 5.436.476,99 del Mantero: sigue siendo 121× más barato, que es lo que
+        // este test mide. Los 25 pelados sólo valen con la frontera en T1, y eso
+        // lo pinea `hirePricesFollowTheOwnersRule`.
+        let fisuraConLaFronteraEn13 = 25 * pow(2.8 / 1.5, 12)
+        #expect(abs(fisuraConLaFronteraEn13 - 44_744.67) < 0.01)
+        #expect(best.costText == CoinFormatter.string(from: fisuraConLaFronteraEn13))
         #expect(!best.affordable)
     }
 
@@ -287,10 +303,10 @@ struct BestHireTests {
     /// **Antes este escenario pineaba el desempate por id**
     /// (`tiesFallBackToTheAscendingID`): el tier 12 tiene CUATRO tipos concretos
     /// y el precio no depende del id —`hireCost` es `multiplicador ×
-    /// tapYield(tier) × tapFloorMultiplier(piso) × tierPremium^(tier − firstTier)
-    /// × growth^compras`, y las compras de los cuatro están en 0—, así que
-    /// empataban en tier Y en costo (600 × 2,8¹¹ × 1,8³ = 290.206.483,29 cada
-    /// uno) y ganaba el id ascendente.
+    /// tapYield(frontera) × tapFloorMultiplier(piso) × priceGrowthPerTier^(tier −
+    /// frontera) × growth^compras`, y las compras de los cuatro están en 0—, así
+    /// que empataban en tier Y en costo (600 × 2,8¹⁶ × 1,5⁻⁵ = 1.127.777.579,83
+    /// cada uno con la frontera en 17) y ganaba el id ascendente.
     ///
     /// El empate se conserva como assert porque es lo que hace fuerte al test
     /// nuevo: los ocho están vistos, contratables y pagados, y aun así el atajo
@@ -332,7 +348,8 @@ struct BestHireTests {
         let quotes = ["senior_architect", "senior_doctor", "senior_lawyer", "senior_programmer"]
             .compactMap { gameState.currentQuote(player: player, typeId: $0)?.cost }
         #expect(quotes.count == 4)
-        #expect(Set(quotes).count == 1, "los cuatro cotizan 290.206.483,29")
+        #expect(Set(quotes).count == 1, "los cuatro cotizan 1.127.777.579,83")
+        #expect(abs(try #require(quotes.first) - 1_127_777_579.83) < 0.01)
     }
 
     @Test("sin ningún contratable no hay oferta, y el botón no contrata nada")

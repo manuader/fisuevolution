@@ -112,10 +112,10 @@ struct GameContentValidationTests {
         // el callejón el multiplicador es 1, así que el early game —el tutorial
         // y la primera contratación— no se mueve ni un peso.
         #expect(economy.tapFloorMultiplierExponent == 0)
-        // Regla de precios del dueño (2026-08-04): contratar el tier base de un
-        // piso cuesta 600× lo que rinde un click de ese personaje ahí, y cada
-        // compra sube el precio 20%. El callejón es la excepción barata.
-        // Era 300 y el dueño lo duplicó el mismo día; ver Docs/balance-log.md.
+        // Regla de precios del dueño (2026-08-23): contratar **a tu frontera**
+        // cuesta 600× lo que rinde un click de ese personaje, y cada compra sube
+        // el precio 6%. El callejón es la excepción barata (25 = el Fisura).
+        // Era 300 y el dueño lo duplicó el 2026-08-04; ver Docs/balance-log.md.
         #expect(economy.hire.defaultCostMultiplier == 600)
         // El 20% por compra bajó a 6% en el rebalance de pacing, y NO es un
         // ajuste fino: es el arreglo de la divergencia costos-vs-ingresos.
@@ -128,11 +128,18 @@ struct GameContentValidationTests {
         // se quiere el orden de magnitud del compounding.)
         // ⚠️ Toca la regla de precios del dueño (2026-08-04): confirmar.
         #expect(economy.hire.defaultCostGrowth == 1.06)
-        // Recargo por tier no-base (rediseño §5.2): 2,8 (yieldGrowthPerTier) ×
-        // 1,8 ≈ 5× por tier, o sea que comprar el tier alto directo nunca gana
-        // contra comprar dos del de abajo y mergear. Bajarlo de 2,0 abriría ese
-        // atajo; subirlo vuelve inalcanzables los tiers de arriba de cada piso.
-        #expect(economy.hire.tierPremium == 1.8)
+        // La pendiente del precio por tier (cuarta ronda de balance): **1,5, y
+        // lo que importa es que esté por DEBAJO de 2**, que es el factor de
+        // merge. Con 1,5, una unidad de tu frontera comprada `d` tiers más abajo
+        // sale (2/1,5)^d = 1,33^d MÁS cara, así que comprar hondo deja de ser el
+        // atajo que medía la tercera ronda. Reemplazó al `tierPremium` de 1,8,
+        // que se reiniciaba en cada piso y dejaba la pendiente real dentro del
+        // piso en 2,8 × 1,8 = 5,04 — el atajo, otra vez.
+        #expect(economy.hire.priceGrowthPerTier == 1.5)
+        #expect(
+            economy.hire.priceGrowthPerTier < 2,
+            "por encima del factor de merge, comprar hondo vuelve a ser más barato"
+        )
         #expect(economy.charUpgrades.baseCostMultiplier == 50)
         // Bajó de 4,0 el 2026-08-22, y no es un ajuste de precio sino la
         // consecuencia del efecto secuencial: contra un efecto LINEAL, un costo
@@ -307,56 +314,127 @@ struct GameContentValidationTests {
         }
     }
 
-    /// La regla en números concretos, contra el contenido real.
+    /// **LA REGLA DE PRECIOS DEL DUEÑO, en números concretos y contra el
+    /// contenido real. Reemplaza a la de los "600 clicks" del 2026-08-04.**
     ///
-    /// La regla del dueño —"el tier base de un piso SUPERIOR cuesta 600 veces lo
-    /// que rinde un click suyo ahí"— **vale literal en los nueve pisos de
-    /// arriba**, y este test la mide en CLICKS y no replicando la fórmula del
-    /// precio: el factor de piso sale de `tapFloorMultiplier(for:)`, el mismo
-    /// que cobra `GameActions.applyTap`.
+    /// > 1. Contratar **a tu frontera** cuesta **600 clicks** de ese personaje
+    /// >    (el callejón, 25 — el primer Fisura sigue saliendo 25).
+    /// > 2. Cada tier que bajás descuenta sólo un tercio (÷1,5) y fusionar
+    /// >    necesita el doble de unidades, así que **bajar un tier deja la unidad
+    /// >    de tu frontera 1,33× más cara**: comprar hondo no es un atajo.
+    ///
+    /// La regla vieja decía "el tier base de un piso cuesta 600 veces lo que
+    /// rinde un click SUYO ahí", y su problema no era el 600: era que ataba el
+    /// precio a `tapYield(tier)`, la MISMA curva que el rendimiento (2,8 por
+    /// tier). Como fusionar sólo multiplica por 2, una unidad de tu frontera
+    /// comprada `d` tiers más abajo salía `(2/2,8)^d` —y `(2/5,04)^d` dentro de
+    /// un piso, con el `tierPremium` puesto—: comprar hondo SIEMPRE salía más
+    /// barato, y por eso una compuerta más profunda abarataba el juego en vez de
+    /// encarecerlo (medido: N=4 → 6,67 h, N=6 → 5,34 h). El diagnóstico entero y
+    /// las tres salidas están en `Docs/balance-log.md`, tercera ronda; el dueño
+    /// eligió ésta el 2026-08-23.
+    ///
+    /// El punto 1 se mide en CLICKS y no replicando la fórmula del precio: el
+    /// factor de piso sale de `tapFloorMultiplier(for:)`, el mismo que cobra
+    /// `GameActions.applyTap`. Que sea en clicks no es cosmético — cuando el
+    /// rebalance le sacó al tap el multiplicador de piso, el precio lo seguía
+    /// llevando crudo y contratar el tier base del reino divino pasó de 600
+    /// clicks a 600 × 620 = 372.000 sin que nada hiciera ruido, y la versión de
+    /// entonces de este test seguía verde porque replicaba la fórmula vieja.
     ///
     /// El callejón queda afuera del loop y con su propio assert porque no es una
     /// excepción sino OTRA decisión del dueño: `hireCostMultiplierOverride: 25`
-    /// ancla al primer Fisura en 25 monedas, o sea 25 clicks. "Los diez pisos"
-    /// era la forma corta y estaba mal.
-    ///
-    /// Que sea en clicks no es cosmético. Cuando el rebalance le sacó al tap el
-    /// multiplicador de piso, el precio lo seguía llevando crudo y contratar el
-    /// tier base del reino divino pasó de 600 clicks a 600 × 620 = 372.000 sin
-    /// que nada hiciera ruido — la versión anterior de este test seguía verde
-    /// porque replicaba la fórmula VIEJA del click. El dueño eligió atar las dos
-    /// puntas (`Docs/balance-log.md`, "La regla de precios: las tres salidas"),
-    /// y este assert es el que impide que se vuelvan a separar.
+    /// ancla al primer Fisura en 25 monedas, o sea 25 clicks.
     @Test func hirePricesFollowTheOwnersRule() throws {
         let economy = StandardEconomy(config: content.economy)
         let alley = content.floorTable[0]
-        // El primer Fisura sigue costando 25 (decisión cerrada del dueño): la
-        // curva sólo cambia de PENDIENTE, no de arranque. El segundo pasa de 30
-        // a 26,5 porque el 20% por compra bajó a 6% — 25 × 1,06.
-        #expect(content.economy.hireCost(floor: alley, tier: 1, purchases: 0) == 25)
-        let segundo = content.economy.hireCost(floor: alley, tier: 1, purchases: 1)
+        // El primer Fisura sigue costando 25 (decisión cerrada del dueño). Su
+        // frontera al empezar la partida es T1 —el Fisura con el que arrancás—,
+        // así que el ancla nueva no lo mueve. El segundo pasa de 30 a 26,5
+        // porque el 20% por compra bajó a 6% — 25 × 1,06.
+        #expect(content.economy.hireCost(floor: alley, tier: 1, frontierTier: 1, purchases: 0) == 25)
+        let segundo = content.economy.hireCost(floor: alley, tier: 1, frontierTier: 1, purchases: 1)
         #expect(abs(segundo - 26.5) < 1e-9)
 
-        for ordinal in 1..<content.floorTable.count {
+        // 1. Contratar A TU FRONTERA cuesta el multiplicador del piso, en clicks.
+        for ordinal in 0..<content.floorTable.count {
             let floor = content.floorTable[ordinal]
-            let precio = content.economy.hireCost(floor: floor, tier: floor.firstTier, purchases: 0)
-
-            // Lo que RINDE un click ahí, con el MISMO factor de piso que cobra
-            // `applyTap`. En clicks el precio es 600, en todos los pisos y para
-            // cualquier valor futuro de `tapFloorMultiplierExponent`.
-            let click = economy.tapYield(forTier: floor.firstTier)
-                * content.economy.tapFloorMultiplier(for: floor)
-            let clicks = precio / click
-            #expect(abs(clicks - 600) < 1e-9, "\(floor.id): contratarlo son \(clicks) clicks, no 600")
+            for tier in floor.firstTier...floor.lastTier {
+                let precio = content.economy.hireCost(
+                    floor: floor, tier: tier, frontierTier: tier, purchases: 0
+                )
+                // Lo que RINDE un click ahí, con el MISMO factor de piso que
+                // cobra `applyTap`. Vale para cualquier valor futuro de
+                // `tapFloorMultiplierExponent`.
+                let click = economy.tapYield(forTier: tier)
+                    * content.economy.tapFloorMultiplier(for: floor)
+                let clicks = precio / click
+                let esperado = content.economy.hireCostMultiplier(for: floor)
+                #expect(
+                    abs(clicks - esperado) < 1e-9,
+                    "\(floor.id) T\(tier): contratarlo son \(clicks) clicks, no \(esperado)"
+                )
+            }
         }
 
-        // El reino divino es donde más se notaría si las dos puntas se volvieran
-        // a separar: con el `incomeMultiplier` crudo en el precio serían 372.000
-        // clicks en vez de 600.
-        let god = content.floorTable[content.floorTable.count - 1]
-        let clicksEnDios = content.economy.hireCost(floor: god, tier: god.firstTier, purchases: 0)
-            / (economy.tapYield(forTier: god.firstTier) * content.economy.tapFloorMultiplier(for: god))
-        #expect(abs(clicksEnDios - 600) < 1e-9, "clicks en \(god.id): \(clicksEnDios)")
+        // 2. Bajar un tier deja la unidad de frontera 2/1,5 = 1,33× más cara.
+        //    Se mide DENTRO de cada multiplicador de piso: el único salto que lo
+        //    rompe es el ancla del Fisura (25 contra 600), y ése tiene su propio
+        //    test — `elDescuentoDelCallejonSeAgotaSolo`.
+        let frontera = content.tiers.maxTier
+        let unidadDeFrontera = { (tier: Int) -> Double in
+            let floor = content.floorTable[content.floorTable.ordinal(forTier: tier)]
+            return pow(2, Double(frontera - tier)) * content.economy.hireCost(
+                floor: floor, tier: tier, frontierTier: frontera, purchases: 0
+            )
+        }
+        for tier in 1..<frontera {
+            let deAcá = content.floorTable[content.floorTable.ordinal(forTier: tier)]
+            let deArriba = content.floorTable[content.floorTable.ordinal(forTier: tier + 1)]
+            guard content.economy.hireCostMultiplier(for: deAcá)
+                == content.economy.hireCostMultiplier(for: deArriba) else { continue }
+            let masCaro = unidadDeFrontera(tier) / unidadDeFrontera(tier + 1)
+            #expect(abs(masCaro - 2 / 1.5) < 1e-9, "T\(tier) → T\(tier + 1): ×\(masCaro)")
+        }
+    }
+
+    /// **La única costura de la regla, y es el precio de una decisión cerrada.**
+    ///
+    /// El callejón cotiza con 25 y los otros nueve pisos con 600, así que
+    /// comprar en el callejón sale 24× menos y el punto 2 de la regla no vale al
+    /// cruzar esa frontera. Es a propósito: el Fisura a 25 es el motor del early
+    /// game y el tutorial lo enseña.
+    ///
+    /// Lo que hace que la costura no rompa el balance es que **el descuento no
+    /// compone**: comprar el tope del callejón (T4) y subir mergeando sale
+    /// `25 × 1,33^(frontera − 4)`, que CRECE con la frontera, mientras que
+    /// comprar lo más alto que la compuerta habilita sale `600 × 1,33^N` y es
+    /// constante. El callejón deja de ser el camino barato en el **tier 21** de
+    /// 37 —a mitad de la torre— y con el tier 9, que es la primera frontera que
+    /// habilita el tope del callejón, el descuento vale exactamente 24× (600/25:
+    /// las dos ramas llevan el mismo `1,33^5` y sólo queda el multiplicador).
+    /// Está medido en la cuarta ronda y este test lo pinea.
+    @Test func elDescuentoDelCallejonSeAgotaSolo() throws {
+        let alley = content.floorTable[0]
+        #expect(content.economy.hireCostMultiplier(for: alley) == 25)
+        #expect(content.economy.hire.defaultCostMultiplier == 600)
+
+        // Lo que cuesta una unidad de tu frontera por los dos caminos, en
+        // múltiplos de lo que rinde un click de esa frontera (el factor
+        // `tapYield(frontera)` es común a los dos y se cancela).
+        let pendiente = content.economy.hire.priceGrowthPerTier
+        let porElCallejón = { (frontera: Int) in
+            25 * pow(2 / pendiente, Double(frontera - alley.lastTier))
+        }
+        let porLaCompuerta = 600 * pow(2 / pendiente, Double(content.economy.hire.gateTierDistance))
+
+        // Con la frontera en 9 —la primera que habilita el tope del callejón— el
+        // descuento es exactamente el cociente de multiplicadores, 600/25 = 24.
+        let primeraFrontera = alley.lastTier + content.economy.hire.gateTierDistance
+        #expect(abs(porLaCompuerta / porElCallejón(primeraFrontera) - 24) < 1e-9)
+        // Y se da vuelta a mitad de la torre.
+        let cruce = try #require((5...content.tiers.maxTier).first { porElCallejón($0) >= porLaCompuerta })
+        #expect(cruce == 21, "el callejón deja de ser el camino barato en el tier \(cruce)")
     }
 
     @Test func towerFloorsMatchCalibratedLayout() throws {

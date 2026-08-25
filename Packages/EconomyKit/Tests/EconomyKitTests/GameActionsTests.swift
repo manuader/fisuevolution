@@ -295,7 +295,7 @@ private func gateConfig(distance: Int = 3) -> EconomyConfig {
         passiveRatio: 0.5,
         passiveUnlockCostMultiplier: 60,
         hire: .init(defaultCostMultiplier: 600, defaultCostGrowth: 1.06,
-                    tierPremium: 1.8, gateTierDistance: distance),
+                    priceGrowthPerTier: 1.5, gateTierDistance: distance),
         charUpgrades: .init(baseCostMultiplier: 50, costGrowth: 1.5, effectStepPerLevel: 1.0),
         oro: .init(divisor: 1e9, exponent: 0.25, globalMultiplierPerOro: 0.18),
         critChanceBase: 0,

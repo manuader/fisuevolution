@@ -9,26 +9,41 @@ import Foundation
 public struct EconomyConfig: Codable, Sendable, Equatable {
     /// Contratación contextual al piso (spec F7 §3.3, decisión cerrada con el dueño):
     /// el botón contrata el TIER BASE del piso visible.
-    /// `cost(k, t, n) = mult(k) × tapYield(t) × income(k) × tierPremium^(t − firstTier(k)) × growth(k)^n`,
-    /// con `n` = compras previas. Los pisos > 1 usan estos defaults PUNITIVOS
-    /// (backfill recién rentable con la frontera 2-3 pisos arriba); el piso 1
-    /// overridea a barato en su FloorDef. [TUNEABLE]
+    /// `cost(k, t, f, n) = mult(k) × tapYield(f) × income(k) × priceGrowthPerTier^(t − f) × growth(k)^n`,
+    /// con `f` = tu frontera de merge y `n` = compras previas. Los pisos > 1 usan
+    /// estos defaults PUNITIVOS (backfill recién rentable con la frontera 2-3
+    /// pisos arriba); el piso 1 overridea a barato en su FloorDef. [TUNEABLE]
     public struct HireConfig: Codable, Sendable, Equatable {
-        /// Premium por defecto cuando el JSON no lo declara. Vive acá y no
-        /// repetido en el init y el decoder: dos literales 1.8 se desincronizan.
-        public static let defaultTierPremium = 1.8
-
         public let defaultCostMultiplier: Double
         public let defaultCostGrowth: Double
-        /// Recargo por cada tier POR ENCIMA del tier base de su piso.
+        /// Cuánto sube el precio por cada tier, alrededor del ancla de la
+        /// frontera. **1,5**, y lo que importa del número es que sea MENOR QUE 2.
         ///
-        /// La pantalla de laburos vende cualquier tipo desbloqueado, no sólo el
-        /// tier base del piso: sin recargo, comprar el tier alto directo sería un
-        /// atajo que saltea la mecánica central del juego. Con `tapYield`
-        /// creciendo 2,8×/tier y premium 1,8, subir un tier cuesta ~5×, o sea
-        /// bastante más que las DOS unidades del tier de abajo que hacen falta
-        /// para mergearlo: fusionar siempre gana. [TUNEABLE]
-        public let tierPremium: Double
+        /// Es el knob que reemplazó al `tierPremium` en la cuarta ronda de
+        /// balance, y el que cierra el agujero estructural que midió la tercera:
+        /// el rendimiento crece `yieldGrowthPerTier` (2,8) por tier y fusionar
+        /// sólo multiplica por 2, así que un precio atado al rendimiento hacía
+        /// que una unidad de tu frontera saliera `(2/2,8)^d` comprando `d` tiers
+        /// más abajo — **comprar hondo siempre salía más barato**, y una
+        /// compuerta más profunda ABARATABA el juego (medido: N=4 → 6,67 h,
+        /// N=6 → 5,34 h; `Docs/balance-log.md`, tercera ronda).
+        ///
+        /// Con el precio subiendo `P` por tier, una unidad de tu frontera
+        /// comprada a profundidad `d` sale `(2/P)^d`, así que el knob parte las
+        /// aguas EXACTAMENTE en 2, que es el factor de merge:
+        /// - `P > 2` → comprar hondo sale más barato (el agujero de siempre).
+        /// - `P = 2` → da exactamente igual: la indiferencia.
+        /// - `P < 2` → bajar un tier sale `2/P` más caro. Con 1,5, **1,33× por
+        ///   tier**, y la compuerta pasa a ser un dial de dificultad de verdad.
+        ///
+        /// Lo que hace segura a la mitad `P < 2` es la compuerta: `canHire` no
+        /// deja comprar por encima de `frontera − gateTierDistance`, así que el
+        /// atajo simétrico —comprar arriba en vez de mergear— no existe. Ése era
+        /// el trabajo del `tierPremium` (1,8), que además tenía que irse por
+        /// otro motivo: se reiniciaba en cada piso y dejaba la pendiente real
+        /// dentro del piso en 2,8 × 1,8 = 5,04, o sea el agujero otra vez.
+        /// [TUNEABLE]
+        public let priceGrowthPerTier: Double
 
         /// Cuántos tiers por ENCIMA de un personaje tiene que estar tu frontera
         /// de merge (`run.maxTierReached`) para poder contratarlo.
@@ -50,6 +65,14 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         /// [TUNEABLE]
         public let gateTierDistance: Int
 
+        /// El default de `priceGrowthPerTier` para las FIXTURES: **2,0**, el
+        /// factor de merge, o sea la indiferencia exacta —bajar un tier no
+        /// abarata ni encarece—. No es el valor del juego (1,5): es el neutro,
+        /// el único que un test que no habla de precios puede omitir sin quedar
+        /// apoyado en una política. El `economy.json` real declara la clave o no
+        /// carga (ver `init(from:)`).
+        public static let neutralPriceGrowthPerTier = 2.0
+
         /// La compuerta APAGADA: cualquier tier se contrata con sólo tener el
         /// piso abierto.
         ///
@@ -65,37 +88,37 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         public init(
             defaultCostMultiplier: Double,
             defaultCostGrowth: Double,
-            tierPremium: Double = HireConfig.defaultTierPremium,
+            priceGrowthPerTier: Double = HireConfig.neutralPriceGrowthPerTier,
             gateTierDistance: Int = HireConfig.noTierGate
         ) {
             self.defaultCostMultiplier = defaultCostMultiplier
             self.defaultCostGrowth = defaultCostGrowth
-            self.tierPremium = tierPremium
+            self.priceGrowthPerTier = priceGrowthPerTier
             self.gateTierDistance = gateTierDistance
         }
 
-        /// Decoder a mano por `tierPremium`, que se agregó después: el Codable
-        /// SINTETIZADO exige toda clave no-opcional y se saltea los valores por
-        /// defecto de las propiedades, así que un `economy.json` (o una fixture)
-        /// sin la clave tiraría `keyNotFound` y la config no cargaría. Es el
-        /// mismo motivo por el que `RunState` y `FloorDef` decodifican a mano.
+        /// Decoder a mano porque los dos knobs de abajo se agregaron después: el
+        /// Codable SINTETIZADO exige toda clave no-opcional y se saltea los
+        /// valores por defecto de las propiedades, así que declararlos y ya
+        /// dejaría a las fixtures tirando `keyNotFound`. Es el mismo motivo por
+        /// el que `RunState` y `FloorDef` decodifican a mano.
+        ///
+        /// Los dos van con `decode` y no con `decodeIfPresent`: **ninguno tiene
+        /// un default histórico inocente**. El de la compuerta sería CERO, que
+        /// la apaga entera; el del precio sería 2,0, que es justo el filo del
+        /// cuchillo (`P = 2` = comprar hondo cuesta exactamente lo mismo). Un
+        /// `economy.json` al que se le caiga cualquiera de las dos claves tiene
+        /// que no cargar, en vez de quedarse sin regla en silencio.
         public init(from decoder: Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
             defaultCostMultiplier = try container.decode(Double.self, forKey: .defaultCostMultiplier)
             defaultCostGrowth = try container.decode(Double.self, forKey: .defaultCostGrowth)
-            tierPremium = try container.decodeIfPresent(Double.self, forKey: .tierPremium)
-                ?? HireConfig.defaultTierPremium
-            // Ésta va con `decode` y no con `decodeIfPresent` a propósito, al
-            // revés que `tierPremium`: aquél tiene un valor histórico razonable
-            // (1,8, el de siempre) y éste no —el único default posible es CERO,
-            // que apaga la compuerta entera—, así que un `economy.json` al que
-            // se le caiga la clave tiene que no cargar en vez de quedarse sin
-            // regla en silencio.
+            priceGrowthPerTier = try container.decode(Double.self, forKey: .priceGrowthPerTier)
             gateTierDistance = try container.decode(Int.self, forKey: .gateTierDistance)
         }
 
         enum CodingKeys: String, CodingKey {
-            case defaultCostMultiplier, defaultCostGrowth, tierPremium, gateTierDistance
+            case defaultCostMultiplier, defaultCostGrowth, priceGrowthPerTier, gateTierDistance
         }
     }
 
@@ -232,12 +255,12 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
 
     /// El multiplicador de piso que recibe **el tap** — y, desde el rebalance de
     /// pacing, también **el precio de contratación** (ver `hireCost`), que es lo
-    /// que mantiene literal la regla de los 600 clicks. El único que sigue
-    /// recibiendo `floor.incomeMultiplier` entero y siempre es **el pasivo**.
+    /// que mantiene literal la regla de los clicks. El único que sigue recibiendo
+    /// `floor.incomeMultiplier` entero y siempre es **el pasivo**.
     ///
     /// Único lugar donde vive el default del exponente: repetir el `?? 1` en cada
-    /// llamador es exactamente cómo se desincronizaron los dos literales `1.8` de
-    /// `tierPremium` antes de que ese default se mudara a una constante.
+    /// llamador es exactamente cómo se desincronizaron los dos literales `1.8` del
+    /// viejo `tierPremium` antes de que ese default se mudara a una constante.
     public func tapFloorMultiplier(for floor: FloorDef) -> Double {
         let exponent = tapFloorMultiplierExponent ?? 1.0
         guard exponent != 1.0 else { return floor.incomeMultiplier }
@@ -248,36 +271,64 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     /// permanentes y modificadores temporales. **Ésta es LA fórmula de precio de
     /// contratación, y la única**: no hay otra copia ni otra firma.
     ///
-    /// Regla del dueño (2026-08-04): el precio es `multiplicador ×` **lo que
-    /// realmente rinde un click de ese personaje en ese piso**. Con el default
-    /// en 600, contratar cuesta 600 taps de ese mismo personaje; el callejón
-    /// overridea a 25 para que el primer Fisura sea 25. Cada compra sube la
-    /// curva un `hireCostGrowth` (6% por defecto desde el rebalance de pacing;
-    /// era 20%).
+    /// **Regla del dueño (2026-08-23), en dos renglones:**
+    /// 1. Contratar **a tu frontera** cuesta `hireCostMultiplier` clicks de ese
+    ///    personaje —600 en los nueve pisos de arriba, 25 en el callejón, que es
+    ///    lo que ancla al primer Fisura—.
+    /// 2. Cada tier que bajás descuenta sólo `priceGrowthPerTier` (1,5), y
+    ///    fusionar necesita el DOBLE de unidades: bajar un tier deja la unidad de
+    ///    frontera 2/1,5 = **1,33× más cara**. Comprar hondo dejó de ser un atajo.
+    ///
+    /// **Reemplaza a la regla de los 600 clicks del 2026-08-04** ("el tier base
+    /// de un piso cuesta 600 veces lo que rinde un click SUYO ahí"), que ataba el
+    /// precio a `tapYield(tier)` — la misma curva que el rendimiento, 2,8 por
+    /// tier. Eso hacía que una unidad de tu frontera comprada `d` tiers abajo
+    /// saliera `(2/2,8)^d`, o `(2/5,04)^d` dentro de un piso con el
+    /// `tierPremium` puesto: **comprar hondo siempre salía más barato** y la
+    /// compuerta por tiers abarataba el juego en vez de encarecerlo. El
+    /// diagnóstico completo y las tres salidas están en `Docs/balance-log.md`
+    /// (tercera ronda); el dueño eligió ésta.
+    ///
+    /// **Por qué el ancla tiene que ser la frontera y no el tier.** El diseño
+    /// quiere dos cosas a la vez: que subir un tier cueste siempre lo mismo en
+    /// TIEMPO (o sea precio ∝ rendimiento de tu frontera, que es de donde sale tu
+    /// ingreso) y que la pendiente por tier del precio sea ≤ 2 (o sea menos que
+    /// el factor de merge). Un precio que dependa SÓLO del tier no puede tener
+    /// las dos: la primera le fija la pendiente en 2,8. Anclarlo a la frontera
+    /// separa el nivel (2,8 por tier de frontera, que mantiene el pacing plano)
+    /// de la pendiente (1,5 por tier comprado, que cierra el atajo).
     ///
     /// El factor de piso es `tapFloorMultiplier(for:)` —el MISMO que cobra
     /// `GameActions.applyTap`— y no `floor.incomeMultiplier` crudo. Es lo que
     /// mantiene la regla literal: cuando el rebalance le sacó al tap el
     /// multiplicador de piso, con el `incomeMultiplier` crudo acá contratar el
     /// tier base del reino divino pasaba de 600 clicks a 600 × 620 = 372.000, y
-    /// la regla dejaba de ser cierta sin que nada hiciera ruido. Atado al mismo
-    /// factor, vale 600 clicks en los nueve pisos de arriba para cualquier
-    /// exponente (el callejón overridea el multiplicador a 25 y su Fisura sale
-    /// 25 clicks: decisión aparte del dueño, no una excepción de la regla).
-    /// (Decisión del dueño, fix round 2 — ver Docs/balance-log.md.)
+    /// la regla dejaba de ser cierta sin que nada hiciera ruido.
     ///
-    /// El factor nuevo es `tierPremium^(tier − firstTier)`: para el tier BASE de
-    /// un piso vale 1, así que los precios de siempre —y sus pins— no se mueven;
-    /// sólo pone precio a los tiers que antes no se podían comprar (§5.2).
+    /// ⚠️ **El exponente puede ser NEGATIVO y está bien.** La pantalla de laburos
+    /// cotiza también lo que todavía no podés comprar: un tipo por encima de tu
+    /// frontera sale `1,5^(tier − frontera)` **más** caro, que es el orden que la
+    /// vitrina necesita. Nadie puede aprovecharlo porque `TowerActions.canHire`
+    /// no autoriza nada por encima de `frontera − gateTierDistance`.
+    ///
+    /// ⚠️ **La única costura es el callejón**, y es el precio de la decisión
+    /// cerrada del Fisura a 25: su multiplicador (25 contra 600) lo deja 24×
+    /// barato, así que comprar en el callejón y subir es un descuento acotado —no
+    /// compuesto— que **se agota solo** en el tier 21 de 37, a mitad de la torre
+    /// (`25 × 1,33^(f−4)` alcanza a `600 × 1,33^gate`). Medido en la cuarta
+    /// ronda; lo pinea `elDescuentoDelCallejonSeAgotaSolo`.
     ///
     /// Vive acá y no en `TowerActions` porque el `PacingSimulator` necesita el
     /// mismo número: duplicar la fórmula fue lo que llevó a que el simulador
     /// cotizara distinto que el juego.
-    public func hireCost(floor: FloorDef, tier: Int, purchases: Int) -> Double {
+    ///
+    /// - Parameter frontierTier: tu frontera de merge (`run.maxTierReached`), el
+    ///   ancla del precio.
+    public func hireCost(floor: FloorDef, tier: Int, frontierTier: Int, purchases: Int) -> Double {
         hireCostMultiplier(for: floor)
-            * StandardEconomy(config: self).tapYield(forTier: tier)
+            * StandardEconomy(config: self).tapYield(forTier: frontierTier)
             * tapFloorMultiplier(for: floor)
-            * pow(hire.tierPremium, Double(tier - floor.firstTier))
+            * pow(hire.priceGrowthPerTier, Double(tier - frontierTier))
             * pow(hireCostGrowth(for: floor), Double(purchases))
     }
 }

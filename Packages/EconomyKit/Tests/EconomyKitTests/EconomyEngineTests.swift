@@ -92,8 +92,11 @@ struct HireQuoteCurveTests {
         )
     }
 
-    /// La regla del dueño (2026-08-04): el precio es el multiplicador POR lo que
-    /// rinde un click de ese personaje EN ESE PISO.
+    /// La regla del dueño (2026-08-23): el precio es el multiplicador POR lo que
+    /// rinde un click **de tu frontera** en ese piso. Este test la mide en el
+    /// caso en que la frontera ES el tier que se cotiza —o sea `1,5⁰ = 1` de
+    /// profundidad—, que es donde la regla se lee limpia y donde el número (100
+    /// clicks) no lleva ningún factor de distancia encima.
     ///
     /// ⚠️ **"Lo que rinde un click" es `tapFloorMultiplier(for:)`, no el
     /// `incomeMultiplier` crudo**, y la diferencia es todo el punto del test.
@@ -113,13 +116,16 @@ struct HireQuoteCurveTests {
         // Exponente 1 (el default): el factor es el `incomeMultiplier` entero.
         let rico = fxConfig(f2IncomeMultiplier: 3.0)
         let tablaRica = try fxFloorTable(config: rico)
-        let (stateRico, _, _) = try fxStateAndTower(config: rico)
+        var (stateRico, _, _) = try fxStateAndTower(config: rico)
+        // Frontera en el tier que se cotiza: es cuando la regla vale sin factor
+        // de distancia (y es también cuándo el jugador de verdad lo compra).
+        stateRico.run.maxTierReached = 3
         let cotizado = try #require(TowerActions.hireQuote(
             floorOrdinal: 1, state: stateRico, tiers: tiers,
             floorTable: tablaRica, config: rico
         ))
         #expect(abs(rico.tapFloorMultiplier(for: tablaRica[1]) - 3.0) < 1e-9)
-        // f2: 100 (default) × tapYield(T3)=14.44 × factor de piso 3.0
+        // f2: 100 (default) × tapYield(frontera T3)=14.44 × factor de piso 3.0
         #expect(abs(cotizado.cost - 100 * 14.44 * 3.0) < 1e-9)
 
         // Exponente 0 (el del `economy.json` embarcado): el tap deja de cobrar el
@@ -127,7 +133,8 @@ struct HireQuoteCurveTests {
         // `incomeMultiplier` de 3,0, y el precio baja a un tercio.
         let plano = fxConfig(f2IncomeMultiplier: 3.0, tapFloorMultiplierExponent: 0)
         let tablaPlana = try fxFloorTable(config: plano)
-        let (statePlano, _, _) = try fxStateAndTower(config: plano)
+        var (statePlano, _, _) = try fxStateAndTower(config: plano)
+        statePlano.run.maxTierReached = 3
         let cotizadoPlano = try #require(TowerActions.hireQuote(
             floorOrdinal: 1, state: statePlano, tiers: tiers,
             floorTable: tablaPlana, config: plano
@@ -136,7 +143,7 @@ struct HireQuoteCurveTests {
         #expect(abs(cotizadoPlano.cost - 100 * 14.44) < 1e-9)
 
         // Y la regla, escrita una sola vez: en las dos configuraciones el precio
-        // es el multiplicador por lo que rinde un click ahí.
+        // es el multiplicador por lo que rinde un click de tu frontera ahí.
         for (config, tabla, quote) in [(rico, tablaRica, cotizado), (plano, tablaPlana, cotizadoPlano)] {
             let click = StandardEconomy(config: config).tapYield(forTier: 3)
                 * config.tapFloorMultiplier(for: tabla[1])
@@ -165,7 +172,10 @@ struct HireQuoteCurveTests {
     @Test("f2 usa el default punitivo: 100 × tapYield(T3) × 2^n")
     func f2CurvaPunitiva() throws {
         var (state, _, _) = try fxStateAndTower()
+        // Frontera en T3, el tier que cotiza f2: el precio es el multiplicador
+        // por lo que rinde un click de tu frontera, sin factor de distancia.
         // tapYield por FÓRMULA (3.8² = 14.44), no el campo almacenado del tipo.
+        state.run.maxTierReached = 3
         let base = try #require(quote(floor: 1, state: state))
         #expect(abs(base.cost - 1444) < 1e-9)
         #expect(base.purchases == 0)
@@ -179,6 +189,7 @@ struct HireQuoteCurveTests {
     @Test("los contadores de compra son independientes por piso")
     func contadoresIndependientesPorPiso() throws {
         var (state, _, _) = try fxStateAndTower()
+        state.run.maxTierReached = 3
         // Comprar mucho en f1 no encarece f2.
         state.run.hireCounts["f1"] = 5
         let f2 = try #require(quote(floor: 1, state: state))

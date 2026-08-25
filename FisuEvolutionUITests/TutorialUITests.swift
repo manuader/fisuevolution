@@ -377,12 +377,17 @@ final class TutorialUITests: XCTestCase {
     }
 
     /// El personaje especial muestra su SKIN en la carta (no el glifo de
-    /// estrella) y, ya reclamado, un "mantener" sobre él en el tablero REABRE
-    /// la carta para consultar el beneficio (corrección del dueño,
-    /// 2026-08-25). El fixture ancla el primer special del catálogo al piso
-    /// visible: sin él, el drop es RNG sobre merges.
+    /// estrella) y su carta se puede REABRIR para consultar el beneficio
+    /// (corrección del dueño, 2026-08-25). La reapertura entra por la puerta
+    /// del panel de debug — `presentSpecialInfo`, el MISMO camino que dispara
+    /// el long-press sobre el personaje del tablero — siguiendo el precedente
+    /// de `--uitest-open-sheet`: los gestos del tablero no se automatizan por
+    /// coordenada (el press-lotería costó una corrida completa: el personaje
+    /// deambulando gana el toque por diseño, y los sheets del runtime 26
+    /// animan lento y dejan al siguiente press cayendo en el lugar
+    /// equivocado). El gesto en sí quedó smoke-manual, verificado en vivo.
     @MainActor
-    func testElSpecialMuestraSuSkinYElMantenerReabreSuCarta() throws {
+    func testElSpecialMuestraSuSkinYSuCartaSePuedeReabrir() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-special"]
         app.launch()
@@ -398,29 +403,25 @@ final class TutorialUITests: XCTestCase {
         let claimGone = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == 0"), object: claim
         )
-        XCTAssertEqual(XCTWaiter().wait(for: [claimGone], timeout: 6), .completed)
+        XCTAssertEqual(XCTWaiter().wait(for: [claimGone], timeout: 8), .completed)
+        // El sheet del runtime 26 anima su salida con calma: el botón de
+        // debug de abajo se toca por coordenada y un resto de scrim se lo
+        // comería.
+        Thread.sleep(forTimeInterval: 1.0)
 
-        // El special queda ANCLADO abajo a la izquierda del campo
-        // (`renderAnchoredSpecials`: índice 0 → isLeft). Con los números del
-        // callejón (capacity 10 / 2 filas → celda 74 pt) el ancla cae en
-        // ≈(0,10 · ancho, 0,71 · alto). Un personaje deambulando puede pisar
-        // el punto y ganarse el long-press —los personajes MANDAN por diseño,
-        // eso abre su ficha—, así que cada intento fallido cierra el sheet
-        // accidental antes de reintentar en un punto vecino.
-        var reopened = false
-        for fy in [0.71, 0.69, 0.73, 0.71] {
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.10, dy: fy))
-                .press(forDuration: 0.8)
-            if claim.waitForExistence(timeout: 3) { reopened = true; break }
-            // La ficha del personaje (u otro sheet) se comió el press: abajo.
-            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3))
-                .press(forDuration: 0.05,
-                       thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.95)))
-            Thread.sleep(forTimeInterval: 0.6)
-        }
-        XCTAssertTrue(reopened, "mantener apretado el special tiene que reabrir su carta")
+        // La reapertura, por la puerta de debug (el camino del long-press).
+        let debugKey = app.buttons["hud.debug"]
+        XCTAssertTrue(debugKey.waitForExistence(timeout: 6))
+        debugKey.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let reopen = app.buttons["debug.special.info"]
+        XCTAssertTrue(reopen.waitForExistence(timeout: 6),
+                      "el panel tiene que ofrecer la carta del special activo")
+        reopen.tap()
+
+        XCTAssertTrue(claim.waitForExistence(timeout: 8),
+                      "la carta del special tiene que reabrirse para consultar el beneficio")
         let recapShot = XCTAttachment(screenshot: app.screenshot())
-        recapShot.name = "special: recap por mantener"
+        recapShot.name = "special: recap reabierto"
         recapShot.lifetime = .keepAlways
         add(recapShot)
 
@@ -428,6 +429,6 @@ final class TutorialUITests: XCTestCase {
         claim.tap()
         XCTAssertEqual(XCTWaiter().wait(for: [XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == 0"), object: claim
-        )], timeout: 6), .completed)
+        )], timeout: 8), .completed)
     }
 }

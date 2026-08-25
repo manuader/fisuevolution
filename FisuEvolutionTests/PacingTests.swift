@@ -8,6 +8,21 @@ import Testing
 /// sobre la conducta medida. El reloj del sim salta por evento: ~590 h simuladas
 /// corren en segundos.
 ///
+/// ⚠️⚠️⚠️ **ACÁ SE CORTA LA COMPARACIÓN CON TODAS LAS BANDAS ANTERIORES, Y NO ES
+/// UN RE-PINEO MÁS.** El 2026-08-23 el simulador empezó a cobrar las FUSIONES
+/// (`HumanModel.mergeSeconds`, 1 s). Hasta entonces valían cero, y eso era un
+/// sesgo y no una simplificación: fusionar es el verbo central del juego —una
+/// acción por fusión— y subir un tier de frontera pide `2^N − 1` fusiones, así
+/// que el instrumento medía a un jugador que compra con el dedo y fusiona con la
+/// mente. Todo número de esta rama anterior al 2026-08-23 se midió con el merge
+/// gratis y **no es comparable renglón a renglón** con los de acá.
+///
+/// Efecto medido sobre la partida embarcada: maxear 7,27 → **6,67 h** y dios
+/// 9,40 → **8,97 h**. Y sí, BAJARON: cobrar las fusiones quema presupuesto de
+/// SESIÓN, así que el bot llega al final de cada sesión antes y parte del
+/// progreso se paga con income offline —que es reloj de pared y no de dedo—. Lo
+/// que sube es la espera: la 1ª reencarnación pasa de 4,28 a 9,00 h de pared.
+///
 /// ⚠️⚠️ **RE-PINEADO EL 2026-08-23 (cuarta ronda) Y `theOwnersTargetsAreMet`
 /// SIGUE EN ROJO A PROPÓSITO.** Esta ronda atacó la causa raíz que midió la
 /// tercera: el precio de contratar dejó de seguir a `tapYield(tier)` y pasó a
@@ -71,8 +86,8 @@ import Testing
 ///       --economy ../../FisuEvolution/Resources/Data/economy.json \
 ///       --tiers ../../FisuEvolution/Resources/Data/tiers.json --max-days 90
 ///
-/// (el CSV commiteado de esa corrida es `Docs/balance-run-t9-precio-frontera.csv`;
-/// hace falta `--max-days 400`, porque dios llega a los 7,0 días).
+/// (el CSV commiteado de esa corrida es `Docs/balance-run-t10-merges-cobrados.csv`;
+/// hace falta `--max-days 400`, porque dios llega a los 6,4 días).
 ///
 /// ⚠️ **Las bandas fijan la CONDUCTA, los dos asserts del final fijan el
 /// OBJETIVO.** Son cosas distintas y por eso están separadas: una banda de ±30 %
@@ -134,21 +149,21 @@ struct PacingTests {
 
     /// La fase fisura: cuánto tiempo ACTIVO se tarda en abrir el segundo piso.
     ///
-    /// **78,0 s medidos** en la corrida del encabezado, ±30 %. Venía de 28,0 s:
-    /// la cuarta ronda la casi triplicó sin tocar el Fisura, y no por un knob de
-    /// arranque sino por la compuerta —con 6 tiers de distancia hacen falta 64
-    /// Fisuras para el primer T7 y no 32—.
+    /// **96,0 s medidos** en la corrida del encabezado, ±30 %. Venía de 28,0 s
+    /// en la ronda 3: la compuerta a 6 la llevó a 78,0 s (hacen falta 64 Fisuras
+    /// para el primer T7 y no 32) y cobrar las fusiones le sumó los 18 s que
+    /// faltaban — son 63 fusiones, y hasta ahora salían gratis.
     ///
     /// ⚠️ **Sigue sin cumplir el §4 del spec** ("fase fisura ≥20-30 min
     /// activos"), aunque menos lejos. No es un descuido: el dueño priorizó el
     /// largo TOTAL (maxear en 20-30 h) y el tutorial corto es parte del pedido
     /// —el primer Fisura sale 25 monedas por decisión suya—. Esta banda existe
     /// para detectar que el arranque se mueva, no para prometer los 20 min.
-    @Test("la fase fisura dura 55-101 s activos")
+    @Test("la fase fisura dura 67-125 s activos")
     func strugglingPhaseLength() throws {
         let secondFloor = floorTable[1].id
         let active = try #require(report.floorUnlockActiveSeconds[secondFloor])
-        #expect(active >= 54.6 && active <= 101.4, "\(secondFloor): \(active) s activos")
+        #expect(active >= 67.2 && active <= 124.8, "\(secondFloor): \(active) s activos")
     }
 
     /// El gradiente del arco pre-prestigio, en tiempo ACTIVO por piso.
@@ -160,13 +175,13 @@ struct PacingTests {
     /// urban→island más una guarda anti-acantilado por paso. Post-island los
     /// ratios tienden a 1 POR DISEÑO (sweep de reencarnación) y quedan afuera.
     ///
-    /// **Medido en la corrida del encabezado**: ×16,38 (corporate) · ×5,71
-    /// (luxury) · ×1,83 (island), geomean **×5,55**. Bandas: geomean ±30 %
-    /// (3,88-7,21) y la guarda en el peor paso +30 % (16,38 × 1,3 = 21,30).
+    /// **Medido en la corrida del encabezado**: ×14,19 (corporate) · ×5,44
+    /// (luxury) · ×1,67 (island), geomean **×5,04**. Bandas: geomean ±30 %
+    /// (3,53-6,55) y la guarda en el peor paso +30 % (14,19 × 1,3 = 18,45).
     ///
     /// ⚠️ **La guarda del peor paso SUBIÓ de 10,21 a 21,30, y hay que decir por
     /// qué antes de leerlo como un aflojamiento.** El paso que la mueve es
-    /// urbano → corporativo, y en tiempo absoluto son **1,3 min → 21,3 min**: el
+    /// urbano → corporativo, y en tiempo absoluto son **1,6 min → 22,7 min**: el
     /// ratio es grande porque el arranque es cortísimo (el Fisura sale 25), no
     /// porque haya una pared. El acantilado que esta guarda nació para cazar
     /// —×90,86 en la ronda 2— eran **13,3 h** de un solo salto.
@@ -174,9 +189,9 @@ struct PacingTests {
     /// Para que la banda no se debilite en la dimensión que sí importa, la
     /// cuarta ronda le puso al lado un assert ABSOLUTO —el que el dueño
     /// enunció—: `noHitoJumpIsLongerThanFourActiveHours`. El peor salto medido
-    /// es de **2,02 h** (island → moon), contra las 10,0 h de la ronda 2 y las
+    /// es de **2,08 h** (island → moon), contra las 10,0 h de la ronda 2 y las
     /// 4,45 h de la tercera.
-    @Test("el gradiente del arco pre-prestigio es ~4-7× por piso")
+    @Test("el gradiente del arco pre-prestigio es ~3,5-6,5× por piso")
     func floorGradient() throws {
         // Pisos 2..5 (urban→island): el arco antes de que las reencarnaciones
         // barran pisos enteros de una pasada.
@@ -186,10 +201,10 @@ struct PacingTests {
         }
         for index in 1..<actives.count {
             let ratio = actives[index] / actives[index - 1]
-            #expect(ratio >= 1.0 && ratio <= 21.30, "acantilado en \(arc[index]): ×\(ratio)")
+            #expect(ratio >= 1.0 && ratio <= 18.45, "acantilado en \(arc[index]): ×\(ratio)")
         }
         let geomean = pow(actives[actives.count - 1] / actives[0], 1.0 / Double(actives.count - 1))
-        #expect(geomean >= 3.88 && geomean <= 7.21, "gradiente geomean ×\(geomean)")
+        #expect(geomean >= 3.53 && geomean <= 6.55, "gradiente geomean ×\(geomean)")
     }
 
     /// **El anti-acantilado en HORAS, que es como lo enunció el dueño**:
@@ -202,7 +217,7 @@ struct PacingTests {
     /// pre-prestigio), porque una pared del final es tan pared como una del
     /// principio.
     ///
-    /// Peor salto medido: **2,02 h** (island → moon). Historia: 10,0 h en la
+    /// Peor salto medido: **2,08 h** (island → moon). Historia: 10,0 h en la
     /// ronda 2, 4,45 h en la tercera. El tope es 4 h y no "lo medido +30 %" a
     /// propósito — éste no es una banda alrededor de la conducta sino el
     /// contrato del dueño, y por eso no se re-pinea con cada calibración.
@@ -217,13 +232,15 @@ struct PacingTests {
         }
     }
 
-    /// **4,28 h de PARED medidas** en la corrida del encabezado, ±30 %
-    /// (0,61 h ACTIVAS). De pared y no activas a propósito: el número que mide
+    /// **9,00 h de PARED medidas** en la corrida del encabezado, ±30 %
+    /// (0,67 h ACTIVAS). De pared y no activas a propósito: el número que mide
     /// la espera del jugador es el de calendario.
     ///
-    /// Las rondas 3 y 4 casi no la movieron (4,07 → 4,13 → 4,28 h): el arranque
-    /// depende del Fisura, que es lo único contratable hasta que la frontera
-    /// llega a `N + 2`, y su primer precio es una decisión cerrada.
+    /// **La duplicó cobrar las fusiones** (4,28 → 9,00 h), y es el efecto más
+    /// grande de ese cambio: el arranque es puro Fisura —lo único contratable
+    /// hasta que la frontera llega a `N + 2`— y son 63 fusiones que hasta ahora
+    /// salían gratis. En horas ACTIVAS casi no se mueve (0,61 → 0,67 h): lo que
+    /// crece es la espera de calendario, porque el bot termina la sesión antes.
     ///
     /// ⚠️ **Volvió a caer temprano, y es el costo declarado de la ronda 2.** El
     /// rebalance de la ronda 1 la había llevado a 62,00 h de pared (3,67 h
@@ -239,14 +256,14 @@ struct PacingTests {
     /// ronda 1: el barrido de `--prestige-threshold` es MONÓTONO (×1 → 24,67 h ·
     /// ×8 → 30,54 h · ×1000 → 50,51 h · nunca → dios a 66,34 h). Antes ×8 daba
     /// 15,29 h, o sea guardarse las reencarnaciones ganaba. Ver `balance-log`.
-    @Test("la 1ª reencarnación cae entre 3,0 y 5,6 h de pared")
+    @Test("la 1ª reencarnación cae entre 6,3 y 11,7 h de pared")
     func firstReincarnation() throws {
         let wall = try #require(report.firstReincarnationWall, "nunca reencarnó")
-        #expect(wall >= 3.00 * 3600 && wall <= 5.56 * 3600, "1ª reencarnación: \(wall / 3600) h")
+        #expect(wall >= 6.30 * 3600 && wall <= 11.70 * 3600, "1ª reencarnación: \(wall / 3600) h")
     }
 
-    /// **168,06 h de PARED medidas** (9,40 h ACTIVAS), ±30 %, con **10
-    /// reencarnaciones**. Venía de 240,31 h (13,64 activas).
+    /// **153,30 h de PARED medidas** (8,97 h ACTIVAS), ±30 %, con **8
+    /// reencarnaciones**. Venía de 168,06 h (9,40 activas).
     ///
     /// La caída no la produjo un knob de dificultad: la produjo cerrar el atajo
     /// de comprar hondo. Con el precio viejo el camino óptimo era mergear
@@ -258,13 +275,13 @@ struct PacingTests {
     /// devuelve ese trabajo, ahora a propósito y con un número.
     ///
     /// El assert de forma que importa no es el largo sino la relación: dios
-    /// (9,40 h activas) queda **×1,29 más lejos que maxear** (7,27 h), o sea las
+    /// (8,97 h activas) queda **×1,34 más lejos que maxear** (6,67 h), o sea las
     /// skins doradas siguen llegando antes que el final. Eso lo asserta
     /// `theOwnersTargetsAreMet`.
-    @Test("dios llega entre 118 y 219 h de pared con ≥3 reencarnaciones")
+    @Test("dios llega entre 107 y 199 h de pared con ≥3 reencarnaciones")
     func godTiming() throws {
         let wall = try #require(report.godWall, "dios nunca llegó (maxTier \(report.finalMaxTier))")
-        #expect(wall >= 117.64 * 3600 && wall <= 218.48 * 3600, "dios: \(wall / 3600) h")
+        #expect(wall >= 107.31 * 3600 && wall <= 199.29 * 3600, "dios: \(wall / 3600) h")
         #expect(report.reincarnations >= 3, "reencarnaciones: \(report.reincarnations)")
     }
 
@@ -284,7 +301,7 @@ struct PacingTests {
     /// Y la forma que el dueño pidió: **dios más lejos que las skins doradas**.
     ///
     /// 🔴 **ESTE TEST ESTÁ EN ROJO DESDE EL 2026-08-22 Y NO ES UN DESCUIDO.**
-    /// El primer assert mide **7,27 h** contra las 20-30 pedidas. No se aflojó
+    /// El primer assert mide **6,67 h** contra las 20-30 pedidas. No se aflojó
     /// —el objetivo es del dueño y esta suite existe para gritar cuando el juego
     /// deja de cumplirlo—.
     ///
@@ -313,10 +330,18 @@ struct PacingTests {
     /// `Docs/balance-log.md` (cuarta ronda) y las dos son decisión del dueño.
     ///
     /// ⚠️ **Y el otro contrato que sigue roto es el de reencarnar**: sin
-    /// reencarnar dios llega en **2,84 h** activas contra 9,40 h reencarnando.
+    /// reencarnar dios llega en **2,97 h** activas contra 8,97 h reencarnando.
     /// Misma causa de fondo: reencarnar te devuelve la torre al tier 1 y el ORO
-    /// sólo te saca la ESPERA, no las compras — y las compras son la mitad del
+    /// sólo te saca la ESPERA, no las acciones — y las acciones son la mitad del
     /// reloj.
+    ///
+    /// ⚠️⚠️ **Lo único medido que da vuelta ese contrato es la PROFUNDIDAD de la
+    /// compuerta**, y el cruce está entre 7 y 8: con N=8 el jugador que no
+    /// reencarna **no llega nunca** (maxTier 16 a los 400 días) mientras que
+    /// reencarnando sí. Lo que N=8 rompe es todo lo demás — 9 reencarnaciones
+    /// para maxear y saltos de 41 h entre hitos—. El cuadro está en
+    /// `Docs/balance-log.md`, "El barrido de la profundidad con las fusiones
+    /// cobradas".
     @Test("se gana al máximo en 20-30 h activas y con ≤8 reencarnaciones")
     func theOwnersTargetsAreMet() throws {
         let maxed = try #require(

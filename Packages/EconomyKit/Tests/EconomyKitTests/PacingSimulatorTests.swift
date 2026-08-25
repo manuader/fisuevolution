@@ -242,6 +242,38 @@ struct PacingSimulatorInstrumentTests {
         #expect(topFloor < active, "f2 abre en el tier 5 y dios es el 8")
     }
 
+    /// **Las fusiones cuestan tiempo, y hasta el 2026-08-23 salían gratis.**
+    ///
+    /// Era un sesgo del instrumento, no una simplificación: fusionar es el verbo
+    /// central del juego —una acción por fusión, arrastrando o con doble toque— y
+    /// subir un tier de frontera pide `2^N − 1` fusiones. Con el merge gratis el
+    /// simulador medía a un jugador que compra con el dedo y fusiona con la
+    /// mente, y cualquier cambio en la proporción compras/fusiones salía medido
+    /// mal.
+    ///
+    /// El test lo mide donde no puede confundirse con otra cosa: la MISMA
+    /// economía, corrida dos veces, cambiando sólo `mergeSeconds`. Con el merge
+    /// gratis la partida es estrictamente más corta.
+    @Test("cobrar las fusiones alarga la partida y sólo eso la mueve")
+    func chargingMergesLengthensTheRun() throws {
+        let gratis = try PacingSimulator(
+            config: upConfig(), tiers: upTiers(),
+            human: .init(mergeSeconds: 0), upgrades: upCheapLines()
+        ).run(maxDays: 8)
+        let cobrado = try PacingSimulator(
+            config: upConfig(), tiers: upTiers(),
+            human: .init(mergeSeconds: 1), upgrades: upCheapLines()
+        ).run(maxDays: 8)
+
+        let sinCobrar = try #require(gratis.godActive, "la fixture tiene que llegar a dios")
+        let conCobro = try #require(cobrado.godActive)
+        #expect(conCobro > sinCobrar, "\(conCobro) s no es más que \(sinCobrar) s")
+        // Y el default del modelo humano es COBRARLAS: un `HumanModel()` sin
+        // argumentos tiene que medir al jugador que mueve el dedo.
+        #expect(PacingSimulator.HumanModel().mergeSeconds == 1)
+        #expect(PacingSimulator.HumanModel().hireSeconds == 1)
+    }
+
     /// **La regla de selección de contrataciones, pineada el 2026-08-23 con el
     /// precio anclado a la frontera.**
     ///

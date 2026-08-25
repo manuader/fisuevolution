@@ -1,0 +1,78 @@
+seccion,clave,valor,unidad
+piso,urban_activo,1.6,min
+piso,urban_pared,0.03,h
+piso,corporate_activo,22.7,min
+piso,corporate_pared,4.05,h
+piso,luxury_activo,123.4,min
+piso,luxury_pared,33.06,h
+piso,island_activo,205.5,min
+piso,island_pared,57.09,h
+piso,moon_activo,330.0,min
+piso,moon_pared,96.17,h
+piso,mars_activo,389.8,min
+piso,mars_pared,110.16,h
+piso,solar_activo,399.6,min
+piso,solar_pared,110.33,h
+piso,galaxy_activo,528.4,min
+piso,galaxy_pared,153.14,h
+piso,god_realm_activo,538.0,min
+piso,god_realm_pared,153.30,h
+hito,reencarnaciones,8,conteo
+reencarnacion,1,0.667,h activas
+reencarnacion,2,1.333,h activas
+reencarnacion,3,2.481,h activas
+reencarnacion,4,3.667,h activas
+reencarnacion,5,4.667,h activas
+reencarnacion,6,5.667,h activas
+reencarnacion,7,6.667,h activas
+reencarnacion,8,7.667,h activas
+costo,alley_hire_en_segundos,4.17,s de income
+costo,urban_hire_en_segundos,100.00,s de income
+costo,urban_tipo_mas_comprado_de_la_run,homeless,15 compras
+costo,urban_proximo_del_mas_comprado_en_segundos,1.97,s de income
+costo,corporate_hire_en_segundos,100.00,s de income
+costo,corporate_tipo_mas_comprado_de_la_run,homeless,127 compras
+costo,corporate_proximo_del_mas_comprado_en_segundos,266.01,s de income
+costo,luxury_hire_en_segundos,73.53,s de income
+costo,luxury_tipo_mas_comprado_de_la_run,homeless,127 compras
+costo,luxury_proximo_del_mas_comprado_en_segundos,38.64,s de income
+costo,island_hire_en_segundos,48.45,s de income
+costo,island_tipo_mas_comprado_de_la_run,cartonero,159 compras
+costo,island_proximo_del_mas_comprado_en_segundos,109.52,s de income
+costo,moon_hire_en_segundos,3.99,s de income
+costo,moon_tipo_mas_comprado_de_la_run,cartonero,171 compras
+costo,moon_proximo_del_mas_comprado_en_segundos,3.58,s de income
+costo,mars_hire_en_segundos,0.48,s de income
+costo,mars_tipo_mas_comprado_de_la_run,homeless,127 compras
+costo,mars_proximo_del_mas_comprado_en_segundos,0.00,s de income
+costo,solar_hire_en_segundos,0.48,s de income
+costo,solar_tipo_mas_comprado_de_la_run,homeless,127 compras
+costo,solar_proximo_del_mas_comprado_en_segundos,0.00,s de income
+costo,galaxy_hire_en_segundos,0.02,s de income
+costo,galaxy_tipo_mas_comprado_de_la_run,homeless,127 compras
+costo,galaxy_proximo_del_mas_comprado_en_segundos,0.00,s de income
+costo,god_realm_hire_en_segundos,0.02,s de income
+costo,god_realm_tipo_mas_comprado_de_la_run,homeless,127 compras
+costo,god_realm_proximo_del_mas_comprado_en_segundos,0.00,s de income
+hito,siete_al_tope_activo,6.67,h
+hito,siete_al_tope_pared,120.00,h
+hito,reencarnaciones_al_maxear,7,conteo
+hito,primera_reencarnacion,9.00,h
+hito,dios,153.30,h
+hito,dios_activo,8.97,h activas
+hito,max_tier_final,37,tier
+hito,lifetime_earnings,3.7375e+22,monedas
+mejora,income,10,de 10
+mejora,spawn,10,de 10
+mejora,offline,10,de 10
+mejora,tap,10,de 10
+mejora,crit,10,de 10
+mejora,golden,10,de 10
+mejora,prestige,10,de 10
+knob,hire_defaultCostGrowth,1.06,
+knob,hire_defaultCostMultiplier,600.0,
+knob,offlineEfficiencyBase,0.35,
+knob,oro_divisor,1000000000.0,
+knob,oro_globalMultiplierPerOro,0.18,
+knob,yieldGrowthPerTier,2.8,
+knob,alley_hireCostMultiplier,25.0,

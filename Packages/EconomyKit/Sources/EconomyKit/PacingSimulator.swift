@@ -25,6 +25,27 @@ public struct PacingSimulator: Sendable {
         /// queja. [TUNEABLE]
         public var tapsPerSecond: Double
         public var sessionSeconds: Double
+        /// Segundos que le cuesta al jugador **una compra**: buscar la fila,
+        /// tocarla, ver la confirmación. Era un `+ 1` literal adentro del loop de
+        /// sesión y ahora es un knob, porque la cuarta ronda midió que este
+        /// número es la MITAD del tiempo activo de la partida y un número así no
+        /// puede estar escondido. [TUNEABLE]
+        public var hireSeconds: Double
+        /// Segundos que le cuesta al jugador **una fusión**.
+        ///
+        /// ⚠️ **Valía CERO hasta el 2026-08-23, y era un sesgo, no una
+        /// simplificación.** Fusionar es el verbo central del juego —se arrastra
+        /// o se toca dos veces, una acción por fusión— y para subir un tier de
+        /// frontera hacen falta `2^N − 1` fusiones. Con el merge gratis el
+        /// instrumento medía a un jugador que compra con el dedo y fusiona con la
+        /// mente, y todo lo que dependiera de la proporción compras/fusiones
+        /// —cualquier cambio en la compuerta, y cualquier idea de comprar de a
+        /// varias— salía medido mal.
+        ///
+        /// ⚠️⚠️ **Acá se corta la comparación con las bandas históricas de esta
+        /// rama.** Todo número anterior al 2026-08-23 se midió con esto en cero.
+        /// [TUNEABLE]
+        public var mergeSeconds: Double
         /// Offsets de inicio de sesión dentro del día (segundos desde las 0 hs).
         public var sessionStartOffsets: [Double]
         public var daySeconds: Double
@@ -34,12 +55,16 @@ public struct PacingSimulator: Sendable {
         public init(
             tapsPerSecond: Double = 6,
             sessionSeconds: Double = 1200,
+            hireSeconds: Double = 1,
+            mergeSeconds: Double = 1,
             sessionStartOffsets: [Double] = [0, 4 * 3600, 9 * 3600, 14 * 3600],
             daySeconds: Double = 86_400,
             reincarnation: ReincarnationPolicy = .whenOroMultiplies(1)
         ) {
             self.tapsPerSecond = tapsPerSecond
             self.sessionSeconds = sessionSeconds
+            self.hireSeconds = hireSeconds
+            self.mergeSeconds = mergeSeconds
             self.sessionStartOffsets = sessionStartOffsets
             self.daySeconds = daySeconds
             self.reincarnation = reincarnation
@@ -236,7 +261,10 @@ public struct PacingSimulator: Sendable {
     ) -> (wall: Double, active: Double) {
         var elapsed = 0.0
         while elapsed < human.sessionSeconds {
-            doAllMerges(state: &state, report: &report, wall: wallStart + elapsed, active: activeStart + elapsed)
+            doAllMerges(
+                state: &state, report: &report,
+                wallStart: wallStart, activeStart: activeStart, elapsed: &elapsed
+            )
             if state.run.maxTierReached >= tiers.maxTier, report.godWall == nil {
                 report.godWall = wallStart + elapsed
                 report.godActive = activeStart + elapsed
@@ -270,7 +298,7 @@ public struct PacingSimulator: Sendable {
                 break
             }
             earn(state: &state, amount: rate * wait)
-            elapsed += wait + 1  // +1 s de "manipulación"
+            elapsed += wait + human.hireSeconds
             action.perform(&state)
             recordUnlocks(state: &state, report: &report, wall: wallStart + elapsed, active: activeStart + elapsed)
         }
@@ -494,7 +522,19 @@ public struct PacingSimulator: Sendable {
 
     /// Aplica todos los merges legales (greedy, del tier más alto hacia abajo),
     /// respetando capacidad del piso destino. Elige carrera fija al primer fork.
-    private func doAllMerges(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
+    ///
+    /// ⚠️ **Cada fusión CUESTA TIEMPO desde el 2026-08-23** (`human.mergeSeconds`),
+    /// y el reloj avanza fusión por fusión y no al final de la tanda: los hitos
+    /// se registran con el `elapsed` que corresponde, que es lo que hace que una
+    /// cadena larga de merges no aparezca como instantánea en la tabla de pisos.
+    /// Por eso `elapsed` entra `inout` y los tiempos base llegan por separado.
+    private func doAllMerges(
+        state: inout PlayerState,
+        report: inout Report,
+        wallStart: Double,
+        activeStart: Double,
+        elapsed: inout Double
+    ) {
         var merged = true
         while merged {
             merged = false
@@ -527,7 +567,11 @@ public struct PacingSimulator: Sendable {
                 state.run.units[newTypeId, default: 0] += 1
                 state.run.maxTierReached = max(state.run.maxTierReached, newType.tier)
                 merged = true
-                recordUnlocks(state: &state, report: &report, wall: wall, active: active)
+                elapsed += human.mergeSeconds
+                recordUnlocks(
+                    state: &state, report: &report,
+                    wall: wallStart + elapsed, active: activeStart + elapsed
+                )
                 break
             }
         }

@@ -565,9 +565,13 @@ struct GameContentValidationTests {
     func chestPoolMatchesTheDesignedRarities() throws {
         let pool = content.skins.chestPool
 
+        // Lo que ataja de verdad una migración a medias es esto: una entrada que
+        // se quedó con `floorReached` no entra a la bolsa y el conteo se cae.
         #expect(pool.count == 41)
-        // Ninguna quedó con el criterio viejo: si una se escapa, se regalaría por
-        // las DOS vías y el cofre repartiría algo que ya tenías.
+        // Las dos de acá abajo NO pueden fallar, y quedan como documentación del
+        // invariante: el `init()` de la suite carga con `GameContentLoader`, que
+        // corre `skins.validate(...)`, que ya tira `chestAndMilestone` para este
+        // caso exacto — o sea que el load explotaría antes de llegar hasta acá.
         #expect(content.skins.skins.allSatisfy { $0.floorReached == nil || $0.chestRarity == nil })
         #expect(pool.allSatisfy { !$0.isMilestone })
 

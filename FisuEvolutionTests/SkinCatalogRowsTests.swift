@@ -91,10 +91,14 @@ struct SkinCatalogRowsTests {
             Issue.record("una pinta que todavía no tenés sale bloqueada, y salió \(skin.state)")
             return
         }
-        #expect(!text.contains("skins.locked"), "quedó la clave cruda en pantalla")
+        // Exacto y no por descarte: con "no dice el piso" alcanzaba para pasar
+        // con CUALQUIER otra condición resuelta, así que si a `urban_trailblazer`
+        // le cayera un `upgradesMaxed` de casualidad la tarjeta diría otra cosa y
+        // el test seguiría verde. La igualdad también cubre lo que cuidaba la
+        // otra mitad: sin resolver, el texto sería la clave cruda.
         #expect(
-            !text.contains(TowerNaming.floorName(for: "urban")),
-            "ya no hay piso que alcanzar y la tarjeta no puede prometerlo; dice \"\(text)\""
+            text == String(localized: "skins.locked.generic"),
+            "la tarjeta tiene que decir el bloqueo genérico y nada más; dice \"\(text)\""
         )
     }
 

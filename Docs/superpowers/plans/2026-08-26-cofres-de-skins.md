@@ -997,7 +997,93 @@ git commit -m "feat(cofres): las cuatro fuentes — la torre cada dos pisos, el 
 **Interfaces:**
 - Produces: `CelebrationKind.chestOpening` (priority 4, `timeout: nil`),
   `GameState.chestReward: ChestReward?` con
-  `struct ChestReward: Identifiable { let id: String; let outcome: ChestOutcome }`.
+  `struct ChestReward: Identifiable { let id: String; let outcome: ChestOutcome }`,
+  y **`GameState.openChest()`**, que es quien lo crea.
+
+⚠️ **Hueco del plan, detectado antes de dispatchear**: las tareas 2 y 4 dejaron el sorteador y
+los contadores, y la 9 pone un botón "Abrir" — pero **nadie implementaba la acción**. Va acá,
+en `GameState+Chests.swift`, junto a `awardChest`.
+
+- [ ] **Step 0: `openChest()` — gastar, sortear, acreditar**
+
+```swift
+/// Abre un cofre: gasta uno de los pendientes, sortea y deja el premio listo
+/// para que la cola lo muestre.
+///
+/// **Gasta primero el de prestigio.** Los dos contadores son cofres, pero el de
+/// prestigio garantiza épica o mejor: si se gastara último, el jugador cobraría
+/// sus mejores cofres al final de una tanda y los peores primero.
+func openChest() {
+    // Un cofre por vez: sin esto, dos toques seguidos pisan el payload y el
+    // primer premio se pierde entre que la cola le da el turno y la vista lo lee.
+    guard chestReward == nil, pendingChestCount > 0,
+          let content, let economy, var player else { return }
+
+    let dePrestigio = player.meta.prestigeChestsPending > 0
+    if dePrestigio { player.meta.prestigeChestsPending -= 1 } else { player.meta.chestsPending -= 1 }
+
+    let outcome = ChestRoller.roll(
+        owned: player.meta.allOwnedSkins,
+        skins: content.skins,
+        config: content.chests,
+        minRarity: dePrestigio ? .epica : nil,
+        using: &rng
+    )
+
+    switch outcome {
+    case let .skin(id, _, _):
+        // ⚠️ **A `milestoneSkins`, NUNCA a `ownedSkins`.** StoreKit REESCRIBE
+        // `ownedSkins` entera en cada sync (`PlayerState.swift:259`), así que una
+        // pinta de cofre guardada ahí se borraría con un "restaurar compras" — y
+        // de paso reabriría el gate del día 7, que lee `allOwnedSkins`.
+        player.meta.milestoneSkins = Array(Set(player.meta.milestoneSkins).union([id])).sorted()
+    case .coins:
+        let monto = economy.passiveUnlockCost(forTier: player.run.maxTierReached)
+            * (dePrestigio ? content.chests.prestigePayoutFactor : content.chests.completedPayoutFactor)
+        player.run.coins += monto
+        player.meta.lifetimeEarnings += monto
+    }
+
+    self.player = player
+    skinSelectionVersion &+= 1
+    chestReward = ChestReward(outcome: outcome)
+    syncCelebrations()
+}
+```
+
+⚠️ `rng` ya existe: `GameState.swift:347` (`@ObservationIgnored var rng = SystemRandomNumberGenerator()`).
+No inventes uno ni lo hagas inyectable si no hace falta para el test.
+
+⚠️ El monto de la plata usa la MISMA fórmula que el fallback del día 7
+(`passiveUnlockCost(forTier: run.maxTierReached) * factor`), que es lo que hace que los dos
+premios de plata del juego se sientan del mismo tamaño.
+
+**Tests de este step:**
+
+```swift
+@MainActor
+@Test("abrir gasta primero el de prestigio, y ése garantiza épica o mejor")
+func openingSpendsThePrestigeChestFirst() async throws { }
+
+@MainActor
+@Test("la pinta del cofre va a milestoneSkins y sobrevive un sync de StoreKit")
+func chestSkinsSurviveAStoreKitSync() async throws {
+    // Abrir un cofre, después `applyStoreEntitlements(removedAds:ownedSkins:)`
+    // con una lista que NO incluye la pinta, y verificar que sigue estando.
+    // ⚠️ Este es el test que importa: sin él, el bug sólo aparece cuando un
+    // jugador real toca "restaurar compras" y pierde toda la colección.
+}
+
+@MainActor
+@Test("dos toques seguidos abren UN cofre, no dos")
+func openingTwiceInARowSpendsOnlyOne() async throws { }
+
+@MainActor
+@Test("sin cofres pendientes no pasa nada")
+func openingWithNothingPendingIsANoop() async throws { }
+```
+
+Y verificá cada uno rompiendo lo que prueba.
 
 - [ ] **Step 1: Escribir los tests que fallan**
 
@@ -1037,6 +1123,15 @@ case chestOpening
 
 `priority`: junto a `.skinAward, .specialDrop` → `4`.
 `timeout`: junto a los que espera el jugador → `nil`.
+
+- [ ] **Step 3b: Alinear el comentario que quedó viejo**
+
+`GameState.swift:688-694` dice que `migrateV4toV5` "reconoce esos saves por su huella … y **los
+reescala**", y desde la decisión del dueño (2026-08-26) reescala **sólo las líneas por encima
+del tope**, no el save entero. Es el párrafo autoritativo del arreglo v5 y vive justo en el
+archivo que decide el `>= maxLevel` que se lleva las doradas: el que lea sólo la primera frase
+concluye que un save pre-rebalance llega normalizado entero, que es exactamente el caso que
+ahora se las lleva.
 
 - [ ] **Step 4: Cablear el payload y el apagado**
 

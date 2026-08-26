@@ -238,7 +238,7 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
-### Sesión del 2026-08-23 (ter) — La desaceleración: la run se traba y el prestigio corre la pared
+### Sesión del 2026-08-23 (ter) — La desaceleración, y el build que volvió a andar
 
 `fix/rebalance-pacing`. **El diagnóstico**: con el precio anclado a la frontera y
 nada más, cada tier costaba el MISMO tiempo que el anterior — 37 tiers ×
@@ -278,7 +278,17 @@ desaceleración dando el largo, N=7 empeora la FORMA (su piso de acciones le pon
 techo a lo que puede pagar reencarnar). Se queda en 6, con el número en la
 bitácora.
 
-Detalle y barridos: `balance-log.md`, "Cuarta ronda (ter)". Corrida:
+**Y el proyecto vuelve a compilar solo.** Desde Xcode 26 no compilaba sin flags a
+mano: un header de Apple (`SKPaymentTransactionState`, deprecada en iOS 18) rompía
+el build entero porque el proyecto trata los warnings como errores. Arreglado con
+`-Xcc -Wno-deprecated-declarations` en `Debug` y en los dos targets que importan
+`StoreKitTest`, **sin tocar `SWIFT_TREAT_WARNINGS_AS_ERRORS`** (ver §7, trampa 38).
+Verificado: build limpio sin flags, cero warnings propios, y un warning nuestro
+metido a propósito sigue rompiendo. **Para jugarlo alcanza con abrir el proyecto
+en Xcode y darle Run.**
+
+Detalle y barridos: `balance-log.md`, "Cuarta ronda (ter)". Doc de sesión:
+**`Docs/SESION-2026-08-23-desaceleracion.md`**. Corrida:
 `balance-run-t11-desaceleracion.csv`.
 
 ### Sesión del 2026-08-23 (bis) — Las fusiones se cobran, y el barrido de la profundidad
@@ -876,11 +886,23 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    > más. Eso es lo que pone densa la torre arriba y lo que hace que la run **se
    > trabe** — que es lo que le da trabajo al prestigio.
 
-   El renglón (c) es del 2026-08-23 (ter) y es lo que convirtió el contrato en una
-   FORMA: la run se traba, cada reencarnación corre la pared, y sin reencarnar ya
-   no se llega a dios. El umbral del tier 7 es lo que deja el early game y el
-   tutorial intactos —el exponente es `max(0, frontera − 7)`— y sin él las
-   primeras cinco runs se traban en el callejón (medido).
+   ✅ **APROBADA POR EL DUEÑO el 2026-08-23, tal cual está enunciada arriba.**
+   Reemplaza al enunciado anterior y a la regla original de los "600 clicks" del
+   2026-08-04. No se re-litiga.
+
+   El renglón (c) es lo que convirtió el contrato en una FORMA: la run se traba,
+   cada reencarnación corre la pared, y sin reencarnar ya no se llega a dios. El
+   umbral del tier 7 es lo que deja el early game y el tutorial intactos —el
+   exponente es `max(0, frontera − 7)`— y sin él las primeras cinco runs se
+   traban en el callejón (medido).
+
+   ⚠️ **El retorno del prestigio (7-40 %) también está ACEPTADO** por el dueño el
+   2026-08-23: no se agrega contenido nuevo para llegar al 67 %. Y hay un **techo
+   matemático** que hace inútil intentarlo con knobs — está en `balance-log.md`,
+   "El techo del prestigio": volver a la pared cuesta las mismas ACCIONES que la
+   primera vez y el ORO saca la espera, no las acciones, así que
+   `pago ≤ 1 − acciones(1..T)/primera_vez(T)`. **Los precios entran en el
+   denominador, no en el numerador: ningún knob de precio puede cruzarlo.**
 
    Por qué cambió: la vieja ataba el precio a `tapYield(tier)`, la MISMA curva que
    el rendimiento (2,8 por tier), y como fusionar sólo multiplica por 2, comprar
@@ -939,9 +961,18 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    en `balance-log`, "Cuarta ronda".
 4. **Los tintes IAP se retiraron** aunque eran los únicos productos pagos además
    de remove_ads.
-5. 🔴 **`PacingTests.theOwnersTargetsAreMet` está en ROJO desde el 2026-08-22 y
-   es la verdad, no un descuido**: maxear las siete mide **6,67 h** contra las
-   20-30 pedidas.
+5. 🟡 **`PacingTests.theOwnersTargetsAreMet` sigue en ROJO, pero por OTRA cosa —
+   y ése es el progreso.** El primer assert (maxear en 20-30 h activas) **pasa
+   desde el 2026-08-23**: mide 20,67 h. Lo que queda rojo es el segundo,
+   **9 reencarnaciones contra ≤8**.
+   ⚠️ **No se fuerza, y está medido por qué**: los dos knobs que llegan a 8
+   (`oro.exponent` 0,32 y `oro.globalMultiplierPerOro` 0,24) sacan maxear de la
+   banda de 20-30, y el segundo además hace que la pared RETROCEDA. Cambiar un
+   assert verde por otro no es arreglarlo. Números en `balance-log.md`.
+   ⚠️ **Y el total NO se escaló a propósito**: 20,67 h de simulador son ~6,9 h del
+   dueño y él pidió 20-30 suyas, pero ese ÷3 sale de UNA comparación. El knob
+   está identificado (`oro.divisor` 1e10 → 1e11 da 30,33 h de sim) y espera al
+   playtest — subirlo alarga pero **clava la pared** cuatro runs en el mismo tier.
    ⚠️ **Y antes de calibrar contra ese número hay una pregunta abierta para el
    dueño**: las 20-30 h, ¿son del reloj del SIMULADOR o del suyo? Él hizo en
    menos de 1 h la partida que el bot tarda 2,97 h, o sea que juega **~3× más
@@ -1569,6 +1600,35 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     `.navigation` de `containerBackground` es **iOS 18+** —verificado en la
     swiftinterface del SDK—, por eso hay un fallback UIKit para 17.
 
+### De diseño y de build (2026-08-23, ter)
+
+35. **Una pared que la run nunca alcanza no existe.** Con el umbral de la
+    escalada por encima del tier 9, la métrica de forma daba `paredes: ninguna`
+    — y no porque la curva fuera suave, sino porque el bot reencarna al duplicar
+    el ORO **antes** de llegar a la zona con escalada. Cuando una métrica de
+    forma da vacío, mirá primero **hasta dónde llega la run**, no la fórmula.
+
+36. **Un knob que arregla un contrato puede romper otro que acaba de cerrar.**
+    Los dos candidatos para bajar de 9 a 8 reencarnaciones sacaban maxear de la
+    banda de 20-30 que se acababa de cumplir. Antes de aplicar un knob "barato",
+    corré las OTRAS métricas — y si el saldo es cambiar un verde por otro, no lo
+    apliques.
+
+37. **Un error de build puede estar tapando a otro.** Arreglado el header de
+    `StoreKitTest` apareció un `tmp*.json couldn't be opened` que parecía del
+    cambio: era un artefacto de build incremental y no volvió. La atribución
+    correcta fue construir **sin** el cambio y ver que ahí fallaba antes y en
+    otro lado. Mismo método que con las rojas de StoreKit y las de UI.
+
+38. **`-Xcc` es lo que hace acotado un `-Wno-*`.** El proyecto trata los warnings
+    como errores y un header de Apple (`SKPaymentTransactionState`, deprecada en
+    iOS 18) rompía el build entero. `OTHER_SWIFT_FLAGS: -Xcc -Wno-deprecated-declarations`
+    se lo pasa **sólo al importador de Clang** —headers C/ObjC del SDK— y deja
+    `SWIFT_TREAT_WARNINGS_AS_ERRORS` intacto para nuestro Swift. Si alguna vez
+    hace falta silenciar otro warning del SDK, ése es el molde: `-Xcc`, en
+    `Debug`, y en cada target que importe el módulo. **Nunca** bajando
+    `SWIFT_TREAT_WARNINGS_AS_ERRORS`.
+
 ### De tests y calibración (2026-08-23, bis)
 
 33. **El device de simulador es de UNA corrida por vez, y el segundo proceso
@@ -1960,6 +2020,7 @@ Anotado por si algún día importa, con su medición:
 | `PROMPT-F7-torre-de-escenarios.md` | El spec funcional de la torre |
 | `concurrency-conventions.md` | Las 6 reglas de Swift 6 del proyecto |
 | **`HANDOFF-gates-pendientes.md`** | **RF-14 y RF-02c, los dos únicos pendientes. La lista de audio y la tabla de productos, listas para ejecutar cuando el gate se abra** |
+| **`SESION-2026-08-23-desaceleracion.md`** | **La desaceleración: por qué una run que no se traba no le da trabajo al prestigio, el knob de escalada con su umbral (y por qué el umbral no es adorno), "trabarse" convertido en métrica publicada, las 9 reencarnaciones que NO se forzaron, el total que NO se escaló, y el arreglo acotado del build para que el dueño pueda jugarlo** |
 | **`SESION-2026-08-23-fusiones-cobradas.md`** | **Las fusiones dejan de ser gratis en el simulador (y por qué eso era un sesgo, no una simplificación), el barrido de la profundidad N=6/7/8 con las cinco métricas, la conversión a horas del dueño con el factor de 3×, y por qué la compra en lote se empezó y se descartó** |
 | **`SESION-2026-08-23-precio-atado-a-la-frontera.md`** | **La cuarta ronda de balance: el precio de contratar anclado a tu FRONTERA (la regla de precios nueva, que reemplaza a la de los 600 clicks), la compuerta convertida por fin en dial de dificultad, la tercera ceguera del bot, y el hallazgo de que la mitad del tiempo activo es apretar el botón y no esperar plata — con las cuatro salidas que el dueño tiene que elegir** |
 | **`SESION-2026-08-22-compuerta-por-distancia.md`** | **La tercera ronda de balance: la compuerta medida en tiers, las dos cegueras del simulador y el hallazgo de que el contrato de 20-30 h nunca se cumplió — con las tres salidas que el dueño tiene que elegir. Y la trampa del Xcode 26.6 sin runtime de iOS 26** |

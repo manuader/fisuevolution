@@ -2148,3 +2148,61 @@ incertidumbre**. Por eso esta ronda priorizó la FORMA sobre el total: la forma 
 mide adentro del simulador y no depende del factor. El total se escala con
 `oro.divisor` cuando el dueño confirme cuál reloj vale, y el veredicto real lo da
 su playtest.
+
+## Cierre de la ronda: las 9 reencarnaciones, y el techo del prestigio
+
+### Las 9 contra el techo de 8 — NO se forzó
+
+Dos knobs llegan a 8, y los dos **pagan con el contrato que se acababa de
+cumplir**. Con la forma ya buena, mover el rojo de lugar no es arreglarlo:
+
+| knob | maxear | reenc | paredes | qué rompe |
+|---|---:|---:|---|---|
+| (embarcado) | **20,67 h** ✅ | 9 🔴 | T12·T13·T14·T16·T18·T20 | — |
+| `oro.exponent` 0,32 | 14,33 h 🔴 | **8** ✅ | T12·T13·T13·T15·T17 | saca maxear de la banda de 20-30 |
+| `oro.globalMultiplierPerOro` 0,24 | 17,67 h 🔴 | **8** ✅ | T13·T14·**T13**·T20·T21 | saca maxear de la banda **y la pared RETROCEDE** (T14 → T13) |
+
+También se midieron `oro.exponent` 0,28 (17,67 h, 9 reenc) y 0,30 (16,67 h, 9).
+
+**Decisión: no se aplica ninguno.** El test queda rojo y declarado. Un contrato
+desalineado y honesto vale más que un número forzado, y las dos alternativas
+cambian un assert verde por otro.
+
+### El techo del prestigio: por qué NO se intenta calibrar de nuevo
+
+El dueño aceptó el 7-40 % de retorno y decidió no abrir una línea de contenido
+nueva. Queda escrito el **límite matemático** para que nadie lo vuelva a intentar
+con knobs:
+
+> Volver a la pared cuesta las mismas **acciones** que la primera vez —`2^N`
+> compras y `2^N − 1` fusiones por tier— y el ORO saca la ESPERA, no las
+> acciones. Entonces
+>
+>     pago ≤ 1 − acciones(1..T) / primera_vez(T)
+>
+> Con N=6 el piso de acciones para volver al tier 20 es ~0,7 h, así que el pago
+> no puede pasar de `1 − 0,7/primera` por más que se muevan los precios.
+
+**Ningún knob de precio puede cruzar ese techo**: los precios entran en
+`primera_vez`, no en `acciones`. Sólo lo movería contenido que reduzca las
+ACCIONES por tier (una mejora permanente que acorte la subida), y eso está
+descartado por decisión del dueño.
+
+### El total: NO se escaló, a propósito
+
+Quedó en **20,67 h de simulador ≈ 6,9 h del dueño** contra las 20-30 suyas que
+pidió. **No se tocó `oro.divisor` para "llegar"**, y el motivo es la
+incertidumbre: el ÷3 sale de UNA comparación, así que escalar contra una
+estimación de un punto puede pasarse por 3×.
+
+El knob está identificado y medido, listo para cuando el playtest diga en qué
+dirección mover:
+
+| `oro.divisor` | maxear (sim) | dios (sim) | la pared |
+|---:|---:|---:|---|
+| 1e9 | 14,91 h | 24,39 h | corre a los saltos (+1 · +3) |
+| **1e10 (embarcado)** | **20,67 h** | **28,43 h** | **corre parejo (+1 · +1 · +2 · +2 · +2)** |
+| 1e11 | 30,33 h | 39,36 h | se clava cuatro runs en T13 |
+
+⚠️ Subirlo **no es gratis para la forma**: 1e11 alarga pero clava la pared. Si el
+playtest pide más largo, hay que re-mirar la forma después de moverlo.

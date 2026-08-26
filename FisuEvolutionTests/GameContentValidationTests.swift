@@ -593,6 +593,21 @@ struct GameContentValidationTests {
         }
     }
 
+    @Test("chests.json trae los pesos y los factores del spec")
+    func chestConfigMatchesTunedValues() {
+        let chests = content.chests
+        #expect(chests.weight(for: .comun) == 55)
+        #expect(chests.weight(for: .rara) == 28)
+        #expect(chests.weight(for: .epica) == 12)
+        #expect(chests.weight(for: .legendaria) == 5)
+        #expect(chests.floorsPerChest == 2)
+        #expect(chests.completedPayoutFactor == 6)
+        #expect(chests.prestigePayoutFactor == 12)
+        // La pinta del cofre de bienvenida tiene que existir en la bolsa: un id mal
+        // escrito acá deja el cofre del tutorial sin premio y nada más lo diría.
+        #expect(content.skins.chestPool.contains { $0.id == chests.welcomeSkinId })
+    }
+
     /// Cada personaje concreto tiene su skin alternativa catalogada, y todas
     /// declaran nombre visible: una skin sin `displayNameKey` se vería en la
     /// ficha como su id crudo.

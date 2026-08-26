@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "weights": [
+    { "rarity": "comun", "weight": 55 },
+    { "rarity": "rara", "weight": 28 },
+    { "rarity": "epica", "weight": 12 },
+    { "rarity": "legendaria", "weight": 5 }
+  ],
+  "floorsPerChest": 2,
+  "completedPayoutFactor": 6.0,
+  "prestigePayoutFactor": 12.0,
+  "welcomeSkinId": "urban_trailblazer"
+}

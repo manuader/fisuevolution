@@ -124,3 +124,56 @@ func fxSlot(of typeId: String, onFloor ordinal: Int, in tower: TowerState) -> In
 func fxSlots(of typeId: String, onFloor ordinal: Int, in tower: TowerState) -> [Int] {
     tower.placements(onFloor: ordinal).filter { $0.typeId == typeId }.map(\.slot)
 }
+
+// MARK: - Fixtures de cofres (F8)
+
+/// PRNG determinista (SplitMix64). Sembrado a mano porque un sorteo verificado
+/// con `SystemRandomNumberGenerator` sería "casi siempre verde"; y con estado
+/// real y no un valor constante porque un generador que devuelve siempre lo
+/// mismo cuelga a `Int.random` en el rechazo del muestreo de Lemire.
+struct SeededRNG: RandomNumberGenerator {
+    private var state: UInt64
+
+    init(seed: UInt64) {
+        state = seed
+    }
+
+    mutating func next() -> UInt64 {
+        state &+= 0x9E37_79B9_7F4A_7C15
+        var z = state
+        z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
+        z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
+        return z ^ (z >> 31)
+    }
+}
+
+/// Una bolsa de cofre con la forma de la real: 7 comunes, 14 raras, 12 épicas y 8
+/// legendarias. Los ids son `<rareza>_<n>` para que un fallo diga de una qué salió.
+func fxChestSkins(
+    comun: Int = 7, rara: Int = 14, epica: Int = 12, legendaria: Int = 8
+) -> SkinsConfig {
+    var entradas: [SkinsConfig.Entry] = []
+    for (rareza, cuantas) in [(SkinsConfig.Rarity.comun, comun), (.rara, rara),
+                              (.epica, epica), (.legendaria, legendaria)] {
+        for n in 0..<cuantas {
+            entradas.append(.init(
+                id: "\(rareza.rawValue)_\(n)", characterType: "t\(entradas.count)",
+                treatment: .texture, textureKey: "t\(entradas.count)__\(rareza.rawValue)_\(n)",
+                chestRarity: rareza
+            ))
+        }
+    }
+    return SkinsConfig(schemaVersion: 1, skins: entradas)
+}
+
+func fxChests(
+    comun: Int = 55, rara: Int = 28, epica: Int = 12, legendaria: Int = 5
+) -> ChestsConfig {
+    ChestsConfig(
+        schemaVersion: 1,
+        weights: [.init(rarity: .comun, weight: comun), .init(rarity: .rara, weight: rara),
+                  .init(rarity: .epica, weight: epica), .init(rarity: .legendaria, weight: legendaria)],
+        floorsPerChest: 2, completedPayoutFactor: 6, prestigePayoutFactor: 12,
+        welcomeSkinId: "comun_0"
+    )
+}

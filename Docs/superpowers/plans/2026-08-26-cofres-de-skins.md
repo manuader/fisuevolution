@@ -79,7 +79,15 @@ xcodebuild test -scheme FisuEvolution -destination "id=$UDID" -derivedDataPath /
 **Files:**
 - Modify: `Packages/EconomyKit/Sources/EconomyKit/SkinsConfig.swift`
 - Modify: `FisuEvolution/Resources/Config/skins.json` (41 entradas)
-- Test: `Packages/EconomyKit/Tests/EconomyKitTests/SkinMilestonesTests.swift`
+- Test (mecanismo): `Packages/EconomyKit/Tests/EconomyKitTests/SkinMilestonesTests.swift`
+- Test (datos): `FisuEvolutionTests/GameContentValidationTests.swift`
+
+⚠️ **El test va partido en dos targets y no es capricho.** `EconomyKitTests` **no tiene
+recursos** (`Package.swift` declara el testTarget sin `resources:`), así que no puede abrir
+`skins.json`: ahí se prueba el MECANISMO con un config sintético, como ya hacen los tests
+que viven en ese archivo. Los hechos del catálogo real se pinean del lado de la app, en
+`GameContentValidationTests`, que es donde ya viven `skinCatalogReferencesBundledTypesAndFloors`
+y `everyCharacterHasACataloguedSkinWithAName`.
 
 **Interfaces:**
 - Produces: `SkinsConfig.Entry.chestRarity: String?` y `SkinsConfig.Rarity` (enum con
@@ -87,32 +95,88 @@ xcodebuild test -scheme FisuEvolution -destination "id=$UDID" -derivedDataPath /
   `Comparable` por orden de declaración).
 - Produces: `SkinsConfig.chestPool: [Entry]` — las entradas con `chestRarity != nil`.
 
-- [ ] **Step 1: Escribir el test que falla — las 41 no se otorgan por milestone**
+- [ ] **Step 1a: El test del MECANISMO, en `SkinMilestonesTests.swift`**
 
-En `SkinMilestonesTests.swift`:
+Config sintético, como los tests que ya están en ese archivo:
 
 ```swift
-@Test("ninguna skin de cofre se otorga por milestone, ni con la torre entera abierta")
-func chestSkinsAreNeverMilestones() throws {
-    let config = try Fixtures.skinsConfig()          // el catálogo REAL de skins.json
-    var state = Fixtures.playerState()
-    state.run.unlockedFloors = Fixtures.floorTable().floors.map(\.id)
-    state.meta.prestigeLevel = 99
+@Test("una entrada con chestRarity no la propone nunca el evaluador de milestones")
+func chestEntriesAreNeverMilestones() throws {
+    let config = SkinsConfig(schemaVersion: 1, skins: [
+        // La de cofre: mismo personaje y mismo piso que la de milestone de abajo,
+        // así lo único que las distingue es el campo que decide.
+        .init(id: "naranjita", characterType: "b", treatment: .texture,
+              textureKey: "b__naranjita", chestRarity: .comun),
+        .init(id: "second_life", characterType: "a", treatment: .texture,
+              textureKey: "a__second_life", reincarnations: 1),
+    ])
+    var state = fxPlayerState()
+    state.run.unlockedFloors = ["f1", "f2"]
+    state.meta.prestigeLevel = 9
 
-    let unlocked = Set(SkinMilestones.newlyUnlocked(
-        state: state, config: config, allUpgradesMaxed: true
-    ))
-    let pool = Set(config.chestPool.map(\.id))
+    let unlocked = SkinMilestones.newlyUnlocked(state: state, config: config, allUpgradesMaxed: true)
 
-    #expect(pool.count == 41)
-    #expect(unlocked.isDisjoint(with: pool))
+    #expect(unlocked == ["second_life"])              // la de milestone sí
+    #expect(config.chestPool.map(\.id) == ["naranjita"])
+}
+
+@Test("una entrada no puede ser de cofre y de milestone a la vez")
+func chestAndMilestoneAreMutuallyExclusive() {
+    let config = SkinsConfig(schemaVersion: 1, skins: [
+        .init(id: "confusa", characterType: "a", treatment: .texture,
+              textureKey: "a__confusa", floorReached: "f2", chestRarity: .rara),
+    ])
+    #expect(throws: SkinsConfig.ValidationError.chestAndMilestone("confusa")) {
+        try config.validate(characterTypeIDs: ["a"], floorIDs: ["f1", "f2"])
+    }
 }
 ```
 
-- [ ] **Step 2: Correr y verificar que falla**
+- [ ] **Step 1b: El test de los DATOS, en `GameContentValidationTests.swift`**
 
-Run: `swift test --package-path Packages/EconomyKit --filter chestSkinsAreNeverMilestones`
-Expected: FAIL — `chestPool` no existe todavía (error de compilación).
+Acá sí se lee el catálogo real, y se pinean los números del spec:
+
+```swift
+@Test("las 41 pintas de piso son de cofre, con la rareza del piso donde vive el personaje")
+func chestPoolMatchesTheDesignedRarities() throws {
+    let content = try GameContentLoader.loadForTests()
+    let pool = content.skins.chestPool
+
+    #expect(pool.count == 41)
+    // Ninguna quedó con el criterio viejo: si una se escapa, se regalaría por
+    // las DOS vías y el cofre repartiría algo que ya tenías.
+    #expect(content.skins.skins.allSatisfy { $0.floorReached == nil || $0.chestRarity == nil })
+    #expect(pool.allSatisfy { !$0.isMilestone })
+
+    let esperado: [SkinsConfig.Rarity: Int] = [.comun: 7, .rara: 14, .epica: 12, .legendaria: 8]
+    for (rareza, cuantas) in esperado {
+        #expect(pool.filter { $0.chestRarity == rareza }.count == cuantas, "\(rareza)")
+    }
+
+    // Y la rareza se corresponde con el piso de casa del personaje, no con un
+    // valor tipeado a mano: sin esto, una entrada mal clasificada pasa igual
+    // mientras los totales cierren.
+    let porPiso: [String: SkinsConfig.Rarity] = [
+        "alley": .comun, "urban": .comun,
+        "corporate": .rara, "luxury": .rara,
+        "island": .epica, "moon": .epica, "mars": .epica,
+        "solar": .legendaria, "galaxy": .legendaria,
+    ]
+    for skin in pool {
+        let tier = content.tiers.type(id: skin.characterType)!.tier
+        let piso = content.floorTable.floors.first { $0.firstTier <= tier && tier <= $0.lastTier }!
+        #expect(skin.chestRarity == porPiso[piso.id], "\(skin.characterType) (T\(tier), \(piso.id))")
+    }
+}
+```
+
+⚠️ Si no existe un helper que cargue el contenido en tests, usar el que ya usan los otros
+tests de ese archivo — **no inventar uno nuevo**.
+
+- [ ] **Step 2: Correr y verificar que fallan los tres**
+
+Run: `swift test --package-path Packages/EconomyKit --filter SkinMilestones`
+Expected: FAIL — `chestRarity` y `chestPool` no existen (error de compilación).
 
 - [ ] **Step 3: Agregar `Rarity`, `chestRarity` y `chestPool` a `SkinsConfig`**
 
@@ -176,14 +240,16 @@ dar **0**.
 
 - [ ] **Step 6: Correr y verificar que pasa**
 
-Run: `swift test --package-path Packages/EconomyKit`
-Expected: PASS, incluida toda `SkinMilestonesTests` (los tests viejos de milestone siguen
-verdes: `oro`, `diamante` y las de reencarnación no se tocaron).
+Run: `swift test --package-path Packages/EconomyKit` y
+`xcodebuild test ... -only-testing:FisuEvolutionTests/GameContentValidationTests`
+Expected: PASS los dos. Los tests viejos de milestone siguen verdes —`oro`, `diamante` y
+las de reencarnación no se tocaron—, y `everyCharacterHasACataloguedSkinWithAName` también:
+las 41 siguen en el catálogo, sólo cambiaron de criterio.
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add Packages/EconomyKit/Sources/EconomyKit/SkinsConfig.swift Packages/EconomyKit/Tests/EconomyKitTests/SkinMilestonesTests.swift FisuEvolution/Resources/Config/skins.json
+git add Packages/EconomyKit/Sources/EconomyKit/SkinsConfig.swift Packages/EconomyKit/Tests/EconomyKitTests/SkinMilestonesTests.swift FisuEvolutionTests/GameContentValidationTests.swift FisuEvolution/Resources/Config/skins.json
 git commit -m "feat(cofres): las 41 pintas de piso salen del evaluador de milestones y entran a la bolsa"
 ```
 

@@ -284,21 +284,72 @@ public enum ChestRoller {
 }
 ```
 
+- [ ] **Step 0: El fixture, sintético**
+
+⚠️ **`EconomyKitTests` NO tiene recursos** (`Package.swift` declara el `testTarget` sin
+`resources:`), así que **no existe ni puede existir un fixture que lea `skins.json`**. La
+bolsa de los tests se construye a mano, con la MISMA FORMA que la real —7/14/12/8— para que
+las cuentas del sorteo signifiquen lo mismo. Los hechos del `chests.json` real se pinean del
+lado de la app, en el Step 6.
+
+En `Packages/EconomyKit/Tests/EconomyKitTests/Fixtures.swift`, siguiendo el prefijo `fx` que
+ya usan `fxConfig`, `fxEconomy`, `fxFloorTable` y `fxState`:
+
+```swift
+/// Una bolsa de cofre con la forma de la real: 7 comunes, 14 raras, 12 épicas y 8
+/// legendarias. Los ids son `<rareza>_<n>` para que un fallo diga de una qué salió.
+func fxChestSkins(
+    comun: Int = 7, rara: Int = 14, epica: Int = 12, legendaria: Int = 8
+) -> SkinsConfig {
+    var entradas: [SkinsConfig.Entry] = []
+    for (rareza, cuantas) in [(SkinsConfig.Rarity.comun, comun), (.rara, rara),
+                              (.epica, epica), (.legendaria, legendaria)] {
+        for n in 0..<cuantas {
+            entradas.append(.init(
+                id: "\(rareza.rawValue)_\(n)", characterType: "t\(entradas.count)",
+                treatment: .texture, textureKey: "t\(entradas.count)__\(rareza.rawValue)_\(n)",
+                chestRarity: rareza
+            ))
+        }
+    }
+    return SkinsConfig(schemaVersion: 1, skins: entradas)
+}
+
+func fxChests(
+    comun: Int = 55, rara: Int = 28, epica: Int = 12, legendaria: Int = 5
+) -> ChestsConfig {
+    ChestsConfig(
+        schemaVersion: 1,
+        weights: [.init(rarity: .comun, weight: comun), .init(rarity: .rara, weight: rara),
+                  .init(rarity: .epica, weight: epica), .init(rarity: .legendaria, weight: legendaria)],
+        floorsPerChest: 2, completedPayoutFactor: 6, prestigePayoutFactor: 12,
+        welcomeSkinId: "comun_0"
+    )
+}
+```
+
+Esto obliga a que `ChestsConfig` y `ChestsConfig.RarityWeight` tengan **`init` público
+memberwise** — no alcanza con `Codable`.
+
+⚠️ `SeededRNG`: si no existe ya en el target, agregarlo acá — un `RandomNumberGenerator`
+determinista sembrado. Es lo que hace que estos tests sean reproducibles y no "casi siempre
+verdes".
+
 - [ ] **Step 1: Escribir los seis tests que fallan**
 
-En `ChestRollerTests.swift`. `SeededRNG` ya existe en el target (lo usa
-`ContentSystemsTests`); si no, agregarlo a `Fixtures.swift` como un
-`RandomNumberGenerator` determinista sembrado.
+En `Packages/EconomyKit/Tests/EconomyKitTests/ChestRollerTests.swift`:
 
 ```swift
 @Test("sortea una skin de la rareza que salió, y nunca una que ya tenés")
-func rollsUnownedOfDrawnRarity() throws {
-    let skins = try Fixtures.skinsConfig()
-    var rng = SeededRNG(seed: 7)
-    let owned: Set<String> = []
+func rollsUnownedOfDrawnRarity() {
+    let skins = fxChestSkins()
+    var rng: any RandomNumberGenerator = SeededRNG(seed: 7)
+    // Una ya tomada: si el sorteo la devolviera, el cofre repartiría algo que el
+    // jugador ya tiene, que es el modo de fallar más caro del sistema.
+    let owned: Set<String> = ["comun_0"]
     for _ in 0..<200 {
         guard case let .skin(id, _, rarity) = ChestRoller.roll(
-            owned: owned, skins: skins, config: Fixtures.chestsConfig(), using: &rng
+            owned: owned, skins: skins, config: fxChests(), using: &rng
         ) else { Issue.record("esperaba skin"); return }
         #expect(!owned.contains(id))
         #expect(skins.chestPool.first { $0.id == id }?.chestRarity == rarity)
@@ -306,67 +357,71 @@ func rollsUnownedOfDrawnRarity() throws {
 }
 
 @Test("con la rareza sorteada agotada, promociona hacia ARRIBA")
-func promotesUpwardWhenExhausted() throws {
-    let skins = try Fixtures.skinsConfig()
-    // todas las comunes tomadas; el peso de `comun` es 55, así que sin promoción
-    // la mayoría de estas tiradas no daría skin.
+func promotesUpwardWhenExhausted() {
+    let skins = fxChestSkins()
+    // Todas las comunes tomadas. Con peso 55 sobre 100, sin promoción más de la
+    // mitad de estas 200 tiradas no daría skin.
     let owned = Set(skins.chestPool.filter { $0.chestRarity == .comun }.map(\.id))
-    var rng = SeededRNG(seed: 11)
+    var rng: any RandomNumberGenerator = SeededRNG(seed: 11)
     for _ in 0..<200 {
         guard case let .skin(_, _, rarity) = ChestRoller.roll(
-            owned: owned, skins: skins, config: Fixtures.chestsConfig(), using: &rng
+            owned: owned, skins: skins, config: fxChests(), using: &rng
         ) else { Issue.record("esperaba skin"); return }
         #expect(rarity != .comun)
     }
 }
 
 @Test("sin nada arriba, baja")
-func fallsDownWhenNothingAbove() throws {
-    let skins = try Fixtures.skinsConfig()
+func fallsDownWhenNothingAbove() {
+    let skins = fxChestSkins()
     let owned = Set(skins.chestPool.filter { $0.chestRarity != .comun }.map(\.id))
-    var rng = SeededRNG(seed: 3)
+    var rng: any RandomNumberGenerator = SeededRNG(seed: 3)
     guard case let .skin(_, _, rarity) = ChestRoller.roll(
-        owned: owned, skins: skins, config: Fixtures.chestsConfig(), floor: .legendaria, using: &rng
+        owned: owned, skins: skins, config: fxChests(), floor: .legendaria, using: &rng
     ) else { Issue.record("esperaba skin"); return }
     #expect(rarity == .comun)
 }
 
 @Test("con la colección completa paga plata")
-func paysCoinsWhenCollectionIsComplete() throws {
-    let skins = try Fixtures.skinsConfig()
+func paysCoinsWhenCollectionIsComplete() {
+    let skins = fxChestSkins()
     let owned = Set(skins.chestPool.map(\.id))
-    var rng = SeededRNG(seed: 5)
+    var rng: any RandomNumberGenerator = SeededRNG(seed: 5)
     guard case .coins = ChestRoller.roll(
-        owned: owned, skins: skins, config: Fixtures.chestsConfig(), using: &rng
+        owned: owned, skins: skins, config: fxChests(), using: &rng
     ) else { Issue.record("esperaba plata"); return }
 }
 
 @Test("el piso de rareza no deja salir nada por debajo mientras haya stock")
-func floorKeepsRarityAtOrAbove() throws {
-    let skins = try Fixtures.skinsConfig()
-    var rng = SeededRNG(seed: 13)
+func floorKeepsRarityAtOrAbove() {
+    let skins = fxChestSkins()
+    var rng: any RandomNumberGenerator = SeededRNG(seed: 13)
     for _ in 0..<200 {
         guard case let .skin(_, _, rarity) = ChestRoller.roll(
-            owned: [], skins: skins, config: Fixtures.chestsConfig(), floor: .epica, using: &rng
+            owned: [], skins: skins, config: fxChests(), floor: .epica, using: &rng
         ) else { Issue.record("esperaba skin"); return }
         #expect(rarity >= .epica)
     }
 }
 
 @Test("41 cofres seguidos vacían la bolsa entera, sin una sola repetida")
-func fortyOneChestsCompleteTheCollection() throws {
-    let skins = try Fixtures.skinsConfig()
+func fortyOneChestsCompleteTheCollection() {
+    let skins = fxChestSkins()
     var owned: Set<String> = []
-    var rng = SeededRNG(seed: 21)
-    for _ in 0..<41 {
+    var rng: any RandomNumberGenerator = SeededRNG(seed: 21)
+    for n in 0..<skins.chestPool.count {
         guard case let .skin(id, _, _) = ChestRoller.roll(
-            owned: owned, skins: skins, config: Fixtures.chestsConfig(), using: &rng
-        ) else { Issue.record("esperaba skin"); return }
-        #expect(owned.insert(id).inserted)
+            owned: owned, skins: skins, config: fxChests(), using: &rng
+        ) else { Issue.record("cofre \(n): esperaba skin, la bolsa no estaba vacía"); return }
+        #expect(owned.insert(id).inserted, "cofre \(n) repitió \(id)")
     }
-    #expect(owned.count == skins.chestPool.count)
+    #expect(owned.count == 41)
 }
 ```
+
+⚠️ **El último es el test que justifica todo el diseño de promoción**: si la promoción no
+funcionara, la bolsa se estancaría antes de las 41 y ese `#expect` lo diría en el cofre
+exacto donde ocurre.
 
 - [ ] **Step 2: Correr y verificar que fallan**
 
@@ -493,21 +548,43 @@ public enum ChestRoller {
 }
 ```
 
-- [ ] **Step 5: Cargar `chests.json` y agregar el fixture**
+- [ ] **Step 5: Cargar `chests.json`**
 
-Dar de alta `chests.json` en `GameContentLoader` junto a los otros trece configs, exponerlo
-como `content.chests`, y agregar `Fixtures.chestsConfig()` al target de tests de EconomyKit
-leyendo el JSON real (mismo patrón que `Fixtures.skinsConfig()`).
+Dar de alta `chests.json` en `GameContentLoader` junto a los otros trece configs y exponerlo
+como `content.chests`. Seguir el patrón exacto de los que ya están.
 
-- [ ] **Step 6: Correr y verificar que pasan los seis**
+- [ ] **Step 6: Pinear el config REAL, del lado de la app**
 
-Run: `swift test --package-path Packages/EconomyKit --filter ChestRoller`
-Expected: PASS 6/6.
+El Step 1 prueba el mecanismo sobre una bolsa sintética; que el `chests.json` que se shippea
+tenga los números del spec se pinea donde se puede leer el bundle, en
+`FisuEvolutionTests/GameContentValidationTests.swift`:
 
-- [ ] **Step 7: Commit**
+```swift
+@Test("chests.json trae los pesos y los factores del spec")
+func chestConfigMatchesTunedValues() {
+    let chests = content.chests
+    #expect(chests.weight(for: .comun) == 55)
+    #expect(chests.weight(for: .rara) == 28)
+    #expect(chests.weight(for: .epica) == 12)
+    #expect(chests.weight(for: .legendaria) == 5)
+    #expect(chests.floorsPerChest == 2)
+    #expect(chests.completedPayoutFactor == 6)
+    #expect(chests.prestigePayoutFactor == 12)
+    // La pinta del cofre de bienvenida tiene que existir en la bolsa: un id mal
+    // escrito acá deja el cofre del tutorial sin premio y nada más lo diría.
+    #expect(content.skins.chestPool.contains { $0.id == chests.welcomeSkinId })
+}
+```
+
+- [ ] **Step 7: Correr y verificar**
+
+Run: `swift test --package-path Packages/EconomyKit --filter ChestRoller` → PASS 6/6, y
+`xcodebuild test ... -only-testing:FisuEvolutionTests/GameContentValidationTests` → PASS.
+
+- [ ] **Step 8: Commit**
 
 ```bash
-git add Packages/EconomyKit/Sources/EconomyKit/ChestsConfig.swift Packages/EconomyKit/Sources/EconomyKit/ChestRoller.swift Packages/EconomyKit/Tests/EconomyKitTests/ChestRollerTests.swift Packages/EconomyKit/Tests/EconomyKitTests/Fixtures.swift FisuEvolution/Resources/Config/chests.json FisuEvolution/Managers/GameContentLoader.swift
+git add Packages/EconomyKit/Sources/EconomyKit/ChestsConfig.swift Packages/EconomyKit/Sources/EconomyKit/ChestRoller.swift Packages/EconomyKit/Tests/EconomyKitTests/ChestRollerTests.swift Packages/EconomyKit/Tests/EconomyKitTests/Fixtures.swift FisuEvolutionTests/GameContentValidationTests.swift FisuEvolution/Resources/Config/chests.json FisuEvolution/Managers/GameContentLoader.swift
 git commit -m "feat(cofres): el sorteo con promoción de rareza — 41 cofres vacían la bolsa sin repetir"
 ```
 

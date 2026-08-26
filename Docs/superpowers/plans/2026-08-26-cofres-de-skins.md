@@ -37,6 +37,25 @@ duda de comportamiento, el spec manda.
 - **Rama**: `feat/cofres-de-skins`, worktree `/Users/manuader/Desktop/projects/fisu-wt-cofres`.
   Staging **selectivo** siempre (nunca `git add -A`): hay otras sesiones en el mismo repo.
 
+### ⚠️ Los helpers de test que EXISTEN (usar éstos, no inventar)
+
+Este plan inventó nombres de fixture dos veces y las dos costaron una corrección. **No hay
+ningún `enum Fixtures` en el target de la app.** El mapa real:
+
+| Necesidad | Qué usar | Dónde vive |
+|---|---|---|
+| `GameState` arrancado con el contenido real | `await makeGameState()` | `FisuEvolutionTests/Support/GameStateFixture.swift:11` (global, no `private`) |
+| RNG determinista, app | `FixedRNG(seed:)` — SplitMix64 real, **no** un generador constante (un valor fijo cuelga `Int.random` con rechazo infinito; el comentario del archivo lo dice de un bug propio) | `FisuEvolutionTests/ContentSystemsTests.swift:9` — `private` a esa suite: si lo necesitás desde otra, movelo a `Support/` |
+| `PlayerState` nuevo, app | `makeState(maxTier:coins:)` | `FisuEvolutionTests/ContentSystemsTests.swift:41` — también `private` |
+| RNG determinista, EconomyKit | `SeededRNG` | `Packages/EconomyKit/Tests/EconomyKitTests/Fixtures.swift:134` |
+| Save viejo para migrar | un `[String: Any]` + `JSONSerialization.data(withJSONObject:)` | patrón de `SaveMigratorTests.v3Fixture()`, `FisuEvolutionTests/SaveMigratorTests.swift:17` |
+| Config/estado puro, EconomyKit | `fxConfig`, `fxState`, `fxEconomy`, `fxFloorTable`, `fxStateAndTower` | `EconomyKitTests/Fixtures.swift` |
+| Contenido real en un test de la app | la propiedad `content` de la suite (`GameContentLoader.load(from: .main)` en su `init`) | `GameContentValidationTests.swift:11` |
+
+⚠️ **`EconomyKitTests` no tiene recursos** (`Package.swift`, `testTarget` sin `resources:`):
+desde ahí **no se puede leer ningún JSON del bundle**. Todo test de EconomyKit va con datos
+sintéticos; los hechos de los JSON que se shippean se pinean del lado de la app.
+
 ## Verificación (vale para toda tarea)
 
 ```bash
@@ -595,7 +614,8 @@ git commit -m "feat(cofres): el sorteo con promoción de rareza — 41 cofres va
 **Files:**
 - Modify: `Packages/EconomyKit/Sources/EconomyKit/PlayerState.swift`
 - Modify: `FisuEvolution/Persistence/SaveMigrator.swift`
-- Test: `FisuEvolutionTests/PersistenceTests.swift`
+- Test: `FisuEvolutionTests/SaveMigratorTests.swift` ⚠️ **acá, no en `PersistenceTests`**:
+  es donde vive toda la cobertura de `SaveMigrator` y donde está el patrón de fixture
 - Test: `Packages/EconomyKit/Tests/EconomyKitTests/SaveCompatibilityTests.swift`
 
 **Interfaces:**
@@ -605,12 +625,15 @@ git commit -m "feat(cofres): el sorteo con promoción de rareza — 41 cofres va
 
 - [ ] **Step 1: Escribir los tests que fallan**
 
-En `PersistenceTests.swift`:
+En `SaveMigratorTests.swift`. ⚠️ **No existe `Fixtures.saveJSON`**: el patrón del archivo es
+un diccionario privado más `JSONSerialization` (ver `v3Fixture()`, `:17`). Hace falta un
+`v4Fixture()` hermano — un save v4 completo y válido, que es lo que hoy no existe porque
+hasta ahora v4 era la versión corriente y se decodificaba directo.
 
 ```swift
 @Test("un save v4 se migra a v5 con los campos del cofre en cero")
 func v4MigratesToV5WithEmptyChestState() throws {
-    let data = try Fixtures.saveJSON(schemaVersion: 4)
+    let data = try JSONSerialization.data(withJSONObject: v4Fixture())
     let state = try SaveMigrator.migrate(data)
     #expect(state.meta.chestsPending == 0)
     #expect(state.meta.prestigeChestsPending == 0)
@@ -624,20 +647,22 @@ func preRebalanceV4LosesTheFakeMaxOut() throws {
     // pre-rebalance. ⚠️ 24 y no 25: el tope exacto reescala a 10 igual y el test
     // no distinguiría el clamp del reescalado proporcional.
     var levels = ["income": 20, "tap": 20, "crit": 24]
-    let data = try Fixtures.saveJSON(schemaVersion: 4, oroUpgradeLevels: levels)
-    let state = try SaveMigrator.migrate(data)
+    var fixture = v4Fixture()
+    fixture["meta"] = (fixture["meta"] as! [String: Any]).merging(["oroUpgradeLevels": levels]) { _, n in n }
+    let state = try SaveMigrator.migrate(try JSONSerialization.data(withJSONObject: fixture))
     #expect(state.meta.oroUpgradeLevels["crit"] == 10)   // 24/25 × 10 ≈ 10
     #expect(state.meta.oroUpgradeLevels["income"] == 10) // 20/20 × 10 = 10
     // El que SÍ tenía poco no se lleva nada regalado:
     levels["crit"] = 12
-    let flojo = try SaveMigrator.migrate(try Fixtures.saveJSON(schemaVersion: 4, oroUpgradeLevels: levels))
+    fixture["meta"] = (fixture["meta"] as! [String: Any]).merging(["oroUpgradeLevels": levels]) { _, n in n }
+    let flojo = try SaveMigrator.migrate(try JSONSerialization.data(withJSONObject: fixture))
     #expect(flojo.meta.oroUpgradeLevels["crit"] == 5)    // 12/25 × 10 = 4,8 → 5
 }
 ```
 
 - [ ] **Step 2: Correr y verificar que fallan**
 
-Run: `xcodebuild test ... -only-testing:FisuEvolutionTests/PersistenceTests`
+Run: `xcodebuild test ... -only-testing:FisuEvolutionTests/SaveMigratorTests`
 Expected: FAIL — los campos no existen.
 
 - [ ] **Step 3: Agregar los tres campos y subir la versión**
@@ -714,7 +739,7 @@ Y encadenarla en `migrate`: el `case 4` nuevo aplica `migrateV4toV5(data)`, y lo
 
 - [ ] **Step 5: Correr y verificar que pasan**
 
-Run: `xcodebuild test ... -only-testing:FisuEvolutionTests/PersistenceTests` y
+Run: `xcodebuild test ... -only-testing:FisuEvolutionTests/SaveMigratorTests` y
 `swift test --package-path Packages/EconomyKit --filter SaveCompatibility`
 Expected: PASS. ⚠️ Si `SaveCompatibilityTests` pinea la versión, actualizar el número **y
 leer el test**: si sólo comparaba contra `currentSchemaVersion`, no probaba nada y hay que
@@ -723,7 +748,7 @@ darle un literal.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add Packages/EconomyKit/Sources/EconomyKit/PlayerState.swift FisuEvolution/Persistence/SaveMigrator.swift FisuEvolutionTests/PersistenceTests.swift Packages/EconomyKit/Tests/EconomyKitTests/SaveCompatibilityTests.swift
+git add Packages/EconomyKit/Sources/EconomyKit/PlayerState.swift FisuEvolution/Persistence/SaveMigrator.swift FisuEvolutionTests/SaveMigratorTests.swift Packages/EconomyKit/Tests/EconomyKitTests/SaveCompatibilityTests.swift
 git commit -m "feat(cofres): save v5 — los tres campos del cofre y el reescalado que le quita las doradas al que no las ganó"
 ```
 
@@ -738,7 +763,9 @@ git commit -m "feat(cofres): save v5 — los tres campos del cofre y el reescala
 - Modify: `FisuEvolution/Managers/ContentSystems.swift` (día 7)
 - Modify: `FisuEvolution/Resources/Config/rewarded_ads.json`
 - Modify: `FisuEvolution/Game/State/GameState+Bonus.swift` (dos `switch`)
-- Test: `FisuEvolutionTests/ChestSourcesTests.swift` (nuevo)
+- Test: `FisuEvolutionTests/ChestSourcesTests.swift` (nuevo) — las tres primeras
+- Test: `FisuEvolutionTests/ContentSystemsTests.swift` — la del día 7, **acá**: es donde vive
+  `claimDaily` y donde ya está el `FixedRNG` que hace falta
 
 **Interfaces:**
 - Consumes: `ChestRoller.roll(...)`, `ChestOutcome`, `meta.chestsPending`,
@@ -752,7 +779,7 @@ git commit -m "feat(cofres): save v5 — los tres campos del cofre y el reescala
 @MainActor
 @Test("la torre da un cofre cada dos pisos, y no lo repite al re-desbloquear el mismo")
 func towerGivesOneChestEveryTwoFloors() async throws {
-    let state = try await Fixtures.bootedGameState()
+    let state = try await makeGameState()
     let pisos = state.content!.floorTable.floors.map(\.id)
 
     // Piso 1: todavía nada (1 / 2 == 0).
@@ -781,7 +808,7 @@ func towerGivesOneChestEveryTwoFloors() async throws {
 @MainActor
 @Test("reencarnar reinicia el contador de la torre pero conserva los cofres sin abrir")
 func prestigeResetsTheCounterAndKeepsPendingChests() async throws {
-    let state = try await Fixtures.bootedGameState()
+    let state = try await makeGameState()
     state.player!.run.unlockedFloors = state.content!.floorTable.floors.map(\.id)
     state.awardFloorChestsIfDue()
     #expect(state.pendingChestCount == 5)
@@ -803,7 +830,7 @@ func prestigeResetsTheCounterAndKeepsPendingChests() async throws {
 @MainActor
 @Test("el cofre de bienvenida se da una sola vez por save")
 func welcomeChestIsGrantedOnlyOnce() async throws {
-    let state = try await Fixtures.bootedGameState()
+    let state = try await makeGameState()
     state.beginTutorialPhase()
     state.tutorialPhaseFinished()
     #expect(state.pendingChestCount == 1)
@@ -816,11 +843,18 @@ func welcomeChestIsGrantedOnlyOnce() async throws {
     #expect(state.pendingChestCount == 1)
 }
 
+// ⚠️ Este va en `ContentSystemsTests.swift`, no en el archivo nuevo: `claimDaily` es
+// una función pura de `ContentSystems` y su suite ya tiene el `FixedRNG` y el
+// armado de estado que hace falta. Copiá el setup de los tests de daily que ya
+// están ahí en vez de inventar uno.
 @Test("el día 7 da cofre sólo cuando ya están los diez specials")
 func daySevenFallsThroughSpecialThenChest() throws {
-    var state = Fixtures.playerState()
+    // `makeState()` es el helper privado de ESA suite (`ContentSystemsTests.swift:41`):
+    // arma un `PlayerState.newGame` con los ids sacados de la data, nunca
+    // hardcodeados. `fxState()` es de EconomyKitTests y acá no existe.
+    var state = makeState()
     state.meta.daily.cycleDay = 7
-    var rng = SeededRNG(seed: 2)
+    var rng: any RandomNumberGenerator = FixedRNG(seed: 2)
 
     // Con specials pendientes, el día 7 NO da cofre: sigue dando special.
     let conSpecials = ContentSystems.claimDaily(state: &state, rng: &rng, /* … */)
@@ -828,7 +862,7 @@ func daySevenFallsThroughSpecialThenChest() throws {
     #expect(conSpecials?.chestGranted == false)
 
     // Con los diez specials tomados y skins por sacar, da cofre.
-    state.meta.ownedSpecials = Fixtures.specialsConfig().specials.map(\.id)
+    state.meta.ownedSpecials = content.specials.specials.map(\.id)
     state.meta.daily.cycleDay = 7
     state.meta.daily.lastClaimDay = nil
     let sinSpecials = ContentSystems.claimDaily(state: &state, rng: &rng, /* … */)

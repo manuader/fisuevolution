@@ -44,7 +44,7 @@ ningún `enum Fixtures` en el target de la app.** El mapa real:
 
 | Necesidad | Qué usar | Dónde vive |
 |---|---|---|
-| `GameState` arrancado con el contenido real | `await makeGameState()` | `FisuEvolutionTests/Support/GameStateFixture.swift:11` (global, no `private`) |
+| `GameState` arrancado con el contenido real | `await makeGameState()` — es `async` pero **no** `throws`: nada de `try` | `FisuEvolutionTests/Support/GameStateFixture.swift:11` (global, no `private`) |
 | RNG determinista, app | `FixedRNG(seed:)` — SplitMix64 real, **no** un generador constante (un valor fijo cuelga `Int.random` con rechazo infinito; el comentario del archivo lo dice de un bug propio) | `FisuEvolutionTests/ContentSystemsTests.swift:9` — `private` a esa suite: si lo necesitás desde otra, movelo a `Support/` |
 | `PlayerState` nuevo, app | `makeState(maxTier:coins:)` | `FisuEvolutionTests/ContentSystemsTests.swift:41` — también `private` |
 | RNG determinista, EconomyKit | `SeededRNG` | `Packages/EconomyKit/Tests/EconomyKitTests/Fixtures.swift:134` |
@@ -771,7 +771,7 @@ git commit -m "feat(cofres): save v5 — los tres campos del cofre y el reescala
 - Modify: `FisuEvolution/Game/State/GameState+Bonus.swift` (dos `switch`)
 - Test: `FisuEvolutionTests/ChestSourcesTests.swift` (nuevo) — las tres primeras
 - Test: `FisuEvolutionTests/ContentSystemsTests.swift` — la del día 7, **acá**: es donde vive
-  `claimDaily` y donde ya está el `FixedRNG` que hace falta
+  `DailyRewardManager.claimIfAvailable` y donde ya está el `FixedRNG` que hace falta
 
 **Interfaces:**
 - Consumes: `ChestRoller.roll(...)`, `ChestOutcome`, `meta.chestsPending`,
@@ -785,7 +785,7 @@ git commit -m "feat(cofres): save v5 — los tres campos del cofre y el reescala
 @MainActor
 @Test("la torre da un cofre cada dos pisos, y no lo repite al re-desbloquear el mismo")
 func towerGivesOneChestEveryTwoFloors() async throws {
-    let state = try await makeGameState()
+    let state = await makeGameState()
     let pisos = state.content!.floorTable.floors.map(\.id)
 
     // Piso 1: todavía nada (1 / 2 == 0).
@@ -814,12 +814,12 @@ func towerGivesOneChestEveryTwoFloors() async throws {
 @MainActor
 @Test("reencarnar reinicia el contador de la torre pero conserva los cofres sin abrir")
 func prestigeResetsTheCounterAndKeepsPendingChests() async throws {
-    let state = try await makeGameState()
+    let state = await makeGameState()
     state.player!.run.unlockedFloors = state.content!.floorTable.floors.map(\.id)
     state.awardFloorChestsIfDue()
     #expect(state.pendingChestCount == 5)
 
-    state.reincarnate()
+    state.confirmPrestige()
 
     // Los 5 de la partida anterior siguen ahí (viven en `meta`), más el de la
     // reencarnación, que es el que garantiza épica.
@@ -836,7 +836,7 @@ func prestigeResetsTheCounterAndKeepsPendingChests() async throws {
 @MainActor
 @Test("el cofre de bienvenida se da una sola vez por save")
 func welcomeChestIsGrantedOnlyOnce() async throws {
-    let state = try await makeGameState()
+    let state = await makeGameState()
     state.beginTutorialPhase()
     state.tutorialPhaseFinished()
     #expect(state.pendingChestCount == 1)
@@ -849,7 +849,7 @@ func welcomeChestIsGrantedOnlyOnce() async throws {
     #expect(state.pendingChestCount == 1)
 }
 
-// ⚠️ Este va en `ContentSystemsTests.swift`, no en el archivo nuevo: `claimDaily` es
+// ⚠️ Este va en `ContentSystemsTests.swift`, no en el archivo nuevo: `DailyRewardManager.claimIfAvailable` es
 // una función pura de `ContentSystems` y su suite ya tiene el `FixedRNG` y el
 // armado de estado que hace falta. Copiá el setup de los tests de daily que ya
 // están ahí en vez de inventar uno.
@@ -863,7 +863,7 @@ func daySevenFallsThroughSpecialThenChest() throws {
     var rng: any RandomNumberGenerator = FixedRNG(seed: 2)
 
     // Con specials pendientes, el día 7 NO da cofre: sigue dando special.
-    let conSpecials = ContentSystems.claimDaily(state: &state, rng: &rng, /* … */)
+    let conSpecials = DailyRewardManager.claimIfAvailable(state: &state, rng: &rng, /* … */)
     #expect(conSpecials?.specialGranted != nil)
     #expect(conSpecials?.chestGranted == false)
 
@@ -871,7 +871,7 @@ func daySevenFallsThroughSpecialThenChest() throws {
     state.meta.ownedSpecials = content.specials.specials.map(\.id)
     state.meta.daily.cycleDay = 7
     state.meta.daily.lastClaimDay = nil
-    let sinSpecials = ContentSystems.claimDaily(state: &state, rng: &rng, /* … */)
+    let sinSpecials = DailyRewardManager.claimIfAvailable(state: &state, rng: &rng, /* … */)
     #expect(sinSpecials?.chestGranted == true)
 }
 ```
@@ -939,14 +939,14 @@ En `rewarded_ads.json`, un quinto reward:
 }
 ```
 
-Agregar `case skinChest` a `RewardedAdsConfig.EffectType` y el `case` correspondiente en
+Agregar `case skinChest` a `RewardedAdsConfig.EffectType` (vive en `Managers/Ads/AdsProvider.swift`, **no** en `ContentConfigs.swift`) y el `case` correspondiente en
 `applyRewardedReward` (llama a `awardChest(minRarity: nil)`) y en `rewardText`. Los dos `switch`
 son exhaustivos: el compilador señala si falta uno.
 
 - [ ] **Step 5: El día 7 y la reencarnación**
 
-`ContentSystems.Claim` suma `let chestGranted: Bool` (los tres call sites lo pasan; el
-compilador los señala). En `claimDaily`, el `else` del `special_roll` —el que hoy va derecho
+`DailyRewardManager.Claim` suma `let chestGranted: Bool` (los tres call sites lo pasan; el
+compilador los señala). En `DailyRewardManager.claimIfAvailable` (`ContentSystems.swift:362` — **no** se llama `claimDaily`), el `else` del `special_roll` —el que hoy va derecho
 a la plata cuando ya tenés los diez specials— pasa a tener un escalón intermedio:
 
 ```swift
@@ -962,10 +962,10 @@ a la plata cuando ya tenés los diez specials— pasa a tener un escalón interm
 }
 ```
 
-⚠️ `claimDaily` es una función **pura sobre `inout PlayerState`**: acredita el cofre
+⚠️ Esa función es **pura sobre `inout PlayerState`**: acredita el cofre
 tocando el estado, no llamando a `GameState.awardChest`, que no existe en esa capa.
 
-En `GameState+Prestige`, después de `PrestigeCalculator.reincarnate(...)`:
+En `GameState+Prestige.confirmPrestige()` (`:92` — **no** existe `state.reincarnate()`), después de `PrestigeCalculator.reincarnate(...)`:
 `awardChest(minRarity: .epica)`. ⚠️ **Después y no antes**: `reincarnate` hace
 `run = .fresh(...)`, así que un cofre otorgado antes se perdería si algún día el contador
 se mudara a `run`.

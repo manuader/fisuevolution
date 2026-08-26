@@ -2594,6 +2594,23 @@
         }
       }
     },
+    "daily.prize.chest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skin chest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofre de pintas"
+          }
+        }
+      }
+    },
     "daily.title" : {
       "extractionState" : "stale",
       "localizations" : {

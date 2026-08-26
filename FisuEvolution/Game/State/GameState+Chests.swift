@@ -17,7 +17,11 @@ extension GameState {
     /// contador esto sería un cofre por fusión.
     func awardFloorChestsIfDue() {
         guard let content, var player else { return }
-        let debidos = player.run.unlockedFloors.count / content.chests.floorsPerChest
+        // `max(1, ...)`: `floorsPerChest` es un dato sin validar al cargar y esto
+        // corre en CADA merge — un 0 en el JSON sería una división por cero en el
+        // embudo más caliente del juego, no un cofre mal contado.
+        let cadaCuantos = max(1, content.chests.floorsPerChest)
+        let debidos = player.run.unlockedFloors.count / cadaCuantos
         guard debidos > player.run.floorChestsAwarded else { return }
         let nuevos = debidos - player.run.floorChestsAwarded
         player.run.floorChestsAwarded = debidos

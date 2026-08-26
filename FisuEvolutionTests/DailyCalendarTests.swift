@@ -86,6 +86,37 @@ struct DailyCalendarTests {
         #expect(days.filter(\.isToday).map(\.id) == [4], "y el resaltado pasa a ser el próximo del ciclo")
     }
 
+    // MARK: El premio del popup del día
+
+    /// El cofre del día 7 llega sin special y **sin plata**, así que con dos
+    /// ramas para tres premios caía en el `else` de la plata y el popup mostraba
+    /// una moneda y "+0" —y VoiceOver anunciaba lo mismo— mientras el cofre se
+    /// acreditaba en silencio.
+    @Test("el popup del día 7 muestra el cofre, no +0 monedas")
+    func chestClaimShowsTheChestPrize() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        let dia7 = try #require(content.dailyRewards.days.first { $0.day == 7 })
+
+        let cofre = DailyRewardManager.Claim(day: dia7, coinsGranted: 0, specialGranted: nil, chestGranted: true)
+        #expect(DailyRewardView.prize(for: cofre, specials: content.specials) == .chest)
+
+        // Y las otras dos ramas siguen donde estaban.
+        let special = try #require(content.specials.specials.first)
+        let conSpecial = DailyRewardManager.Claim(
+            day: dia7, coinsGranted: 0, specialGranted: special.id, chestGranted: false
+        )
+        #expect(DailyRewardView.prize(for: conSpecial, specials: content.specials)
+                == .special(displayNameKey: special.displayNameKey))
+
+        let conPlata = DailyRewardManager.Claim(day: dia7, coinsGranted: 210, specialGranted: nil, chestGranted: false)
+        #expect(DailyRewardView.prize(for: conPlata, specials: content.specials) == .coins)
+
+        // Y el premio se lee: nada de una clave cruda en pantalla ni en VoiceOver.
+        let copy = String(localized: "daily.prize.chest")
+        #expect(!copy.contains("daily."), "el cofre dejó una clave cruda: '\(copy)'")
+    }
+
     // MARK: El premio de cada video
 
     @Test("cada video dice qué da, sin dejar una clave cruda en pantalla")

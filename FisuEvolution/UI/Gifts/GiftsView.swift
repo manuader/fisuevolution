@@ -52,7 +52,7 @@ struct GiftsView: View {
 
         // ⚠️ UNA lectura por evaluación del body: las tres proyecciones se
         // computan de cero cada vez que se leen (los seis boosts consultan el
-        // cooldown, los cuatro videos también). Leerlas adentro del `ForEach` las
+        // cooldown, los videos también). Leerlas adentro del `ForEach` las
         // multiplicaría por su cantidad de filas.
         let days = gameState.dailyCalendar
         let boosts = gameState.boostRows
@@ -60,7 +60,8 @@ struct GiftsView: View {
 
         NavigationStack {
             ScrollView {
-                // `VStack` y no `LazyVStack`: son 11 tarjetas contadas y tienen
+                // `VStack` y no `LazyVStack`: son 12 tarjetas contadas —la tira,
+                // los seis boosts y los cinco videos— y tienen
                 // que existir en el árbol de accesibilidad sin scrollear. La fila
                 // del video que ejerce `BonusHUDUITests` vive abajo de los seis
                 // boosts, y con la lista perezosa de `BonusView` el test tenía
@@ -431,7 +432,7 @@ private struct BoostCard: View {
 
     /// ⚠️ **El nombre va en UN renglón, al revés que en `FisuJobsView`**, y la
     /// diferencia es de medición, no de gusto. Medidos a `Tokens.title` (20 pt),
-    /// los seis boosts y los cuatro videos van de 88 pt ("Milanesa") a 193 pt
+    /// los seis boosts y los cuatro videos de entonces iban de 88 pt ("Milanesa") a 193 pt
     /// ("Personaje de regalo"): en la columna de 130 pt que queda entre el plato
     /// y el riel, **ocho de los diez se partían en dos** — y se partían mal, con
     /// una sola palabra colgando ("Ganancias / dobles", "Turbo de / ingresos"),
@@ -599,8 +600,8 @@ private struct VideoCard: View {
     private var info: some View {
         VStack(alignment: .leading, spacing: 3) {
             // Un renglón, igual que el nombre del boost y por la misma medición
-            // (ver el docstring de `BoostCard.info`): los cuatro títulos de
-            // video se partían **los cuatro**.
+            // (ver el docstring de `BoostCard.info`): los títulos de video
+            // se partían **los cuatro que había cuando se midió**.
             Text(LocalizedStringKey(row.titleKey))
                 .font(Tokens.title)
                 .foregroundStyle(Color("PaletteInk"))

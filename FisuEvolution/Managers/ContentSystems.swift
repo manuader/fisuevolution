@@ -394,10 +394,20 @@ enum DailyRewardManager {
                 state.meta.ownedSpecials.append(picked.id)
                 UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, economy: economy)
                 special = picked.id
-            } else if !state.meta.allOwnedSkins.isSuperset(of: skins.chestPool.map(\.id)) {
+            } else if Set(state.meta.ownedSpecials).isSuperset(of: specials.specials.map(\.id)),
+                      !state.meta.allOwnedSkins.isSuperset(of: skins.chestPool.map(\.id)) {
                 // Segundo escalón: ya tenés los diez specials pero te faltan
                 // pintas. NO se toca el camino del special: el día 7 sigue
                 // siendo, primero, su día.
+                //
+                // ⚠️ La pregunta es por el CATÁLOGO COMPLETO y no por `eligible`,
+                // que además filtra por `requiresPrestigeLevel`. Siete de los
+                // diez specials piden prestigio 0 y los otros piden 3, 5 y 8:
+                // colgado de `eligible`, un jugador en prestigio 0 con esos
+                // siete tomados tendría el sorteo vacío con TRES specials sin
+                // sacar, y el día 7 se le volvería una canilla semanal de
+                // cofres desde media partida. Sin los diez, la caída sigue
+                // siendo la de siempre: plata.
                 //
                 // El cofre se acredita tocando el estado y no llamando a
                 // `GameState.awardChest`: esta función es pura sobre `inout

@@ -50,6 +50,10 @@ struct ChestSourcesTests {
         state.player!.run.unlockedFloors = Array(state.content!.floorTable.floors.map(\.id).prefix(2))
         state.updateMaxFloorStat()
         #expect(state.pendingChestCount == 1)
+
+        // Y el segundo merge —el embudo corre en cada uno— no regala otro.
+        state.updateMaxFloorStat()
+        #expect(state.pendingChestCount == 1)
     }
 
     @Test("reencarnar reinicia el contador de la torre pero conserva los cofres sin abrir")

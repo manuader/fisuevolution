@@ -268,7 +268,7 @@ public struct MetaState: Codable, Sendable, Equatable {
     public var boostActivations: [String: TimeInterval]
     /// Última vez que se cobró cada recompensa por video (RF-11). Vive acá y no
     /// en `run` por lo mismo que `boostActivations`: si muriera al reencarnar,
-    /// reencarnar sería la forma de mirar los cuatro videos otra vez.
+    /// reencarnar sería la forma de mirar los videos otra vez.
     public var rewardedActivations: [String: TimeInterval]
     /// IDs de transacción de StoreKit ya acreditadas. Un entitlement se
     /// reescribe entero en cada sync y es idempotente por construcción; un

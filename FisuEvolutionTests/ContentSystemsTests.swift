@@ -420,4 +420,34 @@ struct ContentSystemsTests {
         #expect(conTodo.coinsGranted > 0)
         #expect(state.meta.chestsPending == 1, "la colección completa no suma un cofre más")
     }
+
+    /// El agujero que deja preguntar por el sorteo en vez de por el catálogo:
+    /// `eligible` filtra **también** por `requiresPrestigeLevel`, así que
+    /// quedarse sin sorteo NO es lo mismo que tener los diez. Siete de los diez
+    /// specials piden prestigio 0 y los otros piden 3, 5 y 8; colgado de
+    /// `eligible`, el día 7 sería una canilla semanal de cofres desde que un
+    /// jugador en prestigio 0 junta esos siete.
+    @Test("con specials que el prestigio todavía no habilita, el día 7 paga plata y no cofre")
+    func daySevenWithoutPrestigeGatedSpecialsPaysCoins() throws {
+        var state = makeState(maxTier: 3)
+        let alAlcance = content.specials.specials.filter { $0.requiresPrestigeLevel == 0 }
+        #expect(alAlcance.count < content.specials.specials.count,
+                "el caso pide que queden specials fuera del alcance del prestigio 0")
+
+        // Tomados los que puede sacar; los que piden prestigio, no.
+        state.meta.ownedSpecials = alAlcance.map(\.id)
+        state.meta.daily.cycleDay = 7
+        var rng = FixedRNG(seed: 3)
+        let today = Date(timeIntervalSince1970: 1_700_000_000)
+
+        let claim = try #require(DailyRewardManager.claimIfAvailable(
+            state: &state, config: content.dailyRewards, specials: content.specials,
+            skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
+            economy: economy, today: today, rng: &rng
+        ))
+        #expect(claim.specialGranted == nil, "en prestigio 0 no hay ninguno de los tres para sortear")
+        #expect(claim.chestGranted == false, "sin los diez tomados no hay cofre")
+        #expect(claim.coinsGranted > 0, "y el premio vuelve a ser el de siempre: plata")
+        #expect(state.meta.chestsPending == 0)
+    }
 }

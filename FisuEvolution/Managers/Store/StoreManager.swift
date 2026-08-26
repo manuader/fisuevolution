@@ -116,6 +116,18 @@ final class StoreManager {
             Log.store.info("StoreKitTest ausente: sin tienda local en este entorno")
             return
         }
+        // ⚠️ Y con la clase presente TAMPOCO alcanza, desde el SDK de iOS 26:
+        // `SKTestSession.init` pide adentro la configuración de XCTest
+        // (`bundleID` → `__getXCTestConfigurationClass`) y **aborta** el proceso
+        // si no la encuentra. Fuera de un host de tests esa configuración no
+        // existe, así que la app crasheaba al arrancar en Debug — con `abort`,
+        // que no se puede atrapar con `try`. Se pregunta por la clase de
+        // configuración ANTES de construir la sesión: si no está, no hay tienda
+        // local y la carga sigue el camino de siempre.
+        guard NSClassFromString("XCTestConfiguration") != nil else {
+            Log.store.info("sin configuración de XCTest: la tienda local no se puede abrir en este SDK")
+            return
+        }
         do {
             localStoreSession = try SKTestSession(configurationFileNamed: "FisuEvolution")
         } catch {

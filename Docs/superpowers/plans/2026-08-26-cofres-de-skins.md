@@ -719,7 +719,13 @@ private static func migrateV4toV5(_ data: Data) throws -> Data {
     else { throw SaveMigrationError.unsupportedVersion(4) }
 
     let levels = meta["oroUpgradeLevels"] as? [String: Int] ?? [:]
-    if levels.contains(where: { rebalanceLevelCaps[$0.key].map { cap in $0.value > cap.actual } ?? false }) {
+    // ⚠️ El closure externo va NOMBRADO: con `$0` adentro y afuera, Swift tira
+    // "anonymous closure arguments cannot be used inside a closure that has
+    // explicit arguments".
+    if levels.contains(where: { linea in
+        guard let cap = rebalanceLevelCaps[linea.key] else { return false }
+        return linea.value > cap.actual
+    }) {
         meta["oroUpgradeLevels"] = rescaleUpgradeLevelsForRebalance(levels)
     }
     meta["chestsPending"] = 0

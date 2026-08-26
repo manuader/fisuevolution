@@ -556,6 +556,39 @@ struct GameContentValidationTests {
         }
     }
 
+    /// Las 41 pintas de piso ya no se regalan al llegar: las reparte el cofre, y
+    /// su rareza sale del piso donde VIVE el personaje (no del `floorReached`
+    /// viejo, que apuntaba al piso siguiente). Los totales solos no alcanzan —
+    /// una entrada mal clasificada pasaría mientras otra compense—, así que
+    /// abajo se recalcula la rareza desde el tier de cada personaje.
+    @Test("las 41 pintas de piso son de cofre, con la rareza del piso donde vive el personaje")
+    func chestPoolMatchesTheDesignedRarities() throws {
+        let pool = content.skins.chestPool
+
+        #expect(pool.count == 41)
+        // Ninguna quedó con el criterio viejo: si una se escapa, se regalaría por
+        // las DOS vías y el cofre repartiría algo que ya tenías.
+        #expect(content.skins.skins.allSatisfy { $0.floorReached == nil || $0.chestRarity == nil })
+        #expect(pool.allSatisfy { !$0.isMilestone })
+
+        let esperado: [SkinsConfig.Rarity: Int] = [.comun: 7, .rara: 14, .epica: 12, .legendaria: 8]
+        for (rareza, cuantas) in esperado {
+            #expect(pool.filter { $0.chestRarity == rareza }.count == cuantas, "\(rareza)")
+        }
+
+        let porPiso: [String: SkinsConfig.Rarity] = [
+            "alley": .comun, "urban": .comun,
+            "corporate": .rara, "luxury": .rara,
+            "island": .epica, "moon": .epica, "mars": .epica,
+            "solar": .legendaria, "galaxy": .legendaria,
+        ]
+        for skin in pool {
+            let tier = try #require(content.tiers.type(id: skin.characterType)).tier
+            let piso = content.floorTable.floor(forTier: tier)
+            #expect(skin.chestRarity == porPiso[piso.id], "\(skin.characterType) (T\(tier), \(piso.id))")
+        }
+    }
+
     /// Cada personaje concreto tiene su skin alternativa catalogada, y todas
     /// declaran nombre visible: una skin sin `displayNameKey` se vería en la
     /// ficha como su id crudo.

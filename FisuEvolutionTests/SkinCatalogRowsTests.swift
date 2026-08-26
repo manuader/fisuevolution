@@ -75,22 +75,27 @@ struct SkinCatalogRowsTests {
 
     // MARK: Los cuatro estados
 
-    @Test("una skin de piso bloqueada dice a dónde hay que llegar, con el piso resuelto")
-    func lockedFloorSkinResolvesItsCondition() async throws {
+    /// ⚠️ Acá se pineaba que la pinta del Cartonero decía "llegá a la Ciudad".
+    /// Las 41 pintas de piso pasaron a la bolsa del cofre, y un cofre no es una
+    /// condición que el jugador pueda leer y perseguir: la fila cae al bloqueo
+    /// genérico que `skinState` ya reservaba para "catalogada y todavía sin vía
+    /// de obtención". Que la condición llegue RESUELTA lo sigue pineando la de
+    /// reencarnación, acá abajo.
+    @Test("una pinta de cofre que no tenés sale bloqueada y sin condición que perseguir")
+    func chestSkinHasNoMilestoneCondition() async throws {
         let gameState = await makeGameState()
 
-        // El Cartonero desbloquea su skin al abrir la Ciudad, que en una partida
-        // nueva está cerrada.
         let skin = try row(gameState, "cartonero", "urban_trailblazer")
 
         guard case .milestoneLocked(let text) = skin.state else {
-            Issue.record("una skin de milestone sin cumplir tiene que salir bloqueada, y salió \(skin.state)")
+            Issue.record("una pinta que todavía no tenés sale bloqueada, y salió \(skin.state)")
             return
         }
-        #expect(!text.contains("skins.unlock"), "quedó la clave cruda en pantalla")
-        #expect(!text.contains("tower.floor"), "el nombre del piso llegó como clave, no como texto")
-        #expect(text.contains(TowerNaming.floorName(for: "urban")),
-                "la condición tiene que nombrar el piso; dice \"\(text)\"")
+        #expect(!text.contains("skins.locked"), "quedó la clave cruda en pantalla")
+        #expect(
+            !text.contains(TowerNaming.floorName(for: "urban")),
+            "ya no hay piso que alcanzar y la tarjeta no puede prometerlo; dice \"\(text)\""
+        )
     }
 
     @Test("una skin de reencarnación dice cuántas vidas faltan")

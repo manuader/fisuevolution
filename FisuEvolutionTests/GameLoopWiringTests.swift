@@ -193,39 +193,20 @@ struct GameLoopWiringTests {
         #expect(promotedToFloor == 1)
         #expect(unlockedFloorId == "urban")
         #expect(gameState.player?.run.unlockedFloors.contains("urban") == true)
-        #expect(gameState.player?.meta.milestoneSkins.contains("urban_trailblazer") == true)
         #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
-        // El sheet ya NO aparece en el instante del merge: taparía el vuelo, el
-        // reveal y la celebración del piso, los tres a la vez. Espera su turno.
-        //
+        // ⚠️ Acá se pineaba que abrir urban acreditaba `urban_trailblazer` y que el
+        // sheet desfilaba detrás del reveal. **Llegar a un piso ya no regala
+        // pintas**: las 41 pasaron a la bolsa del cofre (`chestRarity`), así que
+        // lo que hay que cuidar es lo contrario — si algo se acredita acá, una
+        // entrada se quedó con `floorReached` y el cofre repartiría después algo
+        // que el jugador ya tiene. El orden sheet-detrás-del-reveal no se pierde:
+        // lo pinea `CelebrationWiringTests`, que arma el payload a mano y por eso
+        // no depende de qué criterio otorga la skin.
+        #expect(gameState.player?.meta.milestoneSkins.isEmpty == true, "abrir un piso no otorga pintas")
+        #expect(gameState.skinAward == nil, "sin skin que mostrar, no hay sheet que encolar")
         // El turno del ascenso lo pide `handleDrop` apenas sabe que hay algo que
-        // celebrar, ANTES de acreditar la skin: si lo pidiera después, el sheet
-        // ya estaría en pantalla y taparía el vuelo y el reveal.
+        // celebrar: el vuelo y el reveal siguen siendo suyos.
         #expect(gameState.showing == .boardCelebration, "el turno es de la escena")
-        #expect(gameState.skinAward != nil, "el payload se asigna igual; lo que espera es mostrarlo")
-        gameState.celebrationFinished(.boardCelebration)
-        #expect(gameState.showing == .skinAward, "recién ahora le toca al sheet")
-        // ⚠️ Acá se pineaba `skinAward?.id == "urban_trailblazer"`, y se rompió al
-        // agregar personajes: `urban` ahora otorga TRES skins y el popup muestra
-        // la primera alfabéticamente (`GameState.swift`, `newlyUnlocked.sorted().first`),
-        // que pasó a ser `malabarista`. Varias skins por piso es la conducta de
-        // siempre —isla y lujo otorgan siete— así que lo que estaba mal era el
-        // test: pinear el ganador alfabético lo rompe cada vez que entra
-        // contenido. Se pinea la regla, que es la que importa.
-        let premiada = try #require(gameState.skinAward, "tras la cadena tiene que aparecer el sheet")
-        #expect(
-            gameState.player?.meta.milestoneSkins.contains(premiada.id) == true,
-            "el popup tiene que mostrar una de las skins recién ganadas, no cualquiera"
-        )
-        #expect(
-            content(of: premiada, in: gameState)?.floorReached == "urban",
-            "y tiene que ser una del piso que se acaba de abrir"
-        )
-    }
-
-    /// La entrada de catálogo de la skin que muestra el sheet.
-    private func content(of award: GameState.SkinAward, in gameState: GameState) -> SkinsConfig.Entry? {
-        gameState.content?.skins.skins.first { $0.id == award.id }
     }
 
     /// ⚠️ **El aviso lo dispara la FRONTERA, no el ascenso de piso, y por eso

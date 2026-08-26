@@ -20,11 +20,13 @@ enum SaveMigrator {
         case PlayerState.currentSchemaVersion:
             return try JSONDecoder().decode(PlayerState.self, from: data)
         case 1:
-            return try JSONDecoder().decode(PlayerState.self, from: migrateV3toV4(migrateV2toV3(migrateV1toV2(data))))
+            return try JSONDecoder().decode(PlayerState.self, from: migrateV4toV5(migrateV3toV4(migrateV2toV3(migrateV1toV2(data)))))
         case 2:
-            return try JSONDecoder().decode(PlayerState.self, from: migrateV3toV4(migrateV2toV3(data)))
+            return try JSONDecoder().decode(PlayerState.self, from: migrateV4toV5(migrateV3toV4(migrateV2toV3(data))))
         case 3:
-            return try JSONDecoder().decode(PlayerState.self, from: migrateV3toV4(data))
+            return try JSONDecoder().decode(PlayerState.self, from: migrateV4toV5(migrateV3toV4(data)))
+        case 4:
+            return try JSONDecoder().decode(PlayerState.self, from: migrateV4toV5(data))
         default:
             throw SaveMigrationError.unsupportedVersion(version)
         }
@@ -61,10 +63,15 @@ enum SaveMigrator {
     ///
     /// ⚠️ **Y no es idempotente**: cada pasada vuelve a dividir por el tope
     /// viejo, así que `crit 25 → 10 → 4 → 2 → 1 → 0`. Lo que la hace segura es
-    /// el cableado y no la función: la llama UN SOLO call site (`migrateV3toV4`)
-    /// y `migrate` despacha por versión, así que un save la cruza exactamente
-    /// una vez y lo que se guarda después ya es v4. `SaveMigratorTests` pinea
-    /// las dos cosas.
+    /// el cableado y no la función, y desde v5 los call sites son DOS:
+    /// `migrateV3toV4` la aplica siempre y `migrateV4toV5` sólo a los saves con
+    /// algún nivel arriba del tope de hoy. Un v3 los cruza a los dos en la misma
+    /// cadena y aun así se reescala una sola vez, porque acá abajo hay un
+    /// `min(caps.actual, …)`: después de la primera pasada ningún nivel queda
+    /// arriba del tope, o sea que la guarda del segundo call site es falsa por
+    /// construcción. Y `migrate` despacha por versión, así que lo que se guarda
+    /// después ya es v5 y no vuelve a entrar. `SaveMigratorTests` pinea las tres
+    /// cosas.
     static func rescaleUpgradeLevelsForRebalance(_ levels: [String: Int]) -> [String: Int] {
         var rescaled = levels
         for (id, caps) in rebalanceLevelCaps {
@@ -185,6 +192,48 @@ enum SaveMigrator {
             "run": run,
             "meta": meta,
         ]
+        return try JSONSerialization.data(withJSONObject: object)
+    }
+
+    /// v4 → v5: alta de los campos del cofre, y la corrección de las skins
+    /// doradas.
+    ///
+    /// ⚠️ **Lo que arregla y lo que no.** Hasta v4 no había forma de distinguir
+    /// un save escrito ANTES del rebalance de pacing de uno escrito después, así
+    /// que uno pre-rebalance con `crit` entre 10 y 24 pasaba el
+    /// `nivel >= maxLevel` de `awardEligibleMilestoneSkins` y se llevaba las 43
+    /// skins de oro sin haberlas ganado (deuda declarada en el HANDOFF, aceptada
+    /// justamente a la espera de este bump). La huella detectable es tener un
+    /// nivel POR ENCIMA del tope de hoy —imposible en un save post-rebalance—, y
+    /// a esos se les aplica el mismo reescalado proporcional que v3 → v4.
+    ///
+    /// Lo que NO alcanza a distinguir: una línea parada EXACTAMENTE en el tope
+    /// nuevo. `crit 10/25` (no maxeado, pre-rebalance) y `crit 10/10` (maxeado,
+    /// post-rebalance) son idénticos en disco. Queda un solo valor por línea sin
+    /// cubrir en vez de quince, y taparlo pediría un campo que los saves viejos
+    /// no tienen.
+    private static func migrateV4toV5(_ data: Data) throws -> Data {
+        guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              var meta = object["meta"] as? [String: Any],
+              var run = object["run"] as? [String: Any]
+        else { throw SaveMigrationError.unsupportedVersion(4) }
+
+        let levels = meta["oroUpgradeLevels"] as? [String: Int] ?? [:]
+        let preRebalance = levels.contains { id, nivel in
+            guard let caps = rebalanceLevelCaps[id] else { return false }
+            return nivel > caps.actual
+        }
+        if preRebalance {
+            meta["oroUpgradeLevels"] = rescaleUpgradeLevelsForRebalance(levels)
+        }
+        meta["chestsPending"] = 0
+        meta["prestigeChestsPending"] = 0
+        meta["welcomeChestGiven"] = false
+        run["floorChestsAwarded"] = 0
+
+        object["meta"] = meta
+        object["run"] = run
+        object["schemaVersion"] = 5
         return try JSONSerialization.data(withJSONObject: object)
     }
 }

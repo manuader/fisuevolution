@@ -45,6 +45,13 @@ struct SaveCompatibilityTests {
         #expect(state.meta.claimedAchievements.isEmpty)
         #expect(state.meta.rewardedActivations.isEmpty)
         #expect(state.meta.creditedPurchases.isEmpty)
+        // Los tres del cofre y el de la run: `SaveMigrator` los escribe al pasar
+        // a v5, pero acá se decodifica el blob crudo y tienen que caer a cero
+        // igual — un sobre recortado no puede costar la partida.
+        #expect(state.meta.chestsPending == 0)
+        #expect(state.meta.prestigeChestsPending == 0)
+        #expect(state.meta.welcomeChestGiven == false)
+        #expect(state.run.floorChestsAwarded == 0)
     }
 
     @Test("un save v4 guardado antes de elegir carrera decodifica con carrera nil")
@@ -79,6 +86,10 @@ struct SaveCompatibilityTests {
         )
         state.meta.unlockedAchievements = ["ach_primer_merge", "ach_piso_2"]
         state.meta.claimedAchievements = ["ach_primer_merge"]
+        state.run.floorChestsAwarded = 2
+        state.meta.chestsPending = 3
+        state.meta.prestigeChestsPending = 1
+        state.meta.welcomeChestGiven = true
 
         let data = try JSONEncoder().encode(state)
         let decoded = try JSONDecoder().decode(PlayerState.self, from: data)
@@ -92,6 +103,10 @@ struct SaveCompatibilityTests {
         #expect(decoded.meta.stats.boostsActivatedEver == 6)
         #expect(decoded.meta.unlockedAchievements == ["ach_primer_merge", "ach_piso_2"])
         #expect(decoded.meta.claimedAchievements == ["ach_primer_merge"])
+        #expect(decoded.run.floorChestsAwarded == 2)
+        #expect(decoded.meta.chestsPending == 3)
+        #expect(decoded.meta.prestigeChestsPending == 1)
+        #expect(decoded.meta.welcomeChestGiven == true)
     }
 
     /// ⚠️ El agujero que quedaba abierto era de v3, no de v4.
@@ -182,12 +197,15 @@ struct SaveCompatibilityTests {
         // `hireCountsByType` es curva de costo de ESTA run: reencarnar la resetea.
         let run = RunState.fresh(startTypeId: "a", startFloorId: "f1")
         #expect(run.hireCountsByType.isEmpty)
+        // Y los cofres que pagó la torre: volver a subirla vuelve a pagar, que
+        // es justo lo que empuja a reencarnar.
+        #expect(run.floorChestsAwarded == 0)
     }
 }
 
 /// Un v4 tal como lo escribió una versión anterior del juego: sin `seenTypes`,
 /// sin `hireCountsByType`, sin `rewardedActivations` ni `creditedPurchases`, sin
-/// los contadores nuevos de `stats` y sin los logros.
+/// los contadores nuevos de `stats`, sin los logros y sin los campos del cofre.
 private func fixtureV4SinClavesNuevas() -> [String: Any] {
     [
         "schemaVersion": 4,

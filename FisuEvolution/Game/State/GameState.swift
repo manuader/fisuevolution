@@ -682,8 +682,13 @@ final class GameState {
         // ~19.100 ORO de los 1,776e10 que valía la línea, el 0,0001 %— y desde
         // el rebalance cuenta como tope y se lleva las skins doradas.
         //
-        // Se acepta a sabiendas: distinguirlo pediría un bump de schema (v5)
-        // para marcar qué saves son pre-rebalance, y las skins son cosméticas.
+        // Ese agujero lo cerró el bump a v5: `SaveMigrator.migrateV4toV5`
+        // reconoce esos saves por su huella —algún nivel POR ENCIMA del tope de
+        // hoy, imposible en uno post-rebalance— y los reescala antes de que
+        // lleguen acá. Lo único que sigue sin cubrir es la línea parada
+        // EXACTAMENTE en el tope nuevo: `crit 10/25` (no maxeado) y `crit 10/10`
+        // (maxeado) son idénticos en disco. De quince valores por línea quedó
+        // uno, y taparlo pediría un campo que los saves viejos no tienen.
         // Lo que NO se regala es el efecto: las dos derivaciones clampean.
         let todoAlMaximo = !lineasDeOro.isEmpty && lineasDeOro.allSatisfy {
             (player.meta.oroUpgradeLevels[$0.id] ?? 0) >= $0.maxLevel

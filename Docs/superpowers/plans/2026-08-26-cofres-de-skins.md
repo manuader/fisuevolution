@@ -1161,6 +1161,19 @@ func carouselShowsCharactersWithOwnedSkins() {
 - [ ] **Step 4**: suite de UI completa.
 - [ ] **Step 5**: correr el juego en el simulador y **abrir un cofre de verdad**, con
   captura. Ningún sistema de animación se da por bueno sin haberlo mirado.
+- [ ] **Step 5b — decidir qué pasa con `floorReached`.** Desde la Task 1 quedó soportado en
+  `SkinsConfig` pero **sin un solo dato que lo ejerza**, y con él quedaron sin alcanzar dos
+  ramas de producción: `GameState+Store.swift:119-122` (`skins.unlock.floor`) y
+  `CharacterSheetView.swift:245-246` (`character.skin.reach-floor`). El mecanismo sigue
+  cubierto en EconomyKit con configs sintéticos, así que **no es un bug**: es una decisión.
+  Las dos salidas son sacarlo (con su bump de validación y sus dos claves de i18n) o dejarlo
+  documentado como criterio disponible para contenido futuro. **Elegir una y anotarla**;
+  dejarlo sin decidir es cómo el código junta ramas muertas.
+- [ ] **Step 5c — verificar los dos logros de skins.** `ach_skins_5` y `ach_skins_20`
+  (`achievements.json`, trigger `skinsOwned`) perdieron su fuente principal cuando las 41
+  dejaron de darse por piso, y **ningún test se pone rojo por eso**: `AchievementEngineTests`
+  siembra `milestoneSkins` sintéticamente. Con los cofres andando tienen que volver a ser
+  alcanzables — jugando, no leyendo el JSON.
 - [ ] **Step 6**: los tres documentos del sistema de handoffs — `Docs/SESION-2026-08-26-…`,
   `handoffs/HANDOFF-…` y las **cuatro** ediciones de `Docs/HANDOFF.md` (§4 arriba, §5 si
   algo quedó decidido, §7 si hubo trampa, §9 el mapa).

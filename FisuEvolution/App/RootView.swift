@@ -211,6 +211,9 @@ struct GameBoardView: View {
         .onChange(of: showPrestige) { _, prestige in
             gameState.uiCoversBoard = prestige || activeScreen != nil
         }
+        .onChange(of: gameState.specialInfo) { _, info in
+            gameState.uiCoversBoard = info != nil || activeScreen != nil || showPrestige
+        }
         .onAppear {
             if scene == nil {
                 scene = BoardScene(gameState: gameState)
@@ -255,6 +258,12 @@ struct GameBoardView: View {
         }
         .sheet(item: specialDropBinding) { special in
             SpecialDropView(special: special)
+        }
+        // El RECAP del special: lo abre el jugador manteniendo apretado al
+        // personaje en el tablero, así que no pasa por la cola (misma familia
+        // que la ficha). La carta es la misma; cambia quién la pidió.
+        .sheet(item: $gameState.specialInfo) { special in
+            SpecialDropView(special: special, isRecap: true)
         }
         .sheet(item: Binding(
             get: { gameState.shareCardSubject },

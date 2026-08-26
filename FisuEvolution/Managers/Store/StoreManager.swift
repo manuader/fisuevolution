@@ -116,16 +116,18 @@ final class StoreManager {
             Log.store.info("StoreKitTest ausente: sin tienda local en este entorno")
             return
         }
-        // ⚠️ Y con la clase presente TAMPOCO alcanza, desde el SDK de iOS 26:
-        // `SKTestSession.init` pide adentro la configuración de XCTest
-        // (`bundleID` → `__getXCTestConfigurationClass`) y **aborta** el proceso
-        // si no la encuentra. Fuera de un host de tests esa configuración no
-        // existe, así que la app crasheaba al arrancar en Debug — con `abort`,
-        // que no se puede atrapar con `try`. Se pregunta por la clase de
-        // configuración ANTES de construir la sesión: si no está, no hay tienda
-        // local y la carga sigue el camino de siempre.
-        guard NSClassFromString("XCTestConfiguration") != nil else {
-            Log.store.info("sin configuración de XCTest: la tienda local no se puede abrir en este SDK")
+        // El `StoreKitTest` del RUNTIME 26 aborta el init de `SKTestSession`
+        // fuera de un runner XCTest (SIGABRT medido dos veces el 2026-08-25:
+        // `-[SKTestSession bundleID]` → `__getXCTestConfigurationClass` →
+        // `abort_report_np`; cargar XCTest a mano con `dlopen` NO alcanza —
+        // exige la sesión de test real). El framework lo sirve el runtime del
+        // simulador, así que el check es `#available` del OS y no del SDK: en
+        // 18.6 sirve el framework viejo y el truco sigue andando. En 26+ la
+        // tienda local queda ausente —"sin conexión" al instalar por simctl,
+        // como antes del 2026-08-18— y la carga sigue el camino de siempre
+        // (el scheme de Xcode la inyecta igual).
+        if #available(iOS 26.0, *) {
+            Log.store.info("runtime 26: sin tienda local (SKTestSession exige un runner XCTest)")
             return
         }
         do {

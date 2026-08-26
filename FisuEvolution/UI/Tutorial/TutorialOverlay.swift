@@ -130,6 +130,15 @@ struct TutorialOverlay: View {
         // `keyframeAnimator` de los tabs), no con el fundido de formulario.
         .animation(motion(.spring(duration: 0.42, bounce: 0.24)), value: step)
         .onAppear {
+            // Si el paso guardado no pudo haberse ganado —su paso ANTERIOR no
+            // está cumplido—, esto no es una reaparición (el overlay se
+            // esconde y vuelve con cada reveal): es el tutorial REVIVIDO por
+            // el "Resetear partida" del panel de debug sobre una partida
+            // nueva. `step` es @State y sobrevive al reset de todo lo demás,
+            // así que sin este guard el tutorial resucitaba en el paso viejo.
+            if step > 0, !isSatisfied(steps[step - 1].completion) {
+                step = 0
+            }
             gameState.tutorialBoardTarget = current.boardTarget
         }
         .onDisappear {
@@ -180,7 +189,7 @@ struct TutorialOverlay: View {
     }
 
     private func hand(_ hole: CGRect, screen: CGSize) -> some View {
-        TutorialHand(hole: hole, screen: screen, reduceMotion: reduceMotion)
+        TutorialHand(hole: hole, screen: screen)
     }
 
     // MARK: - El globo
@@ -334,35 +343,27 @@ struct TutorialOverlay: View {
     }
 }
 
-/// La mano que late sobre el recorte.
+/// La manito de "tocá acá": el SF Symbol del sistema con su latido, lista para
+/// apoyarse por overlay sobre CUALQUIER control que una guía señale — la fase,
+/// los coach-marks de lecciones, la fila recomendada de FisuJobs, la tarjeta de
+/// Logros, el "Ponérsela" de Pintas. Una sola manito para toda la app (pedido
+/// del dueño, 2026-08-21): donde haya que hacer click, se ve el click.
 ///
-/// ⚠️ Tiene su propio `@State` y su propio `onAppear` por un motivo concreto:
-/// el latido es un `repeatForever` disparado por el CAMBIO de `up`, y si ese
-/// cambio ocurre antes de que la vista exista, no hay cambio que animar y la
-/// mano se queda quieta para siempre. Es lo que pasaba con la bandera en el
-/// overlay: el `onAppear` del overlay corría mientras el recorte del tablero
-/// todavía no había llegado desde la escena, así que la mano nacía ya "arriba" y
-/// nunca latía. **No se veía en una captura** —la mano estaba, y en su pose
-/// grande— y sólo apareció comparando cuatro capturas seguidas CON y SIN Reduce
-/// Motion: las dos daban imágenes idénticas entre sí.
-///
-/// ⚠️ Con Reduce Motion `up` se queda en falso, así que el `repeatForever` no se
-/// registra nunca. No alcanza con darle duración cero: un `repeatForever`
-/// colapsado sigue corriendo el display link de SwiftUI toda la sesión, que es
-/// el bug que ya tuvo el botón de contratar.
-private struct TutorialHand: View {
-    let hole: CGRect
-    let screen: CGSize
-    let reduceMotion: Bool
+/// ⚠️ Hereda las dos reglas de la mano de la fase: el latido es un
+/// `repeatForever` disparado por el CAMBIO de `up` en su propio `onAppear` (si
+/// el cambio ocurre antes de existir la vista, la mano queda quieta para
+/// siempre), y con Reduce Motion `up` no cambia nunca (un `repeatForever`
+/// colapsado deja el display link corriendo toda la sesión).
+struct TapHereHand: View {
+    var size: CGFloat = 40
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var up = false
 
-    private static let size: CGFloat = 46
-
     var body: some View {
-        // La mano de la casa (el guante sin dedos del Fisura), no un SF Symbol:
-        // era el único elemento fuera del idioma del juego en todo el overlay.
-        VectorTutorialHandIcon()
-            .frame(width: Self.size, height: Self.size)
+        Image(systemName: "hand.point.up.left.fill")
+            .font(.system(size: size, weight: .black))
+            .foregroundStyle(.white)
             .shadow(color: .black.opacity(0.6), radius: 5, y: 3)
             .scaleEffect(up ? 1.14 : 0.92)
             .offset(x: up ? 5 : 0, y: up ? 7 : 0)
@@ -370,15 +371,35 @@ private struct TutorialHand: View {
                 up ? .easeInOut(duration: 0.62).repeatForever(autoreverses: true) : .default,
                 value: up
             )
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            .onAppear { up = !reduceMotion }
+    }
+}
+
+/// La mano de la FASE: la `TapHereHand` de siempre, acomodada al borde del
+/// recorte del paso. La historia del latido que nacía muerto (el `onAppear`
+/// del overlay corría antes de que el recorte llegara de la escena) vive en el
+/// doc de `TapHereHand`, que es quien guarda las dos reglas.
+private struct TutorialHand: View {
+    let hole: CGRect
+    let screen: CGSize
+
+    private static let size: CGFloat = 46
+
+    var body: some View {
+        // El SF Symbol a propósito: se probó una mano vectorial de la casa (el
+        // guante del Fisura) y el dueño prefirió la manito del sistema
+        // apretando el botón (2026-08-21) — más legible como "tocá acá". El
+        // dibujo y el latido viven en `TapHereHand`, que es la misma manito
+        // que usan las lecciones y las pantallas.
+        TapHereHand(size: Self.size)
             // La mano se acomoda al borde del agujero, pero nunca se sale de la
             // pantalla: el botón de contratar vive pegado al borde de abajo.
             .position(
                 x: min(max(hole.maxX - 6, Self.size), screen.width - Self.size / 2),
                 y: min(max(hole.maxY - 2, Self.size), screen.height - Self.size)
             )
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
-            .onAppear { up = !reduceMotion }
     }
 }
 
@@ -425,6 +446,11 @@ private struct TutorialCard: View {
                         .shadow(color: .black.opacity(0.5), radius: 2, y: 1)
                 }
                 .accessibilityIdentifier("tutorial.done")
+                // Aire propio además del `spacing` del VStack: pegado a los
+                // dots y al borde de la tarjeta el botón se leía embutido
+                // (corrección del dueño sobre captura, 2026-08-21).
+                .padding(.top, Tokens.s8)
+                .padding(.bottom, Tokens.s4)
             }
         }
         .padding(.horizontal, 16)

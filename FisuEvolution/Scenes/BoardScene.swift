@@ -636,7 +636,22 @@ final class BoardScene: SKScene {
         }
 
         guard let node = characterNode(at: touch.location(in: self)) else {
-            emptyTouchStart = touch.location(in: self)
+            let point = touch.location(in: self)
+            emptyTouchStart = point
+            // Mantener apretado un special reabre su carta (pedido del dueño,
+            // 2026-08-21: volver a ver qué beneficio te está dando). Mismo
+            // reloj que el long-press de la ficha; si el dedo se mueve —el
+            // swipe de pisos usa esta misma rama— `touchesMoved` lo cancela.
+            if let specialID = specialID(at: point) {
+                run(.sequence([
+                    .wait(forDuration: 0.45),
+                    .run { [weak self] in
+                        guard let self, self.emptyTouchStart != nil else { return }
+                        self.emptyTouchStart = nil
+                        self.gameState.presentSpecialInfo(id: specialID)
+                    },
+                ]), withKey: Self.longPressKey)
+            }
             return
         }
         dragNode = node
@@ -656,7 +671,18 @@ final class BoardScene: SKScene {
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if emptyTouchStart != nil { return }
+        if let start = emptyTouchStart {
+            // Un arrastre es el swipe de pisos, no un "mantener": pasado el
+            // umbral, el long-press del special se cancela (el mismo criterio
+            // que `isDragging` para la ficha).
+            if let touch = touches.first {
+                let now = touch.location(in: self)
+                if hypot(now.x - start.x, now.y - start.y) > 12 {
+                    removeAction(forKey: Self.longPressKey)
+                }
+            }
+            return
+        }
         guard let node = dragNode, let touch = touches.first else { return }
         let location = touch.location(in: fieldNode)
         let origin = position(ofCell: dragOriginCell)
@@ -1155,7 +1181,7 @@ final class BoardScene: SKScene {
 
         // Nombre del personaje ARRIBA de la foto.
         let banner = SKLabelNode(fontNamed: "AvenirNext-Heavy")
-        banner.text = type.displayName.uppercased()
+        banner.text = type.localizedName.uppercased()
         banner.fontSize = 38
         // La entrada agranda el banner un 15% en su pico, así que el ancho útil
         // se descuenta: si no, un nombre que entra justo se corta al aparecer.
@@ -1222,9 +1248,26 @@ final class BoardScene: SKScene {
         renderLockedFloorOverlay()
     }
 
+    /// El special bajo el dedo, si hay: los nodos llevan `special.<id>` de
+    /// nombre y el sprite puede ser un hijo del nombrado, así que se mira el
+    /// nodo y a su padre.
+    private func specialID(at point: CGPoint) -> String? {
+        for node in nodes(at: point) {
+            if let name = node.name, name.hasPrefix(Self.specialNodePrefix) {
+                return String(name.dropFirst(Self.specialNodePrefix.count))
+            }
+            if let parentName = node.parent?.name, parentName.hasPrefix(Self.specialNodePrefix) {
+                return String(parentName.dropFirst(Self.specialNodePrefix.count))
+            }
+        }
+        return nil
+    }
+
     /// Los specials no ocupan slot (⚠️5): se anclan al borde del piso donde
-    /// cayeron, detrás de la multitud, como parte del decorado. No son
-    /// interactivos — `cellIndex(at:)` sólo mira `characterNodes`.
+    /// cayeron, detrás de la multitud, como parte del decorado. No juegan —
+    /// `cellIndex(at:)` sólo mira `characterNodes`— pero desde el 2026-08-21
+    /// SÍ escuchan un "mantener": el long-press reabre su carta informativa
+    /// (`specialID(at:)` arriba).
     private func renderAnchoredSpecials(content: GameContent) {
         fieldNode.children
             .filter { $0.name?.hasPrefix(Self.specialNodePrefix) == true }

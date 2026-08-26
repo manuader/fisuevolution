@@ -13,6 +13,11 @@ import Foundation
 /// One row of the cultural table (bible §1). Cosmic names (T22–T30) keep the
 /// design doc's "Owns The Moon → God" arc with local flavor; they are data, so the
 /// Content track can rename them without touching code.
+///
+/// ⚠️ `displayName` es el **castellano**, que es lo único que vive acá. El
+/// inglés está en `Localizable.xcstrings` bajo `tier.name.<id>`: una entrada
+/// nueva en esta tabla necesita su clave allá, o el juego en inglés la muestra
+/// en castellano (lo pinea `everyTierHasItsNameInBothLanguages`).
 struct CulturalEntry {
     let id: String
     let tier: Int

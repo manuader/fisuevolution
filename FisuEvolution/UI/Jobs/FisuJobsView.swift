@@ -73,6 +73,20 @@ struct FisuJobsView: View {
                             JobCard(row: row, recommended: row.id == recommended) {
                                 gameState.hireCharacter(typeId: row.id)
                             }
+                            // En el paso "contratar" de la fase, la manito late
+                            // sobre la fila recomendada: la banda de arriba
+                            // instruye y la mano señala DÓNDE (corrección del
+                            // dueño, 2026-08-21 — la fila verde sola no se leía
+                            // como "tocá acá").
+                            .overlay(alignment: .trailing) {
+                                if gameState.tutorialPhaseActive,
+                                   !gameState.ftueMilestones.spawned,
+                                   row.id == recommended {
+                                    TapHereHand(size: 36)
+                                        .padding(.trailing, Tokens.s16)
+                                        .offset(y: 12)
+                                }
+                            }
                             // La cascada es del PANEL, no de la sección: el
                             // índice cuenta desde la primera tarjeta de arriba
                             // de todo, así las tres secciones caen seguidas y no

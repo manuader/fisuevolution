@@ -30,7 +30,12 @@ struct JobRowsTests {
         #expect(first.id == "homeless")
         #expect(first.state == .hirable)
         #expect(first.costText == "25", "el primer Fisura cuesta 25 (decisión del dueño)")
-        #expect(first.displayName == "El Fisura")
+        // ⚠️ El nombre viaja TRADUCIDO (`tier.name.<id>`) y el runner corre la
+        // app en inglés (trampa 6), así que pinearlo en castellano haría pasar
+        // el test por la razón equivocada. Lo que importa acá es el contraste
+        // con el "???" del no visto; que la traducción exista la cubre
+        // `GameContentValidationTests.everyTierHasItsNameInBothLanguages`.
+        #expect(first.displayName != "???")
         #expect(first.faceKey == "homeless_face")
         #expect(first.hiredCount == 1, "la unidad con la que arranca la partida")
         #expect(first.purchases == 0)
@@ -113,7 +118,7 @@ struct JobRowsTests {
         gameState.debugMarkTypesSeen(throughTier: 5)
 
         let mantero = try jobRow(gameState, "mantero")
-        #expect(mantero.displayName == "El Mantero")
+        #expect(mantero.displayName != "???")
         #expect(mantero.state == .lockedFloor(floorNameKey: TowerNaming.floorName(for: "urban")))
 
         // Y el que nunca viste sigue siendo "???" aunque esté en el mismo piso.

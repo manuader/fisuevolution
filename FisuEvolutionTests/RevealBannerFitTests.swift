@@ -33,13 +33,18 @@ struct RevealBannerFitTests {
         let maxWidth = (narrowestScreen - BoardScene.revealMargin * 2) / peakScale
 
         for type in content.tiers.concreteTypes {
-            let label = banner(type.displayName)
-            BoardScene.shrinkToFit(label, maxWidth: maxWidth)
-            #expect(
-                label.frame.width <= maxWidth + 0.5,
-                "\(type.id) (\(type.displayName)) mide \(label.frame.width) y el tope es \(maxWidth)"
-            )
-            #expect(label.fontSize > 0, "\(type.id): la fuente no puede colapsar a 0")
+            // Los dos nombres: el banner dibuja `localizedName` —que el runner
+            // resuelve en inglés (trampa 6)— y el castellano de `tiers.json` es
+            // el que ya venía cubierto. Un `Set` porque varios coinciden (CEO).
+            for name in Set([type.displayName, type.localizedName]) {
+                let label = banner(name)
+                BoardScene.shrinkToFit(label, maxWidth: maxWidth)
+                #expect(
+                    label.frame.width <= maxWidth + 0.5,
+                    "\(type.id) (\(name)) mide \(label.frame.width) y el tope es \(maxWidth)"
+                )
+                #expect(label.fontSize > 0, "\(type.id): la fuente no puede colapsar a 0")
+            }
         }
     }
 

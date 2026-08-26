@@ -153,6 +153,13 @@ final class TutorialUITests: XCTestCase {
         XCTAssertTrue(waitForStep(app, "finish", timeout: 12),
                       "el paso del cierre tiene que aparecer al terminar el reveal")
 
+        // La captura espera al BOTÓN y un respiro más: el marker cambia a
+        // "finish" apenas el guion avanza, pero el globo todavía está en el
+        // pop de spring y el scrim del reveal en su fade — capturar ahí deja
+        // la foto del paso anterior a medio fundir (pasó: la primera foto de
+        // "último paso" mostraba el globo de merge atenuado).
+        XCTAssertTrue(app.buttons["tutorial.done"].waitForExistence(timeout: 4))
+        Thread.sleep(forTimeInterval: 0.8)
         let shot = XCTAttachment(screenshot: app.screenshot())
         shot.name = "RF-01 último paso"
         shot.lifetime = .keepAlways
@@ -367,5 +374,61 @@ final class TutorialUITests: XCTestCase {
         let close = app.buttons["sheet.close"]
         XCTAssertTrue(close.waitForExistence(timeout: 5), "la hoja no trae botón de cerrar")
         close.tap()
+    }
+
+    /// El personaje especial muestra su SKIN en la carta (no el glifo de
+    /// estrella) y su carta se puede REABRIR para consultar el beneficio
+    /// (corrección del dueño, 2026-08-25). La reapertura entra por la puerta
+    /// del panel de debug — `presentSpecialInfo`, el MISMO camino que dispara
+    /// el long-press sobre el personaje del tablero — siguiendo el precedente
+    /// de `--uitest-open-sheet`: los gestos del tablero no se automatizan por
+    /// coordenada (el press-lotería costó una corrida completa: el personaje
+    /// deambulando gana el toque por diseño, y los sheets del runtime 26
+    /// animan lento y dejan al siguiente press cayendo en el lugar
+    /// equivocado). El gesto en sí quedó smoke-manual, verificado en vivo.
+    @MainActor
+    func testElSpecialMuestraSuSkinYSuCartaSePuedeReabrir() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-special"]
+        app.launch()
+
+        // La carta del drop, con el retrato grande.
+        let claim = app.buttons["special.drop.claim"]
+        XCTAssertTrue(claim.waitForExistence(timeout: 12), "el fixture tiene que dejar la carta del drop abierta")
+        let dropShot = XCTAttachment(screenshot: app.screenshot())
+        dropShot.name = "special: carta del drop"
+        dropShot.lifetime = .keepAlways
+        add(dropShot)
+        claim.tap()
+        let claimGone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == 0"), object: claim
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [claimGone], timeout: 8), .completed)
+        // El sheet del runtime 26 anima su salida con calma: el botón de
+        // debug de abajo se toca por coordenada y un resto de scrim se lo
+        // comería.
+        Thread.sleep(forTimeInterval: 1.0)
+
+        // La reapertura, por la puerta de debug (el camino del long-press).
+        let debugKey = app.buttons["hud.debug"]
+        XCTAssertTrue(debugKey.waitForExistence(timeout: 6))
+        debugKey.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let reopen = app.buttons["debug.special.info"]
+        XCTAssertTrue(reopen.waitForExistence(timeout: 6),
+                      "el panel tiene que ofrecer la carta del special activo")
+        reopen.tap()
+
+        XCTAssertTrue(claim.waitForExistence(timeout: 8),
+                      "la carta del special tiene que reabrirse para consultar el beneficio")
+        let recapShot = XCTAttachment(screenshot: app.screenshot())
+        recapShot.name = "special: recap reabierto"
+        recapShot.lifetime = .keepAlways
+        add(recapShot)
+
+        // Y la carta del recap se cierra por su botón, sin dejar nada colgado.
+        claim.tap()
+        XCTAssertEqual(XCTWaiter().wait(for: [XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == 0"), object: claim
+        )], timeout: 8), .completed)
     }
 }

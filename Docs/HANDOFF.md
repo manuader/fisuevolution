@@ -53,23 +53,11 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-21** (el tutorial
-> high-end: fase corta arbitrada por la cola, lecciones contextuales y el
-> puntito rojo de logros — la sesión en §4, las trampas 24/25 en §7. El mismo
-> día, más temprano: el telón de las empujadas).
-> Este doc reemplaza al índice disperso de handoffs; los otros siguen siendo la
-> fuente de verdad de SU tema y están linkeados donde corresponde.
->
-> ⚠️ **Lo más importante que cambió**: el programa de las 16 correcciones del
-> playtest **se terminó**. Lo único que queda son dos gates humanos (§8). No hay
-> tarea de código pendiente en ese spec.
->
-> **La sesión del 2026-08-10** sumó tres cosas de jugabilidad y arte, todas
-> commiteadas y verdes (§4): fusionar dejó de ser fiddly, los bonus activos se
-> ven en el HUD, y los 10 pisos tienen su fondo en perspectiva.
->
-> ⚠️ **`main` está adelante de `origin/main`.** Mientras no se pushee, cada
-> frente nuevo arranca desde un árbol viejo — es la trampa 7.
+> **Empezá por acá.** Última actualización: **2026-08-25** (tres correcciones
+> de UI del tutorial y los specials, y la cadena post-Xcode-26.6 desarmada —
+> la sesión en §4, la trampa 30 en §7. ⚠️ Desde hoy los sims de verificación
+> van con runtime **iOS 26.5**: una app compilada con el SDK 26 sobre un sim
+> 18.6 se ve rota).
 
 ---
 
@@ -133,6 +121,8 @@ gates humanos, nada técnico.
 - ⚠️ **No edites el catálogo de strings con scripts.** Xcode lo reescribe a su
   formato canónico en el primer build y te deja un diff de 2.400 líneas. Si lo
   hacés igual, commiteá después el reformateo de Xcode (pasó, ver `13def46`).
+  **Salvo que el script escriba el formato canónico**: se puede, y la receta
+  —con la forma de verificarla antes de escribir nada— está en la trampa 29.
 - **Accessibility identifier** en todo control interactivo.
 - **Commits en español**, atómicos.
 - Convenciones de concurrencia: `Docs/concurrency-conventions.md`. Resumen: el
@@ -164,14 +154,21 @@ Ningún conteo, rango ni switch por etapa vive en código. Todo sale de JSON en
 | Archivo | Qué define |
 |---|---|
 | `Data/economy.json` | Curvas, los 10 pisos (`floors[]`), costos de contratación, ORO |
-| `Data/tiers.json` | Los 37 tiers y la cadena de evolución. **Generado** desde `Tools/generate-tiers/Sources/main.swift` — editar el JSON a mano lo pisa la próxima regeneración |
+| `Data/tiers.json` | Los 37 tiers y la cadena de evolución. **Generado** desde `Tools/generate-tiers/Sources/main.swift` — editar el JSON a mano lo pisa la próxima regeneración. Su `displayName` es el **castellano**; el inglés vive en el catálogo bajo `tier.name.<id>` |
 | `Data/assets_manifest.json` | **Único puente código→arte.** Sin entrada acá, placeholder programático — ⚠️ **salvo los fondos**, ver abajo |
 | `Config/skins.json` | Catálogo de apariencias |
 | `Config/*.json` | Eventos, specials, upgrades, boosts, daily, feature flags |
 
 Agregar un piso = una entrada en `floors[]` + el PNG del fondo. Agregar un
-personaje = PNGs al atlas + entrada en manifest/tiers. **Cero código.** Hay un
-`ExtensibilityDrillTests` que lo prueba con un piso 12 declarado sólo como dato.
+personaje = PNGs al atlas + entrada en manifest/tiers **+ su `tier.name.<id>` en
+el catálogo de strings**. **Cero código.** Hay un `ExtensibilityDrillTests` que
+lo prueba con un piso 12 declarado sólo como dato.
+
+⚠️ La clave del nombre es la que se olvida, y falta **en silencio**: sin ella el
+personaje se ve en castellano con el juego en inglés, porque `localizedName` cae
+al dato. Quien avisa es
+`GameContentValidationTests.everyTierHasItsNameInBothLanguages` (§4, sesión de
+los nombres en inglés).
 
 ⚠️ **El fallback a placeholder NO cubre los fondos.** Un personaje sin entrada en
 el manifest se dibuja con su placeholder programático y el juego sigue; **un piso
@@ -427,11 +424,54 @@ activas · dios sin reencarnar 66,34 h**. Calibrado con dos knobs
 (`charUpgrades.costGrowth` 4,0 → 1,5 y `oro.divisor` 3e12 → 1e9), cada uno medido
 solo. Detalle y descartes en `Docs/SESION-2026-08-22-multiplicador-secuencial.md`
 y `Docs/balance-log.md`.
+### Sesión del 2026-08-25 — Tres correcciones de UI, y Xcode 26.6
+
+El botón del cierre del tutorial ganó su aire; **la manito de «tocá acá» se
+volvió UN componente (`TapHereHand`)** y vive ahora también en el coach de
+lecciones, la fila recomendada de FisuJobs, la tarjeta de Logros (junto al
+badge) y las pintas sin estrenar; y **la carta del personaje especial muestra
+la SKIN en grande** (168 pt, detent 0,66) y se REABRE manteniendo apretado al
+personaje en el tablero (`specialInfo`, fuera de la cola; fixture nuevo
+`--uitest-special`; UI test del circuito completo). En el medio, **Xcode
+saltó a 26.6 y el juego «se veía espantoso»**: era la cadena post-update —
+override de runtime, runtime 26 ausente, module cache mixto, el -Werror del
+importer y el abort de SKTestSession — desarmada eslabón por eslabón en la
+**trampa 30**. Detalle en
+**`Docs/SESION-2026-08-25-correcciones-ui-y-xcode-26.md`**. Números del
+cierre (sim iOS 26.5, receta §6): EconomyKit **234** · unit **413** · UI
+**49 sin fallos ni skips**.
+
+### Sesión del 2026-08-21 (noche) — Los personajes se llaman en inglés cuando el juego está en inglés
+
+Lo vio el dueño jugando: con el idioma en English el personaje seguía diciendo
+"El Fisura". No era un hueco del catálogo —**las 475 claves tenían su
+`en`**— sino que el nombre nunca pasaba por el catálogo: sale de `tiers.json`,
+que es dato en castellano, y las 15 vistas lo dibujaban `verbatim`. Ahora pasa
+por `CharacterType.localizedName`, que busca `tier.name.<id>` y **cae al
+castellano del dato si la clave falta**, igual que las skins con
+`skin.name.<id>`. Se sumaron las 44 claves y se corrigieron los 3 textos ya
+traducidos que nombraban al personaje en castellano (el tutorial decía "I am El
+Fisura").
+
+La traducción es **cultural, no literal**, y el arte manda: el trapito es "The
+Fake Valet", el limpiavidrios es "Squeegee Guy", el médico Jr. es "Medical
+Resident" (que es lo que sos en EE.UU. cuando te recibís) y el dueño de PYME es
+"Small Business Owner". Las 17 que no son literales están en una tabla con su
+porqué en **`Docs/SESION-2026-08-21-nombres-en-ingles.md`**. ⚠️ **El tono no lo
+aprobó el dueño todavía**: cambiar cualquiera es editar un `value` del catálogo,
+no hay código atado a un nombre.
+
+Números del cierre: app **413** · UI **48 sin skips** · EconomyKit **234** (no se
+tocó el paquete). Cuatro asserts que pineaban el nombre en castellano pasaban
+**por casualidad** —el runner corre en inglés (trampa 6) y el nombre no era
+traducible— y pasaron a pinear lo que querían probar; `RevealBannerFitTests` ahora
+mide los dos idiomas.
 
 ### Sesión del 2026-08-21 — El rebalance de pacing: ganarlo al máximo cuesta 24 h
 
 `fix/rebalance-pacing`, con `fix/atajo-tier-base` y `fix/premios-y-eventos`
-integradas. **Maxear las siete líneas permanentes —"ganarlo al máximo", lo que
+integradas — **y mergeada a `main` en `9efc8f7` el mismo día** (verificación
+del árbol final en `Docs/SESION-2026-08-21-merge-rebalance-y-manito.md`). **Maxear las siete líneas permanentes —"ganarlo al máximo", lo que
 desbloquea las skins doradas— pasó de 15,49 h a 24,00 h ACTIVAS y de 34
 reencarnaciones a 8**; dios quedó a 26,59 h activas, o sea DESPUÉS de las skins.
 Detalle en **`Docs/SESION-2026-08-21-rebalance-pacing.md`**, calibración corrida
@@ -474,8 +514,9 @@ El puntito rojo de logros (`ui_badge`, recortado al bbox: traía 86% de aire)
 vive como `.overlay` en el tab Menú y la tarjeta de Logros, avisando por
 `accessibilityValue`; su señal es la proyección nueva
 `hasClaimableAchievements`. La tarjeta habla v3 (pergamino, retrato 96 pt
-pisando el borde, pop de spring) y la mano es vectorial de la casa. Poses:
-sólo `wave`/`celebrate` hasta que 117/118 se regeneren. Detalle y por qué de
+pisando el borde, pop de spring); la mano probó un vectorial de la casa y
+volvió al SF Symbol del sistema por pedido del dueño (2026-08-21, post-merge
+del rebalance). Poses: sólo `wave`/`celebrate` hasta que 117/118 se regeneren. Detalle y por qué de
 cada decisión en **`Docs/SESION-2026-08-21-tutorial-high-end.md`**; trampas
 nuevas 24 y 25 en §7. Números del cierre: EconomyKit **213** · app **395**
 (3 rojos Pacing preexistentes) · UI **48 sin fallos ni skips**.
@@ -1032,6 +1073,15 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
 ⚠️ **Creá tu propio simulador y apuntá por UDID** (trampa 2), y **corré unit
 ANTES que UI** — la asimetría es real y direccional, ver abajo.
 
+⚠️⚠️ **Desde Xcode 26.6 (2026-08-25) la verificación es una MATRIZ de dos
+runtimes** (trampa 30, eslabón 6): TODO corre en un sim **iOS 26.5** SALVO
+las tres suites de Store —`StoreManagerTests`, `StoreProductsTests`,
+`StoreUITests`—, que corren en un sim **iOS 18.6** porque StoreKit Testing
+está roto entero en el runtime 26. En 26 se las saltea con
+`-skip-testing:` (las tres, nada más); en 18.6 se corren solas con
+`-only-testing:`. Señal de re-unificación: `StoreProductsTests` verde en un
+sim 26 virgen.
+
 ```bash
 UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
 
@@ -1120,17 +1170,20 @@ Los cuatro de arriba son **el último cuádruple tomado con la receta completa**
 Lo que se sumó después está medido, pero cada suite por su lado y en el simulador
 compartido, así que no lo reemplaza:
 
-| Suite | 2026-08-16 | Hoy (2026-08-21) | Qué entró |
+| Suite | 2026-08-16 | Hoy (2026-08-21, main `9efc8f7`+manito) | Qué entró |
 |---|---|---|---|
-| EconomyKit | 183 | **213** | `CelebrationQueueTests` + la restricción del tutorial |
-| app | 346 | **395** | `CelebrationWiringTests` (+fase), `TutorialTipsTests`, `RevealLayoutTests` — 3 rojos de `PacingTests` preexistentes (prompt de pacing) |
-| UI | 43 | **48** | `CareerChoiceUITests`, `MenuUITests`, `TutorialUITests` reescrita (lección + puntito) |
-| pipeline | 27 | 53 | frentes de arte ajenos; 1 rojo nuevo ajeno (4 PNG calados de `estanciero_estelar__tropero`) |
+| EconomyKit | 183 | **234, cero rojos** | `CelebrationQueueTests` + la restricción del tutorial (sesión tutorial) y `PacingSimulatorTests` + `PermanentUpgrades` (rebalance) |
+| app | 346 | **411, cero rojos** | tutorial: `CelebrationWiringTests` (+fase), `TutorialTipsTests`; rebalance: `PacingTests` re-pineado ENTERO (los «3 rojos conocidos» YA NO EXISTEN como categoría), `BestHireTests`, `SaveMigratorTests` |
+| UI | 43 | **48, cero rojos, sin skips** | `CareerChoiceUITests`, `MenuUITests`, `TutorialUITests` reescrita (lección + puntito) |
+| pipeline | 27 | 53 | frentes de arte ajenos; 1 rojo ajeno (4 PNG calados de `estanciero_estelar__tropero`) |
 
-⚠️ Los cuatro de la columna «Hoy» salieron de la verificación del cierre del
-tutorial (2026-08-21): EconomyKit por `swift test`, y app + UI en el MISMO
-simulador propio por UDID con la receta completa (unit antes que UI,
-`-parallel-testing-enabled NO`, sin skips).
+⚠️ Los cuatro de la columna «Hoy» son del árbol FINAL del 2026-08-21 —el
+merge del rebalance a main más la manito— tomados en la verificación del
+merge (`SESION-2026-08-21-merge-rebalance-y-manito.md`): EconomyKit por
+`swift test`, app + UI en el MISMO simulador propio por UDID con la receta
+completa (unit antes que UI, `-parallel-testing-enabled NO`, sin skips). El
+quinto número de ese cierre es el `pacing-sim`: **24,00 h activas · 8
+reencarnaciones**, que es el contrato del dueño.
 
 **El próximo cuádruple hay que tomarlo con la receta de arriba**, no sumando
 estos. Y ojo con `refundRevokesEntitlement` (StoreKit + `SKTestSession`): falló
@@ -1187,7 +1240,8 @@ Fixtures DEBUG por launch argument — **son doce, no tres**:
 | `--uitest-daily-streak` | Deja el ciclo del daily en el día 4: la tira del calendario de Regalos con días cobrados atrás. El único otro camino a un día con tilde es **volver mañana** |
 | `--uitest-achievements` | Siembra los contadores históricos que cruzan tres logros (`ach_merges_1`, `ach_taps_1000`, `ach_videos_1`) y los deja **conseguidos y sin cobrar**: es lo único que llena la sección "Para cobrar" de la pantalla de Logros. Conseguir uno jugando pide fusionar, mirar un video con el proveedor real o dar mil toques — nada automatizable. Usa `max`, así que no pisa un save con más. ⚠️ Acredita durante `phase == .loading`, así que **NO desfila los tres banners**, y un logro ya acreditado no vuelve a cruzarse: para filmar el toast hay que cruzar uno EN RUNTIME y con el tablero despejado. El único barato es `ach_merges_1` — contratar uno en FisuJobs, cerrar la hoja y fusionar el par con doble toque. Contratar diez cruza `ach_hires_10` pero deja el banner tapado por la hoja |
 | `--uitest-daily-popup` | El popup del premio del día, ya abierto (T18). Retrocede `lastClaimDay` a **ayer** —no lo borra, que un día salteado resetea el ciclo a 1— y corre el claim real, el mismo que acredita al volver a foreground. Existe porque el daily se cobra solo y una sola vez por día, y una partida nueva marca `lastClaimDay` en HOY para no pisar el tutorial: sin esta puerta, la única pantalla que celebra la racha no se puede ni fotografiar ni ejercitar sin cambiarle la fecha al simulador. Combinado con `--uitest-daily-streak` muestra el día 4. Desde el 2026-08-21 **ya no necesita `--uitest-skip-tutorial`**: la cola arbitra (con la fase viva el popup espera su turno y aparece al cerrarla — usarlo SIN skip es justamente el repro del viejo deadlock) |
-| `--uitest-lessons` | Prende las lecciones contextuales del tutorial, que en cualquier corrida `--uitest-*` arrancan APAGADAS (trampa 24). Sólo lo usa el test que ejercita el coach-mark |
+| `--uitest-lessons` | Prende las lecciones contextuales del tutorial, que en cualquier corrida `--uitest-*` arrancan APAGADAS (trampa 27). Sólo lo usa el test que ejercita el coach-mark |
+| `--uitest-special` | El primer special del catálogo, caído y ANCLADO al piso visible, con la carta del drop abierta. Es la única forma de ver la carta (el drop real es RNG sobre merges) y de ejercitar el recap del mantener-apretado |
 
 El panel de debug es el ícono de herramientas del HUD.
 
@@ -1736,7 +1790,7 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     compounding están `floorUnlockPeakHire{Type,Purchases,Seconds}`, que publican
     el tipo más comprado de la run (en el árbol de hoy el bot llega a **785
     compras** del mismo tipo; 870 en el A/B pre-(a) de la bitácora).
-24. **Una lección contextual del tutorial puede nacer EN MEDIO de un test de
+27. **Una lección contextual del tutorial puede nacer EN MEDIO de un test de
     UI ajeno y comerse sus taps por coordenada.** SÍNTOMA: un test que venía
     verde falla con "no apareció X" tras darse monedas o abrir pisos con el
     panel de debug — medido con `AscentRenderingUITests` (113 s): su +1M
@@ -1750,13 +1804,51 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     test arma su escenario (`beginTutorialPhase()` /
     `tutorialLessonsAutorun = true`).
 
-25. **El tap sintético del MCP del simulador no activa las filas-botón del
+28. **El tap sintético del MCP del simulador no activa las filas-botón del
     `ScrollView` de FisuJobs** (medido: tres taps al centro exacto de la fila
     con `ftue.spawned` en falso), aunque sí activa tabs, cierres y tablero.
     XCUITest (`.tap()` sobre el elemento) compra sin drama, y el dedo humano
     también. Si un recorrido manual por agente "no compra": verificar el
     efecto en el plist del contenedor (`simctl get_app_container … data`)
     antes de sospechar del juego, y hacer ese paso vía XCUITest.
+
+29. **El catálogo de strings SÍ se puede editar con un script — si el script
+    escribe el formato de Xcode.** La regla del §2 (no lo toques, te deja un
+    diff de 2.400 líneas) describe la consecuencia, no una imposibilidad: lo que
+    la desactiva es reproducir el formato canónico. Son tres cosas —dos espacios
+    de sangría, `" : "` como separador, y las claves en **orden natural**— y la
+    tercera es la que se hace mal sola: Xcode compara los números como números,
+    así que `skins_5` va ANTES que `skins_20` y un `sorted()` pelado los da
+    vuelta. La verificación es barata y va ANTES de escribir: serializá el
+    archivo sin cambiarle nada y exigí `diff` vacío.
+
+    Con eso medido salió también que el archivo tenía **3 claves fuera de orden
+    al final** (`skin.name.diamante`, `skin.name.oro`,
+    `skins.unlock.upgrades_maxed`), de algún append anterior a mano. Al
+    reescribirlo ordenado se acomodaron; el orden relativo de las otras 472
+    quedó intacto.
+
+30. **Actualizar Xcode A MITAD de un frente rompe en cadena, y cada eslabón
+    engaña distinto** (Xcode 26.6, medido el 2026-08-25). Los cinco eslabones
+    y sus arreglos, EN ORDEN: (1) un **`runtime match` override**
+    (`xcrun simctl runtime match list` → «User Override») puede dejar el SDK
+    nuevo corriendo sobre el runtime viejo: la app compila pero **se ve
+    espantosa** — los colores y paneles del asset catalog no decodifican y
+    SpriteKit se ve bien (el síntoma es «la UI de SwiftUI desnuda») — y el
+    override además le miente al descargador («iOS is already downloaded»).
+    Fix: `runtime match set <sdk> --default`. (2) Recién ahí
+    `xcodebuild -downloadPlatform iOS` resuelve y baja el runtime que
+    corresponde. (3) `build/DD` con module cache de dos SDKs se borra entero
+    (trampa 1 agravada). (4) `SWIFT_TREAT_WARNINGS_AS_ERRORS` ahora alcanza
+    al clang importer: un header DEPRECADO del propio SDK (StoreKitTest) mata
+    el build — `OTHER_SWIFT_FLAGS: -Xcc -Wno-error=deprecated-declarations`
+    en `project.yml` (los warnings de NUESTRO Swift siguen siendo errores).
+    (5) El `StoreKitTest` del **runtime 26 aborta** `SKTestSession` fuera de
+    un runner XCTest (SIGABRT; cargar XCTest con `dlopen` NO alcanza) —
+    `StoreManager` degrada con `#available(iOS 26.0, *)`: la tienda local por
+    `simctl` queda ausente en 26 (por Xcode el scheme la inyecta igual). Y la
+    asimetría de §6 (unit ANTES que UI) **sigue viva en runtime 26**: se
+    re-midió con los 11 rojos exactos de StoreKit.
 
 ## 8. Qué queda
 
@@ -2024,7 +2116,9 @@ Anotado por si algún día importa, con su medición:
 | **`SESION-2026-08-23-fusiones-cobradas.md`** | **Las fusiones dejan de ser gratis en el simulador (y por qué eso era un sesgo, no una simplificación), el barrido de la profundidad N=6/7/8 con las cinco métricas, la conversión a horas del dueño con el factor de 3×, y por qué la compra en lote se empezó y se descartó** |
 | **`SESION-2026-08-23-precio-atado-a-la-frontera.md`** | **La cuarta ronda de balance: el precio de contratar anclado a tu FRONTERA (la regla de precios nueva, que reemplaza a la de los 600 clicks), la compuerta convertida por fin en dial de dificultad, la tercera ceguera del bot, y el hallazgo de que la mitad del tiempo activo es apretar el botón y no esperar plata — con las cuatro salidas que el dueño tiene que elegir** |
 | **`SESION-2026-08-22-compuerta-por-distancia.md`** | **La tercera ronda de balance: la compuerta medida en tiers, las dos cegueras del simulador y el hallazgo de que el contrato de 20-30 h nunca se cumplió — con las tres salidas que el dueño tiene que elegir. Y la trampa del Xcode 26.6 sin runtime de iOS 26** |
+| **`SESION-2026-08-21-nombres-en-ingles.md`** | **La sesión más reciente: por qué el nombre del personaje no se traducía, la mesa de las 17 traducciones culturales con su porqué, y qué se descartó (un campo por idioma en `tiers.json`)** |
 | **`SESION-2026-08-21-rebalance-pacing.md`** | **El rebalance de pacing: las tres métricas antes/después, los dos knobs que hacen cosas distintas, las tres decisiones del dueño con lo descartado y su número, y los cuatro diagnósticos que salieron errados antes del bueno** |
+| **`SESION-2026-08-25-correcciones-ui-y-xcode-26.md`** | **La sesión más reciente: el aire del botón, la manito única, la carta del special con recap, y los cinco eslabones de Xcode 26.6** |
 | **`SESION-2026-08-21-tutorial-high-end.md`** | **La sesión más reciente: el tutorial rehecho — la fase corta arbitrada por la cola, las 8 lecciones con sus señales, el puntito de logros y las trampas 24/25** |
 | **`SESION-2026-08-21-telon-del-menu.md`** | **El telón blanco de las pantallas empujadas del menú: la medición, el arreglo por versión de iOS y qué quedó sin verificar** |
 | **`SESION-2026-08-19-skins-oro-diamante.md`** | **Las 86 skins de material: el catálogo de un id por material, el desbloqueo de cada una y los tres bugs medidos del pipeline de generación** |

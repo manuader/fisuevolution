@@ -108,7 +108,7 @@ struct CharacterSheetView: View {
                 RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
                     .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)
             )
-            Text(sheet.type.displayName)
+            Text(sheet.type.localizedName)
                 .font(.system(.title2, design: .rounded).weight(.black))
                 .foregroundStyle(Color("PaletteInk"))
             // Los Int se interpolan como %lld y no matchean la clave declarada

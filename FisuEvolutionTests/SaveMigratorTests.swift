@@ -178,12 +178,12 @@ struct SaveMigratorTests {
 
         // Lo que la hace segura NO es la función sino el cableado, y es lo único
         // que hay que cuidar si algún día se agrega otra migración. Desde v5
-        // los call sites son DOS —`migrateV3toV4` la aplica siempre y
-        // `migrateV4toV5` sólo a los saves con algún nivel arriba del tope de
+        // los call sites son DOS —`migrateV3toV4` la aplica al diccionario
+        // entero y `migrateV4toV5` sólo a las líneas que superan su tope de
         // hoy—, y un v3 los cruza a los dos en la misma cadena. No se pisan
         // porque la función CLAMPEA a `caps.actual`: después de la primera
-        // pasada ningún nivel queda arriba del tope, así que la guarda de la
-        // segunda es falsa por construcción. `v3SaveMigratesToV4FieldByField`
+        // pasada ninguna línea queda arriba del tope, así que el filtro de la
+        // segunda devuelve el conjunto vacío. `v3SaveMigratesToV4FieldByField`
         // lo pinea de punta a punta (`tap` 3 → 2, no 3 → 2 → 1).
         #expect(SaveMigrator.rescaleUpgradeLevelsForRebalance([:]).isEmpty,
                 "sin niveles no hay nada que reescalar")
@@ -217,7 +217,7 @@ struct SaveMigratorTests {
         }
     }
 
-    // MARK: - Cadena completa v1 → v4
+    // MARK: - Cadena completa v1 → v5
 
     @Test func v1SaveMigratesThroughTheWholeChain() throws {
         // Un v1 mínimo pero honesto: flat, sin activeModifiers (nace en v2),
@@ -442,8 +442,14 @@ struct SaveMigratorTests {
     /// pacing, justo el que pasaba el `nivel >= maxLevel` de
     /// `awardEligibleMilestoneSkins` y se llevaba las 43 doradas sin ganarlas.
     ///
-    /// ⚠️ 24 y no 25 a propósito: el tope exacto reescala a 10 igual, así que
-    /// con él el test no distinguiría un clamp del reescalado proporcional.
+    /// ⚠️ 24 y no 25 a propósito, pero NO para separar el proporcional del
+    /// clamp: con 24 los dos dan lo mismo (24/25 × 10 = 9,6 redondea a 10, y
+    /// `min(24, 10)` es 10), igual que con `income: 20`. Lo que compra el 24 es
+    /// que la huella dispare con un valor que NO es el tope viejo — lo que
+    /// delata a un save pre-rebalance es estar por encima del tope de HOY, no
+    /// ser igual al tope de ayer. El candado del proporcional es la otra mitad
+    /// del test, `crit 12 → 5`: un clamp lo dejaría en 10 —al tope— y le
+    /// regalaría las doradas al que apenas empezó la línea.
     @Test("un v4 pre-rebalance con niveles arriba del tope de hoy se reescala y NO cuenta como maxeado")
     func preRebalanceV4LosesTheFakeMaxOut() throws {
         let maxeado = try SaveMigrator.migrate(
@@ -457,5 +463,27 @@ struct SaveMigratorTests {
             JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["income": 20, "tap": 20, "crit": 12]))
         )
         #expect(flojo.meta.oroUpgradeLevels["crit"] == 5) // 12/25 × 10 = 4,8 → 5
+    }
+
+    /// El save que CRUZA el rebalance, y la decisión del dueño sobre él: se
+    /// reescala LÍNEA POR LÍNEA, sólo la que está arriba de su tope de hoy.
+    ///
+    /// El caso es real y no de laboratorio: `crit 24` sólo existe con el tope
+    /// viejo, pero con `income` en 3 la compra seguía habilitada después del
+    /// rebalance (3 < 10), así que esos siete niveles hasta 10 se pagaron con la
+    /// curva NUEVA. Reescalar el diccionario entero se los llevaba puestos.
+    @Test("en un save que cruza el rebalance sólo se reescala la línea que está arriba del tope")
+    func onlyTheLinesAboveTodaysCapAreRescaled() throws {
+        let state = try SaveMigrator.migrate(
+            JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["crit": 24, "income": 10, "offline": 2]))
+        )
+        // La pre-rebalance sí: 24 no puede existir con el tope de hoy.
+        #expect(state.meta.oroUpgradeLevels["crit"] == 10)
+        // La comprada con la curva nueva NO se toca. Pasando el diccionario
+        // entero habría caído a 5 (10/20 × 10) y el jugador habría perdido siete
+        // niveles pagados: es exactamente lo que el dueño no quiere.
+        #expect(state.meta.oroUpgradeLevels["income"] == 10)
+        // Y la línea cuyo tope nunca cambió tampoco entra: no está en `rebalanceLevelCaps`.
+        #expect(state.meta.oroUpgradeLevels["offline"] == 2)
     }
 }

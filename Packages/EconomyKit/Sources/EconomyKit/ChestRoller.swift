@@ -15,11 +15,14 @@ public enum ChestRoller {
         owned: Set<String>,
         skins: SkinsConfig,
         config: ChestsConfig,
-        floor: SkinsConfig.Rarity? = nil,
+        minRarity: SkinsConfig.Rarity? = nil,
         using rng: inout some RandomNumberGenerator
     ) -> ChestOutcome {
-        let candidatas = SkinsConfig.Rarity.allCases.filter { $0 >= (floor ?? .comun) }
-        let sorteada = weightedPick(candidatas, config: config, using: &rng) ?? .comun
+        let candidatas = SkinsConfig.Rarity.allCases.filter { $0 >= (minRarity ?? .comun) }
+        // El `??` no es alcanzable —`candidatas` nunca queda vacío, el filtro deja
+        // como mínimo a `minRarity`— pero cae en `minRarity` y no en `.comun`: si
+        // alguna vez lo fuera, devolver la más baja violaría el mínimo pedido.
+        let sorteada = weightedPick(candidatas, config: config, using: &rng) ?? (minRarity ?? .comun)
         guard let resuelta = firstWithStock(from: sorteada, owned: owned, skins: skins) else {
             return .coins(rarity: sorteada)
         }
@@ -35,6 +38,11 @@ public enum ChestRoller {
     /// Sube antes que bajar porque promocionar se lee como un regalo y degradar
     /// como un recorte, y porque deja las legendarias para el final: son las
     /// únicas que no reciben promociones de más arriba.
+    ///
+    /// No recibe `minRarity` a propósito: el mínimo acota QUÉ SE SORTEA, no qué
+    /// se entrega. Agotado todo lo que está a su altura o por encima, un cofre
+    /// que baja da una skin que al jugador le falta; respetar el mínimo acá lo
+    /// dejaría sin premio teniendo la bolsa a medio llenar.
     private static func firstWithStock(
         from rarity: SkinsConfig.Rarity, owned: Set<String>, skins: SkinsConfig
     ) -> SkinsConfig.Rarity? {

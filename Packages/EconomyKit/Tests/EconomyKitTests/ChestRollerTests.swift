@@ -40,7 +40,7 @@ struct ChestRollerTests {
         let owned = Set(skins.chestPool.filter { $0.chestRarity != .comun }.map(\.id))
         var rng: any RandomNumberGenerator = SeededRNG(seed: 3)
         guard case let .skin(_, _, rarity) = ChestRoller.roll(
-            owned: owned, skins: skins, config: fxChests(), floor: .legendaria, using: &rng
+            owned: owned, skins: skins, config: fxChests(), minRarity: .legendaria, using: &rng
         ) else { Issue.record("esperaba skin"); return }
         #expect(rarity == .comun)
     }
@@ -55,13 +55,13 @@ struct ChestRollerTests {
         ) else { Issue.record("esperaba plata"); return }
     }
 
-    @Test("el piso de rareza no deja salir nada por debajo mientras haya stock")
-    func floorKeepsRarityAtOrAbove() {
+    @Test("la rareza mínima no deja salir nada por debajo mientras haya stock")
+    func minRarityKeepsResultsAtOrAbove() {
         let skins = fxChestSkins()
         var rng: any RandomNumberGenerator = SeededRNG(seed: 13)
         for _ in 0..<200 {
             guard case let .skin(_, _, rarity) = ChestRoller.roll(
-                owned: [], skins: skins, config: fxChests(), floor: .epica, using: &rng
+                owned: [], skins: skins, config: fxChests(), minRarity: .epica, using: &rng
             ) else { Issue.record("esperaba skin"); return }
             #expect(rarity >= .epica)
         }
@@ -79,5 +79,23 @@ struct ChestRollerTests {
             #expect(owned.insert(id).inserted, "cofre \(n) repitió \(id)")
         }
         #expect(owned.count == 41)
+    }
+
+    @Test("la semilla manda: dos corridas iguales dan lo mismo, y una corrida no da ocho veces lo mismo")
+    func theSeedDrivesTheWholeSequence() {
+        let skins = fxChestSkins()
+        // Sin `owned` que cambie entre tiradas, lo ÚNICO que puede mover el resultado
+        // es el estado del generador. Si el `inout` dejara de escribirse de vuelta
+        // —una copia local, una firma refactorizada— los otros seis tests seguirían
+        // verdes midiendo una sola tirada repetida 200 veces, y nadie se enteraría.
+        func ochoTiradas(semilla: UInt64) -> [ChestOutcome] {
+            var rng: any RandomNumberGenerator = SeededRNG(seed: semilla)
+            return (0..<8).map { _ in
+                ChestRoller.roll(owned: [], skins: skins, config: fxChests(), using: &rng)
+            }
+        }
+        let tirada = ochoTiradas(semilla: 99)
+        #expect(tirada == ochoTiradas(semilla: 99), "la misma semilla tiene que reproducir la corrida entera")
+        #expect(tirada.contains { $0 != tirada[0] }, "ocho resultados idénticos: el generador no avanzó")
     }
 }

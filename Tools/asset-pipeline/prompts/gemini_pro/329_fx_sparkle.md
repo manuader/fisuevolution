@@ -1,7 +1,7 @@
 # 329 - Chispita (FX - cofres)
 
 - **archivo**: `fx_sparkle.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

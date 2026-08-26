@@ -1,7 +1,7 @@
 # 325 - Cofre forzado (UI - cofres)
 
 - **archivo**: `ui_chest_cracked.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

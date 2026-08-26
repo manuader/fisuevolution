@@ -1,7 +1,7 @@
 # 324 - Cofre cerrado (UI - cofres)
 
 - **archivo**: `ui_chest_closed.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -1,7 +1,7 @@
 # 328 - Estrella de celebracion (FX - cofres)
 
 - **archivo**: `fx_star.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

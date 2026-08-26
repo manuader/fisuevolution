@@ -1,7 +1,7 @@
 # 327 - Tapa suelta (UI - cofres)
 
 - **archivo**: `ui_chest_lid.png`
-- **estado**: pendiente
+- **estado**: hecho
 - **destino**: Tools/asset-pipeline/dropbox/
 
 ## Prompt

@@ -83,6 +83,22 @@ targets:
           # por la clase antes de tocarla: sin frameworks la app arranca igual
           # y la tienda cae al camino de siempre.
           OTHER_LDFLAGS: -weak_framework StoreKitTest
+          # El header de `StoreKitTest` usa `SKPaymentTransactionState`, que
+          # Apple deprecó en iOS 18, y con `SWIFT_TREAT_WARNINGS_AS_ERRORS` ese
+          # warning de un header AJENO rompe el build entero: desde Xcode 26 el
+          # proyecto no compila sin flags a mano en la línea de comando.
+          #
+          # `-Xcc` es la parte que hace acotado el arreglo: se lo pasa **al
+          # importador de Clang**, o sea sólo a lo que se parsea de headers
+          # C/ObjC del SDK. Los warnings de nuestro Swift los sigue tratando
+          # como errores `SWIFT_TREAT_WARNINGS_AS_ERRORS`, que NO se toca — la
+          # regla del repo es "cero warnings en código propio" y no se negocia.
+          # Lo pinea `unWarningNuestroSigueRompiendoElBuild` en el doc de sesión:
+          # metele un `var` sin usar a cualquier archivo nuestro y el build falla.
+          #
+          # Sólo en Debug, que es la única configuración que importa
+          # StoreKitTest (`#if DEBUG` en `StoreManager`).
+          OTHER_SWIFT_FLAGS: $(inherited) -Xcc -Wno-deprecated-declarations
           # Y estos DOS rpaths son los que hacen que la tienda local funcione
           # también instalada a pelo: XCTest (la dependencia de StoreKitTest) y
           # sus re-exports (XCTestCore, XCUIAutomation) viven en el platform
@@ -108,6 +124,14 @@ targets:
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
+      configs:
+        Debug:
+          # Mismo motivo que en el target de la app, y hace falta acá TAMBIÉN
+          # porque este target importa `StoreKitTest` por su cuenta
+          # (`StoreManagerTests`, `StoreProductsTests`): el módulo se compila una
+          # vez por target que lo importe, así que el flag tiene que estar en los
+          # dos. Ver el comentario largo arriba.
+          OTHER_SWIFT_FLAGS: $(inherited) -Xcc -Wno-deprecated-declarations
   FisuEvolutionUITests:
     type: bundle.ui-testing
     platform: iOS

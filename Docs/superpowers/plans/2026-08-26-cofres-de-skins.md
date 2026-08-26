@@ -297,7 +297,7 @@ public enum ChestRoller {
         owned: Set<String>,
         skins: SkinsConfig,
         config: ChestsConfig,
-        floor: SkinsConfig.Rarity? = nil,
+        minRarity: SkinsConfig.Rarity? = nil,
         using rng: inout some RandomNumberGenerator
     ) -> ChestOutcome
 }
@@ -396,7 +396,7 @@ func fallsDownWhenNothingAbove() {
     let owned = Set(skins.chestPool.filter { $0.chestRarity != .comun }.map(\.id))
     var rng: any RandomNumberGenerator = SeededRNG(seed: 3)
     guard case let .skin(_, _, rarity) = ChestRoller.roll(
-        owned: owned, skins: skins, config: fxChests(), floor: .legendaria, using: &rng
+        owned: owned, skins: skins, config: fxChests(), minRarity: .legendaria, using: &rng
     ) else { Issue.record("esperaba skin"); return }
     #expect(rarity == .comun)
 }
@@ -417,7 +417,7 @@ func floorKeepsRarityAtOrAbove() {
     var rng: any RandomNumberGenerator = SeededRNG(seed: 13)
     for _ in 0..<200 {
         guard case let .skin(_, _, rarity) = ChestRoller.roll(
-            owned: [], skins: skins, config: fxChests(), floor: .epica, using: &rng
+            owned: [], skins: skins, config: fxChests(), minRarity: .epica, using: &rng
         ) else { Issue.record("esperaba skin"); return }
         #expect(rarity >= .epica)
     }
@@ -518,7 +518,7 @@ public enum ChestRoller {
         owned: Set<String>,
         skins: SkinsConfig,
         config: ChestsConfig,
-        floor: SkinsConfig.Rarity? = nil,
+        minRarity: SkinsConfig.Rarity? = nil,
         using rng: inout some RandomNumberGenerator
     ) -> ChestOutcome {
         let candidatas = SkinsConfig.Rarity.allCases.filter { $0 >= (floor ?? .comun) }
@@ -770,7 +770,7 @@ git commit -m "feat(cofres): save v5 — los tres campos del cofre y el reescala
 **Interfaces:**
 - Consumes: `ChestRoller.roll(...)`, `ChestOutcome`, `meta.chestsPending`,
   `run.floorChestsAwarded` (Tasks 2 y 3).
-- Produces: `GameState.awardChest(floor: SkinsConfig.Rarity?)`,
+- Produces: `GameState.awardChest(minRarity: SkinsConfig.Rarity?)`,
   `GameState.awardFloorChestsIfDue()`, `GameState.pendingChestCount: Int`.
 
 - [ ] **Step 1: Escribir los tests que fallan**
@@ -900,12 +900,12 @@ func awardFloorChestsIfDue() {
 Y el otorgamiento suelto, que usan el video, el día 7, la reencarnación y el tutorial:
 
 ```swift
-/// Suma un cofre. `floor` no se guarda por cofre: hay una sola fuente con piso
+/// Suma un cofre. `minRarity` no se guarda por cofre: hay una sola fuente con piso
 /// —la reencarnación— así que alcanza con el segundo contador, y los dos se
 /// gastan de a uno con el de prestigio primero (el mejor premio se cobra antes).
-func awardChest(floor: SkinsConfig.Rarity? = nil) {
+func awardChest(minRarity: SkinsConfig.Rarity? = nil) {
     guard var player else { return }
-    if floor == nil { player.meta.chestsPending += 1 } else { player.meta.prestigeChestsPending += 1 }
+    if minRarity == nil { player.meta.chestsPending += 1 } else { player.meta.prestigeChestsPending += 1 }
     self.player = player
     syncCelebrations()
 }
@@ -934,7 +934,7 @@ En `rewarded_ads.json`, un quinto reward:
 ```
 
 Agregar `case skinChest` a `RewardedAdsConfig.EffectType` y el `case` correspondiente en
-`applyRewardedReward` (llama a `awardChest(floor: nil)`) y en `rewardText`. Los dos `switch`
+`applyRewardedReward` (llama a `awardChest(minRarity: nil)`) y en `rewardText`. Los dos `switch`
 son exhaustivos: el compilador señala si falta uno.
 
 - [ ] **Step 5: El día 7 y la reencarnación**
@@ -960,7 +960,7 @@ a la plata cuando ya tenés los diez specials— pasa a tener un escalón interm
 tocando el estado, no llamando a `GameState.awardChest`, que no existe en esa capa.
 
 En `GameState+Prestige`, después de `PrestigeCalculator.reincarnate(...)`:
-`awardChest(floor: .epica)`. ⚠️ **Después y no antes**: `reincarnate` hace
+`awardChest(minRarity: .epica)`. ⚠️ **Después y no antes**: `reincarnate` hace
 `run = .fresh(...)`, así que un cofre otorgado antes se perdería si algún día el contador
 se mudara a `run`.
 

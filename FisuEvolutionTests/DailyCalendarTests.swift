@@ -94,7 +94,7 @@ struct DailyCalendarTests {
 
         let rows = gameState.rewardRows
 
-        #expect(rows.count == 4)
+        #expect(rows.count == 5, "los cuatro videos de siempre más el del cofre")
         for row in rows {
             #expect(!row.rewardText.isEmpty, "\(row.id) no dice qué da")
             #expect(!row.rewardText.contains("ads."), "\(row.id) dejó una clave cruda: '\(row.rewardText)'")

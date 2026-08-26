@@ -348,6 +348,9 @@ enum DailyRewardManager {
         let day: DailyRewardsConfig.Day
         let coinsGranted: Double
         let specialGranted: String?
+        /// El segundo escalón del día 7. Los tres premios son excluyentes: el
+        /// popup muestra uno solo.
+        let chestGranted: Bool
     }
 
     static func dayString(for date: Date, calendar: Calendar = .current) -> String {
@@ -360,6 +363,7 @@ enum DailyRewardManager {
         state: inout PlayerState,
         config: DailyRewardsConfig,
         specials: SpecialsConfig,
+        skins: SkinsConfig,
         upgrades: UpgradesConfig,
         viral: ViralConfig,
         economy: StandardEconomy,
@@ -381,6 +385,7 @@ enum DailyRewardManager {
 
         var coins = 0.0
         var special: String?
+        var chest = false
         if day.type == "special_roll" {
             let eligible = specials.specials.filter {
                 !state.meta.ownedSpecials.contains($0.id) && state.meta.prestigeLevel >= $0.requiresPrestigeLevel
@@ -389,6 +394,16 @@ enum DailyRewardManager {
                 state.meta.ownedSpecials.append(picked.id)
                 UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, economy: economy)
                 special = picked.id
+            } else if !state.meta.allOwnedSkins.isSuperset(of: skins.chestPool.map(\.id)) {
+                // Segundo escalón: ya tenés los diez specials pero te faltan
+                // pintas. NO se toca el camino del special: el día 7 sigue
+                // siendo, primero, su día.
+                //
+                // El cofre se acredita tocando el estado y no llamando a
+                // `GameState.awardChest`: esta función es pura sobre `inout
+                // PlayerState` y no conoce la capa de arriba.
+                state.meta.chestsPending += 1
+                chest = true
             } else {
                 coins = economy.passiveUnlockCost(forTier: state.run.maxTierReached) * 6.0
                 state.run.coins += coins
@@ -402,6 +417,6 @@ enum DailyRewardManager {
 
         state.meta.daily.lastClaimDay = todayString
         state.meta.daily.cycleDay = cycleDay >= config.days.count ? 1 : cycleDay + 1
-        return Claim(day: day, coinsGranted: coins, specialGranted: special)
+        return Claim(day: day, coinsGranted: coins, specialGranted: special, chestGranted: chest)
     }
 }

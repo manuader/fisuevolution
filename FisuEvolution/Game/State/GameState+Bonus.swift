@@ -53,6 +53,8 @@ extension GameState {
             performInstantMerge()
         case .rareUnit:
             grantRareUnit()
+        case .skinChest:
+            awardChest(minRarity: nil)
         }
         // La fila tiene que pasar de botón a cuenta regresiva sin cerrar el panel.
         effectsVersion += 1
@@ -256,6 +258,7 @@ extension GameState {
             state: &player,
             config: content.dailyRewards,
             specials: content.specials,
+            skins: content.skins,
             upgrades: content.upgradesConfig,
             viral: content.viral,
             economy: economy,
@@ -391,7 +394,7 @@ extension GameState {
         return catalog
     }
 
-    /// Las cuatro recompensas por video con su cuenta regresiva (RF-11) y qué da
+    /// Las recompensas por video con su cuenta regresiva (RF-11) y qué da
     /// cada una.
     var rewardRows: [RewardRow] {
         guard let content else { return [] }
@@ -434,6 +437,8 @@ extension GameState {
             return String(localized: "ads.reward.text.merge")
         case .rareUnit:
             return String(localized: "ads.reward.text.rare")
+        case .skinChest:
+            return String(localized: "ads.reward.text.chest")
         }
     }
 

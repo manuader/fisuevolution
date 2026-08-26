@@ -1565,6 +1565,23 @@
         }
       }
     },
+    "ads.reward.chest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skin chest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofre de pintas"
+          }
+        }
+      }
+    },
     "ads.reward.double" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1612,6 +1629,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Personaje de regalo"
+          }
+        }
+      }
+    },
+    "ads.reward.text.chest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A new look for your collection"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una pinta nueva para tu colección"
           }
         }
       }

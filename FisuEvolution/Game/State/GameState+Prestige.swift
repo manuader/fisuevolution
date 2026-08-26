@@ -101,6 +101,10 @@ extension GameState {
             now: Date().timeIntervalSince1970
         )
         self.player = player
+        // El cofre de la reencarnación —el único con piso de rareza— se otorga
+        // DESPUÉS de `applyReincarnation`, que hace `run = .fresh(...)`: darlo
+        // antes lo perdería el día que el contador se mude a `run`.
+        awardChest(minRarity: .epica)
         reconcileTower()
         audio?.play(.prestige)
         haptics?.play(.rarity)

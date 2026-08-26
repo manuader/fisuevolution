@@ -26,7 +26,8 @@ final class StubAdsProvider: AdsProvider {
     }
 }
 
-/// Mirrored 1:1 from `rewarded_ads.json` — the four effects of bible §4.4.
+/// Mirrored 1:1 from `rewarded_ads.json` — the four effects of bible §4.4 plus
+/// el cofre de pintas, que llegó con el sistema de cofres.
 struct RewardedAdsConfig: Codable, Sendable, Equatable {
     enum EffectType: String, Codable, Sendable {
         /// Temporary income multiplier (double earnings / temp multiplier).
@@ -36,6 +37,9 @@ struct RewardedAdsConfig: Codable, Sendable, Equatable {
         /// Grants a unit of the highest tier reached (spawn rare — F4 stub;
         /// F5 rewires this to the real special-character drop).
         case rareUnit
+        /// Un cofre de pintas. Es la única fuente con freno propio: el cooldown
+        /// del video es lo que evita que la colección se vacíe en una tarde.
+        case skinChest
     }
 
     struct Reward: Codable, Sendable, Equatable, Identifiable {
@@ -44,7 +48,7 @@ struct RewardedAdsConfig: Codable, Sendable, Equatable {
         let magnitude: Double?
         let durationSeconds: Double?
         let titleKey: String
-        /// Cuánto tarda ESTA recompensa en volver a ofrecerse (RF-11). Los cuatro
+        /// Cuánto tarda ESTA recompensa en volver a ofrecerse (RF-11). Los
         /// cooldowns corren en paralelo: mirar un video no bloquea a los otros.
         let cooldownSeconds: Double
     }

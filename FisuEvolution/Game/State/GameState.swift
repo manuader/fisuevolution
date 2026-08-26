@@ -650,6 +650,9 @@ final class GameState {
             self.player = player
         }
         awardEligibleMilestoneSkins()
+        // El cofre de la torre se cuelga del mismo embudo por el mismo motivo, y
+        // se defiende solo de correr en cada merge con su propio contador.
+        awardFloorChestsIfDue()
         // Este método ya es el embudo de merges, ascensos y pisos nuevos: los
         // logros de fusión, tier, piso, skins y specials cuelgan de acá y no de
         // seis call sites que habría que mantener sincronizados.

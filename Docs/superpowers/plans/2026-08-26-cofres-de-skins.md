@@ -328,6 +328,11 @@ public struct ChestsConfig: Codable, Sendable, Equatable {
     public let completedPayoutFactor: Double
     /// Lo mismo para el cofre de la reencarnación, que paga más.
     public let prestigePayoutFactor: Double
+    /// Qué pinta trae el cofre del tutorial. Es FIJA y no una tirada —es un
+    /// momento guionado— pero vive acá y no en Swift: la constraint global dice
+    /// que ningún id de skin se hardcodea, y esta es la única que el código
+    /// necesitaría nombrar.
+    public let welcomeSkinId: String
 
     public func weight(for rarity: SkinsConfig.Rarity) -> Int {
         weights.first { $0.rarity == rarity }?.weight ?? 0
@@ -348,7 +353,8 @@ Y `FisuEvolution/Resources/Config/chests.json`:
   ],
   "floorsPerChest": 2,
   "completedPayoutFactor": 6.0,
-  "prestigePayoutFactor": 12.0
+  "prestigePayoutFactor": 12.0,
+  "welcomeSkinId": "urban_trailblazer"
 }
 ```
 
@@ -908,10 +914,12 @@ git commit -m "feat(cofres): el cofre pide turno como cualquier celebración y a
 - [ ] **Step 3: Verificar que no quedó ninguna referencia**
 
 ```bash
-grep -rn "periodicChest\|bonus\.effect\.chest\|gifts\.chest\|career\.reward\.chest\|gifts\.daily\.chest" --include="*.swift" --include="*.json" --include="*.xcstrings" FisuEvolution
+grep -rn 'periodicChest\|bonus\.effect\.chest \|gifts\.chest %\|career\.reward\.chest \|gifts\.daily\.chest"' --include="*.swift" --include="*.json" --include="*.xcstrings" FisuEvolution
 ```
 
-Expected: **cero líneas**.
+Expected: **cero líneas**. ⚠️ El patrón lleva los sufijos (` `, ` %`, `"`) a propósito: la
+tarea 9 agrega `gifts.chest.count` y `gifts.chest.open`, que SÍ hablan del cofre de pintas
+y no deben aparecer acá.
 
 - [ ] **Step 4: Correr la suite y commitear**
 
@@ -1065,9 +1073,11 @@ func carouselShowsCharactersWithOwnedSkins() {
 - Test: `FisuEvolutionTests/ChestSourcesTests.swift`, `FisuEvolutionUITests/TutorialUITests.swift`
 
 - [ ] **Step 1**: en `tutorialPhaseFinished()`, si `!meta.welcomeChestGiven`, otorgar el
-  cofre de bienvenida y marcar la bandera. Su premio es **fijo**: la pinta del Cartonero
-  (`urban_trailblazer`), no una tirada. Se abre solo porque la cola lo promueve apenas cae
-  la restricción.
+  cofre de bienvenida y marcar la bandera. Su premio es **fijo**: `content.chests.welcomeSkinId`
+  —hoy la pinta del Cartonero, el personaje que el jugador acaba de fusionar—, no una tirada.
+  ⚠️ **Se lee del config, no se escribe el id en Swift**: es la constraint global de
+  data-driven, y esta es la única skin que el código tendría motivo para nombrar. Se abre
+  solo porque la cola lo promueve apenas cae la restricción.
 - [ ] **Step 2**: la lección `.skins` cambia de gatillo — de "hay una skin de milestone
   ganada" a "hay un cofre abierto" (o sea, `!meta.milestoneSkins.isEmpty ||
   meta.welcomeChestGiven`). ⚠️ La regla de oro del tutorial es del dueño y es criterio de

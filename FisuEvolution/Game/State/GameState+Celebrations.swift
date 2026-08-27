@@ -47,6 +47,7 @@ extension GameState {
         if careerPrompt != nil { celebrations.enqueue(.careerChoice) }
         if skinAward != nil { celebrations.enqueue(.skinAward) }
         if specialDrop != nil { celebrations.enqueue(.specialDrop) }
+        if chestReward != nil { celebrations.enqueue(.chestOpening) }
         if towerNotice != nil { celebrations.enqueue(.towerNotice) }
         if achievementToast != nil || !pendingAchievementToasts.isEmpty {
             celebrations.enqueue(.achievements)
@@ -154,7 +155,7 @@ extension GameState {
             if let tip = tutorialTip { markLessonDone(tip.lesson) }
             tutorialTip = nil
         case .offlineEarnings, .dailyReward,
-             .careerChoice, .skinAward, .specialDrop:
+             .careerChoice, .skinAward, .specialDrop, .chestOpening:
             break
         }
     }
@@ -162,7 +163,10 @@ extension GameState {
     private func publishCelebration() {
         let kind = celebrations.current
         if showing != kind { showing = kind }
-        let hides = kind == .boardCelebration && boardCelebrationShowsSomethingNew
+        // El cofre apaga la UI SIEMPRE: su animación ocupa la pantalla entera y el
+        // HUD asomando por debajo rompe el telón.
+        let hides = (kind == .boardCelebration && boardCelebrationShowsSomethingNew)
+            || kind == .chestOpening
         if celebrationHidesUI != hides { celebrationHidesUI = hides }
     }
 }

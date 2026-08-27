@@ -31,10 +31,29 @@ struct DailyRewardView: View {
         "+\(CoinFormatter.string(from: claim.coinsGranted))"
     }
 
-    /// El personaje que tira el día del cofre, si el catálogo lo conoce.
-    private var special: SpecialsConfig.Special? {
-        guard let id = claim.specialGranted else { return nil }
-        return gameState.content?.specials.specials.first { $0.id == id }
+    /// Los tres premios que puede traer el ciclo. Excluyentes: la tarjeta muestra
+    /// uno solo.
+    enum Prize: Equatable {
+        case special(displayNameKey: String)
+        case chest
+        case coins
+    }
+
+    /// Qué premio muestra esta tarjeta.
+    ///
+    /// ⚠️ La decisión vive en UN solo lugar y es estática a propósito. Cuando
+    /// estaba repartida entre el `ViewBuilder` y `axValue` eran dos ramas para
+    /// tres premios, y el cofre del día 7 —sin special y sin plata— caía en el
+    /// `else` de la plata: el jugador veía una moneda y **"+0"** mientras se le
+    /// acreditaba un cofre en silencio. Pura y estática, además, para que el
+    /// test pregunte qué se muestra sin instanciar la vista.
+    static func prize(for claim: DailyRewardManager.Claim, specials: SpecialsConfig?) -> Prize {
+        if let id = claim.specialGranted,
+           let special = specials?.specials.first(where: { $0.id == id }) {
+            return .special(displayNameKey: special.displayNameKey)
+        }
+        if claim.chestGranted { return .chest }
+        return .coins
     }
 
     /// El plato del glifo de premio: el mismo cuadrado redondeado con el que la
@@ -109,28 +128,19 @@ struct DailyRewardView: View {
         .accessibilityValue(axValue)
     }
 
-    /// Los dos premios posibles: un personaje special (día 7) o plata.
+    /// Los tres premios posibles: un personaje special (día 7), un cofre de
+    /// pintas o plata.
     @ViewBuilder private var prize: some View {
-        if let special {
-            VStack(spacing: Tokens.s4) {
-                // El moño sobre su plato amarillo: el glifo del premio es el
-                // retrato del popup, y en los materiales v3 los retratos no
-                // flotan sueltos sobre la tarjeta — el plato con su borde
-                // marrón es lo que los ancla (mismo encuadre que `DailyStrip`
-                // y que el personaje de `SpecialDropView`).
+        switch Self.prize(for: claim, specials: gameState.content?.specials) {
+        case .special(let displayNameKey):
+            portrait(titleKey: displayNameKey) {
                 GameIcon(artKey: "ui_tab_gifts", size: 52) { VectorTabGiftsIcon() }
-                    .padding(Tokens.s8)
-                    .background(Color("PaletteYellow").opacity(0.3))
-                    .clipShape(Self.plateShape)
-                    .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
-                Text(LocalizedStringKey(special.displayNameKey))
-                    .font(Tokens.display)
-                    .foregroundStyle(Color("PaletteInk"))
-                    .multilineTextAlignment(.center)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.6)
             }
-        } else {
+        case .chest:
+            portrait(titleKey: "daily.prize.chest") {
+                GameIcon(artKey: "ui_chest_closed", size: 52) { VectorTabGiftsIcon() }
+            }
+        case .coins:
             HStack(spacing: Tokens.s8) {
                 CoinIcon(size: 34)
                 Text(verbatim: amountText)
@@ -143,12 +153,38 @@ struct DailyRewardView: View {
         }
     }
 
-    /// Lo que VoiceOver anuncia como valor de la tarjeta: el premio, sea el
-    /// personaje del cofre o la plata.
-    private var axValue: Text {
-        if let special {
-            return Text(LocalizedStringKey(special.displayNameKey))
+    /// El glifo sobre su plato amarillo con el nombre debajo: el encuadre que
+    /// comparten el special y el cofre.
+    ///
+    /// En los materiales v3 los retratos no flotan sueltos sobre la tarjeta —el
+    /// plato con su borde marrón es lo que los ancla—, mismo encuadre que
+    /// `DailyStrip` y que el personaje de `SpecialDropView`.
+    private func portrait(titleKey: String, @ViewBuilder glyph: () -> some View) -> some View {
+        VStack(spacing: Tokens.s4) {
+            glyph()
+                .padding(Tokens.s8)
+                .background(Color("PaletteYellow").opacity(0.3))
+                .clipShape(Self.plateShape)
+                .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+            Text(LocalizedStringKey(titleKey))
+                .font(Tokens.display)
+                .foregroundStyle(Color("PaletteInk"))
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.6)
         }
-        return Text(verbatim: amountText)
+    }
+
+    /// Lo que VoiceOver anuncia como valor de la tarjeta: el premio, sea el
+    /// personaje, el cofre o la plata.
+    private var axValue: Text {
+        switch Self.prize(for: claim, specials: gameState.content?.specials) {
+        case .special(let displayNameKey):
+            return Text(LocalizedStringKey(displayNameKey))
+        case .chest:
+            return Text(LocalizedStringKey("daily.prize.chest"))
+        case .coins:
+            return Text(verbatim: amountText)
+        }
     }
 }

@@ -341,8 +341,8 @@ struct ContentSystemsTests {
         let today = Date(timeIntervalSince1970: 1_700_000_000)
         let claim = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
-            upgrades: content.upgradesConfig, viral: content.viral, economy: economy,
-            today: today, rng: &rng
+            skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
+            economy: economy, today: today, rng: &rng
         ))
         #expect(claim.day.day == 1)
         #expect(claim.coinsGranted > 0)
@@ -351,8 +351,8 @@ struct ContentSystemsTests {
         // Mismo día: no hay segundo claim.
         let second = DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
-            upgrades: content.upgradesConfig, viral: content.viral, economy: economy,
-            today: today, rng: &rng
+            skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
+            economy: economy, today: today, rng: &rng
         )
         #expect(second == nil)
     }
@@ -366,9 +366,88 @@ struct ContentSystemsTests {
         let today = try #require(Calendar.current.date(from: DateComponents(year: 2023, month: 11, day: 14, hour: 12)))
         let claim = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
-            upgrades: content.upgradesConfig, viral: content.viral, economy: economy,
-            today: today, rng: &rng
+            skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
+            economy: economy, today: today, rng: &rng
         ))
         #expect(claim.day.day == 1)
+    }
+
+    /// El día 7 tiene tres escalones y este test los recorre en orden: special,
+    /// cofre, plata. El cofre entra en el medio y **no puede pisarle el premio al
+    /// special**: mientras queden specials por sacar, el día 7 sigue siendo, ante
+    /// todo, su día.
+    @Test("el día 7 da cofre sólo cuando ya están los diez specials")
+    func daySevenFallsThroughSpecialThenChest() throws {
+        var state = makeState(maxTier: 3)
+        state.meta.daily.cycleDay = 7
+        var rng = FixedRNG(seed: 2)
+        let today = Date(timeIntervalSince1970: 1_700_000_000)
+
+        // Primer escalón: con specials pendientes NO hay cofre.
+        let conSpecials = try #require(DailyRewardManager.claimIfAvailable(
+            state: &state, config: content.dailyRewards, specials: content.specials,
+            skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
+            economy: economy, today: today, rng: &rng
+        ))
+        #expect(conSpecials.specialGranted != nil)
+        #expect(conSpecials.chestGranted == false)
+        #expect(state.meta.chestsPending == 0)
+
+        // Segundo escalón: con los diez specials tomados y pintas por sacar, cofre.
+        state.meta.ownedSpecials = content.specials.specials.map(\.id)
+        state.meta.daily.cycleDay = 7
+        state.meta.daily.lastClaimDay = nil
+        let sinSpecials = try #require(DailyRewardManager.claimIfAvailable(
+            state: &state, config: content.dailyRewards, specials: content.specials,
+            skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
+            economy: economy, today: today, rng: &rng
+        ))
+        #expect(sinSpecials.specialGranted == nil)
+        #expect(sinSpecials.chestGranted)
+        #expect(state.meta.chestsPending == 1)
+        #expect(sinSpecials.coinsGranted == 0, "el cofre reemplaza a la plata, no se suma")
+
+        // Tercer escalón: sin specials y sin pintas por sacar, vuelve la plata.
+        state.meta.ownedSkins = content.skins.chestPool.map(\.id)
+        state.meta.daily.cycleDay = 7
+        state.meta.daily.lastClaimDay = nil
+        let conTodo = try #require(DailyRewardManager.claimIfAvailable(
+            state: &state, config: content.dailyRewards, specials: content.specials,
+            skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
+            economy: economy, today: today, rng: &rng
+        ))
+        #expect(conTodo.chestGranted == false)
+        #expect(conTodo.coinsGranted > 0)
+        #expect(state.meta.chestsPending == 1, "la colección completa no suma un cofre más")
+    }
+
+    /// El agujero que deja preguntar por el sorteo en vez de por el catálogo:
+    /// `eligible` filtra **también** por `requiresPrestigeLevel`, así que
+    /// quedarse sin sorteo NO es lo mismo que tener los diez. Siete de los diez
+    /// specials piden prestigio 0 y los otros piden 3, 5 y 8; colgado de
+    /// `eligible`, el día 7 sería una canilla semanal de cofres desde que un
+    /// jugador en prestigio 0 junta esos siete.
+    @Test("con specials que el prestigio todavía no habilita, el día 7 paga plata y no cofre")
+    func daySevenWithoutPrestigeGatedSpecialsPaysCoins() throws {
+        var state = makeState(maxTier: 3)
+        let alAlcance = content.specials.specials.filter { $0.requiresPrestigeLevel == 0 }
+        #expect(alAlcance.count < content.specials.specials.count,
+                "el caso pide que queden specials fuera del alcance del prestigio 0")
+
+        // Tomados los que puede sacar; los que piden prestigio, no.
+        state.meta.ownedSpecials = alAlcance.map(\.id)
+        state.meta.daily.cycleDay = 7
+        var rng = FixedRNG(seed: 3)
+        let today = Date(timeIntervalSince1970: 1_700_000_000)
+
+        let claim = try #require(DailyRewardManager.claimIfAvailable(
+            state: &state, config: content.dailyRewards, specials: content.specials,
+            skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
+            economy: economy, today: today, rng: &rng
+        ))
+        #expect(claim.specialGranted == nil, "en prestigio 0 no hay ninguno de los tres para sortear")
+        #expect(claim.chestGranted == false, "sin los diez tomados no hay cofre")
+        #expect(claim.coinsGranted > 0, "y el premio vuelve a ser el de siempre: plata")
+        #expect(state.meta.chestsPending == 0)
     }
 }

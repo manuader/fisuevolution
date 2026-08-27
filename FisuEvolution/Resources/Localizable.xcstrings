@@ -1565,6 +1565,23 @@
         }
       }
     },
+    "ads.reward.chest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skin chest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofre de pintas"
+          }
+        }
+      }
+    },
     "ads.reward.double" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -1612,6 +1629,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Personaje de regalo"
+          }
+        }
+      }
+    },
+    "ads.reward.text.chest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A new look for your collection"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una pinta nueva para tu colección"
           }
         }
       }
@@ -1733,23 +1767,6 @@
         }
       }
     },
-    "bonus.effect.chest %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A %@ coin chest, every time"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un cofre de plata %@, cada vez"
-          }
-        }
-      }
-    },
     "bonus.effect.income %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1780,6 +1797,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ de ganancia offline, para siempre"
+          }
+        }
+      }
+    },
+    "bonus.effect.payout %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A %@ coin platter, every time"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una picada de plata %@, cada vez"
           }
         }
       }
@@ -2124,23 +2158,6 @@
         }
       }
     },
-    "career.reward.chest %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Welcome chest: %@ coins"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cofre de bienvenida: %@ de plata"
-          }
-        }
-      }
-    },
     "career.reward.modifier %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2171,6 +2188,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skin exclusiva: %@"
+          }
+        }
+      }
+    },
+    "career.reward.welcome %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome bonus: %@ coins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenida: %@ de plata"
           }
         }
       }
@@ -2441,6 +2475,227 @@
         }
       }
     },
+    "chest.card.facedown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face-down card"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carta boca abajo"
+          }
+        }
+      }
+    },
+    "chest.coins.ok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nice"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buenísimo"
+          }
+        }
+      }
+    },
+    "chest.coins.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added to your coins."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se sumó a tu plata."
+          }
+        }
+      }
+    },
+    "chest.dismiss" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Después"
+          }
+        }
+      }
+    },
+    "chest.equip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wear it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ponérsela"
+          }
+        }
+      }
+    },
+    "chest.rarity.comun" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Common"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Común"
+          }
+        }
+      }
+    },
+    "chest.rarity.epica" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Epic"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Épica"
+          }
+        }
+      }
+    },
+    "chest.rarity.legendaria" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendary"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legendaria"
+          }
+        }
+      }
+    },
+    "chest.rarity.rara" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rare"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rara"
+          }
+        }
+      }
+    },
+    "chest.skin.subtitle %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For your %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para tu %@."
+          }
+        }
+      }
+    },
+    "chest.tap.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap to open the chest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá para abrir el cofre"
+          }
+        }
+      }
+    },
+    "chest.title.coins" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coins!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Plata!"
+          }
+        }
+      }
+    },
+    "chest.title.skin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New look!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Pinta nueva!"
+          }
+        }
+      }
+    },
     "daily.day1.title" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -2556,6 +2811,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Día 7: Aparece Alguien Turbio"
+          }
+        }
+      }
+    },
+    "daily.prize.chest" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skin chest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofre de pintas"
           }
         }
       }
@@ -2934,40 +3206,6 @@
         }
       }
     },
-    "gifts.chest %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chest! +%@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Cofre! +%@"
-          }
-        }
-      }
-    },
-    "gifts.daily.chest" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chest"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cofre"
-          }
-        }
-      }
-    },
     "gifts.daily.note" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3032,6 +3270,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En juego"
+          }
+        }
+      }
+    },
+    "gifts.daily.surprise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Surprise"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorpresa"
+          }
+        }
+      }
+    },
+    "gifts.payout %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payout! +%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Picada! +%@"
           }
         }
       }

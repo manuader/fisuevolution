@@ -232,6 +232,30 @@ struct CelebrationQueueTests {
         #expect(queue.current == nil, "y al terminar, nada no-permitido lo reemplaza")
     }
 
+    // MARK: El cofre
+
+    /// El cofre llega ANTES que el reveal y sale igual DESPUÉS: la prioridad
+    /// manda sobre el orden de llegada. Ocupar el turno con un tercero es lo que
+    /// deja a los dos compitiendo en la fila —el primero que entra a una cola
+    /// vacía se promueve solo y ahí no hay competencia que medir—.
+    @Test("el cofre espera a que termine el reveal del tablero")
+    func chestWaitsForTheBoardReveal() {
+        var queue = CelebrationQueue()
+        queue.enqueue(.offlineEarnings)    // ocupa el turno
+        queue.enqueue(.chestOpening)       // prioridad 4, llega primero
+        queue.enqueue(.boardCelebration)   // prioridad 3, llega después
+        queue.finish(.offlineEarnings)
+        #expect(queue.current == .boardCelebration, "el reveal del tablero va antes: prioridad 3 < 4")
+        queue.finish(.boardCelebration)
+        #expect(queue.current == .chestOpening, "y el cofre recién cuando el tablero terminó")
+    }
+
+    @Test("el cofre no se cierra solo")
+    func chestHasNoTimeout() {
+        #expect(CelebrationKind.chestOpening.timeout == nil)
+        #expect(CelebrationKind.chestOpening.isSkippable == false)
+    }
+
     // MARK: Invariantes del catálogo
 
     /// Se puede saltear exactamente lo que se cierra solo. Lo que espera al

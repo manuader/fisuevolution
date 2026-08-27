@@ -88,7 +88,20 @@ struct BoostUnlockTests {
         for row in gameState.boostRows {
             #expect(!row.effectText.isEmpty, "\(row.id) no dice qué hace")
             #expect(!row.flavorText.isEmpty, "\(row.id) no tiene texto de color")
+            // "No vacío" no alcanza: si la clave no está en el catálogo,
+            // `String(localized:)` devuelve la clave cruda, que tampoco es vacía.
+            // Es el modo de falla del renombre de 2026-08-26, que compila verde.
+            #expect(!row.effectText.contains("bonus.effect."), "\(row.id) dejó una clave cruda: '\(row.effectText)'")
         }
+    }
+
+    @Test("el cartel de la picada del Asado se lee, no muestra la clave")
+    func payoutBannerIsResolvedCopy() {
+        // El cartel es lo ÚNICO que le dice al jugador cuánto le pagó el asado, y
+        // vive en un `body` de SwiftUI: sin este test nadie mira esa clave.
+        let text = GameState.payoutText(1234)
+        #expect(!text.contains("gifts."), "el cartel dejó una clave cruda: '\(text)'")
+        #expect(text.contains("1"), "el cartel no dice cuánto pagó: '\(text)'")
     }
 
     @Test("el boost de costo se lee como descuento")

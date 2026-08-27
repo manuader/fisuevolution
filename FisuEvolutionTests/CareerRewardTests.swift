@@ -38,6 +38,9 @@ struct CareerRewardTests {
         for option in options {
             let reward = try #require(rewards[option], "\(option) no tiene premio declarado")
             #expect(!reward.previewText.isEmpty, "\(option) no dice qué da: elegir a ciegas no es elegir")
+            // Ídem `BoostUnlockTests`: la clave cruda tampoco es vacía, así que
+            // "no vacío" deja pasar una vista que imprime "career.reward.welcome 1,2 M".
+            #expect(!reward.previewText.contains("career.reward."), "\(option) dejó una clave cruda: '\(reward.previewText)'")
         }
     }
 

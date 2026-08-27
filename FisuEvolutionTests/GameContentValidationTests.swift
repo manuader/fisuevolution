@@ -556,6 +556,58 @@ struct GameContentValidationTests {
         }
     }
 
+    /// Las 41 pintas de piso ya no se regalan al llegar: las reparte el cofre, y
+    /// su rareza sale del piso donde VIVE el personaje (no del `floorReached`
+    /// viejo, que apuntaba al piso siguiente). Los totales solos no alcanzan —
+    /// una entrada mal clasificada pasaría mientras otra compense—, así que
+    /// abajo se recalcula la rareza desde el tier de cada personaje.
+    @Test("las 41 pintas de piso son de cofre, con la rareza del piso donde vive el personaje")
+    func chestPoolMatchesTheDesignedRarities() throws {
+        let pool = content.skins.chestPool
+
+        // Lo que ataja de verdad una migración a medias es esto: una entrada que
+        // se quedó con `floorReached` no entra a la bolsa y el conteo se cae.
+        #expect(pool.count == 41)
+        // Las dos de acá abajo NO pueden fallar, y quedan como documentación del
+        // invariante: el `init()` de la suite carga con `GameContentLoader`, que
+        // corre `skins.validate(...)`, que ya tira `chestAndMilestone` para este
+        // caso exacto — o sea que el load explotaría antes de llegar hasta acá.
+        #expect(content.skins.skins.allSatisfy { $0.floorReached == nil || $0.chestRarity == nil })
+        #expect(pool.allSatisfy { !$0.isMilestone })
+
+        let esperado: [SkinsConfig.Rarity: Int] = [.comun: 7, .rara: 14, .epica: 12, .legendaria: 8]
+        for (rareza, cuantas) in esperado {
+            #expect(pool.filter { $0.chestRarity == rareza }.count == cuantas, "\(rareza)")
+        }
+
+        let porPiso: [String: SkinsConfig.Rarity] = [
+            "alley": .comun, "urban": .comun,
+            "corporate": .rara, "luxury": .rara,
+            "island": .epica, "moon": .epica, "mars": .epica,
+            "solar": .legendaria, "galaxy": .legendaria,
+        ]
+        for skin in pool {
+            let tier = try #require(content.tiers.type(id: skin.characterType)).tier
+            let piso = content.floorTable.floor(forTier: tier)
+            #expect(skin.chestRarity == porPiso[piso.id], "\(skin.characterType) (T\(tier), \(piso.id))")
+        }
+    }
+
+    @Test("chests.json trae los pesos y los factores del spec")
+    func chestConfigMatchesTunedValues() {
+        let chests = content.chests
+        #expect(chests.weight(for: .comun) == 55)
+        #expect(chests.weight(for: .rara) == 28)
+        #expect(chests.weight(for: .epica) == 12)
+        #expect(chests.weight(for: .legendaria) == 5)
+        #expect(chests.floorsPerChest == 2)
+        #expect(chests.completedPayoutFactor == 6)
+        #expect(chests.prestigePayoutFactor == 12)
+        // La pinta del cofre de bienvenida tiene que existir en la bolsa: un id mal
+        // escrito acá deja el cofre del tutorial sin premio y nada más lo diría.
+        #expect(content.skins.chestPool.contains { $0.id == chests.welcomeSkinId })
+    }
+
     /// Cada personaje concreto tiene su skin alternativa catalogada, y todas
     /// declaran nombre visible: una skin sin `displayNameKey` se vería en la
     /// ficha como su id crudo.

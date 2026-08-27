@@ -193,39 +193,52 @@ struct GameLoopWiringTests {
         #expect(promotedToFloor == 1)
         #expect(unlockedFloorId == "urban")
         #expect(gameState.player?.run.unlockedFloors.contains("urban") == true)
-        #expect(gameState.player?.meta.milestoneSkins.contains("urban_trailblazer") == true)
         #expect(gameState.tower?.unitCounts == gameState.player?.run.units)
-        // El sheet ya NO aparece en el instante del merge: taparía el vuelo, el
-        // reveal y la celebración del piso, los tres a la vez. Espera su turno.
-        //
+        // ⚠️ Acá se pineaba que abrir urban acreditaba `urban_trailblazer` y que el
+        // sheet desfilaba detrás del reveal. **Llegar a un piso ya no regala
+        // pintas**: las 41 pasaron a la bolsa del cofre (`chestRarity`), así que
+        // lo que hay que cuidar es lo contrario — si algo se acredita acá, una
+        // entrada se quedó con `floorReached` y el cofre repartiría después algo
+        // que el jugador ya tiene. El orden sheet-detrás-del-reveal no se pierde:
+        // lo pinean `CelebrationKind.priority` (`CelebrationQueue.swift`), que es
+        // donde vive la regla —3 para el reveal, 4 para el sheet—, y
+        // `CelebrationQueueTests.tiesKeepArrivalOrder`, que encola el reveal
+        // delante del sheet y verifica que salgan en ese orden.
+        #expect(gameState.player?.meta.milestoneSkins.isEmpty == true, "abrir un piso no otorga pintas")
+        #expect(gameState.skinAward == nil, "sin skin que mostrar, no hay sheet que encolar")
         // El turno del ascenso lo pide `handleDrop` apenas sabe que hay algo que
-        // celebrar, ANTES de acreditar la skin: si lo pidiera después, el sheet
-        // ya estaría en pantalla y taparía el vuelo y el reveal.
+        // celebrar: el vuelo y el reveal siguen siendo suyos.
         #expect(gameState.showing == .boardCelebration, "el turno es de la escena")
-        #expect(gameState.skinAward != nil, "el payload se asigna igual; lo que espera es mostrarlo")
-        gameState.celebrationFinished(.boardCelebration)
-        #expect(gameState.showing == .skinAward, "recién ahora le toca al sheet")
-        // ⚠️ Acá se pineaba `skinAward?.id == "urban_trailblazer"`, y se rompió al
-        // agregar personajes: `urban` ahora otorga TRES skins y el popup muestra
-        // la primera alfabéticamente (`GameState.swift`, `newlyUnlocked.sorted().first`),
-        // que pasó a ser `malabarista`. Varias skins por piso es la conducta de
-        // siempre —isla y lujo otorgan siete— así que lo que estaba mal era el
-        // test: pinear el ganador alfabético lo rompe cada vez que entra
-        // contenido. Se pinea la regla, que es la que importa.
-        let premiada = try #require(gameState.skinAward, "tras la cadena tiene que aparecer el sheet")
-        #expect(
-            gameState.player?.meta.milestoneSkins.contains(premiada.id) == true,
-            "el popup tiene que mostrar una de las skins recién ganadas, no cualquiera"
-        )
-        #expect(
-            content(of: premiada, in: gameState)?.floorReached == "urban",
-            "y tiene que ser una del piso que se acaba de abrir"
-        )
     }
 
-    /// La entrada de catálogo de la skin que muestra el sheet.
-    private func content(of award: GameState.SkinAward, in gameState: GameState) -> SkinsConfig.Entry? {
-        gameState.content?.skins.skins.first { $0.id == award.id }
+    /// El contrapeso del de arriba. Sacar las 41 del evaluador dejó a
+    /// `awardEligibleMilestoneSkins` sin un solo test que lo llevara a un
+    /// resultado NO vacío por el camino real —todos los demás siembran
+    /// `milestoneSkins` a mano con `grantMilestoneSkinsForTests`—, y
+    /// `reincarnations` y `upgradesMaxed` siguen shippeando. Sin esto, el tramo
+    /// que arma el payload (`newlyUnlocked.sorted().first` → `entry(id:)` →
+    /// `type(id:)`) se puede romper entero sin que nada se ponga rojo.
+    @Test("reencarnar acredita su pinta y le encola el sheet, con el personaje resuelto")
+    func prestigeAwardsItsMilestoneSkinAndQueuesTheSheet() async throws {
+        let gameState = await makeGameState()
+        #expect(gameState.player?.meta.milestoneSkins.isEmpty == true, "se arranca sin ninguna")
+        // El gate es ≥1 ORO y el divisor del rebalance no se alcanza sumando
+        // monedas: se pide el ORO derivado de la config, como el test de prestigio.
+        gameState.giveEarningsForPrestigeTesting()
+        #expect(gameState.prestigeAvailable)
+
+        gameState.confirmPrestige()
+
+        #expect(gameState.player?.meta.prestigeLevel == 1)
+        #expect(
+            gameState.player?.meta.milestoneSkins == ["second_life"],
+            "la primera reencarnación acredita la suya, y sólo la suya"
+        )
+        // El payload se arma acá y no en la vista, porque la ficha necesita el
+        // personaje ya resuelto: es justo el tramo que ningún otro test recorre.
+        let premiada = try #require(gameState.skinAward, "la pinta recién ganada encola su sheet")
+        #expect(premiada.id == "second_life")
+        #expect(premiada.characterType.id == "homeless")
     }
 
     /// ⚠️ **El aviso lo dispara la FRONTERA, no el ascenso de piso, y por eso
@@ -255,12 +268,13 @@ struct GameLoopWiringTests {
         #expect(gameState.showing != .towerNotice, "el toast no sale durante la cadena")
 
         // El aviso tiene la prioridad MÁS BAJA de la cola, así que se drena lo
-        // que haya delante (la skin de milestone y la tanda de logros llegan
-        // primero) hasta que le toca. El tope es por si una regresión deja la
-        // cola sin avanzar: un `while` acá cuelga la suite en vez de fallarla.
+        // que haya delante (el reveal del tablero y la tanda de logros llegan
+        // primero) hasta que le toca. Acá ya no se cuela ninguna pinta: este merge
+        // abre lujo y llegar dejó de otorgarlas. El tope es por si una regresión
+        // deja la cola sin avanzar: un `while` acá cuelga la suite en vez de
+        // fallarla.
         for _ in 0..<CelebrationKind.allCases.count {
             guard let showing = gameState.showing, showing != .towerNotice else { break }
-            if showing == .skinAward { gameState.skinAward = nil }
             gameState.celebrationFinished(showing)
         }
         #expect(gameState.showing == .towerNotice, "y recién al final sale el aviso")

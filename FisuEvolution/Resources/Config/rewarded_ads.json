@@ -28,6 +28,12 @@
       "effectType": "rareUnit",
       "cooldownSeconds": 14400,
       "titleKey": "ads.reward.rare"
+    },
+    {
+      "id": "skin_chest",
+      "effectType": "skinChest",
+      "cooldownSeconds": 14400,
+      "titleKey": "ads.reward.chest"
     }
   ]
 }

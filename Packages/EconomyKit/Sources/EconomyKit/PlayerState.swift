@@ -107,6 +107,10 @@ public struct RunState: Codable, Sendable, Equatable {
     /// tiene por qué borrarte de la pantalla la mejora que le compraste
     /// (RF-03). `TowerReconciler` los rellena en la carga.
     public var seenTypes: Set<String>
+    /// Cuántos cofres dio la torre en ESTA partida. Muere con la run a
+    /// propósito: volver a subir la torre vuelve a pagar, que es lo que empuja
+    /// a reencarnar.
+    public var floorChestsAwarded: Int
 
     public init(
         coins: Double,
@@ -119,7 +123,8 @@ public struct RunState: Codable, Sendable, Equatable {
         charUpgradeLevels: [String: Int],
         unlockedFloors: [String],
         activeModifiers: [ActiveModifier],
-        seenTypes: Set<String> = []
+        seenTypes: Set<String> = [],
+        floorChestsAwarded: Int = 0
     ) {
         self.coins = coins
         self.units = units
@@ -132,6 +137,7 @@ public struct RunState: Codable, Sendable, Equatable {
         self.unlockedFloors = unlockedFloors
         self.activeModifiers = activeModifiers
         self.seenTypes = seenTypes
+        self.floorChestsAwarded = floorChestsAwarded
     }
 
     /// Decodificador a mano: el sintetizado exige TODA clave que no sea opcional
@@ -153,6 +159,7 @@ public struct RunState: Codable, Sendable, Equatable {
         unlockedFloors = try container.decode([String].self, forKey: .unlockedFloors)
         activeModifiers = try container.decode([ActiveModifier].self, forKey: .activeModifiers)
         seenTypes = try container.decodeIfPresent(Set<String>.self, forKey: .seenTypes) ?? []
+        floorChestsAwarded = try container.decodeIfPresent(Int.self, forKey: .floorChestsAwarded) ?? 0
     }
 
     /// Run recién nacida: una unidad base, piso 1 desbloqueado. Reencarnar es
@@ -261,7 +268,7 @@ public struct MetaState: Codable, Sendable, Equatable {
     public var boostActivations: [String: TimeInterval]
     /// Última vez que se cobró cada recompensa por video (RF-11). Vive acá y no
     /// en `run` por lo mismo que `boostActivations`: si muriera al reencarnar,
-    /// reencarnar sería la forma de mirar los cuatro videos otra vez.
+    /// reencarnar sería la forma de mirar los videos otra vez.
     public var rewardedActivations: [String: TimeInterval]
     /// IDs de transacción de StoreKit ya acreditadas. Un entitlement se
     /// reescribe entero en cada sync y es idempotente por construcción; un
@@ -279,6 +286,17 @@ public struct MetaState: Codable, Sendable, Equatable {
     /// porque cobrar es un acto aparte: un logro se consigue una vez y se paga
     /// una vez.
     public var claimedAchievements: Set<String>
+    /// Cofres ganados y todavía sin abrir. Vive en `meta` y no en `run`: un
+    /// cofre ganado en la partida anterior sigue siendo tuyo después de
+    /// reencarnar.
+    public var chestsPending: Int
+    /// Los de la reencarnación, aparte de los comunes porque garantizan
+    /// **épica o mejor**. Dos contadores y no una cola de `[Rarity?]`: hay una
+    /// sola fuente con piso, así que la cola sería estructura para un caso que
+    /// no existe — y encima obligaría a serializar un enum opcional en el save.
+    public var prestigeChestsPending: Int
+    /// El cofre del tutorial se da UNA vez por save, no una por partida.
+    public var welcomeChestGiven: Bool
 
     public init(
         lifetimeEarnings: Double,
@@ -302,7 +320,10 @@ public struct MetaState: Codable, Sendable, Equatable {
         lastSeenTimestamp: TimeInterval,
         stats: MetaStats,
         unlockedAchievements: Set<String> = [],
-        claimedAchievements: Set<String> = []
+        claimedAchievements: Set<String> = [],
+        chestsPending: Int = 0,
+        prestigeChestsPending: Int = 0,
+        welcomeChestGiven: Bool = false
     ) {
         self.lifetimeEarnings = lifetimeEarnings
         self.oro = oro
@@ -326,6 +347,9 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.stats = stats
         self.unlockedAchievements = unlockedAchievements
         self.claimedAchievements = claimedAchievements
+        self.chestsPending = chestsPending
+        self.prestigeChestsPending = prestigeChestsPending
+        self.welcomeChestGiven = welcomeChestGiven
     }
 
     /// Decodificador a mano por los campos que llegaron después de v4
@@ -333,6 +357,11 @@ public struct MetaState: Codable, Sendable, Equatable {
     /// saves ya escritos y el decodificador sintetizado exige toda clave que no
     /// sea opcional, así que sin esto el jugador que actualiza pierde la partida.
     /// Es más barato que subir la versión del sobre por un diccionario vacío.
+    ///
+    /// Los tres del cofre entran por la misma puerta aunque SÍ tengan bump:
+    /// `SaveMigrator.migrateV4toV5` los escribe, así que todo v5 los trae, pero
+    /// exigirlos haría que un sobre recortado —o uno escrito por otra versión—
+    /// costara la partida entera por tres contadores en cero.
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         lifetimeEarnings = try container.decode(Double.self, forKey: .lifetimeEarnings)
@@ -370,6 +399,9 @@ public struct MetaState: Codable, Sendable, Equatable {
         stats = try container.decode(MetaStats.self, forKey: .stats)
         unlockedAchievements = try container.decodeIfPresent(Set<String>.self, forKey: .unlockedAchievements) ?? []
         claimedAchievements = try container.decodeIfPresent(Set<String>.self, forKey: .claimedAchievements) ?? []
+        chestsPending = try container.decodeIfPresent(Int.self, forKey: .chestsPending) ?? 0
+        prestigeChestsPending = try container.decodeIfPresent(Int.self, forKey: .prestigeChestsPending) ?? 0
+        welcomeChestGiven = try container.decodeIfPresent(Bool.self, forKey: .welcomeChestGiven) ?? false
     }
 
     /// Meta virgen de cuenta nueva.
@@ -405,15 +437,15 @@ public struct MetaState: Codable, Sendable, Equatable {
     public var allOwnedSkins: Set<String> { Set(ownedSkins).union(milestoneSkins) }
 }
 
-/// The complete player save (schema v4, F7 "La Torre"): un sobre con dos
-/// secciones — `run` muere al reencarnar, `meta` sobrevive. CoreData lo guarda
-/// como JSON blob y el snapshot es la misma codificación.
+/// The complete player save (schema v5): un sobre con dos secciones —`run`
+/// muere al reencarnar, `meta` sobrevive—, forma que estrenó F7 "La Torre" en
+/// v4. CoreData lo guarda como JSON blob y el snapshot es la misma codificación.
 public struct PlayerState: Codable, Sendable, Equatable {
     public var schemaVersion: Int
     public var run: RunState
     public var meta: MetaState
 
-    public static let currentSchemaVersion = 4
+    public static let currentSchemaVersion = 5
 
     public init(schemaVersion: Int, run: RunState, meta: MetaState) {
         self.schemaVersion = schemaVersion

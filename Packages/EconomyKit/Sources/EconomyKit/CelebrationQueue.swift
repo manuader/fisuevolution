@@ -20,6 +20,9 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     case skinAward
     /// El special que te cayó.
     case specialDrop
+    /// El cofre que el jugador abrió. Es un ítem más de la cola: el "de a una" y el
+    /// no pisarse con el reveal del tablero salen del árbitro que ya existe.
+    case chestOpening
     /// La franja del evento activo.
     case eventBanner
     /// Los logros recién conseguidos. Es UN casillero para toda la tanda: la
@@ -42,7 +45,7 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         case .offlineEarnings, .dailyReward: 1
         case .careerChoice: 2
         case .boardCelebration: 3
-        case .skinAward, .specialDrop: 4
+        case .skinAward, .specialDrop, .chestOpening: 4
         case .eventBanner: 5
         case .achievements, .towerNotice: 6
         // Una lección puede esperar a todo el mundo: enseña una pantalla que
@@ -60,7 +63,8 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     /// reiniciar la app.
     public var timeout: TimeInterval? {
         switch self {
-        case .offlineEarnings, .dailyReward, .careerChoice, .skinAward, .specialDrop: nil
+        case .offlineEarnings, .dailyReward, .careerChoice,
+             .skinAward, .specialDrop, .chestOpening: nil
         case .boardCelebration: 8
         case .eventBanner: 6
         // Cubre unos diez toasts seguidos; pasado eso corta y lo loguea.

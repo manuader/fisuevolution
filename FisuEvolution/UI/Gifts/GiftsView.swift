@@ -28,8 +28,8 @@ struct GiftsView: View {
     /// Qué video se está mirando ahora (su fila muestra el spinner en lugar del
     /// botón). `nil` = ninguno.
     @State private var watchingRewardId: String?
-    /// Lo que pagó el cofre del Asado, si se activó en esta visita.
-    @State private var chestAmount: Double?
+    /// Lo que pagó la picada del Asado, si se activó en esta visita.
+    @State private var payoutAmount: Double?
     @State private var now = Date()
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -52,7 +52,7 @@ struct GiftsView: View {
 
         // ⚠️ UNA lectura por evaluación del body: las tres proyecciones se
         // computan de cero cada vez que se leen (los seis boosts consultan el
-        // cooldown, los cuatro videos también). Leerlas adentro del `ForEach` las
+        // cooldown, los videos también). Leerlas adentro del `ForEach` las
         // multiplicaría por su cantidad de filas.
         let days = gameState.dailyCalendar
         let boosts = gameState.boostRows
@@ -60,7 +60,8 @@ struct GiftsView: View {
 
         NavigationStack {
             ScrollView {
-                // `VStack` y no `LazyVStack`: son 11 tarjetas contadas y tienen
+                // `VStack` y no `LazyVStack`: son 12 tarjetas contadas —la tira,
+                // los seis boosts y los cinco videos— y tienen
                 // que existir en el árbol de accesibilidad sin scrollear. La fila
                 // del video que ejerce `BonusHUDUITests` vive abajo de los seis
                 // boosts, y con la lista perezosa de `BonusView` el test tenía
@@ -77,11 +78,11 @@ struct GiftsView: View {
 
                     section("gifts.section.boosts")
                     ForEach(Array(boosts.enumerated()), id: \.element.id) { offset, row in
-                        BoostCard(row: row) { chestAmount = gameState.activateBoost(id: row.id) }
+                        BoostCard(row: row) { payoutAmount = gameState.activateBoost(id: row.id) }
                             .staggeredAppearance(index: 1 + offset)
                     }
-                    if let chestAmount {
-                        chestBanner(chestAmount)
+                    if let payoutAmount {
+                        payoutBanner(payoutAmount)
                     }
 
                     section("gifts.section.videos")
@@ -136,11 +137,11 @@ struct GiftsView: View {
             .padding(.top, Tokens.s8)
     }
 
-    /// Lo que pagó el cofre del Asado. Aparece bajo los boosts y se queda hasta
+    /// Lo que pagó la picada del Asado. Aparece bajo los boosts y se queda hasta
     /// cerrar la hoja: es un premio de una vez y el jugador tiene que poder
     /// volver a mirarlo.
-    private func chestBanner(_ amount: Double) -> some View {
-        let text = String(localized: "gifts.chest \(CoinFormatter.string(from: amount))")
+    private func payoutBanner(_ amount: Double) -> some View {
+        let text = GameState.payoutText(amount)
         return GameCard(style: .highlighted(Color("PaletteYellow"))) {
             HStack(spacing: Tokens.s8) {
                 CoinIcon(size: 26)
@@ -206,7 +207,7 @@ private enum Cooldown {
 
 /// Los siete días del ciclo, en una tira. Cobrados con tilde, el que está en
 /// juego resaltado en amarillo —el mismo acento que marca el piso actual en el
-/// ascensor— y el séptimo con el moño del cofre.
+/// ascensor— y el séptimo con el moño de la sorpresa.
 ///
 /// No hay botón de reclamar: ver el ⚠️ de `GiftsView`.
 private struct DailyStrip: View {
@@ -312,18 +313,18 @@ private struct DayCell: View {
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("gifts.daily.day\(day.id)")
         // El nombre del día ("Día 3: Quincena Chica") ya es la mitad del chiste;
-        // para el séptimo se agrega el cofre, que es lo ÚNICO que lo distingue
+        // para el séptimo se agrega la sorpresa, que es lo ÚNICO que lo distingue
         // en pantalla y se perdería al colapsar la casilla.
         .accessibilityLabel(
             day.isChest
-                ? Text(LocalizedStringKey(day.titleKey)) + Text(verbatim: ", ") + Text("gifts.daily.chest")
+                ? Text(LocalizedStringKey(day.titleKey)) + Text(verbatim: ", ") + Text("gifts.daily.surprise")
                 : Text(LocalizedStringKey(day.titleKey))
         )
         .accessibilityValue(Text(stateKey))
     }
 
     /// Qué se ve adentro de la casilla: el tilde si ya se cobró, el moño en el
-    /// día del cofre, y la moneda en los demás.
+    /// día de la sorpresa, y la moneda en los demás.
     @ViewBuilder private var glyph: some View {
         if day.isClaimed {
             Image(systemName: "checkmark")
@@ -431,7 +432,7 @@ private struct BoostCard: View {
 
     /// ⚠️ **El nombre va en UN renglón, al revés que en `FisuJobsView`**, y la
     /// diferencia es de medición, no de gusto. Medidos a `Tokens.title` (20 pt),
-    /// los seis boosts y los cuatro videos van de 88 pt ("Milanesa") a 193 pt
+    /// los seis boosts y los cuatro videos de entonces iban de 88 pt ("Milanesa") a 193 pt
     /// ("Personaje de regalo"): en la columna de 130 pt que queda entre el plato
     /// y el riel, **ocho de los diez se partían en dos** — y se partían mal, con
     /// una sola palabra colgando ("Ganancias / dobles", "Turbo de / ingresos"),
@@ -599,8 +600,8 @@ private struct VideoCard: View {
     private var info: some View {
         VStack(alignment: .leading, spacing: 3) {
             // Un renglón, igual que el nombre del boost y por la misma medición
-            // (ver el docstring de `BoostCard.info`): los cuatro títulos de
-            // video se partían **los cuatro**.
+            // (ver el docstring de `BoostCard.info`): los títulos de video
+            // se partían **los cuatro que había cuando se midió**.
             Text(LocalizedStringKey(row.titleKey))
                 .font(Tokens.title)
                 .foregroundStyle(Color("PaletteInk"))

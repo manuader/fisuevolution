@@ -105,3 +105,54 @@ struct SkinsDeMaterialTests {
         ).contains("diamante"))
     }
 }
+
+// MARK: - Skins de cofre (2026-08-26)
+
+/// Las pintas de piso dejaron de regalarse al llegar: ahora las reparte el
+/// cofre. El mecanismo es no tocar `SkinMilestones` — una entrada con
+/// `chestRarity` no declara ningún criterio de milestone, así que `isMilestone`
+/// cae a `false` sola y el evaluador la saltea sin saber que existe el cofre.
+@Suite("Skins de cofre")
+struct SkinsDeCofreTests {
+    @Test("una entrada con chestRarity no la propone nunca el evaluador de milestones")
+    func chestEntriesAreNeverMilestones() {
+        let config = SkinsConfig(schemaVersion: 1, skins: [
+            .init(id: "naranjita", characterType: "b", treatment: .texture,
+                  textureKey: "b__naranjita", chestRarity: .comun),
+            .init(id: "second_life", characterType: "a", treatment: .texture,
+                  textureKey: "a__second_life", reincarnations: 1),
+        ])
+        // El estado es generoso a propósito —pisos abiertos, prestigio de sobra y
+        // mejoras al tope—: así, si la de cofre se colara, tendría que salir acá.
+        var state = fxState()
+        state.run.unlockedFloors = ["f1", "f2"]
+        state.meta.prestigeLevel = 9
+
+        let unlocked = SkinMilestones.newlyUnlocked(state: state, config: config, allUpgradesMaxed: true)
+
+        #expect(unlocked == ["second_life"])              // la de milestone sí
+        #expect(config.chestPool.map(\.id) == ["naranjita"])
+    }
+
+    @Test("una entrada no puede ser de cofre y de milestone a la vez")
+    func chestAndMilestoneAreMutuallyExclusive() {
+        let config = SkinsConfig(schemaVersion: 1, skins: [
+            .init(id: "confusa", characterType: "a", treatment: .texture,
+                  textureKey: "a__confusa", floorReached: "f2", chestRarity: .rara),
+        ])
+        #expect(throws: SkinsConfig.ValidationError.chestAndMilestone("confusa")) {
+            try config.validate(characterTypeIDs: ["a"], floorIDs: ["f1", "f2"])
+        }
+    }
+
+    /// El `<` de `Rarity` sale del orden de declaración, y ese orden ES la
+    /// escalada del sorteo. Ninguna de las dos cosas rompe la compilación al
+    /// cambiar —reordenar los casos, o comparar por raw value, que ordenaría
+    /// alfabéticamente— y las dos dejan al cofre promocionando al revés.
+    @Test("la rareza escala de común a legendaria")
+    func rarityEscalatesInDeclarationOrder() {
+        #expect(SkinsConfig.Rarity.allCases == [.comun, .rara, .epica, .legendaria])
+        let desordenadas: [SkinsConfig.Rarity] = [.legendaria, .comun, .epica, .rara]
+        #expect(desordenadas.sorted() == [.comun, .rara, .epica, .legendaria])
+    }
+}

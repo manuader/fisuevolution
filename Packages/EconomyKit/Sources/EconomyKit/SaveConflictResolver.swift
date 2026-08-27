@@ -25,6 +25,20 @@ public enum SaveConflictResolver {
             winner.meta.oroEarnedLifetime = loser.meta.oroEarnedLifetime
         }
 
+        // Cofres sin abrir: el máximo de los dos, por lo mismo que el ORO de
+        // arriba —lo ganado no retrocede—. El caso que lo pide: el jugador junta
+        // cofres en un device que todavía no sincronizó, ese save pierde el
+        // resolve y los cofres se evaporan.
+        //
+        // El precio, dicho en voz alta: en el camino inverso REGALA. Abrir un
+        // cofre en el device A baja el contador y acredita la pinta; si gana el
+        // save de B —que todavía tenía el cofre— la pinta queda por la unión de
+        // `milestoneSkins` de arriba y el contador vuelve. Se acepta a
+        // sabiendas: entre regalar un cofre de vez en cuando y comerse uno que el
+        // jugador se ganó, el juego prefiere lo primero. Son premios cosméticos.
+        winner.meta.chestsPending = max(local.meta.chestsPending, remote.meta.chestsPending)
+        winner.meta.prestigeChestsPending = max(local.meta.prestigeChestsPending, remote.meta.prestigeChestsPending)
+
         // Skins activas: manda el ganador; las keys que solo el perdedor tenía se
         // completan (elección cosmética hecha en el otro device).
         for (typeId, skinId) in loser.meta.activeSkinByType

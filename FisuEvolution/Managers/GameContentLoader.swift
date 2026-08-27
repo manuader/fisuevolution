@@ -14,6 +14,7 @@ struct GameContent: Sendable {
     let events: EventsConfig
     let specials: SpecialsConfig
     let skins: SkinsConfig
+    let chests: ChestsConfig
     let upgradesConfig: UpgradesConfig
     let dailyRewards: DailyRewardsConfig
     let boosts: BoostsConfig
@@ -37,6 +38,7 @@ enum GameContentLoader {
         let events: EventsConfig = try decode("events", from: bundle)
         let specials: SpecialsConfig = try decode("specials", from: bundle)
         let skins: SkinsConfig = try decode("skins", from: bundle)
+        let chests: ChestsConfig = try decode("chests", from: bundle)
         let upgradesConfig: UpgradesConfig = try decode("upgrades", from: bundle)
         let dailyRewards: DailyRewardsConfig = try decode("daily_rewards", from: bundle)
         let boosts: BoostsConfig = try decode("boosts", from: bundle)
@@ -97,6 +99,7 @@ enum GameContentLoader {
             events: events,
             specials: specials,
             skins: skins,
+            chests: chests,
             upgradesConfig: upgradesConfig,
             dailyRewards: dailyRewards,
             boosts: boosts,

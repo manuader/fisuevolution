@@ -184,7 +184,25 @@ struct GameBoardView: View {
                 }
             }
             .animation(.spring(duration: 0.32), value: gameState.achievementToast?.id)
+
+            // La animación del cofre va ÚLTIMA en el `ZStack`: es la única
+            // celebración que ocupa la pantalla entera con su propio telón, así
+            // que tiene que quedar por encima de todo lo demás —incluido el
+            // botón de debug— y no al revés.
+            //
+            // ⚠️ **No es un `sheet`** (spec §9): el gesto de arrastre de una hoja
+            // puede matar la animación por la mitad, y los otros dos overlays
+            // no-modales del juego ya viven acá.
+            if let chest = gameState.chestReward, gameState.showing == .chestOpening {
+                ChestOpeningView(reward: chest)
+                    // La identidad por premio: dos cofres seguidos son dos
+                    // animaciones, no una vista que cambia de contenido a la
+                    // mitad de sus latidos.
+                    .id(chest.id)
+                    .transition(.opacity)
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: gameState.chestReward?.id)
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los
         // anchors que publican los controles de adentro: `overlayPreferenceValue`
         // los entrega ya recolectados, y el `GeometryReader` a pantalla completa

@@ -235,6 +235,31 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-08-26/27 — Los cofres de skins
+
+Las 41 pintas de piso dejaron de otorgarse al llegar a un piso: ahora **sólo salen de
+cofres**. Ocho tareas cerradas, 32 commits, 78 archivos.
+
+- **La bolsa son 41 skins en 4 rarezas** (7 comunes / 14 raras / 12 épicas / 8 legendarias),
+  y la rareza sale del piso donde **vive** el personaje. "Rara" tiene 14 porque el piso
+  corporativo tiene **diez** personajes: la bifurcación de carrera mete cuatro `junior` en
+  T11 y cuatro `senior` en T12.
+- **La promoción de rareza es lo que hace que el sistema cierre.** Hay 7 comunes con peso
+  55/100: se agotan cerca del cofre 12. Sin promoción, desde ahí más de la mitad de los
+  cofres pagaría plata con 34 skins sin sacar. Con promoción, todo cofre da skin nueva —41
+  exactos— y las legendarias quedan para el final.
+- **El mecanismo es no tocar `SkinMilestones`**: la entrada declara `chestRarity` **en lugar
+  de** `floorReached`, y como `isMilestone` mira los tres criterios viejos, cae a `false`
+  sola. La doble vía no puede existir por construcción.
+- **Save v5**, con el arreglo de las skins doradas que estaba esperando este bump.
+- **La animación son cuatro toques** y la rareza se anuncia en el segundo, con el cofre
+  todavía cerrado.
+- **"Cofre" se renombró**: el boost del asado ahora paga "una picada".
+
+**Falta para que un jugador lo use**: la tarjeta en Regalos (hoy `openChest()` existe y
+ningún botón lo llama salvo la puerta de debug), el carrusel de Pintas, y el cofre del
+tutorial. Detalle en `Docs/SESION-2026-08-26-cofres-de-skins.md`.
+
 ### Sesión del 2026-08-23 (ter) — La desaceleración, y el build que volvió a andar
 
 `fix/rebalance-pacing`. **El diagnóstico**: con el precio anclado a la frontera y
@@ -908,6 +933,17 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
 
 ## 5. Decisiones del dueño que NO se re-litigan
 
+0. **Los cofres** (2026-08-26). Las 41 pintas de piso salen **sólo** de cofres. Rareza con
+   **promoción hacia arriba** cuando la sorteada se agota. Cuatro fuentes: cada 2 pisos, un
+   video, el día 7 (como **segundo escalón** después del special, sin robarle el turno) y la
+   reencarnación con **épica garantizada**. El primero se abre solo, el resto se guardan. La
+   palabra "cofre" es de las pintas; el asado paga "una picada". Las estrellas van en PNG.
+0-bis. **La migración v5 reescala SÓLO las líneas por encima de su tope**, no las tres
+   (2026-08-26). Motivo: no tocarle nada a lo comprado legítimamente después del rebalance.
+   ⚠️ Costo aceptado a sabiendas: la línea parada **exacto** en el tope sigue pudiendo
+   llevarse las doradas, y ese agujero **creció** —antes bajaba de rebote cuando el save
+   disparaba la huella—. Se eligió con esa información arriba de la mesa.
+
 1. **El primer Fisura cuesta 25** (el dueño lo bajó de 50 el 2026-08-18; pineado
    en `GameContentValidationTests`) y los targets de pacing se bajaron a la
    conducta real en vez de recalibrar knobs. Costo medido en `balance-log §F7.6`.
@@ -1248,6 +1284,45 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De los cofres (2026-08-26)
+
+**Siete tests que quedaban verdes con la funcionalidad desenchufada.** Casi todos escritos
+por el controller en el plan. Los cazó siempre lo mismo: **romper la cosa y mirar si el test
+cae**, nunca leerlo. Los tres que más enseñan:
+
+- El de la migración v5 asertaba "los campos valen cero", que es cierto **con o sin** migrar,
+  porque se decodifican con `decodeIfPresent ?? 0`. Lo único que detecta el cableado roto es
+  `schemaVersion == 5`.
+- El de la cola **no podía pasar nunca**: `enqueue` sobre una cola vacía promueve en el acto,
+  así que el ítem nuevo tomaba `current`. Para comparar prioridades hay que ocupar el turno
+  con un tercero primero.
+- El de la animación quedaba verde **por el reloj**: con el auto-avance prendido, la
+  aserción de que los tres toques revientan el cofre pasa igual con los toques muertos. Pidió
+  un flag (`--uitest-chest-manual`) que apague el auto-avance.
+
+**Un renombre de claves de localización NO lo protege el compilador.** `String(localized:)`
+con la clave borrada **compila** e imprime la clave cruda en pantalla, y los tests que sólo
+miran `!texto.isEmpty` pasan porque una clave cruda no es vacía. El repo ya tenía el idioma
+correcto en `DailyCalendarTests` (`!copy.contains("daily.")`); ahora está también en
+`BoostUnlockTests` y `CareerRewardTests`, y **generaliza** a toda la familia de claves.
+
+**Y el error que lo destapó: `| head` truncando la propia verificación.** El controller
+escribió en el plan "son exactamente esos cuatro call sites, ni más ni menos" desde un grep
+que devolvía 11 líneas y estaba cortado en 10. Eran seis. Los dos que faltaban eran justo los
+de falla silenciosa. **Nunca afirmar completitud desde una salida truncada, y menos
+escribirla en un plan: le dice al implementador que deje de buscar.**
+
+**`ParticlePool` no sirve desde SwiftUI** (`emit(_:at:in parent: SKNode)`, único cliente
+`BoardScene`), y **`HapticsManager` no tiene `.light`/`.medium`/`.heavy`/`.success`**: el
+juego usa vocabulario semántico sobre CoreHaptics (`.merge`, `.purchase`, `.error`,
+`.evolution`, `.rarity`). Las dos cosas estaban afirmadas al revés en el plan.
+
+**El cofre puede congelar la cola de celebraciones entera.** `.chestOpening` tiene
+`timeout: nil` (el tick nunca lo vence) e `isSkippable == false` (el tap nunca lo saltea): si
+la vista no limpia `chestReward` **antes** de `celebrationFinished`, `syncCelebrations` lo
+reencola en el mismo frame, `showing` queda pegado para siempre y **el HUD queda apagado sin
+watchdog que lo destrabe**. El embudo único es `dismissChestReward()`.
 
 1. **El build incremental NO recompila los atlas.** Si medís páginas de atlas o
    peso del `.app` y no cierran, borrá `build/DD`.
@@ -2101,6 +2176,14 @@ Anotado por si algún día importa, con su medición:
 ---
 
 ## 9. Mapa de documentos
+
+- `Docs/superpowers/specs/2026-08-26-cofres-de-skins-design.md` — el diseño de los cofres:
+  la bolsa, el sorteo, las fuentes con su cuenta medida, los siete latidos de la animación.
+- `Docs/superpowers/plans/2026-08-26-cofres-de-skins.md` — el plan de 12 tareas. ⚠️ Lleva
+  adentro un **mapa de los helpers de test que existen de verdad**, porque el plan inventó
+  cuatro que no existían.
+- `Docs/SESION-2026-08-26-cofres-de-skins.md` — la sesión: las ocho decisiones del dueño, los
+  dos assets que se regeneraron y por qué, y lo que falta.
 
 | Doc | Para qué |
 |---|---|

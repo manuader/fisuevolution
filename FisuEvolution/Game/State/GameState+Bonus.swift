@@ -53,6 +53,8 @@ extension GameState {
             performInstantMerge()
         case .rareUnit:
             grantRareUnit()
+        case .skinChest:
+            awardChest(minRarity: nil)
         }
         // La fila tiene que pasar de botón a cuenta regresiva sin cerrar el panel.
         effectsVersion += 1
@@ -144,7 +146,7 @@ extension GameState {
         return player.meta.stats.maxFloorOrdinalEver >= required
     }
 
-    /// Devuelve las coins del cofre si el boost era el Asado.
+    /// Devuelve las coins de la picada si el boost era el Asado.
     @discardableResult
     func activateBoost(id: String) -> Double? {
         guard let economy, let content, var player = player else { return nil }
@@ -155,7 +157,7 @@ extension GameState {
             return nil
         }
         do {
-            let chest = try BoostManager.activate(
+            let payout = try BoostManager.activate(
                 boostId: id,
                 state: &player,
                 config: content.boosts,
@@ -172,19 +174,27 @@ extension GameState {
             player.meta.stats.boostsActivatedEver += 1
             self.player = player
             effectsVersion += 1
-            // El cofre del Asado es la otra vez que cae plata de golpe (el resto
+            // La picada del Asado es la otra vez que cae plata de golpe (el resto
             // de los boosts no pagan nada al activarse, devuelven nil).
-            if chest != nil { audio?.play(.coin) }
+            if payout != nil { audio?.play(.coin) }
             // Después del `+= 1` y dentro del `do`: un boost bloqueado o en
             // cooldown no es una activación y no mueve el logro.
             evaluateAchievements()
             refreshProjections()
             scheduleSave()
-            return chest
+            return payout
         } catch {
             Log.economy.info("boost rejected: \(error)")
             return nil
         }
+    }
+
+    /// Cómo se lee lo que pagó la picada. El lookup vive acá y no adentro del
+    /// `body` de la vista porque un `String(localized:)` metido en SwiftUI no lo
+    /// mira ningún test: con la clave rota devuelve la clave cruda, y el build
+    /// sigue verde mientras el jugador lee "gifts.payout 8,4 M".
+    static func payoutText(_ amount: Double) -> String {
+        String(localized: "gifts.payout \(CoinFormatter.string(from: amount))")
     }
 
     // MARK: Eventos (F5 — bible §1)
@@ -256,6 +266,7 @@ extension GameState {
             state: &player,
             config: content.dailyRewards,
             specials: content.specials,
+            skins: content.skins,
             upgrades: content.upgradesConfig,
             viral: content.viral,
             economy: economy,
@@ -391,7 +402,7 @@ extension GameState {
         return catalog
     }
 
-    /// Las cuatro recompensas por video con su cuenta regresiva (RF-11) y qué da
+    /// Las recompensas por video con su cuenta regresiva (RF-11) y qué da
     /// cada una.
     var rewardRows: [RewardRow] {
         guard let content else { return [] }
@@ -434,6 +445,8 @@ extension GameState {
             return String(localized: "ads.reward.text.merge")
         case .rareUnit:
             return String(localized: "ads.reward.text.rare")
+        case .skinChest:
+            return String(localized: "ads.reward.text.chest")
         }
     }
 
@@ -466,7 +479,7 @@ extension GameState {
         case .tapMultiplier: return String(localized: "bonus.effect.tap \(value) \(seconds)")
         case .spawnCostMultiplier: return String(localized: "bonus.effect.spawn \(value) \(seconds)")
         case .offlineEfficiencyPermanent: return String(localized: "bonus.effect.offline \(value)")
-        case .periodicChest: return String(localized: "bonus.effect.chest \(value)")
+        case .periodicPayout: return String(localized: "bonus.effect.payout \(value)")
         }
     }
 
@@ -505,7 +518,7 @@ extension GameState {
         case .coinChest:
             guard let factor = career.chestFactor else { return nil }
             let chest = economy.passiveUnlockCost(forTier: player.run.maxTierReached) * factor
-            return String(localized: "career.reward.chest \(CoinFormatter.string(from: chest))")
+            return String(localized: "career.reward.welcome \(CoinFormatter.string(from: chest))")
         case .freeBoost:
             guard let boost = content.boosts.boosts.first(where: { $0.id == career.boostId }) else { return nil }
             let name = localized(boost.displayNameKey(buildVariant: content.flags.buildVariant))

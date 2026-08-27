@@ -57,6 +57,22 @@ final class GameState {
         let characterType: CharacterType
     }
 
+    /// Lo que salió de un cofre recién abierto. El id es propio y no el de la
+    /// pinta: el premio puede ser plata, y dos cofres seguidos que dan lo mismo
+    /// tienen que ser dos presentaciones distintas para la vista.
+    struct ChestReward: Identifiable, Equatable {
+        let id = UUID().uuidString
+        let outcome: ChestOutcome
+        /// Cuánta plata pagó, cuando el premio es plata.
+        ///
+        /// Viaja acá y no adentro de `ChestOutcome` porque el sorteo no lo
+        /// conoce: el monto sale de `passiveUnlockCost × factor`, que es
+        /// economía del jugador y no del cofre. Y viaja porque la animación
+        /// **apaga el HUD**: sin el número en el payload, la carta del premio de
+        /// plata sería la única del juego que celebra sin decir cuánto.
+        var coins: Double?
+    }
+
     /// Proyección chica y estable para los controles de navegación de la torre.
     /// La UI no inspecciona `PlayerState` ni `TowerState`: recibe sólo el piso
     /// visible, su capacidad y los límites desbloqueados de la run actual.
@@ -276,6 +292,22 @@ final class GameState {
     var specialInfo: SpecialsConfig.Special?
     var offlineReward: OfflineReward?
     var skinAward: SkinAward?
+    /// El premio del cofre que el jugador acaba de abrir. Lo escribe `+Chests`
+    /// (`openChest`) y lo suelta el dismiss de su animación, como `skinAward`.
+    ///
+    /// ⚠️ **El dismiss tiene que ponerlo en `nil` ANTES de llamar a
+    /// `celebrationFinished(.chestOpening)`**, con el patrón que `RootView` ya usa
+    /// para el sheet de la skin: un `Binding` cuyo `set:` limpia el payload y un
+    /// `onDismiss:` que cierra el turno.
+    ///
+    /// Si el payload sobrevive a su turno, `syncCelebrations` lo reencola en el
+    /// mismo frame y **congela la cola entera**. No es "se reencola y molesta":
+    /// `.chestOpening` no tiene `timeout` —el watchdog nunca lo vence— ni es
+    /// salteable —el tap nunca lo saltea—, así que `showing` queda pegado para
+    /// siempre y `celebrationHidesUI` en `true`. El HUD apagado, ninguna otra
+    /// celebración pudiendo tomar el turno, y nada que lo destrabe salvo
+    /// reiniciar la app.
+    var chestReward: ChestReward?
     /// La lección contextual que está esperando turno o en pantalla, o `nil`.
     /// La escribe `+TutorialTips` (el director) y la suelta `releasePayload`.
     var tutorialTip: TutorialTip?
@@ -508,6 +540,12 @@ final class GameState {
             if ProcessInfo.processInfo.arguments.contains("--uitest-special") {
                 debugDropFirstSpecial()
             }
+            // Un cofre abierto, con su animación esperando el primer toque. El
+            // camino real pide dos pisos desbloqueados o un video con cooldown,
+            // así que sin la puerta el smoke de la animación mediría la suerte.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-chest") {
+                debugOpenChest()
+            }
             // Tres logros conseguidos y sin cobrar: es la única forma de ver la
             // sección "Para cobrar" de la pantalla de Logros con algo adentro.
             // Va DESPUÉS de los otros fixtures a propósito —`--uitest-coins`
@@ -650,6 +688,9 @@ final class GameState {
             self.player = player
         }
         awardEligibleMilestoneSkins()
+        // El cofre de la torre se cuelga del mismo embudo por el mismo motivo, y
+        // se defiende solo de correr en cada merge con su propio contador.
+        awardFloorChestsIfDue()
         // Este método ya es el embudo de merges, ascensos y pisos nuevos: los
         // logros de fusión, tier, piso, skins y specials cuelgan de acá y no de
         // seis call sites que habría que mantener sincronizados.
@@ -682,8 +723,17 @@ final class GameState {
         // ~19.100 ORO de los 1,776e10 que valía la línea, el 0,0001 %— y desde
         // el rebalance cuenta como tope y se lleva las skins doradas.
         //
-        // Se acepta a sabiendas: distinguirlo pediría un bump de schema (v5)
-        // para marcar qué saves son pre-rebalance, y las skins son cosméticas.
+        // Ese agujero lo cerró el bump a v5: `SaveMigrator.migrateV4toV5`
+        // reconoce esos saves por su huella —algún nivel POR ENCIMA del tope de
+        // hoy, imposible en uno post-rebalance— y reescala **sólo las líneas que
+        // se pasan del tope**, no el save entero (decisión del dueño,
+        // 2026-08-26: normalizar todo le borraba al jugador los niveles que
+        // compró DESPUÉS del rebalance). O sea que un save pre-rebalance llega
+        // acá con sus otras líneas intactas, y el `>=` de abajo las mira tal
+        // como quedaron. Lo que sigue sin cubrir es la línea parada
+        // EXACTAMENTE en el tope nuevo: `crit 10/25` (no maxeado) y `crit 10/10`
+        // (maxeado) son idénticos en disco. De quince valores por línea quedó
+        // uno, y taparlo pediría un campo que los saves viejos no tienen.
         // Lo que NO se regala es el efecto: las dos derivaciones clampean.
         let todoAlMaximo = !lineasDeOro.isEmpty && lineasDeOro.allSatisfy {
             (player.meta.oroUpgradeLevels[$0.id] ?? 0) >= $0.maxLevel

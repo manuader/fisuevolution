@@ -3,7 +3,7 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// Migraciones de schema (v1→v2→v3→v4). Son Codable puro: no hace falta
+/// Migraciones de schema (v1→v2→v3→v4→v5). Son Codable puro: no hace falta
 /// GameState ni contenido bundleado. Los fixtures viejos se arman por
 /// diccionario JSON (los tipos v1/v3 ya no existen congelados en código).
 @Suite("SaveMigrator")
@@ -74,6 +74,71 @@ struct SaveMigratorTests {
         ]
     }
 
+    // MARK: - Fixture v4 (sobre Run/Meta, post-Torre)
+
+    /// Un save v4 REALISTA y SANO: el mismo mid-game del v3 pero ya en sobre
+    /// Run/Meta y con los niveles DENTRO de los topes de hoy, o sea escrito
+    /// DESPUÉS del rebalance de pacing. Hasta v5 no hacía falta: v4 era la
+    /// versión corriente y se decodificaba derecho, sin cruzar el migrador.
+    ///
+    /// `oroUpgradeLevels` va por parámetro porque es lo único que v4→v5 mira:
+    /// los tests del reescalado cambian esa clave y ninguna otra.
+    private func v4Fixture(oroUpgradeLevels: [String: Int] = ["offline": 2, "tap": 3]) -> [String: Any] {
+        [
+            "schemaVersion": 4,
+            "run": [
+                "coins": 123_456.5,
+                "units": ["homeless": 3, "oficinista": 2, "junior_programmer": 1],
+                "passiveUnlocked": ["homeless": true, "cartonero": true],
+                "chosenCareerPath": "programmer",
+                "hireCounts": ["alley": 4],
+                "hireCountsByType": ["homeless": 4],
+                "maxTierReached": 12,
+                "charUpgradeLevels": ["homeless": 2],
+                "unlockedFloors": ["alley", "urban"],
+                "activeModifiers": [
+                    [
+                        "id": "11111111-2222-3333-4444-555555555555",
+                        "effect": "tapMultiplier",
+                        "magnitude": 2.0,
+                        "expiresAt": 1_900_000_000.0,
+                        "sourceKey": "boost.mate",
+                    ] as [String: Any],
+                ],
+                "seenTypes": ["homeless", "oficinista", "junior_programmer"],
+            ] as [String: Any],
+            "meta": [
+                "lifetimeEarnings": 7_500_000.0,
+                "oro": 12,
+                "oroEarnedLifetime": 12,
+                "prestigeLevel": 2,
+                "oroUpgradeLevels": oroUpgradeLevels,
+                "derivedEffects": [
+                    "offlineEfficiency": 0.5,
+                    "tapMultiplier": 2.0,
+                    "critChance": 0.25,
+                    "incomeMultiplier": 1.5,
+                    "goldenChance": 0.125,
+                    "spawnDiscount": 0.25,
+                    "prestigeBonus": 0.5,
+                ],
+                "globalMultiplier": 2.5,
+                "ownedSpecials": ["sp_cryptobro"],
+                "specialAnchors": [String: String](),
+                "ownedSkins": ["skin_homeless_gold"],
+                "milestoneSkins": [String](),
+                "activeSkinByType": ["homeless": "skin_homeless_gold"],
+                "removedAds": true,
+                "boostActivations": ["mate": 1_690_000_000.0],
+                "rewardedActivations": [String: Double](),
+                "daily": ["lastClaimDay": "2026-07-30", "cycleDay": 4] as [String: Any],
+                "sharesCompleted": 3,
+                "lastSeenTimestamp": 1_750_000_000.0,
+                "stats": ["maxFloorOrdinalEver": 7],
+            ] as [String: Any],
+        ]
+    }
+
     // MARK: - Schema actual
 
     /// El rebalance de pacing (2026-08-21) bajó `income` y `tap` de 20 niveles a
@@ -112,10 +177,14 @@ struct SaveMigratorTests {
         #expect(cadena == [10, 4, 2, 1, 0], "crit 25 reescalado cinco veces: \(cadena)")
 
         // Lo que la hace segura NO es la función sino el cableado, y es lo único
-        // que hay que cuidar si algún día se agrega otra migración: hay UN SOLO
-        // call site (`SaveMigrator.migrateV3toV4`) y `migrate` despacha POR
-        // VERSIÓN, así que un save cruza el reescalado exactamente una vez y lo
-        // que se guarda después ya es v4. Un v4 nunca vuelve a entrar.
+        // que hay que cuidar si algún día se agrega otra migración. Desde v5
+        // los call sites son DOS —`migrateV3toV4` la aplica al diccionario
+        // entero y `migrateV4toV5` sólo a las líneas que superan su tope de
+        // hoy—, y un v3 los cruza a los dos en la misma cadena. No se pisan
+        // porque la función CLAMPEA a `caps.actual`: después de la primera
+        // pasada ninguna línea queda arriba del tope, así que el filtro de la
+        // segunda devuelve el conjunto vacío. `v3SaveMigratesToV4FieldByField`
+        // lo pinea de punta a punta (`tap` 3 → 2, no 3 → 2 → 1).
         #expect(SaveMigrator.rescaleUpgradeLevelsForRebalance([:]).isEmpty,
                 "sin niveles no hay nada que reescalar")
     }
@@ -148,7 +217,7 @@ struct SaveMigratorTests {
         }
     }
 
-    // MARK: - Cadena completa v1 → v4
+    // MARK: - Cadena completa v1 → v5
 
     @Test func v1SaveMigratesThroughTheWholeChain() throws {
         // Un v1 mínimo pero honesto: flat, sin activeModifiers (nace en v2),
@@ -208,7 +277,8 @@ struct SaveMigratorTests {
         let data = try JSONSerialization.data(withJSONObject: v3Fixture())
         let migrated = try SaveMigrator.migrate(data)
 
-        #expect(migrated.schemaVersion == 4)
+        // La cadena no para en v4: sigue hasta v5 y el sobre queda estampado ahí.
+        #expect(migrated.schemaVersion == 5)
 
         // RUN — board posicional → units por tipo, con counts agrupados.
         #expect(migrated.run.coins == 123_456.5)
@@ -339,5 +409,81 @@ struct SaveMigratorTests {
         // Y el resto de la migración salió entera igual.
         #expect(migrated.run.units == ["homeless": 3, "oficinista": 2, "junior_programmer": 1])
         #expect(migrated.meta.oro == 12)
+    }
+
+    // MARK: - v4 → v5 (los cofres, y el arreglo de las skins doradas)
+
+    /// Un v4 SANO —niveles ya dentro de los topes de hoy— sólo estrena los
+    /// campos del cofre: no se le toca nada más.
+    @Test("un save v4 se migra a v5 con los campos del cofre en cero")
+    func v4MigratesToV5WithEmptyChestState() throws {
+        let data = try JSONSerialization.data(withJSONObject: v4Fixture())
+        let state = try SaveMigrator.migrate(data)
+
+        #expect(state.meta.chestsPending == 0)
+        #expect(state.meta.prestigeChestsPending == 0)
+        #expect(state.meta.welcomeChestGiven == false)
+        #expect(state.run.floorChestsAwarded == 0)
+        // El sobre queda ESTAMPADO v5, y eso es lo único que evita que el save
+        // vuelva a cruzar la migración —y con ella un reescalado que no es
+        // idempotente— en cada carga. Sin este `#expect` el test seguiría verde
+        // aunque `migrate` no llamara a `migrateV4toV5`: los campos del cofre
+        // se decodifican con `decodeIfPresent ?? 0` y darían cero igual.
+        #expect(state.schemaVersion == 5)
+        // Y un save post-rebalance no tiene nada que reescalar: pasa intacto.
+        #expect(state.meta.oroUpgradeLevels == ["offline": 2, "tap": 3])
+        // La partida entera cruza, que es de lo que se trata.
+        #expect(state.run.coins == 123_456.5)
+        #expect(state.meta.oro == 12)
+    }
+
+    /// El arreglo de las skins doradas. Un `crit` en 24 sólo existe con el tope
+    /// VIEJO de 25: es la huella de un save escrito antes del rebalance de
+    /// pacing, justo el que pasaba el `nivel >= maxLevel` de
+    /// `awardEligibleMilestoneSkins` y se llevaba las 43 doradas sin ganarlas.
+    ///
+    /// ⚠️ 24 y no 25 a propósito, pero NO para separar el proporcional del
+    /// clamp: con 24 los dos dan lo mismo (24/25 × 10 = 9,6 redondea a 10, y
+    /// `min(24, 10)` es 10), igual que con `income: 20`. Lo que compra el 24 es
+    /// que la huella dispare con un valor que NO es el tope viejo — lo que
+    /// delata a un save pre-rebalance es estar por encima del tope de HOY, no
+    /// ser igual al tope de ayer. El candado del proporcional es la otra mitad
+    /// del test, `crit 12 → 5`: un clamp lo dejaría en 10 —al tope— y le
+    /// regalaría las doradas al que apenas empezó la línea.
+    @Test("un v4 pre-rebalance con niveles arriba del tope de hoy se reescala y NO cuenta como maxeado")
+    func preRebalanceV4LosesTheFakeMaxOut() throws {
+        let maxeado = try SaveMigrator.migrate(
+            JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["income": 20, "tap": 20, "crit": 24]))
+        )
+        #expect(maxeado.meta.oroUpgradeLevels["crit"] == 10) // 24/25 × 10 ≈ 10
+        #expect(maxeado.meta.oroUpgradeLevels["income"] == 10) // 20/20 × 10 = 10
+
+        // El que SÍ tenía poco no se lleva nada regalado:
+        let flojo = try SaveMigrator.migrate(
+            JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["income": 20, "tap": 20, "crit": 12]))
+        )
+        #expect(flojo.meta.oroUpgradeLevels["crit"] == 5) // 12/25 × 10 = 4,8 → 5
+    }
+
+    /// El save que CRUZA el rebalance, y la decisión del dueño sobre él: se
+    /// reescala LÍNEA POR LÍNEA, sólo la que está arriba de su tope de hoy.
+    ///
+    /// El caso es real y no de laboratorio: `crit 24` sólo existe con el tope
+    /// viejo, pero con `income` en 3 la compra seguía habilitada después del
+    /// rebalance (3 < 10), así que esos siete niveles hasta 10 se pagaron con la
+    /// curva NUEVA. Reescalar el diccionario entero se los llevaba puestos.
+    @Test("en un save que cruza el rebalance sólo se reescala la línea que está arriba del tope")
+    func onlyTheLinesAboveTodaysCapAreRescaled() throws {
+        let state = try SaveMigrator.migrate(
+            JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["crit": 24, "income": 10, "offline": 2]))
+        )
+        // La pre-rebalance sí: 24 no puede existir con el tope de hoy.
+        #expect(state.meta.oroUpgradeLevels["crit"] == 10)
+        // La comprada con la curva nueva NO se toca. Pasando el diccionario
+        // entero habría caído a 5 (10/20 × 10) y el jugador habría perdido siete
+        // niveles pagados: es exactamente lo que el dueño no quiere.
+        #expect(state.meta.oroUpgradeLevels["income"] == 10)
+        // Y la línea cuyo tope nunca cambió tampoco entra: no está en `rebalanceLevelCaps`.
+        #expect(state.meta.oroUpgradeLevels["offline"] == 2)
     }
 }

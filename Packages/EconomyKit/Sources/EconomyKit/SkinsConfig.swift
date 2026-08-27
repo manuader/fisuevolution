@@ -8,6 +8,16 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         case texture
     }
 
+    /// Rareza de una skin de cofre. El orden de declaración es el de escalada:
+    /// `ChestRoller` promociona hacia el siguiente caso cuando el sorteado se agota.
+    public enum Rarity: String, Codable, Sendable, CaseIterable, Comparable {
+        case comun, rara, epica, legendaria
+
+        public static func < (lhs: Rarity, rhs: Rarity) -> Bool {
+            allCases.firstIndex(of: lhs)! < allCases.firstIndex(of: rhs)!
+        }
+    }
+
     public struct Entry: Codable, Sendable, Equatable, Identifiable {
         public let id: String
         public let characterType: String
@@ -25,6 +35,10 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         /// nivel máximo. Es la vía gratuita de las skins de oro; la de pago es
         /// el paquete, que las entrega por `ownedSkins`.
         public let upgradesMaxed: Bool?
+        /// Rareza si esta skin sale de un cofre. Excluyente con los tres criterios
+        /// de milestone: con `chestRarity` puesto, `isMilestone` cae a `false` solo
+        /// y `SkinMilestones` deja de proponerla sin tener que conocerla.
+        public let chestRarity: Rarity?
         /// Clave de localización del nombre visible (spec §3.9). Opcional: sin
         /// ella la ficha muestra el id embellecido, que alcanza para una skin
         /// de prueba pero no para una que se shippea.
@@ -32,7 +46,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
 
         /// Los campos de tratamiento y de milestone son mutuamente excluyentes
         /// según el tipo de skin, así que van con default: declarar una entrada
-        /// nueva no obliga a enumerar los cinco que no aplican.
+        /// nueva no obliga a enumerar los seis que no aplican.
         public init(
             id: String,
             characterType: String,
@@ -42,6 +56,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             floorReached: String? = nil,
             reincarnations: Int? = nil,
             upgradesMaxed: Bool? = nil,
+            chestRarity: Rarity? = nil,
             displayNameKey: String? = nil
         ) {
             self.id = id
@@ -52,6 +67,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             self.floorReached = floorReached
             self.reincarnations = reincarnations
             self.upgradesMaxed = upgradesMaxed
+            self.chestRarity = chestRarity
             self.displayNameKey = displayNameKey
         }
 
@@ -67,6 +83,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         case missingTint(String)
         case missingTexture(String)
         case invalidReincarnations(String)
+        case chestAndMilestone(String)
     }
 
     public let schemaVersion: Int
@@ -76,6 +93,9 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         self.schemaVersion = schemaVersion
         self.skins = skins
     }
+
+    /// Las skins que reparten los cofres, en orden de catálogo.
+    public var chestPool: [Entry] { skins.filter { $0.chestRarity != nil } }
 
     public func entry(id: String) -> Entry? {
         skins.first { $0.id == id }
@@ -106,6 +126,12 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             }
             if let reincarnations = skin.reincarnations, reincarnations < 1 {
                 throw ValidationError.invalidReincarnations(skin.id)
+            }
+            // Las dos vías reparten la misma skin: si una entrada declara ambas, el
+            // jugador la cobraría al llegar al piso y el cofre después le sortearía
+            // algo que ya tiene. El dato tiene que elegir una.
+            if skin.chestRarity != nil, skin.isMilestone {
+                throw ValidationError.chestAndMilestone(skin.id)
             }
             switch skin.treatment {
             case .tint:

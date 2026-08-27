@@ -1260,7 +1260,7 @@ xcrun simctl install booted build/DD/Build/Products/Debug-iphonesimulator/FisuEv
 xcrun simctl launch booted com.manuader.fisuevolution --uitest-reset
 ```
 
-Fixtures DEBUG por launch argument — **son doce, no tres**:
+Fixtures DEBUG por launch argument — **son 13, no tres**:
 
 | Argumento | Qué deja listo |
 |---|---|

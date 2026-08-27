@@ -218,6 +218,39 @@ struct CelebrationWiringTests {
         #expect(gameState.celebrationHidesUI == false, "y la UI vuelve sola al terminar")
     }
 
+    /// El contrato del cierre, **sobre el método que usa la vista de verdad**.
+    ///
+    /// El test de arriba escribe las dos líneas en orden a mano, así que pinea
+    /// que el orden correcto funciona — no que el juego lo use. Éste llama a
+    /// `dismissChestReward()`, que es lo único que tocan los dos botones de
+    /// `ChestOpeningView`, y es el que se pone rojo si alguien invierte esas dos
+    /// líneas.
+    ///
+    /// Invertidas, `syncCelebrations` ve el payload todavía puesto y reencola
+    /// `.chestOpening` en el mismo frame. Y como no tiene `timeout` —el watchdog
+    /// nunca la vence— ni es salteable —el tap nunca la saltea—, `showing` queda
+    /// pegado **para siempre** con `celebrationHidesUI` en `true`: la cola entera
+    /// congelada y el HUD apagado hasta reinstalar.
+    @Test("cerrar el cofre suelta el payload antes que el turno, y la cola queda libre")
+    func dismissingTheChestUnfreezesTheQueue() async throws {
+        let gameState = await makeGameState()
+        gameState.awardChest()
+        gameState.openChest()
+        #expect(gameState.showing == .chestOpening)
+
+        gameState.dismissChestReward()
+
+        #expect(gameState.chestReward == nil, "el premio se suelta")
+        #expect(gameState.showing == nil,
+                "y el turno se cierra: si el payload sobreviviera, la cola se reencolaría sola")
+        #expect(gameState.celebrationHidesUI == false, "con el HUD de vuelta")
+
+        // Y la cola sigue viva: la próxima celebración toma el turno.
+        gameState.towerNotice = GameState.TowerNotice(kind: .floorFull)
+        gameState.flushHUD()
+        #expect(gameState.showing == .towerNotice, "la cola quedó trabada por el cofre")
+    }
+
     // MARK: Apagar la UI es de lo que trae algo nuevo
 
     // Regla del dueño, en dos frases suyas: "la animacion de personaje subiendo

@@ -82,6 +82,7 @@ extension GameState {
         )
 
         let detalle: String
+        var pagado: Double?
         switch outcome {
         case let .skin(id, _, rarity):
             // ⚠️ **A `milestoneSkins`, NUNCA a `ownedSkins`.** StoreKit REESCRIBE
@@ -97,6 +98,7 @@ extension GameState {
                 * (dePrestigio ? content.chests.prestigePayoutFactor : content.chests.completedPayoutFactor)
             player.run.coins += monto
             player.meta.lifetimeEarnings += monto
+            pagado = monto
             detalle = "plata \(monto) (\(rarity.rawValue))"
         }
 
@@ -108,10 +110,25 @@ extension GameState {
         // Sólo si cambió la colección: con un premio de plata la ficha no tiene
         // nada nuevo que redibujar.
         if case .skin = outcome { skinSelectionVersion &+= 1 }
-        chestReward = ChestReward(outcome: outcome)
+        chestReward = ChestReward(outcome: outcome, coins: pagado)
         syncCelebrations()
         let quedan = pendingChestCount
         Log.economy.info("cofre abierto\(dePrestigio ? " de prestigio" : ""): \(detalle); quedan \(quedan)")
+    }
+
+    /// Cierra la animación del cofre. **El orden de estas dos líneas es el
+    /// contrato**, no un detalle de estilo.
+    ///
+    /// Con `celebrationFinished` primero, `syncCelebrations()` vuelve a ver el
+    /// payload puesto y reencola `.chestOpening` en el mismo frame. Y como esa
+    /// celebración no tiene `timeout` —el watchdog nunca la vence— ni es
+    /// salteable —el tap nunca la saltea—, `showing` queda pegado para siempre
+    /// con el HUD apagado y la cola entera congelada. Existe como método —y no
+    /// como dos líneas en la vista— para que el orden se pueda testear sin
+    /// levantar la UI.
+    func dismissChestReward() {
+        chestReward = nil
+        celebrationFinished(.chestOpening)
     }
 
     /// Lo que muestran el puntito y la tarjeta de Regalos.

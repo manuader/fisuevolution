@@ -63,6 +63,14 @@ final class GameState {
     struct ChestReward: Identifiable, Equatable {
         let id = UUID().uuidString
         let outcome: ChestOutcome
+        /// Cuánta plata pagó, cuando el premio es plata.
+        ///
+        /// Viaja acá y no adentro de `ChestOutcome` porque el sorteo no lo
+        /// conoce: el monto sale de `passiveUnlockCost × factor`, que es
+        /// economía del jugador y no del cofre. Y viaja porque la animación
+        /// **apaga el HUD**: sin el número en el payload, la carta del premio de
+        /// plata sería la única del juego que celebra sin decir cuánto.
+        var coins: Double?
     }
 
     /// Proyección chica y estable para los controles de navegación de la torre.
@@ -531,6 +539,12 @@ final class GameState {
             // tablero, que es lo que necesita el recap del mantener-apretado.
             if ProcessInfo.processInfo.arguments.contains("--uitest-special") {
                 debugDropFirstSpecial()
+            }
+            // Un cofre abierto, con su animación esperando el primer toque. El
+            // camino real pide dos pisos desbloqueados o un video con cooldown,
+            // así que sin la puerta el smoke de la animación mediría la suerte.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-chest") {
+                debugOpenChest()
             }
             // Tres logros conseguidos y sin cobrar: es la única forma de ver la
             // sección "Para cobrar" de la pantalla de Logros con algo adentro.

@@ -42,6 +42,17 @@ struct DebugPanelView: View {
                         .accessibilityIdentifier("debug.special.info")
                     }
                 }
+                // Un cofre abierto de una, con su animación. La vía real —cada
+                // dos pisos, un video, el día 7— es media hora de partida por
+                // cofre, así que sin esto la animación no se puede mirar dos
+                // veces seguidas para juzgarla.
+                Section("Cofres") {
+                    Button("Abrir un cofre") {
+                        gameState.debugOpenChest()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.chest.open")
+                }
                 Section("Peligro") {
                     Button("Resetear partida", role: .destructive) {
                         gameState.debugResetSave()

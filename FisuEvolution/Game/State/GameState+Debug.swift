@@ -300,6 +300,21 @@ extension GameState {
         bumpBoard()
     }
 
+    /// Un cofre regalado y abierto en el acto, para poder mirar la animación.
+    ///
+    /// Existe por lo mismo que `debugDropFirstSpecial`: la vía real es cada dos
+    /// pisos desbloqueados —o un video, o el día 7—, o sea media hora de partida
+    /// por cofre. La animación es lo que más garpa del sistema y sin esta puerta
+    /// no se puede ni ejercitar ni fotografiar.
+    ///
+    /// Regala y abre en la misma llamada: `openChest` gasta uno de los
+    /// pendientes, así que sin el `awardChest` de arriba no haría nada en una
+    /// partida sin cofres guardados.
+    func debugOpenChest() {
+        awardChest()
+        openChest()
+    }
+
     func debugResetSave() {
         guard let content else { return }
         var fresh = PlayerState.newGame(

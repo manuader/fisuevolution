@@ -286,6 +286,19 @@ final class GameState {
     var skinAward: SkinAward?
     /// El premio del cofre que el jugador acaba de abrir. Lo escribe `+Chests`
     /// (`openChest`) y lo suelta el dismiss de su animación, como `skinAward`.
+    ///
+    /// ⚠️ **El dismiss tiene que ponerlo en `nil` ANTES de llamar a
+    /// `celebrationFinished(.chestOpening)`**, con el patrón que `RootView` ya usa
+    /// para el sheet de la skin: un `Binding` cuyo `set:` limpia el payload y un
+    /// `onDismiss:` que cierra el turno.
+    ///
+    /// Si el payload sobrevive a su turno, `syncCelebrations` lo reencola en el
+    /// mismo frame y **congela la cola entera**. No es "se reencola y molesta":
+    /// `.chestOpening` no tiene `timeout` —el watchdog nunca lo vence— ni es
+    /// salteable —el tap nunca lo saltea—, así que `showing` queda pegado para
+    /// siempre y `celebrationHidesUI` en `true`. El HUD apagado, ninguna otra
+    /// celebración pudiendo tomar el turno, y nada que lo destrabe salvo
+    /// reiniciar la app.
     var chestReward: ChestReward?
     /// La lección contextual que está esperando turno o en pantalla, o `nil`.
     /// La escribe `+TutorialTips` (el director) y la suelta `releasePayload`.

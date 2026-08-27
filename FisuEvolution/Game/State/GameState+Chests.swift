@@ -35,6 +35,14 @@ extension GameState {
     /// con piso —la reencarnación— así que alcanza con el segundo contador, y
     /// los dos se gastan de a uno con el de prestigio primero (el mejor premio
     /// se cobra antes).
+    ///
+    /// ⚠️ **El piso viaja en el CONTADOR, así que `.epica` está escrito dos veces
+    /// y sin acoplamiento**: `confirmPrestige` lo pasa acá —que sólo mira si es
+    /// `nil` para elegir contador— y `openChest` lo vuelve a nombrar al sortear.
+    /// El día que `confirmPrestige` suba el piso a `.legendaria`, el cofre se
+    /// guarda igual pero se abre con el viejo, y nada se pone rojo. Se acepta a
+    /// sabiendas: guardar el piso por cofre pide un bump de schema por una sola
+    /// fuente. Con una SEGUNDA fuente con piso, esto deja de alcanzar.
     func awardChest(minRarity: SkinsConfig.Rarity? = nil) {
         guard var player else { return }
         if minRarity == nil {
@@ -52,6 +60,10 @@ extension GameState {
     /// **Gasta primero el de prestigio.** Los dos contadores son cofres, pero el de
     /// prestigio garantiza épica o mejor: si se gastara último, el jugador cobraría
     /// sus mejores cofres al final de una tanda y los peores primero.
+    ///
+    /// ⚠️ Quien escriba la vista: el dismiss tiene que limpiar `chestReward`
+    /// **antes** de `celebrationFinished(.chestOpening)`. El porqué —y lo que
+    /// pasa si no— está en el doc del campo, en `GameState.swift`.
     func openChest() {
         // Un cofre por vez: sin esto, dos toques seguidos pisan el payload y el
         // primer premio se pierde entre que la cola le da el turno y la vista lo lee.
@@ -69,26 +81,37 @@ extension GameState {
             using: &rng
         )
 
+        let detalle: String
         switch outcome {
-        case let .skin(id, _, _):
+        case let .skin(id, _, rarity):
             // ⚠️ **A `milestoneSkins`, NUNCA a `ownedSkins`.** StoreKit REESCRIBE
             // `ownedSkins` entera en cada sync (`PlayerState.swift`), así que una
             // pinta de cofre guardada ahí se borraría con un "restaurar compras" — y
             // de paso reabriría el gate del día 7, que lee `allOwnedSkins`.
             player.meta.milestoneSkins = Array(Set(player.meta.milestoneSkins).union([id])).sorted()
-        case .coins:
+            detalle = "pinta \(id) (\(rarity.rawValue))"
+        case let .coins(rarity):
             // La MISMA fórmula que el fallback del día 7, que es lo que hace que
             // los dos premios de plata del juego se sientan del mismo tamaño.
             let monto = economy.passiveUnlockCost(forTier: player.run.maxTierReached)
                 * (dePrestigio ? content.chests.prestigePayoutFactor : content.chests.completedPayoutFactor)
             player.run.coins += monto
             player.meta.lifetimeEarnings += monto
+            detalle = "plata \(monto) (\(rarity.rawValue))"
         }
 
         self.player = player
-        skinSelectionVersion &+= 1
+        // La única acción del jugador que muta `meta` sin un embudo detrás que
+        // guarde: el botón de Regalos llama acá y nada más. Sin esto, el cofre
+        // gastado y la pinta ganada viven sólo en memoria.
+        scheduleSave()
+        // Sólo si cambió la colección: con un premio de plata la ficha no tiene
+        // nada nuevo que redibujar.
+        if case .skin = outcome { skinSelectionVersion &+= 1 }
         chestReward = ChestReward(outcome: outcome)
         syncCelebrations()
+        let quedan = pendingChestCount
+        Log.economy.info("cofre abierto\(dePrestigio ? " de prestigio" : ""): \(detalle); quedan \(quedan)")
     }
 
     /// Lo que muestran el puntito y la tarjeta de Regalos.

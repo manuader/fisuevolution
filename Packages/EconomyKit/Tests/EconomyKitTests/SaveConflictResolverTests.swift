@@ -129,6 +129,36 @@ struct SaveConflictResolverTests {
         #expect(SaveConflictResolver.resolve(local: loser, remote: winner).meta.stats == expected)
     }
 
+    /// El agujero que abrió la acción de abrir cofres (F8): el resolver se
+    /// llevaba los dos contadores del ganador tal cual, y `milestoneSkins` se
+    /// UNE. O sea que abrir un cofre en el device A —pinta acreditada, contador
+    /// 1 → 0— y perder el resolve contra B devolvía el contador con la pinta ya
+    /// puesta: cofre gratis.
+    @Test("cofres sin abrir: cada contador queda en el máximo de los dos devices")
+    func pendingChestsMergeByMax() {
+        // Los DOS contadores se prueban por los dos lados —una vuelta liderando
+        // el ganador y otra el perdedor—: con un solo lado, "quedarse con los del
+        // ganador" pasaría igual en la mitad de las líneas.
+        for lideraElPerdedor in [true, false] {
+            var winner = fxSave(lifetime: 1000, lastSeen: 2)
+            winner.meta.chestsPending = lideraElPerdedor ? 1 : 4
+            winner.meta.prestigeChestsPending = lideraElPerdedor ? 0 : 3
+            var loser = fxSave(lifetime: 10, lastSeen: 1)
+            loser.meta.chestsPending = lideraElPerdedor ? 4 : 1
+            loser.meta.prestigeChestsPending = lideraElPerdedor ? 3 : 0
+
+            // Y da igual de qué lado del sync venga cada uno.
+            for resolved in [
+                SaveConflictResolver.resolve(local: winner, remote: loser),
+                SaveConflictResolver.resolve(local: loser, remote: winner),
+            ] {
+                #expect(resolved.meta.chestsPending == 4)
+                #expect(resolved.meta.prestigeChestsPending == 3,
+                        "un cofre de prestigio ganado en el otro device no se puede evaporar")
+            }
+        }
+    }
+
     @Test("logros: desbloqueados y cobrados se unen, gane quien gane")
     func achievementsMergeByUnion() {
         var winner = fxSave(lifetime: 1000, lastSeen: 2)

@@ -152,8 +152,10 @@ struct ChestOpeningTests {
     func chestSkinsSurviveAStoreKitSync() async throws {
         let state = await makeGameState()
         state.awardChest()
+        let versionAntes = state.skinSelectionVersion
         state.openChest()
 
+        #expect(state.skinSelectionVersion != versionAntes, "la ficha tiene una pinta nueva que mostrar")
         guard case let .skin(pinta, _, _) = try #require(state.chestReward?.outcome) else {
             Issue.record("con la bolsa entera sin tocar, el cofre da pinta y no plata")
             return
@@ -219,9 +221,12 @@ struct ChestOpeningTests {
 
         let antesDelNormal = state.player!.run.coins
         let lifetimeAntes = state.player!.meta.lifetimeEarnings
+        let versionAntes = state.skinSelectionVersion
         state.awardChest()
         state.openChest()
 
+        #expect(state.skinSelectionVersion == versionAntes,
+                "un premio de plata no cambia la colección: redibujar la ficha es al pedo")
         guard case .coins = try #require(state.chestReward?.outcome) else {
             Issue.record("sin pinta que dar, el cofre tiene que pagar plata")
             return

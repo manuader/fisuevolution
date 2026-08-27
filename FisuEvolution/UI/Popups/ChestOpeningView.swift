@@ -60,9 +60,12 @@ struct ChestOpeningView: View {
     let reward: GameState.ChestReward
 
     @State private var beat: Beat = .arriving
-    /// Dispara la caída del latido 0. Nace en `false` y lo prende el `onAppear`
-    /// del cofre: la transición tiene que ocurrir con la vista ya montada, o el
-    /// cofre nace aterrizado (la misma historia que la manito del tutorial).
+    /// Dispara la caída del latido 0. Nace en `false` y lo prende el `.task` del
+    /// cofre —que **cede el hilo antes**—, no un `onAppear`: el resorte de
+    /// `ChestDrop` corre por reloj de pared, así que soltarlo con el hilo
+    /// principal todavía bloqueado armando el overlay lo hace correr entero sin
+    /// cuadros que lo dibujen, y el cofre nace aterrizado. La medición y la
+    /// salvedad de ese yield están en el `.task` que lo prende.
     @State private var dropped = false
     /// El cofre tocó el piso: dispara el aplaste, junto con el háptico.
     @State private var landed = false
@@ -285,7 +288,7 @@ struct ChestOpeningView: View {
             // de bloqueos propios.
             //
             // Y va DESPUÉS del golpe, no antes: la caída ya arrancó —`dropped`
-            // se prende en el `onAppear` del cofre, y su resorte de 0,5 s corre
+            // se prende en el `.task` del cofre, y su resorte de 0,5 s corre
             // por reloj de pared— así que ~320 ms clavados delante del
             // `pause(0,34)` se meten entre lo que se ve caer y el `landed` que
             // aplasta. Acá el aplaste y el golpe salen con el aterrizaje, y el
@@ -458,9 +461,22 @@ struct ChestOpeningView: View {
             // su recorrido — la caída, que es el latido 0 de la animación, no se
             // veía.
             //
-            // Cediendo el hilo, la transacción se abre recién cuando el hilo
-            // principal está libre, y el resorte cae adentro de cuadros que se
-            // dibujan de verdad.
+            // Cediendo el hilo, el resorte cayó adentro de cuadros que se dibujan
+            // de verdad: en las dos corridas nuevas el cofre se ve pasar por tres
+            // alturas más arriba de donde antes recién aparecía.
+            //
+            // ⚠️ Pero esto es un HOP CALIBRADO CONTRA EL BLOQUEO DE HOY, no una
+            // garantía. `Task.yield()` reencola la continuación UNA vez en la cola
+            // del main actor: no espera a que la pasada de armado termine, no
+            // espera un cuadro dibujado, y no ordena nada contra el commit de la
+            // `CATransaction`. Que ese único hop caiga del otro lado del bloqueo
+            // es empírico —dos corridas nuevas contra una vieja—, no estructural.
+            //
+            // La consecuencia concreta: cuando aterrice la tarea pendiente de
+            // `AtlasCache`/`SKTextureAtlas.preload` —que le saca ~215 ms al hilo
+            // principal (ronda 2)— este hop puede volverse innecesario o quedarse
+            // corto. Si la caída vuelve a nacer aterrizada, el sospechoso es éste,
+            // y lo que corresponde es volver a medir, no encadenar otro `yield`.
             .task {
                 await Task.yield()
                 dropped = true

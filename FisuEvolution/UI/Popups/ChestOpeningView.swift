@@ -446,7 +446,25 @@ struct ChestOpeningView: View {
             // carta toma el centro.
             .scaleEffect(beat >= .flying ? Self.stowedScale : 1)
             .accessibilityHidden(true)
-            .onAppear { dropped = true }
+            // ⚠️ La caída NO se suelta en el `onAppear`: primero se cede el hilo.
+            //
+            // `onAppear` corre en la misma pasada en la que el overlay se arma, y
+            // ese armado se come ~500 ms de hilo principal (medidos en la ronda
+            // 2). El resorte de `ChestDrop` corre por RELOJ DE PARED, no por
+            // cuadros, así que soltarlo ahí lo hace correr entero detrás del
+            // bloqueo: para cuando hay un cuadro que dibujar, el cofre ya está
+            // puesto. Medido cuadro a cuadro en cuatro corridas, el primer cuadro
+            // en el que el cofre existía lo agarraba entre el 75 % y el 92 % de
+            // su recorrido — la caída, que es el latido 0 de la animación, no se
+            // veía.
+            //
+            // Cediendo el hilo, la transacción se abre recién cuando el hilo
+            // principal está libre, y el resorte cae adentro de cuadros que se
+            // dibujan de verdad.
+            .task {
+                await Task.yield()
+                dropped = true
+            }
     }
 
     private var chestScale: CGFloat {
@@ -935,8 +953,12 @@ private struct ChestShake: ViewModifier {
 /// pase. El aplaste puede seguir siendo keyframes porque **empieza y termina en
 /// 1** —igual que los otros cuatro del repo—: ahí re-armarse no se ve.
 private struct ChestDrop: ViewModifier {
-    /// Ya cayó. Lo prende el `onAppear`, un frame después del primero, que es lo
-    /// que hace que la caída se vea en vez de nacer aterrizada.
+    /// Ya cayó. Lo prende un `.task` que **cede el hilo primero**, y ahí está el
+    /// truco: este resorte corre por reloj de pared, así que si arranca mientras
+    /// el hilo principal está bloqueado armando el overlay, corre entero sin un
+    /// cuadro que lo muestre y el cofre aparece puesto. Está medido —y el
+    /// `onAppear` que había antes acá **no** alcanzaba— en `task-8-report.md`,
+    /// ronda 4.
     let dropped: Bool
     /// Ya tocó el piso: dispara el aplaste, en el mismo instante que el háptico.
     let landed: Bool

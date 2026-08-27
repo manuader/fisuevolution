@@ -97,5 +97,9 @@ struct ChestRollerTests {
         let tirada = ochoTiradas(semilla: 99)
         #expect(tirada == ochoTiradas(semilla: 99), "la misma semilla tiene que reproducir la corrida entera")
         #expect(tirada.contains { $0 != tirada[0] }, "ocho resultados idénticos: el generador no avanzó")
+        // Sin esto, `ochoTiradas` está parametrizado y se llama con UNA semilla:
+        // un `SeededRNG` que ignorara la suya —devolviendo siempre la misma
+        // secuencia— pasaría los dos `#expect` de arriba sin despeinarse.
+        #expect(tirada != ochoTiradas(semilla: 100), "dos semillas distintas no pueden dar la misma corrida")
     }
 }

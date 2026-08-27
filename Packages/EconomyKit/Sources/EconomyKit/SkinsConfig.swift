@@ -28,6 +28,17 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         /// la textura base sin hacer visible un placeholder roto.
         public let textureKey: String?
         /// ID del piso que desbloquea esta skin de milestone.
+        ///
+        /// ⚠️ **Ninguna entrada de `skins.json` lo usa hoy, y es a propósito**
+        /// (decidido en el cierre de los cofres, 2026-08-27). Las 41 pintas que
+        /// se daban por piso pasaron a la bolsa del cofre, así que el criterio
+        /// quedó sin datos que lo ejerzan — pero no sin cobertura: el mecanismo
+        /// lo pinean `SkinMilestonesTests` y `ExtensibilityDrillTests` con
+        /// configs sintéticos, y sus dos textos de pantalla
+        /// (`skins.unlock.floor`, `character.skin.reach-floor`) están escritos en
+        /// es y en. Se conserva como el criterio disponible para contenido
+        /// atado a un piso; si estás auditando ramas sin alcanzar, ésta es la
+        /// respuesta y no hace falta volver a abrirla.
         public let floorReached: String?
         /// Reencarnaciones acumuladas que desbloquean esta skin de milestone.
         public let reincarnations: Int?

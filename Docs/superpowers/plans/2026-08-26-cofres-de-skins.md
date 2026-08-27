@@ -1194,8 +1194,8 @@ la escribió.
 clave borrada del catálogo **no rompen el build** — imprimen la clave cruda en pantalla. El
 juego habría mostrado `gifts.payout 8,4 M` en producción sin un solo test en rojo. En un
 renombre de claves, el compilador no es la red: la red es el grep, y el grep sin truncar. `EffectType`
-es `CaseIterable` y `EffectDescriptorTests` recorre los siete tipos, así que un case sin
-cubrir sale en rojo — pero el `switch` de `EffectDescriptor.swift:66` agrupa
+es `CaseIterable` y `EffectDescriptorTests` recorre los **cinco** tipos de boost (los siete
+son los de `UpgradesConfig.EffectType`, otro enum), así que un case sin cubrir sale en rojo — pero el `switch` de `EffectDescriptor.swift:66` agrupa
 `periodicChest` con otros dos y el compilador **no** avisa si se renombra mal ahí.
 
 ⚠️ **Las tres claves nuevas con la palabra "chest" NO se tocan**: `ads.reward.chest`,
@@ -1232,7 +1232,7 @@ y no deben aparecer acá.
 - [ ] **Step 4: Correr la suite y commitear**
 
 ```bash
-git add FisuEvolution/Managers/ContentConfigs.swift FisuEvolution/Resources/Config/boosts.json FisuEvolution/Resources/Localizable.xcstrings FisuEvolution/Game/State/GameState+Bonus.swift FisuEvolution/UI/Gifts/GiftsView.swift
+git add FisuEvolution/Managers/ContentConfigs.swift FisuEvolution/Managers/EffectDescriptor.swift FisuEvolution/Managers/ContentSystems.swift FisuEvolution/Resources/Config/boosts.json FisuEvolution/Resources/Localizable.xcstrings FisuEvolution/Game/State/GameState+Bonus.swift FisuEvolution/UI/Gifts/GiftsView.swift
 git commit -m "refactor(regalos): la palabra cofre queda para las pintas — el asado ahora paga una picada"
 ```
 

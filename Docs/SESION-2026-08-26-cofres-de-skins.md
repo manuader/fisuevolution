@@ -102,6 +102,85 @@ Dos mejoras del implementador sobre el spec, aprobadas:
    una moneda volando suelta, pero eso **delata el resultado un latido antes** y le saca el
    cuarto toque justo a los cofres del premio menor.
 
+
+## Las tareas 9, 10 y 11 — lo que hace falta para que un jugador lo use
+
+### 9 — la tarjeta en Regalos y el puntito
+
+Hasta acá el sistema andaba entero pero **nadie podía abrir un cofre**: `openChest()` existía
+y ningún botón lo llamaba. Dos hallazgos que el brief no anticipaba y que la habrían dejado
+rota:
+
+- **Regalos es un `.sheet` y la animación vive en el `ZStack` de `RootView`**, así que el
+  botón **tiene que cerrar la hoja**: si no, el cofre se abre **debajo**, invisible y sordo a
+  los toques, con la cola trabada para siempre. Es el mismo pozo que el contrato del orden,
+  alcanzado por otra puerta.
+- **`pendingChestCount` sale de `player`, que es `@ObservationIgnored`** y no invalida
+  SwiftUI: el puntito **nunca se habría prendido**. Se agregó `hasPendingChests`, gemela de
+  `hasClaimableAchievements`.
+
+### 10 — el carrusel de Pintas
+
+`CustomizationView` armaba el carrusel con `seenTypes`, que **muere al reencarnar**. Con
+cofres, el sorteo puede darte la pinta de un tier 30 a los veinte minutos y no podrías verla.
+
+⚠️ **El criterio ingenuo habría espoileado el juego, y el mecanismo no era el que el spec
+suponía.** En `skins.json` **no hay ni una entrada `characterType == "*"`**: la pinta que
+visten todos está escrita con el mismo id **43 veces** (`oro`, `diamante`), porque la
+propiedad se guarda por id — y esas dos cubren **exactamente** los 43 personajes concretos.
+"Traé al carrusel a todo personaje del que tengas una pinta" le habría desplegado **el
+catálogo entero** a quien comprara el paquete de diamante. La regla que lo cierra: **una
+pinta que viste a más de uno no trae a nadie**.
+
+Y un segundo defecto que la unión creó: `genesis` (la del Dios, a 3 reencarnaciones) es
+milestone **y** exclusiva, así que desde el prestigio 3 el Dios encabezaba la lista **para
+siempre** y Pintas abría en la celda 43 de 43 con el scroll en cero. Se resolvió **sin
+consultar al dueño** porque su decisión ya estaba tomada (2026-08-17, en el comentario de
+`characterUpgradeTypes`: *"la pantalla abre en lo último que hiciste"*): **la unión decide
+qué se lista, lo VISTO decide dónde abre**, más auto-scroll.
+
+### 11 — el cofre de bienvenida
+
+Cae al cerrar la fase obligatoria del tutorial, por sus **dos** salidas (el cierre y
+"Saltar"), con premio **fijo** leído de `content.chests.welcomeSkinId`. En vez de escribir un
+camino nuevo se **extrajo** `presentChestReward` de `openChest()`, así el contrato de
+`milestoneSkins` queda en un solo lugar.
+
+⚠️ **Dos correcciones al spec, las dos del implementador:**
+
+1. **La lección `.skins` no había que cambiarla.** El código ya decía `!ownedSkins.isEmpty`,
+   que publica `allOwnedSkins` (tienda ∪ milestone), donde el cofre acredita. **Lo viejo era
+   el comentario.** Y la propuesta del plan (`|| welcomeChestGiven`) era **peor**: la bandera
+   dice que el cofre se dio, no que haya pinta que ponerse —rompía la regla de oro del
+   tutorial— y se olvidaba de la vía de la tienda.
+2. **El premio estaba mal.** El spec decía "la pinta del Cartonero, el personaje que el
+   jugador acaba de fusionar", y son dos personajes distintos: `homeless.mergesInto ==
+   "trapito"`, así que el tutorial deja al jugador con **El Trapito (T2)** y
+   `urban_trailblazer` es del **Cartonero (T4)**. La carta decía *"para tu Cartonero"* de
+   alguien que no conoció. Corregido a `naranjita`. Arregla de paso el aterrizaje de Pintas:
+   la pinta nueva queda **en la cara donde la pantalla abre**.
+
+## La animación, después de cinco rondas
+
+Las dos que valen:
+
+- **Las 30 partículas del estallido cambiaban de tamaño cuatro o cinco veces en pleno vuelo**,
+  porque el sorteo se rehacía en cada pase del `body` — con un docstring que prometía lo
+  contrario. Se mudó el sorteo a `Burst.init`, que corre desde `.task`.
+- **La caída del cofre no se veía.** En cuatro corridas y dos ramas, el primer cuadro en que
+  el cofre existe ya lo agarraba al 75-92 % del recorrido, opaco. El resorte arrancaba en
+  `onAppear` pero el hilo principal quedaba bloqueado ~500 ms armando el overlay, así que la
+  animación corría **entera detrás del bloqueo**. Arreglo de una línea: `.task { await
+  Task.yield(); dropped = true }`.
+  ⚠️ **Y funciona por una razón que no está garantizada**: `Task.yield()` reencola una vez y
+  no espera ni el armado ni un cuadro dibujado. Es **un hop calibrado contra el bloqueo de
+  hoy**. Cuando aterrice la tarea de `AtlasCache`/`preload` puede volverse innecesario **o
+  insuficiente**.
+
+También se midió el costo real del retrato: `UIArt.characterImage` en frío cuesta **~320 ms
+de hilo principal**, de los cuales **~215 son `texture.size()`** realizando la página del
+atlas. Precalentarlo en la llegada bajó el bloqueo del latido de la carta **un 67 %**.
+
 ## Lo que queda
 
 - **Tarea 9** — la tarjeta en Regalos y el puntito. **Bloqueante para jugarlo**: hoy los

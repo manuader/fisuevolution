@@ -1286,6 +1286,55 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+
+### De los cofres, segunda tanda (2026-08-27)
+
+**Un `.sheet` no puede abrir un overlay que vive en el `ZStack` de `RootView`.** El botón de
+Regalos que abre un cofre **tiene que cerrar la hoja primero**: si no, la animación se
+reproduce **debajo**, invisible y sorda a los toques, y como `.chestOpening` no tiene timeout
+ni es salteable, la cola global queda congelada con el HUD apagado. Es el mismo pozo que el
+contrato del orden, por otra puerta.
+
+**Una proyección que sale de `player` no invalida SwiftUI.** `player` es
+`@ObservationIgnored` para que el tick de 60 Hz no redibuje el HUD; cualquier cosa que una
+vista tenga que leer y ver cambiar sola necesita su propia propiedad observada (el patrón es
+`hasClaimableAchievements` / `hasPendingChests`). El puntito del cofre habría sido código
+muerto.
+
+**En `skins.json` no hay ningún `characterType == "*"`.** La pinta que visten todos está
+escrita con el **mismo id 43 veces** (`oro`, `diamante`), porque la propiedad se guarda por
+id — y esas dos cubren **exactamente** los 43 personajes concretos. Cualquier regla del tipo
+"personajes de los que tenés una pinta" **despliega el catálogo entero** a quien compró el
+paquete de diamante, espoileando la cadena de evolución. La regla correcta: **una pinta que
+viste a más de uno no trae a nadie**.
+
+**`isHittable` TIRA, no devuelve `false`.** Cuando XCUITest no puede calcular el punto de
+activación —típicamente con el elemento recortado por un scroll, que suele ser justo el
+estado que el assert quiere observar— la propiedad es un `BOOL` sin canal de error y la falla
+sale como excepción. Y `XCTNSPredicateExpectation` **no reintenta ante excepciones**. Para
+"¿se ve esta celda?" usar geometría (¿el centro del marco cae en la ventana?), no hittability.
+
+**Dos instrumentos de medición de video que mienten, los dos descartados en esta sesión:**
+`simctl recordVideo` **dropea cuadros por su cuenta** —huecos de 200-450 ms aparecen con la
+pantalla quieta, en cualquier rama—, así que sus huecos no miden nada; y el `-ss` de ffmpeg
+sobre un mp4 **no cae donde se le pide**, así que una tira de cuadros armada por tiempo
+compara momentos distintos. Las tiras se arman **por índice de cuadro exacto**. Para medir
+bloqueo de hilo principal, un vigía adentro de la app (un `Task` que pide dormir 16 ms y
+denuncia cuando despierta tarde) — y ojo: reporta el bloqueo **más largo** del latido, no la
+suma.
+
+**`Task.yield()` no es "esperar a que el hilo se libere".** Reencola **una vez** en la cola
+del main actor: no espera a que termine la pasada de armado, no espera un cuadro dibujado y
+no ordena contra el commit de la `CATransaction`. Sirve —hace que la caída del cofre se vea—
+pero es **un hop calibrado contra el bloqueo de hoy**, no una garantía: si el bloqueo cambia
+de tamaño, puede volverse innecesario o insuficiente.
+
+**`UIArt.characterImage` en frío cuesta ~320 ms de hilo principal**, de los cuales **~215 son
+`texture.size()`** realizando la página del atlas y ~100 el `cgImage()`. Cacheado, 0,1 ms.
+Cualquier vista que muestre un retrato por primera vez lo paga; precalentarlo unos latidos
+antes lo muda, no lo borra. Sacarlo de verdad es `SKTextureAtlas.preload`, y es tarea propia
+porque lo pagan también la ficha, el carrusel y el tablero.
+
 ### De los cofres (2026-08-26)
 
 **Siete tests que quedaban verdes con la funcionalidad desenchufada.** Casi todos escritos

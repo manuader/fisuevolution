@@ -101,3 +101,143 @@ struct ChestSourcesTests {
         #expect(state.pendingChestCount == 2)
     }
 }
+
+/// Abrir un cofre: gastar uno de los pendientes, sortear y dejar el premio listo
+/// para que la cola lo muestre.
+///
+/// El caso que manda la suite es `chestSkinsSurviveAStoreKitSync`. StoreKit
+/// REESCRIBE `ownedSkins` entera en cada sync, así que una pinta de cofre
+/// guardada ahí se borraría con un "restaurar compras" —el jugador perdería la
+/// colección— y de paso reabriría el gate del día 7, que lee `allOwnedSkins`.
+@Suite("Abrir un cofre")
+@MainActor
+struct ChestOpeningTests {
+    /// Los dos resultados del sorteo llevan rareza: la plata también, porque la
+    /// animación pinta su color antes de saber qué salió.
+    private func rareza(de outcome: ChestOutcome) -> SkinsConfig.Rarity {
+        switch outcome {
+        case let .skin(_, _, rarity): rarity
+        case let .coins(rarity): rarity
+        }
+    }
+
+    @Test("abrir gasta primero el de prestigio, y ése garantiza épica o mejor")
+    func openingSpendsThePrestigeChestFirst() async throws {
+        let state = await makeGameState()
+        state.awardChest()                     // uno normal
+        state.awardChest(minRarity: .epica)    // y el de la reencarnación
+        #expect(state.pendingChestCount == 2)
+
+        state.openChest()
+
+        #expect(state.player?.meta.prestigeChestsPending == 0, "el de prestigio se gasta primero")
+        #expect(state.player?.meta.chestsPending == 1, "el normal sigue esperando su turno")
+        let premio = try #require(state.chestReward?.outcome)
+        #expect(rareza(de: premio) >= .epica)
+
+        // Una sola tirada no pinea el mínimo: con los pesos que se shippean, una
+        // épica o mejor sale sola el 17 % de las veces, así que un mínimo roto
+        // pasaría cinco de cada seis corridas. Doce seguidas es una en 2e9.
+        for _ in 0..<12 {
+            state.chestReward = nil
+            state.awardChest(minRarity: .epica)
+            state.openChest()
+            let otro = try #require(state.chestReward?.outcome)
+            #expect(rareza(de: otro) >= .epica,
+                    "el cofre de la reencarnación no puede pagar por debajo de épica")
+        }
+    }
+
+    @Test("la pinta del cofre va a milestoneSkins y sobrevive un sync de StoreKit")
+    func chestSkinsSurviveAStoreKitSync() async throws {
+        let state = await makeGameState()
+        state.awardChest()
+        state.openChest()
+
+        guard case let .skin(pinta, _, _) = try #require(state.chestReward?.outcome) else {
+            Issue.record("con la bolsa entera sin tocar, el cofre da pinta y no plata")
+            return
+        }
+        #expect(state.player?.meta.milestoneSkins.contains(pinta) == true)
+        #expect(state.player?.meta.ownedSkins.contains(pinta) == false,
+                "`ownedSkins` es el cache de la tienda: nada que no se haya comprado vive ahí")
+
+        // El "restaurar compras". La lista NO puede venir vacía: con el jugador
+        // en cero, el guard de `applyStoreEntitlements` cortaría antes de
+        // escribir y el sync quedaría sin probarse.
+        let deLaTienda = try #require(
+            state.content?.skins.skins.first { $0.chestRarity == nil }?.id,
+            "el catálogo tiene skins fuera de la bolsa del cofre"
+        )
+        state.applyStoreEntitlements(removedAds: false, ownedSkins: [deLaTienda])
+
+        #expect(state.player?.meta.milestoneSkins.contains(pinta) == true,
+                "un restaurar compras se llevó la pinta que había pagado el cofre")
+        #expect(state.player?.meta.allOwnedSkins.contains(pinta) == true)
+    }
+
+    @Test("dos toques seguidos abren UN cofre, no dos")
+    func openingTwiceInARowSpendsOnlyOne() async throws {
+        let state = await makeGameState()
+        state.awardChest()
+        state.awardChest()
+
+        state.openChest()
+        let primero = try #require(state.chestReward)
+        state.openChest()
+
+        #expect(state.pendingChestCount == 1, "el segundo toque no gastó nada")
+        #expect(state.chestReward?.id == primero.id,
+                "y el premio del primero sigue en pantalla, sin pisarse")
+    }
+
+    @Test("sin cofres pendientes no pasa nada")
+    func openingWithNothingPendingIsANoop() async throws {
+        let state = await makeGameState()
+        #expect(state.pendingChestCount == 0)
+
+        state.openChest()
+
+        #expect(state.chestReward == nil, "sin cofre no hay premio que mostrar")
+        #expect(state.showing == nil, "ni turno que pedir en la cola")
+        #expect(state.player?.meta.milestoneSkins.isEmpty == true, "ni pinta que acreditar")
+        #expect(state.player?.meta.chestsPending == 0, "y el contador no queda en −1")
+        #expect(state.player?.meta.prestigeChestsPending == 0)
+    }
+
+    /// La otra mitad de `openChest`, que con el catálogo sin tocar no se ejecuta
+    /// nunca: agotada la bolsa, el cofre paga plata. El monto sale de la MISMA
+    /// fórmula que el fallback del día 7, que es lo que hace que los dos premios
+    /// de plata del juego se sientan del mismo tamaño.
+    @Test("con la bolsa agotada el cofre paga plata, y el de prestigio paga el doble")
+    func anEmptyPoolPaysCoins() async throws {
+        let state = await makeGameState()
+        let content = try #require(state.content)
+        let economy = try #require(state.economy)
+        state.player?.meta.milestoneSkins = content.skins.chestPool.map(\.id).sorted()
+        let base = economy.passiveUnlockCost(forTier: state.player!.run.maxTierReached)
+
+        let antesDelNormal = state.player!.run.coins
+        let lifetimeAntes = state.player!.meta.lifetimeEarnings
+        state.awardChest()
+        state.openChest()
+
+        guard case .coins = try #require(state.chestReward?.outcome) else {
+            Issue.record("sin pinta que dar, el cofre tiene que pagar plata")
+            return
+        }
+        let pagoNormal = base * content.chests.completedPayoutFactor
+        #expect(state.player!.run.coins == antesDelNormal + pagoNormal)
+        #expect(state.player!.meta.lifetimeEarnings == lifetimeAntes + pagoNormal,
+                "la plata del cofre cuenta para el ORO, como cualquier ingreso")
+
+        state.chestReward = nil
+        let antesDelDePrestigio = state.player!.run.coins
+        state.awardChest(minRarity: .epica)
+        state.openChest()
+        #expect(
+            state.player!.run.coins == antesDelDePrestigio + base * content.chests.prestigePayoutFactor,
+            "el de la reencarnación paga el doble"
+        )
+    }
+}

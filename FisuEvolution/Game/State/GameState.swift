@@ -57,6 +57,14 @@ final class GameState {
         let characterType: CharacterType
     }
 
+    /// Lo que salió de un cofre recién abierto. El id es propio y no el de la
+    /// pinta: el premio puede ser plata, y dos cofres seguidos que dan lo mismo
+    /// tienen que ser dos presentaciones distintas para la vista.
+    struct ChestReward: Identifiable, Equatable {
+        let id = UUID().uuidString
+        let outcome: ChestOutcome
+    }
+
     /// Proyección chica y estable para los controles de navegación de la torre.
     /// La UI no inspecciona `PlayerState` ni `TowerState`: recibe sólo el piso
     /// visible, su capacidad y los límites desbloqueados de la run actual.
@@ -276,6 +284,9 @@ final class GameState {
     var specialInfo: SpecialsConfig.Special?
     var offlineReward: OfflineReward?
     var skinAward: SkinAward?
+    /// El premio del cofre que el jugador acaba de abrir. Lo escribe `+Chests`
+    /// (`openChest`) y lo suelta el dismiss de su animación, como `skinAward`.
+    var chestReward: ChestReward?
     /// La lección contextual que está esperando turno o en pantalla, o `nil`.
     /// La escribe `+TutorialTips` (el director) y la suelta `releasePayload`.
     var tutorialTip: TutorialTip?
@@ -687,8 +698,12 @@ final class GameState {
         //
         // Ese agujero lo cerró el bump a v5: `SaveMigrator.migrateV4toV5`
         // reconoce esos saves por su huella —algún nivel POR ENCIMA del tope de
-        // hoy, imposible en uno post-rebalance— y los reescala antes de que
-        // lleguen acá. Lo único que sigue sin cubrir es la línea parada
+        // hoy, imposible en uno post-rebalance— y reescala **sólo las líneas que
+        // se pasan del tope**, no el save entero (decisión del dueño,
+        // 2026-08-26: normalizar todo le borraba al jugador los niveles que
+        // compró DESPUÉS del rebalance). O sea que un save pre-rebalance llega
+        // acá con sus otras líneas intactas, y el `>=` de abajo las mira tal
+        // como quedaron. Lo que sigue sin cubrir es la línea parada
         // EXACTAMENTE en el tope nuevo: `crit 10/25` (no maxeado) y `crit 10/10`
         // (maxeado) son idénticos en disco. De quince valores por línea quedó
         // uno, y taparlo pediría un campo que los saves viejos no tienen.

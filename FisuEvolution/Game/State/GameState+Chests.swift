@@ -46,6 +46,51 @@ extension GameState {
         syncCelebrations()
     }
 
+    /// Abre un cofre: gasta uno de los pendientes, sortea y deja el premio listo
+    /// para que la cola lo muestre.
+    ///
+    /// **Gasta primero el de prestigio.** Los dos contadores son cofres, pero el de
+    /// prestigio garantiza épica o mejor: si se gastara último, el jugador cobraría
+    /// sus mejores cofres al final de una tanda y los peores primero.
+    func openChest() {
+        // Un cofre por vez: sin esto, dos toques seguidos pisan el payload y el
+        // primer premio se pierde entre que la cola le da el turno y la vista lo lee.
+        guard chestReward == nil, pendingChestCount > 0,
+              let content, let economy, var player else { return }
+
+        let dePrestigio = player.meta.prestigeChestsPending > 0
+        if dePrestigio { player.meta.prestigeChestsPending -= 1 } else { player.meta.chestsPending -= 1 }
+
+        let outcome = ChestRoller.roll(
+            owned: player.meta.allOwnedSkins,
+            skins: content.skins,
+            config: content.chests,
+            minRarity: dePrestigio ? .epica : nil,
+            using: &rng
+        )
+
+        switch outcome {
+        case let .skin(id, _, _):
+            // ⚠️ **A `milestoneSkins`, NUNCA a `ownedSkins`.** StoreKit REESCRIBE
+            // `ownedSkins` entera en cada sync (`PlayerState.swift`), así que una
+            // pinta de cofre guardada ahí se borraría con un "restaurar compras" — y
+            // de paso reabriría el gate del día 7, que lee `allOwnedSkins`.
+            player.meta.milestoneSkins = Array(Set(player.meta.milestoneSkins).union([id])).sorted()
+        case .coins:
+            // La MISMA fórmula que el fallback del día 7, que es lo que hace que
+            // los dos premios de plata del juego se sientan del mismo tamaño.
+            let monto = economy.passiveUnlockCost(forTier: player.run.maxTierReached)
+                * (dePrestigio ? content.chests.prestigePayoutFactor : content.chests.completedPayoutFactor)
+            player.run.coins += monto
+            player.meta.lifetimeEarnings += monto
+        }
+
+        self.player = player
+        skinSelectionVersion &+= 1
+        chestReward = ChestReward(outcome: outcome)
+        syncCelebrations()
+    }
+
     /// Lo que muestran el puntito y la tarjeta de Regalos.
     var pendingChestCount: Int {
         (player?.meta.chestsPending ?? 0) + (player?.meta.prestigeChestsPending ?? 0)

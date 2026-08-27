@@ -68,13 +68,18 @@ extension GameState {
     /// unión — `skinSelectionVersion`, que bumpean **las cinco** vías que
     /// acreditan una pinta (el cofre, los milestones, los entitlements, el premio
     /// de carrera y la puerta de debug), y `boardVersion`, que sube con cada
-    /// `markSeen`. Publicarla a 8 Hz —lo que
-    /// `hasPendingChests` sí necesita, porque su lector no observa nada— sólo
-    /// agregaría difusión.
+    /// `markSeen`. Publicarla a 8 Hz —lo que `hasPendingChests` sí necesita,
+    /// porque su lector no observa nada— sólo agregaría difusión.
     ///
     /// Del más NUEVO al más viejo, igual que Mejoras (decisión del dueño,
-    /// 2026-08-17): la pantalla abre en lo último que hiciste, que después de un
-    /// cofre es la pinta que acabás de ganarte.
+    /// 2026-08-17): la lista sólo crece, y lo último que conseguiste es lo único
+    /// que todavía vas a tocar.
+    ///
+    /// ⚠️ Ese orden manda en **qué encabeza la lista** y no en **dónde abre la
+    /// pantalla**: el aterrizaje sale de `defaultSkinnableType(among:)`, doce
+    /// líneas más abajo, y es el más nuevo que el jugador VIO. Son dos criterios
+    /// desde que esta unión existe, y confundirlos hacía que Pintas abriera en un
+    /// desconocido.
     var skinnableTypes: [CharacterType] {
         guard let content, let player else { return [] }
         let dueño = content.skins.exclusiveCharacterTypeBySkinID

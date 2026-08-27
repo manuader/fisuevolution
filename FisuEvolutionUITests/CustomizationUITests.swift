@@ -32,6 +32,10 @@ final class CustomizationUITests: XCTestCase {
     /// se pone rojo y hay que releerla acá.
     private static let unseenType = "deidad"
     private static let unseenSkin = "oraculo"
+    /// El Empleado de Fast Food: tier 8, el más nuevo que marca
+    /// `--uitest-seen-types` y por lo tanto el aterrizaje por defecto con ese
+    /// fixture. Celda 8 de 43: fuera del cuadro con el carrusel en cero.
+    private static let landingType = "fast_food"
 
     @MainActor
     func testPonerseUnaPintaSeLaSacaALaQueEstabaPuesta() throws {
@@ -226,6 +230,12 @@ final class CustomizationUITests: XCTestCase {
     ///
     /// El fixture no marca vistos: la run ve al Fisura y a nadie más, así que
     /// todo lo que aparezca además de él llegó por la colección.
+    ///
+    /// ⚠️ Y ejerce las DOS mitades, que son opuestas y se pisan si una se
+    /// implementa sin la otra: la Deidad **entra en la lista** (la unión) pero
+    /// **la pantalla NO abre en ella** (el aterrizaje sigue siendo lo último que
+    /// el jugador vio). Un test que sólo mirara la primera se pondría verde con
+    /// la pantalla abriendo en un desconocido.
     @MainActor
     func testUnaPintaGanadaTraeSuPersonajeAlCarruselAunqueNoLoHayasVisto() throws {
         let app = XCUIApplication()
@@ -236,23 +246,24 @@ final class CustomizationUITests: XCTestCase {
 
         openSkins(app)
 
-        // ⚠️ Ni un `tap()` sobre el carrusel: la Deidad es el tier más alto, o
-        // sea el ÚLTIMO de 43 caras, y tocarla pediría el `scrollToVisible` que
-        // la trampa 9a hace fallar en frío. No hace falta — la pantalla abre en
-        // el personaje más nuevo (decisión del dueño, 2026-08-17) y el más nuevo
-        // ahora es el que te acaba de tocar en el cofre.
+        // La cara de la Deidad EXISTE y es un botón. `exists` no scrollea, así
+        // que esto no depende de dónde esté parado el carrusel — y con
+        // `characterUpgradeTypes` puesta no existiría en absoluto.
         let cara = app.buttons["skins.character.\(Self.unseenType)"]
-        let pinta = app.otherElements["skins.row.\(Self.unseenSkin)"]
-        // Las dos esperas se resuelven ANTES de assertar y la captura va en el
-        // medio (trampa 9a-bis): lo que hace falta ver cuando esto falla es si la
-        // pantalla está bien y el roto es el árbol de AX.
         let hayCara = cara.waitForExistence(timeout: 10)
-        let hayPinta = pinta.waitForExistence(timeout: 10)
+        // La grilla del Fisura: `mundialista` es SU pinta paga y de nadie más,
+        // así que su presencia dice en quién abrió la pantalla sin leer un solo
+        // texto traducido (trampa 6).
+        let delFisura = app.otherElements["skins.row.\(Self.paidSkin)"]
+        let abrioEnElFisura = delFisura.waitForExistence(timeout: 10)
+        // La captura va ANTES de todo assert que pueda cortar (trampa 9a-bis).
         attach(app, named: "T10 la pinta de un personaje nunca visto, en el carrusel")
         XCTAssertTrue(hayCara,
                       "la pinta es suya y es tuya: su cara tiene que estar y tiene que poder tocarse")
-        XCTAssertTrue(hayPinta,
-                      "la pantalla tenía que abrir en el personaje de la pinta recién ganada")
+        XCTAssertTrue(abrioEnElFisura,
+                      "la pantalla tiene que abrir en el más nuevo VISTO, que en esta run es el Fisura")
+        XCTAssertFalse(app.otherElements["skins.row.\(Self.unseenSkin)"].exists,
+                       "abrir en la Deidad es aterrizar en un desconocido: la unión manda en la lista, no acá")
 
         // RF-03 sigue en pie: lo que NO trajo una pinta sigue en silueta y sin
         // botón. El Oficinista es tier 9 y esta run no vio a nadie más que al
@@ -260,8 +271,15 @@ final class CustomizationUITests: XCTestCase {
         XCTAssertFalse(app.buttons["skins.character.oficinista"].exists,
                        "un personaje del que no tenés nada sigue sin poder elegirse")
 
-        // Y se la puede poner, que es la mitad que importa: verla sin poder
-        // equiparla es el mismo bug con otra cara.
+        // Y elegirla lleva a SU grilla, que es lo que hace que la pinta ganada
+        // se pueda poner: verla en el carrusel sin poder llegar a ella sería el
+        // mismo bug con otra cara.
+        cara.tap()
+        let pinta = app.otherElements["skins.row.\(Self.unseenSkin)"]
+        let llego = pinta.waitForExistence(timeout: 10)
+        attach(app, named: "T10 la grilla del personaje nunca visto")
+        XCTAssertTrue(llego, "elegir su cara tiene que traer la grilla de la Deidad")
+
         let base = app.otherElements["skins.row.base"]
         let equippedValue = try XCTUnwrap(base.value as? String, "la tarjeta no publica su estado como valor")
         let equip = app.buttons["skins.equip.\(Self.unseenSkin)"]
@@ -278,6 +296,46 @@ final class CustomizationUITests: XCTestCase {
         attach(app, named: "T10 la pinta del personaje nunca visto, puesta")
         XCTAssertTrue(puesta,
                       "la pinta tenía que quedar puesta; quedó en \(pinta.value ?? "?") (esperaba \(equippedValue))")
+    }
+
+    /// **La cara elegida tiene que estar EN PANTALLA al abrir.**
+    ///
+    /// El carrusel son 43 celdas de 82 pt y en un iPhone entran cuatro y media,
+    /// así que a partir del quinto personaje el marco amarillo cae fuera del
+    /// cuadro: la pantalla dice a quién estás vistiendo y la tira no muestra
+    /// nada resaltado. Con `--uitest-seen-types` el aterrizaje es el Empleado de
+    /// Fast Food (tier 8, celda 8), que con el scroll en 0 no se ve.
+    ///
+    /// ⚠️ **`isHittable` y no `exists`**: los 43 EXISTEN siempre (el `HStack` no
+    /// es perezoso, y de eso se ocupa el otro test). Lo que esto mide es si está
+    /// **a la vista**, que es lo único que distingue el carrusel scrolleado del
+    /// carrusel en su lugar.
+    @MainActor
+    func testElCarruselAbreMostrandoLaCaraElegida() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "--uitest-reset", "--uitest-skip-tutorial", "--uitest-seen-types", "--uitest-unseen-skin"
+        ]
+        app.launch()
+
+        openSkins(app)
+
+        let elegida = app.buttons["skins.character.\(Self.landingType)"]
+        XCTAssertTrue(elegida.waitForExistence(timeout: 10), "el carrusel no dibujó al aterrizaje")
+        let aLaVista = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "isHittable == 1"), object: elegida
+        )
+        let seVe = XCTWaiter().wait(for: [aLaVista], timeout: 5) == .completed
+        attach(app, named: "T10 fix — el carrusel abre mostrando la cara elegida")
+        XCTAssertTrue(seVe, """
+            la cara en la que abre la pantalla tiene que estar a la vista: es la \
+            única que lleva el marco amarillo, y con el carrusel en cero queda \
+            fuera del cuadro.
+            """)
+        // Y el primero del catálogo, que es donde el carrusel arrancaba, quedó
+        // detrás: si esto siguiera a la vista, no se scrolleó nada.
+        XCTAssertFalse(app.buttons["skins.character.\(Self.firstType)"].isHittable,
+                       "el carrusel tenía que haberse movido, y el Fisura quedó igual en pantalla")
     }
 
     /// Abre Pintas y devuelve la tarjeta de la apariencia original, que existe en

@@ -307,6 +307,26 @@ struct SkinnableTypesTests {
             Quedaron \(gameState.skinnableTypes.count) caras.
             """
         )
+
+        // ⚠️ Y la contracara, en el MISMO test y por el MISMO camino: una pinta
+        // paga que es de UNO SOLO sí tiene que traerlo. `parrillero` es IAP
+        // (`com.fisuevolution.iap.skin_parrillero`) y exclusiva del Dios, así
+        // que vive en `ownedSkins` y no en `milestoneSkins`.
+        //
+        // Sin esta mitad, leer `meta.milestoneSkins` en vez de
+        // `meta.allOwnedSkins` deja los ocho tests verdes —todos los demás
+        // acreditan por `grantMilestoneSkinsForTests`, que escribe en
+        // `milestoneSkins`— y en el juego real quien compre esa pinta no ve al
+        // Dios en el carrusel.
+        gameState.applyStoreEntitlements(removedAds: false, ownedSkins: ["diamante", "parrillero"])
+
+        #expect(
+            gameState.skinnableTypes.map(\.id) == ["god", "homeless"],
+            """
+            la pinta paga del Dios es de él y de nadie más: comprarla tiene que \
+            traerlo al carrusel. Quedó \(gameState.skinnableTypes.map(\.id)).
+            """
+        )
     }
 
     /// El filo de arriba, medido donde SÍ se distingue.
@@ -346,9 +366,45 @@ struct SkinnableTypesTests {
 
         let tiers = gameState.skinnableTypes.map(\.tier)
         #expect(tiers == tiers.sorted(by: >), "la lista quedó de más viejo a más nuevo: \(tiers)")
-        // Decisión del dueño (2026-08-17): la pantalla abre en lo último que
-        // hiciste, y lo último que hiciste fue ganarte la pinta de la Deidad.
+        // La LISTA sigue encabezada por el tier más alto, venga de donde venga.
+        // Dónde ABRE la pantalla es otra cosa y la decide el test de abajo: son
+        // dos criterios distintos desde que la unión existe.
         #expect(gameState.skinnableTypes.first?.id == Self.unseenType)
+    }
+
+    /// **Dónde abre la pantalla, que dejó de ser lo mismo que quién encabeza la
+    /// lista.**
+    ///
+    /// `genesis` es la pinta del Dios y se cobra en la tercera reencarnación: a
+    /// partir de ahí el Dios (tier 37, el más alto del catálogo) está en
+    /// `skinnableTypes` PARA SIEMPRE. Con el aterrizaje colgado de
+    /// `skinnable.first`, Pintas abría siempre en un personaje que el jugador
+    /// nunca vio —y con la cara fuera del cuadro, celda 43 de 43—. No es un caso
+    /// raro: es el estado por defecto de toda la segunda mitad del juego.
+    ///
+    /// La regla del dueño (2026-08-17) es que la pantalla abre en *lo último que
+    /// hiciste*. Una pinta de cofre no es alguien que hiciste.
+    @Test("la pantalla abre en el más nuevo que VISTE, no en el más nuevo de la lista")
+    func elAterrizajeEsElMasNuevoVisto() async throws {
+        let gameState = await makeGameState()
+        try reencarnado(gameState)
+        gameState.grantMilestoneSkinsForTests([Self.unseenSkin])
+
+        var skinnable = gameState.skinnableTypes
+        #expect(skinnable.first?.id == Self.unseenType, "el fixture tenía que dejar a la Deidad encabezando")
+        #expect(
+            gameState.defaultSkinnableType(among: skinnable)?.id == "homeless",
+            "recién reencarnado, lo último que hiciste es el Fisura: ahí abre"
+        )
+
+        // Y en una partida a mitad de camino: abre en el más nuevo VISTO, que no
+        // es ni el primero de la lista ni el primero del catálogo.
+        gameState.debugMarkTypesSeen(throughTier: 8)
+        skinnable = gameState.skinnableTypes
+        let aterrizaje = try #require(gameState.defaultSkinnableType(among: skinnable))
+        #expect(aterrizaje.tier == 8, "abrió en el tier \(aterrizaje.tier) y el más alto visto es 8")
+        #expect(aterrizaje.id != Self.unseenType, "la Deidad sigue sin ser alguien que el jugador vio")
+        #expect(skinnable.first?.id == Self.unseenType, "y la lista sigue encabezada por ella")
     }
 
     @Test("Mejoras no se contagia: ahí se compra, y sólo se ofrece lo visto")

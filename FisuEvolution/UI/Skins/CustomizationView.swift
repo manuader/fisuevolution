@@ -25,10 +25,14 @@ struct CustomizationView: View {
     @Environment(StoreManager.self) private var store
     @Environment(\.dismiss) private var dismiss
 
-    /// A quién estamos vistiendo. `nil` = "el que la pantalla elija", que es el
-    /// primero de la lista. No se guarda entre aperturas: la hoja se abre en el
-    /// principio del catálogo, que es donde está el personaje que todo el mundo
-    /// tiene.
+    /// A quién estamos vistiendo. `nil` = "el que la pantalla elija", que es
+    /// `defaultSkinnableType`: el de tier más alto que viste EN ESTA RUN.
+    ///
+    /// No se guarda entre aperturas, así que ese default es lo que el jugador
+    /// ve cada vez que abre la hoja — y por eso no puede salir de la unión a
+    /// secas. La lista incluye a los personajes de los que tenés una pinta sin
+    /// haberlos visto, y ésos ordenan ARRIBA de los tuyos: abrir ahí sería
+    /// aterrizar en un desconocido. Lo decide el estado, no esta vista.
     @State private var selectedTypeID: String?
 
     /// Margen lateral de la columna: el del marco vectorial, publicado por el
@@ -118,42 +122,64 @@ struct CustomizationView: View {
     /// costo es el del primer armado y no el de cada invalidación — el mismo
     /// razonamiento que las 43 tarjetas de `FisuJobsView`.
     private func characterStrip(allTypes: [CharacterType], skinnableIDs: Set<String>, selectedID: String?) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: Tokens.s8) {
-                ForEach(allTypes, id: \.id) { type in
-                    if skinnableIDs.contains(type.id) {
-                        Button {
-                            selectedTypeID = type.id
-                        } label: {
-                            faceTile(type: type, selected: type.id == selectedID, unknown: false)
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: Tokens.s8) {
+                    ForEach(allTypes, id: \.id) { type in
+                        if skinnableIDs.contains(type.id) {
+                            Button {
+                                selectedTypeID = type.id
+                            } label: {
+                                faceTile(type: type, selected: type.id == selectedID, unknown: false)
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityIdentifier("skins.character.\(type.id)")
+                            // El nombre ya viene traducido de `tier.name.<id>`, así
+                            // que va verbatim: como clave se buscaría de nuevo.
+                            .accessibilityLabel(Text(verbatim: type.localizedName))
+                            .accessibilityAddTraits(type.id == selectedID ? [.isSelected] : [])
+                        } else {
+                            // Todavía desconocido —ni visto en esta run ni con una
+                            // pinta suya en la colección—: silueta y "???", sin
+                            // botón (RF-03, no espoilear la cadena de evolución).
+                            //
+                            // ⚠️ Y **tapado de VoiceOver a propósito**: no es
+                            // seleccionable y no dice nada más que "hay más por
+                            // descubrir". Sin esto, entre las caras que sí se pueden
+                            // tocar quedarían hasta 35 paradas seguidas que se
+                            // anuncian todas igual, y el carrusel se vuelve
+                            // inservible con lector de pantalla.
+                            faceTile(type: type, selected: false, unknown: true)
+                                .accessibilityHidden(true)
                         }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("skins.character.\(type.id)")
-                        // El nombre ya viene traducido de `tier.name.<id>`, así
-                        // que va verbatim: como clave se buscaría de nuevo.
-                        .accessibilityLabel(Text(verbatim: type.localizedName))
-                        .accessibilityAddTraits(type.id == selectedID ? [.isSelected] : [])
-                    } else {
-                        // Todavía desconocido —ni visto en esta run ni con una
-                        // pinta suya en la colección—: silueta y "???", sin
-                        // botón (RF-03, no espoilear la cadena de evolución).
-                        //
-                        // ⚠️ Y **tapado de VoiceOver a propósito**: no es
-                        // seleccionable y no dice nada más que "hay más por
-                        // descubrir". Sin esto, entre las caras que sí se pueden
-                        // tocar quedarían hasta 35 paradas seguidas que se
-                        // anuncian todas igual, y el carrusel se vuelve
-                        // inservible con lector de pantalla.
-                        faceTile(type: type, selected: false, unknown: true)
-                            .accessibilityHidden(true)
                     }
                 }
+                // El margen lateral de la columna ya lo pone la cabecera del
+                // `panelSheet`; acá sólo el aire para que el marco de la cara
+                // elegida y su sombra no queden cortados por el borde del scroll.
+                .padding(.horizontal, Tokens.s4)
+                .padding(.vertical, 4)
             }
-            // El margen lateral de la columna ya lo pone la cabecera del
-            // `panelSheet`; acá sólo el aire para que el marco de la cara
-            // elegida y su sombra no queden cortados por el borde del scroll.
-            .padding(.horizontal, Tokens.s4)
-            .padding(.vertical, 4)
+            // **El marco amarillo tiene que estar EN PANTALLA.** El carrusel son 43
+            // celdas de 82 pt y en un iPhone entran cuatro y media, así que la cara
+            // elegida cae fuera del cuadro apenas pasa la quinta — y el jugador
+            // abre una pantalla que dice a quién está vistiendo con una tira donde
+            // no hay nada resaltado.
+            //
+            // Antes se toleraba porque el aterrizaje era el tier más alto VISTO y
+            // la cinta de abajo lo nombraba igual. Con la unión, los personajes de
+            // los que tenés pinta sin haberlos visto ordenan ARRIBA de los tuyos,
+            // así que hasta el aterrizaje correcto puede quedar en la celda 8 con
+            // el scroll en 0: el desfase dejó de ser el caso raro.
+            //
+            // `initial: true` porque la primera evaluación YA trae la selección
+            // resuelta (`selection(among:)` no espera a ningún `onAppear`), y
+            // `.center` porque el carrusel se navega mirando a los costados: pegar
+            // la cara elegida a un borde esconde la mitad de sus vecinas.
+            .onChange(of: selectedID, initial: true) { _, id in
+                guard let id else { return }
+                proxy.scrollTo(id, anchor: .center)
+            }
         }
     }
 
@@ -306,14 +332,20 @@ struct CustomizationView: View {
             .sorted { ($0.tier, $0.id) < ($1.tier, $1.id) }
     }
 
-    /// A quién vestimos: el elegido si sigue siendo válido, si no el primero de
-    /// la lista. Se resuelve en cada evaluación —y no en un `onAppear`— para que
-    /// la pantalla nunca quede en blanco mientras el `@State` se pone al día.
+    /// A quién vestimos: el que el jugador eligió si sigue siendo válido, y si
+    /// no el aterrizaje por defecto. Se resuelve en cada evaluación —y no en un
+    /// `onAppear`— para que la pantalla nunca quede en blanco mientras el
+    /// `@State` se pone al día.
+    ///
+    /// ⚠️ El default **no** es `skinnable.first`: es
+    /// `defaultSkinnableType(among:)`, que es lo último que el jugador VIO y no
+    /// lo más alto de la lista. El porqué está en el estado, que es donde vive
+    /// la regla.
     private func selection(among skinnable: [CharacterType]) -> CharacterType? {
         if let selectedTypeID, let match = skinnable.first(where: { $0.id == selectedTypeID }) {
             return match
         }
-        return skinnable.first
+        return gameState.defaultSkinnableType(among: skinnable)
     }
 }
 

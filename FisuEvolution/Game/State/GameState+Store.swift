@@ -84,6 +84,32 @@ extension GameState {
             .sorted { $0.tier > $1.tier }
     }
 
+    /// A quién le ABRE Pintas cuando el jugador todavía no eligió a nadie: el de
+    /// tier más alto que **vio en esta run**, y no el primero de la lista.
+    ///
+    /// ⚠️ **La lista y el aterrizaje dejan de compartir criterio, y es a
+    /// propósito.** `skinnableTypes` decide QUÉ se lista —ésa es la unión, y es
+    /// todo el punto—; esto decide DÓNDE abre, y ahí la unión miente. La regla
+    /// del dueño (2026-08-17) es que la pantalla abre en *lo último que hiciste*,
+    /// y una pinta de cofre no es alguien que hiciste: es alguien que te tocó.
+    /// Con `skinnable.first` a secas, una sola pinta de un tier alto —`genesis`
+    /// es del Dios y la cobrás en la tercera reencarnación, para siempre— dejaba
+    /// la pantalla abriendo SIEMPRE en un personaje que nunca viste, y encima
+    /// con su cara fuera del cuadro.
+    ///
+    /// Recibe la lista ya calculada en vez de volver a pedirla: la vista la lee
+    /// UNA vez por evaluación de su `body` y este método no puede ser la excusa
+    /// para recorrer el catálogo de nuevo.
+    ///
+    /// El `??` cubre el caso imposible —ningún tipo visto— sin dejar la pantalla
+    /// en blanco: `run.fresh` siempre ve al tipo base.
+    func defaultSkinnableType(among skinnable: [CharacterType]) -> CharacterType? {
+        guard let player else { return skinnable.first }
+        // `skinnable` ya viene del más nuevo al más viejo, así que el PRIMERO
+        // que el jugador vio es, por construcción, el de tier más alto visto.
+        return skinnable.first { player.run.seenTypes.contains($0.id) } ?? skinnable.first
+    }
+
     /// Las tarjetas del Customization Shop para UN personaje, listas para
     /// dibujar: la base primero y después las skins del catálogo en su orden.
     ///

@@ -319,13 +319,19 @@ struct ChestOpeningView: View {
     /// Cuánto espera este latido antes de dispararse solo, o `nil` si no se
     /// dispara nunca.
     ///
+    /// La puerta de test manda PRIMERO. Preguntando por Reduce Motion antes, un
+    /// simulador con Reduce Motion prendido ignoraba `--uitest-chest-manual` en
+    /// silencio: el smoke se ponía rojo igual, pero por accidente y no porque
+    /// hubiera detectado nada.
+    ///
     /// Con Reduce Motion **todo** cae al mismo 1,2 s porque todo lleva al mismo
     /// lugar: el reposo. Los latidos que no esperan un toque conservan su reloj
-    /// incluso bajo la puerta de test — el estallido y el vuelo de la carta no
-    /// los avanza nadie, así que sin reloj la animación quedaría trabada.
+    /// bajo la puerta de test —el estallido y el vuelo de la carta no los avanza
+    /// nadie, así que sin reloj la animación quedaría trabada—, y la llegada es
+    /// uno de ellos: es la que lleva al reposo con Reduce Motion.
     private func autoAdvanceDelay(after beat: Beat) -> Double? {
-        if reduceMotion { return beat == .resting ? nil : 1.2 }
         if Self.waitsForTapsOnly, beat.awaitsTap { return nil }
+        if reduceMotion { return beat == .resting ? nil : 1.2 }
         return beat.autoAdvance
     }
 
@@ -412,11 +418,14 @@ struct ChestOpeningView: View {
         }
     }
 
-    /// La tapa saliendo volando. Vive sólo durante el estallido y el vuelo de la
-    /// carta: con Reduce Motion no se dibuja nunca, porque su estado final es
-    /// justamente no estar.
+    /// La tapa saliendo volando. Nace en el estallido y **no se desmonta más**:
+    /// el fling dura 0,85 s y el jugador puede dar vuelta la carta antes, así que
+    /// con `== .bursting || == .flying` la tapa se cortaba a mitad de vuelo.
+    /// Quedarse montada no cuesta nada —termina en opacidad 0, sin hit testing y
+    /// muda para VoiceOver—. Con Reduce Motion no se dibuja nunca, porque su
+    /// estado final es justamente no estar.
     @ViewBuilder private var lid: some View {
-        if beat == .bursting || beat == .flying {
+        if beat >= .bursting {
             FlyingLid(side: Self.chestSide * 0.8)
                 .offset(y: Self.chestY)
                 .allowsHitTesting(false)
@@ -439,7 +448,10 @@ struct ChestOpeningView: View {
         // El teñido por rareza: los tres FX son crema con contorno negro, así que
         // multiplicar deja el contorno intacto y sólo el relleno toma color.
         .colorMultiply(beat >= .forced2 ? ChestRarityStyle.color(rarity) : .white)
-        .animation(.easeInOut(duration: 0.35), value: beat >= .forced2)
+        // Apagado con Reduce Motion como todo el resto del pulido: sin el `nil`
+        // los rayos eran la única animación que seguía corriendo. Apagada, el
+        // color salta a su estado FINAL, que es el que la regla pide.
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: beat >= .forced2)
         // 0,7 y no 0,85: al 85 % los rayos crema tapaban el callejón y se leían
         // como cartón recortado. Con el foco detrás, a 0,7 son luz.
         .opacity(0.7)
@@ -473,13 +485,37 @@ struct ChestOpeningView: View {
     /// Dónde nace una ráfaga: el cofre o la carta.
     private enum BurstAnchor { case chest, card }
 
+    /// Una ráfaga, con sus partículas **ya sorteadas**.
+    ///
+    /// El sorteo vive acá y no en el `init` de `SparkBurst` porque la vista se
+    /// vuelve a construir en cada pase del `body`, y mientras la ráfaga de 30
+    /// vuela sus 1,1 s el `body` corre varias veces: el flash que se prende y se
+    /// apaga, el latido que cambia, cada ráfaga vieja que se retira. El
+    /// `keyframeAnimator` conserva la animación en curso —su trigger no cambia—,
+    /// pero el `.frame(width: spark.side…)` toma el valor nuevo en el acto, así
+    /// que un sorteo por pase le cambiaría el tamaño a las 30 partículas EN
+    /// PLENO ESTALLIDO. La `Burst` se arma una sola vez, en `emit`.
     private struct Burst: Identifiable {
         let id = UUID()
-        let count: Int
         let anchor: BurstAnchor
         let tinted: Bool
-        let spread: CGFloat
-        let gravity: Bool
+        let sparks: [Spark]
+
+        init(count: Int, anchor: BurstAnchor, tinted: Bool, spread: CGFloat, gravity: Bool) {
+            self.anchor = anchor
+            self.tinted = tinted
+            sparks = (0..<count).map { index in
+                Spark(
+                    id: index,
+                    dx: .random(in: -spread...spread),
+                    rise: .random(in: spread * 0.35...spread * 0.95),
+                    fall: gravity ? .random(in: spread * 0.9...spread * 1.6) : 0,
+                    side: .random(in: 26...52),
+                    spin: .random(in: -260...260),
+                    isStar: !index.isMultiple(of: 3)
+                )
+            }
+        }
     }
 
     private func emit(_ burst: Burst) {
@@ -497,9 +533,7 @@ struct ChestOpeningView: View {
     @ViewBuilder private func sparks(anchor: BurstAnchor, offsetY: CGFloat) -> some View {
         ForEach(bursts.filter { $0.anchor == anchor }) { burst in
             SparkBurst(
-                count: burst.count,
-                spread: burst.spread,
-                gravity: burst.gravity,
+                sparks: burst.sparks,
                 tint: burst.tinted ? ChestRarityStyle.color(rarity) : nil
             )
             .offset(y: offsetY)
@@ -550,7 +584,14 @@ struct ChestOpeningView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityIdentifier("chest.card")
             .accessibilityLabel(flipRevealed ? Text(prizeName) : Text("chest.card.facedown"))
-            .accessibilityValue(flipRevealed ? Text(ChestRarityStyle.nameKey(rarity)) : Text(verbatim: ""))
+            .accessibilityValue(cardValue)
+    }
+
+    /// La rareza, para VoiceOver. Se canta por la misma regla que la cinta: es
+    /// la etiqueta de la pinta, no del monto de plata.
+    private var cardValue: Text {
+        guard flipRevealed, case .skin = reward.outcome else { return Text(verbatim: "") }
+        return Text(ChestRarityStyle.nameKey(rarity))
     }
 
     /// El dorso **no se genera**: es el tablón de madera de la casa con el moño,
@@ -579,7 +620,22 @@ struct ChestOpeningView: View {
                 GameCard(style: .highlighted(Color("PaletteYellow"))) {
                     VStack(spacing: Tokens.s8) {
                         prizeArt
-                        rarityRibbon
+                        // La cinta SÓLO con pinta. Con plata el monto sale de
+                        // `passiveUnlockCost(forTier:) × factor`: depende del piso
+                        // al que llegó el jugador y de si el cofre era de
+                        // prestigio, y NO de la rareza. Etiquetar el número con
+                        // una cinta promete un ranking que no existe —dos cofres
+                        // del mismo tier pagan lo mismo sean comunes o
+                        // legendarios— y de paso deja el peor cartel posible:
+                        // "me salió legendario y me dieron plata".
+                        //
+                        // La rareza ya cobró su sueldo antes de dar vuelta la
+                        // carta: tiñó los rayos y las partículas en el segundo
+                        // toque, que es el mecanismo que defiende el encabezado
+                        // del archivo. Sacar la cinta no le quita nada al tinte.
+                        if case .skin = reward.outcome {
+                            rarityRibbon
+                        }
                         Text(prizeName)
                             .font(Tokens.title)
                             .foregroundStyle(Color("PaletteInk"))
@@ -801,15 +857,27 @@ private struct ChestShake: ViewModifier {
 /// Con Reduce Motion el modificador no se aplica, así que el cofre nace donde
 /// termina la caída — el estado FINAL, nunca el inicial.
 ///
-/// ⚠️ **La caída NO puede ser un `keyframeAnimator`, y esto costó una vuelta de
-/// simulador.** Al terminar sus keyframes el animador vuelve al `initialValue`,
-/// así que una pista que arrancaba en −520 pt devolvía el cofre arriba de la
-/// pantalla apenas dejaba de animar: se veía caer, aterrizar… y desaparecer,
-/// con el estallido reventando un cofre invisible. La caída va con `offset` +
-/// `withAnimation`, que se queda donde la dejaron.
+/// ⚠️ **La caída NO es un `keyframeAnimator`, y esto costó una vuelta de
+/// simulador**: con una pista que arrancaba en −520 pt el cofre se veía caer,
+/// aterrizar… y desaparecer, y el estallido reventaba un cofre invisible.
 ///
-/// El aplaste SÍ es keyframes, y puede serlo justamente porque **empieza y
-/// termina en 1**: ahí el regreso al valor inicial no cambia nada.
+/// ⚠️⚠️ Y **no es porque el animador vuelva a su `initialValue` al terminar**.
+/// La doc de Apple dice lo contrario —"the animator will remain at the end
+/// value, which becomes the initial value for the next animation"—, así que no
+/// existe la regla general que este comentario afirmaba, y los otros cuatro
+/// `keyframeAnimator` del repo no dependen de ella. Lo que sí re-arma un
+/// animador en su `initialValue` es que cambie la identidad del subárbol que
+/// envuelve, y **este cofre la cambia dos veces**: `chestArt` es un `switch` de
+/// tres artes (cerrado, rajado, abierto), y los dos swaps caen SEGUNDOS después
+/// de que la caída terminó. Que el cofre reapareciera arriba justo en el
+/// estallido —y no al aterrizar— es lo que apunta ahí. No quedó pineado, porque
+/// el arreglo llegó antes que la autopsia.
+///
+/// La lección que sí se lleva el próximo: una pista que **no empieza en el
+/// valor de reposo** es frágil arriba de una vista que cambia de arte. La caída
+/// va con `offset` + `withAnimation`, que se queda donde la dejaron pase lo que
+/// pase. El aplaste puede seguir siendo keyframes porque **empieza y termina en
+/// 1** —igual que los otros cuatro del repo—: ahí re-armarse no se ve.
 private struct ChestDrop: ViewModifier {
     /// Ya cayó. Lo prende el `onAppear`, un frame después del primero, que es lo
     /// que hace que la caída se vea en vez de nacer aterrizada.
@@ -867,6 +935,18 @@ private struct FlyingLid: View {
     }
 }
 
+/// Una partícula de una ráfaga. La gravedad no viaja como bandera: un `fall` en
+/// cero ES la ráfaga que no cae.
+private struct Spark: Identifiable {
+    let id: Int
+    let dx: CGFloat
+    let rise: CGFloat
+    let fall: CGFloat
+    let side: CGFloat
+    let spin: Double
+    let isStar: Bool
+}
+
 /// Una ráfaga de estrellas y chispitas.
 ///
 /// ⚠️ **No sale del `ParticlePool`**: ese es de SpriteKit (`emit(_:at:in
@@ -874,19 +954,10 @@ private struct FlyingLid: View {
 /// partículas son `fx_star` y `fx_sparkle` dibujadas como vistas, con offsets al
 /// azar y caída.
 ///
-/// El sorteo se hace UNA vez, en el `init`: recalcularlo en cada evaluación del
-/// `body` haría que las partículas saltaran de lugar a mitad del vuelo.
+/// ⚠️ **Acá no se sortea nada**: las partículas llegan hechas desde `emit`. El
+/// porqué —y qué se veía cuando el sorteo estaba en este `init`— está en
+/// `ChestOpeningView.Burst`.
 private struct SparkBurst: View {
-    private struct Spark: Identifiable {
-        let id: Int
-        let dx: CGFloat
-        let rise: CGFloat
-        let fall: CGFloat
-        let side: CGFloat
-        let spin: Double
-        let isStar: Bool
-    }
-
     private struct Flight {
         var x: CGFloat = 0
         var y: CGFloat = 0
@@ -895,27 +966,10 @@ private struct SparkBurst: View {
         var opacity: Double = 1
     }
 
-    private let sparks: [Spark]
-    private let gravity: Bool
-    private let tint: Color?
+    let sparks: [Spark]
+    let tint: Color?
 
     @State private var flung = false
-
-    init(count: Int, spread: CGFloat, gravity: Bool, tint: Color?) {
-        self.gravity = gravity
-        self.tint = tint
-        sparks = (0..<count).map { index in
-            Spark(
-                id: index,
-                dx: .random(in: -spread...spread),
-                rise: .random(in: spread * 0.35...spread * 0.95),
-                fall: gravity ? .random(in: spread * 0.9...spread * 1.6) : 0,
-                side: .random(in: 26...52),
-                spin: .random(in: -260...260),
-                isStar: !index.isMultiple(of: 3)
-            )
-        }
-    }
 
     var body: some View {
         ZStack {

@@ -28,8 +28,8 @@ struct GiftsView: View {
     /// Qué video se está mirando ahora (su fila muestra el spinner en lugar del
     /// botón). `nil` = ninguno.
     @State private var watchingRewardId: String?
-    /// Lo que pagó el cofre del Asado, si se activó en esta visita.
-    @State private var chestAmount: Double?
+    /// Lo que pagó la picada del Asado, si se activó en esta visita.
+    @State private var payoutAmount: Double?
     @State private var now = Date()
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
@@ -78,11 +78,11 @@ struct GiftsView: View {
 
                     section("gifts.section.boosts")
                     ForEach(Array(boosts.enumerated()), id: \.element.id) { offset, row in
-                        BoostCard(row: row) { chestAmount = gameState.activateBoost(id: row.id) }
+                        BoostCard(row: row) { payoutAmount = gameState.activateBoost(id: row.id) }
                             .staggeredAppearance(index: 1 + offset)
                     }
-                    if let chestAmount {
-                        chestBanner(chestAmount)
+                    if let payoutAmount {
+                        payoutBanner(payoutAmount)
                     }
 
                     section("gifts.section.videos")
@@ -137,11 +137,11 @@ struct GiftsView: View {
             .padding(.top, Tokens.s8)
     }
 
-    /// Lo que pagó el cofre del Asado. Aparece bajo los boosts y se queda hasta
+    /// Lo que pagó la picada del Asado. Aparece bajo los boosts y se queda hasta
     /// cerrar la hoja: es un premio de una vez y el jugador tiene que poder
     /// volver a mirarlo.
-    private func chestBanner(_ amount: Double) -> some View {
-        let text = String(localized: "gifts.chest \(CoinFormatter.string(from: amount))")
+    private func payoutBanner(_ amount: Double) -> some View {
+        let text = String(localized: "gifts.payout \(CoinFormatter.string(from: amount))")
         return GameCard(style: .highlighted(Color("PaletteYellow"))) {
             HStack(spacing: Tokens.s8) {
                 CoinIcon(size: 26)
@@ -313,11 +313,11 @@ private struct DayCell: View {
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("gifts.daily.day\(day.id)")
         // El nombre del día ("Día 3: Quincena Chica") ya es la mitad del chiste;
-        // para el séptimo se agrega el cofre, que es lo ÚNICO que lo distingue
+        // para el séptimo se agrega la sorpresa, que es lo ÚNICO que lo distingue
         // en pantalla y se perdería al colapsar la casilla.
         .accessibilityLabel(
             day.isChest
-                ? Text(LocalizedStringKey(day.titleKey)) + Text(verbatim: ", ") + Text("gifts.daily.chest")
+                ? Text(LocalizedStringKey(day.titleKey)) + Text(verbatim: ", ") + Text("gifts.daily.surprise")
                 : Text(LocalizedStringKey(day.titleKey))
         )
         .accessibilityValue(Text(stateKey))

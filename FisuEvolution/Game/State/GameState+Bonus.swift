@@ -471,7 +471,7 @@ extension GameState {
         case .tapMultiplier: return String(localized: "bonus.effect.tap \(value) \(seconds)")
         case .spawnCostMultiplier: return String(localized: "bonus.effect.spawn \(value) \(seconds)")
         case .offlineEfficiencyPermanent: return String(localized: "bonus.effect.offline \(value)")
-        case .periodicChest: return String(localized: "bonus.effect.chest \(value)")
+        case .periodicPayout: return String(localized: "bonus.effect.payout \(value)")
         }
     }
 
@@ -510,7 +510,7 @@ extension GameState {
         case .coinChest:
             guard let factor = career.chestFactor else { return nil }
             let chest = economy.passiveUnlockCost(forTier: player.run.maxTierReached) * factor
-            return String(localized: "career.reward.chest \(CoinFormatter.string(from: chest))")
+            return String(localized: "career.reward.welcome \(CoinFormatter.string(from: chest))")
         case .freeBoost:
             guard let boost = content.boosts.boosts.first(where: { $0.id == career.boostId }) else { return nil }
             let name = localized(boost.displayNameKey(buildVariant: content.flags.buildVariant))

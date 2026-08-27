@@ -1767,23 +1767,6 @@
         }
       }
     },
-    "bonus.effect.chest %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A %@ coin chest, every time"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un cofre de plata %@, cada vez"
-          }
-        }
-      }
-    },
     "bonus.effect.income %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1814,6 +1797,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ de ganancia offline, para siempre"
+          }
+        }
+      }
+    },
+    "bonus.effect.payout %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A %@ coin platter, every time"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una picada de plata %@, cada vez"
           }
         }
       }
@@ -2158,23 +2158,6 @@
         }
       }
     },
-    "career.reward.chest %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Welcome chest: %@ coins"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cofre de bienvenida: %@ de plata"
-          }
-        }
-      }
-    },
     "career.reward.modifier %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2205,6 +2188,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skin exclusiva: %@"
+          }
+        }
+      }
+    },
+    "career.reward.welcome %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome bonus: %@ coins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenida: %@ de plata"
           }
         }
       }
@@ -2985,40 +2985,6 @@
         }
       }
     },
-    "gifts.chest %@" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chest! +%@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Cofre! +%@"
-          }
-        }
-      }
-    },
-    "gifts.daily.chest" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chest"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cofre"
-          }
-        }
-      }
-    },
     "gifts.daily.note" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3083,6 +3049,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En juego"
+          }
+        }
+      }
+    },
+    "gifts.daily.surprise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Surprise"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorpresa"
+          }
+        }
+      }
+    },
+    "gifts.payout %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payout! +%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Picada! +%@"
           }
         }
       }

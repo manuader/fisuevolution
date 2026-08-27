@@ -303,12 +303,12 @@ enum BoostManager {
             state.meta.oroUpgradeLevels[milanesaLevelKey, default: 0] += 1
             UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, economy: economy)
             return nil
-        case .periodicChest:
-            // Asado del Domingo: cofre = factor × passiveUnlockCost(tier máximo).
-            let chest = economy.passiveUnlockCost(forTier: state.run.maxTierReached) * boost.magnitude
-            state.run.coins += chest
-            state.meta.lifetimeEarnings += chest
-            return chest
+        case .periodicPayout:
+            // Asado del Domingo: la picada = factor × passiveUnlockCost(tier máximo).
+            let payout = economy.passiveUnlockCost(forTier: state.run.maxTierReached) * boost.magnitude
+            state.run.coins += payout
+            state.meta.lifetimeEarnings += payout
+            return payout
         }
     }
 }

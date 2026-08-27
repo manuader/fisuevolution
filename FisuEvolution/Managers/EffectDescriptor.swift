@@ -63,7 +63,7 @@ enum EffectDescriptor {
     /// Boosts: el efecto es la magnitud sola, no depende de ningún nivel.
     static func amount(forBoost effectType: BoostsConfig.EffectType, magnitude: Double) -> EffectAmount {
         switch effectType {
-        case .incomeMultiplier, .tapMultiplier, .periodicChest:
+        case .incomeMultiplier, .tapMultiplier, .periodicPayout:
             return EffectAmount(unit: .multiplier, value: magnitude, isCapped: false)
         case .spawnCostMultiplier:
             // La magnitud es un FACTOR de costo (0,7 = cuesta 0,7×). Mostrarla

@@ -131,7 +131,7 @@ struct BoostsConfig: Codable, Sendable, Equatable {
         case tapMultiplier
         case spawnCostMultiplier
         case offlineEfficiencyPermanent
-        case periodicChest
+        case periodicPayout
     }
 
     struct ReviewSafeText: Codable, Sendable, Equatable {

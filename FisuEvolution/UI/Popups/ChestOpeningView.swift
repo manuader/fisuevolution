@@ -268,6 +268,21 @@ struct ChestOpeningView: View {
     private func choreograph(_ beat: Beat) async {
         switch beat {
         case .arriving:
+            // ⚠️ El retrato se carga ACÁ, cuatro latidos antes de que se vea.
+            // `cardFront` se monta recién en `.flying`, y con él la PRIMERA
+            // lectura del personaje premiado: medida en el simulador, cuesta
+            // ~320 ms de hilo principal —~215 realizando la página del atlas
+            // (`texture.size()`) y ~100 en el `cgImage()`—, contra 0,1 ms una vez
+            // cacheada. O sea que el latido en el que la carta sale volando
+            // arrancaba comiéndose un cuarto de segundo de cuadros.
+            //
+            // La llegada es el lugar barato para pagarlo: es el latido en el que
+            // el overlay se está construyendo igual, así que ya venía con ~500 ms
+            // de bloqueos propios y 320 más se pierden ahí adentro. Medido con un
+            // vigía de hambre del hilo principal, dos corridas por rama:
+            // `.flying` pasó de **247/279 ms a 101/71 ms**, y `.arriving` quedó
+            // igual dentro del ruido (525 → 542 ms de promedio).
+            warmPrizeArt()
             // El golpe va con el ATERRIZAJE, no con el nacimiento de la vista.
             guard await pause(reduceMotion ? 0 : 0.34) else { return }
             landed = true
@@ -341,6 +356,21 @@ struct ChestOpeningView: View {
         guard seconds > 0 else { return !Task.isCancelled }
         try? await Task.sleep(for: .seconds(seconds))
         return !Task.isCancelled
+    }
+
+    /// Fuerza la primera lectura del retrato del premio, para que
+    /// `UIArt.characterImage` la sirva de caché cuando la carta lo pida.
+    ///
+    /// Con plata no hay nada que precalentar: `CoinIcon` sale del atlas `ui`, que
+    /// el HUD ya dejó caliente antes de que el cofre existiera.
+    private func warmPrizeArt() {
+        guard case let .skin(id, characterType, _) = reward.outcome else { return }
+        let treatment = SkinResolver.treatment(
+            for: id,
+            characterType: characterType,
+            config: gameState.content?.skins ?? SkinsConfig(schemaVersion: 1, skins: [])
+        )
+        _ = portraitImage(typeID: characterType, treatment: treatment)
     }
 
     private func play(_ pattern: HapticsManager.Pattern) {
@@ -862,16 +892,27 @@ private struct ChestShake: ViewModifier {
 /// aterrizar… y desaparecer, y el estallido reventaba un cofre invisible.
 ///
 /// ⚠️⚠️ Y **no es porque el animador vuelva a su `initialValue` al terminar**.
-/// La doc de Apple dice lo contrario —"the animator will remain at the end
-/// value, which becomes the initial value for the next animation"—, así que no
-/// existe la regla general que este comentario afirmaba, y los otros cuatro
-/// `keyframeAnimator` del repo no dependen de ella. Lo que sí re-arma un
+/// Eso es lo ÚNICO pineado de esta nota, y es una negación: la doc de Apple dice
+/// lo contrario —"the animator will remain at the end value, which becomes the
+/// initial value for the next animation"—, así que la regla general que este
+/// comentario afirmaba no existe, y los otros cuatro `keyframeAnimator` del repo
+/// no dependen de ella.
+///
+/// ⚠️ **La causa positiva sigue ABIERTA, y lo que sigue es una hipótesis con una
+/// objeción conocida — no la tomes como hecho.** La hipótesis: lo que re-arma un
 /// animador en su `initialValue` es que cambie la identidad del subárbol que
-/// envuelve, y **este cofre la cambia dos veces**: `chestArt` es un `switch` de
-/// tres artes (cerrado, rajado, abierto), y los dos swaps caen SEGUNDOS después
-/// de que la caída terminó. Que el cofre reapareciera arriba justo en el
-/// estallido —y no al aterrizar— es lo que apunta ahí. No quedó pineado, porque
-/// el arreglo llegó antes que la autopsia.
+/// envuelve, y este cofre la cambia dos veces —`chestArt` es un `switch` de tres
+/// artes (cerrado, rajado, abierto)— SEGUNDOS después de que la caída terminó,
+/// que es lo que explicaría por qué el cofre reaparecía arriba justo en el
+/// estallido y no al aterrizar.
+///
+/// **La objeción**: ese `switch` vive ADENTRO del `content` que este modificador
+/// envuelve, o sea POR DEBAJO del `keyframeAnimator`. Cambiar de rama de un
+/// `_ConditionalContent` re-arma el subárbol de adentro, no el estado del
+/// modificador que está arriba — así que, por el modelo de identidad de SwiftUI,
+/// el swap de arte **no debería** tocar al animador. La hipótesis explica el
+/// síntoma pero no encaja con el modelo, y no hay medición que la sostenga: el
+/// arreglo llegó antes que la autopsia.
 ///
 /// La lección que sí se lleva el próximo: una pista que **no empieza en el
 /// valor de reposo** es frágil arriba de una vista que cambia de arte. La caída

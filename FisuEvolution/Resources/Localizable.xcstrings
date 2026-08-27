@@ -3206,6 +3206,40 @@
         }
       }
     },
+    "gifts.chest.count %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld unopened"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld sin abrir"
+          }
+        }
+      }
+    },
+    "gifts.chest.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir"
+          }
+        }
+      }
+    },
     "gifts.daily.note" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3321,6 +3355,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boosts"
+          }
+        }
+      }
+    },
+    "gifts.section.chests" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skin chests"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cofres de pintas"
           }
         }
       }

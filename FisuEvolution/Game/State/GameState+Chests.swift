@@ -131,7 +131,13 @@ extension GameState {
         celebrationFinished(.chestOpening)
     }
 
-    /// Lo que muestran el puntito y la tarjeta de Regalos.
+    /// Cuántos cofres esperan. Es la cuenta autoritativa —contra ella cotiza
+    /// `openChest()`— y la que muestra la tarjeta de Regalos, que se recompone
+    /// con el timer de 1 Hz de su pantalla.
+    ///
+    /// ⚠️ **No invalida SwiftUI**: sale de `player`, que es
+    /// `@ObservationIgnored`. Lo que enciende el puntito de la pestaña es
+    /// `hasPendingChests`, la proyección publicada a 8 Hz.
     var pendingChestCount: Int {
         (player?.meta.chestsPending ?? 0) + (player?.meta.prestigeChestsPending ?? 0)
     }

@@ -246,3 +246,55 @@ struct ChestOpeningTests {
         )
     }
 }
+
+/// Lo que la pantalla de Regalos necesita para ofrecer el cofre: la señal
+/// **publicada** del puntito y las tres copys de la tarjeta.
+///
+/// ⚠️ La señal existe aparte de `pendingChestCount` porque `player` es
+/// `@ObservationIgnored`: la cuenta se computa al leerse y **no invalida
+/// SwiftUI**, así que la barra de abajo —que no tiene timer ni nada más que la
+/// haga recomponerse— se quedaría sin puntito hasta que otra cosa la despertara.
+/// Es el mismo trato que `hasClaimableAchievements`, y por eso vive al lado.
+@Suite("El puntito de Regalos")
+@MainActor
+struct PendingChestBadgeTests {
+    @Test("la señal del puntito sigue a los dos contadores, y se apaga al abrir el último")
+    func theBadgeSignalFollowsBothCounters() async {
+        let state = await makeGameState()
+        #expect(state.hasPendingChests == false, "una partida nueva no tiene nada que cobrar")
+
+        state.awardChest()
+        state.flushHUD()
+        #expect(state.hasPendingChests, "un cofre de la torre tiene que encender el puntito")
+
+        state.openChest()
+        state.flushHUD()
+        #expect(state.hasPendingChests == false, "gastado el último, el puntito se apaga")
+    }
+
+    /// El de prestigio es el OTRO contador: un puntito que sólo mirara
+    /// `chestsPending` dejaría invisible al cofre de la reencarnación, que es
+    /// justo el que garantiza épica.
+    @Test("el cofre de la reencarnación también enciende el puntito")
+    func thePrestigeCounterAlsoLightsTheBadge() async {
+        let state = await makeGameState()
+
+        state.awardChest(minRarity: .epica)
+        state.flushHUD()
+
+        #expect(state.player?.meta.chestsPending == 0)
+        #expect(state.hasPendingChests, "el contador de prestigio cuenta igual")
+    }
+
+    @Test("la tarjeta del cofre no muestra ninguna clave cruda")
+    func theChestCardCopyIsResolved() {
+        let seccion = String(localized: "gifts.section.chests")
+        let boton = String(localized: "gifts.chest.open")
+        let cuenta = String(localized: "gifts.chest.count \(3)")
+
+        #expect(!seccion.contains("gifts."), "la cinta dejó una clave cruda: '\(seccion)'")
+        #expect(!boton.contains("gifts."), "el botón dejó una clave cruda: '\(boton)'")
+        #expect(!cuenta.contains("gifts."), "el contador dejó una clave cruda: '\(cuenta)'")
+        #expect(cuenta.contains("3"), "y el contador tiene que decir cuántos son: '\(cuenta)'")
+    }
+}

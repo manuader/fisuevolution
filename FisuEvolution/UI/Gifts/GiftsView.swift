@@ -1,8 +1,14 @@
 import SwiftUI
 
 /// **Regalos** — todo lo que el juego te da sin cobrarte (spec §9), en un solo
-/// panel y en tres secciones: la **racha diaria**, los **boosts** gratis con
-/// cooldown y los **videos**.
+/// panel: los **cofres de pintas** sin abrir —cuando hay—, la **racha diaria**,
+/// los **boosts** gratis con cooldown y los **videos**.
+///
+/// El cofre va primero porque no es de la misma clase que las otras tres: las
+/// demás **ofrecen** algo que el jugador todavía tiene que ganar, y ésa
+/// **entrega** algo que ya ganó. Y es el único botón del juego —fuera de la
+/// puerta de debug— que llama a `openChest()`: sin él los cofres se acumulan
+/// invisibles en el save.
 ///
 /// Reemplaza a `BonusView`, que era una `List` de sistema con dos secciones. Lo
 /// que cambió es el idioma visual —`GameCard`, `SectionHeader`, `ActionPill`,
@@ -19,7 +25,10 @@ import SwiftUI
 /// ⚠️ **Un solo timer de 1 Hz para toda la pantalla** (patrón `ActiveBonusBar`).
 /// Los cooldowns NO viajan en ninguna proyección publicada: `boostRows` y
 /// `rewardRows` se computan al leerse, así que basta con que `now` avance una vez
-/// por segundo para que las tres secciones se recalculen juntas.
+/// por segundo para que las secciones se recalculen juntas. Es también lo que
+/// refresca la tarjeta del cofre: `pendingChestCount` sale de `player`, que la UI
+/// no observa (el puntito de la pestaña, que no tiene timer, va por la
+/// proyección `hasPendingChests`).
 struct GiftsView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
@@ -57,29 +66,46 @@ struct GiftsView: View {
         let days = gameState.dailyCalendar
         let boosts = gameState.boostRows
         let rewards = gameState.rewardRows
+        // La tarjeta del cofre está o no está, y eso corre TODA la cascada de
+        // abajo un lugar: el índice del escalonado cuenta a través de las
+        // secciones (ver el comentario del `VStack`), así que las de abajo tienen
+        // que sumar la fila que la tarjeta ocupa — o no ocupa.
+        let chests = gameState.pendingChestCount
+        let chestRows = chests > 0 ? 1 : 0
 
         NavigationStack {
             ScrollView {
                 // `VStack` y no `LazyVStack`: son 12 tarjetas contadas —la tira,
-                // los seis boosts y los cinco videos— y tienen
-                // que existir en el árbol de accesibilidad sin scrollear. La fila
-                // del video que ejerce `BonusHUDUITests` vive abajo de los seis
-                // boosts, y con la lista perezosa de `BonusView` el test tenía
-                // que deslizar hasta cuatro veces para encontrarla.
+                // los seis boosts y los cinco videos—, 13 con la del cofre cuando
+                // hay alguno esperando, y tienen que existir en el árbol de
+                // accesibilidad sin scrollear. La fila del video que ejerce
+                // `BonusHUDUITests` vive abajo de los seis boosts, y con la lista
+                // perezosa de `BonusView` el test tenía que deslizar hasta cuatro
+                // veces para encontrarla.
                 // Las tarjetas caen escalonadas de arriba abajo al abrir la hoja
-                // (spec §11.2). El índice corre a través de las TRES secciones
-                // —la tira del calendario es la fila 0— así que la cascada es del
-                // panel y no de cada sección por su cuenta. Las cintas de sección
-                // no participan: son el esqueleto, y lo que entra es el contenido.
+                // (spec §11.2). El índice corre a través de TODAS las secciones
+                // —la fila 0 es el cofre si está, y si no la tira del calendario—
+                // así que la cascada es del panel y no de cada sección por su
+                // cuenta. Las cintas de sección no participan: son el esqueleto,
+                // y lo que entra es el contenido.
                 VStack(spacing: Tokens.s12) {
+                    // Arriba de todo, y sólo cuando hay: es lo único de esta
+                    // pantalla que el jugador YA ganó y todavía no cobró. Los
+                    // boosts y los videos son ofertas; el cofre es suyo.
+                    if chests > 0 {
+                        section("gifts.section.chests")
+                        ChestCard(count: chests, open: openChest)
+                            .staggeredAppearance(index: 0)
+                    }
+
                     section("gifts.section.daily")
                     DailyStrip(days: days)
-                        .staggeredAppearance(index: 0)
+                        .staggeredAppearance(index: chestRows)
 
                     section("gifts.section.boosts")
                     ForEach(Array(boosts.enumerated()), id: \.element.id) { offset, row in
                         BoostCard(row: row) { payoutAmount = gameState.activateBoost(id: row.id) }
-                            .staggeredAppearance(index: 1 + offset)
+                            .staggeredAppearance(index: chestRows + 1 + offset)
                     }
                     if let payoutAmount {
                         payoutBanner(payoutAmount)
@@ -90,7 +116,7 @@ struct GiftsView: View {
                         VideoCard(row: row, isWatching: watchingRewardId == row.id) {
                             watch(rewardId: row.id)
                         }
-                        .staggeredAppearance(index: 1 + boosts.count + offset)
+                        .staggeredAppearance(index: chestRows + 1 + boosts.count + offset)
                     }
                 }
                 .padding(.horizontal, Self.panelInset)
@@ -158,6 +184,26 @@ struct GiftsView: View {
         .accessibilityLabel(Text(verbatim: text))
     }
 
+    // MARK: El cofre
+
+    /// Abre uno de los cofres que esperan.
+    ///
+    /// ⚠️ **Cierra la hoja, y no es una cortesía.** La animación del cofre vive
+    /// en el `ZStack` de `RootView` y Regalos es un `.sheet`, que se presenta POR
+    /// ENCIMA de la vista raíz: sin el `dismiss`, el cofre se abre debajo de esta
+    /// pantalla —invisible, y sordo a los toques que la animación necesita para
+    /// avanzar—. Y ahí no hay salida: `.chestOpening` no tiene timeout ni es
+    /// salteable, así que la cola queda trabada con el HUD apagado.
+    ///
+    /// ⚠️ Lo único que hace además es gastar el cofre. **No toca `chestReward`
+    /// ni `celebrationFinished`**: de cerrar la animación se ocupa
+    /// `dismissChestReward()`, el único lugar donde el orden de esas dos líneas
+    /// está escrito —y testeado— tal como el contrato lo exige.
+    private func openChest() {
+        dismiss()
+        gameState.openChest()
+    }
+
     // MARK: El video
 
     /// El mismo flujo que tenía `BonusView`: se pide el video, y si el jugador se
@@ -200,6 +246,82 @@ private enum Cooldown {
     static func progress(remaining: TimeInterval, total: TimeInterval) -> Double {
         guard total > 0 else { return 1 }
         return min(1, max(0, 1 - remaining / total))
+    }
+}
+
+// MARK: - El cofre sin abrir
+
+/// Los cofres de pintas que el jugador YA ganó y todavía no abrió: el arte del
+/// cofre cerrado, cuántos son y el botón que abre uno.
+///
+/// Es la única tarjeta **destacada** de la pantalla, y es a propósito: las otras
+/// tres secciones ofrecen cosas —una racha que hay que sostener, boosts con
+/// cooldown, videos que hay que mirar—, y ésta entrega algo que ya es suyo. El
+/// amarillo es el mismo acento con el que la tira marca el día en juego.
+///
+/// Abre **de a uno**: `openChest()` gasta uno solo y la animación ocupa la
+/// pantalla entera, así que con dos esperando el jugador vuelve acá y la tarjeta
+/// —que se recompone con el timer de la pantalla— ya dice "1 sin abrir".
+private struct ChestCard: View {
+    let count: Int
+    let open: () -> Void
+
+    /// El mismo plato de 56 pt que la tira, `BoostGlyph` y `ScreenGlyph`: las
+    /// cuatro secciones llevan su glifo con el mismo encuadre.
+    private static let plateShape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+    /// Y el mismo riel derecho que las otras dos filas con botón, por lo mismo:
+    /// las secciones de esta pantalla son la misma lista.
+    private static let railWidth: CGFloat = BoostCard.railWidth
+
+    var body: some View {
+        GameCard(style: .highlighted(Color("PaletteYellow"))) {
+            HStack(spacing: Tokens.s12) {
+                GameIcon(artKey: "ui_chest_closed", size: 44) { VectorTabGiftsIcon() }
+                    .padding(6)
+                    .background(Color("PaletteYellow").opacity(0.35))
+                    .clipShape(Self.plateShape)
+                    .overlay(Self.plateShape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
+                    .accessibilityHidden(true)
+                // Interpolar el `Int` en la clave arma "gifts.chest.count %lld",
+                // que es la que está en el catálogo (trampa 5, al derecho).
+                Text("gifts.chest.count \(count)")
+                    .font(Tokens.title)
+                    .monospacedDigit()
+                    .foregroundStyle(Color("PaletteInk"))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    // Ya lo dice el resumen de la fila, que es el elemento de
+                    // atrás: sin esto se anuncia dos veces.
+                    .accessibilityHidden(true)
+                ActionPill(
+                    titleKey: "gifts.chest.open",
+                    systemImage: "sparkles",
+                    identifier: "gifts.chest.open",
+                    // "Abrir" a secas no dice qué se abre, y en el rotor es una
+                    // parada muda. El nombre del premio ya existe —es el que usa
+                    // el día 7 del calendario— y va en singular, que es lo que
+                    // este botón hace: abrir UNO.
+                    accessibilityLabel: Text("gifts.chest.open")
+                        + Text(verbatim: ", ") + Text("daily.prize.chest"),
+                    action: open
+                )
+                .frame(width: Self.railWidth, alignment: .trailing)
+            }
+        }
+        // ⚠️ El resumen de la fila va en una capa VACÍA y detrás, patrón T8:
+        // encima de la tarjeta se tragaría el botón (trampa 9a) y
+        // `gifts.chest.open` dejaría de existir en el árbol de accesibilidad.
+        .background {
+            Color.clear
+                .accessibilityElement(children: .ignore)
+                .accessibilityIdentifier("gifts.chest.row")
+                .accessibilityLabel(
+                    Text("gifts.section.chests")
+                        + Text(verbatim: ", ") + Text("gifts.chest.count \(count)")
+                )
+                .allowsHitTesting(false)
+        }
     }
 }
 

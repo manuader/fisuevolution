@@ -201,6 +201,17 @@ final class GameState {
     /// `player` es `@ObservationIgnored`: la leen el badge del tab Menú, la
     /// tarjeta de Logros y el gating de su lección.
     private(set) var hasClaimableAchievements = false
+    /// Hay al menos un cofre de pintas esperando que lo abran. Es
+    /// `pendingChestCount > 0` publicado, y existe por lo MISMO que su vecino de
+    /// arriba: `player` es `@ObservationIgnored`, así que la cuenta —computada al
+    /// leerse, en `+Chests`— no invalida SwiftUI. La barra de abajo no tiene
+    /// timer ni ninguna otra dependencia observable, así que sin esta proyección
+    /// su puntito no aparecería hasta que otra cosa la despertara.
+    ///
+    /// ⚠️ La cuenta sigue siendo la fuente de verdad: `openChest()` cotiza contra
+    /// ella y no contra esto, que se refresca a 8 Hz y llega tarde a las dos
+    /// llamadas seguidas de `debugOpenChest()`.
+    private(set) var hasPendingChests = false
     /// Invalida la ficha cuando llega un entitlement, milestone o equipamiento.
     /// Lo escriben `+Store` (entitlements y equipar) y `+Debug`.
     var skinSelectionVersion = 0
@@ -966,6 +977,9 @@ final class GameState {
         let claimable = !player.meta.unlockedAchievements
             .subtracting(player.meta.claimedAchievements).isEmpty
         if hasClaimableAchievements != claimable { hasClaimableAchievements = claimable }
+
+        let cofres = pendingChestCount > 0
+        if hasPendingChests != cofres { hasPendingChests = cofres }
 
         refreshTutorialTip()
     }

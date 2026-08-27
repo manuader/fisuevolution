@@ -315,6 +315,18 @@ extension GameState {
         openChest()
     }
 
+    /// Un cofre regalado y **sin abrir**: el que hace falta para recorrer el
+    /// camino del jugador —el puntito de la pestaña, la tarjeta de Regalos, el
+    /// botón— en vez de aterrizar directo en la animación.
+    ///
+    /// Publica en el acto, como las otras puertas: la proyección del puntito se
+    /// refresca a 8 Hz contra el frame counter de la escena, y este botón vive
+    /// adentro de una hoja que la tapa.
+    func debugAwardChest() {
+        awardChest()
+        refreshProjections()
+    }
+
     func debugResetSave() {
         guard let content else { return }
         var fresh = PlayerState.newGame(

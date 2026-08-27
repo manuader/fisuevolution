@@ -1184,7 +1184,16 @@ git commit -m "feat(cofres): el cofre pide turno como cualquier celebración y a
   `FisuEvolution/UI/Gifts/GiftsView.swift:320`
 - Test: `FisuEvolutionTests/EffectDescriptorTests.swift`
 
-⚠️ **Verificado el 2026-08-26**: son exactamente esos sitios, ni más ni menos. `EffectType`
+⚠️ **Esta lista estuvo MAL y la corrección vale más que la lista.** Decía "son exactamente
+esos sitios, ni más ni menos" y eran **seis**, no cuatro: faltaban
+`GameState+Bonus.swift:513` (`career.reward.chest`) y `GiftsView.swift:144` (`gifts.chest`).
+La causa fue tonta y reproducible: el grep de verificación devolvía 11 líneas y se lo pasó
+por `head`, que corta en 10 — la afirmación absoluta salió de una lista truncada por quien
+la escribió.
+⚠️⚠️ **Y lo que faltaba era justo lo peligroso**: los dos son `String(localized:)`, y con la
+clave borrada del catálogo **no rompen el build** — imprimen la clave cruda en pantalla. El
+juego habría mostrado `gifts.payout 8,4 M` en producción sin un solo test en rojo. En un
+renombre de claves, el compilador no es la red: la red es el grep, y el grep sin truncar. `EffectType`
 es `CaseIterable` y `EffectDescriptorTests` recorre los siete tipos, así que un case sin
 cubrir sale en rojo — pero el `switch` de `EffectDescriptor.swift:66` agrupa
 `periodicChest` con otros dos y el compilador **no** avisa si se renombra mal ahí.

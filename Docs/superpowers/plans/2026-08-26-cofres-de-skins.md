@@ -1309,7 +1309,28 @@ El avance es **por completion y por tap**, nunca por `delay` encadenado (mismo c
 Sacudidas ±5° / ±9° / ±14° con `keyframeAnimator` y `SpringKeyframe(spring: .bouncy)`
 (mismo vocabulario que el bounce de `GameTabButton:1202-1204`). Flash de 80 ms. Flip de
 0,45 s con `rotation3DEffect(.degrees(...), axis: (0, 1, 0))`. Haptics por
-`HapticsManager`: `.light`, `.medium`, `.heavy`, `.success`.
+`HapticsManager`.
+
+⚠️ **`HapticsManager` NO tiene `.light`/`.medium`/`.heavy`/`.success`** (el plan y el spec los
+pedían; corregido el 2026-08-26). El juego usa un vocabulario **semántico** sobre CoreHaptics
+—`.merge`, `.purchase`, `.error`, `.evolution`, `.rarity`—, no los generadores de impacto de
+UIKit. Están en `HapticsManager.swift:14-18` y sus formas en `:76-105`.
+
+La escalada de los tres toques sale de esas formas y no de inventar una: `.merge` es **un**
+transient (0,8), `.purchase` son **dos** (0,55 → 0,7) y `.rarity` son **tres en crescendo**
+(0,6 → 0,8 → 1,0). Los tres toques del candado se sienten entonces como un golpe, dos golpes
+y tres que suben — la anticipación que pide el latido, con lo que ya existe.
+`.evolution` (continuo de 0,4 s a intensidad plena + remate seco) es el más grande del juego
+y va en el estallido; el flip cierra con `.rarity`.
+
+⚠️ **El confeti NO puede salir del `ParticlePool`**: su firma es
+`emit(_:at:in parent: SKNode)` y su único cliente es `BoardScene`. Este overlay es SwiftUI,
+así que las partículas se dibujan con `fx_star` y `fx_sparkle` como vistas, con offsets
+aleatorios y caída.
+
+⚠️ **`ui_chest_open` no calza exacto con `ui_chest_closed`**: quedó algo más ancho y girado
+unos grados (verificado a ojo al integrar el arte). Compensalo con escala y offset en el
+latido del estallido — el flash de 80 ms tapa el resto. No se regenera de nuevo.
 
 - [ ] **Step 3: Reduce Motion**
 

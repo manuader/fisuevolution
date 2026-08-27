@@ -191,13 +191,13 @@ la animación por la mitad.
 
 | # | Latido | Input | Qué pasa | Haptic |
 |---|---|---|---|---|
-| 0 | Llegada | — | El cofre cae, rebota y aplasta al aterrizar. Detrás, `fx_burst_rays` en crema, girando lento. | `.heavy` |
-| 1 | Forzar (1/3) | tap | Sacudida ±5°, el candado se raja, saltan 4 `fx_star` chicas. | `.light` |
-| 2 | Forzar (2/3) | tap | Sacudida ±9°, `ui_chest_cracked`, 8 estrellas. **Los rayos se tiñen del color de la rareza y aceleran.** | `.medium` |
-| 3 | Forzar (3/3) | tap | Sacudida ±14°, el cofre se hincha, la luz se escapa por las juntas. | `.heavy` |
-| 4 | Estallido | — (0,4 s) | Flash blanco de 80 ms. `ui_chest_lid` sale volando girando. ~30 estrellas y chispitas con gravedad. Queda `ui_chest_open`. | `.success` |
+| 0 | Llegada | — | El cofre cae, rebota y aplasta al aterrizar. Detrás, `fx_burst_rays` en crema, girando lento. | `.merge` |
+| 1 | Forzar (1/3) | tap | Sacudida ±5°, el candado se raja, saltan 4 `fx_star` chicas. | `.merge` |
+| 2 | Forzar (2/3) | tap | Sacudida ±9°, `ui_chest_cracked`, 8 estrellas. **Los rayos se tiñen del color de la rareza y aceleran.** | `.purchase` |
+| 3 | Forzar (3/3) | tap | Sacudida ±14°, el cofre se hincha, la luz se escapa por las juntas. | `.merge` |
+| 4 | Estallido | — (0,4 s) | Flash blanco de 80 ms. `ui_chest_lid` sale volando girando. ~30 estrellas y chispitas con gravedad. Queda `ui_chest_open`. | `.evolution` |
 | 5 | La carta vuela | — (0,5 s) | Una carta boca abajo sale del cofre, gira y aterriza grande en el centro. El cofre queda chico abajo. | — |
-| 6 | Darla vuelta | tap | Flip 3D de 0,45 s. Del otro lado, la skin en grande sobre la tarjeta amarilla. Segunda ráfaga. | `.success` |
+| 6 | Darla vuelta | tap | Flip 3D de 0,45 s. Del otro lado, la skin en grande sobre la tarjeta amarilla. Segunda ráfaga. | `.evolution` |
 | 7 | Reposo | — | Cinta de rareza, nombre de la pinta, personaje. "Ponérsela" / "Después". | — |
 
 Cuatro toques. Si el jugador no toca, cada latido se dispara solo a los **1,2 s**:

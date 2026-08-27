@@ -2634,13 +2634,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "For your %@."
+            "value" : "For %@."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para tu %@."
+            "value" : "Para %@."
           }
         }
       }

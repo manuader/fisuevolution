@@ -625,6 +625,59 @@ struct GameContentValidationTests {
     /// alto VISTO— aterrizaba en otro, dejando la pinta recién ganada a un toque
     /// de carrusel. Con la pinta alineada al aterrizaje, las dos cosas se
     /// arreglan solas.
+    /// Las dos cartas de premio del juego componen el nombre del personaje, y
+    /// **ninguna puede duplicar el artículo**.
+    ///
+    /// ⚠️ Este test existe porque el bug SHIPPEÓ y nadie lo vio.
+    /// `chest.skin.subtitle` decía `"Para tu %@."` / `"For your %@."`, y **tres
+    /// de los 44** nombres ya traen artículo —El Fisura / The Hobo, El Trapito /
+    /// The Fake Valet, El Mantero / The Bootleg Vendor—, así que la carta leía
+    /// *"Para tu El Trapito."*. Ninguna prueba resolvía esa clave, y el cofre de
+    /// bienvenida —que es justo del Trapito— lo puso en el minuto 2 de TODAS las
+    /// partidas nuevas.
+    ///
+    /// La carta hermana (`skin.award.subtitle`, la de las pintas de milestone)
+    /// nunca lo tuvo porque va **sin posesivo**; el arreglo alineó las dos en vez
+    /// de inventar una forma nueva. Esto es lo que impide que vuelva el posesivo.
+    ///
+    /// Recorre el catálogo entero y no una lista escrita a mano: un personaje
+    /// nuevo con artículo queda cubierto sin tocar el test.
+    @Test("ninguna carta de premio duplica el artículo con ningún personaje")
+    func noPrizeSubtitleDoublesTheArticle() {
+        // Los dos idiomas en la misma lista a propósito: el host de los tests
+        // resuelve en UNO solo y cuál depende de dónde corra (trampa 6), así que
+        // se chequean los dos patrones contra el string ya resuelto en vez de
+        // asumir el idioma de la corrida.
+        let duplicados = ["tu el ", "tu la ", "tu los ", "tu las ",
+                          "your the ", "your a ", "your an "]
+        for type in content.tiers.concreteTypes {
+            let frases = [
+                String(localized: "chest.skin.subtitle \(type.localizedName)"),
+                String(localized: "skin.award.subtitle \(type.localizedName)"),
+            ]
+            for frase in frases {
+                // ⚠️ **La red de la red, y no es decoración.** Si la clave no
+                // resolviera, `frase` volvería siendo la clave cruda y los
+                // `contains` de abajo pasarían TODOS por la razón equivocada —
+                // el test quedaría verde sin haber mirado una sola frase. Es el
+                // mismo guardián que `theChestCardCopyIsResolved` pone sobre las
+                // copys de Regalos.
+                #expect(frase.contains(type.localizedName),
+                        "la clave no resolvió: '\(frase)' no nombra a \(type.id)")
+                #expect(!frase.contains("subtitle"),
+                        "quedó una clave cruda en pantalla: '\(frase)'")
+
+                let plana = frase.lowercased()
+                for duplicado in duplicados {
+                    #expect(
+                        !plana.contains(duplicado),
+                        "artículo duplicado con \(type.id): '\(frase)'"
+                    )
+                }
+            }
+        }
+    }
+
     @Test("la pinta de bienvenida es del personaje en el que termina el tutorial")
     func theWelcomeSkinBelongsToTheFirstMergeResult() throws {
         let base = content.tiers.baseType

@@ -178,7 +178,7 @@ enum SaveMigrator {
             "activeSkinByType": activeSkinByType,
             "removedAds": old["removedAds"] as? Bool ?? false,
             "boostActivations": old["boostActivations"] as? [String: Double] ?? [:],
-            // v3 no tenía cooldown de videos: el que migra arranca con los cuatro
+            // v3 no tenía cooldown de videos: el que migra arranca con los cinco
             // disponibles, que es lo generoso y lo que ya veía en pantalla.
             "rewardedActivations": [:] as [String: Double],
             "daily": old["daily"] as? [String: Any] ?? ["cycleDay": 1],
@@ -244,7 +244,20 @@ enum SaveMigrator {
         meta["chestsPending"] = 0
         meta["prestigeChestsPending"] = 0
         meta["welcomeChestGiven"] = false
-        run["floorChestsAwarded"] = 0
+        // Back-fill y NO cero, por decisión del dueño (2026-08-27). Con cero,
+        // un save parado en el piso 8 cobraba cuatro cofres de golpe en el
+        // primer merge — y dos saves igual de veteranos cobraban distinto,
+        // porque `unlockedFloors` vive en `run` y muere al reencarnar: al
+        // recién reencarnado la actualización lo agarraba en cero. Contando
+        // los pisos que ya tiene, el veterano queda como el jugador nuevo: la
+        // torre le paga del piso siguiente en adelante.
+        //
+        // El 2 va hardcodeado por lo mismo que `rebalanceLevelCaps`: un
+        // migrador es una foto de un momento, y leer `floorsPerChest` de
+        // `chests.json` haría que esta conversión cambiara de significado con
+        // el próximo ajuste de la cadencia.
+        let pisosYaAbiertos = (run["unlockedFloors"] as? [String])?.count ?? 0
+        run["floorChestsAwarded"] = pisosYaAbiertos / 2
 
         object["meta"] = meta
         object["run"] = run

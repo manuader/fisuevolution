@@ -83,7 +83,10 @@ struct SaveMigratorTests {
     ///
     /// `oroUpgradeLevels` va por parámetro porque es lo único que v4→v5 mira:
     /// los tests del reescalado cambian esa clave y ninguna otra.
-    private func v4Fixture(oroUpgradeLevels: [String: Int] = ["offline": 2, "tap": 3]) -> [String: Any] {
+    private func v4Fixture(
+        oroUpgradeLevels: [String: Int] = ["offline": 2, "tap": 3],
+        unlockedFloors: [String] = ["alley", "urban"]
+    ) -> [String: Any] {
         [
             "schemaVersion": 4,
             "run": [
@@ -95,7 +98,7 @@ struct SaveMigratorTests {
                 "hireCountsByType": ["homeless": 4],
                 "maxTierReached": 12,
                 "charUpgradeLevels": ["homeless": 2],
-                "unlockedFloors": ["alley", "urban"],
+                "unlockedFloors": unlockedFloors,
                 "activeModifiers": [
                     [
                         "id": "11111111-2222-3333-4444-555555555555",
@@ -415,7 +418,7 @@ struct SaveMigratorTests {
 
     /// Un v4 SANO —niveles ya dentro de los topes de hoy— sólo estrena los
     /// campos del cofre: no se le toca nada más.
-    @Test("un save v4 se migra a v5 con los campos del cofre en cero")
+    @Test("un save v4 se migra a v5 sin cofres pendientes")
     func v4MigratesToV5WithEmptyChestState() throws {
         let data = try JSONSerialization.data(withJSONObject: v4Fixture())
         let state = try SaveMigrator.migrate(data)
@@ -423,7 +426,12 @@ struct SaveMigratorTests {
         #expect(state.meta.chestsPending == 0)
         #expect(state.meta.prestigeChestsPending == 0)
         #expect(state.meta.welcomeChestGiven == false)
-        #expect(state.run.floorChestsAwarded == 0)
+        // ⚠️ El contador de la torre NO arranca en cero: arranca donde el jugador
+        // está parado. El fixture trae dos pisos abiertos, así que son 2 ÷ 2 = 1
+        // cofre YA otorgado — que es exactamente lo que evita que la torre le
+        // pague de nuevo por pisos que subió antes de que los cofres existieran.
+        // El caso del veterano lo ejerce `v4VeteranDoesNotCollectBackChests`.
+        #expect(state.run.floorChestsAwarded == 1)
         // El sobre queda ESTAMPADO v5, y eso es lo único que evita que el save
         // vuelva a cruzar la migración —y con ella un reescalado que no es
         // idempotente— en cada carga. Sin este `#expect` el test seguiría verde
@@ -435,6 +443,37 @@ struct SaveMigratorTests {
         // La partida entera cruza, que es de lo que se trata.
         #expect(state.run.coins == 123_456.5)
         #expect(state.meta.oro == 12)
+    }
+
+    /// **El veterano no cobra los cofres de los pisos que ya subió** (decisión del
+    /// dueño, 2026-08-27).
+    ///
+    /// La primera versión de este bump dejaba `floorChestsAwarded` en cero, y con
+    /// eso un save parado en el piso 8 cobraba CUATRO cofres de golpe en el primer
+    /// merge después de actualizar. Peor: el número dependía de cuándo actualizara.
+    /// `unlockedFloors` vive en `run` y muere al reencarnar, así que al recién
+    /// reencarnado la actualización lo agarraba en cero y no cobraba nada — dos
+    /// saves igual de veteranos cobrando distinto por dónde los agarró el reloj.
+    ///
+    /// ⚠️ Este test es el ÚNICO candado del back-fill: volver la línea a
+    /// `run["floorChestsAwarded"] = 0` lo pone rojo acá y en
+    /// `v4MigratesToV5WithEmptyChestState`, y en ningún otro lado.
+    @Test("un v4 veterano no cobra los cofres de los pisos que ya subió")
+    func v4VeteranDoesNotCollectBackChests() throws {
+        let ochoPisos = ["alley", "urban", "corporate", "luxury", "island", "moon", "mars", "solar"]
+        let data = try JSONSerialization.data(withJSONObject: v4Fixture(unlockedFloors: ochoPisos))
+        let state = try SaveMigrator.migrate(data)
+
+        #expect(state.run.floorChestsAwarded == 4, "ocho pisos abiertos son cuatro cofres ya otorgados")
+        #expect(state.meta.chestsPending == 0, "y ninguno esperando ser cobrado")
+        // Impar: el back-fill trunca, y el piso suelto queda del lado del jugador
+        // —el noveno le paga—. Redondear para arriba le cobraría un cofre que
+        // nunca ganó.
+        let nuevePisos = ochoPisos + ["mars_deep"]
+        let impar = try SaveMigrator.migrate(
+            JSONSerialization.data(withJSONObject: v4Fixture(unlockedFloors: nuevePisos))
+        )
+        #expect(impar.run.floorChestsAwarded == 4, "nueve pisos siguen siendo cuatro, no cinco")
     }
 
     /// El arreglo de las skins doradas. Un `crit` en 24 sólo existe con el tope

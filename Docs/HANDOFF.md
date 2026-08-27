@@ -256,9 +256,25 @@ cofres**. Ocho tareas cerradas, 32 commits, 78 archivos.
   todavía cerrado.
 - **"Cofre" se renombró**: el boost del asado ahora paga "una picada".
 
-**Falta para que un jugador lo use**: la tarjeta en Regalos (hoy `openChest()` existe y
-ningún botón lo llama salvo la puerta de debug), el carrusel de Pintas, y el cofre del
-tutorial. Detalle en `Docs/SESION-2026-08-26-cofres-de-skins.md`.
+**Cerrado el 2026-08-27, las doce tareas.** La tarjeta en Regalos con su puntito, el
+carrusel de Pintas que muestra al personaje que todavía no conociste, y el cofre de
+bienvenida que cae al cerrar el tutorial. Detalle en
+`Docs/SESION-2026-08-26-cofres-de-skins.md`.
+
+**El cierre dio tres cosas que no eran de la lista**, y las tres son de método:
+
+1. **La primera corrida limpia de la suite entera sobre el árbol final** —nunca había
+   habido una, porque el checkout estuvo compartido y cada tarea verificó en su propio
+   worktree—. Salió **262 · 459 con un solo rojo · UI 55 sin ninguno**, y de paso mostró que
+   los "11 rojos de StoreKit" del cuadro viejo ya no existen: la matriz de dos runtimes los
+   resuelve. Ver §6.
+2. **El rojo intermitente tiene veredicto**: `AscentRenderingUITests.testCharactersStayVisibleAfterTheFirstAscent`
+   pasó en la corrida de suite completa, en **148 s**. Es el test más lento del repo por un
+   factor de tres, o sea el primero que se cae cuando la máquina está cargada. Es carga, no
+   dueño.
+3. **Las 36 menores diferidas del ledger se triagearon una por una**, y **12 ya estaban
+   cerradas** por rondas de arreglo posteriores a la que las anotó. El triage completo está
+   en el doc de la sesión.
 
 ### Sesión del 2026-08-23 (ter) — La desaceleración, y el build que volvió a andar
 
@@ -944,6 +960,25 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    llevarse las doradas, y ese agujero **creció** —antes bajaba de rebote cuando el save
    disparaba la huella—. Se eligió con esa información arriba de la mesa.
 
+0-ter. **El veterano no cobra los cofres de los pisos que ya subió** (2026-08-27).
+   `migrateV4toV5` hace **back-fill** de `floorChestsAwarded` con los pisos abiertos ÷ 2, en
+   vez de dejarlo en cero. Motivo: con cero, un save parado en el piso 8 cobraba cuatro
+   cofres de golpe al actualizar, **y el número dependía de cuándo actualizara** —
+   `unlockedFloors` vive en `run` y muere al reencarnar, así que dos saves igual de veteranos
+   cobraban distinto según dónde los agarrara el reloj. Se descartó a sabiendas la lectura
+   generosa ("que los 4-5 cofres sean su regalo de bienvenida al feature", que tenía a favor
+   que **el veterano nunca recibe el cofre de bienvenida**: `grantWelcomeChest()` cuelga de
+   `tutorialPhaseFinished()` y su fase ya está cerrada hace rato).
+
+0-quater. **`floorReached` se queda, documentado** (2026-08-27). Quedó sin una sola entrada
+   en `skins.json` cuando las 41 pintas pasaron a la bolsa del cofre, y con él dos ramas de
+   UI sin alcanzar. **No se saca**: el mecanismo tiene cobertura propia en EconomyKit
+   (`SkinMilestonesTests`, `ExtensibilityDrillTests`) con configs sintéticos, sus dos textos
+   están escritos en es y en, y la diferencia con `reincarnations` —que tiene DOS filas— es
+   dato, no diseño. La decisión está escrita en el docstring del campo, que es donde se
+   busca. ⚠️ **No re-abrirla**: si estás auditando ramas sin alcanzar, ésta ya tiene
+   respuesta.
+
 1. **El primer Fisura cuesta 25** (el dueño lo bajó de 50 el 2026-08-18; pineado
    en `GameContentValidationTests`) y los targets de pacing se bajaron a la
    conducta real en vez de recalibrar knobs. Costo medido en `balance-log §F7.6`.
@@ -1139,20 +1174,28 @@ cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   #
 xcrun simctl shutdown $UDID && xcrun simctl delete $UDID   # ⚠️ el cierre es parte del trabajo
 ```
 
-Estado el **2026-08-23** (cierre del precio anclado a la frontera):
-**EconomyKit 243 · app 413 con 12 rojos (1 DECLARADO + 11 de máquina) · UI 48 ·
-pipeline 27 (1 rojo conocido)**, cero warnings de compilador. Los tres primeros
-salen de la MISMA verificación y **la suite de UI entera corrió en una sola
-pasada, sin un solo `-skip-testing:` y sin flakies**.
+Estado el **2026-08-27** (cierre de los cofres de skins), tomado con la receta
+completa en un worktree limpio sobre el tip de `main`, con la matriz de dos
+runtimes corrida ENTERA:
+**EconomyKit 262 · app 459 con UN solo rojo (el declarado) · UI 55 sin un rojo ·
+pipeline 27 (1 rojo conocido, de entorno)**, cero warnings de compilador.
+Los tres primeros salen de la MISMA verificación, y la de UI corrió **sin un solo
+flaky re-corrido**.
+
+⚠️ **Los "11 rojos de StoreKit" ya no son parte del cuadro.** Eran del runtime
+26, y la matriz de dos runtimes es justamente lo que los resuelve: en el sim
+**18.6 pasan los 12** (`StoreManagerTests` 10 + `StoreProductsTests` 2). Contar
+un cuadro con 12 rojos era heredar el síntoma después de haber construido la
+cura. El único rojo del proyecto es uno.
 
 🔴 El rojo declarado es **`PacingTests.theOwnersTargetsAreMet`** y es la verdad,
-no un flaky: maxear las siete mide 7,27 h contra las 20-30 pedidas. Ver §5.5.
-
-🔴 Los otros 11 son **StoreKit y NO son del proyecto**: contra el runtime iOS
-26.5 la tienda local vuelve vacía (`store.products == []`), así que caen las 10
-de `StoreManagerTests` y la de `StoreProductsTests`. **Verificado a mano en un
-worktree limpio en `8f884ea`**, con el mismo simulador y el mismo comando: fallan
-igual sin ningún cambio encima. Es un gate de máquina.
+no un flaky — pero ⚠️ **no por el motivo que este documento decía hasta hoy**.
+El contrato de las **20-30 h ya pasa** desde la desaceleración; lo que queda
+rojo es el segundo assert: **9 reencarnaciones contra las ≤8**. El docstring del
+propio test lo explica (el bot reencarna al duplicar su ORO histórico, así que
+las reencarnaciones para maxear son ≈ log₂ del costo total, y la cuenta se pasa
+por una). Ver §5.5 — y si alguna vez este párrafo y el docstring vuelven a no
+coincidir, el docstring manda.
 
 ✅ **El runtime de iOS 26 ya está instalado** (26.5 - 23F77): el gate humano del
 2026-08-22 está resuelto y **`Assets.xcassets` NO hay que sacarlo del target**.
@@ -1286,6 +1329,32 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+
+### Del cierre de los cofres (2026-08-27)
+
+**⚠️ `swift test --filter` con el nombre VISIBLE de una suite corre CERO tests y devuelve
+éxito.** Es la gemela exacta de la trampa del `-only-testing:` sin paréntesis, del lado de
+SPM: `swift test --filter "El sorteo de un cofre"` imprime
+`Test run with 0 tests in 0 suites passed` y termina en 0. El `--filter` matchea el nombre
+del **tipo** (`ChestRollerTests`), no el `@Suite("…")` que se ve en la salida. Apareció
+verificando una mutación en este mismo cierre, y habría hecho concluir que el test nuevo era
+vacuo. **Misma regla que la otra**: confirmar que la salida NOMBRA los tests esperados. Una
+corrida que no nombra ninguno no probó nada — y ojo, que las dos veces el número delator
+(`0 tests`) estaba impreso y a la vista.
+
+**El ledger de un SDD no es una lista de pendientes.** Anota cuándo se VE un defecto, no
+cuándo se cierra: de las 36 menores diferidas del run de los cofres, **12 ya estaban
+arregladas** por rondas posteriores a la que las anotó (el mismo archivo que las lista tiene
+más abajo el fix que las cierra). Triagear leyendo el ledger y creyéndole habría producido
+una docena de "arreglos" sobre código ya correcto. **Verificá cada línea contra el árbol
+antes de tocarla.**
+
+**Un rojo heredado sobrevive a su propia cura.** El cuadro de §6 contaba "12 rojos (1
+declarado + 11 de máquina)" mucho después de que la matriz de dos runtimes —construida
+justamente para eso— los pusiera en verde: en el sim 18.6 pasan los 12. Y el rojo que sí
+queda estaba descripto con el motivo VIEJO (las horas) cuando hacía rondas que fallaba por
+otra cosa (las reencarnaciones). **Un número de verificación que no se vuelve a tomar se
+pudre en las dos direcciones**: de más y de menos.
 
 ### De los cofres, segunda tanda (2026-08-27)
 
@@ -1996,6 +2065,55 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
 
 ## 8. Qué queda
 
+### Precargar el atlas de personaje fuera del hilo principal (levantada 2026-08-27)
+
+**El problema, medido.** `UIArt.characterImage` en frío cuesta **~320 ms de hilo
+principal**. Instrumentado con `CFAbsoluteTimeGetCurrent` en tres corridas con tres
+personajes distintos (tarea 8 de los cofres, `task-8-report.md` §3):
+
+| tramo | costo |
+|---|---|
+| `AtlasCache.atlas(named:)` (el handle) | 4,8 – 5,8 ms |
+| `atlas.textureNamed(key)` | 0,3 ms |
+| **`texture.size()`** (realiza la página del atlas) | **211,6 – 223,0 ms** |
+| **`texture.cgImage()`** (la lectura a CPU) | 98,6 – 105,8 ms |
+| `UIImage(cgImage:)` | 0,0 ms |
+| **total en frío** | **~320 ms** |
+| el mismo retrato, ya cacheado | **0,1 ms** |
+
+⚠️ **Dos tercios están en `texture.size()`, y parece gratis.** `UIArt.characterImage` lo
+llama sin querer, en el `guard texture.size().width > 1` que distingue la textura ausente
+—SpriteKit devuelve un placeholder de 1×1— de la buena. El chequeo es correcto y hay que
+dejarlo: lo que cuesta es que **realiza el atlas entero**.
+
+**Por qué es tarea propia y no de la vista del cofre.** La animación del cofre ya se lo sacó
+de encima con `warmPrizeArt()` en `.arriving` —el bloqueo de `.flying` bajó ~67 %, de 263 a
+86 ms de promedio—, pero eso **muda** el costo, no lo saca. Los ~215 ms los pagan igual la
+ficha del personaje, el carrusel de Pintas y el tablero. `SKTextureAtlas.preload(completionHandler:)`
+se los llevaría asincrónicamente, pero toca `UIArt`/`AtlasCache`, que son de todos: **pide un
+instrumento propio y su propia verificación.**
+
+**El instrumento que ya existe y hay que rearmar.** Un `Task` que pide dormir 16 ms y
+denuncia cuando despierta tarde: si duerme 16 y despierta 300 ms después, el hilo principal
+estuvo 284 ms bloqueado. Quince líneas, temporal, se fueron antes de commitear. Es lo que
+convirtió "se siente trabado" en un número con dueño.
+
+**Dos cosas que la tarea tiene que mirar de paso:**
+
+1. **El `TextureAtlas` parte páginas y nadie lo mira.** El build tira seis warnings de
+   `Splitting '<atlas>' into N texture atlases due to input texture dimensions` — `ui.atlas`
+   en 3, `earth.atlas` en 6, `cosmic.atlas` en 4. Cada página es una realización aparte, o
+   sea que el costo de `size()` escala con cuántas páginas toque el personaje que pediste.
+   Un `preload` que no sepa de páginas puede quedarse corto.
+2. **Cuando esto aterrice, revisar el `Task.yield()` de `ChestOpeningView`.** La caída del
+   cofre depende de un hop calibrado contra el bloqueo de HOY: `Task.yield()` reencola una
+   vez, no espera un cuadro dibujado ni ordena contra el commit de la CATransaction. Con los
+   215 ms afuera puede volverse **innecesario o insuficiente**, y las dos cosas se ven igual
+   en el código.
+
+**Lo que NO es de esta tarea**: los ~500 ms de bloqueo que quedan en `.arriving` no son del
+retrato, son del overlay armándose. Es otra investigación.
+
 ### Lo que dejó el rediseño de UI (2026-08-16)
 
 **1. ✅ HECHO (2026-08-16) — el batch de los 15 iconos corrió entero y está
@@ -2252,7 +2370,10 @@ Anotado por si algún día importa, con su medición:
   adentro un **mapa de los helpers de test que existen de verdad**, porque el plan inventó
   cuatro que no existían.
 - `Docs/SESION-2026-08-26-cofres-de-skins.md` — la sesión: las ocho decisiones del dueño, los
-  dos assets que se regeneraron y por qué, y lo que falta.
+  dos assets que se regeneraron y por qué, y **el cierre del 2026-08-27** — la primera corrida
+  limpia de la suite entera sobre el árbol final, el veredicto del rojo intermitente con su
+  medición, el triage de las 36 menores diferidas una por una (12 ya estaban cerradas), y las
+  tres decisiones que quedaron tomadas.
 
 | Doc | Para qué |
 |---|---|

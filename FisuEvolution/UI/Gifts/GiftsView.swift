@@ -141,7 +141,7 @@ struct GiftsView: View {
     /// cerrar la hoja: es un premio de una vez y el jugador tiene que poder
     /// volver a mirarlo.
     private func payoutBanner(_ amount: Double) -> some View {
-        let text = String(localized: "gifts.payout \(CoinFormatter.string(from: amount))")
+        let text = GameState.payoutText(amount)
         return GameCard(style: .highlighted(Color("PaletteYellow"))) {
             HStack(spacing: Tokens.s8) {
                 CoinIcon(size: 26)
@@ -207,7 +207,7 @@ private enum Cooldown {
 
 /// Los siete días del ciclo, en una tira. Cobrados con tilde, el que está en
 /// juego resaltado en amarillo —el mismo acento que marca el piso actual en el
-/// ascensor— y el séptimo con el moño del cofre.
+/// ascensor— y el séptimo con el moño de la sorpresa.
 ///
 /// No hay botón de reclamar: ver el ⚠️ de `GiftsView`.
 private struct DailyStrip: View {
@@ -324,7 +324,7 @@ private struct DayCell: View {
     }
 
     /// Qué se ve adentro de la casilla: el tilde si ya se cobró, el moño en el
-    /// día del cofre, y la moneda en los demás.
+    /// día de la sorpresa, y la moneda en los demás.
     @ViewBuilder private var glyph: some View {
         if day.isClaimed {
             Image(systemName: "checkmark")

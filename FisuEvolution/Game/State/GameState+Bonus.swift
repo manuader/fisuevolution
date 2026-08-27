@@ -146,7 +146,7 @@ extension GameState {
         return player.meta.stats.maxFloorOrdinalEver >= required
     }
 
-    /// Devuelve las coins del cofre si el boost era el Asado.
+    /// Devuelve las coins de la picada si el boost era el Asado.
     @discardableResult
     func activateBoost(id: String) -> Double? {
         guard let economy, let content, var player = player else { return nil }
@@ -157,7 +157,7 @@ extension GameState {
             return nil
         }
         do {
-            let chest = try BoostManager.activate(
+            let payout = try BoostManager.activate(
                 boostId: id,
                 state: &player,
                 config: content.boosts,
@@ -174,19 +174,27 @@ extension GameState {
             player.meta.stats.boostsActivatedEver += 1
             self.player = player
             effectsVersion += 1
-            // El cofre del Asado es la otra vez que cae plata de golpe (el resto
+            // La picada del Asado es la otra vez que cae plata de golpe (el resto
             // de los boosts no pagan nada al activarse, devuelven nil).
-            if chest != nil { audio?.play(.coin) }
+            if payout != nil { audio?.play(.coin) }
             // Después del `+= 1` y dentro del `do`: un boost bloqueado o en
             // cooldown no es una activación y no mueve el logro.
             evaluateAchievements()
             refreshProjections()
             scheduleSave()
-            return chest
+            return payout
         } catch {
             Log.economy.info("boost rejected: \(error)")
             return nil
         }
+    }
+
+    /// Cómo se lee lo que pagó la picada. El lookup vive acá y no adentro del
+    /// `body` de la vista porque un `String(localized:)` metido en SwiftUI no lo
+    /// mira ningún test: con la clave rota devuelve la clave cruda, y el build
+    /// sigue verde mientras el jugador lee "gifts.payout 8,4 M".
+    static func payoutText(_ amount: Double) -> String {
+        String(localized: "gifts.payout \(CoinFormatter.string(from: amount))")
     }
 
     // MARK: Eventos (F5 — bible §1)

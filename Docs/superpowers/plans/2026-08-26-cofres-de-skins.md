@@ -494,7 +494,7 @@ Y `FisuEvolution/Resources/Config/chests.json`:
   "floorsPerChest": 2,
   "completedPayoutFactor": 6.0,
   "prestigePayoutFactor": 12.0,
-  "welcomeSkinId": "urban_trailblazer"
+  "welcomeSkinId": "naranjita"
 }
 ```
 
@@ -1425,7 +1425,7 @@ func carouselShowsCharactersWithOwnedSkins() {
 
 - [ ] **Step 1**: en `tutorialPhaseFinished()`, si `!meta.welcomeChestGiven`, otorgar el
   cofre de bienvenida y marcar la bandera. Su premio es **fijo**: `content.chests.welcomeSkinId`
-  —hoy la pinta del Cartonero, el personaje que el jugador acaba de fusionar—, no una tirada.
+  —la pinta del **Trapito**, que es el personaje que el jugador acaba de fusionar—, no una tirada.
   ⚠️ **Se lee del config, no se escribe el id en Swift**: es la constraint global de
   data-driven, y esta es la única skin que el código tendría motivo para nombrar. Se abre
   solo porque la cola lo promueve apenas cae la restricción.

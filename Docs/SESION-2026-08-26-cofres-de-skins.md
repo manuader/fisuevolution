@@ -183,20 +183,37 @@ atlas. Precalentarlo en la llegada bajó el bloqueo del latido de la carta **un 
 
 ## Lo que queda
 
-- **Tarea 9** — la tarjeta en Regalos y el puntito. **Bloqueante para jugarlo**: hoy los
-  cofres se acumulan y `openChest()` existe pero ningún botón lo llama. Sólo la puerta de
-  debug.
-- **Tarea 10** — el carrusel de Pintas muestra sólo personajes vistos **en esta partida**, y
-  se resetea al reencarnar: ganás la pinta del Emperador Cósmico a los 20 minutos y no podés
-  verla.
-- **Tarea 11** — el cofre de bienvenida del tutorial, con premio **fijo** (`welcomeSkinId`).
-- **Tarea 12** — cierre: build, suite de UI, jugarlo, y decidir dos cosas que quedaron
-  anotadas (`floorReached` sin dato que lo ejerza, y verificar que `ach_skins_5`/`_20` vuelvan
-  a ser alcanzables).
-- **Para el dueño**: un save v4 parado en el piso 8 **cobra 4 cofres de golpe** al actualizar,
-  y el número depende de *cuándo* actualiza (recién reencarnado cobra 0). Es balance, no bug;
-  el arreglo es una línea en `migrateV4toV5`.
-- **28 menores diferidas** en el ledger, para triagear en el review final de rama.
+**Once de las doce tareas están cerradas.** El sistema es jugable de punta a punta: se ganan
+cofres por las cuatro vías, se ven en Regalos con su puntito, se abren con la animación de
+cuatro toques, la pinta se acredita donde StoreKit no la puede borrar, aparece en Pintas
+aunque nunca hayas visto al personaje, y el tutorial regala el primero.
+
+**Falta la tarea 12, el cierre**, y es más que trámite:
+
+- **Una corrida limpia de la suite entera sobre el árbol final.** Nunca hubo una: el checkout
+  estuvo compartido con otras dos sesiones toda la sesión, así que **cada tarea verificó en un
+  worktree aislado propio**. Los números que hay son de once árboles distintos.
+- **Jugarlo de verdad**, de cero, con el tutorial incluido. Nadie lo hizo todavía.
+- **Confirmar el rojo intermitente** `AscentRenderingUITests.testCharactersStayVisibleAfterTheFirstAscent`
+  en vez de heredarlo como "conocido": verde tres veces aislado y verde en la base, rojo bajo
+  carga de suite completa. O es carga, o tiene dueño.
+- **Triagear las 36 menores diferidas** del ledger
+  (`.superpowers/sdd/2026-08-26-cofres-de-skins/progress.md`), una por una. Buena parte son
+  de la misma familia —docstrings que quedaron afirmando lo que el código ya no hace— y se
+  barren mejor de una sola pasada.
+- **La revisión final de rama entera**, que el proceso pide y no se corrió.
+- **Levantar la tarea de `AtlasCache`/`preload`** con las mediciones de partida ya hechas
+  (~215 ms de hilo principal en `texture.size()`), que es lo caro de reconstruir.
+
+**Y dos cosas que son del dueño:**
+
+1. **Un save v4 parado en el piso 8 cobra 4 o 5 cofres de golpe al actualizar**, y el número
+   depende de *cuándo* actualiza: recién reencarnado cobra 0. Se le preguntó y no contestó.
+   Tres salidas: dejarlo, rellenar el contador según los pisos que ya tenía, o ponerlo al
+   máximo para que la torre sólo pague de acá en adelante. Es una línea en `migrateV4toV5`.
+2. **El carrusel de Pintas no se auto-scrolleaba** y ahora sí — pero eso cambió la precondición
+   de tres UI tests preexistentes, que pasaron a depender del `scrollToVisible` automático de
+   XCUITest. Pasan; es superficie de fragilidad nueva.
 
 ## Verificación al cierre de la tarea 8
 

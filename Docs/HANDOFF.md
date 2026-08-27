@@ -1289,6 +1289,25 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ### De los cofres, segunda tanda (2026-08-27)
 
+**⚠️ `-only-testing:` con un id de Swift Testing SIN PARÉNTESIS corre CERO tests y devuelve
+ÉXITO.** `-only-testing:Suite/miTest` no matchea nada y termina con `Test run with 0 tests,
+** TEST SUCCEEDED **`; hace falta `-only-testing:Suite/miTest()`. Esto **invalida en silencio
+cualquier prueba por mutación**: se rompe el código, se corre el test "solo", sale verde, y se
+concluye que el test es vacuo cuando en realidad no corrió. Pasó en esta sesión y casi se
+reporta como mutación sobreviviente. Se descubrió porque el diagnóstico **también** daba
+`exit=0` sin imprimir nada — o sea, midiendo el comando en vez de confiar en él.
+**Regla**: filtrar por SUITE (`-only-testing:Suite`) y confirmar en la salida que los tests
+esperados aparecen nombrados. Una corrida que no nombra ningún test no probó nada.
+
+**Nadie miraba nunca la frase compuesta.** `chest.skin.subtitle` no lo resolvía ni lo
+asserteaba ningún test, y por eso *"Para tu El Trapito"* pudo shippear: la plantilla se
+testeaba por separado y el nombre por separado, pero **la oración armada no la leía nadie**.
+Los tres nombres con artículo son `El Fisura`, `El Trapito` y `El Mantero` — 3 de 44. La red
+que faltaba recorre `concreteTypes` y rechaza determinante pegado a determinante, y lleva su
+propia guarda: sin exigir que la frase **nombre** al personaje, una clave que no resuelve deja
+pasar todo.
+
+
 **Un `.sheet` no puede abrir un overlay que vive en el `ZStack` de `RootView`.** El botón de
 Regalos que abre un cofre **tiene que cerrar la hoja primero**: si no, la animación se
 reproduce **debajo**, invisible y sorda a los toques, y como `.chestOpening` no tiene timeout

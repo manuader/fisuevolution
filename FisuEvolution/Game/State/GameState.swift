@@ -515,6 +515,14 @@ final class GameState {
                         .map(\.id)
                 )
             }
+            // Y su opuesto: la pinta de alguien que el jugador NUNCA vio, que es
+            // lo que un cofre reparte casi siempre. Va DESPUÉS del de arriba por
+            // el mismo motivo —se apoya en `seenTypes`— y separado porque son
+            // los dos lados del criterio de Pintas: uno deja las dos pantallas
+            // listando lo mismo y el otro las separa.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-unseen-skin") {
+                debugGrantUnseenChestSkin()
+            }
             // El Fisura con el multiplicador al tope (19/19). Llegar jugando
             // pide pagar 4^18 veces el costo base: sin esta puerta, el estado
             // "Al máximo" de la fila no se puede ni fotografiar ni ejercitar.

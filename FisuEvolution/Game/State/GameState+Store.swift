@@ -40,6 +40,50 @@ extension GameState {
     /// recibe `nil` para volver a ella.
     static let baseSkinRowID = "base"
 
+    /// A quién puede vestir el carrusel de **Pintas**: los que viste en esta run
+    /// MÁS aquellos de los que ya tenés alguna pinta.
+    ///
+    /// Es la hermana de `characterUpgradeTypes` y hasta hoy fueron la misma
+    /// lista por casualidad: una pinta sólo se ganaba llegando al piso de su
+    /// personaje, así que tenerla implicaba haberlo visto. Los cofres rompieron
+    /// esa coincidencia —el sorteo puede darte la del Emperador Cósmico a los
+    /// veinte minutos— y `run.seenTypes` además muere al reencarnar
+    /// (`run = .fresh(...)`), así que Mejoras escondía media colección.
+    ///
+    /// **Y sin embargo Mejoras NO cambia.** Ahí se compra, y ofrecerle al
+    /// jugador mejorar a alguien que nunca vio espoilea la cadena de evolución
+    /// (RF-03). Acá no se compra nada: se elige entre lo que ya es tuyo. Dos
+    /// pantallas, dos criterios.
+    ///
+    /// ⚠️ **Una pinta que visten TODOS no trae a nadie.** `oro` y `diamante`
+    /// están en el catálogo una vez por personaje y con el MISMO id, porque la
+    /// propiedad se guarda por id: un solo paquete de diamante desplegaría los
+    /// 43 y espoilearía justo lo que este filtro cuida. Quién es el dueño
+    /// exclusivo de cada pinta lo contesta el catálogo, que es donde vive esa
+    /// convención (`exclusiveCharacterTypeBySkinID`).
+    ///
+    /// Computada y no publicada, como `skinCatalogRows` y `anySkinEverEquipped`:
+    /// `player` es `@ObservationIgnored`, pero el único lector es un modal cuyo
+    /// `body` ya depende de las dos versiones que mueven las dos mitades de esta
+    /// unión — `skinSelectionVersion`, que bumpean **las cinco** vías que
+    /// acreditan una pinta (el cofre, los milestones, los entitlements, el premio
+    /// de carrera y la puerta de debug), y `boardVersion`, que sube con cada
+    /// `markSeen`. Publicarla a 8 Hz —lo que
+    /// `hasPendingChests` sí necesita, porque su lector no observa nada— sólo
+    /// agregaría difusión.
+    ///
+    /// Del más NUEVO al más viejo, igual que Mejoras (decisión del dueño,
+    /// 2026-08-17): la pantalla abre en lo último que hiciste, que después de un
+    /// cofre es la pinta que acabás de ganarte.
+    var skinnableTypes: [CharacterType] {
+        guard let content, let player else { return [] }
+        let dueño = content.skins.exclusiveCharacterTypeBySkinID
+        let conPinta = Set(player.meta.allOwnedSkins.compactMap { dueño[$0] })
+        return content.tiers.concreteTypes
+            .filter { player.run.seenTypes.contains($0.id) || conPinta.contains($0.id) }
+            .sorted { $0.tier > $1.tier }
+    }
+
     /// Las tarjetas del Customization Shop para UN personaje, listas para
     /// dibujar: la base primero y después las skins del catálogo en su orden.
     ///

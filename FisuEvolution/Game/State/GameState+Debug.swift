@@ -71,6 +71,30 @@ extension GameState {
         skinSelectionVersion &+= 1
     }
 
+    /// La pinta de cofre de un personaje que el jugador NUNCA vio.
+    ///
+    /// Es el premio que el sorteo reparte casi siempre —el Fisura no tiene pinta
+    /// de cofre, así que el primer cofre de una partida nueva ya premia a un
+    /// desconocido— y es justo el que ningún otro fixture arma: `--uitest-skins`
+    /// reparte entre los VISTOS, que es el único estado donde Pintas y Mejoras
+    /// listan lo mismo y por lo tanto el único donde el bug no se ve.
+    ///
+    /// Elige el de tier más ALTO sin ver, que es el borde: el más lejos que una
+    /// run puede quedar de su propia colección. Acredita por la misma vía que el
+    /// cofre real (`meta.milestoneSkins`) y sin celebración: lo que hace falta
+    /// mirar es el carrusel, no la animación.
+    func debugGrantUnseenChestSkin() {
+        guard let content, let player else { return }
+        let masAlta = content.skins.chestPool
+            .filter { !player.run.seenTypes.contains($0.characterType) }
+            .max { izquierda, derecha in
+                (content.tiers.type(id: izquierda.characterType)?.tier ?? 0)
+                    < (content.tiers.type(id: derecha.characterType)?.tier ?? 0)
+            }
+        guard let masAlta else { return }
+        grantMilestoneSkinsForTests([masAlta.id])
+    }
+
     /// El ORO de reencarnar sale de `meta.lifetimeEarnings`, que es monótono y no
     /// se puede acumular en un test sin jugar la partida entera. Esta puerta la
     /// mueve directo para poder ejercitar el prestigio (RF-16).

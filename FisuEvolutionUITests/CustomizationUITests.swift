@@ -25,6 +25,13 @@ final class CustomizationUITests: XCTestCase {
     private static let paidSkin = "mundialista"
     /// La skin del Cartonero, que llega por el mismo fixture.
     private static let otherSkin = "urban_trailblazer"
+    /// La Deidad (tier 36) y su pinta legendaria: el personaje de tier más alto
+    /// que reparten los cofres, o sea lo que `--uitest-unseen-skin` elige. Van
+    /// como literal —igual que las tres de arriba— porque XCUITest no puede
+    /// preguntarle al catálogo; si algún día la cima del catálogo cambia, esto
+    /// se pone rojo y hay que releerla acá.
+    private static let unseenType = "deidad"
+    private static let unseenSkin = "oraculo"
 
     @MainActor
     func testPonerseUnaPintaSeLaSacaALaQueEstabaPuesta() throws {
@@ -203,6 +210,74 @@ final class CustomizationUITests: XCTestCase {
                           bloqueada por milestone: la primera dice que falta el precio, la \
                           segunda que falta cumplir la condición. Las dos dicen "\(paidValue)".
                           """)
+    }
+
+    /// **La pinta que ganaste sin conocer al personaje.**
+    ///
+    /// Desde los cofres, el sorteo puede darte la pinta de la Deidad a los
+    /// veinte minutos de partida, y `run.seenTypes` además **muere al
+    /// reencarnar**. Con el filtro de Mejoras, esa pinta quedaba ganada y sin
+    /// ficha donde ponérsela: la cara no estaba en el carrusel.
+    ///
+    /// ⚠️ **Es el único test que ejerce el criterio DESDE LA VISTA.** Los
+    /// unitarios pinean `skinnableTypes`; si `CustomizationView` volviera a leer
+    /// `characterUpgradeTypes` —que es de dónde venía y que a propósito NO
+    /// cambió—, todos ellos seguirían verdes y sólo se pondría rojo acá.
+    ///
+    /// El fixture no marca vistos: la run ve al Fisura y a nadie más, así que
+    /// todo lo que aparezca además de él llegó por la colección.
+    @MainActor
+    func testUnaPintaGanadaTraeSuPersonajeAlCarruselAunqueNoLoHayasVisto() throws {
+        let app = XCUIApplication()
+        app.launchArguments = [
+            "--uitest-reset", "--uitest-skip-tutorial", "--uitest-unseen-skin"
+        ]
+        app.launch()
+
+        openSkins(app)
+
+        // ⚠️ Ni un `tap()` sobre el carrusel: la Deidad es el tier más alto, o
+        // sea el ÚLTIMO de 43 caras, y tocarla pediría el `scrollToVisible` que
+        // la trampa 9a hace fallar en frío. No hace falta — la pantalla abre en
+        // el personaje más nuevo (decisión del dueño, 2026-08-17) y el más nuevo
+        // ahora es el que te acaba de tocar en el cofre.
+        let cara = app.buttons["skins.character.\(Self.unseenType)"]
+        let pinta = app.otherElements["skins.row.\(Self.unseenSkin)"]
+        // Las dos esperas se resuelven ANTES de assertar y la captura va en el
+        // medio (trampa 9a-bis): lo que hace falta ver cuando esto falla es si la
+        // pantalla está bien y el roto es el árbol de AX.
+        let hayCara = cara.waitForExistence(timeout: 10)
+        let hayPinta = pinta.waitForExistence(timeout: 10)
+        attach(app, named: "T10 la pinta de un personaje nunca visto, en el carrusel")
+        XCTAssertTrue(hayCara,
+                      "la pinta es suya y es tuya: su cara tiene que estar y tiene que poder tocarse")
+        XCTAssertTrue(hayPinta,
+                      "la pantalla tenía que abrir en el personaje de la pinta recién ganada")
+
+        // RF-03 sigue en pie: lo que NO trajo una pinta sigue en silueta y sin
+        // botón. El Oficinista es tier 9 y esta run no vio a nadie más que al
+        // Fisura.
+        XCTAssertFalse(app.buttons["skins.character.oficinista"].exists,
+                       "un personaje del que no tenés nada sigue sin poder elegirse")
+
+        // Y se la puede poner, que es la mitad que importa: verla sin poder
+        // equiparla es el mismo bug con otra cara.
+        let base = app.otherElements["skins.row.base"]
+        let equippedValue = try XCTUnwrap(base.value as? String, "la tarjeta no publica su estado como valor")
+        let equip = app.buttons["skins.equip.\(Self.unseenSkin)"]
+        XCTAssertTrue(equip.waitForExistence(timeout: 10), "la pinta ganada tiene que ofrecer ponérsela")
+        equip.tap()
+
+        let quedoPuesta = XCTNSPredicateExpectation(
+            predicate: NSPredicate { element, _ in
+                ((element as? XCUIElement)?.value as? String) == equippedValue
+            },
+            object: pinta
+        )
+        let puesta = XCTWaiter().wait(for: [quedoPuesta], timeout: 10) == .completed
+        attach(app, named: "T10 la pinta del personaje nunca visto, puesta")
+        XCTAssertTrue(puesta,
+                      "la pinta tenía que quedar puesta; quedó en \(pinta.value ?? "?") (esperaba \(equippedValue))")
     }
 
     /// Abre Pintas y devuelve la tarjeta de la apariencia original, que existe en

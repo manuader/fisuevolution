@@ -198,3 +198,169 @@ struct SkinSilhouetteTests {
         #expect(enSilueta(.milestoneLocked(conditionText: "Maxeá todas las mejoras")))
     }
 }
+
+// MARK: - A quién se puede vestir (2026-08-27)
+
+/// **Pintas y Mejoras dejan de compartir lista.**
+///
+/// Hasta los cofres, una pinta sólo se ganaba llegando al piso de su personaje,
+/// así que "los que viste en esta run" y "los que podés vestir" eran la misma
+/// gente por accidente. El sorteo rompió esa coincidencia: la pinta de la Deidad
+/// puede caer a los veinte minutos de partida, y `run.seenTypes` además **muere
+/// al reencarnar**. Con el filtro de Mejoras, la pinta quedaba ganada y sin
+/// forma de ponérsela.
+///
+/// Lo que estos tests pinean son las tres mitades del criterio nuevo, y las tres
+/// se rompen en silencio:
+///
+/// 1. **Tener la pinta alcanza**, aunque nunca hayas visto al personaje.
+/// 2. **Lo visto sigue estando**, tengas pintas suyas o no: es una unión, no un
+///    reemplazo.
+/// 3. **Una pinta que visten TODOS no trae a nadie.** `oro` y `diamante` están
+///    en el catálogo una vez por personaje con el mismo id, así que un solo
+///    paquete de diamante desplegaría los 43 y espoilearía la cadena entera
+///    (RF-03) — que es justo lo que Pintas venía cuidando.
+///
+/// Y la cuarta, que no es del carrusel sino de la pantalla de al lado: **Mejoras
+/// no se contagia**. Ahí se compra, y ofrecer mejorar a alguien que nunca viste
+/// es otra cosa distinta.
+@Suite("Pintas: a quién se puede vestir", .serialized)
+@MainActor
+struct SkinnableTypesTests {
+    /// La pinta legendaria de la Deidad (tier 36): el personaje de tier más alto
+    /// que reparten los cofres, o sea el más lejos posible de una partida nueva.
+    private static let unseenSkin = "oraculo"
+    private static let unseenType = "deidad"
+
+    /// Deja la partida como recién reencarnada: el Fisura y nadie más.
+    private func reencarnado(_ gameState: GameState) throws {
+        var player = try #require(gameState.player)
+        player.run.seenTypes = ["homeless"]
+        gameState.player = player
+    }
+
+    @Test("un personaje que no viste en esta partida aparece igual si tenés una pinta suya")
+    func laPintaTraeAlPersonajeQueNoViste() async throws {
+        let gameState = await makeGameState()
+        try reencarnado(gameState)
+
+        #expect(
+            !gameState.skinnableTypes.contains { $0.id == Self.unseenType },
+            "sin la pinta no hay nada que vestirle: la Deidad no tiene por qué estar"
+        )
+
+        gameState.grantMilestoneSkinsForTests([Self.unseenSkin])
+
+        #expect(
+            gameState.skinnableTypes.contains { $0.id == Self.unseenType },
+            "la pinta es de la Deidad y es tuya; sin su cara en el carrusel no hay forma de ponérsela"
+        )
+    }
+
+    @Test("la pinta sobrevive a la reencarnación y el carrusel también")
+    func laPintaSobreviveALaReencarnacion() async throws {
+        let gameState = await makeGameState()
+        gameState.grantMilestoneSkinsForTests([Self.unseenSkin])
+        gameState.debugMarkTypesSeen(throughTier: 8)
+        #expect(gameState.skinnableTypes.contains { $0.id == Self.unseenType })
+
+        // El camino real: `applyReincarnation` hace `run = .fresh(...)` y se
+        // lleva `seenTypes` puesto. La colección vive en `meta` y se queda.
+        gameState.giveEarningsForPrestigeTesting()
+        gameState.confirmPrestige()
+
+        let player = try #require(gameState.player)
+        #expect(player.meta.prestigeLevel == 1, "el fixture tenía que alcanzar para reencarnar")
+        #expect(player.run.seenTypes.count == 1, "la run nueva arranca viendo sólo al Fisura")
+        #expect(
+            gameState.skinnableTypes.contains { $0.id == Self.unseenType },
+            "reencarnar no te saca la pinta: tampoco puede sacarte la ficha donde ponértela"
+        )
+    }
+
+    @Test("lo visto sigue en la lista aunque no tengas ninguna pinta suya")
+    func loVistoSigueEstando() async throws {
+        let gameState = await makeGameState()
+        gameState.debugMarkTypesSeen(throughTier: 8)
+
+        // Sin pintas de nadie, las dos pantallas listan exactamente lo mismo:
+        // la única razón por la que Pintas se separa de Mejoras son las pintas.
+        #expect(gameState.skinnableTypes.map(\.id) == gameState.characterUpgradeTypes.map(\.id))
+        #expect(gameState.skinnableTypes.count > 1, "el fixture tenía que marcar varios tipos vistos")
+    }
+
+    @Test("la pinta que visten los 43 no despliega la cadena entera")
+    func laPintaDeMaterialNoEspoilea() async throws {
+        let gameState = await makeGameState()
+        try reencarnado(gameState)
+
+        // El paquete de diamante es una compra real y acredita UN id, que el
+        // catálogo declara para los 43 personajes.
+        gameState.applyStoreEntitlements(removedAds: false, ownedSkins: ["diamante"])
+        #expect(gameState.ownsSkin("diamante"), "el entitlement tenía que quedar acreditado")
+
+        #expect(
+            gameState.skinnableTypes.map(\.id) == ["homeless"],
+            """
+            comprar el paquete de material no te presenta a nadie: la pinta la visten \
+            los 43 y desplegarlos espoilea la cadena de evolución (RF-03). \
+            Quedaron \(gameState.skinnableTypes.count) caras.
+            """
+        )
+    }
+
+    /// El filo de arriba, medido donde SÍ se distingue.
+    ///
+    /// ⚠️ En el carrusel, la versión ingenua del criterio —"me quedo con el
+    /// PRIMER personaje que declara esta pinta"— es indistinguible de la buena:
+    /// el catálogo declara `oro` y `diamante` empezando por el Fisura, y al
+    /// Fisura se lo ve siempre. El test de arriba pasaría con esa versión
+    /// puesta, así que la pregunta hay que hacérsela al catálogo, que es quien
+    /// sabe que una pinta repetida no es de nadie en particular.
+    @Test("el catálogo no le inventa dueño a la pinta que visten todos")
+    func elCatalogoNoLeDaDuenoALaDeMaterial() async throws {
+        let gameState = await makeGameState()
+        let skins = try #require(gameState.content?.skins)
+        let dueño = skins.exclusiveCharacterTypeBySkinID
+
+        for material in ["oro", "diamante"] {
+            #expect(
+                dueño[material] == nil,
+                """
+                \(material) está declarada para los 43 personajes: no puede tener dueño, \
+                y quedó en \(dueño[material] ?? "nil")
+                """
+            )
+        }
+        // Y la contracara: las que sí son de uno solo tienen que resolverse, o
+        // el criterio entero no traería a nadie nunca.
+        #expect(dueño[Self.unseenSkin] == Self.unseenType)
+        #expect(dueño["second_life"] == "homeless", "la de reencarnación es del Fisura y de nadie más")
+    }
+
+    @Test("la lista abre en el más nuevo, igual que la de Mejoras")
+    func elOrdenEsElDeSiempre() async throws {
+        let gameState = await makeGameState()
+        try reencarnado(gameState)
+        gameState.grantMilestoneSkinsForTests([Self.unseenSkin])
+
+        let tiers = gameState.skinnableTypes.map(\.tier)
+        #expect(tiers == tiers.sorted(by: >), "la lista quedó de más viejo a más nuevo: \(tiers)")
+        // Decisión del dueño (2026-08-17): la pantalla abre en lo último que
+        // hiciste, y lo último que hiciste fue ganarte la pinta de la Deidad.
+        #expect(gameState.skinnableTypes.first?.id == Self.unseenType)
+    }
+
+    @Test("Mejoras no se contagia: ahí se compra, y sólo se ofrece lo visto")
+    func mejorasSigueMostrandoSoloLoVisto() async throws {
+        let gameState = await makeGameState()
+        try reencarnado(gameState)
+        gameState.grantMilestoneSkinsForTests([Self.unseenSkin])
+
+        #expect(
+            gameState.characterUpgradeTypes.map(\.id) == ["homeless"],
+            "tener la pinta de la Deidad no es haberla visto: su mejora no se puede ofrecer (RF-03)"
+        )
+        #expect(gameState.skinnableTypes.count == 2, "y Pintas sí la lista: son dos criterios distintos")
+    }
+}

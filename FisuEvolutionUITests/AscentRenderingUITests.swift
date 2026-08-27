@@ -155,23 +155,32 @@ final class AscentRenderingUITests: XCTestCase {
         dismissSheet(app)
     }
 
-    /// Llegar a Urban acredita la skin de milestone `urban_trailblazer`, y su
-    /// celebración es un sheet MODAL: mientras está arriba tapa el tablero —que
-    /// es de lo que este test da veredicto mirando la captura— y deja todo el
-    /// HUD inalcanzable, incluidas las flechas de la torre.
+    /// Hoy no descarta nada, y su espera sigue siendo lo único que cubre la
+    /// cola del ascenso.
     ///
-    /// Aparece sólo con el tutorial dado por visto, o sea que depende de un
-    /// `@AppStorage` que `--uitest-reset` NO toca y que el propio test puede
-    /// terminar de avanzar a fuerza de taps. Por eso se tolera que esté o no en
-    /// vez de asumir una de las dos ramas.
+    /// El sheet lo publica `awardEligibleMilestoneSkins()`, que cuelga de
+    /// `updateMaxFloorStat()`: el ascenso SIGUE pasando por ese embudo. Lo que
+    /// cambió es el dato — desde el sistema de cofres ninguna entrada de
+    /// `skins.json` declara `floorReached`, ni siquiera `urban_trailblazer`, que
+    /// ahora sale de cofre (`chestRarity`) y por eso su `isMilestone` cae a
+    /// `false` sola. De los 45 milestones que quedan, 2 piden reencarnar y 43
+    /// tener las líneas de oro al tope: este test no hace ninguna de las dos, así
+    /// que `newlyUnlocked` vuelve vacío y `skin.award.dismiss` nunca existe.
     ///
-    /// ⚠️ La ventana era de **2 s** de un solo tiro, y eso era un falso rojo
-    /// esperando a una máquina cargada: si la hoja llegaba tarde, esto volvía sin
-    /// descartar nada y el toque siguiente —la flecha de bajar— caía sobre el
-    /// sheet. El test moría en el assert del callejón por CARGA y no por código,
-    /// que es exactamente como se ganó estar salteado diez días. Ahora la ventana
-    /// es ancha y además se espera a que la hoja **se vaya**: descartarla dispara
-    /// una animación, y un toque durante la salida también se pierde.
+    /// ⚠️ Aun así la llamada NO se borra, y no es por prolijidad: cuando el bucle
+    /// de fusiones corta, `board.floor` ya dice "urban" pero la celebración del
+    /// piso sigue en pantalla —la cámara se mueve a los 0,7 s y el cartel recién
+    /// se va a los ~1,4 s (`BoardScene.runFloorUnlockCelebration`)— y mientras
+    /// dura, `celebrationHidesUI` deja el HUD con `allowsHitTesting(false)`. Esta
+    /// espera es lo que le da tiempo a irse antes del tap al ascensor, que
+    /// `tapHUD` dispara por coordenada sin preguntar si el control es hittable.
+    ///
+    /// Y si alguna skin vuelve a desbloquearse por piso, el sheet reaparece justo
+    /// acá: por eso la ventana es ancha —con **2 s** de un solo tiro, una máquina
+    /// cargada dejaba la hoja arriba y el toque siguiente caía sobre ella, que es
+    /// como este test se ganó estar salteado diez días— y por eso además se
+    /// espera a que la hoja **se vaya**: descartarla dispara una animación, y un
+    /// toque durante la salida también se pierde.
     @MainActor
     private func dismissSkinAward(_ app: XCUIApplication, timeout: TimeInterval = 10) {
         let nice = app.buttons["skin.award.dismiss"]

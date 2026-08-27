@@ -193,16 +193,25 @@ struct GameBoardView: View {
             // ⚠️ **No es un `sheet`** (spec §9): el gesto de arrastre de una hoja
             // puede matar la animación por la mitad, y los otros dos overlays
             // no-modales del juego ya viven acá.
-            if let chest = gameState.chestReward, gameState.showing == .chestOpening {
-                ChestOpeningView(reward: chest)
-                    // La identidad por premio: dos cofres seguidos son dos
-                    // animaciones, no una vista que cambia de contenido a la
-                    // mitad de sus latidos.
-                    .id(chest.id)
-                    .transition(.opacity)
+            //
+            // Y va en su propio `ZStack`, por la misma razón que los dos de
+            // arriba: la `.animation` puesta sobre el `ZStack` externo abre la
+            // transacción que la `.transition(.opacity)` necesita, pero de paso
+            // tiñe de easeInOut TODO lo que cambie en ese frame —el `SpriteView`,
+            // el `hudColumn`, el botón de debug—, y acá sí cambian:
+            // `celebrationHidesUI` se mueve en el mismo ciclo que `chestReward`.
+            ZStack {
+                if let chest = gameState.chestReward, gameState.showing == .chestOpening {
+                    ChestOpeningView(reward: chest)
+                        // La identidad por premio: dos cofres seguidos son dos
+                        // animaciones, no una vista que cambia de contenido a la
+                        // mitad de sus latidos.
+                        .id(chest.id)
+                        .transition(.opacity)
+                }
             }
+            .animation(.easeInOut(duration: 0.25), value: gameState.chestReward?.id)
         }
-        .animation(.easeInOut(duration: 0.25), value: gameState.chestReward?.id)
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los
         // anchors que publican los controles de adentro: `overlayPreferenceValue`
         // los entrega ya recolectados, y el `GeometryReader` a pantalla completa

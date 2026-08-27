@@ -494,7 +494,7 @@ Y `FisuEvolution/Resources/Config/chests.json`:
   "floorsPerChest": 2,
   "completedPayoutFactor": 6.0,
   "prestigePayoutFactor": 12.0,
-  "welcomeSkinId": "urban_trailblazer"
+  "welcomeSkinId": "naranjita"
 }
 ```
 
@@ -1425,7 +1425,7 @@ func carouselShowsCharactersWithOwnedSkins() {
 
 - [ ] **Step 1**: en `tutorialPhaseFinished()`, si `!meta.welcomeChestGiven`, otorgar el
   cofre de bienvenida y marcar la bandera. Su premio es **fijo**: `content.chests.welcomeSkinId`
-  —hoy la pinta del Cartonero, el personaje que el jugador acaba de fusionar—, no una tirada.
+  —la pinta del **Trapito**, que es el personaje que el jugador acaba de fusionar—, no una tirada.
   ⚠️ **Se lee del config, no se escribe el id en Swift**: es la constraint global de
   data-driven, y esta es la única skin que el código tendría motivo para nombrar. Se abre
   solo porque la cola lo promueve apenas cae la restricción.
@@ -1459,7 +1459,17 @@ func carouselShowsCharactersWithOwnedSkins() {
   dejaron de darse por piso, y **ningún test se pone rojo por eso**: `AchievementEngineTests`
   siembra `milestoneSkins` sintéticamente. Con los cofres andando tienen que volver a ser
   alcanzables — jugando, no leyendo el JSON.
-- [ ] **Step 6**: los tres documentos del sistema de handoffs — `Docs/SESION-2026-08-26-…`,
+- [ ] **Step 5d — confirmar el rojo intermitente de UI.** `AscentRenderingUITests.testCharactersStayVisibleAfterTheFirstAscent` quedó **verde tres veces aislado** y verde en la base, pero rojo en una corrida de suite completa. La tarea 8 lo declaró intermitente bajo carga y **no lo cerró**. Correrlo aislado y en suite completa, y **decidir**: o es carga de máquina y se anota como tal, o es real y tiene dueño.
+- [ ] **Step 5e — triagear las menores diferidas del ledger.** Son **más de treinta**, cada una con su línea en
+  `.superpowers/sdd/2026-08-26-cofres-de-skins/progress.md`. Separar las que tienen que entrar antes de mergear
+  de las que quedan como deuda anotada. Un roll-up que nadie lee es un descarte silencioso.
+- [ ] **Step 5f — levantar la tarea aparte de `AtlasCache`.** Medido por la tarea 8: `texture.size()` cuesta
+  **~215 ms de hilo principal** la primera vez que se realiza una página del atlas, y `SKTextureAtlas.preload`
+  los sacaría. No es de la vista del cofre: lo pagan también la ficha, el carrusel y el tablero. Dejar la tarea
+  escrita **con esas mediciones de partida**, que es lo caro de reconstruir.
+- [ ] **Step 6**: los tres documentos del sistema de handoffs. ⚠️ Los de la sesión y el general **ya se
+  escribieron en el punto del merge** (commit `e562c0a`), o sea que cubren hasta la tarea 8 inclusive. Hay que
+  **actualizarlos** con las tareas 9, 10 y 11 — no reescribirlos. — `Docs/SESION-2026-08-26-…`,
   `handoffs/HANDOFF-…` y las **cuatro** ediciones de `Docs/HANDOFF.md` (§4 arriba, §5 si
   algo quedó decidido, §7 si hubo trampa, §9 el mapa).
 

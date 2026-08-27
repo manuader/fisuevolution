@@ -60,9 +60,12 @@ struct ChestOpeningView: View {
     let reward: GameState.ChestReward
 
     @State private var beat: Beat = .arriving
-    /// Dispara la caída del latido 0. Nace en `false` y lo prende el `onAppear`
-    /// del cofre: la transición tiene que ocurrir con la vista ya montada, o el
-    /// cofre nace aterrizado (la misma historia que la manito del tutorial).
+    /// Dispara la caída del latido 0. Nace en `false` y lo prende el `.task` del
+    /// cofre —que **cede el hilo antes**—, no un `onAppear`: el resorte de
+    /// `ChestDrop` corre por reloj de pared, así que soltarlo con el hilo
+    /// principal todavía bloqueado armando el overlay lo hace correr entero sin
+    /// cuadros que lo dibujen, y el cofre nace aterrizado. La medición y la
+    /// salvedad de ese yield están en el `.task` que lo prende.
     @State private var dropped = false
     /// El cofre tocó el piso: dispara el aplaste, junto con el háptico.
     @State private var landed = false
@@ -272,6 +275,36 @@ struct ChestOpeningView: View {
             guard await pause(reduceMotion ? 0 : 0.34) else { return }
             landed = true
             play(.merge)
+            // ⚠️ El retrato se carga ACÁ, seis latidos antes de que se vea.
+            // `cardFront` se monta recién en `.flying`, y con él la PRIMERA
+            // lectura del personaje premiado: medida en el simulador, cuesta
+            // ~320 ms de hilo principal —~215 realizando la página del atlas
+            // (`texture.size()`) y ~100 en el `cgImage()`—, contra 0,1 ms una vez
+            // cacheada. O sea que el latido en el que la carta sale volando
+            // arrancaba comiéndose un cuarto de segundo de cuadros.
+            //
+            // La llegada es el lugar barato para pagarlo: es el latido en el que
+            // el overlay se está construyendo igual, así que ya venía con ~500 ms
+            // de bloqueos propios.
+            //
+            // Y va DESPUÉS del golpe, no antes: la caída ya arrancó —`dropped`
+            // se prende en el `.task` del cofre, y su resorte de 0,5 s corre
+            // por reloj de pared— así que ~320 ms clavados delante del
+            // `pause(0,34)` se meten entre lo que se ve caer y el `landed` que
+            // aplasta. Acá el aplaste y el golpe salen con el aterrizaje, y el
+            // bloqueo cae después, donde lo único que espera es el auto-avance a
+            // `.waiting` —un latido que no tiene nada temporizado contra él—.
+            //
+            // Medido con un vigía de hambre del hilo principal, dos corridas por
+            // rama: `.flying` pasó de **247/279 ms a 101/71 ms**. En `.arriving`
+            // el vigía marcó 525 → 542 ms, y eso NO significa que los 320 se
+            // hayan evaporado: reporta el bloqueo **más largo** del latido, no la
+            // suma, y 320 ms escondidos detrás de uno de ~500 no mueven el
+            // máximo. Con n=2 y 390-661 ms de dispersión dentro de una misma
+            // rama, ese número tampoco distingue "+320" de "+0" — lo único que
+            // sostiene es que la llegada no estrenó un bloqueo más largo que el
+            // que ya tenía.
+            warmPrizeArt()
         case .waiting:
             breathing = !reduceMotion
         case .forced1:
@@ -319,13 +352,19 @@ struct ChestOpeningView: View {
     /// Cuánto espera este latido antes de dispararse solo, o `nil` si no se
     /// dispara nunca.
     ///
+    /// La puerta de test manda PRIMERO. Preguntando por Reduce Motion antes, un
+    /// simulador con Reduce Motion prendido ignoraba `--uitest-chest-manual` en
+    /// silencio: el smoke se ponía rojo igual, pero por accidente y no porque
+    /// hubiera detectado nada.
+    ///
     /// Con Reduce Motion **todo** cae al mismo 1,2 s porque todo lleva al mismo
     /// lugar: el reposo. Los latidos que no esperan un toque conservan su reloj
-    /// incluso bajo la puerta de test — el estallido y el vuelo de la carta no
-    /// los avanza nadie, así que sin reloj la animación quedaría trabada.
+    /// bajo la puerta de test —el estallido y el vuelo de la carta no los avanza
+    /// nadie, así que sin reloj la animación quedaría trabada—, y la llegada es
+    /// uno de ellos: es la que lleva al reposo con Reduce Motion.
     private func autoAdvanceDelay(after beat: Beat) -> Double? {
-        if reduceMotion { return beat == .resting ? nil : 1.2 }
         if Self.waitsForTapsOnly, beat.awaitsTap { return nil }
+        if reduceMotion { return beat == .resting ? nil : 1.2 }
         return beat.autoAdvance
     }
 
@@ -335,6 +374,21 @@ struct ChestOpeningView: View {
         guard seconds > 0 else { return !Task.isCancelled }
         try? await Task.sleep(for: .seconds(seconds))
         return !Task.isCancelled
+    }
+
+    /// Fuerza la primera lectura del retrato del premio, para que
+    /// `UIArt.characterImage` la sirva de caché cuando la carta lo pida.
+    ///
+    /// Con plata no hay nada que precalentar: `CoinIcon` sale del atlas `ui`, que
+    /// el HUD ya dejó caliente antes de que el cofre existiera.
+    private func warmPrizeArt() {
+        guard case let .skin(id, characterType, _) = reward.outcome else { return }
+        let treatment = SkinResolver.treatment(
+            for: id,
+            characterType: characterType,
+            config: gameState.content?.skins ?? SkinsConfig(schemaVersion: 1, skins: [])
+        )
+        _ = portraitImage(typeID: characterType, treatment: treatment)
     }
 
     private func play(_ pattern: HapticsManager.Pattern) {
@@ -395,7 +449,38 @@ struct ChestOpeningView: View {
             // carta toma el centro.
             .scaleEffect(beat >= .flying ? Self.stowedScale : 1)
             .accessibilityHidden(true)
-            .onAppear { dropped = true }
+            // ⚠️ La caída NO se suelta en el `onAppear`: primero se cede el hilo.
+            //
+            // `onAppear` corre en la misma pasada en la que el overlay se arma, y
+            // ese armado se come ~500 ms de hilo principal (medidos en la ronda
+            // 2). El resorte de `ChestDrop` corre por RELOJ DE PARED, no por
+            // cuadros, así que soltarlo ahí lo hace correr entero detrás del
+            // bloqueo: para cuando hay un cuadro que dibujar, el cofre ya está
+            // puesto. Medido cuadro a cuadro en cuatro corridas, el primer cuadro
+            // en el que el cofre existía lo agarraba entre el 75 % y el 92 % de
+            // su recorrido — la caída, que es el latido 0 de la animación, no se
+            // veía.
+            //
+            // Cediendo el hilo, el resorte cayó adentro de cuadros que se dibujan
+            // de verdad: en las dos corridas nuevas el cofre se ve pasar por tres
+            // alturas más arriba de donde antes recién aparecía.
+            //
+            // ⚠️ Pero esto es un HOP CALIBRADO CONTRA EL BLOQUEO DE HOY, no una
+            // garantía. `Task.yield()` reencola la continuación UNA vez en la cola
+            // del main actor: no espera a que la pasada de armado termine, no
+            // espera un cuadro dibujado, y no ordena nada contra el commit de la
+            // `CATransaction`. Que ese único hop caiga del otro lado del bloqueo
+            // es empírico —dos corridas nuevas contra una vieja—, no estructural.
+            //
+            // La consecuencia concreta: cuando aterrice la tarea pendiente de
+            // `AtlasCache`/`SKTextureAtlas.preload` —que le saca ~215 ms al hilo
+            // principal (ronda 2)— este hop puede volverse innecesario o quedarse
+            // corto. Si la caída vuelve a nacer aterrizada, el sospechoso es éste,
+            // y lo que corresponde es volver a medir, no encadenar otro `yield`.
+            .task {
+                await Task.yield()
+                dropped = true
+            }
     }
 
     private var chestScale: CGFloat {
@@ -412,11 +497,14 @@ struct ChestOpeningView: View {
         }
     }
 
-    /// La tapa saliendo volando. Vive sólo durante el estallido y el vuelo de la
-    /// carta: con Reduce Motion no se dibuja nunca, porque su estado final es
-    /// justamente no estar.
+    /// La tapa saliendo volando. Nace en el estallido y **no se desmonta más**:
+    /// el fling dura 0,85 s y el jugador puede dar vuelta la carta antes, así que
+    /// con `== .bursting || == .flying` la tapa se cortaba a mitad de vuelo.
+    /// Quedarse montada no cuesta nada —termina en opacidad 0, sin hit testing y
+    /// muda para VoiceOver—. Con Reduce Motion no se dibuja nunca, porque su
+    /// estado final es justamente no estar.
     @ViewBuilder private var lid: some View {
-        if beat == .bursting || beat == .flying {
+        if beat >= .bursting {
             FlyingLid(side: Self.chestSide * 0.8)
                 .offset(y: Self.chestY)
                 .allowsHitTesting(false)
@@ -439,7 +527,10 @@ struct ChestOpeningView: View {
         // El teñido por rareza: los tres FX son crema con contorno negro, así que
         // multiplicar deja el contorno intacto y sólo el relleno toma color.
         .colorMultiply(beat >= .forced2 ? ChestRarityStyle.color(rarity) : .white)
-        .animation(.easeInOut(duration: 0.35), value: beat >= .forced2)
+        // Apagado con Reduce Motion como todo el resto del pulido: sin el `nil`
+        // los rayos eran la única animación que seguía corriendo. Apagada, el
+        // color salta a su estado FINAL, que es el que la regla pide.
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.35), value: beat >= .forced2)
         // 0,7 y no 0,85: al 85 % los rayos crema tapaban el callejón y se leían
         // como cartón recortado. Con el foco detrás, a 0,7 son luz.
         .opacity(0.7)
@@ -473,13 +564,37 @@ struct ChestOpeningView: View {
     /// Dónde nace una ráfaga: el cofre o la carta.
     private enum BurstAnchor { case chest, card }
 
+    /// Una ráfaga, con sus partículas **ya sorteadas**.
+    ///
+    /// El sorteo vive acá y no en el `init` de `SparkBurst` porque la vista se
+    /// vuelve a construir en cada pase del `body`, y mientras la ráfaga de 30
+    /// vuela sus 1,1 s el `body` corre varias veces: el flash que se prende y se
+    /// apaga, el latido que cambia, cada ráfaga vieja que se retira. El
+    /// `keyframeAnimator` conserva la animación en curso —su trigger no cambia—,
+    /// pero el `.frame(width: spark.side…)` toma el valor nuevo en el acto, así
+    /// que un sorteo por pase le cambiaría el tamaño a las 30 partículas EN
+    /// PLENO ESTALLIDO. La `Burst` se arma una sola vez, en `emit`.
     private struct Burst: Identifiable {
         let id = UUID()
-        let count: Int
         let anchor: BurstAnchor
         let tinted: Bool
-        let spread: CGFloat
-        let gravity: Bool
+        let sparks: [Spark]
+
+        init(count: Int, anchor: BurstAnchor, tinted: Bool, spread: CGFloat, gravity: Bool) {
+            self.anchor = anchor
+            self.tinted = tinted
+            sparks = (0..<count).map { index in
+                Spark(
+                    id: index,
+                    dx: .random(in: -spread...spread),
+                    rise: .random(in: spread * 0.35...spread * 0.95),
+                    fall: gravity ? .random(in: spread * 0.9...spread * 1.6) : 0,
+                    side: .random(in: 26...52),
+                    spin: .random(in: -260...260),
+                    isStar: !index.isMultiple(of: 3)
+                )
+            }
+        }
     }
 
     private func emit(_ burst: Burst) {
@@ -497,9 +612,7 @@ struct ChestOpeningView: View {
     @ViewBuilder private func sparks(anchor: BurstAnchor, offsetY: CGFloat) -> some View {
         ForEach(bursts.filter { $0.anchor == anchor }) { burst in
             SparkBurst(
-                count: burst.count,
-                spread: burst.spread,
-                gravity: burst.gravity,
+                sparks: burst.sparks,
                 tint: burst.tinted ? ChestRarityStyle.color(rarity) : nil
             )
             .offset(y: offsetY)
@@ -550,7 +663,14 @@ struct ChestOpeningView: View {
             .accessibilityElement(children: .ignore)
             .accessibilityIdentifier("chest.card")
             .accessibilityLabel(flipRevealed ? Text(prizeName) : Text("chest.card.facedown"))
-            .accessibilityValue(flipRevealed ? Text(ChestRarityStyle.nameKey(rarity)) : Text(verbatim: ""))
+            .accessibilityValue(cardValue)
+    }
+
+    /// La rareza, para VoiceOver. Se canta por la misma regla que la cinta: es
+    /// la etiqueta de la pinta, no del monto de plata.
+    private var cardValue: Text {
+        guard flipRevealed, case .skin = reward.outcome else { return Text(verbatim: "") }
+        return Text(ChestRarityStyle.nameKey(rarity))
     }
 
     /// El dorso **no se genera**: es el tablón de madera de la casa con el moño,
@@ -579,7 +699,22 @@ struct ChestOpeningView: View {
                 GameCard(style: .highlighted(Color("PaletteYellow"))) {
                     VStack(spacing: Tokens.s8) {
                         prizeArt
-                        rarityRibbon
+                        // La cinta SÓLO con pinta. Con plata el monto sale de
+                        // `passiveUnlockCost(forTier:) × factor`: depende del piso
+                        // al que llegó el jugador y de si el cofre era de
+                        // prestigio, y NO de la rareza. Etiquetar el número con
+                        // una cinta promete un ranking que no existe —dos cofres
+                        // del mismo tier pagan lo mismo sean comunes o
+                        // legendarios— y de paso deja el peor cartel posible:
+                        // "me salió legendario y me dieron plata".
+                        //
+                        // La rareza ya cobró su sueldo antes de dar vuelta la
+                        // carta: tiñó los rayos y las partículas en el segundo
+                        // toque, que es el mecanismo que defiende el encabezado
+                        // del archivo. Sacar la cinta no le quita nada al tinte.
+                        if case .skin = reward.outcome {
+                            rarityRibbon
+                        }
                         Text(prizeName)
                             .font(Tokens.title)
                             .foregroundStyle(Color("PaletteInk"))
@@ -801,18 +936,45 @@ private struct ChestShake: ViewModifier {
 /// Con Reduce Motion el modificador no se aplica, así que el cofre nace donde
 /// termina la caída — el estado FINAL, nunca el inicial.
 ///
-/// ⚠️ **La caída NO puede ser un `keyframeAnimator`, y esto costó una vuelta de
-/// simulador.** Al terminar sus keyframes el animador vuelve al `initialValue`,
-/// así que una pista que arrancaba en −520 pt devolvía el cofre arriba de la
-/// pantalla apenas dejaba de animar: se veía caer, aterrizar… y desaparecer,
-/// con el estallido reventando un cofre invisible. La caída va con `offset` +
-/// `withAnimation`, que se queda donde la dejaron.
+/// ⚠️ **La caída NO es un `keyframeAnimator`, y esto costó una vuelta de
+/// simulador**: con una pista que arrancaba en −520 pt el cofre se veía caer,
+/// aterrizar… y desaparecer, y el estallido reventaba un cofre invisible.
 ///
-/// El aplaste SÍ es keyframes, y puede serlo justamente porque **empieza y
-/// termina en 1**: ahí el regreso al valor inicial no cambia nada.
+/// ⚠️⚠️ Y **no es porque el animador vuelva a su `initialValue` al terminar**.
+/// Eso es lo ÚNICO pineado de esta nota, y es una negación: la doc de Apple dice
+/// lo contrario —"the animator will remain at the end value, which becomes the
+/// initial value for the next animation"—, así que la regla general que este
+/// comentario afirmaba no existe, y los otros cuatro `keyframeAnimator` del repo
+/// no dependen de ella.
+///
+/// ⚠️ **La causa positiva sigue ABIERTA, y lo que sigue es una hipótesis con una
+/// objeción conocida — no la tomes como hecho.** La hipótesis: lo que re-arma un
+/// animador en su `initialValue` es que cambie la identidad del subárbol que
+/// envuelve, y este cofre la cambia dos veces —`chestArt` es un `switch` de tres
+/// artes (cerrado, rajado, abierto)— SEGUNDOS después de que la caída terminó,
+/// que es lo que explicaría por qué el cofre reaparecía arriba justo en el
+/// estallido y no al aterrizar.
+///
+/// **La objeción**: ese `switch` vive ADENTRO del `content` que este modificador
+/// envuelve, o sea POR DEBAJO del `keyframeAnimator`. Cambiar de rama de un
+/// `_ConditionalContent` re-arma el subárbol de adentro, no el estado del
+/// modificador que está arriba — así que, por el modelo de identidad de SwiftUI,
+/// el swap de arte **no debería** tocar al animador. La hipótesis explica el
+/// síntoma pero no encaja con el modelo, y no hay medición que la sostenga: el
+/// arreglo llegó antes que la autopsia.
+///
+/// La lección que sí se lleva el próximo: una pista que **no empieza en el
+/// valor de reposo** es frágil arriba de una vista que cambia de arte. La caída
+/// va con `offset` + `withAnimation`, que se queda donde la dejaron pase lo que
+/// pase. El aplaste puede seguir siendo keyframes porque **empieza y termina en
+/// 1** —igual que los otros cuatro del repo—: ahí re-armarse no se ve.
 private struct ChestDrop: ViewModifier {
-    /// Ya cayó. Lo prende el `onAppear`, un frame después del primero, que es lo
-    /// que hace que la caída se vea en vez de nacer aterrizada.
+    /// Ya cayó. Lo prende un `.task` que **cede el hilo primero**, y ahí está el
+    /// truco: este resorte corre por reloj de pared, así que si arranca mientras
+    /// el hilo principal está bloqueado armando el overlay, corre entero sin un
+    /// cuadro que lo muestre y el cofre aparece puesto. Está medido —y el
+    /// `onAppear` que había antes acá **no** alcanzaba— en `task-8-report.md`,
+    /// ronda 4.
     let dropped: Bool
     /// Ya tocó el piso: dispara el aplaste, en el mismo instante que el háptico.
     let landed: Bool
@@ -867,6 +1029,18 @@ private struct FlyingLid: View {
     }
 }
 
+/// Una partícula de una ráfaga. La gravedad no viaja como bandera: un `fall` en
+/// cero ES la ráfaga que no cae.
+private struct Spark: Identifiable {
+    let id: Int
+    let dx: CGFloat
+    let rise: CGFloat
+    let fall: CGFloat
+    let side: CGFloat
+    let spin: Double
+    let isStar: Bool
+}
+
 /// Una ráfaga de estrellas y chispitas.
 ///
 /// ⚠️ **No sale del `ParticlePool`**: ese es de SpriteKit (`emit(_:at:in
@@ -874,19 +1048,10 @@ private struct FlyingLid: View {
 /// partículas son `fx_star` y `fx_sparkle` dibujadas como vistas, con offsets al
 /// azar y caída.
 ///
-/// El sorteo se hace UNA vez, en el `init`: recalcularlo en cada evaluación del
-/// `body` haría que las partículas saltaran de lugar a mitad del vuelo.
+/// ⚠️ **Acá no se sortea nada**: las partículas llegan hechas desde `emit`. El
+/// porqué —y qué se veía cuando el sorteo estaba en este `init`— está en
+/// `ChestOpeningView.Burst`.
 private struct SparkBurst: View {
-    private struct Spark: Identifiable {
-        let id: Int
-        let dx: CGFloat
-        let rise: CGFloat
-        let fall: CGFloat
-        let side: CGFloat
-        let spin: Double
-        let isStar: Bool
-    }
-
     private struct Flight {
         var x: CGFloat = 0
         var y: CGFloat = 0
@@ -895,27 +1060,10 @@ private struct SparkBurst: View {
         var opacity: Double = 1
     }
 
-    private let sparks: [Spark]
-    private let gravity: Bool
-    private let tint: Color?
+    let sparks: [Spark]
+    let tint: Color?
 
     @State private var flung = false
-
-    init(count: Int, spread: CGFloat, gravity: Bool, tint: Color?) {
-        self.gravity = gravity
-        self.tint = tint
-        sparks = (0..<count).map { index in
-            Spark(
-                id: index,
-                dx: .random(in: -spread...spread),
-                rise: .random(in: spread * 0.35...spread * 0.95),
-                fall: gravity ? .random(in: spread * 0.9...spread * 1.6) : 0,
-                side: .random(in: 26...52),
-                spin: .random(in: -260...260),
-                isStar: !index.isMultiple(of: 3)
-            )
-        }
-    }
 
     var body: some View {
         ZStack {

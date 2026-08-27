@@ -97,6 +97,35 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
     /// Las skins que reparten los cofres, en orden de catálogo.
     public var chestPool: [Entry] { skins.filter { $0.chestRarity != nil } }
 
+    /// De quién es cada pinta, cuando es de UNO SOLO. Las que visten a todos no
+    /// figuran: no alcanzan para decir a qué personaje pertenece la propiedad.
+    ///
+    /// ⚠️ "Vestir a todos" está escrito de **dos formas** en el catálogo y las
+    /// dos tienen que caer del mismo lado. La declarada (`characterType == "*"`)
+    /// y la que efectivamente se usa: el MISMO id repetido una vez por
+    /// personaje, que es como viven `oro` y `diamante`. Lo segundo no es un
+    /// descuido del dato — es la razón de que la unicidad se pida por
+    /// (personaje, id) y no por id (ver `validate`): la propiedad se guarda por
+    /// id en `allOwnedSkins`, así que tener "diamante" es tenerlo en los 43.
+    ///
+    /// Lo pregunta quien tiene que traducir "tengo esta pinta" en "entonces
+    /// conozco a este personaje". Con las compartidas adentro, un solo paquete
+    /// de diamante contestaría "conozco a los 43".
+    public var exclusiveCharacterTypeBySkinID: [String: String] {
+        var dueño: [String: String] = [:]
+        var compartidas: Set<String> = []
+        for skin in skins {
+            if skin.characterType == "*" {
+                compartidas.insert(skin.id)
+            } else if let anterior = dueño[skin.id], anterior != skin.characterType {
+                compartidas.insert(skin.id)
+            } else {
+                dueño[skin.id] = skin.characterType
+            }
+        }
+        return dueño.filter { !compartidas.contains($0.key) }
+    }
+
     public func entry(id: String) -> Entry? {
         skins.first { $0.id == id }
     }

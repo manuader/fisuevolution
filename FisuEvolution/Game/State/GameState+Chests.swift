@@ -8,6 +8,10 @@ import Foundation
 /// Acá viven las fuentes; el sorteo es de `ChestRoller` (EconomyKit) y pasa
 /// recién al abrirlo. Un cofre pendiente es un número, no un premio guardado:
 /// así el jugador no puede farmear tiradas mirando el save.
+///
+/// La excepción es el **cofre de bienvenida** (`grantWelcomeChest`), que no se
+/// guarda ni se sortea: su premio lo nombra `chests.json` y nace abierto, porque
+/// es una escena del tutorial y no plata que el jugador administra.
 extension GameState {
     /// La torre paga cada `floorsPerChest` pisos. El contador vive en `run` y
     /// cuenta CUÁNTOS pagó, no cuáles: así re-desbloquear un piso que ya viste
@@ -67,11 +71,11 @@ extension GameState {
     func openChest() {
         // Un cofre por vez: sin esto, dos toques seguidos pisan el payload y el
         // primer premio se pierde entre que la cola le da el turno y la vista lo lee.
-        guard chestReward == nil, pendingChestCount > 0,
-              let content, let economy, var player else { return }
+        guard chestReward == nil, pendingChestCount > 0, let content, var player else { return }
 
         let dePrestigio = player.meta.prestigeChestsPending > 0
         if dePrestigio { player.meta.prestigeChestsPending -= 1 } else { player.meta.chestsPending -= 1 }
+        self.player = player
 
         let outcome = ChestRoller.roll(
             owned: player.meta.allOwnedSkins,
@@ -80,6 +84,79 @@ extension GameState {
             minRarity: dePrestigio ? .epica : nil,
             using: &rng
         )
+
+        presentChestReward(
+            outcome,
+            payoutFactor: dePrestigio ? content.chests.prestigePayoutFactor : content.chests.completedPayoutFactor,
+            origen: "cofre abierto\(dePrestigio ? " de prestigio" : "") (quedan \(pendingChestCount))"
+        )
+    }
+
+    /// El **cofre de bienvenida**: el único cofre guionado del juego.
+    ///
+    /// Cae al cerrar la fase obligatoria del tutorial —tap → contratar →
+    /// fusionar— y se abre solo, porque la cola lo promueve apenas esa
+    /// restricción se levanta. Es la respuesta al pedido del dueño: con las 41
+    /// pintas saliendo **sólo** de cofres, la primera llegaba tarde, y ésta llega
+    /// guionada y adentro del tutorial, con el personaje recién fusionado todavía
+    /// en pantalla.
+    ///
+    /// **No pasa por el contador de pendientes.** `chestsPending` es plata que el
+    /// jugador gasta cuando quiere, y su único consumidor —`openChest()`—
+    /// SORTEA. Sumar y restar ahí en la misma llamada sería un rodeo por un
+    /// contador que nadie llega a ver, para terminar sin poder usar al que lo
+    /// gasta. Este cofre nace abierto.
+    ///
+    /// ⚠️ **El id sale de `chests.json`, no de Swift.** Es la constraint global de
+    /// contenido, y ésta es la única pinta que el código tendría motivo para
+    /// nombrar: cambiar cuál regala el tutorial tiene que ser una línea de JSON.
+    /// Que el id exista en la bolsa lo pinea `GameContentValidationTests`.
+    func grantWelcomeChest() {
+        // `chestReward == nil` por lo mismo que `openChest()`: un cofre por vez.
+        // Sólo el panel de debug puede dejar uno abierto durante la fase, y
+        // perder el guionado es preferible a pisarle el premio a un cofre que el
+        // jugador ya está mirando.
+        guard chestReward == nil, let content, var player,
+              !player.meta.welcomeChestGiven else { return }
+        // De la BOLSA del cofre y no del catálogo entero: el premio del tutorial
+        // tiene que ser una pinta que los cofres reparten. Un id que apunte a una
+        // de tienda o de milestone deja el cofre sin premio en vez de regalar por
+        // una vía que no es la suya.
+        guard let pinta = content.skins.chestPool.first(where: { $0.id == content.chests.welcomeSkinId }),
+              let rareza = pinta.chestRarity else { return }
+
+        // La bandera es del SAVE y no de la sesión: el "Resetear partida" del
+        // panel de debug revive la fase, y sin esto cada resurrección pagaría.
+        player.meta.welcomeChestGiven = true
+        self.player = player
+        presentChestReward(
+            .skin(id: pinta.id, characterType: pinta.characterType, rarity: rareza),
+            // La rama de plata no corre acá —el premio es una pinta fija— pero el
+            // factor del cofre común es el que le correspondería.
+            payoutFactor: content.chests.completedPayoutFactor,
+            origen: "cofre de bienvenida"
+        )
+    }
+
+    /// Acredita el premio de un cofre y lo deja listo para que la cola lo
+    /// muestre. Lo comparten el cofre que el jugador abre y el de bienvenida.
+    ///
+    /// Está compartido y no duplicado porque acá adentro vive el **contrato de
+    /// `milestoneSkins`**: un segundo camino que lo repitiera sería un segundo
+    /// lugar donde equivocarse, y el modo de equivocarse borra la colección
+    /// entera del jugador la primera vez que toca "restaurar compras".
+    ///
+    /// `payoutFactor` sólo se usa en la rama de plata: es el multiplicador sobre
+    /// `passiveUnlockCost(forTier:)`, que difiere entre el cofre común y el de la
+    /// reencarnación.
+    ///
+    /// `economy` se arma en el mismo bootstrap que `content` y de la misma
+    /// respuesta, así que con un `content` ya validado por el llamador este guard
+    /// no puede cortar: no hay camino que gaste un cofre y se quede sin premio.
+    private func presentChestReward(
+        _ outcome: ChestOutcome, payoutFactor: Double, origen: String
+    ) {
+        guard let economy, var player else { return }
 
         let detalle: String
         var pagado: Double?
@@ -90,12 +167,14 @@ extension GameState {
             // pinta de cofre guardada ahí se borraría con un "restaurar compras" — y
             // de paso reabriría el gate del día 7, que lee `allOwnedSkins`.
             player.meta.milestoneSkins = Array(Set(player.meta.milestoneSkins).union([id])).sorted()
+            // Sólo acá: con un premio de plata la ficha no tiene nada nuevo que
+            // redibujar.
+            skinSelectionVersion &+= 1
             detalle = "pinta \(id) (\(rarity.rawValue))"
         case let .coins(rarity):
             // La MISMA fórmula que el fallback del día 7, que es lo que hace que
             // los dos premios de plata del juego se sientan del mismo tamaño.
-            let monto = economy.passiveUnlockCost(forTier: player.run.maxTierReached)
-                * (dePrestigio ? content.chests.prestigePayoutFactor : content.chests.completedPayoutFactor)
+            let monto = economy.passiveUnlockCost(forTier: player.run.maxTierReached) * payoutFactor
             player.run.coins += monto
             player.meta.lifetimeEarnings += monto
             pagado = monto
@@ -107,13 +186,9 @@ extension GameState {
         // guarde: el botón de Regalos llama acá y nada más. Sin esto, el cofre
         // gastado y la pinta ganada viven sólo en memoria.
         scheduleSave()
-        // Sólo si cambió la colección: con un premio de plata la ficha no tiene
-        // nada nuevo que redibujar.
-        if case .skin = outcome { skinSelectionVersion &+= 1 }
         chestReward = ChestReward(outcome: outcome, coins: pagado)
         syncCelebrations()
-        let quedan = pendingChestCount
-        Log.economy.info("cofre abierto\(dePrestigio ? " de prestigio" : ""): \(detalle); quedan \(quedan)")
+        Log.economy.info("\(origen): \(detalle)")
     }
 
     /// Cierra la animación del cofre. **El orden de estas dos líneas es el
@@ -131,7 +206,13 @@ extension GameState {
         celebrationFinished(.chestOpening)
     }
 
-    /// Lo que muestran el puntito y la tarjeta de Regalos.
+    /// Cuántos cofres esperan. Es la cuenta autoritativa —contra ella cotiza
+    /// `openChest()`— y la que muestra la tarjeta de Regalos, que se recompone
+    /// con el timer de 1 Hz de su pantalla.
+    ///
+    /// ⚠️ **No invalida SwiftUI**: sale de `player`, que es
+    /// `@ObservationIgnored`. Lo que enciende el puntito de la pestaña es
+    /// `hasPendingChests`, la proyección publicada a 8 Hz.
     var pendingChestCount: Int {
         (player?.meta.chestsPending ?? 0) + (player?.meta.prestigeChestsPending ?? 0)
     }

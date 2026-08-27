@@ -103,7 +103,7 @@ el cofre normal y **12,0** para el de reencarnación.
 
 | Fuente | Cuándo | Piso de rareza | Por partida | Total (~9 partidas) |
 |---|---|---|---:|---:|
-| Bienvenida | al cerrar la fase obligatoria del tutorial | fijo: Cartonero | 1, sólo la 1ª | 1 |
+| Bienvenida | al cerrar la fase obligatoria del tutorial | fijo: Trapito | 1, sólo la 1ª | 1 |
 | Torre | cada 2 pisos desbloqueados (2·4·6·8·10) | — | 5 | 45 |
 | Reencarnación | al confirmar el prestigio | **épica** | — | 8 |
 | Día 7 | si ya tenés los 10 specials | — | ~1/semana | ~2 |
@@ -132,8 +132,15 @@ sobre el config. Hay que agregar el `case` en dos `switch` (`applyRewardedReward
 
 Cae al cerrar la fase obligatoria del tutorial (tap → contratar → fusionar), que es
 cuando `tutorialPhaseFinished()` levanta la restricción de la cola. **Se abre solo** y
-su premio **no es aleatorio: es la pinta del Cartonero**, el personaje que el jugador
-acaba de fusionar. La lección se enseña sola, y el botón "Ponérsela" cierra el
+su premio **no es aleatorio: es la pinta del Trapito**, el personaje que el jugador
+acaba de fusionar.
+
+⚠️ **Corregido el 2026-08-27, y el error vale anotarlo.** Este spec decía "la pinta del
+Cartonero" y estaba mal: `homeless.mergesInto == "trapito"`, así que el tutorial deja al
+jugador con **El Trapito (T2)**, no con el Cartonero (T4). Se estaba regalando la pinta de
+un personaje que el jugador todavía no conoció, y la carta decía literal "para tu Cartonero".
+Lo cazó el implementador de la tarea 11 mirando los datos en vez de creerle al spec. El
+premio es `naranjita`, la pinta común del Trapito. La lección se enseña sola, y el botón "Ponérsela" cierra el
 circuito.
 
 Reemplaza el disparador de la lección `.tutorialTip / .skins`, que hoy es "la skin de

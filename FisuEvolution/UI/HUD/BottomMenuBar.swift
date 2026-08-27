@@ -22,9 +22,11 @@ struct BottomMenuBar: View {
     /// de las seis vive en `GameBoardView`.
     let select: (GameScreen) -> Void
 
-    /// Para el puntito de logros cobrables del tab Menú
-    /// (`hasClaimableAchievements`, publicada a 8 Hz escribiendo sólo si
-    /// cambió: la barra no se recompone por nada más).
+    /// Para los dos puntitos: logros cobrables en el tab Menú y cofres sin abrir
+    /// en el de Regalos. Los dos llegan como proyección publicada a 8 Hz que
+    /// escribe sólo si cambió — la barra no se recompone por nada más, así que
+    /// una lectura que no invalide (`pendingChestCount` sale de `player`, que es
+    /// `@ObservationIgnored`) dejaría el puntito apagado para siempre.
     @Environment(GameState.self) private var gameState
 
     var body: some View {
@@ -41,11 +43,22 @@ struct BottomMenuBar: View {
                 labelKey: Self.labelKey(for: screen),
                 identifier: screen.identifier,
                 prominent: Self.isProminent(screen),
-                // El circuito del puntito: nace acá con el primer logro
-                // cobrable, sigue en la tarjeta de Logros adentro del Menú, y
-                // muere al cobrar el último.
-                showsBadge: screen == .menu && gameState.hasClaimableAchievements
+                showsBadge: showsBadge(for: screen)
             )
+        }
+    }
+
+    /// Qué pestaña tiene algo esperando. Son dos circuitos con la misma forma:
+    /// el puntito nace en la barra, se repite en la tarjeta de adentro para que
+    /// el rastro no se corte, y muere al cobrar lo último.
+    ///
+    /// - Menú: el primer logro conseguido y sin cobrar.
+    /// - Regalos: el primer cofre de pintas sin abrir.
+    private func showsBadge(for screen: GameScreen) -> Bool {
+        switch screen {
+        case .menu: gameState.hasClaimableAchievements
+        case .gifts: gameState.hasPendingChests
+        case .jobs, .upgrades, .skins, .store: false
         }
     }
 

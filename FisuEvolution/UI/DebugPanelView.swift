@@ -52,6 +52,15 @@ struct DebugPanelView: View {
                         dismiss()
                     }
                     .accessibilityIdentifier("debug.chest.open")
+                    // El de arriba aterriza directo en la animación; éste deja
+                    // el cofre GUARDADO, que es lo que hace falta para recorrer
+                    // el camino del jugador entero: el puntito de la pestaña, la
+                    // tarjeta de Regalos y el botón que la abre.
+                    Button("Regalar un cofre (sin abrir)") {
+                        gameState.debugAwardChest()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.chest.award")
                 }
                 Section("Peligro") {
                     Button("Resetear partida", role: .destructive) {

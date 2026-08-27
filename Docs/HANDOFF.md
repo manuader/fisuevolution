@@ -1260,7 +1260,7 @@ xcrun simctl install booted build/DD/Build/Products/Debug-iphonesimulator/FisuEv
 xcrun simctl launch booted com.manuader.fisuevolution --uitest-reset
 ```
 
-Fixtures DEBUG por launch argument — **son doce, no tres**:
+Fixtures DEBUG por launch argument — **son 13, no tres**:
 
 | Argumento | Qué deja listo |
 |---|---|
@@ -1272,6 +1272,7 @@ Fixtures DEBUG por launch argument — **son doce, no tres**:
 | `--uitest-prestige` | Acredita lifetime para llegar a reencarnar |
 | `--uitest-open-sheet` | Abre la ficha sobre la primera unidad |
 | `--uitest-skins` | Acredita las skins de milestone de los tipos YA VISTOS (van con `--uitest-seen-types`, que es lo que decide cuáles). Es lo que permite ejercer "Ponérsela" en Pintas sin abrir pisos ni reencarnar |
+| `--uitest-unseen-skin` | Acredita la pinta de cofre del personaje de tier más ALTO que el jugador NO vio (en una partida nueva, la de la Deidad). Es el reverso de `--uitest-skins` y el único fixture que separa Pintas de Mejoras: sin él las dos pantallas listan lo mismo y el carrusel se puede volver a colgar de `characterUpgradeTypes` sin que nada se ponga rojo |
 | `--uitest-storekit-empty` | `StoreManager` no carga productos: simula la tienda que no contesta. Es la ÚNICA forma de ejercer desde un test la rama "Precio no disponible", porque el runner inyecta la configuración de StoreKit del scheme y si no los productos cargan siempre |
 | `--uitest-daily-streak` | Deja el ciclo del daily en el día 4: la tira del calendario de Regalos con días cobrados atrás. El único otro camino a un día con tilde es **volver mañana** |
 | `--uitest-achievements` | Siembra los contadores históricos que cruzan tres logros (`ach_merges_1`, `ach_taps_1000`, `ach_videos_1`) y los deja **conseguidos y sin cobrar**: es lo único que llena la sección "Para cobrar" de la pantalla de Logros. Conseguir uno jugando pide fusionar, mirar un video con el proveedor real o dar mil toques — nada automatizable. Usa `max`, así que no pisa un save con más. ⚠️ Acredita durante `phase == .loading`, así que **NO desfila los tres banners**, y un logro ya acreditado no vuelve a cruzarse: para filmar el toast hay que cruzar uno EN RUNTIME y con el tablero despejado. El único barato es `ach_merges_1` — contratar uno en FisuJobs, cerrar la hoja y fusionar el par con doble toque. Contratar diez cruza `ach_hires_10` pero deja el banner tapado por la hoja |
@@ -1284,6 +1285,74 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+
+### De los cofres, segunda tanda (2026-08-27)
+
+**⚠️ `-only-testing:` con un id de Swift Testing SIN PARÉNTESIS corre CERO tests y devuelve
+ÉXITO.** `-only-testing:Suite/miTest` no matchea nada y termina con `Test run with 0 tests,
+** TEST SUCCEEDED **`; hace falta `-only-testing:Suite/miTest()`. Esto **invalida en silencio
+cualquier prueba por mutación**: se rompe el código, se corre el test "solo", sale verde, y se
+concluye que el test es vacuo cuando en realidad no corrió. Pasó en esta sesión y casi se
+reporta como mutación sobreviviente. Se descubrió porque el diagnóstico **también** daba
+`exit=0` sin imprimir nada — o sea, midiendo el comando en vez de confiar en él.
+**Regla**: filtrar por SUITE (`-only-testing:Suite`) y confirmar en la salida que los tests
+esperados aparecen nombrados. Una corrida que no nombra ningún test no probó nada.
+
+**Nadie miraba nunca la frase compuesta.** `chest.skin.subtitle` no lo resolvía ni lo
+asserteaba ningún test, y por eso *"Para tu El Trapito"* pudo shippear: la plantilla se
+testeaba por separado y el nombre por separado, pero **la oración armada no la leía nadie**.
+Los tres nombres con artículo son `El Fisura`, `El Trapito` y `El Mantero` — 3 de 44. La red
+que faltaba recorre `concreteTypes` y rechaza determinante pegado a determinante, y lleva su
+propia guarda: sin exigir que la frase **nombre** al personaje, una clave que no resuelve deja
+pasar todo.
+
+
+**Un `.sheet` no puede abrir un overlay que vive en el `ZStack` de `RootView`.** El botón de
+Regalos que abre un cofre **tiene que cerrar la hoja primero**: si no, la animación se
+reproduce **debajo**, invisible y sorda a los toques, y como `.chestOpening` no tiene timeout
+ni es salteable, la cola global queda congelada con el HUD apagado. Es el mismo pozo que el
+contrato del orden, por otra puerta.
+
+**Una proyección que sale de `player` no invalida SwiftUI.** `player` es
+`@ObservationIgnored` para que el tick de 60 Hz no redibuje el HUD; cualquier cosa que una
+vista tenga que leer y ver cambiar sola necesita su propia propiedad observada (el patrón es
+`hasClaimableAchievements` / `hasPendingChests`). El puntito del cofre habría sido código
+muerto.
+
+**En `skins.json` no hay ningún `characterType == "*"`.** La pinta que visten todos está
+escrita con el **mismo id 43 veces** (`oro`, `diamante`), porque la propiedad se guarda por
+id — y esas dos cubren **exactamente** los 43 personajes concretos. Cualquier regla del tipo
+"personajes de los que tenés una pinta" **despliega el catálogo entero** a quien compró el
+paquete de diamante, espoileando la cadena de evolución. La regla correcta: **una pinta que
+viste a más de uno no trae a nadie**.
+
+**`isHittable` TIRA, no devuelve `false`.** Cuando XCUITest no puede calcular el punto de
+activación —típicamente con el elemento recortado por un scroll, que suele ser justo el
+estado que el assert quiere observar— la propiedad es un `BOOL` sin canal de error y la falla
+sale como excepción. Y `XCTNSPredicateExpectation` **no reintenta ante excepciones**. Para
+"¿se ve esta celda?" usar geometría (¿el centro del marco cae en la ventana?), no hittability.
+
+**Dos instrumentos de medición de video que mienten, los dos descartados en esta sesión:**
+`simctl recordVideo` **dropea cuadros por su cuenta** —huecos de 200-450 ms aparecen con la
+pantalla quieta, en cualquier rama—, así que sus huecos no miden nada; y el `-ss` de ffmpeg
+sobre un mp4 **no cae donde se le pide**, así que una tira de cuadros armada por tiempo
+compara momentos distintos. Las tiras se arman **por índice de cuadro exacto**. Para medir
+bloqueo de hilo principal, un vigía adentro de la app (un `Task` que pide dormir 16 ms y
+denuncia cuando despierta tarde) — y ojo: reporta el bloqueo **más largo** del latido, no la
+suma.
+
+**`Task.yield()` no es "esperar a que el hilo se libere".** Reencola **una vez** en la cola
+del main actor: no espera a que termine la pasada de armado, no espera un cuadro dibujado y
+no ordena contra el commit de la `CATransaction`. Sirve —hace que la caída del cofre se vea—
+pero es **un hop calibrado contra el bloqueo de hoy**, no una garantía: si el bloqueo cambia
+de tamaño, puede volverse innecesario o insuficiente.
+
+**`UIArt.characterImage` en frío cuesta ~320 ms de hilo principal**, de los cuales **~215 son
+`texture.size()`** realizando la página del atlas y ~100 el `cgImage()`. Cacheado, 0,1 ms.
+Cualquier vista que muestre un retrato por primera vez lo paga; precalentarlo unos latidos
+antes lo muda, no lo borra. Sacarlo de verdad es `SKTextureAtlas.preload`, y es tarea propia
+porque lo pagan también la ficha, el carrusel y el tablero.
 
 ### De los cofres (2026-08-26)
 

@@ -269,8 +269,9 @@ struct GameLoopWiringTests {
 
         // El aviso tiene la prioridad MÁS BAJA de la cola, así que se drena lo
         // que haya delante (el reveal del tablero y la tanda de logros llegan
-        // primero) hasta que le toca. Acá ya no se cuela ninguna pinta: este merge
-        // abre lujo y llegar dejó de otorgarlas. El tope es por si una regresión
+        // primero) hasta que le toca. Acá ya no se cuela ninguna pinta, y no porque
+        // este merge no abra piso —el setup ya abrió lujo y T14+T14→T15 no lo
+        // mueve— sino porque llegar dejó de otorgarlas. El tope es por si una regresión
         // deja la cola sin avanzar: un `while` acá cuelga la suite en vez de
         // fallarla.
         for _ in 0..<CelebrationKind.allCases.count {

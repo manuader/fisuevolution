@@ -262,8 +262,8 @@ enum BoostManager {
         return max(0, boost.cooldownSeconds - (now - last))
     }
 
-    /// Activa un boost gratuito respetando su cooldown. Devuelve las coins del
-    /// cofre si fue el Asado (para el popup).
+    /// Activa un boost gratuito respetando su cooldown. Devuelve las coins de la
+    /// picada si fue el Asado (para el popup).
     @discardableResult
     static func activate(
         boostId: String,

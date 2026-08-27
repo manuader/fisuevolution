@@ -254,7 +254,8 @@ private enum Cooldown {
 /// Los cofres de pintas que el jugador YA ganó y todavía no abrió: el arte del
 /// cofre cerrado, cuántos son y el botón que abre uno.
 ///
-/// Es la única tarjeta **destacada** de la pantalla, y es a propósito: las otras
+/// Es una de las dos tarjetas **destacadas** de la pantalla —la otra es el
+/// `payoutBanner`, y pueden convivir—, y es a propósito: las otras
 /// tres secciones ofrecen cosas —una racha que hay que sostener, boosts con
 /// cooldown, videos que hay que mirar—, y ésta entrega algo que ya es suyo. El
 /// amarillo es el mismo acento con el que la tira marca el día en juego.

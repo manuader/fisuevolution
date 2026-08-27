@@ -14,7 +14,9 @@ import XCTest
 /// compara su valor contra el de la tarjeta que estaba puesta antes: el string
 /// sale del catálogo en el idioma que sea, y la igualdad vale en los dos.
 final class CustomizationUITests: XCTestCase {
-    /// El Fisura: tier 1, primero del carrusel y el que la pantalla elige sola.
+    /// El Fisura: tier 1 y primero del carrusel. ⚠️ **No es el que la pantalla
+    /// elige sola** desde f541bde (el default es el personaje más nuevo): los
+    /// tests que razonan desde su grilla lo tocan explícitamente.
     private static let firstType = "homeless"
     /// El Cartonero: tier 4, también visto con `--uitest-seen-types`. Sirve para
     /// probar que tocar OTRA cara cambia la grilla.
@@ -23,7 +25,9 @@ final class CustomizationUITests: XCTestCase {
     private static let ownedSkin = "second_life"
     /// La camiseta: skin paga del Fisura, la única fila que se compra.
     private static let paidSkin = "mundialista"
-    /// La skin del Cartonero, que llega por el mismo fixture.
+    /// La skin del Cartonero. ⚠️ **NO llega por `--uitest-skins`**: desde los
+    /// cofres es `chestRarity: comun` y ese fixture filtra por `isMilestone`.
+    /// Los tests de abajo la usan BLOQUEADA, que es lo que la grilla dibuja.
     private static let otherSkin = "urban_trailblazer"
     /// La Deidad (tier 36) y su pinta legendaria: el personaje de tier más alto
     /// que reparten los cofres, o sea lo que `--uitest-unseen-skin` elige. Van
@@ -139,8 +143,8 @@ final class CustomizationUITests: XCTestCase {
         XCTAssertFalse(app.buttons["skins.character.oficinista"].exists,
                        "un personaje que nunca viste no se puede elegir")
 
-        // El Fisura es el que la pantalla eligió sola: su camiseta está en la
-        // grilla y la del Cartonero no.
+        // Con el Fisura recién elegido: su camiseta está en la grilla y la del
+        // Cartonero no.
         XCTAssertTrue(app.otherElements["skins.row.\(Self.paidSkin)"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.otherElements["skins.row.\(Self.otherSkin)"].exists,
                        "la grilla tiene que mostrar UN personaje por vez")

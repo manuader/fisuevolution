@@ -1088,12 +1088,20 @@ Y verificá cada uno rompiendo lo que prueba.
 - [ ] **Step 1: Escribir los tests que fallan**
 
 ```swift
+// ⚠️ Este test, tal como estaba escrito en el plan, NO PODÍA PASAR NUNCA:
+// `enqueue` sobre una cola VACÍA promueve en el acto, así que `.chestOpening`
+// tomaba `current` y el reveal quedaba esperando. Para comparar prioridades hay
+// que ocupar el turno con un tercero primero — el patrón de `priorityBeatsArrival`.
 @Test("el cofre espera a que termine el reveal del tablero")
 func chestWaitsForTheBoardReveal() {
     var queue = CelebrationQueue()
-    queue.enqueue(.chestOpening)
-    queue.enqueue(.boardCelebration)
-    #expect(queue.current == .boardCelebration)   // prioridad 3 < 4
+    queue.enqueue(.offlineEarnings)     // prioridad 1: se lleva el turno
+    queue.enqueue(.chestOpening)        // 4
+    queue.enqueue(.boardCelebration)    // 3
+    queue.finish(.offlineEarnings)
+    #expect(queue.current == .boardCelebration, "el reveal va antes que el cofre")
+    queue.finish(.boardCelebration)
+    #expect(queue.current == .chestOpening, "y el cofre sale después, no encima")
 }
 
 @Test("el cofre no se cierra solo")

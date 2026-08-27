@@ -1174,11 +1174,24 @@ git commit -m "feat(cofres): el cofre pide turno como cualquier celebración y a
 ### Task 6: El renombre de "cofre"
 
 **Files:**
-- Modify: `FisuEvolution/Managers/ContentConfigs.swift:134`
-- Modify: `FisuEvolution/Resources/Config/boosts.json`
-- Modify: `FisuEvolution/Resources/Localizable.xcstrings`
-- Modify: `FisuEvolution/Game/State/GameState+Bonus.swift`, `FisuEvolution/UI/Gifts/GiftsView.swift`
+- Modify: `FisuEvolution/Managers/ContentConfigs.swift:134` (la declaración del case)
+- Modify: `FisuEvolution/Resources/Config/boosts.json:67` (el `effectType` del boost `asado`)
+- Modify: `FisuEvolution/Resources/Localizable.xcstrings:1770`, `:2161`, `:2988`, `:3005`
+- Modify: los **cuatro** call sites de `periodicChest` y `gifts.daily.chest`:
+  `FisuEvolution/Managers/EffectDescriptor.swift:66`,
+  `FisuEvolution/Managers/ContentSystems.swift:306`,
+  `FisuEvolution/Game/State/GameState+Bonus.swift:474`,
+  `FisuEvolution/UI/Gifts/GiftsView.swift:320`
 - Test: `FisuEvolutionTests/EffectDescriptorTests.swift`
+
+⚠️ **Verificado el 2026-08-26**: son exactamente esos sitios, ni más ni menos. `EffectType`
+es `CaseIterable` y `EffectDescriptorTests` recorre los siete tipos, así que un case sin
+cubrir sale en rojo — pero el `switch` de `EffectDescriptor.swift:66` agrupa
+`periodicChest` con otros dos y el compilador **no** avisa si se renombra mal ahí.
+
+⚠️ **Las tres claves nuevas con la palabra "chest" NO se tocan**: `ads.reward.chest`,
+`ads.reward.text.chest` y `daily.prize.chest` son del cofre de PINTAS y ya están bien.
+El patrón de verificación del Step 3 lleva sufijos justamente para no matchearlas.
 
 - [ ] **Step 1: Renombrar el caso del enum**
 

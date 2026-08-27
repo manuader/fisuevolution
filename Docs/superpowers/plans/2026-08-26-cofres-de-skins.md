@@ -1256,6 +1256,17 @@ skins, y se detectó recién al verificar el push.
 
 **Interfaces:**
 - Consumes: `gameState.showing == .chestOpening`, `gameState.chestReward` (Task 5).
+
+⚠️⚠️ **EL CONTRATO QUE NO SE PUEDE ROMPER.** La vista **debe** poner
+`gameState.chestReward = nil` **ANTES** de `gameState.celebrationFinished(.chestOpening)`.
+Si no lo hace, `syncCelebrations` (`GameState+Celebrations.swift:50`) lo reencola en el mismo
+frame — y como `.chestOpening` tiene `timeout: nil` (el tick nunca lo vence) e
+`isSkippable == false` (el tap nunca lo saltea), **`showing` queda pegado para siempre,
+`celebrationHidesUI` queda en `true`, y la cola global entera se congela con el HUD apagado.
+No hay watchdog que lo destrabe.** El precedente exacto a copiar es `RootView.swift:231`
+más `:323-327`: el `Binding.set` nilea el payload y recién ahí `onDismiss` llama a
+`celebrationFinished`.
+
 - Produces: identifiers `chest.tap`, `chest.card`, `chest.equip`, `chest.dismiss`.
 
 - [ ] **Step 1: La máquina de estados de los siete latidos**
@@ -1314,6 +1325,17 @@ Abrir un cofre por la puerta de debug, tapear cuatro veces, verificar que aparec
 - Modify: `FisuEvolution/UI/Gifts/GiftsView.swift`
 - Modify: la barra de pestañas (`GameTabBar` ya soporta `showsBadge`)
 - Test: `FisuEvolutionUITests/BonusHUDUITests.swift`
+
+
+⚠️⚠️ **EL CONTRATO QUE NO SE PUEDE ROMPER.** La vista **debe** poner
+`gameState.chestReward = nil` **ANTES** de `gameState.celebrationFinished(.chestOpening)`.
+Si no lo hace, `syncCelebrations` (`GameState+Celebrations.swift:50`) lo reencola en el mismo
+frame — y como `.chestOpening` tiene `timeout: nil` (el tick nunca lo vence) e
+`isSkippable == false` (el tap nunca lo saltea), **`showing` queda pegado para siempre,
+`celebrationHidesUI` queda en `true`, y la cola global entera se congela con el HUD apagado.
+No hay watchdog que lo destrabe.** El precedente exacto a copiar es `RootView.swift:231`
+más `:323-327`: el `Binding.set` nilea el payload y recién ahí `onDismiss` llama a
+`celebrationFinished`.
 
 - [ ] **Step 1**: `GameCard(style: .highlighted(Color("PaletteYellow")))` como **primera**
   sección, con `GameIcon(artKey: "ui_chest_closed", size: 44)`, el contador y un `ActionPill`

@@ -268,7 +268,11 @@ struct ChestOpeningView: View {
     private func choreograph(_ beat: Beat) async {
         switch beat {
         case .arriving:
-            // ⚠️ El retrato se carga ACÁ, cuatro latidos antes de que se vea.
+            // El golpe va con el ATERRIZAJE, no con el nacimiento de la vista.
+            guard await pause(reduceMotion ? 0 : 0.34) else { return }
+            landed = true
+            play(.merge)
+            // ⚠️ El retrato se carga ACÁ, seis latidos antes de que se vea.
             // `cardFront` se monta recién en `.flying`, y con él la PRIMERA
             // lectura del personaje premiado: medida en el simulador, cuesta
             // ~320 ms de hilo principal —~215 realizando la página del atlas
@@ -278,15 +282,26 @@ struct ChestOpeningView: View {
             //
             // La llegada es el lugar barato para pagarlo: es el latido en el que
             // el overlay se está construyendo igual, así que ya venía con ~500 ms
-            // de bloqueos propios y 320 más se pierden ahí adentro. Medido con un
-            // vigía de hambre del hilo principal, dos corridas por rama:
-            // `.flying` pasó de **247/279 ms a 101/71 ms**, y `.arriving` quedó
-            // igual dentro del ruido (525 → 542 ms de promedio).
+            // de bloqueos propios.
+            //
+            // Y va DESPUÉS del golpe, no antes: la caída ya arrancó —`dropped`
+            // se prende en el `onAppear` del cofre, y su resorte de 0,5 s corre
+            // por reloj de pared— así que ~320 ms clavados delante del
+            // `pause(0,34)` se meten entre lo que se ve caer y el `landed` que
+            // aplasta. Acá el aplaste y el golpe salen con el aterrizaje, y el
+            // bloqueo cae después, donde lo único que espera es el auto-avance a
+            // `.waiting` —un latido que no tiene nada temporizado contra él—.
+            //
+            // Medido con un vigía de hambre del hilo principal, dos corridas por
+            // rama: `.flying` pasó de **247/279 ms a 101/71 ms**. En `.arriving`
+            // el vigía marcó 525 → 542 ms, y eso NO significa que los 320 se
+            // hayan evaporado: reporta el bloqueo **más largo** del latido, no la
+            // suma, y 320 ms escondidos detrás de uno de ~500 no mueven el
+            // máximo. Con n=2 y 390-661 ms de dispersión dentro de una misma
+            // rama, ese número tampoco distingue "+320" de "+0" — lo único que
+            // sostiene es que la llegada no estrenó un bloqueo más largo que el
+            // que ya tenía.
             warmPrizeArt()
-            // El golpe va con el ATERRIZAJE, no con el nacimiento de la vista.
-            guard await pause(reduceMotion ? 0 : 0.34) else { return }
-            landed = true
-            play(.merge)
         case .waiting:
             breathing = !reduceMotion
         case .forced1:

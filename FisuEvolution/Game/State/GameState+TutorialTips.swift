@@ -22,7 +22,10 @@ extension GameState {
         case elevator
         /// El atajo de contratar al mejor, cuando hay algo contratable.
         case quickHire
-        /// La primera pinta ganada (la skin de milestone del piso 2).
+        /// Ya hay una pinta para ponerse. Desde que las 41 pintas de piso salen
+        /// **sólo** de cofres, la primera llega en el cofre de bienvenida, al
+        /// cerrar la fase obligatoria — la vía vieja (la skin de milestone del
+        /// piso 2) no existe más.
         case skins
         /// El primer logro COBRABLE: enseña el circuito del puntito rojo.
         case achievements
@@ -139,6 +142,16 @@ extension GameState {
         case .quickHire:
             bestHire?.affordable == true
         case .skins:
+            // "Tener una pinta que ponerse", literal — que es la regla de oro
+            // aplicada a esta pantalla. La proyección publica `allOwnedSkins`
+            // (tienda ∪ milestone) y el cofre acredita en `milestoneSkins`, así
+            // que el de bienvenida la enciende apenas se abre, y el carrusel
+            // muestra a su dueño aunque el jugador todavía no lo haya conocido
+            // (`skinnableTypes` incluye a los personajes con pinta).
+            //
+            // ⚠️ NO se mira `welcomeChestGiven`: esa bandera dice que el cofre se
+            // DIO, no que haya una pinta en la bolsa, y además se olvidaría de la
+            // vía de la tienda — dos formas de mandar a Pintas sin nada que hacer.
             !ownedSkins.isEmpty
         case .achievements:
             hasClaimableAchievements

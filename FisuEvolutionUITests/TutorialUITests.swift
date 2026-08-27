@@ -7,6 +7,18 @@ import XCTest
 /// `es` (trampa 6 del HANDOFF): un assert sobre el texto del globo pasaría por
 /// no encontrar nunca nada, que es pasar por la razón equivocada.
 final class TutorialUITests: XCTestCase {
+    /// La pinta del cofre de bienvenida: `welcomeSkinId` de `chests.json`.
+    ///
+    /// Va como literal —igual que las de `CustomizationUITests`— porque XCUITest
+    /// no puede leer el catálogo desde el runner. Es a propósito que sea frágil:
+    /// si el dueño cambia cuál pinta regala el tutorial, este test se pone rojo y
+    /// dice exactamente dónde releerlo.
+    private static let welcomeSkin = "urban_trailblazer"
+    /// Y de quién es esa pinta. **No es el personaje que el tutorial fusiona**:
+    /// dos Fisuras (T1) dan un Trapito (T2) y ésta es del Cartonero (T4), así que
+    /// al salir del tutorial su dueño todavía no está visto.
+    private static let welcomeSkinOwner = "cartonero"
+
     /// Partida nueva CON tutorial y con plata para poder contratar. Sin la
     /// plata, el primer paso pide ~50 toques sobre un personaje que deambula.
     @MainActor
@@ -172,6 +184,45 @@ final class TutorialUITests: XCTestCase {
         )
         XCTAssertEqual(XCTWaiter().wait(for: [stepGone], timeout: 8), .completed,
                        "el botón final tiene que cerrar el tutorial")
+
+        // Y el tutorial no termina en el vacío: cerrarlo hace caer el cofre de
+        // bienvenida, que se abre solo y ofrece la primera pinta de la partida.
+        awaitWelcomeChest(app, screenshotNamed: "cofre de bienvenida: la llegada")
+        let equipar = app.buttons["chest.equip"]
+        let premio = XCTAttachment(screenshot: app.screenshot())
+        premio.name = "cofre de bienvenida: el premio"
+        premio.lifetime = .keepAlways
+        add(premio)
+        equipar.tap()
+
+        // La pinta quedó PUESTA: su tarjeta en Pintas ya no ofrece ponérsela, y
+        // la de siempre sí. Abrir la hoja prueba de paso que el HUD volvió.
+        //
+        // ⚠️ Hay que ELEGIR a su dueño en el carrusel, y no es un detalle del
+        // test: Pintas abre en el personaje de tier más alto que el jugador VIO
+        // en esta run (`defaultSkinnableType`, regla del dueño "la pantalla abre
+        // en lo último que hiciste"), y el dueño de la pinta de bienvenida no
+        // está visto — el tutorial fusiona hasta T2 y `welcomeSkinId` es de T4.
+        // O sea que al salir del tutorial la hoja aterriza en OTRO personaje y la
+        // pinta recién ganada está a un toque de carrusel. (Medido acá: este
+        // assert fue rojo hasta que el test eligió al dueño explícito.)
+        app.buttons["hud.skins"].tap()
+        let cara = app.buttons["skins.character.\(Self.welcomeSkinOwner)"]
+        XCTAssertTrue(cara.waitForExistence(timeout: 10),
+                      "el carrusel tiene que listar al dueño de la pinta recién ganada")
+        cara.tap()
+        XCTAssertTrue(app.otherElements["skins.row.\(Self.welcomeSkin)"].waitForExistence(timeout: 10),
+                      "la pinta del cofre de bienvenida tiene que estar en la grilla de su personaje")
+        XCTAssertFalse(app.buttons["skins.equip.\(Self.welcomeSkin)"].exists,
+                       "la que ya está puesta no puede seguir ofreciendo ponérsela")
+        XCTAssertTrue(app.buttons["skins.equip.base"].exists,
+                      "sin botón en la original no hay forma de volver a la apariencia de siempre")
+        let pintas = XCTAttachment(screenshot: app.screenshot())
+        pintas.name = "cofre de bienvenida: la pinta puesta"
+        pintas.lifetime = .keepAlways
+        add(pintas)
+        dismissSheet(app)
+
         // Y con el tutorial cerrado el juego vuelve a responder entero.
         app.buttons["hud.upgrades"].tap()
         XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 6))
@@ -200,12 +251,74 @@ final class TutorialUITests: XCTestCase {
             closed = XCTWaiter().wait(for: [stepGone], timeout: 4) == .completed
         }
         XCTAssertTrue(closed, "saltear tiene que cerrar el tutorial")
+
+        // Saltear también termina la fase, así que el cofre de bienvenida cae
+        // igual: la única pinta temprana del juego no puede depender de haberse
+        // bancado el guion entero. Se cierra sin ponérsela, que es la otra salida
+        // de la carta.
+        awaitWelcomeChest(app, screenshotNamed: "cofre de bienvenida: también al saltear")
+        app.buttons["chest.dismiss"].tap()
+
         app.buttons["hud.upgrades"].tap()
         XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 12),
                       "sin tutorial, el HUD tiene que volver a responder")
     }
 
     // MARK: - Las lecciones contextuales
+
+    /// El otro extremo del cofre de bienvenida: la lección de **Pintas**.
+    ///
+    /// Desde que las 41 pintas de piso salen sólo de cofres, la vía vieja —la
+    /// skin de milestone del piso 2— no existe más, y el cofre de bienvenida es
+    /// lo único que le da a Pintas algo que hacer temprano. Este test lo mide
+    /// desde afuera: en una partida nueva sin plata **ninguna** lección es
+    /// elegible, así que la que nace después de cerrar el tutorial nace por la
+    /// pinta que trajo el cofre y por nada más.
+    ///
+    /// ⚠️ Va **sin** `--uitest-coins` a propósito: con plata, la primera del
+    /// orden sería la de Mejoras y esto mediría otra cosa. Y la pinta se deja
+    /// SIN ponerse (`chest.dismiss`): la señal es tenerla, no llevarla puesta.
+    @MainActor
+    func testLaLeccionDePintasNaceConLaPintaDelCofreDeBienvenida() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-lessons"]
+        app.launch()
+
+        XCTAssertTrue(app.otherElements["tutorial.step"].waitForExistence(timeout: 20))
+        let marker = app.otherElements["tutorial.step"]
+        var closed = false
+        for _ in 0..<3 where !closed {
+            app.buttons["tutorial.skip"].tap()
+            let stepGone = XCTNSPredicateExpectation(
+                predicate: NSPredicate(format: "exists == 0"), object: marker
+            )
+            closed = XCTWaiter().wait(for: [stepGone], timeout: 4) == .completed
+        }
+        XCTAssertTrue(closed, "saltear tiene que cerrar el tutorial")
+
+        awaitWelcomeChest(app, screenshotNamed: "lección de Pintas: el cofre que la habilita")
+        app.buttons["chest.dismiss"].tap()
+
+        let tip = app.otherElements["tutorial.tip"]
+        XCTAssertTrue(tip.waitForExistence(timeout: 20),
+                      "con una pinta en la bolsa, Pintas por fin tiene algo que hacer")
+        XCTAssertEqual(tip.value as? String, "skins",
+                       "sin plata no hay otra lección elegible: la que nace es la del cofre")
+        let globo = XCTAttachment(screenshot: app.screenshot())
+        globo.name = "lección de Pintas: el globo señalando su tab"
+        globo.lifetime = .keepAlways
+        add(globo)
+
+        // Y hacer lo que señala la cumple: el tab abre la hoja y el globo se va.
+        app.buttons["hud.skins"].tap()
+        XCTAssertTrue(app.buttons["sheet.close"].waitForExistence(timeout: 8),
+                      "la lección no puede interceptar la apertura de la hoja")
+        let gone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == 0"), object: tip
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 8), .completed,
+                       "abrir el destino tiene que retirar el globo")
+    }
 
     /// La lección de Mejoras: nace sólo cuando hay una mejora PAGABLE (la regla
     /// de oro del gating), señala el tab sin congelar nada, y hacer lo que
@@ -366,6 +479,31 @@ final class TutorialUITests: XCTestCase {
             if XCTWaiter().wait(for: [gone], timeout: 3) == .completed { return }
         }
         XCTFail("el doble toque no fusionó el par iluminado en \(attempts) intentos")
+    }
+
+    /// Espera al **cofre de bienvenida** y lo deja en reposo, con el premio a la
+    /// vista y sus dos botones (`chest.equip` y `chest.dismiss`) en pantalla.
+    ///
+    /// Que exista `chest.tap` ES la prueba de que el cofre cayó: la animación
+    /// vive en el `ZStack` de `RootView` y no aparece si nadie le puso payload.
+    ///
+    /// ⚠️ Va **sin** `--uitest-chest-manual` a propósito, y por eso no tapea: los
+    /// cuatro latidos se disparan solos cada 1,2 s y ejercitarlos acá quedaría
+    /// verde con `tap()` desenchufada — ése contrato es de `ChestOpeningUITests`,
+    /// que apaga el reloj. Lo que se prueba acá es que el cofre CAE al cerrar el
+    /// tutorial y que su premio es una PINTA, no plata: sin cofre no hay
+    /// `chest.tap`, y con plata no hay `chest.equip`.
+    @MainActor
+    private func awaitWelcomeChest(_ app: XCUIApplication, screenshotNamed name: String) {
+        XCTAssertTrue(app.buttons["chest.tap"].waitForExistence(timeout: 15),
+                      "cerrar la fase del tutorial tiene que hacer caer el cofre de bienvenida")
+        let llegada = XCTAttachment(screenshot: app.screenshot())
+        llegada.name = name
+        llegada.lifetime = .keepAlways
+        add(llegada)
+
+        XCTAssertTrue(app.buttons["chest.equip"].waitForExistence(timeout: 20),
+                      "el cofre de bienvenida tiene que ofrecer una PINTA fija, no una tirada que puede pagar plata")
     }
 
     /// Todas las hojas del juego cierran por el mismo `ArtCloseButton`.

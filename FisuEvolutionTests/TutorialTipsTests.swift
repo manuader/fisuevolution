@@ -121,6 +121,41 @@ struct TutorialTipsTests {
         #expect(gameState.tutorialTip?.lesson == .upgrades, "al cerrarse, el próximo refresh la agarra")
     }
 
+    /// La lección de Pintas y su fuente nueva. Desde que las 41 pintas de piso
+    /// salen **sólo** de cofres, la vía vieja —la skin de milestone del piso 2—
+    /// no existe más, y lo primero que el jugador puede ponerse es la pinta del
+    /// **cofre de bienvenida**, que cae al cerrar la fase obligatoria.
+    ///
+    /// Por eso la señal sigue siendo `!ownedSkins.isEmpty`: esa proyección
+    /// publica `allOwnedSkins` —tienda ∪ milestone—, que es literalmente "tiene
+    /// una pinta que ponerse", que es la regla de oro, y es donde el cofre
+    /// acredita. Una señal atada a `welcomeChestGiven` mandaría a Pintas por
+    /// haber DADO el cofre y no por tener la pinta, y de paso se olvidaría de
+    /// la vía de la tienda.
+    @Test("la lección de Pintas espera al cofre de bienvenida, que es lo que le da algo que hacer")
+    func theSkinsLessonWaitsForTheWelcomeChest() async {
+        let gameState = await makeGameState()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip == nil,
+                "partida nueva sin una sola pinta: en Pintas no hay nada que ponerse")
+
+        // La bandera del cofre NO es la señal: dice que el cofre se dio, no que
+        // haya una pinta puesta en la bolsa.
+        gameState.player?.meta.welcomeChestGiven = true
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip == nil,
+                "la bandera sola manda a una pantalla donde todavía no hay nada que ponerse")
+        gameState.player?.meta.welcomeChestGiven = false
+
+        gameState.beginTutorialPhase()
+        gameState.tutorialPhaseFinished()
+        gameState.dismissChestReward()
+        gameState.refreshProjections()
+
+        #expect(gameState.tutorialTip?.lesson == .skins,
+                "con la pinta del cofre acreditada, Pintas por fin tiene algo que hacer")
+    }
+
     @Test("el badge de logros: la señal nace con el cobrable y muere al cobrarlo")
     func claimableSignalTracksTheSets() async throws {
         let gameState = await makeGameState()

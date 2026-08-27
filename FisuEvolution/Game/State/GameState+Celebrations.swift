@@ -75,10 +75,24 @@ extension GameState {
     /// La fase terminó (el botón del cierre o "Saltar"): se levanta la
     /// restricción y lo que esperó su turno desfila en su orden de siempre —
     /// el daily del día 2 primero, después la skin, al final los toasts.
+    ///
+    /// Y acá cae el **cofre de bienvenida**, que es el momento que el dueño pidió
+    /// para enseñar la mecánica: el jugador acaba de fusionar y todavía no vio
+    /// una sola pinta. Cae por las DOS salidas de la fase —el botón del cierre y
+    /// "Saltar"—, porque saltear el tutorial no puede costarle la única pinta
+    /// temprana que el juego reparte.
+    ///
+    /// ⚠️ **Se otorga DESPUÉS de levantar la restricción**, y el orden es la
+    /// decisión: así el cofre entra a la cola detrás de lo que ya estaba
+    /// esperando, en vez de pasarle por encima con su prioridad. En una partida
+    /// nueva no hay nada esperando —no hay offline, el día 1 del daily no se
+    /// cobra y la carrera está a horas de distancia—, así que en la práctica se
+    /// abre en el acto.
     func tutorialPhaseFinished() {
         guard tutorialPhaseActive else { return }
         tutorialPhaseActive = false
         celebrations.restrict(to: nil)
+        grantWelcomeChest()
         syncCelebrations()
     }
 

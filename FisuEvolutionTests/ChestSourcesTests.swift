@@ -298,3 +298,149 @@ struct PendingChestBadgeTests {
         #expect(cuenta.contains("3"), "y el contador tiene que decir cuántos son: '\(cuenta)'")
     }
 }
+
+/// El **cofre de bienvenida**: el único cofre guionado del juego. Cae al cerrar
+/// la fase obligatoria del tutorial —tap → contratar → fusionar— y se abre solo,
+/// porque la cola lo promueve apenas esa restricción se levanta.
+///
+/// Los dos casos que mandan la suite son los mismos que los de `openChest()` más
+/// uno propio:
+/// 1. la pinta va a `milestoneSkins` —un "restaurar compras" borraría
+///    `ownedSkins` entera—,
+/// 2. cerrar la animación destraba la cola,
+/// 3. y el premio **no sale del sorteo**: sale de `chests.json`.
+@Suite("El cofre de bienvenida")
+@MainActor
+struct WelcomeChestTests {
+    /// Una partida nueva con la fase obligatoria viva: el único estado desde el
+    /// que el cofre puede caer. Bajo XCTest el bootstrap no arranca la fase
+    /// (cada test arma su escenario), así que se pide explícita.
+    private func stateInTutorial() async -> GameState {
+        let state = await makeGameState()
+        state.beginTutorialPhase()
+        return state
+    }
+
+    private func skinID(of state: GameState) -> String? {
+        guard case let .skin(id, _, _) = state.chestReward?.outcome else { return nil }
+        return id
+    }
+
+    @Test("cerrar la fase obligatoria hace caer el cofre, y la cola lo abre sola")
+    func theWelcomeChestFallsWhenTheMandatoryPhaseEnds() async throws {
+        let state = await stateInTutorial()
+        #expect(state.chestReward == nil, "durante la fase no cae ningún cofre")
+
+        state.tutorialPhaseFinished()
+
+        let esperado = try #require(state.content?.chests.welcomeSkinId)
+        #expect(skinID(of: state) == esperado, "el premio es la pinta que nombra `chests.json`")
+        #expect(state.showing == .chestOpening,
+                "se abre solo: nadie tuvo que ir a Regalos a tocar el botón")
+        #expect(state.celebrationHidesUI, "y apaga el HUD, como cualquier cofre")
+        #expect(state.player?.meta.welcomeChestGiven == true)
+        #expect(state.pendingChestCount == 0,
+                "no pasa por el contador: es una escena, no plata que se guarda")
+    }
+
+    /// El discriminador entre "sale del config" y "sale de una tirada".
+    ///
+    /// ⚠️ El fixture es imposible en una partida real —las 41 pintas salen sólo
+    /// de cofres y éste es el primero—, y es a propósito: `ChestRoller` **nunca**
+    /// devuelve una pinta que el jugador ya tiene (filtra por stock), así que con
+    /// la de bienvenida ya acreditada un premio que SIGA siendo la de bienvenida
+    /// sólo puede venir del config. La alternativa —abrir doce cofres y mirar si
+    /// alguno se desvía— es estadística: una tirada acierta `welcomeSkinId` el
+    /// 8 % de las veces, y un test así pasaría rotas cinco de cada seis corridas.
+    @Test("el premio es fijo: sale del config aunque el sorteo no pudiera darlo")
+    func theWelcomePrizeComesFromTheConfigAndNotFromARoll() async throws {
+        let state = await stateInTutorial()
+        let esperado = try #require(state.content?.chests.welcomeSkinId)
+        state.player?.meta.milestoneSkins = [esperado]
+
+        state.tutorialPhaseFinished()
+
+        #expect(skinID(of: state) == esperado,
+                "una tirada habría tenido que dar cualquier OTRA pinta: ésta ya estaba en la bolsa del jugador")
+    }
+
+    /// ⚠️ **A `milestoneSkins`, NUNCA a `ownedSkins`.** StoreKit reescribe
+    /// `ownedSkins` entera en cada sync: una pinta guardada ahí se borraría con
+    /// un "restaurar compras".
+    @Test("la pinta de bienvenida va a milestoneSkins y sobrevive un sync de StoreKit")
+    func theWelcomeSkinSurvivesAStoreKitSync() async throws {
+        let state = await stateInTutorial()
+        let versionAntes = state.skinSelectionVersion
+
+        state.tutorialPhaseFinished()
+
+        let pinta = try #require(state.content?.chests.welcomeSkinId)
+        #expect(state.player?.meta.milestoneSkins.contains(pinta) == true)
+        #expect(state.player?.meta.ownedSkins.contains(pinta) == false,
+                "`ownedSkins` es el cache de la tienda: nada que no se haya comprado vive ahí")
+        #expect(state.skinSelectionVersion != versionAntes,
+                "la ficha tiene una pinta nueva que mostrar")
+
+        let deLaTienda = try #require(
+            state.content?.skins.skins.first { $0.chestRarity == nil }?.id,
+            "el catálogo tiene skins fuera de la bolsa del cofre"
+        )
+        state.applyStoreEntitlements(removedAds: false, ownedSkins: [deLaTienda])
+
+        #expect(state.player?.meta.milestoneSkins.contains(pinta) == true,
+                "un restaurar compras se llevó la pinta del cofre de bienvenida")
+        #expect(state.player?.meta.allOwnedSkins.contains(pinta) == true)
+    }
+
+    /// La bandera es por save y no por sesión: el panel de debug puede revivir
+    /// la fase, y un jugador que la reviva no cobra dos veces.
+    @Test("un save paga un solo cofre de bienvenida")
+    func theWelcomeChestIsGrantedOnlyOncePerSave() async throws {
+        let state = await stateInTutorial()
+        state.tutorialPhaseFinished()
+        #expect(state.chestReward != nil)
+        state.dismissChestReward()
+
+        state.beginTutorialPhase()
+        state.tutorialPhaseFinished()
+
+        #expect(state.chestReward == nil, "el segundo cierre no puede pagar otro cofre")
+        #expect(state.showing == nil)
+        #expect(state.pendingChestCount == 0)
+    }
+
+    /// El contrato que roto deja el juego mudo: `.chestOpening` no tiene timeout
+    /// ni es salteable, así que si el payload sobrevive a su turno la cola queda
+    /// congelada con el HUD apagado y sin watchdog que la destrabe.
+    @Test("cerrar el cofre de bienvenida destraba la cola")
+    func closingTheWelcomeChestReleasesTheQueue() async throws {
+        let state = await stateInTutorial()
+        state.tutorialPhaseFinished()
+        #expect(state.showing == .chestOpening)
+
+        state.dismissChestReward()
+
+        #expect(state.chestReward == nil)
+        #expect(state.showing != .chestOpening, "la cola quedó trabada en el cofre")
+        #expect(state.celebrationHidesUI == false, "y el HUD tiene que volver")
+    }
+
+    /// El cofre entra a la cola como uno más y **detrás** de lo que ya estaba
+    /// esperando a que la fase terminara: si se otorgara ANTES de levantar la
+    /// restricción, su prioridad (4) le pasaría por encima al aviso de torre (6)
+    /// que el jugador se ganó primero. El "de a una" y el orden salen del
+    /// árbitro que ya existe, no de un segundo tutorial paralelo.
+    @Test("el cofre se suma al final de la fila, no la saltea")
+    func theWelcomeChestQueuesBehindWhatWasAlreadyWaiting() async throws {
+        let state = await stateInTutorial()
+        state.towerNotice = GameState.TowerNotice(kind: .floorFull)
+        state.syncCelebrations()
+        #expect(state.showing == nil, "la fase lo tiene esperando")
+
+        state.tutorialPhaseFinished()
+        #expect(state.showing == .towerNotice, "lo que esperó su turno desfila primero")
+
+        state.celebrationFinished(.towerNotice)
+        #expect(state.showing == .chestOpening, "y el cofre atrás, sin perderse")
+    }
+}

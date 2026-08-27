@@ -608,6 +608,42 @@ struct GameContentValidationTests {
         #expect(content.skins.chestPool.contains { $0.id == chests.welcomeSkinId })
     }
 
+    /// La pinta del cofre de bienvenida es **del personaje que el jugador acaba
+    /// de fabricar con sus manos**, y eso se computa: el tipo base fusionado una
+    /// vez. Nada de literales — si mañana cambia la cadena de evolución, esto
+    /// sigue midiendo la intención y no un id escrito a mano.
+    ///
+    /// ⚠️ Este test existe porque el agujero era REAL y estuvo abierto: el
+    /// `welcomeSkinId` apuntó a la pinta del Cartonero (T4) mientras la fase
+    /// obligatoria del tutorial termina en el Trapito (T2), y **ningún test de la
+    /// suite lo notaba** — los unitarios del cofre leen el id del config (que es
+    /// lo correcto: prueban el mecanismo, no el contenido) y el de acá al lado
+    /// sólo pedía que estuviera en la bolsa.
+    ///
+    /// Lo que se rompía no era una animación: la carta del premio anunciaba a un
+    /// personaje que el jugador no conoció, y Pintas —que abre en el de tier más
+    /// alto VISTO— aterrizaba en otro, dejando la pinta recién ganada a un toque
+    /// de carrusel. Con la pinta alineada al aterrizaje, las dos cosas se
+    /// arreglan solas.
+    @Test("la pinta de bienvenida es del personaje en el que termina el tutorial")
+    func theWelcomeSkinBelongsToTheFirstMergeResult() throws {
+        let base = content.tiers.baseType
+        let trasLaPrimeraFusion = try #require(
+            base.mergesInto, "el tipo base tiene que fusionar en alguien: es el paso 3 del tutorial"
+        )
+        let pinta = try #require(
+            content.skins.chestPool.first { $0.id == content.chests.welcomeSkinId },
+            "el id de bienvenida tiene que estar en la bolsa del cofre"
+        )
+        #expect(
+            pinta.characterType == trasLaPrimeraFusion,
+            """
+            el cofre de bienvenida regala una pinta de '\(pinta.characterType)', \
+            pero la fase obligatoria del tutorial termina en '\(trasLaPrimeraFusion)'
+            """
+        )
+    }
+
     /// Cada personaje concreto tiene su skin alternativa catalogada, y todas
     /// declaran nombre visible: una skin sin `displayNameKey` se vería en la
     /// ficha como su id crudo.

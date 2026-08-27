@@ -13,11 +13,14 @@ final class TutorialUITests: XCTestCase {
     /// no puede leer el catálogo desde el runner. Es a propósito que sea frágil:
     /// si el dueño cambia cuál pinta regala el tutorial, este test se pone rojo y
     /// dice exactamente dónde releerlo.
-    private static let welcomeSkin = "urban_trailblazer"
-    /// Y de quién es esa pinta. **No es el personaje que el tutorial fusiona**:
-    /// dos Fisuras (T1) dan un Trapito (T2) y ésta es del Cartonero (T4), así que
-    /// al salir del tutorial su dueño todavía no está visto.
-    private static let welcomeSkinOwner = "cartonero"
+    private static let welcomeSkin = "naranjita"
+    /// Y de quién es esa pinta: **el personaje en el que termina la fase
+    /// obligatoria**. Dos Fisuras (T1) fusionan en un Trapito (T2), y ése es el
+    /// dueño — la pinta es de quien el jugador acaba de fabricar con sus manos.
+    /// Que los dos ids sigan alineados lo pinea `GameContentValidationTests`
+    /// **contra los datos**, sin literales; acá van escritos porque XCUITest no
+    /// puede leer el catálogo desde el runner.
+    private static let welcomeSkinOwner = "trapito"
 
     /// Partida nueva CON tutorial y con plata para poder contratar. Sin la
     /// plata, el primer paso pide ~50 toques sobre un personaje que deambula.
@@ -198,25 +201,32 @@ final class TutorialUITests: XCTestCase {
         // La pinta quedó PUESTA: su tarjeta en Pintas ya no ofrece ponérsela, y
         // la de siempre sí. Abrir la hoja prueba de paso que el HUD volvió.
         //
-        // ⚠️ Hay que ELEGIR a su dueño en el carrusel, y no es un detalle del
-        // test: Pintas abre en el personaje de tier más alto que el jugador VIO
-        // en esta run (`defaultSkinnableType`, regla del dueño "la pantalla abre
-        // en lo último que hiciste"), y el dueño de la pinta de bienvenida no
-        // está visto — el tutorial fusiona hasta T2 y `welcomeSkinId` es de T4.
-        // O sea que al salir del tutorial la hoja aterriza en OTRO personaje y la
-        // pinta recién ganada está a un toque de carrusel. (Medido acá: este
-        // assert fue rojo hasta que el test eligió al dueño explícito.)
+        // ⚠️ **Sin tocar el carrusel**, y eso es media prueba. Pintas abre en el
+        // personaje de tier más alto que el jugador VIO en esta run
+        // (`defaultSkinnableType`, regla del dueño "la pantalla abre en lo último
+        // que hiciste"), y como la pinta de bienvenida es del personaje que la
+        // fase acaba de fabricar, el aterrizaje y el dueño son **el mismo**.
         app.buttons["hud.skins"].tap()
-        let cara = app.buttons["skins.character.\(Self.welcomeSkinOwner)"]
-        XCTAssertTrue(cara.waitForExistence(timeout: 10),
-                      "el carrusel tiene que listar al dueño de la pinta recién ganada")
-        cara.tap()
         XCTAssertTrue(app.otherElements["skins.row.\(Self.welcomeSkin)"].waitForExistence(timeout: 10),
-                      "la pinta del cofre de bienvenida tiene que estar en la grilla de su personaje")
+                      "la grilla que Pintas abre sola tiene que ser la del dueño de la pinta")
+
+        // ⚠️⚠️ Que la FILA exista **no alcanza y no prueba nada**, y esto está
+        // medido: la grilla lista también las pintas BLOQUEADAS del personaje,
+        // así que `skins.row.<id>` aparece igual con la pinta sin ganar. Con
+        // `welcomeSkinId` apuntando a un personaje que no es el del aterrizaje,
+        // ese assert sigue verde.
+        //
+        // El discriminador es la ORIGINAL: `skins.equip.base` existe **sólo** si
+        // otra pinta le sacó el puesto. O sea que estas dos líneas son las que
+        // prueban las tres cosas juntas —la pinta se ganó, se puso, y fue en el
+        // personaje donde Pintas abre— y son las que se ponen rojas si el id del
+        // config se desalinea de la cadena de evolución.
+        XCTAssertTrue(app.buttons["skins.equip.base"].exists,
+                      "la pinta del cofre no quedó puesta en el personaje en el que Pintas abre")
         XCTAssertFalse(app.buttons["skins.equip.\(Self.welcomeSkin)"].exists,
                        "la que ya está puesta no puede seguir ofreciendo ponérsela")
-        XCTAssertTrue(app.buttons["skins.equip.base"].exists,
-                      "sin botón en la original no hay forma de volver a la apariencia de siempre")
+        XCTAssertTrue(app.buttons["skins.character.\(Self.welcomeSkinOwner)"].exists,
+                      "y su cara tiene que estar en el carrusel")
         let pintas = XCTAttachment(screenshot: app.screenshot())
         pintas.name = "cofre de bienvenida: la pinta puesta"
         pintas.lifetime = .keepAlways

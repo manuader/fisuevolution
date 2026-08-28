@@ -105,18 +105,17 @@ cambios de código en esos call sites.
 
 ## Verificación
 
-(Se completa al cierre con la matriz entera.)
-
 | qué | dónde | resultado |
 |---|---|---|
 | Pipeline Python (12) | `unittest` | **12/12** ✅ |
-| Unit del cofre (loader+feed) | sim iOS 26.5 | pendiente |
-| EconomyKit | `swift test` | pendiente |
-| Unit sin Store | sim iOS 26.5 | pendiente |
-| Store unit | sim iOS 18.6 | pendiente |
-| UI sin Store | sim iOS 26.5 | pendiente |
-| StoreUITests | sim iOS 18.6 | pendiente |
-| Smokes con captura | sim 26.5 | pendiente |
+| Unit del cofre (loader+feed, 11) | sim iOS 26.5 | **11/11** ✅ |
+| `ChestOpeningUITests` (2) | sim iOS 26.5 | **2/2** ✅ (⚠️ fallaron UNA vez en el primer arranque post-instalación — la app en frío con el decoder recién estrenado; en la repetición y en corridas posteriores pasan; las transiciones de latido quedaron logueadas con `Log.assets` para diagnosticar si reaparece) |
+| EconomyKit | `swift test` | **262/262** ✅ |
+| Unit sin Store | sim iOS 26.5 | (se completa al cierre) |
+| Store unit | sim iOS 18.6 | (se completa al cierre) |
+| UI sin Store | sim iOS 26.5 | (se completa al cierre) |
+| StoreUITests | sim iOS 18.6 | (se completa al cierre) |
+| Smokes con captura | sim 26.5 | ✅ sacudida limpia · carta girando sin costura de encuadre (feather) · marco final con retrato+cinta+nombre+subtítulo y botones sin rozar el marco |
 
 ## Decisiones de esta tanda
 

@@ -431,6 +431,7 @@ struct ChestOpeningView: View {
 
     private func enter(_ target: Beat) {
         guard target != beat else { return }
+        Log.assets.info("chest beat: \(String(describing: beat)) -> \(String(describing: target))")
         // Cualquier camino que salte al reposo —Reduce Motion, el auto-avance—
         // tiene que dejar el estado final entero armado.
         if target == .resting {

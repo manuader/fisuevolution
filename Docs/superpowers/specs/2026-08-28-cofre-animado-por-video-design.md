@@ -1,5 +1,14 @@
 # El cofre animado por video — diseño
 
+> ⚠️ **ENMENDADO por el dueño a mitad de vuelo** (mismo día, textual): «saca la
+> animacion que hiciste antes con los demas assets y deja solo el video. usa el
+> video completo y finalmente reenderiza el contenido de la carta en donde
+> corresponda (carta vacia en el video)». La sección §8 (abajo) es la que
+> manda; invalida §2 en lo que respecta a conservar rayos/partículas/flash/
+> carta de la casa, y levanta la exclusión del tramo de la carta (§1). El resto
+> —keying, ancla del cofre, formato por segmentos, assets derivados— sigue
+> vigente.
+
 > Pedido del dueño (2026-08-28, textual): «acabo de agregar la animacion de cofre
 > chest-animation.mp4 al directorio. tiene una pantalla verde. sacale la pantalla
 > verde e integrala al juego para mejorar la animacion de apertura de cofres. si
@@ -156,3 +165,43 @@ funcional, y un test pina que no pasa.
 - Los identifiers (`chest.tap`, `chest.card`, `chest.equip`, `chest.dismiss`)
   y el smoke `ChestOpeningUITests`.
 - Cero strings nuevos.
+
+## 8. La enmienda: el video ES la animación (segunda ronda del dueño)
+
+El pedido de la segunda ronda invierte la síntesis de §2: ya no «el video pone
+el cofre y la casa el resto», sino **solo el video, entero, y el contenido del
+premio renderizado dentro del marco vacío del final**.
+
+- **Se retiran del popup**: los rayos teñibles (`fx_burst_rays` + spin), las
+  ráfagas `Burst`/`Spark`/`SparkBurst`, el flash blanco, la caída `ChestDrop`
+  con su aplaste, el hinchado del tercer toque, la carta de la casa entera
+  (`PanelCard` + moño + flip 3D + `PanelTitleBanner`). Con ellos muere el
+  anuncio de rareza del segundo toque (los rayos eran el anunciador): la
+  rareza ahora se revela con la cinta dentro del marco. Los tres FX quedaron
+  sin llamadores y salen de atlas y manifest.
+- **Lo que queda de la casa**: los tres toques del candado con auto-avance
+  (interactividad aprobada del diseño original — el cuarto toque muere porque
+  el flip es del video), los hápticos (incluido `.rarity` disparado por reloj
+  en el flip del video, f197 = 6,2 s del tramo), el telón, el respiro del
+  idle, los botones de acción y todos los identifiers.
+- **El formato pasa a ser híbrido, y es medido**: los latidos que responden al
+  dedo (idle + dos sacudidas, f0–f47) siguen en frames PNG (`ChestAnimationFeed`,
+  swap en el mismo cuadro); el tramo del estallido al marco (f48–f239, 8 s
+  LINEALES) va como **`chest_open.mov` — HEVC con canal alfa** por
+  VideoToolbox (`q:v 50`, indistinguible del original en A/B): 3,0 MB contra
+  ~12 MB que pesaría en PNGs. Primer AVFoundation del repo, con el porqué en
+  el doc de `ChestCinematicPlayer`. Total del directorio: **4,5 MB**.
+- **El contenido en el marco**: `parchmentRect` (489,143,302,424 del lienzo,
+  medido por componente conexa en f239) entra al manifest como segunda ancla.
+  El contenido (retrato 96 pt con plato, cinta de rareza, nombre, subtítulo)
+  se posiciona en ese rect y aparece con el video ya pausado en su último
+  frame. Un **push-in de cámara** (zoom 1,3 easeInOut durante la subida de la
+  carta, anclado al centro del pergamino) deja el marco en ~200 pt de ancho;
+  el contenido vive FUERA del subárbol escalado —texto bajo `scaleEffect`
+  queda rasterizado y estirado— y como el pergamino es el ancla del zoom, su
+  centro no se mueve.
+- **Reduce Motion / video ausente**: `chest_card_still.png` (f239 a 0,8) como
+  estado final quieto; cero reproducción.
+- **El smoke cambia de forma**: tres toques (no cuatro), y bajo
+  `--uitest-chest-manual` el video corre a 4× para no sumarle 8 s a cada
+  corrida.

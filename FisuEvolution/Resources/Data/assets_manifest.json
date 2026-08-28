@@ -613,12 +613,6 @@
     "trapito_face": "trapito_face",
     "panel_menu": "panel_menu",
     "ui_gift_bow": "ui_gift_bow",
-    "ui_chest_closed": "ui_chest_closed",
-    "ui_chest_cracked": "ui_chest_cracked",
-    "ui_chest_lid": "ui_chest_lid",
-    "fx_star": "fx_star",
-    "fx_sparkle": "fx_sparkle",
-    "ui_chest_open": "ui_chest_open",
-    "fx_burst_rays": "fx_burst_rays"
+    "ui_chest_closed": "ui_chest_closed"
   }
 }

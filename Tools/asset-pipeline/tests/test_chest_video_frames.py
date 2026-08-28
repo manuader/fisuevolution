@@ -1,13 +1,15 @@
-"""El contrato de `ChestAnim/` visto desde el pipeline.
+"""El contrato de `ChestAnim/` visto desde el pipeline (schemaVersion 2).
 
 La mitad de la prueba es geometria pura; la otra mitad mira lo que quedo
-INTEGRADO en `Resources/ChestAnim/` — el manifest, los frames y el estatico —
-porque el bug tipico de un pipeline de assets no se ve en el codigo: se ve en
-el PNG que se compila. `ChestAnimationTests` (Swift) pina el mismo contrato
-desde el runtime.
+INTEGRADO en `Resources/ChestAnim/` — el manifest, los frames interactivos,
+el video cinematico y el still del marco — porque el bug tipico de un pipeline
+de assets no se ve en el codigo: se ve en el archivo que se compila.
+`ChestAnimationTests` (Swift) pina el mismo contrato desde el runtime.
 """
 
 import json
+import subprocess
+import shutil
 import sys
 import unittest
 from pathlib import Path
@@ -19,8 +21,14 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from chest_video_frames import (  # noqa: E402
+    CARD_STILL_FILE,
+    CARD_STILL_SCALE,
     CHEST_ANIM,
     CHEST_RECT,
+    CINEMATIC_FILE,
+    CINEMATIC_FIRST,
+    CINEMATIC_LAST,
+    PARCHMENT_RECT,
     SEGMENTS,
     STATIC_OCCUPANCY,
     UI_ATLAS,
@@ -29,9 +37,11 @@ from chest_video_frames import (  # noqa: E402
     static_canvas_side,
 )
 
-# El presupuesto declarado en el spec: si el directorio engorda por encima de
-# esto, la decision de peso se tiene que volver a tomar, no colar.
-PRESUPUESTO_KB = 4096
+# Presupuesto de los PNG interactivos; el video cinematico va aparte y su
+# techo tambien esta pineado abajo. Si esto engorda, la decision de peso se
+# tiene que volver a tomar, no colar.
+PRESUPUESTO_PNG_KB = 2600
+PRESUPUESTO_MOV_KB = 4096
 
 
 class GeometriaPura(unittest.TestCase):
@@ -67,22 +77,41 @@ class LoIntegrado(unittest.TestCase):
             cls.manifest = json.load(f)
 
     def test_el_manifest_dice_lo_que_el_pipeline_genera(self):
-        self.assertEqual(self.manifest["schemaVersion"], 1)
+        self.assertEqual(self.manifest["schemaVersion"], 2)
         self.assertEqual(self.manifest["fps"], 24)
         self.assertEqual(set(self.manifest["segments"]), set(SEGMENTS))
         for name, seg in SEGMENTS.items():
             entry = self.manifest["segments"][name]
             self.assertEqual((entry["first"], entry["last"]),
                              (seg["first"], seg["last"]), name)
+        cine = self.manifest["cinematic"]
+        self.assertEqual(cine["file"], CINEMATIC_FILE)
+        self.assertEqual((cine["first"], cine["last"]),
+                         (CINEMATIC_FIRST, CINEMATIC_LAST))
+        still = self.manifest["cardStill"]
+        self.assertEqual(still["file"], CARD_STILL_FILE)
+        self.assertEqual(still["scale"], CARD_STILL_SCALE)
 
-    def test_el_ancla_del_cofre_vive_dentro_del_lienzo(self):
+    def test_las_anclas_viven_dentro_del_lienzo(self):
         canvas = self.manifest["canvas"]
-        rect = self.manifest["chestRect"]
-        self.assertEqual(rect, CHEST_RECT)
-        self.assertLessEqual(rect["x"] + rect["w"], canvas["w"])
-        self.assertLessEqual(rect["y"] + rect["h"], canvas["h"])
+        for key, expected in (("chestRect", CHEST_RECT),
+                              ("parchmentRect", PARCHMENT_RECT)):
+            rect = self.manifest[key]
+            self.assertEqual(rect, expected, key)
+            self.assertLessEqual(rect["x"] + rect["w"], canvas["w"], key)
+            self.assertLessEqual(rect["y"] + rect["h"], canvas["h"], key)
 
-    def test_cada_frame_referenciado_existe_con_su_tamano(self):
+    def test_el_pergamino_vive_dentro_del_encuadre_del_cinematico(self):
+        # El contenido del premio se renderiza sobre el video: si el crop del
+        # cinematico no contiene el pergamino, el contenido flota en el vacio.
+        crop = self.manifest["cinematic"]["crop"]
+        parch = self.manifest["parchmentRect"]
+        self.assertGreaterEqual(parch["x"], crop["x"])
+        self.assertGreaterEqual(parch["y"], crop["y"])
+        self.assertLessEqual(parch["x"] + parch["w"], crop["x"] + crop["w"])
+        self.assertLessEqual(parch["y"] + parch["h"], crop["y"] + crop["h"])
+
+    def test_cada_frame_interactivo_existe_con_su_tamano(self):
         for name, entry in self.manifest["segments"].items():
             crop, scale = entry["crop"], entry["scale"]
             expected = (round(crop["w"] * scale), round(crop["h"] * scale))
@@ -106,7 +135,31 @@ class LoIntegrado(unittest.TestCase):
         total_kb = sum(
             (CHEST_ANIM / name).stat().st_size for name in on_disk
         ) // 1024
-        self.assertLessEqual(total_kb, PRESUPUESTO_KB)
+        self.assertLessEqual(total_kb, PRESUPUESTO_PNG_KB)
+
+    def test_el_cinematico_es_hevc_hvc1_con_192_frames(self):
+        path = CHEST_ANIM / CINEMATIC_FILE
+        self.assertTrue(path.exists())
+        self.assertLessEqual(path.stat().st_size // 1024, PRESUPUESTO_MOV_KB)
+        if shutil.which("ffprobe") is None:
+            self.skipTest("sin ffprobe en el PATH")
+        probe = json.loads(subprocess.run(
+            ["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(path)],
+            capture_output=True, text=True, check=True,
+        ).stdout)
+        stream = probe["streams"][0]
+        self.assertEqual(stream["codec_name"], "hevc")
+        self.assertEqual(stream["codec_tag_string"], "hvc1")
+        self.assertEqual(int(stream["nb_frames"]),
+                         CINEMATIC_LAST - CINEMATIC_FIRST + 1)
+
+    def test_el_still_del_marco_tiene_el_tamano_del_encuadre(self):
+        crop = self.manifest["cardStill"]["crop"]
+        expected = (round(crop["w"] * CARD_STILL_SCALE),
+                    round(crop["h"] * CARD_STILL_SCALE))
+        with Image.open(CHEST_ANIM / CARD_STILL_FILE) as img:
+            self.assertEqual(img.size, expected)
+            self.assertEqual(img.mode, "P")
 
     def test_el_estatico_nuevo_calza_la_ocupacion_del_viejo(self):
         for suffix, side in (("@3x", 384), ("@2x", 256)):

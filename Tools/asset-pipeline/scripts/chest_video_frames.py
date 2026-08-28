@@ -1,16 +1,28 @@
-"""El video del cofre (pantalla verde) -> frames del juego + el cofre estatico.
+"""El video del cofre (pantalla verde) -> la animacion completa del juego.
 
-Corta `video/chest-animation.mp4` en los cuatro segmentos que reproducen los
-latidos de `ChestOpeningView` (idle, dos sacudidas y el estallido), le saca el
-croma, cuantiza cada frame y escribe `Resources/ChestAnim/` con su manifest
-`chest_anim.json` — que es EL contrato con el runtime: `ChestAnimation.swift`
-lo parsea y `ChestAnimationTests` + `test_chest_video_frames` lo pinean de los
-dos lados. Ademas regenera `ui_chest_closed` (@2x/@3x) desde el primer frame,
-calzado a la ocupacion del PNG viejo para que Regalos y el premio diario no
-cambien de tamano percibido.
+Pedido del dueno (2026-08-28, segunda ronda): la apertura es EL VIDEO ENTERO —
+sin rayos, particulas ni carta de la casa — y el contenido del premio se
+renderiza al final dentro del marco vacio de la carta del video.
 
-Necesita `ffmpeg` en el PATH (herramienta local, no viaja al repo). Es
-re-ejecutable: pisa lo generado y el resultado es identico para el mismo video.
+Produce tres familias de assets en `Resources/ChestAnim/`:
+
+1. **Frames PNG interactivos** (idle + dos sacudidas, f0-f47): los latidos que
+   responden al dedo piden swap de frame INMEDIATO, sin preroll — van como
+   secuencia cuantizada que `ChestAnimationFeed` reproduce frame-perfect.
+2. **`chest_open.mov`** (f48-f239, HEVC con canal alfa por VideoToolbox): el
+   tramo del estallido a la carta es LINEAL — 8 s de corrido — y en video por
+   hardware pesa 3 MB contra ~12 MB en PNGs, a 24 fps garantizados. q:v 50 es
+   indistinguible del original en A/B (verificado sobre el frame de espirales).
+3. **`chest_card_still.png`** (f239): el estado final — la carta con el marco
+   vacio — para Reduce Motion y de fallback.
+
+`chest_anim.json` (schemaVersion 2) es EL contrato con el runtime
+(`ChestAnimation.swift`); lo pinean `ChestAnimationTests` y
+`test_chest_video_frames` de los dos lados. Ademas regenera `ui_chest_closed`
+(@2x/@3x) desde el primer frame para la tarjeta de Regalos y el premio diario.
+
+Necesita `ffmpeg` (con hevc_videotoolbox) en el PATH. Re-ejecutable: pisa lo
+generado y el resultado es identico para el mismo video.
 
 ⚠️ El color del key esta medido EN EL STREAM con la matriz limited-range
 (0x0BB427). El hex calculado con la matriz full-range (0x189D30) parece el
@@ -41,36 +53,43 @@ UI_ATLAS = RESOURCES / "ui.atlas"
 KEY_COLOR = "0x0BB427"
 KEY_SIMILARITY = 0.11
 KEY_BLEND = 0.04
+KEY_FILTER = (
+    f"chromakey={KEY_COLOR}:{KEY_SIMILARITY}:{KEY_BLEND},despill=type=green"
+)
 FPS = 24
 CANVAS = (1280, 720)
 # Donde vive el cofre en reposo dentro del lienzo: no se mueve del piso en
-# todo el video, asi que TODOS los segmentos comparten esta ancla.
+# todo el video, asi que PNGs y video comparten esta unica ancla.
 CHEST_RECT = {"x": 431, "y": 257, "w": 407, "h": 363}
+# El interior pergamino de la carta en el ultimo frame (f239), medido por
+# componente conexa: donde el juego renderiza el contenido del premio.
+PARCHMENT_RECT = {"x": 489, "y": 143, "w": 302, "h": 424}
 
-# El ultimo frame que se extrae: en f83 la carta generica del video empieza a
-# asomar del cofre, y esa carta no se usa (la del premio es la PanelCard de la
-# casa). Todo lo que el juego necesita vive antes.
-LAST_FRAME = 82
-
-# (x, y, w, h) en coordenadas del lienzo + escala de entrega. El escenario de
-# las sacudidas va a escala nativa (el cofre queda a ~407 px para 210 pt de
-# dibujo); el estallido entrega a 0,8: durante la explosion el ojo esta en el
-# caos y el frame final congelado se achica enseguida, y el peso baja ~1,5 MB.
-# La sacudida B tira los chorros de polvo mas lejos que la A (medido: con el
-# crop del stage cortaba 1,37 % de su masa de alfa) y por eso lleva crop propio.
+# (x, y, w, h) en coordenadas del lienzo + escala de entrega de los PNG.
+# La sacudida B tira los chorros de polvo mas lejos que la A (medido: el
+# escenario comun le cortaba 1,37 % de su masa de alfa) y lleva crop propio.
 STAGE_CROP = (200, 100, 860, 560)
 SHAKE_B_CROP = (60, 40, 1160, 620)
-BURST_CROP = (0, 0, 1280, 656)
+FULL_CROP = (0, 0, 1280, 720)
 SEGMENTS = {
     "idle": {"first": 0, "last": 0, "crop": STAGE_CROP, "scale": 1.0},
     "shakeA": {"first": 7, "last": 26, "crop": STAGE_CROP, "scale": 1.0},
     "shakeB": {"first": 33, "last": 47, "crop": SHAKE_B_CROP, "scale": 1.0},
-    "burst": {"first": 49, "last": 82, "crop": BURST_CROP, "scale": 0.8},
 }
 
+# El tramo cinematico: del candado cerrandose al marco vacio asentado.
+CINEMATIC_FIRST = 48
+CINEMATIC_LAST = 239
+CINEMATIC_FILE = "chest_open.mov"
+# VideoToolbox: q:v 50 dio 3,1 MB indistinguible del original en A/B.
+HEVC_QUALITY = "50"
+HEVC_ALPHA_QUALITY = "0.6"
+
+CARD_STILL_FILE = "chest_card_still.png"
+CARD_STILL_SCALE = 0.8
+
 # Si un crop deja afuera mas que esto de la masa de alfa de su segmento, el
-# recorte esta cortando algo que se ve (el umbral cubre las puntas de los
-# rosarios de gotitas de polvo, que son pixeles sueltos).
+# recorte esta cortando algo que se ve.
 MAX_CUT_MASS = 0.007
 
 QUANT_COLORS = 256
@@ -84,17 +103,41 @@ ALPHA_THRESHOLD = 24
 
 
 def extract_keyed_frames(video: Path, out_dir: Path) -> None:
-    """Un solo pase de ffmpeg: key + despill, RGBA a PNG por frame."""
+    """Los frames RGBA de los tramos interactivos + el ultimo (para el still)."""
+    last_png = SEGMENTS["shakeB"]["last"]
     vf = (
-        f"select='between(n,0,{LAST_FRAME})',"
-        f"chromakey={KEY_COLOR}:{KEY_SIMILARITY}:{KEY_BLEND},"
-        "despill=type=green"
+        f"select='between(n,0,{last_png})+eq(n,{CINEMATIC_LAST})',"
+        f"{KEY_FILTER}"
     )
     subprocess.run(
         [
             "ffmpeg", "-v", "error", "-i", str(video),
             "-vf", vf, "-vsync", "0", "-start_number", "0",
-            str(out_dir / "f%03d.png"),
+            str(out_dir / "k%03d.png"),
+        ],
+        check=True,
+    )
+    # El select entrega en orden: el ultimo archivo emitido es f239.
+    emitted = sorted(out_dir.glob("k*.png"))
+    emitted[-1].rename(out_dir / f"k{CINEMATIC_LAST:03d}.png")
+
+
+def encode_cinematic(video: Path) -> None:
+    """f48-f239 como HEVC con alfa (hvc1), listo para AVPlayer."""
+    vf = (
+        f"select='between(n,{CINEMATIC_FIRST},{CINEMATIC_LAST})',"
+        f"setpts=PTS-STARTPTS,{KEY_FILTER},format=bgra"
+    )
+    subprocess.run(
+        [
+            "ffmpeg", "-v", "error", "-i", str(video),
+            "-vf", vf,
+            "-c:v", "hevc_videotoolbox",
+            "-alpha_quality", HEVC_ALPHA_QUALITY,
+            "-q:v", HEVC_QUALITY,
+            "-tag:v", "hvc1",
+            "-vsync", "0", "-an",
+            "-y", str(CHEST_ANIM / CINEMATIC_FILE),
         ],
         check=True,
     )
@@ -121,29 +164,31 @@ def quantized(img: Image.Image) -> Image.Image:
     return img.quantize(colors=QUANT_COLORS, method=Image.Quantize.FASTOCTREE)
 
 
+def render_frame(
+    keyed_path: Path, crop: tuple[int, int, int, int], scale: float
+) -> Image.Image:
+    x, y, w, h = crop
+    rgba = np.asarray(Image.open(keyed_path).convert("RGBA"), dtype=np.uint8)
+    img = Image.fromarray(clean_transparent_rgb(rgba)).crop((x, y, x + w, y + h))
+    if scale != 1.0:
+        img = img.resize((round(w * scale), round(h * scale)), Image.LANCZOS)
+    return img
+
+
 def emit_segment_frames(keyed_dir: Path) -> list[str]:
-    """Corta, escala y cuantiza cada frame de cada segmento. Devuelve avisos."""
+    """Corta, escala y cuantiza cada frame interactivo. Devuelve avisos."""
     warnings: list[str] = []
     for name, seg in SEGMENTS.items():
-        x, y, w, h = seg["crop"]
-        scale = seg["scale"]
-        out_size = (round(w * scale), round(h * scale))
         mass_out = 0.0
         mass_total = 0.0
         for n in range(seg["first"], seg["last"] + 1):
-            rgba = np.asarray(
-                Image.open(keyed_dir / f"f{n:03d}.png").convert("RGBA"),
-                dtype=np.uint8,
+            keyed = keyed_dir / f"k{n:03d}.png"
+            alpha = np.asarray(
+                Image.open(keyed).getchannel("A"), dtype=np.float64
             )
-            alpha = rgba[..., 3].astype(np.float64)
             mass_total += float(alpha.sum())
             mass_out += float(alpha.sum()) * cut_mass_fraction(alpha, seg["crop"])
-            img = Image.fromarray(clean_transparent_rgb(rgba)).crop(
-                (x, y, x + w, y + h)
-            )
-            if scale != 1.0:
-                img = img.resize(out_size, Image.LANCZOS)
-            quantized(img).save(
+            quantized(render_frame(keyed, seg["crop"], seg["scale"])).save(
                 CHEST_ANIM / f"chest_f{n:03d}.png", optimize=True
             )
         fraction = mass_out / mass_total if mass_total else 0.0
@@ -155,25 +200,43 @@ def emit_segment_frames(keyed_dir: Path) -> list[str]:
     return warnings
 
 
+def emit_card_still(keyed_dir: Path) -> None:
+    quantized(
+        render_frame(
+            keyed_dir / f"k{CINEMATIC_LAST:03d}.png", FULL_CROP, CARD_STILL_SCALE
+        )
+    ).save(CHEST_ANIM / CARD_STILL_FILE, optimize=True)
+
+
 def build_manifest() -> dict:
+    def rect(crop):
+        return {"x": crop[0], "y": crop[1], "w": crop[2], "h": crop[3]}
+
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "fps": FPS,
         "canvas": {"w": CANVAS[0], "h": CANVAS[1]},
         "chestRect": CHEST_RECT,
+        "parchmentRect": PARCHMENT_RECT,
         "segments": {
             name: {
                 "first": seg["first"],
                 "last": seg["last"],
-                "crop": {
-                    "x": seg["crop"][0],
-                    "y": seg["crop"][1],
-                    "w": seg["crop"][2],
-                    "h": seg["crop"][3],
-                },
+                "crop": rect(seg["crop"]),
                 "scale": seg["scale"],
             }
             for name, seg in SEGMENTS.items()
+        },
+        "cinematic": {
+            "file": CINEMATIC_FILE,
+            "first": CINEMATIC_FIRST,
+            "last": CINEMATIC_LAST,
+            "crop": rect(FULL_CROP),
+        },
+        "cardStill": {
+            "file": CARD_STILL_FILE,
+            "crop": rect(FULL_CROP),
+            "scale": CARD_STILL_SCALE,
         },
     }
 
@@ -186,7 +249,7 @@ def static_canvas_side(bbox_w: int, occupancy: float = STATIC_OCCUPANCY) -> int:
 def emit_static_chest(keyed_dir: Path) -> None:
     """`ui_chest_closed` nuevo desde el primer frame, a la ocupacion del viejo."""
     rgba = np.asarray(
-        Image.open(keyed_dir / "f000.png").convert("RGBA"), dtype=np.uint8
+        Image.open(keyed_dir / "k000.png").convert("RGBA"), dtype=np.uint8
     )
     alpha = rgba[..., 3]
     ys, xs = np.where(alpha >= ALPHA_THRESHOLD)
@@ -224,14 +287,21 @@ def main() -> int:
         keyed_dir = Path(tmp)
         extract_keyed_frames(args.video, keyed_dir)
         warnings = emit_segment_frames(keyed_dir)
+        emit_card_still(keyed_dir)
         emit_static_chest(keyed_dir)
+    encode_cinematic(args.video)
 
     write_json(CHEST_ANIM / "chest_anim.json", build_manifest())
 
     frames = sorted(CHEST_ANIM.glob("chest_f*.png"))
     total_kb = sum(f.stat().st_size for f in frames) // 1024
-    print(f"[OK] {len(frames)} frames en {CHEST_ANIM.relative_to(RESOURCES.parent)}"
-          f" ({total_kb} KB) + chest_anim.json + ui_chest_closed @2x/@3x")
+    mov_kb = (CHEST_ANIM / CINEMATIC_FILE).stat().st_size // 1024
+    still_kb = (CHEST_ANIM / CARD_STILL_FILE).stat().st_size // 1024
+    print(
+        f"[OK] {len(frames)} frames ({total_kb} KB) + {CINEMATIC_FILE} "
+        f"({mov_kb} KB) + {CARD_STILL_FILE} ({still_kb} KB) + chest_anim.json "
+        f"+ ui_chest_closed @2x/@3x"
+    )
     for warning in warnings:
         print(warning)
     return 0

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "fps": 24,
   "canvas": {
     "w": 1280,
@@ -10,6 +10,12 @@
     "y": 257,
     "w": 407,
     "h": 363
+  },
+  "parchmentRect": {
+    "x": 489,
+    "y": 143,
+    "w": 302,
+    "h": 424
   },
   "segments": {
     "idle": {
@@ -44,17 +50,27 @@
         "h": 620
       },
       "scale": 1.0
-    },
-    "burst": {
-      "first": 49,
-      "last": 82,
-      "crop": {
-        "x": 0,
-        "y": 0,
-        "w": 1280,
-        "h": 656
-      },
-      "scale": 0.8
     }
+  },
+  "cinematic": {
+    "file": "chest_open.mov",
+    "first": 48,
+    "last": 239,
+    "crop": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720
+    }
+  },
+  "cardStill": {
+    "file": "chest_card_still.png",
+    "crop": {
+      "x": 0,
+      "y": 0,
+      "w": 1280,
+      "h": 720
+    },
+    "scale": 0.8
   }
 }

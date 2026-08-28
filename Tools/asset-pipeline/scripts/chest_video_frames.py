@@ -105,6 +105,16 @@ SEGMENTS = {
 # fundiendose al verde en ~f100-f118 y el flip de la carta va ~f192-f200.
 CINEMATIC_FIRST = 50
 CINEMATIC_LAST = 239
+# Perilla de interpolacion (minterpolate MCI sobre el VERDE, antes del
+# keying — el alfa no sobrevive al filtro y el fondo estatico ayuda a la
+# estimacion). MEDIDO el 2026-08-28: a 48 el resultado es visualmente limpio
+# (sin fantasmas en confetti ni giro) pero el SIMULADOR lo decodifica peor
+# que a 24 — el software-VideoToolbox no sostiene HEVC-alfa a 48 y el tramo
+# del giro colapsa a ~5 fps efectivos (grabado y contado), contra los 24
+# clavados del mov sin interpolar. Queda en 24 mientras el juego se mire en
+# el sim; con device de verdad (F6), subirlo a 48 es cambiar esta constante
+# y re-correr. A 24 el minterpolate se saltea entero.
+CINEMATIC_OUTPUT_FPS = 24
 
 # Las sacudidas llevan su sonido como clip suelto (el timing lo pone el DEDO):
 # la ventana de audio es exactamente la de sus frames, con fade de 10 ms en
@@ -191,9 +201,17 @@ def encode_cinematic(video: Path, workdir: Path) -> None:
     # El sonido del tramo viaja DENTRO del mov, recortado al mismo arranque
     # que el video: AVPlayer lo reproduce solo y el volumen lo pone el juego.
     audio_start = CINEMATIC_FIRST / FPS
+    interpolation = (
+        f"minterpolate=fps={CINEMATIC_OUTPUT_FPS}:mi_mode=mci:mc_mode=aobmc:"
+        f"me_mode=bidir:vsbmc=1,"
+        if CINEMATIC_OUTPUT_FPS != FPS
+        else ""
+    )
     filter_complex = (
         f"[0:v]select='between(n,{CINEMATIC_FIRST},{CINEMATIC_LAST})',"
-        f"setpts=PTS-STARTPTS,{KEY_FILTER},format=rgba,split[keyed][forAlpha];"
+        f"setpts=PTS-STARTPTS,"
+        f"{interpolation}"
+        f"{KEY_FILTER},format=rgba,split[keyed][forAlpha];"
         "[forAlpha]alphaextract[alpha];"
         "[alpha][1:v]blend=all_mode=multiply:shortest=1[fadedalpha];"
         "[keyed][fadedalpha]alphamerge,format=gbrap,premultiply=inplace=1,"

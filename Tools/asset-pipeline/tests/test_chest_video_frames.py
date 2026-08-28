@@ -29,6 +29,7 @@ from chest_video_frames import (  # noqa: E402
     CINEMATIC_FILE,
     CINEMATIC_FIRST,
     CINEMATIC_LAST,
+    CINEMATIC_OUTPUT_FPS,
     PARCHMENT_RECT,
     SEGMENTS,
     SHAKE_SFX,
@@ -152,8 +153,17 @@ class LoIntegrado(unittest.TestCase):
         video = probe["streams"][0]
         self.assertEqual(video["codec_name"], "hevc")
         self.assertEqual(video["codec_tag_string"], "hvc1")
-        self.assertEqual(int(video["nb_frames"]),
-                         CINEMATIC_LAST - CINEMATIC_FIRST + 1)
+        # El mov viaja interpolado (minterpolate al doble): misma duracion,
+        # ~el doble de frames que el tramo del master. El "~" es del filtro:
+        # no extrapola despues del ultimo frame fuente y recorta 2-4 en la
+        # cola (medido: 377 de 380 teoricos) — la banda corta cubre eso sin
+        # dejar pasar un mov sin interpolar (que daria 190).
+        doubled = (CINEMATIC_LAST - CINEMATIC_FIRST + 1) \
+            * CINEMATIC_OUTPUT_FPS // 24
+        self.assertTrue(
+            doubled - 4 <= int(video["nb_frames"]) <= doubled,
+            f"nb_frames={video['nb_frames']}, esperaba ~{doubled}",
+        )
         # La pista de sonido del tramo viaja adentro del mov: sin ella el
         # cinematico corre mudo y nadie lo nota hasta el playtest.
         self.assertEqual(len(probe["streams"]), 2)

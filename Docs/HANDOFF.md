@@ -53,13 +53,14 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-28** (la apertura de
-> cofres es EL VIDEO del animador — HEVC con alfa, el primer AVFoundation del
-> repo — con el premio renderizado en el marco vacío del final; sesión en §4.
-> ⚠️ Ese día `StoreManagerTests` en 18.6 falló por ENTORNO, no por el árbol —
-> el aviso está en §6. Y sigue vigente lo del 25-08: los sims de verificación
-> van con runtime **iOS 26.5**; una app compilada con el SDK 26 sobre un sim
-> 18.6 se ve rota).
+> **Empezá por acá.** Última actualización: **2026-08-28 (bis)** (el master
+> del cofre se REEMPLAZÓ por un sprite puro en el que el cofre se desvanece
+> solo, y cayó el bug de compositing que el primero disfrazaba: el mov va
+> **premultiplicado** o `AVPlayerLayer` suma el fondo keyeado como un velo —
+> sesión en §4, trampa al tope de §7. ⚠️ Ese día `StoreManagerTests` en 18.6
+> falló por ENTORNO, no por el árbol — el aviso está en §6. Y sigue vigente
+> lo del 25-08: los sims de verificación van con runtime **iOS 26.5**; una
+> app compilada con el SDK 26 sobre un sim 18.6 se ve rota).
 
 ---
 
@@ -236,6 +237,31 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-28 (bis) — El velo del encuadre, y el master que se desvanece
+
+El dueño reemplazó el master («la animación todavía no se ve correctamente…
+el cofre se abre y desaparece de forma seamless»): **verde plano sin viñeta
+ni piso horneados, el cofre estalla, suelta la carta y se desvanece solo**
+(~f114–126) — la desaparición es del arte, no de un fade nuestro. Misma
+arquitectura de la sesión de la mañana, recalibrada entera (croma
+**0x10A12A**, segmentos A [4,30] / B [31,47], crops por percentil de masa ∪
+bbox del cofre frame a frame, `parchmentRect` por beige MACIZO — el bbox de
+claros se estira con los biseles del borde). Y cayó el bug que la v1 tenía
+disfrazado: **el mov ahora va PREMULTIPLICADO**, porque `AVPlayerLayer`
+composita el HEVC-alfa como premultiplicado y el RGB intacto del `chromakey`
+(el verde despillado, L≈26) se SUMABA al juego como un velo claro cortado en
+el encuadre — +20..27 de luminancia medidos restando capturas, desde el
+frame 48 (el primer frame del mov). La "viñeta horneada que se cortaba" de
+la v1 era ESTE bug con fondo oscuro; el feather queda (desvanece el confetti
+del borde) y el scrim pasa a ser el foco de la casa. En el runtime, lo único
+nuevo: el PNG de respaldo **se jubila a los 0,6 s de video** (`stageRetired`)
+— con el cofre desvaneciéndose, el frame quieto de atrás lo resucitaría.
+`ui_chest_closed` regenerado del f0 nuevo (violeta+dorado) por componente
+conexa (los destellos ambiente inflaban el bbox global). Detalle y tabla de
+recalibración en **`Docs/SESION-2026-08-28-cofre-video-v2.md`**. Números:
+pipeline **12** · unit **458 con el único rojo declarado** · cofre unit
+**11/11** y UI **3/3 sobre el build final** · velo re-medido: **muerto**.
 
 ### Sesión del 2026-08-28 — El cofre animado por video
 
@@ -1369,6 +1395,24 @@ El panel de debug es el ícono de herramientas del HUD.
 ## 7. Trampas en las que ya caímos
 
 
+### Del video del cofre (2026-08-28 bis)
+
+**⚠️ `AVPlayerLayer` composita el HEVC-alfa como PREMULTIPLICADO, y `chromakey`
+no toca el RGB.** La ecuación del compositor es `out = rgb + fondo×(1−α)`: todo
+pixel con α=0 cuyo RGB no sea (0,0,0) le SUMA su color al juego. Un mov keyeado
+con ffmpeg conserva en las zonas transparentes el verde pasado por `despill`
+(≈L 26) → un velo claro sobre todo el encuadre, cortado seco en el borde del
+video, **desde el primer frame del mov** (los PNG de SwiftUI van con alfa
+straight y por eso los toques se veían bien). Fix de una línea en el encode:
+`alphamerge,format=gbrap,premultiply=inplace=1,format=bgra` — después del
+alphamerge para multiplicar por el alfa ya emplumado, y en `gbrap` porque
+`premultiply` no toma rgba empaquetado. **Cómo se detecta**: restar una captura
+con video contra una sin video y perfilar por filas — un ESCALÓN en el borde
+del encuadre es este bug; el scrim radial legítimo es suave. Y la relectura
+que dolió: la "viñeta horneada que se cortaba en el borde" del master viejo
+era ESTE MISMO bug con fondo oscuro — el feather y el scrim de continuación
+de esa ronda fueron parches al síntoma, no a la causa.
+
 ### Del cierre de los cofres (2026-08-27)
 
 **⚠️ `swift test --filter` con el nombre VISIBLE de una suite corre CERO tests y devuelve
@@ -2403,9 +2447,13 @@ Anotado por si algún día importa, con su medición:
 
 ## 9. Mapa de documentos
 
+- `Docs/SESION-2026-08-28-cofre-video-v2.md` — el master REEMPLAZADO (el cofre se
+  desvanece solo), la recalibración completa, y el bug del velo: el mov premultiplicado
+  porque `AVPlayerLayer` suma el RGB de las zonas con α=0.
 - `Docs/SESION-2026-08-28-cofre-animado.md` — la apertura de cofres es el video del
   animador (HEVC con alfa + frames interactivos); el keying limited-range, el pipeline
-  `chest_video_frames.py`, el contrato `chest_anim.json` y el premio en el marco.
+  `chest_video_frames.py`, el contrato `chest_anim.json` y el premio en el marco
+  (⚠️ su master y sus números de calibración quedaron viejos el mismo día: ver la v2).
 - `Docs/superpowers/specs/2026-08-28-cofre-animado-por-video-design.md` — el diseño, con
   la ENMIENDA del dueño en §8 (solo el video, entero) que invalida parte de §2.
 - `Docs/superpowers/specs/2026-08-26-cofres-de-skins-design.md` — el diseño de los cofres:

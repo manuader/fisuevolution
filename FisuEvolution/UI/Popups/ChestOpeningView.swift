@@ -37,11 +37,14 @@ enum ChestRarityStyle {
 /// Pedido del dueño (2026-08-28, segunda ronda): la animación ES el video —
 /// murieron los rayos, las ráfagas, el flash y la carta de la casa que
 /// acompañaban a los frames — y el contenido del premio se renderiza al final
-/// **dentro del marco vacío de la carta del video**. Lo que quedó de la
-/// coreografía propia: los tres toques que fuerzan el candado (cada uno
-/// dispara su sacudida real, con auto-avance de 1,2 s para el que no toca),
-/// los hápticos, y un push-in suave de cámara mientras la carta sube — que es
-/// transformación, no arte.
+/// **dentro del marco vacío de la carta del video**. Tercera ronda, mismo
+/// día: el master nuevo es un sprite puro (verde plano, sin viñeta ni piso
+/// horneados) en el que **el cofre se desvanece solo** después de soltar la
+/// carta — la desaparición seamless que pidió el dueño es del arte, no de un
+/// fade nuestro. Lo que quedó de la coreografía propia: los tres toques que
+/// fuerzan el candado (cada uno dispara su sacudida real, con auto-avance de
+/// 1,2 s para el que no toca), los hápticos, y un push-in suave de cámara
+/// mientras la carta sube — que es transformación, no arte.
 ///
 /// El reparto de formatos es medido, no estético: los latidos que responden
 /// al dedo reproducen frames PNG (`ChestAnimationFeed`, swap en el mismo
@@ -75,6 +78,12 @@ struct ChestOpeningView: View {
     @State private var cinematicZoom: CGFloat = 1
     /// El contenido del premio dentro del marco, con su fade del reposo.
     @State private var contentRevealed = false
+    /// Los frames PNG de respaldo, retirados. En este video **el cofre se
+    /// desvanece a mitad del tramo cinemático** (~f114): el PNG quieto que
+    /// tapa el arranque del decoder tiene que salir de escena apenas el video
+    /// rinde, o el cofre "desaparecido" seguiría asomando por detrás. Lo mismo
+    /// con el still de Reduce Motion, que ya no trae cofre.
+    @State private var stageRetired = false
     /// Los frames interactivos (idle y sacudidas) y su playhead.
     @State private var feed = ChestAnimationFeed(animation: ChestAnimation.shared)
     /// El tramo cinemático. Nace en la llegada (preroll con latidos de
@@ -112,8 +121,13 @@ struct ChestOpeningView: View {
     private static let controlsY: CGFloat = 212
     /// El push-in final: deja el pergamino del marco en ~200 pt de ancho.
     private static let zoomFinal: CGFloat = 1.3
-    /// El flip de la carta ocurre en el frame 197 del video (f48 + 149/24 s):
-    /// su háptico se dispara por reloj, no por observer del player.
+    /// Cuánto video corrido hace falta para jubilar el PNG de respaldo: a los
+    /// 0,6 s el decoder lleva ~14 frames rendidos y el cofre del video sigue
+    /// opaco por 2 s más — hay margen de sobra en las dos puntas.
+    private static let stageHandoffSeconds = 0.6
+    /// El flip de la carta arranca en ~f198 del video (6,25 s del tramo): su
+    /// háptico se dispara por reloj —apenas antes del giro—, no por observer
+    /// del player.
     private static let flipSecondsIntoCinematic = 6.2
     /// El video dura 8,0 s; el tope del await es el seguro contra un decoder
     /// trabado, porque este latido no lo avanza nadie más.
@@ -133,13 +147,11 @@ struct ChestOpeningView: View {
             Color.black.opacity(0.55)
                 .ignoresSafeArea()
 
-            // El video hornea una viñeta oscura alrededor del cofre y la
-            // carta, y en el borde del encuadre se corta seca: el rectángulo
-            // de 1280×720 se delataba (visto en el primer smoke). Este scrim
-            // la CONTINÚA hacia afuera — transparente donde el video tiene su
-            // foco, y del nivel de la viñeta hacia los bordes de pantalla —
-            // así el encuadre no tiene costura. Aparece con el video y se
-            // queda: la viñeta del último frame sigue en pantalla.
+            // El foco de la casa: oscurece el callejón hacia los bordes
+            // mientras corre el espectáculo. El video vigente es un sprite
+            // puro (verde plano, sin viñeta horneada), así que este scrim ya
+            // no continúa nada — es la única viñeta, toda nuestra, y por eso
+            // no puede tener costura. Aparece con el video y se queda.
             RadialGradient(
                 colors: [.clear, .black.opacity(0.32)],
                 center: .center,
@@ -209,10 +221,14 @@ struct ChestOpeningView: View {
         if let animation = feed.animation {
             let stage = animation.cinematicStage(chestWidth: Self.chestSide)
             ZStack {
-                // Los frames del dedo. Quedan montados debajo del video: el
+                // Los frames del dedo. Quedan montados debajo del video —el
                 // primer cuadro del cinemático es el mismo cofre quieto, y el
-                // PNG de atrás tapa cualquier hueco del arranque del decoder.
-                ChestStage(feed: feed, chestWidth: Self.chestSide)
+                // PNG de atrás tapa cualquier hueco del arranque del decoder—
+                // pero SOLO hasta que el video rinde: el cofre del video se
+                // desvanece a mitad del tramo, y el PNG quieto lo resucitaría.
+                if !stageRetired {
+                    ChestStage(feed: feed, chestWidth: Self.chestSide)
+                }
 
                 if beat >= .cinematic {
                     if let cinematic {
@@ -265,12 +281,12 @@ struct ChestOpeningView: View {
         let animation = feed.animation
         let parch = animation?.parchmentStage(chestWidth: Self.chestSide)
         let size = CGSize(
-            width: (parch?.size.width ?? 156) * Self.zoomFinal,
-            height: (parch?.size.height ?? 219) * Self.zoomFinal
+            width: (parch?.size.width ?? 155) * Self.zoomFinal,
+            height: (parch?.size.height ?? 215) * Self.zoomFinal
         )
         let offset = CGSize(
             width: parch?.offset.width ?? 0,
-            height: (parch?.offset.height ?? -70) + Self.chestY
+            height: (parch?.offset.height ?? -65) + Self.chestY
         )
         return VStack(spacing: Tokens.s8) {
             prizeArt
@@ -495,8 +511,13 @@ struct ChestOpeningView: View {
             withAnimation(.easeInOut(duration: 3.2 / Double(rate)).delay(1.4 / Double(rate))) {
                 cinematicZoom = Self.zoomFinal
             }
+            // El PNG de respaldo se jubila con el video ya rindiendo, mucho
+            // antes de que el cofre del video empiece a desvanecerse.
+            guard await pause(Self.stageHandoffSeconds / Double(rate)) else { return }
+            stageRetired = true
             // El flip de la carta en el video: su háptico, por reloj.
-            if await pause(Self.flipSecondsIntoCinematic / Double(rate)) {
+            let untilFlip = Self.flipSecondsIntoCinematic - Self.stageHandoffSeconds
+            if await pause(untilFlip / Double(rate)) {
                 play(.rarity)
             } else {
                 return
@@ -506,6 +527,10 @@ struct ChestOpeningView: View {
             advance()
             return
         case .resting:
+            // Idempotente en el camino del video (ya se jubiló durante el
+            // cinemático); imprescindible en los caminos sin video, donde el
+            // still que entra ya no trae cofre.
+            stageRetired = true
             if reduceMotion || cinematic == nil {
                 await showFinalStill()
                 cinematicZoom = Self.zoomFinal

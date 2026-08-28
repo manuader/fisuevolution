@@ -126,7 +126,15 @@ struct GameContentValidationTests {
         // ni llega a Dios. Con 1,06 la compra 144 cuesta 4,9 s y la partida
         // entera se puede jugar. (1,2^256 = 1,86e20 contra 1,06^256 = 3,0e6, si
         // se quiere el orden de magnitud del compounding.)
-        // ⚠️ Toca la regla de precios del dueño (2026-08-04): confirmar.
+        //
+        // ⚠️ **El 6% se queda acá y el muro del arranque se arregló en el piso**
+        // (quinta ronda, 2026-08-28). Bajarlo GLOBAL es lo primero que se probó
+        // y lo que peor midió: 1,04 deja maxear las siete en 15,34 h y 1,03 en
+        // 15,96 h —fuera de la banda de 20-30 que pidió el dueño— y sobre todo
+        // desarma la pared, que pasa de seis runs trabadas a cuatro y a dos.
+        // Este factor es una de las dos patas de la desaceleración; el arranque
+        // se arregla donde el arranque vive (ver `hireCostGrowthOverride` del
+        // callejón en `floorHireOverridesMatchTunedValues`).
         #expect(economy.hire.defaultCostGrowth == 1.06)
         // La pendiente del precio por tier (cuarta ronda de balance): **1,5, y
         // lo que importa es que esté por DEBAJO de 2**, que es el factor de
@@ -313,10 +321,12 @@ struct GameContentValidationTests {
     }
 
     @Test func floorHireOverridesMatchTunedValues() {
-        // La regla de precios es ÚNICA para toda la torre, así que el único
-        // override legítimo es el del alley: baja el multiplicador a 25 para
-        // anclar el primer Fisura en 25 monedas (era 50; el dueño lo bajó a la
-        // mitad para acortar el tutorial). Cualquier otro override
+        // La regla de precios es ÚNICA para toda la torre, así que los únicos
+        // overrides legítimos son los DOS del alley, y los dos existen por el
+        // mismo motivo —el arranque es el único tramo con un solo personaje
+        // comprable—: el multiplicador a 25 ancla el primer Fisura en 25 monedas
+        // (era 50; el dueño lo bajó a la mitad para acortar el tutorial) y el
+        // growth a 1,03 le saca el muro a la cuesta. Cualquier otro override
         // rompería la regla y es drift, no tuning.
         for floor in content.floorTable.floors {
             if floor.id == "alley" {
@@ -324,7 +334,27 @@ struct GameContentValidationTests {
             } else {
                 #expect(floor.hireCostMultiplierOverride == nil, "override de hire inesperado en \(floor.id)")
             }
-            #expect(floor.hireCostGrowthOverride == nil, "el 6% por compra es global: \(floor.id) no debe overridearlo")
+            if floor.id == "alley" {
+                // **3% en vez del 6% global, y es el arreglo del muro del arranque**
+                // (quinta ronda, 2026-08-28). Hasta que tu frontera llega a
+                // `gateTierDistance + 1` el Fisura es lo ÚNICO contratable, así que
+                // la cuesta entera se paga con UNA curva cuyo contador se duplica
+                // con cada tier: con el 6% el paso T7→T8 salía ×32 el anterior
+                // —5 h y media de tapeo contra 14 minutos los seis juntos— y el
+                // dueño se trabó ahí. Con el 3% queda en ×6,1
+                // (`thePreGateClimbHasNoWallInIt` lo pinea).
+                //
+                // Vive en el PISO y no en `hire.defaultCostGrowth` porque el
+                // global es una de las dos patas de la desaceleración: bajarlo
+                // arregla el arranque y desarma la pared (medido: de seis runs
+                // trabadas a dos). Acá el efecto queda medido y acotado —dios
+                // 28,43 → 30,73 h activas, las siete al tope 20,67 → 20,33 h, la
+                // pared intacta en seis runs—, porque el callejón deja de ser el
+                // camino barato en el tier 22 y de ahí en más nadie lo compra.
+                #expect(floor.hireCostGrowthOverride == 1.03)
+            } else {
+                #expect(floor.hireCostGrowthOverride == nil, "growth overrideado en \(floor.id)")
+            }
             // v2 no overridea unlockTier: todo piso se desbloquea con su firstTier.
             #expect(floor.unlockTierOverride == nil, "unlockTier inesperado en \(floor.id)")
             // El encuadre del fondo nunca puede pasar el sobrante del aspect-fill
@@ -372,11 +402,12 @@ struct GameContentValidationTests {
         let alley = content.floorTable[0]
         // El primer Fisura sigue costando 25 (decisión cerrada del dueño). Su
         // frontera al empezar la partida es T1 —el Fisura con el que arrancás—,
-        // así que el ancla nueva no lo mueve. El segundo pasa de 30 a 26,5
-        // porque el 20% por compra bajó a 6% — 25 × 1,06.
+        // así que el ancla nueva no lo mueve. El SEGUNDO sigue al knob por
+        // compra del CALLEJÓN: 30 con el 20% global, 26,5 con el 6% global y
+        // **25,75 con el 3% del piso** (quinta ronda).
         #expect(content.economy.hireCost(floor: alley, tier: 1, frontierTier: 1, purchases: 0) == 25)
         let segundo = content.economy.hireCost(floor: alley, tier: 1, frontierTier: 1, purchases: 1)
-        #expect(abs(segundo - 26.5) < 1e-9)
+        #expect(abs(segundo - 25.75) < 1e-9)
 
         // 1. Contratar A TU FRONTERA cuesta el multiplicador del piso, en clicks.
         for ordinal in 0..<content.floorTable.count {
@@ -428,6 +459,67 @@ struct GameContentValidationTests {
                 == content.economy.hireCostMultiplier(for: deArriba) else { continue }
             let masCaro = unidadDeFrontera(tier) / unidadDeFrontera(tier + 1)
             #expect(abs(masCaro - 2 / 1.5) < 1e-9, "T\(tier) → T\(tier + 1): ×\(masCaro)")
+        }
+    }
+
+    /// **La cuesta pre-compuerta no puede tener un muro adentro.**
+    ///
+    /// Hasta que tu frontera llega a `gateTierDistance + 1` el Fisura es lo
+    /// ÚNICO contratable: la compuerta no habilita un segundo tipo antes, y el
+    /// tier base es su única exención. O sea que el arranque entero se paga con
+    /// UNA curva, y el exponente de esa curva es el contador de compras de ese
+    /// tipo — que **se duplica con cada tier**, porque subir uno pide `2^(f−1)`
+    /// Fisuras. `growth^(2^k)` es una doble exponencial: no se nota abajo y
+    /// arriba se lleva puesto el juego.
+    ///
+    /// Medido con el 6 % que se embarcó hasta el 2026-08-28, en clicks de tu
+    /// propia frontera (la unidad que ya usa `hirePricesFollowTheOwnersRule`,
+    /// y la única comparable entre tiers porque el ingreso también sube):
+    ///
+    ///     26 · 39 · 61 · 117 · 322 · 1.931 · 61.921
+    ///     ×1,5 · ×1,6 · ×1,9 · ×2,8 · ×6,0 · ×32,1
+    ///
+    /// Los primeros seis tiers son 2.500 clicks entre todos y el séptimo son
+    /// 62.000 él solo: **a 3 taps/s eso es pasar de 14 minutos a 5 horas y
+    /// media, en un paso**. Eso no es una curva de dificultad, es un muro — y
+    /// cae justo en el tier 8, que es donde el dueño se trabó.
+    ///
+    /// El tope es ×8 y no ×32: deja pasar el 3 % embarcado (×6,1) con aire, y
+    /// carnea cualquier vuelta al 4 % (×10,5) o al 6 %. No pinea el valor del
+    /// knob sino **la forma** —que ningún tier del arranque cueste un orden de
+    /// magnitud más que el anterior—, que es lo que la banda de pacing no puede
+    /// ver: el simulador cronometra esta fase en 96 s porque su bot tapea a 6/s
+    /// con todas las mejoras puestas, así que el muro le pasa por al lado.
+    @Test("ningún tier de la cuesta pre-compuerta cuesta 8× el anterior")
+    func thePreGateClimbHasNoWallInIt() throws {
+        let economy = StandardEconomy(config: content.economy)
+        let alley = content.floorTable[0]
+        let click = { (frontera: Int) in
+            economy.tapYield(forTier: frontera) * content.economy.tapFloorMultiplier(for: alley)
+        }
+        // Subir de `frontera` a `frontera + 1` pide `2^(frontera−1)` Fisuras, y
+        // se compran con el contador ya corrido por las de los tiers de abajo:
+        // ésa es la parte que compone.
+        let cuesta = { (frontera: Int) -> Double in
+            let compras = 1 << (frontera - 1)
+            let total = (compras..<(compras * 2)).reduce(0.0) { suma, n in
+                suma + content.economy.hireCost(
+                    floor: alley, tier: alley.firstTier, frontierTier: frontera, purchases: n
+                )
+            }
+            return total / click(frontera)
+        }
+
+        // El último tier de la fase es aquel cuya frontera recién habilita un
+        // segundo tipo: de ahí en más el contador se reparte y deja de componer.
+        let última = 1 + content.economy.hire.gateTierDistance
+        let escalones = (1...última).map(cuesta)
+        for (tier, (anterior, siguiente)) in zip(1..., zip(escalones, escalones.dropFirst())) {
+            let salto = siguiente / anterior
+            #expect(
+                salto <= 8,
+                "muro en T\(tier + 1) → T\(tier + 2): ×\(salto) (\(siguiente) clicks contra \(anterior))"
+            )
         }
     }
 

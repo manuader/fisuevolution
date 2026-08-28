@@ -239,6 +239,39 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-08-28 (quinta) — El muro adentro de la cuesta pre-compuerta
+
+El dueño reportó jugando que llegar al tier 8 se hacía eterno y que el Fisura
+terminaba costando 1M. Tenía razón, y el número es exacto: la cuesta
+pre-compuerta se paga con **una sola curva** —el Fisura es lo único que la
+compuerta habilita hasta la frontera 7— y el exponente de esa curva se duplica
+con cada tier, así que `growth^(2^k)` es una doble exponencial. Medido en clicks
+de tu propia frontera: `26 · 39 · 61 · 117 · 322 · 1.931 · 61.921`, o sea **×32
+en el último paso** — 14 minutos los seis primeros tiers juntos y 5 horas y
+media el séptimo solo.
+
+Arreglado con **`floors[alley].hireCostGrowth: 1.03`**, dejando el
+`hire.defaultCostGrowth` global **intacto en 1,06**. Bajar el global es lo que
+decía el pedido literal, se probó primero y midió peor: desarma la pared (de
+seis runs trabadas a dos) porque ese factor era **la segunda pata de la
+desaceleración**, algo que la cuarta ronda (ter) no había escrito. El override
+del piso deja la torre quieta: maxear 20,67 → 20,33 h (sigue en la banda del
+dueño), dios 28,43 → 30,73 h activas, la pared en seis runs corriendo T13 → T20.
+
+Guard nuevo: **`thePreGateClimbHasNoWallInIt`** — ningún tier de la cuesta puede
+costar 8× el anterior. Es aritmética sobre el contenido real y no una banda del
+simulador **a propósito**: `pacing-sim` cronometra esta fase en 96 s porque su
+bot tapea a 6/s con todo comprado, así que la bitácora la venía anotando como
+demasiado RÁPIDA mientras el dueño se trababa en ella.
+
+⚠️ **Trampa nueva y cara (§7, trampa 40)**: el primer barrido corrió **sin
+catálogo de mejoras** —`pacing-sim` busca `upgrades.json` al lado del
+`economy.json` y las variantes vivían en un temporal— y dio la conclusión
+OPUESTA. La herramienta avisaba; el `grep` con el que filtré su salida se comió
+el encabezado. Doc de sesión:
+**`Docs/SESION-2026-08-28-cuesta-pre-compuerta.md`**. Bitácora: "Quinta ronda".
+Corrida: `balance-run-t12-cuesta-pre-compuerta.csv`.
+
 ### Sesión del 2026-08-28 (cuarta) — El pulido: el cofre en todos lados, el ORO que enseña y los 48 fps
 
 Cuatro pedidos del dueño sobre el cierre del cofre, más un falso lag. (1) La
@@ -2054,6 +2087,34 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     hace falta silenciar otro warning del SDK, ése es el molde: `-Xcc`, en
     `Debug`, y en cada target que importe el módulo. **Nunca** bajando
     `SWIFT_TREAT_WARNINGS_AS_ERRORS`.
+
+### De calibración (2026-08-28)
+
+39. **`pacing-sim` busca `upgrades.json` al lado del `economy.json`, y sin
+    catálogo mide una ficción.** Un barrido de nueve configs escritas en un
+    directorio temporal corrió entero con `derivedEffects` en cero: el bot no
+    compraba mejoras permanentes. Los números daban la conclusión **opuesta** a
+    la verdadera —que cualquier bajada del growth rompía el contrato, y que el
+    override del callejón era lo peor de todo—, y los dos efectos eran del
+    catálogo faltante y no del knob. Pasá `--upgrades` siempre que el
+    `economy.json` no esté en `Resources/Data`. Es la misma ficción que
+    `PROMPT-rebalance-pacing.md` §2.2 documentó en el rebalance, con otra puerta
+    de entrada.
+
+40. **Un `grep` sobre la salida de una herramienta puede comerse su
+    advertencia.** `pacing-sim` avisaba de lo de arriba con un `⚠️` en la SEGUNDA
+    línea de su salida, y el patrón con el que filtré (`las 7 al tope|dios:|…`)
+    no lo incluía: nueve corridas mintieron en silencio con la verdad impresa.
+    Lo destapó el **sanity check**, no la lectura: correr la línea de base
+    conocida como primer punto del barrido y exigirle el número ya pineado
+    (1,06 tenía que dar 20,67 h). Al barrer configs, ese punto va SIEMPRE, y
+    ninguna variante se cree hasta que él cierra.
+
+41. **Antes de culpar al build, `uptime`.** Dos corridas de `xcodebuild`
+    murieron clavadas en `CopySwiftLibs` durante 25 minutos con el load promedio
+    de la máquina arriba de **900** por un workload ajeno (un `vitest` de otro
+    proyecto). No había ni un `swift-frontend` vivo: estaba todo esperando CPU.
+    Cuesta una hora si se lee como un problema del proyecto.
 
 ### De tests y calibración (2026-08-23, bis)
 

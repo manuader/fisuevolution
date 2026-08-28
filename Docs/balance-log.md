@@ -2206,3 +2206,108 @@ dirección mover:
 
 ⚠️ Subirlo **no es gratis para la forma**: 1e11 alarga pero clava la pared. Si el
 playtest pide más largo, hay que re-mirar la forma después de moverlo.
+
+# Quinta ronda (2026-08-28) — el muro adentro de la cuesta pre-compuerta
+
+**Lo reportó el dueño jugando, y el simulador no lo veía**: «el fisura se pone
+muy caro y es bastante difícil llegar al tier 8; termina costando 1M cada uno y
+seguís con personajes que ganan mucho menos que eso».
+
+## El diagnóstico
+
+El precio de contratar lleva un factor `growth^compras` sobre el contador de
+compras de ESE tipo. Hasta que tu frontera llega a `gateTierDistance + 1` = 7 el
+Fisura es **lo único contratable** —la compuerta no habilita un segundo tipo
+antes y el tier base es su única exención—, así que el arranque entero se paga
+con UNA curva. Y el contador de esa curva **se duplica con cada tier**, porque
+subir uno pide `2^(f−1)` Fisuras: `growth^(2^k)` es una doble exponencial, que no
+se nota abajo y arriba se lleva puesto el juego.
+
+Lo que cuesta subir cada tier de la cuesta, en clicks de tu propia frontera (la
+unidad comparable entre tiers: el ingreso sube con la frontera igual que el
+precio):
+
+| growth | T1→T2 | …→T3 | …→T4 | …→T5 | …→T6 | …→T7 | **…→T8** | peor salto |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| **1,06** | 26 | 39 | 61 | 117 | 322 | 1.931 | **61.921** | **×32,1** |
+| 1,04 | 26 | 37 | 55 | 93 | 202 | 724 | 7.635 | ×10,5 |
+| **1,03 (elegido)** | 26 | 36 | 52 | 83 | 160 | 445 | **2.732** | **×6,1** |
+| 1,02 | 26 | 35 | 50 | 74 | 126 | 274 | 994 | ×3,6 |
+
+Con 1,06 los primeros seis tiers son 2.500 clicks **entre todos** y el séptimo
+son 62.000 **él solo**: a 3 taps/s, pasar de 14 minutos a **5 horas y media en un
+solo paso**. Eso no es una curva de dificultad, es un muro, y cae exactamente en
+el tier 8, que es donde el dueño se trabó. El precio de la última Fisura de esa
+cuesta es **1.730.555** — el «1M» del reporte, al dedo.
+
+Los otros dos factores del precio no participan: el ancla de frontera aporta
+×1,87 por tier y la desaceleración recién multiplica DESDE el tier 7 (el paso
+T7→T8 se compra CON la frontera en 7, así que la ve en `1,6⁰`). El muro es todo
+del `growth`: 1.636 de los 1.730.555.
+
+**Por qué el simulador no lo ve, y va a seguir sin verlo.** `pacing-sim`
+cronometra esta fase en 96 s y la bitácora la venía anotando como demasiado
+RÁPIDA. No es un desacuerdo con el dueño: su bot tapea a 6/s con todas las
+mejoras permanentes puestas, así que el muro le pasa por al lado. Por eso el
+guard nuevo (`thePreGateClimbHasNoWallInIt`) es aritmética pura sobre el
+contenido real y no una banda del simulador.
+
+## El barrido
+
+Todas con `--max-days 90`, mismo contenido, **y con `--upgrades`** (ver la trampa
+de método más abajo).
+
+| config | las 7 al tope | dios (activo) | la pared |
+|---|---:|---:|---|
+| **1,06 global (línea de base)** | 20,67 h ✅ | 28,43 h | T12·T13·T14·T16·T18·T20 |
+| 1,04 global | 15,34 h 🔴 | 24,11 h | T12·T13·T16·T18 |
+| 1,03 global | 15,96 h 🔴 | 23,07 h | T15·T17 |
+| 1,02 global | 14,00 h 🔴 | 22,35 h | T13 |
+| **callejón 1,03 (embarcado)** | **20,33 h ✅** | **30,73 h** | **T13·T13·T15·T15·T19·T20** |
+| callejón 1,02 | 20,34 h ✅ | 29,44 h | T13·T15·T16·T17·T21 |
+
+**Bajar el global es lo peor de las dos formas.** Saca maxear de la banda de
+20-30 h que pidió el dueño y, sobre todo, **desarma la pared**: de seis runs
+trabadas a cuatro, a dos, a una. Tiene sentido y no se sabía: este factor era la
+segunda pata de la desaceleración, y la cuarta ronda (ter) le atribuyó el mérito
+entero a `frontierEscalationPerTier`.
+
+**Bajarlo sólo en el callejón lo arregla y no cuesta casi nada**, porque el
+callejón deja de ser el camino barato en el tier 22 (`elDescuentoDelCallejonSeAgotaSolo`)
+y de ahí en más nadie lo compra: la pared se conserva en seis runs y corre siete
+tiers (T13 → T20), maxear queda en 20,33 h y dios se aleja un 8 % (28,43 →
+30,73 h activas), que es la dirección buena —dios sigue después de las skins
+doradas—. `withoutPrestigeGodIsUnreachable` queda más firme que antes: el que no
+reencarna se clava en el tier **28** (era 29).
+
+## La decisión
+
+`floors[alley].hireCostGrowth: 1.03`, con `hire.defaultCostGrowth` **intacto en
+1,06**. Se elige 1,03 y no 1,02 porque deja la cuesta entera en ~20 minutos de
+tapeo —el número que el spec pide para esta fase— y porque conserva una curva de
+verdad: la compra 128 todavía sale 44× la primera, así que spamear un solo tipo
+sigue dejando de pagar.
+
+Es el segundo override del callejón y tiene el mismo motivo que el primero (el
+multiplicador a 25): **el arranque es el único tramo de la torre con un solo
+personaje comprable**, así que es el único que no puede repartir el contador.
+
+## ⚠️ La trampa de método que casi mete nueve números falsos en esta bitácora
+
+El primer barrido —nueve configs— se corrió con los `economy.json` variantes en
+un directorio temporal. **`pacing-sim` resuelve `upgrades.json` al lado del
+`economy.json` cuando no le pasás `--upgrades`**, así que las nueve corridas
+salieron **sin catálogo de mejoras permanentes**: el bot no gastaba ORO y
+`derivedEffects` viajaba en cero. Es exactamente la ficción que el rebalance de
+pacing documentó en `PROMPT-rebalance-pacing.md` §2.2, y volvió a pasar.
+
+Con esos números la conclusión era **la opuesta a la verdadera**: que cualquier
+bajada rompía el contrato (las siete líneas no se maxeaban nunca) y que el
+override del callejón era lo peor de todo (las compras de cartonero se
+duplicaban). Los dos efectos eran del catálogo faltante, no del knob.
+
+La herramienta **avisaba**, con un `⚠️` en la segunda línea de su salida. Lo que
+lo tapó fue filtrar la salida con `grep` por las líneas que interesaban: el
+patrón se comió el encabezado. **Al barrer configs, comparar siempre la primera
+corrida contra la línea de base conocida antes de creerle a las demás** — acá el
+sanity check (1,06 tenía que dar 20,67 h y no dio) es lo que destapó todo.

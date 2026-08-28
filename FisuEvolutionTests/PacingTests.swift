@@ -23,6 +23,31 @@ import Testing
 /// progreso se paga con income offline —que es reloj de pared y no de dedo—. Lo
 /// que sube es la espera: la 1ª reencarnación pasa de 4,28 a 9,00 h de pared.
 ///
+/// ⚠️ **QUINTA RONDA (2026-08-28) — LAS BANDAS NO SE MOVIERON, Y ESO ES EL
+/// RESULTADO.** El dueño reportó jugando que llegar al tier 8 se hacía eterno
+/// (`Docs/balance-log.md`, quinta ronda): la cuesta pre-compuerta se paga con
+/// UNA sola curva —el Fisura es lo único contratable hasta la frontera 7— y su
+/// exponente se duplica con cada tier, así que el último paso salía ×32 el
+/// anterior. Se arregló con `floors[alley].hireCostGrowth: 1.03`, dejando el
+/// `hire.defaultCostGrowth` global en 1,06.
+///
+/// La corrida nueva es `Docs/balance-run-t12-cuesta-pre-compuerta.csv`, y **las
+/// cuatro bandas siguen conteniendo lo medido**, así que sus bordes se quedan
+/// donde estaban: recentrarlas les sacaría la sensibilidad con la que se
+/// eligieron, sin comprar nada. Lo que sí cambió y queda anotado en cada test:
+///
+///     fase fisura (activo)   96,0 s  →   78 s
+///     1ª reencarnación       9,28 h  →  9,28 h  (no se movió)
+///     maxear las siete      20,67 h  →  20,33 h  ✅ sigue en la banda del dueño
+///     dios (activo)         28,43 h  →  30,73 h   · de pared 508,10 → 552,06 h
+///     la pared     T12·T13·T14·T16·T18·T20 → T13·T13·T15·T15·T19·T20
+///     sin reencarnar          T29    →   T28     (más firme)
+///
+/// Lo que NO se hizo, y está medido: bajar el `defaultCostGrowth` global. Es lo
+/// primero que se probó y desarma la pared —de seis runs trabadas a dos con
+/// 1,03— además de sacar maxear de la banda (15,96 h). Ese factor era la segunda
+/// pata de la desaceleración y nadie lo había escrito.
+///
 /// ⚠️⚠️ **RE-PINEADO EL 2026-08-23 (cuarta ronda) Y `theOwnersTargetsAreMet`
 /// SIGUE EN ROJO A PROPÓSITO.** Esta ronda atacó la causa raíz que midió la
 /// tercera: el precio de contratar dejó de seguir a `tapYield(tier)` y pasó a
@@ -159,6 +184,8 @@ struct PacingTests {
     /// largo TOTAL (maxear en 20-30 h) y el tutorial corto es parte del pedido
     /// —el primer Fisura sale 25 monedas por decisión suya—. Esta banda existe
     /// para detectar que el arranque se mueva, no para prometer los 20 min.
+    /// Quinta ronda: **78 s**, adentro de la banda. Bajó de 96 s porque el
+    /// callejón cotiza con el 3% por compra y la fase es toda Fisura.
     @Test("la fase fisura dura 67-125 s activos")
     func strugglingPhaseLength() throws {
         let secondFloor = floorTable[1].id
@@ -290,6 +317,9 @@ struct PacingTests {
     /// (28,43 h activas) queda **×1,38 más lejos que maxear** (20,67 h), o sea las
     /// skins doradas siguen llegando antes que el final. Eso lo asserta
     /// `theOwnersTargetsAreMet`.
+    /// Quinta ronda: **552,06 h de pared** (30,73 h activas), adentro de la
+    /// banda. Dios se alejó un 8% y es la dirección buena: sigue después de las
+    /// skins doradas, que es lo que asserta `theOwnersTargetsAreMet`.
     @Test("dios llega entre 356 y 661 h de pared con ≥3 reencarnaciones")
     func godTiming() throws {
         let wall = try #require(report.godWall, "dios nunca llegó (maxTier \(report.finalMaxTier))")
@@ -313,6 +343,10 @@ struct PacingTests {
     /// Medido en la corrida del encabezado: **T12 · T13 · T14 · T16 · T18 · T20**,
     /// o sea que la pared existe, cae en el arco que el dueño pidió (piso 4-5) y
     /// **corre +1 · +1 · +2 · +2 · +2 tiers** por reencarnación.
+    /// Quinta ronda: **T13·T13·T15·T15·T19·T20**, seis runs trabadas y siete
+    /// tiers de corrimiento. La pared aguantó el arreglo del arranque, que es
+    /// exactamente lo que decidió dónde ponerlo: bajar el growth GLOBAL la
+    /// dejaba en dos runs.
     @Test("la run se traba, y cada reencarnación corre la pared")
     func theRunHitsAWallAndPrestigeMovesIt() throws {
         let paredes = report.wallTierPerRun.filter { $0 > 0 }
@@ -343,6 +377,7 @@ struct PacingTests {
     /// partida de la queja del dueño del 2026-08-22 ("llegué de fisura a dios sin
     /// reiniciar"). Es cara —una simulación entera— y por eso está sola en su
     /// test y no adentro de otro.
+    /// Quinta ronda: se clava en el tier **28** (era 29).
     @Test("el que no reencarna no llega a dios")
     func withoutPrestigeGodIsUnreachable() throws {
         let content = try GameContentLoader.load(from: .main)

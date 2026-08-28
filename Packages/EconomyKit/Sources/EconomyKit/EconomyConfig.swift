@@ -335,6 +335,21 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     }
 
     /// Growth de hire efectivo del piso (override o default).
+    ///
+    /// El default es 6 % por compra y **el callejón overridea a 3 %**. La
+    /// asimetría es a propósito y está medida (quinta ronda de
+    /// `Docs/balance-log.md`): este factor compone sobre el contador de compras
+    /// del MISMO tipo, y ese contador **se duplica con cada tier** —subir uno
+    /// pide `2^(frontera−1)` unidades—, así que `growth^(2^k)` es una doble
+    /// exponencial. Arriba eso no molesta porque hay varios tipos comprables y
+    /// el contador se reparte; **abajo no hay dónde repartirlo**: hasta que la
+    /// frontera llega a `gateTierDistance + 1` el tier base es lo único que la
+    /// compuerta habilita, así que la cuesta entera se paga con una sola curva
+    /// y con el 6 % el último tier salía ×32 el anterior.
+    ///
+    /// Bajar el GLOBAL fue lo primero que se probó y midió peor: arregla el
+    /// arranque y desarma la pared de la desaceleración (de seis runs trabadas a
+    /// dos con 1,03). Lo pinea `thePreGateClimbHasNoWallInIt`.
     public func hireCostGrowth(for floor: FloorDef) -> Double {
         floor.hireCostGrowthOverride ?? hire.defaultCostGrowth
     }

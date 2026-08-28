@@ -48,6 +48,7 @@ cambia, volver a medir: `crop=4:4:0:0` de f0 a rawvideo rgb24 y leer el pixel.
 """
 
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -382,6 +383,12 @@ def emit_static_chest(keyed_dir: Path) -> None:
         canvas.resize((out_side, out_side), Image.LANCZOS).save(
             UI_ATLAS / f"ui_chest_closed{suffix}.png", optimize=True
         )
+    # ⚠️ Sin esto Xcode NO recompila el atlas: escribir un PNG en el lugar
+    # (mismo inode) no cambia el mtime de la CARPETA .atlas, que es lo que
+    # mira el build system — y el juego sigue mostrando el cofre anterior
+    # desde el atlasc viejo (pasó: la tarjeta de Regalos mostró el cofre de
+    # un master ya borrado con el PNG nuevo sentado en el arbol).
+    os.utime(UI_ATLAS)
 
 
 def main() -> int:

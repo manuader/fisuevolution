@@ -393,8 +393,25 @@ struct UpgradesView: View {
 
     @ViewBuilder private var permanentRows: some View {
         let lines = gameState.content?.upgradesConfig.upgrades ?? []
+        // La manito del primer ORO: mientras no haya NINGUNA línea subida y
+        // alguna sea pagable, la primera pagable late — la lección del primer
+        // ORO manda hasta acá, y esto dice DÓNDE (el mismo gesto que la fila
+        // recomendada de FisuJobs en la fase). Elegida la primera, se retira.
+        let neverChose = lines.allSatisfy { gameState.upgradeLevel(of: $0.id) == 0 }
+        let handTarget = neverChose
+            ? lines.first(where: {
+                (gameState.player?.meta.oro ?? 0) >= Int(gameState.upgradeCost(of: $0).rounded(.up))
+            })?.id
+            : nil
         ForEach(Array(lines.enumerated()), id: \.element.id) { offset, line in
             permanentRow(line)
+                .overlay(alignment: .trailing) {
+                    if line.id == handTarget {
+                        TapHereHand(size: 36)
+                            .padding(.trailing, Tokens.s16)
+                            .offset(y: 24)
+                    }
+                }
                 .staggeredAppearance(index: offset)
         }
     }

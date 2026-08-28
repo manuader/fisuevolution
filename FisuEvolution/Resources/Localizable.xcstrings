@@ -3206,6 +3206,9 @@
         }
       }
     },
+    "gifts.chest.count %@" : {
+
+    },
     "gifts.chest.count %lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6379,40 +6382,6 @@
         }
       }
     },
-    "special.info.ok" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡De una!"
-          }
-        }
-      }
-    },
-    "special.info.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your special character"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu personaje especial"
-          }
-        }
-      }
-    },
     "special.influencer.flavor" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6443,6 +6412,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "El Influencer"
+          }
+        }
+      }
+    },
+    "special.info.ok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡De una!"
+          }
+        }
+      }
+    },
+    "special.info.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your special character"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu personaje especial"
           }
         }
       }

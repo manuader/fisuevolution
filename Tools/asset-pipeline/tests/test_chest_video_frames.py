@@ -46,8 +46,8 @@ PRESUPUESTO_MOV_KB = 4096
 
 class GeometriaPura(unittest.TestCase):
     def test_el_lienzo_del_estatico_calza_la_ocupacion_del_viejo(self):
-        # 407 px de cofre al 84,4 % del ancho -> lienzo de 482.
-        self.assertEqual(static_canvas_side(407), 482)
+        # 409 px de cofre al 84,4 % del ancho -> lienzo de 485.
+        self.assertEqual(static_canvas_side(409), 485)
 
     def test_la_masa_cortada_se_mide_fuera_del_crop(self):
         alpha = np.zeros((10, 10))

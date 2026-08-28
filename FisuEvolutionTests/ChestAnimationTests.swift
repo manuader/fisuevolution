@@ -30,15 +30,15 @@ struct ChestAnimationManifestTests {
     @Test func losSegmentosInteractivosVienenConSusConteos() {
         #expect(animation.fps == 24)
         #expect(animation.info(.idle).frameCount == 1)
-        #expect(animation.info(.shakeA).frameCount == 20)
-        #expect(animation.info(.shakeB).frameCount == 15)
+        #expect(animation.info(.shakeA).frameCount == 27)
+        #expect(animation.info(.shakeB).frameCount == 17)
     }
 
     @Test func losFramesResuelvenASusArchivos() {
         #expect(animation.frames(.idle).first?.lastPathComponent == "chest_f000.png")
-        #expect(animation.frames(.shakeA).first?.lastPathComponent == "chest_f007.png")
-        #expect(animation.frames(.shakeA).last?.lastPathComponent == "chest_f026.png")
-        #expect(animation.frames(.shakeB).first?.lastPathComponent == "chest_f033.png")
+        #expect(animation.frames(.shakeA).first?.lastPathComponent == "chest_f004.png")
+        #expect(animation.frames(.shakeA).last?.lastPathComponent == "chest_f030.png")
+        #expect(animation.frames(.shakeB).first?.lastPathComponent == "chest_f031.png")
         #expect(animation.frames(.shakeB).last?.lastPathComponent == "chest_f047.png")
     }
 
@@ -55,35 +55,35 @@ struct ChestAnimationManifestTests {
         }
     }
 
-    /// El escenario del idle a cofre de 210 pt: el recorte de 860×560 con el
-    /// cofre de 407 px escala a 443,7×288,9 pt, corrido para que el cofre —no
+    /// El escenario del idle a cofre de 210 pt: el recorte de 912×504 con el
+    /// cofre de 409 px escala a 468,3×258,8 pt, corrido para que el cofre —no
     /// el recorte— quede en el centro del frame.
     @Test func elEscenarioDelIdleAnclaElCofreAlCentro() {
         let stage = animation.stage(.idle, chestWidth: 210)
-        #expect(abs(stage.size.width - 443.7) < 0.5)
-        #expect(abs(stage.size.height - 288.9) < 0.5)
-        #expect(abs(stage.offset.width - (-2.3)) < 0.5)
-        #expect(abs(stage.offset.height - (-30.2)) < 0.5)
+        #expect(abs(stage.size.width - 468.3) < 0.5)
+        #expect(abs(stage.size.height - 258.8) < 0.5)
+        #expect(abs(stage.offset.width - 9.0) < 0.5)
+        #expect(abs(stage.offset.height - (-30.6)) < 0.5)
     }
 
     /// El encuadre del video es el lienzo entero, anclado por el mismo cofre:
     /// el empalme PNG→video no mueve nada.
     @Test func elEncuadreCinematicoAnclaElMismoCofre() {
         let stage = animation.cinematicStage(chestWidth: 210)
-        #expect(abs(stage.size.width - 660.4) < 0.5)
-        #expect(abs(stage.size.height - 371.5) < 0.5)
+        #expect(abs(stage.size.width - 657.2) < 0.5)
+        #expect(abs(stage.size.height - 369.7) < 0.5)
         #expect(abs(stage.offset.width - 2.8) < 0.5)
-        #expect(abs(stage.offset.height - (-40.5)) < 0.5)
+        #expect(abs(stage.offset.height - (-40.8)) < 0.5)
     }
 
     /// El pergamino del marco final, donde se renderiza el contenido del
-    /// premio: 302×424 px del lienzo → 155,8×218,8 pt con el cofre a 210.
+    /// premio: 302×418 px del lienzo → 155,1×214,6 pt con el cofre a 210.
     @Test func elPergaminoDelMarcoTieneSuLugar() {
         let parch = animation.parchmentStage(chestWidth: 210)
-        #expect(abs(parch.size.width - 155.8) < 0.5)
-        #expect(abs(parch.size.height - 218.8) < 0.5)
-        #expect(abs(parch.offset.width - 2.8) < 0.5)
-        #expect(abs(parch.offset.height - (-43.1)) < 0.5)
+        #expect(abs(parch.size.width - 155.1) < 0.5)
+        #expect(abs(parch.size.height - 214.6) < 0.5)
+        #expect(abs(parch.offset.width - 3.3) < 0.5)
+        #expect(abs(parch.offset.height - (-44.9)) < 0.5)
     }
 }
 
@@ -116,7 +116,7 @@ struct ChestAnimationFeedTests {
 
         // Mucho después del final: se clava en el último y apaga el reloj.
         feed.advance(to: t0.addingTimeInterval(10))
-        #expect(feed.displayedIndex == 19)
+        #expect(feed.displayedIndex == 26)
         #expect(feed.isPaused)
     }
 

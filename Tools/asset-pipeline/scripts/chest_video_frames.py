@@ -4,6 +4,12 @@ Pedido del dueno (2026-08-28, segunda ronda): la apertura es EL VIDEO ENTERO —
 sin rayos, particulas ni carta de la casa — y el contenido del premio se
 renderiza al final dentro del marco vacio de la carta del video.
 
+Tercera ronda (mismo dia): el master se reemplazo por un video nuevo, disenado
+para la integracion seamless — verde PLANO de punta a punta (sin vinneta ni
+piso horneados: keyeado es un sprite de verdad), el cofre estalla con confetti,
+la carta sale girando y **el cofre se desvanece solo a mitad del video** (~f114
+a f126); el final es la carta vacia, quieta y centrada, sin nada superpuesto.
+
 Produce tres familias de assets en `Resources/ChestAnim/`:
 
 1. **Frames PNG interactivos** (idle + dos sacudidas, f0-f47): los latidos que
@@ -25,10 +31,11 @@ Necesita `ffmpeg` (con hevc_videotoolbox) en el PATH. Re-ejecutable: pisa lo
 generado y el resultado es identico para el mismo video.
 
 ⚠️ El color del key esta medido EN EL STREAM con la matriz limited-range
-(0x0BB427). El hex calculado con la matriz full-range (0x189D30) parece el
-mismo verde y NO lo es: con el `chromakey` de ffmpeg se come el cofre entero.
-La banda util de `similarity` quedo en 0,08-0,14 — mucho mas angosta de lo que
-la doc sugiere.
+(el master vigente da 0x10A12A; el del video anterior era 0x0BB427). El hex
+calculado con la matriz full-range parece el mismo verde y NO lo es: con el
+`chromakey` de ffmpeg se come el cofre entero. La banda util de `similarity`
+quedo en 0,08-0,14 — mucho mas angosta de lo que la doc sugiere. Si el master
+cambia, volver a medir: `crop=4:4:0:0` de f0 a rawvideo rgb24 y leer el pixel.
 """
 
 import argparse
@@ -40,6 +47,7 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image
+from scipy import ndimage
 
 from _common import write_json
 
@@ -50,7 +58,7 @@ CHEST_ANIM = RESOURCES / "ChestAnim"
 UI_ATLAS = RESOURCES / "ui.atlas"
 
 # El keying calibrado (ver docstring) y la geometria medida del video.
-KEY_COLOR = "0x0BB427"
+KEY_COLOR = "0x10A12A"
 KEY_SIMILARITY = 0.11
 KEY_BLEND = 0.04
 KEY_FILTER = (
@@ -58,26 +66,32 @@ KEY_FILTER = (
 )
 FPS = 24
 CANVAS = (1280, 720)
-# Donde vive el cofre en reposo dentro del lienzo: no se mueve del piso en
-# todo el video, asi que PNGs y video comparten esta unica ancla.
-CHEST_RECT = {"x": 431, "y": 257, "w": 407, "h": 363}
-# El interior pergamino de la carta en el ultimo frame (f239), medido por
-# componente conexa: donde el juego renderiza el contenido del premio.
-PARCHMENT_RECT = {"x": 489, "y": 143, "w": 302, "h": 424}
+# Donde REPOSA el cofre dentro del lienzo (componente conexa de f0): salta en
+# las sacudidas pero siempre vuelve a este piso, asi que PNGs y video comparten
+# esta unica ancla.
+CHEST_RECT = {"x": 430, "y": 257, "w": 409, "h": 365}
+# El interior pergamino de la carta en el ultimo frame (f239): filas/columnas
+# con beige macizo (claro Y desaturado, umbral 60 px) — el bbox pelado se
+# estira con los biseles claros del borde dorado y descentra el contenido.
+PARCHMENT_RECT = {"x": 490, "y": 143, "w": 302, "h": 418}
 
 # (x, y, w, h) en coordenadas del lienzo + escala de entrega de los PNG.
-# La sacudida B tira los chorros de polvo mas lejos que la A (medido: el
-# escenario comun le cortaba 1,37 % de su masa de alfa) y lleva crop propio.
-STAGE_CROP = (200, 100, 860, 560)
-SHAKE_B_CROP = (60, 40, 1160, 620)
+# Los crops salen del percentil 99,7 de masa de alfa del segmento, en union
+# con el bbox del COFRE frame a frame (el salto de la sacudida A llega a
+# y=136 y el percentil solo lo cortaba) y con margen de 8 px. La sacudida B
+# tira el polvo mas ancho y lleva crop propio.
+STAGE_CROP = (196, 128, 912, 504)
+SHAKE_B_CROP = (56, 208, 1144, 424)
 FULL_CROP = (0, 0, 1280, 720)
 SEGMENTS = {
     "idle": {"first": 0, "last": 0, "crop": STAGE_CROP, "scale": 1.0},
-    "shakeA": {"first": 7, "last": 26, "crop": STAGE_CROP, "scale": 1.0},
-    "shakeB": {"first": 33, "last": 47, "crop": SHAKE_B_CROP, "scale": 1.0},
+    "shakeA": {"first": 4, "last": 30, "crop": STAGE_CROP, "scale": 1.0},
+    "shakeB": {"first": 31, "last": 47, "crop": SHAKE_B_CROP, "scale": 1.0},
 }
 
-# El tramo cinematico: del candado cerrandose al marco vacio asentado.
+# El tramo cinematico: del temblor previo al estallido (la tapa cruje en f51)
+# al marco vacio asentado — el cofre se desvanece en el medio (~f114-f126) y
+# la carta gira sola hasta el flip (~f198-f210).
 CINEMATIC_FIRST = 48
 CINEMATIC_LAST = 239
 CINEMATIC_FILE = "chest_open.mov"
@@ -146,12 +160,21 @@ def encode_cinematic(video: Path, workdir: Path) -> None:
     # shortest del filtro, `blend` repite el último frame para siempre — el
     # `-shortest` de output no corta streams de un filter_complex (medido: un
     # encode de 192 frames llevaba 4 h y 1,25 GB cuando se lo mató).
+    #
+    # ⚠️ El `premultiply` es lo que hace TRANSPARENTE la transparencia:
+    # `AVPlayerLayer` composita el HEVC-alfa como PREMULTIPLICADO
+    # (out = rgb + fondo×(1−α)), y `chromakey` deja el RGB intacto — el verde
+    # despillado (~L 26) de las zonas con α=0 se SUMABA al juego como un velo
+    # claro cortado seco en el encuadre (+20..27 de luminancia, medido en
+    # captura). Va DESPUÉS del alphamerge para multiplicar por el alfa ya
+    # emplumado, y en gbrap porque el filtro no toma rgba empaquetado.
     filter_complex = (
         f"[0:v]select='between(n,{CINEMATIC_FIRST},{CINEMATIC_LAST})',"
         f"setpts=PTS-STARTPTS,{KEY_FILTER},format=rgba,split[keyed][forAlpha];"
         "[forAlpha]alphaextract[alpha];"
         "[alpha][1:v]blend=all_mode=multiply:shortest=1[fadedalpha];"
-        "[keyed][fadedalpha]alphamerge,format=bgra[out]"
+        "[keyed][fadedalpha]alphamerge,format=gbrap,premultiply=inplace=1,"
+        "format=bgra[out]"
     )
     subprocess.run(
         [
@@ -289,12 +312,19 @@ def static_canvas_side(bbox_w: int, occupancy: float = STATIC_OCCUPANCY) -> int:
 
 
 def emit_static_chest(keyed_dir: Path) -> None:
-    """`ui_chest_closed` nuevo desde el primer frame, a la ocupacion del viejo."""
+    """`ui_chest_closed` nuevo desde el primer frame, a la ocupacion del viejo.
+
+    El recorte es la COMPONENTE CONEXA mas grande, no el bbox global: el video
+    trae destellos ambiente sueltos (hay uno en x~1150 ya en f0) que inflarian
+    el lienzo y dejarian el cofre a media escala en Regalos y el diario.
+    """
     rgba = np.asarray(
         Image.open(keyed_dir / "k000.png").convert("RGBA"), dtype=np.uint8
     )
-    alpha = rgba[..., 3]
-    ys, xs = np.where(alpha >= ALPHA_THRESHOLD)
+    solid = rgba[..., 3] >= ALPHA_THRESHOLD
+    labels, count = ndimage.label(solid)
+    sizes = ndimage.sum(solid, labels, range(1, count + 1))
+    ys, xs = np.where(labels == (int(np.argmax(sizes)) + 1))
     x1, x2 = int(xs.min()), int(xs.max())
     y1, y2 = int(ys.min()), int(ys.max())
     chest = Image.fromarray(clean_transparent_rgb(rgba)).crop(

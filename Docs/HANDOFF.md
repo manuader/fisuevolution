@@ -53,15 +53,15 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-28 (ter)** (el cofre
-> tiene su master DEFINITIVO: 2D vertical con la estética del juego y CON
-> SONIDO — la pista del cinemático adentro del mov, las sacudidas como clips
-> SFX, full-bleed sin costuras; sesión en §4. La trampa del día sigue al tope
-> de §7: el mov va **premultiplicado** o `AVPlayerLayer` suma el fondo
-> keyeado como un velo. ⚠️ Ese día `StoreManagerTests` en 18.6 falló por
-> ENTORNO, no por el árbol — el aviso está en §6. Y sigue vigente lo del
-> 25-08: los sims de verificación van con runtime **iOS 26.5**; una app
-> compilada con el SDK 26 sobre un sim 18.6 se ve rota).
+> **Empezá por acá.** Última actualización: **2026-08-28 (cuarta)** (el
+> pulido del día del cofre: el atlasc que no recompila con PNGs escritos en
+> el lugar —trampa al tope de §7—, el cofre viejo purgado entero, los datos
+> del premio a los 6,5 s, la fila de mejoras con sólo el multiplicador, el
+> botón de reencarnar desde LUJO en modo teaser, la lección del primer ORO,
+> y el mov del cofre interpolado a 48 fps; sesión en §4. Siguen vigentes: el
+> mov **premultiplicado** o `AVPlayerLayer` suma un velo (§7 bis), el aviso
+> de `StoreManagerTests` en 18.6 por ENTORNO (§6), y lo del 25-08: los sims
+> de verificación van con runtime **iOS 26.5**).
 
 ---
 
@@ -238,6 +238,33 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-28 (cuarta) — El pulido: el cofre en todos lados, el ORO que enseña y los 48 fps
+
+Cuatro pedidos del dueño sobre el cierre del cofre, más un falso lag. (1) La
+tarjeta de Regalos mostraba el cofre VIEJO con el PNG nuevo en el árbol: era
+el **atlasc compilado** — escribir un PNG en el lugar no cambia el mtime de la
+carpeta `.atlas` y el atlas no recompila (trampa nueva en §7; el pipeline
+ahora toca la carpeta). Purgado todo el cofre viejo: masters, prompts y las 7
+entradas de `prompts.json` (incluida `ui_chest_closed`, que un batch habría
+regenerado pisando el icono del video). (2) **Los datos del premio entran a
+los 6,5 s del cinemático** (la carta ya está derecha; antes esperaban el final
++1,5 s). (3) La fila de personaje dice **sólo el multiplicador** (el
+"Nivel 1/19" murió; al tope queda el badge "Al máximo"). (4) **El botón de
+reencarnar arranca al llegar a lujo** (`oro.prestigeTeaserFloorId`,
+data-driven): teaser con el % del camino al próximo ORO y la hoja contando lo
+que falta, SIN confirmar (una acción que no corresponde no se dibuja) y SIN
+tocar la curva — Pacing intacto. (5) **La lección del primer ORO**
+(`oroUpgrades`): un logro paga el primero, el globo lleva a Mejoras y la
+manito marca la primera línea pagable hasta que elige. (6) El "video
+laggeado" era **la Mac saturada por las suites** (medido: a máquina quieta el
+sim entrega 24 fps clavados; §7). La interpolación a 48 se PROBÓ — limpia a
+ojo, pero el sim la decodifica PEOR (colapsa a ~5 fps en el giro): quedó como
+**perilla apagada** (`CINEMATIC_OUTPUT_FPS`) para cuando haya device. Detalle en
+**`Docs/SESION-2026-08-28-pulido-post-cofre.md`**. Números: EconomyKit
+**262** · unit **461 con el único rojo declarado** · UI de prestigio,
+tutorial, mejoras y cofre **todas verdes** · catálogo +2 claves por el script
+canónico de la trampa 29.
 
 ### Sesión del 2026-08-28 (ter) — El cofre definitivo: 2D, vertical y con sonido
 
@@ -1422,6 +1449,28 @@ El panel de debug es el ícono de herramientas del HUD.
 ## 7. Trampas en las que ya caímos
 
 
+### Del pulido post-cofre (2026-08-28 cuarta)
+
+**⚠️ Reemplazar un PNG "en el lugar" dentro de un `.atlas` NO recompila el
+atlas.** El build system decide recompilar el atlasc mirando el mtime de la
+CARPETA `.atlas`, y escribir un archivo sobre el mismo inode (PIL `save`, un
+`>` de shell) no lo cambia — sólo agregar/borrar/renombrar archivos lo hace
+(git checkout sí, porque reemplaza por rename). Síntoma medido: la tarjeta de
+Regalos mostrando el cofre de un master BORRADO con el PNG nuevo sentado en el
+árbol, en todo DerivedData incremental. Fix: el generador toca la carpeta al
+escribir (`os.utime(UI_ATLAS)` en `chest_video_frames.py`); si otro pipeline
+escribe atlas en el lugar, necesita lo mismo.
+
+**⚠️ La máquina cargada miente DOS veces al verificar visuales.** El mismo día:
+(1) la cadencia de `simctl io screenshot` (2–4 s por captura bajo carga) hace
+parecer que una animación se saltea etapas — el juez del timing es el log de
+latidos (`log stream --level info`), no las capturas; (2) el juego CORRIENDO
+en el sim mientras xcodebuild satura la CPU se ve "muy laggeado" y no lo está
+— grabado y contado a máquina quieta, el cinemático entrega sus 24 fps
+clavados. Antes de tocar código por un reporte de fluidez: medir con la
+máquina quieta (`simctl io recordVideo` + contar frames distintos por
+segundo).
+
 ### Del video del cofre (2026-08-28 bis)
 
 **⚠️ `AVPlayerLayer` composita el HEVC-alfa como PREMULTIPLICADO, y `chromakey`
@@ -2474,6 +2523,10 @@ Anotado por si algún día importa, con su medición:
 
 ## 9. Mapa de documentos
 
+- `Docs/SESION-2026-08-28-pulido-post-cofre.md` — el pulido del día: la trampa del
+  atlasc, el purgado del cofre viejo, el premio a los 6,5 s, la fila con sólo el
+  multiplicador, el teaser de reencarnar desde lujo, la lección del primer ORO y
+  los 48 fps interpolados.
 - `Docs/SESION-2026-08-28-cofre-definitivo-2d.md` — el master DEFINITIVO del cofre:
   2D vertical con sonido (mov con AAC + clips de sacudida), full-bleed a 274 pt,
   el empalme continuo del tercer toque y la muerte del push-in de la casa.

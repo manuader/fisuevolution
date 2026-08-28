@@ -131,6 +131,11 @@ struct ChestOpeningView: View {
     /// háptico se dispara por reloj —apenas antes del giro—, no por observer
     /// del player.
     private static let flipSecondsIntoCinematic = 6.0
+    /// Cuándo entran los DATOS del premio: la cara vacía ya está derecha a
+    /// los 6,5 s (f206) y del video sólo queda la cola de destellos.
+    /// Esperar el final dejaba ~1,5 s de marco vacío mirándote (pedido del
+    /// dueño: que los datos tarden menos en aparecer).
+    private static let revealSecondsIntoCinematic = 6.5
     /// El video dura 7,92 s (190 frames); el tope del await es el seguro
     /// contra un decoder trabado, porque este latido no lo avanza nadie más.
     private static let cinematicSeconds = 190.0 / 24.0
@@ -513,7 +518,13 @@ struct ChestOpeningView: View {
             } else {
                 return
             }
-            let remaining = (Self.cinematicSeconds - Self.flipSecondsIntoCinematic) / Double(rate)
+            // Los datos, con el video todavía corriendo su cola de destellos.
+            let untilReveal = Self.revealSecondsIntoCinematic - Self.flipSecondsIntoCinematic
+            guard await pause(untilReveal / Double(rate)) else { return }
+            withAnimation(.spring(duration: 0.4, bounce: 0.25)) {
+                contentRevealed = true
+            }
+            let remaining = (Self.cinematicSeconds - Self.revealSecondsIntoCinematic) / Double(rate)
             await cinematic.awaitEnd(timeout: remaining + 2.0)
             advance()
             return

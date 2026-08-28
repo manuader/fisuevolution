@@ -166,6 +166,24 @@ func fxChestSkins(
     return SkinsConfig(schemaVersion: 1, skins: entradas)
 }
 
+/// Todos los personajes de una bolsa, desbloqueados. Es lo que pide un test que
+/// NO está mirando la regla de desbloqueo — y se escribe así, explícito, porque
+/// `ChestRoller.roll` no le pone default a `unlocked` a propósito: un default
+/// sería la puerta por la que la regla del dueño se apaga sin que nada se ponga
+/// rojo.
+func fxTodoDesbloqueado(_ skins: SkinsConfig) -> Set<String> {
+    Set(skins.chestPool.map(\.characterType))
+}
+
+/// Los personajes de las rarezas que se listan, y nadie más. Es el jugador que
+/// llegó hasta cierto punto de la torre: la bolsa se repartió por el piso donde
+/// vive cada personaje, así que una rareza ES una banda de pisos.
+func fxDesbloqueadoHasta(
+    _ skins: SkinsConfig, _ rarezas: SkinsConfig.Rarity...
+) -> Set<String> {
+    Set(skins.chestPool.filter { rarezas.contains($0.chestRarity!) }.map(\.characterType))
+}
+
 func fxChests(
     comun: Int = 55, rara: Int = 28, epica: Int = 12, legendaria: Int = 5
 ) -> ChestsConfig {

@@ -53,10 +53,12 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-25** (tres correcciones
-> de UI del tutorial y los specials, y la cadena post-Xcode-26.6 desarmada —
-> la sesión en §4, la trampa 30 en §7. ⚠️ Desde hoy los sims de verificación
-> van con runtime **iOS 26.5**: una app compilada con el SDK 26 sobre un sim
+> **Empezá por acá.** Última actualización: **2026-08-28** (la apertura de
+> cofres es EL VIDEO del animador — HEVC con alfa, el primer AVFoundation del
+> repo — con el premio renderizado en el marco vacío del final; sesión en §4.
+> ⚠️ Ese día `StoreManagerTests` en 18.6 falló por ENTORNO, no por el árbol —
+> el aviso está en §6. Y sigue vigente lo del 25-08: los sims de verificación
+> van con runtime **iOS 26.5**; una app compilada con el SDK 26 sobre un sim
 > 18.6 se ve rota).
 
 ---
@@ -234,6 +236,34 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-28 — El cofre animado por video
+
+**La apertura de cofres es el video del animador entero** (`chest-animation.mp4`,
+pantalla verde; el master vive en `Tools/asset-pipeline/video/`), en dos rondas
+del dueño: integrar el video, y después «dejá SOLO el video y renderizá el
+contenido de la carta en el marco vacío del final». Tres toques fuerzan el
+candado (frames PNG cuantizados — el dedo pide swap inmediato) y del estallido
+al marco corre **`chest_open.mov`, HEVC con canal alfa: el primer AVFoundation
+del repo** (3 MB contra ~12 en PNGs, el porqué en `ChestCinematicPlayer`). El
+premio se renderiza dentro del pergamino (`parchmentRect`, segunda ancla del
+manifest `chest_anim.json` — contrato pineado por tests de pipeline y runtime),
+con push-in de cámara 1→1,3 y feather de 28 px en los bordes del encuadre.
+Murieron `ChestShake`, `ChestDrop`, `FlyingLid`, el flash, los rayos teñibles,
+las ráfagas y la carta `PanelCard` del popup — **y con los rayos, el anuncio de
+rareza del segundo toque** (la cinta del marco lo cubre). Retirados de atlas y
+manifest: `ui_chest_cracked/open/lid` y los tres `fx_*` (sin llamadores);
+`ui_chest_closed` regenerado del frame 0 (Regalos y el diario sin tocar
+código). `Resources/ChestAnim/` pesa 4,5 MB. Trampas nuevas del pipeline: el
+croma se mide en el stream con matriz LIMITED-range; `blend` con máscara en
+`-loop` exige `shortest=1` DENTRO del filtro; `AVPlayer.preroll` con item
+`.unknown` lanza NSException. Detalle en
+**`Docs/SESION-2026-08-28-cofre-animado.md`** (con la enmienda en el spec §8).
+Números del cierre: pipeline **12** · unit **458** (el único rojo es el
+declarado de Pacing) · UI **53** (2 re-verificados: uno adaptado al flujo de 3
+toques, uno de carga) · `StoreUITests` **2** — y 🔴 `StoreManagerTests` en 18.6
+falló HOY con fallos rotativos de ENTORNO (diff sin un archivo de Store; ver
+la doc de sesión y el aviso en §6).
 
 ### Sesión del 2026-08-26/27 — Los cofres de skins
 
@@ -1188,6 +1218,15 @@ flaky re-corrido**.
 un cuadro con 12 rojos era heredar el síntoma después de haber construido la
 cura. El único rojo del proyecto es uno.
 
+⚠️ **PERO el 2026-08-28 el 18.6 también falló, y fue LA MÁQUINA, no el árbol**:
+`StoreManagerTests` con fallos ROTATIVOS (el catálogo `.failed` tras ~270 s de
+reintentos vacíos, un refund que no revoca — la firma del breakage de StoreKit
+Testing), en tres corridas incluida una con el sim borrado a cero, con un diff
+que no toca un archivo de Store, Xcode sin cambiar de build y `StoreUITests`
+verde en el mismo sim. Si te pasa: verificá el diff con `git diff … | grep -i
+store` antes de sospechar del código, y re-corré otro día — la señal de sano es
+`StoreManagerTests` entero verde en un 18.6 virgen.
+
 🔴 El rojo declarado es **`PacingTests.theOwnersTargetsAreMet`** y es la verdad,
 no un flaky — pero ⚠️ **no por el motivo que este documento decía hasta hoy**.
 El contrato de las **20-30 h ya pasa** desde la desaceleración; lo que queda
@@ -2105,11 +2144,11 @@ convirtió "se siente trabado" en un número con dueño.
    en 3, `earth.atlas` en 6, `cosmic.atlas` en 4. Cada página es una realización aparte, o
    sea que el costo de `size()` escala con cuántas páginas toque el personaje que pediste.
    Un `preload` que no sepa de páginas puede quedarse corto.
-2. **Cuando esto aterrice, revisar el `Task.yield()` de `ChestOpeningView`.** La caída del
-   cofre depende de un hop calibrado contra el bloqueo de HOY: `Task.yield()` reencola una
-   vez, no espera un cuadro dibujado ni ordena contra el commit de la CATransaction. Con los
-   215 ms afuera puede volverse **innecesario o insuficiente**, y las dos cosas se ven igual
-   en el código.
+2. ~~Cuando esto aterrice, revisar el `Task.yield()` de `ChestOpeningView`.~~ **YA NO
+   APLICA (2026-08-28)**: la caída del cofre y su `Task.yield()` murieron con el video —
+   la entrada ahora es un fade+escala disparado desde el `.task` del primer latido, que
+   corre después del armado por diseño. La lección del hop calibrado quedó contada en el
+   doc de `ChestDrop`… que también se retiró: si hace falta, está en git (`e40244b^`).
 
 **Lo que NO es de esta tarea**: los ~500 ms de bloqueo que quedan en `.arriving` no son del
 retrato, son del overlay armándose. Es otra investigación.
@@ -2364,8 +2403,14 @@ Anotado por si algún día importa, con su medición:
 
 ## 9. Mapa de documentos
 
+- `Docs/SESION-2026-08-28-cofre-animado.md` — la apertura de cofres es el video del
+  animador (HEVC con alfa + frames interactivos); el keying limited-range, el pipeline
+  `chest_video_frames.py`, el contrato `chest_anim.json` y el premio en el marco.
+- `Docs/superpowers/specs/2026-08-28-cofre-animado-por-video-design.md` — el diseño, con
+  la ENMIENDA del dueño en §8 (solo el video, entero) que invalida parte de §2.
 - `Docs/superpowers/specs/2026-08-26-cofres-de-skins-design.md` — el diseño de los cofres:
-  la bolsa, el sorteo, las fuentes con su cuenta medida, los siete latidos de la animación.
+  la bolsa, el sorteo, las fuentes con su cuenta medida, los siete latidos de la animación
+  (⚠️ los latidos visuales de ese spec son historia: desde el 28-08 la animación es el video).
 - `Docs/superpowers/plans/2026-08-26-cofres-de-skins.md` — el plan de 12 tareas. ⚠️ Lleva
   adentro un **mapa de los helpers de test que existen de verdad**, porque el plan inventó
   cuatro que no existían.

@@ -111,11 +111,24 @@ cambios de código en esos call sites.
 | Unit del cofre (loader+feed, 11) | sim iOS 26.5 | **11/11** ✅ |
 | `ChestOpeningUITests` (2) | sim iOS 26.5 | **2/2** ✅ (⚠️ fallaron UNA vez en el primer arranque post-instalación — la app en frío con el decoder recién estrenado; en la repetición y en corridas posteriores pasan; las transiciones de latido quedaron logueadas con `Log.assets` para diagnosticar si reaparece) |
 | EconomyKit | `swift test` | **262/262** ✅ |
-| Unit sin Store | sim iOS 26.5 | (se completa al cierre) |
-| Store unit | sim iOS 18.6 | (se completa al cierre) |
-| UI sin Store | sim iOS 26.5 | (se completa al cierre) |
-| StoreUITests | sim iOS 18.6 | (se completa al cierre) |
+| Unit sin Store (447 + 11 nuevos) | sim iOS 26.5 | **458, con el ÚNICO rojo declarado** (`PacingTests.theOwnersTargetsAreMet`: 9 vs ≤8 reencarnaciones — preexistente, es contrato) |
+| Store unit (10+2) | sim iOS 18.6 | 🔴 **`StoreManagerTests` con fallos ROTATIVOS de entorno** (ver abajo); `StoreProductsTests` 2/2 ✅ |
+| UI sin Store | sim iOS 26.5 | **53, con 2 rojos re-verificados**: el de Regalos era MÍO (el 4º tap del flujo viejo — adaptado a 3 toques, verde), el del menú pasó aislado sin cambios (carga del sim, precedente del general) |
+| StoreUITests | sim iOS 18.6 | **2/2** ✅ |
 | Smokes con captura | sim 26.5 | ✅ sacudida limpia · carta girando sin costura de encuadre (feather) · marco final con retrato+cinta+nombre+subtítulo y botones sin rozar el marco |
+
+### 🔴 `StoreManagerTests` en 18.6: la infraestructura falló HOY, y no es de esta rama
+
+Tres corridas, fallos ROTATIVOS con la misma firma del breakage conocido de
+StoreKit Testing: primero `loadsTheCatalogProducts` (`.failed` tras 268 s de
+catálogo vacío), después `refundRevokesEntitlement` (el refund no revoca), y
+en la tercera —con el sim BORRADO a cero— los dos. Lo que se verificó antes de
+declararlo entorno: **el diff completo de esta sesión no toca un solo archivo
+de Store** (`git diff 78711c8..HEAD` — cero matches), Xcode NO cambió de build
+(26.6/17F113), `StoreUITests` pasa 2/2 en el mismo sim, y ayer (2026-08-27)
+los 12 pasaron en 18.6 en la corrida del cierre de cofres. Es la máquina hoy,
+no el árbol. Señal de re-verificación: `StoreManagerTests` entero en un sim
+18.6 virgen un día que la máquina esté sana.
 
 ## Decisiones de esta tanda
 

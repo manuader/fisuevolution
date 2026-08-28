@@ -107,8 +107,9 @@ struct ChestOpeningView: View {
     private static let chestSide: CGFloat = 210
     /// El centro del cofre, en puntos desde el centro de la pantalla.
     private static let chestY: CGFloat = -20
-    /// Los botones, debajo del marco de la carta ya con el push-in aplicado.
-    private static let controlsY: CGFloat = 178
+    /// Los botones, debajo del marco de la carta ya con el push-in aplicado
+    /// (a 178 el primero rozaba el marco dorado — medido en captura).
+    private static let controlsY: CGFloat = 212
     /// El push-in final: deja el pergamino del marco en ~200 pt de ancho.
     private static let zoomFinal: CGFloat = 1.3
     /// El flip de la carta ocurre en el frame 197 del video (f48 + 149/24 s):
@@ -131,6 +132,25 @@ struct ChestOpeningView: View {
             // (`celebrationHidesUI`), esto apaga el tablero.
             Color.black.opacity(0.55)
                 .ignoresSafeArea()
+
+            // El video hornea una viñeta oscura alrededor del cofre y la
+            // carta, y en el borde del encuadre se corta seca: el rectángulo
+            // de 1280×720 se delataba (visto en el primer smoke). Este scrim
+            // la CONTINÚA hacia afuera — transparente donde el video tiene su
+            // foco, y del nivel de la viñeta hacia los bordes de pantalla —
+            // así el encuadre no tiene costura. Aparece con el video y se
+            // queda: la viñeta del último frame sigue en pantalla.
+            RadialGradient(
+                colors: [.clear, .black.opacity(0.32)],
+                center: .center,
+                startRadius: 150,
+                endRadius: 430
+            )
+            .offset(y: Self.chestY)
+            .ignoresSafeArea()
+            .opacity(beat >= .cinematic ? 1 : 0)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.4), value: beat >= .cinematic)
+            .allowsHitTesting(false)
 
             stageCanvas
                 .scaleEffect(breathing ? 1.04 : 1)

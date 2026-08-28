@@ -24,9 +24,13 @@ final class ChestCinematicPlayer {
         let item = AVPlayerItem(url: url)
         player = AVPlayer(playerItem: item)
         player.actionAtItemEnd = .pause
-        // Sin esto el primer `play()` paga el arranque del decoder; el
-        // overlay crea el player latidos antes de reproducirlo.
-        player.preroll(atRate: 1)
+        // ⚠️ Nada de `preroll(atRate:)` acá: con el item recién creado el
+        // player está en `.unknown` y preroll **lanza NSException** (SIGABRT,
+        // medido en el primer smoke). El precalentamiento real es otro:
+        // asociar el item ya dispara la preparación del asset, y el overlay
+        // crea este player en la llegada — latidos enteros antes del primer
+        // `play()`. Si aun así el decoder llegara tarde, el frame idle queda
+        // montado debajo del video tapando el hueco.
     }
 
     func play(rate: Float) {

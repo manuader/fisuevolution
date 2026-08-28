@@ -122,16 +122,43 @@ def extract_keyed_frames(video: Path, out_dir: Path) -> None:
     emitted[-1].rename(out_dir / f"k{CINEMATIC_LAST:03d}.png")
 
 
-def encode_cinematic(video: Path) -> None:
-    """f48-f239 como HEVC con alfa (hvc1), listo para AVPlayer."""
-    vf = (
-        f"select='between(n,{CINEMATIC_FIRST},{CINEMATIC_LAST})',"
-        f"setpts=PTS-STARTPTS,{KEY_FILTER},format=bgra"
+# El glow del estallido toca los bordes del encuadre y cortado seco delataba
+# el rectángulo de 1280×720 sobre el juego (visto en el smoke): el alfa se
+# desvanece en los últimos px de cada borde y la costura desaparece.
+EDGE_FEATHER_PX = 28
+
+
+def write_feather_mask(path: Path) -> None:
+    """Máscara L: blanca adentro, degradada a negro en los cuatro bordes."""
+    w, h = CANVAS
+    ys, xs = np.mgrid[0:h, 0:w].astype(np.float64)
+    dist = np.minimum(np.minimum(xs, w - 1 - xs), np.minimum(ys, h - 1 - ys))
+    mask = np.clip(dist / EDGE_FEATHER_PX, 0.0, 1.0)
+    Image.fromarray((mask * 255).astype(np.uint8), mode="L").save(path)
+
+
+def encode_cinematic(video: Path, workdir: Path) -> None:
+    """f48-f239 como HEVC con alfa (hvc1) y bordes emplumados, para AVPlayer."""
+    mask_path = workdir / "edge_mask.png"
+    write_feather_mask(mask_path)
+    # ⚠️ El `shortest=1` va DENTRO del `blend` y el split de [keyed] es
+    # obligatorio: la máscara en `-loop 1` es un stream INFINITO, y sin el
+    # shortest del filtro, `blend` repite el último frame para siempre — el
+    # `-shortest` de output no corta streams de un filter_complex (medido: un
+    # encode de 192 frames llevaba 4 h y 1,25 GB cuando se lo mató).
+    filter_complex = (
+        f"[0:v]select='between(n,{CINEMATIC_FIRST},{CINEMATIC_LAST})',"
+        f"setpts=PTS-STARTPTS,{KEY_FILTER},format=rgba,split[keyed][forAlpha];"
+        "[forAlpha]alphaextract[alpha];"
+        "[alpha][1:v]blend=all_mode=multiply:shortest=1[fadedalpha];"
+        "[keyed][fadedalpha]alphamerge,format=bgra[out]"
     )
     subprocess.run(
         [
             "ffmpeg", "-v", "error", "-i", str(video),
-            "-vf", vf,
+            "-loop", "1", "-i", str(mask_path),
+            "-filter_complex", filter_complex,
+            "-map", "[out]",
             "-c:v", "hevc_videotoolbox",
             "-alpha_quality", HEVC_ALPHA_QUALITY,
             "-q:v", HEVC_QUALITY,
@@ -201,11 +228,26 @@ def emit_segment_frames(keyed_dir: Path) -> list[str]:
 
 
 def emit_card_still(keyed_dir: Path) -> None:
-    quantized(
-        render_frame(
-            keyed_dir / f"k{CINEMATIC_LAST:03d}.png", FULL_CROP, CARD_STILL_SCALE
+    """El último frame, con el MISMO feather de bordes que el video: en
+    Reduce Motion el still ocupa el lugar del frame final y deben ser
+    indistinguibles."""
+    rgba = np.asarray(
+        Image.open(keyed_dir / f"k{CINEMATIC_LAST:03d}.png").convert("RGBA"),
+        dtype=np.uint8,
+    )
+    w, h = CANVAS
+    ys, xs = np.mgrid[0:h, 0:w].astype(np.float64)
+    dist = np.minimum(np.minimum(xs, w - 1 - xs), np.minimum(ys, h - 1 - ys))
+    mask = np.clip(dist / EDGE_FEATHER_PX, 0.0, 1.0)
+    rgba = clean_transparent_rgb(rgba)
+    rgba[..., 3] = (rgba[..., 3].astype(np.float64) * mask).astype(np.uint8)
+    img = Image.fromarray(rgba)
+    if CARD_STILL_SCALE != 1.0:
+        img = img.resize(
+            (round(w * CARD_STILL_SCALE), round(h * CARD_STILL_SCALE)),
+            Image.LANCZOS,
         )
-    ).save(CHEST_ANIM / CARD_STILL_FILE, optimize=True)
+    quantized(img).save(CHEST_ANIM / CARD_STILL_FILE, optimize=True)
 
 
 def build_manifest() -> dict:
@@ -289,7 +331,7 @@ def main() -> int:
         warnings = emit_segment_frames(keyed_dir)
         emit_card_still(keyed_dir)
         emit_static_chest(keyed_dir)
-    encode_cinematic(args.video)
+        encode_cinematic(args.video, keyed_dir)
 
     write_json(CHEST_ANIM / "chest_anim.json", build_manifest())
 

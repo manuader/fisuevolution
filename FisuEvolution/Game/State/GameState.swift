@@ -986,7 +986,17 @@ final class GameState {
             .subtracting(player.meta.claimedAchievements).isEmpty
         if hasClaimableAchievements != claimable { hasClaimableAchievements = claimable }
 
-        let cofres = pendingChestCount > 0
+        // ⚠️ **`canOpenChest` y no `pendingChestCount > 0`**: desde la regla de
+        // desbloqueo (2026-08-28) se puede tener cofres y no poder abrir ninguno,
+        // y un puntito que el jugador NO puede apagar se queda prendido un piso
+        // entero. Es el mismo punto que usan logros y daily: entrenarlo a que a
+        // veces miente los apaga a los tres.
+        //
+        // El costo extra —armar el conjunto de personajes alcanzables— sólo se
+        // paga cuando hay cofres esperando, porque `canOpenChest` cotiza primero
+        // contra el contador. Sin cofres, esto sigue siendo la misma comparación
+        // de antes.
+        let cofres = canOpenChest
         if hasPendingChests != cofres { hasPendingChests = cofres }
 
         refreshTutorialTip()

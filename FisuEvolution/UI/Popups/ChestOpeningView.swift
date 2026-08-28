@@ -37,14 +37,16 @@ enum ChestRarityStyle {
 /// Pedido del dueño (2026-08-28, segunda ronda): la animación ES el video —
 /// murieron los rayos, las ráfagas, el flash y la carta de la casa que
 /// acompañaban a los frames — y el contenido del premio se renderiza al final
-/// **dentro del marco vacío de la carta del video**. Tercera ronda, mismo
-/// día: el master nuevo es un sprite puro (verde plano, sin viñeta ni piso
-/// horneados) en el que **el cofre se desvanece solo** después de soltar la
-/// carta — la desaparición seamless que pidió el dueño es del arte, no de un
-/// fade nuestro. Lo que quedó de la coreografía propia: los tres toques que
-/// fuerzan el candado (cada uno dispara su sacudida real, con auto-avance de
-/// 1,2 s para el que no toca), los hápticos, y un push-in suave de cámara
-/// mientras la carta sube — que es transformación, no arte.
+/// **dentro del marco vacío de la carta del video**. Cuarta ronda, mismo día
+/// (el master definitivo): video **2D vertical con la estética del juego y
+/// CON SONIDO** — la pista del cinemático viaja dentro del mov y las
+/// sacudidas suenan como clips SFX junto a sus frames. El cofre se desvanece
+/// solo después de soltar la carta, y la carta del video ya hace su propio
+/// push-in, así que el zoom de la casa murió con esta ronda. Lo que queda de
+/// coreografía propia: los tres toques que fuerzan el candado (cada uno con
+/// su sacudida, su sonido y su háptico, con auto-avance de 1,2 s para el que
+/// no toca) y el escenario a sangre completa: el lienzo vertical cubre la
+/// pantalla de lado a lado y hasta arriba.
 ///
 /// El reparto de formatos es medido, no estético: los latidos que responden
 /// al dedo reproducen frames PNG (`ChestAnimationFeed`, swap en el mismo
@@ -73,9 +75,6 @@ struct ChestOpeningView: View {
     /// caída del cofre, ronda 4 del cierre de cofres).
     @State private var entered = false
     @State private var breathing = false
-    /// El push-in de cámara del tramo cinemático: escala el escenario entero
-    /// alrededor del centro de la carta, así el marco final queda grande.
-    @State private var cinematicZoom: CGFloat = 1
     /// El contenido del premio dentro del marco, con su fade del reposo.
     @State private var contentRevealed = false
     /// Los frames PNG de respaldo, retirados. En este video **el cofre se
@@ -113,25 +112,28 @@ struct ChestOpeningView: View {
         #endif
     }()
 
-    private static let chestSide: CGFloat = 210
+    /// El cofre a 274 pt hace que el lienzo vertical del video (720×1280,
+    /// cofre de 448 px) cubra la pantalla completa a lo ancho —Pro Max
+    /// incluido— y hasta arriba; sólo queda un tramo de adoquines abajo,
+    /// donde los destellos son ralos y el feather del borde no se nota.
+    private static let chestSide: CGFloat = 274
     /// El centro del cofre, en puntos desde el centro de la pantalla.
     private static let chestY: CGFloat = -20
-    /// Los botones, debajo del marco de la carta ya con el push-in aplicado
-    /// (a 178 el primero rozaba el marco dorado — medido en captura).
+    /// Los botones, debajo del marco final de la carta (~98 pt de aire
+    /// medidos; a 178 el primero rozaba el marco dorado del master viejo).
     private static let controlsY: CGFloat = 212
-    /// El push-in final: deja el pergamino del marco en ~200 pt de ancho.
-    private static let zoomFinal: CGFloat = 1.3
     /// Cuánto video corrido hace falta para jubilar el PNG de respaldo: a los
     /// 0,6 s el decoder lleva ~14 frames rendidos y el cofre del video sigue
-    /// opaco por 2 s más — hay margen de sobra en las dos puntas.
+    /// opaco ~1,5 s más (empieza a fundirse a los 2,1 s del tramo) — margen
+    /// en las dos puntas.
     private static let stageHandoffSeconds = 0.6
-    /// El flip de la carta arranca en ~f198 del video (6,25 s del tramo): su
+    /// El flip de la carta va en ~f192–f200 del video (6,1 s del tramo): su
     /// háptico se dispara por reloj —apenas antes del giro—, no por observer
     /// del player.
-    private static let flipSecondsIntoCinematic = 6.2
-    /// El video dura 8,0 s; el tope del await es el seguro contra un decoder
-    /// trabado, porque este latido no lo avanza nadie más.
-    private static let cinematicSeconds = 8.0
+    private static let flipSecondsIntoCinematic = 6.0
+    /// El video dura 7,92 s (190 frames); el tope del await es el seguro
+    /// contra un decoder trabado, porque este latido no lo avanza nadie más.
+    private static let cinematicSeconds = 190.0 / 24.0
     private static let portraitSide: CGFloat = 96
     private static let plateShape = RoundedRectangle(cornerRadius: 14, style: .continuous)
 
@@ -246,7 +248,6 @@ struct ChestOpeningView: View {
                 }
             }
             .frame(width: stage.size.width, height: stage.size.height)
-            .scaleEffect(cinematicZoom, anchor: cardAnchor)
         } else if let image = UIArt.image("ui_chest_closed") {
             // Sin manifest (bundle roto): el cofre estático de siempre, feo
             // pero funcional — `ChestAnimationTests` pina que no pasa.
@@ -257,36 +258,22 @@ struct ChestOpeningView: View {
         }
     }
 
-    /// El centro del pergamino dentro del encuadre, como ancla del push-in:
-    /// los puntos del ancla no se mueven al escalar, así que el marco queda
-    /// clavado donde el contenido lo espera.
-    private var cardAnchor: UnitPoint {
-        guard let animation = feed.animation else { return .center }
-        let stage = animation.cinematicStage(chestWidth: Self.chestSide)
-        let parch = animation.parchmentStage(chestWidth: Self.chestSide)
-        return UnitPoint(
-            x: (stage.size.width / 2 + parch.offset.width - stage.offset.width) / stage.size.width,
-            y: (stage.size.height / 2 + parch.offset.height - stage.offset.height) / stage.size.height
-        )
-    }
-
     // MARK: El contenido del marco
 
     /// El premio, renderizado dentro del pergamino vacío de la carta del
-    /// video. Vive FUERA del subárbol escalado por el push-in —el texto bajo
-    /// un `scaleEffect` queda rasterizado y estirado— y se posiciona en el
-    /// mismo punto: el pergamino es el ancla del zoom, así que su centro no se
-    /// mueve, y su tamaño final es el del manifest por el zoom.
+    /// video, en el tamaño y el punto que dicta el manifest. Vive como capa
+    /// hermana del escenario —no adentro— para que ninguna transformación del
+    /// arte (el respiro, la entrada) rasterice el texto.
     private var cardContent: some View {
         let animation = feed.animation
         let parch = animation?.parchmentStage(chestWidth: Self.chestSide)
         let size = CGSize(
-            width: (parch?.size.width ?? 155) * Self.zoomFinal,
-            height: (parch?.size.height ?? 215) * Self.zoomFinal
+            width: parch?.size.width ?? 214,
+            height: parch?.size.height ?? 308
         )
         let offset = CGSize(
             width: parch?.offset.width ?? 0,
-            height: (parch?.offset.height ?? -65) + Self.chestY
+            height: (parch?.offset.height ?? -62) + Self.chestY
         )
         return VStack(spacing: Tokens.s8) {
             prizeArt
@@ -414,12 +401,14 @@ struct ChestOpeningView: View {
         }
 
         /// Segundos hasta el auto-avance. El cinemático no lleva reloj: lo
-        /// termina el propio video (con tope, en su coreografía).
+        /// termina el propio video (con tope, en su coreografía). El tercer
+        /// forzado dura lo que su temblor (11 frames, 0,46 s): el video
+        /// arranca justo donde ese segmento termina.
         var autoAdvance: Double? {
             switch self {
             case .arriving: 0.25
             case .waiting, .forced1, .forced2: 1.2
-            case .forced3: 0.4
+            case .forced3: 0.5
             case .cinematic, .resting: nil
             }
         }
@@ -483,19 +472,26 @@ struct ChestOpeningView: View {
             // construyendo igual.
             warmPrizeArt()
             feed.warm(.shakeA)
+            feed.warm(.shakeB)
         case .waiting:
             breathing = !reduceMotion
         case .forced1:
             breathing = false
             if !reduceMotion { feed.play(.shakeA) }
+            gameState.audio?.play(.chestShakeA)
             play(.merge)                       // un golpe
         case .forced2:
-            if !reduceMotion { feed.play(.shakeB) }
+            // La segunda sacudida repite la primera: la B de este master es
+            // el temblor final que desemboca en el estallido, y ésa es del
+            // tercer toque.
+            if !reduceMotion { feed.play(.shakeA) }
+            gameState.audio?.play(.chestShakeA)
             play(.purchase)                    // dos golpes
         case .forced3:
-            // La tercera sacudida repite la primera: la variación la puso
-            // siempre el jugador, no el arte.
-            if !reduceMotion { feed.play(.shakeA) }
+            // El temblor agachado: termina en f49 y el video arranca en f50 —
+            // el tercer toque desemboca en el estallido sin costura.
+            if !reduceMotion { feed.play(.shakeB) }
+            gameState.audio?.play(.chestShakeB)
             play(.rarity)                      // tres que suben
         case .cinematic:
             play(.evolution)                   // el más grande del juego
@@ -505,12 +501,7 @@ struct ChestOpeningView: View {
                 return
             }
             let rate: Float = Self.waitsForTapsOnly ? 4 : 1
-            cinematic.play(rate: rate)
-            // El push-in: arranca cuando la carta sale del cofre y termina
-            // antes del flip, así el marco se revela ya en grande.
-            withAnimation(.easeInOut(duration: 3.2 / Double(rate)).delay(1.4 / Double(rate))) {
-                cinematicZoom = Self.zoomFinal
-            }
+            cinematic.play(rate: rate, volume: Float(gameState.audio?.sfxVolume ?? 1))
             // El PNG de respaldo se jubila con el video ya rindiendo, mucho
             // antes de que el cofre del video empiece a desvanecerse.
             guard await pause(Self.stageHandoffSeconds / Double(rate)) else { return }
@@ -533,7 +524,6 @@ struct ChestOpeningView: View {
             stageRetired = true
             if reduceMotion || cinematic == nil {
                 await showFinalStill()
-                cinematicZoom = Self.zoomFinal
             }
             withAnimation(reduceMotion ? nil : .spring(duration: 0.4, bounce: 0.25)) {
                 contentRevealed = true

@@ -33,7 +33,11 @@ final class ChestCinematicPlayer {
         // montado debajo del video tapando el hueco.
     }
 
-    func play(rate: Float) {
+    /// El mov trae su pista de sonido adentro; el volumen es el del canal SFX
+    /// del juego, leído al momento de reproducir (con el overlay abierto no
+    /// hay forma de cambiarlo a mitad de video).
+    func play(rate: Float, volume: Float) {
+        player.volume = volume
         player.play()
         player.rate = rate
     }

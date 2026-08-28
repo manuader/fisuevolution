@@ -15,23 +15,29 @@ import Testing
 /// ternarios —`audio?.play(isCrit || isGolden ? .coin : .tap)`—, que esa
 /// búsqueda no encuentra.
 @Suite struct AudioWiringTests {
-    /// Los diez casos de `AudioManager.SFX`. Van escritos a mano a propósito: el
+    /// Los casos de `AudioManager.SFX`. Van escritos a mano a propósito: el
     /// test tiene que fallar cuando el enum crece y el cableado no.
     private static let declaredCases = [
         "tap", "merge", "evolution", "coin", "buy",
         "error", "rare", "prestige", "event", "daily",
+        "chestShakeA", "chestShakeB",
     ]
 
+    /// Las acciones de `GameState` más los popups: las sacudidas del cofre
+    /// suenan desde la coreografía de `ChestOpeningView`, no desde una acción.
     private static func gameStateSources() throws -> String {
-        let root = URL(fileURLWithPath: #filePath)
+        let repo = URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()   // FisuEvolutionTests
             .deletingLastPathComponent()   // repo
-            .appendingPathComponent("FisuEvolution/Game/State")
-        let files = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
-        return try files
-            .filter { $0.pathExtension == "swift" }
-            .map { try String(contentsOf: $0, encoding: .utf8) }
-            .joined(separator: "\n")
+        var sources: [String] = []
+        for folder in ["FisuEvolution/Game/State", "FisuEvolution/UI/Popups"] {
+            let root = repo.appendingPathComponent(folder)
+            let files = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+            sources += try files
+                .filter { $0.pathExtension == "swift" }
+                .map { try String(contentsOf: $0, encoding: .utf8) }
+        }
+        return sources.joined(separator: "\n")
     }
 
     /// El texto de cada argumento de `<receiver>?.play(...)`, balanceando
@@ -92,7 +98,7 @@ import Testing
         return found
     }
 
-    @Test("los diez SFX declarados tienen al menos un call site")
+    @Test("los SFX declarados tienen al menos un call site")
     func everySFXIsFired() throws {
         let sources = try Self.gameStateSources()
         let fired = Self.playArguments(receiver: "audio", in: sources)

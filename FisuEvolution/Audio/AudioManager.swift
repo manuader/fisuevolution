@@ -19,6 +19,11 @@ final class AudioManager {
         case prestige = "sfx_prestige"
         case event = "sfx_event"
         case daily = "sfx_daily"
+        // Las sacudidas del cofre, recortadas de la pista del video del
+        // animador (las genera `chest_video_frames.py`): el timing lo pone el
+        // dedo, así que van como clips y no dentro del mov del cinemático.
+        case chestShakeA = "sfx_chest_shake_a"
+        case chestShakeB = "sfx_chest_shake_b"
     }
 
     static let musicVolumeKey = "settings.musicVolume"

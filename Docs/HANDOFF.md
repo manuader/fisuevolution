@@ -53,14 +53,15 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-28 (bis)** (el master
-> del cofre se REEMPLAZÓ por un sprite puro en el que el cofre se desvanece
-> solo, y cayó el bug de compositing que el primero disfrazaba: el mov va
-> **premultiplicado** o `AVPlayerLayer` suma el fondo keyeado como un velo —
-> sesión en §4, trampa al tope de §7. ⚠️ Ese día `StoreManagerTests` en 18.6
-> falló por ENTORNO, no por el árbol — el aviso está en §6. Y sigue vigente
-> lo del 25-08: los sims de verificación van con runtime **iOS 26.5**; una
-> app compilada con el SDK 26 sobre un sim 18.6 se ve rota).
+> **Empezá por acá.** Última actualización: **2026-08-28 (ter)** (el cofre
+> tiene su master DEFINITIVO: 2D vertical con la estética del juego y CON
+> SONIDO — la pista del cinemático adentro del mov, las sacudidas como clips
+> SFX, full-bleed sin costuras; sesión en §4. La trampa del día sigue al tope
+> de §7: el mov va **premultiplicado** o `AVPlayerLayer` suma el fondo
+> keyeado como un velo. ⚠️ Ese día `StoreManagerTests` en 18.6 falló por
+> ENTORNO, no por el árbol — el aviso está en §6. Y sigue vigente lo del
+> 25-08: los sims de verificación van con runtime **iOS 26.5**; una app
+> compilada con el SDK 26 sobre un sim 18.6 se ve rota).
 
 ---
 
@@ -237,6 +238,32 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-28 (ter) — El cofre definitivo: 2D, vertical y con sonido
+
+El dueño entregó el master definitivo («usa la estética de este cofre que es
+en 2d… ponelo en el juego con su respectivo sonido. borra todo lo relativo a
+las animaciones anteriores»): **720×1280 vertical, cartoon calzado al juego,
+con pista AAC**. Recalibración completa (croma 0x22924A, cofre 448 px,
+segmentos A [23,38] / B [39,49] con **empalme continuo al video en f50** — la
+B es el temblor que desemboca en el estallido, y por eso los toques 1 y 2
+repiten la A), `parchmentRect` (172,363,349,504). Con el cofre a **274 pt**
+el lienzo cubre la pantalla entera menos un tramo de adoquines abajo:
+full-bleed medido sin costura. **El push-in de la casa murió** (la carta del
+video ya hace el suyo y termina grande: contenido a ~214×308 pt sin zoom).
+**El sonido va en dos familias**: el cinemático DENTRO del mov (AAC, atrim al
+mismo arranque; `play(rate:volume:)` con el volumen SFX de Ajustes) y las
+sacudidas como `sfx_chest_shake_a/b.caf` en `Resources/Audio/` (PCM, ventanas
+exactas de sus frames, generados por el pipeline) — `AudioManager.SFX` ganó
+sus dos casos y `AudioWiringTests` barre ahora también `UI/Popups`. El fade
+del cofre viene horneado COMO MEZCLA AL VERDE y keyeado queda una sombra que
+se evapora (verificado A/B). Detalle en
+**`Docs/SESION-2026-08-28-cofre-definitivo-2d.md`**. Números: pipeline
+**13** · unit **459 con el único rojo declarado** · cofre+audio **17/17** ·
+UI **3/3** · latidos en vivo con el **cinemático de 8,19 s terminado por la
+notificación real**. ⚠️ Y una lección de instrumento: la cadencia de
+`simctl screenshot` en máquina cargada hace parecer que el arco se saltea —
+el juez del timing es el log de latidos, no las capturas.
 
 ### Sesión del 2026-08-28 (bis) — El velo del encuadre, y el master que se desvanece
 
@@ -2447,9 +2474,13 @@ Anotado por si algún día importa, con su medición:
 
 ## 9. Mapa de documentos
 
-- `Docs/SESION-2026-08-28-cofre-video-v2.md` — el master REEMPLAZADO (el cofre se
-  desvanece solo), la recalibración completa, y el bug del velo: el mov premultiplicado
-  porque `AVPlayerLayer` suma el RGB de las zonas con α=0.
+- `Docs/SESION-2026-08-28-cofre-definitivo-2d.md` — el master DEFINITIVO del cofre:
+  2D vertical con sonido (mov con AAC + clips de sacudida), full-bleed a 274 pt,
+  el empalme continuo del tercer toque y la muerte del push-in de la casa.
+- `Docs/SESION-2026-08-28-cofre-video-v2.md` — el master intermedio (el cofre se
+  desvanece solo), la recalibración v2, y el bug del velo: el mov premultiplicado
+  porque `AVPlayerLayer` suma el RGB de las zonas con α=0 (⚠️ su master y números
+  duraron horas: ver la sesión ter).
 - `Docs/SESION-2026-08-28-cofre-animado.md` — la apertura de cofres es el video del
   animador (HEVC con alfa + frames interactivos); el keying limited-range, el pipeline
   `chest_video_frames.py`, el contrato `chest_anim.json` y el premio en el marco

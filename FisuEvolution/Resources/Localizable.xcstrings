@@ -4368,6 +4368,23 @@
         }
       }
     },
+    "prestige.oro.next %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earn %@ more for your next ORO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te falta juntar %@ para tu próximo ORO"
+          }
+        }
+      }
+    },
     "prestige.title" : {
       "localizations" : {
         "en" : {
@@ -8565,6 +8582,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Dale!"
+          }
+        }
+      }
+    },
+    "tutorial.tip.oro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first ORO! Trade it in Upgrades for a permanent boost"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tu primer ORO! Canjealo en Mejoras por una mejora permanente"
           }
         }
       }

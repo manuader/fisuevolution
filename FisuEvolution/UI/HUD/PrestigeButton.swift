@@ -23,7 +23,10 @@ struct PrestigeButton: View {
     static let capsuleHeight: CGFloat = QuickHireButton.capsuleHeight
 
     var body: some View {
-        if gameState.prestigeAvailable {
+        // Desde el piso del teaser ("al llegar a lujo", dueño 2026-08-28) el
+        // botón EXISTE aunque no haya ORO por cobrar: enseña la mecánica y
+        // muestra el camino. La hoja que abre sabe contar los dos estados.
+        if gameState.prestigeAvailable || gameState.prestigeTeaser {
             button
         }
     }
@@ -49,13 +52,15 @@ struct PrestigeButton: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                     // El ORO que te llevás es lo que hace que valga la pena
-                    // tocarlo, y es el gemelo del precio del otro botón.
+                    // tocarlo, y es el gemelo del precio del otro botón. Sin
+                    // ORO todavía (el teaser), el renglón dice cuánto camino
+                    // hay hecho hacia el primero: un objetivo, no una ganancia.
                     HStack(spacing: 5) {
                         OroIcon(size: 20)
                         // Con el "+" delante: del otro lado el número es un
                         // PRECIO y acá es una ganancia, y a igual tipografía eso
                         // es lo único que los distingue.
-                        Text(verbatim: "+\(gameState.prestigePreview.oroGained)")
+                        Text(verbatim: secondLine)
                             .font(Tokens.body)
                             .monospacedDigit()
                             .lineLimit(1)
@@ -93,6 +98,16 @@ struct PrestigeButton: View {
         .accessibilityIdentifier("hud.prestige")
     }
 
+    /// La segunda línea de la cápsula: "+N" con ORO por cobrar, o el porcentaje
+    /// del camino al próximo en el teaser (verbatim: un número con % no
+    /// necesita clave).
+    private var secondLine: String {
+        let preview = gameState.prestigePreview
+        return preview.isWorthIt
+            ? "+\(preview.oroGained)"
+            : preview.nextOroProgress.formatted(.percent.precision(.fractionLength(0)))
+    }
+
     /// "Reencarnar +12 ORO" en una sola frase: VoiceOver no debería tener que
     /// juntar dos elementos para saber qué hace el botón.
     ///
@@ -105,8 +120,11 @@ struct PrestigeButton: View {
     /// lookup falla y en pantalla sale la clave cruda (trampa 5 del HANDOFF, que
     /// ya pasó dos veces).
     private var spokenLabel: Text {
-        Text("prestige.button")
-            + Text(verbatim: " ")
-            + Text("prestige.oro.gain \(String(gameState.prestigePreview.oroGained))")
+        let preview = gameState.prestigePreview
+        return preview.isWorthIt
+            ? Text("prestige.button")
+                + Text(verbatim: " ")
+                + Text("prestige.oro.gain \(String(preview.oroGained))")
+            : Text("prestige.button") + Text(verbatim: " \(secondLine)")
     }
 }

@@ -22,7 +22,8 @@
   "oro": {
     "divisor": 10000000000,
     "exponent": 0.25,
-    "globalMultiplierPerOro": 0.18
+    "globalMultiplierPerOro": 0.18,
+    "prestigeTeaserFloorId": "luxury"
   },
   "critChanceBase": 0.0,
   "critMultiplier": 5.0,

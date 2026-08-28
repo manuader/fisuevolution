@@ -240,11 +240,25 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         public let divisor: Double
         public let exponent: Double
         public let globalMultiplierPerOro: Double
+        /// Desde qué piso el botón de reencarnar EXISTE aunque todavía no haya
+        /// ORO por cobrar (muestra el progreso hacia el próximo): id de
+        /// `floors[]`, decisión del dueño 2026-08-28 ("al llegar a lujo").
+        /// Opcional por la misma razón que `tapFloorMultiplierExponent`: un
+        /// `economy.json` viejo o una fixture sin la clave siguen decodificando
+        /// y sin ella el botón se comporta como siempre (aparece con el ORO).
+        /// [TUNEABLE]
+        public let prestigeTeaserFloorId: String?
 
-        public init(divisor: Double, exponent: Double, globalMultiplierPerOro: Double) {
+        public init(
+            divisor: Double,
+            exponent: Double,
+            globalMultiplierPerOro: Double,
+            prestigeTeaserFloorId: String? = nil
+        ) {
             self.divisor = divisor
             self.exponent = exponent
             self.globalMultiplierPerOro = globalMultiplierPerOro
+            self.prestigeTeaserFloorId = prestigeTeaserFloorId
         }
     }
 

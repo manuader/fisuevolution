@@ -147,17 +147,11 @@ extension GameState {
 
     /// Qué rinde HOY este personaje y en qué mejora va: "Plata ×4 · Nivel
     /// 3 / 19". El contador es el pedido del dueño (2026-08-19): con tope de
-    /// 19, la fila tiene que decir cuánto camino queda — la misma clave
-    /// `upgrades.level` que ya usan las barras de las permanentes, para que
-    /// las dos pestañas cuenten los niveles con las mismas palabras.
-    ///
-    /// ⚠️ Los dos `Int` van por `String(_:)` ANTES de entrar en la clave
-    /// (trampa 5: interpolarlos armaría `upgrades.level %lld %lld`, que no
-    /// existe en el catálogo).
+    /// Sólo el multiplicador vigente (pedido del dueño, 2026-08-28: el
+    /// "Nivel 1/19" al lado del ×2 eran dos contadores para el mismo dato y
+    /// se sacó — al tope, el badge "Al máximo" ya cuenta el final).
     func characterIncomeText(for row: CharacterUpgradeRow) -> String {
-        let income = String(localized: "upgrades.character.income_now \(row.multiplierText)")
-        let level = String(localized: "upgrades.level \(String(row.upgradeLevel)) \(String(row.upgradeMaxLevel))")
-        return "\(income) · \(level)"
+        String(localized: "upgrades.character.income_now \(row.multiplierText)")
     }
 
     /// Lo que rinde por segundo UNA instancia de este tipo con el pasivo puesto:

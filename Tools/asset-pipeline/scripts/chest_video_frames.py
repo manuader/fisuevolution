@@ -4,23 +4,32 @@ Pedido del dueno (2026-08-28, segunda ronda): la apertura es EL VIDEO ENTERO —
 sin rayos, particulas ni carta de la casa — y el contenido del premio se
 renderiza al final dentro del marco vacio de la carta del video.
 
-Tercera ronda (mismo dia): el master se reemplazo por un video nuevo, disenado
-para la integracion seamless — verde PLANO de punta a punta (sin vinneta ni
-piso horneados: keyeado es un sprite de verdad), el cofre estalla con confetti,
-la carta sale girando y **el cofre se desvanece solo a mitad del video** (~f114
-a f126); el final es la carta vacia, quieta y centrada, sin nada superpuesto.
+Cuarta ronda (mismo dia, el master DEFINITIVO): video 2D VERTICAL (720x1280)
+con la estetica cartoon del juego — cofre de madera con herrajes, contornos
+gruesos, cel shading — y CON SONIDO. Verde plano de punta a punta, el cofre
+estalla, suelta la carta y se desvanece hacia abajo fundiendose al verde
+(~f100-f118; keyeado queda una sombra tenue que se evapora — medido, se ve
+deliberado); el final es el marco vacio quieto desde ~f204. La pista de audio
+viaja en DOS familias: el tramo cinematico va DENTRO de `chest_open.mov`
+(AVPlayer la reproduce con el volumen SFX del juego) y las dos sacudidas de
+los toques salen como clips `sfx_chest_shake_a/b.caf` en `Resources/Audio/`
+(los dispara la coreografia junto a sus frames, porque el timing lo pone el
+dedo, no el video).
 
-Produce tres familias de assets en `Resources/ChestAnim/`:
+Produce cuatro familias de assets:
 
-1. **Frames PNG interactivos** (idle + dos sacudidas, f0-f47): los latidos que
+1. **Frames PNG interactivos** (idle + dos sacudidas, f0-f49): los latidos que
    responden al dedo piden swap de frame INMEDIATO, sin preroll — van como
    secuencia cuantizada que `ChestAnimationFeed` reproduce frame-perfect.
-2. **`chest_open.mov`** (f48-f239, HEVC con canal alfa por VideoToolbox): el
-   tramo del estallido a la carta es LINEAL — 8 s de corrido — y en video por
-   hardware pesa 3 MB contra ~12 MB en PNGs, a 24 fps garantizados. q:v 50 es
-   indistinguible del original en A/B (verificado sobre el frame de espirales).
+2. **`chest_open.mov`** (f50-f239, HEVC con canal alfa por VideoToolbox, CON
+   su pista de audio): el tramo del estallido a la carta es LINEAL — ~8 s de
+   corrido — y en video por hardware pesa una fraccion de los PNGs, a 24 fps
+   garantizados. q:v 50 es indistinguible del original en A/B.
 3. **`chest_card_still.png`** (f239): el estado final — la carta con el marco
    vacio — para Reduce Motion y de fallback.
+4. **`sfx_chest_shake_a/b.caf`** (en `Resources/Audio/`): el sonido de cada
+   sacudida, recortado de la pista del video, para que la coreografia lo
+   dispare junto a sus frames.
 
 `chest_anim.json` (schemaVersion 2) es EL contrato con el runtime
 (`ChestAnimation.swift`); lo pinean `ChestAnimationTests` y
@@ -56,44 +65,54 @@ RESOURCES = PIPELINE.parent.parent / "FisuEvolution" / "Resources"
 VIDEO = PIPELINE / "video" / "chest-animation.mp4"
 CHEST_ANIM = RESOURCES / "ChestAnim"
 UI_ATLAS = RESOURCES / "ui.atlas"
+AUDIO_DIR = RESOURCES / "Audio"
 
 # El keying calibrado (ver docstring) y la geometria medida del video.
-KEY_COLOR = "0x10A12A"
+KEY_COLOR = "0x22924A"
 KEY_SIMILARITY = 0.11
 KEY_BLEND = 0.04
 KEY_FILTER = (
     f"chromakey={KEY_COLOR}:{KEY_SIMILARITY}:{KEY_BLEND},despill=type=green"
 )
 FPS = 24
-CANVAS = (1280, 720)
+CANVAS = (720, 1280)
 # Donde REPOSA el cofre dentro del lienzo (componente conexa de f0): salta en
 # las sacudidas pero siempre vuelve a este piso, asi que PNGs y video comparten
 # esta unica ancla.
-CHEST_RECT = {"x": 430, "y": 257, "w": 409, "h": 365}
+CHEST_RECT = {"x": 126, "y": 550, "w": 448, "h": 331}
 # El interior pergamino de la carta en el ultimo frame (f239): filas/columnas
 # con beige macizo (claro Y desaturado, umbral 60 px) — el bbox pelado se
 # estira con los biseles claros del borde dorado y descentra el contenido.
-PARCHMENT_RECT = {"x": 490, "y": 143, "w": 302, "h": 418}
+PARCHMENT_RECT = {"x": 172, "y": 363, "w": 349, "h": 504}
 
 # (x, y, w, h) en coordenadas del lienzo + escala de entrega de los PNG.
-# Los crops salen del percentil 99,7 de masa de alfa del segmento, en union
-# con el bbox del COFRE frame a frame (el salto de la sacudida A llega a
-# y=136 y el percentil solo lo cortaba) y con margen de 8 px. La sacudida B
-# tira el polvo mas ancho y lleva crop propio.
-STAGE_CROP = (196, 128, 912, 504)
-SHAKE_B_CROP = (56, 208, 1144, 424)
-FULL_CROP = (0, 0, 1280, 720)
+# Un solo crop para los tres segmentos interactivos: percentil 99,7 de masa
+# de alfa ∪ bbox del cofre frame a frame, con margen de 8 px. En este master
+# la sacudida A es la que mas polvo tira (x 41-658); la B es el temblor
+# agachado que desemboca en el estallido y entra en el mismo encuadre.
+STAGE_CROP = (30, 518, 640, 372)
+FULL_CROP = (0, 0, 720, 1280)
 SEGMENTS = {
     "idle": {"first": 0, "last": 0, "crop": STAGE_CROP, "scale": 1.0},
-    "shakeA": {"first": 4, "last": 30, "crop": STAGE_CROP, "scale": 1.0},
-    "shakeB": {"first": 31, "last": 47, "crop": SHAKE_B_CROP, "scale": 1.0},
+    "shakeA": {"first": 23, "last": 38, "crop": STAGE_CROP, "scale": 1.0},
+    "shakeB": {"first": 39, "last": 49, "crop": STAGE_CROP, "scale": 1.0},
 }
 
-# El tramo cinematico: del temblor previo al estallido (la tapa cruje en f51)
-# al marco vacio asentado — el cofre se desvanece en el medio (~f114-f126) y
-# la carta gira sola hasta el flip (~f198-f210).
-CINEMATIC_FIRST = 48
+# El tramo cinematico: del estallido (la tapa revienta en f51) al marco vacio
+# asentado — la sacudida B termina AGACHADA en f49 y f50 la continua, asi que
+# el empalme PNG->video es un movimiento continuo. El cofre se desvanece
+# fundiendose al verde en ~f100-f118 y el flip de la carta va ~f192-f200.
+CINEMATIC_FIRST = 50
 CINEMATIC_LAST = 239
+
+# Las sacudidas llevan su sonido como clip suelto (el timing lo pone el DEDO):
+# la ventana de audio es exactamente la de sus frames, con fade de 10 ms en
+# las puntas para que el corte no haga click. PCM en .caf como sus hermanos
+# de Resources/Audio/ — un clip de medio segundo no amerita codec.
+SHAKE_SFX = {
+    "sfx_chest_shake_a": ("shakeA", 23, 39),
+    "sfx_chest_shake_b": ("shakeB", 39, 50),
+}
 CINEMATIC_FILE = "chest_open.mov"
 # VideoToolbox: q:v 50 dio 3,1 MB indistinguible del original en A/B.
 HEVC_QUALITY = "50"
@@ -168,29 +187,55 @@ def encode_cinematic(video: Path, workdir: Path) -> None:
     # claro cortado seco en el encuadre (+20..27 de luminancia, medido en
     # captura). Va DESPUÉS del alphamerge para multiplicar por el alfa ya
     # emplumado, y en gbrap porque el filtro no toma rgba empaquetado.
+    # El sonido del tramo viaja DENTRO del mov, recortado al mismo arranque
+    # que el video: AVPlayer lo reproduce solo y el volumen lo pone el juego.
+    audio_start = CINEMATIC_FIRST / FPS
     filter_complex = (
         f"[0:v]select='between(n,{CINEMATIC_FIRST},{CINEMATIC_LAST})',"
         f"setpts=PTS-STARTPTS,{KEY_FILTER},format=rgba,split[keyed][forAlpha];"
         "[forAlpha]alphaextract[alpha];"
         "[alpha][1:v]blend=all_mode=multiply:shortest=1[fadedalpha];"
         "[keyed][fadedalpha]alphamerge,format=gbrap,premultiply=inplace=1,"
-        "format=bgra[out]"
+        "format=bgra[out];"
+        f"[0:a]atrim=start={audio_start:.6f},asetpts=PTS-STARTPTS[aout]"
     )
     subprocess.run(
         [
             "ffmpeg", "-v", "error", "-i", str(video),
             "-loop", "1", "-i", str(mask_path),
             "-filter_complex", filter_complex,
-            "-map", "[out]",
+            "-map", "[out]", "-map", "[aout]",
             "-c:v", "hevc_videotoolbox",
             "-alpha_quality", HEVC_ALPHA_QUALITY,
             "-q:v", HEVC_QUALITY,
             "-tag:v", "hvc1",
-            "-vsync", "0", "-an",
+            "-c:a", "aac", "-b:a", "160k",
+            "-vsync", "0",
             "-y", str(CHEST_ANIM / CINEMATIC_FILE),
         ],
         check=True,
     )
+
+
+def emit_shake_sfx(video: Path) -> None:
+    """Los clips de las sacudidas, cortados de la pista del propio video."""
+    for name, (_, first, last) in SHAKE_SFX.items():
+        start, end = first / FPS, last / FPS
+        duration = end - start
+        subprocess.run(
+            [
+                "ffmpeg", "-v", "error", "-i", str(video), "-vn",
+                "-af", (
+                    f"atrim=start={start:.6f}:end={end:.6f},"
+                    "asetpts=PTS-STARTPTS,"
+                    "afade=t=in:d=0.01,"
+                    f"afade=t=out:st={duration - 0.02:.6f}:d=0.02"
+                ),
+                "-c:a", "pcm_s16le",
+                "-y", str(AUDIO_DIR / f"{name}.caf"),
+            ],
+            check=True,
+        )
 
 
 def clean_transparent_rgb(rgba: np.ndarray) -> np.ndarray:
@@ -362,6 +407,7 @@ def main() -> int:
         emit_card_still(keyed_dir)
         emit_static_chest(keyed_dir)
         encode_cinematic(args.video, keyed_dir)
+    emit_shake_sfx(args.video)
 
     write_json(CHEST_ANIM / "chest_anim.json", build_manifest())
 
@@ -369,10 +415,13 @@ def main() -> int:
     total_kb = sum(f.stat().st_size for f in frames) // 1024
     mov_kb = (CHEST_ANIM / CINEMATIC_FILE).stat().st_size // 1024
     still_kb = (CHEST_ANIM / CARD_STILL_FILE).stat().st_size // 1024
+    sfx_kb = sum(
+        (AUDIO_DIR / f"{name}.caf").stat().st_size for name in SHAKE_SFX
+    ) // 1024
     print(
         f"[OK] {len(frames)} frames ({total_kb} KB) + {CINEMATIC_FILE} "
-        f"({mov_kb} KB) + {CARD_STILL_FILE} ({still_kb} KB) + chest_anim.json "
-        f"+ ui_chest_closed @2x/@3x"
+        f"({mov_kb} KB, con audio) + {CARD_STILL_FILE} ({still_kb} KB) + "
+        f"chest_anim.json + ui_chest_closed @2x/@3x + 2 sfx ({sfx_kb} KB)"
     )
     for warning in warnings:
         print(warning)

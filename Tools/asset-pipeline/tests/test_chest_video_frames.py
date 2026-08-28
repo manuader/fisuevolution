@@ -21,6 +21,7 @@ SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from chest_video_frames import (  # noqa: E402
+    AUDIO_DIR,
     CARD_STILL_FILE,
     CARD_STILL_SCALE,
     CHEST_ANIM,
@@ -30,6 +31,7 @@ from chest_video_frames import (  # noqa: E402
     CINEMATIC_LAST,
     PARCHMENT_RECT,
     SEGMENTS,
+    SHAKE_SFX,
     STATIC_OCCUPANCY,
     UI_ATLAS,
     cut_mass_fraction,
@@ -46,8 +48,8 @@ PRESUPUESTO_MOV_KB = 4096
 
 class GeometriaPura(unittest.TestCase):
     def test_el_lienzo_del_estatico_calza_la_ocupacion_del_viejo(self):
-        # 409 px de cofre al 84,4 % del ancho -> lienzo de 485.
-        self.assertEqual(static_canvas_side(409), 485)
+        # 448 px de cofre al 84,4 % del ancho -> lienzo de 531.
+        self.assertEqual(static_canvas_side(448), 531)
 
     def test_la_masa_cortada_se_mide_fuera_del_crop(self):
         alpha = np.zeros((10, 10))
@@ -137,7 +139,7 @@ class LoIntegrado(unittest.TestCase):
         ) // 1024
         self.assertLessEqual(total_kb, PRESUPUESTO_PNG_KB)
 
-    def test_el_cinematico_es_hevc_hvc1_con_192_frames(self):
+    def test_el_cinematico_es_hevc_hvc1_con_su_audio(self):
         path = CHEST_ANIM / CINEMATIC_FILE
         self.assertTrue(path.exists())
         self.assertLessEqual(path.stat().st_size // 1024, PRESUPUESTO_MOV_KB)
@@ -147,11 +149,26 @@ class LoIntegrado(unittest.TestCase):
             ["ffprobe", "-v", "error", "-show_streams", "-of", "json", str(path)],
             capture_output=True, text=True, check=True,
         ).stdout)
-        stream = probe["streams"][0]
-        self.assertEqual(stream["codec_name"], "hevc")
-        self.assertEqual(stream["codec_tag_string"], "hvc1")
-        self.assertEqual(int(stream["nb_frames"]),
+        video = probe["streams"][0]
+        self.assertEqual(video["codec_name"], "hevc")
+        self.assertEqual(video["codec_tag_string"], "hvc1")
+        self.assertEqual(int(video["nb_frames"]),
                          CINEMATIC_LAST - CINEMATIC_FIRST + 1)
+        # La pista de sonido del tramo viaja adentro del mov: sin ella el
+        # cinematico corre mudo y nadie lo nota hasta el playtest.
+        self.assertEqual(len(probe["streams"]), 2)
+        self.assertEqual(probe["streams"][1]["codec_type"], "audio")
+        self.assertEqual(probe["streams"][1]["codec_name"], "aac")
+
+    def test_los_clips_de_sacudida_calzan_sus_frames(self):
+        for name, (_, first, last) in SHAKE_SFX.items():
+            path = AUDIO_DIR / f"{name}.caf"
+            self.assertTrue(path.exists(), name)
+            # PCM s16 estereo a 48 kHz: 192 KB/s + cabecera caf.
+            expected_kb = (last - first) / 24 * 192
+            self.assertAlmostEqual(
+                path.stat().st_size / 1024, expected_kb, delta=expected_kb * 0.2
+            )
 
     def test_el_still_del_marco_tiene_el_tamano_del_encuadre(self):
         crop = self.manifest["cardStill"]["crop"]

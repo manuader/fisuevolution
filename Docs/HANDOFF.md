@@ -53,15 +53,20 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-28 (cuarta)** (el
-> pulido del día del cofre: el atlasc que no recompila con PNGs escritos en
-> el lugar —trampa al tope de §7—, el cofre viejo purgado entero, los datos
-> del premio a los 6,5 s, la fila de mejoras con sólo el multiplicador, el
-> botón de reencarnar desde LUJO en modo teaser, la lección del primer ORO,
-> y el mov del cofre interpolado a 48 fps; sesión en §4. Siguen vigentes: el
-> mov **premultiplicado** o `AVPlayerLayer` suma un velo (§7 bis), el aviso
-> de `StoreManagerTests` en 18.6 por ENTORNO (§6), y lo del 25-08: los sims
-> de verificación van con runtime **iOS 26.5**).
+> **Empezá por acá.** Última actualización: **2026-08-28 (sexta)** (el
+> cofre a VELOCIDAD: todo el espectáculo corre a **1,5x — los 190 frames del
+> master presentados a 36 fps**, sin sintetizar ni tirar uno, con audio
+> `atempo` y el manifest llevando el ritmo para PNGs y video por igual; y la
+> traba del empalme ERA real — ~280 ms de congelón medidos al arrancar el
+> video — y murió con preroll de verdad + capa montada desde la llegada +
+> `playImmediately`. Trampa NUEVA grande en §7: **con una sesión paralela en
+> el checkout, el build compila el árbol AJENO — worktree aislado siempre**.
+> Sesión en §4 — igual que la **quinta del mismo día**, que en paralelo mató
+> el muro de la cuesta pre-compuerta (`floors[alley].hireCostGrowth`, §4).
+> Siguen vigentes: el mov **premultiplicado** o
+> `AVPlayerLayer` suma un velo (§7 bis), el aviso de Store en 18.6/26.5 por
+> ENTORNO (§6; ahora también visto en `StoreProductsTests`), y lo del
+> 25-08: los sims de verificación van con runtime **iOS 26.5**).
 
 ---
 
@@ -238,6 +243,32 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-28 (sexta) — El cofre a velocidad: 1,5x, 36 fps y el empalme sin congelón
+
+El dueño volvió a ver la animación «lagueada y muy lenta» y pidió 1,5x «sin
+lag, como en el video». Dos hallazgos y dos arreglos. (1) **La traba era
+real y el promedio la escondía**: midiendo corridas de frames idénticos (no
+distintos/s) aparecieron **150+133 ms de congelón en el empalme f49→f50** —
+el preroll del player era sólo crear el item, `automaticallyWaits…` seguía
+en `true` y el `AVPlayerLayer` se montaba en el frame del estallido. Ahora:
+preroll de verdad al llegar a `readyToPlay` (poll en MainActor; KVO no
+convive con AVPlayer bajo strict concurrency), capa montada invisible desde
+la llegada, `playImmediately(atRate:)` — quedó en ~100 ms, el umbral del
+instrumento. (2) **El 1,5x es un RETIME**: los mismos 190 frames del master
+presentados a **36 fps** (más rápido Y más fluido, cero frames sintetizados),
+audio con `atempo` (mov y clips SFX), manifest con fps 36 para que PNGs y
+video corran al mismo ritmo, relojes re-derivados (flip 4,0 s, datos 4,33 s,
+tramo 5,28 s, tercer toque 0,33 s). **Medido en el sim con la máquina
+cargada: 28–36 cuadros distintos/s todo el tramo** (a 48 colapsaba; 36 es el
+punto dulce). ⚠️ Trampa de encode: VideoToolbox pisa los PTS retimeados con
+`-vsync 0` — va `-r 36 -fps_mode cfr -frames:v 190`. Y la trampa GRANDE del
+día (§7): el fixture "roto" era el **binario compilado en el checkout
+compartido mientras la otra sesión editaba** — worktree aislado siempre.
+Detalle en **`Docs/SESION-2026-08-28-cofre-a-velocidad.md`**. Números:
+pipeline **13/13** · unit **463 con los DOS rojos documentados** (Pacing
+contrato + `StoreProductsTests` entorno) · grabaciones antes/después
+analizadas frame a frame.
 
 ### Sesión del 2026-08-28 (quinta) — El muro adentro de la cuesta pre-compuerta
 
@@ -1482,6 +1513,42 @@ El panel de debug es el ícono de herramientas del HUD.
 ## 7. Trampas en las que ya caímos
 
 
+### Del cofre a velocidad (2026-08-28 sexta)
+
+**⚠️ Con una sesión paralela viva en el checkout, un build compila el árbol
+AJENO.** El binario de xcodebuild es una foto del árbol DURANTE la
+compilación, no del commit: si la otra sesión edita mientras tu build corre
+(y los builds acá tardan 10–20 min con la máquina compartida), te llevás sus
+archivos a medio escribir sin ningún error. Síntoma medido: el fixture
+`--uitest-chest` "roto" — app viva, tablero andando, cero cofre, cero log —
+con un código que leído era imposible que fallara; el MISMO commit compilado
+desde un worktree aislado anduvo a la primera. Dos horas de arqueología por
+no sospechar del binario. Señales acompañantes: `BUILD INTERRUPTED` sin
+motivo y `database is locked` (dos xcodebuild sobre el mismo árbol). Regla:
+**sesión paralela detectada ⇒ worktree aislado para TODO** (`git worktree
+add` desde el HEAD local — ojo que la herramienta de worktrees arranca de
+`origin/main`, que puede estar semanas atrás —, symlink del `.venv` del
+pipeline y `xcodegen generate`), que es el protocolo que la memoria ya
+mandaba para los COMMITS y ahora sabemos que aplica también a los BUILDS.
+
+**⚠️ El promedio por segundo esconde el congelón que el jugador SÍ ve.**
+"24 fps clavados" era verdad y la traba también: 150+133 ms de frames
+idénticos DENTRO de segundos que promediaban bien, justo en el empalme
+PNG→video. Al verificar fluidez, medir las DOS cosas sobre la grabación
+normalizada a 60 CFR: frames distintos por segundo Y corridas de idénticos
+≥100 ms (el script de la sesión sexta las lista con timestamp). Y para
+mapear un momento puntual: nunca extraer "el frame n" del h264 del sim — es
+VFR y el índice no es tiempo (un frame "de los 17 s" era en realidad de los
+21,5); siempre `-ss` por tiempo o el stream ya normalizado.
+
+**⚠️ VideoToolbox pisa los PTS que le entrega el filtro.** Un
+`setpts=PTS/1.5` perfecto a la salida del filter_complex (verificado con
+`showinfo`: cadencia 1/36 exacta) llegó al mov como 1/24 con `-vsync 0` — o
+sea el retime NO viajaba. Con `-r 36 -fps_mode cfr` el muxer respeta la
+cadencia, y `-frames:v 190` corta el frame de relleno que el modo cfr
+agrega en la cola. Moraleja: después de cualquier retime, `ffprobe` al
+ARCHIVO (nb_frames + duración de video Y de audio), no al filtro.
+
 ### Del pulido post-cofre (2026-08-28 cuarta)
 
 **⚠️ Reemplazar un PNG "en el lugar" dentro de un `.atlas` NO recompila el
@@ -2584,6 +2651,16 @@ Anotado por si algún día importa, con su medición:
 
 ## 9. Mapa de documentos
 
+- `Docs/SESION-2026-08-28-cofre-a-velocidad.md` — el cofre a 1,5x: el retime a
+  36 fps (mismos 190 frames, audio atempo, manifest como fuente única de
+  ritmo), el congelón real del empalme (~280 ms) muerto con preroll +
+  capa premontada, y las trampas del checkout compartido, del promedio
+  que esconde congelones y del VideoToolbox que pisa PTS.
+- `Docs/SESION-2026-08-28-cuesta-pre-compuerta.md` — el muro del arranque:
+  la doble exponencial de la cuesta pre-compuerta, el override
+  `floors[alley].hireCostGrowth` con el global intacto, el guard
+  `thePreGateClimbHasNoWallInIt` y la trampa 40 (el pacing-sim sin catálogo
+  de mejoras al lado del economy.json da la conclusión opuesta).
 - `Docs/SESION-2026-08-28-pulido-post-cofre.md` — el pulido del día: la trampa del
   atlasc, el purgado del cofre viejo, el premio a los 6,5 s, la fila con sólo el
   multiplicador, el teaser de reencarnar desde lujo, la lección del primer ORO y

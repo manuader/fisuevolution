@@ -2201,7 +2201,25 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     originales hizo falta tocarlo, y ésa es la señal de que el arreglo estaba del
     lado del código.
 
-42. **Antes de culpar al build, `uptime`.** Dos corridas de `xcodebuild`
+42. **Al revertir para bisecar, revertí el TEST con su fuente.** Aislando un
+    rojo del tutorial revertí tres archivos de `FisuEvolution/` y dejé
+    `CoinFormatterTests.swift`, que usa la función nueva: el
+    "`** TEST FAILED **`" que leí como resultado era un **error de compilación**
+    (`type 'CoinFormatter' has no member 'cost'`). Un control que no compila no
+    es un control, y el `grep` por `XCTAssert` no lo muestra. Mirá siempre el
+    conteo de tests ejecutados: "0 tests" o ningún `Executed N tests` es la
+    señal.
+
+43. **Una correlación de tres corridas todavía puede ser casualidad.**
+    `TutorialUITests.testRecorreElTutorialEnteroHastaElFinal` se puso rojo justo
+    después de un cambio, verde al revertirlo y rojo otra vez aislado — y era
+    flaky. Lo que lo cerró fue correr **el mismo test con el mismo selector en
+    las dos versiones**: con el cambio puesto también pasa. La otra mitad de la
+    prueba es gratis y estaba a la vista: entre dos corridas sin un cambio de
+    código los rojos del suite pasaron de 1 a 6, y **un cambio de lógica no falla
+    MÁS tests cuando lo corrés solo**.
+
+44. **Antes de culpar al build, `uptime`.** Dos corridas de `xcodebuild`
     murieron clavadas en `CopySwiftLibs` durante 25 minutos con el load promedio
     de la máquina arriba de **900** por un workload ajeno (un `vitest` de otro
     proyecto). No había ni un `swift-frontend` vivo: estaba todo esperando CPU.

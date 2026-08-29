@@ -119,16 +119,46 @@ saldos, ganancias y rendimientos, y ésos siguen truncando.
 **Con eso los cuatro tests volvieron a verde sin tocar un solo assert de los
 originales.** Ésa es la señal de que el arreglo estaba del lado del código.
 
+## El susto del tutorial, y cómo se descartó
+
+`TutorialUITests.testRecorreElTutorialEnteroHastaElFinal` se puso rojo justo
+después del arreglo del formateador, y la correlación era buena: verde antes,
+rojo después, rojo otra vez aislado. Fue **casualidad**, y lo que lo probó fue
+correr el MISMO test con el mismo selector en las dos versiones:
+
+| corrida | código | resultado |
+|---|---|---|
+| suite de UI | antes del formateador | verde |
+| suite de UI | con el formateador | **rojo** |
+| `TutorialUITests` solo | con el formateador | **rojo (6 de 9)** |
+| ese test solo | formateador revertido | verde |
+| ese test solo | formateador puesto | **verde** |
+
+El último renglón rompe la historia causal, y el tercero la rompe por otro lado:
+entre esa corrida y la anterior **no cambió una línea de código** y los rojos
+pasaron de 1 a 6. Un cambio de lógica no falla MÁS tests cuando lo corrés solo.
+
+⚠️ **La trampa de método**: el primer intento de aislarlo no valía nada. Revertí
+las tres fuentes y dejé `CoinFormatterTests.swift`, que usa `CoinFormatter.cost`,
+así que el "`** TEST FAILED **`" era un error de COMPILACIÓN disfrazado de
+resultado. Al revertir para bisecar hay que revertir el test con su fuente.
+
 ## Estado
 
 - `Packages/EconomyKit` **262/262** verde.
 - `FisuEvolutionTests` en el sim 26.5 con los skips de Store de la matriz:
-  **462 tests, 1 issue** — y ese uno es el declarado de siempre
+  **465 tests, 1 issue** — y ese uno es el declarado de siempre
   (`theOwnersTargetsAreMet` pide ≤8 reencarnaciones al maxear y mide 9). **Esta
   ronda no lo movió**: medía 9 antes también.
+- `FisuEvolutionUITests`: **53 de 53, sin un rojo.**
 - `StoreManagerTests` + `StoreProductsTests` en un sim **18.6** aparte, que es lo
-  que manda la matriz de dos runtimes. ⚠️ Correrlas en el 26.5 da **10 rojos de
-  entorno** que no son del árbol: me pasó, y perdí una corrida entera en
-  descartarlo.
+  que manda la matriz de dos runtimes: `StoreProductsTests` verde y
+  `StoreManagerTests` **9 de 10**, con `refundRevokesEntitlement` rojo en las DOS
+  corridas. Es el breakage de máquina que el general ya describe por su firma
+  (§7 y la entrada del 2026-08-27): el diff de esta sesión no toca un archivo de
+  Store —lo único bajo `UI/Store/` es la pantalla de mejoras, y ahí cambian dos
+  etiquetas de precio— y el rojo ya estaba en la corrida anterior a ese cambio.
+  ⚠️ Correr esas suites en el 26.5 da **10 rojos de entorno** que no son del
+  árbol: me pasó, y perdí una corrida entera en descartarlo.
 - `pacing-sim` con el contenido embarcado:
   `Docs/balance-run-t12-cuesta-pre-compuerta.csv`.

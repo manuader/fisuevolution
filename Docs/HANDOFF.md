@@ -295,6 +295,18 @@ simulador **a propósito**: `pacing-sim` cronometra esta fase en 96 s porque su
 bot tapea a 6/s con todo comprado, así que la bitácora la venía anotando como
 demasiado RÁPIDA mientras el dueño se trababa en ella.
 
+**Y el suite encontró algo que el knob destapó**: con 25 × 1,03 = 25,75,
+`CoinFormatter` truncaba a "25" y la primera contratación no movía el precio en
+pantalla. **Cuatro tests dijeron lo mismo** —dos pines, la proyección que no se
+republicaba (y tenía razón: `BestHire` lleva sólo lo que se dibuja) y el de UI
+punta a punta—, y cuando cuatro coinciden el que está mal no es el test. Se
+arregló con **`CoinFormatter.cost`, que redondea los precios hacia ARRIBA** en el
+tramo exacto: un precio truncado miente para el lado que rompe (el botón decía 25
+y cobraba 25,75, así que con 25 monedas exactas la compra rebotaba), y eso ya
+pasaba antes de esta ronda. La asimetría ahora tiene las dos mitades escritas: el
+SALDO trunca para no anunciar plata que no se puede gastar, el PRECIO sube por el
+motivo simétrico. Los cuatro volvieron a verde sin tocar un assert.
+
 ⚠️ **Trampa nueva y cara (§7, trampa 40)**: el primer barrido corrió **sin
 catálogo de mejoras** —`pacing-sim` busca `upgrades.json` al lado del
 `economy.json` y las variantes vivían en un temporal— y dio la conclusión
@@ -2177,7 +2189,19 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     (1,06 tenía que dar 20,67 h). Al barrer configs, ese punto va SIEMPRE, y
     ninguna variante se cree hasta que él cierra.
 
-41. **Antes de culpar al build, `uptime`.** Dos corridas de `xcodebuild`
+41. **Cuando CUATRO tests dicen lo mismo, el que está mal no es el test.** Bajar
+    el growth del callejón dejó el segundo Fisura en 25,75 y `CoinFormatter` lo
+    truncaba a "25": dos pines de precio, la proyección que no se republicaba y
+    el test de UI punta a punta cayeron juntos. La salida fácil era correr las
+    fixtures hasta que quedaran verdes; la correcta era que **un precio no puede
+    redondearse hacia abajo**, porque el botón decía 25 y cobraba 25,75 y con 25
+    monedas exactas la compra rebotaba. `CoinFormatter.cost` sube; `string(from:)`
+    sigue truncando para los SALDOS, que es la mitad opuesta de la misma regla
+    (no anunciar plata que no se puede gastar). Ninguno de los cuatro asserts
+    originales hizo falta tocarlo, y ésa es la señal de que el arreglo estaba del
+    lado del código.
+
+42. **Antes de culpar al build, `uptime`.** Dos corridas de `xcodebuild`
     murieron clavadas en `CopySwiftLibs` durante 25 minutos con el load promedio
     de la máquina arriba de **900** por un workload ajeno (un `vitest` de otro
     proyecto). No había ni un `swift-frontend` vivo: estaba todo esperando CPU.

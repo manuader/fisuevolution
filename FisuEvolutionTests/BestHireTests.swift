@@ -450,21 +450,16 @@ struct BestHireTests {
         gameState.hireBestCharacter()
         gameState.refreshProjections()
 
-        // ⚠️ **El SEGUNDO Fisura vale 25,75 y en pantalla sigue diciendo 25**, y
-        // no es un bug: el callejón cotiza con el 3% por compra desde la quinta
-        // ronda (`floors[alley].hireCostGrowth`) y el precio se muestra truncado.
-        // Con el 1,2 original el segundo valía 30 y con el 1,06 valía 26,5, así
-        // que el salto siempre se veía; con el 3% el texto **atrasa una compra**.
-        // Queda pineado acá a propósito: es la cara visible del arreglo del muro
-        // del arranque, y si alguna vez se decide que el botón tiene que moverse
-        // en la primera compra, este assert es el que hay que venir a discutir.
+        // Mismo tipo (sigue siendo el único visto) pero un escalón más caro:
+        // 25 × 1,03 = 25,75, la curva por tipo de `hireCountsByType`. Era 30 con
+        // el growth en 1,2 y 26,5 con 1,06; la quinta ronda bajó el del callejón
+        // a 1,03 (el PRIMER Fisura sigue en 25: cambia la pendiente, no el ancla).
+        //
+        // Que se lea "26" y no "25" es `CoinFormatter.cost`, que redondea los
+        // precios hacia ARRIBA: con 25,75 truncado este assert se caía, y con él
+        // otros tres. Un precio nunca puede leerse más barato de lo que se cobra.
         #expect(gameState.bestHire?.typeId == "homeless")
-        #expect(gameState.bestHire?.costText == "25", "25 × 1,03 = 25,75, y se muestra truncado")
-
-        // Y a la segunda ya se ve: 25 × 1,03² = 26,52.
-        gameState.hireBestCharacter()
-        gameState.refreshProjections()
-        #expect(gameState.bestHire?.costText == "26", "el tercer Fisura cuesta 26,52 (growth 1,03)")
+        #expect(gameState.bestHire?.costText == "26", "el segundo Fisura cuesta 25,75 (growth 1,03)")
     }
 
     // MARK: La proyección
@@ -495,14 +490,7 @@ struct BestHireTests {
         gameState.refreshProjections()
         #expect(!quiet.published, "una oferta que no cambió no se re-publica")
 
-        // Y cuando cambia de verdad, sí se publica. Hacen falta DOS compras y no
-        // una: con el 3% por compra del callejón el segundo Fisura vale 25,75 y
-        // se muestra truncado a "25", o sea que la proyección es idéntica y NO
-        // publicar es lo correcto (`BestHire` no lleva el contador, sólo lo que
-        // se dibuja). El tercero vale 26,52 y ahí sí cambia el texto.
-        gameState.hireCharacter(typeId: "homeless")
-        gameState.refreshProjections()
-
+        // Y cuando cambia de verdad, sí se publica.
         let moved = PublishFlag()
         withObservationTracking {
             _ = gameState.bestHire

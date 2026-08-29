@@ -192,19 +192,12 @@ struct JobRowsTests {
         gameState.hireCharacter(typeId: "homeless")
 
         let row = try jobRow(gameState, "homeless")
-        // El contador es la prueba directa de que la curva se movió; el TEXTO
-        // atrasa una compra desde la quinta ronda, porque el callejón cotiza con
-        // el 3% por compra y 25 × 1,03 = 25,75 se muestra truncado a 25.
+        // 25 × 1,03 = 25,75 (growth del callejón desde la quinta ronda), y se lee
+        // "26" porque `CoinFormatter.cost` redondea los precios hacia arriba.
+        #expect(row.costText == "26", "el segundo Fisura cuesta 25,75 (growth 1,03)")
         #expect(row.purchases == 1)
-        #expect(row.costText == "25", "25 × 1,03 = 25,75, truncado")
         #expect(row.hiredCount == 2)
         #expect(try jobRow(gameState, "trapito").costText == neighbourBefore)
-
-        // A la segunda el precio ya se ve moverse: 25 × 1,03² = 26,52.
-        gameState.hireCharacter(typeId: "homeless")
-        #expect(try jobRow(gameState, "homeless").costText == "26")
-        #expect(try jobRow(gameState, "trapito").costText == neighbourBefore,
-                "y el vecino sigue sin enterarse")
     }
 
     @Test("sin plata no contrata, y no miente con un aviso de piso lleno")

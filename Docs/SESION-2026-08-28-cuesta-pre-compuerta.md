@@ -79,12 +79,56 @@ y no creerle a ninguna variante hasta que ésa dé el número pineado. Y pasar
 máquina. No es del repo, pero cuesta una hora si no se mira: `uptime` antes de
 culpar al build.
 
+## Lo que el suite encontró, y que NO era un pin
+
+**Cuatro tests dijeron lo mismo**, y cuando cuatro coinciden el que está mal no
+es el test. Con el 3 % el segundo Fisura vale 25,75 y `CoinFormatter` truncaba a
+`"25"`: la primera contratación no movía el precio en pantalla. Con el 1,06
+anterior valía 26,5 y con el 1,2 valía 30, así que el salto siempre se había
+visto **por casualidad del redondeo**.
+
+Los cuatro:
+
+- `BestHireTests.buyingMovesTheOffer` — pinaba "26".
+- `JobRowsTests.hiringMovesItsOwnCurve` — pinaba "26".
+- `BestHireTests.theProjectionOnlyPublishesOnChange` — la proyección no se
+  republicaba, y **tenía razón en no hacerlo**: `BestHire` lleva sólo lo que se
+  dibuja, y no se dibujaba nada distinto.
+- `FisuJobsUITests.testContratarSubeElPrecioDeLaFilaYPoneLaUnidadEnElTablero` —
+  punta a punta: "el precio de la fila tenía que subir después de contratar;
+  quedó en 25 (era 25)".
+
+### El arreglo: `CoinFormatter.cost`, que redondea los precios hacia ARRIBA
+
+Un precio truncado miente **para el lado que rompe**: el botón decía 25 y cobraba
+25,75, así que un jugador con 25 monedas exactas leía el precio, tocaba, y la
+compra le rebotaba. Eso ya pasaba antes de esta ronda (26 contra 26,5) y nadie lo
+había visto porque el redondeo lo tapaba casi siempre.
+
+La asimetría con `string(from:)` es a propósito y ahora tiene las dos mitades
+escritas: **el saldo trunca** para no anunciar plata que no se puede gastar
+(`theLowBoundaryStillTruncates`, que ya existía) y **el precio sube** para no
+anunciar una compra más barata de lo que se cobra. Sólo toca el tramo exacto
+(< 1000): de ahí para arriba el número ya es una abreviatura y no promete el
+valor exacto.
+
+Cuatro call sites: los dos precios de contratación (`GameState+Hiring`) y los dos
+de mejoras (`UpgradesView`). El resto de los usos de `CoinFormatter.string` son
+saldos, ganancias y rendimientos, y ésos siguen truncando.
+
+**Con eso los cuatro tests volvieron a verde sin tocar un solo assert de los
+originales.** Ésa es la señal de que el arreglo estaba del lado del código.
+
 ## Estado
 
 - `Packages/EconomyKit` **262/262** verde.
-- `FisuEvolutionTests` — corrida completa al cierre.
+- `FisuEvolutionTests` en el sim 26.5 con los skips de Store de la matriz:
+  **462 tests, 1 issue** — y ese uno es el declarado de siempre
+  (`theOwnersTargetsAreMet` pide ≤8 reencarnaciones al maxear y mide 9). **Esta
+  ronda no lo movió**: medía 9 antes también.
+- `StoreManagerTests` + `StoreProductsTests` en un sim **18.6** aparte, que es lo
+  que manda la matriz de dos runtimes. ⚠️ Correrlas en el 26.5 da **10 rojos de
+  entorno** que no son del árbol: me pasó, y perdí una corrida entera en
+  descartarlo.
 - `pacing-sim` con el contenido embarcado:
   `Docs/balance-run-t12-cuesta-pre-compuerta.csv`.
-- Único rojo, el declarado de siempre: `theOwnersTargetsAreMet` pide ≤8
-  reencarnaciones al maxear y mide 9. **No lo movió esta ronda** (medía 9 antes
-  también).

@@ -256,7 +256,7 @@ struct UpgradesView: View {
                         .accessibilityIdentifier("upgrades.character.\(row.id).maxed")
                     } else {
                         PricePill(
-                            text: CoinFormatter.string(from: row.upgradeCost),
+                            text: CoinFormatter.cost(from: row.upgradeCost),
                             currency: .coins,
                             affordable: row.canAffordUpgrade,
                             identifier: "upgrades.character.\(row.id).multiplier",
@@ -318,7 +318,7 @@ struct UpgradesView: View {
                         .accessibilityIdentifier("upgrades.character.\(row.id).passive_owned")
                     } else {
                         PricePill(
-                            text: CoinFormatter.string(from: row.passiveCost),
+                            text: CoinFormatter.cost(from: row.passiveCost),
                             currency: .coins,
                             affordable: row.canAffordPassive,
                             identifier: "upgrades.character.\(row.id).passive",

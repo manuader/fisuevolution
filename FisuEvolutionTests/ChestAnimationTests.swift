@@ -28,7 +28,9 @@ struct ChestAnimationManifestTests {
     }
 
     @Test func losSegmentosInteractivosVienenConSusConteos() {
-        #expect(animation.fps == 24)
+        // 36 y no 24: la velocidad 1,5x del dueño (quinta ronda) viaja en el
+        // manifest — los frames del master presentados a 36 fps.
+        #expect(animation.fps == 36)
         #expect(animation.info(.idle).frameCount == 1)
         #expect(animation.info(.shakeA).frameCount == 16)
         #expect(animation.info(.shakeB).frameCount == 11)
@@ -123,9 +125,9 @@ struct ChestAnimationFeedTests {
         #expect(!feed.isPaused)
         #expect(feed.displayedIndex == 0)
 
-        // 0,25 s a 24 fps son 6 frames.
+        // 0,25 s a 36 fps son 9 frames.
         feed.advance(to: t0.addingTimeInterval(0.25))
-        #expect(feed.displayedIndex == 6)
+        #expect(feed.displayedIndex == 9)
 
         // Mucho después del final: se clava en el último y apaga el reloj.
         feed.advance(to: t0.addingTimeInterval(10))
@@ -150,8 +152,9 @@ struct ChestAnimationFeedTests {
         feed.play(.shakeA, at: t1)
         #expect(!feed.isPaused)
         #expect(feed.displayedIndex == 0)
+        // 0,125 s a 36 fps: el playhead va por el frame 4 (4,5 truncado).
         feed.advance(to: t1.addingTimeInterval(0.125))
-        #expect(feed.displayedIndex == 3)
+        #expect(feed.displayedIndex == 4)
     }
 
     /// Sin manifest (roto o ausente) el feed es un mueble: no rompe, no corre.

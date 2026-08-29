@@ -11,7 +11,7 @@ import XCTest
 final class ChestOpeningUITests: XCTestCase {
     /// El fixture abre un cofre y **apaga el reloj** de los tres latidos que
     /// esperan un toque (además acelera el video a 4× — sin eso cada smoke
-    /// pagaría los 8 s del tramo cinemático).
+    /// pagaría los 5,3 s del tramo cinemático).
     ///
     /// ⚠️ Lo primero es la mitad importante. Cada latido se dispara solo a los
     /// 1,2 s para que nadie quede trabado, así que un smoke que tapea tres
@@ -22,7 +22,8 @@ final class ChestOpeningUITests: XCTestCase {
         "--uitest-reset", "--uitest-skip-tutorial", "--uitest-chest", "--uitest-chest-manual",
     ]
 
-    /// El video a 4× dura 2 s; el resto es margen de simulador cargado.
+    /// El video a 4× dura 1,3 s (ya viene retimeado a 1,5×); el resto es
+    /// margen de simulador cargado.
     private static let cinematicTimeout: TimeInterval = 12
 
     override func setUpWithError() throws {

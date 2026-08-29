@@ -51,7 +51,12 @@ enum ChestRarityStyle {
 /// El reparto de formatos es medido, no estético: los latidos que responden
 /// al dedo reproducen frames PNG (`ChestAnimationFeed`, swap en el mismo
 /// cuadro), y del estallido al marco corre `chest_open.mov` (HEVC con alfa,
-/// hardware, 8 s lineales que en frames pesarían 4×). La geometría de los dos
+/// hardware, 5,3 s lineales que en frames pesarían 4×). Quinta ronda, mismo
+/// día: todo el espectáculo corre a **1,5× — los 190 frames del master a
+/// 36 fps**, sin sintetizar ni tirar uno (pedido del dueño: más rápido y más
+/// fluido), y el arranque del video se precalienta de verdad (preroll + capa
+/// montada desde la llegada) porque el empalme pagaba ~140 ms de congelón
+/// justo en el estallido (medido en grabación). La geometría de los dos
 /// mundos sale del mismo manifest y comparten el ancla del cofre, así que el
 /// empalme es invisible.
 ///
@@ -93,7 +98,7 @@ struct ChestOpeningView: View {
 
     /// Apaga el auto-avance de los latidos que esperan un toque, para que la
     /// animación avance **sólo con el dedo** — y acelera el tramo cinemático,
-    /// que no espera a nadie pero a 1× le sumaría 8 s a cada smoke.
+    /// que no espera a nadie pero a 1× le sumaría 5 s a cada smoke.
     ///
     /// ⚠️ Existe por el defecto que en este proyecto ya apareció seis veces: un
     /// test que queda verde con la funcionalidad desenchufada. Como cada latido
@@ -123,22 +128,23 @@ struct ChestOpeningView: View {
     /// medidos; a 178 el primero rozaba el marco dorado del master viejo).
     private static let controlsY: CGFloat = 212
     /// Cuánto video corrido hace falta para jubilar el PNG de respaldo: a los
-    /// 0,6 s el decoder lleva ~14 frames rendidos y el cofre del video sigue
-    /// opaco ~1,5 s más (empieza a fundirse a los 2,1 s del tramo) — margen
-    /// en las dos puntas.
+    /// 0,6 s el decoder lleva ~21 frames rendidos y el cofre del video sigue
+    /// opaco ~0,8 s más (a 36 fps empieza a fundirse a los 1,4 s del tramo)
+    /// — margen en las dos puntas.
     private static let stageHandoffSeconds = 0.6
-    /// El flip de la carta va en ~f192–f200 del video (6,1 s del tramo): su
-    /// háptico se dispara por reloj —apenas antes del giro—, no por observer
-    /// del player.
-    private static let flipSecondsIntoCinematic = 6.0
-    /// Cuándo entran los DATOS del premio: la cara vacía ya está derecha a
-    /// los 6,5 s (f206) y del video sólo queda la cola de destellos.
-    /// Esperar el final dejaba ~1,5 s de marco vacío mirándote (pedido del
-    /// dueño: que los datos tarden menos en aparecer).
-    private static let revealSecondsIntoCinematic = 6.5
-    /// El video dura 7,92 s (190 frames); el tope del await es el seguro
-    /// contra un decoder trabado, porque este latido no lo avanza nadie más.
-    private static let cinematicSeconds = 190.0 / 24.0
+    /// El flip de la carta va en ~f192–f200 del master: a los 36 fps del
+    /// retime son los 4,0 s del tramo. Su háptico se dispara por reloj
+    /// —apenas antes del giro—, no por observer del player.
+    private static let flipSecondsIntoCinematic = 144.0 / 36.0
+    /// Cuándo entran los DATOS del premio: la cara vacía ya está derecha en
+    /// f206 (4,33 s a 36 fps) y del video sólo queda la cola de destellos.
+    /// Esperar el final dejaba marco vacío mirándote (pedido del dueño: que
+    /// los datos tarden menos en aparecer).
+    private static let revealSecondsIntoCinematic = 156.0 / 36.0
+    /// El video dura 5,28 s (los 190 frames del master a 36 fps — la
+    /// velocidad 1,5x del dueño); el tope del await es el seguro contra un
+    /// decoder trabado, porque este latido no lo avanza nadie más.
+    private static let cinematicSeconds = 190.0 / 36.0
     private static let portraitSide: CGFloat = 96
     private static let plateShape = RoundedRectangle(cornerRadius: 14, style: .continuous)
 
@@ -237,19 +243,25 @@ struct ChestOpeningView: View {
                     ChestStage(feed: feed, chestWidth: Self.chestSide)
                 }
 
-                if beat >= .cinematic {
-                    if let cinematic {
-                        ChestCinematicView(player: cinematic.player)
-                            .frame(width: stage.size.width, height: stage.size.height)
-                            .offset(stage.offset)
-                    } else if let cardStill {
-                        // Reduce Motion (o un video ausente): el estado final,
-                        // quieto — el marco vacío listo para el contenido.
-                        Image(uiImage: cardStill)
-                            .resizable()
-                            .frame(width: stage.size.width, height: stage.size.height)
-                            .offset(stage.offset)
-                    }
+                if let cinematic {
+                    // La capa del player vive montada DESDE LA LLEGADA,
+                    // invisible: colgar un `AVPlayerLayer` recién en el
+                    // latido que lo reproduce pagaba el armado del layer
+                    // justo en el empalme f49→f50 — el momento más visible
+                    // de toda la animación. Invisible no molesta: el preroll
+                    // deja el primer frame listo debajo, tapado hasta que el
+                    // video toma la escena.
+                    ChestCinematicView(player: cinematic.player)
+                        .frame(width: stage.size.width, height: stage.size.height)
+                        .offset(stage.offset)
+                        .opacity(beat >= .cinematic ? 1 : 0)
+                } else if beat >= .cinematic, let cardStill {
+                    // Reduce Motion (o un video ausente): el estado final,
+                    // quieto — el marco vacío listo para el contenido.
+                    Image(uiImage: cardStill)
+                        .resizable()
+                        .frame(width: stage.size.width, height: stage.size.height)
+                        .offset(stage.offset)
                 }
             }
             .frame(width: stage.size.width, height: stage.size.height)
@@ -407,13 +419,14 @@ struct ChestOpeningView: View {
 
         /// Segundos hasta el auto-avance. El cinemático no lleva reloj: lo
         /// termina el propio video (con tope, en su coreografía). El tercer
-        /// forzado dura lo que su temblor (11 frames, 0,46 s): el video
-        /// arranca justo donde ese segmento termina.
+        /// forzado dura lo que su temblor (11 frames, 0,31 s a 36 fps): el
+        /// video arranca justo donde ese segmento termina — un 0,5 acá
+        /// dejaría el cofre clavado en la agachada casi 0,2 s.
         var autoAdvance: Double? {
             switch self {
             case .arriving: 0.25
             case .waiting, .forced1, .forced2: 1.2
-            case .forced3: 0.5
+            case .forced3: 0.33
             case .cinematic, .resting: nil
             }
         }
@@ -707,7 +720,15 @@ private struct ChestStage: View {
     let chestWidth: CGFloat
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 24.0, paused: feed.isPaused)) { timeline in
+        // El intervalo sale del manifest (36 fps con el retime a 1,5x): un
+        // 1/24 fijo acá dejaría al playhead saltándose un frame de cada
+        // tres en las sacudidas.
+        TimelineView(
+            .animation(
+                minimumInterval: 1.0 / (feed.animation?.fps ?? 24),
+                paused: feed.isPaused
+            )
+        ) { timeline in
             stage
                 .onChange(of: timeline.date) { _, date in
                     feed.advance(to: date)

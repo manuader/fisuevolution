@@ -29,8 +29,9 @@ from chest_video_frames import (  # noqa: E402
     CINEMATIC_FILE,
     CINEMATIC_FIRST,
     CINEMATIC_LAST,
-    CINEMATIC_OUTPUT_FPS,
+    CINEMATIC_SPEED,
     PARCHMENT_RECT,
+    PLAYBACK_FPS,
     SEGMENTS,
     SHAKE_SFX,
     STATIC_OCCUPANCY,
@@ -81,7 +82,10 @@ class LoIntegrado(unittest.TestCase):
 
     def test_el_manifest_dice_lo_que_el_pipeline_genera(self):
         self.assertEqual(self.manifest["schemaVersion"], 2)
-        self.assertEqual(self.manifest["fps"], 24)
+        # 36 y no 24: la velocidad 1,5x del dueño viaja en el manifest (los
+        # PNG del dedo y el mov retimeado corren a la misma cadencia).
+        self.assertEqual(self.manifest["fps"], 36)
+        self.assertEqual(self.manifest["fps"], PLAYBACK_FPS)
         self.assertEqual(set(self.manifest["segments"]), set(SEGMENTS))
         for name, seg in SEGMENTS.items():
             entry = self.manifest["segments"][name]
@@ -153,29 +157,33 @@ class LoIntegrado(unittest.TestCase):
         video = probe["streams"][0]
         self.assertEqual(video["codec_name"], "hevc")
         self.assertEqual(video["codec_tag_string"], "hvc1")
-        # El mov viaja interpolado (minterpolate al doble): misma duracion,
-        # ~el doble de frames que el tramo del master. El "~" es del filtro:
-        # no extrapola despues del ultimo frame fuente y recorta 2-4 en la
-        # cola (medido: 377 de 380 teoricos) — la banda corta cubre eso sin
-        # dejar pasar un mov sin interpolar (que daria 190).
-        doubled = (CINEMATIC_LAST - CINEMATIC_FIRST + 1) \
-            * CINEMATIC_OUTPUT_FPS // 24
-        self.assertTrue(
-            doubled - 4 <= int(video["nb_frames"]) <= doubled,
-            f"nb_frames={video['nb_frames']}, esperaba ~{doubled}",
+        # El retime a 1,5x NO sintetiza ni tira frames: los 190 cuadros del
+        # master, exactos, presentados a 36 fps. La duracion pina la
+        # velocidad — un mov sin retimear duraria 7,92 s y esto lo caza.
+        frames_del_tramo = CINEMATIC_LAST - CINEMATIC_FIRST + 1
+        self.assertEqual(int(video["nb_frames"]), frames_del_tramo)
+        expected_dur = frames_del_tramo / PLAYBACK_FPS
+        self.assertAlmostEqual(
+            float(video["duration"]), expected_dur, delta=0.06
         )
         # La pista de sonido del tramo viaja adentro del mov: sin ella el
-        # cinematico corre mudo y nadie lo nota hasta el playtest.
+        # cinematico corre mudo y nadie lo nota hasta el playtest. Y viaja
+        # COMPRIMIDA por el mismo atempo — un audio a 7,9 s contra un video
+        # de 5,3 s es el atempo olvidado.
         self.assertEqual(len(probe["streams"]), 2)
         self.assertEqual(probe["streams"][1]["codec_type"], "audio")
         self.assertEqual(probe["streams"][1]["codec_name"], "aac")
+        self.assertAlmostEqual(
+            float(probe["streams"][1]["duration"]), expected_dur, delta=0.15
+        )
 
     def test_los_clips_de_sacudida_calzan_sus_frames(self):
         for name, (_, first, last) in SHAKE_SFX.items():
             path = AUDIO_DIR / f"{name}.caf"
             self.assertTrue(path.exists(), name)
-            # PCM s16 estereo a 48 kHz: 192 KB/s + cabecera caf.
-            expected_kb = (last - first) / 24 * 192
+            # PCM s16 estereo a 48 kHz: 192 KB/s + cabecera caf. La ventana
+            # se mide en frames del MASTER (24) y el atempo la comprime.
+            expected_kb = (last - first) / 24 * 192 / CINEMATIC_SPEED
             self.assertAlmostEqual(
                 path.stat().st_size / 1024, expected_kb, delta=expected_kb * 0.2
             )

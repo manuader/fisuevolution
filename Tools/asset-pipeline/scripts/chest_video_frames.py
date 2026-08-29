@@ -105,16 +105,22 @@ SEGMENTS = {
 # fundiendose al verde en ~f100-f118 y el flip de la carta va ~f192-f200.
 CINEMATIC_FIRST = 50
 CINEMATIC_LAST = 239
-# Perilla de interpolacion (minterpolate MCI sobre el VERDE, antes del
-# keying — el alfa no sobrevive al filtro y el fondo estatico ayuda a la
-# estimacion). MEDIDO el 2026-08-28: a 48 el resultado es visualmente limpio
-# (sin fantasmas en confetti ni giro) pero el SIMULADOR lo decodifica peor
-# que a 24 — el software-VideoToolbox no sostiene HEVC-alfa a 48 y el tramo
-# del giro colapsa a ~5 fps efectivos (grabado y contado), contra los 24
-# clavados del mov sin interpolar. Queda en 24 mientras el juego se mire en
-# el sim; con device de verdad (F6), subirlo a 48 es cambiar esta constante
-# y re-correr. A 24 el minterpolate se saltea entero.
-CINEMATIC_OUTPUT_FPS = 24
+# La velocidad del espectaculo (pedido del dueño 2026-08-28, quinta ronda:
+# «que se reproduzca en x1,5 de velocidad y mas fluido»). El retime NO
+# sintetiza ni tira un solo frame: los mismos 190 cuadros del master,
+# presentados a 36 fps — mas cuadros DISTINTOS por segundo que a 24, o sea
+# mas fluido ademas de mas rapido. El manifest lleva PLAYBACK_FPS, asi que
+# las sacudidas PNG corren al mismo ritmo y el empalme f49->f50 no cambia
+# de velocidad a mitad del gesto.
+#
+# La alternativa medida y descartada fue interpolar (minterpolate MCI a 48
+# sobre el verde): limpia a ojo, pero el simulador no sostiene HEVC-alfa a
+# 48 y el giro colapsaba a ~5 fps efectivos. 36 es el punto que el sim SI
+# sostiene — medido en grabacion con la maquina cargada: 28-36 cuadros
+# distintos/s durante todo el tramo, contra los 24 clavados del master a
+# 1x — y ademas cada frame es del animador.
+CINEMATIC_SPEED = 1.5
+PLAYBACK_FPS = 36  # FPS * CINEMATIC_SPEED, entero a proposito
 
 # Las sacudidas llevan su sonido como clip suelto (el timing lo pone el DEDO):
 # la ventana de audio es exactamente la de sus frames, con fade de 10 ms en
@@ -200,23 +206,21 @@ def encode_cinematic(video: Path, workdir: Path) -> None:
     # emplumado, y en gbrap porque el filtro no toma rgba empaquetado.
     # El sonido del tramo viaja DENTRO del mov, recortado al mismo arranque
     # que el video: AVPlayer lo reproduce solo y el volumen lo pone el juego.
+    # El retime a 1,5x va al FINAL de la cadena de video (un solo lugar, con
+    # la mascara ya mezclada — retimear antes del blend desalinearia los dos
+    # streams) y en el audio es `atempo`, que comprime el tiempo SIN subir el
+    # tono: el estallido suena igual, mas apretado.
     audio_start = CINEMATIC_FIRST / FPS
-    interpolation = (
-        f"minterpolate=fps={CINEMATIC_OUTPUT_FPS}:mi_mode=mci:mc_mode=aobmc:"
-        f"me_mode=bidir:vsbmc=1,"
-        if CINEMATIC_OUTPUT_FPS != FPS
-        else ""
-    )
     filter_complex = (
         f"[0:v]select='between(n,{CINEMATIC_FIRST},{CINEMATIC_LAST})',"
         f"setpts=PTS-STARTPTS,"
-        f"{interpolation}"
         f"{KEY_FILTER},format=rgba,split[keyed][forAlpha];"
         "[forAlpha]alphaextract[alpha];"
         "[alpha][1:v]blend=all_mode=multiply:shortest=1[fadedalpha];"
         "[keyed][fadedalpha]alphamerge,format=gbrap,premultiply=inplace=1,"
-        "format=bgra[out];"
-        f"[0:a]atrim=start={audio_start:.6f},asetpts=PTS-STARTPTS[aout]"
+        f"format=bgra,setpts=PTS/{CINEMATIC_SPEED}[out];"
+        f"[0:a]atrim=start={audio_start:.6f},asetpts=PTS-STARTPTS,"
+        f"atempo={CINEMATIC_SPEED}[aout]"
     )
     subprocess.run(
         [
@@ -229,7 +233,13 @@ def encode_cinematic(video: Path, workdir: Path) -> None:
             "-q:v", HEVC_QUALITY,
             "-tag:v", "hvc1",
             "-c:a", "aac", "-b:a", "160k",
-            "-vsync", "0",
+            # CFR declarado + conteo exacto, no passthrough: VideoToolbox
+            # pisa los PTS retimeados del filtro (medido: con `-vsync 0` el
+            # mov salia con la cadencia 1/24 del master, o sea SIN el 1,5x),
+            # y el modo cfr ademas rellenaria un frame de cola.
+            "-r", str(PLAYBACK_FPS),
+            "-fps_mode", "cfr",
+            "-frames:v", str(CINEMATIC_LAST - CINEMATIC_FIRST + 1),
             "-y", str(CHEST_ANIM / CINEMATIC_FILE),
         ],
         check=True,
@@ -240,13 +250,17 @@ def emit_shake_sfx(video: Path) -> None:
     """Los clips de las sacudidas, cortados de la pista del propio video."""
     for name, (_, first, last) in SHAKE_SFX.items():
         start, end = first / FPS, last / FPS
-        duration = end - start
+        # La ventana se corta en el timeline del MASTER y despues se comprime
+        # con el mismo atempo que el mov: el clip dura lo que sus frames a
+        # PLAYBACK_FPS, o el sonido de la sacudida sobreviviria al temblor.
+        duration = (end - start) / CINEMATIC_SPEED
         subprocess.run(
             [
                 "ffmpeg", "-v", "error", "-i", str(video), "-vn",
                 "-af", (
                     f"atrim=start={start:.6f}:end={end:.6f},"
                     "asetpts=PTS-STARTPTS,"
+                    f"atempo={CINEMATIC_SPEED},"
                     "afade=t=in:d=0.01,"
                     f"afade=t=out:st={duration - 0.02:.6f}:d=0.02"
                 ),
@@ -343,7 +357,10 @@ def build_manifest() -> dict:
 
     return {
         "schemaVersion": 2,
-        "fps": FPS,
+        # El fps de PRESENTACION (la velocidad 1,5x del dueño), no el del
+        # master: `ChestAnimationFeed` clava sus playheads con este numero y
+        # el mov ya viaja retimeado a esta cadencia.
+        "fps": PLAYBACK_FPS,
         "canvas": {"w": CANVAS[0], "h": CANVAS[1]},
         "chestRect": CHEST_RECT,
         "parchmentRect": PARCHMENT_RECT,

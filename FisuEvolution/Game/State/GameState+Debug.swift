@@ -292,6 +292,25 @@ extension GameState {
         evaluateAchievements()
     }
 
+    /// Presenta el popup de ganancias offline con un monto dado, SIN pasar por
+    /// el cálculo.
+    ///
+    /// Existe porque `debugSimulateOffline(hours:)` —que sí es el camino real—
+    /// **no sirve para mirar la hoja**: el offline paga en proporción a la
+    /// producción pasiva, y una partida nueva produce 0/s, así que acredita cero
+    /// y el popup no aparece. Armar producción de verdad pide contratar,
+    /// desbloquear el pasivo por tipo y esperar; para fotografiar o ejercitar
+    /// la hoja —y su oferta de duplicar por video— eso es todo ruido.
+    ///
+    /// Mismo criterio que `debugDropFirstSpecial()`: cuando el camino real
+    /// depende del azar o de una partida avanzada, el fixture entrega el estado
+    /// final y el test mide la PANTALLA.
+    func debugPresentOfflineReward(amount: Double) {
+        offlineRewardDoubled = false
+        offlineReward = OfflineReward(amount: amount)
+        syncCelebrations()
+    }
+
     func debugSimulateOffline(hours: Double) {
         guard var player else { return }
         player.meta.lastSeenTimestamp -= hours * 3600

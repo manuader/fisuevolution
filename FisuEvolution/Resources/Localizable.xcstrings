@@ -1548,6 +1548,40 @@
         }
       }
     },
+    "ads.offer.boost.now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activate with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activar con un video"
+          }
+        }
+      }
+    },
+    "ads.offer.chest.again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open another with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir otro con un video"
+          }
+        }
+      }
+    },
     "ads.reward.boost" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4060,6 +4094,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cobrar"
+          }
+        }
+      }
+    },
+    "offline.double" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double it with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplicar con un video"
           }
         }
       }

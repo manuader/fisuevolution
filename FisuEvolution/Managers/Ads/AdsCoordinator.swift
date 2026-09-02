@@ -71,6 +71,25 @@ final class AdsCoordinator: AdsProvider {
         self.sessionStartedAt = now()
     }
 
+    /// Si esta corrida es una de tests de UI.
+    ///
+    /// ⚠️⚠️ **Sin esto los 55 tests de UI se caen todos**, y no de forma sutil:
+    /// con AdMob real, el bootstrap presenta DOS diálogos de sistema encima de
+    /// la app —el formulario de consentimiento de UMP y el prompt de ATT— que
+    /// ningún test sabe cerrar, así que tapan cada coordenada que el runner
+    /// toca. Medido el 2026-09-02 sacando una captura con el fixture de
+    /// offline: el prompt de ATT ocupaba el centro de la pantalla y el popup
+    /// que se quería fotografiar estaba abajo, inalcanzable.
+    ///
+    /// Es el mismo criterio con el que `applyLaunchArgumentDefaults` apaga las
+    /// lecciones contextuales bajo `--uitest*`: en una corrida de tests, el
+    /// estado lo declara el test y nunca el azar de un gating. Un test que
+    /// quiera ejercitar la costura de anuncios usa el stub, que es
+    /// determinístico y no pide permisos.
+    private static var isRunningUITests: Bool {
+        ProcessInfo.processInfo.arguments.contains { $0.hasPrefix("--uitest") }
+    }
+
     /// Elige el proveedor y arranca la precarga. Idempotente.
     ///
     /// El orden acá es el checklist de `Docs/ads-integration.md` y no se puede
@@ -85,7 +104,7 @@ final class AdsCoordinator: AdsProvider {
         guard !isConfigured else { return }
         isConfigured = true
 
-        guard flags.useRealAds else {
+        guard flags.useRealAds, !Self.isRunningUITests else {
             // Rama sin ads reales: queda el stub. Sirve para desarrollar, y el
             // test de contenido es el que impide que un build de tienda salga
             // así.

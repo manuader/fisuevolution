@@ -43,11 +43,45 @@ struct GiftsView: View {
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
+    /// Hay anuncio cargado para saltear el cooldown de un boost. Se sondea una
+    /// vez para toda la pantalla (ver `BoostCard.adReady`).
+    @State private var boostAdReady = false
+    /// Qué boost está esperando su video, o `nil`.
+    @State private var watchingBoostId: String?
+
     /// La pantalla de Regalos es la vidriera de los videos, así que al abrirla
-    /// se pide la precarga: un rewarded tarda 1-3 s y sin esto el primer toque
-    /// del jugador cae sobre un botón sin inventario.
-    private func preloadGiftVideos() {
+    /// se piden las DOS precargas: un rewarded tarda 1-3 s y sin esto el primer
+    /// toque del jugador cae sobre un botón sin inventario.
+    ///
+    /// El sondeo es por lo mismo que en las otras dos ofertas: `AdsCoordinator`
+    /// no es observable a propósito, así que la vista no se enteraría sola de
+    /// que el inventario llegó.
+    private func preloadVideos() async {
         adsProvider.preloadRewarded(for: .gifts)
+        adsProvider.preloadRewarded(for: .boost)
+        for _ in 0..<20 {
+            if adsProvider.isRewardedReady(for: .boost) {
+                boostAdReady = true
+                return
+            }
+            try? await Task.sleep(for: .milliseconds(250))
+        }
+    }
+
+    /// Mira un video para activar un boost que está en cooldown.
+    private func watchForBoost(boostId: String) {
+        guard watchingBoostId == nil, adsProvider.isRewardedReady(for: .boost) else { return }
+        watchingBoostId = boostId
+        Task {
+            let earned = await adsProvider.showRewarded(for: .boost)
+            if earned {
+                payoutAmount = gameState.activateBoostFromAd(id: boostId)
+            }
+            watchingBoostId = nil
+            // El anuncio se consumió: hasta que llegue otro, las filas vuelven
+            // a mostrar el reloj en vez de una oferta que no se puede cumplir.
+            boostAdReady = adsProvider.isRewardedReady(for: .boost)
+        }
     }
 
     /// Margen lateral de la columna: el del marco vectorial, publicado por el
@@ -111,7 +145,13 @@ struct GiftsView: View {
 
                     section("gifts.section.boosts")
                     ForEach(Array(boosts.enumerated()), id: \.element.id) { offset, row in
-                        BoostCard(row: row) { payoutAmount = gameState.activateBoost(id: row.id) }
+                        BoostCard(
+                            row: row,
+                            activate: { payoutAmount = gameState.activateBoost(id: row.id) },
+                            adReady: boostAdReady,
+                            watchForBoost: { watchForBoost(boostId: row.id) },
+                            watchingBoost: watchingBoostId == row.id
+                        )
                             .staggeredAppearance(index: chestRows + 1 + offset)
                     }
                     if let payoutAmount {
@@ -146,7 +186,7 @@ struct GiftsView: View {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
             .onReceive(timer) { now = $0 }
-            .onAppear(perform: preloadGiftVideos)
+            .task { await preloadVideos() }
         }
     }
 
@@ -483,6 +523,14 @@ private struct DayCell: View {
 private struct BoostCard: View {
     let row: GameState.BoostRow
     let activate: () -> Void
+    /// Hay anuncio cargado para saltear cooldowns. Lo sondea la PANTALLA una
+    /// sola vez y se lo pasa a las seis filas: seis sondeos en paralelo pidiendo
+    /// el mismo inventario sería trabajo repetido para una respuesta idéntica.
+    let adReady: Bool
+    /// Mirar un video para este boost.
+    let watchForBoost: () -> Void
+    /// El video de ESTA fila está corriendo.
+    let watchingBoost: Bool
 
     /// Ancho fijo del riel derecho, por lo mismo que en `FisuJobsView`: sin él,
     /// "Activar" y "12m 3s" dejan la columna de datos arrancando en un lugar
@@ -611,14 +659,38 @@ private struct BoostCard: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("bonus.locked.\(row.id)")
             } else if row.cooldownRemaining > 0 {
-                StateBadge(
-                    text: Cooldown.text(row.cooldownRemaining),
-                    systemImage: "clock.fill",
-                    muted: true
-                )
-                .monospacedDigit()
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("bonus.cooldown.\(row.id)")
+                // **El cooldown es la única fricción del juego que un video
+                // resuelve sin desbalancear nada**, y por eso es acá donde va la
+                // oferta: activarlo por anuncio adelanta ESTE uso y NO reinicia
+                // el reloj (ver `activateBoostFromAd`), así que el jugador no
+                // pierde nada por aceptar ni gana un boost infinito.
+                //
+                // El badge del reloj sigue estando cuando no hay anuncio: era el
+                // único lugar donde se dice "está en cooldown", y perderlo
+                // dejaría la fila sin explicar por qué no se puede.
+                if watchingBoost {
+                    ProgressView()
+                        .frame(width: Self.railWidth)
+                } else if adReady {
+                    ActionPill(
+                        titleKey: "ads.offer.boost.now",
+                        systemImage: "play.rectangle.fill",
+                        tint: Color("PaletteBlue"),
+                        identifier: "bonus.ad.\(row.id)",
+                        accessibilityLabel: Text("ads.offer.boost.now")
+                            + Text(verbatim: ", \(row.displayName)"),
+                        action: watchForBoost
+                    )
+                } else {
+                    StateBadge(
+                        text: Cooldown.text(row.cooldownRemaining),
+                        systemImage: "clock.fill",
+                        muted: true
+                    )
+                    .monospacedDigit()
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("bonus.cooldown.\(row.id)")
+                }
             } else {
                 ActionPill(
                     titleKey: "bonus.activate",

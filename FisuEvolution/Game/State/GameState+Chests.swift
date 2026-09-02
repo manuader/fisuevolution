@@ -55,6 +55,11 @@ extension GameState {
             player.meta.prestigeChestsPending += 1
         }
         self.player = player
+        // Un cofre nuevo vuelve a habilitar la oferta del "abrí otro con un
+        // video" (`+AdOffers`). Vive acá y no en la vista porque TODA fuente de
+        // cofres pasa por este método: si la bandera se rearmara en el popup, la
+        // oferta dependería de qué pantalla abrió el cofre.
+        extraChestClaimed = false
         syncCelebrations()
     }
 

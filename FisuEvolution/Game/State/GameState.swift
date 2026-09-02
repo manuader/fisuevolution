@@ -49,6 +49,18 @@ final class GameState {
         let amount: Double
     }
 
+    /// Si el premio offline de ESTA vuelta ya se duplicó con un video. Se
+    /// resetea en cada `applyOfflineProgressIfNeeded` que acredita algo, así
+    /// que la oferta vuelve cada vez que volvés con ganancias — pero **una sola
+    /// vez por vuelta**, o el mismo offline se cobraría diez veces.
+    /// `@ObservationIgnored`: lo lee la hoja al abrirse, no un `body` que se
+    /// recomponga.
+    @ObservationIgnored var offlineRewardDoubled = false
+
+    /// Si ya se cobró el cofre extra del cofre que se está mirando. Lo rearma
+    /// `rearmExtraChestOffer()` en cada cofre abierto por otra vía.
+    @ObservationIgnored var extraChestClaimed = false
+
     /// Skin recién ganada por milestone. Se publica una sola vez por skin (el
     /// crédito en MetaState es idempotente) para que la UI celebre sin volver a
     /// consultar el catálogo ni el estado.
@@ -595,6 +607,15 @@ final class GameState {
             if ProcessInfo.processInfo.arguments.contains("--uitest-daily-streak") {
                 debugSetDailyCycleDay(4)
             }
+            // El popup de ganancias offline, con su oferta de duplicar por
+            // video. El camino real pide cerrar la app y volver horas después
+            // CON producción pasiva armada; una partida nueva produce 0/s y el
+            // offline acredita cero, así que la hoja no aparecería. El fixture
+            // entrega el estado final — el porqué está en
+            // `debugPresentOfflineReward`.
+            if ProcessInfo.processInfo.arguments.contains("--uitest-offline") {
+                debugPresentOfflineReward(amount: 12_345)
+            }
             // El primer special del catálogo, cayendo ya mismo: el drop real es
             // RNG sobre merges (la carta no se puede ni fotografiar ni
             // ejercitar sin suerte) y activarlo deja al personaje en el
@@ -900,6 +921,8 @@ final class GameState {
         )
         self.player = player
         if credited > 0 {
+            // Vuelta nueva, oferta nueva: el video puede duplicar ESTE premio.
+            offlineRewardDoubled = false
             offlineReward = OfflineReward(amount: credited)
             // Plata que cae de golpe: suena como tal, igual que un tap dorado.
             audio?.play(.coin)

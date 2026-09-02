@@ -1,0 +1,24 @@
+{
+  "sourceLanguage" : "es",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Nombre en la home screen. Dos marcas por mercado (dueño, 2026-09-02): FisuEvolution en castellano, HoboEvolution en inglés. El nombre de la FICHA de App Store se carga aparte, por locale, en App Store Connect.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HoboEvolution"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FisuEvolution"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

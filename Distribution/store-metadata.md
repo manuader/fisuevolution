@@ -1,14 +1,56 @@
 # Store metadata — fuente de verdad (se pega en App Store Connect en F6)
 
-Primary language en ASC: **Spanish (Mexico)** (es-MX — ASC no ofrece es-AR;
-sirve todo LatAm). Secundario: **English (U.S.)**.
+## Nombre — ✅ DECIDIDO (dueño, 2026-09-02)
 
-## Nombre (≤30 chars) — [GATE HUMANO F6.2: decidir]
+**Dos marcas, una por mercado:**
 
-Propuestas:
-1. **Fisura: Evolución Idle** (23)
-2. FisuEvolution (13)
-3. De Fisura a Dios (17)
+| Locale de la ficha | Nombre | Chars |
+|---|---|---|
+| English (U.S.) | **HoboEvolution** | 13 |
+| Spanish (Mexico) | **FisuEvolution** | 13 |
+
+Las tres propuestas viejas ("Fisura: Evolución Idle", "De Fisura a Dios")
+quedan descartadas.
+
+### ⚠️ Y por eso el idioma primario se DA VUELTA: primary = English (U.S.)
+
+Esto contradice lo que decía este doc hasta hoy (primary = Spanish (Mexico)), y
+el cambio no es una preferencia: **es lo único que cumple el pedido.** En App
+Store Connect el nombre se carga por locale, y para cualquier locale que la
+ficha NO tenga localizado, la App Store muestra **el idioma primario**. Con
+Spanish (Mexico) como primario, un iPhone en francés, alemán o japonés vería
+"FisuEvolution" — exactamente el mercado para el que el dueño pidió
+"HoboEvolution".
+
+Con **English (U.S.) como primario** y **Spanish (Mexico)** como localización:
+
+- iPhone en español → FisuEvolution ✅
+- iPhone en inglés → HoboEvolution ✅
+- iPhone en cualquier otro idioma → cae al primario → HoboEvolution ✅
+
+El costo del cambio es cero: las dos localizaciones se cargan igual, sólo
+cambia cuál está marcada como primaria. Todo el texto de este doc ya existe en
+los dos idiomas.
+
+### El nombre de la HOME SCREEN es otra cosa (y hoy no cierra al 100%)
+
+El nombre bajo el ícono no sale de la ficha: sale de `CFBundleDisplayName`.
+Está resuelto para los dos idiomas del juego —base/`es` = "FisuEvolution",
+`en` = "HoboEvolution" en `Resources/InfoPlist.xcstrings`, **verificado en el
+Info.plist compilado**— pero **el fallback de un tercer idioma es el
+castellano**, no el inglés, porque `project.yml` declara
+`developmentLanguage: es` (⇒ `CFBundleDevelopmentRegion` = es) y iOS resuelve
+por ahí cuando no encuentra el idioma del dispositivo.
+
+Efecto práctico: en un iPhone en alemán la **ficha** diría HoboEvolution y el
+**ícono** diría FisuEvolution.
+
+Arreglarlo es cambiar `developmentLanguage` a `en`, y **no se hizo porque no es
+gratis**: eso mueve la localización base de todo el proyecto, que hoy es `es`
+en `Localizable.xcstrings` (`sourceLanguage: "es"`, 540 claves con el
+castellano como fuente). Es una decisión del dueño, no un olvido. Si la
+incoherencia importa, el cambio es de una línea más una revisión del catálogo;
+si no, queda así documentada.
 
 ## Subtítulo (≤30 chars)
 
@@ -75,8 +117,35 @@ es: "¡Llegó el Aguinaldo! Entrá a cobrarlo antes de que se lo lleve la inflac
 5. Reveal de Dios — "Llegá a Dios (literal)"
 6. Banner "Se cayó Mercado Pago" — "Sobreviví a la economía"
 
-## URLs (F6.5 — repo público aparte con GitHub Pages)
+## URLs — el plan cambió: sitio propio de **Ader Games** (dueño, 2026-09-02)
 
-- Privacy: pendiente
-- Support: pendiente
-- Marketing: pendiente
+Ya no es un repo con GitHub Pages: el juego se publica bajo la empresa
+**Ader Games**, con sitio propio en **Next.js deployado en Vercel** (identidad
+de marca + página del juego + las páginas que Apple exige).
+
+- Privacy: pendiente — `Distribution/site/privacy.md` es el contenido, falta la URL
+- Support: pendiente — `Distribution/site/support.md` idem
+- Marketing: pendiente — la landing del juego en el sitio de Ader Games
+
+⚠️ **La de privacidad es la única que App Store Connect exige para poder
+mandar a review**, y tiene que responder 200 antes del submit. Las otras dos
+son opcionales (recomendadas).
+
+⚠️ **Y el texto de privacidad hay que actualizarlo**: `privacy.md` describe los
+anuncios en condicional ("si la versión instalada muestra anuncios"). Con la
+rama A confirmada (AdMob real, decisión del dueño 2026-09-02) eso pasa a ser
+afirmativo, y hay que declarar el tracking de ATT — que también cambia
+`PrivacyInfo.xcprivacy` (`NSPrivacyTracking` → true) y las nutrition labels de
+la ficha.
+
+## Ads — rama A confirmada (dueño, 2026-09-02)
+
+AdMob real antes del ship, con una capa de ofertas de video durante el juego.
+Consecuencias que tocan esta ficha:
+
+- **Nutrition labels**: pasan de "Data Not Collected" a declarar identificadores
+  para publicidad de terceros.
+- **Rating**: el contenido de los ads se limita a **T** en la consola de AdMob
+  para no romper el 12+ de la app.
+- **Review Notes**: agregar que los anuncios son recompensados y opcionales, y
+  que `remove_ads` los apaga.

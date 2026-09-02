@@ -48,6 +48,42 @@ STYLE_PREAMBLE_SCENE = (
     "No characters, no people, no text, no watermark. Full canvas scene."
 )
 
+# El ícono de App Store es el único asset que NO va al juego, y por eso es el
+# único que contradice a los otros dos preámbulos en tres puntos:
+#
+#   1. **Fondo opaco, no blanco.** Todo lo demás sale sobre blanco para que
+#      `whitebg_cutout.py` lo recorte a PNG transparente. El ícono NO se
+#      recorta: Apple RECHAZA un ícono con canal alfa. Su fondo es parte del
+#      asset.
+#   2. **Degradé permitido.** El preámbulo de personaje pide "NO gradients"
+#      —es la regla que mantiene el estilo plano del tablero—; acá el degradé
+#      celeste es un pedido explícito del dueño (2026-09-02).
+#   3. **Sin texto, y es una decisión, no una omisión.** El juego se llama
+#      FisuEvolution en castellano y HoboEvolution en inglés: cualquier texto
+#      horneado en el ícono estaría mal en uno de los dos mercados.
+#
+# La otra restricción es de legibilidad: el ícono se ve a 60×60 pt en la home
+# screen y a ~29 pt en Ajustes. Por eso la cara ocupa el 70-80% del lienzo y
+# la composición se piensa dentro del círculo seguro — iOS recorta las esquinas
+# con su máscara superelíptica y cualquier detalle que viva ahí se pierde.
+STYLE_PREAMBLE_ICON = (
+    "Official iOS App Store app icon for the mobile game. Match EXACTLY the "
+    "art style of the reference images: 2D cartoon with thick dark brown-black "
+    "outlines of varying weight, warm muted earthy palette, soft cel shading "
+    "with visible texture, expressive hand-drawn character work. "
+    "SQUARE 1:1 canvas, fully OPAQUE background edge to edge, no transparency, "
+    "no alpha channel. "
+    "Composition: a single character HEAD-AND-SHOULDERS portrait, centered, "
+    "filling 70-80% of the canvas, facing the viewer. Bold silhouette that "
+    "stays readable when scaled down to 60x60 pixels. Keep all important "
+    "detail inside a centered circle — the corners get masked by the iOS "
+    "rounded-square mask. "
+    "ABSOLUTELY NO TEXT, no letters, no words, no numbers, no logo type, no "
+    "watermark, no signature, no border frame, no rounded-corner mask drawn "
+    "into the image, no drop shadow outside the canvas, no UI chrome, no "
+    "mockup of a phone. Flat square full-bleed artwork only."
+)
+
 
 def load_key() -> str:
     import os
@@ -68,8 +104,17 @@ def load_prompts() -> list[dict]:
 
 
 def build_request(entry: dict, references: list[Path]) -> dict:
-    is_scene = entry.get("category") == "background"
-    preamble = STYLE_PREAMBLE_SCENE if is_scene else STYLE_PREAMBLE
+    category = entry.get("category")
+    is_scene = category == "background"
+    # El ícono SÍ quiere las referencias (es el mismo Fisura del juego, no un
+    # personaje nuevo: sin condicionar por imagen el modelo inventa otro
+    # indigente), pero NO quiere el preámbulo de personaje, que le pediría
+    # figura completa sobre blanco.
+    preamble = (
+        STYLE_PREAMBLE_ICON if category == "appicon"
+        else STYLE_PREAMBLE_SCENE if is_scene
+        else STYLE_PREAMBLE
+    )
     subject = entry.get("prompt") or entry.get("subject", "")
     parts: list[dict] = []
     if references and not is_scene:
@@ -132,6 +177,33 @@ def reference_images() -> list[Path]:
     return sorted(approved.glob("*.png"))[:3]
 
 
+# El ícono se condiciona con los assets QUE YA ESTÁN EN EL JUEGO, no con
+# `heroes/approved/`. La razón es que `approved/` guarda las anclas de estilo de
+# la primera tanda, y el arte embarcado evolucionó desde ahí: el ícono tiene que
+# parecerse a lo que el jugador ve cuando abre la app, o el paso de la ficha de
+# App Store al tablero se siente como dos juegos distintos.
+#
+# Van la CARA (que es la composición del ícono) y el CUERPO (que trae la paleta
+# y el tratamiento de la ropa, y evita que el modelo se invente el gorro).
+ICON_REFERENCES = [
+    Path("FisuEvolution/Resources/ui.atlas/homeless_face@3x.png"),
+    Path("FisuEvolution/Resources/earth.atlas/homeless_idle@2x.png"),
+]
+
+
+def icon_reference_images() -> list[Path]:
+    """Las referencias del ícono, resueltas contra la raíz del repo."""
+    repo = PIPELINE.parent.parent
+    found = [repo / relative for relative in ICON_REFERENCES]
+    missing = [p for p in found if not p.exists()]
+    if missing:
+        sys.exit(
+            "faltan las referencias del ícono (¿se renombró el atlas?): "
+            + ", ".join(str(p) for p in missing)
+        )
+    return found
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group(required=True)
@@ -162,6 +234,9 @@ def main() -> None:
         sys.exit("nada que generar con ese filtro")
 
     print(f"{len(selected)} assets → {out_dir}")
+    icon_references = icon_reference_images() if any(
+        e.get("category") == "appicon" for e in selected
+    ) else []
     failures = []
     for index, entry in enumerate(selected, 1):
         out_path = out_dir / f"{entry['assetKey']}.png"
@@ -169,7 +244,10 @@ def main() -> None:
             print(f"[{index}/{len(selected)}] {entry['assetKey']} ya existe, salto")
             continue
         print(f"[{index}/{len(selected)}] {entry['assetKey']}…")
-        if not generate_one(entry, references, key, out_path):
+        entry_references = (
+            icon_references if entry.get("category") == "appicon" else references
+        )
+        if not generate_one(entry, entry_references, key, out_path):
             failures.append(entry["assetKey"])
         time.sleep(2)  # cortesía de rate limit
 

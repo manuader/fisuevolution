@@ -521,11 +521,74 @@ struct GameContentValidationTests {
         }
     }
 
+    /// Los servicios que F6 enciende a mano siguen apagados en el árbol.
+    ///
+    /// ⚠️ `useRealAds` salió de esta lista el 2026-09-02: con la rama A
+    /// confirmada (AdMob real) el valor embarcado es `true`, y lo que hay que
+    /// cuidar dejó de ser "que esté apagado" y pasó a ser **la coherencia entre
+    /// el proveedor y lo que la tienda vende** — eso lo prueba
+    /// `theStoreDoesNotSellRemovingAdsThatDoNotExist`, abajo.
     @Test func featureFlagsShipDisabled() {
         #expect(content.flags.gameCenterEnabled == false)
         #expect(content.flags.cloudKitEnabled == false)
-        #expect(content.flags.useRealAds == false)
         #expect(content.flags.buildVariant == "dev")
+    }
+
+    /// **La incoherencia que se puede embarcar sin que nada falle**, y por eso
+    /// tiene test propio: la tienda vende `remove_ads`, y con `useRealAds` en
+    /// `false` el juego corre con `StubAdsProvider` — un "anuncio" de 2 s que
+    /// paga el premio sin mostrar publicidad. En ese estado la app cobra 2,99
+    /// por sacar algo que no existe, que es lo que la guideline 2.3.1 llama
+    /// engañoso.
+    ///
+    /// No hay forma de que el compilador lo note: son un JSON y un catálogo de
+    /// productos que no se conocen entre sí.
+    @Test func theStoreDoesNotSellRemovingAdsThatDoNotExist() throws {
+        // El catálogo NO vive en `GameContent`: lo carga `StoreManager` por su
+        // cuenta desde `products.json`. Por eso se lee acá igual que allá — y
+        // por eso mismo la incoherencia era invisible: son dos configuraciones
+        // que nadie cruzaba.
+        let catalog = try ProductCatalog.load(from: .main)
+        guard !catalog.removeAdsProductIDs.isEmpty else { return }
+        #expect(
+            content.flags.useRealAds,
+            """
+            La tienda vende remove_ads pero `useRealAds` está en false: el juego \
+            correría con el proveedor stub y estaría cobrando por sacar una \
+            publicidad que no se muestra. O se prende `useRealAds`, o \
+            `remove_ads` sale del catálogo (rama B de Docs/ads-integration.md).
+            """
+        )
+        // Y la mitad que se olvida: los rewarded son OPT-IN por política de
+        // Google, así que no son lo que `remove_ads` saca. Lo único
+        // interruptivo del juego es el interstitial; sin su unidad declarada,
+        // el producto no tiene nada que quitar.
+        #expect(
+            content.flags.effectiveAdUnitIDs.interstitial != nil,
+            """
+            La tienda vende remove_ads pero no hay unidad de interstitial \
+            declarada en feature_flags.json. Los rewarded son opt-in y NO se \
+            quitan con esa compra, así que el producto no sacaría nada: hay que \
+            crear la unidad de interstitial en AdMob, o sacar remove_ads (y el \
+            starter_pack, que también lo otorga) del catálogo.
+            """
+        )
+    }
+
+    /// Un build de tienda no puede salir con los ad unit IDs de prueba de
+    /// Google: sirven anuncios de relleno y no pagan un centavo. Es un cambio
+    /// de dos strings en `feature_flags.json` que **no rompe nada** si se
+    /// olvida — la app funciona igual, sólo no factura.
+    @Test func storeBuildsUseRealAdUnitIDs() {
+        guard content.flags.isStoreBuild, content.flags.useRealAds else { return }
+        #expect(
+            !content.flags.effectiveAdUnitIDs.usesAnyGoogleTestID,
+            """
+            buildVariant es "store" pero los ad unit IDs son los de prueba \
+            públicos de Google. Poné los de la cuenta real en \
+            feature_flags.json (y el App ID real en FisuEvolution/Info.plist).
+            """
+        )
     }
 
     /// El arte entra por tandas: cada entrada del manifest debe apuntar a un

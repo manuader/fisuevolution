@@ -1,0 +1,248 @@
+import Foundation
+import GoogleMobileAds
+import Observation
+import UIKit
+
+/// El proveedor real de anuncios: AdMob detrás de `feature_flags.useRealAds`.
+///
+/// Toda la clase es `@MainActor`, y no por costumbre: la API del SDK que
+/// presenta —`present(from:)`, `canPresent(from:)` y **todos** los métodos de
+/// `FullScreenContentDelegate`— viene anotada `NS_SWIFT_UI_ACTOR` en los
+/// headers, que es `@MainActor` del otro lado del puente. Aislar la clase
+/// entera es lo que hace que eso no genere un solo salto de actor.
+///
+/// ## Las tres cosas que hacen que esto no sea un wrapper trivial
+///
+/// **1. "Se ganó el premio" y "se cerró el anuncio" son eventos distintos, y
+/// llegan por caminos distintos.** El premio llega por el
+/// `userDidEarnRewardHandler` de `present`; el cierre, por
+/// `adDidDismissFullScreenContent` del delegate. Un jugador que abre el video y
+/// lo cierra a los dos segundos dispara **el segundo y no el primero**. Por eso
+/// `showRewarded` espera el CIERRE y devuelve lo que haya pasado con el premio:
+/// si esperara el premio, el `await` de un jugador que cierra el anuncio no
+/// volvería nunca y la fila quedaría con el spinner para siempre.
+///
+/// La doc de AdMob confirma que el orden es seguro para los anuncios de Google
+/// ("all `userDidEarnRewardHandler` calls occur before
+/// `adDidDismissFullScreenContent:`"), y avisa que **con mediación el orden lo
+/// decide el SDK de terceros** — otra razón para no atarse al orden y esperar
+/// el cierre.
+///
+/// **2. Un anuncio se consume.** Una instancia sirve para UNA presentación.
+/// Por eso el ad cargado se saca del inventario ANTES de presentarse (no
+/// después): si el jugador toca dos veces rápido, el segundo toque encuentra
+/// vacío y no intenta re-presentar un anuncio ya usado, que el SDK rechaza.
+///
+/// **3. Los anuncios se vencen a la hora.** Lo dice la doc de AdMob: *"ads
+/// expire after an hour, you should clear this cache and reload with new ads
+/// every hour"*. Un idle se deja abierto o en background durante horas, así que
+/// éste es el caso normal y no el raro: sin el chequeo de frescura, el primer
+/// video de la tarde falla al presentarse y el jugador ve un botón que no hace
+/// nada. Ver `Inventory.isFresh`.
+@Observable @MainActor
+final class AdMobAdsProvider: AdsProvider {
+
+    /// Un anuncio cargado, con el momento en que se cargó.
+    ///
+    /// El `loadedAt` es la mitad del valor de este tipo: es lo que permite
+    /// tirar el anuncio vencido ANTES de intentar mostrarlo.
+    private struct Inventory<Ad> {
+        let ad: Ad
+        let loadedAt: Date
+
+        /// Margen sobre la hora que declara AdMob. Cinco minutos antes para no
+        /// competir con el borde: un anuncio que se vence entre el chequeo y la
+        /// presentación falla igual.
+        static var lifetime: TimeInterval { 55 * 60 }
+
+        func isFresh(now: Date) -> Bool {
+            now.timeIntervalSince(loadedAt) < Self.lifetime
+        }
+    }
+
+    private let unitIDs: FeatureFlags.AdUnitIDs
+    /// Inyectable para que los tests puedan envejecer el inventario sin esperar
+    /// 55 minutos.
+    private let now: @Sendable () -> Date
+
+    @ObservationIgnored private var rewarded: [RewardedPlacement: Inventory<RewardedAd>] = [:]
+    /// Los placements con una carga en vuelo, para no pedir dos veces el mismo.
+    @ObservationIgnored private var loadingRewarded: Set<RewardedPlacement> = []
+    @ObservationIgnored private var interstitial: Inventory<InterstitialAd>?
+    @ObservationIgnored private var loadingInterstitial = false
+    @ObservationIgnored private let presentation = FullScreenAdObserver()
+    @ObservationIgnored private var didStartSDK = false
+
+    init(
+        unitIDs: FeatureFlags.AdUnitIDs,
+        now: @escaping @Sendable () -> Date = Date.init
+    ) {
+        self.unitIDs = unitIDs
+        self.now = now
+    }
+
+    // MARK: - Arranque
+
+    /// Arranca el SDK y deja precargado lo que se usa primero.
+    ///
+    /// ⚠️ El orden importa y es el del checklist de `Docs/ads-integration.md`:
+    /// el consentimiento (UMP + ATT) va ANTES de `start()`. Quien lo garantiza
+    /// es `AdsConsent.resolve()`, que el llamador espera antes de llamar acá.
+    ///
+    /// Precarga **sólo `gifts` y el interstitial**, no las cuatro unidades: un
+    /// rewarded pesa y se vence, así que traer los cuatro al arranque gasta red
+    /// del jugador en tres anuncios que quizá no vea nunca. Los otros los pide
+    /// la UI con `preloadRewarded(for:)` cuando la oferta está por aparecer.
+    func prepare() {
+        guard !didStartSDK else { return }
+        didStartSDK = true
+        Task {
+            await MobileAds.shared.start()
+            // El rating del contenido se limita a "Teen" para no romper el 12+
+            // declarado de la app: un ad de casino o de contenido adulto en un
+            // juego con rating 12+ es una queja de review con la app publicada.
+            MobileAds.shared.requestConfiguration.maxAdContentRating = .teen
+            preloadRewarded(for: .gifts)
+            preloadInterstitial()
+        }
+    }
+
+    // MARK: - Rewarded
+
+    func isRewardedReady(for placement: RewardedPlacement) -> Bool {
+        guard let entry = rewarded[placement] else { return false }
+        return entry.isFresh(now: now())
+    }
+
+    func preloadRewarded(for placement: RewardedPlacement) {
+        // Ya hay uno fresco, o ya se está pidiendo.
+        if isRewardedReady(for: placement) || loadingRewarded.contains(placement) { return }
+        rewarded[placement] = nil
+        loadingRewarded.insert(placement)
+        Task { await loadRewarded(placement) }
+    }
+
+    private func loadRewarded(_ placement: RewardedPlacement) async {
+        defer { loadingRewarded.remove(placement) }
+        do {
+            let ad = try await RewardedAd.load(
+                with: unitIDs.rewarded(for: placement), request: Request()
+            )
+            rewarded[placement] = Inventory(ad: ad, loadedAt: now())
+        } catch {
+            // Quedarse sin anuncio es NORMAL (sin red, sin inventario, cuota
+            // del día): no es un error que el jugador tenga que ver. La fila
+            // del video se apaga sola y vuelve cuando haya inventario.
+            rewarded[placement] = nil
+        }
+    }
+
+    func showRewarded(for placement: RewardedPlacement) async -> Bool {
+        guard let entry = rewarded[placement], entry.isFresh(now: now()) else {
+            // Vencido o inexistente: se descarta y se repone para la próxima.
+            rewarded[placement] = nil
+            preloadRewarded(for: placement)
+            return false
+        }
+        // Se saca del inventario ANTES de presentar: el ad se consume.
+        rewarded[placement] = nil
+
+        var earnedReward = false
+        let ad = entry.ad
+        ad.fullScreenContentDelegate = presentation
+        await presentation.present {
+            ad.present(from: nil) { earnedReward = true }
+        }
+
+        // Reponer inventario para la próxima, gane o no gane.
+        preloadRewarded(for: placement)
+        return earnedReward
+    }
+
+    // MARK: - Interstitial
+
+    var isInterstitialReady: Bool {
+        guard let interstitial else { return false }
+        return interstitial.isFresh(now: now())
+    }
+
+    func preloadInterstitial() {
+        // Sin unidad declarada, este build no muestra interstitials y no hay
+        // nada que precargar. Ver el aviso en `FeatureFlags.AdUnitIDs`.
+        guard let unitID = unitIDs.interstitial else { return }
+        if isInterstitialReady || loadingInterstitial { return }
+        interstitial = nil
+        loadingInterstitial = true
+        Task {
+            defer { loadingInterstitial = false }
+            do {
+                let ad = try await InterstitialAd.load(with: unitID, request: Request())
+                interstitial = Inventory(ad: ad, loadedAt: now())
+            } catch {
+                interstitial = nil
+            }
+        }
+    }
+
+    func showInterstitial() async {
+        guard let entry = interstitial, entry.isFresh(now: now()) else {
+            interstitial = nil
+            preloadInterstitial()
+            return
+        }
+        interstitial = nil
+
+        let ad = entry.ad
+        ad.fullScreenContentDelegate = presentation
+        await presentation.present { ad.present(from: nil) }
+
+        preloadInterstitial()
+    }
+}
+
+// MARK: - El puente entre el delegate y async/await
+
+/// Convierte el par "presentá" / "se cerró" del SDK en un `await` que vuelve
+/// cuando la pantalla se liberó.
+///
+/// Existe como objeto aparte por una razón concreta: `FullScreenContentDelegate`
+/// es un protocolo de Objective-C y exige `NSObject`, mientras que el proveedor
+/// es `@Observable`. Mezclar el macro de observación con una subclase de
+/// `NSObject` que además es delegate del SDK es pedir problemas; separarlos
+/// cuesta veinte líneas y deja las dos cosas simples.
+///
+/// ⚠️ **La continuación se resume UNA sola vez, y el guard no es defensivo por
+/// las dudas.** El SDK puede llamar a `didFailToPresent` y, según el caso,
+/// igual llamar a `adDidDismiss` después. Resumir dos veces la misma
+/// `CheckedContinuation` es un **crash**, no un warning.
+@MainActor
+private final class FullScreenAdObserver: NSObject, FullScreenContentDelegate {
+    private var continuation: CheckedContinuation<Void, Never>?
+
+    /// Presenta y espera hasta que el anuncio se haya cerrado (o haya fallado).
+    func present(_ show: () -> Void) async {
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            self.continuation = continuation
+            show()
+        }
+    }
+
+    private func finish() {
+        guard let continuation else { return }
+        self.continuation = nil
+        continuation.resume()
+    }
+
+    func adDidDismissFullScreenContent(_ ad: any FullScreenPresentingAd) {
+        finish()
+    }
+
+    func ad(
+        _ ad: any FullScreenPresentingAd,
+        didFailToPresentFullScreenContentWithError error: any Error
+    ) {
+        // Si no se pudo presentar no hay cierre que esperar: se libera acá o el
+        // llamador se queda colgado en el `await` para siempre.
+        finish()
+    }
+}

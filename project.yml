@@ -10,6 +10,23 @@ options:
 packages:
   EconomyKit:
     path: Packages/EconomyKit
+  # ÚNICA dependencia externa del proyecto, y es una excepción documentada a
+  # "sin librerías de terceros" (Docs/ads-integration.md): Apple no ofrece red
+  # publicitaria, así que monetizar con ads obliga a un SDK ajeno.
+  #
+  # El producto `GoogleMobileAds` arrastra `GoogleUserMessagingPlatform` como
+  # dependencia transitiva — por eso el consentimiento (UMP, obligatorio en la
+  # UE) NO necesita una segunda entrada acá: alcanza con
+  # `import UserMessagingPlatform`.
+  #
+  # Es un binaryTarget (xcframework firmado por Google), no fuente: no se
+  # compila con nuestras flags, así que `SWIFT_STRICT_CONCURRENCY: complete` no
+  # lo alcanza. Lo que sí nos toca es que su API está anotada `NS_SWIFT_UI_ACTOR`
+  # (o sea `@MainActor`) en todo lo que presenta: `AdMobAdsProvider` es
+  # `@MainActor` entero por eso, no por costumbre.
+  GoogleMobileAds:
+    url: https://github.com/googleads/swift-package-manager-google-mobile-ads.git
+    from: 13.9.0
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -37,7 +54,13 @@ targets:
     type: application
     platform: iOS
     sources:
-      - FisuEvolution
+      - path: FisuEvolution
+        # `Info.plist` es INPUT del build (INFOPLIST_FILE), no un recurso. Sin
+        # excluirlo, XcodeGen lo encuentra al escanear la carpeta y lo agrega
+        # también a Copy Bundle Resources: el resultado es un segundo
+        # Info.plist crudo dentro del .app, pisando al compilado.
+        excludes:
+          - Info.plist
       # El .storekit viaja en el bundle para que la tienda local funcione en
       # builds lanzadas SIN Xcode (simctl, tocar el icono): el
       # `storeKitConfiguration` del scheme sólo se inyecta cuando Xcode lanza
@@ -49,10 +72,18 @@ targets:
         buildPhase: resources
     dependencies:
       - package: EconomyKit
+      - package: GoogleMobileAds
+        product: GoogleMobileAds
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.manuader.fisuevolution
         GENERATE_INFOPLIST_FILE: YES
+        # Los dos convivien a propósito: `FisuEvolution/Info.plist` es la BASE y
+        # las claves generadas + los `INFOPLIST_KEY_*` se suman encima. Existe
+        # sólo para las claves que la whitelist de Xcode no puede expresar
+        # (`GADApplicationIdentifier`); el porqué completo está adentro del
+        # archivo. VERIFICADO en el Info.plist compilado.
+        INFOPLIST_FILE: FisuEvolution/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
@@ -71,8 +102,31 @@ targets:
         # **no es la que manda**: si algún día vuelve a aparecer el reloj, el
         # lugar donde mirar es `RootView`, no este archivo.
         INFOPLIST_KEY_UIStatusBarHidden: YES
+        # El nombre de la home screen. Es el BASE (castellano); el inglés lo
+        # pone `Resources/InfoPlist.xcstrings` con `CFBundleDisplayName` =
+        # "HoboEvolution" (decisión del dueño, 2026-09-02: FisuEvolution para
+        # mercados hispanohablantes, HoboEvolution para el resto).
+        # ⚠️ Esto NO es el nombre de App Store Connect, que se carga por locale
+        # en la ficha (ver Distribution/store-metadata.md).
+        INFOPLIST_KEY_CFBundleDisplayName: FisuEvolution
+        # Compliance de exportación. La app no usa criptografía propia ni no
+        # exenta: sólo HTTPS del sistema (y, con ads, el SDK de Google). Sin
+        # esta clave App Store Connect pregunta el compliance en CADA subida y
+        # el build queda en "Missing Compliance" sin poder mandarse a review.
+        # ⚠️ Va con el prefijo INFOPLIST_KEY_ porque `GENERATE_INFOPLIST_FILE`
+        # está en YES: una clave pelada acá se queda en el .pbxproj y NO llega
+        # al Info.plist (es la misma trampa de UIStatusBarHidden, arriba).
+        # VERIFICADO en el Info.plist compilado, no asumido — ver §7 del handoff.
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+        # El texto del diálogo de App Tracking Transparency. Va localizado por
+        # `Resources/InfoPlist.xcstrings` (clave `NSUserTrackingUsageDescription`);
+        # este valor es el base/castellano.
+        # ⚠️ Sin esta clave el prompt de ATT NO aparece y `requestTrackingAuthorization`
+        # devuelve `.denied` sin preguntar — se ve como "el usuario siempre
+        # rechaza", que es un diagnóstico difícil porque no falla nada.
+        INFOPLIST_KEY_NSUserTrackingUsageDescription: Usamos tu identificador de publicidad para mostrarte anuncios más relevantes. Si preferís que no, los anuncios se siguen viendo, sólo que sin personalizar.
         CURRENT_PROJECT_VERSION: "1"
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "1.0.0"
       configs:
         Debug:
           # StoreKitTest (la tienda local DEBUG de `StoreManager`) vive en

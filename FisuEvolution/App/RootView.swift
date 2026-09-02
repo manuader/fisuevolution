@@ -99,7 +99,10 @@ struct GameBoardView: View {
     /// con un booleano por hoja, dos tabs seguidos podían dejar dos banderas en
     /// `true` y SwiftUI presentar una sola. El enum lo hace imposible.
     @State private var activeScreen: GameScreen?
-    @State private var adsProvider = StubAdsProvider()
+    /// El coordinador de anuncios lo construye la App (necesita los feature
+    /// flags, que no existen cuando este `@State` se inicializaría): acá sólo
+    /// se lee del entorno.
+    @Environment(AdsCoordinator.self) private var adsProvider
     // La ficha de personaje espera al tutorial: no es una celebración de la
     // cola, así que éste es su único gate.
     @AppStorage("fisuTutorialDone") private var tutorialDone = false
@@ -234,6 +237,14 @@ struct GameBoardView: View {
         // publica esta vista.
         .onChange(of: activeScreen) { _, screen in
             gameState.uiCoversBoard = screen != nil || showPrestige
+            // **La pausa natural del juego**: el jugador cerró una pantalla y
+            // vuelve al tablero. No estaba tapeando, no hay nada en curso, y no
+            // se le interrumpe ninguna acción — que es exactamente lo que un
+            // interstitial disparado por reloj NO puede garantizar por su
+            // cuenta. Si no le toca, esto no hace nada y vuelve enseguida.
+            if screen == nil {
+                Task { await gameState.showInterstitialIfAppropriate() }
+            }
         }
         .onChange(of: showPrestige) { _, prestige in
             gameState.uiCoversBoard = prestige || activeScreen != nil

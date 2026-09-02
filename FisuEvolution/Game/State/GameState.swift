@@ -394,6 +394,9 @@ final class GameState {
     @ObservationIgnored var haptics: HapticsManager?
     /// Los usan `+Actions`, `+Prestige` y `+Bonus`.
     @ObservationIgnored var audio: AudioManager?
+    /// Los anuncios. `@ObservationIgnored` como los otros servicios: el estado
+    /// del inventario de anuncios no dibuja nada.
+    @ObservationIgnored var ads: AdsCoordinator?
     /// Las tres banderas del FTUE las escribe `+Actions` y las lee este archivo
     /// en `refreshProjections`.
     @ObservationIgnored var ftueTapped = UserDefaults.standard.bool(forKey: "ftue.tapped")
@@ -415,6 +418,46 @@ final class GameState {
 
     func attachHaptics(_ manager: HapticsManager) {
         haptics = manager
+    }
+
+    /// Los anuncios. Los usa `+Prestige` (interstitial post-reencarnación) y
+    /// el cierre del popup de offline; nunca el frame loop.
+    func attachAds(_ coordinator: AdsCoordinator) {
+        ads = coordinator
+    }
+
+    /// Si ESTE instante es un buen momento para tapar la pantalla con un
+    /// interstitial.
+    ///
+    /// El pedido del dueño fue "un anuncio cada 5 o 10 minutos de juego"; el
+    /// reloj que cuenta eso vive en `AdsCoordinator`. Esta propiedad contesta la
+    /// otra mitad —**dónde** se puede— y las cuatro condiciones son cada una un
+    /// caso que se ve horrible si se saltea:
+    ///
+    /// - `phase == .ready`: no durante la carga.
+    /// - `!uiCoversBoard`: no encima de una hoja abierta; sería un anuncio
+    ///   sobre un panel que el jugador estaba leyendo.
+    /// - `celebrations.current == nil`: no encima de un ascenso, un cofre o un
+    ///   premio. Es el momento de más dopamina del juego y taparlo con
+    ///   publicidad es la peor decisión posible.
+    /// - `!tutorialPhaseActive`: nunca durante el tutorial. Un jugador que
+    ///   todavía no entendió el juego y come un anuncio, desinstala.
+    ///
+    /// ⚠️ Que sea "buen momento" NO alcanza para mostrar nada: también tiene que
+    /// tocarle por reloj. Las dos mitades se juntan en
+    /// `showInterstitialIfArmed()`, y ninguna de las dos sirve sola.
+    var isSafeMomentForInterstitial: Bool {
+        phase == .ready
+            && !uiCoversBoard
+            && celebrations.current == nil
+            && !tutorialPhaseActive
+    }
+
+    /// Pide un interstitial si le toca Y estamos en un buen momento. La llama la
+    /// UI al volver al tablero desde una pantalla.
+    func showInterstitialIfAppropriate() async {
+        guard isSafeMomentForInterstitial else { return }
+        await ads?.showInterstitialIfArmed()
     }
 
     func attachAudio(_ manager: AudioManager) {
@@ -813,6 +856,11 @@ final class GameState {
             }
         }
         fireEventIfDue(now: now)
+        // El reloj del interstitial vive acá y no en un `Timer` (regla 2 de
+        // concurrencia). Sólo ARMA la bandera —tres restas de fechas, barato a
+        // 8 Hz—; el disparo lo pide la UI en una pausa natural. El porqué de
+        // esa separación está en `AdsCoordinator.isInterstitialArmed`.
+        ads?.armIfDue()
         refreshProjections()
     }
 
@@ -828,6 +876,10 @@ final class GameState {
             Task { await persistNow() }
         case .active:
             guard phase == .ready else { return }
+            // El tiempo en background NO es tiempo de juego: reiniciar la
+            // gracia evita que volver después de horas te reciba con un
+            // interstitial en la cara.
+            ads?.sessionResumed()
             applyOfflineProgressIfNeeded()
             claimDailyIfAvailable()
             refreshProjections()

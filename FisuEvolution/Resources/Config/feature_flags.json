@@ -1,7 +1,14 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "gameCenterEnabled": false,
   "cloudKitEnabled": false,
-  "useRealAds": false,
-  "buildVariant": "dev"
+  "useRealAds": true,
+  "buildVariant": "dev",
+  "adUnitIDs": {
+    "rewardedGifts": "ca-app-pub-8575641544774372/8304196070",
+    "rewardedOfflineX2": "ca-app-pub-8575641544774372/6825744243",
+    "rewardedChestExtra": "ca-app-pub-8575641544774372/3981807683",
+    "rewardedBoost": "ca-app-pub-8575641544774372/4913896772",
+    "interstitial": "ca-app-pub-8575641544774372/5270838626"
+  }
 }

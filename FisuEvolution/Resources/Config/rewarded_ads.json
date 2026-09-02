@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "rewards": [
     {
       "id": "double_earnings",
@@ -35,5 +35,10 @@
       "cooldownSeconds": 14400,
       "titleKey": "ads.reward.chest"
     }
-  ]
+  ],
+  "interstitial": {
+    "minSecondsBetween": 420,
+    "graceSecondsAfterLaunch": 180,
+    "graceSecondsAfterRewarded": 90
+  }
 }

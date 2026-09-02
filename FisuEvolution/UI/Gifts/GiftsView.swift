@@ -43,6 +43,13 @@ struct GiftsView: View {
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
+    /// La pantalla de Regalos es la vidriera de los videos, así que al abrirla
+    /// se pide la precarga: un rewarded tarda 1-3 s y sin esto el primer toque
+    /// del jugador cae sobre un botón sin inventario.
+    private func preloadGiftVideos() {
+        adsProvider.preloadRewarded(for: .gifts)
+    }
+
     /// Margen lateral de la columna: el del marco vectorial, publicado por el
     /// componente. Un solo número para las nueve hojas — el marco es el
     /// contenedor y las tarjetas viven ADENTRO (pedido del dueño, 2026-08-18;
@@ -139,6 +146,7 @@ struct GiftsView: View {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
             .onReceive(timer) { now = $0 }
+            .onAppear(perform: preloadGiftVideos)
         }
     }
 
@@ -213,10 +221,11 @@ struct GiftsView: View {
     /// deshabilita controles —el dimming del sistema deja el texto ilegible— así
     /// que el botón sigue tappable y el segundo toque no hace nada.
     private func watch(rewardId: String) {
-        guard watchingRewardId == nil, adsProvider.isRewardedReady else { return }
+        guard watchingRewardId == nil,
+              adsProvider.isRewardedReady(for: .gifts) else { return }
         watchingRewardId = rewardId
         Task {
-            let earned = await adsProvider.showRewarded()
+            let earned = await adsProvider.showRewarded(for: .gifts)
             if earned {
                 gameState.applyRewardedReward(rewardId: rewardId)
             }

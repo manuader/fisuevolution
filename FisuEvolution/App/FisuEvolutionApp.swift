@@ -10,6 +10,11 @@ struct FisuEvolutionApp: App {
     /// El recordatorio diario de Ajustes (T16). No pide permiso al arrancar —lo
     /// pide el toggle— así que construirlo acá no le muestra un diálogo a nadie.
     @State private var notifications = NotificationsManager()
+    /// Los anuncios. Se construye acá y NO en `RootView` porque elegir entre el
+    /// stub y AdMob necesita los feature flags, que recién existen después de
+    /// `bootstrap()`; el coordinador arranca con el stub adentro y se resuelve
+    /// abajo, en el `.task`.
+    @State private var ads = AdsCoordinator()
 
     var body: some Scene {
         WindowGroup {
@@ -20,6 +25,7 @@ struct FisuEvolutionApp: App {
                 .environment(haptics)
                 .environment(audio)
                 .environment(notifications)
+                .environment(ads)
                 .task {
                     haptics.prepare()
                     audio.prepare()
@@ -38,6 +44,20 @@ struct FisuEvolutionApp: App {
                     if let content = gameState.content {
                         gameState.attachGameCenter(gameCenter)
                         gameCenter.start(content: content)
+                    }
+                    // Los anuncios van DESPUÉS de `storeManager.start`, y el
+                    // orden es lo que hace que `remove_ads` se respete desde el
+                    // primer segundo: es ese start el que sincroniza los
+                    // entitlements de StoreKit y escribe `meta.removedAds`.
+                    // Configurar antes dejaría al comprador viendo un
+                    // interstitial hasta el próximo arranque.
+                    gameState.attachAds(ads)
+                    if let content = gameState.content {
+                        await ads.configure(
+                            flags: content.flags,
+                            cadence: content.rewardedAds.effectiveInterstitial,
+                            removedAds: gameState.player?.meta.removedAds ?? false
+                        )
                     }
                 }
         }

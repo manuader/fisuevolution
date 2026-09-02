@@ -119,12 +119,17 @@ struct GameBoardView: View {
                 // sin esto tiene que respetar el orden del árbol y dibuja nodo
                 // por nodo.
                 #if DEBUG
-                SpriteView(
-                    scene: scene,
-                    options: [.ignoresSiblingOrder, .shouldCullNonVisibleNodes],
-                    debugOptions: [.showsFPS, .showsNodeCount, .showsDrawCount]
-                )
-                .ignoresSafeArea()
+                if Self.isScreenshotMode {
+                    SpriteView(scene: scene, options: [.ignoresSiblingOrder, .shouldCullNonVisibleNodes])
+                        .ignoresSafeArea()
+                } else {
+                    SpriteView(
+                        scene: scene,
+                        options: [.ignoresSiblingOrder, .shouldCullNonVisibleNodes],
+                        debugOptions: [.showsFPS, .showsNodeCount, .showsDrawCount]
+                    )
+                    .ignoresSafeArea()
+                }
                 #else
                 SpriteView(scene: scene, options: [.ignoresSiblingOrder, .shouldCullNonVisibleNodes])
                     .ignoresSafeArea()
@@ -132,7 +137,9 @@ struct GameBoardView: View {
             }
             hudColumn
             #if DEBUG
-            debugButton
+            if !Self.isScreenshotMode {
+                debugButton
+            }
             #endif
 
             // Mismo patrón —y misma razón— que el toast de logros de acá abajo:
@@ -522,6 +529,16 @@ struct GameBoardView: View {
     /// sobre el simulador (SE 3: el contorno ink del panel ocupa 87–90 pt;
     /// 16 Pro: 137–140), no estimado.
     ///
+    /// Modo captura: apaga el andamiaje de DEBUG —el contador de FPS del
+    /// SpriteView y el botón de herramientas— para poder fotografiar el juego
+    /// con los fixtures de `--uitest-*`, que también son DEBUG y por lo tanto
+    /// no existen en Release.
+    ///
+    /// Va en un flag propio y no en `--uitest`: `AscentRenderingUITests` toca
+    /// `hud.debug`, así que esconder el botón en toda corrida de UI tests
+    /// rompería esa suite.
+    static let isScreenshotMode = ProcessInfo.processInfo.arguments.contains("--screenshot-mode")
+
     /// El glifo va sobre plato crema con contorno ink, como los chips del HUD:
     /// el tablero es un dibujo a todo color y un icono pelado se pierde contra
     /// cualquier piso.

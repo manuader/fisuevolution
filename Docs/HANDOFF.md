@@ -53,7 +53,14 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-28 (sexta)** (el
+> **Empezá por acá.** Última actualización: **2026-09-03** (el cofre ya no
+> se traba AL PRINCIPIO: la llegada del overlay pagaba **466 ms de hilo
+> principal clavado** —el retrato del premio se leía en línea en el mismo
+> latido que arranca el resorte de entrada— y ahora se calienta en
+> background con `SKTexture.preload` (`UIArt.warmCharacterImage`); medido
+> antes/después con la sonda nueva de la llegada, `arrival_probe.py`, que
+> mira el primer segundo frame a frame a umbral fino. Sesión en §4, trampa
+> en §7). La anterior, del **2026-08-28 (sexta)**: el
 > cofre a VELOCIDAD: todo el espectáculo corre a **1,5x — los 190 frames del
 > master presentados a 36 fps**, sin sintetizar ni tirar uno, con audio
 > `atempo` y el manifest llevando el ritmo para PNGs y video por igual; y la
@@ -243,6 +250,27 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-09-03 — El cofre ya no se traba al principio
+
+«La animación del cofre se traba al principio. Arreglalo.» Medido con una
+sonda nueva de la LLEGADA (`arrival_probe.py`: localiza el overlay por la
+caída de brillo del telón y escupe un símbolo por frame a umbral fino):
+**el telón aparecía y la pantalla quedaba clavada 466 ms** antes de que el
+cofre entrara. La causa: `choreograph(.arriving)` disparaba el resorte de
+entrada y en la misma pasada `warmPrizeArt()` leía el retrato del premio EN
+LÍNEA (`characterImage` → página entera del atlas + `cgImage()`, los ~320 ms
+que la cuarta del 28-08 había medido y dejado ahí a propósito). Un bloqueo
+del hilo principal durante una animación no deja dibujar un solo frame de
+ella. Fix: **`UIArt.warmCharacterImage`** — `SKTexture.preload` carga la
+página en background, el completion re-busca la textura por nombre (no es
+`Sendable`) y hace el `cgImage()` + caché en el MainActor con la página ya
+en memoria; se calientan las dos candidatas (pinta y base) porque el
+fallback existe. Después: el resorte corre desde el primer frame, cero
+corridas ≥100 ms del tercer toque a la carta, video a 32–35 distintos/s
+con load ~600. No era el preroll de la sexta (la sonda no le atribuye
+nada). Detalle en **`Docs/SESION-2026-09-03-cofre-arranque.md`**. UI del
+cofre **3/3**; ningún test unit toca `UIArt` (cambio aditivo).
 
 ### Sesión del 2026-08-28 (sexta) — El cofre a velocidad: 1,5x, 36 fps y el empalme sin congelón
 
@@ -1525,6 +1553,24 @@ El panel de debug es el ícono de herramientas del HUD.
 ## 7. Trampas en las que ya caímos
 
 
+### Del arranque del cofre (2026-09-03)
+
+**⚠️ Un trabajo síncrono "barato porque el overlay se está construyendo
+igual" NO es barato si una animación ya arrancó.** `warmPrizeArt()` en la
+llegada del cofre costaba ~320 ms de hilo principal y la cuarta del 28-08 lo
+dejó ahí con ese argumento; pero `withAnimation` del resorte de entrada
+corría DOS líneas antes, y SwiftUI no dibuja un frame mientras el hilo está
+bloqueado — el telón aparecía y el cofre entraba 466 ms tarde, de golpe.
+Regla: cualquier lectura de cientos de ms (una página de atlas, un
+`cgImage()`, un decode) que comparta latido con un `withAnimation` va a
+background (`SKTexture.preload`, `Task.detached` + `preparingForDisplay`, lo
+que corresponda) o ANTES de que la animación arranque — nunca "al lado".
+Cómo se caza: `arrival_probe.py` sobre una grabación del sim — una hilera
+de puntos justo después del primer frame del overlay es un bloqueo, no una
+pausa de diseño (el análisis general a umbral grueso NO lo ve: el fade y la
+respiración caen debajo del umbral y la llegada parece "quieta" a
+propósito).
+
 ### Del cofre a velocidad (2026-08-28 sexta)
 
 **⚠️ Con una sesión paralela viva en el checkout, un build compila el árbol
@@ -2693,6 +2739,10 @@ Anotado por si algún día importa, con su medición:
 
 ## 9. Mapa de documentos
 
+- `Docs/SESION-2026-09-03-cofre-arranque.md` — el cofre ya no se traba al
+  principio: los 466 ms del retrato leído en línea en la llegada, el
+  precalentado en background con `SKTexture.preload`, y la sonda de la
+  llegada (`arrival_probe.py`) que ve lo que el promedio grueso no.
 - `Docs/SESION-2026-08-28-cofre-a-velocidad.md` — el cofre a 1,5x: el retime a
   36 fps (mismos 190 frames, audio atempo, manifest como fuente única de
   ritmo), el congelón real del empalme (~280 ms) muerto con preroll +

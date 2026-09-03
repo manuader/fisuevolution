@@ -483,11 +483,12 @@ struct ChestOpeningView: View {
                 entered = true
             }
             play(.merge)
-            // ⚠️ El retrato se carga ACÁ, latidos antes de que se vea: la
-            // PRIMERA lectura del personaje premiado cuesta ~320 ms de hilo
-            // principal (la página del atlas + `cgImage()`), contra 0,1 ms
-            // cacheada. La llegada es el lugar barato: el overlay se está
-            // construyendo igual.
+            // ⚠️ El retrato se precalienta ACÁ, latidos antes de que se vea,
+            // y EN BACKGROUND: la PRIMERA lectura del personaje premiado
+            // cuesta 320–470 ms (la página del atlas), contra 0,1 ms cacheada.
+            // Hacerla en línea en este mismo latido congelaba el resorte de
+            // entrada — 466 ms de telón sin cofre, medidos en grabación: la
+            // "traba al principio" que reportó el dueño.
             warmPrizeArt()
             feed.warm(.shakeA)
             feed.warm(.shakeB)
@@ -596,19 +597,29 @@ struct ChestOpeningView: View {
         return !Task.isCancelled
     }
 
-    /// Fuerza la primera lectura del retrato del premio, para que
-    /// `UIArt.characterImage` la sirva de caché cuando el marco lo pida.
+    /// Precalienta el retrato del premio en background, para que
+    /// `UIArt.characterImage` lo sirva de caché cuando el marco lo pida.
+    ///
+    /// Calienta las DOS candidatas que `portraitImage` puede terminar
+    /// mostrando —la textura de la pinta y la base del tipo— porque si la
+    /// pinta no tiene arte todavía, el marco cae a la base, y una base fría
+    /// sería la misma lectura de cientos de ms pero en medio del video.
     ///
     /// Con plata no hay nada que precalentar: `CoinIcon` sale del atlas `ui`, que
     /// el HUD ya dejó caliente antes de que el cofre existiera.
     private func warmPrizeArt() {
-        guard case let .skin(id, characterType, _) = reward.outcome else { return }
+        guard case let .skin(id, characterType, _) = reward.outcome,
+              let asset = gameState.content?.manifest.characters[characterType]
+        else { return }
         let treatment = SkinResolver.treatment(
             for: id,
             characterType: characterType,
             config: gameState.content?.skins ?? SkinsConfig(schemaVersion: 1, skins: [])
         )
-        _ = portraitImage(typeID: characterType, treatment: treatment)
+        if case let .texture(key) = treatment {
+            UIArt.warmCharacterImage(atlas: asset.atlas, key: key)
+        }
+        UIArt.warmCharacterImage(atlas: asset.atlas, key: asset.key)
     }
 
     private func play(_ pattern: HapticsManager.Pattern) {

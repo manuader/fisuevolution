@@ -54,6 +54,29 @@ enum UIArt {
         return Image(uiImage: image)
     }
 
+    /// Precalienta un retrato SIN bloquear el hilo principal.
+    ///
+    /// La primera lectura de un personaje cuesta cientos de ms (la PÁGINA del
+    /// atlas se decodifica entera; medidos 320–470 ms en el sim), y hacerla
+    /// en línea congela lo que esté animándose: la llegada del cofre la
+    /// pagaba justo cuando arrancaba el resorte de entrada, y el overlay
+    /// quedaba clavado medio segundo antes de aparecer. `preload` carga la
+    /// página en background; el `cgImage()` y el caché quedan en el
+    /// MainActor con la página ya en memoria. El completion no captura la
+    /// textura (no es `Sendable`): vuelve a buscarla por nombre, que ya está
+    /// cacheada por el atlas.
+    static func warmCharacterImage(atlas atlasName: String, key: String) {
+        let cacheKey = "\(atlasName)/\(key)"
+        guard characterCache[cacheKey] == nil,
+              let texture = AtlasCache.texture(named: key, inAtlas: atlasName)
+        else { return }
+        texture.preload {
+            Task { @MainActor in
+                _ = characterImage(atlas: atlasName, key: key)
+            }
+        }
+    }
+
     /// Imagen 9-slice: sólo el centro se estira, los bordes/esquinas quedan fijos.
     /// Es lo que hace que botones/burbujas/paneles no se deformen al cambiar de
     /// tamaño. `cap` = fracción del lado menor reservada como borde.

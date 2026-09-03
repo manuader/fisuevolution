@@ -270,7 +270,8 @@ fallback existe. Después: el resorte corre desde el primer frame, cero
 corridas ≥100 ms del tercer toque a la carta, video a 32–35 distintos/s
 con load ~600. No era el preroll de la sexta (la sonda no le atribuye
 nada). Detalle en **`Docs/SESION-2026-09-03-cofre-arranque.md`**. UI del
-cofre **3/3**; ningún test unit toca `UIArt` (cambio aditivo).
+cofre **3/3** · unit completa **465 con el único rojo declarado** (Pacing
+contrato; las dos suites de Store salteadas por ENTORNO).
 
 ### Sesión del 2026-08-28 (sexta) — El cofre a velocidad: 1,5x, 36 fps y el empalme sin congelón
 

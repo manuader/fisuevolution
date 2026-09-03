@@ -79,6 +79,7 @@ en la tira**.
 | Análisis general del después | cero corridas ≥100 ms del tercer toque a la carta; video 32–35 distintos/s (load ~600) |
 | UI cofre: ChestOpening ×2 + circuito Regalos | **3/3** ✅ (la carta con el retrato precalentado renderiza) |
 | Unit: ChestAnimationManifest + AudioWiring (smoke de compilación del target) | **10/10** ✅ |
+| Unit COMPLETA (465 tests, 52 suites, sin las dos de Store) — corrida al cierre desde un worktree, con la máquina ya vacía | **único rojo `PacingTests.theOwnersTargetsAreMet`**, el contrato declarado (≤8 reencarnaciones, mide 9) ✅ |
 | Alcance del cambio | `UIArt.warmCharacterImage` (nuevo, aditivo) + `warmPrizeArt` en la vista; ningún test unit toca `UIArt` |
 
 ## Decisiones

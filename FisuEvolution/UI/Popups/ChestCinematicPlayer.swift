@@ -1,12 +1,12 @@
 import AVFoundation
 import SwiftUI
 
-/// El tramo cinemático del cofre: `chest_open.mov` (HEVC con canal alfa),
-/// del estallido al marco vacío, reproducido por hardware.
+/// El tramo cinemático del cofre: `chest_open.mov` (HEVC premultiplicado, sin
+/// canal alfa), del estallido al marco vacío, reproducido por hardware.
 ///
 /// Es el primer AVFoundation del repo, y entra por una razón medida: los
-/// 5,3 s lineales del estallido a la carta pesan ~3 MB en HEVC contra ~12 MB
-/// en frames PNG, con los 36 fps del retime garantizados por el decoder. Los
+/// ~4 s lineales del estallido a la carta pesan ~1,6 MB en HEVC contra ~12 MB
+/// en frames PNG, con los 48 fps del retime garantizados por el decoder. Los
 /// tramos que responden al dedo (idle y sacudidas) siguen siendo frames de
 /// `ChestAnimationFeed`: un tap pide el swap en el mismo cuadro y un seek de
 /// AVPlayer mete latencia variable.
@@ -79,9 +79,21 @@ final class ChestCinematicPlayer {
     }
 }
 
-/// El `AVPlayerLayer` en SwiftUI, transparente: el alfa del HEVC compone
-/// contra lo que haya detrás. `videoGravity: .resize` porque el frame lo
+/// El `AVPlayerLayer` en SwiftUI. `videoGravity: .resize` porque el frame lo
 /// dicta la geometría del manifest (`cinematicStage`), no el video.
+///
+/// ⚠️ **La capa es OPACA, y eso cambió**: hasta la sesión del velo el mov era
+/// HEVC **con canal alfa** y componía contra el tablero, así que la vista iba
+/// `isOpaque = false` + fondo `.clear`. Desde que el video se premultiplica,
+/// el asset embarcado es `yuv420p` PLANO —verificado con ffprobe: dos
+/// streams, hevc + aac, sin pista de alfa— y `.resize` hace que el video
+/// cubra los bounds enteros. La transparencia había quedado como herencia del
+/// asset viejo, y no era gratis: obligaba al compositor a mezclar una capa de
+/// ~1320×2350 px contra lo de atrás **en cada cuadro**, para un contenido que
+/// no tiene un solo píxel translúcido.
+///
+/// El recorte del encuadre y el feather del borde son del PROPIO video (los
+/// trae horneados), no de la capa: apagar la transparencia no los toca.
 struct ChestCinematicView: UIViewRepresentable {
     let player: AVPlayer
 
@@ -92,8 +104,8 @@ struct ChestCinematicView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> PlayerContainer {
         let view = PlayerContainer()
-        view.isOpaque = false
-        view.backgroundColor = .clear
+        view.isOpaque = true
+        view.backgroundColor = .black
         view.playerLayer.player = player
         view.playerLayer.videoGravity = .resize
         return view

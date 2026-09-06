@@ -82,9 +82,16 @@ class LoIntegrado(unittest.TestCase):
 
     def test_el_manifest_dice_lo_que_el_pipeline_genera(self):
         self.assertEqual(self.manifest["schemaVersion"], 2)
-        # 36 y no 24: la velocidad 1,5x del dueño viaja en el manifest (los
-        # PNG del dedo y el mov retimeado corren a la misma cadencia).
-        self.assertEqual(self.manifest["fps"], 36)
+        # 48 y no 24: la velocidad 2x del dueño (2026-09-06) viaja en el
+        # manifest — los PNG del dedo y el mov retimeado corren a la misma
+        # cadencia, así que el empalme f49→f50 no cambia de ritmo a mitad del
+        # gesto. Fue 36 en la ronda del 1,5x.
+        #
+        # El literal está a propósito AL LADO de la constante: `PLAYBACK_FPS`
+        # solo se movería con el pipeline sin que nadie lo note, y este número
+        # tiene un gemelo en Swift (`ChestOpeningView.playbackFPS`) que no se
+        # entera. Cambiarlo tiene que doler en los dos lados.
+        self.assertEqual(self.manifest["fps"], 48)
         self.assertEqual(self.manifest["fps"], PLAYBACK_FPS)
         self.assertEqual(set(self.manifest["segments"]), set(SEGMENTS))
         for name, seg in SEGMENTS.items():

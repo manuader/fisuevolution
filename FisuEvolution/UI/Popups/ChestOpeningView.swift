@@ -137,24 +137,38 @@ struct ChestOpeningView: View {
     /// Los botones, debajo del marco final de la carta (~98 pt de aire
     /// medidos; a 178 el primero rozaba el marco dorado del master viejo).
     private static let controlsY: CGFloat = 212
-    /// Cuánto video corrido hace falta para jubilar el PNG de respaldo: a los
-    /// 0,6 s el decoder lleva ~21 frames rendidos y el cofre del video sigue
-    /// opaco ~0,8 s más (a 36 fps empieza a fundirse a los 1,4 s del tramo)
-    /// — margen en las dos puntas.
-    private static let stageHandoffSeconds = 0.6
-    /// El flip de la carta va en ~f192–f200 del master: a los 36 fps del
-    /// retime son los 4,0 s del tramo. Su háptico se dispara por reloj
-    /// —apenas antes del giro—, no por observer del player.
-    private static let flipSecondsIntoCinematic = 144.0 / 36.0
+    /// Los fps de PRESENTACIÓN del tramo cinemático.
+    ///
+    /// ⚠️ **Tiene que ser igual al `fps` de `chest_anim.json`**, que lo escribe
+    /// el pipeline desde `PLAYBACK_FPS`. Son dos archivos que no se conocen, y
+    /// si se separan no falla nada: los relojes de abajo quedan corridos
+    /// respecto del video y el flip de la carta se dispara donde no va. Lo pinea
+    /// `ChestAnimationTests`.
+    ///
+    /// Historia del número: 24 (master) → 36 (1,5x, sexta ronda) → **48 (2x,
+    /// pedido del dueño 2026-09-06)**. En las tres, los MISMOS 190 cuadros del
+    /// animador presentados más rápido; nunca se sintetizó ni se tiró uno.
+    private static let playbackFPS = 48.0
+    /// Cuánto video corrido hace falta para jubilar el PNG de respaldo.
+    ///
+    /// Se mide en FRAMES y no en segundos sueltos porque lo que importa es
+    /// cuántos cuadros rindió el decoder: son ~21, que a 48 fps son 0,44 s. Con
+    /// el 0,6 s fijo de la ronda anterior, el relevo caía casi al doble de
+    /// profundidad dentro del tramo — y el cofre del video empieza a fundirse
+    /// antes a 48 fps, así que el margen de la punta de atrás se comía.
+    private static let stageHandoffSeconds = 21.0 / playbackFPS
+    /// El flip de la carta va en ~f192–f200 del master (f144 del tramo). Su
+    /// háptico se dispara por reloj —apenas antes del giro—, no por observer
+    /// del player.
+    private static let flipSecondsIntoCinematic = 144.0 / playbackFPS
     /// Cuándo entran los DATOS del premio: la cara vacía ya está derecha en
-    /// f206 (4,33 s a 36 fps) y del video sólo queda la cola de destellos.
-    /// Esperar el final dejaba marco vacío mirándote (pedido del dueño: que
-    /// los datos tarden menos en aparecer).
-    private static let revealSecondsIntoCinematic = 156.0 / 36.0
-    /// El video dura 5,28 s (los 190 frames del master a 36 fps — la
-    /// velocidad 1,5x del dueño); el tope del await es el seguro contra un
+    /// f156 del tramo y del video sólo queda la cola de destellos. Esperar el
+    /// final dejaba marco vacío mirándote (pedido del dueño: que los datos
+    /// tarden menos en aparecer).
+    private static let revealSecondsIntoCinematic = 156.0 / playbackFPS
+    /// Los 190 frames del tramo. El tope del await es el seguro contra un
     /// decoder trabado, porque este latido no lo avanza nadie más.
-    private static let cinematicSeconds = 190.0 / 36.0
+    private static let cinematicSeconds = 190.0 / playbackFPS
     private static let portraitSide: CGFloat = 96
     private static let plateShape = RoundedRectangle(cornerRadius: 14, style: .continuous)
 
@@ -273,9 +287,25 @@ struct ChestOpeningView: View {
                 // PNG de atrás tapa cualquier hueco del arranque del decoder—
                 // pero SOLO hasta que el video rinde: el cofre del video se
                 // desvanece a mitad del tramo, y el PNG quieto lo resucitaría.
-                if !stageRetired {
-                    ChestStage(feed: feed, chestWidth: Self.chestSide)
-                }
+                // ⚠️ **Se apaga con `opacity`, NO se desmonta**, y eso es un
+                // arreglo medido, no una preferencia.
+                //
+                // Con `if !stageRetired { … }`, jubilar el PNG le cambia la
+                // FORMA al `ZStack` en pleno video: SwiftUI rehace el árbol y
+                // vuelve a correr el layout del escenario —con el
+                // `UIViewRepresentable` del player adentro— mientras el decoder
+                // entrega cuadros. Medido en grabación (2026-09-06, analizador
+                // de corridas de frames idénticos): **166 ms de pantalla
+                // congelada exactamente a los 0,6 s del arranque**, que era el
+                // valor de `stageHandoffSeconds` de entonces. No era el
+                // decoder: era el relevo.
+                //
+                // Apagado por opacidad, el árbol no cambia de forma y el
+                // escenario queda como una `Image` quieta e invisible: su
+                // `TimelineView` ya está `paused` (el feed mostró su último
+                // frame en f49), así que no hay display link vivo detrás.
+                ChestStage(feed: feed, chestWidth: Self.chestSide)
+                    .opacity(stageRetired ? 0 : 1)
 
                 if let cinematic {
                     // La capa del player vive montada DESDE LA LLEGADA,

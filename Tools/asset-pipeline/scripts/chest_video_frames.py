@@ -115,12 +115,21 @@ CINEMATIC_LAST = 239
 #
 # La alternativa medida y descartada fue interpolar (minterpolate MCI a 48
 # sobre el verde): limpia a ojo, pero el simulador no sostiene HEVC-alfa a
-# 48 y el giro colapsaba a ~5 fps efectivos. 36 es el punto que el sim SI
-# sostiene — medido en grabacion con la maquina cargada: 28-36 cuadros
-# distintos/s durante todo el tramo, contra los 24 clavados del master a
-# 1x — y ademas cada frame es del animador.
-CINEMATIC_SPEED = 1.5
-PLAYBACK_FPS = 36  # FPS * CINEMATIC_SPEED, entero a proposito
+# 48 y el giro colapsaba a ~5 fps efectivos.
+#
+# ⚠️ Ese descarte era de un asset QUE YA NO EXISTE, y por eso no bloquea el 2x
+# de hoy (2026-09-06, septima ronda). Aquel colapso se midio sobre HEVC **con
+# canal alfa**, que el sim decodifica por software; desde la sesion del velo
+# el mov es premultiplicado y sale `yuv420p` PLANO — verificado con ffprobe
+# sobre el asset embarcado: dos streams, hevc yuv420p + aac, sin pista de
+# alfa. Heredar el "48 no se banca" habria sido heredar el sintoma de otro
+# archivo.
+#
+# 48 = 24 x 2: los MISMOS 190 cuadros del master, ninguno sintetizado ni
+# tirado, presentados al doble de ritmo. Medido en grabacion despues del
+# cambio (ver la sesion): el sim lo sostiene.
+CINEMATIC_SPEED = 2.0
+PLAYBACK_FPS = 48  # FPS * CINEMATIC_SPEED, entero a proposito
 
 # Las sacudidas llevan su sonido como clip suelto (el timing lo pone el DEDO):
 # la ventana de audio es exactamente la de sus frames, con fade de 10 ms en
@@ -162,7 +171,12 @@ def extract_keyed_frames(video: Path, out_dir: Path) -> None:
     subprocess.run(
         [
             "ffmpeg", "-v", "error", "-i", str(video),
-            "-vf", vf, "-vsync", "0", "-start_number", "0",
+            # `-fps_mode passthrough` y NO `-vsync 0`: son la misma orden (un
+            # frame de salida por frame de entrada, sin duplicar ni tirar para
+            # cuadrar una cadencia), pero **ffmpeg 9 borro `-vsync`** — no lo
+            # deprecio, lo saco, y el script muere con "Unrecognized option
+            # 'vsync'". Medido con ffmpeg 9.0.1 el 2026-09-06.
+            "-vf", vf, "-fps_mode", "passthrough", "-start_number", "0",
             str(out_dir / "k%03d.png"),
         ],
         check=True,

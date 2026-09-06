@@ -14,6 +14,32 @@ enum CoinFormatter {
         return result
     }()
 
+    /// Lo mismo que `string(from:)` pero para **precios**, y la diferencia es
+    /// una sola: por debajo de 1000 redondea hacia ARRIBA.
+    ///
+    /// Un precio truncado miente para el lado que rompe: el botón decía 25 y
+    /// cobraba 25,75, así que un jugador con 25 monedas exactas leía el precio,
+    /// tocaba, y la compra le rebotaba. `affordable` siempre se calculó contra el
+    /// valor exacto —esta función sólo alinea lo que se lee con lo que se cobra—,
+    /// y el mismo `.rounded(.up)` ya lo usaba `UpgradesView` para decidir a qué
+    /// línea apuntar con la manito.
+    ///
+    /// Apareció con la quinta ronda de balance (el callejón cotizando con el 3 %
+    /// por compra) y **la trajeron cuatro tests a la vez**: con 25 × 1,03 = 25,75
+    /// truncado, la primera contratación no movía el precio en pantalla y el
+    /// jugador se quedaba sin la única señal de que la curva subió. Con el 6 %
+    /// anterior el redondeo tapaba el problema por casualidad: 26,5 → "26".
+    ///
+    /// Sólo toca el tramo exacto (< 1000). De ahí para arriba el número ya es una
+    /// abreviatura —"1,5K" no promete 1500— y redondear la mantisa para arriba no
+    /// compraría nada; además el caso de borde cae solo: 999,5 sube a 1000 y sale
+    /// por el camino del sufijo como "1K", que es lo que corresponde.
+    static func cost(from value: Double) -> String {
+        guard value.isFinite, value >= 0 else { return "∞" }
+        guard value < 1000 else { return string(from: value) }
+        return string(from: value.rounded(.up))
+    }
+
     static func string(from value: Double) -> String {
         guard value.isFinite, value >= 0 else { return "∞" }
         if value < 1000 {

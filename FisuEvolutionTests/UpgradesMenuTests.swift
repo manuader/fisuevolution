@@ -125,9 +125,13 @@ struct UpgradesMenuTests {
         #expect(row.upgradeLevel == cap)
         #expect(row.upgradeMaxLevel == cap)
         #expect(row.canAffordUpgrade == false)
-        // El contador n/tope viaja en la línea del multiplicador (pedido del
-        // dueño, 2026-08-19): sin abrir la fila se ve cuánto camino queda.
-        #expect(gameState.characterIncomeText(for: row).contains("\(cap)"))
+        // El contador n/tope MURIÓ (pedido del dueño, 2026-08-28: "sacá el
+        // 1/19, que diga sólo el multiplicador"): al tope la fila dice ×20 y
+        // el badge "Al máximo" cuenta el final. El "19" no aparece por ningún
+        // lado.
+        let text = gameState.characterIncomeText(for: row)
+        #expect(text.contains(row.multiplierText))
+        #expect(!text.contains("\(cap)"), "volvió el contador de niveles: \(text)")
 
         // Y la acción canónica rechaza sin tocar el estado, con plata de sobra.
         gameState.debugGrantCoins()

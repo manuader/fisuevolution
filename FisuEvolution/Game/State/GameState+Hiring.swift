@@ -129,7 +129,7 @@ extension GameState {
                 // número, y leerlo de donde salió el precio impide que la
                 // tarjeta diga "3 contratados" con la curva en otro exponente.
                 purchases: quote.purchases,
-                costText: unseen ? "" : CoinFormatter.string(from: quote.cost),
+                costText: unseen ? "" : CoinFormatter.cost(from: quote.cost),
                 affordable: !unseen && coins >= quote.cost,
                 state: state,
                 tier: type.tier,
@@ -228,7 +228,7 @@ extension GameState {
             typeId: pick.type.id,
             displayName: pick.type.localizedName,
             faceKey: "\(pick.type.id)_face",
-            costText: CoinFormatter.string(from: pick.cost),
+            costText: CoinFormatter.cost(from: pick.cost),
             affordable: coins >= pick.cost,
             tier: pick.type.tier
         )

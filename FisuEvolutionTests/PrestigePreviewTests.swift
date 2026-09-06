@@ -63,6 +63,35 @@ struct PrestigePreviewTests {
         #expect(abs(settled.multiplierAfter - preview.multiplierAfter) < 0.000_1)
     }
 
+    /// El botón adelantado (dueño, 2026-08-28: "al llegar a lujo"): desde el
+    /// piso configurado en `oro.prestigeTeaserFloorId` el botón EXISTE sin ORO
+    /// por cobrar, y la preview sabe contar el camino al próximo.
+    @Test("el teaser se enciende al llegar al piso configurado, sin ORO todavía")
+    func teaserLightsUpAtTheConfiguredFloor() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        let floorId = try #require(content.economy.oro.prestigeTeaserFloorId)
+        let ordinal = try #require(
+            (0..<content.floorTable.count).first { content.floorTable[$0].id == floorId }
+        )
+
+        gameState.refreshProjections()
+        #expect(!gameState.prestigeTeaser, "en el callejón el botón todavía no existe")
+        #expect(!gameState.prestigeAvailable)
+
+        var player = try #require(gameState.player)
+        player.run.unlockedFloors = (0...ordinal).map { content.floorTable[$0].id }
+        gameState.player = player
+        gameState.refreshProjections()
+
+        #expect(gameState.prestigeTeaser, "llegar al piso del teaser enciende el botón")
+        #expect(!gameState.prestigeAvailable, "sin ORO por cobrar sigue sin poder reencarnar")
+        let preview = gameState.prestigePreview
+        #expect(!preview.isWorthIt)
+        #expect(preview.coinsToNextOro > 0, "el camino al primer ORO tiene que ser medible")
+        #expect(preview.nextOroProgress >= 0 && preview.nextOroProgress < 1)
+    }
+
     /// Lo que se borra también sale en números, y son los de la run vigente.
     @Test("la vista previa cuenta lo que muere con la run")
     func previewCountsWhatDies() async throws {

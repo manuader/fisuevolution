@@ -178,13 +178,14 @@ final class BonusHUDUITests: XCTestCase {
         animacion.lifetime = .keepAlways
         add(animacion)
 
-        // Y el cofre gastado apaga el puntito: los cuatro toques de siempre y
-        // la salida por su botón.
+        // Y el cofre gastado apaga el puntito: los tres toques del candado, el
+        // video corre solo hasta el premio (a 1× son ~8 s: este smoke no lleva
+        // la puerta `--uitest-chest-manual` que lo acelera) y la salida por su
+        // botón.
         area.tap()
         area.tap()
         area.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["chest.card"].waitForExistence(timeout: 8))
-        area.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["chest.card"].waitForExistence(timeout: 16))
         let salir = app.buttons["chest.dismiss"]
         XCTAssertTrue(salir.waitForExistence(timeout: 8))
         salir.tap()

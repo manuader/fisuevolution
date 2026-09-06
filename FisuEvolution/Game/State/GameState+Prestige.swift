@@ -16,6 +16,12 @@ struct PrestigePreview: Equatable {
     /// Lo que muere: unidades en la torre, plata y mejoras de personaje.
     let unitsLost: Int
     let coinsLost: Double
+    /// El camino hasta el PRÓXIMO ORO, para el botón adelantado ("al llegar a
+    /// lujo"): cuánta plata de lifetime falta y qué fracción ya está hecha.
+    /// Sale de la inversa de `oroTotal` — la misma cuenta que
+    /// `giveEarningsForPrestigeTesting` usa del otro lado.
+    let coinsToNextOro: Double
+    let nextOroProgress: Double
 
     /// Antes del bootstrap no hay economía ni jugador: multiplicador neutro.
     static let empty = PrestigePreview(
@@ -23,7 +29,9 @@ struct PrestigePreview: Equatable {
         multiplierBefore: 1,
         multiplierAfter: 1,
         unitsLost: 0,
-        coinsLost: 0
+        coinsLost: 0,
+        coinsToNextOro: 0,
+        nextOroProgress: 0
     )
 
     /// Reencarnar ahora cambia algo. Con 0 ORO por cobrar, el "después" es el
@@ -60,6 +68,11 @@ extension GameState {
         guard let economy, let player else { return .empty }
         let gained = PrestigeCalculator.oroGained(state: player, economy: economy)
         let prestigeBonus = player.meta.derivedEffects.prestigeBonus
+        // La inversa de `oroTotal`: con cuánto lifetime cae el ORO que sigue.
+        let curve = economy.config.oro
+        let earnedTotal = player.meta.oroEarnedLifetime + gained
+        let nextOroAt = curve.divisor * pow(Double(earnedTotal + 1), 1 / curve.exponent)
+        let lifetime = player.meta.lifetimeEarnings
         return PrestigePreview(
             oroGained: gained,
             multiplierBefore: economy.globalMultiplier(
@@ -71,7 +84,9 @@ extension GameState {
                 prestigeBonus: prestigeBonus
             ),
             unitsLost: player.run.totalUnits,
-            coinsLost: player.run.coins
+            coinsLost: player.run.coins,
+            coinsToNextOro: max(0, nextOroAt - lifetime),
+            nextOroProgress: nextOroAt > 0 ? min(1, max(0, lifetime / nextOroAt)) : 0
         )
     }
 

@@ -53,11 +53,20 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-08-25** (tres correcciones
-> de UI del tutorial y los specials, y la cadena post-Xcode-26.6 desarmada —
-> la sesión en §4, la trampa 30 en §7. ⚠️ Desde hoy los sims de verificación
-> van con runtime **iOS 26.5**: una app compilada con el SDK 26 sobre un sim
-> 18.6 se ve rota).
+> **Empezá por acá.** Última actualización: **2026-08-28 (sexta)** (el
+> cofre a VELOCIDAD: todo el espectáculo corre a **1,5x — los 190 frames del
+> master presentados a 36 fps**, sin sintetizar ni tirar uno, con audio
+> `atempo` y el manifest llevando el ritmo para PNGs y video por igual; y la
+> traba del empalme ERA real — ~280 ms de congelón medidos al arrancar el
+> video — y murió con preroll de verdad + capa montada desde la llegada +
+> `playImmediately`. Trampa NUEVA grande en §7: **con una sesión paralela en
+> el checkout, el build compila el árbol AJENO — worktree aislado siempre**.
+> Sesión en §4 — igual que la **quinta del mismo día**, que en paralelo mató
+> el muro de la cuesta pre-compuerta (`floors[alley].hireCostGrowth`, §4).
+> Siguen vigentes: el mov **premultiplicado** o
+> `AVPlayerLayer` suma un velo (§7 bis), el aviso de Store en 18.6/26.5 por
+> ENTORNO (§6; ahora también visto en `StoreProductsTests`), y lo del
+> 25-08: los sims de verificación van con runtime **iOS 26.5**).
 
 ---
 
@@ -234,6 +243,183 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-08-28 (sexta) — El cofre a velocidad: 1,5x, 36 fps y el empalme sin congelón
+
+El dueño volvió a ver la animación «lagueada y muy lenta» y pidió 1,5x «sin
+lag, como en el video». Dos hallazgos y dos arreglos. (1) **La traba era
+real y el promedio la escondía**: midiendo corridas de frames idénticos (no
+distintos/s) aparecieron **150+133 ms de congelón en el empalme f49→f50** —
+el preroll del player era sólo crear el item, `automaticallyWaits…` seguía
+en `true` y el `AVPlayerLayer` se montaba en el frame del estallido. Ahora:
+preroll de verdad al llegar a `readyToPlay` (poll en MainActor; KVO no
+convive con AVPlayer bajo strict concurrency), capa montada invisible desde
+la llegada, `playImmediately(atRate:)` — quedó en ~100 ms, el umbral del
+instrumento. (2) **El 1,5x es un RETIME**: los mismos 190 frames del master
+presentados a **36 fps** (más rápido Y más fluido, cero frames sintetizados),
+audio con `atempo` (mov y clips SFX), manifest con fps 36 para que PNGs y
+video corran al mismo ritmo, relojes re-derivados (flip 4,0 s, datos 4,33 s,
+tramo 5,28 s, tercer toque 0,33 s). **Medido en el sim con la máquina
+cargada: 28–36 cuadros distintos/s todo el tramo** (a 48 colapsaba; 36 es el
+punto dulce). ⚠️ Trampa de encode: VideoToolbox pisa los PTS retimeados con
+`-vsync 0` — va `-r 36 -fps_mode cfr -frames:v 190`. Y la trampa GRANDE del
+día (§7): el fixture "roto" era el **binario compilado en el checkout
+compartido mientras la otra sesión editaba** — worktree aislado siempre.
+Detalle en **`Docs/SESION-2026-08-28-cofre-a-velocidad.md`**. Números:
+pipeline **13/13** · unit **463 con los DOS rojos documentados** (Pacing
+contrato + `StoreProductsTests` entorno) · grabaciones antes/después
+analizadas frame a frame.
+
+### Sesión del 2026-08-28 (quinta) — El muro adentro de la cuesta pre-compuerta
+
+El dueño reportó jugando que llegar al tier 8 se hacía eterno y que el Fisura
+terminaba costando 1M. Tenía razón, y el número es exacto: la cuesta
+pre-compuerta se paga con **una sola curva** —el Fisura es lo único que la
+compuerta habilita hasta la frontera 7— y el exponente de esa curva se duplica
+con cada tier, así que `growth^(2^k)` es una doble exponencial. Medido en clicks
+de tu propia frontera: `26 · 39 · 61 · 117 · 322 · 1.931 · 61.921`, o sea **×32
+en el último paso** — 14 minutos los seis primeros tiers juntos y 5 horas y
+media el séptimo solo.
+
+Arreglado con **`floors[alley].hireCostGrowth: 1.03`**, dejando el
+`hire.defaultCostGrowth` global **intacto en 1,06**. Bajar el global es lo que
+decía el pedido literal, se probó primero y midió peor: desarma la pared (de
+seis runs trabadas a dos) porque ese factor era **la segunda pata de la
+desaceleración**, algo que la cuarta ronda (ter) no había escrito. El override
+del piso deja la torre quieta: maxear 20,67 → 20,33 h (sigue en la banda del
+dueño), dios 28,43 → 30,73 h activas, la pared en seis runs corriendo T13 → T20.
+
+Guard nuevo: **`thePreGateClimbHasNoWallInIt`** — ningún tier de la cuesta puede
+costar 8× el anterior. Es aritmética sobre el contenido real y no una banda del
+simulador **a propósito**: `pacing-sim` cronometra esta fase en 96 s porque su
+bot tapea a 6/s con todo comprado, así que la bitácora la venía anotando como
+demasiado RÁPIDA mientras el dueño se trababa en ella.
+
+**Y el suite encontró algo que el knob destapó**: con 25 × 1,03 = 25,75,
+`CoinFormatter` truncaba a "25" y la primera contratación no movía el precio en
+pantalla. **Cuatro tests dijeron lo mismo** —dos pines, la proyección que no se
+republicaba (y tenía razón: `BestHire` lleva sólo lo que se dibuja) y el de UI
+punta a punta—, y cuando cuatro coinciden el que está mal no es el test. Se
+arregló con **`CoinFormatter.cost`, que redondea los precios hacia ARRIBA** en el
+tramo exacto: un precio truncado miente para el lado que rompe (el botón decía 25
+y cobraba 25,75, así que con 25 monedas exactas la compra rebotaba), y eso ya
+pasaba antes de esta ronda. La asimetría ahora tiene las dos mitades escritas: el
+SALDO trunca para no anunciar plata que no se puede gastar, el PRECIO sube por el
+motivo simétrico. Los cuatro volvieron a verde sin tocar un assert.
+
+⚠️ **Trampa nueva y cara (§7, trampa 40)**: el primer barrido corrió **sin
+catálogo de mejoras** —`pacing-sim` busca `upgrades.json` al lado del
+`economy.json` y las variantes vivían en un temporal— y dio la conclusión
+OPUESTA. La herramienta avisaba; el `grep` con el que filtré su salida se comió
+el encabezado. Doc de sesión:
+**`Docs/SESION-2026-08-28-cuesta-pre-compuerta.md`**. Bitácora: "Quinta ronda".
+Corrida: `balance-run-t12-cuesta-pre-compuerta.csv`.
+
+### Sesión del 2026-08-28 (cuarta) — El pulido: el cofre en todos lados, el ORO que enseña y los 48 fps
+
+Cuatro pedidos del dueño sobre el cierre del cofre, más un falso lag. (1) La
+tarjeta de Regalos mostraba el cofre VIEJO con el PNG nuevo en el árbol: era
+el **atlasc compilado** — escribir un PNG en el lugar no cambia el mtime de la
+carpeta `.atlas` y el atlas no recompila (trampa nueva en §7; el pipeline
+ahora toca la carpeta). Purgado todo el cofre viejo: masters, prompts y las 7
+entradas de `prompts.json` (incluida `ui_chest_closed`, que un batch habría
+regenerado pisando el icono del video). (2) **Los datos del premio entran a
+los 6,5 s del cinemático** (la carta ya está derecha; antes esperaban el final
++1,5 s). (3) La fila de personaje dice **sólo el multiplicador** (el
+"Nivel 1/19" murió; al tope queda el badge "Al máximo"). (4) **El botón de
+reencarnar arranca al llegar a lujo** (`oro.prestigeTeaserFloorId`,
+data-driven): teaser con el % del camino al próximo ORO y la hoja contando lo
+que falta, SIN confirmar (una acción que no corresponde no se dibuja) y SIN
+tocar la curva — Pacing intacto. (5) **La lección del primer ORO**
+(`oroUpgrades`): un logro paga el primero, el globo lleva a Mejoras y la
+manito marca la primera línea pagable hasta que elige. (6) El "video
+laggeado" era **la Mac saturada por las suites** (medido: a máquina quieta el
+sim entrega 24 fps clavados; §7). La interpolación a 48 se PROBÓ — limpia a
+ojo, pero el sim la decodifica PEOR (colapsa a ~5 fps en el giro): quedó como
+**perilla apagada** (`CINEMATIC_OUTPUT_FPS`) para cuando haya device. Detalle en
+**`Docs/SESION-2026-08-28-pulido-post-cofre.md`**. Números: EconomyKit
+**262** · unit **461 con el único rojo declarado** · UI de prestigio,
+tutorial, mejoras y cofre **todas verdes** · catálogo +2 claves por el script
+canónico de la trampa 29.
+
+### Sesión del 2026-08-28 (ter) — El cofre definitivo: 2D, vertical y con sonido
+
+El dueño entregó el master definitivo («usa la estética de este cofre que es
+en 2d… ponelo en el juego con su respectivo sonido. borra todo lo relativo a
+las animaciones anteriores»): **720×1280 vertical, cartoon calzado al juego,
+con pista AAC**. Recalibración completa (croma 0x22924A, cofre 448 px,
+segmentos A [23,38] / B [39,49] con **empalme continuo al video en f50** — la
+B es el temblor que desemboca en el estallido, y por eso los toques 1 y 2
+repiten la A), `parchmentRect` (172,363,349,504). Con el cofre a **274 pt**
+el lienzo cubre la pantalla entera menos un tramo de adoquines abajo:
+full-bleed medido sin costura. **El push-in de la casa murió** (la carta del
+video ya hace el suyo y termina grande: contenido a ~214×308 pt sin zoom).
+**El sonido va en dos familias**: el cinemático DENTRO del mov (AAC, atrim al
+mismo arranque; `play(rate:volume:)` con el volumen SFX de Ajustes) y las
+sacudidas como `sfx_chest_shake_a/b.caf` en `Resources/Audio/` (PCM, ventanas
+exactas de sus frames, generados por el pipeline) — `AudioManager.SFX` ganó
+sus dos casos y `AudioWiringTests` barre ahora también `UI/Popups`. El fade
+del cofre viene horneado COMO MEZCLA AL VERDE y keyeado queda una sombra que
+se evapora (verificado A/B). Detalle en
+**`Docs/SESION-2026-08-28-cofre-definitivo-2d.md`**. Números: pipeline
+**13** · unit **459 con el único rojo declarado** · cofre+audio **17/17** ·
+UI **3/3** · latidos en vivo con el **cinemático de 8,19 s terminado por la
+notificación real**. ⚠️ Y una lección de instrumento: la cadencia de
+`simctl screenshot` en máquina cargada hace parecer que el arco se saltea —
+el juez del timing es el log de latidos, no las capturas.
+
+### Sesión del 2026-08-28 (bis) — El velo del encuadre, y el master que se desvanece
+
+El dueño reemplazó el master («la animación todavía no se ve correctamente…
+el cofre se abre y desaparece de forma seamless»): **verde plano sin viñeta
+ni piso horneados, el cofre estalla, suelta la carta y se desvanece solo**
+(~f114–126) — la desaparición es del arte, no de un fade nuestro. Misma
+arquitectura de la sesión de la mañana, recalibrada entera (croma
+**0x10A12A**, segmentos A [4,30] / B [31,47], crops por percentil de masa ∪
+bbox del cofre frame a frame, `parchmentRect` por beige MACIZO — el bbox de
+claros se estira con los biseles del borde). Y cayó el bug que la v1 tenía
+disfrazado: **el mov ahora va PREMULTIPLICADO**, porque `AVPlayerLayer`
+composita el HEVC-alfa como premultiplicado y el RGB intacto del `chromakey`
+(el verde despillado, L≈26) se SUMABA al juego como un velo claro cortado en
+el encuadre — +20..27 de luminancia medidos restando capturas, desde el
+frame 48 (el primer frame del mov). La "viñeta horneada que se cortaba" de
+la v1 era ESTE bug con fondo oscuro; el feather queda (desvanece el confetti
+del borde) y el scrim pasa a ser el foco de la casa. En el runtime, lo único
+nuevo: el PNG de respaldo **se jubila a los 0,6 s de video** (`stageRetired`)
+— con el cofre desvaneciéndose, el frame quieto de atrás lo resucitaría.
+`ui_chest_closed` regenerado del f0 nuevo (violeta+dorado) por componente
+conexa (los destellos ambiente inflaban el bbox global). Detalle y tabla de
+recalibración en **`Docs/SESION-2026-08-28-cofre-video-v2.md`**. Números:
+pipeline **12** · unit **458 con el único rojo declarado** · cofre unit
+**11/11** y UI **3/3 sobre el build final** · velo re-medido: **muerto**.
+
+### Sesión del 2026-08-28 — El cofre animado por video
+
+**La apertura de cofres es el video del animador entero** (`chest-animation.mp4`,
+pantalla verde; el master vive en `Tools/asset-pipeline/video/`), en dos rondas
+del dueño: integrar el video, y después «dejá SOLO el video y renderizá el
+contenido de la carta en el marco vacío del final». Tres toques fuerzan el
+candado (frames PNG cuantizados — el dedo pide swap inmediato) y del estallido
+al marco corre **`chest_open.mov`, HEVC con canal alfa: el primer AVFoundation
+del repo** (3 MB contra ~12 en PNGs, el porqué en `ChestCinematicPlayer`). El
+premio se renderiza dentro del pergamino (`parchmentRect`, segunda ancla del
+manifest `chest_anim.json` — contrato pineado por tests de pipeline y runtime),
+con push-in de cámara 1→1,3 y feather de 28 px en los bordes del encuadre.
+Murieron `ChestShake`, `ChestDrop`, `FlyingLid`, el flash, los rayos teñibles,
+las ráfagas y la carta `PanelCard` del popup — **y con los rayos, el anuncio de
+rareza del segundo toque** (la cinta del marco lo cubre). Retirados de atlas y
+manifest: `ui_chest_cracked/open/lid` y los tres `fx_*` (sin llamadores);
+`ui_chest_closed` regenerado del frame 0 (Regalos y el diario sin tocar
+código). `Resources/ChestAnim/` pesa 4,5 MB. Trampas nuevas del pipeline: el
+croma se mide en el stream con matriz LIMITED-range; `blend` con máscara en
+`-loop` exige `shortest=1` DENTRO del filtro; `AVPlayer.preroll` con item
+`.unknown` lanza NSException. Detalle en
+**`Docs/SESION-2026-08-28-cofre-animado.md`** (con la enmienda en el spec §8).
+Números del cierre: pipeline **12** · unit **458** (el único rojo es el
+declarado de Pacing) · UI **53** (2 re-verificados: uno adaptado al flujo de 3
+toques, uno de carga) · `StoreUITests` **2** — y 🔴 `StoreManagerTests` en 18.6
+falló HOY con fallos rotativos de ENTORNO (diff sin un archivo de Store; ver
+la doc de sesión y el aviso en §6).
 
 ### Sesión del 2026-08-26/27 — Los cofres de skins
 
@@ -1188,6 +1374,15 @@ flaky re-corrido**.
 un cuadro con 12 rojos era heredar el síntoma después de haber construido la
 cura. El único rojo del proyecto es uno.
 
+⚠️ **PERO el 2026-08-28 el 18.6 también falló, y fue LA MÁQUINA, no el árbol**:
+`StoreManagerTests` con fallos ROTATIVOS (el catálogo `.failed` tras ~270 s de
+reintentos vacíos, un refund que no revoca — la firma del breakage de StoreKit
+Testing), en tres corridas incluida una con el sim borrado a cero, con un diff
+que no toca un archivo de Store, Xcode sin cambiar de build y `StoreUITests`
+verde en el mismo sim. Si te pasa: verificá el diff con `git diff … | grep -i
+store` antes de sospechar del código, y re-corré otro día — la señal de sano es
+`StoreManagerTests` entero verde en un 18.6 virgen.
+
 🔴 El rojo declarado es **`PacingTests.theOwnersTargetsAreMet`** y es la verdad,
 no un flaky — pero ⚠️ **no por el motivo que este documento decía hasta hoy**.
 El contrato de las **20-30 h ya pasa** desde la desaceleración; lo que queda
@@ -1329,6 +1524,82 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+
+### Del cofre a velocidad (2026-08-28 sexta)
+
+**⚠️ Con una sesión paralela viva en el checkout, un build compila el árbol
+AJENO.** El binario de xcodebuild es una foto del árbol DURANTE la
+compilación, no del commit: si la otra sesión edita mientras tu build corre
+(y los builds acá tardan 10–20 min con la máquina compartida), te llevás sus
+archivos a medio escribir sin ningún error. Síntoma medido: el fixture
+`--uitest-chest` "roto" — app viva, tablero andando, cero cofre, cero log —
+con un código que leído era imposible que fallara; el MISMO commit compilado
+desde un worktree aislado anduvo a la primera. Dos horas de arqueología por
+no sospechar del binario. Señales acompañantes: `BUILD INTERRUPTED` sin
+motivo y `database is locked` (dos xcodebuild sobre el mismo árbol). Regla:
+**sesión paralela detectada ⇒ worktree aislado para TODO** (`git worktree
+add` desde el HEAD local — ojo que la herramienta de worktrees arranca de
+`origin/main`, que puede estar semanas atrás —, symlink del `.venv` del
+pipeline y `xcodegen generate`), que es el protocolo que la memoria ya
+mandaba para los COMMITS y ahora sabemos que aplica también a los BUILDS.
+
+**⚠️ El promedio por segundo esconde el congelón que el jugador SÍ ve.**
+"24 fps clavados" era verdad y la traba también: 150+133 ms de frames
+idénticos DENTRO de segundos que promediaban bien, justo en el empalme
+PNG→video. Al verificar fluidez, medir las DOS cosas sobre la grabación
+normalizada a 60 CFR: frames distintos por segundo Y corridas de idénticos
+≥100 ms (el script de la sesión sexta las lista con timestamp). Y para
+mapear un momento puntual: nunca extraer "el frame n" del h264 del sim — es
+VFR y el índice no es tiempo (un frame "de los 17 s" era en realidad de los
+21,5); siempre `-ss` por tiempo o el stream ya normalizado.
+
+**⚠️ VideoToolbox pisa los PTS que le entrega el filtro.** Un
+`setpts=PTS/1.5` perfecto a la salida del filter_complex (verificado con
+`showinfo`: cadencia 1/36 exacta) llegó al mov como 1/24 con `-vsync 0` — o
+sea el retime NO viajaba. Con `-r 36 -fps_mode cfr` el muxer respeta la
+cadencia, y `-frames:v 190` corta el frame de relleno que el modo cfr
+agrega en la cola. Moraleja: después de cualquier retime, `ffprobe` al
+ARCHIVO (nb_frames + duración de video Y de audio), no al filtro.
+
+### Del pulido post-cofre (2026-08-28 cuarta)
+
+**⚠️ Reemplazar un PNG "en el lugar" dentro de un `.atlas` NO recompila el
+atlas.** El build system decide recompilar el atlasc mirando el mtime de la
+CARPETA `.atlas`, y escribir un archivo sobre el mismo inode (PIL `save`, un
+`>` de shell) no lo cambia — sólo agregar/borrar/renombrar archivos lo hace
+(git checkout sí, porque reemplaza por rename). Síntoma medido: la tarjeta de
+Regalos mostrando el cofre de un master BORRADO con el PNG nuevo sentado en el
+árbol, en todo DerivedData incremental. Fix: el generador toca la carpeta al
+escribir (`os.utime(UI_ATLAS)` en `chest_video_frames.py`); si otro pipeline
+escribe atlas en el lugar, necesita lo mismo.
+
+**⚠️ La máquina cargada miente DOS veces al verificar visuales.** El mismo día:
+(1) la cadencia de `simctl io screenshot` (2–4 s por captura bajo carga) hace
+parecer que una animación se saltea etapas — el juez del timing es el log de
+latidos (`log stream --level info`), no las capturas; (2) el juego CORRIENDO
+en el sim mientras xcodebuild satura la CPU se ve "muy laggeado" y no lo está
+— grabado y contado a máquina quieta, el cinemático entrega sus 24 fps
+clavados. Antes de tocar código por un reporte de fluidez: medir con la
+máquina quieta (`simctl io recordVideo` + contar frames distintos por
+segundo).
+
+### Del video del cofre (2026-08-28 bis)
+
+**⚠️ `AVPlayerLayer` composita el HEVC-alfa como PREMULTIPLICADO, y `chromakey`
+no toca el RGB.** La ecuación del compositor es `out = rgb + fondo×(1−α)`: todo
+pixel con α=0 cuyo RGB no sea (0,0,0) le SUMA su color al juego. Un mov keyeado
+con ffmpeg conserva en las zonas transparentes el verde pasado por `despill`
+(≈L 26) → un velo claro sobre todo el encuadre, cortado seco en el borde del
+video, **desde el primer frame del mov** (los PNG de SwiftUI van con alfa
+straight y por eso los toques se veían bien). Fix de una línea en el encode:
+`alphamerge,format=gbrap,premultiply=inplace=1,format=bgra` — después del
+alphamerge para multiplicar por el alfa ya emplumado, y en `gbrap` porque
+`premultiply` no toma rgba empaquetado. **Cómo se detecta**: restar una captura
+con video contra una sin video y perfilar por filas — un ESCALÓN en el borde
+del encuadre es este bug; el scrim radial legítimo es suave. Y la relectura
+que dolió: la "viñeta horneada que se cortaba en el borde" del master viejo
+era ESTE MISMO bug con fondo oscuro — el feather y el scrim de continuación
+de esa ronda fueron parches al síntoma, no a la causa.
 
 ### Del cierre de los cofres (2026-08-27)
 
@@ -1896,6 +2167,64 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     `Debug`, y en cada target que importe el módulo. **Nunca** bajando
     `SWIFT_TREAT_WARNINGS_AS_ERRORS`.
 
+### De calibración (2026-08-28)
+
+39. **`pacing-sim` busca `upgrades.json` al lado del `economy.json`, y sin
+    catálogo mide una ficción.** Un barrido de nueve configs escritas en un
+    directorio temporal corrió entero con `derivedEffects` en cero: el bot no
+    compraba mejoras permanentes. Los números daban la conclusión **opuesta** a
+    la verdadera —que cualquier bajada del growth rompía el contrato, y que el
+    override del callejón era lo peor de todo—, y los dos efectos eran del
+    catálogo faltante y no del knob. Pasá `--upgrades` siempre que el
+    `economy.json` no esté en `Resources/Data`. Es la misma ficción que
+    `PROMPT-rebalance-pacing.md` §2.2 documentó en el rebalance, con otra puerta
+    de entrada.
+
+40. **Un `grep` sobre la salida de una herramienta puede comerse su
+    advertencia.** `pacing-sim` avisaba de lo de arriba con un `⚠️` en la SEGUNDA
+    línea de su salida, y el patrón con el que filtré (`las 7 al tope|dios:|…`)
+    no lo incluía: nueve corridas mintieron en silencio con la verdad impresa.
+    Lo destapó el **sanity check**, no la lectura: correr la línea de base
+    conocida como primer punto del barrido y exigirle el número ya pineado
+    (1,06 tenía que dar 20,67 h). Al barrer configs, ese punto va SIEMPRE, y
+    ninguna variante se cree hasta que él cierra.
+
+41. **Cuando CUATRO tests dicen lo mismo, el que está mal no es el test.** Bajar
+    el growth del callejón dejó el segundo Fisura en 25,75 y `CoinFormatter` lo
+    truncaba a "25": dos pines de precio, la proyección que no se republicaba y
+    el test de UI punta a punta cayeron juntos. La salida fácil era correr las
+    fixtures hasta que quedaran verdes; la correcta era que **un precio no puede
+    redondearse hacia abajo**, porque el botón decía 25 y cobraba 25,75 y con 25
+    monedas exactas la compra rebotaba. `CoinFormatter.cost` sube; `string(from:)`
+    sigue truncando para los SALDOS, que es la mitad opuesta de la misma regla
+    (no anunciar plata que no se puede gastar). Ninguno de los cuatro asserts
+    originales hizo falta tocarlo, y ésa es la señal de que el arreglo estaba del
+    lado del código.
+
+42. **Al revertir para bisecar, revertí el TEST con su fuente.** Aislando un
+    rojo del tutorial revertí tres archivos de `FisuEvolution/` y dejé
+    `CoinFormatterTests.swift`, que usa la función nueva: el
+    "`** TEST FAILED **`" que leí como resultado era un **error de compilación**
+    (`type 'CoinFormatter' has no member 'cost'`). Un control que no compila no
+    es un control, y el `grep` por `XCTAssert` no lo muestra. Mirá siempre el
+    conteo de tests ejecutados: "0 tests" o ningún `Executed N tests` es la
+    señal.
+
+43. **Una correlación de tres corridas todavía puede ser casualidad.**
+    `TutorialUITests.testRecorreElTutorialEnteroHastaElFinal` se puso rojo justo
+    después de un cambio, verde al revertirlo y rojo otra vez aislado — y era
+    flaky. Lo que lo cerró fue correr **el mismo test con el mismo selector en
+    las dos versiones**: con el cambio puesto también pasa. La otra mitad de la
+    prueba es gratis y estaba a la vista: entre dos corridas sin un cambio de
+    código los rojos del suite pasaron de 1 a 6, y **un cambio de lógica no falla
+    MÁS tests cuando lo corrés solo**.
+
+44. **Antes de culpar al build, `uptime`.** Dos corridas de `xcodebuild`
+    murieron clavadas en `CopySwiftLibs` durante 25 minutos con el load promedio
+    de la máquina arriba de **900** por un workload ajeno (un `vitest` de otro
+    proyecto). No había ni un `swift-frontend` vivo: estaba todo esperando CPU.
+    Cuesta una hora si se lee como un problema del proyecto.
+
 ### De tests y calibración (2026-08-23, bis)
 
 33. **El device de simulador es de UNA corrida por vez, y el segundo proceso
@@ -2105,11 +2434,11 @@ convirtió "se siente trabado" en un número con dueño.
    en 3, `earth.atlas` en 6, `cosmic.atlas` en 4. Cada página es una realización aparte, o
    sea que el costo de `size()` escala con cuántas páginas toque el personaje que pediste.
    Un `preload` que no sepa de páginas puede quedarse corto.
-2. **Cuando esto aterrice, revisar el `Task.yield()` de `ChestOpeningView`.** La caída del
-   cofre depende de un hop calibrado contra el bloqueo de HOY: `Task.yield()` reencola una
-   vez, no espera un cuadro dibujado ni ordena contra el commit de la CATransaction. Con los
-   215 ms afuera puede volverse **innecesario o insuficiente**, y las dos cosas se ven igual
-   en el código.
+2. ~~Cuando esto aterrice, revisar el `Task.yield()` de `ChestOpeningView`.~~ **YA NO
+   APLICA (2026-08-28)**: la caída del cofre y su `Task.yield()` murieron con el video —
+   la entrada ahora es un fade+escala disparado desde el `.task` del primer latido, que
+   corre después del armado por diseño. La lección del hop calibrado quedó contada en el
+   doc de `ChestDrop`… que también se retiró: si hace falta, está en git (`e40244b^`).
 
 **Lo que NO es de esta tarea**: los ~500 ms de bloqueo que quedan en `.arriving` no son del
 retrato, son del overlay armándose. Es otra investigación.
@@ -2364,8 +2693,36 @@ Anotado por si algún día importa, con su medición:
 
 ## 9. Mapa de documentos
 
+- `Docs/SESION-2026-08-28-cofre-a-velocidad.md` — el cofre a 1,5x: el retime a
+  36 fps (mismos 190 frames, audio atempo, manifest como fuente única de
+  ritmo), el congelón real del empalme (~280 ms) muerto con preroll +
+  capa premontada, y las trampas del checkout compartido, del promedio
+  que esconde congelones y del VideoToolbox que pisa PTS.
+- `Docs/SESION-2026-08-28-cuesta-pre-compuerta.md` — el muro del arranque:
+  la doble exponencial de la cuesta pre-compuerta, el override
+  `floors[alley].hireCostGrowth` con el global intacto, el guard
+  `thePreGateClimbHasNoWallInIt` y la trampa 40 (el pacing-sim sin catálogo
+  de mejoras al lado del economy.json da la conclusión opuesta).
+- `Docs/SESION-2026-08-28-pulido-post-cofre.md` — el pulido del día: la trampa del
+  atlasc, el purgado del cofre viejo, el premio a los 6,5 s, la fila con sólo el
+  multiplicador, el teaser de reencarnar desde lujo, la lección del primer ORO y
+  los 48 fps interpolados.
+- `Docs/SESION-2026-08-28-cofre-definitivo-2d.md` — el master DEFINITIVO del cofre:
+  2D vertical con sonido (mov con AAC + clips de sacudida), full-bleed a 274 pt,
+  el empalme continuo del tercer toque y la muerte del push-in de la casa.
+- `Docs/SESION-2026-08-28-cofre-video-v2.md` — el master intermedio (el cofre se
+  desvanece solo), la recalibración v2, y el bug del velo: el mov premultiplicado
+  porque `AVPlayerLayer` suma el RGB de las zonas con α=0 (⚠️ su master y números
+  duraron horas: ver la sesión ter).
+- `Docs/SESION-2026-08-28-cofre-animado.md` — la apertura de cofres es el video del
+  animador (HEVC con alfa + frames interactivos); el keying limited-range, el pipeline
+  `chest_video_frames.py`, el contrato `chest_anim.json` y el premio en el marco
+  (⚠️ su master y sus números de calibración quedaron viejos el mismo día: ver la v2).
+- `Docs/superpowers/specs/2026-08-28-cofre-animado-por-video-design.md` — el diseño, con
+  la ENMIENDA del dueño en §8 (solo el video, entero) que invalida parte de §2.
 - `Docs/superpowers/specs/2026-08-26-cofres-de-skins-design.md` — el diseño de los cofres:
-  la bolsa, el sorteo, las fuentes con su cuenta medida, los siete latidos de la animación.
+  la bolsa, el sorteo, las fuentes con su cuenta medida, los siete latidos de la animación
+  (⚠️ los latidos visuales de ese spec son historia: desde el 28-08 la animación es el video).
 - `Docs/superpowers/plans/2026-08-26-cofres-de-skins.md` — el plan de 12 tareas. ⚠️ Lleva
   adentro un **mapa de los helpers de test que existen de verdad**, porque el plan inventó
   cuatro que no existían.

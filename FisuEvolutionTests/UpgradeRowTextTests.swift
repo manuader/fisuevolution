@@ -38,6 +38,10 @@ struct UpgradeRowTextTests {
         // El nombre ya está en el encabezado de la card: repetirlo es ruido.
         #expect(!text.contains(row.displayName))
         #expect(!text.contains("upgrades.character"), "quedó la clave cruda en pantalla")
+        // Y el contador de niveles murió (dueño, 2026-08-28): el multiplicador
+        // ya dice dónde estás, y "Nivel 1/19" al lado era el mismo dato dos
+        // veces. El separador " / " es la firma del formato viejo.
+        #expect(!text.contains(" / "), "volvió el contador de niveles: \(text)")
     }
 
     @Test("la línea del pasivo dice el rendimiento, sin repetir el nombre")

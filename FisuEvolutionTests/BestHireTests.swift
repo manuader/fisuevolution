@@ -451,11 +451,15 @@ struct BestHireTests {
         gameState.refreshProjections()
 
         // Mismo tipo (sigue siendo el único visto) pero un escalón más caro:
-        // 25 × 1,06 = 26,5, la curva por tipo de `hireCountsByType`. Era 30 con
-        // el growth en 1,2; el rebalance de pacing lo bajó a 1,06 (el PRIMER
-        // Fisura sigue en 25: cambia la pendiente, no el ancla).
+        // 25 × 1,03 = 25,75, la curva por tipo de `hireCountsByType`. Era 30 con
+        // el growth en 1,2 y 26,5 con 1,06; la quinta ronda bajó el del callejón
+        // a 1,03 (el PRIMER Fisura sigue en 25: cambia la pendiente, no el ancla).
+        //
+        // Que se lea "26" y no "25" es `CoinFormatter.cost`, que redondea los
+        // precios hacia ARRIBA: con 25,75 truncado este assert se caía, y con él
+        // otros tres. Un precio nunca puede leerse más barato de lo que se cobra.
         #expect(gameState.bestHire?.typeId == "homeless")
-        #expect(gameState.bestHire?.costText == "26", "el segundo Fisura cuesta 26,5 (growth 1,06)")
+        #expect(gameState.bestHire?.costText == "26", "el segundo Fisura cuesta 25,75 (growth 1,03)")
     }
 
     // MARK: La proyección

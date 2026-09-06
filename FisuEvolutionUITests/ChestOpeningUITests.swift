@@ -1,30 +1,37 @@
 import XCTest
 
-/// La animación del cofre, de punta a punta: **cuatro toques del jugador**.
+/// La animación del cofre, de punta a punta: **tres toques del jugador** y el
+/// video del animador hace el resto, hasta el marco con el premio adentro.
 ///
-/// El gesto fino —las sacudidas, el flash de 80 ms, el giro 3D de la carta—
-/// queda smoke-manual, como el del special: un UI test no puede juzgar 80 ms.
-/// Lo que sí se pinea acá es que la máquina de latidos **avanza con el dedo** y
-/// que termina ofreciendo el premio y devolviendo la cola.
+/// El gesto fino —las sacudidas, el push-in, el alfa del HEVC— queda
+/// smoke-manual, como el del special: un UI test no puede juzgar un chroma.
+/// Lo que sí se pinea acá es que la máquina de latidos **avanza con el dedo**,
+/// que el tramo cinemático desemboca solo en el premio, y que cerrar devuelve
+/// la cola.
 final class ChestOpeningUITests: XCTestCase {
-    /// El fixture abre un cofre y **apaga el reloj** de los cuatro latidos que
-    /// esperan un toque.
+    /// El fixture abre un cofre y **apaga el reloj** de los tres latidos que
+    /// esperan un toque (además acelera el video a 4× — sin eso cada smoke
+    /// pagaría los 5,3 s del tramo cinemático).
     ///
-    /// ⚠️ Lo segundo es la mitad importante. Cada latido se dispara solo a los
-    /// 1,2 s para que nadie quede trabado, así que un smoke que tapea cuatro
-    /// veces y espera la carta **queda verde con `tap()` desenchufada**: el
+    /// ⚠️ Lo primero es la mitad importante. Cada latido se dispara solo a los
+    /// 1,2 s para que nadie quede trabado, así que un smoke que tapea tres
+    /// veces y espera el premio **queda verde con `tap()` desenchufada**: el
     /// reloj llega igual al reposo. Con `--uitest-chest-manual` la animación no
     /// se mueve si el dedo no la mueve, y un toque muerto la deja parada.
     private static let fixture = [
         "--uitest-reset", "--uitest-skip-tutorial", "--uitest-chest", "--uitest-chest-manual",
     ]
 
+    /// El video a 4× dura 1,3 s (ya viene retimeado a 1,5×); el resto es
+    /// margen de simulador cargado.
+    private static let cinematicTimeout: TimeInterval = 12
+
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
 
     @MainActor
-    func testLosCuatroToquesAbrenElCofreYOfrecenLaPinta() throws {
+    func testLosTresToquesAbrenElCofreYOfrecenLaPinta() throws {
         let app = XCUIApplication()
         app.launchArguments = Self.fixture
         app.launch()
@@ -33,44 +40,34 @@ final class ChestOpeningUITests: XCTestCase {
         XCTAssertTrue(area.waitForExistence(timeout: 15),
                       "el fixture tiene que dejar la animación del cofre abierta")
         XCTAssertFalse(tarjeta(app).exists,
-                       "la carta no sale del cofre antes de forzar el candado")
+                       "el premio no existe antes de forzar el candado")
         XCTAssertFalse(app.buttons["chest.equip"].exists,
-                       "y la pinta no se ofrece hasta que la carta se da vuelta")
+                       "y la pinta no se ofrece hasta el marco final")
 
         let llegada = XCTAttachment(screenshot: app.screenshot())
         llegada.name = "cofre: la llegada"
         llegada.lifetime = .keepAlways
         add(llegada)
 
-        // Los tres toques del candado.
+        // Los tres toques del candado; el video corre solo después del tercero.
         area.tap()
         area.tap()
         area.tap()
 
-        // La carta saliendo del cofre es la prueba de que los tres toques
-        // hicieron el trabajo: `chest.card` no existe sin haber pasado por el
-        // estallido, y al estallido no se llega sin los tres toques.
+        // El premio dentro del marco es la prueba de que los tres toques
+        // hicieron el trabajo Y de que el tramo cinemático desembocó solo:
+        // `chest.card` no existe sin haber pasado por los dos.
         let carta = tarjeta(app)
-        XCTAssertTrue(carta.waitForExistence(timeout: 8),
-                      "los tres toques tienen que reventar el cofre y sacar la carta")
-        XCTAssertFalse(app.buttons["chest.equip"].exists,
-                       "boca abajo la carta todavía no ofrece nada")
-
-        let vuelo = XCTAttachment(screenshot: app.screenshot())
-        vuelo.name = "cofre: la carta boca abajo"
-        vuelo.lifetime = .keepAlways
-        add(vuelo)
-
-        // El cuarto toque: darla vuelta.
-        area.tap()
+        XCTAssertTrue(carta.waitForExistence(timeout: Self.cinematicTimeout),
+                      "los tres toques tienen que reventar el cofre y el video terminar en el premio")
 
         let equipar = app.buttons["chest.equip"]
-        XCTAssertTrue(equipar.waitForExistence(timeout: 8),
-                      "el cuarto toque tiene que dar vuelta la carta y ofrecer la pinta")
+        XCTAssertTrue(equipar.waitForExistence(timeout: 4),
+                      "el marco final tiene que ofrecer la pinta")
         XCTAssertTrue(app.buttons["chest.dismiss"].exists, "y la salida sin equipar")
 
         let reposo = XCTAttachment(screenshot: app.screenshot())
-        reposo.name = "cofre: el premio"
+        reposo.name = "cofre: el premio en el marco"
         reposo.lifetime = .keepAlways
         add(reposo)
 
@@ -100,11 +97,9 @@ final class ChestOpeningUITests: XCTestCase {
         area.tap()
         area.tap()
         area.tap()
-        XCTAssertTrue(tarjeta(app).waitForExistence(timeout: 8))
-        area.tap()
 
         let salir = app.buttons["chest.dismiss"]
-        XCTAssertTrue(salir.waitForExistence(timeout: 8))
+        XCTAssertTrue(salir.waitForExistence(timeout: Self.cinematicTimeout))
         salir.tap()
 
         // Si el dismiss cerrara el turno ANTES de soltar el payload, la cola lo
@@ -116,9 +111,9 @@ final class ChestOpeningUITests: XCTestCase {
                        "cerrar el cofre tiene que devolver el HUD: la cola quedó trabada")
     }
 
-    /// La carta del premio.
+    /// El premio dentro del marco.
     ///
-    /// ⚠️ **`app.otherElements["chest.card"]` no la encuentra**, y no es que no
+    /// ⚠️ **`app.otherElements["chest.card"]` no lo encuentra**, y no es que no
     /// exista. El overlay declara `.accessibilityAddTraits(.isModal)` —para que
     /// VoiceOver no se vaya al HUD apagado— y con ese trait XCUITest clasifica el
     /// contenedor como **Alert** ("Automation type mismatch: computed Other from

@@ -196,6 +196,10 @@ final class GameState {
     private(set) var unitCount = 0
     /// F7: reencarnación disponible = vas a ganar ≥1 ORO.
     private(set) var prestigeAvailable = false
+    /// El botón de reencarnar EXISTE desde el piso configurado
+    /// (`oro.prestigeTeaserFloorId`, hoy "lujo") aunque todavía no haya ORO
+    /// por cobrar: muestra el progreso hacia el próximo en vez de la ganancia.
+    private(set) var prestigeTeaser = false
     private(set) var oroText = "0"
     /// RF-16: el antes/después del multiplicador. Lo escribe `+Prestige`.
     var prestigePreview = PrestigePreview.empty
@@ -205,6 +209,9 @@ final class GameState {
     /// `refreshProjections` cotizando costos crudos — NO sale de
     /// `characterUpgradeRows`, que arma textos localizados por fila y es cara.
     private(set) var canAffordAnyUpgrade = false
+    /// Hay una mejora PERMANENTE (de ORO) pagable: la señal de la lección del
+    /// primer ORO.
+    private(set) var canAffordAnyOroUpgrade = false
     /// Cuántos pisos están desbloqueados. La lección del ascensor espera al
     /// segundo: con uno solo, el mapa es una lista de candados.
     private(set) var unlockedFloorsCount = 0
@@ -1028,6 +1035,14 @@ final class GameState {
         let canReincarnate = economy.map { PrestigeCalculator.canReincarnate(state: player, economy: $0) } ?? false
         if prestigeAvailable != canReincarnate { prestigeAvailable = canReincarnate }
 
+        let teaser = economy.map { eco -> Bool in
+            guard let floorId = eco.config.oro.prestigeTeaserFloorId,
+                  let ordinal = content.floorTable.floors.firstIndex(where: { $0.id == floorId })
+            else { return false }
+            return player.run.unlockedFloors.count > ordinal
+        } ?? false
+        if prestigeTeaser != teaser { prestigeTeaser = teaser }
+
         let oro = String(player.meta.oro)
         if oroText != oro { oroText = oro }
 
@@ -1053,6 +1068,9 @@ final class GameState {
 
         let affordsUpgrade = computeCanAffordAnyUpgrade(player: player, content: content)
         if canAffordAnyUpgrade != affordsUpgrade { canAffordAnyUpgrade = affordsUpgrade }
+
+        let affordsOro = computeCanAffordAnyOroUpgrade(player: player, content: content)
+        if canAffordAnyOroUpgrade != affordsOro { canAffordAnyOroUpgrade = affordsOro }
 
         let floors = player.run.unlockedFloors.count
         if unlockedFloorsCount != floors { unlockedFloorsCount = floors }

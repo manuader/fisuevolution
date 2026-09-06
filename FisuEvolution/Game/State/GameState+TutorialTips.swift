@@ -29,6 +29,12 @@ extension GameState {
         case skins
         /// El primer logro COBRABLE: enseña el circuito del puntito rojo.
         case achievements
+        /// El primer ORO en el bolsillo (los logros lo pagan) con una mejora
+        /// PERMANENTE pagable: la lección lleva a Mejoras a canjearlo — y
+        /// adentro, la manito de la sección de ORO dice cuál (pedido del
+        /// dueño, 2026-08-28: "que te lleve a la pestaña de mejoras
+        /// permanentes y te haga elegir").
+        case oroUpgrades
         /// El primer daily cobrado de verdad: el calendario vive en Regalos.
         case gifts
         /// Una vez, suave, en la segunda sesión con la fase hecha.
@@ -48,6 +54,7 @@ extension GameState {
             case .quickHire: .quickHire
             case .skins: .skins
             case .achievements: .menu
+            case .oroUpgrades: .upgrades
             case .gifts: .gifts
             case .store: .store
             case .prestige: .prestige
@@ -59,7 +66,7 @@ extension GameState {
         /// mapa, el atajo y el prestigio avisan desde su propia acción).
         var destinationScreen: GameScreen? {
             switch self {
-            case .upgrades: .upgrades
+            case .upgrades, .oroUpgrades: .upgrades
             case .skins: .skins
             case .achievements: .menu
             case .gifts: .gifts
@@ -76,6 +83,7 @@ extension GameState {
             case .quickHire: "tutorial.tip.quickhire"
             case .skins: "tutorial.tip.skins"
             case .achievements: "tutorial.tip.achievements"
+            case .oroUpgrades: "tutorial.tip.oro"
             case .gifts: "tutorial.tip.gifts"
             case .store: "tutorial.tip.store"
             case .prestige: "tutorial.tip.prestige"
@@ -155,6 +163,8 @@ extension GameState {
             !ownedSkins.isEmpty
         case .achievements:
             hasClaimableAchievements
+        case .oroUpgrades:
+            canAffordAnyOroUpgrade
         case .gifts:
             // `cycleDay` apunta al día que el ciclo VA a pagar y arranca en 1;
             // la instalación fresca marca `lastClaimDay` sin moverlo. O sea:
@@ -217,6 +227,19 @@ extension GameState {
         for line in content.upgradesConfig.upgrades where upgradeLevel(of: line.id) < line.maxLevel {
             let balance = line.currency == .oro ? oro : coins
             if balance >= upgradeCost(of: line) { return true }
+        }
+        return false
+    }
+
+    /// La señal de la lección del primer ORO: hay una línea de ORO pagable
+    /// (lo que implica ORO en el bolsillo — el primero lo paga un logro).
+    /// Misma dieta que la de arriba: costos crudos contra el balance, a 8 Hz.
+    func computeCanAffordAnyOroUpgrade(player: PlayerState, content: GameContent) -> Bool {
+        let oro = Double(player.meta.oro)
+        guard oro > 0 else { return false }
+        for line in content.upgradesConfig.upgrades
+        where line.currency == .oro && upgradeLevel(of: line.id) < line.maxLevel {
+            if oro >= upgradeCost(of: line) { return true }
         }
         return false
     }

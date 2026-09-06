@@ -9,6 +9,10 @@ struct CoinFormatterTests {
         CoinFormatter.string(from: value).replacingOccurrences(of: ",", with: ".")
     }
 
+    private func cost(_ value: Double) -> String {
+        CoinFormatter.cost(from: value).replacingOccurrences(of: ",", with: ".")
+    }
+
     @Test func smallValuesAreRaw() {
         #expect(plain(0) == "0")
         #expect(plain(15) == "15")
@@ -63,6 +67,40 @@ struct CoinFormatterTests {
         #expect(plain(999.9) == "999")
         #expect(plain(999.999) == "999")
         #expect(plain(1000) == "1K")
+    }
+
+    // MARK: Precios
+
+    /// **Un precio se redondea al revés que un saldo**, y las dos mitades de la
+    /// asimetría existen por el mismo motivo: ninguna puede mentir para el lado
+    /// que rompe. El saldo trunca para no anunciar plata que no se puede gastar
+    /// (`theLowBoundaryStillTruncates`); el precio sube para no anunciar una
+    /// compra más barata de lo que se cobra.
+    ///
+    /// El caso que lo trajo: 25 × 1,03 = 25,75. Truncado se leía "25", y un
+    /// jugador con 25 monedas exactas tocaba el botón y le rebotaba.
+    @Test func costsRoundUpSoTheyNeverUndersell() {
+        #expect(cost(25) == "25", "un precio exacto no se infla")
+        #expect(cost(25.75) == "26")
+        #expect(cost(26.5) == "27")
+        #expect(cost(0) == "0")
+    }
+
+    /// El borde: 999,5 no puede salir como "1000" —cuatro dígitos crudos al lado
+    /// de las abreviaturas— así que sube al sufijo por el mismo camino que
+    /// cualquier otro valor de esa escala.
+    @Test func aCostThatRoundsPastTheBoundaryTakesTheSuffix() {
+        #expect(cost(999) == "999")
+        #expect(cost(999.5) == "1K")
+        #expect(cost(1000) == "1K")
+    }
+
+    /// De 1000 para arriba el número ya es una abreviatura y no promete el valor
+    /// exacto, así que precio y saldo se formatean igual.
+    @Test func aboveTheExactRangeCostsMatchPlainFormatting() {
+        for value in [1500.0, 2_500_000, 9.9e15] {
+            #expect(cost(value) == plain(value))
+        }
     }
 
     @Test func pathologicalInputsNeverCrash() {

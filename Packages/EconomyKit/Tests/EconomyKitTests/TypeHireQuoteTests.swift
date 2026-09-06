@@ -182,7 +182,8 @@ struct TypeHireQuoteTests {
             floors: [
                 FloorDef(
                     id: "alley", background: "alley", firstTier: 1, lastTier: 4,
-                    capacity: 10, incomeMultiplier: 1.0, hireCostMultiplierOverride: 25
+                    capacity: 10, incomeMultiplier: 1.0, hireCostMultiplierOverride: 25,
+                    hireCostGrowthOverride: 1.03
                 ),
                 FloorDef(
                     id: "urban", background: "urban", firstTier: 5, lastTier: 8,
@@ -200,14 +201,17 @@ struct TypeHireQuoteTests {
             }
         }
         // Y el tier base sigue anclado donde el dueño lo dejó: 25 el primero
-        // (bajó de 50 el 2026-08-18 para acortar el tutorial). El SEGUNDO pasó
-        // de 30 a 26,5 en el rebalance de pacing, que bajó el `defaultCostGrowth`
-        // de 1,2 a 1,06: 25 × 1,06 = 26,5. El ancla del dueño es el primero, y la
-        // frontera al empezar una partida es T1 —el Fisura con el que arrancás—,
-        // así que el ancla nueva no lo mueve.
+        // (bajó de 50 el 2026-08-18 para acortar el tutorial). El SEGUNDO sigue
+        // al growth por compra, que bajó dos veces por la misma razón —compone
+        // sobre un contador que se duplica con cada tier—: 30 con el 1,2 global,
+        // 26,5 con el 1,06 global y **25,75 con el 1,03 que el callejón
+        // overridea** (quinta ronda, el muro de la cuesta pre-compuerta; el
+        // global se quedó en 1,06 porque es una pata de la desaceleración). El
+        // ancla del dueño es el primero, y la frontera al empezar una partida es
+        // T1 —el Fisura con el que arrancás—, así que ninguna lo mueve.
         let alley = real.floors[0]
         #expect(real.hireCost(floor: alley, tier: 1, frontierTier: 1, purchases: 0) == 25)
-        #expect(abs(real.hireCost(floor: alley, tier: 1, frontierTier: 1, purchases: 1) - 26.5) < 1e-9)
+        #expect(abs(real.hireCost(floor: alley, tier: 1, frontierTier: 1, purchases: 1) - 25.75) < 1e-9)
     }
 
     // MARK: La curva es por TIPO

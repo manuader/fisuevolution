@@ -156,6 +156,37 @@ struct TutorialTipsTests {
                 "con la pinta del cofre acreditada, Pintas por fin tiene algo que hacer")
     }
 
+    /// La lección del primer ORO (dueño, 2026-08-28: "que te lleve a la
+    /// pestaña de mejoras permanentes y te haga elegir"). La señal es una
+    /// permanente de ORO PAGABLE — no el ORO pelado: si el primer premio no
+    /// alcanza para la línea más barata, mandar a Mejoras violaría la regla
+    /// de oro (no habría nada que hacer).
+    @Test("el primer ORO con una permanente pagable dispara su lección")
+    func theFirstOroLessonFiresWhenAPermanentIsAffordable() async throws {
+        let gameState = await makeGameState()
+        // Las lecciones anteriores del orden ya quedaron atrás en una partida
+        // real (la de Mejoras salió con la primera plata): dadas.
+        for lesson in [GameState.TutorialLesson.upgrades, .elevator, .quickHire, .skins, .achievements] {
+            gameState.markLessonDone(lesson)
+        }
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip == nil, "sin ORO no hay nada que canjear en las permanentes")
+
+        // El primer ORO, como lo paga un logro: justo lo que sale la línea
+        // más barata.
+        let lines = try #require(gameState.content?.upgradesConfig.upgrades)
+        let cheapest = try #require(
+            lines.filter { $0.currency == .oro }
+                .map { Int(gameState.upgradeCost(of: $0).rounded(.up)) }
+                .min()
+        )
+        gameState.player?.meta.oro += cheapest
+        gameState.refreshProjections()
+        #expect(gameState.canAffordAnyOroUpgrade)
+        #expect(gameState.tutorialTip?.lesson == .oroUpgrades,
+                "el primer ORO pagable tiene que llevar a las permanentes")
+    }
+
     @Test("el badge de logros: la señal nace con el cobrable y muere al cobrarlo")
     func claimableSignalTracksTheSets() async throws {
         let gameState = await makeGameState()

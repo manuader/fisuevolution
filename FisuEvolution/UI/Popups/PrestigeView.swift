@@ -23,42 +23,53 @@ struct PrestigeView: View {
                     .font(.system(.title2, design: .rounded).weight(.heavy))
                     .foregroundStyle(Color("PaletteInk"))
 
-                oroGain(preview)
-                multiplierArrow(preview)
+                if preview.isWorthIt {
+                    oroGain(preview)
+                    multiplierArrow(preview)
+                } else {
+                    // El teaser ("al llegar a lujo"): todavía no hay ORO por
+                    // cobrar, así que la hoja no promete — muestra el camino
+                    // al primero y qué compra cada uno.
+                    nextOroProgress(preview)
+                }
 
                 Text("prestige.body \(gameState.prestigeMultiplierPerOroText)")
                     .font(.system(.footnote, design: .rounded))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color("PaletteInk").opacity(0.75))
 
-                VStack(alignment: .leading, spacing: 6) {
-                    Label(
-                        "prestige.loses \(String(preview.unitsLost)) \(preview.coinsLostText)",
-                        systemImage: "arrow.counterclockwise"
-                    )
-                    Label(
-                        "prestige.keeps \(preview.multiplierAfterText)",
-                        systemImage: "sparkles"
-                    )
-                }
-                .font(.system(.footnote, design: .rounded).weight(.semibold))
-                .foregroundStyle(Color("PaletteInk"))
-                // Sin esto las dos filas se truncan con "…" y el jugador no ve
-                // los números, que son justamente lo que vino a leer.
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                if preview.isWorthIt {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label(
+                            "prestige.loses \(String(preview.unitsLost)) \(preview.coinsLostText)",
+                            systemImage: "arrow.counterclockwise"
+                        )
+                        Label(
+                            "prestige.keeps \(preview.multiplierAfterText)",
+                            systemImage: "sparkles"
+                        )
+                    }
+                    .font(.system(.footnote, design: .rounded).weight(.semibold))
+                    .foregroundStyle(Color("PaletteInk"))
+                    // Sin esto las dos filas se truncan con "…" y el jugador no ve
+                    // los números, que son justamente lo que vino a leer.
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
-                // La cápsula caramelo de la casa, centrada como el Collect
-                // del daily: mismo control (ActionPill ES un Button con este
-                // identifier), la semántica que el test tapea no cambia.
-                ActionPill(
-                    titleKey: "prestige.confirm",
-                    systemImage: "arrow.triangle.2.circlepath",
-                    tint: Color("PalettePink"),
-                    identifier: "prestige.confirm"
-                ) {
-                    gameState.confirmPrestige()
-                    dismiss()
+                    // La cápsula caramelo de la casa, centrada como el Collect
+                    // del daily: mismo control (ActionPill ES un Button con este
+                    // identifier), la semántica que el test tapea no cambia.
+                    // En el teaser NO se dibuja: una acción que no corresponde
+                    // no se apaga, no existe (la doctrina de `ActionPill`).
+                    ActionPill(
+                        titleKey: "prestige.confirm",
+                        systemImage: "arrow.triangle.2.circlepath",
+                        tint: Color("PalettePink"),
+                        identifier: "prestige.confirm"
+                    ) {
+                        gameState.confirmPrestige()
+                        dismiss()
+                    }
                 }
 
                 // El "mejor no" va mudo a propósito, como el saltar del
@@ -92,6 +103,29 @@ struct PrestigeView: View {
         // `DailyRewardView` corrigió). Transparente, el panel flota sobre el
         // tablero como sus tres gemelos de premio.
         .presentationBackground(.clear)
+    }
+
+    /// El camino al PRÓXIMO ORO, cuando todavía no hay ninguno por cobrar: lo
+    /// que falta juntar y la barra del progreso. Es lo único que la hoja puede
+    /// contar sin mentir en el teaser.
+    private func nextOroProgress(_ preview: PrestigePreview) -> some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
+                OroIcon(size: 30)
+                Text("prestige.oro.next \(CoinFormatter.string(from: preview.coinsToNextOro))")
+                    .font(.system(.footnote, design: .rounded).weight(.semibold))
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .foregroundStyle(Color("PaletteInk"))
+            ProgressBar(
+                progress: preview.nextOroProgress,
+                tint: Color("PalettePink"),
+                labelText: preview.nextOroProgress.formatted(.percent.precision(.fractionLength(0)))
+            )
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("prestige.oro.progress")
     }
 
     private func oroGain(_ preview: PrestigePreview) -> some View {

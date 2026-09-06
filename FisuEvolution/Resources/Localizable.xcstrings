@@ -3240,6 +3240,9 @@
         }
       }
     },
+    "gifts.chest.count %@" : {
+
+    },
     "gifts.chest.count %lld" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4412,6 +4415,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "+%@ ORO"
+          }
+        }
+      }
+    },
+    "prestige.oro.next %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earn %@ more for your next ORO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te falta juntar %@ para tu próximo ORO"
           }
         }
       }
@@ -6430,40 +6450,6 @@
         }
       }
     },
-    "special.info.ok" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡De una!"
-          }
-        }
-      }
-    },
-    "special.info.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your special character"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu personaje especial"
-          }
-        }
-      }
-    },
     "special.influencer.flavor" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -6494,6 +6480,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "El Influencer"
+          }
+        }
+      }
+    },
+    "special.info.ok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡De una!"
+          }
+        }
+      }
+    },
+    "special.info.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your special character"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu personaje especial"
           }
         }
       }
@@ -8613,6 +8633,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Dale!"
+          }
+        }
+      }
+    },
+    "tutorial.tip.oro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your first ORO! Trade it in Upgrades for a permanent boost"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tu primer ORO! Canjealo en Mejoras por una mejora permanente"
           }
         }
       }

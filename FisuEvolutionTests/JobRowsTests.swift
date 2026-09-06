@@ -192,7 +192,9 @@ struct JobRowsTests {
         gameState.hireCharacter(typeId: "homeless")
 
         let row = try jobRow(gameState, "homeless")
-        #expect(row.costText == "26", "el segundo Fisura cuesta 26,5 (growth 1,06)")
+        // 25 × 1,03 = 25,75 (growth del callejón desde la quinta ronda), y se lee
+        // "26" porque `CoinFormatter.cost` redondea los precios hacia arriba.
+        #expect(row.costText == "26", "el segundo Fisura cuesta 25,75 (growth 1,03)")
         #expect(row.purchases == 1)
         #expect(row.hiredCount == 2)
         #expect(try jobRow(gameState, "trapito").costText == neighbourBefore)

@@ -656,7 +656,7 @@ struct GameContentValidationTests {
         // interruptivo del juego es el interstitial; sin su unidad declarada,
         // el producto no tiene nada que quitar.
         #expect(
-            content.flags.effectiveAdUnitIDs.interstitial != nil,
+            content.flags.declaredAdUnitIDs.interstitial != nil,
             """
             La tienda vende remove_ads pero no hay unidad de interstitial \
             declarada en feature_flags.json. Los rewarded son opt-in y NO se \
@@ -674,7 +674,7 @@ struct GameContentValidationTests {
     @Test func storeBuildsUseRealAdUnitIDs() {
         guard content.flags.isStoreBuild, content.flags.useRealAds else { return }
         #expect(
-            !content.flags.effectiveAdUnitIDs.usesAnyGoogleTestID,
+            !content.flags.declaredAdUnitIDs.usesAnyGoogleTestID,
             """
             buildVariant es "store" pero los ad unit IDs son los de prueba \
             públicos de Google. Poné los de la cuenta real en \

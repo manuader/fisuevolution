@@ -112,7 +112,37 @@ struct FeatureFlags: Codable, Sendable, Equatable {
     let adUnitIDs: AdUnitIDs?
 
     /// Los IDs efectivos, con el fallback ya resuelto.
-    var effectiveAdUnitIDs: AdUnitIDs { adUnitIDs ?? .googleTest }
+    ///
+    /// ⚠️⚠️ **En DEBUG son SIEMPRE los de prueba de Google, pase lo que pase
+    /// diga el JSON.** No es una comodidad: es la regla que Google escribe en
+    /// mayúsculas en su propia guía — *"When building and testing your apps,
+    /// make sure you use test ads rather than live, production ads. Failure to
+    /// do so can lead to suspension of your account."*
+    ///
+    /// El riesgo es concreto y asimétrico. En el SIMULADOR el SDK se
+    /// autodeclara test device y no pasa nada; en un **iPhone de verdad no**,
+    /// así que un build de desarrollo instalado en el teléfono del dueño pide
+    /// anuncios REALES de su propia cuenta, y cada toque suyo es click fraud
+    /// contra sí mismo. La alternativa —acordarse de registrar cada device en
+    /// la consola de AdMob— es un paso humano que se olvida una vez y cuesta la
+    /// cuenta.
+    ///
+    /// Lo que se pierde: en Debug no se puede comprobar que las unidades reales
+    /// sirven inventario. Eso se verifica donde corresponde, en TestFlight, que
+    /// es un build Release.
+    var effectiveAdUnitIDs: AdUnitIDs {
+        #if DEBUG
+        .googleTest
+        #else
+        adUnitIDs ?? .googleTest
+        #endif
+    }
+
+    /// Los IDs tal como vienen del JSON, sin la sustitución de DEBUG. Es lo que
+    /// mira el test que impide embarcar un build de tienda con los de prueba:
+    /// los tests corren en Debug, así que preguntarle a `effectiveAdUnitIDs`
+    /// siempre vería los de Google y el test no probaría nada.
+    var declaredAdUnitIDs: AdUnitIDs { adUnitIDs ?? .googleTest }
 
     /// Si este build es el que se manda a la App Store.
     var isStoreBuild: Bool { buildVariant == "store" }

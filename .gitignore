@@ -42,3 +42,10 @@ scratchpad/
 # Handoffs locales entre agentes (pedido del dueño 2026-08-18): documentación
 # de traspaso por máquina, no se versiona.
 handoffs/
+
+# DerivedData de builds puntuales (device, segundo simulador).
+# Mismo caso que build/ y DerivedData/: artefactos, y encima traen los
+# checkouts de SPM con su propio .git adentro.
+build-dev/
+build-t2/
+build-ci/

@@ -188,7 +188,19 @@ struct ChestOpeningView: View {
             // mientras corre el espectáculo. El video vigente es un sprite
             // puro (verde plano, sin viñeta horneada), así que este scrim ya
             // no continúa nada — es la única viñeta, toda nuestra, y por eso
-            // no puede tener costura. Aparece con el video y se queda.
+            // no puede tener costura.
+            //
+            // ⚠️ **Entra en el PRIMER TOQUE, no con el video**, y el motivo es
+            // de rendimiento: un degradé radial a pantalla completa fundiéndose
+            // durante 0,4 s es trabajo de composición por cuadro, y atado a
+            // `.cinematic` caía exactamente encima del arranque del decoder —
+            // el momento más caro de toda la animación, porque el HEVC-con-alfa
+            // se decodifica por software en el simulador. Dos cosas caras en el
+            // mismo instante, y el jugador lo ve como "se traba al abrirse".
+            //
+            // Adelantarlo al primer toque le da al fundido los tres toques
+            // enteros para terminar tranquilo, y encima lee mejor: el callejón
+            // se apaga cuando el cofre EMPIEZA a moverse, no después.
             RadialGradient(
                 colors: [.clear, .black.opacity(0.32)],
                 center: .center,
@@ -197,8 +209,8 @@ struct ChestOpeningView: View {
             )
             .offset(y: Self.chestY)
             .ignoresSafeArea()
-            .opacity(beat >= .cinematic ? 1 : 0)
-            .animation(reduceMotion ? nil : .easeInOut(duration: 0.4), value: beat >= .cinematic)
+            .opacity(beat >= .forced1 ? 1 : 0)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 0.4), value: beat >= .forced1)
             .allowsHitTesting(false)
 
             stageCanvas
@@ -555,6 +567,19 @@ struct ChestOpeningView: View {
             warmPrizeArt()
             feed.warm(.shakeA)
             feed.warm(.shakeB)
+            // ⚠️ El still del marco final se precarga ACÁ y no al terminar el
+            // video, y es un arreglo medido: `showFinalStill()` lo leía de
+            // disco en el latido `.resting`, o sea **en el frame exacto en que
+            // el video termina**. Aunque la lectura va en `Task.detached`,
+            // asignar la imagen dispara la subida a GPU en el primer dibujo, y
+            // eso caía justo en la transición.
+            //
+            // Medido en grabación (analizador de corridas de frames idénticos):
+            // **116 ms de pantalla congelada al terminar el video**, en el
+            // mismo instante en que el jugador espera ver su premio. La llegada
+            // tiene latidos enteros de hueco muerto — es donde ya se precalienta
+            // todo lo demás.
+            Task { await showFinalStill() }
         case .waiting:
             breathing = !reduceMotion
         case .forced1:

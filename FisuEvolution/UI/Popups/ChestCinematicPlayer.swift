@@ -1,8 +1,8 @@
 import AVFoundation
 import SwiftUI
 
-/// El tramo cinemático del cofre: `chest_open.mov` (HEVC premultiplicado, sin
-/// canal alfa), del estallido al marco vacío, reproducido por hardware.
+/// El tramo cinemático del cofre: `chest_open.mov` (HEVC con canal alfa
+/// premultiplicado), del estallido al marco vacío, reproducido por hardware.
 ///
 /// Es el primer AVFoundation del repo, y entra por una razón medida: los
 /// ~4 s lineales del estallido a la carta pesan ~1,6 MB en HEVC contra ~12 MB
@@ -36,15 +36,46 @@ final class ChestCinematicPlayer {
         // que no convive con AVPlayer bajo strict concurrency. El overlay
         // crea este player en la llegada: latidos enteros de margen para que
         // el decoder ya tenga los primeros frames listos al tercer toque.
-        warmup = Task { [player] in
+        warmup = Task { [weak self, player] in
             for _ in 0..<40 where player.currentItem?.status != .readyToPlay {
                 try? await Task.sleep(for: .milliseconds(50))
             }
             guard !Task.isCancelled,
                   player.currentItem?.status == .readyToPlay else { return }
             _ = await player.preroll(atRate: 1.0)
+            guard !Task.isCancelled else { return }
+
+            // ⚠️ **`preroll` NO alcanza para este archivo, y está medido.**
+            //
+            // Con sólo `preroll(atRate:)` la grabación mostraba **133 ms de
+            // pantalla congelada en el primer cuadro del video** — el
+            // "se traba al abrirse" que reportó el dueño tres veces. La causa:
+            // `preroll` "prepara los render pipelines", pero el HEVC-con-alfa
+            // se decodifica **por software en el simulador** (no hay camino de
+            // hardware para la capa auxiliar de alfa), y ese arranque en frío
+            // no se paga hasta que alguien pide cuadros de verdad.
+            //
+            // Así que se los pedimos: reproducir MUDO unos cuadros y volver a
+            // cero deja la cola del decoder llena. Es invisible y silencioso —
+            // la capa está en `opacity(0)` hasta el latido cinemático y el
+            // volumen va en 0—, y corre en el hueco muerto de los toques.
+            player.volume = 0
+            player.playImmediately(atRate: 1.0)
+            try? await Task.sleep(for: .milliseconds(140))
+            player.pause()
+            // Exacto y no aproximado: un seek con tolerancia puede dejar el
+            // playhead en el keyframe más cercano y el video arrancaría unos
+            // cuadros adentro, comiéndose el estallido.
+            await player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+            guard !Task.isCancelled else { return }
+            self?.isWarm = true
         }
     }
+
+    /// El decoder ya escupió cuadros y el playhead volvió a cero. Si el jugador
+    /// llega al tercer toque antes de que esto sea `true`, `play` se encarga de
+    /// reposicionar — ver ahí.
+    private var isWarm = false
 
     /// El mov trae su pista de sonido adentro; el volumen es el del canal SFX
     /// del juego, leído al momento de reproducir (con el overlay abierto no
@@ -52,8 +83,24 @@ final class ChestCinematicPlayer {
     func play(rate: Float, volume: Float) {
         warmup?.cancel()
         player.volume = volume
+
+        // ⚠️ El calentado puede haber quedado A MITAD si el jugador llegó al
+        // tercer toque antes de que terminara: el playhead estaría unos cuadros
+        // adentro y `playImmediately` se comería el estallido, que es el cuadro
+        // más importante de la animación. En ese caso se reposiciona primero.
+        //
+        // El camino normal —calentado completo— no paga ese await: arranca en
+        // este mismo frame.
+        guard isWarm || player.currentTime() == .zero else {
+            player.pause()
+            Task { @MainActor [player] in
+                await player.seek(to: .zero, toleranceBefore: .zero, toleranceAfter: .zero)
+                player.playImmediately(atRate: rate)
+            }
+            return
+        }
         // `playImmediately` y no `play()` + `rate`: arranca en ESTE frame con
-        // lo que el preroll dejó decodificado, sin renegociar el ritmo.
+        // lo que el calentado dejó decodificado, sin renegociar el ritmo.
         player.playImmediately(atRate: rate)
     }
 
@@ -79,21 +126,29 @@ final class ChestCinematicPlayer {
     }
 }
 
-/// El `AVPlayerLayer` en SwiftUI. `videoGravity: .resize` porque el frame lo
+/// El `AVPlayerLayer` en SwiftUI, transparente: el alfa del HEVC compone
+/// contra lo que haya detrás. `videoGravity: .resize` porque el frame lo
 /// dicta la geometría del manifest (`cinematicStage`), no el video.
 ///
-/// ⚠️ **La capa es OPACA, y eso cambió**: hasta la sesión del velo el mov era
-/// HEVC **con canal alfa** y componía contra el tablero, así que la vista iba
-/// `isOpaque = false` + fondo `.clear`. Desde que el video se premultiplica,
-/// el asset embarcado es `yuv420p` PLANO —verificado con ffprobe: dos
-/// streams, hevc + aac, sin pista de alfa— y `.resize` hace que el video
-/// cubra los bounds enteros. La transparencia había quedado como herencia del
-/// asset viejo, y no era gratis: obligaba al compositor a mezclar una capa de
-/// ~1320×2350 px contra lo de atrás **en cada cuadro**, para un contenido que
-/// no tiene un solo píxel translúcido.
+/// ⚠️⚠️ **`isOpaque` TIENE que quedar en `false`. No lo "optimices".**
 ///
-/// El recorte del encuadre y el feather del borde son del PROPIO video (los
-/// trae horneados), no de la capa: apagar la transparencia no los toca.
+/// Se probó ponerlo en `true` el 2026-09-06 razonando que el video ya no
+/// tenía alfa, y **el resultado fue la pantalla entera en negro** al abrirse
+/// el cofre: el tablero desaparecía y quedaba sólo la carta sobre un fondo
+/// liso. El error de fondo fue el diagnóstico, y vale escribirlo porque
+/// cualquiera lo repite:
+///
+/// **`ffprobe` NO puede ver el alfa de este archivo.** Reporta
+/// `pix_fmt=yuv420p` y dos streams pelados (hevc + aac), como si fuera un
+/// video opaco cualquiera. Pero el pipeline lo encodea con
+/// `hevc_videotoolbox -alpha_quality`, o sea el **HEVC-con-alfa de Apple**,
+/// que guarda el alfa en una capa auxiliar que ffmpeg no decodifica y por lo
+/// tanto no lista. La prueba está del lado del generador
+/// (`chest_video_frames.py`: `alphamerge` → `premultiply` → `format=bgra`
+/// → `-alpha_quality`), no del lado del inspector.
+///
+/// Moraleja para el próximo: para saber si este mov tiene alfa, leé el
+/// ENCODER, no el probe.
 struct ChestCinematicView: UIViewRepresentable {
     let player: AVPlayer
 
@@ -104,8 +159,8 @@ struct ChestCinematicView: UIViewRepresentable {
 
     func makeUIView(context: Context) -> PlayerContainer {
         let view = PlayerContainer()
-        view.isOpaque = true
-        view.backgroundColor = .black
+        view.isOpaque = false
+        view.backgroundColor = .clear
         view.playerLayer.player = player
         view.playerLayer.videoGravity = .resize
         return view

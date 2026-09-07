@@ -117,17 +117,24 @@ CINEMATIC_LAST = 239
 # sobre el verde): limpia a ojo, pero el simulador no sostiene HEVC-alfa a
 # 48 y el giro colapsaba a ~5 fps efectivos.
 #
-# ⚠️ Ese descarte era de un asset QUE YA NO EXISTE, y por eso no bloquea el 2x
-# de hoy (2026-09-06, septima ronda). Aquel colapso se midio sobre HEVC **con
-# canal alfa**, que el sim decodifica por software; desde la sesion del velo
-# el mov es premultiplicado y sale `yuv420p` PLANO — verificado con ffprobe
-# sobre el asset embarcado: dos streams, hevc yuv420p + aac, sin pista de
-# alfa. Heredar el "48 no se banca" habria sido heredar el sintoma de otro
-# archivo.
+# ⚠️ Ese descarte NO aplica al 2x de hoy (2026-09-06, septima ronda), y la
+# razon no es que el alfa se haya ido — **el alfa sigue estando** (este mismo
+# script lo encodea mas abajo con `-alpha_quality`). Lo que cambia es QUE se
+# le pedia al sim: aquella prueba INTERPOLABA a 48 con minterpolate, o sea
+# ~380 cuadros sintetizados sobre el mismo arco. Esto presenta los MISMOS 190
+# del master al doble de ritmo: la misma cantidad de trabajo de decode,
+# repartida en menos tiempo.
+#
+# ⚠️⚠️ Y una trampa de instrumento que costo un rebote con el dueño: `ffprobe`
+# **no ve el alfa de este archivo**. Reporta `pix_fmt=yuv420p` y dos streams
+# pelados, porque el HEVC-con-alfa de Apple guarda el alfa en una capa
+# auxiliar que ffmpeg no decodifica. Creerle al probe llevo a poner la capa
+# del player en opaca y a dejar la pantalla ENTERA EN NEGRO al abrirse el
+# cofre. Para saber si tiene alfa, leer el encoder, no el probe.
 #
 # 48 = 24 x 2: los MISMOS 190 cuadros del master, ninguno sintetizado ni
 # tirado, presentados al doble de ritmo. Medido en grabacion despues del
-# cambio (ver la sesion): el sim lo sostiene.
+# cambio (ver la sesion): el sim lo sostiene, 47-48 distintos/s.
 CINEMATIC_SPEED = 2.0
 PLAYBACK_FPS = 48  # FPS * CINEMATIC_SPEED, entero a proposito
 

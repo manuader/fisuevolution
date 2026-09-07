@@ -18,6 +18,30 @@
           }
         }
       }
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "FisuEvolution"
+          }
+        }
+      }
+    },
+    "NSUserTrackingUsageDescription" : {
+      "comment" : "Privacy - Tracking Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Usamos tu identificador de publicidad para mostrarte anuncios más relevantes. Si preferís que no, los anuncios se siguen viendo, sólo que sin personalizar."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

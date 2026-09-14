@@ -46,6 +46,8 @@ handoffs/
 # DerivedData de builds puntuales (device, segundo simulador).
 # Mismo caso que build/ y DerivedData/: artefactos, y encima traen los
 # checkouts de SPM con su propio .git adentro.
-build-dev/
-build-t2/
-build-ci/
+build-*/
+
+# Capturas de la ficha: las regenera AppStoreScreenshotTests en un comando.
+# 14 MB de PNG derivados no son fuente (mismo criterio que el .xcodeproj).
+Distribution/screenshots/

@@ -103,8 +103,27 @@ es: "¡Llegó el Aguinaldo! Entrá a cobrarlo antes de que se lo lleve la inflac
 - Alcohol references are limited to cartoon boost icons, infrequent/mild,
   declared in the age rating. The store build serves only review-safe content.
 - Characters are cultural archetypes, not real identifiable people.
-- No account needed; Game Center is optional. IAPs: remove-ads + cosmetic skins
-  via StoreKit 2 with Restore Purchases in the Store screen.
+- **No account and no login.** All progress is stored on device. Game Center and
+  iCloud sync are disabled in this version.
+- **Ads (Google AdMob).** Two kinds, and the difference matters for the IAP
+  below:
+  - *Rewarded videos*, always opt-in: the player taps an explicit offer to
+    double offline earnings, open one extra chest, or start a boost. They never
+    autoplay.
+  - *Interstitials*, shown between parts of the game (after dismissing the
+    offline popup, and after reincarnating), never mid-action.
+- **`Remove Ads` (US$ 2.99) removes the interstitials only; the opt-in rewarded
+  videos stay.** This is stated in the purchase description and in the privacy
+  policy. Rewarded videos are kept because Google's own policy requires them to
+  be opt-in, and removing them would remove a way for the player to earn
+  prizes — not an annoyance.
+- **App Tracking Transparency** is requested on first launch. Declining is fully
+  supported: ads still serve, non-personalized, and no game feature is withheld.
+  In the EU/UK/CH, Google's UMP consent form is shown before any ad.
+- **IAPs (11), StoreKit 2, with Restore Purchases in the Store screen:** one
+  starter pack, remove-ads, three consumable cash packs, three consumable ORO
+  packs, and three cosmetic skin purchases. Consumables (cash/ORO) are not
+  restored by design; remove-ads and skins are.
 - Quick test: tap the character to earn coins, buy a second one with the green
   button, drag one onto the other to merge.
 

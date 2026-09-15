@@ -342,7 +342,7 @@ extension GameState {
     /// que la traducción viva acá evita que la vista invente la suya.
     var boostRows: [BoostRow] {
         guard let content, let player else { return [] }
-        let variant = content.flags.buildVariant
+        let variant = content.flags.effectiveBuildVariant
         let now = Date().timeIntervalSince1970
         return content.boosts.boosts.map { boost in
             let unlocked = isBoostUnlocked(boost)
@@ -521,7 +521,7 @@ extension GameState {
             return String(localized: "career.reward.welcome \(CoinFormatter.string(from: chest))")
         case .freeBoost:
             guard let boost = content.boosts.boosts.first(where: { $0.id == career.boostId }) else { return nil }
-            let name = localized(boost.displayNameKey(buildVariant: content.flags.buildVariant))
+            let name = localized(boost.displayNameKey(buildVariant: content.flags.effectiveBuildVariant))
             let effect = EffectFormatter.text(
                 EffectDescriptor.amount(forBoost: boost.effectType, magnitude: boost.magnitude)
             )

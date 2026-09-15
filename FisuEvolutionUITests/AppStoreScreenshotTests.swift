@@ -32,9 +32,20 @@ import XCTest
 /// que jugando cuesta horas.
 ///
 /// ⚠️ **El runner corre la app en INGLÉS** aunque el idioma de desarrollo sea
-/// `es` (trampa 6 del HANDOFF). Estas capturas sirven para la ficha en-US; las
-/// de es-MX piden otra corrida forzando el idioma.
+/// `es` (trampa 6 del HANDOFF). Por eso las capturas se sacan DOS VECES, con
+/// `-AppleLanguages` forzado en cada corrida: la ficha tiene dos locales
+/// (en-US primaria y es-MX) y App Store Connect acepta un set de capturas por
+/// locale. Sin forzar, las dos tandas saldrían idénticas y en inglés.
 final class AppStoreScreenshotTests: XCTestCase {
+
+    /// Los dos idiomas de la ficha, con el prefijo que llevan sus archivos.
+    ///
+    /// `-AppleLanguages` va como **launch argument** y no como variable de
+    /// entorno: así lo lee `Foundation` al arrancar el proceso de la app, que
+    /// es antes de que corra una línea nuestra.
+    private static func languageArguments(_ code: String) -> [String] {
+        ["-AppleLanguages", "(\(code))", "-AppleLocale", code]
+    }
 
     override func setUp() {
         super.setUp()
@@ -45,9 +56,19 @@ final class AppStoreScreenshotTests: XCTestCase {
     /// suben. Las tres primeras son las que se ven en el listado sin scrollear
     /// y por lo tanto las que venden.
     @MainActor
-    func testCapturaLasPantallasDeLaFicha() throws {
+    func testCapturaLasPantallasEnIngles() throws {
+        try capturaLasPantallas(idioma: "en", prefijo: "en")
+    }
+
+    @MainActor
+    func testCapturaLasPantallasEnCastellano() throws {
+        try capturaLasPantallas(idioma: "es", prefijo: "es")
+    }
+
+    @MainActor
+    private func capturaLasPantallas(idioma: String, prefijo: String) throws {
         let app = XCUIApplication()
-        app.launchArguments = [
+        app.launchArguments = Self.languageArguments(idioma) + [
             "--screenshot-mode",
             "--uitest-reset",
             "--uitest-skip-tutorial",
@@ -67,7 +88,7 @@ final class AppStoreScreenshotTests: XCTestCase {
 
         // 1. El tablero. Es la primera impresión del juego.
         settle()
-        shoot(app, "01-tablero")
+        shoot(app, "\(prefijo)-01-tablero")
 
         // 2-5. Las cuatro hojas que muestran el sistema.
         for screen in Self.screens {
@@ -86,7 +107,7 @@ final class AppStoreScreenshotTests: XCTestCase {
                 continue
             }
             settle()
-            shoot(app, screen.name)
+            shoot(app, "\(prefijo)-\(screen.name)")
 
             let close = app.buttons["sheet.close"]
             if close.exists, waitUntilHittable(close) { close.tap() }
@@ -107,9 +128,19 @@ final class AppStoreScreenshotTests: XCTestCase {
     /// 4 s y agarrarla a mitad da un fotograma oscuro lleno de destellos, que
     /// es exactamente lo que salió al intentarlo con `simctl`.
     @MainActor
-    func testCapturaElCofre() throws {
+    func testCapturaElCofreEnIngles() throws {
+        try capturaElCofre(idioma: "en", prefijo: "en")
+    }
+
+    @MainActor
+    func testCapturaElCofreEnCastellano() throws {
+        try capturaElCofre(idioma: "es", prefijo: "es")
+    }
+
+    @MainActor
+    private func capturaElCofre(idioma: String, prefijo: String) throws {
         let app = XCUIApplication()
-        app.launchArguments = [
+        app.launchArguments = Self.languageArguments(idioma) + [
             "--screenshot-mode", "--uitest-reset", "--uitest-skip-tutorial",
             "--uitest-coins", "--uitest-chest",
         ]
@@ -127,7 +158,7 @@ final class AppStoreScreenshotTests: XCTestCase {
         // El premio se asienta al final del video (~4 s a 48 fps) más el
         // resorte de la carta.
         Thread.sleep(forTimeInterval: 7)
-        shoot(app, "06-cofre")
+        shoot(app, "\(prefijo)-06-cofre")
     }
 
     // MARK: - El guión

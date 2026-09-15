@@ -145,5 +145,42 @@ struct FeatureFlags: Codable, Sendable, Equatable {
     var declaredAdUnitIDs: AdUnitIDs { adUnitIDs ?? .googleTest }
 
     /// Si este build es el que se manda a la App Store.
-    var isStoreBuild: Bool { buildVariant == "store" }
+    ///
+    /// ⚠️ **Se deriva de la CONFIGURACIÓN DE BUILD, no del JSON**, y eso cambió
+    /// el 2026-09-06. El valor de `buildVariant` quedó como documentación y
+    /// como puerta de escape para los tests.
+    ///
+    /// El motivo es que el flip manual era un footgun con consecuencia real y
+    /// silenciosa: lo que decide `buildVariant` es si los boosts muestran sus
+    /// nombres **review-safe** (el fernet, que es alcohol, y que hay que
+    /// declarar en el rating). Olvidarse de ponerlo en `"store"` antes de
+    /// archivar **no rompe nada**: la app compila, corre y se sube igual, con
+    /// el contenido de desarrollo adentro. Un paso humano que no falla cuando
+    /// se olvida es un paso que se va a olvidar.
+    ///
+    /// Con esto, todo build Release —el único que se puede subir— es de tienda
+    /// por construcción, y Debug nunca lo es.
+    var isStoreBuild: Bool {
+        #if DEBUG
+        // ⚠️ `--screenshot-mode` cuenta como build de tienda, y no es un
+        // detalle: las capturas de la ficha se sacan en DEBUG porque necesitan
+        // los fixtures `--uitest-*`, pero **lo que muestran tiene que ser lo
+        // que se publica**. Sin esto, las capturas salían con los nombres de
+        // desarrollo de los boosts —"Fernet con Coca" en vez del review-safe—
+        // y la ficha le habría mostrado a Apple una bebida alcohólica que el
+        // build de tienda no nombra, justo el contenido sobre el que se
+        // declara el rating. Detectado mirando el PNG, no el código.
+        //
+        // Los tests corren en Debug y algunos necesitan ejercer la rama de
+        // tienda: para eso queda además el JSON como override explícito.
+        buildVariant == "store"
+            || ProcessInfo.processInfo.arguments.contains("--screenshot-mode")
+        #else
+        true
+        #endif
+    }
+
+    /// El variante EFECTIVO, que es lo que eligen los textos review-safe.
+    /// Misma regla que `isStoreBuild`: lo manda la configuración de build.
+    var effectiveBuildVariant: String { isStoreBuild ? "store" : buildVariant }
 }

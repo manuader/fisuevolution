@@ -123,20 +123,55 @@ Ya no es un repo con GitHub Pages: el juego se publica bajo la empresa
 **Ader Games**, con sitio propio en **Next.js deployado en Vercel** (identidad
 de marca + página del juego + las páginas que Apple exige).
 
-- Privacy: pendiente — `Distribution/site/privacy.md` es el contenido, falta la URL
-- Support: pendiente — `Distribution/site/support.md` idem
-- Marketing: pendiente — la landing del juego en el sitio de Ader Games
+✅ **El sitio está publicado** (Vercel, 2026-09-06). URLs para pegar en ASC:
+
+| Campo de ASC | URL |
+|---|---|
+| **Privacy Policy URL** | `https://adergames-site.vercel.app/privacy` |
+| **Support URL** | `https://adergames-site.vercel.app/support` |
+| **Marketing URL** | `https://adergames-site.vercel.app/fisuevolution` |
+
+⚠️⚠️ **LAS RUTAS SON EN MINÚSCULA.** Verificado: `/Privacy` y `/Terms` con
+mayúscula devuelven **404**. Vercel sirve estas rutas case-sensitive, y una URL
+de privacidad que da 404 es rechazo directo — el reviewer la abre. Copiar de
+esta tabla, no de memoria.
+
+Otras rutas del sitio, por si hacen falta: `/terms`, `/about`, `/press`, `/es`
+(versión en castellano).
 
 ⚠️ **La de privacidad es la única que App Store Connect exige para poder
 mandar a review**, y tiene que responder 200 antes del submit. Las otras dos
 son opcionales (recomendadas).
 
-⚠️ **Y el texto de privacidad hay que actualizarlo**: `privacy.md` describe los
-anuncios en condicional ("si la versión instalada muestra anuncios"). Con la
-rama A confirmada (AdMob real, decisión del dueño 2026-09-02) eso pasa a ser
-afirmativo, y hay que declarar el tracking de ATT — que también cambia
-`PrivacyInfo.xcprivacy` (`NSPrivacyTracking` → true) y las nutrition labels de
-la ficha.
+✅ El texto de privacidad ya está reescrito en afirmativo con el tracking de
+ATT declarado (`Distribution/site/privacy.md`, 2026-09-15), y hace juego con
+`PrivacyInfo.xcprivacy` (`NSPrivacyTracking` → true) y con las nutrition labels.
+**Falta pegarlo en el sitio publicado**, que todavía tiene la versión vieja.
+
+### ⛔ Bloqueante del sitio: el mail de contacto no existe
+
+`/privacy` y `/terms` publicados dicen **`support@adergames.io`** y el footer
+**`contact@adergames.io`**. El 2026-09-15 se verificó contra 8.8.8.8, 1.1.1.1 y
+`whois`: **el dominio `adergames.io` NO ESTÁ REGISTRADO** — sin NS, sin MX,
+`Domain not found`. Todo lo que se mande ahí rebota.
+
+Por qué bloquea:
+
+1. **El Support URL es donde Apple espera un contacto que conteste**, y la
+   correspondencia de App Review sale por mail. Un canal que rebota es cómo se
+   pierde una revisión sin enterarse.
+2. Un dominio **libre** al que una política de privacidad publicada le manda
+   pedidos de datos personales lo puede registrar cualquiera y leerlos.
+
+Dos salidas, cualquiera sirve, pero hay que elegir una **antes del submit**:
+
+- **Registrar `adergames.io`** y darle mail andando (lo correcto si la marca
+  Ader Games va en serio), o
+- **cambiar el sitio a `adermanu@gmail.com`**, que es lo que dicen hoy los
+  documentos del repo.
+
+⚠️ También: el footer del sitio publicado dice literalmente **"TODO"** donde va
+el nombre de la empresa. El reviewer lo ve.
 
 ## Ads — rama A confirmada (dueño, 2026-09-02)
 

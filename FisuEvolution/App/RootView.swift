@@ -276,7 +276,19 @@ struct GameBoardView: View {
         .sheet(item: skinAwardBinding, onDismiss: { gameState.celebrationFinished(.skinAward) }) { award in
             SkinAwardView(award: award)
         }
-        .sheet(item: offlineRewardBinding, onDismiss: { gameState.celebrationFinished(.offlineEarnings) }) { reward in
+        .sheet(item: offlineRewardBinding, onDismiss: {
+            gameState.celebrationFinished(.offlineEarnings)
+            // **Transición suave #1** (`Docs/ads-integration.md`): el jugador
+            // acaba de cobrar lo de la noche y todavía no volvió al juego. No
+            // se interrumpe ninguna acción.
+            //
+            // ⚠️ Pasa por el mismo camino que la cadencia de 7 min, así que
+            // hereda sus frenos: no dispara si el jugador compró `remove_ads`,
+            // ni dentro de la gracia post-rewarded —el que acaba de duplicar
+            // sus ganancias con un video NO se come un interstitial encima—,
+            // ni con el tutorial abierto.
+            Task { await gameState.showInterstitialIfAppropriate() }
+        }) { reward in
             OfflineEarningsView(reward: reward)
         }
         .sheet(isPresented: $showPrestige) {

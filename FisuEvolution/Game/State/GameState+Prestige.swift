@@ -133,5 +133,19 @@ extension GameState {
         bumpBoard()
         Task { await persistNow() }
         Log.economy.info("reincarnated: level \(player.meta.prestigeLevel), oro \(player.meta.oro)")
+
+        // **Transición suave #2** (`Docs/ads-integration.md`): el reset ya
+        // ocurrió y la partida nueva todavía no arrancó. Es el corte más
+        // natural del juego.
+        //
+        // ⚠️ Va con `Task` y al FINAL: `confirmPrestige` es síncrona y el
+        // llamador cuenta con que al volver el estado ya está reencarnado.
+        // Y ⚠️ **el cofre de reencarnación se otorgó arriba**, así que la
+        // cola de celebraciones puede tener su turno pedido — por eso el
+        // disparo pasa por `showInterstitialIfAppropriate`, que se niega
+        // mientras haya una celebración con el turno. Sin ese filtro, el
+        // interstitial taparía el cofre épico que el jugador se acaba de
+        // ganar, que es el peor momento posible.
+        Task { await showInterstitialIfAppropriate() }
     }
 }

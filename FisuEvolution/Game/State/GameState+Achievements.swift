@@ -400,7 +400,7 @@ extension GameState {
             return String(localized: "ach.reward.oro \(String(reward.amount ?? 0))")
         case .freeBoost:
             guard let boost = content.boosts.boosts.first(where: { $0.id == reward.boostId }) else { return "" }
-            let name = localized(boost.displayNameKey(buildVariant: content.flags.buildVariant))
+            let name = localized(boost.displayNameKey(buildVariant: content.flags.effectiveBuildVariant))
             return String(localized: "ach.reward.boost \(name)")
         case nil:
             // Inalcanzable: `validate` no deja arrancar con una reward rara.

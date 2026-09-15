@@ -100,27 +100,35 @@ con test de `SKTestSession` por producto.
 
 ### Qué hay que dar de alta
 
-Diez productos. Los ids y los tipos tienen que coincidir **exactamente** con
+**ONCE** productos. Los ids y los tipos tienen que coincidir **exactamente** con
 `FisuEvolution/Resources/Config/products.json`, porque `Product.products(for:)`
 **omite en silencio** cualquier id que no resuelva — sin error y sin log. Un
 tipeo acá se ve como una tienda a la que le falta una fila.
 
-| Product ID (sufijo de `com.fisuevolution.iap.`) | Tipo | Precio | Nombre |
-|---|---|---|---|
-| `starter_pack` | No consumible | 4,99 | Pack de Arranque |
-| `remove_ads` | No consumible | 2,99 | Sin anuncios |
-| `coins_small` | **Consumible** | 0,99 | Puñado de Plata |
-| `coins_medium` | **Consumible** | 4,99 | Fajo de Plata |
-| `coins_large` | **Consumible** | 9,99 | Bolso de Plata |
-| `oro_small` | **Consumible** | 1,99 | Puñado de ORO |
-| `oro_medium` | **Consumible** | 4,99 | Cofre de ORO |
-| `oro_large` | **Consumible** | 9,99 | Bóveda de ORO |
-| `skin_mundialista` | No consumible | 2,99 | Skin Mundialista |
-| `skin_parrillero` | No consumible | 2,99 | Skin Parrillero |
+| Product ID (sufijo de `com.fisuevolution.iap.`) | Tipo | Precio | Reference Name | Nombre (es) | Name (en) |
+|---|---|---|---|---|---|
+| `starter_pack` | No consumible | 4,99 | Starter Pack | Pack de Arranque | Starter Pack |
+| `remove_ads` | No consumible | 2,99 | Remove Ads | Sin anuncios | Remove Ads |
+| `coins_small` | **Consumible** | 0,99 | Coins S | Puñado de Plata | Handful of Cash |
+| `coins_medium` | **Consumible** | 4,99 | Coins M | Fajo de Plata | Wad of Cash |
+| `coins_large` | **Consumible** | 9,99 | Coins L | Bolso de Plata | Bag of Cash |
+| `oro_small` | **Consumible** | 1,99 | ORO S | Puñado de ORO | Handful of ORO |
+| `oro_medium` | **Consumible** | 4,99 | ORO M | Cofre de ORO | Chest of ORO |
+| `oro_large` | **Consumible** | 9,99 | ORO L | Bóveda de ORO | Vault of ORO |
+| `skin_mundialista` | No consumible | 2,99 | Skin Mundialista | Skin Mundialista | Mundialista Skin |
+| `skin_parrillero` | No consumible | 2,99 | Skin Parrillero | Skin Parrillero | Parrillero Skin |
+| `skins_diamante` | No consumible | 19,99 | Skins Diamante | Todas las skins de Diamante | All Diamond Skins |
 
-Las descripciones en español y en inglés están en el `.storekit`, listas para
-copiar. **El tipo importa**: marcar un pack de plata como no consumible lo deja
-comprable una sola vez.
+⚠️ **`skins_diamante` faltaba en esta tabla hasta el 2026-09-15.** Entró con
+`c297ed7` (las skins de oro y diamante para los 43 personajes) y la lista se
+quedó en diez. Es el producto más caro del catálogo, así que olvidarlo no se ve
+como un bug: se ve como que no vende. Si volvés a tocar el catálogo, la tabla
+sale de `StoreKitConfig/FisuEvolution.storekit`, que es lo que pinean
+`StoreProductsTests` en los dos sentidos — no de acá.
+
+Las descripciones largas en español y en inglés están en el `.storekit`, listas
+para copiar. **El tipo importa**: marcar un pack de plata como no consumible lo
+deja comprable una sola vez.
 
 ### Dos cosas que conviene saber antes de cargarlo
 

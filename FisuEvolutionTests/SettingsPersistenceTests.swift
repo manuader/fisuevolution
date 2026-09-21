@@ -415,6 +415,23 @@ struct LegalDocumentTests {
             return false
         }
         #expect(hasContact, "el documento tiene que decir a dónde escribir")
+
+        // ⚠️ El defecto: el parser no tenía caso para `>`, así que la nota de
+        // mantenimiento del `.md` —que dice de sí misma "no es parte de la
+        // política"— caía al acumulador de párrafos y **se le mostraba al
+        // jugador** en la pantalla de Privacidad, con detalles internos
+        // adentro: que `adergames.io` no está registrado y el nombre de este
+        // mismo test. Se descarta como `---`: vive en el archivo, no en la
+        // pantalla.
+        let texto = blocks.map { block -> String in
+            switch block {
+            case .title(let t), .heading(let t), .bullet(let t), .paragraph(let t): return t
+            }
+        }.joined(separator: "\n")
+        for filtracion in ["no es parte de la política", "adergames.io", "SettingsPersistenceTests"] {
+            #expect(!texto.contains(filtracion),
+                    "la nota de mantenimiento se está mostrando en pantalla: apareció \"\(filtracion)\"")
+        }
     }
 
     // MARK: El corte por idioma

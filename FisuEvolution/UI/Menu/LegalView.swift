@@ -76,6 +76,17 @@ struct LegalDocument {
                 flush()
                 continue
             }
+            // Cita (`> `): en estos archivos el blockquote NO es contenido
+            // legal, es la nota para quien mantiene el documento —dice
+            // literalmente "no es parte de la política"— y trae detalles
+            // internos (que el dominio no está registrado, el nombre del test
+            // que pinea el mail). Sin este caso caía al acumulador de párrafos
+            // y **se le mostraba al jugador** en la pantalla de Privacidad.
+            // Mismo criterio que `---`: vive en el archivo, no en la pantalla.
+            if line.hasPrefix(">") {
+                flush()
+                continue
+            }
             if line.hasPrefix("## ") {
                 flush()
                 blocks.append(.heading(String(line.dropFirst(3))))

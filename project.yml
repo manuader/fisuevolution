@@ -87,6 +87,18 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        # ⚠️ Va acá, en el TARGET, y no alcanza con el `settings.base` de arriba.
+        # Medido con `xcodebuild -showBuildSettings`: con la clave sólo en base,
+        # el valor efectivo del target salía `1,2` igual, y el binario se armaba
+        # con `UIDeviceFamily = [1, 2]`.
+        #
+        # Eso hacía que Apple rechazara el bundle en Validate con el error 90474:
+        # un target que incluye iPad tiene que declarar las CUATRO orientaciones
+        # para el multitasking, y este juego es portrait —el tablero de SpriteKit
+        # se diseñó vertical—, así que agregar landscape sería mentirle a Apple
+        # sobre algo que no funciona. La salida correcta es la que el proyecto ya
+        # decía querer: sólo iPhone.
+        TARGETED_DEVICE_FAMILY: "1"
         # ⚠️ Esta clave sola NO oculta nada, y durante meses no ocultó nada.
         # `UIStatusBarHidden` sólo se respeta si `UIViewControllerBasedStatusBarAppearance`
         # es NO, y esa viene en YES de fábrica: manda el view controller, no el

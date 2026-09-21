@@ -1,67 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!--
-  Manifiesto de privacidad de la APP.
-
-  Apple AGREGA este manifiesto con el de cada SDK embebido, así que acá NO se
-  repite lo que declara Google. Verificado leyendo el
-  `PrivacyInfo.xcprivacy` que viene adentro de `GoogleMobileAds.xcframework`:
-  el SDK ya declara sus siete tipos recolectados (DeviceID, AdvertisingData,
-  CoarseLocation, ProductInteraction, CrashData, PerformanceData,
-  OtherDiagnosticData) y sus tres razones de API.
-
-  Lo que el SDK de Google **NO** declara —y lo comprobé, no lo supuse— son
-  `NSPrivacyTracking` y `NSPrivacyTrackingDomains`. Los deja al publisher a
-  propósito, porque si la app hace tracking o no depende de cómo el publisher
-  la configure. Nosotros servimos anuncios personalizados cuando el jugador
-  acepta ATT, así que para nosotros es `true`.
--->
 <plist version="1.0">
 <dict>
-	<!-- Pasó de false a true con la rama A (AdMob real, decisión del dueño
-	     2026-09-02). Con `true`, App Store Connect EXIGE que la ficha declare
-	     "Data Used to Track You" — hay que actualizar las nutrition labels o
-	     el build queda trabado antes de review. -->
-	<key>NSPrivacyTracking</key>
-	<true/>
-
-	<!-- ⚠️ VACÍO A PROPÓSITO, y esta decisión está MEDIDA — no es un olvido ni
-	     una omisión cómoda.
-
-	     El mecanismo: iOS **BLOQUEA** las conexiones a los dominios listados acá
-	     cuando el jugador rechaza ATT. No los "marca": las corta.
-
-	     Lo que se midió (2026-09-02, corriendo la app en el simulador y leyendo
-	     el log de red): el SDK pide los anuncios a
-	     **`googleads.g.doubleclick.net/mads/gma`** — o sea que ese dominio es el
-	     que SIRVE el anuncio, no un dominio de telemetría aparte. Listarlo
-	     dejaría a todo jugador que rechace ATT **sin ningún anuncio**, ni
-	     personalizado ni no personalizado: los rewarded no cargarían nunca y la
-	     lista de videos de Regalos estaría permanentemente vacía para él. Se
-	     vería como "a algunos usuarios no les funcionan los videos", que es un
-	     bug carísimo de diagnosticar y encima cuesta plata.
-
-	     Por qué igual se cumple: el SDK de Google maneja ATT por su cuenta y,
-	     cuando el jugador rechaza, **sirve anuncios NO personalizados desde el
-	     mismo dominio**. En ese estado el dominio no está "engaged in tracking",
-	     que es el criterio de Apple para esta clave. `NSPrivacyTracking` sigue
-	     en `true`, que es lo que declara la intención de la app.
-
-	     ⚠️ [DECISIÓN A CONFIRMAR POR EL DUEÑO ANTES DEL SUBMIT]: es la práctica
-	     estándar de los publishers de AdMob y la única que no rompe el
-	     inventario, pero es una decisión de cumplimiento y no puramente
-	     técnica. Si algún día se agrega un SDK de analytics propio, ESE sí va
-	     acá. -->
-	<key>NSPrivacyTrackingDomains</key>
-	<array/>
-
-	<!-- Vacío A PROPÓSITO: el juego, por su cuenta, no recolecta nada. No hay
-	     cuentas, no hay analytics propio, no hay backend. Todo lo que se
-	     recolecta lo declara el SDK de Google en su propio manifiesto, y
-	     duplicarlo acá no suma nada y se desactualiza solo. -->
-	<key>NSPrivacyCollectedDataTypes</key>
-	<array/>
-
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
 		<dict>
@@ -69,7 +9,6 @@
 			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
-				<!-- CA92.1: preferencias propias de la app (settings, FTUE, volúmenes) -->
 				<string>CA92.1</string>
 			</array>
 		</dict>
@@ -78,10 +17,13 @@
 			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
 			<key>NSPrivacyAccessedAPITypeReasons</key>
 			<array>
-				<!-- C617.1: timestamps de archivos dentro del contenedor de la app (saves) -->
 				<string>C617.1</string>
 			</array>
 		</dict>
 	</array>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyTracking</key>
+	<true/>
 </dict>
 </plist>

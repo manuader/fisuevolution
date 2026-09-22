@@ -200,17 +200,32 @@ schemes:
         FisuEvolution: all
     run:
       config: Debug
-      # ⚠️ El `../` de adelante NO es un error, y sacarlo rompe la tienda en
-      # silencio. Xcode resuelve el `StoreKitConfigurationFileReference`
-      # relativo a la CARPETA DEL .xcscheme —o sea
-      # `FisuEvolution.xcodeproj/xcshareddata/xcschemes/`—, y xcodegen 2.46
-      # antepone sólo `../../`, que llega hasta el .xcodeproj y no hasta la
-      # raíz del repo. Con la ruta "linda", el esquema apuntaba a
-      # `FisuEvolution.xcodeproj/StoreKitConfig/FisuEvolution.storekit`, que no
-      # existe: Xcode no inyecta nada, StoreKit devuelve el catálogo vacío y la
-      # tienda muestra "No se pudieron cargar las compras" con el ícono de
-      # wifi. Con este `../` el esquema sale con `../../../`, que resuelve al
-      # archivo de verdad. Verificado sobre el .xcscheme generado.
+      # ⚠️ **Esta línea no alcanza para que ande la tienda local en Xcode
+      # 26.6**, y el comentario que había acá antes decía que sí. Lo que se
+      # había verificado era el .xcscheme GENERADO —que la ruta resolviera a un
+      # archivo existente—, no una corrida. Medido el 2026-09-22 corriendo la
+      # app desde la acción Run: Xcode loguea
+      #
+      #     [DTStoreKitService] Remove configuration called for com.manuader.fisuevolution
+      #
+      # o sea que descarta la referencia y BORRA la configuración. Pasa igual
+      # con las tres formas de ruta: `../../../` (relativa al .xcscheme, que es
+      # la que sale de acá y apunta al archivo de verdad), `StoreKitConfig/...`
+      # (relativa al proyecto) y una ruta absoluta. También pasa con el
+      # .storekit sacado de los Copy Bundle Resources, que es el requisito que
+      # documenta rules_xcodeproj.
+      #
+      # El control que descarta "Xcode no leyó el esquema": un
+      # `<CommandLineArgument>` agregado a mano en el MISMO `<LaunchAction>` sí
+      # llega al proceso (se ve en `ps`). Xcode parsea el bloque y honra a los
+      # hermanos; a este elemento lo tira. Ojo también con el método: Xcode
+      # cachea el esquema al abrir el proyecto y NO relee el disco, así que
+      # cualquier medición de esto exige reabrir (o reiniciar) Xcode.
+      #
+      # Queda porque es la forma que documenta Apple y no cuesta nada, pero
+      # para tener catálogo local hay que elegir el archivo a mano una vez en
+      # Edit Scheme ▸ Run ▸ Options ▸ StoreKit Configuration — y repetirlo
+      # después de cada `xcodegen generate`, que pisa el .xcscheme.
       storeKitConfiguration: ../StoreKitConfig/FisuEvolution.storekit
     test:
       config: Debug

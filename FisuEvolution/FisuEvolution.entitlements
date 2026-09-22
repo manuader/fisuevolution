@@ -2,18 +2,29 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- F6: este archivo se referencia desde project.yml (CODE_SIGN_ENTITLEMENTS)
-	     recién cuando exista la cuenta paga y los flags se enciendan. Hasta
-	     entonces existe pero no participa del build. -->
+	<!-- ⚠️ Este archivo NO participa del build: nada lo referencia con
+	     CODE_SIGN_ENTITLEMENTS, a propósito. Existe para el día que Game Center
+	     y CloudKit se enciendan de verdad (hoy están en `false` en
+	     feature_flags.json).
+
+	     NO lo cablees para callar a App Store Connect. Cuando Apple pidió "add
+	     the com.apple.developer.game-center key" (2026-09-21) era porque la
+	     VERSIÓN tenía Game Center activado en App Store Connect, y la salida
+	     correcta fue apagarlo ahí: ponerle el entitlement le declararía a Apple
+	     una capacidad que la app no usa, y el reviewer puede pedir ver el
+	     leaderboard.
+
+	     Xcode reescribe este archivo y borra este comentario cada vez que se
+	     abre el proyecto. Si desapareció, volvé a ponerlo. -->
 	<key>com.apple.developer.game-center</key>
 	<true/>
-	<key>com.apple.developer.icloud-services</key>
-	<array>
-		<string>CloudKit</string>
-	</array>
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>
 		<string>iCloud.com.manuader.fisuevolution</string>
+	</array>
+	<key>com.apple.developer.icloud-services</key>
+	<array>
+		<string>CloudKit</string>
 	</array>
 </dict>
 </plist>

@@ -200,7 +200,18 @@ schemes:
         FisuEvolution: all
     run:
       config: Debug
-      storeKitConfiguration: StoreKitConfig/FisuEvolution.storekit
+      # ⚠️ El `../` de adelante NO es un error, y sacarlo rompe la tienda en
+      # silencio. Xcode resuelve el `StoreKitConfigurationFileReference`
+      # relativo a la CARPETA DEL .xcscheme —o sea
+      # `FisuEvolution.xcodeproj/xcshareddata/xcschemes/`—, y xcodegen 2.46
+      # antepone sólo `../../`, que llega hasta el .xcodeproj y no hasta la
+      # raíz del repo. Con la ruta "linda", el esquema apuntaba a
+      # `FisuEvolution.xcodeproj/StoreKitConfig/FisuEvolution.storekit`, que no
+      # existe: Xcode no inyecta nada, StoreKit devuelve el catálogo vacío y la
+      # tienda muestra "No se pudieron cargar las compras" con el ícono de
+      # wifi. Con este `../` el esquema sale con `../../../`, que resuelve al
+      # archivo de verdad. Verificado sobre el .xcscheme generado.
+      storeKitConfiguration: ../StoreKitConfig/FisuEvolution.storekit
     test:
       config: Debug
       gatherCoverageData: false

@@ -171,6 +171,25 @@ final class StoreManager {
             let order = Dictionary(uniqueKeysWithValues: catalog.allProductIDs.enumerated().map { ($1, $0) })
             products = loaded.sorted { (order[$0.id] ?? .max) < (order[$1.id] ?? .max) }
             loadState = .loaded
+            // ⚠️ Este log NO es ruido: es la única forma de distinguir las tres
+            // maneras de terminar con la tienda vacía, que en pantalla se ven
+            // todas iguales ("No se pudieron cargar las compras"). Faltando
+            // TODOS: no hay catálogo —ni el .storekit local ni los productos
+            // en App Store Connect—. Faltando ALGUNOS: esos ids no existen del
+            // otro lado, casi siempre un typo, porque `Product.products(for:)`
+            // omite en silencio lo que no resuelve y nunca tira error.
+            //
+            // Sin esto, averiguar cuál de los tres casos era costó una tarde
+            // entera de bisecar a ciegas (2026-09-22). Los ids no son dato
+            // personal: son constantes del build.
+            let faltan = Set(catalog.allProductIDs).subtracting(products.map(\.id))
+            if faltan.isEmpty {
+                Log.store.info("catálogo completo: \(self.products.count, privacy: .public) productos")
+            } else {
+                Log.store.error(
+                    "catálogo incompleto: \(self.products.count, privacy: .public) de \(catalog.allProductIDs.count, privacy: .public); StoreKit no resolvió \(faltan.sorted().joined(separator: ", "), privacy: .public)"
+                )
+            }
         case .failed:
             loadState = .failed
         case .timedOut:

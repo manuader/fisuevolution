@@ -452,7 +452,7 @@ function sceneLogo(t) {
   const out = E.expoIn(seg(t, 24.12, 24.4));
   drawImg(IMG.logo, CX, 760 - out * 900, 760 * s * breathe * (1 - out * .4), { rot: (1 - E.expoOut(p)) * -.35, alpha: cl(p * 5) });
   g.restore();
-  title('FISUEVOLUTION', CX, 1250 - out * 900, 132, { tin: t - 23.2, stagger: .028, maxW: 1000 });
+  title(tr('FISUEVOLUTION', 'HOBOEVOLUTION'), CX, 1250 - out * 900, 132, { tin: t - 23.2, stagger: .028, maxW: 1000 });
   g.save(); const pa = E.expoOut(seg(t, 23.6, 23.9)) * (1 - out); g.globalAlpha = pa;
   pill(CX, 1385 - out * 900, 560, 84, { fill: C.yellow, stroke: C.ink, alpha: pa });
   g.font = `900 44px ${FONT_N}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = C.ink;

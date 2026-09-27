@@ -24,14 +24,14 @@ esac
 if [ "$L" = en ]; then
   DEST=../en-US; mkdir -p "$DEST"
   case "$V" in
-    1) NAME=FisuEvolution_EN_MOFU_FromBrokeToGod ;;
-    2) NAME=FisuEvolution_EN_MOFU_WhatsOnTheTopFloor ;;
-    3) NAME=FisuEvolution_EN_TOFU_Top5Unhinged ;;
-    4) NAME=FisuEvolution_EN_TOFU_Day1To365 ;;
-    5) NAME=FisuEvolution_EN_TOFU_Quiz ;;
-    7) NAME=FisuEvolution_EN_TOFU_PauseWhichOneAreYou ;;
-    8) NAME=FisuEvolution_EN_MOFU_JakeVsEmma ;;
-    9) NAME=FisuEvolution_EN_BOFU_YourFirstMinute ;;
+    1) NAME=HoboEvolution_EN_MOFU_FromBrokeToGod ;;
+    2) NAME=HoboEvolution_EN_MOFU_WhatsOnTheTopFloor ;;
+    3) NAME=HoboEvolution_EN_TOFU_Top5Unhinged ;;
+    4) NAME=HoboEvolution_EN_TOFU_Day1To365 ;;
+    5) NAME=HoboEvolution_EN_TOFU_Quiz ;;
+    7) NAME=HoboEvolution_EN_TOFU_PauseWhichOneAreYou ;;
+    8) NAME=HoboEvolution_EN_MOFU_JakeVsEmma ;;
+    9) NAME=HoboEvolution_EN_BOFU_YourFirstMinute ;;
   esac
 fi
 

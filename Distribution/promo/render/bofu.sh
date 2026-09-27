@@ -28,12 +28,12 @@ join() { # corte salida-base
     -pix_fmt yuv420p -color_primaries bt709 -color_trc bt709 -colorspace bt709 -c:a copy -movflags +faststart "$DEST/${2}_1080.mp4"
 }
 if [ "$L" = en ]; then
-  cut $SRC/FisuEvolution_EN_MOFU_WhatsOnTheTopFloor_4K.mp4 6.0 16.4 $B/a.mov
-  cut $SRC/FisuEvolution_EN_TOFU_Top5Unhinged_4K.mp4 24.75 30.45 $B/b.mov
-  cut $SRC/FisuEvolution_EN_MOFU_FromBrokeToGod_4K.mp4 0 8.0 $B/c.mov
-  join $B/a.mov FisuEvolution_EN_BOFU_A_Gameplay
-  join $B/b.mov FisuEvolution_EN_BOFU_B_GodIsArgentinian
-  join $B/c.mov FisuEvolution_EN_BOFU_C_FromBrokeToGod
+  cut $SRC/HoboEvolution_EN_MOFU_WhatsOnTheTopFloor_4K.mp4 6.0 16.4 $B/a.mov
+  cut $SRC/HoboEvolution_EN_TOFU_Top5Unhinged_4K.mp4 24.75 30.45 $B/b.mov
+  cut $SRC/HoboEvolution_EN_MOFU_FromBrokeToGod_4K.mp4 0 8.0 $B/c.mov
+  join $B/a.mov HoboEvolution_EN_BOFU_A_Gameplay
+  join $B/b.mov HoboEvolution_EN_BOFU_B_GodIsArgentinian
+  join $B/c.mov HoboEvolution_EN_BOFU_C_FromBrokeToGod
 else
   cut $SRC/FisuEvolution_Reel_v2_45s_4K.mp4 6.0 16.4 $B/a.mov
   cut $SRC/FisuEvolution_Reel_v3_Top5_4K.mp4 24.75 30.45 $B/b.mov

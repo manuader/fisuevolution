@@ -883,7 +883,7 @@ function sceneCTA(t) {
   rr(-is / 2, -is / 2, is, is, is * .22); g.save(); g.clip(); g.drawImage(IMG.app_icon, -is / 2, -is / 2, is, is); g.restore();
   g.restore();
   rays(540, 560, 16, t * .3, 620 * ip, 'rgba(255,217,61,1)', .12);
-  title('FISUEVOLUTION', 540, 850, 104, { tin: t - 42.55, stagger: .025, anim: 'rise', dur: .55 });
+  title(tr('FISUEVOLUTION', 'HOBOEVOLUTION'), 540, 850, 104, { tin: t - 42.55, stagger: .025, anim: 'rise', dur: .55 });
   title(tr('DESCARGALO GRATIS', "DOWNLOAD FREE"), 540, 985, 104, { tin: t - 42.8, stagger: .025, anim: 'rise', dur: .55, gold: true, maxW: 980 });
   const bp = E.backOut(seg(t, 43.2, 43.6), 2);
   const pulse = t > 43.9 ? 1 + Math.max(0, Math.sin((t - 43.9) * Math.PI * 1.6)) * .025 : 1;

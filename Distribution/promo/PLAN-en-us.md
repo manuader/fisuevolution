@@ -1,9 +1,10 @@
-# FisuEvolution en inglés: localización de los 11 anuncios para EE. UU.
+# HoboEvolution (FisuEvolution en inglés): localización de los 11 anuncios para EE. UU.
 
 Hecho con el método de **/brag** (skill `latent-spaces/brag`, variante slim): hook en los 2 primeros segundos, mostrar el producto real, texto legible (~0,3 s por palabra), cada cuadro "posteable" y **miniatura horneada en el frame 0** (el cuadro más fuerte de cada pieza, así TikTok, Reels y X muestran esa imagen como portada). Los videos salen del mismo motor que los de español (`render/`, parámetro `?lang=en`), así que se re-renderizan igual que los originales.
 
+- **En inglés el juego se llama HoboEvolution**: así aparece en los cierres de todas las piezas y en los nombres de archivo (`HoboEvolution_EN_…`). La placa de la v1 muestra "HOBOEVOLUTION · FROM BROKE TO GOD".
 - Nombre en la tienda: **"From broke to God"**. Los nombres de personajes, pisos, boosts, eventos y logros son los **oficiales en inglés** del juego (`Localizable.xcstrings`): The Hobo, The Fake Valet, Rideshare Driver, Real Estate King, "Mom, I Graduated", etc. Nada de lo que aparece como UI del juego está inventado.
-- Entregables: `en-US/FisuEvolution_EN_<etapa>_<pieza>_{4K,1080}.mp4` y `en-US/BOFU/…`, más `en-US/share-copy.md` (copys de publicación).
+- Entregables: `en-US/HoboEvolution_EN_<etapa>_<pieza>_{4K,1080}.mp4` y `en-US/BOFU/…`, más `en-US/share-copy.md` (copys de publicación).
 - El español no cambió: 126 cuadros de referencia de las 9 escenas son idénticos byte a byte antes y después de localizar.
 
 ## Ángulo creativo para EE. UU.
@@ -83,7 +84,7 @@ El formato que mejor aprovecha la cultura streamer es **"Chat picks my career"**
 
 **DM (EN):**
 
-> Hey [name]! I'm Manu, the solo dev behind *FisuEvolution — From broke to God*, a free iPhone merge-idle game from Argentina where you start as a hobo and merge your way through delivery guy, landlord, space billionaire… all the way to God (37 levels).
+> Hey [name]! I'm Manu, the solo dev behind *HoboEvolution — From broke to God*, a free iPhone merge-idle game from Argentina where you start as a hobo and merge your way through delivery guy, landlord, space billionaire… all the way to God (37 levels).
 >
 > I think it'd be a great **"chat picks my career"** stream: chat votes your college major, when to merge and when to reincarnate, and you race to God live. Free, no account, plays offline, and early runs take minutes to get going.
 >

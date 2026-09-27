@@ -53,3 +53,15 @@ Para quien ya sabe qué es el juego. Elimina la última objeción ("¿me va a co
 | 2,5–12,5 | Teléfono con la UI real; el cronómetro corre arriba. Toques → contratar → arrastrar → **¡NUEVO! El Trapito** → monedas solas | "Tocá" · "Contratá" · "Fusioná" · "¡Menos de un minuto!" |
 | 12,5–15,5 | El cronómetro se congela; el teléfono se aleja: arriba quedan 36 niveles en silueta | Y te quedan **36 por descubrir.** |
 | 15,5–20 | Placa BOFU: GRATIS · sin cuenta · offline · badge · flecha | **TU PRÓXIMO MINUTO EMPIEZA ACÁ 👇** |
+
+## Memes de cultura general (agregados)
+
+| Meme | Dónde | Cómo |
+|---|---|---|
+| **"Six seven" (6-7)** | v7 y v8 | En el juego, los niveles 6 y 7 son el Repartidor y el Chofer de App. En v7 hay una carta **SIX SEVEN** con los dos personajes y "Nivel 6… nivel 7… 🤷". En v8 aparece un sticker "SIX SEVEN 🤷" cuando Sofi pasa del 6 al 7. |
+| **"El Pepe"** | v7 y v8 | En v7, antes de dar vuelta la carta dorada: "¿Quién es? 👀" → "¿El Pepe? 🤨" (con scratch de disco) → "NO." → "A ese hay que llegar." En v8, Sofi a Tomi cuando reencarna: "¿Volviste a fisura? ¿Quién sos, el Pepe? 😂". |
+| **"Cambiame de opinión"** (la mesa con el cartel) | v7 | Carta **EL DEBATE BRO** con el Coach Ontológico y el cartel "CAMBIAME DE OPINIÓN". Toma el formato de meme sin mostrar a ninguna persona real. |
+
+**Charlie Kirk no se usa.** Es una persona real (comentarista político asesinado en 2025). Poner su nombre o su imagen en un anuncio es contenido político y uso de la imagen de una persona sin permiso. TikTok y Meta lo rechazan en la revisión y el riesgo reputacional es alto. El formato "Cambiame de opinión" captura el mismo código de "debate bro" sin nombrar a nadie.
+
+Reglas para memes en pauta: frases y formatos sí; caras, nombres, voces o canciones de personas reales no (derechos de imagen y copyright). Los memes vencen rápido: medir el hook rate de estas versiones contra las originales y rotarlas cada 2–3 semanas.

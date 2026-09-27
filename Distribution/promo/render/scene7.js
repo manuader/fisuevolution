@@ -10,6 +10,7 @@ const CARDS = [
   ['homeless', null, 'EL FISURA', 'Tenés un cartón y fe.', '#8B6B4A'],
   ['trapito', 'naranjita', 'EL TRAPITO', 'Cuidás autos ajenos como si fueran tuyos.', C.orange],
   ['repartidor', null, 'EL REPARTIDOR', 'Tu vida es un "está llegando".', '#E3342F'],
+  ['repartidor|chofer_app', null, 'SIX SEVEN', 'Nivel 6… nivel 7… 🤷', C.pink],
   ['chofer_app', 'taxi_clasico', 'EL TAXISTA', 'Siempre por el camino más largo.', '#F2B705'],
   ['oficinista', 'home_office', 'EL OFICINISTA', 'Cámara apagada desde 2020.', '#6C7A89'],
   ['junior_programmer', 'hacker', 'EL PROGRAMADOR', 'En mi máquina anda.', '#2FB560'],
@@ -19,6 +20,7 @@ const CARDS = [
   ['millonario', 'yate', 'EL DEL YATE', 'Tu yate es una foto.', '#1E5AA8'],
   ['rey_ladrillo', null, 'EL REY DEL LADRILLO', 'Te aumenta el alquiler cada 3 meses.', '#B5452C'],
   ['sp_cryptobro', null, 'EL CRYPTO BRO', 'DYOR. Y te lo explica igual.', '#9B59D0'],
+  ['sp_coach', null, 'EL DEBATE BRO', 'El sueldo es un límite mental. Cambiame de opinión.', '#5B6770', 'sign'],
   ['rentista_soles', 'jubilado', 'EL JUBILADO', 'Plaza, palomas y bronca.', '#7A8C5A'],
   ['homeless', 'mundialista', 'EL MUNDIALISTA', 'Todavía hablás de Qatar.', '#75AADB'],
   ['space_billionaire', null, 'EL SPACE BILLIONAIRE', 'Te querés ir del país. Del planeta.', '#12122E'],
@@ -28,6 +30,7 @@ const key = c => c[1] ? `${c[0]}_idle__${c[1]}` : c[0];
 function assetList() {
   const L = commonAssets({});
   for (const c of CARDS) {
+    if (c[0].includes('|')) { for (const id of c[0].split('|')) L[id] = charPath(id); continue; }
     if (c[0].startsWith('sp_')) L[c[0]] = RES + 'specials.atlas/' + c[0] + '@3x.png';
     else L[key(c)] = c[1] ? skinPath(c[0], c[1]) : charPath(c[0]);
   }
@@ -57,7 +60,21 @@ function cardFront(c, x, y, s, a = 1) {
   g.save(); g.globalAlpha = .18; sunburst(0, -CHh / 2 + 260, 20, 0, 'rgba(0,0,0,0)', '#fff', 700); g.restore();
   g.restore();
   g.lineWidth = 6; g.strokeStyle = C.ink; g.beginPath(); g.moveTo(-CW / 2, -CHh / 2 + 500); g.lineTo(CW / 2, -CHh / 2 + 500); g.stroke();
-  drawChar(key(c), 0, -CHh / 2 + 560, 520, { shadow: false });
+  if (id.includes('|')) {
+    const [a, b] = id.split('|');
+    drawChar(a, -150, -CHh / 2 + 560, 470, { shadow: false });
+    drawChar(b, 150, -CHh / 2 + 560, 470, { shadow: false, flip: true });
+    text('6', -270, -CHh / 2 + 90, 110, C.cream, { font: FONT_T, weight: 800, stroke: 16 });
+    text('7', 270, -CHh / 2 + 90, 110, C.cream, { font: FONT_T, weight: 800, stroke: 16 });
+  } else drawChar(key(c), 0, -CHh / 2 + 560, 520, { shadow: false });
+  if (c[5] === 'sign') {
+    // el formato de meme de la mesa con el cartel, sin ninguna persona real
+    g.save(); g.translate(170, -CHh / 2 + 420); g.rotate(-.06);
+    rr(-150, -52, 300, 104, 12); g.fillStyle = '#fff'; g.fill(); g.lineWidth = 6; g.strokeStyle = C.ink; g.stroke();
+    text('CAMBIAME', 0, -18, 38, C.ink, { font: FONT_T, weight: 800 });
+    text('DE OPINIÓN', 0, 24, 38, C.ink, { font: FONT_T, weight: 800 });
+    g.restore();
+  }
   g.restore();
   title(name, x, y + 90 * s, 70 * s, { tin: 99, maxW: 680 * s });
   g.save(); g.globalAlpha *= a;
@@ -143,9 +160,9 @@ function sceneTwist(t) {
   // la ruleta se va
   if (d < .4) { g.save(); g.globalAlpha = 1 - d / .4; cardFront(CARDS[reelIndex(REEL1) % CARDS.length], 540, 980 + d * 500, .98 - d * .3); g.restore(); }
   const pin = E.backOut(seg(t, 14.7, 15.2), 1.6);
-  const flip = seg(t, 16.0, 16.35);
+  const flip = seg(t, 16.8, 17.15);
   const sx = Math.abs(Math.cos(flip * Math.PI));
-  const lp = seg(t, 16.15, 16.8);
+  const lp = seg(t, 16.95, 17.6);
   rays(540, 980, 22, t * .25, 1200 * lp, 'rgba(255,220,120,1)', .3 * lp, .35);
   glow('gold', 540, 980, 600 * (pin * .4 + lp * .6), .6);
   g.save(); g.translate(540, 980); g.scale(Math.max(.02, sx), 1); g.translate(-540, -980);
@@ -164,9 +181,12 @@ function sceneTwist(t) {
     title('?', 540, 890, 180, { tin: 99, gold: true });
   }
   g.restore();
-  title('Hay uno que no sale', 540, 300, 84, { tin: t - 14.8, anim: 'rise', dur: .45, stagger: .02, tout: t > 17.9 ? t - 17.9 : null });
-  title('en la ruleta…', 540, 400, 84, { tin: t - 15.1, anim: 'rise', dur: .45, stagger: .02, tout: t > 17.9 ? t - 17.9 : null });
-  title('A ESE HAY QUE LLEGAR.', 540, 1520, 92, { tin: t - 16.6, anim: 'slam', dur: .3, stagger: .03, gold: true, maxW: 1000, tout: t > 18.2 ? t - 18.2 : null });
+  title('Hay uno que no sale', 540, 300, 84, { tin: t - 14.8, anim: 'rise', dur: .45, stagger: .02, tout: t > 15.55 ? t - 15.55 : null });
+  title('en la ruleta…', 540, 400, 84, { tin: t - 15.05, anim: 'rise', dur: .45, stagger: .02, tout: t > 15.55 ? t - 15.55 : null });
+  title('¿QUIÉN ES? 👀', 540, 340, 110, { tin: t - 15.65, anim: 'slam', dur: .25, stagger: .03, tout: t > 16.15 ? t - 16.15 : null });
+  title('¿EL PEPE? 🤨', 540, 340, 120, { tin: t - 16.25, anim: 'slam', dur: .25, stagger: .03, fill: C.pink, tout: t > 16.75 ? t - 16.75 : null });
+  title('NO.', 540, 340, 140, { tin: t - 16.85, anim: 'slam', dur: .25, stagger: .05, gold: true, tout: t > 18.2 ? t - 18.2 : null });
+  title('A ESE HAY QUE LLEGAR.', 540, 1520, 92, { tin: t - 17.1, anim: 'slam', dur: .3, stagger: .03, gold: true, maxW: 1000, tout: t > 18.3 ? t - 18.3 : null });
 }
 
 const BLUR = [];
@@ -187,6 +207,6 @@ function drawScene(t) {
     flash(1 - seg(t, 18.5, 18.75), '#FFF3D0');
   }
 }
-function sceneSetup() { impact(16.2, 12); }
+function sceneSetup() { impact(16.95, 12); impact(16.25, 6); }
 window.DURATION = DURATION;
 boot();

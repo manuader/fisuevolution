@@ -73,6 +73,10 @@ for tt in (20.8, 22.4):
     place('sfx', S['event'], tt, 0.5, pan=-0.6)
 for tt in (18.6, 21.6, 23.2):
     place('sfx', S['event'], tt, 0.45, pan=0.6)
+# six seven (Sofi 6 → 7) y la burla de El Pepe
+place('sfx', S['event'], 14.55, 0.5, pan=0.6)
+place('sfx', pitch(S['tap'], 0.8), 25.7, 0.5, pan=0.6)
+place('sfx', pitch(S['error'], 1.2), 25.75, 0.4, pan=0.6)
 # día 30: reencarna (quiebre)
 place('music', pad([38, 50, 57, 62], 1.6, 1300, 0.3), 24.0, 0.3, verb=0.3)
 place('sfx', S['tap'], 24.9, 0.6, pan=-0.6)

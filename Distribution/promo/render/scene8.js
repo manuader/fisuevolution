@@ -93,7 +93,7 @@ function drawHalf(side, t) {
       g.save(); g.translate(cx, 830); g.scale(p, p);
       const w = 300, hh = w * IMG.ribbon.height / IMG.ribbon.width;
       g.drawImage(IMG.ribbon, -w / 2, -hh / 2, w, hh);
-      text(floorChange ? '¡PISO NUEVO!' : '¡NUEVO!', 0, -4, 36, C.cream, { stroke: 7, font: FONT_T, weight: 800 });
+      text(floorChange ? (bg === 'alley' ? '¡NUEVA VIDA!' : '¡PISO NUEVO!') : '¡NUEVO!', 0, -4, 36, C.cream, { stroke: 7, font: FONT_T, weight: 800 });
       g.restore();
     }
     burst(t, { t0: ts, x: cx, y: 1100, n: 22, seed: 8000 + i * 3 + side, kind: 'confetti', spd: [300, 800], grav: 800, life: [.8, 1.2], size: [14, 22], drag: 1.6 });
@@ -248,6 +248,19 @@ function drawScene(t) {
       title(lab, x, 1518, 50 * vp2, { tin: 99 });
     }
     title('Apostá en los comentarios 👇', 540, 1630, 50, { tin: t - 2.3, alpha: a, stagger: .01, dur: .3, strokeK: .15, maxW: 900 });
+  }
+  // six seven: Sofi pasa del nivel 6 al 7
+  if (t > 14.5 && t < 16.3) {
+    const p = E.backOut(seg(t, 14.55, 14.85), 2.2) * (1 - seg(t, 16.0, 16.3));
+    g.save(); g.translate(810, 690); g.rotate(-.08); g.scale(p, p);
+    rr(-220, -62, 440, 124, 34); g.fillStyle = C.pink; g.fill(); g.lineWidth = 8; g.strokeStyle = C.ink; g.stroke();
+    g.restore();
+    title('SIX SEVEN 🤷', 810, 685, 66 * p, { tin: 99, rot: -.08, maxW: 400 });
+  }
+  // Sofi se burla cuando Tomi vuelve a fisura
+  if (t > 25.7 && t < 27.4) {
+    const sp = E.backOut(seg(t, 25.7, 26.0), 2) * (1 - E.cIn(seg(t, 27.1, 27.4)));
+    speech(810, 700, 500, '¿Volviste a fisura? ¿Quién sos, el Pepe? 😂', 810, 900, { s: sp, size: 38 });
   }
   caption(t, 'Sofi fusiona. Tomi… toca.', 4.4, 9.6);
   caption(t, 'Piso lleno = hay que fusionar\npara hacer lugar.', 11.6, 16.6);

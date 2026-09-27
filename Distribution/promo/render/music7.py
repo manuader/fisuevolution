@@ -68,10 +68,20 @@ place('sfx', pitch(S['tap'], 0.9), REEL1 + 0.1, 0.6)
 place('music', pad([38, 50, 57, 62], 4.0, 900, 0.8), 14.5, 0.3, verb=0.4)
 for i in range(4):
     place('drums', kick(1.3), 14.7 + i * 0.6, 0.35 + i * 0.08)
-place('fx', riser(1.0, 300, 8000), 15.0, 0.4)
-place('fx', boom(1.8, 34), 16.1, 0.28, verb=0.1)
-place('sfx', S['prestige'], 16.15, 0.3, verb=0.15)
-place('music', pad([45, 57, 61, 64, 69], 2.4, 2600, 0.3), 16.15, 0.14, verb=0.2)
+place('fx', riser(1.0, 300, 8000), 15.8, 0.4)
+place('fx', boom(1.8, 34), 16.9, 0.28, verb=0.1)
+place('sfx', S['prestige'], 16.95, 0.3, verb=0.15)
+place('music', pad([45, 57, 61, 64, 69], 1.6, 2600, 0.3), 16.95, 0.14, verb=0.2)
+# "¿Quién es?" → "¿El Pepe?": scratch de disco y remate
+def scratch():
+    n = int(SR * 0.35)
+    tt = t_arr(n)
+    f = 1800 * np.exp(-tt * 9) + 150
+    return bp(rng.standard_normal(n), 300, 5000) * np.abs(np.sin(2 * np.pi * np.cumsum(f) / SR)) * np.exp(-tt * 5) * 0.8
+
+
+place('sfx', S['tap'], 15.65, 0.6)
+place('fx', scratch(), 16.2, 0.8)
 # CTA
 place('fx', boom(1.4, 38), 18.5, 0.45)
 groove(18.5, 21.6, level=0.85)

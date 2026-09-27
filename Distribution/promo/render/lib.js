@@ -362,6 +362,7 @@ function burst(t, b) {
 
 // ─── tipografía cinética: sticker de trazo de tinta, como el arte ───
 const FONT_T = 'Baloo2', FONT_N = 'Nunito';
+const EMOJI = /\p{Extended_Pictographic}/u;
 function goldFill(size) {
   const gr = g.createLinearGradient(0, -size * .45, 0, size * .3);
   gr.addColorStop(0, '#FFF6C2'); gr.addColorStop(.45, C.yellow); gr.addColorStop(1, '#FF9F1C');
@@ -418,6 +419,12 @@ function title(str, x, y, size, o = {}) {
     g.rotate(rot + (o.rot || 0));
     g.scale(sc, sc);
     g.globalAlpha = a * (o.alpha == null ? 1 : o.alpha);
+    if (EMOJI.test(ch)) {
+      g.font = `${size * .8}px "Noto Color Emoji"`;
+      g.fillText(ch, 0, size * .04);
+      g.restore();
+      return;
+    }
     g.lineJoin = 'round'; g.miterLimit = 2;
     const sw = size * (o.strokeK || .17);
     // sombra dura de tinta
@@ -559,6 +566,164 @@ function appStoreBadge(x, y, w, sc = 1, a = 1) {
   g.font = `600 ${h * .38}px Inter`;
   g.fillText('App Store', -w / 2 + h * .94, h * .3, w - h * 1.1);
   g.restore();
+}
+
+// ───────────────────────────── utilidades de escena (v2+) ─────────────────────────────
+// Interpolación por keyframes: [[t, valor|objeto, ease?], ...]
+function track(t, keys) {
+  if (t <= keys[0][0]) return keys[0][1];
+  for (let i = 1; i < keys.length; i++) {
+    const [t1, v1, ez] = keys[i];
+    if (t <= t1) {
+      const [t0, v0] = keys[i - 1];
+      const p = (ez || E.cInOut)(seg(t, t0, t1));
+      if (typeof v0 === 'number') return lerp(v0, v1, p);
+      const o = {};
+      for (const k in v0) o[k] = lerp(v0[k], v1[k], p);
+      return o;
+    }
+  }
+  return keys[keys.length - 1][1];
+}
+function win(t, a, b, fin = .35, fout = .35) { return seg(t, a, a + fin) * (1 - seg(t, b - fout, b)); }
+
+function shadowBlob(x, y, rx, ry, a) {
+  if (a <= 0) return;
+  g.save();
+  g.translate(x, y); g.scale(rx, ry);
+  const gr = g.createRadialGradient(0, 0, 0, 0, 0, 1);
+  gr.addColorStop(0, `rgba(10,6,2,${.62 * a})`); gr.addColorStop(1, 'rgba(10,6,2,0)');
+  g.fillStyle = gr; g.beginPath(); g.arc(0, 0, 1, 0, Math.PI * 2); g.fill();
+  g.restore();
+}
+// Leyenda del reel: sube con fundido, lenta. Sombra suave detrás para leerse sobre la UI.
+function caption(t, str, t0, t1, y, size = 104, o = {}) {
+  if (t < t0 - .05 || t > t1 + .6) return;
+  const a = win(t, t0, t1 + .45, .5, .45);
+  shadowBlob(540, y, 560, size * 1.1, a);
+  title(str, 540, y, size, { tin: t - t0, tout: t > t1 ? t - t1 : null, anim: 'rise', dur: .6, stagger: .028, maxW: 980, ...o });
+}
+function sil(id, x, y, h, color, a) {
+  const im = IMG[id]; if (!im || a <= 0) return;
+  const bb = im.bb, w = h * bb.w / bb.h;
+  g.save(); g.globalAlpha = a;
+  g.drawImage(tint(id, color), 0, 0, bb.w, bb.h, x - w / 2, y - h, w, h);
+  g.restore();
+}
+function text(str, x, y, size, color = C.ink, o = {}) {
+  g.save();
+  g.font = `${o.weight || 900} ${size}px ${o.font || FONT_N}`;
+  g.textAlign = o.align || 'center'; g.textBaseline = 'middle';
+  g.globalAlpha *= o.alpha == null ? 1 : o.alpha;
+  if (o.stroke) { g.lineJoin = 'round'; g.lineWidth = o.stroke; g.strokeStyle = o.strokeColor || C.ink; g.strokeText(str, x, y, o.maxW); }
+  g.fillStyle = color; g.fillText(str, x, y, o.maxW);
+  g.restore();
+}
+function wrap(str, x, y, size, maxW, lh, color, o = {}) {
+  g.save();
+  g.font = `${o.weight || 700} ${size}px ${o.font || FONT_N}`;
+  const words = str.split(' '); const lines = []; let cur = '';
+  for (const w of words) { const tt = cur ? cur + ' ' + w : w; if (g.measureText(tt).width > maxW && cur) { lines.push(cur); cur = w; } else cur = tt; }
+  lines.push(cur);
+  g.restore();
+  lines.forEach((l, i) => text(l, x, y + (i - (lines.length - 1) / 2) * lh, size, color, o));
+}
+function star4(x, y, r, color) {
+  g.save(); g.translate(x, y); g.fillStyle = color; g.beginPath();
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4 - Math.PI / 2, rr_ = i % 2 ? r * .38 : r; g.lineTo(Math.cos(a) * rr_, Math.sin(a) * rr_); }
+  g.closePath(); g.fill(); g.restore();
+}
+function lockIcon(x, y, s, color = C.cream) {
+  g.save(); g.translate(x, y); g.scale(s, s);
+  g.lineWidth = 7; g.strokeStyle = color; g.lineCap = 'round';
+  g.beginPath(); g.arc(0, -14, 16, Math.PI, 0); g.stroke();
+  rr(-24, -14, 48, 38, 8); g.fillStyle = color; g.fill();
+  g.fillStyle = C.ink; g.beginPath(); g.arc(0, 2, 5, 0, Math.PI * 2); g.fill(); g.fillRect(-2, 2, 4, 12);
+  g.restore();
+}
+
+// ───────────────────────────── piezas de los reels v3–v5 ─────────────────────────────
+// Globo de diálogo (lenguaje de ui_speech_bubble): crema, trazo de tinta, cola hacia (tx, ty).
+function speech(x, y, w, str, tx, ty, o = {}) {
+  const s = o.s == null ? 1 : o.s;
+  if (s <= 0) return;
+  const size = o.size || 46, lh = size * 1.18;
+  g.save();
+  g.font = `900 ${size}px ${FONT_N}`;
+  const words = str.split(' '); const lines = []; let cur = '';
+  for (const wd of words) { const tt = cur ? cur + ' ' + wd : wd; if (g.measureText(tt).width > w - 60 && cur) { lines.push(cur); cur = wd; } else cur = tt; }
+  lines.push(cur);
+  const h = lines.length * lh + 44;
+  g.translate(tx, ty); g.scale(s, s); g.translate(-tx, -ty);
+  g.globalAlpha *= o.alpha == null ? 1 : o.alpha;
+  const bx = x - w / 2, by = y - h / 2;
+  const tail = () => {
+    const cx = cl(tx, bx + 50, bx + w - 50), base = ty > y ? by + h - 4 : by + 4;
+    g.moveTo(cx - 26, base); g.lineTo(tx, ty); g.lineTo(cx + 26, base);
+  };
+  g.fillStyle = 'rgba(0,0,0,.3)'; rr(bx, by + 10, w, h, 34); g.fill();
+  g.beginPath(); tail(); g.fillStyle = C.cream; g.fill(); g.lineWidth = 7; g.strokeStyle = C.ink; g.lineJoin = 'round'; g.stroke();
+  rr(bx, by, w, h, 34); g.fillStyle = C.cream; g.fill(); g.stroke();
+  g.beginPath(); tail(); g.fillStyle = C.cream; g.fill();
+  lines.forEach((l, i) => text(l, x, by + 22 + lh / 2 + i * lh, size, o.color || C.ink));
+  g.restore();
+}
+// Toast de logro del juego ("¡Logro desbloqueado!").
+function achievement(t, t0, t1, name, y = 1500) {
+  if (t < t0 || t > t1) return;
+  const p = E.backOut(seg(t, t0, t0 + .45), 1.6), out = E.cIn(seg(t, t1 - .3, t1));
+  g.save(); g.translate(540, y + out * 60); g.scale(p, p); g.globalAlpha = 1 - out;
+  rr(-360, -62, 720, 124, 62); g.fillStyle = 'rgba(28,20,14,.94)'; g.fill(); g.lineWidth = 5; g.strokeStyle = C.yellow; g.stroke();
+  g.drawImage(IMG.trophy, -340, -48, 96, 96);
+  text('¡Logro desbloqueado!', 55, -22, 34, C.yellow, { maxW: 560 });
+  text(name, 55, 24, 42, C.cream, { maxW: 560 });
+  g.restore();
+}
+// Cierre común: ícono real, nombre, descarga, badge y firma de Ader Games.
+function ctaEnd(t, t0, o = {}) {
+  const d = t - t0;
+  const gr = g.createRadialGradient(540, 700, 100, 540, 900, 1400);
+  gr.addColorStop(0, '#3A2414'); gr.addColorStop(1, '#140C08');
+  g.fillStyle = gr; g.fillRect(0, 0, W, H);
+  g.save(); g.globalAlpha = .18; sunburst(540, 620, 28, t * .08, 'rgba(0,0,0,0)', C.orange, 2400); g.restore();
+  glow('warm', 540, 620, 800, .6);
+  burst(t, { t0, x: 540, y: 2000, n: 50, seed: 3100, kind: 'dust', spd: [80, 200], ang: [-Math.PI * .65, -Math.PI * .35], life: [2.5, 3.2], size: [12, 30], spread: 1100, delay: 2.4, alpha: .55 });
+  if (o.lines) o.lines.forEach((ln, i) => title(ln, 540, 250 + i * 110, i ? 100 : 84, { tin: d - .05 - i * .15, stagger: .025, anim: 'rise', dur: .5, gold: i === 1, maxW: 980 }));
+  const top = o.lines ? 120 : 0;
+  const ip = E.backOut(seg(t, t0 + .1, t0 + .6), 1.7);
+  const is = 340 * ip;
+  if (is > 1) {
+    g.save(); g.translate(540, 560 + top + Math.sin(d * 2) * 6);
+    rr(-is / 2, -is / 2 + 14, is, is, is * .22); g.fillStyle = 'rgba(0,0,0,.45)'; g.fill();
+    rr(-is / 2, -is / 2, is, is, is * .22); g.save(); g.clip(); g.drawImage(IMG.app_icon, -is / 2, -is / 2, is, is); g.restore();
+    g.restore();
+  }
+  rays(540, 560 + top, 16, t * .3, 600 * ip, 'rgba(255,217,61,1)', .12);
+  title('FISUEVOLUTION', 540, 830 + top, 100, { tin: d - .35, stagger: .025, anim: 'rise', dur: .5 });
+  title('DESCARGALO GRATIS', 540, 955 + top, 100, { tin: d - .55, stagger: .025, anim: 'rise', dur: .5, gold: true, maxW: 980 });
+  const bp = E.backOut(seg(t, t0 + .9, t0 + 1.3), 2);
+  const pulse = d > 1.6 ? 1 + Math.max(0, Math.sin((d - 1.6) * Math.PI * 1.6)) * .025 : 1;
+  appStoreBadge(540, 1100 + top, 420, bp * pulse, cl(bp));
+  const ap = E.cOut(seg(t, t0 + 1.1, t0 + 1.6));
+  g.save(); g.globalAlpha = ap;
+  text('UN JUEGO DE', 540, 1250 + top, 28, 'rgba(255,248,231,.75)');
+  const lw = 300, lh = lw * IMG.ader.height / IMG.ader.width;
+  g.drawImage(IMG.ader, 540 - lw / 2, 1285 + top + (1 - ap) * 20, lw, lh);
+  g.restore();
+  if (o.foot) title(o.foot, 540, 1300 + top + lh + 30, 46, { tin: d - 1.4, stagger: .012, anim: 'rise', dur: .4, maxW: 960, strokeK: .14 });
+}
+// Assets comunes de los reels v3–v5.
+function commonAssets(L) {
+  const U = n => RES + 'ui.atlas/' + n + '@3x.png';
+  Object.assign(L, {
+    coin: U('ui_coin'), fx_merge: U('fx_merge'), fx_tap: U('fx_tap'), fx_evo: U('fx_evolution_flash'), star: U('fx_unlock'),
+    dollar: U('ui_dollar'), bubble: U('ui_speech_bubble'), trophy: U('ui_menu_trophy'), ribbon: U('ui_header_ribbon'),
+    app_icon: '/Distribution/promo/render/assets/app_icon.png', ader: '/Distribution/promo/render/assets/adergames_logo.png',
+  });
+  return L;
+}
+function skinPath(id, skin) {
+  return RES + (COSMIC.includes(id) || id === 'dueno_luna' ? 'cosmic.atlas/' : 'earth.atlas/') + id + '_idle__' + skin + '@3x.png';
 }
 
 // ───────────────────────────── compositor ─────────────────────────────

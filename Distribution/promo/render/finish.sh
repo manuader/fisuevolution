@@ -4,11 +4,18 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 FF=${FFMPEG:-ffmpeg}
-V=${V:-1}   # V=2 ./finish.sh para el reel v2
+V=${V:-1}   # V=2…5 ./finish.sh para los otros reels
 SEG=out/segments_v${V}_2x_60
 DEST=..
-# el 4K de 45 s se limita a 15 Mbps para quedar bajo los 100 MB por archivo de GitHub
-if [ "$V" = 2 ]; then AUDIO=out/audio_v2.wav; NAME=FisuEvolution_Reel_v2_45s; RATE=15; else AUDIO=out/audio.wav; NAME=FisuEvolution_Reel_30s; RATE=22; fi
+# el 4K se limita (RATE, Mbps) para quedar bajo los 100 MB por archivo de GitHub
+case "$V" in
+  1) AUDIO=out/audio.wav;    NAME=FisuEvolution_Reel_30s;        RATE=22 ;;
+  2) AUDIO=out/audio_v2.wav; NAME=FisuEvolution_Reel_v2_45s;     RATE=15 ;;
+  3) AUDIO=out/audio_v3.wav; NAME=FisuEvolution_Reel_v3_Top5;    RATE=20 ;;
+  4) AUDIO=out/audio_v4.wav; NAME=FisuEvolution_Reel_v4_Dia365;  RATE=20 ;;
+  5) AUDIO=out/audio_v5.wav; NAME=FisuEvolution_Reel_v5_Quiz;    RATE=20 ;;
+  *) echo "V desconocida: $V" >&2; exit 1 ;;
+esac
 
 "$FF" -y -loglevel error -f concat -safe 0 -i "$SEG/list.txt" -c copy out/video_master_v${V}.mp4
 

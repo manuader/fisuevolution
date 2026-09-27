@@ -12,11 +12,11 @@
 <canvas id="cv"></canvas>
 <script src="lib.js"></script>
 <script>
-  // ?v=2 carga el reel v2; por defecto, el v1.
+  // ?v=N carga sceneN.js; por defecto, el v1.
   (() => {
     const v = new URLSearchParams(location.search).get('v');
     const s = document.createElement('script');
-    s.src = v === '2' ? 'scene2.js' : 'scene.js';
+    s.src = v && v !== '1' ? `scene${v}.js` : 'scene.js';
     document.body.appendChild(s);
   })();
 </script>

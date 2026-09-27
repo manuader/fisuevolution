@@ -5,7 +5,9 @@ set -euo pipefail
 cd "$(dirname "$0")"
 FF=${FFMPEG:-ffmpeg}
 V=${V:-1}   # V=2…5 ./finish.sh para los otros reels
-SEG=out/segments_v${V}_2x_60
+L=${L:-es}  # L=en → versión EE. UU. (segmentos de render.mjs --lang en), a en-US/
+TAG=$([ "$L" = es ] && echo "" || echo "_$L")
+SEG=out/segments_v${V}${TAG}_2x_60
 DEST=..
 # el 4K se limita (RATE, Mbps) para quedar bajo los 100 MB por archivo de GitHub
 case "$V" in
@@ -19,14 +21,27 @@ case "$V" in
   9) AUDIO=out/audio_v9.wav; NAME=FisuEvolution_BOFU_v9_TuPrimerMinuto;    RATE=22 ;;
   *) echo "V desconocida: $V" >&2; exit 1 ;;
 esac
+if [ "$L" = en ]; then
+  DEST=../en-US; mkdir -p "$DEST"
+  case "$V" in
+    1) NAME=FisuEvolution_EN_MOFU_FromBrokeToGod ;;
+    2) NAME=FisuEvolution_EN_MOFU_WhatsOnTheTopFloor ;;
+    3) NAME=FisuEvolution_EN_TOFU_Top5Unhinged ;;
+    4) NAME=FisuEvolution_EN_TOFU_Day1To365 ;;
+    5) NAME=FisuEvolution_EN_TOFU_Quiz ;;
+    7) NAME=FisuEvolution_EN_TOFU_PauseWhichOneAreYou ;;
+    8) NAME=FisuEvolution_EN_MOFU_JakeVsEmma ;;
+    9) NAME=FisuEvolution_EN_BOFU_YourFirstMinute ;;
+  esac
+fi
 
-"$FF" -y -loglevel error -f concat -safe 0 -i "$SEG/list.txt" -c copy out/video_master_v${V}.mp4
+"$FF" -y -loglevel error -f concat -safe 0 -i "$SEG/list.txt" -c copy out/video_master_v${V}${TAG}.mp4
 
 "$FF" -y -loglevel error -i "$AUDIO" \
-  -af "loudnorm=I=-14:TP=-1.0:LRA=9" -ar 48000 out/audio_master_v${V}.wav
+  -af "loudnorm=I=-14:TP=-1.0:LRA=9" -ar 48000 out/audio_master_v${V}${TAG}.wav
 
 # 4K UHD 2160×3840 · 60 fps (dentro del máximo que aceptan Meta y TikTok)
-"$FF" -y -loglevel error -i out/video_master_v${V}.mp4 -i out/audio_master_v${V}.wav \
+"$FF" -y -loglevel error -i out/video_master_v${V}${TAG}.mp4 -i out/audio_master_v${V}${TAG}.wav \
   -map 0:v -map 1:a -c:v libx264 -preset slow -crf 17 -maxrate ${RATE}M -bufsize $((RATE * 2))M \
   -tune animation -profile:v high -level 5.2 -pix_fmt yuv420p \
   -color_primaries bt709 -color_trc bt709 -colorspace bt709 \
@@ -34,7 +49,7 @@ esac
   "$DEST/${NAME}_4K.mp4"
 
 # 1080×1920 · 60 fps para subir directo
-"$FF" -y -loglevel error -i out/video_master_v${V}.mp4 -i out/audio_master_v${V}.wav \
+"$FF" -y -loglevel error -i out/video_master_v${V}${TAG}.mp4 -i out/audio_master_v${V}${TAG}.wav \
   -map 0:v -map 1:a -vf "scale=1080:1920:flags=lanczos" \
   -c:v libx264 -preset slow -crf 16 -maxrate 12M -bufsize 24M \
   -tune animation -profile:v high -level 4.2 -pix_fmt yuv420p \

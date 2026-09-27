@@ -48,7 +48,7 @@ const MONTAGE = [
   [16.9375, 'deidad', 'galaxy'],
 ];
 const CAREERS = ['junior_programmer', 'junior_architect', 'junior_doctor', 'junior_lawyer'];
-const CAREER_NAMES = ['PROGRAMADOR', 'ARQUITECTO', 'MÉDICO', 'ABOGADO'];
+const CAREER_NAMES = EN ? ['DEVELOPER', 'ARCHITECT', 'DOCTOR', 'LAWYER'] : ['PROGRAMADOR', 'ARQUITECTO', 'MÉDICO', 'ABOGADO'];
 
 function setupImpacts() {
   impact(0, 34); impact(.8, 26);
@@ -102,7 +102,7 @@ function sceneHook(t) {
   // lluvia de monedas desde arriba
   burst(t, { t0: 1.0, x: CX, y: -120, n: 40, seed: 14, kind: 'coin', spd: [100, 300], ang: [Math.PI * .3, Math.PI * .7], grav: 1400, life: [1.6, 2.2], size: [50, 95], spread: 1100, delay: 1.6 });
   // texto
-  title('DE FISURA…', CX, 360, 170, { tin: t - .12, tout: t - 2.72, stagger: .045, maxW: 960 });
+  title(tr('DE FISURA…', 'FROM BROKE…'), CX, 360, 170, { tin: t - .12, tout: t - 2.72, stagger: .045, maxW: 960 });
   flash(1 - seg(t, 0, .12));
   flash((1 - seg(t, .8, .9)) * (t >= .8 ? 1 : 0));
   // viñeta de enfoque
@@ -200,9 +200,9 @@ function sceneMechanic(t) {
   const hudIn = E.backOut(seg(t, 3, 3.3));
   coinHud(CX, 250, coins, { sc: hudIn, bump: cl(bump) });
   // textos
-  title('TAPEÁ', CX, 420, 150, { tin: t - 3.0, tout: t - 3.85, stagger: .03 });
-  title('FUSIONÁ.', CX, 420, 185, { tin: t - 4.72, tout: t - 6.1, stagger: .03, anim: 'slam', dur: .3 });
-  title('EVOLUCIONÁ.', CX, 420, 185, { tin: t - 6.22, tout: t - 7.9, stagger: .025, anim: 'slam', dur: .3, gold: true, maxW: 1000 });
+  title(tr('TAPEÁ', 'TAP.'), CX, 420, 150, { tin: t - 3.0, tout: t - 3.85, stagger: .03 });
+  title(tr('FUSIONÁ.', 'MERGE.'), CX, 420, 185, { tin: t - 4.72, tout: t - 6.1, stagger: .03, anim: 'slam', dur: .3 });
+  title(tr('EVOLUCIONÁ.', 'EVOLVE.'), CX, 420, 185, { tin: t - 6.22, tout: t - 7.9, stagger: .025, anim: 'slam', dur: .3, gold: true, maxW: 1000 });
   // etiqueta de nivel del resultado
   if (st.lastHit > 0 && t - st.lastHit >= 0 && st.chars.length === 1) tierTag(st.cur, CX, 1440, t - st.lastHit - .08);
   else if (t < 4.0) tierTag('homeless', CX, 1440, t - 3.1);
@@ -300,8 +300,8 @@ function sceneCareer(t) {
     g.restore();
   });
   g.restore();
-  title('ELEGÍ TU', CX, 290, 120, { tin: t - 10.5, tout: t - 11.6, stagger: .03 });
-  title('CARRERA', CX, 410, 150, { tin: t - 10.62, tout: t - 11.62, stagger: .03, gold: true });
+  title(tr('ELEGÍ TU', 'PICK YOUR'), CX, 290, 120, { tin: t - 10.5, tout: t - 11.6, stagger: .03 });
+  title(tr('CARRERA', 'CAREER'), CX, 410, 150, { tin: t - 10.62, tout: t - 11.62, stagger: .03, gold: true });
   const v = Math.pow(10, 3 + seg(t, 8, 17) * 40);
   coinHud(CX, 170, v, { alpha: 1 - zoomSel, sc: .8 });
   flash(zoomSel * seg(t, 11.9, 12.0));
@@ -422,7 +422,7 @@ function sceneGod(t) {
   burst(t, { t0: 19.0, x: CX, y: 1600, n: 60, seed: 951, kind: 'dust', spd: [60, 200], ang: [-Math.PI * .7, -Math.PI * .3], life: [3, 4.5], size: [14, 34], spread: 1000, delay: 2.5, alpha: .7 });
   burst(t, { t0: 19.1, x: CX, y: 800, n: 26, seed: 952, kind: 'star', spd: [200, 800], life: [1.5, 3], size: [30, 70], drag: 1.2, delay: 2 });
   g.restore();
-  title('…A DIOS.', CX, 330, 200, { tin: t - 19.0, stagger: .06, anim: 'slam', dur: .35, gold: true, maxW: 980 });
+  title(tr('…A DIOS.', '…TO GOD.'), CX, 330, 200, { tin: t - 19.0, stagger: .06, anim: 'slam', dur: .35, gold: true, maxW: 980 });
   // brillo que barre el título
   flash((1 - seg(t, 19.0, 19.25)) * (t >= 19 ? .85 : 0), '#FFF6D0');
   flash(seg(t, 22.75, 23.0), '#FFFFFF');
@@ -456,7 +456,7 @@ function sceneLogo(t) {
   g.save(); const pa = E.expoOut(seg(t, 23.6, 23.9)) * (1 - out); g.globalAlpha = pa;
   pill(CX, 1385 - out * 900, 560, 84, { fill: C.yellow, stroke: C.ink, alpha: pa });
   g.font = `900 44px ${FONT_N}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = C.ink;
-  g.fillText('DE FISURA A DIOS', CX, 1389 - out * 900);
+  g.fillText(tr('DE FISURA A DIOS', 'FROM BROKE TO GOD'), CX, 1389 - out * 900);
   g.restore();
   flash(1 - seg(t, 23.0, 23.12));
 }
@@ -519,7 +519,7 @@ function scenePhone(t) {
       g.translate(rightX - 20, floorY - 490); g.scale(tp, tp);
       rr(-150, -30, 300, 60, 30); g.fillStyle = C.orange; g.fill(); g.lineWidth = 5; g.strokeStyle = C.ink; g.stroke();
       g.font = `900 34px ${FONT_N}`; g.fillStyle = C.cream; g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.fillText('¡NIVEL 2!', 0, 2);
+      g.fillText(tr('¡NIVEL 2!', 'LEVEL 2!'), 0, 2);
       g.restore();
     }
   }
@@ -565,8 +565,8 @@ function scenePhone(t) {
   rr(-70, -ph / 2 + 22, 140, 38, 19); g.fillStyle = '#000'; g.fill();
   g.restore();
   g.restore();
-  title('¿HASTA DÓNDE', CX, 225, 110, { tin: t - 24.35, tout: t - 26.62, stagger: .03 });
-  title('VAS A LLEGAR?', CX, 345, 118, { tin: t - 24.5, tout: t - 26.64, stagger: .03, gold: true });
+  title(tr('¿HASTA DÓNDE', 'HOW FAR'), CX, 225, 110, { tin: t - 24.35, tout: t - 26.62, stagger: .03 });
+  title(tr('VAS A LLEGAR?', 'WILL YOU GO?'), CX, 345, 118, { tin: t - 24.5, tout: t - 26.64, stagger: .03, gold: true });
   const out = E.expoIn(seg(t, 26.55, 26.8));
   flash(out * .9);
 }
@@ -589,8 +589,8 @@ function sceneEnd(t) {
   burst(t, { t0: 26.8, x: CX, y: 560, n: 50, seed: 1201, kind: 'confetti', spd: [900, 2200], grav: 1500, life: [1.2, 1.8], size: [22, 34], drag: 1.8 });
   burst(t, { t0: 26.8, x: CX, y: 560, n: 18, seed: 1202, kind: 'coin', spd: [800, 2000], grav: 2400, life: [1, 1.5], size: [60, 100], drag: 1 });
   g.restore();
-  title('DESCARGALO', CX, 980, 140, { tin: t - 27.0, stagger: .03 });
-  title('GRATIS', CX, 1120, 190, { tin: t - 27.2, stagger: .045, anim: 'slam', dur: .3, gold: true });
+  title(tr('DESCARGALO', 'DOWNLOAD IT'), CX, 980, 140, { tin: t - 27.0, stagger: .03 });
+  title(tr('GRATIS', 'FREE'), CX, 1120, 190, { tin: t - 27.2, stagger: .045, anim: 'slam', dur: .3, gold: true });
   // badge App Store con pulso
   const bp = E.backOut(seg(t, 27.5, 27.8), 2.2);
   const pulse = 1 + Math.max(0, Math.sin((t - 28.2) * Math.PI * 2)) * .03 * (t > 28.2 ? 1 : 0);

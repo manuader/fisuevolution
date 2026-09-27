@@ -10,6 +10,8 @@ Canvas (sin estado entre frames), con los PNG reales del juego.
 - **v5 · QUIZ «¿En qué se convierte?»** (33 s): `scene5.js` + `music5.py` (programa de TV)
 - **v6 · placa BOFU** (4,5 s): `scene6.js` + `music6.py`; `bofu.sh` arma los tres cortes BOFU
 
+**Inglés (EE. UU.):** todas las escenas aceptan `?lang=en` (`render.mjs --lang en`, `L=en ./finish.sh`, `L=en ./bofu.sh`) y salen en `../en-US/`. Plan y tabla de localización en `../PLAN-en-us.md`; `--poster T` hornea el cuadro T como frame 0 (miniatura).
+
 Guiones de v3–v5 en `../PLAN-anuncios-virales.md`; qué pieza va en cada etapa del embudo, en `../ESTRATEGIA-embudo.md`.
 
 | Archivo | Qué hace |

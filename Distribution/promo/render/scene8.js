@@ -35,9 +35,10 @@ const SOFI = [
   [11.6, 'urban', 'repartidor', 6], [14.5, 'urban', 'chofer_app', 7],
   [18.6, 'corporate', 'oficinista', 9], [21.6, 'luxury', 'director', 13], [23.2, 'luxury', 'emprendedor', 16],
 ];
-const FLOOR_NAME = { alley: 'Callejón', urban: 'Ciudad', corporate: 'Corporativo', luxury: 'Lujo', island: 'Isla', moon: 'Luna' };
-const NAME = { homeless: 'El Fisura', homeless_idle__second_life: 'El Fisura (Segunda Vida)', trapito: 'El Trapito', limpiavidrios: 'Limpiavidrios', cartonero: 'Cartonero', repartidor: 'Repartidor', chofer_app: 'Chofer de App', oficinista: 'Oficinista', junior_lawyer: 'Abogado Jr.', director: 'Director', emprendedor: 'Emprendedor', millonario: 'Millonario', dueno_luna: 'Dueño de la Luna' };
-const STAGES = [[3.5, 'MINUTO 1'], [10.0, 'DÍA 2'], [17.0, 'DÍA 7'], [24.0, 'DÍA 30']];
+const FLOOR_NAME = EN ? { alley: 'Alley', urban: 'City', corporate: 'Corporate', luxury: 'Luxury', island: 'Island', moon: 'Moon' } : { alley: 'Callejón', urban: 'Ciudad', corporate: 'Corporativo', luxury: 'Lujo', island: 'Isla', moon: 'Luna' };
+const NAME = EN ? Object.assign(Object.fromEntries(Object.keys(TIER).map(id => [id, TIER[id].name])), { homeless_idle__second_life: 'The Hobo (Second Life)' }) : { homeless: 'El Fisura', homeless_idle__second_life: 'El Fisura (Segunda Vida)', trapito: 'El Trapito', limpiavidrios: 'Limpiavidrios', cartonero: 'Cartonero', repartidor: 'Repartidor', chofer_app: 'Chofer de App', oficinista: 'Oficinista', junior_lawyer: 'Abogado Jr.', director: 'Director', emprendedor: 'Emprendedor', millonario: 'Millonario', dueno_luna: 'Dueño de la Luna' };
+const STAGES = [[3.5, tr('MINUTO 1', 'MINUTE 1')], [10.0, tr('DÍA 2', 'DAY 2')], [17.0, tr('DÍA 7', 'DAY 7')], [24.0, tr('DÍA 30', 'DAY 30')]];
+const P1 = tr('TOMI', 'JAKE'), P2 = tr('SOFI', 'EMMA');
 
 function stateAt(list, t) { let i = 0; for (let k = 0; k < list.length; k++) if (t >= list[k][0]) i = k; return i; }
 
@@ -93,7 +94,7 @@ function drawHalf(side, t) {
       g.save(); g.translate(cx, 830); g.scale(p, p);
       const w = 300, hh = w * IMG.ribbon.height / IMG.ribbon.width;
       g.drawImage(IMG.ribbon, -w / 2, -hh / 2, w, hh);
-      text(floorChange ? (bg === 'alley' ? '¡NUEVA VIDA!' : '¡PISO NUEVO!') : '¡NUEVO!', 0, -4, 36, C.cream, { stroke: 7, font: FONT_T, weight: 800 });
+      text(floorChange ? (bg === 'alley' ? tr('¡NUEVA VIDA!', 'NEW LIFE!') : tr('¡PISO NUEVO!', 'NEW FLOOR!')) : tr('¡NUEVO!', 'NEW!'), 0, -4, 36, C.cream, { stroke: 7, font: FONT_T, weight: 800 });
       g.restore();
     }
     burst(t, { t0: ts, x: cx, y: 1100, n: 22, seed: 8000 + i * 3 + side, kind: 'confetti', spd: [300, 800], grav: 800, life: [.8, 1.2], size: [14, 22], drag: 1.6 });
@@ -106,7 +107,7 @@ function drawHalf(side, t) {
     }
     const taps = Math.floor((t - 3.6) * 21);
     g.save(); rr(cx - 150, 1420, 300, 70, 35); g.fillStyle = 'rgba(0,0,0,.6)'; g.fill(); g.restore();
-    text(`TOQUES: ${taps}`, cx, 1457, 38, C.cream, { font: FONT_T, weight: 800 });
+    text(`${tr('TOQUES', 'TAPS')}: ${taps}`, cx, 1457, 38, C.cream, { font: FONT_T, weight: 800 });
   }
   // Sofi: contratar y fusionar en el minuto 1
   if (!tomi && t > 4.6 && t < 6.3) {
@@ -119,13 +120,13 @@ function drawHalf(side, t) {
     const p = E.backOut(seg(t, 11.3, 11.7), 1.6) * (1 - seg(t, 16.7, 17.0));
     g.save(); g.translate(cx, 700); g.scale(p, p);
     rr(-235, -80, 470, 160, 26); g.fillStyle = '#D7263D'; g.fill(); g.lineWidth = 7; g.strokeStyle = C.ink; g.stroke();
-    text('Este piso está lleno —', 0, -30, 36, '#fff', { font: FONT_T, weight: 800 });
-    text('fusioná para hacer lugar', 0, 22, 36, '#fff', { font: FONT_T, weight: 800 });
+    text(tr('Este piso está lleno —', 'This floor is full —'), 0, -30, 36, '#fff', { font: FONT_T, weight: 800 });
+    text(tr('fusioná para hacer lugar', 'merge to make room'), 0, 22, 36, '#fff', { font: FONT_T, weight: 800 });
     g.restore();
   }
   // Tomi descubre bonus y mejoras
   if (tomi && t > 19.0 && t < 23.8) {
-    [[IMG.b_mate, 'Unos Mates', 19.0], [IMG.up_income, 'Más Platita ↑', 19.6]].forEach(([im, lab, t0], k) => {
+    [[IMG.b_mate, tr('Unos Mates', 'A Round of Mate'), 19.0], [IMG.up_income, tr('Más Platita ↑', 'More Cash ↑'), 19.6]].forEach(([im, lab, t0], k) => {
       const p = E.backOut(seg(t, t0, t0 + .35), 2) * (1 - seg(t, 23.4, 23.8));
       if (p <= 0) return;
       g.save(); g.translate(cx, 640 + k * 110); g.scale(p, p);
@@ -141,14 +142,14 @@ function drawHalf(side, t) {
     if (P > 0) {
       g.save(); g.translate(cx, 780); g.scale(P, P);
       rr(-240, -150, 480, 300, 30); g.fillStyle = C.parch; g.fill(); g.lineWidth = 9; g.strokeStyle = '#C99A2E'; g.stroke();
-      text('¿Reencarnar?', 0, -100, 40, C.ink, { font: FONT_T, weight: 800 });
+      text(tr('¿Reencarnar?', 'Reincarnate?'), 0, -100, 40, C.ink, { font: FONT_T, weight: 800 });
       g.drawImage(IMG.oro, -150, -60, 64, 64); text('+3 ORO', 40, -28, 48, C.ink);
-      text('×1,0 → ×1,6', 0, 42, 40, C.brown);
+      text(tr('×1,0 → ×1,6', '×1.0 → ×1.6'), 0, 42, 40, C.brown);
       const pr = t > 24.85 && t < 25.0 ? .92 : 1;
       g.save(); g.translate(0, 105); g.scale(pr, pr);
       rr(-170, -32, 340, 64, 32); g.fillStyle = '#3F7FE0'; g.fill(); g.lineWidth = 4; g.strokeStyle = '#214C94'; g.stroke();
       g.drawImage(IMG.reincarnate, -160, -26, 52, 52);
-      text('Reencarnar', 30, 2, 34, '#fff', { font: FONT_T, weight: 800 });
+      text(tr('Reencarnar', 'Reincarnate'), 30, 2, 34, '#fff', { font: FONT_T, weight: 800 });
       g.restore();
       g.restore();
     }
@@ -177,12 +178,12 @@ function drawHalf(side, t) {
   g.save(); g.translate(cx, 300); g.scale(hp, hp);
   rr(-150, -48, 300, 96, 48); g.fillStyle = tomi ? BLUE : ORANGE; g.fill(); g.lineWidth = 7; g.strokeStyle = C.ink; g.stroke();
   g.restore();
-  title(tomi ? 'TOMI' : 'SOFI', cx, 296, 64 * hp, { tin: 99 });
+  title(tomi ? P1 : P2, cx, 296, 64 * hp, { tin: 99 });
   if (t > 3.3) {
     const bump = i > 0 ? 1 + (1 - seg(d, 0, .3)) * .15 : 1;
     g.save(); g.translate(cx, 420); g.scale(bump, bump);
     rr(-235, -52, 470, 104, 24); g.fillStyle = 'rgba(20,14,10,.82)'; g.fill(); g.lineWidth = 4; g.strokeStyle = tomi ? BLUE : ORANGE; g.stroke();
-    text(`NIVEL ${lvl}`, 0, -18, 38, C.yellow, { font: FONT_T, weight: 800 });
+    text(`${tr("NIVEL", "LEVEL")} ${lvl}`, 0, -18, 38, C.yellow, { font: FONT_T, weight: 800 });
     text(`${NAME[id]} · ${FLOOR_NAME[bg]}`, 0, 22, 26, C.cream, { maxW: 440 });
     g.restore();
   }
@@ -205,7 +206,9 @@ function drawScene(t) {
   g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
   g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
   if (t >= 33.5) {
-    ctaEnd(t, 33.5, { lines: ['¿Y VOS CÓMO JUGARÍAS?', '37 NIVELES · 10 PISOS'], foot: 'Comentá: ¿Team Tomi o Team Sofi? 👇' });
+    ctaEnd(t, 33.5, EN
+      ? { lines: ['HOW WOULD YOU PLAY?', '37 LEVELS · 10 FLOORS'], foot: 'Comment: Team Jake or Team Emma? 👇' }
+      : { lines: ['¿Y VOS CÓMO JUGARÍAS?', '37 NIVELES · 10 PISOS'], foot: 'Comentá: ¿Team Tomi o Team Sofi? 👇' });
     flash(1 - seg(t, 33.5, 33.75), '#FFF3D0');
     return;
   }
@@ -238,16 +241,16 @@ function drawScene(t) {
   if (t < 3.6) {
     const a = 1 - seg(t, 3.2, 3.6);
     g.save(); g.globalAlpha = a * .8; g.fillStyle = 'rgba(8,6,14,.7)'; g.fillRect(0, 1180, W, 520); g.restore();
-    title('DOS AMIGOS. EL MISMO JUEGO.', 540, 1270, 70, { tin: t - .3, alpha: a, stagger: .012, dur: .4, anim: 'rise', maxW: 1000 });
-    title('¿QUIÉN LLEGA MÁS LEJOS?', 540, 1390, 86, { tin: t - .9, alpha: a, stagger: .018, dur: .4, anim: 'rise', gold: true, maxW: 1000 });
+    title(tr('DOS AMIGOS. EL MISMO JUEGO.', 'TWO FRIENDS. SAME GAME.'), 540, 1270, 70, { tin: t - .3, alpha: a, stagger: .012, dur: .4, anim: 'rise', maxW: 1000 });
+    title(tr('¿QUIÉN LLEGA MÁS LEJOS?', 'WHO GETS FURTHER?'), 540, 1390, 86, { tin: t - .9, alpha: a, stagger: .018, dur: .4, anim: 'rise', gold: true, maxW: 1000 });
     const vp2 = E.backOut(seg(t, 1.8, 2.2), 2) * a;
-    if (vp2 > 0) for (const [x, lab, col] of [[290, 'TEAM TOMI', BLUE], [790, 'TEAM SOFI', ORANGE]]) {
+    if (vp2 > 0) for (const [x, lab, col] of [[290, 'TEAM ' + P1, BLUE], [790, 'TEAM ' + P2, ORANGE]]) {
       g.save(); g.translate(x, 1520); g.scale(vp2, vp2);
       rr(-190, -44, 380, 88, 44); g.fillStyle = col; g.fill(); g.lineWidth = 6; g.strokeStyle = C.ink; g.stroke();
       g.restore();
       title(lab, x, 1518, 50 * vp2, { tin: 99 });
     }
-    title('Apostá en los comentarios 👇', 540, 1630, 50, { tin: t - 2.3, alpha: a, stagger: .01, dur: .3, strokeK: .15, maxW: 900 });
+    title(tr('Apostá en los comentarios 👇', 'Place your bets in the comments 👇'), 540, 1630, 50, { tin: t - 2.3, alpha: a, stagger: .01, dur: .3, strokeK: .15, maxW: 900 });
   }
   // six seven: Sofi pasa del nivel 6 al 7
   if (t > 14.5 && t < 16.3) {
@@ -260,20 +263,20 @@ function drawScene(t) {
   // Sofi se burla cuando Tomi vuelve a fisura
   if (t > 25.7 && t < 27.4) {
     const sp = E.backOut(seg(t, 25.7, 26.0), 2) * (1 - E.cIn(seg(t, 27.1, 27.4)));
-    speech(810, 700, 500, '¿Volviste a fisura? ¿Quién sos, el Pepe? 😂', 810, 900, { s: sp, size: 38 });
+    speech(810, 700, 500, tr('¿Volviste a fisura? ¿Quién sos, el Pepe? 😂', 'Back to broke?? Bro hit reset on his whole life 😂'), 810, 900, { s: sp, size: 38 });
   }
-  caption(t, 'Sofi fusiona. Tomi… toca.', 4.4, 9.6);
-  caption(t, 'Piso lleno = hay que fusionar\npara hacer lugar.', 11.6, 16.6);
-  caption(t, 'Tomi descubrió los bonus\ny las mejoras.', 19.2, 23.6);
-  caption(t, 'Reencarnar: volvés a cero,\npero con ORO que multiplica todo.', 24.3, 27.6);
-  caption(t, '¡LA ALCANZÓ!', 28.0, 28.7);
-  caption(t, '¡LA PASÓ!', 28.8, 30.8);
+  caption(t, tr('Sofi fusiona. Tomi… toca.', 'Emma merges. Jake… taps.'), 4.4, 9.6);
+  caption(t, tr('Piso lleno = hay que fusionar\npara hacer lugar.', 'Floor full = you have to merge\nto make room.'), 11.6, 16.6);
+  caption(t, tr('Tomi descubrió los bonus\ny las mejoras.', 'Jake discovered boosts\nand upgrades.'), 19.2, 23.6);
+  caption(t, tr('Reencarnar: volvés a cero,\npero con ORO que multiplica todo.', 'Reincarnate: back to zero,\nbut with ORO that multiplies everything.'), 24.3, 27.6);
+  caption(t, tr('¡LA ALCANZÓ!', 'HE CAUGHT UP!'), 28.0, 28.7);
+  caption(t, tr('¡LA PASÓ!', 'AND PASSED HER!'), 28.8, 30.8);
   if (t > 31) {
     const p = E.backOut(seg(t, 31.1, 31.5), 1.8);
     g.save(); g.translate(540, 1480); g.scale(p, p);
     rr(-360, -90, 720, 180, 50); g.fillStyle = C.yellow; g.fill(); g.lineWidth = 10; g.strokeStyle = C.ink; g.stroke();
     g.restore();
-    title('🏆 GANÓ TOMI', 540, 1478, 96 * p, { tin: 99 });
+    title(tr('🏆 GANÓ TOMI', '🏆 JAKE WINS'), 540, 1478, 96 * p, { tin: 99 });
     burst(t, { t0: 31.1, x: 270, y: 800, n: 80, seed: 8100, kind: 'confetti', spd: [500, 1500], grav: 1200, life: [1.4, 2], size: [22, 34], drag: 1.5 });
   }
 }

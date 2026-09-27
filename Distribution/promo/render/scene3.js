@@ -22,7 +22,8 @@ function assetList() {
 }
 
 const SECTIONS = [ // [t, número, título]
-  [2.7, 5, 'LA ECONOMÍA'], [8.2, 4, 'LOS ESPECIALES'], [13.6, 3, 'LOS BONUS'], [18.8, 2, 'LAS PINTAS'],
+  [2.7, 5, tr('LA ECONOMÍA', 'THE ECONOMY')], [8.2, 4, tr('LOS ESPECIALES', 'THE SPECIALS')],
+  [13.6, 3, tr('LOS BONUS', 'THE BOOSTS')], [18.8, 2, tr('LAS PINTAS', 'THE FITS')],
 ];
 const ARG = ['#75AADB', '#FFFFFF', '#75AADB', '#FFFFFF', C.yellow];
 
@@ -87,18 +88,18 @@ function sceneHook(t) {
     rr(-430, -110, 860, 220, 26); g.stroke();
     g.lineWidth = 6; rr(-405, -86, 810, 172, 18); g.stroke();
     g.restore();
-    title('DEVALUACIÓN', 540, 1005, 128, { tin: 99, rot: -.16, fill: '#D7263D', stroke: '#D7263D', shadowColor: 'rgba(0,0,0,0)', strokeK: .02, alpha: cl(sp * 3), maxW: 780 * s });
+    title(tr('DEVALUACIÓN', 'DEVALUED'), 540, 1005, 128, { tin: 99, rot: -.16, fill: '#D7263D', stroke: '#D7263D', shadowColor: 'rgba(0,0,0,0)', strokeK: .02, alpha: cl(sp * 3), maxW: 780 * s });
   }
   burst(t, { t0: .42, x: 540, y: 1000, n: 30, seed: 3300, kind: 'spark', spd: [900, 2400], grav: 600, life: [.3, .6], size: [6, 12], drag: 3, color: 'rgba(255,90,90,1)' });
   if (t < .42) burst(t, { t0: 0, x: 540, y: 760, n: 24, seed: 3301, kind: 'star', spd: [200, 700], life: [.5, .8], size: [40, 80], drag: 2 });
   g.restore();
-  title('ESTE JUEGO ES', 540, 330, 100, { tin: t - .95, anim: 'rise', dur: .45, stagger: .025 });
-  title('DEMASIADO ARGENTINO 💀', 540, 450, 96, { tin: t - 1.15, anim: 'rise', dur: .45, stagger: .02, gold: true, maxW: 1000 });
+  title(tr('ESTE JUEGO ES', 'THIS GAME FROM ARGENTINA'), 540, 330, tr(100, 84), { tin: t - .95, anim: 'rise', dur: .45, stagger: .025 });
+  title(tr('DEMASIADO ARGENTINO 💀', 'IS UNHINGED 💀'), 540, 450, 96, { tin: t - 1.15, anim: 'rise', dur: .45, stagger: .02, gold: true, maxW: 1000 });
   const cp = E.backOut(seg(t, 1.8, 2.1), 2);
   if (cp > 0) {
     g.save(); g.translate(540, 1420); g.scale(cp, cp);
     pill(0, 0, 700, 104, { fill: C.yellow, stroke: C.ink, lw: 7 });
-    text('TOP 5 · EL #1 ES VERDAD', 0, 6, 52, C.ink, { font: FONT_T, weight: 800 });
+    text(tr('TOP 5 · EL #1 ES VERDAD', 'TOP 5 · #1 IS REAL'), 0, 6, 52, C.ink, { font: FONT_T, weight: 800 });
     g.restore();
   }
   if (t >= .42) flash(1 - seg(t, .42, .5), '#FFFFFF');
@@ -164,17 +165,21 @@ function sceneEconomy(t) {
   burst(t, { t0: 6.6, x: 540, y: -60, n: 70, seed: 3400, kind: 'coin', spd: [100, 300], ang: [Math.PI * .35, Math.PI * .65], grav: 1500, life: [1.3, 1.8], size: [60, 110], spread: 1100, delay: .7 });
   burst(t, { t0: 6.6, x: 540, y: -60, n: 20, seed: 3401, kind: 'bill', spd: [100, 250], ang: [Math.PI * .35, Math.PI * .65], grav: 700, life: [1.5, 2], size: [120, 170], spread: 1100, delay: .7 });
   g.restore();
-  banner(t, 3.2, 4.9, '¡CORRALITO!', '#D7263D');
-  banner(t, 4.9, 6.5, 'SE CAYÓ MERCADO PAGO', '#D7263D');
-  banner(t, 6.5, 8.1, '¡LLEGÓ EL AGUINALDO!', '#E8A317');
-  jokeCaption(t, 'Tus coins están ahí…\npero no las podés tocar. ¿Te suena?', 3.4, 4.85);
-  jokeCaption(t, 'Nadie puede pagar nada.\nTodo sale el doble en efectivo.', 5.05, 6.45);
-  jokeCaption(t, 'Disfrutalo: dura menos\nque un helado en enero.', 6.7, 7.7);
-  if (t > 7.8 && t < 8.2) title('…ya se fue.', 540, 1000, 110, { tin: t - 7.8, fill: C.pink, anim: 'slam', dur: .2 });
+  banner(t, 3.2, 4.9, tr('¡CORRALITO!', 'ACCOUNT FROZEN!'), '#D7263D');
+  banner(t, 4.9, 6.5, tr('SE CAYÓ MERCADO PAGO', 'THE PAYMENT APP IS DOWN'), '#D7263D');
+  banner(t, 6.5, 8.1, tr('¡LLEGÓ EL AGUINALDO!', 'BONUS PAYCHECK DAY!'), '#E8A317');
+  jokeCaption(t, tr('Tus coins están ahí…\npero no las podés tocar. ¿Te suena?', "Your coins are right there…\nyou just can't touch them. Sound familiar?"), 3.4, 4.85);
+  jokeCaption(t, tr('Nadie puede pagar nada.\nTodo sale el doble en efectivo.', 'Nobody can pay for anything.\nEverything costs double in cash.'), 5.05, 6.45);
+  jokeCaption(t, tr('Disfrutalo: dura menos\nque un helado en enero.', 'Enjoy it. It lasts about as long\nas ice cream in July.'), 6.7, 7.7);
+  if (t > 7.8 && t < 8.2) title(tr('…ya se fue.', '…and it’s gone.'), 540, 1000, 110, { tin: t - 7.8, fill: C.pink, anim: 'slam', dur: .2 });
 }
 
 // ── #4 Los especiales (frente al Obelisco) ──
-const SPECIALS = [
+const SPECIALS = EN ? [
+  [9.3, 'sp_arbolito', 'The Street Money Changer', 'Exchange, exchange, exchaaange!', "Gets you everything 5% cheaper.\nDon't ask where."],
+  [10.75, 'sp_demonio_arca', 'Tax Office Demon', null, 'Came to audit you\nand never left.'],
+  [12.15, 'sp_coach', 'Life Coach', 'What if your salary was just a limit you set for yourself?', '+2% income,\n−100% patience.'],
+] : [
   [9.3, 'sp_arbolito', 'El del Arbolito', '¡Cambio, cambio, cambiooo!', 'Te consigue todo 5% más barato.\nNo preguntes de dónde.'],
   [10.75, 'sp_demonio_arca', 'Demonio de ARCA', null, 'Vino a auditarte\ny se quedó a vivir.'],
   [12.15, 'sp_coach', 'Coach Ontológico', '¿Y si el sueldo era un límite que te ponías vos?', '+2% de income,\n−100% de paciencia.'],
@@ -204,7 +209,7 @@ function sceneSpecials(t) {
   if (d < 1.1) {
     g.save(); g.globalAlpha = win(t, 8.25, 9.2, .2, .2);
     pill(540, 1450, 440, 90, { fill: C.cream, stroke: C.ink });
-    text('📍 El Obelisco', 540, 1455, 46, C.ink, { font: `${FONT_T}, "Noto Color Emoji"`, weight: 800 });
+    text(tr('📍 El Obelisco', '📍 Downtown BA'), 540, 1455, 46, C.ink, { font: `${FONT_T}, "Noto Color Emoji"`, weight: 800 });
     g.restore();
   }
   SPECIALS.forEach(([t0, id, name, bubble, flav], i) => {
@@ -222,7 +227,11 @@ function sceneSpecials(t) {
 }
 
 // ── #3 Los bonus ──
-const FOODS = [
+const FOODS = EN ? [
+  [13.9, 'b_mate', 'A ROUND OF MATE', "Argentina's group-chat coffee.\nOne thermos. The whole crew delivers."],
+  [15.5, 'b_asado', 'SUNDAY ASADO', 'The grill master takes his time,\nbut he never fails.'],
+  [17.1, 'b_milanesa', 'MILANESA', 'A giant chicken-fried steak. You sleep\nlike a log and wake up richer.'],
+] : [
   [13.9, 'b_mate', 'UNOS MATES', 'Ronda de mates y el equipo rinde.\nEl termo es de todos.'],
   [15.5, 'b_asado', 'ASADO DEL DOMINGO', 'El asador no se apura,\npero nunca falla.'],
   [17.1, 'b_milanesa', 'MILANESA', 'Napolitana con fritas. Dormís como\nun lirón y te despertás más rico.'],
@@ -252,7 +261,10 @@ function sceneBonus(t) {
 }
 
 // ── #2 Las pintas: desfile en Puerto Madero ──
-const RUNWAY = [
+const RUNWAY = EN ? [
+  [19.3, 'trapito_idle__naranjita', 'ORANGE VEST'], [20.5, 'chofer_app_idle__taxi_clasico', 'CLASSIC CAB'],
+  [21.7, 'rentista_soles_idle__jubilado', 'RETIRED'], [22.9, 'homeless_idle__mundialista', 'WORLD CUP FAN'],
+] : [
   [19.3, 'trapito_idle__naranjita', 'NARANJITA'], [20.5, 'chofer_app_idle__taxi_clasico', 'TAXI CLÁSICO'],
   [21.7, 'rentista_soles_idle__jubilado', 'JUBILADO'], [22.9, 'homeless_idle__mundialista', 'MUNDIALISTA'],
 ];
@@ -263,7 +275,7 @@ function sceneSkins(t) {
   if (d < 1.3) {
     g.save(); g.globalAlpha = win(t, 18.85, 20.1, .2, .25);
     pill(540, 1520, 520, 90, { fill: C.cream, stroke: C.ink });
-    text('📍 Puerto Madero', 540, 1525, 46, C.ink, { font: `${FONT_T}, "Noto Color Emoji"`, weight: 800 });
+    text(tr('📍 Puerto Madero', '📍 The Waterfront'), 540, 1525, 46, C.ink, { font: `${FONT_T}, "Noto Color Emoji"`, weight: 800 });
     g.restore();
   }
   RUNWAY.forEach(([t0, id, name], i) => {
@@ -287,14 +299,14 @@ function sceneSkins(t) {
     title(name, 540, 510, last ? 130 : 110, { tin: t - t0 - .45, tout: !last && t > next - .15 ? t - (next - .15) : null, anim: 'slam', dur: .3, gold: last, maxW: 980 });
   });
   burst(t, { t0: 23.4, x: 540, y: 300, n: 90, seed: 3700, kind: 'confetti', spd: [600, 1800], ang: [-Math.PI * .9, -Math.PI * .1], grav: 1300, life: [1.5, 2.2], size: [26, 40], drag: 1.4, colors: ARG });
-  jokeCaption(t, 'Hay 45 pintas. ¿Cuál te falta?', 23.7, 24.45, 1560, 58);
+  jokeCaption(t, tr('Hay 45 pintas. ¿Cuál te falta?', '45 fits. Which one are you missing?'), 23.7, 24.45, 1560, 58);
 }
 
 // ── #1 Dios es argentino ──
 function sceneGod(t) {
   if (t < 25.55) {
     g.fillStyle = '#050407'; g.fillRect(0, 0, W, H);
-    title('Y EL #1…', 540, 900, 150, { tin: t - 24.75, anim: 'rise', dur: .5, stagger: .06 });
+    title(tr('Y EL #1…', 'AND #1…'), 540, 900, 150, { tin: t - 24.75, anim: 'rise', dur: .5, stagger: .06 });
     return;
   }
   const sh = shakeAt(t);
@@ -318,11 +330,11 @@ function sceneGod(t) {
   }
   g.restore();
   burst(t, { t0: 29.0, x: 540, y: 250, n: 110, seed: 3800, kind: 'confetti', spd: [500, 1700], ang: [-Math.PI * .95, -Math.PI * .05], grav: 1200, life: [1.6, 2.2], size: [26, 40], drag: 1.3, colors: ARG });
-  title('DIOS EXISTE.', 540, 330, 130, { tin: t - 25.85, tout: t > 26.85 ? t - 26.85 : null, anim: 'rise', dur: .45, stagger: .04 });
-  title('Y TOMA MATE. 🧉', 540, 330, 118, { tin: t - 27.0, tout: t > 27.95 ? t - 27.95 : null, anim: 'rise', dur: .4, stagger: .03, maxW: 1000 });
-  title('Y HACE ASADO. 🔥', 540, 330, 118, { tin: t - 28.2, tout: t > 28.95 ? t - 28.95 : null, anim: 'rise', dur: .4, stagger: .03, maxW: 1000 });
-  title('DIOS ES', 540, 300, 150, { tin: t - 29.0, anim: 'slam', dur: .3, stagger: .05 });
-  title('ARGENTINO.', 540, 450, 160, { tin: t - 29.2, anim: 'slam', dur: .3, stagger: .05, gold: true, maxW: 1000 });
+  title(tr('DIOS EXISTE.', 'GOD EXISTS.'), 540, 330, 130, { tin: t - 25.85, tout: t > 26.85 ? t - 26.85 : null, anim: 'rise', dur: .45, stagger: .04 });
+  title(tr('Y TOMA MATE. 🧉', 'HE DRINKS MATE. 🧉'), 540, 330, 118, { tin: t - 27.0, tout: t > 27.95 ? t - 27.95 : null, anim: 'rise', dur: .4, stagger: .03, maxW: 1000 });
+  title(tr('Y HACE ASADO. 🔥', 'HE RUNS THE GRILL. 🔥'), 540, 330, 118, { tin: t - 28.2, tout: t > 28.95 ? t - 28.95 : null, anim: 'rise', dur: .4, stagger: .03, maxW: 1000 });
+  title(tr('DIOS ES', 'GOD IS'), 540, 300, 150, { tin: t - 29.0, anim: 'slam', dur: .3, stagger: .05 });
+  title(tr('ARGENTINO.', 'ARGENTINIAN.'), 540, 450, tr(160, 140), { tin: t - 29.2, anim: 'slam', dur: .3, stagger: .05, gold: true, maxW: 1000 });
   flash(seg(t, 30.3, 30.5), '#FFF3D0');
 }
 
@@ -343,7 +355,9 @@ function drawScene(t) {
   if (t > 13.45 && t < 18.95) sectionFrame(t, sceneBonus, 13.6, 18.8);
   if (t > 18.65 && t < 24.7) sectionFrame(t, sceneSkins, 18.8, 99);
   if (t >= 24.6 && t < 30.5) { g.save(); g.globalAlpha = seg(t, 24.6, 24.75); sceneGod(t); g.restore(); }
-  if (t >= 30.5) ctaEnd(t, 30.5, { lines: ['ESTÁ EN EL NIVEL 37.', '¿LLEGÁS?'], foot: 'Etiquetá al más fisura de tu grupo 👇' });
+  if (t >= 30.5) ctaEnd(t, 30.5, EN
+    ? { lines: ["HE'S AT LEVEL 37.", 'CAN YOU GET THERE?'], foot: 'Tag the brokest friend in your group 👇' }
+    : { lines: ['ESTÁ EN EL NIVEL 37.', '¿LLEGÁS?'], foot: 'Etiquetá al más fisura de tu grupo 👇' });
   for (const [t0, n, name] of SECTIONS) {
     const t1 = SECTIONS.find(s => s[0] > t0) ? SECTIONS.find(s => s[0] > t0)[0] - .05 : 24.55;
     rankSticker(t, t0, n, name, t1);

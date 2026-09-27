@@ -6,7 +6,7 @@
 const DURATION = 22;
 const REEL0 = 3.0, REEL1 = 13.0, STEP = .45, HOLD = .35;
 
-const CARDS = [
+const CARDS_ES = [
   ['homeless', null, 'EL FISURA', 'Tenés un cartón y fe.', '#8B6B4A'],
   ['trapito', 'naranjita', 'EL TRAPITO', 'Cuidás autos ajenos como si fueran tuyos.', C.orange],
   ['repartidor', null, 'EL REPARTIDOR', 'Tu vida es un "está llegando".', '#E3342F'],
@@ -25,6 +25,28 @@ const CARDS = [
   ['homeless', 'mundialista', 'EL MUNDIALISTA', 'Todavía hablás de Qatar.', '#75AADB'],
   ['space_billionaire', null, 'EL SPACE BILLIONAIRE', 'Te querés ir del país. Del planeta.', '#12122E'],
 ];
+// EE. UU.: los mismos personajes con arquetipos que un yanqui reconoce en un segundo.
+const CARDS_EN = [
+  ['homeless', null, 'THE HOBO', 'Cardboard sign. Unlimited faith.', '#8B6B4A'],
+  ['trapito', 'naranjita', 'THE FAKE VALET', 'Charges you $20 to "watch" your car.', C.orange],
+  ['repartidor', null, 'THE DELIVERY GUY', 'Your life is "driver is 2 min away."', '#E3342F'],
+  ['repartidor|chofer_app', null, 'SIX SEVEN', 'Level 6… level 7… 🤷', C.pink],
+  ['chofer_app', 'taxi_clasico', 'THE CAB DRIVER', 'Always takes the scenic route.', '#F2B705'],
+  ['oficinista', 'home_office', 'THE OFFICE DRONE', 'Camera off since 2020.', '#6C7A89'],
+  ['junior_programmer', null, 'THE DEV', 'Works on my machine.', '#2FB560'],
+  ['junior_programmer', 'hacker', 'THE STREAMER', 'Chat, is this real? 💀', '#6441A5'],
+  ['emprendedor', null, 'THE HUSTLE GURU', 'Sells a course on selling courses.', C.blue],
+  ['ceo', null, 'THE CEO', 'This meeting could have been an email.', '#2C2C2C'],
+  ['sp_influencer', null, 'THE INFLUENCER', 'Use code HOBO for 2% off. Link in bio.', '#E1306C'],
+  ['millonario', 'yate', 'THE YACHT GUY', 'The yacht is a rental. For the pic.', '#1E5AA8'],
+  ['rey_ladrillo', null, 'THE LANDLORD', 'Raised your rent. Again.', '#B5452C'],
+  ['sp_cryptobro', null, 'THE CRYPTO BRO', 'DYOR. Then explains it anyway.', '#9B59D0'],
+  ['sp_coach', null, 'THE DEBATE BRO', 'Your salary is a mindset. Change my mind.', '#5B6770', 'sign'],
+  ['rentista_soles', 'jubilado', 'THE RETIREE', 'Park bench, pigeons, strong opinions.', '#7A8C5A'],
+  ['homeless', 'mundialista', 'THE WORLD CUP GUY', 'Still not over the World Cup.', '#75AADB'],
+  ['space_billionaire', null, 'THE SPACE BILLIONAIRE', "Can't fix Earth. Buying a new one.", '#12122E'],
+];
+const CARDS = EN ? CARDS_EN : CARDS_ES;
 const key = c => c[1] ? `${c[0]}_idle__${c[1]}` : c[0];
 
 function assetList() {
@@ -71,8 +93,8 @@ function cardFront(c, x, y, s, a = 1) {
     // el formato de meme de la mesa con el cartel, sin ninguna persona real
     g.save(); g.translate(170, -CHh / 2 + 420); g.rotate(-.06);
     rr(-150, -52, 300, 104, 12); g.fillStyle = '#fff'; g.fill(); g.lineWidth = 6; g.strokeStyle = C.ink; g.stroke();
-    text('CAMBIAME', 0, -18, 38, C.ink, { font: FONT_T, weight: 800 });
-    text('DE OPINIÓN', 0, 24, 38, C.ink, { font: FONT_T, weight: 800 });
+    text(tr('CAMBIAME', 'CHANGE'), 0, -18, 38, C.ink, { font: FONT_T, weight: 800 });
+    text(tr('DE OPINIÓN', 'MY MIND'), 0, 24, 38, C.ink, { font: FONT_T, weight: 800 });
     g.restore();
   }
   g.restore();
@@ -107,8 +129,8 @@ function sceneHook(t) {
   const shake = Math.sin(t * 30) * 5 * (t > 1.2 ? 1 : 0);
   const pin = lerp(.9, 1, E.backOut(seg(t, 0, .4), 1.6));
   cardBack(540 + shake, 1000, .9 * pin, false, t);
-  title('PAUSÁ EL VIDEO', 540, 320, 120, { tin: t + .6, anim: 'rise', dur: .45, stagger: .03, gold: true });
-  title('y descubrí qué fisura sos', 540, 440, 76, { tin: t + .2, anim: 'rise', dur: .45, stagger: .015 });
+  title(tr('PAUSÁ EL VIDEO', 'PAUSE THE VIDEO'), 540, 320, 120, { tin: t + .6, anim: 'rise', dur: .45, stagger: .03, gold: true });
+  title(tr('y descubrí qué fisura sos', 'and find out which one you are'), 540, 440, 76, { tin: t + .2, anim: 'rise', dur: .45, stagger: .015 });
   // la mano que pausa
   const press = t > 1.4 && t < 1.6 ? 1 - (t - 1.4) / .2 : t > 2.2 && t < 2.4 ? 1 - (t - 2.2) / .2 : 0;
   pauseIcon(820, 1470, E.backOut(seg(t, .1, .4), 2), press);
@@ -140,7 +162,7 @@ function sceneReel(t) {
   rr(90, 250, 900, 100, 50); g.fillStyle = 'rgba(20,14,10,.8)'; g.fill(); g.lineWidth = 5; g.strokeStyle = C.yellow; g.stroke();
   g.restore();
   pauseIcon(165, 300, .55, 0);
-  text('PAUSÁ Y DESCUBRÍ QUÉ FISURA SOS', 575, 305, 44, C.cream, { font: FONT_T, weight: 800, maxW: 760 });
+  text(tr('PAUSÁ Y DESCUBRÍ QUÉ FISURA SOS', 'PAUSE & FIND OUT WHICH ONE YOU ARE'), 575, 305, 44, C.cream, { font: FONT_T, weight: 800, maxW: 760 });
   for (const f0 of [6.0, 10.0]) {
     const d = t - f0;
     if (d >= 0 && d < .9) {
@@ -148,7 +170,7 @@ function sceneReel(t) {
       g.save(); g.translate(800, 470); g.rotate(.12); g.scale(p, p);
       rr(-190, -60, 380, 120, 30); g.fillStyle = C.pink; g.fill(); g.lineWidth = 8; g.strokeStyle = C.ink; g.stroke();
       g.restore();
-      title('¡PAUSÁ YA!', 800, 465, 70 * p, { tin: 99, rot: .12 });
+      title(tr('¡PAUSÁ YA!', 'PAUSE NOW!'), 800, 465, 70 * p, { tin: 99, rot: .12 });
     }
   }
 }
@@ -181,12 +203,12 @@ function sceneTwist(t) {
     title('?', 540, 890, 180, { tin: 99, gold: true });
   }
   g.restore();
-  title('Hay uno que no sale', 540, 300, 84, { tin: t - 14.8, anim: 'rise', dur: .45, stagger: .02, tout: t > 15.55 ? t - 15.55 : null });
-  title('en la ruleta…', 540, 400, 84, { tin: t - 15.05, anim: 'rise', dur: .45, stagger: .02, tout: t > 15.55 ? t - 15.55 : null });
-  title('¿QUIÉN ES? 👀', 540, 340, 110, { tin: t - 15.65, anim: 'slam', dur: .25, stagger: .03, tout: t > 16.15 ? t - 16.15 : null });
-  title('¿EL PEPE? 🤨', 540, 340, 120, { tin: t - 16.25, anim: 'slam', dur: .25, stagger: .03, fill: C.pink, tout: t > 16.75 ? t - 16.75 : null });
-  title('NO.', 540, 340, 140, { tin: t - 16.85, anim: 'slam', dur: .25, stagger: .05, gold: true, tout: t > 18.2 ? t - 18.2 : null });
-  title('A ESE HAY QUE LLEGAR.', 540, 1520, 92, { tin: t - 17.1, anim: 'slam', dur: .3, stagger: .03, gold: true, maxW: 1000, tout: t > 18.3 ? t - 18.3 : null });
+  title(tr('Hay uno que no sale', "There's one that's"), 540, 300, 84, { tin: t - 14.8, anim: 'rise', dur: .45, stagger: .02, tout: t > 15.55 ? t - 15.55 : null });
+  title(tr('en la ruleta…', 'NOT on the wheel…'), 540, 400, 84, { tin: t - 15.05, anim: 'rise', dur: .45, stagger: .02, tout: t > 15.55 ? t - 15.55 : null });
+  title(tr('¿QUIÉN ES? 👀', 'WHO IS IT? 👀'), 540, 340, 110, { tin: t - 15.65, anim: 'slam', dur: .25, stagger: .03, tout: t > 16.15 ? t - 16.15 : null });
+  title(tr('¿EL PEPE? 🤨', 'YOUR EX? 🤨'), 540, 340, 120, { tin: t - 16.25, anim: 'slam', dur: .25, stagger: .03, fill: C.pink, tout: t > 16.75 ? t - 16.75 : null });
+  title(tr('NO.', 'NO.'), 540, 340, 140, { tin: t - 16.85, anim: 'slam', dur: .25, stagger: .05, gold: true, tout: t > 18.2 ? t - 18.2 : null });
+  title(tr('A ESE HAY QUE LLEGAR.', 'YOU HAVE TO EARN THIS ONE.'), 540, 1520, 92, { tin: t - 17.1, anim: 'slam', dur: .3, stagger: .03, gold: true, maxW: 1000, tout: t > 18.3 ? t - 18.3 : null });
 }
 
 const BLUR = [];
@@ -200,10 +222,12 @@ function drawScene(t) {
     // la ruleta queda quieta: ¿ya pausaste?
     g.save(); sceneReel(REEL1 - .001 - (STEP - HOLD)); g.restore();
     shade(.55 * seg(t, REEL1, REEL1 + .3));
-    title('¿YA PAUSASTE?', 540, 440, 130, { tin: t - REEL1 - .1, anim: 'slam', dur: .3, stagger: .04, gold: true, tout: t > 14.3 ? t - 14.3 : null });
+    title(tr('¿YA PAUSASTE?', 'DID YOU PAUSE?'), 540, 440, 130, { tin: t - REEL1 - .1, anim: 'slam', dur: .3, stagger: .04, gold: true, tout: t > 14.3 ? t - 14.3 : null });
   } else if (t < 18.5) sceneTwist(t);
   else {
-    ctaEnd(t, 18.5, { lines: ['¿CUÁL TE TOCÓ?', 'COMENTALO 👇'], foot: 'Etiquetá a tu amigo que es el Rey del Ladrillo' });
+    ctaEnd(t, 18.5, EN
+      ? { lines: ['WHICH ONE DID YOU GET?', 'COMMENT 👇'], foot: "Tag the friend who's The Landlord" }
+      : { lines: ['¿CUÁL TE TOCÓ?', 'COMENTALO 👇'], foot: 'Etiquetá a tu amigo que es el Rey del Ladrillo' });
     flash(1 - seg(t, 18.5, 18.75), '#FFF3D0');
   }
 }

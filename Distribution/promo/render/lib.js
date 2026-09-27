@@ -9,6 +9,10 @@ const BEAT = 0.5; // 120 BPM
 const params = new URLSearchParams(location.search);
 const SCALE = parseFloat(params.get('scale') || '1');
 const FPS = parseFloat(params.get('fps') || '60');
+// Idioma: ?lang=en localiza al inglés (EE. UU.). Sin el parámetro, todo queda en español.
+const LANG = params.get('lang') === 'en' ? 'en' : 'es';
+const EN = LANG === 'en';
+const tr = (es, en) => (EN ? en : es);
 
 const cv = document.getElementById('cv');
 cv.width = Math.round(W * SCALE); cv.height = Math.round(H * SCALE);
@@ -46,7 +50,22 @@ const TIERS = [
   ['coleccionista_galaxias', 'Coleccionista de Galaxias', 32], ['emperador_cosmico', 'Emperador Cósmico', 33],
   ['ser_ascendido', 'Ser Ascendido', 34], ['semidios', 'Semidiós', 35], ['deidad', 'Deidad', 36], ['god', 'Dios', 37],
 ];
-const TIER = Object.fromEntries(TIERS.map(([id, name, n]) => [id, { name, n }]));
+// Nombres oficiales en inglés (Localizable.xcstrings, tier.name.*).
+const TIER_EN = {
+  homeless: 'The Hobo', trapito: 'The Fake Valet', limpiavidrios: 'Squeegee Guy', cartonero: 'Cardboard Collector',
+  mantero: 'The Bootleg Vendor', repartidor: 'Delivery Guy', chofer_app: 'Rideshare Driver', fast_food: 'Burger Flipper',
+  oficinista: 'Office Drone', administrativo: 'Paper Pusher', junior_programmer: 'Junior Developer',
+  junior_architect: 'Junior Architect', junior_doctor: 'Medical Resident', junior_lawyer: 'Junior Associate',
+  senior_programmer: 'Senior Developer', director: 'Director', fundador_startup: 'Startup Founder',
+  dueno_pyme: 'Small Business Owner', emprendedor: 'Hustle Guru', ceo: 'CEO', millonario: 'Millionaire',
+  multimillonario: 'Multimillionaire', rey_ladrillo: 'Real Estate King', magnate_petrolero: 'Oil Baron',
+  space_billionaire: 'Space Billionaire', trillonario: 'Trillionaire', dueno_luna: 'Owner of the Moon',
+  dueno_marte: 'Owner of Mars', rey_asteroides: 'King of the Asteroids', magnate_solar: 'Solar System Tycoon',
+  fondo_buitre: 'Stellar Vulture Fund', rentista_soles: 'Landlord of Suns', estanciero_estelar: 'Star Rancher',
+  senor_galaxia: 'Lord of the Galaxy', coleccionista_galaxias: 'Galaxy Collector', emperador_cosmico: 'Cosmic Emperor',
+  ser_ascendido: 'Ascended Being', semidios: 'Demigod', deidad: 'Deity', god: 'God',
+};
+const TIER = Object.fromEntries(TIERS.map(([id, name, n]) => [id, { name: EN ? TIER_EN[id] : name, n }]));
 const FACE_IDS = TIERS.map(t => t[0]).filter(id => !id.startsWith('junior_') && !id.startsWith('senior_') || id === 'junior_programmer');
 
 const IMG = {};
@@ -465,7 +484,7 @@ function coinFmt(v) {
   if (v < 1000) return String(Math.floor(v));
   let i = -1;
   while (v >= 1000 && i < SUFFIX.length - 1) { v /= 1000; i++; }
-  const s = v >= 100 ? Math.floor(v).toString() : (Math.floor(v * 10) / 10).toString().replace('.', ',');
+  const s = v >= 100 ? Math.floor(v).toString() : (Math.floor(v * 10) / 10).toString().replace('.', EN ? '.' : ',');
   return s + SUFFIX[i];
 }
 
@@ -505,7 +524,7 @@ function tierTag(id, x, y, tin, o = {}) {
   g.fillStyle = C.ink; g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillText(name, 0, 5, 820);
   // chapita de nivel encima
-  const lv = 'NIVEL ' + t.n;
+  const lv = tr('NIVEL ', 'LEVEL ') + t.n;
   g.font = `900 36px ${FONT_N}`;
   const lw = g.measureText(lv).width + 44;
   g.translate(0, -h / 2 - 12);
@@ -562,7 +581,7 @@ function appStoreBadge(x, y, w, sc = 1, a = 1) {
   g.restore();
   g.fillStyle = '#fff'; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
   g.font = `600 ${h * .2}px Inter`;
-  g.fillText('Descárgalo en el', -w / 2 + h * .98, -h * .06);
+  g.fillText(tr('Descárgalo en el', 'Download on the'), -w / 2 + h * .98, -h * .06);
   g.font = `600 ${h * .38}px Inter`;
   g.fillText('App Store', -w / 2 + h * .94, h * .3, w - h * 1.1);
   g.restore();
@@ -675,7 +694,7 @@ function achievement(t, t0, t1, name, y = 1500) {
   g.save(); g.translate(540, y + out * 60); g.scale(p, p); g.globalAlpha = 1 - out;
   rr(-360, -62, 720, 124, 62); g.fillStyle = 'rgba(28,20,14,.94)'; g.fill(); g.lineWidth = 5; g.strokeStyle = C.yellow; g.stroke();
   g.drawImage(IMG.trophy, -340, -48, 96, 96);
-  text('¡Logro desbloqueado!', 55, -22, 34, C.yellow, { maxW: 560 });
+  text(tr('¡Logro desbloqueado!', 'Achievement unlocked!'), 55, -22, 34, C.yellow, { maxW: 560 });
   text(name, 55, 24, 42, C.cream, { maxW: 560 });
   g.restore();
 }
@@ -700,13 +719,13 @@ function ctaEnd(t, t0, o = {}) {
   }
   rays(540, 560 + top, 16, t * .3, 600 * ip, 'rgba(255,217,61,1)', .12);
   title('FISUEVOLUTION', 540, 830 + top, 100, { tin: d - .35, stagger: .025, anim: 'rise', dur: .5 });
-  title('DESCARGALO GRATIS', 540, 955 + top, 100, { tin: d - .55, stagger: .025, anim: 'rise', dur: .5, gold: true, maxW: 980 });
+  title(tr('DESCARGALO GRATIS', 'DOWNLOAD FREE'), 540, 955 + top, 100, { tin: d - .55, stagger: .025, anim: 'rise', dur: .5, gold: true, maxW: 980 });
   const bp = E.backOut(seg(t, t0 + .9, t0 + 1.3), 2);
   const pulse = d > 1.6 ? 1 + Math.max(0, Math.sin((d - 1.6) * Math.PI * 1.6)) * .025 : 1;
   appStoreBadge(540, 1100 + top, 420, bp * pulse, cl(bp));
   const ap = E.cOut(seg(t, t0 + 1.1, t0 + 1.6));
   g.save(); g.globalAlpha = ap;
-  text('UN JUEGO DE', 540, 1250 + top, 28, 'rgba(255,248,231,.75)');
+  text(tr('UN JUEGO DE', 'A GAME BY'), 540, 1250 + top, 28, 'rgba(255,248,231,.75)');
   const lw = 300, lh = lw * IMG.ader.height / IMG.ader.width;
   g.drawImage(IMG.ader, 540 - lw / 2, 1285 + top + (1 - ap) * 20, lw, lh);
   g.restore();

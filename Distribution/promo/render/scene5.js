@@ -13,13 +13,17 @@ function assetList() {
 }
 
 // [t0, a, resultado, respuestas, correcta, chiste]
-const ROUNDS = [
+const ROUNDS = EN ? [
+  [2.5, 'homeless', 'trapito', ['A congressman', 'The Fake Valet', 'An influencer'], 1, 'EASY. 😎'],
+  [8.5, 'chofer_app', 'fast_food', ['A limo driver', 'Burger Flipper', 'A city bus'], 1, "(yep, that's the economy)"],
+  [14.5, 'rey_ladrillo', 'magnate_petrolero', ['Oil Baron', 'A happy tenant', 'A timeshare'], 0, "A happy tenant doesn't exist."],
+] : [
   [2.5, 'homeless', 'trapito', ['Un diputado', 'El Trapito', 'Un influencer'], 1, 'FÁCIL. 😎'],
   [8.5, 'chofer_app', 'fast_food', ['Un Uber Black', 'Empleado de Fast Food', 'El colectivo 140'], 1, '(sí, así está la economía)'],
   [14.5, 'rey_ladrillo', 'magnate_petrolero', ['Magnate Petrolero', 'Un inquilino feliz', 'El Obelisco'], 0, 'Un inquilino feliz no existe.'],
 ];
 const FINAL = 20.5, BLACKOUT = 25.1, CTA = 29.0;
-const NAMES = { homeless: 'EL FISURA', chofer_app: 'CHOFER DE APP', rey_ladrillo: 'REY DEL LADRILLO', deidad: 'DEIDAD' };
+const NAMES = EN ? { homeless: 'THE HOBO', chofer_app: 'RIDESHARE DRIVER', rey_ladrillo: 'REAL ESTATE KING', deidad: 'DEITY' } : { homeless: 'EL FISURA', chofer_app: 'CHOFER DE APP', rey_ladrillo: 'REY DEL LADRILLO', deidad: 'DEIDAD' };
 const TICK = .8; // un segundo del reloj, a tempo
 
 function roundAt(t) {
@@ -69,7 +73,7 @@ function logoPlate(t, t0, red) {
     g.beginPath(); g.arc(-440 + i * 51.7, 60, 7, 0, Math.PI * 2); g.fill();
   }
   g.restore();
-  title('¿EN QUÉ SE CONVIERTE?', 540, 272, 74 * p, { tin: 99, gold: true, maxW: 860 * p });
+  title(tr('¿EN QUÉ SE CONVIERTE?', 'WHAT DOES IT BECOME?'), 540, 272, 74 * p, { tin: 99, gold: true, maxW: 860 * p });
 }
 function answerBar(y, letter, str, state, pin, hidden, t) {
   if (pin <= 0) return;
@@ -143,7 +147,7 @@ function sceneRound(t, i) {
   const reveal = t0 + 1.3 + 3 * TICK; // tras el reloj
   stage(t);
   logoPlate(t, i === 0 ? 1.9 : -9, false);
-  const chip = `PREGUNTA ${i + 1}/4`;
+  const chip = `${tr('PREGUNTA', 'QUESTION')} ${i + 1}/4`;
   title(chip, 540, 410, 58, { tin: t - t0 - .1, stagger: .02, anim: 'rise', dur: .3, strokeK: .14 });
   pair(t, id, i === 0 ? -1 : t0, reveal + .15);
   // resultado
@@ -178,9 +182,9 @@ function sceneHook(t) {
   pair(t, 'homeless', -1, null);
   const a = 1 - seg(t, 1.8, 2.1);
   g.save(); g.globalAlpha = a * .75; rr(40, 1110, 1000, 430, 44); g.fillStyle = 'rgba(6,6,26,.85)'; g.fill(); g.restore();
-  title('EL 97% NO ADIVINA', 540, 1210, 100, { tin: t + .15, alpha: a, stagger: .018, dur: .3, maxW: 960 });
-  title('LA ÚLTIMA 👀', 540, 1340, 120, { tin: t - .1, alpha: a, stagger: .03, dur: .3, gold: true });
-  title('¿VOS SÍ?', 540, 1460, 70, { tin: t - 1.0, alpha: a, stagger: .03, dur: .3, fill: C.pink });
+  title(tr('EL 97% NO ADIVINA', 'NOBODY GETS'), 540, 1210, 100, { tin: t + .15, alpha: a, stagger: .018, dur: .3, maxW: 960 });
+  title(tr('LA ÚLTIMA 👀', 'THE LAST ONE 👀'), 540, 1340, 120, { tin: t - .1, alpha: a, stagger: .03, dur: .3, gold: true });
+  title(tr('¿VOS SÍ?', 'CAN YOU?'), 540, 1460, 70, { tin: t - 1.0, alpha: a, stagger: .03, dur: .3, fill: C.pink });
   logoPlate(t, 1.9, false);
 }
 
@@ -189,7 +193,7 @@ function sceneFinal(t) {
   if (t < BLACKOUT) {
     stage(t, 1);
     logoPlate(t, -9, true);
-    title('PREGUNTA FINAL', 540, 420, 84, { tin: d - .05, anim: 'slam', dur: .3, stagger: .03, fill: C.pink });
+    title(tr('PREGUNTA FINAL', 'FINAL QUESTION'), 540, 420, 84, { tin: d - .05, anim: 'slam', dur: .3, stagger: .03, fill: C.pink });
     pair(t, 'deidad', FINAL + 1.0, null);
     for (let k = 0; k < 3; k++) answerBar(1250 + k * 118, 'ABC'[k], '', 0, E.backOut(seg(t, FINAL + 1.6 + k * .12, FINAL + 1.9 + k * .12), 1.6), true, t);
     timer(t, FINAL + 2.2);
@@ -202,8 +206,8 @@ function sceneFinal(t) {
   g.fillStyle = '#030208'; g.fillRect(0, 0, W, H);
   const b = t - BLACKOUT;
   if (b < .12) { g.fillStyle = '#fff'; g.globalAlpha = 1 - b / .12; g.fillRect(0, 0, W, H); g.globalAlpha = 1; }
-  title('SÓLO LO SABEN', 540, 330, 100, { tin: b - .3, anim: 'rise', dur: .4, stagger: .03 });
-  title('LOS QUE LLEGAN AL NIVEL 37.', 540, 450, 80, { tin: b - .7, anim: 'rise', dur: .4, stagger: .015, gold: true, maxW: 1000 });
+  title(tr('SÓLO LO SABEN', 'ONLY PLAYERS WHO'), 540, 330, 100, { tin: b - .3, anim: 'rise', dur: .4, stagger: .03 });
+  title(tr('LOS QUE LLEGAN AL NIVEL 37.', 'REACH LEVEL 37 KNOW.'), 540, 450, 80, { tin: b - .7, anim: 'rise', dur: .4, stagger: .015, gold: true, maxW: 1000 });
   const lp = E.cOut(seg(b, 1.4, 2.4));
   if (lp > 0) {
     rays(540, 900, 20, t * .2, 1200 * lp, 'rgba(255,220,130,1)', .3 * lp, .35);
@@ -215,7 +219,7 @@ function sceneFinal(t) {
     g.restore();
     title('?', 540, 880, 220 * lp, { tin: 99, gold: true });
   }
-  title('COMENTÁ TU RESPUESTA 👇', 540, 1470, 76, { tin: b - 2.5, anim: 'slam', dur: .3, stagger: .02, maxW: 1000 });
+  title(tr('COMENTÁ TU RESPUESTA 👇', 'COMMENT YOUR ANSWER 👇'), 540, 1470, 76, { tin: b - 2.5, anim: 'slam', dur: .3, stagger: .02, maxW: 1000 });
 }
 
 // ───────────────────────── compositor ─────────────────────────
@@ -256,7 +260,9 @@ function drawScene(t) {
       g.save(); g.translate((1 - p) * W, 0); sceneFinal(t); g.restore();
     } else sceneFinal(t);
   } else {
-    ctaEnd(t, CTA, { lines: ['¿LA SABÍAS?', 'DESCUBRILA JUGANDO.'], foot: 'Mandáselo al que se cree que sabe 👇' });
+    ctaEnd(t, CTA, EN
+      ? { lines: ['DID YOU KNOW IT?', 'FIND OUT BY PLAYING.'], foot: 'Send this to the friend who thinks they know 👇' }
+      : { lines: ['¿LA SABÍAS?', 'DESCUBRILA JUGANDO.'], foot: 'Mandáselo al que se cree que sabe 👇' });
     flash(1 - seg(t, CTA, CTA + .25), '#FFF3D0');
   }
   void wipe;

@@ -6,4 +6,4 @@ fs = sorted(glob.glob(f'out/preview/{v}_t*.jpg'), key=lambda f: float(f.split('_
 h = int(w * 16 / 9); cols = min(len(fs), 8); rows = (len(fs) + cols - 1) // cols
 sheet = Image.new('RGB', (w * cols, h * rows))
 for i, f in enumerate(fs): sheet.paste(Image.open(f).resize((w, h)), ((i % cols) * w, (i // cols) * h))
-sheet.save('out/sheet.jpg'); print(len(fs), 'frames')
+sheet.save(f'out/sheet_{v}.jpg'); print(len(fs), 'frames')

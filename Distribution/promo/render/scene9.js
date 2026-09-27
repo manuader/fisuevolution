@@ -43,11 +43,11 @@ function hud(t) {
   const eh = 60, ew = eh * IMG.elevator.width / IMG.elevator.height;
   g.drawImage(IMG.elevator, 392 - ew / 2, 88 - eh / 2, ew, eh);
   rr(SW / 2 - 34, 137, 68, 22, 11); g.fillStyle = '#fff'; g.fill();
-  star4(SW / 2 - 19, 148, 7, C.pink); text('×1,0', SW / 2 + 6, 149, 12.5, C.ink);
+  star4(SW / 2 - 19, 148, 7, C.pink); text(tr('×1,0', '×1.0'), SW / 2 + 6, 149, 12.5, C.ink);
 }
 function bottomBar() {
   rr(-4, 812, SW + 8, 140, 26); g.fillStyle = 'rgba(255,248,231,.94)'; g.fill();
-  const tabs = [['Contratar', null], ['Mejoras', IMG.tab_upgrades], ['Vestimenta', IMG.tab_skins], ['Bonus', IMG.tab_gifts], ['Tienda', IMG.tab_shop], ['Menú', IMG.tab_menu]];
+  const tabs = [[tr('Contratar', 'Hire'), null], [tr('Mejoras', 'Upgrades'), IMG.tab_upgrades], [tr('Vestimenta', 'Outfits'), IMG.tab_skins], ['Bonus', IMG.tab_gifts], [tr('Tienda', 'Store'), IMG.tab_shop], [tr('Menú', 'Menu'), IMG.tab_menu]];
   [41, 110, 180, 249, 318, 388].forEach((x, i) => {
     if (i === 0) { g.drawImage(IMG.tab_active, x - 30, 824, 60, 56); g.save(); rr(x - 22, 828, 44, 44, 10); g.clip(); g.drawImage(IMG.face_homeless, x - 24, 826, 48, 48); g.restore(); }
     else g.drawImage(tabs[i][1], x - 25, 827, 50, 50);
@@ -62,7 +62,7 @@ function quickHire(t) {
   if (ready) glow('gold', 0, 0, 110, .55 + .25 * Math.sin(t * 12));
   rr(-83, -25, 166, 50, 25); g.fillStyle = '#fff'; g.fill(); g.lineWidth = ready ? 3 : 1.5; g.strokeStyle = ready ? C.green : 'rgba(0,0,0,.12)'; g.stroke();
   g.save(); g.beginPath(); g.arc(-56, 0, 19, 0, Math.PI * 2); g.clip(); g.drawImage(IMG.face_homeless, -76, -20, 40, 40); g.restore();
-  text('El Fisura', -30, -8, 13, C.ink, { align: 'left' });
+  text(TIER.homeless.name, -30, -8, 13, C.ink, { align: 'left' });
   g.drawImage(IMG.coin, -30, 4, 15, 15); text('25', -11, 12, 14, C.ink, { align: 'left' });
   g.restore();
 }
@@ -111,8 +111,8 @@ function game(t) {
     if (rp > 0) {
       g.save(); g.translate(SW / 2, 230); g.scale(rp * .9, rp * .9);
       const w = 300, h = w * IMG.ribbon.height / IMG.ribbon.width; g.drawImage(IMG.ribbon, -w / 2, -h / 2, w, h);
-      text('¡NUEVO!', 0, -4, 38, C.cream, { stroke: 7 }); g.restore();
-      g.save(); g.globalAlpha = rp; pill(SW / 2, 610, 200, 44, { fill: C.cream }); text('El Trapito', SW / 2, 614, 22, C.ink); g.restore();
+      text(tr('¡NUEVO!', 'NEW!'), 0, -4, 38, C.cream, { stroke: 7 }); g.restore();
+      g.save(); g.globalAlpha = rp; pill(SW / 2, 610, 200, 44, { fill: C.cream }); text(TIER.trapito.name, SW / 2, 614, 22, C.ink); g.restore();
     }
   }
   finger(t);
@@ -176,8 +176,8 @@ function grid(t) {
     if (known) drawChar(id, x, y + 68 * pin, 136 * pin, { shadow: false });
     else { sil(id, x, y + 68 * pin, 136 * pin, '#07050C', .95); if (pin > .5) text('?', x, y - 5, 50, 'rgba(255,248,231,.8)', { font: FONT_T, weight: 800 }); }
   });
-  title('Y TE QUEDAN', 540, 320, 90, { tin: d - .2, anim: 'rise', dur: .4, stagger: .03 });
-  title('35 POR DESCUBRIR.', 540, 430, 100, { tin: d - .45, anim: 'rise', dur: .4, stagger: .025, gold: true });
+  title(tr('Y TE QUEDAN', 'AND YOU STILL HAVE'), 540, 320, 90, { tin: d - .2, anim: 'rise', dur: .4, stagger: .03 });
+  title(tr('35 POR DESCUBRIR.', '35 TO DISCOVER.'), 540, 430, 100, { tin: d - .45, anim: 'rise', dur: .4, stagger: .025, gold: true });
 }
 
 // ── placa de conversión ──
@@ -192,9 +192,9 @@ function card(t) {
   g.drawImage(IMG.ader, 540 - lw / 2, 205, lw, lh);
   const ip = E.backOut(seg(d, 0, .4), 1.8), is = 230 * ip;
   if (is > 1) { g.save(); g.translate(540, 480); rr(-is / 2, -is / 2, is, is, is * .22); g.save(); g.clip(); g.drawImage(IMG.app_icon, -is / 2, -is / 2, is, is); g.restore(); g.restore(); }
-  title('TU PRÓXIMO MINUTO', 540, 690, 92, { tin: d - .1, anim: 'slam', dur: .25, stagger: .02, maxW: 1000 });
-  title('EMPIEZA ACÁ 👇', 540, 810, 120, { tin: d - .3, anim: 'slam', dur: .25, stagger: .03, gold: true });
-  [['GRATIS', .6], ['SIN CUENTA NI REGISTRO', .8], ['JUGÁ OFFLINE', 1.0]].forEach(([s, t0], i) => {
+  title(tr('TU PRÓXIMO MINUTO', 'YOUR NEXT MINUTE'), 540, 690, 92, { tin: d - .1, anim: 'slam', dur: .25, stagger: .02, maxW: 1000 });
+  title(tr('EMPIEZA ACÁ 👇', 'STARTS HERE 👇'), 540, 810, 120, { tin: d - .3, anim: 'slam', dur: .25, stagger: .03, gold: true });
+  [[tr('GRATIS', 'FREE'), .6], [tr('SIN CUENTA NI REGISTRO', 'NO ACCOUNT NEEDED'), .8], [tr('JUGÁ OFFLINE', 'PLAYS OFFLINE'), 1.0]].forEach(([s, t0], i) => {
     const y = 960 + i * 92, p = E.backOut(seg(d, t0, t0 + .3), 2.2);
     if (p > 0) { g.save(); g.translate(250, y); g.scale(p, p); g.beginPath(); g.arc(0, 0, 38, 0, Math.PI * 2); g.fillStyle = '#2FB560'; g.fill(); g.lineWidth = 7; g.strokeStyle = C.ink; g.stroke(); g.lineWidth = 11; g.strokeStyle = '#fff'; g.lineCap = 'round'; g.beginPath(); g.moveTo(-16, 1); g.lineTo(-4, 13); g.lineTo(18, -12); g.stroke(); g.restore(); }
     title(s, 620, y + 4, 64, { tin: d - t0 - .05, anim: 'rise', dur: .3, stagger: .015, maxW: 600 });
@@ -223,19 +223,19 @@ function drawScene(t) {
   glow('warm', 540, 1000, 900, .4);
   if (t < T_GRID + .2) { phone(t); stopwatch(t); }
   if (t < T_PHONE) {
-    title('¿CUÁNTO TARDÁS EN', 540, 420, 84, { tin: t - .15, anim: 'rise', dur: .45, stagger: .02, tout: t > T_PHONE - .3 ? t - (T_PHONE - .3) : null });
-    title('DESCUBRIR TU PRIMER', 540, 530, 84, { tin: t - .35, anim: 'rise', dur: .45, stagger: .02, tout: t > T_PHONE - .3 ? t - (T_PHONE - .3) : null });
-    title('PERSONAJE?', 540, 650, 110, { tin: t - .55, anim: 'rise', dur: .45, stagger: .03, gold: true, tout: t > T_PHONE - .3 ? t - (T_PHONE - .3) : null });
-    title('Te cronometramos.', 540, 1320, 60, { tin: t - 1.2, anim: 'rise', dur: .4, stagger: .015, tout: t > T_PHONE - .3 ? t - (T_PHONE - .3) : null });
+    title(tr('¿CUÁNTO TARDÁS EN', 'HOW FAST CAN YOU'), 540, 420, 84, { tin: t - .15, anim: 'rise', dur: .45, stagger: .02, tout: t > T_PHONE - .3 ? t - (T_PHONE - .3) : null });
+    title(tr('DESCUBRIR TU PRIMER', 'UNLOCK YOUR FIRST'), 540, 530, 84, { tin: t - .35, anim: 'rise', dur: .45, stagger: .02, tout: t > T_PHONE - .3 ? t - (T_PHONE - .3) : null });
+    title(tr('PERSONAJE?', 'CHARACTER?'), 540, 650, 110, { tin: t - .55, anim: 'rise', dur: .45, stagger: .03, gold: true, tout: t > T_PHONE - .3 ? t - (T_PHONE - .3) : null });
+    title(tr('Te cronometramos.', "We're timing you."), 540, 1320, 60, { tin: t - 1.2, anim: 'rise', dur: .4, stagger: .015, tout: t > T_PHONE - .3 ? t - (T_PHONE - .3) : null });
   }
   // leyendas de la partida (sobre la pared, fuera de la UI)
   const cap = (s, t0, t1, gold) => title(s, 540, 1720, 76, { tin: t - t0, tout: t > t1 ? t - t1 : null, anim: 'rise', dur: .35, stagger: .02, gold, maxW: 1000 });
   if (t > 3.2 && t < 12.6) {
     g.save(); g.globalAlpha = win(t, 3.2, 12.6, .3, .3); rr(80, 1650, 920, 140, 44); g.fillStyle = 'rgba(12,10,20,.8)'; g.fill(); g.restore();
-    cap('TOCÁ: 1 MONEDA POR TOQUE', 3.3, 7.3);
-    cap('CONTRATÁ OTRO (25)', 7.45, 8.2);
-    cap('ARRASTRALO Y FUSIONÁ', 8.25, 9.0);
-    cap('¡MENOS DE UN MINUTO!', 9.1, 12.4, true);
+    cap(tr('TOCÁ: 1 MONEDA POR TOQUE', 'TAP: 1 COIN PER TAP'), 3.3, 7.3);
+    cap(tr('CONTRATÁ OTRO (25)', 'HIRE ANOTHER (25)'), 7.45, 8.2);
+    cap(tr('ARRASTRALO Y FUSIONÁ', 'DRAG IT AND MERGE'), 8.25, 9.0);
+    cap(tr('¡MENOS DE UN MINUTO!', 'UNDER A MINUTE!'), 9.1, 12.4, true);
   }
   if (t >= T_GRID) grid(t);
 }

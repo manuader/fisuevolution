@@ -42,7 +42,7 @@ function assetList() {
 
 // ───────────────────────── la torre (fuera del teléfono) ─────────────────────────
 const FLOORS = [ // de abajo hacia arriba (economy.json → floors)
-  { bg: 'alley', name: 'CALLEJÓN', sil: 'homeless' }, { bg: 'urban', name: 'CIUDAD', sil: 'repartidor' },
+  { bg: 'alley', name: tr('CALLEJÓN', 'ALLEY'), sil: 'homeless' }, { bg: 'urban', name: tr('CIUDAD', 'CITY'), sil: 'repartidor' },
   { bg: 'corporate', sil: 'ceo' }, { bg: 'luxury', sil: 'rey_ladrillo' }, { bg: 'island', sil: 'multimillonario' },
   { bg: 'moon', sil: 'dueno_luna' }, { bg: 'mars', sil: 'dueno_marte' }, { bg: 'solar', sil: 'magnate_solar' },
   { bg: 'galaxy', sil: 'senor_galaxia' }, { bg: 'god_realm', sil: 'god' },
@@ -81,7 +81,7 @@ function drawFloorRoom(i, t, lit) {
   rr(TX, y, FW, FH, 18); g.lineWidth = 10; g.strokeStyle = C.ink; g.stroke();
   g.restore();
   // chapa del piso
-  const label = i === 9 ? '???' : (lit(i) ? `PISO ${i + 1} · ${f.name}` : `PISO ${i + 1} · ???`);
+  const label = i === 9 ? '???' : (lit(i) ? `${tr('PISO', 'FLOOR')} ${i + 1} · ${f.name}` : `${tr('PISO', 'FLOOR')} ${i + 1} · ???`);
   g.save();
   g.font = `900 30px ${FONT_N}`;
   const w = g.measureText(label).width + 44;
@@ -237,7 +237,7 @@ const COIN_KEYS = [
   [36.4, 0], [38.2, 2400, E.cIn],
 ];
 const PS_KEYS = [[13.0, 0], [14.3, 48, E.cOut], [15.1, 96], [25.3, 96], [25.6, 288], [26.9, 288], [27.1, 96], [35.05, 140], [35.3, 0], [36.4, 0], [38, 22]];
-function multAt(t) { return t < 36.2 ? '×1,0' : '×1,6'; }
+function multAt(t) { return t < 36.2 ? tr('×1,0', '×1.0') : tr('×1,6', '×1.6'); }
 
 function drawBgPts(img, zoom, ox = 0, oy = 0) {
   const s = SH / img.height * zoom;
@@ -323,7 +323,7 @@ function ribbonNew(x, y, s, pin, a = 1) {
   g.save(); g.translate(x, y); g.scale(s * E.backOut(pin, 2), s * E.backOut(pin, 2)); g.globalAlpha = a;
   const w = 300, h = w * IMG.ribbon.height / IMG.ribbon.width;
   g.drawImage(IMG.ribbon, -w / 2, -h / 2, w, h);
-  text('¡NUEVO!', 0, -4, 38, C.cream, { stroke: 7 });
+  text(tr('¡NUEVO!', "NEW!"), 0, -4, 38, C.cream, { stroke: 7 });
   g.restore();
 }
 function drawTapFx(t) {
@@ -345,7 +345,7 @@ function drawTapFx(t) {
         glow('gold', a.x, a.y - 30, 80 + 120 * E.expoOut(seg(d, 0, .3)), 1 - seg(d, .2, .9));
         g.save(); const s = E.backOut(seg(d, 0, .3), 2.4);
         g.translate(a.x, a.y - 120 - d * 40); g.scale(s, s); g.globalAlpha = 1 - seg(d, .6, .9);
-        text('¡PEGARLA! ×5', 0, 0, 30, C.yellow, { stroke: 7 });
+        text(tr('¡PEGARLA! ×5', "LUCKY TAP! ×5"), 0, 0, 30, C.yellow, { stroke: 7 });
         g.restore();
       }
       burst(t, { t0: a.t, x: a.x, y: a.y - 40, n: 16, seed: 2100, kind: 'coin', spd: [200, 500], ang: [-Math.PI * .9, -Math.PI * .1], grav: 900, life: [.6, .9], size: [16, 26] });
@@ -386,8 +386,8 @@ function drawHud(t, a) {
   g.restore();
   // bonus activo (chip bajo el multiplicador)
   const chips = [];
-  if (t > 21.85 && t < 29.2) chips.push({ icon: IMG.b_mate, txt: '−30% contratar', t0: 21.85 });
-  if (t > 25.35 && t < 27.0) chips.push({ icon: IMG.coin, txt: '×3 ingresos', t0: 25.35 });
+  if (t > 21.85 && t < 29.2) chips.push({ icon: IMG.b_mate, txt: tr('−30% contratar', "−30% hiring"), t0: 21.85 });
+  if (t > 25.35 && t < 27.0) chips.push({ icon: IMG.coin, txt: tr('×3 ingresos', "×3 income"), t0: 25.35 });
   chips.forEach((c, i) => {
     const pin = E.backOut(seg(t, c.t0, c.t0 + .35));
     g.save(); g.translate(SW / 2, 178 + i * 28); g.scale(pin, pin);
@@ -404,7 +404,7 @@ function drawHud(t, a) {
     g.save(); g.translate(330, 172); g.scale(pin * pr, pin * pr);
     rr(-80, -17, 160, 34, 17); g.fillStyle = C.yellow; g.fill(); g.lineWidth = 3; g.strokeStyle = C.brown; g.stroke();
     g.drawImage(IMG.oro, -74, -13, 26, 26);
-    text('Reencarnar +3', 12, 1, 14, C.ink);
+    text(tr('Reencarnar +3', "Reincarnate +3"), 12, 1, 14, C.ink);
     g.restore();
     void press;
   }
@@ -416,8 +416,8 @@ function drawBottomBar(t, a) {
   rr(-4, 812, SW + 8, 140, 26); g.fillStyle = 'rgba(255,248,231,.94)'; g.fill();
   g.lineWidth = 1.5; g.strokeStyle = 'rgba(122,78,38,.3)'; g.stroke();
   const tabs = [
-    ['Contratar', null], ['Mejoras', IMG.tab_upgrades], ['Vestimenta', IMG.tab_skins],
-    ['Bonus', IMG.tab_gifts], ['Tienda', IMG.tab_shop], ['Menú', IMG.tab_menu],
+    [tr('Contratar', "Hire"), null], [tr('Mejoras', "Upgrades"), IMG.tab_upgrades], [tr('Vestimenta', "Outfits"), IMG.tab_skins],
+    ['Bonus', IMG.tab_gifts], [tr('Tienda', "Store"), IMG.tab_shop], [tr('Menú', "Menu"), IMG.tab_menu],
   ];
   const xs = [41, 110, 180, 249, 318, 388];
   tabs.forEach(([label, im], i) => {
@@ -442,7 +442,7 @@ function drawQuickHire(t, a) {
   g.save(); g.globalAlpha = a; g.translate(QH[0], QH[1]); g.scale(pr, pr);
   rr(-83, -25, 166, 50, 25); g.fillStyle = 'rgba(255,255,255,.96)'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = 'rgba(0,0,0,.12)'; g.stroke();
   g.save(); g.beginPath(); g.arc(-56, 0, 19, 0, Math.PI * 2); g.clip(); g.drawImage(IMG.face_homeless, -76, -20, 40, 40); g.restore();
-  text('El Fisura', -30, -8, 13, C.ink, { align: 'left', weight: 900 });
+  text(TIER.homeless.name, -30, -8, 13, C.ink, { align: 'left', weight: 900 });
   g.drawImage(IMG.coin, -30, 4, 15, 15);
   text(t > 30 ? '19' : '25', -11, 12, 14, C.ink, { align: 'left' });
   g.restore();
@@ -515,7 +515,7 @@ function popupReveal(t) { // ¡NUEVO! El Trapito — la celebración esconde la 
   ribbonNew(SW / 2, 230, .9, seg(t, t0 + .2, t0 + .6), 1 - back);
   g.save(); g.globalAlpha = (1 - back) * seg(t, t0 + .4, t0 + .7);
   pill(SW / 2, 610, 200, 44, { fill: C.cream });
-  text('El Trapito', SW / 2, 614, 22, C.ink);
+  text(TIER.trapito.name, SW / 2, 614, 22, C.ink);
   g.restore();
   burst(t, { t0: t0 + .05, x: SW / 2, y: 430, n: 40, seed: 2200, kind: 'confetti', spd: [300, 700], grav: 500, life: [1, 1.4], size: [8, 13], drag: 1.6 });
 }
@@ -525,8 +525,8 @@ function bannerNewFloor(t) {
   const p = E.backOut(seg(t, t0, t0 + .4), 1.6), out = E.cIn(seg(t, t1 - .25, t1));
   g.save(); g.translate(SW / 2, 230 - out * 60); g.scale(p, p); g.globalAlpha = 1 - out;
   rr(-150, -40, 300, 80, 22); g.fillStyle = C.yellow; g.fill(); g.lineWidth = 3; g.strokeStyle = C.brown; g.stroke();
-  text('¡PISO NUEVO!', 0, -10, 26, C.ink);
-  text('Subí a visitarlo', 0, 20, 14, C.brown);
+  text(tr('¡PISO NUEVO!', "NEW FLOOR!"), 0, -10, 26, C.ink);
+  text(tr('Subí a visitarlo', "Go up and visit"), 0, 20, 14, C.brown);
   g.restore();
 }
 function popupCareer(t) {
@@ -535,14 +535,14 @@ function popupCareer(t) {
   dim(P.alpha);
   g.save(); g.globalAlpha = P.alpha;
   g.translate(SW / 2, 440); g.scale(P.s, P.s); g.translate(-SW / 2, -440);
-  gamePanel(SW / 2, 440, 390, 520, { bow: true, title: '¡Te recibiste en la UBA!' });
-  text('¿Y ahora qué?', SW / 2, 262, 16, C.brown);
-  wrap('Elegí tu carrera. Dura hasta la próxima reencarnación.', SW / 2, 284, 11, 320, 14, '#7d6a55', { weight: 700 });
+  gamePanel(SW / 2, 440, 390, 520, { bow: true, title: tr('¡Te recibiste en la UBA!', "You graduated from UBA!") });
+  text(tr('¿Y ahora qué?', "Now what?"), SW / 2, 262, 16, C.brown);
+  wrap(tr('Elegí tu carrera. Dura hasta la próxima reencarnación.', 'Pick your career. It lasts until your next reincarnation.'), SW / 2, 284, 11, 320, 14, '#7d6a55', { weight: 700 });
   const rows = [
-    ['junior_programmer', 'Programador Jr.', 'Bienvenida: 45K de plata'],
-    ['junior_architect', 'Arquitecto Jr.', 'Skin exclusiva: Pie de Obra'],
-    ['junior_doctor', 'Médico Jr.', 'Café Cargado gratis, sin cooldown'],
-    ['junior_lawyer', 'Abogado Jr.', '−50% al costo de contratar, 10 min'],
+    ['junior_programmer', tr('Programador Jr.', "Junior Developer"), tr('Bienvenida: 45K de plata', "Welcome bonus: 45K coins")],
+    ['junior_architect', tr('Arquitecto Jr.', "Junior Architect"), tr('Skin exclusiva: Pie de Obra', "Exclusive skin: On Site")],
+    ['junior_doctor', tr('Médico Jr.', "Medical Resident"), tr('Café Cargado gratis, sin cooldown', "Free Strong Coffee, no cooldown")],
+    ['junior_lawyer', tr('Abogado Jr.', "Junior Associate"), tr('−50% al costo de contratar, 10 min', "−50% hiring cost, 10 min")],
   ];
   const sel = seg(t, 18.9, 19.05);
   rows.forEach(([id, name, rew], i) => {
@@ -562,8 +562,8 @@ function popupCareer(t) {
   g.restore();
 }
 const BOOSTS = [
-  ['b_mate', 'Unos Mates', null], ['b_cafe', 'Café Cargado', 'Corporativo'], ['b_asado', 'Asado del Domingo', 'Marte'],
-  ['b_milanesa', 'Milanesa', 'Galaxia'], ['b_turbo', 'Modo Enfocado', 'Reino divino'],
+  ['b_mate', tr('Unos Mates', "A Round of Mate"), null], ['b_cafe', tr('Café Cargado', "Strong Coffee"), tr('Corporativo', "Corporate")], ['b_asado', tr('Asado del Domingo', "Sunday Asado"), tr('Marte', "Mars")],
+  ['b_milanesa', 'Milanesa', tr('Galaxia', "Galaxy")], ['b_turbo', tr('Modo Enfocado', "Focus Mode"), tr('Reino divino', "God realm")],
 ];
 function panelGifts(t) {
   const P = panelAnim(t, 20.85, 23.15);
@@ -571,9 +571,9 @@ function panelGifts(t) {
   dim(P.alpha);
   g.save(); g.globalAlpha = P.alpha;
   g.translate(SW / 2, 480); g.scale(P.s, P.s); g.translate(-SW / 2, -480);
-  gamePanel(SW / 2, 480, 400, 620, { bow: true, title: 'Regalos' });
+  gamePanel(SW / 2, 480, 400, 620, { bow: true, title: tr('Regalos', "Gifts") });
   // racha diaria
-  text('Racha diaria', 38, 248, 14, C.brown, { align: 'left' });
+  text(tr('Racha diaria', "Daily streak"), 38, 248, 14, C.brown, { align: 'left' });
   for (let d = 0; d < 7; d++) {
     const x = 50 + d * 55, y = 290;
     const today = d === 3, done = d < 3;
@@ -603,19 +603,19 @@ function panelGifts(t) {
     g.drawImage(IMG[key], -30, -52, 60, 60);
     g.restore();
     text(name, 0, 20, 11.5, lock ? '#8e8170' : C.ink, { maxW: 108 });
-    if (lock) { lockIcon(22, -40, .32, '#8e8170'); text('Se desbloquea en', 0, 38, 9, '#8e8170', { weight: 700 }); text(lock, 0, 50, 9.5, '#8e8170'); }
-    else if (on) text('Activo · 0:59', 0, 44, 11, C.orange);
-    else greenBtn(0, 44, 80, 'Activar', { h: 24, size: 12, t, pressT: 21.75 });
+    if (lock) { lockIcon(22, -40, .32, '#8e8170'); text(tr('Se desbloquea en', "Unlocks at"), 0, 38, 9, '#8e8170', { weight: 700 }); text(lock, 0, 50, 9.5, '#8e8170'); }
+    else if (on) text(tr('Activo · 0:59', "Active · 0:59"), 0, 44, 11, C.orange);
+    else greenBtn(0, 44, 80, tr('Activar', "Activate"), { h: 24, size: 12, t, pressT: 21.75 });
     g.restore();
   });
   // cofres
-  text('Cofres de pintas', 38, 660, 14, C.brown, { align: 'left' });
+  text(tr('Cofres de pintas', "Skin chests"), 38, 660, 14, C.brown, { align: 'left' });
   g.save();
   rr(38, 682, 354, 70, 14); g.fillStyle = '#FFF8E7'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = 'rgba(122,78,38,.4)'; g.stroke();
   const shake = t > 22.4 && t < 22.95 ? Math.sin(t * 40) * 2 : 0;
   g.drawImage(IMG.chest, 52 + shake, 690, 64, 54);
-  text('1 sin abrir', 130, 717, 14, C.ink, { align: 'left' });
-  greenBtn(330, 717, 90, 'Abrir', { h: 30, size: 14, t, pressT: 22.95 });
+  text(tr('1 sin abrir', "1 unopened"), 130, 717, 14, C.ink, { align: 'left' });
+  greenBtn(330, 717, 90, tr('Abrir', "Open"), { h: 30, size: 14, t, pressT: 22.95 });
   g.restore();
   g.restore();
 }
@@ -631,7 +631,7 @@ function chestOverlay(t) {
     const im = IMG['chest_f' + idx];
     const s = 340 / im.width * (1 + seg(t, 23.95, 24.05) * .1);
     g.save(); g.globalAlpha = a; g.drawImage(im, SW / 2 - im.width * s / 2, 470 - im.height * s / 2, im.width * s, im.height * s); g.restore();
-    if (t < 23.3) text('Tocá para abrir el cofre', SW / 2, 600, 14, C.cream, { alpha: a });
+    if (t < 23.3) text(tr('Tocá para abrir el cofre', "Tap to open the chest"), SW / 2, 600, 14, C.cream, { alpha: a });
   }
   const fl = seg(t, 24.0, 24.08) * (1 - seg(t, 24.08, 24.3));
   if (fl > 0) { g.fillStyle = `rgba(255,250,230,${fl})`; g.fillRect(0, 0, SW, SH); }
@@ -645,18 +645,18 @@ function chestOverlay(t) {
       glow('gold', 0, 10, 130, .35);
       drawChar('homeless_idle__oro', 0, 128, 240, { shadow: false });
       g.save(); rr(-40, -182, 80, 24, 12); g.fillStyle = '#9B59D0'; g.fill(); g.lineWidth = 2; g.strokeStyle = '#fff'; g.stroke(); g.restore();
-      text('Épica', 0, -169, 13, '#fff');
+      text(tr('Épica', "Epic"), 0, -169, 13, '#fff');
     }
     g.restore();
     if (flip > .5) {
       g.save(); g.globalAlpha = a * seg(t, 24.25, 24.45);
-      text('¡Pinta nueva!', SW / 2, 250, 30, C.yellow, { stroke: 7 });
-      text('De Oro', SW / 2, 645, 26, C.cream, { stroke: 6 });
-      text('Para El Fisura.', SW / 2, 672, 15, C.cream, { stroke: 4 });
+      text(tr('¡Pinta nueva!', "New look!"), SW / 2, 250, 30, C.yellow, { stroke: 7 });
+      text(tr('De Oro', "Golden"), SW / 2, 645, 26, C.cream, { stroke: 6 });
+      text(tr('Para El Fisura.', "For The Hobo."), SW / 2, 672, 15, C.cream, { stroke: 4 });
       g.restore();
     }
     g.save(); g.globalAlpha = a * seg(t, 24.4, 24.6);
-    greenBtn(SW / 2, 728, 150, 'Ponérsela', { t, pressT: 24.75, h: 38, size: 16 });
+    greenBtn(SW / 2, 728, 150, tr('Ponérsela', "Wear it"), { t, pressT: 24.75, h: 38, size: 16 });
     g.restore();
     burst(t, { t0: 24.08, x: SW / 2, y: 460, n: 36, seed: 2300, kind: 'confetti', spd: [300, 750], grav: 500, life: [1, 1.5], size: [8, 13], drag: 1.5 });
   }
@@ -677,21 +677,21 @@ function popupSpecial(t) {
   dim(P.alpha);
   g.save(); g.globalAlpha = P.alpha;
   g.translate(SW / 2, 470); g.scale(P.s, P.s); g.translate(-SW / 2, -470);
-  gamePanel(SW / 2, 470, 370, 470, { bow: true, title: '¡Apareció un personaje especial!' });
+  gamePanel(SW / 2, 470, 370, 470, { bow: true, title: tr('¡Apareció un personaje especial!', "A special character appeared!") });
   rr(SW / 2 - 150, 300, 300, 290, 16); g.fillStyle = '#FFF3C4'; g.fill(); g.lineWidth = 3; g.strokeStyle = C.yellow; g.stroke();
   rr(SW / 2 - 70, 316, 140, 150, 12); g.fillStyle = '#FBE39A'; g.fill(); g.lineWidth = 2; g.strokeStyle = 'rgba(122,78,38,.5)'; g.stroke();
   drawChar('sp_cryptobro', SW / 2, 458, 132, { shadow: false });
   text('Crypto Bro', SW / 2, 492, 20, C.ink);
-  wrap('Te dice "hacé tu propia investigación" y te muestra un JPG de un mono. +3% de income, DYOR.', SW / 2, 540, 12, 260, 15, '#6f5b44');
-  greenBtn(SW / 2, 650, 130, '¡Es mío!', { t, pressT: 28.55, h: 36, size: 16 });
+  wrap(tr('Te dice "hacé tu propia investigación" y te muestra un JPG de un mono. +3% de income, DYOR.', "Says \"do your own research\" and shows you a JPEG of a monkey. +3% income, DYOR."), SW / 2, 540, 12, 260, 15, '#6f5b44');
+  greenBtn(SW / 2, 650, 130, tr('¡Es mío!', "It's mine!"), { t, pressT: 28.55, h: 36, size: 16 });
   g.restore();
 }
 const UPGRADES = [
-  ['up_income', 'Más Platita', 'Todo lo que genera la torre entra más gordo.', 3],
-  ['up_tap', 'Dedos Curtidos', 'Cada dedazo tuyo vale más.', 5],
-  ['up_crit', 'Pegarla', 'Cada tanto un toque sale premiado.', 2],
-  ['up_offline', 'Modo Siesta', 'Mientras dormís, la torre sigue laburando.', 4],
-  ['up_spawn', 'Precios Cuidados', 'Contratar sale más barato.', 1],
+  ['up_income', tr('Más Platita', "More Cash"), tr('Todo lo que genera la torre entra más gordo.', "Everything the tower earns comes in fatter."), 3],
+  ['up_tap', tr('Dedos Curtidos', "Hardened Fingers"), tr('Cada dedazo tuyo vale más.', "Every tap of yours is worth more."), 5],
+  ['up_crit', tr('Pegarla', "Hit It Big"), tr('Cada tanto un toque sale premiado.', "Every so often a tap comes out lucky."), 2],
+  ['up_offline', tr('Modo Siesta', "Siesta Mode"), tr('Mientras dormís, la torre sigue laburando.', "While you sleep, the tower keeps working."), 4],
+  ['up_spawn', tr('Precios Cuidados', "Price Control"), tr('Contratar sale más barato.', "Hiring gets cheaper."), 1],
 ];
 function panelUpgrades(t) {
   const P = panelAnim(t, 29.5, 31.55);
@@ -699,10 +699,10 @@ function panelUpgrades(t) {
   dim(P.alpha);
   g.save(); g.globalAlpha = P.alpha;
   g.translate(SW / 2, 470); g.scale(P.s, P.s); g.translate(-SW / 2, -470);
-  gamePanel(SW / 2, 470, 400, 600, { frame: 'machine', title: 'Mejoras' });
+  gamePanel(SW / 2, 470, 400, 600, { frame: 'machine', title: tr('Mejoras', "Upgrades") });
   // pestañas
-  rr(40, 230, 170, 34, 17); g.fillStyle = '#E6DCC6'; g.fill(); text('Personajes', 125, 248, 14, '#7d6a55');
-  rr(220, 230, 170, 34, 17); g.fillStyle = C.orange; g.fill(); g.lineWidth = 2; g.strokeStyle = C.brown; g.stroke(); text('Permanentes', 305, 248, 14, '#fff');
+  rr(40, 230, 170, 34, 17); g.fillStyle = '#E6DCC6'; g.fill(); text(tr('Personajes', "Characters"), 125, 248, 14, '#7d6a55');
+  rr(220, 230, 170, 34, 17); g.fillStyle = C.orange; g.fill(); g.lineWidth = 2; g.strokeStyle = C.brown; g.stroke(); text(tr('Permanentes', "Permanent"), 305, 248, 14, '#fff');
   const bought = [30.1, 30.5, 30.9].filter(x => t >= x + .05).length;
   g.drawImage(IMG.oro, 150, 272, 22, 22); text(`ORO: ${12 - bought * 2}`, 215, 284, 14, C.brown);
   UPGRADES.forEach(([ic, name, flav, lv], i) => {
@@ -727,7 +727,7 @@ function panelUpgrades(t) {
     rr(-30, -18, 60, 36, 18); g.fillStyle = C.yellow; g.fill(); g.lineWidth = 2; g.strokeStyle = C.brown; g.stroke();
     g.drawImage(IMG.oro, -24, -10, 20, 20); text(String(i === 0 ? 2 : [0, 2, 3, 3, 1][i]), 8, 1, 15, C.ink);
     g.restore();
-    text(`Nivel ${lvl} / 10`, 60, 20, 10, '#7d6a55', { align: 'left' });
+    text(`${tr('Nivel', 'Level')} ${lvl} / 10`, 60, 20, 10, '#7d6a55', { align: 'left' });
     g.restore();
     if (i === 0) for (const x of [30.1, 30.5, 30.9]) {
       const d = t - x;
@@ -742,14 +742,14 @@ function popupOffline(t) {
   dim(P.alpha);
   g.save(); g.globalAlpha = P.alpha;
   g.translate(SW / 2, 470); g.scale(P.s, P.s); g.translate(-SW / 2, -470);
-  gamePanel(SW / 2, 470, 340, 330, { bow: true, title: 'Mientras no estabas…', close: false });
+  gamePanel(SW / 2, 470, 340, 330, { bow: true, title: tr('Mientras no estabas…', "While you were away…"), close: false });
   // luna y zzz
   const mz = t - 31.75;
   g.drawImage(IMG.up_offline, SW / 2 - 40, 380, 80, 80);
   for (let k = 0; k < 3; k++) { const ph = (mz * .8 + k / 3) % 1; text('z', SW / 2 + 40 + ph * 30, 400 - ph * 40, 14 + k * 3, C.brown, { alpha: 1 - ph }); }
   g.drawImage(IMG.coin, SW / 2 - 90, 482, 36, 36);
-  text('+48,2K', SW / 2 + 16, 501, 34, C.ink);
-  greenBtn(SW / 2, 578, 140, 'Cobrar', { t, pressT: 32.6, h: 38, size: 17 });
+  text(tr('+48,2K', "+48.2K"), SW / 2 + 16, 501, 34, C.ink);
+  greenBtn(SW / 2, 578, 140, tr('Cobrar', "Collect"), { t, pressT: 32.6, h: 38, size: 17 });
   g.restore();
   burst(t, { t0: 32.62, x: SW / 2, y: 501, n: 22, seed: 2400, kind: 'coin', spd: [300, 700], ang: [-Math.PI * .95, -Math.PI * .05], grav: 900, life: [.6, 1], size: [18, 28] });
 }
@@ -759,20 +759,20 @@ function popupPrestige(t) {
   dim(P.alpha);
   g.save(); g.globalAlpha = P.alpha;
   g.translate(SW / 2, 470); g.scale(P.s, P.s); g.translate(-SW / 2, -470);
-  gamePanel(SW / 2, 470, 380, 480, { frame: 'gold', title: '¿Reencarnar?' });
+  gamePanel(SW / 2, 470, 380, 480, { frame: 'gold', title: tr('¿Reencarnar?', "Reincarnate?") });
   g.drawImage(IMG.oro, SW / 2 - 96, 300, 60, 60);
   text('+3 ORO', SW / 2 + 30, 332, 36, C.ink);
-  wrap('Tu multiplicador global pasa de ×1,0 a ×1,6', SW / 2, 398, 14, 300, 18, C.brown);
-  wrap('Conservás: tu ORO, el multiplicador, las mejoras permanentes y las skins', SW / 2, 450, 11.5, 300, 15, '#6f5b44', { weight: 700 });
-  wrap('Cada vida arranca más rápido.', SW / 2, 500, 13, 300, 16, C.orange);
+  wrap(tr('Tu multiplicador global pasa de ×1,0 a ×1,6', "Your global multiplier goes from ×1.0 to ×1.6"), SW / 2, 398, 14, 300, 18, C.brown);
+  wrap(tr('Conservás: tu ORO, el multiplicador, las mejoras permanentes y las skins', "You keep: your ORO, the multiplier, permanent upgrades and skins"), SW / 2, 450, 11.5, 300, 15, '#6f5b44', { weight: 700 });
+  wrap(tr('Cada vida arranca más rápido.', "Every life starts faster."), SW / 2, 500, 13, 300, 16, C.orange);
   // botones
   g.save(); rr(SW / 2 - 160, 572, 130, 40, 20); g.fillStyle = '#E3D9C4'; g.fill(); g.restore();
-  text('Todavía no', SW / 2 - 95, 593, 14, '#7d6a55');
+  text(tr('Todavía no', "Not yet"), SW / 2 - 95, 593, 14, '#7d6a55');
   let pr = 1; const d = t - 34.95; if (d >= 0 && d < .15) pr = .92;
   g.save(); g.translate(SW / 2 + 70, 592); g.scale(pr, pr);
   rr(-86, -22, 172, 44, 22); g.fillStyle = '#3F7FE0'; g.fill(); g.lineWidth = 2.5; g.strokeStyle = '#214C94'; g.stroke();
   g.drawImage(IMG.reincarnate, -80, -17, 34, 34);
-  text('Reencarnar ahora', 16, 1, 13.5, '#fff', { maxW: 124 });
+  text(tr('Reencarnar ahora', "Reincarnate now"), 16, 1, 13.5, '#fff', { maxW: 124 });
   g.restore();
   g.restore();
 }
@@ -824,8 +824,8 @@ function drawGameScreen(t) {
   const uiIn = E.cOut(seg(t, 5.9, 6.6));
   const uia = cl(uiIn * cl(hideA));
   drawHud(t, uia);
-  eventBanner(t, 25.3, 26.85, '¡Cayó el Plan Platita!', 'Imprimimos alegría x3. No preguntes de dónde sale.', '#E8A317', IMG.coin);
-  eventBanner(t, 26.95, 27.75, 'Se cayó Mercado Pago', 'Nadie puede pagar nada. Todo sale el doble.', '#D9443A', null);
+  eventBanner(t, 25.3, 26.85, tr('¡Cayó el Plan Platita!', "Plan Platita just dropped!"), tr('Imprimimos alegría x3. No preguntes de dónde sale.', "Printing happiness at x3. Don't ask where it comes from."), '#E8A317', IMG.coin);
+  eventBanner(t, 26.95, 27.75, tr('Se cayó Mercado Pago', "The payment app is down"), tr('Nadie puede pagar nada. Todo sale el doble.', "Nobody can pay for anything. Everything costs double."), '#D9443A', null);
   bannerNewFloor(t);
   drawQuickHire(t, uia * (1 - seg(t, 16.2, 16.4) + seg(t, 20.3, 20.6)));
   drawBottomBar(t, uia);
@@ -884,14 +884,14 @@ function sceneCTA(t) {
   g.restore();
   rays(540, 560, 16, t * .3, 620 * ip, 'rgba(255,217,61,1)', .12);
   title('FISUEVOLUTION', 540, 850, 104, { tin: t - 42.55, stagger: .025, anim: 'rise', dur: .55 });
-  title('DESCARGALO GRATIS', 540, 985, 104, { tin: t - 42.8, stagger: .025, anim: 'rise', dur: .55, gold: true, maxW: 980 });
+  title(tr('DESCARGALO GRATIS', "DOWNLOAD FREE"), 540, 985, 104, { tin: t - 42.8, stagger: .025, anim: 'rise', dur: .55, gold: true, maxW: 980 });
   const bp = E.backOut(seg(t, 43.2, 43.6), 2);
   const pulse = t > 43.9 ? 1 + Math.max(0, Math.sin((t - 43.9) * Math.PI * 1.6)) * .025 : 1;
   appStoreBadge(540, 1140, 430, bp * pulse, cl(bp));
   // firma del estudio
   const ap = E.cOut(seg(t, 43.4, 43.9));
   g.save(); g.globalAlpha = ap;
-  text('UN JUEGO DE', 540, 1300, 30, 'rgba(255,248,231,.75)');
+  text(tr('UN JUEGO DE', "A GAME BY"), 540, 1300, 30, 'rgba(255,248,231,.75)');
   const lw = 380, lh = lw * IMG.ader.height / IMG.ader.width;
   g.drawImage(IMG.ader, 540 - lw / 2, 1340 + (1 - ap) * 20, lw, lh);
   g.restore();
@@ -939,30 +939,30 @@ function drawScene(t) {
   g.restore();
 
   // leyendas (fuera del teléfono)
-  caption(t, '¿QUÉ HAY EN', .3, 1.6, 330, 108);
-  caption(t, 'EL ÚLTIMO PISO?', .5, 1.6, 450, 118, { gold: true });
-  caption(t, 'VOS ARRANCÁS ACÁ.', 3.9, 5.2, 330, 110);
-  caption(t, 'TOCÁ. JUNTÁ PLATA.', 6.5, 8.95, 700, 92);
-  caption(t, 'CONTRATÁ.', 9.2, 10.2, 700, 110);
-  caption(t, 'FUSIONÁ.', 10.4, 11.3, 700, 120, { gold: true });
-  caption(t, 'LABURAN SOLOS.', 13.2, 14.35, 700, 104);
-  caption(t, 'CADA PISO,', 14.6, 16.5, 760, 100);
-  caption(t, 'ALGUIEN NUEVO.', 14.75, 16.5, 880, 104, { gold: true });
-  caption(t, 'ELEGÍ TU CARRERA.', 17.0, 19.4, 260, 96);
-  caption(t, 'ACTIVÁ BONUS.', 20.8, 22.5, 290, 100);
-  caption(t, 'ABRÍ COFRES. GANÁ PINTAS.', 22.9, 25.0, 290, 84, { gold: true });
-  caption(t, 'SOBREVIVÍ A LA', 25.4, 27.4, 290, 92);
-  caption(t, 'ECONOMÍA ARGENTINA.', 25.55, 27.4, 395, 88, { gold: true });
-  caption(t, 'ENCONTRÁ ESPECIALES.', 27.7, 28.9, 290, 88);
-  caption(t, 'MEJORÁ TODO.', 29.5, 31.3, 270, 104);
-  caption(t, 'GANÁ HASTA DURMIENDO.', 31.7, 33.0, 290, 86, { gold: true });
-  caption(t, 'REENCARNÁ.', 33.6, 35.0, 260, 112, { gold: true });
-  caption(t, 'CADA VIDA,', 36.3, 37.9, 640, 104);
-  caption(t, 'MÁS RÁPIDO.', 36.45, 37.9, 760, 110, { gold: true });
-  caption(t, '+30 PERSONAJES', 39.0, 40.9, 330, 110, { gold: true });
-  caption(t, 'DESCUBRILOS UNO POR UNO.', 39.4, 40.9, 450, 80);
-  caption(t, '¿QUÉ HAY EN EL', 41.1, 42.0, 330, 104);
-  caption(t, 'ÚLTIMO PISO?', 41.25, 42.0, 450, 118, { gold: true });
+  caption(t, tr('¿QUÉ HAY EN', "WHAT'S ON"), .3, 1.6, 330, 108);
+  caption(t, tr('EL ÚLTIMO PISO?', "THE TOP FLOOR?"), .5, 1.6, 450, 118, { gold: true });
+  caption(t, tr('VOS ARRANCÁS ACÁ.', "YOU START HERE."), 3.9, 5.2, 330, 110);
+  caption(t, tr('TOCÁ. JUNTÁ PLATA.', "TAP. STACK CASH."), 6.5, 8.95, 700, 92);
+  caption(t, tr('CONTRATÁ.', "HIRE."), 9.2, 10.2, 700, 110);
+  caption(t, tr('FUSIONÁ.', "MERGE."), 10.4, 11.3, 700, 120, { gold: true });
+  caption(t, tr('LABURAN SOLOS.', "THEY WORK FOR YOU."), 13.2, 14.35, 700, 104);
+  caption(t, tr('CADA PISO,', "EVERY FLOOR,"), 14.6, 16.5, 760, 100);
+  caption(t, tr('ALGUIEN NUEVO.', "SOMEONE NEW."), 14.75, 16.5, 880, 104, { gold: true });
+  caption(t, tr('ELEGÍ TU CARRERA.', "PICK YOUR CAREER."), 17.0, 19.4, 260, 96);
+  caption(t, tr('ACTIVÁ BONUS.', "POP BOOSTS."), 20.8, 22.5, 290, 100);
+  caption(t, tr('ABRÍ COFRES. GANÁ PINTAS.', "OPEN CHESTS. WIN FITS."), 22.9, 25.0, 290, 84, { gold: true });
+  caption(t, tr('SOBREVIVÍ A LA', "SURVIVE A"), 25.4, 27.4, 290, 92);
+  caption(t, tr('ECONOMÍA ARGENTINA.', "BROKEN ECONOMY."), 25.55, 27.4, 395, 88, { gold: true });
+  caption(t, tr('ENCONTRÁ ESPECIALES.', "FIND SPECIALS."), 27.7, 28.9, 290, 88);
+  caption(t, tr('MEJORÁ TODO.', "UPGRADE EVERYTHING."), 29.5, 31.3, 270, 104);
+  caption(t, tr('GANÁ HASTA DURMIENDO.', "EARN IN YOUR SLEEP."), 31.7, 33.0, 290, 86, { gold: true });
+  caption(t, tr('REENCARNÁ.', "REINCARNATE."), 33.6, 35.0, 260, 112, { gold: true });
+  caption(t, tr('CADA VIDA,', "EVERY LIFE,"), 36.3, 37.9, 640, 104);
+  caption(t, tr('MÁS RÁPIDO.', "FASTER."), 36.45, 37.9, 760, 110, { gold: true });
+  caption(t, tr('+30 PERSONAJES', "+30 CHARACTERS"), 39.0, 40.9, 330, 110, { gold: true });
+  caption(t, tr('DESCUBRILOS UNO POR UNO.', "DISCOVER THEM ONE BY ONE."), 39.4, 40.9, 450, 80);
+  caption(t, tr('¿QUÉ HAY EN EL', "WHAT'S ON THE"), 41.1, 42.0, 330, 104);
+  caption(t, tr('ÚLTIMO PISO?', "TOP FLOOR?"), 41.25, 42.0, 450, 118, { gold: true });
 }
 
 function sceneSetup() {

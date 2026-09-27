@@ -40,10 +40,10 @@ function drawScene(t) {
     rr(-is / 2, -is / 2, is, is, is * .22); g.save(); g.clip(); g.drawImage(IMG.app_icon, -is / 2, -is / 2, is, is); g.restore();
     g.restore();
   }
-  title('DESCARGALO', 540, 700, 112, { tin: t - .15, anim: 'slam', dur: .25, stagger: .02 });
-  title('GRATIS', 540, 820, 150, { tin: t - .3, anim: 'slam', dur: .25, stagger: .04, gold: true });
+  title(tr('DESCARGALO', 'DOWNLOAD IT'), 540, 700, 112, { tin: t - .15, anim: 'slam', dur: .25, stagger: .02 });
+  title(tr('GRATIS', 'FREE'), 540, 820, 150, { tin: t - .3, anim: 'slam', dur: .25, stagger: .04, gold: true });
   // objeciones fuera
-  [['SIN CUENTA NI REGISTRO', .7], ['JUGÁ OFFLINE', .95], ['37 NIVELES POR DESCUBRIR', 1.2]].forEach(([s, t0], i) => {
+  [[tr('SIN CUENTA NI REGISTRO', 'NO ACCOUNT NEEDED'), .7], [tr('JUGÁ OFFLINE', 'PLAYS OFFLINE'), .95], [tr('37 NIVELES POR DESCUBRIR', '37 LEVELS TO DISCOVER'), 1.2]].forEach(([s, t0], i) => {
     const y = 962 + i * 92;
     const p = E.backOut(seg(t, t0, t0 + .3), 2.2);
     check(250, y, p);
@@ -55,8 +55,8 @@ function drawScene(t) {
     g.save(); g.translate(540, 1318); g.rotate(-.025); g.scale(rp, rp);
     rr(-470, -78, 940, 156, 34); g.fillStyle = 'rgba(0,0,0,.35)'; g.fill();
     rr(-470, -88, 940, 156, 34); g.fillStyle = C.yellow; g.fill(); g.lineWidth = 8; g.strokeStyle = C.ink; g.stroke();
-    text('¡Llegó el Aguinaldo! Entrá a cobrarlo', 0, -38, 44, C.ink, { font: FONT_T, weight: 800, maxW: 880 });
-    text('antes de que se lo lleve la inflación.', 0, 18, 44, C.ink, { font: FONT_T, weight: 800, maxW: 880 });
+    text(tr('¡Llegó el Aguinaldo! Entrá a cobrarlo', 'Bonus paycheck day! Cash it in'), 0, -38, 44, C.ink, { font: FONT_T, weight: 800, maxW: 880 });
+    text(tr('antes de que se lo lleve la inflación.', 'before inflation eats it.'), 0, 18, 44, C.ink, { font: FONT_T, weight: 800, maxW: 880 });
     g.restore();
   }
   const bp = E.backOut(seg(t, 2.0, 2.35), 2);

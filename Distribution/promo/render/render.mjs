@@ -29,6 +29,9 @@ const WORKERS = parseInt(opt('workers', '4'), 10);
 const FROM = parseFloat(opt('from', '0'));
 const TO = opt('to', null);
 const V = opt('v', '1');
+const LANG = opt('lang', 'es');           // --lang en → versión EE. UU.
+const POSTER = opt('poster', null);       // --poster 12.3 → el frame 0 muestra ese instante (miniatura)
+const TAG = LANG === 'es' ? '' : '_' + LANG;
 
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.png': 'image/png', '.woff2': 'font/woff2', '.json': 'application/json' };
 function serve() {
@@ -47,7 +50,7 @@ async function openPage(browser, port) {
   const w = Math.round(1080 * SCALE), h = Math.round(1920 * SCALE);
   const page = await browser.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 });
   page.on('pageerror', e => console.error('pageerror', e));
-  await page.goto(`http://127.0.0.1:${port}/Distribution/promo/render/index.html?scale=${SCALE}&fps=${FPS}&v=${V}`);
+  await page.goto(`http://127.0.0.1:${port}/Distribution/promo/render/index.html?scale=${SCALE}&fps=${FPS}&v=${V}&lang=${LANG}`);
   await page.waitForFunction(() => window.READY || window.ERROR, null, { timeout: 120000 });
   const err = await page.evaluate(() => window.ERROR);
   if (err) throw new Error(err);
@@ -60,12 +63,12 @@ async function main() {
   const browser = await playwright.chromium.launch({ args: ['--disable-gpu-vsync', '--force-color-profile=srgb'] });
   try {
     if (mode === 'preview') {
-      const times = args.slice(1).filter(a => !a.startsWith('--') && !isNaN(parseFloat(a)) && !['--scale', '--v', '--fps'].includes(args[args.indexOf(a) - 1]));
+      const times = args.slice(1).filter(a => !a.startsWith('--') && !isNaN(parseFloat(a)) && !['--scale', '--v', '--fps', '--lang', '--poster'].includes(args[args.indexOf(a) - 1]));
       fs.mkdirSync(path.join(OUT, 'preview'), { recursive: true });
       const page = await openPage(browser, port);
       for (const t of times) {
         await page.evaluate(tt => window.renderFrame(tt), parseFloat(t));
-        const f = path.join(OUT, 'preview', `v${V}_t${parseFloat(t).toFixed(3)}.jpg`);
+        const f = path.join(OUT, 'preview', `v${V}${TAG}_t${parseFloat(t).toFixed(3)}.jpg`);
         await page.screenshot({ path: f, type: 'jpeg', quality: 85 });
         console.log(f);
       }
@@ -73,7 +76,7 @@ async function main() {
       const dur = TO ? parseFloat(TO) : await (async () => { const p = await openPage(browser, port); const d = await p.evaluate(() => window.DURATION); await p.close(); return d; })();
       const first = Math.round(FROM * FPS), last = Math.round(dur * FPS); // [first, last)
       const n = last - first;
-      const segDir = path.join(OUT, `segments_v${V}_${SCALE}x_${FPS}`);
+      const segDir = path.join(OUT, `segments_v${V}${TAG}_${SCALE}x_${FPS}`);
       fs.mkdirSync(segDir, { recursive: true });
       const per = Math.ceil(n / WORKERS);
       const started = Date.now();
@@ -91,7 +94,7 @@ async function main() {
             '-r', String(FPS), file], { stdio: ['pipe', 'inherit', 'inherit'] });
           const closed = new Promise((res, rej) => ff.on('close', c => c === 0 ? res() : rej(new Error('ffmpeg ' + c))));
           for (let f = a; f < b; f++) {
-            await page.evaluate(tt => window.renderFrame(tt), f / FPS);
+            await page.evaluate(tt => window.renderFrame(tt), f === 0 && POSTER ? parseFloat(POSTER) : f / FPS);
             const png = await page.screenshot({ type: 'jpeg', quality: 97 });
             if (!ff.stdin.write(png)) await new Promise(r => ff.stdin.once('drain', r));
             done++;

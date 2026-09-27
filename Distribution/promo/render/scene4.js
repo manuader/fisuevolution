@@ -18,7 +18,15 @@ function assetList() {
 }
 
 // [inicio, día, fondo, personaje, lugar, globos [[t, texto]], logro [t0, t1, nombre]]
-const DAYS = [
+const DAYS = EN ? [
+  [0.0, 1, 'alley', 'homeless', 'The Alley', [[2.05, 'I have a cardboard sign and faith.']], null],
+  [3.2, 3, 'alley', 'trapito_idle__naranjita', 'The Alley', [[3.5, 'Want me to watch your car, boss?'], [4.85, "Relax, nothing's gonna happen to it. Probably."]], [4.3, 5.9, 'First Merge']],
+  [6.2, 9, 'urban', 'chofer_app_idle__taxi_clasico', 'Downtown', [[7.3, "Scenic route? It's longer, but the meter loves it."]], [8.4, 9.95, 'Alley Behind You']],
+  [10.2, 21, 'corporate', 'junior_lawyer_idle__tribunales', 'Financial District', [[10.55, 'I got my law degree.'], [11.8, 'Only $200K in student loans.']], [12.0, 13.45, 'Mom, I Graduated']],
+  [13.6, 60, 'luxury', 'millonario_idle__yate', 'The Marina', [[14.2, 'I bought a yacht.'], [16.0, 'Okay… a photo WITH a yacht.']], [16.4, 18.2, 'Parking Spot With Your Name']],
+  [18.4, 120, 'island', 'rey_ladrillo', 'An island (offshore)', [[18.8, 'I invest offshore.'], [19.95, 'All above board. Trust me.']], [20.2, 21.8, 'Offshore, All Above Board']],
+  [22.0, 200, 'moon', 'space_billionaire_idle__traje_presurizado', 'The Moon', [[22.35, 'I bought the Moon.'], [23.45, "Rent can't reach me here… yet."]], [23.6, 25.05, 'One Small Step for the Hobo']],
+] : [
   [0.0, 1, 'alley', 'homeless', 'Callejón · CABA', [[2.05, 'Tengo un cartón y fe.']], null],
   [3.2, 3, 'alley', 'trapito_idle__naranjita', 'Callejón · CABA', [[3.5, '¿Te lo cuido, jefe?'], [4.85, 'Tranqui, no le va a pasar nada. Casi seguro.']], [4.3, 5.9, 'El primer junte']],
   [6.2, 9, 'urban', 'chofer_app_idle__taxi_clasico', 'El Obelisco', [[7.3, '¿Vamos por el Obelisco? Es más largo, pero más lindo.']], [8.4, 9.95, 'Chau, callejón']],
@@ -92,7 +100,7 @@ function vlogUI(t, dayNum, place, a = 1) {
   text('REC', 200, 352, 40, '#fff', { stroke: 6 });
   text(`${dayNum}/365`, 950, 352, 34, 'rgba(255,255,255,.9)', { stroke: 6, align: 'right' });
   g.restore();
-  title('DÍA ' + dayNum, 540, 360, 120, { tin: 99, gold: true, alpha: a });
+  title(tr('DÍA ', 'DAY ') + dayNum, 540, 360, 120, { tin: 99, gold: true, alpha: a });
   if (place) {
     g.save(); g.globalAlpha = a;
     g.font = `800 42px ${FONT_T}`;
@@ -117,7 +125,7 @@ function sceneGlitch(t) {
   g.restore();
   g.save(); g.globalCompositeOperation = 'lighter'; g.globalAlpha = .18; g.fillStyle = r() < .5 ? '#ff004c' : '#00e5ff'; g.fillRect(0, 0, W, H); g.restore();
   shade(p * .8);
-  if (d > .25) title('SEÑAL PERDIDA', 540, 960, 100, { tin: 99, fill: '#fff', alpha: Math.floor(t * 12) % 2 ? 1 : .5 });
+  if (d > .25) title(tr('SEÑAL PERDIDA', 'SIGNAL LOST'), 540, 960, 100, { tin: 99, fill: '#fff', alpha: Math.floor(t * 12) % 2 ? 1 : .5 });
 }
 
 function scene365(t) {
@@ -136,7 +144,7 @@ function scene365(t) {
   burst(t, { t0: D365, x: 540, y: 1500, n: 50, seed: 4100, kind: 'dust', spd: [60, 160], ang: [-Math.PI * .7, -Math.PI * .3], life: [2.5, 3.5], size: [12, 30], spread: 900, delay: 2, alpha: .6 });
   const bs = E.backOut(seg(t, D365 + .5, D365 + .8), 2) * (1 - seg(t, 27.9, 28.05));
   speech(540, 590, 300, '…', 560, 730, { s: bs, size: 60 });
-  title('¿QUIÉN SOY?', 540, 620, 140, { tin: t - 28.0, tout: t > 30.2 ? t - 30.2 : null, anim: 'slam', dur: .35, stagger: .05, gold: true });
+  title(tr('¿QUIÉN SOY?', 'WHO AM I?'), 540, 620, 140, { tin: t - 28.0, tout: t > 30.2 ? t - 30.2 : null, anim: 'slam', dur: .35, stagger: .05, gold: true });
   // la tarjeta para compartir del juego
   const cp = E.backOut(seg(t, 28.7, 29.1), 1.6) * (1 - E.cIn(seg(t, 30.3, 30.55)));
   if (cp > 0) {
@@ -144,8 +152,8 @@ function scene365(t) {
     rr(-450, -95, 900, 190, 40); g.fillStyle = 'rgba(0,0,0,.35)'; g.fill();
     rr(-450, -105, 900, 190, 40); g.fillStyle = '#fff'; g.fill(); g.lineWidth = 6; g.strokeStyle = C.ink; g.stroke();
     g.save(); g.beginPath(); g.arc(-360, -10, 62, 0, Math.PI * 2); g.clip(); g.drawImage(IMG.face_homeless, -424, -74, 128, 128); g.restore();
-    text('Llegué al nivel 37 y vos', 40, -42, 46, C.ink, { maxW: 640 });
-    text('seguís de fisura 💀', 40, 22, 46, C.ink, { maxW: 640, font: `${FONT_N}, "Noto Color Emoji"` });
+    text(tr('Llegué al nivel 37 y vos', 'I made it to level 37 and'), 40, -42, 46, C.ink, { maxW: 640 });
+    text(tr('seguís de fisura 💀', "you're still broke 💀"), 40, 22, 46, C.ink, { maxW: 640, font: `${FONT_N}, "Noto Color Emoji"` });
     g.restore();
   }
 }
@@ -177,10 +185,10 @@ function drawScene(t) {
     if (t < 2.1) {
       const a = 1 - seg(t, 1.8, 2.05);
       g.save(); g.globalAlpha = a * .8; rr(40, 1000, 1000, 470, 44); g.fillStyle = 'rgba(15,10,6,.8)'; g.fill(); g.restore();
-      title('ME FUI DE LA CALLE', 540, 1080, 92, { tin: t + .1, alpha: a, stagger: .018, dur: .35, maxW: 960 });
-      title('A PUERTO MADERO', 540, 1195, 104, { tin: t - .1, alpha: a, stagger: .018, dur: .35, gold: true, maxW: 960 });
-      title('EN UN AÑO', 540, 1310, 92, { tin: t - .3, alpha: a, stagger: .02, dur: .35 });
-      title('(el día 365 no me lo creo ni yo)', 540, 1415, 44, { tin: t - .6, alpha: a, stagger: .008, dur: .3, strokeK: .15, maxW: 900 });
+      title(tr('ME FUI DE LA CALLE', 'I WENT FROM THE STREETS'), 540, 1080, 92, { tin: t + .1, alpha: a, stagger: .018, dur: .35, maxW: 960 });
+      title(tr('A PUERTO MADERO', 'TO A YACHT'), 540, 1195, 104, { tin: t - .1, alpha: a, stagger: .018, dur: .35, gold: true, maxW: 960 });
+      title(tr('EN UN AÑO', 'IN ONE YEAR'), 540, 1310, 92, { tin: t - .3, alpha: a, stagger: .02, dur: .35 });
+      title(tr('(el día 365 no me lo creo ni yo)', '(day 365 is insane. watch till the end)'), 540, 1415, 44, { tin: t - .6, alpha: a, stagger: .008, dur: .3, strokeK: .15, maxW: 900 });
     }
   } else if (t < D365) {
     sceneGlitch(t);
@@ -190,7 +198,9 @@ function drawScene(t) {
     scene365(t);
     vlogUI(t, 365, '???', 1 - seg(t, 30.3, 30.55));
   } else {
-    ctaEnd(t, CTA, { lines: ['37 NIVELES.', '¿HASTA DÓNDE LLEGÁS?'], foot: 'Etiquetá al que sigue de fisura 👇' });
+    ctaEnd(t, CTA, EN
+      ? { lines: ['37 LEVELS.', 'HOW FAR CAN YOU GO?'], foot: "Tag the friend who's still broke 👇" }
+      : { lines: ['37 NIVELES.', '¿HASTA DÓNDE LLEGÁS?'], foot: 'Etiquetá al que sigue de fisura 👇' });
     flash(1 - seg(t, CTA, CTA + .25), '#FFF3D0');
   }
 }

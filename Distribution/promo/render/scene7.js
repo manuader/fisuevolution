@@ -88,13 +88,13 @@ function pauseIcon(x, y, s, press) {
 function sceneHook(t) {
   bgWarm(t);
   const shake = Math.sin(t * 30) * 5 * (t > 1.2 ? 1 : 0);
-  const pin = E.backOut(seg(t, 0, .4), 1.6);
+  const pin = lerp(.9, 1, E.backOut(seg(t, 0, .4), 1.6));
   cardBack(540 + shake, 1000, .9 * pin, false, t);
-  title('PAUSÁ EL VIDEO', 540, 320, 120, { tin: t + .05, anim: 'rise', dur: .45, stagger: .03, gold: true });
-  title('y descubrí qué fisura sos', 540, 440, 76, { tin: t - .35, anim: 'rise', dur: .45, stagger: .015 });
+  title('PAUSÁ EL VIDEO', 540, 320, 120, { tin: t + .6, anim: 'rise', dur: .45, stagger: .03, gold: true });
+  title('y descubrí qué fisura sos', 540, 440, 76, { tin: t + .2, anim: 'rise', dur: .45, stagger: .015 });
   // la mano que pausa
   const press = t > 1.4 && t < 1.6 ? 1 - (t - 1.4) / .2 : t > 2.2 && t < 2.4 ? 1 - (t - 2.2) / .2 : 0;
-  pauseIcon(820, 1470, E.backOut(seg(t, .6, .9), 2), press);
+  pauseIcon(820, 1470, E.backOut(seg(t, .1, .4), 2), press);
   // la carta se da vuelta y arranca la ruleta
   const fl = seg(t, 2.65, 3.0);
   if (fl > 0) { g.save(); g.globalAlpha = fl; g.fillStyle = 'rgba(255,248,231,.35)'; g.fillRect(0, 0, W, H); g.restore(); }

@@ -14,6 +14,9 @@ case "$V" in
   3) AUDIO=out/audio_v3.wav; NAME=FisuEvolution_Reel_v3_Top5;    RATE=20 ;;
   4) AUDIO=out/audio_v4.wav; NAME=FisuEvolution_Reel_v4_Dia365;  RATE=20 ;;
   5) AUDIO=out/audio_v5.wav; NAME=FisuEvolution_Reel_v5_Quiz;    RATE=20 ;;
+  7) AUDIO=out/audio_v7.wav; NAME=FisuEvolution_TOFU_v7_PausaQueFisuraSos; RATE=22 ;;
+  8) AUDIO=out/audio_v8.wav; NAME=FisuEvolution_MOFU_v8_TomiVsSofi;        RATE=20 ;;
+  9) AUDIO=out/audio_v9.wav; NAME=FisuEvolution_BOFU_v9_TuPrimerMinuto;    RATE=22 ;;
   *) echo "V desconocida: $V" >&2; exit 1 ;;
 esac
 

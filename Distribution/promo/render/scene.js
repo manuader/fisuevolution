@@ -64,7 +64,6 @@ function assetList() {
     star: RES + 'ui.atlas/fx_unlock@3x.png',
     dollar: RES + 'ui.atlas/ui_dollar@3x.png',
     btn_buy: RES + 'ui.atlas/ui_btn_buy@3x.png',
-    celebrate: RES + 'ui.atlas/fisura_celebrate@3x.png',
   };
   for (const b of ['alley', 'urban', 'corporate', 'luxury', 'moon', 'mars', 'solar', 'galaxy', 'god_realm'])
     L['bg_' + b] = RES + 'Backgrounds/bg_' + b + '@3x.png';

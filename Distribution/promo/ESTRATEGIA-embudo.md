@@ -9,7 +9,7 @@
 |---|---|---|---|---|---|
 | **TOFU** · descubrimiento | "No te conozco, pero me hiciste reír" | ¿Por qué me importa? | **v3 Top 5 Argentino** · **v5 Quiz** · **v4 Día 365** | Alcance / ThruPlay / Spark Ads | Hook rate (3 s ÷ impresiones) ≥ 30 % · hold rate (ThruPlay ÷ 3 s) ≥ 25 % · shares y comentarios |
 | **MOFU** · consideración | "Está bueno, ¿pero de qué se trata?" | ¿Qué hago en el juego? ¿Tiene profundidad? | **v2 ¿Qué hay en el último piso?** (gameplay completo, 45 s) · **v1 De fisura a Dios** (la escalera, 30 s) | Tráfico a la ficha del App Store | CTR ≥ 1 % · visitas a la ficha · % de vista al 75 % |
-| **BOFU** · conversión | "Lo quiero, dame una razón para hacerlo ahora" | ¿Cuesta algo? ¿Es fácil? ¿Por qué hoy? | **BOFU-A Gameplay 15 s** · **BOFU-B Dios es argentino 11 s** · **BOFU-C De fisura a Dios 12 s** (cortes con placa de cierre dedicada) | Instalaciones (App Install / Advantage+ App / Apple Search Ads) | CPI · tasa de instalación desde la ficha · D1 ≥ 35 % |
+| **BOFU** · conversión | "Lo quiero, dame una razón para hacerlo ahora" | ¿Cuesta algo? ¿Es fácil? ¿Por qué hoy? | **BOFU-A Gameplay 15 s** · **BOFU-B Dios es argentino 10 s** · **BOFU-C De fisura a Dios 12 s** (cortes con placa de cierre dedicada) | Instalaciones (App Install / Advantage+ App / Apple Search Ads) | CPI · tasa de instalación desde la ficha · D1 ≥ 35 % |
 | **Post-instalación** · retención y loop | "Ya juego" | ¿Por qué vuelvo? ¿A quién se lo paso? | Dentro del juego: racha diaria, cofres, eventos, tarjeta "Llegué a X y vos seguís de fisura 💀" | — | D7 · % que comparte · K-factor |
 
 **Por qué cada pieza va donde va**
@@ -76,5 +76,5 @@ El juego ya trae el mecanismo: la tarjeta **"Llegué a X y vos seguís de fisura
 | MOFU | `FisuEvolution_Reel_v2_45s_{4K,1080}.mp4` | 45 s |
 | MOFU | `FisuEvolution_Reel_30s_{4K,1080}.mp4` (v1) | 30 s |
 | BOFU | `BOFU/FisuEvolution_BOFU_A_Gameplay_{4K,1080}.mp4` | 15 s |
-| BOFU | `BOFU/FisuEvolution_BOFU_B_DiosArgentino_{4K,1080}.mp4` | 11 s |
+| BOFU | `BOFU/FisuEvolution_BOFU_B_DiosArgentino_{4K,1080}.mp4` | 10 s |
 | BOFU | `BOFU/FisuEvolution_BOFU_C_DeFisuraADios_{4K,1080}.mp4` | 12 s |

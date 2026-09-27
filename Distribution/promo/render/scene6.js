@@ -44,7 +44,7 @@ function drawScene(t) {
   title('GRATIS', 540, 820, 150, { tin: t - .3, anim: 'slam', dur: .25, stagger: .04, gold: true });
   // objeciones fuera
   [['SIN CUENTA NI REGISTRO', .7], ['JUGÁ OFFLINE', .95], ['37 NIVELES POR DESCUBRIR', 1.2]].forEach(([s, t0], i) => {
-    const y = 975 + i * 100;
+    const y = 962 + i * 92;
     const p = E.backOut(seg(t, t0, t0 + .3), 2.2);
     check(250, y, p);
     title(s, 620, y + 4, 64, { tin: t - t0 - .05, anim: 'rise', dur: .3, stagger: .015, maxW: 600 });
@@ -52,7 +52,7 @@ function drawScene(t) {
   // urgencia: el texto promocional real del App Store
   const rp = E.backOut(seg(t, 1.6, 1.95), 1.8);
   if (rp > 0) {
-    g.save(); g.translate(540, 1290); g.rotate(-.025); g.scale(rp, rp);
+    g.save(); g.translate(540, 1318); g.rotate(-.025); g.scale(rp, rp);
     rr(-470, -78, 940, 156, 34); g.fillStyle = 'rgba(0,0,0,.35)'; g.fill();
     rr(-470, -88, 940, 156, 34); g.fillStyle = C.yellow; g.fill(); g.lineWidth = 8; g.strokeStyle = C.ink; g.stroke();
     text('¡Llegó el Aguinaldo! Entrá a cobrarlo', 0, -38, 44, C.ink, { font: FONT_T, weight: 800, maxW: 880 });
@@ -61,12 +61,12 @@ function drawScene(t) {
   }
   const bp = E.backOut(seg(t, 2.0, 2.35), 2);
   const pulse = t > 2.6 ? 1 + Math.max(0, Math.sin((t - 2.6) * Math.PI * 2)) * .04 : 1;
-  appStoreBadge(540, 1455, 400, bp * pulse, cl(bp));
+  appStoreBadge(540, 1478, 400, bp * pulse, cl(bp));
   // flecha al botón de instalar
   const ap = E.cOut(seg(t, 2.4, 2.7));
   if (ap > 0) {
     const bounce = Math.abs(Math.sin((t - 2.4) * Math.PI * 2.2)) * 26;
-    g.save(); g.globalAlpha = ap; g.translate(540, 1610 + bounce);
+    g.save(); g.globalAlpha = ap; g.translate(540, 1620 + bounce);
     g.beginPath(); g.moveTo(-50, -40); g.lineTo(50, -40); g.lineTo(50, 10); g.lineTo(90, 10); g.lineTo(0, 90); g.lineTo(-90, 10); g.lineTo(-50, 10); g.closePath();
     g.fillStyle = C.cream; g.fill(); g.lineWidth = 9; g.strokeStyle = C.ink; g.lineJoin = 'round'; g.stroke();
     g.restore();

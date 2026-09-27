@@ -5,6 +5,12 @@ Canvas (sin estado entre frames), con los PNG reales del juego.
 
 - **v1 · «De fisura a Dios»** (30 s): `scene.js` + `music.py` · plan en `../PLAN-promo-reel.md`
 - **v2 · «¿Qué hay en el último piso?»** (45 s): `scene2.js` + `music2.py` · plan en `../PLAN-promo-reel-v2.md`
+- **v3 · TOP 5 «Demasiado argentino»** (34 s): `scene3.js` + `music3.py` (cumbia)
+- **v4 · «DÍA 1 → DÍA 365»** (35 s): `scene4.js` + `music4.py` (lofi)
+- **v5 · QUIZ «¿En qué se convierte?»** (33 s): `scene5.js` + `music5.py` (programa de TV)
+- **v6 · placa BOFU** (4,5 s): `scene6.js` + `music6.py`; `bofu.sh` arma los tres cortes BOFU
+
+Guiones de v3–v5 en `../PLAN-anuncios-virales.md`; qué pieza va en cada etapa del embudo, en `../ESTRATEGIA-embudo.md`.
 
 | Archivo | Qué hace |
 |---|---|
@@ -33,10 +39,12 @@ python3 music.py            # v1
 python3 music2.py           # v2
 # 3) video (4 workers; ~15 min la v1, ~25 min la v2, en 4 núcleos)
 node render.mjs video --scale 2 --fps 60 --workers 4
-node render.mjs video --v 2 --scale 2 --fps 60 --workers 4
+node render.mjs video --v 2 --scale 2 --fps 60 --workers 4   # ídem --v 3, 4, 5, 6
 # 4) master
 ./finish.sh
-V=2 ./finish.sh
+V=2 ./finish.sh                                                # ídem V=3, 4, 5
+# 5) cortes BOFU (necesita los masters de v1, v2 y v3, y el render de la v6)
+python3 music6.py && ./bofu.sh
 ```
 
 Frames sueltos para revisar: `node render.mjs preview --v 2 0.5 11.8 24.5` → `out/preview/`,

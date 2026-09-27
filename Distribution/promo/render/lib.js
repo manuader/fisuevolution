@@ -146,6 +146,7 @@ function glow(name, x, y, r, a = 1) {
 }
 
 function rr(x, y, w, h, r) {
+  r = Math.max(0, Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2));
   g.beginPath();
   g.moveTo(x + r, y);
   g.arcTo(x + w, y, x + w, y + h, r);
@@ -229,7 +230,7 @@ function drawImg(img, x, y, size, o = {}) {
 
 // Rayos de luz girando (aditivos).
 function rays(x, y, n, rot, len, color, a, width = .5) {
-  if (a <= 0) return;
+  if (a <= 0 || !(len > 0)) return;
   g.save();
   g.translate(x, y);
   g.rotate(rot);

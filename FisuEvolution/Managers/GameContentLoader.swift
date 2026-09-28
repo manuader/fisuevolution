@@ -22,6 +22,9 @@ struct GameContent: Sendable {
     let viral: ViralConfig
     let gameCenter: GameCenterConfig
     let achievements: AchievementsConfig
+    /// Cómo reacciona cada tipo del campo a cada evento. La genera y la revisa
+    /// `Tools/event-reactions/`; el juego sólo la lee.
+    let eventReactions: EventReactionsConfig
 }
 
 /// Decodes and validates the bundled JSON content. Any failure produces a typed
@@ -46,6 +49,7 @@ enum GameContentLoader {
         let viral: ViralConfig = try decode("viral", from: bundle)
         let gameCenter: GameCenterConfig = try decode("gamecenter", from: bundle)
         let achievements: AchievementsConfig = try decode("achievements", from: bundle)
+        let eventReactions: EventReactionsConfig = try decode("event_reactions", from: bundle)
 
         let tiers: TierRepository
         do {
@@ -87,6 +91,17 @@ enum GameContentLoader {
         }
         try validate(careers: careers, tiers: tiers, boosts: boosts, skins: skins)
         try validate(achievements: achievements, floorTable: floorTable, boosts: boosts)
+        // La tabla se genera aparte del contenido, así que es la que más fácil
+        // queda vieja: un evento o un tier nuevo sin regenerarla frena acá, en
+        // vez de dejar a alguien sin reaccionar para siempre y en silencio.
+        do {
+            try eventReactions.validate(
+                eventIDs: Set(events.events.map(\.id)),
+                typeIDs: Set(tiers.types.map(\.id))
+            )
+        } catch {
+            throw GameError.contentInvalid(file: "event_reactions.json", reason: "\(error)")
+        }
 
         return GameContent(
             economy: economy,
@@ -106,7 +121,8 @@ enum GameContentLoader {
             careers: careers,
             viral: viral,
             gameCenter: gameCenter,
-            achievements: achievements
+            achievements: achievements,
+            eventReactions: eventReactions
         )
     }
 

@@ -37,6 +37,39 @@ struct CharacterNodePoolTests {
         #expect(reused.isHidden == false)
     }
 
+    /// El emote de las reacciones de campo corre sobre el SPRITE, y
+    /// `removeAllActions()` limpia las del nodo, no las de sus hijos. Es la misma
+    /// trampa que el espejado: sin la limpieza explícita, el próximo personaje
+    /// que use este nodo arrancaría aplastado, torcido o a medio desvanecer.
+    @Test("un nodo reciclado a mitad de un emote vuelve quieto y derecho")
+    func recyclingMidEmoteSettlesTheSprite() {
+        let pool = CharacterNodePool()
+        let node = pool.obtain()
+        let restY = node.spriteRestStateForTesting.y
+        node.simulateMidEmoteForTesting()
+        #expect(node.isEmoting)
+        #expect(node.spriteRestStateForTesting.y != restY, "el fixture tiene que dejar el sprite corrido")
+
+        pool.recycle(node)
+        let reused = pool.obtain()
+
+        #expect(reused === node)
+        #expect(!reused.isEmoting, "el emote seguiría corriendo sobre el próximo personaje")
+        let state = reused.spriteRestStateForTesting
+        #expect(state.yScale == 1)
+        #expect(state.zRotation == 0)
+        #expect(state.alpha == 1)
+        #expect(state.y == restY)
+        #expect(!reused.isFacingLeft)
+    }
+
+    @Test("indiferente no arranca nada")
+    func indifferentIsNotAnEmote() {
+        let node = CharacterNodePool().obtain()
+        node.playEmote(.indiferente, delay: 0) {}
+        #expect(!node.isEmoting)
+    }
+
     @Test("las acciones a medio correr no sobreviven al reciclado")
     func recyclingStopsRunningActions() {
         let pool = CharacterNodePool()

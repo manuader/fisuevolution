@@ -3,5 +3,6 @@
   "gameCenterEnabled": false,
   "cloudKitEnabled": false,
   "useRealAds": false,
-  "buildVariant": "dev"
+  "buildVariant": "dev",
+  "eventReactionsEnabled": true
 }

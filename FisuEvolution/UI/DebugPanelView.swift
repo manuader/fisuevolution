@@ -62,6 +62,20 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.chest.award")
                 }
+                // Cada evento cae cada ~15 min por sorteo. Esto los anuncia de a
+                // uno —banner y reacción del campo, sin el efecto económico— para
+                // poder mirar los ocho seguidos.
+                if let events = gameState.content?.events.events {
+                    Section("Eventos") {
+                        ForEach(events) { event in
+                            Button(event.id) {
+                                gameState.debugAnnounceEvent(id: event.id)
+                                dismiss()
+                            }
+                            .accessibilityIdentifier("debug.event.\(event.id)")
+                        }
+                    }
+                }
                 Section("Peligro") {
                     Button("Resetear partida", role: .destructive) {
                         gameState.debugResetSave()

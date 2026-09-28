@@ -62,6 +62,9 @@ final class CharacterNode: SKNode {
     ) {
         typeId = type.id
         self.cellIndex = cellIndex
+        // Un relayout a mitad de un emote reescribe la posición del sprite: lo
+        // que acaba de escribir es el nuevo reposo al que tiene que volver.
+        defer { if spriteRestPosition != nil { spriteRestPosition = sprite.position } }
 
         let plateSize = cellSize * 0.92
         let shadowRect = CGRect(
@@ -136,6 +139,131 @@ final class CharacterNode: SKNode {
 
     var isFacingLeft: Bool { sprite.xScale < 0 }
 
+    // MARK: - Emotes (reacciones de campo)
+
+    /// Clave de la acción del emote, que corre sobre el **sprite** y sólo por
+    /// canales que no pisan a nadie: `yScale`, `zRotation`, `alpha` y la altura
+    /// del sprite. Nunca la posición del nodo —`MergeTargeting` la lee— ni
+    /// `sprite.xScale`, cuyo signo es hacia dónde mira. El rebote del tap escribe
+    /// la escala del NODO, así que compone con el emote sin chocar.
+    static let emoteActionKey = "emote"
+
+    /// Dónde descansa el sprite, para volver exacto al terminar o al cancelar.
+    /// `nil` = no hay emote en curso.
+    private var spriteRestPosition: CGPoint?
+
+    var isEmoting: Bool { sprite.action(forKey: Self.emoteActionKey) != nil }
+
+    /// Arranca un emote después de `delay`. `completion` corre sólo si el emote
+    /// termina entero: uno cancelado (agarraron al personaje, se recicló) no la
+    /// llama, porque quien canceló ya es dueño del nodo.
+    func playEmote(_ emote: Emote, delay: TimeInterval, completion: @escaping @MainActor () -> Void) {
+        cancelEmote()
+        guard let body = Self.emoteAction(emote, restHeight: sprite.size.height) else { return }
+        spriteRestPosition = sprite.position
+        sprite.run(.sequence([
+            .wait(forDuration: delay),
+            body,
+            .run { [weak self] in
+                self?.settleEmote()
+                completion()
+            },
+        ]), withKey: Self.emoteActionKey)
+    }
+
+    /// Corta el emote y deja el sprite en reposo. Idempotente.
+    func cancelEmote() {
+        sprite.removeAction(forKey: Self.emoteActionKey)
+        settleEmote()
+    }
+
+    private func settleEmote() {
+        guard let rest = spriteRestPosition else { return }
+        spriteRestPosition = nil
+        sprite.position = rest
+        sprite.yScale = abs(sprite.xScale)
+        sprite.zRotation = 0
+        sprite.alpha = 1
+    }
+
+    /// Aplasta o estira el sprite en vertical **con los pies clavados**. El ancla
+    /// del sprite está en su centro, así que un `scaleY` a secas levantaría los
+    /// pies de la sombra: la corrección de altura va en el mismo grupo y con la
+    /// misma duración, y se interpolan juntas.
+    private static func squash(from: CGFloat, to: CGFloat, height: CGFloat, duration: TimeInterval) -> SKAction {
+        .group([
+            .scaleY(to: to, duration: duration),
+            .moveBy(x: 0, y: (to - from) * height / 2, duration: duration),
+        ])
+    }
+
+    /// Los cinco gestos. Todos vuelven a escala 1, ángulo 0 y alpha 1, y
+    /// ninguno pasa de 1,4 s: la reacción es un instante, no una escena.
+    private static func emoteAction(_ emote: Emote, restHeight h: CGFloat) -> SKAction? {
+        switch emote {
+        case .indiferente:
+            return nil
+        case .festeja:
+            let hop = h * 0.14
+            let up = SKAction.moveBy(x: 0, y: hop, duration: 0.12)
+            up.timingMode = .easeOut
+            let down = SKAction.moveBy(x: 0, y: -hop, duration: 0.12)
+            down.timingMode = .easeIn
+            let jump = SKAction.sequence([
+                squash(from: 1, to: 0.9, height: h, duration: 0.07),
+                .group([squash(from: 0.9, to: 1.06, height: h, duration: 0.12), up]),
+                .group([squash(from: 1.06, to: 1, height: h, duration: 0.12), down]),
+            ])
+            return .sequence([jump, jump])
+        case .seAgarraLaCabeza:
+            return .sequence([
+                squash(from: 1, to: 0.86, height: h, duration: 0.12),
+                .rotate(byAngle: 0.12, duration: 0.05),
+                .rotate(byAngle: -0.24, duration: 0.1),
+                .rotate(byAngle: 0.24, duration: 0.1),
+                .rotate(byAngle: -0.12, duration: 0.05),
+                .wait(forDuration: 0.35),
+                squash(from: 0.86, to: 1, height: h, duration: 0.2),
+            ])
+        case .seEncogeDeHombros:
+            let shrug = SKAction.sequence([
+                squash(from: 1, to: 1.06, height: h, duration: 0.1),
+                squash(from: 1.06, to: 1, height: h, duration: 0.12),
+            ])
+            return .sequence([shrug, .wait(forDuration: 0.12), shrug])
+        case .sonrisaTorcida:
+            return .sequence([
+                .rotate(toAngle: 0.1, duration: 0.18),
+                .wait(forDuration: 0.8),
+                .rotate(toAngle: 0, duration: 0.18),
+            ])
+        case .seEsconde:
+            return .sequence([
+                .group([squash(from: 1, to: 0.8, height: h, duration: 0.2), .fadeAlpha(to: 0.55, duration: 0.2)]),
+                .wait(forDuration: 0.9),
+                .group([squash(from: 0.8, to: 1, height: h, duration: 0.25), .fadeAlpha(to: 1, duration: 0.25)]),
+            ])
+        }
+    }
+
+    #if DEBUG
+    /// Lo que un emote puede dejar torcido, para que los tests del pool lo lean
+    /// sin exponer el sprite.
+    var spriteRestStateForTesting: (yScale: CGFloat, zRotation: CGFloat, alpha: CGFloat, y: CGFloat) {
+        (abs(sprite.yScale), sprite.zRotation, sprite.alpha, sprite.position.y)
+    }
+
+    /// Deja el sprite como a mitad de un emote (sin `SKView` las acciones no se
+    /// evalúan, así que el estado intermedio se escribe a mano).
+    func simulateMidEmoteForTesting() {
+        playEmote(.seEsconde, delay: 0) {}
+        sprite.yScale = 0.8
+        sprite.zRotation = 0.1
+        sprite.alpha = 0.55
+        sprite.position.y += 7
+    }
+    #endif
+
     /// Asignar `text` o `fontSize` a un `SKLabelNode` lo marca sucio y obliga a
     /// rehacer el layout de Core Text y a re-subir su textura, aunque el valor
     /// sea idéntico. Como `configure` corre sobre los 10 personajes en cada
@@ -175,6 +303,10 @@ final class CharacterNodePool {
         // sobreviviría al reciclado y un personaje recién contratado podría
         // aparecer dado vuelta sin que nada lo haya dado vuelta.
         node.setFacing(left: false)
+        // `removeAllActions()` limpia las del NODO, no las de sus hijos, y el
+        // emote corre sobre el sprite: sin esto seguiría corriendo sobre el
+        // próximo personaje que use este nodo, con el sprite aplastado.
+        node.cancelEmote()
         node.zRotation = 0
         node.isHidden = false
         return node

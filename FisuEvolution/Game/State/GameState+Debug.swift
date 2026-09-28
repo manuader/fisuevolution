@@ -351,6 +351,21 @@ extension GameState {
         refreshProjections()
     }
 
+    /// Anuncia un evento como si acabara de caer, **sin aplicar su efecto**: es
+    /// para mirar el banner y la reacción del campo, no para jugar. La vía real
+    /// es un sorteo cada ~15 min, y sin esta puerta los ocho no se pueden mirar
+    /// uno atrás del otro.
+    func debugAnnounceEvent(id: String) {
+        guard let event = content?.events.events.first(where: { $0.id == id }) else { return }
+        let duration = event.durationSeconds > 0 ? event.durationSeconds : 6
+        activeEvent = EventManager.ActiveEvent(
+            id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff,
+            endsAt: Date().timeIntervalSince1970 + duration
+        )
+        audio?.play(.event)
+        refreshProjections()
+    }
+
     func debugResetSave() {
         guard let content else { return }
         var fresh = PlayerState.newGame(

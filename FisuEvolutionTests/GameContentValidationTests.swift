@@ -23,6 +23,33 @@ struct GameContentValidationTests {
         #expect(content.tiers.terminalType.id == "god")
     }
 
+    /// Reacciones de campo. El load ya exige cobertura exacta; esto además dice
+    /// del lado del juego lo mismo que `build.py` exige del lado de la
+    /// herramienta: cada evento hace reaccionar a alguien, y a no más del 40 %.
+    @Test("la tabla de reacciones cubre todo y es callada")
+    func eventReactionsCoverEverythingQuietly() throws {
+        try content.eventReactions.validate(
+            eventIDs: Set(content.events.events.map(\.id)),
+            typeIDs: Set(content.tiers.types.map(\.id))
+        )
+        for event in content.events.events {
+            let reacting = content.tiers.types.filter {
+                content.eventReactions.emote(eventId: event.id, typeId: $0.id) != .indiferente
+            }
+            #expect(!reacting.isEmpty, "\(event.id): nadie reacciona")
+            #expect(Double(reacting.count) / Double(content.tiers.types.count) <= 0.4,
+                    "\(event.id) quedó habladora")
+        }
+    }
+
+    @Test("un feature_flags.json sin la clave deja las reacciones prendidas")
+    func eventReactionsFlagDefaultsOn() throws {
+        let json = #"{"schemaVersion":1,"gameCenterEnabled":false,"cloudKitEnabled":false,"useRealAds":false,"buildVariant":"dev"}"#
+        let flags = try JSONDecoder().decode(FeatureFlags.self, from: Data(json.utf8))
+        #expect(flags.eventReactionsEnabled)
+        #expect(content.flags.eventReactionsEnabled)
+    }
+
     @Test func careerChoiceNodeIsWellFormed() throws {
         let junior = try #require(content.tiers.type(id: "junior"))
         #expect(junior.isChoiceNode)

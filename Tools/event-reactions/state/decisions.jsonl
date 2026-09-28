@@ -1,0 +1,352 @@
+{"confidence": 0.8, "emote": "festeja", "event": "plan_platita", "type": "homeless", "why": "plata que cae del cielo sobre el que no tiene nada"}
+{"confidence": 0.75, "emote": "festeja", "event": "plan_platita", "type": "trapito", "why": "más plata en la calle, más propinas"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "limpiavidrios"}
+{"confidence": 0.7, "emote": "festeja", "event": "plan_platita", "type": "cartonero", "why": "alegría impresa, aunque sea por un rato"}
+{"confidence": 0.7, "emote": "festeja", "event": "plan_platita", "type": "mantero", "why": "más plata circulando, más ventas en la manta"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "repartidor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "chofer_app"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "fast_food"}
+{"confidence": 0.65, "emote": "se_encoge_de_hombros", "event": "plan_platita", "type": "oficinista", "why": "ya sabe que después viene la inflación"}
+{"confidence": 0.55, "emote": "se_encoge_de_hombros", "event": "plan_platita", "type": "administrativo", "why": "idem oficinista, más tibio"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "junior"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "junior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "junior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "junior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "junior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "senior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "senior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "senior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "senior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "director"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "fundador_startup"}
+{"confidence": 0.62, "emote": "se_agarra_la_cabeza", "event": "plan_platita", "type": "dueno_pyme", "why": "imprimir es inflación, e inflación es sus precios"}
+{"confidence": 0.62, "emote": "festeja", "event": "plan_platita", "type": "emprendedor", "why": "toda ola es una oportunidad de curso online"}
+{"confidence": 0.6, "emote": "sonrisa_torcida", "event": "plan_platita", "type": "ceo", "why": "sabe cómo termina la fiesta"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "millonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "multimillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "rey_ladrillo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "magnate_petrolero"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "space_billionaire"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "trillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "dueno_luna"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "dueno_marte"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "rey_asteroides"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "magnate_solar"}
+{"confidence": 0.7, "emote": "sonrisa_torcida", "event": "plan_platita", "type": "fondo_buitre", "why": "ya está posicionado para cuando se caiga"}
+{"confidence": 0.5, "emote": "sonrisa_torcida", "event": "plan_platita", "type": "rentista_soles", "why": "lejano: un rentista cósmico mirando una emisión local"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "estanciero_estelar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "senor_galaxia"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "coleccionista_galaxias"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "emperador_cosmico"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "ser_ascendido"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "semidios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "deidad"}
+{"confidence": 0.85, "emote": "indiferente", "event": "plan_platita", "type": "god"}
+{"confidence": 0.6, "emote": "se_encoge_de_hombros", "event": "startup_comprada", "type": "homeless", "why": "no sabe qué es una big tech"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "trapito"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "limpiavidrios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "cartonero"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "mantero"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "repartidor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "chofer_app"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "fast_food"}
+{"confidence": 0.55, "emote": "se_esconde", "event": "startup_comprada", "type": "oficinista", "why": "huele reestructuración"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "administrativo"}
+{"confidence": 0.62, "emote": "festeja", "event": "startup_comprada", "type": "junior", "why": "el recién recibido ya se ve con el hoodie"}
+{"confidence": 0.8, "emote": "festeja", "event": "startup_comprada", "type": "junior_programmer", "why": "hoodie nuevo y stock options"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "junior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "junior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "junior_lawyer"}
+{"confidence": 0.65, "emote": "sonrisa_torcida", "event": "startup_comprada", "type": "senior_programmer", "why": "vio tres adquisiciones: sabe que en seis meses hay despidos"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "senior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "senior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "senior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "director"}
+{"confidence": 0.9, "emote": "festeja", "event": "startup_comprada", "type": "fundador_startup", "why": "es literalmente su sueño: el exit"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "dueno_pyme"}
+{"confidence": 0.68, "emote": "se_agarra_la_cabeza", "event": "startup_comprada", "type": "emprendedor", "why": "envidia: el exit le tocó a otro"}
+{"confidence": 0.66, "emote": "sonrisa_torcida", "event": "startup_comprada", "type": "ceo", "why": "probablemente negoció la venta"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "millonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "multimillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "rey_ladrillo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "magnate_petrolero"}
+{"confidence": 0.64, "emote": "sonrisa_torcida", "event": "startup_comprada", "type": "space_billionaire", "why": "probablemente es el que compró"}
+{"confidence": 0.5, "emote": "sonrisa_torcida", "event": "startup_comprada", "type": "trillonario", "why": "compra big techs de a pares"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "dueno_luna"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "dueno_marte"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "rey_asteroides"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "magnate_solar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "fondo_buitre"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "rentista_soles"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "estanciero_estelar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "senor_galaxia"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "coleccionista_galaxias"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "emperador_cosmico"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "ser_ascendido"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "semidios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "deidad"}
+{"confidence": 0.85, "emote": "indiferente", "event": "startup_comprada", "type": "god"}
+{"confidence": 0.72, "emote": "se_encoge_de_hombros", "event": "devaluacion", "type": "homeless", "why": "la mitad de nada es nada: ya está entrenado"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "trapito"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "limpiavidrios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "cartonero"}
+{"confidence": 0.66, "emote": "se_encoge_de_hombros", "event": "devaluacion", "type": "mantero", "why": "sobrevivió a todas: ya está entrenado"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "repartidor"}
+{"confidence": 0.55, "emote": "se_agarra_la_cabeza", "event": "devaluacion", "type": "chofer_app", "why": "la nafta sube al día siguiente"}
+{"confidence": 0.7, "emote": "se_agarra_la_cabeza", "event": "devaluacion", "type": "fast_food", "why": "el sueldo mínimo se hizo la mitad"}
+{"confidence": 0.85, "emote": "se_agarra_la_cabeza", "event": "devaluacion", "type": "oficinista", "why": "cobra en pesos"}
+{"confidence": 0.82, "emote": "se_agarra_la_cabeza", "event": "devaluacion", "type": "administrativo", "why": "cobra en pesos"}
+{"confidence": 0.6, "emote": "se_agarra_la_cabeza", "event": "devaluacion", "type": "junior", "why": "recién empieza a cobrar y ya vale la mitad"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "junior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "junior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "junior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "junior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "senior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "senior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "senior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "senior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "director"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "fundador_startup"}
+{"confidence": 0.8, "emote": "se_agarra_la_cabeza", "event": "devaluacion", "type": "dueno_pyme", "why": "insumos en dólares, ventas en pesos"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "emprendedor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "ceo"}
+{"confidence": 0.62, "emote": "sonrisa_torcida", "event": "devaluacion", "type": "millonario", "why": "los ahorros están afuera"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "multimillonario"}
+{"confidence": 0.78, "emote": "sonrisa_torcida", "event": "devaluacion", "type": "rey_ladrillo", "why": "el ladrillo está en dólares"}
+{"confidence": 0.7, "emote": "festeja", "event": "devaluacion", "type": "magnate_petrolero", "why": "exporta en dólares"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "space_billionaire"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "trillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "dueno_luna"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "dueno_marte"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "rey_asteroides"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "magnate_solar"}
+{"confidence": 0.88, "emote": "festeja", "event": "devaluacion", "type": "fondo_buitre", "why": "compra barato todo lo que se devaluó"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "rentista_soles"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "estanciero_estelar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "senor_galaxia"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "coleccionista_galaxias"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "emperador_cosmico"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "ser_ascendido"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "semidios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "deidad"}
+{"confidence": 0.85, "emote": "indiferente", "event": "devaluacion", "type": "god"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "homeless"}
+{"confidence": 0.62, "emote": "se_esconde", "event": "blanqueo", "type": "trapito", "why": "idem: el que no figura no paga"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "limpiavidrios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "cartonero"}
+{"confidence": 0.75, "emote": "se_esconde", "event": "blanqueo", "type": "mantero", "why": "cuando se habla de declarar, mejor no figurar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "repartidor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "chofer_app"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "fast_food"}
+{"confidence": 0.5, "emote": "se_agarra_la_cabeza", "event": "blanqueo", "type": "oficinista", "why": "el que paga todo mira cómo blanquean otros"}
+{"confidence": 0.58, "emote": "se_encoge_de_hombros", "event": "blanqueo", "type": "administrativo", "why": "a él le retienen todo en el recibo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "junior"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "junior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "junior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "junior_doctor"}
+{"confidence": 0.6, "emote": "festeja", "event": "blanqueo", "type": "junior_lawyer", "why": "sus primeros honorarios de verdad"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "senior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "senior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "senior_doctor"}
+{"confidence": 0.7, "emote": "festeja", "event": "blanqueo", "type": "senior_lawyer", "why": "honorarios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "director"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "fundador_startup"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "dueno_pyme"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "emprendedor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "ceo"}
+{"confidence": 0.8, "emote": "sonrisa_torcida", "event": "blanqueo", "type": "millonario", "why": "todo en regla, de golpe"}
+{"confidence": 0.78, "emote": "sonrisa_torcida", "event": "blanqueo", "type": "multimillonario", "why": "'siempre estuvo declarado'"}
+{"confidence": 0.82, "emote": "sonrisa_torcida", "event": "blanqueo", "type": "rey_ladrillo", "why": "los departamentos en pozo, al fin en blanco"}
+{"confidence": 0.7, "emote": "sonrisa_torcida", "event": "blanqueo", "type": "magnate_petrolero", "why": "el pozo también estaba declarado"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "space_billionaire"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "trillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "dueno_luna"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "dueno_marte"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "rey_asteroides"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "magnate_solar"}
+{"confidence": 0.66, "emote": "sonrisa_torcida", "event": "blanqueo", "type": "fondo_buitre", "why": "le encanta una amnistía"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "rentista_soles"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "estanciero_estelar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "senor_galaxia"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "coleccionista_galaxias"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "emperador_cosmico"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "ser_ascendido"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "semidios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "blanqueo", "type": "deidad"}
+{"confidence": 0.45, "emote": "sonrisa_torcida", "event": "blanqueo", "type": "god", "why": "ante Dios todo estuvo siempre declarado"}
+{"confidence": 0.7, "emote": "se_encoge_de_hombros", "event": "cayo_mercado_pago", "type": "homeless", "why": "nunca tuvo la app"}
+{"confidence": 0.72, "emote": "festeja", "event": "cayo_mercado_pago", "type": "trapito", "why": "nunca aceptó QR"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "limpiavidrios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "cartonero"}
+{"confidence": 0.82, "emote": "festeja", "event": "cayo_mercado_pago", "type": "mantero", "why": "siempre cobró en efectivo"}
+{"confidence": 0.85, "emote": "se_agarra_la_cabeza", "event": "cayo_mercado_pago", "type": "repartidor", "why": "cobra por la app"}
+{"confidence": 0.85, "emote": "se_agarra_la_cabeza", "event": "cayo_mercado_pago", "type": "chofer_app", "why": "cobra por la app"}
+{"confidence": 0.62, "emote": "se_agarra_la_cabeza", "event": "cayo_mercado_pago", "type": "fast_food", "why": "cola de gente sin poder pagar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "oficinista"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "administrativo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "junior"}
+{"confidence": 0.7, "emote": "se_esconde", "event": "cayo_mercado_pago", "type": "junior_programmer", "why": "está de guardia y no quiere que lo encuentren"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "junior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "junior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "junior_lawyer"}
+{"confidence": 0.6, "emote": "se_agarra_la_cabeza", "event": "cayo_mercado_pago", "type": "senior_programmer", "why": "a él lo despiertan a las 3 AM"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "senior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "senior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "senior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "director"}
+{"confidence": 0.64, "emote": "se_esconde", "event": "cayo_mercado_pago", "type": "fundador_startup", "why": "¿será su fintech?"}
+{"confidence": 0.66, "emote": "se_agarra_la_cabeza", "event": "cayo_mercado_pago", "type": "dueno_pyme", "why": "el posnet es el QR"}
+{"confidence": 0.4, "emote": "festeja", "event": "cayo_mercado_pago", "type": "emprendedor", "why": "vende un curso de 'cómo cobrar sin apps'"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "ceo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "millonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "multimillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "rey_ladrillo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "magnate_petrolero"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "space_billionaire"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "trillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "dueno_luna"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "dueno_marte"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "rey_asteroides"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "magnate_solar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "fondo_buitre"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "rentista_soles"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "estanciero_estelar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "senor_galaxia"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "coleccionista_galaxias"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "emperador_cosmico"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "ser_ascendido"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "semidios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "deidad"}
+{"confidence": 0.85, "emote": "indiferente", "event": "cayo_mercado_pago", "type": "god"}
+{"confidence": 0.7, "emote": "se_encoge_de_hombros", "event": "inversion_alienigena", "type": "homeless", "why": "ya nada lo sorprende"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "trapito"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "limpiavidrios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "cartonero"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "mantero"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "repartidor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "chofer_app"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "fast_food"}
+{"confidence": 0.5, "emote": "se_esconde", "event": "inversion_alienigena", "type": "oficinista", "why": "abducción en horario laboral"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "administrativo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "junior"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "junior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "junior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "junior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "junior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "senior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "senior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "senior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "senior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "director"}
+{"confidence": 0.85, "emote": "festeja", "event": "inversion_alienigena", "type": "fundador_startup", "why": "ronda de inversión, aunque sea interestelar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "dueno_pyme"}
+{"confidence": 0.75, "emote": "festeja", "event": "inversion_alienigena", "type": "emprendedor", "why": "por fin alguien le cree"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "ceo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "millonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "multimillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "rey_ladrillo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "magnate_petrolero"}
+{"confidence": 0.6, "emote": "se_agarra_la_cabeza", "event": "inversion_alienigena", "type": "space_billionaire", "why": "le llegó la competencia al espacio"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "trillonario"}
+{"confidence": 0.62, "emote": "sonrisa_torcida", "event": "inversion_alienigena", "type": "dueno_luna", "why": "les va a alquilar la Luna"}
+{"confidence": 0.66, "emote": "festeja", "event": "inversion_alienigena", "type": "dueno_marte", "why": "vecinos con plata"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "rey_asteroides"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "magnate_solar"}
+{"confidence": 0.7, "emote": "sonrisa_torcida", "event": "inversion_alienigena", "type": "fondo_buitre", "why": "les va a vender deuda a los aliens"}
+{"confidence": 0.6, "emote": "sonrisa_torcida", "event": "inversion_alienigena", "type": "rentista_soles", "why": "más inquilinos"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "estanciero_estelar"}
+{"confidence": 0.55, "emote": "se_encoge_de_hombros", "event": "inversion_alienigena", "type": "senor_galaxia", "why": "para él son vecinos del barrio"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "coleccionista_galaxias"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "emperador_cosmico"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "ser_ascendido"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "semidios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "deidad"}
+{"confidence": 0.85, "emote": "indiferente", "event": "inversion_alienigena", "type": "god"}
+{"confidence": 0.8, "emote": "sonrisa_torcida", "event": "corralito", "type": "homeless", "why": "nunca tuvo cuenta en el banco"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "trapito"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "limpiavidrios"}
+{"confidence": 0.62, "emote": "se_encoge_de_hombros", "event": "corralito", "type": "cartonero", "why": "no tiene plata en el banco que le toquen"}
+{"confidence": 0.76, "emote": "sonrisa_torcida", "event": "corralito", "type": "mantero", "why": "el efectivo está bajo el colchón"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "repartidor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "chofer_app"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "fast_food"}
+{"confidence": 0.86, "emote": "se_agarra_la_cabeza", "event": "corralito", "type": "oficinista", "why": "el sueldo quedó adentro"}
+{"confidence": 0.82, "emote": "se_agarra_la_cabeza", "event": "corralito", "type": "administrativo", "why": "el sueldo quedó adentro"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "junior"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "junior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "junior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "junior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "junior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "senior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "senior_architect"}
+{"confidence": 0.55, "emote": "se_agarra_la_cabeza", "event": "corralito", "type": "senior_doctor", "why": "los ahorros de la guardia"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "senior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "director"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "fundador_startup"}
+{"confidence": 0.78, "emote": "se_agarra_la_cabeza", "event": "corralito", "type": "dueno_pyme", "why": "no puede pagar sueldos"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "emprendedor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "ceo"}
+{"confidence": 0.74, "emote": "se_agarra_la_cabeza", "event": "corralito", "type": "millonario", "why": "no llegó a sacarla"}
+{"confidence": 0.64, "emote": "se_esconde", "event": "corralito", "type": "multimillonario", "why": "la sacó el día antes: que no lo miren"}
+{"confidence": 0.72, "emote": "sonrisa_torcida", "event": "corralito", "type": "rey_ladrillo", "why": "lo suyo está en ladrillos"}
+{"confidence": 0.5, "emote": "sonrisa_torcida", "event": "corralito", "type": "magnate_petrolero", "why": "sus dólares están en otro país"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "space_billionaire"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "trillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "dueno_luna"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "dueno_marte"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "rey_asteroides"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "magnate_solar"}
+{"confidence": 0.6, "emote": "festeja", "event": "corralito", "type": "fondo_buitre", "why": "crisis es oportunidad"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "rentista_soles"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "estanciero_estelar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "senor_galaxia"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "coleccionista_galaxias"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "emperador_cosmico"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "ser_ascendido"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "semidios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "deidad"}
+{"confidence": 0.85, "emote": "indiferente", "event": "corralito", "type": "god"}
+{"confidence": 0.6, "emote": "se_encoge_de_hombros", "event": "aguinaldo", "type": "homeless", "why": "nunca cobró uno"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "trapito"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "limpiavidrios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "cartonero"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "mantero"}
+{"confidence": 0.7, "emote": "se_encoge_de_hombros", "event": "aguinaldo", "type": "repartidor", "why": "monotributista: no hay aguinaldo"}
+{"confidence": 0.7, "emote": "se_encoge_de_hombros", "event": "aguinaldo", "type": "chofer_app", "why": "monotributista: no hay aguinaldo"}
+{"confidence": 0.78, "emote": "festeja", "event": "aguinaldo", "type": "fast_food", "why": "llegó el medio sueldo"}
+{"confidence": 0.88, "emote": "festeja", "event": "aguinaldo", "type": "oficinista", "why": "llegó el medio sueldo"}
+{"confidence": 0.86, "emote": "festeja", "event": "aguinaldo", "type": "administrativo", "why": "llegó el medio sueldo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "junior"}
+{"confidence": 0.5, "emote": "festeja", "event": "aguinaldo", "type": "junior_programmer", "why": "si está en blanco"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "junior_architect"}
+{"confidence": 0.62, "emote": "festeja", "event": "aguinaldo", "type": "junior_doctor", "why": "la residencia por fin paga algo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "junior_lawyer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "senior_programmer"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "senior_architect"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "senior_doctor"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "senior_lawyer"}
+{"confidence": 0.6, "emote": "festeja", "event": "aguinaldo", "type": "director", "why": "el suyo es más grande"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "fundador_startup"}
+{"confidence": 0.88, "emote": "se_agarra_la_cabeza", "event": "aguinaldo", "type": "dueno_pyme", "why": "lo tiene que pagar él"}
+{"confidence": 0.64, "emote": "se_agarra_la_cabeza", "event": "aguinaldo", "type": "emprendedor", "why": "no cobra aguinaldo y encima paga los de otros"}
+{"confidence": 0.55, "emote": "se_agarra_la_cabeza", "event": "aguinaldo", "type": "ceo", "why": "firma el cheque"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "millonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "multimillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "rey_ladrillo"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "magnate_petrolero"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "space_billionaire"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "trillonario"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "dueno_luna"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "dueno_marte"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "rey_asteroides"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "magnate_solar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "fondo_buitre"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "rentista_soles"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "estanciero_estelar"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "senor_galaxia"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "coleccionista_galaxias"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "emperador_cosmico"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "ser_ascendido"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "semidios"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "deidad"}
+{"confidence": 0.85, "emote": "indiferente", "event": "aguinaldo", "type": "god"}

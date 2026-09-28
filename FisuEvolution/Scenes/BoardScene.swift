@@ -352,6 +352,7 @@ final class BoardScene: SKScene {
         refreshCrowdDepth()
         updateFTUEHint()
         publishTutorialSpotlight()
+        updateEventReactions()
     }
 
     // MARK: - Celebración del tablero (vuelo + reveal + piso nuevo)
@@ -611,12 +612,93 @@ final class BoardScene: SKScene {
     private func releaseSpotlitNode() {
         guard spotlitNode != nil else { return }
         spotlitNode = nil
-        for (slot, node) in characterNodes
-        where node !== dragNode && !mergeCandidates.contains(slot)
-            && node.action(forKey: "wander") == nil {
-            startWander(node)
+        for node in characterNodes.values { resumeWanderIfFree(node) }
+    }
+
+    /// Le devuelve el paseo a un personaje que alguien congeló, **salvo que otro
+    /// gesto lo tenga tomado**: el arrastrado maneja su paseo en
+    /// `touchesEnded`/`cancelDrag`, los candidatos a fusión lo recuperan en
+    /// `clearMergeCandidates`, el iluminado en `releaseSpotlitNode`, y el que
+    /// está reaccionando, al terminar el emote. Es la única copia de esa lista:
+    /// antes vivía adentro de `releaseSpotlitNode`, y con dos dueños nuevos
+    /// —el recorte y las reacciones— dos copias iban a divergir.
+    ///
+    /// También exige que el nodo siga en el campo en su slot: entre que se
+    /// congela y que se suelta puede haber pasado un merge.
+    private func resumeWanderIfFree(_ node: CharacterNode) {
+        guard characterNodes[node.cellIndex] === node,
+              node !== dragNode, node !== spotlitNode,
+              !mergeCandidates.contains(node.cellIndex),
+              !node.isEmoting,
+              node.action(forKey: "wander") == nil
+        else { return }
+        startWander(node)
+    }
+
+    // MARK: - Reacciones de campo
+
+    #if DEBUG
+    /// Apaga o prende las reacciones desde un test, como `reduceMotionOverride`:
+    /// el flag real vive en `GameContent`, que es inmutable. `nil` = el flag.
+    static var eventReactionsOverride: Bool?
+    #endif
+
+    private var eventReactionsEnabled: Bool {
+        #if DEBUG
+        if let override = Self.eventReactionsOverride { return override }
+        #endif
+        return gameState.content?.flags.eventReactionsEnabled ?? false
+    }
+
+    /// El disparo al que el campo ya reaccionó. Por valor y no por id, igual que
+    /// `announcedEvent` en la cola: el id no distingue una Devaluación de la
+    /// siguiente.
+    private var reactedEvent: EventManager.ActiveEvent?
+
+    /// Cuando el banner de un evento toma su turno en la cola, los personajes del
+    /// piso a la vista reaccionan según `event_reactions.json`.
+    ///
+    /// Se engancha al TURNO del banner y no a que aparezca el evento: así la
+    /// reacción sale junto con el cartel, la cola la arbitra contra reveals y
+    /// cofres sin código propio, y durante la fase obligatoria del tutorial —con
+    /// la cola restringida al tablero— no pasa nada solo. Por frame, lo único
+    /// que corre es la comparación de la primera guarda.
+    private func updateEventReactions() {
+        guard gameState.showing == .eventBanner,
+              let event = gameState.activeEvent, event != reactedEvent
+        else { return }
+        // Se marca antes de actuar: pase lo que pase abajo, este disparo ya tuvo
+        // su oportunidad y no se reintenta en cada frame.
+        reactedEvent = event
+        guard eventReactionsEnabled, !Self.prefersReducedMotion, !boardCelebrationRunning,
+              let content = gameState.content
+        else { return }
+
+        var excluded = mergeCandidates
+        if let dragNode { excluded.insert(dragNode.cellIndex) }
+        if let spotlitNode { excluded.insert(spotlitNode.cellIndex) }
+        let plan = EventReactionPlanner.plan(
+            eventId: event.id,
+            onField: characterNodes.map { (slot: $0.key, typeId: $0.value.typeId) },
+            excluded: excluded,
+            config: content.eventReactions
+        )
+        for reaction in plan {
+            guard let node = characterNodes[reaction.slot] else { continue }
+            // Quieto mientras reacciona: la pausa es lo que hace que se lea como
+            // "se enteró", y además el emote no pelea con el paseo.
+            node.removeAction(forKey: "wander")
+            node.playEmote(reaction.emote, delay: reaction.delay) { [weak self, weak node] in
+                guard let self, let node else { return }
+                self.resumeWanderIfFree(node)
+            }
         }
     }
+
+    #if DEBUG
+    /// Corre sólo el paso de las reacciones, sin el resto del frame.
+    func simulateEventReactionsFrame() { updateEventReactions() }
+    #endif
 
     /// Cuánto se tiene que mover el personaje para republicar el recorte. A la
     /// velocidad del deambular (44 pt/s) esto da ~7 Hz, el mismo presupuesto que
@@ -654,10 +736,19 @@ final class BoardScene: SKScene {
             }
             return
         }
+        beginGrab(node)
+    }
+
+    /// Tomar a un personaje con el dedo. Vive aparte de `touchesBegan` para que la
+    /// puerta de test (`simulateTouchDown`) recorra EXACTAMENTE el mismo camino.
+    private func beginGrab(_ node: CharacterNode) {
         dragNode = node
         dragOriginCell = node.cellIndex
         isDragging = false
         node.removeAction(forKey: "wander")
+        // Agarrarlo corta la reacción: el dedo manda, y el que agarró ya es
+        // dueño del paseo del nodo.
+        node.cancelEmote()
 
         // Long-press: si en 0.45s sigue apretando sin arrastrar → popup de pasivo.
         run(.sequence([
@@ -669,6 +760,14 @@ final class BoardScene: SKScene {
             },
         ]), withKey: Self.longPressKey)
     }
+
+    #if DEBUG
+    /// Apoyar el dedo sobre un personaje, por el camino real del gesto.
+    func simulateTouchDown(slot: Int) {
+        guard let node = characterNodes[slot] else { return }
+        beginGrab(node)
+    }
+    #endif
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if let start = emptyTouchStart {

@@ -152,7 +152,11 @@ final class CharacterNode: SKNode {
     /// `nil` = no hay emote en curso.
     private var spriteRestPosition: CGPoint?
 
-    var isEmoting: Bool { sprite.action(forKey: Self.emoteActionKey) != nil }
+    /// Por el reposo guardado y no por la acción: el cierre del emote corre
+    /// ADENTRO de su propia acción, y ahí la acción todavía existe. Mirándola, el
+    /// que termina de reaccionar se vería reaccionando y nadie le devolvería el
+    /// paseo.
+    var isEmoting: Bool { spriteRestPosition != nil }
 
     /// Arranca un emote después de `delay`. `completion` corre sólo si el emote
     /// termina entero: uno cancelado (agarraron al personaje, se recicló) no la

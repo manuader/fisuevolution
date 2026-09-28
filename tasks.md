@@ -96,6 +96,18 @@
 - [ ] [USUARIO] Submit for Review (+ Review Notes ya escritas) — release manual
 - [ ] (Opcional) gh repo create + push + CI activo
 
+## Reacciones de campo (rama `feat/reacciones-de-campo`)
+- [x] Fix: un evento repetido vuelve a pedir turno en la cola (`announcedEvent` por valor)
+- [x] EconomyKit: `EventReactions` (tabla + validación + planner) con tests
+- [x] `Tools/event-reactions/` + tabla de 352 celdas (`build.py --check` anti-drift)
+- [x] App: carga + flag + emotes en `CharacterNode` + limpieza en el pool + debug "Eventos"
+- [x] Escena: disparo en el turno del banner, exclusiones, tests de cableado (mutación verificada)
+- [x] Evidencia: `Docs/reacciones/*.jpg` (fixture `--uitest-event-crowd=<evento>`)
+- [ ] [DUEÑO] Revisar `Tools/event-reactions/state/review.md` (lo más dudoso primero; 15 propuestas apagadas por el umbral)
+- [ ] [DUEÑO] Mirar los 8 eventos en el simulador y decidir amplitud/tiempos (hoy se leen sutiles)
+- [ ] [DUEÑO] ¿Entra en 1.0.0 o en 1.1?
+- [ ] v1.1: que reaccionen también los specials (hoy son `SKSpriteNode` que se recrean en cada render)
+
 ## Extras pendientes de decisión
 - [ ] Nombre comercial final y logo definitivo
 - [ ] ¿Ads v1 sí/no? (rama A vs B)

@@ -18,7 +18,7 @@ Canales Ambient/Voice: exclusión consciente de la v1.
 | Compra IAP | UI de StoreKit + row pasa a ✓ | `sfx_buy` | purchase (vía StoreKit UI) |
 | Upgrade | fila actualiza nivel/costo | `sfx_buy` | purchase |
 | Boost activado | fila pasa a cooldown + modifier visible en income | `sfx_buy` | purchase |
-| Evento (inicio) | banner entra con spring + countdown | `sfx_event` | — (no interrumpir) |
+| Evento (inicio) | banner entra con spring + countdown; en el campo, los personajes con reacción en `event_reactions.json` reaccionan (emote ≤1,4 s, escalonado, tope 4; nada con Reduce Motion) | `sfx_event` (los emotes no suman sonido) | — (no interrumpir) |
 | Evento (fin) | banner sale con fade | — | — |
 | Daily claim | popup con monto/special | `sfx_daily` | — |
 | Special drop | sheet celebración + estrella | `sfx_rare` | rarity |

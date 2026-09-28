@@ -1,7 +1,7 @@
 # ESTADO DEL PROYECTO — FisuEvolution (Hobo Evolution)
 
 > Documento de handoff para continuar en otra sesión de Claude.
-> Última actualización: 2026-07-19.
+> Última actualización: 2026-07-19 (sección de reacciones de campo y conteo de tiers: 2026-09-28).
 
 ## Qué es
 
@@ -43,13 +43,14 @@ Merge-idle iOS con humor argentino: 30 tiers (El Fisura → Dios), tap/merge/pas
 - **Audio**: 100% sintetizado por código (`Tools/audio-synth/generate_audio.py`, stdlib, determinístico, seeds fijas) → 10 SFX + 2 loops perfectos en `Resources/Audio/*.caf`. `AudioManager` degrada en silencio si falta un archivo.
 - **Game Center/CloudKit**: codeados (`GameCenterManager`, `CloudSaveSync`, `SaveConflictResolver` — gana mayor lifetimeEarnings, unión de compras/drops, **clamp Int64 obligatorio**: `Int64(Double)` grande trapea) detrás de `feature_flags.json` apagados. F6 solo flipea.
 - **Boosts review-safe**: `buildVariant` en feature_flags ("dev"/"store") elige los textos de `boosts.json.reviewSafe` (Guideline 2.3.1).
+- **Reacciones de campo** (rama `feat/reacciones-de-campo`): cuando el banner de un evento toma su turno en la cola, los personajes del piso a la vista reaccionan según `Resources/Data/event_reactions.json` (44 tipos × 8 eventos, ~21% reacciona). La tabla se genera FUERA del juego con `Tools/event-reactions/` (`extract.py` → juicios en `state/decisions.jsonl` → `build.py`; `build.py --check` es el anti-drift) y se valida con cobertura exacta en el load. Lógica pura en `EconomyKit/EventReactions.swift`; emotes en `CharacterNode` (sólo sprite: nunca `node.position`, que lee `MergeTargeting`, ni `sprite.xScale`, que es el facing). Flag `eventReactionsEnabled`. Debug: sección "Eventos" del panel y `--uitest-event-crowd=<evento>`. Diseño y plan: `Docs/PROMPT-` y `Docs/PLAN-reacciones-de-campo.md`; por qué así y no con un modelo en runtime: `Docs/evaluacion-jev.md`, `Docs/evaluacion-laya.md`. **Agregar un evento o un tier obliga a regenerar la tabla** (el arranque en Debug lo frena).
 
 ## Economía (números actuales, gate aprobado)
 
 `economy.json`: yieldGrowth 3.8 · **spawn: baseCost 50, costGrowth 1.022, tierOffset 4, costBasis "total"** · offline cap 8h/0.5.
 - **Spawn progresivo** (extensión aprobada al bible §2.3.4): el shop ofrece tier `max(1, maxTier−4)` — sin esto God requiere 2^29 unidades.
 - **costBasis "total"** (exponente = spawns totales): el "perType" del bible colapsaba todo el pacing en una pared única. Curva actual validada con `Tools/balance-sim` (check duro de alcanzabilidad): primer merge 16s, carrera ~2min, T21 24min, prestige ~7.8h activas. Historia completa en `Docs/balance-log.md`.
-- `tiers.json` (37 entradas: 8 + nodo junior + 4 jr + 4 sr + 20; SIN "senior" genérico) se genera con `Tools/generate-tiers` — nunca editar números a mano (test anti-drift).
+- `tiers.json` (44 entradas hoy —43 concretas + el nodo `junior`, maxTier 37—; el "37 entradas" que decía acá quedó viejo con el remapeo de pisos) se genera con `Tools/generate-tiers` — nunca editar números a mano (test anti-drift).
 
 ## Saga del arte (LEER antes de tocar generación)
 

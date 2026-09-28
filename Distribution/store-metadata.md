@@ -3,12 +3,25 @@
 Primary language en ASC: **Spanish (Mexico)** (es-MX — ASC no ofrece es-AR;
 sirve todo LatAm). Secundario: **English (U.S.)**.
 
-## Nombre (≤30 chars) — [GATE HUMANO F6.2: decidir]
+⚠️ El primary language **se fija al crear el app record**, y el record ya existe
+(app id `6814521946`). O sea que esto ya no es una decisión abierta: es un hecho
+a verificar en App Information, no algo a elegir. Si ahí dice otra cosa que
+es-MX, manda lo que diga ASC y este archivo se corrige.
 
-Propuestas:
-1. **Fisura: Evolución Idle** (23)
-2. FisuEvolution (13)
-3. De Fisura a Dios (17)
+## Nombre (≤30 chars) — ✅ DECIDIDO (2026-09-21, dueño)
+
+| Localización | Nombre en la ficha | Chars |
+|---|---|---|
+| Español | **FisuEvolution** | 13 |
+| Inglés | **HoboEvolution** | 13 |
+
+Es el nombre **de la ficha de cada localización**, que ASC permite distinto por
+idioma. El nombre en el dispositivo es otra cosa: sale del target (`FisuEvolution`)
+porque `GENERATE_INFOPLIST_FILE: YES` y no hay `CFBundleDisplayName` localizado.
+Si alguna vez se quiere que el ícono diga "HoboEvolution" en un teléfono en
+inglés, eso es un cambio de binario, no de ASC.
+
+Descartadas: "Fisura: Evolución Idle", "De Fisura a Dios".
 
 ## Subtítulo (≤30 chars)
 

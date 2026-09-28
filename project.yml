@@ -72,7 +72,12 @@ targets:
         # lugar donde mirar es `RootView`, no este archivo.
         INFOPLIST_KEY_UIStatusBarHidden: YES
         CURRENT_PROJECT_VERSION: "1"
-        MARKETING_VERSION: "0.1.0"
+        MARKETING_VERSION: "1.0.0"
+        # Sin esto App Store Connect te frena CADA build con la pregunta de
+        # export compliance. El juego no usa criptografía propia —sólo HTTPS
+        # del sistema, que está exento— así que la respuesta es NO y conviene
+        # que viaje en el binario en vez de tipearla en cada subida.
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
       configs:
         Debug:
           # StoreKitTest (la tienda local DEBUG de `StoreManager`) vive en

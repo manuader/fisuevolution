@@ -374,9 +374,14 @@ final class GameState {
     /// Lo escribe `celebrateBoard` y lo suelta `releasePayload`, en
     /// `+Celebrations`.
     @ObservationIgnored var boardCelebrationShowsSomethingNew = false
-    /// El evento cuyo banner ya tuvo su turno. Sin esto el banner se reencolaría
+    /// El disparo cuyo banner ya tuvo su turno. Sin esto el banner se reencolaría
     /// para siempre: el evento sigue activo 30 s y el banner se cierra a los 6.
-    @ObservationIgnored var announcedEventID: String?
+    ///
+    /// ⚠️ Guarda el disparo ENTERO y no el id. El id no distingue una Devaluación
+    /// de la siguiente —`endsAt` sí—, y con el id la misma dos veces seguidas se
+    /// daba por anunciada: no pasaba por la cola y el banner se plantaba encima
+    /// de lo que estuviera en pantalla.
+    @ObservationIgnored var announcedEvent: EventManager.ActiveEvent?
 
     /// Era `private(set)`. Lo mutan los seis dominios: cada acción del jugador
     /// escribe el estado autoritativo y ninguno vive ya en este archivo.

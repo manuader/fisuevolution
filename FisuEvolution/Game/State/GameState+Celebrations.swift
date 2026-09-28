@@ -52,7 +52,7 @@ extension GameState {
         if achievementToast != nil || !pendingAchievementToasts.isEmpty {
             celebrations.enqueue(.achievements)
         }
-        if let event = activeEvent, event.id != announcedEventID {
+        if let event = activeEvent, event != announcedEvent {
             celebrations.enqueue(.eventBanner)
         }
         if tutorialTip != nil { celebrations.enqueue(.tutorialTip) }
@@ -134,7 +134,7 @@ extension GameState {
     /// volver a la cola: el evento dura ~30 s y el banner libera a los 6.
     var eventBannerIsVisible: Bool {
         guard let event = activeEvent else { return false }
-        return showing == .eventBanner || announcedEventID == event.id
+        return showing == .eventBanner || announcedEvent == event
     }
 
     // MARK: Internos
@@ -154,7 +154,7 @@ extension GameState {
         case .eventBanner:
             // El banner ya se anunció; de acá en más acompaña al evento sin
             // volver a pedir turno.
-            announcedEventID = activeEvent?.id
+            announcedEvent = activeEvent
         case .boardCelebration:
             // La bandera describe UNA celebración, no un estado de la partida: si
             // sobreviviera a la suya, el próximo ascenso sin novedad heredaría la

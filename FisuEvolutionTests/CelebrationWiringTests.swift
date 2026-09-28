@@ -133,6 +133,48 @@ struct CelebrationWiringTests {
         #expect(gameState.towerNotice == nil)
     }
 
+    /// El banner ya anunciado acompaña a su evento sin volver a la cola, y para
+    /// saber cuál se anunció la cola miraba el **id**. Pero el id no distingue un
+    /// disparo del siguiente: la misma Devaluación dos veces seguidas —el evento
+    /// de más peso— se daba por anunciada, salteaba la cola, y el banner se le
+    /// plantaba encima a lo que estuviera en pantalla.
+    @Test("el mismo evento dos veces seguidas vuelve a pedir turno")
+    func aRepeatedEventAsksForItsTurnAgain() async throws {
+        let gameState = await makeGameState()
+        // `flushHUD` vence los eventos contra el reloj de pared: los `endsAt`
+        // tienen que quedar en el futuro o el evento se borra antes de mirarlo.
+        let now = Date().timeIntervalSince1970
+        func devaluacion(endsAt: TimeInterval) -> EventManager.ActiveEvent {
+            EventManager.ActiveEvent(
+                id: "devaluacion", flavorTextKey: "event.devaluacion.flavor",
+                isBuff: false, endsAt: endsAt
+            )
+        }
+
+        gameState.activeEvent = devaluacion(endsAt: now + 90)
+        gameState.flushHUD()
+        #expect(gameState.showing == .eventBanner)
+        gameState.celebrationFinished(.eventBanner)
+        #expect(gameState.eventBannerIsVisible, "anunciado, acompaña al evento hasta que vence")
+
+        gameState.activeEvent = nil
+        #expect(!gameState.eventBannerIsVisible)
+
+        // Algo ocupa la pantalla cuando vuelve a caer la misma devaluación.
+        gameState.towerNotice = GameState.TowerNotice(kind: .floorFull)
+        gameState.flushHUD()
+        #expect(gameState.showing == .towerNotice)
+
+        gameState.activeEvent = devaluacion(endsAt: now + 1_000)
+        gameState.flushHUD()
+        #expect(!gameState.eventBannerIsVisible, "tiene que esperar su turno, no plantarse encima del aviso")
+        assertPayloadExists(gameState)
+
+        gameState.celebrationFinished(.towerNotice)
+        #expect(gameState.showing == .eventBanner, "y cuando le toca, pasa por la cola como el primero")
+        assertPayloadExists(gameState)
+    }
+
     @Test("el watchdog destraba lo que nunca avisa que terminó")
     func watchdogUnsticksTheQueue() async throws {
         let gameState = await makeGameState()

@@ -366,6 +366,45 @@ extension GameState {
         refreshProjections()
     }
 
+    /// Fixture de captura de las reacciones de campo
+    /// (`--uitest-event-crowd=<evento>`): lleva la cámara al piso donde más
+    /// personajes reaccionan a ese evento, lo llena con uno de cada tipo del
+    /// piso, y a los dos segundos anuncia el evento.
+    ///
+    /// Existe porque una partida nueva sólo tiene a El Fisura en el campo, y una
+    /// reacción de un solo personaje no deja juzgar lo que importa: la
+    /// asimetría entre escalones. Los dos segundos son para que la escena ya
+    /// esté montada cuando el banner pida el turno.
+    func debugStageEventCrowd(eventId: String) {
+        guard let content, var player, var tower else { return }
+        let floors = content.floorTable.floors
+        func typesOn(_ ordinal: Int) -> [CharacterType] {
+            content.tiers.concreteTypes.filter { floors[ordinal].contains(tier: $0.tier) }
+        }
+        func reactors(_ ordinal: Int) -> Int {
+            typesOn(ordinal).filter { content.eventReactions.emote(eventId: eventId, typeId: $0.id) != .indiferente }.count
+        }
+        guard let ordinal = floors.indices.max(by: { reactors($0) < reactors($1) }) else { return }
+
+        for type in typesOn(ordinal) {
+            guard let slot = tower.floors[ordinal].firstFreeSlot() else { break }
+            tower.floors[ordinal].slots[slot] = type.id
+            player.run.units[type.id, default: 0] += 1
+            player.run.markSeen(type.id)
+        }
+        player.run.unlockedFloors = floors.prefix(ordinal + 1).map(\.id)
+        player.run.maxTierReached = max(player.run.maxTierReached, floors[ordinal].lastTier)
+        self.player = player
+        self.tower = tower
+        visibleFloorOrdinal = ordinal
+        bumpBoard()
+
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            self?.debugAnnounceEvent(id: eventId)
+        }
+    }
+
     func debugResetSave() {
         guard let content else { return }
         var fresh = PlayerState.newGame(

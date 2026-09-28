@@ -585,6 +585,11 @@ final class GameState {
             if ProcessInfo.processInfo.arguments.contains("--uitest-achievements") {
                 debugSeedAchievements()
             }
+            // Capturas de las reacciones de campo: un piso lleno y el evento
+            // anunciado. Ver `debugStageEventCrowd`.
+            if let arg = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--uitest-event-crowd=") }) {
+                debugStageEventCrowd(eventId: String(arg.dropFirst("--uitest-event-crowd=".count)))
+            }
             // El long-press sobre SpriteKit no es determinista en el runner: para
             // el smoke de la ficha alcanza con abrirla sobre la primera unidad.
             if ProcessInfo.processInfo.arguments.contains("--uitest-open-sheet"),

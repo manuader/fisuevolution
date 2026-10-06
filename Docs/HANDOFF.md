@@ -450,6 +450,27 @@ toques, uno de carga) · `StoreUITests` **2** — y 🔴 `StoreManagerTests` en 
 falló HOY con fallos rotativos de ENTORNO (diff sin un archivo de Store; ver
 la doc de sesión y el aviso en §6).
 
+### Sesión del 2026-08-28 — Los cofres sólo dan personajes desbloqueados
+
+Un cofre ya no puede darte la pinta de alguien a quien no llegaste. El dato que ordenó la
+implementación es que **la rareza YA era una banda de pisos** sin solapamiento (común =
+pisos 1-2, rara = 3-4, épica = 5-7, legendaria = 8-9), porque la bolsa se había repartido por
+el piso donde vive cada personaje: filtrar por desbloqueo es casi filtrar por rareza, así
+que el sistema no se rediseñó — sólo se le puso un filtro en el embudo correcto.
+
+- **Un solo lugar**: `ChestRoller.stock`, por donde pasan los tres caminos del sorteo. El
+  parámetro `unlocked` **sin default**, para que un call site olvidadizo no apague la regla
+  en silencio.
+- **La historia global**, `meta.stats.maxFloorOrdinalEver`: lo que abriste en reencarnaciones
+  anteriores sigue contando.
+- **La bolsa alcanzable seca no paga: espera.** Tipo nuevo `ChestDraw`, y el contador no baja.
+- **Tres efectos que no estaban en el pedido**: el mínimo de épica del cofre de reencarnación
+  ahora cede ante el desbloqueo; el puntito de Regalos sigue a `canOpenChest` para no quedar
+  prendido un piso entero; y la puerta de debug sube un piso simulado en vez de saltear el
+  filtro.
+
+Detalle en `Docs/SESION-2026-08-28-cofres-solo-desbloqueados.md`.
+
 ### Sesión del 2026-08-26/27 — Los cofres de skins
 
 Las 41 pintas de piso dejaron de otorgarse al llegar a un piso: ahora **sólo salen de
@@ -1175,6 +1196,23 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    llevarse las doradas, y ese agujero **creció** —antes bajaba de rebote cuando el save
    disparaba la huella—. Se eligió con esa información arriba de la mesa.
 
+0-bis-2. **Un cofre NUNCA da la pinta de un personaje que no desbloqueaste** (2026-08-28).
+   Palabras del dueño: *"quiero que sea imposible que te toque una skin de un personaje que
+   no desbloqueaste todavia (en la historia global, por lo que cuenta a los personajes
+   desbloqueados en reencarnaciones anteriores)"*. **Imposible** y **global**, las dos
+   literales. El filtro vive en `ChestRoller.stock`, el embudo por el que pasan los TRES
+   caminos del sorteo (rareza sorteada, promoción hacia arriba, degradación hacia abajo), y
+   el parámetro `unlocked` **no tiene default** para que el compilador lo sostenga.
+   - Qué cuenta: `meta.stats.maxFloorOrdinalEver` — la cuenta, no la run.
+   - Granularidad **piso y no tier**, a propósito: por tier, la bifurcación de carrera
+     encerraría las pintas de la rama que no elegiste y la colección quedaría inalcanzable
+     dentro de una run.
+   - Bolsa alcanzable seca: el cofre **espera** (`ChestDraw.needsProgress`, no se gasta).
+     Sólo paga plata con las 41 ganadas.
+   - ⚠️ **Consecuencia**: el cofre de reencarnación deja de garantizar épica en términos
+     absolutos. Si el jugador no llegó a un piso épico, **cede el mínimo, no el desbloqueo**.
+   Detalle en `Docs/SESION-2026-08-28-cofres-solo-desbloqueados.md`.
+
 0-ter. **El veterano no cobra los cofres de los pisos que ya subió** (2026-08-27).
    `migrateV4toV5` hace **back-fill** de `floorChestsAwarded` con los pisos abiertos ÷ 2, en
    vez de dejarlo en cero. Motivo: con cero, un save parado en el piso 8 cobraba cuatro
@@ -1647,6 +1685,39 @@ del encuadre es este bug; el scrim radial legítimo es suave. Y la relectura
 que dolió: la "viñeta horneada que se cortaba en el borde" del master viejo
 era ESTE MISMO bug con fondo oscuro — el feather y el scrim de continuación
 de esa ronda fueron parches al síntoma, no a la causa.
+
+### Del filtro de desbloqueo (2026-08-28)
+
+**⚠️ Cortar un `xcodebuild` a mitad puede dejar el SIGUIENTE colgado para siempre.** El
+build se queda en `ClangStatCache` esperando un lock que dejó tomado el proceso muerto, y el
+síntoma se confunde exactamente con "la máquina está ocupada": `load average` altísimo y el
+log sin avanzar una línea durante veinte minutos. **Lo que los distingue es medir el
+proceso, no el reloj**: un build lento tiene `swift-frontend`/`clang` corriendo y xcodebuild
+con CPU; un build colgado está a **0 %** y no tiene un solo compilador vivo.
+
+```bash
+ps aux | grep "[x]codebuild" | awk '{print $2, $3"%"}'   # 0.0% sostenido = colgado
+ps aux | grep -cE "[s]wift-frontend|[c]lang -"            # 0 con el build "corriendo" = colgado
+pkill -f clang-stat-cache                                 # y relanzar
+```
+
+Pasó el 2026-08-28 después de un `TaskStop` sobre una corrida de UI. **Si vas a cortar un
+build, contá con limpiar el `clang-stat-cache` huérfano antes de relanzar.**
+
+
+**Un caso que la vista no puede recibir no va en el tipo que la vista dibuja.** Agregar
+`.needsProgress` a `ChestOutcome` compilaba, pero el compilador devolvió **seis errores de
+exhaustividad adentro de `ChestOpeningView`** —uno por cada `switch` de la coreografía— para
+un valor que esa vista no puede ver nunca. La salida no era agregar seis ramas muertas: era
+partir el tipo (`ChestDraw` = premio | todavía no), y los seis errores eran el diseño
+avisando que el caso estaba en el lugar equivocado. **Cuando el compilador pide ramas muertas
+en un consumidor, el problema suele ser el tipo y no el consumidor.**
+
+**Un parámetro nuevo con default es una regla que se puede apagar sin ponerse roja.**
+`ChestRoller.roll(unlocked:)` va SIN default a propósito: con uno, cualquier call site que se
+lo olvidara volvería al comportamiento viejo en silencio. Sin él, los ocho call sites de test
+tuvieron que decir explícitamente qué desbloqueo estaban midiendo — que además los hizo
+legibles. **Cuando lo que agregás es una garantía, el default es su agujero.**
 
 ### Del cierre de los cofres (2026-08-27)
 
@@ -2777,6 +2848,10 @@ Anotado por si algún día importa, con su medición:
 - `Docs/superpowers/plans/2026-08-26-cofres-de-skins.md` — el plan de 12 tareas. ⚠️ Lleva
   adentro un **mapa de los helpers de test que existen de verdad**, porque el plan inventó
   cuatro que no existían.
+- `Docs/SESION-2026-08-28-cofres-solo-desbloqueados.md` — **la sesión más reciente**: por qué
+  la rareza ya era una banda de pisos, dónde vive el filtro y por qué en un solo lugar, la
+  granularidad piso-y-no-tier con el motivo de la bifurcación de carrera, y los tres efectos
+  colaterales (el mínimo de épica, el puntito y la puerta de debug).
 - `Docs/SESION-2026-08-26-cofres-de-skins.md` — la sesión: las ocho decisiones del dueño, los
   dos assets que se regeneraron y por qué, y **el cierre del 2026-08-27** — la primera corrida
   limpia de la suite entera sobre el árbol final, el veredicto del rojo intermitente con su

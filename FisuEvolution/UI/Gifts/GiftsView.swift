@@ -135,7 +135,7 @@ struct GiftsView: View {
                     // boosts y los videos son ofertas; el cofre es suyo.
                     if chests > 0 {
                         section("gifts.section.chests")
-                        ChestCard(count: chests, open: openChest)
+                        ChestCard(count: chests, canOpen: gameState.canOpenChest, open: openChest)
                             .staggeredAppearance(index: 0)
                     }
 
@@ -314,6 +314,14 @@ private enum Cooldown {
 /// —que se recompone con el timer de la pantalla— ya dice "1 sin abrir".
 private struct ChestCard: View {
     let count: Int
+    /// Si el sorteo tiene algo para dar HOY. Con la regla de desbloqueo
+    /// (2026-08-28) un cofre puede estar ganado y todavía no ser abrible: el
+    /// jugador ya tiene todas las pintas de los personajes a los que llegó.
+    ///
+    /// ⚠️ **El cofre NO se pierde ni se descuenta** — sigue contando arriba, y
+    /// por eso el número de la tarjeta no cambia. Lo único que cambia es el riel
+    /// derecho, que pasa de ofrecer a explicar.
+    let canOpen: Bool
     let open: () -> Void
 
     /// El mismo plato de 56 pt que la tira, `BoostGlyph` y `ScreenGlyph`: las
@@ -344,18 +352,37 @@ private struct ChestCard: View {
                     // Ya lo dice el resumen de la fila, que es el elemento de
                     // atrás: sin esto se anuncia dos veces.
                     .accessibilityHidden(true)
-                ActionPill(
-                    titleKey: "gifts.chest.open",
-                    systemImage: "sparkles",
-                    identifier: "gifts.chest.open",
-                    // "Abrir" a secas no dice qué se abre, y en el rotor es una
-                    // parada muda. El nombre del premio ya existe —es el que usa
-                    // el día 7 del calendario— y va en singular, que es lo que
-                    // este botón hace: abrir UNO.
-                    accessibilityLabel: Text("gifts.chest.open")
-                        + Text(verbatim: ", ") + Text("daily.prize.chest"),
-                    action: open
-                )
+                // El riel ofrece o explica, nunca ofrece apagado: `ActionPill`
+                // no usa `.disabled` en ningún lado del juego —una acción que no
+                // corresponde no se dibuja— y `StateBadge` es lo que ocupa su
+                // lugar. Mismo par que las filas de boosts de esta pantalla.
+                Group {
+                    if canOpen {
+                        ActionPill(
+                            titleKey: "gifts.chest.open",
+                            systemImage: "sparkles",
+                            identifier: "gifts.chest.open",
+                            // "Abrir" a secas no dice qué se abre, y en el rotor es una
+                            // parada muda. El nombre del premio ya existe —es el que usa
+                            // el día 7 del calendario— y va en singular, que es lo que
+                            // este botón hace: abrir UNO.
+                            accessibilityLabel: Text("gifts.chest.open")
+                                + Text(verbatim: ", ") + Text("daily.prize.chest"),
+                            action: open
+                        )
+                    } else {
+                        StateBadge(
+                            text: String(localized: "gifts.chest.locked"),
+                            systemImage: "lock.fill",
+                            muted: true
+                        )
+                        // Regalos navega por paradas y este badge es el ÚNICO
+                        // lugar donde "todavía no" se dice: taparlo lo borraría
+                        // del árbol y el cofre quedaría mudo (patrón del grupo 2).
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("gifts.chest.locked")
+                    }
+                }
                 .frame(width: Self.railWidth, alignment: .trailing)
             }
         }

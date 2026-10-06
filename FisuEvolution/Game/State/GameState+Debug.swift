@@ -353,8 +353,33 @@ extension GameState {
     /// Regala y abre en la misma llamada: `openChest` gasta uno de los
     /// pendientes, así que sin el `awardChest` de arriba no haría nada en una
     /// partida sin cofres guardados.
+    ///
+    /// ⚠️ **Y sube un piso si hace falta**, que no es capricho de la puerta: con
+    /// la regla de desbloqueo (2026-08-28) un cofre no se abre si el jugador ya
+    /// tiene las pintas de todos los personajes a los que llegó, y en una partida
+    /// nueva eso pasa al CUARTO toque —el primer piso reparte tres—. Sin esto,
+    /// el botón que existe para poder mirar la animación cuantas veces haga falta
+    /// se moriría justo a la tercera.
+    ///
+    /// Sube el progreso en vez de saltear el filtro **a propósito**: saltearlo
+    /// acreditaría una pinta que el save no puede tener, y una puerta de debug
+    /// que fabrica estados imposibles es una fábrica de bugs fantasma. Esto hace
+    /// lo que haría el jugador —subir— y deja la partida coherente.
     func debugOpenChest() {
+        // ⚠️ El `awardChest()` va PRIMERO, y no es estilo: `canOpenChest` cotiza
+        // contra el contador de pendientes, así que preguntarle antes de sumar el
+        // cofre devuelve `false` SIEMPRE — y el piso simulado se subiría en cada
+        // llamada, la necesite o no. Se cazó cuando la puerta empezó a mover el
+        // progreso de partidas que no lo pedían.
         awardChest()
+        if !canOpenChest, var player, let content {
+            let tope = content.floorTable.floors.count - 1
+            if player.meta.stats.maxFloorOrdinalEver < tope {
+                player.meta.stats.maxFloorOrdinalEver += 1
+                self.player = player
+                Log.economy.info("debug: piso simulado \(player.meta.stats.maxFloorOrdinalEver) para destrabar el cofre")
+            }
+        }
         openChest()
     }
 

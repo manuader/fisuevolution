@@ -3260,6 +3260,23 @@
         }
       }
     },
+    "gifts.chest.locked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Climb a floor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subí un piso"
+          }
+        }
+      }
+    },
     "gifts.chest.open" : {
       "extractionState" : "manual",
       "localizations" : {

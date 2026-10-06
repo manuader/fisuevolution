@@ -76,24 +76,83 @@ extension GameState {
     func openChest() {
         // Un cofre por vez: sin esto, dos toques seguidos pisan el payload y el
         // primer premio se pierde entre que la cola le da el turno y la vista lo lee.
-        guard chestReward == nil, pendingChestCount > 0, let content, var player else { return }
+        guard chestReward == nil, pendingChestCount > 0, let content, let player else { return }
 
         let dePrestigio = player.meta.prestigeChestsPending > 0
-        if dePrestigio { player.meta.prestigeChestsPending -= 1 } else { player.meta.chestsPending -= 1 }
-        self.player = player
 
-        let outcome = ChestRoller.roll(
+        let sorteo = ChestRoller.roll(
             owned: player.meta.allOwnedSkins,
+            unlocked: chestUnlockedCharacterTypes,
             skins: content.skins,
             config: content.chests,
             minRarity: dePrestigio ? .epica : nil,
             using: &rng
         )
 
+        // ⚠️ **El cofre se sortea ANTES de gastarse, y ése es el orden nuevo.**
+        // Con la regla de desbloqueo hay un resultado que NO es un premio: el
+        // jugador tiene cofres pero todavía no llegó a ningún personaje cuya
+        // pinta le falte. Ese cofre no se consume — se queda esperando a que
+        // suba, que es la decisión del dueño (2026-08-28). Gastarlo primero y
+        // devolverlo después sería lo mismo sólo si nada fallara en el medio.
+        guard case let .prize(outcome) = sorteo else {
+            Log.economy.info("cofre guardado: nada alcanzable todavía (hay \(self.pendingChestCount))")
+            return
+        }
+
+        var gastado = player
+        if dePrestigio { gastado.meta.prestigeChestsPending -= 1 } else { gastado.meta.chestsPending -= 1 }
+        self.player = gastado
+
         presentChestReward(
             outcome,
             payoutFactor: dePrestigio ? content.chests.prestigePayoutFactor : content.chests.completedPayoutFactor,
             origen: "cofre abierto\(dePrestigio ? " de prestigio" : "") (quedan \(pendingChestCount))"
+        )
+    }
+
+    /// Los personajes cuya pinta un cofre **puede** dar: los del piso más alto
+    /// que la cuenta alcanzó en su historia, y todos los de abajo.
+    ///
+    /// Regla del dueño (2026-08-28): *es imposible que te toque la pinta de un
+    /// personaje que no desbloqueaste*, y cuenta la historia GLOBAL — lo que
+    /// abriste en reencarnaciones anteriores sigue valiendo. Por eso sale de
+    /// `meta.stats.maxFloorOrdinalEver`, que es monótono y a prueba de
+    /// reencarnación, y no de `run.unlockedFloors` ni de `run.seenTypes`, que
+    /// mueren al reencarnar: con esos, el veterano que acaba de reencarnar
+    /// volvería al callejón, ya tendría las 7 comunes, y sus cofres pagarían
+    /// plata hasta volver a subir.
+    ///
+    /// ⚠️ **La granularidad es el PISO y no el tier, y es a propósito.** Filtrar
+    /// por tier exacto encerraría las pintas de la rama de carrera que el jugador
+    /// no eligió —nunca hacés un `junior_doctor` si sos programador—, así que la
+    /// colección quedaría inalcanzable dentro de una run. Por piso, entrar a
+    /// corporate vuelve ganables a los diez corporativos. El residuo es que puede
+    /// tocarte alguien de tu mismo piso a pocos tiers de distancia; el caso que
+    /// la regla persigue —la pinta de la Deidad estando en el Oficinista— queda
+    /// muerto igual, que es lo que se pedía.
+    var chestUnlockedCharacterTypes: Set<String> {
+        guard let content, let player else { return [] }
+        // El clamp de los dos lados no es paranoia de más: `floors` nunca está
+        // vacío (`FloorTable.init` tira si lo estuviera), pero el ordinal viene
+        // del save y un índice negativo o pasado de largo acá es un crash, no un
+        // cofre mal sorteado.
+        let ordinal = min(max(0, player.meta.stats.maxFloorOrdinalEver), content.floorTable.floors.count - 1)
+        let hastaTier = content.floorTable.floors[ordinal].lastTier
+        return Set(content.tiers.concreteTypes.lazy.filter { $0.tier <= hastaTier }.map(\.id))
+    }
+
+    /// ¿El botón de Regalos tiene algo que hacer? Es la misma pregunta que
+    /// `openChest()` contesta al sortear, pero sin gastar RNG.
+    ///
+    /// Existe para que la tarjeta no ofrezca un botón que no va a hacer nada: con
+    /// cofres guardados y nada alcanzable, lo honesto es decir que hay que subir.
+    var canOpenChest: Bool {
+        guard pendingChestCount > 0, let content, let player else { return false }
+        return ChestRoller.hasSomethingToGive(
+            owned: player.meta.allOwnedSkins,
+            unlocked: chestUnlockedCharacterTypes,
+            skins: content.skins
         )
     }
 

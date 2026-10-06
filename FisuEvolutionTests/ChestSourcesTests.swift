@@ -121,9 +121,16 @@ struct ChestOpeningTests {
         }
     }
 
+    /// ⚠️ **El progreso se siembra, y no es decoración del fixture.** Desde la
+    /// regla de desbloqueo (2026-08-28) el mínimo de épica sólo se puede cumplir
+    /// si el jugador LLEGÓ a algún personaje épico: si el desbloqueo y el mínimo
+    /// chocan, el que cede es el mínimo. Sin sembrar, este test mediría a alguien
+    /// parado en el callejón cobrando un cofre de reencarnación — que no es una
+    /// partida posible, y encima pediría lo único que la regla nueva prohíbe.
     @Test("abrir gasta primero el de prestigio, y ése garantiza épica o mejor")
     func openingSpendsThePrestigeChestFirst() async throws {
         let state = await makeGameState()
+        state.player?.meta.stats.maxFloorOrdinalEver = todaLaTorre(state)
         state.awardChest()                     // uno normal
         state.awardChest(minRarity: .epica)    // y el de la reencarnación
         #expect(state.pendingChestCount == 2)
@@ -245,6 +252,93 @@ struct ChestOpeningTests {
             "el de la reencarnación paga el doble"
         )
     }
+
+    // MARK: - La regla del dueño: sólo personajes desbloqueados (2026-08-28)
+
+    /// El ordinal del último piso de la torre. Se calcula del contenido y no se
+    /// escribe a mano: hardcodear un 8 acá lo deja mintiendo el día que la torre
+    /// crezca, y el test seguiría verde midiendo otra cosa.
+    private func todaLaTorre(_ state: GameState) -> Int {
+        (state.content?.floorTable.floors.count ?? 1) - 1
+    }
+
+    /// **El cofre que no se puede abrir no se gasta.**
+    ///
+    /// Es la mitad de la regla que EconomyKit no puede probar: el sorteo sabe
+    /// devolver "todavía no", pero que el contador NO baje es del llamador. Roto,
+    /// el jugador ve bajar sus cofres sin recibir nada — que es peor que el bug
+    /// que la regla vino a arreglar.
+    @Test("con nada alcanzable, abrir no gasta el cofre ni muestra premio")
+    func openingWithNothingReachableKeepsTheChest() async throws {
+        let state = await makeGameState()
+        // Parado en el primer piso, y ya con las pintas de todos los personajes
+        // que ese piso alcanza: no queda nada que un cofre pueda darle.
+        state.player?.meta.stats.maxFloorOrdinalEver = 0
+        let alcanzables = state.chestUnlockedCharacterTypes
+        state.player?.meta.milestoneSkins = (state.content?.skins.chestPool ?? [])
+            .filter { alcanzables.contains($0.characterType) }
+            .map(\.id).sorted()
+        #expect(state.player?.meta.milestoneSkins.isEmpty == false,
+                "el fixture tiene que dejarlo con algo ganado, o el test no mide nada")
+        state.awardChest()
+
+        state.openChest()
+
+        #expect(state.pendingChestCount == 1, "el cofre se guarda: no se gasta ni se pierde")
+        #expect(state.chestReward == nil, "y no hay premio que mostrar")
+        #expect(state.showing == nil, "ni turno que pedirle a la cola")
+        #expect(state.canOpenChest == false, "y la tarjeta de Regalos tiene que decirlo")
+    }
+
+    /// Y en cuanto sube un piso, el MISMO cofre se abre. Es la otra mitad: sin
+    /// esto, un `openChest()` que nunca gastara nada pasaría el test de arriba.
+    @Test("subir un piso destraba el cofre que estaba esperando")
+    func climbingAFloorUnlocksTheWaitingChest() async throws {
+        let state = await makeGameState()
+        state.player?.meta.stats.maxFloorOrdinalEver = 0
+        let delPrimerPiso = state.chestUnlockedCharacterTypes
+        state.player?.meta.milestoneSkins = (state.content?.skins.chestPool ?? [])
+            .filter { delPrimerPiso.contains($0.characterType) }
+            .map(\.id).sorted()
+        state.awardChest()
+        state.openChest()
+        #expect(state.pendingChestCount == 1, "precondición: el cofre quedó esperando")
+
+        state.player?.meta.stats.maxFloorOrdinalEver = todaLaTorre(state)
+
+        #expect(state.canOpenChest, "con la torre abierta hay pintas que darle")
+        state.openChest()
+        #expect(state.pendingChestCount == 0, "ahora sí se gasta")
+        let premio = try #require(state.chestReward?.outcome)
+        guard case let .skin(_, characterType, _) = premio else {
+            Issue.record("con la bolsa a medio llenar tenía que salir pinta")
+            return
+        }
+        #expect(!delPrimerPiso.contains(characterType),
+                "las del primer piso ya las tenía: la que salió es de lo que acaba de abrir")
+    }
+
+    /// La regla, contra el catálogo REAL y no contra un fixture sintético: con la
+    /// cuenta parada en el primer piso, mil cofres no pueden traer jamás a nadie
+    /// de más arriba. Es el caso que el dueño nombró —la pinta de la Deidad
+    /// estando en el Oficinista— medido sobre `skins.json`.
+    @Test("mil cofres desde el primer piso nunca traen a un personaje de más arriba")
+    func aThousandChestsNeverReachAboveYourProgress() async throws {
+        let state = await makeGameState()
+        state.player?.meta.stats.maxFloorOrdinalEver = 0
+        let alcanzables = state.chestUnlockedCharacterTypes
+
+        for n in 0..<1000 {
+            state.chestReward = nil
+            state.awardChest()
+            state.openChest()
+            guard let premio = state.chestReward?.outcome else { break }
+            if case let .skin(id, characterType, _) = premio {
+                #expect(alcanzables.contains(characterType),
+                        "cofre \(n) repartió \(id), de \(characterType), que la cuenta no desbloqueó")
+            }
+        }
+    }
 }
 
 /// Lo que la pantalla de Regalos necesita para ofrecer el cofre: la señal
@@ -286,11 +380,43 @@ struct PendingChestBadgeTests {
         #expect(state.hasPendingChests, "el contador de prestigio cuenta igual")
     }
 
+    /// **Un puntito que no se puede apagar es peor que ninguno.**
+    ///
+    /// Desde la regla de desbloqueo (2026-08-28) se puede tener cofres y no poder
+    /// abrir ninguno. Si el puntito siguiera al contador a secas, se quedaría
+    /// prendido un piso entero sin que el jugador tenga forma de bajarlo — y es
+    /// el mismo puntito que usan logros y daily, así que se lo entrena a mentir a
+    /// los tres.
+    @Test("con cofres que todavía no se pueden abrir, el puntito NO se enciende")
+    func theBadgeStaysOffWhileNothingIsReachable() async {
+        let state = await makeGameState()
+        state.player?.meta.stats.maxFloorOrdinalEver = 0
+        let alcanzables = state.chestUnlockedCharacterTypes
+        state.player?.meta.milestoneSkins = (state.content?.skins.chestPool ?? [])
+            .filter { alcanzables.contains($0.characterType) }
+            .map(\.id).sorted()
+
+        state.awardChest()
+        state.flushHUD()
+
+        #expect(state.pendingChestCount == 1, "el cofre está: lo que no está es qué darle")
+        #expect(state.hasPendingChests == false, "y el puntito no puede prometer lo que no se puede cobrar")
+
+        // Y al subir, se enciende solo: es la otra mitad, sin la cual un puntito
+        // clavado en `false` pasaría el `#expect` de arriba.
+        state.player?.meta.stats.maxFloorOrdinalEver = (state.content?.floorTable.floors.count ?? 1) - 1
+        state.flushHUD()
+        #expect(state.hasPendingChests, "con la torre abierta el cofre ya tiene qué darle")
+    }
+
     @Test("la tarjeta del cofre no muestra ninguna clave cruda")
     func theChestCardCopyIsResolved() {
         let seccion = String(localized: "gifts.section.chests")
         let boton = String(localized: "gifts.chest.open")
+        let bloqueado = String(localized: "gifts.chest.locked")
         let cuenta = String(localized: "gifts.chest.count \(3)")
+
+        #expect(!bloqueado.contains("gifts."), "el badge dejó una clave cruda: '\(bloqueado)'")
 
         #expect(!seccion.contains("gifts."), "la cinta dejó una clave cruda: '\(seccion)'")
         #expect(!boton.contains("gifts."), "el botón dejó una clave cruda: '\(boton)'")

@@ -22,6 +22,7 @@ Tools/asset-pipeline/ComfyUI/
 build-ci/
 Tools/asset-pipeline/.secrets/
 Tools/asset-pipeline/.chrome-profile/
+__pycache__/
 
 # Intermedios del pipeline de assets: backups de recortes, descartes, logs y
 # corridas de prueba. Los regeneran los scripts y son ~60 MB que no van a la

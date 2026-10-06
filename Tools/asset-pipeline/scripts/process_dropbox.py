@@ -40,8 +40,8 @@ ATLAS_BY_CATEGORY = {
 def export_size(category: str, asset_key: str) -> tuple[int, int]:
     """(@2x, @3x) en píxeles según cómo se dibuja el asset en pantalla.
 
-    Los mismos números que usa `rightsize_assets.py`; si cambia uno, cambian los
-    dos o los assets nuevos vuelven a desentonar con los ya integrados."""
+    Los assets ya integrados tienen estos tamaños: si cambia uno, los nuevos
+    vuelven a desentonar con los que están en el juego."""
     if category == "background":
         return (1024, 1536)  # pantalla completa; son los únicos que van grandes
     if category in {"character", "special", "skin"}:
@@ -90,8 +90,7 @@ def export_atlas(img, entry: dict, atlas_name: str, asset_key: str) -> None:
     # Tamaño según USO, no un 1536 para todo. Exportar todo a 1536 rompía el
     # texture atlas: el límite de página es 2048, así que dos imágenes de 1536 no
     # entran juntas y el packer ponía UNA POR PÁGINA — el atlas no agrupaba nada
-    # y cada sprite era su propio draw call. Ver scripts/rightsize_assets.py, que
-    # es el que arregló los assets ya generados.
+    # y cada sprite era su propio draw call.
     at2x, at3x = export_size(entry.get("category", "character"), entry["assetKey"])
     img.resize((at3x, at3x), Image.LANCZOS).save(target_dir / f"{asset_key}@3x.png")
     img.resize((at2x, at2x), Image.LANCZOS).save(target_dir / f"{asset_key}@2x.png")

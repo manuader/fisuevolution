@@ -2509,23 +2509,6 @@
         }
       }
     },
-    "chest.card.facedown" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Face-down card"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carta boca abajo"
-          }
-        }
-      }
-    },
     "chest.coins.ok" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2692,40 +2675,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tocá para abrir el cofre"
-          }
-        }
-      }
-    },
-    "chest.title.coins" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Coins!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Plata!"
-          }
-        }
-      }
-    },
-    "chest.title.skin" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New look!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Pinta nueva!"
           }
         }
       }
@@ -3239,9 +3188,6 @@
           }
         }
       }
-    },
-    "gifts.chest.count %@" : {
-
     },
     "gifts.chest.count %lld" : {
       "extractionState" : "manual",
@@ -4250,57 +4196,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Organigrama"
-          }
-        }
-      }
-    },
-    "passive.explainer %@ %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Each of your %1$@ on the board will earn %2$@/s on its own."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tus %1$@ del tablero van a generar %2$@/s cada uno, solos."
-          }
-        }
-      }
-    },
-    "passive.title %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passive income: %@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ingreso pasivo: %@"
-          }
-        }
-      }
-    },
-    "passive.unlock" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unlock for"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desbloquear por"
           }
         }
       }
@@ -8113,23 +8008,6 @@
         }
       }
     },
-    "tower.floor.cosmic" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cosmic realm"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reino cósmico"
-          }
-        }
-      }
-    },
     "tower.floor.galaxy" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8296,40 +8174,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "PISO BLOQUEADO"
-          }
-        }
-      }
-    },
-    "tower.navigate.down" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Go down one floor"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bajar un piso"
-          }
-        }
-      }
-    },
-    "tower.navigate.up" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Go up one floor"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Subir un piso"
           }
         }
       }
@@ -8926,23 +8770,6 @@
         }
       }
     },
-    "upgrades.character.income %@ %@ %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Money %1$@ → %2$@ for %3$@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plata %1$@ → %2$@ para %3$@"
-          }
-        }
-      }
-    },
     "upgrades.character.income_now %@" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -8956,23 +8783,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plata %@"
-          }
-        }
-      }
-    },
-    "upgrades.character.passive_effect %@ %@" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%1$@/s on its own for each %2$@"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "+%1$@/s solo, por cada %2$@"
           }
         }
       }

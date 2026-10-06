@@ -71,7 +71,7 @@ struct SplashView: View {
                     }
                     .foregroundStyle(Color("PaletteInk"))
                 }
-                if let fisura = UIArt.image("fisura_celebrate") ?? UIArt.image("fisura_point") {
+                if let fisura = UIArt.image("fisura_celebrate") {
                     fisura.resizable().scaledToFit().frame(maxWidth: 200, maxHeight: 240)
                 }
                 Spacer()

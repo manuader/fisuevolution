@@ -18,7 +18,6 @@ enum TowerNaming {
         case "mars": "tower.floor.mars"
         case "solar": "tower.floor.solar"
         case "galaxy": "tower.floor.galaxy"
-        case "cosmic": "tower.floor.cosmic"
         case "god_realm": "tower.floor.god_realm"
         default: "tower.floor.alley"
         }
@@ -37,7 +36,6 @@ enum TowerNaming {
         case "mars": String(localized: "tower.floor.mars")
         case "solar": String(localized: "tower.floor.solar")
         case "galaxy": String(localized: "tower.floor.galaxy")
-        case "cosmic": String(localized: "tower.floor.cosmic")
         case "god_realm": String(localized: "tower.floor.god_realm")
         default: floorID
         }

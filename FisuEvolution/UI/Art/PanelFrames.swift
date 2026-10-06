@@ -8,8 +8,8 @@ import SwiftUI
 /// `panel_store`, con los MISMOS tonos muestreados del PNG (madera
 /// #C98F52→#A9713C, línea interna #2F1915, bisel #D3B788) y los tornillos en
 /// las esquinas, sin el toldo — el toldo es de negocio, y el menú no vende
-/// nada. (`panel_menu` de arte existe en el atlas como reserva, pero un marco
-/// 9-slice full-screen devolvería el estiramiento que esta familia mató.)
+/// nada. (Un marco de arte 9-slice full-screen como el viejo `panel_menu`
+/// devolvería el estiramiento que esta familia mató.)
 ///
 /// Reglas de la casa que también rigen acá: nada de identifiers en
 /// contenedores, cero animación viva en reposo, y los ornamentos son

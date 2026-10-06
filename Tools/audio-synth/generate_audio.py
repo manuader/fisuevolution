@@ -475,78 +475,6 @@ def music_earth_loop():
     return buf
 
 
-# Cosmic: 72 BPM, 8 compases 4/4 → 1176000 samples ≈ 26.667 s exactos.
-COSMIC_BPM = 72
-COSMIC_BARS = 8
-
-COSMIC_PADS = [  # 2 compases por acorde
-    [57, 60, 64, 71],  # Am(add9)
-    [53, 57, 60, 64],  # Fmaj7
-    [55, 60, 64, 71],  # Cmaj7
-    [55, 59, 62, 64],  # G6
-]
-COSMIC_ROOTS = [45, 41, 48, 43]  # A2 F2 C3 G2
-COSMIC_STARS = [  # (compás, beat, midi, beats de duración)
-    (0, 2.0, 76, 2.0),
-    (1, 0.0, 83, 3.0),
-    (2, 2.0, 81, 2.0),
-    (3, 0.0, 84, 3.0),
-    (4, 2.0, 76, 2.0),
-    (5, 0.0, 83, 3.0),
-    (6, 2.0, 86, 2.0),
-    (7, 0.0, 83, 1.5),
-    (7, 2.0, 81, 2.0),  # la cola envuelve al inicio del loop
-]
-
-
-def music_cosmic_loop():
-    beat = 60.0 / COSMIC_BPM
-    bar = 4.0 * beat
-    total = int(round(COSMIC_BARS * bar * SR))  # 1176000
-    buf = [0.0] * total
-    rng = random.Random(2001)
-
-    # Pads: pares de triangulares detuneadas por nota + capa de cuadrada
-    # suave en la voz superior. Swell smoothstep que llega a 0 en el borde.
-    for ci, chord in enumerate(COSMIC_PADS):
-        t0 = ci * 2 * bar
-        dur = 2 * bar
-        e = env_swell(dur, a=1.4, r=1.4)
-        for m in chord:
-            for det in (-6.0, 6.0):
-                render_tone(buf, t0, dur, midi_hz(m), "triangle", 0.16, e,
-                            detune_cents=det, wrap=True)
-        render_tone(buf, t0, dur, midi_hz(chord[-1]), "square", 0.07, e,
-                    detune_cents=-4.0, vib_hz=4.5, vib_depth=0.003, wrap=True)
-        # Sub: seno en la raíz.
-        render_tone(buf, t0, dur, midi_hz(COSMIC_ROOTS[ci]), "sine", 0.30,
-                    env_swell(dur, a=0.9, r=0.9), wrap=True)
-
-    # Estrellas: senos agudos sueltos con eco (las colas envuelven el loop).
-    echo = 0.75 * beat
-    for bar_i, beat_i, m, beats in COSMIC_STARS:
-        t0 = (bar_i * 4 + beat_i) * beat
-        dur = beats * beat
-        for gain, offset in ((1.0, 0.0), (0.45, echo), (0.20, 2 * echo)):
-            render_tone(buf, t0 + offset, dur, midi_hz(m), "sine",
-                        0.16 * gain, env_perc(dur, attack=0.015, curve=3.0),
-                        vib_hz=5.0, vib_depth=0.003, wrap=True)
-
-    # Percusión mínima: hat suave en beats 2 y 4.
-    for bar_i in range(COSMIC_BARS):
-        for beat_i in (1.0, 3.0):
-            t0 = (bar_i * 4 + beat_i) * beat
-            render_noise(buf, t0, 0.10, 0.035, 0.035, rng, wrap=True)
-
-    # Respiración espacial: swell de ruido entrando a los compases 0 y 4.
-    for target_bar in (4, 8):
-        dur = 2.0 * beat
-        t0 = target_bar * bar - dur  # el de compás 8 envuelve al 0
-        render_noise(buf, t0, dur, 0.030, 1.0, rng, wrap=True,
-                     env=env_swell(dur, a=dur * 0.8, r=dur * 0.2))
-    return buf
-
-
 # ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
@@ -565,7 +493,6 @@ SFX = {
 }
 MUSIC = {
     "music_earth_loop": music_earth_loop,
-    "music_cosmic_loop": music_cosmic_loop,
 }
 
 

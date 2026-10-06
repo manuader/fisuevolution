@@ -68,9 +68,9 @@ struct TutorialOverlay: View {
     /// completa aunque el globo esté tapado y el tutorial ya está en "fusioná"
     /// cuando la hoja se cierra.
     ///
-    /// ⚠️ Poses: mientras `fisura_point` y `fisura_explain` no se regeneren
-    /// (siguen en el estilo viejo — prompts 117/118 del pipeline), el guion usa
-    /// sólo las dos sanas: `wave` y `celebrate`.
+    /// ⚠️ Poses: el guion usa sólo `wave` y `celebrate`. `fisura_point` y
+    /// `fisura_explain` quedaron en el estilo viejo y salieron del atlas;
+    /// volver a usarlas pide regenerarlas (prompts 117/118 del pipeline).
     private var steps: [Step] {
         [
             Step(id: "tap", target: .boardUnit, windows: [.coins], boardTarget: .anyUnit,

@@ -137,10 +137,10 @@ targets:
         # devuelve `.denied` sin preguntar — se ve como "el usuario siempre
         # rechaza", que es un diagnóstico difícil porque no falla nada.
         INFOPLIST_KEY_NSUserTrackingUsageDescription: Usamos tu identificador de publicidad para mostrarte anuncios más relevantes. Si preferís que no, los anuncios se siguen viendo, sólo que sin personalizar.
-        # Apple quema el número de build para siempre: el 1 ya se subió el
-        # 2026-09-21 y lo rechazó ITMS-91064. Reusarlo hace fallar la subida.
-        CURRENT_PROJECT_VERSION: "4"
-        MARKETING_VERSION: "1.0.0"
+        # Apple quema el número de build para siempre: del 1 al 4 se subieron
+        # con la 1.0.0 (el 4 es el publicado). Reusarlo hace fallar la subida.
+        CURRENT_PROJECT_VERSION: "5"
+        MARKETING_VERSION: "2.0.0"
       configs:
         Debug:
           # StoreKitTest (la tienda local DEBUG de `StoreManager`) vive en

@@ -214,6 +214,7 @@ extension GameState {
         guard var player else { return }
         guard player.meta.removedAds != removedAds || player.meta.ownedSkins != ownedSkins else { return }
         player.meta.removedAds = removedAds
+        ads?.setRemovedAds(removedAds)
         player.meta.ownedSkins = ownedSkins
         let owned = player.meta.allOwnedSkins
         player.meta.activeSkinByType = player.meta.activeSkinByType.filter { owned.contains($0.value) }

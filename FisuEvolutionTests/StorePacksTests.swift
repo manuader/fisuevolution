@@ -217,4 +217,16 @@ struct StorePacksTests {
         let after = try #require(gameState.player)
         #expect(after.run.coins == before.run.coins + expected)
     }
+
+    @Test("comprar remove_ads en la sesión apaga el interstitial en el acto, sin reabrir la app")
+    func removeAdsBoughtMidSessionStopsInterstitials() async {
+        let gameState = await makeGameState()
+        let ads = AdsCoordinator()
+        gameState.attachAds(ads)
+        #expect(ads.isInterstitialReady, "precondición: el stub tiene un interstitial cargado")
+
+        gameState.applyStoreEntitlements(removedAds: true, ownedSkins: [])
+
+        #expect(ads.isInterstitialReady == false)
+    }
 }

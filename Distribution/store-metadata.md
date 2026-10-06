@@ -68,7 +68,7 @@ fisura,merge,idle,clicker,tycoon,plata,evolucion,memes,argentina,uba,ceo,millona
 > escalas en el kiosco, el delivery, la oficina y el título de la UBA (que no
 > paga el alquiler, pero emociona).
 >
-> • 30 niveles de evolución con la carrera que elijas: programador, arquitecto,
+> • 37 niveles de evolución con la carrera que elijas: programador, arquitecto,
 >   médico o abogado
 > • Ingresos pasivos: tus personajes laburan solos (más que algunos conocidos)
 > • Eventos argentinos: Plan Platita, Devaluación, Se cayó Mercado Pago,
@@ -85,7 +85,7 @@ fisura,merge,idle,clicker,tycoon,plata,evolucion,memes,argentina,uba,ceo,millona
 > stops at the corner store, the delivery bike, the office and a university
 > diploma (doesn't pay rent, but feels great).
 >
-> • 30 evolution tiers with your chosen career: coder, architect, doctor or lawyer
+> • 37 evolution tiers with your chosen career: coder, architect, doctor or lawyer
 > • Passive income: your characters work so you don't have to
 > • Absurd economy events inspired by very real chaos
 > • Special characters: from the Crypto Bro to the Tax Demon

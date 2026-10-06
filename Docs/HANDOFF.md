@@ -1,5 +1,11 @@
 # HANDOFF — FisuEvolution, estado actual
 
+> 🟢 **La v1.0.0 (build 4) está publicada en la App Store, y la v2 se trabaja en
+> la rama `version-2`** (2.0.0, build 5). Si llegás para la v2, empezá por
+> `Docs/HANDOFF-v2.md` §0 y por la sesión que preparó la rama,
+> `Docs/SESION-2026-10-06-preparacion-v2.md`. Lo de abajo sigue siendo la
+> referencia de arquitectura, decisiones y trampas.
+>
 > ✅ **EL REDISEÑO DE UI ESTÁ COMPLETO Y MERGEADO** — 20 de 20 tareas
 > (`feature/rediseno-ui-cowevolution`, cerrado el 2026-08-16). El estado tarea
 > por tarea, las decisiones del dueño y los avisos vivos siguen en
@@ -250,6 +256,27 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-06 — La rama `version-2`: integrar lo suelto y sacar lo que sobra
+
+Con la v1.0.0 publicada, se armó la rama de la v2 desde la punta del build y se
+le integró todo lo que había quedado afuera: `origin/main`, el arreglo del
+congelón del cofre (que estaba en un `main` local sin pushear) y las dos
+features del 28/08 que nunca se habían mergeado (cofres sólo desbloqueados y el
+atajo al mejor tier). La rama de reacciones de campo quedó **descartada** por
+el dueño.
+
+Integrarlas destapó un bug que ninguna de las dos tenía por separado: la oferta
+del cofre extra por video no sabía de la regla de desbloqueo. Y la auditoría
+encontró otro en producción: comprar "Quitar anuncios" no apagaba el
+intersticial hasta reabrir la app. Los dos quedaron arreglados con tests.
+
+La limpieza sacó del `.app` ~6,5 MB que nunca se usaban (39 imágenes del
+`ui.atlas` y la música cósmica), 12 strings muertos y el código Swift sin
+llamadores. Del repo salieron la generación de arte (vive en su propio repo),
+`balance-sim`, el CI de julio, y `ESTADO.md` y `tasks.md`. Lo que sigue vivo
+de `ESTADO.md` pasó a §7. Versión **2.0.0 (5)**. Detalle, números y la lista
+"Para el plan" en **`Docs/SESION-2026-10-06-preparacion-v2.md`**.
 
 ### Sesión del 2026-09-03 — El cofre ya no se traba al principio
 
@@ -1437,23 +1464,29 @@ sim 26 virgen.
 ```bash
 UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
 
-cd Packages/EconomyKit && swift test                      # 230
+cd Packages/EconomyKit && swift test                      # 267
 cd - && /opt/homebrew/bin/xcodegen generate               # si agregaste/borraste Swift
 
 # 1) UNIT PRIMERO
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
   -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
-  -only-testing:FisuEvolutionTests test                   # 401
+  -only-testing:FisuEvolutionTests test                   # 474 en 26.5 sin las 2 de Store; 1 rojo declarado
 
 # 2) UI DESPUÉS
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
   -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
-  -only-testing:FisuEvolutionUITests test                  # 46, sin skips
+  -only-testing:FisuEvolutionUITests test                  # 57 en 26.5 sin StoreUITests (+2 en 18.6)
 
-cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 27, 1 rojo
+cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 25, 1 rojo (arte calado)
 
 xcrun simctl shutdown $UDID && xcrun simctl delete $UDID   # ⚠️ el cierre es parte del trabajo
 ```
+
+Estado el **2026-10-06** (`version-2`, árbol final de la preparación, matriz
+entera): **EconomyKit 267 · unit 474 con el único rojo declarado (26.5) · Store
+12/12 (18.6) · UI 57/57 (26.5) + `StoreUITests` 2/2 (18.6) · pipeline 25 con
+1 rojo (arte calado)**; Release para dispositivo compila con cero warnings.
+Detalle en `Docs/SESION-2026-10-06-preparacion-v2.md`.
 
 Estado el **2026-08-27** (cierre de los cofres de skins), tomado con la receta
 completa en un worktree limpio sobre el tip de `main`, con la matriz de dos
@@ -1593,7 +1626,8 @@ xcrun simctl install booted build/DD/Build/Products/Debug-iphonesimulator/FisuEv
 xcrun simctl launch booted com.manuader.fisuevolution --uitest-reset
 ```
 
-Fixtures DEBUG por launch argument — **son 13, no tres**:
+Fixtures DEBUG por launch argument — **son 21** (las últimas seis de la tabla
+se documentaron recién en `version-2`):
 
 | Argumento | Qué deja listo |
 |---|---|
@@ -1612,12 +1646,36 @@ Fixtures DEBUG por launch argument — **son 13, no tres**:
 | `--uitest-daily-popup` | El popup del premio del día, ya abierto (T18). Retrocede `lastClaimDay` a **ayer** —no lo borra, que un día salteado resetea el ciclo a 1— y corre el claim real, el mismo que acredita al volver a foreground. Existe porque el daily se cobra solo y una sola vez por día, y una partida nueva marca `lastClaimDay` en HOY para no pisar el tutorial: sin esta puerta, la única pantalla que celebra la racha no se puede ni fotografiar ni ejercitar sin cambiarle la fecha al simulador. Combinado con `--uitest-daily-streak` muestra el día 4. Desde el 2026-08-21 **ya no necesita `--uitest-skip-tutorial`**: la cola arbitra (con la fase viva el popup espera su turno y aparece al cerrarla — usarlo SIN skip es justamente el repro del viejo deadlock) |
 | `--uitest-lessons` | Prende las lecciones contextuales del tutorial, que en cualquier corrida `--uitest-*` arrancan APAGADAS (trampa 27). Sólo lo usa el test que ejercita el coach-mark |
 | `--uitest-special` | El primer special del catálogo, caído y ANCLADO al piso visible, con la carta del drop abierta. Es la única forma de ver la carta (el drop real es RNG sobre merges) y de ejercitar el recap del mantener-apretado |
+| `--uitest-chest` | Un cofre abierto, con la animación esperando el primer toque. El camino real pide dos pisos o un video con cooldown |
+| `--uitest-chest-manual` | La animación del cofre avanza SÓLO con toques (sin el auto-avance), para que un test controle cada latido |
+| `--uitest-career` | El fork de carrera abierto, sin llegar a T9 |
+| `--uitest-char-upgrades-maxed` | El Fisura con su línea de mejoras al tope: el estado "Al máximo" de la fila. Sin test que lo use; queda para capturas |
+| `--uitest-offline` | El popup de ganancias offline con un monto fijo (y su oferta de duplicar por video). Sin test que lo use; queda para capturas |
+| `--screenshot-mode` | Apaga el andamiaje de DEBUG (contador de FPS, botón de herramientas) y sirve los textos de tienda (review-safe). Lo usa `AppStoreScreenshotTests` para la ficha |
 
 El panel de debug es el ícono de herramientas del HUD.
 
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la preparación de `version-2` (2026-10-06)
+
+**El cofre es un overlay que se desvanece, y un toque que cae mientras sale se
+pierde.** Un test que cierra el cofre y toca el HUD en el acto queda a merced
+del timing: una limpieza de cuatro líneas sin lógica en `ChestAnimationFeed`
+lo hizo fallar 5 de 6, y hubo que bisecar archivo por archivo para ver que la
+culpa era del test. Después de cerrar el cofre, esperá a que `chest.dismiss`
+deje de existir (`TutorialUITests.awaitChestGone`). Y antes de culpar a la
+carga, corré el test aislado varias veces.
+
+**`git commit` se lleva lo que `git rm` dejó en el índice**, aunque stagees
+rutas puntuales. Mirá `git diff --cached --stat` antes de cada commit.
+
+**Un test que se cae en el armado tapa las aserciones que vienen detrás.** Las
+entradas `appicon` de `prompts.json` hacían fallar `test_assets_integrados` con
+un `KeyError` y, durante un mes, escondieron que dos personajes tienen el
+dibujo calado.
 
 ### Del atajo del HUD (2026-08-28)
 
@@ -2249,6 +2307,10 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
 
 ### Del pipeline de arte (2026-08-19)
 
+⚠️ Desde `version-2` el runner de Gemini ya no está en este repo: vive en
+`~/Desktop/projects/automatic-image-generation`. Las trampas 11 y 17-20 son de
+ese runner y siguen valiendo allá; la 21 es de la integración y vale acá.
+
 17. **El descarte por huella se come lo bueno si la variante conserva la pose.**
     El runner tira la imagen extraída si queda a menos de `--ref-threshold` de la
     referencia, pero la huella es un thumbnail de **32×32** y el fondo blanco
@@ -2552,6 +2614,24 @@ Dos cosas que costaron tiempo este día y que no están en ninguna otra parte:
     asimetría de §6 (unit ANTES que UI) **sigue viva en runtime 26**: se
     re-midió con los 11 rojos exactos de StoreKit.
 
+### Del arranque del proyecto (julio; rescatadas de `ESTADO.md`, retirado en `version-2`)
+
+Siguen vigentes y no estaban en ningún otro lado:
+
+- **`xcodebuild test` colgado para siempre** en `waitForBuild`: si
+  `xcode-select` apunta a CommandLineTools, los subprocesos de xcodebuild no
+  heredan `DEVELOPER_DIR` y `xcrun simctl` falla en silencio. Fix:
+  `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer`.
+- **Un RNG "determinístico" de valor constante cuelga `Int.random`**: el
+  rechazo de Lemire nunca termina. Los tests usan `SplitMix64` sembrado.
+- **Volver de background no cobra dos veces**: `IncomeTicker` descarta deltas
+  de más de 2 s; ese tiempo lo paga el offline.
+- **`Int64(Double)` trapea** con números de idle: `SaveConflictResolver` clampea
+  antes de convertir. Cualquier conversión nueva de plata a entero, igual.
+- **Una instalación nueva NO cobra el daily del día 1**: marca el día como
+  cobrado para no competir con el tutorial (y por eso existe
+  `--uitest-daily-popup`).
+
 ## 8. Qué queda
 
 ### Precargar el atlas de personaje fuera del hilo principal (levantada 2026-08-27)
@@ -2640,8 +2720,9 @@ frontmost y de prefijo, avisa `⚠️ foco robado por «X»` nombrando a la app
 ladrona, y su peor caso es abortar con cuota cero — nunca mandar un prompt
 barajado. Knobs nuevos: `--type-chunk` (250) y `--type-pause` (0,25 s).
 **Corré el batch con la máquina quieta**: cada robo de foco quema un
-reintento y a los 3 fallos seguidos frena. La receta, con el Chrome dedicado
-en `:9222` logueado en Gemini **Pro**:
+reintento y a los 3 fallos seguidos frena. La receta de abajo es histórica:
+desde `version-2` el runner vive en `automatic-image-generation`. Con el
+Chrome dedicado en `:9222` logueado en Gemini **Pro**:
 
 ```bash
 cd Tools/asset-pipeline
@@ -2847,12 +2928,20 @@ Anotado por si algún día importa, con su medición:
 
 - **`director__directorio`** es una skin real pero floja (sin cambio cromático).
   Regenerarla cuesta cuota de Gemini; queda a criterio del dueño.
-- **Decisión de ads** (`Docs/ads-integration.md`): AdMob real o v1 sin ads.
+- ~~**Decisión de ads**~~: AdMob real, en producción desde la v1.0.0
+  (`Docs/ads-integration.md`, `Docs/monetizacion-anuncios.md`).
 
 ---
 
 ## 9. Mapa de documentos
 
+- **`Docs/HANDOFF-v2.md`** — el punto de entrada de la v2: el commit del build
+  publicado, la rama `version-2`, las integraciones en producción y el backlog.
+- **`Docs/SESION-2026-10-06-preparacion-v2.md`** — cómo se armó `version-2`: qué
+  se integró, los dos bugs, la limpieza con su porqué, lo que quedó a propósito
+  y la lista "Para el plan".
+- `Tools/asset-pipeline/README.md` — cómo se integra arte nuevo al juego (la
+  generación vive en `automatic-image-generation`).
 - `Docs/SESION-2026-09-03-cofre-arranque.md` — el cofre ya no se traba al
   principio: los 466 ms del retrato leído en línea en la llegada, el
   precalentado en background con `SKTexture.preload`, y la sonda de la

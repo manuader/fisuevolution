@@ -23,6 +23,14 @@ volver a generar nada**: la cola ve el PNG en `output/` y no lo vuelve a pedir.
 
 ## Qué se quedó acá, y por qué
 
+> ⚠️ **Superado el 2026-10-06 (`version-2`).** Lo que sigue describe el corte
+> de agosto. Después se comprobó que `gen_prompts.py` y `update_manifest.py` ya
+> no arrancaban (a `cultural_dict` le faltaban ocho tipos) y que, corridos,
+> escribían un manifest que la app no decodifica. Salieron con
+> `organize_atlases`, `rightsize_assets`, `gen_skin_prompts`, `cultural_dict` y
+> el runner de Gemini. El camino vivo de integración está en
+> `Tools/asset-pipeline/README.md`.
+
 Todo `Tools/asset-pipeline/` sigue igual y sigue siendo el camino del juego.
 Nada se borró ni se movió: 13 de los 19 scripts referencian rutas de
 FisuEvolution —`assets_manifest.json`, los atlas, `Resources/`— y son

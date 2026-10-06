@@ -1,5 +1,11 @@
 # HOBO EVOLUTION — Generación de Assets (guía para Claude Code)
 
+> ⚠️ **Mayormente histórico.** Las herramientas de este doc (SD 1.5, ComfyUI,
+> Draw Things) se abandonaron; la generación vive en
+> `~/Desktop/projects/automatic-image-generation` y la integración en
+> `Tools/asset-pipeline/README.md`. Sigue vigente el **§3 (estilo)**, que cita
+> `CharacterNode.swift`.
+
 **Cómo generar TODO el arte del juego: gratis, consistente, en una MacBook Air M1.**
 
 Companion del build bible (fase F3). Este doc es para vos, Claude Code. Define herramientas, estilo, prompts, consistencia y el pipeline completo. El código nunca toca un sprite directo: todo termina en `assets_manifest.json`.

@@ -6,6 +6,35 @@ App Store. Leer completo antes de tocar nada.
 
 ---
 
+## 0. Dónde se trabaja la v2: la rama `version-2`
+
+**La v2 se desarrolla en la rama `version-2`** (creada el 2026-10-06 desde la
+punta de `appstore-submission-check`). Cuando esté lista se mergea a `main` y de
+ahí sale el build a la App Store. Ya trae:
+
+- **Todo lo que había fuera del build**: `origin/main` (`59c0d61`), el arreglo
+  del congelón de 466 ms al abrir el cofre (`97cb618`, que estaba sólo en un
+  `main` local sin pushear) y las dos features del 2026-08-28 que nunca se
+  habían mergeado: **cofres sólo de personajes desbloqueados** y **el atajo del
+  HUD que vende el mejor tier** (revierte la decisión 9; ver HANDOFF §5).
+  Como `version-2` contiene a `main`, el merge final es un fast-forward.
+- `MARKETING_VERSION 2.0.0` · `CURRENT_PROJECT_VERSION 5`.
+- La limpieza de lo obsoleto, y dos bugs arreglados. El detalle y los números
+  están en `Docs/SESION-2026-10-06-preparacion-v2.md`.
+
+```bash
+git clone https://github.com/manuader/fisuevolution.git
+cd fisuevolution
+git checkout version-2
+/opt/homebrew/bin/xcodegen generate   # el .xcodeproj NO se versiona
+```
+
+**Descartada a propósito** (decisión del dueño, 2026-10-06): la rama
+`feat/reacciones-de-campo` (las 352 reacciones a eventos). Sigue en GitHub sin
+tocar.
+
+---
+
 ## 1. El commit exacto del build publicado
 
 | Dato | Valor |
@@ -30,30 +59,20 @@ y este archivo), así que la punta de la rama tiene el mismo código que el buil
 - `main` tiene un único commit propio (`59c0d61`, el Influencer sin marcas),
   que la rama del build reimplementó por su cuenta (`cb2bd6b`). Tampoco
   hace falta nada de `main`.
-- Hay un clon viejo en `~/Desktop/projects/fisuevolution`, en `main`, con 119 MB
-  de capturas para la App Store sin commitear, en `Distribution/screenshots/`.
-  No tiene el código del build.
-
-**Para arrancar la v2:**
-
-```bash
-git clone https://github.com/manuader/fisuevolution.git
-cd fisuevolution
-git checkout -b v2 v1.0.0-build4      # rama nueva desde el commit exacto del build
-/opt/homebrew/bin/xcodegen generate   # el .xcodeproj NO se versiona
-```
-
-Recomendado antes de empezar: llevar `appstore-submission-check` a `main`
-(fast-forward no se puede, porque divergieron; hacer merge o resetear `main`
-a la rama del build), para que `main` vuelva a ser la fuente de verdad.
+- El build se hizo en **otra máquina**. En la del dueño, `~/Desktop/projects/fisuevolution`
+  es el mismo checkout que `~/Desktop/projects/FisuEvolution` (el disco no
+  distingue mayúsculas). Ese checkout no tiene el worktree de Conductor ni
+  las capturas. Las capturas de la ficha no van a git: las regenera
+  `AppStoreScreenshotTests`.
 
 ---
 
 ## 2. Qué es el juego
 
 Merge/idle de humor argentino para iPhone. Tocás al personaje para ganar plata,
-contratás más y los fusionás para subir de tier: **30 tiers**, de un linyera a
-un dios del universo. Tiene reencarnación (prestige), cofres de skins, boosts,
+contratás más y los fusionás para subir de tier: **37 tiers** (44 personajes,
+porque en el tier 12 la cadena se abre en cuatro carreras) en una torre de
+**10 pisos**, de un linyera a un dios del universo. Tiene reencarnación (prestige), cofres de skins, boosts,
 eventos y jefes/carreras. Es una sátira de la precariedad económica.
 
 | Dato | Valor |
@@ -73,26 +92,27 @@ eventos y jefes/carreras. Es una sátira de la precariedad económica.
 
 ## 3. Documentación del repo — qué leer y en qué orden
 
-1. **`Docs/HANDOFF.md`** (~2700 líneas): **el documento principal**.
+1. **`Docs/HANDOFF.md`** (~2950 líneas): **el documento principal**.
    §2 *Reglas del repo* (romperlas rompe el build), §3 *Arquitectura*,
    §5 *Decisiones del dueño que NO se re-litigan*, §6 *Cómo verificar*.
    Tiene la lista de "trampas" numeradas: leerla antes de tocar build, tests o
    StoreKit.
-2. **`ESTADO.md`**: resumen corto. Qué es, estado por fase, arquitectura,
-   economía, comandos canónicos y mapa de carpetas no obvias.
+2. **`Docs/SESION-2026-10-06-preparacion-v2.md`**: cómo quedó `version-2` y qué
+   quedó anotado para el plan.
 3. **`FisuEvolution-plan.md`**: la biblia del diseño. Tono y cultura argentina,
-   modelo de datos, economía, prestige, viralidad.
-4. **`tasks.md`**: fases F0–F6 y extras pendientes de decisión.
-5. **`Docs/ads-integration.md`** y **`Docs/monetizacion-anuncios.md`**: cómo
+   modelo de datos, economía, prestige, viralidad. Sus números son de julio
+   (dice 30 tiers): la verdad de hoy está en los JSON.
+4. **`Docs/ads-integration.md`** y **`Docs/monetizacion-anuncios.md`**: cómo
    están integrados los anuncios, y el plan para ganar más (mediación,
    intersticial bonificado, app open).
-6. **`Docs/balance-log.md`** + `Docs/balance-run-*.csv`: historia y números
+5. **`Docs/balance-log.md`** + `Docs/balance-run-*.csv`: historia y números
    del balance de la economía.
-7. **`Docs/SESION-*.md`**: bitácora por sesión. Sirve para entender por qué
+6. **`Docs/SESION-*.md`**: bitácora por sesión. Sirve para entender por qué
    algo es como es.
-8. **`Asset-generation.md`** y **`Docs/HANDOFF-arte-gemini.md`**: cómo se genera
-   el arte. Leerlos antes de tocar sprites.
-9. **`IOS-developing-skill.md`**: convenciones de desarrollo iOS del proyecto.
+7. **`Tools/asset-pipeline/README.md`**: cómo se integra arte nuevo. La
+   generación vive en `~/Desktop/projects/automatic-image-generation`;
+   `Docs/HANDOFF-arte-gemini.md` queda por sus bugs y lecciones.
+8. **`IOS-developing-skill.md`**: convenciones de desarrollo iOS del proyecto.
 
 ### Distribución y App Store (`Distribution/`)
 
@@ -129,22 +149,28 @@ Packages/EconomyKit/   la economía pura, con sus propios tests (swift test)
 FisuEvolutionTests/    unit tests
 FisuEvolutionUITests/  UI tests
 StoreKitConfig/FisuEvolution.storekit   catálogo local de los 11 IAP
-Tools/asset-pipeline/  pipeline Python de arte
+Tools/asset-pipeline/  integración de arte (Python); ver su README
+Tools/pacing-sim/      el simulador de economía (el instrumento del balance)
+Tools/generate-tiers/  genera Resources/Data/tiers.json
+Tools/audio-synth/     sintetiza los .caf del juego
 project.yml            FUENTE DE VERDAD del proyecto Xcode (XcodeGen)
 ```
 
-### Contenido por datos (`FisuEvolution/Resources/Config/`)
+### Contenido por datos (`FisuEvolution/Resources/Data/` y `Config/`)
 
 El código nunca hardcodea contenido: todo sale de estos JSON.
 
 | Archivo | Qué define |
 |---|---|
-| `careers.json` | Los 30 tiers / carreras |
+| `Data/tiers.json` | Los 37 tiers y 44 tipos. **Generado** por `Tools/generate-tiers`: no se edita a mano |
+| `Data/economy.json` | Curvas, los 10 pisos, precios de contratación y ORO |
+| `Data/assets_manifest.json` | El único puente entre código y arte |
+| `careers.json` | Las 4 carreras y la recompensa de cada una |
 | `upgrades.json` | Mejoras, incluidas las que se pagan con ORO |
 | `boosts.json` | Boosts temporales |
 | `chests.json`, `skins.json`, `specials.json` | Cofres, skins y personajes especiales |
 | `events.json`, `daily_rewards.json`, `achievements.json` | Eventos, recompensas diarias y logros |
-| `prestige_unlocks.json` | Lo que desbloquea reencarnar |
+| `prestige_unlocks.json` | El descuento de contratación por nivel de reencarnación |
 | `products.json` | Los 11 IAP (ID, tipo y qué entregan) |
 | `rewarded_ads.json` | Los 5 premios de Regalos y la cadencia del intersticial |
 | `feature_flags.json` | Flags y **IDs de unidades de AdMob** |
@@ -233,8 +259,8 @@ privacidad (`content/legal.ts`) y los términos. La app los muestra en el menú
 - Warnings como errores (`SWIFT_TREAT_WARNINGS_AS_ERRORS`), strict concurrency
   `complete`.
 - **Cada subida a App Store Connect necesita un `CURRENT_PROJECT_VERSION`
-  nuevo.** El 1–4 ya están quemados: la v2 arranca en **5** como mínimo, y con
-  `MARKETING_VERSION` `1.1.0` o `2.0.0`.
+  nuevo.** El 1–4 ya están quemados: `version-2` está en **2.0.0 (5)**. Cada
+  subida que falle o se repita quema otro número.
 - **Archive siempre desde cero** (borrar DerivedData o usar un
   `-derivedDataPath` nuevo). Un build incremental no recompila los atlas de
   SpriteKit, y ya se subió un sprite viejo así.
@@ -310,7 +336,8 @@ En AdMob había **dos apps** duplicadas. Se vinculó la tienda a la que usa el A
 
 En orden sugerido. El detalle de anuncios está en `Docs/monetizacion-anuncios.md`.
 
-1. **Unificar ramas**: que `main` sea la rama del build (sección 1).
+1. ✅ **Unificar ramas**: `version-2` contiene a `main` y a la rama del build.
+   Al lanzar, `main` avanza a `version-2` por fast-forward (sección 0).
 2. **Mediación de anuncios**: AppLovin, Unity, Mintegral y Meta. Adaptadores
    por SPM en `project.yml`, sus SKAdNetwork IDs en `Info.plist`, sus líneas
    en `app-ads.txt` y la política de privacidad actualizada.
@@ -322,8 +349,13 @@ En orden sugerido. El detalle de anuncios está en `Docs/monetizacion-anuncios.m
 6. Game Center y iCloud: el código ya existe detrás de flags.
 7. Recortar en App Store Connect el nombre "Todas las skins de Diamante", que
    se ve truncado en la fila de la tienda.
-8. Mover a git, o a un almacenamiento aparte, las capturas de
-   `~/Desktop/projects/fisuevolution/Distribution/screenshots/`.
+8. ~~Mover las capturas a git~~: no hace falta. `Distribution/screenshots/` está
+   gitignoreado a propósito y `AppStoreScreenshotTests` las regenera en un
+   comando.
+
+Lo que la preparación de `version-2` encontró y dejó para el plan (bugs de
+producción, funciones a medio cablear y refactors) está en
+`Docs/SESION-2026-10-06-preparacion-v2.md`, sección "Para el plan".
 
 Para cada cambio de contenido o economía: editar el JSON, correr los tests de
 `EconomyKit` y de la app, y anotar en `Docs/balance-log.md` si cambia el balance.

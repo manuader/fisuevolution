@@ -1,5 +1,10 @@
 # Los dos gates que quedan — RF-14 (audio) y RF-02c (App Store Connect)
 
+> ⚠️ **RF-02c está hecho** (v1.0.0 publicada el 2026-09-23): los 11 IAP tal
+> como se cargaron están en `Distribution/iap-appstore-connect.md`. Lo de
+> RF-14 sigue valiendo, salvo que `music_cosmic_loop` salió del bundle en
+> `version-2`: la música por zona nunca se cableó.
+
 > Escrito el 2026-08-07, cuando el programa de las 16 correcciones se cerró.
 > **Estos dos no esperan programación**: esperan que el dueño consiga algo. Este
 > doc existe para que conseguirlo sea mecánico y no haya que reconstruir el

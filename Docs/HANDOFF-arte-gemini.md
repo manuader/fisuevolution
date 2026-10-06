@@ -1,6 +1,11 @@
 # HANDOFF — Generación de arte con Gemini (para el próximo agente)
 
-> Última actualización: 2026-07-23. Leé también `ESTADO.md` (estado global F0–F6) y `tasks.md` (checklist).
+> ⚠️ **Documento histórico (2026-07-23).** La generación de arte se mudó a su
+> propio repo, `~/Desktop/projects/automatic-image-generation`, el 2026-08-19, y
+> en `version-2` salieron de este repo el runner de Gemini y los scripts de
+> generación. Lo que integra un asset al juego hoy está en
+> `Tools/asset-pipeline/README.md`. Este doc sigue valiendo por "lo que funcionó
+> / no funcionó" y por los bugs #1–#7, que otros docs citan por número.
 
 ## Mini resumen del proyecto
 
@@ -95,7 +100,7 @@ Downstream: `process_dropbox.py` recorta el fondo blanco con `rembg` (modelo isn
 - Si la Mac se duerme (tapa cerrada), el batch se pausa. `caffeinate` lo previene con tapa abierta + enchufada.
 - Requiere el Chrome dedicado (`:9222`) logueado en Gemini Pro y en modo **Pro** (no Flash).
 
-## Lo que falta después del arte (ver ESTADO.md)
+## Lo que faltaba después del arte (julio; todo hecho al 2026-09-23)
 
 - Pass final de accesibilidad (VoiceOver) y performance (60fps con arte).
 - AppIcon 1024 sin alpha desde el logo.

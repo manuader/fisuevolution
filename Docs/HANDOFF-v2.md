@@ -33,6 +33,12 @@ git checkout version-2
 `feat/reacciones-de-campo` (las 352 reacciones a eventos). Sigue en GitHub sin
 tocar.
 
+**El plan de la 2.0 está aprobado: `Docs/PLAN-v2.md`** (2026-10-06, noche).
+Se ejecuta con relevo automático de agentes (§0 del plan). Varios datos de
+abajo cambian cuando su épica cierre: "sólo iPhone" pasa a universal con iPad
+vertical, iOS mínimo 17 pasa a 18, y los packs de ORO pasan a 160/550/1.400.
+Hasta entonces, lo de abajo describe el código.
+
 ---
 
 ## 1. El commit exacto del build publicado

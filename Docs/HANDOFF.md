@@ -6,6 +6,15 @@
 > `Docs/SESION-2026-10-06-preparacion-v2.md`. Lo de abajo sigue siendo la
 > referencia de arquitectura, decisiones y trampas.
 >
+> 🧭 **La 2.0 tiene plan maestro aprobado: `Docs/PLAN-v2.md`** (épicas E0–E10,
+> ~55 decisiones del dueño, anexos de contenido). **Se ejecuta en relevo
+> automático de agentes** (PLAN-v2 §0): cada agente trabaja hasta ~300.000
+> tokens de contexto, cierra todo, documenta y le pasa la posta a uno con
+> contexto fresco. El estado del run vive en el journal AVO
+> `FisuEvolution/.claude/avo/2026-10-06-fisu-v2/journal.md`, en el checkout
+> principal y excluido de git. Al llegar: este general + el handoff más nuevo
+> de `handoffs/` + `PLAN-v2.md` + el journal.
+>
 > ✅ **EL REDISEÑO DE UI ESTÁ COMPLETO Y MERGEADO** — 20 de 20 tareas
 > (`feature/rediseno-ui-cowevolution`, cerrado el 2026-08-16). El estado tarea
 > por tarea, las decisiones del dueño y los avisos vivos siguen en
@@ -113,6 +122,20 @@ Regla de oro para lo que escribas: **anotá lo que costó tiempo y no se deduce
 del código**. Los números que calibraron una decisión, el diagnóstico que
 resultó falso, el orden en que hay que hacer las cosas. Lo que el código ya
 dice, no lo repitas.
+
+**Durante la 2.0, además** (protocolo completo en `Docs/PLAN-v2.md` §0):
+
+- **Al llegar** se suman dos lecturas: `PLAN-v2.md` y el journal AVO del run
+  (carta → estado → descartados). Se revisa el candado `LOCK` del run y se
+  corre el oráculo antes de tocar nada.
+- **Al cerrar**, además de los tres pasos: journal al día y candado liberado.
+  Si el contexto pasó los ~300.000 tokens y no queda ningún subagente ni
+  tarea de fondo en vuelo, **relevo**: un `CronCreate` de un disparo con
+  "continúa — protocolo de relevo FisuEvolution v2" + `clear_session("self")`.
+  Si eso no despierta al siguiente, se usan las rutinas de la app; y en
+  última instancia, el dueño escribe "continúa".
+- Las skills `handoff-system`, `writing-session-handoff` y
+  `writing-general-handoff` (globales) son la fuente de este protocolo.
 
 ---
 
@@ -256,6 +279,34 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-06 (noche) — El plan maestro de la 2.0
+
+No hay código: se planificó la 2.0 entera. Salió **`Docs/PLAN-v2.md`**,
+aprobado por el dueño: los 19 pedidos del feedback de la v1 + 5 de la crítica
+de un jugador avanzado + 3 de la sesión de preparación, cada uno con su
+épica. El porqué está en `Docs/SESION-2026-10-06-plan-v2.md`.
+
+Lo que un agente necesita saber sin abrir nada:
+
+- **Cinco pedidos no eran lo que parecían.**
+  - El pasivo "congelado" es el `.inactive` que re-sella la hora al volver.
+  - El descuento del Abogado sí se aplica, pero lo tapa el salto ×2,99 de la
+    frontera.
+  - Las fusiones "solas" son el evento "Startup comprada" sin revelación.
+  - Los premios valen 120·k s de una sola unidad.
+  - Los precios que se disparan vienen del contador por tipo.
+  - Tabla y archivos en la sesión.
+- **Cambia el contrato de pacing** (§5, decisión 11): Dios en 31–35 h
+  activas, 4–6 reencarnaciones **medidas con un bot que reencarna al
+  multiplicar ×5 su ORO**, más tiempos por piso. Se reescribe en la épica
+  E2b. Hasta entonces el test viejo sigue rojo por la misma razón de siempre.
+- **El ORO pasa a ser la moneda premium de todo** (tienda de ORO, ruleta,
+  skins). Las 7 líneas pasan a costar 348. Los packs serán 160/550/1.400 por
+  USD 1,99/4,99/9,99.
+- **La app pasa a universal**: iPad sólo vertical, iOS mínimo 18.
+- **Herramientas nuevas, globales**: harness AVO y skills de documentación.
+  La ejecución es un relevo automático de agentes (PLAN-v2 §0).
 
 ### Sesión del 2026-10-06 — La rama `version-2`: integrar lo suelto y sacar lo que sobra
 
@@ -1229,6 +1280,38 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
 
 ## 5. Decisiones del dueño que NO se re-litigan
 
+**Decisiones de la 2.0 (aprobadas el 2026-10-06 en `Docs/PLAN-v2.md` §2).** Se
+implementan épica por épica. Mientras una no esté implementada, el código sigue
+la decisión vieja de abajo, y **la vieja deja de valer cuando su épica cierra**.
+La tabla completa, con ~55 filas, está en el plan; acá van las que reemplazan o
+tocan decisiones de esta sección:
+
+- **Reemplaza §5.5 (contrato de pacing)**:
+  - Dios entre 31 y 35 h activas, en el reloj del simulador; 4–6
+    reencarnaciones medidas con un bot que reencarna al multiplicar ×5 su ORO
+    (la cantidad depende de esa política, no del juego).
+  - Las 7 líneas al máximo antes de Dios, pero no antes de la 5ª
+    reencarnación.
+  - Cada run llega más lejos que la anterior, con tiempos por piso.
+  - **Piso móvil**: para reencarnar hay que alcanzar el tier más alto de la
+    run anterior.
+  - Lo implementa E2b.
+- **Toca §5.7 (las skins de oro no se venden)**: el ORO comprado puede pagar
+  todo, y las 7 líneas pasan a costar 348. Las skins de oro quedan
+  alcanzables pagando, como ya pasaba en la v1 con el pack de 250.
+- **Extiende §5.2 (regla de precios)**: la regla queda, pero **el salto al
+  subir de tier se amortigua**. El precio no salta; la diferencia se cobra en
+  las compras siguientes y vuelve exacto a v1 después de K compras. Se suma
+  un reintegro parcial por fusión (knob). Lo mostrado siempre es lo aplicado.
+- **"Cofre" sigue siendo sólo de pintas**: el tesoro con ORO y plata se llama
+  **El Colchón**, y la caja con personaje es el **Paquete de la Aduana**.
+- **Sin cripto en la app**: la Fisu Coin es un proyecto aparte, fuera del
+  juego, sin links ni menciones (Apple 3.1.1/3.1.5, CNV).
+- **Universal**: iPad sólo vertical (`UIRequiresFullScreen`) e iOS mínimo 18.
+  Reemplaza el "sólo iPhone" del HANDOFF-v2.
+- **Pisos de 15 lugares** (hasta 20 con un permanente de ORO): reemplaza los
+  10 lugares por piso.
+
 0. **Los cofres** (2026-08-26). Las 41 pintas de piso salen **sólo** de cofres. Rareza con
    **promoción hacia arriba** cuando la sorteada se agota. Cuatro fuentes: cada 2 pisos, un
    video, el día 7 (como **segundo escalón** después del special, sin robarle el turno) y la
@@ -1658,6 +1741,23 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### Del plan de la 2.0 (2026-10-06, noche)
+
+- **"4–6 reencarnaciones" no es una propiedad del juego: es de la política
+  del bot.** Con "reencarnar al multiplicar el ORO por (1+m)",
+  `R ≈ ln(ORO_dios/ORO₁)/ln(1+m)`. Con el m = 1 de hoy da 13, la medición real.
+  Calibrar knobs para bajar R sin fijar la política es pelear contra la
+  fórmula. El contrato nuevo fija m = 4 (×5).
+- **El ORO total al llegar a Dios es ≈ 12.380**, contra 193 de las 7 líneas.
+  Una tienda de ORO con precios de un dígito queda regalada al final de la
+  partida. La escala es 1 h de producción ≈ 90 ORO, con topes diarios en los
+  consumibles de poder.
+- **Los subagentes pueden cortar por el límite semanal de un modelo
+  (HTTP 429)** aunque la sesión principal siga andando. Relanzarlos con
+  `model: sonnet` funcionó a la primera.
+- **`gh` no está en el PATH del shell de los agentes**: para clonar, usar
+  `git clone https://github.com/<repo>.git`.
 
 ### De la preparación de `version-2` (2026-10-06)
 
@@ -2935,6 +3035,15 @@ Anotado por si algún día importa, con su medición:
 
 ## 9. Mapa de documentos
 
+- **`Docs/PLAN-v2.md`** — **el plan maestro de la 2.0**:
+  - §0, el protocolo de relevo automático de agentes;
+  - §2, todas las decisiones del dueño;
+  - §3, las causas raíz;
+  - §4, las épicas E0–E10, con la tabla de cada pedido a su épica;
+  - anexos A (guiones de visitantes y frases de eventos) y B (biblia de los
+    8 visitantes nuevos).
+- **`Docs/SESION-2026-10-06-plan-v2.md`** — el porqué del plan: lo que se
+  midió antes de decidir, lo descartado y las trampas de la planificación.
 - **`Docs/HANDOFF-v2.md`** — el punto de entrada de la v2: el commit del build
   publicado, la rama `version-2`, las integraciones en producción y el backlog.
 - **`Docs/SESION-2026-10-06-preparacion-v2.md`** — cómo se armó `version-2`: qué

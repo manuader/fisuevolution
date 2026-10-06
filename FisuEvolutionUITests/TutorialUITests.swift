@@ -197,6 +197,7 @@ final class TutorialUITests: XCTestCase {
         premio.lifetime = .keepAlways
         add(premio)
         equipar.tap()
+        awaitChestGone(app)
 
         // La pinta quedó PUESTA: su tarjeta en Pintas ya no ofrece ponérsela, y
         // la de siempre sí. Abrir la hoja prueba de paso que el HUD volvió.
@@ -268,6 +269,7 @@ final class TutorialUITests: XCTestCase {
         // de la carta.
         awaitWelcomeChest(app, screenshotNamed: "cofre de bienvenida: también al saltear")
         app.buttons["chest.dismiss"].tap()
+        awaitChestGone(app)
 
         app.buttons["hud.upgrades"].tap()
         XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 12),
@@ -489,6 +491,21 @@ final class TutorialUITests: XCTestCase {
             if XCTWaiter().wait(for: [gone], timeout: 3) == .completed { return }
         }
         XCTFail("el doble toque no fusionó el par iluminado en \(attempts) intentos")
+    }
+
+    /// Espera a que el cofre se vaya de verdad antes de tocar el HUD.
+    ///
+    /// El cofre es un overlay que se desvanece, no una hoja: un toque que cae
+    /// mientras sale se lo come el overlay y la pantalla pedida nunca abre.
+    /// Medido el 2026-10-06: tocar el HUD en el acto pasó a fallar 5 de 6 por un
+    /// cambio de timing ajeno al cofre; con esta espera, 6 de 6 en verde.
+    @MainActor
+    private func awaitChestGone(_ app: XCUIApplication) {
+        let gone = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == 0"), object: app.buttons["chest.dismiss"]
+        )
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed,
+                       "cerrar el cofre tiene que sacar su overlay")
     }
 
     /// Espera al **cofre de bienvenida** y lo deja en reposo, con el premio a la

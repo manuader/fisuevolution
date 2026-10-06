@@ -1,5 +1,10 @@
 # Balance log — gate de F2
 
+> ⚠️ **Esta primera sección es historia.** `Tools/balance-sim` se retiró en
+> `version-2` (2026-10-06): no compilaba contra EconomyKit desde que el spawn
+> pasó a ser contratación en F7. El instrumento vivo es `Tools/pacing-sim` sobre
+> `PacingSimulator`; las rondas de abajo ya lo usan.
+
 Registro de iteraciones de `economy.json` con `Tools/balance-sim` (bots: tap-only,
 merge-greedy, passive-first; 3 taps/s y 2 acciones de board/s como techo humano).
 El check duro exige que merge-greedy llegue a T30 dentro del tope de horas activas.

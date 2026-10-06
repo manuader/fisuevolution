@@ -6,7 +6,6 @@ import UIKit
 /// perteneciendo al campo interactivo del piso visible en `BoardScene`.
 @MainActor
 final class FloorNode: SKNode {
-    let ordinal: Int
     let definition: FloorDef
 
     /// Recorta el fondo AL SLOT DEL PISO.
@@ -32,7 +31,6 @@ final class FloorNode: SKNode {
     }
 
     init(ordinal: Int, definition: FloorDef) {
-        self.ordinal = ordinal
         self.definition = definition
         super.init()
         zPosition = Self.backgroundZ(ordinal: ordinal)

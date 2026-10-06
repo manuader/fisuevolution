@@ -16,12 +16,6 @@ struct PrestigeButton: View {
     @Environment(GameState.self) private var gameState
     let action: () -> Void
 
-    /// El mismo alto que la cápsula de contratar, derivado y no copiado: las dos
-    /// comparten fila y con literales sueltos se desalinean el día que una
-    /// cambie. Ver la nota de `QuickHireButton.capsuleHeight`, que explica por
-    /// qué el número existe y qué lo invalida (Dynamic Type, no un rediseño).
-    static let capsuleHeight: CGFloat = QuickHireButton.capsuleHeight
-
     var body: some View {
         // Desde el piso del teaser ("al llegar a lujo", dueño 2026-08-28) el
         // botón EXISTE aunque no haya ORO por cobrar: enseña la mecánica y

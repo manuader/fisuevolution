@@ -15,7 +15,6 @@ private func type(
         phase: .earth,
         displayName: id,
         spritePlaceholder: "sf:person.fill",
-        spriteAssetKey: nil,
         tapYield: 1,
         passiveYieldPerInstance: 0.3,
         passiveUnlockCost: 100,

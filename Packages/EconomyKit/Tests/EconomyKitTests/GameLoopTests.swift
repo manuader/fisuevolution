@@ -448,7 +448,7 @@ struct ReincarnationTests {
         let unlocks = PrestigeUnlocks(
             schemaVersion: 1,
             spawnDiscountCap: 0.5,
-            levels: (1...30).map { .init(level: $0, spawnCostDiscount: 0.05, unlockBackgrounds: [], unlockSkins: [], unlockSpecials: []) }
+            levels: (1...30).map { .init(level: $0, spawnCostDiscount: 0.05) }
         )
         #expect(unlocks.cumulativeSpawnDiscount(atPrestigeLevel: 0) == 0)
         #expect(abs(unlocks.cumulativeSpawnDiscount(atPrestigeLevel: 2) - 0.1) < 1e-12)

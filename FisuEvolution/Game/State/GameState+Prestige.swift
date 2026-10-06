@@ -54,12 +54,6 @@ struct PrestigePreview: Equatable {
 /// Reencarnación (F7: gate por ORO). Separado de `GameState.swift` para que el
 /// frente de prestigio no comparta archivo con los otros cinco dominios.
 extension GameState {
-    /// ORO que ganarías reencarnando ahora.
-    var prestigeOroGained: Int {
-        guard let economy, let player else { return 0 }
-        return PrestigeCalculator.oroGained(state: player, economy: economy)
-    }
-
     /// El cálculo en vivo, contra el `PlayerState` autoritativo. **No lo leas
     /// desde SwiftUI**: la vista lee `prestigePreview`, la proyección que publica
     /// `refreshProjections` a 8 Hz. Este getter existe para alimentarla (y para

@@ -68,7 +68,7 @@ func fxType(
 ) -> CharacterType {
     CharacterType(
         id: id, tier: tier, phase: .earth, displayName: id,
-        spritePlaceholder: "sf:person.fill", spriteAssetKey: nil,
+        spritePlaceholder: "sf:person.fill",
         tapYield: tapYield, passiveYieldPerInstance: tapYield * 0.3, passiveUnlockCost: tapYield * 100,
         mergesInto: mergesInto, isChoiceNode: isChoiceNode, choiceOptions: choiceOptions
     )

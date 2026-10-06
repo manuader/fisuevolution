@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "spawnDiscountCap": 0.5,
   "levels": [
-    { "level": 1, "spawnCostDiscount": 0.05, "unlockBackgrounds": [], "unlockSkins": [], "unlockSpecials": [] },
-    { "level": 2, "spawnCostDiscount": 0.05, "unlockBackgrounds": [], "unlockSkins": [], "unlockSpecials": [] },
-    { "level": 3, "spawnCostDiscount": 0.05, "unlockBackgrounds": [], "unlockSkins": [], "unlockSpecials": ["sp_arbolito"] },
-    { "level": 5, "spawnCostDiscount": 0.1, "unlockBackgrounds": [], "unlockSkins": [], "unlockSpecials": ["sp_contador_dios"] },
-    { "level": 8, "spawnCostDiscount": 0.1, "unlockBackgrounds": [], "unlockSkins": [], "unlockSpecials": ["sp_bug_simulacion"] }
+    { "level": 1, "spawnCostDiscount": 0.05 },
+    { "level": 2, "spawnCostDiscount": 0.05 },
+    { "level": 3, "spawnCostDiscount": 0.05 },
+    { "level": 5, "spawnCostDiscount": 0.1 },
+    { "level": 8, "spawnCostDiscount": 0.1 }
   ]
 }

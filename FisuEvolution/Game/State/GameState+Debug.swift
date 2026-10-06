@@ -233,21 +233,6 @@ extension GameState {
         claimDailyIfAvailable()
     }
 
-    /// Deja tres logros **conseguidos y sin cobrar** para poder fotografiar y
-    /// ejercitar la pantalla de Logros.
-    ///
-    /// Existe por lo mismo que `debugMarkTypesSeen` y `debugSetDailyCycleDay`:
-    /// una partida nueva muestra los 39 logros en gris y **ninguno cobrable**,
-    /// así que sin esta puerta la sección "Para cobrar" no se puede ver ni
-    /// apretar. Conseguir uno jugando pide fusionar, mirar un video con el
-    /// proveedor real o dar mil toques sobre un personaje que deambula: nada de
-    /// eso es automatizable.
-    ///
-    /// Los tres contadores están elegidos para cruzar **un** gatillo cada uno
-    /// (`ach_merges_1`, `ach_taps_1000`, `ach_videos_1`) y ninguno más. Se usa
-    /// `max` para no PISAR un save que ya tuviera más: el fixture agrega, no
-    /// retrocede.
-    ///
     /// Abre el fork de carrera sin haber llegado a T9.
     ///
     /// Toma las opciones del catálogo —el `choiceOptions` del tier que bifurca—
@@ -280,6 +265,21 @@ extension GameState {
         syncCelebrations()
     }
 
+    /// Deja tres logros **conseguidos y sin cobrar** para poder fotografiar y
+    /// ejercitar la pantalla de Logros.
+    ///
+    /// Existe por lo mismo que `debugMarkTypesSeen` y `debugSetDailyCycleDay`:
+    /// una partida nueva muestra los 39 logros en gris y **ninguno cobrable**,
+    /// así que sin esta puerta la sección "Para cobrar" no se puede ver ni
+    /// apretar. Conseguir uno jugando pide fusionar, mirar un video con el
+    /// proveedor real o dar mil toques sobre un personaje que deambula: nada de
+    /// eso es automatizable.
+    ///
+    /// Los tres contadores están elegidos para cruzar **un** gatillo cada uno
+    /// (`ach_merges_1`, `ach_taps_1000`, `ach_videos_1`) y ninguno más. Se usa
+    /// `max` para no PISAR un save que ya tuviera más: el fixture agrega, no
+    /// retrocede.
+    ///
     /// ⚠️ Deja los logros desbloqueados y **sin cobrar** a propósito: cobrarlos
     /// es lo que el test ejerce. Corre en `bootstrap` con `phase == .loading`,
     /// así que `evaluateAchievements` acredita sin desfilar tres banners.
@@ -319,11 +319,6 @@ extension GameState {
         refreshProjections()
     }
 
-    /// "Resetear partida" del panel = una instalación fresca DE VERDAD, no
-    /// sólo un save nuevo (pedido del dueño, 2026-08-21): el tutorial, las
-    /// lecciones y el puntito viven en `UserDefaults` y sin este barrido la
-    /// partida nueva nacía sin su primera experiencia — que es justamente lo
-    /// que el botón quiere poder mirar.
     /// El primer special del catálogo, caído y ANCLADO al piso visible: deja
     /// la carta del drop abierta (vía la cola, como el drop real) y al
     /// personaje en el tablero — que es lo que necesita ejercitar el recap del
@@ -395,6 +390,11 @@ extension GameState {
         refreshProjections()
     }
 
+    /// "Resetear partida" del panel = una instalación fresca DE VERDAD, no
+    /// sólo un save nuevo (pedido del dueño, 2026-08-21): el tutorial, las
+    /// lecciones y el puntito viven en `UserDefaults` y sin este barrido la
+    /// partida nueva nacía sin su primera experiencia — que es justamente lo
+    /// que el botón quiere poder mirar.
     func debugResetSave() {
         guard let content else { return }
         var fresh = PlayerState.newGame(

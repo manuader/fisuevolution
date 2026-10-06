@@ -128,11 +128,6 @@ extension GameState {
 
     // MARK: Boosts (F5 — bible §1)
 
-    func boostCooldownRemaining(_ boost: BoostsConfig.Boost) -> TimeInterval {
-        guard let player else { return .infinity }
-        return BoostManager.cooldownRemaining(of: boost, state: player, now: Date().timeIntervalSince1970)
-    }
-
     /// ¿Llegó el jugador al piso que abre este boost? (RF-12)
     ///
     /// Se mide contra `meta.stats.maxFloorOrdinalEver` y no contra los pisos de la

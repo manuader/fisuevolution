@@ -29,7 +29,6 @@ public struct TowerState: Sendable, Equatable {
         }
 
         public var occupiedCount: Int { slots.lazy.compactMap { $0 }.count }
-        public var isFull: Bool { occupiedCount >= def.capacity }
         public func firstFreeSlot() -> Int? { slots.firstIndex(where: { $0 == nil }) }
     }
 
@@ -48,10 +47,6 @@ public struct TowerState: Sendable, Equatable {
             }
         }
         return counts
-    }
-
-    public var totalUnits: Int {
-        floors.reduce(0) { $0 + $1.occupiedCount }
     }
 
     public func typeId(floorOrdinal: Int, slot: Int) -> String? {

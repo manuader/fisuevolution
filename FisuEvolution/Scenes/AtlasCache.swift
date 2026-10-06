@@ -28,9 +28,4 @@ enum AtlasCache {
         guard texture.size().width > 1, texture.size().height > 1 else { return nil }
         return texture
     }
-
-    /// Sólo para tests: permite empezar de cero sin arrastrar atlas de otra suite.
-    static func reset() {
-        atlases.removeAll()
-    }
 }

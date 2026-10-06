@@ -611,7 +611,7 @@ struct GameLoopWiringTests {
         gameState.giveEarningsForPrestigeTesting()
         #expect(gameState.prestigeAvailable)
         #expect((gameState.player?.meta.lifetimeEarnings ?? 0) >= divisor)
-        #expect(gameState.prestigeOroGained > 0)
+        #expect(gameState.prestigePreviewNow.oroGained > 0)
 
         gameState.confirmPrestige()
         // La run murió entera…

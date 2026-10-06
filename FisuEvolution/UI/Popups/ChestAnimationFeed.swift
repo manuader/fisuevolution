@@ -17,9 +17,6 @@ import SwiftUI
 @MainActor
 @Observable
 final class ChestAnimationFeed {
-    /// En qué frame clavarse cuando el segmento no se reproduce.
-    enum FramePin { case first, last }
-
     private static let prefetchWindow = 8
 
     let animation: ChestAnimation?
@@ -38,16 +35,15 @@ final class ChestAnimationFeed {
         self.animation = animation
     }
 
-    /// Clava un segmento sin reproducirlo (el idle de la espera, o el estado
-    /// final con Reduce Motion). Decodifica ese único frame en el acto.
-    func show(_ segment: ChestAnimation.Segment, frame pin: FramePin = .first) {
-        guard let animation else { return }
+    /// Clava un segmento en su primer frame sin reproducirlo (el idle de la
+    /// espera). Decodifica ese único frame en el acto.
+    func show(_ segment: ChestAnimation.Segment) {
+        guard animation != nil else { return }
         beginSegment(segment)
         isPaused = true
         startDate = nil
-        let index = pin == .first ? 0 : animation.info(segment).frameCount - 1
-        displayedIndex = index
-        displayed = decodeNow(index)
+        displayedIndex = 0
+        displayed = decodeNow(0)
     }
 
     /// Arranca un segmento desde su primer frame. El reloj es la fecha que se

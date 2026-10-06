@@ -20,8 +20,6 @@ public struct CharacterType: Codable, Sendable, Equatable, Identifiable {
     public let displayName: String
     /// Placeholder sprite reference, e.g. `sf:person.fill` (SF Symbol) until real art ships.
     public let spritePlaceholder: String
-    /// Key into `assets_manifest.json` once real art exists; `nil` renders the placeholder.
-    public let spriteAssetKey: String?
     public let tapYield: Double
     public let passiveYieldPerInstance: Double
     public let passiveUnlockCost: Double
@@ -39,7 +37,6 @@ public struct CharacterType: Codable, Sendable, Equatable, Identifiable {
         phase: GamePhase,
         displayName: String,
         spritePlaceholder: String,
-        spriteAssetKey: String?,
         tapYield: Double,
         passiveYieldPerInstance: Double,
         passiveUnlockCost: Double,
@@ -52,7 +49,6 @@ public struct CharacterType: Codable, Sendable, Equatable, Identifiable {
         self.phase = phase
         self.displayName = displayName
         self.spritePlaceholder = spritePlaceholder
-        self.spriteAssetKey = spriteAssetKey
         self.tapYield = tapYield
         self.passiveYieldPerInstance = passiveYieldPerInstance
         self.passiveUnlockCost = passiveUnlockCost

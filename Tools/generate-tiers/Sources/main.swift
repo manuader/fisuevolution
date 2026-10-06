@@ -153,7 +153,6 @@ do {
             phase: entry.phase,
             displayName: entry.displayName,
             spritePlaceholder: "sf:\(entry.symbol)",
-            spriteAssetKey: nil,
             tapYield: economy.tapYield(forTier: entry.tier),
             passiveYieldPerInstance: economy.passiveYield(forTier: entry.tier),
             passiveUnlockCost: economy.passiveUnlockCost(forTier: entry.tier),

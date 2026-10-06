@@ -41,16 +41,10 @@ public struct PrestigeUnlocks: Codable, Sendable, Equatable {
     public struct Level: Codable, Sendable, Equatable {
         public let level: Int
         public let spawnCostDiscount: Double
-        public let unlockBackgrounds: [String]
-        public let unlockSkins: [String]
-        public let unlockSpecials: [String]
 
-        public init(level: Int, spawnCostDiscount: Double, unlockBackgrounds: [String], unlockSkins: [String], unlockSpecials: [String]) {
+        public init(level: Int, spawnCostDiscount: Double) {
             self.level = level
             self.spawnCostDiscount = spawnCostDiscount
-            self.unlockBackgrounds = unlockBackgrounds
-            self.unlockSkins = unlockSkins
-            self.unlockSpecials = unlockSpecials
         }
     }
 

@@ -210,8 +210,6 @@ extension GameState {
                         promotedToFloor: toFloor,
                         unlockedFloorId: unlockedFloorId
                     )
-                case .requiresCareerChoice:
-                    return .snapBack  // unreachable: MergeRules ya resolvió
                 }
             } catch TowerError.destinationFloorFull(let floorID) {
                 towerNotice = TowerNotice(kind: .destinationFloorFull(floorID: floorID))

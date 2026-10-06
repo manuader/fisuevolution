@@ -25,7 +25,6 @@ public enum TowerError: Error, Equatable {
     case destinationFloorFull(floorId: String)
     case insufficientCoins
     case invalidSlot
-    case noHireableType
     /// El piso está abierto, pero a este personaje todavía le falta compuerta:
     /// tu frontera de merge no llegó `hire.gateTierDistance` tiers por encima
     /// de su tier. Distinto de `floorLocked` a propósito — un piso puede estar
@@ -40,8 +39,6 @@ public enum TowerMergeResult: Equatable, Sendable {
     /// El resultado pertenece a un piso superior: ascendió. `unlockedFloorId`
     /// viene seteado si este ascenso desbloqueó el piso por primera vez.
     case promoted(toFloorOrdinal: Int, slot: Int, newTypeId: String, unlockedFloorId: String?)
-    /// El merge requiere elegir carrera (se difiere, igual que hoy).
-    case requiresCareerChoice(options: [String])
 }
 
 /// Mutaciones de la torre. Mantienen el invariante `tower.unitCounts == run.units`

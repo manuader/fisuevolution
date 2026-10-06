@@ -23,8 +23,6 @@ enum UIArt {
         characterCache.removeAll()
     }
 
-    static func has(_ name: String) -> Bool { available.contains(name) }
-
     static func uiImage(_ name: String) -> UIImage? {
         guard available.contains(name) else { return nil }
         if let cached = uiCache[name] { return cached }
@@ -88,12 +86,6 @@ enum UIArt {
                        resizingMode: .stretch)
     }
 }
-
-// `GamePanel` (marco 9-slice de popups) se retiró el 2026-08-18: los siete
-// popups hablan `PanelCard` (PanelFrames.swift) — el tablón de las hojas en
-// escala de tarjeta, una sola familia visual. Los PNG `panel_reward`,
-// `panel_career`, `panel_prestige` y `panel_dialog` siguen en el atlas como
-// reserva de arte, igual que `panel_menu`.
 
 /// Botón con arte propio (imagen sin texto) 9-slice + label encima con padding
 /// generoso y auto-encogido para que el texto SIEMPRE entre. Sin arte, cae a una
@@ -193,49 +185,6 @@ struct ArtCloseButton: View {
         // cerrarlas deslizando, que es un gesto que falla según la hoja.
         .accessibilityIdentifier("sheet.close")
         .accessibilityLabel(Text("store.close"))
-    }
-}
-
-// `PanelBackground` (marco 9-slice full-screen de hojas) se retiró el
-// 2026-08-18: las hojas hablan `panelSheet`/`WoodPanelBackground`
-// (PanelFrames.swift). Su interior pergamino-con-luz vive ahí, calcado.
-
-/// Burbuja de diálogo con arte propio 9-slice + texto encima que SIEMPRE entra
-/// (padding acorde a la forma + auto-encogido). Cola abajo-izquierda.
-struct SpeechBubble: View {
-    let text: String
-    var art: String = "ui_speech_bubble"
-    var width: CGFloat = 340
-
-    var body: some View {
-        // La burbuja se dimensiona al texto (alto flexible): así NINGÚN string se
-        // recorta. Padding horizontal generoso para despejar el borde 9-slice; la
-        // cola vive en el padding inferior.
-        Text(verbatim: text)
-            .font(.system(.headline, design: .rounded).weight(.bold))
-            .foregroundStyle(Color("PaletteInk"))
-            .multilineTextAlignment(.center)
-            .lineLimit(4)
-            .minimumScaleFactor(0.5)
-            .frame(maxWidth: width - 96)
-            .padding(.top, 26)
-            .padding(.bottom, 52)
-            .padding(.horizontal, 30)
-            .frame(minWidth: width, minHeight: 150)
-            .background {
-                ZStack {
-                    // Relleno crema (el arte de la burbuja viene con interior transparente).
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .fill(Color("PaletteCream"))
-                        .padding(EdgeInsets(top: 12, leading: 16, bottom: 46, trailing: 16))
-                    if let bubble = UIArt.nineSlice(art, cap: 0.14) {
-                        bubble
-                    } else {
-                        RoundedRectangle(cornerRadius: 20, style: .continuous)
-                            .strokeBorder(Color("PaletteInk"), lineWidth: 3)
-                    }
-                }
-            }
     }
 }
 

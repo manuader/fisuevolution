@@ -19,7 +19,7 @@ import Testing
     func seenSurvivesTheLastUnit() {
         var state = fxState()
         state.run.units["b"] = 2
-        state.markSeen("b")
+        state.run.markSeen("b")
         state.run.units["b"] = nil
         #expect(state.run.seenTypes.contains("b"))
     }
@@ -33,8 +33,8 @@ import Testing
     @Test("reencarnar borra los vistos salvo el tipo base")
     func reincarnationResetsSeen() {
         var state = fxState()
-        state.markSeen("b")
-        state.markSeen("c_prog")
+        state.run.markSeen("b")
+        state.run.markSeen("c_prog")
         state.run = .fresh(startTypeId: "a", startFloorId: "f1")
         #expect(state.run.seenTypes == ["a"])
     }

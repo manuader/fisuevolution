@@ -453,9 +453,6 @@ public struct PlayerState: Codable, Sendable, Equatable {
         self.meta = meta
     }
 
-    /// Registra un tipo como visto en la run actual (RF-03).
-    public mutating func markSeen(_ typeId: String) { run.markSeen(typeId) }
-
     /// A fresh account: one starter unit, everything else at its baseline.
     /// The starter type id comes from data (`TierRepository.baseType`), never from code.
     public static func newGame(

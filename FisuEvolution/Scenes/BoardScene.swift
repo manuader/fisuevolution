@@ -129,17 +129,6 @@ final class BoardScene: SKScene {
     /// 60 fps / 8 ≈ 8 Hz HUD flush (Docs/concurrency-conventions.md regla 2).
     private static let hudFlushEveryNFrames = 8
 
-    /// Vertical insets leaving room for the SwiftUI HUD above and controls below.
-    /// Alto de la franja que ocupa el HUD de SwiftUI arriba del tablero.
-    ///
-    /// **Medido, no estimado**: la pill de piso —una cápsula crema OPACA— termina
-    /// a ~162 pt del borde en un iPhone 16 Pro. Los 14 pt extra son aire.
-    ///
-    /// Hoy no lo consume nadie: el reveal, que era su único cliente, pasó a ir
-    /// centrado en la pantalla entera porque la UI se apaga mientras corre. Queda
-    /// porque es el número medido de la banda del HUD y lo va a necesitar
-    /// cualquier cosa que tenga que esquivarla.
-    static let topInset: CGFloat = 176
     /// Origen vertical del campo dentro de la escena: el borde de arriba de la
     /// barra inferior, para que la multitud no camine detrás de ella.
     ///

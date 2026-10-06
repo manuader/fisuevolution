@@ -2,25 +2,13 @@ import Foundation
 
 /// Pure economy math shared by the game, the tier generator and the pacing simulator.
 /// No UIKit, no SpriteKit, no side effects — everything is testable in isolation.
-public protocol EconomyCalculating: Sendable {
-    func tapYield(forTier tier: Int) -> Double
-    func passiveYield(forTier tier: Int) -> Double
-    func passiveUnlockCost(forTier tier: Int) -> Double
-    /// ORO total que corresponde a un lifetimeEarnings dado (fórmula F7 §3.7).
-    func oroTotal(lifetimeEarnings: Double) -> Int
-    /// Multiplicador global. Se computa sobre `oroEarnedLifetime` (monótono):
-    /// gastar ORO nunca nerfea.
-    func globalMultiplier(oroEarnedLifetime: Int, prestigeBonus: Double) -> Double
-}
-
-/// The standard implementation of the F7 formulas.
 ///
 ///     tapYield(t)          = baseTapYieldTier1 × yieldGrowthPerTier^(t−1)
 ///     passiveYield(t)      = tapYield(t) × passiveRatio
 ///     passiveUnlockCost(t) = tapYield(t) × passiveUnlockCostMultiplier
 ///     oroTotal             = floor((lifetimeEarnings / oro.divisor)^oro.exponent)
 ///     globalMultiplier     = 1 + oroEarnedLifetime × perOro × (1 + prestigeBonus)
-public struct StandardEconomy: EconomyCalculating {
+public struct StandardEconomy: Sendable {
     public let config: EconomyConfig
 
     public init(config: EconomyConfig) {
@@ -39,12 +27,15 @@ public struct StandardEconomy: EconomyCalculating {
         tapYield(forTier: tier) * config.passiveUnlockCostMultiplier
     }
 
+    /// ORO total que corresponde a un lifetimeEarnings dado (fórmula F7 §3.7).
     public func oroTotal(lifetimeEarnings: Double) -> Int {
         guard lifetimeEarnings > 0 else { return 0 }
         let raw = pow(lifetimeEarnings / config.oro.divisor, config.oro.exponent)
         return Self.clampedFloor(raw)
     }
 
+    /// Multiplicador global. Se computa sobre `oroEarnedLifetime` (monótono):
+    /// gastar ORO nunca nerfea.
     public func globalMultiplier(oroEarnedLifetime: Int, prestigeBonus: Double = 0) -> Double {
         1.0 + Double(oroEarnedLifetime) * config.oro.globalMultiplierPerOro * (1 + prestigeBonus)
     }

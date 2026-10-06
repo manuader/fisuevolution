@@ -422,6 +422,23 @@ recalibración en **`Docs/SESION-2026-08-28-cofre-video-v2.md`**. Números:
 pipeline **12** · unit **458 con el único rojo declarado** · cofre unit
 **11/11** y UI **3/3 sobre el build final** · velo re-medido: **muerto**.
 
+### Sesión del 2026-08-28 (bis) — El atajo vuelve a vender el mejor tier
+
+El botón de contratación del HUD ofrecía el tier más alto pagable **entre los
+tier base de cada piso**; ahora ofrece el más alto pagable, punto. Es la vuelta
+atrás de §4.5 del rebalance, y el motivo es que los datos se movieron debajo de
+esa decisión: el simulador de pacing empezó a comprar todos los tiers **un día
+después** de que el recorte entrara, así que el contrato de las 20-30 h quedó
+medido con un jugador que compra el mejor tier — el recorte hacía al botón peor
+que el jugador que el balance modela. Ver §5.0-quinquies.
+
+Efecto de vuelta que vale anotar: **los desempates de `computeBestHire` volvieron
+a ser alcanzables**. Con el recorte, cada piso aportaba un solo candidato y dos
+nunca empataban, así que sus dos tests se habían retirado. Sin él, los tiers 11 y
+12 aportan cuatro cada uno —las ramas de carrera— y el empate es la regla, no el
+borde: `tiesOnTierPreferTheCheapest` y `tiesFallBackToTheAscendingID` volvieron a
+la suite.
+
 ### Sesión del 2026-08-28 — El cofre animado por video
 
 **La apertura de cofres es el video del animador entero** (`chest-animation.mp4`,
@@ -1232,6 +1249,18 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    busca. ⚠️ **No re-abrirla**: si estás auditando ramas sin alcanzar, ésta ya tiene
    respuesta.
 
+0-quinquies. **El atajo del HUD vende el MEJOR tier que la plata alcanza**
+   (2026-08-28). Revierte el recorte a tier base de §4.5 del prompt del rebalance
+   (`2db8f1d`, 2026-08-21). ⚠️ **No se re-litiga en ninguna de las dos
+   direcciones sin mirar estos tres datos**, que son los que decidieron la vuelta:
+   - `jobRows` (FisuJobs) **nunca** filtró por tier base, así que el recorte no
+     movía el techo de lo comprable — sólo la cantidad de toques.
+   - `PacingSimulator.hireActions` compra **todos los tiers desde el 2026-08-22**,
+     un día después del recorte, porque con bases solamente el bot no terminaba el
+     juego. El contrato de las 20-30 h se midió con ese bot.
+   - La regla de precios (§5.2) ya penaliza comprar hondo: bajar un tier abarata
+     1,5× pero duplica las unidades a fusionar.
+
 1. **El primer Fisura cuesta 25** (el dueño lo bajó de 50 el 2026-08-18; pineado
    en `GameContentValidationTests`) y los targets de pacing se bajaron a la
    conducta real en vez de recalibrar knobs. Costo medido en `balance-log §F7.6`.
@@ -1379,10 +1408,9 @@ pedido, y bajar `crowdTopRatio` a ~0,40 la devuelve al tercio.
    15,26 h y 9 reencarnaciones (no cumple ninguno de los dos objetivos), y
    dejarlo como estaba obliga a re-enunciar la regla como "600 ×
    `incomeMultiplier` clicks".
-9. **El atajo del HUD vende el TIER BASE del piso más alto pagable**, no el tier
-   más alto. FisuJobs sigue vendiendo todo lo desbloqueado: el recorte es de
-   PACING y sólo del atajo. Ofrecer el tier más alto te saltea la profundidad de
-   merge del piso, que es lo que el juego cobra.
+9. ~~**El atajo del HUD vende el TIER BASE del piso más alto pagable**~~ —
+   **REEMPLAZADA por §5.0-quinquies** (el atajo vende el MEJOR tier). Entró a la
+   rama del build recién en `version-2` (2026-10-06), por decisión del dueño.
 10. **Los doce logros de ORO fijo suman 33, no 620.** Con 620 contra los 193 que
    cuesta maxear las siete líneas, juntando logros se ganaba el juego 3,2 veces.
    El dueño los quiso en montos FIJOS (más legibles en la ficha que un
@@ -1590,6 +1618,20 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### Del atajo del HUD (2026-08-28)
+
+**Una decisión de balance puede quedar huérfana de sus datos sin que nadie la
+toque.** El recorte del atajo a tier base entró el 2026-08-21 con un argumento de
+pacing; **al día siguiente** el simulador se corrigió para comprar todos los
+tiers, y con eso el contrato medido pasó a suponer justo lo que el recorte
+impedía. Nadie se equivocó en ninguno de los dos pasos: la decisión y su
+fundamento se separaron solos, y quedó una semana de tests verdes custodiando
+una regla que el modelo de balance ya no compartía —y los tests no podían avisar,
+porque hacían exactamente lo que se les había pedido—. **Cuando toques
+una regla de balance, chequeá qué supone el simulador**, que es donde vive el
+número que el dueño aceptó.
+
 
 
 ### Del arranque del cofre (2026-09-03)

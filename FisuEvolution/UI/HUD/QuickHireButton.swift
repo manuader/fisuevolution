@@ -1,14 +1,12 @@
 import SwiftUI
 
-/// El atajo de contratación de la pantalla principal: compra al PERSONAJE
-/// INICIAL —el tier base— del piso más alto que la plata alcanza (proyección
-/// `bestHire`), sin abrir FisuJobs. Mismo contrato visual que `PricePill`:
-/// nunca `.disabled`, verde cuando alcanza, temblor cuando no.
+/// El atajo de contratación de la pantalla principal: compra **al mejor
+/// personaje que la plata alcanza** —el tier más alto entre los contratables,
+/// proyección `bestHire`—, sin abrir FisuJobs. Mismo contrato visual que
+/// `PricePill`: nunca `.disabled`, verde cuando alcanza, temblor cuando no.
 ///
-/// ⚠️ Es el atajo del tier BASE y no el de "lo mejor que la plata alcanza": los
-/// tiers de arriba de cada piso se siguen comprando desde FisuJobs, que vende
-/// todo lo desbloqueado. Ofrecerlos acá salteaba la profundidad de merge del
-/// piso y aceleraba el juego (§4.5 del rebalance de pacing).
+/// ⚠️ Un toque compra lo mismo que tres toques en FisuJobs: el atajo dejó de
+/// recortar el 2026-08-28. El porqué está en `computeBestHire()`.
 ///
 /// La cara viene del atlas por `faceKey` (las 43 existen — auditoría RF-05);
 /// no lleva fallback vectorial porque `UIArt` ya cae a su placeholder.

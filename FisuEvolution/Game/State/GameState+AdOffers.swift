@@ -1,3 +1,4 @@
+import EconomyKit
 import Foundation
 
 /// Las **ofertas de video**: los momentos en que el juego propone mirar un
@@ -71,6 +72,18 @@ extension GameState {
         openChest()
         extraChestClaimed = true
         Log.economy.info("extra chest granted by ad")
+    }
+
+    /// Si el cofre del video tendría algo que dar. Sin esto, con todo lo
+    /// alcanzable ya ganado, `openChest()` guardaría el cofre en silencio y el
+    /// jugador habría mirado un anuncio sin ver nada abrirse.
+    var canOfferExtraChest: Bool {
+        guard !extraChestClaimed, let content, let player else { return false }
+        return ChestRoller.hasSomethingToGive(
+            owned: player.meta.allOwnedSkins,
+            unlocked: chestUnlockedCharacterTypes,
+            skins: content.skins
+        )
     }
 
     // MARK: - El boost en cooldown

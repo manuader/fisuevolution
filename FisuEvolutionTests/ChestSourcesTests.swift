@@ -290,6 +290,30 @@ struct ChestOpeningTests {
         #expect(state.canOpenChest == false, "y la tarjeta de Regalos tiene que decirlo")
     }
 
+    @Test("con nada alcanzable, el cofre no ofrece un video por otro")
+    func theExtraChestOfferNeedsSomethingReachable() async throws {
+        let state = await makeGameState()
+        state.player?.meta.stats.maxFloorOrdinalEver = 0
+        let alcanzables = state.chestUnlockedCharacterTypes
+        state.player?.meta.milestoneSkins = (state.content?.skins.chestPool ?? [])
+            .filter { alcanzables.contains($0.characterType) }
+            .map(\.id).sorted()
+
+        #expect(state.canOfferExtraChest == false)
+    }
+
+    @Test("con algo alcanzable el video se ofrece, y una sola vez por cofre")
+    func theExtraChestOfferIsOncePerChest() async throws {
+        let state = await makeGameState()
+        state.player?.meta.stats.maxFloorOrdinalEver = todaLaTorre(state)
+        #expect(state.canOfferExtraChest)
+
+        state.grantExtraChestFromAd()
+
+        #expect(state.chestReward != nil, "el cofre del video se abre en el acto")
+        #expect(state.canOfferExtraChest == false, "y no ofrece otro")
+    }
+
     /// Y en cuanto sube un piso, el MISMO cofre se abre. Es la otra mitad: sin
     /// esto, un `openChest()` que nunca gastara nada pasaría el test de arriba.
     @Test("subir un piso destraba el cofre que estaba esperando")

@@ -271,8 +271,9 @@ struct ChestOpeningView: View {
             // cofre del tutorial en toda corrida de tests.
             guard !gameState.tutorialPhaseActive else { return }
             // El cofre de un video no vuelve a ofrecer otro: sin este freno la
-            // cadena no tiene fin y las 41 pintas se vacían en una tarde.
-            guard !gameState.extraChestClaimed else { return }
+            // cadena no tiene fin y las 41 pintas se vacían en una tarde. Y no
+            // se ofrece un cofre que no tendría nada desbloqueado que dar.
+            guard gameState.canOfferExtraChest else { return }
             ads.preloadRewarded(for: .chestExtra)
             for _ in 0..<20 {
                 if ads.isRewardedReady(for: .chestExtra) {

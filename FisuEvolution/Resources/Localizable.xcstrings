@@ -6872,6 +6872,57 @@
         }
       }
     },
+    "splash.tip.merge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tip: drag two matching characters together and they evolve."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consejo: arrastrá dos iguales y evolucionan."
+          }
+        }
+      }
+    },
+    "splash.tip.tap" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the Hobo to earn coins."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá al Fisura para juntar plata."
+          }
+        }
+      }
+    },
+    "splash.tip.upgrades" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrades boost your earnings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En Mejoras potenciás tus ganancias."
+          }
+        }
+      }
+    },
     "stats.footnote" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -48,10 +48,12 @@ struct RootView: View {
 /// Pantalla de carga de marca: fondo crema + logo/mascota + tip, en vez del
 /// spinner blanco del sistema (que era la primera impresión de la app).
 struct SplashView: View {
-    private let tips = [
-        "Consejo: arrastrá dos iguales y evolucionan.",
-        "Tocá al Fisura para juntar plata.",
-        "En Mejoras potenciás tus ganancias.",
+    /// Claves del catálogo y no texto: eran `Text(verbatim:)` en castellano, y el
+    /// jugador en inglés los leía en castellano.
+    private let tips: [LocalizedStringKey] = [
+        "splash.tip.merge",
+        "splash.tip.tap",
+        "splash.tip.upgrades",
     ]
     var body: some View {
         ZStack {
@@ -77,7 +79,7 @@ struct SplashView: View {
                 Spacer()
                 ProgressView()
                     .tint(Color("PaletteOrange"))
-                Text(verbatim: tips.randomElement() ?? tips[0])
+                Text(tips.randomElement() ?? tips[0])
                     .font(.system(.subheadline, design: .rounded).weight(.semibold))
                     .foregroundStyle(Color("PaletteInk").opacity(0.7))
                     .padding(.bottom, 40)

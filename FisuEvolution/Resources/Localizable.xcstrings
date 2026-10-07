@@ -3610,6 +3610,380 @@
         }
       }
     },
+    "iap.com.fisuevolution.iap.coins_large.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The whole duffel bag, no questions asked"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El bolso entero, sin preguntar de dónde salió"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.coins_large.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bag of Cash"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bolso de Plata"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.coins_medium.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A wad you can feel in your pocket"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un fajo que se nota en el bolsillo"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.coins_medium.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wad of Cash"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fajo de Plata"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.coins_small.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pocket change to get the day going"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un vuelto para arrancar el día"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.coins_small.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Handful of Cash"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puñado de Plata"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.oro_large.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ORO for those who want it all, and want it now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de ORO para el que quiere todo, y lo quiere ahora"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.oro_large.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vault of ORO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bóveda de ORO"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.oro_medium.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ORO: boosts, upgrades and skins, with change left over"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de ORO: boosts, mejoras y skins, y todavía te sobra"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.oro_medium.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sack of ORO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saco de ORO"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.oro_small.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ORO for a boost or that upgrade you keep eyeing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de ORO para un boost o esa mejora que venís mirando"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.oro_small.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Handful of ORO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puñado de ORO"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.remove_ads.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No more ads that pop up on their own"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chau a los anuncios que aparecen solos"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.remove_ads.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Ads"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin anuncios"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.skin_mundialista.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The jersey, and a cup he didn't win"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La camiseta y una copa que no ganó él"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.skin_mundialista.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mundialista Skin"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skin Mundialista"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.skin_parrillero.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "God in a scorched apron, tongs in hand"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dios con delantal chamuscado y pinza de asado"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.skin_parrillero.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parrillero Skin"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skin Parrillero"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.skins_diamante.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All %@ characters carved in diamond, at once"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los %@ personajes tallados en diamante"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.skins_diamante.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Diamond Skins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todas las skins de Diamante"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.starter_pack.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cash, the Mundialista skin and no forced ads"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plata, la Mundialista y sin anuncios forzados"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.starter_pack.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starter Pack"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pack de Arranque"
+          }
+        }
+      }
+    },
     "jobs.ax.confidential" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6494,6 +6868,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zombie CEO"
+          }
+        }
+      }
+    },
+    "splash.tip.merge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tip: drag two matching characters together and they evolve."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consejo: arrastrá dos iguales y evolucionan."
+          }
+        }
+      }
+    },
+    "splash.tip.tap" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the Hobo to earn coins."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá al Fisura para juntar plata."
+          }
+        }
+      }
+    },
+    "splash.tip.upgrades" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrades boost your earnings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En Mejoras potenciás tus ganancias."
           }
         }
       }

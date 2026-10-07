@@ -23,9 +23,15 @@
       "comment" : "Bundle name",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HoboEvolution"
+          }
+        },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "FisuEvolution"
           }
         }
@@ -35,9 +41,15 @@
       "comment" : "Privacy - Tracking Usage Description",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We use your advertising identifier to show you more relevant ads. If you'd rather we didn't, you'll still see ads, just not personalized ones."
+          }
+        },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Usamos tu identificador de publicidad para mostrarte anuncios más relevantes. Si preferís que no, los anuncios se siguen viendo, sólo que sin personalizar."
           }
         }

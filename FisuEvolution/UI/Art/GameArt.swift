@@ -10,7 +10,14 @@ enum UIArt {
     /// Nombres integrados. `SKTextureAtlas.textureNames` viene VACÍO hasta hacer
     /// preload, así que la fuente de verdad es el manifest (claves ui), seteado
     /// en el arranque con `configure`. `textureNamed()` sí carga bien la textura.
-    private static var available: Set<String> = []
+    ///
+    /// ⚠️ **Arranca leído del manifest del bundle, no vacío.** El splash se dibuja
+    /// MIENTRAS corre el bootstrap —es lo que tapa—, o sea antes de `configure`:
+    /// con el set vacío `image("logo")` daba `nil` y el logo no se vio nunca,
+    /// siempre el wordmark de respaldo. Y como `UIArt` no es observable, que el
+    /// bootstrap lo configurara después no redibujaba nada. Leído acá, cualquier
+    /// vista lo encuentra en su primer frame, sea cual sea el orden de arranque.
+    private static var available: Set<String> = bundledNames()
     private static var uiCache: [String: UIImage] = [:]
     /// Retratos de personajes: atlas parametrizable, separado del atlas UI y
     /// cacheado por `atlas/key` para que la ficha no recodifique PNGs al paginar.
@@ -21,6 +28,18 @@ enum UIArt {
         available = names
         uiCache.removeAll()
         characterCache.removeAll()
+    }
+
+    /// Las claves `ui` del manifest del bundle, leídas sin pasar por
+    /// `GameContentLoader`: el splash no puede esperar a que cargue el contenido
+    /// entero. Un manifest ilegible da el set vacío —todo cae a su vectorial—, y
+    /// el error de verdad lo reporta el bootstrap, que lo valida.
+    nonisolated static func bundledNames(in bundle: Bundle = .main) -> Set<String> {
+        guard let url = bundle.url(forResource: "assets_manifest", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let manifest = try? JSONDecoder().decode(AssetsManifest.self, from: data)
+        else { return [] }
+        return Set(manifest.ui.keys)
     }
 
     static func uiImage(_ name: String) -> UIImage? {

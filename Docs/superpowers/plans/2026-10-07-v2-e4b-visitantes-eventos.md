@@ -3897,7 +3897,7 @@ Run: `Tools/v2/catalogo.py aplicar Tools/v2/claves-pendientes/e4b-t5.json` → `
 Run: `/opt/homebrew/bin/xcodegen generate`; Receta R con
 `-only-testing:FisuEvolutionTests/StageChallengeTests -only-testing:FisuEvolutionTests/LocalizationCompletenessTests`
 → PASS; UI: `-only-testing:FisuEvolutionUITests/VisitorMechanicsUITests` → PASS (2). A mano:
-`coach_reto` → aceptar → tocar empleados: el contador sube, a los 60 el Coach dice que ganaste y
+`coach_reto` → aceptar → tocar empleados: el contador sube, a los 67 el Coach dice que ganaste y
 queda el chip del ×2 en la barra; dejarlo vencer: "Casi… ¡la próxima sale!". El Vendedor en el SE
 (las tres cartas sin cortar texto) y en el iPad. `Tools/v2/oraculo.sh completo` → `VERDE`.
 

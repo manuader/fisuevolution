@@ -9,6 +9,12 @@
     "rewardedOfflineX2": "ca-app-pub-8575641544774372/6825744243",
     "rewardedChestExtra": "ca-app-pub-8575641544774372/3981807683",
     "rewardedBoost": "ca-app-pub-8575641544774372/4913896772",
-    "interstitial": "ca-app-pub-8575641544774372/5270838626"
+    "rewardedWheel": null,
+    "rewardedTreasure": null,
+    "rewardedVisitor": null,
+    "rewardedDaily": null,
+    "interstitial": "ca-app-pub-8575641544774372/5270838626",
+    "rewardedInterstitial": "ca-app-pub-8575641544774372/1615619906",
+    "appOpen": null
   }
 }

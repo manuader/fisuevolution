@@ -9,6 +9,11 @@ import Foundation
 /// que lo que conviene poder comparar es "¿factura más el video del cofre o el
 /// del offline?". Los cinco premios de la lista de Regalos comparten pantalla y
 /// momento, así que comparten unidad (`gifts`).
+///
+/// Los cuatro de la 2.0 (`wheel`, `treasure`, `visitor`, `daily`) agrupan cada
+/// uno varias ofertas del mismo momento (PLAN-v2, mapa de ubicaciones de E7):
+/// quince ofertas en quince unidades serían quince columnas de reporte con
+/// tres impresiones cada una, que no dicen nada.
 enum RewardedPlacement: String, Sendable, CaseIterable {
     /// La lista de videos de **Regalos**: los cinco premios de `rewarded_ads.json`.
     case gifts
@@ -16,8 +21,17 @@ enum RewardedPlacement: String, Sendable, CaseIterable {
     case offlineX2
     /// Después de cerrar un cofre: abrir otro.
     case chestExtra
-    /// Un boost en cooldown: activarlo sin esperar.
+    /// Un boost en cooldown: activarlo sin esperar. También "Fusionar todo".
     case boost
+    /// La ruleta: el giro por video y el "repetir premio".
+    case wheel
+    /// El Colchón: abrirlo, "otro colchón" y la lluvia de paquetes.
+    case treasure
+    /// Visitantes y eventos: el ×2 del visitante, la multa perdonada, los
+    /// boosts del Vendedor, el ×2 del reto y los escapes de eventos negativos.
+    case visitor
+    /// El diario ×2 y la carrera ×2.
+    case daily
 }
 
 /// Runtime feature switches, mirrored 1:1 from `feature_flags.json`.
@@ -37,13 +51,20 @@ struct FeatureFlags: Codable, Sendable, Equatable {
     /// llevan **`/`**. Confundirlos falla recién en runtime.
     struct AdUnitIDs: Codable, Sendable, Equatable {
         /// La unidad de la lista de Regalos. Es la **única obligatoria**: las
-        /// otras tres caen a ésta si faltan, así que un juego con una sola
+        /// demás de video caen a ésta si faltan, así que un juego con una sola
         /// unidad creada funciona entero (pierde el reporting por oferta, nada
         /// más).
         let rewardedGifts: String
         let rewardedOfflineX2: String?
         let rewardedChestExtra: String?
         let rewardedBoost: String?
+        /// Las cuatro de la 2.0. Mientras el dueño no cree la unidad en AdMob
+        /// quedan en `nil` y sirven por la de Regalos: la oferta anda igual,
+        /// sólo que su plata se reporta mezclada con la de Regalos.
+        let rewardedWheel: String?
+        let rewardedTreasure: String?
+        let rewardedVisitor: String?
+        let rewardedDaily: String?
 
         /// La unidad de interstitial, **opcional a propósito**.
         ///
@@ -60,16 +81,78 @@ struct FeatureFlags: Codable, Sendable, Equatable {
         /// es `theStoreDoesNotSellRemovingAdsThatDoNotExist`.
         let interstitial: String?
 
+        /// La pausa publicitaria (intersticial bonificado). Mismo criterio que
+        /// `interstitial`: `nil` es "este build no la muestra", nunca un hueco
+        /// a rellenar con la de prueba.
+        let rewardedInterstitial: String?
+
+        /// El app open, al volver a la app.
+        ///
+        /// ⚠️ **[GATE DEL DUEÑO]** La unidad todavía no existe en AdMob, así que
+        /// el `feature_flags.json` la trae en `null` a propósito: con `nil` el
+        /// proveedor no la precarga y el formato queda apagado. Se prende
+        /// creando la unidad (formato "Inicio de aplicación") y poniendo su ID
+        /// acá y en la config remota, cuyo interruptor `appOpen` también
+        /// arranca apagado.
+        let appOpen: String?
+
+        init(
+            rewardedGifts: String,
+            rewardedOfflineX2: String? = nil,
+            rewardedChestExtra: String? = nil,
+            rewardedBoost: String? = nil,
+            rewardedWheel: String? = nil,
+            rewardedTreasure: String? = nil,
+            rewardedVisitor: String? = nil,
+            rewardedDaily: String? = nil,
+            interstitial: String? = nil,
+            rewardedInterstitial: String? = nil,
+            appOpen: String? = nil
+        ) {
+            self.rewardedGifts = rewardedGifts
+            self.rewardedOfflineX2 = rewardedOfflineX2
+            self.rewardedChestExtra = rewardedChestExtra
+            self.rewardedBoost = rewardedBoost
+            self.rewardedWheel = rewardedWheel
+            self.rewardedTreasure = rewardedTreasure
+            self.rewardedVisitor = rewardedVisitor
+            self.rewardedDaily = rewardedDaily
+            self.interstitial = interstitial
+            self.rewardedInterstitial = rewardedInterstitial
+            self.appOpen = appOpen
+        }
+
         /// Qué unidad sirve a cada oferta, con el fallback ya resuelto.
+        ///
+        /// ⚠️ El `switch` es exhaustivo **a propósito**, sin `default`: un
+        /// placement nuevo que no diga de qué unidad sale no compila.
         func rewarded(for placement: RewardedPlacement) -> String {
             let specific: String? = switch placement {
             case .gifts: rewardedGifts
             case .offlineX2: rewardedOfflineX2
             case .chestExtra: rewardedChestExtra
             case .boost: rewardedBoost
+            case .wheel: rewardedWheel
+            case .treasure: rewardedTreasure
+            case .visitor: rewardedVisitor
+            case .daily: rewardedDaily
             }
             return specific ?? rewardedGifts
         }
+
+        /// Todos los IDs declarados, de cualquier formato. Es lo que miran las
+        /// dos validaciones que no pueden olvidarse de ninguno: la de los IDs
+        /// de prueba y la del publisher propio de la config remota.
+        var allDeclared: [String] {
+            [
+                rewardedGifts, rewardedOfflineX2, rewardedChestExtra, rewardedBoost,
+                rewardedWheel, rewardedTreasure, rewardedVisitor, rewardedDaily,
+                interstitial, rewardedInterstitial, appOpen,
+            ].compactMap { $0 }
+        }
+
+        /// El publisher de las unidades de prueba de Google.
+        static let googleTestPublisher = "3940256099942544"
 
         /// Los IDs de PRUEBA públicos de Google
         /// (developers.google.com/admob/ios/test-ads). Sirven anuncios de
@@ -79,26 +162,26 @@ struct FeatureFlags: Codable, Sendable, Equatable {
         /// nunca quede sin anuncios por un archivo incompleto — pero **el
         /// `store` build tiene que traer los reales**, y de eso avisa
         /// `GameContentValidationTests.storeBuildsUseRealAdUnitIDs`.
+        ///
+        /// Trae los cuatro formatos, app open incluido, para que en DEBUG se
+        /// puedan probar todos aunque la unidad real todavía no exista.
         static let googleTest = AdUnitIDs(
             rewardedGifts: "ca-app-pub-3940256099942544/1712485313",
-            rewardedOfflineX2: nil,
-            rewardedChestExtra: nil,
-            rewardedBoost: nil,
-            interstitial: "ca-app-pub-3940256099942544/4411468910"
+            interstitial: "ca-app-pub-3940256099942544/4411468910",
+            rewardedInterstitial: "ca-app-pub-3940256099942544/6978759866",
+            appOpen: "ca-app-pub-3940256099942544/5575463023"
         )
 
         /// Si CUALQUIER id declarado es uno de prueba de Google. Es "cualquiera"
         /// y no "todos" porque el caso que hay que cazar es el build medio
         /// migrado: cuatro unidades reales puestas y una olvidada en la de
         /// prueba.
+        ///
+        /// Se mira el publisher y no una lista de IDs conocidos: Google tiene
+        /// una unidad de prueba por formato, y una lista se queda corta en
+        /// cuanto aparece un formato nuevo.
         var usesAnyGoogleTestID: Bool {
-            let test = Self.googleTest
-            let declared = [
-                rewardedGifts, rewardedOfflineX2, rewardedChestExtra,
-                rewardedBoost, interstitial,
-            ].compactMap { $0 }
-            return declared.contains(test.rewardedGifts)
-                || declared.contains(test.interstitial ?? "")
+            allDeclared.contains { $0.hasPrefix("ca-app-pub-\(Self.googleTestPublisher)/") }
         }
     }
 

@@ -22,6 +22,8 @@ struct GameContent: Sendable {
     let viral: ViralConfig
     let gameCenter: GameCenterConfig
     let achievements: AchievementsConfig
+    /// Las notificaciones locales: el catálogo y sus reglas (PLAN-v2 E11).
+    let notifications: NotificationsConfig
 }
 
 /// Decodes and validates the bundled JSON content. Any failure produces a typed
@@ -46,6 +48,7 @@ enum GameContentLoader {
         let viral: ViralConfig = try decode("viral", from: bundle)
         let gameCenter: GameCenterConfig = try decode("gamecenter", from: bundle)
         let achievements: AchievementsConfig = try decode("achievements", from: bundle)
+        let notifications: NotificationsConfig = try decode("notifications", from: bundle)
 
         let tiers: TierRepository
         do {
@@ -87,6 +90,11 @@ enum GameContentLoader {
         }
         try validate(careers: careers, tiers: tiers, boosts: boosts, skins: skins)
         try validate(achievements: achievements, floorTable: floorTable, boosts: boosts)
+        do {
+            try notifications.validate()
+        } catch {
+            throw GameError.contentInvalid(file: "notifications.json", reason: "\(error)")
+        }
 
         return GameContent(
             economy: economy,
@@ -106,7 +114,8 @@ enum GameContentLoader {
             careers: careers,
             viral: viral,
             gameCenter: gameCenter,
-            achievements: achievements
+            achievements: achievements,
+            notifications: notifications
         )
     }
 

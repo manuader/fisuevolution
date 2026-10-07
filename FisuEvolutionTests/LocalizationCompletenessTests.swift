@@ -109,6 +109,8 @@ struct LocalizationCompletenessTests {
         case iap
         /// `LocalizedStringKey(tip.lesson.textKey)` en el globo de las lecciones.
         case tutorialTips
+        /// `notif.<id>.title` y `.body` (`NotificationCopy`), sobre `notifications.json`.
+        case notifications
         /// Las filas de Ajustes cuyo identifier es también su clave.
         case settingsRows
 
@@ -147,6 +149,8 @@ struct LocalizationCompletenessTests {
                 }
             case .tutorialTips:
                 return GameState.TutorialLesson.allCases.map(\.textKey)
+            case .notifications:
+                return content.notifications.kinds.flatMap { [$0.titleKey, $0.bodyKey] }
             case .settingsRows:
                 return LanguagePreference.allCases.map(\.identifier) + LegalDocument.Kind.allCases.map(\.identifier)
             }

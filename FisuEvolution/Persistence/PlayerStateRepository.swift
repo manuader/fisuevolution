@@ -51,11 +51,11 @@ struct PlayerStateRepository: Sendable {
     /// como "no hay save": el arranque grabaría una partida nueva encima.
     func load() async -> SaveLoadResult {
         var failure: String?
-        var unreadable: Data?
+        var unreadable: [Data] = []
         do {
             if let (payload, _) = try await persistence.loadLatest() {
                 if let state = decode(payload, failure: &failure) { return .loaded(state) }
-                unreadable = payload
+                unreadable.append(payload)
             }
         } catch {
             failure = "store: \(error)"
@@ -67,15 +67,22 @@ struct PlayerStateRepository: Sendable {
                 Log.persistence.warning("recovered save from JSON snapshot")
                 return .loaded(state)
             }
-            unreadable = unreadable ?? payload
+            unreadable.append(payload)
         } catch CocoaError.fileReadNoSuchFile {
         } catch {
             failure = "snapshot: \(error)"
         }
         guard let failure else { return .empty }
         Log.persistence.critical("save unreadable, not overwriting: \(failure)")
-        let backupURL = unreadable.flatMap { backups?.keepUnreadable($0) }
+        let backupURL = unreadable.compactMap { backups?.keepUnreadable($0) }.first
         return .unreadable(UnreadableSave(reason: failure, backupURL: backupURL))
+    }
+
+    /// El snapshot crudo a salvo antes de que una partida nueva lo pise. Si su copia ya
+    /// está (la de `load()`), no suma otra.
+    func keepSnapshotCopy() {
+        guard let payload = try? Data(contentsOf: snapshotURL) else { return }
+        backups?.keepUnreadable(payload)
     }
 
     private func decode(_ payload: Data, failure: inout String?) -> PlayerState? {

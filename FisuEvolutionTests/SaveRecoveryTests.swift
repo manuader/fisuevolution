@@ -47,6 +47,35 @@ struct SaveRecoveryTests {
         #expect(try kept.map { try Data(contentsOf: $0) } == [garbage])
     }
 
+    @Test("si la copia no se pudo escribir al arrancar, empezar de nuevo la reintenta con el snapshot crudo")
+    func startOverRetriesTheCopyWhenTheFirstOneFailed() async throws {
+        // Un archivo donde iría el directorio de copias: crearlo falla hasta que se lo saca.
+        let blocker = FileManager.default.temporaryDirectory.appending(path: "rec-blocker-\(UUID().uuidString)")
+        try Data().write(to: blocker)
+        let backups = blocker.appending(path: "SaveBackups")
+        let snapshot = FileManager.default.temporaryDirectory.appending(path: "rec-\(UUID().uuidString).json")
+        try garbage.write(to: snapshot)
+        let gameState = GameState(repository: PlayerStateRepository(
+            persistence: PersistenceController(inMemory: true),
+            snapshotURL: snapshot,
+            backups: SaveBackupStore(directory: backups)
+        ))
+        await gameState.bootstrap()
+        guard case .recovery(let unreadable) = gameState.phase else {
+            Issue.record("el save ilegible tiene que dejar la partida en recuperación: \(gameState.phase)")
+            return
+        }
+        #expect(unreadable.backupURL == nil)
+
+        try FileManager.default.removeItem(at: blocker)
+        await gameState.startOverFromRecovery()
+
+        let kept = ((try? FileManager.default.contentsOfDirectory(at: backups, includingPropertiesForKeys: nil)) ?? [])
+            .filter { $0.lastPathComponent.hasPrefix("unreadable-") }
+        #expect(try kept.map { try Data(contentsOf: $0) } == [garbage])
+        #expect(gameState.phase == .ready)
+    }
+
     @Test("reintentar con el save arreglado lo carga")
     func retryLoadsAFixedSave() async throws {
         let (gameState, snapshot, _) = try await unreadableGame()

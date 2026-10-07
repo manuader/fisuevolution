@@ -594,9 +594,11 @@ final class GameState {
         await bootstrap()
     }
 
-    /// Empieza una partida nueva. La copia ilegible ya quedó en `SaveBackups/`.
+    /// Empieza una partida nueva. La copia ilegible ya quedó en `SaveBackups/`; si al
+    /// arrancar no se pudo escribir, se reintenta ahora que el snapshot todavía está.
     func startOverFromRecovery() async {
         guard isRecoveryPending, let content, let repository else { return }
+        repository.keepSnapshotCopy()
         let fresh = newGame(content: content)
         player = fresh
         phase = .loading

@@ -161,4 +161,45 @@ struct PersistenceTests {
         store.keepUnreadable(Data("del snapshot".utf8), now: instant)
         #expect(try keptCopies(in: directory, prefix: "unreadable-") == ["de CoreData", "del snapshot"])
     }
+
+    @Test("un save ilegible que ya tiene copia no suma otra idéntica")
+    func anUnreadableSaveAlreadyKeptIsNotKeptAgain() throws {
+        let directory = temporaryBackupsDirectory()
+        let store = SaveBackupStore(directory: directory)
+        let payload = Data("roto".utf8)
+        let first = store.keepUnreadable(payload, now: Date(timeIntervalSince1970: 1_700_000_000))
+        let second = store.keepUnreadable(payload, now: Date(timeIntervalSince1970: 1_700_000_060))
+        #expect(first != nil)
+        #expect(second == first)
+        #expect(try keptCopies(in: directory, prefix: "unreadable-") == ["roto"])
+    }
+
+    /// Un CoreData y un snapshot ilegibles y distintos entre sí.
+    private func repositoryWithTwoDifferentUnreadableSaves(
+        backups directory: URL
+    ) async throws -> PlayerStateRepository {
+        let persistence = PersistenceController(inMemory: true)
+        try await persistence.save(payload: Data("{\"de\": \"CoreData\"".utf8), schemaVersion: 5, updatedAt: Date())
+        let snapshot = temporarySnapshotURL()
+        try Data("{\"de\": \"snapshot\"".utf8).write(to: snapshot)
+        return PlayerStateRepository(
+            persistence: persistence, snapshotURL: snapshot, backups: SaveBackupStore(directory: directory)
+        )
+    }
+
+    @Test("con CoreData y snapshot ilegibles y distintos, queda la copia de cada uno")
+    func keepsBothUnreadablePayloadsWhenTheStoresDiffer() async throws {
+        let directory = temporaryBackupsDirectory()
+        let repository = try await repositoryWithTwoDifferentUnreadableSaves(backups: directory)
+        _ = await repository.load()
+        #expect(try keptCopies(in: directory, prefix: "unreadable-") == ["{\"de\": \"CoreData\"", "{\"de\": \"snapshot\""])
+    }
+
+    @Test("cada reintento con el save todavía roto no suma copias")
+    func retryingAnUnreadableSaveDoesNotPileUpCopies() async throws {
+        let directory = temporaryBackupsDirectory()
+        let repository = try await repositoryWithTwoDifferentUnreadableSaves(backups: directory)
+        for _ in 0..<3 { _ = await repository.load() }
+        #expect(try keptCopies(in: directory, prefix: "unreadable-").count == 2)
+    }
 }

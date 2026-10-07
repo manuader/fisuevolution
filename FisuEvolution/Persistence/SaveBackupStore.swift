@@ -25,9 +25,13 @@ struct SaveBackupStore: Sendable {
         write(payload, named: name)
     }
 
+    /// Un save ilegible que ya tiene copia (los mismos bytes) no suma otra: devuelve la que hay.
     @discardableResult
     func keepUnreadable(_ payload: Data, now: Date = Date()) -> URL? {
-        write(payload, stampedBy: "unreadable-", now: now)
+        let kept = names(withPrefix: "unreadable-")
+            .map { directory.appending(path: $0) }
+            .first { (try? Data(contentsOf: $0)) == payload }
+        return kept ?? write(payload, stampedBy: "unreadable-", now: now)
     }
 
     /// El nombre lleva los milisegundos con ancho fijo, así el orden alfabético es el

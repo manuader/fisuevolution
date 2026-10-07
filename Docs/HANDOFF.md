@@ -280,6 +280,112 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-10-06 — E3, idioma: IAP, ATT, splash y el test del catálogo
+
+Los IAP dejan de salir de App Store Connect: `IAPCopy` los nombra y los
+describe con `iap.<productID>.name/.desc` del catálogo, y lo de StoreKit queda
+de respaldo sólo cuando falta la clave. Los textos son los de la ficha de E10:
+"Saco de ORO", y `remove_ads` ya no promete sacar los videos con premio. Los
+números (el monto de ORO, los personajes de Diamante) se interpolan desde los
+datos. El diálogo de ATT ya está en inglés. El splash muestra el logo
+(`UIArt` lee el manifest del bundle por su cuenta, sin esperar al bootstrap) y
+sus consejos están en el catálogo. `LocalizationCompletenessTests` exige toda
+clave `translated` en es + en con los mismos placeholders, las 14 familias
+dinámicas cubiertas por el contenido e `InfoPlist` completo; destapó
+`CFBundleName` sin inglés. Unit +13. Detalle en
+**`Docs/SESION-2026-10-06-v2-e3-i18n.md`**.
+
+### Sesión del 2026-10-06 — E7a: la infraestructura de anuncios de la 2.0
+
+Primera mitad de E7, sin UI y sin tocar llamadores. Entraron:
+
+- el **intersticial bonificado** (pausa publicitaria) y el **app open** en el
+  proveedor, con vida de inventario por formato (55 min / 3 h 30);
+- las **unidades por momento** de la 2.0 (`wheel`, `treasure`, `visitor`,
+  `daily`, con fallback a Regalos), la pausa con la unidad existente
+  `…/1615619906`, y el app open en `null` (gate del dueño);
+- **`AdsRemoteConfig`**: `config/ads.json` en `adergames-site`, sólo HTTPS,
+  IDs validados contra el publisher propio, todo o nada, pisos con las
+  decisiones del dueño, caché + respaldo `Resources/Config/ads.json`;
+- la **política de cortes naturales** (`NaturalBreakPolicy`, pura) y su estado
+  (`ForcedAdsPacer`), testeadas y **sin cablear**: la 1.x sigue con
+  `armIfDue` hasta E7b;
+- `remove_ads` corta los tres forzados, y `AdsCoordinator` ya no deja encimar
+  dos anuncios.
+
+La mediación quedó investigada, no agregada: la pausa sólo la sirve Meta y el
+app open sólo Mintegral. Unit +72. Detalle en
+**`Docs/SESION-2026-10-06-v2-e7a-anuncios.md`**.
+
+### Sesión del 2026-10-06 — E8 audio: un tema por piso
+
+Diez temas chiptune sintetizados con el generador de la v1 (uno por piso de
+`economy.json`, `music_<id>_loop.caf`, AAC 80 kbps, 2,39 MiB) y los SFX
+`sfx_wheel_tick`, `sfx_blackout` y `sfx_elevator_ding`, **sin cablear**: cada
+uno entra con su feature, porque `AudioWiringTests` exige un call site por
+caso. `AudioManager.showFloor` hace el crossfade de 1,5 s con un
+`FloorMusicDirector` puro: máximo dos voces, el mismo piso no re-dispara y
+volver restaura sin recargar. Se engancha en `GameBoardView` observando
+`gameState.visibleFloorDef?.id`: cero líneas en `GameState`/`BoardScene`. Bajo
+`--uitest*` y XCTest suena el earth de siempre y no carga ningún tema.
+Unit +12. **Nadie los escuchó todavía: es gate del dueño.** Detalle, números y
+cómo escucharlos en **`Docs/SESION-2026-10-06-v2-e8-audio.md`**.
+
+### Sesión del 2026-10-06 — E8 pipeline: el calado que no era, `npc`/`skinfam` y el contrato de los loops
+
+- **El "arte calado ya publicado" no existía.** Los huecos del tropero (el
+  óvalo del lazo) y del médico (el aire junto a la manga) son islas de papel
+  que eligió el dueño (`islas_de_papel.json`, `bc5f358`). El test no las
+  conocía y estaba rojo desde `2b3d23f`. Ahora permite exactamente ese hueco,
+  medido recortando el original, y un hueco nuevo sigue saltando. Los atlas no
+  se tocaron.
+- **`rentista_soles` tiene 8 de 12 soles casi transparentes** (alfa medio
+  0,00–0,18; recorte por saliencia elegido a mano). Queda como gate del dueño,
+  con tres caminos medidos.
+- `process_dropbox.py`: `npc` → `npcs.atlas` + manifest `npcs`; `skinfam` →
+  `fam_<familia>.atlas`, sin manifest. Las poses `sp_<id>_talk/_face` van como
+  `npc`.
+- `scripts/video_assets.py` + `Resources/Data/loops_manifest.json` (vacío,
+  schema 1): retratos 512² HEVC con alfa en `Loops/`, cinemáticas 720×1280 en
+  `Cinematics/`. El verde del key se mide en cada master: en el del cofre da
+  `0x22934C` contra el `0x22924A` calibrado a mano.
+- Pipeline: de 25 con 1 rojo a **49 verdes, 0 rojos**. Detalle en
+  **`Docs/SESION-2026-10-06-v2-e8-pipeline.md`**.
+
+### Sesión del 2026-10-06 — E10 en papel: setup de la 2.0, IAP y Términos
+
+Sin código. Salió **`Distribution/setup-v2-asc-admob-mediacion.md`**, el
+entregable del ítem 18: App Store Connect (Novedades, ficha es-ES, capturas de
+iPad, 14 productos con el conteo de sus 42 fichas, checklist del ítem 19, edad,
+App Privacy y notas a App Review), AdMob (11 unidades y 4 grupos de mediación
+por formato) y las 4 redes paso a paso, con la URL oficial de cada dato y 🔒 en
+cada paso del dueño. `iap-appstore-connect.md` quedó con los 14 productos
+(packs de ORO 160/550/1.400 y las 3 ofertas), y los Términos (es, en y la copia
+del bundle) ya no dicen que "Sin anuncios" saca los videos con premio: los
+nuevos valen también para la v1 y se pueden publicar ya. La unión de
+SKAdNetwork de las 4 redes + Google da **156 IDs, 106 nuevos**. El porqué está
+en **`Docs/SESION-2026-10-06-v2-e10-docs.md`**.
+
+### Sesión del 2026-10-06 (noche) — E0 de la 2.0: el oráculo y la línea de base
+
+Primera sesión de ejecución del plan. Lo central es **`Tools/v2/oraculo.sh
+rapido|completo [--limpio]`**: la receta de §6 hecha comando, con
+simuladores propios por UDID y un juez, `Tools/v2/rojos.py`, que compara cada
+suite contra `Tools/v2/rojos-declarados.txt` (§6). La línea de base del
+`completo` sobre `0442022`: EconomyKit **267** · unit **473 + 1 declarado** ·
+Store **12** · UI **57** · `StoreUITests` **2** · pipeline **24 + 1
+declarado** · `pacing-sim` Dios en 30,73 h activas con 13 reencarnaciones ·
+Release con 0 warnings. Un `completo` tarda ~45 min. ⚠️ La primera versión
+compilaba el proyecto del cwd y no el de su worktree; se arregló en `50922d4`
+(§7).
+
+También salieron `Docs/biblia-visitantes.md` (8 visitantes nuevos, 10
+especiales, 3 familias de skins; los 222 prompts quedaron **sin commitear** en
+el repo generador, que tiene cambios ajenos) y el plan de E1 (16 tareas en
+olas). La sesión dejó en vuelo cinco frentes en paralelo (E8 pipeline, E8
+audio, E7a, E3 i18n y E10 docs), y los cinco chocaron con el guard de
+aislamiento (§7). Detalle en **`Docs/SESION-2026-10-06-v2-e0-oraculo.md`**.
+
 ### Sesión del 2026-10-06 (noche) — El plan maestro de la 2.0
 
 No hay código: se planificó la 2.0 entera. Salió **`Docs/PLAN-v2.md`**,
@@ -1312,6 +1418,64 @@ tocan decisiones de esta sección:
 - **Pisos de 15 lugares** (hasta 20 con un permanente de ORO): reemplaza los
   10 lugares por piso.
 
+**Decisiones tomadas al implementar la 2.0** (2026-10-06, con el frente entre
+paréntesis; el porqué completo está en la sesión de cada uno):
+
+- **Los huecos de `islas_de_papel.json` son decisión del dueño** (E8 pipeline),
+  y el barrido del atlas los respeta: el permiso es el hueco que da recortar
+  el original, más 1 % de ruido, no una exención del asset. Para cambiar uno
+  se pasa por `revision_islas.py` → `aplicar_islas.py`, nunca por el test.
+- **Contrato de video, `loops_manifest.json`** (E8 pipeline): con entrada se
+  reproduce, sin entrada se cae al arte quieto. Los archivos se llaman
+  `loop_<id>.mov` y `cine_<id>.mov` porque Xcode aplana los recursos. Las
+  cinemáticas son `reencarnacion`, `arresto` y `dios`. El verde del key se
+  mide en cada master; no se copia el de otro video.
+- **La música de piso viaja en AAC y se decodifica entera antes de loopear**
+  (E8 audio). En PCM serían ~22 MB contra 2,4. El CAF trae la tabla de
+  paquetes y `AVAudioFile` recorta el priming, así que el tema decodificado
+  tiene el largo exacto. `FloorMusicAssetsTests` pinea largo y costura de los
+  diez.
+- **Los temas de piso se igualan por RMS (−20 dBFS) con el techo de −9 de la
+  v1** (E8 audio): si no, el crossfade suena como subir y bajar el volumen.
+  Rango final −20,4 a −22,5; no se comprimió.
+- **Config remota de anuncios: más prudente sí, más agresiva no** (E7a). Los
+  pisos de `AdsRemoteConfig.Floor` son las decisiones de PLAN-v2 §2 (120 s
+  entre forzados, 90 s después de un video, app open con 180 s afuera, 1 cada
+  20 min y desde la 2ª sesión). Un `0` publicado por error no puede volver el
+  juego una ametralladora de intersticiales, que es política de AdMob. Un
+  archivo con un ID de otro publisher, un número bajo el piso o cualquier
+  campo inválido se descarta entero: aplicar "la mitad buena" mezclaría dos
+  versiones que nadie probó juntas.
+- **Una sesión de anuncios es un arranque en frío** (E7a): "app open desde la
+  2ª sesión" = el jugador abrió la app dos veces. El primer día, el que decide
+  si desinstala, no hay app open aunque vaya y vuelva.
+- **La alternancia común/pausa no avanza cuando sale el otro por falta de
+  inventario** (E7a): es un orden, no una penalidad.
+- **La gracia de arranque de 180 s se conserva** para los intersticiales en la
+  2.0 aunque el plan no la nombra (E7a): es la protección de la primera sesión
+  de la 1.x, y es remota.
+- **El nombre y la descripción de un IAP salen del catálogo del juego** (E3,
+  `IAPCopy`, claves `iap.<productID>.name/.desc`), no de App Store Connect.
+  StoreKit queda de respaldo sólo si falta la clave, que es mejor que la clave
+  cruda para un producto recién creado. Un número en esos textos se interpola
+  desde los datos, nunca se escribe a mano. Producto nuevo en `products.json`
+  = sus dos claves en el catálogo (el test lo exige).
+- **Fichas de IAP en App Store Connect** (E10): es-ES lleva el mismo texto que
+  es-MX, con voseo, porque el castellano del juego es rioplatense en todos
+  lados y lo que arregla el ítem 19 es que es-ES **exista**. Las descripciones
+  no llevan montos de ORO: se calibran sin tocar el precio, y con el número en
+  la ficha cada calibración obligaría a re-enviar a revisión. `oro_medium` se
+  llama **"Saco de ORO"**: "cofre" es sólo de pintas, y un IAP llamado
+  "Cofre" se lee como caja sorpresa paga (guía 3.1.1).
+- **"Sin anuncios" se describe como "chau a los anuncios que aparecen solos"**
+  (E10): los videos con premio siguen, y una ficha que promete más de lo que
+  entrega es motivo de rechazo.
+- **Mac y Apple Vision Pro, apagados** en App Store Connect (E10): se publican
+  solos si no se destildan, y nadie los probó.
+- **AdMob bloquea "Social Casino Games"** además de "Gambling & Betting" (E10):
+  viene permitida por defecto, y un casino simulado en un juego que declara
+  "sin apuesta simulada" es la contradicción que un revisor marca.
+
 0. **Los cofres** (2026-08-26). Las 41 pintas de piso salen **sólo** de cofres. Rareza con
    **promoción hacia arriba** cuando la sorteada se agota. Cuatro fuentes: cada 2 pisos, un
    video, el día 7 (como **segundo escalón** después del special, sin robarle el turno) y la
@@ -1532,6 +1696,62 @@ tocan decisiones de esta sección:
 
 ## 6. Cómo verificar
 
+### En la 2.0 se verifica con el oráculo
+
+**Desde E0 (2026-10-06) la forma de verificar `version-2` es un comando**, no
+la receta a mano de más abajo. La receta es lo que el oráculo corre por
+dentro, y sirve para depurar un paso suelto.
+
+```bash
+Tools/v2/oraculo.sh rapido   [--limpio]   # EconomyKit + xcodegen + build-for-testing + unit (iOS 26.5): mientras se itera
+Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (18.6) + UI (26.5)
+                                          #   + pipeline + pacing-sim + Release sin warnings: para cerrar o integrar
+```
+
+- **Sale en 0 sólo si todo está verde.** El juez es `Tools/v2/rojos.py`, que
+  compara cada suite contra **`Tools/v2/rojos-declarados.txt`**:
+  - un rojo que no está en la lista pone el oráculo en rojo;
+  - uno de la lista que deja de fallar se avisa, y se saca en el mismo commit
+    que lo arregla;
+  - **cero tests corridos también es rojo**: un `-only-testing` mal escrito
+    corre cero tests y Xcode lo da por bueno.
+- Sigue la receta de abajo al pie de la letra: crea sus simuladores por UDID y
+  los borra al salir, corre unit antes que UI, sin paralelismo, con
+  `build/DD-oraculo` propio del worktree.
+- Deja logs, `.xcresult` y un `resumen.txt` en `build/oraculo/<fecha>-<modo>/`.
+- **`--limpio`** borra el DerivedData antes de compilar: hace falta después de
+  tocar arte, porque el build incremental no recompila los atlas (trampa 1).
+- Se puede llamar por su ruta absoluta desde cualquier cwd: hace `cd` a su
+  propio repo desde `50922d4`. Igual, **un VERDE con la misma cuenta de tests
+  que antes de sumar tests no probó nada**: mirá las rutas de los
+  `SwiftCompile` en `build-for-testing.log` (§7, frentes de la 2.0).
+- El `pacing-sim` es un reporte, no un veredicto: el contrato lo juzga
+  `PacingTests` en unit. Sus "13 reencarnaciones" son las de la partida hasta
+  Dios con el bot de hoy (§7, plan de la 2.0), no las 9 del rojo declarado,
+  que cuenta hasta maxear las siete líneas.
+- Rojos declarados hoy: `unit theOwnersTargetsAreMet` (lo reemplaza el
+  contrato nuevo de E2b) y `pipeline
+  test_ningun_asset_quedo_agujereado_por_dentro`, que **ya pasa** desde E8
+  pipeline y sigue en la lista.
+
+**Línea de base** (`completo` sobre `0442022` + el oráculo, 2026-10-06 20:25):
+
+| Suite | Resultado | Tiempo |
+|---|---|---|
+| EconomyKit | 267 | — |
+| build en frío | — | 106 s |
+| unit (26.5) | 473 + 1 rojo declarado | 411 s |
+| Store unit (18.6) | 12 | 197 s |
+| UI (26.5) | 57 | 1.515 s |
+| `StoreUITests` (18.6) | 2 | 114 s |
+| pipeline | 24 + 1 rojo declarado | — |
+| `pacing-sim` | Dios en 30,73 h activas · 13 reencarnaciones | — |
+| Release | 0 warnings del compilador | — |
+
+Un `completo` entero tarda **~45 min** con la máquina tranquila.
+
+### La receta a mano (lo que el oráculo corre por dentro)
+
 ⚠️ **Creá tu propio simulador y apuntá por UDID** (trampa 2), y **corré unit
 ANTES que UI** — la asimetría es real y direccional, ver abajo.
 
@@ -1553,14 +1773,14 @@ cd - && /opt/homebrew/bin/xcodegen generate               # si agregaste/borrast
 # 1) UNIT PRIMERO
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
   -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
-  -only-testing:FisuEvolutionTests test                   # 474 en 26.5 sin las 2 de Store; 1 rojo declarado
+  -only-testing:FisuEvolutionTests test                   # en 26.5 sin las 2 de Store; el número, en la línea de base de arriba
 
 # 2) UI DESPUÉS
 xcodebuild -scheme FisuEvolution -sdk iphonesimulator -configuration Debug \
   -destination "id=$UDID" -derivedDataPath build/DD -parallel-testing-enabled NO \
   -only-testing:FisuEvolutionUITests test                  # 57 en 26.5 sin StoreUITests (+2 en 18.6)
 
-cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 25, 1 rojo (arte calado)
+cd Tools/asset-pipeline && .venv/bin/python -m unittest discover -s tests -q   # 49, 0 rojos desde E8 pipeline
 
 xcrun simctl shutdown $UDID && xcrun simctl delete $UDID   # ⚠️ el cierre es parte del trabajo
 ```
@@ -1674,8 +1894,10 @@ reencarnaciones**, que es el contrato del dueño.
 estos. Y ojo con `refundRevokesEntitlement` (StoreKit + `SKTestSession`): falló
 tres veces en corridas completas de este día y pasó aislado todas ellas.
 
-- El rojo del pipeline es `test_wait_for_survives_a_stale_element_and_retries`:
-  pide un Chrome escuchando en `:9222`. Es de entorno y es el baseline.
+- ~~El rojo del pipeline es `test_wait_for_survives_a_stale_element_and_retries`~~:
+  ese test se fue con la generación de arte (`version-2`, 2026-10-06), y el
+  rojo del "arte calado" que lo reemplazó lo cerró E8 pipeline. El pipeline
+  está en **49 verdes, 0 rojos**.
 - **Ya no hay ningún `-skip-testing:` en la receta de UI.** El único rojo que
   quedaba, `AscentRenderingUITests`, se migró a doble toque el 2026-08-16 y pasa
   (ver la trampa 2). Los 3 tests de esa clase entran al conteo: 40 → **43**.
@@ -1741,6 +1963,115 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De los frentes en paralelo de la 2.0 (2026-10-06, E0 a E10)
+
+- **Un agente lanzado desde el worktree del orquestador queda fijado a ESE
+  worktree.** Les pasó a los cinco frentes (E8 pipeline, E8 audio, E7a, E3 y
+  E10). El guard de aislamiento rechaza todo Bash con el cwd en el worktree
+  asignado (hasta un `echo`), `git -C <otro>`, `cd <otro> && git`, y `Edit` /
+  `Write` sobre sus archivos. `EnterWorktree(path:)` cambia el cwd y da Read,
+  pero no destraba el guard. También rechaza comandos encadenados del tipo
+  `python3 … && …` ("programa armado en runtime"): uno por llamada.
+  - Lo que hicieron entonces: editar un espejo en el scratchpad, copiarlo con
+    `cp` por rutas absolutas y dejar los commits al orquestador. ⚠️ **Eso ya
+    no se hace**: PLAN-v2 §0.1 lo cuenta como rodear el guard. La forma que
+    funciona está en §0.1: `Agent(isolation: "worktree")`.
+- **Un `xcodebuild` sin `-project` compila el proyecto del cwd, no el del
+  script.** La primera versión del oráculo, llamada por su ruta absoluta desde
+  otro worktree, corría `xcodegen` en el repo bueno pero compilaba el
+  `.xcodeproj` del cwd: dio VERDE con 474 tests sin haber compilado una línea
+  del frente. Arreglado en `50922d4` (`cd "$REPO"`). La señal: **un VERDE con
+  la misma cuenta de tests que antes de sumar tests**. Lo que manda son las
+  rutas de los `SwiftCompile` en `build-for-testing.log`, no el verde.
+- **Pisar un script de bash mientras corre lo rompe**: bash lo lee a medida
+  que ejecuta. Para cambiar `oraculo.sh` hay que esperar a que termine la
+  corrida en curso.
+
+### Del oráculo (E0, 2026-10-06)
+
+- **El bash de macOS es 3.2.** Con `set -u`, un array vacío cuenta como
+  variable sin definir y aborta el script. Y una función que agrega a un array
+  global adentro de `$(…)` corre en un subshell: el simulador nunca llegaba a
+  la lista de limpieza y quedaba huérfano.
+- **TextureAtlas avisa con `warning:`** cada vez que parte un atlas grande en
+  varias hojas (`earth.atlas` ×4/×6, `ui.atlas` ×2, `cosmic.atlas` ×2/×4). No
+  son warnings del compilador: el oráculo los descuenta.
+
+### De E10 en papel (2026-10-06)
+
+- **El checkout local de `adergames-site` está atrasado contra lo publicado**
+  (es del 2026-09-02, sin `public/app-ads.txt` y con la política de julio):
+  `git pull` antes de tocarlo.
+- **Las 5 descripciones de IAP de más de 45 caracteres están en el
+  `.storekit`**, no en `iap-appstore-connect.md`: starter (es 53, en 51),
+  Mundialista (es 50, en 53) y Diamante (es 46). Se sincronizan cuando E6 sume
+  las ofertas.
+- **App Store Connect pide como mínimo capturas *medium display*
+  (1206 × 2622)**, y las de iPad 13" (2064 × 2752) al ser universal. La v1
+  salió sólo con 1320 × 2868.
+- **La doc de Mintegral no se lee sin JavaScript**: `WebFetch` trae sólo el
+  menú. Su línea de `app-ads.txt` quedó sin verificar; hay que sacarla del
+  panel.
+
+### Del pipeline de E8 (2026-10-06)
+
+- **Un rojo de `test_assets_integrados` no prueba arte roto.** Este se leyó
+  como "arte calado ya publicado" durante un mes, y el plan mandaba deshacer
+  una decisión del dueño. Antes de tocar un recorte: mirar el PNG,
+  `islas_de_papel.json`, `RECORTE_VIEJO_A_PEDIDO` y los commits de revisión.
+- **`state/rembg/` guarda arte VIEJO** de los assets que se regeneraron:
+  `elegir_recorte.py --rembg` lo copia sin mirar y con el tropero o el médico
+  mete otro personaje. Mirar el panel antes.
+- **ffmpeg 8.1 sí decodifica el alfa del HEVC de Apple**, y `ffprobe` sigue
+  diciendo `yuv420p`: el probe no prueba nada. Para saber si un mov tiene
+  alfa hay que decodificar un cuadro a rgba (con un ffmpeg viejo sale todo
+  opaco).
+- **Xcode aplana los recursos**: `Loops/x.mov` y `Cinematics/x.mov` se pisan
+  en el bundle. Por eso los prefijos `loop_` y `cine_`.
+
+### Del audio de E8 (2026-10-06)
+
+- **El throttle de 80 ms de `AudioManager.play` se come los tics rápidos de la
+  ruleta** (más de 12 por segundo): E5 tiene que exceptuar `sfx_wheel_tick` o
+  aceptar que se saltee tics.
+- **Un AAC loopeado desde el archivo tropieza en la costura**, que es por lo
+  que la v1 descartó el AAC. Usar `AudioManager.decodedWAV`, nunca
+  `AVAudioPlayer(contentsOf:)` con loops. Lo pinea `FloorMusicAssetsTests`.
+- **Normalizar por pico hunde los temas con bombo**: su cresta es de
+  11–15 dB contra 7,7 del earth. El bombo cae a 60 Hz y no a 45, que el
+  parlante del teléfono no reproduce y se come el margen. Antes de subir un
+  instrumento, mirá el RMS en la tabla del generador.
+- **`#expect` no acepta un método `mutating` adentro**: la expansión lo llama
+  sobre un `$0` inmutable y el target de tests no compila. El resultado va
+  primero a una constante.
+
+### De la infraestructura de anuncios (E7a, 2026-10-06)
+
+- **El proveedor de AdMob tiene un solo observador de presentación para todos
+  los formatos.** Dos `show…` encimados pisan la continuación del primero, y
+  su `await` no vuelve nunca. Ningún test con el stub lo ve. Todo anuncio pasa
+  por `AdsCoordinator`, que lo impide con `isPresentingFullScreen`.
+- **La página de mediación de Google está vencida para AppLovin**: sigue
+  mostrando app open, que el adaptador sacó en junio de 2026, y sus resúmenes
+  automáticos contradicen el HTML. Lo que manda es el repo del adaptador.
+- **Un `Codable` con `var x = 0` no decodifica un JSON sin esa clave**: lo
+  sintetizado usa `decode`, no `decodeIfPresent`. Lo que se persiste y puede
+  crecer lleva su `init(from:)`, como `AdsPacingState`.
+
+### Del i18n de E3 (2026-10-06)
+
+- **El splash se dibuja mientras corre el bootstrap.** Nada que configure el
+  bootstrap llega a su primer frame, y lo que no es observable no lo
+  redibuja nadie: por eso el logo no se vio nunca. `UIArt` lee el manifest del
+  bundle por su cuenta.
+- **"+5% de income" parece un formato** (`% d`, con el flag de espacio). El
+  lector de placeholders de `LocalizationCompletenessTests` excluye ese flag a
+  propósito.
+- **Una familia de claves dinámicas nueva se registra en
+  `LocalizationCompletenessTests.DynamicFamily`**: Xcode no puede extraer una
+  clave armada en runtime, y sin el registro nada avisa que a un elemento nuevo
+  le falta la traducción.
 
 ### Del plan de la 2.0 (2026-10-06, noche)
 
@@ -3044,6 +3375,38 @@ Anotado por si algún día importa, con su medición:
     8 visitantes nuevos).
 - **`Docs/SESION-2026-10-06-plan-v2.md`** — el porqué del plan: lo que se
   midió antes de decidir, lo descartado y las trampas de la planificación.
+- **`Tools/v2/`** — el oráculo del run (`oraculo.sh`), su juez (`rojos.py`) y
+  la lista de rojos tolerados (`rojos-declarados.txt`). Cómo se usa, en §6.
+- `Docs/SESION-2026-10-06-v2-e0-oraculo.md` — E0: el oráculo, su línea de base
+  con los tiempos de cada suite, y las trampas del bash 3.2, de TextureAtlas y
+  del guard de los subagentes.
+- `Docs/superpowers/plans/2026-10-06-v2-e1-correcciones-criticas.md` — el plan
+  de E1: 16 tareas en olas, con las dudas para el dueño al final.
+- `Docs/biblia-visitantes.md` — los 8 visitantes nuevos, los 10 especiales y
+  las 3 familias de skins, con su descriptor canónico para los prompts.
+- **`Distribution/setup-v2-asc-admob-mediacion.md`** — el paso a paso del
+  lanzamiento de la 2.0: App Store Connect, AdMob, las 4 redes de mediación y
+  el sitio, con 🔒 en lo que hace el dueño y la URL de cada dato. Es también el
+  insumo del futuro script de Selenium.
+- **`Distribution/iap-appstore-connect.md`** — los 14 productos con sus fichas
+  (la fuente de las claves de `IAPCopy`) y lo que entrega cada uno.
+- `Docs/SESION-2026-10-06-v2-e10-docs.md` — E10 en papel: el porqué de las
+  fichas y los Términos, y las verificaciones (conteos, URLs, SKAdNetwork).
+- `Docs/SESION-2026-10-06-v2-e8-pipeline.md` — E8 pipeline: por qué el arte
+  calado era una decisión del dueño, el gate de `rentista_soles` (con dónde
+  están los paneles), las categorías `npc`/`skinfam` y el contrato de
+  `loops_manifest.json` con la medición del verde.
+- `Docs/SESION-2026-10-06-v2-e8-audio.md` — E8 audio: los diez temas con su
+  carácter, el crossfade y su director puro, el enganche sin tocar
+  `GameState`, el peso medido y los comandos para escuchar cada tema.
+- `Docs/SESION-2026-10-06-v2-e7a-anuncios.md` — E7a: los formatos nuevos, las
+  unidades por momento, la config remota y sus pisos, la política de cortes
+  naturales y cómo se cablea, y la investigación de mediación (paquetes,
+  formatos por red, SKAdNetwork y privacy manifests).
+- `Docs/SESION-2026-10-06-v2-e3-i18n.md` — E3, idioma: `IAPCopy` y el porqué
+  del respaldo de StoreKit, la interpolación de números desde los datos, el
+  arreglo de raíz del logo del splash, y qué cubre
+  `LocalizationCompletenessTests`.
 - **`Docs/HANDOFF-v2.md`** — el punto de entrada de la v2: el commit del build
   publicado, la rama `version-2`, las integraciones en producción y el backlog.
 - **`Docs/SESION-2026-10-06-preparacion-v2.md`** — cómo se armó `version-2`: qué
@@ -3088,7 +3451,7 @@ Anotado por si algún día importa, con su medición:
 - `Docs/superpowers/plans/2026-08-26-cofres-de-skins.md` — el plan de 12 tareas. ⚠️ Lleva
   adentro un **mapa de los helpers de test que existen de verdad**, porque el plan inventó
   cuatro que no existían.
-- `Docs/SESION-2026-08-28-cofres-solo-desbloqueados.md` — **la sesión más reciente**: por qué
+- `Docs/SESION-2026-08-28-cofres-solo-desbloqueados.md` — por qué
   la rareza ya era una banda de pisos, dónde vive el filtro y por qué en un solo lugar, la
   granularidad piso-y-no-tier con el motivo de la bifurcación de carrera, y los tres efectos
   colaterales (el mínimo de épica, el puntito y la puerta de debug).
@@ -3112,14 +3475,14 @@ Anotado por si algún día importa, con su medición:
 | **`SESION-2026-08-23-fusiones-cobradas.md`** | **Las fusiones dejan de ser gratis en el simulador (y por qué eso era un sesgo, no una simplificación), el barrido de la profundidad N=6/7/8 con las cinco métricas, la conversión a horas del dueño con el factor de 3×, y por qué la compra en lote se empezó y se descartó** |
 | **`SESION-2026-08-23-precio-atado-a-la-frontera.md`** | **La cuarta ronda de balance: el precio de contratar anclado a tu FRONTERA (la regla de precios nueva, que reemplaza a la de los 600 clicks), la compuerta convertida por fin en dial de dificultad, la tercera ceguera del bot, y el hallazgo de que la mitad del tiempo activo es apretar el botón y no esperar plata — con las cuatro salidas que el dueño tiene que elegir** |
 | **`SESION-2026-08-22-compuerta-por-distancia.md`** | **La tercera ronda de balance: la compuerta medida en tiers, las dos cegueras del simulador y el hallazgo de que el contrato de 20-30 h nunca se cumplió — con las tres salidas que el dueño tiene que elegir. Y la trampa del Xcode 26.6 sin runtime de iOS 26** |
-| **`SESION-2026-08-21-nombres-en-ingles.md`** | **La sesión más reciente: por qué el nombre del personaje no se traducía, la mesa de las 17 traducciones culturales con su porqué, y qué se descartó (un campo por idioma en `tiers.json`)** |
+| **`SESION-2026-08-21-nombres-en-ingles.md`** | **Por qué el nombre del personaje no se traducía, la mesa de las 17 traducciones culturales con su porqué, y qué se descartó (un campo por idioma en `tiers.json`)** |
 | **`SESION-2026-08-21-rebalance-pacing.md`** | **El rebalance de pacing: las tres métricas antes/después, los dos knobs que hacen cosas distintas, las tres decisiones del dueño con lo descartado y su número, y los cuatro diagnósticos que salieron errados antes del bueno** |
-| **`SESION-2026-08-25-correcciones-ui-y-xcode-26.md`** | **La sesión más reciente: el aire del botón, la manito única, la carta del special con recap, y los cinco eslabones de Xcode 26.6** |
-| **`SESION-2026-08-21-tutorial-high-end.md`** | **La sesión más reciente: el tutorial rehecho — la fase corta arbitrada por la cola, las 8 lecciones con sus señales, el puntito de logros y las trampas 24/25** |
+| **`SESION-2026-08-25-correcciones-ui-y-xcode-26.md`** | **El aire del botón, la manito única, la carta del special con recap, y los cinco eslabones de Xcode 26.6** |
+| **`SESION-2026-08-21-tutorial-high-end.md`** | **El tutorial rehecho — la fase corta arbitrada por la cola, las 8 lecciones con sus señales, el puntito de logros y las trampas 24/25** |
 | **`SESION-2026-08-21-telon-del-menu.md`** | **El telón blanco de las pantallas empujadas del menú: la medición, el arreglo por versión de iOS y qué quedó sin verificar** |
 | **`SESION-2026-08-19-skins-oro-diamante.md`** | **Las 86 skins de material: el catálogo de un id por material, el desbloqueo de cada una y los tres bugs medidos del pipeline de generación** |
 | **`SESION-2026-08-18-recorte-de-fondo.md`** | **Por qué el recorte dejó de ser por saliencia, con la medición de los 219 assets y el criterio topológico que lo reemplazó** |
-| **`SESION-2026-08-17-rediseno-v3.md`** | **La sesión más reciente: los materiales v3 de las referencias, tarea por tarea, con la verificación y la trampa del cwd — y sus arcos del 2026-08-18, el tercero es la hoja contenida** |
+| **`SESION-2026-08-17-rediseno-v3.md`** | **Los materiales v3 de las referencias, tarea por tarea, con la verificación y la trampa del cwd — y sus arcos del 2026-08-18, el tercero es la hoja contenida** |
 | **`SESION-2026-08-16-cierre-post-merge.md`** | **Las 7 tareas del ticket post-merge con sus commits, el veredicto del review de rama y el backlog que sobrevive** |
 | **`SESION-2026-08-14-rediseno-ui.md`** | **Las 20 tareas del rediseño de UI, con sus fix rounds, rulings y avisos vivos. La fuente de verdad del detalle de esa rama** |
 | **`SESION-2026-08-06-correcciones-de-playtest.md`** | **El estado de la sesión de las 16 correcciones: qué quedó abierto, qué está en vuelo y los gates humanos. Empezá por acá si retomás ese trabajo** |

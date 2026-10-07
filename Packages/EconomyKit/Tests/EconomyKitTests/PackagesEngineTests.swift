@@ -37,10 +37,38 @@ struct PackageRollerTests {
         odds.map(\.probability).reduce(0, +)
     }
 
-    private func eligibleIds(_ fx: (state: PlayerState, tower: TowerState, floorTable: FloorTable)) -> [String] {
+    private func eligibleIds(
+        _ fx: (state: PlayerState, tower: TowerState, floorTable: FloorTable),
+        config: EconomyConfig = fxConfig()
+    ) -> [String] {
         PackageRoller.eligibleTypes(
-            state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable, config: fxConfig()
+            state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable, config: config
         ).map(\.id)
+    }
+
+    /// `fxConfig` con la compuerta de contratación prendida: la fixture la trae apagada.
+    private func gatedConfig(distance: Int) -> EconomyConfig {
+        let base = fxConfig()
+        return EconomyConfig(
+            schemaVersion: base.schemaVersion,
+            baseTapYieldTier1: base.baseTapYieldTier1,
+            yieldGrowthPerTier: base.yieldGrowthPerTier,
+            passiveRatio: base.passiveRatio,
+            passiveUnlockCostMultiplier: base.passiveUnlockCostMultiplier,
+            hire: .init(
+                defaultCostMultiplier: base.hire.defaultCostMultiplier,
+                defaultCostGrowth: base.hire.defaultCostGrowth,
+                priceGrowthPerTier: base.hire.priceGrowthPerTier,
+                gateTierDistance: distance
+            ),
+            charUpgrades: base.charUpgrades,
+            oro: base.oro,
+            critChanceBase: base.critChanceBase,
+            critMultiplier: base.critMultiplier,
+            offlineEfficiencyBase: base.offlineEfficiencyBase,
+            offlineCapHours: base.offlineCapHours,
+            floors: base.floors
+        )
     }
 
     @Test("con la ventana entera, el tope sale 1 de cada 15 y el de más abajo 8 de cada 15")
@@ -82,7 +110,8 @@ struct PackageRollerTests {
     func bestSupplierRaisesTheTop() {
         let config = fxPackages()
         let tops = (0...3).map { level in
-            PackageRoller.odds(eligible: ladder(4), windowTiers: 4, ratio: config.tierRatio(bestSupplierLevel: level))[0].probability
+            let ratio = config.tierRatio(bestSupplierLevel: level)
+            return PackageRoller.odds(eligible: ladder(4), windowTiers: 4, ratio: ratio)[0].probability
         }
         #expect(tops == tops.sorted())
         #expect((tops.last ?? 0) > 0.14)
@@ -122,10 +151,42 @@ struct PackageRollerTests {
         #expect(!eligibleIds(fx).contains("choice"))
     }
 
+    @Test("la compuerta de contratación también manda: lo que FisuJobs todavía no vende no viene")
+    func theHireGateKeepsTypesOut() throws {
+        var fx = try fxStateAndTower(units: ["a": 1])
+        fx.state.run.seenTypes = ["a", "b", "c_prog", "d"]
+        let gated = gatedConfig(distance: 2)
+
+        fx.state.run.raiseFrontier(to: 4)
+        #expect(eligibleIds(fx, config: gated) == ["a", "b"])
+        fx.state.run.raiseFrontier(to: 5)
+        #expect(eligibleIds(fx, config: gated) == ["a", "b", "c_prog"])
+        fx.state.run.raiseFrontier(to: 6)
+        #expect(eligibleIds(fx, config: gated) == ["a", "b", "c_prog", "d"])
+        #expect(eligibleIds(fx, config: gatedConfig(distance: 0)) == ["a", "b", "c_prog", "d"])
+    }
+
     @Test("sin elegibles no hay sorteo")
     func nothingEligibleRollsNothing() {
         var rng = SeededRNG(seed: 1)
         #expect(PackageRoller.roll(eligible: [], windowTiers: 4, ratio: 2, using: &rng) == nil)
+    }
+
+    @Test("los tipos de un mismo tier salen parejo: no siempre el primero")
+    func typesOfATierTakeTurns() throws {
+        var rng = SeededRNG(seed: 99)
+        let eligible = [fxType("y", tier: 3), fxType("x", tier: 3)]
+        let draws = 2_000
+        var counts: [String: Int] = [:]
+        for _ in 0..<draws {
+            let pick = try #require(PackageRoller.roll(eligible: eligible, windowTiers: 4, ratio: 2, using: &rng))
+            counts[pick.id, default: 0] += 1
+        }
+        #expect(Set(counts.keys) == ["x", "y"])
+        for (id, count) in counts {
+            let share = Double(count) / Double(draws)
+            #expect(share > 0.45 && share < 0.55, "\(id) salió \(share)")
+        }
     }
 
     @Test("el sorteo respeta la tabla: el tope cae cerca del 6,7 %")
@@ -171,6 +232,30 @@ struct PackageSchedulerTests {
         #expect(state.secondsUntilNext == 120)
     }
 
+    @Test("lo que sobra del delta se descuenta del reloj que se rearma")
+    func theLeftoverCarriesOver() {
+        var state = PackagesState(secondsUntilNext: 1, waiting: 0)
+        #expect(PackageScheduler.advance(&state, delta: 2, rateMultiplier: 1, config: config) == 1)
+        #expect(state == PackagesState(secondsUntilNext: 119, waiting: 1))
+    }
+
+    @Test("un delta largo deja caer varios, y llegar al tope rearma un intervalo entero")
+    func aLongDeltaDropsSeveralUpToTheCap() {
+        var state = PackagesState(secondsUntilNext: 10, waiting: 0)
+        #expect(PackageScheduler.advance(&state, delta: 300, rateMultiplier: 1, config: config) == 2)
+        #expect(state == PackagesState(secondsUntilNext: 120, waiting: 2))
+    }
+
+    @Test("con más lugar en el buzón caen todos los que entran en el delta, y el resto sigue corriendo")
+    func severalDropsBelowTheCapKeepTheRemainder() {
+        let roomy = fxPackages(maxWaiting: 5)
+        var state = PackagesState(secondsUntilNext: 10, waiting: 0)
+        #expect(PackageScheduler.advance(&state, delta: 249, rateMultiplier: 1, config: roomy) == 2)
+        #expect(state == PackagesState(secondsUntilNext: 1, waiting: 2))
+        #expect(PackageScheduler.advance(&state, delta: 1, rateMultiplier: 1, config: roomy) == 1)
+        #expect(state == PackagesState(secondsUntilNext: 120, waiting: 3))
+    }
+
     @Test("la Lluvia de Paquetes corre el reloj ×10: uno cada 12 s")
     func packageRainRunsTenTimesFaster() {
         var state = PackagesState(secondsUntilNext: 120, waiting: 0)
@@ -182,6 +267,15 @@ struct PackageSchedulerTests {
         var state = PackagesState(secondsUntilNext: 50, waiting: 0)
         #expect(PackageScheduler.advance(&state, delta: 500, rateMultiplier: 0, config: config) == 0)
         #expect(state.secondsUntilNext == 50)
+    }
+
+    @Test("el Piquete no deja caer nada ni con el reloj vencido, y una razón negativa vale como cero")
+    func theBlockadeHoldsEvenWithAnExpiredClock() {
+        for rate in [0.0, -3] {
+            var state = PackagesState(secondsUntilNext: 0, waiting: 0)
+            #expect(PackageScheduler.advance(&state, delta: 10, rateMultiplier: rate, config: config) == 0)
+            #expect(state == PackagesState(secondsUntilNext: 0, waiting: 0))
+        }
     }
 
     @Test("los regalados pasan el tope y el reloj no les saca nada")
@@ -225,7 +319,9 @@ struct PackagesConfigTests {
     @Test("sin razones, o con una que haría más probable al tope, no carga")
     func ratiosAreChecked() {
         #expect(throws: PackagesConfig.ValidationError.noRatios) { try fxPackages(ratios: []).validate() }
-        #expect(throws: PackagesConfig.ValidationError.ratioBelowOne(0.5)) { try fxPackages(ratios: [2, 0.5]).validate() }
+        #expect(throws: PackagesConfig.ValidationError.ratioBelowOne(0.5)) {
+            try fxPackages(ratios: [2, 0.5]).validate()
+        }
     }
 
     @Test("un buzón escrito antes de E5 decodifica vacío, y uno a medias también")

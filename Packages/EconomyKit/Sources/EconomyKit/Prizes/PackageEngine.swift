@@ -5,7 +5,7 @@ import Foundation
 public enum PackageScheduler {
     /// Avanza el reloj y devuelve cuántos cayeron. Con el buzón en el tope el
     /// reloj espera; `rateMultiplier` es el `packageRateMultiplier` de los
-    /// eventos (×10 la Lluvia, ×0 el Piquete).
+    /// eventos (×10 la Lluvia, ×0 el Piquete, que no deja caer nada).
     @discardableResult
     public static func advance(
         _ state: inout PackagesState,
@@ -13,8 +13,8 @@ public enum PackageScheduler {
         rateMultiplier: Double,
         config: PackagesConfig
     ) -> Int {
-        guard delta > 0, state.waiting < config.maxWaiting else { return 0 }
-        var remaining = (state.secondsUntilNext ?? config.firstPackageAfterSeconds) - delta * max(0, rateMultiplier)
+        guard delta > 0, rateMultiplier > 0, state.waiting < config.maxWaiting else { return 0 }
+        var remaining = (state.secondsUntilNext ?? config.firstPackageAfterSeconds) - delta * rateMultiplier
         var dropped = 0
         while remaining <= 0, state.waiting < config.maxWaiting {
             state.waiting += 1

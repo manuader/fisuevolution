@@ -20,10 +20,16 @@ public enum WeightedDraw {
     public static func index<R: RandomNumberGenerator>(weights: [Double], using rng: inout R) -> Int? {
         let total = weights.reduce(0) { $0 + max(0, $1) }
         guard total > 0 else { return nil }
-        var ticket = Double.random(in: 0..<total, using: &rng)
+        return index(weights: weights, ticket: Double.random(in: 0..<total, using: &rng))
+    }
+
+    /// Dónde cae un ticket que va de 0 al total de los pesos. Uno que se pasa
+    /// por redondeo cae en el último con peso, nunca en un cero de la cola.
+    static func index(weights: [Double], ticket: Double) -> Int? {
+        var remaining = ticket
         for (index, weight) in weights.enumerated() where weight > 0 {
-            if ticket < weight { return index }
-            ticket -= weight
+            if remaining < weight { return index }
+            remaining -= weight
         }
         return weights.lastIndex { $0 > 0 }
     }

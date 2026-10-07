@@ -363,7 +363,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E2a-T1 | `RewardScale`: premios en minutos | 🔄 | E1-T3 | — | | EK |
+| E2a-T1 | `RewardScale`: premios en minutos | 🟢 | E1-T3 | — | `434b0ee` en `v2/e2a-mecanicas` | EK |
 | E2a-T2 | El reintegro al fusionar + `EconomyKnobs` | ⏳ | E1-T3, E1-T4 | 🔥 PlayerState | | no con E1 T6c |
 | E2a-T3 | El amortiguador y el "+6 %" | ⛔ | T2 | 🔥 PlayerState, TowerActions | | antes de E1 T13 o después de T14 |
 | E2a-T4 | Pisos en marcha y la capacidad que sólo crece | ⛔ | T3 | +Actions | | antes de E1 T12 o después de T14 |

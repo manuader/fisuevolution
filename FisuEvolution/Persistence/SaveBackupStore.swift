@@ -13,9 +13,8 @@ struct SaveBackupStore: Sendable {
     }
 
     func rotate(_ payload: Data, now: Date = Date()) {
-        write(payload, named: "save-\(Self.stamp(now)).json")
-        let copies = (try? FileManager.default.contentsOfDirectory(atPath: directory.path())) ?? []
-        for stale in copies.filter({ $0.hasPrefix("save-") }).sorted(by: >).dropFirst(Self.keptRotating) {
+        write(payload, stampedBy: "save-", now: now)
+        for stale in names(withPrefix: "save-").sorted(by: >).dropFirst(Self.keptRotating) {
             try? FileManager.default.removeItem(at: directory.appending(path: stale))
         }
     }
@@ -28,7 +27,27 @@ struct SaveBackupStore: Sendable {
 
     @discardableResult
     func keepUnreadable(_ payload: Data, now: Date = Date()) -> URL? {
-        write(payload, named: "unreadable-\(Self.stamp(now)).json")
+        write(payload, stampedBy: "unreadable-", now: now)
+    }
+
+    /// El nombre lleva los milisegundos con ancho fijo, así el orden alfabético es el
+    /// cronológico. La copia nueva se estampa siempre después de todas las que hay (con el
+    /// reloj quieto o atrasado se corre al milisegundo siguiente): nunca pisa a otra ni
+    /// queda como la más vieja de la rotación.
+    @discardableResult
+    private func write(_ payload: Data, stampedBy prefix: String, now: Date) -> URL? {
+        let latest = names(withPrefix: prefix).compactMap { Self.millis(in: $0, prefix: prefix) }.max()
+        let millis = max(Int((now.timeIntervalSince1970 * 1000).rounded()), (latest ?? -1) + 1)
+        return write(payload, named: "\(prefix)\(String(format: "%015ld", millis)).json")
+    }
+
+    private func names(withPrefix prefix: String) -> [String] {
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: directory.path())) ?? []
+        return names.filter { $0.hasPrefix(prefix) }
+    }
+
+    private static func millis(in name: String, prefix: String) -> Int? {
+        Int(name.dropFirst(prefix.count).prefix { $0.isNumber })
     }
 
     @discardableResult
@@ -42,10 +61,5 @@ struct SaveBackupStore: Sendable {
             Log.persistence.error("save backup failed (\(name)): \(error)")
             return nil
         }
-    }
-
-    /// Milisegundos con ancho fijo: el orden alfabético es el cronológico.
-    private static func stamp(_ date: Date) -> String {
-        String(format: "%015.0f", date.timeIntervalSince1970 * 1000)
     }
 }

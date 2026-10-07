@@ -111,4 +111,54 @@ struct PersistenceTests {
         _ = await repository.load()
         #expect(try Data(contentsOf: directory.appending(path: "save_v5_premigration.json")) == v5)
     }
+
+    private func temporaryBackupsDirectory() -> URL {
+        FileManager.default.temporaryDirectory.appending(path: "backups-\(UUID().uuidString)")
+    }
+
+    /// Los contenidos de las copias con ese prefijo, en el orden alfabético de sus nombres.
+    private func keptCopies(in directory: URL, prefix: String) throws -> [String] {
+        try FileManager.default.contentsOfDirectory(atPath: directory.path())
+            .filter { $0.hasPrefix(prefix) }
+            .sorted()
+            .map { String(decoding: try Data(contentsOf: directory.appending(path: $0)), as: UTF8.self) }
+    }
+
+    @Test("dos copias del mismo milisegundo no se pisan y quedan en orden")
+    func twoRotatingCopiesInTheSameMillisecondDoNotOverwriteEachOther() throws {
+        let directory = temporaryBackupsDirectory()
+        let store = SaveBackupStore(directory: directory)
+        let instant = Date(timeIntervalSince1970: 1_700_000_000)
+        store.rotate(Data("primera".utf8), now: instant)
+        store.rotate(Data("segunda".utf8), now: instant)
+        #expect(try keptCopies(in: directory, prefix: "save-") == ["primera", "segunda"])
+    }
+
+    @Test("con el reloj quieto la rotación descarta las más viejas, no las más nuevas")
+    func rotationKeepsTheNewestCopiesWhenTheClockStandsStill() throws {
+        let directory = temporaryBackupsDirectory()
+        let store = SaveBackupStore(directory: directory)
+        let instant = Date(timeIntervalSince1970: 1_700_000_000)
+        for index in 0..<12 { store.rotate(Data("carga-\(index)".utf8), now: instant) }
+        #expect(try keptCopies(in: directory, prefix: "save-") == (2..<12).map { "carga-\($0)" })
+    }
+
+    @Test("con el reloj atrasado la copia nueva no queda como la más vieja")
+    func aCopyMadeWithAnEarlierClockStillSortsAsTheNewest() throws {
+        let directory = temporaryBackupsDirectory()
+        let store = SaveBackupStore(directory: directory)
+        store.rotate(Data("antes".utf8), now: Date(timeIntervalSince1970: 1_700_000_100))
+        store.rotate(Data("después".utf8), now: Date(timeIntervalSince1970: 1_700_000_000))
+        #expect(try keptCopies(in: directory, prefix: "save-") == ["antes", "después"])
+    }
+
+    @Test("dos saves ilegibles del mismo milisegundo quedan los dos")
+    func twoUnreadableCopiesInTheSameMillisecondDoNotOverwriteEachOther() throws {
+        let directory = temporaryBackupsDirectory()
+        let store = SaveBackupStore(directory: directory)
+        let instant = Date(timeIntervalSince1970: 1_700_000_000)
+        store.keepUnreadable(Data("de CoreData".utf8), now: instant)
+        store.keepUnreadable(Data("del snapshot".utf8), now: instant)
+        #expect(try keptCopies(in: directory, prefix: "unreadable-") == ["de CoreData", "del snapshot"])
+    }
 }

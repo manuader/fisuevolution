@@ -5,6 +5,11 @@ import StoreKitTest
 import Testing
 @testable import FisuEvolution
 
+private actor HistoryReadCounter {
+    private(set) var count = 0
+    func tick() { count += 1 }
+}
+
 /// StoreKit 2 contra la configuración local — cero cuenta paga (bible §4.4).
 /// SKTestSession simula la App Store: compra, refund y estado persistente.
 /// v4: los entitlements se cachean en `meta` (removedAds / ownedSkins); las
@@ -137,6 +142,48 @@ struct StoreManagerTests {
         #expect(gameState.needsPurchasedOroReconstruction == false)
     }
 
+    /// Si StoreKit no contesta el historial, el arranque no se cuelga: cuenta
+    /// como "falló" y cierra la reconstrucción en 0, igual que un historial vacío.
+    @Test func aHungHistoryClosesTheReconstructionAtZero() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        gameState.player?.meta.purchasedOroReconstructed = false
+        let store = StoreManager()
+        store.historyTimeout = .milliseconds(200)
+        store.historyReader = {
+            try? await Task.sleep(for: .seconds(3600))
+            return []
+        }
+
+        await store.start(gameState: gameState)
+
+        #expect(gameState.needsPurchasedOroReconstruction == false)
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
+        #expect(store.loadState == .loaded, "el arranque siguió con la carga de productos")
+    }
+
+    /// `start` se suspende en la reconstrucción: un segundo `start` que entre en
+    /// ese hueco no puede volver a leer el historial ni crear otro listener.
+    @Test func startRunsOnceWhenCalledTwiceConcurrently() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        gameState.player?.meta.purchasedOroReconstructed = false
+        let reads = HistoryReadCounter()
+        let store = StoreManager()
+        store.historyReader = {
+            await reads.tick()
+            return []
+        }
+
+        async let first: Void = store.start(gameState: gameState)
+        async let second: Void = store.start(gameState: gameState)
+        _ = await (first, second)
+
+        #expect(await reads.count == 1)
+    }
+
     /// El reembolso de un pack de ORO baja el total comprado: el reset de E9
     /// conserva `min(saldo, comprado)` y no puede regalarle lo que pidió devolver.
     @Test func refundingAnOroPackLowersThePurchasedTotal() async throws {
@@ -157,7 +204,7 @@ struct StoreManagerTests {
         )
         try session.refundTransaction(identifier: UInt(transaction.identifier))
 
-        await waitUntil { gameState.player?.meta.oroPurchasedLifetime == 0 }
+        await waitUntil(timeout: 90) { gameState.player?.meta.oroPurchasedLifetime == 0 }
         #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
     }
 

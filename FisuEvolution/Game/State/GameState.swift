@@ -403,6 +403,11 @@ final class GameState {
     /// reconciliación desde `run.units` en cada carga.
     /// Era `private(set)` por el mismo motivo que `player`.
     @ObservationIgnored var tower: TowerState?
+    /// Lo que cambió el tablero sin el jugador, esperando su turno a la vista.
+    /// Lo maneja `+BoardChanges`.
+    @ObservationIgnored var pendingBoardChanges: [BoardChange] = []
+    /// El que la escena está reproduciendo. Confirmarlo lo consume.
+    @ObservationIgnored var inFlightBoardChange: BoardChange?
     private(set) var content: GameContent?
     @ObservationIgnored var debugTimeScale: Double = 1
 

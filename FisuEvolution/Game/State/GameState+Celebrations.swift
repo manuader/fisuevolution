@@ -34,6 +34,13 @@ extension GameState {
         celebrate(.boardCelebration)
     }
 
+    /// La bandera de "algo nuevo" del cambio que arranca su turno. A diferencia de
+    /// `celebrateBoard`, el turno ya es suyo: se publica en el acto.
+    func setBoardCelebrationShowsSomethingNew(_ value: Bool) {
+        boardCelebrationShowsSomethingNew = value
+        publishCelebration()
+    }
+
     /// Encola lo que tenga payload y todavía no esté en la fila.
     ///
     /// Se llama después de cada acción que puede crear una celebración, en vez

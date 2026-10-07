@@ -426,6 +426,8 @@ extension GameState {
         shareCardSubject = nil
         tutorialTip = nil
         boardCelebrationShowsSomethingNew = false
+        pendingBoardChanges.removeAll()
+        inFlightBoardChange = nil
         celebrations = CelebrationQueue()
 
         // El tutorial vuelve entero: banderas del FTUE (defaults Y espejo en

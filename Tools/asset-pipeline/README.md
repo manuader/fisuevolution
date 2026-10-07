@@ -37,6 +37,17 @@ principal o hacé un symlink.
 ⚠️ Un build incremental **no** recompila los atlas: después de integrar,
 borrá DerivedData antes de mirar el resultado en el juego.
 
+### Categorías de la 2.0
+
+| `category` | Claves | Destino |
+|---|---|---|
+| `npc` | `npc_<nombre>`, `npc_<nombre>_talk/_action/_face` y también `sp_<id>_talk/_face` | `npcs.atlas/<assetKey>`, manifest `npcs` |
+| `skinfam` | `<tipo>__pijama`, `<tipo>__gaucho`, `<tipo>__dinosaurio` | `fam_<familia>.atlas/<tipo>_idle__<familia>`, sin manifest |
+
+Las poses nuevas de los especiales van como `npc`, no como `special`: con
+`special` caerían en `manifest['characters']` con un id que no es especial, y
+`manifestEntriesReferenceRealTypes` se pone rojo.
+
 ## Revisar recortes
 
 El recorte se elige a ojo, asset por asset (decisión del dueño, HANDOFF §5).

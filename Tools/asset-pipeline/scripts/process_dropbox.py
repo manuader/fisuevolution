@@ -34,7 +34,20 @@ ATLAS_BY_CATEGORY = {
     # son tiers. El sufijo lo arma `skin_asset_key`, no esta tabla: la
     # convención es `<char>_idle__<skin>`, con el `__` DESPUÉS de `_idle`.
     "skin": ("{phase}.atlas", None, ""),
+    # Visitantes de la 2.0 (`Docs/biblia-visitantes.md`): las cuatro piezas de los
+    # 8 nuevos (`npc_<nombre>`, `_talk`, `_action`, `_face`) y las poses nuevas de
+    # los 10 especiales (`sp_<id>_talk`, `_face`). La clave del prompt es el
+    # sprite. Sección propia del manifest porque un visitante no es un tier: en
+    # "characters" rompería `manifestEntriesReferenceRealTypes`.
+    "npc": ("npcs.atlas", "npcs", ""),
+    # Familias de skins (PLAN-v2 E6): un atlas por familia, para no mover las
+    # páginas de los atlas de fase. Se resuelven por nombre, como las skins.
+    "skinfam": ("fam_{family}.atlas", None, ""),
 }
+
+# Las familias de skins de la 2.0 (`Docs/biblia-visitantes.md`). Fuera de esta
+# lista una clave `<tipo>__<familia>` se rechaza: un typo inventaría un atlas.
+SKIN_FAMILIES = ("pijama", "gaucho", "dinosaurio")
 
 
 def export_size(category: str, asset_key: str) -> tuple[int, int]:
@@ -44,7 +57,7 @@ def export_size(category: str, asset_key: str) -> tuple[int, int]:
     vuelven a desentonar con los que están en el juego."""
     if category == "background":
         return (1024, 1536)  # pantalla completa; son los únicos que van grandes
-    if category in {"character", "special", "skin"}:
+    if category in {"character", "special", "skin", "skinfam", "npc"}:
         return (384, 512)    # se dibujan a ~146 pt → 438 px @3x
     if asset_key.startswith(("panel_", "fisura_", "logo")):
         return (448, 640)    # se estiran grande (9-slice, retratos de tutorial)
@@ -64,6 +77,14 @@ def skin_asset_key(asset_key: str) -> str:
     return f"{character}_idle__{skin}"
 
 
+def skin_family(asset_key: str) -> str:
+    """`homeless__dinosaurio` → `dinosaurio`, o ValueError si no es una familia."""
+    family = asset_key.partition("__")[2]
+    if family not in SKIN_FAMILIES:
+        raise ValueError(f"assetKey de familia sin familia conocida {SKIN_FAMILIES}: {asset_key}")
+    return family
+
+
 def load_entries() -> dict[str, dict]:
     prompts = json.loads((PIPELINE / "prompts" / "prompts.json").read_text())
     return {e["assetKey"]: e for e in prompts}
@@ -73,9 +94,12 @@ def destination(entry: dict) -> tuple[str, str, str | None]:
     """(carpeta del atlas, nombre del archivo sin @Nx, sección del manifest)."""
     category = entry.get("category", "character")
     atlas_template, manifest_section, key_suffix = ATLAS_BY_CATEGORY[category]
-    atlas_name = atlas_template.format(phase=entry.get("atlas", "earth"))
+    fields = {"phase": entry.get("atlas", "earth")}
+    if category == "skinfam":
+        fields["family"] = skin_family(entry["assetKey"])
+    atlas_name = atlas_template.format(**fields)
     asset_key = (
-        skin_asset_key(entry["assetKey"]) if category == "skin"
+        skin_asset_key(entry["assetKey"]) if category in {"skin", "skinfam"}
         else entry["assetKey"] + key_suffix
     )
     return atlas_name, asset_key, manifest_section
@@ -134,7 +158,8 @@ def process(image_path: Path, entry: dict) -> None:
         stage = entry["assetKey"].removeprefix("bg_")
         manifest["backgrounds"][stage] = asset_key
     else:
-        manifest[manifest_section][entry["assetKey"]] = asset_key
+        # `setdefault`: la sección "npcs" nace con el primer visitante integrado.
+        manifest.setdefault(manifest_section, {})[entry["assetKey"]] = asset_key
     MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False))
 
     PROCESSED.mkdir(exist_ok=True)

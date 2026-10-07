@@ -41,7 +41,7 @@ limpio.
 - **Skills de documentación** (`handoff-system`, `writing-session-handoff`,
   `writing-general-handoff`, enlazadas a `~/Desktop/skills/documentation`): rigen cada cierre.
 - **Oráculo del run**: `Tools/v2/oraculo.sh` (lo crea E0).
-  - `rapido`: EconomyKit + build + unit.
+  - `rapido`: EconomyKit + build + unit + Release (el Release, desde el relevo 6).
   - `completo`: además UI en la matriz 26.5/18.6 y el contrato de pacing.
   - Cada épica agrega sus tests al oráculo antes de implementar.
 
@@ -49,7 +49,8 @@ limpio.
 
 1. Lee `Docs/HANDOFF.md` (en `version-2`) y el handoff más nuevo de
    `FisuEvolution/handoffs/`.
-2. Lee `Docs/PLAN-v2.md` (este plan, versionado).
+2. Lee `Docs/PLAN-v2.md` (este plan, versionado) y **`tasks.md`** (raíz de `version-2`, desde
+   el relevo 6): el tablero de la ejecución, con qué está hecho, qué sale ahora y la cola.
 3. Lee el journal AVO: carta → estado actual → descartados.
 4. Hace `git log`/`status` desde la fecha del handoff.
 5. Revisa el **candado** (ver abajo).
@@ -68,10 +69,14 @@ limpio.
   1. **Primario, en la misma sesión**: `CronCreate` de un solo disparo (+2–3 min) con el prompt
      "continúa — protocolo de relevo FisuEvolution v2…", y después
      `clear_session("self")`. El cron entra en la sesión ya limpia: un agente nuevo con contexto
-     fresco.
-  2. **Secundario, si el primario no despertó al siguiente**: las rutinas de la app
-     `fisu-v2-relevo-a` / `-b`, alternadas con `run_scheduled_task`. Cada corrida es una sesión
-     nueva; se alternan porque una rutina con una corrida en curso no se puede relanzar.
+     fresco. ⚠️ **En los relevos 2 a 6 no despertó a nadie nunca**: los cinco los despertó el
+     dueño.
+  2. **Secundario: las rutinas `fisu-v2-relevo-a` / `-b`. Existen desde el relevo 6**
+     (decisión del dueño, 2026-10-07), en `~/.claude/scheduled-tasks/fisu-v2-relevo-{a,b}/`.
+     Son **manuales** (sin horario): el agente que cierra lanza la otra con
+     `run_scheduled_task`. Cada corrida es una sesión nueva; se alternan porque una rutina con una
+     corrida en curso no se puede relanzar. Su prompt toma el candado, anota en el journal qué
+     rutina lo despertó y sigue este mismo protocolo de llegada.
   3. **Último recurso**: el dueño escribe "continúa", y alcanza.
   - El agente anota en el journal **qué mecanismo lo despertó**, para que el próximo relevo use el
     que funciona.
@@ -119,8 +124,20 @@ archivos de dueño único por ola, y un controlador que integra de a uno.
   `subagent-driven-development`), antes de integrar;
 - integra de a una tarea: `git rebase` de la rama del agente sobre la punta de la épica +
   `git merge --ff-only`, y `oraculo.sh rapido` sobre la integración;
-- es el dueño de `Docs/`, `handoffs/`, el journal, el ledger y `rojos-declarados.txt`: los escribe él, o
-  despacha **un solo** agente de docs a la vez, que no corre en paralelo con otro que toque `Docs/`.
+- es el dueño de `Docs/`, `handoffs/`, `tasks.md`, el journal, el ledger y `rojos-declarados.txt`:
+  los escribe él, o despacha **un solo** agente de docs a la vez, que no corre en paralelo con otro
+  que toque `Docs/`.
+
+**El tablero: `tasks.md`** (raíz de `version-2`, desde el relevo 6, pedido del dueño):
+
+- Una línea por tarea de todos los planes, con su estado (✅ 🟢 🔧 🔄 ⏳ ⛔ 🔒 ⏭️), dependencias y
+  archivos calientes y tibios; las reglas de concurrencia; la cola de despacho; los gates del
+  dueño.
+- **Un solo escritor: el controlador.** Lo actualiza en cada borde de tarea: al despachar, al
+  recibir el reporte, al integrar y al cerrar la ola. Los subagentes nunca lo editan: reportan, y
+  el controlador pasa el dato.
+- El detalle fino (arrastres, menores diferidos, reportes) sigue en el ledger de cada épica. Si un
+  ledger y `tasks.md` se contradicen, manda el ledger y se corrige `tasks.md`.
 
 **Archivos calientes: un solo dueño por ola.**
 
@@ -162,7 +179,7 @@ nuevas de otras épicas salen de `version-2`.
 | luego | E4 ∥ E5 por tarea (comparten `GameState`), E6, E7b, E9, E2b; E8 según los gates del arte | |
 
 El calendario es la intención: cada ola se re-arma con las huellas reales de archivos de los
-planes, y se corre de a uno lo que se pisa.
+planes, y se corre de a uno lo que se pisa. **Las olas reales y la cola viven en `tasks.md` §4.**
 
 ---
 

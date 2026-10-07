@@ -556,10 +556,8 @@ final class GameState {
                 await repository.debugWriteUnreadableSave()
             }
             #endif
-            let loaded: SaveLoadResult
-            if forceNewGame {
-                loaded = .empty
-            } else {
+            var loaded: SaveLoadResult = .empty
+            if !forceNewGame {
                 loaded = await repository.load()
             }
             let isFreshInstall: Bool

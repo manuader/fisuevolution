@@ -337,9 +337,9 @@ que toma · commit o rama · nota.
 | E3a-T3 | `PlayLayout` | ✅ | — | — | `f03950c` + `5afb893` (0,63) | |
 | E3a-T4 | `ScreenInsets` y `PlayColumn` | ✅ | T3 | — | `b988bc3` + `537f923` | |
 | E3a-T5 | Universal, iOS 18, contrato del Info.plist | ✅ | — | 🔥 project.yml; Info.plist, PanelFrames | `c323dd9` (merge `3956fd3`; `rapido` VERDE) | carries a T6, T10, T12 en el ledger; el release con Xcode 26.x |
-| E3a-T6 | Hojas y popups en iPad (`fisuSheet`) | 🔄 | T4, T5 | PanelFrames, 8 popups, HUDView, OfflineEarningsView | | S1: `fullScreenCover` + `statusBarHidden`; carry de T5: sin `#available` |
+| E3a-T6 | Hojas y popups en iPad (`fisuSheet`) | 🟢 | T4, T5 | PanelFrames, 8 popups, HUDView, OfflineEarningsView | `428f55f` en `v2/e3-ux` | falta RootView (9 `.sheet` → `.fisuSheet`): el controlador aplica `t6/rootview-migracion.diff` al integrar E1 T10 |
 | E3a-T7 | La barra de abajo más baja, Contratar al centro | ⏳ | T4 | GameArtComponents, BottomMenuBar | | |
-| E3a-T8 | La botonera del ascensor | ⛔ | T6 | catálogo (o snapshot); PanelFrames, HUDView, AudioManager | | S6: botones de 30 pt; cablea `elevatorDing` |
+| E3a-T8 | La botonera del ascensor | ⏳ | T6 | catálogo (o snapshot); PanelFrames, HUDView, AudioManager | | S6: botones de 30 pt; cablea `elevatorDing` |
 | E3a-T9 | Las pestañas aparecen de a poco | ⛔ | T7; E1-T4; ventana de GameState | 🔥 GameState, catálogo; +Debug, GameContentLoader | | |
 | E3a-T10 | La escena: PlayLayout, 3 filas, cámara, iPad | ⛔ | T3, T7, T8; E1-T10 | 🔥 BoardScene, GameState, RootView; `oraculo.sh` | | carries: `ScreenInsetsUITests` al `ipad-ui` (iPad Pro 13", sin tocar `rojos-declarados.txt`); si se puede, saltear los especiales (E4b T9 los borra) |
 | E3a-T11 | La raíz: chrome en la columna, seis hojas | ⛔ | T6, T10 | 🔥 RootView | | no con E1 T13–T14 |

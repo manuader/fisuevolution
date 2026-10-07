@@ -10,8 +10,9 @@ extension GameState {
     ) {
         switch (old, new) {
         case (_, .background), (.active, .inactive):
+            let wasActive = isSceneActive
             isSceneActive = false
-            seal(now: now)
+            seal(now: now, stamping: wasActive)
         case (_, .active):
             isSceneActive = true
             guard phase == .ready else { return }
@@ -32,21 +33,32 @@ extension GameState {
     /// Fija la hora de la última vez que se vio la partida y la guarda, dentro de
     /// un `beginBackgroundTask` para que iOS no suspenda la app a mitad de la
     /// escritura.
-    func seal(now: TimeInterval) {
+    ///
+    /// Sólo el primer sello de una salida corre la hora (`stamping`): `inactive →
+    /// background` guarda igual, pero la hora queda donde la dejó `active →
+    /// inactive`, porque el tick está mudo desde entonces y el tramo en medio no
+    /// lo pagaría nadie.
+    func seal(now: TimeInterval, stamping: Bool = true) {
         guard phase == .ready, var player else { return }
-        player.meta.lastSeenTimestamp = now
-        self.player = player
-        lastHeartbeatAt = now
+        if stamping {
+            player.meta.lastSeenTimestamp = now
+            self.player = player
+            lastHeartbeatAt = now
+        }
         saveTask?.cancel()
-        let token = backgroundTasks?.begin("fisu.save")
+        let runner = backgroundTasks
+        let token = runner?.begin("fisu.save")
         sealTask = Task {
             await persistNow()
-            if let token { backgroundTasks?.end(token) }
+            if let runner, let token { runner.end(token) }
         }
     }
 
-    /// Con la escena activa, sella y guarda cada `heartbeatSeconds`: un kill en
-    /// foreground paga a lo sumo eso de menos, nunca de más.
+    /// Con la escena activa, sella y guarda cada `heartbeatSeconds`. Sin el
+    /// latido, un kill en foreground pagaría offline desde el último regreso a
+    /// `.active` y repetiría toda la sesión; con él repite a lo sumo ese tramo
+    /// (la plata ganada en vivo y guardada con la hora del último latido, a la
+    /// eficiencia offline).
     func beatIfDue(now: TimeInterval) {
         guard phase == .ready, isSceneActive, now - lastHeartbeatAt >= Self.heartbeatSeconds,
               var player

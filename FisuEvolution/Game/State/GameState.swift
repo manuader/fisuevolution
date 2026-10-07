@@ -410,14 +410,16 @@ final class GameState {
     var economy: StandardEconomy?
     private var repository: PlayerStateRepository?
     private let injectedRepository: PlayerStateRepository?
-    /// Lo cancela y lo reemplaza `+Lifecycle` al sellar.
+    /// El guardado diferido de `scheduleSave`; `+Lifecycle` lo cancela al sellar,
+    /// porque el guardado de la salida va por `sealTask`.
     @ObservationIgnored var saveTask: Task<Void, Never>?
     /// `beginBackgroundTask` detrás de un protocolo; lo usa `+Lifecycle`.
     @ObservationIgnored var backgroundTasks: (any BackgroundTaskRunning)?
     /// Falso desde que la app deja `.active` hasta que vuelve: en ese tramo el
-    /// tick no cobra (lo paga el offline) y no se sella dos veces.
+    /// tick no cobra (lo paga el offline), el flush no arma nada y el sello de la
+    /// salida no se corre.
     @ObservationIgnored var isSceneActive = true
-    /// El guardado de `seal(now:)`; los tests lo esperan.
+    /// El guardado de `seal(now:stamping:)`; los tests lo esperan.
     @ObservationIgnored var sealTask: Task<Void, Never>?
     @ObservationIgnored var lastHeartbeatAt: TimeInterval = 0
     static let heartbeatSeconds: TimeInterval = 15
@@ -942,22 +944,30 @@ final class GameState {
 
     /// 8 Hz projection flush driven by the scene's frame counter. Also prunes
     /// expired modifiers and fires scheduled events.
+    ///
+    /// Con la escena inactiva sólo proyecta: el regreso del background pasa por
+    /// `.inactive` con la escena ya dibujando, y podar buffs, disparar el evento
+    /// vencido o armar el anuncio ahí se adelanta a lo que `.active` resuelve
+    /// (el offline integra los buffs que vencieron afuera, el evento se corre y
+    /// la gracia de sesión se reinicia).
     func flushHUD() {
         let now = Date().timeIntervalSince1970
-        if var player {
-            let pruned = ModifierMath.prune(&player, now: now)
-            if pruned {
-                self.player = player
-                scheduleSave()
+        if isSceneActive {
+            if var player {
+                let pruned = ModifierMath.prune(&player, now: now)
+                if pruned {
+                    self.player = player
+                    scheduleSave()
+                }
             }
+            fireEventIfDue(now: now)
+            beatIfDue(now: now)
+            // El reloj del interstitial vive acá y no en un `Timer` (regla 2 de
+            // concurrencia). Sólo ARMA la bandera —tres restas de fechas, barato a
+            // 8 Hz—; el disparo lo pide la UI en una pausa natural. El porqué de
+            // esa separación está en `AdsCoordinator.isInterstitialArmed`.
+            ads?.armIfDue()
         }
-        fireEventIfDue(now: now)
-        beatIfDue(now: now)
-        // El reloj del interstitial vive acá y no en un `Timer` (regla 2 de
-        // concurrencia). Sólo ARMA la bandera —tres restas de fechas, barato a
-        // 8 Hz—; el disparo lo pide la UI en una pausa natural. El porqué de
-        // esa separación está en `AdsCoordinator.isInterstitialArmed`.
-        ads?.armIfDue()
         refreshProjections()
     }
 

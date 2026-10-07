@@ -78,6 +78,7 @@ struct TutorialTipView: View {
                 text: LocalizedStringKey(tip.lesson.textKey),
                 onDismiss: { gameState.dismissTutorialTip() }
             )
+            .frame(maxWidth: PlayColumn.tutorialCardMaxWidth)
             .padding(.horizontal, 16)
             .padding(.top, anchorIsLow ? 0 : topInset)
             .padding(.bottom, anchorIsLow ? bottomInset : 0)

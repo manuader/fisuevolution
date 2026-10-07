@@ -215,6 +215,7 @@ struct TutorialOverlay: View {
                 onDone: finish,
                 onSkip: finish
             )
+            .frame(maxWidth: PlayColumn.tutorialCardMaxWidth)
             .padding(.horizontal, 14)
             .padding(.top, holeIsLow ? topInset : 0)
             .padding(.bottom, hasHole && !holeIsLow ? bottomInset : 0)

@@ -35,9 +35,46 @@ protocol AdsProvider: AnyObject {
     /// resultado.
     func showInterstitial() async
 
+    /// Si hay una pausa publicitaria (intersticial bonificado) cargada y fresca.
+    var isRewardedInterstitialReady: Bool { get }
+    /// Pide que se precargue. Lo llama quien va a ofrecer la pausa **antes** de
+    /// la pantalla previa con cuenta regresiva: si el anuncio no está, la
+    /// pantalla no se ofrece, porque una cuenta regresiva que termina en nada
+    /// es peor que no haber interrumpido.
+    func preloadRewardedInterstitial()
+    /// Presenta la pausa publicitaria; `true` sólo si el jugador se ganó el
+    /// premio. Es **el mismo contrato que `showRewarded`**, con la misma
+    /// trampa: devolver `true` al cerrarla a la mitad regala la economía.
+    func showRewardedInterstitial() async -> Bool
+
+    /// Si hay un app open cargado y fresco.
+    var isAppOpenReady: Bool { get }
+    /// Pide que se precargue el app open. Se pide al irse a background, no al
+    /// volver: un anuncio tarda segundos en cargar, y al volver es tarde.
+    func preloadAppOpen()
+    /// Presenta un app open y vuelve cuando se cerró. Como el interstitial, no
+    /// paga nada y no devuelve nada.
+    func showAppOpen() async
+
     /// Arranca la precarga. Se llama una vez al bootstrap; los proveedores que
     /// no precargan nada (el stub) lo implementan vacío.
     func prepare()
+}
+
+/// Cuánto vive un anuncio cargado antes de que haya que tirarlo, por formato.
+///
+/// AdMob declara una hora para rewarded, interstitial y rewarded interstitial,
+/// y cuatro horas para el app open. Los dos márgenes son el mismo criterio que
+/// ya tenía el inventario: un anuncio que se vence entre el chequeo y la
+/// presentación falla igual, así que se tira un rato antes del borde.
+enum AdInventoryLifetime {
+    /// Rewarded, interstitial y pausa publicitaria: una hora menos cinco
+    /// minutos.
+    static let standard: TimeInterval = 55 * 60
+    /// App open: cuatro horas menos media hora. El margen es más largo porque
+    /// el app open se precarga al irse a background y se muestra al volver,
+    /// horas después: es justo el formato que más vive cerca del borde.
+    static let appOpen: TimeInterval = 3 * 60 * 60 + 30 * 60
 }
 
 /// Simulador de dev: 2 s de "anuncio" falso.
@@ -51,25 +88,42 @@ protocol AdsProvider: AnyObject {
 final class StubAdsProvider: AdsProvider {
     private(set) var isShowing = false
     var isInterstitialReady: Bool { !isShowing }
+    var isRewardedInterstitialReady: Bool { !isShowing }
+    var isAppOpenReady: Bool { !isShowing }
 
     func isRewardedReady(for placement: RewardedPlacement) -> Bool { !isShowing }
 
     /// El stub no precarga: su "anuncio" es un `Task.sleep`.
     func preloadRewarded(for placement: RewardedPlacement) {}
+    func preloadRewardedInterstitial() {}
+    func preloadAppOpen() {}
 
     func showRewarded(for placement: RewardedPlacement) async -> Bool {
-        guard !isShowing else { return false }
-        isShowing = true
-        defer { isShowing = false }
-        try? await Task.sleep(for: .seconds(2))
-        return true
+        await fakeAd(for: .seconds(2))
     }
 
     func showInterstitial() async {
-        guard !isShowing else { return }
+        await fakeAd(for: .seconds(1))
+    }
+
+    /// Dura lo que un rewarded: es un video con premio, aunque nadie lo pidió.
+    func showRewardedInterstitial() async -> Bool {
+        await fakeAd(for: .seconds(2))
+    }
+
+    func showAppOpen() async {
+        await fakeAd(for: .seconds(1))
+    }
+
+    /// El "anuncio" falso: ocupa la pantalla un rato y siempre paga. Devuelve
+    /// `false` sólo si ya había otro en curso, como el real.
+    @discardableResult
+    private func fakeAd(for duration: Duration) async -> Bool {
+        guard !isShowing else { return false }
         isShowing = true
         defer { isShowing = false }
-        try? await Task.sleep(for: .seconds(1))
+        try? await Task.sleep(for: duration)
+        return true
     }
 
     /// El stub no precarga: su "anuncio" es un `Task.sleep`.

@@ -150,6 +150,6 @@ struct OfflineEarningsView: View {
         // sistema dejaba un rectángulo BLANCO alrededor del panel (el defecto
         // que `DailyRewardView` ya corrigió). Transparente, el panel flota
         // sobre el tablero.
-        .presentationBackground(.clear)
+        .fisuSheet()
     }
 }

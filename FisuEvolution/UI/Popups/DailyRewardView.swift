@@ -101,7 +101,7 @@ struct DailyRewardView: View {
         // blanco puro de todo el juego, y justo en la pantalla que celebra la
         // racha—. Transparente, el panel flota sobre el tablero, igual que la
         // ficha del personaje (`CharacterSheetView`), que resolvió lo mismo.
-        .presentationBackground(.clear)
+        .fisuSheet()
     }
 
     /// El premio: qué día es y qué te dio. Es **una** parada de VoiceOver

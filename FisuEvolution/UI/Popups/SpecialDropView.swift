@@ -83,7 +83,7 @@ struct SpecialDropView: View {
         // Sin esto el fondo de sistema deja un rectángulo BLANCO alrededor del
         // tablón (el defecto que `DailyRewardView` ya corrigió): transparente,
         // el panel flota sobre el tablero.
-        .presentationBackground(.clear)
+        .fisuSheet()
     }
 
     /// La skin del personaje especial, por el mismo camino que la dibuja el

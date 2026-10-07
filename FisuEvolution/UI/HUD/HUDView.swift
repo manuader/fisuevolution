@@ -49,12 +49,11 @@ struct HUDView: View {
             prestigeIndicator
         }
         .background(ScreenInsetsReader().accessibilityHidden(true))
-        .sheet(isPresented: $showFloorMap) {
+        // El panel del `panelSheet` ES la hoja: flota sobre el juego atenuado
+        // con la banda inferior a la vista (como las seis de la barra, en
+        // `RootView`).
+        .fisuSheet(isPresented: $showFloorMap) {
             FloorMapView()
-                // El panel del `panelSheet` ES la hoja: flota sobre el juego
-                // atenuado con la banda inferior a la vista (como las seis de
-                // la barra, en `RootView`).
-                .presentationBackground(.clear)
         }
         .tutorialAnchor(.hudBar)
     }

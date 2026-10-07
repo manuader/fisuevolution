@@ -6,6 +6,9 @@ import Observation
 /// throttle anti-duplicado (skill: nunca sonidos duplicados). Los archivos llegan
 /// en el [GATE HUMANO] de audio (CC0, ver plan F5.10); hasta entonces cada key
 /// faltante se loguea una sola vez y el juego suena en silencio sin romperse.
+///
+/// La música de la 2.0 es un tema por piso con crossfade (ver `showFloor`); el
+/// tema único de la v1 queda para las corridas de tests.
 @Observable @MainActor
 final class AudioManager {
     enum SFX: String, CaseIterable {
@@ -33,6 +36,10 @@ final class AudioManager {
         didSet {
             UserDefaults.standard.set(musicVolume, forKey: Self.musicVolumeKey)
             musicPlayer?.volume = Float(musicVolume)
+            // Sólo el tema que manda: el que se está yendo baja a cero solo.
+            if let lead = floorMusic.lead {
+                floorPlayers[lead]?.volume = Float(musicVolume)
+            }
         }
     }
 
@@ -49,10 +56,33 @@ final class AudioManager {
     /// Mismo SFX no re-dispara dentro de esta ventana (anti-duplicado).
     private static let throttleWindow: TimeInterval = 0.08
 
-    init() {
+    /// La música por piso (PLAN-v2 §5): un tema por piso con crossfade. Qué
+    /// suena lo decide `FloorMusicDirector`; acá sólo viven los players, uno
+    /// por tema vivo. El que se corta sale del diccionario en el acto, así que
+    /// nunca hay más de dos.
+    private let floorMusicEnabled: Bool
+    @ObservationIgnored private var floorMusic = FloorMusicDirector()
+    @ObservationIgnored private var floorPlayers: [String: AVAudioPlayer] = [:]
+    /// El corte del tercero en un cambio rápido: un fundido cortito y no un
+    /// `stop()` seco, que parar una onda a media amplitud hace clic.
+    private static let cutFade: TimeInterval = 0.15
+
+    init(floorMusicEnabled: Bool = AudioManager.launchAllowsFloorMusic) {
         let defaults = UserDefaults.standard
         musicVolume = defaults.object(forKey: Self.musicVolumeKey) as? Double ?? 0.6
         sfxVolume = defaults.object(forKey: Self.sfxVolumeKey) as? Double ?? 0.9
+        self.floorMusicEnabled = floorMusicEnabled
+    }
+
+    /// Bajo `--uitest*` y en el host de los unit tests la música sigue siendo
+    /// la de la v1 (`music_earth_loop` desde el arranque) y ningún tema de
+    /// piso se carga: en una corrida de tests no entra nada nuevo que el test
+    /// no haya pedido.
+    nonisolated static var launchAllowsFloorMusic: Bool {
+        let process = ProcessInfo.processInfo
+        let uiTest = process.arguments.contains { $0.hasPrefix("--uitest") }
+        let unitTestHost = process.environment["XCTestConfigurationFilePath"] != nil
+        return !uiTest && !unitTestHost
     }
 
     /// Los SFX que ya tienen su player construido y sus buffers reservados.
@@ -88,8 +118,12 @@ final class AudioManager {
 
     /// La música es el archivo más pesado del bundle (1,7 MB) y se cargaba en
     /// main durante el arranque.
+    ///
+    /// Con la música por piso el arranque no pone nada: el primer tema lo
+    /// pide el tablero apenas sabe en qué piso está (`showFloor`), y entra
+    /// con el mismo fundido que un cambio de piso.
     func startMusic(named name: String = "music_earth_loop") async {
-        guard musicPlayer == nil else { return }
+        guard !floorMusicEnabled, musicPlayer == nil else { return }
         guard let url = url(forResource: name),
               let data = await Self.read(url),
               let player = try? AVAudioPlayer(data: data)
@@ -104,6 +138,113 @@ final class AudioManager {
     /// suelta hasta este actor. Lo que cruza es el `Data`, que sí lo es.
     private static func read(_ url: URL) async -> Data? {
         await Task.detached(priority: .utility) { try? Data(contentsOf: url) }.value
+    }
+
+    // MARK: Música por piso
+
+    /// Los temas de piso vivos, el que manda primero.
+    var floorTracks: [String] { floorMusic.voices }
+
+    /// El piso visible cambió: por scroll, por ascensor o al cargar la
+    /// partida. Lo llama `GameBoardView` observando el piso visible.
+    func showFloor(_ floorID: String?) {
+        guard floorMusicEnabled, let floorID else { return }
+        for step in floorMusic.show(floor: floorID) {
+            perform(step)
+        }
+    }
+
+    private func perform(_ step: FloorMusicDirector.Step) {
+        switch step {
+        case .fadeIn(let track):
+            Task { await fadeIn(track) }
+        case .restore(let track):
+            if let player = floorPlayers[track] {
+                player.setVolume(Float(musicVolume), fadeDuration: FloorMusicDirector.crossfade)
+            } else {
+                // Se fue antes de terminar de cargar: entra como nuevo.
+                Task { await fadeIn(track) }
+            }
+        case .fadeOut(let exit):
+            floorPlayers[exit.track]?.setVolume(0, fadeDuration: FloorMusicDirector.crossfade)
+            Task {
+                try? await Task.sleep(for: .seconds(FloorMusicDirector.crossfade))
+                if floorMusic.exitFinished(exit) {
+                    floorPlayers.removeValue(forKey: exit.track)?.stop()
+                }
+            }
+        case .cut(let track):
+            guard let player = floorPlayers.removeValue(forKey: track) else { return }
+            player.setVolume(0, fadeDuration: Self.cutFade)
+            Task {
+                try? await Task.sleep(for: .seconds(Self.cutFade))
+                player.stop()
+            }
+        }
+    }
+
+    private func fadeIn(_ track: String) async {
+        guard let url = url(forResource: track),
+              let data = await Self.loopData(url)
+        else { return }
+        // Mientras se decodificaba el jugador pudo seguir de largo: el tema
+        // sólo entra si todavía manda y nadie lo cargó en el medio.
+        guard floorMusic.lead == track, floorPlayers[track] == nil,
+              let player = try? AVAudioPlayer(data: data, fileTypeHint: AVFileType.wav.rawValue)
+        else { return }
+        player.numberOfLoops = -1
+        player.volume = 0
+        floorPlayers[track] = player
+        player.play()
+        player.setVolume(Float(musicVolume), fadeDuration: FloorMusicDirector.crossfade)
+    }
+
+    /// El tema entero decodificado a PCM de 16 bits y envuelto en un WAV en
+    /// memoria. Los temas por piso vienen en AAC —diez loops en PCM pesarían
+    /// ~22 MB— y el AAC trae el priming del encoder: loopeado desde el
+    /// archivo, la costura puede tropezar. Decodificado, `AVAudioFile` ya
+    /// recorta el priming con la tabla de paquetes del CAF y el loop queda
+    /// exacto muestra a muestra. Corre fuera de main, igual que `read`.
+    nonisolated static func loopData(_ url: URL) async -> Data? {
+        await Task.detached(priority: .utility) { decodedWAV(url) }.value
+    }
+
+    nonisolated static func decodedWAV(_ url: URL) -> Data? {
+        guard let file = try? AVAudioFile(forReading: url, commonFormat: .pcmFormatInt16, interleaved: true),
+              let buffer = AVAudioPCMBuffer(
+                  pcmFormat: file.processingFormat,
+                  frameCapacity: AVAudioFrameCount(file.length)
+              ),
+              (try? file.read(into: buffer)) != nil,
+              let samples = buffer.int16ChannelData
+        else { return nil }
+        let channels = Int(file.processingFormat.channelCount)
+        let pcm = Data(bytes: samples[0], count: Int(buffer.frameLength) * channels * 2)
+        return wav(pcm: pcm, sampleRate: Int(file.processingFormat.sampleRate), channels: channels)
+    }
+
+    /// Cabecera RIFF de 44 bytes para PCM entero de 16 bits.
+    private nonisolated static func wav(pcm: Data, sampleRate: Int, channels: Int) -> Data {
+        var data = Data()
+        func append(_ text: String) { data.append(contentsOf: Array(text.utf8)) }
+        func append<T: FixedWidthInteger>(_ value: T) {
+            withUnsafeBytes(of: value.littleEndian) { data.append(contentsOf: $0) }
+        }
+        append("RIFF")
+        append(UInt32(36 + pcm.count))
+        append("WAVE")
+        append("fmt ")
+        append(UInt32(16))
+        append(UInt16(1))
+        append(UInt16(channels))
+        append(UInt32(sampleRate))
+        append(UInt32(sampleRate * channels * 2))
+        append(UInt16(channels * 2))
+        append(UInt16(16))
+        append("data")
+        append(UInt32(pcm.count))
+        data.append(pcm)
+        return data
     }
 
     func play(_ sfx: SFX) {

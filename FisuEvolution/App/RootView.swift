@@ -103,6 +103,7 @@ struct GameBoardView: View {
     /// flags, que no existen cuando este `@State` se inicializaría): acá sólo
     /// se lee del entorno.
     @Environment(AdsCoordinator.self) private var adsProvider
+    @Environment(AudioManager.self) private var audio
     // La ficha de personaje espera al tutorial: no es una celebración de la
     // cola, así que éste es su único gate.
     @AppStorage("fisuTutorialDone") private var tutorialDone = false
@@ -258,6 +259,13 @@ struct GameBoardView: View {
         }
         .onChange(of: gameState.specialInfo) { _, info in
             gameState.uiCoversBoard = info != nil || activeScreen != nil || showPrestige
+        }
+        // La música por piso sigue al piso visible que ya publica `GameState`
+        // —scroll, ascensor, el piso con el que carga la partida—, sin que la
+        // navegación tenga que saber que hay música. `initial` pone el primer
+        // tema apenas aparece el tablero.
+        .onChange(of: gameState.visibleFloorDef?.id, initial: true) { _, floorID in
+            audio.showFloor(floorID)
         }
         .onAppear {
             if scene == nil {

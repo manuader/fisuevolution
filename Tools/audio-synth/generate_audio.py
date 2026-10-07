@@ -13,17 +13,34 @@ Salida:
   - WAV intermedios en  Tools/audio-synth/build/   (44100 Hz, 16-bit, mono)
   - Finales via afconvert en FisuEvolution/Resources/Audio/
       * SFX    → .caf LEI16
-      * música → .caf LEI16 (NO m4a: AAC agrega padding de encoder que rompe
-        el loop; AudioManager prueba caf antes que m4a, así que caf gana).
+      * música del arranque (`music_earth_loop`) → .caf LEI16 (NO m4a: AAC
+        agrega padding de encoder que rompe el loop; AudioManager prueba caf
+        antes que m4a, así que caf gana).
+      * temas por piso (`music_<piso>_loop`, 2.0) → .caf **AAC a 80 kbps**.
+        Diez loops en PCM pesarían ~22 MB; en AAC, 2,4. El padding del
+        encoder ya no rompe el loop porque el CAF guarda la tabla de paquetes
+        (priming + remainder) y `AudioManager` decodifica el tema entero a PCM
+        en memoria antes de loopearlo: el largo decodificado es exacto. Cada
+        corrida lo verifica decodificando el .caf de vuelta (ver
+        `check_aac_loop`).
 
-Loops perfectos: los dos music_* se renderizan con "wrap-around" — todo
+Loops perfectos: todos los music_* se renderizan con "wrap-around" — todo
 evento cuya cola pasa el final del buffer se suma al principio (módulo N).
 El largo cae exacto en frontera de compás (96 BPM → 8 compases = 882000
-samples = 20.000 s; 72 BPM → 8 compases = 1176000 samples ≈ 26.667 s) y la
-señal es continua en el punto de loop por construcción.
+samples = 20.000 s) y la señal es continua en el punto de loop por
+construcción.
 
-Normalización: SFX pico a -3 dBFS, música pico a -9 dBFS. Se verifica que no
-haya clipping y que el RMS supere el piso de silencio (-60 dBFS).
+Normalización: SFX pico a -3 dBFS, música del arranque pico a -9 dBFS. Los
+temas por piso se igualan por RMS (-20 dBFS) con techo de pico en -9 dBFS:
+el crossfade pasa de uno a otro y un tema no puede sonar el doble de fuerte
+que el anterior. El techo es el de la v1, el margen que dejan los SFX. Se
+verifica que no haya clipping y que el RMS supere el piso de silencio
+(-60 dBFS).
+
+Uso:
+  python3 Tools/audio-synth/generate_audio.py                  # todo
+  python3 Tools/audio-synth/generate_audio.py music_moon_loop  # sólo ése
+  python3 Tools/audio-synth/generate_audio.py --no-convert     # sólo WAV
 """
 
 import math
@@ -47,6 +64,7 @@ RMS_FLOOR_DB = -60.0
 
 TWO_PI = 2.0 * math.pi
 TABLE_SIZE = 4096
+PULSE_DUTY = {"pulse25": 0.25}
 
 # ---------------------------------------------------------------------------
 # Wavetables (síntesis aditiva band-limited, cacheadas por armónico máximo)
@@ -74,6 +92,13 @@ def _build_table(kind, max_harm):
                 v += sign * math.sin(TWO_PI * n * x) / (n * n)
                 sign = -sign
                 n += 2
+        elif kind in PULSE_DUTY:
+            # El pulso angosto es el timbre "NES": nasal, más fino que la
+            # cuadrada. Serie de Fourier del pulso centrado, sin la continua.
+            duty = PULSE_DUTY[kind]
+            for n in range(1, max_harm + 1):
+                v += (math.sin(math.pi * n * duty) / n
+                      * math.cos(TWO_PI * n * (x - duty / 2.0)))
         tab.append(v)
     peak = max(abs(s) for s in tab) or 1.0
     return [s / peak for s in tab]
@@ -83,6 +108,9 @@ def table_for(kind, freq):
     """Tabla del timbre pedido con armónicos limitados bajo ~18 kHz."""
     if kind == "sine":
         max_harm = 1
+    elif kind in PULSE_DUTY:
+        # El pulso usa todos los armónicos, no sólo los impares.
+        max_harm = max(1, min(24, int(18000.0 / max(freq, 1.0))))
     else:
         max_harm = max(1, min(15, int(18000.0 / max(freq, 1.0))))
         if max_harm % 2 == 0:
@@ -205,6 +233,27 @@ def render_noise(buf, start_s, dur_s, amp, decay, rng, env=None, wrap=False):
         buf[j] += v * amp * g
 
 
+def render_noise_lp(buf, start_s, dur_s, amp, rng, alpha, env, wrap=False):
+    """Ruido blanco por un pasabajos de un polo: viento, escobillas, estática.
+
+    `alpha` chico oscurece (0.02 ≈ viento grave, 0.3 ≈ siseo). La envolvente
+    es obligatoria y tiene que terminar en 0: el ruido filtrado no decae solo.
+    """
+    n = len(buf)
+    start = int(round(start_s * SR))
+    count = int(round(dur_s * SR))
+    inv_sr = 1.0 / SR
+    y = 0.0
+    for i in range(count):
+        y += alpha * (rng.uniform(-1.0, 1.0) - y)
+        j = start + i
+        if wrap:
+            j %= n
+        elif j >= n:
+            break
+        buf[j] += y * amp * env(i * inv_sr)
+
+
 # ---------------------------------------------------------------------------
 # Utilidades
 # ---------------------------------------------------------------------------
@@ -254,6 +303,25 @@ def measure(buf):
     rms = math.sqrt(sum(x * x for x in buf) / len(buf))
     to_db = lambda v: (20.0 * math.log10(v)) if v > 0 else float("-inf")
     return to_db(peak), to_db(rms)
+
+
+def normalize_loudness(buf, rms_db, peak_ceiling_db):
+    """Lleva el RMS a `rms_db` salvo que el pico pase el techo: ahí manda el
+    techo y el tema queda un poco más bajo (los ralos, como la Luna)."""
+    peak = max(abs(x) for x in buf)
+    rms = math.sqrt(sum(x * x for x in buf) / len(buf))
+    if peak == 0.0:
+        raise RuntimeError("buffer en silencio total")
+    scale = min(10.0 ** (rms_db / 20.0) / rms,
+                10.0 ** (peak_ceiling_db / 20.0) / peak)
+    return [x * scale for x in buf]
+
+
+def read_wav(path):
+    with wave.open(path, "rb") as w:
+        count = w.getnframes()
+        raw = w.readframes(count)
+    return [s / 32768.0 for s in struct.unpack(f"<{count}h", raw)]
 
 
 # ---------------------------------------------------------------------------
@@ -406,6 +474,59 @@ def sfx_daily():
     return buf
 
 
+def sfx_wheel_tick():
+    """Tic de la ruleta ~35 ms: la lengüeta de plástico contra un clavo.
+    Seco y corto a propósito, porque suena decenas de veces por giro."""
+    dur = 0.035
+    buf = [0.0] * int(dur * SR)
+    render_tone(buf, 0.0, dur, glide(2400.0, 1800.0, dur), "triangle", 0.7,
+                env_perc(dur, attack=0.0008, curve=9.0))
+    render_tone(buf, 0.0, 0.020, 1100.0, "square", 0.3,
+                env_perc(0.020, attack=0.0008, curve=7.0))
+    render_noise(buf, 0.0, 0.006, 0.6, 0.0015, random.Random(77))
+    return buf
+
+
+def sfx_blackout():
+    """Apagón ~1,2 s: salta la térmica (golpe grave) y todo lo eléctrico se
+    apaga bajando de tono —el zumbido de la línea y el pito de los aparatos—,
+    con un par de chispazos al principio."""
+    dur = 1.200
+    buf = [0.0] * int(dur * SR)
+    # El golpe de la térmica.
+    render_tone(buf, 0.0, 0.30, glide(140.0, 45.0, 0.12), "sine", 1.0,
+                env_perc(0.30, attack=0.002, curve=5.0))
+    rng = random.Random(1310)
+    render_noise(buf, 0.0, 0.012, 0.8, 0.004, rng)
+    # El zumbido de 120 Hz que se cae a 35 Hz mientras se apaga.
+    hum = dur - 0.02
+    hum_env = env_perc(hum, attack=0.01, curve=3.5)
+    render_tone(buf, 0.02, hum, glide(120.0, 35.0, hum), "square", 0.32, hum_env)
+    render_tone(buf, 0.02, hum, glide(60.0, 18.0, hum), "sine", 0.35, hum_env)
+    # El pito de la electrónica, que baja más rápido.
+    render_tone(buf, 0.02, 0.65, glide(1500.0, 160.0, 0.65), "triangle", 0.22,
+                env_perc(0.65, attack=0.004, curve=3.0))
+    # Chispazos sueltos.
+    for t0, amp in ((0.07, 0.45), (0.16, 0.3), (0.31, 0.2)):
+        render_noise(buf, t0, 0.018, amp, 0.005, rng)
+    return buf
+
+
+def sfx_elevator_ding():
+    """Ding del ascensor ~1,4 s: una campana clara (Do6) con parciales de
+    campana y una octava abajo que la abriga. Un solo golpe: llegó."""
+    dur = 1.400
+    buf = [0.0] * int(dur * SR)
+    f = 1046.5
+    for ratio, amp, curve in ((1.0, 1.0, 3.2), (2.0, 0.42, 4.5),
+                              (3.0, 0.18, 6.0), (4.2, 0.10, 8.0),
+                              (0.5, 0.28, 3.0)):
+        render_tone(buf, 0.0, dur, f * ratio, "sine", amp,
+                    env_perc(dur, attack=0.002, curve=curve))
+    render_noise(buf, 0.0, 0.004, 0.25, 0.0012, random.Random(1046))
+    return buf
+
+
 # ---------------------------------------------------------------------------
 # Música — loops perfectos (render con wrap-around)
 # ---------------------------------------------------------------------------
@@ -476,6 +597,869 @@ def music_earth_loop():
 
 
 # ---------------------------------------------------------------------------
+# Música por piso (2.0) — un tema chiptune por piso de economy.json
+# ---------------------------------------------------------------------------
+#
+# Cada tema es un loop con wrap-around, igual que el de la Tierra. Las líneas
+# se escriben en texto ('D4', 'Bb3'; '-' liga con la nota anterior, '.' es
+# silencio y '|' sólo separa compases para leer) así una melodía se lee y se
+# corrige sin contar números MIDI. Cada línea tiene que cubrir el loop entero:
+# `play_line` lo verifica, y una nota de más o de menos no compila el tema.
+
+NOTE_PC = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
+
+
+def note(name):
+    """'C#4' → 61, con A4 = 69 (octava científica)."""
+    pc = NOTE_PC[name[0]]
+    i = 1
+    while i < len(name) and name[i] in "#b":
+        pc += 1 if name[i] == "#" else -1
+        i += 1
+    return 12 * (int(name[i:]) + 1) + pc
+
+
+def chord(text):
+    return [note(n) for n in text.split()]
+
+
+def parse_line(text):
+    steps = []
+    for token in text.split():
+        if token == "|":
+            continue
+        if token == "-":
+            steps.append("-")
+        elif token == ".":
+            steps.append(None)
+        else:
+            steps.append(note(token))
+    return steps
+
+
+class Grid:
+    """El reloj de un tema: tempo, compases, pasos por compás y swing.
+
+    El swing atrasa los pasos impares una fracción del paso (0,33 ≈ tresillo).
+    """
+
+    def __init__(self, bpm, bars, steps_per_bar=8, swing=0.0):
+        self.bar = 4.0 * 60.0 / bpm
+        self.beat = 60.0 / bpm
+        self.bars = bars
+        self.steps_per_bar = steps_per_bar
+        self.step = self.bar / steps_per_bar
+        self.swing = swing
+        self.samples = int(round(bars * self.bar * SR))
+
+    def t(self, index):
+        """Segundo en que cae el paso absoluto `index`."""
+        swung = self.swing * self.step if index % 2 == 1 else 0.0
+        return index * self.step + swung
+
+    def at(self, bar, step):
+        return self.t(bar * self.steps_per_bar + step)
+
+
+def play_line(buf, grid, text, instrument, gate=0.92, vel=1.0):
+    """Toca una línea entera: cada nota dura hasta la siguiente, por el gate."""
+    steps = parse_line(text)
+    expected = grid.bars * grid.steps_per_bar
+    assert len(steps) == expected, f"la línea tiene {len(steps)} pasos y el loop {expected}"
+    i = 0
+    while i < len(steps):
+        value = steps[i]
+        if value is None or value == "-":
+            i += 1
+            continue
+        length = 1
+        while i + length < len(steps) and steps[i + length] == "-":
+            length += 1
+        t0 = grid.t(i)
+        instrument(buf, t0, (grid.t(i + length) - t0) * gate, value, vel)
+        i += length
+
+
+def hits(grid, pattern):
+    """Un patrón de un compás ('x' golpe, 'X' acento, '.' nada; los espacios
+    no cuentan), repetido en todos los compases → [(segundo, acento)]."""
+    steps = pattern.replace(" ", "")
+    assert len(steps) == grid.steps_per_bar, f"patrón de {len(steps)} pasos"
+    out = []
+    for bar in range(grid.bars):
+        for step, mark in enumerate(steps):
+            if mark in "xX":
+                out.append((grid.at(bar, step), mark == "X"))
+    return out
+
+
+def harmony(grid, spec):
+    """[(acorde, tiempos)] → [(segundo, duración, notas)]. Tiene que cubrir el
+    loop exacto: una armonía corta dejaría un hueco antes de la costura."""
+    out = []
+    t = 0.0
+    for text, beats in spec:
+        out.append((t, beats * grid.beat, chord(text)))
+        t += beats * grid.beat
+    assert abs(t - grid.bars * grid.bar) < 1e-6, "la armonía no cubre el loop"
+    return out
+
+
+def fifth_of(root, high=50):
+    """La quinta del bajo, en el registro que se oye en un teléfono."""
+    up = root + 7
+    return up if up <= high else root - 5
+
+
+def tremolo(env, hz, depth):
+    return lambda t: env(t) * (1.0 - depth * (0.5 + 0.5 * math.sin(TWO_PI * hz * t)))
+
+
+# Instrumentos: cada uno es play(buf, t0, dur, midi, vel) y suma con wrap.
+
+def lead(kind="square", amp=0.24, vib_hz=5.5, vib_depth=0.004, attack=0.006,
+         release=0.04, detune=0.0):
+    """Voz cantante sostenida. Con `detune`, dos osciladores abiertos en
+    cents: más gorda, como el lead de la Tierra pero a dúo."""
+    voices = (-detune, detune) if detune else (0.0,)
+    gain = amp / math.sqrt(len(voices))
+
+    def play(buf, t0, dur, m, vel=1.0):
+        e = env_sustain(dur, a=min(attack, dur * 0.4), r=min(release, dur * 0.4))
+        for cents in voices:
+            render_tone(buf, t0, dur, midi_hz(m), kind, gain * vel, e,
+                        vib_hz=vib_hz, vib_depth=vib_depth, detune_cents=cents,
+                        wrap=True)
+
+    return play
+
+
+def bass(kind="triangle", amp=0.34, release=0.03):
+    def play(buf, t0, dur, m, vel=1.0):
+        render_tone(buf, t0, dur, midi_hz(m), kind, amp * vel,
+                    env_sustain(dur, a=0.004, r=min(release, dur * 0.4)),
+                    wrap=True)
+
+    return play
+
+
+def pluck(kind="triangle", amp=0.2, ring=0.5, curve=4.5):
+    """Nota pulsada que suena `ring` segundos sin importar el largo escrito."""
+    def play(buf, t0, dur, m, vel=1.0):
+        render_tone(buf, t0, ring, midi_hz(m), kind, amp * vel,
+                    env_perc(ring, attack=0.003, curve=curve), wrap=True)
+
+    return play
+
+
+BELL_PARTIALS = ((1.0, 1.0, 3.0), (2.0, 0.45, 4.5), (2.76, 0.3, 6.0),
+                 (5.4, 0.12, 9.0))
+# El steel drum: parciales armónicos que se apagan rápido, más una octava
+# apenas desafinada que le da el batido del parche.
+PAN_PARTIALS = ((1.0, 1.0, 4.0), (2.0, 0.5, 5.5), (3.0, 0.2, 7.0),
+                (2.006, 0.18, 5.5))
+
+
+def bell(amp=0.2, ring=1.8, partials=BELL_PARTIALS):
+    def play(buf, t0, dur, m, vel=1.0):
+        f = midi_hz(m)
+        for ratio, gain, curve in partials:
+            if f * ratio < 16000.0:
+                render_tone(buf, t0, ring, f * ratio, "sine", amp * gain * vel,
+                            env_perc(ring, attack=0.002, curve=curve), wrap=True)
+
+    return play
+
+
+def vibes(amp=0.22, ring=1.1):
+    """Vibráfono: seno con trémolo de motor y un parcial agudo que se apaga
+    enseguida (el golpe de la baqueta)."""
+    def play(buf, t0, dur, m, vel=1.0):
+        f = midi_hz(m)
+        length = max(ring, dur)
+        render_tone(buf, t0, length, f, "sine", amp * vel,
+                    tremolo(env_perc(length, attack=0.003, curve=2.6), 5.5, 0.35),
+                    wrap=True)
+        render_tone(buf, t0, 0.25, f * 4.0, "sine", amp * 0.18 * vel,
+                    env_perc(0.25, attack=0.002, curve=8.0), wrap=True)
+
+    return play
+
+
+def epiano(amp=0.12):
+    """Piano eléctrico: fundamental con trémolo, octava que decae rápido y el
+    'tine' agudo del ataque."""
+    def play(buf, t0, dur, m, vel=1.0):
+        f = midi_hz(m)
+        render_tone(buf, t0, dur, f, "sine", amp * vel,
+                    tremolo(env_perc(dur, attack=0.004, curve=2.2), 4.2, 0.25),
+                    wrap=True)
+        render_tone(buf, t0, dur, f * 2.0, "sine", amp * 0.3 * vel,
+                    env_perc(dur, attack=0.003, curve=5.0), wrap=True)
+        render_tone(buf, t0, 0.08, f * 7.0, "sine", amp * 0.06 * vel,
+                    env_perc(0.08, attack=0.001, curve=8.0), wrap=True)
+
+    return play
+
+
+def organ(amp=0.05, attack=0.15, release=0.3):
+    """Órgano de tiradores: los cuatro primeros armónicos en senos."""
+    def play(buf, t0, dur, m, vel=1.0):
+        f = midi_hz(m)
+        e = env_swell(dur, a=min(attack, dur * 0.4), r=min(release, dur * 0.4))
+        for ratio, gain in ((1.0, 1.0), (2.0, 0.5), (3.0, 0.28), (4.0, 0.16)):
+            render_tone(buf, t0, dur, f * ratio, "sine", amp * gain * vel, e,
+                        vib_hz=6.0, vib_depth=0.0015, wrap=True)
+
+    return play
+
+
+def pad(kind="triangle", amp=0.08, attack=0.6, release=0.8, detune=6.0,
+        vib_hz=4.8, vib_depth=0.003):
+    """Colchón: par desafinado que entra y sale suave (cuerdas, coro)."""
+    def play(buf, t0, dur, m, vel=1.0):
+        e = env_swell(dur, a=min(attack, dur * 0.45), r=min(release, dur * 0.45))
+        for cents in (-detune, detune):
+            render_tone(buf, t0, dur, midi_hz(m), kind, amp * vel, e,
+                        detune_cents=cents, vib_hz=vib_hz, vib_depth=vib_depth,
+                        wrap=True)
+
+    return play
+
+
+def stab(amp=0.07, ring=0.11):
+    """Acorde cortado: triangular con un poco de cuadrada para el filo."""
+    def play(buf, t0, dur, m, vel=1.0):
+        e = env_perc(ring, attack=0.002, curve=5.0)
+        render_tone(buf, t0, ring, midi_hz(m), "triangle", amp * vel, e, wrap=True)
+        render_tone(buf, t0, ring, midi_hz(m), "square", amp * 0.35 * vel, e, wrap=True)
+
+    return play
+
+
+def layered(*instruments):
+    def play(buf, t0, dur, m, vel=1.0):
+        for instrument in instruments:
+            instrument(buf, t0, dur, m, vel)
+
+    return play
+
+
+def echo(instrument, delay, taps=((1.0, 0), (0.45, 1), (0.2, 2))):
+    def play(buf, t0, dur, m, vel=1.0):
+        for gain, k in taps:
+            instrument(buf, t0 + k * delay, dur, m, vel * gain)
+
+    return play
+
+
+def play_chords(buf, chords, instrument, overlap=0.0, vel=1.0):
+    for t0, dur, notes in chords:
+        for m in notes:
+            instrument(buf, t0, dur + overlap, m, vel)
+
+
+# Percusión: todo envuelve, así que un golpe en el último paso suena entero.
+
+def kick(buf, t0, amp=0.5):
+    # Cae hasta 60 Hz y no hasta 45 como un bombo de verdad: abajo de eso el
+    # parlante de un teléfono no reproduce nada, pero el pico se come el
+    # margen de toda la mezcla.
+    render_tone(buf, t0, 0.2, glide(170.0, 60.0, 0.07), "sine", amp,
+                env_perc(0.2, attack=0.002, curve=5.0), wrap=True)
+
+
+def snare(buf, t0, rng, amp=0.4, tone=190.0, kind="triangle"):
+    render_noise(buf, t0, 0.16, amp, 0.045, rng, wrap=True)
+    render_tone(buf, t0, 0.09, tone, kind, amp * 0.6,
+                env_perc(0.09, attack=0.001, curve=6.0), wrap=True)
+
+
+def clap(buf, t0, rng, amp=0.35):
+    for offset, gain in ((0.0, 0.7), (0.011, 0.8)):
+        render_noise(buf, t0 + offset, 0.03, amp * gain, 0.008, rng, wrap=True)
+    render_noise(buf, t0 + 0.022, 0.14, amp, 0.04, rng, wrap=True)
+
+
+def hat(buf, t0, rng, amp=0.06, open_hat=False):
+    if open_hat:
+        render_noise(buf, t0, 0.14, amp * 1.2, 0.055, rng, wrap=True)
+    else:
+        render_noise(buf, t0, 0.05, amp, 0.018, rng, wrap=True)
+
+
+def shaker(buf, t0, rng, amp=0.04):
+    render_noise(buf, t0, 0.07, amp, 1.0, rng,
+                 env=env_swell(0.07, a=0.025, r=0.04), wrap=True)
+
+
+def rim(buf, t0, amp=0.18):
+    render_tone(buf, t0, 0.025, 1750.0, "square", amp,
+                env_perc(0.025, attack=0.0005, curve=8.0), wrap=True)
+    render_tone(buf, t0, 0.04, 820.0, "triangle", amp * 0.7,
+                env_perc(0.04, attack=0.0005, curve=7.0), wrap=True)
+
+
+def clave(buf, t0, amp=0.16):
+    render_tone(buf, t0, 0.07, 2500.0, "sine", amp,
+                env_perc(0.07, attack=0.0005, curve=6.0), wrap=True)
+    render_tone(buf, t0, 0.05, 5000.0, "sine", amp * 0.2,
+                env_perc(0.05, attack=0.0005, curve=8.0), wrap=True)
+
+
+def drum_tone(buf, t0, f, amp=0.35, dur=0.2, bend=1.3, curve=5.0):
+    """Conga, tom o timbal: un seno que cae de `f·bend` a `f`."""
+    render_tone(buf, t0, dur, glide(f * bend, f, min(0.08, dur * 0.3)), "sine",
+                amp, env_perc(dur, attack=0.001, curve=curve), wrap=True)
+
+
+def music_alley_loop():
+    """Callejón: blues en Re menor arrastrando los pies. Shuffle a 84 BPM, un
+    bajo que camina, una armónica (pulso 25 %) perezosa con la nota triste
+    (Lab), acordes al contratiempo y una batería de lata: bombo, tacho y
+    platillo sucio, con el crujido de un disco gastado."""
+    g = Grid(84, 8, 8, swing=0.30)
+    buf = [0.0] * g.samples
+    rng = random.Random(1101)
+
+    play_line(buf, g, """
+        D2 - F2 - A2 - C3 -   | G2 - Bb2 - C3 - C#3 - | D3 - C3 - A2 - F2 -
+        A2 - C#3 - E3 - C#3 - | D2 - F2 - A2 - C3 -   | G2 - F2 - G2 - A2 -
+        Bb2 - D3 - F2 - Ab2 - | A2 - E2 - A1 - C#2 -
+    """, bass(amp=0.36), gate=0.85)
+
+    play_line(buf, g, """
+        . . A4 C5 D5 - C5 A4   | G4 - - . F4 G4 Bb4 -  | A4 - - - . . . .
+        . . E5 D5 C#5 - A4 -   | D5 - F5 - G5 Ab5 G5 F5 | D5 - - . Bb4 C5 D5 -
+        F5 - D5 - Ab4 - Bb4 -  | A4 - - - . . . .
+    """, lead("pulse25", amp=0.2, vib_hz=5.0, vib_depth=0.006, attack=0.025,
+              release=0.06))
+
+    # Acordes al contratiempo de 2 y 4 (pasos impares: el swing los empuja).
+    comp = ["F3 A3 C4", "F3 Bb3 D4", "F3 A3 C4", "E3 G3 C#4",
+            "F3 A3 C4", "F3 Bb3 D4", "F3 Ab3 D4", "E3 G3 C#4"]
+    play_stab = stab(amp=0.075)
+    for bar, voicing in enumerate(comp):
+        for step in (3, 7):
+            for m in chord(voicing):
+                play_stab(buf, g.at(bar, step), 0.0, m)
+
+    for t0, _ in hits(g, "x . . . x . . ."):
+        kick(buf, t0, amp=0.45)
+    for bar in (3, 7):
+        kick(buf, g.at(bar, 7), amp=0.4)
+    # El "tacho": ruido con un tono metálico de cuadrada.
+    for t0, _ in hits(g, ". . x . . . x ."):
+        snare(buf, t0, rng, amp=0.3, tone=330.0, kind="square")
+    for t0, _ in hits(g, "x x x x x x x x"):
+        hat(buf, t0, rng, amp=0.04)
+    hat(buf, g.at(7, 7), rng, amp=0.07, open_hat=True)
+
+    # Crujido de vinilo: chasquidos sueltos en lugares fijos (semilla fija).
+    pops = random.Random(84)
+    for _ in range(int(g.bars * g.bar * 2.5)):
+        render_noise(buf, pops.uniform(0.0, g.bars * g.bar), 0.002,
+                     pops.uniform(0.02, 0.06), 0.0006, rng, wrap=True)
+    return buf
+
+
+def music_urban_loop():
+    """Ciudad: funk de avenida en Mi menor a 112 BPM. Bajo de octavas en
+    semicorcheas, acordes cortados a contratiempo, palmas en 2 y 4, una
+    melodía pegadiza de cuadrada y, al cerrar la vuelta, dos bocinazos."""
+    g8 = Grid(112, 12, 8)
+    g16 = Grid(112, 12, 16)
+    buf = [0.0] * g8.samples
+    rng = random.Random(1102)
+
+    roots = ["E2", "C2", "G2", "D2", "E2", "C2", "G2", "D2", "A2", "B2", "C2", "D2"]
+    voicings = ["G3 B3 D4 E4", "G3 B3 C4 E4", "G3 B3 D4", "F#3 A3 D4",
+                "G3 B3 D4 E4", "G3 B3 C4 E4", "G3 B3 D4", "F#3 A3 D4",
+                "G3 A3 C4 E4", "F#3 A3 B3 D4", "G3 B3 C4 E4", "F#3 A3 D4"]
+
+    # Bajo: R = raíz, O = octava, F = quinta; semicorcheas cortas.
+    play_bass = bass("pulse25", amp=0.2, release=0.02)
+    for bar, root in enumerate(roots):
+        r = note(root)
+        for step, mark in enumerate("R..R..O.R.RO..F."):
+            if mark == ".":
+                continue
+            m = {"R": r, "O": r + 12, "F": r + 7}[mark]
+            play_bass(buf, g16.at(bar, step), g16.step * 0.7, m)
+
+    play_stab = stab(amp=0.06, ring=0.09)
+    for bar, voicing in enumerate(voicings):
+        for step in (2, 6, 10, 13):
+            for m in chord(voicing):
+                play_stab(buf, g16.at(bar, step), 0.0, m)
+
+    play_line(buf, g8, """
+        E5 - G5 - B5 - A5 G5 | E5 - - - . . D5 E5 | D5 - B4 - G4 - A4 B4 | A4 - - - . . . .
+        E5 - G5 - B5 - D6 -  | C6 - B5 - G5 - E5 - | D5 - G5 - B5 - A5 G5 | F#5 - - - . . A5 -
+        G5 - E5 - C5 - E5 -  | F#5 - D5 - B4 - D5 - | E5 - G5 - E5 - C5 - | D5 - - - F#5 - . .
+    """, lead("square", amp=0.2, vib_depth=0.003))
+
+    # Dos bocinazos de auto en el último tiempo: una tercera mayor que cae.
+    for step in (12, 14):
+        t0 = g16.at(11, step)
+        for f in (midi_hz(note("D4")), midi_hz(note("F#4"))):
+            render_tone(buf, t0, 0.12, glide(f, f * 0.97, 0.12), "square", 0.07,
+                        env_sustain(0.12, a=0.004, r=0.02), wrap=True)
+
+    for t0, _ in hits(g16, "x . . . . . x . x . . . . . . ."):
+        kick(buf, t0, amp=0.3)
+    for t0, _ in hits(g16, ". . . . x . . . . . . . x . . ."):
+        clap(buf, t0, rng, amp=0.2)
+    for t0, accent in hits(g16, "X x X x X x X x X x X x X x X x"):
+        hat(buf, t0, rng, amp=0.04 if accent else 0.025)
+    for bar in range(1, g16.bars, 2):
+        hat(buf, g16.at(bar, 14), rng, amp=0.05, open_hat=True)
+    return buf
+
+
+def music_corporate_loop():
+    """Corporativo: bossa de ascensor en Do mayor a 90 BPM. Piano eléctrico
+    con trémolo, un vibráfono amable, bajo de bossa, aro de redoblante en la
+    clave y un teclado que tipea de fondo. Sala de espera: educada hasta la
+    ironía."""
+    g = Grid(90, 8, 8)
+    g16 = Grid(90, 8, 16)
+    buf = [0.0] * g.samples
+    rng = random.Random(1103)
+
+    roots = ["C3", "A2", "D3", "G2", "E2", "A2", "D3", "G2"]
+    voicings = ["E3 G3 B3 D4", "E3 G3 C4", "F3 A3 C4 E4", "F3 B3 E4",
+                "D3 G3 B3", "C#3 G3 B3", "F3 A3 C4 E4", "F3 B3 E4"]
+
+    # Comping de bossa: la clave repartida en dos compases.
+    play_ep = epiano(amp=0.085)
+    for bar, voicing in enumerate(voicings):
+        for step in ((0, 3, 6) if bar % 2 == 0 else (2, 5)):
+            for m in chord(voicing):
+                play_ep(buf, g.at(bar, step), g.step * 1.6, m)
+
+    play_bass = bass(amp=0.34)
+    for bar, root in enumerate(roots):
+        r = note(root)
+        for step, length, m in ((0, 3, r), (3, 3, fifth_of(r)), (6, 2, r)):
+            play_bass(buf, g.at(bar, step), g.step * length * 0.9, m)
+
+    play_line(buf, g, """
+        E5 - - D5 E5 - G5 - | A5 - - - G5 - E5 - | F5 - - E5 F5 - A5 - | G5 - - - F5 - D5 -
+        B4 - - - D5 - E5 -  | C#5 - - - E5 - G5 - | F5 - E5 - D5 - C5 - | B4 - - - D5 - . .
+    """, vibes(amp=0.2))
+
+    for bar in range(g.bars):
+        for step in ((0, 3, 6) if bar % 2 == 0 else (2, 4)):
+            rim(buf, g.at(bar, step), amp=0.12)
+    for t0, _ in hits(g, "x . . x x . . x"):
+        kick(buf, t0, amp=0.35)
+    for t0, accent in hits(g16, "x x X x x x X x x x X x x x X x"):
+        shaker(buf, t0, rng, amp=0.035 if accent else 0.02)
+
+    # El teclado de la oficina: tecleo suelto en semicorcheas al azar fijo.
+    typing = random.Random(1103)
+    for index in range(g16.bars * g16.steps_per_bar):
+        if typing.random() < 0.3:
+            t0 = g16.t(index) + typing.uniform(0.0, g16.step * 0.5)
+            render_tone(buf, t0, 0.012, 3200.0, "square", 0.025,
+                        env_perc(0.012, attack=0.0005, curve=6.0), wrap=True)
+            render_noise(buf, t0, 0.004, 0.04, 0.001, rng, wrap=True)
+    return buf
+
+
+def music_luxury_loop():
+    """Lujo: lounge en Reb mayor a 76 BPM con swing. Arpa de triangulares al
+    entrar cada acorde, cuerdas suaves, contrabajo en blancas, trompeta con
+    sordina (pulso 25 % con vibrato lento), escobillas, ride y burbujas de
+    champán."""
+    g = Grid(76, 8, 8, swing=0.28)
+    g16 = Grid(76, 8, 16)
+    buf = [0.0] * g.samples
+    rng = random.Random(1104)
+
+    chords = harmony(g, [
+        ("F3 Ab3 C4 Eb4", 4), ("Db3 F3 Ab3 C4", 4), ("Gb3 Bb3 Db4 F4", 4),
+        ("Gb3 C4 F4", 4), ("F3 Ab3 C4 Eb4", 4), ("Bb3 Db4 F4 Ab4", 4),
+        ("Eb3 Ab3 C4", 2), ("Db3 F3 Ab3", 2), ("Gb3 Bb3 Db4 F4", 2),
+        ("Gb3 C4 F4", 2),
+    ])
+    roots = ["Db2", "Bb2", "Eb2", "Ab2", "Db2", "Gb2", "F2", "Bb2", "Eb2", "Ab2"]
+
+    play_chords(buf, chords, pad("triangle", amp=0.05, attack=0.35, release=0.45,
+                                 detune=5.0), overlap=0.25)
+
+    play_bass = bass(amp=0.34)
+    for (t0, dur, _), root in zip(chords, roots):
+        r = note(root)
+        if dur > 3 * g.beat:
+            play_bass(buf, t0, 2 * g.beat * 0.9, r)
+            play_bass(buf, t0 + 2 * g.beat, 2 * g.beat * 0.9, fifth_of(r))
+        else:
+            play_bass(buf, t0, dur * 0.9, r)
+
+    # Arpa: el acorde subido en semicorcheas y su octava, con un eco corto.
+    harp = echo(pluck("triangle", amp=0.09, ring=0.9, curve=3.5), g.beat * 0.75,
+                taps=((1.0, 0), (0.35, 1)))
+    for t0, _, notes in chords:
+        for k, m in enumerate(notes + [n + 12 for n in notes[:2]]):
+            harp(buf, t0 + k * g16.step, 0.0, m)
+
+    play_line(buf, g, """
+        F5 - - Eb5 F5 - Ab5 - | Db6 - - - C6 - Ab5 - | Gb5 - - F5 Gb5 - Bb5 - | Ab5 - - - F5 - - .
+        C6 - Ab5 - F5 - Eb5 - | F5 - - - Db5 - Bb4 - | Ab4 - C5 - Db5 - F5 -   | Eb5 - - - . . . .
+    """, lead("pulse25", amp=0.15, vib_hz=4.6, vib_depth=0.005, attack=0.035,
+              release=0.08))
+
+    for t0, _ in hits(g, ". . x . . . x ."):
+        render_noise_lp(buf, t0, 0.2, 0.22, rng, 0.35,
+                        env_swell(0.2, a=0.06, r=0.12), wrap=True)
+    for t0, _ in hits(g, "x . x x x . x x"):
+        render_noise(buf, t0, 0.18, 0.03, 0.09, rng, wrap=True)
+
+    # Burbujas de champán: cuatro pings agudos subiendo, compás por medio.
+    bubbles = bell(amp=0.05, ring=0.35)
+    fizz = random.Random(76)
+    for bar in (1, 3, 5, 7):
+        for k in range(4):
+            m = note("Ab6") + fizz.choice((0, 2, 4, 7)) + 2 * k
+            bubbles(buf, g.at(bar, 6) + k * 0.07, 0.0, m)
+    return buf
+
+
+def music_island_loop():
+    """Isla: calipso en Fa mayor a 108 BPM. Melodía de steel drum, acordes en
+    los contratiempos, un bajo que salta, la clave 3-2, congas y shaker."""
+    g = Grid(108, 12, 8)
+    g16 = Grid(108, 12, 16)
+    buf = [0.0] * g.samples
+    rng = random.Random(1105)
+
+    roots = ["F2", "Bb2", "C3", "F2", "F2", "Bb2", "C3", "F2", "D3", "Bb2", "C3", "C3"]
+    voicings = {"F2": "A3 C4 F4", "Bb2": "Bb3 D4 F4", "C3": "Bb3 C4 E4",
+                "D3": "A3 D4 F4"}
+
+    play_bass = bass(amp=0.3)
+    for bar, root in enumerate(roots):
+        r = note(root)
+        for step, length, m in ((0, 3, r), (3, 1, r), (4, 2, fifth_of(r)), (6, 1, r + 12)):
+            play_bass(buf, g.at(bar, step), g.step * length * 0.85, m)
+
+    # Un colchón muy bajo: el steel drum es todo ataque, y sin algo sostenido
+    # el tema es puro pico y, con el techo de -9 dBFS, queda más bajo que el
+    # resto de la torre.
+    play_pad = pad("triangle", amp=0.035, attack=0.2, release=0.3, detune=6.0)
+    play_stab = stab(amp=0.055, ring=0.09)
+    for bar, root in enumerate(roots):
+        for m in chord(voicings[root]):
+            play_pad(buf, g.at(bar, 0), g.bar + 0.1, m)
+        for step in (1, 3, 5, 7):
+            for m in chord(voicings[root]):
+                play_stab(buf, g.at(bar, step), 0.0, m)
+
+    play_line(buf, g, """
+        C6 - A5 C6 - A5 G5 F5   | D6 - Bb5 D6 - Bb5 A5 G5 | E5 - G5 Bb5 - G5 E5 C5 | F5 - - - . . A5 G5
+        A5 - C6 - F6 - C6 A5    | Bb5 - D6 - F6 - D6 Bb5  | C6 - Bb5 - G5 - E5 -    | F5 - - - . . . .
+        D6 - A5 D6 - A5 F5 -    | F5 - D5 F5 - D5 Bb4 -   | C5 - E5 G5 - Bb5 - -   | C6 - - . G5 - E5 -
+    """, bell(amp=0.2, ring=0.6, partials=PAN_PARTIALS))
+
+    for bar in range(g16.bars):
+        for step in ((0, 6, 12) if bar % 2 == 0 else (4, 8)):
+            clave(buf, g16.at(bar, step), amp=0.12)
+    for t0, _ in hits(g16, ". . . x . . . . . . . x . . . ."):
+        drum_tone(buf, t0, 290.0, amp=0.15)
+    for t0, _ in hits(g16, ". . . . . . x x . . . . . . x x"):
+        drum_tone(buf, t0, 200.0, amp=0.18)
+    for t0, _ in hits(g16, "x . . . . . . . x . . . . . . ."):
+        kick(buf, t0, amp=0.25)
+    for t0, accent in hits(g16, "x x X x x x X x x x X x x x X x"):
+        shaker(buf, t0, rng, amp=0.04 if accent else 0.025)
+    return buf
+
+
+def music_moon_loop():
+    """Luna: Fa lidio a 64 BPM, ralo y flotando. Colchones que respiran,
+    "bloops" de baja gravedad con eco, un latido grave por compás y el pitido
+    de radio del Apolo (2525 Hz) bien al fondo."""
+    g = Grid(64, 8, 8)
+    buf = [0.0] * g.samples
+    rng = random.Random(1106)
+
+    chords = harmony(g, [
+        ("F3 A3 C4 E4 B4", 8), ("F3 G3 B3 D4", 8), ("E3 G3 B3 D4", 8),
+        ("E3 G3 A3 C4", 8),
+    ])
+    play_chords(buf, chords, pad("sine", amp=0.07, attack=1.3, release=1.3,
+                                 detune=4.0))
+    play_chords(buf, chords, pad("triangle", amp=0.025, attack=1.6, release=1.6,
+                                 detune=7.0))
+
+    # El latido: dos golpes graves al empezar cada compás.
+    roots = ["F2", "F2", "G2", "G2", "E2", "E2", "A2", "A2"]
+    for bar, root in enumerate(roots):
+        f = midi_hz(note(root))
+        for offset, amp in ((0.0, 0.22), (0.28, 0.14)):
+            drum_tone(buf, g.at(bar, 0) + offset, f, amp=amp, dur=0.35, bend=1.15,
+                      curve=4.0)
+
+    def bloop(buf, t0, dur, m, vel=1.0):
+        f = midi_hz(m)
+        render_tone(buf, t0, 0.45, glide(f * 0.75, f, 0.05), "sine", 0.17 * vel,
+                    env_perc(0.45, attack=0.003, curve=5.0), wrap=True)
+
+    play_line(buf, g, """
+        C5 . . E5 . . B5 .   | . . A5 . . G5 . .  | D5 . . F5 . . C6 . | . . B5 . . . . .
+        E5 . . G5 . . B5 .   | . . D6 . . B5 . .  | A5 . . C6 . . E6 . | . . G5 . . . . .
+    """, echo(bloop, g.step * 3))
+
+    # Quindar: el tono de entrada (2525 Hz) y el de salida (2475 Hz).
+    for bar, f in ((3, 2525.0), (7, 2475.0)):
+        render_tone(buf, g.at(bar, 4), 0.25, f, "sine", 0.025,
+                    env_sustain(0.25, a=0.01, r=0.02), wrap=True)
+
+    # Polvo lunar: un soplo oscuro en cada cambio de acorde.
+    for t0, _, _ in chords:
+        render_noise_lp(buf, t0 - 1.0, 2.0, 0.12, rng, 0.04,
+                        env_swell(2.0, a=1.2, r=0.8), wrap=True)
+    return buf
+
+
+def music_mars_loop():
+    """Marte: Re menor frigio a 96 BPM, desierto rojo y aventura. Ostinato de
+    bajo en corcheas (pulso), toms de expedición a medio tiempo, metales
+    cuadrados, una melodía heroica con la segunda menor (Mib) que la vuelve
+    rara, viento de polvo y un rayo láser al cerrar la vuelta."""
+    g = Grid(96, 8, 8)
+    g16 = Grid(96, 8, 16)
+    buf = [0.0] * g.samples
+    rng = random.Random(1107)
+
+    roots = ["D2", "Eb2", "C2", "D2", "Bb2", "Eb2", "G2", "A2"]
+    voicings = ["D3 F3 A3", "Eb3 G3 Bb3", "C3 E3 G3", "D3 F3 A3",
+                "D3 F3 Bb3", "Eb3 G3 Bb3", "D3 G3 Bb3", "C#3 E3 A3"]
+
+    play_bass = bass("pulse25", amp=0.26, release=0.02)
+    for bar, root in enumerate(roots):
+        r = note(root)
+        for step, mark in enumerate("RROR RORF".replace(" ", "")):
+            m = {"R": r, "O": r + 12, "F": r + 7}[mark]
+            play_bass(buf, g.at(bar, step), g.step * 0.75, m)
+
+    brass = pad("square", amp=0.03, attack=0.08, release=0.25, detune=4.0,
+                vib_depth=0.0)
+    for bar, voicing in enumerate(voicings):
+        for m in chord(voicing):
+            brass(buf, g.at(bar, 0), g.bar * 0.95, m)
+
+    play_line(buf, g, """
+        D5 - - - A4 - D5 Eb5 | G5 - - - F5 - Eb5 - | G5 - - - C5 - D5 - | F5 - - - D5 - - .
+        F5 - - - D5 - F5 Bb5 | G5 - - - Bb5 - G5 - | D5 - - - Bb4 - G4 - | A4 - - - C#5 - E5 -
+    """, lead("square", amp=0.2, detune=6.0, vib_hz=5.0, vib_depth=0.004))
+
+    for t0, _ in hits(g16, "x . . . . . x . . . x . . . . ."):
+        drum_tone(buf, t0, 82.0, amp=0.36, dur=0.35, bend=1.6, curve=4.5)
+    for t0, _ in hits(g16, ". . . x . . . . . . . . x . x ."):
+        drum_tone(buf, t0, 123.0, amp=0.26, dur=0.3, bend=1.6, curve=4.5)
+    for t0, _ in hits(g16, ". . . . . . . . x . . . . . . ."):
+        snare(buf, t0, rng, amp=0.3, tone=170.0)
+    for t0, _ in hits(g16, "x . x . x . x . x . x . x . x ."):
+        hat(buf, t0, rng, amp=0.03)
+
+    # Viento de polvo: ruido oscuro que sube y baja cada cuatro compases.
+    for bar in (0, 4):
+        render_noise_lp(buf, g.at(bar, 0), 4 * g.bar, 0.5, rng, 0.03,
+                        env_swell(4 * g.bar, a=2 * g.bar, r=2 * g.bar), wrap=True)
+
+    # El láser: una cuadrada que cae al final de la vuelta.
+    render_tone(buf, g.at(7, 6), 0.25, glide(1400.0, 180.0, 0.25), "square", 0.05,
+                env_perc(0.25, attack=0.002, curve=3.0), wrap=True)
+    return buf
+
+
+def music_solar_loop():
+    """Sistema solar: Do lidio a 116 BPM, todo brilla y gira. Dos arpegiadores
+    con ciclos distintos (sube y baja en 16, y otro de 3 notas que no reinicia
+    con el compás) se desfasan como órbitas; colchón ancho, bajo largo y una
+    melodía de notas largas."""
+    g8 = Grid(116, 12, 8)
+    g16 = Grid(116, 12, 16)
+    buf = [0.0] * g8.samples
+    rng = random.Random(1108)
+
+    tones = {
+        "Cmaj7": "C4 E4 G4 B4", "D/C": "C4 D4 F#4 A4", "Em7": "E4 G4 B4 D5",
+        "D": "D4 F#4 A4 D5", "Bm7": "D4 F#4 A4 B4", "Am7": "C4 E4 G4 A4",
+    }
+    progression = ["Cmaj7", "D/C", "Em7", "D", "Cmaj7", "D/C", "Bm7", "Em7",
+                   "Am7", "Bm7", "Cmaj7", "D"]
+    roots = ["C3", "C3", "E2", "D3", "C3", "C3", "B2", "E2", "A2", "B2", "C3", "D3"]
+
+    orbit_a = pluck("pulse25", amp=0.07, ring=0.14, curve=5.0)
+    orbit_b = echo(pluck("triangle", amp=0.07, ring=0.25, curve=4.0), g16.step * 3,
+                   taps=((1.0, 0), (0.4, 1)))
+    cycle_b = (0, 2, 4)
+    shape_a = (0, 1, 2, 3, 4, 3, 2, 1, 0, 1, 2, 3, 4, 3, 2, 1)
+    for bar, name in enumerate(progression):
+        notes = chord(tones[name])
+        notes = notes + [notes[0] + 12, notes[1] + 12]
+        for step in range(16):
+            orbit_a(buf, g16.at(bar, step), 0.0, notes[shape_a[step]])
+            index = bar * 16 + step
+            if index % 2 == 0:
+                orbit_b(buf, g16.at(bar, step), 0.0,
+                        notes[cycle_b[(index // 2) % 3]] + 12)
+
+    warm = pad("triangle", amp=0.05, attack=0.3, release=0.4, detune=6.0)
+    play_bass = bass(amp=0.32)
+    for bar, (name, root) in enumerate(zip(progression, roots)):
+        for m in chord(tones[name])[:3]:
+            warm(buf, g8.at(bar, 0), g8.bar + 0.2, m - 12)
+        play_bass(buf, g8.at(bar, 0), g8.bar * 0.95, note(root))
+
+    play_line(buf, g8, """
+        E5 - - - G5 - - -  | F#5 - - - A5 - - - | B5 - - - - - G5 - | A5 - - - - - - .
+        E5 - - - G5 - B5 - | D6 - - - C6 - A5 - | B5 - - - F#5 - D5 - | E5 - - - - - . .
+        C6 - - - B5 - A5 - | B5 - - - A5 - F#5 - | G5 - - - E5 - G5 - | F#5 - - - - - - .
+    """, lead("square", amp=0.17, detune=4.0, vib_depth=0.004, attack=0.02,
+              release=0.08))
+
+    for t0, _ in hits(g8, "x . . . x . . ."):
+        kick(buf, t0, amp=0.42)
+    for t0, _ in hits(g8, ". . x . . . x ."):
+        snare(buf, t0, rng, amp=0.25, tone=220.0)
+    for t0, _ in hits(g8, "x x x x x x x x"):
+        hat(buf, t0, rng, amp=0.03)
+    # Una erupción solar cada cuatro compases.
+    for bar in (3, 7, 11):
+        render_noise_lp(buf, g8.at(bar, 4), 2 * g8.beat, 0.15, rng, 0.15,
+                        env_swell(2 * g8.beat, a=1.6 * g8.beat, r=0.4 * g8.beat),
+                        wrap=True)
+    return buf
+
+
+# La galaxia es el loop cósmico de la v1 (72 BPM, 8 compases ≈ 26,667 s), que
+# se generaba pero nunca llegó a sonar: pads que respiran y estrellas con eco.
+COSMIC_BPM = 72
+COSMIC_BARS = 8
+
+COSMIC_PADS = [  # 2 compases por acorde
+    [57, 60, 64, 71],  # Am(add9)
+    [53, 57, 60, 64],  # Fmaj7
+    [55, 60, 64, 71],  # Cmaj7
+    [55, 59, 62, 64],  # G6
+]
+COSMIC_ROOTS = [45, 41, 48, 43]  # A2 F2 C3 G2
+COSMIC_STARS = [  # (compás, beat, midi, beats de duración)
+    (0, 2.0, 76, 2.0),
+    (1, 0.0, 83, 3.0),
+    (2, 2.0, 81, 2.0),
+    (3, 0.0, 84, 3.0),
+    (4, 2.0, 76, 2.0),
+    (5, 0.0, 83, 3.0),
+    (6, 2.0, 86, 2.0),
+    (7, 0.0, 83, 1.5),
+    (7, 2.0, 81, 2.0),  # la cola envuelve al inicio del loop
+]
+
+
+def music_galaxy_loop():
+    beat = 60.0 / COSMIC_BPM
+    bar = 4.0 * beat
+    total = int(round(COSMIC_BARS * bar * SR))  # 1176000
+    buf = [0.0] * total
+    rng = random.Random(2001)
+
+    # Pads: pares de triangulares detuneadas por nota + capa de cuadrada
+    # suave en la voz superior. Swell smoothstep que llega a 0 en el borde.
+    for ci, chord_notes in enumerate(COSMIC_PADS):
+        t0 = ci * 2 * bar
+        dur = 2 * bar
+        e = env_swell(dur, a=1.4, r=1.4)
+        for m in chord_notes:
+            for det in (-6.0, 6.0):
+                render_tone(buf, t0, dur, midi_hz(m), "triangle", 0.16, e,
+                            detune_cents=det, wrap=True)
+        render_tone(buf, t0, dur, midi_hz(chord_notes[-1]), "square", 0.07, e,
+                    detune_cents=-4.0, vib_hz=4.5, vib_depth=0.003, wrap=True)
+        # Sub: seno en la raíz.
+        render_tone(buf, t0, dur, midi_hz(COSMIC_ROOTS[ci]), "sine", 0.30,
+                    env_swell(dur, a=0.9, r=0.9), wrap=True)
+
+    # Estrellas: senos agudos sueltos con eco (las colas envuelven el loop).
+    delay = 0.75 * beat
+    for bar_i, beat_i, m, beats in COSMIC_STARS:
+        t0 = (bar_i * 4 + beat_i) * beat
+        dur = beats * beat
+        for gain, offset in ((1.0, 0.0), (0.45, delay), (0.20, 2 * delay)):
+            render_tone(buf, t0 + offset, dur, midi_hz(m), "sine",
+                        0.16 * gain, env_perc(dur, attack=0.015, curve=3.0),
+                        vib_hz=5.0, vib_depth=0.003, wrap=True)
+
+    # Percusión mínima: hat suave en beats 2 y 4.
+    for bar_i in range(COSMIC_BARS):
+        for beat_i in (1.0, 3.0):
+            t0 = (bar_i * 4 + beat_i) * beat
+            render_noise(buf, t0, 0.10, 0.035, 0.035, rng, wrap=True)
+
+    # Respiración espacial: swell de ruido entrando a los compases 0 y 4.
+    for target_bar in (4, 8):
+        dur = 2.0 * beat
+        t0 = target_bar * bar - dur  # el de compás 8 envuelve al 0
+        render_noise(buf, t0, dur, 0.030, 1.0, rng, wrap=True,
+                     env=env_swell(dur, a=dur * 0.8, r=dur * 0.2))
+    return buf
+
+
+def music_god_realm_loop():
+    """Reino divino: Re mayor a 66 BPM, solemne y luminoso. Órgano de senos,
+    coro de triangulares con vibrato, un glissando de arpa al abrir cada
+    frase, campanas en el primer tiempo, timbal suave y una voz angelical de
+    notas largas."""
+    g = Grid(66, 8, 8)
+    buf = [0.0] * g.samples
+
+    spec = [("D", 4), ("G/D", 4), ("D", 4), ("A/C#", 4), ("Bm", 4), ("G", 4),
+            ("Em7", 4), ("Asus4", 2), ("A", 2)]
+    low = {"D": "D3 A3 D4 F#4", "G/D": "D3 G3 B3 D4", "A/C#": "C#3 E3 A3 C#4",
+           "Bm": "B2 F#3 B3 D4", "G": "G2 D3 G3 B3", "Em7": "E3 G3 B3 D4",
+           "Asus4": "A2 D3 E3 A3", "A": "A2 C#3 E3 A3"}
+    high = {"D": "A4 D5 F#5", "G/D": "B4 D5 G5", "A/C#": "A4 C#5 E5",
+            "Bm": "B4 D5 F#5", "G": "B4 D5 G5", "Em7": "B4 E5 G5",
+            "Asus4": "A4 D5 E5", "A": "A4 C#5 E5"}
+    organ_chords = harmony(g, [(low[name], beats) for name, beats in spec])
+    choir_chords = harmony(g, [(high[name], beats) for name, beats in spec])
+
+    play_chords(buf, organ_chords, organ(amp=0.045), overlap=0.15)
+    play_chords(buf, choir_chords, pad("triangle", amp=0.045, attack=0.5,
+                                       release=0.6, detune=7.0, vib_hz=5.2,
+                                       vib_depth=0.004), overlap=0.3)
+
+    # Campanas al empezar cada acorde; la del principio de la frase, más fuerte.
+    church = bell(amp=0.06, ring=2.2)
+    for k, (t0, _, notes) in enumerate(organ_chords):
+        church(buf, t0, 0.0, notes[0] + 36 if notes[0] + 36 <= 86 else notes[0] + 24,
+               1.4 if k in (0, 4) else 1.0)
+
+    # Glissando de arpa y timbal al abrir cada frase de cuatro compases.
+    harp = pluck("triangle", amp=0.08, ring=1.2, curve=3.0)
+    for bar in (0, 4):
+        t0 = g.at(bar, 0)
+        for k, name in enumerate("D4 F#4 A4 D5 F#5 A5 D6 F#6".split()):
+            harp(buf, t0 + k * 0.06, 0.0, note(name))
+        drum_tone(buf, t0, 73.4, amp=0.28, dur=0.9, bend=1.5, curve=3.5)
+
+    play_line(buf, g, """
+        F#5 - - - - - A5 - | B5 - - - A5 - G5 - | F#5 - - - - - D5 - | E5 - - - - - . .
+        D5 - - - F#5 - B5 - | D6 - - - B5 - G5 - | A5 - - - G5 - F#5 - | D5 - - - C#5 - - .
+    """, layered(
+        lead("sine", amp=0.17, vib_hz=5.5, vib_depth=0.005, attack=0.08, release=0.15),
+        lead("triangle", amp=0.06, vib_hz=5.5, vib_depth=0.005, attack=0.08,
+             release=0.15),
+    ))
+    return buf
+
+
+# ---------------------------------------------------------------------------
 # Pipeline
 # ---------------------------------------------------------------------------
 
@@ -490,10 +1474,33 @@ SFX = {
     "sfx_prestige": sfx_prestige,
     "sfx_event": sfx_event,
     "sfx_daily": sfx_daily,
+    "sfx_wheel_tick": sfx_wheel_tick,
+    "sfx_blackout": sfx_blackout,
+    "sfx_elevator_ding": sfx_elevator_ding,
 }
 MUSIC = {
     "music_earth_loop": music_earth_loop,
 }
+# Un tema por piso, con el id de `economy.json` en el nombre: es el contrato
+# que lee `FloorMusicDirector.track(forFloor:)`.
+FLOOR_MUSIC = {
+    "music_alley_loop": music_alley_loop,
+    "music_urban_loop": music_urban_loop,
+    "music_corporate_loop": music_corporate_loop,
+    "music_luxury_loop": music_luxury_loop,
+    "music_island_loop": music_island_loop,
+    "music_moon_loop": music_moon_loop,
+    "music_mars_loop": music_mars_loop,
+    "music_solar_loop": music_solar_loop,
+    "music_galaxy_loop": music_galaxy_loop,
+    "music_god_realm_loop": music_god_realm_loop,
+}
+FLOOR_MUSIC_RMS_DB = -20.0
+FLOOR_MUSIC_PEAK_DB = -9.0
+# Mono a 80 kbps. Medido sobre el loop de la Tierra: 64 kbps da 33,7 dB de
+# SNR, 80 da 35,7 y 96 da 37,3; 80 es el margen sobre 64 por ~35 KB más por
+# tema, y 96 sumaría peso sin que se note en el parlante de un teléfono.
+FLOOR_MUSIC_BITRATE = 80000
 
 
 def afconvert(wav_path, out_path):
@@ -503,34 +1510,95 @@ def afconvert(wav_path, out_path):
     )
 
 
+def afconvert_aac(wav_path, out_path):
+    subprocess.run(
+        ["/usr/bin/afconvert", wav_path, out_path, "-d", "aac", "-f", "caff",
+         "-b", str(FLOOR_MUSIC_BITRATE)],
+        check=True,
+    )
+
+
+def check_aac_loop(name, caf_path, frames):
+    """Decodifica el AAC de vuelta y verifica lo que podía romper el loop.
+
+    1. El largo: si la tabla de paquetes del CAF no recorta el priming del
+       encoder, el tema decodifica más largo y el loop tropieza en la costura.
+    2. La costura: el salto entre la última muestra y la primera no puede ser
+       más grande que el 99 % de los saltos entre muestras vecinas del propio
+       tema. Un clic es justamente un salto que no aparece en otro lado.
+
+    Devuelve la costura como fracción de ese percentil, para la tabla.
+    """
+    decoded_path = os.path.join(BUILD, f"{name}.decoded.wav")
+    subprocess.run(
+        ["/usr/bin/afconvert", caf_path, decoded_path, "-d", "LEI16", "-f", "WAVE"],
+        check=True,
+    )
+    x = read_wav(decoded_path)
+    assert len(x) == frames, f"{name}: decodifica {len(x)} muestras y el loop tiene {frames}"
+    steps = sorted(abs(x[i + 1] - x[i]) for i in range(len(x) - 1))
+    typical = steps[int(len(steps) * 0.99)]
+    seam = abs(x[0] - x[-1])
+    assert seam <= typical, f"{name}: la costura salta {seam:.4f} (p99 del tema: {typical:.4f})"
+    return seam / typical
+
+
 def main():
     convert = "--no-convert" not in sys.argv
+    wanted = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
+    jobs = (
+        [(n, f, "sfx") for n, f in SFX.items()]
+        + [(n, f, "music") for n, f in MUSIC.items()]
+        + [(n, f, "floor") for n, f in FLOOR_MUSIC.items()]
+    )
+    unknown = sorted(set(wanted) - {name for name, _, _ in jobs})
+    if unknown:
+        sys.exit(f"no conozco: {', '.join(unknown)}")
+    if wanted:
+        jobs = [job for job in jobs if job[0] in wanted]
+
     os.makedirs(BUILD, exist_ok=True)
     if convert:
         os.makedirs(DEST, exist_ok=True)
 
-    print(f"{'archivo':<22} {'dur':>8} {'pico':>9} {'RMS':>9}")
-    for name, fn, peak_db in (
-        [(n, f, SFX_PEAK_DB) for n, f in SFX.items()]
-        + [(n, f, MUSIC_PEAK_DB) for n, f in MUSIC.items()]
-    ):
+    floor_bytes = 0
+    print(f"{'archivo':<22} {'dur':>8} {'pico':>9} {'RMS':>9} {'KB':>7} {'costura':>8}")
+    for name, fn, kind in jobs:
         buf = fn()
-        is_sfx = name.startswith("sfx_")
-        if is_sfx:
+        if kind == "sfx":
             edge_fades(buf)  # anti-click garantizado en los bordes
-        buf = normalize(buf, peak_db)
+            buf = normalize(buf, SFX_PEAK_DB)
+            peak_db = SFX_PEAK_DB
+        elif kind == "music":
+            buf = normalize(buf, MUSIC_PEAK_DB)
+            peak_db = MUSIC_PEAK_DB
+        else:
+            buf = normalize_loudness(buf, FLOOR_MUSIC_RMS_DB, FLOOR_MUSIC_PEAK_DB)
+            peak_db = FLOOR_MUSIC_PEAK_DB
         peak, rms = measure(buf)
         limit = peak_db + 0.01
         assert peak <= limit, f"{name}: clipping ({peak:.2f} dBFS > {limit})"
         assert rms > RMS_FLOOR_DB, f"{name}: archivo casi mudo ({rms:.1f} dBFS)"
         wav_path = os.path.join(BUILD, f"{name}.wav")
         write_wav(wav_path, buf)
+        size, seam = "", ""
         if convert:
-            afconvert(wav_path, os.path.join(DEST, f"{name}.caf"))
-        print(f"{name:<22} {len(buf) / SR:>7.3f}s {peak:>8.2f}dB {rms:>8.2f}dB")
+            out_path = os.path.join(DEST, f"{name}.caf")
+            if kind == "floor":
+                afconvert_aac(wav_path, out_path)
+                seam = f"{check_aac_loop(name, out_path, len(buf)):.2f}"
+                floor_bytes += os.path.getsize(out_path)
+            else:
+                afconvert(wav_path, out_path)
+            size = f"{os.path.getsize(out_path) / 1024:.0f}"
+        print(f"{name:<22} {len(buf) / SR:>7.3f}s {peak:>8.2f}dB {rms:>8.2f}dB "
+              f"{size:>7} {seam:>8}")
 
     if convert:
         print(f"\nfinales (.caf) en {DEST}")
+        if floor_bytes:
+            print(f"temas por piso (AAC {FLOOR_MUSIC_BITRATE // 1000} kbps): "
+                  f"{floor_bytes / 1024:.0f} KB")
 
 
 if __name__ == "__main__":

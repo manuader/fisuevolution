@@ -34,4 +34,16 @@ struct AudioManagerTests {
             "el camino perezoso es el fallback si la precarga todavía no terminó"
         )
     }
+
+    /// Bajo `--uitest*` y en este host la música sigue siendo la de la v1: los
+    /// temas por piso no se cargan aunque el tablero cambie de piso.
+    @Test("en una corrida de tests la música por piso no carga nada")
+    func floorMusicStaysOffUnderTests() {
+        #expect(!AudioManager.launchAllowsFloorMusic, "el host de los unit tests cargaría temas de piso")
+        let audio = AudioManager()
+
+        audio.showFloor("alley")
+
+        #expect(audio.floorTracks.isEmpty)
+    }
 }

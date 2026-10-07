@@ -23,9 +23,9 @@ extension GameState {
     /// al empezar su turno.
     func beginNextBoardChange() -> BoardChange? {
         guard inFlightBoardChange == nil, boardIsVisibleForChanges else { return nil }
+        guard let content, let player, let tower else { return nil }
         while !pendingBoardChanges.isEmpty {
             let planned = pendingBoardChanges.removeFirst()
-            guard let content, let player, let tower else { return nil }
             guard let valid = BoardChangePlanner.revalidate(
                 planned, state: player, tower: tower, tiers: content.tiers, floorTable: content.floorTable
             ) else {
@@ -41,12 +41,22 @@ extension GameState {
         return nil
     }
 
-    /// Aplica el cambio en vuelo. La segunda llamada por el mismo id —completion
-    /// tardío, skip, watchdog— no encuentra nada y devuelve `nil`.
+    /// Aplica el cambio en vuelo si el tablero de ahora todavía lo admite tal
+    /// cual: entre el inicio y la confirmación pudo entrar un evento o una
+    /// contratación. La segunda llamada por el mismo id —completion tardío,
+    /// skip, watchdog— no encuentra nada y devuelve `nil`.
     @discardableResult
     func confirmBoardChange(id: UUID) -> DropResolution? {
         guard let change = inFlightBoardChange, change.id == id else { return nil }
         inFlightBoardChange = nil
+        guard let content, let player, let tower,
+              BoardChangePlanner.revalidate(
+                  change, state: player, tower: tower, tiers: content.tiers, floorTable: content.floorTable
+              ) == change
+        else {
+            discardBoardChange(change)
+            return nil
+        }
         return applyBoardChange(change)
     }
 

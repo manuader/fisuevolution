@@ -99,9 +99,13 @@ extension GameState {
     }
 
     func confirmPrestige() {
-        guard let economy, let content, var player = player,
-              PrestigeCalculator.canReincarnate(state: player, economy: economy)
+        guard let economy, let current = player,
+              PrestigeCalculator.canReincarnate(state: current, economy: economy)
         else { return }
+        // Lo que esperaba su turno es de la run que se va: se asienta antes de
+        // que `run` se reemplace, y el jugador se relee con eso aplicado.
+        settleAllPendingBoardChanges()
+        guard let content, var player = player else { return }
         PrestigeCalculator.applyReincarnation(
             state: &player,
             economy: economy,

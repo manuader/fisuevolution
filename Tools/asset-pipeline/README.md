@@ -64,6 +64,7 @@ El recorte se elige a ojo, asset por asset (decisión del dueño, HANDOFF §5).
 | Script | Para qué |
 |---|---|
 | `chest_video_frames.py` | Del master `video/chest-animation.mp4` a `Resources/ChestAnim/` |
+| `video_assets.py` | De los masters de Higgsfield (`video/loops/`, `video/cinematicas/`) a `Resources/Loops/` y `Resources/Cinematics/`, más `Data/loops_manifest.json`. Mide el verde del key en cada master |
 | `install_app_icon.py` | Instalar un candidato como AppIcon (1024², sin alfa) |
 | `analyze_recording.py`, `arrival_probe.py` | Medir trabones en grabaciones del simulador |
 

@@ -45,6 +45,7 @@ calculado con la matriz full-range parece el mismo verde y NO lo es: con el
 `chromakey` de ffmpeg se come el cofre entero. La banda util de `similarity`
 quedo en 0,08-0,14 — mucho mas angosta de lo que la doc sugiere. Si el master
 cambia, volver a medir: `crop=4:4:0:0` de f0 a rawvideo rgb24 y leer el pixel.
+`video_assets.py medir <master>` hace esa medicion sobre las cuatro esquinas.
 """
 
 import argparse
@@ -72,9 +73,14 @@ AUDIO_DIR = RESOURCES / "Audio"
 KEY_COLOR = "0x22924A"
 KEY_SIMILARITY = 0.11
 KEY_BLEND = 0.04
-KEY_FILTER = (
-    f"chromakey={KEY_COLOR}:{KEY_SIMILARITY}:{KEY_BLEND},despill=type=green"
-)
+
+
+def key_filter(color: str, similarity: float = KEY_SIMILARITY, blend: float = KEY_BLEND) -> str:
+    """El keying del cofre con otro verde: `video_assets` lo mide en cada master."""
+    return f"chromakey={color}:{similarity}:{blend},despill=type=green"
+
+
+KEY_FILTER = key_filter(KEY_COLOR)
 FPS = 24
 CANVAS = (720, 1280)
 # Donde REPOSA el cofre dentro del lienzo (componente conexa de f0): salta en

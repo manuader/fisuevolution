@@ -303,7 +303,7 @@ que toma · commit o rama · nota.
 | E1-T5b | (seguimiento) copias que no se pisan, cada payload ilegible | ✅ | T5 | — | `08b9329` + `0cfe6c9` | fuera del conteo |
 | E1-T5c | (seguimiento) el `if` muerto en Release + `rapido` compila Release | ✅ | T8 | 🔥 GameState (sólo `bootstrap`); `oraculo.sh` | `e0a5d53` + `ca2d12c` (merge `7110b06`) | fuera del conteo; cherry-pick encima de T8 y sus arreglos |
 | E1-T6 | Reconstruir el ORO comprado de la v1 | ✅ | T4 | Info.plist | `cdd8f0a` | T6b la absorbe T6c |
-| E1-T6c | (seguimiento) ORO comprado exacto entre dispositivos + T6b | 🔧 | T4, T6 | 🔥 PlayerState (`MetaState`); SaveConflictResolver, +Store, StoreManager | `3a09a7e` + `86bc047` (en `worktree-agent-a2ffa883d74cbfb92`) | revisión opus en vuelo; decisión: si el plazo vence, NO se cierra en 0 (reintenta) |
+| E1-T6c | (seguimiento) ORO comprado exacto entre dispositivos + T6b | 🟢 | T4, T6 | 🔥 PlayerState (`MetaState`); SaveConflictResolver, +Store, StoreManager | `40df25e` + `4252402` + `ec5d296` en `v2/e1-correcciones` | el plazo vencido deja abierta la reconstrucción; E6a usa `recordOroPurchase` |
 | E1-T7 | El embudo `BoardChange` en EK | ✅ | T3, T4 | — | `ec6fb29` | carries: init público de `BoardChangeOutcome` (T9), guarda de `typeId` (T10) |
 | E1-T8 | Ciclo de vida: sellar al irse, latido, evento vencido | ✅ | T5 | 🔥 GameState, RootView, +Bonus; FisuEvolutionApp, +Debug, ContentConfigs, events.json | `eeb7322` + `5ef7a65` (merge `7110b06`) | re-revisión opus ✅: `flushHUD` sólo proyecta con la escena inactiva; un sello por salida |
 | E1-T9 | El turno de los cambios del tablero | 🟢 | T7, T8, T5c | 🔥 GameState; +BoardChanges (nuevo), +Celebrations, +Lifecycle, +Debug | `65881ce` + `4572e6a` en `v2/e1-correcciones` | re-revisado por el controlador; carries a T10/T12/T14 en el ledger |
@@ -457,7 +457,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E6b-T1 | Los 8 efectos, por código | ⏳ | — | — | | sale de `version-2`; ola E |
+| E6b-T1 | Los 8 efectos, por código | 🔄 | — | — | | sale de `version-2`; ola E |
 | E6b-T2 | La galería de los 8 efectos (→ 🔒 dueño) | ⛔ | T1 | DebugPanelView | | al terminar, el gate |
 | E6b-T3 | `skins.json` v2 (EK) | ⛔ | T1 | GameContentLoader | | |
 | E6b-T4 | La pinta comprada con ORO es tuya | ⛔ | T3; E6a-T1, E6a-T2, E6a-T8; E3b-T2 | 🔥 PlayerState, catálogo; +Store | | |

@@ -109,6 +109,13 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         /// (el callejón entero y `hireGateExempt` del urbano) ya no existen.
         /// [TUNEABLE]
         public let gateTierDistance: Int
+        /// Cuántas compras le devuelve a la curva fusionar un par (PLAN-v2 E2a,
+        /// "fusionar abarata, pero no tanto"). Con fusión continua la curva
+        /// crece `defaultCostGrowth^(1 − r/2)` por compra, y acumular sin
+        /// fusionar sigue pagando la curva entera; por eso se barre en pares
+        /// con el growth. **0 = la v1**, y ése es el default mientras E2b no la
+        /// calibre. [TUNEABLE]
+        public let mergeRefundCounts: Double
 
         /// El default de `priceGrowthPerTier` para las FIXTURES: **2,0**, el
         /// factor de merge, o sea la indiferencia exacta —bajar un tier no
@@ -146,7 +153,8 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             priceGrowthPerTier: Double = HireConfig.neutralPriceGrowthPerTier,
             gateTierDistance: Int = HireConfig.noTierGate,
             frontierEscalationPerTier: Double = HireConfig.noFrontierEscalation,
-            frontierEscalationFromTier: Int = HireConfig.escalationFromFirstTier
+            frontierEscalationFromTier: Int = HireConfig.escalationFromFirstTier,
+            mergeRefundCounts: Double = 0
         ) {
             self.defaultCostMultiplier = defaultCostMultiplier
             self.defaultCostGrowth = defaultCostGrowth
@@ -154,6 +162,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             self.gateTierDistance = gateTierDistance
             self.frontierEscalationPerTier = frontierEscalationPerTier
             self.frontierEscalationFromTier = frontierEscalationFromTier
+            self.mergeRefundCounts = mergeRefundCounts
         }
 
         /// Decoder a mano porque los dos knobs de abajo se agregaron después: el
@@ -186,11 +195,15 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             frontierEscalationFromTier = try container.decodeIfPresent(
                 Int.self, forKey: .frontierEscalationFromTier
             ) ?? HireConfig.escalationFromFirstTier
+            // `decodeIfPresent` y al revés que las de arriba: el default (0) ES la
+            // v1, una conducta conocida y medida, no una regla que se apaga.
+            mergeRefundCounts = try container.decodeIfPresent(Double.self, forKey: .mergeRefundCounts) ?? 0
         }
 
         enum CodingKeys: String, CodingKey {
             case defaultCostMultiplier, defaultCostGrowth, priceGrowthPerTier
             case gateTierDistance, frontierEscalationPerTier, frontierEscalationFromTier
+            case mergeRefundCounts
         }
     }
 

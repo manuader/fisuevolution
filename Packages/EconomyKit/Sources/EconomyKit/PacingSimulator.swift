@@ -657,6 +657,13 @@ public struct PacingSimulator: Sendable {
                 }
                 state.run.units[type.id, default: 0] -= 2
                 if state.run.units[type.id] == 0 { state.run.units[type.id] = nil }
+                // El reintegro de la fusión (PLAN-v2 E2a). Con la perilla en 0 no
+                // hace nada y el bot juega como siempre.
+                state.run.refundMergeCounts(
+                    typeId: type.id,
+                    floorId: floorTable.floor(forTier: type.tier).id,
+                    counts: config.hire.mergeRefundCounts
+                )
                 state.run.units[newTypeId, default: 0] += 1
                 if state.run.raiseFrontier(to: newType.tier) {
                     // El reloj de la pared es ACTIVO y relativo al inicio de la

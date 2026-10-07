@@ -13,21 +13,27 @@
 > contexto fresco. El estado del run vive en el journal AVO
 > `FisuEvolution/.claude/avo/2026-10-06-fisu-v2/journal.md`, en el checkout
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
-> de `handoffs/` + `PLAN-v2.md` + el journal.
+> de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
-> 🧪 **Se verifica con `Tools/v2/oraculo.sh rapido|completo`** (§6), y los
-> agentes en paralelo se lanzan con `Agent(isolation: "worktree")` (PLAN-v2
-> §0.1; §7 explica por qué cualquier otra forma choca con el guard). Al
-> 2026-10-07 (relevo 5): en `version-2` están E0, E10 en papel, E8 pipeline,
-> E8 audio, E7a y la parte de idioma de E3, y además las olas B y C: E1 T1–T7,
-> E11 T1–T2 y E3a T1–T4, integradas en `bc3bf6f`. El `completo` de referencia
-> es el de `d22eb7a` (VERDE, de antes de la ola C). **El `rapido` sobre
-> `bc3bf6f` dio ROJO** por un test de E1 T5 que nombra copias por
-> milisegundo (§6); lo arregla E1 T5b, en vuelo, y `bc3bf6f` no se pushea
-> hasta que esté verde. Hay planes escritos para E1, E11, E3a/E3b, E2a,
-> E4a/E4b, E5a/E5b y E6a/E6b; faltan E7b, E9 y E2b. Lo que sigue, en §4. El
-> estado fino de cada épica vive en su ledger,
-> `version-2/.superpowers/sdd/<plan>/progress.md`.
+> 🧪 **Se verifica con `Tools/v2/oraculo.sh rapido|completo`** (§6; desde el
+> relevo 6 el `rapido` también compila Release), y los agentes en paralelo se
+> lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
+> cualquier otra forma choca con el guard). Al 2026-10-07 (cierre del relevo
+> 6): en `version-2` (`3956fd3`) están E0, E10 en papel, E8 pipeline, E8
+> audio, E7a y la parte de idioma de E3, y las olas B, C y D: **E1 T1–T8 (con
+> T5b y T5c), E11 T1–T2 y E3a T1–T5** (la app ya es universal, con iOS 18). El
+> `rapido` de `3956fd3`: VERDE (EK 357 · unit 639 + 1 · release 0), pusheado. El último
+> `completo`, sobre `8d17b8d`, dio todo verde **menos Release**, que ya está
+> arreglado (§6). Fuera de `version-2`: E5a T1 en `v2/e5-premios` y E11 T3
+> con dos tests por arreglar. Hay planes para todas las épicas salvo E9, E2b,
+> E8 y la parte de agente de E10.
+>
+> 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
+> una línea por tarea con su estado, dependencias, archivos calientes, la cola
+> de despacho y los gates del dueño. Lo escribe sólo el controlador. El
+> detalle fino de cada épica sigue en su ledger,
+> `version-2/.superpowers/sdd/<plan>/progress.md`. Lo que sigue, en §4 y en
+> `tasks.md` §4.
 >
 > ✅ **EL REDISEÑO DE UI ESTÁ COMPLETO Y MERGEADO** — 20 de 20 tareas
 > (`feature/rediseno-ui-cowevolution`, cerrado el 2026-08-16). El estado tarea
@@ -140,19 +146,22 @@ dice, no lo repitas.
 
 **Durante la 2.0, además** (protocolo completo en `Docs/PLAN-v2.md` §0):
 
-- **Al llegar** se suman dos lecturas: `PLAN-v2.md` y el journal AVO del run
+- **Al llegar** se suman tres lecturas: `PLAN-v2.md`, **`tasks.md`** (el
+  tablero: qué está hecho, qué sale ahora y la cola) y el journal AVO del run
   (carta → estado → descartados). Se revisa el candado `LOCK` del run y se
   corre el oráculo antes de tocar nada.
-- **Al cerrar**, además de los tres pasos: journal al día y candado liberado.
-  Si el contexto pasó los ~300.000 tokens y no queda ningún subagente ni
-  tarea de fondo en vuelo, **relevo**: un `CronCreate` de un disparo con
-  "continúa — protocolo de relevo FisuEvolution v2" + `clear_session("self")`.
-  Si eso no despierta al siguiente, se usan las rutinas de la app; y en
-  última instancia, el dueño escribe "continúa".
+- **Al cerrar**, además de los tres pasos: `tasks.md` y journal al día, y
+  candado liberado. Si el contexto pasó los ~300.000 tokens y no queda ningún
+  subagente ni tarea de fondo en vuelo, **relevo**: un `CronCreate` de un
+  disparo con "continúa — protocolo de relevo FisuEvolution v2" +
+  `clear_session("self")`. **Ese cron no despertó a nadie en los relevos 2 a
+  6.** Desde el relevo 6 existen las rutinas manuales `fisu-v2-relevo-a` y
+  `-b` (decisión del dueño, §5): el que cierra lanza la otra con
+  `run_scheduled_task`. En última instancia, el dueño escribe "continúa".
 - Las skills `handoff-system`, `writing-session-handoff` y
   `writing-general-handoff` (globales) son la fuente de este protocolo.
 - **Con agentes en paralelo** (PLAN-v2 §0.1), cada agente commitea en su rama
-  y el controlador es el dueño de `Docs/`, `handoffs/` y el journal: el que
+  y el controlador es el dueño de `Docs/`, `handoffs/`, `tasks.md` y el journal: el que
   integra es el que documenta.
 
 ---
@@ -165,8 +174,11 @@ los personajes de todos los pisos producen a la vez, se mergean de a pares y al
 evolucionar "se mudan" al piso de arriba.
 
 **Stack**: SwiftUI (HUD, menús, popups) + SpriteKit (`BoardScene`) + **EconomyKit**
-(paquete SPM con la economía, puro y testeado). iOS 17+, Swift 6 con
+(paquete SPM con la economía, puro y testeado). Swift 6 con
 `SWIFT_STRICT_CONCURRENCY: complete` y `SWIFT_TREAT_WARNINGS_AS_ERRORS: YES`.
+La v1 publicada es sólo iPhone con iOS 17+; **en `version-2`, desde E3a T5
+(`3956fd3`), la app es universal (iPad sólo vertical y de pantalla completa) y
+pide iOS 18+**.
 
 **El juego está terminado y jugable de punta a punta.** Lo que falta es F6:
 cuenta de Apple Developer, App Store Connect, TestFlight y submission — todo
@@ -299,6 +311,41 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-07 (relevo 6) — La ola D: el ciclo de vida, el Release que el `rapido` no veía y la app universal
+
+Entraron a `version-2` la ola D de E1 (`7110b06`, pusheado) y E3a T5
+(`3956fd3`, pusheado después de su `rapido` VERDE):
+
+- E1 T8, el ciclo de vida: se sella la hora sólo al irse, una vez por salida,
+  dentro de un background task; con la escena inactiva no se cobra ni se
+  dispara nada; el watchdog recibe el delta con tope de 2 s; el evento
+  vencido afuera se corre +60 s; un latido guarda cada 15 s (`eeb7322` +
+  `5ef7a65`). El simulador lo confirma: 45,39 s afuera → 7,943 acreditado,
+  exacto;
+- E1 T5c, el `if` muerto que no dejaba compilar Release, y **el `rapido` que
+  ahora compila Release** (`e0a5d53` + `ca2d12c`);
+- E3a T5: la app es universal (iPad sólo vertical y de pantalla completa) y
+  pide iOS 18 (`c323dd9`).
+
+**El `completo` sobre `8d17b8d` (la ola C) dio todo verde menos Release**: UI
+59, Store 13, `pacing-sim` sin cambios, y `GameState.swift:545: will never be
+executed`. Lo trajo E1 T5, y tres `rapido` no lo vieron porque no compilaban
+Release (§7). El `rapido` de E1 sobre `ca2d12c` da **VERDE, EK 357 · unit
+633 + 1 · release 0**.
+
+Quedaron fuera de `version-2`: E5a T1, el paquete puro (`a4c156f` en
+`v2/e5-premios`, EK 393, con 8 de 8 mutantes muertos después de que la
+revisión encontró 7 vivos), y E11 T3, el manager 2.0 (`f084ef5`), con dos
+tests por arreglar que no se despacharon. Salió el plan de E7b, partido en
+E7b-a y E7b-b, y E7b-b se re-planeó con la columna plegable.
+
+**El dueño decidió cuatro cosas** (§5): las rutinas de relevo, el ORO comprado
+exacto entre dispositivos (E1 T6c), que las fusiones asistidas cuentan, y la
+columna plegable. Y pidió **`tasks.md`**, el tablero único de la 2.0, en la
+raíz de `version-2`. Lo próximo: E1 T9 ∥ E1 T6c, y decidir si se parte
+`GameState.swift`, que 20 tareas pendientes tocan de a una (`tasks.md` §4).
+Detalle en **`Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md`**.
 
 ### Sesión del 2026-10-07 (relevo 5) — La ola C: `BoardChange`, el save ilegible, el ORO comprado de la v1 y las safe areas
 
@@ -1518,7 +1565,8 @@ tocan decisiones de esta sección:
 - **Sin cripto en la app**: la Fisu Coin es un proyecto aparte, fuera del
   juego, sin links ni menciones (Apple 3.1.1/3.1.5, CNV).
 - **Universal**: iPad sólo vertical (`UIRequiresFullScreen`) e iOS mínimo 18.
-  Reemplaza el "sólo iPhone" del HANDOFF-v2.
+  Reemplaza el "sólo iPhone" del HANDOFF-v2. **Implementada en E3a T5**
+  (`3956fd3`).
 - **Pisos de 15 lugares** (hasta 20 con un permanente de ORO): reemplaza los
   10 lugares por piso.
 - **Agentes concurrentes** (pedido del dueño, 2026-10-06, PLAN-v2 §0.1):
@@ -1539,6 +1587,37 @@ tocan decisiones de esta sección:
   núcleo del tutorial y completo con una tarjeta previa en la primera vuelta
   con popup offline. Un veterano que las apagó en la v1 las sigue teniendo
   apagadas. Nunca anuncios ni precios (guía 4.5.4).
+
+**Decisiones del dueño del relevo 6** (2026-10-07, preguntadas en vivo; el
+detalle en `Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md` §1):
+
+- **El relevo tiene secundario: las rutinas `fisu-v2-relevo-a` y `-b`**,
+  manuales (sin horario), en `~/.claude/scheduled-tasks/`. Motivo: el
+  primario, `CronCreate` + `clear_session`, no despertó a nadie en los
+  relevos 2 a 6. El agente que cierra lanza la otra rutina con
+  `run_scheduled_task`; se alternan porque una rutina con una corrida en curso
+  no se puede relanzar.
+- **El ORO comprado se cuenta exacto entre dispositivos** (el 🔒 de
+  `SaveConflictResolver.swift:67/:68`). Motivo: el `max` de hoy pierde
+  compras hechas en dos dispositivos (160 y 550 dan 550), el `||` cuenta de
+  menos y un `&&` con el `+=` de la reconstrucción contaría doble; en el
+  reset de E9 (`oro = min(saldo, comprado)`) cualquiera de esos errores lo
+  paga el que compró. Lo hace **E1 T6c**: un mapa crece-sólo id de
+  transacción → ORO más un conjunto de revocados, `oroPurchasedLifetime`
+  calculado, unión de `creditedPurchases` y `&&` en
+  `purchasedOroReconstructed`. **Toda acreditación de ORO comprado pasa por
+  `recordOroPurchase`, nunca por `+=`**: el plan de E6a (T9, T11) todavía dice
+  `+=` y está viejo en eso.
+- **Las fusiones asistidas cuentan en `totalMergesEver`** (`BoardChange.merge`
+  de origen `career` o `debug`). Es lo que ya hacía el video de fusión
+  instantánea; no cambia código.
+- **La columna de premios de E7b es plegable (opción C)**, hermana de la
+  botonera del ascensor: en reposo, un botón "Premios" con el "!" abajo a la
+  izquierda; al tocarlo despliega los cuatro por 3 s. Motivo: la columna fija
+  pisaba la multitud en todo iPhone, y las otras dos salidas costaban más —
+  **A**, reservarle 64 pt, achica los personajes un 17 % en iPhone; **B**,
+  ponerla encima, tapa 15–56 pt de la multitud. E7b-b T3 cambia el contenedor
+  y **T4 se saltea**: `PlayLayout` y `BoardScene` no se tocan por la columna.
 
 **Decisiones tomadas al implementar la 2.0** (2026-10-06, con el frente entre
 paréntesis; el porqué completo está en la sesión de cada uno):
@@ -1608,8 +1687,8 @@ paréntesis; el porqué completo está en la sesión de cada uno):
   save" y la partida nueva lo pisaba.
 - **La reconstrucción del ORO comprado en la v1 falla cerrada en 0 y no se
   reintenta** (E1 T6, lo pide el plan): nunca cuenta una compra que StoreKit
-  no confirmó. En iOS 17 cierra siempre en 0, que es un motivo más para el
-  mínimo 18 de E3a T5.
+  no confirmó. En iOS 17 cerraría siempre en 0, que fue un motivo más para el
+  mínimo 18 de E3a T5 (ya integrado).
 - **`LootBoxGate`, `OddsDisclosureView`, `RewardCopy` y `PrizeOdds` nacen en
   E5, y E6 los consume** (planes de E5 y E6, coordinados en vuelo). PLAN-v2
   ponía los dos primeros en E6, pero la ruleta y el colchón los necesitan
@@ -1622,6 +1701,23 @@ paréntesis; el porqué completo está en la sesión de cada uno):
   spike S4): una vista adentro de la safe area no se entera de que la barra
   de estado se ocultó. Leídas en `onAppear`, el HUD quedaba a 7,5 pt del
   bezel en el SE.
+- **La hora se sella sólo al irse, una vez por salida, y con la escena
+  inactiva no pasa nada más que proyectar** (E1 T8). Con la escena
+  `.inactive`, `tick` no cobra y `flushHUD` no poda buffs, no dispara eventos,
+  no late y no arma anuncios, porque `BoardScene.update` no está gateado por
+  la fase y sigue corriendo en el regreso (se midió un frame de 28,52 s todavía
+  en `.inactive`). Antes, esa ventana podaba el buff que había vencido afuera
+  y el offline pagaba de menos (630 monedas en el test). El segundo sello de
+  una salida no corre la hora: si la corriera, el tramo `.inactive` de una
+  llamada atendida (20–30 s) no lo pagaba nadie. **Costo aceptado**: un kill
+  en foreground re-paga a lo sumo 15 s × 0,35 × pasivo; estampar la hora en
+  `persistNow` lo evitaría, pero toca a todos sus llamadores y mete un
+  `Date()` implícito en la persistencia.
+- **El release se compila con Xcode 26.x hasta que se decida qué hacer con el
+  iPad en el SDK 27** (E3a T5). El SDK de iOS 27 ignora
+  `UIRequiresFullScreen`, y `InfoPlistContractTests.theSDKStillHonorsFullScreen`
+  se pone rojo a propósito ese día. Es un guardián: no se declara en
+  `rojos-declarados.txt`.
 
 0. **Los cofres** (2026-08-26). Las 41 pintas de piso salen **sólo** de cofres. Rareza con
    **promoción hacia arriba** cuando la sorteada se agota. Cuatro fuentes: cada 2 pisos, un
@@ -1850,10 +1946,17 @@ la receta a mano de más abajo. La receta es lo que el oráculo corre por
 dentro, y sirve para depurar un paso suelto.
 
 ```bash
-Tools/v2/oraculo.sh rapido   [--limpio]   # EconomyKit + xcodegen + build-for-testing + unit (iOS 26.5): mientras se itera
+Tools/v2/oraculo.sh rapido   [--limpio]   # EconomyKit + xcodegen + build-for-testing + unit (iOS 26.5)
+                                          #   + Release sin warnings: mientras se itera y al integrar
 Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (18.6) + UI (26.5)
-                                          #   + pipeline + pacing-sim + Release sin warnings: para cerrar o integrar
+                                          #   + pipeline + pacing-sim: para cerrar una ola o una épica
 ```
+
+- **Desde `ca2d12c` (relevo 6) el `rapido` también compila Release**, después
+  de unit. Antes sólo lo hacía el `completo`, y tres `rapido` verdes no vieron
+  un rojo que existía sólo en Release (§7, ola D). El Release usa su propio
+  DerivedData, `build/DD-oraculo-release`, que **`--limpio` no borra**: ~20 s
+  incremental y ~100 s la primera vez en un worktree.
 
 - **Sale en 0 sólo si todo está verde.** El juez es `Tools/v2/rojos.py`, que
   compara cada suite contra **`Tools/v2/rojos-declarados.txt`**:
@@ -1904,10 +2007,50 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
 - Un `completo` entero tarda **~45 min** con la máquina tranquila (build en
   frío 106 s); éste, con la máquina cargada, tardó **~81 min** (4.886 s).
 - Log: `version-2/build/relevo5-completo-d22eb7a.log`.
-- ⚠️ **Es de antes de la ola C.** Sobre la punta actual se espera UI **59**
-  (+ `SaveRecoveryUITests` y `ScreenInsetsUITests`), Store unit **13** (+
-  `reconstructsTheV1OroFromTransactionHistory`), `StoreUITests` 2 y el
-  `pacing-sim` igual.
+- ⚠️ **Es de antes de la ola C.** Sigue siendo el último `completo` VERDE:
+  el de `8d17b8d` (abajo) dio rojo en Release.
+
+**El `completo` sobre `8d17b8d`** (2026-10-07, relevo 6; la ola C entera):
+**todo verde salvo Release.**
+
+| Suite | **`8d17b8d`** | Contra `d22eb7a` |
+|---|---|---|
+| EconomyKit | **357** | +40 de E1 T7 |
+| unit (26.5) | **620 + 1 declarado** (601 s) | +27 de la ola C y T5b |
+| Store unit (18.6) | **13** (1.945 s, con carga) | + `reconstructsTheV1OroFromTransactionHistory` |
+| UI (26.5) | **59** (1.976 s) | + `SaveRecoveryUITests` y `ScreenInsetsUITests` |
+| `StoreUITests` (18.6) | **2** (147 s) | igual |
+| pipeline | **49 / 0** | igual |
+| `pacing-sim` | **Dios en 30,73 h activas · 13 reencarnaciones** | igual |
+| Release | **❌ no compila** (101 s) | `GameState.swift:545:27: error: will never be executed` |
+
+- Todos los números esperados cuadraron; el único rojo es Release. Lo trajo
+  E1 T5 (`38bee13`): un if/else sobre `forceNewGame`, que en Release es un
+  `var` que sólo cambia dentro de `#if DEBUG`, así que la rama `.empty` era
+  código muerto. Lo arregló **E1 T5c** (`e0a5d53`), verificado con el
+  `rapido` que ahora compila Release: 0 warnings sobre `ca2d12c`.
+- ~81 min en total (~4.876 s), con hasta 3 agentes compilando al lado.
+- Log: `version-2/build/relevo6-completo-8d17b8d.log`.
+- **Nada de la ola D pasó todavía por un `completo`.** Sobre `3956fd3` se
+  espera: EK 357 · unit 639 + 1 · Store unit 13 · UI 59 · `StoreUITests` 2 ·
+  pipeline 49/0 · `pacing-sim` igual · Release 0 warnings.
+
+**El `rapido` de la ola D** (2026-10-07, relevo 6). **Los números de
+referencia del `rapido` son los de `ca2d12c`: EK 357 · unit 633 + 1 ·
+release 0.**
+
+| Árbol | EconomyKit | unit (26.5) | Release | Veredicto | De dónde sale |
+|---|---:|---:|---|---|---|
+| `8d17b8d` (ola C) | 357 | 620 + 1 | — | VERDE | — |
+| `ca2d12c` (E1 T8 + arreglos + T5c; árbol Swift == `7110b06`) | **357** | **633 + 1** | **0 warnings** | **VERDE** | +11 de T8 · +2 de sus arreglos; build 97 s, unit 656 s, release 99 s |
+| `3956fd3` (+ E3a T5) | 357 | 639 + 1 | 0 warnings | VERDE | +6 de `InfoPlistContractTests` |
+| `a4c156f` (E5a T1, en `v2/e5-premios`; sólo `swift test`) | **393** | 620 + 1 | — | VERDE | +23 de T1 · +13 del refuerzo |
+| `f084ef5` (E11 T3, sobre `8d17b8d`; sin integrar) | 357 | 632 + 1 | — | VERDE | +21 nuevos − 9 viejos |
+
+- Con E5a T1 y E11 T3 integrados se espera EK **393** y unit **651 + 1**,
+  más lo que sumen los arreglos de E11 T3.
+- Logs: `v2-e1/build/relevo6-rapido-ca2d12c.log` y
+  `version-2/build/relevo6-rapido-3956fd3.log`.
 
 **El `rapido` de la ola C** (2026-10-07, relevo 5):
 
@@ -1945,7 +2088,7 @@ sim 26 virgen.
 ```bash
 UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
 
-cd Packages/EconomyKit && swift test                      # 357 al relevo 5
+cd Packages/EconomyKit && swift test                      # 357 en version-2 al relevo 6 (393 con E5a T1)
 cd - && /opt/homebrew/bin/xcodegen generate               # si agregaste/borraste Swift
 
 # 1) UNIT PRIMERO
@@ -2143,6 +2286,67 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la ola D (2026-10-07, relevo 6)
+
+- **Un `rapido` que no compila Release no ve los rojos de `#if DEBUG`.** Tres
+  `rapido` verdes seguidos (`cdd8f0a`, `d0710e1`, `8d17b8d`) no vieron que
+  Release no compilaba: `forceNewGame` sólo cambia dentro de `#if DEBUG`, así
+  que en Release es constante, la rama que lo usa es código muerto y, con
+  warnings como errores, `will never be executed` rompe el build. Lo encontró
+  el `completo`. Desde `ca2d12c` el `rapido` compila Release (§6).
+- **`Bundle.main.infoDictionary` colapsa las claves `~ipad` en un simulador
+  iPhone.** `UISupportedInterfaceOrientations~ipad` da `nil` aunque el `.app`
+  compilado la trae (`plutil -p`). Un test de contrato del plist lee el
+  ARCHIVO `Bundle.main.bundleURL/Info.plist` con `PropertyListSerialization`
+  (`InfoPlistContractTests`), que además es el único que tiene `DTSDKName` y
+  `MinimumOSVersion`.
+- **`oraculo.sh …; echo EXIT $?` en una tarea de fondo enmascara el exit.** La
+  tarea termina en 0 aunque el oráculo dé 1, porque el último comando es el
+  `echo`. Se lee la última línea del log (`VERDE` o `ROJO: …`), no el exit de
+  la tarea.
+- **`AskUserQuestion` bloquea el turno del controlador.** La pregunta de las
+  cuatro decisiones del relevo 6 lo tuvo parado ~90 min, hasta que el dueño
+  contestó; los agentes en fondo siguieron y sus avisos llegaron todos juntos.
+  **Primero se despacha todo lo despachable, después se pregunta.**
+- **Un test que inyecta un delta grande al watchdog ya no prueba nada.** Desde
+  E1 T8 el watchdog de celebraciones recibe `min(delta, 2)`: un
+  `tick(delta: 4.1)` no vence nada. Rompió dos tests de
+  `CelebrationWiringTests`; se arreglaron avanzando el reloj de a 1 s
+  (`advanceClock`), como la escena real.
+- **`BoardScene.update` sigue corriendo con la escena `.inactive`.** En el
+  regreso del background entra un frame (se midió uno de 28,52 s) antes de
+  `.active`. Todo lo que cuelgue de `flushHUD` o del frame loop corre en esa
+  ventana salvo que mire `isSceneActive`: así se adelantaban el evento
+  vencido, el intersticial y la poda de buffs (§5, E1 T8).
+- **`InfoPlistContractTests.theSDKStillHonorsFullScreen` se pone rojo a
+  propósito con el SDK de iOS 27**, que ignora `UIRequiresFullScreen`. No se
+  declara: avisa que hay que decidir qué hacer con el iPad antes de cambiar de
+  SDK.
+- **Un grep con punto busca de más.** El del brief de E11 T3, `grep -rn
+  "notif.daily"`, no da vacío porque matchea `notif.daily_ready.*`. Para las
+  claves viejas: `notif\.daily\.`.
+- **Tests verdes que no muerden.** E5a T1 tenía 23 tests verdes y el código
+  byte a byte con el brief, y 7 de 8 mutantes sobrevivían (una compuerta que el
+  fixture tenía apagada, el arrastre del reloj, `randomElement` → `first`).
+  En una tarea pura de EK, la revisión prueba mutantes a mano.
+- **`SendMessage` a un implementador o planificador sólo sirve dentro de la
+  misma sesión.** En un relevo nuevo, los arreglos de una revisión van a un
+  agente nuevo con BASE = el commit del agente y el paquete de revisión
+  (`review-<base>..<commit>.diff` en el ledger).
+- **Quinto relevo sin un despertar por cron**: los relevos 2 a 6 los despertó
+  el dueño escribiendo "continua". Desde el relevo 6 están las rutinas
+  manuales (§5).
+- **Lo que funcionó, y hay que mantener:**
+  - el `completo` temprano sobre la punta, al principio del relevo: encontró
+    lo que tres `rapido` no;
+  - mandar los arreglos de una revisión al mismo implementador y un re-plan
+    al mismo planificador (`SendMessage`, commit nuevo encima);
+  - una tarea de seguimiento sale con BASE en la tarea que movió su línea y
+    entra por cherry-pick encima (T5c sobre T8);
+  - no pushear una integración hasta que su `rapido` dé verde;
+  - dejar de lanzar tareas a los ~280k de contexto: T6c y los arreglos de
+    E11 T3 pasaron al relevo 7 en vez de quedar a medio integrar.
+
 ### De la ola C (2026-10-07, relevo 5)
 
 - **Los tests de copias con nombre por milisegundo pasan con la máquina
@@ -2159,7 +2363,7 @@ El panel de debug es el ícono de herramientas del HUD.
   la repetición pasó 13/13. Mirá `uptime` antes que el código. La revisión
   recomienda subir `loadTimeout` en los tests con StoreKit real.
 - **La prueba manual v1 → v2 del dueño cierra el ORO comprado en 0 hasta que
-  entre E1 T6b.** Una build DEBUG instalada por `simctl` en un runtime < 26
+  entre E1 T6c** (que absorbió a T6b en el relevo 6). Una build DEBUG instalada por `simctl` en un runtime < 26
   lee `Transaction.all` sin la `SKTestSession` local, ve el historial vacío y
   cierra la reconstrucción en 0, sin reintento. El save sobre el que corra
   queda así.
@@ -3688,6 +3892,51 @@ Anotado por si algún día importa, con su medición:
     la tabla de cada pedido a su épica;
   - anexos A (guiones de visitantes y frases de eventos) y B (biblia de los
     8 visitantes nuevos).
+- **`tasks.md`** (raíz de `version-2`, desde el relevo 6) — **el tablero de la
+  ejecución de la 2.0**. Un solo escritor: el controlador.
+  - §2, el progreso por épica, con los `grep` para recalcularlo;
+  - §3, las reglas de concurrencia y quién toma cada archivo caliente y tibio;
+  - §4, la cola de despacho: lo que sale ahora, la ola siguiente y el resto
+    por prioridad, con BASE, modelo y con qué no va en paralelo;
+  - §5, una tabla por épica con el estado de cada tarea, y las
+    inconsistencias abiertas entre planes;
+  - §6, los gates humanos y las dudas con default de cada plan.
+- **`Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md`**: el relevo 6.
+  - Las cuatro decisiones del dueño con lo que descartan.
+  - El `completo` sobre `8d17b8d` (todo verde salvo Release) y por qué el
+    `rapido` no lo vio.
+  - La ola D tarea por tarea (E1 T8 y T5c, E3a T5, E11 T3, E5a T1, el plan
+    de E7b y su re-plan con C), con lo que cada una deja y no se ve en el
+    diff, y sus arrastres.
+  - Las trampas, el mecanismo y lo que quedó abierto para el relevo 7,
+    incluida la propuesta de partir `GameState.swift`.
+- **Código nuevo de la ola D, dónde mirar:**
+  - `FisuEvolution/Game/State/GameState+Lifecycle.swift` (E1 T8): el ciclo de
+    vida — `handleScenePhase(from:to:now:)`, `seal`, el latido `beatIfDue` y
+    el offline. Lo que la escena inactiva puede y no puede hacer está en
+    `tick` y `flushHUD` (`GameState.swift`). Tests: `LifecycleTests` (13).
+  - `FisuEvolution/App/BackgroundTasks.swift` (E1 T8): el
+    `beginBackgroundTask` detrás de un protocolo, para que los tests cuenten
+    los `begin` y `end` de cada salida.
+  - `FisuEvolutionTests/InfoPlistContractTests.swift` (E3a T5): el contrato
+    del `Info.plist` compilado (universal, vertical, pantalla completa, iOS 18,
+    pantalla de lanzamiento crema) y el guardián del SDK 27. Lee el archivo,
+    no `infoDictionary` (§7, ola D).
+  - `Packages/EconomyKit/Sources/EconomyKit/Prizes/` (E5a T1, **todavía sólo
+    en `v2/e5-premios`**): `WeightedDraw`, `PackagesConfig`, `PackagesState` y
+    `PackageEngine`, el Paquete de la Aduana puro. Tests:
+    `PackagesEngineTests` y `WeightedDrawTests`.
+- **Las rutinas del relevo**: `~/.claude/scheduled-tasks/fisu-v2-relevo-a/` y
+  `…-b/` (`SKILL.md` con el prompt; fuera del repo). Manuales: se lanzan con
+  `run_scheduled_task`. Su prompt todavía no nombra `tasks.md`.
+- `Docs/superpowers/plans/2026-10-07-v2-e7b-a-forzados-mediacion.md` y
+  `…-e7b-b-columna-ubicaciones.md`: el plan de E7b en dos.
+  - E7b-a: 7 tareas. La config remota en marcha, los cortes naturales, la
+    pausa publicitaria, el app open, UMP en Ajustes y la mediación.
+  - E7b-b: 8 tareas, re-planeado con la columna plegable (T4 salteada).
+  - 14 contradicciones en
+    `version-2/.superpowers/sdd/2026-10-07-v2-e7b/plan-report.md`; la que más
+    pesa: la config remota de anuncios hoy no se carga nunca.
 - **`Docs/SESION-2026-10-07-v2-relevo-5-ola-c.md`**: el relevo 5.
   - La ola C tarea por tarea (E1 T5, T6, T7 y E3a fix T3 + T4), con lo que
     cada una deja y no se ve en el diff.

@@ -3590,7 +3590,7 @@ struct VisitorsContentTests {
             taps: 40, windowSeconds: 30, rewards: [.modifier(effect: .incomeMultiplier, magnitude: 2, seconds: 90)], videoDoubles: false
         ))
         #expect(try mechanic("coach_reto") == .challenge(
-            taps: 60, windowSeconds: 30, rewards: [.modifier(effect: .incomeMultiplier, magnitude: 2, seconds: 120)], videoDoubles: false
+            taps: 67, windowSeconds: 30, rewards: [.modifier(effect: .incomeMultiplier, magnitude: 2, seconds: 120)], videoDoubles: false
         ))
         guard case .vendor(let cards) = try mechanic("vendedor_ofertas") else {
             Issue.record("el Vendedor no vende")
@@ -3783,7 +3783,7 @@ los calibra con el simulador):
     {"id": "arbolito_blue", "visitor": "sp_arbolito", "eventOnly": true, "weight": 1, "minTier": 6, "dailyCap": 3,
      "mechanic": {"kind": "exchange", "costSeconds": 3600, "oro": 1}},
     {"id": "coach_reto", "visitor": "sp_coach", "weight": 6, "minTier": 4, "dailyCap": 2,
-     "mechanic": {"kind": "challenge", "taps": 60, "windowSeconds": 30,
+     "mechanic": {"kind": "challenge", "taps": 67, "windowSeconds": 30,
                   "rewards": [{"kind": "modifier", "effect": "incomeMultiplier", "magnitude": 2, "seconds": 120}]}}
   ]
 }
@@ -4013,7 +4013,7 @@ dato pasados a `%N$@`):
   "visit.puntero_bolson.ask": {"es": "Un Paquete de la Aduana. Con video, el doble.", "en": "A Customs Package. Double with a video."},
   "visit.ministro_subsidio.bubble": {"es": "Subsidio focalizado a tu empresa. Focalizado en vos, sí.", "en": "A targeted subsidy for your company. Targeted at you, yes."},
   "visit.ministro_subsidio.ask": {"es": "Plata para tu empresa. Con video, el doble.", "en": "Cash for your company. Double with a video."},
-  "visit.vecina_chisme.bubble": {"es": "¿Viste lo que dicen? Que se viene un evento… ¡yo no dije nada!", "en": "Did you hear? Word is something's coming… I didn't say a thing!"},
+  "visit.vecina_chisme.bubble": {"es": "¿Qué mirás, bobo? Andá pa' allá… ¡ah, sos vos! ¿Viste lo que dicen? Que se viene un evento… ¡yo no dije nada!", "en": "What are you looking at, dummy? Go over there… oh, it's you! Did you hear? Word is something's coming… I didn't say a thing!"},
   "visit.vecina_chisme.ask": {"es": "Te cuenta qué evento se viene y te deja algo de plata.", "en": "She tells you which event is coming and leaves you some cash."},
   "visit.vecina_favor.bubble": {"es": "Nene, ayudame con las bolsas del súper que me duele la cintura.", "en": "Sweetie, help me with the grocery bags, my back is killing me."},
   "visit.vecina_favor.ask": {"es": "Tocá a tus empleados %1$@ veces en %2$@ segundos y te regala un Paquete. Con video, el doble.", "en": "Tap your workers %1$@ times in %2$@ seconds and she gives you a Package. Double with a video."},
@@ -4021,7 +4021,7 @@ dato pasados a `%N$@`):
   "visit.vendedor_ofertas.ask": {"es": "Elegí un boost y miralo en video: es tuyo.", "en": "Pick a boost and watch a video: it's yours."},
   "visit.conductor_ruleta.bubble": {"es": "¡Y ahora… el momento que todos esperaban… LA RULETA! ¡Aplausos!", "en": "And now… the moment you've all been waiting for… THE WHEEL! Applause!"},
   "visit.conductor_ruleta.ask": {"es": "Un giro gratis de la ruleta.", "en": "A free spin of the wheel."},
-  "visit.cryptobro_senal.bubble": {"es": "Hermano, vi una señal: todo en verde. Aprovechá y no preguntes cómo.", "en": "Bro, I saw a signal: everything's green. Cash in and don't ask how."},
+  "visit.cryptobro_senal.bubble": {"es": "Hermano, el gráfico hizo six seven: todo en verde. Aprovechá y no preguntes cómo.", "en": "Bro, the chart went six seven: everything's green. Cash in and don't ask how."},
   "visit.cryptobro_senal.ask": {"es": "Ingresos %1$@ por %2$@. Con video, dura el doble.", "en": "Income %1$@ for %2$@. With a video, it lasts twice as long."},
   "visit.contador_credito.bubble": {"es": "Encontré un crédito fiscal en una dimensión que ni sabías que tenías.", "en": "I found a tax credit in a dimension you didn't even know you had."},
   "visit.contador_credito.ask": {"es": "Plata de una, sin trámite.", "en": "Cash right away, no paperwork."},

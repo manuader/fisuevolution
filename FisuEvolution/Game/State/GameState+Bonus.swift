@@ -200,6 +200,13 @@ extension GameState {
         nextEventAt = now + content.events.baseIntervalSeconds + jitter
     }
 
+    /// Un evento que venció mientras la app estaba afuera no dispara al volver:
+    /// se corre `resumeGraceSeconds` para que el jugador mire el tablero antes.
+    func postponeOverdueEvent(now: TimeInterval) {
+        guard let content, nextEventAt <= now else { return }
+        nextEventAt = now + content.events.resumeGraceSeconds
+    }
+
     func fireEventIfDue(now: TimeInterval) {
         guard let economy, let content, var player else { return }
         if let active = activeEvent, now >= active.endsAt {

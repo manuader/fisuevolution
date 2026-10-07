@@ -41,7 +41,7 @@ limpio.
 - **Skills de documentación** (`handoff-system`, `writing-session-handoff`,
   `writing-general-handoff`, enlazadas a `~/Desktop/skills/documentation`): rigen cada cierre.
 - **Oráculo del run**: `Tools/v2/oraculo.sh` (lo crea E0).
-  - `rapido`: EconomyKit + build + unit.
+  - `rapido`: EconomyKit + build + unit + Release (el Release, desde el relevo 6).
   - `completo`: además UI en la matriz 26.5/18.6 y el contrato de pacing.
   - Cada épica agrega sus tests al oráculo antes de implementar.
 
@@ -49,7 +49,8 @@ limpio.
 
 1. Lee `Docs/HANDOFF.md` (en `version-2`) y el handoff más nuevo de
    `FisuEvolution/handoffs/`.
-2. Lee `Docs/PLAN-v2.md` (este plan, versionado).
+2. Lee `Docs/PLAN-v2.md` (este plan, versionado) y **`tasks.md`** (raíz de `version-2`, desde
+   el relevo 6): el tablero de la ejecución, con qué está hecho, qué sale ahora y la cola.
 3. Lee el journal AVO: carta → estado actual → descartados.
 4. Hace `git log`/`status` desde la fecha del handoff.
 5. Revisa el **candado** (ver abajo).
@@ -68,10 +69,14 @@ limpio.
   1. **Primario, en la misma sesión**: `CronCreate` de un solo disparo (+2–3 min) con el prompt
      "continúa — protocolo de relevo FisuEvolution v2…", y después
      `clear_session("self")`. El cron entra en la sesión ya limpia: un agente nuevo con contexto
-     fresco.
-  2. **Secundario, si el primario no despertó al siguiente**: las rutinas de la app
-     `fisu-v2-relevo-a` / `-b`, alternadas con `run_scheduled_task`. Cada corrida es una sesión
-     nueva; se alternan porque una rutina con una corrida en curso no se puede relanzar.
+     fresco. ⚠️ **En los relevos 2 a 6 no despertó a nadie nunca**: los cinco los despertó el
+     dueño.
+  2. **Secundario: las rutinas `fisu-v2-relevo-a` / `-b`. Existen desde el relevo 6**
+     (decisión del dueño, 2026-10-07), en `~/.claude/scheduled-tasks/fisu-v2-relevo-{a,b}/`.
+     Son **manuales** (sin horario): el agente que cierra lanza la otra con
+     `run_scheduled_task`. Cada corrida es una sesión nueva; se alternan porque una rutina con una
+     corrida en curso no se puede relanzar. Su prompt toma el candado, anota en el journal qué
+     rutina lo despertó y sigue este mismo protocolo de llegada.
   3. **Último recurso**: el dueño escribe "continúa", y alcanza.
   - El agente anota en el journal **qué mecanismo lo despertó**, para que el próximo relevo use el
     que funciona.
@@ -119,8 +124,20 @@ archivos de dueño único por ola, y un controlador que integra de a uno.
   `subagent-driven-development`), antes de integrar;
 - integra de a una tarea: `git rebase` de la rama del agente sobre la punta de la épica +
   `git merge --ff-only`, y `oraculo.sh rapido` sobre la integración;
-- es el dueño de `Docs/`, `handoffs/`, el journal, el ledger y `rojos-declarados.txt`: los escribe él, o
-  despacha **un solo** agente de docs a la vez, que no corre en paralelo con otro que toque `Docs/`.
+- es el dueño de `Docs/`, `handoffs/`, `tasks.md`, el journal, el ledger y `rojos-declarados.txt`:
+  los escribe él, o despacha **un solo** agente de docs a la vez, que no corre en paralelo con otro
+  que toque `Docs/`.
+
+**El tablero: `tasks.md`** (raíz de `version-2`, desde el relevo 6, pedido del dueño):
+
+- Una línea por tarea de todos los planes, con su estado (✅ 🟢 🔧 🔄 ⏳ ⛔ 🔒 ⏭️), dependencias y
+  archivos calientes y tibios; las reglas de concurrencia; la cola de despacho; los gates del
+  dueño.
+- **Un solo escritor: el controlador.** Lo actualiza en cada borde de tarea: al despachar, al
+  recibir el reporte, al integrar y al cerrar la ola. Los subagentes nunca lo editan: reportan, y
+  el controlador pasa el dato.
+- El detalle fino (arrastres, menores diferidos, reportes) sigue en el ledger de cada épica. Si un
+  ledger y `tasks.md` se contradicen, manda el ledger y se corrige `tasks.md`.
 
 **Archivos calientes: un solo dueño por ola.**
 
@@ -162,7 +179,7 @@ nuevas de otras épicas salen de `version-2`.
 | luego | E4 ∥ E5 por tarea (comparten `GameState`), E6, E7b, E9, E2b; E8 según los gates del arte | |
 
 El calendario es la intención: cada ola se re-arma con las huellas reales de archivos de los
-planes, y se corre de a uno lo que se pisa.
+planes, y se corre de a uno lo que se pisa. **Las olas reales y la cola viven en `tasks.md` §4.**
 
 ---
 
@@ -210,6 +227,7 @@ planes, y se corre de a uno lo que se pisa.
 | Skins de ORO | **Efectos por código** (shaders, ver "Efectos de skin") + **3 familias dibujadas**: Pijama de Ositos, Gaucho y Disfraz de Dinosaurio (43 personajes cada una). |
 | ORO comprado | **Sirve para todo** (tienda y las 7 líneas). Las **7 líneas pasan a costar el doble: 348** en vez de 193, así un pack chico no regala el juego. |
 | Escala del ORO | Ancla: **1 h de producción ≈ 90 ORO**. Ejemplos: ×2 por 30 min = 30, giro extra = 12, familia de skins = 450. Los boosts tienen tope diario. Un jugador gratis junta ~12.000 ORO hasta Dios. |
+| Guiños ocultos (2026-10-07) | **"Six Seven" en tres lugares, y "andá pa' allá, bobo" una sola vez**, sin nombrar a nadie real. Six Seven: (1) el Turista Gringo lleva una camiseta con el **67** (arte de E8, Anexo B), (2) el globo del Crypto Bro ("el gráfico hizo six seven"), (3) el reto del Coach Ontológico pide **67 toques** (era 60). "Andá pa' allá, bobo": el globo del chisme de la Vecina Chusma. No se suman más: tope 3 y 1. Los carga E4a T7 (textos y números) y el batch de E8 (la camiseta). |
 | Packs de ORO | **160 / 550 / 1.400** por **USD 1,99 / 4,99 / 9,99**. Los IDs no cambian; los montos se ajustan con el simulador sin tocar el precio. |
 | Ofertas (precios) | **Bienvenida** USD 0,99 = 120 ORO + 2 h de producción + 1 cofre. **Renacer** USD 2,99 = 300 ORO + 4 h + ×3 por 30 min. **Mudanza** USD 4,99 = 500 ORO + 8 h + 3 Paquetes. |
 | Contrato de pacing | Se mide con un jugador que **reencarna al multiplicar ×5 su ORO** (≈6 reencarnaciones). |
@@ -1236,11 +1254,11 @@ exige es + en en todas.
 | Puntero Político | acto | Se lleva 3 del tier más bajo y deja un bolsón (1 paquete + S(600), ≥1,5× su valor). | "Necesito tres muchachos para un acto. Vuelven con choripán y un bolsón de regalo." |
 | Puntero Político | bolsón | 1 paquete; 2 con video. | "Te dejo un bolsón. No preguntes de dónde sale ni quién lo manda." |
 | Ministro de Economía | subsidio | S(1200); ×2 video. | "Subsidio focalizado a tu empresa. Focalizado en vos, sí." |
-| Vecina Chusma | chisme | Te adelanta cuál es el próximo evento + S(300). | "¿Viste lo que dicen? Que se viene un evento… ¡yo no dije nada!" |
+| Vecina Chusma | chisme | Te adelanta cuál es el próximo evento + S(300). | "¿Qué mirás, bobo? Andá pa' allá… ¡ah, sos vos! ¿Viste lo que dicen? Que se viene un evento… ¡yo no dije nada!" |
 | Vecina Chusma | favor | 15 toques en 20 s → 1 paquete; ×2 video. | "Nene, ayudame con las bolsas del súper que me duele la cintura." |
 | Vendedor Ambulante | ofertas | 3 cartas por video: Mate (contratar −30 % 90 s), Café (tap ×2 60 s), Turbo (×3 60 s). | "¡Llevá, llevá! Boost calentito, recién salido del horno. Con video te lo regalo." |
 | Conductor de TV | ruleta | Abre la ruleta y da +1 giro gratis por día. | "¡Y ahora… el momento que todos esperaban… LA RULETA! ¡Aplausos!" |
-| Crypto Bro | señal | Ingresos ×2 por 60 s; ×2 video. | "Hermano, vi una señal: todo en verde. Duplicá por un minuto y no preguntes cómo." |
+| Crypto Bro | señal | Ingresos ×2 por 60 s; ×2 video. | "Hermano, el gráfico hizo six seven: todo en verde. Duplicá por un minuto y no preguntes cómo." |
 | Contador de Dios | crédito | S(2400). | "Encontré un crédito fiscal en una dimensión que ni sabías que tenías." |
 | Zombie CEO | reto | 40 toques en 30 s → ×2 por 90 s. | "No… duermo… hace… tres… quinquenios. ¿Tocamos… cuarenta… veces?" |
 | Lizard | lengua | Tap ×3 por 45 s. | "Sssí, soy de este barrio. Tocá, tocá, que te rinde por tres." |
@@ -1248,7 +1266,7 @@ exige es + en en todas.
 | Bug de la Simulación | reinicio | Reinicia los cooldowns de todos los boosts. | "Encontré un bug en la Matrix: tus cooldowns se reiniciaron. Que no se entere nadie." |
 | El del Arbolito | cambio | 1 ORO por S(5400); tope 3 ORO por día. | "¡Cambio, cambio, cambiooo! Plata por ORO, buen precio, sin preguntar." |
 | El del Arbolito | blue (sólo en Cepo) | ×1,5 ORO por plata, sin tope (compensa el +50 %). | "Con el cepo el único que te cambia soy yo… ¡al blue, ni preguntes!" |
-| Coach Ontológico | reto | 60 toques en 30 s → ×2 por 120 s. Si no llegás, "es un proceso" (sin castigo). | "¿Y si el techo era una creencia limitante? Dale: sesenta toques, ahora." |
+| Coach Ontológico | reto | 67 toques en 30 s → ×2 por 120 s. Si no llegás, "es un proceso" (sin castigo). | "¿Y si el techo era una creencia limitante? Dale: sesenta y siete toques, ahora." |
 
 **Eventos**: lo anuncia su presentador; duran 30–90 s.
 
@@ -1285,7 +1303,7 @@ watermark, no cropping."* Sólo arquetipos: ni personas ni insignias reales.
 |---|---|---|---|
 | `char_fisu_npc_comisario_v1` | a heavyset police chief with a thick mustache, navy cap with a plain gold badge shape, whistle on a cord, ticket booklet, generic uniform with no real insignia | azul marino, dorado, crema | dedo levantado · anota la multa |
 | `char_fisu_npc_sindicalista_v1` | a stocky union organizer in a work vest, headband, holding a megaphone and a plain blank banner with no logo | rojo ladrillo, gris, amarillo | megáfono · puño en alto |
-| `char_fisu_npc_turista_v1` | a tall tourist in a wide sun hat, camera around the neck, fanny pack, socks with sandals, folding map | turquesa, beige, rojo | señala el mapa · saca la foto |
+| `char_fisu_npc_turista_v1` | a tall tourist in a wide sun hat and a loose basketball jersey with a big number 67 on the chest (the only lettering in the image), camera around the neck, fanny pack, socks with sandals, folding map | turquesa, beige, rojo | señala el mapa · saca la foto |
 | `char_fisu_npc_puntero_v1` | a local political fixer in a sleeveless jacket with a plain violet armband, carrying a big reusable bag of groceries, wide friendly grin | violeta, verde oliva, gris | palmada · entrega el bolsón |
 | `char_fisu_npc_ministro_v1` | an economy minister in a gray suit and thick glasses, briefcase, holding a chart board with a downward arrow | gris, azul, verde billete | señala el gráfico · tacha números |
 | `char_fisu_npc_vecina_v1` | a nosy neighbor in a house dress and hair curlers, leaning on a broom, hand beside her mouth whispering | rosa, celeste, lila | cuchichea · mira con prismáticos |

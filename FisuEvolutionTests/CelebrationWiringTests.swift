@@ -21,6 +21,17 @@ struct CelebrationWiringTests {
         return gameState
     }
 
+    /// El tick le pasa al watchdog el delta con tope (`IncomeTicker.deltaClampThreshold`):
+    /// un reloj largo se deja correr de a un segundo, como lo haría la escena.
+    private func advanceClock(_ gameState: GameState, by seconds: TimeInterval) {
+        var remaining = seconds
+        while remaining > 0 {
+            let step = min(remaining, 1)
+            gameState.tick(delta: step)
+            remaining -= step
+        }
+    }
+
     private func anAward(_ gameState: GameState) throws -> GameState.SkinAward {
         let type = try #require(gameState.content?.tiers.baseType)
         return GameState.SkinAward(id: "urban_trailblazer", characterType: type)
@@ -142,13 +153,13 @@ struct CelebrationWiringTests {
 
         // El sheet primero (prioridad 4) y NO se vence: lo cierra el jugador.
         #expect(gameState.showing == .skinAward)
-        gameState.tick(delta: 60)
+        advanceClock(gameState, by: 60)
         #expect(gameState.showing == .skinAward, "un sheet espera lo que haga falta")
 
         gameState.skinAward = nil
         gameState.celebrationFinished(.skinAward)
         #expect(gameState.showing == .towerNotice)
-        gameState.tick(delta: 4.1)
+        advanceClock(gameState, by: 4.1)
         #expect(gameState.showing == nil, "el aviso sí tiene tope")
         #expect(gameState.towerNotice == nil)
     }
@@ -174,7 +185,7 @@ struct CelebrationWiringTests {
         let gameState = await makeGameState()
         gameState.skinAward = try anAward(gameState)
         gameState.flushHUD()
-        gameState.tick(delta: 5)
+        advanceClock(gameState, by: 5)
         #expect(gameState.skipCurrentCelebration() == false, "el sheet tiene su botón")
         #expect(gameState.showing == .skinAward)
     }
@@ -349,7 +360,7 @@ struct CelebrationWiringTests {
                 gameState.tick(delta: 1)   // pasa el piso de tiempo del tap
                 #expect(gameState.skipCurrentCelebration())
             default:
-                gameState.tick(delta: 8.1)   // tope de `.boardCelebration`
+                advanceClock(gameState, by: 8.1)   // tope de `.boardCelebration`
             }
             #expect(gameState.showing != .boardCelebration, "\(exit): la celebración terminó")
             drainCelebrations(gameState)

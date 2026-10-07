@@ -4387,6 +4387,40 @@
         }
       }
     },
+    "notif.comeback.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It's been days. The tower's still standing… mostly."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hace días que no pasás. La torre sigue en pie… más o menos."
+          }
+        }
+      }
+    },
+    "notif.comeback.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your crew misses you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus fisuras te extrañan"
+          }
+        }
+      }
+    },
     "notif.daily.body" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4417,6 +4451,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tus fisuras te extrañan"
+          }
+        }
+      }
+    },
+    "notif.daily_ready.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It's sitting there unclaimed, gathering dust. Hop in and it's yours."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Está ahí, sin cobrar, juntando polvo. Entrá y es tuyo."
+          }
+        }
+      }
+    },
+    "notif.daily_ready.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your daily prize is waiting"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu premio del día te espera"
+          }
+        }
+      }
+    },
+    "notif.vault_full.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your crew stuffed it to the brim. Come empty it before they get ideas."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus fisuras juntaron todo lo que entra. Pasá a vaciarla antes de que se tienten."
+          }
+        }
+      }
+    },
+    "notif.vault_full.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The safe is full!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡La caja fuerte no cierra más!"
           }
         }
       }

@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "notifications": [
+    { "id": "vault_full" },
+    { "id": "daily_ready" },
+    { "id": "comeback" }
+  ],
+  "quietHours": { "startHour": 22, "endHour": 9 },
+  "minSpacingHours": 4,
+  "maxPerAbsence": 3,
+  "dailyReadyHour": 19,
+  "comebackAfterHours": 72,
+  "permissionCard": { "maxOffers": 2, "retryAfterHours": 72 }
+}

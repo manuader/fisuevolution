@@ -46,7 +46,7 @@ struct CareerChoiceView: View {
         // sistema deja un rectángulo alrededor del panel. Transparente, el
         // fork flota sobre el tablero que está por bifurcar (mismo criterio
         // que la ficha y los popups de premio).
-        .presentationBackground(.clear)
+        .fisuSheet()
     }
 
     private var header: some View {

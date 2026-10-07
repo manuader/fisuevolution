@@ -73,7 +73,7 @@ struct CharacterSheetView: View {
         .presentationDetents([.large])
         // El panel ya no ocupa toda la hoja, así que el fondo del sheet dejaba
         // una franja blanca muerta: transparente, el panel flota sobre el juego.
-        .presentationBackground(.clear)
+        .fisuSheet()
         .alert("character.dismiss.title", isPresented: $confirmingDismissal) {
             Button("character.dismiss.confirm", role: .destructive) {
                 gameState.dismissCharacter(atCell: sheet.cellIndex)

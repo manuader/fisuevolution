@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Marcos de panel VECTORIALES del rediseño v3 — los hermanos dibujados del
 /// arte del atlas, para las pantallas que no tienen un marco de arte propio.
@@ -170,7 +171,7 @@ struct WoodPanelBackground: View {
 /// quedaron sin trabajo.
 ///
 /// Se aplica sobre el `ScrollView` de la hoja, y la hoja se presenta con
-/// `.presentationBackground(.clear)`: el panel flota sobre el juego atenuado,
+/// `fisuSheet` (transparente): el panel flota sobre el juego atenuado,
 /// como los popups — que es como componen las referencias.
 private struct PanelSheetLayout<Header: View, Ornament: View>: ViewModifier {
     let material: WoodPanelBackground.Material
@@ -204,6 +205,7 @@ private struct PanelSheetLayout<Header: View, Ornament: View>: ViewModifier {
         // flota transparente sobre la banda); abajo NO: respeta la safe area,
         // que es lo que deja la banda inferior a la vista.
         .ignoresSafeArea(edges: .top)
+        .frame(maxWidth: SheetColumn.maxWidth)
     }
 
     /// El fundido que hace que las tarjetas SALGAN de adentro del panel en vez
@@ -249,6 +251,110 @@ extension View {
             header: header(),
             ornament: ornament()
         ))
+    }
+}
+
+// MARK: - La presentación de las hojas
+
+/// El ancho máximo del panel de una hoja: en iPhone no se alcanza nunca; en
+/// iPad el panel queda centrado en esta columna.
+enum SheetColumn {
+    static let maxWidth: CGFloat = 640
+}
+
+enum SheetPresentation {
+    /// Cuánto atenúa el velo propio al juego: lo que el sistema le pone a una
+    /// hoja en iPhone.
+    static let veilOpacity = 0.35
+
+    /// En iPad una `.sheet` sale opaca (iPadOS 26) o como tarjeta (iPad mini
+    /// 18.6), con cualquier `presentationSizing` (spike S1 de E3a): ahí la hoja
+    /// es un `fullScreenCover` transparente con velo propio.
+    static func usesCover(on idiom: UIUserInterfaceIdiom) -> Bool {
+        idiom == .pad
+    }
+}
+
+extension View {
+    /// Aplicar al CONTENIDO de una hoja: transparente, así el panel o la
+    /// tarjeta flotan sobre el juego atenuado. Los presentadores de abajo ya lo
+    /// aplican; el contenido lo repite mientras alguna hoja se presente con un
+    /// `.sheet` pelado.
+    func fisuSheet() -> some View {
+        presentationBackground(.clear)
+    }
+
+    /// Presenta una hoja del juego (PLAN-v2 E3): la hoja de siempre en iPhone
+    /// —con sus `presentationDetents`— y, en iPad, un cover transparente con
+    /// el panel centrado en la columna de `SheetColumn.maxWidth`.
+    func fisuSheet<Item: Identifiable, Sheet: View>(
+        item: Binding<Item?>,
+        onDismiss: (() -> Void)? = nil,
+        @ViewBuilder content: @escaping (Item) -> Sheet
+    ) -> some View {
+        modifier(FisuSheetItemPresenter(item: item, onDismiss: onDismiss, sheet: content))
+    }
+
+    func fisuSheet<Sheet: View>(
+        isPresented: Binding<Bool>,
+        onDismiss: (() -> Void)? = nil,
+        @ViewBuilder content: @escaping () -> Sheet
+    ) -> some View {
+        modifier(FisuSheetFlagPresenter(isPresented: isPresented, onDismiss: onDismiss, sheet: content))
+    }
+}
+
+/// El cover de iPad: velo, columna centrada y sin barra de estado. Sin el
+/// `statusBarHidden` la barra aparece mientras el cover está arriba y el HUD de
+/// atrás baja 24-32 pt (spike S1).
+private struct FisuCover<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(SheetPresentation.veilOpacity)
+                .ignoresSafeArea()
+            content
+                .frame(maxWidth: SheetColumn.maxWidth)
+        }
+        .fisuSheet()
+        .statusBarHidden(true)
+    }
+}
+
+private struct FisuSheetItemPresenter<Item: Identifiable, Sheet: View>: ViewModifier {
+    @Binding var item: Item?
+    let onDismiss: (() -> Void)?
+    @ViewBuilder let sheet: (Item) -> Sheet
+
+    func body(content: Content) -> some View {
+        if SheetPresentation.usesCover(on: UIDevice.current.userInterfaceIdiom) {
+            content.fullScreenCover(item: $item, onDismiss: onDismiss) { item in
+                FisuCover { sheet(item) }
+            }
+        } else {
+            content.sheet(item: $item, onDismiss: onDismiss) { item in
+                sheet(item).fisuSheet()
+            }
+        }
+    }
+}
+
+private struct FisuSheetFlagPresenter<Sheet: View>: ViewModifier {
+    @Binding var isPresented: Bool
+    let onDismiss: (() -> Void)?
+    @ViewBuilder let sheet: () -> Sheet
+
+    func body(content: Content) -> some View {
+        if SheetPresentation.usesCover(on: UIDevice.current.userInterfaceIdiom) {
+            content.fullScreenCover(isPresented: $isPresented, onDismiss: onDismiss) {
+                FisuCover { sheet() }
+            }
+        } else {
+            content.sheet(isPresented: $isPresented, onDismiss: onDismiss) {
+                sheet().fisuSheet()
+            }
+        }
     }
 }
 

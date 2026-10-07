@@ -53,6 +53,7 @@ struct ShareCardSheet: View {
         }
         .padding(Tokens.s24)
         .presentationDetents([.large])
+        .presentationSizing(.page)
         // El interior pergamino-con-luz de `PanelBackground`, sin marco de
         // arte: no hay un panel del atlas para esta hoja y los marcos traen
         // ornamento arriba que pide insets medidos — acá el cuadro es la

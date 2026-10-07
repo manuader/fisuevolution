@@ -92,7 +92,7 @@ struct SkinAwardView: View {
         // El marco del premio no llega a los bordes de la hoja: sin esto el
         // fondo de sistema deja un rectángulo alrededor del panel. Transparente,
         // el premio flota sobre el tablero como sus gemelos.
-        .presentationBackground(.clear)
+        .fisuSheet()
     }
 }
 

@@ -102,7 +102,7 @@ struct PrestigeView: View {
         // sistema deja un rectángulo alrededor del panel (el defecto que
         // `DailyRewardView` corrigió). Transparente, el panel flota sobre el
         // tablero como sus tres gemelos de premio.
-        .presentationBackground(.clear)
+        .fisuSheet()
     }
 
     /// El camino al PRÓXIMO ORO, cuando todavía no hay ninguno por cobrar: lo

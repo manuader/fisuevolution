@@ -5161,7 +5161,7 @@
       }
     },
     "settings.notifications" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -5177,19 +5177,53 @@
         }
       }
     },
-    "settings.notifications.denied" : {
-      "extractionState" : "stale",
+    "settings.notifications.comeback" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iOS is blocking them: turn them on in Settings › FisuEvolution."
+            "value" : "If you've been away for days"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "iOS las tiene bloqueadas: activalas en Ajustes › FisuEvolution."
+            "value" : "Si hace días que no venís"
+          }
+        }
+      }
+    },
+    "settings.notifications.daily_ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily prize waiting"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premio diario sin cobrar"
+          }
+        }
+      }
+    },
+    "settings.notifications.denied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS is blocking them for this game."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iOS las tiene bloqueadas para este juego."
           }
         }
       }
@@ -5207,6 +5241,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Te avisamos cuando pasa algo en la torre. Nunca de noche."
+          }
+        }
+      }
+    },
+    "settings.notifications.open_settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Ajustes"
+          }
+        }
+      }
+    },
+    "settings.notifications.vault_full" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Safe is full"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Caja fuerte llena"
           }
         }
       }
@@ -5443,6 +5511,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Legales"
+          }
+        }
+      }
+    },
+    "settings.section.notifications" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alerts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avisos"
           }
         }
       }

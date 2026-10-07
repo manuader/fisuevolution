@@ -1,3 +1,4 @@
+import EconomyKit
 import SwiftUI
 
 // MARK: - Idioma
@@ -67,11 +68,9 @@ enum LanguagePreference: String, CaseIterable, Identifiable {
 /// por grupo y `ArtCloseButton` que cierra la HOJA (acá `dismiss` desapilaría —
 /// ver el docstring de `MenuView`).
 ///
-/// **Seis cintas para las siete secciones del spec**: "Partículas" y
-/// "Notificaciones" comparten la de "En el juego". Los identifiers —que es lo
-/// que el spec fija— son los siete de la lista; lo que se agrupa es el dibujo,
-/// porque dos cintas naranjas con una fila cada una debajo hacen ruido y no
-/// jerarquía (Estadísticas tiene cuatro cintas para dieciocho filas).
+/// **Siete cintas**: idioma, audio, en el juego, avisos (E11: el maestro, uno
+/// por motivo y la salida a Ajustes de iOS), compras, legales y acerca de. Los
+/// identifiers de las filas son lo que fijan el spec y los UI tests.
 ///
 /// ⚠️ **Los valores de accesibilidad de los controles van SIN traducir**
 /// (`on`/`off`, `selected`): el runner corre la app en inglés (trampa 6 del
@@ -82,6 +81,8 @@ struct SettingsView: View {
     @Environment(HapticsManager.self) private var haptics
     @Environment(NotificationsManager.self) private var notifications
     @Environment(StoreManager.self) private var store
+    @Environment(GameState.self) private var gameState
+    @Environment(\.openURL) private var openURL
     /// Cierra la HOJA entera.
     let close: () -> Void
 
@@ -99,13 +100,14 @@ struct SettingsView: View {
         @Bindable var audio = audio
 
         ScrollView {
-            // `VStack` y no `LazyVStack`: son ~14 filas contadas y todas tienen
+            // `VStack` y no `LazyVStack`: son ~18 filas contadas y todas tienen
             // que existir en el árbol de accesibilidad sin scrollear, que es lo
             // que ejerce `MenuUITests` (misma razón que Estadísticas).
             VStack(spacing: Tokens.s12) {
                 languageSection
                 audioSection(music: $audio.musicVolume, sfx: $audio.sfxVolume)
                 gameSection
+                notificationsSection
                 purchasesSection
                 legalSection
                 aboutSection
@@ -235,7 +237,21 @@ struct SettingsView: View {
                         hintKey: "settings.particles.hint",
                         isOn: particlesEnabled
                     ) { particlesEnabled = $0 }
-                    RowDivider()
+                }
+            }
+        }
+    }
+
+    // MARK: Avisos
+
+    /// El maestro, uno por motivo en el orden del catálogo y, si iOS las
+    /// bloqueó, la salida a sus Ajustes. Con el maestro apagado los motivos se
+    /// esconden pero no se olvidan.
+    private var notificationsSection: some View {
+        VStack(spacing: Tokens.s12) {
+            SectionHeader("settings.section.notifications")
+            GameCard(style: .normal) {
+                VStack(spacing: 0) {
                     ToggleRow(
                         titleKey: "settings.notifications",
                         identifier: "settings.notifications",
@@ -248,9 +264,41 @@ struct SettingsView: View {
                         // siempre, y prenderla con iOS sin preguntar pide permiso.
                         Task { await notifications.setEnabled(wantsOn) }
                     }
+                    if notifications.isDenied {
+                        ActionPill(
+                            titleKey: "settings.notifications.open_settings",
+                            systemImage: "gearshape.fill",
+                            tint: Color("PaletteBlue"),
+                            identifier: "settings.notifications.open_settings",
+                            action: openSystemNotificationSettings
+                        )
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, Tokens.s8)
+                    }
+                    if notifications.isEnabled {
+                        ForEach(notificationKinds, id: \.self) { kind in
+                            RowDivider()
+                            ToggleRow(
+                                titleKey: LocalizedStringKey(kind.settingsKey),
+                                identifier: kind.settingsKey,
+                                isOn: notifications.isEnabled(for: kind)
+                            ) { notifications.setEnabled($0, for: kind) }
+                        }
+                    }
                 }
             }
         }
+    }
+
+    private var notificationKinds: [NotificationKind] {
+        gameState.content?.notifications.kinds ?? NotificationKind.allCases
+    }
+
+    /// Los Ajustes de notificaciones de ESTA app en iOS: una alerta del sistema
+    /// sería otra pantalla que no es del juego.
+    private func openSystemNotificationSettings() {
+        guard let url = URL(string: UIApplication.openNotificationSettingsURLString) else { return }
+        openURL(url)
     }
 
     // MARK: Compras
@@ -406,8 +454,7 @@ struct SettingsView: View {
 ///
 /// Toda la fila es el botón —no sólo la perilla— porque en un teléfono nadie le
 /// apunta a una cápsula de 64 pt cuando el renglón entero está ahí. El estado lo
-/// decide quien la usa (`isOn`), así que un toggle que el sistema rechaza (las
-/// notificaciones) vuelve solo a su lugar sin que la fila tenga que saber nada.
+/// decide quien la usa (`isOn`): la fila no guarda nada propio.
 private struct ToggleRow: View {
     let titleKey: LocalizedStringKey
     let identifier: String

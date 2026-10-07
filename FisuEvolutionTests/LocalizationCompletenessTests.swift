@@ -153,6 +153,7 @@ struct LocalizationCompletenessTests {
                 return content.notifications.kinds.flatMap { [$0.titleKey, $0.bodyKey] }
             case .settingsRows:
                 return LanguagePreference.allCases.map(\.identifier) + LegalDocument.Kind.allCases.map(\.identifier)
+                    + content.notifications.kinds.map(\.settingsKey)
             }
         }
     }

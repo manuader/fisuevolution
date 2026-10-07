@@ -31,6 +31,16 @@
 -->
 <plist version="1.0">
 <dict>
+	<!-- La pantalla de lanzamiento: crema, el fondo del splash, para que el
+	     primer cuadro no sea blanco (PLAN-v2 E3). Va acá y no como
+	     `INFOPLIST_KEY_UILaunchScreen_Generation`, que genera el diccionario
+	     VACÍO: la whitelist de Xcode no tiene clave para el color. -->
+	<key>UILaunchScreen</key>
+	<dict>
+		<key>UIColorName</key>
+		<string>PaletteCream</string>
+	</dict>
+
 	<!-- El App ID REAL de la cuenta de AdMob del dueño (pasado el 2026-09-02).
 	     Ojo con la forma: el App ID lleva **~** entre el publisher y el id de la
 	     app; los ad unit IDs llevan **/**. Confundirlos es un error que el SDK

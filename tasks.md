@@ -192,7 +192,7 @@ el controlador una vez por ola al integrar.
 
 | # | Qué | Nota |
 |---|---|---|
-| 0 | Si los arreglos de **E1 T10** llegaron (commit encima de `4c11a0a` en `worktree-agent-a6243c7787c9be294`): cherry-pick en `v2/e1-correcciones` y en la integración | si no llegaron, agente nuevo con BASE `4c11a0a` + la revisión del ledger de E1 (2 Important + 3 menores) |
+| 0 | Los arreglos de **E1 T10** ya están en `v2/e1-correcciones` (cherry-pick de `2c96066`): entran con la integración | revisados por el controlador |
 | 1 | **Integración** en `version-2`: `v2/e5-premios` (`f6f8e2f`, mutantes), `v2/e11-notificaciones` (`02cc5fb`, T4), `v2/e2a-mecanicas` (`434b0ee`, T1), `v2/e6-tienda` (`d3c0889`: E6b T1 + T2) + los arreglos de T10 → un `rapido` → push | esperado EK ≈ 480 · unit ≥ 690 + 1 · release 0 |
 | 2 | Un **`completo`** sobre esa punta | decide `MenuUITests…ApagaLasParticulas` (rojo en E11 T4) y valida UI/Store de las olas D y E |
 | 3 | E6b T2: mostrarle la galería al dueño (capturas en el ledger de E6) → gate de E6b T8 | |
@@ -303,7 +303,7 @@ que toma · commit o rama · nota.
 | E1-T8 | Ciclo de vida: sellar al irse, latido, evento vencido | ✅ | T5 | 🔥 GameState, RootView, +Bonus; FisuEvolutionApp, +Debug, ContentConfigs, events.json | `eeb7322` + `5ef7a65` (merge `7110b06`) | re-revisión opus ✅: `flushHUD` sólo proyecta con la escena inactiva; un sello por salida |
 | E1-T9 | El turno de los cambios del tablero | ✅ | T7, T8, T5c | 🔥 GameState; +BoardChanges (nuevo), +Celebrations, +Lifecycle, +Debug | `65881ce` + `4572e6a` (merge `b09b4c4`) | re-revisado por el controlador; carries a T10/T12/T14 en el ledger |
 | E1-T9b | (seguimiento) partir `GameState.swift` en extensiones por zona, sin cambio de conducta | ✅ | T9 | 🔥 GameState (entero) | `3d4fb8d` (merge `b09b4c4`) | 1.174 → 334 líneas; mapa símbolo→archivo en `task-9b-report.md`; los `private(set)` pasan a `var` (no hay otra en Swift) |
-| E1-T10 | La escena reproduce los cambios y revela | 🔧 | T9 | 🔥 BoardScene, GameState, RootView; CelebrationQueue, +Celebrations, +Debug | `4c11a0a` (merge `b09b4c4`); arreglos en `worktree-agent-a6243c7787c9be294` | revisión opus: 2 Important (aborto con la condición equivocada; arranque con arrastre) en arreglo |
+| E1-T10 | La escena reproduce los cambios y revela | ✅ | T9 | 🔥 BoardScene, GameState, RootView; CelebrationQueue, +Celebrations, +Debug | `4c11a0a` (merge `b09b4c4`) + arreglos en `v2/e1-correcciones` | arreglos de la revisión en la rama de E1 (entran a `version-2` en la integración del relevo 8) |
 | E1-T11 | El sorteo de eventos salta lo inaplicable | ✅ | T7; T8 integrada | 🔥 ContentSystems, +Bonus; ContentConfigs, events.json | `70f216f` (merge `b09b4c4`) | el plan la pone ∥ T10; por archivos también va ∥ T9 (no acorta el camino crítico) |
 | E1-T12 | Startup, Blanqueo, videos y carrera por el embudo | ⛔ | T9, T10, T11 | 🔥 ContentSystems, +Bonus, GameState; +Actions, +Debug | | E2a T4 integrada antes |
 | E1-T13 | El Corralito congela el gasto, con salida por video | ⛔ | T12 | 🔥 TowerActions, ContentSystems, +Bonus, GameState, RootView, catálogo; +Hiring, +Actions, ContentConfigs | | E2a T3 integrada antes |

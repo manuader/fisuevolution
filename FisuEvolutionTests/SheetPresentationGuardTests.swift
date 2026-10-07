@@ -36,9 +36,9 @@ struct SheetPresentationGuardTests {
     /// El único archivo autorizado: el que define `fisuSheet`.
     private static let definition = "PanelFrames.swift"
 
-    /// Los que todavía presentan a mano, con su motivo. Los presentadores de las
-    /// hojas viven en `RootView`, que es caliente: los migra la Task 11 de E3a,
-    /// que deja esta lista vacía.
+    /// Los que presentan a mano a propósito, con su motivo. `RootView` ya
+    /// presenta todas las hojas del juego con `fisuSheet`; le quedan dos `.sheet(`
+    /// que no son hojas del juego: la de compartir del sistema y el panel de debug.
     private static let pending: Set<String> = ["RootView.swift"]
 
     /// Presentan con un `.sheet(` que no es una hoja del juego: la hoja de

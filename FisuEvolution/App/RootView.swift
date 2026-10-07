@@ -99,7 +99,7 @@ struct GameBoardView: View {
     @State private var scene: BoardScene?
     @State private var showPrestige = false
     /// La pantalla de la barra inferior que está abierta, o `nil`. Las seis
-    /// comparten UN `.sheet(item:)` en vez de tener un `@State showX` cada una:
+    /// comparten UN `.fisuSheet(item:)` en vez de tener un `@State showX` cada una:
     /// con un booleano por hoja, dos tabs seguidos podían dejar dos banderas en
     /// `true` y SwiftUI presentar una sola. El enum lo hace imposible.
     @State private var activeScreen: GameScreen?
@@ -276,19 +276,19 @@ struct GameBoardView: View {
                 scene = BoardScene(gameState: gameState)
             }
         }
-        .sheet(item: careerPromptBinding) { prompt in
+        .fisuSheet(item: careerPromptBinding) { prompt in
             CareerChoiceView(prompt: prompt)
         }
-        .sheet(item: Binding(
+        .fisuSheet(item: Binding(
             get: { tutorialDone ? gameState.characterSheet : nil },
             set: { gameState.characterSheet = $0 }
         )) { sheet in
             CharacterSheetView(sheet: sheet)
         }
-        .sheet(item: skinAwardBinding, onDismiss: { gameState.celebrationFinished(.skinAward) }) { award in
+        .fisuSheet(item: skinAwardBinding, onDismiss: { gameState.celebrationFinished(.skinAward) }) { award in
             SkinAwardView(award: award)
         }
-        .sheet(item: offlineRewardBinding, onDismiss: {
+        .fisuSheet(item: offlineRewardBinding, onDismiss: {
             gameState.celebrationFinished(.offlineEarnings)
             // **Transición suave #1** (`Docs/ads-integration.md`): el jugador
             // acaba de cobrar lo de la noche y todavía no volvió al juego. No
@@ -303,13 +303,13 @@ struct GameBoardView: View {
         }) { reward in
             OfflineEarningsView(reward: reward)
         }
-        .sheet(isPresented: $showPrestige) {
+        .fisuSheet(isPresented: $showPrestige) {
             PrestigeView()
         }
         // Las seis pantallas de la barra inferior, en UN solo sheet. Ya no queda
         // ningún placeholder: el Menú es la última que se construyó (T15) y es
         // la única que navega hacia adentro.
-        .sheet(item: $activeScreen) { screen in
+        .fisuSheet(item: $activeScreen) { screen in
             Group {
                 switch screen {
                 case .jobs: FisuJobsView()
@@ -325,13 +325,13 @@ struct GameBoardView: View {
             // vista — como los popups, que es como componen las referencias.
             .presentationBackground(.clear)
         }
-        .sheet(item: specialDropBinding) { special in
+        .fisuSheet(item: specialDropBinding) { special in
             SpecialDropView(special: special)
         }
         // El RECAP del special: lo abre el jugador manteniendo apretado al
         // personaje en el tablero, así que no pasa por la cola (misma familia
         // que la ficha). La carta es la misma; cambia quién la pidió.
-        .sheet(item: $gameState.specialInfo) { special in
+        .fisuSheet(item: $gameState.specialInfo) { special in
             SpecialDropView(special: special, isRecap: true)
         }
         .sheet(item: Binding(
@@ -340,7 +340,7 @@ struct GameBoardView: View {
         )) { subject in
             ShareCardSheet(subject: subject)
         }
-        .sheet(item: dailyClaimBinding) { wrapped in
+        .fisuSheet(item: dailyClaimBinding) { wrapped in
             DailyRewardView(claim: wrapped.claim)
         }
         #if DEBUG
@@ -536,7 +536,7 @@ struct GameBoardView: View {
         .tutorialAnchor(.bottomBar)
     }
 
-        /// DailyRewardManager.Claim no es Identifiable; wrapper para .sheet(item:).
+        /// DailyRewardManager.Claim no es Identifiable; wrapper para .fisuSheet(item:).
     private struct IdentifiedClaim: Identifiable {
         let id = UUID()
         let claim: DailyRewardManager.Claim

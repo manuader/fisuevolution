@@ -207,12 +207,20 @@ struct StoreView: View {
         let entry = store.entry(for: product.id)
         return StoreProductCard(
             product: product,
+            // El nombre y la descripción salen del catálogo del juego (ítem 19
+            // del PLAN-v2): lo de App Store Connect queda sólo de respaldo.
+            name: IAPCopy.name(for: product.id, fallback: product.displayName),
+            detail: IAPCopy.description(
+                for: product.id,
+                quantity: entry.flatMap { IAPCopy.quantity(for: $0, skins: gameState.content?.skins) },
+                fallback: product.description
+            ),
             format: format,
             glyph: glyph,
             // La línea de arriba es el número concreto y sale calculado contra
             // la partida (la plata de un pack depende de dónde estás parado); la
-            // de abajo es el color, que lo pone el `.storekit`. `nil` para lo que
-            // no es pack: repetir la descripción sería una segunda fuente.
+            // de abajo es el color, la descripción del producto. `nil` para lo
+            // que no es pack: repetir la descripción sería una segunda fuente.
             reward: entry.flatMap(gameState.packRewardText),
             // Sólo el combo lleva la escarapela: es la única oferta de la
             // pantalla y destacar dos cosas es no destacar ninguna.
@@ -431,6 +439,10 @@ private struct StoreProductCard: View {
     }
 
     let product: Product
+    /// El nombre del producto, ya resuelto (`IAPCopy`).
+    let name: String
+    /// La descripción del producto, ya resuelta (`IAPCopy`).
+    let detail: String
     let format: Format
     let glyph: Glyph
     /// Qué te da el pack, ya calculado y formateado, o `nil` si no es pack.
@@ -508,9 +520,9 @@ private struct StoreProductCard: View {
             Color.clear
                 .accessibilityElement(children: .ignore)
                 .accessibilityIdentifier("store.row.\(product.id)")
-                // `displayName` y `description` los pone StoreKit: son texto ya
-                // resuelto, no claves (trampa 5).
-                .accessibilityLabel(Text(verbatim: product.displayName))
+                // El nombre y la descripción llegan ya resueltos por `IAPCopy`:
+                // son texto, no claves (trampa 5).
+                .accessibilityLabel(Text(verbatim: name))
                 .accessibilityValue(Text(verbatim: axValue))
                 .allowsHitTesting(false)
         }
@@ -609,7 +621,7 @@ private struct StoreProductCard: View {
             // entera para ella (226 pt contra los 173 que mide "Pack de
             // Arranque" a `Tokens.title`) y es la única que puede permitirse
             // partirse en vez de achicarse con Dynamic Type grande.
-            Text(verbatim: product.displayName)
+            Text(verbatim: name)
                 .font(format == .featured ? Tokens.title : Tokens.body)
                 .foregroundStyle(Color("PaletteInk"))
                 .lineLimit(format == .featured ? 2 : 1)
@@ -649,6 +661,10 @@ private struct StoreProductCard: View {
             // traducida como todo lo demás, y la del `.storekit` en la tienda
             // real la escribe App Store Connect en un solo idioma.
             //
+            // (Desde la 2.0 la descripción también sale del catálogo, por
+            // `IAPCopy`, así que ya no viene en un solo idioma; el criterio de
+            // no decir dos veces lo mismo sigue en pie.)
+            //
             // Las que NO son pack (quitar los ads, las dos skins) no tienen
             // línea calculada —`packRewardText` devuelve `nil` a propósito, y
             // hay un test de UI que lo pinea—, así que ahí la descripción sigue
@@ -656,7 +672,7 @@ private struct StoreProductCard: View {
             // renglones, "Dios con delantal chamuscado y pinza de a…" dejaba el
             // chiste por la mitad, que es la única razón por la que existe.
             if reward == nil {
-                Text(verbatim: product.description)
+                Text(verbatim: detail)
                     .font(Tokens.caption)
                     .foregroundStyle(Color("PaletteInk").opacity(0.65))
                     .lineLimit(3)
@@ -706,10 +722,10 @@ private struct StoreProductCard: View {
                 identifier: "store.buy.\(product.id)",
                 // Y por la misma razón el botón dice QUÉ compra: diez botones que
                 // se leen "USD 2,99" no se distinguen en el rotor. El nombre del
-                // producto lo escribe App Store Connect, así que entra como
+                // producto llega ya resuelto (`IAPCopy`), así que entra como
                 // argumento. Mismo trato que la cápsula gemela de Pintas, que
                 // comparte con esta el namespace `store.buy.<id>`.
-                accessibilityPurpose: Text("store.buy.ax \(product.displayName)"),
+                accessibilityPurpose: Text("store.buy.ax \(name)"),
                 action: buy
             )
             // Una compra en vuelo levanta la hoja de pago del sistema por
@@ -735,7 +751,7 @@ private struct StoreProductCard: View {
         // cuando existe el valor de la tarjeta se queda sólo con la cinta: meter
         // la descripción del `.storekit` acá era hacer que la hoja leyera dos
         // veces la misma frase.
-        return [tagline, reward == nil ? product.description : nil]
+        return [tagline, reward == nil ? detail : nil]
             .compactMap { $0 }
             .joined(separator: ", ")
     }

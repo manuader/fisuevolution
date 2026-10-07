@@ -131,10 +131,9 @@ struct SettingsView: View {
         } message: {
             Text("settings.restart.body")
         }
-        // El permiso de notificaciones se puede revocar desde Ajustes de iOS sin
-        // que la app se entere: al abrir la pantalla, el toggle se re-sincroniza
-        // contra el sistema antes de que el jugador lo mire.
-        .task { await notifications.syncWithSystem() }
+        // El permiso se puede revocar desde Ajustes de iOS sin que la app se
+        // entere: al abrir la pantalla se vuelve a leer antes de mostrarlo.
+        .task { await notifications.refreshAuthorization() }
     }
 
     // MARK: Cabecera
@@ -240,20 +239,14 @@ struct SettingsView: View {
                     ToggleRow(
                         titleKey: "settings.notifications",
                         identifier: "settings.notifications",
-                        // Se dice a qué hora y cuántas: un toggle de
-                        // notificaciones sin eso es un cheque en blanco.
-                        hintKey: notifications.permissionDenied
+                        hintKey: notifications.isDenied
                             ? "settings.notifications.denied"
                             : "settings.notifications.hint",
                         isOn: notifications.isEnabled
                     ) { wantsOn in
-                        // El estado lo decide el manager (y iOS), no el toque:
-                        // si el permiso se niega, el toggle vuelve solo.
-                        if wantsOn {
-                            Task { await notifications.requestAndSchedule() }
-                        } else {
-                            notifications.disable()
-                        }
+                        // Es la preferencia del jugador: el toque la escribe
+                        // siempre, y prenderla con iOS sin preguntar pide permiso.
+                        Task { await notifications.setEnabled(wantsOn) }
                     }
                 }
             }

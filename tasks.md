@@ -304,7 +304,7 @@ que toma · commit o rama · nota.
 | E1-T6c | (seguimiento) ORO comprado exacto entre dispositivos + T6b | 🔄 | T4, T6 | 🔥 PlayerState (`MetaState`); SaveConflictResolver, +Store, StoreManager | brief listo `task-6c-brief.md` | fuera del conteo; ola E (∥ T9); antes de E9 y de E6a T9/T11 |
 | E1-T7 | El embudo `BoardChange` en EK | ✅ | T3, T4 | — | `ec6fb29` | carries: init público de `BoardChangeOutcome` (T9), guarda de `typeId` (T10) |
 | E1-T8 | Ciclo de vida: sellar al irse, latido, evento vencido | ✅ | T5 | 🔥 GameState, RootView, +Bonus; FisuEvolutionApp, +Debug, ContentConfigs, events.json | `eeb7322` + `5ef7a65` (merge `7110b06`) | re-revisión opus ✅: `flushHUD` sólo proyecta con la escena inactiva; un sello por salida |
-| E1-T9 | El turno de los cambios del tablero | 🔄 | T7, T8, T5c | 🔥 GameState; +BoardChanges (nuevo), +Celebrations, +Lifecycle, +Debug | brief listo `task-9-brief.md` | ola E (∥ T6c); carry de T7: init público de `BoardChangeOutcome` |
+| E1-T9 | El turno de los cambios del tablero | 🔧 | T7, T8, T5c | 🔥 GameState; +BoardChanges (nuevo), +Celebrations, +Lifecycle, +Debug | `65881ce` (en `worktree-agent-af957e653662fc269`) | revisión opus: spec ✅; arreglando 2 Important (revalidar al confirmar, reencarnar asienta la cola) |
 | E1-T9b | (seguimiento) partir `GameState.swift` en extensiones por zona, sin cambio de conducta | ⛔ | T9 | 🔥 GameState (entero) | | fuera del conteo; decisión del relevo 7 (§4.4): antes de T10, ∥ T11 |
 | E1-T10 | La escena reproduce los cambios y revela | ⛔ | T9 | 🔥 BoardScene, GameState, RootView; CelebrationQueue, +Celebrations, +Debug | | E3a T10 y E4b T1 esperan esta |
 | E1-T11 | El sorteo de eventos salta lo inaplicable | ⏳ | T7; T8 integrada | 🔥 ContentSystems, +Bonus; ContentConfigs, events.json | | el plan la pone ∥ T10; por archivos también va ∥ T9 (no acorta el camino crítico) |
@@ -320,9 +320,9 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E11-T1 | Catálogo y planificador de la ausencia (EK) | ✅ | — | — | `508a4c5` | |
 | E11-T2 | `notifications.json` validado y sus textos | ✅ | T1 | 🔥 catálogo; GameContentLoader | `9c5847c` | |
-| E11-T3 | El manager 2.0: prendidas por defecto, permiso en dos pasos | 🔧 | T1, T2 | 🔥 SettingsView, catálogo | `f084ef5` (en `worktree-agent-acb378d5ca1b3d546`; sin integrar) | faltan 2 tests (I1, I2) + un docstring; arreglos NO despachados: agente nuevo con BASE `f084ef5` (§4.1) |
-| E11-T4 | Ajustes: el maestro, uno por motivo, "Abrir Ajustes" | ⛔ | T3 | 🔥 SettingsView, catálogo | | antes de E7b-a T5 |
-| E11-T5 | La tarjeta del permiso en el popup offline | ⛔ | T3 | catálogo (snapshot si va con T4); OfflineEarningsView | | no con E3a T6 |
+| E11-T3 | El manager 2.0: prendidas por defecto, permiso en dos pasos | ✅ | T1, T2 | 🔥 SettingsView, catálogo | `3430d72` + `f7dff48` (merge `b0f6f6c`) | arreglos I1/I2 con mutación verificada; `rapido` VERDE 653 + 1 |
+| E11-T4 | Ajustes: el maestro, uno por motivo, "Abrir Ajustes" | ⏳ | T3 | 🔥 SettingsView, catálogo | | antes de E7b-a T5 |
+| E11-T5 | La tarjeta del permiso en el popup offline | ⏳ | T3 | catálogo (snapshot si va con T4); OfflineEarningsView | | no con E3a T6 (`OfflineEarningsView`) |
 | E11-T6 | El cableado al ciclo de vida | ⛔ | T3; E1-T1, E1-T5, E1-T8, E1-T9 | 🔥 GameState; +Lifecycle, +Celebrations, FisuEvolutionApp | | carry: el comentario de `FisuEvolutionApp.swift:10-11` |
 | E11-T7 | Cierre de E11 (controlador) | ⛔ | T1–T6 | `Docs/` | | |
 
@@ -335,7 +335,7 @@ que toma · commit o rama · nota.
 | E3a-T3 | `PlayLayout` | ✅ | — | — | `f03950c` + `5afb893` (0,63) | |
 | E3a-T4 | `ScreenInsets` y `PlayColumn` | ✅ | T3 | — | `b988bc3` + `537f923` | |
 | E3a-T5 | Universal, iOS 18, contrato del Info.plist | ✅ | — | 🔥 project.yml; Info.plist, PanelFrames | `c323dd9` (merge `3956fd3`; `rapido` VERDE) | carries a T6, T10, T12 en el ledger; el release con Xcode 26.x |
-| E3a-T6 | Hojas y popups en iPad (`fisuSheet`) | ⏳ | T4, T5 | PanelFrames, 8 popups, HUDView, OfflineEarningsView | | S1: `fullScreenCover` + `statusBarHidden`; carry de T5: sin `#available` |
+| E3a-T6 | Hojas y popups en iPad (`fisuSheet`) | 🔄 | T4, T5 | PanelFrames, 8 popups, HUDView, OfflineEarningsView | | S1: `fullScreenCover` + `statusBarHidden`; carry de T5: sin `#available` |
 | E3a-T7 | La barra de abajo más baja, Contratar al centro | ⏳ | T4 | GameArtComponents, BottomMenuBar | | |
 | E3a-T8 | La botonera del ascensor | ⛔ | T6 | catálogo (o snapshot); PanelFrames, HUDView, AudioManager | | S6: botones de 30 pt; cablea `elevatorDing` |
 | E3a-T9 | Las pestañas aparecen de a poco | ⛔ | T7; E1-T4; ventana de GameState | 🔥 GameState, catálogo; +Debug, GameContentLoader | | |

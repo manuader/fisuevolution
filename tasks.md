@@ -7,7 +7,7 @@
 > `.superpowers/sdd/<plan>/progress.md` y el journal AVO del run.
 >
 > **Foto:** 2026-10-07, cierre del relevo 6, sobre `version-2` = `3956fd3` (su `rapido`:
-> (pendiente); se pushea después del verde). Si un ledger dice otra cosa que este archivo, manda
+> VERDE, EK 357 · unit 639 + 1 · release 0; pusheado). Si un ledger dice otra cosa que este archivo, manda
 > el ledger y este archivo se corrige.
 
 ## 1. Cómo se usa
@@ -184,7 +184,7 @@ partirlo.
 
 **En vuelo al cierre del relevo 6**: sólo el `rapido` sobre `3956fd3`, en el worktree de
 `version-2` (log `version-2/build/relevo6-rapido-3956fd3.log`; esperado EK 357 · unit 639 + 1 ·
-release 0): (pendiente). Ningún agente en vuelo. Al llegar quedan los 3 cupos de compilación (el
+release 0): VERDE. Ningún agente en vuelo. Al llegar quedan los 3 cupos de compilación (el
 `rapido` ocupa uno mientras corra) y los 2 de planificación.
 
 ### 4.1 Al llegar
@@ -333,7 +333,7 @@ que toma · commit o rama · nota.
 | E3a-T2 | Spikes S1, S4, S5, S6 | ✅ | — | — | sin commit (ledger de E3a) | cambian T4, T6, T8, T10 |
 | E3a-T3 | `PlayLayout` | ✅ | — | — | `f03950c` + `5afb893` (0,63) | |
 | E3a-T4 | `ScreenInsets` y `PlayColumn` | ✅ | T3 | — | `b988bc3` + `537f923` | |
-| E3a-T5 | Universal, iOS 18, contrato del Info.plist | ✅ | — | 🔥 project.yml; Info.plist, PanelFrames | `c323dd9` (merge `3956fd3`; `rapido` (pendiente)) | carries a T6, T10, T12 en el ledger; el release con Xcode 26.x |
+| E3a-T5 | Universal, iOS 18, contrato del Info.plist | ✅ | — | 🔥 project.yml; Info.plist, PanelFrames | `c323dd9` (merge `3956fd3`; `rapido` VERDE) | carries a T6, T10, T12 en el ledger; el release con Xcode 26.x |
 | E3a-T6 | Hojas y popups en iPad (`fisuSheet`) | ⏳ | T4, T5 | PanelFrames, 8 popups, HUDView, OfflineEarningsView | | S1: `fullScreenCover` + `statusBarHidden`; carry de T5: sin `#available` |
 | E3a-T7 | La barra de abajo más baja, Contratar al centro | ⏳ | T4 | GameArtComponents, BottomMenuBar | | |
 | E3a-T8 | La botonera del ascensor | ⛔ | T6 | catálogo (o snapshot); PanelFrames, HUDView, AudioManager | | S6: botones de 30 pt; cablea `elevatorDing` |

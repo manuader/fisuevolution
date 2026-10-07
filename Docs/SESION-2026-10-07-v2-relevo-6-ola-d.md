@@ -6,7 +6,7 @@ Lo que un agente necesita saber sin leer el resto:
 
 - **`version-2` en `3956fd3` tiene la ola D de E1 (T8 y T5c) y E3a T5.** E1 entró con
   `7110b06` (pusheado); E3a T5 con `3956fd3`, que **no se pushea hasta que su `rapido` dé verde**.
-  `rapido` sobre `3956fd3`: (pendiente) — esperado EK 357 · unit 639 + 1 declarado · release 0
+  `rapido` sobre `3956fd3`: **VERDE** (EK 357 · unit 639 + 1 declarado · release 0 warnings), pusheado (`7110b06..3956fd3`)
   warnings.
 - **El `completo` sobre `8d17b8d` (la ola C entera) dio todo verde menos Release.** Release no
   compilaba desde E1 T5: `GameState.swift:545:27: error: will never be executed`. Los tres
@@ -113,8 +113,8 @@ opus. **Ningún commit del rango `8d17b8d..3956fd3` lleva `Co-Authored-By`** (ve
   `ca2d12c`: **VERDE, EK 357 · unit 633 + 1 · release 0 warnings**. Merge `--no-ff` en
   `version-2` = `7110b06` (árbol Swift == `ca2d12c`), push `d3c9538..7110b06`.
 - **E3a**: `v2/e3-ux` ff a `c323dd9`; merge `--no-ff` en `version-2` = `3956fd3`. Su `rapido`
-  corría al cierre (log `version-2/build/relevo6-rapido-3956fd3.log`): (pendiente). **Se pushea
-  después del verde.**
+  corría al cierre (log `version-2/build/relevo6-rapido-3956fd3.log`): **VERDE** (EK 357 · unit 639 + 1 declarado · release 0 warnings). Pusheado
+  después del verde (`7110b06..3956fd3`).
 - **E5**: la rama de épica `v2/e5-premios` nació en `8d17b8d` y avanzó por ff a `a4c156f`. **No
   se mergeó a `version-2`**: va con el próximo `rapido` de fin de ola (EK pasa de 357 a 393).
 - **E11 T3 no se integró**: espera sus arreglos.
@@ -352,7 +352,7 @@ cuatro sitios con delta > 2 s. La revisión: prueban lo mismo, y más fuerte.
 | `f084ef5` (E11 T3, sobre `8d17b8d`; sin integrar) | 357 | 632 + 1 | — | VERDE | +21 − 9 |
 | `c323dd9` (E3a T5, sobre `8d17b8d`) | 357 | 626 + 1 | — | VERDE | +6 de `InfoPlistContractTests` |
 | `a4c156f` (E5a T1; sólo `swift test`) | **393** | 620 + 1 (en `b4800c5`) | — | VERDE | +23 en `b4800c5` y +13 del refuerzo |
-| **`3956fd3`** (`version-2`) | 357 | (pendiente) | (pendiente) | (pendiente) | esperado 633 + 6 = **639 + 1** |
+| **`3956fd3`** (`version-2`) | 357 | 639 + 1 | 0 warnings | VERDE | 633 + 6 de `InfoPlistContractTests`; build + unit + release (73 s) |
 
 - La cuenta cierra: 620 + 11 de T8 + 2 de sus arreglos = 633; + 6 de E3a T5 = 639. Un número
   distinto es un test perdido o duplicado.
@@ -436,7 +436,7 @@ relevo existen las rutinas manuales (§1).
 
 ## 8. Lo que quedó abierto (relevo 7)
 
-1. **El `rapido` sobre `3956fd3`**: (pendiente). Con VERDE (esperado EK 357 · unit 639 + 1 ·
+1. **El `rapido` sobre `3956fd3`**: VERDE y pusheado. Con VERDE (esperado EK 357 · unit 639 + 1 ·
    release 0), push de `version-2`. Con ROJO: fuera de los docs, el diff contra `ca2d12c` son
    sólo los cuatro archivos de E3a T5.
 2. **Los arreglos de E11 T3** (I1 e I2 + el docstring del contrato), con un agente nuevo, BASE

@@ -22,7 +22,7 @@
 > 6): en `version-2` (`3956fd3`) están E0, E10 en papel, E8 pipeline, E8
 > audio, E7a y la parte de idioma de E3, y las olas B, C y D: **E1 T1–T8 (con
 > T5b y T5c), E11 T1–T2 y E3a T1–T5** (la app ya es universal, con iOS 18). El
-> `rapido` de `3956fd3`: (pendiente); se pushea después del verde. El último
+> `rapido` de `3956fd3`: VERDE (EK 357 · unit 639 + 1 · release 0), pusheado. El último
 > `completo`, sobre `8d17b8d`, dio todo verde **menos Release**, que ya está
 > arreglado (§6). Fuera de `version-2`: E5a T1 en `v2/e5-premios` y E11 T3
 > con dos tests por arreglar. Hay planes para todas las épicas salvo E9, E2b,
@@ -315,7 +315,7 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ### Sesión del 2026-10-07 (relevo 6) — La ola D: el ciclo de vida, el Release que el `rapido` no veía y la app universal
 
 Entraron a `version-2` la ola D de E1 (`7110b06`, pusheado) y E3a T5
-(`3956fd3`, que se pushea después de su `rapido`: (pendiente)):
+(`3956fd3`, pusheado después de su `rapido` VERDE):
 
 - E1 T8, el ciclo de vida: se sella la hora sólo al irse, una vez por salida,
   dentro de un background task; con la escena inactiva no se cobra ni se
@@ -2043,7 +2043,7 @@ release 0.**
 |---|---:|---:|---|---|---|
 | `8d17b8d` (ola C) | 357 | 620 + 1 | — | VERDE | — |
 | `ca2d12c` (E1 T8 + arreglos + T5c; árbol Swift == `7110b06`) | **357** | **633 + 1** | **0 warnings** | **VERDE** | +11 de T8 · +2 de sus arreglos; build 97 s, unit 656 s, release 99 s |
-| `3956fd3` (+ E3a T5) | 357 | (pendiente) | (pendiente) | (pendiente) | esperado **639 + 1**: +6 de `InfoPlistContractTests` |
+| `3956fd3` (+ E3a T5) | 357 | 639 + 1 | 0 warnings | VERDE | +6 de `InfoPlistContractTests` |
 | `a4c156f` (E5a T1, en `v2/e5-premios`; sólo `swift test`) | **393** | 620 + 1 | — | VERDE | +23 de T1 · +13 del refuerzo |
 | `f084ef5` (E11 T3, sobre `8d17b8d`; sin integrar) | 357 | 632 + 1 | — | VERDE | +21 nuevos − 9 viejos |
 

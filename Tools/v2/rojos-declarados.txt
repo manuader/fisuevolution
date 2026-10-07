@@ -6,4 +6,3 @@
 # fallar se avisa al final: sacalo en el mismo commit que lo arregla.
 
 unit theOwnersTargetsAreMet  # 9 reencarnaciones contra ≤8 (viene del build 4); E2b lo reemplaza por el contrato nuevo
-pipeline test_ningun_asset_quedo_agujereado_por_dentro  # arte calado en estanciero_estelar__tropero y senior_doctor; lo arregla E8

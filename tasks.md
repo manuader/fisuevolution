@@ -510,15 +510,28 @@ que toma · commit o rama · nota.
 
 Ejecución: después de E7b (árbol de PLAN-v2 §4), con E1 T6c (el reset) y E7b-a T5 (UMP) adentro.
 
-### E2b — Calibración final y contrato de pacing (sin plan)
+### E2b — Calibración final y contrato de pacing (`2026-10-07-v2-e2b-calibracion.md`)
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| P-E2b | Plan de E2b | 🔄 | — | un archivo nuevo en `Docs/superpowers/plans/` | | opus; insumos: PLAN-v2 E2b, "Lo que E2a le deja", las bullets de E2b de E4a, E5a, E6a/E6b y E7b-b, y la nota de E1 T1 (el offline del simulador) |
+| P-E2b | Plan de E2b | ✅ | — | — | `5b15b82` | 15 tareas; reporte `.superpowers/sdd/2026-10-07-v2-e2b/plan-report.md` |
+| E2b-T1 | Bandas de escalada y curva por piso (EK) | ⛔ | E2a-T3, E2a-T5 | — | | |
+| E2b-T2 | Herencia de pasivos al reencarnar (EK) | ⛔ | T1 | — | | |
+| E2b-T3 | El simulador cobra como el juego (EK) | ⛔ | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
+| E2b-T4 | Política de pisos en marcha del bot (EK, opus) | ⛔ | T3; E2a-T4 | — | | |
+| E2b-T5 | Perfiles y fuentes gratis (EK) | ⛔ | T4; E5a-T1 | archivo de `PackageRoller` | | |
+| E2b-T6 | El perfil `.ads` (EK) | ⛔ | T5; E4a-T1, E4a-T8, E5a-T2, E5a-T3 | — | | |
+| E2b-T7 | El perfil `.max` (EK) | ⛔ | T6; E6a-T2, E6b-T6 | — | | |
+| E2b-T8 | El CLI del pacing-sim | ⛔ | T7 | — | | |
+| E2b-T9 | La suite del contrato (apagada) | ⛔ | T8; E5a-T5, E6a-T4, E7b-a-T3, E7b-b-T2, E2a-T11, E2a-T12 | — | | |
+| E2b-T10 | Presupuestos analíticos | ⛔ | E2a-T11, E4a-T7, E4a-T9, E6a-T4 | `visitors.json` | | |
+| E2b-T11 | La herencia en pantalla | ⛔ | T2; E2a-T8 | catálogo (snapshot) | | |
+| E2b-T12 | Medir cada mecánica, en orden | ⛔ | T9; 🔒 playtest E2a-T14 | — | | |
+| E2b-T13 | La búsqueda (run AVO, opus) | ⛔ | T12; E4a-T10, E5a-T9, E6a-T13, E6b-T7, E7b-b-T8 | — | | |
+| E2b-T14 | Declarar la calibración y prender el contrato | ⛔ | T13 | `economy.json`, `upgrades.json`, `achievements.json`, tests de pacing | | |
+| E2b-T15 | Cierre de E2b (controlador) | ⛔ | T1–T14 | `Docs/` | | |
 
-Ejecución: necesita la tabla de perillas de E2a T15, el playtest de precios del dueño (E2a T14) y
-todas las fuentes (E4–E6 y E7b-b) (ambigua: ver "Inconsistencias", punto 4). Reemplaza el rojo
-declarado `theOwnersTargetsAreMet` por el contrato nuevo y pasa las 7 líneas a 348 (E6a duda 15).
+Fase A (T1–T4) tras E2a T15, EK puro ∥ E4–E7; fase B en paralelo con E9 y antes de su cierre (decide el punto 4 de "Inconsistencias"). Reemplaza el rojo declarado `theOwnersTargetsAreMet` (T14). Dudas top del plan: contrato 6 (≥ 65 %) choca con HANDOFF §5.2 (se mide en T3/T12; si no llega, al dueño); `.free` incluye paquete y diario base; los visitantes rompen el 12 % de E2a (T10 baja `coinsSecondsScale`); logros 33 → 66 ORO con las líneas a 348.
 
 ### E10 — Release 2.0
 

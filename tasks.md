@@ -309,7 +309,7 @@ que toma · commit o rama · nota.
 | E1-T9 | El turno de los cambios del tablero | 🟢 | T7, T8, T5c | 🔥 GameState; +BoardChanges (nuevo), +Celebrations, +Lifecycle, +Debug | `65881ce` + `4572e6a` en `v2/e1-correcciones` | re-revisado por el controlador; carries a T10/T12/T14 en el ledger |
 | E1-T9b | (seguimiento) partir `GameState.swift` en extensiones por zona, sin cambio de conducta | 🟢 | T9 | 🔥 GameState (entero) | `3d4fb8d` en `v2/e1-correcciones` | 1.174 → 334 líneas; mapa símbolo→archivo en `task-9b-report.md`; los `private(set)` pasan a `var` (no hay otra en Swift) |
 | E1-T10 | La escena reproduce los cambios y revela | 🔄 | T9 | 🔥 BoardScene, GameState, RootView; CelebrationQueue, +Celebrations, +Debug | | E3a T10 y E4b T1 esperan esta |
-| E1-T11 | El sorteo de eventos salta lo inaplicable | 🔄 | T7; T8 integrada | 🔥 ContentSystems, +Bonus; ContentConfigs, events.json | | el plan la pone ∥ T10; por archivos también va ∥ T9 (no acorta el camino crítico) |
+| E1-T11 | El sorteo de eventos salta lo inaplicable | 🟢 | T7; T8 integrada | 🔥 ContentSystems, +Bonus; ContentConfigs, events.json | `70f216f` en `v2/e1-correcciones` | el plan la pone ∥ T10; por archivos también va ∥ T9 (no acorta el camino crítico) |
 | E1-T12 | Startup, Blanqueo, videos y carrera por el embudo | ⛔ | T9, T10, T11 | 🔥 ContentSystems, +Bonus, GameState; +Actions, +Debug | | E2a T4 integrada antes |
 | E1-T13 | El Corralito congela el gasto, con salida por video | ⛔ | T12 | 🔥 TowerActions, ContentSystems, +Bonus, GameState, RootView, catálogo; +Hiring, +Actions, ContentConfigs | | E2a T3 integrada antes |
 | E1-T14 | Un video sin efecto no gasta el cooldown | ⛔ | T9–T13 | 🔥 +Bonus, GameState, RootView, catálogo; +BoardChanges, +Achievements | | |

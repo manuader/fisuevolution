@@ -245,7 +245,7 @@ extension GameState {
             // Sólo el balance. `oroEarnedLifetime` es lo que alimenta el
             // multiplicador global y sube únicamente al reencarnar.
             player.meta.oro += amount
-            player.meta.oroPurchasedLifetime += amount
+            player.meta.recordOroPurchase(transactionID: transactionID, amount: amount)
         case .removeAds, .skin:
             return
         }
@@ -261,10 +261,27 @@ extension GameState {
 
     func completePurchasedOroReconstruction(records: [PurchasedOroHistory.Record]) {
         guard var player, !player.meta.purchasedOroReconstructed else { return }
-        player.meta.oroPurchasedLifetime += PurchasedOroHistory.reconstruct(
+        let history = PurchasedOroHistory.reconstruct(
             records: records, creditedTransactionIDs: player.meta.creditedPurchases
         )
+        // La v1 no sabe de las compras de la v2: lo que ya está anotado conserva
+        // el monto con que se acreditó.
+        for (transactionID, amount) in history.purchases where player.meta.oroPurchases[transactionID] == nil {
+            player.meta.recordOroPurchase(transactionID: transactionID, amount: amount)
+        }
+        for transactionID in history.revoked {
+            player.meta.revokePurchase(transactionID: transactionID)
+        }
         player.meta.purchasedOroReconstructed = true
+        self.player = player
+        scheduleSave()
+    }
+
+    /// Un reembolso de ORO: la transacción deja de contar como comprada. El
+    /// saldo no se toca; el reset de E9 conserva `min(saldo, comprado)`.
+    func revokeStorePurchase(transactionID: String) {
+        guard var player else { return }
+        player.meta.revokePurchase(transactionID: transactionID)
         self.player = player
         scheduleSave()
     }

@@ -34,6 +34,17 @@ extension GameState {
         celebrate(.boardCelebration)
     }
 
+    /// La bandera de "algo nuevo" del cambio que arranca su turno. A diferencia de
+    /// `celebrateBoard`, el turno ya es suyo: se publica en el acto.
+    ///
+    /// Sólo prende: si la celebración que está en pantalla ya la prendió —un
+    /// merge del jugador con un personaje nuevo—, bajarla devolvería el HUD a
+    /// mitad del vuelo, que es lo que `celebrateBoard` también evita.
+    func setBoardCelebrationShowsSomethingNew(_ value: Bool) {
+        if value { boardCelebrationShowsSomethingNew = true }
+        publishCelebration()
+    }
+
     /// Encola lo que tenga payload y todavía no esté en la fila.
     ///
     /// Se llama después de cada acción que puede crear una celebración, en vez
@@ -56,6 +67,9 @@ extension GameState {
             celebrations.enqueue(.eventBanner)
         }
         if tutorialTip != nil { celebrations.enqueue(.tutorialTip) }
+        if boardIsVisibleForChanges, !pendingBoardChanges.isEmpty || typePendingReveal != nil {
+            celebrations.enqueue(.boardCelebration)
+        }
         publishCelebration()
     }
 
@@ -156,6 +170,7 @@ extension GameState {
             // volver a pedir turno.
             announcedEventID = activeEvent?.id
         case .boardCelebration:
+            settleInFlightBoardChange()
             // La bandera describe UNA celebración, no un estado de la partida: si
             // sobreviviera a la suya, el próximo ascenso sin novedad heredaría la
             // pantalla apagada. Acá caen las tres salidas: el fin que avisa la

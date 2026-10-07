@@ -250,7 +250,7 @@ struct SaveMigratorTests {
         var meta = try #require(object["meta"] as? [String: Any])
         var stats = try #require(meta["stats"] as? [String: Any])
         for key in ["revealedTier", "priceRelief"] { run.removeValue(forKey: key) }
-        for key in ["oroPurchasedLifetime", "purchasedOroReconstructed", "lastRunMaxTier",
+        for key in ["oroPurchases", "revokedPurchases", "purchasedOroReconstructed", "lastRunMaxTier",
                     "quickHirePinnedTypeId", "unlockedTabs", "engagement"] { meta.removeValue(forKey: key) }
         stats.removeValue(forKey: "oroSpentEver")
         meta["stats"] = stats
@@ -683,7 +683,7 @@ struct SaveMigratorTests {
         state.run.priceRelief = 0.8
         state.meta.unlockedTabs = ["jobs"]
         state.meta.purchasedOroReconstructed = true
-        state.meta.oroPurchasedLifetime = 550
+        state.meta.recordOroPurchase(transactionID: "tx_550", amount: 550)
         state.meta.lastRunMaxTier = 6
         state.meta.quickHirePinnedTypeId = "homeless"
         state.meta.stats.oroSpentEver = 30

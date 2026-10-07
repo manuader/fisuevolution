@@ -26,6 +26,7 @@ final class StoreManager {
     private var catalog: ProductCatalog?
     private weak var gameState: GameState?
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
+    @ObservationIgnored private var isStarted = false
 
     /// De dónde salen los productos. Es una propiedad y no una llamada directa
     /// a `Product.products(for:)` por una sola razón: **la única forma de tener
@@ -41,6 +42,28 @@ final class StoreManager {
     /// segundos; en la app nadie lo toca.
     @ObservationIgnored
     var loadTimeout: Duration = .seconds(10)
+
+    /// De dónde sale el historial de transacciones para reconstruir el ORO de la
+    /// v1. Es una propiedad por lo mismo que `productsFetcher`: la única forma de
+    /// probar un historial que no contesta es poder ponerle uno que no conteste.
+    @ObservationIgnored
+    var historyReader: @Sendable () async -> [PurchasedOroHistory.Record] = {
+        var records: [PurchasedOroHistory.Record] = []
+        for await result in Transaction.all {
+            guard case .verified(let transaction) = result else { continue }
+            records.append(.init(
+                transactionID: String(transaction.id),
+                productID: transaction.productID,
+                isRevoked: transaction.revocationDate != nil
+            ))
+        }
+        return records
+    }
+
+    /// Cuánto se espera al historial antes de darlo por fallado. `var` por lo
+    /// mismo que `loadTimeout`.
+    @ObservationIgnored
+    var historyTimeout: Duration = .seconds(10)
 
     /// Qué carga es la vigente. Una carga vieja que contesta tarde —el fetch que
     /// perdió la carrera y volvió igual, después de que el jugador tocó
@@ -72,7 +95,7 @@ final class StoreManager {
     /// Called once from the app root. Starts the lifetime `Transaction.updates`
     /// listener (required: purchases can arrive at any moment) and hydrates.
     func start(gameState: GameState) async {
-        guard updatesTask == nil else { return }
+        guard !isStarted else { return }
         self.gameState = gameState
 
         do {
@@ -86,6 +109,16 @@ final class StoreManager {
             return
         }
 
+        // Antes del primer `await`: `start` se suspende en la reconstrucción y
+        // un segundo llamado que entre en ese hueco no puede repetirla.
+        isStarted = true
+
+        // La tienda local ANTES de leer el historial: sin la sesión, una build
+        // DEBUG instalada por `simctl` ve un `Transaction.all` vacío y cierra la
+        // reconstrucción en 0 para siempre.
+        #if DEBUG
+        startLocalStoreIfNeeded()
+        #endif
         await reconstructPurchasedOroIfNeeded()
 
         updatesTask = Task { [weak self] in
@@ -94,9 +127,6 @@ final class StoreManager {
             }
         }
 
-        #if DEBUG
-        startLocalStoreIfNeeded()
-        #endif
         await loadProducts()
         await refreshEntitlements()
     }
@@ -211,40 +241,17 @@ final class StoreManager {
     }
 
     /// El fetch de productos con plazo: gana el primero que conteste.
-    ///
-    /// ⚠️ **La carrera no se escribe con `withThrowingTaskGroup`** aunque sea el
-    /// reflejo obvio. Un grupo no termina hasta que TODOS sus hijos terminan, y
-    /// cancelarlo es sólo un pedido: con el fetch colgado —que es exactamente el
-    /// defecto que esto arregla— el grupo no sale nunca y `loadProducts()`
-    /// seguiría sin volver, con plazo y todo. Con el canal, se lee al ganador y
-    /// al perdedor se lo suelta: lo que llegue tarde cae en un `AsyncStream` que
-    /// ya no lee nadie, y la guarda de generación se ocupa del resto.
     private func fetchWithDeadline(ids: [String]) async -> LoadOutcome {
-        let (outcomes, publish) = AsyncStream<LoadOutcome>.makeStream()
         let fetcher = productsFetcher
-        let timeout = loadTimeout
-
-        let fetch = Task {
+        let outcome = await withDeadline(loadTimeout) { () -> LoadOutcome in
             do {
-                publish.yield(.loaded(try await fetcher(ids)))
+                return .loaded(try await fetcher(ids))
             } catch {
                 Log.store.error("product load failed: \(error)")
-                publish.yield(.failed)
+                return .failed
             }
         }
-        let deadline = Task {
-            // Cancelado (ganó el fetch) no publica nada: sin este `return`, el
-            // sueño interrumpido se leería como un plazo vencido.
-            do { try await Task.sleep(for: timeout) } catch { return }
-            publish.yield(.timedOut)
-        }
-        defer {
-            fetch.cancel()
-            deadline.cancel()
-        }
-
-        for await outcome in outcomes { return outcome }
-        return .timedOut
+        return outcome ?? .timedOut
     }
 
     func purchase(_ product: Product) async {
@@ -299,17 +306,48 @@ final class StoreManager {
     /// transacción nueva entra a la cuenta como si fuera de la v1.
     private func reconstructPurchasedOroIfNeeded() async {
         guard let gameState, gameState.needsPurchasedOroReconstruction else { return }
-        var records: [PurchasedOroHistory.Record] = []
-        for await result in Transaction.all {
-            guard case .verified(let transaction) = result else { continue }
-            records.append(.init(
-                transactionID: String(transaction.id),
-                productID: transaction.productID,
-                isRevoked: transaction.revocationDate != nil
-            ))
+        let reader = historyReader
+        let records = await withDeadline(historyTimeout) { await reader() }
+        // Un plazo vencido deja la reconstrucción abierta: se reintenta en el
+        // próximo arranque. Cerrarla en 0 perdería el ORO comprado para siempre.
+        guard let records else {
+            Log.store.error("purchase history timed out after \(self.historyTimeout, privacy: .public)")
+            return
         }
         gameState.completePurchasedOroReconstruction(records: records)
-        Log.store.info("purchased ORO reconstructed from \(records.count) transactions")
+        let total = gameState.player?.meta.oroPurchasedLifetime ?? 0
+        Log.store.info(
+            "purchased ORO reconstructed: \(total, privacy: .public) ORO from \(records.count, privacy: .public) transactions"
+        )
+    }
+
+    /// Gana el primero que conteste; `nil` si vence el plazo.
+    ///
+    /// ⚠️ **La carrera no se escribe con `withThrowingTaskGroup`** aunque sea el
+    /// reflejo obvio. Un grupo no termina hasta que TODOS sus hijos terminan, y
+    /// cancelarlo es sólo un pedido: con el trabajo colgado —que es exactamente
+    /// el defecto que esto arregla— el grupo no sale nunca y el llamador seguiría
+    /// sin volver, con plazo y todo. Con el canal, se lee al ganador y al
+    /// perdedor se lo suelta: lo que llegue tarde cae en un `AsyncStream` que ya
+    /// no lee nadie (en `loadProducts()`, la guarda de generación hace el resto).
+    private func withDeadline<T: Sendable>(
+        _ timeout: Duration,
+        _ work: @escaping @Sendable () async -> T
+    ) async -> T? {
+        let (outcomes, publish) = AsyncStream<T?>.makeStream()
+        let job = Task { publish.yield(await work()) }
+        let deadline = Task {
+            // Cancelado (ganó el trabajo) no publica nada: sin este `return`, el
+            // sueño interrumpido se leería como un plazo vencido.
+            do { try await Task.sleep(for: timeout) } catch { return }
+            publish.yield(nil)
+        }
+        defer {
+            job.cancel()
+            deadline.cancel()
+        }
+        for await outcome in outcomes { return outcome }
+        return nil
     }
 
     private func handle(_ update: VerificationResult<Transaction>) async {
@@ -321,6 +359,9 @@ final class StoreManager {
 
         if transaction.revocationDate != nil {
             purchasedProductIDs.remove(transaction.productID)
+            if entry?.entitlement == .oro {
+                gameState?.revokeStorePurchase(transactionID: String(transaction.id))
+            }
             Log.store.warning("entitlement revoked: \(transaction.productID)")
         } else {
             // Acreditar ANTES de `finish()`: una transacción sin finalizar se

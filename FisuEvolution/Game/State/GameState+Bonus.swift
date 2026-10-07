@@ -207,13 +207,35 @@ extension GameState {
         nextEventAt = now + content.events.resumeGraceSeconds
     }
 
+    func eventIsApplicable(_ event: EventsConfig.Event) -> Bool {
+        guard let content, let player, let tower else { return false }
+        switch event.effectType {
+        case .incomeMultiplier, .spawnCostMultiplier, .frozenCoins:
+            return true
+        case .bonusCoins:
+            return IncomeTicker.basePassivePerSecond(
+                state: player, tiers: content.tiers, floorTable: content.floorTable, config: content.economy
+            ) > 0
+        case .instantEvolution:
+            return BoardChangePlanner.planEvolve(
+                state: player, tower: tower, tiers: content.tiers, floorTable: content.floorTable, origin: .eventStartup
+            ) != nil
+        case .freeHighTier:
+            guard let type = EventManager.blanqueoType(for: event, state: player, tiers: content.tiers) else { return false }
+            return BoardChangePlanner.planArrival(
+                typeId: type.id, state: player, tower: tower, tiers: content.tiers,
+                floorTable: content.floorTable, origin: .eventBlanqueo
+            ) != nil
+        }
+    }
+
     func fireEventIfDue(now: TimeInterval) {
         guard let economy, let content, var player else { return }
         if let active = activeEvent, now >= active.endsAt {
             activeEvent = nil
         }
         guard now >= nextEventAt else { return }
-        scheduleNextEvent(from: now)
+        let applicable = Set(content.events.events.filter(eventIsApplicable).map(\.id))
         guard let roll = EventManager.fireRandomEvent(
             state: &player,
             config: content.events,
@@ -222,8 +244,13 @@ extension GameState {
             economy: economy,
             now: now,
             lastFired: eventLastFired,
+            isApplicable: { applicable.contains($0.id) },
             rng: &rng
-        ) else { return }
+        ) else {
+            nextEventAt = now + content.events.retryWhenNoneApplicableSeconds
+            return
+        }
+        scheduleNextEvent(from: now)
         self.player = player
         // Si el evento regaló una unidad, colocarla en su piso (si hay lugar).
         if let grantedTypeId = roll.grantedUnitTypeId {

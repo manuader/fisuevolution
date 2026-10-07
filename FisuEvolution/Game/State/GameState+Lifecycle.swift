@@ -39,7 +39,9 @@ extension GameState {
     /// inactive`, porque el tick está mudo desde entonces y el tramo en medio no
     /// lo pagaría nadie.
     func seal(now: TimeInterval, stamping: Bool = true) {
-        guard phase == .ready, var player else { return }
+        guard phase == .ready else { return }
+        settleAllPendingBoardChanges()
+        guard var player else { return }
         if stamping {
             player.meta.lastSeenTimestamp = now
             self.player = player

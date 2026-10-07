@@ -355,6 +355,12 @@ struct GameBoardView: View {
                 .accessibilityIdentifier("board.units")
                 .accessibilityValue(Text(verbatim: String(gameState.unitCount)))
         )
+        .background(
+            Color.clear
+                .accessibilityElement()
+                .accessibilityIdentifier("board.revealed")
+                .accessibilityValue(Text(verbatim: String(gameState.revealedTierMarker)))
+        )
         // El piso visible, como ID crudo (no nombre traducido: a prueba de la
         // trampa 6). Desde que la píldora del HUD se retiró (2026-08-18) es el
         // único observable del piso que sobrevive a las celebraciones que

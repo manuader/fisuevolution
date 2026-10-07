@@ -213,7 +213,7 @@ struct SaveCompatibilityTests {
         var meta = try #require(object["meta"] as? [String: Any])
         var stats = try #require(meta["stats"] as? [String: Any])
         for key in ["revealedTier", "priceRelief"] { run.removeValue(forKey: key) }
-        for key in ["oroPurchasedLifetime", "purchasedOroReconstructed", "lastRunMaxTier",
+        for key in ["oroPurchases", "revokedPurchases", "purchasedOroReconstructed", "lastRunMaxTier",
                     "quickHirePinnedTypeId", "unlockedTabs", "engagement"] { meta.removeValue(forKey: key) }
         stats.removeValue(forKey: "oroSpentEver")
         meta["stats"] = stats
@@ -275,7 +275,7 @@ struct SaveCompatibilityTests {
         state.run.raiseFrontier(to: 3)
         state.run.revealedTier = 2
         state.run.priceRelief = 0.75
-        state.meta.oroPurchasedLifetime = 550
+        state.meta.recordOroPurchase(transactionID: "tx_550", amount: 550)
         state.meta.purchasedOroReconstructed = false
         state.meta.lastRunMaxTier = 4
         state.meta.quickHirePinnedTypeId = "b"
@@ -362,7 +362,7 @@ struct SaveCompatibilityTests {
         var state = fxState()
         state.meta.unlockedTabs = ["jobs"]
         state.meta.quickHirePinnedTypeId = "a"
-        state.meta.oroPurchasedLifetime = 550
+        state.meta.recordOroPurchase(transactionID: "tx_550", amount: 550)
         state.meta.purchasedOroReconstructed = false
         state.run.raiseFrontier(to: 4)
         state.run.priceRelief = 0.5

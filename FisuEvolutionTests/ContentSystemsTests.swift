@@ -120,6 +120,7 @@ struct ContentSystemsTests {
             economy: economy,
             now: 1000,
             lastFired: [:],
+            isApplicable: { _ in true },
             rng: &rng
         )
         let fired = try #require(roll)
@@ -136,7 +137,7 @@ struct ContentSystemsTests {
         let allRecent = Dictionary(uniqueKeysWithValues: content.events.events.map { ($0.id, now - 1) })
         let roll = EventManager.fireRandomEvent(
             state: &state, config: content.events, tiers: content.tiers, floorTable: content.floorTable,
-            economy: economy, now: now, lastFired: allRecent, rng: &rng
+            economy: economy, now: now, lastFired: allRecent, isApplicable: { _ in true }, rng: &rng
         )
         #expect(roll == nil)
     }
@@ -151,7 +152,7 @@ struct ContentSystemsTests {
         let lastFired = Dictionary(uniqueKeysWithValues: content.events.events.filter { $0.id != "aguinaldo" }.map { ($0.id, 1000.0 - 1) })
         let roll = EventManager.fireRandomEvent(
             state: &state, config: content.events, tiers: content.tiers, floorTable: content.floorTable,
-            economy: economy, now: 1000, lastFired: lastFired, rng: &rng
+            economy: economy, now: 1000, lastFired: lastFired, isApplicable: { _ in true }, rng: &rng
         )
         #expect(roll?.event.id == "aguinaldo")
         #expect(state.run.coins > coinsBefore)
@@ -166,7 +167,7 @@ struct ContentSystemsTests {
         let lastFired = Dictionary(uniqueKeysWithValues: content.events.events.filter { $0.id != "blanqueo" }.map { ($0.id, 1000.0 - 1) })
         let roll = try #require(EventManager.fireRandomEvent(
             state: &state, config: content.events, tiers: content.tiers, floorTable: content.floorTable,
-            economy: economy, now: 1000, lastFired: lastFired, rng: &rng
+            economy: economy, now: 1000, lastFired: lastFired, isApplicable: { _ in true }, rng: &rng
         ))
         #expect(roll.event.id == "blanqueo")
         let granted = try #require(roll.grantedUnitTypeId)
@@ -187,7 +188,7 @@ struct ContentSystemsTests {
         let lastFired = Dictionary(uniqueKeysWithValues: content.events.events.filter { $0.id != "startup_comprada" }.map { ($0.id, 1000.0 - 1) })
         let roll = try #require(EventManager.fireRandomEvent(
             state: &state, config: content.events, tiers: content.tiers, floorTable: content.floorTable,
-            economy: economy, now: 1000, lastFired: lastFired, rng: &rng
+            economy: economy, now: 1000, lastFired: lastFired, isApplicable: { _ in true }, rng: &rng
         ))
         #expect(roll.event.id == "startup_comprada")
         #expect(roll.unitsChanged)

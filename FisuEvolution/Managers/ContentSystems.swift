@@ -150,11 +150,13 @@ enum EventManager {
         economy: StandardEconomy,
         now: TimeInterval,
         lastFired: [String: TimeInterval],
+        isApplicable: (EventsConfig.Event) -> Bool,
         rng: inout some RandomNumberGenerator
     ) -> Roll? {
         let eligible = config.events.filter { event in
             state.run.maxTierReached >= event.minTier
                 && now - (lastFired[event.id] ?? -.infinity) >= event.cooldownSeconds
+                && isApplicable(event)
         }
         guard !eligible.isEmpty else { return nil }
 
@@ -170,6 +172,13 @@ enum EventManager {
         }
 
         return apply(event: chosen, state: &state, tiers: tiers, floorTable: floorTable, economy: economy, now: now)
+    }
+
+    static func blanqueoType(for event: EventsConfig.Event, state: PlayerState, tiers: TierRepository) -> CharacterType? {
+        let tier = max(1, state.run.maxTierReached - Int(event.magnitude))
+        return tiers.concreteTypes.first { candidate in
+            candidate.tier == tier && (state.run.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
+        } ?? tiers.concreteTypes.first { $0.tier == tier }
     }
 
     private static func apply(
@@ -231,10 +240,7 @@ enum EventManager {
             unitsChanged = true
         case .freeHighTier:
             // Blanqueo: unidad gratis de tier (máx alcanzado − magnitude).
-            let tier = max(1, state.run.maxTierReached - Int(event.magnitude))
-            guard let type = tiers.concreteTypes.first(where: { candidate in
-                candidate.tier == tier && (state.run.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
-            }) ?? tiers.concreteTypes.first(where: { $0.tier == tier }) else { return nil }
+            guard let type = blanqueoType(for: event, state: state, tiers: tiers) else { return nil }
             grantedUnitTypeId = type.id
         }
 

@@ -160,12 +160,25 @@ extension GameState {
         bumpBoard()
     }
 
+    /// Un par planeado como lo planearía un video, para ver el embudo entero.
+    func debugPlanBoardChange() {
+        debugGrantPair()
+        guard let content, let player, let tower,
+              let change = BoardChangePlanner.planAutoMerge(
+                  state: player, tower: tower, tiers: content.tiers,
+                  floorTable: content.floorTable, origin: .debug
+              )
+        else { return }
+        enqueueBoardChange(change)
+    }
+
     /// Salta la escalera para playtesting (ej. probar la elección de carrera en T9).
     /// Sólo sube: la frontera tiene un único mutador (`raiseFrontier`) y ése no
     /// baja, así que pedir un tier por debajo del actual no hace nada.
     func debugSetMaxTier(_ tier: Int) {
         guard var player, let content else { return }
         player.run.raiseFrontier(to: min(max(1, tier), content.tiers.maxTier))
+        player.run.revealedTier = player.run.maxTierReached
         self.player = player
         refreshProjections()
     }
@@ -185,6 +198,7 @@ extension GameState {
         let highestOrdinal = content.floorTable.ordinal(forTier: tier)
         player.run.unlockedFloors = content.floorTable.floors.prefix(highestOrdinal + 1).map(\.id)
         player.run.raiseFrontier(to: tier)
+        player.run.revealedTier = player.run.maxTierReached
         self.player = player
         visibleFloorOrdinal = 0
         refreshProjections()
@@ -426,6 +440,8 @@ extension GameState {
         shareCardSubject = nil
         tutorialTip = nil
         boardCelebrationShowsSomethingNew = false
+        pendingBoardChanges.removeAll()
+        inFlightBoardChange = nil
         celebrations = CelebrationQueue()
 
         // El tutorial vuelve entero: banderas del FTUE (defaults Y espejo en

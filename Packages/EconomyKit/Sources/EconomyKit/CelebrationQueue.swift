@@ -65,7 +65,8 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         switch self {
         case .offlineEarnings, .dailyReward, .careerChoice,
              .skinAward, .specialDrop, .chestOpening: nil
-        case .boardCelebration: 8
+        // Cubre navegar al piso, destacar el par, fundirlo, el vuelo del ascenso y el reveal.
+        case .boardCelebration: 14
         case .eventBanner: 6
         // Cubre unos diez toasts seguidos; pasado eso corta y lo loguea.
         case .achievements: 30

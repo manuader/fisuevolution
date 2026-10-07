@@ -336,12 +336,17 @@ public struct MetaState: Codable, Sendable, Equatable {
     public var prestigeChestsPending: Int
     /// El cofre del tutorial se da UNA vez por save, no una por partida.
     public var welcomeChestGiven: Bool
-    /// ORO comprado con plata real en la historia de la cuenta (monótono). El
-    /// reset de E9 conserva lo comprado, y un v5 lo reconstruye una vez.
-    public var oroPurchasedLifetime: Int
-    /// Si ya se reconstruyó `oroPurchasedLifetime` desde el historial de compras.
-    /// Un save que no trae la clave cuenta como ya resuelto: nunca reconstruir
-    /// dos veces. Sólo `SaveMigrator.migrateV5toV6` lo deja en `false`.
+    /// ORO comprado con plata real, por transacción (id → ORO). Sólo crece: la
+    /// única puerta es `recordOroPurchase`, y es un mapa y no un contador para
+    /// que dos devices con compras distintas se unan sin contar de más ni de menos.
+    public internal(set) var oroPurchases: [String: Int]
+    /// Transacciones de ORO reembolsadas. Sólo crece, y excluye del total aun a
+    /// una compra que todavía no se anotó (el reembolso puede llegar primero).
+    public internal(set) var revokedPurchases: Set<String>
+    /// Si ya se reconstruyó `oroPurchases` desde el historial de compras. Un
+    /// save que no trae la clave cuenta como ya resuelto. Sólo
+    /// `SaveMigrator.migrateV5toV6` lo deja en `false`; reconstruir es
+    /// idempotente, así que repetirlo no suma de más.
     public var purchasedOroReconstructed: Bool
     /// Tier máximo de la última run que reencarnó: el piso móvil que exige la
     /// siguiente. 0 = sin requisito.
@@ -380,7 +385,8 @@ public struct MetaState: Codable, Sendable, Equatable {
         chestsPending: Int = 0,
         prestigeChestsPending: Int = 0,
         welcomeChestGiven: Bool = false,
-        oroPurchasedLifetime: Int = 0,
+        oroPurchases: [String: Int] = [:],
+        revokedPurchases: Set<String> = [],
         purchasedOroReconstructed: Bool = true,
         lastRunMaxTier: Int = 0,
         quickHirePinnedTypeId: String? = nil,
@@ -412,7 +418,8 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.chestsPending = chestsPending
         self.prestigeChestsPending = prestigeChestsPending
         self.welcomeChestGiven = welcomeChestGiven
-        self.oroPurchasedLifetime = oroPurchasedLifetime
+        self.oroPurchases = oroPurchases
+        self.revokedPurchases = revokedPurchases
         self.purchasedOroReconstructed = purchasedOroReconstructed
         self.lastRunMaxTier = lastRunMaxTier
         self.quickHirePinnedTypeId = quickHirePinnedTypeId
@@ -470,12 +477,43 @@ public struct MetaState: Codable, Sendable, Equatable {
         chestsPending = try container.decodeIfPresent(Int.self, forKey: .chestsPending) ?? 0
         prestigeChestsPending = try container.decodeIfPresent(Int.self, forKey: .prestigeChestsPending) ?? 0
         welcomeChestGiven = try container.decodeIfPresent(Bool.self, forKey: .welcomeChestGiven) ?? false
-        oroPurchasedLifetime = try container.decodeIfPresent(Int.self, forKey: .oroPurchasedLifetime) ?? 0
+        oroPurchases = try container.decodeIfPresent([String: Int].self, forKey: .oroPurchases) ?? [:]
+        revokedPurchases = try container.decodeIfPresent(Set<String>.self, forKey: .revokedPurchases) ?? []
         purchasedOroReconstructed = try container.decodeIfPresent(Bool.self, forKey: .purchasedOroReconstructed) ?? true
+        // Los builds de desarrollo anteriores guardaban el total como un solo
+        // número, sin ids: no hay cómo saber qué transacciones contó. Se ignora y
+        // se reabre la reconstrucción, que rehace la cuenta desde StoreKit.
+        let legacy = try decoder.container(keyedBy: LegacyKeys.self)
+        let legacyTotal = try legacy.decodeIfPresent(Int.self, forKey: .oroPurchasedLifetime) ?? 0
+        if oroPurchases.isEmpty, legacyTotal > 0 {
+            purchasedOroReconstructed = false
+        }
         lastRunMaxTier = try container.decodeIfPresent(Int.self, forKey: .lastRunMaxTier) ?? 0
         quickHirePinnedTypeId = try container.decodeIfPresent(String.self, forKey: .quickHirePinnedTypeId)
         unlockedTabs = try container.decodeIfPresent(Set<String>.self, forKey: .unlockedTabs) ?? []
         engagement = try container.decodeIfPresent(EngagementState.self, forKey: .engagement) ?? .initial
+    }
+
+    private enum LegacyKeys: String, CodingKey {
+        case oroPurchasedLifetime
+    }
+
+    /// ORO comprado con plata real en la historia de la cuenta: la suma de las
+    /// transacciones anotadas y no revocadas, cada id una sola vez. El reset de
+    /// E9 conserva lo comprado.
+    public var oroPurchasedLifetime: Int {
+        oroPurchases.reduce(0) { revokedPurchases.contains($1.key) ? $0 : $0 + $1.value }
+    }
+
+    /// La única puerta para acreditar ORO comprado. Anotar de nuevo el mismo id
+    /// no suma; si dos builds vieron montos distintos para él, queda el mayor.
+    public mutating func recordOroPurchase(transactionID: String, amount: Int) {
+        oroPurchases[transactionID] = max(oroPurchases[transactionID] ?? 0, amount)
+    }
+
+    /// Un reembolso. La transacción deja de contar aunque todavía no se haya anotado.
+    public mutating func revokePurchase(transactionID: String) {
+        revokedPurchases.insert(transactionID)
     }
 
     /// La única salida de ORO. El reset de E9 conserva `min(saldo, comprado)`:

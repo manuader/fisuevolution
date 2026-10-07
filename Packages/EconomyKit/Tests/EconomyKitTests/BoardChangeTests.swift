@@ -251,6 +251,27 @@ struct BoardChangeTests {
         #expect(fx.tower == before.tower)
     }
 
+    // MARK: Un plan viejo no aplica sobre otro tipo
+
+    @Test("un plan viejo no aplica sobre un slot que cambió de tipo")
+    func anOutdatedPlanNeverTouchesAnotherType() throws {
+        let fx = try board(units: ["a": 2, "b": 1])
+        let b = try #require(fx.tower.placements(onFloor: 0).first { $0.typeId == "b" })
+        let a = try #require(fx.tower.placements(onFloor: 0).first { $0.typeId == "a" })
+        let outdated: [BoardChange.Kind] = [
+            .evolve(floorOrdinal: 0, slot: b.slot, typeId: "a", newTypeId: "b"),
+            .departure(floorOrdinal: 0, slot: b.slot, typeId: "a"),
+            .merge(floorOrdinal: 0, typeId: "a", sourceSlot: a.slot, targetSlot: b.slot, newTypeId: "b"),
+            .merge(floorOrdinal: 0, typeId: "a", sourceSlot: b.slot, targetSlot: a.slot, newTypeId: "b"),
+        ]
+        for kind in outdated {
+            var copy = fx
+            #expect(throws: TowerError.invalidSlot) { try apply(BoardChange(kind: kind, origin: .debug), &copy) }
+            #expect(copy.state == fx.state)
+            #expect(copy.tower == fx.tower)
+        }
+    }
+
     // MARK: Revalidación
 
     @Test("lo planeado se replanea si el par se movió y se descarta si ya no está")

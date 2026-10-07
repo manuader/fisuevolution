@@ -174,16 +174,7 @@ extension GameState {
                 // piso y el de abajo se habilitaba—, y con la compuerta por
                 // tiers no: una fusión que ni cambia de piso puede subir la
                 // frontera y destrabar un piso cuatro más abajo.
-                let newlyHireable = TowerActions.newlyHireableFloors(
-                    maxTierBefore: tierBefore,
-                    maxTierAfter: player.run.maxTierReached,
-                    floorTable: content.floorTable,
-                    config: content.economy
-                )
-                // El más bajo: es el que el jugador va a querer rellenar.
-                if let ordinal = newlyHireable.first {
-                    towerNotice = TowerNotice(kind: .hireUnlocked(floorID: content.floorTable[ordinal].id))
-                }
+                announceNewlyHireableFloor(maxTierBefore: tierBefore, player: player, content: content)
                 if !ftueMerged {
                     ftueMerged = true
                     UserDefaults.standard.set(true, forKey: "ftue.merged")
@@ -292,7 +283,21 @@ extension GameState {
         celebrationFinished(.towerNotice)
     }
 
-    private func reportMergeMilestones() {
+    /// El más bajo de los pisos que la frontera acaba de habilitar: es el que
+    /// el jugador va a querer rellenar.
+    func announceNewlyHireableFloor(maxTierBefore: Int, player: PlayerState, content: GameContent) {
+        let newlyHireable = TowerActions.newlyHireableFloors(
+            maxTierBefore: maxTierBefore,
+            maxTierAfter: player.run.maxTierReached,
+            floorTable: content.floorTable,
+            config: content.economy
+        )
+        if let ordinal = newlyHireable.first {
+            towerNotice = TowerNotice(kind: .hireUnlocked(floorID: content.floorTable[ordinal].id))
+        }
+    }
+
+    func reportMergeMilestones() {
         guard let player else { return }
         gameCenter?.report(.firstMerge)
         gameCenter?.report(.reachedTier(player.run.maxTierReached))

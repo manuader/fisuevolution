@@ -68,6 +68,9 @@ struct CelebrationWiringTests {
         gameState.careerPrompt = nil
         gameState.achievementToast = nil
         gameState.pendingAchievementToasts.removeAll()
+        // Sin escena nadie marca el reveal, y la red de seguridad volvería a
+        // pedir el turno del tablero.
+        gameState.markRevealed(tier: gameState.player?.run.maxTierReached ?? 1)
         // Con tope: si algo se reencolara igual, el test falla por el `#expect`
         // de su llamador y no colgando la suite entera.
         for _ in 0..<12 {
@@ -360,7 +363,7 @@ struct CelebrationWiringTests {
                 gameState.tick(delta: 1)   // pasa el piso de tiempo del tap
                 #expect(gameState.skipCurrentCelebration())
             default:
-                advanceClock(gameState, by: 8.1)   // tope de `.boardCelebration`
+                advanceClock(gameState, by: 14.1)   // tope de `.boardCelebration`
             }
             #expect(gameState.showing != .boardCelebration, "\(exit): la celebración terminó")
             drainCelebrations(gameState)
@@ -404,6 +407,89 @@ struct CelebrationWiringTests {
         gameState.celebrationFinished(.offlineEarnings)
         #expect(gameState.showing == .boardCelebration)
         #expect(gameState.celebrationHidesUI == false, "se reproduce el último, y ése no trae nada nuevo")
+    }
+
+    // MARK: Los cambios del tablero piden turno
+
+    @Test("un cambio pendiente pide el turno del tablero sólo con el tablero a la vista")
+    func pendingChangeAsksForTheTurnWhenVisible() async throws {
+        let gameState = await makeGameState()
+        gameState.debugPlanBoardChange()
+        gameState.uiCoversBoard = true
+        gameState.syncCelebrations()
+        #expect(gameState.showing != .boardCelebration)
+        gameState.uiCoversBoard = false
+        gameState.syncCelebrations()
+        #expect(gameState.showing == .boardCelebration)
+    }
+
+    @Test("un tier sin revelar vuelve a pedir turno hasta que se revela")
+    func unrevealedTierKeepsAskingForItsTurn() async throws {
+        let gameState = await makeGameState()
+        gameState.player?.run.raiseFrontier(to: 3)
+        gameState.syncCelebrations()
+        #expect(gameState.showing == .boardCelebration)
+        gameState.celebrationFinished(.boardCelebration)
+        #expect(gameState.showing == .boardCelebration)
+        gameState.markRevealed(tier: 3)
+        gameState.celebrationFinished(.boardCelebration)
+        #expect(gameState.showing == nil)
+    }
+
+    @Test("saltear el turno asienta el cambio que estaba en vuelo")
+    func skipSettlesTheInFlightChange() async throws {
+        let gameState = await makeGameState()
+        gameState.debugPlanBoardChange()
+        let units = try #require(gameState.player?.run.totalUnits)
+        gameState.syncCelebrations()
+        _ = try #require(gameState.beginNextBoardChange())
+        gameState.advanceCelebrations(delta: CelebrationQueue.skipFloor)
+        #expect(gameState.skipCurrentCelebration())
+        #expect(gameState.inFlightBoardChange == nil)
+        #expect(gameState.player?.run.totalUnits == units - 1)
+    }
+
+    @Test("el watchdog también asienta el cambio en vuelo")
+    func watchdogSettlesTheInFlightChange() async throws {
+        let gameState = await makeGameState()
+        gameState.debugPlanBoardChange()
+        let units = try #require(gameState.player?.run.totalUnits)
+        gameState.syncCelebrations()
+        _ = try #require(gameState.beginNextBoardChange())
+        advanceClock(gameState, by: 14.1)
+        #expect(gameState.inFlightBoardChange == nil)
+        #expect(gameState.player?.run.totalUnits == units - 1)
+    }
+
+    @Test("la bandera de algo nuevo no se baja con una celebración en pantalla")
+    func theNewThingFlagOnlyTurnsOn() async throws {
+        let gameState = await makeGameState()
+        gameState.celebrateBoard(showsSomethingNew: true)
+        gameState.setBoardCelebrationShowsSomethingNew(false)
+        #expect(gameState.celebrationHidesUI, "el HUD no vuelve a mitad del vuelo")
+    }
+
+    @Test("un merge que sube de piso devuelve el slot destino del plan")
+    func aPromotingChangeReportsThePlannedTarget() async throws {
+        let gameState = await makeGameState()
+        gameState.debugSetMaxTier(4)
+        gameState.debugGrantPair()
+        let content = try #require(gameState.content)
+        let player = try #require(gameState.player)
+        let tower = try #require(gameState.tower)
+        let change = try #require(BoardChangePlanner.planAutoMerge(
+            state: player, tower: tower, tiers: content.tiers, floorTable: content.floorTable, origin: .debug
+        ))
+        guard case let .merge(_, _, _, target, _) = change.kind else {
+            Issue.record("se esperaba un merge"); return
+        }
+        gameState.enqueueBoardChange(change)
+        let begun = try #require(gameState.beginNextBoardChange())
+        guard case .merged(let cell, _, _, let promotedTo, _)? = gameState.confirmBoardChange(id: begun.id) else {
+            Issue.record("se esperaba la fusión"); return
+        }
+        #expect(promotedTo != nil)
+        #expect(cell == target)
     }
 
     // MARK: La fase del tutorial

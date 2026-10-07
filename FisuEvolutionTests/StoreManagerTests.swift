@@ -5,6 +5,11 @@ import StoreKitTest
 import Testing
 @testable import FisuEvolution
 
+private actor HistoryReadCounter {
+    private(set) var count = 0
+    func tick() { count += 1 }
+}
+
 /// StoreKit 2 contra la configuración local — cero cuenta paga (bible §4.4).
 /// SKTestSession simula la App Store: compra, refund y estado persistente.
 /// v4: los entitlements se cachean en `meta` (removedAds / ownedSkins); las
@@ -117,13 +122,16 @@ struct StoreManagerTests {
     @Test func reconstructsTheV1OroFromTransactionHistory() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
-        let gameState = await makeGameState()
+        let v2Device = await makeGameState()
         let firstLaunch = StoreManager()
-        await firstLaunch.start(gameState: gameState)
+        await firstLaunch.start(gameState: v2Device)
         let pack = try #require(firstLaunch.products.first { $0.id == "com.fisuevolution.iap.oro_small" })
         await firstLaunch.purchase(pack)
+        await waitUntil { v2Device.player?.meta.creditedPurchases.isEmpty == false }
 
-        gameState.player?.meta.oroPurchasedLifetime = 0
+        // El save de la v1 que se actualiza: acreditó la compra, no sabe del mapa.
+        let gameState = await makeGameState()
+        gameState.player?.meta.creditedPurchases = try #require(v2Device.player).meta.creditedPurchases
         gameState.player?.meta.purchasedOroReconstructed = false
         #expect(gameState.player?.meta.creditedPurchases.count == 1)
 
@@ -132,6 +140,82 @@ struct StoreManagerTests {
 
         #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
         #expect(gameState.needsPurchasedOroReconstruction == false)
+    }
+
+    /// Si StoreKit no contesta el historial, el arranque no se cuelga y la
+    /// reconstrucción queda abierta: el próximo arranque la reintenta.
+    @Test func aHungHistoryLeavesTheReconstructionOpen() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        gameState.player?.meta.purchasedOroReconstructed = false
+        gameState.player?.meta.creditedPurchases = ["9"]
+        let hung = StoreManager()
+        hung.historyTimeout = .milliseconds(200)
+        hung.historyReader = {
+            try? await Task.sleep(for: .seconds(3600))
+            return []
+        }
+
+        await hung.start(gameState: gameState)
+
+        #expect(gameState.needsPurchasedOroReconstruction == true)
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
+        #expect(hung.loadState == .loaded, "el arranque siguió con la carga de productos")
+
+        let nextLaunch = StoreManager()
+        nextLaunch.historyReader = {
+            [.init(transactionID: "9", productID: "com.fisuevolution.iap.oro_small", isRevoked: false)]
+        }
+        await nextLaunch.start(gameState: gameState)
+
+        #expect(gameState.needsPurchasedOroReconstruction == false)
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
+    }
+
+    /// `start` se suspende en la reconstrucción: un segundo `start` que entre en
+    /// ese hueco no puede volver a leer el historial ni crear otro listener.
+    @Test func startRunsOnceWhenCalledTwiceConcurrently() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        gameState.player?.meta.purchasedOroReconstructed = false
+        let reads = HistoryReadCounter()
+        let store = StoreManager()
+        store.historyReader = {
+            await reads.tick()
+            return []
+        }
+
+        async let first: Void = store.start(gameState: gameState)
+        async let second: Void = store.start(gameState: gameState)
+        _ = await (first, second)
+
+        #expect(await reads.count == 1)
+    }
+
+    /// El reembolso de un pack de ORO baja el total comprado: el reset de E9
+    /// conserva `min(saldo, comprado)` y no puede regalarle lo que pidió devolver.
+    @Test func refundingAnOroPackLowersThePurchasedTotal() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let store = StoreManager()
+        await store.start(gameState: gameState)
+
+        let pack = try #require(store.products.first { $0.id == "com.fisuevolution.iap.oro_small" })
+        await store.purchase(pack)
+        await waitUntil { gameState.player?.meta.oroPurchasedLifetime == 250 }
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
+
+        let transaction = try #require(
+            session.allTransactions().first { $0.productIdentifier == pack.id },
+            "no apareció la transacción de oro_small"
+        )
+        try session.refundTransaction(identifier: UInt(transaction.identifier))
+
+        await waitUntil(timeout: 180) { gameState.player?.meta.oroPurchasedLifetime == 0 }
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
     }
 
     /// Un consumible se vuelve a comprar. Si quedara marcado como "comprado" la

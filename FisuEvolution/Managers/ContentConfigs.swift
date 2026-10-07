@@ -30,6 +30,8 @@ struct EventsConfig: Codable, Sendable, Equatable {
     let intervalJitterSeconds: Double
     /// Lo que se corre un evento que venció mientras la app estaba afuera.
     let resumeGraceSeconds: Double
+    /// Cuando el sorteo no tiene nada que pueda pasar, cuánto se espera para volver a intentar.
+    let retryWhenNoneApplicableSeconds: Double
     let events: [Event]
 }
 

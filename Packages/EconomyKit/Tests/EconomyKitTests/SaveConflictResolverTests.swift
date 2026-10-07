@@ -175,6 +175,90 @@ struct SaveConflictResolverTests {
         #expect(resolved.meta.claimedAchievements == ["ach_merge", "ach_video"])
     }
 
+    @Test("los campos de la 2.0 no retroceden al resolver")
+    func v6FieldsResolve() {
+        var local = fxState()
+        var remote = fxState()
+        local.meta.lifetimeEarnings = 10
+        remote.meta.lifetimeEarnings = 5
+        remote.meta.oroPurchasedLifetime = 550
+        remote.meta.unlockedTabs = ["gifts"]
+        local.meta.unlockedTabs = ["jobs"]
+        remote.meta.stats.oroSpentEver = 30
+        let resolved = SaveConflictResolver.resolve(local: local, remote: remote)
+        #expect(resolved.meta.oroPurchasedLifetime == 550)
+        #expect(resolved.meta.unlockedTabs == ["gifts", "jobs"])
+        #expect(resolved.meta.stats.oroSpentEver == 30)
+    }
+
+    @Test("ORO comprado, ORO gastado y pestañas: el máximo y la unión, gane quien gane")
+    func v6MonotonicFieldsMergeBothWays() {
+        var ahead = fxSave(lifetime: 1000, lastSeen: 2)
+        ahead.meta.oroPurchasedLifetime = 100
+        ahead.meta.stats.oroSpentEver = 80
+        ahead.meta.unlockedTabs = ["jobs", "store"]
+        var behind = fxSave(lifetime: 10, lastSeen: 1)
+        behind.meta.oroPurchasedLifetime = 550
+        behind.meta.stats.oroSpentEver = 30
+        behind.meta.unlockedTabs = ["gifts", "store"]
+
+        for resolved in [
+            SaveConflictResolver.resolve(local: ahead, remote: behind),
+            SaveConflictResolver.resolve(local: behind, remote: ahead),
+        ] {
+            #expect(resolved.meta.lifetimeEarnings == 1000)
+            #expect(resolved.meta.oroPurchasedLifetime == 550)
+            #expect(resolved.meta.stats.oroSpentEver == 80)
+            #expect(resolved.meta.unlockedTabs == ["gifts", "jobs", "store"])
+        }
+    }
+
+    @Test("la reconstrucción del ORO comprado, una vez hecha en un device, no se repite")
+    func reconstructionFlagIsSticky() {
+        var done = fxSave(lifetime: 10, lastSeen: 1)
+        done.meta.purchasedOroReconstructed = true
+        var pending = fxSave(lifetime: 1000, lastSeen: 2)
+        pending.meta.purchasedOroReconstructed = false
+
+        #expect(SaveConflictResolver.resolve(local: done, remote: pending).meta.purchasedOroReconstructed)
+        #expect(SaveConflictResolver.resolve(local: pending, remote: done).meta.purchasedOroReconstructed)
+
+        var bothPending = fxSave(lifetime: 10, lastSeen: 1)
+        bothPending.meta.purchasedOroReconstructed = false
+        #expect(!SaveConflictResolver.resolve(local: bothPending, remote: pending).meta.purchasedOroReconstructed)
+    }
+
+    @Test("revealedTier, priceRelief, la pared de la última run y el pin viajan con el ganador")
+    func v6WinnerOnlyFieldsTravelWithTheWinner() {
+        var winner = fxSave(lifetime: 1000, lastSeen: 2)
+        winner.run.revealedTier = 2
+        winner.run.priceRelief = 0.5
+        winner.meta.lastRunMaxTier = 3
+        winner.meta.quickHirePinnedTypeId = "a"
+        var loser = fxSave(lifetime: 10, lastSeen: 1)
+        loser.run.revealedTier = 9
+        loser.run.priceRelief = 1
+        loser.meta.lastRunMaxTier = 8
+        loser.meta.quickHirePinnedTypeId = "b"
+
+        for resolved in [
+            SaveConflictResolver.resolve(local: winner, remote: loser),
+            SaveConflictResolver.resolve(local: loser, remote: winner),
+        ] {
+            #expect(resolved.run.revealedTier == 2)
+            #expect(resolved.run.priceRelief == 0.5)
+            #expect(resolved.meta.lastRunMaxTier == 3)
+            #expect(resolved.meta.quickHirePinnedTypeId == "a")
+            #expect(resolved.meta.engagement == .initial)
+        }
+    }
+
+    @Test("el contenedor de engagement se resuelve por su propia regla")
+    func engagementResolvesThroughItsOwnRule() {
+        #expect(EngagementState.resolve(winner: .initial, loser: .initial) == .initial)
+        #expect(EngagementState.initial == EngagementState())
+    }
+
     @Test("clampedScore jamás trapea: no-finito y gigantes a .max, negativos a 0")
     func scoreClampNeverTraps() {
         #expect(SaveConflictResolver.clampedScore(0) == 0)

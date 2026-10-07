@@ -724,7 +724,7 @@ public struct PacingSimulator: Sendable {
         var bought = false
         while let line = cheapestAffordableUpgrade(state: state) {
             let level = state.meta.oroUpgradeLevels[line.id] ?? 0
-            state.meta.oro -= oroPrice(of: line, atLevel: level)
+            state.meta.spendOro(oroPrice(of: line, atLevel: level))
             state.meta.oroUpgradeLevels[line.id] = level + 1
             bought = true
         }

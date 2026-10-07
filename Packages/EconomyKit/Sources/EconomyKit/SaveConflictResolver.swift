@@ -59,6 +59,16 @@ public enum SaveConflictResolver {
         // vuelve a pagar. Unión de los dos lados en ambos conjuntos.
         winner.meta.unlockedAchievements = local.meta.unlockedAchievements.union(remote.meta.unlockedAchievements)
         winner.meta.claimedAchievements = local.meta.claimedAchievements.union(remote.meta.claimedAchievements)
+
+        // La 2.0: lo comprado y lo gastado no retroceden, una pestaña revelada no
+        // se vuelve a esconder y la reconstrucción del ORO comprado no se repite.
+        // `revealedTier`, `priceRelief`, `lastRunMaxTier` y el pin viajan con el
+        // ganador: son del estado de la run o de una elección, no un acumulado.
+        winner.meta.oroPurchasedLifetime = max(local.meta.oroPurchasedLifetime, remote.meta.oroPurchasedLifetime)
+        winner.meta.purchasedOroReconstructed = local.meta.purchasedOroReconstructed || remote.meta.purchasedOroReconstructed
+        winner.meta.unlockedTabs = local.meta.unlockedTabs.union(remote.meta.unlockedTabs)
+        winner.meta.stats.oroSpentEver = max(local.meta.stats.oroSpentEver, remote.meta.stats.oroSpentEver)
+        winner.meta.engagement = EngagementState.resolve(winner: winner.meta.engagement, loser: loser.meta.engagement)
         return winner
     }
 

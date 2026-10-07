@@ -20,17 +20,28 @@ enum SaveMigrator {
         case PlayerState.currentSchemaVersion:
             return try JSONDecoder().decode(PlayerState.self, from: data)
         case 1:
-            return try JSONDecoder().decode(PlayerState.self, from: migrateV4toV5(migrateV3toV4(migrateV2toV3(migrateV1toV2(data)))))
+            return try JSONDecoder().decode(
+                PlayerState.self,
+                from: migrateV5toV6(migrateV4toV5(migrateV3toV4(migrateV2toV3(migrateV1toV2(data)))))
+            )
         case 2:
-            return try JSONDecoder().decode(PlayerState.self, from: migrateV4toV5(migrateV3toV4(migrateV2toV3(data))))
+            return try JSONDecoder().decode(
+                PlayerState.self, from: migrateV5toV6(migrateV4toV5(migrateV3toV4(migrateV2toV3(data))))
+            )
         case 3:
-            return try JSONDecoder().decode(PlayerState.self, from: migrateV4toV5(migrateV3toV4(data)))
+            return try JSONDecoder().decode(PlayerState.self, from: migrateV5toV6(migrateV4toV5(migrateV3toV4(data))))
         case 4:
-            return try JSONDecoder().decode(PlayerState.self, from: migrateV4toV5(data))
+            return try JSONDecoder().decode(PlayerState.self, from: migrateV5toV6(migrateV4toV5(data)))
+        case 5:
+            return try JSONDecoder().decode(PlayerState.self, from: migrateV5toV6(data))
         default:
             throw SaveMigrationError.unsupportedVersion(version)
         }
     }
+
+    /// Las seis pestañas de la v1. Un veterano las tiene todas (PLAN-v2 E3); es
+    /// una foto, como `rebalanceLevelCaps`: no se lee de `GameScreen`.
+    static let v1Tabs = ["jobs", "upgrades", "skins", "gifts", "store", "menu"]
 
     /// Topes de las siete líneas ANTES y DESPUÉS del rebalance de pacing
     /// (2026-08-21), que bajó `income` y `tap` de 20 niveles a 10 y `crit` de 25
@@ -72,6 +83,9 @@ enum SaveMigrator {
     /// el filtro del segundo call site devuelve el conjunto VACÍO. Y `migrate`
     /// despacha por versión, así que lo que se guarda después ya es v5 y no
     /// vuelve a entrar. `SaveMigratorTests` pinea las tres cosas.
+    ///
+    /// (Desde v6 lo que se guarda después es v6, pero el argumento no cambia: la
+    /// cadena sigue estampando cada paso y `migrate` despacha por versión.)
     static func rescaleUpgradeLevelsForRebalance(_ levels: [String: Int]) -> [String: Int] {
         var rescaled = levels
         for (id, caps) in rebalanceLevelCaps {
@@ -262,6 +276,22 @@ enum SaveMigrator {
         object["meta"] = meta
         object["run"] = run
         object["schemaVersion"] = 5
+        return try JSONSerialization.data(withJSONObject: object)
+    }
+
+    /// v5 → v6 (la 2.0): sube la versión y fija los defaults que dependen de
+    /// otros campos. El resto entra por `decodeIfPresent`.
+    private static func migrateV5toV6(_ data: Data) throws -> Data {
+        guard var object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              var run = object["run"] as? [String: Any],
+              var meta = object["meta"] as? [String: Any]
+        else { throw SaveMigrationError.unsupportedVersion(5) }
+        run["revealedTier"] = run["maxTierReached"] as? Int ?? 1
+        meta["unlockedTabs"] = v1Tabs
+        meta["purchasedOroReconstructed"] = false
+        object["run"] = run
+        object["meta"] = meta
+        object["schemaVersion"] = 6
         return try JSONSerialization.data(withJSONObject: object)
     }
 }

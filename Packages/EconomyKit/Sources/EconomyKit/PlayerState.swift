@@ -114,6 +114,14 @@ public struct RunState: Codable, Sendable, Equatable {
     /// propósito: volver a subir la torre vuelve a pagar, que es lo que empuja
     /// a reencarnar.
     public var floorChestsAwarded: Int
+    /// Hasta qué tier ya se le mostró su revelación al jugador. Red de seguridad:
+    /// si queda por debajo de `maxTierReached`, falta una revelación por encolar.
+    /// Un save que no lo trae arranca parejo con la frontera: nunca una lluvia de
+    /// revelaciones al actualizar.
+    public var revealedTier: Int
+    /// El `D` del amortiguador de precios: contratar cuesta `v1 / D`, y 1 es el
+    /// precio de la v1. Es de la run: reencarnar lo devuelve a 1.
+    public var priceRelief: Double
 
     public init(
         coins: Double,
@@ -127,7 +135,9 @@ public struct RunState: Codable, Sendable, Equatable {
         unlockedFloors: [String],
         activeModifiers: [ActiveModifier],
         seenTypes: Set<String> = [],
-        floorChestsAwarded: Int = 0
+        floorChestsAwarded: Int = 0,
+        revealedTier: Int? = nil,
+        priceRelief: Double = 1
     ) {
         self.coins = coins
         self.units = units
@@ -141,6 +151,8 @@ public struct RunState: Codable, Sendable, Equatable {
         self.activeModifiers = activeModifiers
         self.seenTypes = seenTypes
         self.floorChestsAwarded = floorChestsAwarded
+        self.revealedTier = revealedTier ?? maxTierReached
+        self.priceRelief = priceRelief
     }
 
     /// Decodificador a mano: el sintetizado exige TODA clave que no sea opcional
@@ -163,6 +175,8 @@ public struct RunState: Codable, Sendable, Equatable {
         activeModifiers = try container.decode([ActiveModifier].self, forKey: .activeModifiers)
         seenTypes = try container.decodeIfPresent(Set<String>.self, forKey: .seenTypes) ?? []
         floorChestsAwarded = try container.decodeIfPresent(Int.self, forKey: .floorChestsAwarded) ?? 0
+        revealedTier = try container.decodeIfPresent(Int.self, forKey: .revealedTier) ?? maxTierReached
+        priceRelief = try container.decodeIfPresent(Double.self, forKey: .priceRelief) ?? 1
     }
 
     /// Run recién nacida: una unidad base, piso 1 desbloqueado. Reencarnar es
@@ -223,6 +237,8 @@ public struct MetaStats: Codable, Sendable, Equatable {
     public var videosWatchedEver: Int
     /// Boosts activados en toda la historia de la cuenta.
     public var boostsActivatedEver: Int
+    /// ORO gastado en toda la historia de la cuenta. Sólo lo mueve `MetaState.spendOro`.
+    public var oroSpentEver: Int
 
     public init(
         maxFloorOrdinalEver: Int = 0,
@@ -230,7 +246,8 @@ public struct MetaStats: Codable, Sendable, Equatable {
         totalHiresEver: Int = 0,
         totalTapsEver: Int = 0,
         videosWatchedEver: Int = 0,
-        boostsActivatedEver: Int = 0
+        boostsActivatedEver: Int = 0,
+        oroSpentEver: Int = 0
     ) {
         self.maxFloorOrdinalEver = maxFloorOrdinalEver
         self.totalMergesEver = totalMergesEver
@@ -238,6 +255,7 @@ public struct MetaStats: Codable, Sendable, Equatable {
         self.totalTapsEver = totalTapsEver
         self.videosWatchedEver = videosWatchedEver
         self.boostsActivatedEver = boostsActivatedEver
+        self.oroSpentEver = oroSpentEver
     }
 
     /// Decodificador a mano por lo mismo que el de `MetaState`: los saves v4 ya
@@ -251,6 +269,7 @@ public struct MetaStats: Codable, Sendable, Equatable {
         totalTapsEver = try container.decodeIfPresent(Int.self, forKey: .totalTapsEver) ?? 0
         videosWatchedEver = try container.decodeIfPresent(Int.self, forKey: .videosWatchedEver) ?? 0
         boostsActivatedEver = try container.decodeIfPresent(Int.self, forKey: .boostsActivatedEver) ?? 0
+        oroSpentEver = try container.decodeIfPresent(Int.self, forKey: .oroSpentEver) ?? 0
     }
 }
 
@@ -317,6 +336,23 @@ public struct MetaState: Codable, Sendable, Equatable {
     public var prestigeChestsPending: Int
     /// El cofre del tutorial se da UNA vez por save, no una por partida.
     public var welcomeChestGiven: Bool
+    /// ORO comprado con plata real en la historia de la cuenta (monótono). El
+    /// reset de E9 conserva lo comprado, y un v5 lo reconstruye una vez.
+    public var oroPurchasedLifetime: Int
+    /// Si ya se reconstruyó `oroPurchasedLifetime` desde el historial de compras.
+    /// Un save que no trae la clave cuenta como ya resuelto: nunca reconstruir
+    /// dos veces. Sólo `SaveMigrator.migrateV5toV6` lo deja en `false`.
+    public var purchasedOroReconstructed: Bool
+    /// Tier máximo de la última run que reencarnó: el piso móvil que exige la
+    /// siguiente. 0 = sin requisito.
+    public var lastRunMaxTier: Int
+    /// Tipo fijado en el atajo de contratación rápida. Se ignora, sin borrarse,
+    /// si el tipo deja de ser válido.
+    public var quickHirePinnedTypeId: String?
+    /// Pestañas ya reveladas por la progresión (ids de pestaña).
+    public var unlockedTabs: Set<String>
+    /// Lo que suman las épicas de engagement.
+    public var engagement: EngagementState
 
     public init(
         lifetimeEarnings: Double,
@@ -343,7 +379,13 @@ public struct MetaState: Codable, Sendable, Equatable {
         claimedAchievements: Set<String> = [],
         chestsPending: Int = 0,
         prestigeChestsPending: Int = 0,
-        welcomeChestGiven: Bool = false
+        welcomeChestGiven: Bool = false,
+        oroPurchasedLifetime: Int = 0,
+        purchasedOroReconstructed: Bool = true,
+        lastRunMaxTier: Int = 0,
+        quickHirePinnedTypeId: String? = nil,
+        unlockedTabs: Set<String> = [],
+        engagement: EngagementState = .initial
     ) {
         self.lifetimeEarnings = lifetimeEarnings
         self.oro = oro
@@ -370,6 +412,12 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.chestsPending = chestsPending
         self.prestigeChestsPending = prestigeChestsPending
         self.welcomeChestGiven = welcomeChestGiven
+        self.oroPurchasedLifetime = oroPurchasedLifetime
+        self.purchasedOroReconstructed = purchasedOroReconstructed
+        self.lastRunMaxTier = lastRunMaxTier
+        self.quickHirePinnedTypeId = quickHirePinnedTypeId
+        self.unlockedTabs = unlockedTabs
+        self.engagement = engagement
     }
 
     /// Decodificador a mano por los campos que llegaron después de v4
@@ -422,6 +470,22 @@ public struct MetaState: Codable, Sendable, Equatable {
         chestsPending = try container.decodeIfPresent(Int.self, forKey: .chestsPending) ?? 0
         prestigeChestsPending = try container.decodeIfPresent(Int.self, forKey: .prestigeChestsPending) ?? 0
         welcomeChestGiven = try container.decodeIfPresent(Bool.self, forKey: .welcomeChestGiven) ?? false
+        oroPurchasedLifetime = try container.decodeIfPresent(Int.self, forKey: .oroPurchasedLifetime) ?? 0
+        purchasedOroReconstructed = try container.decodeIfPresent(Bool.self, forKey: .purchasedOroReconstructed) ?? true
+        lastRunMaxTier = try container.decodeIfPresent(Int.self, forKey: .lastRunMaxTier) ?? 0
+        quickHirePinnedTypeId = try container.decodeIfPresent(String.self, forKey: .quickHirePinnedTypeId)
+        unlockedTabs = try container.decodeIfPresent(Set<String>.self, forKey: .unlockedTabs) ?? []
+        engagement = try container.decodeIfPresent(EngagementState.self, forKey: .engagement) ?? .initial
+    }
+
+    /// La única salida de ORO. El reset de E9 conserva `min(saldo, comprado)`:
+    /// eso equivale a gastar primero el ORO ganado, sin llevar dos saldos.
+    @discardableResult
+    public mutating func spendOro(_ amount: Int) -> Bool {
+        guard amount >= 0, oro >= amount else { return false }
+        oro -= amount
+        stats.oroSpentEver += amount
+        return true
     }
 
     /// Meta virgen de cuenta nueva.
@@ -457,7 +521,7 @@ public struct MetaState: Codable, Sendable, Equatable {
     public var allOwnedSkins: Set<String> { Set(ownedSkins).union(milestoneSkins) }
 }
 
-/// The complete player save (schema v5): un sobre con dos secciones —`run`
+/// The complete player save (schema v6): un sobre con dos secciones —`run`
 /// muere al reencarnar, `meta` sobrevive—, forma que estrenó F7 "La Torre" en
 /// v4. CoreData lo guarda como JSON blob y el snapshot es la misma codificación.
 public struct PlayerState: Codable, Sendable, Equatable {
@@ -465,7 +529,7 @@ public struct PlayerState: Codable, Sendable, Equatable {
     public var run: RunState
     public var meta: MetaState
 
-    public static let currentSchemaVersion = 5
+    public static let currentSchemaVersion = 6
 
     public init(schemaVersion: Int, run: RunState, meta: MetaState) {
         self.schemaVersion = schemaVersion

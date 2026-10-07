@@ -38,9 +38,7 @@ enum UpgradeManager {
             guard state.run.coins >= price else { throw PurchaseError.insufficientCoins }
             state.run.coins -= price
         case .oro:
-            let oroCost = Int(price.rounded(.up))
-            guard state.meta.oro >= oroCost else { throw PurchaseError.insufficientOro }
-            state.meta.oro -= oroCost
+            guard state.meta.spendOro(Int(price.rounded(.up))) else { throw PurchaseError.insufficientOro }
         }
         state.meta.oroUpgradeLevels[lineId] = level + 1
         recomputeDerivedEffects(state: &state, config: config, specials: specials, viral: viral, boosts: boosts, economy: economy)

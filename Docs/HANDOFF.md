@@ -15,18 +15,29 @@
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
-> 🧪 **Se verifica con `Tools/v2/oraculo.sh rapido|completo`** (§6; desde el
-> relevo 6 el `rapido` también compila Release), y los agentes en paralelo se
+> 🧪 **Se verifica con `Tools/v2/oraculo.sh tarea|rapido|completo`** (§6): el
+> agente de una tarea corre `tarea <Clases>` (sólo sus tests); el `rapido`
+> (que también compila Release) lo corre el controlador una vez por ola. Los
+> agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-07 (cierre del relevo
-> 6): en `version-2` (`3956fd3`) están E0, E10 en papel, E8 pipeline, E8
-> audio, E7a y la parte de idioma de E3, y las olas B, C y D: **E1 T1–T8 (con
-> T5b y T5c), E11 T1–T2 y E3a T1–T5** (la app ya es universal, con iOS 18). El
-> `rapido` de `3956fd3`: VERDE (EK 357 · unit 639 + 1 · release 0), pusheado. El último
-> `completo`, sobre `8d17b8d`, dio todo verde **menos Release**, que ya está
-> arreglado (§6). Fuera de `version-2`: E5a T1 en `v2/e5-premios` y E11 T3
-> con dos tests por arreglar. Hay planes para todas las épicas salvo E9, E2b,
-> E8 y la parte de agente de E10.
+> 7): `version-2` = **`60af174`** (la punta con `tasks.md` al cierre es
+> `2a83e26`). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de
+> idioma de E3 y las olas B a E: **E1 T1–T9 (con T9b, T5b, T5c y T6c), T10
+> (sin sus arreglos de revisión) y T11; E11 T1–T3; E3a T1–T6; E4a T1 y E5a
+> T1–T3**. `GameState.swift` se partió en extensiones (1.174 → 334 líneas).
+> El `rapido` de `60af174`: **VERDE (EK 447 · unit 683 + 1 · release 0)**,
+> pusheado. El último `completo` es el de `8d17b8d` (todo verde menos
+> Release, ya arreglado): **nada de las olas D y E pasó por UI, Store ni
+> `pacing-sim`.**
+>
+> 🌿 **Lo que queda en ramas, sin mergear a `version-2`:** E11 T4 (`02cc5fb`,
+> `v2/e11-notificaciones`; ⚠️ un UI test rojo no medido en la base), E2a T1
+> (`434b0ee`, `v2/e2a-mecanicas`), E6b T1 (`f9cd4b9`, `v2/e6-tienda`), los
+> mutantes de E5a T2+T3 (`f6f8e2f`, `v2/e5-premios`) y los arreglos de E1 T10
+> (en el worktree `agent-a6243c7787c9be294`, sobre `4c11a0a`, si llegaron).
+> Hay planes por tareas para todas las épicas salvo E8 (el resto) y la parte
+> de agente de E10.
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -155,7 +166,7 @@ dice, no lo repitas.
   subagente ni tarea de fondo en vuelo, **relevo**: un `CronCreate` de un
   disparo con "continúa — protocolo de relevo FisuEvolution v2" +
   `clear_session("self")`. **Ese cron no despertó a nadie en los relevos 2 a
-  6.** Desde el relevo 6 existen las rutinas manuales `fisu-v2-relevo-a` y
+  7** (el 7 lo despertó el dueño escribiendo en la sesión, no la rutina). Desde el relevo 6 existen las rutinas manuales `fisu-v2-relevo-a` y
   `-b` (decisión del dueño, §5): el que cierra lanza la otra con
   `run_scheduled_task`. En última instancia, el dueño escribe "continúa".
 - Las skills `handoff-system`, `writing-session-handoff` y
@@ -215,7 +226,7 @@ gates humanos, nada técnico.
 | Capa | Dónde | Qué hace |
 |---|---|---|
 | **EconomyKit** | `Packages/EconomyKit/` | Toda la economía: pura, `Sendable`, sin UIKit/SpriteKit, con reloj y RNG inyectables. Si una pieza de lógica necesita un tipo de UI, está en la capa equivocada. |
-| **GameState** | `FisuEvolution/Game/State/GameState.swift` | `@Observable @MainActor`. Orquesta: carga, tick de income, gestos resueltos, popups, y **proyecciones** para SwiftUI. |
+| **GameState** | `FisuEvolution/Game/State/GameState.swift` + `GameState+*.swift` | `@Observable @MainActor`. Orquesta: carga, tick de income, gestos resueltos, popups, y **proyecciones** para SwiftUI. Desde el relevo 7 el cuerpo (334 líneas) tiene sólo el estado y el `init`; lo demás está en extensiones por zona (§9). |
 | **Presentación** | `FisuEvolution/Scenes/` + `FisuEvolution/UI/` | `BoardScene` dibuja y captura gestos; SwiftUI sólo lee proyecciones. |
 
 **Regla que sostiene todo**: SwiftUI **nunca** lee `PlayerState`. Lee
@@ -311,6 +322,41 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-07 (relevo 7) — La ola E: el turno de los cambios, `GameState` partido, el ORO exacto y el ciclo más barato
+
+`version-2` quedó en `60af174` con la ola E, `rapido` VERDE (EK 447 · unit
+683 + 1 · release 0), pusheado:
+
+- E1 T9, el turno de los cambios del tablero (confirmar una sola vez;
+  confirmar revalida y reencarnar asienta la cola) y **T9b, `GameState.swift`
+  partido en extensiones**: 1.174 → 334 líneas, con el mapa símbolo → archivo
+  en `task-9b-report.md`. Costo: todos los `private(set)` pasaron a `var`
+  (§5);
+- E1 T10, la escena que reproduce los cambios como merges, **integrada sin
+  sus arreglos de revisión** (2 Important), y E1 T11, el sorteo que salta lo
+  inaplicable;
+- **E1 T6c, el ORO comprado exacto entre dispositivos** (decisión del relevo
+  6), y si `Transaction.all` vence el plazo la reconstrucción **no se cierra
+  en 0**: se reintenta en el próximo arranque;
+- E3a T6 (las hojas en iPad con `fisuSheet`; los 9 `.sheet` de `RootView` los
+  migró el controlador, quedan 2 a propósito), E4a T1 (`RewardSpec`), E5a
+  T1–T3 (paquete, colchón y ruleta, puros) y E11 T3 con sus arreglos;
+- los planes por tareas de E2b (15) y E9 (20): ya sólo falta el de E8 (el
+  resto) y la parte de agente de E10.
+
+**El dueño pidió dos cosas** (§5): los guiños escondidos (Six Seven en tres
+lugares y "andá pa' allá, bobo" una vez) y un desarrollo **más expeditivo y con
+menos tokens**. Medido: el `unit` tardó 1.244 s con tres agentes compilando y
+438 s libre, y cada tarea pagaba ~30 min de `rapido`. Ahora el agente corre
+`oraculo.sh tarea <Clases>`, el brief sale de `Tools/v2/brief.py`, la
+revisión depende del riesgo y el `rapido` entero va una vez por ola (§6).
+
+Fuera de `version-2` quedan E11 T4 (con un UI test rojo sin medir en la base),
+E2a T1, E6b T1, los mutantes de E5a T2+T3 (61 → 92 de 93 muertos) y los
+arreglos de T10. **Lo próximo**: integrarlos, un `completo` sobre la punta, y
+la ola F (`tasks.md` §4). Detalle en
+**`Docs/SESION-2026-10-07-v2-relevo-7-ola-e.md`**.
 
 ### Sesión del 2026-10-07 (relevo 6) — La ola D: el ciclo de vida, el Release que el `rapido` no veía y la app universal
 
@@ -1619,6 +1665,41 @@ detalle en `Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md` §1):
   ponerla encima, tapa 15–56 pt de la multitud. E7b-b T3 cambia el contenedor
   y **T4 se saltea**: `PlayLayout` y `BoardScene` no se tocan por la columna.
 
+**Decisiones del relevo 7** (2026-10-07; el detalle en
+`Docs/SESION-2026-10-07-v2-relevo-7-ola-e.md` §1 y §2):
+
+- **Los guiños escondidos del dueño, con tope: no se suman más.** "Six Seven"
+  va en tres lugares: el Turista Gringo con la camiseta 67 (prompts de arte
+  016–019), el Crypto Bro ("el gráfico hizo six seven") y el Coach Ontológico,
+  que pide 67 toques (eran 60). "Andá pa' allá, bobo" va **una** vez, sin
+  nombrar a Messi: la Vecina Chusma ("¿Qué mirás, bobo? Andá pa' allá… ¡ah,
+  sos vos!"). Están en PLAN-v2 §2, los anexos A y B, los planes de E4a y E4b
+  y la biblia (`50b99ae`). ⚠️ Los prompts 016–019 están editados **sin
+  commitear** en `automatic-image-generation/projects/fisu-evolution-v2`:
+  ese proyecto nunca estuvo versionado.
+- **El ciclo más barato (pedido del dueño: más expeditivo, menos tokens).**
+  Motivo, medido: `unit` 1.244 s con tres agentes compilando contra 438 s
+  libre, y cada tarea pagaba ~30 min de `rapido` que se repetía al integrar.
+  Queda: el agente corre `oraculo.sh tarea <Clases>` (sin Release ni suite
+  entera), el brief es la tarea recortada con `brief.py`, **la revisión va por
+  riesgo** (sonnet por defecto; opus sólo si cambia lógica de save, del frame
+  loop, del turno del tablero o de dinero; ninguna si es mecánica, sólo tests
+  o docs; mutantes a mano en EK) y **el `rapido` completo lo corre el
+  controlador una vez por ola**. Descarta mantener un `rapido` por tarea:
+  repite lo que el de integración vuelve a correr.
+- **`GameState.swift` se parte en extensiones por zona** (E1 T9b, entre T9 y
+  T10). Motivo: 20 tareas pendientes lo tocaban y, con un dueño por ola, iban
+  de a una. Costo aceptado: **todos los `private(set)` pasaron a `var`**,
+  porque Swift no deja escribir una propiedad `private(set)` desde otro
+  archivo; y los planes que citan `GameState.swift:NNN` apuntan a otro lado
+  (cada brief nombra la extensión). En el cuerpo de la clase quedan sólo las
+  propiedades almacenadas y el `init`.
+- **T6c: si `Transaction.all` vence el plazo, la reconstrucción del ORO NO se
+  cierra en 0.** Se reintenta en el próximo arranque. Motivo: cerrarla en 0
+  dejaba el save de un veterano sin su ORO comprado, sin reintento (trampa del
+  relevo 5). Sigue siendo regla que **toda acreditación pasa por
+  `recordOroPurchase`**.
+
 **Decisiones tomadas al implementar la 2.0** (2026-10-06, con el frente entre
 paréntesis; el porqué completo está en la sesión de cada uno):
 
@@ -1946,16 +2027,31 @@ la receta a mano de más abajo. La receta es lo que el oráculo corre por
 dentro, y sirve para depurar un paso suelto.
 
 ```bash
+Tools/v2/oraculo.sh tarea [Clase…]        # EconomyKit + xcodegen + build + SÓLO esas clases de unit
 Tools/v2/oraculo.sh rapido   [--limpio]   # EconomyKit + xcodegen + build-for-testing + unit (iOS 26.5)
                                           #   + Release sin warnings: mientras se itera y al integrar
 Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (18.6) + UI (26.5)
                                           #   + pipeline + pacing-sim: para cerrar una ola o una épica
 ```
 
+- **`tarea` (desde `5d934d6`, relevo 7) es el chequeo de un agente antes de
+  su commit**: EconomyKit + xcodegen + build, y de unit **sólo las clases que
+  le pasás** (`tarea BoardChangeWiringTests LifecycleTests`). **No compila
+  Release ni corre la suite entera**: eso lo hace el controlador en el
+  `rapido` de integración, una vez por ola. Sin clases **no corre unit** (y sale
+  en VERDE igual: no prueba nada), y las clases se pasan sin el prefijo del
+  target. Un VERDE de
+  `tarea` no reemplaza al `rapido`.
+- **El DerivedData del oráculo es `build/DD-oraculo.noindex`** (desde
+  `84cd717`): la carpeta con `.noindex` evita que Spotlight indexe los gigas de
+  cada worktree (el load average de 15 min llegó a 346 con `diskimagesiod` al
+  140 % y `mds_stores` al 37 %; no hay una medida posterior de la mejora). Si
+  tu comando o script nombra `build/DD-oraculo` a secas, está viejo.
 - **Desde `ca2d12c` (relevo 6) el `rapido` también compila Release**, después
   de unit. Antes sólo lo hacía el `completo`, y tres `rapido` verdes no vieron
   un rojo que existía sólo en Release (§7, ola D). El Release usa su propio
-  DerivedData, `build/DD-oraculo-release`, que **`--limpio` no borra**: ~20 s
+  DerivedData, hermano del anterior (`build/DD-oraculo.noindex-release`), que
+  **`--limpio` no borra**: ~20 s
   incremental y ~100 s la primera vez en un worktree.
 
 - **Sale en 0 sólo si todo está verde.** El juez es `Tools/v2/rojos.py`, que
@@ -1967,7 +2063,7 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
     corre cero tests y Xcode lo da por bueno.
 - Sigue la receta de abajo al pie de la letra: crea sus simuladores por UDID y
   los borra al salir, corre unit antes que UI, sin paralelismo, con
-  `build/DD-oraculo` propio del worktree.
+  `build/DD-oraculo.noindex` propio del worktree.
 - Deja logs, `.xcresult` y un `resumen.txt` en `build/oraculo/<fecha>-<modo>/`.
 - **`--limpio`** borra el DerivedData antes de compilar: hace falta después de
   tocar arte, porque el build incremental no recompila los atlas (trampa 1).
@@ -2035,6 +2131,23 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
   espera: EK 357 · unit 639 + 1 · Store unit 13 · UI 59 · `StoreUITests` 2 ·
   pipeline 49/0 · `pacing-sim` igual · Release 0 warnings.
 
+**El `rapido` de la ola E** (2026-10-07, relevo 7). **Los números de
+referencia del `rapido` son los de `60af174`: EK 447 · unit 683 + 1 ·
+release 0.**
+
+| Árbol | EconomyKit | unit (26.5) | Release | Veredicto | De dónde sale |
+|---|---:|---:|---|---|---|
+| `b0f6f6c` (+ E11 T3 con arreglos) | — | 653 + 1 | — | VERDE | cuadra con 639 + 21 − 9 + 2 de los arreglos |
+| `60af174` (`version-2`, la ola E entera) | **447** | **683 + 1** | **0 warnings** | **VERDE** | los 30 de 653 a 683 no están desglosados por tarea |
+
+- **Con las ramas sueltas integradas** (E5a mutantes, E11 T4, E2a T1, E6b T1 y
+  los arreglos de T10) se espera EK ≈ 480 y unit ≥ 690 + 1.
+- **Nada de la ola E pasó por un `completo`.** Sobre `60af174` o la punta que
+  venga se espera: EK 447 · unit 683 + 1 · Store unit 13 · UI 59 (más lo que
+  sume la ola) · `StoreUITests` 2 · pipeline 49/0 · `pacing-sim` igual (Dios
+  en 30,73 h, 13 reencarnaciones) · Release 0 warnings. Además decide
+  `MenuUITests.testAjustesTraeSusControlesYApagaLasParticulas`, rojo en E11 T4.
+
 **El `rapido` de la ola D** (2026-10-07, relevo 6). **Los números de
 referencia del `rapido` son los de `ca2d12c`: EK 357 · unit 633 + 1 ·
 release 0.**
@@ -2088,7 +2201,7 @@ sim 26 virgen.
 ```bash
 UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
 
-cd Packages/EconomyKit && swift test                      # 357 en version-2 al relevo 6 (393 con E5a T1)
+cd Packages/EconomyKit && swift test                      # 447 en version-2 al relevo 7 (60af174)
 cd - && /opt/homebrew/bin/xcodegen generate               # si agregaste/borraste Swift
 
 # 1) UNIT PRIMERO
@@ -2285,6 +2398,47 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la ola E (2026-10-07, relevo 7)
+
+- **Un script que cuenta líneas "cambiadas" tras una mudanza dice "bad 56" y
+  no es un error.** La verificación de E1 T9b (partir `GameState.swift`) marcó
+  56: eran propiedades almacenadas cuyo único cambio es el modificador
+  (`private(set)` → `var`). **El juez de una mudanza mecánica es el multiset de
+  líneas movidas**, no la posición ni el diff.
+- **Partir una clase en extensiones obliga a abrir sus setters.** Swift no deja
+  escribir una propiedad `private(set)` desde otro archivo, así que los de
+  `GameState` pasaron a `var`. Es el costo aceptado de T9b (§5); no lo
+  "arregles" volviéndolos a `private(set)`: no compila.
+- **StoreKit Testing con la máquina a load 300–500 entrega un reembolso minutos
+  tarde.** `refundingAnOroPackLowersThePurchasedTotal` espera 180 s. Mirá
+  `uptime` antes que el código.
+- **Un `du -sh` sobre `.claude/worktrees` no termina en 2 min** (43 worktrees,
+  cada uno con su DerivedData). No lo hagas.
+- **Los gigas de DerivedData en `build/` cargan a Spotlight.** El load average
+  de 15 min llegó a **346** con `diskimagesiod` al 140 %, `mds_stores` al 37 %
+  y `bird` al 31 %. El oráculo usa `build/DD-oraculo.noindex` desde `84cd717`;
+  cualquier DerivedData nuevo que crees a mano, con `.noindex` en el nombre.
+- **Los tests del brief dejan mutantes vivos, de nuevo.** E5a T1: 7 de 8; E5a
+  T2+T3: **32 de 93** (61 muertos), y con los refuerzos `f6f8e2f` quedan
+  **92 de 93**. En una tarea pura de EK la revisión prueba mutantes a mano, no
+  lee prosa.
+- **Un `tarea` verde no es un `rapido` verde.** `tarea` no compila Release ni
+  corre la suite entera; sin clases no corre unit y sale en VERDE. La
+  verificación real de la ola es el `rapido` del controlador al integrar.
+- **Los prompts de arte 016–019 con el 67 de la camiseta no están en git.**
+  Viven en `automatic-image-generation/projects/fisu-evolution-v2`, que nunca
+  estuvo versionado: si se regenera el proyecto desde otra copia, el guiño se
+  pierde.
+- **Sexto relevo sin un despertar por cron ni por rutina**: el 7 lo despertó el
+  dueño escribiendo en la sesión.
+- **Lo que funcionó, y hay que mantener:**
+  - decidir partir `GameState.swift` midiendo antes cuántas tareas lo tocaban
+    (20) y haciéndolo entre T9 y T10, donde menos cuesta;
+  - la mudanza mecánica verificada por multiset de líneas, no por lectura;
+  - revisar EK por mutantes en vez de por prosa (T1 y T2+T3 los necesitaron);
+  - que el controlador aplique a mano lo que ninguna tarea posee (los 9
+    `.sheet` de `RootView`, `60af174`).
 
 ### De la ola D (2026-10-07, relevo 6)
 
@@ -3901,6 +4055,33 @@ Anotado por si algún día importa, con su medición:
   - §5, una tabla por épica con el estado de cada tarea, y las
     inconsistencias abiertas entre planes;
   - §6, los gates humanos y las dudas con default de cada plan.
+- **`Docs/SESION-2026-10-07-v2-relevo-7-ola-e.md`**: el relevo 7.
+  - Los dos pedidos del dueño: los guiños escondidos (con su tope) y el
+    desarrollo más barato, con la medición que lo justifica (`unit` 1.244 s
+    con tres compilando contra 438 s libre).
+  - La ola E tarea por tarea (E1 T9, T9b, T10, T11 y T6c; E3a T6; E4a T1; E5a
+    T1–T3; E11 T3 con arreglos), con lo que cada una deja y no se ve en el
+    diff, y el `private(set)` → `var` de partir `GameState`.
+  - Los números del `rapido` de `60af174` y lo que el próximo `completo`
+    tiene que dar.
+  - Lo que quedó en ramas y los carries abiertos (T10, T12, T14, M3, M4).
+- **Código nuevo de la ola E, dónde mirar:**
+  - `FisuEvolution/Game/State/GameState+*.swift` (E1 T9b): `GameState.swift`
+    quedó con las propiedades almacenadas y el `init` (334 líneas); el resto
+    vive en `+Types` (tipos anidados), `+Bootstrap`, `+TowerSync`,
+    `+FrameLoop` (`tick`, `flushHUD`), `+Services`, `+Persistence`
+    (`scheduleSave`, `persistNow`) y `+Projections` (`refreshProjections`, el
+    que más se toca). `+BoardChanges` (E1 T9) es el turno de los cambios del
+    tablero. El mapa símbolo → archivo exacto está en `task-9b-report.md` (el
+    ledger de E1 en `version-2/.superpowers/sdd/`).
+  - `Tools/v2/oraculo.sh tarea` y `Tools/v2/brief.py` (relevo 7): la
+    verificación enfocada de un agente y el recorte de una tarea del plan (§6).
+  - `Packages/EconomyKit/Sources/EconomyKit/Prizes/` (E5a T1–T3, ya en
+    `version-2`): el paquete, el colchón y la ruleta, puros; `RewardSpec`
+    (E4a T1) es el vocabulario único de premios.
+  - `FisuEvolution/UI/Art/PanelFrames.swift` (E3a T6): `fisuSheet`, que presenta toda hoja (cover
+    transparente en iPad, panel de 640 pt). Quedan 2 `.sheet` a propósito en
+    `RootView`: el share del sistema y el debug.
 - **`Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md`**: el relevo 6.
   - Las cuatro decisiones del dueño con lo que descartan.
   - El `completo` sobre `8d17b8d` (todo verde salvo Release) y por qué el
@@ -3914,7 +4095,8 @@ Anotado por si algún día importa, con su medición:
   - `FisuEvolution/Game/State/GameState+Lifecycle.swift` (E1 T8): el ciclo de
     vida — `handleScenePhase(from:to:now:)`, `seal`, el latido `beatIfDue` y
     el offline. Lo que la escena inactiva puede y no puede hacer está en
-    `tick` y `flushHUD` (`GameState.swift`). Tests: `LifecycleTests` (13).
+    `tick` y `flushHUD` (`GameState+FrameLoop.swift` desde el relevo 7).
+    Tests: `LifecycleTests` (13).
   - `FisuEvolution/App/BackgroundTasks.swift` (E1 T8): el
     `beginBackgroundTask` detrás de un protocolo, para que los tests cuenten
     los `begin` y `end` de cada salida.
@@ -3922,8 +4104,8 @@ Anotado por si algún día importa, con su medición:
     del `Info.plist` compilado (universal, vertical, pantalla completa, iOS 18,
     pantalla de lanzamiento crema) y el guardián del SDK 27. Lee el archivo,
     no `infoDictionary` (§7, ola D).
-  - `Packages/EconomyKit/Sources/EconomyKit/Prizes/` (E5a T1, **todavía sólo
-    en `v2/e5-premios`**): `WeightedDraw`, `PackagesConfig`, `PackagesState` y
+  - `Packages/EconomyKit/Sources/EconomyKit/Prizes/` (E5a T1; en `version-2`
+    desde el relevo 7): `WeightedDraw`, `PackagesConfig`, `PackagesState` y
     `PackageEngine`, el Paquete de la Aduana puro. Tests:
     `PackagesEngineTests` y `WeightedDrawTests`.
 - **Las rutinas del relevo**: `~/.claude/scheduled-tasks/fisu-v2-relevo-a/` y

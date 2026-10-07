@@ -139,6 +139,10 @@ archivos de dueño único por ola, y un controlador que integra de a uno.
 - El detalle fino (arrastres, menores diferidos, reportes) sigue en el ledger de cada épica. Si un
   ledger y `tasks.md` se contradicen, manda el ledger y se corrige `tasks.md`.
 
+**El ciclo barato** (pedido del dueño, relevo 7): el agente verifica con `Tools/v2/oraculo.sh tarea
+<Clases>`, el controlador corre el `rapido` una vez por ola y la revisión va por riesgo; el
+detalle está en `tasks.md` §1 (y en `Docs/SESION-2026-10-07-v2-relevo-7-ola-e.md` §1).
+
 **Archivos calientes: un solo dueño por ola.**
 
 - Son `GameState.swift`, `RootView.swift`, `BoardScene.swift`, `ContentSystems.swift`,

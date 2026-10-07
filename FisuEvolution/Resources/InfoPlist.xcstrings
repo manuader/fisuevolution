@@ -23,9 +23,15 @@
       "comment" : "Bundle name",
       "extractionState" : "extracted_with_value",
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HoboEvolution"
+          }
+        },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "FisuEvolution"
           }
         }

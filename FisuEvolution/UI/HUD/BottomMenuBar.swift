@@ -1,9 +1,8 @@
 import SwiftUI
 
 /// La barra inferior de las 6 pantallas (spec §4), espejo de la de Cow
-/// Evolution: FisuJobs a la izquierda —la cara del Fisura, como la vaca— y el
-/// Menú a la derecha —el cuaderno—, los dos destacados, con las cuatro
-/// pantallas del medio en tamaño normal.
+/// Evolution: Contratar al centro y destacado —la cara del Fisura, como la
+/// vaca—, con dos pestañas a la izquierda y tres a la derecha (PLAN-v2 E3).
 ///
 /// Reemplaza a `SpawnButtonView` (que era el único habitante de la franja de
 /// abajo) y a la fila transitoria de cuatro botones del HUD: contratar dejó de
@@ -36,7 +35,7 @@ struct BottomMenuBar: View {
     // MARK: - Los seis tabs
 
     private var items: [GameTabItem] {
-        GameScreen.allCases.map { screen in
+        GameScreen.barOrder.map { screen in
             GameTabItem(
                 screen: screen,
                 icon: icon(for: screen),
@@ -62,10 +61,9 @@ struct BottomMenuBar: View {
         }
     }
 
-    /// Los extremos van destacados, como la vaca y el cuaderno del original: la
-    /// pantalla donde se gasta la plata y la que guarda todo lo demás.
+    /// Contratar va al centro y destacado: es el verbo principal del juego.
     private static func isProminent(_ screen: GameScreen) -> Bool {
-        screen == .jobs || screen == .menu
+        screen == GameScreen.centerTab
     }
 
     /// ⚠️ Las claves de AX se escriben enteras y no por interpolación del
@@ -89,8 +87,8 @@ struct BottomMenuBar: View {
     /// Espejan a `GameTabButton.iconSide`, que es privado: el icono se dibuja a
     /// su propio tamaño y el botón lo enmarca en el mismo, así que si allá
     /// cambiaran quedarían centrados en el plato en vez de romperse.
-    private static let iconSide: CGFloat = 48
-    private static let prominentIconSide: CGFloat = 54
+    private static let iconSide: CGFloat = 38
+    private static let prominentIconSide: CGFloat = 56
 
     /// El glifo de cada tab, ya type-borrado, **y con el ancla del tutorial
     /// puesta donde corresponde**.
@@ -100,8 +98,8 @@ struct BottomMenuBar: View {
     /// tabs juntos —un recorte que abarca media pantalla y no enseña nada—. El
     /// icono está centrado en su plato y mide `iconSide`, así que el recorte
     /// —que `TutorialOverlay` infla 10 pt por lado— cae sobre el plato con un
-    /// hilo de aire alrededor: 54+20 = 74 sobre los 62 de un tab destacado,
-    /// 48+20 = 68 sobre los 56 de uno normal. Desde que el icono es el que
+    /// hilo de aire alrededor: 56+20 = 76 sobre los 64 de Contratar,
+    /// 38+20 = 58 sobre los 44 de una común. Desde que el icono es el que
     /// manda, el recorte sobra 6 pt por lado en vez de faltar: sigue leyéndose
     /// como un halo del tab y no como un cuadrado suelto (verificado en
     /// captura), y como el label vive debajo del plato, el recorte no lo tapa.

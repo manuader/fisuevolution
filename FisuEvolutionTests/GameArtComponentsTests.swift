@@ -15,9 +15,16 @@ struct GameArtComponentsTests {
 
     // MARK: - GameScreen
 
-    @Test("las 6 pantallas vienen en el orden de la barra inferior")
-    func screenOrderIsTheTabOrder() {
+    @Test("allCases conserva el orden histórico: es la identidad de la hoja")
+    func allCasesKeepsTheHistoricOrder() {
         #expect(GameScreen.allCases.map(\.rawValue) == ["jobs", "upgrades", "skins", "gifts", "store", "menu"])
+    }
+
+    @Test("la barra va con Contratar al centro: dos a la izquierda y tres a la derecha")
+    func barOrderPutsHiringInTheCenter() {
+        #expect(GameScreen.barOrder == [.upgrades, .skins, .jobs, .gifts, .store, .menu])
+        #expect(Set(GameScreen.barOrder) == Set(GameScreen.allCases))
+        #expect(GameScreen.centerTab == .jobs)
     }
 
     @Test("el id es el rawValue: lo consume .sheet(item:)")
@@ -44,22 +51,36 @@ struct GameArtComponentsTests {
 
     // MARK: - GameTabItem
 
-    @Test("una barra con las 6 pantallas no repite ni ids ni identifiers")
+    @Test("una barra con las 6 pantallas no repite ni ids ni identifiers, y sólo Contratar se destaca")
     func tabItemsAreDistinct() {
-        let items = GameScreen.allCases.map { screen in
+        let items = GameScreen.barOrder.map { screen in
             GameTabItem(
                 screen: screen,
                 icon: AnyView(EmptyView()),
                 labelKey: "hud.\(screen.rawValue).label",
                 identifier: screen.identifier,
-                prominent: screen == .jobs || screen == .menu
+                prominent: screen == GameScreen.centerTab
             )
         }
         #expect(items.count == 6)
         #expect(Set(items.map(\.id)).count == 6)
         #expect(Set(items.map(\.identifier)).count == 6)
-        // Los extremos van destacados (56 pt contra 48 pt).
-        #expect(items.filter(\.prominent).map(\.screen) == [.jobs, .menu])
+        #expect(items.filter(\.prominent).map(\.screen) == [.jobs])
+    }
+
+    @Test("la barra baja 20 pt: el panel mide 64 y Contratar sobresale 20")
+    func barGeometry() {
+        #expect(GameTabBar.panelHeight == 64)
+        #expect(GameTabBar.centerRise == GameTabBar.centerPlateSide - GameTabBar.plateSide)
+        #expect(GameTabBar.barHeight == GameTabBar.panelHeight + GameTabBar.centerRise)
+        #expect(GameTabBar.barHeight == 84, "la pila de arriba (atajo, prestigio, toasts) no se mueve")
+    }
+
+    /// Las dos zonas miden lo mismo, así que manda la más poblada: tres pestañas
+    /// a la derecha. 16 + 72 + 2 × 136 + 4 = 364 de los 375 del SE.
+    @Test("las seis pestañas entran en el SE")
+    func sixTabsFitTheSE() {
+        #expect(GameTabBar.minimumWidth(tabsPerSide: 3) <= 375)
     }
 
     @Test("el tab no es prominente si no se lo pide")

@@ -75,33 +75,29 @@ final class BottomMenuUITests: XCTestCase {
         }
     }
 
-    /// Los dos extremos son los destacados (56 pt contra 48): es lo que hace que
-    /// la barra se lea como la de Cow Evolution y no como seis botones iguales.
-    /// Se mide sobre el frame REAL que reporta XCUITest, no sobre el arte.
+    /// Contratar va al centro y es el más grande (PLAN-v2 E3, la crítica de la
+    /// barra): el verbo principal se encuentra sin buscarlo. Y la barra es más
+    /// baja: los platos comunes arrancan a menos de 100 pt del borde de abajo.
     @MainActor
-    func testLosExtremosSonMasGrandesQueElResto() throws {
+    func testContratarVaAlCentroYEsElMasGrande() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
         let jobs = app.buttons["hud.hire"]
         XCTAssertTrue(jobs.waitForExistence(timeout: 20))
-        let menu = app.buttons["hud.settings"]
-        let middle = ["hud.upgrades", "hud.skins", "hud.bonus", "hud.store"].map { app.buttons[$0] }
-
-        attach(app, named: "T7 extremos destacados")
-
-        for tab in middle {
-            XCTAssertTrue(tab.exists)
-            XCTAssertGreaterThan(jobs.frame.height, tab.frame.height,
-                                 "FisuJobs tiene que ser más alto que \(tab.identifier)")
-            XCTAssertGreaterThan(menu.frame.height, tab.frame.height,
-                                 "el Menú tiene que ser más alto que \(tab.identifier)")
-        }
-
-        // Y la barra vive abajo de todo: si algún día se cuela arriba del
-        // tablero, el ajuste de `BoardScene.bottomInset` deja de tener sentido.
         let screen = app.windows.element(boundBy: 0).frame
+        attach(app, named: "E3 Contratar al centro")
+
+        XCTAssertEqual(jobs.frame.midX, screen.midX, accuracy: 2, "Contratar tiene que ir al centro")
+        for identifier in ["hud.upgrades", "hud.skins", "hud.bonus", "hud.store", "hud.settings"] {
+            let tab = app.buttons[identifier]
+            XCTAssertTrue(tab.exists, "falta \(identifier)")
+            XCTAssertGreaterThan(jobs.frame.height, tab.frame.height,
+                                 "Contratar tiene que ser más alto que \(identifier)")
+            XCTAssertGreaterThan(tab.frame.minY, screen.height - 100,
+                                 "\(identifier) arrancó en \(tab.frame.minY): la barra no bajó")
+        }
         XCTAssertGreaterThan(jobs.frame.minY, screen.height * 0.75,
                              "la barra tiene que estar pegada abajo, arrancó en \(jobs.frame.minY)")
     }

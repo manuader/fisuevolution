@@ -946,10 +946,18 @@ enum GameScreen: String, Identifiable, CaseIterable {
         case .menu: "hud.settings"
         }
     }
+
+    /// El orden de la barra de abajo y del paginador del menú (PLAN-v2 E3):
+    /// Contratar al centro, con dos pestañas a la izquierda y tres a la derecha.
+    /// NO es `allCases`, que conserva el orden histórico.
+    static let barOrder: [GameScreen] = [.upgrades, .skins, .jobs, .gifts, .store, .menu]
+
+    /// La pestaña del centro, la más grande.
+    static let centerTab: GameScreen = .jobs
 }
 
 /// Un tab: la pantalla que abre, su icono ya type-borrado, el label de AX y si
-/// va destacado (los extremos, como la vaca y el cuaderno de Cow Evolution).
+/// va destacado (Contratar, al centro, como la vaca de Cow Evolution).
 struct GameTabItem: Identifiable {
     let screen: GameScreen
     let icon: AnyView
@@ -1013,74 +1021,80 @@ struct GameTabBar: View {
         ScreenInsets.floorGap(minimum: minimumBottomGap, inset: ScreenInsets.shared.bottom)
     }
 
-    /// Cuánto mide de alto la barra, sin contar la safe area ni el piso.
+    /// Aire arriba de los platos comunes, adentro del panel.
+    static let topPadding: CGFloat = 6
+    /// Plato de una pestaña común y el de Contratar.
+    static let plateSide: CGFloat = 44
+    static let centerPlateSide: CGFloat = 64
+    /// El espacio entre pestañas: el literal 2 de la v1.
+    static let spacing: CGFloat = 2
+
+    /// Alto del panel visible, sin la safe area ni el piso de abajo: 6 de aire +
+    /// 44 de plato + 2 + 12 del nombre. Es lo que le tapa el tablero a la
+    /// multitud (`BoardScene.bottomInset`): 20 pt menos que la v1 (84), que es lo
+    /// que pidió la crítica de la barra (PLAN-v2 §2).
+    static let panelHeight: CGFloat = 64
+    /// Cuánto sobresale Contratar por encima del panel.
+    static let centerRise: CGFloat = centerPlateSide - plateSide
+
+    /// Alto del cuadro entero, con Contratar sobresaliendo. Sobre esto se apoya
+    /// la pila de arriba —el atajo, el prestigio y los dos toasts de `RootView`—,
+    /// así que conserva el nombre y el valor de la v1 (84) y esa pila no se
+    /// mueve. `BoardScene.bottomInset` y el espejo de `AscentRenderingUITests`
+    /// lo siguen leyendo.
     ///
-    /// Es la suma del layout de `body`, no una medición suelta: **8** de
-    /// `padding(.top)` + la columna del tab destacado, que es el más alto
-    /// (**62** de plato + **2** del spacing del `VStack` + **12** del label).
-    /// La franja no agrega aire abajo —su panel se funde con el borde y no
-    /// termina donde termina el contenido—, así que el padding de abajo es el
-    /// piso y va aparte, en `bottomFloor`.
-    ///
-    /// ⚠️ Existe porque este número lo necesitan TRES lugares fuera de acá y ya
-    /// se movió dos veces (82 cuando la barra estrenó labels, 84 cuando los
-    /// platos crecieron a 62): `BoardScene.bottomInset`, que apoya la multitud
-    /// sobre el borde de arriba de la barra, y los dos toasts de `RootView`, que
-    /// flotan encima de ella. Antes eran tres literales que había que mover a
-    /// mano en el mismo commit; ahora los tres derivan de éste.
-    ///
-    /// El ÚNICO que sigue siendo copia a mano es el espejo de
-    /// `AscentRenderingUITests`, y no se puede evitar: un test de UI corre fuera
-    /// de proceso y no puede importar la app. Ese tiene su propio bloque de
-    /// aviso, que cuenta las cuatro veces que se desincronizó.
-    ///
-    /// ⚠️ **No lleva `@MainActor`, pero SÍ está aislado al main actor.** Este
-    /// docstring decía lo contrario —"no es `@MainActor` a propósito… y así
-    /// `BoardScene` puede armar su `bottomInset` sin arrastrar isolation"— y era
-    /// falso de punta a punta: `GameTabBar` conforma `View`, que es
-    /// `@MainActor @preconcurrency`, así que la conformance aísla al struct
-    /// entero **y a sus statics**. La anotación de su vecino `bottomFloor` no es
-    /// lo que lo diferencia: explicita un aislamiento que la conformance ya le
-    /// daba.
-    ///
-    /// Y `BoardScene.bottomInset` puede consumirlo no porque esto sea
-    /// `nonisolated`, sino porque `BoardScene` es una `SKScene` y **SKScene es
-    /// `@MainActor`**: los dos están del mismo lado, así que no hay isolation
-    /// que arrastrar. Si algún día lo necesitara un contexto `nonisolated`, la
-    /// anotación hay que escribirla —`nonisolated static let`— y no darla por
-    /// puesta.
-    ///
-    /// Comprobado compilando las formas exactas con `-swift-version 6
-    /// -strict-concurrency=complete`: un `static let` de un tipo que conforma
-    /// `View`, leído desde `nonisolated`, es **error**; el mismo static en un
-    /// tipo sin la conformance compila. La regla vale igual para
-    /// `QuickHireButton.capsuleHeight`, que tiene la misma forma y la explica
-    /// desde el otro lado.
-    static let barHeight: CGFloat = 84
+    /// ⚠️ Aislado al main actor como todo el tipo: `GameTabBar` conforma `View`
+    /// y la conformance aísla al struct entero y a sus statics. `BoardScene` lo
+    /// lee sin problema porque `SKScene` también es `@MainActor`; un contexto
+    /// `nonisolated` necesitaría `nonisolated static let`.
+    static let barHeight: CGFloat = panelHeight + centerRise
+
+    /// El ancho fijo de la columna de Contratar: su plato y un poco de aire para
+    /// el nombre. Fijo, para que las dos zonas se repartan el resto por igual.
+    static let centerColumnWidth: CGFloat = centerPlateSide + Tokens.s8
+
+    /// El ancho mínimo de la barra. Las dos zonas miden lo mismo, así que manda
+    /// la que tiene más pestañas.
+    static func minimumWidth(tabsPerSide: Int) -> CGFloat {
+        let zone = CGFloat(tabsPerSide) * plateSide + CGFloat(max(0, tabsPerSide - 1)) * spacing
+        return Tokens.s8 * 2 + centerColumnWidth + zone * 2 + spacing * 2
+    }
 
     var body: some View {
-        // ⚠️ Alineados abajo y no al centro (el default), que es lo que hacía
-        // falta desde que cada tab lleva su nombre debajo: los dos destacados
-        // son 6 pt más altos, así que centrados repartían esa diferencia arriba
-        // y abajo y sus labels colgaban 3 pt por debajo de los otros cuatro
-        // —medido en captura—. Apoyados abajo, los seis nombres comparten
-        // renglón y la diferencia de alto se va toda para arriba, que es donde
-        // se quiere: los extremos SOBRESALEN, como en Cow Evolution.
-        //
-        // ⚠️ El spacing es un literal de 2 y no un `Tokens.s4`: con los platos
-        // de 56/62 los seis tabs suman 374 de los 375 del SE (ver la cuenta en
-        // `GameTabButton.side`), así que los 4 de la escala ya no entran. Es el
-        // único lugar del juego donde el ancho manda sobre el token.
-        HStack(alignment: .bottom, spacing: 2) {
-            ForEach(items) { item in
+        let center = items.first { $0.screen == GameScreen.centerTab }
+        let leading = Array(items.prefix { $0.screen != GameScreen.centerTab })
+        let trailing = center == nil ? [] : Array(items.drop { $0.screen != GameScreen.centerTab }.dropFirst())
+        // Alineados abajo: los nombres de las seis comparten renglón y la
+        // diferencia de alto se va toda para arriba, que es donde sobresale
+        // Contratar. Las dos zonas miden lo mismo, así que Contratar queda al
+        // centro exacto tenga cuantas pestañas tenga cada lado.
+        HStack(alignment: .bottom, spacing: Self.spacing) {
+            zone(leading)
+            if let center {
+                GameTabButton(item: center) { selection(center.screen) }
+                    // Ancho fijo: el botón se estira (`maxWidth: .infinity`) y,
+                    // sin esto, se llevaría un tercio de la barra y la zona de
+                    // tres pestañas no entraría en el SE.
+                    .frame(width: Self.centerColumnWidth)
+            }
+            zone(trailing)
+        }
+        .padding(.horizontal, Tokens.s8)
+        .padding(.top, Self.topPadding)
+        .padding(.bottom, bottomGap)
+        .playColumn()
+        .background(alignment: .bottom) {
+            bottomPanel.padding(.top, Self.centerRise)
+        }
+    }
+
+    private func zone(_ zoneItems: [GameTabItem]) -> some View {
+        HStack(alignment: .bottom, spacing: Self.spacing) {
+            ForEach(zoneItems) { item in
                 GameTabButton(item: item) { selection(item.screen) }
             }
         }
-        .padding(.horizontal, Tokens.s8)
-        .padding(.top, Tokens.s8)
-        .padding(.bottom, bottomGap)
-        .playColumn()
-        .background { bottomPanel }
+        .frame(maxWidth: .infinity)
     }
 
     /// Panel crema fundido con el borde inferior.
@@ -1131,20 +1145,11 @@ private struct GameTabButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bounce = 0
 
-    /// Platos 56/62 e iconos 48/54: el icono ocupa ~86% del plato (era ~58%
-    /// antes del rediseño y ~82% en su primera vuelta), que es lo que pidió el
-    /// dueño mirando las capturas —el dibujo tiene que ser el que manda, no el
-    /// plato que lo enmarca—.
-    ///
-    /// El ancho entra justo en el teléfono más angosto que soportamos:
-    /// 2×62 + 4×56 + 5×2 de spacing + 16 de padding = **374 ≤ 375** (SE), o sea
-    /// 1 pt de sobra. Los seis tabs son mínimos rígidos para el `HStack`, así que
-    /// acá se acabó el margen: crecer otro punto por plato ya no aprieta la
-    /// barra sino el label, que es lo único elástico que queda. Los 2 pt de
-    /// spacing salieron de este mismo cálculo — con los `Tokens.s4` de antes la
-    /// cuenta daba 384 y no entraba.
-    private var side: CGFloat { item.prominent ? 62 : 56 }
-    private var iconSide: CGFloat { item.prominent ? 54 : 48 }
+    /// Platos de 44 y 64 (Contratar) con iconos de 38 y 56: la barra baja 20 pt
+    /// y el centro sobresale, como en Cow Evolution. Las seis entran en el SE con
+    /// aire (`GameTabBar.minimumWidth`).
+    private var side: CGFloat { item.prominent ? GameTabBar.centerPlateSide : GameTabBar.plateSide }
+    private var iconSide: CGFloat { item.prominent ? 56 : 38 }
 
     var body: some View {
         Button {

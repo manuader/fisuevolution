@@ -3,7 +3,7 @@ import Foundation
 import Testing
 @testable import FisuEvolution
 
-/// Migraciones de schema (v1→v2→v3→v4→v5). Son Codable puro: no hace falta
+/// Migraciones de schema (v1→v2→v3→v4→v5→v6). Son Codable puro: no hace falta
 /// GameState ni contenido bundleado. Los fixtures viejos se arman por
 /// diccionario JSON (los tipos v1/v3 ya no existen congelados en código).
 @Suite("SaveMigrator")
@@ -142,6 +142,128 @@ struct SaveMigratorTests {
         ]
     }
 
+    // MARK: - Fixtures v1, v2 y v5
+
+    /// Un v1 mínimo pero honesto: flat, sin activeModifiers (nace en v2), sin
+    /// upgradeLevels/daily/shares (nacen en v3), upgrades con las TRES claves
+    /// base de la época (las otras cuatro las rellena v2→v3).
+    private func v1Fixture() -> [String: Any] {
+        [
+            "schemaVersion": 1,
+            "coins": 77.0,
+            "board": [
+                ["cellIndex": 0, "typeId": "homeless"],
+                ["cellIndex": 2, "typeId": "homeless"],
+            ],
+            "soulPoints": 0,
+            "upgrades": [
+                "offlineEfficiency": 0.5,
+                "tapMultiplier": 1.0,
+                "critChance": 0.0,
+            ],
+            "lifetimeEarnings": 77.0,
+            "prestigeLevel": 0,
+            "globalMultiplier": 1.0,
+            "ownedSkins": [] as [String],
+            "ownedSpecials": [] as [String],
+            "spawnPurchases": 1,
+            "unlockedBackgrounds": ["alley"],
+            "maxTierReached": 1,
+            "passiveUnlocked": [:] as [String: Bool],
+            "removedAds": false,
+            "lastSeenTimestamp": 1_600_000_000.0,
+        ]
+    }
+
+    /// El v1 con lo único que estrena v2: `activeModifiers`.
+    private func v2Fixture() -> [String: Any] {
+        var object = v1Fixture()
+        object["schemaVersion"] = 2
+        object["activeModifiers"] = [] as [[String: Any]]
+        return object
+    }
+
+    /// Un estado con todo lo que un save v5 de un veterano trae, y con los
+    /// números que más fácil se deforman al pasar por `JSONSerialization`:
+    /// magnitudes de idle, sumas que no son exactas en binario y contadores de
+    /// compra fraccionarios.
+    private func veteranState(maxTier: Int) -> PlayerState {
+        var state = PlayerState.newGame(
+            startTypeId: "homeless", startFloorId: "alley",
+            offlineEfficiencyBase: 0.35, critChanceBase: 0, now: 1_700_000_000.123
+        )
+        state.run.raiseFrontier(to: maxTier)
+        state.run.coins = 1.2345678901234567e30
+        state.run.units = ["homeless": 3, "oficinista": 2]
+        state.run.passiveUnlocked = ["homeless": true]
+        state.run.chosenCareerPath = "programmer"
+        state.run.hireCounts = ["alley": 2.4, "urban": 7]
+        state.run.hireCountsByType = ["homeless": 1.5]
+        state.run.charUpgradeLevels = ["homeless": 2]
+        state.run.unlockedFloors = ["alley", "urban"]
+        state.run.seenTypes = ["homeless", "oficinista"]
+        state.run.floorChestsAwarded = 1
+        state.run.activeModifiers = [
+            ActiveModifier(
+                id: UUID(uuidString: "11111111-2222-3333-4444-555555555555")!,
+                effect: .tapMultiplier, magnitude: 2.5, expiresAt: 1_900_000_000.5, sourceKey: "boost.mate"
+            ),
+        ]
+        state.meta.lifetimeEarnings = 0.1 + 0.2
+        state.meta.oro = 12
+        state.meta.oroEarnedLifetime = 40
+        state.meta.prestigeLevel = 2
+        state.meta.oroUpgradeLevels = ["offline": 2, "tap": 3]
+        state.meta.derivedEffects = UpgradeState(
+            offlineEfficiency: 0.5, tapMultiplier: 2.0, critChance: 0.25,
+            incomeMultiplier: 1.5, goldenChance: 0.125, spawnDiscount: 0.25, prestigeBonus: 0.5
+        )
+        state.meta.globalMultiplier = 1.0000000000000002
+        state.meta.ownedSpecials = ["sp_cryptobro"]
+        state.meta.ownedSkins = ["skin_homeless_gold"]
+        state.meta.milestoneSkins = ["skin_homeless_milestone"]
+        state.meta.activeSkinByType = ["homeless": "skin_homeless_gold"]
+        state.meta.removedAds = true
+        state.meta.boostActivations = ["mate": 1_690_000_000.123456]
+        state.meta.rewardedActivations = ["double_earnings": 1_700_000_000.5]
+        state.meta.creditedPurchases = ["tx_1"]
+        state.meta.daily = DailyRewardState(lastClaimDay: "2026-07-30", cycleDay: 4)
+        state.meta.sharesCompleted = 3
+        state.meta.lastSeenTimestamp = 1_750_000_000.987
+        state.meta.stats = MetaStats(
+            maxFloorOrdinalEver: 7, totalMergesEver: 100, totalHiresEver: 40,
+            totalTapsEver: 9000, videosWatchedEver: 5, boostsActivatedEver: 6
+        )
+        state.meta.unlockedAchievements = ["ach_primer_merge"]
+        state.meta.claimedAchievements = ["ach_primer_merge"]
+        state.meta.chestsPending = 2
+        state.meta.prestigeChestsPending = 1
+        state.meta.welcomeChestGiven = true
+        return state
+    }
+
+    /// El estado codificado como lo escribe la v1 (la app de hoy): sin NINGUNA
+    /// clave de la 2.0, ni las que el migrador fija ni las que entran por el decoder.
+    private func v5Object(from state: PlayerState) throws -> [String: Any] {
+        var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+        var run = try #require(object["run"] as? [String: Any])
+        var meta = try #require(object["meta"] as? [String: Any])
+        var stats = try #require(meta["stats"] as? [String: Any])
+        for key in ["revealedTier", "priceRelief"] { run.removeValue(forKey: key) }
+        for key in ["oroPurchasedLifetime", "purchasedOroReconstructed", "lastRunMaxTier",
+                    "quickHirePinnedTypeId", "unlockedTabs", "engagement"] { meta.removeValue(forKey: key) }
+        stats.removeValue(forKey: "oroSpentEver")
+        meta["stats"] = stats
+        object["run"] = run
+        object["meta"] = meta
+        object["schemaVersion"] = 5
+        return object
+    }
+
+    private func v5Fixture(maxTier: Int) throws -> Data {
+        try JSONSerialization.data(withJSONObject: v5Object(from: veteranState(maxTier: maxTier)))
+    }
+
     // MARK: - Schema actual
 
     /// El rebalance de pacing (2026-08-21) bajó `income` y `tap` de 20 niveles a
@@ -220,38 +342,10 @@ struct SaveMigratorTests {
         }
     }
 
-    // MARK: - Cadena completa v1 → v5
+    // MARK: - Cadena completa v1 → v6
 
     @Test func v1SaveMigratesThroughTheWholeChain() throws {
-        // Un v1 mínimo pero honesto: flat, sin activeModifiers (nace en v2),
-        // sin upgradeLevels/daily/shares (nacen en v3), upgrades con las TRES
-        // claves base de la época (las otras cuatro las rellena v2→v3).
-        let v1Object: [String: Any] = [
-            "schemaVersion": 1,
-            "coins": 77.0,
-            "board": [
-                ["cellIndex": 0, "typeId": "homeless"],
-                ["cellIndex": 2, "typeId": "homeless"],
-            ],
-            "soulPoints": 0,
-            "upgrades": [
-                "offlineEfficiency": 0.5,
-                "tapMultiplier": 1.0,
-                "critChance": 0.0,
-            ],
-            "lifetimeEarnings": 77.0,
-            "prestigeLevel": 0,
-            "globalMultiplier": 1.0,
-            "ownedSkins": [] as [String],
-            "ownedSpecials": [] as [String],
-            "spawnPurchases": 1,
-            "unlockedBackgrounds": ["alley"],
-            "maxTierReached": 1,
-            "passiveUnlocked": [:] as [String: Bool],
-            "removedAds": false,
-            "lastSeenTimestamp": 1_600_000_000.0,
-        ]
-        let v1Data = try JSONSerialization.data(withJSONObject: v1Object)
+        let v1Data = try JSONSerialization.data(withJSONObject: v1Fixture())
 
         let migrated = try SaveMigrator.migrate(v1Data)
         #expect(migrated.schemaVersion == PlayerState.currentSchemaVersion)
@@ -272,6 +366,10 @@ struct SaveMigratorTests {
         // v3→v4: curvas nuevas arrancan frescas.
         #expect(migrated.run.hireCounts.isEmpty)
         #expect(migrated.run.unlockedFloors.isEmpty)
+        // v5→v6: el último eslabón también corre en la cadena larga.
+        #expect(migrated.schemaVersion == 6)
+        #expect(migrated.meta.unlockedTabs == Set(SaveMigrator.v1Tabs))
+        #expect(!migrated.meta.purchasedOroReconstructed)
     }
 
     // MARK: - v3 → v4 campo a campo (la migración grande de F7)
@@ -280,8 +378,9 @@ struct SaveMigratorTests {
         let data = try JSONSerialization.data(withJSONObject: v3Fixture())
         let migrated = try SaveMigrator.migrate(data)
 
-        // La cadena no para en v4: sigue hasta v5 y el sobre queda estampado ahí.
-        #expect(migrated.schemaVersion == 5)
+        // La cadena no para en v4: sigue hasta v6 y el sobre queda estampado ahí.
+        #expect(migrated.schemaVersion == 6)
+        #expect(migrated.run.revealedTier == 12)
 
         // RUN — board posicional → units por tipo, con counts agrupados.
         #expect(migrated.run.coins == 123_456.5)
@@ -432,17 +531,21 @@ struct SaveMigratorTests {
         // pague de nuevo por pisos que subió antes de que los cofres existieran.
         // El caso del veterano lo ejerce `v4VeteranDoesNotCollectBackChests`.
         #expect(state.run.floorChestsAwarded == 1)
-        // El sobre queda ESTAMPADO v5, y eso es lo único que evita que el save
-        // vuelva a cruzar la migración —y con ella un reescalado que no es
-        // idempotente— en cada carga. Sin este `#expect` el test seguiría verde
-        // aunque `migrate` no llamara a `migrateV4toV5`: los campos del cofre
-        // se decodifican con `decodeIfPresent ?? 0` y darían cero igual.
-        #expect(state.schemaVersion == 5)
+        // El sobre queda ESTAMPADO —la cadena sigue hasta v6—, y eso es lo único
+        // que evita que el save vuelva a cruzar la migración —y con ella un
+        // reescalado que no es idempotente— en cada carga. Que `migrate` llame
+        // a `migrateV4toV5` lo prueba `floorChestsAwarded == 1` de arriba: los
+        // campos del cofre se decodifican con `decodeIfPresent ?? 0`, y el
+        // back-fill de la torre es lo único que el decoder no inventa.
+        #expect(state.schemaVersion == PlayerState.currentSchemaVersion)
         // Y un save post-rebalance no tiene nada que reescalar: pasa intacto.
         #expect(state.meta.oroUpgradeLevels == ["offline": 2, "tap": 3])
         // La partida entera cruza, que es de lo que se trata.
         #expect(state.run.coins == 123_456.5)
         #expect(state.meta.oro == 12)
+        // Los contadores de compra del v4 son enteros en el JSON: llegan como Double.
+        #expect(state.run.hireCounts == ["alley": 4])
+        #expect(state.run.hireCountsByType == ["homeless": 4])
     }
 
     /// **El veterano no cobra los cofres de los pisos que ya subió** (decisión del
@@ -524,5 +627,115 @@ struct SaveMigratorTests {
         #expect(state.meta.oroUpgradeLevels["income"] == 10)
         // Y la línea cuyo tope nunca cambió tampoco entra: no está en `rebalanceLevelCaps`.
         #expect(state.meta.oroUpgradeLevels["offline"] == 2)
+    }
+
+    // MARK: - v5 → v6 (la 2.0)
+
+    @Test("un save v5 sube a v6 como veterano y con la reconstrucción pendiente")
+    func v5MigratesToV6() throws {
+        let state = try SaveMigrator.migrate(v5Fixture(maxTier: 14))
+        #expect(state.schemaVersion == 6)
+        #expect(state.run.revealedTier == 14)
+        #expect(state.meta.unlockedTabs == ["jobs", "upgrades", "skins", "gifts", "store", "menu"])
+        #expect(!state.meta.purchasedOroReconstructed)
+    }
+
+    /// Un v5 es CUALQUIER partida de la 1.x: pasa por `JSONSerialization` y de
+    /// vuelta, y no puede salir distinta. Los números del fixture son los que
+    /// más fácil se deforman (1,2e30 de plata, 0,1 + 0,2, 1 + 2⁻⁵²).
+    @Test("migrar a v6 no altera ni un campo de lo que el v5 ya tenía")
+    func v5MigrationLosesNothing() throws {
+        let original = veteranState(maxTier: 9)
+        let migrated = try SaveMigrator.migrate(JSONSerialization.data(withJSONObject: v5Object(from: original)))
+
+        var expected = original
+        expected.run.revealedTier = 9
+        expected.meta.unlockedTabs = Set(SaveMigrator.v1Tabs)
+        expected.meta.purchasedOroReconstructed = false
+        #expect(migrated == expected)
+    }
+
+    @Test("un v5 con la frontera en el tier 1 sube a v6 con lo revelado parejo")
+    func v5AtTheFirstTierMigrates() throws {
+        let state = try SaveMigrator.migrate(v5Fixture(maxTier: 1))
+        #expect(state.run.revealedTier == 1)
+        #expect(state.run.maxTierReached == 1)
+    }
+
+    @Test("los contadores de compra enteros de un v5 llegan a v6 como Double, y los fraccionarios intactos")
+    func purchaseCountersCrossTheMigrationAsDoubles() throws {
+        var object = try v5Object(from: veteranState(maxTier: 5))
+        var run = try #require(object["run"] as? [String: Any])
+        run["hireCounts"] = ["alley": 4, "urban": 2.4]
+        run["hireCountsByType"] = ["homeless": 4]
+        object["run"] = run
+
+        let state = try SaveMigrator.migrate(JSONSerialization.data(withJSONObject: object))
+
+        #expect(state.run.hireCounts == ["alley": 4.0, "urban": 2.4])
+        #expect(state.run.hireCountsByType == ["homeless": 4.0])
+    }
+
+    @Test("un v6 ya migrado decodifica sin pasar por ningún eslabón")
+    func aV6SaveIsNotMigratedAgain() throws {
+        var state = veteranState(maxTier: 9)
+        state.run.revealedTier = 7
+        state.run.priceRelief = 0.8
+        state.meta.unlockedTabs = ["jobs"]
+        state.meta.purchasedOroReconstructed = true
+        state.meta.oroPurchasedLifetime = 550
+        state.meta.lastRunMaxTier = 6
+        state.meta.quickHirePinnedTypeId = "homeless"
+        state.meta.stats.oroSpentEver = 30
+
+        let migrated = try SaveMigrator.migrate(JSONEncoder().encode(state))
+
+        #expect(migrated == state)
+        #expect(migrated.run.revealedTier == 7, "la migración no pisa la red de seguridad de un v6")
+        #expect(migrated.meta.unlockedTabs == ["jobs"], "ni vuelve a regalar las seis pestañas")
+        #expect(migrated.meta.purchasedOroReconstructed, "ni reabre la reconstrucción")
+    }
+
+    @Test("un v5 sin la sección run o meta no se migra: tira en vez de inventar una partida")
+    func malformedV5Throws() throws {
+        for missing in ["run", "meta"] {
+            var object = try v5Object(from: veteranState(maxTier: 3))
+            object[missing] = nil
+            let data = try JSONSerialization.data(withJSONObject: object)
+            #expect(throws: SaveMigrationError.unsupportedVersion(5)) {
+                try SaveMigrator.migrate(data)
+            }
+        }
+    }
+
+    /// El candado de la cadena entera: cada versión de entrada llega a la
+    /// actual con los defaults de veterano, y lo guardado después ya no vuelve
+    /// a cruzar ningún eslabón.
+    @Test("toda versión de entrada llega a v6 como veterano y es estable al volver a guardarse")
+    func everyEntryPointArrivesAsAVeteran() throws {
+        let entries: [(version: Int, object: [String: Any])] = [
+            (1, v1Fixture()),
+            (2, v2Fixture()),
+            (3, v3Fixture()),
+            (4, v4Fixture()),
+            (5, try v5Object(from: veteranState(maxTier: 6))),
+        ]
+        for (version, object) in entries {
+            let migrated = try SaveMigrator.migrate(JSONSerialization.data(withJSONObject: object))
+
+            #expect(migrated.schemaVersion == 6, "v\(version)")
+            #expect(migrated.run.revealedTier == migrated.run.maxTierReached, "v\(version): nunca una lluvia de revelaciones")
+            #expect(migrated.run.priceRelief == 1, "v\(version)")
+            #expect(migrated.meta.unlockedTabs == Set(SaveMigrator.v1Tabs), "v\(version)")
+            #expect(!migrated.meta.purchasedOroReconstructed, "v\(version)")
+            #expect(migrated.meta.oroPurchasedLifetime == 0, "v\(version)")
+            #expect(migrated.meta.lastRunMaxTier == 0, "v\(version)")
+            #expect(migrated.meta.quickHirePinnedTypeId == nil, "v\(version)")
+            #expect(migrated.meta.engagement == .initial, "v\(version)")
+            #expect(migrated.meta.stats.oroSpentEver == 0, "v\(version)")
+
+            let resaved = try SaveMigrator.migrate(JSONEncoder().encode(migrated))
+            #expect(resaved == migrated, "v\(version): guardar y volver a cargar no cambia nada")
+        }
     }
 }

@@ -437,7 +437,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     ///
     /// - Parameter frontierTier: tu frontera de merge (`run.maxTierReached`), el
     ///   ancla del precio.
-    public func hireCost(floor: FloorDef, tier: Int, frontierTier: Int, purchases: Int) -> Double {
+    public func hireCost(floor: FloorDef, tier: Int, frontierTier: Int, purchases: Double) -> Double {
         hireCostMultiplier(for: floor)
             * StandardEconomy(config: self).tapYield(forTier: frontierTier)
             * tapFloorMultiplier(for: floor)
@@ -446,6 +446,6 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
                 Double(max(0, frontierTier - hire.frontierEscalationFromTier))
             )
             * pow(hire.priceGrowthPerTier, Double(tier - frontierTier))
-            * pow(hireCostGrowth(for: floor), Double(purchases))
+            * pow(hireCostGrowth(for: floor), purchases)
     }
 }

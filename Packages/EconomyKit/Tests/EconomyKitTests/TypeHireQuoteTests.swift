@@ -246,7 +246,7 @@ struct TypeHireQuoteTests {
         state.run.coins = 10_000
 
         let primero = try #require(quote(type: "b", state: state))
-        let colocado = try TowerActions.hire(quote: primero, state: &state, tower: &tower, floorTable: table, config: config)
+        let colocado = try TowerActions.hire(quote: primero, state: &state, tower: &tower, floorTable: table, config: config, countsAsPurchase: true)
         #expect(colocado.floorOrdinal == 0)
         #expect(colocado.typeId == "b")
         #expect(state.run.hireCountsByType["b"] == 1)

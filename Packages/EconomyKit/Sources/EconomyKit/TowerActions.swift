@@ -9,9 +9,9 @@ public struct HireQuote: Equatable, Sendable {
     /// salió de `hireQuote(floorOrdinal:)`, por TIPO si salió de
     /// `hireQuote(typeId:)`. Es informativo (la pantalla lo muestra); quien cobra
     /// es `cost`.
-    public let purchases: Int
+    public let purchases: Double
 
-    public init(floorOrdinal: Int, type: CharacterType, cost: Double, purchases: Int) {
+    public init(floorOrdinal: Int, type: CharacterType, cost: Double, purchases: Double) {
         self.floorOrdinal = floorOrdinal
         self.type = type
         self.cost = cost
@@ -286,7 +286,8 @@ public enum TowerActions {
         state: inout PlayerState,
         tower: inout TowerState,
         floorTable: FloorTable,
-        config: EconomyConfig
+        config: EconomyConfig,
+        countsAsPurchase: Bool
     ) throws -> TowerPlacement {
         let floor = floorTable[quote.floorOrdinal]
         guard state.run.unlockedFloors.contains(floor.id) else { throw TowerError.floorLocked }
@@ -300,10 +301,13 @@ public enum TowerActions {
         guard let slot = tower.floors[quote.floorOrdinal].firstFreeSlot() else { throw TowerError.floorFull }
 
         state.run.coins -= quote.cost
-        state.run.hireCounts[floor.id, default: 0] += 1
-        // Por TIPO además de por piso: la curva de la pantalla de laburos. Va acá
+        // `registerHire` mueve las dos curvas, la del piso y la del tipo, y va acá
         // y no en el caller para que ningún camino de contratación se la saltee.
-        state.run.hireCountsByType[quote.type.id, default: 0] += 1
+        // Una contratación que no costó nada (`countsAsPurchase: false`) no es una
+        // compra: encarecería la curva sin haber pagado, pero sí es una contratación.
+        if countsAsPurchase {
+            state.run.registerHire(floorId: floor.id, typeId: quote.type.id)
+        }
         state.meta.stats.totalHiresEver += 1
         state.run.units[quote.type.id, default: 0] += 1
         state.run.markSeen(quote.type.id)
@@ -370,7 +374,7 @@ public enum TowerActions {
         if state.run.units[targetType] == 0 { state.run.units[targetType] = nil }
         state.run.units[newTypeId, default: 0] += 1
         state.run.markSeen(newTypeId)
-        state.run.maxTierReached = max(state.run.maxTierReached, newType.tier)
+        state.run.raiseFrontier(to: newType.tier)
         // Después de los guards, junto al resto de la mutación: un merge que tira
         // `destinationFloorFull` no ocurrió y no se cuenta. El auto-merge de
         // `TowerReconciler` tampoco pasa por acá, y eso es a propósito: es de la

@@ -68,7 +68,8 @@ extension GameState {
                 state: &player,
                 tower: &tower,
                 floorTable: content.floorTable,
-                config: content.economy
+                config: content.economy,
+                countsAsPurchase: quote.cost > 0
             )
             self.player = player
             self.tower = tower

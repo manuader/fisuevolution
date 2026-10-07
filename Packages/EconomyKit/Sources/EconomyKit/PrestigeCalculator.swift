@@ -31,6 +31,7 @@ public enum PrestigeCalculator {
             prestigeBonus: state.meta.derivedEffects.prestigeBonus
         )
         state.meta.lastSeenTimestamp = now
+        state.meta.lastRunMaxTier = state.run.maxTierReached
         state.run = .fresh(startTypeId: tiers.baseType.id, startFloorId: floorTable[0].id)
     }
 }

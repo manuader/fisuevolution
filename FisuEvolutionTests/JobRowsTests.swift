@@ -200,6 +200,27 @@ struct JobRowsTests {
         #expect(try jobRow(gameState, "trapito").costText == neighbourBefore)
     }
 
+    @Test("una contratación gratis no mueve la curva, pero cuenta como contratación")
+    func freeHiringLeavesTheCurveAlone() async throws {
+        let gameState = await makeGameState()
+        var player = try #require(gameState.player)
+        player.run.activeModifiers.append(ActiveModifier(
+            effect: .spawnCostMultiplier, magnitude: 0,
+            expiresAt: .greatestFiniteMagnitude, sourceKey: "test.free_hire"
+        ))
+        gameState.player = player
+        let coinsBefore = try #require(gameState.player?.run.coins)
+
+        gameState.hireCharacter(typeId: "homeless")
+        gameState.buySpawn()
+
+        #expect(gameState.player?.run.units["homeless"] == 3)
+        #expect(gameState.player?.run.coins == coinsBefore)
+        #expect(gameState.player?.run.hireCountsByType.isEmpty == true)
+        #expect(gameState.player?.run.hireCounts.isEmpty == true)
+        #expect(gameState.player?.meta.stats.totalHiresEver == 2)
+    }
+
     @Test("sin plata no contrata, y no miente con un aviso de piso lleno")
     func hiringWithoutCoinsDoesNothing() async throws {
         let gameState = await makeGameState()

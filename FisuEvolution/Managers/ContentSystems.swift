@@ -38,9 +38,7 @@ enum UpgradeManager {
             guard state.run.coins >= price else { throw PurchaseError.insufficientCoins }
             state.run.coins -= price
         case .oro:
-            let oroCost = Int(price.rounded(.up))
-            guard state.meta.oro >= oroCost else { throw PurchaseError.insufficientOro }
-            state.meta.oro -= oroCost
+            guard state.meta.spendOro(Int(price.rounded(.up))) else { throw PurchaseError.insufficientOro }
         }
         state.meta.oroUpgradeLevels[lineId] = level + 1
         recomputeDerivedEffects(state: &state, config: config, specials: specials, viral: viral, boosts: boosts, economy: economy)
@@ -229,7 +227,7 @@ enum EventManager {
             if state.run.units[top.id] == 0 { state.run.units[top.id] = nil }
             state.run.units[nextId, default: 0] += 1
             state.run.markSeen(nextId)
-            state.run.maxTierReached = max(state.run.maxTierReached, next.tier)
+            state.run.raiseFrontier(to: next.tier)
             unitsChanged = true
         case .freeHighTier:
             // Blanqueo: unidad gratis de tier (máx alcanzado − magnitude).

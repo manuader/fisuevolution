@@ -161,9 +161,11 @@ extension GameState {
     }
 
     /// Salta la escalera para playtesting (ej. probar la elección de carrera en T9).
+    /// Sólo sube: la frontera tiene un único mutador (`raiseFrontier`) y ése no
+    /// baja, así que pedir un tier por debajo del actual no hace nada.
     func debugSetMaxTier(_ tier: Int) {
         guard var player, let content else { return }
-        player.run.maxTierReached = min(max(1, tier), content.tiers.maxTier)
+        player.run.raiseFrontier(to: min(max(1, tier), content.tiers.maxTier))
         self.player = player
         refreshProjections()
     }
@@ -182,7 +184,7 @@ extension GameState {
         guard var player, let content else { return }
         let highestOrdinal = content.floorTable.ordinal(forTier: tier)
         player.run.unlockedFloors = content.floorTable.floors.prefix(highestOrdinal + 1).map(\.id)
-        player.run.maxTierReached = max(player.run.maxTierReached, tier)
+        player.run.raiseFrontier(to: tier)
         self.player = player
         visibleFloorOrdinal = 0
         refreshProjections()

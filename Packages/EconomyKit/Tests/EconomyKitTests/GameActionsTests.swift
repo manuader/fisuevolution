@@ -213,7 +213,7 @@ struct HireActionTests {
         var (state, tower, floorTable) = try fxStateAndTower(units: ["a": 1])
         state.run.coins = 20
         let quote = try makeQuote(on: 0, state: state, floorTable: floorTable)
-        let placement = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
+        let placement = try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config, countsAsPurchase: true)
         // f1 overridea a 15 × tapYield(T1)=1, cero compras previas ⇒ 15.
         #expect(abs(state.run.coins - 5) < 1e-9)
         #expect(state.run.hireCounts["f1"] == 1)
@@ -231,7 +231,7 @@ struct HireActionTests {
         let quote = try makeQuote(on: 1, state: state, floorTable: floorTable)
         let before = (state, tower)
         #expect(throws: TowerError.floorLocked) {
-            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
+            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config, countsAsPurchase: true)
         }
         #expect(state == before.0)
         #expect(tower == before.1)
@@ -243,7 +243,7 @@ struct HireActionTests {
         let quote = try makeQuote(on: 0, state: state, floorTable: floorTable)
         let before = (state, tower)
         #expect(throws: TowerError.insufficientCoins) {
-            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
+            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config, countsAsPurchase: true)
         }
         #expect(state == before.0)
         #expect(tower == before.1)
@@ -256,7 +256,7 @@ struct HireActionTests {
         let quote = try makeQuote(on: 0, state: state, floorTable: floorTable)
         let before = (state, tower)
         #expect(throws: TowerError.floorFull) {
-            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config)
+            try TowerActions.hire(quote: quote, state: &state, tower: &tower, floorTable: floorTable, config: config, countsAsPurchase: true)
         }
         #expect(state == before.0)
         #expect(tower == before.1)
@@ -400,7 +400,8 @@ struct HireGateTests {
         #expect(throws: TowerError.hireLocked) {
             try TowerActions.hire(
                 quote: quote, state: &state, tower: &tower,
-                floorTable: floorTable, config: config
+                floorTable: floorTable, config: config,
+                countsAsPurchase: true
             )
         }
         #expect(state == before.0, "un hire rechazado no puede cobrar")
@@ -412,7 +413,8 @@ struct HireGateTests {
         #expect(throws: Never.self) {
             try TowerActions.hire(
                 quote: quote, state: &state, tower: &tower,
-                floorTable: floorTable, config: config
+                floorTable: floorTable, config: config,
+                countsAsPurchase: true
             )
         }
         #expect(state.run.units["t4"] == 1)
@@ -435,7 +437,8 @@ struct HireGateTests {
         #expect(throws: TowerError.floorLocked) {   // …pero g2 no está abierto
             try TowerActions.hire(
                 quote: quote, state: &state, tower: &tower,
-                floorTable: floorTable, config: config
+                floorTable: floorTable, config: config,
+                countsAsPurchase: true
             )
         }
     }

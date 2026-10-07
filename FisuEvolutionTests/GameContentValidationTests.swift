@@ -509,7 +509,7 @@ struct GameContentValidationTests {
             let compras = 1 << (frontera - 1)
             let total = (compras..<(compras * 2)).reduce(0.0) { suma, n in
                 suma + content.economy.hireCost(
-                    floor: alley, tier: alley.firstTier, frontierTier: frontera, purchases: n
+                    floor: alley, tier: alley.firstTier, frontierTier: frontera, purchases: Double(n)
                 )
             }
             return total / click(frontera)

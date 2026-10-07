@@ -93,7 +93,7 @@ public enum TowerReconciler {
                     run.units[entry.type.id, default: 0] -= pairs * 2
                     if run.units[entry.type.id] == 0 { run.units[entry.type.id] = nil }
                     run.units[newTypeId, default: 0] += pairs
-                    run.maxTierReached = max(run.maxTierReached, newType.tier)
+                    run.raiseFrontier(to: newType.tier)
                     autoMerged += pairs
                     total -= pairs * 2
 

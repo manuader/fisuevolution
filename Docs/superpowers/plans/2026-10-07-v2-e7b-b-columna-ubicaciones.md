@@ -1,64 +1,72 @@
-# E7b-b — Anuncios v2, lo que se toca: la columna lateral, sus videos, el diario y la carrera ×2, y el mapa de ubicaciones · plan de implementación
+# E7b-b — Anuncios v2, lo que se toca: la columna plegable, sus videos, el diario y la carrera ×2, y el mapa de ubicaciones · plan de implementación
 
 > **Para agentes:** SUB-SKILL OBLIGATORIA: `superpowers:subagent-driven-development`
 > (recomendada) o `superpowers:executing-plans`, tarea por tarea. Los pasos usan checkbox
 > (`- [ ]`). Cada tarea con oráculo corre además el bucle del harness AVO (journal del run en
 > `FisuEvolution/.claude/avo/2026-10-06-fisu-v2/journal.md`, en el checkout principal).
 
-**Goal:** la columna lateral fija a la izquierda que pidió el dueño ("como en Cow Evolution"):
-Ruleta, El Colchón, Paquetes y Fusionar todo, cada uno con su "!" y su latido cuando hay algo
-listo y su reloj cuando falta; sus dos videos (Fusionar todo y la lluvia de paquetes); la
-multitud que le deja lugar en iPhone (🔒 del dueño, con default); el diario ×2 y la carrera ×2
-por video; un botón de video que precarga; y un contrato que pinea en qué unidad de AdMob cae
-cada video del juego.
+**Goal:** la columna lateral **plegable** que eligió el dueño (opción C del 🔒, 2026-10-07): en
+reposo, un solo botón "Premios" abajo a la izquierda con el "!" sumado; al tocarlo despliega la
+Ruleta, El Colchón, los Paquetes y Fusionar todo, cada uno con su "!" y su latido cuando hay algo
+listo y su reloj cuando falta, y se repliega sola a los 3 s (o al tocar uno). Además: sus dos
+videos (Fusionar todo y la lluvia de paquetes), el diario ×2 y la carrera ×2 por video, un botón
+de video que precarga y un contrato que pinea en qué unidad de AdMob cae cada video del juego.
 
 **Architecture:** la columna no decide nada: lee una proyección pura (`SideRailModel` →
 `GameState.sideRail`, publicada a lo sumo una vez por segundo) que junta lo que E5 ya publica
 (`prizeAccess`) con dos relojes y dos videos nuevos, y toca por las puertas que E5 dejó
 (`openWheel()`, `mattressTapped()`, `packageTapped()`). Fusionar todo por video encola los pares
 del piso con su propio origen en el embudo de E1 (`enqueueMergeAll(onFloor:origin:)` de E2a),
-y la lluvia es un `RewardSpec` entregado por `grant` (E4a). La columna cuelga del borde de arriba
-de la franja de abajo y contra el borde izquierdo de la pantalla; los chips de premios que E5b
-puso bajo el HUD se van. Para que la columna no tape personajes, `PlayLayout` reserva su franja
-(🔒 opción A). Los dos videos nuevos de E7 (diario y carrera) usan la unidad `daily`, y
+y la lluvia es un `RewardSpec` entregado por `grant` (E4a). La columna es **hermana de la
+botonera del ascensor** (E3a T8): la misma placa de metal (`MetalPlate`), el botón en reposo del
+alto del display (44 pt), la persiana que se despliega con el mismo resorte y se recoge sola con
+el mismo `.task(id:)`, botones de 30 pt (los del spike S6) con su reloj en LED. Cuelga del borde
+de arriba de la franja de abajo, contra el borde izquierdo de la pantalla; los chips de premios
+que E5b puso bajo el HUD se van. **`PlayLayout` no se toca**: plegada, la columna no le pide
+lugar a la multitud. Los dos videos nuevos de E7 (diario y carrera) usan la unidad `daily`, y
 `RewardedOfferButton` se vuelve el botón completo de los cimientos (precarga, sondeo, unidad
 explícita). Un test que lee las fuentes pinea el mapa de ubicaciones de PLAN-v2 E7.
 
 **Tech Stack:** Swift 6 (strict concurrency `complete`, warnings como errores) · SwiftUI
-(`phaseAnimator`, `keyframeAnimator`) · SpriteKit (sólo `layoutBoard`) · EconomyKit · Swift
-Testing · XCUITest · XcodeGen.
+(`Grid`, `phaseAnimator`, `keyframeAnimator`) · EconomyKit · Swift Testing · XCUITest · XcodeGen.
 
 **Fuente:** `Docs/PLAN-v2.md` §2 ("Accesos en pantalla", "Fusionar todo", "Sin anuncios"), §4
 "E7" (columna lateral y mapa de ubicaciones), E2a ("Fusionar todo se activa con video"), E5
-(la columna como acceso), E9 (anclas y lecciones), y el spike S5 de E3a
-(`.superpowers/sdd/2026-10-07-v2-e3a-ux-nucleo/task-2-report.md`, en `version-2`). **Las Global
+(la columna como acceso), E9 (anclas y lecciones), la botonera del ascensor (plan de E3a, Task 8)
+y los spikes S4, S5 y S6 de E3a (`.superpowers/sdd/2026-10-07-v2-e3a-ux-nucleo/task-2-report.md`,
+en `version-2`); la decisión del dueño sobre el 🔒 (relevo 6, 2026-10-07). **Las Global
 Constraints, la "Verificación" y la Receta R de E7b-a (`2026-10-07-v2-e7b-a-forzados-mediacion.md`)
 valen acá enteras**; abajo van sólo los agregados. Lo que PLAN deja abierto, en "Para el dueño".
 
 **Rama de la épica:** `v2/e7b-anuncios` (la de E7b-a). E7b-b arranca cuando E4, E5 y E6
 cerraron (sus planes dejan lo que esta mitad lee) y E7b-a T3 entró.
 
-### 🔒 La columna pisa la multitud en todo iPhone (abierto del dueño)
+### Decidido por el dueño (2026-10-07, relevo 6): C, la columna plegable
 
-El spike S5 de E3a lo midió: una columna de 56 pt contra el borde izquierdo tapa entre 15 y 56 pt
-de la **primera columna de personajes** en el SE, el 16 Pro y el Pro Max, en toda la altura de la
-multitud; en el iPad 13" no toca nada (el campo está centrado y arranca en x = 210). Tampoco hay
-lugar para subirla por encima de la multitud: en el SE las cabezas de atrás empiezan en 139,5 pt.
+El 🔒 era que la columna pisa la multitud en todo iPhone. El spike S5 de E3a lo midió: una
+columna fija de 56 pt contra el borde izquierdo tapa entre 15 y 56 pt de la **primera columna de
+personajes** en el SE, el 16 Pro y el Pro Max, en toda la altura de la multitud. En el iPad 13" no
+toca nada: el campo está centrado y arranca en x = 210. Tampoco había lugar para subirla por
+encima de la multitud: en el SE las cabezas de atrás empiezan en 139,5 pt.
 
-**Este plan sigue con la opción A** (la que el dueño marcó como default) y la deja en una sola
-tarea (T4), así cambiar de opción no toca el resto:
+La respuesta del dueño, textual: **"En reposo un solo botón «Premios» con el «!» abajo a la
+izquierda; al tocarlo despliega los cuatro por 3 s. Sin achicar, pero un toque más y deja de ser
+«fija»."** Queda como registro lo que se descartó y por qué:
 
-| Opción | Qué cambia | Costo |
+| Opción | Qué cambiaba | Por qué no (o sí) |
 |---|---|---|
-| **A (default)** | `PlayLayout` reserva la franja de la columna (64 pt) cuando la columna se ve: el campo se corre a la derecha y se achica para que el arte más ancho no llegue a ella. iPad, igual que hoy. | **Personajes ~17 % más chicos en iPhone** (celda SE 68,6 → 56,3; 16 Pro 74 → 61,5; Pro Max 81,6 → 68,7) y un margen visible a la izquierda. La multitud se reacomoda una vez, al terminar el núcleo del tutorial. |
-| B | La columna va encima de la multitud, sin margen. | 0 % de achique; la primera columna de personajes queda tapada 15–56 pt y los toques ahí los toma la columna. "No deambulan debajo" deja de cumplirse. Implementarla = saltear T4. |
-| C | Columna plegable, espejo de la botonera del ascensor: en reposo un solo botón "Premios" con el "!" sumado, abajo a la izquierda; al tocarlo despliega los cuatro por 3 s. | 0 % de achique; tapa ~48 × 64 pt en reposo y la grilla abierta tapa la multitud 3 s (como la botonera). Un toque más para todo; no es "fija" como pidió el dueño. Implementarla = T3 cambia el contenedor y se saltea T4. |
+| A | `PlayLayout` reservaba 64 pt a la izquierda cuando la columna se veía: el campo se corría y se achicaba. | **Descartada**: los personajes de iPhone pasaban a medir ~83 % de lo de hoy (celda SE 68,6 → 56,3; 16 Pro 74 → 61,5; Pro Max 81,6 → 68,7), justo cuando la crítica de Marco pidió más multitud. |
+| B | La columna fija, encima de la multitud, sin margen. | **Descartada**: la primera columna de personajes quedaba tapada 15–56 pt todo el tiempo, y los toques ahí los tomaba la columna. |
+| **C (elegida)** | Columna plegable, hermana de la botonera del ascensor. En reposo, un botón "Premios" de 44 pt con el "!" sumado, abajo a la izquierda. Al tocarlo despliega los cuatro botones por 3 s. | **Elegida**: no achica nada. En reposo tapa ~44 × 44 pt (el botón). Abierta, la persiana tapa ~94 × 112 pt de la multitud mientras dura, como la botonera abierta tapa las filas de atrás (S6). El costo es un toque más, y deja de ser "fija". |
+
+Con C, **`PlayLayout` no cambia** (la tarea 4 quedó salteada) y la columna es una pieza de
+SwiftUI que no toca la escena.
 
 **Qué vive dónde** (la reconciliación con E4b/E5b/E6a):
 
 | Lugar | Qué va | Quién lo puso |
 |---|---|---|
-| Columna lateral (izquierda, arriba de la franja de abajo) | Ruleta · El Colchón · Paquetes (con la lluvia por video cuando no hay) · Fusionar todo por video | **E7b-b** |
+| Columna plegable (abajo a la izquierda, arriba de la fila del atajo) | en reposo, "Premios" con el "!" sumado; abierta, Ruleta · El Colchón · Paquetes (con la lluvia por video cuando no hay) · Fusionar todo por video | **E7b-b** |
 | `StageChips` (bajo el HUD, a la derecha) | el visitante en escena y su reto | E4b T3, T5 — **E7b-b le saca** los chips del paquete y del colchón que E5b T2 puso "hasta que exista la columna" |
 | `ActiveBonusBar` (bajo el HUD, a la izquierda) | boosts, eventos con la cara del presentador | E1–E4b |
 | Chip de oferta (bajo el HUD, a la izquierda) | la oferta de 24 h | E6a T12 |
@@ -72,21 +80,31 @@ tarea (T4), así cambiar de opción no toca el resto:
   cálculo de premios ni de relojes en la vista.
 - **La proyección cambia a lo sumo una vez por segundo** (los relojes van en segundos enteros):
   la columna no invalida SwiftUI a 8 Hz.
+- **La columna es hermana de la botonera del ascensor** (E3a T8): la misma `MetalPlate`, los
+  mismos tonos de LED (`ElevatorPanel.ledScreen`/`ledLit`), el botón en reposo del alto del display
+  (`ElevatorPanel.displayHeight`), los botones de 30 pt de la persiana (spike S6), el mismo resorte
+  de 0,35 s para desplegar y el mismo `.task(id:)` para recogerse. La diferencia es a propósito: se
+  recoge a los **3 s** (lo pidió el dueño para ésta; la botonera sigue en 2 s).
+- **En reposo, un solo botón; abierta, a lo sumo 3 s sin uso.** La persiana se despliega sólo al
+  tocar "Premios" o cuando una lección señala uno de sus botones (T5); nunca sola por un "!" nuevo.
+  Tocar un botón la recoge.
 - **Un video de la columna dice qué da ANTES del anuncio** (política de AdMob: opt-in con el
-  premio a la vista): Fusionar todo y la lluvia se ofrecen en una tarjeta al lado del botón, nunca
-  al primer toque.
+  premio a la vista): Fusionar todo y la lluvia se ofrecen en una tarjeta al lado de "Premios",
+  nunca al primer toque.
 - **Un video sin efecto no gasta su enfriamiento y compensa** (E1 T14, `compensateRewardedVideo()`).
 - **La columna se esconde con el núcleo del tutorial y con las celebraciones que apagan la UI**
   (`hidesUIForCelebration`), igual que el resto del HUD.
-- **Reduce Motion**: sin latido, sin temblor; la tarjeta entra con fundido.
-- **`BoardScene.swift` se toca sólo en `layoutBoard`** (una línea): la columna es SwiftUI.
+- **Reduce Motion**: la persiana aparece con fundido (como la botonera); sin latido ni temblor; la
+  tarjeta entra con fundido.
+- **La escena no se toca**: con la columna plegable, `PlayLayout` y `BoardScene` quedan como los
+  dejó E3a.
 - **Strings por snapshot** `Tools/v2/claves-pendientes/e7b-b-tN.json` (regla de E7b-a).
 - **Commits** `feat(columna): …`, `feat(anuncios): …`, `test(anuncios): …`, SIN `Co-Authored-By`.
 
 ## Verificación
 
-La de E7b-a (oráculo y Receta R con `build/DD-e7b`). `rapido` al cerrar T1, T2, T5, T6 y T7;
-`completo` al cerrar T3 y T4 (lo que se ve y la escena) y T8. Cada tarea con UI se mira en el
+La de E7b-a (oráculo y Receta R con `build/DD-e7b`). `rapido` al cerrar T1, T2, T6 y T7;
+`completo` al cerrar T3 y T5 (lo que se ve) y T8. Cada tarea con UI se mira en el
 **iPhone SE**, el **16 Pro** y el **iPad Pro 13"**, con Reduce Motion prendido y apagado;
 capturas al reporte.
 
@@ -94,7 +112,8 @@ capturas al reporte.
 
 | Lo que cita el plan | Dónde está hoy | Qué hace E7b-b |
 |---|---|---|
-| "Columna lateral fija a la izquierda: Ruleta, El Colchón, Paquetes y Boost por video; «!», reloj y latido" (§2, E7) | no existe; `RootView.hudColumn` (`RootView.swift:429-460`) y `bottomBar` (`:506-530`); S5: pisa la multitud en todo iPhone | T1–T5 (🔒 T4) |
+| "Columna lateral fija a la izquierda: Ruleta, El Colchón, Paquetes y Boost por video; «!», reloj y latido" (§2, E7) | no existe; `RootView.hudColumn` (`RootView.swift:429-460`) y `bottomBar` (`:506-530`); S5: fija, pisa la multitud en todo iPhone → **el dueño eligió la plegable (C)** | T1–T3, T5 |
+| la botonera del ascensor, de la que la columna es hermana | **E3a T8** (`UI/HUD/ElevatorPanel.swift`, todavía no en el árbol): display de 44 pt (`displayHeight`), persiana en `Grid` de 2 columnas sobre `MetalPlate`, `collapseDelay` 2 s con `.task(id: activity)`, resorte 0,35 s y fundido con Reduce Motion; **S6**: botones de 30 pt (no 34) y la grilla abierta tapa las filas de atrás mientras dura | T3 copia la mecánica y el material |
 | los accesos de E5 | **E5b T2**: `PrizeAccess` (`packagesWaiting`, `packagesBlocked`, `mattressReady`, `wheelSpinsReady`), `refreshPrizeAccess`, `packageTapped()`, `mattressTapped()`, `openWheel()`; chips en `StageChips` | T1 lee, T3 toca y muda |
 | "Boost por video" en la columna; "Fusionar todo: boost por video o por ORO" (§2) | `enqueueMergeAll(onFloor:origin:)` (**E2a T14**); `BoardChange.Origin` (`BoardChange.swift:13-20`, E1 T7, ya en el árbol: `eventStartup`, `eventBlanqueo`, `rewardedInstantMerge`, `rewardedRareUnit`, `career`, `debug`) sin caso de video; `.oroShop` (**E6a T6**) | T1 (`.rewardedMergeAll`), T2 |
 | "lluvia de paquetes (treasure)" en el mapa de E7 | **nadie la ofrece por video**: `packageRateMultiplier` (**E4a T2**), por ORO en E6a; E5a: "va por `RewardedPlacement.treasure`" | T2, T3 |
@@ -102,8 +121,8 @@ capturas al reporte.
 | `RewardedOfferButton`: "precarga + sondeo + spinner + id de accesibilidad" (cimientos de PLAN-v2 §4) | **E4b T3** lo hace sin precarga ni sondeo y con `placement` por defecto `.visitor` | T7 |
 | "Mapa de ubicaciones (unidad entre paréntesis)" | `RewardedPlacement` (8 casos, `FeatureFlags.swift:17-36`), `rewarded(for:)` exhaustivo (`:118-130`); llamadores hoy: `GiftsView.swift:60-83, 265-268` (gifts, boost), `OfflineEarningsView.swift:45, 134-139` (offlineX2), `ChestOpeningView.swift:277-279, 784` (chestExtra) | T7: contrato |
 | "Vendedor Ambulante: boost por video cada ~3 min" (§2; en el árbol de PLAN-v2 bajo E7b) | **E4a T5** (su carril) y **E4b T5** (`VendorCardsView`, `RewardedOfferButton` con `.visitor`) | nada nuevo: T7 lo pinea en el mapa |
-| "personajes no deambulan debajo de las columnas" (E3, S5) | `PlayLayout.swift:39-50` sin margen; `BoardScene.layoutBoard` (`:1205-1238`, **E3a T10** lo pasa a `PlayLayout`) | T4 🔒 |
-| anclas `.sideWheel`, `.sideMattress`, `.sidePackages`, `.sideBoost` (E9) | `TutorialTarget` (`TutorialAnchor.swift:8-30`); **E5b T5** suma `.sidePackages`/`.sideMattress` en los chips y la lección `.wheel` señala Regalos | T3 (anclas), T5 (lecciones) |
+| "personajes no deambulan debajo de las columnas" (E3, S5) | `PlayLayout.swift:39-50` sin margen | nada: con la plegable `PlayLayout` queda intacto (T4 salteada) |
+| anclas `.sideWheel`, `.sideMattress`, `.sidePackages`, `.sideBoost` (E9) | `TutorialTarget` (`TutorialAnchor.swift:8-30`); **E5b T5** suma `.sidePackages`/`.sideMattress` en los chips y la lección `.wheel` señala Regalos | T3 suma `.sideRail` (el botón en reposo), `.sideWheel` y `.sideBoost`; T5 enseña a abrir la columna |
 
 ## Lo que E7b-b usa de otros planes (y el paso 0 que lo comprueba)
 
@@ -119,8 +138,9 @@ capturas al reporte.
 | `grant(_:multiplier:source:now:)` (E4a T8), `ActiveModifier.Effect.packageRateMultiplier` (E4a T2); `ModifierMath.factor(_:effect:now:)` ya existe (`ActiveModifier.swift:37-39`) | E4a T2, T8 | T1, T2 |
 | `RewardedOfferButton(title:identifier:placement:onRewarded:)`, `StageChips`, `VisitorPopupView`, `VendorCardsView`, `EventPopupView` | E4b T3, T4, T5 | T3, T6, T7 |
 | `RewardCopy.title(_:)` | E5b T1 | T3 |
-| `PlayLayout` en `BoardScene.layoutBoard`; `MetalPlate` (patrón de `WoodPlate`); `AscentRenderingUITests` con el espejo nuevo | E3a T8, T10 | T3, T4 |
-| la capacidad por `slots.count` en `layoutBoard` | E6b T6, T7 | T4 |
+| `MetalPlate`, `ElevatorPanel` (`displayHeight`, `ledScreen`, `ledLit`), los botones de 30 pt de S6 | E3a T8 | T3 |
+| `GameState.tutorialTip` (observado, `.lesson`), `tutorialTipCompleted(_:)`, `isLessonDone(_:)` | hoy (`GameState.swift:349`, `GameState+TutorialTips.swift:95-97, 181-203`) | T5 |
+| `VectorTabGiftsIcon` (el glifo de "Premios" mientras no haya arte) | hoy (`UI/Art/GameIcons.swift:215`) | T3 |
 | `CareersConfig.Career.lumpMinutes`, `grantCareerReward` | E2a T12; E1 T12 | T6 |
 | `TowerNotice.Kind.rewardGranted(text:)`; "todo anuncio pasa por `AdsCoordinator`" | **E7b-a T3** | T2 (no lo usa: la cadena del tablero es el aviso), T7 |
 
@@ -129,53 +149,56 @@ capturas al reporte.
 | Archivo | Responsabilidad | T |
 |---|---|---|
 | `FisuEvolution/Game/State/SideRail.swift` | **nuevo** — `SideRailKind`, `SideRailStatus`, `SideRailItem`, `SideRailState`, `RailVideoStatus`, `SideRailInput`, `SideRailModel`, `SideRailClock`, `SideRailAX` | 1 |
-| `FisuEvolution/Game/State/GameState+SideRail.swift` | **nuevo** — la proyección, los relojes, los dos videos, los toques, la reserva del tablero | 1–4 |
+| `FisuEvolution/Game/State/GameState+SideRail.swift` | **nuevo** — la proyección, los relojes, los dos videos, los toques, la lección de abrirla | 1, 2, 3, 5 |
 | `FisuEvolution/Game/State/GameState.swift` 🔥 | `sideRail` y una línea en `refreshProjections` | 1 |
 | `FisuEvolution/Managers/Ads/AdsProvider.swift`, `Resources/Config/rewarded_ads.json` | `RewardedAdsConfig.SideRail` | 1 |
 | `Packages/EconomyKit/Sources/EconomyKit/BoardChange.swift`, `FisuEvolution/Game/State/GameState+BoardChanges.swift` | `Origin.rewardedMergeAll` y su regla al descartarse | 1 |
-| `FisuEvolution/UI/SideRail/SideRailView.swift`, `SideRailOfferCard.swift`, `SideRailGlyphs.swift` | **nuevos** — la columna, la tarjeta de los videos, los glifos | 3 |
-| `FisuEvolution/UI/Art/PanelFrames.swift` | `WoodPlate` | 3 |
+| `FisuEvolution/UI/SideRail/SideRailView.swift`, `SideRailOfferCard.swift`, `SideRailGlyphs.swift` | **nuevos** — la columna plegable (botón en reposo + persiana), la tarjeta de los videos, los glifos | 3, 5 |
+| `FisuEvolution/UI/HUD/ElevatorPanel.swift` (E3a T8) | `ledScreen` y `ledLit` dejan de ser `private` (los comparten las dos hermanas) | 3 |
 | `FisuEvolution/App/RootView.swift` 🔥 | la columna colgada de la franja de abajo; el toque afuera cierra la tarjeta | 3 |
 | `FisuEvolution/UI/Visitors/StageChips.swift`, `FisuEvolution/UI/Prizes/PrizeChips.swift` | sin los chips de premios | 3 |
-| `FisuEvolution/UI/Tutorial/TutorialAnchor.swift` | `.sideWheel`, `.sideBoost` | 3 |
-| `FisuEvolution/Scenes/PlayLayout.swift`, `FisuEvolution/Scenes/BoardScene.swift` 🔥 | la reserva de la columna | 4 |
-| `FisuEvolution/Game/State/GameState+TutorialTips.swift` | `.mergeAllVideo`; `.wheel` señala la columna | 5 |
+| `FisuEvolution/UI/Tutorial/TutorialAnchor.swift` | `.sideRail`, `.sideWheel`, `.sideBoost` | 3 |
+| `FisuEvolution/Game/State/GameState+TutorialTips.swift` | `.sideRail` (abrir la columna) y `.mergeAllVideo`; `.wheel` señala la columna; las lecciones de los cuatro esperan a la de abrirla | 5 |
 | `FisuEvolution/Game/State/GameState+AdPlacements.swift` | **nuevo** — diario ×2 y carrera ×2 | 6 |
 | `FisuEvolution/UI/Popups/DailyRewardView.swift`, `CareerChoiceView.swift` | los dos botones de video | 6 |
 | `FisuEvolution/UI/Art/RewardedOfferButton.swift` | precarga, sondeo, unidad obligatoria | 7 |
 | `VisitorPopupView.swift`, `VendorCardsView.swift`, `EventPopupView.swift` (E4b) | `placement: .visitor` explícito | 7 |
-| tests | `SideRailModelTests`, `SideRailProjectionTests`, `SideRailVideosTests`, `AdPlacementRewardsTests`, `AdPlacementMapTests` (unit); `SideRailUITests` (UI); retocados `PlayLayoutTests`, `CrowdDepthTests`, `TutorialTipsTests`, `PrizesUITests`, `EconomyLoopUITests`, `AscentRenderingUITests` | 1–7 |
+| tests | `SideRailModelTests`, `SideRailProjectionTests`, `SideRailVideosTests`, `AdPlacementRewardsTests`, `AdPlacementMapTests` (unit); `SideRailUITests` (UI); retocados `TutorialTipsTests`, `PrizesUITests`, `EconomyLoopUITests` | 1–7 |
+
+`PlayLayout.swift`, `BoardScene.swift`, `PlayLayoutTests`, `CrowdDepthTests` y el espejo de
+`AscentRenderingUITests` **no se tocan** (la T4 de la reserva quedó salteada).
 
 ## Orden, olas y paralelismo
 
 Calientes y tibios como en E7b-a. Tibios propios: `GameState+BoardChanges.swift` (E1 T9/T14,
 E2a T14, E5a T6, E6a T6), `BoardChange.swift` de EconomyKit (E1 T7, E2a T6/T9, E5a, E6a),
 `StageChips.swift` (E4b T3/T5, E5b T2), `PrizeChips.swift` (E5b T2/T5), `TutorialAnchor.swift` y
-`GameState+TutorialTips.swift` (E4b, E5b T5, E6a T8/T12), `PanelFrames.swift` (E3a T5/T6/T8),
-`PlayLayout.swift` (E3a T3/T10), los archivos de visitantes de E4b.
+`GameState+TutorialTips.swift` (E4b, E5b T5, E6a T8/T12), `ElevatorPanel.swift` (E3a T8, T10), los
+archivos de visitantes de E4b. **`BoardScene.swift` no aparece**: la columna plegable no toca la
+escena.
 
 | T | Archivos | 🔥 calientes | Tibios | Depende de |
 |---|---|---|---|---|
 | 1 | `SideRail.swift`, `GameState+SideRail.swift`, `GameState.swift`, `AdsProvider.swift`, `rewarded_ads.json`, `BoardChange.swift` (EK), `+BoardChanges`, `SideRailModelTests`, `SideRailProjectionTests` | `GameState.swift` | `BoardChange.swift`, `+BoardChanges` | **E5b T2**, **E2a T14**, **E1 T14**, **E5a T4–T8**, **E6a T6** (último en `+BoardChanges`) |
 | 2 | `GameState+SideRail.swift`, `SideRailVideosTests` | — | — | T1; **E4a T2/T8** |
-| 3 | `SideRailView.swift`, `SideRailOfferCard.swift`, `SideRailGlyphs.swift`, `PanelFrames.swift`, `RootView.swift`, `StageChips.swift`, `PrizeChips.swift`, `TutorialAnchor.swift`, `GameState+SideRail.swift`, `PrizesUITests`, `EconomyLoopUITests`, `SideRailUITests`, catálogo | `RootView.swift`, catálogo | `StageChips`, `PrizeChips`, `TutorialAnchor`, `PanelFrames` | T2; **E5b T2, T5**; **E4b T3**; **E3a T11**; **E6a T12** (último en `RootView`); **E7b-a T3** |
-| 4 🔒 | `PlayLayout.swift`, `BoardScene.swift`, `GameState+SideRail.swift`, `PlayLayoutTests`, `CrowdDepthTests`, `AscentRenderingUITests` | `BoardScene.swift` | `PlayLayout` | T1; **E3a T10**; **E6b T7**; **E5b T3** (último en `BoardScene`) |
-| 5 | `GameState+TutorialTips.swift`, `GameState+SideRail.swift`, `TutorialTipsTests`, catálogo (snapshot) | catálogo | `+TutorialTips` | T3 |
+| 3 | `SideRailView.swift`, `SideRailOfferCard.swift`, `SideRailGlyphs.swift`, `ElevatorPanel.swift`, `RootView.swift`, `StageChips.swift`, `PrizeChips.swift`, `TutorialAnchor.swift`, `GameState+SideRail.swift`, `PrizesUITests`, `EconomyLoopUITests`, `SideRailUITests`, catálogo | `RootView.swift`, catálogo | `StageChips`, `PrizeChips`, `TutorialAnchor`, `ElevatorPanel` | T2; **E3a T8, T10, T11**; **E5b T2, T5**; **E4b T3**; **E6a T12** (último en `RootView`); **E7b-a T3** |
+| 4 | — **salteada** (el dueño eligió C) | — | — | — |
+| 5 | `GameState+TutorialTips.swift`, `GameState+SideRail.swift`, `SideRailView.swift`, `TutorialTipsTests`, `SideRailUITests`, catálogo (snapshot) | catálogo | `+TutorialTips` | T3 |
 | 6 | `GameState+AdPlacements.swift`, `DailyRewardView.swift`, `CareerChoiceView.swift`, `AdPlacementRewardsTests`, catálogo (snapshot) | catálogo | — | **E2a T11, T12**; **E1 T12**; **E4a T8**; **E4b T3** (`RewardedOfferButton`) |
 | 7 | `RewardedOfferButton.swift`, `VisitorPopupView.swift`, `VendorCardsView.swift`, `EventPopupView.swift`, `AdPlacementMapTests`, catálogo (snapshot) | catálogo | archivos de E4b | T3, T6; **E4b T3–T5**; **E5b T1, T2** |
 | 8 | cierre (controlador) | — | `Docs/` | todas |
 
 ```
-Ola 1 (caliente: GameState.swift)              T1 la columna, pura
-Ola 2                                          T2 los videos ║ T6 diario y carrera (snapshot)
-Ola 3 (calientes: RootView ║ BoardScene)       T3 la columna en pantalla (dueña del catálogo) ║ T4 🔒 la multitud
-Ola 4                                          T5 las lecciones (snapshot) ║ T7 el botón y el mapa (snapshot)
-Ola 5                                          T8 cierre
+Ola 1 (caliente: GameState.swift)   T1 la columna, pura
+Ola 2                               T2 los videos ║ T6 diario y carrera (snapshot)
+Ola 3 (caliente: RootView)          T3 la columna plegable en pantalla (dueña del catálogo)
+Ola 4                               T5 las lecciones (snapshot) ║ T7 el botón y el mapa (snapshot)
+Ola 5                               T8 cierre
 ```
 
-T3 y T4 corren a la vez (archivos disjuntos: T3 suma a `+SideRail` el toque, T4 la reserva; el
-controlador integra T3 primero y rebasa T4). Si el dueño elige la opción B, T4 no se despacha; si
-elige C, T3 cambia su contenedor (duda 1) y T4 no se despacha.
+T5 y T7 corren a la vez: T5 toca `SideRailView` y las lecciones, T7 el botón de video y los
+popups de E4b; el único archivo que comparten de lectura es `SideRailOfferCard` (T7 lo lee en el
+contrato, no lo edita). La T4 no se despacha.
 
 ## Helpers de test que EXISTEN
 
@@ -216,7 +239,7 @@ descartarse. Todavía nada en pantalla.
 - Produces: `enum SideRailKind: String, CaseIterable` (`wheel`, `mattress`, `packages`, `boost`);
   `enum SideRailStatus: Equatable` (`ready(count: Int?)`, `blocked`, `waiting(seconds: Int)`,
   `idle`); `struct SideRailItem`; `struct SideRailState` (`items`, `mergeAllPairs`,
-  `packageRain`, `isVisible`, `status(of:)`, `.hidden`); `enum RailVideoStatus` (`available`,
+  `packageRain`, `isVisible`, `readyCount`, `status(of:)`, `.hidden`); `enum RailVideoStatus` (`available`,
   `coolingDown(seconds:)`, `notApplicable`); `struct SideRailInput`; `enum SideRailModel`
   (`state(_:)`); `enum SideRailClock` (`text(_:)`); `enum SideRailAX` (`value(_:)`);
   `GameState.sideRail` (observado), `refreshSideRail(now:)`, `mergeAllPairsOnVisibleFloor()`,
@@ -304,6 +327,20 @@ struct SideRailModelTests {
         #expect(SideRailModel.state(input { $0.mergeAll = .available }).status(of: .boost) == .ready(count: nil))
         #expect(SideRailModel.state(input { $0.mergeAll = .coolingDown(seconds: 61.2) }).status(of: .boost) == .waiting(seconds: 62))
         #expect(SideRailModel.state(input()).status(of: .boost) == .idle)
+    }
+
+    @Test("el «!» del botón en reposo suma los accesos listos; LLENO no cuenta")
+    func readyCount() {
+        #expect(SideRailModel.state(input()).readyCount == 0, "todo con reloj o apagado: sin «!»")
+        let busy = SideRailModel.state(input {
+            $0.access.wheelSpinsReady = 2
+            $0.access.mattressReady = true
+            $0.access.packagesWaiting = 1
+            $0.access.packagesBlocked = true
+            $0.mergeAll = .available
+        })
+        #expect(busy.readyCount == 3)
+        #expect(SideRailModel.state(input { $0.shown = false }).readyCount == 0)
     }
 
     @Test("el reloj: segundos, minutos y horas")
@@ -405,7 +442,8 @@ import EconomyKit
 import Foundation
 
 /// Los cuatro accesos de la columna lateral (PLAN-v2 §2, "Accesos en
-/// pantalla"), en el orden en que se apilan de arriba abajo.
+/// pantalla"), en el orden en que se leen en la persiana: de arriba abajo y de
+/// izquierda a derecha.
 enum SideRailKind: String, CaseIterable, Sendable {
     case wheel
     case mattress
@@ -448,6 +486,13 @@ struct SideRailState: Equatable, Sendable {
     var packageRain = RailVideoStatus.notApplicable
 
     var isVisible: Bool { !items.isEmpty }
+
+    /// Cuántos accesos tienen algo listo: el número del "!" del botón en reposo
+    /// (la suma de los avisos de los cuatro). "LLENO" no cuenta: no hay nada
+    /// que tocar.
+    var readyCount: Int {
+        items.filter { if case .ready = $0.status { true } else { false } }.count
+    }
 
     static let hidden = SideRailState()
 
@@ -864,22 +909,52 @@ git commit -m "feat(columna): los videos de la columna — Fusionar todo por el 
 
 ---
 
-### Task 3: La columna en pantalla — cuatro botones, sus relojes y la tarjeta de los videos
+### Task 3: La columna plegable en pantalla — "Premios" en reposo, la persiana de los cuatro y la tarjeta de los videos
 
-**Objetivo:** la columna se ve y se toca. Cuatro botones de 48 pt sobre una placa de madera,
-apilados contra el borde izquierdo y con su base 10 pt arriba de la franja de abajo (la fila del
-atajo); cada uno con el "!" o el número y un latido cuando está listo, el reloj o "LLENO" debajo
-cuando falta, y apagado si no hay nada. Ruleta abre la ruleta (E5b); Colchón, su popup; Paquetes
-abre uno, y si no hay ninguno ofrece la lluvia; Fusionar todo ofrece su video. Los dos videos se
-ofrecen en una tarjeta al lado del botón, con el premio dicho antes del anuncio. Los chips de
-premios de `StageChips` se van (la columna es el acceso), y las anclas `.sidePackages` y
-`.sideMattress` se mudan a la columna.
+**Objetivo:** la columna que eligió el dueño (opción C), hermana de la botonera del ascensor de
+E3a T8. En reposo hay un solo botón "Premios" de 44 pt sobre la placa de metal, abajo a la
+izquierda, con el "!" sumado: el número de accesos que tienen algo listo. Al tocarlo se despliega
+hacia arriba una persiana de 2 × 2 con la Ruleta, El Colchón, los Paquetes y Fusionar todo. Cada
+botón es de 30 pt, como los de la botonera después del spike S6, y tiene su "!" o su número, su
+latido y su reloj en LED. La persiana se recoge sola a los 3 s sin uso, y al tocar un botón que
+abre algo. Fusionar todo y la lluvia de paquetes se ofrecen en una tarjeta al lado de "Premios",
+con el premio dicho antes del anuncio. Los chips de premios de `StageChips` se van, y las anclas
+`.sidePackages` y `.sideMattress` se mudan a la persiana.
+
+**Dónde cae** (medido contra el árbol y los spikes de E3a):
+
+- **Cuelga del borde de arriba de `bottomBar`** (`RootView.swift:506-530`: la fila del atajo
+  —`QuickHireButton`, `hud.quickhire`, a la izquierda; `PrestigeButton`, a la derecha— y
+  `BottomMenuBar`), con 10 pt de aire, y contra el borde izquierdo de la pantalla con 12 pt: es el
+  espejo del `.padding(.trailing, Tokens.s12)` con que la botonera cuelga del HUD.
+- **En reposo** ocupa 44 × 44 pt en x 12–56, justo arriba de `hud.quickhire`.
+  - En el SE (S4: insets 0/0, sin home indicator) la franja de abajo mide la barra más el
+    `minimumBottomGap`, 8 de aire y los 56 del atajo, así que el botón queda hacia y ≈ 465–509. Con
+    la barra 20 pt más baja de E3a T7 baja otro tanto. `SideRailUITests` lo mide por frames.
+  - **No choca con ningún control.** Los dos toasts (`TowerNoticeView`, `AchievementToastView`)
+    flotan ~260 pt por encima de la barra; las cajas del Paquete (E5b T3) se paran a ≥ 72 pt del
+    borde; el escenario de visitantes va en x ∈ [28 %, 72 %]; la llave de DEBUG está arriba a la
+    derecha.
+  - **Lo único que tapa es la parte de abajo a la izquierda del personaje de la celda 0.** En el SE
+    su arte visible arranca en x ≈ 35 (S5) y el botón termina en 56: ~20 pt. Un toque ahí lo toma
+    "Premios". Es el costo que el dueño aceptó.
+- **Abierta**, la persiana es una `Grid` de 2 × 2 sobre `MetalPlate`, como la de la botonera:
+  2 × 36 + 6 + 16 = 94 pt de ancho y 2 × (30 + 3 + 12) + 6 + 16 = 112 de alto, 4 pt arriba de
+  "Premios".
+  - En el SE cae en x 12–106 e y ≈ 349–461: tapa las primeras celdas de la multitud mientras está
+    abierta (≤ 3 s), igual que la persiana del ascensor tapa las filas de atrás (S6).
+  - Puede tapar, por ese rato, una caja del Paquete parada en su borde (x 72–106) o un toast ancho
+    (el toast queda encima: se dibuja después en el `ZStack`).
+- **Las dos hermanas abiertas a la vez no se cruzan.** La botonera se despliega desde el display,
+  arriba a la derecha (en el SE x 207–363, y 147–329 con los botones de 30); la columna, desde abajo
+  a la izquierda. Pasa lo mismo en todo iPhone y en iPad. Cada una tiene su reloj, y abrir una no
+  cierra la otra (duda 4).
 
 **Files:**
 - Create: `FisuEvolution/UI/SideRail/SideRailView.swift`, `SideRailOfferCard.swift`, `SideRailGlyphs.swift` (+ `xcodegen generate`)
-- Modify: `FisuEvolution/UI/Art/PanelFrames.swift` (`WoodPlate`)
+- Modify: `FisuEvolution/UI/HUD/ElevatorPanel.swift` (E3a T8: `ledScreen` y `ledLit` dejan de ser `private`)
 - Modify: `FisuEvolution/Game/State/GameState+SideRail.swift` (`SideRailTap`, `sideRailTapped(_:)`)
-- Modify: `FisuEvolution/UI/Tutorial/TutorialAnchor.swift` (`.sideWheel`, `.sideBoost`)
+- Modify: `FisuEvolution/UI/Tutorial/TutorialAnchor.swift` (`.sideRail`, `.sideWheel`, `.sideBoost`)
 - Modify: `FisuEvolution/App/RootView.swift` 🔥
 - Modify: `FisuEvolution/UI/Visitors/StageChips.swift`, `FisuEvolution/UI/Prizes/PrizeChips.swift`
 - Modify: `FisuEvolutionUITests/PrizesUITests.swift` (E5b T2), `FisuEvolutionUITests/EconomyLoopUITests.swift`
@@ -887,36 +962,44 @@ premios de `StageChips` se van (la columna es el acceso), y las anclas `.sidePac
 - Strings: el catálogo (dueña en su ola) o `Tools/v2/claves-pendientes/e7b-b-t3.json` (13 claves)
 
 **Interfaces:**
-- Consumes: T1, T2; E5b (`openWheel()`, `wheelSheet`, `mattressTapped()`, `packageTapped()`,
-  `PackageOpenResult`, `WheelGlyph`, `MattressGlyph`, `PackageGlyph`, `prize.package.full`); E4b
-  T3 (`RewardedOfferButton`); E3a T8 (`MetalPlate`, patrón).
+- Consumes: T1, T2; **E3a T8** (`MetalPlate`, `ElevatorPanel.displayHeight`, `ledScreen`,
+  `ledLit`); E5b (`openWheel()`, `wheelSheet`, `mattressTapped()`, `packageTapped()`,
+  `PackageOpenResult`, `WheelGlyph`, `MattressGlyph`, `PackageGlyph`, `prize.package.full`); E5b T1
+  (`RewardCopy.title(_:)`); E4b T3 (`RewardedOfferButton`); `VectorTabGiftsIcon`
+  (`UI/Art/GameIcons.swift:215`).
 - Produces: `enum SideRailTap: Equatable` (`acted`, `offer`, `refused`);
-  `GameState.sideRailTapped(_:) -> SideRailTap`; `enum SideRailLayout` (`button`, `glyph`,
-  `spacing`, `platePadding`, `edgeInset`, `gapAboveBottomBar`, `trailingEdge`);
-  `SideRailView(offer:)`, `SideRailButton(item:tap:)`, `SideRailOfferCard(kind:close:)`,
-  `SideRailGlyph(kind:)`, `MergeAllGlyph`; `WoodPlate(cornerRadius:)`;
-  `TutorialTarget.sideWheel`, `.sideBoost`; `SideRailKind.tutorialTarget`.
-- Identificadores: `siderail.wheel`, `siderail.mattress`, `siderail.packages`, `siderail.boost`
-  (valor = `SideRailAX.value`), `siderail.offer.video`, `siderail.offer.close`.
+  `GameState.sideRailTapped(_:) -> SideRailTap`; `@MainActor enum SideRailLayout` (`restSide`,
+  `button`, `glyph`, `cellWidth`, `spacing`, `edgeInset`, `gapAboveBottomBar`, `collapseDelay`);
+  `SideRailView(offer:)`, `SideRailButton(item:tap:)`, `SideRailBadge(text:)`,
+  `SideRailOfferCard(kind:close:)`, `SideRailGlyph(kind:)`, `MergeAllGlyph`;
+  `TutorialTarget.sideRail`, `.sideWheel`, `.sideBoost`; `SideRailKind.tutorialTarget`.
+- Identificadores: `siderail.toggle` (el botón en reposo; valor = `readyCount`); `siderail.wheel`,
+  `siderail.mattress`, `siderail.packages`, `siderail.boost` (sólo con la persiana abierta; valor =
+  `SideRailAX.value`); `siderail.offer.video`, `siderail.offer.close`.
 - Borra (si quedan sin llamadores): `PackageChip`, `MattressChip` y sus helpers privados de
   `PrizeChips.swift`; los glifos se quedan.
 
-- [ ] **Step 0: Lo de E5b, E4b y E3a está, y quién usa los chips**
+- [ ] **Step 0: La botonera de E3a, lo de E5b y E4b, y quién usa los chips**
 
 Run (uno por llamada):
 
 ```bash
+grep -n "struct ElevatorPanel\|static let displayHeight\|static let collapseDelay\|static let ledScreen\|static let ledLit" FisuEvolution/UI/HUD/ElevatorPanel.swift
+grep -n "private static let side" FisuEvolution/UI/HUD/ElevatorPanel.swift
+grep -n "struct MetalPlate" FisuEvolution/UI/Art/PanelFrames.swift
 grep -n "struct WheelGlyph" FisuEvolution/UI/Wheel/WheelCanvas.swift
 grep -n "struct PackageGlyph\|struct MattressGlyph\|struct PackageChip\|struct MattressChip" FisuEvolution/UI/Prizes/PrizeChips.swift
 grep -rn "PackageChip\|MattressChip" FisuEvolution
 grep -n "case sidePackages\|case sideMattress" FisuEvolution/UI/Tutorial/TutorialAnchor.swift
-grep -n "struct MetalPlate" FisuEvolution/UI/Art/PanelFrames.swift
 grep -n "private var bottomBar" FisuEvolution/App/RootView.swift
 grep -n "\"prize.package.full\"" FisuEvolution/Resources/Localizable.xcstrings
 ```
 
-Expected: todo está. El tercero lista los usos de los chips: además de `StageChips`, si alguno
-aparece en otro lado (un test, la escena), se conserva el tipo y sólo se quita de `StageChips`.
+Expected: E3a T8 dejó la botonera, con los botones de piso en **30** pt (el cambio del spike S6;
+si dice 34, la persiana de la columna usa igual 30 y se anota la diferencia). El sexto lista los
+usos de los chips: además de `StageChips`, si alguno aparece en otro lado (un test, la escena), se
+conserva el tipo y sólo se quita de `StageChips`. Si falta la botonera, `NEEDS_CONTEXT`: la
+columna es su hermana y toma de ella el material y las medidas.
 
 - [ ] **Step 1: Los tests, en rojo**
 
@@ -925,9 +1008,10 @@ aparece en otro lado (un test, la escena), se conserva el tipo y sólo se quita 
 ```swift
 import XCTest
 
-/// La columna lateral (PLAN-v2 §2): no pisa el HUD ni la franja de abajo, cada
-/// botón dice su estado, y los videos se ofrecen con su premio antes del
-/// anuncio. El anuncio lo pone el stub (2 s, y paga).
+/// La columna plegable (PLAN-v2 §2; opción C del dueño): en reposo un solo botón
+/// "Premios" abajo a la izquierda; al tocarlo despliega los cuatro, que se
+/// recogen solos a los 3 s o al tocar uno. El anuncio lo pone el stub (2 s, y
+/// paga).
 final class SideRailUITests: XCTestCase {
     private let buttons = ["siderail.wheel", "siderail.mattress", "siderail.packages", "siderail.boost"]
 
@@ -935,53 +1019,86 @@ final class SideRailUITests: XCTestCase {
         continueAfterFailure = false
     }
 
-    func testLaColumnaNoPisaElHUDNiLaFranjaDeAbajo() {
+    func testEnReposoUnSoloBotonQueDespliegaLosCuatroYSeRecogeSolo() {
         let app = launch()
+        let toggle = app.buttons["siderail.toggle"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 15))
+        for id in buttons {
+            XCTAssertFalse(app.buttons[id].exists, "\(id) a la vista con la columna plegada")
+        }
+        XCTAssertLessThanOrEqual(toggle.frame.maxY, app.buttons["hud.quickhire"].frame.minY, "«Premios» pisa el atajo")
+        XCTAssertLessThanOrEqual(toggle.frame.maxX, 60, "«Premios» se sale de su esquina")
+        attach(app, named: "E7b columna plegada")
+
+        toggle.tap()
         let top = app.otherElements["hud.coins"].frame.maxY
-        let bottom = app.buttons["hud.quickhire"].frame.minY
         for id in buttons {
             let button = app.buttons[id]
-            XCTAssertTrue(button.waitForExistence(timeout: 10), id)
+            XCTAssertTrue(button.waitForExistence(timeout: 3), "\(id) no se desplegó")
             XCTAssertGreaterThanOrEqual(button.frame.minY, top, "\(id) pisa el HUD")
-            XCTAssertLessThanOrEqual(button.frame.maxY, bottom, "\(id) pisa la fila del atajo")
-            XCTAssertLessThanOrEqual(button.frame.maxX, 64, "\(id) se sale de la franja que le reserva PlayLayout")
+            XCTAssertLessThanOrEqual(button.frame.maxY, toggle.frame.minY, "\(id) pisa «Premios»")
+            XCTAssertLessThanOrEqual(button.frame.maxX, 110, "\(id) se sale de la persiana")
         }
-        let shot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-        shot.name = "E7b la columna"
-        shot.lifetime = .keepAlways
-        add(shot)
+        attach(app, named: "E7b columna desplegada")
+        XCTAssertTrue(app.buttons["siderail.wheel"].waitForNonExistence(timeout: 6), "la persiana no se recogió a los 3 s")
+    }
+
+    func testTocarUnoAbreLoSuyoYRecogeLaPersiana() {
+        let app = launch(extra: ["--uitest-packages=1"])
+        let units = app.otherElements["board.units"]
+        XCTAssertTrue(units.waitForExistence(timeout: 15))
+        let before = Int(units.value as? String ?? "") ?? 0
+        let toggle = app.buttons["siderail.toggle"]
+        XCTAssertGreaterThanOrEqual(Int(toggle.value as? String ?? "") ?? 0, 1, "el «!» suma el paquete")
+        toggle.tap()
+        let packages = app.buttons["siderail.packages"]
+        XCTAssertTrue(packages.waitForExistence(timeout: 3))
+        XCTAssertEqual(packages.value as? String, "ready:1")
+        packages.tap()
+        XCTAssertTrue(packages.waitForNonExistence(timeout: 2), "tocar uno recoge la persiana")
+        expectation(for: NSPredicate(format: "value == %@", String(before + 1)), evaluatedWith: units)
+        waitForExpectations(timeout: 10)
     }
 
     func testLosPaquetesSinNadaOfrecenLaLluvia() {
         let app = launch()
+        let toggle = app.buttons["siderail.toggle"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 15))
+        toggle.tap()
         let packages = app.buttons["siderail.packages"]
-        XCTAssertTrue(packages.waitForExistence(timeout: 10))
+        XCTAssertTrue(packages.waitForExistence(timeout: 3))
         packages.tap()
-        XCTAssertTrue(app.buttons["siderail.offer.video"].waitForExistence(timeout: 5),
-                      "sin paquetes, Paquetes ofrece la lluvia por video")
+        let video = app.buttons["siderail.offer.video"]
+        XCTAssertTrue(video.waitForExistence(timeout: 5), "sin paquetes, Paquetes ofrece la lluvia por video")
+        XCTAssertFalse(packages.exists, "la tarjeta sale al lado de «Premios», con la persiana recogida")
         app.buttons["siderail.offer.close"].tap()
-        XCTAssertTrue(app.buttons["siderail.offer.video"].waitForNonExistence(timeout: 3))
+        XCTAssertTrue(video.waitForNonExistence(timeout: 3))
     }
 
     func testFusionarTodoPorVideo() {
         let app = launch(extra: ["--uitest-coins"])
         let units = app.otherElements["board.units"]
         XCTAssertTrue(units.waitForExistence(timeout: 15))
+        let start = Int(units.value as? String ?? "") ?? 0
         let quickHire = app.buttons["hud.quickhire"]
         quickHire.tap()
         quickHire.tap()
-        let boost = app.buttons["siderail.boost"]
-        expectation(for: NSPredicate(format: "value == %@", "ready"), evaluatedWith: boost)
+        expectation(for: NSPredicate(format: "value == %@", String(start + 2)), evaluatedWith: units)
         waitForExpectations(timeout: 10)
-        let before = Int(units.value as? String ?? "") ?? 0
 
+        app.buttons["siderail.toggle"].tap()
+        let boost = app.buttons["siderail.boost"]
+        XCTAssertTrue(boost.waitForExistence(timeout: 3))
+        XCTAssertEqual(boost.value as? String, "ready")
         boost.tap()
         let video = app.buttons["siderail.offer.video"]
         XCTAssertTrue(video.waitForExistence(timeout: 5))
         video.tap()
 
-        expectation(for: NSPredicate(format: "value == %@", String(before - 1)), evaluatedWith: units)
+        expectation(for: NSPredicate(format: "value == %@", String(start + 1)), evaluatedWith: units)
         waitForExpectations(timeout: 20)
+        app.buttons["siderail.toggle"].tap()
+        XCTAssertTrue(boost.waitForExistence(timeout: 3))
         XCTAssertTrue((boost.value as? String ?? "").hasPrefix("waiting"), "el video arrancó su enfriamiento")
     }
 
@@ -991,27 +1108,37 @@ final class SideRailUITests: XCTestCase {
         app.launch()
         return app
     }
+
+    private func attach(_ app: XCUIApplication, named name: String) {
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = name
+        shot.lifetime = .keepAlways
+        add(shot)
+    }
 }
 ```
 
 (Con `--uitest-coins` el juego arranca con un Fisura; dos contrataciones dejan tres, o sea un
 par: Fusionar todo hace una fusión y `board.units` baja uno.)
 
-`PrizesUITests.swift` (E5b T2): los chips pasan a la columna.
-`prize.chip.package` → `siderail.packages`, y su valor `"1"` → `"ready:1"`; la espera final
-`chip.waitForNonExistence(…)` → un predicado `value != "ready:1"` (el botón se queda, cambia su
-estado). `prize.chip.mattress` → `siderail.mattress`; su espera final → `value != "ready"`.
+`PrizesUITests.swift` (E5b T2): los chips pasan a la columna, que hay que abrir primero. Antes de
+cada toque a un chip va `app.buttons["siderail.toggle"].tap()`. Además:
 
-`EconomyLoopUITests.swift:28`: el toque al tablero pasa de `dx: 0.13` a `dx: 0.26` (el Fisura de
-la celda 0 queda en x ≈ 88 pt sin la reserva de T4 y en ≈ 137 con ella; 0,26 cae dentro de su
-óvalo en los dos casos, y fuera de la columna, que termina en 60). El comentario de arriba suma
-"y lejos de la columna lateral (E7b)".
+- `prize.chip.package` → `siderail.packages`, y su valor `"1"` → `"ready:1"`;
+- `prize.chip.mattress` → `siderail.mattress`;
+- las esperas finales `chip.waitForNonExistence(…)` pasan a "reabrir la columna y que el valor ya
+  no sea `ready:1` / `ready`": el botón se queda en la persiana y cambia de estado.
+
+`EconomyLoopUITests.swift:28`: el toque al tablero pasa de `dx: 0.13` a `dx: 0.22`. El Fisura de
+la celda 0 está en x ≈ 88 pt, y 0,22 cae dentro de su óvalo (x ≈ 82 en el SE, 88 en el 16 Pro) y
+lejos de "Premios", que termina en 56. El comentario de arriba suma "y fuera del botón de la
+columna (E7b)".
 
 - [ ] **Step 2: Verlos fallar**
 
 Run: `/opt/homebrew/bin/xcodegen generate`; UI con
 `-only-testing:FisuEvolutionUITests/SideRailUITests -only-testing:FisuEvolutionUITests/PrizesUITests`.
-Expected: FAIL — `siderail.wheel` no existe.
+Expected: FAIL — `siderail.toggle` no existe.
 
 - [ ] **Step 3: El toque**
 
@@ -1020,7 +1147,7 @@ Expected: FAIL — `siderail.wheel` no existe.
 ```swift
     // MARK: - Los toques
 
-    /// Qué hizo un toque a la columna.
+    /// Qué hizo un toque a un botón de la columna.
     enum SideRailTap: Equatable {
         /// Abrió algo (la ruleta, el colchón, un paquete).
         case acted
@@ -1054,42 +1181,18 @@ Expected: FAIL — `siderail.wheel` no existe.
 (`SideRailTap` anidado en `GameState` vía la extensión; si el compilador lo rechaza en una
 extensión de otro archivo, va a nivel de archivo con el mismo nombre.)
 
-- [ ] **Step 4: La placa, los glifos y las anclas**
+- [ ] **Step 4: Los tonos compartidos, las anclas y los glifos**
 
-`PanelFrames.swift`, después de `MetalPlate` (E3a T8):
-
-```swift
-// MARK: - WoodPlate
-
-/// Una placa chica de madera con tornillos, para los accesos que no son
-/// maquinaria (la columna lateral, E7b). Tonos y tornillos del marco `.wood`.
-struct WoodPlate: View {
-    var cornerRadius: CGFloat = 14
-
-    var body: some View {
-        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-        shape
-            .fill(LinearGradient(colors: [WoodTone.light, WoodTone.base], startPoint: .top, endPoint: .bottom))
-            .overlay(shape.strokeBorder(WoodTone.bevel.opacity(0.9), lineWidth: 1.5).padding(2))
-            .overlay(shape.strokeBorder(Color("PaletteInk").opacity(0.9), lineWidth: 2.5))
-            .overlay {
-                GeometryReader { geo in
-                    ForEach(0..<2, id: \.self) { end in
-                        PanelScrew(fill: WoodTone.screw, line: WoodTone.dark, diameter: 6)
-                            .position(x: geo.size.width / 2, y: end == 0 ? 7 : geo.size.height - 7)
-                    }
-                }
-            }
-            .shadow(color: .black.opacity(0.22), radius: 4, y: 2)
-            .accessibilityHidden(true)
-    }
-}
-```
+`ElevatorPanel.swift` (E3a T8): `private static let ledScreen` y `private static let ledLit` pasan a
+`static let` (sin `private`), con una línea en el comentario: "los comparte la columna plegable
+(E7b), su hermana".
 
 `TutorialAnchor.swift`, en `TutorialTarget`, después de `sideMattress` (E5b T5):
 
 ```swift
-    /// La ruleta y Fusionar todo en la columna lateral (E7b).
+    /// La columna plegable (E7b): el botón en reposo y dos de los cuatro de su
+    /// persiana (los otros dos los sumó E5b).
+    case sideRail
     case sideWheel
     case sideBoost
 ```
@@ -1122,14 +1225,15 @@ struct MergeAllGlyph: View {
             .scaledToFit()
             .fontWeight(.black)
             .foregroundStyle(Color("PaletteInk"))
-            .padding(5)
+            .padding(3)
             .background(Circle().fill(Color("PaletteYellow")))
             .accessibilityHidden(true)
     }
 }
 
 extension SideRailKind {
-    /// El ancla del tutorial de cada botón (los nombres los eligió E9).
+    /// El ancla del tutorial de cada botón de la persiana (los nombres los
+    /// eligió E9).
     var tutorialTarget: TutorialTarget {
         switch self {
         case .wheel: .sideWheel
@@ -1141,72 +1245,168 @@ extension SideRailKind {
 }
 ```
 
-(Si `WheelGlyph` toma parámetros, se le pasan los que pida para el tamaño de 30 pt.)
+(Si `WheelGlyph` toma parámetros, se le pasan los que pida para el tamaño de 20 pt.)
 
-- [ ] **Step 5: La columna**
+- [ ] **Step 5: La columna plegable**
 
 `FisuEvolution/UI/SideRail/SideRailView.swift`:
 
 ```swift
 import SwiftUI
 
-/// La geometría de la columna. `trailingEdge` es lo que ocupa contra el borde
-/// izquierdo, y `PlayLayout.sideRailReserve` (T4) lo cubre con aire.
+/// La geometría de la columna plegable: la de la botonera del ascensor (E3a T8),
+/// espejada contra el borde izquierdo.
+@MainActor
 enum SideRailLayout {
-    static let button: CGFloat = 48
-    static let glyph: CGFloat = 30
+    /// "Premios" mide lo que el display del ascensor: las dos piezas de
+    /// maquinaria del HUD tienen el mismo alto.
+    static let restSide: CGFloat = ElevatorPanel.displayHeight
+    /// Los botones de la persiana: los de la botonera después del spike S6.
+    static let button: CGFloat = 30
+    static let glyph: CGFloat = 20
+    /// Una celda: el botón y, debajo, su reloj en LED ("12:05").
+    static let cellWidth: CGFloat = 36
     static let spacing: CGFloat = 6
-    static let platePadding: CGFloat = 4
-    static let edgeInset: CGFloat = 4
+    /// Contra el borde, como la botonera contra el suyo.
+    static let edgeInset: CGFloat = Tokens.s12
     static let gapAboveBottomBar: CGFloat = 10
-    static var trailingEdge: CGFloat { edgeInset + platePadding * 2 + button }
+    /// 3 s y no los 2 de la botonera: lo pidió el dueño para ésta.
+    static let collapseDelay: Duration = .seconds(3)
 }
 
-/// La columna lateral (PLAN-v2 §2, "Accesos en pantalla"): Ruleta, El Colchón,
-/// Paquetes y Fusionar todo, contra el borde izquierdo y arriba de la franja de
-/// abajo. Lee `sideRail` y toca por `sideRailTapped(_:)`: no decide nada.
+/// La columna lateral plegable (PLAN-v2 §2; opción C del dueño), hermana de la
+/// botonera del ascensor. En reposo, un solo botón "Premios" con el "!" sumado;
+/// al tocarlo se despliega la persiana con la Ruleta, El Colchón, los Paquetes
+/// y Fusionar todo, que se recoge sola a los 3 s sin uso o al tocar uno. Lee
+/// `sideRail` y toca por `sideRailTapped(_:)`: no decide nada.
+///
+/// ⚠️ Fuera de sus controles no toca nada: un gesto que arranca al lado sigue
+/// siendo del tablero, como con la botonera (spike S6).
 struct SideRailView: View {
     @Environment(GameState.self) private var gameState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// La tarjeta del video abierta. Vive en `RootView`: el toque afuera la cierra.
     @Binding var offer: SideRailKind?
+    @State private var expanded = false
+    /// Cada toque reinicia la cuenta de los 3 s (el mecanismo de la botonera).
+    @State private var activity = 0
 
     var body: some View {
-        let rail = gameState.sideRail
-        if rail.isVisible {
-            VStack(spacing: SideRailLayout.spacing) {
-                ForEach(rail.items) { item in
-                    SideRailButton(item: item) { tapped(item.kind) }
-                        .overlay(alignment: .leading) {
-                            if offer == item.kind {
-                                SideRailOfferCard(kind: item.kind) { offer = nil }
-                                    .fixedSize()
-                                    .offset(x: SideRailLayout.button + Tokens.s12)
-                                    .transition(.opacity)
-                            }
-                        }
-                }
+        Group {
+            if gameState.sideRail.isVisible {
+                column(gameState.sideRail)
             }
-            .padding(SideRailLayout.platePadding)
-            .background(WoodPlate())
-            .animation(.easeInOut(duration: 0.2), value: offer)
+        }
+        .onChange(of: gameState.sideRail.isVisible) { _, visible in
+            guard !visible else { return }
+            expanded = false
+            offer = nil
         }
     }
 
+    private func column(_ rail: SideRailState) -> some View {
+        VStack(alignment: .leading, spacing: Tokens.s4) {
+            if expanded {
+                shutter(rail)
+                    .transition(reduceMotion
+                        ? .opacity
+                        : .scale(scale: 0.2, anchor: .bottomLeading).combined(with: .opacity))
+            }
+            restButton(rail)
+                .overlay(alignment: .bottomLeading) {
+                    // Con la persiana recogida, la tarjeta sale al lado de "Premios".
+                    if let offer {
+                        SideRailOfferCard(kind: offer) { self.offer = nil }
+                            .fixedSize()
+                            .offset(x: SideRailLayout.restSide + Tokens.s12)
+                            .transition(.opacity)
+                    }
+                }
+        }
+        .animation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.35), value: expanded)
+        .animation(.easeInOut(duration: 0.2), value: offer)
+        .task(id: activity) {
+            guard expanded else { return }
+            try? await Task.sleep(for: SideRailLayout.collapseDelay)
+            guard !Task.isCancelled else { return }
+            expanded = false
+        }
+    }
+
+    // MARK: "Premios", en reposo
+
+    private func restButton(_ rail: SideRailState) -> some View {
+        Button {
+            offer = nil
+            if expanded { expanded = false } else { unfold() }
+        } label: {
+            GameIcon(artKey: "siderail_prizes", size: 28) { VectorTabGiftsIcon() }
+                .frame(width: SideRailLayout.restSide, height: SideRailLayout.restSide)
+                .background(MetalPlate(cornerRadius: 12))
+                .overlay(alignment: .topTrailing) {
+                    if rail.readyCount > 0 {
+                        SideRailBadge(text: String(rail.readyCount))
+                            .offset(x: 6, y: -6)
+                    }
+                }
+                .modifier(ReadyPulse(active: rail.readyCount > 0 && !expanded && !reduceMotion))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .tutorialAnchor(.sideRail)
+        .accessibilityIdentifier("siderail.toggle")
+        .accessibilityLabel(Text("siderail.toggle.ax"))
+        .accessibilityValue(Text(verbatim: String(rail.readyCount)))
+    }
+
+    // MARK: La persiana
+
+    private func shutter(_ rail: SideRailState) -> some View {
+        let rows = stride(from: 0, to: rail.items.count, by: 2).map {
+            Array(rail.items[$0 ..< min($0 + 2, rail.items.count)])
+        }
+        // `Grid` y no `LazyVGrid`, por lo mismo que la botonera: la perezosa se
+        // lleva puestos los identifiers.
+        return Grid(horizontalSpacing: SideRailLayout.spacing, verticalSpacing: SideRailLayout.spacing) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                GridRow {
+                    ForEach(row) { item in
+                        SideRailButton(item: item) { tapped(item.kind) }
+                    }
+                }
+            }
+        }
+        .padding(Tokens.s8)
+        .background(MetalPlate(cornerRadius: 14))
+    }
+
+    private func unfold() {
+        expanded = true
+        activity &+= 1
+    }
+
+    /// Si abre algo u ofrece un video, la persiana se recoge (la tarjeta sale al
+    /// lado de "Premios"); si no había nada, el botón tiembla y la persiana se
+    /// queda 3 s más.
     private func tapped(_ kind: SideRailKind) -> Bool {
         switch gameState.sideRailTapped(kind) {
         case .acted:
+            expanded = false
             offer = nil
             return true
         case .offer:
-            offer = offer == kind ? nil : kind
+            expanded = false
+            offer = kind
             return true
         case .refused:
+            activity &+= 1
             return false
         }
     }
 }
 
-/// Un botón de la columna: el plato crema de la barra de abajo, el glifo, el
-/// "!" encima y, debajo, el reloj o "LLENO".
+/// Un botón de la persiana: redondo como los de la botonera, con el glifo, el
+/// "!" (o el número) y, debajo, su reloj en el LED del ascensor.
 struct SideRailButton: View {
     let item: SideRailItem
     /// `false` = no había nada que hacer: el botón tiembla.
@@ -1223,20 +1423,28 @@ struct SideRailButton: View {
         Button {
             if !tap(), !reduceMotion { shakes += 1 }
         } label: {
-            VStack(spacing: 2) {
+            VStack(spacing: 3) {
                 SideRailGlyph(kind: item.kind)
+                    .frame(width: SideRailLayout.glyph, height: SideRailLayout.glyph)
                     .frame(width: SideRailLayout.button, height: SideRailLayout.button)
                     .background(
                         Circle()
-                            .fill(Color("PaletteCream"))
-                            .overlay(Circle().strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2.5))
+                            .fill(LinearGradient(colors: [Color.white.opacity(0.85), Color("PaletteCream")],
+                                                 startPoint: .top, endPoint: .bottom))
+                            .overlay(Circle().strokeBorder(Color("PaletteInk").opacity(0.85), lineWidth: 2))
                     )
                     .opacity(item.status == .idle ? 0.55 : 1)
-                    .overlay(alignment: .topTrailing) { badge.offset(x: 5, y: -5) }
+                    .overlay(alignment: .topTrailing) {
+                        if case .ready(let count) = item.status {
+                            SideRailBadge(text: count.map { $0 > 9 ? "9+" : String($0) } ?? "!")
+                                .scaleEffect(0.8)
+                                .offset(x: 5, y: -5)
+                        }
+                    }
                     .modifier(ReadyPulse(active: isReady && !reduceMotion))
-                caption
-                    .frame(width: SideRailLayout.button)
+                led
             }
+            .frame(width: SideRailLayout.cellWidth)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -1247,47 +1455,47 @@ struct SideRailButton: View {
         .accessibilityValue(Text(verbatim: SideRailAX.value(item.status)))
     }
 
-    @ViewBuilder private var badge: some View {
-        if case .ready(let count) = item.status {
-            Text(verbatim: count.map { $0 > 9 ? "9+" : String($0) } ?? "!")
-                .font(.system(size: 13, weight: .black, design: .rounded))
-                .foregroundStyle(.white)
-                .frame(minWidth: 20, minHeight: 20)
-                .padding(.horizontal, 2)
-                .background(
-                    Capsule()
-                        .fill(Color("PaletteOrange"))
-                        .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2))
-                )
-                .accessibilityHidden(true)
+    /// El reloj, con los tonos del display del ascensor. Listo o apagado, la
+    /// pantalla queda oscura: el "!" ya lo dice.
+    private var led: some View {
+        Group {
+            switch item.status {
+            case .waiting(let seconds): Text(verbatim: SideRailClock.text(seconds))
+            case .blocked: Text("prize.package.full")
+            case .ready, .idle: Text(verbatim: " ")
+            }
         }
+        .font(.system(size: 9, weight: .heavy, design: .monospaced))
+        .foregroundStyle(ElevatorPanel.ledLit)
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
+        .frame(width: SideRailLayout.cellWidth, height: 12)
+        .background(RoundedRectangle(cornerRadius: 3, style: .continuous).fill(ElevatorPanel.ledScreen))
+        .accessibilityHidden(true)
     }
+}
 
-    @ViewBuilder private var caption: some View {
-        switch item.status {
-        case .waiting(let seconds):
-            railCaption(Text(verbatim: SideRailClock.text(seconds)), tint: Color("PaletteCream"))
-        case .blocked:
-            railCaption(Text("prize.package.full"), tint: Color("PaletteOrange"))
-        case .ready, .idle:
-            // El renglón vacío conserva el alto: la columna no salta.
-            railCaption(Text(verbatim: " "), tint: .clear)
-        }
-    }
+/// El "!" (o el número) naranja de la columna. El de "Premios" suma los avisos
+/// de los cuatro.
+struct SideRailBadge: View {
+    let text: String
 
-    private func railCaption(_ text: Text, tint: Color) -> some View {
-        text
-            .font(.system(size: 11, weight: .heavy, design: .rounded))
-            .monospacedDigit()
-            .foregroundStyle(tint)
-            .lineLimit(1)
-            .minimumScaleFactor(0.6)
-            .shadow(color: .black.opacity(0.5), radius: 1, y: 1)
+    var body: some View {
+        Text(verbatim: text)
+            .font(.system(size: 13, weight: .black, design: .rounded))
+            .foregroundStyle(.white)
+            .frame(minWidth: 20, minHeight: 20)
+            .padding(.horizontal, 2)
+            .background(
+                Capsule()
+                    .fill(Color("PaletteOrange"))
+                    .overlay(Capsule().strokeBorder(Color("PaletteInk"), lineWidth: 2))
+            )
             .accessibilityHidden(true)
     }
 }
 
-/// El latido de un botón listo. Sólo mientras está listo y sin Reduce Motion:
+/// El latido de lo que está listo. Sólo mientras lo está y sin Reduce Motion:
 /// nada de un `repeatForever` incondicional.
 private struct ReadyPulse: ViewModifier {
     let active: Bool
@@ -1314,9 +1522,9 @@ private struct RailShake: ViewModifier {
             view.offset(x: offset)
         } keyframes: { _ in
             KeyframeTrack {
-                CubicKeyframe(-6, duration: 0.06)
-                CubicKeyframe(6, duration: 0.06)
-                CubicKeyframe(-4, duration: 0.06)
+                CubicKeyframe(-5, duration: 0.06)
+                CubicKeyframe(5, duration: 0.06)
+                CubicKeyframe(-3, duration: 0.06)
                 CubicKeyframe(0, duration: 0.06)
             }
         }
@@ -1329,9 +1537,9 @@ private struct RailShake: ViewModifier {
 ```swift
 import SwiftUI
 
-/// La tarjeta que asoma al lado de un botón cuando lo que ofrece es un video:
-/// dice qué da ANTES del anuncio (política de AdMob: el video con premio es
-/// opt-in y el premio se conoce de antemano).
+/// La tarjeta que sale al lado de "Premios" cuando lo que se tocó ofrece un
+/// video: dice qué da ANTES del anuncio (política de AdMob: el video con premio
+/// es opt-in y el premio se conoce de antemano).
 struct SideRailOfferCard: View {
     let kind: SideRailKind
     let close: () -> Void
@@ -1396,6 +1604,9 @@ struct SideRailOfferCard: View {
 }
 ```
 
+(La tarjeta mide 220 pt y arranca 12 pt a la derecha de "Premios": en el SE termina en x ≈ 300,
+dentro de la pantalla; crece hacia arriba desde la base de "Premios".)
+
 `RootView.swift` 🔥:
 
 1. `@State private var railOffer: SideRailKind?` junto a los otros `@State`.
@@ -1417,9 +1628,11 @@ struct SideRailOfferCard: View {
 3. En `bottomBar`, después de `.tutorialAnchor(.bottomBar)`:
 
 ```swift
-        // La columna lateral (E7b) cuelga del borde de arriba de esta franja,
+        // La columna plegable (E7b) cuelga del borde de arriba de esta franja,
         // contra el borde izquierdo de la PANTALLA (esta franja mide el ancho
-        // entero también en iPad), y hereda su atenuación de celebraciones.
+        // entero también en iPad): el espejo de la botonera del ascensor, que
+        // cuelga del HUD contra el borde derecho. Hereda la atenuación de las
+        // celebraciones.
         .overlay(alignment: .topLeading) {
             SideRailView(offer: $railOffer)
                 .fixedSize()
@@ -1438,8 +1651,8 @@ del `body` y un `padding(.bottom:)` con el alto de la franja; se mide en el iPad
 `StageChips.swift`: se sacan `prizeChips` y su `.animation(…, value: gameState.prizeAccess)`; el
 `HStack` queda con lo de E4b. `PrizeChips.swift`: se borran `PackageChip`, `MattressChip`,
 `prizeChipBackground()` y `chipShake(_:)` si el Step 0 no les encontró otros usos (con ellos se van
-sus anclas `.sidePackages`/`.sideMattress`, que ahora pone la columna); `PackageGlyph` y
-`MattressGlyph` se quedan.
+sus anclas `.sidePackages`/`.sideMattress`, que ahora ponen los botones de la persiana);
+`PackageGlyph` y `MattressGlyph` se quedan.
 
 - [ ] **Step 6: Los textos**
 
@@ -1447,6 +1660,7 @@ sus anclas `.sidePackages`/`.sideMattress`, que ahora pone la columna); `Package
 
 ```json
 {
+  "siderail.toggle.ax": {"es": "Premios", "en": "Prizes"},
   "siderail.wheel.ax": {"es": "Ruleta", "en": "Wheel"},
   "siderail.mattress.ax": {"es": "El Colchón", "en": "The Mattress"},
   "siderail.packages.ax": {"es": "Paquetes de la Aduana", "en": "Customs packages"},
@@ -1462,17 +1676,25 @@ sus anclas `.sidePackages`/`.sideMattress`, que ahora pone la columna); `Package
 }
 ```
 
-Run: `Tools/v2/catalogo.py aplicar Tools/v2/claves-pendientes/e7b-b-t3.json` → `12 claves nuevas`.
+Run: `Tools/v2/catalogo.py aplicar Tools/v2/claves-pendientes/e7b-b-t3.json` → `13 claves nuevas`.
 
 - [ ] **Step 7: Verde, a mano y oráculo**
 
 Run: `/opt/homebrew/bin/xcodegen generate`; Receta R con `SideRailModelTests`,
 `SideRailProjectionTests`, `TutorialTipsTests`, `LocalizationCompletenessTests` → PASS; UI con
-`SideRailUITests`, `PrizesUITests`, `EconomyLoopUITests`, `WheelUITests` (E5b) → PASS en el 16
-Pro, y `SideRailUITests` en el SE y el iPad Pro 13" → PASS (en iPad el `maxX ≤ 64` también vale).
-A mano: el latido con Reduce Motion apagado y quieto con Reduce Motion prendido; la tarjeta de
-Fusionar todo sobre el tablero en el SE; un reveal apaga la columna con el resto del HUD.
-Capturas al reporte (SE, 16 Pro, iPad). `Tools/v2/oraculo.sh completo` → `VERDE`.
+`SideRailUITests`, `PrizesUITests`, `EconomyLoopUITests`, `ElevatorPanelUITests` (E3a T8),
+`WheelUITests` (E5b) → PASS en el 16 Pro, y `SideRailUITests` en el SE y el iPad Pro 13" → PASS.
+A mano, con capturas al reporte (SE, 16 Pro, iPad):
+
+1. la columna plegada al lado de la fila del atajo;
+2. desplegada, con la botonera del ascensor abierta al mismo tiempo (las dos hermanas, sin
+   cruzarse);
+3. la tarjeta de Fusionar todo;
+4. el latido de "Premios" con Reduce Motion apagado, y quieto con Reduce Motion prendido (la
+   persiana aparece con fundido);
+5. un reveal apaga la columna con el resto del HUD.
+
+`Tools/v2/oraculo.sh completo` → `VERDE`.
 
 - [ ] **Step 8: Commit**
 
@@ -1480,7 +1702,7 @@ Capturas al reporte (SE, 16 Pro, iPad). `Tools/v2/oraculo.sh completo` → `VERD
 git add FisuEvolution/UI/SideRail/SideRailView.swift
 git add FisuEvolution/UI/SideRail/SideRailOfferCard.swift
 git add FisuEvolution/UI/SideRail/SideRailGlyphs.swift
-git add FisuEvolution/UI/Art/PanelFrames.swift
+git add FisuEvolution/UI/HUD/ElevatorPanel.swift
 git add FisuEvolution/Game/State/GameState+SideRail.swift
 git add FisuEvolution/UI/Tutorial/TutorialAnchor.swift
 git add FisuEvolution/App/RootView.swift
@@ -1491,7 +1713,7 @@ git add FisuEvolutionUITests/EconomyLoopUITests.swift
 git add FisuEvolutionUITests/SideRailUITests.swift
 git add Tools/v2/claves-pendientes/e7b-b-t3.json
 git diff --cached --stat
-git commit -m "feat(columna): la columna lateral en pantalla — cuatro accesos con su «!», su reloj y la tarjeta de los videos"
+git commit -m "feat(columna): la columna plegable — «Premios» en reposo y la persiana de los cuatro, hermana de la botonera"
 ```
 
 (Si la ola la hace dueña del catálogo: `git add FisuEvolution/Resources/Localizable.xcstrings` y
@@ -1499,242 +1721,47 @@ sin el JSON.)
 
 ---
 
-### Task 4: 🔒 La multitud le deja lugar a la columna (opción A)
+### Task 4: La multitud le deja lugar a la columna — **salteada: el dueño eligió C**
 
-**Objetivo:** que la columna no tape personajes en iPhone. `PlayLayout` recibe la franja que
-ocupa la columna y, si hace falta, corre el campo a la derecha y achica la celda lo justo para que
-el arte más ancho de la primera columna de personajes termine antes de ella. En iPad no cambia
-nada (el campo centrado ya está lejos). Sin columna, el layout es el de siempre (el golden de
-iPhone sigue). **Si el dueño elige la opción B o C, esta tarea no se despacha.**
-
-**Files:**
-- Modify: `FisuEvolution/Scenes/PlayLayout.swift`
-- Modify: `FisuEvolution/Scenes/BoardScene.swift` 🔥 (`layoutBoard`, una línea)
-- Modify: `FisuEvolution/Game/State/GameState+SideRail.swift` (`boardLeadingReserve`; `bumpBoard` al cambiar la columna)
-- Modify: `FisuEvolutionTests/PlayLayoutTests.swift`, `FisuEvolutionTests/CrowdDepthTests.swift`
-- Modify: `FisuEvolutionUITests/AscentRenderingUITests.swift` (el espejo)
-
-**Interfaces:**
-- Consumes: T1 (`sideRail.isVisible`); T3 (`SideRailLayout.trailingEdge`, sólo en el test);
-  E3a T10 (`layout = PlayLayout(size:capacity:)` en `layoutBoard`); E6b T7 (la capacidad por
-  `slots.count`).
-- Produces: `PlayLayout.init(size:capacity:leadingReserve:)`, `static PlayLayout.sideRailReserve`
-  (64), `static PlayLayout.artOverhangRatio` (0,24); `GameState.boardLeadingReserve: CGFloat`.
-
-- [ ] **Step 0: La escena ya usa `PlayLayout`**
-
-Run: `grep -n "PlayLayout(size:" FisuEvolution/Scenes/BoardScene.swift`
-Expected: una línea en `layoutBoard` (E3a T10), con la capacidad que haya dejado E6b
-(`floorDef.capacity` o `slots.count`). Si no está, `NEEDS_CONTEXT`.
-
-- [ ] **Step 1: Los tests, en rojo**
-
-`PlayLayoutTests.swift`, sumar:
-
-```swift
-    /// Los teléfonos (el SE, el 16 Pro, el Pro Max y el más angosto que soporta la app).
-    static let phonesForTheRail: [CGSize] = [
-        CGSize(width: 320, height: 568),
-        CGSize(width: 375, height: 667),
-        CGSize(width: 402, height: 874),
-        CGSize(width: 440, height: 956),
-    ]
-
-    @Test("con la columna, el arte de la primera columna de personajes termina antes de ella",
-          arguments: phonesForTheRail)
-    func theCrowdClearsTheRail(size: CGSize) {
-        for capacity in [10, 15, 20] {
-            let layout = PlayLayout(size: size, capacity: capacity, leadingReserve: PlayLayout.sideRailReserve)
-            #expect(layout.fieldX - PlayLayout.artOverhangRatio * layout.cellSize >= PlayLayout.sideRailReserve - 0.001)
-            #expect(layout.fieldX + layout.fieldWidth <= size.width - PlayLayout.horizontalInset + 0.001)
-        }
-    }
-
-    @Test("en iPad la columna no cambia nada: el campo ya está lejos del borde")
-    func iPadIgnoresTheRail() {
-        for size in [CGSize(width: 744, height: 1133), CGSize(width: 1032, height: 1376)] {
-            for capacity in [10, 15, 20] {
-                #expect(PlayLayout(size: size, capacity: capacity, leadingReserve: PlayLayout.sideRailReserve)
-                        == PlayLayout(size: size, capacity: capacity))
-            }
-        }
-    }
-
-    @Test("sin columna, el iPhone sigue siendo el de siempre")
-    func noRailNoChange() {
-        for size in Self.phonesForTheRail {
-            #expect(PlayLayout(size: size, capacity: 15, leadingReserve: 0) == PlayLayout(size: size, capacity: 15))
-        }
-    }
-
-    @Test("lo que pierde la celda en iPhone, a la vista: menos de un 20 %")
-    func theCostIsBounded() {
-        for size in Self.phonesForTheRail {
-            let without = PlayLayout(size: size, capacity: 15).cellSize
-            let with = PlayLayout(size: size, capacity: 15, leadingReserve: PlayLayout.sideRailReserve).cellSize
-            #expect(with / without > 0.8, "\(size.width): \(with) contra \(without)")
-        }
-    }
-
-    @Test("la reserva cubre la columna con aire")
-    @MainActor
-    func theReserveCoversTheRail() {
-        #expect(SideRailLayout.trailingEdge + 4 <= PlayLayout.sideRailReserve)
-    }
-```
-
-`CrowdDepthTests.swift`: en `crowdNeverSinksBehindItsFloor` y
-`specialsSitBetweenTheFloorAndTheCrowd` (E3a T10), el layout se arma también con la columna:
-`for reserve in [0, PlayLayout.sideRailReserve]` alrededor del `for screen`, y
-`PlayLayout(size: screen, capacity: capacity, leadingReserve: reserve)`.
-
-- [ ] **Step 2: Verlos fallar**
-
-Run: Receta R con `-only-testing:FisuEvolutionTests/PlayLayoutTests -only-testing:FisuEvolutionTests/CrowdDepthTests`.
-Expected: no compila (`leadingReserve:`, `sideRailReserve`, `artOverhangRatio`).
-
-- [ ] **Step 3: `PlayLayout`**
-
-```swift
-    /// Lo que la columna lateral (E7b) ocupa contra el borde izquierdo, con
-    /// aire: `SideRailLayout.trailingEdge` (60) + 4.
-    static let sideRailReserve: CGFloat = 64
-    /// Cuánto asoma a la izquierda de su campo el arte del personaje más ancho,
-    /// en celdas, deambular incluido: medido en el spike S5 de E3a (en el SE,
-    /// con el campo en 16 pt, ese arte llega a x ≈ 0: 16 / 68,6 = 0,233).
-    static let artOverhangRatio: CGFloat = 0.24
-
-    /// `leadingReserve` es la franja izquierda que el campo no puede invadir
-    /// (la columna lateral). Con 0 el layout es el de siempre; con reserva, el
-    /// campo se corre y la celda se achica lo justo para que el arte de la
-    /// primera columna termine antes de ella. Si el campo centrado ya queda
-    /// lejos (iPad), no cambia nada.
-    init(size: CGSize, capacity: Int, leadingReserve: CGFloat = 0) {
-        let rows = Self.rows(forCapacity: capacity)
-        let columns = max(1, (capacity + rows - 1) / rows)
-        let reserve = max(0, leadingReserve)
-        let cell: CGFloat
-        let fieldX: CGFloat
-        if reserve > 0 {
-            let available = max(1, size.width - reserve - Self.horizontalInset)
-            cell = min(available / (CGFloat(columns) + Self.artOverhangRatio), Self.maxCellSize)
-            let centered = (size.width - CGFloat(columns) * cell) / 2
-            fieldX = max(centered, reserve + Self.artOverhangRatio * cell)
-        } else {
-            let available = max(1, size.width - Self.horizontalInset * 2)
-            cell = min(available / CGFloat(columns), Self.maxCellSize)
-            fieldX = (size.width - CGFloat(columns) * cell) / 2
-        }
-        self.rows = rows
-        self.columns = columns
-        self.cellSize = cell
-        self.fieldX = fieldX
-        self.textScale = size.width > Self.phoneMaxWidth ? Self.wideTextScale : 1
-        self.crowdTopRatio = Self.crowdTopRatio(rows: rows)
-    }
-```
-
-(Con reserva y un iPad, la celda topea en 112 y `centered` gana: es exactamente el layout sin
-reserva, que es lo que pinea `iPadIgnoresTheRail`.)
-
-`GameState+SideRail.swift`:
-
-```swift
-    // MARK: - El tablero
-
-    /// Lo que la escena le deja a la columna lateral (🔒 E7b, opción A): su
-    /// franja mientras se ve; nada durante el núcleo del tutorial.
-    var boardLeadingReserve: CGFloat {
-        sideRail.isVisible ? PlayLayout.sideRailReserve : 0
-    }
-```
-
-y en `refreshSideRail(now:)`, el final pasa a:
-
-```swift
-        let state = SideRailModel.state(input)
-        guard sideRail != state else { return }
-        let reflows = sideRail.isVisible != state.isVisible
-        sideRail = state
-        // La columna apareció o se fue: la multitud se reacomoda una vez.
-        if reflows { bumpBoard() }
-```
-
-`BoardScene.swift` 🔥, en `layoutBoard()`, la línea de E3a T10:
-
-```swift
-        layout = PlayLayout(size: size, capacity: <la capacidad que haya>, leadingReserve: gameState.boardLeadingReserve)
-```
-
-- [ ] **Step 4: El espejo de `AscentRenderingUITests`**
-
-En `slot(_:in:)`, la `x` sale del layout con la columna (los UI tests corren con
-`--uitest-skip-tutorial`, así que la columna se ve):
-
-```swift
-        // Espejo de `PlayLayout` con la columna lateral (E7b, 🔒 opción A): el
-        // campo deja `sideRailReserve` (64) a la izquierda más el arte que asoma
-        // (`artOverhangRatio`, 0,24 celdas). Copia a mano por lo mismo que el
-        // resto de este espejo: un test de UI no puede importar la app.
-        let reserve: CGFloat = 64
-        let overhang: CGFloat = 0.24
-        let cell = (width - reserve - 16) / (columns + overhang)
-        let fieldX = reserve + overhang * cell
-        let edgeInset = cell * 0.68
-        let colSpacing = (cell * columns - 2 * edgeInset) / columns
-        …
-        let x = fieldX + edgeInset + column * colSpacing + colSpacing / 2 + stagger
-```
-
-(El resto del espejo —el `bottomInset` y el techo de la franja que dejó E3a T10— no cambia.)
-
-- [ ] **Step 5: Verde, a mano y oráculo**
-
-Run: Receta R con `PlayLayoutTests`, `CrowdDepthTests`, `CrowdBandTests`, `RevealLayoutTests`,
-`BoardGestureTests`, `MergeTargetingTests` → PASS; UI con `AscentRenderingUITests`,
-`EconomyLoopUITests`, `BoardGestureUITests`, `SideRailUITests` → PASS en el 16 Pro; en el SE y el
-iPad Pro 13", `SideRailUITests` e `IPadLayoutUITests` → PASS. Capturas del SE, el 16 Pro y el Pro
-Max con 10 y 15 lugares (`--uitest-unlock-tower`), con una línea dibujada en x = 64 en el reporte:
-ningún personaje la cruza mientras deambula (mirar 10 s de cada uno). `Tools/v2/oraculo.sh completo`
-→ `VERDE`.
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add FisuEvolution/Scenes/PlayLayout.swift
-git add FisuEvolution/Scenes/BoardScene.swift
-git add FisuEvolution/Game/State/GameState+SideRail.swift
-git add FisuEvolutionTests/PlayLayoutTests.swift
-git add FisuEvolutionTests/CrowdDepthTests.swift
-git add FisuEvolutionUITests/AscentRenderingUITests.swift
-git diff --cached --stat
-git commit -m "feat(columna): la multitud le deja lugar a la columna lateral en iPhone"
-```
+Plegada, la columna no le pide lugar a la multitud. En reposo tapa ~44 × 44 pt; abierta,
+~94 × 112 pt por ≤ 3 s. El dueño aceptó eso a cambio de no achicar a los personajes (con A medían
+~17 % menos en iPhone). `PlayLayout`, `BoardScene`, `PlayLayoutTests`, `CrowdDepthTests` y el
+espejo de `AscentRenderingUITests` quedan como los deja E3a. El código de la opción A (la reserva
+de 64 pt y el arte que asoma 0,24 celdas) quedó en la historia de este archivo (commit `5968823`)
+por si algún día se reabre.
 
 ---
 
-### Task 5: Las lecciones de la columna
+### Task 5: Las lecciones de la columna — primero, abrirla
 
-**Objetivo:** que el tutorial señale la columna (PLAN-v2 E9: "cada épica publica su ancla y
-declara su lección"). Fusionar todo por video tiene su lección (`.mergeAllVideo`, ancla
-`.sideBoost`), y la de la ruleta (E5b T5) deja de mandar a Regalos y señala `.sideWheel`. Las
-lecciones de paquetes y colchón ya señalan `.sidePackages`/`.sideMattress`, que ahora pone la
-columna (T3).
+**Objetivo:** que el tutorial enseñe la columna plegada (PLAN-v2 E9: "cada épica publica su ancla
+y declara su lección").
+
+- **La primera lección es abrirla** (`.sideRail`): con algo listo, señala "Premios" ("¡Tenés
+  premios guardados! Tocá acá para abrir la columna") y se cumple al desplegarla.
+- **Las cuatro lecciones de los botones esperan a ésa.** Son `.packages`, `.mattress` y `.wheel`
+  (de E5b T5) y `.mergeAllVideo` (nueva) y señalan su botón adentro de la persiana.
+- **Mientras una de ellas está en pantalla, la persiana se abre sola y no se recoge**: si se
+  recogiera a los 3 s, el ancla de la lección desaparecería.
+- **La de la ruleta deja de mandar a Regalos.**
 
 **Files:**
 - Modify: `FisuEvolution/Game/State/GameState+TutorialTips.swift`
-- Modify: `FisuEvolution/Game/State/GameState+SideRail.swift` (las lecciones se cumplen al tocar)
+- Modify: `FisuEvolution/Game/State/GameState+SideRail.swift` (`sideRailOpened()`; las lecciones se cumplen al tocar)
+- Modify: `FisuEvolution/UI/SideRail/SideRailView.swift` ("Premios" avisa que se abrió; la persiana que espera a la lección)
 - Modify: `FisuEvolutionTests/TutorialTipsTests.swift`
-- Strings: `Tools/v2/claves-pendientes/e7b-b-t5.json` (2 claves)
+- Strings: `Tools/v2/claves-pendientes/e7b-b-t5.json` (3 claves)
 
 **Interfaces:**
-- Consumes: T3 (`.sideWheel`, `.sideBoost`, `sideRailTapped`); E5b T5 (`.wheel`, `.packages`,
-  `.mattress`).
-- Produces: `GameState.TutorialLesson.mergeAllVideo`; la lección `.wheel` con ancla `.sideWheel`.
+- Consumes: T3 (`.sideRail`, `.sideWheel`, `.sideBoost`, `sideRailTapped`, `SideRailView`);
+  E5b T5 (`.wheel`, `.packages`, `.mattress`); `GameState.tutorialTip` (`GameState.swift:349`,
+  observado), `tutorialTipCompleted(_:)`, `isLessonDone(_:)`.
+- Produces: `GameState.TutorialLesson.sideRail`, `.mergeAllVideo`; `GameState.sideRailOpened()`;
+  la lección `.wheel` con ancla `.sideWheel`.
 
 - [ ] **Step 0: Las lecciones de E5b**
 
-Run: `grep -n "case wheel\|case packages\|case mattress\|case .wheel" FisuEvolution/Game/State/GameState+TutorialTips.swift`
+Run: `grep -n "case wheel\|case packages\|case mattress\|case .wheel\|case .packages\|case .mattress" FisuEvolution/Game/State/GameState+TutorialTips.swift`
 Expected: los tres casos y sus ramas en los cuatro `switch` (`anchorTarget`, `destinationScreen`,
 `textKey`, `isEligible`).
 
@@ -1744,7 +1771,22 @@ Expected: los tres casos y sus ramas en los cuatro `switch` (`anchorTarget`, `de
 defaults y prende `tutorialLessonsAutorun`), sumar:
 
 ```swift
-    @Test("Fusionar todo por video se enseña con pares en el piso, señalando la columna")
+    @Test("con algo listo en la columna, la primera lección es abrirla, y abrirla la cumple")
+    func openTheRailFirst() async {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where lesson != .sideRail && lesson != .packages {
+            gameState.markLessonDone(lesson)
+        }
+        gameState.debugAddPackages(1)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .sideRail, "la de los paquetes espera a la de abrir la columna")
+        #expect(GameState.TutorialLesson.sideRail.anchorTarget == .sideRail)
+        gameState.sideRailOpened()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .packages, "abierta, ahora sí el botón de los paquetes")
+    }
+
+    @Test("Fusionar todo por video se enseña con pares en el piso, señalando su botón")
     func mergeAllVideoLesson() async {
         let gameState = await makeGameState()
         for lesson in GameState.TutorialLesson.allCases where lesson != .mergeAllVideo {
@@ -1767,73 +1809,134 @@ defaults y prende `tutorialLessonsAutorun`), sumar:
     }
 ```
 
-(Si el director de E5b/E9 pide un respiro entre lecciones, se avanza su reloj como lo hacen los
-tests de `.packages` de E5b T5 en el mismo archivo.)
+(Si el director pide un respiro entre lecciones, se avanza su reloj como lo hacen los tests de
+`.packages` de E5b T5 en el mismo archivo.)
 
 - [ ] **Step 2: Verlos fallar**
 
 Run: Receta R con `-only-testing:FisuEvolutionTests/TutorialTipsTests`.
-Expected: no compila (`.mergeAllVideo`).
+Expected: no compila (`.sideRail`, `.mergeAllVideo`, `sideRailOpened`).
 
 - [ ] **Step 3: Las lecciones**
 
 `GameState+TutorialTips.swift`:
 
-- `TutorialLesson`, después de `.wheel`:
+- `TutorialLesson`: `.sideRail` **justo antes de `.packages`** (el orden es la prioridad) y
+  `.mergeAllVideo` después de `.wheel`:
 
 ```swift
-        /// Fusionar todo por video, en la columna lateral (E7b): cuando hay
+        /// La columna plegable con algo listo: enseña a abrirla. Las de sus
+        /// cuatro botones la esperan (E7b).
+        case sideRail
+```
+
+```swift
+        /// Fusionar todo por video, adentro de la columna (E7b): cuando hay
         /// pares en el piso a la vista.
         case mergeAllVideo
 ```
 
-- `anchorTarget`: `case .mergeAllVideo: .sideBoost`, y `.wheel` pasa a `.sideWheel`.
-- `destinationScreen`: `.mergeAllVideo` y `.wheel` en la fila de `nil` (la ruleta ya no manda a
-  Regalos).
-- `textKey`: `case .mergeAllVideo: "tutorial.tip.merge_all_video"`, y `.wheel` pasa a
+- `anchorTarget`: `case .sideRail: .sideRail`, `case .mergeAllVideo: .sideBoost`, y `.wheel` pasa a
+  `.sideWheel`.
+- `destinationScreen`: `.sideRail`, `.mergeAllVideo` y `.wheel` en la fila de `nil` (la ruleta ya
+  no manda a Regalos).
+- `textKey`: `case .sideRail: "tutorial.tip.side_rail"`,
+  `case .mergeAllVideo: "tutorial.tip.merge_all_video"`, y `.wheel` pasa a
   `"tutorial.tip.wheel.rail"`.
-- `isEligible`:
+- `isEligible` (las de E5b conservan su condición y suman la espera):
 
 ```swift
-        case .mergeAllVideo:
-            sideRail.status(of: .boost) == .ready(count: nil)
+        case .sideRail:
+            sideRail.readyCount > 0
+        case .packages:
+            isLessonDone(.sideRail) && prizeAccess.packagesWaiting > 0 && !prizeAccess.packagesBlocked
+        case .mattress:
+            isLessonDone(.sideRail) && prizeAccess.mattressReady
         case .wheel:
-            prizeAccess.wheelSpinsReady > 0
+            // Ya no espera a la de Regalos: no la señala.
+            isLessonDone(.sideRail) && prizeAccess.wheelSpinsReady > 0
+        case .mergeAllVideo:
+            isLessonDone(.sideRail) && sideRail.status(of: .boost) == .ready(count: nil)
 ```
 
-(La de la ruleta deja de esperar a la de Regalos: ya no la señala.)
+`GameState+SideRail.swift`:
 
-`GameState+SideRail.swift`, en `sideRailTapped(_:)`: la rama `.wheel` arranca con
-`tutorialTipCompleted(.wheel)` y la rama `.boost` con `tutorialTipCompleted(.mergeAllVideo)`
-(paquetes y colchón ya la cumplen adentro de `packageTapped()`/`mattressTapped()`, E5b T5).
+```swift
+    /// El jugador desplegó la columna: la lección de abrirla está cumplida.
+    func sideRailOpened() {
+        tutorialTipCompleted(.sideRail)
+    }
+```
+
+y en `sideRailTapped(_:)`, la rama `.wheel` arranca con `tutorialTipCompleted(.wheel)` y la rama
+`.boost` con `tutorialTipCompleted(.mergeAllVideo)` (paquetes y colchón ya la cumplen adentro de
+`packageTapped()` y `mattressTapped()`, E5b T5).
+
+`SideRailView.swift`:
+
+1. En la acción de "Premios", la rama que despliega avisa: `else { unfold(); gameState.sideRailOpened() }`.
+2. La persiana que espera a la lección:
+
+```swift
+    /// Una lección señala un botón de la persiana: tiene que estar abierta para
+    /// que el ancla exista, y no se recoge mientras la lección esté en pantalla.
+    private var lessonHoldsOpen: Bool {
+        guard let target = gameState.tutorialTip?.lesson.anchorTarget else { return false }
+        return SideRailKind.allCases.contains { $0.tutorialTarget == target }
+    }
+```
+
+   En `column(_:)`, sobre el `VStack`:
+
+```swift
+        .onChange(of: lessonHoldsOpen, initial: true) { _, holds in
+            if holds {
+                unfold()
+            } else {
+                // Terminó la lección: desde acá, los 3 s de siempre.
+                activity &+= 1
+            }
+        }
+```
+
+   y en el `.task(id: activity)`, la guarda después del `sleep` pasa a
+   `guard !Task.isCancelled, !lessonHoldsOpen else { return }`.
 
 `Tools/v2/claves-pendientes/e7b-b-t5.json`:
 
 ```json
 {
+  "tutorial.tip.side_rail": {"es": "¡Tenés premios guardados! Tocá acá para abrir la columna.", "en": "You've got prizes waiting! Tap here to open the column."},
   "tutorial.tip.merge_all_video": {"es": "¿Muchos repetidos? Tocá acá: con un video se fusiona todo el piso de una.", "en": "Lots of duplicates? Tap here: one video merges the whole floor at once."},
-  "tutorial.tip.wheel.rail": {"es": "¡Tenés giros de la Ruleta! Tocala acá, en la columna.", "en": "You've got Wheel spins! Tap it here, on the side."}
+  "tutorial.tip.wheel.rail": {"es": "¡Tenés giros de la Ruleta! Están acá, en la columna.", "en": "You've got Wheel spins! They're right here, in the column."}
 }
 ```
 
 (La clave vieja `tutorial.tip.wheel` queda sin uso: la saca E9 cuando reescriba los textos de las
 lecciones, o el controlador con la herramienta del catálogo. Anotarla en el reporte.)
 
-- [ ] **Step 4: Verde y oráculo**
+- [ ] **Step 4: Verde, a mano y oráculo**
 
 Run: Receta R con `TutorialTipsTests`, `SideRailProjectionTests`, `LocalizationCompletenessTests`
-→ PASS; UI con `TutorialUITests` → PASS (con `--uitest*` las lecciones no corren solas).
-`Tools/v2/oraculo.sh rapido` → `VERDE`.
+→ PASS; UI con `TutorialUITests` y `SideRailUITests` → PASS (con `--uitest*` las lecciones no
+corren solas). A mano, sin flags y con una partida nueva, después del núcleo:
+
+1. con un premio listo, el tip señala "Premios";
+2. al tocarlo se despliega la persiana, y el tip siguiente señala el botón que corresponde;
+3. la persiana no se recoge mientras ese tip está arriba, y a los 3 s de cumplirlo, sí.
+
+Capturas al reporte. `Tools/v2/oraculo.sh completo` → `VERDE`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
 git add FisuEvolution/Game/State/GameState+TutorialTips.swift
 git add FisuEvolution/Game/State/GameState+SideRail.swift
+git add FisuEvolution/UI/SideRail/SideRailView.swift
 git add FisuEvolutionTests/TutorialTipsTests.swift
 git add Tools/v2/claves-pendientes/e7b-b-t5.json
 git diff --cached --stat
-git commit -m "feat(columna): las lecciones señalan la columna — Fusionar todo por video y la ruleta"
+git commit -m "feat(columna): las lecciones enseñan a abrir la columna, y la persiana espera a la lección"
 ```
 
 ---
@@ -2320,54 +2423,80 @@ git commit -m "feat(anuncios): el botón de video precarga y espera, y el mapa d
 
 - [ ] **Step 1: Oráculo, capturas y escenarios**
 
-`Tools/v2/oraculo.sh completo` sobre la punta de la épica → `VERDE`. Capturas al reporte: la
-columna en el SE, el 16 Pro, el Pro Max y el iPad 13", con 10 y 15 lugares; la tarjeta de
-Fusionar todo; el diario con su ×2; el fork con sus ×2. Escenarios de PLAN-v2 §8: "15 lugares en el
-SE sin pisar el HUD ni las columnas"; "Fusionar todo con un tier nuevo en el medio, que se
-celebra" (ahora también por video, desde la columna).
+`Tools/v2/oraculo.sh completo` sobre la punta de la épica → `VERDE`. Capturas al reporte:
+
+- la columna plegada y desplegada en el SE, el 16 Pro, el Pro Max y el iPad 13", con 10 y 15
+  lugares;
+- la columna abierta junto a la botonera del ascensor abierta;
+- la tarjeta de Fusionar todo;
+- el diario con su ×2 y el fork con sus ×2.
+
+Escenarios de PLAN-v2 §8:
+
+- "15 lugares en el SE sin pisar el HUD ni las columnas". Con la plegable, "Premios" tapa ~20 pt
+  del personaje de la celda 0, como aceptó el dueño, y la persiana tapa la multitud ≤ 3 s.
+- "Fusionar todo con un tier nuevo en el medio, que se celebra". Ahora también por video, desde la
+  columna.
 
 - [ ] **Step 2: Documentación (controlador)**
 
-1. `Docs/SESION-<fecha>-v2-e7b.md` (la de E7b-a, ampliada): la tabla por tarea de E7b-b, la opción
-   del 🔒 que rige y lo medido (la celda y el corrimiento en cada iPhone).
+1. `Docs/SESION-<fecha>-v2-e7b.md` (la de E7b-a, ampliada): la tabla por tarea de E7b-b, la
+   decisión del 🔒 (C, la plegable) con lo medido en el SE (dónde cae "Premios" y cuánto tapa la
+   persiana abierta).
 2. `Docs/HANDOFF.md`:
-   - **§4**: "E7b-b — la columna lateral": lee `sideRail`, toca por las puertas de E5, sus dos
-     videos, los chips de premios que se fueron, la reserva de `PlayLayout` (o la opción que haya
-     elegido el dueño), el diario y la carrera ×2, el botón con precarga, el mapa pineado.
-   - **§5**: la decisión del 🔒 (A, B o C) y los defaults que el dueño no cambió.
-   - **§7** (trampas nuevas): "un lugar de video nuevo tiene que decir su unidad y sumar su fila a
-     `AdPlacementMapTests`"; "la columna cuelga de la franja de abajo: si esa franja deja de medir el
-     ancho de la pantalla, en iPad la columna se va al medio"; "el espejo de `AscentRenderingUITests`
-     copia la reserva de la columna"; "la proyección de la columna cambia a lo sumo una vez por
-     segundo: no publicar segundos con decimales"; las que aparezcan.
+   - **§4**: "E7b-b — la columna plegable". Lee `sideRail` y toca por las puertas de E5. Hereda la
+     placa de metal, el LED y la persiana de la botonera. Suma sus dos videos, saca los chips de
+     premios, y trae el diario y la carrera ×2, el botón con precarga y el mapa pineado.
+   - **§5**: el dueño eligió la columna plegable (C), con el porqué; los defaults que no cambió.
+   - **§7** (trampas nuevas):
+     - "un lugar de video nuevo tiene que decir su unidad y sumar su fila a `AdPlacementMapTests`";
+     - "la columna cuelga de la franja de abajo: si esa franja deja de medir el ancho de la
+       pantalla, en iPad la columna se va al medio";
+     - "la persiana no se recoge mientras una lección señala uno de sus botones: si se recogiera,
+       el ancla desaparece";
+     - "la proyección de la columna cambia a lo sumo una vez por segundo: no publicar segundos con
+       decimales";
+     - las que aparezcan.
    - **§9**: los dos planes y la sesión.
-3. `Docs/PLAN-v2.md`: E7 marcada hecha, con los desvíos que el dueño confirmó.
+3. `Docs/PLAN-v2.md`: E7 marcada hecha, con el desvío de la columna ("plegable, decisión del
+   dueño") y los demás que el dueño confirmó.
 
 ---
 
 ## Lo que E7b le deja a otras épicas
 
-- **E9 (tutorial v2):** las anclas `.sideWheel`, `.sideMattress`, `.sidePackages` y `.sideBoost`
-  viven en la columna; las lecciones `.packages`, `.mattress`, `.wheel` y `.mergeAllVideo` para
-  migrar a su currículo y registrar en `TutorialCoverageTests` (más la pausa publicitaria, que se
-  explica sola en su pantalla previa). El Tour de veteranos tiene su paso de "columna lateral". La
-  clave vieja `tutorial.tip.wheel` quedó sin uso. **UMP ya está en Ajustes** (E7b-a T5): E9 no la
-  rehace. El reset de partida **no** toca `ads.pacing` (`UserDefaults`, preferencia del
-  dispositivo); sí borra los enfriamientos de la columna y el ×2 del diario (`rewardedActivations`,
-  en el save).
-- **E2b (calibración):** fuentes nuevas para el perfil `.ads` del simulador: Fusionar todo por
-  video (cada 10 min, con pares), la lluvia de paquetes (cada 30 min), la pausa publicitaria (10 min
-  de producción / ×2 por 5 min / un Paquete, cada ~4 min de cortes con alternancia 1:1), el diario
-  ×2 y la carrera ×2. Las perillas: `rewarded_ads.json` (`sideRail`, `adBreak`) y la cadencia de
-  `ads.json`. Con el 🔒 A los personajes de iPhone son ~17 % más chicos: no cambia el pacing.
-- **E10 (release):** notas a App Review con todos los lugares de anuncios: los forzados sólo en
-  cortes naturales (cerrar el menú, cerrar el popup offline, reencarnar, el fin de una celebración
-  grande), la pausa con su pantalla previa de 5 s y "No, gracias", el app open al volver tras
-  ≥ 3 min (1 cada 20 min, desde el segundo arranque), y los videos opt-in de la columna, el diario y
-  la carrera; App Privacy con la tabla de los SDK (E7b-a T6); publicar `config/ads.json`; las
-  unidades nuevas de AdMob y prender `switches.appOpen`; las capturas muestran la columna.
-- **E8 (arte):** la clave `siderail_boost` del atlas `ui` (el glifo de Fusionar todo); la placa de
-  la columna es por código (`WoodPlate`).
+- **E9 (tutorial v2):**
+  - Anclas: `.sideRail` es "Premios"; `.sideWheel`, `.sideMattress`, `.sidePackages` y `.sideBoost`
+    son los botones de la persiana.
+  - Lecciones para migrar a su currículo y registrar en `TutorialCoverageTests`: `.sideRail` (abrir
+    la columna), y `.packages`, `.mattress`, `.wheel` y `.mergeAllVideo`, que esperan a la primera.
+    La pausa publicitaria no lleva lección: se explica sola en su pantalla previa.
+  - El Tour de veteranos tiene su paso de "columna plegable": tocar "Premios".
+  - La clave vieja `tutorial.tip.wheel` quedó sin uso.
+  - **UMP ya está en Ajustes** (E7b-a T5): E9 no la rehace.
+  - El reset de partida **no** toca `ads.pacing` (`UserDefaults`, preferencia del dispositivo); sí
+    borra los enfriamientos de la columna y el ×2 del diario (`rewardedActivations`, en el save).
+- **E2b (calibración):**
+  - Fuentes nuevas para el perfil `.ads` del simulador: Fusionar todo por video (cada 10 min, con
+    pares), la lluvia de paquetes (cada 30 min), la pausa publicitaria (10 min de producción / ×2
+    por 5 min / un Paquete, cada ~4 min de cortes con alternancia 1:1), el diario ×2 y la carrera
+    ×2.
+  - Las perillas: `rewarded_ads.json` (`sideRail`, `adBreak`) y la cadencia de `ads.json`.
+  - El tablero no cambia de tamaño: la columna plegable no toca `PlayLayout`.
+- **E10 (release):**
+  - Notas a App Review con todos los lugares de anuncios:
+    - los forzados, sólo en cortes naturales: cerrar el menú, cerrar el popup offline, reencarnar,
+      el fin de una celebración grande;
+    - la pausa con su pantalla previa de 5 s y "No, gracias";
+    - el app open al volver tras ≥ 3 min (1 cada 20 min, desde el segundo arranque);
+    - los videos opt-in de la columna (detrás de "Premios"), del diario y de la carrera.
+  - App Privacy con la tabla de los SDK (E7b-a T6).
+  - Publicar `config/ads.json`; crear las unidades nuevas de AdMob y prender `switches.appOpen`.
+  - Las capturas muestran "Premios" (plegada).
+- **E8 (arte):**
+  - Las claves del atlas `ui`: `siderail_prizes` ("Premios"; mientras tanto, el regalo vectorial de
+    la pestaña) y `siderail_boost` (el glifo de Fusionar todo).
+  - La placa es la `MetalPlate` de la botonera, por código.
 - **E11:** ninguna notificación nueva (guía 4.5.4: nada de anuncios ni ofertas).
 
 ## Para el dueño / dudas
@@ -2375,33 +2504,49 @@ celebra" (ahora también por video, desde la columna).
 Las de E7b-a siguen en pie. Éstas son de E7b-b; **ninguna frena**: la ejecución sigue con el
 default.
 
-1. 🔒 **La columna pisa la multitud en todo iPhone.** Ver la tabla del principio. **Default: A**
-   (la reserva en `PlayLayout`, T4): los personajes de iPhone pasan a medir ~83 % de lo de hoy y la
-   multitud se corre a la derecha; el iPad no cambia. **B** = saltear T4 (la columna tapa 15–56 pt
-   de la primera columna de personajes). **C** = columna plegable espejo de la botonera (T3 cambia
-   su contenedor por un botón "Premios" que despliega los cuatro 3 s; se saltea T4). Nada más del
-   plan depende de la elección.
-2. **"Boost por video" es Fusionar todo.** PLAN-v2 §2 llama a Fusionar todo "Boost por video o
-   por ORO", y E2a le deja el video a E7b. Los boosts con enfriamiento de Regalos ("boost sin
-   esperar") siguen en Regalos. **Default:** el cuarto botón es Fusionar todo por video, cada
-   10 min, sólo con pares en el piso a la vista.
-3. **La lluvia de paquetes por video la ofrece Paquetes** cuando no hay ninguno esperando (cada
-   30 min; con el buzón lleno o un piquete, no). Nadie la ofrecía y el mapa de E7 la nombra.
-   **Default:** así.
-4. **Los chips de premios de `StageChips` se van.** La columna es el acceso al paquete y al
-   colchón (más sus cajas en el tablero, E5b T3). **Default:** se borran; si el dueño elige no
-   tener columna en iPhone, vuelven en un commit.
-5. **La columna cuelga arriba de la fila del atajo**, no centrada en el alto: arriba quedan el HUD,
-   la barra de bonus, los chips del escenario y el de la oferta. En el SE le quedan ~5 pt contra el
-   chip de la oferta si las tres filas de arriba están a la vez; si se pisan, los botones bajan de
-   48 a 44 pt. **Default:** 48 pt, medido en T3.
-6. **Un video de la columna se ofrece en una tarjeta, no al primer toque** (política de AdMob: el
-   premio dicho antes del anuncio). **Default:** así.
-7. **El diario ×2 sólo duplica la plata**, una vez por día; el special y el cofre del día 7 no.
-   **Default:** así.
-8. **La carrera ×2 se elige desde el fork**: un botón aparte debajo de las carreras con premio de
-   una vez (Abogado, Médico). El Programador y la pinta no tienen ×2. **Default:** así.
-9. **`RewardedOfferButton` pierde el default `.visitor`.** Cada lugar dice su unidad y el
-   contrato del mapa lo pinea. **Default:** así.
-10. **Los relojes de Paquetes y Colchón son de juego activo** (los de E5a): corren mientras se
+1. **La columna: decidido, C (plegable)**. Ver "Decidido por el dueño" al principio. T4 quedó
+   salteada y `PlayLayout` intacto.
+2. **El "!" de "Premios" cuenta los accesos listos**, de 0 a 4, y la ruleta cuenta. Con 6 giros
+   por día, la ruleta está lista casi todo el día, así que el "!" queda prendido casi siempre. Es
+   el mismo problema que E5b evitó con el puntito de Regalos (su duda 5).
+   **Default:** cuenta; con la columna plegada, el número igual dice "hay algo adentro".
+   **Alternativa:** que la ruleta cuente sólo con giros regalados. Para eso `PrizeAccess` tiene que
+   separar los regalados de los de video (E5b T2).
+3. **La persiana se recoge a los 3 s, la botonera a los 2.** Lo de la columna lo pidió el dueño;
+   la botonera no se toca. **Default:** cada una con el suyo.
+4. **Las dos hermanas abiertas a la vez no se cruzan**: la botonera está arriba a la derecha y la
+   columna abajo a la izquierda, en todo iPhone y en iPad. Abrir una no cierra la otra, y cada una
+   se recoge con su reloj. **Default:** independientes.
+5. **"Premios" tapa en reposo ~20 pt del personaje de la celda 0** (la parte de abajo a la
+   izquierda; en el SE su arte arranca en x ≈ 35 y el botón termina en 56), y un toque ahí lo toma
+   el botón. No choca con ningún control: el atajo queda 10 pt abajo, los toasts ~260 pt arriba, y
+   las cajas del Paquete a ≥ 72 pt del borde. **Default:** así (es el costo que el dueño aceptó).
+6. **Abierta, la persiana tapa ~94 × 112 pt de la multitud por ≤ 3 s.** Puede tapar una caja del
+   Paquete parada en su borde, o un toast ancho (el toast queda encima). **Default:** así, como la
+   botonera abierta tapa las filas de atrás (S6).
+7. **La persiana sólo se abre al tocar "Premios"**, o cuando una lección señala uno de sus botones
+   (y entonces espera a que la lección termine). Nunca por un "!" nuevo: abrirse sola taparía la
+   multitud sin que nadie lo pidiera. **Default:** así.
+8. **La tarjeta de un video sale al lado de "Premios", con la persiana recogida** ("tocar uno la
+   recoge"); la cierran la X, el video o un toque al tablero. **Default:** así.
+9. **Las lecciones de los cuatro botones esperan a la de abrir la columna.** **Default:** así; la
+   de la ruleta deja de pasar por Regalos.
+10. **Material de metal, no de madera.** La columna es maquinaria del HUD y hermana de la botonera
+    (FisuJobs manda en paneles y tarjetas; el metal, en la maquinaria). **Default:** `MetalPlate`.
+11. **"Boost por video" es Fusionar todo.** PLAN-v2 §2 llama a Fusionar todo "Boost por video o
+    por ORO", y E2a le deja el video a E7b. Los boosts con enfriamiento de Regalos ("boost sin
+    esperar") siguen en Regalos. **Default:** el cuarto botón es Fusionar todo por video, cada
+    10 min, sólo con pares en el piso a la vista.
+12. **La lluvia de paquetes por video la ofrece Paquetes** cuando no hay ninguno esperando (cada
+    30 min; con el buzón lleno o un piquete, no). Nadie la ofrecía y el mapa de E7 la nombra.
+    **Default:** así.
+13. **Los chips de premios de `StageChips` se van.** La columna es el acceso al paquete y al
+    colchón (más sus cajas en el tablero, E5b T3). **Default:** se borran.
+14. **El diario ×2 sólo duplica la plata**, una vez por día; el special y el cofre del día 7 no.
+    **Default:** así.
+15. **La carrera ×2 se elige desde el fork**: un botón aparte debajo de las carreras con premio de
+    una vez (Abogado, Médico). El Programador y la pinta no tienen ×2. **Default:** así.
+16. **`RewardedOfferButton` pierde el default `.visitor`.** Cada lugar dice su unidad y el
+    contrato del mapa lo pinea. **Default:** así.
+17. **Los relojes de Paquetes y Colchón son de juego activo** (los de E5a): corren mientras se
     juega, no con la app cerrada. **Default:** así; el de la ruleta es de reloj (la medianoche).

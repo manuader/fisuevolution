@@ -262,42 +262,10 @@ extension View {
 /// juego a un blanco pelado (medido: gris 240 donde las demás hojas muestran
 /// el juego). Las cinco pantallas empujadas —las cuatro del menú y los
 /// legales— eran las únicas de la app que no flotaban.
-///
-/// En iOS 18 esto lo dice la API; en 17 el placement `.navigation` no existe,
-/// así que una sonda UIKit limpia el fondo del view controller del destino.
 extension View {
     /// Aplicar sobre el CONTENIDO de un `navigationDestination`.
-    @ViewBuilder
     func clearNavigationBackdrop() -> some View {
-        if #available(iOS 18.0, *) {
-            containerBackground(.clear, for: .navigation)
-        } else {
-            background(LegacyClearNavigationBackdrop())
-        }
-    }
-}
-
-/// La sonda de iOS 17: sube por la cadena de responders hasta el PRIMER view
-/// controller —el hosting del destino empujado, dueño del `systemBackground`—
-/// y le limpia el fondo. No sigue más arriba: el navigation controller y la
-/// hoja ya son transparentes, y tocarlos sería pintar de más.
-private struct LegacyClearNavigationBackdrop: UIViewRepresentable {
-    func makeUIView(context: Context) -> ProbeView { ProbeView() }
-    func updateUIView(_ view: ProbeView, context: Context) {}
-
-    final class ProbeView: UIView {
-        override func didMoveToWindow() {
-            super.didMoveToWindow()
-            guard window != nil else { return }
-            var responder: UIResponder? = next
-            while let current = responder {
-                if let controller = current as? UIViewController {
-                    controller.view.backgroundColor = .clear
-                    return
-                }
-                responder = current.next
-            }
-        }
+        containerBackground(.clear, for: .navigation)
     }
 }
 

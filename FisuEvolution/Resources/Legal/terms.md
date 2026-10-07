@@ -1,6 +1,6 @@
 # Términos de Servicio — FisuEvolution
 
-_Última actualización: 16 de agosto de 2026_
+_Última actualización: 6 de octubre de 2026_
 
 **Resumen honesto: es un juego. Es gratis. Si comprás algo, lo cobra Apple y
 lo que comprás son objetos de un juego, no plata de verdad.**
@@ -74,10 +74,20 @@ anuncios" y skins (no consumibles, se compran una sola vez).
 
 ## 4. Anuncios
 
-Si la versión instalada muestra anuncios recompensados, mirarlos es siempre
-**opcional**: sirven para conseguir bonus temporales y nunca son obligatorios
-para avanzar. Podés eliminarlos con la compra "Sin anuncios". El tratamiento
-de datos de los anuncios está explicado en la Política de Privacidad.
+El Juego muestra anuncios de dos clases:
+
+- **Videos con recompensa.** Mirarlos es siempre **opcional**: los elegís vos
+  a cambio de un premio dentro del Juego, nunca se reproducen solos y nunca
+  son obligatorios para avanzar.
+- **Anuncios que aparecen solos**, que pueden ser: los de pantalla completa
+  entre partes del Juego, la pausa publicitaria (que siempre podés rechazar)
+  y el que aparece al volver a la app.
+
+La compra "Sin anuncios" —y el pack inicial, que la incluye— elimina los
+anuncios que aparecen solos. **Los videos con recompensa siguen
+disponibles**: son opcionales y entregan premios, y la compra no los saca ni
+los reemplaza. El tratamiento de datos de los anuncios está explicado en la
+Política de Privacidad.
 
 ## 5. Contenido y conducta
 
@@ -150,7 +160,7 @@ Cualquier consulta, reclamo o pedido: **adermanu@gmail.com**
 
 # Terms of Service — FisuEvolution (English)
 
-_Last updated: 16 August 2026_
+_Last updated: 6 October 2026_
 
 **Honest summary: it's a game. It's free. If you buy something, Apple charges
 you, and what you get are game items, not real money.**
@@ -220,10 +230,19 @@ skins (non-consumables, bought once).
 
 ## 4. Ads
 
-If the installed version shows rewarded ads, watching them is always
-**optional**: they grant temporary bonuses and are never required to
-progress. You can remove them with the "No ads" purchase. How ad data is
-handled is explained in the Privacy Policy.
+The Game shows two kinds of ads:
+
+- **Rewarded videos.** Watching them is always **optional**: you choose to
+  watch one in exchange for an in-game prize; they never play on their own
+  and are never required to progress.
+- **Ads that appear on their own**, which may be: full-screen ads between
+  parts of the Game, the ad break (which you can always decline) and the ad
+  shown when you return to the app.
+
+The "No ads" purchase — and the starter pack, which includes it — removes
+the ads that appear on their own. **Rewarded videos stay available**: they
+are optional and pay out prizes, and the purchase neither removes nor
+replaces them. How ad data is handled is explained in the Privacy Policy.
 
 ## 5. Content and conduct
 

@@ -18,9 +18,12 @@
 > 🧪 **Se verifica con `Tools/v2/oraculo.sh rapido|completo`** (§6), y los
 > agentes en paralelo se lanzan con `Agent(isolation: "worktree")` (PLAN-v2
 > §0.1; §7 explica por qué cualquier otra forma choca con el guard). Al
-> 2026-10-06 (relevo 3): E0, E10 en papel, E8 pipeline, E8 audio, E7a y la
-> parte de idioma de E3 están en `version-2`, el `completo` sobre `6b5e408`
-> da VERDE, y E1 arrancó en la Ola A (§4).
+> 2026-10-07 (relevo 4): en `version-2` están E0, E10 en papel, E8 pipeline,
+> E8 audio, E7a y la parte de idioma de E3, y además la ola B: E1 T1–T4, E11
+> T1–T2 y E3a T1 y T3, integradas en `5a65335` con el `rapido` VERDE (EK 317 ·
+> unit 593 + 1 declarado). Hay planes escritos para E1, E11, E3a/E3b, E2a y
+> E4a/E4b. Lo que sigue es E11 T3 y la ola C (§4). El estado fino de cada
+> épica vive en su ledger, `version-2/.superpowers/sdd/<plan>/progress.md`.
 >
 > ✅ **EL REDISEÑO DE UI ESTÁ COMPLETO Y MERGEADO** — 20 de 20 tareas
 > (`feature/rediseno-ui-cowevolution`, cerrado el 2026-08-16). El estado tarea
@@ -179,6 +182,8 @@ gates humanos, nada técnico.
   hacés igual, commiteá después el reformateo de Xcode (pasó, ver `13def46`).
   **Salvo que el script escriba el formato canónico**: se puede, y la receta
   —con la forma de verificarla antes de escribir nada— está en la trampa 29.
+  Desde 2026-10-07 lo hace `Tools/v2/catalogo.py` (`verificar` y `aplicar`,
+  §9).
 - **Accessibility identifier** en todo control interactivo.
 - **Commits en español**, atómicos.
 - Convenciones de concurrencia: `Docs/concurrency-conventions.md`. Resumen: el
@@ -290,6 +295,36 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-07 (relevo 4) — La ola B: la frontera, el save v6, el núcleo de E11 y los spikes de la pantalla
+
+Entró la ola B, integrada en `version-2` en `5a65335` con merges `--no-ff` de
+las tres épicas, sin conflictos:
+
+- E1 T3, un solo mutador de la frontera y contadores `Double` (`111bbfb`);
+- E1 T4, el save v6 con `EngagementState` (`76a69c1`);
+- E11 T1, el planificador puro (`508a4c5`), y T2, `notifications.json`
+  (`9c5847c`);
+- E3a T1, `Tools/v2/catalogo.py` (`f542b16`), y T3, `PlayLayout` (`f03950c`).
+
+Cada tarea pasó la revisión de spec y calidad con 0 críticos o importantes. El
+`rapido` sobre `5a65335` da **VERDE, EK 317 · unit 593 + 1 declarado**, exacto
+con la suma de las tareas (§6). El pipeline ya no tiene rojo declarado
+(`af3acde`). De la ola B queda E11 T3.
+
+**Los spikes de E3a (T2, sin commits) cambian cuatro tareas, y el plan todavía
+dice lo viejo:**
+
+- las hojas de iPad van por `fullScreenCover` (T6);
+- las safe areas se leen con un centinela en la ventana (T4);
+- `crowdTopRatio` de 3 filas baja de 0,70 a 0,63 (T3 ya integrada, y T10);
+- los botones de la botonera pasan a 30 pt (T8).
+
+Salieron los planes de E2a (15 tareas) y de E4, partido en E4a (el motor, 10)
+y E4b (la escena y el Álbum, 10). Hay dos 🔒 nuevos para el dueño: el `||` de
+`SaveConflictResolver` sobre la reconstrucción del ORO, y la columna de E7b,
+que pisa la multitud en todo iPhone. Detalle en
+**`Docs/SESION-2026-10-07-v2-relevo-4-ola-b.md`**.
 
 ### Sesión del 2026-10-06 (noche, relevo 3) — Los cuatro frentes integrados, la línea de base nueva y la Ola A
 
@@ -1778,12 +1813,11 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
   `PacingTests` en unit. Sus "13 reencarnaciones" son las de la partida hasta
   Dios con el bot de hoy (§7, plan de la 2.0), no las 9 del rojo declarado,
   que cuenta hasta maxear las siete líneas.
-- Rojos declarados hoy: `unit theOwnersTargetsAreMet` (lo reemplaza el
-  contrato nuevo de E2b) y `pipeline
-  test_ningun_asset_quedo_agujereado_por_dentro`, que **ya pasa** desde E8
-  pipeline y sigue en la lista porque el clasificador del modo auto no dejó
-  editarla (§7, integración). `rojos.py` tolera un declarado que pasa. **La
-  saca el dueño.**
+- Rojo declarado hoy, uno solo: `unit theOwnersTargetsAreMet` (lo reemplaza
+  el contrato nuevo de E2b). La línea del pipeline
+  `test_ningun_asset_quedo_agujereado_por_dentro`, que pasaba desde E8, salió
+  en `af3acde` (2026-10-07, relevo 4): **el pipeline ya no tiene rojo
+  declarado**, así que cualquier rojo suyo es nuevo.
 
 **Línea de base: el `completo` sobre `6b5e408`** (2026-10-06, relevo 3, con los
 cuatro frentes integrados), contra la de E0:
@@ -1804,6 +1838,20 @@ audio) + 13 (E3) = 570. Un número distinto después de integrar es un test
 perdido o duplicado. Un `completo` entero tarda **~45 min** con la máquina
 tranquila (build en frío 106 s); con tres agentes compilando al lado, la UI
 sola tardó 2.398 s (§7).
+
+**Línea de base rápida: el `rapido` sobre `5a65335`** (2026-10-07, relevo 4,
+con la ola B integrada): **VERDE, EconomyKit 317 · unit 593 + 1 declarado**.
+Build 75 s, unit 497 s.
+
+| Suite | `68bb47c` (fin del relevo 3) | **`5a65335`** | De dónde sale |
+|---|---:|---:|---|
+| EconomyKit | 274 | **317** | +5 E1 T3 · +14 E1 T4 · +24 E11 T1 |
+| unit (26.5) | 574 + 1 declarado | **593 + 1 declarado** | +1 E1 T3 · +7 E1 T4 · +4 E11 T2 · +7 E3a T3 |
+
+Las dos cuentas cierran exacto. **El `completo` no se volvió a correr desde
+`6b5e408`**: la tabla de arriba sigue siendo la última línea de base completa,
+así que UI, Store, pipeline, `pacing-sim` y Release no se midieron con la
+frontera nueva ni con el save v6.
 
 ### La receta a mano (lo que el oráculo corre por dentro)
 
@@ -2019,13 +2067,62 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la ola B (2026-10-07, relevo 4)
+
+- **Después del primer `EnterWorktree` del controlador, el guard se pone
+  estricto.** La sesión queda "aislada" en ese worktree y empieza a rechazar
+  lo que antes pasaba: los comandos compuestos con git, y cualquier comando
+  cuyo nombre sale de una variable (`$S/scripts/review-package …` da "command
+  whose name is computed at runtime"). Antes del primer `EnterWorktree` los
+  compuestos andaban. Arreglo: rutas literales y un comando por llamada.
+- **Integrar sin worktree.** Si la rama de la épica no está checkouteada en
+  ningún lado y el commit del agente desciende de su punta,
+  `git merge-base --is-ancestor <rama> <commit>` + `git branch -f <rama>
+  <commit>` es un fast-forward que no toca archivos. Un cherry-pick sí necesita
+  un worktree de la épica (`git worktree add`).
+- **Un cherry-pick no siempre pide otro `rapido`.** Si `git diff --stat <commit
+  del agente> <cherry-pick>` muestra sólo archivos que no son Swift (en E3a T3,
+  los `.py` de la T1), el árbol Swift es el que el agente probó y su `rapido`
+  vale. El de fin de ola lo re-verifica.
+- **La carga, otra vez.** Con 3 agentes compilando más los revisores, el `load
+  average` llegó a ~770, y la corrida enfocada de E3a T3 tardó ~11 min. Sin
+  rojos espurios.
+- **Un agente que termina con trabajo de fondo propio notifica dos veces**, con
+  el mismo reporte. No es un error, y no hay que integrar dos veces.
+- **Tercer relevo sin un despertar por cron observado**: el relevo 4 también lo
+  despertó el dueño escribiendo "continua".
+- **Lo que funcionó, y hay que mantener:**
+  - un protocolo común de agentes en un archivo
+    (`version-2/.superpowers/sdd/v2-agente-protocolo.md`: paso 0, guard,
+    calientes, commits y reporte), que deja los despachos en ~15 líneas.
+    **Su tabla de calientes se actualiza en cada ola**;
+  - los revisores reciben el template del skill por ruta, no pegado;
+  - los reportes de los agentes se copian a
+    `version-2/.superpowers/sdd/<plan>/`, para que sobrevivan al borrado del
+    worktree del agente.
+- **Medidas en los spikes de E3a, y que el texto del plan todavía no dice** (el
+  detalle está en la sesión del relevo 4, §3):
+  - **`.presentationSizing(.page)` no deja ver el juego atrás en iPad.** En
+    26.5 la hoja es una página opaca detrás del popup, y en el mini con 18.6
+    queda como tarjeta de iPhone, con la barra de estado.
+  - **El `fullScreenCover` con fondo `.clear` sí anda, pero necesita
+    `.statusBarHidden(true)` adentro del cover.** Sin eso, el HUD de atrás baja
+    32 pt en 26.5 y 24 pt en 18.6.
+  - **Una vista adentro de la safe area no se entera de que la barra de estado
+    se ocultó.** La barra se oculta después de `didMoveToWindow` y no llega
+    ningún aviso. La sonda de la Task 4 quedó en 20 (SE) o 32 (iPad) en 5 de 9
+    arranques, con el HUD 12 pt más arriba. Una `UIView` agregada directo a la
+    ventana acertó 9 de 9. Probablemente el `onAppear` de producción tenga la
+    misma carrera (no medido).
+
 ### De la integración y la Ola A (2026-10-06, relevo 3)
 
 - **El clasificador del modo auto no deja usar `sed`.** Bloqueó un `sed -i`
   sobre `Tools/v2/rojos-declarados.txt` por "Irreversible Local Destruction",
   y desde ahí rechazó cualquier `sed`, incluso un `sed -n` de lectura. Para
-  leer, `awk` o Read. Por eso la línea del pipeline sigue declarada aunque el
-  test pasa (§6); no se rodeó el bloqueo.
+  leer, `awk` o Read. Por eso la línea del pipeline quedó declarada aunque el
+  test pasaba, hasta que el relevo 4 la sacó con Edit (`af3acde`), que el
+  clasificador no bloqueó.
 - **El guard de aislamiento, lo que de verdad funciona.** Un subagente que hace
   `EnterWorktree(path)` a un worktree **creado a mano** sigue fijado al
   worktree del lanzador, que le rechaza Bash, Edit y Write: la recomendación
@@ -3463,6 +3560,14 @@ Anotado por si algún día importa, con su medición:
     la tabla de cada pedido a su épica;
   - anexos A (guiones de visitantes y frases de eventos) y B (biblia de los
     8 visitantes nuevos).
+- **`Docs/SESION-2026-10-07-v2-relevo-4-ola-b.md`**: el relevo 4.
+  - La ola B tarea por tarea, con lo que cada una deja y no se ve en el diff.
+  - La línea de base rápida con su cuenta.
+  - Los cuatro spikes de E3a con sus números y qué tareas cambian.
+  - Los planes de E2a y E4 con las contradicciones que importan para
+    despachar.
+  - Los dos 🔒 nuevos y las trampas del guard estricto y de integrar sin
+    worktree.
 - **`Docs/SESION-2026-10-06-v2-integracion-y-ola-a.md`** — el relevo 3: cómo
   se integraron los cuatro frentes, la línea de base nueva con su cuenta
   exacta, el pedido de agentes concurrentes y notificaciones, la Ola A con el
@@ -3475,11 +3580,33 @@ Anotado por si algún día importa, con su medición:
   `…-e3b-ux-nucleo.md` — el plan de E3 en dos: E3a, la pantalla (12 tareas,
   con `Tools/v2/catalogo.py` en la T1 para integrar strings de tareas
   paralelas), y E3b, las interacciones (9). Cada uno con su tabla de archivos
-  calientes por tarea.
+  calientes por tarea. ⚠️ Las Tasks 4, 6, 8 y 10 de E3a cambian por los
+  spikes, y el plan todavía dice lo viejo (sesión del relevo 4, §3).
+- `Docs/superpowers/plans/2026-10-07-v2-e2a-mecanicas.md`: el plan de E2a.
+  - 15 tareas: las mecánicas de economía detrás de perillas con default v1, y
+    los premios en minutos de producción.
+  - Las APIs de E1 que consume, con un "Step 0" de `grep` por tarea.
+  - Lo que le deja a E2b y a las otras épicas.
+  - 14 dudas con default.
+- `Docs/superpowers/plans/2026-10-07-v2-e4a-visitantes-eventos.md` y
+  `…-e4b-visitantes-eventos.md`: el plan de E4 en dos.
+  - E4a, el motor: 10 tareas de EconomyKit y JSON, con un solo toque caliente
+    grande (T9), que necesita E1 cerrada.
+  - E4b, la escena, la UI y el Álbum: 10 tareas que arrancan con E4a cerrada.
+  - 26 dudas con default entre los dos.
 - **`Docs/SESION-2026-10-06-plan-v2.md`** — el porqué del plan: lo que se
   midió antes de decidir, lo descartado y las trampas de la planificación.
 - **`Tools/v2/`** — el oráculo del run (`oraculo.sh`), su juez (`rojos.py`) y
   la lista de rojos tolerados (`rojos-declarados.txt`). Cómo se usa, en §6.
+- **`Tools/v2/catalogo.py`** (E3a T1) — escribe `Localizable.xcstrings` en el
+  formato canónico de Xcode (trampa 29).
+  - `verificar` reescribe los dos catálogos en memoria y exige que salgan
+    iguales byte a byte.
+  - `aplicar <snapshot.json> …` suma claves `{"clave": {"es", "en"}}`, y antes
+    corre esa verificación. No pisa una traducción existente.
+  - Los snapshots que esperan integración van a `Tools/v2/claves-pendientes/`.
+  - Es lo que deja que dos tareas de una misma ola sumen strings.
+  - Sus tests están en `Tools/v2/test_catalogo.py`.
 - `Docs/SESION-2026-10-06-v2-e0-oraculo.md` — E0: el oráculo, su línea de base
   con los tiempos de cada suite, y las trampas del bash 3.2, de TextureAtlas y
   del guard de los subagentes.

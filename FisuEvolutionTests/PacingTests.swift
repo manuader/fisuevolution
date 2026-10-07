@@ -517,6 +517,7 @@ struct PermanentUpgradesMirrorTests {
                 config: content.upgradesConfig,
                 specials: content.specials,
                 viral: content.viral,
+                boosts: content.boosts,
                 economy: economy
             )
             PermanentUpgrades.recomputeDerivedEffects(state: &kit, lines: lines, economy: economy)

@@ -232,6 +232,7 @@ extension GameState {
                 config: content.upgradesConfig,
                 specials: content.specials,
                 viral: content.viral,
+                boosts: content.boosts,
                 economy: economy
             )
             self.player = player

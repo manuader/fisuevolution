@@ -24,6 +24,7 @@ enum UpgradeManager {
         config: UpgradesConfig,
         specials: SpecialsConfig,
         viral: ViralConfig,
+        boosts: BoostsConfig,
         economy: StandardEconomy
     ) throws {
         guard let line = config.upgrades.first(where: { $0.id == lineId }) else {
@@ -42,7 +43,7 @@ enum UpgradeManager {
             state.meta.oro -= oroCost
         }
         state.meta.oroUpgradeLevels[lineId] = level + 1
-        recomputeDerivedEffects(state: &state, config: config, specials: specials, viral: viral, economy: economy)
+        recomputeDerivedEffects(state: &state, config: config, specials: specials, viral: viral, boosts: boosts, economy: economy)
     }
 
     /// ÚNICO punto que deriva `meta.derivedEffects` desde niveles + specials + shares.
@@ -54,6 +55,7 @@ enum UpgradeManager {
         config: UpgradesConfig,
         specials: SpecialsConfig,
         viral: ViralConfig,
+        boosts: BoostsConfig,
         economy: StandardEconomy
     ) {
         var income = 1.0
@@ -95,7 +97,8 @@ enum UpgradeManager {
         }
 
         // Milanesa (boost permanente) reusa el dict de niveles con key propia.
-        offline += Double(state.meta.oroUpgradeLevels[BoostManager.milanesaLevelKey] ?? 0) * 0.05
+        let milanesaStep = boosts.boosts.first { $0.effectType == .offlineEfficiencyPermanent }?.magnitude ?? 0
+        offline += Double(state.meta.oroUpgradeLevels[BoostManager.milanesaLevelKey] ?? 0) * milanesaStep
 
         // Referral local (bible §8): bonus permanente chico por share, con cap.
         let shares = min(state.meta.sharesCompleted, viral.maxShares)
@@ -301,7 +304,7 @@ enum BoostManager {
         case .offlineEfficiencyPermanent:
             // Milanesa: mejora permanente, acumulable, capeada en la derivación.
             state.meta.oroUpgradeLevels[milanesaLevelKey, default: 0] += 1
-            UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, economy: economy)
+            UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, boosts: config, economy: economy)
             return nil
         case .periodicPayout:
             // Asado del Domingo: la picada = factor × passiveUnlockCost(tier máximo).
@@ -322,6 +325,7 @@ enum SpecialDropManager {
         config: SpecialsConfig,
         upgrades: UpgradesConfig,
         viral: ViralConfig,
+        boosts: BoostsConfig,
         economy: StandardEconomy,
         rng: inout some RandomNumberGenerator
     ) -> SpecialsConfig.Special? {
@@ -333,7 +337,7 @@ enum SpecialDropManager {
         for special in eligible {
             if Double.random(in: 0..<1, using: &rng) < special.dropChanceOnMerge {
                 state.meta.ownedSpecials.append(special.id)
-                UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: config, viral: viral, economy: economy)
+                UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: config, viral: viral, boosts: boosts, economy: economy)
                 return special
             }
         }
@@ -366,6 +370,7 @@ enum DailyRewardManager {
         skins: SkinsConfig,
         upgrades: UpgradesConfig,
         viral: ViralConfig,
+        boosts: BoostsConfig,
         economy: StandardEconomy,
         today: Date,
         calendar: Calendar = .current,
@@ -392,7 +397,7 @@ enum DailyRewardManager {
             }
             if let picked = eligible.randomElement(using: &rng) {
                 state.meta.ownedSpecials.append(picked.id)
-                UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, economy: economy)
+                UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, boosts: boosts, economy: economy)
                 special = picked.id
             } else if Set(state.meta.ownedSpecials).isSuperset(of: specials.specials.map(\.id)),
                       !state.meta.allOwnedSkins.isSuperset(of: skins.chestPool.map(\.id)) {

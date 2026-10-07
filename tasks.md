@@ -383,7 +383,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E4a-T1 | `RewardSpec` | ⏳ | — | — | | EK; cimiento de E5–E7 |
+| E4a-T1 | `RewardSpec` | 🟢 | — | — | `8d0a311` en `v2/e4-visitantes` | EK; cimiento de E5–E7 |
 | E4a-T2 | Efectos nuevos: paro, inmunidad, ritmo de paquetes | ⛔ | E1-T13, E1-T15 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | | |
 | E4a-T3 | Los relojes en `meta.engagement` | ⛔ | E1-T4, E3b-T9 | EngagementState | | (ambigua: ver "Inconsistencias", punto 3) |
 | E4a-T4 | El motor de eventos v2 (EK) | ⛔ | T1, T2, T3 | — | | |
@@ -414,8 +414,8 @@ que toma · commit o rama · nota.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E5a-T1 | El Paquete de la Aduana, puro | 🟢 | E1-T3 | — | `b4800c5` + `a4c156f` en `v2/e5-premios` | carries a T2/T3/T5/T6 en el ledger |
-| E5a-T2 | El Colchón, puro | ⛔ | T1; E4a-T1 | — | | |
-| E5a-T3 | La Ruleta, pura | ⛔ | T1; E4a-T1 | — | | |
+| E5a-T2 | El Colchón, puro | 🔄 | T1; E4a-T1 | — | | |
+| E5a-T3 | La Ruleta, pura | 🔄 | T1; E4a-T1 | — | | |
 | E5a-T4 | Paquetes, colchón y ruleta en `meta.engagement` | ⛔ | T1–T3; E3b-T9, E4a-T3 | EngagementState | | |
 | E5a-T5 | El contenido: `packages/treasures/wheel.json` | ⛔ | T1–T3; E4a-T7, E4a-T9 | GameContentLoader | | carry: validador `isFinite` |
 | E5a-T6 | El Paquete en la partida | ⛔ | T4, T5; E1-T9, E1-T10, E1-T14; E4a-T2, E4a-T6, E4a-T8, E4a-T9 | +Rewards, +Engagement, +BoardChanges, BoardChange.swift | | no con E4b T2 |

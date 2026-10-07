@@ -43,7 +43,8 @@ REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 # el que se lo llama.
 cd "$REPO" || exit 2
 TOOLS="$REPO/Tools/v2"
-DD="$REPO/build/DD-oraculo"
+# `.noindex`: Spotlight no indexa los gigas de DerivedData de cada worktree.
+DD="$REPO/build/DD-oraculo.noindex"
 OUT="$REPO/build/oraculo/$(date +%Y%m%d-%H%M%S)-$MODE"
 mkdir -p "$OUT"
 

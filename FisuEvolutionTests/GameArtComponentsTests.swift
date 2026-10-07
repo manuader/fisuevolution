@@ -267,4 +267,20 @@ struct GameArtComponentsTests {
         #expect(abs(sparkle.width - 10) < 0.5)
         #expect(abs(sparkle.height - 10) < 0.5)
     }
+
+    // MARK: - UIArt
+
+    /// El splash se dibuja MIENTRAS corre el bootstrap, antes de
+    /// `UIArt.configure`: si el puente sólo supiera qué arte trae después de esa
+    /// llamada, el logo del splash no se vería nunca (lo dejó anotado la sesión
+    /// de preparación de la 2.0). Lo lee del manifest del bundle por su cuenta,
+    /// y tiene que leer lo mismo que el loader.
+    @Test("UIArt sabe qué arte trae sin esperar al bootstrap")
+    func uiArtKnowsItsArtBeforeTheBootstrap() throws {
+        let names = UIArt.bundledNames()
+        let manifest = try GameContentLoader.load(from: .main).manifest
+        #expect(names.contains("logo"))
+        #expect(names.contains("fisura_celebrate"))
+        #expect(names == Set(manifest.ui.keys))
+    }
 }

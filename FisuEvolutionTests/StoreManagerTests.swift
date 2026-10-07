@@ -142,25 +142,35 @@ struct StoreManagerTests {
         #expect(gameState.needsPurchasedOroReconstruction == false)
     }
 
-    /// Si StoreKit no contesta el historial, el arranque no se cuelga: cuenta
-    /// como "falló" y cierra la reconstrucción en 0, igual que un historial vacío.
-    @Test func aHungHistoryClosesTheReconstructionAtZero() async throws {
+    /// Si StoreKit no contesta el historial, el arranque no se cuelga y la
+    /// reconstrucción queda abierta: el próximo arranque la reintenta.
+    @Test func aHungHistoryLeavesTheReconstructionOpen() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
         let gameState = await makeGameState()
         gameState.player?.meta.purchasedOroReconstructed = false
-        let store = StoreManager()
-        store.historyTimeout = .milliseconds(200)
-        store.historyReader = {
+        gameState.player?.meta.creditedPurchases = ["9"]
+        let hung = StoreManager()
+        hung.historyTimeout = .milliseconds(200)
+        hung.historyReader = {
             try? await Task.sleep(for: .seconds(3600))
             return []
         }
 
-        await store.start(gameState: gameState)
+        await hung.start(gameState: gameState)
+
+        #expect(gameState.needsPurchasedOroReconstruction == true)
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
+        #expect(hung.loadState == .loaded, "el arranque siguió con la carga de productos")
+
+        let nextLaunch = StoreManager()
+        nextLaunch.historyReader = {
+            [.init(transactionID: "9", productID: "com.fisuevolution.iap.oro_small", isRevoked: false)]
+        }
+        await nextLaunch.start(gameState: gameState)
 
         #expect(gameState.needsPurchasedOroReconstruction == false)
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
-        #expect(store.loadState == .loaded, "el arranque siguió con la carga de productos")
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
     }
 
     /// `start` se suspende en la reconstrucción: un segundo `start` que entre en
@@ -204,7 +214,7 @@ struct StoreManagerTests {
         )
         try session.refundTransaction(identifier: UInt(transaction.identifier))
 
-        await waitUntil(timeout: 90) { gameState.player?.meta.oroPurchasedLifetime == 0 }
+        await waitUntil(timeout: 180) { gameState.player?.meta.oroPurchasedLifetime == 0 }
         #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
     }
 

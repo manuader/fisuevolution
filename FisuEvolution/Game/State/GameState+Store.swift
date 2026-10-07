@@ -264,7 +264,9 @@ extension GameState {
         let history = PurchasedOroHistory.reconstruct(
             records: records, creditedTransactionIDs: player.meta.creditedPurchases
         )
-        for (transactionID, amount) in history.purchases {
+        // La v1 no sabe de las compras de la v2: lo que ya está anotado conserva
+        // el monto con que se acreditó.
+        for (transactionID, amount) in history.purchases where player.meta.oroPurchases[transactionID] == nil {
             player.meta.recordOroPurchase(transactionID: transactionID, amount: amount)
         }
         for transactionID in history.revoked {

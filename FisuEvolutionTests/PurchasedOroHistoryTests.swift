@@ -130,6 +130,17 @@ struct PurchasedOroHistoryTests {
         #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
     }
 
+    @Test("una compra de la v2 ya anotada no se pisa con el monto de la v1")
+    func theReconstructionKeepsTheAmountOfAnAlreadyRecordedPurchase() async {
+        let gameState = await makeGameState()
+        gameState.creditStorePurchase(oroPack(amount: 100), transactionID: "7")
+        gameState.player?.meta.purchasedOroReconstructed = false
+        gameState.completePurchasedOroReconstruction(records: [
+            .init(transactionID: "7", productID: small, isRevoked: false),
+        ])
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 100)
+    }
+
     @Test("un reembolso baja el total comprado, llegue antes o después de anotar la compra")
     func aRefundLowersThePurchasedTotal() async {
         let gameState = await makeGameState()

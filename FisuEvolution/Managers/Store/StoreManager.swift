@@ -241,40 +241,17 @@ final class StoreManager {
     }
 
     /// El fetch de productos con plazo: gana el primero que conteste.
-    ///
-    /// ⚠️ **La carrera no se escribe con `withThrowingTaskGroup`** aunque sea el
-    /// reflejo obvio. Un grupo no termina hasta que TODOS sus hijos terminan, y
-    /// cancelarlo es sólo un pedido: con el fetch colgado —que es exactamente el
-    /// defecto que esto arregla— el grupo no sale nunca y `loadProducts()`
-    /// seguiría sin volver, con plazo y todo. Con el canal, se lee al ganador y
-    /// al perdedor se lo suelta: lo que llegue tarde cae en un `AsyncStream` que
-    /// ya no lee nadie, y la guarda de generación se ocupa del resto.
     private func fetchWithDeadline(ids: [String]) async -> LoadOutcome {
-        let (outcomes, publish) = AsyncStream<LoadOutcome>.makeStream()
         let fetcher = productsFetcher
-        let timeout = loadTimeout
-
-        let fetch = Task {
+        let outcome = await withDeadline(loadTimeout) { () -> LoadOutcome in
             do {
-                publish.yield(.loaded(try await fetcher(ids)))
+                return .loaded(try await fetcher(ids))
             } catch {
                 Log.store.error("product load failed: \(error)")
-                publish.yield(.failed)
+                return .failed
             }
         }
-        let deadline = Task {
-            // Cancelado (ganó el fetch) no publica nada: sin este `return`, el
-            // sueño interrumpido se leería como un plazo vencido.
-            do { try await Task.sleep(for: timeout) } catch { return }
-            publish.yield(.timedOut)
-        }
-        defer {
-            fetch.cancel()
-            deadline.cancel()
-        }
-
-        for await outcome in outcomes { return outcome }
-        return .timedOut
+        return outcome ?? .timedOut
     }
 
     func purchase(_ product: Product) async {
@@ -331,19 +308,28 @@ final class StoreManager {
         guard let gameState, gameState.needsPurchasedOroReconstruction else { return }
         let reader = historyReader
         let records = await withDeadline(historyTimeout) { await reader() }
-        if records == nil {
+        // Un plazo vencido deja la reconstrucción abierta: se reintenta en el
+        // próximo arranque. Cerrarla en 0 perdería el ORO comprado para siempre.
+        guard let records else {
             Log.store.error("purchase history timed out after \(self.historyTimeout, privacy: .public)")
+            return
         }
-        gameState.completePurchasedOroReconstruction(records: records ?? [])
+        gameState.completePurchasedOroReconstruction(records: records)
         let total = gameState.player?.meta.oroPurchasedLifetime ?? 0
         Log.store.info(
-            "purchased ORO reconstructed: \(total, privacy: .public) ORO from \(records?.count ?? 0, privacy: .public) transactions"
+            "purchased ORO reconstructed: \(total, privacy: .public) ORO from \(records.count, privacy: .public) transactions"
         )
     }
 
-    /// Gana el primero que conteste; `nil` si vence el plazo. La misma carrera
-    /// de `fetchWithDeadline` y por la misma razón: un grupo de tareas no
-    /// termina hasta que terminan todas, y lo que cuelga es justo el trabajo.
+    /// Gana el primero que conteste; `nil` si vence el plazo.
+    ///
+    /// ⚠️ **La carrera no se escribe con `withThrowingTaskGroup`** aunque sea el
+    /// reflejo obvio. Un grupo no termina hasta que TODOS sus hijos terminan, y
+    /// cancelarlo es sólo un pedido: con el trabajo colgado —que es exactamente
+    /// el defecto que esto arregla— el grupo no sale nunca y el llamador seguiría
+    /// sin volver, con plazo y todo. Con el canal, se lee al ganador y al
+    /// perdedor se lo suelta: lo que llegue tarde cae en un `AsyncStream` que ya
+    /// no lee nadie (en `loadProducts()`, la guarda de generación hace el resto).
     private func withDeadline<T: Sendable>(
         _ timeout: Duration,
         _ work: @escaping @Sendable () async -> T
@@ -351,6 +337,8 @@ final class StoreManager {
         let (outcomes, publish) = AsyncStream<T?>.makeStream()
         let job = Task { publish.yield(await work()) }
         let deadline = Task {
+            // Cancelado (ganó el trabajo) no publica nada: sin este `return`, el
+            // sueño interrumpido se leería como un plazo vencido.
             do { try await Task.sleep(for: timeout) } catch { return }
             publish.yield(nil)
         }

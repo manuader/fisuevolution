@@ -294,6 +294,14 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     public let critMultiplier: Double
     public let offlineEfficiencyBase: Double
     public let offlineCapHours: Double
+    /// Desde cuántos segundos afuera aparece el popup de ganancias. Lo de menos
+    /// se acredita igual, en silencio.
+    ///
+    /// Opcional por el mismo motivo que `tapFloorMultiplierExponent`: el
+    /// `economy.json` viejo y las fixtures sin la clave siguen decodificando, y
+    /// el valor efectivo sale de `offlinePopupThreshold`, el único lugar donde
+    /// vive el default. [TUNEABLE]
+    public let offlinePopupMinSeconds: Double?
     /// La Torre: pisos en orden ascendente de tiers. Validados por `FloorTable`.
     public let floors: [FloorDef]
 
@@ -311,6 +319,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         critMultiplier: Double,
         offlineEfficiencyBase: Double,
         offlineCapHours: Double,
+        offlinePopupMinSeconds: Double? = nil,
         floors: [FloorDef]
     ) {
         self.schemaVersion = schemaVersion
@@ -326,8 +335,11 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         self.critMultiplier = critMultiplier
         self.offlineEfficiencyBase = offlineEfficiencyBase
         self.offlineCapHours = offlineCapHours
+        self.offlinePopupMinSeconds = offlinePopupMinSeconds
         self.floors = floors
     }
+
+    public var offlinePopupThreshold: TimeInterval { offlinePopupMinSeconds ?? 30 }
 
     /// Multiplicador de hire efectivo del piso (override o default punitivo).
     public func hireCostMultiplier(for floor: FloorDef) -> Double {

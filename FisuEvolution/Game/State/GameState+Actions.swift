@@ -305,6 +305,7 @@ extension GameState {
             config: content.specials,
             upgrades: content.upgradesConfig,
             viral: content.viral,
+            boosts: content.boosts,
             economy: economy,
             rng: &rng
         ) {

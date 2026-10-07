@@ -63,6 +63,7 @@ struct ContentSystemsTests {
             config: content.upgradesConfig,
             specials: content.specials,
             viral: content.viral,
+            boosts: content.boosts,
             economy: economy
         )
         #expect(state.meta.oroUpgradeLevels["tap"] == 1)
@@ -86,7 +87,7 @@ struct ContentSystemsTests {
     @Test func oroUpgradeRespectsMaxLevelAndBalance() throws {
         var state = makeState(coins: 100)
         #expect(throws: UpgradeManager.PurchaseError.insufficientOro) {
-            try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
+            try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, boosts: content.boosts, economy: economy)
         }
         // El tope sale del catálogo y no de un literal: el rebalance de pacing
         // bajó `income` de 20 niveles a 10, y un 20 hardcodeado acá seguía
@@ -95,14 +96,14 @@ struct ContentSystemsTests {
         state.meta.oroUpgradeLevels["income"] = income.maxLevel
         state.meta.oro = 1_000
         #expect(throws: UpgradeManager.PurchaseError.maxLevelReached) {
-            try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
+            try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, boosts: content.boosts, economy: economy)
         }
     }
 
     @Test func sharesAddCappedIncomeBonus() {
         var state = makeState()
         state.meta.sharesCompleted = 100 // por encima del cap (20)
-        UpgradeManager.recomputeDerivedEffects(state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, economy: economy)
+        UpgradeManager.recomputeDerivedEffects(state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, boosts: content.boosts, economy: economy)
         #expect(abs(state.meta.derivedEffects.incomeMultiplier - 1.1) < 1e-9)
     }
 
@@ -288,6 +289,31 @@ struct ContentSystemsTests {
         #expect(abs(state.meta.derivedEffects.offlineEfficiency - before - 0.05) < 1e-9)
     }
 
+    @Test("la Milanesa suma lo que dice su JSON, no un número escrito en el código")
+    func milanesaReadsItsMagnitude() throws {
+        let boosts = try Self.boosts(content.boosts, milanesaMagnitude: 0.2)
+        var state = makeState(maxTier: 30)
+        let before = state.meta.derivedEffects.offlineEfficiency
+        try BoostManager.activate(
+            boostId: "milanesa", state: &state, config: boosts,
+            upgrades: content.upgradesConfig, specials: content.specials, viral: content.viral,
+            tiers: content.tiers, economy: economy, now: 0
+        )
+        #expect(abs(state.meta.derivedEffects.offlineEfficiency - before - 0.2) < 1e-9)
+    }
+
+    /// El catálogo real con la magnitud de la Milanesa cambiada: un valor que el
+    /// literal viejo (0,05) no puede imitar.
+    private static func boosts(_ config: BoostsConfig, milanesaMagnitude: Double) throws -> BoostsConfig {
+        var json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(config)) as? [String: Any])
+        var list = try #require(json["boosts"] as? [[String: Any]])
+        for index in list.indices where list[index]["id"] as? String == "milanesa" {
+            list[index]["magnitude"] = milanesaMagnitude
+        }
+        json["boosts"] = list
+        return try JSONDecoder().decode(BoostsConfig.self, from: JSONSerialization.data(withJSONObject: json))
+    }
+
     @Test func asadoGrantsChestScaledToMaxTier() throws {
         var state = makeState(maxTier: 5)
         let chest = try BoostManager.activate(
@@ -312,7 +338,7 @@ struct ContentSystemsTests {
             dropped = SpecialDropManager.rollOnMerge(
                 state: &state, config: content.specials,
                 upgrades: content.upgradesConfig, viral: content.viral,
-                economy: economy, rng: &rng
+                boosts: content.boosts, economy: economy, rng: &rng
             )
         }
         #expect(dropped != nil)
@@ -328,7 +354,7 @@ struct ContentSystemsTests {
         let dropped = SpecialDropManager.rollOnMerge(
             state: &state, config: content.specials,
             upgrades: content.upgradesConfig, viral: content.viral,
-            economy: economy, rng: &rng
+            boosts: content.boosts, economy: economy, rng: &rng
         )
         #expect(dropped == nil)
     }
@@ -342,7 +368,7 @@ struct ContentSystemsTests {
         let claim = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy, today: today, rng: &rng
         ))
         #expect(claim.day.day == 1)
         #expect(claim.coinsGranted > 0)
@@ -352,7 +378,7 @@ struct ContentSystemsTests {
         let second = DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy, today: today, rng: &rng
         )
         #expect(second == nil)
     }
@@ -367,7 +393,7 @@ struct ContentSystemsTests {
         let claim = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy, today: today, rng: &rng
         ))
         #expect(claim.day.day == 1)
     }
@@ -387,7 +413,7 @@ struct ContentSystemsTests {
         let conSpecials = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy, today: today, rng: &rng
         ))
         #expect(conSpecials.specialGranted != nil)
         #expect(conSpecials.chestGranted == false)
@@ -400,7 +426,7 @@ struct ContentSystemsTests {
         let sinSpecials = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy, today: today, rng: &rng
         ))
         #expect(sinSpecials.specialGranted == nil)
         #expect(sinSpecials.chestGranted)
@@ -414,7 +440,7 @@ struct ContentSystemsTests {
         let conTodo = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy, today: today, rng: &rng
         ))
         #expect(conTodo.chestGranted == false)
         #expect(conTodo.coinsGranted > 0)
@@ -443,7 +469,7 @@ struct ContentSystemsTests {
         let claim = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy, today: today, rng: &rng
         ))
         #expect(claim.specialGranted == nil, "en prestigio 0 no hay ninguno de los tres para sortear")
         #expect(claim.chestGranted == false, "sin los diez tomados no hay cofre")

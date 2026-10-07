@@ -50,7 +50,7 @@ final class GameState {
     }
 
     /// Si el premio offline de ESTA vuelta ya se duplicó con un video. Se
-    /// resetea en cada `applyOfflineProgressIfNeeded` que acredita algo, así
+    /// resetea en cada `applyOfflineProgressIfNeeded` que abre el popup, así
     /// que la oferta vuelve cada vez que volvés con ganancias — pero **una sola
     /// vez por vuelta**, o el mismo offline se cobraría diez veces.
     /// `@ObservationIgnored`: lo lee la hoja al abrirse, no un `body` que se
@@ -917,24 +917,24 @@ final class GameState {
     }
 
     /// La llama también `+Debug`, para simular una vuelta después de N horas.
-    func applyOfflineProgressIfNeeded() {
+    func applyOfflineProgressIfNeeded(now: TimeInterval = Date().timeIntervalSince1970) {
         guard let content, var player else { return }
-        let credited = OfflineCalculator.apply(
+        let credit = OfflineCalculator.apply(
             state: &player,
             tiers: content.tiers,
             floorTable: content.floorTable,
             config: content.economy,
-            now: Date().timeIntervalSince1970
+            now: now
         )
         self.player = player
-        if credited > 0 {
-            // Vuelta nueva, oferta nueva: el video puede duplicar ESTE premio.
-            offlineRewardDoubled = false
-            offlineReward = OfflineReward(amount: credited)
-            // Plata que cae de golpe: suena como tal, igual que un tap dorado.
-            audio?.play(.coin)
-            Log.economy.info("offline earnings credited: \(credited)")
-        }
+        guard credit.amount > 0 else { return }
+        Log.economy.info("offline earnings credited: \(credit.amount) after \(credit.elapsed) s")
+        guard credit.showsPopup else { return }
+        // Vuelta nueva, oferta nueva: el video puede duplicar ESTE premio.
+        offlineRewardDoubled = false
+        offlineReward = OfflineReward(amount: credit.amount)
+        // Plata que cae de golpe: suena como tal, igual que un tap dorado.
+        audio?.play(.coin)
     }
 
     // MARK: Internals

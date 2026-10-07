@@ -117,13 +117,16 @@ struct StoreManagerTests {
     @Test func reconstructsTheV1OroFromTransactionHistory() async throws {
         let session = try makeSession()
         defer { session.clearTransactions() }
-        let gameState = await makeGameState()
+        let v2Device = await makeGameState()
         let firstLaunch = StoreManager()
-        await firstLaunch.start(gameState: gameState)
+        await firstLaunch.start(gameState: v2Device)
         let pack = try #require(firstLaunch.products.first { $0.id == "com.fisuevolution.iap.oro_small" })
         await firstLaunch.purchase(pack)
+        await waitUntil { v2Device.player?.meta.creditedPurchases.isEmpty == false }
 
-        gameState.player?.meta.oroPurchasedLifetime = 0
+        // El save de la v1 que se actualiza: acreditó la compra, no sabe del mapa.
+        let gameState = await makeGameState()
+        gameState.player?.meta.creditedPurchases = try #require(v2Device.player).meta.creditedPurchases
         gameState.player?.meta.purchasedOroReconstructed = false
         #expect(gameState.player?.meta.creditedPurchases.count == 1)
 
@@ -132,6 +135,30 @@ struct StoreManagerTests {
 
         #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
         #expect(gameState.needsPurchasedOroReconstruction == false)
+    }
+
+    /// El reembolso de un pack de ORO baja el total comprado: el reset de E9
+    /// conserva `min(saldo, comprado)` y no puede regalarle lo que pidió devolver.
+    @Test func refundingAnOroPackLowersThePurchasedTotal() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let store = StoreManager()
+        await store.start(gameState: gameState)
+
+        let pack = try #require(store.products.first { $0.id == "com.fisuevolution.iap.oro_small" })
+        await store.purchase(pack)
+        await waitUntil { gameState.player?.meta.oroPurchasedLifetime == 250 }
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
+
+        let transaction = try #require(
+            session.allTransactions().first { $0.productIdentifier == pack.id },
+            "no apareció la transacción de oro_small"
+        )
+        try session.refundTransaction(identifier: UInt(transaction.identifier))
+
+        await waitUntil { gameState.player?.meta.oroPurchasedLifetime == 0 }
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
     }
 
     /// Un consumible se vuelve a comprar. Si quedara marcado como "comprado" la

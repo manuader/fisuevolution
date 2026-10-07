@@ -321,6 +321,9 @@ final class StoreManager {
 
         if transaction.revocationDate != nil {
             purchasedProductIDs.remove(transaction.productID)
+            if entry?.entitlement == .oro {
+                gameState?.revokeStorePurchase(transactionID: String(transaction.id))
+            }
             Log.store.warning("entitlement revoked: \(transaction.productID)")
         } else {
             // Acreditar ANTES de `finish()`: una transacción sin finalizar se

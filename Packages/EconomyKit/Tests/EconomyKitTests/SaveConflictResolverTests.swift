@@ -181,7 +181,7 @@ struct SaveConflictResolverTests {
         var remote = fxState()
         local.meta.lifetimeEarnings = 10
         remote.meta.lifetimeEarnings = 5
-        remote.meta.oroPurchasedLifetime = 550
+        remote.meta.recordOroPurchase(transactionID: "tx_550", amount: 550)
         remote.meta.unlockedTabs = ["gifts"]
         local.meta.unlockedTabs = ["jobs"]
         remote.meta.stats.oroSpentEver = 30
@@ -191,14 +191,14 @@ struct SaveConflictResolverTests {
         #expect(resolved.meta.stats.oroSpentEver == 30)
     }
 
-    @Test("ORO comprado, ORO gastado y pestañas: el máximo y la unión, gane quien gane")
+    @Test("ORO comprado, ORO gastado y pestañas: la unión o el máximo, gane quien gane")
     func v6MonotonicFieldsMergeBothWays() {
         var ahead = fxSave(lifetime: 1000, lastSeen: 2)
-        ahead.meta.oroPurchasedLifetime = 100
+        ahead.meta.recordOroPurchase(transactionID: "tx_100", amount: 100)
         ahead.meta.stats.oroSpentEver = 80
         ahead.meta.unlockedTabs = ["jobs", "store"]
         var behind = fxSave(lifetime: 10, lastSeen: 1)
-        behind.meta.oroPurchasedLifetime = 550
+        behind.meta.recordOroPurchase(transactionID: "tx_550", amount: 550)
         behind.meta.stats.oroSpentEver = 30
         behind.meta.unlockedTabs = ["gifts", "store"]
 
@@ -207,25 +207,127 @@ struct SaveConflictResolverTests {
             SaveConflictResolver.resolve(local: behind, remote: ahead),
         ] {
             #expect(resolved.meta.lifetimeEarnings == 1000)
-            #expect(resolved.meta.oroPurchasedLifetime == 550)
+            #expect(resolved.meta.oroPurchasedLifetime == 650, "las dos compras, ninguna pisa a la otra")
             #expect(resolved.meta.stats.oroSpentEver == 80)
             #expect(resolved.meta.unlockedTabs == ["gifts", "jobs", "store"])
         }
     }
 
-    @Test("la reconstrucción del ORO comprado, una vez hecha en un device, no se repite")
-    func reconstructionFlagIsSticky() {
+    @Test("la reconstrucción sólo cuenta como hecha si los dos devices la hicieron")
+    func reconstructionFlagNeedsBothSides() {
         var done = fxSave(lifetime: 10, lastSeen: 1)
         done.meta.purchasedOroReconstructed = true
         var pending = fxSave(lifetime: 1000, lastSeen: 2)
         pending.meta.purchasedOroReconstructed = false
 
-        #expect(SaveConflictResolver.resolve(local: done, remote: pending).meta.purchasedOroReconstructed)
-        #expect(SaveConflictResolver.resolve(local: pending, remote: done).meta.purchasedOroReconstructed)
+        #expect(!SaveConflictResolver.resolve(local: done, remote: pending).meta.purchasedOroReconstructed)
+        #expect(!SaveConflictResolver.resolve(local: pending, remote: done).meta.purchasedOroReconstructed)
+        #expect(SaveConflictResolver.resolve(local: done, remote: done).meta.purchasedOroReconstructed)
 
         var bothPending = fxSave(lifetime: 10, lastSeen: 1)
         bothPending.meta.purchasedOroReconstructed = false
         #expect(!SaveConflictResolver.resolve(local: bothPending, remote: pending).meta.purchasedOroReconstructed)
+    }
+
+    // MARK: - ORO comprado exacto entre devices
+
+    /// A reconstruyó un pack de la v1 (250); B, instalación nueva, compró uno de
+    /// la v2 (750). Lo exacto es 1000: el `max` de antes daba 750.
+    @Test("el pack de la v1 de un device y el de la v2 del otro suman los dos")
+    func purchasesFromBothDevicesAddUp() {
+        var deviceA = fxSave(lifetime: 1000, lastSeen: 2)
+        deviceA.meta.creditedPurchases = ["v1_tx"]
+        deviceA.meta.recordOroPurchase(transactionID: "v1_tx", amount: 250)
+        var deviceB = fxSave(lifetime: 10, lastSeen: 1)
+        deviceB.meta.creditedPurchases = ["v2_tx"]
+        deviceB.meta.recordOroPurchase(transactionID: "v2_tx", amount: 750)
+
+        for resolved in [
+            SaveConflictResolver.resolve(local: deviceA, remote: deviceB),
+            SaveConflictResolver.resolve(local: deviceB, remote: deviceA),
+        ] {
+            #expect(resolved.meta.oroPurchasedLifetime == 1000)
+            #expect(resolved.meta.creditedPurchases == ["v1_tx", "v2_tx"])
+        }
+    }
+
+    @Test("la misma transacción vista por los dos devices se cuenta una sola vez")
+    func theSameTransactionCountsOnce() {
+        var local = fxSave(lifetime: 1000, lastSeen: 2)
+        local.meta.recordOroPurchase(transactionID: "shared", amount: 750)
+        var remote = fxSave(lifetime: 10, lastSeen: 1)
+        remote.meta.recordOroPurchase(transactionID: "shared", amount: 750)
+        remote.meta.recordOroPurchase(transactionID: "only_remote", amount: 250)
+
+        #expect(SaveConflictResolver.resolve(local: local, remote: remote).meta.oroPurchasedLifetime == 1000)
+        #expect(SaveConflictResolver.resolve(local: remote, remote: local).meta.oroPurchasedLifetime == 1000)
+    }
+
+    @Test("si dos builds anotaron montos distintos para el mismo id, gana el mayor")
+    func differingAmountsForTheSameIdTakeTheLarger() {
+        var local = fxSave(lifetime: 1000, lastSeen: 2)
+        local.meta.recordOroPurchase(transactionID: "tx", amount: 250)
+        var remote = fxSave(lifetime: 10, lastSeen: 1)
+        remote.meta.recordOroPurchase(transactionID: "tx", amount: 750)
+
+        #expect(SaveConflictResolver.resolve(local: local, remote: remote).meta.oroPurchasedLifetime == 750)
+        #expect(SaveConflictResolver.resolve(local: remote, remote: local).meta.oroPurchasedLifetime == 750)
+    }
+
+    @Test("resolver un save consigo mismo no cambia el ORO comprado")
+    func resolvingASaveWithItselfIsIdempotent() {
+        var save = fxSave(lifetime: 1000, lastSeen: 2)
+        save.meta.creditedPurchases = ["a", "b"]
+        save.meta.recordOroPurchase(transactionID: "a", amount: 250)
+        save.meta.recordOroPurchase(transactionID: "b", amount: 750)
+        save.meta.revokePurchase(transactionID: "b")
+
+        let once = SaveConflictResolver.resolve(local: save, remote: save)
+        let twice = SaveConflictResolver.resolve(local: once, remote: save)
+        #expect(once.meta.oroPurchasedLifetime == 250)
+        #expect(twice.meta.oroPurchasedLifetime == 250)
+        #expect(twice.meta.oroPurchases == save.meta.oroPurchases)
+        #expect(twice.meta.revokedPurchases == save.meta.revokedPurchases)
+    }
+
+    @Test("una compra reembolsada en un solo device no cuenta, aunque el otro la tenga")
+    func aRevocationOnOneSideWins() {
+        var refunded = fxSave(lifetime: 10, lastSeen: 1)
+        refunded.meta.recordOroPurchase(transactionID: "refunded", amount: 750)
+        refunded.meta.revokePurchase(transactionID: "refunded")
+        var unaware = fxSave(lifetime: 1000, lastSeen: 2)
+        unaware.meta.recordOroPurchase(transactionID: "refunded", amount: 750)
+        unaware.meta.recordOroPurchase(transactionID: "kept", amount: 250)
+
+        for resolved in [
+            SaveConflictResolver.resolve(local: refunded, remote: unaware),
+            SaveConflictResolver.resolve(local: unaware, remote: refunded),
+        ] {
+            #expect(resolved.meta.oroPurchasedLifetime == 250)
+            #expect(resolved.meta.revokedPurchases == ["refunded"])
+        }
+    }
+
+    @Test("el reembolso que llega antes que la compra igual la deja afuera")
+    func aRevocationBeforeThePurchaseStillExcludesIt() {
+        var refundSeen = fxSave(lifetime: 10, lastSeen: 1)
+        refundSeen.meta.revokePurchase(transactionID: "late")
+        var purchaseSeen = fxSave(lifetime: 1000, lastSeen: 2)
+        purchaseSeen.meta.recordOroPurchase(transactionID: "late", amount: 750)
+
+        #expect(SaveConflictResolver.resolve(local: refundSeen, remote: purchaseSeen).meta.oroPurchasedLifetime == 0)
+        #expect(SaveConflictResolver.resolve(local: purchaseSeen, remote: refundSeen).meta.oroPurchasedLifetime == 0)
+    }
+
+    @Test("las compras acreditadas de los dos lados se unen")
+    func creditedPurchasesAreUnited() {
+        var local = fxSave(lifetime: 1000, lastSeen: 2)
+        local.meta.creditedPurchases = ["a", "b"]
+        var remote = fxSave(lifetime: 10, lastSeen: 1)
+        remote.meta.creditedPurchases = ["b", "c"]
+
+        #expect(SaveConflictResolver.resolve(local: local, remote: remote).meta.creditedPurchases == ["a", "b", "c"])
+        #expect(SaveConflictResolver.resolve(local: remote, remote: local).meta.creditedPurchases == ["a", "b", "c"])
     }
 
     @Test("revealedTier, priceRelief, la pared de la última run y el pin viajan con el ganador")

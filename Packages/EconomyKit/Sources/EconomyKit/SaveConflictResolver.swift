@@ -60,12 +60,21 @@ public enum SaveConflictResolver {
         winner.meta.unlockedAchievements = local.meta.unlockedAchievements.union(remote.meta.unlockedAchievements)
         winner.meta.claimedAchievements = local.meta.claimedAchievements.union(remote.meta.claimedAchievements)
 
-        // La 2.0: lo comprado y lo gastado no retroceden, una pestaña revelada no
-        // se vuelve a esconder y la reconstrucción del ORO comprado no se repite.
-        // `revealedTier`, `priceRelief`, `lastRunMaxTier` y el pin viajan con el
-        // ganador: son del estado de la run o de una elección, no un acumulado.
-        winner.meta.oroPurchasedLifetime = max(local.meta.oroPurchasedLifetime, remote.meta.oroPurchasedLifetime)
-        winner.meta.purchasedOroReconstructed = local.meta.purchasedOroReconstructed || remote.meta.purchasedOroReconstructed
+        // La 2.0: lo comprado y lo gastado no retroceden y una pestaña revelada no
+        // se vuelve a esconder. `revealedTier`, `priceRelief`, `lastRunMaxTier` y
+        // el pin viajan con el ganador: son del estado de la run o de una
+        // elección, no un acumulado.
+        //
+        // El ORO comprado se une por transacción y no por total: los dos devices
+        // pueden haber acreditado compras distintas, y un `max` del contador
+        // perdería la del otro. Las tres uniones son conmutativas e idempotentes;
+        // si dos builds anotaron montos distintos para el mismo id, queda el mayor.
+        // La reconstrucción cuenta como hecha sólo si los dos lados la hicieron:
+        // repetirla no suma de más (asigna por id), saltearla sí perdería ORO.
+        winner.meta.creditedPurchases = local.meta.creditedPurchases.union(remote.meta.creditedPurchases)
+        winner.meta.oroPurchases = local.meta.oroPurchases.merging(remote.meta.oroPurchases, uniquingKeysWith: max)
+        winner.meta.revokedPurchases = local.meta.revokedPurchases.union(remote.meta.revokedPurchases)
+        winner.meta.purchasedOroReconstructed = local.meta.purchasedOroReconstructed && remote.meta.purchasedOroReconstructed
         winner.meta.unlockedTabs = local.meta.unlockedTabs.union(remote.meta.unlockedTabs)
         winner.meta.stats.oroSpentEver = max(local.meta.stats.oroSpentEver, remote.meta.stats.oroSpentEver)
         winner.meta.engagement = EngagementState.resolve(winner: winner.meta.engagement, loser: loser.meta.engagement)

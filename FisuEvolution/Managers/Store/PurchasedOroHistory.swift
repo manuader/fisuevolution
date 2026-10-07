@@ -17,12 +17,27 @@ enum PurchasedOroHistory {
         let isRevoked: Bool
     }
 
+    /// Lo que el historial dice, por id de transacción: se asigna, no se suma.
+    struct Reconstruction: Equatable {
+        /// id de transacción → ORO que le dio la v1. Sólo las no revocadas.
+        let purchases: [String: Int]
+        /// Las que se reembolsaron: dejan de contar donde sea que estén anotadas.
+        let revoked: Set<String>
+    }
+
     /// Sólo cuenta lo que la v1 acreditó: una transacción sin acreditar la
-    /// entrega el listener por el camino de siempre, que ya suma al contador.
-    static func reconstruct(records: [Record], creditedTransactionIDs: Set<String>) -> Int {
-        records
-            .filter { !$0.isRevoked && creditedTransactionIDs.contains($0.transactionID) }
-            .compactMap { v1OroAmountByProductID[$0.productID] }
-            .reduce(0, +)
+    /// entrega el listener por el camino de siempre, que ya la anota.
+    static func reconstruct(records: [Record], creditedTransactionIDs: Set<String>) -> Reconstruction {
+        var purchases: [String: Int] = [:]
+        var revoked: Set<String> = []
+        for record in records {
+            guard let amount = v1OroAmountByProductID[record.productID] else { continue }
+            if record.isRevoked {
+                revoked.insert(record.transactionID)
+            } else if creditedTransactionIDs.contains(record.transactionID) {
+                purchases[record.transactionID] = amount
+            }
+        }
+        return Reconstruction(purchases: purchases, revoked: revoked)
     }
 }

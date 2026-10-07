@@ -119,7 +119,8 @@ archivos de dueño único por ola, y un controlador que integra de a uno.
   `subagent-driven-development`), antes de integrar;
 - integra de a una tarea: `git rebase` de la rama del agente sobre la punta de la épica +
   `git merge --ff-only`, y `oraculo.sh rapido` sobre la integración;
-- es el único que toca `Docs/`, `handoffs/`, el journal, el ledger y `rojos-declarados.txt`.
+- es el dueño de `Docs/`, `handoffs/`, el journal, el ledger y `rojos-declarados.txt`: los escribe él, o
+  despacha **un solo** agente de docs a la vez, que no corre en paralelo con otro que toque `Docs/`.
 
 **Archivos calientes: un solo dueño por ola.**
 

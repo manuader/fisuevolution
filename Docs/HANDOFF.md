@@ -303,8 +303,8 @@ El dueño pidió agentes concurrentes que no se pisen y notificaciones prendidas
 por defecto. Entraron como **PLAN-v2 §0.1** (el despliegue de agentes) y la
 épica **E11** (`4fd77c8`); las decisiones, en §5.
 
-En la Ola A, E1 T1 (offline) quedó implementado y en revisión (`3693044`), T2
-(la Milanesa) en curso, y salieron los planes de E11 (`eaa3497`, 7 tareas) y de
+En la Ola A se cerraron E1 T1 (offline, `3693044`) y T2 (la Milanesa, `37c565f`),
+revisadas e integradas en `v2/e1-correcciones`, y salieron los planes de E11 (`eaa3497`, 7 tareas) y de
 E3, partido en E3a (12) y E3b (9) para correr al lado de E1 (`aff6a6e`). Tres
 trampas nuevas en §7: el clasificador que no deja usar `sed`, lo que de verdad
 funciona con el guard de aislamiento, y la carga de la máquina. Detalle y el
@@ -1456,8 +1456,9 @@ tocan decisiones de esta sección:
     solo dueño por ola**;
   - **hasta 3 agentes compilando a la vez, y un `completo` cuenta como uno**:
     con más, la carga llegó a ~600 (§7);
-  - un controlador despacha, revisa, integra de a una tarea y es el único que
-    toca `Docs/`, `handoffs/`, el journal y `rojos-declarados.txt`.
+  - un controlador despacha, revisa, integra de a una tarea y es el dueño de
+    `Docs/`, `handoffs/`, el journal y `rojos-declarados.txt`: los escribe él o
+    un solo agente de docs a la vez, nunca en paralelo con otro que toque `Docs/`.
 - **Notificaciones** (pedido del dueño, 2026-10-06, épica E11): **prendidas por
   defecto y desactivables**, y **locales**. El push remoto necesita servidor,
   entitlement y token, y cambia App Privacy: queda fuera salvo que el dueño lo

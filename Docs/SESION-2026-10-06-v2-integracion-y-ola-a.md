@@ -104,8 +104,8 @@ notificaciones).
 
 | Qué | Estado al cierre | Dónde |
 |---|---|---|
-| E1 T1, offline | implementado, **en revisión**; `rapido` VERDE 573 + 1 | `3693044`, rama `worktree-agent-ad8266ba8ff82fd51` |
-| E1 T2, la Milanesa | en curso | — |
+| E1 T1, offline | **hecha**: revisión (opus) spec ✅ y calidad aprobada, 0 críticos o importantes, 5 menores al ledger; `rapido` del agente VERDE 573 + 1 | `3693044` en `v2/e1-correcciones` |
+| E1 T2, la Milanesa | **hecha**: revisión (sonnet) spec ✅ y calidad aprobada, 0 críticos o importantes, 3 menores al ledger; `rapido` del agente VERDE 571 + 1 | `6200189`, cherry-pick como `37c565f` en `v2/e1-correcciones` |
 | Plan de E11 | commiteado, 7 tareas | `eaa3497` |
 | Plan de E3 | partido en **E3a** (la pantalla, 12 tareas) y **E3b** (las interacciones, 9) | `aff6a6e` |
 
@@ -117,12 +117,10 @@ notificaciones).
 
 ### E1, tarea por tarea
 
-La completa el controlador al cierre de la sesión.
-
 | Tarea | Ola | Estado |
 |---|---|---|
-| T1 — Offline: toda ausencia se paga, el popup desde 30 s y los modificadores integrados | A | en revisión (`3693044`) |
-| T2 — La Milanesa lee su magnitud del JSON | A | en curso |
+| T1 — Offline: toda ausencia se paga, el popup desde 30 s y los modificadores integrados | A | hecha (`3693044`) |
+| T2 — La Milanesa lee su magnitud del JSON | A | hecha (`37c565f`) |
 | T3 — Un solo mutador de la frontera, contadores en `Double` y la contratación gratis que no cuenta | B | pendiente |
 | T4 — Save v6 | B | pendiente |
 | T5 — Nunca más pisar un save ilegible | C | pendiente |
@@ -215,7 +213,7 @@ No hubo rojos en masa: se estira el tiempo, no se rompen los tests. Igual, el to
 > El oráculo `completo` sobre `6b5e408` dio **VERDE** y es la línea de base nueva (§6): unit
 > **570 + 1 declarado**, exacto con la suma de los frentes. El dueño pidió agentes concurrentes
 > y notificaciones prendidas por defecto: entraron como PLAN-v2 §0.1 y la épica E11
-> (`4fd77c8`). En la Ola A, E1 T1 quedó implementado y en revisión (`3693044`), T2 en curso, y
+> (`4fd77c8`). En la Ola A se cerraron E1 T1 (`3693044`) y T2 (`37c565f`), revisadas e integradas, y
 > salieron los planes de E11 (`eaa3497`) y de E3, partido en E3a y E3b (`aff6a6e`). Detalle en
 > **`Docs/SESION-2026-10-06-v2-integracion-y-ola-a.md`**.
 

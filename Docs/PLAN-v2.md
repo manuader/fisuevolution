@@ -95,6 +95,74 @@ y no hay más relevos.
 **El primer relevo es el de esta sesión de planificación**: cerró con ~770.000 tokens de
 contexto, así que la ejecución arranca en un agente nuevo.
 
+### 0.1 Despliegue de agentes concurrentes (pedido del dueño, 2026-10-06)
+
+El desarrollo corre con varios agentes a la vez que no se pisan: cada uno en su worktree, con
+archivos de dueño único por ola, y un controlador que integra de a uno.
+
+**El mecanismo** (verificado el 2026-10-06, journal It 04):
+
+- Todo agente que escribe en el repo se lanza con **`Agent(isolation: "worktree")`**. El harness le
+  crea un worktree propio (`.claude/worktrees/agent-*`, rama `worktree-agent-*`) y el guard lo deja
+  usar git y editar **sólo ahí**.
+- Su primer paso: `git merge --ff-only <base>` (o `git reset --keep <base>` con el árbol limpio) y
+  comprobar el hash. Commitea en su rama y reporta rama, worktree y commits.
+- ❌ **No sirve** crear el worktree a mano y que el agente haga `EnterWorktree(path)`: el guard
+  sigue fijado al worktree del lanzador y le rechaza Bash, Edit y Write.
+- ❌ **Tampoco** escribir con rutas absolutas desde otro cwd: eso es rodear el guard.
+- Los agentes que sólo escriben planes también van aislados y commitean el plan en su rama.
+
+**El controlador** (la sesión principal):
+
+- no escribe código de producto: despacha, revisa, integra y documenta;
+- después de cada tarea, una revisión de spec y calidad con un subagente revisor (skill
+  `subagent-driven-development`), antes de integrar;
+- integra de a una tarea: `git rebase` de la rama del agente sobre la punta de la épica +
+  `git merge --ff-only`, y `oraculo.sh rapido` sobre la integración;
+- es el único que toca `Docs/`, `handoffs/`, el journal, el ledger y `rojos-declarados.txt`.
+
+**Archivos calientes: un solo dueño por ola.**
+
+- Son `GameState.swift`, `RootView.swift`, `BoardScene.swift`, `ContentSystems.swift`,
+  `GameState+Bonus.swift`, `SettingsView.swift`, `PlayerState.swift`, `TowerActions.swift`,
+  `project.yml` y `Localizable.xcstrings`.
+- Cada despacho lleva la tabla de dueños de su ola, armada con la sección "Orden, olas y
+  paralelismo" del plan de cada épica. Un agente que necesita un archivo caliente ajeno para y
+  reporta `NEEDS_CONTEXT`.
+- Si dos tareas de la misma ola necesitan strings, la segunda entrega sus claves como snapshot del
+  catálogo (el patrón de E3) y el controlador las aplica al integrar, en formato canónico.
+
+**Topes:**
+
+- Hasta **3 agentes compilando a la vez**, cada uno con su DerivedData y su simulador por UDID. Un
+  `completo` del oráculo cuenta como uno.
+- Además, hasta **2 agentes que sólo escriben planes**.
+- Antes de cada ola, `get_usage`: con la ventana de 5 h ≥ 85 % o la semanal ≥ 90 % la ola no se
+  lanza y se espera el reset.
+- Modelos: `sonnet` para implementar cuando el plan trae el código; `opus` para los planes de
+  épica, el diseño y la revisión final de cada épica.
+
+**Ramas:** cada épica integra en su rama (`v2/e1-correcciones`, `v2/e11-notificaciones`, …). Al
+cerrar cada ola, la rama de la épica se mergea a `version-2` con el `rapido` verde, y las tareas
+nuevas de otras épicas salen de `version-2`.
+
+**El calendario de olas:**
+
+| Ola | Código (≤ 3 compilando) | Planes (sin compilar) |
+|---|---|---|
+| A | E1 T1 ∥ E1 T2 | E11, E3 |
+| B | E1 T3 → T4 ∥ E11 núcleo (sin ciclo de vida) | E2a |
+| C | E1 T5 ∥ T6 ∥ T7 | E4 |
+| D | E1 T8 ∥ E3 (lo que no toca archivos calientes de E1) ∥ E11 (Ajustes y tarjeta) | E5 |
+| E | E1 T9 → E11 cableado al ciclo de vida ∥ E3 | E6 |
+| F | E1 T10 ∥ T11 ∥ E2a (EconomyKit puro) | |
+| G | E1 T12 → T13 → T14 ∥ E3 ∥ E2a | E7b |
+| H | E1 T15 → T16: cierre de E1 | E9 |
+| luego | E4 ∥ E5 por tarea (comparten `GameState`), E6, E7b, E9, E2b; E8 según los gates del arte | |
+
+El calendario es la intención: cada ola se re-arma con las huellas reales de archivos de los
+planes, y se corre de a uno lo que se pisa.
+
 ---
 
 ## 1. Punto de partida (verificado)
@@ -252,6 +320,7 @@ contexto, así que la ejecución arranca en un agente nuevo.
 | P1 | Sesión de preparación: compartir inalcanzable | E3 (compartir recableado) |
 | P2 | Música por zona | E8 (un tema por piso) |
 | P3 | Splash sin logo, tips sin traducir, arte calado | E3 + E8 |
+| 20 | Notificaciones push prendidas por defecto y desactivables (2026-10-06) | E11 (+ E9 Ajustes y Tour, E5 ruleta) |
 
 ```
 E0 Preparación
@@ -259,6 +328,7 @@ E0 Preparación
      ├─ E2a Mecánicas de economía                    (precios, premios, carreras)
      ├─ E3 UX núcleo                                 (atajo, ficha, menú deslizable, iPad, i18n)
      ├─ E7a Infraestructura de anuncios              (proveedor, alternancia, app open, remoto, mediación)
+     ├─ E11 Notificaciones                           (el núcleo en paralelo con E1; el cableado, después de E1 T8)
      └─ E8 Arte y animación                          (arranca YA: es lo más largo y tiene gates humanos)
           ├─ E4 Visitantes + Eventos v2 + Álbum      (usa placeholders hasta que llegue el arte)
           └─ E5 Paquete de la Aduana + Colchón + Ruleta
@@ -1082,6 +1152,66 @@ Ver §5. Lo que suma el diseño:
   - `HANDOFF.md`: §4, §5 (decisiones nuevas, incluida la que reemplaza §5.5 y §5.7), §7 y §9;
   - `HANDOFF-v2.md`: iPad, iOS 18 y "37 tiers";
   - `balance-log.md`, con la calibración.
+
+### E11 — Notificaciones (pedido del dueño, 2026-10-06)
+
+**Hoy**: `NotificationsManager` programa un recordatorio local diario a las 19:00 y está **apagado
+por defecto**. El permiso se pide al prender el toggle de Ajustes (`settings.notifications`). La
+2.0 lo da vuelta:
+
+- **Prendidas por defecto y desactivables.**
+  - `settings.notificationsEnabled` pasa a valer `true` cuando la clave no existe. Un veterano que
+    las apagó en la v1 (clave en `false`) las sigue teniendo apagadas.
+  - El permiso de iOS va en dos pasos:
+    1. **provisional** (`.provisional`) al terminar el núcleo del tutorial (`core.finish`): sin
+       diálogo, los avisos llegan en silencio al Centro de notificaciones. Así quedan prendidas
+       desde el día 1 sin interrumpir;
+    2. **completo** (`.alert`, `.sound`, `.badge`) con una tarjeta previa en estilo FisuJobs, en la
+       primera vuelta con popup offline: "¿Te aviso cuando la caja fuerte se llene?". "Sí, avisame"
+       abre el diálogo del sistema. "Ahora no" deja el provisional y la tarjeta se ofrece una sola
+       vez más, 3 días después.
+  - Si iOS las tiene denegadas, la fila de Ajustes lo dice y ofrece un `ActionPill` "Abrir Ajustes"
+    (`UIApplication.openNotificationSettingsURLString`), sin alertas del sistema.
+- **Locales, no remotas.** Todo lo que se avisa se calcula en el dispositivo. El push remoto (APNs)
+  necesita servidor, entitlement y token, y cambia App Privacy: queda fuera de la 2.0 salvo que el
+  dueño lo pida (🔒).
+- **Catálogo data-driven**: `notifications.json` + `NotificationsConfig` con validador, y los textos
+  `notif.<id>.title` / `.body` en es + en, con el humor de la casa.
+
+  | id | Cuándo | Nace en |
+  |---|---|---|
+  | `vault_full` | la caja fuerte se llenó: al irse, ahora + el tope offline (`offlineCapHours`) | E11 |
+  | `daily_ready` | el premio diario está sin cobrar: a las 19:00 de ese día (reemplaza al recordatorio fijo) | E11 |
+  | `comeback` | 72 h sin entrar, una sola vez por ausencia | E11 |
+  | `wheel_ready` | giros nuevos de la ruleta | E5 |
+
+  **Cada épica que suma un motivo para volver declara su notificación** en el catálogo, igual que
+  declara su lección de tutorial.
+- **Reglas**, en `NotificationPlanner` (puro, en EconomyKit, recibe todo ya resuelto):
+  - se programa todo al irse (`.background`, en el sellado de E1 T8) y se borra todo al volver
+    (`.active`);
+  - horario silencioso de 22:00 a 09:00 local: lo que cae adentro se corre a las 09:00;
+  - ≥ 4 h entre dos avisos y tope de 3 por ausencia;
+  - **nunca anuncios, ofertas ni precios** (guía 4.5.4 de App Store): sólo el estado del juego;
+  - nada bajo `--uitest*` ni XCTest (ni el permiso ni la programación), salvo que el test lo pida.
+- **Ajustes**:
+  - el toggle maestro "Notificaciones", prendido por defecto, y uno por tipo
+    (`settings.notifications.<id>`);
+  - apagar el maestro borra todo lo pendiente;
+  - es preferencia de dispositivo: sobrevive al "Resetear partida" de E9.
+- **Tutorial**: la tarjeta previa es la lección `notifications.permission`, registrada en
+  `TutorialCoverageTests` (E9). El Tour de los veteranos suma un paso en Ajustes.
+- **Tests**:
+  - `NotificationPlannerTests`: tope offline, horario silencioso, espaciado, tope por ausencia,
+    tipo apagado y maestro apagado (no programa nada);
+  - `NotificationsManagerTests`: prendido por defecto sin clave, el `false` de la v1 respetado,
+    provisional y denegado;
+  - la familia `notif.*` en `LocalizationCompletenessTests`;
+  - un UI test de los toggles de Ajustes.
+- **E10**: App Privacy no cambia (lo local no junta datos) y no hace falta el entitlement
+  `aps-environment`. Las notas a App Review dicen que son locales, opcionales y sin promociones.
+- **Orden**: el plan y el núcleo (catálogo, planner, manager, Ajustes y tarjeta) van en paralelo con
+  E1; el cableado al ciclo de vida, después de E1 T8.
 
 ### Anexo A — Guiones de visitantes y frases de eventos (propuesta para aprobar)
 

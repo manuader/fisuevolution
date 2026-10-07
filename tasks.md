@@ -301,10 +301,11 @@ que toma · commit o rama · nota.
 | E1-T5b | (seguimiento) copias que no se pisan, cada payload ilegible | ✅ | T5 | — | `08b9329` + `0cfe6c9` | fuera del conteo |
 | E1-T5c | (seguimiento) el `if` muerto en Release + `rapido` compila Release | ✅ | T8 | 🔥 GameState (sólo `bootstrap`); `oraculo.sh` | `e0a5d53` + `ca2d12c` (merge `7110b06`) | fuera del conteo; cherry-pick encima de T8 y sus arreglos |
 | E1-T6 | Reconstruir el ORO comprado de la v1 | ✅ | T4 | Info.plist | `cdd8f0a` | T6b la absorbe T6c |
-| E1-T6c | (seguimiento) ORO comprado exacto entre dispositivos + T6b | ⏳ | T4, T6 | 🔥 PlayerState (`MetaState`); SaveConflictResolver, +Store, StoreManager | brief listo `task-6c-brief.md` | fuera del conteo; ola E (∥ T9); antes de E9 y de E6a T9/T11 |
+| E1-T6c | (seguimiento) ORO comprado exacto entre dispositivos + T6b | 🔄 | T4, T6 | 🔥 PlayerState (`MetaState`); SaveConflictResolver, +Store, StoreManager | brief listo `task-6c-brief.md` | fuera del conteo; ola E (∥ T9); antes de E9 y de E6a T9/T11 |
 | E1-T7 | El embudo `BoardChange` en EK | ✅ | T3, T4 | — | `ec6fb29` | carries: init público de `BoardChangeOutcome` (T9), guarda de `typeId` (T10) |
 | E1-T8 | Ciclo de vida: sellar al irse, latido, evento vencido | ✅ | T5 | 🔥 GameState, RootView, +Bonus; FisuEvolutionApp, +Debug, ContentConfigs, events.json | `eeb7322` + `5ef7a65` (merge `7110b06`) | re-revisión opus ✅: `flushHUD` sólo proyecta con la escena inactiva; un sello por salida |
-| E1-T9 | El turno de los cambios del tablero | ⏳ | T7, T8, T5c | 🔥 GameState; +BoardChanges (nuevo), +Celebrations, +Lifecycle, +Debug | brief listo `task-9-brief.md` | ola E (∥ T6c); carry de T7: init público de `BoardChangeOutcome` |
+| E1-T9 | El turno de los cambios del tablero | 🔄 | T7, T8, T5c | 🔥 GameState; +BoardChanges (nuevo), +Celebrations, +Lifecycle, +Debug | brief listo `task-9-brief.md` | ola E (∥ T6c); carry de T7: init público de `BoardChangeOutcome` |
+| E1-T9b | (seguimiento) partir `GameState.swift` en extensiones por zona, sin cambio de conducta | ⛔ | T9 | 🔥 GameState (entero) | | fuera del conteo; decisión del relevo 7 (§4.4): antes de T10, ∥ T11 |
 | E1-T10 | La escena reproduce los cambios y revela | ⛔ | T9 | 🔥 BoardScene, GameState, RootView; CelebrationQueue, +Celebrations, +Debug | | E3a T10 y E4b T1 esperan esta |
 | E1-T11 | El sorteo de eventos salta lo inaplicable | ⏳ | T7; T8 integrada | 🔥 ContentSystems, +Bonus; ContentConfigs, events.json | | el plan la pone ∥ T10; por archivos también va ∥ T9 (no acorta el camino crítico) |
 | E1-T12 | Startup, Blanqueo, videos y carrera por el embudo | ⛔ | T9, T10, T11 | 🔥 ContentSystems, +Bonus, GameState; +Actions, +Debug | | E2a T4 integrada antes |
@@ -505,7 +506,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| P-E9 | Plan de E9 | ⏳ | — | un archivo nuevo en `Docs/superpowers/plans/` | | opus; insumos: PLAN-v2 E9 y las secciones "Lo que … le deja a E9" de E11, E2a, E3b (duda 10), E4a/E4b, E5a/E5b, E6a/E6b, E7b-b; el reset usa T6c |
+| P-E9 | Plan de E9 | 🔄 | — | un archivo nuevo en `Docs/superpowers/plans/` | | opus; insumos: PLAN-v2 E9 y las secciones "Lo que … le deja a E9" de E11, E2a, E3b (duda 10), E4a/E4b, E5a/E5b, E6a/E6b, E7b-b; el reset usa T6c |
 
 Ejecución: después de E7b (árbol de PLAN-v2 §4), con E1 T6c (el reset) y E7b-a T5 (UMP) adentro.
 
@@ -513,7 +514,7 @@ Ejecución: después de E7b (árbol de PLAN-v2 §4), con E1 T6c (el reset) y E7b
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| P-E2b | Plan de E2b | ⏳ | — | un archivo nuevo en `Docs/superpowers/plans/` | | opus; insumos: PLAN-v2 E2b, "Lo que E2a le deja", las bullets de E2b de E4a, E5a, E6a/E6b y E7b-b, y la nota de E1 T1 (el offline del simulador) |
+| P-E2b | Plan de E2b | 🔄 | — | un archivo nuevo en `Docs/superpowers/plans/` | | opus; insumos: PLAN-v2 E2b, "Lo que E2a le deja", las bullets de E2b de E4a, E5a, E6a/E6b y E7b-b, y la nota de E1 T1 (el offline del simulador) |
 
 Ejecución: necesita la tabla de perillas de E2a T15, el playtest de precios del dueño (E2a T14) y
 todas las fuentes (E4–E6 y E7b-b) (ambigua: ver "Inconsistencias", punto 4). Reemplaza el rojo

@@ -67,8 +67,12 @@ struct NotificationsManagerTests {
         let notifications = makeManager(spy, scratch)
 
         await notifications.requestProvisional()
+        // iOS ya concedió: lo único que frena la programación es el maestro apagado.
+        spy.status = .provisional
+        await notifications.refreshAuthorization()
         await notifications.scheduleAbsence(snapshot(), config: config, calendar: calendar)
 
+        #expect(notifications.canDeliver)
         #expect(notifications.isEnabled == false)
         #expect(spy.requestedOptions == nil)
         #expect(spy.pending.isEmpty)
@@ -133,6 +137,42 @@ struct NotificationsManagerTests {
         #expect(notifications.isDenied)
         #expect(notifications.isEnabled)
         #expect(spy.pending.isEmpty)
+    }
+
+    @Test("si iOS pasa a denegado, refrescar vacía la cola y no toca la preferencia")
+    func refreshingDeniedClearsTheQueue() async {
+        let scratch = SettingsPersistenceTests.ScratchDefaults()
+        defer { scratch.clear() }
+        let spy = SpyNotificationCenter()
+        spy.status = .provisional
+        let notifications = makeManager(spy, scratch)
+        await notifications.refreshAuthorization()
+        await notifications.scheduleAbsence(snapshot(), config: config, calendar: calendar)
+        #expect(Set(spy.pending.keys) == Self.allIDs)
+
+        spy.status = .denied
+        await notifications.refreshAuthorization()
+
+        #expect(spy.pending.isEmpty)
+        #expect(notifications.isDenied)
+        #expect(notifications.isEnabled)
+    }
+
+    @Test("con permiso, refrescar no toca la cola")
+    func refreshingAuthorizedLeavesTheQueue() async {
+        let scratch = SettingsPersistenceTests.ScratchDefaults()
+        defer { scratch.clear() }
+        let spy = SpyNotificationCenter()
+        spy.status = .provisional
+        let notifications = makeManager(spy, scratch)
+        await notifications.refreshAuthorization()
+        await notifications.scheduleAbsence(snapshot(), config: config, calendar: calendar)
+
+        spy.status = .authorized
+        await notifications.refreshAuthorization()
+
+        #expect(Set(spy.pending.keys) == Self.allIDs)
+        #expect(notifications.authorization == .authorized)
     }
 
     @Test("prender el maestro con iOS sin preguntar pide el permiso completo")
@@ -406,8 +446,6 @@ struct NotificationsManagerTests {
         var granted = true
         var authorizationError: Error?
         var status: UNAuthorizationStatus = .notDetermined
-        /// Se ejecuta adentro del pedido de permiso, antes de contestar.
-        var beforeAnswering: (() -> Void)?
         /// Se ejecuta adentro de `add`, antes de guardar: el hueco donde el
         /// jugador vuelve a la app mientras se programa la ausencia.
         var beforeAdding: (() -> Void)?
@@ -418,7 +456,6 @@ struct NotificationsManagerTests {
 
         func requestAuthorization(options: UNAuthorizationOptions) async throws -> Bool {
             requestedOptions = options
-            beforeAnswering?()
             if let authorizationError { throw authorizationError }
             if granted {
                 status = options.contains(.provisional) ? .provisional : .authorized

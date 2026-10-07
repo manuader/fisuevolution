@@ -316,7 +316,8 @@ final class NotificationsManager {
     // MARK: La ausencia
 
     /// Al irse: borra lo anterior (también el recordatorio fijo de la v1) y
-    /// programa lo que dice el planificador.
+    /// programa lo que dice el planificador. Decide con la autorización ya leída:
+    /// no la consulta, así que quien llama refresca antes.
     func scheduleAbsence(
         _ snapshot: NotificationSnapshot,
         config: NotificationsConfig,

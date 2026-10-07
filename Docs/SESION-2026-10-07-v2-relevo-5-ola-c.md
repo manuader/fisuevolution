@@ -12,7 +12,7 @@ Lo que un agente necesita saber sin leer el resto:
   de E1 T5, no del merge de E3a: en `cdd8f0a` pasó por suerte de timing. La cuenta cierra (611 +
   2 = 612 + 1): no se perdió ningún test.
 - **Se despachó E1 T5b con BASE `bc3bf6f`** para arreglarlo en el producto, y **`bc3bf6f` no se
-  pushea hasta que T5b esté verde**. `rapido` post-T5b: **(pendiente)**.
+  pushea hasta que T5b esté verde**. `rapido` post-T5b (`d0710e1`, mismo árbol Swift que `0cfe6c9` en `version-2`): **VERDE**, EK 357 · unit 620 + 1 declarado. T5b estampa cada copia con `max(ahora, última existente + 1)`: ninguna pisa a otra y el orden alfabético sigue siendo el cronológico, con el reloj quieto, atrasado o con poda. Revisión (sonnet): 0 crít/imp.
 - **El `completo` VERDE de este relevo es sobre `d22eb7a`, o sea ANTES de la ola C.** Es la
   referencia `completo` nueva (la primera que mide la frontera de un solo mutador y el save v6),
   pero **nada de la ola C pasó todavía por UI, Store, `pacing-sim` ni Release dentro de un

@@ -1916,7 +1916,7 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
 | `5a65335` (ola B) | 317 | 593 + 1 declarado | VERDE | — |
 | `cdd8f0a` (E1 ola C) | **357** | **608 + 1 declarado** | **VERDE** | +40 EK de T7 · unit +6 de T5 · +9 de T6 |
 | `bc3bf6f` (+ E3a fix T3 y T4) | 357 | 611 + 2 | **ROJO** | +4 de `ScreenInsetsTests`; el rojo nuevo es `PersistenceTests.rotatesTheLastTenGoodLoads` |
-| post-T5b | (pendiente) | (pendiente) | (pendiente) | — |
+| `d0710e1` (+ E1 T5b; árbol Swift == `0cfe6c9` en `version-2`) | 357 | **620 + 1 declarado** | **VERDE** | +8 de T5b (nombres sin pisarse, cada payload ilegible, copia cruda al empezar de nuevo, sin copias idénticas) |
 
 - El rojo de `bc3bf6f` **no está declarado y no hay que declararlo**:
   `SaveBackupStore` nombra las copias por milisegundo, y en una corrida 2,6

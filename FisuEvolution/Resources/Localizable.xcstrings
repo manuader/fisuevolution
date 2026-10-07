@@ -4421,40 +4421,6 @@
         }
       }
     },
-    "notif.daily.body" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The tower kept producing without you. Come collect."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "La torre siguió produciendo sin vos. Pasá a cobrar."
-          }
-        }
-      }
-    },
-    "notif.daily.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your fisuras miss you"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tus fisuras te extrañan"
-          }
-        }
-      }
-    },
     "notif.daily_ready.body" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5229,18 +5195,18 @@
       }
     },
     "settings.notifications.hint" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "One reminder a day, at 7 pm."
+            "value" : "We'll let you know when something happens in your tower. Never at night."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un aviso por día, a las 19."
+            "value" : "Te avisamos cuando pasa algo en la torre. Nunca de noche."
           }
         }
       }

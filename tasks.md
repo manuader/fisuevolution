@@ -40,10 +40,12 @@
    `.superpowers/sdd/v2-agente-protocolo.md`.
 2. **Despacho**: `Agent(isolation: "worktree")` desde la BASE de la cola (§4), con el modelo de la cola.
    El paso 0 del agente es `merge --ff-only <BASE>` y comprobar el hash. → 🔄
-3. **Implementación**: TDD, `oraculo.sh rapido` antes del commit final, reporte en su worktree y
-   respuesta de menos de 15 líneas.
-4. **Revisión**: un subagente revisor de spec y calidad (skill `subagent-driven-development`; opus
-   si la tarea toca calientes o el tablero, sonnet si es chica).
+3. **Implementación**: TDD y `oraculo.sh tarea <sus clases de test>` antes del commit (no el `rapido`:
+   la suite entera y el Release van una vez por ola, en el paso 7). El brief es la tarea recortada con
+   `Tools/v2/brief.py <plan> <N> <brief>` + los carries; el agente no lee el plan entero. Respuesta < 15 líneas.
+4. **Revisión** (desde el relevo 7, por costo): **sonnet** por defecto; **opus** sólo si la tarea cambia
+   lógica de save, del frame loop, del turno del tablero o de dinero; **ninguna** (lee el diff el
+   controlador) si es mecánica, sólo tests o docs.
 5. **Arreglos**: al **mismo** agente con `SendMessage` (retoma su worktree y su contexto). → 🔧
    Sólo dentro de la misma sesión: en un relevo nuevo va un agente nuevo con BASE = el commit del
    agente y el paquete `review-<base>..<commit>.diff` del ledger.

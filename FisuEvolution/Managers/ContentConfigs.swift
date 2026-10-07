@@ -28,6 +28,8 @@ struct EventsConfig: Codable, Sendable, Equatable {
     let schemaVersion: Int
     let baseIntervalSeconds: Double
     let intervalJitterSeconds: Double
+    /// Lo que se corre un evento que venció mientras la app estaba afuera.
+    let resumeGraceSeconds: Double
     let events: [Event]
 }
 

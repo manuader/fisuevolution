@@ -41,8 +41,8 @@ struct RootView: View {
         // que se pierde sin avisar). Este modificador ES el mecanismo que el
         // default espera.
         .statusBarHidden(true)
-        .onChange(of: scenePhase) { _, newPhase in
-            gameState.handleScenePhase(newPhase)
+        .onChange(of: scenePhase) { old, new in
+            gameState.handleScenePhase(from: old, to: new)
         }
     }
 }

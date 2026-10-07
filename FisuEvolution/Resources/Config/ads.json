@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "adUnitIDs": {
+    "rewardedGifts": "ca-app-pub-8575641544774372/8304196070",
+    "rewardedOfflineX2": "ca-app-pub-8575641544774372/6825744243",
+    "rewardedChestExtra": "ca-app-pub-8575641544774372/3981807683",
+    "rewardedBoost": "ca-app-pub-8575641544774372/4913896772",
+    "rewardedWheel": null,
+    "rewardedTreasure": null,
+    "rewardedVisitor": null,
+    "rewardedDaily": null,
+    "interstitial": "ca-app-pub-8575641544774372/5270838626",
+    "rewardedInterstitial": "ca-app-pub-8575641544774372/1615619906",
+    "appOpen": null
+  },
+  "cadence": {
+    "minSecondsBetweenForced": 120,
+    "graceSecondsAfterLaunch": 180,
+    "graceSecondsAfterRewarded": 90
+  },
+  "alternation": ["interstitial", "rewardedInterstitial"],
+  "appOpen": {
+    "minSecondsAway": 180,
+    "minSecondsBetween": 1200,
+    "minSessionNumber": 2
+  },
+  "switches": {
+    "interstitial": true,
+    "rewardedInterstitial": true,
+    "appOpen": false
+  },
+  "restrictedStorefronts": ["BEL", "AUS"]
+}

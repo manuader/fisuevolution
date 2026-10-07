@@ -86,6 +86,8 @@ final class StoreManager {
             return
         }
 
+        await reconstructPurchasedOroIfNeeded()
+
         updatesTask = Task { [weak self] in
             for await update in Transaction.updates {
                 await self?.handle(update)
@@ -292,6 +294,23 @@ final class StoreManager {
     }
 
     // MARK: - Internals
+
+    /// Una vez por save de la v1. Corre antes del listener: así ninguna
+    /// transacción nueva entra a la cuenta como si fuera de la v1.
+    private func reconstructPurchasedOroIfNeeded() async {
+        guard let gameState, gameState.needsPurchasedOroReconstruction else { return }
+        var records: [PurchasedOroHistory.Record] = []
+        for await result in Transaction.all {
+            guard case .verified(let transaction) = result else { continue }
+            records.append(.init(
+                transactionID: String(transaction.id),
+                productID: transaction.productID,
+                isRevoked: transaction.revocationDate != nil
+            ))
+        }
+        gameState.completePurchasedOroReconstruction(records: records)
+        Log.store.info("purchased ORO reconstructed from \(records.count) transactions")
+    }
 
     private func handle(_ update: VerificationResult<Transaction>) async {
         guard case .verified(let transaction) = update else {

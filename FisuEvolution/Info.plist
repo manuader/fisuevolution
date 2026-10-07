@@ -40,6 +40,12 @@
 	<key>GADApplicationIdentifier</key>
 	<string>ca-app-pub-8575641544774372~3243441080</string>
 
+	<!-- Pide a StoreKit que `Transaction.all` incluya los consumibles ya
+	     finalizados (iOS 18+): de ahí reconstruye `PurchasedOroHistory` el ORO
+	     que la v1 vendió. Tampoco tiene `INFOPLIST_KEY_*`. -->
+	<key>SKIncludeConsumableInAppPurchaseHistory</key>
+	<true/>
+
 	<!-- Los 50 identificadores de SKAdNetwork de la guía de AdMob (Google +
 	     compradores terceros habilitados), copiados de la doc que pasó el dueño.
 	     Sin esto, la atribución de instalaciones de SKAdNetwork no funciona y el

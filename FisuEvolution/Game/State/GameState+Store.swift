@@ -245,12 +245,27 @@ extension GameState {
             // Sólo el balance. `oroEarnedLifetime` es lo que alimenta el
             // multiplicador global y sube únicamente al reencarnar.
             player.meta.oro += amount
+            player.meta.oroPurchasedLifetime += amount
         case .removeAds, .skin:
             return
         }
 
         self.player = player
         refreshProjections()
+        scheduleSave()
+    }
+
+    var needsPurchasedOroReconstruction: Bool {
+        player.map { !$0.meta.purchasedOroReconstructed } ?? false
+    }
+
+    func completePurchasedOroReconstruction(records: [PurchasedOroHistory.Record]) {
+        guard var player, !player.meta.purchasedOroReconstructed else { return }
+        player.meta.oroPurchasedLifetime += PurchasedOroHistory.reconstruct(
+            records: records, creditedTransactionIDs: player.meta.creditedPurchases
+        )
+        player.meta.purchasedOroReconstructed = true
+        self.player = player
         scheduleSave()
     }
 

@@ -107,6 +107,31 @@ struct StoreManagerTests {
         #expect(gameState.player?.meta.oro == before + 250)
         // La compra no compra multiplicador: eso sólo lo da reencarnar.
         #expect(gameState.player?.meta.oroEarnedLifetime == 0)
+        // Pero sí queda anotada como ORO comprado, en el acto.
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
+    }
+
+    /// El recorrido de un save de la v1 por el arranque: la compra ya estaba
+    /// acreditada (está en `creditedPurchases`) y la cuenta del ORO comprado
+    /// nace en 0, así que `start` la reconstruye desde `Transaction.all`.
+    @Test func reconstructsTheV1OroFromTransactionHistory() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let firstLaunch = StoreManager()
+        await firstLaunch.start(gameState: gameState)
+        let pack = try #require(firstLaunch.products.first { $0.id == "com.fisuevolution.iap.oro_small" })
+        await firstLaunch.purchase(pack)
+
+        gameState.player?.meta.oroPurchasedLifetime = 0
+        gameState.player?.meta.purchasedOroReconstructed = false
+        #expect(gameState.player?.meta.creditedPurchases.count == 1)
+
+        let secondLaunch = StoreManager()
+        await secondLaunch.start(gameState: gameState)
+
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
+        #expect(gameState.needsPurchasedOroReconstruction == false)
     }
 
     /// Un consumible se vuelve a comprar. Si quedara marcado como "comprado" la

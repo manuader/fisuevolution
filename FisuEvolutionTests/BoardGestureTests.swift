@@ -172,4 +172,40 @@ struct BoardGestureTests {
 
         #expect(scene.debugNode(atSlot: lonely)?.action(forKey: "assistedMerge") == nil)
     }
+
+    // MARK: - Los cambios del tablero y la escena
+
+    private func sceneWithPlannedChange() async throws -> (BoardScene, GameState) {
+        let gameState = await makeGameState()
+        gameState.debugPlanBoardChange()
+        let scene = BoardScene(gameState: gameState)
+        scene.layoutBoard()
+        gameState.syncCelebrations()
+        return (scene, gameState)
+    }
+
+    @Test("si el watchdog asienta el cambio y el turno se re-encola, la escena corta y revela")
+    func watchdogSettlingARevealingChangeLetsTheNextTurnStart() async throws {
+        let (scene, gameState) = try await sceneWithPlannedChange()
+        scene.update(1)
+        #expect(scene.debugIsPlayingBoardChange)
+        for _ in 0..<15 { gameState.tick(delta: 1) }
+        #expect(gameState.inFlightBoardChange == nil)
+        // El primer merge trae su logro, que pasa antes que el tablero.
+        if gameState.showing == .achievements { gameState.celebrationFinished(.achievements) }
+        #expect(gameState.showing == .boardCelebration, "lo asentado dejó un tier sin revelar: se re-encola")
+        scene.update(2)
+        #expect(scene.debugIsPlayingBoardChange == false)
+        #expect(gameState.player?.run.revealedTier == 2, "y el turno nuevo arrancó el reveal")
+    }
+
+    @Test("con el par en la mano el cambio no arranca")
+    func aChangeWaitsWhileThePlayerHoldsAUnit() async throws {
+        let (scene, gameState) = try await sceneWithPlannedChange()
+        let slot = try #require(gameState.visiblePlacements.first?.slot)
+        scene.debugHoldInHand(slot: slot)
+        scene.update(1)
+        #expect(gameState.inFlightBoardChange == nil)
+        #expect(gameState.pendingBoardChanges.count == 1)
+    }
 }

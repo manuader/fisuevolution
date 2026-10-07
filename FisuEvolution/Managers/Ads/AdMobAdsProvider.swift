@@ -38,38 +38,31 @@ import UIKit
 /// every hour"*. Un idle se deja abierto o en background durante horas, así que
 /// éste es el caso normal y no el raro: sin el chequeo de frescura, el primer
 /// video de la tarde falla al presentarse y el jugador ve un botón que no hace
-/// nada. Ver `Inventory.isFresh`.
+/// nada. Ver `AdInventory.isFresh`. El app open vive más (cuatro horas), y por
+/// eso la vida es del inventario y no una constante del tipo: ver
+/// `AdInventoryLifetime`.
 @Observable @MainActor
 final class AdMobAdsProvider: AdsProvider {
-
-    /// Un anuncio cargado, con el momento en que se cargó.
-    ///
-    /// El `loadedAt` es la mitad del valor de este tipo: es lo que permite
-    /// tirar el anuncio vencido ANTES de intentar mostrarlo.
-    private struct Inventory<Ad> {
-        let ad: Ad
-        let loadedAt: Date
-
-        /// Margen sobre la hora que declara AdMob. Cinco minutos antes para no
-        /// competir con el borde: un anuncio que se vence entre el chequeo y la
-        /// presentación falla igual.
-        static var lifetime: TimeInterval { 55 * 60 }
-
-        func isFresh(now: Date) -> Bool {
-            now.timeIntervalSince(loadedAt) < Self.lifetime
-        }
-    }
 
     private let unitIDs: FeatureFlags.AdUnitIDs
     /// Inyectable para que los tests puedan envejecer el inventario sin esperar
     /// 55 minutos.
     private let now: @Sendable () -> Date
 
-    @ObservationIgnored private var rewarded: [RewardedPlacement: Inventory<RewardedAd>] = [:]
+    @ObservationIgnored private var rewarded: [RewardedPlacement: AdInventory<RewardedAd>] = [:]
     /// Los placements con una carga en vuelo, para no pedir dos veces el mismo.
     @ObservationIgnored private var loadingRewarded: Set<RewardedPlacement> = []
-    @ObservationIgnored private var interstitial: Inventory<InterstitialAd>?
+    @ObservationIgnored private var interstitial: AdInventory<InterstitialAd>?
     @ObservationIgnored private var loadingInterstitial = false
+    @ObservationIgnored private var rewardedInterstitial: AdInventory<RewardedInterstitialAd>?
+    @ObservationIgnored private var loadingRewardedInterstitial = false
+    @ObservationIgnored private var appOpen: AdInventory<AppOpenAd>?
+    @ObservationIgnored private var loadingAppOpen = false
+    /// ⚠️ Un solo observador para los cuatro formatos, y por eso nunca puede
+    /// haber dos presentaciones a la vez: la segunda pisaría la continuación de
+    /// la primera, que no volvería nunca. Lo garantiza `AdsCoordinator`, que es
+    /// el único que llama acá y rechaza un anuncio mientras hay otro en
+    /// pantalla.
     @ObservationIgnored private let presentation = FullScreenAdObserver()
     @ObservationIgnored private var didStartSDK = false
 
@@ -93,6 +86,13 @@ final class AdMobAdsProvider: AdsProvider {
     /// rewarded pesa y se vence, así que traer los cuatro al arranque gasta red
     /// del jugador en tres anuncios que quizá no vea nunca. Los otros los pide
     /// la UI con `preloadRewarded(for:)` cuando la oferta está por aparecer.
+    ///
+    /// Por lo mismo **no precarga la pausa publicitaria ni el app open**: los
+    /// pide quien los va a mostrar (`preloadRewardedInterstitial()` antes de
+    /// ofrecer la pausa, `preloadAppOpen()` al irse a background). Un anuncio
+    /// cargado y nunca mostrado no es gratis: gasta red del jugador y se vence
+    /// en la memoria, y en los reportes de AdMob baja la tasa de presentación
+    /// (*show rate*) de su unidad.
     func prepare() {
         guard !didStartSDK else { return }
         didStartSDK = true
@@ -128,7 +128,7 @@ final class AdMobAdsProvider: AdsProvider {
             let ad = try await RewardedAd.load(
                 with: unitIDs.rewarded(for: placement), request: Request()
             )
-            rewarded[placement] = Inventory(ad: ad, loadedAt: now())
+            rewarded[placement] = AdInventory(ad: ad, loadedAt: now(), lifetime: AdInventoryLifetime.standard)
         } catch {
             // Quedarse sin anuncio es NORMAL (sin red, sin inventario, cuota
             // del día): no es un error que el jugador tenga que ver. La fila
@@ -177,7 +177,7 @@ final class AdMobAdsProvider: AdsProvider {
             defer { loadingInterstitial = false }
             do {
                 let ad = try await InterstitialAd.load(with: unitID, request: Request())
-                interstitial = Inventory(ad: ad, loadedAt: now())
+                interstitial = AdInventory(ad: ad, loadedAt: now(), lifetime: AdInventoryLifetime.standard)
             } catch {
                 interstitial = nil
             }
@@ -197,6 +197,116 @@ final class AdMobAdsProvider: AdsProvider {
         await presentation.present { ad.present(from: nil) }
 
         preloadInterstitial()
+    }
+
+    // MARK: - Pausa publicitaria (intersticial bonificado)
+
+    var isRewardedInterstitialReady: Bool {
+        guard let rewardedInterstitial else { return false }
+        return rewardedInterstitial.isFresh(now: now())
+    }
+
+    func preloadRewardedInterstitial() {
+        // Sin unidad declarada, este build no muestra la pausa publicitaria.
+        guard let unitID = unitIDs.rewardedInterstitial else { return }
+        if isRewardedInterstitialReady || loadingRewardedInterstitial { return }
+        rewardedInterstitial = nil
+        loadingRewardedInterstitial = true
+        Task {
+            defer { loadingRewardedInterstitial = false }
+            do {
+                let ad = try await RewardedInterstitialAd.load(with: unitID, request: Request())
+                rewardedInterstitial = AdInventory(
+                    ad: ad, loadedAt: now(), lifetime: AdInventoryLifetime.standard
+                )
+            } catch {
+                rewardedInterstitial = nil
+            }
+        }
+    }
+
+    /// Mismo baile que `showRewarded`: se espera el CIERRE y se devuelve lo que
+    /// haya pasado con el premio, que llega por otro callback (ver el punto 1
+    /// del docstring de la clase).
+    func showRewardedInterstitial() async -> Bool {
+        guard let entry = rewardedInterstitial, entry.isFresh(now: now()) else {
+            rewardedInterstitial = nil
+            preloadRewardedInterstitial()
+            return false
+        }
+        rewardedInterstitial = nil
+
+        var earnedReward = false
+        let ad = entry.ad
+        ad.fullScreenContentDelegate = presentation
+        await presentation.present {
+            ad.present(from: nil) { earnedReward = true }
+        }
+
+        preloadRewardedInterstitial()
+        return earnedReward
+    }
+
+    // MARK: - App open
+
+    var isAppOpenReady: Bool {
+        guard let appOpen else { return false }
+        return appOpen.isFresh(now: now())
+    }
+
+    func preloadAppOpen() {
+        // [GATE DEL DUEÑO] Mientras no exista la unidad, `appOpen` es `nil` y
+        // no hay nada que pedir. Ver el aviso en `FeatureFlags.AdUnitIDs`.
+        guard let unitID = unitIDs.appOpen else { return }
+        if isAppOpenReady || loadingAppOpen { return }
+        appOpen = nil
+        loadingAppOpen = true
+        Task {
+            defer { loadingAppOpen = false }
+            do {
+                let ad = try await AppOpenAd.load(with: unitID, request: Request())
+                appOpen = AdInventory(ad: ad, loadedAt: now(), lifetime: AdInventoryLifetime.appOpen)
+            } catch {
+                appOpen = nil
+            }
+        }
+    }
+
+    func showAppOpen() async {
+        guard let entry = appOpen, entry.isFresh(now: now()) else {
+            appOpen = nil
+            preloadAppOpen()
+            return
+        }
+        appOpen = nil
+
+        let ad = entry.ad
+        ad.fullScreenContentDelegate = presentation
+        await presentation.present { ad.present(from: nil) }
+
+        // No se repone acá: el próximo app open se pide al volver a irse a
+        // background, que es cuando hace falta (y el que se cargue ahora
+        // podría vencerse antes).
+    }
+}
+
+// MARK: - El inventario
+
+/// Un anuncio cargado, con el momento en que se cargó y cuánto vive.
+///
+/// El `loadedAt` es la mitad del valor de este tipo: es lo que permite tirar el
+/// anuncio vencido ANTES de intentar mostrarlo.
+///
+/// Es genérico y vive fuera del proveedor para que los tests puedan envejecerlo
+/// con un `String` en lugar de un anuncio del SDK, que no se puede construir.
+struct AdInventory<Ad> {
+    let ad: Ad
+    let loadedAt: Date
+    /// Margen sobre lo que declara AdMob: ver `AdInventoryLifetime`.
+    let lifetime: TimeInterval
+
+    func isFresh(now: Date) -> Bool {
+        now.timeIntervalSince(loadedAt) < lifetime
     }
 }
 

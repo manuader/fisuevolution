@@ -35,16 +35,31 @@ final class AdsCoordinator: AdsProvider {
 
     /// El proveedor real detrás de la costura. Arranca en stub para que el
     /// juego funcione entre el lanzamiento y el fin del bootstrap.
-    @ObservationIgnored private var active: any AdsProvider = StubAdsProvider()
+    @ObservationIgnored private var active: any AdsProvider
 
     /// Si el jugador compró `remove_ads`. Los **interstitials** lo respetan; los
     /// **rewarded NO**, y esa asimetría es deliberada: quitar los anuncios paga
     /// por no ser interrumpido, no por perder los premios que el jugador elige
     /// mirar. Sacarle los rewarded a quien pagó sería quitarle una fuente de
     /// premios por haber pagado.
+    ///
+    /// En la 2.0 son **tres los formatos forzados** que corta (decisión del
+    /// dueño, PLAN-v2 §2): el interstitial, la pausa publicitaria y el app
+    /// open. La pausa publicitaria paga un premio, pero nadie la pidió: es
+    /// interrupción, y por eso cae del lado de los forzados.
     @ObservationIgnored private var removedAds = false
 
     @ObservationIgnored private(set) var isConfigured = false
+
+    /// Si hay un anuncio de pantalla completa en pantalla, de cualquier formato.
+    ///
+    /// ⚠️ No es informativo: es lo que impide **dos anuncios encimados**. El
+    /// proveedor real tiene un solo observador de presentación para los cuatro
+    /// formatos, así que un segundo `show…` en vuelo pisaría la continuación
+    /// del primero y ese `await` no volvería nunca. Con un solo formato forzado
+    /// no podía pasar; con tres que disparan desde lugares distintos (cerrar una
+    /// hoja, volver del background, reencarnar), sí.
+    @ObservationIgnored private(set) var isPresentingFullScreen = false
 
     // MARK: - La política del interstitial
 
@@ -54,7 +69,9 @@ final class AdsCoordinator: AdsProvider {
     /// gracia: llegar y comerse un anuncio se siente igual de mal).
     @ObservationIgnored private var sessionStartedAt: Date
     @ObservationIgnored private var lastInterstitialAt: Date?
-    @ObservationIgnored private var lastRewardedAt: Date?
+    /// Cuándo se cerró el último video con premio. Lo lee también la política
+    /// de cortes naturales de la 2.0 para su gracia post-video.
+    @ObservationIgnored private(set) var lastRewardedAt: Date?
     /// El interstitial está ARMADO: le toca, y espera una pausa natural.
     ///
     /// ⚠️ **Esta bandera es toda la idea.** El pedido del dueño fue "un anuncio
@@ -66,9 +83,15 @@ final class AdsCoordinator: AdsProvider {
     /// desde un lugar donde se sabe que no hay nada en curso.
     @ObservationIgnored private(set) var isInterstitialArmed = false
 
-    init(now: @escaping @Sendable () -> Date = Date.init) {
+    /// `provider` es el que atiende hasta que `configure` decida; los tests
+    /// pasan uno guionado para controlar cuándo se cierra un anuncio.
+    init(
+        now: @escaping @Sendable () -> Date = Date.init,
+        provider: any AdsProvider = StubAdsProvider()
+    ) {
         self.now = now
         self.sessionStartedAt = now()
+        self.active = provider
     }
 
     /// Si esta corrida es una de tests de UI.
@@ -141,6 +164,9 @@ final class AdsCoordinator: AdsProvider {
     }
 
     func showRewarded(for placement: RewardedPlacement) async -> Bool {
+        guard !isPresentingFullScreen else { return false }
+        isPresentingFullScreen = true
+        defer { isPresentingFullScreen = false }
         let earned = await active.showRewarded(for: placement)
         // Se anota SIEMPRE, gane o no: lo que abre la gracia es haber comido una
         // pantalla completa de publicidad, no haber cobrado.
@@ -152,11 +178,62 @@ final class AdsCoordinator: AdsProvider {
     /// llamadores no tienen que acordarse de chequearlo. Centralizarlo acá es lo
     /// que hace que agregar un punto de interstitial en el futuro no pueda
     /// olvidarse del `remove_ads`.
-    var isInterstitialReady: Bool { !removedAds && active.isInterstitialReady }
+    var isInterstitialReady: Bool {
+        !removedAds && !isPresentingFullScreen && active.isInterstitialReady
+    }
 
     func showInterstitial() async {
-        guard !removedAds else { return }
+        guard !removedAds, !isPresentingFullScreen else { return }
+        isPresentingFullScreen = true
+        defer { isPresentingFullScreen = false }
         await active.showInterstitial()
+        forcedAdFinished()
+    }
+
+    /// Misma regla que el interstitial: `false` con `remove_ads`.
+    var isRewardedInterstitialReady: Bool {
+        !removedAds && !isPresentingFullScreen && active.isRewardedInterstitialReady
+    }
+
+    func preloadRewardedInterstitial() {
+        // Quien compró `remove_ads` no la va a ver: pedirla gastaría su red.
+        guard !removedAds else { return }
+        active.preloadRewardedInterstitial()
+    }
+
+    /// `false` sin mostrar nada si el jugador compró `remove_ads` o si ya hay
+    /// otro anuncio en pantalla.
+    func showRewardedInterstitial() async -> Bool {
+        guard !removedAds, !isPresentingFullScreen else { return false }
+        isPresentingFullScreen = true
+        defer { isPresentingFullScreen = false }
+        let earned = await active.showRewardedInterstitial()
+        forcedAdFinished()
+        return earned
+    }
+
+    var isAppOpenReady: Bool {
+        !removedAds && !isPresentingFullScreen && active.isAppOpenReady
+    }
+
+    func preloadAppOpen() {
+        guard !removedAds else { return }
+        active.preloadAppOpen()
+    }
+
+    func showAppOpen() async {
+        guard !removedAds, !isPresentingFullScreen else { return }
+        isPresentingFullScreen = true
+        defer { isPresentingFullScreen = false }
+        await active.showAppOpen()
+        forcedAdFinished()
+    }
+
+    /// Un formato forzado terminó, el que sea. El reloj de la 1.x es uno solo
+    /// para los tres: una pausa publicitaria o un app open recién cerrados
+    /// cuentan como "acaba de comer un anuncio" para el próximo interstitial.
+    /// Es el mismo criterio del `lastFullScreenAt` único de la 2.0.
+    private func forcedAdFinished() {
         lastInterstitialAt = now()
         isInterstitialArmed = false
     }

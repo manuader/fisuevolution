@@ -111,17 +111,37 @@ struct CelebrationQueueTests {
 
     // MARK: Watchdog
 
+    @Test("el turno del tablero tolera un cambio entero: navegar, fundir, volar y revelar")
+    func boardCelebrationCoversABoardChange() {
+        #expect(CelebrationKind.boardCelebration.timeout == 14)
+    }
+
+    @Test("el offline y la carrera pasan antes que un cambio del tablero")
+    func offlineAndCareerGoBeforeTheBoard() {
+        var queue = CelebrationQueue()
+        queue.enqueue(.towerNotice)          // ocupa el turno: sobre una cola vacía se promueve en el acto
+        queue.enqueue(.boardCelebration)
+        queue.enqueue(.careerChoice)
+        queue.enqueue(.offlineEarnings)
+        queue.finish(.towerNotice)
+        #expect(queue.current == .offlineEarnings)
+        queue.finish(.offlineEarnings)
+        #expect(queue.current == .careerChoice)
+        queue.finish(.careerChoice)
+        #expect(queue.current == .boardCelebration)
+    }
+
     @Test("un ítem que nunca avisa lo destraba el watchdog")
     func watchdogReleasesAStuckItem() {
         var queue = CelebrationQueue()
-        queue.enqueue(.boardCelebration)   // tope 8 s
+        queue.enqueue(.boardCelebration)   // tope 14 s
         queue.enqueue(.skinAward)
 
-        let halfway = queue.tick(4)
+        let halfway = queue.tick(7)
         #expect(halfway == nil, "a mitad de camino todavía no")
         #expect(queue.current == .boardCelebration)
 
-        let expired = queue.tick(4.1)
+        let expired = queue.tick(7.1)
         #expect(expired == .boardCelebration, "devuelve el que destrabó, para loguearlo")
         #expect(queue.current == .skinAward, "y la cola sigue")
     }

@@ -206,6 +206,7 @@ public enum BoardChangeApplier {
         floorTable: FloorTable
     ) throws -> BoardChangeOutcome {
         let tierBefore = state.run.maxTierReached
+        guard isStillWhatWasPlanned(change, in: tower) else { throw TowerError.invalidSlot }
         switch change.kind {
         case let .merge(ordinal, _, source, target, newTypeId):
             let result = try TowerActions.applyMerge(
@@ -231,6 +232,20 @@ public enum BoardChangeApplier {
             }
             return BoardChangeOutcome(slot: nil, resultTypeId: nil, tierBefore: tierBefore,
                                       promotedToFloor: nil, unlockedFloorId: nil)
+        }
+    }
+
+    /// El plan se hizo mirando unos slots: si hoy tienen otro tipo, aplicarlo
+    /// tocaría a quien no corresponde.
+    private static func isStillWhatWasPlanned(_ change: BoardChange, in tower: TowerState) -> Bool {
+        switch change.kind {
+        case let .merge(ordinal, typeId, source, target, _):
+            tower.typeId(floorOrdinal: ordinal, slot: source) == typeId
+                && tower.typeId(floorOrdinal: ordinal, slot: target) == typeId
+        case let .evolve(ordinal, slot, typeId, _), let .departure(ordinal, slot, typeId):
+            tower.typeId(floorOrdinal: ordinal, slot: slot) == typeId
+        case .arrival:
+            true
         }
     }
 

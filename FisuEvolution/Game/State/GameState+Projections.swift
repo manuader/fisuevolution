@@ -90,6 +90,7 @@ extension GameState {
 
         let total = player.run.totalUnits
         if unitCount != total { unitCount = total }
+        if revealedTierMarker != player.run.revealedTier { revealedTierMarker = player.run.revealedTier }
     }
 
     private func refreshTowerProjections(content: GameContent, player: PlayerState) {

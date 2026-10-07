@@ -69,6 +69,11 @@ final class BoardScene: SKScene {
     // Celebración del tablero (un ítem de la cola: vuelo + reveal + piso nuevo).
     private var pendingBoardCelebration: PendingBoardCelebration?
     private var boardCelebrationRunning = false
+    /// El cambio del tablero que se está reproduciendo, hasta que se confirma.
+    private var playingBoardChange: BoardChange?
+    private static let boardChangeActionKey = "boardChange"
+    /// Lo que se destaca el par antes de fundirse: se tiene que alcanzar a ver.
+    private static let boardChangeBeat: TimeInterval = 0.35
     private static let floorCameraKey = "floorCamera"
     /// Cambiar de piso con las flechas o el deslizamiento: un salto corto.
     private static let floorHopDuration: TimeInterval = 0.35
@@ -337,6 +342,9 @@ final class BoardScene: SKScene {
         }
 
         if isFlying { streamFloorsAlongFlight() }
+        // El watchdog liberó el turno de un cambio que la escena no terminó: se
+        // corta acá, o el toque quedaría bloqueado para siempre.
+        if playingBoardChange != nil, gameState.showing != .boardCelebration { abortBoardCelebration() }
         startBoardCelebrationIfItsTurn()
         refreshCrowdDepth()
         updateFTUEHint()
@@ -361,13 +369,34 @@ final class BoardScene: SKScene {
     ///
     /// Se consulta por frame en vez de observar `showing`: la escena ya corre
     /// acá, así que no hay nada que montar.
+    ///
+    /// Decide qué reproduce el turno, en este orden: el merge del jugador que
+    /// dejó su payload, el próximo cambio del tablero y, si falta, la revelación
+    /// del personaje más alto que nadie vio.
+    ///
+    /// ⚠️ El merge del jugador no cae en la última rama: `handleDrop` pide el
+    /// turno y `resolveDrop` guarda `pendingBoardCelebration` en la misma pasada
+    /// síncrona, antes del próximo `update`.
     private func startBoardCelebrationIfItsTurn() {
-        guard gameState.showing == .boardCelebration, !boardCelebrationRunning,
-              let pending = pendingBoardCelebration
-        else { return }
-        boardCelebrationRunning = true
-        pendingBoardCelebration = nil
-        runBoardCelebration(pending)
+        guard gameState.showing == .boardCelebration, !boardCelebrationRunning else { return }
+        if let pending = pendingBoardCelebration {
+            boardCelebrationRunning = true
+            pendingBoardCelebration = nil
+            runBoardCelebration(pending)
+        } else if let change = gameState.beginNextBoardChange() {
+            boardCelebrationRunning = true
+            playBoardChange(change)
+        } else if gameState.boardIsVisibleForChanges, let type = gameState.typePendingReveal {
+            boardCelebrationRunning = true
+            runBoardCelebration(PendingBoardCelebration(
+                evolvedTo: type, promotedType: nil, promotionStart: nil, promotedToFloor: nil,
+                unlockedFloorID: nil, revealAt: nil, floorOrdinal: gameState.visibleFloorOrdinal
+            ))
+        } else {
+            // El turno llegó sin nada que reproducir (el tablero dejó de estar a la
+            // vista): se devuelve y la cola lo vuelve a pedir cuando se pueda.
+            gameState.celebrationFinished(.boardCelebration)
+        }
     }
 
     /// Vuelo → reveal → piso nuevo, encadenados por **completion y no por delays
@@ -400,6 +429,7 @@ final class BoardScene: SKScene {
                 celebrateFloor()
                 return
             }
+            self.gameState.markRevealed(tier: evolvedTo.tier)
             self.gameState.playHaptic(.evolution)
             self.runEvolutionReveal(for: evolvedTo, at: pending.revealAt, completion: celebrateFloor)
         }
@@ -419,6 +449,10 @@ final class BoardScene: SKScene {
     private func abortBoardCelebration() {
         boardCelebrationRunning = false
         pendingBoardCelebration = nil
+        removeAction(forKey: Self.boardChangeActionKey)
+        playingBoardChange = nil
+        clearMergeCandidates()
+        for node in characterNodes.values { node.removeAction(forKey: "assistedMerge") }
         for layer in [cameraOverlay, backgroundLayer] {
             for node in layer.children where node.name?.hasPrefix(Self.celebrationNodePrefix) == true {
                 node.removeAllActions()
@@ -623,6 +657,9 @@ final class BoardScene: SKScene {
         if gameState.skipCurrentCelebration() {
             abortBoardCelebration()
         }
+        // Mientras un cambio se mueve el toque sólo puede saltearlo: si no, el
+        // jugador arrastraría al par a mitad del gesto.
+        guard playingBoardChange == nil else { return }
 
         guard let node = characterNode(at: touch.location(in: self)) else {
             let point = touch.location(in: self)
@@ -753,47 +790,10 @@ final class BoardScene: SKScene {
         isDragging = false
         clearMergeCandidates()
 
-        switch gameState.handleDrop(fromCell: originCell, toCell: targetCell) {
-        case .merged(let cell, let evolvedTo, let promotedType, let promotedToFloor, let unlockedFloorID):
-            // `layoutBoard()` recicla los nodos del campo. Tomamos la coordenada
-            // mundial antes de reconstruirlo para animar una copia independiente.
-            let promotionStart = promotedToFloor == nil
-                ? nil
-                : fieldNode.convert(node.position, to: backgroundLayer)
-            layoutBoard()
-            // Si el resultado ascendió de piso (F7 §3.4), ya no está en este piso:
-            // feedback en el punto del drop. F7.2 agrega la animación de vuelo.
-            let mergedNode = promotedToFloor == nil ? characterNodes[cell] : nil
-            let feedbackPoint = mergedNode?.position ?? dropPoint
-            particles.emit(.merge, at: feedbackPoint, in: fieldNode)
-            if let mergedNode {
-                mergedNode.run(.sequence([
-                    .scale(to: 1.25, duration: 0.1),
-                    .scale(to: 1.0, duration: 0.12),
-                ]))
-            }
-            // El vuelo, el reveal y la celebración de piso son UN ítem de la
-            // cola: se encadenan entre sí y esperan su turno juntos. Antes
-            // arrancaban en t=0 y encima les caía el sheet de skin, así que no se
-            // apreciaba ninguno — y es el momento más importante del juego.
-            //
-            // El pop y las partículas de arriba NO esperan: son la respuesta
-            // directa al gesto, y demorarlas haría sentir el juego trabado.
-            if evolvedTo != nil || promotedType != nil {
-                pendingBoardCelebration = PendingBoardCelebration(
-                    evolvedTo: evolvedTo,
-                    promotedType: promotedType,
-                    promotionStart: promotionStart,
-                    promotedToFloor: promotedToFloor,
-                    unlockedFloorID: unlockedFloorID,
-                    revealAt: mergedNode?.position,
-                    floorOrdinal: gameState.visibleFloorOrdinal
-                )
-                // El turno ya lo pidió `handleDrop`: acá sólo se guarda con qué
-                // reproducirlo cuando la cola lo llame.
-            } else {
-                gameState.playHaptic(.merge)
-            }
+        let resolution = gameState.handleDrop(fromCell: originCell, toCell: targetCell)
+        switch resolution {
+        case .merged:
+            presentResolution(resolution, at: dropPoint, sourceNode: node, withinTurn: false)
         case .moved:
             layoutBoard()
         case .careerPending, .snapBack:
@@ -801,6 +801,73 @@ final class BoardScene: SKScene {
             // arriba, y el doble toque nunca tuvo uno. Lo que hay que deshacer
             // es el desplazamiento del personaje, que es lo mismo en los dos.
             returnToAnchor(node)
+        }
+    }
+
+    /// Lo que se ve de un merge ya resuelto por `GameState`: el pop, las
+    /// partículas y, si trajo un personaje o un piso, la cadena de la celebración.
+    /// `withinTurn` dice si el turno de la cola ya es del cambio que lo originó
+    /// (un cambio del tablero) o si todavía hay que esperarlo (el merge del
+    /// jugador).
+    private func presentResolution(
+        _ resolution: GameState.DropResolution?,
+        at dropPoint: CGPoint,
+        sourceNode node: CharacterNode,
+        withinTurn: Bool
+    ) {
+        clearMergeCandidates()
+        guard case .merged(let cell, let evolvedTo, let promotedType, let promotedToFloor, let unlockedFloorID)? = resolution else {
+            if withinTurn {
+                returnToAnchor(node)
+                finishBoardChangeTurn()
+            }
+            return
+        }
+        // `layoutBoard()` recicla los nodos del campo. Tomamos la coordenada
+        // mundial antes de reconstruirlo para animar una copia independiente.
+        let promotionStart = promotedToFloor == nil
+            ? nil
+            : fieldNode.convert(node.position, to: backgroundLayer)
+        layoutBoard()
+        // Si el resultado ascendió de piso (F7 §3.4), ya no está en este piso:
+        // feedback en el punto del drop. F7.2 agrega la animación de vuelo.
+        let mergedNode = promotedToFloor == nil ? characterNodes[cell] : nil
+        let feedbackPoint = mergedNode?.position ?? dropPoint
+        particles.emit(.merge, at: feedbackPoint, in: fieldNode)
+        if let mergedNode {
+            mergedNode.run(.sequence([
+                .scale(to: 1.25, duration: 0.1),
+                .scale(to: 1.0, duration: 0.12),
+            ]))
+        }
+        guard evolvedTo != nil || promotedType != nil else {
+            gameState.playHaptic(.merge)
+            if withinTurn { finishBoardChangeTurn() }
+            return
+        }
+        // El vuelo, el reveal y la celebración de piso son UN ítem de la
+        // cola: se encadenan entre sí y esperan su turno juntos. Antes
+        // arrancaban en t=0 y encima les caía el sheet de skin, así que no se
+        // apreciaba ninguno — y es el momento más importante del juego.
+        //
+        // El pop y las partículas de arriba NO esperan: son la respuesta
+        // directa al gesto, y demorarlas haría sentir el juego trabado.
+        let pending = PendingBoardCelebration(
+            evolvedTo: evolvedTo,
+            promotedType: promotedType,
+            promotionStart: promotionStart,
+            promotedToFloor: promotedToFloor,
+            unlockedFloorID: unlockedFloorID,
+            revealAt: mergedNode?.position,
+            floorOrdinal: gameState.visibleFloorOrdinal
+        )
+        if withinTurn {
+            playingBoardChange = nil
+            runBoardCelebration(pending)
+        } else {
+            // El turno ya lo pidió `handleDrop`: acá sólo se guarda con qué
+            // reproducirlo cuando la cola lo llame.
+            pendingBoardCelebration = pending
         }
     }
 
@@ -956,7 +1023,8 @@ final class BoardScene: SKScene {
     }
 
     /// El compañero se acerca y se funde con el que tocaste. La fusión en sí la
-    /// resuelve `resolveDrop`, el mismo camino que el arrastre.
+    /// resuelve `resolveDrop`, el mismo camino que el arrastre, salvo que quien
+    /// llama traiga su propio destino (`resolve`: un cambio del tablero).
     ///
     /// El que viaja entra a `mergeCandidates` mientras dura el viaje: es lo que
     /// lo mantiene por encima de la multitud, porque `refreshCrowdDepth` le
@@ -966,7 +1034,11 @@ final class BoardScene: SKScene {
     /// vibraciones seguidas se leen como un error, no como un gesto que enganchó.
     /// El deslizamiento arranca en el frame siguiente al toque, así que la
     /// confirmación es visual e inmediata igual.
-    private func runAssistedMerge(partner: CharacterNode, into target: CharacterNode) {
+    private func runAssistedMerge(
+        partner: CharacterNode,
+        into target: CharacterNode,
+        resolve: ((Int, Int, CGPoint, CharacterNode) -> Void)? = nil
+    ) {
         let originCell = partner.cellIndex
         let targetCell = target.cellIndex
         // El destino sigue deambulando durante el viaje, pero a 44 pt/s son 8 pt
@@ -994,11 +1066,102 @@ final class BoardScene: SKScene {
             slide,
             .run { [weak self, weak partner] in
                 guard let self, let partner else { return }
-                self.resolveDrop(
-                    from: originCell, to: targetCell, at: meetingPoint, sourceNode: partner
-                )
+                if let resolve {
+                    resolve(originCell, targetCell, meetingPoint, partner)
+                } else {
+                    self.resolveDrop(
+                        from: originCell, to: targetCell, at: meetingPoint, sourceNode: partner
+                    )
+                }
             },
         ]), withKey: "assistedMerge")
+    }
+
+    // MARK: - Cambios del tablero que no hizo el jugador
+
+    /// Navega al piso del cambio, destaca a los protagonistas y deja que el
+    /// resto lo cuente la misma cadena que el merge del jugador.
+    private func playBoardChange(_ change: BoardChange) {
+        playingBoardChange = change
+        let floor = gameState.floorOrdinal(of: change) ?? gameState.visibleFloorOrdinal
+        let travels = floor != gameState.visibleFloorOrdinal
+        gameState.setVisibleFloor(floor)
+        let leadIn = travels ? Self.flightMaxDuration + 0.1 : Self.boardChangeBeat
+        run(.sequence([
+            .wait(forDuration: leadIn),
+            .run { [weak self] in self?.performBoardChange(change) },
+        ]), withKey: Self.boardChangeActionKey)
+    }
+
+    private func performBoardChange(_ change: BoardChange) {
+        guard playingBoardChange?.id == change.id else { return }
+        if gameState.boardVersion != renderedBoardVersion { layoutBoard() }
+        switch change.kind {
+        case .merge(_, _, let source, let target, _):
+            guard let partner = characterNodes[source], let into = characterNodes[target] else {
+                return confirmWithoutGesture(change)
+            }
+            highlightForBoardChange([partner, into])
+            run(.sequence([
+                .wait(forDuration: Self.boardChangeBeat),
+                .run { [weak self] in
+                    self?.runAssistedMerge(partner: partner, into: into) { [weak self] _, _, point, node in
+                        guard let self else { return }
+                        self.presentResolution(
+                            self.gameState.confirmBoardChange(id: change.id),
+                            at: point, sourceNode: node, withinTurn: true
+                        )
+                    }
+                },
+            ]), withKey: Self.boardChangeActionKey)
+        case .evolve(_, let slot, _, _):
+            guard let node = characterNodes[slot] else { return confirmWithoutGesture(change) }
+            highlightForBoardChange([node])
+            run(.sequence([
+                .wait(forDuration: Self.boardChangeBeat),
+                .run { [weak self, weak node] in
+                    guard let self, let node else { return }
+                    self.presentResolution(
+                        self.gameState.confirmBoardChange(id: change.id),
+                        at: node.position, sourceNode: node, withinTurn: true
+                    )
+                },
+            ]), withKey: Self.boardChangeActionKey)
+        case .arrival, .departure:
+            confirmWithoutGesture(change)
+        }
+    }
+
+    /// Los protagonistas se paran por encima de la multitud y dejan de
+    /// deambular hasta que el cambio se confirma (o se saltea).
+    private func highlightForBoardChange(_ nodes: [CharacterNode]) {
+        for node in nodes {
+            mergeCandidates.insert(node.cellIndex)
+            node.removeAction(forKey: "wander")
+            node.run(
+                .scale(to: Self.candidateScale, duration: Self.candidatePopDuration),
+                withKey: "candidate"
+            )
+        }
+    }
+
+    /// Llegadas y salidas no tienen gesto que imitar: se confirma y la unidad
+    /// aparece (o se va) con el pop de siempre. Si es un personaje nuevo, igual
+    /// pasa por la revelación.
+    private func confirmWithoutGesture(_ change: BoardChange) {
+        let resolution = gameState.confirmBoardChange(id: change.id)
+        layoutBoard()
+        guard case .merged(let cell, _, _, _, _)? = resolution, let node = characterNodes[cell] else {
+            return finishBoardChangeTurn()
+        }
+        presentResolution(resolution, at: node.position, sourceNode: node, withinTurn: true)
+    }
+
+    private func finishBoardChangeTurn() {
+        playingBoardChange = nil
+        guard boardCelebrationRunning else { return }
+        boardCelebrationRunning = false
+        gameState.celebrationFinished(.boardCelebration)
     }
 
     #if DEBUG

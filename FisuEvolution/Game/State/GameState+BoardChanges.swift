@@ -98,6 +98,16 @@ extension GameState {
         return candidates.first { player.run.seenTypes.contains($0.id) } ?? candidates.first
     }
 
+    /// Dónde cae el resultado cuando el cambio sube de piso y el slot de salida
+    /// no existe: el destino que el plan miró.
+    private func plannedSlot(of change: BoardChange) -> Int {
+        switch change.kind {
+        case .merge(_, _, _, let targetSlot, _): targetSlot
+        case .evolve(_, let slot, _, _), .departure(_, let slot, _): slot
+        case .arrival: -1
+        }
+    }
+
     func discardBoardChange(_ change: BoardChange) {
         Log.economy.info("board change dropped: \(change.origin.rawValue)")
     }
@@ -113,17 +123,13 @@ extension GameState {
             self.tower = tower
             let result = outcome.resultTypeId.flatMap { content.tiers.type(id: $0) }
             let evolvedTo = player.run.maxTierReached > outcome.tierBefore ? result : nil
-            if let ordinal = TowerActions.newlyHireableFloors(
-                maxTierBefore: outcome.tierBefore, maxTierAfter: player.run.maxTierReached,
-                floorTable: content.floorTable, config: content.economy
-            ).first {
-                towerNotice = TowerNotice(kind: .hireUnlocked(floorID: content.floorTable[ordinal].id))
-            }
+            announceNewlyHireableFloor(maxTierBefore: outcome.tierBefore, player: player, content: content)
+            if case .merge = change.kind { reportMergeMilestones() }
             updateMaxFloorStat()
             bumpBoard()
             scheduleSave()
             return .merged(
-                targetCell: outcome.slot ?? -1,
+                targetCell: outcome.slot ?? plannedSlot(of: change),
                 evolvedTo: evolvedTo,
                 promotedType: outcome.promotedToFloor == nil ? nil : result,
                 promotedToFloor: outcome.promotedToFloor,

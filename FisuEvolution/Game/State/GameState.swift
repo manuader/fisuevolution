@@ -52,6 +52,9 @@ final class GameState {
     /// que acá sale del flush de 8 Hz y escribe sólo si cambió.
     var bestHire: BestHire?
     var unitCount = 0
+    /// El tier más alto cuyo personaje ya se reveló: lo lee el marcador de UI
+    /// `board.revealed`, que sobrevive a las celebraciones que apagan la UI.
+    var revealedTierMarker = 1
 
     // MARK: Prestigio, mejoras y logros (observado)
 

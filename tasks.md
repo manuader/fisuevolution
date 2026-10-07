@@ -323,7 +323,7 @@ que toma · commit o rama · nota.
 | E11-T1 | Catálogo y planificador de la ausencia (EK) | ✅ | — | — | `508a4c5` | |
 | E11-T2 | `notifications.json` validado y sus textos | ✅ | T1 | 🔥 catálogo; GameContentLoader | `9c5847c` | |
 | E11-T3 | El manager 2.0: prendidas por defecto, permiso en dos pasos | ✅ | T1, T2 | 🔥 SettingsView, catálogo | `3430d72` + `f7dff48` (merge `b0f6f6c`) | arreglos I1/I2 con mutación verificada; `rapido` VERDE 653 + 1 |
-| E11-T4 | Ajustes: el maestro, uno por motivo, "Abrir Ajustes" | ⏳ | T3 | 🔥 SettingsView, catálogo | | antes de E7b-a T5 |
+| E11-T4 | Ajustes: el maestro, uno por motivo, "Abrir Ajustes" | 🔄 | T3 | 🔥 SettingsView, catálogo | | antes de E7b-a T5 |
 | E11-T5 | La tarjeta del permiso en el popup offline | ⏳ | T3 | catálogo (snapshot si va con T4); OfflineEarningsView | | no con E3a T6 (`OfflineEarningsView`) |
 | E11-T6 | El cableado al ciclo de vida | ⛔ | T3; E1-T1, E1-T5, E1-T8, E1-T9 | 🔥 GameState; +Lifecycle, +Celebrations, FisuEvolutionApp | | carry: el comentario de `FisuEvolutionApp.swift:10-11` |
 | E11-T7 | Cierre de E11 (controlador) | ⛔ | T1–T6 | `Docs/` | | |
@@ -363,7 +363,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E2a-T1 | `RewardScale`: premios en minutos | ⏳ | E1-T3 | — | | EK |
+| E2a-T1 | `RewardScale`: premios en minutos | 🔄 | E1-T3 | — | | EK |
 | E2a-T2 | El reintegro al fusionar + `EconomyKnobs` | ⏳ | E1-T3, E1-T4 | 🔥 PlayerState | | no con E1 T6c |
 | E2a-T3 | El amortiguador y el "+6 %" | ⛔ | T2 | 🔥 PlayerState, TowerActions | | antes de E1 T13 o después de T14 |
 | E2a-T4 | Pisos en marcha y la capacidad que sólo crece | ⛔ | T3 | +Actions | | antes de E1 T12 o después de T14 |
@@ -414,7 +414,7 @@ que toma · commit o rama · nota.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E5a-T1 | El Paquete de la Aduana, puro | 🟢 | E1-T3 | — | `b4800c5` + `a4c156f` en `v2/e5-premios` | carries a T2/T3/T5/T6 en el ledger |
-| E5a-T2 | El Colchón, puro | 🔄 | T1; E4a-T1 | — | | |
+| E5a-T2 | El Colchón, puro | 🟢 | T1; E4a-T1 | — | `d6a1421` en `v2/e5-premios` | |
 | E5a-T3 | La Ruleta, pura | 🔄 | T1; E4a-T1 | — | | |
 | E5a-T4 | Paquetes, colchón y ruleta en `meta.engagement` | ⛔ | T1–T3; E3b-T9, E4a-T3 | EngagementState | | |
 | E5a-T5 | El contenido: `packages/treasures/wheel.json` | ⛔ | T1–T3; E4a-T7, E4a-T9 | GameContentLoader | | carry: validador `isFinite` |

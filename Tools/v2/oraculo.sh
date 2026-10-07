@@ -27,6 +27,10 @@ fi
 CLEAN="${2:-}"
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
+# xcodebuild toma el proyecto del directorio actual: sin esto, correr el oráculo
+# de otro worktree por su ruta absoluta compila las fuentes del worktree desde
+# el que se lo llama.
+cd "$REPO" || exit 2
 TOOLS="$REPO/Tools/v2"
 DD="$REPO/build/DD-oraculo"
 OUT="$REPO/build/oraculo/$(date +%Y%m%d-%H%M%S)-$MODE"

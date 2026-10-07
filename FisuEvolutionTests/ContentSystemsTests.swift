@@ -160,7 +160,7 @@ struct ContentSystemsTests {
 
     @Test func blanqueoReturnsUnitTypeWithoutPlacing() throws {
         // freeHighTier post-F7: el evento YA NO coloca en ningún board — devuelve
-        // el typeId y el caller (GameState) lo ubica en la torre.
+        // la intención y el caller (GameState) la planea por el embudo.
         var state = makeState(maxTier: 9)
         let unitsBefore = state.run.units
         var rng = FixedRNG(values: [0])
@@ -170,20 +170,20 @@ struct ContentSystemsTests {
             economy: economy, now: 1000, lastFired: lastFired, isApplicable: { _ in true }, rng: &rng
         ))
         #expect(roll.event.id == "blanqueo")
-        let granted = try #require(roll.grantedUnitTypeId)
+        guard case .grantUnit(let granted)? = roll.boardIntent else {
+            Issue.record("el Blanqueo no devolvió la llegada")
+            return
+        }
         // magnitude 3 → tier máximo alcanzado − 3 (era 2, ver
         // `theGenerousEventsWereDialedDown`).
         #expect(content.tiers.type(id: granted)?.tier == 6)
-        #expect(roll.unitsChanged == false)
         #expect(state.run.units == unitsBefore)
     }
 
-    @Test func startupCompradaEvolvesTopUnitAndFlagsUnitsChanged() throws {
-        // instantEvolution muta run.units (merge gratis conceptual) y marca
-        // unitsChanged para que el caller re-sincronice la torre.
+    @Test func startupCompradaDefersTheEvolutionToTheFunnel() throws {
+        // instantEvolution ya no muta nada: devuelve la intención y el caller la planea.
         var state = makeState(maxTier: 5)
-        let base = content.tiers.baseType
-        let nextId = try #require(base.mergesInto)
+        let unitsBefore = state.run.units
         var rng = FixedRNG(values: [0])
         let lastFired = Dictionary(uniqueKeysWithValues: content.events.events.filter { $0.id != "startup_comprada" }.map { ($0.id, 1000.0 - 1) })
         let roll = try #require(EventManager.fireRandomEvent(
@@ -191,10 +191,8 @@ struct ContentSystemsTests {
             economy: economy, now: 1000, lastFired: lastFired, isApplicable: { _ in true }, rng: &rng
         ))
         #expect(roll.event.id == "startup_comprada")
-        #expect(roll.unitsChanged)
-        #expect(roll.grantedUnitTypeId == nil)
-        #expect(state.run.units[base.id] == nil)
-        #expect(state.run.units[nextId] == 1)
+        #expect(roll.boardIntent == .evolveBestUnit)
+        #expect(state.run.units == unitsBefore)
         // Evolucionar a T2 no baja el máximo histórico de la run.
         #expect(state.run.maxTierReached == 5)
     }

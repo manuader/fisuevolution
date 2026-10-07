@@ -129,15 +129,17 @@ enum EventManager {
         let endsAt: TimeInterval
     }
 
+    enum BoardIntent: Equatable {
+        case evolveBestUnit
+        case grantUnit(typeId: String)
+    }
+
     struct Roll {
         let event: EventsConfig.Event
         let active: ActiveEvent?
-        /// Tipo de unidad regalada (freeHighTier): el CALLER la coloca en la torre
-        /// (EventManager no conoce los pisos).
-        let grantedUnitTypeId: String?
-        /// true si el evento mutó `run.units` (instantEvolution): el caller debe
-        /// re-sincronizar la torre.
-        let unitsChanged: Bool
+        /// Lo que el evento le hace al tablero. NO se aplica acá: el caller lo
+        /// planea por el embudo y la escena lo reproduce a la vista.
+        let boardIntent: BoardIntent?
     }
 
     /// Sortea el próximo evento elegible (weighted, respeta minTier y cooldowns)
@@ -189,8 +191,7 @@ enum EventManager {
         economy: StandardEconomy,
         now: TimeInterval
     ) -> Roll? {
-        var grantedUnitTypeId: String?
-        var unitsChanged = false
+        var boardIntent: BoardIntent?
 
         switch event.effectType {
         case .incomeMultiplier:
@@ -224,24 +225,12 @@ enum EventManager {
             state.run.coins += bonus
             state.meta.lifetimeEarnings += bonus
         case .instantEvolution:
-            // Startup comprada: evoluciona una unidad top (merge gratis conceptual).
-            guard let top = state.run.units.keys
-                .compactMap({ tiers.type(id: $0) })
-                .filter({ (state.run.units[$0.id] ?? 0) > 0 })
-                .max(by: { $0.tier < $1.tier }),
-                let nextId = top.mergesInto,
-                let next = tiers.type(id: nextId), !next.isChoiceNode
-            else { return nil }
-            state.run.units[top.id, default: 0] -= 1
-            if state.run.units[top.id] == 0 { state.run.units[top.id] = nil }
-            state.run.units[nextId, default: 0] += 1
-            state.run.markSeen(nextId)
-            state.run.raiseFrontier(to: next.tier)
-            unitsChanged = true
+            // Startup comprada: evoluciona la mejor unidad; lo hace el embudo.
+            boardIntent = .evolveBestUnit
         case .freeHighTier:
             // Blanqueo: unidad gratis de tier (máx alcanzado − magnitude).
             guard let type = blanqueoType(for: event, state: state, tiers: tiers) else { return nil }
-            grantedUnitTypeId = type.id
+            boardIntent = .grantUnit(typeId: type.id)
         }
 
         let active: ActiveEvent = if event.durationSeconds > 0 {
@@ -250,7 +239,7 @@ enum EventManager {
             // Efectos instantáneos: banner corto informativo.
             ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + 6)
         }
-        return Roll(event: event, active: active, grantedUnitTypeId: grantedUnitTypeId, unitsChanged: unitsChanged)
+        return Roll(event: event, active: active, boardIntent: boardIntent)
     }
 }
 

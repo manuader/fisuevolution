@@ -216,6 +216,7 @@ extension GameState {
         case .requiresCareerChoice(let options):
             careerPrompt = CareerPrompt(
                 options: options.compactMap { content.tiers.type(id: $0) },
+                floorOrdinal: visibleFloorOrdinal,
                 sourceCell: fromCell,
                 targetCell: toCell
             )
@@ -228,52 +229,26 @@ extension GameState {
     /// Completes the deferred T9 merge after the player picks a career. The choice
     /// persists until the next reincarnation (bible §1).
     func chooseCareer(optionId: String) {
-        guard let prompt = careerPrompt, let content, var player = player, var tower else { return }
+        guard let prompt = careerPrompt, let content, var player, let tower else { return }
         player.run.chosenCareerPath = MergeRules.careerPath(fromOptionId: optionId)
-
-        guard let sourceType = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: prompt.sourceCell),
-              let targetType = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: prompt.targetCell),
-              case .merged(let newTypeId) = MergeRules.evaluate(
-                  sourceTypeId: sourceType,
-                  targetTypeId: targetType,
-                  chosenCareerPath: player.run.chosenCareerPath,
-                  tiers: content.tiers
-              )
-        else {
-            self.player = player
-            careerPrompt = nil
-            celebrationFinished(.careerChoice)
-            // Elegiste igual, así que cobrás igual (RF-15).
-            grantCareerReward(optionId: optionId)
-            refreshProjections()
-            return
-        }
-
-        do {
-            _ = try TowerActions.applyMerge(
-                floorOrdinal: visibleFloorOrdinal,
-                sourceSlot: prompt.sourceCell,
-                targetSlot: prompt.targetCell,
-                newTypeId: newTypeId,
-                state: &player,
-                tower: &tower,
-                tiers: content.tiers,
-                floorTable: content.floorTable
-            )
-        } catch {
-            Log.economy.info("career merge rejected: \(error)")
-        }
         self.player = player
-        self.tower = tower
         careerPrompt = nil
         celebrationFinished(.careerChoice)
-        // El premio de una vez que hace que elegir carrera defina algo (RF-15).
-        // Vive en `+Bonus`: es un bonus más, y este archivo sólo lo dispara.
+        // El premio se acredita ANTES del merge: lo que la carta prometió es lo
+        // que se cobra, sin el salto de frontera del embudo en el medio.
         grantCareerReward(optionId: optionId)
-        reportMergeMilestones()
-        rollSpecialDrop()
-        updateMaxFloorStat()
-        bumpBoard()
+        if let sourceType = tower.typeId(floorOrdinal: prompt.floorOrdinal, slot: prompt.sourceCell),
+           case .merged(let newTypeId) = MergeRules.evaluate(
+               sourceTypeId: sourceType, targetTypeId: sourceType,
+               chosenCareerPath: player.run.chosenCareerPath, tiers: content.tiers
+           ) {
+            enqueueBoardChange(BoardChange(
+                kind: .merge(floorOrdinal: prompt.floorOrdinal, typeId: sourceType,
+                             sourceSlot: prompt.sourceCell, targetSlot: prompt.targetCell, newTypeId: newTypeId),
+                origin: .career
+            ))
+        }
+        refreshProjections()
         scheduleSave()
     }
 

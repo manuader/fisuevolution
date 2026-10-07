@@ -12,6 +12,7 @@ extension GameState {
         case (_, .background), (.active, .inactive):
             let wasActive = isSceneActive
             isSceneActive = false
+            if new == .background { settleAllPendingBoardChanges() }
             seal(now: now, stamping: wasActive)
         case (_, .active):
             isSceneActive = true
@@ -40,7 +41,6 @@ extension GameState {
     /// lo pagaría nadie.
     func seal(now: TimeInterval, stamping: Bool = true) {
         guard phase == .ready else { return }
-        settleAllPendingBoardChanges()
         guard var player else { return }
         if stamping {
             player.meta.lastSeenTimestamp = now

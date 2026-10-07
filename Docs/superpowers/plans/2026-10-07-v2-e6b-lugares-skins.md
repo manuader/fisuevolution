@@ -155,7 +155,7 @@ Tools/v2/oraculo.sh completo --limpio # después de tocar arte (T9): el build in
 | `FisuEvolution/Game/State/GameState+Cosmetics.swift` | **nuevo** — las filas de Cosméticos | 5 |
 | `Packages/EconomyKit/Sources/EconomyKit/Shop/OroShopCatalog.swift`, `FisuEvolution/UI/Store/OroShopView.swift` | el estante `cosmetics` | 5 |
 | `Packages/EconomyKit/Sources/EconomyKit/FloorTable.swift` | `expanded(by:)`, `FloorDef.withCapacity(_:)` | 6 |
-| `FisuEvolution/Game/State/GameState.swift` 🔥 | `applyExtraSlots()` y su llamada en `reconcileTower`/`resyncTower` | 7 |
+| `FisuEvolution/Game/State/GameState+TowerSync.swift` | `applyExtraSlots()` y su llamada en `reconcileTower` (E1 T12 borró `resyncTower`) | 7 |
 | `FisuEvolution/Game/State/GameState+OroShop.swift` | comprar lugares rehace la torre | 7 |
 | `FisuEvolution/Resources/Config/oro_shop.json` | el ítem `extra_slots` | 7 |
 | `FisuEvolution/Game/State/GameState+Engagement.swift` | `--uitest-extra-slots` | 7 |
@@ -1996,8 +1996,8 @@ medición que pide PLAN-v2: las 4 filas en el iPhone SE.
 
 - [ ] **Step 0: Pararse en la base**
 
-Run: `grep -n "func reconcileTower\|func resyncTower\|func replaceEconomy" FisuEvolution/Game/State/GameState.swift`
-(las dos funciones que rehacen la torre; `replaceEconomy` es de E2a T9 y no se toca),
+Run: `grep -rn "func reconcileTower\|func replaceEconomy" FisuEvolution/Game/State/`
+(`reconcileTower` es la única que rehace la torre desde E1 T12, que borró `resyncTower`; `replaceEconomy` es de E2a T9 y no se toca),
 `grep -n "board.layout\|hud.elevator.display" -r FisuEvolution` (E3a T8/T10) y
 `grep -n "let floorTable" FisuEvolution/Managers/GameContentLoader.swift`.
 
@@ -2153,7 +2153,7 @@ Expected: no compila (`baseFloorTable`).
     }
 ```
 
-y su llamada, **primera línea** de `reconcileTower()` y de `resyncTower()`:
+y su llamada, **primera línea** de `reconcileTower()` (`GameState+TowerSync.swift`; `resyncTower()` ya no existe):
 
 ```swift
         applyExtraSlots()
@@ -2164,7 +2164,7 @@ y su llamada, **primera línea** de `reconcileTower()` y de `resyncTower()`:
 ```swift
         if purchase.item.perk == .extraSlots {
             // La torre se rehace sobre la tabla agrandada sin mover el piso visible.
-            resyncTower()
+            reconcileTower()
             bumpBoard()
         }
 ```

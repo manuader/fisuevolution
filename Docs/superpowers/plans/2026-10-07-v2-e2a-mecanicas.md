@@ -170,7 +170,7 @@ con `NEEDS_CONTEXT` y no inventa la API.
 | **T7** | `BoardChange`, `BoardChangePlanner` (con el `fits` privado), `BoardChangeApplier.apply(_:state:tower:tiers:floorTable:)`, `TowerActions.evolveUnit`, `placeUnit` y el `land` privado | T6, T9 |
 | **T9** | `GameState+BoardChanges.swift`: `enqueueBoardChange(_:)`, `beginNextBoardChange()`, `confirmBoardChange(id:)`, `pendingBoardChanges` | T9, T14 |
 | **T11** | `GameState.eventIsApplicable(_ event:) -> Bool` en `+Bonus` | T12 |
-| **T12** | `chooseCareer` y los videos pasan por el embudo; `performInstantMerge` deja de llamar a `applyMerge` | T9 |
+| **T12** | `chooseCareer` y los videos pasan por el embudo; `performInstantMerge` se borró (E1 T12, relevo 8) | T9 |
 | **T13** | `ActiveModifier.Effect.spendingFrozen`; el `switch` de `ActiveBonusBuilder.effectText` con ese caso; `escapeActiveEvent(now:)` | T12 |
 | **T14** | `coinReward(seconds:player:content:economy:)` `static`; `discardBoardChange` con `switch` exhaustivo sobre `BoardChange.Origin` | T11, T14 |
 | **T15** | `ActiveModifier.Effect: CaseIterable`; `EffectContractTests` (`applied(_:as:)`, `modifierEffects`, `boostEffects`, `careerPreviewEqualsCredited`) | T11, T12, T13 |
@@ -291,7 +291,7 @@ Cierre  T15 (controlador)
    T14; nunca a la vez.
 3. **T9 sale de una `v2/e2a-mecanicas` con `version-2` mergeada y E1 T14 adentro.** Su paso 0 lo
    comprueba (`grep -n "func discardBoardChange" FisuEvolution/Game/State/GameState+BoardChanges.swift`
-   y `grep -rn "performInstantMerge" FisuEvolution` sin `applyMerge` adentro).
+   y `grep -rn "performInstantMerge" FisuEvolution` vacío: E1 T12 lo borró).
 4. **T11, T12 y T13 salen con E1 T15 adentro** (`grep -n "struct EffectContractTests" FisuEvolutionTests/EffectContractTests.swift`).
 5. Las que entregan strings sin ser dueñas del catálogo commitean el snapshot y el controlador lo
    aplica al integrar.

@@ -6,7 +6,7 @@
 > `Docs/SESION-2026-10-06-preparacion-v2.md`. Lo de abajo sigue siendo la
 > referencia de arquitectura, decisiones y trampas.
 >
-> 🧭 **La 2.0 tiene plan maestro aprobado: `Docs/PLAN-v2.md`** (épicas E0–E10,
+> 🧭 **La 2.0 tiene plan maestro aprobado: `Docs/PLAN-v2.md`** (épicas E0–E11,
 > ~55 decisiones del dueño, anexos de contenido). **Se ejecuta en relevo
 > automático de agentes** (PLAN-v2 §0): cada agente trabaja hasta ~300.000
 > tokens de contexto, cierra todo, documenta y le pasa la posta a uno con
@@ -14,6 +14,13 @@
 > `FisuEvolution/.claude/avo/2026-10-06-fisu-v2/journal.md`, en el checkout
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + el journal.
+>
+> 🧪 **Se verifica con `Tools/v2/oraculo.sh rapido|completo`** (§6), y los
+> agentes en paralelo se lanzan con `Agent(isolation: "worktree")` (PLAN-v2
+> §0.1; §7 explica por qué cualquier otra forma choca con el guard). Al
+> 2026-10-06 (relevo 3): E0, E10 en papel, E8 pipeline, E8 audio, E7a y la
+> parte de idioma de E3 están en `version-2`, el `completo` sobre `6b5e408`
+> da VERDE, y E1 arrancó en la Ola A (§4).
 >
 > ✅ **EL REDISEÑO DE UI ESTÁ COMPLETO Y MERGEADO** — 20 de 20 tareas
 > (`feature/rediseno-ui-cowevolution`, cerrado el 2026-08-16). El estado tarea
@@ -68,7 +75,8 @@
 > sesión (el cwd del agente que se vuelve solo al checkout principal) está en
 > §7, trampa 16.
 >
-> **Empezá por acá.** Última actualización: **2026-09-03** (el cofre ya no
+> **Empezá por acá.** Última actualización de la v1 (la de la 2.0 está
+> arriba): **2026-09-03** (el cofre ya no
 > se traba AL PRINCIPIO: la llegada del overlay pagaba **466 ms de hilo
 > principal clavado** —el retrato del premio se leía en línea en el mismo
 > latido que arranca el resorte de entrada— y ahora se calienta en
@@ -136,6 +144,9 @@ dice, no lo repitas.
   última instancia, el dueño escribe "continúa".
 - Las skills `handoff-system`, `writing-session-handoff` y
   `writing-general-handoff` (globales) son la fuente de este protocolo.
+- **Con agentes en paralelo** (PLAN-v2 §0.1), cada agente commitea en su rama
+  y el controlador es el dueño de `Docs/`, `handoffs/` y el journal: el que
+  integra es el que documenta.
 
 ---
 
@@ -279,6 +290,26 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-06 (noche, relevo 3) — Los cuatro frentes integrados, la línea de base nueva y la Ola A
+
+Entraron a `version-2` los cuatro frentes que habían quedado sin commitear: E8
+pipeline (`cd48569`), E8 audio (`539e1e7`), E7a (`0e72509`) y E3 i18n
+(`6b5e408`), con merges `--no-ff` y sin conflictos. El oráculo `completo`
+sobre `6b5e408` dio **VERDE** y es la línea de base nueva (§6): unit **570 + 1
+declarado**, exacto con la suma de los frentes (473 + 72 + 12 + 13).
+
+El dueño pidió agentes concurrentes que no se pisen y notificaciones prendidas
+por defecto. Entraron como **PLAN-v2 §0.1** (el despliegue de agentes) y la
+épica **E11** (`4fd77c8`); las decisiones, en §5.
+
+En la Ola A, E1 T1 (offline) quedó implementado y en revisión (`3693044`), T2
+(la Milanesa) en curso, y salieron los planes de E11 (`eaa3497`, 7 tareas) y de
+E3, partido en E3a (12) y E3b (9) para correr al lado de E1 (`aff6a6e`). Tres
+trampas nuevas en §7: el clasificador que no deja usar `sed`, lo que de verdad
+funciona con el guard de aislamiento, y la carga de la máquina. Detalle y el
+estado de E1 tarea por tarea en
+**`Docs/SESION-2026-10-06-v2-integracion-y-ola-a.md`**.
 
 ### Sesión del 2026-10-06 — E3, idioma: IAP, ATT, splash y el test del catálogo
 
@@ -1417,6 +1448,23 @@ tocan decisiones de esta sección:
   Reemplaza el "sólo iPhone" del HANDOFF-v2.
 - **Pisos de 15 lugares** (hasta 20 con un permanente de ORO): reemplaza los
   10 lugares por piso.
+- **Agentes concurrentes** (pedido del dueño, 2026-10-06, PLAN-v2 §0.1):
+  - todo agente que escribe en el repo se lanza con
+    `Agent(isolation: "worktree")` y commitea en su rama `worktree-agent-*`;
+  - los archivos calientes (`GameState.swift`, `RootView.swift`,
+    `project.yml`, `Localizable.xcstrings` y los demás de §0.1) tienen **un
+    solo dueño por ola**;
+  - **hasta 3 agentes compilando a la vez, y un `completo` cuenta como uno**:
+    con más, la carga llegó a ~600 (§7);
+  - un controlador despacha, revisa, integra de a una tarea y es el único que
+    toca `Docs/`, `handoffs/`, el journal y `rojos-declarados.txt`.
+- **Notificaciones** (pedido del dueño, 2026-10-06, épica E11): **prendidas por
+  defecto y desactivables**, y **locales**. El push remoto necesita servidor,
+  entitlement y token, y cambia App Privacy: queda fuera salvo que el dueño lo
+  pida. El permiso va en dos pasos, provisional (en silencio) al terminar el
+  núcleo del tutorial y completo con una tarjeta previa en la primera vuelta
+  con popup offline. Un veterano que las apagó en la v1 las sigue teniendo
+  apagadas. Nunca anuncios ni precios (guía 4.5.4).
 
 **Decisiones tomadas al implementar la 2.0** (2026-10-06, con el frente entre
 paréntesis; el porqué completo está en la sesión de cada uno):
@@ -1732,23 +1780,29 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
 - Rojos declarados hoy: `unit theOwnersTargetsAreMet` (lo reemplaza el
   contrato nuevo de E2b) y `pipeline
   test_ningun_asset_quedo_agujereado_por_dentro`, que **ya pasa** desde E8
-  pipeline y sigue en la lista.
+  pipeline y sigue en la lista porque el clasificador del modo auto no dejó
+  editarla (§7, integración). `rojos.py` tolera un declarado que pasa. **La
+  saca el dueño.**
 
-**Línea de base** (`completo` sobre `0442022` + el oráculo, 2026-10-06 20:25):
+**Línea de base: el `completo` sobre `6b5e408`** (2026-10-06, relevo 3, con los
+cuatro frentes integrados), contra la de E0:
 
-| Suite | Resultado | Tiempo |
+| Suite | E0 (`0442022`) | **Hoy (`6b5e408`)** |
 |---|---|---|
-| EconomyKit | 267 | — |
-| build en frío | — | 106 s |
-| unit (26.5) | 473 + 1 rojo declarado | 411 s |
-| Store unit (18.6) | 12 | 197 s |
-| UI (26.5) | 57 | 1.515 s |
-| `StoreUITests` (18.6) | 2 | 114 s |
-| pipeline | 24 + 1 rojo declarado | — |
-| `pacing-sim` | Dios en 30,73 h activas · 13 reencarnaciones | — |
-| Release | 0 warnings del compilador | — |
+| EconomyKit | 267 | **267** |
+| unit (26.5) | 473 + 1 declarado (411 s) | **570 + 1 declarado** |
+| Store unit (18.6) | 12 (197 s) | **12** |
+| UI (26.5) | 57 (1.515 s) | **57** (2.398 s, con carga) |
+| `StoreUITests` (18.6) | 2 (114 s) | **2** |
+| pipeline | 24 + 1 declarado | **49 / 0** |
+| `pacing-sim` | Dios en 30,73 h activas · 13 reencarnaciones | **igual** |
+| Release | 0 warnings | **0 warnings** |
 
-Un `completo` entero tarda **~45 min** con la máquina tranquila.
+El unit cuadra exacto con lo que sumó cada frente: 473 + 72 (E7a) + 12 (E8
+audio) + 13 (E3) = 570. Un número distinto después de integrar es un test
+perdido o duplicado. Un `completo` entero tarda **~45 min** con la máquina
+tranquila (build en frío 106 s); con tres agentes compilando al lado, la UI
+sola tardó 2.398 s (§7).
 
 ### La receta a mano (lo que el oráculo corre por dentro)
 
@@ -1964,6 +2018,37 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la integración y la Ola A (2026-10-06, relevo 3)
+
+- **El clasificador del modo auto no deja usar `sed`.** Bloqueó un `sed -i`
+  sobre `Tools/v2/rojos-declarados.txt` por "Irreversible Local Destruction",
+  y desde ahí rechazó cualquier `sed`, incluso un `sed -n` de lectura. Para
+  leer, `awk` o Read. Por eso la línea del pipeline sigue declarada aunque el
+  test pasa (§6); no se rodeó el bloqueo.
+- **El guard de aislamiento, lo que de verdad funciona.** Un subagente que hace
+  `EnterWorktree(path)` a un worktree **creado a mano** sigue fijado al
+  worktree del lanzador, que le rechaza Bash, Edit y Write: la recomendación
+  de los frentes ("lanzá cada agente con el cwd en su worktree") no alcanza
+  así. Lo que funciona:
+  1. `Agent(isolation: "worktree")`: el harness crea el worktree y la rama
+     `worktree-agent-*`;
+  2. el agente hace `git merge --ff-only <base>` y commitea en su rama;
+  3. el controlador integra con fast-forward, cherry-pick o rebase.
+
+  Aun así, adentro de la sesión aislada el guard rechaza `git -C <otro
+  worktree>`, los comandos compuestos con git ("too complex": un git por
+  llamada) y `Edit`/`Write` sobre el checkout principal, que es donde vive el
+  journal. **Un append al journal por Bash sí anda.**
+- **La carga de la máquina estira los tiempos, no rompe los tests.** Con 3
+  builds de agentes más un `completo`, el `load average` llegó a ~600: la UI
+  del `completo` tardó 2.398 s (1.515 s en E0) y el unit de un `rapido`,
+  1.573 s (411 s), sin rojos en masa. De ahí el tope de PLAN-v2 §0.1: 3
+  compilando, y el `completo` cuenta como uno.
+- **El relevo por cron todavía no tiene un despertar observado.** En el relevo
+  3, el dueño escribió "continua" 2 min después del `clear_session`, y el cron
+  de un disparo (programado a +2–3 min) no se vio. No prueba que el cron
+  falle, pero tampoco hay evidencia de que funcione.
+
 ### De los frentes en paralelo de la 2.0 (2026-10-06, E0 a E10)
 
 - **Un agente lanzado desde el worktree del orquestador queda fijado a ESE
@@ -1976,7 +2061,8 @@ El panel de debug es el ícono de herramientas del HUD.
   - Lo que hicieron entonces: editar un espejo en el scratchpad, copiarlo con
     `cp` por rutas absolutas y dejar los commits al orquestador. ⚠️ **Eso ya
     no se hace**: PLAN-v2 §0.1 lo cuenta como rodear el guard. La forma que
-    funciona está en §0.1: `Agent(isolation: "worktree")`.
+    funciona es `Agent(isolation: "worktree")`, y está explicada arriba, en
+    la integración.
 - **Un `xcodebuild` sin `-project` compila el proyecto del cwd, no el del
   script.** La primera versión del oráculo, llamada por su ruta absoluta desde
   otro worktree, corría `xcodegen` en el repo bueno pero compilaba el
@@ -3368,11 +3454,27 @@ Anotado por si algún día importa, con su medición:
 
 - **`Docs/PLAN-v2.md`** — **el plan maestro de la 2.0**:
   - §0, el protocolo de relevo automático de agentes;
+  - §0.1, el despliegue de agentes concurrentes: el mecanismo, el
+    controlador, los archivos calientes, los topes y el calendario de olas;
   - §2, todas las decisiones del dueño;
   - §3, las causas raíz;
-  - §4, las épicas E0–E10, con la tabla de cada pedido a su épica;
+  - §4, las épicas E0–E11 (E11, las notificaciones, entró el 2026-10-06), con
+    la tabla de cada pedido a su épica;
   - anexos A (guiones de visitantes y frases de eventos) y B (biblia de los
     8 visitantes nuevos).
+- **`Docs/SESION-2026-10-06-v2-integracion-y-ola-a.md`** — el relevo 3: cómo
+  se integraron los cuatro frentes, la línea de base nueva con su cuenta
+  exacta, el pedido de agentes concurrentes y notificaciones, la Ola A con el
+  estado de E1 tarea por tarea, y las trampas del `sed`, del guard y de la
+  carga.
+- `Docs/superpowers/plans/2026-10-07-v2-e11-notificaciones.md` — el plan de
+  E11: 7 tareas, del planificador puro al cableado al ciclo de vida (después
+  de E1 T8).
+- `Docs/superpowers/plans/2026-10-07-v2-e3a-ux-nucleo.md` y
+  `…-e3b-ux-nucleo.md` — el plan de E3 en dos: E3a, la pantalla (12 tareas,
+  con `Tools/v2/catalogo.py` en la T1 para integrar strings de tareas
+  paralelas), y E3b, las interacciones (9). Cada uno con su tabla de archivos
+  calientes por tarea.
 - **`Docs/SESION-2026-10-06-plan-v2.md`** — el porqué del plan: lo que se
   midió antes de decidir, lo descartado y las trampas de la planificación.
 - **`Tools/v2/`** — el oráculo del run (`oraculo.sh`), su juez (`rojos.py`) y

@@ -3,6 +3,7 @@
   "baseIntervalSeconds": 900,
   "intervalJitterSeconds": 300,
   "resumeGraceSeconds": 60,
+  "retryWhenNoneApplicableSeconds": 30,
   "events": [
     {
       "id": "plan_platita",

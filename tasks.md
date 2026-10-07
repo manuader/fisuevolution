@@ -6,8 +6,9 @@
 > `Docs/superpowers/plans/2026-10-0*-v2-*.md`, los ledgers
 > `.superpowers/sdd/<plan>/progress.md` y el journal AVO del run.
 >
-> **Foto:** 2026-10-07, relevo 6, sobre `version-2` = `d32688e`. Si un ledger dice otra cosa
-> que este archivo, manda el ledger y este archivo se corrige.
+> **Foto:** 2026-10-07, cierre del relevo 6, sobre `version-2` = `3956fd3` (su `rapido`:
+> (pendiente); se pushea después del verde). Si un ledger dice otra cosa que este archivo, manda
+> el ledger y este archivo se corrige.
 
 ## 1. Cómo se usa
 
@@ -44,6 +45,8 @@
 4. **Revisión**: un subagente revisor de spec y calidad (skill `subagent-driven-development`; opus
    si la tarea toca calientes o el tablero, sonnet si es chica).
 5. **Arreglos**: al **mismo** agente con `SendMessage` (retoma su worktree y su contexto). → 🔧
+   Sólo dentro de la misma sesión: en un relevo nuevo va un agente nuevo con BASE = el commit del
+   agente y el paquete `review-<base>..<commit>.diff` del ledger.
 6. **Integración en la rama de la épica**: `rebase`/cherry-pick sobre la punta + `merge --ff-only`, y
    `rapido` sobre la integración. → 🟢
 7. **`rapido` de fin de ola** y merge `--no-ff` de la rama de la épica a `version-2`; push. → ✅
@@ -55,9 +58,9 @@
 
 | Épica | Rama | Punta hoy |
 |---|---|---|
-| E1 | `v2/e1-correcciones` | `8d17b8d` (T8 y T5c todavía no integradas) |
-| E11 | `v2/e11-notificaciones` | `8d17b8d` |
-| E3a + E3b | `v2/e3-ux` | `8d17b8d` |
+| E1 | `v2/e1-correcciones` | `ca2d12c` (T8 + arreglos + T5c; mergeada en `7110b06`) |
+| E11 | `v2/e11-notificaciones` | `8d17b8d` (T3 en `worktree-agent-acb378d5ca1b3d546` = `f084ef5`, sin integrar) |
+| E3a + E3b | `v2/e3-ux` | `c323dd9` (T5; mergeada en `3956fd3`) |
 | E5a + E5b | `v2/e5-premios` | `a4c156f` (E5a T1; sin mergear a `version-2`) |
 | E2a | `v2/e2a-mecanicas` | a crear desde `version-2` |
 | E4a + E4b | `v2/e4-visitantes` | a crear desde `version-2` |
@@ -67,13 +70,13 @@
 
 ## 2. Progreso
 
-**Hoy: 13 de 132 tareas activas integradas (9,8 %).** Más las de E9 y E2b cuando tengan plan.
+**Hoy: 15 de 132 tareas activas integradas (11,4 %).** Más las de E9 y E2b cuando tengan plan.
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
-| E1 | 16 | 7 | | 1 | | 8 | | |
+| E1 | 16 | 8 | | | 2 | 6 | | |
 | E11 | 7 | 2 | | 1 | | 4 | | |
-| E3a | 12 | 4 | | 1 | 1 | 6 | | |
+| E3a | 12 | 5 | | | 2 | 5 | | |
 | E3b | 9 | | | | 1 | 8 | | |
 | E2a | 15 | | | | 3 | 12 | | |
 | E4a | 10 | | | | 1 | 9 | | |
@@ -85,13 +88,13 @@
 | E7b-a | 7 | | | | | 7 | | |
 | E7b-b | 7 | | | | | 7 | | 1 |
 | E9, E2b | sin plan | | | | | | | |
-| **Total** | **132** | **13** | **1** | **3** | **7** | **106** | **2** | **1** |
+| **Total** | **132** | **15** | **1** | **1** | **10** | **103** | **2** | **1** |
 
 Fuera del conteo:
 
 - los **hechos previos a los planes por tarea**: E0 oráculo, E8 pipeline, E8 audio, E7a, E3 i18n y
   E10 en papel (§5, "Hechos previos");
-- los **seguimientos**: E1 T5b ✅, T5c 🟢, T6c ⏳;
+- los **seguimientos**: E1 T5b ✅, T5c ✅, T6c ⏳;
 - las **tareas de planificación**: P-E9 ⏳, P-E2b ⏳.
 
 **Cómo recalcularlo** (las filas de tarea de §5 tienen el ID `E<épica>-T<n>` en la 1ª columna y el
@@ -104,7 +107,7 @@ grep -cE '^\| E[0-9a-z-]+-T[0-9]+ \|[^|]*\| ⏭' tasks.md     # salteadas
 grep -cE '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md           # una épica: cambiar el prefijo
 ```
 
-Progreso = integradas / (filas de tarea − salteadas). Hoy: 13 / (133 − 1). Cualquier otro estado se
+Progreso = integradas / (filas de tarea − salteadas). Hoy: 15 / (133 − 1). Cualquier otro estado se
 cuenta igual, cambiando el ✅. Cuando E9 y E2b tengan plan, sus tablas se suman con el mismo
 formato de ID y el total sube solo.
 
@@ -117,8 +120,10 @@ formato de ID y el total sube solo.
   lanza y se espera `resetsAt`.
 - **Contexto del controlador** (en cada borde de tarea): ≥ 250.000 tokens, no se arranca una tarea
   grande nueva; ≥ 300.000, se cierra (esperar a todos los agentes, commit, docs, journal, candado) y
-  se releva: `CronCreate` + `clear_session("self")`; si no despierta, las rutinas
-  `fisu-v2-relevo-a/-b` con `run_scheduled_task`; último recurso, el dueño escribe "continúa".
+  se releva: `CronCreate` + `clear_session("self")` (en los relevos 2 a 6 no despertó nunca), y las
+  rutinas manuales `fisu-v2-relevo-a/-b`, que existen desde el relevo 6: el que cierra lanza la otra
+  con `run_scheduled_task` (su prompt todavía no nombra este archivo). Último recurso, el dueño
+  escribe "continúa".
 - **Un dueño por archivo 🔥 a la vez.** Un agente que necesita un 🔥 ajeno para con
   `NEEDS_CONTEXT`. El catálogo de strings: la tarea que no es su dueña en la ola entrega
   `Tools/v2/claves-pendientes/<épica>-tN.json` y el controlador lo aplica con `catalogo.py aplicar`
@@ -133,21 +138,21 @@ formato de ID y el total sube solo.
 
 | 🔥 | Tareas que faltan y lo tocan |
 |---|---|
-| `GameState.swift` | E1 T8 (en vuelo), T5c (sólo `bootstrap`), T9, T10, T12, T13, T14 · E11 T6 · E3a T9, T10 · E3b T5, T9 · E2a T9 · E4a T9 · E4b T1, T4, T9 · E5b T2 · E6b T7 · E7b-a T2, T3 · E7b-b T1 |
-| `RootView.swift` | E1 T8 (en vuelo), T10, T13, T14 · E3a T10, T11 · E3b T4, T5 (comentarios), T8, T9 · E4b T3, T4, T9 · E5b T2 · E6a T12 · E7b-a T2, T3 · E7b-b T3 |
+| `GameState.swift` | E1 T9, T10, T12, T13, T14 · E11 T6 · E3a T9, T10 · E3b T5, T9 · E2a T9 · E4a T9 · E4b T1, T4, T9 · E5b T2 · E6b T7 · E7b-a T2, T3 · E7b-b T1 |
+| `RootView.swift` | E1 T10, T13, T14 · E3a T10, T11 · E3b T4, T5 (comentarios), T8, T9 · E4b T3, T4, T9 · E5b T2 · E6a T12 · E7b-a T2, T3 · E7b-b T3 |
 | `BoardScene.swift` | E1 T10 · E3a T10 · E4b T1, T6, T9 · E5b T3 · E6b T5 |
 | `ContentSystems.swift` | E1 T11, T12, T13 · E2a T11 · E4a T9 |
-| `GameState+Bonus.swift` | E1 T8 (en vuelo), T11, T12, T13, T14 · E3b T9 · E2a T11, T12 · E4a T9 · E4b T4 · E6a T5 |
+| `GameState+Bonus.swift` | E1 T11, T12, T13, T14 · E3b T9 · E2a T11, T12 · E4a T9 · E4b T4 · E6a T5 |
 | `PlayerState.swift` | E1 T6c (sólo `MetaState`) · E2a T2, T3 · E4b T9 (un docstring) · E6b T4 |
 | `TowerActions.swift` | E1 T13 · E2a T3, T9, T12 |
 | `SettingsView.swift` | E11 T4 · E7b-a T5 · (E9, Ajustes) |
-| `project.yml` | E3a T5 (en vuelo) · E7b-a T6 |
+| `project.yml` | E7b-a T6 |
 | `Localizable.xcstrings` | casi toda tarea con UI: una dueña por ola, el resto por snapshot |
 
-⚠️ **`GameState.swift` es el cuello de botella**: 20 tareas que faltan lo tocan (sin contar T8 y
-T5c), de a una. Sus
+⚠️ **`GameState.swift` es el cuello de botella**: 20 tareas que faltan lo tocan, de a una. Sus
 ventanas libres durante E1 son mínimas (E1 T11 y T15 no lo tocan, pero T10 corre al lado de T11) y
-se abren de verdad después de E1 T14. El orden de la cola (§4) lo tiene en cuenta.
+se abren de verdad después de E1 T14. El orden de la cola (§4) lo tiene en cuenta, y §4.4 propone
+partirlo.
 
 ### 3.2 Tibios (no calientes, pero varias épicas los tocan: se secuencian)
 
@@ -160,8 +165,8 @@ se abren de verdad después de E1 T14. El orden de la cola (§4) lo tiene en cue
 | `GameState+Hiring.swift` | E1 T13 · E3b T5, T6 · E2a T10 · E4b T7 |
 | `GameState+Engagement.swift` | E4a T9 (lo crea) · E4b T1, T2, T4 · E5a T6, T7, T8 · E6a T5, T8, T12 · E6b T7 |
 | `GameState+Rewards.swift` | E4a T8 (lo crea) · E5a T6, T8 · E5b T2 · E6a T5 |
-| `FisuEvolutionApp.swift` | E1 T8 · E11 T6 · E7b-a T1, T2 |
-| `Info.plist` | E3a T5 · E7b-a T6 |
+| `FisuEvolutionApp.swift` | E11 T6 · E7b-a T1, T2 |
+| `Info.plist` | E7b-a T6 |
 | `EngagementState.swift` (EK) | E3b T9 → E4a T3 → E5a T4 → E6a T1 (en ese orden: cada una suma sus campos al mismo `init`) |
 | `BoardChange.swift` (EK) | E2a T6, T9 · E4a T6 · E5a T6 · E6a T6 · E7b-b T1 |
 | `GameContentLoader.swift` | E3a T9 · E2a T9, T12 · E4a T7, T9 · E5a T5 · E6a T4, T11 · E6b T3, T7 |
@@ -170,38 +175,43 @@ se abren de verdad después de E1 T14. El orden de la cola (§4) lo tiene en cue
 | `ActiveModifier.swift`, `ActiveBonus*.swift`, `EffectContractTests.swift` | E1 T13, T15 · E2a T11, T12, T13 · E4a T2, T9 · E4b T4, T7 · E6a T3 |
 | `DebugPanelView.swift` | E2a T14 · E3b T2, T8, T9 · E4b T1, T2, T4, T9 · E5b T2 · E6b T2 · E7b-a T3, T6 |
 | `GameState+Store.swift`, `StoreManager.swift`, `products.json`, `StoreManagerTests.swift` | E1 T6c · E2a T7 · E6a T7, T9, T11 · E6b T4, T5 |
-| `PanelFrames.swift` | E3a T5, T6, T8 · E3b T3 |
+| `PanelFrames.swift` | E3a T6, T8 · E3b T3 |
 | `OfflineEarningsView.swift` | E3a T6 · E11 T5 (y la lección offline de E9) |
 | `CelebrationQueue.swift` (EK) | E1 T10 · E4b T1, T4 · E6a T12 |
 | `GameState+TutorialTips.swift`, `TutorialAnchor.swift` | E3b T5, T9 · E4b T3, T4, T8 · E5b T5 · E6a T8, T12 · E7b-b T3, T5 |
 
-## 4. Cola de despacho — lo próximo
+## 4. Cola de despacho — lo próximo (relevo 7)
 
-**En vuelo ahora** (2 compilando): los arreglos de la revisión de **E1 T8** (mismo agente) y **E3a
-T5**. Queda 1 cupo de compilación y los 2 de planificación.
+**En vuelo al cierre del relevo 6**: sólo el `rapido` sobre `3956fd3`, en el worktree de
+`version-2` (log `version-2/build/relevo6-rapido-3956fd3.log`; esperado EK 357 · unit 639 + 1 ·
+release 0): (pendiente). Ningún agente en vuelo. Al llegar quedan los 3 cupos de compilación (el
+`rapido` ocupa uno mientras corra) y los 2 de planificación.
 
-### 4.1 Ahora mismo
+### 4.1 Al llegar
 
-| Tarea | BASE | Modelo | 🔥 que toma | No va en paralelo con |
-|---|---|---|---|---|
-| **E11 T3, arreglos** (los 2 tests: `v1FalseIsRespected` por la razón buena y la rama `.denied`) | el worktree de su agente (`SendMessage`; `f084ef5`) | sonnet (el mismo) | ninguno (tests + un docstring) | — |
-| **P-E9** (plan de E9) | `version-2` = `d32688e` | opus | un archivo nuevo en `Docs/superpowers/plans/` | otro agente que edite el mismo archivo de `Docs/` |
-| **P-E2b** (plan de E2b) | `version-2` = `d32688e` | opus | ídem | ídem |
+| # | Qué | BASE | Modelo | 🔥 que toma | Nota |
+|---|---|---|---|---|---|
+| 0 | **El veredicto del `rapido` sobre `3956fd3`** | — | controlador | — | VERDE → push `7110b06..3956fd3`. ROJO → fuera de los docs, el diff contra `ca2d12c` son los 4 archivos de E3a T5 |
+| 1 | **E11 T3, arreglos**: I1 (`v1FalseIsRespected` tiene que llegar al interruptor maestro: refrescar la autorización antes), I2 (un test de la rama `.denied` de `refreshAuthorization`: vacía la cola) y una línea de docstring en `scheduleAbsence` (decide con la autorización ya leída) | `f084ef5` | sonnet, **agente nuevo**: el de `f084ef5` no sobrevive al relevo | ninguno (tests + un docstring) | paquete `.superpowers/sdd/2026-10-07-v2-e11-notificaciones/review-8d17b8d..f084ef5.diff` y la revisión en el ledger de E11 |
+| 2 | **P-E9** ∥ **P-E2b** (planes) | punta de `version-2` | opus | un archivo nuevo en `Docs/superpowers/plans/` cada uno | no en paralelo con otro agente que edite el mismo archivo de `Docs/`. Insumos en §5 (E9, E2b) |
 
-### 4.2 La próxima ola: **ola E**, al cerrar la ola D
+### 4.2 La ola E
 
-La ola D cierra cuando vuelven T8 con sus arreglos y E3a T5. Entonces: T8 → T5c (cherry-pick
-encima) en `v2/e1-correcciones`, `rapido` (desde T5c compila también Release), y merge a
-`version-2` de E1, E3a (T5), E11 (T3) y E5 (T1, `a4c156f`).
+Antes, o en el mismo `rapido` de fin de ola: integrar **E11 T3** (con sus arreglos) en
+`v2/e11-notificaciones` y mergear **`v2/e5-premios` (`a4c156f`)** a `version-2`. Esperado: EK
+**393** · unit **651 + 1** más los tests que sumen los arreglos de E11 T3 · release 0.
+
+Las ramas de épica se adelantan por ff a la punta de `version-2` antes de despachar (así T9 y T6c
+salen con E3a T5 adentro).
 
 | Compila | BASE | Modelo | Dueña de | Por qué ahora |
 |---|---|---|---|---|
-| **E1 T9** el turno de los cambios del tablero | punta de `v2/e1-correcciones` con T8 + T5c | sonnet (brief `task-9-brief.md`) | `GameState.swift`; crea `+BoardChanges`; `+Celebrations`, `+Lifecycle`, `+Debug` | camino crítico: E1 bloquea a todos |
-| **E1 T6c** el ORO comprado exacto (+ T6b) | punta de `v2/e1-correcciones` | sonnet (brief `task-6c-brief.md`) | `PlayerState.swift` (sólo `MetaState`); `SaveConflictResolver`, `+Store`, `PurchasedOroHistory`, `StoreManager` y sus tests | decisión del dueño; E1 no cierra sin ella; corre `store-unit` en 18.6 |
-| **E6b T1** los 8 efectos por código | `version-2` (rama `v2/e6-tienda` nueva) | sonnet | sólo archivos nuevos (`Scenes/Shaders/*`, `SkinShadersTests`) | abre el camino al gate de la galería (T2 → 🔒), lo más largo de E6 |
+| **E1 T9** el turno de los cambios del tablero | punta de `version-2` (`3956fd3` tras el verde) | sonnet (brief `task-9-brief.md`; carry de T7: hacer público el init de `BoardChangeOutcome` si los tests lo construyen) | `GameState.swift`; crea `+BoardChanges`; `+Celebrations`, `+Lifecycle`, `+Debug` | camino crítico: E1 bloquea a todos |
+| **E1 T6c** el ORO comprado exacto (+ T6b) | ídem | sonnet (brief `task-6c-brief.md`) | `PlayerState.swift` (sólo `MetaState`); `SaveConflictResolver` y sus tests, `+Store`, `PurchasedOroHistory`, `StoreManager` y sus tests. **No** `GameState.swift` | decisión del dueño; E1 no cierra sin ella; va antes de E2a T2/T7, E6a T7/T9/T11 y E9. Corre `store-unit` en 18.6 (1.945 s con la máquina cargada en el último `completo`) |
+| tercer cupo: **E11 T3 arreglos** (4.1), y al liberarse **E3a T6** hojas en iPad (destrabada por T5) o **E6b T1** los 8 efectos | E3a T6: punta de `v2/e3-ux`; E6b T1: `version-2` (rama `v2/e6-tienda` nueva) | sonnet | E3a T6: `PanelFrames`, los popups, `HUDView`, `OfflineEarningsView`; E6b T1: sólo archivos nuevos | E3a T6 abre T8 y el camino a T10; lleva las líneas de S1 y los carries de T5 (sin `#available`; los tests de plist leen el archivo). E6b T1 abre el gate de la galería, lo más largo de E6 |
 
-Planes de la ola E: **P-E9** ∥ **P-E2b** (opus), si no salieron en 4.1. E1 T11 también queda
-despachable al integrar T8, pero no acorta el camino crítico (T12 espera a T10 igual): va con T10.
+E1 T11 queda ⏳ desde que T8 se integró, y no comparte archivos con T9 ni T6c, pero no acorta el
+camino crítico (T12 espera a T10 igual): va con T10, salvo que sobre un cupo.
 
 Nadie toca en la ola E: `RootView`, `BoardScene`, `ContentSystems`, `+Bonus`, `TowerActions`,
 `SettingsView`, `project.yml`, `Localizable.xcstrings`.
@@ -213,23 +223,55 @@ con un dueño en vuelo. E1 siempre primero en cuanto su tarea se destraba.
 
 | # | Tarea | BASE | Modelo | 🔥 | No en paralelo con |
 |---|---|---|---|---|---|
-| 1 | **E1 T10** ∥ **E1 T11** (tras T9; T11 sólo necesita T8 integrada) | punta de `v2/e1-correcciones` | sonnet (revisión opus) | T10: `BoardScene`, `GameState`, `RootView`; T11: `ContentSystems`, `+Bonus` | todo lo que toque esos archivos; E3a T9/T10, E3b T5 |
+| 1 | **E1 T10** ∥ **E1 T11** (T10 tras T9; T11 ya ⏳) | punta de `v2/e1-correcciones` | sonnet (revisión opus) | T10: `BoardScene`, `GameState`, `RootView`; T11: `ContentSystems`, `+Bonus` | todo lo que toque esos archivos; E3a T9/T10, E3b T5. Carry de T7 a T10: la guarda de `typeId` en el aplicador |
 | 2 | **E1 T12 → T13 → T14 → T15 → T16** (en serie) | punta de `v2/e1-correcciones` | sonnet; T16 controlador | ver §5 E1 | E2a T3/T4 (deben entrar antes de T12) |
-| 3 | **E2a T2 → T3 → T4** (T2 tras E1 T6c) | `version-2` tras la ola D (rama `v2/e2a-mecanicas`) | sonnet | T2/T3: `PlayerState`; T3: `TowerActions` | E1 T6c; T3 antes de E1 T13; **T4 integrada antes de que arranque E1 T12**, o todo pasa a después de E1 T14 (regla 2 de E2a) |
+| 3 | **E2a T2 → T3 → T4** (T2 tras E1 T6c) | `version-2` tras la ola E (rama `v2/e2a-mecanicas`) | sonnet | T2/T3: `PlayerState`; T3: `TowerActions` | E1 T6c; T3 antes de E1 T13; **T4 integrada antes de que arranque E1 T12**, o todo pasa a después de E1 T14 (regla 2 de E2a) |
 | 4 | **E6b T2** la galería (tras T1) → 🔒 el dueño | punta de `v2/e6-tienda` | sonnet | `DebugPanelView` (tibio) | E2a T14, E3b T2/T8 (`DebugPanelView`) |
 | 5 | **E3a T7** la barra baja | punta de `v2/e3-ux` | sonnet | `GameArtComponents` (tibio) | E3a T9, E3b T2, E4b T3/T7 |
-| 6 | **E3a T6** hojas en iPad (tras T5) → **T8** la botonera | punta de `v2/e3-ux` | sonnet | T6: `PanelFrames`, popups; T8: catálogo (o snapshot) | E11 T5 (`OfflineEarningsView`); E3b T3 (`PanelFrames`). Despacho con las líneas de S1 (T6) y S6 (T8) del ledger |
+| 6 | **E3a T8** la botonera (tras T6) | punta de `v2/e3-ux` | sonnet | catálogo (o snapshot); `PanelFrames`, `HUDView` | E3b T3 (`PanelFrames`). Despacho con las líneas de S6 del ledger (botones de 30 pt) |
 | 7 | **E11 T4** ∥ **E11 T5** (tras T3 integrada) | punta de `v2/e11-notificaciones` | sonnet | T4: `SettingsView` + catálogo; T5: snapshot | T5 no con E3a T6; T4 antes de E7b-a T5. Carries de T3 en el ledger |
 | 8 | **E4a T1** `RewardSpec` | `version-2` (rama `v2/e4-visitantes`) | sonnet | ninguno (EK, archivos nuevos) | — |
 | 9 | **E5a T2** ∥ **E5a T3** (tras E4a T1) | punta de `v2/e5-premios` con `version-2` mergeada | sonnet | ninguno (EK) | — · carry de T1: `validate()` rechaza peso ≤ 0 |
 | 10 | **E3b T1** spikes S2/S3 | punta de `v2/e3-ux` | opus (sin commit) | ninguno | cuenta como compilando |
 | 11 | **E2a T1** ∥ **E2a T6** | punta de `v2/e2a-mecanicas` | sonnet | ninguno (EK; T6 toca `BoardChange.swift`) | T6 no con E4a T6, E5a T6 |
 | 12 | **E6b T3** `skins.json` v2 (tras T1) | punta de `v2/e6-tienda` | sonnet | `GameContentLoader` (tibio) | otra tarea en el loader |
-| 13 | **E11 T6** (tras E1 T9 y E11 T3) | punta de `v2/e11-notificaciones` con `version-2` (E1 T9 adentro) | sonnet | `GameState.swift` | E1 T10/T12–T14 y todo dueño de `GameState`: va en una ventana (E11 la quiere justo tras T9; si eso frena a E1 T10, después de E1 T14) |
+| 13 | **E11 T6** (tras E1 T9 y E11 T3 integradas) | punta de `v2/e11-notificaciones` con `version-2` (E1 T9 adentro) | sonnet | `GameState.swift` | E1 T10/T12–T14 y todo dueño de `GameState`: va en una ventana (E11 la quiere justo tras T9; si eso frena a E1 T10, después de E1 T14) |
 | 14 | **E3a T9**, **E3b T5 → T6 → T7**, **E2a T9** | sus ramas, con `version-2` (E1 T14 adentro) | sonnet | `GameState.swift` (de a una) | entre sí y con E1 T10–T14 |
 
 Después de E1 T16 se destraban E3b T9 → E4a T3 y E4a T9, y con ellos E4b, E5a T4–T8, E5b, E6a y
 E7b. La cola se rearma con las tablas de §5.
+
+### 4.4 Para decidir en el relevo 7: partir `GameState.swift` en extensiones
+
+**Es una propuesta, no una decisión**: la toma el controlador del relevo 7.
+
+- **El problema.** 20 tareas pendientes tocan `GameState.swift` (§3.1) y, con un dueño por ola, van
+  de a una. Hasta E1 T14 casi no hay ventanas.
+- **Qué hacen ahí casi todas** (según sus planes): sumar una o dos propiedades o proyecciones y su
+  línea en `refreshProjections` (E1 T9, T10; E3a T9, T10; E11 T6; E4b T1; E3b T9), un caso de
+  `TowerNotice.Kind` (E1 T13, T14), un método (E2a T9), un renombre (E3b T5) o borrar algo (E1 T12
+  `resyncTower`; E4b T4 `activeEvent`; E4b T9 `specialInfo`). Pocas tocan lógica compartida: el
+  frame loop (E1 T9, T10) y `bootstrap`.
+- **La forma hoy** (1.169 líneas): tipos anidados (~140, líneas 19–160), el estado observado y el
+  autoritativo (~360, 163–527), `bootstrap` (~390, 529–920), el frame loop (`tick`, `flushHUD`) y
+  lo interno (`refreshProjections` ~115, `scheduleSave`, `persistNow`).
+- **La propuesta.** Una tarea mecánica (sonnet, sin cambio de conducta): en `GameState.swift`
+  quedan sólo las propiedades almacenadas y el init, porque Swift no deja ponerlas en una
+  extensión; el resto se muda a `+Types`, `+Bootstrap`, `+FrameLoop`, `+Projections` (con
+  `refreshProjections` partido en un ayudante por zona) y `+Persistence`. Se verifica con el
+  `rapido` con la misma cuenta de tests, y la revisión compara los bloques movidos byte a byte (como
+  se hizo con `finishBootstrap` en E1 T5).
+- **Lo que ganaría.** Con el estado en un bloque por épica (`// MARK: E4b`, …), sumar propiedades
+  deja de ser "tomar el archivo": dos tareas que agregan en bloques distintos se integran sin
+  conflicto, y el 🔥 pasa a ser por extensión. Las tareas que sólo suman estado y una proyección
+  podrían compartir ola (E11 T6 al lado de E1 T10, E3a T9 al lado de E1 T12–T14, E4b T1 con E5b
+  T2). Seguiría en serie lo que toca la misma lógica: el frame loop y `bootstrap`.
+- **El costo.** Una tarea más en el camino crítico de E1 (toma el archivo entero en su ola). Los
+  planes que citan `GameState.swift:NNN` quedan apuntando a otro archivo; esas líneas ya están
+  corridas desde E1 T5 y T8, y las tareas hacen un paso 0 con `grep`, pero cada brief nuevo tiene
+  que nombrar la extensión. Se recupera si después dos o más tareas comparten ola.
+- **Cuándo.** Antes de E1 T9 retrasa T9 y no cambia su brief (T9 suma dos propiedades al cuerpo y
+  crea su propia extensión); entre T9 y T10 no retrasa T9, pero sí T10.
 
 ## 5. Las épicas (orden de PLAN-v2 §4)
 
@@ -257,14 +299,14 @@ que toma · commit o rama · nota.
 | E1-T4 | Save v6 y el contenedor de engagement | ✅ | T3 | 🔥 PlayerState | `76a69c1` | el 🔒 de `SaveConflictResolver:67/:68` lo resuelve T6c |
 | E1-T5 | Nunca más pisar un save ilegible | ✅ | T4 | 🔥 GameState, RootView, catálogo | `38bee13` | |
 | E1-T5b | (seguimiento) copias que no se pisan, cada payload ilegible | ✅ | T5 | — | `08b9329` + `0cfe6c9` | fuera del conteo |
-| E1-T5c | (seguimiento) el `if` muerto en Release + `rapido` compila Release | 🟢 | T8 | 🔥 GameState (sólo `bootstrap`); `oraculo.sh` | `19247a5` + `bbf2e7f` (encima de `eeb7322`) | fuera del conteo; se integra encima de T8 |
+| E1-T5c | (seguimiento) el `if` muerto en Release + `rapido` compila Release | ✅ | T8 | 🔥 GameState (sólo `bootstrap`); `oraculo.sh` | `e0a5d53` + `ca2d12c` (merge `7110b06`) | fuera del conteo; cherry-pick encima de T8 y sus arreglos |
 | E1-T6 | Reconstruir el ORO comprado de la v1 | ✅ | T4 | Info.plist | `cdd8f0a` | T6b la absorbe T6c |
-| E1-T6c | (seguimiento) ORO comprado exacto entre dispositivos + T6b | ⏳ | T4, T6 | 🔥 PlayerState (`MetaState`); SaveConflictResolver, +Store, StoreManager | brief `task-6c-brief.md` | fuera del conteo; antes de E9 y de E6a T9/T11 |
+| E1-T6c | (seguimiento) ORO comprado exacto entre dispositivos + T6b | ⏳ | T4, T6 | 🔥 PlayerState (`MetaState`); SaveConflictResolver, +Store, StoreManager | brief listo `task-6c-brief.md` | fuera del conteo; ola E (∥ T9); antes de E9 y de E6a T9/T11 |
 | E1-T7 | El embudo `BoardChange` en EK | ✅ | T3, T4 | — | `ec6fb29` | carries: init público de `BoardChangeOutcome` (T9), guarda de `typeId` (T10) |
-| E1-T8 | Ciclo de vida: sellar al irse, latido, evento vencido | 🔧 | T5 | 🔥 GameState, RootView, +Bonus; FisuEvolutionApp, +Debug, ContentConfigs, events.json | `eeb7322` + arreglos en vuelo (`worktree-agent-a812035b8d4eb3f74`) | revisión: I1 `flushHUD` corre en `.inactive`; doble sellado |
-| E1-T9 | El turno de los cambios del tablero | ⛔ | T7, T8, T5c | 🔥 GameState; +BoardChanges (nuevo), +Celebrations, +Lifecycle, +Debug | brief `task-9-brief.md` | ola E |
+| E1-T8 | Ciclo de vida: sellar al irse, latido, evento vencido | ✅ | T5 | 🔥 GameState, RootView, +Bonus; FisuEvolutionApp, +Debug, ContentConfigs, events.json | `eeb7322` + `5ef7a65` (merge `7110b06`) | re-revisión opus ✅: `flushHUD` sólo proyecta con la escena inactiva; un sello por salida |
+| E1-T9 | El turno de los cambios del tablero | ⏳ | T7, T8, T5c | 🔥 GameState; +BoardChanges (nuevo), +Celebrations, +Lifecycle, +Debug | brief listo `task-9-brief.md` | ola E (∥ T6c); carry de T7: init público de `BoardChangeOutcome` |
 | E1-T10 | La escena reproduce los cambios y revela | ⛔ | T9 | 🔥 BoardScene, GameState, RootView; CelebrationQueue, +Celebrations, +Debug | | E3a T10 y E4b T1 esperan esta |
-| E1-T11 | El sorteo de eventos salta lo inaplicable | ⛔ | T7; T8 integrada | 🔥 ContentSystems, +Bonus; ContentConfigs, events.json | | el plan la pone ∥ T10; por archivos también va ∥ T9 |
+| E1-T11 | El sorteo de eventos salta lo inaplicable | ⏳ | T7; T8 integrada | 🔥 ContentSystems, +Bonus; ContentConfigs, events.json | | el plan la pone ∥ T10; por archivos también va ∥ T9 (no acorta el camino crítico) |
 | E1-T12 | Startup, Blanqueo, videos y carrera por el embudo | ⛔ | T9, T10, T11 | 🔥 ContentSystems, +Bonus, GameState; +Actions, +Debug | | E2a T4 integrada antes |
 | E1-T13 | El Corralito congela el gasto, con salida por video | ⛔ | T12 | 🔥 TowerActions, ContentSystems, +Bonus, GameState, RootView, catálogo; +Hiring, +Actions, ContentConfigs | | E2a T3 integrada antes |
 | E1-T14 | Un video sin efecto no gasta el cooldown | ⛔ | T9–T13 | 🔥 +Bonus, GameState, RootView, catálogo; +BoardChanges, +Achievements | | |
@@ -277,7 +319,7 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E11-T1 | Catálogo y planificador de la ausencia (EK) | ✅ | — | — | `508a4c5` | |
 | E11-T2 | `notifications.json` validado y sus textos | ✅ | T1 | 🔥 catálogo; GameContentLoader | `9c5847c` | |
-| E11-T3 | El manager 2.0: prendidas por defecto, permiso en dos pasos | 🔧 | T1, T2 | 🔥 SettingsView, catálogo | `f084ef5` | faltan 2 tests (I1, I2); arreglos no despachados |
+| E11-T3 | El manager 2.0: prendidas por defecto, permiso en dos pasos | 🔧 | T1, T2 | 🔥 SettingsView, catálogo | `f084ef5` (en `worktree-agent-acb378d5ca1b3d546`; sin integrar) | faltan 2 tests (I1, I2) + un docstring; arreglos NO despachados: agente nuevo con BASE `f084ef5` (§4.1) |
 | E11-T4 | Ajustes: el maestro, uno por motivo, "Abrir Ajustes" | ⛔ | T3 | 🔥 SettingsView, catálogo | | antes de E7b-a T5 |
 | E11-T5 | La tarjeta del permiso en el popup offline | ⛔ | T3 | catálogo (snapshot si va con T4); OfflineEarningsView | | no con E3a T6 |
 | E11-T6 | El cableado al ciclo de vida | ⛔ | T3; E1-T1, E1-T5, E1-T8, E1-T9 | 🔥 GameState; +Lifecycle, +Celebrations, FisuEvolutionApp | | carry: el comentario de `FisuEvolutionApp.swift:10-11` |
@@ -291,14 +333,14 @@ que toma · commit o rama · nota.
 | E3a-T2 | Spikes S1, S4, S5, S6 | ✅ | — | — | sin commit (ledger de E3a) | cambian T4, T6, T8, T10 |
 | E3a-T3 | `PlayLayout` | ✅ | — | — | `f03950c` + `5afb893` (0,63) | |
 | E3a-T4 | `ScreenInsets` y `PlayColumn` | ✅ | T3 | — | `b988bc3` + `537f923` | |
-| E3a-T5 | Universal, iOS 18, contrato del Info.plist | 🔄 | — | 🔥 project.yml; Info.plist, PanelFrames | en vuelo (BASE `8d17b8d`) | |
-| E3a-T6 | Hojas y popups en iPad (`fisuSheet`) | ⛔ | T4, T5 | PanelFrames, 8 popups, HUDView, OfflineEarningsView | | S1: `fullScreenCover` + `statusBarHidden` |
+| E3a-T5 | Universal, iOS 18, contrato del Info.plist | ✅ | — | 🔥 project.yml; Info.plist, PanelFrames | `c323dd9` (merge `3956fd3`; `rapido` (pendiente)) | carries a T6, T10, T12 en el ledger; el release con Xcode 26.x |
+| E3a-T6 | Hojas y popups en iPad (`fisuSheet`) | ⏳ | T4, T5 | PanelFrames, 8 popups, HUDView, OfflineEarningsView | | S1: `fullScreenCover` + `statusBarHidden`; carry de T5: sin `#available` |
 | E3a-T7 | La barra de abajo más baja, Contratar al centro | ⏳ | T4 | GameArtComponents, BottomMenuBar | | |
 | E3a-T8 | La botonera del ascensor | ⛔ | T6 | catálogo (o snapshot); PanelFrames, HUDView, AudioManager | | S6: botones de 30 pt; cablea `elevatorDing` |
 | E3a-T9 | Las pestañas aparecen de a poco | ⛔ | T7; E1-T4; ventana de GameState | 🔥 GameState, catálogo; +Debug, GameContentLoader | | |
-| E3a-T10 | La escena: PlayLayout, 3 filas, cámara, iPad | ⛔ | T3, T7, T8; E1-T10 | 🔥 BoardScene, GameState, RootView; `oraculo.sh` | | carries: `ScreenInsetsUITests` al `ipad-ui`; si se puede, saltear los especiales (E4b T9 los borra) |
+| E3a-T10 | La escena: PlayLayout, 3 filas, cámara, iPad | ⛔ | T3, T7, T8; E1-T10 | 🔥 BoardScene, GameState, RootView; `oraculo.sh` | | carries: `ScreenInsetsUITests` al `ipad-ui` (iPad Pro 13", sin tocar `rojos-declarados.txt`); si se puede, saltear los especiales (E4b T9 los borra) |
 | E3a-T11 | La raíz: chrome en la columna, seis hojas | ⛔ | T6, T10 | 🔥 RootView | | no con E1 T13–T14 |
-| E3a-T12 | Cierre de E3a: SE en castellano, capturas de iPad | ⛔ | T1–T11 | `oraculo.sh` | | carry: `ScreenInsetsUITests` al `se-ui` |
+| E3a-T12 | Cierre de E3a: SE en castellano, capturas de iPad | ⛔ | T1–T11 | `oraculo.sh` | | carries: `ScreenInsetsUITests` al `se-ui`; fijar Xcode 26.x como SDK del release (el SDK 27 ignora `UIRequiresFullScreen`) |
 
 ### E3b — UX núcleo, las interacciones (`2026-10-07-v2-e3b-ux-nucleo.md`)
 
@@ -553,7 +595,7 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 - La columna nunca se abre sola por un "!" nuevo: sólo al tocarla o por una lección.
 - La columna es de metal (`MetalPlate`), no de madera.
 
-## 7. Decisiones del dueño de este relevo (no se vuelven a preguntar)
+## 7. Decisiones del dueño del relevo 6 (no se vuelven a preguntar)
 
 | Tema | Decisión | Consecuencia |
 |---|---|---|

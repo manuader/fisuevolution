@@ -342,9 +342,13 @@ final class BoardScene: SKScene {
         }
 
         if isFlying { streamFloorsAlongFlight() }
-        // El watchdog liberó el turno de un cambio que la escena no terminó: se
-        // corta acá, o el toque quedaría bloqueado para siempre.
-        if playingBoardChange != nil, gameState.showing != .boardCelebration { abortBoardCelebration() }
+        // Si el cambio que la escena reproduce ya no es el que está en vuelo, alguien
+        // lo asentó por afuera (el watchdog, o el seal al irse a background) sin
+        // cerrar el turno: se corta acá, o el toque quedaría bloqueado y el turno
+        // siguiente no arrancaría.
+        if let playing = playingBoardChange, gameState.inFlightBoardChange?.id != playing.id {
+            abortBoardCelebration()
+        }
         startBoardCelebrationIfItsTurn()
         refreshCrowdDepth()
         updateFTUEHint()
@@ -377,12 +381,19 @@ final class BoardScene: SKScene {
     /// ⚠️ El merge del jugador no cae en la última rama: `handleDrop` pide el
     /// turno y `resolveDrop` guarda `pendingBoardCelebration` en la misma pasada
     /// síncrona, antes del próximo `update`.
+    private var isAssistedMergeRunning: Bool {
+        characterNodes.values.contains { $0.action(forKey: "assistedMerge") != nil }
+    }
+
     private func startBoardCelebrationIfItsTurn() {
         guard gameState.showing == .boardCelebration, !boardCelebrationRunning else { return }
         if let pending = pendingBoardCelebration {
             boardCelebrationRunning = true
             pendingBoardCelebration = nil
             runBoardCelebration(pending)
+        } else if dragNode != nil || isAssistedMergeRunning {
+            // El jugador tiene al par en la mano: el cambio espera al frame siguiente.
+            return
         } else if let change = gameState.beginNextBoardChange() {
             boardCelebrationRunning = true
             playBoardChange(change)
@@ -1086,7 +1097,9 @@ final class BoardScene: SKScene {
         let floor = gameState.floorOrdinal(of: change) ?? gameState.visibleFloorOrdinal
         let travels = floor != gameState.visibleFloorOrdinal
         gameState.setVisibleFloor(floor)
-        let leadIn = travels ? Self.flightMaxDuration + 0.1 : Self.boardChangeBeat
+        let leadIn = travels && !Self.prefersReducedMotion
+            ? Self.flightMaxDuration + 0.1
+            : Self.boardChangeBeat
         run(.sequence([
             .wait(forDuration: leadIn),
             .run { [weak self] in self?.performBoardChange(change) },
@@ -1105,7 +1118,12 @@ final class BoardScene: SKScene {
             run(.sequence([
                 .wait(forDuration: Self.boardChangeBeat),
                 .run { [weak self] in
-                    self?.runAssistedMerge(partner: partner, into: into) { [weak self] _, _, point, node in
+                    guard let self, self.playingBoardChange?.id == change.id else { return }
+                    // El par pudo moverse o desaparecer durante la espera.
+                    guard let partner = self.characterNodes[source], let into = self.characterNodes[target] else {
+                        return self.confirmWithoutGesture(change)
+                    }
+                    self.runAssistedMerge(partner: partner, into: into) { [weak self] _, _, point, node in
                         guard let self else { return }
                         self.presentResolution(
                             self.gameState.confirmBoardChange(id: change.id),
@@ -1119,8 +1137,9 @@ final class BoardScene: SKScene {
             highlightForBoardChange([node])
             run(.sequence([
                 .wait(forDuration: Self.boardChangeBeat),
-                .run { [weak self, weak node] in
-                    guard let self, let node else { return }
+                .run { [weak self] in
+                    guard let self, self.playingBoardChange?.id == change.id else { return }
+                    guard let node = self.characterNodes[slot] else { return self.confirmWithoutGesture(change) }
                     self.presentResolution(
                         self.gameState.confirmBoardChange(id: change.id),
                         at: node.position, sourceNode: node, withinTurn: true
@@ -1186,6 +1205,10 @@ final class BoardScene: SKScene {
     }
 
     func debugNode(atSlot slot: Int) -> CharacterNode? { characterNodes[slot] }
+
+    /// Lo que el test de los cambios del tablero necesita ver de la escena.
+    var debugIsPlayingBoardChange: Bool { playingBoardChange != nil }
+    func debugHoldInHand(slot: Int) { dragNode = characterNodes[slot] }
     #endif
 
     /// Hit-testing returns the deepest node (sprite/label); climb to the unit.

@@ -1,9 +1,9 @@
 #!/bin/bash
 # Oráculo del run de la 2.0 (PLAN-v2 §0): termina en 0 sólo si todo está verde.
 #
-#     Tools/v2/oraculo.sh rapido   [--limpio]   # EconomyKit + build + unit (iOS 26.5)
+#     Tools/v2/oraculo.sh rapido   [--limpio]   # EconomyKit + build + unit (iOS 26.5) + Release
 #     Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store (18.6) + UI en la matriz
-#                                               #   + pipeline + pacing-sim + Release
+#                                               #   + pipeline + pacing-sim
 #
 # Sigue la receta de HANDOFF §6: simuladores propios por UDID (se borran al
 # salir), unit ANTES que UI en cada simulador, sin paralelismo y DerivedData
@@ -146,6 +146,7 @@ if [[ " ${FAILED[*]} " == *" build-for-testing "* ]]; then
 fi
 step unit run_tests unit "$SIM26" -only-testing:FisuEvolutionTests \
   -skip-testing:FisuEvolutionTests/StoreManagerTests -skip-testing:FisuEvolutionTests/StoreProductsTests
+step release release_build
 
 if [[ "$MODE" == "completo" ]]; then
   new_sim 18-6 SIM18 || { note "❌ no se pudo crear el simulador 18.6"; exit 1; }
@@ -154,7 +155,6 @@ if [[ "$MODE" == "completo" ]]; then
   step store-ui run_tests store-ui "$SIM18" "${STORE_UI[@]}"
   step pipeline pipeline
   step pacing-sim pacing_sim
-  step release release_build
 fi
 
 for verdict in "$OUT"/*.veredicto; do

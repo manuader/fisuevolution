@@ -35,9 +35,10 @@ tocar.
 
 **El plan de la 2.0 está aprobado: `Docs/PLAN-v2.md`** (2026-10-06, noche).
 Se ejecuta con relevo automático de agentes (§0 del plan). Varios datos de
-abajo cambian cuando su épica cierre: "sólo iPhone" pasa a universal con iPad
-vertical, iOS mínimo 17 pasa a 18, y los packs de ORO pasan a 160/550/1.400.
-Hasta entonces, lo de abajo describe el código.
+abajo cambian cuando su épica cierre. **Ya cambió uno**: desde E3a T5
+(`3956fd3`, 2026-10-07) `version-2` es universal, con el iPad sólo vertical y
+de pantalla completa, e iOS 18 de mínimo; la tabla de §2 describe la v1
+publicada. Los packs de ORO todavía no pasaron a 160/550/1.400 (E6a).
 
 ---
 
@@ -87,8 +88,8 @@ eventos y jefes/carreras. Es una sátira de la precariedad económica.
 | Bundle ID | `com.manuader.fisuevolution` |
 | App Store ID | `6814521946` |
 | Team ID | `2TS7P7VDQJ` (Apple Developer Program, **Individual**) |
-| Dispositivos | **Sólo iPhone** (`TARGETED_DEVICE_FAMILY: "1"`), sólo vertical |
-| iOS mínimo | 17.0 |
+| Dispositivos | v1: **sólo iPhone** (`TARGETED_DEVICE_FAMILY: "1"`), sólo vertical · 2.0: iPhone y iPad (`"1,2"`), sólo vertical |
+| iOS mínimo | v1: 17.0 · 2.0: 18.0 |
 | Idiomas | español (base) e inglés |
 | Rating | 12+ |
 | Stack | Swift 6 (strict concurrency), SwiftUI + SpriteKit, XcodeGen, sin backend |

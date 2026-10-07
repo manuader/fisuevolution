@@ -599,7 +599,8 @@ exacta):
 establecida**: FisuJobs como referencia, materiales v3 —metal para el ascensor, madera,
 pergamino, pills caramelo—, iconografía y paleta del juego):
 
-- **15 lugares en 3 filas** (4 filas con el permanente). `crowdTopRatio` sube a ~0,70 y
+- **15 lugares en 3 filas** (4 filas con el permanente). `crowdTopRatio` sube a 0,63 (medido
+  por el spike S5: con 0,70 las cabezas de atrás entraban 42 pt en el display del SE) y
   `crowdBand`/`depthZ` ya están parametrizados por filas. Se re-pinean `CrowdDepthTests`, y
   `RevealLayout` no se toca.
 - **Botonera del ascensor** (`UI/HUD/ElevatorPanel.swift`):

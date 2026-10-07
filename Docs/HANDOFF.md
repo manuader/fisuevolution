@@ -18,12 +18,16 @@
 > 🧪 **Se verifica con `Tools/v2/oraculo.sh rapido|completo`** (§6), y los
 > agentes en paralelo se lanzan con `Agent(isolation: "worktree")` (PLAN-v2
 > §0.1; §7 explica por qué cualquier otra forma choca con el guard). Al
-> 2026-10-07 (relevo 4): en `version-2` están E0, E10 en papel, E8 pipeline,
-> E8 audio, E7a y la parte de idioma de E3, y además la ola B: E1 T1–T4, E11
-> T1–T2 y E3a T1 y T3, integradas en `5a65335` con el `rapido` VERDE (EK 317 ·
-> unit 593 + 1 declarado). Hay planes escritos para E1, E11, E3a/E3b, E2a y
-> E4a/E4b. Lo que sigue es E11 T3 y la ola C (§4). El estado fino de cada
-> épica vive en su ledger, `version-2/.superpowers/sdd/<plan>/progress.md`.
+> 2026-10-07 (relevo 5): en `version-2` están E0, E10 en papel, E8 pipeline,
+> E8 audio, E7a y la parte de idioma de E3, y además las olas B y C: E1 T1–T7,
+> E11 T1–T2 y E3a T1–T4, integradas en `bc3bf6f`. El `completo` de referencia
+> es el de `d22eb7a` (VERDE, de antes de la ola C). **El `rapido` sobre
+> `bc3bf6f` dio ROJO** por un test de E1 T5 que nombra copias por
+> milisegundo (§6); lo arregla E1 T5b, en vuelo, y `bc3bf6f` no se pushea
+> hasta que esté verde. Hay planes escritos para E1, E11, E3a/E3b, E2a,
+> E4a/E4b, E5a/E5b y E6a/E6b; faltan E7b, E9 y E2b. Lo que sigue, en §4. El
+> estado fino de cada épica vive en su ledger,
+> `version-2/.superpowers/sdd/<plan>/progress.md`.
 >
 > ✅ **EL REDISEÑO DE UI ESTÁ COMPLETO Y MERGEADO** — 20 de 20 tareas
 > (`feature/rediseno-ui-cowevolution`, cerrado el 2026-08-16). El estado tarea
@@ -295,6 +299,40 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-07 (relevo 5) — La ola C: `BoardChange`, el save ilegible, el ORO comprado de la v1 y las safe areas
+
+Entró la ola C de E1 y la T4 de E3a, integradas en `version-2` con merges
+`--no-ff` (`cd23856` y `bc3bf6f`), sin conflictos:
+
+- E1 T7, el embudo `BoardChange` en EconomyKit: planear y aplicar, con
+  desempate determinista (`ec6fb29`);
+- E1 T5, un save que existe y no se lee ya no se pisa: copias en
+  `SaveBackupStore` y la pantalla `SaveRecoveryView` (`38bee13`);
+- E1 T6, el ORO comprado en la v1, reconstruido desde `Transaction.all`
+  (`cdd8f0a`);
+- E3a, `crowdTopRatio` de tres filas a 0,63 (`5afb893`) y las safe areas
+  observables desde un centinela en la ventana (`b988bc3`, `537f923`).
+
+Todas pasaron la revisión con 0 críticos o importantes. El `rapido` de fin de
+ola de E1 dio **VERDE, EK 357 · unit 608 + 1**. **El de `bc3bf6f` dio ROJO**
+con `rotatesTheLastTenGoodLoads`, un test de T5 que nombra copias por
+milisegundo y pasó mientras la máquina estuvo cargada (§7). Lo arregla E1
+T5b, despachado al cierre, y `bc3bf6f` no se pushea hasta que esté verde.
+
+El `completo` sobre `d22eb7a` dio VERDE y es la referencia nueva (§6): la
+frontera de un solo mutador y el save v6 no movieron el pacing. **La ola C
+todavía no pasó por un `completo`.**
+
+Salieron los planes de E5 (E5a, el motor, 9 tareas; E5b, lo que se ve, 7) y
+de E6 (E6a, la tienda de ORO, 13; E6b, lugares extra y skins, 10, con 3
+gates). `LootBoxGate` y `OddsDisclosureView` nacen en E5, y E6 los consume.
+
+El 🔒 de `SaveConflictResolver` pasa a ser de dos líneas, `:67` y `:68`, con
+un insumo nuevo de T6: el `||` sólo cuenta de menos, un `&&` contaría doble,
+y la exactitud pide otro diseño. La carrera de las safe areas en el `onAppear`,
+que el relevo 4 daba como probable, quedó medida: 7,5 pt del bezel en el SE.
+Detalle en **`Docs/SESION-2026-10-07-v2-relevo-5-ola-c.md`**.
 
 ### Sesión del 2026-10-07 (relevo 4) — La ola B: la frontera, el save v6, el núcleo de E11 y los spikes de la pantalla
 
@@ -1559,6 +1597,31 @@ paréntesis; el porqué completo está en la sesión de cada uno):
 - **AdMob bloquea "Social Casino Games"** además de "Gambling & Betting" (E10):
   viene permitida por defecto, y un casino simulado en un juego que declara
   "sin apuesta simulada" es la contradicción que un revisor marca.
+- **Los planificadores de `BoardChange` desempatan de forma determinista**
+  (E1 T7): (tier desc, piso, `typeId`) para fusionar y (tier desc, piso,
+  slot) para evolucionar. El orden de `Dictionary(grouping:)` cambia entre
+  procesos y daba un plan distinto por corrida. E3b usa el mismo comparador.
+- **Un save que existe y no se lee no se pisa nunca** (E1 T5). La partida
+  queda en `.recovery`, sin jugador y sin escribir nada, y los servicios
+  (tienda, Game Center, anuncios) arrancan sólo con `phase == .ready`; por eso
+  `.failed` tampoco los arranca. Antes, un save ilegible se leía como "no hay
+  save" y la partida nueva lo pisaba.
+- **La reconstrucción del ORO comprado en la v1 falla cerrada en 0 y no se
+  reintenta** (E1 T6, lo pide el plan): nunca cuenta una compra que StoreKit
+  no confirmó. En iOS 17 cierra siempre en 0, que es un motivo más para el
+  mínimo 18 de E3a T5.
+- **`LootBoxGate`, `OddsDisclosureView`, `RewardCopy` y `PrizeOdds` nacen en
+  E5, y E6 los consume** (planes de E5 y E6, coordinados en vuelo). PLAN-v2
+  ponía los dos primeros en E6, pero la ruleta y el colchón los necesitan
+  antes. Si un despacho de E6 dice crearlos, está leyendo PLAN-v2 y no su
+  plan.
+- **La multitud de tres filas arranca al 0,63 del alto, no al ~0,70 que
+  decía PLAN-v2** (E3a, spike S5): con 0,70 las cabezas de atrás entran 42 pt
+  en el display del SE, y el techo medido es 0,637.
+- **Las safe areas se leen de un centinela agregado a la ventana** (E3a T4,
+  spike S4): una vista adentro de la safe area no se entera de que la barra
+  de estado se ocultó. Leídas en `onAppear`, el HUD quedaba a 7,5 pt del
+  bezel en el SE.
 
 0. **Los cofres** (2026-08-26). Las 41 pintas de piso salen **sólo** de cofres. Rareza con
    **promoción hacia arriba** cuando la sorteada se agota. Cuatro fuentes: cada 2 pisos, un
@@ -1819,39 +1882,51 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
   en `af3acde` (2026-10-07, relevo 4): **el pipeline ya no tiene rojo
   declarado**, así que cualquier rojo suyo es nuevo.
 
-**Línea de base: el `completo` sobre `6b5e408`** (2026-10-06, relevo 3, con los
-cuatro frentes integrados), contra la de E0:
+**Línea de base: el `completo` sobre `d22eb7a`** (2026-10-07, relevo 5; es
+`5a65335`, la ola B, más docs), contra las anteriores:
 
-| Suite | E0 (`0442022`) | **Hoy (`6b5e408`)** |
-|---|---|---|
-| EconomyKit | 267 | **267** |
-| unit (26.5) | 473 + 1 declarado (411 s) | **570 + 1 declarado** |
-| Store unit (18.6) | 12 (197 s) | **12** |
-| UI (26.5) | 57 (1.515 s) | **57** (2.398 s, con carga) |
-| `StoreUITests` (18.6) | 2 (114 s) | **2** |
-| pipeline | 24 + 1 declarado | **49 / 0** |
-| `pacing-sim` | Dios en 30,73 h activas · 13 reencarnaciones | **igual** |
-| Release | 0 warnings | **0 warnings** |
+| Suite | E0 (`0442022`) | `6b5e408` (relevo 3) | **Hoy (`d22eb7a`)** |
+|---|---|---|---|
+| EconomyKit | 267 | 267 | **317** |
+| unit (26.5) | 473 + 1 declarado (411 s) | 570 + 1 declarado | **593 + 1 declarado** (503 s) |
+| Store unit (18.6) | 12 (197 s) | 12 | **12** (995 s, con carga) |
+| UI (26.5) | 57 (1.515 s) | 57 (2.398 s, con carga) | **57** (2.563 s, con carga) |
+| `StoreUITests` (18.6) | 2 (114 s) | 2 | **2** (499 s) |
+| pipeline | 24 + 1 declarado | 49 / 0 | **49 / 0** |
+| `pacing-sim` | Dios en 30,73 h activas · 13 reencarnaciones | igual | **igual** |
+| Release | 0 warnings | 0 warnings | **0 warnings** |
 
-El unit cuadra exacto con lo que sumó cada frente: 473 + 72 (E7a) + 12 (E8
-audio) + 13 (E3) = 570. Un número distinto después de integrar es un test
-perdido o duplicado. Un `completo` entero tarda **~45 min** con la máquina
-tranquila (build en frío 106 s); con tres agentes compilando al lado, la UI
-sola tardó 2.398 s (§7).
+- **La frontera de un solo mutador y el save v6 no movieron el pacing**: es el
+  primer `completo` que los mide, y el `pacing-sim` da lo mismo que en
+  `6b5e408`.
+- El unit cuadra exacto: 570 + 4 de la Ola A + 19 de la ola B = 593. Un
+  número distinto después de integrar es un test perdido o duplicado.
+- Un `completo` entero tarda **~45 min** con la máquina tranquila (build en
+  frío 106 s); éste, con la máquina cargada, tardó **~81 min** (4.886 s).
+- Log: `version-2/build/relevo5-completo-d22eb7a.log`.
+- ⚠️ **Es de antes de la ola C.** Sobre la punta actual se espera UI **59**
+  (+ `SaveRecoveryUITests` y `ScreenInsetsUITests`), Store unit **13** (+
+  `reconstructsTheV1OroFromTransactionHistory`), `StoreUITests` 2 y el
+  `pacing-sim` igual.
 
-**Línea de base rápida: el `rapido` sobre `5a65335`** (2026-10-07, relevo 4,
-con la ola B integrada): **VERDE, EconomyKit 317 · unit 593 + 1 declarado**.
-Build 75 s, unit 497 s.
+**El `rapido` de la ola C** (2026-10-07, relevo 5):
 
-| Suite | `68bb47c` (fin del relevo 3) | **`5a65335`** | De dónde sale |
-|---|---:|---:|---|
-| EconomyKit | 274 | **317** | +5 E1 T3 · +14 E1 T4 · +24 E11 T1 |
-| unit (26.5) | 574 + 1 declarado | **593 + 1 declarado** | +1 E1 T3 · +7 E1 T4 · +4 E11 T2 · +7 E3a T3 |
+| Árbol | EconomyKit | unit (26.5) | Veredicto | De dónde sale |
+|---|---:|---:|---|---|
+| `5a65335` (ola B) | 317 | 593 + 1 declarado | VERDE | — |
+| `cdd8f0a` (E1 ola C) | **357** | **608 + 1 declarado** | **VERDE** | +40 EK de T7 · unit +6 de T5 · +9 de T6 |
+| `bc3bf6f` (+ E3a fix T3 y T4) | 357 | 611 + 2 | **ROJO** | +4 de `ScreenInsetsTests`; el rojo nuevo es `PersistenceTests.rotatesTheLastTenGoodLoads` |
+| post-T5b | (pendiente) | (pendiente) | (pendiente) | — |
 
-Las dos cuentas cierran exacto. **El `completo` no se volvió a correr desde
-`6b5e408`**: la tabla de arriba sigue siendo la última línea de base completa,
-así que UI, Store, pipeline, `pacing-sim` y Release no se midieron con la
-frontera nueva ni con el save v6.
+- El rojo de `bc3bf6f` **no está declarado y no hay que declararlo**:
+  `SaveBackupStore` nombra las copias por milisegundo, y en una corrida 2,6
+  veces más rápida que la de `cdd8f0a` (unit 374 s contra 977 s) tres de las
+  12 cargas del test cayeron en un milisegundo ya usado: 9 copias contra 10
+  (§7, ola C). Es de E1 T5, no del merge de E3a. Lo arregla **E1 T5b**, en el
+  producto, y `bc3bf6f` no se pushea hasta que esté verde.
+- La cuenta cierra igual: 611 + 2 = 612 + 1, así que no se perdió ningún test.
+- Logs: `v2-e1/build/relevo5-rapido-cdd8f0a.log` y
+  `version-2/build/relevo5-rapido-bc3bf6f.log`.
 
 ### La receta a mano (lo que el oráculo corre por dentro)
 
@@ -1870,7 +1945,7 @@ sim 26 virgen.
 ```bash
 UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
 
-cd Packages/EconomyKit && swift test                      # 267
+cd Packages/EconomyKit && swift test                      # 357 al relevo 5
 cd - && /opt/homebrew/bin/xcodegen generate               # si agregaste/borraste Swift
 
 # 1) UNIT PRIMERO
@@ -2034,7 +2109,7 @@ xcrun simctl install booted build/DD/Build/Products/Debug-iphonesimulator/FisuEv
 xcrun simctl launch booted com.manuader.fisuevolution --uitest-reset
 ```
 
-Fixtures DEBUG por launch argument — **son 21** (las últimas seis de la tabla
+Fixtures DEBUG por launch argument — **son 22** (las últimas siete de la tabla
 se documentaron recién en `version-2`):
 
 | Argumento | Qué deja listo |
@@ -2060,12 +2135,64 @@ se documentaron recién en `version-2`):
 | `--uitest-char-upgrades-maxed` | El Fisura con su línea de mejoras al tope: el estado "Al máximo" de la fila. Sin test que lo use; queda para capturas |
 | `--uitest-offline` | El popup de ganancias offline con un monto fijo (y su oferta de duplicar por video). Sin test que lo use; queda para capturas |
 | `--screenshot-mode` | Apaga el andamiaje de DEBUG (contador de FPS, botón de herramientas) y sirve los textos de tienda (review-safe). Lo usa `AppStoreScreenshotTests` para la ficha |
+| `--uitest-unreadable-save` | Planta un save truncado en CoreData y en el snapshot antes de cargar: arranca en la pantalla de recuperación (`SaveRecoveryView`, E1 T5). ⚠️ "Reintentar" re-corre el arranque entero y el fixture vuelve a plantar el save roto, así que la pantalla reaparece: es lo que espera `SaveRecoveryUITests` |
 
 El panel de debug es el ícono de herramientas del HUD.
 
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la ola C (2026-10-07, relevo 5)
+
+- **Los tests de copias con nombre por milisegundo pasan con la máquina
+  cargada y fallan con la máquina libre.** `SaveBackupStore` nombra cada copia
+  `save-<ms>.json`, y `rotatesTheLastTenGoodLoads` hace 12 cargas y exige 10
+  copias. Pasó en los dos `rapido` anteriores, con la máquina cargada
+  (unit 568 s y 977 s), y falló en la primera corrida rápida (unit 374 s):
+  con ~2 ms por carga, tres cargas cayeron en un milisegundo ya usado y
+  quedaron 9. Un nombre de archivo sacado de `Date()` es un rojo esperando a
+  una máquina libre. Lo arregla E1 T5b en el producto.
+- **Al revés, con la máquina cargada `store-unit` puede dar rojo por el plazo
+  de carga de productos.** Con un `load average` de ~450–600,
+  `loadsTheCatalogProducts` falló por los 10 s de `StoreManager.loadTimeout`;
+  la repetición pasó 13/13. Mirá `uptime` antes que el código. La revisión
+  recomienda subir `loadTimeout` en los tests con StoreKit real.
+- **La prueba manual v1 → v2 del dueño cierra el ORO comprado en 0 hasta que
+  entre E1 T6b.** Una build DEBUG instalada por `simctl` en un runtime < 26
+  lee `Transaction.all` sin la `SKTestSession` local, ve el historial vacío y
+  cierra la reconstrucción en 0, sin reintento. El save sobre el que corra
+  queda así.
+- **Un `completo` verde no prueba las safe areas.** `ScreenInsetsUITests` pasa
+  en el 16 Pro con o sin el arreglo: sólo el SE (y el iPad, cuando la app sea
+  universal) lo pone en rojo, y aun ahí con 3 arranques hay ~6 % de falso
+  verde. Hasta que E3a T12 y T10 lo sumen a sus matrices, la cobertura real
+  es la corrida a mano del agente.
+- **El clasificador del modo auto bloquea la limpieza de worktrees.**
+  `git worktree remove --force` + `git branch -D` sobre worktrees de agentes
+  ya integrados dio "Irreversible Local Destruction", aun con `git cherry
+  version-2 <rama>` sin un `+`. El relevo 4 había podido; el 5 no. La limpieza
+  la hace el dueño (hay ~20 `agent-*`).
+- **El guard rechaza `$(git …)` y `$(inherited)` dentro de un comando del
+  agente.** La receta a mano de §6 lleva `OTHER_SWIFT_FLAGS='$(inherited)
+  …'`: E1 T5 y T6 la corrieron desde un script propio gitignoreado en
+  `build/`. El oráculo no tiene el problema, porque es un script.
+- **Adelantar `version-2` con commits sólo de `Docs/` mientras corre un
+  `completo` ahí es inocuo**: el oráculo lee el hash una vez al arrancar. Un
+  merge con fuentes Swift no: por eso el merge de E1 esperó al `completo`.
+- **Cuarto relevo sin un despertar por cron observado**: el relevo 5 también
+  lo despertó el dueño escribiendo "continua".
+- **Lo que funcionó, y hay que mantener:**
+  - adelantar las ramas de épica por fast-forward a la punta de `version-2`
+    antes de despachar, para que las tareas partan del catálogo con las claves
+    de todos y con las herramientas nuevas;
+  - que la tabla de calientes de la ola incluya lo que sale después y qué
+    hereda (E11 T3 hereda el catálogo y `FisuEvolutionApp.swift` de E1 T5;
+    E3a T5 hereda `Info.plist` de E1 T6);
+  - un `SendMessage` a un planificador en vuelo para coordinarlo con un plan
+    que acaba de llegar (E5 → E6): E6 salió ajustado sin otra vuelta;
+  - dejar de lanzar tareas grandes pasados los ~250k de contexto, en vez de
+    dejarlas a medio integrar.
 
 ### De la ola B (2026-10-07, relevo 4)
 
@@ -2112,8 +2239,9 @@ El panel de debug es el ícono de herramientas del HUD.
     se ocultó.** La barra se oculta después de `didMoveToWindow` y no llega
     ningún aviso. La sonda de la Task 4 quedó en 20 (SE) o 32 (iPad) en 5 de 9
     arranques, con el HUD 12 pt más arriba. Una `UIView` agregada directo a la
-    ventana acertó 9 de 9. Probablemente el `onAppear` de producción tenga la
-    misma carrera (no medido).
+    ventana acertó 9 de 9. El `onAppear` de producción tenía la misma
+    carrera: lo midió el relevo 5, con el HUD a 7,5 pt del bezel en el SE
+    sobre el código de antes de E3a T4.
 
 ### De la integración y la Ola A (2026-10-06, relevo 3)
 
@@ -3560,6 +3688,57 @@ Anotado por si algún día importa, con su medición:
     la tabla de cada pedido a su épica;
   - anexos A (guiones de visitantes y frases de eventos) y B (biblia de los
     8 visitantes nuevos).
+- **`Docs/SESION-2026-10-07-v2-relevo-5-ola-c.md`**: el relevo 5.
+  - La ola C tarea por tarea (E1 T5, T6, T7 y E3a fix T3 + T4), con lo que
+    cada una deja y no se ve en el diff.
+  - Los seguimientos T5b y T6b, y los arrastres para los despachos de E1 T9,
+    T10, E3a T5, T10, T12 y E9.
+  - El `completo` de referencia sobre `d22eb7a`, los `rapido` de la ola y el
+    diagnóstico del rojo de `bc3bf6f`.
+  - El insumo nuevo para el 🔒 de `SaveConflictResolver.swift:67/:68`.
+  - Los planes de E5 y E6 con las contradicciones que importan para
+    despachar.
+- **Código nuevo de la ola C, dónde mirar:**
+  - `Packages/EconomyKit/Sources/EconomyKit/BoardChange.swift` (E1 T7): el
+    embudo de todo cambio de tablero que no hizo el jugador: se planea en el
+    acto y se aplica en su turno, a la vista, para que no haya evoluciones
+    sin ver. `BoardChange` (con `Kind` y `Origin`), `BoardChangePlanner` y
+    `BoardChangeApplier`; los mutadores `evolveUnit` y `placeUnit` viven en
+    `TowerActions.swift`. Tests: `BoardChangeTests` (40).
+  - `FisuEvolution/Persistence/SaveBackupStore.swift` (E1 T5): las copias del
+    save en `Application Support/SaveBackups/` (10 cargas buenas, la
+    premigración y cada ilegible). La pantalla es
+    `UI/Popups/SaveRecoveryView.swift`, en la fase `.recovery` de `GameState`.
+  - `FisuEvolution/Managers/Store/PurchasedOroHistory.swift` (E1 T6): la foto
+    de los montos de ORO de la v1 (250 / 750 / 2000) y la reconstrucción desde
+    `Transaction.all`. La corre `StoreManager.start`.
+  - `FisuEvolution/UI/ScreenInsets.swift` y `UI/PlayColumn.swift` (E3a T4):
+    las safe areas observables, publicadas por el `WindowSentinel` de la
+    ventana, y la columna centrada del chrome (592 de ancho; 520 las tarjetas
+    del tutorial). Todo lo que necesite un inset lee `ScreenInsets.shared`, no
+    un `onAppear`.
+- `Docs/superpowers/plans/2026-10-07-v2-e5a-aduana-colchon-ruleta.md` y
+  `…-e5b-aduana-colchon-ruleta.md`: el plan de E5 (el Paquete de la Aduana,
+  El Colchón y la Ruleta) en dos.
+  - E5a, el motor: 9 tareas, sin archivos calientes ni strings. La T1 puede
+    ir ya.
+  - E5b, lo que se ve: 7 tareas. T2 toca `GameState.swift` y `RootView.swift`,
+    y T3 `BoardScene.swift`.
+  - Crea `LootBoxGate` (falla cerrado), `OddsDisclosureView` y `RewardCopy`.
+    Propone la tabla de la ruleta, que PLAN-v2 no da.
+  - 25 dudas con default entre los dos; 14 contradicciones en
+    `version-2/.superpowers/sdd/2026-10-07-v2-e5-aduana-colchon-ruleta/plan-report.md`.
+- `Docs/superpowers/plans/2026-10-07-v2-e6a-tienda-ofertas.md` y
+  `…-e6b-lugares-skins.md`: el plan de E6 en dos.
+  - E6a: 13 tareas. La tienda de ORO, los packs 160/550/1.400 con los mismos
+    IDs y las ofertas de 24 h.
+  - E6b: 10 tareas. Lugares extra (+3/+2 sobre la base), pintas con ORO, 8
+    efectos por shader y familias. Tres esperan un gate: la galería de
+    efectos que mira el dueño, los atlas de familias de E8 y la medición de 4
+    filas en el SE.
+  - Consume lo que crea E5, con los nombres exactos.
+  - 24 dudas con default; 15 contradicciones en
+    `version-2/.superpowers/sdd/2026-10-07-v2-e6-tienda-skins/plan-report.md`.
 - **`Docs/SESION-2026-10-07-v2-relevo-4-ola-b.md`**: el relevo 4.
   - La ola B tarea por tarea, con lo que cada una deja y no se ve en el diff.
   - La línea de base rápida con su cuenta.
@@ -3581,7 +3760,9 @@ Anotado por si algún día importa, con su medición:
   con `Tools/v2/catalogo.py` en la T1 para integrar strings de tareas
   paralelas), y E3b, las interacciones (9). Cada uno con su tabla de archivos
   calientes por tarea. ⚠️ Las Tasks 4, 6, 8 y 10 de E3a cambian por los
-  spikes, y el plan todavía dice lo viejo (sesión del relevo 4, §3).
+  spikes, y el plan todavía dice lo viejo (sesión del relevo 4, §3). La T4
+  ya entró con el cambio; los despachos de T6, T8 y T10 todavía tienen que
+  llevarlo.
 - `Docs/superpowers/plans/2026-10-07-v2-e2a-mecanicas.md`: el plan de E2a.
   - 15 tareas: las mecánicas de economía detrás de perillas con default v1, y
     los premios en minutos de producción.

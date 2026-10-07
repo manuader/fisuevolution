@@ -193,7 +193,7 @@ el controlador una vez por ola al integrar.
 | # | Qué | Nota |
 |---|---|---|
 | 0 | Si los arreglos de **E1 T10** llegaron (commit encima de `4c11a0a` en `worktree-agent-a6243c7787c9be294`): cherry-pick en `v2/e1-correcciones` y en la integración | si no llegaron, agente nuevo con BASE `4c11a0a` + la revisión del ledger de E1 (2 Important + 3 menores) |
-| 1 | **Integración** en `version-2`: `v2/e5-premios` (`f6f8e2f`, mutantes), `v2/e11-notificaciones` (`02cc5fb`, T4), `v2/e2a-mecanicas` (`434b0ee`, T1), `v2/e6-tienda` (`f9cd4b9` + E6b T2 si llegó) + los arreglos de T10 → un `rapido` → push | esperado EK ≈ 480 · unit ≥ 690 + 1 · release 0 |
+| 1 | **Integración** en `version-2`: `v2/e5-premios` (`f6f8e2f`, mutantes), `v2/e11-notificaciones` (`02cc5fb`, T4), `v2/e2a-mecanicas` (`434b0ee`, T1), `v2/e6-tienda` (`d3c0889`: E6b T1 + T2) + los arreglos de T10 → un `rapido` → push | esperado EK ≈ 480 · unit ≥ 690 + 1 · release 0 |
 | 2 | Un **`completo`** sobre esa punta | decide `MenuUITests…ApagaLasParticulas` (rojo en E11 T4) y valida UI/Store de las olas D y E |
 | 3 | E6b T2: mostrarle la galería al dueño (capturas en el ledger de E6) → gate de E6b T8 | |
 
@@ -453,7 +453,7 @@ que toma · commit o rama · nota.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E6b-T1 | Los 8 efectos, por código | 🟢 | — | — | `f9cd4b9` en `v2/e6-tienda` | sale de `version-2`; ola E |
-| E6b-T2 | La galería de los 8 efectos (→ 🔒 dueño) | 🔄 | T1 | DebugPanelView | | la galería → gate del dueño |
+| E6b-T2 | La galería de los 8 efectos (→ 🔒 dueño) | 🟢 | T1 | DebugPanelView | `d3c0889` en `v2/e6-tienda` | galería entregada al dueño (relevo 7) → 🔒 E6b T8 |
 | E6b-T3 | `skins.json` v2 (EK) | ⛔ | T1 | GameContentLoader | | |
 | E6b-T4 | La pinta comprada con ORO es tuya | ⛔ | T3; E6a-T1, E6a-T2, E6a-T8; E3b-T2 | 🔥 PlayerState, catálogo; +Store | | |
 | E6b-T5 | Efectos y familias se ven | ⛔ | T1, T4; E6a-T8; E5b-T3 | 🔥 BoardScene, catálogo; +Store | | |

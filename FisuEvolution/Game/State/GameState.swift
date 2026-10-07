@@ -410,7 +410,19 @@ final class GameState {
     var economy: StandardEconomy?
     private var repository: PlayerStateRepository?
     private let injectedRepository: PlayerStateRepository?
-    @ObservationIgnored private var saveTask: Task<Void, Never>?
+    /// El guardado diferido de `scheduleSave`; `+Lifecycle` lo cancela al sellar,
+    /// porque el guardado de la salida va por `sealTask`.
+    @ObservationIgnored var saveTask: Task<Void, Never>?
+    /// `beginBackgroundTask` detrás de un protocolo; lo usa `+Lifecycle`.
+    @ObservationIgnored var backgroundTasks: (any BackgroundTaskRunning)?
+    /// Falso desde que la app deja `.active` hasta que vuelve: en ese tramo el
+    /// tick no cobra (lo paga el offline), el flush no arma nada y el sello de la
+    /// salida no se corre.
+    @ObservationIgnored var isSceneActive = true
+    /// El guardado de `seal(now:stamping:)`; los tests lo esperan.
+    @ObservationIgnored var sealTask: Task<Void, Never>?
+    @ObservationIgnored var lastHeartbeatAt: TimeInterval = 0
+    static let heartbeatSeconds: TimeInterval = 15
     /// Lo consumen `+Actions` (crítico/dorado y el drop de special) y `+Bonus`.
     @ObservationIgnored var rng = SystemRandomNumberGenerator()
     /// Los usan `+Actions` (merge/tap) y `+Prestige`.
@@ -489,6 +501,10 @@ final class GameState {
         audio = manager
     }
 
+    func attachBackgroundTasks(_ runner: any BackgroundTaskRunning) {
+        backgroundTasks = runner
+    }
+
     /// La escena pide feedback háptico sin conocer al manager.
     func playHaptic(_ pattern: HapticsManager.Pattern) {
         haptics?.play(pattern)
@@ -540,10 +556,8 @@ final class GameState {
                 await repository.debugWriteUnreadableSave()
             }
             #endif
-            let loaded: SaveLoadResult
-            if forceNewGame {
-                loaded = .empty
-            } else {
+            var loaded: SaveLoadResult = .empty
+            if !forceNewGame {
                 loaded = await repository.load()
             }
             let isFreshInstall: Bool
@@ -908,7 +922,7 @@ final class GameState {
 
     /// Passive income tick. Mutates only non-observed state — zero SwiftUI work.
     func tick(delta: TimeInterval) {
-        guard let content, var player else { return }
+        guard isSceneActive, let content, var player else { return }
         IncomeTicker.tick(
             state: &player,
             tiers: content.tiers,
@@ -920,73 +934,39 @@ final class GameState {
         self.player = player
         // El watchdog de la cola de celebraciones corre acá y no en un `Timer`
         // (regla 2 de concurrencia). `delta` sin `debugTimeScale`: el time-warp
-        // acelera la economía, no el tiempo que el jugador tiene para mirar.
-        advanceCelebrations(delta: delta)
+        // acelera la economía, no el tiempo que el jugador tiene para mirar. Con el
+        // mismo tope que la plata: el primer frame tras volver del background trae
+        // todo el salto, y el watchdog no debe darlo todo por vencido.
+        advanceCelebrations(delta: min(delta, IncomeTicker.deltaClampThreshold))
     }
 
     /// 8 Hz projection flush driven by the scene's frame counter. Also prunes
     /// expired modifiers and fires scheduled events.
+    ///
+    /// Con la escena inactiva sólo proyecta: el regreso del background pasa por
+    /// `.inactive` con la escena ya dibujando, y podar buffs, disparar el evento
+    /// vencido o armar el anuncio ahí se adelanta a lo que `.active` resuelve
+    /// (el offline integra los buffs que vencieron afuera, el evento se corre y
+    /// la gracia de sesión se reinicia).
     func flushHUD() {
         let now = Date().timeIntervalSince1970
-        if var player {
-            let pruned = ModifierMath.prune(&player, now: now)
-            if pruned {
-                self.player = player
-                scheduleSave()
+        if isSceneActive {
+            if var player {
+                let pruned = ModifierMath.prune(&player, now: now)
+                if pruned {
+                    self.player = player
+                    scheduleSave()
+                }
             }
+            fireEventIfDue(now: now)
+            beatIfDue(now: now)
+            // El reloj del interstitial vive acá y no en un `Timer` (regla 2 de
+            // concurrencia). Sólo ARMA la bandera —tres restas de fechas, barato a
+            // 8 Hz—; el disparo lo pide la UI en una pausa natural. El porqué de
+            // esa separación está en `AdsCoordinator.isInterstitialArmed`.
+            ads?.armIfDue()
         }
-        fireEventIfDue(now: now)
-        // El reloj del interstitial vive acá y no en un `Timer` (regla 2 de
-        // concurrencia). Sólo ARMA la bandera —tres restas de fechas, barato a
-        // 8 Hz—; el disparo lo pide la UI en una pausa natural. El porqué de
-        // esa separación está en `AdsCoordinator.isInterstitialArmed`.
-        ads?.armIfDue()
         refreshProjections()
-    }
-
-    // MARK: Lifecycle (offline + immediate save)
-
-    func handleScenePhase(_ scenePhase: ScenePhase) {
-        switch scenePhase {
-        case .background, .inactive:
-            guard var player else { return }
-            player.meta.lastSeenTimestamp = Date().timeIntervalSince1970
-            self.player = player
-            saveTask?.cancel()
-            Task { await persistNow() }
-        case .active:
-            guard phase == .ready else { return }
-            // El tiempo en background NO es tiempo de juego: reiniciar la
-            // gracia evita que volver después de horas te reciba con un
-            // interstitial en la cara.
-            ads?.sessionResumed()
-            applyOfflineProgressIfNeeded()
-            claimDailyIfAvailable()
-            refreshProjections()
-        @unknown default:
-            break
-        }
-    }
-
-    /// La llama también `+Debug`, para simular una vuelta después de N horas.
-    func applyOfflineProgressIfNeeded(now: TimeInterval = Date().timeIntervalSince1970) {
-        guard let content, var player else { return }
-        let credit = OfflineCalculator.apply(
-            state: &player,
-            tiers: content.tiers,
-            floorTable: content.floorTable,
-            config: content.economy,
-            now: now
-        )
-        self.player = player
-        guard credit.amount > 0 else { return }
-        Log.economy.info("offline earnings credited: \(credit.amount) after \(credit.elapsed) s")
-        guard credit.showsPopup else { return }
-        // Vuelta nueva, oferta nueva: el video puede duplicar ESTE premio.
-        offlineRewardDoubled = false
-        offlineReward = OfflineReward(amount: credit.amount)
-        // Plata que cae de golpe: suena como tal, igual que un tap dorado.
-        audio?.play(.coin)
     }
 
     // MARK: Internals
@@ -1179,10 +1159,10 @@ final class GameState {
         }
     }
 
-    func persistNow() async {
+    func persistNow(includingCloud: Bool = true) async {
         guard !isRecoveryPending, let repository, let player else { return }
         await repository.save(player)
-        if let cloudSync {
+        if includingCloud, let cloudSync {
             await cloudSync.push(player)
         }
     }

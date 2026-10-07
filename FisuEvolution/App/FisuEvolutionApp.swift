@@ -40,6 +40,7 @@ struct FisuEvolutionApp: App {
                     }
                     gameState.attachHaptics(haptics)
                     gameState.attachAudio(audio)
+                    gameState.attachBackgroundTasks(UIKitBackgroundTasks())
                     await gameState.bootstrap()
                     await startServices()
                 }

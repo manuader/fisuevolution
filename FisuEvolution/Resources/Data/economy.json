@@ -29,6 +29,7 @@
   "critMultiplier": 5.0,
   "offlineEfficiencyBase": 0.35,
   "offlineCapHours": 10,
+  "offlinePopupMinSeconds": 30,
   "floors": [
     {
       "id": "alley",

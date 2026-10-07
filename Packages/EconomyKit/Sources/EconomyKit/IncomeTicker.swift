@@ -9,12 +9,13 @@ public enum IncomeTicker {
     /// here would double-count (critic-verified bug class).
     public static let deltaClampThreshold: TimeInterval = 2.0
 
-    public static func passivePerSecond(
+    /// Todo menos los modificadores temporales: lo que la torre rinde por
+    /// segundo cuando ningún buff ni debuff está vivo.
+    public static func basePassivePerSecond(
         state: PlayerState,
         tiers: TierRepository,
         floorTable: FloorTable,
-        config: EconomyConfig,
-        now: TimeInterval
+        config: EconomyConfig
     ) -> Double {
         var total = 0.0
         for (typeId, count) in state.run.units where state.run.passiveUnlocked[typeId] == true {
@@ -25,6 +26,16 @@ public enum IncomeTicker {
                 * floorTable.floor(forTier: type.tier).incomeMultiplier
         }
         return total * state.meta.globalMultiplier * state.meta.derivedEffects.incomeMultiplier
+    }
+
+    public static func passivePerSecond(
+        state: PlayerState,
+        tiers: TierRepository,
+        floorTable: FloorTable,
+        config: EconomyConfig,
+        now: TimeInterval
+    ) -> Double {
+        basePassivePerSecond(state: state, tiers: tiers, floorTable: floorTable, config: config)
             * ModifierMath.factor(state.run.activeModifiers, effect: .incomeMultiplier, now: now)
     }
 

@@ -43,6 +43,24 @@ public enum ModifierMath {
             .reduce(1, *)
     }
 
+    /// Promedio del factor de `effect` sobre `[from, to]` contando sólo los buffs
+    /// (magnitud ≥ 1): cada uno paga hasta que vence y los debuffs no cuentan afuera.
+    public static func offlineFactor(
+        _ modifiers: [ActiveModifier],
+        effect: ActiveModifier.Effect,
+        from: TimeInterval,
+        to: TimeInterval
+    ) -> Double {
+        let buffs = modifiers.filter { $0.effect == effect && $0.magnitude >= 1 }
+        guard to > from else { return factor(buffs, effect: effect, now: from) }
+        let cuts = buffs.map(\.expiresAt).filter { $0 > from && $0 < to }
+        let edges = ([from, to] + cuts).sorted()
+        let area = zip(edges, edges.dropFirst()).reduce(0.0) { total, segment in
+            total + factor(buffs, effect: effect, now: segment.0) * (segment.1 - segment.0)
+        }
+        return area / (to - from)
+    }
+
     /// Drops expired modifiers. Returns true if anything was removed.
     @discardableResult
     public static func prune(_ state: inout PlayerState, now: TimeInterval) -> Bool {

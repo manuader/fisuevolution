@@ -341,17 +341,37 @@ struct OfflineTests {
     @Test func applyCreditsCoinsAndStampsTimestamp() throws {
         var state = try unlockedState()
         let coinsBefore = state.run.coins
-        let credited = OfflineCalculator.apply(state: &state, tiers: tiers, floorTable: floorTable, config: config, now: 1000 + 3600)
-        #expect(credited > 0)
-        #expect(abs(state.run.coins - coinsBefore - credited) < 1e-9)
+        let credit = OfflineCalculator.apply(state: &state, tiers: tiers, floorTable: floorTable, config: config, now: 1000 + 3600)
+        #expect(credit.amount > 0)
+        #expect(credit.showsPopup)
+        #expect(abs(state.run.coins - coinsBefore - credit.amount) < 1e-9)
         #expect(state.meta.lastSeenTimestamp == 1000 + 3600)
     }
 
-    @Test func shortAbsencesCreditNothingButStamp() throws {
+    @Test("más de 2 s afuera se acredita aunque no llegue al popup")
+    func shortAbsencesAreCreditedSilently() throws {
         var state = try unlockedState()
-        let credited = OfflineCalculator.apply(state: &state, tiers: tiers, floorTable: floorTable, config: config, now: 1010)
-        #expect(credited == 0)
+        let credit = OfflineCalculator.apply(state: &state, tiers: tiers, floorTable: floorTable, config: config, now: 1010)
+        #expect(credit.amount > 0)
+        #expect(!credit.showsPopup)
         #expect(state.meta.lastSeenTimestamp == 1010)
+    }
+
+    @Test("2 s o menos no se acreditan: los paga el tick")
+    func theTickWindowIsNotCredited() throws {
+        var state = try unlockedState()
+        let credit = OfflineCalculator.apply(state: &state, tiers: tiers, floorTable: floorTable, config: config, now: 1002)
+        #expect(credit.amount == 0)
+        #expect(state.meta.lastSeenTimestamp == 1002)
+    }
+
+    @Test("el popup aparece desde el umbral del dato")
+    func popupFromTheThreshold() throws {
+        var justBelow = try unlockedState()
+        var atThreshold = try unlockedState()
+        let threshold = config.offlinePopupThreshold
+        #expect(!OfflineCalculator.apply(state: &justBelow, tiers: tiers, floorTable: floorTable, config: config, now: 1000 + threshold - 1).showsPopup)
+        #expect(OfflineCalculator.apply(state: &atThreshold, tiers: tiers, floorTable: floorTable, config: config, now: 1000 + threshold).showsPopup)
     }
 }
 

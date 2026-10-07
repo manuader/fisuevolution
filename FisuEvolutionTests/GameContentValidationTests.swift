@@ -209,6 +209,11 @@ struct GameContentValidationTests {
         #expect(economy.offlineCapHours == 10)
     }
 
+    @Test("el umbral del popup offline viaja en el dato, no en el default del código")
+    func offlinePopupThresholdIsDeclared() {
+        #expect(content.economy.offlinePopupMinSeconds == 30)
+    }
+
     /// El catálogo de las siete líneas nunca puede pasarse de su `EffectCaps`.
     ///
     /// No es cosmético: `UpgradeManager.recomputeDerivedEffects` (app) CLAMPEA

@@ -21,22 +21,11 @@ struct HUDView: View {
     /// El mapa se presenta desde acá y no desde `RootView` a propósito: vive
     /// pegado a la navegación de la torre, que es lo único que reemplaza.
     @State private var showFloorMap = false
-    /// El inset superior REAL de la pantalla, leído de la ventana al aparecer.
-    ///
-    /// Arranca en 44 —el notch más chico que existe— y **no** en 0 a propósito:
-    /// el valor de verdad recién llega con el `onAppear`, y arrancando en 0 los
-    /// teléfonos con notch dibujarían un frame con el piso aplicado y pegarían un
-    /// salto de 12 pt al asentarse. Con 44, el caso común sale bien desde el
-    /// frame uno y el único que se acomoda es el SE.
-    @State private var windowTopInset: CGFloat = 44
 
-    /// Aire mínimo entre el borde FÍSICO de arriba y la fila principal.
-    ///
-    /// Existe por los teléfonos sin notch (SE 2/3, que `TARGETED_DEVICE_FAMILY: 1`
-    /// + iOS 17 siguen incluyendo): ahí la safe area superior **es** la barra de
-    /// estado, así que al esconderla (`RootView.statusBarHidden`) el inset se
-    /// desploma de 20 a 0 y la fila se va contra el bezel. Medido en un SE 3 antes
-    /// del piso: panel de 80 pt y los botones de 60 a 5 pt del borde.
+    /// Aire mínimo entre el borde FÍSICO de arriba y la fila principal. Sólo
+    /// entra cuando la safe area de arriba se desploma: en el SE, con la barra de
+    /// estado oculta (`RootView.statusBarHidden`), es 0 y la fila se iría contra
+    /// el bezel. Medido en un SE 3 antes del piso: los botones a 5 pt del borde.
     private static let minimumTopGap: CGFloat = 14
 
     /// Cuánto baja la fila principal desde el borde de la safe area.
@@ -46,7 +35,7 @@ struct HUDView: View {
     /// ya alcanza y de sobra, así que el `max` devuelve el 2 de siempre y el piso
     /// **no cambia nada**; sólo entra a jugar cuando el inset se desploma.
     private var mainBarTopPadding: CGFloat {
-        max(2, Self.minimumTopGap - windowTopInset)
+        max(2, ScreenInsets.floorGap(minimum: Self.minimumTopGap, inset: ScreenInsets.shared.top))
     }
 
     var body: some View {
@@ -55,11 +44,11 @@ struct HUDView: View {
                 .padding(.horizontal, Tokens.s12)
                 .padding(.top, mainBarTopPadding)
                 .padding(.bottom, Tokens.s12)
-                .frame(maxWidth: .infinity)
+                .playColumn()
                 .background { topPanel }
             prestigeIndicator
         }
-        .onAppear { windowTopInset = Self.screenTopSafeArea }
+        .background(ScreenInsetsReader().accessibilityHidden(true))
         .sheet(isPresented: $showFloorMap) {
             FloorMapView()
                 // El panel del `panelSheet` ES la hoja: flota sobre el juego
@@ -68,28 +57,6 @@ struct HUDView: View {
                 .presentationBackground(.clear)
         }
         .tutorialAnchor(.hudBar)
-    }
-
-    /// El inset superior de la **pantalla**, preguntado a la ventana.
-    ///
-    /// ⚠️ Se lee de UIKit y **no** con un `GeometryReader`, que sería lo natural:
-    /// `RootView` ya consumió la safe area antes de que el HUD exista, así que acá
-    /// adentro un proxy reporta 0 en TODOS los teléfonos —incluso ignorando la
-    /// safe area para estirar la sonda hasta el borde físico, que es el truco
-    /// habitual—. Medido con captura: con la sonda de `GeometryReader`, el piso se
-    /// aplicaba también en un 16 Pro y bajaba la fila 12 pt de más (panel de 148
-    /// en vez de 136). La ventana es el único lugar donde el número sigue siendo
-    /// el de la pantalla y no el que sobró después de repartirlo.
-    ///
-    /// No es reactivo, y no hace falta: la app es sólo portrait
-    /// (`UISupportedInterfaceOrientations`), así que este inset no cambia en toda
-    /// la sesión.
-    @MainActor private static var screenTopSafeArea: CGFloat {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap(\.windows)
-            .first { $0.isKeyWindow }?
-            .safeAreaInsets.top ?? 0
     }
 
     /// El panel crema que reemplazó al scrim degradado y a la isla crema.

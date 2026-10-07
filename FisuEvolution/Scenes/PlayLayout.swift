@@ -55,9 +55,13 @@ struct PlayLayout: Equatable {
     }
 
     /// El knob del alto de la multitud. Con dos filas sigue en el 0,44 de la v1;
-    /// con tres o más sube al ~70 % que pidió la crítica de Marco (PLAN-v2 §2).
+    /// con tres o más sube al 0,63 que pidió la crítica de Marco (PLAN-v2 §2).
+    ///
+    /// ⚠️ 0,63 y no el ~0,70 del plan: medido en el spike S5, con 0,70 las
+    /// cabezas de la fila de atrás entran 42 pt en el display del ascensor del
+    /// iPhone SE, que admite hasta 0,637.
     static func crowdTopRatio(rows: Int) -> CGFloat {
-        rows <= 2 ? 0.44 : 0.70
+        rows <= 2 ? 0.44 : 0.63
     }
 
     /// Lo que publica el marcador `board.layout`: "5x3@112·1.25".

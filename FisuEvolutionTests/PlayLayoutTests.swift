@@ -68,11 +68,11 @@ struct PlayLayoutTests {
         #expect(layout.columns == columns)
     }
 
-    @Test("la multitud: 0,44 del alto con dos filas (la v1) y 0,70 con tres o más")
+    @Test("la multitud: 0,44 del alto con dos filas (la v1) y 0,63 con tres o más")
     func crowdHeightFollowsTheRows() {
         #expect(PlayLayout.crowdTopRatio(rows: 2) == 0.44)
-        #expect(PlayLayout.crowdTopRatio(rows: 3) == 0.70)
-        #expect(PlayLayout.crowdTopRatio(rows: 4) == 0.70)
+        #expect(PlayLayout.crowdTopRatio(rows: 3) == 0.63)
+        #expect(PlayLayout.crowdTopRatio(rows: 4) == 0.63)
     }
 
     @Test("el tope de la foto del reveal nunca se alcanza en iPhone")

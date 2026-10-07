@@ -992,15 +992,6 @@ struct GameTabBar: View {
     let items: [GameTabItem]
     let selection: (GameScreen) -> Void
 
-    /// El inset inferior REAL de la pantalla, leído de la ventana al aparecer.
-    ///
-    /// Arranca en 34 —el home indicator de cualquier teléfono que lo tenga— y no
-    /// en 0 por la misma razón que su gemelo de arriba (`HUDView.windowTopInset`):
-    /// el valor de verdad recién llega con el `onAppear`, y arrancando en 0 el
-    /// caso común dibujaría un frame con el piso aplicado y pegaría un salto de
-    /// 12 pt al asentarse. Con 34, el único que se acomoda es el SE.
-    @State private var windowBottomInset: CGFloat = 34
-
     /// Aire mínimo entre los nombres de los tabs y el borde FÍSICO de abajo.
     ///
     /// Es el mismo piso que `HUDView.minimumTopGap` y existe por lo mismo, en el
@@ -1011,18 +1002,15 @@ struct GameTabBar: View {
     /// pone 34, el `max` devuelve 0 y el layout **no cambia en nada** —de ahí
     /// que `BoardScene.bottomInset` siga valiendo lo mismo—.
     private static let minimumBottomGap: CGFloat = 12
-    private var bottomGap: CGFloat { max(0, Self.minimumBottomGap - windowBottomInset) }
+    private var bottomGap: CGFloat {
+        ScreenInsets.floorGap(minimum: Self.minimumBottomGap, inset: ScreenInsets.shared.bottom)
+    }
 
     /// Cuánto SUBE la barra por el piso de arriba, para lo que se apoye sobre
     /// ella (hoy: los dos toasts de `RootView`, que se posicionan contando desde
     /// la safe area y por lo tanto no ven el piso por su cuenta).
-    ///
-    /// Es el mismo `max` que `bottomGap`, pero leído en el momento en vez de por
-    /// `@State`: los toasts nacen mucho después del arranque, así que no
-    /// necesitan el valor inicial que le evita el salto del primer frame a la
-    /// barra —y así no hay un segundo `onAppear` que mantener en sincronía—.
     @MainActor static var bottomFloor: CGFloat {
-        max(0, minimumBottomGap - screenBottomSafeArea)
+        ScreenInsets.floorGap(minimum: minimumBottomGap, inset: ScreenInsets.shared.bottom)
     }
 
     /// Cuánto mide de alto la barra, sin contar la safe area ni el piso.
@@ -1070,21 +1058,6 @@ struct GameTabBar: View {
     /// desde el otro lado.
     static let barHeight: CGFloat = 84
 
-    /// El inset inferior de la **pantalla**, preguntado a la ventana.
-    ///
-    /// ⚠️ Se lee de UIKit y no con un `GeometryReader` por la trampa que
-    /// documenta `HUDView.screenTopSafeArea`: acá adentro la safe area ya la
-    /// consumió `RootView`, así que un proxy reporta 0 en TODOS los teléfonos y
-    /// el piso se aplicaría también donde no corresponde. No es reactivo y no
-    /// hace falta: la app es sólo portrait.
-    @MainActor private static var screenBottomSafeArea: CGFloat {
-        UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap(\.windows)
-            .first { $0.isKeyWindow }?
-            .safeAreaInsets.bottom ?? 0
-    }
-
     var body: some View {
         // ⚠️ Alineados abajo y no al centro (el default), que es lo que hacía
         // falta desde que cada tab lleva su nombre debajo: los dos destacados
@@ -1106,9 +1079,8 @@ struct GameTabBar: View {
         .padding(.horizontal, Tokens.s8)
         .padding(.top, Tokens.s8)
         .padding(.bottom, bottomGap)
-        .frame(maxWidth: .infinity)
+        .playColumn()
         .background { bottomPanel }
-        .onAppear { windowBottomInset = Self.screenBottomSafeArea }
     }
 
     /// Panel crema fundido con el borde inferior.

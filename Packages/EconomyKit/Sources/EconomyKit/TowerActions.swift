@@ -372,23 +372,80 @@ public enum TowerActions {
         state.run.units[targetType, default: 0] -= 1
         if state.run.units[sourceType] == 0 { state.run.units[sourceType] = nil }
         if state.run.units[targetType] == 0 { state.run.units[targetType] = nil }
-        state.run.units[newTypeId, default: 0] += 1
-        state.run.markSeen(newTypeId)
-        state.run.raiseFrontier(to: newType.tier)
         // Después de los guards, junto al resto de la mutación: un merge que tira
         // `destinationFloorFull` no ocurrió y no se cuenta. El auto-merge de
         // `TowerReconciler` tampoco pasa por acá, y eso es a propósito: es de la
         // carga, no del jugador.
         state.meta.stats.totalMergesEver += 1
 
-        if destinationOrdinal == floorOrdinal {
-            tower.floors[floorOrdinal].slots[targetSlot] = newTypeId
-            return .stayed(floorOrdinal: floorOrdinal, slot: targetSlot, newTypeId: newTypeId)
+        return land(newType, from: floorOrdinal, slot: targetSlot, state: &state, tower: &tower, floorTable: floorTable)
+    }
+
+    /// Una unidad sube sola un tier ("Startup comprada"): el mismo ascenso que un
+    /// merge, sin consumir un par y sin contar como fusión.
+    public static func evolveUnit(
+        floorOrdinal: Int,
+        slot: Int,
+        newTypeId: String,
+        state: inout PlayerState,
+        tower: inout TowerState,
+        tiers: TierRepository,
+        floorTable: FloorTable
+    ) throws -> TowerMergeResult {
+        guard let typeId = tower.typeId(floorOrdinal: floorOrdinal, slot: slot),
+              let newType = tiers.type(id: newTypeId)
+        else { throw TowerError.invalidSlot }
+        let destination = floorTable.ordinal(forTier: newType.tier)
+        if destination != floorOrdinal, tower.floors[destination].firstFreeSlot() == nil {
+            throw TowerError.destinationFloorFull(floorId: floorTable[destination].id)
+        }
+        tower.floors[floorOrdinal].slots[slot] = nil
+        state.run.units[typeId, default: 0] -= 1
+        if state.run.units[typeId] == 0 { state.run.units[typeId] = nil }
+        return land(newType, from: floorOrdinal, slot: slot, state: &state, tower: &tower, floorTable: floorTable)
+    }
+
+    /// Una unidad que llega sin comprarse (Blanqueo, video, paquete, visitante):
+    /// no toca las curvas de contratación ni sus estadísticas.
+    public static func placeUnit(
+        typeId: String,
+        state: inout PlayerState,
+        tower: inout TowerState,
+        tiers: TierRepository,
+        floorTable: FloorTable
+    ) throws -> TowerPlacement {
+        guard let type = tiers.type(id: typeId), !type.isChoiceNode else { throw TowerError.invalidSlot }
+        let ordinal = floorTable.ordinal(forTier: type.tier)
+        guard state.run.unlockedFloors.contains(floorTable[ordinal].id) else { throw TowerError.floorLocked }
+        guard let slot = tower.floors[ordinal].firstFreeSlot() else { throw TowerError.floorFull }
+        tower.floors[ordinal].slots[slot] = typeId
+        state.run.units[typeId, default: 0] += 1
+        state.run.markSeen(typeId)
+        state.run.raiseFrontier(to: type.tier)
+        return TowerPlacement(floorOrdinal: ordinal, slot: slot, typeId: typeId)
+    }
+
+    /// El resultado se queda en el slot o asciende y abre su piso.
+    private static func land(
+        _ newType: CharacterType,
+        from ordinal: Int,
+        slot: Int,
+        state: inout PlayerState,
+        tower: inout TowerState,
+        floorTable: FloorTable
+    ) -> TowerMergeResult {
+        state.run.units[newType.id, default: 0] += 1
+        state.run.markSeen(newType.id)
+        state.run.raiseFrontier(to: newType.tier)
+        let destinationOrdinal = floorTable.ordinal(forTier: newType.tier)
+        guard destinationOrdinal != ordinal else {
+            tower.floors[ordinal].slots[slot] = newType.id
+            return .stayed(floorOrdinal: ordinal, slot: slot, newTypeId: newType.id)
         }
 
         let destinationFloor = floorTable[destinationOrdinal]
-        let slot = tower.floors[destinationOrdinal].firstFreeSlot()!
-        tower.floors[destinationOrdinal].slots[slot] = newTypeId
+        let landing = tower.floors[destinationOrdinal].firstFreeSlot()!
+        tower.floors[destinationOrdinal].slots[landing] = newType.id
 
         var unlockedFloorId: String?
         if !state.run.unlockedFloors.contains(destinationFloor.id) {
@@ -400,8 +457,8 @@ public enum TowerActions {
         }
         return .promoted(
             toFloorOrdinal: destinationOrdinal,
-            slot: slot,
-            newTypeId: newTypeId,
+            slot: landing,
+            newTypeId: newType.id,
             unlockedFloorId: unlockedFloorId
         )
     }

@@ -16,6 +16,8 @@ struct RootView: View {
                     systemImage: "exclamationmark.triangle.fill",
                     description: Text(verbatim: message)
                 )
+            case .recovery:
+                SaveRecoveryView()
             case .ready:
                 GameBoardView()
             }

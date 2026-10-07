@@ -14,8 +14,12 @@ enum SaveMigrator {
         let schemaVersion: Int
     }
 
+    static func version(of data: Data) throws -> Int {
+        try JSONDecoder().decode(VersionPeek.self, from: data).schemaVersion
+    }
+
     static func migrate(_ data: Data) throws -> PlayerState {
-        let version = try JSONDecoder().decode(VersionPeek.self, from: data).schemaVersion
+        let version = try Self.version(of: data)
         switch version {
         case PlayerState.currentSchemaVersion:
             return try JSONDecoder().decode(PlayerState.self, from: data)

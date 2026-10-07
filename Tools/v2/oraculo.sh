@@ -1,9 +1,15 @@
 #!/bin/bash
 # Oráculo del run de la 2.0 (PLAN-v2 §0): termina en 0 sólo si todo está verde.
 #
+#     Tools/v2/oraculo.sh tarea [Clase…]        # EconomyKit + build + sólo esas clases de unit
 #     Tools/v2/oraculo.sh rapido   [--limpio]   # EconomyKit + build + unit (iOS 26.5) + Release
 #     Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store (18.6) + UI en la matriz
 #                                               #   + pipeline + pacing-sim
+#
+# `tarea` es el chequeo de un agente antes de su commit: compila y corre sólo
+# las clases de test que tocó (p. ej. `tarea BoardChangeWiringTests
+# LifecycleTests`). La suite unit entera y el Release los corre el controlador
+# en el `rapido` de integración, una vez por ola en vez de una por tarea.
 #
 # Sigue la receta de HANDOFF §6: simuladores propios por UDID (se borran al
 # salir), unit ANTES que UI en cada simulador, sin paralelismo y DerivedData
@@ -20,11 +26,16 @@
 set -o pipefail
 
 MODE="${1:-}"
-if [[ "$MODE" != "rapido" && "$MODE" != "completo" ]]; then
-  sed -n '2,6p' "$0" | sed 's/^# \{0,1\}//'
+if [[ "$MODE" != "tarea" && "$MODE" != "rapido" && "$MODE" != "completo" ]]; then
+  sed -n '2,7p' "$0" | sed 's/^# \{0,1\}//'
   exit 2
 fi
-CLEAN="${2:-}"
+shift
+CLEAN=""
+TASK_TESTS=()
+for arg in "$@"; do
+  if [[ "$arg" == "--limpio" ]]; then CLEAN="--limpio"; else TASK_TESTS+=(-only-testing:"FisuEvolutionTests/$arg"); fi
+done
 
 REPO="$(cd "$(dirname "$0")/../.." && pwd)"
 # xcodebuild toma el proyecto del directorio actual: sin esto, correr el oráculo
@@ -144,9 +155,13 @@ if [[ " ${FAILED[*]} " == *" build-for-testing "* ]]; then
   note "ROJO: no compila, no se corren los tests"
   exit 1
 fi
-step unit run_tests unit "$SIM26" -only-testing:FisuEvolutionTests \
-  -skip-testing:FisuEvolutionTests/StoreManagerTests -skip-testing:FisuEvolutionTests/StoreProductsTests
-step release release_build
+if [[ "$MODE" == "tarea" ]]; then
+  (( ${#TASK_TESTS[@]} )) && step unit run_tests unit "$SIM26" "${TASK_TESTS[@]}"
+else
+  step unit run_tests unit "$SIM26" -only-testing:FisuEvolutionTests \
+    -skip-testing:FisuEvolutionTests/StoreManagerTests -skip-testing:FisuEvolutionTests/StoreProductsTests
+  step release release_build
+fi
 
 if [[ "$MODE" == "completo" ]]; then
   new_sim 18-6 SIM18 || { note "❌ no se pudo crear el simulador 18.6"; exit 1; }

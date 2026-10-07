@@ -502,13 +502,33 @@ que toma · commit o rama · nota.
 | La cadena animada de "Fusionar todo" | ⛔ | E2a la deja a E8; ningún plan la toma |
 | Los 10 temas | 🔒 | el dueño los escucha (gate de E8 audio) |
 
-### E9 — Tutorial v2 + Tour de novedades + Ajustes (sin plan)
+### E9 — Tutorial v2 + Tour de novedades + Ajustes (`2026-10-07-v2-e9a-…` motor, `…-e9b-…` currículo y reset)
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| P-E9 | Plan de E9 | 🔄 | — | un archivo nuevo en `Docs/superpowers/plans/` | | opus; insumos: PLAN-v2 E9 y las secciones "Lo que … le deja a E9" de E11, E2a, E3b (duda 10), E4a/E4b, E5a/E5b, E6a/E6b, E7b-b; el reset usa T6c |
+| P-E9 | Plan de E9 | ✅ | — | — | `df2d688` | 20 tareas; reporte `.superpowers/sdd/2026-10-07-v2-e9/plan-report.md` (17 contradicciones) |
+| E9a-T1 | Relojes (candado 5 s, watchdog 180 s, ritmo 20 s/1 s) y migración, puros en EK; `isSkippable` explícito | ⛔ | E6a-T12 (último en `CelebrationQueue`) | CelebrationQueue (EK) | | sonnet |
+| E9a-T2 | El modelo (`TutorialStep`, `TutorialSignal`, `TutorialProbe`, `TutorialRun`) y `TutorialFlags` | ⛔ | T1 | — | | sonnet |
+| E9a-T3 | Las banderas cableadas: `tutorial.v2.*` en todos los lectores, migración en el arranque | ⛔ | T2; E3a-T9, E11-T6 | 🔥 GameState, RootView; +Debug, +Tabs, +Notifications, TutorialOverlay, CelebrationWiringTests | | sonnet (rev. opus) |
+| E9a-T4 | El director: guiones de pasos, ritmo, watchdog; las 18 lecciones a un paso | ⛔ | T3; E7b-b-T5 (último en +TutorialTips) | 🔥 GameState; +TutorialTips, +Celebrations, +Menu, +Debug, TutorialTipView | | opus |
+| E9a-T5 | El núcleo en el director, sin "Saltar", cierre con candado (`finishTutorialCore`) | ⛔ | T4 | TutorialOverlay, +Celebrations, +Notifications, +Debug, catálogo | | opus |
+| E9a-T6 | Las lecciones en el renderer único; `.tutorialTip` sin timeout ni salto; `TutorialTipView` se borra | ⛔ | T5 | 🔥 RootView, catálogo; CelebrationQueue (EK), TutorialOverlay | | opus |
+| E9a-T7 | `TutorialSheetCoach`, `HoldHand`, `SwipeHand`; el núcleo contrata adentro de FisuJobs | ⛔ | T6 | MenuPagerView, CharacterSheetView, QuickHirePicker, FisuJobsView, TutorialAnchor | | sonnet |
+| E9a-T8 | `TutorialInlineCard`: offline, carrera, primer visitante | ⛔ | T6 | OfflineEarningsView, CareerChoiceView, popup del visitante, catálogo (snapshot) | | sonnet |
+| E9a-T9 | `TutorialMechanic` + `TutorialCoverageTests` + `TutorialCurriculumTests` (20 huecos declarados) | ⛔ | T7, T8 | TutorialCurriculum, tests | | sonnet |
+| E9a-T10 | Cierre de E9a (controlador) | ⛔ | T1–T9 | `Docs/` | | controlador |
+| E9b-T1 | Lecciones del tablero y la torre (atajo con pin en 5 pasos, pasivo, botonera, ficha, piso móvil…) | ⛔ | E9a-T9; E3a-T8, E3b-T8, E2a-T8, E2a-T13 | catálogo (dueña); +TutorialTips, varias vistas | | sonnet |
+| E9b-T2 | Lecciones de economía, ORO, tienda y menú (18) | ⛔ | T1; E2a-T10, E3a-T9, E6a-T8, E6a-T12, E6b-T7 | catálogo; +TutorialTips, varias vistas | | sonnet |
+| E9b-T3 | Las 9 heredadas al formato, orden fijado, cero huecos | ⛔ | T2 | catálogo (snapshot); +TutorialTips | | sonnet |
+| E9b-T4 | El Tour de novedades (veteranos) | ⛔ | E9a-T6; T3 | +Tutorial, +Debug, catálogo | | sonnet |
+| E9b-T5 | "Ver tutorial de nuevo" / "Ver novedades" en Ajustes | ⛔ | T4; E11-T4, E7b-a-T5 | 🔥 SettingsView, catálogo | | sonnet |
+| E9b-T6 | `resetEpoch` en `MetaState` + regla en el resolver | ⛔ | E1-T6c | 🔥 PlayerState (MetaState); SaveConflictResolver | | sonnet |
+| E9b-T7 | `ResetPlan` puro (matriz del ORO) | ⛔ | T6; E1-T6c, E6a-T1 | — | | sonnet |
+| E9b-T8 | El reset en la app (backup, entitlements re-empujados, `clearSessionRuntime`) | ⛔ | T7; E9a-T3; E6a-T11 | +Reset (nuevo), +Debug, +Store, StoreManager, SaveBackupStore, PlayerStateRepository (GameState.swift sólo si `newGame` sigue private) | | sonnet (rev. opus) |
+| E9b-T9 | Zona de peligro + `ResetGameFlowView` (3 pasos, nada deshabilitado) | ⛔ | T8, T5; E3b-T2 | 🔥 SettingsView, catálogo | | sonnet |
+| E9b-T10 | Cierre de E9 (controlador) | ⛔ | E9a, T1–T9 | `Docs/` | | controlador |
 
-Ejecución: después de E7b (árbol de PLAN-v2 §4), con E1 T6c (el reset) y E7b-a T5 (UMP) adentro.
+E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección bloquea el tablero (scrim 0,55; revierte la regla v1); lo comprado con ORO no sobrevive al reset; el Tour pedido desde Ajustes no se corta. UMP lo hace E7b-a T5, no E9.
 
 ### E2b — Calibración final y contrato de pacing (`2026-10-07-v2-e2b-calibracion.md`)
 

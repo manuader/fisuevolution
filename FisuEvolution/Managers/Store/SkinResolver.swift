@@ -10,6 +10,8 @@ enum SkinResolver {
         case base
         case tint(hex: String)
         case texture(key: String)
+        /// Un efecto por código: el arte es el base, con `SkinShaders` encima.
+        case effect(shaderId: String)
     }
 
     static func treatment(
@@ -26,6 +28,8 @@ enum SkinResolver {
             return skin.tintHex.map(Treatment.tint(hex:)) ?? .base
         case .texture:
             return skin.textureKey.map(Treatment.texture(key:)) ?? .base
+        case .effect:
+            return skin.shaderId.map(Treatment.effect(shaderId:)) ?? .base
         }
     }
 

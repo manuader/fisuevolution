@@ -15,6 +15,7 @@ struct FisuEvolutionApp: App {
     /// `bootstrap()`; el coordinador arranca con el stub adentro y se resuelve
     /// abajo, en el `.task`.
     @State private var ads = AdsCoordinator()
+    @State private var servicesStarted = false
 
     var body: some Scene {
         WindowGroup {
@@ -40,26 +41,40 @@ struct FisuEvolutionApp: App {
                     gameState.attachHaptics(haptics)
                     gameState.attachAudio(audio)
                     await gameState.bootstrap()
-                    await storeManager.start(gameState: gameState)
-                    if let content = gameState.content {
-                        gameState.attachGameCenter(gameCenter)
-                        gameCenter.start(content: content)
-                    }
-                    // Los anuncios van DESPUÉS de `storeManager.start`, y el
-                    // orden es lo que hace que `remove_ads` se respete desde el
-                    // primer segundo: es ese start el que sincroniza los
-                    // entitlements de StoreKit y escribe `meta.removedAds`.
-                    // Configurar antes dejaría al comprador viendo un
-                    // interstitial hasta el próximo arranque.
-                    gameState.attachAds(ads)
-                    if let content = gameState.content {
-                        await ads.configure(
-                            flags: content.flags,
-                            cadence: content.rewardedAds.effectiveInterstitial,
-                            removedAds: gameState.player?.meta.removedAds ?? false
-                        )
+                    await startServices()
+                }
+                .onChange(of: gameState.phase) { _, phase in
+                    if phase == .ready {
+                        Task { await startServices() }
                     }
                 }
+        }
+    }
+
+    /// La tienda, Game Center y los anuncios arrancan sólo con una partida
+    /// cargada, y una sola vez: en recuperación no hay dónde acreditar nada, y la
+    /// tienda finalizaría una compra consumible que nadie recibió.
+    private func startServices() async {
+        guard gameState.phase == .ready, !servicesStarted else { return }
+        servicesStarted = true
+        await storeManager.start(gameState: gameState)
+        if let content = gameState.content {
+            gameState.attachGameCenter(gameCenter)
+            gameCenter.start(content: content)
+        }
+        // Los anuncios van DESPUÉS de `storeManager.start`, y el
+        // orden es lo que hace que `remove_ads` se respete desde el
+        // primer segundo: es ese start el que sincroniza los
+        // entitlements de StoreKit y escribe `meta.removedAds`.
+        // Configurar antes dejaría al comprador viendo un
+        // interstitial hasta el próximo arranque.
+        gameState.attachAds(ads)
+        if let content = gameState.content {
+            await ads.configure(
+                flags: content.flags,
+                cadence: content.rewardedAds.effectiveInterstitial,
+                removedAds: gameState.player?.meta.removedAds ?? false
+            )
         }
     }
 }

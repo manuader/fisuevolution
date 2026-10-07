@@ -127,7 +127,7 @@ extension GameState {
                 // Del quote y no de `run.hireCountsByType` a mano: es el mismo
                 // número, y leerlo de donde salió el precio impide que la
                 // tarjeta diga "3 contratados" con la curva en otro exponente.
-                purchases: quote.purchases,
+                purchases: Int(quote.purchases.rounded(.down)),
                 costText: unseen ? "" : CoinFormatter.cost(from: quote.cost),
                 affordable: !unseen && coins >= quote.cost,
                 state: state,
@@ -275,7 +275,8 @@ extension GameState {
                 state: &player,
                 tower: &tower,
                 floorTable: content.floorTable,
-                config: content.economy
+                config: content.economy,
+                countsAsPurchase: quote.cost > 0
             )
             self.player = player
             self.tower = tower

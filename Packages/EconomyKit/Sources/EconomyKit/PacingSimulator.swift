@@ -599,8 +599,7 @@ public struct PacingSimulator: Sendable {
         let typeId = type.id
         let action = Action(cost: cost) { s in
             s.run.coins -= cost
-            s.run.hireCounts[floorId, default: 0] += 1
-            s.run.hireCountsByType[typeId, default: 0] += 1
+            s.run.registerHire(floorId: floorId, typeId: typeId)
             s.run.units[typeId, default: 0] += 1
         }
         // Cuántas de éstas hacen falta para una unidad de tu frontera: `2^d`.
@@ -659,8 +658,7 @@ public struct PacingSimulator: Sendable {
                 state.run.units[type.id, default: 0] -= 2
                 if state.run.units[type.id] == 0 { state.run.units[type.id] = nil }
                 state.run.units[newTypeId, default: 0] += 1
-                if newType.tier > state.run.maxTierReached {
-                    state.run.maxTierReached = newType.tier
+                if state.run.raiseFrontier(to: newType.tier) {
                     // El reloj de la pared es ACTIVO y relativo al inicio de la
                     // run: reencarnar reinicia la cuenta, que es lo que permite
                     // comparar "volver a la pared" contra "llegar la primera vez".
@@ -952,7 +950,7 @@ public struct PacingSimulator: Sendable {
     /// Devuelve `nil` si el bot todavía no compró nada. El centinela importa: en
     /// este reporte `0,0 s` significa "contratar es gratis", que es el hallazgo
     /// central del documento, y usarlo también para "no hay dato" los confundía.
-    private func peakHire(state: PlayerState) -> (typeId: String, purchases: Int, seconds: Double)? {
+    private func peakHire(state: PlayerState) -> (typeId: String, purchases: Double, seconds: Double)? {
         let ordered = state.run.hireCountsByType
             .filter { $0.value > 0 }
             .sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }
@@ -979,7 +977,7 @@ public struct PacingSimulator: Sendable {
                 report.floorUnlockHireSeconds[floor.id] = hireSeconds(floor: floor, state: state)
                 if let peak = peakHire(state: state) {
                     report.floorUnlockPeakHireType[floor.id] = peak.typeId
-                    report.floorUnlockPeakHirePurchases[floor.id] = peak.purchases
+                    report.floorUnlockPeakHirePurchases[floor.id] = Int(peak.purchases.rounded(.down))
                     report.floorUnlockPeakHireSeconds[floor.id] = peak.seconds
                 }
             }

@@ -229,7 +229,7 @@ enum EventManager {
             if state.run.units[top.id] == 0 { state.run.units[top.id] = nil }
             state.run.units[nextId, default: 0] += 1
             state.run.markSeen(nextId)
-            state.run.maxTierReached = max(state.run.maxTierReached, next.tier)
+            state.run.raiseFrontier(to: next.tier)
             unitsChanged = true
         case .freeHighTier:
             // Blanqueo: unidad gratis de tier (máx alcanzado − magnitude).

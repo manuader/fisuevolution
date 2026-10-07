@@ -247,7 +247,7 @@ extension GameState {
         tower.floors[ordinal].slots[slot] = typeId
         player.run.units[typeId, default: 0] += 1
         player.run.markSeen(typeId)
-        player.run.maxTierReached = max(player.run.maxTierReached, type.tier)
+        player.run.raiseFrontier(to: type.tier)
         self.player = player
         self.tower = tower
         updateMaxFloorStat()

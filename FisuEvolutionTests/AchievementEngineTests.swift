@@ -66,7 +66,7 @@ struct AchievementEngineTests {
 
     @Test("tierReached se cruza con el tier máximo de la run")
     func tierReachedTrigger() async {
-        let state = await makeState { $0.run.maxTierReached = 24 }
+        let state = await makeState { $0.run.raiseFrontier(to: 24) }
         state.evaluateAchievements()
         #expect(state.isUnlocked("ach_tier_11"))
         #expect(state.isUnlocked("ach_tier_24"))
@@ -348,7 +348,7 @@ struct AchievementEngineTests {
                 $0.meta.stats.totalMergesEver = 1
                 // Tier de referencia 1: el piso mínimo del premio es un solo
                 // personaje, así que lo que manda es la torre y no el piso.
-                $0.run.maxTierReached = 1
+                $0.run.raiseFrontier(to: 1)
                 $0.meta.stats.maxFloorOrdinalEver = 0
                 $0.run.units[producer] = units
                 $0.run.passiveUnlocked[producer] = true
@@ -394,7 +394,7 @@ struct AchievementEngineTests {
         func gain(withEvent: Bool) async -> Double {
             let state = await makeState { player in
                 player.meta.stats.totalMergesEver = 1
-                player.run.maxTierReached = 1
+                player.run.raiseFrontier(to: 1)
                 player.run.units["homeless"] = 4
                 player.run.passiveUnlocked["homeless"] = true
                 if withEvent {
@@ -433,7 +433,7 @@ struct AchievementEngineTests {
     func coinRewardScalesWithMaxTier() async throws {
         let low = await makeState {
             $0.meta.stats.totalMergesEver = 1
-            $0.run.maxTierReached = 1
+            $0.run.raiseFrontier(to: 1)
         }
         low.evaluateAchievements()
         let lowBefore = low.player?.run.coins ?? 0
@@ -442,7 +442,7 @@ struct AchievementEngineTests {
 
         let high = await makeState {
             $0.meta.stats.totalMergesEver = 1
-            $0.run.maxTierReached = 12
+            $0.run.raiseFrontier(to: 12)
         }
         high.evaluateAchievements()
         let highBefore = high.player?.run.coins ?? 0
@@ -468,7 +468,7 @@ struct AchievementEngineTests {
         let ordinal = 8
         let state = await makeState {
             $0.meta.stats.totalMergesEver = 1
-            $0.run.maxTierReached = 33
+            $0.run.raiseFrontier(to: 33)
             $0.meta.stats.maxFloorOrdinalEver = ordinal
         }
         state.evaluateAchievements()
@@ -498,7 +498,7 @@ struct AchievementEngineTests {
     func rewardTextAgreesWithWhatItPays() async throws {
         let state = await makeState {
             $0.meta.stats.totalMergesEver = 1
-            $0.run.maxTierReached = 1
+            $0.run.raiseFrontier(to: 1)
             $0.meta.stats.maxFloorOrdinalEver = 8
         }
         state.evaluateAchievements()
@@ -694,7 +694,7 @@ struct AchievementEngineTests {
         func floorPayout(referenceTier: Int, floorOrdinal: Int) async -> Double {
             let state = await makeState {
                 $0.meta.stats.totalMergesEver = 1
-                $0.run.maxTierReached = referenceTier
+                $0.run.raiseFrontier(to: referenceTier)
                 $0.meta.stats.maxFloorOrdinalEver = floorOrdinal
             }
             state.evaluateAchievements()

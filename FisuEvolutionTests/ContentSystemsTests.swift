@@ -47,7 +47,7 @@ struct ContentSystemsTests {
             critChanceBase: content.economy.critChanceBase,
             now: 1000
         )
-        state.run.maxTierReached = maxTier
+        state.run.raiseFrontier(to: maxTier)
         state.run.coins = coins
         return state
     }

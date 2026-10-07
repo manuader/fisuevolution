@@ -95,7 +95,7 @@ struct StatsSnapshotTests {
         player.meta.stats.videosWatchedEver = 3
         player.meta.stats.boostsActivatedEver = 7
         player.meta.sharesCompleted = 2
-        player.run.maxTierReached = 12
+        player.run.raiseFrontier(to: 12)
         gameState.player = player
         #expect(gameState.statsSnapshot.maxTier == "12", "antes de reencarnar, el tier es el de la run vigente")
 

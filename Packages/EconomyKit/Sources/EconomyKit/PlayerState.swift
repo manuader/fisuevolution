@@ -88,13 +88,16 @@ public struct RunState: Codable, Sendable, Equatable {
     public var passiveUnlocked: [String: Bool]
     public var chosenCareerPath: String?
     /// Compras de hire POR PISO (floorId → count): curva de costo del piso.
-    public var hireCounts: [String: Int]
+    /// `Double` y no `Int`: el reintegro del amortiguador los escala por un
+    /// factor fraccionario, y `hireCost` ya elevaba con `pow` en `Double`.
+    public var hireCounts: [String: Double]
     /// Compras de hire POR TIPO (typeId → count): curva de costo del tipo, la que
     /// usa la pantalla de laburos. Vive en `run` como `hireCounts`: es precio de
     /// esta partida, así que reencarnar la borra.
-    public var hireCountsByType: [String: Int]
+    public var hireCountsByType: [String: Double]
     /// Tier máximo alcanzado en esta run; gatea events/specials/asado/daily.
-    public var maxTierReached: Int
+    /// Se escribe sólo con `raiseFrontier`.
+    public internal(set) var maxTierReached: Int
     /// Mejoras por personaje compradas con plata (typeId → nivel). ×2/nivel.
     public var charUpgradeLevels: [String: Int]
     /// Pisos desbloqueados, por ID de piso (nunca por índice ni tier: un remapeo
@@ -117,8 +120,8 @@ public struct RunState: Codable, Sendable, Equatable {
         units: [String: Int],
         passiveUnlocked: [String: Bool],
         chosenCareerPath: String?,
-        hireCounts: [String: Int],
-        hireCountsByType: [String: Int] = [:],
+        hireCounts: [String: Double],
+        hireCountsByType: [String: Double] = [:],
         maxTierReached: Int,
         charUpgradeLevels: [String: Int],
         unlockedFloors: [String],
@@ -152,8 +155,8 @@ public struct RunState: Codable, Sendable, Equatable {
         passiveUnlocked = try container.decode([String: Bool].self, forKey: .passiveUnlocked)
         // Opcional de verdad: el encoder omite la clave mientras no se eligió carrera.
         chosenCareerPath = try container.decodeIfPresent(String.self, forKey: .chosenCareerPath)
-        hireCounts = try container.decode([String: Int].self, forKey: .hireCounts)
-        hireCountsByType = try container.decodeIfPresent([String: Int].self, forKey: .hireCountsByType) ?? [:]
+        hireCounts = try container.decode([String: Double].self, forKey: .hireCounts)
+        hireCountsByType = try container.decodeIfPresent([String: Double].self, forKey: .hireCountsByType) ?? [:]
         maxTierReached = try container.decode(Int.self, forKey: .maxTierReached)
         charUpgradeLevels = try container.decode([String: Int].self, forKey: .charUpgradeLevels)
         unlockedFloors = try container.decode([String].self, forKey: .unlockedFloors)
@@ -186,6 +189,23 @@ public struct RunState: Codable, Sendable, Equatable {
     /// Registra un tipo como visto en esta run. Lo llama TODO camino que crea
     /// una unidad: contratar, mergear, los regalos de evento y los fixtures.
     public mutating func markSeen(_ typeId: String) { seenTypes.insert(typeId) }
+}
+
+extension RunState {
+    /// Único escritor de `maxTierReached`: la frontera sólo sube. Devuelve si
+    /// subió, para que el llamador sepa si hay algo que celebrar o reconciliar.
+    @discardableResult
+    public mutating func raiseFrontier(to tier: Int) -> Bool {
+        guard tier > maxTierReached else { return false }
+        maxTierReached = tier
+        return true
+    }
+
+    /// Único escritor de las curvas de compra (por piso y por tipo).
+    public mutating func registerHire(floorId: String, typeId: String) {
+        hireCounts[floorId, default: 0] += 1
+        hireCountsByType[typeId, default: 0] += 1
+    }
 }
 
 /// Estadísticas de cuenta (no afectan gameplay). Monótonas y a prueba de

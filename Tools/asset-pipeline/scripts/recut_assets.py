@@ -73,7 +73,6 @@ RECORTE_VIEJO_A_PEDIDO = frozenset({
     "mantero__feriante",
     "multimillonario",
     "oficinista__home_office",
-    "rentista_soles",
     "rentista_soles__jubilado",
     "rey_asteroides",
     "rey_asteroides__chatarrero",

@@ -591,7 +591,7 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 |---|---|---|---|---|---|---|
 | P-E12 | Plan de E12 por tareas | ✅ | — | — | `0a1bf1e` | 19 tareas (T1–T18, la T9 partida en 9a/9b); ya: T1, T2, T6 (y T3 tras T1); 11 dudas con default |
 | E12-T1 | `NameRules` (EK) + la tabla compartida | ⏳ | — | — | | sonnet; EK puro + `supabase/tests/fixtures/` |
-| E12-T2 | Backend: esquema, RLS, funciones SQL, `supabase/test.sh` | ⏳ | — | — | | opus; Postgres local, sin compilar la app |
+| E12-T2 | Backend: esquema, RLS, funciones SQL, `supabase/test.sh` | 🔄 | — | — | | opus; Postgres local, sin compilar la app |
 | E12-T3 | Backend: reglas, lista y moderación (Deno) | ⛔ | T1 | — | | sonnet; Haiku inyectable, sin red en tests |
 | E12-T4 | Backend: las cuatro Edge Functions | ⛔ | T2, T3 | — | | sonnet, rev. opus; integración contra Postgres temporal |
 | E12-T5 | Backend: cron, propuesta de lista, deploy y panel | ⛔ | T4 | — | | sonnet; la lista es propuesta (🔒 3) |

@@ -38,6 +38,7 @@ public enum IncomeTicker {
     ) -> Double {
         basePassivePerSecond(state: state, tiers: tiers, floorTable: floorTable, config: config)
             * ModifierMath.factor(state.run.activeModifiers, effect: .incomeMultiplier, now: now)
+            * ModifierMath.factor(state.run.activeModifiers, effect: .passiveMultiplier, now: now)
     }
 
     /// Returns the coins earned (0 for clamped or non-positive deltas).

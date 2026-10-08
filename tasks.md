@@ -580,7 +580,7 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 
 Fase A (T1–T4) tras E2a T15, EK puro ∥ E4–E7; fase B en paralelo con E9 y antes de su cierre (decide el punto 4 de "Inconsistencias"). Reemplaza el rojo declarado `theOwnersTargetsAreMet` (T14). Dudas top del plan: contrato 6 (≥ 65 %) choca con HANDOFF §5.2 (se mide en T3/T12; si no llega, al dueño); `.free` incluye paquete y diario base; los visitantes rompen el 12 % de E2a (T10 baja `coinsSecondsScale`); logros 33 → 66 ORO con las líneas a 348.
 
-### E12 — Ranking de la llegada a Dios (spec `2026-10-08-v2-e12-ranking-design.md`; plan por tareas pendiente)
+### E12 — Ranking de la llegada a Dios (spec `2026-10-08-v2-e12-ranking-design.md`; plan `2026-10-08-v2-e12-ranking.md`)
 
 Épica nueva del dueño (2026-10-08, llegó por la sesión "Fisu Evolution v2 roadmap", commit de docs
 `7671880` → `92dbc45`). Depende de E9b T8 (reset), E3 (menú deslizable) y E1 (save v6); termina
@@ -589,7 +589,26 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| P-E12 | Plan de E12 por tareas | 🔄 | — | — | | planificador opus (relevo 12); las filas E12-T<n> salen de ahí |
+| P-E12 | Plan de E12 por tareas | ✅ | — | — | `0a1bf1e` | 19 tareas (T1–T18, la T9 partida en 9a/9b); ya: T1, T2, T6 (y T3 tras T1); 11 dudas con default |
+| E12-T1 | `NameRules` (EK) + la tabla compartida | ⏳ | — | — | | sonnet; EK puro + `supabase/tests/fixtures/` |
+| E12-T2 | Backend: esquema, RLS, funciones SQL, `supabase/test.sh` | ⏳ | — | — | | opus; Postgres local, sin compilar la app |
+| E12-T3 | Backend: reglas, lista y moderación (Deno) | ⛔ | T1 | — | | sonnet; Haiku inyectable, sin red en tests |
+| E12-T4 | Backend: las cuatro Edge Functions | ⛔ | T2, T3 | — | | sonnet, rev. opus; integración contra Postgres temporal |
+| E12-T5 | Backend: cron, propuesta de lista, deploy y panel | ⛔ | T4 | — | | sonnet; la lista es propuesta (🔒 3) |
+| E12-T6 | `RankingState` (EK) | ⏳ | — | — | | sonnet, rev. opus (save) |
+| E12-T7 | Cliente, identidad en el Keychain y config remota | ⛔ | T6 | — | | sonnet; compila (archivos nuevos + xcodegen) |
+| E12-T8 | `RankingStore` | ⛔ | T6, T7 | — | | sonnet, rev. opus |
+| E12-T9a | La tarjeta de Dios (vista suelta) | ⛔ | T1, T8 | catálogo (snapshot) | | sonnet |
+| E12-T9b | La pestaña (vista suelta) | ⛔ | T8 | catálogo (snapshot) | | sonnet |
+| E12-T10 | `MetaState.ranking` + resolver | ⛔ | T6; E1-T16 | 🔥 PlayerState; SaveConflictResolver, SaveMigratorTests | | sonnet, **rev. opus**; no en la ola de E9b T6 |
+| E12-T11 | Los ganchos en `GameState` | ⛔ | T8, T10 | 🔥 GameState (una línea); +Celebrations, +Lifecycle, +BoardChanges, +Bootstrap, +Debug, FisuEvolutionApp | | sonnet, **rev. opus**; ventana libre de `GameState.swift` |
+| E12-T12 | El reset abre un intento nuevo | ⛔ | T11; E9b-T7, E9b-T8 | ResetPlan, +Reset | | sonnet, rev. opus |
+| E12-T13 | La 7.ª pestaña montada | ⛔ | T9b, T11; E3b-T4, E3a-T11 | 🔥 RootView, catálogo; GameArtComponents, BottomMenuBar, MenuPagerView, TabUnlocks, tabs.json, +Tabs | | sonnet; captura SE (plan B: tarjeta en la Oficina) |
+| E12-T14 | La tarjeta de Dios montada | ⛔ | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
+| E12-T15 | Privacidad, Términos y notas a App Review | ⛔ | T11 | PrivacyInfo.xcprivacy, Legal | | sonnet; insumo de E10 |
+| E12-T16 | Despliegue real y humo | 🔒 | T5, T14 | — | | Supabase (URL + anon), `ANTHROPIC_API_KEY`, lista aprobada |
+| E12-T17 | El piso calibrado | ⛔ | T16; E2b-T14 | — | | controlador; no frena el cierre |
+| E12-T18 | Cierre de E12 (controlador) | ⛔ | T1–T16 | `Docs/` | | |
 
 ### E13 — Ajustes del feedback de la v1 (PLAN-v2 E13; plan por tareas pendiente)
 

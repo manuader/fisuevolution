@@ -12,7 +12,9 @@ struct EventBannerView: View {
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
-        HStack(spacing: 8) {
+        // El botón va debajo y no al costado: al lado le robaba el ancho al
+        // texto y en el iPhone SE el motivo del evento salía cortado.
+        VStack(alignment: .trailing, spacing: 8) {
             bannerText
             if event.escapableByVideo && videoReady {
                 ActionPill(

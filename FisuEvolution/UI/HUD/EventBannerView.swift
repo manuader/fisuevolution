@@ -7,13 +7,14 @@ struct EventBannerView: View {
     @Environment(GameState.self) private var gameState
     @Environment(AdsCoordinator.self) private var ads
     @State private var now = Date()
+    @State private var videoReady = false
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         HStack(spacing: 8) {
             bannerText
-            if event.escapableByVideo {
+            if event.escapableByVideo && videoReady {
                 ActionPill(
                     titleKey: "event.escape.video", systemImage: "play.fill",
                     tint: Color("PaletteGreen"), identifier: "event.escape"
@@ -40,7 +41,11 @@ struct EventBannerView: View {
         }
         .foregroundStyle(Color("PaletteInk"))
         .padding(.horizontal, 16)
-        .onReceive(timer) { now = $0 }
+        .onAppear { refreshVideoReady(preloading: true) }
+        .onReceive(timer) {
+            now = $0
+            refreshVideoReady(preloading: false)
+        }
     }
 
     /// El texto del evento es el único elemento con `hud.event`: el botón de
@@ -62,6 +67,13 @@ struct EventBannerView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("hud.event")
+    }
+
+    private func refreshVideoReady(preloading: Bool) {
+        guard event.escapableByVideo else { return }
+        if preloading { ads.preloadRewarded(for: .visitor) }
+        let ready = ads.isRewardedReady(for: .visitor)
+        if videoReady != ready { videoReady = ready }
     }
 
     private var remainingSeconds: Int {

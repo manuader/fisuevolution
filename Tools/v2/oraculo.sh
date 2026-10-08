@@ -80,10 +80,11 @@ cleanup() {
 trap cleanup EXIT
 
 # Deja el UDID en la variable $2. No se usa `$(…)`: en un subshell el simulador
-# no llegaría a SIMS y quedaría huérfano al salir.
+# no llegaría a SIMS y quedaría huérfano al salir. El dispositivo es el tercer
+# argumento (por defecto, el iPhone 16 Pro).
 new_sim() {
-  local udid
-  udid=$(xcrun simctl create "oraculo-$1-$$" "iPhone 16 Pro" "com.apple.CoreSimulator.SimRuntime.iOS-$1") || return 1
+  local udid device="${3:-iPhone 16 Pro}"
+  udid=$(xcrun simctl create "oraculo-$1-$$" "$device" "com.apple.CoreSimulator.SimRuntime.iOS-$1") || return 1
   SIMS+=("$udid")
   printf -v "$2" '%s' "$udid"
 }
@@ -173,6 +174,8 @@ if [[ "$MODE" == "completo" ]]; then
   step store-unit run_tests store-unit "$SIM18" "${STORE_UNIT[@]}"
   step ui run_tests ui "$SIM26" -only-testing:FisuEvolutionUITests -skip-testing:FisuEvolutionUITests/StoreUITests
   step store-ui run_tests store-ui "$SIM18" "${STORE_UI[@]}"
+  new_sim 26-5 SIMIPAD "iPad Pro 13-inch (M4)" || { note "❌ no se pudo crear el iPad"; exit 1; }
+  step ipad-ui run_tests ipad-ui "$SIMIPAD" -only-testing:FisuEvolutionUITests/IPadLayoutUITests
   step pipeline pipeline
   step pacing-sim pacing_sim
 fi

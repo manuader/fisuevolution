@@ -49,6 +49,8 @@ final class BoardScene: SKScene {
     /// el deambular y el z de los specials.
     private var band = CrowdBand(frontY: 0, rowDepth: 0, wanderRange: 0, topY: 0)
     private var cellSize: CGFloat = 0
+    /// La geometría vigente; la recalcula `layoutBoard`.
+    private var layout = PlayLayout(size: CGSize(width: 390, height: 844), capacity: 10)
     /// Punto de anclaje por cellIndex: grilla lógica + jitter determinístico.
     private var anchorPoints: [CGPoint] = []
 
@@ -134,27 +136,20 @@ final class BoardScene: SKScene {
     /// 60 fps / 8 ≈ 8 Hz HUD flush (Docs/concurrency-conventions.md regla 2).
     private static let hudFlushEveryNFrames = 8
 
-    /// Origen vertical del campo dentro de la escena: el borde de arriba de la
-    /// barra inferior, para que la multitud no camine detrás de ella.
+    /// Origen vertical del campo: el borde de arriba del PANEL de la barra
+    /// inferior más los 34 pt de safe area de un teléfono con notch, para que la
+    /// multitud no camine detrás de la barra. Es `GameTabBar.panelHeight` (64) y
+    /// no `barHeight` (84): Contratar sobresale en el centro, pero a los costados
+    /// el tablero gana los 20 pt que la barra bajó (PLAN-v2 E3).
     ///
-    /// Sale de sumar la barra, no de tantear, y ya **no** se copia a mano: son
-    /// los `GameTabBar.barHeight` (hoy **84** = 8 de padding arriba + 62 de
-    /// plato + 2 de spacing + 12 de label; la cuenta vive allá) más los **34**
-    /// de safe area de un teléfono con notch, = **118**. Medido en el simulador
-    /// sobre la captura (iPhone 16 Pro): el borde ink de la barra arranca a
-    /// 118 pt del borde inferior de la pantalla.
+    /// ⚠️ Una constante para todos los tamaños: sin home indicator la barra mide
+    /// 12 más (`GameTabBar.minimumBottomGap`) y el error va hacia el lado seguro.
+    /// `CrowdBandTests` y `CrowdDepthTests` asertan contra este knob, no contra
+    /// el número.
     ///
-    /// ⚠️ Es UNA constante para todos los tamaños, así que en un teléfono sin
-    /// home indicator la barra mide 96 (los mismos 84 más el piso de 12 de
-    /// `GameTabBar.minimumBottomGap`) y sobran 22 pt de margen — el error va
-    /// hacia el lado seguro (nadie queda tapado). `CrowdBandTests` y
-    /// `CrowdDepthTests` asertan contra este knob, no contra el número.
-    ///
-    /// ⚠️ El espejo de `AscentRenderingUITests` **sigue siendo copia a mano** —
-    /// un test de UI no puede importar la app— y va en el MISMO commit que este
-    /// número. Ya se desincronizó cuatro veces.
-    static let bottomInset: CGFloat = GameTabBar.barHeight + 34
-    private static let horizontalInset: CGFloat = 16
+    /// ⚠️ El espejo de `AscentRenderingUITests` es copia a mano —un test de UI no
+    /// puede importar la app— y va en el MISMO commit que este número.
+    static let bottomInset: CGFloat = GameTabBar.panelHeight + 34
     /// Margen a cada lado para los textos del reveal, que van centrados y a
     /// pantalla completa.
     static let revealMargin: CGFloat = 24
@@ -163,17 +158,6 @@ final class BoardScene: SKScene {
     /// fracciones de `cellSize` sobre el borde inferior del campo. Va en
     /// `cellSize` porque depende del tamaño del personaje, no de la pantalla.
     static let frontRowRatio: CGFloat = 0.55
-    /// Techo de la franja por la que se mueve la multitud, en fracción del ALTO
-    /// de la pantalla.
-    ///
-    /// Va en alto de pantalla y no en `cellSize` porque `cellSize` sale del
-    /// ANCHO: atarlo ahí hace que la franja encoja en un teléfono angosto y
-    /// alto, justo donde sobra lugar.
-    ///
-    /// **Éste es EL knob del alto de la multitud.** 0,5 los lleva a la mitad
-    /// exacta de la pantalla; 0,4 los deja apenas arriba del tercio inferior,
-    /// que es la zona que los fondos tienen autorada como transitable.
-    static let crowdTopRatio: CGFloat = 0.44
     /// Amplitud horizontal del deambular, centrada en el ancla (±la mitad).
     static let wanderHorizontalRange: CGFloat = 34
     /// Velocidad del deambular, en puntos por segundo. La duración de cada paso
@@ -216,7 +200,7 @@ final class BoardScene: SKScene {
         let textBlock: CGFloat = 96
         // 24 pt de margen arriba y abajo para que el bloque no bese el borde.
         let available = max(120, size.height - 48 - textBlock)
-        let side = min(min(size.width * 0.82, size.height * 0.52), available)
+        let side = min(min(size.width * 0.82, size.height * 0.52), available, PlayLayout.revealMaxSide)
         let blockHeight = side + textBlock
         let bottom = (size.height - blockHeight) / 2
         let photoY = bottom + side / 2
@@ -335,6 +319,7 @@ final class BoardScene: SKScene {
         if frameCounter >= Self.hudFlushEveryNFrames {
             frameCounter = 0
             gameState.flushHUD()
+            gameState.publishCameraFloor(cameraFloorPosition)
         }
 
         if gameState.boardVersion != renderedBoardVersion {
@@ -1260,7 +1245,7 @@ final class BoardScene: SKScene {
 
         let label = SKLabelNode(fontNamed: "AvenirNext-Bold")
         label.text = "+\(CoinFormatter.string(from: result.gain))"
-        label.fontSize = result.isCrit || result.isGolden ? 24 : 17
+        label.fontSize = (result.isCrit || result.isGolden ? 24 : 17) * layout.textScale
         label.fontColor = result.isGolden ? Palette.yellow : (result.isCrit ? SKColor(named: "PalettePink") ?? .red : Palette.ink)
         label.position = CGPoint(x: node.position.x, y: node.position.y + 34)
         label.zPosition = 100
@@ -1340,7 +1325,7 @@ final class BoardScene: SKScene {
         // hardcodeada gritaba ¡NUEVO! también en la UI inglesa.
         let tag = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         tag.text = String(localized: "board.reveal.new")
-        tag.fontSize = 24
+        tag.fontSize = 24 * self.layout.textScale
         tag.fontColor = Palette.yellow
         tag.position = CGPoint(x: size.width / 2, y: layout.tagY)
         tag.zPosition = 210
@@ -1357,7 +1342,7 @@ final class BoardScene: SKScene {
         // Nombre del personaje ARRIBA de la foto.
         let banner = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         banner.text = type.localizedName.uppercased()
-        banner.fontSize = 38
+        banner.fontSize = 38 * self.layout.textScale
         // La entrada agranda el banner un 15% en su pico, así que el ancho útil
         // se descuenta: si no, un nombre que entra justo se corta al aparecer.
         let peakScale: CGFloat = reduceMotion ? 1.0 : 1.15
@@ -1397,17 +1382,16 @@ final class BoardScene: SKScene {
         let floorOffset = CGFloat(gameState.visibleFloorOrdinal) * size.height
         backgroundLayer.position = .zero
 
-        // Grilla del piso: 2 filas (franja de multitud), columnas según capacidad.
-        boardRows = 2
-        boardColumns = max(1, (floorDef.capacity + boardRows - 1) / boardRows)
-
         // Los personajes conviven en la franja de piso (parte inferior de la
         // pantalla, donde el fondo generado tiene el suelo). La celda se ajusta al
-        // ancho para que entren las columnas; las filas se apilan cerca y hacia
+        // ancho con tope en pantallas anchas; las filas se apilan cerca y hacia
         // arriba (profundidad de multitud, no una grilla que llena la pantalla).
-        let availableWidth = size.width - Self.horizontalInset * 2
-        cellSize = availableWidth / CGFloat(max(boardColumns, 1))
-        fieldNode.position = CGPoint(x: Self.horizontalInset, y: Self.bottomInset + floorOffset)
+        layout = PlayLayout(size: size, capacity: floorDef.capacity)
+        boardRows = layout.rows
+        boardColumns = layout.columns
+        cellSize = layout.cellSize
+        fieldNode.position = CGPoint(x: layout.fieldX, y: Self.bottomInset + floorOffset)
+        gameState.publishBoardLayout(layout.marker)
 
         cameraOverlay.position = CGPoint(x: -size.width / 2, y: -size.height / 2)
         moveCameraIfNeeded(to: floorOffset)
@@ -1464,7 +1448,7 @@ final class BoardScene: SKScene {
             let isLeft = index.isMultiple(of: 2)
             let row = CGFloat(index / 2)
             node.position = CGPoint(
-                x: isLeft ? side * 0.55 : size.width - Self.horizontalInset * 2 - side * 0.55,
+                x: isLeft ? side * 0.55 : layout.fieldWidth - side * 0.55,
                 y: cellSize * 1.65 + row * side * 0.9
             )
             node.zPosition = Self.specialZ(band: band, rows: boardRows, cellSize: cellSize)
@@ -1705,7 +1689,7 @@ final class BoardScene: SKScene {
         let reduceMotion = Self.prefersReducedMotion
         let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         title.text = String(localized: "tower.unlock.title")
-        title.fontSize = 29
+        title.fontSize = 29 * layout.textScale
         title.fontColor = Palette.yellow
         title.position = CGPoint(x: size.width / 2, y: size.height * 0.63)
         title.zPosition = 220
@@ -1724,7 +1708,7 @@ final class BoardScene: SKScene {
 
         let hint = SKLabelNode(fontNamed: "AvenirNext-Bold")
         hint.text = String(localized: "tower.unlock.hint")
-        hint.fontSize = 18
+        hint.fontSize = 18 * layout.textScale
         hint.fontColor = Palette.cream
         hint.position = CGPoint(x: size.width / 2, y: size.height * 0.56)
         hint.zPosition = 220
@@ -1872,14 +1856,14 @@ final class BoardScene: SKScene {
 
         let title = SKLabelNode(fontNamed: "AvenirNext-Heavy")
         title.text = String(localized: "tower.locked.title")
-        title.fontSize = 25
+        title.fontSize = 25 * layout.textScale
         title.fontColor = Palette.cream
         title.position = CGPoint(x: size.width / 2, y: size.height * 0.40)
         overlay.addChild(title)
 
         let hint = SKLabelNode(fontNamed: "AvenirNext-Bold")
         hint.text = String(localized: "tower.locked.hint")
-        hint.fontSize = 17
+        hint.fontSize = 17 * layout.textScale
         hint.fontColor = Palette.cream
         hint.position = CGPoint(x: size.width / 2, y: size.height * 0.35)
         overlay.addChild(hint)
@@ -1919,7 +1903,7 @@ final class BoardScene: SKScene {
     static func crowdBand(sceneHeight: CGFloat, cellSize: CGFloat, rows: Int) -> CrowdBand {
         let rows = max(1, rows)
         let floorY = cellSize * frontRowRatio
-        let topY = max(floorY, sceneHeight * crowdTopRatio - bottomInset)
+        let topY = max(floorY, sceneHeight * PlayLayout.crowdTopRatio(rows: rows) - bottomInset)
         let usable = topY - floorY
         let halfWander = usable / CGFloat(2 * rows)
         return CrowdBand(
@@ -1936,6 +1920,13 @@ final class BoardScene: SKScene {
     /// agranda — el techo ya da un `depthZ` de −2 en las pantallas grandes.
     static func specialZ(band: CrowdBand, rows: Int, cellSize: CGFloat) -> CGFloat {
         depthZ(y: band.topY, rows: rows, cellSize: cellSize) - 1
+    }
+
+    /// El piso donde está la cámara, continuo: 0 en el callejón, 2,5 a mitad de
+    /// camino entre el tercero y el cuarto. La luz de la botonera lo sigue.
+    private var cameraFloorPosition: Double {
+        guard size.height > 0 else { return 0 }
+        return Double((cameraNode.position.y - size.height / 2) / size.height)
     }
 
     private func depthZ(for point: CGPoint) -> CGFloat {

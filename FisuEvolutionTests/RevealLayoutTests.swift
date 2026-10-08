@@ -77,4 +77,12 @@ struct RevealLayoutTests {
         #expect(BoardScene.revealLayout(size: short).photoSide < BoardScene.revealLayout(size: tall).photoSide)
         #expect(BoardScene.revealLayout(size: short).photoSide >= 120, "pero sigue siendo reconocible")
     }
+
+    /// En iPad la foto no crece sin tope: a 380 pt ya es un retrato de cuerpo
+    /// entero, y más grande se ve el estirado del arte.
+    @Test("en iPad la foto del reveal tiene tope")
+    func revealPhotoIsCappedOnIPad() {
+        let layout = BoardScene.revealLayout(size: CGSize(width: 1032, height: 1376))
+        #expect(layout.photoSide == PlayLayout.revealMaxSide)
+    }
 }

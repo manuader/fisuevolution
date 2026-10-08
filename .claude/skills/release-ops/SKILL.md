@@ -103,6 +103,43 @@ paso 2 antes de tipear; al elegir un piso aparece un aviso que corre el botón d
 por referencia (`find`), nunca por coordenadas; en el campo de nombre el triple click no
 selecciona → `cmd+a`.
 
+### Mediación (redes por bidding vía AdMob) — sirve para cualquier juego
+
+Estrategia: AdMob es el mediador y las redes entran **sólo por bidding** (sin waterfall). Cada red
+se configura una vez como "fuente del anuncio" y después se suma a un grupo por formato. Los datos
+de cada red viven en `release.json → mediation`. Medido el 2026-10-08:
+
+| Red | Estado | Qué pide AdMob | Formatos por bidding |
+|---|---|---|---|
+| Unity Ads | ✅ activa | Game ID (app) + Placement ID (por unidad) | bonificado, intersticial (no app open, no intersticial bonificado) |
+| Meta Audience Network | ⏳ espera el onboarding de Meta | Placement ID por unidad | bonificado, intersticial, intersticial bonificado (no app open) |
+| AppLovin | ✗ no acepta publishers nuevos | SDK Key | — |
+| Mintegral | ✗ no se pudo crear la cuenta | App Key, App ID, Placement ID, Ad Unit ID | — |
+
+Pasos (Claude in Chrome, con la sesión del dueño en cada panel):
+1. **Panel de la red** (lo crea el dueño: cuenta, términos, 2FA, pagos e impuestos son suyos):
+   app iOS con el Apple ID de la app; un placement por formato; "Developer website" =
+   el dominio del `app-ads.txt`. Anotar los IDs en `release.json → mediation.networks`.
+2. **AdMob → Mediación → Fuentes de licitación → Configurar fuente del anuncio** → la red →
+   aceptar sus acuerdos (🔒 OK explícito del dueño: son contratos) → mapeo: el ID de app de la red
+   y, por cada unidad, una asignación con su placement (nombre `"<Red> <Formato> iOS - <unidad>"`).
+3. **Grupos de mediación** (uno por formato y plataforma): Crear → formato + iOS → nombre →
+   "Agregar unidades" (tildar la app selecciona todas las de ese formato) → Licitación →
+   "Agregar fuente" → la red → elegir la asignación de cada unidad → Guardar. Si la unidad ya
+   tiene asignación, AdMob ofrece copiarla (pestaña Licitación del diálogo).
+4. **Privacidad y mensajería → Reglamentos europeos → Configuración**: tildar "Agregar
+   automáticamente fuentes de anuncios como socios publicitarios" y Guardar.
+5. **`app-ads.txt`** del sitio: las líneas que da cada red (Unity: Monetization > Settings >
+   App-ads.txt, lista completa; Meta: `facebook.com, <Business ID>, RESELLER, c3e20eee3f780d68`).
+   Guardar la lista en `Distribution/release/app-ads.<red>.txt`, publicar y verificar con `curl`.
+6. **Código** (relevo/E7): adaptador SPM de la red, sus SKAdNetwork IDs en el Info.plist y
+   probar con Ad Inspector en un dispositivo.
+
+Trampas del panel: el combo de asignaciones de un grupo no toma el click por referencia — hay
+que clickear la opción por coordenadas (aparece ~110 px debajo del desplegable abierto); el
+diálogo "Configurar fuente del anuncio" pagina de a 10 (Unity está en la anteúltima página); la
+pestaña Configuración de una fuente marca "cambios sin guardar" aunque no se toque nada.
+
 ### Publicar una versión (pipeline)
 
 | # | Etapa | Estado de la automatización |

@@ -521,5 +521,89 @@
       "appleSiliconMac": false,
       "visionPro": false
     }
+  },
+  "mediation": {
+    "_comment": "Redes por bidding a través de AdMob. AppLovin rechazó la cuenta (no acepta publishers nuevos) y Mintegral no funcionó: quedan afuera. Los IDs no son secretos (van en el binario o en el mapeo de AdMob).",
+    "networks": {
+      "unity": {
+        "organizationCoreId": "4674265102273",
+        "projectId": "7fda62f3-5541-444f-8ff4-635d79fcb2db",
+        "gameId": "800392624",
+        "placements": {
+          "rewarded": "BP_Rewarded_iOS",
+          "interstitial": "BP_Interstitial_iOS"
+        },
+        "developerWebsite": "https://adergames-site.vercel.app",
+        "appAdsTxt": "Distribution/release/app-ads.unity.txt"
+      },
+      "meta": {
+        "businessId": "4634477516796912",
+        "propertyId": "1495757002385306",
+        "appId": "1067256102983663",
+        "placements": {
+          "interstitial": "1067256102983663_1067256366316970",
+          "rewardedInterstitial": "1067256102983663_1067256369650303",
+          "rewarded": "1067256102983663_1067256362983637"
+        },
+        "appAdsTxt": [
+          "facebook.com, 4634477516796912, RESELLER, c3e20eee3f780d68"
+        ],
+        "pending": [
+          "2FA del negocio",
+          "cuenta de pagos",
+          "información fiscal",
+          "vincular la app a la cuenta de pagos",
+          "verificar la app"
+        ]
+      },
+      "applovin": {
+        "status": "rechazada: AppLovin no acepta publishers nuevos (mail del 2026-10-08)"
+      },
+      "mintegral": {
+        "status": "no se pudo crear la cuenta"
+      }
+    },
+    "groups": [
+      {
+        "name": "Rewarded iOS",
+        "format": "rewarded",
+        "units": [
+          "rewardedGifts",
+          "rewardedOfflineX2",
+          "rewardedChestExtra",
+          "rewardedBoost",
+          "rewardedWheel",
+          "rewardedTreasure",
+          "rewardedVisitor",
+          "rewardedDaily"
+        ],
+        "networks": [
+          "unity",
+          "meta"
+        ]
+      },
+      {
+        "name": "Interstitial iOS",
+        "format": "interstitial",
+        "units": [
+          "interstitial"
+        ],
+        "networks": [
+          "unity",
+          "meta"
+        ]
+      },
+      {
+        "name": "Rewarded interstitial iOS",
+        "format": "rewardedInterstitial",
+        "units": [
+          "rewardedInterstitial"
+        ],
+        "networks": [
+          "meta"
+        ]
+      }
+    ],
+    "_noGroup": "App open: ni Unity ni Meta pujan en app open; queda sólo con AdMob."
   }
 }

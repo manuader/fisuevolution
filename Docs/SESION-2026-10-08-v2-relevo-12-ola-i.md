@@ -11,7 +11,7 @@ integración **`v2i/integ-r12`**. Cerró a ~270k de contexto con 0 subagentes en
 |---|---|
 | `version-2` | **`c94f75f`**, pusheado; `rapido` #2 VERDE: EK 556 · unit 784 + 1 declarado · release 0 |
 | `v2i/integ-r12` | **`acee4d8`** = `c94f75f` + E13 T1 (+ estos docs). Su `rapido` está pendiente y NO está en `version-2`: el `completo` corre ahí |
-| `completo --limpio` (E1 T16) sobre `c94f75f` | **CORRIENDO al cierre** (`build/relevo12-completo-limpio.log` del worktree `version-2`). Resultado: <<RESULTADO COMPLETO RELEVO 12>> |
+| `completo --limpio` (E1 T16) sobre `c94f75f` | **CORRIENDO al cierre** (`build/relevo12-completo-limpio.log` del worktree `version-2`). Resultado: VERDE sobre `c94f75f` — EK 556 · unit 784 + 1 declarado (`theOwnersTargetsAreMet`) · UI 70 verdes + 2 salteados · store-unit 16 · store-ui 2 · ipad-ui 2 · pipeline 65 · pacing-sim 30,73 h / 13 · release 0. **E1 T16 ✅: E1 cerrada** |
 | Progreso | **68 de 210 tareas activas (32,4 %)**; el denominador subió de 167 porque E8 (arte), E12 y E13 tienen plan por tarea |
 
 ## Las 3 regresiones de UI de la ola H: dos causas, las dos silenciosas
@@ -118,7 +118,7 @@ Gate de E12 que sigue abierto: la lista de palabras (🔒 3) y la revisión del 
   por fast-forward a `c94f75f` y se pusheó. El rojo declarado `theOwnersTargetsAreMet` **ya no falla**:
   revisar `rojos-declarados.txt` y sacarlo si corresponde.
 - **`completo --limpio` sobre `c94f75f`** (E1 T16): corriendo al cierre, en el worktree `version-2`, log
-  `build/relevo12-completo-limpio.log`. Resultado: <<RESULTADO COMPLETO RELEVO 12>>
+  `build/relevo12-completo-limpio.log`. Resultado: VERDE sobre `c94f75f` — EK 556 · unit 784 + 1 declarado (`theOwnersTargetsAreMet`) · UI 70 verdes + 2 salteados · store-unit 16 · store-ui 2 · ipad-ui 2 · pipeline 65 · pacing-sim 30,73 h / 13 · release 0. **E1 T16 ✅: E1 cerrada**
 - Tareas: E12 T1 y E8 T8 VERDES; E13 T1 VERDE (UI doble toque ×2, luego ×1 tras los arreglos).
 
 ## Decisiones de este relevo

@@ -22,6 +22,12 @@ las esquinas de tres cuadros (las de arriba si es un retrato: los hombros tocan
 las de abajo), y si no son un fondo liso, verde o magenta, el script se niega
 en vez de adivinar. El magenta es para los personajes de piel verde.
 
+**Los retratos sobre fondo blanco no se keyean: se recortan.** `chromakey` sobre
+blanco se come los ojos, los dientes y los brillos. El recorte de las imagenes
+(`whitebg_cutout.cutout`, el fondo es el blanco que toca el borde) los respeta
+porque son islas; se aplica cuadro por cuadro, ya escalado a 512 (a 960 son
+270 s por loop). Una cinematica con alfa va sobre croma: sobre blanco se rechaza.
+
     .venv/bin/python scripts/video_assets.py medir video/chest-animation.mp4 [--clase retrato]
     .venv/bin/python scripts/video_assets.py retrato npc_comisario
     .venv/bin/python scripts/video_assets.py cinematica arresto [--sin-key]
@@ -40,10 +46,12 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from fractions import Fraction
 from pathlib import Path
 
 import numpy as np
+from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
@@ -55,6 +63,7 @@ from chest_video_frames import (  # noqa: E402
     KEY_SIMILARITY,
     key_filter,
 )
+from whitebg_cutout import WHITE_TOLERANCE, cutout  # noqa: E402
 
 PIPELINE = Path(__file__).resolve().parent.parent
 RESOURCES = PIPELINE.parent.parent / "FisuEvolution" / "Resources"
@@ -146,8 +155,10 @@ def validate_id(kind: str, piece_id: str) -> None:
 
 
 def key_family(color: str) -> str | None:
-    """`green` o `magenta` segun el canal que domina el key, None si ninguno."""
+    """`white`, `green` o `magenta` segun el fondo del master, None si ninguno."""
     r, g, b = (int(color[i:i + 2], 16) for i in (2, 4, 6))
+    if min(r, g, b) >= 255 - WHITE_TOLERANCE:
+        return "white"
     if g - max(r, b) >= MIN_KEY_LEAD:
         return "green"
     if min(r, b) - g >= MIN_KEY_LEAD:
@@ -181,7 +192,7 @@ def key_color_from_patches(patches: list[np.ndarray],
     hex_color = "0x{:02X}{:02X}{:02X}".format(*(int(round(c)) for c in color))
     if key_family(hex_color) is None:
         raise MasterError(
-            f"el fondo no es verde ni magenta: mide {tuple(int(c) for c in color)}"
+            f"el fondo no es verde, magenta ni blanco: mide {tuple(int(c) for c in color)}"
         )
     return hex_color
 
@@ -324,6 +335,36 @@ def encode(kind: str, master: Path, output: Path, key_color: str | None,
     )
 
 
+def encode_white_portrait(master: Path, output: Path) -> None:
+    """Fondo blanco: el recorte por conectividad de las imagenes, cuadro por
+    cuadro. Se escala ANTES de recortar (a 960 son 270 s por loop) y el matting
+    de 3 px no se nota a 512."""
+    stream = video_stream(probe(master))
+    fps = stream["r_frame_rate"]
+    framing = framing_filter("retrato", int(stream["width"]), int(stream["height"]))
+    with tempfile.TemporaryDirectory() as tmp:
+        frames = Path(tmp)
+        subprocess.run(
+            ["ffmpeg", "-v", "error", "-i", str(master), "-vf", framing,
+             "-fps_mode", "passthrough", str(frames / "f%04d.png")],
+            check=True,
+        )
+        for png in sorted(frames.glob("f*.png")):
+            with Image.open(png) as raw:
+                rgba = np.asarray(cutout(raw.convert("RGB"))).astype(np.float32)
+            # Premultiplicado, como el del key: `AVPlayerLayer` lo compone asi.
+            rgba[..., :3] *= rgba[..., 3:4] / 255.0
+            Image.fromarray(np.round(rgba).astype(np.uint8), "RGBA").save(png)
+        output.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            ["ffmpeg", "-v", "error", "-framerate", fps, "-i", str(frames / "f%04d.png"),
+             "-vf", "format=bgra", "-c:v", "hevc_videotoolbox",
+             "-alpha_quality", HEVC_ALPHA_QUALITY, "-q:v", HEVC_QUALITY,
+             "-tag:v", "hvc1", "-an", "-y", str(output)],
+            check=True,
+        )
+
+
 def manifest_entry(output: Path, key_color: str | None) -> dict:
     """Lo que el runtime necesita saber de la pieza, leido del archivo final."""
     info = probe(output)
@@ -363,9 +404,15 @@ def process(kind: str, piece_id: str, master: Path, keyed: bool = True,
     if kind == "retrato" and not keyed:
         raise ValueError("un retrato va siempre con alfa (PLAN-v2 E8)")
     key_color = measure_key_color(master, rows=CORNER_ROWS[kind]) if keyed else None
+    white = key_color is not None and key_family(key_color) == "white"
+    if white and kind == "cinematica":
+        raise MasterError("una cinematica con alfa va sobre croma; si trae su fondo, --sin-key")
     spec = KINDS[kind]
     output = RESOURCES / spec["dir"] / f"{spec['prefix']}{piece_id}.mov"
-    encode(kind, master, output, key_color, similarity, blend)
+    if white:
+        encode_white_portrait(master, output)
+    else:
+        encode(kind, master, output, key_color, similarity, blend)
     entry = manifest_entry(output, key_color)
     register(kind, piece_id, entry)
     return entry

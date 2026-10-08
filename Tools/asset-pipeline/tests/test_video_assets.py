@@ -100,6 +100,14 @@ class MedicionDelFondo(unittest.TestCase):
         self.assertLessEqual(np.abs(medido - rgb(KEY_COLOR)).max(), 3)
 
 
+class FondoBlanco(unittest.TestCase):
+    def test_el_blanco_se_reconoce_como_familia(self):
+        self.assertEqual(video_assets.key_family("0xFEFEFE"), "white")
+        medido = rgb(key_color_from_patches([parche((254, 254, 254), ruido=1)] * 6))
+        self.assertGreaterEqual(medido.min(), 252)
+        self.assertEqual(video_assets.key_family("0xE0E0E0"), None)
+
+
 class Identificadores(unittest.TestCase):
     def test_un_retrato_es_la_canonica_de_un_visitante(self):
         for valido in ("npc_comisario", "sp_demonio_arca", "sp_cryptobro"):
@@ -264,6 +272,36 @@ class DePuntaAPunta(unittest.TestCase):
         manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
         self.assertEqual(manifest["portraits"], {"npc_prueba": entry})
         self.assertEqual(manifest["cinematics"], {})
+
+    def master_blanco(self, side: int = 640) -> Path:
+        path = self.root / "master_blanco.mp4"
+        c, r = side // 2, side // 8
+        subprocess.run(
+            ["ffmpeg", "-v", "error",
+             "-f", "lavfi", "-i", f"color=c=white:s={side}x{side}:r=24:d=1",
+             "-vf", (f"drawbox=x={side // 4}:y={side // 4}:w={side // 2}:h={side // 2}:color=0xC83C28:t=fill,"
+                     f"drawbox=x={c - r}:y={c - r}:w={2 * r}:h={2 * r}:color=black:t=fill,"
+                     f"drawbox=x={c - r + 6}:y={c - r + 6}:w={2 * r - 12}:h={2 * r - 12}:color=white:t=fill"),
+             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-an", "-y", str(path)],
+            check=True,
+        )
+        return path
+
+    def test_un_retrato_sobre_blanco_recorta_el_fondo_y_no_el_ojo(self):
+        entry = video_assets.process("retrato", "npc_prueba", self.master_blanco())
+        self.assertEqual(video_assets.key_family(entry["keyColor"]), "white")
+        self.assertTrue(entry["alpha"])
+        self.assertEqual((entry["frames"], entry["fps"]), (24, 24))
+        frame = self.cuadro(self.resources / "Loops" / "loop_npc_prueba.mov")
+        self.assertLessEqual(frame[4, 4, :3].max(), 8, "el fondo blanco se fue (premultiplicado)")
+        self.assertGreater(frame[256, 256, :3].min(), 230, "el blanco encerrado es dibujo y queda")
+        if alfa_decodificable():
+            self.assertEqual(frame[4, 4, 3], 0)
+            self.assertEqual(frame[256, 256, 3], 255)
+
+    def test_una_cinematica_sobre_blanco_se_rechaza(self):
+        with self.assertRaises(MasterError):
+            video_assets.process("cinematica", "dios", self.master_blanco())
 
     def test_un_busto_se_mide_por_arriba_y_sale(self):
         master = self.master(640, 640, hombros=True)

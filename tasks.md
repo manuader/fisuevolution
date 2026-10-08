@@ -519,9 +519,9 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | P-E8 | Plan de E8 integración de arte | ✅ | — | — | `dec80f9` | 10 tareas; `2026-10-08-v2-e8-integracion-arte.md`; 13 dudas con default |
 | E8-T1 | El rentista con soles sólidos | ✅ | — | `cosmic.atlas`, `recut_assets.py` | `6dae6b2` (merge `e0d683d`) | pipeline; cierra el gate `rentista_soles` de §6 y libera el worktree `v2-e8-pipeline`; no mueve plata; hueco 0,0025 %, alfa de los soles 0,956–0,996, manifest sin cambios |
 | E8-T2 | El alta del batch (`prompts.json`) y las reglas de export | ✅ | — | `prompts.json`, `process_dropbox.py` | `6d2f8c3` (merge `a4c77ee`) | pipeline; crea `traer_tanda.py`; revisión sonnet; pipeline 49 → 63; revisada por el controlador |
-| E8-T3 | Familia Pijama (43) | 🔄 | T2 | `fam_pijama.atlas` | | pipeline, no compila; ∥ T4, T5 y cualquiera; destraba (con T4, T5) el arte de E6b T9 |
-| E8-T4 | Familia Gaucho (43) | 🔄 | T2 | `fam_gaucho.atlas` | | ídem |
-| E8-T5 | Familia Disfraz de Dinosaurio (43) | 🔄 | T2 | `fam_dinosaurio.atlas` | | ídem |
+| E8-T3 | Familia Pijama (43) | ✅ | T2 | `fam_pijama.atlas` | `3004952` (merge `8dd7258`) | pipeline, no compila; ∥ T4, T5 y cualquiera; destraba (con T4, T5) el arte de E6b T9; 43/43; a T9: loza en cartonero, estanciero_estelar; islas en dueno_pyme, magnate_solar, dueno_marte; 15 MB por atlas |
+| E8-T4 | Familia Gaucho (43) | ✅ | T2 | `fam_gaucho.atlas` | `a2e0458` (merge `d0b6f9e`) | ídem; 43/43; a T9: cartonero (loza + isla entre carrito y cuerpo); 15 MB por atlas |
+| E8-T5 | Familia Disfraz de Dinosaurio (43) | ✅ | T2 | `fam_dinosaurio.atlas` | `61463e5` (merge `cb1b606`) | ídem; 43/43; a T9: loza en cartonero; god (nube) y ser_ascendido (halo) parecen dibujo; 15 MB por atlas |
 | E8-T6 | Visitantes y especiales (52) | ⛔ | T2 | `npcs.atlas`; 🔥 `assets_manifest.json` (`npcs`) | | `oraculo.sh tarea GameContentValidationTests GameArtComponentsTests`; la ven E4b T1–T5, T8 y E5b T1 (todas con respaldo) |
 | E8-T7 | Paquete, Colchón, Ruleta, tienda y Álbum (31) | ⛔ | T2 | `ui.atlas`; 🔥 `assets_manifest.json` (`ui`) | | `oraculo.sh tarea GameArtComponentsTests GameContentValidationTests`; carries a E5b T1–T3, E6b T9, E4b T8, E7b-b T3 |
 | E8-T8 | Los fondos a 2048 (JPEG) | ⛔ | T2 | `Backgrounds/`, `process_dropbox.py`; 🔥 `assets_manifest.json` (`backgrounds`) | | crea `BackgroundArtTests` (xcodegen); mide la memoria del vuelo; revisión sonnet |

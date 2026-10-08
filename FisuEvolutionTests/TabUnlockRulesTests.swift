@@ -11,7 +11,6 @@ struct TabUnlockRulesTests {
         .init(id: "skins", unlockWhen: [.firstSkin]),
         .init(id: "jobs", unlockWhen: [.always]),
         .init(id: "gifts", unlockWhen: [.tutorialCore, .firstChest]),
-        .init(id: "store", unlockWhen: [.secondSession]),
         .init(id: "menu", unlockWhen: [.tutorialCore]),
     ])
 
@@ -39,22 +38,24 @@ struct TabUnlockRulesTests {
         #expect(TabUnlockRules.unlocked(config: config, signals: signals(skin: true)).contains(.skins))
     }
 
-    @Test("la segunda sesión abre la Tienda")
-    func secondSessionOpensTheStore() {
-        #expect(!TabUnlockRules.unlocked(config: config, signals: signals(core: true, sessions: 0)).contains(.store))
-        #expect(TabUnlockRules.unlocked(config: config, signals: signals(core: true, sessions: 1)).contains(.store))
-    }
-
-    @Test("el tabs.json embarcado es válido y cubre las seis pestañas")
+    @Test("el tabs.json embarcado es válido y cubre las cinco pestañas de la barra")
     func bundledConfigIsValid() throws {
         let content = try GameContentLoader.load(from: .main)
         try content.tabs.validate()
-        #expect(Set(content.tabs.tabs.compactMap(\.screen)) == Set(GameScreen.allCases))
+        #expect(Set(content.tabs.tabs.compactMap(\.screen)) == Set(GameScreen.barOrder))
+    }
+
+    @Test("un tabs.json con la Tienda no es válido: ya no está en la barra")
+    func storeInTabsIsInvalid() {
+        let withStore = TabsConfig(schemaVersion: 1, tabs: GameScreen.allCases.map {
+            .init(id: $0.rawValue, unlockWhen: [.always])
+        })
+        #expect(throws: GameError.self) { try withStore.validate() }
     }
 
     @Test("una config sin Contratar siempre abierto no valida")
     func hiringMustAlwaysBeOpen() {
-        let broken = TabsConfig(schemaVersion: 1, tabs: GameScreen.allCases.map {
+        let broken = TabsConfig(schemaVersion: 1, tabs: GameScreen.barOrder.map {
             .init(id: $0.rawValue, unlockWhen: [.tutorialCore])
         })
         #expect(throws: GameError.self) { try broken.validate() }

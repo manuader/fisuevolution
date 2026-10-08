@@ -94,8 +94,20 @@ struct TabUnlockWiringTests {
             let gameState = await makeGameState()
             gameState.progressiveTabsEnabled = false
             gameState.refreshProjections()
-            #expect(gameState.unlockedTabs == Set(GameScreen.allCases))
+            #expect(gameState.unlockedTabs == Set(GameScreen.barOrder))
             #expect(gameState.newTabs.isEmpty)
+        }
+    }
+
+    @Test("un save de la v1 que trae la Tienda no la cuela en la barra, y no se la borra")
+    func legacyStoreStaysOutOfTheBar() async {
+        await withDefaults(core: true, sessions: 1) {
+            let gameState = await makeGameState()
+            gameState.player?.meta.unlockedTabs.insert("store")
+            gameState.refreshProjections()
+            #expect(!gameState.unlockedTabsInBarOrder.contains(.store))
+            #expect(!gameState.unlockedTabs.contains(.store))
+            #expect(gameState.player?.meta.unlockedTabs.contains("store") == true)
         }
     }
 }

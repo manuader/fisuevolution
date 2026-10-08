@@ -19,6 +19,14 @@ struct FloorMapEntry: Identifiable, Equatable {
     let isVisible: Bool
 }
 
+/// "Pisos en marcha 4/10 · +20 %" (PLAN-v2 §2, crítica de Marco).
+struct StaffedSummary: Equatable {
+    let staffed: Int
+    let total: Int
+    /// 0,20 = +20 % a los ingresos globales.
+    let bonus: Double
+}
+
 /// Accesores de la torre que consumen la escena y las vistas. Separado de
 /// `GameState.swift` para que el frente de navegación no comparta archivo con
 /// los otros cinco dominios.
@@ -52,6 +60,22 @@ extension GameState {
                 isVisible: ordinal == visibleFloorOrdinal
             )
         }
+    }
+
+    /// Cuántos pisos están en marcha y cuánto suman. Computada como `floorMap`:
+    /// la lee una hoja modal. `nil` con la perilla en 0 (la v1): no se anuncia
+    /// un bono que no existe.
+    var staffedSummary: StaffedSummary? {
+        guard let content, let player, content.economy.staffedBonusPerFloor > 0 else { return nil }
+        let staffed = StaffedFloors.ordinals(state: player, tiers: content.tiers, floorTable: content.floorTable).count
+        let multiplier = StaffedFloors.multiplier(state: player, tiers: content.tiers,
+                                                  floorTable: content.floorTable, config: content.economy)
+        return StaffedSummary(staffed: staffed, total: content.floorTable.count, bonus: multiplier - 1)
+    }
+
+    /// ⚠️ Los números van como `String` (trampa 5).
+    func staffedSummaryText(_ summary: StaffedSummary) -> String {
+        String(localized: "map.staffed \(String(summary.staffed)) \(String(summary.total)) \(summary.bonus.formatted(.percent.precision(.fractionLength(0))))")
     }
 
     /// Salta directo a un piso del mapa. Valida contra el MISMO dato que las

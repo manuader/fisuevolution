@@ -473,7 +473,7 @@ que toma · commit o rama · nota.
 | E6b-T6 | Lugares extra (EK) | ⛔ | E6a-T2; E2a-T4 | — | | |
 | E6b-T7 | Lugares extra en la partida | ⛔ | T6; E6a-T6, E6a-T8, E6a-T12; E3a-T10; E5a-T6 | 🔥 GameState, catálogo; GameContentLoader, +Engagement | | 🔒 si las 4 filas no entran en el SE |
 | E6b-T8 | Exclusivas de ORO elegidas entre skins de la v1 | ⛔ | T1r, T5 | catálogo | | el agente propone y se las muestra al dueño antes de cerrar |
-| E6b-T9 | Las tres familias entran | 🔒 | arte de E8; T5 | catálogo | | 🔒 si el bundle crece > 60 MB |
+| E6b-T9 | Las tres familias entran | ⛔ | E8 T3–T5; T5 | catálogo | | 🔒 arte de E8 = E8 T3–T5; 🔒 si el bundle crece > 60 MB (E8 T10 lo mide; estimado ≈ +29 MB con fondos en JPEG) |
 | E6b-T10 | Cierre de E6b | ⛔ | T1–T9 | `Docs/` | | |
 
 ### E7b-a — Anuncios v2, los forzados (`2026-10-07-v2-e7b-a-forzados-mediacion.md`)
@@ -506,11 +506,27 @@ que toma · commit o rama · nota.
 | Pieza | Estado | Qué falta |
 |---|---|---|
 | Pipeline y audio | ✅ | ver "Hechos previos" |
-| El batch de imágenes (~200: visitantes, especiales hablando, paquete, colchón, tienda, álbum, 129 de familias) | 🔒 | lo corre el dueño (§6); después: alta en `prompts.json`, `process_dropbox.py` (sección `npcs`), atlas |
+| El batch de imágenes (~200: visitantes, especiales hablando, paquete, colchón, tienda, álbum, 129 de familias) | 🔄 | aprobado (222/222); se integra con E8-T1…T10 (abajo) |
 | Higgsfield: 18 loops de retrato + cinemáticas de reencarnación, arresto y Dios | 🔒 | OK de créditos para el piloto de 2 loops; el lado Swift de `.cinematic` y `seenCinematics` no lo tiene ningún plan |
 | Fondos regenerados a 2048 px | 🔒 | salen del batch |
 | La cadena animada de "Fusionar todo" | ⛔ | E2a la deja a E8; ningún plan la toma |
 | Los 10 temas | 🔒 | el dueño los escucha (gate de E8 audio) |
+
+Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, rama de épica `v2/e8-arte`):
+
+| ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
+|---|---|---|---|---|---|---|
+| P-E8 | Plan de E8 integración de arte | ✅ | — | — | `dec80f9` | 10 tareas; `2026-10-08-v2-e8-integracion-arte.md`; 13 dudas con default |
+| E8-T1 | El rentista con soles sólidos | ⏳ | — | `cosmic.atlas`, `recut_assets.py` | | pipeline; cierra el gate `rentista_soles` de §6 y libera el worktree `v2-e8-pipeline`; no mueve plata |
+| E8-T2 | El alta del batch (`prompts.json`) y las reglas de export | ⏳ | — | `prompts.json`, `process_dropbox.py` | | pipeline; crea `traer_tanda.py`; revisión sonnet |
+| E8-T3 | Familia Pijama (43) | ⛔ | T2 | `fam_pijama.atlas` | | pipeline, no compila; ∥ T4, T5 y cualquiera; destraba (con T4, T5) el arte de E6b T9 |
+| E8-T4 | Familia Gaucho (43) | ⛔ | T2 | `fam_gaucho.atlas` | | ídem |
+| E8-T5 | Familia Disfraz de Dinosaurio (43) | ⛔ | T2 | `fam_dinosaurio.atlas` | | ídem |
+| E8-T6 | Visitantes y especiales (52) | ⛔ | T2 | `npcs.atlas`; 🔥 `assets_manifest.json` (`npcs`) | | `oraculo.sh tarea GameContentValidationTests GameArtComponentsTests`; la ven E4b T1–T5, T8 y E5b T1 (todas con respaldo) |
+| E8-T7 | Paquete, Colchón, Ruleta, tienda y Álbum (31) | ⛔ | T2 | `ui.atlas`; 🔥 `assets_manifest.json` (`ui`) | | `oraculo.sh tarea GameArtComponentsTests GameContentValidationTests`; carries a E5b T1–T3, E6b T9, E4b T8, E7b-b T3 |
+| E8-T8 | Los fondos a 2048 (JPEG) | ⛔ | T2 | `Backgrounds/`, `process_dropbox.py`; 🔥 `assets_manifest.json` (`backgrounds`) | | crea `BackgroundArtTests` (xcodegen); mide la memoria del vuelo; revisión sonnet |
+| E8-T9 | 🔒 La revisión de recortes de la 2.0 | ⛔ | T1, T3–T7 | `recut_assets.py`, los atlas elegidos | | la página la arma el agente; elige el dueño; no frena a nadie |
+| E8-T10 | Peso, memoria y cierre (controlador) | ⛔ | T1–T8 | `Docs/`, `tasks.md` | | `completo --limpio`; 🔒 sólo si el bundle crece > 60 MB (estimado ≈ +29 MB) |
 
 ### E9 — Tutorial v2 + Tour de novedades + Ajustes (`2026-10-07-v2-e9a-…` motor, `…-e9b-…` currículo y reset)
 

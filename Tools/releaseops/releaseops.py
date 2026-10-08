@@ -8,6 +8,7 @@
     python3 Tools/releaseops/releaseops.py asc diff           # exit 0 si ASC == config
     python3 Tools/releaseops/releaseops.py asc ready          # exit 0 si todo puede ir a revisión
     python3 Tools/releaseops/releaseops.py asc screenshot <producto> <png>
+    python3 Tools/releaseops/releaseops.py asc listing plan|apply --yes|diff   # ficha de la versión
     python3 Tools/releaseops/releaseops.py admob plan         # unidades por crear
     python3 Tools/releaseops/releaseops.py admob set-id <clave> <ad-unit-id>
     python3 Tools/releaseops/releaseops.py admob sync-code [--dry-run]
@@ -150,6 +151,31 @@ def cmd_asc_screenshot(args) -> int:
     return 0
 
 
+def cmd_listing(args) -> int:
+    """La ficha de la versión: plan (dry-run), apply o diff."""
+    from rocore import asc, listing
+    config = cfg.load(args.config)
+    client = asc.Client()
+    app_id = asc.find_app(client, config["app"]["bundleId"])["id"]
+    state = listing.snapshot(client, config, app_id)
+    steps = listing.plan(config, state)
+    automatic = [s for s in steps if not s.manual]
+    for step in steps:
+        print(f"  {'✋' if step.manual else '·'} {step.kind:<19} {step.summary}")
+    if args.mode == "diff" or not automatic:
+        print("VERDE: la ficha coincide con la config" if not automatic
+              else f"ROJO: {len(automatic)} diferencias")
+        return 0 if not automatic else 1
+    if args.mode == "plan" or not args.yes:
+        print("Dry-run: no se cambió nada. `asc listing apply --yes` lo ejecuta.")
+        return 1
+    log = logger("asc-listing")
+    failures = listing.apply(client, config, app_id, steps, log)
+    after = [s for s in listing.plan(config, listing.snapshot(client, config, app_id)) if not s.manual]
+    print(f"Log: {log.path}\nDespués de aplicar: {len(after)} diferencias ({failures} errores).")
+    return 0 if not after else 1
+
+
 def cmd_admob_plan(args) -> int:
     config = cfg.load(args.config)
     pending = admob.plan(config)
@@ -224,6 +250,10 @@ def main() -> int:
         p.set_defaults(run=run)
     asc_p.add_parser("diff").set_defaults(run=cmd_asc_diff)
     asc_p.add_parser("ready").set_defaults(run=cmd_asc_ready)
+    lst = asc_p.add_parser("listing", help="la ficha de la versión: plan | apply | diff")
+    lst.add_argument("mode", choices=("plan", "apply", "diff"))
+    lst.add_argument("--yes", action="store_true")
+    lst.set_defaults(run=cmd_listing)
     shot = asc_p.add_parser("screenshot")
     shot.add_argument("product", help="el sufijo del productId, p. ej. offer_bienvenida")
     shot.add_argument("png", type=Path)

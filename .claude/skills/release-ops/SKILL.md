@@ -56,6 +56,7 @@ ES256 la hace el `openssl` del sistema). Tests: `python3 -m unittest discover To
 | `asc diff` | Exit 0 si ASC == config. |
 | `asc ready` | Exit 0 si todos los productos pueden ir a revisión con la versión. |
 | `asc screenshot <producto> <png>` | Sube la captura de revisión (no reemplaza una existente). |
+| `asc listing plan\|apply --yes\|diff` | Ficha de la versión (`store` en release.json): crea la versión si falta, textos por idioma, notas para App Review. Mac/Vision Pro quedan como pasos manuales. |
 | `admob plan` | Unidades de la config sin ID: las que hay que crear. |
 | `admob set-id <clave> <id>` | Anota el ID devuelto por AdMob (valida publisher y `/`). |
 | `admob sync-code [--dry-run]` | Copia los IDs a `feature_flags.json` y `ads.json` (sólo esas líneas) y prende `switches.appOpen` si hay unidad. |
@@ -91,6 +92,11 @@ versión se aprueba. `apply` hace la segunda pasada solo. `status` compara contr
 5. `admob sync-code` → `validate` → tests del juego que fijan IDs (`AdUnitIDsTests`,
    `AdsRemoteConfigTests`) → actualizar el `ads.json` publicado en `adergames-site`.
 
+Trampas de la ficha (2026-10-08): crear la ficha de un idioma (`appInfoLocalization`) hace que
+Apple cree sola la localización de la versión, vacía → `listing apply` crea las fichas primero y
+recalcula. La ficha sólo es editable con una versión nueva abierta (la publicada no se toca).
+App Privacy, Mac y Vision Pro no están en la API: navegador, con la sesión del dueño.
+
 Trampas medidas del panel (2026-10-08): la tarjeta de formato a veces no toma el primer click si
 la página no terminó de cargar → buscar el "Seleccionar" con `find` y confirmar que se está en el
 paso 2 antes de tipear; al elegir un piso aparece un aviso que corre el botón de crear → clickear
@@ -103,7 +109,7 @@ selecciona → `cmd+a`.
 |---|---|---|
 | 1 | Monetización (AdMob) | ✅ `admob plan/set-id/sync-code` + navegador |
 | 2 | Compras | ✅ `asc plan/apply/diff/ready/screenshot` |
-| 3 | Metadatos y localizaciones de la ficha | 🔜 misma API (`appStoreVersionLocalizations`); hoy a mano desde `Distribution/store-metadata.md` |
+| 3 | Metadatos y localizaciones de la ficha | ✅ `asc listing` (versión, idiomas, Novedades, notas de revisión); Mac/Vision Pro y App Privacy por navegador |
 | 4 | Versión y build | ✅ `version bump` |
 | 5 | Compilar y validar | 📋 `xcodegen generate` + `Tools/v2/oraculo.sh rapido` (o `completo`) |
 | 6 | Archivo de distribución | 📋 `xcodebuild archive -scheme FisuEvolution -configuration Release -archivePath build/FisuEvolution.xcarchive` |

@@ -62,6 +62,16 @@ Las cinco nuevas: todos los tipos de anuncio, sin límite de frecuencia, eCPM "O
 Google" con **límite mínimo alto**, sin "ofertas para socios". AdMob avisa que una unidad nueva
 puede tardar hasta una hora en servir.
 
+## Ficha de la versión 2.0.0 (agregado 09:37)
+
+`asc listing diff` → VERDE. Versión **2.0.0 creada** en App Store Connect (PREPARE_FOR_SUBMISSION,
+no enviada). en-US y es-MX con la descripción de la 2.0 (sin "Mercado Pago", con visitantes e
+iPad) y las Novedades; **es-ES nuevo** (FisuEvolution, mismos textos que es-MX); notas para App
+Review de la 2.0 (3459 caracteres). Cuestionario de edad: ya estaba como pide el setup desde la
+v1 (loot boxes sí, apuestas no, publicidad sí), no se tocó. `ads.json` publicado en
+`adergames-site.vercel.app/config/ads.json` (200, idéntico al del juego). Las Novedades y las
+notas se revisan contra la build de TestFlight antes de enviar.
+
 ## Pendiente (y de quién)
 
 | Pendiente | Bloquea | Quién |
@@ -69,7 +79,7 @@ puede tardar hasta una hora en servir.
 | Capturas de revisión de las 3 ofertas (`asc screenshot`) | que las ofertas pasen a READY_TO_SUBMIT | relevo, cuando exista la hoja de oferta (E6a T11, `--uitest-offer=<id>`) |
 | Las ofertas en `products.json`, el `.storekit`, `offers.json` y `iap.<id>.*` | que el juego las pida | E6a T11 |
 | `.storekit` local con textos viejos | sólo el desarrollo local | E6 (sincronizar con release.json) |
-| Publicar el `ads.json` del sitio (hoy 404) | config remota | dueño/agente con acceso a `adergames-site` |
+| Mac y Vision Pro apagados; App Privacy | publicar | navegador con la sesión del dueño en ASC; App Privacy tras el reporte del archive y las 4 redes |
 | Grupos de mediación (4) y las 4 redes | relleno de anuncios | dueño: cuentas de AppLovin, Unity, Mintegral y Meta |
 | `app-ads.txt` con las redes; SKAdNetwork (+106) | mediación | E7b-a T6 + dueño |
 | Adjuntar las 14 compras a la versión 2.0.0 y enviar | revisión | 🔒 dueño, con la build |

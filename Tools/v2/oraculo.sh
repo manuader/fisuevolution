@@ -125,6 +125,10 @@ pipeline() {
 
 pacing_sim() {
   local data="$REPO/FisuEvolution/Resources"
+  # Su `.build` incremental no ve los archivos nuevos de EconomyKit ("cannot
+  # find type 'PriceCushion'", relevo 9): si no compila, se borra y se reintenta.
+  swift build --package-path "$REPO/Tools/pacing-sim" >/dev/null 2>&1 \
+    || rm -rf "$REPO/Tools/pacing-sim/.build"
   swift run --package-path "$REPO/Tools/pacing-sim" pacing-sim \
     --economy "$data/Data/economy.json" --tiers "$data/Data/tiers.json" \
     --upgrades "$data/Config/upgrades.json" >"$OUT/pacing-report.txt" 2>&1 || return 1

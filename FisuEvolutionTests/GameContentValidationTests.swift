@@ -953,14 +953,12 @@ struct GameContentValidationTests {
             skins: [
                 .init(id: "golden", characterType: "*", treatment: .tint, tintHex: "#FFD93D", textureKey: nil, floorReached: nil, reincarnations: nil),
                 .init(id: "urban", characterType: "cartonero", treatment: .texture, tintHex: nil, textureKey: "cartonero_idle__urban", floorReached: "urban", reincarnations: nil),
-                .init(id: "neon", characterType: "*", treatment: .effect, shaderId: "neon", oroPrice: 150),
             ]
         )
 
         #expect(SkinResolver.treatment(for: nil, characterType: "homeless", config: config) == .base)
         #expect(SkinResolver.treatment(for: "golden", characterType: "homeless", config: config) == .tint(hex: "#FFD93D"))
         #expect(SkinResolver.treatment(for: "urban", characterType: "cartonero", config: config) == .texture(key: "cartonero_idle__urban"))
-        #expect(SkinResolver.treatment(for: "neon", characterType: "homeless", config: config) == .effect(shaderId: "neon"))
         // Un ID válido pero ajeno a la ficha vuelve a la base, sin filtrarse a
         // otro personaje ni mostrar una textura inválida.
         #expect(SkinResolver.treatment(for: "urban", characterType: "homeless", config: config) == .base)

@@ -6,9 +6,6 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
     public enum Treatment: String, Codable, Sendable {
         case tint
         case texture
-        /// Un efecto por código sobre el arte base (PLAN-v2 E6): lo dibuja la app
-        /// con el shader de `shaderId`.
-        case effect
     }
 
     /// Rareza de una skin de cofre. El orden de declaración es el de escalada:
@@ -57,8 +54,6 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         /// ella la ficha muestra el id embellecido, que alcanza para una skin
         /// de prueba pero no para una que se shippea.
         public let displayNameKey: String?
-        /// `effect`: el id del shader (`SkinShaders.ids`, en la app).
-        public let shaderId: String?
         /// Se compra con ORO en la tienda (E6). Excluyente con el cofre y con los
         /// milestones: una pinta tiene una sola vía.
         public let oroPrice: Int?
@@ -82,7 +77,6 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             upgradesMaxed: Bool? = nil,
             chestRarity: Rarity? = nil,
             displayNameKey: String? = nil,
-            shaderId: String? = nil,
             oroPrice: Int? = nil,
             family: String? = nil,
             textureAtlas: String? = nil
@@ -97,7 +91,6 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             self.upgradesMaxed = upgradesMaxed
             self.chestRarity = chestRarity
             self.displayNameKey = displayNameKey
-            self.shaderId = shaderId
             self.oroPrice = oroPrice
             self.family = family
             self.textureAtlas = textureAtlas
@@ -116,8 +109,6 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         case missingTexture(String)
         case invalidReincarnations(String)
         case chestAndMilestone(String)
-        case missingShader(String)
-        case unknownShader(String)
         case nonPositiveOroPrice(String)
         case oroAndChest(String)
         case oroAndMilestone(String)
@@ -187,7 +178,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         skins.filter { $0.characterType == "*" || $0.characterType == typeID }
     }
 
-    public func validate(characterTypeIDs: Set<String>, floorIDs: Set<String>, shaderIDs: Set<String> = []) throws {
+    public func validate(characterTypeIDs: Set<String>, floorIDs: Set<String>) throws {
         // La unicidad es por (personaje, id), no por id global. Una variante como
         // "oro" existe una vez por personaje, y que las 43 compartan el id es
         // justamente lo que hace que un solo paquete las desbloquee todas: la
@@ -230,9 +221,6 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
                 guard skin.tintHex?.isEmpty == false else { throw ValidationError.missingTint(skin.id) }
             case .texture:
                 guard skin.textureKey?.isEmpty == false else { throw ValidationError.missingTexture(skin.id) }
-            case .effect:
-                guard let shader = skin.shaderId, !shader.isEmpty else { throw ValidationError.missingShader(skin.id) }
-                guard shaderIDs.contains(shader) else { throw ValidationError.unknownShader(shader) }
             }
         }
     }

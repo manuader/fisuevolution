@@ -88,6 +88,7 @@ extension GameState {
     /// elegida—; lo demás espera a `.background`.
     func settlePrepaidBoardChanges() {
         guard let content else { return }
+        if inFlightBoardChange?.isPrepaid == true { settleInFlightBoardChange() }
         let prepaid = pendingBoardChanges.filter(\.isPrepaid)
         pendingBoardChanges.removeAll(where: \.isPrepaid)
         for planned in prepaid {

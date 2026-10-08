@@ -3868,18 +3868,18 @@
       }
     },
     "hud.coins.plus.label" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buy coins"
+            "value" : "Store"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comprar monedas"
+            "value" : "Tienda"
           }
         }
       }

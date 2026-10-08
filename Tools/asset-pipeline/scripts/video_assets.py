@@ -24,6 +24,8 @@ script se niega en vez de adivinar.
     .venv/bin/python scripts/video_assets.py medir video/chest-animation.mp4
     .venv/bin/python scripts/video_assets.py retrato npc_comisario
     .venv/bin/python scripts/video_assets.py cinematica arresto [--sin-key]
+    .venv/bin/python scripts/video_assets.py ascensor cierra --video <master>
+    .venv/bin/python scripts/video_assets.py ascensor-cuadros --dir <carpeta>
 
 Los masters van en `video/loops/<id>.mp4` y `video/cinematicas/<id>.mp4`
 (`--video` para otro). Necesita `ffmpeg` con `hevc_videotoolbox` en el PATH.
@@ -92,6 +94,30 @@ CORNER_PATCH = 8
 MAX_CORNER_SPREAD = 12
 MIN_GREEN_LEAD = 40
 
+# El ascensor (PLAN-v2 E13 item 13): una sola cabina para todos los viajes. Las
+# esquinas del master son la cabina, asi que el verde se mide en el hueco de las
+# puertas (cuadro con las puertas abiertas) y en las ventanas (cuadro cerradas).
+ELEVATOR_CLIPS = {
+    # id: (cuadro de puertas abiertas, recorte en cuadros del master, duracion final)
+    "ascensor_cierra": ("first", (6, 62), 0.75),
+    "ascensor_abre": ("last", (9, 73), 0.65),
+}
+ELEVATOR_ARGS = {"cierra": "ascensor_cierra", "abre": "ascensor_abre"}
+ELEVATOR_STILLS = {
+    # id: (archivo del master, el cuadro tiene las puertas abiertas)
+    "ascensor_cerrada": ("cabina_cerrada.png", False),
+    "ascensor_abierta": ("cabina_abierta.png", True),
+}
+ELEVATOR_MASTER_FPS = 24
+ELEVATOR_FPS = 30
+# Fracciones del cuadro: el hueco abierto y las dos ventanas de las puertas
+# cerradas (medidas en los masters del 2026-10-08).
+HOLE_POINTS = [(fx, fy) for fy in (0.35, 0.5, 0.65) for fx in (0.4, 0.5, 0.6)]
+WINDOW_POINTS = [(fx, 0.45) for fx in (0.33, 0.36, 0.64, 0.67)]
+# Hueco y ventanas son dos verdes (B 35 vs 14): se aceptan juntos si cada uno es
+# un verde liso y entre ellos no se apartan mas que esto.
+ELEVATOR_MAX_SPREAD = 28
+
 
 class MasterError(ValueError):
     """El master no sirve tal como vino: se avisa en vez de adivinar."""
@@ -99,8 +125,11 @@ class MasterError(ValueError):
 
 def validate_id(kind: str, piece_id: str) -> None:
     if kind == "cinematica":
-        if piece_id not in CINEMATIC_IDS:
-            raise ValueError(f"cinematica desconocida {piece_id!r}: las del plan son {CINEMATIC_IDS}")
+        if piece_id not in CINEMATIC_IDS and piece_id not in ELEVATOR_CLIPS:
+            raise ValueError(
+                f"cinematica desconocida {piece_id!r}: las del plan son "
+                f"{CINEMATIC_IDS + tuple(ELEVATOR_CLIPS)}"
+            )
         return
     if not PORTRAIT_ID.fullmatch(piece_id) or piece_id.endswith(POSE_SUFFIXES):
         raise ValueError(
@@ -109,19 +138,20 @@ def validate_id(kind: str, piece_id: str) -> None:
         )
 
 
-def key_color_from_patches(patches: list[np.ndarray]) -> str:
+def key_color_from_patches(patches: list[np.ndarray],
+                           max_spread: int = MAX_CORNER_SPREAD) -> str:
     """El verde de fondo como `0xRRGGBB`, o MasterError si no es un verde liso.
 
-    Cada parche es un array (h, w, 3) de una esquina. La mediana del conjunto es
-    el verde; si una esquina se aparta, hay algo encima del fondo (el personaje,
-    un logo, un degrade) y el key saldria mal en todo el video."""
+    Cada parche es un array (h, w, 3) de una zona de fondo (las esquinas). La
+    mediana del conjunto es el verde; si una zona se aparta, hay algo encima del
+    fondo (el personaje, un logo, un degrade) y el key saldria mal en todo el video."""
     medians = np.array([np.median(p.reshape(-1, 3), axis=0) for p in patches])
     color = np.median(medians, axis=0)
     spread = float(np.abs(medians - color).max())
-    if spread > MAX_CORNER_SPREAD:
+    if spread > max_spread:
         raise MasterError(
-            f"las esquinas no son un fondo liso (se apartan {spread:.0f} del verde): "
-            "algo tapa una esquina o el fondo tiene degrade"
+            f"las zonas medidas no son un fondo liso (se apartan {spread:.0f} del verde): "
+            "algo tapa una zona o el fondo tiene degrade"
         )
     r, g, b = color
     if g - max(r, b) < MIN_GREEN_LEAD:
@@ -144,23 +174,31 @@ def has_audio(info: dict) -> bool:
     return any(s["codec_type"] == "audio" for s in info["streams"])
 
 
-def measure_key_color(video: Path) -> str:
-    """Mide el verde del master en el stream, como lo ve `chromakey`.
-
-    La conversion a rgb24 la hace ffmpeg con su matriz por defecto
-    (limited-range), que es la que hace falta: el hex sacado con la matriz
-    full-range parece el mismo verde y no lo es (trampa del cofre)."""
+def decode_frames(video: Path, picks: list[int]) -> np.ndarray:
+    """Los cuadros `picks` del video como rgb24 (n, h, w, 3), con la matriz por
+    defecto de ffmpeg (limited-range): la que hace falta para medir el verde, el
+    hex sacado con la matriz full-range parece el mismo verde y no lo es (trampa
+    del cofre)."""
     stream = video_stream(probe(video))
     width, height = int(stream["width"]), int(stream["height"])
-    frames = int(stream.get("nb_frames") or 1)
-    picks = sorted({0, frames // 2, frames - 1})
     select = "+".join(f"eq(n\\,{n})" for n in picks)
     raw = subprocess.run(
         ["ffmpeg", "-v", "error", "-i", str(video), "-vf", f"select={select}",
          "-fps_mode", "passthrough", "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
         capture_output=True, check=True,
     ).stdout
-    decoded = np.frombuffer(raw, np.uint8).reshape(-1, height, width, 3)
+    return np.frombuffer(raw, np.uint8).reshape(-1, height, width, 3)
+
+
+def frame_count(video: Path) -> int:
+    return int(video_stream(probe(video)).get("nb_frames") or 1)
+
+
+def measure_key_color(video: Path) -> str:
+    """Mide el verde del master en el stream, como lo ve `chromakey`."""
+    frames = frame_count(video)
+    decoded = decode_frames(video, sorted({0, frames // 2, frames - 1}))
+    height, width = decoded.shape[1:3]
     p = CORNER_PATCH
     patches = [
         frame[y:y + p, x:x + p]
@@ -169,6 +207,30 @@ def measure_key_color(video: Path) -> str:
         for x in (0, width - p)
     ]
     return key_color_from_patches(patches)
+
+
+def region_patches(frame: np.ndarray, points: list[tuple[float, float]]) -> list[np.ndarray]:
+    height, width = frame.shape[:2]
+    half = CORNER_PATCH // 2
+    return [
+        frame[y - half:y + half, x - half:x + half]
+        for x, y in ((int(fx * width), int(fy * height)) for fx, fy in points)
+    ]
+
+
+def measure_key_in_regions(video: Path, open_frame: str,
+                           points_open: list[tuple[float, float]],
+                           points_closed: list[tuple[float, float]]) -> str:
+    """El verde de un master cuyas esquinas no son verdes: se mide en el hueco
+    de las puertas (cuadro abierto) y en sus ventanas (cuadro cerrado).
+
+    `open_frame` dice si el cuadro con las puertas abiertas es el `first` o el
+    `last`; el otro es el cerrado. Un cuadro fijo (un solo cuadro) sirve para
+    cualquiera de los dos: se pasa la lista que no le toca vacia."""
+    first, last = decode_frames(video, sorted({0, frame_count(video) - 1}))[[0, -1]]
+    opened, closed = (first, last) if open_frame == "first" else (last, first)
+    patches = region_patches(opened, points_open) + region_patches(closed, points_closed)
+    return key_color_from_patches(patches, max_spread=ELEVATOR_MAX_SPREAD)
 
 
 def framing_filter(kind: str, width: int, height: int) -> str:
@@ -186,6 +248,20 @@ def framing_filter(kind: str, width: int, height: int) -> str:
     )
 
 
+def keyed_filter(key_color: str, similarity: float, blend: float, framing: str,
+                 despill: bool = True) -> str:
+    """Key + premultiplicado + encuadre, en ese orden (ver `encode`).
+
+    `despill` quita el verde que el key deja en los bordes del personaje; en una
+    escena con amarillos (la cabina) tambien los vuelve naranja."""
+    key = key_filter(key_color, similarity, blend) if despill \
+        else f"chromakey={key_color}:{similarity}:{blend}"
+    return (
+        f"{key},"
+        f"format=gbrap,premultiply=inplace=1,{framing},format=bgra"
+    )
+
+
 def encode(kind: str, master: Path, output: Path, key_color: str | None,
            similarity: float, blend: float) -> None:
     info = probe(master)
@@ -200,10 +276,7 @@ def encode(kind: str, master: Path, output: Path, key_color: str | None,
         # colaria en el borde. Y premultiplicado porque `AVPlayerLayer` composita
         # el HEVC-alfa asi (ver `encode_cinematic` del cofre: sin esto el fondo
         # keyeado se suma al juego como un velo).
-        video_filter = (
-            f"{key_filter(key_color, similarity, blend)},"
-            f"format=gbrap,premultiply=inplace=1,{framing},format=bgra"
-        )
+        video_filter = keyed_filter(key_color, similarity, blend, framing)
         video_args = [
             "-c:v", "hevc_videotoolbox",
             "-alpha_quality", HEVC_ALPHA_QUALITY,
@@ -244,7 +317,7 @@ def manifest_entry(output: Path, key_color: str | None) -> dict:
 def load_manifest() -> dict:
     if MANIFEST.exists():
         return json.loads(MANIFEST.read_text(encoding="utf-8"))
-    return {"schemaVersion": SCHEMA_VERSION, "portraits": {}, "cinematics": {}}
+    return {"schemaVersion": SCHEMA_VERSION, "portraits": {}, "cinematics": {}, "stills": {}}
 
 
 def register(kind: str, piece_id: str, entry: dict) -> None:
@@ -270,6 +343,71 @@ def process(kind: str, piece_id: str, master: Path, keyed: bool = True,
     return entry
 
 
+def process_ascensor(clip_id: str, master: Path, similarity: float = KEY_SIMILARITY,
+                     blend: float = KEY_BLEND) -> dict:
+    """Master de puertas -> clip HEVC con alfa, recortado al movimiento de las
+    puertas y acelerado a la duracion del viaje (los masters tardan ~2,1-2,5 s).
+    Sin despill: la cabina es amarilla y plateada, y el hueco ya esta bordeado
+    por el contorno negro, asi que no hay verde que limpiar."""
+    validate_id("cinematica", clip_id)
+    open_frame, (start, end), seconds = ELEVATOR_CLIPS[clip_id]
+    key_color = measure_key_in_regions(master, open_frame, HOLE_POINTS, WINDOW_POINTS)
+    stream = video_stream(probe(master))
+    framing = framing_filter("cinematica", int(stream["width"]), int(stream["height"]))
+    original = (end - start) / ELEVATOR_MASTER_FPS
+    video_filter = (
+        f"trim=start_frame={start}:end_frame={end},"
+        f"setpts=(PTS-STARTPTS)*{seconds}/{original},fps={ELEVATOR_FPS},"
+        f"{keyed_filter(key_color, similarity, blend, framing, despill=False)}"
+    )
+    output = RESOURCES / KINDS["cinematica"]["dir"] / f"cine_{clip_id}.mov"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(master), "-vf", video_filter,
+         "-c:v", "hevc_videotoolbox", "-alpha_quality", HEVC_ALPHA_QUALITY,
+         "-q:v", HEVC_QUALITY, "-tag:v", "hvc1", "-an",
+         "-fps_mode", "passthrough", "-y", str(output)],
+        check=True,
+    )
+    entry = manifest_entry(output, key_color)
+    register("cinematica", clip_id, entry)
+    return entry
+
+
+def process_ascensor_stills(source_dir: Path, similarity: float = KEY_SIMILARITY,
+                            blend: float = KEY_BLEND) -> dict:
+    """Los dos cuadros fijos de la cabina -> PNG con alfa premultiplicado de
+    720x1280, para cuando no hay clip. Devuelve las entradas del manifest."""
+    entries = {}
+    for still_id, (filename, is_open) in ELEVATOR_STILLS.items():
+        source = source_dir / filename
+        if not source.exists():
+            raise MasterError(f"no existe el cuadro {source}")
+        key_color = measure_key_in_regions(
+            source, "first", HOLE_POINTS if is_open else [], [] if is_open else WINDOW_POINTS
+        )
+        stream = video_stream(probe(source))
+        framing = framing_filter("cinematica", int(stream["width"]), int(stream["height"]))
+        output = RESOURCES / KINDS["cinematica"]["dir"] / f"cine_{still_id}.png"
+        output.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            ["ffmpeg", "-v", "error", "-i", str(source),
+             "-vf", keyed_filter(key_color, similarity, blend, framing, despill=False),
+             "-frames:v", "1", "-update", "1", "-y", str(output)],
+            check=True,
+        )
+        out = video_stream(probe(output))
+        entries[still_id] = {
+            "file": output.name, "width": int(out["width"]),
+            "height": int(out["height"]), "keyColor": key_color,
+        }
+    manifest = load_manifest()
+    manifest.setdefault("stills", {}).update(entries)
+    manifest["stills"] = dict(sorted(manifest["stills"].items()))
+    write_json(MANIFEST, manifest)
+    return entries
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -284,6 +422,14 @@ def main() -> int:
         if kind == "cinematica":
             piece.add_argument("--sin-key", action="store_true",
                                help="la escena trae su propio fondo: opaca, sin alfa")
+    ascensor = sub.add_parser("ascensor", help="un clip de las puertas del ascensor")
+    ascensor.add_argument("clip", choices=sorted(ELEVATOR_ARGS))
+    ascensor.add_argument("--video", type=Path, help="el master de las puertas")
+    cuadros = sub.add_parser("ascensor-cuadros", help="los dos cuadros fijos de la cabina")
+    cuadros.add_argument("--dir", type=Path, required=True)
+    for keyed in (ascensor, cuadros):
+        keyed.add_argument("--similarity", type=float, default=KEY_SIMILARITY)
+        keyed.add_argument("--blend", type=float, default=KEY_BLEND)
     args = parser.parse_args()
 
     if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
@@ -293,6 +439,21 @@ def main() -> int:
     try:
         if args.command == "medir":
             print(measure_key_color(args.video))
+            return 0
+        if args.command == "ascensor-cuadros":
+            for still_id, entry in process_ascensor_stills(
+                    args.dir, args.similarity, args.blend).items():
+                print(f"[OK] {still_id} -> {entry['file']} "
+                      f"({entry['width']}x{entry['height']}, key {entry['keyColor']})")
+            return 0
+        if args.command == "ascensor":
+            if args.video is None or not args.video.exists():
+                print(f"[ERROR] no existe el master {args.video}", file=sys.stderr)
+                return 1
+            args.id = ELEVATOR_ARGS[args.clip]
+            entry = process_ascensor(args.id, args.video, args.similarity, args.blend)
+            print(f"[OK] {args.id} -> {entry['file']} ({entry['width']}x{entry['height']}, "
+                  f"{entry['frames']} cuadros a {entry['fps']} fps, key {entry['keyColor']})")
             return 0
         master = args.video or MASTERS / KINDS[args.command]["masters"] / f"{args.id}.mp4"
         if not master.exists():

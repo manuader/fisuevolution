@@ -1,5 +1,40 @@
 {
   "schemaVersion": 1,
   "portraits": {},
-  "cinematics": {}
+  "cinematics": {
+    "ascensor_abre": {
+      "file": "cine_ascensor_abre.mov",
+      "width": 720,
+      "height": 1280,
+      "fps": 30,
+      "frames": 19,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0x06F525"
+    },
+    "ascensor_cierra": {
+      "file": "cine_ascensor_cierra.mov",
+      "width": 720,
+      "height": 1280,
+      "fps": 30,
+      "frames": 23,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0x03F523"
+    }
+  },
+  "stills": {
+    "ascensor_abierta": {
+      "file": "cine_ascensor_abierta.png",
+      "width": 720,
+      "height": 1280,
+      "keyColor": "0x04F824"
+    },
+    "ascensor_cerrada": {
+      "file": "cine_ascensor_cerrada.png",
+      "width": 720,
+      "height": 1280,
+      "keyColor": "0x06FB0C"
+    }
+  }
 }

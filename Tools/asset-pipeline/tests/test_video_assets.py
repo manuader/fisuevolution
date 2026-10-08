@@ -95,6 +95,10 @@ class Identificadores(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_id("cinematica", "boda")
 
+    def test_los_clips_del_ascensor_son_cinematicas_validas(self):
+        for clip in ("ascensor_cierra", "ascensor_abre"):
+            validate_id("cinematica", clip)
+
 
 class ManifestVersionado(unittest.TestCase):
     """Sobre `Resources/Data/loops_manifest.json` versionado, no sobre una corrida
@@ -109,7 +113,9 @@ class ManifestVersionado(unittest.TestCase):
         # gemelo en Swift que no se entera si cambia solo de este lado.
         self.assertEqual(self.manifest["schemaVersion"], 1)
         self.assertEqual(self.manifest["schemaVersion"], video_assets.SCHEMA_VERSION)
-        self.assertEqual(set(self.manifest), {"schemaVersion", "portraits", "cinematics"})
+        self.assertEqual(
+            set(self.manifest), {"schemaVersion", "portraits", "cinematics", "stills"}
+        )
 
     def test_cada_entrada_apunta_a_su_pieza_con_su_tamano(self):
         campos = {"file", "width", "height", "fps", "frames", "alpha", "audio", "keyColor"}
@@ -126,12 +132,25 @@ class ManifestVersionado(unittest.TestCase):
                         self.assertTrue(entry["alpha"], "un retrato va siempre con alfa")
                         self.assertFalse(entry["audio"], "un loop de retrato es mudo")
 
+    def test_cada_cuadro_fijo_apunta_a_su_png_con_su_tamano(self):
+        for still_id, entry in self.manifest["stills"].items():
+            with self.subTest(id=still_id):
+                self.assertIn(still_id, video_assets.ELEVATOR_STILLS)
+                self.assertEqual(set(entry), {"file", "width", "height", "keyColor"})
+                self.assertEqual(entry["file"], f"cine_{still_id}.png")
+                self.assertEqual((entry["width"], entry["height"]), KINDS["cinematica"]["size"])
+                self.assertTrue((RESOURCES / "Cinematics" / entry["file"]).exists())
+
     def test_no_hay_piezas_huerfanas(self):
         for spec in KINDS.values():
             carpeta = RESOURCES / spec["dir"]
             en_disco = {p.name for p in carpeta.glob("*.mov")} if carpeta.exists() else set()
             declaradas = {e["file"] for e in self.manifest[spec["section"]].values()}
             self.assertEqual(en_disco, declaradas, spec["dir"])
+        carpeta = RESOURCES / "Cinematics"
+        en_disco = {p.name for p in carpeta.glob("*.png")} if carpeta.exists() else set()
+        declaradas = {e["file"] for e in self.manifest["stills"].values()}
+        self.assertEqual(en_disco, declaradas, "Cinematics (cuadros fijos)")
 
 
 def alfa_decodificable() -> bool:
@@ -238,6 +257,116 @@ class DePuntaAPunta(unittest.TestCase):
         frame = self.cuadro(self.resources / "Cinematics" / "cine_dios.mov")
         self.assertEqual(frame[..., 3].min(), 255)
         self.assertGreater(frame[4, 4, 1], 100, "el verde queda: no se keyeo")
+
+    # --- El ascensor: las esquinas son la cabina, el verde esta en el hueco ---
+
+    HUECO = "0x04F523"
+    VENTANA = "0x03FA0E"
+
+    def master_de_puertas(self, width=360, height=640, abierto_primero=True) -> Path:
+        """73 cuadros a 24 fps (como los masters de Higgsfield): la cabina gris
+        en todos lados, el hueco verde en un cuadro y las dos ventanas en el otro."""
+        w, h = width, height
+        hueco = f"drawbox=x={int(w * .2)}:y={int(h * .2)}:w={int(w * .6)}:h={int(h * .6)}:color={self.HUECO}:t=fill"
+        ventanas = ",".join(
+            f"drawbox=x={int(w * x)}:y={int(h * .25)}:w={int(w * .12)}:h={int(h * .4)}:color={self.VENTANA}:t=fill"
+            for x in (.28, .60)
+        )
+        abierto, cerrado = (hueco, ventanas) if abierto_primero else (ventanas, hueco)
+        path = self.root / f"puertas_{abierto_primero}.mp4"
+        gris = f"color=c=0x808080:s={w}x{h}:r=24:d=1.5"
+        subprocess.run(
+            ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", gris, "-f", "lavfi", "-i", gris,
+             "-filter_complex",
+             f"[0]{abierto}[a];[1]{cerrado}[b];[a][b]concat=n=2:v=1:a=0,trim=end_frame=73",
+             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-y", str(path)],
+            check=True,
+        )
+        return path
+
+    def cuadros(self, mov: Path) -> np.ndarray:
+        info = video_assets.video_stream(video_assets.probe(mov))
+        raw = subprocess.run(
+            ["ffmpeg", "-v", "error", "-i", str(mov), "-pix_fmt", "rgba",
+             "-f", "rawvideo", "-"], capture_output=True, check=True,
+        ).stdout
+        return np.frombuffer(raw, np.uint8).reshape(-1, info["height"], info["width"], 4).astype(int)
+
+    def test_el_ascensor_mide_el_verde_en_el_hueco(self):
+        master = self.master_de_puertas()
+        with self.assertRaises(MasterError):
+            video_assets.measure_key_color(master)
+        medido = rgb(video_assets.measure_key_in_regions(
+            master, "first", video_assets.HOLE_POINTS, video_assets.WINDOW_POINTS))
+        self.assertLessEqual(np.abs(medido - rgb(self.HUECO)).max(), 4)
+
+    def test_los_dos_verdes_del_ascensor_se_keyean(self):
+        entry = video_assets.process_ascensor("ascensor_cierra", self.master_de_puertas())
+
+        cuadros = self.cuadros(self.resources / "Cinematics" / "cine_ascensor_cierra.mov")
+        abierto, cerrado = cuadros[0], cuadros[-1]
+        h, w = abierto.shape[:2]
+        self.assertLessEqual(np.abs(rgb(entry["keyColor"]) - rgb(self.HUECO)).max(), 4)
+        if not alfa_decodificable():
+            self.skipTest("este ffmpeg no decodifica el alfa del HEVC de Apple")
+        self.assertEqual(abierto[h // 2, w // 2, 3], 0, "el hueco")
+        self.assertEqual(abierto[10, 10, 3], 255, "la cabina")
+        for fx in (.34, .66):
+            self.assertEqual(cerrado[int(h * .45), int(w * fx), 3], 0, f"la ventana en {fx}")
+        self.assertEqual(cerrado[h // 2, w // 2, 3], 255, "la puerta entre las ventanas")
+
+    def test_el_ascensor_se_recorta_y_acelera(self):
+        for clip, segundos in (("ascensor_cierra", .75), ("ascensor_abre", .65)):
+            with self.subTest(clip=clip):
+                abierto = video_assets.ELEVATOR_CLIPS[clip][0] == "first"
+                entry = video_assets.process_ascensor(clip, self.master_de_puertas(abierto_primero=abierto))
+
+                mov = self.resources / "Cinematics" / f"cine_{clip}.mov"
+                info = video_assets.probe(mov)
+                video = video_assets.video_stream(info)
+                self.assertLessEqual(abs(entry["frames"] - segundos * 30), 1)
+                self.assertEqual(entry["fps"], 30)
+                self.assertEqual((video["width"], video["height"]), (720, 1280))
+                self.assertFalse(video_assets.has_audio(info))
+                self.assertTrue(entry["alpha"])
+                manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
+                self.assertEqual(manifest["cinematics"][clip], entry)
+
+    def test_los_cuadros_del_ascensor_salen_keyeados_y_registrados(self):
+        w, h = 1520, 2688
+        fuente = self.root / "cuadros"
+        fuente.mkdir()
+        cajas = {
+            "cabina_abierta.png": [(.2, .2, .6, .6, self.HUECO), (.02, .02, .1, .1, "0xFFC02B")],
+            "cabina_cerrada.png": [(.28, .25, .12, .4, self.VENTANA), (.60, .25, .12, .4, self.VENTANA)],
+        }
+        for archivo, rectangulos in cajas.items():
+            filtro = ",".join(
+                f"drawbox=x={int(w * x)}:y={int(h * y)}:w={int(w * ancho)}:h={int(h * alto)}:color={c}:t=fill"
+                for x, y, ancho, alto, c in rectangulos
+            )
+            subprocess.run(
+                ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", f"color=c=0x808080:s={w}x{h}",
+                 "-vf", filtro, "-frames:v", "1", "-y", str(fuente / archivo)], check=True)
+
+        entries = video_assets.process_ascensor_stills(fuente)
+
+        manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
+        self.assertEqual(manifest["stills"], entries)
+        self.assertEqual(set(entries), {"ascensor_cerrada", "ascensor_abierta"})
+        for still_id, hueco in (("ascensor_abierta", (.5, .5)), ("ascensor_cerrada", (.34, .45))):
+            with self.subTest(still_id=still_id):
+                entry = entries[still_id]
+                self.assertEqual(entry["file"], f"cine_{still_id}.png")
+                with Image.open(self.resources / "Cinematics" / entry["file"]) as img:
+                    self.assertEqual((img.mode, img.size), ("RGBA", (720, 1280)))
+                    pixels = np.asarray(img).astype(int)
+                self.assertEqual(pixels[int(1280 * hueco[1]), int(720 * hueco[0]), 3], 0)
+                self.assertEqual(pixels[10, 10, 3], 255)
+        # El amarillo de la cabina sobrevive: sin despill no vira a naranja.
+        with Image.open(self.resources / "Cinematics" / "cine_ascensor_abierta.png") as img:
+            amarillo = np.asarray(img).astype(int)[1280 // 20, 720 // 20]
+        self.assertGreater(amarillo[1], 170, f"el amarillo viro: {amarillo}")
 
 
 if __name__ == "__main__":

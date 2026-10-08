@@ -105,6 +105,7 @@ public enum BoardChangePlanner {
         tower: TowerState,
         tiers: TierRepository,
         floorTable: FloorTable,
+        config: EconomyConfig,
         origin: BoardChange.Origin
     ) -> [BoardChange] {
         guard tower.floors.indices.contains(floorOrdinal) else { return [] }
@@ -116,7 +117,7 @@ public enum BoardChangePlanner {
             guard let change = lowestPair(onFloor: floorOrdinal, state: scratchState, tower: scratchTower,
                                           tiers: tiers, floorTable: floorTable, origin: origin),
                   (try? BoardChangeApplier.apply(change, state: &scratchState, tower: &scratchTower,
-                                                tiers: tiers, floorTable: floorTable)) != nil
+                                                tiers: tiers, floorTable: floorTable, config: config)) != nil
             else { break }
             plan.append(change)
         }
@@ -262,7 +263,8 @@ public enum BoardChangeApplier {
         state: inout PlayerState,
         tower: inout TowerState,
         tiers: TierRepository,
-        floorTable: FloorTable
+        floorTable: FloorTable,
+        config: EconomyConfig
     ) throws -> BoardChangeOutcome {
         let tierBefore = state.run.maxTierReached
         guard isStillWhatWasPlanned(change, in: tower) else { throw TowerError.invalidSlot }
@@ -270,18 +272,18 @@ public enum BoardChangeApplier {
         case let .merge(ordinal, _, source, target, newTypeId):
             let result = try TowerActions.applyMerge(
                 floorOrdinal: ordinal, sourceSlot: source, targetSlot: target, newTypeId: newTypeId,
-                state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+                state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: config
             )
             return outcome(result, tierBefore: tierBefore)
         case let .evolve(ordinal, slot, _, newTypeId):
             let result = try TowerActions.evolveUnit(
                 floorOrdinal: ordinal, slot: slot, newTypeId: newTypeId,
-                state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+                state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: config
             )
             return outcome(result, tierBefore: tierBefore)
         case let .arrival(typeId):
             let placement = try TowerActions.placeUnit(
-                typeId: typeId, state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+                typeId: typeId, state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: config
             )
             return BoardChangeOutcome(slot: placement.slot, resultTypeId: typeId, tierBefore: tierBefore,
                                       promotedToFloor: nil, unlockedFloorId: nil)

@@ -78,7 +78,7 @@ struct TowerActionsTests {
         let slots = fxSlots(of: "a", onFloor: 0, in: tower)
         let result = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: slots[0], targetSlot: slots[1],
-            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
         #expect(result == .stayed(floorOrdinal: 0, slot: slots[1], newTypeId: "b"))
         #expect(state.run.units == ["b": 1])
@@ -92,7 +92,7 @@ struct TowerActionsTests {
         let slots = fxSlots(of: "a", onFloor: 0, in: tower)
         _ = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: slots[0], targetSlot: slots[1],
-            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
         #expect(state.run.maxTierReached == 4)
     }
@@ -104,7 +104,7 @@ struct TowerActionsTests {
         let slots = fxSlots(of: "b", onFloor: 0, in: tower)
         let result = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: slots[0], targetSlot: slots[1],
-            newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
         guard case .promoted(let toFloor, let slot, let newTypeId, let unlockedFloorId) = result else {
             Issue.record("expected .promoted, got \(result)")
@@ -124,7 +124,7 @@ struct TowerActionsTests {
         let slots = fxSlots(of: "b", onFloor: 0, in: tower)
         let result = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: slots[0], targetSlot: slots[1],
-            newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
         guard case .promoted(_, _, _, let unlockedFloorId) = result else {
             Issue.record("expected .promoted")
@@ -142,7 +142,7 @@ struct TowerActionsTests {
         #expect(throws: TowerError.destinationFloorFull(floorId: "f2")) {
             try TowerActions.applyMerge(
                 floorOrdinal: 0, sourceSlot: slots[0], targetSlot: slots[1],
-                newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+                newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
             )
         }
         #expect(state == before.0)

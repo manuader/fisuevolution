@@ -10,7 +10,15 @@ public enum PrestigeCalculator {
     }
 
     public static func canReincarnate(state: PlayerState, economy: StandardEconomy) -> Bool {
-        oroGained(state: state, economy: economy) >= 1
+        oroGained(state: state, economy: economy) >= 1 && lastRunWallGoal(state: state, economy: economy) == nil
+    }
+
+    /// El tier al que todavía hay que llegar para reencarnar (piso móvil), o
+    /// `nil` si no se pide nada: la perilla apagada, la primera reencarnación
+    /// (`lastRunMaxTier` en 0) o la pared ya alcanzada.
+    public static func lastRunWallGoal(state: PlayerState, economy: StandardEconomy) -> Int? {
+        guard economy.config.oro.requiresWall, state.run.maxTierReached < state.meta.lastRunMaxTier else { return nil }
+        return state.meta.lastRunMaxTier
     }
 
     /// Reencarnar: `run = .fresh(...)` (muere TODO lo de la run — imposible

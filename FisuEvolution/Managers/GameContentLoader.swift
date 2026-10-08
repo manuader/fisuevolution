@@ -3,7 +3,7 @@ import Foundation
 
 /// Everything data-driven the game needs, loaded and validated once at launch.
 struct GameContent: Sendable {
-    let economy: EconomyConfig
+    var economy: EconomyConfig
     let tiers: TierRepository
     /// La Torre (F7): mapeo tier→piso validado, derivado de `economy.floors`.
     let floorTable: FloorTable

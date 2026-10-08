@@ -351,4 +351,18 @@ final class GameState {
     init(repository: PlayerStateRepository? = nil) {
         self.injectedRepository = repository
     }
+
+    #if DEBUG
+    /// Cambia las perillas de `economy.json` en vivo: el panel de debug y los
+    /// tests (PLAN-v2 E2a). La torre no se toca, así que una config que mueva
+    /// `floors[]` se rechaza.
+    func replaceEconomy(_ config: EconomyConfig) {
+        guard var content, config.floors == content.economy.floors else { return }
+        content.economy = config
+        self.content = content
+        economy = StandardEconomy(config: config)
+        effectsVersion += 1
+        refreshProjections()
+    }
+    #endif
 }

@@ -421,7 +421,8 @@ public enum TowerActions {
         state: inout PlayerState,
         tower: inout TowerState,
         tiers: TierRepository,
-        floorTable: FloorTable
+        floorTable: FloorTable,
+        config: EconomyConfig
     ) throws -> TowerMergeResult {
         guard let sourceType = tower.typeId(floorOrdinal: floorOrdinal, slot: sourceSlot),
               let targetType = tower.typeId(floorOrdinal: floorOrdinal, slot: targetSlot),
@@ -450,8 +451,14 @@ public enum TowerActions {
         // `TowerReconciler` tampoco pasa por acá, y eso es a propósito: es de la
         // carga, no del jugador.
         state.meta.stats.totalMergesEver += 1
+        // El reintegro (PLAN-v2 E2a): junto al resto de la mutación, así que un
+        // merge que tira no ocurrió y no devuelve nada.
+        state.run.refundMergeCounts(
+            typeId: sourceType, floorId: floorTable[floorOrdinal].id, counts: config.hire.mergeRefundCounts
+        )
 
-        return land(newType, from: floorOrdinal, slot: targetSlot, state: &state, tower: &tower, floorTable: floorTable)
+        return land(newType, from: floorOrdinal, slot: targetSlot, state: &state, tower: &tower,
+                    floorTable: floorTable, cushion: config.priceCushion)
     }
 
     /// Una unidad sube sola un tier ("Startup comprada"): el mismo ascenso que un
@@ -463,7 +470,8 @@ public enum TowerActions {
         state: inout PlayerState,
         tower: inout TowerState,
         tiers: TierRepository,
-        floorTable: FloorTable
+        floorTable: FloorTable,
+        config: EconomyConfig
     ) throws -> TowerMergeResult {
         guard let typeId = tower.typeId(floorOrdinal: floorOrdinal, slot: slot),
               let newType = tiers.type(id: newTypeId)
@@ -475,7 +483,8 @@ public enum TowerActions {
         tower.floors[floorOrdinal].slots[slot] = nil
         state.run.units[typeId, default: 0] -= 1
         if state.run.units[typeId] == 0 { state.run.units[typeId] = nil }
-        return land(newType, from: floorOrdinal, slot: slot, state: &state, tower: &tower, floorTable: floorTable)
+        return land(newType, from: floorOrdinal, slot: slot, state: &state, tower: &tower,
+                    floorTable: floorTable, cushion: config.priceCushion)
     }
 
     /// Una unidad que llega sin comprarse (Blanqueo, video, paquete, visitante):
@@ -485,7 +494,8 @@ public enum TowerActions {
         state: inout PlayerState,
         tower: inout TowerState,
         tiers: TierRepository,
-        floorTable: FloorTable
+        floorTable: FloorTable,
+        config: EconomyConfig
     ) throws -> TowerPlacement {
         guard let type = tiers.type(id: typeId), !type.isChoiceNode else { throw TowerError.invalidSlot }
         let ordinal = floorTable.ordinal(forTier: type.tier)
@@ -494,7 +504,7 @@ public enum TowerActions {
         tower.floors[ordinal].slots[slot] = typeId
         state.run.units[typeId, default: 0] += 1
         state.run.markSeen(typeId)
-        state.run.raiseFrontier(to: type.tier)
+        state.run.raiseFrontier(to: type.tier, cushion: config.priceCushion)
         return TowerPlacement(floorOrdinal: ordinal, slot: slot, typeId: typeId)
     }
 
@@ -505,11 +515,12 @@ public enum TowerActions {
         slot: Int,
         state: inout PlayerState,
         tower: inout TowerState,
-        floorTable: FloorTable
+        floorTable: FloorTable,
+        cushion: PriceCushion
     ) -> TowerMergeResult {
         state.run.units[newType.id, default: 0] += 1
         state.run.markSeen(newType.id)
-        state.run.raiseFrontier(to: newType.tier)
+        state.run.raiseFrontier(to: newType.tier, cushion: cushion)
         let destinationOrdinal = floorTable.ordinal(forTier: newType.tier)
         guard destinationOrdinal != ordinal else {
             tower.floors[ordinal].slots[slot] = newType.id

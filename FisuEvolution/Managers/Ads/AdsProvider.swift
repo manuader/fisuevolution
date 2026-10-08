@@ -133,7 +133,7 @@ final class StubAdsProvider: AdsProvider {
 /// Mirrored 1:1 from `rewarded_ads.json` — the four effects of bible §4.4 plus
 /// el cofre de pintas, que llegó con el sistema de cofres.
 struct RewardedAdsConfig: Codable, Sendable, Equatable {
-    enum EffectType: String, Codable, Sendable {
+    enum EffectType: String, Codable, Sendable, CaseIterable {
         /// Temporary income multiplier (double earnings / temp multiplier).
         case incomeMultiplier
         /// Free instant merge of the highest mergeable pair (accelerate evolution).

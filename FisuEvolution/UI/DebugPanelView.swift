@@ -57,28 +57,6 @@ struct DebugPanelView: View {
                             gameState.debugTimeScale = on ? 60 : 1
                         }
                 }
-                // El selector del dueño (PLAN-v2 §2, "Precios"): la curva y el
-                // reintegro se prueban en pares; "v1" es lo que shippea hoy.
-                Section("Economía 2.0 (E2a)") {
-                    Picker("Curva · reintegro", selection: curveBinding) {
-                        ForEach(Self.curves.indices, id: \.self) { index in
-                            Text(Self.curves[index].name).tag(index)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .accessibilityIdentifier("debug.e2a.curve")
-                    Toggle("Amortiguador (K = 24)", isOn: knobToggle(\.priceReliefPurchases, on: 24))
-                        .accessibilityIdentifier("debug.e2a.cushion")
-                    Toggle("Pisos en marcha (+5 %)", isOn: knobToggle(\.staffedFloorBonus, on: 0.05))
-                        .accessibilityIdentifier("debug.e2a.staffed")
-                    Toggle("Piso móvil", isOn: knobToggle(\.requiresLastRunWall, on: true))
-                        .accessibilityIdentifier("debug.e2a.wall")
-                    Button("Fusionar todo (piso visible)") {
-                        gameState.debugMergeAllOnVisibleFloor()
-                        dismiss()
-                    }
-                    .accessibilityIdentifier("debug.e2a.mergeAll")
-                }
                 Section("Offline") {
                     Button("Simular 4 h offline") {
                         gameState.debugSimulateOffline(hours: 4)
@@ -133,6 +111,31 @@ struct DebugPanelView: View {
                         dismiss()
                     }
                     .accessibilityIdentifier("debug.sheet.open")
+                }
+                // ⚠️ Va DESPUÉS de las puertas de los tests (Specials, Cofres,
+                // Ficha): la List es perezosa y una fila bajo el pliegue no existe
+                // para XCUITest, así que crecer por arriba las deja sin tap.
+                // El selector del dueño (PLAN-v2 §2, "Precios"): la curva y el
+                // reintegro se prueban en pares; "v1" es lo que shippea hoy.
+                Section("Economía 2.0 (E2a)") {
+                    Picker("Curva · reintegro", selection: curveBinding) {
+                        ForEach(Self.curves.indices, id: \.self) { index in
+                            Text(Self.curves[index].name).tag(index)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityIdentifier("debug.e2a.curve")
+                    Toggle("Amortiguador (K = 24)", isOn: knobToggle(\.priceReliefPurchases, on: 24))
+                        .accessibilityIdentifier("debug.e2a.cushion")
+                    Toggle("Pisos en marcha (+5 %)", isOn: knobToggle(\.staffedFloorBonus, on: 0.05))
+                        .accessibilityIdentifier("debug.e2a.staffed")
+                    Toggle("Piso móvil", isOn: knobToggle(\.requiresLastRunWall, on: true))
+                        .accessibilityIdentifier("debug.e2a.wall")
+                    Button("Fusionar todo (piso visible)") {
+                        gameState.debugMergeAllOnVisibleFloor()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.e2a.mergeAll")
                 }
                 Section("Peligro") {
                     Button("Resetear partida", role: .destructive) {

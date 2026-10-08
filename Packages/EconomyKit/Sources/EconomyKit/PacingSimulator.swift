@@ -801,6 +801,7 @@ public struct PacingSimulator: Sendable {
                 * floorTable.floor(forTier: type.tier).incomeMultiplier
         }
         return total * state.meta.globalMultiplier * state.meta.derivedEffects.incomeMultiplier
+            * StaffedFloors.multiplier(state: state, tiers: tiers, floorTable: floorTable, config: config)
     }
 
     /// Qué mejora por personaje comprar: la de mejor **income por moneda**.
@@ -887,6 +888,7 @@ public struct PacingSimulator: Sendable {
                 * state.meta.derivedEffects.tapMultiplier
                 * state.meta.derivedEffects.incomeMultiplier
                 * state.meta.globalMultiplier
+                * StaffedFloors.multiplier(state: state, tiers: tiers, floorTable: floorTable, config: config)
         }
         return rate
     }

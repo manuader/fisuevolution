@@ -19,7 +19,7 @@ import Testing
 /// —los Senior de corporativo, el techo del urbano— y por eso siguen siendo
 /// buenos: prueban que lo que el atajo ofrece o deja afuera **estaba pagable y
 /// contratable**, no simplemente fuera de alcance. El porqué de la vuelta
-/// atrás, con los tres datos que la sostienen, está en `computeBestHire()`.
+/// atrás, con los tres datos que la sostienen, está en `computeQuickHireOffer()`.
 ///
 /// FisuJobs nunca cambió en ninguna de las dos: siempre vendió todo lo
 /// desbloqueado. Lo que se movió fue el atajo, y sólo el atajo.
@@ -28,9 +28,9 @@ import Testing
 /// lugar libre y —sobre todo— tipo YA VISTO): esta proyección no inventa
 /// autorización propia, la consume. Por eso el test del `unseen` es el que más
 /// importa: es el único que impide que el botón espoilee la cadena (RF-03).
-@Suite("bestHire: el tier base del piso más alto que la plata alcanza", .serialized)
+@Suite("quickHireOffer: la oferta del atajo de contratar", .serialized)
 @MainActor
-struct BestHireTests {
+struct QuickHireOfferTests {
     /// Plata suficiente, escrita directo sobre el saldo.
     ///
     /// `debugGrantCoins()` acredita **un millón fijo** en estos escenarios (su
@@ -55,7 +55,7 @@ struct BestHireTests {
 
         // Con un millón en la mano, lo que manda es la compuerta y no el saldo:
         // el callejón es el único piso abierto y el Fisura el único tipo visto.
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         #expect(best.typeId == "homeless")
         #expect(best.tier == 1, "el firstTier del callejón (floorTable: alley 1-4)")
         // Traducido y con el runner en inglés: se pinea que haya nombre, no cuál
@@ -73,7 +73,7 @@ struct BestHireTests {
 
         // Arrancás con 0 monedas: la oferta igual existe (el botón muestra a
         // cuánto hay que llegar), pero desaturada.
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         #expect(best.typeId == "homeless")
         #expect(best.costText == "25")
         #expect(!best.affordable, "sin plata la oferta es meta, no compra")
@@ -119,7 +119,7 @@ struct BestHireTests {
         #expect(senior.state == .hirable, "el tier 12 está contratable de verdad")
         #expect(senior.affordable, "y la plata le alcanza")
 
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         #expect(best.tier == 12, "el más alto pagable, no el firstTier de corporativo")
         #expect(best.typeId == "senior_architect")
         #expect(best.affordable)
@@ -156,7 +156,7 @@ struct BestHireTests {
         try giveCoins(1_000_000_000, to: gameState)
         gameState.refreshProjections()
 
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         #expect(best.tier == 8, "el tope del urbano que la compuerta habilita")
         #expect(best.typeId == "fast_food")
         #expect(best.affordable)
@@ -202,7 +202,7 @@ struct BestHireTests {
         try giveCoins(oficinistaCost - 1, to: gameState)
         gameState.refreshProjections()
 
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         #expect(best.tier == 8, "un tier abajo del techo, no un piso entero")
         #expect(best.typeId == "fast_food")
         #expect(best.affordable)
@@ -222,7 +222,7 @@ struct BestHireTests {
         try giveCoins(10_000_000, to: gameState)
         gameState.refreshProjections()
 
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         let player = try #require(gameState.player)
         #expect(player.run.seenTypes.contains(best.typeId), "RF-03: no se espoilea la cadena")
         #expect(best.tier == 1,
@@ -235,7 +235,7 @@ struct BestHireTests {
         let gameState = await makeGameState()
         // Tres tier base contratables (Fisura, Mantero y Oficinista) y cero
         // monedas: acá el que elige es el `min` por costo, no el único candidato
-        // que hay. Es la única rama de `computeBestHire` donde el criterio de
+        // que hay. Es la única rama de `computeQuickHireOffer` donde el criterio de
         // PRECIO sigue teniendo con qué comparar; el desempate por id de ese
         // mismo `min` es tan inalcanzable como los dos del `max`, porque después
         // del filtro de tier base dos candidatos distintos no cotizan igual.
@@ -244,7 +244,7 @@ struct BestHireTests {
         try giveCoins(0, to: gameState)
         gameState.refreshProjections()
 
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         #expect(best.typeId == "homeless", "el más barato de los tier base contratables")
         #expect(best.tier == 1)
         // ⚠️ **Acá el Fisura ya no sale 25, y son las dos mitades nuevas de la
@@ -278,7 +278,7 @@ struct BestHireTests {
         // la oferta se caería de tier y el test mediría otra cosa.
         try giveCoins(2_000_000_000_000, to: gameState)
         gameState.refreshProjections()
-        let before = try #require(gameState.bestHire)
+        let before = try #require(gameState.quickHireOffer)
         #expect(before.typeId == "senior_architect", "empate a cuatro: gana el id ascendente")
 
         gameState.hireCharacter(typeId: "senior_architect")
@@ -286,7 +286,7 @@ struct BestHireTests {
 
         // La compra entró de verdad —si no, el test no probaría nada—.
         #expect(gameState.player?.run.hireCountsByType["senior_architect"] == 1)
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         #expect(best.tier == 12, "sigue siendo el tier más alto: lo que se movió es CUÁL")
         #expect(best.typeId == "senior_doctor", "el Arquitecto se encareció y pasó el siguiente")
     }
@@ -327,7 +327,7 @@ struct BestHireTests {
         #expect(Set(quotes).count == 1, "los cuatro cotizan 370.348.029.352,24")
         #expect(abs(try #require(quotes.first) - 370_348_029_352.24) < 0.01)
 
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         #expect(best.tier == 12)
         #expect(best.typeId == "senior_architect", "el primero en orden alfabético de los cuatro empatados")
         #expect(best.affordable)
@@ -346,11 +346,11 @@ struct BestHireTests {
         gameState.refreshProjections()
 
         #expect(gameState.floorOccupancy(ordinal: 0).occupied == capacity)
-        #expect(gameState.bestHire == nil, "sin nada contratable el botón no se dibuja")
+        #expect(gameState.quickHireOffer == nil, "sin nada contratable el botón no se dibuja")
 
         let unitsBefore = try #require(gameState.player?.run.units)
         let coinsBefore = try #require(gameState.player?.run.coins)
-        gameState.hireBestCharacter()
+        gameState.hireQuickOffer()
         #expect(gameState.player?.run.units == unitsBefore, "sin oferta no hay compra")
         #expect(gameState.player?.run.coins == coinsBefore)
     }
@@ -362,12 +362,12 @@ struct BestHireTests {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
         gameState.refreshProjections()
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         let unitsBefore = try #require(gameState.player?.run.totalUnits)
         let coinsBefore = try #require(gameState.player?.run.coins)
         let boardBefore = gameState.boardVersion
 
-        gameState.hireBestCharacter()
+        gameState.hireQuickOffer()
 
         #expect(gameState.player?.run.totalUnits == unitsBefore + 1)
         #expect(gameState.player?.run.units[best.typeId] == 2, "la unidad es la que ofrecía el botón")
@@ -392,7 +392,7 @@ struct BestHireTests {
         gameState.refreshProjections()
 
         // Partida nueva: cero monedas y el Fisura a 25 como meta de ahorro.
-        let best = try #require(gameState.bestHire)
+        let best = try #require(gameState.quickHireOffer)
         #expect(!best.affordable, "el escenario del test es justamente el saldo corto")
 
         let unitsBefore = try #require(gameState.player?.run.units)
@@ -400,7 +400,7 @@ struct BestHireTests {
         let coinsBefore = try #require(gameState.player?.run.coins)
         let hiresBefore = try #require(gameState.player?.meta.stats.totalHiresEver)
 
-        gameState.hireBestCharacter()
+        gameState.hireQuickOffer()
 
         #expect(gameState.player?.run.units == unitsBefore, "no se coloca ninguna unidad")
         #expect(gameState.player?.run.totalUnits == totalUnitsBefore)
@@ -412,7 +412,7 @@ struct BestHireTests {
         // Y la oferta sigue igual después del rechazo: el botón no se apaga ni
         // cambia de personaje por haberlo tocado.
         gameState.refreshProjections()
-        #expect(gameState.bestHire == best)
+        #expect(gameState.quickHireOffer == best)
     }
 
     @Test("comprar mueve la oferta: la curva del tipo sube y el precio nuevo se publica")
@@ -420,9 +420,9 @@ struct BestHireTests {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
         gameState.refreshProjections()
-        #expect(gameState.bestHire?.costText == "25")
+        #expect(gameState.quickHireOffer?.costText == "25")
 
-        gameState.hireBestCharacter()
+        gameState.hireQuickOffer()
         gameState.refreshProjections()
 
         // Mismo tipo (sigue siendo el único visto) pero un escalón más caro:
@@ -433,8 +433,8 @@ struct BestHireTests {
         // Que se lea "26" y no "25" es `CoinFormatter.cost`, que redondea los
         // precios hacia ARRIBA: con 25,75 truncado este assert se caía, y con él
         // otros tres. Un precio nunca puede leerse más barato de lo que se cobra.
-        #expect(gameState.bestHire?.typeId == "homeless")
-        #expect(gameState.bestHire?.costText == "26", "el segundo Fisura cuesta 25,75 (growth 1,03)")
+        #expect(gameState.quickHireOffer?.typeId == "homeless")
+        #expect(gameState.quickHireOffer?.costText == "26", "el segundo Fisura cuesta 25,75 (growth 1,03)")
     }
 
     // MARK: La proyección
@@ -452,13 +452,13 @@ struct BestHireTests {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
         gameState.refreshProjections()
-        #expect(gameState.bestHire != nil)
+        #expect(gameState.quickHireOffer != nil)
 
         // Ocho veces por segundo con la oferta quieta: escribir igual
         // invalidaría SwiftUI en cada flush.
         let quiet = PublishFlag()
         withObservationTracking {
-            _ = gameState.bestHire
+            _ = gameState.quickHireOffer
         } onChange: {
             quiet.published = true
         }
@@ -468,7 +468,7 @@ struct BestHireTests {
         // Y cuando cambia de verdad, sí se publica.
         let moved = PublishFlag()
         withObservationTracking {
-            _ = gameState.bestHire
+            _ = gameState.quickHireOffer
         } onChange: {
             moved.published = true
         }

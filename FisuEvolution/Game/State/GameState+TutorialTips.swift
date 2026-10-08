@@ -148,7 +148,7 @@ extension GameState {
         case .elevator:
             unlockedFloorsCount >= 2
         case .quickHire:
-            bestHire?.affordable == true
+            quickHireOffer?.affordable == true
         case .skins:
             // "Tener una pinta que ponerse", literal — que es la regla de oro
             // aplicada a esta pantalla. La proyección publica `allOwnedSkins`

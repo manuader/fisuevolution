@@ -77,13 +77,13 @@ struct JobRow: Identifiable, Equatable {
 /// regla desde el 2026-08-28: el atajo no recorta nada que la pantalla de
 /// laburos no recorte. Entre el 2026-08-21 y esa fecha vendió sólo el tier base
 /// del piso (§4.5 del rebalance) — el porqué de la vuelta atrás, con los tres
-/// datos que la sostienen, está en `computeBestHire()`.
+/// datos que la sostienen, está en `computeQuickHireOffer()`.
 ///
 /// Es una fila de FisuJobs recortada a lo que el botón dibuja, y no un `JobRow`
 /// entero, porque el botón no muestra ni el income ni cuántos tenés ni el piso:
 /// publicar los quince campos invitaría a la vista a decidir con ellos, que es
 /// justo lo que esta proyección viene a evitar.
-struct BestHire: Equatable {
+struct QuickHireOffer: Equatable {
     let typeId: String
     let displayName: String
     let faceKey: String
@@ -159,7 +159,7 @@ extension GameState {
     /// Calcula la oferta del botón "contratar al mejor".
     ///
     /// La llama SOLO `refreshProjections` (8 Hz): la vista lee la proyección
-    /// publicada `bestHire` y nunca esto. Vive en ESTE archivo y no junto a las
+    /// publicada `quickHireOffer` y nunca esto. Vive en ESTE archivo y no junto a las
     /// otras proyecciones porque se apoya en `jobState`, que es `private` y en
     /// Swift eso alcanza al tipo y a sus extensiones **del mismo archivo**.
     ///
@@ -193,7 +193,7 @@ extension GameState {
     ///   abarata 1,5× pero duplica las unidades que hay que fusionar, así que
     ///   comprar hondo ya está penalizado por el precio y no hace falta que además
     ///   lo impida el botón.
-    func computeBestHire() -> BestHire? {
+    func computeQuickHireOffer() -> QuickHireOffer? {
         guard let content, let player else { return nil }
         let coins = player.run.coins
 
@@ -243,7 +243,7 @@ extension GameState {
             return nil
         }
 
-        return BestHire(
+        return QuickHireOffer(
             typeId: pick.type.id,
             displayName: pick.type.localizedName,
             faceKey: "\(pick.type.id)_face",
@@ -259,8 +259,8 @@ extension GameState {
     /// su cuenta: FTUE, hápticos, audio, logros, aviso de piso lleno y save
     /// salen de ahí, y una segunda ruta de compra sería una segunda lista de
     /// efectos que mantener sincronizada.
-    func hireBestCharacter() {
-        guard let best = bestHire else { return }
+    func hireQuickOffer() {
+        guard let best = quickHireOffer else { return }
         hireCharacter(typeId: best.typeId)
     }
 

@@ -2,22 +2,22 @@ import SwiftUI
 
 /// El atajo de contratación de la pantalla principal: compra **al mejor
 /// personaje que la plata alcanza** —el tier más alto entre los contratables,
-/// proyección `bestHire`—, sin abrir FisuJobs. Mismo contrato visual que
+/// proyección `quickHireOffer`—, sin abrir FisuJobs. Mismo contrato visual que
 /// `PricePill`: nunca `.disabled`, verde cuando alcanza, temblor cuando no.
 ///
 /// ⚠️ Un toque compra lo mismo que tres toques en FisuJobs: el atajo dejó de
-/// recortar el 2026-08-28. El porqué está en `computeBestHire()`.
+/// recortar el 2026-08-28. El porqué está en `computeQuickHireOffer()`.
 ///
 /// La cara viene del atlas por `faceKey` (las 43 existen — auditoría RF-05);
 /// no lleva fallback vectorial porque `UIArt` ya cae a su placeholder.
 ///
 /// ⚠️ **La oferta NO se recalcula al tocar.** El botón lee la proyección
-/// publicada y le pasa el `typeId` a `hireBestCharacter()`, que hace lo mismo:
+/// publicada y le pasa el `typeId` a `hireQuickOffer()`, que hace lo mismo:
 /// en el filo de los ~125 ms de `refreshProjections` se puede tocar una oferta
 /// recién vencida, y eso es deliberado — `TowerActions.hire` revalida piso,
 /// gate, saldo y lugar, así que lo peor que pasa es un `hire rejected` con su
 /// háptico de error. Recalcular acá sería una segunda regla de selección que
-/// mantener sincronizada con `computeBestHire`, que es justo lo que la
+/// mantener sincronizada con `computeQuickHireOffer`, que es justo lo que la
 /// proyección viene a evitar.
 ///
 /// ⚠️ Sin `.tutorialAnchor`: el tutorial no lo ilumina en ningún paso (el paso
@@ -74,19 +74,19 @@ struct QuickHireButton: View {
     static let capsuleHeight: CGFloat = 56
 
     var body: some View {
-        if let best = gameState.bestHire {
+        if let best = gameState.quickHireOffer {
             button(for: best)
         }
     }
 
-    private func button(for best: BestHire) -> some View {
+    private func button(for best: QuickHireOffer) -> some View {
         Button {
             gameState.tutorialTipCompleted(.quickHire)
             // El temblor reemplaza al `.disabled` (patrón `PricePill`): dice "no
             // te alcanza" sin apagar el botón. Va ANTES de la acción, que en el
             // caso caro no va a comprar nada.
             if !best.affordable, !reduceMotion { shake += 1 }
-            gameState.hireBestCharacter()
+            gameState.hireQuickOffer()
         } label: {
             HStack(spacing: Tokens.s8) {
                 GameIcon(artKey: best.faceKey, size: 40) { EmptyView() }
@@ -194,7 +194,7 @@ struct QuickHireButton: View {
     /// "Contratar a {nombre}, {monto} monedas": propósito + monto CON su
     /// moneda, mismo reparto que arma `PricePill` (el glifo de la moneda es un
     /// dibujo y VoiceOver no lo ve).
-    private func spokenLabel(for best: BestHire) -> Text {
+    private func spokenLabel(for best: QuickHireOffer) -> Text {
         Text(verbatim: String(localized: "quickhire.ax.purpose \(best.displayName)"))
             + Text(verbatim: ", \(String(localized: "price.ax.coins \(best.costText)"))")
     }

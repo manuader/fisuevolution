@@ -91,8 +91,8 @@ extension GameState {
             && (quote.map { !$0.blockedBySpendingFreeze && player.run.coins >= $0.cost } ?? false)
         if canAffordSpawn != affordable { canAffordSpawn = affordable }
 
-        let newBestHire = computeBestHire()
-        if bestHire != newBestHire { bestHire = newBestHire }
+        let newQuickHireOffer = computeQuickHireOffer()
+        if quickHireOffer != newQuickHireOffer { quickHireOffer = newQuickHireOffer }
 
         let total = player.run.totalUnits
         if unitCount != total { unitCount = total }

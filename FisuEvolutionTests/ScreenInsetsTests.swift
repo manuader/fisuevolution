@@ -10,7 +10,7 @@ import Testing
 @MainActor
 struct ScreenInsetsTests {
     /// `withObservationTracking` pide un `@Sendable` y bajo concurrencia
-    /// estricta un `var` capturado no compila (patrón de `BestHireTests`).
+    /// estricta un `var` capturado no compila (patrón de `QuickHireOfferTests`).
     private final class PublishFlag: @unchecked Sendable {
         var published = false
     }

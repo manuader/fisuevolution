@@ -50,7 +50,7 @@ final class GameState {
     /// dibuja la pantalla que está siempre en cámara: recalcularla en cada
     /// invalidación de SwiftUI cotizaría los 43 tipos a mano alzada, mientras
     /// que acá sale del flush de 8 Hz y escribe sólo si cambió.
-    var bestHire: BestHire?
+    var quickHireOffer: QuickHireOffer?
     var unitCount = 0
     /// El tier más alto cuyo personaje ya se reveló: lo lee el marcador de UI
     /// `board.revealed`, que sobrevive a las celebraciones que apagan la UI.

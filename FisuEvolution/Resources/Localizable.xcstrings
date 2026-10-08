@@ -1735,6 +1735,40 @@
         }
       }
     },
+    "ads.unavailable.floor_full" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Floor full"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piso lleno"
+          }
+        }
+      }
+    },
+    "ads.unavailable.merge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No pairs to merge"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay pares para fusionar"
+          }
+        }
+      }
+    },
     "ads.watch" : {
       "localizations" : {
         "en" : {
@@ -9211,6 +9245,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Ya podés contratar en los pisos de abajo!"
+          }
+        }
+      }
+    },
+    "tower.notice.reward_compensated %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nowhere to apply it: here's %@ of production"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No había dónde aplicarlo: te dimos %@ de producción"
           }
         }
       }

@@ -3223,6 +3223,23 @@
         }
       }
     },
+    "elevator.ride.skip.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip the ride"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saltear el viaje"
+          }
+        }
+      }
+    },
     "elevator.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {

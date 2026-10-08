@@ -158,6 +158,27 @@ class ManifestVersionado(unittest.TestCase):
                         self.assertTrue(entry["alpha"], "un retrato va siempre con alfa")
                         self.assertFalse(entry["audio"], "un loop de retrato es mudo")
 
+    # Los 18 de la tanda de Higgsfield (PLAN-v2 E8): 8 visitantes y los 10 especiales.
+    # El gemelo en Swift es `LoopsManifestTests.portraits`.
+    RETRATOS = {
+        "npc_comisario", "npc_conductor", "npc_ministro", "npc_puntero",
+        "npc_sindicalista", "npc_turista", "npc_vecina", "npc_vendedor",
+        "sp_alien_investor", "sp_arbolito", "sp_bug_simulacion", "sp_coach",
+        "sp_contador_dios", "sp_cryptobro", "sp_demonio_arca", "sp_influencer",
+        "sp_lizard", "sp_zombie_ceo",
+    }
+
+    def test_estan_los_18_retratos(self):
+        self.assertEqual(set(self.manifest["portraits"]), self.RETRATOS)
+
+    def test_las_tres_cinematicas_son_opacas_y_suenan(self):
+        # Subconjunto y no igualdad: P-E13b suma las puertas de la cabina a esta sección.
+        for piece_id in CINEMATIC_IDS:
+            with self.subTest(id=piece_id):
+                entry = self.manifest["cinematics"][piece_id]
+                self.assertFalse(entry["alpha"], "la escena trae su propio fondo: --sin-key")
+                self.assertTrue(entry["audio"], "Seedance la entregó con sonido")
+
     def test_cada_cuadro_fijo_apunta_a_su_png_con_su_tamano(self):
         for still_id, entry in self.manifest["stills"].items():
             with self.subTest(id=still_id):

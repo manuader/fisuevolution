@@ -29,6 +29,11 @@ final class AudioManager {
         case chestShakeB = "sfx_chest_shake_b"
         /// La campana de la botonera del ascensor (E8 audio, cableada en E3).
         case elevatorDing = "sfx_elevator_ding"
+        /// El ascensor de E13: placa, botón, puertas y motor.
+        case elevatorSpring = "sfx_elevator_spring"
+        case elevatorClick = "sfx_elevator_click"
+        case elevatorDoors = "sfx_elevator_doors"
+        case elevatorMotor = "sfx_elevator_motor"
     }
 
     static let musicVolumeKey = "settings.musicVolume"
@@ -267,6 +272,11 @@ final class AudioManager {
         player.volume = Float(sfxVolume)
         sfxPlayers[sfx] = player
         player.play()
+    }
+
+    /// Corta un SFX que todavía suena (el motor del ascensor al saltear el viaje).
+    func stop(_ sfx: SFX) {
+        sfxPlayers[sfx]?.stop()
     }
 
     private func url(forResource name: String) -> URL? {

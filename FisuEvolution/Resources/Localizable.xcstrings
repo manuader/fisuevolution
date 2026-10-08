@@ -3155,6 +3155,23 @@
         }
       }
     },
+    "elevator.floor.current" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "you are here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "estás acá"
+          }
+        }
+      }
+    },
     "elevator.floor.locked" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3185,6 +3202,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "en marcha"
+          }
+        }
+      }
+    },
+    "elevator.keypad.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elevator keypad"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Botonera del ascensor"
           }
         }
       }

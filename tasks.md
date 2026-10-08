@@ -80,7 +80,7 @@
 ## 2. Progreso
 
 **Hoy: 87 de 243 tareas activas integradas (35,8 %)**, más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅).
-El conteo creció de 210 a 244 filas (243 activas, 1 salteada) porque P-E8b, P-E8c y P-E13b sumaron 33 filas (12 + 10 + 11).
+El conteo creció de 211 a 244 filas (243 activas, 1 salteada) porque P-E8b, P-E8c y P-E13b sumaron 33 filas (12 + 10 + 11).
 Las integradas subieron de 69 a 87. Las tareas del relevo 13 están en `version-2` (hasta `4ab1817`) salvo E13b T5, que está
 sólo en `v2i/integ-r13` y entra con el próximo `rapido`.
 

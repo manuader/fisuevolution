@@ -1,0 +1,6 @@
+{
+  "elevator.display.label": {"es": "Ascensor", "en": "Elevator"},
+  "elevator.floor.ax %@ %@": {"es": "Piso %1$@: %2$@", "en": "Floor %1$@: %2$@"},
+  "elevator.floor.locked": {"es": "bloqueado", "en": "locked"},
+  "elevator.floor.staffed": {"es": "en marcha", "en": "fully staffed"}
+}

@@ -482,6 +482,35 @@ private enum MetalTone {
     static let screw = Color(red: 0.529, green: 0.573, blue: 0.580)   // #879294
 }
 
+// MARK: - MetalPlate
+
+/// Una placa chica de metal con remaches, para la maquinaria del HUD (la
+/// botonera del ascensor). Tonos y remaches del marco `.metal`.
+struct MetalPlate: View {
+    var cornerRadius: CGFloat = 12
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        shape
+            .fill(LinearGradient(colors: [MetalTone.light, MetalTone.base], startPoint: .top, endPoint: .bottom))
+            .overlay(shape.strokeBorder(MetalTone.bevel.opacity(0.9), lineWidth: 1.5).padding(2))
+            .overlay(shape.strokeBorder(Color("PaletteInk").opacity(0.9), lineWidth: 2.5))
+            .overlay {
+                GeometryReader { geo in
+                    ForEach(0..<4, id: \.self) { corner in
+                        PanelScrew(fill: MetalTone.screw, line: MetalTone.dark, diameter: 6)
+                            .position(
+                                x: corner.isMultiple(of: 2) ? 7 : geo.size.width - 7,
+                                y: corner < 2 ? 7 : geo.size.height - 7
+                            )
+                    }
+                }
+            }
+            .shadow(color: .black.opacity(0.22), radius: 4, y: 2)
+            .accessibilityHidden(true)
+    }
+}
+
 // MARK: - AwningBand
 
 /// El toldo rayado de los negocios, dibujado: franjas rojas y crema con el

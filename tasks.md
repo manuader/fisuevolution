@@ -610,7 +610,7 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T3 | Backend: reglas, lista y moderación (Deno) | ⛔ | T1 | — | | sonnet; Haiku inyectable, sin red en tests |
 | E12-T4 | Backend: las cuatro Edge Functions | ⛔ | T2, T3 | — | | sonnet, rev. opus; integración contra Postgres temporal |
 | E12-T5 | Backend: cron, propuesta de lista, deploy y panel | ⛔ | T4 | — | | sonnet; la lista es propuesta (🔒 3) |
-| E12-T6 | `RankingState` (EK) | ⏳ | — | — | | sonnet, rev. opus (save) |
+| E12-T6 | `RankingState` (EK) | ✅ | — | — | `97c15fa`+`ab3492a` | revisión opus: Approved con arreglos (la fase más avanzada sólo con el mismo runId; max de playedSeconds sólo en la misma partida; `CarriedSubmission.sealed`). Carries: T8/T12 reenvío de la llegada arrastrada idempotente (409/not_active = hecho) y `sessionBegan` tras `forNewGame()`; T10 `ranking` con `(try? …) ?? .legacy` (Phase sintetizado) y default `.newGame`; T8/T11 mandar el start sólo tras `newGameStarted`, no al abrir la app |
 | E12-T7 | Cliente, identidad en el Keychain y config remota | ⛔ | T6 | — | | sonnet; compila (archivos nuevos + xcodegen) |
 | E12-T8 | `RankingStore` | ⛔ | T6, T7 | — | | sonnet, rev. opus |
 | E12-T9a | La tarjeta de Dios (vista suelta) | ⛔ | T1, T8 | catálogo (snapshot) | | sonnet |

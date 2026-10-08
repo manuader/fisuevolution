@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
-"""Los masters de Higgsfield (pantalla verde) -> los loops y las cinematicas del juego.
+"""Los masters de Higgsfield -> los loops y las cinematicas del juego.
 
-PLAN-v2 E8, "Pipeline de video". Dos clases de pieza, con el mismo keying que
-el cofre (`chest_video_frames.py`):
+PLAN-v2 E8, "Pipeline de video". Cuatro clases de pieza:
 
 - **Retratos**: los 18 loops de visitante (Kling, cuadro inicial = final = la
   canonica). HEVC con alfa, 512x512, sin sonido, en `Resources/Loops/`.
+- **Objetos**: el Paquete de la Aduana y el Colchon, su apertura y su espera en
+  loop. Como los retratos, 512x512 con alfa, en `Resources/Loops/`.
+- **Cabina**: las puertas del ascensor que cierran y abren. 720x1280 en
+  `Resources/Cinematics/`, opaca salvo el hueco y las ventanas.
 - **Cinematicas**: reencarnacion, arresto y Dios (Seedance). 720x1280, en
   `Resources/Cinematics/`, con la pista de sonido del master si la trae.
+
+**Regla del dueno (2026-10-08): el arte va sobre fondo blanco.** Retratos y
+objetos se recortan cuadro por cuadro con el criterio topologico de
+`whitebg_cutout.py` (fondo = lo blanco conectado al borde), que no se come lo
+blanco de adentro del dibujo. El verde croma, con el keying del cofre
+(`chest_video_frames.py`), queda solo para la mascara de la cabina: el hueco y
+las ventanas por donde el codigo muestra el piso.
 
 `Resources/Data/loops_manifest.json` es EL contrato con el runtime: una pieza
 con entrada ahi se reproduce, una sin entrada cae al arte quieto (la regla de
@@ -17,22 +27,28 @@ juego, un test en Swift.
 **El verde del key se mide en cada master, no se fija a mano.** El del cofre se
 calibro a ojo y dos masters dieron dos verdes distintos (ver el docstring de
 `chest_video_frames.py`): un master nuevo con el verde del anterior se come al
-personaje. Se mide como alla, en el stream con la matriz limited-range, pero en
-las cuatro esquinas de tres cuadros, y si las esquinas no son un verde liso el
-script se niega en vez de adivinar.
+personaje. Se mide como alla, en el stream con la matriz limited-range, en tres
+cuadros: en las cuatro esquinas, o, en la cabina (cuyas esquinas son la pared),
+en lo que es verde pleno del cuadro. Si no da un verde liso, el script se niega
+en vez de adivinar.
 
     .venv/bin/python scripts/video_assets.py medir video/chest-animation.mp4
     .venv/bin/python scripts/video_assets.py retrato npc_comisario
+    .venv/bin/python scripts/video_assets.py objeto paquete_espera
+    .venv/bin/python scripts/video_assets.py cabina puertas_abren
     .venv/bin/python scripts/video_assets.py cinematica arresto [--sin-key]
 
-Los masters van en `video/loops/<id>.mp4` y `video/cinematicas/<id>.mp4`
-(`--video` para otro). Necesita `ffmpeg` con `hevc_videotoolbox` en el PATH.
+Los masters van en `video/loops/`, `video/objetos/`, `video/ascensor/` y
+`video/cinematicas/`, como `<id>.mp4` (`--video` para otro). Necesita `ffmpeg`
+con `hevc_videotoolbox` en el PATH.
 """
 
 from __future__ import annotations
 
 import argparse
+import functools
 import json
+import multiprocessing
 import re
 import shutil
 import subprocess
@@ -41,10 +57,20 @@ from fractions import Fraction
 from pathlib import Path
 
 import numpy as np
+from scipy import ndimage
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from _common import write_json  # noqa: E402
+from whitebg_cutout import (  # noqa: E402
+    TODOS_LOS_BORDES,
+    WHITE_TOLERANCE,
+    alpha_from_background,
+    background_mask,
+    islas_de_papel,
+    undo_white_matte,
+    white_distance,
+)
 from chest_video_frames import (  # noqa: E402
     HEVC_ALPHA_QUALITY,
     HEVC_QUALITY,
@@ -60,24 +86,63 @@ MASTERS = PIPELINE / "video"
 
 SCHEMA_VERSION = 1
 
+# Un busto lo corta el marco de abajo: ahi apoya la camisa, y el fondo blanco
+# se siembra solo desde los otros tres lados (ver `background_mask`).
+BUSTO = ("arriba", "izquierda", "derecha")
+
+# Las piezas cuyo blanco encerrado se decide midiendo, como `PAPEL_MEDIDO` de
+# los PNG. La aureola del Contador Dios es un anillo en perspectiva que se cierra
+# contra la cabeza: el aire de adentro queda encerrado y mide como el lienzo
+# (0.3-0.4), cuadro tras cuadro. La camisa tambien mide como lienzo (0.1), pero
+# toca el marco de abajo, y eso la deja afuera (ver `cutout_frame`). Los ojos y
+# los dientes tambien miden como papel: por eso es una lista, y por eso cuenta
+# solo la isla de mas del 0.4% del cuadro. En el Contador, los dos lados del
+# aire de la aureola miden ~0.7% en los 121 cuadros; el blanco de un ojo abierto
+# del todo, 0.17% como mucho.
+PAPEL_MEDIDO_VIDEO = frozenset({"sp_contador_dios"})
+MIN_AIRE_FRACTION = 0.004
+
+# El despill de la cabina. El del cofre le saca al verde lo que le sobra sobre
+# el promedio de rojo y azul: el marco amarillo sale naranja y la pared crema,
+# durazno. Sin despill, el filo de la mascara (verde mezclado con la linea negra)
+# queda como un hilo verde alrededor del hueco. Este le pone al verde de tope el
+# mayor de rojo y azul: el amarillo, el crema, el acero y el negro ya estan
+# debajo y no cambian; el hilo verde se apaga a la linea negra.
+DESPILL_TOPE = "geq=r='r(X,Y)':g='min(g(X,Y),max(r(X,Y),b(X,Y)))':b='b(X,Y)':a='alpha(X,Y)'"
+
 # Cada clase de pieza: carpeta en Resources, seccion del manifest, prefijo del
-# archivo, tamano de salida y carpeta de sus masters. El prefijo no es adorno:
-# Xcode aplana los recursos en la raiz del bundle, asi que dos `.mov` con el
-# mismo nombre en carpetas distintas se pisan al copiarse.
+# archivo, tamano de salida, carpeta de sus masters y de donde sale el alfa
+# (`matte`): "blanco" es el recorte topologico, "verde" el key medido. El prefijo
+# no es adorno: Xcode aplana los recursos en la raiz del bundle, asi que dos
+# `.mov` con el mismo nombre en carpetas distintas se pisan al copiarse.
 KINDS = {
     "retrato": {
         "dir": "Loops", "section": "portraits", "prefix": "loop_",
-        "size": (512, 512), "masters": "loops",
+        "size": (512, 512), "masters": "loops", "matte": "blanco", "bordes": BUSTO,
+    },
+    "objeto": {
+        "dir": "Loops", "section": "objects", "prefix": "obj_",
+        "size": (512, 512), "masters": "objetos", "matte": "blanco",
+        "bordes": TODOS_LOS_BORDES,
+    },
+    "cabina": {
+        "dir": "Cinematics", "section": "cabin", "prefix": "cabina_",
+        "size": (720, 1280), "masters": "ascensor", "matte": "verde", "despill": "tope",
     },
     "cinematica": {
         "dir": "Cinematics", "section": "cinematics", "prefix": "cine_",
-        "size": (720, 1280), "masters": "cinematicas",
+        "size": (720, 1280), "masters": "cinematicas", "matte": "verde",
     },
 }
 
-# Las tres cinematicas del plan (E8, "Cuando se reproducen"); el juego las pide
-# por este id.
+# Las piezas con nombre fijo; el juego las pide por este id. Las cinematicas
+# son las tres del plan (E8, "Cuando se reproducen"); el Paquete y el Colchon
+# tienen una apertura y una espera en loop; la cabina, las puertas en un sentido
+# y en el otro (E13, item 13).
 CINEMATIC_IDS = ("reencarnacion", "arresto", "dios")
+OBJECT_IDS = ("paquete_abre", "paquete_espera", "colchon_abre", "colchon_espera")
+CABIN_IDS = ("puertas_cierran", "puertas_abren")
+FIXED_IDS = {"cinematica": CINEMATIC_IDS, "objeto": OBJECT_IDS, "cabina": CABIN_IDS}
 
 # Un retrato es el loop de la canonica de un visitante: `npc_<nombre>` o
 # `sp_<id>`. Las poses (`_talk`, `_action`, `_face`) no tienen loop propio.
@@ -92,15 +157,29 @@ CORNER_PATCH = 8
 MAX_CORNER_SPREAD = 12
 MIN_GREEN_LEAD = 40
 
+# En la cabina el verde se busca adentro del cuadro: cuenta el pixel cuyo verde
+# le saca al rojo y al azul el doble de lo minimo (asi el filo antialiaseado,
+# mezclado con el marco amarillo, no tira la mediana), y tiene que haber al
+# menos un 1% del cuadro asi. Las ventanas solas, con la puerta cerrada, son ~9%.
+# El verde de las ventanas y el del hueco no son el mismo: en las puertas de
+# Kling el azul va de 13 a 37 de un cuadro a otro (R ~4, G ~246). En el plano
+# de color de `chromakey` eso es ~0.05, la mitad de la `similarity` del cofre:
+# un solo verde los saca a los dos, y la tolerancia se abre a 30 para medirlo.
+MASK_GREEN_LEAD = 2 * MIN_GREEN_LEAD
+MIN_MASK_FRACTION = 0.01
+MAX_MASK_SPREAD = 30
+
 
 class MasterError(ValueError):
     """El master no sirve tal como vino: se avisa en vez de adivinar."""
 
 
 def validate_id(kind: str, piece_id: str) -> None:
-    if kind == "cinematica":
-        if piece_id not in CINEMATIC_IDS:
-            raise ValueError(f"cinematica desconocida {piece_id!r}: las del plan son {CINEMATIC_IDS}")
+    if kind in FIXED_IDS:
+        if piece_id not in FIXED_IDS[kind]:
+            raise ValueError(
+                f"{kind} desconocido: {piece_id!r}; los del plan son {FIXED_IDS[kind]}"
+            )
         return
     if not PORTRAIT_ID.fullmatch(piece_id) or piece_id.endswith(POSE_SUFFIXES):
         raise ValueError(
@@ -109,18 +188,20 @@ def validate_id(kind: str, piece_id: str) -> None:
         )
 
 
-def key_color_from_patches(patches: list[np.ndarray]) -> str:
+def key_color_from_patches(patches: list[np.ndarray],
+                           max_spread: float = MAX_CORNER_SPREAD) -> str:
     """El verde de fondo como `0xRRGGBB`, o MasterError si no es un verde liso.
 
-    Cada parche es un array (h, w, 3) de una esquina. La mediana del conjunto es
-    el verde; si una esquina se aparta, hay algo encima del fondo (el personaje,
-    un logo, un degrade) y el key saldria mal en todo el video."""
+    Cada parche es un array (..., 3): una esquina, o lo verde de un cuadro de la
+    cabina. La mediana del conjunto es el verde; si un parche se aparta, hay
+    algo encima del fondo (el personaje, un logo, un degrade) y el key saldria
+    mal en todo el video."""
     medians = np.array([np.median(p.reshape(-1, 3), axis=0) for p in patches])
     color = np.median(medians, axis=0)
     spread = float(np.abs(medians - color).max())
-    if spread > MAX_CORNER_SPREAD:
+    if spread > max_spread:
         raise MasterError(
-            f"las esquinas no son un fondo liso (se apartan {spread:.0f} del verde): "
+            f"el verde no es liso (los parches se apartan {spread:.0f}): "
             "algo tapa una esquina o el fondo tiene degrade"
         )
     r, g, b = color
@@ -144,12 +225,34 @@ def has_audio(info: dict) -> bool:
     return any(s["codec_type"] == "audio" for s in info["streams"])
 
 
-def measure_key_color(video: Path) -> str:
+def green_patches(frames: np.ndarray) -> list[np.ndarray]:
+    """Lo que es verde pleno en cada cuadro: un parche por cuadro.
+
+    Para la cabina, cuyas esquinas son la pared. La puerta se mueve y el hueco
+    cambia de tamano, pero las ventanas estan siempre: en cada cuadro hay verde."""
+    patches = []
+    for frame in frames:
+        rgb = frame.astype(np.int16)
+        lead = rgb[..., 1] - np.maximum(rgb[..., 0], rgb[..., 2])
+        green = frame[lead >= MASK_GREEN_LEAD]
+        if len(green) < MIN_MASK_FRACTION * lead.size:
+            raise MasterError(
+                f"un cuadro casi no tiene verde ({len(green)} pixeles): "
+                "la mascara del hueco y las ventanas no esta"
+            )
+        patches.append(green)
+    return patches
+
+
+def measure_key_color(video: Path, en_el_cuadro: bool = False) -> str:
     """Mide el verde del master en el stream, como lo ve `chromakey`.
 
     La conversion a rgb24 la hace ffmpeg con su matriz por defecto
     (limited-range), que es la que hace falta: el hex sacado con la matriz
-    full-range parece el mismo verde y no lo es (trampa del cofre)."""
+    full-range parece el mismo verde y no lo es (trampa del cofre).
+
+    `en_el_cuadro` lo busca en lo verde de adentro del cuadro y no en las
+    esquinas: es la cabina, una pared con un hueco verde."""
     stream = video_stream(probe(video))
     width, height = int(stream["width"]), int(stream["height"])
     frames = int(stream.get("nb_frames") or 1)
@@ -161,6 +264,8 @@ def measure_key_color(video: Path) -> str:
         capture_output=True, check=True,
     ).stdout
     decoded = np.frombuffer(raw, np.uint8).reshape(-1, height, width, 3)
+    if en_el_cuadro:
+        return key_color_from_patches(green_patches(decoded), MAX_MASK_SPREAD)
     p = CORNER_PATCH
     patches = [
         frame[y:y + p, x:x + p]
@@ -174,10 +279,11 @@ def measure_key_color(video: Path) -> str:
 def framing_filter(kind: str, width: int, height: int) -> str:
     """Del cuadro del master al de la pieza.
 
-    El retrato se recorta al cuadrado del centro (la canonica es cuadrada y
-    Kling la respeta); la cinematica cubre 720x1280 y recorta lo que sobra."""
+    Retrato y objeto se recortan al cuadrado del centro (la canonica es cuadrada
+    y Kling la respeta); cabina y cinematica cubren 720x1280 y recortan lo que
+    sobra."""
     out_w, out_h = KINDS[kind]["size"]
-    if kind == "retrato":
+    if out_w == out_h:
         side = min(width, height)
         return f"crop={side}:{side},scale={out_w}:{out_h}:flags=lanczos"
     return (
@@ -200,10 +306,12 @@ def encode(kind: str, master: Path, output: Path, key_color: str | None,
         # colaria en el borde. Y premultiplicado porque `AVPlayerLayer` composita
         # el HEVC-alfa asi (ver `encode_cinematic` del cofre: sin esto el fondo
         # keyeado se suma al juego como un velo).
-        video_filter = (
-            f"{key_filter(key_color, similarity, blend)},"
-            f"format=gbrap,premultiply=inplace=1,{framing},format=bgra"
-        )
+        if KINDS[kind].get("despill") == "tope":
+            keying = (f"{key_filter(key_color, similarity, blend, despill=False)},"
+                      f"format=gbrap,{DESPILL_TOPE}")
+        else:
+            keying = f"{key_filter(key_color, similarity, blend)},format=gbrap"
+        video_filter = f"{keying},premultiply=inplace=1,{framing},format=bgra"
         video_args = [
             "-c:v", "hevc_videotoolbox",
             "-alpha_quality", HEVC_ALPHA_QUALITY,
@@ -223,7 +331,79 @@ def encode(kind: str, master: Path, output: Path, key_color: str | None,
     )
 
 
-def manifest_entry(output: Path, key_color: str | None) -> dict:
+def cutout_frame(rgb: np.ndarray, bordes: tuple[str, ...], papel: bool = False) -> np.ndarray:
+    """Un cuadro sobre fondo blanco -> RGBA premultiplicado, con `whitebg_cutout`.
+
+    Lo mismo que `cutout` de alla, sin las excepciones a mano por asset (huecos
+    calados, islas elegidas), que son de los PNG. `papel` suma las islas grandes
+    que miden como el lienzo (`PAPEL_MEDIDO_VIDEO`), salvo las que tocan un borde:
+    esas son la ropa del busto, que solo quedo encerrada porque no se siembra
+    desde abajo. Premultiplicado por lo mismo que el camino del key: lo escala
+    ffmpeg despues, y `AVPlayerLayer` composita el HEVC-alfa asi."""
+    distance = white_distance(rgb)
+    background = background_mask(distance, bordes=bordes)
+    if papel:
+        aire = islas_de_papel(rgb, background, distance <= WHITE_TOLERANCE)
+        labels, count = ndimage.label(aire & ~background_mask(distance))
+        if count:
+            areas = ndimage.sum_labels(aire, labels, index=np.arange(1, count + 1))
+            grandes = np.flatnonzero(areas >= MIN_AIRE_FRACTION * aire.size) + 1
+            background = background | np.isin(labels, grandes)
+    alpha = alpha_from_background(distance, background)
+    color = undo_white_matte(rgb, alpha).astype(np.float32) * alpha[..., None]
+    return np.dstack([
+        color.round().astype(np.uint8),
+        (alpha * 255).round().astype(np.uint8),
+    ])
+
+
+def encode_cutout(kind: str, master: Path, output: Path, papel: bool = False) -> None:
+    """El camino del fondo blanco: un ffmpeg decodifica, Python recorta cada
+    cuadro a la resolucion del master, y otro ffmpeg encuadra y codifica.
+
+    El recorte va antes de escalar: el anillo de antialias del dibujo es de unos
+    pocos pixeles, y achicado a 512 no queda de donde sacar la opacidad. Cuesta
+    ~1 s por cuadro de 960x960, asi que los cuadros se reparten entre los
+    nucleos (`imap` los devuelve en orden)."""
+    spec = KINDS[kind]
+    stream = video_stream(probe(master))
+    width, height = int(stream["width"]), int(stream["height"])
+    frame_bytes = width * height * 3
+    output.parent.mkdir(parents=True, exist_ok=True)
+    decoder = subprocess.Popen(
+        ["ffmpeg", "-v", "error", "-i", str(master), "-fps_mode", "passthrough",
+         "-f", "rawvideo", "-pix_fmt", "rgb24", "-"],
+        stdout=subprocess.PIPE,
+    )
+    encoder = subprocess.Popen(
+        ["ffmpeg", "-v", "error",
+         "-f", "rawvideo", "-pix_fmt", "rgba", "-s", f"{width}x{height}",
+         "-framerate", stream["r_frame_rate"], "-i", "-",
+         "-vf", f"{framing_filter(kind, width, height)},format=bgra",
+         "-c:v", "hevc_videotoolbox",
+         "-alpha_quality", HEVC_ALPHA_QUALITY,
+         "-q:v", HEVC_QUALITY,
+         "-tag:v", "hvc1", "-an", "-y", str(output)],
+        stdin=subprocess.PIPE,
+    )
+
+    def frames():
+        while len(raw := decoder.stdout.read(frame_bytes)) == frame_bytes:
+            yield np.frombuffer(raw, np.uint8).reshape(height, width, 3)
+
+    recortar = functools.partial(cutout_frame, bordes=spec["bordes"], papel=papel)
+    try:
+        with multiprocessing.Pool() as pool:
+            for rgba in pool.imap(recortar, frames(), chunksize=2):
+                encoder.stdin.write(rgba.tobytes())
+    finally:
+        encoder.stdin.close()
+        decoder.stdout.close()
+    if decoder.wait() or encoder.wait():
+        raise MasterError(f"ffmpeg fallo al recortar {master.name}")
+
+
+def manifest_entry(output: Path, matte: str | None, key_color: str | None) -> dict:
     """Lo que el runtime necesita saber de la pieza, leido del archivo final."""
     info = probe(output)
     stream = video_stream(info)
@@ -234,9 +414,11 @@ def manifest_entry(output: Path, key_color: str | None) -> dict:
         "height": int(stream["height"]),
         "fps": int(fps) if fps.denominator == 1 else round(float(fps), 3),
         "frames": int(stream["nb_frames"]),
-        "alpha": key_color is not None,
+        "alpha": matte is not None,
         "audio": has_audio(info),
-        # De donde salio el key: si un loop se ve comido, es lo primero que se mira.
+        # De donde salio el alfa ("blanco", "verde" o ninguno) y, si fue el key,
+        # con que verde: si una pieza se ve comida, es lo primero que se mira.
+        "matte": matte,
         "keyColor": key_color,
     }
 
@@ -244,7 +426,7 @@ def manifest_entry(output: Path, key_color: str | None) -> dict:
 def load_manifest() -> dict:
     if MANIFEST.exists():
         return json.loads(MANIFEST.read_text(encoding="utf-8"))
-    return {"schemaVersion": SCHEMA_VERSION, "portraits": {}, "cinematics": {}}
+    return {"schemaVersion": SCHEMA_VERSION, **{s["section"]: {} for s in KINDS.values()}}
 
 
 def register(kind: str, piece_id: str, entry: dict) -> None:
@@ -252,20 +434,33 @@ def register(kind: str, piece_id: str, entry: dict) -> None:
     section = manifest.setdefault(KINDS[kind]["section"], {})
     section[piece_id] = entry
     manifest[KINDS[kind]["section"]] = dict(sorted(section.items()))
-    write_json(MANIFEST, manifest)
+    # Las secciones siempre todas y en el orden de KINDS: un manifest de antes
+    # de una clase nueva la gana vacia, y el diff no baila.
+    write_json(MANIFEST, {
+        "schemaVersion": manifest["schemaVersion"],
+        **{spec["section"]: manifest.get(spec["section"], {}) for spec in KINDS.values()},
+    })
 
 
 def process(kind: str, piece_id: str, master: Path, keyed: bool = True,
             similarity: float = KEY_SIMILARITY, blend: float = KEY_BLEND) -> dict:
     """Master -> pieza en Resources + su entrada en el manifest. Devuelve la entrada."""
     validate_id(kind, piece_id)
-    if kind == "retrato" and not keyed:
-        raise ValueError("un retrato va siempre con alfa (PLAN-v2 E8)")
-    key_color = measure_key_color(master) if keyed else None
+    if kind != "cinematica" and not keyed:
+        raise ValueError(
+            f"la pieza {kind!r} va siempre con alfa: --sin-key es de las cinematicas"
+        )
     spec = KINDS[kind]
+    matte = spec["matte"] if keyed else None
     output = RESOURCES / spec["dir"] / f"{spec['prefix']}{piece_id}.mov"
-    encode(kind, master, output, key_color, similarity, blend)
-    entry = manifest_entry(output, key_color)
+    key_color = None
+    if matte == "blanco":
+        encode_cutout(kind, master, output, papel=piece_id in PAPEL_MEDIDO_VIDEO)
+    else:
+        if matte == "verde":
+            key_color = measure_key_color(master, en_el_cuadro=kind == "cabina")
+        encode(kind, master, output, key_color, similarity, blend)
+    entry = manifest_entry(output, matte, key_color)
     register(kind, piece_id, entry)
     return entry
 
@@ -279,8 +474,9 @@ def main() -> int:
         piece = sub.add_parser(kind)
         piece.add_argument("id")
         piece.add_argument("--video", type=Path, help="el master, si no esta en video/")
-        piece.add_argument("--similarity", type=float, default=KEY_SIMILARITY)
-        piece.add_argument("--blend", type=float, default=KEY_BLEND)
+        if KINDS[kind]["matte"] == "verde":
+            piece.add_argument("--similarity", type=float, default=KEY_SIMILARITY)
+            piece.add_argument("--blend", type=float, default=KEY_BLEND)
         if kind == "cinematica":
             piece.add_argument("--sin-key", action="store_true",
                                help="la escena trae su propio fondo: opaca, sin alfa")
@@ -300,12 +496,14 @@ def main() -> int:
             return 1
         entry = process(args.command, args.id, master,
                         keyed=not getattr(args, "sin_key", False),
-                        similarity=args.similarity, blend=args.blend)
+                        similarity=getattr(args, "similarity", KEY_SIMILARITY),
+                        blend=getattr(args, "blend", KEY_BLEND))
     except (MasterError, ValueError) as error:
         print(f"[ERROR] {error}", file=sys.stderr)
         return 1
     print(f"[OK] {args.id} -> {entry['file']} ({entry['width']}x{entry['height']}, "
-          f"{entry['frames']} cuadros a {entry['fps']} fps, key {entry['keyColor']})")
+          f"{entry['frames']} cuadros a {entry['fps']} fps, alfa {entry['matte']}, "
+          f"key {entry['keyColor']})")
     return 0
 
 

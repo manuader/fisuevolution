@@ -159,6 +159,62 @@ struct JobRowsTests {
         #expect(!floorName.contains("tower.floor"), "el nombre del piso llegó como clave, no como texto")
     }
 
+    // MARK: Lo que sube la próxima compra
+
+    @Test("la fila dice cuánto sube la próxima compra, y es lo que sube")
+    func theStepShownIsTheStepCharged() async throws {
+        let gameState = await makeGameState()
+        gameState.debugGrantCoins()
+        let row = try jobRow(gameState, "homeless")
+        let step = try #require(row.priceStep)
+        let text = try #require(row.priceTrendText)
+        #expect(!text.contains("jobs.step"), "quedó la clave cruda")
+        let player = try #require(gameState.player)
+        let before = try #require(gameState.currentQuote(player: player, typeId: "homeless")).cost
+        gameState.hireCharacter(typeId: "homeless")
+        let playerAfter = try #require(gameState.player)
+        let after = try #require(gameState.currentQuote(player: playerAfter, typeId: "homeless")).cost
+        #expect(abs(after / before - 1 - step) < 1e-9)
+        #expect(text.contains(step.formatted(.percent.precision(.fractionLength(0)))))
+    }
+
+    @Test("sin reintegro no promete que fusionar abarata")
+    func noReliefWithoutRefund() async throws {
+        let row = try jobRow(await makeGameState(), "homeless")
+        #expect(row.mergeRelief == nil)
+    }
+
+    @Test("con reintegro, lo que dice que baja fusionar es lo que baja")
+    func theReliefShownIsTheReliefApplied() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        gameState.replaceEconomy(try content.economy.tuned(EconomyKnobs(mergeRefundCounts: 1)))
+        gameState.debugGrantCoins()
+        gameState.hireCharacter(typeId: "homeless")
+        gameState.hireCharacter(typeId: "homeless")
+        let relief = try #require(try jobRow(gameState, "homeless").mergeRelief)
+        let slots = gameState.visiblePlacements.filter { $0.typeId == "homeless" }.map(\.slot).sorted()
+        try #require(slots.count >= 2)
+        _ = gameState.handleDrop(fromCell: slots[0], toCell: slots[1])
+        let playerAfter = try #require(gameState.player)
+        let after = try #require(gameState.currentQuote(player: playerAfter, typeId: "homeless")).cost
+        // La fusión subió la frontera, así que se compara contra el precio a la
+        // frontera nueva SIN el reintegro: el mismo estado con la compra
+        // devuelta otra vez en la curva.
+        var unrefunded = playerAfter
+        unrefunded.run.hireCountsByType["homeless", default: 0] += 1
+        let withoutRefund = try #require(gameState.currentQuote(player: unrefunded, typeId: "homeless")).cost
+        #expect(abs(1 - after / withoutRefund - relief) < 1e-9)
+    }
+
+    @Test("una fila \"???\" no cuenta cuánto sube")
+    func unseenRowHasNoTrend() async throws {
+        let rows = await makeGameState().jobRows
+        let unseen = try #require(rows.first { $0.state == .unseen })
+        #expect(unseen.priceStep == nil)
+        #expect(unseen.priceTrendText == nil)
+    }
+
     // MARK: La acción
 
     @Test("contratar coloca la unidad, cobra, cuenta por tipo y marca el FTUE")

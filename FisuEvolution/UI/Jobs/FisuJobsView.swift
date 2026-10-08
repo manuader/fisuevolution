@@ -421,6 +421,16 @@ private struct JobCard: View {
                         .minimumScaleFactor(0.7)
                 }
             }
+
+            if !isUnseen, let trend = row.priceTrendText {
+                Text(verbatim: trend)
+                    .font(Tokens.caption)
+                    .monospacedDigit()
+                    .foregroundStyle(Color("PaletteInk").opacity(0.65))
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.7)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
@@ -535,7 +545,8 @@ private struct JobCard: View {
             row.displayName,
             floorAlreadyInValue ? nil : TowerNaming.floorName(for: row.floorID),
             row.incomeText,
-            String(localized: "jobs.hired_count \(String(row.hiredCount))")
+            String(localized: "jobs.hired_count \(String(row.hiredCount))"),
+            row.priceTrendText
         ].compactMap { $0 }.joined(separator: ", ")
     }
 

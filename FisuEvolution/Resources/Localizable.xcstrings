@@ -4188,6 +4188,23 @@
         }
       }
     },
+    "jobs.merge_relief %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "merging cuts it %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "fusionar lo abarata %@"
+          }
+        }
+      }
+    },
     "jobs.section.closed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4303,6 +4320,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sin datos"
+          }
+        }
+      }
+    },
+    "jobs.step %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ per hire"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ por compra"
           }
         }
       }
@@ -5057,6 +5091,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¿Reencarnar?"
+          }
+        }
+      }
+    },
+    "prestige.wall.goal %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal to reincarnate: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meta para reencarnar: %@"
+          }
+        }
+      }
+    },
+    "prestige.wall.goal_tier %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal to reincarnate: tier %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meta para reencarnar: el tier %@"
+          }
+        }
+      }
+    },
+    "prestige.wall.short %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meta: %@"
+          }
+        }
+      }
+    },
+    "prestige.wall.short_tier %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goal: tier %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meta: tier %@"
           }
         }
       }

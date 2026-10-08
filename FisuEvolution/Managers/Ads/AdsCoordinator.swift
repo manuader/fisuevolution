@@ -168,11 +168,14 @@ final class AdsCoordinator: AdsProvider {
         isPresentingFullScreen = true
         defer { isPresentingFullScreen = false }
         let earned = await active.showRewarded(for: placement)
-        // Se anota SIEMPRE, gane o no: lo que abre la gracia es haber comido una
-        // pantalla completa de publicidad, no haber cobrado.
-        lastRewardedAt = now()
+        // Se anota gane o no gane, pero SÓLO si hubo video en pantalla: lo que
+        // abre la gracia es haber comido una pantalla completa de publicidad,
+        // no haber cobrado. Un toque que no encontró inventario no comió nada.
+        if active.lastRewardedPresented { lastRewardedAt = now() }
         return earned
     }
+
+    var lastRewardedPresented: Bool { active.lastRewardedPresented }
 
     /// ⚠️ Devuelve `false` para quien compró `remove_ads`, así que los
     /// llamadores no tienen que acordarse de chequearlo. Centralizarlo acá es lo

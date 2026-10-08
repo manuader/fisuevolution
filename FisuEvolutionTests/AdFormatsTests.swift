@@ -176,6 +176,13 @@ final class ScriptedAdsProvider: AdsProvider {
     private(set) var shown: [String] = []
     private(set) var preloaded: [String] = []
     var earnsReward = true
+    /// Cuánto tarda en "llegar" un video que no estaba cargado; el presentado
+    /// recién aparece después. `nil` = ya estaba.
+    var loadDelay: Duration?
+    /// `false` = no hay inventario: `showRewarded` devuelve `false` sin
+    /// presentar nada.
+    var hasInventory = true
+    private(set) var lastRewardedPresented = false
     /// Si es `true`, el anuncio queda en pantalla hasta `closeCurrentAd()`.
     var holdsOpen = false
     private var open: CheckedContinuation<Void, Never>?
@@ -191,6 +198,10 @@ final class ScriptedAdsProvider: AdsProvider {
     func prepare() {}
 
     func showRewarded(for placement: RewardedPlacement) async -> Bool {
+        lastRewardedPresented = false
+        if let loadDelay { try? await Task.sleep(for: loadDelay) }
+        guard hasInventory else { return false }
+        lastRewardedPresented = true
         await present("rewarded:\(placement)")
         return earnsReward
     }

@@ -64,6 +64,7 @@ final class AdMobAdsProvider: AdsProvider {
     /// el único que llama acá y rechaza un anuncio mientras hay otro en
     /// pantalla.
     @ObservationIgnored private let presentation = FullScreenAdObserver()
+    @ObservationIgnored private(set) var lastRewardedPresented = false
     @ObservationIgnored private var didStartSDK = false
 
     init(
@@ -137,19 +138,29 @@ final class AdMobAdsProvider: AdsProvider {
         }
     }
 
+    /// ⚠️ **No devuelve `false` en el acto si el video no está.** Espera la
+    /// carga en curso —o la arranca— hasta `AdLoadWait.rewardedTimeout` y
+    /// presenta apenas llega: antes el primer toque pedía el video y se rendía,
+    /// y recién el segundo andaba (PLAN-v2 E13 ítem 1). `false` sin presentar
+    /// (`lastRewardedPresented == false`) es "no hubo inventario a tiempo".
     func showRewarded(for placement: RewardedPlacement) async -> Bool {
-        guard let entry = rewarded[placement], entry.isFresh(now: now()) else {
-            // Vencido o inexistente: se descarta y se repone para la próxima.
-            rewarded[placement] = nil
+        lastRewardedPresented = false
+        if !isRewardedReady(for: placement) {
             preloadRewarded(for: placement)
-            return false
+            let arrived = await AdLoadWait.until(
+                isReady: { isRewardedReady(for: placement) },
+                isLoading: { loadingRewarded.contains(placement) }
+            )
+            guard arrived else { return false }
         }
+        guard let entry = rewarded[placement], entry.isFresh(now: now()) else { return false }
         // Se saca del inventario ANTES de presentar: el ad se consume.
         rewarded[placement] = nil
 
         var earnedReward = false
         let ad = entry.ad
         ad.fullScreenContentDelegate = presentation
+        lastRewardedPresented = true
         await presentation.present {
             ad.present(from: nil) { earnedReward = true }
         }

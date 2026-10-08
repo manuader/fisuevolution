@@ -543,8 +543,8 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8-T10 | Peso, memoria y cierre (controlador) | ⛔ | T1–T8 | `Docs/`, `tasks.md` | | `completo --limpio`; 🔒 sólo si el bundle crece > 60 MB (estimado ≈ +29 MB) |
 | P-E8b | Plan de E8b: cinemáticas y retratos animados | ✅ | — | — | `f035a5d` | 12 tareas; `2026-10-08-v2-e8b-cinematicas.md`; 11 dudas con default; ⚠️ `loops/` hoy es blanco, no croma |
 | E8b-T1 | `video_assets.py`: el retrato mide arriba y el key acepta magenta | ✅ | — | video_assets.py, test_video_assets.py | `25c6b35` | pipeline, no compila; los dos ajustes de `DUENO.md`; los 18 de croma miden sin error (`medir --clase retrato`) |
-| E8b-T2 | `video_assets.py`: retratos sobre blanco por conectividad | ⏳ | T1 | video_assets.py, test_video_assets.py | | pipeline; `whitebg_cutout` cuadro por cuadro a 512²; revisión sonnet |
-| E8b-T3 | Los 18 retratos y las 3 cinemáticas, integrados y pesados | ⛔ | T2 | Resources/Loops, Resources/Cinematics, loops_manifest.json, masters | | pipeline (~25 min en background); hoja de contacto al controlador; estimado +8,5 MB de bundle, ≈ 41 MB de masters |
+| E8b-T2 | `video_assets.py`: retratos sobre blanco por conectividad | ✅ | T1 | video_assets.py, test_video_assets.py | (merge en integ-r13) | pipeline; `whitebg_cutout` cuadro por cuadro a 512²; revisión sonnet; 29–51 s por loop escalando a 512 antes de recortar (no 270); mirar el cuello del lagarto en T3 |
+| E8b-T3 | Los 18 retratos y las 3 cinemáticas, integrados y pesados | ⏳ | T2 | Resources/Loops, Resources/Cinematics, loops_manifest.json, masters | | pipeline (~25 min en background); hoja de contacto al controlador; estimado +8,5 MB de bundle, ≈ 41 MB de masters |
 | E8b-T4 | `LoopsManifest`, `CinematicID` y `LoopsManifestTests` | ⛔ | T3 | — | | la API de E4b T3 (carry: E4b T3 no los crea) |
 | E8b-T5 | `VideoSlot` y `LoopingPortraitView` | ⏳ | — | — | | archivos nuevos; ∥ T1–T4, T7 |
 | E8b-T6 | El especial que te cayó, animado | ⛔ | T4, T5 | SpecialDropView | | revisión ninguna; captura SE/16 Pro (duda 3) |

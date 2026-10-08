@@ -62,6 +62,22 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.chest.award")
                 }
+                // La ficha con un segundo Fisura en la torre: el fixture
+                // `--uitest-open-sheet` la abre sobre el único de una partida
+                // nueva, que no se puede despedir.
+                Section("Ficha") {
+                    Button("Abrir la ficha (con otro para despedir)") {
+                        gameState.debugGrantCoins()
+                        if let base = gameState.content?.tiers.baseType.id {
+                            gameState.hireCharacter(typeId: base)
+                        }
+                        if let slot = gameState.visiblePlacements.first?.slot {
+                            gameState.presentCharacterSheet(cellIndex: slot)
+                        }
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.sheet.open")
+                }
                 Section("Skins") {
                     NavigationLink("Galería de efectos de skin") {
                         SkinEffectsGalleryView()

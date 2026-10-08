@@ -1,3 +1,4 @@
+import EconomyKit
 import SpriteKit
 import SwiftUI
 
@@ -334,10 +335,7 @@ struct GameBoardView: View {
         .fisuSheet(item: $gameState.specialInfo) { special in
             SpecialDropView(special: special, isRecap: true)
         }
-        .sheet(item: Binding(
-            get: { gameState.shareCardSubject },
-            set: { if $0 == nil { gameState.dismissShareCard() } }
-        )) { subject in
+        .sheet(item: shareCardBinding) { subject in
             ShareCardSheet(subject: subject)
         }
         .fisuSheet(item: dailyClaimBinding) { wrapped in
@@ -371,6 +369,15 @@ struct GameBoardView: View {
                 .accessibilityIdentifier("board.floor")
                 .accessibilityValue(Text(verbatim: gameState.towerNavigation.floorID))
         )
+        // La geometría del tablero ("5x2@112·1.25"), para `IPadLayoutUITests`.
+        .background(boardLayoutMarker)
+    }
+
+    private var boardLayoutMarker: some View {
+        Color.clear
+            .accessibilityElement()
+            .accessibilityIdentifier("board.layout")
+            .accessibilityValue(Text(verbatim: gameState.boardLayoutMarker))
     }
 
     // MARK: Bindings de las celebraciones
@@ -413,6 +420,13 @@ struct GameBoardView: View {
         Binding(
             get: { gameState.showing == .specialDrop ? gameState.specialDrop : nil },
             set: { if $0 == nil { gameState.dismissSpecialDrop() } }
+        )
+    }
+
+    private var shareCardBinding: Binding<CharacterType?> {
+        Binding(
+            get: { gameState.shareCardSubject },
+            set: { if $0 == nil { gameState.dismissShareCard() } }
         )
     }
 

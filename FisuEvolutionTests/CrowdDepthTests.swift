@@ -19,7 +19,7 @@ import Testing
 @Suite("Profundidad: la multitud nunca cae detrás del fondo")
 @MainActor
 struct CrowdDepthTests {
-    /// De la más chica que soporta la app a la más grande.
+    /// De la más chica que soporta la app a la más grande, iPad incluido.
     private let screens: [CGSize] = [
         CGSize(width: 320, height: 568),
         CGSize(width: 375, height: 667),
@@ -27,39 +27,36 @@ struct CrowdDepthTests {
         CGSize(width: 402, height: 874),
         CGSize(width: 430, height: 932),
         CGSize(width: 440, height: 956),
+        CGSize(width: 744, height: 1133),
+        CGSize(width: 1032, height: 1376),
     ]
-    private let horizontalInset: CGFloat = 16
-    private let rows = 2
+    /// Los de hoy (10), los de la crítica de Marco (15) y el permanente de ORO (20).
+    private let capacities = [10, 15, 20]
 
-    private func cellSize(screenWidth: CGFloat, capacity: Int) -> CGFloat {
-        let columns = max(1, (capacity + rows - 1) / rows)
-        return (screenWidth - horizontalInset * 2) / CGFloat(columns)
+    /// El z más bajo que puede alcanzar un personaje en esa pantalla y capacidad.
+    private func lowestCrowdZ(screen: CGSize, capacity: Int) -> CGFloat {
+        let layout = PlayLayout(size: screen, capacity: capacity)
+        let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: layout.cellSize, rows: layout.rows)
+        return BoardScene.fieldBaseZ + BoardScene.depthZ(y: band.topY, rows: layout.rows, cellSize: layout.cellSize)
     }
 
-    /// El z más bajo que puede alcanzar un personaje en ese piso y pantalla.
-    private func lowestCrowdZ(screen: CGSize, capacity: Int) -> CGFloat {
-        let cell = cellSize(screenWidth: screen.width, capacity: capacity)
-        let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: cell, rows: rows)
-        return BoardScene.fieldBaseZ + BoardScene.depthZ(y: band.topY, rows: rows, cellSize: cell)
+    private func highestFloorZ() throws -> CGFloat {
+        let content = try GameContentLoader.load(from: .main)
+        return FloorNode.backgroundZ(ordinal: content.floorTable.floors.count - 1)
     }
 
     @Test("ningún personaje puede quedar detrás del fondo de su piso")
     func crowdNeverSinksBehindItsFloor() throws {
-        let content = try GameContentLoader.load(from: .main)
-        let floors = content.floorTable.floors
-        // El piso más alto es el fondo que llega más arriba en la banda de z.
-        let highestFloorZ = FloorNode.backgroundZ(ordinal: floors.count - 1)
-
-        for floor in floors {
+        let floorZ = try highestFloorZ()
+        for capacity in capacities {
             for screen in screens {
-                let lowestZ = lowestCrowdZ(screen: screen, capacity: floor.capacity)
+                let lowestZ = lowestCrowdZ(screen: screen, capacity: capacity)
                 #expect(
-                    lowestZ > highestFloorZ,
+                    lowestZ > floorZ,
                     """
-                    piso \(floor.id) en \(screen.width)×\(screen.height): el personaje \
-                    más atrás queda en z=\(lowestZ) y el fondo más alto en \
-                    z=\(highestFloorZ). Por debajo del fondo se vuelve invisible \
-                    pero clickeable.
+                    capacidad \(capacity) en \(screen.width)×\(screen.height): el personaje \
+                    más atrás queda en z=\(lowestZ) y el fondo más alto en z=\(floorZ). \
+                    Por debajo del fondo se vuelve invisible pero clickeable.
                     """
                 )
             }
@@ -71,9 +68,7 @@ struct CrowdDepthTests {
     /// —el arrastre, un valor transitorio— parte de esta base.
     @Test("la base del campo entero queda por encima de los fondos")
     func theWholeFieldSitsAboveTheBackgrounds() throws {
-        let content = try GameContentLoader.load(from: .main)
-        let highestFloorZ = FloorNode.backgroundZ(ordinal: content.floorTable.floors.count - 1)
-        #expect(BoardScene.fieldBaseZ > highestFloorZ)
+        #expect(BoardScene.fieldBaseZ > (try highestFloorZ()))
     }
 
     /// Los specials son decorado: van detrás de la multitud entera, pero delante
@@ -81,17 +76,15 @@ struct CrowdDepthTests {
     /// fija se queda corta apenas la franja se agranda.
     @Test("los specials quedan detrás de la multitud y delante del fondo")
     func specialsSitBetweenTheFloorAndTheCrowd() throws {
-        let content = try GameContentLoader.load(from: .main)
-        let highestFloorZ = FloorNode.backgroundZ(ordinal: content.floorTable.floors.count - 1)
-
-        for floor in content.floorTable.floors {
+        let floorZ = try highestFloorZ()
+        for capacity in capacities {
             for screen in screens {
-                let cell = cellSize(screenWidth: screen.width, capacity: floor.capacity)
-                let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: cell, rows: rows)
+                let layout = PlayLayout(size: screen, capacity: capacity)
+                let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: layout.cellSize, rows: layout.rows)
                 let specialZ = BoardScene.fieldBaseZ
-                    + BoardScene.specialZ(band: band, rows: rows, cellSize: cell)
-                #expect(specialZ < lowestCrowdZ(screen: screen, capacity: floor.capacity))
-                #expect(specialZ > highestFloorZ, "un special tampoco puede irse detrás del fondo")
+                    + BoardScene.specialZ(band: band, rows: layout.rows, cellSize: layout.cellSize)
+                #expect(specialZ < lowestCrowdZ(screen: screen, capacity: capacity))
+                #expect(specialZ > floorZ, "un special tampoco puede irse detrás del fondo")
             }
         }
     }
@@ -99,8 +92,8 @@ struct CrowdDepthTests {
     /// La profundidad entre personajes tiene que seguir funcionando: el de
     /// adelante (menor `y`) tapa al de atrás. Es lo que le da volumen a la
     /// multitud y lo que usa el hit-testing para elegir a quién tocaste.
-    @Test("el de adelante sigue tapando al de atrás")
-    func nearerCharactersStayInFront() {
+    @Test("el de adelante sigue tapando al de atrás", arguments: [2, 3])
+    func nearerCharactersStayInFront(rows: Int) {
         let cell: CGFloat = 74
         let band = BoardScene.crowdBand(sceneHeight: 874, cellSize: cell, rows: rows)
         let front = BoardScene.depthZ(y: band.frontY, rows: rows, cellSize: cell)
@@ -110,8 +103,8 @@ struct CrowdDepthTests {
 }
 
 /// La franja por la que camina la multitud llega hasta donde diga
-/// `crowdTopRatio`. El deambular sale DERIVADO de la franja, así que las dos
-/// filas la cubren entera y ningún personaje puede pasarse por arriba.
+/// `PlayLayout.crowdTopRatio(rows:)`. El deambular sale DERIVADO de la franja,
+/// así que las filas la cubren entera y ningún personaje puede pasarse por arriba.
 ///
 /// Los asserts van contra el knob y no contra un número, para que dialarlo sea
 /// cambiar UNA constante y no perseguir tests.
@@ -122,55 +115,46 @@ struct CrowdBandTests {
         CGSize(width: 320, height: 568),
         CGSize(width: 402, height: 874),
         CGSize(width: 440, height: 956),
+        CGSize(width: 1032, height: 1376),
     ]
-    private let rows = 2
 
-    private func cellSize(screenWidth: CGFloat) -> CGFloat {
-        (screenWidth - 32) / 5
+    private func cellSize(screen: CGSize) -> CGFloat {
+        PlayLayout(size: screen, capacity: 10).cellSize
     }
 
-    @Test("el techo de la franja cae donde dice el knob")
-    func bandTopFollowsTheRatio() {
+    @Test("el techo de la franja cae donde dice el knob", arguments: [2, 3, 4])
+    func bandTopFollowsTheRatio(rows: Int) {
         for screen in screens {
-            let band = BoardScene.crowdBand(
-                sceneHeight: screen.height, cellSize: cellSize(screenWidth: screen.width), rows: rows
-            )
+            let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: cellSize(screen: screen), rows: rows)
             // `topY` va en coordenadas del campo, que arranca en `bottomInset`.
             let onScreen = band.topY + BoardScene.bottomInset
-            let expected = screen.height * BoardScene.crowdTopRatio
+            let expected = screen.height * PlayLayout.crowdTopRatio(rows: rows)
             #expect(
                 abs(onScreen - expected) < 0.5,
-                "en \(screen.height) de alto el techo quedó en \(onScreen) y se esperaba \(expected)"
+                "\(rows) filas en \(screen.height) de alto: el techo quedó en \(onScreen) y se esperaba \(expected)"
             )
         }
     }
 
-    @Test("ningún personaje se pasa del techo de la franja")
-    func nobodyWandersPastTheTop() {
+    @Test("ningún personaje se pasa del techo de la franja", arguments: [2, 3, 4])
+    func nobodyWandersPastTheTop(rows: Int) {
         for screen in screens {
-            let band = BoardScene.crowdBand(
-                sceneHeight: screen.height, cellSize: cellSize(screenWidth: screen.width), rows: rows
-            )
+            let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: cellSize(screen: screen), rows: rows)
             let backRowTop = band.frontY + band.rowDepth * CGFloat(rows - 1) + band.wanderRange / 2
             #expect(backRowTop <= band.topY + 0.001, "la fila trasera llega a \(backRowTop) y el techo es \(band.topY)")
         }
     }
 
-    /// Con las dos filas separadas y un deambular chico, la multitud se ve como
-    /// dos hileras y no como una multitud. Al derivar el deambular de la franja,
+    /// Con las filas separadas y un deambular chico, la multitud se ve como
+    /// hileras y no como una multitud. Al derivar el deambular de la franja,
     /// lo que recorre cada fila se toca con lo que recorre la siguiente.
-    @Test("las filas cubren la franja sin dejar un hueco entre ellas")
-    func rowsCoverTheBandWithoutGaps() {
+    @Test("las filas cubren la franja sin dejar un hueco entre ellas", arguments: [2, 3, 4])
+    func rowsCoverTheBandWithoutGaps(rows: Int) {
         for screen in screens {
-            let band = BoardScene.crowdBand(
-                sceneHeight: screen.height, cellSize: cellSize(screenWidth: screen.width), rows: rows
-            )
+            let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: cellSize(screen: screen), rows: rows)
             let frontRowTop = band.frontY + band.wanderRange / 2
             let backRowBottom = band.frontY + band.rowDepth - band.wanderRange / 2
-            #expect(
-                frontRowTop >= backRowBottom - 0.001,
-                "queda un hueco entre \(frontRowTop) y \(backRowBottom)"
-            )
+            #expect(frontRowTop >= backRowBottom - 0.001, "queda un hueco entre \(frontRowTop) y \(backRowBottom)")
         }
     }
 }

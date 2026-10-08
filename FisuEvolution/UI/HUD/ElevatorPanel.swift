@@ -58,8 +58,8 @@ struct ElevatorPanel: View {
     private static let ledScreen = Color(red: 0.11, green: 0.10, blue: 0.09)
     private static let ledLit = Color(red: 1.0, green: 0.64, blue: 0.18)
 
-    /// Dónde está la luz: el piso visible. La Task 10 la ata a la cámara.
-    private var lightPosition: Double { Double(gameState.towerNavigation.ordinal) }
+    /// Dónde está la luz: la cámara, que viaja entre pisos.
+    private var lightPosition: Double { gameState.cameraFloor }
 
     var body: some View {
         let navigation = gameState.towerNavigation

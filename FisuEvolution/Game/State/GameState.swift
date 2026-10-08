@@ -126,6 +126,12 @@ final class GameState {
     var visibleFloorOrdinal = 0
     /// Estado listo para la pill y las flechas de F7.2.
     var towerNavigation = TowerNavigation.empty
+    /// El piso donde está la cámara, continuo. Lo publica la escena en el flush
+    /// de 8 Hz y lo lee la luz de la botonera; se escribe sólo si se movió más de
+    /// una centésima, así que con la cámara quieta no invalida nada.
+    private(set) var cameraFloor: Double = 0
+    /// La geometría del tablero para el marcador `board.layout` de los tests.
+    private(set) var boardLayoutMarker = ""
     /// Income pasivo agregado de todos los pisos, aunque no estén en cámara.
     var towerIncomePerSecond = 0.0
     var towerIncomePerSecondText = "0"
@@ -350,6 +356,15 @@ final class GameState {
 
     init(repository: PlayerStateRepository? = nil) {
         self.injectedRepository = repository
+    }
+
+    func publishCameraFloor(_ value: Double) {
+        let clamped = max(0, value)
+        if abs(cameraFloor - clamped) > 0.01 { cameraFloor = clamped }
+    }
+
+    func publishBoardLayout(_ marker: String) {
+        if boardLayoutMarker != marker { boardLayoutMarker = marker }
     }
 
     #if DEBUG

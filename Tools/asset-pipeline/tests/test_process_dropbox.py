@@ -215,6 +215,29 @@ class ProcessNewCategoriesTests(unittest.TestCase):
         self.assertEqual(self.manifest.read_text(), before)
         self.assertTrue((self.root / "procesadas" / "homeless__dinosaurio.png").exists())
 
+    def test_a_background_becomes_one_2048_jpeg_and_retires_its_pngs(self):
+        backgrounds = self.resources / "Backgrounds"
+        backgrounds.mkdir()
+        for escala in ("@2x", "@3x"):
+            Image.new("RGB", (8, 8)).save(backgrounds / f"bg_alley{escala}.png")
+        path = self.root / "bg_alley.png"
+        Image.new("RGB", (64, 64), "teal").save(path)
+        with redirect_stdout(io.StringIO()):
+            process_dropbox.process(path, {"assetKey": "bg_alley", "category": "background"})
+
+        self.assertEqual(sorted(p.name for p in backgrounds.iterdir()), ["bg_alley.jpg"])
+        self.assertEqual(self.size_of(backgrounds / "bg_alley.jpg"), (2048, 2048))
+        manifest = json.loads(self.manifest.read_text())
+        self.assertEqual(manifest["backgrounds"], {"alley": "bg_alley.jpg"})
+
+    def test_a_background_is_never_cut_out(self):
+        path = self.root / "bg_moon.png"
+        Image.new("RGB", (64, 64), "white").save(path)
+        with redirect_stdout(io.StringIO()):
+            process_dropbox.process(path, {"assetKey": "bg_moon", "category": "background"})
+        with Image.open(self.resources / "Backgrounds" / "bg_moon.jpg") as image:
+            self.assertEqual(image.getpixel((32, 32)), (255, 255, 255))
+
 
 class PromptRegistryTests(unittest.TestCase):
     """Todo prompt .md tiene que tener su entrada en prompts.json.

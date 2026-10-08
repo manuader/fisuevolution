@@ -63,8 +63,6 @@ def export_size(category: str, asset_key: str) -> tuple[int, int]:
 
     Los assets ya integrados tienen estos tamaños: si cambia uno, los nuevos
     vuelven a desentonar con los que están en el juego."""
-    if category == "background":
-        return (1024, 1536)  # pantalla completa; son los únicos que van grandes
     if category == "npc" and asset_key.endswith("_face"):
         return (192, 256)    # como las 43 caras de la v1 (ui.atlas): chip y Álbum
     if category in {"character", "special", "skin", "skinfam", "npc"}:
@@ -118,6 +116,29 @@ def destination(entry: dict) -> tuple[str, str, str | None]:
     return atlas_name, asset_key, manifest_section
 
 
+# Fondos de la 2.0 (PLAN-v2 E3 "Arte"): un solo JPEG de 2048 sin sufijo de escala.
+# Son opacos y `FloorNode` hace aspect-fill sobre el tamaño de la textura, así que
+# la escala del archivo no importa; el iPad, que es @2x, deja de dibujar el de
+# 1024. En PNG los diez sumaban +26 MB al bundle; en JPEG restan 27.
+BACKGROUND_SIDE = 2048
+BACKGROUND_QUALITY = 90
+
+
+def export_background(img, asset_key: str) -> str:
+    """Escribe `Backgrounds/<key>.jpg` y retira los PNG de la v1. Devuelve el nombre
+    con extensión, que es lo que el juego busca con `UIImage(named:)`."""
+    from PIL import Image
+
+    target_dir = RESOURCES / "Backgrounds"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    name = f"{asset_key}.jpg"
+    side = (BACKGROUND_SIDE, BACKGROUND_SIDE)
+    img.convert("RGB").resize(side, Image.LANCZOS).save(target_dir / name, quality=BACKGROUND_QUALITY)
+    for escala in ("@2x", "@3x"):
+        (target_dir / f"{asset_key}{escala}.png").unlink(missing_ok=True)
+    return name
+
+
 def export_atlas(img, entry: dict, atlas_name: str, asset_key: str) -> None:
     """Escribe el @2x/@3x del asset ya recortado en su atlas."""
     from PIL import Image
@@ -148,7 +169,10 @@ def process(image_path: Path, entry: dict) -> None:
         # todo lo blanco del personaje (ver el guardapolvo del `senior_doctor`).
         img = cutout(img, entry["assetKey"])
 
-    export_atlas(img, entry, atlas_name, asset_key)
+    if category == "background":
+        asset_name = export_background(img, asset_key)
+    else:
+        export_atlas(img, entry, atlas_name, asset_key)
 
     if manifest_section is None:
         # Skins: el catálogo vive en skins.json y el arte se busca por nombre.
@@ -169,7 +193,7 @@ def process(image_path: Path, entry: dict) -> None:
         # BoardScene busca manifest.backgrounds[stage], donde stage es el nombre
         # de etapa SIN el prefijo "bg_" (alley, urban, …, god_realm).
         stage = entry["assetKey"].removeprefix("bg_")
-        manifest["backgrounds"][stage] = asset_key
+        manifest["backgrounds"][stage] = asset_name
     else:
         # `setdefault`: la sección "npcs" nace con el primer visitante integrado.
         manifest.setdefault(manifest_section, {})[entry["assetKey"]] = asset_key
@@ -177,7 +201,8 @@ def process(image_path: Path, entry: dict) -> None:
 
     PROCESSED.mkdir(exist_ok=True)
     image_path.rename(PROCESSED / image_path.name)
-    print(f"  ✓ {entry['assetKey']} → {atlas_name}/{asset_key}@2x/@3x + manifest")
+    destino = asset_name if category == "background" else f"{atlas_name}/{asset_key}@2x/@3x"
+    print(f"  ✓ {entry['assetKey']} → {destino} + manifest")
 
 
 def main() -> None:

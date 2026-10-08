@@ -1,12 +1,6 @@
 import SwiftUI
 import UIKit
 
-/// Los tonos del LED del ascensor: la cabina (T5) y la columna de premios (E7b-b T3) los comparten.
-enum ElevatorLED {
-    static let screen = Color(red: 0.11, green: 0.10, blue: 0.09)
-    static let lit = Color(red: 1.0, green: 0.64, blue: 0.18)
-}
-
 /// El arte de la cabina, en orden de preferencia: el clip con alfa, los dos cuadros fijos, o el vectorial.
 /// Cierra y abre van juntos: con un solo clip no hay video.
 @MainActor
@@ -126,8 +120,8 @@ struct VectorCabin: View {
 
     private static let opening = CGRect(x: 0.18, y: 0.18, width: 0.64, height: 0.73)
     private static let board = CGRect(x: 0.30, y: 0.075, width: 0.40, height: 0.06)
-    private static let steel = [Color(red: 0.784, green: 0.820, blue: 0.824), Color(red: 0.624, green: 0.667, blue: 0.671)]
-    private static let steelEdge = Color(red: 0.157, green: 0.180, blue: 0.188)
+    private static let steel = [MetalTone.light, MetalTone.base]
+    private static let steelEdge = MetalTone.dark
 
     var body: some View {
         GeometryReader { geo in
@@ -175,10 +169,7 @@ struct VectorCabin: View {
                 .frame(width: window.width, height: window.height)
                 .offset(x: window.minX, y: window.minY)
             ForEach(0..<4, id: \.self) { corner in
-                Circle()
-                    .fill(Color(red: 0.529, green: 0.573, blue: 0.580))
-                    .overlay(Circle().strokeBorder(Self.steelEdge, lineWidth: 1.5))
-                    .frame(width: 9, height: 9)
+                PanelScrew(fill: MetalTone.screw, line: MetalTone.dark, diameter: 9)
                     .offset(x: corner % 2 == 0 ? 7 : width - 16, y: corner < 2 ? height * 0.55 : height - 16)
             }
         }

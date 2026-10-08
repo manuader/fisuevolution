@@ -172,7 +172,7 @@ struct ElevatorRideView: View {
 
     /// Los costados del iPad: pared crema con una franja de acero junto a la cabina.
     private func sideWalls(_ moment: Moment, rect: CGRect, in size: CGSize) -> some View {
-        let strip = Color(red: 0.624, green: 0.667, blue: 0.671)
+        let strip = MetalTone.base
         return ZStack(alignment: .topLeading) {
             Color("PaletteCream").frame(width: rect.minX, height: size.height)
             strip.frame(width: 6, height: size.height).offset(x: rect.minX - 6)

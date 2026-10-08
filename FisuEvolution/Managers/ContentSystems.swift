@@ -274,6 +274,7 @@ enum BoostManager {
         specials: SpecialsConfig,
         viral: ViralConfig,
         tiers: TierRepository,
+        floorTable: FloorTable,
         economy: StandardEconomy,
         now: TimeInterval
     ) throws -> Double? {
@@ -305,8 +306,10 @@ enum BoostManager {
             UpgradeManager.recomputeDerivedEffects(state: &state, config: upgrades, specials: specials, viral: viral, boosts: config, economy: economy)
             return nil
         case .periodicPayout:
-            // Asado del Domingo: la picada = factor × passiveUnlockCost(tier máximo).
-            let payout = economy.passiveUnlockCost(forTier: state.run.maxTierReached) * boost.magnitude
+            // Asado del Domingo: la picada son `magnitude` minutos de producción.
+            let payout = RewardScale.coinPayout(
+                minutes: boost.magnitude, state: state, tiers: tiers, floorTable: floorTable, config: economy.config
+            )
             state.run.coins += payout
             state.meta.lifetimeEarnings += payout
             return payout
@@ -370,6 +373,8 @@ enum DailyRewardManager {
         viral: ViralConfig,
         boosts: BoostsConfig,
         economy: StandardEconomy,
+        tiers: TierRepository,
+        floorTable: FloorTable,
         today: Date,
         calendar: Calendar = .current,
         rng: inout some RandomNumberGenerator
@@ -418,12 +423,16 @@ enum DailyRewardManager {
                 state.meta.chestsPending += 1
                 chest = true
             } else {
-                coins = economy.passiveUnlockCost(forTier: state.run.maxTierReached) * 6.0
+                coins = RewardScale.coinPayout(
+                minutes: day.minutes ?? 0, state: state, tiers: tiers, floorTable: floorTable, config: economy.config
+            )
                 state.run.coins += coins
                 state.meta.lifetimeEarnings += coins
             }
         } else {
-            coins = economy.passiveUnlockCost(forTier: state.run.maxTierReached) * (day.coinsFactor ?? 1.0)
+            coins = RewardScale.coinPayout(
+                minutes: day.minutes ?? 0, state: state, tiers: tiers, floorTable: floorTable, config: economy.config
+            )
             state.run.coins += coins
             state.meta.lifetimeEarnings += coins
         }

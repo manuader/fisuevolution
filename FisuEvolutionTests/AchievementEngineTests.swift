@@ -458,18 +458,17 @@ struct AchievementEngineTests {
     }
 
     /// Reencarnar antes de cobrar NO puede evaporar el premio: `run.maxTierReached`
-    /// vuelve a 1 y `passiveYield` es exponencial, así que cobrar después
-    /// pagaría órdenes de magnitud menos — y como `claimed` es de una sola vía,
-    /// el premio quedaría quemado sin forma de recuperarlo.
-    @Test("el premio en monedas conserva el suelo histórico al reencarnar")
-    func coinRewardKeepsItsHistoricFloor() async throws {
-        let content = try GameContentLoader.load(from: .main)
+    /// vuelve a 1 y `passiveYield` es exponencial. El piso conserva la historia
+    /// del jugador, pero acotada: nunca más de `RewardScale.floorTiersAboveFrontier`
+    /// tiers arriba de la frontera, para que guardarse un logro y reencarnar no
+    /// sea un golpe de suerte.
+    @Test("el premio en monedas conserva la historia al reencarnar, acotada")
+    func coinRewardKeepsItsHistoryCapped() async throws {
         // El piso más alto que tocó en su vida: galaxia (ordinal 8, tiers 33…36).
-        let ordinal = 8
         let state = await makeState {
             $0.meta.stats.totalMergesEver = 1
             $0.run.raiseFrontier(to: 33)
-            $0.meta.stats.maxFloorOrdinalEver = ordinal
+            $0.meta.stats.maxFloorOrdinalEver = 8
         }
         state.evaluateAchievements()
         #expect(state.isUnlocked("ach_merges_1"))
@@ -485,11 +484,10 @@ struct AchievementEngineTests {
         let gain = (state.player?.run.coins ?? 0) - before
 
         let economy = try #require(state.economy)
-        let referenceTier = content.floorTable[ordinal].firstTier
-        let expected = economy.passiveYield(forTier: referenceTier) * (try Self.seconds(of: "ach_merges_1"))
-        #expect(abs(gain - expected) < expected * 1e-9, "el suelo es el primer tier del piso más alto de su vida")
-        // Y no es una diferencia cosmética: cobrarlo como T1 pagaba ~1e13 veces menos.
-        #expect(gain > economy.passiveYield(forTier: 1) * 1_000_000)
+        let cappedTier = 1 + RewardScale.floorTiersAboveFrontier
+        let expected = economy.passiveYield(forTier: cappedTier) * (try Self.seconds(of: "ach_merges_1"))
+        #expect(abs(gain - expected) < expected * 1e-9, "el piso sube hasta el tope sobre la frontera, no hasta el historial entero")
+        #expect(gain > economy.passiveYield(forTier: 1) * (try Self.seconds(of: "ach_merges_1")))
     }
 
     /// La fila cotiza con el MISMO tier con el que después paga el cobro: si no,

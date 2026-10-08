@@ -292,7 +292,7 @@ struct ContentSystemsTests {
         let chest = try BoostManager.activate(
             boostId: "cafe", state: &state, config: content.boosts,
             upgrades: content.upgradesConfig, specials: content.specials, viral: content.viral,
-            tiers: content.tiers, economy: economy, now: 1000
+            tiers: content.tiers, floorTable: content.floorTable, economy: economy, now: 1000
         )
         #expect(chest == nil)
         #expect(state.run.activeModifiers.contains { $0.sourceKey == "boost.cafe" && $0.effect == .tapMultiplier })
@@ -301,7 +301,7 @@ struct ContentSystemsTests {
             try BoostManager.activate(
                 boostId: "cafe", state: &state, config: content.boosts,
                 upgrades: content.upgradesConfig, specials: content.specials, viral: content.viral,
-                tiers: content.tiers, economy: economy, now: 1001
+                tiers: content.tiers, floorTable: content.floorTable, economy: economy, now: 1001
             )
         }
     }
@@ -312,7 +312,7 @@ struct ContentSystemsTests {
         _ = try BoostManager.activate(
             boostId: "milanesa", state: &state, config: content.boosts,
             upgrades: content.upgradesConfig, specials: content.specials, viral: content.viral,
-            tiers: content.tiers, economy: economy, now: 1000
+            tiers: content.tiers, floorTable: content.floorTable, economy: economy, now: 1000
         )
         #expect(abs(state.meta.derivedEffects.offlineEfficiency - before - 0.05) < 1e-9)
     }
@@ -325,7 +325,7 @@ struct ContentSystemsTests {
         try BoostManager.activate(
             boostId: "milanesa", state: &state, config: boosts,
             upgrades: content.upgradesConfig, specials: content.specials, viral: content.viral,
-            tiers: content.tiers, economy: economy, now: 0
+            tiers: content.tiers, floorTable: content.floorTable, economy: economy, now: 0
         )
         #expect(abs(state.meta.derivedEffects.offlineEfficiency - before - 0.2) < 1e-9)
     }
@@ -342,14 +342,16 @@ struct ContentSystemsTests {
         return try JSONDecoder().decode(BoostsConfig.self, from: JSONSerialization.data(withJSONObject: json))
     }
 
-    @Test func asadoGrantsChestScaledToMaxTier() throws {
+    @Test("el asado paga sus minutos de producción")
+    func asadoPaysItsMinutes() throws {
         var state = makeState(maxTier: 5)
+        let expected = RewardScale.coinPayout(minutes: 10, state: state, tiers: content.tiers,
+                                              floorTable: content.floorTable, config: content.economy)
         let chest = try BoostManager.activate(
             boostId: "asado", state: &state, config: content.boosts,
             upgrades: content.upgradesConfig, specials: content.specials, viral: content.viral,
-            tiers: content.tiers, economy: economy, now: 1000
+            tiers: content.tiers, floorTable: content.floorTable, economy: economy, now: 1000
         )
-        let expected = economy.passiveUnlockCost(forTier: 5) * 4.0
         #expect(abs((chest ?? 0) - expected) < 1e-6)
         #expect(abs(state.run.coins - expected) < 1e-6)
     }
@@ -396,7 +398,8 @@ struct ContentSystemsTests {
         let claim = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            boosts: content.boosts, economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy,
+            tiers: content.tiers, floorTable: content.floorTable, today: today, rng: &rng
         ))
         #expect(claim.day.day == 1)
         #expect(claim.coinsGranted > 0)
@@ -406,9 +409,24 @@ struct ContentSystemsTests {
         let second = DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            boosts: content.boosts, economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy,
+            tiers: content.tiers, floorTable: content.floorTable, today: today, rng: &rng
         )
         #expect(second == nil)
+    }
+
+    @Test("el diario paga los minutos de su día")
+    func dailyPaysItsMinutes() throws {
+        var state = makeState(maxTier: 5)
+        var rng = FixedRNG(seed: 1)
+        let expected = RewardScale.coinPayout(minutes: 5, state: state, tiers: content.tiers,
+                                              floorTable: content.floorTable, config: content.economy)
+        let claim = try #require(DailyRewardManager.claimIfAvailable(
+            state: &state, config: content.dailyRewards, specials: content.specials, skins: content.skins,
+            upgrades: content.upgradesConfig, viral: content.viral, boosts: content.boosts, economy: economy,
+            tiers: content.tiers, floorTable: content.floorTable, today: Date(), rng: &rng
+        ))
+        #expect(abs(claim.coinsGranted - expected) < 1e-6)
     }
 
     @Test func skippedDayResetsCycle() throws {
@@ -421,7 +439,8 @@ struct ContentSystemsTests {
         let claim = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            boosts: content.boosts, economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy,
+            tiers: content.tiers, floorTable: content.floorTable, today: today, rng: &rng
         ))
         #expect(claim.day.day == 1)
     }
@@ -441,7 +460,8 @@ struct ContentSystemsTests {
         let conSpecials = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            boosts: content.boosts, economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy,
+            tiers: content.tiers, floorTable: content.floorTable, today: today, rng: &rng
         ))
         #expect(conSpecials.specialGranted != nil)
         #expect(conSpecials.chestGranted == false)
@@ -454,7 +474,8 @@ struct ContentSystemsTests {
         let sinSpecials = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            boosts: content.boosts, economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy,
+            tiers: content.tiers, floorTable: content.floorTable, today: today, rng: &rng
         ))
         #expect(sinSpecials.specialGranted == nil)
         #expect(sinSpecials.chestGranted)
@@ -468,7 +489,8 @@ struct ContentSystemsTests {
         let conTodo = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            boosts: content.boosts, economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy,
+            tiers: content.tiers, floorTable: content.floorTable, today: today, rng: &rng
         ))
         #expect(conTodo.chestGranted == false)
         #expect(conTodo.coinsGranted > 0)
@@ -497,7 +519,8 @@ struct ContentSystemsTests {
         let claim = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
-            boosts: content.boosts, economy: economy, today: today, rng: &rng
+            boosts: content.boosts, economy: economy,
+            tiers: content.tiers, floorTable: content.floorTable, today: today, rng: &rng
         ))
         #expect(claim.specialGranted == nil, "en prestigio 0 no hay ninguno de los tres para sortear")
         #expect(claim.chestGranted == false, "sin los diez tomados no hay cofre")

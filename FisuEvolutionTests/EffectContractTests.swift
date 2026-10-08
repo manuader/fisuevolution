@@ -59,6 +59,7 @@ struct EffectContractTests {
         case .percentDiscount: EffectFormatter.text(EffectAmount(unit: .percentDiscount, value: 1 - ratio, isCapped: false))
         case .percentBonus: EffectFormatter.text(EffectAmount(unit: .percentBonus, value: ratio - 1, isCapped: false))
         case .chance: EffectFormatter.text(EffectAmount(unit: .chance, value: ratio, isCapped: false))
+        case .minutes: EffectFormatter.text(EffectAmount(unit: .minutes, value: ratio, isCapped: false))
         }
     }
 
@@ -184,6 +185,11 @@ struct EffectContractTests {
             let shown = EffectFormatter.text(EffectDescriptor.amount(forBoost: effect, magnitude: boost.magnitude))
             #expect(row.effectText.contains(shown))
             let offlineBefore = try #require(gameState.player?.meta.derivedEffects.offlineEfficiency)
+            // Lo que el asado tiene que pagar, cotizado ANTES de activarlo.
+            let expectedPayout = RewardScale.coinPayout(
+                minutes: boost.magnitude, state: try #require(gameState.player),
+                tiers: content.tiers, floorTable: content.floorTable, config: content.economy
+            )
             let payout = gameState.activateBoost(id: boost.id)
             switch effect {
             case .incomeMultiplier, .tapMultiplier, .spawnCostMultiplier:
@@ -193,7 +199,7 @@ struct EffectContractTests {
                 let after = try #require(gameState.player?.meta.derivedEffects.offlineEfficiency)
                 #expect(abs(after - offlineBefore - boost.magnitude) < 1e-9)
             case .periodicPayout:
-                #expect((payout ?? 0) > 0)
+                #expect(abs((payout ?? 0) - expectedPayout) < 1e-6 * max(1, expectedPayout))
             }
         }
     }

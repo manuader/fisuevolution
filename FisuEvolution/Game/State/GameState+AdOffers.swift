@@ -127,6 +127,7 @@ extension GameState {
                 specials: content.specials,
                 viral: content.viral,
                 tiers: content.tiers,
+                floorTable: content.floorTable,
                 economy: economy,
                 now: Date().timeIntervalSince1970
             )

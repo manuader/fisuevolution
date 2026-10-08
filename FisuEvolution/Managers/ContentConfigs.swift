@@ -121,7 +121,9 @@ struct DailyRewardsConfig: Codable, Sendable, Equatable {
     struct Day: Codable, Sendable, Equatable {
         let day: Int
         let type: String
-        let coinsFactor: Double?
+        /// Minutos de producción que paga el día (PLAN-v2 E2a). En el día del
+        /// special es lo que paga si no hay special ni cofre que dar.
+        let minutes: Double?
         let titleKey: String
     }
 
@@ -137,6 +139,7 @@ struct BoostsConfig: Codable, Sendable, Equatable {
         case tapMultiplier
         case spawnCostMultiplier
         case offlineEfficiencyPermanent
+        /// Su `magnitude` son minutos de producción.
         case periodicPayout
     }
 

@@ -161,6 +161,7 @@ extension GameState {
                 specials: content.specials,
                 viral: content.viral,
                 tiers: content.tiers,
+                floorTable: content.floorTable,
                 economy: economy,
                 now: Date().timeIntervalSince1970
             )
@@ -304,6 +305,8 @@ extension GameState {
             viral: content.viral,
             boosts: content.boosts,
             economy: economy,
+            tiers: content.tiers,
+            floorTable: content.floorTable,
             today: Date(),
             rng: &rng
         ) {
@@ -515,7 +518,7 @@ extension GameState {
         case .tapMultiplier: return String(localized: "bonus.effect.tap \(value) \(seconds)")
         case .spawnCostMultiplier: return String(localized: "bonus.effect.spawn \(value) \(seconds)")
         case .offlineEfficiencyPermanent: return String(localized: "bonus.effect.offline \(value)")
-        case .periodicPayout: return String(localized: "bonus.effect.payout \(value)")
+        case .periodicPayout: return String(localized: "bonus.effect.payout_minutes \(value)")
         }
     }
 
@@ -604,6 +607,7 @@ extension GameState {
                     specials: content.specials,
                     viral: content.viral,
                     tiers: content.tiers,
+                    floorTable: content.floorTable,
                     economy: economy,
                     now: now
                 )

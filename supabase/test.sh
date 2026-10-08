@@ -25,7 +25,7 @@ mkdir -p "$LOG_DIR"
 LOG="$LOG_DIR/$(date +%Y%m%d-%H%M%S)-$$.log"
 exec > >(tee -a "$LOG") 2>&1
 
-DENO_TESTS="$(find "$HERE/functions" -name '*_test.ts' 2>/dev/null | wc -l | tr -d ' ')"
+DENO_TESTS="$( (find "$HERE/functions" -name '*_test.ts' 2>/dev/null || true) | wc -l | tr -d ' ')"
 DENO=()
 DENO_DB_HOST=127.0.0.1
 

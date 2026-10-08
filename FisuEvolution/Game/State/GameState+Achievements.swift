@@ -285,8 +285,7 @@ extension GameState {
 
     /// "Gratis" es literal: se activa por el MISMO camino que el botón de
     /// Regalos —así el regalo no reimplementa los cinco efectos— pero ignorando
-    /// el cooldown vigente y sin consumirlo después. Es el premio del Médico
-    /// (`grantCareerReward`), palabra por palabra.
+    /// el cooldown vigente y sin consumirlo después.
     private func grantFreeBoost(
         id boostID: String?,
         player: inout PlayerState,

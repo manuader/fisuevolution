@@ -88,7 +88,8 @@ public enum TowerActions {
         )
         let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
-        let cost = base * costMultiplier * modifier * discount
+        let free = ModifierMath.activeUntil(.freeHire, in: state.run.activeModifiers, now: now) != nil
+        let cost = free ? 0 : base * costMultiplier * modifier * discount
         return HireQuote(
             floorOrdinal: floorOrdinal, type: type, cost: cost, purchases: purchases,
             spendingFrozen: ModifierMath.spendingFrozenUntil(state.run.activeModifiers, now: now) != nil
@@ -141,7 +142,8 @@ public enum TowerActions {
         )
         let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
-        let cost = base * costMultiplier * modifier * discount
+        let free = ModifierMath.activeUntil(.freeHire, in: state.run.activeModifiers, now: now) != nil
+        let cost = free ? 0 : base * costMultiplier * modifier * discount
         return HireQuote(
             floorOrdinal: ordinal, type: type, cost: cost, purchases: purchases,
             spendingFrozen: ModifierMath.spendingFrozenUntil(state.run.activeModifiers, now: now) != nil

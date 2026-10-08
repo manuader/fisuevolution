@@ -91,6 +91,7 @@ enum ActiveBonusBuilder {
         case .spawnCostMultiplier: boostEffect = .spawnCostMultiplier
         case .spendingFrozen: return String(localized: "bonus.chip.spending_frozen")
         case .eventImmunity: return String(localized: "bonus.chip.immunity")
+        case .freeHire: return String(localized: "bonus.chip.free_hire")
         case .packageRateMultiplier:
             let value = EffectFormatter.text(
                 EffectDescriptor.amount(forBoost: .incomeMultiplier, magnitude: modifier.magnitude)

@@ -110,6 +110,10 @@ struct EffectContractTests {
                 let paid = AutoTapper.advance(state: &boosted, delta: 1, now: 0, tiers: content.tiers,
                                               floorTable: content.floorTable, economy: economy)
                 #expect(abs(paid - oneTap * magnitude) < 1e-9 * max(1, paid), "el chip dice \(magnitude) por segundo y eso cobra")
+            case .freeHire:
+                #expect(chip == String(localized: "bonus.chip.free_hire"))
+                #expect(try quote(boosted).cost == 0)
+                #expect(passive(boosted) == passive(plain))
             }
         }
     }
@@ -272,21 +276,15 @@ struct EffectContractTests {
             gameState.confirmBoardChange(id: change.id)
             #expect(gameState.player?.run.maxTierReached == 11)
             switch kind {
-            case .coinChest:
-                let credited = try #require(gameState.player?.run.coins) - coinsBefore
-                #expect(preview.contains(CoinFormatter.string(from: credited)))
-            case .freeBoost:
-                // Hoy el Médico regala el Café (`careers.json`): un modificador de tap.
-                let boost = try #require(content.boosts.boosts.first { $0.id == career.boostId })
-                let modifier = try #require(gameState.player?.run.activeModifiers.first { $0.sourceKey == "boost.\(boost.id)" })
-                #expect(modifier.magnitude == boost.magnitude)
-                #expect(preview.contains(EffectFormatter.text(EffectDescriptor.amount(forBoost: boost.effectType, magnitude: boost.magnitude))))
+            case .freeHires:
+                let modifier = try #require(gameState.player?.run.activeModifiers.first { $0.sourceKey == "career.\(career.id)" })
+                #expect(modifier.effect == .freeHire)
+                #expect(preview.contains(String(Int((career.durationSeconds ?? 0) / 60))))
             case .skin:
                 #expect(gameState.player?.meta.milestoneSkins.contains(career.skinId ?? "") == true)
-            case .temporaryModifier:
-                let modifier = try #require(gameState.player?.run.activeModifiers.first { $0.sourceKey == "career.\(career.id)" })
-                let shown = EffectFormatter.text(EffectDescriptor.amount(forBoost: .spawnCostMultiplier, magnitude: modifier.magnitude))
-                #expect(preview.contains(shown))
+            case .lawsuit, .healthPlan:
+                let credited = try #require(gameState.player?.run.coins) - coinsBefore
+                #expect(preview.contains(CoinFormatter.string(from: credited)))
             }
         }
     }

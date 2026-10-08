@@ -25,6 +25,9 @@ public struct ActiveModifier: Codable, Sendable, Equatable, Identifiable {
         /// magnitud son toques, no un factor: dos auto-taps se SUMAN. Lo cobra
         /// `AutoTapper` y no entra en ningún `factor` de ingresos.
         case autoTapPerSecond
+        /// Contratar es gratis mientras dura (el Programador). No cuenta para la
+        /// curva: la compra cuesta 0 y la app pasa `countsAsPurchase: false`.
+        case freeHire
     }
 
     public let id: UUID
@@ -82,8 +85,13 @@ public enum ModifierMath {
             .reduce(0) { $0 + $1.magnitude }
     }
 
+    /// Hasta cuándo dura el efecto vivo más largo de este tipo, o `nil` si no hay.
+    public static func activeUntil(_ effect: ActiveModifier.Effect, in modifiers: [ActiveModifier], now: TimeInterval) -> TimeInterval? {
+        modifiers.filter { $0.effect == effect && $0.isActive(at: now) }.map(\.expiresAt).max()
+    }
+
     public static func spendingFrozenUntil(_ modifiers: [ActiveModifier], now: TimeInterval) -> TimeInterval? {
-        modifiers.filter { $0.effect == .spendingFrozen && $0.isActive(at: now) }.map(\.expiresAt).max()
+        activeUntil(.spendingFrozen, in: modifiers, now: now)
     }
 
     /// Hay una inmunidad viva: los eventos negativos no salen en el sorteo (los

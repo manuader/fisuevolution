@@ -480,7 +480,7 @@ struct PanelCard<Content: View>: View {
 
 /// Un tornillo del marco: plato con borde oscuro y la ranura en diagonal.
 /// En metal es un remache: mismo dibujo, tonos fríos.
-private struct PanelScrew: View {
+struct PanelScrew: View {
     let fill: Color
     let line: Color
     /// 12 en el tablón de las hojas; `PanelCard` lo baja a 10.
@@ -503,7 +503,7 @@ private struct PanelScrew: View {
 
 // MARK: - Tonos del metal (fríos, hermanos de los del arte panel_upgrades)
 
-private enum MetalTone {
+enum MetalTone {
     static let light = Color(red: 0.784, green: 0.820, blue: 0.824)   // #C8D1D2
     static let base = Color(red: 0.624, green: 0.667, blue: 0.671)    // #9FAAAB
     static let dark = Color(red: 0.157, green: 0.180, blue: 0.188)    // #282E30

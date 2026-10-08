@@ -27,7 +27,7 @@
     "products": [
       {
         "productId": "com.fisuevolution.iap.coins_small",
-        "referenceName": "Coins S",
+        "referenceName": "Handful of Cash",
         "type": "consumable",
         "priceUSD": "0.99",
         "familySharable": false,
@@ -52,7 +52,7 @@
       },
       {
         "productId": "com.fisuevolution.iap.oro_small",
-        "referenceName": "ORO S",
+        "referenceName": "Handful of Gold",
         "type": "consumable",
         "priceUSD": "1.99",
         "familySharable": false,
@@ -77,7 +77,7 @@
       },
       {
         "productId": "com.fisuevolution.iap.coins_medium",
-        "referenceName": "Coins M",
+        "referenceName": "Wad of Cash",
         "type": "consumable",
         "priceUSD": "4.99",
         "familySharable": false,
@@ -102,7 +102,7 @@
       },
       {
         "productId": "com.fisuevolution.iap.oro_medium",
-        "referenceName": "ORO M",
+        "referenceName": "Chest of Gold",
         "type": "consumable",
         "priceUSD": "4.99",
         "familySharable": false,
@@ -127,7 +127,7 @@
       },
       {
         "productId": "com.fisuevolution.iap.coins_large",
-        "referenceName": "Coins L",
+        "referenceName": "Bag of Cash",
         "type": "consumable",
         "priceUSD": "9.99",
         "familySharable": false,
@@ -152,7 +152,7 @@
       },
       {
         "productId": "com.fisuevolution.iap.oro_large",
-        "referenceName": "ORO L",
+        "referenceName": "Vault of Gold",
         "type": "consumable",
         "priceUSD": "9.99",
         "familySharable": false,
@@ -277,7 +277,7 @@
       },
       {
         "productId": "com.fisuevolution.iap.skin_mundialista",
-        "referenceName": "Skin Mundialista",
+        "referenceName": "World Cup Skin",
         "type": "nonConsumable",
         "priceUSD": "2.99",
         "familySharable": false,
@@ -302,7 +302,7 @@
       },
       {
         "productId": "com.fisuevolution.iap.skin_parrillero",
-        "referenceName": "Skin Parrillero",
+        "referenceName": "Parrillero Skin",
         "type": "nonConsumable",
         "priceUSD": "2.99",
         "familySharable": false,
@@ -352,7 +352,7 @@
       },
       {
         "productId": "com.fisuevolution.iap.skins_diamante",
-        "referenceName": "Skins Diamante",
+        "referenceName": "All Diamond Skins",
         "type": "nonConsumable",
         "priceUSD": "19.99",
         "familySharable": false,

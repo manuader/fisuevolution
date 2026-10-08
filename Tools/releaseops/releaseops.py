@@ -6,6 +6,8 @@
     python3 Tools/releaseops/releaseops.py asc plan           # dry-run: qué cambiaría
     python3 Tools/releaseops/releaseops.py asc apply --yes    # aplica el plan
     python3 Tools/releaseops/releaseops.py asc diff           # exit 0 si ASC == config
+    python3 Tools/releaseops/releaseops.py asc ready          # exit 0 si todo puede ir a revisión
+    python3 Tools/releaseops/releaseops.py asc screenshot <producto> <png>
     python3 Tools/releaseops/releaseops.py admob plan         # unidades por crear
     python3 Tools/releaseops/releaseops.py admob set-id <clave> <ad-unit-id>
     python3 Tools/releaseops/releaseops.py admob sync-code [--dry-run]
@@ -102,6 +104,13 @@ def cmd_asc_plan(args, apply_it: bool = False) -> int:
         return 1
     log = logger("asc-apply")
     failed = asc.apply(client, config, state, actions, log)
+    if any(a.kind == "patch-loc" for a in failed):
+        # Un texto aprobado no se edita: Apple abre el borrador cuando se toca
+        # el producto (p. ej. al sumar un idioma). Segunda pasada sobre él.
+        state = asc.snapshot(client, config)
+        retry = [a for a in asc.plan(config, state)[0] if a.kind == "patch-loc"]
+        print(f"Segunda pasada: {len(retry)} textos sobre el borrador que abrió Apple")
+        failed = [a for a in failed if a.kind != "patch-loc"] + asc.apply(client, config, state, retry, log)
     print(f"Log: {log.path}")
     # Verificación: el estado se vuelve a leer, no se confía en las respuestas.
     after, _ = asc.plan(config, asc.snapshot(client, config))
@@ -116,6 +125,29 @@ def cmd_asc_diff(args) -> int:
         print(f"  · {action.product:<18} {action.kind:<17} {action.summary}")
     print("VERDE: App Store Connect == config" if not actions else f"ROJO: {len(actions)} diferencias")
     return 0 if not actions else 1
+
+
+def cmd_asc_ready(args) -> int:
+    asc, _, client, state = _asc_state(args)
+    missing = asc.readiness(client, state)
+    for line in missing:
+        print(f"  ✗ {line}")
+    print("VERDE: todo listo para ir a revisión con la versión" if not missing else f"ROJO: {len(missing)} pendientes")
+    return 0 if not missing else 1
+
+
+def cmd_asc_screenshot(args) -> int:
+    asc, config, client, state = _asc_state(args)
+    pid = config["inAppPurchases"]["productIdPrefix"] + args.product
+    if pid not in state["products"]:
+        print(f"✗ {pid} no existe en App Store Connect (corré `asc apply` primero)")
+        return 1
+    if args.dry_run:
+        print(f"Dry-run: subiría {args.png} como captura de {args.product}")
+        return 0
+    shot = asc.upload_review_screenshot(client, state["products"][pid]["id"], args.png)
+    logger("asc-screenshot")({"action": "screenshot", "product": args.product, "result": "ok", "summary": shot})
+    return 0
 
 
 def cmd_admob_plan(args) -> int:
@@ -191,6 +223,12 @@ def main() -> int:
         p.add_argument("--allow-price-change", action="store_true")
         p.set_defaults(run=run)
     asc_p.add_parser("diff").set_defaults(run=cmd_asc_diff)
+    asc_p.add_parser("ready").set_defaults(run=cmd_asc_ready)
+    shot = asc_p.add_parser("screenshot")
+    shot.add_argument("product", help="el sufijo del productId, p. ej. offer_bienvenida")
+    shot.add_argument("png", type=Path)
+    shot.add_argument("--dry-run", action="store_true")
+    shot.set_defaults(run=cmd_asc_screenshot)
 
     ad = sub.add_parser("admob").add_subparsers(dest="cmd", required=True)
     ad.add_parser("plan").set_defaults(run=cmd_admob_plan)

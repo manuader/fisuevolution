@@ -156,13 +156,35 @@ def snapshot(client: Client, config: dict) -> dict:
             "state": attrs.get("state"),
             "reviewNote": attrs.get("reviewNote"),
             "familySharable": attrs.get("familySharable"),
-            "localizations": {l["attributes"]["locale"]: {"id": l["id"], "name": l["attributes"].get("name"),
-                                                           "description": l["attributes"].get("description"),
-                                                           "state": l["attributes"].get("state")} for l in locs},
+            "localizations": _by_locale(locs),
             "priceUSD": _current_price(client, iap["id"]),
             "availability": _availability(client, iap["id"]),
         }
     return state
+
+
+def _by_locale(locs: list) -> dict:
+    """Una entrada por idioma, la que se va a revisar.
+
+    ⚠️ Medido 2026-10-08: un idioma aprobado puede tener DOS localizaciones, la
+    APPROVED (en vivo) y un borrador PREPARE_FOR_SUBMISSION que Apple abre
+    cuando se toca el producto. La aprobada no se puede editar (409 "ACTIVE");
+    el borrador sí, y es el que sale con la próxima versión. Se compara contra
+    el borrador cuando existe, y la aprobada queda como `live`."""
+    result: dict = {}
+    for loc in locs:
+        attrs = loc["attributes"]
+        entry = {"id": loc["id"], "name": attrs.get("name"), "description": attrs.get("description"),
+                 "state": attrs.get("state")}
+        current = result.get(attrs["locale"])
+        if current is None:
+            result[attrs["locale"]] = entry
+        elif entry["state"] == "APPROVED":
+            current["live"] = entry["name"]
+        else:
+            entry["live"] = current["name"] if current["state"] == "APPROVED" else current.get("live")
+            result[attrs["locale"]] = entry
+    return result
 
 
 def _current_price(client: Client, iap_id: str) -> str | None:
@@ -184,7 +206,7 @@ def _current_price(client: Client, iap_id: str) -> str | None:
 def _availability(client: Client, iap_id: str) -> dict | None:
     try:
         data = client.request("GET", f"/v2/inAppPurchases/{iap_id}/inAppPurchaseAvailability",
-                              params={"include": "availableTerritories", "limit[availableTerritories]": 200})
+                              params={"include": "availableTerritories"})
     except AscError:
         return None
     if not data.get("data"):
@@ -321,3 +343,55 @@ def _set_availability(client: Client, iap_id: str) -> None:
         "relationships": {
             "inAppPurchase": {"data": {"type": "inAppPurchases", "id": iap_id}},
             "availableTerritories": {"data": [{"type": "territories", "id": t["id"]} for t in territories]}}}})
+
+
+# ------------------------------------------------------- captura de revisión
+
+def review_screenshot(client: Client, iap_id: str) -> dict | None:
+    try:
+        data = client.request("GET", f"/v2/inAppPurchases/{iap_id}/appStoreReviewScreenshot").get("data")
+    except AscError:
+        return None
+    if not data:
+        return None
+    return {"id": data["id"], "fileName": data["attributes"].get("fileName"),
+            "state": (data["attributes"].get("assetDeliveryState") or {}).get("state")}
+
+
+def upload_review_screenshot(client: Client, iap_id: str, png: Path) -> str:
+    """Reserva, sube por partes y confirma con el MD5: el protocolo de assets de Apple."""
+    import hashlib
+
+    if review_screenshot(client, iap_id):
+        raise AscError("ese producto ya tiene captura de revisión; reemplazarla implica borrar la actual")
+    blob = Path(png).read_bytes()
+    reservation = client.request("POST", "/v1/inAppPurchaseAppStoreReviewScreenshots", {"data": {
+        "type": "inAppPurchaseAppStoreReviewScreenshots",
+        "attributes": {"fileName": Path(png).name, "fileSize": len(blob)},
+        "relationships": {"inAppPurchaseV2": {"data": {"type": "inAppPurchases", "id": iap_id}}}}})["data"]
+    for op in reservation["attributes"]["uploadOperations"]:
+        chunk = blob[op["offset"]:op["offset"] + op["length"]]
+        headers = {h["name"]: h["value"] for h in op.get("requestHeaders", [])}
+        req = urllib.request.Request(op["url"], data=chunk, method=op["method"], headers=headers)
+        with urllib.request.urlopen(req, timeout=120):
+            pass
+    client.request("PATCH", f"/v1/inAppPurchaseAppStoreReviewScreenshots/{reservation['id']}", {"data": {
+        "type": "inAppPurchaseAppStoreReviewScreenshots", "id": reservation["id"],
+        "attributes": {"uploaded": True, "sourceFileChecksum": hashlib.md5(blob).hexdigest()}}})
+    return reservation["id"]
+
+
+def readiness(client: Client, state: dict) -> list[str]:
+    """Lo que le falta a cada producto para poder ir a revisión con la versión."""
+    missing = []
+    for pid, product in sorted(state["products"].items()):
+        short = pid.rsplit(".", 1)[-1]
+        if not review_screenshot(client, product["id"]):
+            missing.append(f"{short}: falta la captura de revisión")
+        if product["state"] == "MISSING_METADATA":
+            missing.append(f"{short}: App Store Connect lo marca MISSING_METADATA")
+        if product["priceUSD"] is None:
+            missing.append(f"{short}: sin precio")
+        if product["availability"] is None:
+            missing.append(f"{short}: sin disponibilidad")
+    return missing

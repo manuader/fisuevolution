@@ -1937,6 +1937,23 @@
         }
       }
     },
+    "bonus.effect.payout_minutes %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A platter: %@ of production, every time"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una picada: %@ de producción, cada vez"
+          }
+        }
+      }
+    },
     "bonus.effect.spawn %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2947,6 +2964,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "al máximo"
+          }
+        }
+      }
+    },
+    "effect.minutes %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ min"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ min"
           }
         }
       }
@@ -4502,6 +4536,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bloqueado"
+          }
+        }
+      }
+    },
+    "map.staffed %@ %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fully staffed floors %1$@/%2$@ · +%3$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pisos en marcha %1$@/%2$@ · +%3$@"
           }
         }
       }

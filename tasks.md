@@ -62,7 +62,7 @@
 
 | Épica | Rama | Punta hoy |
 |---|---|---|
-| E1 | `v2/e1-correcciones` (worktree `v2-e1`) | integrada en `version-2` (T16 pendiente del completo #2) |
+| E1 | `v2/e1-correcciones` (worktree `v2-e1`) | integrada en `version-2`; **E1 cerrada** (T16 ✅, relevo 12) |
 | E11 | `v2/e11-notificaciones` (worktree `v2-e11`) | `597b60e` (T5; mergeada en `c47d93e`) |
 | E3a + E3b | `v2/e3-ux` (worktree `v2-e3`) | `aae3a7f` (T8; mergeada en `9eeb9eb`) |
 | E5a + E5b | `v2/e5-premios` (worktree `v2-e5`) | `f6f8e2f` (mergeada en `0fa932c`) |
@@ -77,7 +77,7 @@
 
 ## 2. Progreso
 
-**Hoy: 68 de 210 tareas activas integradas (32,4 %)**, más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅).
+**Hoy: 69 de 210 tareas activas integradas (32,9 %)**, más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅).
 El conteo creció de 167 a 210 porque E8 (arte), E12 y E13 tienen plan por tarea desde el relevo 12 (+43 filas:
 10 + 19 + 14), por eso el porcentaje baja aunque las integradas subieron de 59 a 68 (E8 T1–T5 y T8, E12 T1 y T2,
 E13 T1). E13 T1 y E12 T1 cuentan ✅ aunque están en la rama `v2i/integ-r12` y no en `version-2`: entran a
@@ -86,7 +86,7 @@ E13 T1). E13 T1 y E12 T1 cuentan ✅ aunque están en la rama `v2i/integ-r12` y 
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
-| E1 | 16 | 15 |  | 1 |  |  |  |  |
+| E1 | 16 | 16 |  |  |  |  |  |  |
 | E11 | 7 | 6 |  |  | 1 |  |  |  |
 | E3a | 12 | 10 |  |  | 1 | 1 |  |  |
 | E3b | 9 | 3 |  |  | 1 | 5 |  |  |
@@ -105,7 +105,7 @@ E13 T1). E13 T1 y E12 T1 cuentan ✅ aunque están en la rama `v2i/integ-r12` y 
 | E8 (arte) | 10 | 6 |  |  |  | 4 |  |  |
 | E12 | 19 | 2 |  |  | 1 | 15 | 1 |  |
 | E13 | 14 | 1 |  |  | 5 | 8 |  |  |
-| **Total** | **210** | **68** | | **1** | **14** | **126** | **1** | **1** |
+| **Total** | **210** | **69** | | | **14** | **126** | **1** | **1** |
 
 Fuera del conteo:
 

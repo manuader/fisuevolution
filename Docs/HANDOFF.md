@@ -28,8 +28,8 @@
 > `Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md` y en `build/relevo12-completo-limpio.log` del worktree
 > `version-2`; las 3 regresiones de UI de la ola H ya están arregladas)**; E11 T1–T6; E3a T1–T10; E3b T1–T3;
 > E2a T1–T14; E4a T1–T2 y T8; E5a T1–T3; E6a T3 y T9; E6b T1–T3 y T1r; **E8 (arte) T1–T5 y T8; E12 T1 y T2;
-> E13 T1**; y `release-ops` (compras y anuncios como código). **Progreso: 68 de 210 tareas activas
-> integradas (32,4 %)** (`tasks.md` §2; el denominador subió porque E8, E12 y E13 tienen plan por tarea).
+> E13 T1**; y `release-ops` (compras y anuncios como código). **Progreso: 69 de 210 tareas activas
+> integradas (32,9 %)** (`tasks.md` §2; el denominador subió porque E8, E12 y E13 tienen plan por tarea).
 > **El `rapido` de `c94f75f` está VERDE** (EK 556 · unit 784 + 1 · release 0); **el último `completo` de
 > referencia sigue siendo el de `528d10b`**. Detalle en `Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md`.
 >
@@ -350,7 +350,7 @@ Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
 
 ### Sesión del 2026-10-08 (relevo 12) — Las 3 regresiones de UI, la bandeja del dueño y tres épicas con plan
 
-`version-2` quedó en `c94f75f` (y `v2i/integ-r12` en `acee4d8`). **Progreso: 68 de 210 tareas activas integradas (32,4 %).**
+`version-2` quedó en `c94f75f` (y `v2i/integ-r12` en `acee4d8`). **Progreso: 69 de 210 tareas activas integradas (32,9 %).**
 
 - **Las 3 regresiones de UI de la ola H eran reales y de dos causas:** el panel de debug es una `List`
   perezosa y E2a T14/T12 pusieron una sección arriba de las puertas de test (cofre, ficha y especiales:

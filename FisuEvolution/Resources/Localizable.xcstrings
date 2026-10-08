@@ -1835,6 +1835,40 @@
         }
       }
     },
+    "bonus.chip.immunity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Immune"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inmune"
+          }
+        }
+      }
+    },
+    "bonus.chip.packages %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Packages %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paquetes %@"
+          }
+        }
+      }
+    },
     "bonus.chip.spending_frozen" : {
       "extractionState" : "manual",
       "localizations" : {

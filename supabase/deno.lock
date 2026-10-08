@@ -3,7 +3,8 @@
   "specifiers": {
     "jsr:@std/assert@1": "1.0.19",
     "jsr:@std/internal@^1.0.12": "1.0.14",
-    "npm:@anthropic-ai/sdk@0.131.0": "0.131.0"
+    "npm:@anthropic-ai/sdk@0.131.0": "0.131.0",
+    "npm:postgres@3.4.5": "3.4.5"
   },
   "jsr": {
     "@std/assert@1.0.19": {
@@ -41,6 +42,9 @@
         "ts-algebra"
       ]
     },
+    "postgres@3.4.5": {
+      "integrity": "sha512-cDWgoah1Gez9rN3H4165peY9qfpEo+SA61oQv65O3cRUE1pOEoJWwddwcqKE8XZYjbblOJlYDlLV4h67HrEVDg=="
+    },
     "standardwebhooks@1.1.1": {
       "integrity": "sha512-bCbX9ZEyFkWPsRz7Bl3NuQUJohmwGSev/yhr7vhaGPlc4AfIrspIRa6cPTBuI1ItmrTDJ4d/S2hCsfe4+vQGnQ==",
       "dependencies": [
@@ -54,6 +58,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@std/assert@1",
       "npm:@anthropic-ai/sdk@0.131.0",
       "npm:postgres@3.4.5"
     ]

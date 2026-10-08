@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "@std/assert";
 import { validateName } from "./name_rules.ts";
 
 interface Case { input: string; expect: string; normalized?: string }

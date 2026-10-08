@@ -56,6 +56,28 @@ end $$;
 
 do $$
 declare
+  a record;
+  b record;
+  c record;
+begin
+  select * into a from public.start_run(pg_temp.h('idem'), '2.0.0', '2026-10-08 10:00Z', '00000000-0000-4000-8000-000000000001');
+  select * into b from public.start_run(pg_temp.h('idem'), '2.0.0', '2026-10-08 10:05Z', '00000000-0000-4000-8000-000000000001');
+  if a.run_id <> b.run_id or a.started_at <> b.started_at then
+    raise exception 'el reintento con el mismo client_run_id no devolvió la misma partida';
+  end if;
+  if (select count(*) from public.runs r join public.players p on p.id = r.player_id
+      where p.install_id_hash = pg_temp.h('idem')) <> 1 then
+    raise exception 'el reintento duplicó la partida';
+  end if;
+  select * into c from public.start_run(pg_temp.h('idem'), '2.0.0', '2026-10-08 11:00Z', '00000000-0000-4000-8000-000000000002');
+  if c.run_id = a.run_id or (select status from public.runs where id = a.run_id) <> 'abandoned' then
+    raise exception 'otro client_run_id no abandonó la anterior';
+  end if;
+  raise notice 'OK start_run es idempotente por client_run_id';
+end $$;
+
+do $$
+declare
   run uuid;
   f record;
 begin
@@ -245,10 +267,17 @@ end $$;
 do $$
 declare
   run uuid;
+  i integer;
 begin
   select run_id into run from public.start_run(pg_temp.h('reportado'), '2.0.0', '2026-10-01 00:00Z');
   perform public.finish_run(pg_temp.h('reportado'), run, 1, '2026-10-02 00:00Z');
   perform public.set_run_name(pg_temp.h('reportado'), run, 'Polemico', 'ok', '2026-10-02 00:01Z');
+
+  for i in 1..3 loop
+    perform public.finish_run(pg_temp.h('rep-' || i),
+      (select run_id from public.start_run(pg_temp.h('rep-' || i), '2.0.0', '2026-10-01 00:00Z')), 1, '2026-10-02 00:00Z');
+  end loop;
+  perform public.start_run(pg_temp.h('descartable-1'), '2.0.0', '2026-10-01 00:00Z');
 
   perform public.report_run(pg_temp.h('reportado'), run, '2026-10-02 01:00Z');
   perform public.report_run(pg_temp.h('rep-1'), run, '2026-10-02 01:00Z');
@@ -259,6 +288,16 @@ begin
   end if;
   if (select count(*) from public.reports where run_id = run) <> 2 then
     raise exception 'el autorreporte o el repetido contaron';
+  end if;
+  for i in 1..5 loop
+    perform public.report_run(pg_temp.h('inventado-' || i), run, '2026-10-02 01:02Z');
+  end loop;
+  perform public.report_run(pg_temp.h('descartable-1'), run, '2026-10-02 01:02Z');
+  if (select count(*) from public.reports where run_id = run) <> 2 then
+    raise exception 'un instalador sin partida sellada sumó un reporte';
+  end if;
+  if exists (select 1 from public.players where install_id_hash = pg_temp.h('inventado-1')) then
+    raise exception 'reportar creó un jugador';
   end if;
   perform public.report_run(pg_temp.h('rep-3'), run, '2026-10-02 01:03Z');
   if (select display_name from public.leaderboard where run_id = run) is not null then

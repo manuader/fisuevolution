@@ -52,6 +52,7 @@ run_deno() {
     echo "deno: 0 archivos de test en supabase/functions/, salteado"
     return
   fi
+  "${DENO[@]}" lint --config supabase/deno.json supabase/functions/ || { echo "deno: lint ROJO"; exit 1; }
   local out
   out="$(mktemp)"
   local status

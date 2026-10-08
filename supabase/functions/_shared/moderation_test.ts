@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "@std/assert";
 import type { Classifier } from "./haiku.ts";
 import { moderate } from "./moderation.ts";
 

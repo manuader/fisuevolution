@@ -13,6 +13,7 @@ const T0 = new Date("2026-10-08T10:00:00Z");
 const ALICE = "11111111-1111-4111-8111-111111111111";
 const BOB = "22222222-2222-4222-8222-222222222222";
 const CAROL = "abcdefab-cdef-4bcd-8bcd-abcdefabcdef";
+const CRON_SECRET = "secreto-del-cron";
 
 type Body = Record<string, unknown>;
 // deno-lint-ignore no-explicit-any
@@ -34,16 +35,28 @@ async function withBackend(
     await sql`update settings set value = ${sql.json(3)} where key = 'reports_to_hide'`;
     let clock = T0;
     const repo = pgRepo(sql);
-    const handlers = makeHandlers({ repo, moderate, now: () => clock, settings: () => repo.settings() });
+    const handlers = makeHandlers({
+      repo,
+      moderate,
+      now: () => clock,
+      settings: () => repo.settings(),
+      remoderateSecret: CRON_SECRET,
+    });
     const call = async (name: keyof typeof handlers, payload: unknown, method = "POST") => {
       const init: RequestInit = { method };
       if (method === "POST") init.body = typeof payload === "string" ? payload : JSON.stringify(payload);
       const res = await handlers[name](new Request("http://local/fn", init));
       return { status: res.status, body: await res.json() as Json, headers: res.headers };
     };
+    const cron = async (authorization?: string) => {
+      const headers: Record<string, string> = authorization === undefined ? {} : { Authorization: authorization };
+      const res = await handlers.remoderate(new Request("http://local/fn", { method: "POST", headers }));
+      return { status: res.status, body: await res.json() as Json };
+    };
     await body({
       sql,
       call,
+      cron,
       at: (date: Date) => {
         clock = date;
       },
@@ -66,6 +79,7 @@ interface Api {
   call: (name: "startRun" | "finishRun" | "leaderboard" | "report", payload: unknown, method?: string) => Promise<
     { status: number; body: Json; headers: Headers }
   >;
+  cron: (authorization?: string) => Promise<{ status: number; body: Json }>;
   at: (date: Date) => void;
   later: (ms: number) => void;
   start: (installId: string) => Promise<string>;
@@ -402,4 +416,57 @@ let moderated: string[] = [];
 function spyModerate(name: string): Promise<Moderation> {
   moderated.push(name);
   return aprueba(name);
+}
+
+integration("remoderate: sin el secreto no hace nada; con él resuelve los pendientes", async (api) => {
+  assertEquals((await api.cron()).status, 401);
+  assertEquals((await api.cron("Bearer otro")).status, 401);
+  assertEquals((await api.cron(CRON_SECRET)).status, 401);
+
+  for (const [id, name] of [[ALICE, "Alice"], [BOB, "Bob"], [CAROL, "Carol"]]) {
+    await fullRun(api, id, 20, { name });
+  }
+  const pending = await api.sql`select name from runs where name_status = 'pending' order by name`;
+  assertEquals(pending.map((row) => row.name), ["Alice", "Bob", "Carol"]);
+
+  // Todavía no pasaron 15 minutos: no toca nada.
+  const early = await api.cron(`Bearer ${CRON_SECRET}`);
+  assertEquals([early.status, early.body.checked], [200, 0]);
+
+  api.later(16 * 60_000);
+  const res = await api.cron(`Bearer ${CRON_SECRET}`);
+  assertEquals(res.status, 200);
+  assertEquals(
+    { checked: res.body.checked, ok: res.body.ok, rejected: res.body.rejected, stillPending: res.body.stillPending },
+    { checked: 3, ok: 1, rejected: 1, stillPending: 1 },
+  );
+  const rows = await api.sql`select name, name_status, moderation_attempts from runs order by name`;
+  assertEquals(rows.map((row) => [row.name, row.name_status, row.moderation_attempts]), [
+    ["Alice", "ok", 1],
+    ["Bob", "rejected", 1],
+    ["Carol", "pending", 2],
+  ]);
+}, resolvedByName({ Alice: "ok", Bob: "rejected" }));
+
+integration("remoderate: limpia api_calls viejas y jugadores muertos", async (api) => {
+  await api.sql`insert into players (install_id_hash, created_at) values (${"f".repeat(64)}, '2026-01-01Z')`;
+  await api.start(ALICE);
+  api.later(2 * HOUR);
+  const res = await api.cron(`Bearer ${CRON_SECRET}`);
+  assertEquals(res.status, 200);
+  assertEquals(res.body.cleaned, { apiCalls: 1, players: 1 });
+  const [left] = await api.sql`select count(*)::int as n from players`;
+  assertEquals(left.n, 1);
+});
+
+/** Un clasificador que la primera vez no responde (pending) y la segunda ya decide por nombre. */
+function resolvedByName(verdicts: Record<string, "ok" | "rejected">) {
+  const seen = new Set<string>();
+  return (name: string): Promise<Moderation> => {
+    const first = !seen.has(name);
+    seen.add(name);
+    const verdict = verdicts[name];
+    if (first || verdict === undefined) return Promise.resolve({ status: "pending", name });
+    return Promise.resolve(verdict === "ok" ? { status: "ok", name } : { status: "rejected", name, by: "haiku" });
+  };
 }

@@ -25,7 +25,12 @@ export interface Deps {
   moderate: (name: string) => Promise<Moderation>;
   now: () => Date;
   settings: () => Promise<Settings>;
+  /** El secreto del cron; sin él la función `remoderate` rechaza todo. */
+  remoderateSecret?: string;
 }
+
+export const REMODERATE_BATCH = 50;
+export const REMODERATE_MIN_AGE = "15 minutes";
 
 export type Handler = (req: Request) => Promise<Response>;
 
@@ -152,5 +157,42 @@ export function makeHandlers(deps: Deps) {
     return json({ ok: true });
   });
 
-  return { startRun, finishRun, leaderboard, report };
+  /** Comparación en tiempo constante del header del cron contra el secreto. */
+  async function authorized(req: Request): Promise<boolean> {
+    const secret = deps.remoderateSecret;
+    if (!secret) return false;
+    const [given, expected] = await Promise.all([
+      sha256Hex(req.headers.get("authorization") ?? ""),
+      sha256Hex(`Bearer ${secret}`),
+    ]);
+    let diff = 0;
+    for (let i = 0; i < given.length; i++) diff |= given.charCodeAt(i) ^ expected.charCodeAt(i);
+    return diff === 0;
+  }
+
+  /** El cron: reintenta los nombres pendientes y limpia lo viejo. Lo llama pg_cron, no la app. */
+  const remoderate: Handler = async (req) => {
+    if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405, { Allow: "POST" });
+    if (!(await authorized(req))) return json({ error: "unauthorized" }, 401);
+    try {
+      const now = deps.now();
+      const pending = await repo.pendingNames(REMODERATE_MIN_AGE, REMODERATE_BATCH, now);
+      const tally = { ok: 0, rejected: 0, stillPending: 0 };
+      for (const item of pending) {
+        const verdict = await deps.moderate(item.name);
+        // Un nombre que las reglas de hoy ya no aceptan se rechaza como cualquier otro.
+        const status = verdict.status === "invalid" ? "rejected" : verdict.status;
+        await repo.setRunName(item.installHash, item.runId, item.name, status, now);
+        if (status === "ok") tally.ok++;
+        else if (status === "rejected") tally.rejected++;
+        else tally.stillPending++;
+      }
+      const cleaned = await repo.cleanup(now);
+      return json({ checked: pending.length, ...tally, cleaned });
+    } catch (error) {
+      return failure(error);
+    }
+  };
+
+  return { startRun, finishRun, leaderboard, report, remoderate };
 }

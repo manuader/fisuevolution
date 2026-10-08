@@ -97,6 +97,8 @@ extension GameState {
             case hireUnlocked(floorID: String)
             /// El Corralito rebotó una compra de plata.
             case spendingFrozen
+            /// Un video visto que ya no tenía dónde aplicarse: se pagó en producción.
+            case rewardCompensated(durationText: String)
         }
 
         let id = UUID()

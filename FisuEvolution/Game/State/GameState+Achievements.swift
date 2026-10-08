@@ -450,7 +450,7 @@ extension GameState {
     /// ⚠️ Los 12 logros que pagan ORO fijo (20-120) no pasan por acá y quedaron
     /// como estaban a propósito: su escala se re-mira cuando cambie la del ORO
     /// (Task 5 del plan `2026-08-20-rebalance-pacing.md`).
-    private static func coinReward(
+    static func coinReward(
         seconds: Double,
         player: PlayerState,
         content: GameContent,

@@ -1,5 +1,6 @@
 {
   "schemaVersion": 2,
+  "compensationSeconds": 180,
   "rewards": [
     {
       "id": "double_earnings",

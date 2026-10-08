@@ -716,6 +716,7 @@ private struct TowerNoticeView: View {
         case .destinationFloorFull: "tower.notice.destination_full"
         case .hireUnlocked: "tower.notice.hire_unlocked"
         case .spendingFrozen: "tower.notice.spending_frozen"
+        case .rewardCompensated(let durationText): "tower.notice.reward_compensated \(durationText)"
         }
     }
 

@@ -274,9 +274,11 @@ struct NaturalBreakPolicyTests {
         #expect(Self.decide(.returnFromBackground, session: Self.settledSession(secondsAway: nil)) == .skip(.shortAbsence))
     }
 
-    @Test("el app open con su interruptor apagado no sale (el default, hasta que exista la unidad)")
-    func appOpenSwitchedOffByDefault() {
-        #expect(Self.decide(.returnFromBackground, policy: .default) == .skip(.nothingAvailable))
+    @Test("el app open con su interruptor apagado no sale")
+    func appOpenSwitchedOffNeverShows() {
+        var policy = NaturalBreakPolicy.default
+        policy.enabledFormats.remove(.appOpen)
+        #expect(Self.decide(.returnFromBackground, policy: policy) == .skip(.nothingAvailable))
     }
 
     // MARK: - El reloj
@@ -307,7 +309,7 @@ struct NaturalBreakPolicyTests {
         #expect(policy.appOpenMinSecondsBetween == 1200)
         #expect(policy.appOpenMinSessionNumber == 2)
         #expect(policy.alternation == [.interstitial, .rewardedInterstitial])
-        #expect(!policy.enabledFormats.contains(.appOpen))
+        #expect(policy.enabledFormats.contains(.appOpen))
     }
 
     @Test("una cadencia remota más larga se respeta")

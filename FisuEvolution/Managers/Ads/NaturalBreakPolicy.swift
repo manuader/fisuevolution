@@ -151,8 +151,8 @@ struct NaturalBreakPolicy: Sendable, Equatable {
         appOpenMinSecondsAway: 180,
         appOpenMinSecondsBetween: 20 * 60,
         appOpenMinSessionNumber: 2,
-        // [GATE DEL DUEÑO] El app open arranca apagado: no tiene unidad.
-        enabledFormats: [.interstitial, .rewardedInterstitial]
+        // El app open tiene unidad y el dueño lo prendió (gate de AdMob, 2026-10-08).
+        enabledFormats: [.interstitial, .rewardedInterstitial, .appOpen]
     )
 
     init(

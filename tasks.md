@@ -340,7 +340,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E3b-T1 | Spikes S2, S3 | 🔄 | — | — |  | opus, sin commit; relevo 8|
+| E3b-T1 | Spikes S2, S3 | ✅ | — | — | sin commit (reporte en el ledger de E3b) | S2: no hace falta scrollDisabled; carries a T3 (scrollTo inicial, un solo `sheet.close`). S3: la bandera de T7 hace falta |
 | E3b-T2 | La ficha de personaje | ⛔ | E3a-T6, E3a-T7 | catálogo (snapshot); GameArtComponents, DebugPanelView | | |
 | E3b-T3 | El menú deslizable, las piezas | ⛔ | T2; E3a-T8 | catálogo; PanelFrames, MenuView | | |
 | E3b-T4 | El menú deslizable, montado | ⛔ | T3; E3a-T9, E3a-T11 | 🔥 RootView | | |

@@ -109,11 +109,11 @@ struct StoreManagerTests {
         await store.purchase(pack)
 
         await waitUntil { (gameState.player?.meta.oro ?? 0) > before }
-        #expect(gameState.player?.meta.oro == before + 250)
+        #expect(gameState.player?.meta.oro == before + 160)
         // La compra no compra multiplicador: eso sólo lo da reencarnar.
         #expect(gameState.player?.meta.oroEarnedLifetime == 0)
         // Pero sí queda anotada como ORO comprado, en el acto.
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 160)
     }
 
     /// El recorrido de un save de la v1 por el arranque: la compra ya estaba
@@ -205,8 +205,8 @@ struct StoreManagerTests {
 
         let pack = try #require(store.products.first { $0.id == "com.fisuevolution.iap.oro_small" })
         await store.purchase(pack)
-        await waitUntil { gameState.player?.meta.oroPurchasedLifetime == 250 }
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 250)
+        await waitUntil { gameState.player?.meta.oroPurchasedLifetime == 160 }
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 160)
 
         let transaction = try #require(
             session.allTransactions().first { $0.productIdentifier == pack.id },

@@ -1023,6 +1023,8 @@ struct GameTabItem: Identifiable {
     let prominent: Bool
     /// El puntito de "hay algo para cobrar" (hoy: logros, en el tab Menú).
     let showsBadge: Bool
+    /// Se abrió hace poco y todavía no se miró: lleva "¡Nuevo!".
+    let isNew: Bool
 
     var id: String { screen.rawValue }
 
@@ -1031,7 +1033,9 @@ struct GameTabItem: Identifiable {
          labelKey: String,
          identifier: String,
          prominent: Bool = false,
-         showsBadge: Bool = false) {
+         showsBadge: Bool = false,
+         isNew: Bool = false) {
+        self.isNew = isNew
         self.screen = screen
         self.icon = icon
         self.labelKey = labelKey
@@ -1149,6 +1153,7 @@ struct GameTabBar: View {
         HStack(alignment: .bottom, spacing: Self.spacing) {
             ForEach(zoneItems) { item in
                 GameTabButton(item: item) { selection(item.screen) }
+                    .transition(.scale(scale: 0.4).combined(with: .opacity))
             }
         }
         .frame(maxWidth: .infinity)
@@ -1229,6 +1234,12 @@ private struct GameTabButton: View {
                             .offset(x: 5, y: -3)
                     }
                 }
+                .overlay(alignment: .top) {
+                    if item.isNew {
+                        NewTabBadge()
+                            .offset(y: -12)
+                    }
+                }
                 .keyframeAnimator(initialValue: 1.0, trigger: bounce) { view, scale in
                     view.scaleEffect(scale)
                 } keyframes: { _ in
@@ -1260,7 +1271,18 @@ private struct GameTabButton: View {
         .accessibilityLabel(Text(LocalizedStringKey(item.labelKey)))
         // El badge avisa por acá (trampa 9a: jamás un elemento de AX adentro
         // del label de un botón). Vacío cuando no hay nada que cobrar.
-        .accessibilityValue(item.showsBadge ? Text("badge.claimable.ax") : Text(verbatim: ""))
+        .accessibilityValue(accessibilityValue)
+    }
+
+    /// El puntito de cobrar y el "¡Nuevo!", dichos por el botón (trampa 9a:
+    /// jamás un elemento de AX adentro del label).
+    private var accessibilityValue: Text {
+        switch (item.showsBadge, item.isNew) {
+        case (true, true): Text("tab.new.ax") + Text(verbatim: ", ") + Text("badge.claimable.ax")
+        case (false, true): Text("tab.new.ax")
+        case (true, false): Text("badge.claimable.ax")
+        case (false, false): Text(verbatim: "")
+        }
     }
 
     /// El plato del tab. `ui_tab_active` para los destacados y `ui_tab_inactive`
@@ -1286,5 +1308,21 @@ private struct GameTabButton: View {
                         .strokeBorder(Color("PaletteInk"), lineWidth: item.prominent ? 3 : 2)
                 )
         }
+    }
+}
+
+/// El cartelito de una pestaña recién abierta: cápsula caramelo naranja con
+/// "¡Nuevo!". Decoración: lo dice el valor de AX del botón.
+private struct NewTabBadge: View {
+    var body: some View {
+        Text("tab.new.badge")
+            .font(.system(size: 9, weight: .black, design: .rounded))
+            .foregroundStyle(.white)
+            .shadow(color: .black.opacity(0.4), radius: 1, y: 1)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(PillBackground(fill: Color("PaletteOrange")))
+            .fixedSize()
+            .accessibilityHidden(true)
     }
 }

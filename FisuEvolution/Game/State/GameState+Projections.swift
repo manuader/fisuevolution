@@ -61,6 +61,7 @@ extension GameState {
         refreshFTUEProjections(player: player)
         refreshBadgeProjections(content: content, player: player)
 
+        refreshUnlockedTabs()
         refreshTutorialTip()
     }
 

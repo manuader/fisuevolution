@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "tabs": [
+    { "id": "upgrades", "unlockWhen": ["always"] },
+    { "id": "skins", "unlockWhen": ["firstSkin"] },
+    { "id": "jobs", "unlockWhen": ["always"] },
+    { "id": "gifts", "unlockWhen": ["tutorialCore", "firstChest"] },
+    { "id": "store", "unlockWhen": ["secondSession"] },
+    { "id": "menu", "unlockWhen": ["tutorialCore"] }
+  ]
+}

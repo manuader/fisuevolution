@@ -28,21 +28,31 @@ struct BottomMenuBar: View {
     /// `@ObservationIgnored`) dejaría el puntito apagado para siempre.
     @Environment(GameState.self) private var gameState
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
-        GameTabBar(items: items, selection: select)
+        GameTabBar(items: items) { screen in
+            gameState.markTabOpened(screen)
+            select(screen)
+        }
+        // Una pestaña nueva ENTRA (la transición vive en `GameTabBar.zone`);
+        // con Reduce Motion, se funde.
+        .animation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.45, bounce: 0.3),
+                   value: gameState.unlockedTabs)
     }
 
-    // MARK: - Los seis tabs
+    // MARK: - Las pestañas abiertas
 
     private var items: [GameTabItem] {
-        GameScreen.barOrder.map { screen in
+        gameState.unlockedTabsInBarOrder.map { screen in
             GameTabItem(
                 screen: screen,
                 icon: icon(for: screen),
                 labelKey: Self.labelKey(for: screen),
                 identifier: screen.identifier,
                 prominent: Self.isProminent(screen),
-                showsBadge: showsBadge(for: screen)
+                showsBadge: showsBadge(for: screen),
+                isNew: gameState.newTabs.contains(screen)
             )
         }
     }

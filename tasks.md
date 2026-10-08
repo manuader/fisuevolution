@@ -449,13 +449,14 @@ que toma · commit o rama · nota.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E6b-T1 | Los 8 efectos, por código | ✅ | — | — | `f9cd4b9` (merge `15318a0`) | |
-| E6b-T2 | La galería de los 8 efectos (→ 🔒 dueño) | ✅ | T1 | DebugPanelView | `d3c0889` (merge `15318a0`) | galería entregada al dueño → 🔒 E6b T8|
-| E6b-T3 | `skins.json` v2 (EK) | ✅ | T1 | GameContentLoader | `2ba7c2e` (merge `e27efb1`) | carry T5: dibujar `.effect`|
+| E6b-T2 | La galería de los 8 efectos (→ 🔒 dueño) | ✅ | T1 | DebugPanelView | `d3c0889` (merge `15318a0`) | el dueño no aprobó ningún efecto → se borra en T1r |
+| E6b-T3 | `skins.json` v2 (EK) | ✅ | T1 | GameContentLoader | `2ba7c2e` (merge `e27efb1`) | el caso `.effect` se quita en T1r |
+| E6b-T1r | Sin skins por código: borrar shaders (T1), galería (T2) y `Treatment.effect`/`shaderId` (T3) | ⛔ | E3b-T2 (dueña de DebugPanelView) | DebugPanelView, GameContentLoader | | decisión del dueño, `Docs/SESION-2026-10-08-v2-e6.md` |
 | E6b-T4 | La pinta comprada con ORO es tuya | ⛔ | T3; E6a-T1, E6a-T2, E6a-T8; E3b-T2 | 🔥 PlayerState, catálogo; +Store | | |
-| E6b-T5 | Efectos y familias se ven | ⛔ | T1, T4; E6a-T8; E5b-T3 | 🔥 BoardScene, catálogo; +Store | | |
+| E6b-T5 | Familias se ven (sin efectos) | ⛔ | T1, T4; E6a-T8; E5b-T3 | 🔥 BoardScene, catálogo; +Store | | |
 | E6b-T6 | Lugares extra (EK) | ⛔ | E6a-T2; E2a-T4 | — | | |
 | E6b-T7 | Lugares extra en la partida | ⛔ | T6; E6a-T6, E6a-T8, E6a-T12; E3a-T10; E5a-T6 | 🔥 GameState, catálogo; GameContentLoader, +Engagement | | 🔒 si las 4 filas no entran en el SE |
-| E6b-T8 | Los efectos aprobados entran | 🔒 | gate de T2; T5 | catálogo | | la respuesta del dueño |
+| E6b-T8 | Exclusivas de ORO elegidas entre skins de la v1 | ⛔ | T1r, T5 | catálogo | | el agente propone y se las muestra al dueño antes de cerrar |
 | E6b-T9 | Las tres familias entran | 🔒 | arte de E8; T5 | catálogo | | 🔒 si el bundle crece > 60 MB |
 | E6b-T10 | Cierre de E6b | ⛔ | T1–T9 | `Docs/` | | |
 
@@ -583,10 +584,10 @@ Fase A (T1–T4) tras E2a T15, EK puro ∥ E4–E7; fase B en paralelo con E9 y 
 
 | Gate | Qué hace el dueño | Bloquea | Estado |
 |---|---|---|---|
-| Batch de imágenes | login en el Chrome aislado de ChatGPT (`--launch` + `--probe`) y correr el batch **con la app de Claude cerrada** (roba el foco); proyecto `~/Desktop/projects/automatic-image-generation/projects/fisu-evolution-v2` (222 prompts), **primero el piloto 001–005**; paso a paso en su `README.md` | E6b T9 (familias), el resto de E8 (visitantes, fondos, íconos); E4b y E6a caen a respaldos y no esperan | 🔒 abierto |
-| Higgsfield | OK de créditos para el piloto de 2 loops (tope 600) | los loops de retrato y las 3 cinemáticas (E8); E4b T3 cae a la foto quieta | 🔒 abierto |
-| Anexos A y B | aprobar los guiones y frases (A) y la biblia de los 8 visitantes (B) | (ambigua: ningún plan lo gatea) A: E4a T7 y T9; B: los prompts del batch | 🔒 abierto |
-| Galería de 8 efectos | mirar las 8 fotos (E6b T2) y elegir cuáles entran; por cada descartado, qué skins existentes pasan a ser exclusivas de ORO | E6b T8 | ⛔ hasta E6b T2 |
+| Batch de imágenes | (2026-10-07: corriendo, ~155/222; los 10 `bg_*` esperan a ChatGPT) login en el Chrome aislado de ChatGPT (`--launch` + `--probe`) y correr el batch **con la app de Claude cerrada** (roba el foco); proyecto `~/Desktop/projects/automatic-image-generation/projects/fisu-evolution-v2` (222 prompts), **primero el piloto 001–005**; paso a paso en su `README.md` | E6b T9 (familias), el resto de E8 (visitantes, fondos, íconos); E4b y E6a caen a respaldos y no esperan | 🔒 abierto |
+| Higgsfield | OK de créditos para el piloto de 2 loops (tope 600) | los loops de retrato y las 3 cinemáticas (E8); E4b T3 cae a la foto quieta | ✅ OK a todo, tope 600 (2026-10-07) |
+| Anexos A y B | aprobar los guiones y frases (A) y la biblia de los 8 visitantes (B) | (ambigua: ningún plan lo gatea) A: E4a T7 y T9; B: los prompts del batch | ✅ aprobados sin cambios (2026-10-07) |
+| Galería de 8 efectos | mirar las 8 fotos (E6b T2) y elegir cuáles entran; por cada descartado, qué skins existentes pasan a ser exclusivas de ORO | E6b T8 | ✅ ninguno entra; exclusivas de ORO: de la v1, las propone el agente y el dueño da el OK en T8 |
 | Cuentas de las 4 redes | AppLovin, Unity Ads, Mintegral, Meta: cuenta, app, placements, claves | E10 (mapeo en AdMob, `app-ads.txt`); no bloquea E7b-a T6 | 🔒 abierto |
 | Unidades de AdMob | crear app open + las 4 de video; IDs en `feature_flags.json` y en el `ads.json` publicado; prender `switches.appOpen` | E10; hasta entonces app open apagado y videos con respaldo | 🔒 abierto |
 | Productos en App Store Connect | las 3 ofertas, los packs reescalados, las localizaciones es-MX/es-ES/en-US de los 11 existentes | E10 (el desarrollo usa el `.storekit` local) | 🔒 abierto |
@@ -631,6 +632,16 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 | Fusiones asistidas (`BoardChange.merge` de carrera y debug) | **Cuentan** en `totalMergesEver` | Sin cambio |
 | Guiños ocultos (relevo 7) | **"Six Seven" en 3 lugares, "andá pa' allá, bobo" en 1**, sin nombrar a nadie real | Turista con camiseta 67 (prompts 016–019 del batch), Crypto Bro y Coach (67 toques) en E4a T7, Vecina en E4a T7. Tope: no se suman más |
 | 🔒 La columna de E7b pisa la multitud | **C: plegable**, hermana de la botonera del ascensor ("Premios" abajo a la izquierda; despliega los cuatro por 3 s) | E7b-b T3 cambia el contenedor y T4 se saltea. Descartadas A (reserva de 64 pt) y B (encima) |
+
+### Decisiones del dueño del 2026-10-07 (recogidas en otra sesión; no se vuelven a preguntar)
+
+| Tema | Decisión | Consecuencia |
+|---|---|---|
+| Skins por código (E6b T2) | **Ninguna.** "Solamente las skins propuestas por el plan de la versión 2 y las que ya estaban en la versión 1" | E6b T1r borra shaders, galería y `.effect`; T5 sólo familias; T8 = exclusivas de ORO de la v1 con OK del dueño. Detalle: `Docs/SESION-2026-10-08-v2-e6.md` |
+| Higgsfield | OK a todo, tope 600 créditos | E8 no espera al piloto |
+| Anexos A y B | Aprobados sin cambios | Destraba E4a T7 y T9 |
+| Batch de imágenes | Corriendo | Integrarlo es una tarea aparte cuando termine (`process_dropbox.py`, categorías `npc`/`skinfam`, `prompts.json`) |
+| Worktrees viejos | Limpiados por el dueño | El sintetizador sustractivo vive en `rescate/audio-sintesis-sustractiva`, candidato para los temas de E8 |
 
 ## 8. El camino hasta el final
 

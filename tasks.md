@@ -541,6 +541,19 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8-T8 | Los fondos a 2048 (JPEG) | ✅ | T2 | `Backgrounds/`, `process_dropbox.py`; 🔥 `assets_manifest.json` (`backgrounds`) | `6029e73` | crea `BackgroundArtTests` (xcodegen); mide la memoria del vuelo; revisión sonnet; `Backgrounds/` 38 → 9 MB; PSNR q90 35–40 dB (bajo la vara de 40 del plan; a ojo sin bloques, q95 igual a la vista → q90); **memoria del vuelo SIN medir → carry a T10** |
 | E8-T9 | 🔒 La revisión de recortes de la 2.0 | ⛔ | T1, T3–T7 | `recut_assets.py`, los atlas elegidos | | la página la arma el agente; elige el dueño; no frena a nadie |
 | E8-T10 | Peso, memoria y cierre (controlador) | ⛔ | T1–T8 | `Docs/`, `tasks.md` | | `completo --limpio`; 🔒 sólo si el bundle crece > 60 MB (estimado ≈ +29 MB) |
+| P-E8b | Plan de E8b: cinemáticas y retratos animados | ✅ | — | — | `f035a5d` | 12 tareas; `2026-10-08-v2-e8b-cinematicas.md`; 11 dudas con default; ⚠️ `loops/` hoy es blanco, no croma |
+| E8b-T1 | `video_assets.py`: el retrato mide arriba y el key acepta magenta | ⏳ | — | video_assets.py, test_video_assets.py | | pipeline, no compila; los dos ajustes de `DUENO.md` |
+| E8b-T2 | `video_assets.py`: retratos sobre blanco por conectividad | ⛔ | T1 | video_assets.py, test_video_assets.py | | pipeline; `whitebg_cutout` cuadro por cuadro a 512²; revisión sonnet |
+| E8b-T3 | Los 18 retratos y las 3 cinemáticas, integrados y pesados | ⛔ | T2 | Resources/Loops, Resources/Cinematics, loops_manifest.json, masters | | pipeline (~25 min en background); hoja de contacto al controlador; estimado +8,5 MB de bundle, ≈ 41 MB de masters |
+| E8b-T4 | `LoopsManifest`, `CinematicID` y `LoopsManifestTests` | ⛔ | T3 | — | | la API de E4b T3 (carry: E4b T3 no los crea) |
+| E8b-T5 | `VideoSlot` y `LoopingPortraitView` | ⏳ | — | — | | archivos nuevos; ∥ T1–T4, T7 |
+| E8b-T6 | El especial que te cayó, animado | ⛔ | T4, T5 | SpecialDropView | | revisión ninguna; captura SE/16 Pro (duda 3) |
+| E8b-T7 | `seenCinematics` en `meta.engagement` | ⏳ | E1-T4 ✅ | EngagementState (EK) | | sonnet, **rev. opus** (save); antes de E3b T9 o al final de su cadena |
+| E8b-T8 | El turno de la cinemática (`.cinematic`, payload, autorun) | ⛔ | T4, T7 | 🔥 GameState (dos propiedades); CelebrationQueue, +Celebrations, +Debug, +Bootstrap | | sonnet, **rev. opus**; ventana libre de GameState.swift; antes de E9a T1 |
+| E8b-T9 | La cinemática en pantalla (overlay, sonido, Saltar) | ⛔ | T5, T8 | 🔥 RootView, catálogo (snapshot, 4 claves); AudioManager, DebugPanelView | | sonnet; `CinematicUITests` por Receta R; capturas SE + iPad |
+| E8b-T10 | Reencarnación y Dios | ⛔ | T8, T9 | +Prestige, +BoardChanges, +Bootstrap | | sonnet, **rev. opus**; pinea el momento calmo que espera E12 T14; carry `godTier` a E12 T11 |
+| E8b-T11 | El arresto | ⛔ | T10; E4b-T2 | +Visitors | | sonnet; al dejarlo ir (duda 5) |
+| E8b-T12 | Cierre de E8b (controlador) | ⛔ | T1–T11 | `Docs/` | | `completo`; en un iPhone real (HEVC-alfa por hardware) y la memoria a E8 T10 |
 
 ### E9 — Tutorial v2 + Tour de novedades + Ajustes (`2026-10-07-v2-e9a-…` motor, `…-e9b-…` currículo y reset)
 

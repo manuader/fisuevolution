@@ -1,0 +1,525 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Fuente de verdad versionada de lo comercial: compras (App Store Connect) y anuncios (AdMob). Los textos salen de Distribution/iap-appstore-connect.md y de setup-v2-asc-admob-mediacion.md. La valida y la aplica Tools/releaseops.",
+  "app": {
+    "name": {
+      "en-US": "HoboEvolution",
+      "es-MX": "FisuEvolution",
+      "es-ES": "FisuEvolution"
+    },
+    "bundleId": "com.manuader.fisuevolution",
+    "teamId": "2TS7P7VDQJ",
+    "sku": null,
+    "marketingVersion": "2.0.0",
+    "locales": [
+      "en-US",
+      "es-MX",
+      "es-ES"
+    ]
+  },
+  "inAppPurchases": {
+    "productIdPrefix": "com.fisuevolution.iap.",
+    "defaults": {
+      "baseTerritory": "USA",
+      "availability": "all",
+      "familySharable": false
+    },
+    "products": [
+      {
+        "productId": "com.fisuevolution.iap.coins_small",
+        "referenceName": "Handful of Cash",
+        "type": "consumable",
+        "priceUSD": "0.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Puñado de Plata",
+            "description": "Un vuelto para arrancar el día"
+          },
+          "es-ES": {
+            "name": "Puñado de Plata",
+            "description": "Un vuelto para arrancar el día"
+          },
+          "en-US": {
+            "name": "Handful of Cash",
+            "description": "Pocket change to get the day going"
+          }
+        },
+        "reviewNote": null,
+        "reviewScreenshot": "store"
+      },
+      {
+        "productId": "com.fisuevolution.iap.oro_small",
+        "referenceName": "Handful of Gold",
+        "type": "consumable",
+        "priceUSD": "1.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Puñado de ORO",
+            "description": "Para un boost o esa mejora que venís mirando"
+          },
+          "es-ES": {
+            "name": "Puñado de ORO",
+            "description": "Para un boost o esa mejora que venís mirando"
+          },
+          "en-US": {
+            "name": "Handful of ORO",
+            "description": "For a boost or that upgrade you keep eyeing"
+          }
+        },
+        "reviewNote": "Gives 160 ORO.",
+        "reviewScreenshot": "store"
+      },
+      {
+        "productId": "com.fisuevolution.iap.coins_medium",
+        "referenceName": "Wad of Cash",
+        "type": "consumable",
+        "priceUSD": "4.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Fajo de Plata",
+            "description": "Un fajo que se nota en el bolsillo"
+          },
+          "es-ES": {
+            "name": "Fajo de Plata",
+            "description": "Un fajo que se nota en el bolsillo"
+          },
+          "en-US": {
+            "name": "Wad of Cash",
+            "description": "A wad you can feel in your pocket"
+          }
+        },
+        "reviewNote": null,
+        "reviewScreenshot": "store"
+      },
+      {
+        "productId": "com.fisuevolution.iap.oro_medium",
+        "referenceName": "Chest of Gold",
+        "type": "consumable",
+        "priceUSD": "4.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Saco de ORO",
+            "description": "Boosts, mejoras y skins, y todavía te sobra"
+          },
+          "es-ES": {
+            "name": "Saco de ORO",
+            "description": "Boosts, mejoras y skins, y todavía te sobra"
+          },
+          "en-US": {
+            "name": "Sack of ORO",
+            "description": "Boosts, upgrades and skins, with change left"
+          }
+        },
+        "reviewNote": "Gives 550 ORO.",
+        "reviewScreenshot": "store"
+      },
+      {
+        "productId": "com.fisuevolution.iap.coins_large",
+        "referenceName": "Bag of Cash",
+        "type": "consumable",
+        "priceUSD": "9.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Bolso de Plata",
+            "description": "El bolso entero, sin preguntar de dónde salió"
+          },
+          "es-ES": {
+            "name": "Bolso de Plata",
+            "description": "El bolso entero, sin preguntar de dónde salió"
+          },
+          "en-US": {
+            "name": "Bag of Cash",
+            "description": "The whole duffel bag, no questions asked"
+          }
+        },
+        "reviewNote": null,
+        "reviewScreenshot": "store"
+      },
+      {
+        "productId": "com.fisuevolution.iap.oro_large",
+        "referenceName": "Vault of Gold",
+        "type": "consumable",
+        "priceUSD": "9.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Bóveda de ORO",
+            "description": "Para el que quiere todo, y lo quiere ahora"
+          },
+          "es-ES": {
+            "name": "Bóveda de ORO",
+            "description": "Para el que quiere todo, y lo quiere ahora"
+          },
+          "en-US": {
+            "name": "Vault of ORO",
+            "description": "For those who want it all, and want it now"
+          }
+        },
+        "reviewNote": "Gives 1,400 ORO.",
+        "reviewScreenshot": "store"
+      },
+      {
+        "productId": "com.fisuevolution.iap.offer_bienvenida",
+        "referenceName": "Offer Bienvenida",
+        "type": "consumable",
+        "priceUSD": "0.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "2.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Pack de Bienvenida",
+            "description": "ORO, 2 h de ingresos y un cofre de pintas"
+          },
+          "es-ES": {
+            "name": "Pack de Bienvenida",
+            "description": "ORO, 2 h de ingresos y un cofre de pintas"
+          },
+          "en-US": {
+            "name": "Welcome Pack",
+            "description": "ORO, 2 h of income and a skin chest"
+          }
+        },
+        "reviewNote": "Offered once for 24 hours on the player's 2nd calendar day. Contains a skin chest; its odds are shown before purchase. See the app review notes.",
+        "reviewScreenshot": "offer-sheet"
+      },
+      {
+        "productId": "com.fisuevolution.iap.offer_renacer",
+        "referenceName": "Offer Renacer",
+        "type": "consumable",
+        "priceUSD": "2.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "2.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Pack Renacer",
+            "description": "ORO, 4 h de ingresos y ×3 por 30 minutos"
+          },
+          "es-ES": {
+            "name": "Pack Renacer",
+            "description": "ORO, 4 h de ingresos y ×3 por 30 minutos"
+          },
+          "en-US": {
+            "name": "Rebirth Pack",
+            "description": "ORO, 4 h of income and ×3 for 30 minutes"
+          }
+        },
+        "reviewNote": "Offered for 24 hours right after reincarnating. See the app review notes.",
+        "reviewScreenshot": "offer-sheet"
+      },
+      {
+        "productId": "com.fisuevolution.iap.offer_mudanza",
+        "referenceName": "Offer Mudanza",
+        "type": "consumable",
+        "priceUSD": "4.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "2.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Pack Mudanza",
+            "description": "ORO, 8 h de ingresos y 3 Paquetes"
+          },
+          "es-ES": {
+            "name": "Pack Mudanza",
+            "description": "ORO, 8 h de ingresos y 3 Paquetes"
+          },
+          "en-US": {
+            "name": "Moving Day Pack",
+            "description": "ORO, 8 h of income and 3 Parcels"
+          }
+        },
+        "reviewNote": "Offered for 24 hours when a new floor opens. See the app review notes.",
+        "reviewScreenshot": "offer-sheet"
+      },
+      {
+        "productId": "com.fisuevolution.iap.remove_ads",
+        "referenceName": "Remove Ads",
+        "type": "nonConsumable",
+        "priceUSD": "2.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Sin anuncios",
+            "description": "Chau a los anuncios que aparecen solos"
+          },
+          "es-ES": {
+            "name": "Sin anuncios",
+            "description": "Chau a los anuncios que aparecen solos"
+          },
+          "en-US": {
+            "name": "Remove Ads",
+            "description": "No more ads that pop up on their own"
+          }
+        },
+        "reviewNote": "Removes the interstitial, the ad break and the app open ad. Opt-in rewarded videos stay.",
+        "reviewScreenshot": "store"
+      },
+      {
+        "productId": "com.fisuevolution.iap.skin_mundialista",
+        "referenceName": "World Cup Skin",
+        "type": "nonConsumable",
+        "priceUSD": "2.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Skin Mundialista",
+            "description": "La camiseta y una copa que no ganó él"
+          },
+          "es-ES": {
+            "name": "Skin Mundialista",
+            "description": "La camiseta y una copa que no ganó él"
+          },
+          "en-US": {
+            "name": "Mundialista Skin",
+            "description": "The jersey, and a cup he didn't win"
+          }
+        },
+        "reviewNote": null,
+        "reviewScreenshot": "store"
+      },
+      {
+        "productId": "com.fisuevolution.iap.skin_parrillero",
+        "referenceName": "Parrillero Skin",
+        "type": "nonConsumable",
+        "priceUSD": "2.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Skin Parrillero",
+            "description": "Dios con delantal chamuscado y pinza de asado"
+          },
+          "es-ES": {
+            "name": "Skin Parrillero",
+            "description": "Dios con delantal chamuscado y pinza de asado"
+          },
+          "en-US": {
+            "name": "Parrillero Skin",
+            "description": "God in a scorched apron, tongs in hand"
+          }
+        },
+        "reviewNote": null,
+        "reviewScreenshot": "store"
+      },
+      {
+        "productId": "com.fisuevolution.iap.starter_pack",
+        "referenceName": "Starter Pack",
+        "type": "nonConsumable",
+        "priceUSD": "4.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Pack de Arranque",
+            "description": "Plata, la Mundialista y sin anuncios forzados"
+          },
+          "es-ES": {
+            "name": "Pack de Arranque",
+            "description": "Plata, la Mundialista y sin anuncios forzados"
+          },
+          "en-US": {
+            "name": "Starter Pack",
+            "description": "Cash, the Mundialista skin and no forced ads"
+          }
+        },
+        "reviewNote": "Gives 4 hours of production, the Mundialista skin and the same as Remove Ads.",
+        "reviewScreenshot": "store"
+      },
+      {
+        "productId": "com.fisuevolution.iap.skins_diamante",
+        "referenceName": "All Diamond Skins",
+        "type": "nonConsumable",
+        "priceUSD": "19.99",
+        "familySharable": false,
+        "availability": "all",
+        "since": "1.0",
+        "localizations": {
+          "es-MX": {
+            "name": "Todas las skins de Diamante",
+            "description": "Los 43 personajes tallados en diamante"
+          },
+          "es-ES": {
+            "name": "Todas las skins de Diamante",
+            "description": "Los 43 personajes tallados en diamante"
+          },
+          "en-US": {
+            "name": "All Diamond Skins",
+            "description": "All 43 characters carved in diamond, at once"
+          }
+        },
+        "reviewNote": null,
+        "reviewScreenshot": "store"
+      }
+    ]
+  },
+  "admob": {
+    "publisherId": "pub-8575641544774372",
+    "appId": "ca-app-pub-8575641544774372~3243441080",
+    "appName": "HoboEvolution",
+    "platform": "iOS",
+    "rewardDefaults": {
+      "amount": 1,
+      "item": "premio"
+    },
+    "unitDefaults": {
+      "allAdTypes": true,
+      "ecpmFloor": "google-optimized-high",
+      "frequencyCap": null
+    },
+    "units": [
+      {
+        "name": "anuncio normal",
+        "format": "interstitial",
+        "key": "interstitial",
+        "id": "ca-app-pub-8575641544774372/5270838626"
+      },
+      {
+        "name": "pausa publicitaria",
+        "format": "rewardedInterstitial",
+        "key": "rewardedInterstitial",
+        "id": "ca-app-pub-8575641544774372/1615619906"
+      },
+      {
+        "name": "regalos",
+        "format": "rewarded",
+        "key": "rewardedGifts",
+        "id": "ca-app-pub-8575641544774372/8304196070"
+      },
+      {
+        "name": "offline x2",
+        "format": "rewarded",
+        "key": "rewardedOfflineX2",
+        "id": "ca-app-pub-8575641544774372/6825744243"
+      },
+      {
+        "name": "cofre extra",
+        "format": "rewarded",
+        "key": "rewardedChestExtra",
+        "id": "ca-app-pub-8575641544774372/3981807683"
+      },
+      {
+        "name": "boosts",
+        "format": "rewarded",
+        "key": "rewardedBoost",
+        "id": "ca-app-pub-8575641544774372/4913896772"
+      },
+      {
+        "name": "ruleta",
+        "format": "rewarded",
+        "key": "rewardedWheel",
+        "id": "ca-app-pub-8575641544774372/1366235671"
+      },
+      {
+        "name": "colchón",
+        "format": "rewarded",
+        "key": "rewardedTreasure",
+        "id": "ca-app-pub-8575641544774372/1912941292"
+      },
+      {
+        "name": "visitantes",
+        "format": "rewarded",
+        "key": "rewardedVisitor",
+        "id": "ca-app-pub-8575641544774372/8454388206"
+      },
+      {
+        "name": "diario",
+        "format": "rewarded",
+        "key": "rewardedDaily",
+        "id": "ca-app-pub-8575641544774372/1697408166"
+      },
+      {
+        "name": "app open",
+        "format": "appOpen",
+        "key": "appOpen",
+        "id": "ca-app-pub-8575641544774372/3573507326"
+      }
+    ],
+    "testUnitIds": {
+      "rewarded": "ca-app-pub-3940256099942544/1712485313",
+      "interstitial": "ca-app-pub-3940256099942544/4411468910",
+      "rewardedInterstitial": "ca-app-pub-3940256099942544/6978759866",
+      "appOpen": "ca-app-pub-3940256099942544/5575463023"
+    }
+  },
+  "codeBindings": {
+    "products": "FisuEvolution/Resources/Config/products.json",
+    "storekit": "StoreKitConfig/FisuEvolution.storekit",
+    "adUnitIdFiles": [
+      "FisuEvolution/Resources/Config/feature_flags.json",
+      "FisuEvolution/Resources/Config/ads.json"
+    ],
+    "adsRemoteConfig": "https://adergames-site.vercel.app/config/ads.json",
+    "infoPlist": "FisuEvolution/Info.plist",
+    "projectYml": "project.yml"
+  },
+  "store": {
+    "version": "2.0.0",
+    "platform": "IOS",
+    "_comment": "Ficha de la App Store por idioma (base: lo publicado en la 1.0, con los cambios de setup-v2 §1.1, §1.2 y §1.8). whatsNew y reviewNotes se confirman contra el build de TestFlight antes de enviar.",
+    "localizations": {
+      "en-US": {
+        "name": "HoboEvolution",
+        "subtitle": null,
+        "privacyPolicyUrl": "https://adergames-site.vercel.app/privacy",
+        "description": "Tap, merge and evolve: from neighborhood hobo to God of the universe, with stops at the corner store, the delivery bike, the office and a university diploma (doesn't pay rent, but feels great).\n\n• +30 evolution tiers with your chosen career: coder, architect, doctor or lawyer\n• Passive income: your characters work so you don't have to\n• Absurd economy events inspired by very real chaos\n• Visitors with requests, a prize wheel, the Mattress Stash and Customs Parcels\n• Special characters: from the Crypto Bro to the Tax Demon\n• Reincarnate: every life starts faster and weirder\n• Offline progress: your empire keeps spinning while you sleep\n• Now on iPad too",
+        "keywords": "hobo merge idle clicker tycoon evolution tap money rich god upgrade prestige meme funny ",
+        "promotionalText": "Tap, merge and evolve: from neighborhood hobo to God of the universe, with stops at the corner store, the delivery bike, the office and a university diploma",
+        "marketingUrl": "https://adergames-site.vercel.app/",
+        "supportUrl": "https://adergames-site.vercel.app/support",
+        "whatsNew": "Version 2.0 is here: the biggest overhaul since the Hobo left the alley.\n\n• Visitors: the Police Chief, the Union Boss, the Gringo Tourist and friends drop by with requests, trades and surprises.\n• New events like We Won the Cup!, Long Weekend, General Strike and Blackout, each with a way out by video.\n• Customs Parcels, the Mattress Stash and the TV Host's Prize Wheel.\n• ORO Shop: boosts, shortcuts, permanent upgrades and new outfits.\n• 15 spots per floor, an elevator panel, and fully staffed floors that boost your income.\n• The quick-hire button never disappears, and pressing and holding it lets you pin who you hire.\n• A music theme for every floor.\n• Now on iPad too.\n• A brand-new tutorial, plus a tour of what's new for 1.0 veterans.\n• Fixes: background earnings no longer freeze, and no evolution happens without you seeing it."
+      },
+      "es-MX": {
+        "name": "FisuEvolution",
+        "subtitle": null,
+        "privacyPolicyUrl": "https://adergames-site.vercel.app/privacy",
+        "description": "Tapeá, mergeá y evolucioná: de El Fisura del barrio a Dios del universo, con escalas en el kiosco, el delivery, la oficina y el título de la UBA (que no paga el alquiler, pero emociona).\n\n• 30 niveles de evolución con la carrera que elijas: programador, arquitecto, médico o abogado\n• Ingresos pasivos: tus personajes laburan solos (más que algunos conocidos)\n• Eventos argentinos: Plan Platita, Devaluación, Se cayó el home banking, Corralito, Paro General y el Aguinaldo\n• Visitantes con pedidos, la Ruleta, El Colchón y el Paquete de la Aduana\n• Personajes especiales: del Crypto Bro al Demonio de ARCA\n• Reencarná: cada vida arranca más rápida y más absurda\n• Jugá offline: tu imperio sigue girando mientras dormís\n• Ahora también en iPad\n\nGratis, con humor y sin vergüenza. La inflación no perdona; vos sí podés ganar.",
+        "keywords": "fisura merge idle clicker tycoon evolution tap plata meme argentina ceo dios ",
+        "promotionalText": "De fisura a dios del universo. Tocá para ganar monedas, fusioná personajes y subí niveles sin parar. ¿Hasta dónde llegás?",
+        "marketingUrl": "https://adergames-site.vercel.app/",
+        "supportUrl": "https://adergames-site.vercel.app/es/support",
+        "whatsNew": "¡Llegó la 2.0! La reforma más grande desde que el Fisura salió del callejón.\n\n• Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía pasan por tu empresa con pedidos, trueques y sorpresas.\n• Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.\n• El Paquete de la Aduana, El Colchón y la Ruleta del Conductor de TV.\n• Tienda de ORO: boosts, atajos, mejoras permanentes y pintas nuevas.\n• 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.\n• El atajo de contratar ya no desaparece, y manteniéndolo presionado elegís a quién fijar.\n• Un tema musical para cada piso.\n• Ahora también en iPad.\n• Tutorial nuevo y un recorrido por las novedades para los que vienen de la 1.0.\n• Arreglos: las ganancias en segundo plano ya no se congelan, y ninguna evolución pasa sin que la veas."
+      },
+      "es-ES": {
+        "name": "FisuEvolution",
+        "subtitle": null,
+        "privacyPolicyUrl": "https://adergames-site.vercel.app/privacy",
+        "description": "Tapeá, mergeá y evolucioná: de El Fisura del barrio a Dios del universo, con escalas en el kiosco, el delivery, la oficina y el título de la UBA (que no paga el alquiler, pero emociona).\n\n• 30 niveles de evolución con la carrera que elijas: programador, arquitecto, médico o abogado\n• Ingresos pasivos: tus personajes laburan solos (más que algunos conocidos)\n• Eventos argentinos: Plan Platita, Devaluación, Se cayó el home banking, Corralito, Paro General y el Aguinaldo\n• Visitantes con pedidos, la Ruleta, El Colchón y el Paquete de la Aduana\n• Personajes especiales: del Crypto Bro al Demonio de ARCA\n• Reencarná: cada vida arranca más rápida y más absurda\n• Jugá offline: tu imperio sigue girando mientras dormís\n• Ahora también en iPad\n\nGratis, con humor y sin vergüenza. La inflación no perdona; vos sí podés ganar.",
+        "keywords": "fisura merge idle clicker tycoon evolution tap plata meme argentina ceo dios ",
+        "promotionalText": "De fisura a dios del universo. Tocá para ganar monedas, fusioná personajes y subí niveles sin parar. ¿Hasta dónde llegás?",
+        "marketingUrl": "https://adergames-site.vercel.app/",
+        "supportUrl": "https://adergames-site.vercel.app/es/support",
+        "whatsNew": "¡Llegó la 2.0! La reforma más grande desde que el Fisura salió del callejón.\n\n• Visitantes: el Comisario, el Sindicalista, el Turista Gringo y compañía pasan por tu empresa con pedidos, trueques y sorpresas.\n• Eventos nuevos, como ¡Salimos campeones!, el Feriado Puente, el Paro General o el Apagón, con su escape por video.\n• El Paquete de la Aduana, El Colchón y la Ruleta del Conductor de TV.\n• Tienda de ORO: boosts, atajos, mejoras permanentes y pintas nuevas.\n• 15 lugares por piso, la botonera del ascensor y pisos en marcha que suben tus ingresos.\n• El atajo de contratar ya no desaparece, y manteniéndolo presionado elegís a quién fijar.\n• Un tema musical para cada piso.\n• Ahora también en iPad.\n• Tutorial nuevo y un recorrido por las novedades para los que vienen de la 1.0.\n• Arreglos: las ganancias en segundo plano ya no se congelan, y ninguna evolución pasa sin que la veas."
+      }
+    },
+    "reviewNotes": "HoboEvolution 2.0 - notes for the reviewer\n\nSatirical single-player merge/idle game with Argentine humor. Brands are parodies and characters are archetypes, not real people. No accounts, no login and no server of ours: progress is stored on device. Game Center and iCloud are disabled.\n\nHOW TO TEST\nTap the character to earn coins, tap Hire to buy another one, and drag one onto another to merge them. The tutorial cannot be skipped; it ends with a welcome chest. Everything else unlocks as you play. The Store tab has every IAP and Restore Purchases.\n\nADS (Google AdMob, with AppLovin, Unity Ads, Mintegral and Meta Audience Network as mediation partners)\n1. Opt-in rewarded videos. Always started by an explicit tap on a button that says what you get; they never autoplay. Places: the Gifts list (Bonus tab), doubling offline earnings, opening another skin chest, starting a boost without waiting and \"Merge all\", the prize wheel (spin and \"repeat prize\"), the Mattress Stash (\"another mattress\"), parcel rain, visitor rewards x2, forgiving a fine, the street vendor's boosts, escaping a negative event, and daily or career rewards x2.\n2. Ads that appear on their own, only at natural breaks: at least 2 minutes apart, never during the tutorial, never over an open screen or a celebration, and never two in the same break.\n- Interstitial and \"ad break\" (rewarded interstitial) alternate. Breaks: closing a menu screen and returning to the board, dismissing the offline-earnings popup, reincarnating, and the end of a chain of celebrations. The ad break always shows an intro screen with a 5-second countdown and a visible \"No, thanks\" button; declining has no penalty.\n- App open: only when returning to the app after 3+ minutes away, at most once every 20 minutes, from the second session on, never on first launch or during the tutorial.\n\"Remove Ads\" (US$2.99) and the Starter Pack remove these three formats (interstitial, ad break and app open). Opt-in rewarded videos stay, because they are optional and pay out prizes; the purchase description says so.\nATT is requested on first launch; declining is fully supported. In the EEA, UK and Switzerland, Google's UMP consent form is shown before any ad, and Settings > Privacy options lets the player change it.\n\nRANDOMIZED ITEMS (Guideline 3.1.1)\nThe prize wheel, the skin chest bought with ORO, the Mattress Stash and the skin chest inside the Welcome Pack give randomized items. The odds of every prize are shown on screen before spinning, buying or opening. ORO, the premium currency, can be bought with real money; it has no real-world value and cannot be cashed out or transferred. There is no real-money gambling and no betting. Extra wheel spins and chests bought with ORO are turned off in Belgium and Australia.\n\n24-HOUR OFFERS (consumable IAPs)\n- Welcome Pack (US$0.99): offered once, on the player's 2nd calendar day. To see it: play once, set the device date one day ahead and reopen the app.\n- Rebirth Pack (US$2.99): offered right after reincarnating.\n- Moving Day Pack (US$4.99): offered when a new floor opens outside the tutorial; the early floors open within the first minutes of play.\nEach one stays available for 24 hours behind a chip at the top of the board, and never shows during the tutorial.\n\nIAPs (14): starter pack, remove ads, three cash packs, three ORO packs, three skin purchases and the three offers above. Consumables are not restored by design; remove ads and skins are.",
+    "availability": {
+      "appleSiliconMac": false,
+      "visionPro": false
+    }
+  }
+}

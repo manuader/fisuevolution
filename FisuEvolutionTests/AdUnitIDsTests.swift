@@ -56,14 +56,14 @@ struct AdUnitIDsTests {
         #expect(units.rewarded(for: .daily) == Self.gifts)
     }
 
-    @Test("el JSON embarcado trae la pausa publicitaria real y el app open apagado")
+    @Test("el JSON embarcado trae la pausa publicitaria y el app open reales")
     func theBundledFlagsDeclareTheNewFormats() throws {
         let flags = try GameContentLoader.load(from: .main).flags
         let declared = flags.declaredAdUnitIDs
-        // La unidad que ya existe en AdMob ("unidad", `…/1615619906`).
+        // "pausa publicitaria" en AdMob (`…/1615619906`).
         #expect(declared.rewardedInterstitial == "ca-app-pub-8575641544774372/1615619906")
-        // [GATE DEL DUEÑO] Sin unidad de app open creada: queda en null.
-        #expect(declared.appOpen == nil)
+        // Creada el 2026-10-08 (Distribution/release/release.json).
+        #expect(declared.appOpen == "ca-app-pub-8575641544774372/3573507326")
     }
 
     @Test("los IDs de prueba de Google cubren los cuatro formatos")

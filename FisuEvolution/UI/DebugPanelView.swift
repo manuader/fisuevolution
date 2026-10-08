@@ -45,6 +45,25 @@ struct DebugPanelView: View {
     var body: some View {
         NavigationStack {
             List {
+                // Va primera a propósito: la lista es perezosa y un botón fuera
+                // de pantalla no existe para XCUITest; con las secciones nuevas
+                // de la 2.0 debajo, la puerta del UI test dejó de montarse.
+                // La ficha con un segundo Fisura en la torre: el fixture
+                // `--uitest-open-sheet` la abre sobre el único de una partida
+                // nueva, que no se puede despedir.
+                Section("Ficha") {
+                    Button("Abrir la ficha (con otro para despedir)") {
+                        gameState.debugGrantCoins()
+                        if let base = gameState.content?.tiers.baseType.id {
+                            gameState.hireCharacter(typeId: base)
+                        }
+                        if let slot = gameState.visiblePlacements.first?.slot {
+                            gameState.presentCharacterSheet(cellIndex: slot)
+                        }
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.sheet.open")
+                }
                 Section("Economía") {
                     Button("+ Monedas (1M o costo de spawn ×100)") {
                         gameState.debugGrantCoins()
@@ -117,22 +136,6 @@ struct DebugPanelView: View {
                         dismiss()
                     }
                     .accessibilityIdentifier("debug.chest.award")
-                }
-                // La ficha con un segundo Fisura en la torre: el fixture
-                // `--uitest-open-sheet` la abre sobre el único de una partida
-                // nueva, que no se puede despedir.
-                Section("Ficha") {
-                    Button("Abrir la ficha (con otro para despedir)") {
-                        gameState.debugGrantCoins()
-                        if let base = gameState.content?.tiers.baseType.id {
-                            gameState.hireCharacter(typeId: base)
-                        }
-                        if let slot = gameState.visiblePlacements.first?.slot {
-                            gameState.presentCharacterSheet(cellIndex: slot)
-                        }
-                        dismiss()
-                    }
-                    .accessibilityIdentifier("debug.sheet.open")
                 }
                 Section("Peligro") {
                     Button("Resetear partida", role: .destructive) {

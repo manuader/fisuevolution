@@ -34,6 +34,22 @@ struct SpendingFrozenTests {
         #expect(!thawed.spendingFrozen)
     }
 
+    @Test("contratar gratis sigue permitido durante el Corralito")
+    func freeHiringIsNotFrozen() throws {
+        let fixture = try fxStateAndTower()
+        var state = fixture.state
+        var tower = fixture.tower
+        state.run.coins = 0
+        let units = state.run.units["a"] ?? 0
+        let free = HireQuote(
+            floorOrdinal: 0, type: try #require(tiers.type(id: "a")), cost: 0, purchases: 0, spendingFrozen: true
+        )
+        #expect(!free.blockedBySpendingFreeze)
+        try TowerActions.hire(quote: free, state: &state, tower: &tower, floorTable: fixture.floorTable,
+                              config: fxConfig(), countsAsPurchase: false)
+        #expect(state.run.units["a"] == units + 1)
+    }
+
     @Test("los ingresos siguen")
     func incomeKeepsFlowing() throws {
         var state = fxState(units: ["a": 2])

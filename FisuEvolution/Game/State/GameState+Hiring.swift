@@ -129,7 +129,7 @@ extension GameState {
                 // tarjeta diga "3 contratados" con la curva en otro exponente.
                 purchases: Int(quote.purchases.rounded(.down)),
                 costText: unseen ? "" : CoinFormatter.cost(from: quote.cost),
-                affordable: !unseen && !quote.spendingFrozen && coins >= quote.cost,
+                affordable: !unseen && !quote.blockedBySpendingFreeze && coins >= quote.cost,
                 state: state,
                 tier: type.tier,
                 floorID: floor.id
@@ -194,7 +194,7 @@ extension GameState {
             guard let quote = currentQuote(player: player, typeId: type.id),
                   jobState(for: type, ordinal: quote.floorOrdinal, player: player, content: content) == .hirable
             else { return nil }
-            return Candidate(type: type, cost: quote.cost, frozen: quote.spendingFrozen)
+            return Candidate(type: type, cost: quote.cost, frozen: quote.blockedBySpendingFreeze)
         }
         guard !candidates.isEmpty else { return nil }
 

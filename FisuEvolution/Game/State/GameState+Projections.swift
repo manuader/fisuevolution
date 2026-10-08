@@ -87,7 +87,7 @@ extension GameState {
             return occupancy.occupied >= max(occupancy.capacity, 1)
         } ?? false
         let affordable = target != nil && !targetFull
-            && (quote.map { !$0.spendingFrozen && player.run.coins >= $0.cost } ?? false)
+            && (quote.map { !$0.blockedBySpendingFreeze && player.run.coins >= $0.cost } ?? false)
         if canAffordSpawn != affordable { canAffordSpawn = affordable }
 
         let newBestHire = computeBestHire()

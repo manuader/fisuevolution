@@ -13,6 +13,9 @@ public struct HireQuote: Equatable, Sendable {
     /// El Corralito está activo: contratar rebota aunque alcance la plata.
     public let spendingFrozen: Bool
 
+    /// El Corralito frena el GASTO: contratar gratis (`cost == 0`) sigue permitido.
+    public var blockedBySpendingFreeze: Bool { spendingFrozen && cost > 0 }
+
     public init(floorOrdinal: Int, type: CharacterType, cost: Double, purchases: Double, spendingFrozen: Bool = false) {
         self.floorOrdinal = floorOrdinal
         self.type = type
@@ -308,7 +311,7 @@ public enum TowerActions {
             floorTable: floorTable,
             config: config
         ) else { throw TowerError.hireLocked }
-        guard !(quote.spendingFrozen && quote.cost > 0) else { throw TowerError.spendingFrozen }
+        guard !quote.blockedBySpendingFreeze else { throw TowerError.spendingFrozen }
         guard state.run.coins >= quote.cost else { throw TowerError.insufficientCoins }
         guard let slot = tower.floors[quote.floorOrdinal].firstFreeSlot() else { throw TowerError.floorFull }
 

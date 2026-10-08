@@ -107,6 +107,8 @@ extension GameState {
         tutorialPhaseActive = false
         celebrations.restrict(to: nil)
         grantWelcomeChest()
+        // El primer paso del permiso de notificaciones (E11): provisional, sin diálogo.
+        requestProvisionalNotifications()
         syncCelebrations()
     }
 

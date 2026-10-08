@@ -73,8 +73,7 @@ enum GameContentLoader {
         do {
             try skins.validate(
                 characterTypeIDs: Set(tiers.concreteTypes.map(\.id)),
-                floorIDs: Set(floorTable.floors.map(\.id)),
-                shaderIDs: Set(SkinShaders.ids)
+                floorIDs: Set(floorTable.floors.map(\.id))
             )
         } catch {
             throw GameError.contentInvalid(file: "skins.json", reason: "\(error)")

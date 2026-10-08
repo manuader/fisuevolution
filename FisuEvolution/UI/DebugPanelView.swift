@@ -78,12 +78,6 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.sheet.open")
                 }
-                Section("Skins") {
-                    NavigationLink("Galería de efectos de skin") {
-                        SkinEffectsGalleryView()
-                    }
-                    .accessibilityIdentifier("debug.skinGallery")
-                }
                 Section("Peligro") {
                     Button("Resetear partida", role: .destructive) {
                         gameState.debugResetSave()

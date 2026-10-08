@@ -1835,6 +1835,23 @@
         }
       }
     },
+    "bonus.chip.autotap %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ taps/s"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ toques/s"
+          }
+        }
+      }
+    },
     "bonus.chip.immunity" : {
       "extractionState" : "manual",
       "localizations" : {

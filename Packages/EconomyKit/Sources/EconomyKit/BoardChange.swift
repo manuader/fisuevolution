@@ -94,6 +94,65 @@ public enum BoardChangePlanner {
         return nil
     }
 
+    /// "Fusionar todo" (PLAN-v2 §2): todos los pares de un piso, en el orden en
+    /// que se funden. Lo que sale de una fusión vuelve a contar, así que la
+    /// cadena sube sola; nunca toca el par que pide carrera ni planea un ascenso
+    /// sin lugar arriba. Se planea sobre una copia: cada cambio se juega después
+    /// en su turno, revalidado como cualquier otro.
+    public static func planMergeAll(
+        floorOrdinal: Int,
+        state: PlayerState,
+        tower: TowerState,
+        tiers: TierRepository,
+        floorTable: FloorTable,
+        origin: BoardChange.Origin
+    ) -> [BoardChange] {
+        guard tower.floors.indices.contains(floorOrdinal) else { return [] }
+        var scratchState = state
+        var scratchTower = tower
+        var plan: [BoardChange] = []
+        // Cada fusión saca al menos una unidad del piso: el tope es su capacidad.
+        for _ in 0..<tower.floors[floorOrdinal].slots.count {
+            guard let change = lowestPair(onFloor: floorOrdinal, state: scratchState, tower: scratchTower,
+                                          tiers: tiers, floorTable: floorTable, origin: origin),
+                  (try? BoardChangeApplier.apply(change, state: &scratchState, tower: &scratchTower,
+                                                tiers: tiers, floorTable: floorTable)) != nil
+            else { break }
+            plan.append(change)
+        }
+        return plan
+    }
+
+    /// El par más bajo del piso que se puede fundir: la cadena sube de abajo.
+    private static func lowestPair(
+        onFloor ordinal: Int,
+        state: PlayerState,
+        tower: TowerState,
+        tiers: TierRepository,
+        floorTable: FloorTable,
+        origin: BoardChange.Origin
+    ) -> BoardChange? {
+        let groups = Dictionary(grouping: tower.placements(onFloor: ordinal), by: \.typeId)
+            .compactMap { typeId, placements -> (typeId: String, slots: [Int], tier: Int)? in
+                guard placements.count >= 2, let type = tiers.type(id: typeId) else { return nil }
+                return (typeId, placements.map(\.slot).sorted(), type.tier)
+            }
+            .sorted { $0.tier == $1.tier ? $0.typeId < $1.typeId : $0.tier < $1.tier }
+        for group in groups {
+            guard case .merged(let newTypeId) = MergeRules.evaluate(
+                sourceTypeId: group.typeId, targetTypeId: group.typeId,
+                chosenCareerPath: state.run.chosenCareerPath, tiers: tiers
+            ), fits(newTypeId, from: ordinal, tower: tower, tiers: tiers, floorTable: floorTable)
+            else { continue }
+            return BoardChange(
+                kind: .merge(floorOrdinal: ordinal, typeId: group.typeId,
+                             sourceSlot: group.slots[0], targetSlot: group.slots[1], newTypeId: newTypeId),
+                origin: origin
+            )
+        }
+        return nil
+    }
+
     /// La mejor unidad que puede subir sola un tier. Un nodo de carrera no se
     /// cruza solo: eso lo decide el jugador.
     public static func planEvolve(

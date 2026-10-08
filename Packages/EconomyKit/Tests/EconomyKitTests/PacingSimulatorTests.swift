@@ -88,7 +88,31 @@ private func upSimulator(upgrades: [PermanentUpgradeLine] = [], maxTier: Int = 2
     try PacingSimulator(config: upConfig(maxTier: maxTier), tiers: upTiers(maxTier: maxTier), upgrades: upgrades)
 }
 
+/// Lo que distingue dos corridas del bot: si una perilla no mueve esto, el
+/// simulador no la lee (trampa 28: un knob horneado no hace nada).
+private func fingerprint(_ report: PacingSimulator.Report) -> [Double] {
+    [report.godActive ?? -1, Double(report.reincarnations), report.finalLifetimeEarnings, Double(report.finalMaxTier)]
+        + report.reincarnationActiveSeconds
+}
+
 // MARK: - Tests
+
+@Suite("PacingSimulator: las perillas de E2a")
+struct PacingSimulatorKnobTests {
+    @Test("con el reintegro en cero el bot juega exactamente igual que sin la clave")
+    func zeroRefundIsTheBaseline() throws {
+        let base = try upSimulator().run(maxDays: 5)
+        let tuned = try PacingSimulator(config: upConfig().tuned(EconomyKnobs(mergeRefundCounts: 0)), tiers: upTiers()).run(maxDays: 5)
+        #expect(fingerprint(tuned) == fingerprint(base))
+    }
+
+    @Test("el simulador lee el reintegro")
+    func theSimulatorReadsTheRefund() throws {
+        let base = try upSimulator().run(maxDays: 5)
+        let tuned = try PacingSimulator(config: upConfig().tuned(EconomyKnobs(mergeRefundCounts: 1)), tiers: upTiers()).run(maxDays: 5)
+        #expect(fingerprint(tuned) != fingerprint(base))
+    }
+}
 
 /// El bot compra las siete mejoras permanentes con ORO. Sin esto todo
 /// `derivedEffects` viajaba en cero durante la simulación entera —le faltaban el

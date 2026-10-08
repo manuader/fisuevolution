@@ -220,6 +220,20 @@ extension RunState {
         hireCounts[floorId, default: 0] += 1
         hireCountsByType[typeId, default: 0] += 1
     }
+
+    /// Fusionar un par devuelve `counts` compras a la curva del tipo fusionado y
+    /// a la de su piso (PLAN-v2 E2a, el reintegro). Nunca baja de cero, y un
+    /// contador que llega a cero sale del diccionario.
+    public mutating func refundMergeCounts(typeId: String, floorId: String, counts: Double) {
+        guard counts > 0 else { return }
+        hireCountsByType[typeId] = Self.lowered(hireCountsByType[typeId], by: counts)
+        hireCounts[floorId] = Self.lowered(hireCounts[floorId], by: counts)
+    }
+
+    private static func lowered(_ count: Double?, by amount: Double) -> Double? {
+        let left = (count ?? 0) - amount
+        return left > 0 ? left : nil
+    }
 }
 
 /// Estadísticas de cuenta (no afectan gameplay). Monótonas y a prueba de

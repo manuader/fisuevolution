@@ -76,6 +76,15 @@ class NpcCategoryTests(unittest.TestCase):
                     ("npcs.atlas", key, "npcs"),
                 )
 
+    def test_a_visitor_face_exports_at_the_size_of_the_v1_faces(self):
+        """Las 43 caras de la v1 viven en ui.atlas a 192/256 y el chip las dibuja chicas:
+        a 512, las 18 caras de la 2.0 pesaban 13 MB en vez de 3,5."""
+        self.assertEqual(export_size("npc", "npc_comisario_face"), export_size("ui", "homeless_face"))
+        self.assertEqual(export_size("npc", "sp_coach_face"), export_size("ui", "homeless_face"))
+
+    def test_the_poses_of_a_visitor_stay_at_the_size_of_a_character(self):
+        self.assertEqual(export_size("npc", "npc_comisario_talk"), export_size("character", "homeless"))
+
     def test_the_new_poses_of_the_specials_are_visitors_too(self):
         """`sp_<id>_talk` y `sp_<id>_face` son poses de visitante. Registradas como
         `special` caerían en manifest['characters'] con un id que no es especial."""
@@ -93,6 +102,23 @@ class NpcCategoryTests(unittest.TestCase):
 
     def test_npc_exports_at_the_size_of_a_character(self):
         self.assertEqual(export_size("npc", "npc_comisario"), export_size("character", "homeless"))
+
+
+class BigUiPiecesTests(unittest.TestCase):
+    """Las piezas de UI de la 2.0 que se dibujan más grandes que un ícono."""
+
+    def test_the_wheel_frame_covers_the_300_points_of_the_wheel(self):
+        self.assertGreaterEqual(export_size("ui", "wheel_frame")[1], 900)
+
+    def test_the_board_pickups_export_like_a_character(self):
+        self.assertEqual(export_size("ui", "pickup_package"), export_size("character", "homeless"))
+
+    def test_the_album_card_exports_like_a_panel(self):
+        self.assertEqual(export_size("ui", "ui_album_card_frame"), export_size("ui", "panel_menu"))
+
+    def test_an_icon_stays_an_icon(self):
+        self.assertEqual(export_size("ui", "wheel_icon"), (192, 256))
+        self.assertEqual(export_size("ui", "ui_shop_auto_tap"), (192, 256))
 
 
 class SkinFamilyCategoryTests(unittest.TestCase):

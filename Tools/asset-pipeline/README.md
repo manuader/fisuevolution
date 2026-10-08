@@ -48,6 +48,21 @@ Las poses nuevas de los especiales van como `npc`, no como `special`: con
 `special` caerían en `manifest['characters']` con un id que no es especial, y
 `manifestEntriesReferenceRealTypes` se pone rojo.
 
+### La tanda de la 2.0 (`tanda: "v2"`)
+
+Sus entradas ya están en `prompts.json`. En lugar del paso 3 a mano, traé un grupo entero
+desde `automatic-image-generation/projects/fisu-evolution-v2/output/`:
+
+```bash
+.venv/bin/python scripts/traer_tanda.py <npc|pijama|gaucho|dinosaurio|ui|fondos> [--dry-run]
+```
+
+Copia cada PNG a `dropbox/<assetKey>.png`. Si el generador nombró el archivo distinto de la
+clave del juego, la entrada lo dice con `generado_como` (`ui_oro_autotap` → `ui_shop_auto_tap`);
+un mismo PNG puede alimentar dos claves (`ui_shop_income_x2` y `_x3`). Falta un PNG: falla con
+la lista, no trae nada a medias. `ui_oro_skin_effect` no tiene entrada (el dueño descartó los
+efectos por código).
+
 ## Revisar recortes
 
 El recorte se elige a ojo, asset por asset (decisión del dueño, HANDOFF §5).

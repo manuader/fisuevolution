@@ -304,8 +304,8 @@ que toma · commit o rama · nota.
 | E1-T12 | Startup, Blanqueo, videos y carrera por el embudo | ✅ | T9, T10, T11 | 🔥 ContentSystems, +Bonus, GameState; +Actions, +Debug | `7febd2b` + `c355f14` + `664f3cc` (merge `5fafaf4`) | en `.inactive` se asienta lo pagado (videos, carrera; también en vuelo); el resto en `.background`. E2a T3/T4 pasaron a después de T14|
 | E1-T13 | El Corralito congela el gasto, con salida por video | ✅ | T12 | 🔥 TowerActions, ContentSystems, +Bonus, GameState, RootView, catálogo; +Hiring, +Actions, ContentConfigs | `d838fdb` + arreglos `8adab56` (merge `9a641c7`) | revisión opus + arreglos (precarga del video, UI coherente con contratar gratis, UpgradeManager, pill debajo en el SE); M5 → E4 |
 | E1-T14 | Un video sin efecto no gasta el cooldown | ✅ | T9–T13 | 🔥 +Bonus, GameState, RootView, catálogo; +BoardChanges, +Achievements | `36885a3` + arreglos `f01e7b6` (merge `545208b`, claves `3d568f6`) | revisión opus + arreglos (test por el camino real con monto exacto, logros, audio) |
-| E1-T15 | `EffectContractTests` | 🔄 | T1–T14 | ActiveModifier, ContentConfigs, AdsProvider | | en vuelo (relevo 9, BASE `95c4df2`) |
-| E1-T16 | Cierre de E1 (controlador) | ⛔ | T1–T15, T5c, T6c | `Docs/` | | `completo --limpio` ×2; pacing-sim sin cambios |
+| E1-T15 | `EffectContractTests` | ✅ | T1–T14 | ActiveModifier, ContentConfigs, AdsProvider | `02952ce` (merge `9f9933e`) | mutantes del controlador: 2 rojos |
+| E1-T16 | Cierre de E1 (controlador) | 🔄 | T1–T15, T5c, T6c | `Docs/` | | completo --limpio ×2 en curso (relevo 9) |
 
 ### E11 — Notificaciones (`2026-10-07-v2-e11-notificaciones.md`)
 
@@ -332,7 +332,7 @@ que toma · commit o rama · nota.
 | E3a-T7 | La barra de abajo más baja, Contratar al centro | ✅ | T4 | GameArtComponents, BottomMenuBar | `c6a4a90` (merge `9eeb9eb`) | carry T10: `BoardScene.bottomInset` → `panelHeight` (64)|
 | E3a-T8 | La botonera del ascensor | ✅ | T6 | catálogo (o snapshot); PanelFrames, HUDView, AudioManager | `aae3a7f` + claves `f9207c2` (merge `9eeb9eb`) | carry T12: en DEBUG el display tapa el chip ×1,0; medir SE|
 | E3a-T9 | Las pestañas aparecen de a poco | ✅ | T7; E1-T4; ventana de GameState | 🔥 GameState, catálogo; +Debug, GameContentLoader | `02ee23b` (merge `c76af46`, claves `528d10b`) | carry T12: captura del ¡Nuevo! y SE con 4 pestañas; carry E9: lecciones sobre pestañas cerradas |
-| E3a-T10 | La escena: PlayLayout, 3 filas, cámara, iPad | ⛔ | T3, T7, T8; E1-T10 | 🔥 BoardScene, GameState, RootView; `oraculo.sh` | | carries: `ScreenInsetsUITests` al `ipad-ui` (iPad Pro 13", sin tocar `rojos-declarados.txt`); si se puede, saltear los especiales (E4b T9 los borra) |
+| E3a-T10 | La escena: PlayLayout, 3 filas, cámara, iPad | 🔄 | T3, T7, T8; E1-T10 | 🔥 BoardScene, GameState, RootView; `oraculo.sh` | | en vuelo (relevo 9, BASE `72a236b`) |
 | E3a-T11 | La raíz: chrome en la columna, seis hojas | ⛔ | T6, T10 | 🔥 RootView | | no con E1 T13–T14 |
 | E3a-T12 | Cierre de E3a: SE en castellano, capturas de iPad | ⛔ | T1–T11 | `oraculo.sh` | | carries: `ScreenInsetsUITests` al `se-ui`; fijar Xcode 26.x como SDK del release (el SDK 27 ignora `UIRequiresFullScreen`) |
 
@@ -358,12 +358,12 @@ que toma · commit o rama · nota.
 | E2a-T2 | El reintegro al fusionar + `EconomyKnobs` | ✅ | E1-T3, E1-T4 | 🔥 PlayerState | `cf6dfa9` → `446397c` (merge `968d504`) | perilla en 0 = v1|
 | E2a-T3 | El amortiguador y el "+6 %" | ✅ | T2 | 🔥 PlayerState, TowerActions | `eae6082` (merge `545208b`) | perilla 0 |
 | E2a-T4 | Pisos en marcha y la capacidad que sólo crece | ✅ | T3 | +Actions | `f38d50e` (merge `545208b`) | perilla 0 |
-| E2a-T5 | El piso móvil para reencarnar | 🟢 | T4; E1-T4 | — | `4ba38d8` en `v2/e2a-mecanicas` | perilla ausente; carry: el botón puede mostrar `lastRunWallGoal` |
+| E2a-T5 | El piso móvil para reencarnar | ✅ | T4; E1-T4 | — | `4ba38d8` (merge `6976f2f`) | perilla ausente; carry: el botón puede mostrar `lastRunWallGoal` |
 | E2a-T6 | "Fusionar todo", el plan | ✅ | E1-T7 | BoardChange.swift | `2c4ca71` (merge `968d504`) | EK|
 | E2a-T7 | Cofres y packs de plata en minutos | ✅ | T1; E1-T6 | +Store, products.json, StoreManagerTests | `acf633d` (merge `b0bcf7b`) | store-unit + pacing-sim → próximo `completo` |
-| E2a-T8 | El piso móvil en pantalla | ⏳ | T5; E1-T4 | catálogo (snapshot) | | deps listas (T5 🟢); catálogo por snapshot |
-| E2a-T9 | Las fusiones del juego al amortiguador y al reintegro | 🔄 | T2, T3, T6; E1-T7, E1-T9, E1-T12, E1-T14 | 🔥 TowerActions, GameState; GameContentLoader, +Actions, +BoardChanges | | en vuelo (relevo 9, BASE `c004403` = v2/e2a con version-2) |
-| E2a-T10 | "+6 % por compra" en FisuJobs | ⛔ | T3, T9; E1-T13 | +Hiring; catálogo (snapshot) | | de a una con E3b T5/T6 |
+| E2a-T8 | El piso móvil en pantalla | ✅ | T5; E1-T4 | catálogo (snapshot) | `2ae35c1` (merge, claves `72a236b`) | deps listas (T5 🟢); catálogo por snapshot |
+| E2a-T9 | Las fusiones del juego al amortiguador y al reintegro | ✅ | T2, T3, T6; E1-T7, E1-T9, E1-T12, E1-T14 | 🔥 TowerActions, GameState; GameContentLoader, +Actions, +BoardChanges | `18e8e77` (merge `6976f2f`) | perillas 0 = identidad |
+| E2a-T10 | "+6 % por compra" en FisuJobs | ✅ | T3, T9; E1-T13 | +Hiring; catálogo (snapshot) | `db669f0` (merge, claves `72a236b`) | carry E3a T12: truncados previos en el SE |
 | E2a-T11 | Diario, asado y logros en minutos + presupuesto | ⛔ | T1, T7; E1-T14, E1-T15 | 🔥 ContentSystems, +Bonus | | por tarea con E4/E5 |
 | E2a-T12 | Las carreras: gratis, Juicio ganado, Obra social | ⛔ | T11, T7; E1-T11, E1-T13, E1-T15 | 🔥 TowerActions, +Bonus | | `.freeHire`/`.eventImmunity`: nacen acá o en E4a T2, la que llegue primero |
 | E2a-T13 | Pisos en marcha en el mapa | ⛔ | T4, T9; E1-T15 | catálogo (snapshot) | | E3a T8 opcional |
@@ -375,7 +375,7 @@ que toma · commit o rama · nota.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E4a-T1 | `RewardSpec` | ✅ | — | — | `8d0a311` (merge `bba9e39`) | EK; cimiento de E5–E7 |
-| E4a-T2 | Efectos nuevos: paro, inmunidad, ritmo de paquetes | ⛔ | E1-T13, E1-T15 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | | |
+| E4a-T2 | Efectos nuevos: paro, inmunidad, ritmo de paquetes | 🔄 | E1-T13, E1-T15 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | | en vuelo (relevo 9, BASE `72a236b`) |
 | E4a-T3 | Los relojes en `meta.engagement` | ⛔ | E1-T4, E3b-T9 | EngagementState | | (ambigua: ver "Inconsistencias", punto 3) |
 | E4a-T4 | El motor de eventos v2 (EK) | ⛔ | T1, T2, T3 | — | | |
 | E4a-T5 | Los visitantes, puros | ⛔ | T1, T3 | — | | |

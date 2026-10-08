@@ -215,6 +215,16 @@ struct JobRowsTests {
         #expect(unseen.priceTrendText == nil)
     }
 
+    @Test("una fila bloqueada no cuenta cuánto sube: no se puede contratar")
+    func lockedRowHasNoTrend() async throws {
+        let gameState = await makeGameState()
+        gameState.debugMarkTypesSeen(throughTier: 5)
+        let locked = try jobRow(gameState, "mantero")
+        #expect(locked.state == .lockedFloor(floorNameKey: TowerNaming.floorName(for: "urban")))
+        #expect(locked.priceStep == nil)
+        #expect(locked.priceTrendText == nil)
+    }
+
     // MARK: La acción
 
     @Test("contratar coloca la unidad, cobra, cuenta por tipo y marca el FTUE")

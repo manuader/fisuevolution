@@ -154,10 +154,10 @@ final class FisuJobsUITests: XCTestCase {
         // ⚠️ **Y no repite el piso.** El valor de una fila `.lockedFloor` ES su
         // piso ("Se abre en Ciudad"), así que el resumen lo saltea: dice nombre,
         // ingreso y nómina. La contratable —cuyo valor es el precio— sí lo lleva,
-        // y por eso tiene un tramo más. Se cuentan los tramos en vez de comparar
+        // más cuánto sube la próxima compra, y por eso tiene dos tramos más. Se cuentan los tramos en vez de comparar
         // texto traducido (trampa 6); ningún nombre del catálogo trae ", ".
-        XCTAssertEqual(hirable.label.components(separatedBy: ", ").count, 4,
-                       "la fila contratable dice nombre, piso, ingreso y nómina: \(hirable.label)")
+        XCTAssertEqual(hirable.label.components(separatedBy: ", ").count, 5,
+                       "la fila contratable dice nombre, piso, ingreso, nómina y el paso del precio: \(hirable.label)")
         XCTAssertEqual(locked.label.components(separatedBy: ", ").count, 3,
                        "la fila bloqueada no puede repetir el piso que ya dice su valor: \(locked.label)")
 

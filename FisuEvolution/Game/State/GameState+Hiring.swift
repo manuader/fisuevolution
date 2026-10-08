@@ -125,7 +125,8 @@ extension GameState {
             let floor = content.floorTable[quote.floorOrdinal]
             let state = jobState(for: type, ordinal: quote.floorOrdinal, player: player, content: content)
             let unseen = state == .unseen
-            let trend = unseen ? (step: nil, relief: nil) : priceTrend(player: player, typeId: type.id)
+            // Cuánto sube o baja el precio sólo le importa a lo que se puede contratar.
+            let trend = state == .hirable ? priceTrend(player: player, typeId: type.id) : (step: nil, relief: nil)
             return JobRow(
                 id: type.id,
                 displayName: unseen ? "???" : type.localizedName,

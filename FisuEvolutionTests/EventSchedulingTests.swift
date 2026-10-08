@@ -45,14 +45,31 @@ struct EventSchedulingTests {
         }
     }
 
-    @Test("sin nadie que pueda crecer solo, la Startup no aplica")
-    func startupNeedsSomeoneWhoCanEvolve() async throws {
+    @Test("sin nadie que pueda crecer solo, la Startup no evoluciona: aplica por su plata de respaldo")
+    func startupFallsBackToCashWhenNobodyCanEvolve() async throws {
         let gameState = await makeGameState()
         let content = try #require(gameState.content)
         gameState.player?.run.units = ["administrativo": 1]
         gameState.reconcileTower()
         let startup = try #require(content.events.events.first { $0.id == "startup_comprada" })
-        #expect(!gameState.eventIsApplicable(startup))
+        #expect(gameState.startupEvolution(for: startup) == nil)
+        #expect(gameState.eventIsApplicable(startup))
+    }
+
+    @Test("sin respaldo y sin nadie que evolucione, la Startup no aplica")
+    func startupWithoutFallbackNeedsSomeoneWhoCanEvolve() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        gameState.player?.run.units = ["administrativo": 1]
+        gameState.reconcileTower()
+        let startup = try #require(content.events.events.first { $0.id == "startup_comprada" })
+        let bare = EventsConfig.Event(
+            id: startup.id, effectType: startup.effectType, magnitude: startup.magnitude,
+            durationSeconds: startup.durationSeconds, weight: startup.weight, minTier: startup.minTier,
+            cooldownSeconds: startup.cooldownSeconds, flavorTextKey: startup.flavorTextKey,
+            isBuff: startup.isBuff, escape: startup.escape, fallback: nil
+        )
+        #expect(!gameState.eventIsApplicable(bare))
     }
 
     @Test("sin pasivo, el Aguinaldo no aplica")

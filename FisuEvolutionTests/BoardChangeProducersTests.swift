@@ -28,6 +28,55 @@ struct BoardChangeProducersTests {
         #expect(gameState.player?.run.units == units)
     }
 
+    @Test("la Startup evoluciona sólo a quien está 2 tiers o más por debajo de la frontera")
+    func startupNeverOpensATier() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        let event = try #require(content.events.events.first { $0.id == "startup_comprada" })
+        gameState.debugSetMaxTier(5)
+        let change = try #require(gameState.startupEvolution(for: event))
+        let result = try #require(change.resultTypeId.flatMap { content.tiers.type(id: $0) })
+        #expect(result.tier <= 5 - 1, "a lo sumo frontera − 1: nunca revela un tier")
+    }
+
+    @Test("sin nadie que pueda evolucionar, la Startup paga plata y lo dice")
+    func startupPaysCashWhenNobodyFits() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        let event = try #require(content.events.events.first { $0.id == "startup_comprada" })
+        gameState.debugSetMaxTier(2)          // el Fisura (tier 1) no está 2 tiers abajo
+        #expect(gameState.startupEvolution(for: event) == nil)
+        #expect(gameState.eventIsApplicable(event))
+        let before = try #require(gameState.player?.run.coins)
+        let lifetimeBefore = try #require(gameState.player?.meta.lifetimeEarnings)
+        let expected = gameState.startupFallbackCoins(for: event)
+        let roll = EventManager.Roll(event: event, active: EventManager.ActiveEvent(
+            id: event.id, flavorTextKey: event.flavorTextKey, isBuff: true, endsAt: 1006, escapableByVideo: false
+        ), boardIntent: .evolveBestUnit)
+        gameState.handleEventRoll(roll, now: 1000)
+        #expect(gameState.pendingBoardChanges.isEmpty)
+        #expect(expected > 0)
+        #expect(try #require(gameState.player?.run.coins) == before + expected)
+        #expect(try #require(gameState.player?.meta.lifetimeEarnings) == lifetimeBefore + expected)
+        #expect(gameState.activeEvent?.flavorTextKey == event.fallback?.flavorTextKey)
+    }
+
+    @Test("con alguien a quien ascender, la Startup no paga plata")
+    func startupDoesNotPayWhenItEvolves() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        let event = try #require(content.events.events.first { $0.id == "startup_comprada" })
+        gameState.debugSetMaxTier(5)
+        let before = try #require(gameState.player?.run.coins)
+        let roll = EventManager.Roll(event: event, active: EventManager.ActiveEvent(
+            id: event.id, flavorTextKey: event.flavorTextKey, isBuff: true, endsAt: 1006, escapableByVideo: false
+        ), boardIntent: .evolveBestUnit)
+        gameState.handleEventRoll(roll, now: 1000)
+        #expect(gameState.pendingBoardChanges.count == 1)
+        #expect(try #require(gameState.player?.run.coins) == before)
+        #expect(gameState.activeEvent?.flavorTextKey == event.flavorTextKey)
+    }
+
     @Test("el Blanqueo llega por el embudo")
     func blanqueoPlansAnArrival() async throws {
         let gameState = await makeGameState()

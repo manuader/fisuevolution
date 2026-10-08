@@ -25,6 +25,14 @@ struct EventsConfig: Codable, Sendable, Equatable {
         let isBuff: Bool
         /// `"video"`: el jugador puede levantar el evento mirando un video.
         let escape: String?
+        /// Si el evento no tiene sobre quién caer, paga esto (la Startup sin nadie
+        /// que evolucione). `nil` = el evento no es aplicable.
+        let fallback: Fallback?
+
+        struct Fallback: Codable, Sendable, Equatable {
+            let coinsSeconds: Double
+            let flavorTextKey: String
+        }
     }
 
     let schemaVersion: Int

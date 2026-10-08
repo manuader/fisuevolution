@@ -278,6 +278,11 @@ struct ContentSystemsTests {
         // generoso; subirla es lo que lo dosifica.
         #expect(blanqueo.magnitude == 3)      // era 2 → el regalo baja un tier
 
+        // ⚠️ `startup.magnitude` es un OFFSET DE TIER, como el del Blanqueo: la unidad que
+        // evoluciona está a `magnitude` o más por debajo de la frontera.
+        #expect(startup.magnitude == 2)
+        #expect(startup.fallback?.coinsSeconds == 300)
+
         #expect(planPlatita.cooldownSeconds >= 1800)
         #expect(startup.cooldownSeconds >= 2700)
         #expect(alienigena.cooldownSeconds >= 7200)

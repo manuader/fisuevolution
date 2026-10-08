@@ -3,12 +3,15 @@
 
     Tools/v2/catalogo.py verificar
     Tools/v2/catalogo.py aplicar <claves.json> [<claves.json> …]
+    Tools/v2/catalogo.py quitar <clave> [<clave> …]
 
 `verificar` reescribe en memoria los dos catálogos sin cambiarles nada y exige
 que salgan byte a byte iguales: es la prueba de que este script escribe el
 formato de Xcode (dos espacios, `" : "`, las claves de `strings` en orden
 natural, sin salto de línea final). `aplicar` suma las claves de los snapshots
-al `Localizable.xcstrings`, y sólo si esa verificación pasa antes.
+al `Localizable.xcstrings`, y sólo si esa verificación pasa antes. `quitar` borra
+claves (y frena sin escribir nada si alguna no existe). Cambiar el texto de una
+clave es `quitar` y después `aplicar` de la misma clave.
 
 Un snapshot es {"clave": {"es": "…", "en": "…"}}. Una clave que ya existe con
 los mismos textos se saltea; con otros, es un error y no se escribe nada: este
@@ -89,6 +92,20 @@ def aplicar(snapshots, ruta=LOCALIZABLE):
     print(f"{ruta.name}: {nuevas} claves nuevas")
 
 
+def quitar(claves, ruta=LOCALIZABLE):
+    ruta = Path(ruta)
+    if not es_canonico(ruta):
+        sys.exit(f"✋ {ruta.name} no está en el formato canónico: no se escribe nada (trampa 29)")
+    catalogo = json.loads(ruta.read_text(encoding="utf-8"))
+    faltan = [clave for clave in claves if clave not in catalogo["strings"]]
+    if faltan:
+        sys.exit(f"✋ no existen: {faltan}")
+    for clave in claves:
+        del catalogo["strings"][clave]
+    ruta.write_text(serializar(catalogo), encoding="utf-8")
+    print(f"{ruta.name}: {len(claves)} claves borradas")
+
+
 def main(argumentos):
     if argumentos[:1] == ["verificar"]:
         malos = [r.name for r in CATALOGOS if not es_canonico(r)]
@@ -97,6 +114,9 @@ def main(argumentos):
         return 1 if malos else 0
     if argumentos[:1] == ["aplicar"] and len(argumentos) > 1:
         aplicar(argumentos[1:])
+        return 0
+    if argumentos[:1] == ["quitar"] and len(argumentos) > 1:
+        quitar(argumentos[1:])
         return 0
     print(__doc__)
     return 2

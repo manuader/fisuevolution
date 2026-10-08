@@ -21,23 +21,21 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-08 (cierre del relevo
-> 12): `version-2` = **`c94f75f`** (pusheado) y la rama de integración `v2i/integ-r12` = **`acee4d8`**
-> (suma E13 T1, con su `rapido` pendiente). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de
-> idioma de E3 y las olas B a H, más lo del relevo 12: **E1 T1–T15 (falta sólo T16, el cierre: el
-> `completo --limpio` sobre `c94f75f` quedó corriendo al cierre; su resultado está en
-> `Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md` y en `build/relevo12-completo-limpio.log` del worktree
-> `version-2`; las 3 regresiones de UI de la ola H ya están arregladas)**; E11 T1–T6; E3a T1–T10; E3b T1–T3;
-> E2a T1–T14; E4a T1–T2 y T8; E5a T1–T3; E6a T3 y T9; E6b T1–T3 y T1r; **E8 (arte) T1–T5 y T8; E12 T1 y T2;
-> E13 T1**; y `release-ops` (compras y anuncios como código). **Progreso: 69 de 210 tareas activas
-> integradas (32,9 %)** (`tasks.md` §2; el denominador subió porque E8, E12 y E13 tienen plan por tarea).
-> **El `rapido` de `c94f75f` está VERDE** (EK 556 · unit 784 + 1 · release 0); **el último `completo` de
-> referencia sigue siendo el de `528d10b`**. Detalle en `Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md`.
+> 13): `version-2` = **`4ab1817`** (pusheado; `rapido` VERDE: EK 605 · unit 816 + 1 declarado · release 0) y la
+> rama de integración `v2i/integ-r13` = **`a74d6e7`** (suma E13b T5, **sin `rapido`**). Están E0, E10 en papel,
+> E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a I, más lo del relevo 13: **E9b T6**
+> (`resetEpoch`), **E12 T3–T6** (moderación, cuatro Edge Functions, cron y `RankingState`), **E8 T6 y E8b T1–T3,
+> T7** (visitantes y especiales; retratos y cinemáticas, pipeline), **E3b T5**, **E13 T6** (la Startup) y
+> **E13b T1–T5 y T9** (el ascensor: director, placa, sonidos, clips y cabina; la Tienda fuera de la barra).
+> **Progreso: 87 de 243 tareas activas integradas (35,8 %)** (`tasks.md` §2; el denominador subió por E8b, E8c y
+> E13b). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16, E1 cerrada).** Detalle en
+> `Docs/SESION-2026-10-08-v2-relevo-13-ola-j.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r12` (E13 T1 + docs del cierre, `rapido` pendiente).
-> `v2/e12-plan` y su worktree son de la sesión del dueño: no se tocan sin su OK. Hay planes por tareas
-> para todas las épicas salvo E8 (el lado Swift de las cinemáticas y la cadena de "Fusionar todo") y la
-> parte de agente de E10. **Lo primero del relevo 13:** el plan P-E13b (el ascensor y la barra, prioridad
-> alta del dueño).
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r13` (E13b T5 + docs del cierre, `rapido` pendiente).
+> `v2/e12-plan`, `v2/release-ops` y, **nueva, `v2/e8-videos`** (y `v2/e8-animaciones-docs`) son de la sesión del
+> dueño: no se tocan. **`v2/e8-videos` solapa con lo que integró el relevo 13** (E13b T4, E8b T1–T3): el paso 1
+> del relevo 14 es reconciliarlas antes de despachar E8b T4 o E13b T6 (`tasks.md` §4.1). Hay planes por
+> tareas para todas las épicas salvo la parte de agente de E10.
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -347,6 +345,25 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-08 (relevo 13) — La ola J: el ascensor y la barra con plan, el backend del ranking y los videos
+
+`version-2` quedó en `4ab1817` (y `v2i/integ-r13` en `a74d6e7`). **Progreso: 87 de 243 tareas activas integradas (35,8 %).**
+
+- **Tres planes opus:** P-E13b (el ascensor y la barra, 11 tareas, no toca `RootView` ni `GameState`), P-E8b (las
+  cinemáticas, 12) y P-E8c ("Fusionar todo" encadenado, 10).
+- **E13b casi entera:** el director del viaje, la placa colgante, los sonidos, los clips de la cabina y la cabina
+  con su vista (T5, revisión opus con cinco arreglos), y la Tienda fuera de la barra (T9, con el + de la moneda).
+  Faltan T6 (el viaje montado), T7, T8 y T10.
+- **E12 con backend:** moderación con Haiku (T3), cuatro Edge Functions (T4, `start-run` idempotente por
+  `clientRunId`), cron y propuesta de lista (T5) y `RankingState` en EK (T6); `supabase/test.sh` sql 25 · deno 80.
+- **Save:** E9b T6 sube la época del reset y reparte el ORO con asociatividad (revisión opus, dos arreglos).
+- **Arte y pipeline:** 52 claves de visitantes y especiales (E8 T6), `seenCinematics` (E8b T7) y los 18 loops
+  y 3 cinemáticas (E8b T1–T3, con el fondo blanco por conectividad). **Ojo: la sesión del dueño integró lo mismo
+  en `v2/e8-videos`; hay que reconciliar antes de seguir con E8b/E13b T6.**
+- E13 T6: la Startup evoluciona dos tiers abajo de la frontera o paga (revisión opus, plata).
+
+Detalle en **`Docs/SESION-2026-10-08-v2-relevo-13-ola-j.md`**.
 
 ### Sesión del 2026-10-08 (relevo 12) — Las 3 regresiones de UI, la bandeja del dueño y tres épicas con plan
 
@@ -2578,6 +2595,24 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la ola J (2026-10-08, relevo 13)
+
+- **Dos sesiones integrando los mismos videos.** El relevo 13 hizo E13b T4 y E8b T1–T3 mientras el dueño armaba
+  `v2/e8-videos` (`video_assets.py` con kinds `objeto`/`cabina`, 27 piezas, `loops_manifest.json`). Antes de
+  tocar un pipeline de arte: leer `DUENO.md` y mirar las ramas del dueño. **Sólo entra al juego lo marcado `va`
+  en `video/revision.json`** (los 18 retratos de E8b T3 no pasaron esa revisión), y el lado Swift sigue la spec
+  `2026-10-08-v2-e8-animaciones-design.md` (`VideoPlayerPool` ≤ 3, ODR, fps como gate).
+- **Medir el contexto en cada borde.** E13b T3 salió con ~300k: la regla de 250k no se cumplió porque nadie midió.
+- **Una base vieja duplica los archivos nuevos.** E13b T5 (BASE `806c19e`) trajo un `ElevatorLED` que T2 ya había
+  hecho público: duplicado. Una tarea que depende de una hermana en vuelo arranca con el merge de la hermana.
+- **Un agente puede avisar trabajo de fondo propio al terminar** (E8b T1, E13b T1): esperar a que cierre antes de
+  borrar su worktree.
+- **El `body` de una vista no crea objetos con efectos** (E13b T5: creaba `AVPlayer`s); las vistas con AVFoundation
+  van siempre a revisión opus, con respaldo vectorial si el clip falla y Reduce Motion como cabina vectorial.
+- **`xcodegen generate` tras sumar recursos** (los 4 de la cabina), o no entran al target.
+- **El cambio de fondo de los loops (croma → blanco) llegó en medio de un plan**: lo que mide el pipeline cambia
+  con la fuente; recortar blanco por conectividad, nunca por umbral.
 
 ### De la ola I (2026-10-08, relevo 12)
 

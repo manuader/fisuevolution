@@ -6,10 +6,10 @@
 > `Docs/superpowers/plans/2026-10-0*-v2-*.md`, los ledgers
 > `.superpowers/sdd/<plan>/progress.md` y el journal AVO del run.
 >
-> **Foto:** 2026-10-08, cierre del relevo 12. `version-2` = `c94f75f` (pusheado; `rapido` #2 VERDE: EK 556 · unit 784 + 1 ·
-> release 0) y la rama de integración `v2i/integ-r12` = `acee4d8` (suma E13 T1, con su `rapido` pendiente).
-> El `completo --limpio` sobre `c94f75f` (E1 T16) quedó corriendo al cierre: su resultado está en
-> `Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md` y en `build/relevo12-completo-limpio.log` del worktree `version-2`.
+> **Foto:** 2026-10-08, cierre del relevo 13. `version-2` = `4ab1817` (pusheado; `rapido` VERDE: EK 605 · unit 816 + 1 declarado ·
+> release 0) y la rama de integración `v2i/integ-r13` = `a74d6e7` (suma E13b T5, sin `rapido`). El último `completo` de
+> referencia es el `--limpio` de `c94f75f` (E1 T16). Detalle en `Docs/SESION-2026-10-08-v2-relevo-13-ola-j.md`.
+> **Ojo:** la sesión del dueño integró los mismos videos en `v2/e8-videos` (solapa con E13b T4 y E8b T1–T3): ver §4.1.
 > Si un ledger dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
 
 ## 1. Cómo se usa
@@ -71,25 +71,25 @@
 | E6a + E6b | `v2/e6-tienda` | `2ba7c2e` (T3; mergeada en `e27efb1`) |
 | E7b-a + E7b-b | `v2/e7b-anuncios` | a crear desde `version-2` |
 | E8 | `v2/e8-pipeline` | `4ea0678` (integrada; su worktree `v2-e8-pipeline` ya no existe) |
-| E8 (arte) | `v2/e8-arte` | T1–T5 y T8 integradas por la rama de integración (`v2i/integ-r12`); T6, T7 en serie por `assets_manifest.json` |
-| E12 | — (ramas de tarea `v2i/*`) | T1 y T2 integradas; el plan y la spec vienen de `v2/e12-plan` (worktree `v2-e12-plan`, **de la sesión del dueño**) |
-| E13 | — (ramas de tarea `v2i/*`) | T1 integrada en `v2i/integ-r12` (`acee4d8`) |
+| E8 (arte) | `v2/e8-arte` | T1–T8 integradas (T6, T7 en el relevo 13); faltan T9 (🔒 el dueño) y T10 |
+| E12 | — (ramas de tarea `v2i/*`) | T1–T6 integradas (relevo 13); el plan y la spec vienen de `v2/e12-plan` (worktree `v2-e12-plan`, **de la sesión del dueño**) |
+| E13 | — (ramas de tarea `v2i/*`) | T1 y T6 integradas |
+| E13b | — (ramas de tarea `v2i/*`) | T1–T5 y T9 en `v2i/integ-r13` (`a74d6e7`; T5 sin `rapido`) |
+| E8b / E8c | — (ramas de tarea `v2i/*`) | E8b T1–T3, T7 integradas; E8c sin empezar. **Solapa con `v2/e8-videos` del dueño** |
 
 ## 2. Progreso
 
-**Hoy: 69 de 210 tareas activas integradas (32,9 %)**, más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅).
-El conteo creció de 167 a 210 porque E8 (arte), E12 y E13 tienen plan por tarea desde el relevo 12 (+43 filas:
-10 + 19 + 14), por eso el porcentaje baja aunque las integradas subieron de 59 a 68 (E8 T1–T5 y T8, E12 T1 y T2,
-E13 T1). E13 T1 y E12 T1 cuentan ✅ aunque están en la rama `v2i/integ-r12` y no en `version-2`: entran a
-`version-2` con el próximo `rapido`. E1 T16 (el cierre de E1) sigue 🔄 hasta que el `completo --limpio` sobre
-`c94f75f` dé verde.
+**Hoy: 87 de 243 tareas activas integradas (35,8 %)**, más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅).
+El conteo creció de 210 a 244 filas (243 activas, 1 salteada) porque P-E8b, P-E8c y P-E13b sumaron 33 filas (12 + 10 + 11).
+Las integradas subieron de 69 a 87. Las tareas del relevo 13 están en `version-2` (hasta `4ab1817`) salvo E13b T5, que está
+sólo en `v2i/integ-r13` y entra con el próximo `rapido`.
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
 | E1 | 16 | 16 |  |  |  |  |  |  |
 | E11 | 7 | 6 |  |  | 1 |  |  |  |
 | E3a | 12 | 10 |  |  | 1 | 1 |  |  |
-| E3b | 9 | 3 |  |  | 1 | 5 |  |  |
+| E3b | 9 | 4 |  |  | 1 | 4 |  |  |
 | E2a | 15 | 14 |  |  | 1 |  |  |  |
 | E4a | 10 | 3 |  |  |  | 7 |  |  |
 | E4b | 10 |  |  |  |  | 10 |  |  |
@@ -100,12 +100,15 @@ E13 T1). E13 T1 y E12 T1 cuentan ✅ aunque están en la rama `v2i/integ-r12` y 
 | E7b-a | 7 |  |  |  | 2 | 5 |  |  |
 | E7b-b | 7 |  |  |  |  | 7 |  | 1 |
 | E9a | 10 |  |  |  |  | 10 |  |  |
-| E9b | 10 |  |  |  | 1 | 9 |  |  |
+| E9b | 10 | 1 |  |  |  | 9 |  |  |
 | E2b | 15 |  |  |  | 1 | 14 |  |  |
-| E8 (arte) | 10 | 6 |  |  |  | 4 |  |  |
-| E12 | 19 | 2 |  |  | 1 | 15 | 1 |  |
-| E13 | 14 | 1 |  |  | 5 | 8 |  |  |
-| **Total** | **210** | **69** | | | **14** | **126** | **1** | **1** |
+| E8 (arte) | 10 | 7 |  |  | 1 | 2 |  |  |
+| E8b | 12 | 4 |  |  | 2 | 6 |  |  |
+| E8c | 10 |  |  |  | 5 | 5 |  |  |
+| E12 | 19 | 6 |  |  | 2 | 10 | 1 |  |
+| E13 | 14 | 2 |  |  | 5 | 7 |  |  |
+| E13b | 11 | 6 |  |  | 3 | 2 |  |  |
+| **Total** | **243** | **87** | | | **25** | **130** | **1** | **1** |
 
 Fuera del conteo:
 
@@ -124,9 +127,9 @@ grep -E '^\| E[0-9a-z-]+-T[0-9]+[ab]? \|[^|]*\| ⏭' tasks.md | grep -vc seguimi
 grep -E '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md | grep -vc seguimiento                   # una épica: cambiar el prefijo
 ```
 
-Progreso = integradas / (filas de tarea − salteadas). Hoy: 68 / (211 − 1). Con el sufijo `[ab]?` el grep levanta
+Progreso = integradas / (filas de tarea − salteadas). Hoy: 87 / (244 − 1). Con el sufijo `[ab]?` el grep levanta
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
-La tabla por épica se recalculó en el relevo 12 (con E8, E12 y E13); si discrepa, vale el `grep`.
+La tabla por épica se recalculó en el relevo 13 (con E8b, E8c y E13b); si discrepa, vale el `grep`.
 
 ## 3. Reglas de concurrencia (PLAN-v2 §0.1, operativas)
 
@@ -197,45 +200,40 @@ partirlo.
 | `CelebrationQueue.swift` (EK) | E1 T10 · E4b T1, T4 · E6a T12 |
 | `GameState+TutorialTips.swift`, `TutorialAnchor.swift` | E3b T5, T9 · E4b T3, T4, T8 · E5b T5 · E6a T8, T12 · E7b-b T3, T5 |
 
-## 4. Cola de despacho — lo próximo (relevo 13)
+## 4. Cola de despacho — lo próximo (relevo 14)
 
 ### 4.1 Al llegar
 
 | # | Qué | Nota |
 |---|---|---|
-| 0 | Leer el resultado del `completo --limpio` sobre `c94f75f`: `build/relevo12-completo-limpio.log` en el worktree `version-2` (última línea; el exit de una tarea de fondo no es el del oráculo) y `Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md` | **no mergear a `version-2` mientras corra**; si quedó sin resultado, relanzarlo en su propio grupo de procesos |
-| 1 | **VERDE** → **E1 T16 ✅** y docs de cierre de E1 (SESION + general); recién entonces se destraba E3b T9 (que espera a T4–T8), E4a T3/T9 y lo que cuelga. **ROJO** → aislar cada clase roja ×2 antes de declarar regresión (la máquina llegó a carga 300–600 por sesiones paralelas: los flakes de UI son esperables); si es real, arreglar y repetir el `completo --limpio` | los rojos conocidos y su causa raíz están en la SESION; el rojo declarado `theOwnersTargetsAreMet` ya no falla: revisar `rojos-declarados.txt` |
-| 2 | `rapido` sobre `v2i/integ-r12` (`acee4d8`: E13 T1 + docs) y fast-forward de `version-2` a esa punta, con push | E13 T1 pasó su tarea y la revisión opus; falta la suite entera y el Release |
-| 3 | Leer `DUENO.md`: lo marcado en el relevo 12 está hecho; mirar si hay pendientes nuevos (clips de Higgsfield, mediación, E13 ítems 13–14) | el worktree `v2-e12-plan` es de la sesión del dueño: no se toca sin su OK |
+| 1 | **PRIMERO: reconciliar con `v2/e8-videos`.** Leé en `DUENO.md` las secciones "todo el juego animado" y "primera tanda de videos lista". **En paralelo al relevo 13**, una sesión del dueño integró los mismos videos en `v2/e8-videos` (base `0db7746`: `4164fed` PLAN-v2 E8, `60126cb` `video_assets.py` con recorte de blanco y kinds `objeto`/`cabina`, `c739f2f` 27 piezas —18 retratos, 4 Paquete/Colchón, 2 cabina, 3 cinemáticas— y `loops_manifest.json` con `portraits/objects/cabin/cinematics`). El relevo 13 integró trabajo solapado: E13b T4 (cabina, `video_assets.py ascensor`, manifest con `cinematics.ascensor_*` y `stills`) y E8b T1–T3 | **NO despachar E8b T4 en adelante ni E13b T6 hasta reconciliar.** (a) Comparar `v2/e8-videos` contra `v2i/integ-r13`: `video_assets.py`, `loops_manifest.json`, `Resources/Loops` y `Resources/Cinematics`, los contratos de los tests Python; (b) elegir **una sola versión de cada pieza**, manteniendo lo que consume el código de E13b T5 (`cine_ascensor_*`); (c) integrar `v2/e8-animaciones-docs` (docs); (d) **sacar del juego lo que no esté `va`** en `video/revision.json` (los 18 retratos de E8b T3 no pasaron esa revisión); (e) **re-planificar el lado Swift con la spec** `Docs/superpowers/specs/2026-10-08-v2-e8-animaciones-design.md` (`VideoPlayerPool` ≤ 3, `AnimatedArtView`/`LoopingVideoNode`, On-Demand Resources, fps como gate), que puede reemplazar parte de P-E8b (T4–T12) y tocar E13b T5/T6 (la cabina): planificador opus. **No tocar las ramas del dueño** |
+| 2 | `rapido` sobre `v2i/integ-r13` (`a74d6e7`, suma E13b T5) y fast-forward de `version-2` con push | E13b T5 pasó su tarea y la revisión opus; falta la suite entera y el Release. No mergear a `version-2` mientras corra otro oráculo ahí |
+| 3 | Leer `DUENO.md` entero por pendientes nuevos (mediación por SPM, `sp_contador_dios`, videos) | los worktrees `v2-e12-plan` y `v2-release-ops` son de la sesión del dueño |
 
 ### 4.2 La ola siguiente, por prioridad del dueño (≤ 3 compilando; un dueño por archivo)
 
-BASE de todas: `version-2` tras el paso 2 de arriba. Worktrees manuales `worktrees.nosync/v2i-<tarea>` (el symlink
-`.claude/worktrees` rompe `Agent(isolation: "worktree")`).
+BASE de todas: `version-2` tras el paso 2 de arriba. Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
 
 | # | Tarea | Modelo | Dueña de / nota |
 |---|---|---|---|
-| 1 | **P-E13b** plan de E13 ítems 13–14: el ascensor (placa colgante, viaje en cabina) y la barra de 5 pestañas | **planificador opus** (no compila) | **PRIORIDAD ALTA del dueño** ("lo que ve primero"). Referencia `Docs/superpowers/specs/referencias/2026-10-08-ascensor-y-barra.png`; manda sobre E3a T8 y la barra de E3a. Calientes: `ElevatorPanel`, `HUDView`, `GameTabBar`, `RootView`. Primera cosa de la ola; sus tareas se despachan en paralelo respetando los calientes |
-| 2 | **E13 T6** la Startup evoluciona dos tiers abajo de la frontera o paga | sonnet (revisión opus: plata) | Primera de E13, camino a E2b. `+Bonus`, catálogo (snapshot), `events.json`, `BoardChange.swift`; suma `catalogo.py quitar` |
-| 3 | **E13 T5** precios al reencarnar ∥ **T8** "Piso ???" ∥ **T11** moneda sobre quien genera ∥ **T12** "Pack de las 43" | sonnet (sin revisión) | UI chica; T8 en serie con T4 (`+Projections`), T11 no ∥ T9 (`+Actions`), T12 toca `+Store` (tibio de E6b T4/T5) |
-| 4 | **E12 T3** backend: reglas, lista y moderación (Deno) | sonnet | Tras T1 (ya ✅). Carries de T2: fijar `npm:@anthropic-ai/sdk` y `deno.lock`; **deno no está instalado y Docker no se probó** |
-| 5 | **E12 T6** `RankingState` (EK) | sonnet (revisión opus: save) | EK puro, sin calientes |
-| 6 | **E8 T6** visitantes y especiales (52) → **E8 T7** paquete, colchón, ruleta, tienda y álbum (31) | sonnet | **En serie** (las dos son dueñas de `assets_manifest.json`) |
-| 7 | **E8 T10** (medir la memoria del vuelo con los fondos a 2048) | controlador / sonnet | Carry de E8 T8: la memoria del vuelo quedó SIN medir; PSNR q90 35–40 dB |
-| 8 | La **ola I que no salió**: **E3a T11** (`RootView`) → **E3b T4**; **E3b T5** (arranca la cadena T5→T9, camino crítico a E4a T3); **E7b-a T1 ∥ T5**; **E9b T6** (save: revisión opus; E13 T3 espera a esta); **E2b T1** (EK); controlador: **E2a T15** y **E11 T7** (docs de cierre) | sonnet | Carries en el párrafo de abajo; cuidado: P-E13b toca `RootView`, así que E3a T11 y los dueños de `RootView` se integran en serie con sus tareas |
-| 9 | Dos pedidos del dueño **sin plan** (`DUENO.md`): el **lado Swift de las cinemáticas** (`.cinematic`, `seenCinematics`, `LoopingPortraitView`, `loops_manifest.json`) y la **cadena animada de "Fusionar todo"** | **planificador opus** cada uno | ≤ 2 planificando a la vez. Los clips de Higgsfield ya están listos (ver `DUENO.md`); `video_assets.py retrato` necesita dos ajustes antes (medir sólo esquinas de arriba; aceptar magenta como key) |
+| 1 | **E13b T6** el viaje montado encima de `RootView`; el mapa viaja → **T7 ∥ T10** → **T8** | sonnet (T6 y T8: revisión opus) | **PRIORIDAD ALTA del dueño.** T6 **espera a la reconciliación del paso 1** (puede tocar la cabina). Carries de T5 a T6: `prepare()` al abrir la placa y en `requestFromMap`, `release()` si se cierra sin viajar, `ElevatorRideView` con `.environment(gameState)` sólo con `phase != .idle`; bajar el volumen del motor. T7 (lección) es libre; T10 (barra simétrica) tras T9 ✅; T8 (🔥 `HUDView`, borra `ElevatorPanel.swift`) tras T2, T6, T7 |
+| 2 | **E8b T4** (`LoopsManifest`/`CinematicID`) · **T5** (`VideoSlot`, `LoopingPortraitView`) y **E8c T1–T3** | sonnet | **E8b T4/T5 esperan a la reconciliación y a la re-planificación con la spec.** E8c T1 toca `BoardChange.swift` (EK, revisión opus); E8c T2 `CelebrationQueue`; E8c T3 es puro. E8c T4 (audio) y T6 (contador) son libres |
+| 3 | **E13** T3 · T5 · T8 · T11 · T12 | sonnet | T3 suma sus campos a `resolveAcrossReset` (E9b T6 ✅); T8 en serie con E3b `+Projections`; T11 no ∥ T9 (`+Actions`); T12 toca `+Store` |
+| 4 | **E8 T7** (paquete, colchón, ruleta, tienda y álbum: 31) | sonnet | dueña de `assets_manifest.json`. **Ojo con el solape de videos de Paquete/Colchón de `v2/e8-videos`** |
+| 5 | **E3b T6** (camino crítico a E4a T3 vía T9) | sonnet | dueña de `GameState`; un dueño por ventana |
+| 6 | **E12 T7** (clientRunId en `RankingState`: `awaitingStart` guarda el `clientRunId`) y **T10** (`Phase` con `(try? …) ?? .legacy`) | sonnet | EK / `Phase`; carries de la revisión de E12 T6/T4 |
+| 7 | **Mediación por SPM** (Unity + Meta) | — | **pendiente del dueño** (`DUENO.md`); no se despacha |
+| 8 | **E2b T1** (EK) · **E7b-a T1 ∥ T5** | sonnet | E7b-a T5 después de E11 T4 |
+| 9 | **E8 T10** (medir la memoria del vuelo con los fondos a 2048) | controlador / sonnet | carry de E8 T8 |
 
 Lo que **no** se despacha todavía: E4a T3–T7 y T9 (esperan a E3b T9 y a E4a T5–T7); E6a T1–T2 y T4–T13; E5a T4–T9, E4b y E5b
-(cadena de E4a); E12 T10 en adelante (esperan a E1 T16 y a E9b); E13 T2/T3/T7/T9/T10/T13 (esperan a T6, a E9b T6, etc.).
-Revisión opus: E9b T6 (save), E12 T6 (save), E13 T6 (plata).
+(cadena de E4a); E12 T11 en adelante (esperan a T7/T8 y a E9b). Revisión opus: E13b T6/T8, E8c T1/T5/T7/T8, E13 T3 (save).
 
-Carries para quien tome las tareas que siguen (los del relevo 11 siguen vigentes y se repiten en la SESION del relevo 12):
-de E4a T8 a T9 (el momento calmo se unifica con `isSafeMomentForInterstitial`; los kinds fuera de `grantableRewardKinds`
-no se ofrecen); de E2a T12 a E4a (`activeEvent` no se persiste, `eventIsApplicable` con `Date()` y criterio !isBuff vs
-"mixtos"); de E6a T3 a T5 (el "mejor" por tier; `RewardSpec` y `.autoTap`); de E2a T14 al dueño (la prueba manual del
-paso 4); de E13 T1 a E4b T3 / E7b-b T7 (`RewardedOfferButton` ya existe: reusarlo, no recrearlo); de E8 T8 a T10 (memoria
-del vuelo). Las claves huérfanas (`career.reward.welcome/boost/modifier`, `bonus.effect.payout`) las saca una tarea dueña
-del catálogo.
+Carries vigentes (detalle en `Docs/SESION-2026-10-08-v2-relevo-13-ola-j.md`): de E9b T6 a T7/T8 (`OffersState.purchases` y
+`seenCinematics` cruzan `resolveAcrossReset`; compras no-ORO; un build viejo pierde la época); de E12 T6 a T8/T10/T11/T12
+(reenvío idempotente de `carriedSubmission`; `pendingWork .start`); de E12 T4 a T5/T16 (`prepare: false`, límite por IP);
+de E8b T3 (`sp_contador_dios`, `sp_bug_simulacion` al dueño); de E13b T9 a E3b T4 (cinco páginas); de E13 T1 a E4b T3 /
+E7b-b T7 (`RewardedOfferButton`); los de las olas H e I.
 
 ### 4.3 La cola, por prioridad
 

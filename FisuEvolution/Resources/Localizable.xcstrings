@@ -2408,6 +2408,23 @@
         }
       }
     },
+    "character.skin.equip.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wear %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ponerle %@"
+          }
+        }
+      }
+    },
     "character.skin.equipped" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -4774,6 +4791,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Organigrama"
+          }
+        }
+      }
+    },
+    "pager.next.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siguiente"
+          }
+        }
+      }
+    },
+    "pager.previous.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anterior"
           }
         }
       }

@@ -4,7 +4,7 @@ import Foundation
 /// eventos, boosts, upgrades, specials, daily, viral y Game Center son datos.
 
 struct EventsConfig: Codable, Sendable, Equatable {
-    enum EffectType: String, Codable, Sendable {
+    enum EffectType: String, Codable, Sendable, CaseIterable {
         case incomeMultiplier
         case instantEvolution
         case freeHighTier
@@ -39,7 +39,7 @@ struct EventsConfig: Codable, Sendable, Equatable {
 
 struct SpecialsConfig: Codable, Sendable, Equatable {
     struct PassiveEffect: Codable, Sendable, Equatable {
-        enum Kind: String, Codable, Sendable {
+        enum Kind: String, Codable, Sendable, CaseIterable {
             case incomeMultiplier
             case offlineEfficiencyBonus
             case critChanceBonus

@@ -4,7 +4,7 @@ import Foundation
 /// boosts (F5) all flow through this one system. Modifiers live in `PlayerState`
 /// so they survive backgrounding; expiry is an absolute timestamp.
 public struct ActiveModifier: Codable, Sendable, Equatable, Identifiable {
-    public enum Effect: String, Codable, Sendable {
+    public enum Effect: String, Codable, Sendable, CaseIterable {
         /// Multiplies passive income AND tap gains (events like "x3 income").
         case incomeMultiplier
         /// Multiplies tap gains only (Café Cargado).

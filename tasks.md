@@ -203,6 +203,7 @@ BASE de todas: `version-2` (`e378307` o la punta con los docs del cierre). Workt
 
 | Tarea | Modelo | Dueña de / nota |
 |---|---|---|
+| **E13 T1** el botón de video al primer toque (PRIMERA, sola, apenas haya cupo) | sonnet (revisión opus) | `AdMobAdsProvider` y los 4 lugares con video; ver §5 E13 |
 | **E3a T11** la raíz: chrome en la columna, seis hojas | sonnet | `RootView`. Primero: destraba E3b T4 y E3a T12. Ya no choca con E1 T13–T14 |
 | **E3b T5** renombre `BestHire` → `QuickHireOffer` | sonnet | `GameState`, `+Hiring`, `+TutorialTips`, comentarios de `RootView`. Arranca la cadena T5 → T6 → T7 → T8 → T9, que es el camino crítico hacia E4a T3. Integrar en serie con E3a T11 (tocan `RootView`) |
 | **E3b T4** el menú deslizable, montado (tras E3a T11) | sonnet | `RootView`. Carries de T3: `MenuPagerUITests`, `menuDidOpen/PageChanged/Close` en `RootView`, comprobar S2 (carrusel de Pintas vs gesto) en simulador |
@@ -485,7 +486,7 @@ que toma · commit o rama · nota.
 | E7b-a-T3 | La pausa publicitaria | ⛔ | T2; E4a-T8; E5a-T6; E5b-T1; E4b-T3; E1-T14 | 🔥 GameState, RootView, catálogo; DebugPanelView | | |
 | E7b-a-T4 | El app open al volver | ⛔ | T2 | — | | no ∥ T3 (los dos editan `+Ads`) |
 | E7b-a-T5 | "Opciones de privacidad" (UMP) en Ajustes | ⏳ | E11-T4 | 🔥 SettingsView, catálogo | | antes de los Ajustes de E9 |
-| E7b-a-T6 | La mediación: adaptadores, SKAdNetwork, Ad Inspector | ⛔ | T1; E3a-T5 | 🔥 project.yml; Info.plist, DebugPanelView | | las cuentas de las redes no la bloquean |
+| E7b-a-T6 | La mediación: adaptadores, SKAdNetwork, Ad Inspector | ⛔ | T1; E3a-T5 | 🔥 project.yml; Info.plist, DebugPanelView | | las cuentas de las redes no la bloquean. **Dueño (2026-10-08):** sólo adaptadores de **Unity Ads** y **Meta Audience Network** por SPM (no AppLovin ni Mintegral); SKAdNetwork de Unity (`https://skan.mz.unity3d.com/v3/partner/skadnetworks.plist.json`) al `Info.plist` (los de Meta `v9wttpbfk9`, `n38lu8286q` ya están); IDs en `Distribution/release/release.json → mediation` |
 | E7b-a-T7 | Cierre de E7b-a (controlador) | ⛔ | T1–T6 | `Docs/` | | |
 
 ### E7b-b — Anuncios v2, la columna plegable (`2026-10-07-v2-e7b-b-columna-ubicaciones.md`)
@@ -589,6 +590,17 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | P-E12 | Plan de E12 por tareas | 🔄 | — | — | | planificador opus (relevo 12); las filas E12-T<n> salen de ahí |
+
+### E13 — Ajustes del feedback de la v1 (PLAN-v2 E13; plan por tareas pendiente)
+
+Épica nueva del dueño (2026-10-08, docs `63a55a0` → cherry-pick en el relevo 12). 12 ítems. **El 1 va
+primero y solo** (bug que el dueño ve en cada video); 2, 3, 6 y 7 tocan la economía y van **antes de
+E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
+
+| ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
+|---|---|---|---|---|---|---|
+| E13-T1 | El botón de video responde al primer toque (ítem 1) | ⏳ | — | `AdMobAdsProvider`, `GiftsView`, `OfflineEarningsView`, `ChestOpeningView`, `EventBannerView`; adelanta el contrato de `RewardedOfferButton` (E4b T3 / E7b-b T7) | | **primera de la cola**; despacho directo desde PLAN-v2 E13 ítem 1 (no espera al plan); revisión opus (mueve el enfriamiento de los videos) |
+| P-E13 | Plan de E13 por tareas (ítems 2–12) | 🔄 | — | — | | planificador opus (relevo 12) |
 
 ### E10 — Release 2.0
 

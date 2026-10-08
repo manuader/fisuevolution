@@ -643,7 +643,7 @@ struct PricePill: View {
 /// Como `PricePill`, **nunca** usa `.disabled`: una acción que no corresponde no
 /// se dibuja.
 struct ActionPill: View {
-    let titleKey: LocalizedStringKey
+    let title: Text
     let systemImage: String
     var tint: Color = Color("PaletteGreen")
     let identifier: String
@@ -652,13 +652,43 @@ struct ActionPill: View {
     var accessibilityLabel: Text?
     let action: () -> Void
 
+    init(
+        titleKey: LocalizedStringKey, systemImage: String, tint: Color = Color("PaletteGreen"),
+        identifier: String, accessibilityLabel: Text? = nil, action: @escaping () -> Void
+    ) {
+        self.init(title: Text(titleKey), systemImage: systemImage, tint: tint, identifier: identifier,
+                  accessibilityLabel: accessibilityLabel, action: action)
+    }
+
+    /// Un título que ya viene resuelto: el nombre de un visitante, un monto
+    /// interpolado por `VisitCopy`.
+    init(
+        verbatim title: String, systemImage: String, tint: Color = Color("PaletteGreen"),
+        identifier: String, accessibilityLabel: Text? = nil, action: @escaping () -> Void
+    ) {
+        self.init(title: Text(verbatim: title), systemImage: systemImage, tint: tint, identifier: identifier,
+                  accessibilityLabel: accessibilityLabel, action: action)
+    }
+
+    private init(
+        title: Text, systemImage: String, tint: Color, identifier: String,
+        accessibilityLabel: Text?, action: @escaping () -> Void
+    ) {
+        self.title = title
+        self.systemImage = systemImage
+        self.tint = tint
+        self.identifier = identifier
+        self.accessibilityLabel = accessibilityLabel
+        self.action = action
+    }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 6) {
                 Image(systemName: systemImage)
                     .font(.system(size: 15, weight: .black))
                     .foregroundStyle(.white)
-                Text(titleKey)
+                title
                     .font(Tokens.body)
                     .foregroundStyle(.white)
                     .lineLimit(1)
@@ -673,7 +703,7 @@ struct ActionPill: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier(identifier)
-        .accessibilityLabel(accessibilityLabel ?? Text(titleKey))
+        .accessibilityLabel(accessibilityLabel ?? title)
     }
 }
 

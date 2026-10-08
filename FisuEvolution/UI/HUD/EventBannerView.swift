@@ -5,9 +5,7 @@ import SwiftUI
 struct EventBannerView: View {
     let event: EventManager.ActiveEvent
     @Environment(GameState.self) private var gameState
-    @Environment(AdsCoordinator.self) private var ads
     @State private var now = Date()
-    @State private var videoReady = false
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -16,14 +14,13 @@ struct EventBannerView: View {
         // texto y en el iPhone SE el motivo del evento salía cortado.
         VStack(alignment: .trailing, spacing: 8) {
             bannerText
-            if event.escapableByVideo && videoReady {
-                ActionPill(
-                    titleKey: "event.escape.video", systemImage: "play.fill",
-                    tint: Color("PaletteGreen"), identifier: "event.escape"
+            if event.escapableByVideo {
+                RewardedOfferButton(
+                    title: String(localized: "event.escape.video"),
+                    identifier: "event.escape",
+                    placement: .visitor
                 ) {
-                    Task {
-                        if await ads.showRewarded(for: .visitor) { gameState.escapeActiveEvent() }
-                    }
+                    gameState.escapeActiveEvent()
                 }
             }
         }
@@ -43,11 +40,7 @@ struct EventBannerView: View {
         }
         .foregroundStyle(Color("PaletteInk"))
         .padding(.horizontal, 16)
-        .onAppear { refreshVideoReady(preloading: true) }
-        .onReceive(timer) {
-            now = $0
-            refreshVideoReady(preloading: false)
-        }
+        .onReceive(timer) { now = $0 }
     }
 
     /// El texto del evento es el único elemento con `hud.event`: el botón de
@@ -69,13 +62,6 @@ struct EventBannerView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("hud.event")
-    }
-
-    private func refreshVideoReady(preloading: Bool) {
-        guard event.escapableByVideo else { return }
-        if preloading { ads.preloadRewarded(for: .visitor) }
-        let ready = ads.isRewardedReady(for: .visitor)
-        if videoReady != ready { videoReady = ready }
     }
 
     private var remainingSeconds: Int {

@@ -1,0 +1,163 @@
+# PROPUESTA de lista de palabras del ranking — NO ESTÁ ACTIVADA.
+# Nada de este archivo se despliega hasta que el dueño la apruebe (decisión 🔒 3 del plan E12).
+#
+# Formato: una línea por término, `es|término` o `en|término`. Las líneas que empiezan con # y
+# las vacías se ignoran. Los términos van en minúscula; el matcher ya ignora acentos,
+# mayúsculas, separadores (espacio . - _) y las sustituciones 0->o 1->i/l 3->e 4->a 5->s 7->t.
+#
+# CÓMO ACTIVARLA: revisar y editar este archivo, y después
+#   deno run --allow-read --allow-write supabase/scripts/blocklist_to_sql.ts
+# que escribe supabase/migrations/<fecha>_blocklist.sql; ésa se despliega con deploy.sh.
+#
+# OJO, el matcher busca por SUBCADENA: una palabra corta bloquea también nombres inocentes que
+# la contienen. Por eso quedan FUERA a propósito (decidir caso por caso):
+#   puta, puto  -> "computadora", "reputacion", "disputo"
+#   concha, verga, pene, cabron -> nombres y apellidos reales (Concha, Vergara, Aspen)
+#   negro, gordo, flaco -> apodos cariñosos muy comunes en Argentina
+#   ass, sex, gay, die, kill -> "Assassin", "Sexton", "Gayle", "Diego", "Skill"
+#   cum, anal, nazi, isis, pete, pija, pajero -> "Cumbia", "Analia", "Nazir", "Isis", "Peter",
+#   "Pijama", el auto
+# Lo que se escape de acá lo atrapa Haiku; lo que Haiku no ve, los reportes.
+
+# --- Suplantación: nadie puede parecer el juego o su equipo ---
+es|admin
+es|administrador
+es|soporte
+es|moderador
+es|moderacion
+es|fisu oficial
+es|oficial fisu
+es|staff fisu
+es|equipo fisu
+es|dueno fisu
+es|desarrollador
+en|admin
+en|administrator
+en|moderator
+en|support team
+en|official fisu
+en|fisu staff
+en|fisu team
+en|fisu dev
+en|developer
+
+# --- Español: insultos y groserías fuertes ---
+es|mierda
+es|hijo de puta
+es|hijueputa
+es|hdp
+es|la puta madre
+es|lpm
+es|puta madre
+es|forro
+es|pelotudo
+es|boludo
+es|pendejo
+es|pajeo
+es|concha de tu madre
+es|conchudo
+es|ctm
+es|chupapija
+es|chupame
+es|chupala
+es|culiado
+es|culiao
+es|culeado
+es|carajo
+es|cagon
+es|cagada
+es|cojudo
+es|gilipollas
+es|capullo
+es|zorra
+es|trola
+es|ramera
+es|prostituta
+es|ojete
+es|mamon
+es|mamabicho
+es|chinga
+es|vergon
+es|marica
+es|maricon
+es|joto
+es|retrasado
+es|mongolico
+es|mogolico
+es|subnormal
+es|muerete
+es|matate
+es|suicidate
+es|violador
+es|violacion
+es|porno
+es|follar
+es|cogida
+es|tetas
+es|eyacular
+es|masturb
+es|pedofil
+es|clitoris
+es|vagina
+es|pijudo
+es|travelo
+es|trolo
+es|sudaca
+es|hitler
+es|kkk
+es|terrorista
+
+# --- Inglés: insultos, slurs y sexual explícito ---
+en|fuck
+en|mofo
+en|shit
+en|bitch
+en|bastard
+en|asshole
+en|arsehole
+en|dickhead
+en|cunt
+en|pussy
+en|whore
+en|slut
+en|twat
+en|wanker
+en|prick
+en|douche
+en|jackass
+en|dumbass
+en|retard
+en|spastic
+en|faggot
+en|dyke
+en|tranny
+en|nigger
+en|nigga
+en|chink
+en|gook
+en|wetback
+en|kike
+en|beaner
+en|hitler
+en|white power
+en|jihad
+en|rapist
+en|molest
+en|pedophile
+en|paedophile
+en|incest
+en|porn
+en|xxx
+en|hentai
+en|blowjob
+en|handjob
+en|cumshot
+en|jizz
+en|orgasm
+en|masturbate
+en|dildo
+en|boobs
+en|tits
+en|kys
+en|kill yourself
+en|suicide

@@ -14,6 +14,11 @@ struct OfflineEarningsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(GameState.self) private var gameState
     @Environment(AdsCoordinator.self) private var ads
+    @Environment(NotificationsManager.self) private var notifications
+    /// La tarjeta del permiso completo (E11). Se decide UNA vez al abrir: en el
+    /// `body` aparecería o se iría a mitad de la lectura cuando el permiso o el
+    /// contador cambian atrás.
+    @State private var offersPermission = false
 
     /// El video está corriendo: la fila muestra el spinner y el botón de cobrar
     /// no puede cerrar la hoja abajo del anuncio.
@@ -37,6 +42,24 @@ struct OfflineEarningsView: View {
     /// La oferta se muestra sólo si hay inventario. Un botón de video que no
     /// carga es peor que no ofrecer nada: promete y no cumple.
     private var canOfferDouble: Bool { !doubled && !watching && adReady }
+
+    /// Más alto con la oferta del video (0,42 recortaba el botón de cobrar) y más
+    /// alto todavía con la tarjeta del permiso.
+    private var sheetFraction: CGFloat {
+        let base: CGFloat = canOfferDouble || watching ? 0.52 : 0.42
+        return offersPermission ? base + 0.26 : base
+    }
+
+    /// La primera vuelta con popup offline es el momento del permiso completo
+    /// (PLAN-v2 E11): el jugador acaba de ver lo que la torre juntó sin él.
+    private func offerPermissionCardIfDue() async {
+        guard let card = gameState.content?.notifications.permissionCard else { return }
+        await notifications.refreshAuthorization()
+        let now = Date().timeIntervalSince1970
+        guard notifications.permissionCardDue(now: now, config: card) else { return }
+        notifications.recordPermissionCardOffer(now: now)
+        offersPermission = true
+    }
 
     private func watchToDouble() {
         guard canOfferDouble else { return }
@@ -106,6 +129,15 @@ struct OfflineEarningsView: View {
                     // no hay dónde acreditar.
                     action: { if !watching { dismiss() } }
                 )
+                if offersPermission {
+                    NotificationPermissionCard(
+                        accept: {
+                            offersPermission = false
+                            Task { await notifications.acceptPermissionCard() }
+                        },
+                        decline: { offersPermission = false }
+                    )
+                }
             }
             // Sin esto el panel se encoge al ancho ideal de su contenido y el
             // marco no llega a los bordes de la hoja (el mismo defecto que
@@ -129,6 +161,7 @@ struct OfflineEarningsView: View {
         .padding(.top, 26)
         .padding(16)
         .task {
+            await offerPermissionCardIfDue()
             doubled = gameState.offlineRewardDoubled
             guard !doubled else { return }
             ads.preloadRewarded(for: .offlineX2)
@@ -143,9 +176,7 @@ struct OfflineEarningsView: View {
                 try? await Task.sleep(for: .milliseconds(250))
             }
         }
-        // Más alto cuando hay oferta: con el botón nuevo, 0,42 recortaba el de
-        // cobrar contra el borde inferior del marco.
-        .presentationDetents([.fraction(canOfferDouble || watching ? 0.52 : 0.42)])
+        .presentationDetents([.fraction(sheetFraction)])
         // El tablón no llega a los bordes de la hoja, así que el fondo de
         // sistema dejaba un rectángulo BLANCO alrededor del panel (el defecto
         // que `DailyRewardView` ya corrigió). Transparente, el panel flota

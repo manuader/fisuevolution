@@ -17,10 +17,10 @@ public struct ChestsConfig: Codable, Sendable, Equatable {
     public let weights: [RarityWeight]
     /// Cada cuántos pisos desbloqueados cae un cofre de la torre.
     public let floorsPerChest: Int
-    /// Multiplicador sobre `passiveUnlockCost(forTier:)` cuando ya no queda skin.
-    public let completedPayoutFactor: Double
+    /// Minutos de producción que paga un cofre cuando ya no queda pinta que dar.
+    public let completedPayoutMinutes: Double
     /// Lo mismo para el cofre de la reencarnación, que paga más.
-    public let prestigePayoutFactor: Double
+    public let prestigePayoutMinutes: Double
     /// Qué pinta trae el cofre del tutorial. Es FIJA y no una tirada —es un
     /// momento guionado— pero vive acá y no en Swift: la constraint global dice
     /// que ningún id de skin se hardcodea, y esta es la única que el código
@@ -33,15 +33,15 @@ public struct ChestsConfig: Codable, Sendable, Equatable {
         schemaVersion: Int,
         weights: [RarityWeight],
         floorsPerChest: Int,
-        completedPayoutFactor: Double,
-        prestigePayoutFactor: Double,
+        completedPayoutMinutes: Double,
+        prestigePayoutMinutes: Double,
         welcomeSkinId: String
     ) {
         self.schemaVersion = schemaVersion
         self.weights = weights
         self.floorsPerChest = floorsPerChest
-        self.completedPayoutFactor = completedPayoutFactor
-        self.prestigePayoutFactor = prestigePayoutFactor
+        self.completedPayoutMinutes = completedPayoutMinutes
+        self.prestigePayoutMinutes = prestigePayoutMinutes
         self.welcomeSkinId = welcomeSkinId
     }
 

@@ -15,7 +15,7 @@ struct PurchasedOroHistoryTests {
             type: "consumable",
             entitlement: .oro,
             skinId: nil,
-            coinFactor: nil,
+            coinMinutes: nil,
             oroAmount: amount
         )
     }
@@ -26,7 +26,7 @@ struct PurchasedOroHistoryTests {
             type: "consumable",
             entitlement: .coins,
             skinId: nil,
-            coinFactor: 15,
+            coinMinutes: 60,
             oroAmount: nil
         )
     }

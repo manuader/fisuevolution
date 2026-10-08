@@ -7,7 +7,7 @@
     { "rarity": "legendaria", "weight": 5 }
   ],
   "floorsPerChest": 2,
-  "completedPayoutFactor": 6.0,
-  "prestigePayoutFactor": 12.0,
+  "completedPayoutMinutes": 20,
+  "prestigePayoutMinutes": 45,
   "welcomeSkinId": "naranjita"
 }

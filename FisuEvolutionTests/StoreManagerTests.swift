@@ -85,9 +85,9 @@ struct StoreManagerTests {
         await store.start(gameState: gameState)
 
         gameState.debugSetMaxTier(12)
-        let economy = try #require(gameState.economy)
+        let content = try #require(gameState.content)
         let before = try #require(gameState.player).run.coins
-        let expected = economy.passiveUnlockCost(forTier: 12) * 15
+        let expected = GameState.coinPayout(minutes: 60, player: try #require(gameState.player), content: content)
 
         let pack = try #require(store.products.first { $0.id == "com.fisuevolution.iap.coins_small" })
         await store.purchase(pack)

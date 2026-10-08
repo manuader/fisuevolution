@@ -24,13 +24,13 @@ struct StorePacksTests {
         return gameState
     }
 
-    private func coinPack(id: String = "pack.coins", factor: Double) -> ProductCatalog.Entry {
+    private func coinPack(id: String = "pack.coins", minutes: Double) -> ProductCatalog.Entry {
         ProductCatalog.Entry(
             id: id,
             type: "consumable",
             entitlement: .coins,
             skinId: nil,
-            coinFactor: factor,
+            coinMinutes: minutes,
             oroAmount: nil
         )
     }
@@ -41,7 +41,7 @@ struct StorePacksTests {
             type: "nonConsumable",
             entitlement: .starterPack,
             skinId: "mundialista",
-            coinFactor: 40,
+            coinMinutes: 240,
             oroAmount: nil
         )
     }
@@ -52,22 +52,23 @@ struct StorePacksTests {
             type: "consumable",
             entitlement: .oro,
             skinId: nil,
-            coinFactor: nil,
+            coinMinutes: nil,
             oroAmount: amount
         )
     }
 
     /// Un monto fijo de plata es basura a las veinte horas de juego: la escala
-    /// sale de dónde estás parado, igual que el cofre de carrera (`coinChest`).
-    @Test("un pack de plata rinde en proporción al tier más alto alcanzado")
-    func coinPackScalesWithMaxTier() async throws {
+    /// sale de la producción de donde estás parado (`RewardScale`).
+    @Test("un pack de plata paga sus minutos de producción")
+    func coinPackPaysItsMinutes() async throws {
         let gameState = await makeGameState()
         gameState.debugSetMaxTier(12)
-        let economy = try #require(gameState.economy)
+        let content = try #require(gameState.content)
         let before = try #require(gameState.player)
-        let expected = economy.passiveUnlockCost(forTier: 12) * 15
+        let expected = GameState.coinPayout(minutes: 60, player: before, content: content)
+        #expect(expected > 0)
 
-        gameState.creditStorePurchase(coinPack(factor: 15), transactionID: "1")
+        gameState.creditStorePurchase(coinPack(minutes: 60), transactionID: "1")
 
         let after = try #require(gameState.player)
         #expect(after.run.coins == before.run.coins + expected)
@@ -168,10 +169,12 @@ struct StorePacksTests {
     func coinPackRowSaysHowMuchItGives() async throws {
         let gameState = await makeGameState()
         gameState.debugSetMaxTier(12)
-        let economy = try #require(gameState.economy)
-        let expected = CoinFormatter.string(from: economy.passiveUnlockCost(forTier: 12) * 15)
+        let content = try #require(gameState.content)
+        let expected = CoinFormatter.string(
+            from: GameState.coinPayout(minutes: 60, player: try #require(gameState.player), content: content)
+        )
 
-        let text = try #require(gameState.packRewardText(for: coinPack(factor: 15)))
+        let text = try #require(gameState.packRewardText(for: coinPack(minutes: 60)))
 
         #expect(text.contains(expected))
         #expect(!text.contains("store.pack"), "quedó la clave de localización cruda en pantalla")
@@ -197,7 +200,7 @@ struct StorePacksTests {
             type: "nonConsumable",
             entitlement: .removeAds,
             skinId: nil,
-            coinFactor: nil,
+            coinMinutes: nil,
             oroAmount: nil
         )
 
@@ -208,9 +211,9 @@ struct StorePacksTests {
     func starterPackCreditsItsCoins() async throws {
         let gameState = await makeGameState()
         gameState.debugSetMaxTier(3)
-        let economy = try #require(gameState.economy)
+        let content = try #require(gameState.content)
         let before = try #require(gameState.player)
-        let expected = economy.passiveUnlockCost(forTier: 3) * 40
+        let expected = GameState.coinPayout(minutes: 240, player: before, content: content)
 
         gameState.creditStorePurchase(starterPack(), transactionID: "1")
 

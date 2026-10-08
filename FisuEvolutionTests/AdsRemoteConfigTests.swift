@@ -265,9 +265,10 @@ struct AdsRemoteConfigTests {
         let flags = try GameContentLoader.load(from: .main).flags
 
         #expect(config.adUnitIDs == flags.declaredAdUnitIDs)
-        // [GATE DEL DUEÑO] El app open arranca apagado y sin unidad.
-        #expect(config.switches.appOpen == false)
-        #expect(config.adUnitIDs.appOpen == nil)
+        // El gate del dueño se cumplió el 2026-10-08: la unidad de app open
+        // existe (release.json) y el setup pide prenderlo con ella.
+        #expect(config.switches.appOpen == true)
+        #expect(config.adUnitIDs.appOpen == "ca-app-pub-8575641544774372/3573507326")
         #expect(config.isRestricted(storefront: "BEL"))
         #expect(config.isRestricted(storefront: "aus"))
         #expect(!config.isRestricted(storefront: "ARG"))

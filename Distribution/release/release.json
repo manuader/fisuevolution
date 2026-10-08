@@ -402,15 +402,13 @@
         "name": "pausa publicitaria",
         "format": "rewardedInterstitial",
         "key": "rewardedInterstitial",
-        "id": "ca-app-pub-8575641544774372/1615619906",
-        "renameFrom": "unidad"
+        "id": "ca-app-pub-8575641544774372/1615619906"
       },
       {
         "name": "regalos",
         "format": "rewarded",
         "key": "rewardedGifts",
-        "id": "ca-app-pub-8575641544774372/8304196070",
-        "renameFrom": "x2 de income"
+        "id": "ca-app-pub-8575641544774372/8304196070"
       },
       {
         "name": "offline x2",
@@ -434,31 +432,31 @@
         "name": "ruleta",
         "format": "rewarded",
         "key": "rewardedWheel",
-        "id": null
+        "id": "ca-app-pub-8575641544774372/1366235671"
       },
       {
         "name": "colchón",
         "format": "rewarded",
         "key": "rewardedTreasure",
-        "id": null
+        "id": "ca-app-pub-8575641544774372/1912941292"
       },
       {
         "name": "visitantes",
         "format": "rewarded",
         "key": "rewardedVisitor",
-        "id": null
+        "id": "ca-app-pub-8575641544774372/8454388206"
       },
       {
         "name": "diario",
         "format": "rewarded",
         "key": "rewardedDaily",
-        "id": null
+        "id": "ca-app-pub-8575641544774372/1697408166"
       },
       {
         "name": "app open",
         "format": "appOpen",
         "key": "appOpen",
-        "id": null
+        "id": "ca-app-pub-8575641544774372/3573507326"
       }
     ],
     "testUnitIds": {

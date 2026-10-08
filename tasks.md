@@ -303,8 +303,8 @@ que toma · commit o rama · nota.
 | E1-T11 | El sorteo de eventos salta lo inaplicable | ✅ | T7; T8 integrada | 🔥 ContentSystems, +Bonus; ContentConfigs, events.json | `70f216f` (merge `b09b4c4`) | el plan la pone ∥ T10; por archivos también va ∥ T9 (no acorta el camino crítico) |
 | E1-T12 | Startup, Blanqueo, videos y carrera por el embudo | ✅ | T9, T10, T11 | 🔥 ContentSystems, +Bonus, GameState; +Actions, +Debug | `7febd2b` + `c355f14` + `664f3cc` (merge `5fafaf4`) | en `.inactive` se asienta lo pagado (videos, carrera; también en vuelo); el resto en `.background`. E2a T3/T4 pasaron a después de T14|
 | E1-T13 | El Corralito congela el gasto, con salida por video | ✅ | T12 | 🔥 TowerActions, ContentSystems, +Bonus, GameState, RootView, catálogo; +Hiring, +Actions, ContentConfigs | `d838fdb` + arreglos `8adab56` (merge `9a641c7`) | revisión opus + arreglos (precarga del video, UI coherente con contratar gratis, UpgradeManager, pill debajo en el SE); M5 → E4 |
-| E1-T14 | Un video sin efecto no gasta el cooldown | 🔧 | T9–T13 | 🔥 +Bonus, GameState, RootView, catálogo; +BoardChanges, +Achievements | `36885a3` en `worktree-agent-a6c2ce9e9e72e37af` (BASE `9a641c7`) | revisión opus (plata) en vuelo; claves `e1-t14.json` |
-| E1-T15 | `EffectContractTests` | ⛔ | T1–T14 | ActiveModifier, ContentConfigs, AdsProvider | | si E2a T4 entró, la fila `.tapMultiplier` pasa `tiers:` |
+| E1-T14 | Un video sin efecto no gasta el cooldown | ✅ | T9–T13 | 🔥 +Bonus, GameState, RootView, catálogo; +BoardChanges, +Achievements | `36885a3` + arreglos `f01e7b6` (merge `545208b`, claves `3d568f6`) | revisión opus + arreglos (test por el camino real con monto exacto, logros, audio) |
+| E1-T15 | `EffectContractTests` | 🔄 | T1–T14 | ActiveModifier, ContentConfigs, AdsProvider | | en vuelo (relevo 9, BASE `95c4df2`) |
 | E1-T16 | Cierre de E1 (controlador) | ⛔ | T1–T15, T5c, T6c | `Docs/` | | `completo --limpio` ×2; pacing-sim sin cambios |
 
 ### E11 — Notificaciones (`2026-10-07-v2-e11-notificaciones.md`)
@@ -356,13 +356,13 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E2a-T1 | `RewardScale`: premios en minutos | ✅ | E1-T3 | — | `434b0ee` (merge `9018bae`) | EK|
 | E2a-T2 | El reintegro al fusionar + `EconomyKnobs` | ✅ | E1-T3, E1-T4 | 🔥 PlayerState | `cf6dfa9` → `446397c` (merge `968d504`) | perilla en 0 = v1|
-| E2a-T3 | El amortiguador y el "+6 %" | ⛔ | T2 | 🔥 PlayerState, TowerActions | | antes de E1 T13 o después de T14 |
-| E2a-T4 | Pisos en marcha y la capacidad que sólo crece | ⛔ | T3 | +Actions | | antes de E1 T12 o después de T14 |
-| E2a-T5 | El piso móvil para reencarnar | ⛔ | T4; E1-T4 | — | | EK |
+| E2a-T3 | El amortiguador y el "+6 %" | ✅ | T2 | 🔥 PlayerState, TowerActions | `eae6082` (merge `545208b`) | perilla 0 |
+| E2a-T4 | Pisos en marcha y la capacidad que sólo crece | ✅ | T3 | +Actions | `f38d50e` (merge `545208b`) | perilla 0 |
+| E2a-T5 | El piso móvil para reencarnar | 🟢 | T4; E1-T4 | — | `4ba38d8` en `v2/e2a-mecanicas` | perilla ausente; carry: el botón puede mostrar `lastRunWallGoal` |
 | E2a-T6 | "Fusionar todo", el plan | ✅ | E1-T7 | BoardChange.swift | `2c4ca71` (merge `968d504`) | EK|
 | E2a-T7 | Cofres y packs de plata en minutos | ✅ | T1; E1-T6 | +Store, products.json, StoreManagerTests | `acf633d` (merge `b0bcf7b`) | store-unit + pacing-sim → próximo `completo` |
-| E2a-T8 | El piso móvil en pantalla | ⛔ | T5; E1-T4 | catálogo (snapshot) | | |
-| E2a-T9 | Las fusiones del juego al amortiguador y al reintegro | ⛔ | T2, T3, T6; E1-T7, E1-T9, E1-T12, E1-T14 | 🔥 TowerActions, GameState; GameContentLoader, +Actions, +BoardChanges | | |
+| E2a-T8 | El piso móvil en pantalla | ⏳ | T5; E1-T4 | catálogo (snapshot) | | deps listas (T5 🟢); catálogo por snapshot |
+| E2a-T9 | Las fusiones del juego al amortiguador y al reintegro | 🔄 | T2, T3, T6; E1-T7, E1-T9, E1-T12, E1-T14 | 🔥 TowerActions, GameState; GameContentLoader, +Actions, +BoardChanges | | en vuelo (relevo 9, BASE `c004403` = v2/e2a con version-2) |
 | E2a-T10 | "+6 % por compra" en FisuJobs | ⛔ | T3, T9; E1-T13 | +Hiring; catálogo (snapshot) | | de a una con E3b T5/T6 |
 | E2a-T11 | Diario, asado y logros en minutos + presupuesto | ⛔ | T1, T7; E1-T14, E1-T15 | 🔥 ContentSystems, +Bonus | | por tarea con E4/E5 |
 | E2a-T12 | Las carreras: gratis, Juicio ganado, Obra social | ⛔ | T11, T7; E1-T11, E1-T13, E1-T15 | 🔥 TowerActions, +Bonus | | `.freeHire`/`.eventImmunity`: nacen acá o en E4a T2, la que llegue primero |
@@ -438,7 +438,7 @@ que toma · commit o rama · nota.
 | E6a-T6 | Comprar en la tienda | ⛔ | T4, T5; E2a-T14; E1-T14; E5a-T1, E5a-T3, E5a-T6, E5a-T8 | BoardChange.swift, +BoardChanges | | |
 | E6a-T7 | La suerte: probabilidades | ⛔ | T6; E5a-T1, E5a-T8; E1-T6 | StoreManager | | sale con E1 T6c adentro |
 | E6a-T8 | La pantalla "Comprar ORO / Gastar ORO" | ⛔ | T6, T7; E3b-T4; E5b-T1; E5a-T8 | catálogo (dueña); StoreView | | |
-| E6a-T9 | Los packs 160 / 550 / 1.400 | 🔄 | E1-T6; E2a-T7 | products.json, StoreManagerTests | | en vuelo (relevo 9, BASE `9c5df1e`) |
+| E6a-T9 | Los packs 160 / 550 / 1.400 | ✅ | E1-T6; E2a-T7 | products.json, StoreManagerTests | `7cc20d9` (merge `2446069`) | StoreManagerTests 13/14 a mano (timeout de carga, solo pasa) |
 | E6a-T10 | Las ofertas de 24 h, puras | ⛔ | T1; E4a-T1 | — | | |
 | E6a-T11 | Las ofertas se cobran | ⛔ | T9, T10; E4a-T8; E2a-T7; E5a-T6 | catálogo (snapshot); products.json, +Store | | con T6c: por `recordOroPurchase`, no `+=` |
 | E6a-T12 | Las ofertas se ven | ⛔ | T7, T8, T11; E5a-T8; E4b-T3; E3a-T6; E5b-T1, E5b-T2 | 🔥 RootView, catálogo; CelebrationQueue, +Celebrations | | |

@@ -753,7 +753,21 @@ struct GameContentValidationTests {
         }
     }
 
-    @Test("chests.json trae los pesos y los factores del spec")
+    @Test("los packs de plata pagan los minutos del dueño: 1 h, 6 h y 24 h, y el starter 4 h")
+    func coinPacksPayTheOwnersMinutes() throws {
+        let catalog = try ProductCatalog.load(from: .main)
+        let minutes = Dictionary(uniqueKeysWithValues: catalog.products.compactMap { entry in
+            entry.coinMinutes.map { (entry.id, $0) }
+        })
+        #expect(minutes == [
+            "com.fisuevolution.iap.starter_pack": 240,
+            "com.fisuevolution.iap.coins_small": 60,
+            "com.fisuevolution.iap.coins_medium": 360,
+            "com.fisuevolution.iap.coins_large": 1440,
+        ])
+    }
+
+    @Test("chests.json trae los pesos y los minutos del dueño")
     func chestConfigMatchesTunedValues() {
         let chests = content.chests
         #expect(chests.weight(for: .comun) == 55)
@@ -761,8 +775,8 @@ struct GameContentValidationTests {
         #expect(chests.weight(for: .epica) == 12)
         #expect(chests.weight(for: .legendaria) == 5)
         #expect(chests.floorsPerChest == 2)
-        #expect(chests.completedPayoutFactor == 6)
-        #expect(chests.prestigePayoutFactor == 12)
+        #expect(chests.completedPayoutMinutes == 20)
+        #expect(chests.prestigePayoutMinutes == 45)
         // La pinta del cofre de bienvenida tiene que existir en la bolsa: un id mal
         // escrito acá deja el cofre del tutorial sin premio y nada más lo diría.
         #expect(content.skins.chestPool.contains { $0.id == chests.welcomeSkinId })

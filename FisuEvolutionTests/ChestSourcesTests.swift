@@ -215,16 +215,16 @@ struct ChestOpeningTests {
     }
 
     /// La otra mitad de `openChest`, que con el catálogo sin tocar no se ejecuta
-    /// nunca: agotada la bolsa, el cofre paga plata. El monto sale de la MISMA
-    /// fórmula que el fallback del día 7, que es lo que hace que los dos premios
-    /// de plata del juego se sientan del mismo tamaño.
-    @Test("con la bolsa agotada el cofre paga plata, y el de prestigio paga el doble")
+    /// nunca: agotada la bolsa, el cofre paga plata. El monto sale de los mismos
+    /// minutos de producción (`RewardScale`) que todos los premios de plata.
+    @Test("con la bolsa agotada el cofre paga sus minutos de producción, y el de prestigio más")
     func anEmptyPoolPaysCoins() async throws {
         let state = await makeGameState()
         let content = try #require(state.content)
-        let economy = try #require(state.economy)
         state.player?.meta.milestoneSkins = content.skins.chestPool.map(\.id).sorted()
-        let base = economy.passiveUnlockCost(forTier: state.player!.run.maxTierReached)
+        let player = try #require(state.player)
+        let pagoNormal = GameState.coinPayout(minutes: content.chests.completedPayoutMinutes, player: player, content: content)
+        let pagoDePrestigio = GameState.coinPayout(minutes: content.chests.prestigePayoutMinutes, player: player, content: content)
 
         let antesDelNormal = state.player!.run.coins
         let lifetimeAntes = state.player!.meta.lifetimeEarnings
@@ -238,7 +238,6 @@ struct ChestOpeningTests {
             Issue.record("sin pinta que dar, el cofre tiene que pagar plata")
             return
         }
-        let pagoNormal = base * content.chests.completedPayoutFactor
         #expect(state.player!.run.coins == antesDelNormal + pagoNormal)
         #expect(state.player!.meta.lifetimeEarnings == lifetimeAntes + pagoNormal,
                 "la plata del cofre cuenta para el ORO, como cualquier ingreso")
@@ -248,8 +247,8 @@ struct ChestOpeningTests {
         state.awardChest(minRarity: .epica)
         state.openChest()
         #expect(
-            state.player!.run.coins == antesDelDePrestigio + base * content.chests.prestigePayoutFactor,
-            "el de la reencarnación paga el doble"
+            state.player!.run.coins == antesDelDePrestigio + pagoDePrestigio,
+            "el de la reencarnación paga sus 45 min"
         )
     }
 

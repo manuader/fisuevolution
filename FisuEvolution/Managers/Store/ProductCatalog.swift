@@ -21,9 +21,10 @@ struct ProductCatalog: Codable, Sendable, Equatable {
         let type: String
         let entitlement: Entitlement
         let skinId: String?
-        /// `coins`: factor sobre `passiveUnlockCost(tier máximo)`, igual que el
-        /// cofre de carrera. Un monto fijo envejece mal en un idle exponencial.
-        let coinFactor: Double?
+        /// `coins` y `starterPack`: minutos de producción que paga (PLAN-v2 E2a:
+        /// 1 h, 6 h y 24 h; el starter 4 h). Un monto fijo envejece mal en un
+        /// idle exponencial.
+        let coinMinutes: Double?
         /// `oro`: monto fijo. Acá sí es fijo porque los sinks de ORO
         /// (`upgrades.json`) tienen costos fijos, no exponenciales en la run.
         let oroAmount: Int?

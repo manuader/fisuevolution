@@ -30,7 +30,7 @@ struct StoreTimeoutTests {
                     type: "consumable",
                     entitlement: .coins,
                     skinId: nil,
-                    coinFactor: 15,
+                    coinMinutes: 60,
                     oroAmount: nil
                 )
             ]

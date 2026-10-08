@@ -106,7 +106,7 @@ extension GameState {
 
         presentChestReward(
             outcome,
-            payoutFactor: dePrestigio ? content.chests.prestigePayoutFactor : content.chests.completedPayoutFactor,
+            payoutMinutes: dePrestigio ? content.chests.prestigePayoutMinutes : content.chests.completedPayoutMinutes,
             origen: "cofre abierto\(dePrestigio ? " de prestigio" : "") (quedan \(pendingChestCount))"
         )
     }
@@ -195,9 +195,9 @@ extension GameState {
         self.player = player
         presentChestReward(
             .skin(id: pinta.id, characterType: pinta.characterType, rarity: rareza),
-            // La rama de plata no corre acá —el premio es una pinta fija— pero el
-            // factor del cofre común es el que le correspondería.
-            payoutFactor: content.chests.completedPayoutFactor,
+            // La rama de plata no corre acá —el premio es una pinta fija— pero los
+            // minutos del cofre común son los que le corresponderían.
+            payoutMinutes: content.chests.completedPayoutMinutes,
             origen: "cofre de bienvenida"
         )
     }
@@ -210,17 +210,16 @@ extension GameState {
     /// lugar donde equivocarse, y el modo de equivocarse borra la colección
     /// entera del jugador la primera vez que toca "restaurar compras".
     ///
-    /// `payoutFactor` sólo se usa en la rama de plata: es el multiplicador sobre
-    /// `passiveUnlockCost(forTier:)`, que difiere entre el cofre común y el de la
-    /// reencarnación.
+    /// `payoutMinutes` sólo se usa en la rama de plata: los minutos de producción
+    /// del cofre común o del de la reencarnación.
     ///
-    /// `economy` se arma en el mismo bootstrap que `content` y de la misma
-    /// respuesta, así que con un `content` ya validado por el llamador este guard
-    /// no puede cortar: no hay camino que gaste un cofre y se quede sin premio.
+    /// `content` se arma en el mismo bootstrap que `player`, así que con un
+    /// `content` ya validado por el llamador este guard no puede cortar: no hay
+    /// camino que gaste un cofre y se quede sin premio.
     private func presentChestReward(
-        _ outcome: ChestOutcome, payoutFactor: Double, origen: String
+        _ outcome: ChestOutcome, payoutMinutes: Double, origen: String
     ) {
-        guard let economy, var player else { return }
+        guard let content, var player else { return }
 
         let detalle: String
         var pagado: Double?
@@ -236,9 +235,9 @@ extension GameState {
             skinSelectionVersion &+= 1
             detalle = "pinta \(id) (\(rarity.rawValue))"
         case let .coins(rarity):
-            // La MISMA fórmula que el fallback del día 7, que es lo que hace que
-            // los dos premios de plata del juego se sientan del mismo tamaño.
-            let monto = economy.passiveUnlockCost(forTier: player.run.maxTierReached) * payoutFactor
+            // Los mismos minutos de producción que todos los premios de plata
+            // del juego (`RewardScale`).
+            let monto = Self.coinPayout(minutes: payoutMinutes, player: player, content: content)
             player.run.coins += monto
             player.meta.lifetimeEarnings += monto
             pagado = monto

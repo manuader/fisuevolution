@@ -64,7 +64,7 @@ struct IAPCopyTests {
     @Test func theOroDescriptionTakesTheAmountFromTheData() throws {
         let pack = try product("oro_small")
         let retuned = ProductCatalog.Entry(
-            id: pack.id, type: pack.type, entitlement: .oro, skinId: nil, coinFactor: nil, oroAmount: 160
+            id: pack.id, type: pack.type, entitlement: .oro, skinId: nil, coinMinutes: nil, oroAmount: 160
         )
         let quantity = IAPCopy.quantity(for: retuned, skins: skins)
         #expect(quantity == 160)

@@ -191,7 +191,7 @@ func fxChests(
         schemaVersion: 1,
         weights: [.init(rarity: .comun, weight: comun), .init(rarity: .rara, weight: rara),
                   .init(rarity: .epica, weight: epica), .init(rarity: .legendaria, weight: legendaria)],
-        floorsPerChest: 2, completedPayoutFactor: 6, prestigePayoutFactor: 12,
+        floorsPerChest: 2, completedPayoutMinutes: 20, prestigePayoutMinutes: 45,
         welcomeSkinId: "comun_0"
     )
 }

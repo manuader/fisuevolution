@@ -69,17 +69,17 @@ enum ChestRarityStyle {
 /// invierte— está en el doc de ese método.
 struct ChestOpeningView: View {
     @Environment(GameState.self) private var gameState
-    @Environment(AdsCoordinator.self) private var ads
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// El anuncio del cofre extra está cargado. `@State` sondeado y no una
-    /// lectura directa de `ads`, por lo mismo que en `OfflineEarningsView`: el
-    /// coordinador no es observable a propósito, así que la vista se enteraría
-    /// del inventario nunca. Acá el sondeo sale gratis porque la animación del
-    /// cofre dura sus buenos segundos: para cuando los botones aparecen, el
-    /// anuncio ya llegó.
-    @State private var chestAdReady = false
-    @State private var watchingForChest = false
+    /// Se ofrece el cofre extra por video. Se decide una vez, al abrir el
+    /// cofre; que el video esté cargado ya no es condición: el botón espera la
+    /// carga y, si no hay videos, lo dice (`RewardedOfferButton`).
+    @State private var offersExtraChest = false
+    /// El video del cofre extra está cargando o corriendo (lo escribe
+    /// `RewardedOfferButton`). Mientras tanto las salidas se ignoran: cerrar el
+    /// premio con el anuncio por aparecer lo dejaría presentarse fuera de
+    /// contexto y `grantExtraChestFromAd()` actuaría sobre otro cofre.
+    @State private var extraChestBusy = false
 
     let reward: GameState.ChestReward
 
@@ -274,14 +274,7 @@ struct ChestOpeningView: View {
             // cadena no tiene fin y las 41 pintas se vacían en una tarde. Y no
             // se ofrece un cofre que no tendría nada desbloqueado que dar.
             guard gameState.canOfferExtraChest else { return }
-            ads.preloadRewarded(for: .chestExtra)
-            for _ in 0..<20 {
-                if ads.isRewardedReady(for: .chestExtra) {
-                    chestAdReady = true
-                    return
-                }
-                try? await Task.sleep(for: .milliseconds(250))
-            }
+            offersExtraChest = true
         }
     }
 
@@ -730,6 +723,7 @@ struct ChestOpeningView: View {
                     systemImage: "tshirt.fill",
                     identifier: "chest.equip"
                 ) {
+                    guard !extraChestBusy else { return }
                     gameState.equipSkin(id: id, forCharacterType: characterType)
                     gameState.dismissChestReward()
                 }
@@ -751,6 +745,7 @@ struct ChestOpeningView: View {
                     tint: Color("PaletteGreen"),
                     identifier: "chest.dismiss"
                 ) {
+                    guard !extraChestBusy else { return }
                     gameState.dismissChestReward()
                 }
                 anotherChestOffer
@@ -768,26 +763,17 @@ struct ChestOpeningView: View {
     /// descarta en silencio, el jugador miró un anuncio y no recibe nada — y el
     /// contador de pendientes se lo queda.
     @ViewBuilder private var anotherChestOffer: some View {
-        if watchingForChest {
-            ProgressView()
-                .frame(maxWidth: .infinity)
-                .frame(height: 44)
-        } else if chestAdReady {
-            ActionPill(
-                titleKey: "ads.offer.chest.again",
+        if offersExtraChest {
+            RewardedOfferButton(
+                title: String(localized: "ads.offer.chest.again"),
+                identifier: "chest.again.ad",
+                placement: .chestExtra,
                 systemImage: "play.rectangle.fill",
                 tint: Color("PaletteBlue"),
-                identifier: "chest.again.ad"
+                isBusy: $extraChestBusy
             ) {
-                watchingForChest = true
-                Task {
-                    let earned = await ads.showRewarded(for: .chestExtra)
-                    watchingForChest = false
-                    if earned {
-                        gameState.dismissChestReward()
-                        gameState.grantExtraChestFromAd()
-                    }
-                }
+                gameState.dismissChestReward()
+                gameState.grantExtraChestFromAd()
             }
         }
     }
@@ -797,6 +783,7 @@ struct ChestOpeningView: View {
     /// que no hace nada no compite.
     private func laterButton(titleKey: LocalizedStringKey) -> some View {
         Button {
+            guard !extraChestBusy else { return }
             gameState.dismissChestReward()
         } label: {
             Text(titleKey)

@@ -1548,6 +1548,23 @@
         }
       }
     },
+    "ads.loading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading video…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargando video…"
+          }
+        }
+      }
+    },
     "ads.offer.boost.now" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1765,6 +1782,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No hay pares para fusionar"
+          }
+        }
+      }
+    },
+    "ads.unavailable.now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No videos right now, try again in a bit"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay videos ahora, probá en un rato"
           }
         }
       }

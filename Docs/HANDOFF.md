@@ -2531,6 +2531,7 @@ se documentaron recién en `version-2`):
 | `--uitest-career` | El fork de carrera abierto, sin llegar a T9 |
 | `--uitest-char-upgrades-maxed` | El Fisura con su línea de mejoras al tope: el estado "Al máximo" de la fila. Sin test que lo use; queda para capturas |
 | `--uitest-offline` | El popup de ganancias offline con un monto fijo (y su oferta de duplicar por video). Sin test que lo use; queda para capturas |
+| `--uitest-slow-ad-load` | El stub de anuncios tarda 1,5 s en "cargar" el video antes de presentarlo (E13 T1). Es la ventana para tocar dos veces con el primer toque todavía cargando: sin él el stub presenta en el acto. Lo usa `RewardedOfferUITests` |
 | `--screenshot-mode` | Apaga el andamiaje de DEBUG (contador de FPS, botón de herramientas) y sirve los textos de tienda (review-safe). Lo usa `AppStoreScreenshotTests` para la ficha |
 | `--uitest-unreadable-save` | Planta un save truncado en CoreData y en el snapshot antes de cargar: arranca en la pantalla de recuperación (`SaveRecoveryView`, E1 T5). ⚠️ "Reintentar" re-corre el arranque entero y el fixture vuelve a plantar el save roto, así que la pantalla reaparece: es lo que espera `SaveRecoveryUITests` |
 

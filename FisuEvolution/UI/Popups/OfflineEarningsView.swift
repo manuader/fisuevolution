@@ -20,33 +20,20 @@ struct OfflineEarningsView: View {
     /// contador cambian atrás.
     @State private var offersPermission = false
 
-    /// El video está corriendo: la fila muestra el spinner y el botón de cobrar
-    /// no puede cerrar la hoja abajo del anuncio.
+    /// El video está cargando o corriendo (lo escribe `RewardedOfferButton`): el
+    /// botón de cobrar no puede cerrar la hoja abajo del anuncio. La oferta se
+    /// muestra mientras no se haya duplicado, haya o no video ya cargado: el
+    /// botón espera la carga y, si no hay videos, lo dice.
     @State private var watching = false
     /// Ya se duplicó EN ESTA hoja. Se lee al abrir desde `GameState` —que es
     /// quien lo sabe si la hoja se reabre— y se sube acá para que la vista
     /// reaccione sin observar `player`.
     @State private var doubled = false
 
-    /// Hay anuncio cargado para esta oferta.
-    ///
-    /// ⚠️ Es `@State` y se sondea, en vez de leer `ads` directo en el `body`, y
-    /// la razón no es estilo: **`AdsCoordinator` no es observable a propósito**
-    /// (todo `@ObservationIgnored`, para que reponer inventario no invalide
-    /// vistas). Leerlo en el `body` daría `false` para siempre acá, porque el
-    /// anuncio tarda 1-3 s en cargar y nada volvería a recomponer la hoja
-    /// cuando llegue. El sondeo corto de `.task` es lo que hace aparecer el
-    /// botón cuando el inventario llega.
-    @State private var adReady = false
-
-    /// La oferta se muestra sólo si hay inventario. Un botón de video que no
-    /// carga es peor que no ofrecer nada: promete y no cumple.
-    private var canOfferDouble: Bool { !doubled && !watching && adReady }
-
     /// Más alto con la oferta del video (0,42 recortaba el botón de cobrar) y más
     /// alto todavía con la tarjeta del permiso.
     private var sheetFraction: CGFloat {
-        let base: CGFloat = canOfferDouble || watching ? 0.52 : 0.42
+        let base: CGFloat = doubled ? 0.42 : 0.52
         return offersPermission ? base + 0.26 : base
     }
 
@@ -61,17 +48,9 @@ struct OfflineEarningsView: View {
         offersPermission = true
     }
 
-    private func watchToDouble() {
-        guard canOfferDouble else { return }
-        watching = true
-        Task {
-            let earned = await ads.showRewarded(for: .offlineX2)
-            if earned {
-                gameState.doubleOfflineReward(reward)
-                doubled = true
-            }
-            watching = false
-        }
+    private func doubleReward() {
+        gameState.doubleOfflineReward(reward)
+        doubled = true
     }
 
     var body: some View {
@@ -105,18 +84,16 @@ struct OfflineEarningsView: View {
                 // La oferta va ARRIBA del botón de cobrar y no al lado: el
                 // orden de lectura es la jerarquía, y "cobrar" es la salida.
                 // Al lado, los dos botones compiten y el verde gana por color.
-                if canOfferDouble {
-                    ActionPill(
-                        titleKey: "offline.double",
+                if !doubled {
+                    RewardedOfferButton(
+                        title: String(localized: "offline.double"),
+                        identifier: "offline.double",
+                        placement: .offlineX2,
                         systemImage: "play.rectangle.fill",
                         tint: Color("PaletteBlue"),
-                        identifier: "offline.double",
-                        action: watchToDouble
+                        isBusy: $watching,
+                        onRewarded: doubleReward
                     )
-                } else if watching {
-                    ProgressView()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
                 }
                 ActionPill(
                     titleKey: "offline.collect",
@@ -153,7 +130,7 @@ struct OfflineEarningsView: View {
                 .allowsHitTesting(false)
         }
         .overlay(alignment: .topTrailing) {
-            ArtCloseButton { dismiss() }
+            ArtCloseButton { if !watching { dismiss() } }
                 .padding(10)
         }
         // Aire para la parte del moño que sobresale del marco: sin esto el
@@ -161,22 +138,13 @@ struct OfflineEarningsView: View {
         .padding(.top, 26)
         .padding(16)
         .task {
-            await offerPermissionCardIfDue()
             doubled = gameState.offlineRewardDoubled
-            guard !doubled else { return }
-            ads.preloadRewarded(for: .offlineX2)
-            // Hasta 5 s esperando el inventario, a 4 Hz. Acotado: si el anuncio
-            // no llegó, la hoja se queda como estaba —sin oferta— y el jugador
-            // cobra y sigue. Ver el aviso de `adReady`.
-            for _ in 0..<20 {
-                if ads.isRewardedReady(for: .offlineX2) {
-                    adReady = true
-                    return
-                }
-                try? await Task.sleep(for: .milliseconds(250))
-            }
+            await offerPermissionCardIfDue()
         }
         .presentationDetents([.fraction(sheetFraction)])
+        // Con el video cargando o corriendo la hoja no se cierra de un
+        // deslizamiento: el anuncio aparecería sobre el tablero sin dónde acreditar.
+        .interactiveDismissDisabled(watching)
         // El tablón no llega a los bordes de la hoja, así que el fondo de
         // sistema dejaba un rectángulo BLANCO alrededor del panel (el defecto
         // que `DailyRewardView` ya corrigió). Transparente, el panel flota

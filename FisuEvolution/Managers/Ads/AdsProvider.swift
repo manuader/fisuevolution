@@ -25,7 +25,19 @@ protocol AdsProvider: AnyObject {
     func preloadRewarded(for placement: RewardedPlacement)
 
     /// Presenta un rewarded; `true` sólo si el jugador se ganó el premio.
+    ///
+    /// Si el video todavía no está, **espera la carga en curso (o la arranca)
+    /// hasta `AdLoadWait.rewardedTimeout`** y presenta apenas llega: el botón
+    /// responde al primer toque (PLAN-v2 E13 ítem 1). `false` sin presentar nada
+    /// quiere decir que no hubo video; ver `lastRewardedAttempt` para distinguirlo
+    /// de un jugador que cerró el video a la mitad.
     func showRewarded(for placement: RewardedPlacement) async -> Bool
+
+    /// Qué pasó con el último `showRewarded`. Es lo que separa "no hay videos
+    /// ahora" (`.noInventory`: la UI lo dice) de "lo cerró a los dos segundos"
+    /// (`.presented` sin premio: la UI calla) y de "había otro anuncio en curso"
+    /// (`.busy`: tampoco se avisa, el jugador ya está viendo un video).
+    var lastRewardedAttempt: RewardedAttempt { get }
 
     /// Si hay un interstitial cargado y listo para mostrarse.
     var isInterstitialReady: Bool { get }
@@ -77,6 +89,46 @@ enum AdInventoryLifetime {
     static let appOpen: TimeInterval = 3 * 60 * 60 + 30 * 60
 }
 
+/// Cómo terminó el último intento de `showRewarded`.
+enum RewardedAttempt: Equatable, Sendable {
+    /// Hubo un video en pantalla, haya pagado o no.
+    case presented
+    /// No llegó inventario a tiempo (o la espera se canceló): nada se presentó.
+    case noInventory
+    /// Había otro anuncio en curso: este toque no hizo nada.
+    case busy
+}
+
+/// La espera de un video que todavía se está cargando (PLAN-v2 E13 ítem 1).
+///
+/// Vive suelta y pura para poder probarse sin el SDK: el proveedor real le
+/// pasa sus dos preguntas y ella sólo sabe esperar. Termina en cuanto el video
+/// está, en cuanto la carga se cayó sin dejar nada (no hay inventario: esperar
+/// el resto del plazo sería hacer mirar una ruedita para nada), o al vencer el
+/// plazo.
+enum AdLoadWait {
+    /// Cuánto espera un toque a que llegue el video antes de decir que no hay.
+    static let rewardedTimeout: Duration = .seconds(8)
+
+    @MainActor
+    static func until(
+        timeout: Duration = rewardedTimeout,
+        interval: Duration = .milliseconds(100),
+        isReady: () -> Bool,
+        isLoading: () -> Bool
+    ) async -> Bool {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: timeout)
+        while true {
+            if isReady() { return true }
+            if !isLoading() || clock.now >= deadline { return false }
+            // Cancelada la espera (la vista se fue), se sale: `try?` tragaría el
+            // error y el bucle bloquearía el main actor hasta el plazo.
+            do { try await Task.sleep(for: interval) } catch { return false }
+        }
+    }
+}
+
 /// Simulador de dev: 2 s de "anuncio" falso.
 ///
 /// ⚠️ **Esto NO puede llegar a la App Store**, y no por prolijidad: con el stub
@@ -87,6 +139,12 @@ enum AdInventoryLifetime {
 @Observable @MainActor
 final class StubAdsProvider: AdsProvider {
     private(set) var isShowing = false
+    @ObservationIgnored private(set) var lastRewardedAttempt = RewardedAttempt.noInventory
+    /// Cuánto tarda en "llegar" el video antes de presentarse. Cero salvo bajo
+    /// `--uitest-slow-ad-load`, que lo estira para que un UI test pueda tocar
+    /// dos veces con el primer toque todavía cargando.
+    @ObservationIgnored private let loadDelay: Duration = ProcessInfo.processInfo.arguments.contains("--uitest-slow-ad-load")
+        ? .milliseconds(1500) : .zero
     var isInterstitialReady: Bool { !isShowing }
     var isRewardedInterstitialReady: Bool { !isShowing }
     var isAppOpenReady: Bool { !isShowing }
@@ -99,7 +157,11 @@ final class StubAdsProvider: AdsProvider {
     func preloadAppOpen() {}
 
     func showRewarded(for placement: RewardedPlacement) async -> Bool {
-        await fakeAd(for: .seconds(2))
+        lastRewardedAttempt = .noInventory
+        if loadDelay > .zero { try? await Task.sleep(for: loadDelay) }
+        let earned = await fakeAd(for: .seconds(2))
+        lastRewardedAttempt = earned ? .presented : .noInventory
+        return earned
     }
 
     func showInterstitial() async {

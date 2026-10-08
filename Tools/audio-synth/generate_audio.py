@@ -527,6 +527,60 @@ def sfx_elevator_ding():
     return buf
 
 
+def sfx_elevator_spring():
+    """Resorte de la placa ~0,45 s: un "boing" metálico que baja de tono, con
+    vibrato que se apaga y un roce de ruido filtrado al arrancar."""
+    dur = 0.450
+    buf = [0.0] * int(dur * SR)
+    render_tone(buf, 0.0, dur, glide(420.0, 260.0, dur), "triangle", 0.9,
+                env_perc(dur, attack=0.003, curve=4.0),
+                vib_hz=8.0, vib_depth=0.05)
+    render_tone(buf, 0.0, dur, glide(840.0, 520.0, dur), "sine", 0.18,
+                env_perc(dur, attack=0.003, curve=6.0),
+                vib_hz=8.0, vib_depth=0.05)
+    render_noise_lp(buf, 0.0, 0.080, 0.35, random.Random(420), 0.25,
+                    env_perc(0.080, attack=0.002, curve=4.0))
+    return buf
+
+
+def sfx_elevator_click():
+    """Clic de botón de metal ~0,08 s: un chasquido de 6 ms y un tono corto
+    de 2,2 kHz que lo cierra."""
+    dur = 0.080
+    buf = [0.0] * int(dur * SR)
+    render_noise(buf, 0.0, 0.006, 0.9, 0.0015, random.Random(2200))
+    render_tone(buf, 0.0, 0.030, 2200.0, "sine", 0.5,
+                env_perc(0.030, attack=0.0005, curve=6.0))
+    return buf
+
+
+def sfx_elevator_doors():
+    """Puertas ~0,6 s: corren con un roce que crece y chocan con un golpe
+    grave al final."""
+    dur = 0.600
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(900)
+    render_noise_lp(buf, 0.0, 0.45, 0.55, rng, 0.12, env_swell(0.45, 0.40, 0.05))
+    render_tone(buf, 0.48, 0.12, 90.0, "sine", 1.0,
+                env_perc(0.12, attack=0.002, curve=5.0))
+    render_noise(buf, 0.48, 0.030, 0.7, 0.008, rng)
+    return buf
+
+
+def sfx_elevator_motor():
+    """Motor ~1,8 s: zumbido de 55 y 110 Hz con el roce grave de los cables
+    que tiembla a 3 Hz."""
+    dur = 1.800
+    buf = [0.0] * int(dur * SR)
+    env = env_sustain(dur, a=0.15, r=0.25)
+    render_tone(buf, 0.0, dur, 55.0, "sine", 0.9, env)
+    render_tone(buf, 0.0, dur, 110.0, "triangle", 0.45, env)
+    shiver = env_sustain(dur, a=0.15, r=0.25)
+    render_noise_lp(buf, 0.0, dur, 0.5, random.Random(55), 0.04,
+                    lambda t: shiver(t) * (0.65 + 0.35 * math.sin(2 * math.pi * 3.0 * t)))
+    return buf
+
+
 # ---------------------------------------------------------------------------
 # Música — loops perfectos (render con wrap-around)
 # ---------------------------------------------------------------------------
@@ -1477,6 +1531,10 @@ SFX = {
     "sfx_wheel_tick": sfx_wheel_tick,
     "sfx_blackout": sfx_blackout,
     "sfx_elevator_ding": sfx_elevator_ding,
+    "sfx_elevator_spring": sfx_elevator_spring,
+    "sfx_elevator_click": sfx_elevator_click,
+    "sfx_elevator_doors": sfx_elevator_doors,
+    "sfx_elevator_motor": sfx_elevator_motor,
 }
 MUSIC = {
     "music_earth_loop": music_earth_loop,

@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import FisuEvolution
 
@@ -9,7 +10,7 @@ import Testing
 @Suite("AudioManager")
 @MainActor
 struct AudioManagerTests {
-    @Test("precargar deja los diez SFX listos antes del primer play")
+    @Test("precargar deja todos los SFX listos antes del primer play")
     func preloadLeavesEverySFXReady() async {
         let audio = AudioManager()
         #expect(audio.preparedSFX.isEmpty, "recién construido no debería haber tocado el disco")
@@ -20,6 +21,28 @@ struct AudioManagerTests {
             audio.preparedSFX == Set(AudioManager.SFX.allCases),
             "un SFX sin precargar se construye en main durante el gameplay"
         )
+    }
+
+    @Test("cada SFX tiene su archivo en el bundle")
+    func everySFXHasItsFile() {
+        for sfx in AudioManager.SFX.allCases {
+            #expect(
+                Bundle.main.url(forResource: sfx.rawValue, withExtension: "caf") != nil,
+                "falta \(sfx.rawValue).caf"
+            )
+        }
+    }
+
+    @Test("stop corta un SFX que suena y no rompe si nunca sonó")
+    func stopSilencesAPlayingSFX() {
+        let audio = AudioManager()
+        audio.sfxVolume = 0.9
+        audio.stop(.elevatorMotor)
+
+        audio.play(.elevatorMotor)
+        audio.stop(.elevatorMotor)
+
+        #expect(audio.preparedSFX == [.elevatorMotor])
     }
 
     @Test("sin precarga, play sigue construyendo el player a demanda")

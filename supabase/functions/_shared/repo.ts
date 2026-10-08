@@ -30,6 +30,13 @@ export interface MyRun {
   status: RunStatus;
 }
 
+export interface PendingName {
+  runId: string;
+  installHash: string;
+  name: string;
+  attempts: number;
+}
+
 /** Cada método es una llamada a una función SQL de las migraciones; las horas las pone el handler. */
 export interface Repo {
   settings(): Promise<Settings>;
@@ -46,6 +53,8 @@ export interface Repo {
   top(limit: number): Promise<BoardRow[]>;
   myRank(hash: string): Promise<BoardRow | null>;
   myRuns(hash: string): Promise<MyRun[]>;
+  pendingNames(olderThan: string, limit: number, now: Date): Promise<PendingName[]>;
+  cleanup(now: Date): Promise<{ apiCalls: number; players: number }>;
 }
 
 // Un hash que no es de nadie: el top compartido no sabe quién lo pide.
@@ -113,6 +122,19 @@ export function pgRepo(sql: Sql): Repo {
         nameStatus: row.name_status,
         status: row.status,
       }));
+    },
+    async pendingNames(olderThan, limit, now) {
+      const rows = await sql`select * from pending_names(${olderThan}::interval, ${limit}, ${now})`;
+      return rows.map((row) => ({
+        runId: row.run_id,
+        installHash: row.install_id_hash,
+        name: row.name,
+        attempts: row.moderation_attempts,
+      }));
+    },
+    async cleanup(now) {
+      const [row] = await sql`select * from cleanup_ranking(${now})`;
+      return { apiCalls: row.api_calls_deleted, players: row.players_deleted };
     },
   };
 }

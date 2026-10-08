@@ -28,6 +28,7 @@ export function prodDeps(): Deps {
     repo,
     now,
     settings: () => repo.settings(),
+    remoderateSecret: Deno.env.get("REMODERATE_SECRET"),
     moderate: async (name) => moderate(name, { terms: await blocklist(now()), classify }),
   };
 }

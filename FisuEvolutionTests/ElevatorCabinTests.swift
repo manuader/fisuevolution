@@ -59,4 +59,16 @@ struct ElevatorCabinTests {
         #expect(warmup.closingPlayer(url: url) !== first)
         warmup.release()
     }
+
+    @Test("el dibujo sólo busca: sin player creado no hay nada, y el que se soltó desaparece")
+    func lookupsNeverCreate() {
+        guard let url = Bundle.main.url(forResource: "cine_ascensor_cierra", withExtension: "mov") else { return }
+        let warmup = ElevatorCabinWarmup()
+        #expect(warmup.currentClosing(url: url) == nil)
+        #expect(warmup.currentOpening(url: url) == nil)
+        let made = warmup.closingPlayer(url: url)
+        #expect(warmup.currentClosing(url: url) === made)
+        warmup.release()
+        #expect(warmup.currentClosing(url: url) == nil)
+    }
 }

@@ -3,9 +3,12 @@ import SwiftUI
 
 /// Los fondos de los pisos que pasan por la ventana, achicados y sólo los del viaje.
 enum FloorBackdrops {
-    /// Cada fondo llega por `onEach` apenas está listo. Se achica fuera del main; el tamaño es el
-    /// ancho de la pantalla y la mitad del alto (`scaledToFill` lo estira, por la ventana no se nota),
-    /// y menor aún si pasan muchos pisos.
+    private static let parallel = 2
+
+    /// Cada fondo llega por `onEach` apenas está listo (un asset compartido por varios pisos se
+    /// achica una vez). Se achica fuera del main, de a dos; el thumbnail es un cuadrado de lado
+    /// `min(ancho, alto / 2)` en píxeles (`scaledToFill` lo estira, por la ventana no se nota),
+    /// y más chico aún si pasan muchos pisos.
     @MainActor
     static func load(
         ordinals: [Int], entries: [FloorMapEntry], backgrounds: [String: String], pixelSize: CGSize,
@@ -13,17 +16,26 @@ enum FloorBackdrops {
     ) async {
         let side = min(pixelSize.width, pixelSize.height / 2) * (ordinals.count > 5 ? 0.6 : 1)
         let target = CGSize(width: side, height: side)
-        let assets = ordinals.compactMap { ordinal -> (Int, String)? in
+        var ordinalsByAsset: [String: [Int]] = [:]
+        var assets: [String] = []
+        for ordinal in ordinals {
             guard let entry = entries.first(where: { $0.ordinal == ordinal }),
-                  let asset = backgrounds[entry.backgroundKey], !asset.isEmpty else { return nil }
-            return (ordinal, asset)
+                  let asset = backgrounds[entry.backgroundKey], !asset.isEmpty else { continue }
+            if ordinalsByAsset[asset] == nil { assets.append(asset) }
+            ordinalsByAsset[asset, default: []].append(ordinal)
         }
-        await withTaskGroup(of: (Int, UIImage?).self) { group in
-            for (ordinal, asset) in assets {
-                group.addTask { (ordinal, await thumbnail(asset: asset, target: target)) }
+        await withTaskGroup(of: (String, UIImage?).self) { group in
+            var pending = assets[...]
+            func addNext() {
+                guard let asset = pending.popFirst() else { return }
+                group.addTask { (asset, await thumbnail(asset: asset, target: target)) }
             }
-            for await (ordinal, image) in group {
-                if let image, !Task.isCancelled { onEach(ordinal, image) }
+            for _ in 0..<parallel { addNext() }
+            for await (asset, image) in group {
+                if let image, !Task.isCancelled {
+                    for ordinal in ordinalsByAsset[asset] ?? [] { onEach(ordinal, image) }
+                }
+                if !Task.isCancelled { addNext() }
             }
         }
     }
@@ -151,7 +163,7 @@ struct ElevatorRideView: View {
         guard let gameState, let content = gameState.content else { return }
         let pixels = CGSize(width: size.width * displayScale, height: size.height * displayScale)
         await FloorBackdrops.load(
-            ordinals: plan.passingOrdinals, entries: gameState.floorMap,
+            ordinals: plan.fades ? [plan.origin, plan.destination] : plan.passingOrdinals, entries: gameState.floorMap,
             backgrounds: content.manifest.backgrounds, pixelSize: pixels
         ) { ordinal, image in backdrops[ordinal] = image }
     }
@@ -186,12 +198,11 @@ struct ElevatorRideView: View {
     private func cabinArt(_ moment: Moment, rect: CGRect) -> some View {
         switch art {
         case .video(let close, let open):
-            // Con Reduce Motion el clip no corre: un cuadro quieto que se funde.
-            let player = moment.phase == .opening
-                ? warmup.openingPlayer(url: open)
-                : warmup.closingPlayer(url: close)
-            ChestCinematicView(player: player.player)
-                .opacity(plan.fades ? moment.doors : 1)
+            if plan.fades {
+                VectorCabin(doors: 1).opacity(moment.doors)
+            } else {
+                videoCabin(moment, close: close, open: open)
+            }
         case .stills(let closed, let open):
             ZStack {
                 Image(uiImage: open).resizable()
@@ -200,6 +211,26 @@ struct ElevatorRideView: View {
         case .vector:
             VectorCabin(doors: plan.fades ? 1 : moment.doors)
                 .opacity(plan.fades ? moment.doors : 1)
+        }
+    }
+
+    /// Dos capas desde que arranca el viaje: la de "abre" (en su primer cuadro, igual al último de
+    /// "cierra") queda debajo y la de "cierra" se oculta al abrir, así el empalme no parpadea.
+    /// Sin player (no se creó, se soltó o falló) cae a la cabina vectorial.
+    @ViewBuilder
+    private func videoCabin(_ moment: Moment, close: URL, open: URL) -> some View {
+        let closer = warmup.currentClosing(url: close)
+        let opener = warmup.currentOpening(url: open)
+        switch moment.phase {
+        case .idle, .closing:
+            if let closer { ChestCinematicView(player: closer.player) } else { VectorCabin(doors: moment.doors) }
+        case .traveling:
+            ZStack {
+                if let opener { ChestCinematicView(player: opener.player) }
+                if let closer { ChestCinematicView(player: closer.player) } else { VectorCabin(doors: 1) }
+            }
+        case .opening:
+            if let opener { ChestCinematicView(player: opener.player) } else { VectorCabin(doors: moment.doors) }
         }
     }
 
@@ -215,18 +246,19 @@ struct ElevatorRideView: View {
 
     // MARK: Video
 
+    /// Sólo acá se crean los players; el dibujo únicamente los busca.
     private func advance(to phase: ElevatorRide.Phase) {
-        guard case .video(let close, let open) = art else { return }
+        guard case .video(let close, let open) = art, !plan.fades else { return }
         switch phase {
         case .idle:
             warmup.release()
         case .closing:
-            let player = warmup.closingPlayer(url: close)
-            if plan.fades { Self.showLastFrame(player) } else { Self.play(player, over: plan.close) }
+            warmup.cancelExpiry()
+            Self.play(warmup.closingPlayer(url: close), over: plan.close)
         case .traveling:
             _ = warmup.openingPlayer(url: open)
         case .opening:
-            if !plan.fades { Self.play(warmup.openingPlayer(url: open), over: plan.open) }
+            Self.play(warmup.openingPlayer(url: open), over: plan.open)
             warmup.releaseClosing()
         }
     }
@@ -236,11 +268,6 @@ struct ElevatorRideView: View {
         let clip = player.player.currentItem?.duration.seconds ?? 0
         let rate = clip.isFinite && clip > 0 && span > .zero ? clip / span.seconds : 1
         player.play(rate: Float(min(max(rate, 0.25), 4)), volume: 0)
-    }
-
-    private static func showLastFrame(_ player: ChestCinematicPlayer) {
-        guard let end = player.player.currentItem?.duration, end.isNumeric else { return }
-        Task { await player.player.seek(to: end, toleranceBefore: .zero, toleranceAfter: .zero) }
     }
 }
 

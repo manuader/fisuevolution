@@ -62,6 +62,7 @@ final class ChestCinematicPlayer {
             player.volume = 0
             player.playImmediately(atRate: 1.0)
             try? await Task.sleep(for: .milliseconds(140))
+            guard !Task.isCancelled else { return }
             player.pause()
             // Exacto y no aproximado: un seek con tolerancia puede dejar el
             // playhead en el keyframe más cercano y el video arrancaría unos

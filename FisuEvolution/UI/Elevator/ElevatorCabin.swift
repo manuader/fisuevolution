@@ -9,7 +9,8 @@ enum ElevatorCabinArt: Equatable {
     case stills(closed: UIImage, open: UIImage)
     case vector
 
-    /// Se resuelve una vez, no por cuadro.
+    /// Se resuelve una vez, no por cuadro. Si no hay clip, los dos cuadros quedan retenidos acá
+    /// (~7 MB) mientras viva el proceso.
     static let shared = resolve()
 
     var isVideo: Bool { if case .video = self { true } else { false } }
@@ -73,6 +74,25 @@ final class ElevatorCabinWarmup {
             guard !Task.isCancelled else { return }
             self?.release()
         }
+    }
+
+    /// Para dibujar: no crea nada. `nil` si todavía no se creó, ya se soltó o falló.
+    func currentClosing(url: URL) -> ChestCinematicPlayer? {
+        closing.flatMap { $0.url == url && Self.isUsable($0.player) ? $0.player : nil }
+    }
+
+    func currentOpening(url: URL) -> ChestCinematicPlayer? {
+        opening.flatMap { $0.url == url && Self.isUsable($0.player) ? $0.player : nil }
+    }
+
+    /// El viaje arrancó: el calentado ya no vence.
+    func cancelExpiry() {
+        expiry?.cancel()
+        expiry = nil
+    }
+
+    private static func isUsable(_ player: ChestCinematicPlayer) -> Bool {
+        player.player.currentItem.map { $0.status != .failed } ?? false
     }
 
     func closingPlayer(url: URL) -> ChestCinematicPlayer {

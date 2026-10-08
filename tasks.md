@@ -548,7 +548,7 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8b-T4 | `LoopsManifest`, `CinematicID` y `LoopsManifestTests` | ⛔ | T3 | — | | la API de E4b T3 (carry: E4b T3 no los crea) |
 | E8b-T5 | `VideoSlot` y `LoopingPortraitView` | ⏳ | — | — | | archivos nuevos; ∥ T1–T4, T7 |
 | E8b-T6 | El especial que te cayó, animado | ⛔ | T4, T5 | SpecialDropView | | revisión ninguna; captura SE/16 Pro (duda 3) |
-| E8b-T7 | `seenCinematics` en `meta.engagement` | ⏳ | E1-T4 ✅ | EngagementState (EK) | | sonnet, **rev. opus** (save); antes de E3b T9 o al final de su cadena |
+| E8b-T7 | `seenCinematics` en `meta.engagement` | ✅ | E1-T4 ✅ | EngagementState (EK) | `4714671` | sonnet, **rev. opus** (save); antes de E3b T9 o al final de su cadena; revisión opus (controlador): Approved. Carry a E9b T7/T8: `seenCinematics` es de la cuenta y `resolveAcrossReset` hoy no lo cruza (duda 8: el reset lo conserva) |
 | E8b-T8 | El turno de la cinemática (`.cinematic`, payload, autorun) | ⛔ | T4, T7 | 🔥 GameState (dos propiedades); CelebrationQueue, +Celebrations, +Debug, +Bootstrap | | sonnet, **rev. opus**; ventana libre de GameState.swift; antes de E9a T1 |
 | E8b-T9 | La cinemática en pantalla (overlay, sonido, Saltar) | ⛔ | T5, T8 | 🔥 RootView, catálogo (snapshot, 4 claves); AudioManager, DebugPanelView | | sonnet; `CinematicUITests` por Receta R; capturas SE + iPad |
 | E8b-T10 | Reencarnación y Dios | ⛔ | T8, T9 | +Prestige, +BoardChanges, +Bootstrap | | sonnet, **rev. opus**; pinea el momento calmo que espera E12 T14; carry `godTier` a E12 T11 |

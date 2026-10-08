@@ -554,6 +554,17 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8b-T10 | Reencarnación y Dios | ⛔ | T8, T9 | +Prestige, +BoardChanges, +Bootstrap | | sonnet, **rev. opus**; pinea el momento calmo que espera E12 T14; carry `godTier` a E12 T11 |
 | E8b-T11 | El arresto | ⛔ | T10; E4b-T2 | +Visitors | | sonnet; al dejarlo ir (duda 5) |
 | E8b-T12 | Cierre de E8b (controlador) | ⛔ | T1–T11 | `Docs/` | | `completo`; en un iPhone real (HEVC-alfa por hardware) y la memoria a E8 T10 |
+| P-E8c | Plan de E8c: la cadena animada de Fusionar todo | ✅ | — | — | (el commit de este plan) | 10 tareas (T1–T10); `2026-10-08-v2-e8c-fusionar-todo.md`; 11 dudas con default; **un solo 🔥 (BoardScene, T7/T8); no toca GameState ni RootView** |
+| E8c-T1 | El eslabón en el plan (`BoardChange.Chain`) | ⏳ | E2a-T6 ✅ | BoardChange.swift (tibio: E13 T2, E6a T6, E7b-b T1), MergeAllPlannerTests | | EK; sonnet, **rev. opus** (la igualdad que compara `confirmBoardChange`); ola 1 |
+| E8c-T2 | El reloj del turno se renueva (`CelebrationQueue.renew`) | ⏳ | — | CelebrationQueue.swift (tibio: E4b T1, E8b T8, E6a T12) | | EK; sonnet; ola 1 |
+| E8c-T3 | El tempo de la cadena, puro (`MergeAllTempo`) | ⏳ | — | nuevos (`Scenes/MergeAllTempo.swift`) | | revisión ninguna; 7 pares ≤ 3,5 s; ola 1 |
+| E8c-T4 | El plin que sube de tono y el remate | ⏳ | — | AudioManager (tibio: E13b T3, E5b), HapticsManager, +Services, generate_audio.py, 1 `.caf` | | revisión ninguna; las fusiones del embudo hoy no suenan |
+| E8c-T5 | El turno de la cadena en GameState | ⛔ | T1, T2 | +BoardChanges, +Celebrations, +Debug (tibios) | | sonnet, **rev. opus** (turno, watchdog, HUD); crea `debugSeedMergeAll` |
+| E8c-T6 | El contador "×N" | ⏳ | — | nuevos (`Scenes/Nodes/MergeAllComboNode.swift`); catálogo (snapshot, 1 clave) | | revisión ninguna; `claves-pendientes/e8c-t6.json` |
+| E8c-T7 | La escena encadena sin soltar el turno | ⛔ | T3, T4, T5; ventana de BoardScene (tras E13 T11) | 🔥 BoardScene | | sonnet, **rev. opus**; `endBoardChangeTurn` es el borde único; grabación |
+| E8c-T8 | El toque apura; contador, remate y VoiceOver | ⛔ | T6, T7 | 🔥 BoardScene | | sonnet, **rev. opus**; duda 1 (apura, no corta); SE + Reduce Motion |
+| E8c-T9 | El fixture `--uitest-merge-all` y `MergeAllChainUITests` | ⛔ | T8 | +Bootstrap (tibio) | | sonnet; receta R en un 16 Pro |
+| E8c-T10 | Cierre de E8c (controlador) | ⛔ | T1–T9 | `Docs/` | | `completo`; grabaciones para el dueño (sin tocar, tocando, por ORO/video si ya existen) |
 
 ### E9 — Tutorial v2 + Tour de novedades + Ajustes (`2026-10-07-v2-e9a-…` motor, `…-e9b-…` currículo y reset)
 

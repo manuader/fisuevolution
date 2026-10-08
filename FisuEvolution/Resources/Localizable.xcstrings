@@ -4489,6 +4489,74 @@
         }
       }
     },
+    "notifications.card.accept" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yes, ping me"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sí, avisame"
+          }
+        }
+      }
+    },
+    "notifications.card.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One ping when your tower has stashed all it can without you. Never at night, never to sell you anything."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un aviso cuando la torre junte todo lo que puede sin vos. Nunca de noche, nunca para venderte nada."
+          }
+        }
+      }
+    },
+    "notifications.card.decline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora no"
+          }
+        }
+      }
+    },
+    "notifications.card.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Want a heads-up when the safe fills up?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Te aviso cuando la caja fuerte se llene?"
+          }
+        }
+      }
+    },
     "offline.collect" : {
       "extractionState" : "stale",
       "localizations" : {

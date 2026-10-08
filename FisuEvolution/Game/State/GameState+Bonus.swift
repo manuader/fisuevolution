@@ -41,6 +41,7 @@ extension GameState {
         guard isRewardApplicable(rewardId) else {
             compensateRewardedVideo()
             effectsVersion += 1
+            evaluateAchievements()
             return
         }
 
@@ -121,7 +122,7 @@ extension GameState {
         player.meta.lifetimeEarnings += amount
         self.player = player
         towerNotice = TowerNotice(kind: .rewardCompensated(durationText: Self.durationText(seconds)))
-        audio?.play(.coin)
+        if isSceneActive { audio?.play(.coin) }
         refreshProjections()
         scheduleSave()
     }

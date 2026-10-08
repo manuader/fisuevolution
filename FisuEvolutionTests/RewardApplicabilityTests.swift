@@ -58,19 +58,48 @@ struct RewardApplicabilityTests {
         #expect(gameState.towerNotice == nil)
     }
 
-    @Test("un cambio de video que ya no cabe en su turno también compensa, una sola vez")
-    func staleRewardedChangeCompensates() async throws {
+    /// El video cobró el cooldown y planeó su par; después el tablero quedó con una sola unidad.
+    private func gameStateWithStaleRewardedPlan() async throws -> (GameState, expectedPay: Double, before: Double) {
         let gameState = await makeGameState()
         gameState.debugGrantPair()
         gameState.applyRewardedReward(rewardId: "accelerate_evolution")
-        let before = try #require(gameState.player?.run.coins)
-        let change = try #require(gameState.pendingBoardChanges.first)
-        gameState.pendingBoardChanges.removeAll()
-        gameState.discardBoardChange(change)
-        let paid = try #require(gameState.player?.run.coins)
-        #expect(paid > before)
+        var tower = try #require(gameState.tower)
+        for floor in tower.floors.indices {
+            tower.floors[floor].slots = tower.floors[floor].slots.enumerated().map { $0.offset == 0 ? $0.element : nil }
+        }
+        gameState.tower = tower
+        let player = try #require(gameState.player)
+        let content = try #require(gameState.content)
+        let economy = try #require(gameState.economy)
+        let seconds = content.rewardedAds.compensationSeconds
+        let pay = GameState.coinReward(seconds: seconds, player: player, content: content, economy: economy)
+        return (gameState, pay, player.run.coins)
+    }
+
+    @Test("un cambio de video que ya no cabe, al asentar, compensa exacto y una sola vez")
+    func staleRewardedChangeCompensatesOnSettle() async throws {
+        let (gameState, pay, before) = try await gameStateWithStaleRewardedPlan()
         gameState.settleAllPendingBoardChanges()
-        #expect(try #require(gameState.player?.run.coins) == paid, "no queda nada pendiente que pague de nuevo")
+        #expect(try #require(gameState.player?.run.coins) == before + pay)
+        #expect(gameState.pendingBoardChanges.isEmpty)
+        gameState.settleAllPendingBoardChanges()
+        #expect(try #require(gameState.player?.run.coins) == before + pay, "no queda nada pendiente que pague de nuevo")
+    }
+
+    @Test("un cambio de video que ya no cabe en su turno compensa exacto")
+    func staleRewardedChangeCompensatesOnTurn() async throws {
+        let (gameState, pay, before) = try await gameStateWithStaleRewardedPlan()
+        #expect(gameState.beginNextBoardChange() == nil)
+        #expect(try #require(gameState.player?.run.coins) == before + pay)
+        #expect(gameState.pendingBoardChanges.isEmpty)
+    }
+
+    @Test("compensar suma el video mirado a los logros")
+    func compensationEvaluatesAchievements() async throws {
+        let gameState = await makeGameState()
+        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
+        let unlocked = try #require(gameState.player?.meta.unlockedAchievements)
+        #expect(unlocked.contains("ach_videos_1"))
     }
 
     @Test("descartar un cambio que no vino de un video no paga nada")

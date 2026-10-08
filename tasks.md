@@ -209,6 +209,8 @@ with background work still running", `TaskStop` antes de integrar** (relevo 8: p
 
 ### 4.3 La cola, por prioridad
 
+> ⚠️ Relevo 8: las filas 1, 4–9, 11 y 12 ya están hechas, y E2a T3/T4 van **después** de E1 T14 (no antes de T12, como dicen las filas 2 y 3). Para lo inmediato manda §4.2.
+
 Cada cupo que se libera toma **la primera fila cuyas dependencias estén cumplidas** y que no choque
 con un dueño en vuelo. E1 siempre primero en cuanto su tarea se destraba.
 

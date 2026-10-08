@@ -1,7 +1,198 @@
 {
   "schemaVersion": 1,
-  "portraits": {},
+  "portraits": {
+    "npc_comisario": {
+      "file": "loop_npc_comisario.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "npc_conductor": {
+      "file": "loop_npc_conductor.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "npc_ministro": {
+      "file": "loop_npc_ministro.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "npc_puntero": {
+      "file": "loop_npc_puntero.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "npc_sindicalista": {
+      "file": "loop_npc_sindicalista.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "npc_turista": {
+      "file": "loop_npc_turista.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "npc_vecina": {
+      "file": "loop_npc_vecina.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "npc_vendedor": {
+      "file": "loop_npc_vendedor.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "sp_alien_investor": {
+      "file": "loop_sp_alien_investor.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "sp_arbolito": {
+      "file": "loop_sp_arbolito.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "sp_bug_simulacion": {
+      "file": "loop_sp_bug_simulacion.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "sp_coach": {
+      "file": "loop_sp_coach.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "sp_contador_dios": {
+      "file": "loop_sp_contador_dios.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "sp_cryptobro": {
+      "file": "loop_sp_cryptobro.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFEFEFE"
+    },
+    "sp_demonio_arca": {
+      "file": "loop_sp_demonio_arca.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "sp_influencer": {
+      "file": "loop_sp_influencer.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "sp_lizard": {
+      "file": "loop_sp_lizard.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    },
+    "sp_zombie_ceo": {
+      "file": "loop_sp_zombie_ceo.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "keyColor": "0xFFFFFF"
+    }
+  },
   "cinematics": {
+    "arresto": {
+      "file": "cine_arresto.mov",
+      "width": 720,
+      "height": 1280,
+      "fps": 24,
+      "frames": 121,
+      "alpha": false,
+      "audio": true,
+      "keyColor": null
+    },
     "ascensor_abre": {
       "file": "cine_ascensor_abre.mov",
       "width": 720,
@@ -21,6 +212,26 @@
       "alpha": true,
       "audio": false,
       "keyColor": "0x03F523"
+    },
+    "dios": {
+      "file": "cine_dios.mov",
+      "width": 720,
+      "height": 1280,
+      "fps": 24,
+      "frames": 121,
+      "alpha": false,
+      "audio": true,
+      "keyColor": null
+    },
+    "reencarnacion": {
+      "file": "cine_reencarnacion.mov",
+      "width": 720,
+      "height": 1280,
+      "fps": 24,
+      "frames": 121,
+      "alpha": false,
+      "audio": true,
+      "keyColor": null
     }
   },
   "stills": {

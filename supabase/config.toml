@@ -1,0 +1,19 @@
+project_id = "fisu-ranking"
+
+[edge_runtime]
+deno_version = 2
+
+[functions.start-run]
+verify_jwt = true
+
+[functions.finish-run]
+verify_jwt = true
+
+[functions.leaderboard]
+verify_jwt = true
+
+[functions.report]
+verify_jwt = true
+
+[functions.remoderate]
+verify_jwt = false

@@ -166,7 +166,7 @@ extension GameState {
     func eventIsApplicable(_ event: EventsConfig.Event) -> Bool {
         guard let content, let player, let tower else { return false }
         switch event.effectType {
-        case .incomeMultiplier, .spawnCostMultiplier, .frozenCoins:
+        case .incomeMultiplier, .spawnCostMultiplier, .spendingFrozen:
             return true
         case .bonusCoins:
             return IncomeTicker.basePassivePerSecond(
@@ -209,6 +209,18 @@ extension GameState {
         scheduleNextEvent(from: now)
         self.player = player
         handleEventRoll(roll, now: now)
+    }
+
+    /// La salida por video de un evento negativo. E4 la mueve al popup del chip.
+    func escapeActiveEvent(now: TimeInterval = Date().timeIntervalSince1970) {
+        guard let event = activeEvent, event.escapableByVideo, var player else { return }
+        player.run.activeModifiers.removeAll { $0.sourceKey == "event.\(event.id)" }
+        self.player = player
+        activeEvent = nil
+        effectsVersion += 1
+        refreshProjections()
+        scheduleSave()
+        Log.economy.info("event escaped by video: \(event.id)")
     }
 
     func handleEventRoll(_ roll: EventManager.Roll, now: TimeInterval) {

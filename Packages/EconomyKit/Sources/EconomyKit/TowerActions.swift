@@ -10,12 +10,18 @@ public struct HireQuote: Equatable, Sendable {
     /// `hireQuote(typeId:)`. Es informativo (la pantalla lo muestra); quien cobra
     /// es `cost`.
     public let purchases: Double
+    /// El Corralito está activo: contratar rebota aunque alcance la plata.
+    public let spendingFrozen: Bool
 
-    public init(floorOrdinal: Int, type: CharacterType, cost: Double, purchases: Double) {
+    /// El Corralito frena el GASTO: contratar gratis (`cost == 0`) sigue permitido.
+    public var blockedBySpendingFreeze: Bool { spendingFrozen && cost > 0 }
+
+    public init(floorOrdinal: Int, type: CharacterType, cost: Double, purchases: Double, spendingFrozen: Bool = false) {
         self.floorOrdinal = floorOrdinal
         self.type = type
         self.cost = cost
         self.purchases = purchases
+        self.spendingFrozen = spendingFrozen
     }
 }
 
@@ -30,6 +36,8 @@ public enum TowerError: Error, Equatable {
     /// de su tier. Distinto de `floorLocked` a propósito — un piso puede estar
     /// abierto y aun así no dejar contratar a la mitad de sus tipos.
     case hireLocked
+    /// El Corralito congela todo gasto de plata mientras dura.
+    case spendingFrozen
 }
 
 /// Resultado de un merge en la torre.
@@ -78,7 +86,10 @@ public enum TowerActions {
         let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
         let cost = base * costMultiplier * modifier * discount
-        return HireQuote(floorOrdinal: floorOrdinal, type: type, cost: cost, purchases: purchases)
+        return HireQuote(
+            floorOrdinal: floorOrdinal, type: type, cost: cost, purchases: purchases,
+            spendingFrozen: ModifierMath.spendingFrozenUntil(state.run.activeModifiers, now: now) != nil
+        )
     }
 
     /// Cotiza contratar UN TIPO concreto, en el piso al que ese tipo pertenece.
@@ -125,7 +136,10 @@ public enum TowerActions {
         let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
         let cost = base * costMultiplier * modifier * discount
-        return HireQuote(floorOrdinal: ordinal, type: type, cost: cost, purchases: purchases)
+        return HireQuote(
+            floorOrdinal: ordinal, type: type, cost: cost, purchases: purchases,
+            spendingFrozen: ModifierMath.spendingFrozenUntil(state.run.activeModifiers, now: now) != nil
+        )
     }
 
     /// El tipo concreto que vende un piso: su firstTier; si ese tier tiene ramas
@@ -297,6 +311,7 @@ public enum TowerActions {
             floorTable: floorTable,
             config: config
         ) else { throw TowerError.hireLocked }
+        guard !quote.blockedBySpendingFreeze else { throw TowerError.spendingFrozen }
         guard state.run.coins >= quote.cost else { throw TowerError.insufficientCoins }
         guard let slot = tower.floors[quote.floorOrdinal].firstFreeSlot() else { throw TowerError.floorFull }
 

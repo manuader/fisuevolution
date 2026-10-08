@@ -84,9 +84,7 @@ extension GameState {
             bumpBoard()
             scheduleSave()
         } catch {
-            if case TowerError.floorFull = error {
-                towerNotice = TowerNotice(kind: .floorFull)
-            }
+            publishNotice(forRejectedSpend: error)
             haptics?.play(.error)
             audio?.play(.error)
             Log.economy.info("hire rejected: \(error)")
@@ -253,6 +251,20 @@ extension GameState {
         scheduleSave()
     }
 
+    /// El aviso de una compra que rebotó por algo que el jugador puede entender:
+    /// el piso lleno o el Corralito.
+    func publishNotice(forRejectedSpend error: Error) {
+        if case TowerError.floorFull = error {
+            towerNotice = TowerNotice(kind: .floorFull)
+        } else if case TowerError.spendingFrozen = error {
+            towerNotice = TowerNotice(kind: .spendingFrozen)
+        } else if case CharUpgrades.PurchaseError.spendingFrozen = error {
+            towerNotice = TowerNotice(kind: .spendingFrozen)
+        } else if case PassiveUnlockError.spendingFrozen = error {
+            towerNotice = TowerNotice(kind: .spendingFrozen)
+        }
+    }
+
     func dismissTowerNotice(id: UUID) {
         guard towerNotice?.id == id else { return }
         towerNotice = nil
@@ -340,13 +352,16 @@ extension GameState {
     func unlockPassive(typeId: String) {
         guard let economy, let content, var player = player else { return }
         do {
-            try economy.applyPassiveUnlock(typeId: typeId, state: &player, tiers: content.tiers)
+            try economy.applyPassiveUnlock(
+                typeId: typeId, state: &player, tiers: content.tiers, now: Date().timeIntervalSince1970
+            )
             self.player = player
             haptics?.play(.purchase)
             characterSheet = nil
             refreshProjections()
             scheduleSave()
         } catch {
+            publishNotice(forRejectedSpend: error)
             haptics?.play(.error)
             audio?.play(.error)
             Log.economy.info("passive unlock rejected: \(error)")

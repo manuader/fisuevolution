@@ -64,7 +64,8 @@ struct ContentSystemsTests {
             specials: content.specials,
             viral: content.viral,
             boosts: content.boosts,
-            economy: economy
+            economy: economy,
+            now: 0
         )
         #expect(state.meta.oroUpgradeLevels["tap"] == 1)
         // La línea `tap` pasó de 20 niveles × 0,25 a 10 × 0,5 en el rebalance
@@ -87,7 +88,7 @@ struct ContentSystemsTests {
     @Test func oroUpgradeRespectsMaxLevelAndBalance() throws {
         var state = makeState(coins: 100)
         #expect(throws: UpgradeManager.PurchaseError.insufficientOro) {
-            try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, boosts: content.boosts, economy: economy)
+            try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, boosts: content.boosts, economy: economy, now: 0)
         }
         // El tope sale del catálogo y no de un literal: el rebalance de pacing
         // bajó `income` de 20 niveles a 10, y un 20 hardcodeado acá seguía
@@ -96,8 +97,36 @@ struct ContentSystemsTests {
         state.meta.oroUpgradeLevels["income"] = income.maxLevel
         state.meta.oro = 1_000
         #expect(throws: UpgradeManager.PurchaseError.maxLevelReached) {
-            try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, boosts: content.boosts, economy: economy)
+            try UpgradeManager.purchase(lineId: "income", state: &state, config: content.upgradesConfig, specials: content.specials, viral: content.viral, boosts: content.boosts, economy: economy, now: 0)
         }
+    }
+
+    @Test func coinUpgradeBouncesWhileSpendingIsFrozen() throws {
+        var coinConfig = try JSONSerialization.jsonObject(
+            with: JSONEncoder().encode(content.upgradesConfig)
+        ) as? [String: Any] ?? [:]
+        var lines = coinConfig["upgrades"] as? [[String: Any]] ?? []
+        let index = try #require(lines.firstIndex { $0["id"] as? String == "income" })
+        lines[index]["currency"] = "coins"
+        coinConfig["upgrades"] = lines
+        let config = try JSONDecoder().decode(
+            UpgradesConfig.self, from: JSONSerialization.data(withJSONObject: coinConfig)
+        )
+        var state = makeState(coins: 1_000_000)
+        state.run.activeModifiers = [
+            ActiveModifier(effect: .spendingFrozen, magnitude: 1, expiresAt: 100, sourceKey: "event.corralito"),
+        ]
+        func buy(at now: TimeInterval) throws {
+            try UpgradeManager.purchase(
+                lineId: "income", state: &state, config: config, specials: content.specials,
+                viral: content.viral, boosts: content.boosts, economy: economy, now: now
+            )
+        }
+        #expect(throws: UpgradeManager.PurchaseError.spendingFrozen) { try buy(at: 50) }
+        #expect(state.run.coins == 1_000_000)
+        #expect(state.meta.oroUpgradeLevels["income"] == nil)
+        try buy(at: 150)
+        #expect(state.meta.oroUpgradeLevels["income"] == 1)
     }
 
     @Test func sharesAddCappedIncomeBonus() {
@@ -145,7 +174,7 @@ struct ContentSystemsTests {
     @Test func aguinaldoPaysPassiveIncomeSeconds() throws {
         var state = makeState(maxTier: 30)
         state.run.coins = 1e6
-        try economy.applyPassiveUnlock(typeId: content.tiers.baseType.id, state: &state, tiers: content.tiers)
+        try economy.applyPassiveUnlock(typeId: content.tiers.baseType.id, state: &state, tiers: content.tiers, now: 0)
         let coinsBefore = state.run.coins
         var rng = FixedRNG(values: [0])
         // Forzar aguinaldo: solo él sin cooldown.

@@ -90,7 +90,7 @@ struct CharUpgradesTests {
         state.run.charUpgradeLevels["a"] = config.charUpgrades.maxLevel
 
         #expect(throws: CharUpgrades.PurchaseError.maxLevelReached) {
-            try CharUpgrades.purchase(type: type, state: &state, config: config, economy: economy)
+            try CharUpgrades.purchase(type: type, state: &state, config: config, economy: economy, now: 0)
         }
         #expect(state.run.charUpgradeLevels["a"] == config.charUpgrades.maxLevel)
         #expect(state.run.coins == .greatestFiniteMagnitude)
@@ -104,7 +104,7 @@ struct CharUpgradesTests {
         var purchases = 0
         while true {
             do {
-                try CharUpgrades.purchase(type: type, state: &state, config: config, economy: economy)
+                try CharUpgrades.purchase(type: type, state: &state, config: config, economy: economy, now: 0)
                 purchases += 1
             } catch CharUpgrades.PurchaseError.maxLevelReached {
                 break

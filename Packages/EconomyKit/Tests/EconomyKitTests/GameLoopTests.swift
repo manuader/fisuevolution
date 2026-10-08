@@ -184,7 +184,7 @@ struct PassiveTests {
     @Test func unlockAffectsAllInstancesOfThatTypeOnly() throws {
         var state = fxState(units: ["a": 3, "b": 1])
         state.run.coins = 100
-        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
+        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers, now: 0)
         #expect(state.run.coins == 0)
         // 3 × 0.3; el 'b' sigue sin generar.
         #expect(abs(IncomeTicker.passivePerSecond(state: state, tiers: tiers, floorTable: floorTable, config: config, now: 0) - 0.9) < 1e-12)
@@ -193,7 +193,7 @@ struct PassiveTests {
     @Test func unlocksAreIndependentPerType() throws {
         var state = fxState(units: ["a": 1, "b": 1])
         state.run.coins = 1000
-        try economy.applyPassiveUnlock(typeId: "b", state: &state, tiers: tiers)
+        try economy.applyPassiveUnlock(typeId: "b", state: &state, tiers: tiers, now: 0)
         #expect(abs(IncomeTicker.passivePerSecond(state: state, tiers: tiers, floorTable: floorTable, config: config, now: 0) - 0.3) < 1e-12)
     }
 
@@ -201,16 +201,16 @@ struct PassiveTests {
         var state = fxState()
         state.run.coins = 99
         #expect(throws: PassiveUnlockError.insufficientCoins) {
-            try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
+            try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers, now: 0)
         }
     }
 
     @Test func unlockFailsIfAlreadyUnlocked() throws {
         var state = fxState()
         state.run.coins = 500
-        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
+        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers, now: 0)
         #expect(throws: PassiveUnlockError.alreadyUnlocked) {
-            try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
+            try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers, now: 0)
         }
     }
 
@@ -252,7 +252,7 @@ struct IncomeTickTests {
     private func unlockedState() throws -> PlayerState {
         var state = fxState(units: ["a": 2])
         state.run.coins = 100
-        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
+        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers, now: 0)
         return state
     }
 
@@ -309,7 +309,7 @@ struct OfflineTests {
     private func unlockedState() throws -> PlayerState {
         var state = fxState(units: ["a": 2])
         state.run.coins = 100
-        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
+        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers, now: 0)
         state.meta.lastSeenTimestamp = 1000
         return state
     }

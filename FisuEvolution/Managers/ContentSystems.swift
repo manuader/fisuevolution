@@ -16,6 +16,7 @@ enum UpgradeManager {
         case maxLevelReached
         case insufficientCoins
         case insufficientOro
+        case spendingFrozen
     }
 
     static func purchase(
@@ -25,7 +26,8 @@ enum UpgradeManager {
         specials: SpecialsConfig,
         viral: ViralConfig,
         boosts: BoostsConfig,
-        economy: StandardEconomy
+        economy: StandardEconomy,
+        now: TimeInterval
     ) throws {
         guard let line = config.upgrades.first(where: { $0.id == lineId }) else {
             throw PurchaseError.unknownLine
@@ -35,6 +37,9 @@ enum UpgradeManager {
         let price = cost(of: line, level: level)
         switch line.currency {
         case .coins:
+            guard ModifierMath.spendingFrozenUntil(state.run.activeModifiers, now: now) == nil else {
+                throw PurchaseError.spendingFrozen
+            }
             guard state.run.coins >= price else { throw PurchaseError.insufficientCoins }
             state.run.coins -= price
         case .oro:
@@ -127,6 +132,7 @@ enum EventManager {
         let flavorTextKey: String
         let isBuff: Bool
         let endsAt: TimeInterval
+        let escapableByVideo: Bool
     }
 
     enum BoardIntent: Equatable {
@@ -208,11 +214,10 @@ enum EventManager {
                 expiresAt: now + event.durationSeconds,
                 sourceKey: "event.\(event.id)"
             ))
-        case .frozenCoins:
-            // Corralito: los coins no crecen (income x0) durante N segundos.
+        case .spendingFrozen:
             state.run.activeModifiers.append(ActiveModifier(
-                effect: .incomeMultiplier,
-                magnitude: 0,
+                effect: .spendingFrozen,
+                magnitude: 1,
                 expiresAt: now + event.durationSeconds,
                 sourceKey: "event.\(event.id)"
             ))
@@ -234,10 +239,10 @@ enum EventManager {
         }
 
         let active: ActiveEvent = if event.durationSeconds > 0 {
-            ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + event.durationSeconds)
+            ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + event.durationSeconds, escapableByVideo: event.escape == "video")
         } else {
             // Efectos instantáneos: banner corto informativo.
-            ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + 6)
+            ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + 6, escapableByVideo: event.escape == "video")
         }
         return Roll(event: event, active: active, boardIntent: boardIntent)
     }

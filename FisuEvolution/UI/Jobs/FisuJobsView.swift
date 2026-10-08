@@ -56,6 +56,9 @@ struct FisuJobsView: View {
                 // `UIImage`—, así que el costo de construirlas todas es el del
                 // primer armado y no el de cada invalidación.
                 VStack(spacing: Tokens.s12) {
+                    if let until = gameState.spendingFrozenUntil {
+                        SpendingFrozenStrip(until: until, identifier: "jobs.spending_frozen")
+                    }
                     // La guía del paso "contratar" de la fase obligatoria: la
                     // hoja se presenta ENCIMA del overlay del tutorial (decisión
                     // documentada en `TutorialOverlay.steps`), así que el guía

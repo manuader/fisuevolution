@@ -77,6 +77,7 @@ public enum CharUpgrades {
         /// Ya está en `maxLevel`: no hay nivel que vender (espejo del
         /// `maxLevelReached` de `UpgradeManager`).
         case maxLevelReached
+        case spendingFrozen
     }
 
     /// Compra un nivel (debita `run.coins`, sube `run.charUpgradeLevels`).
@@ -84,8 +85,12 @@ public enum CharUpgrades {
         type: CharacterType,
         state: inout PlayerState,
         config: EconomyConfig,
-        economy: StandardEconomy
+        economy: StandardEconomy,
+        now: TimeInterval
     ) throws {
+        guard ModifierMath.spendingFrozenUntil(state.run.activeModifiers, now: now) == nil else {
+            throw PurchaseError.spendingFrozen
+        }
         guard let cost = nextLevelCost(
             type: type, levels: state.run.charUpgradeLevels, config: config, economy: economy
         ) else { throw PurchaseError.maxLevelReached }

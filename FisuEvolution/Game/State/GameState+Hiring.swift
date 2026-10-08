@@ -129,7 +129,7 @@ extension GameState {
                 // tarjeta diga "3 contratados" con la curva en otro exponente.
                 purchases: Int(quote.purchases.rounded(.down)),
                 costText: unseen ? "" : CoinFormatter.cost(from: quote.cost),
-                affordable: !unseen && coins >= quote.cost,
+                affordable: !unseen && !quote.blockedBySpendingFreeze && coins >= quote.cost,
                 state: state,
                 tier: type.tier,
                 floorID: floor.id
@@ -188,12 +188,13 @@ extension GameState {
         struct Candidate {
             let type: CharacterType
             let cost: Double
+            let frozen: Bool
         }
         let candidates: [Candidate] = content.tiers.concreteTypes.compactMap { type in
             guard let quote = currentQuote(player: player, typeId: type.id),
                   jobState(for: type, ordinal: quote.floorOrdinal, player: player, content: content) == .hirable
             else { return nil }
-            return Candidate(type: type, cost: quote.cost)
+            return Candidate(type: type, cost: quote.cost, frozen: quote.blockedBySpendingFreeze)
         }
         guard !candidates.isEmpty else { return nil }
 
@@ -213,7 +214,7 @@ extension GameState {
         // volvieron a la suite por eso mismo. El `min` de la meta de ahorro sigue
         // pineado por `brokePlayerSeesTheCheapestAsAGoal` y
         // `withoutCoinsTheGoalIsTheCheapestOfMany`.
-        if let best = candidates.filter({ coins >= $0.cost }).max(by: { lhs, rhs in
+        if let best = candidates.filter({ !$0.frozen && coins >= $0.cost }).max(by: { lhs, rhs in
             if lhs.type.tier != rhs.type.tier { return lhs.type.tier < rhs.type.tier }
             if lhs.cost != rhs.cost { return lhs.cost > rhs.cost }
             return lhs.type.id > rhs.type.id
@@ -235,7 +236,7 @@ extension GameState {
             displayName: pick.type.localizedName,
             faceKey: "\(pick.type.id)_face",
             costText: CoinFormatter.cost(from: pick.cost),
-            affordable: coins >= pick.cost,
+            affordable: !pick.frozen && coins >= pick.cost,
             tier: pick.type.tier
         )
     }
@@ -293,9 +294,7 @@ extension GameState {
             bumpBoard()
             scheduleSave()
         } catch {
-            if case TowerError.floorFull = error {
-                towerNotice = TowerNotice(kind: .floorFull)
-            }
+            publishNotice(forRejectedSpend: error)
             haptics?.play(.error)
             audio?.play(.error)
             Log.economy.info("hire rejected: \(error)")

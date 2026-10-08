@@ -91,6 +91,7 @@ extension GameState {
     var characterUpgradeRows: [CharacterUpgradeRow] {
         guard let content, let player else { return [] }
         let coins = player.run.coins
+        let frozen = spendingFrozenUntil != nil
         let maxLevel = content.economy.charUpgrades.maxLevel
         return characterUpgradeTypes.map { type in
             let level = min(characterUpgradeLevel(of: type.id), maxLevel)
@@ -114,10 +115,10 @@ extension GameState {
                 upgradeMaxLevel: maxLevel,
                 upgradeMaxed: cost == nil,
                 upgradeCost: cost ?? .infinity,
-                canAffordUpgrade: cost.map { coins >= $0 } ?? false,
+                canAffordUpgrade: !frozen && (cost.map { coins >= $0 } ?? false),
                 passiveUnlocked: player.run.passiveUnlocked[type.id] == true,
                 passiveCost: type.passiveUnlockCost,
-                canAffordPassive: coins >= type.passiveUnlockCost,
+                canAffordPassive: !frozen && coins >= type.passiveUnlockCost,
                 passiveEffectText: passiveEffectText(for: type)
             )
         }
@@ -210,13 +211,17 @@ extension GameState {
               let type = content.tiers.type(id: typeID)
         else { return }
         do {
-            try CharUpgrades.purchase(type: type, state: &player, config: content.economy, economy: economy)
+            try CharUpgrades.purchase(
+                type: type, state: &player, config: content.economy, economy: economy,
+                now: Date().timeIntervalSince1970
+            )
             self.player = player
             haptics?.play(.purchase)
             effectsVersion += 1
             refreshProjections()
             scheduleSave()
         } catch {
+            publishNotice(forRejectedSpend: error)
             haptics?.play(.error)
             audio?.play(.error)
             Log.economy.info("character upgrade rejected: \(error)")
@@ -233,7 +238,8 @@ extension GameState {
                 specials: content.specials,
                 viral: content.viral,
                 boosts: content.boosts,
-                economy: economy
+                economy: economy,
+                now: Date().timeIntervalSince1970
             )
             self.player = player
             haptics?.play(.purchase)

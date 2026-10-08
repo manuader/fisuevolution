@@ -1801,6 +1801,23 @@
         }
       }
     },
+    "bonus.chip.spending_frozen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No spending"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin gastos"
+          }
+        }
+      }
+    },
     "bonus.effect.income %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3100,6 +3117,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Devaluación sorpresa: tu plata vale la mitad. Tranqui, ya estás entrenado."
+          }
+        }
+      }
+    },
+    "event.escape.video" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lift it with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liberar con video"
           }
         }
       }
@@ -7348,6 +7382,23 @@
         }
       }
     },
+    "spending.frozen.strip %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corralito: no spending · %@ s"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corralito: no podés gastar · %@ s"
+          }
+        }
+      }
+    },
     "splash.tip.merge" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9126,6 +9177,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Ya podés contratar en los pisos de abajo!"
+          }
+        }
+      }
+    },
+    "tower.notice.spending_frozen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corralito! You can't spend until it ends; your money keeps coming in"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Corralito! No podés gastar hasta que termine; la plata sigue entrando"
           }
         }
       }

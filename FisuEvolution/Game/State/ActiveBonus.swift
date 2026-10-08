@@ -82,12 +82,14 @@ enum ActiveBonusBuilder {
 
     /// El MISMO número que muestra el menú de Bonus, por el mismo camino: la
     /// magnitud 0,7 del mate es un factor de costo y se lee **−30%**, no ×0,7.
-    /// Los tres efectos temporales mapean 1:1 contra `BoostsConfig.EffectType`.
+    /// Los efectos de multiplicador mapean 1:1 contra `BoostsConfig.EffectType`.
     private static func effectText(for modifier: ActiveModifier) -> String {
-        let boostEffect: BoostsConfig.EffectType = switch modifier.effect {
-        case .incomeMultiplier: .incomeMultiplier
-        case .tapMultiplier: .tapMultiplier
-        case .spawnCostMultiplier: .spawnCostMultiplier
+        let boostEffect: BoostsConfig.EffectType
+        switch modifier.effect {
+        case .incomeMultiplier: boostEffect = .incomeMultiplier
+        case .tapMultiplier: boostEffect = .tapMultiplier
+        case .spawnCostMultiplier: boostEffect = .spawnCostMultiplier
+        case .spendingFrozen: return String(localized: "bonus.chip.spending_frozen")
         }
         return EffectFormatter.text(
             EffectDescriptor.amount(forBoost: boostEffect, magnitude: modifier.magnitude)

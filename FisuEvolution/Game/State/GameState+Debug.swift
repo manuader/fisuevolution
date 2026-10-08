@@ -43,6 +43,7 @@ extension GameState {
             // siguiente.
             wipeTutorialLessonProgress()
             defaults.removeObject(forKey: Self.newTabsKey)
+            defaults.removeObject(forKey: Self.economyKnobsDefaultsKey)
         }
         // `--uitest-open-sheet` presenta una hoja modal: el tutorial no puede
         // estar adelante, así que implica saltearlo.
@@ -67,6 +68,35 @@ extension GameState {
            !arguments.contains("--uitest-progressive-tabs") {
             progressiveTabsEnabled = false
         }
+        // Las perillas que el dueño dejó puestas en el panel (PLAN-v2 E2a).
+        let knobs = Self.storedEconomyKnobs(in: defaults)
+        if knobs != EconomyKnobs() {
+            debugApplyEconomyKnobs(knobs, defaults: defaults)
+        }
+    }
+
+    /// Las perillas de E2a que el dueño eligió en el panel. Viven en
+    /// `UserDefaults` y no en el save: son de este dispositivo, no de la partida.
+    static let economyKnobsDefaultsKey = "debug.economyKnobs"
+
+    static func storedEconomyKnobs(in defaults: UserDefaults) -> EconomyKnobs {
+        defaults.data(forKey: economyKnobsDefaultsKey)
+            .flatMap { try? JSONDecoder().decode(EconomyKnobs.self, from: $0) } ?? EconomyKnobs()
+    }
+
+    /// Aplica las perillas sobre el `economy.json` del BUNDLE (no sobre el que
+    /// está puesto: si no, apagar una no volvería a la v1) y las guarda.
+    func debugApplyEconomyKnobs(_ knobs: EconomyKnobs, defaults: UserDefaults) {
+        guard let bundled = try? GameContentLoader.load(from: .main).economy,
+              let tuned = try? bundled.tuned(knobs)
+        else { return }
+        defaults.set(try? JSONEncoder().encode(knobs), forKey: Self.economyKnobsDefaultsKey)
+        replaceEconomy(tuned)
+    }
+
+    @discardableResult
+    func debugMergeAllOnVisibleFloor() -> Int {
+        enqueueMergeAll(onFloor: visibleFloorOrdinal, origin: .debug)
     }
 
     /// Acredita skins de milestone sin recorrer su condición. Desde que se

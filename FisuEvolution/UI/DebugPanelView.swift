@@ -1,4 +1,5 @@
 #if DEBUG
+import EconomyKit
 import SwiftUI
 
 /// Herramientas de balance y QA. Solo existe en builds Debug — jamás shippea,
@@ -7,6 +8,39 @@ struct DebugPanelView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
     @State private var timeWarpOn = false
+    @State private var knobs = EconomyKnobs()
+
+    /// Los pares (g, r) del plan: v1, y tres que dejan ~6 % por compra al que
+    /// fusiona y cobran más al que acumula. El callejón conserva su 1,03.
+    private static let curves: [(name: String, growth: Double?, refund: Double?)] = [
+        ("v1", nil, nil),
+        ("1,08 · 0,5", 1.08, 0.5),
+        ("1,12 · 1", 1.12, 1),
+        ("1,12 · 2", 1.12, 2),
+    ]
+
+    private var curveBinding: Binding<Int> {
+        Binding(
+            get: {
+                Self.curves.firstIndex { $0.growth == knobs.defaultCostGrowth && $0.refund == knobs.mergeRefundCounts } ?? 0
+            },
+            set: { index in
+                knobs.defaultCostGrowth = Self.curves[index].growth
+                knobs.mergeRefundCounts = Self.curves[index].refund
+                gameState.debugApplyEconomyKnobs(knobs, defaults: .standard)
+            }
+        )
+    }
+
+    private func knobToggle<Value: Equatable>(_ path: WritableKeyPath<EconomyKnobs, Value?>, on value: Value) -> Binding<Bool> {
+        Binding(
+            get: { knobs[keyPath: path] == value },
+            set: { isOn in
+                knobs[keyPath: path] = isOn ? value : nil
+                gameState.debugApplyEconomyKnobs(knobs, defaults: .standard)
+            }
+        )
+    }
 
     var body: some View {
         NavigationStack {
@@ -22,6 +56,28 @@ struct DebugPanelView: View {
                         .onChange(of: timeWarpOn) { _, on in
                             gameState.debugTimeScale = on ? 60 : 1
                         }
+                }
+                // El selector del dueño (PLAN-v2 §2, "Precios"): la curva y el
+                // reintegro se prueban en pares; "v1" es lo que shippea hoy.
+                Section("Economía 2.0 (E2a)") {
+                    Picker("Curva · reintegro", selection: curveBinding) {
+                        ForEach(Self.curves.indices, id: \.self) { index in
+                            Text(Self.curves[index].name).tag(index)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .accessibilityIdentifier("debug.e2a.curve")
+                    Toggle("Amortiguador (K = 24)", isOn: knobToggle(\.priceReliefPurchases, on: 24))
+                        .accessibilityIdentifier("debug.e2a.cushion")
+                    Toggle("Pisos en marcha (+5 %)", isOn: knobToggle(\.staffedFloorBonus, on: 0.05))
+                        .accessibilityIdentifier("debug.e2a.staffed")
+                    Toggle("Piso móvil", isOn: knobToggle(\.requiresLastRunWall, on: true))
+                        .accessibilityIdentifier("debug.e2a.wall")
+                    Button("Fusionar todo (piso visible)") {
+                        gameState.debugMergeAllOnVisibleFloor()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.e2a.mergeAll")
                 }
                 Section("Offline") {
                     Button("Simular 4 h offline") {
@@ -90,6 +146,7 @@ struct DebugPanelView: View {
         }
         .onAppear {
             timeWarpOn = gameState.debugTimeScale > 1
+            knobs = GameState.storedEconomyKnobs(in: .standard)
         }
     }
 }

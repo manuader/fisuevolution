@@ -50,6 +50,14 @@ ATLAS_BY_CATEGORY = {
 SKIN_FAMILIES = ("pijama", "gaucho", "dinosaurio")
 
 
+# Piezas de UI de la 2.0 que se dibujan más grandes que un ícono.
+TAMANO_POR_PREFIJO = (
+    ("wheel_frame", (640, 960)),           # la ruleta mide 300 pt (WheelView, E5b)
+    ("pickup_", (384, 512)),               # cajas y colchón del tablero, ~96 pt
+    ("ui_album_card_frame", (448, 640)),   # la carta del Álbum de especiales
+)
+
+
 def export_size(category: str, asset_key: str) -> tuple[int, int]:
     """(@2x, @3x) en píxeles según cómo se dibuja el asset en pantalla.
 
@@ -57,8 +65,13 @@ def export_size(category: str, asset_key: str) -> tuple[int, int]:
     vuelven a desentonar con los que están en el juego."""
     if category == "background":
         return (1024, 1536)  # pantalla completa; son los únicos que van grandes
+    if category == "npc" and asset_key.endswith("_face"):
+        return (192, 256)    # como las 43 caras de la v1 (ui.atlas): chip y Álbum
     if category in {"character", "special", "skin", "skinfam", "npc"}:
         return (384, 512)    # se dibujan a ~146 pt → 438 px @3x
+    for prefijo, tamanos in TAMANO_POR_PREFIJO:
+        if asset_key.startswith(prefijo):
+            return tamanos
     if asset_key.startswith(("panel_", "fisura_", "logo")):
         return (448, 640)    # se estiran grande (9-slice, retratos de tutorial)
     return (192, 256)        # íconos y botones de UI

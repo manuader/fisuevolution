@@ -72,6 +72,23 @@ v1 (loot boxes sí, apuestas no, publicidad sí), no se tocó. `ads.json` public
 `adergames-site.vercel.app/config/ads.json` (200, idéntico al del juego). Las Novedades y las
 notas se revisan contra la build de TestFlight antes de enviar.
 
+## Mediación (agregado 12:50)
+
+| Pieza | Estado | Evidencia |
+|---|---|---|
+| Unity Ads en AdMob | ✅ fuente activa; 9 asignaciones (Game ID 800392624; BP_Rewarded_iOS ×8, BP_Interstitial_iOS ×1) | AdMob: "La asociación está activa"; "Los cambios se guardaron correctamente" |
+| Grupo "Rewarded iOS" | ✅ ID 1870390862: 8 unidades bonificadas, AdMob + Unity por licitación | edición del grupo releída |
+| Grupo "Interstitial iOS" | ✅ ID 2477738028: "anuncio normal", AdMob + Unity | ídem |
+| Unity: Developer website | ✅ `https://adergames-site.vercel.app`; Unity ya lee el `app-ads.txt` del sitio | Monetization > Settings |
+| `app-ads.txt` | ✅ 163 vendedores (Google + 161 de Unity + Meta), `text/plain` | `curl` 200 |
+| Meta en AdMob | ⏳ paso 1 aceptado; el acuerdo de socio (paso 2) espera que Meta termine su onboarding | AdMob: "Usted inició un formulario de acuerdo de socio" |
+| Meta: propiedad y ubicaciones | ✅ HoboEvolution iOS, 3 ubicaciones "listas para publicar"; mediación = Google AdMob | Monetization Manager |
+| Meta: onboarding | 🔒 dueño: 2FA, cuenta de pagos, datos fiscales, vincular la app al pago, verificar la app | "5 tareas por completar" |
+| Grupo "Rewarded interstitial iOS" | ⏳ sólo Meta puja en ese formato: se crea cuando Meta esté activa | — |
+| App open | sin grupo: ni Unity ni Meta pujan en app open (queda AdMob) | — |
+| Consentimiento UE (socios) | ✅ "Agregar automáticamente fuentes como socios publicitarios" encendido | guardado |
+| **Mensaje de consentimiento UE / estados de EE. UU.** | ❌ **no existe ninguno** (la tarjeta dice "Crear") | Privacidad y mensajería |
+
 ## Pendiente (y de quién)
 
 | Pendiente | Bloquea | Quién |

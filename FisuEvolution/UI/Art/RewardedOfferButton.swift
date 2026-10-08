@@ -55,6 +55,7 @@ struct RewardedOfferButton: View {
             }
         }
         .onAppear { ads.preloadRewarded(for: placement) }
+        .onDisappear { offer.cancel() }
         .onChange(of: offer.phase) { _, phase in
             isBusy?.wrappedValue = phase == .busy
         }

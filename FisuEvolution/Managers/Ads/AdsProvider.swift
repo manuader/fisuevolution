@@ -29,15 +29,15 @@ protocol AdsProvider: AnyObject {
     /// Si el video todavía no está, **espera la carga en curso (o la arranca)
     /// hasta `AdLoadWait.rewardedTimeout`** y presenta apenas llega: el botón
     /// responde al primer toque (PLAN-v2 E13 ítem 1). `false` sin presentar nada
-    /// quiere decir que no hubo inventario a tiempo; ver `lastRewardedPresented`
-    /// para distinguirlo de un jugador que cerró el video a la mitad.
+    /// quiere decir que no hubo video; ver `lastRewardedAttempt` para distinguirlo
+    /// de un jugador que cerró el video a la mitad.
     func showRewarded(for placement: RewardedPlacement) async -> Bool
 
-    /// Si el último `showRewarded` llegó a poner un video en pantalla, haya
-    /// pagado o no. Es lo que separa "no hay videos ahora" (nada se presentó:
-    /// la UI lo dice) de "lo cerró a los dos segundos" (se presentó y no pagó:
-    /// la UI calla).
-    var lastRewardedPresented: Bool { get }
+    /// Qué pasó con el último `showRewarded`. Es lo que separa "no hay videos
+    /// ahora" (`.noInventory`: la UI lo dice) de "lo cerró a los dos segundos"
+    /// (`.presented` sin premio: la UI calla) y de "había otro anuncio en curso"
+    /// (`.busy`: tampoco se avisa, el jugador ya está viendo un video).
+    var lastRewardedAttempt: RewardedAttempt { get }
 
     /// Si hay un interstitial cargado y listo para mostrarse.
     var isInterstitialReady: Bool { get }
@@ -89,6 +89,16 @@ enum AdInventoryLifetime {
     static let appOpen: TimeInterval = 3 * 60 * 60 + 30 * 60
 }
 
+/// Cómo terminó el último intento de `showRewarded`.
+enum RewardedAttempt: Equatable, Sendable {
+    /// Hubo un video en pantalla, haya pagado o no.
+    case presented
+    /// No llegó inventario a tiempo (o la espera se canceló): nada se presentó.
+    case noInventory
+    /// Había otro anuncio en curso: este toque no hizo nada.
+    case busy
+}
+
 /// La espera de un video que todavía se está cargando (PLAN-v2 E13 ítem 1).
 ///
 /// Vive suelta y pura para poder probarse sin el SDK: el proveedor real le
@@ -112,7 +122,9 @@ enum AdLoadWait {
         while true {
             if isReady() { return true }
             if !isLoading() || clock.now >= deadline { return false }
-            try? await Task.sleep(for: interval)
+            // Cancelada la espera (la vista se fue), se sale: `try?` tragaría el
+            // error y el bucle bloquearía el main actor hasta el plazo.
+            do { try await Task.sleep(for: interval) } catch { return false }
         }
     }
 }
@@ -127,7 +139,7 @@ enum AdLoadWait {
 @Observable @MainActor
 final class StubAdsProvider: AdsProvider {
     private(set) var isShowing = false
-    @ObservationIgnored private(set) var lastRewardedPresented = false
+    @ObservationIgnored private(set) var lastRewardedAttempt = RewardedAttempt.noInventory
     /// Cuánto tarda en "llegar" el video antes de presentarse. Cero salvo bajo
     /// `--uitest-slow-ad-load`, que lo estira para que un UI test pueda tocar
     /// dos veces con el primer toque todavía cargando.
@@ -145,10 +157,10 @@ final class StubAdsProvider: AdsProvider {
     func preloadAppOpen() {}
 
     func showRewarded(for placement: RewardedPlacement) async -> Bool {
-        lastRewardedPresented = false
+        lastRewardedAttempt = .noInventory
         if loadDelay > .zero { try? await Task.sleep(for: loadDelay) }
         let earned = await fakeAd(for: .seconds(2))
-        lastRewardedPresented = earned
+        lastRewardedAttempt = earned ? .presented : .noInventory
         return earned
     }
 

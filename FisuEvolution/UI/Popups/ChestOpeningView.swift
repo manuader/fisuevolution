@@ -75,6 +75,11 @@ struct ChestOpeningView: View {
     /// cofre; que el video esté cargado ya no es condición: el botón espera la
     /// carga y, si no hay videos, lo dice (`RewardedOfferButton`).
     @State private var offersExtraChest = false
+    /// El video del cofre extra está cargando o corriendo (lo escribe
+    /// `RewardedOfferButton`). Mientras tanto las salidas se ignoran: cerrar el
+    /// premio con el anuncio por aparecer lo dejaría presentarse fuera de
+    /// contexto y `grantExtraChestFromAd()` actuaría sobre otro cofre.
+    @State private var extraChestBusy = false
 
     let reward: GameState.ChestReward
 
@@ -718,6 +723,7 @@ struct ChestOpeningView: View {
                     systemImage: "tshirt.fill",
                     identifier: "chest.equip"
                 ) {
+                    guard !extraChestBusy else { return }
                     gameState.equipSkin(id: id, forCharacterType: characterType)
                     gameState.dismissChestReward()
                 }
@@ -739,6 +745,7 @@ struct ChestOpeningView: View {
                     tint: Color("PaletteGreen"),
                     identifier: "chest.dismiss"
                 ) {
+                    guard !extraChestBusy else { return }
                     gameState.dismissChestReward()
                 }
                 anotherChestOffer
@@ -762,7 +769,8 @@ struct ChestOpeningView: View {
                 identifier: "chest.again.ad",
                 placement: .chestExtra,
                 systemImage: "play.rectangle.fill",
-                tint: Color("PaletteBlue")
+                tint: Color("PaletteBlue"),
+                isBusy: $extraChestBusy
             ) {
                 gameState.dismissChestReward()
                 gameState.grantExtraChestFromAd()
@@ -775,6 +783,7 @@ struct ChestOpeningView: View {
     /// que no hace nada no compite.
     private func laterButton(titleKey: LocalizedStringKey) -> some View {
         Button {
+            guard !extraChestBusy else { return }
             gameState.dismissChestReward()
         } label: {
             Text(titleKey)

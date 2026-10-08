@@ -107,6 +107,40 @@ struct RewardedOfferTests {
         #expect(offer.phase == .idle)
         #expect(ads.lastRewardedAt != nil, "ese sí comió la pantalla completa")
     }
+
+    @Test("dos botones a la vez: el segundo no hereda el aviso 'no hay videos'")
+    func secondButtonWhileTheFirstLoadsStaysQuiet() async {
+        let (first, ads, provider) = make { $0.loadDelay = .milliseconds(120) }
+        let second = RewardedOffer(messageDuration: .milliseconds(80))
+        var paidFirst = 0
+        var paidSecond = 0
+
+        first.tap(ads: ads, placement: .gifts) { paidFirst += 1 }
+        second.tap(ads: ads, placement: .boost) { paidSecond += 1 }
+        await second.settle()
+        #expect(second.phase == .idle, "había otro video en curso: no es 'no hay videos'")
+        #expect(ads.lastRewardedAttempt == .busy)
+
+        await first.settle()
+        #expect(provider.shown == ["rewarded:gifts"])
+        #expect(paidFirst == 1)
+        #expect(paidSecond == 0)
+    }
+
+    @Test("la vista que se va corta la espera de la carga, sin presentar ni pagar")
+    func cancelDuringLoadPresentsNothing() async {
+        let (offer, ads, provider) = make { $0.loadDelay = .seconds(30) }
+        var paid = 0
+
+        offer.tap(ads: ads, placement: .gifts) { paid += 1 }
+        #expect(offer.phase == .busy)
+        offer.cancel()
+        await offer.settle()
+
+        #expect(provider.shown.isEmpty)
+        #expect(paid == 0)
+        #expect(offer.phase == .idle, "la vista ya no está: no hay aviso que mostrar")
+    }
 }
 
 @Suite("La espera de la carga")
@@ -141,6 +175,22 @@ struct AdLoadWaitTests {
             isReady: { false }, isLoading: { true }
         )
         #expect(!ready)
+    }
+
+    @Test("cancelada la espera, sale en el acto en vez de bloquear hasta el plazo")
+    func cancelledWaitReturnsImmediately() async {
+        let clock = ContinuousClock()
+        let start = clock.now
+        let waiter = Task { @MainActor in
+            await AdLoadWait.until(
+                timeout: .seconds(8), interval: .milliseconds(20),
+                isReady: { false }, isLoading: { true }
+            )
+        }
+        try? await Task.sleep(for: .milliseconds(60))
+        waiter.cancel()
+        #expect(await waiter.value == false)
+        #expect(clock.now - start < .seconds(2))
     }
 
     @Test("el plazo del botón es de 8 s")

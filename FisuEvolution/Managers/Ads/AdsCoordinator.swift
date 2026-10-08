@@ -164,18 +164,22 @@ final class AdsCoordinator: AdsProvider {
     }
 
     func showRewarded(for placement: RewardedPlacement) async -> Bool {
+        // El coordinador es dueño del flag: lo pone ANTES de la guarda para que
+        // un toque rechazado no herede el resultado de otra llamada.
+        lastRewardedAttempt = .busy
         guard !isPresentingFullScreen else { return false }
         isPresentingFullScreen = true
         defer { isPresentingFullScreen = false }
         let earned = await active.showRewarded(for: placement)
+        lastRewardedAttempt = active.lastRewardedAttempt
         // Se anota gane o no gane, pero SÓLO si hubo video en pantalla: lo que
         // abre la gracia es haber comido una pantalla completa de publicidad,
         // no haber cobrado. Un toque que no encontró inventario no comió nada.
-        if active.lastRewardedPresented { lastRewardedAt = now() }
+        if lastRewardedAttempt == .presented { lastRewardedAt = now() }
         return earned
     }
 
-    var lastRewardedPresented: Bool { active.lastRewardedPresented }
+    @ObservationIgnored private(set) var lastRewardedAttempt = RewardedAttempt.noInventory
 
     /// ⚠️ Devuelve `false` para quien compró `remove_ads`, así que los
     /// llamadores no tienen que acordarse de chequearlo. Centralizarlo acá es lo

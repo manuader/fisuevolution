@@ -130,7 +130,7 @@ struct OfflineEarningsView: View {
                 .allowsHitTesting(false)
         }
         .overlay(alignment: .topTrailing) {
-            ArtCloseButton { dismiss() }
+            ArtCloseButton { if !watching { dismiss() } }
                 .padding(10)
         }
         // Aire para la parte del moño que sobresale del marco: sin esto el
@@ -142,6 +142,9 @@ struct OfflineEarningsView: View {
             await offerPermissionCardIfDue()
         }
         .presentationDetents([.fraction(sheetFraction)])
+        // Con el video cargando o corriendo la hoja no se cierra de un
+        // deslizamiento: el anuncio aparecería sobre el tablero sin dónde acreditar.
+        .interactiveDismissDisabled(watching)
         // El tablón no llega a los bordes de la hoja, así que el fondo de
         // sistema dejaba un rectángulo BLANCO alrededor del panel (el defecto
         // que `DailyRewardView` ya corrigió). Transparente, el panel flota

@@ -47,20 +47,28 @@ final class RewardedOffer {
         phase = .busy
         task = Task {
             let earned = await ads.showRewarded(for: placement)
-            let presented = ads.lastRewardedPresented
+            let attempt = ads.lastRewardedAttempt
             task = nil
             if earned {
                 phase = .idle
                 onRewarded()
-            } else if presented {
-                // Lo cerró a la mitad: se presentó y no pagó. No hay nada que
-                // avisar, el jugador estaba mirando.
-                phase = .idle
-            } else {
+            } else if attempt == .noInventory, !Task.isCancelled {
                 showUnavailable()
+            } else {
+                // Lo cerró a la mitad (se presentó y no pagó), había otro
+                // anuncio en curso, o la vista se fue: nada que avisar.
+                phase = .idle
             }
         }
         return true
+    }
+
+    /// La vista se fue: corta la ESPERA de la carga. Un video que ya está en
+    /// pantalla no se toca (la presentación no escucha la cancelación) y, si
+    /// paga, `onRewarded` igual se entrega.
+    func cancel() {
+        task?.cancel()
+        fade?.cancel()
     }
 
     /// Espera a que termine el video en curso (los tests).

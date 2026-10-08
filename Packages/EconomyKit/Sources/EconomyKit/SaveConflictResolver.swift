@@ -76,6 +76,7 @@ public enum SaveConflictResolver {
         // si dos builds anotaron montos distintos para el mismo id, queda el mayor.
         // La reconstrucción cuenta como hecha sólo si los dos lados la hicieron:
         // repetirla no suma de más (asigna por id), saltearla sí perdería ORO.
+        winner.meta.oro += unseenOro(of: loser, by: winner, revoked: local.meta.revokedPurchases.union(remote.meta.revokedPurchases))
         winner.meta.creditedPurchases = local.meta.creditedPurchases.union(remote.meta.creditedPurchases)
         winner.meta.oroPurchases = local.meta.oroPurchases.merging(remote.meta.oroPurchases, uniquingKeysWith: max)
         winner.meta.revokedPurchases = local.meta.revokedPurchases.union(remote.meta.revokedPurchases)
@@ -86,19 +87,35 @@ public enum SaveConflictResolver {
         return winner
     }
 
+    /// El ORO comprado que `other` tiene anotado y `receiver` todavía no vio: ids que
+    /// `receiver` no tiene en `oroPurchases`, que nadie revocó y que `receiver` no
+    /// acreditó ya por el camino viejo (un id de la v1 sin reconstruir). Se suma al saldo
+    /// de `receiver` antes de unir los mapas: así la unión es asociativa y el ORO de un
+    /// pack no se pierde ni se cuenta dos veces según el orden en que se crucen los devices.
+    private static func unseenOro(of other: PlayerState, by receiver: PlayerState, revoked: Set<String>) -> Int {
+        other.meta.oroPurchases
+            .filter {
+                receiver.meta.oroPurchases[$0.key] == nil
+                    && !revoked.contains($0.key)
+                    && !receiver.meta.creditedPurchases.contains($0.key)
+            }
+            .values.reduce(0, +)
+    }
+
     /// Dos épocas distintas: gana entera la del reset más nuevo, sin mirar el progreso. Del
     /// lado viejo cruzan sólo las compras —lo pagado con plata no se pierde por resetear— y
     /// el ORO de las transacciones que el lado nuevo todavía no vio (cada una, una vez: la
-    /// segunda resolución ya las encuentra anotadas y no suma nada).
+    /// segunda resolución ya las encuentra anotadas y no suma nada). Las compras que no son
+    /// de ORO (monedas, starter) hechas en el dispositivo viejo después del reset no cruzan:
+    /// es una decisión tomada.
     static func resolveAcrossReset(local: PlayerState, remote: PlayerState) -> PlayerState {
         var newer = local.meta.resetEpoch > remote.meta.resetEpoch ? local : remote
         let older = local.meta.resetEpoch > remote.meta.resetEpoch ? remote : local
 
-        let revoked = newer.meta.revokedPurchases.union(older.meta.revokedPurchases)
-        let unseenOro = older.meta.oroPurchases
-            .filter { newer.meta.oroPurchases[$0.key] == nil && !revoked.contains($0.key) }
-            .values.reduce(0, +)
-        newer.meta.oro += unseenOro
+        newer.meta.oro += unseenOro(
+            of: older, by: newer,
+            revoked: newer.meta.revokedPurchases.union(older.meta.revokedPurchases)
+        )
         for (id, amount) in older.meta.oroPurchases {
             newer.meta.recordOroPurchase(transactionID: id, amount: amount)
         }

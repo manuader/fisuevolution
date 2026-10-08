@@ -137,4 +137,46 @@ struct ResetEpochTests {
     func newGameStartsAtZero() {
         #expect(fxState().meta.resetEpoch == 0)
     }
+
+    @Test("tres devices: el saldo es el mismo en cualquier orden de cruce")
+    func threeDevicesAreAssociative() {
+        let a = state(epoch: 1, earnings: 10, oro: 0)
+        let b = state(epoch: 0, earnings: 1e6, oro: 0, purchases: ["b": 550])
+        let c = state(epoch: 1, earnings: 500, oro: 0)
+        let ab = SaveConflictResolver.resolve(local: a, remote: b)
+        let abThenC = SaveConflictResolver.resolve(local: c, remote: ab)
+        let cThenA = SaveConflictResolver.resolve(local: a, remote: c)
+        let acThenB = SaveConflictResolver.resolve(local: cThenA, remote: b)
+        let bc = SaveConflictResolver.resolve(local: b, remote: c)
+        let bcThenA = SaveConflictResolver.resolve(local: a, remote: bc)
+        for resolved in [abThenC, acThenB, bcThenA] {
+            #expect(resolved.meta.oro == 550, "el pack «b» se acredita una vez, en cualquier orden")
+            #expect(resolved.meta.oroPurchases["b"] == 550)
+        }
+        #expect(SaveConflictResolver.resolve(local: abThenC, remote: b).meta.oro == 550)
+    }
+
+    @Test("misma época: el ORO comprado del perdedor se acredita una sola vez")
+    func sameEpochCreditsLoserPurchaseOnce() {
+        let winner = state(epoch: 1, earnings: 900, oro: 10)
+        let loser = state(epoch: 1, earnings: 5, oro: 0, purchases: ["p": 300])
+        let resolved = SaveConflictResolver.resolve(local: winner, remote: loser)
+        #expect(resolved.meta.oro == 310)
+        #expect(SaveConflictResolver.resolve(local: resolved, remote: loser).meta.oro == 310)
+        #expect(SaveConflictResolver.resolve(local: loser, remote: winner).meta.oro == 310)
+    }
+
+    @Test("un id ya acreditado por el camino viejo no se acredita de nuevo")
+    func creditedIdIsNotDuplicated() {
+        var fresh = state(epoch: 1, earnings: 10, oro: 160)
+        fresh.meta.creditedPurchases = ["legacy"]
+        let old = state(epoch: 0, earnings: 1e9, oro: 0, purchases: ["legacy": 160])
+        #expect(SaveConflictResolver.resolve(local: fresh, remote: old).meta.oro == 160)
+
+        let winner = state(epoch: 2, earnings: 900, oro: 160)
+        var winnerCredited = winner
+        winnerCredited.meta.creditedPurchases = ["legacy"]
+        let loser = state(epoch: 2, earnings: 5, oro: 0, purchases: ["legacy": 160])
+        #expect(SaveConflictResolver.resolve(local: winnerCredited, remote: loser).meta.oro == 160)
+    }
 }

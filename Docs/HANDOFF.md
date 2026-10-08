@@ -21,20 +21,23 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-08 (cierre del relevo
-> 11): `version-2` = **`e378307`**. Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de
-> idioma de E3 y las olas B a H: **E1 T1–T15 (falta sólo T16, el cierre: el `completo --limpio` #2
-> sobre `e378307` estaba corriendo al cierre; resultado: ROJO en UI por 3 REGRESIONES reales de la ola H (se repiten aisladas sobre e378307): MenuUITests.testLosTerminosSeAbrenDesdeAjustes (el documento de Términos se dibuja vacío; pasaba aislado sobre 69a5f80 → sospecha E3b T3, NavigationStack(path:) en MenuView), BonusHUDUITests.testElCofreSeGanaSeVeYSeAbreDesdeRegalos (no encuentra debug.chest.award → sospecha E2a T14, sección nueva del panel de debug) y CharacterSheetUITests.testDespedirPideLaTarjetaDeLaCasaYNoUnaAlerta (sospecha E2a T12 o E4a T8). Todo lo demás VERDE: EK 553 · unit 782+1 · release 0 · store-unit 16 · store-ui 2 · ipad-ui 2 · pipeline 49 · pacing-sim 30,73 h / 13. E1 T16 NO cierra: primera tarea del relevo 12 = arreglar las 3 (bisecar con los merges de la ola H si la sospecha no alcanza), re-correr esas clases aisladas y después un completo --limpio sobre la punta);
-> E11 T1–T6; E3a T1–T10; E3b T1–T3; E2a T1–T14 (las mecánicas nuevas detrás de perillas en 0 = v1;
-> las carreras gratis, Juicio ganado y Obra social, y los premios en minutos ya andan);
-> E4a T1–T2 y T8; E5a T1–T3; E6a T3 y T9; E6b T1–T3 y T1r (sin skins por código)**. **Progreso: 59 de
-> 167 tareas activas integradas (35,3 %)** (`tasks.md` §2). **El `rapido` de `e378307` está VERDE**
-> (EK 553 · unit 782 + 1 · release 0); **el último `completo` de referencia es el de `528d10b`**
-> (relevo 9; UI 69/70 con el rojo flaky aislado 2/2) y el `--limpio` #1 sobre `69a5f80` dio verde con dos
-> notas (§6, §7). Detalle en `Docs/SESION-2026-10-08-v2-relevo-11-ola-h.md`.
+> 12): `version-2` = **`c94f75f`** (pusheado) y la rama de integración `v2i/integ-r12` = **`acee4d8`**
+> (suma E13 T1, con su `rapido` pendiente). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de
+> idioma de E3 y las olas B a H, más lo del relevo 12: **E1 T1–T15 (falta sólo T16, el cierre: el
+> `completo --limpio` sobre `c94f75f` quedó corriendo al cierre; su resultado está en
+> `Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md` y en `build/relevo12-completo-limpio.log` del worktree
+> `version-2`; las 3 regresiones de UI de la ola H ya están arregladas)**; E11 T1–T6; E3a T1–T10; E3b T1–T3;
+> E2a T1–T14; E4a T1–T2 y T8; E5a T1–T3; E6a T3 y T9; E6b T1–T3 y T1r; **E8 (arte) T1–T5 y T8; E12 T1 y T2;
+> E13 T1**; y `release-ops` (compras y anuncios como código). **Progreso: 68 de 210 tareas activas
+> integradas (32,4 %)** (`tasks.md` §2; el denominador subió porque E8, E12 y E13 tienen plan por tarea).
+> **El `rapido` de `c94f75f` está VERDE** (EK 556 · unit 784 + 1 · release 0); **el último `completo` de
+> referencia sigue siendo el de `528d10b`**. Detalle en `Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** ninguna con trabajo pendiente (las `v2h/*` del relevo 11
-> están todas adentro). Hay planes por tareas para
-> todas las épicas salvo E8 (el resto) y la parte de agente de E10.
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r12` (E13 T1 + docs del cierre, `rapido` pendiente).
+> `v2/e12-plan` y su worktree son de la sesión del dueño: no se tocan sin su OK. Hay planes por tareas
+> para todas las épicas salvo E8 (el lado Swift de las cinemáticas y la cadena de "Fusionar todo") y la
+> parte de agente de E10. **Lo primero del relevo 13:** el plan P-E13b (el ascensor y la barra, prioridad
+> alta del dueño).
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -344,6 +347,28 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-08 (relevo 12) — Las 3 regresiones de UI, la bandeja del dueño y tres épicas con plan
+
+`version-2` quedó en `c94f75f` (y `v2i/integ-r12` en `acee4d8`). **Progreso: 68 de 210 tareas activas integradas (32,4 %).**
+
+- **Las 3 regresiones de UI de la ola H eran reales y de dos causas:** el panel de debug es una `List`
+  perezosa y E2a T14/T12 pusieron una sección arriba de las puertas de test (cofre, ficha y especiales:
+  `402c24d`); y E3b T3 tipó el path del menú como `[Destination]`, que descarta en silencio el push de
+  los legales (`2336642`, ahora `NavigationPath`).
+- **Bandeja del dueño:** `v2/release-ops` mergeada (compras y anuncios como código, 5 IDs nuevos de AdMob,
+  la ficha de la 2.0), y cerrados los gates de AdMob, App Store Connect, batch de arte, `rentista_soles` y
+  Supabase. El switch `appOpen` prendido movió un default pineado por un test (`832a4f6`).
+- **E8 (arte):** plan de 10 tareas; entraron el rentista (T1), el alta del batch (T2), las tres familias de
+  43 (T3–T5) y los fondos a 2048 en JPEG (T8, `Backgrounds/` 38 → 9 MB).
+- **E12 (ranking):** plan de 19 tareas; entraron el backend con RLS (T2, `supabase/test.sh` 23 casos) y
+  `NameRules` con su tabla de 31 casos compartida (T1).
+- **E13 (feedback de la v1):** plan de 13 tareas; entró T1, el botón de video al primer toque
+  (`RewardedOfferButton`, revisión opus con arreglos). Los ítems 13–14 (placa colgante del ascensor y barra
+  de 5 pestañas) quedaron en el tablero como P-E13b, **prioridad alta**.
+- **Cerró sin resultado del `completo --limpio` de E1 T16** sobre `c94f75f`: quedó corriendo.
+
+Detalle en **`Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md`**.
 
 ### Sesión del 2026-10-08 (relevos 10 y 11) — La ola H: premios en minutos, carreras gratis, auto-tap y el `grant`
 
@@ -1768,6 +1793,14 @@ detalle en `Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md` §1):
   relevo 5). Sigue siendo regla que **toda acreditación pasa por
   `recordOroPurchase`**.
 
+**Decisiones del relevo 12** (2026-10-08; el detalle en
+`Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md`): las secciones nuevas del panel de debug van **debajo** de
+las puertas de test (una sola solución, la de `402c24d`); el path del menú es un `NavigationPath` y no
+`[Destination]`; los fondos van en JPEG q90 a 2048 (PSNR 35–40 dB, sin bloques a ojo); el ascensor y la barra
+de 5 pestañas (E13 ítems 13–14) mandan sobre E3a T8; E13 T1 se integra sólo a la rama de integración
+mientras el `completo` corre en `version-2`; el cinemático y la cadena de "Fusionar todo" van a un
+planificador opus cada uno.
+
 **Decisiones del relevo 11** (2026-10-08; el detalle en
 `Docs/SESION-2026-10-08-v2-relevo-11-ola-h.md`): reescribir `AchievementEngineTests.coinRewardKeepsItsHistoricFloor`
 (ahora `...HistoryCapped`) fue legítimo, el tope de `RewardScale` lo exige; el día 7 del diario paga
@@ -2182,6 +2215,11 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
   en `af3acde` (2026-10-07, relevo 4): **el pipeline ya no tiene rojo
   declarado**, así que cualquier rojo suyo es nuevo.
 
+**Línea de base del relevo 12: el `rapido` #2 sobre `c94f75f`** (2026-10-08): EK 556 · unit 784 + 1
+declarado · release 0, VERDE. Las 3 regresiones de UI del #2 del relevo 11 están arregladas (`402c24d`,
+`2336642`). El `completo --limpio` sobre `c94f75f` (E1 T16) quedó corriendo al cierre: su resultado, en
+`Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md`. E13 T1 (`acee4d8`) tiene su tarea verde pero no el `rapido`.
+
 **Línea de base del relevo 11: el `rapido` sobre `e378307`** (2026-10-08): EK 553 · unit 782 + 1 ·
 release 0, VERDE. El `completo --limpio` #1 sobre `69a5f80`: unit 760 + 1 · Store 16 · StoreUI 2 · iPad UI
 2 · pipeline 49 · pacing-sim VERDES; EK 543 tras `swift package clean`; UI 69/70 (`MenuUITests` flaky,
@@ -2540,6 +2578,23 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la ola I (2026-10-08, relevo 12)
+
+- **Una `List` perezosa esconde las puertas de test.** Una sección nueva arriba en `DebugPanelView` empujó
+  `debug.chest.award`, `debug.sheet.open` y las de especiales bajo el pliegue: tres clases de UI rojas por
+  una sola sección, y cero rojos en unit. Las puertas de test van arriba; lo nuevo, abajo.
+- **`NavigationStack(path: [Destination])` descarta en silencio un push de otro tipo**: el documento de
+  Términos se dibujaba vacío, sin error. Con más de un tipo de valor, el path es un `NavigationPath`.
+- **`find` + `pipefail` en un checkout limpio**: sin `supabase/functions/` el oráculo del backend termina con
+  exit 1 y sin una línea de salida (`9c26baa`). Un exit 1 mudo del oráculo se mira en un clon limpio.
+- **Carga de máquina de 300–600 por sesiones paralelas → flakes de UI** (`MenuUITests.openMenu` pasa su
+  timeout de 10 s; `BonusHUDUITests.testTwoBonusesShowAtTheSameTime` falla 1/3). Aislar la clase ×2 con la
+  máquina en calma antes de declarar regresión.
+- **Un switch remoto que cambia un default pineado por un test:** prender `switches.appOpen` dejó rojo
+  `NaturalBreakPolicyTests.valuesComeFromTheRemoteConfig`. Quien prenda un switch corre las clases de config
+  de anuncios.
+- **Dos arreglos al mismo archivo del mismo bug:** elegir uno antes de integrar y descartar el otro.
 
 ### De la ola H (2026-10-08, relevos 10 y 11)
 
@@ -4250,6 +4305,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-07-v2-relevo-8-ola-f.md`**: el relevo 8.
 - **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**: el relevo 9.
 - **`Docs/SESION-2026-10-08-v2-relevo-11-ola-h.md`**: los relevos 10 y 11 (la ola H).
+- **`Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md`**: el relevo 12 (las 3 regresiones de UI, la bandeja del dueño, E8/E12/E13 con plan y el cierre sin resultado del `completo`).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

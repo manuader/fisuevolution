@@ -14,8 +14,10 @@ extension GameState {
             isSceneActive = false
             if new == .background { settleAllPendingBoardChanges() } else { settlePrepaidBoardChanges() }
             seal(now: now, stamping: wasActive)
+            if new == .background { scheduleNotificationsForAbsence(now: now) }
         case (_, .active):
             isSceneActive = true
+            clearNotificationsOnReturn()
             guard phase == .ready else { return }
             // El tiempo en background NO es tiempo de juego: reiniciar la gracia
             // evita que volver después de horas te reciba con un interstitial.

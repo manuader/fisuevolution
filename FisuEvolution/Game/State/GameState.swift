@@ -310,6 +310,11 @@ final class GameState {
     @ObservationIgnored var saveTask: Task<Void, Never>?
     /// `beginBackgroundTask` detrás de un protocolo; lo usa `+Lifecycle`.
     @ObservationIgnored var backgroundTasks: (any BackgroundTaskRunning)?
+    /// Las notificaciones locales (E11): las programa el sellado al irse y las
+    /// borra la vuelta. `nil` en los tests que no las piden.
+    @ObservationIgnored var notifications: NotificationsManager?
+    /// El último trabajo con el manager, para que los tests lo esperen.
+    @ObservationIgnored var notificationsTask: Task<Void, Never>?
     /// Falso desde que la app deja `.active` hasta que vuelve: en ese tramo el
     /// tick no cobra (lo paga el offline), el flush no arma nada y el sello de la
     /// salida no se corre.

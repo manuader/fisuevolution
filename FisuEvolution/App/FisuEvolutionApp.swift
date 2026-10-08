@@ -7,8 +7,8 @@ struct FisuEvolutionApp: App {
     @State private var gameCenter = GameCenterManager()
     @State private var haptics = HapticsManager()
     @State private var audio = AudioManager()
-    /// El recordatorio diario de Ajustes (T16). No pide permiso al arrancar —lo
-    /// pide el toggle— así que construirlo acá no le muestra un diálogo a nadie.
+    /// Los avisos de la ausencia (E11). Construirlo no pide permiso: el provisional
+    /// sale al cerrar el núcleo del tutorial y el completo, de la tarjeta del popup offline.
     @State private var notifications = NotificationsManager()
     /// Los anuncios. Se construye acá y NO en `RootView` porque elegir entre el
     /// stub y AdMob necesita los feature flags, que recién existen después de
@@ -77,5 +77,7 @@ struct FisuEvolutionApp: App {
                 removedAds: gameState.player?.meta.removedAds ?? false
             )
         }
+        gameState.attachNotifications(notifications)
+        await gameState.notificationsLaunched()
     }
 }

@@ -21,6 +21,8 @@ struct MenuView: View {
     /// Para el puntito de logros cobrables en la tarjeta de Logros (el mismo
     /// que trae al jugador desde el tab Menú).
     @Environment(GameState.self) private var gameState
+    @Environment(\.menuPager) private var pager
+    @State private var path: [Destination] = []
 
     /// Margen lateral del contenido de las CUATRO pantallas del menú. Desde el
     /// rediseño v3 el marco es `WoodPanelBackground` —geometría propia, no un
@@ -42,7 +44,7 @@ struct MenuView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 // Cuatro tarjetas contadas: `VStack` de dos filas y no
                 // `LazyVGrid`. La grilla perezosa no aporta nada con cuatro
@@ -90,8 +92,13 @@ struct MenuView: View {
                 // Empujada, la vista pierde el telón transparente de la hoja:
                 // sin esto la franja de abajo se ve blanca y no el juego.
                 .clearNavigationBackdrop()
+                // Las empujadas no son páginas: sin flechas ni puntos.
+                .environment(\.menuPager, nil)
             }
         }
+        // Con Ajustes o Legales empujados, deslizar es "volver" y no "otra
+        // pestaña": el paginador se bloquea hasta que la pila se vacía.
+        .onChange(of: path.isEmpty) { _, isEmpty in pager?.lock(!isEmpty) }
         // El chevron de "atrás" es de sistema y de fábrica sale azul: contra el
         // crema y la tinta del resto del juego, es el único elemento que se ve
         // de otra app.

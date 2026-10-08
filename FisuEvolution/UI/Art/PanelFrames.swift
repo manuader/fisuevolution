@@ -181,9 +181,11 @@ private struct PanelSheetLayout<Header: View, Ornament: View>: ViewModifier {
     /// plano del FONDO, detrás del contenido, anclada al tope del panel.
     let ornament: Ornament
 
+    @Environment(\.menuPager) private var pager
+
     func body(content: Content) -> some View {
         VStack(spacing: 0) {
-            header
+            pagedHeader
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, WoodPanelBackground.columnInset)
                 .padding(.top, WoodPanelBackground.headerTopInset(awning: awning))
@@ -197,6 +199,12 @@ private struct PanelSheetLayout<Header: View, Ornament: View>: ViewModifier {
                 WoodPanelBackground(material: material, awning: awning)
                 ornament
             }
+            .overlay(alignment: .bottom) {
+                if let pager {
+                    PagerDots(index: pager.index, count: pager.count)
+                        .padding(.bottom, PagerDots.bandInset)
+                }
+            }
             // La sombra del panel flotando sobre el juego: sin el material del
             // sheet del sistema, la profundidad la pone el propio panel.
             .shadow(color: .black.opacity(0.30), radius: 16, y: 6)
@@ -206,6 +214,27 @@ private struct PanelSheetLayout<Header: View, Ornament: View>: ViewModifier {
         // que es lo que deja la banda inferior a la vista.
         .ignoresSafeArea(edges: .top)
         .frame(maxWidth: SheetColumn.maxWidth)
+    }
+
+    /// Con un paginador en el entorno, las flechas ‹ › van en el renglón del
+    /// título; sin él, la cabecera de siempre.
+    @ViewBuilder private var pagedHeader: some View {
+        if let pager {
+            HStack(spacing: Tokens.s8) {
+                PagerChevronButton(direction: .previous, identifier: "menu.pager.previous") {
+                    pager.go(pager.index - 1)
+                }
+                .disabled(pager.index == 0)
+                header
+                    .frame(maxWidth: .infinity)
+                PagerChevronButton(direction: .next, identifier: "menu.pager.next") {
+                    pager.go(pager.index + 1)
+                }
+                .disabled(pager.index >= pager.count - 1)
+            }
+        } else {
+            header
+        }
     }
 
     /// El fundido que hace que las tarjetas SALGAN de adentro del panel en vez

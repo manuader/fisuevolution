@@ -21,16 +21,19 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-08 (cierre del relevo
-> 9): `version-2` = **`8cf4e73`**. Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de
-> idioma de E3 y las olas B a G: **E1 T1–T15 (falta sólo T16, el cierre: dos `completo --limpio`);
-> E11 T1–T6; E3a T1–T10; E3b T1–T2; E2a T1–T10 (las mecánicas nuevas detrás de perillas en 0 = v1);
-> E4a T1–T2; E5a T1–T3; E6a T9; E6b T1–T3 y T1r (sin skins por código)**. **Progreso: 52 de 167
-> tareas activas integradas (31,1 %)** (`tasks.md` §2). **El último `completo` de referencia es el
-> de `528d10b`** (relevo 9; EK 508 · unit 724 + 1 · Store 16 · UI 69/70 con el rojo flaky aislado 2/2 ·
-> `StoreUITests` 2 · pipeline 49/0 · `pacing-sim` 30,73 h / 13, igual · Release 0). Detalle y
-> `rapido` de cierre en `Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`.
+> 11): `version-2` = **`e378307`**. Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de
+> idioma de E3 y las olas B a H: **E1 T1–T15 (falta sólo T16, el cierre: el `completo --limpio` #2
+> sobre `e378307` estaba corriendo al cierre; resultado: ROJO en UI por 3 REGRESIONES reales de la ola H (se repiten aisladas sobre e378307): MenuUITests.testLosTerminosSeAbrenDesdeAjustes (el documento de Términos se dibuja vacío; pasaba aislado sobre 69a5f80 → sospecha E3b T3, NavigationStack(path:) en MenuView), BonusHUDUITests.testElCofreSeGanaSeVeYSeAbreDesdeRegalos (no encuentra debug.chest.award → sospecha E2a T14, sección nueva del panel de debug) y CharacterSheetUITests.testDespedirPideLaTarjetaDeLaCasaYNoUnaAlerta (sospecha E2a T12 o E4a T8). Todo lo demás VERDE: EK 553 · unit 782+1 · release 0 · store-unit 16 · store-ui 2 · ipad-ui 2 · pipeline 49 · pacing-sim 30,73 h / 13. E1 T16 NO cierra: primera tarea del relevo 12 = arreglar las 3 (bisecar con los merges de la ola H si la sospecha no alcanza), re-correr esas clases aisladas y después un completo --limpio sobre la punta);
+> E11 T1–T6; E3a T1–T10; E3b T1–T3; E2a T1–T14 (las mecánicas nuevas detrás de perillas en 0 = v1;
+> las carreras gratis, Juicio ganado y Obra social, y los premios en minutos ya andan);
+> E4a T1–T2 y T8; E5a T1–T3; E6a T3 y T9; E6b T1–T3 y T1r (sin skins por código)**. **Progreso: 59 de
+> 167 tareas activas integradas (35,3 %)** (`tasks.md` §2). **El `rapido` de `e378307` está VERDE**
+> (EK 553 · unit 782 + 1 · release 0); **el último `completo` de referencia es el de `528d10b`**
+> (relevo 9; UI 69/70 con el rojo flaky aislado 2/2) y el `--limpio` #1 sobre `69a5f80` dio verde con dos
+> notas (§6, §7). Detalle en `Docs/SESION-2026-10-08-v2-relevo-11-ola-h.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** ninguna con trabajo pendiente. Hay planes por tareas para
+> 🌿 **Ramas sin mergear a `version-2`:** ninguna con trabajo pendiente (las `v2h/*` del relevo 11
+> están todas adentro). Hay planes por tareas para
 > todas las épicas salvo E8 (el resto) y la parte de agente de E10.
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
@@ -341,6 +344,25 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-08 (relevos 10 y 11) — La ola H: premios en minutos, carreras gratis, auto-tap y el `grant`
+
+`version-2` quedó en `e378307`. **Progreso: 59 de 167 tareas activas integradas (35,3 %).**
+
+- **El relevo 10 quedó vivo pero invisible**: el dueño borró la rutina `fisu-v2-relevo-b` y el scheduler
+  archivó la sesión que ella había lanzado, que siguió con el `LOCK`. El dueño ordenó matarla; sus
+  oráculos murieron con ella y sus dos agentes habían dejado E2a T11 y E3b T3 sin commitear: el relevo
+  11 los retomó.
+- **Entraron** E3b T3 (las piezas del menú deslizable), E4a T8 (el `grant` único y el momento calmo, sin
+  llamadores todavía), E2a T11 (diario, asado y logros en minutos), T12 (las carreras: contrataciones
+  gratis, Juicio ganado, Obra social), T13 (pisos en marcha en el mapa), T14 (el panel de debug de la
+  economía) y E6a T3 (el auto-tap, sin llamadores). T11, T12 y E6a T3 pasaron por revisión opus porque
+  mueven plata; volvieron aprobadas, T11 y T12 con arreglos.
+- El `completo --limpio` #1 de E1 T16 dio verde: EK necesitó `swift package clean` (la mudanza a
+  `.nosync` dejó rutas viejas en el `ModuleCache`) y `MenuUITests` fue flaky de carga (aislada 7/7 ×2).
+  El #2 sobre `e378307` quedó corriendo.
+
+Detalle en **`Docs/SESION-2026-10-08-v2-relevo-11-ola-h.md`**.
 
 ### Sesión del 2026-10-07 (relevo 8) — La ola F: el primer `completo` verde desde la ola B, el embudo de E1 y lo pagado que no se pierde
 
@@ -1746,6 +1768,14 @@ detalle en `Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md` §1):
   relevo 5). Sigue siendo regla que **toda acreditación pasa por
   `recordOroPurchase`**.
 
+**Decisiones del relevo 11** (2026-10-08; el detalle en
+`Docs/SESION-2026-10-08-v2-relevo-11-ola-h.md`): reescribir `AchievementEngineTests.coinRewardKeepsItsHistoricFloor`
+(ahora `...HistoryCapped`) fue legítimo, el tope de `RewardScale` lo exige; el día 7 del diario paga
+15 minutos exactos; contratar gratis atraviesa el Corralito (anotado); el Médico y la inmunidad se
+cablean a `eventIsApplicable` con criterio `!isBuff` hasta que E4a lo reconcilie; sin
+`Agent(isolation: "worktree")` mientras `.claude/worktrees` sea un symlink (worktrees manuales en
+`worktrees.nosync/`); el worktree de cada tarea se borra al integrarla.
+
 **Decisiones del relevo 9** (2026-10-08; el detalle en
 `Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`): ninguna skin hecha por código entra a la 2.0 (el
 dueño); contratar gratis sigue permitido durante el Corralito y la UI lo muestra; la salida por
@@ -2152,6 +2182,12 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
   en `af3acde` (2026-10-07, relevo 4): **el pipeline ya no tiene rojo
   declarado**, así que cualquier rojo suyo es nuevo.
 
+**Línea de base del relevo 11: el `rapido` sobre `e378307`** (2026-10-08): EK 553 · unit 782 + 1 ·
+release 0, VERDE. El `completo --limpio` #1 sobre `69a5f80`: unit 760 + 1 · Store 16 · StoreUI 2 · iPad UI
+2 · pipeline 49 · pacing-sim VERDES; EK 543 tras `swift package clean`; UI 69/70 (`MenuUITests` flaky,
+aislada 7/7 ×2). El #2 sobre `e378307`: ROJO en UI por 3 REGRESIONES reales de la ola H (se repiten aisladas sobre e378307): MenuUITests.testLosTerminosSeAbrenDesdeAjustes (el documento de Términos se dibuja vacío; pasaba aislado sobre 69a5f80 → sospecha E3b T3, NavigationStack(path:) en MenuView), BonusHUDUITests.testElCofreSeGanaSeVeYSeAbreDesdeRegalos (no encuentra debug.chest.award → sospecha E2a T14, sección nueva del panel de debug) y CharacterSheetUITests.testDespedirPideLaTarjetaDeLaCasaYNoUnaAlerta (sospecha E2a T12 o E4a T8). Todo lo demás VERDE: EK 553 · unit 782+1 · release 0 · store-unit 16 · store-ui 2 · ipad-ui 2 · pipeline 49 · pacing-sim 30,73 h / 13. E1 T16 NO cierra: primera tarea del relevo 12 = arreglar las 3 (bisecar con los merges de la ola H si la sospecha no alcanza), re-correr esas clases aisladas y después un completo --limpio sobre la punta. La referencia completa sigue siendo la de
+abajo hasta que el #2 la reemplace.
+
 **Línea de base nueva: el `completo` sobre `528d10b`** (2026-10-08, relevo 9): EK 508 · unit
 724 + 1 · Store 16 · `StoreUITests` 2 · pipeline 49/0 · `pacing-sim` 30,73 h / 13 (igual) · Release
 0 · UI 69/70: `CustomizationUITests.testSinPrecioLaSkinPagaNoDiceQueNoEstaALaVenta` cayó bajo carga
@@ -2503,6 +2539,21 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la ola H (2026-10-08, relevos 10 y 11)
+
+- **El `ModuleCache` de SwiftPM guarda rutas absolutas**: tras mover los worktrees a `*.nosync`,
+  `swift-frontend` crashea con signal 11 (`_DarwinFoundation1 defined in both`). No es código:
+  `swift package clean` en cada worktree movido.
+- **`Agent(isolation: "worktree")` falla** porque `.claude/worktrees` es un symlink: el controlador arma
+  los worktrees (`worktrees.nosync/v2h-<tarea>`, rama `v2h/<tarea>`) y despacha sin `isolation`.
+- **El clasificador de auto mode bloquea `xcrun simctl delete`** de simuladores ajenos: quedan apagados
+  `oraculo-26-5-84457/86209/86390`; los borra el dueño.
+- **Borrar una rutina archiva su sesión de run sin matar el proceso**: queda un controlador vivo e
+  invisible con el `LOCK`. Antes de borrar una rutina, mirar el `LOCK` y su latido.
+- **Matar una sesión mata sus oráculos**: lanzarlos en su propio grupo de procesos y con el log a disco.
+- **Integrar en serie lo que toca `EffectContractTests`, `ActiveModifier` o el enum `Effect`**: E2a T12
+  y E6a T3 chocaron y se resolvió a mano conservando ambos lados.
 
 ### De la ola G (2026-10-08, relevo 9)
 
@@ -4197,6 +4248,7 @@ Anotado por si algún día importa, con su medición:
   - §6, los gates humanos y las dudas con default de cada plan.
 - **`Docs/SESION-2026-10-07-v2-relevo-8-ola-f.md`**: el relevo 8.
 - **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**: el relevo 9.
+- **`Docs/SESION-2026-10-08-v2-relevo-11-ola-h.md`**: los relevos 10 y 11 (la ola H).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

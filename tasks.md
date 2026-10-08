@@ -517,7 +517,7 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | P-E8 | Plan de E8 integración de arte | ✅ | — | — | `dec80f9` | 10 tareas; `2026-10-08-v2-e8-integracion-arte.md`; 13 dudas con default |
-| E8-T1 | El rentista con soles sólidos | ⏳ | — | `cosmic.atlas`, `recut_assets.py` | | pipeline; cierra el gate `rentista_soles` de §6 y libera el worktree `v2-e8-pipeline`; no mueve plata |
+| E8-T1 | El rentista con soles sólidos | ✅ | — | `cosmic.atlas`, `recut_assets.py` | `6dae6b2` (merge `e0d683d`) | pipeline; cierra el gate `rentista_soles` de §6 y libera el worktree `v2-e8-pipeline`; no mueve plata; hueco 0,0025 %, alfa de los soles 0,956–0,996, manifest sin cambios |
 | E8-T2 | El alta del batch (`prompts.json`) y las reglas de export | ⏳ | — | `prompts.json`, `process_dropbox.py` | | pipeline; crea `traer_tanda.py`; revisión sonnet |
 | E8-T3 | Familia Pijama (43) | ⛔ | T2 | `fam_pijama.atlas` | | pipeline, no compila; ∥ T4, T5 y cualquiera; destraba (con T4, T5) el arte de E6b T9 |
 | E8-T4 | Familia Gaucho (43) | ⛔ | T2 | `fam_gaucho.atlas` | | ídem |
@@ -625,7 +625,7 @@ Fase A (T1–T4) tras E2a T15, EK puro ∥ E4–E7; fase B en paralelo con E9 y 
 | Productos en App Store Connect | las 3 ofertas, los packs reescalados, las localizaciones es-MX/es-ES/en-US de los 11 existentes | E10 (el desarrollo usa el `.storekit` local) | ✅ salvo capturas (2026-10-08): 14 IAP configuradas, `asc diff` VERDE; `oro_large` a USD 9.99 (OK del dueño). Queda: las capturas de revisión de las 3 ofertas cuando exista la hoja (E6a T11): `releaseops asc screenshot offer_<id> <png>` → `asc ready`. Auditoría: `Distribution/release/AUDITORIA-2026-10-08.md` |
 | Playtest de precios | probar las variantes (g, r) y el amortiguador en el panel de debug | E2b (qué variante se calibra); necesita E2a T14 | ⛔ hasta E2a T14 |
 | TestFlight | 1–2 días de playtest con anuncios reales y compras en sandbox | mandar a revisión | ⛔ hasta E10 |
-| `rentista_soles` | elegir: dejarlo, conectividad con halos, o regenerar los soles | ninguna tarea; **no borrar el worktree `v2-e8-pipeline`** | ✅ decidido: regenerado con soles sólidos (`automatic-image-generation/projects/fisu-retoques/output/rentista_soles.png`). Falta integrarlo al atlas del piso Solar y sacarlo de `RECORTE_VIEJO_A_PEDIDO`; después se borra el worktree `v2-e8-pipeline` |
+| `rentista_soles` | elegir: dejarlo, conectividad con halos, o regenerar los soles | ninguna tarea; **no borrar el worktree `v2-e8-pipeline`** | ✅ integrado (E8 T1, relevo 12): soles sólidos en `cosmic.atlas`, fuera de `RECORTE_VIEJO_A_PEDIDO`. El worktree `v2-e8-pipeline` ya no existe (lo barrió el mantenimiento del dueño) |
 | 4 filas en el SE | decidir si la fila de atrás no entra (escalón de `crowdTopRatio`, sprites más chicos o sólo pantallas grandes) | E6b T7, sólo si la medición falla | ⛔ |
 | Peso de las familias | On-Demand Resources si el bundle crece > 60 MB | E6b T9, sólo si pasa | ⛔ |
 

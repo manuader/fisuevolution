@@ -14,6 +14,21 @@ extension GameState {
         Log.economy.info("board change planned: \(change.origin.rawValue)")
     }
 
+    /// "Fusionar todo" (PLAN-v2 §2): encola todos los pares del piso como
+    /// cambios del tablero, en el orden en que se funden; cada uno se juega en
+    /// su turno y un tier nuevo se revela como siempre. Devuelve cuántos. E6
+    /// (por ORO) y E7b (por video) lo llaman con su propio origen.
+    @discardableResult
+    func enqueueMergeAll(onFloor ordinal: Int, origin: BoardChange.Origin) -> Int {
+        guard let content, let player, let tower else { return 0 }
+        let plan = BoardChangePlanner.planMergeAll(
+            floorOrdinal: ordinal, state: player, tower: tower, tiers: content.tiers,
+            floorTable: content.floorTable, config: content.economy, origin: origin
+        )
+        plan.forEach(enqueueBoardChange)
+        return plan.count
+    }
+
     func floorOrdinal(of change: BoardChange) -> Int? {
         guard let content else { return nil }
         return change.floorOrdinal(floorTable: content.floorTable, tiers: content.tiers)

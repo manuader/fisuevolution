@@ -344,6 +344,7 @@ planes, y se corre de a uno lo que se pisa. **Las olas reales y la cola viven en
 | P2 | Música por zona | E8 (un tema por piso) |
 | P3 | Splash sin logo, tips sin traducir, arte calado | E3 + E8 |
 | 20 | Notificaciones push prendidas por defecto y desactivables (2026-10-06) | E11 (+ E9 Ajustes y Tour, E5 ruleta) |
+| 21 | Ranking global de la llegada a Dios, con nombre moderado y backend propio (2026-10-08) | E12 (+ E9 reset, E3 menú, E10 App Privacy) |
 
 ```
 E0 Preparación
@@ -358,6 +359,7 @@ E0 Preparación
                └─ E6 Tienda de ORO + IAP + skins
                     └─ E7b Ubicaciones de anuncios + columna lateral + Vendedor
                          └─ E9 Tutorial v2 + Tour de novedades + Ajustes
+                              ├─ E12 Ranking de la llegada a Dios       (Supabase + moderación; cuelga del reset de E9b T8)
                               └─ E2b Calibración final de pacing + contrato
                                    └─ E10 Release: doc ASC/AdMob, capturas, archive, TestFlight
 ```
@@ -1237,6 +1239,51 @@ por defecto**. El permiso se pide al prender el toggle de Ajustes (`settings.not
 - **Orden**: el plan y el núcleo (catálogo, planner, manager, Ajustes y tarjeta) van en paralelo con
   E1; el cableado al ciclo de vida, después de E1 T8.
 
+### E12 — Ranking de la llegada a Dios (pedido del dueño, 2026-10-08)
+
+**Diseño completo**: `Docs/superpowers/specs/2026-10-08-v2-e12-ranking-design.md`. Las decisiones
+del dueño de ese documento son cerradas.
+
+**Hoy** la app no tiene backend propio y Game Center está apagado por flag. La 2.0 suma un ranking
+que todos ven: quiénes llegaron a Dios y cuánto tardaron. El más rápido va primero, y querer entrar
+empuja anuncios y tienda.
+
+- **Qué se mide**: el **tiempo real** desde el inicio de la partida hasta Dios, con el **reloj del
+  servidor** (adelantar el reloj del teléfono no sirve). Al lado, el **tiempo jugado** (app en
+  pantalla), que sólo se muestra.
+- **Cuándo arranca**: con cada partida nueva, al terminar el núcleo del tutorial y al confirmar el
+  reset de la Zona de peligro (E9b T8). Las partidas anteriores a la 2.0 no entran: para competir,
+  se resetea.
+- **Al llegar a Dios**, después de la cinemática: tarjeta con el nombre (1–15 caracteres; sólo
+  letras, dígitos, espacio, `.`, `-`, `_`; los demás no se pueden escribir). Sin red queda pendiente
+  y se reintenta solo.
+- **Pestaña "Ranking"** en el menú deslizable: top 100 con la mejor partida de cada jugador, la
+  fila propia siempre visible, "Mis partidas", "Reportar" y el gancho "Tu partida: 12 h — el #10 lo
+  hizo en 28 h" con acceso a la Tienda.
+- **Backend: Supabase.** Tablas `players`, `runs`, `reports`, `blocklist` con RLS (el cliente sólo
+  lee la vista `leaderboard`) y cuatro Edge Functions: `start-run`, `finish-run`, `leaderboard`,
+  `report`. Identidad anónima por instalación (UUID en el Keychain), sin login.
+- **Moderación** en `finish-run`: reglas de entrada → lista de palabras (con sustituciones tipo
+  "b0lud0") → **Claude Haiku**. Haiku caído: la partida se guarda como "Anónimo" y se re-modera.
+  3 reportes: "Anónimo" hasta que el dueño revise.
+- **Seguridad del nombre**: la misma lista permitida en la app (`NameRules`, EconomyKit) y en el
+  servidor (manda el servidor), consultas parametrizadas y `Text` plano en la UI.
+- **Anti-trampa**: reloj del servidor, una partida activa por jugador, límite de llamadas y un piso
+  de plausibilidad (`minRealSecondsToGod`, remoto; lo fija E2b): lo más rápido queda en revisión
+  del dueño.
+- **Interruptor remoto** `ranking.enabled`. Bajo `--uitest*` y XCTest, cliente simulado.
+- **Tests**: la misma tabla de casos de nombre (inyecciones SQL/HTML/script, emojis, invisibles,
+  16+) en `NameRulesTests` y en las funciones; tests Deno de tiempos, piso, Haiku caído y reportes;
+  `RankingStoreTests`; UI tests de la tarjeta y la pestaña; la familia `ranking.*` en es + en.
+- **E10**: App Privacy declara un identificador del dispositivo y contenido de usuario sin vínculo
+  a la identidad; los Términos suman la regla de nombres y el contacto de reportes; las notas a
+  App Review explican moderación, reporte y ocultación (guía 1.2).
+- **🔒 Dueño**: proyecto de Supabase (URL + clave anónima), `ANTHROPIC_API_KEY` como secreto de
+  Supabase, lista de palabras inicial, revisión de partidas en `review` y de nombres reportados.
+- **Orden**: el plan por tareas lo hace un planificador. `NameRules`, el backend y el cliente van
+  en paralelo con el resto; la tarjeta y la pestaña, después de E3 (menú) y E1 (save v6); el
+  arranque por reset, después de E9b T8. Termina antes de E2b (que fija el piso) y E10.
+
 ### Anexo A — Guiones de visitantes y frases de eventos (propuesta para aprobar)
 
 `S(n)` = n segundos de producción real. "×2 video" = el premio se duplica mirando un video.
@@ -1413,7 +1460,7 @@ establecida** (FisuJobs, materiales v3, paleta e iconografía del juego).
 - La **memecoin Fisu Coin** (proyecto aparte, con asesoría legal).
 - El **script de Selenium que automatice App Store Connect y AdMob**: queda anotado como trabajo
   futuro, y su insumo va a ser el doc de configuración de la épica E10.
-- Game Center e iCloud (siguen apagados por flag).
+- Game Center e iCloud (siguen apagados por flag). El ranking de la 2.0 es propio (E12, Supabase).
 - El iPad en horizontal.
 - Los videos publicitarios para redes (próxima etapa).
 

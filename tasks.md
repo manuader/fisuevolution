@@ -303,7 +303,7 @@ que toma · commit o rama · nota.
 | E1-T11 | El sorteo de eventos salta lo inaplicable | ✅ | T7; T8 integrada | 🔥 ContentSystems, +Bonus; ContentConfigs, events.json | `70f216f` (merge `b09b4c4`) | el plan la pone ∥ T10; por archivos también va ∥ T9 (no acorta el camino crítico) |
 | E1-T12 | Startup, Blanqueo, videos y carrera por el embudo | ✅ | T9, T10, T11 | 🔥 ContentSystems, +Bonus, GameState; +Actions, +Debug | `7febd2b` + `c355f14` + `664f3cc` (merge `5fafaf4`) | en `.inactive` se asienta lo pagado (videos, carrera; también en vuelo); el resto en `.background`. E2a T3/T4 pasaron a después de T14|
 | E1-T13 | El Corralito congela el gasto, con salida por video | ✅ | T12 | 🔥 TowerActions, ContentSystems, +Bonus, GameState, RootView, catálogo; +Hiring, +Actions, ContentConfigs | `d838fdb` + arreglos `8adab56` (merge `9a641c7`) | revisión opus + arreglos (precarga del video, UI coherente con contratar gratis, UpgradeManager, pill debajo en el SE); M5 → E4 |
-| E1-T14 | Un video sin efecto no gasta el cooldown | 🔄 | T9–T13 | 🔥 +Bonus, GameState, RootView, catálogo; +BoardChanges, +Achievements | | en vuelo (relevo 9, BASE `9a641c7`) |
+| E1-T14 | Un video sin efecto no gasta el cooldown | 🔧 | T9–T13 | 🔥 +Bonus, GameState, RootView, catálogo; +BoardChanges, +Achievements | `36885a3` en `worktree-agent-a6c2ce9e9e72e37af` (BASE `9a641c7`) | revisión opus (plata) en vuelo; claves `e1-t14.json` |
 | E1-T15 | `EffectContractTests` | ⛔ | T1–T14 | ActiveModifier, ContentConfigs, AdsProvider | | si E2a T4 entró, la fila `.tapMultiplier` pasa `tiers:` |
 | E1-T16 | Cierre de E1 (controlador) | ⛔ | T1–T15, T5c, T6c | `Docs/` | | `completo --limpio` ×2; pacing-sim sin cambios |
 
@@ -331,7 +331,7 @@ que toma · commit o rama · nota.
 | E3a-T6 | Hojas y popups en iPad (`fisuSheet`) | ✅ | T4, T5 | PanelFrames, 8 popups, HUDView, OfflineEarningsView | `428f55f` (merge `2087d71`) + RootView `60af174` | quedan 2 `.sheet` a propósito en RootView (share, debug) |
 | E3a-T7 | La barra de abajo más baja, Contratar al centro | ✅ | T4 | GameArtComponents, BottomMenuBar | `c6a4a90` (merge `9eeb9eb`) | carry T10: `BoardScene.bottomInset` → `panelHeight` (64)|
 | E3a-T8 | La botonera del ascensor | ✅ | T6 | catálogo (o snapshot); PanelFrames, HUDView, AudioManager | `aae3a7f` + claves `f9207c2` (merge `9eeb9eb`) | carry T12: en DEBUG el display tapa el chip ×1,0; medir SE|
-| E3a-T9 | Las pestañas aparecen de a poco | 🔄 | T7; E1-T4; ventana de GameState | 🔥 GameState, catálogo; +Debug, GameContentLoader | | en vuelo (relevo 9, BASE `2408acc`) |
+| E3a-T9 | Las pestañas aparecen de a poco | ✅ | T7; E1-T4; ventana de GameState | 🔥 GameState, catálogo; +Debug, GameContentLoader | `02ee23b` (merge `c76af46`, claves `528d10b`) | carry T12: captura del ¡Nuevo! y SE con 4 pestañas; carry E9: lecciones sobre pestañas cerradas |
 | E3a-T10 | La escena: PlayLayout, 3 filas, cámara, iPad | ⛔ | T3, T7, T8; E1-T10 | 🔥 BoardScene, GameState, RootView; `oraculo.sh` | | carries: `ScreenInsetsUITests` al `ipad-ui` (iPad Pro 13", sin tocar `rojos-declarados.txt`); si se puede, saltear los especiales (E4b T9 los borra) |
 | E3a-T11 | La raíz: chrome en la columna, seis hojas | ⛔ | T6, T10 | 🔥 RootView | | no con E1 T13–T14 |
 | E3a-T12 | Cierre de E3a: SE en castellano, capturas de iPad | ⛔ | T1–T11 | `oraculo.sh` | | carries: `ScreenInsetsUITests` al `se-ui`; fijar Xcode 26.x como SDK del release (el SDK 27 ignora `UIRequiresFullScreen`) |
@@ -438,7 +438,7 @@ que toma · commit o rama · nota.
 | E6a-T6 | Comprar en la tienda | ⛔ | T4, T5; E2a-T14; E1-T14; E5a-T1, E5a-T3, E5a-T6, E5a-T8 | BoardChange.swift, +BoardChanges | | |
 | E6a-T7 | La suerte: probabilidades | ⛔ | T6; E5a-T1, E5a-T8; E1-T6 | StoreManager | | sale con E1 T6c adentro |
 | E6a-T8 | La pantalla "Comprar ORO / Gastar ORO" | ⛔ | T6, T7; E3b-T4; E5b-T1; E5a-T8 | catálogo (dueña); StoreView | | |
-| E6a-T9 | Los packs 160 / 550 / 1.400 | ⏳ | E1-T6; E2a-T7 | products.json, StoreManagerTests | | deps listas; cupo libre |
+| E6a-T9 | Los packs 160 / 550 / 1.400 | 🔄 | E1-T6; E2a-T7 | products.json, StoreManagerTests | | en vuelo (relevo 9, BASE `9c5df1e`) |
 | E6a-T10 | Las ofertas de 24 h, puras | ⛔ | T1; E4a-T1 | — | | |
 | E6a-T11 | Las ofertas se cobran | ⛔ | T9, T10; E4a-T8; E2a-T7; E5a-T6 | catálogo (snapshot); products.json, +Store | | con T6c: por `recordOroPurchase`, no `+=` |
 | E6a-T12 | Las ofertas se ven | ⛔ | T7, T8, T11; E5a-T8; E4b-T3; E3a-T6; E5b-T1, E5b-T2 | 🔥 RootView, catálogo; CelebrationQueue, +Celebrations | | |
@@ -451,7 +451,7 @@ que toma · commit o rama · nota.
 | E6b-T1 | Los 8 efectos, por código | ✅ | — | — | `f9cd4b9` (merge `15318a0`) | |
 | E6b-T2 | La galería de los 8 efectos (→ 🔒 dueño) | ✅ | T1 | DebugPanelView | `d3c0889` (merge `15318a0`) | el dueño no aprobó ningún efecto → se borra en T1r |
 | E6b-T3 | `skins.json` v2 (EK) | ✅ | T1 | GameContentLoader | `2ba7c2e` (merge `e27efb1`) | el caso `.effect` se quita en T1r |
-| E6b-T1r | Sin skins por código: borrar shaders (T1), galería (T2) y `Treatment.effect`/`shaderId` (T3) | 🔄 | E3b-T2 (dueña de DebugPanelView) | DebugPanelView, GameContentLoader | | en vuelo (relevo 9, BASE `2408acc`); decisión del dueño, `Docs/SESION-2026-10-08-v2-e6.md` |
+| E6b-T1r | Sin skins por código: borrar shaders (T1), galería (T2) y `Treatment.effect`/`shaderId` (T3) | ✅ | E3b-T2 (dueña de DebugPanelView) | DebugPanelView, GameContentLoader | `255749b` (merge `9c5df1e`) | −495 líneas; grep vacío |
 | E6b-T4 | La pinta comprada con ORO es tuya | ⛔ | T3; E6a-T1, E6a-T2, E6a-T8; E3b-T2 | 🔥 PlayerState, catálogo; +Store | | |
 | E6b-T5 | Familias se ven (sin efectos) | ⛔ | T1, T4; E6a-T8; E5b-T3 | 🔥 BoardScene, catálogo; +Store | | |
 | E6b-T6 | Lugares extra (EK) | ⛔ | E6a-T2; E2a-T4 | — | | |

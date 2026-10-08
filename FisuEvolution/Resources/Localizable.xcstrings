@@ -1852,6 +1852,23 @@
         }
       }
     },
+    "bonus.chip.free_hire" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gratis"
+          }
+        }
+      }
+    },
     "bonus.chip.immunity" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2307,6 +2324,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ gratis: %2$@, sin gastar el cooldown"
+          }
+        }
+      }
+    },
+    "career.reward.free_hires %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free hires for %@, and prices don't go up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contratás gratis durante %@, sin que suban los precios"
+          }
+        }
+      }
+    },
+    "career.reward.health_plan %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Health plan: %1$@ with no bad events and %2$@ coins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obra social: %1$@ sin eventos malos y %2$@ de plata"
+          }
+        }
+      }
+    },
+    "career.reward.lawsuit %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lawsuit won: %@ coins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Juicio ganado: %@ de plata"
           }
         }
       }

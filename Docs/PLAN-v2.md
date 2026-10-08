@@ -258,7 +258,7 @@ planes, y se corre de a uno lo que se pisa. **Las olas reales y la cola viven en
 | Visitantes (ítem 5) | Cada **~5 min**, sin castigos fuertes: trueques, y el arresto siempre compensa. Si se los ignora, se van a los 30 s. **Ya no quedan chiquitos en el tablero**: entran, hablan, actúan y se van. Los conseguidos viven en un **Álbum de especiales** en la Oficina central. |
 | Elenco nuevo | Comisario, Sindicalista, Turista Gringo, Puntero Político, Ministro de Economía, Vecina Chusma, Vendedor Ambulante y Conductor de TV. Los 10 especiales existentes también visitan. Sólo arquetipos: ni personas reales ni marcas. |
 | Eventos | Los 8 actuales (**"Cayó Mercado Pago" → "Se cayó el home banking"**). Se suman **+**: ¡Salimos campeones!, Liquidación Total, Feriado Puente, Lluvia de Paquetes. Y **−**, siempre con salida por video: Paro General, Apagón, Hiperinflación, Cepo Cambiario, Piquete en la autopista, Ola de Calor. Los anuncia un visitante y queda un **chip con su cara y cuenta regresiva**. Se elimina el banner. |
-| Higgsfield | Tope **600 créditos**: reencarnación, arresto, llegada a Dios y retratos animados de visitantes. Todo lo demás se anima por código. |
+| Higgsfield | Tope **600 créditos**: reencarnación, arresto, llegada a Dios y retratos animados de visitantes. Todo lo demás se anima por código. **Ampliado por el dueño el 2026-10-08**: también la apertura y la espera del Paquete y del Colchón y la cabina del ascensor (ver E8). |
 | Arte | **ChatGPT web** vía `automatic-image-generation` + pipeline de Fisu, con la metodología de biblia de personajes de `content-urbe`. |
 | Atajo (ítem 7) | El mejor tier que alcanza y entra. Si no hay ninguno, el siguiente. **Nunca desaparece**: queda deshabilitado con el motivo ("Piso lleno" / "No te alcanza"). **Mantener presionado** abre un selector con caras para **pinear** o despinear. Lo enseña el tutorial. |
 | Precios (ítem 12) | El contador se reinicia al reencarnar. **Fusionar abarata, pero no tanto**: reintegro parcial ajustable. Se muestra **"+6 % por compra"**. Selector en el panel de debug para que el dueño lo pruebe; si no convence, vuelve a v1. |
@@ -1020,24 +1020,32 @@ Ver §5. Lo que suma el diseño:
   - `estanciero_estelar__tropero` tiene 6,4 % de agujeros y `senior_doctor` 1,2 %.
   - Se arregla eligiendo otro recorte con `scripts/elegir_recorte.py`, mirando el PNG.
   - `test_assets_integrados` queda en verde.
-- **Higgsfield** (piloto de 2 loops para medir el costo real primero):
+- **Higgsfield: GENERADO** (sesión del dueño, 2026-10-08; el dueño amplió el alcance y autorizó los
+  créditos, que vencen a fin de octubre). Masters en
+  `automatic-image-generation/projects/fisu-evolution-v2/video/`:
 
-  | Pieza | Modelo | Créditos |
-  |---|---|---|
-  | 18 loops de retrato (cuadro inicial = final) | Kling v3.0 | ≈ 170 |
-  | Reencarnación | Seedance 2.5 | ≈ 80 |
-  | Arresto | Seedance 2.5 | ≈ 60 |
-  | Llegada a Dios | Seedance 2.5 | ≈ 150 |
-  | Reserva | | ≈ 90 |
-  | **Total** | | **≈ 550 ≤ 600** |
+  | Pieza | Archivo | Modelo | Fondo |
+  |---|---|---|---|
+  | 18 retratos en loop (8 visitantes + 10 especiales), 5 s, primer cuadro = último | `loops/<id>.mp4` | Kling v3.0 | blanco |
+  | Paquete de la Aduana: apertura (3 s) y espera en loop (3 s) | `objetos/paquete_abre.mp4`, `paquete_espera.mp4` | Kling v3.0 pro | blanco |
+  | El Colchón: apertura (3 s) y espera en loop (3 s) | `objetos/colchon_abre.mp4`, `colchon_espera.mp4` | Kling v3.0 pro | blanco |
+  | Cabina del ascensor: puertas que cierran y que abren (3 s c/u, E13 ítem 13) | `ascensor/puertas_cierran.mp4`, `puertas_abren.mp4` | Kling v3.0 pro | pantalla completa; el hueco y las ventanas en verde croma (máscara donde el código pone los fondos de piso) |
+  | Reencarnación, arresto y llegada a Dios (5 s, **con sonido**) | `cinematicas/<id>.mp4` | Seedance 2.5 | pantalla completa, opacas |
 
-- **Pipeline de video**: `scripts/video_assets.py` reusa `chest_video_frames.py`. **El color de
-  key se vuelve a medir en cada master.**
-  - Retratos: HEVC con alfa de 512² en `Resources/Loops/`.
-  - Cinemáticas: 720×1280 en `Resources/Cinematics/`.
+- **Regla del dueño (2026-10-08): los assets del juego van sobre fondo claro (blanco)**, como todo el
+  arte. El recorte es el topológico de `whitebg_cutout.py` (fondo = lo blanco conectado al borde),
+  cuadro por cuadro. El verde croma queda sólo como máscara de las ventanas de la cabina.
+- **Pipeline de video**: `scripts/video_assets.py`.
+  - Retratos y objetos: recorte de fondo blanco cuadro por cuadro → HEVC con alfa (retratos 512² en
+    `Resources/Loops/`; objetos 512² en `Resources/Loops/` con prefijo `obj_`).
+  - Cinemáticas: 720×1280 en `Resources/Cinematics/`, opacas, con su audio.
+  - Cabina: 720×1280 en `Resources/Cinematics/`, con alfa por key verde (sólo el hueco y las ventanas).
   - Contrato `loops_manifest.json` pineado por tests en Swift y en Python.
 - **Cuándo se reproducen**: la de reencarnación antes del cofre; la de arresto las 2 primeras veces;
-  la de Dios una vez por cuenta (`seenCinematics`). Un solo `AVPlayer` activo a la vez.
+  la de Dios una vez por cuenta (`seenCinematics`), y después la tarjeta del ranking (E12). El
+  Paquete y el Colchón: el loop de espera mientras esperan el toque y la apertura al tocar (E5). Los
+  retratos, en el popup del visitante (E4b). La cabina, en el viaje en ascensor (E13 ítem 13). Un
+  solo `AVPlayer` activo a la vez; Reduce Motion muestra el cuadro final quieto.
 - **Sonido**: `sfx_wheel_tick` y `sfx_blackout`, sintetizados con el script del tag
   (`git show v1.0.0-build4:Tools/audio-synth/generate_audio.py`).
 

@@ -30,7 +30,7 @@ struct MergeCounterTests {
 
         _ = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: slots[0], targetSlot: slots[1],
-            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
 
         #expect(state.meta.stats.totalMergesEver == 1)
@@ -44,7 +44,7 @@ struct MergeCounterTests {
 
         _ = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: slots[0], targetSlot: slots[1],
-            newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
 
         #expect(state.meta.stats.totalMergesEver == 1)
@@ -58,7 +58,7 @@ struct MergeCounterTests {
 
         _ = try TowerActions.applyMerge(
             floorOrdinal: 1, sourceSlot: slots[0], targetSlot: slots[1],
-            newTypeId: "d", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "d", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
 
         #expect(state.meta.stats.totalMergesEver == 1)
@@ -71,17 +71,17 @@ struct MergeCounterTests {
 
         _ = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: slots[0], targetSlot: slots[1],
-            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
         _ = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: slots[2], targetSlot: slots[3],
-            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
         let bSlots = fxSlots(of: "b", onFloor: 0, in: tower)
         state.run.chosenCareerPath = "law"
         _ = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: bSlots[0], targetSlot: bSlots[1],
-            newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
 
         #expect(state.meta.stats.totalMergesEver == 3)
@@ -96,7 +96,7 @@ struct MergeCounterTests {
         #expect(throws: TowerError.destinationFloorFull(floorId: "f2")) {
             try TowerActions.applyMerge(
                 floorOrdinal: 0, sourceSlot: slots[0], targetSlot: slots[1],
-                newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+                newTypeId: "c_law", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
             )
         }
 
@@ -112,7 +112,7 @@ struct MergeCounterTests {
         #expect(throws: TowerError.invalidSlot) {
             try TowerActions.applyMerge(
                 floorOrdinal: 0, sourceSlot: slot, targetSlot: empty,
-                newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+                newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
             )
         }
 
@@ -137,7 +137,7 @@ struct MergeCounterTests {
         let slots = fxSlots(of: "a", onFloor: 0, in: tower)
         _ = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: slots[0], targetSlot: slots[1],
-            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
 
         state.run = .fresh(startTypeId: "a", startFloorId: "f1")

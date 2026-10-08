@@ -239,6 +239,24 @@ struct HireStepTests {
         #expect(abs(1 - after / before - relief) < 1e-12)
     }
 
+    @Test("en el paquete, sólo la carga sube la frontera sin amortiguar")
+    func onlyTheLoaderRaisesTheFrontierUncushioned() throws {
+        let sources = URL(filePath: #filePath)
+            .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+            .appending(path: "Sources/EconomyKit")
+        let exempt: Set = ["PlayerState.swift", "TowerReconciler.swift"]
+        let offenders = try FileManager.default
+            .contentsOfDirectory(at: sources, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "swift" && !exempt.contains($0.lastPathComponent) }
+            .filter { file in
+                try String(contentsOf: file, encoding: .utf8)
+                    .split(separator: "\n")
+                    .contains { $0.contains("raiseFrontier(to:") && !$0.contains("cushion:") }
+            }
+            .map(\.lastPathComponent)
+        #expect(offenders.isEmpty, "suben la frontera sin el amortiguador: \(offenders)")
+    }
+
     @Test("sin reintegro, o con un tipo que no se fusiona, no hay nada que prometer")
     func noReliefWithoutRefund() throws {
         let refunding = try fxConfig().tuned(EconomyKnobs(mergeRefundCounts: 1))

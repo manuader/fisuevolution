@@ -12,7 +12,7 @@ struct MergeAllPlannerTests {
 
     private func plan(_ fx: (state: PlayerState, tower: TowerState, floorTable: FloorTable), floor: Int = 0) -> [BoardChange] {
         BoardChangePlanner.planMergeAll(
-            floorOrdinal: floor, state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable, origin: .debug
+            floorOrdinal: floor, state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable, config: fxConfig(), origin: .debug
         )
     }
 
@@ -47,7 +47,7 @@ struct MergeAllPlannerTests {
         var fx = try fxStateAndTower(units: ["a": 3, "c_prog": 2])
         fx.state.run.chosenCareerPath = "prog"
         for change in plan(fx) {
-            _ = try BoardChangeApplier.apply(change, state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable)
+            _ = try BoardChangeApplier.apply(change, state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable, config: fxConfig())
         }
         let pairs = Dictionary(grouping: fx.tower.placements(onFloor: 0), by: \.typeId).filter { $0.value.count >= 2 }
         #expect(pairs.isEmpty)

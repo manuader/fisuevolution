@@ -129,7 +129,8 @@ extension GameState {
                     state: &player,
                     tower: &tower,
                     tiers: content.tiers,
-                    floorTable: content.floorTable
+                    floorTable: content.floorTable,
+                    config: content.economy
                 )
                 let evolvedTo = player.run.maxTierReached > tierBefore ? content.tiers.type(id: newTypeId) : nil
                 self.player = player

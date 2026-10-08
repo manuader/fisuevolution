@@ -99,7 +99,7 @@ struct ExtensibilityDrillTests {
         let slots = tower.placements(onFloor: 10).map(\.slot).sorted()
         let result = try TowerActions.applyMerge(
             floorOrdinal: 10, sourceSlot: slots[0], targetSlot: slots[1],
-            newTypeId: "t12", state: &state, tower: &tower, tiers: tiers, floorTable: table
+            newTypeId: "t12", state: &state, tower: &tower, tiers: tiers, floorTable: table, config: fxConfig()
         )
         guard case let .promoted(toFloorOrdinal, _, newTypeId, unlockedFloorId) = result else {
             Issue.record("esperaba una promoción al piso 12, llegó \(result)")

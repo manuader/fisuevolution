@@ -142,7 +142,8 @@ extension GameState {
         guard let content, var player, var tower else { return nil }
         do {
             let outcome = try BoardChangeApplier.apply(
-                change, state: &player, tower: &tower, tiers: content.tiers, floorTable: content.floorTable
+                change, state: &player, tower: &tower, tiers: content.tiers, floorTable: content.floorTable,
+                config: content.economy
             )
             self.player = player
             self.tower = tower

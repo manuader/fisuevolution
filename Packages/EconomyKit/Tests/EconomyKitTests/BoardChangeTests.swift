@@ -57,7 +57,7 @@ struct BoardChangeTests {
 
     @discardableResult
     private func apply(_ change: BoardChange, _ fx: inout Board) throws -> BoardChangeOutcome {
-        try BoardChangeApplier.apply(change, state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable)
+        try BoardChangeApplier.apply(change, state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable, config: fxConfig())
     }
 
     // MARK: Merge automático
@@ -291,7 +291,7 @@ struct BoardChangeTests {
         let pair = fxSlots(of: "a", onFloor: ordinal, in: fx.tower).sorted()
         _ = try TowerActions.applyMerge(
             floorOrdinal: ordinal, sourceSlot: pair[0], targetSlot: pair[1], newTypeId: "b",
-            state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable
+            state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable, config: fxConfig()
         )
         #expect(revalidated(change, fx) == nil)
     }
@@ -308,7 +308,7 @@ struct BoardChangeTests {
         var fx = try board(units: ["b": 2], chosenCareerPath: "prog")
         let change = try #require(autoMerge(fx))
         for _ in 0..<5 {
-            _ = try TowerActions.placeUnit(typeId: "d", state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable)
+            _ = try TowerActions.placeUnit(typeId: "d", state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable, config: fxConfig())
         }
         #expect(revalidated(change, fx) == nil)
     }
@@ -333,7 +333,7 @@ struct BoardChangeTests {
         let change = try #require(arrival("a", fx))
         #expect(revalidated(change, fx) == change)
         for _ in 0..<2 {
-            _ = try TowerActions.placeUnit(typeId: "a", state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable)
+            _ = try TowerActions.placeUnit(typeId: "a", state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable, config: fxConfig())
         }
         #expect(revalidated(change, fx) == nil)
     }
@@ -439,13 +439,13 @@ struct BoardChangeMutatorsTests {
     ) throws -> TowerMergeResult {
         try TowerActions.evolveUnit(
             floorOrdinal: floorOrdinal, slot: slot, newTypeId: newTypeId,
-            state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable
+            state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable, config: fxConfig()
         )
     }
 
     private func place(_ typeId: String, _ fx: inout Board) throws -> TowerPlacement {
         try TowerActions.placeUnit(
-            typeId: typeId, state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable
+            typeId: typeId, state: &fx.state, tower: &fx.tower, tiers: tiers, floorTable: fx.floorTable, config: fxConfig()
         )
     }
 

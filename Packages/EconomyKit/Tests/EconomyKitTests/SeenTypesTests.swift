@@ -74,7 +74,7 @@ import Testing
 
         _ = try TowerActions.applyMerge(
             floorOrdinal: 0, sourceSlot: first.slot, targetSlot: second.slot,
-            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable
+            newTypeId: "b", state: &state, tower: &tower, tiers: tiers, floorTable: floorTable, config: fxConfig()
         )
         #expect(state.run.seenTypes.contains("b"))
     }

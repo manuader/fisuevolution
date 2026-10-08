@@ -180,6 +180,34 @@ struct StorePacksTests {
         #expect(!text.contains("store.pack"), "quedó la clave de localización cruda en pantalla")
     }
 
+    @Test("los packs de ORO son los de la 2.0, con los mismos IDs, y la foto de la v1 no los siguió")
+    func oroPacksAreThe2_0Amounts() throws {
+        let catalog = try ProductCatalog.load(from: .main)
+        let amounts = Dictionary(uniqueKeysWithValues: catalog.products.compactMap { entry in
+            entry.oroAmount.map { (entry.id, $0) }
+        })
+        #expect(amounts == [
+            "com.fisuevolution.iap.oro_small": 160,
+            "com.fisuevolution.iap.oro_medium": 550,
+            "com.fisuevolution.iap.oro_large": 1400,
+        ])
+        #expect(Set(amounts.keys) == Set(PurchasedOroHistory.v1OroAmountByProductID.keys), "los IDs no cambian")
+        #expect(PurchasedOroHistory.v1OroAmountByProductID["com.fisuevolution.iap.oro_small"] == 250,
+                "lo comprado en la v1 se reconstruye con lo que la v1 acreditaba")
+    }
+
+    @Test("un pack de la 2.0 suma al ORO comprado lo que dice products.json")
+    func newPackCountsAsPurchased() async throws {
+        let gameState = await makeGameState()
+        let entry = try #require(try ProductCatalog.load(from: .main).products.first { $0.id == "com.fisuevolution.iap.oro_small" })
+        let before = try #require(gameState.player?.meta)
+        gameState.creditStorePurchase(entry, transactionID: "2.0-1")
+        let after = try #require(gameState.player?.meta)
+        #expect(after.oro == before.oro + 160)
+        #expect(after.oroPurchasedLifetime == before.oroPurchasedLifetime + 160)
+        #expect(after.oroEarnedLifetime == before.oroEarnedLifetime)
+    }
+
     @Test("la fila del pack de ORO dice cuánto ORO te da")
     func oroPackRowSaysHowMuchItGives() async throws {
         let gameState = await makeGameState()

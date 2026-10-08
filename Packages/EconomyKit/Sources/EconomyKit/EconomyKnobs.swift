@@ -8,13 +8,16 @@ public struct EconomyKnobs: Codable, Sendable, Equatable {
     public var mergeRefundCounts: Double?
     public var priceReliefPurchases: Int?
     public var staffedFloorBonus: Double?
+    public var requiresLastRunWall: Bool?
 
     public init(
         defaultCostGrowth: Double? = nil,
         mergeRefundCounts: Double? = nil,
         priceReliefPurchases: Int? = nil,
-        staffedFloorBonus: Double? = nil
+        staffedFloorBonus: Double? = nil,
+        requiresLastRunWall: Bool? = nil
     ) {
+        self.requiresLastRunWall = requiresLastRunWall
         self.staffedFloorBonus = staffedFloorBonus
         self.defaultCostGrowth = defaultCostGrowth
         self.mergeRefundCounts = mergeRefundCounts
@@ -33,13 +36,16 @@ extension EconomyConfig {
     /// esta función tenga que enumerar los campos.
     public func tuned(_ knobs: EconomyKnobs) throws -> EconomyConfig {
         guard var root = try JSONSerialization.jsonObject(with: JSONEncoder().encode(self)) as? [String: Any],
-              var hire = root["hire"] as? [String: Any]
+              var hire = root["hire"] as? [String: Any],
+              var oro = root["oro"] as? [String: Any]
         else { throw EconomyKnobsError.notAnObject }
         if let value = knobs.defaultCostGrowth { hire["defaultCostGrowth"] = value }
         if let value = knobs.mergeRefundCounts { hire["mergeRefundCounts"] = value }
         if let value = knobs.priceReliefPurchases { hire["priceReliefPurchases"] = value }
-        root["hire"] = hire
         if let value = knobs.staffedFloorBonus { root["staffedFloorBonus"] = value }
+        if let value = knobs.requiresLastRunWall { oro["requiresLastRunWall"] = value }
+        root["hire"] = hire
+        root["oro"] = oro
         return try JSONDecoder().decode(EconomyConfig.self, from: JSONSerialization.data(withJSONObject: root))
     }
 }

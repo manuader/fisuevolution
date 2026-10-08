@@ -269,16 +269,25 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         /// [TUNEABLE]
         public let prestigeTeaserFloorId: String?
 
+        /// Piso móvil (PLAN-v2 §2, crítica de Marco): para reencarnar hay que
+        /// alcanzar el tier más alto de la run anterior. Opcional como el
+        /// teaser: sin la clave, false, la v1. [TUNEABLE]
+        public let requiresLastRunWall: Bool?
+
+        public var requiresWall: Bool { requiresLastRunWall ?? false }
+
         public init(
             divisor: Double,
             exponent: Double,
             globalMultiplierPerOro: Double,
-            prestigeTeaserFloorId: String? = nil
+            prestigeTeaserFloorId: String? = nil,
+            requiresLastRunWall: Bool? = nil
         ) {
             self.divisor = divisor
             self.exponent = exponent
             self.globalMultiplierPerOro = globalMultiplierPerOro
             self.prestigeTeaserFloorId = prestigeTeaserFloorId
+            self.requiresLastRunWall = requiresLastRunWall
         }
     }
 

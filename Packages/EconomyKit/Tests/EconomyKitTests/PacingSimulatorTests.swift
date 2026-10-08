@@ -133,6 +133,31 @@ struct PacingSimulatorKnobTests {
         #expect(fingerprint(zero) == fingerprint(base))
         #expect(fingerprint(on) != fingerprint(base))
     }
+
+    @Test("el bot pasa por la misma puerta que el botón: con el piso móvil, no reencarna antes de su pared")
+    func theBotHonorsTheMovingWall() throws {
+        let walled = try PacingSimulator(config: upConfig().tuned(EconomyKnobs(requiresLastRunWall: true)), tiers: upTiers())
+        let open = try upSimulator()
+        var state = PlayerState.newGame(startTypeId: "t1", startFloorId: "f1", offlineEfficiencyBase: 0.35, critChanceBase: 0, now: 0)
+        state.meta.lifetimeEarnings = 1e9
+        state.meta.lastRunMaxTier = 9
+        state.run.raiseFrontier(to: 5)
+        #expect(!walled.wantsToReincarnate(state: state))
+        #expect(open.wantsToReincarnate(state: state))
+        state.run.raiseFrontier(to: 9)
+        #expect(walled.wantsToReincarnate(state: state))
+    }
+
+    @Test("con la perilla apagada el bot reencarna como siempre, y cada run anota hasta dónde llegó")
+    func offIsTheBaselineAndRunsReportTheirTop() throws {
+        let base = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
+        let off = try PacingSimulator(
+            config: upConfig().tuned(EconomyKnobs(requiresLastRunWall: false)), tiers: upTiers(), upgrades: upCheapLines()
+        ).run(maxDays: 5)
+        #expect(fingerprint(off) == fingerprint(base))
+        #expect(base.maxTierPerRun.count == base.reincarnations + 1)
+        #expect(base.maxTierPerRun.last == base.finalMaxTier)
+    }
 }
 
 /// El bot compra las siete mejoras permanentes con ORO. Sin esto todo

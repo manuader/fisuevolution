@@ -144,6 +144,9 @@ public struct PacingSimulator: Sendable {
         /// tiers abre ANTES de que se llegue a dios y los dos números se separan.
         public var godActive: Double?
         public var reincarnations = 0
+        /// Hasta qué tier llegó cada run, en orden; la última es la que quedó
+        /// abierta. Es la serie del contrato "cada run llega más lejos" (E2b).
+        public var maxTierPerRun: [Int] = []
 
         // MARK: La FORMA de la curva (2026-08-23, decisión del dueño)
         //
@@ -296,6 +299,7 @@ public struct PacingSimulator: Sendable {
         // horizonte) también tiene forma y también se publica.
         closeRun(tracker: &tracker, report: &report, active: activeTotal)
         report.finalMaxTier = state.run.maxTierReached
+        report.maxTierPerRun.append(state.run.maxTierReached)
         report.finalPermanentUpgradeLevels = state.meta.oroUpgradeLevels
         return report
     }
@@ -688,18 +692,26 @@ public struct PacingSimulator: Sendable {
 
     // MARK: - Reencarnación
 
-    private func maybeReincarnate(
-        state: inout PlayerState, report: inout Report,
-        tracker: inout RunTracker, wall: Double, active: Double
-    ) {
-        guard case .whenOroMultiplies(let multiple) = human.reincarnation else { return }
+    /// La política del bot más la regla del juego: el umbral de ORO de
+    /// `human.reincarnation` y, encima, `PrestigeCalculator.canReincarnate`, la
+    /// misma puerta que el botón. Así el piso móvil vale igual para el bot.
+    func wantsToReincarnate(state: PlayerState) -> Bool {
+        guard case .whenOroMultiplies(let multiple) = human.reincarnation else { return false }
         let gained = PrestigeCalculator.oroGained(state: state, economy: economy)
         // Regla idle estándar: reencarnar cuando al menos DUPLICA lo ganado
         // histórico (`multiple` = 1). La cuenta va en Double a propósito:
         // `oroEarnedLifetime` llega a órdenes en los que multiplicarlo en Int
         // desborda, y un desborde acá sería un crash en mitad de una calibración.
         let threshold = max(1, Double(state.meta.oroEarnedLifetime) * multiple)
-        guard Double(gained) >= threshold else { return }
+        return Double(gained) >= threshold && PrestigeCalculator.canReincarnate(state: state, economy: economy)
+    }
+
+    private func maybeReincarnate(
+        state: inout PlayerState, report: inout Report,
+        tracker: inout RunTracker, wall: Double, active: Double
+    ) {
+        guard wantsToReincarnate(state: state) else { return }
+        report.maxTierPerRun.append(state.run.maxTierReached)
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: wall)
         closeRun(tracker: &tracker, report: &report, active: active)
         report.reincarnations += 1

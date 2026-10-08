@@ -6,9 +6,14 @@ import Foundation
 /// creciente en TODAS las mecánicas, incluida la reencarnación, así que ordena
 /// progreso real; `meta.lastSeenTimestamp` solo desempata (los relojes entre
 /// devices no son confiables). Excepciones por unión/máximo: compras, drops
-/// raros y ORO ganado nunca se pierden por pisar un save.
+/// raros y ORO ganado nunca se pierden por pisar un save. Una excepción a la
+/// regla: con `meta.resetEpoch` distinta gana el save del reset más nuevo, entero
+/// (ver `resolveAcrossReset`).
 public enum SaveConflictResolver {
     public static func resolve(local: PlayerState, remote: PlayerState) -> PlayerState {
+        if local.meta.resetEpoch != remote.meta.resetEpoch {
+            return resolveAcrossReset(local: local, remote: remote)
+        }
         var winner = pickWinner(local: local, remote: remote)
         let loser = winner == local ? remote : local
 
@@ -79,6 +84,32 @@ public enum SaveConflictResolver {
         winner.meta.stats.oroSpentEver = max(local.meta.stats.oroSpentEver, remote.meta.stats.oroSpentEver)
         winner.meta.engagement = EngagementState.resolve(winner: winner.meta.engagement, loser: loser.meta.engagement)
         return winner
+    }
+
+    /// Dos épocas distintas: gana entera la del reset más nuevo, sin mirar el progreso. Del
+    /// lado viejo cruzan sólo las compras —lo pagado con plata no se pierde por resetear— y
+    /// el ORO de las transacciones que el lado nuevo todavía no vio (cada una, una vez: la
+    /// segunda resolución ya las encuentra anotadas y no suma nada).
+    static func resolveAcrossReset(local: PlayerState, remote: PlayerState) -> PlayerState {
+        var newer = local.meta.resetEpoch > remote.meta.resetEpoch ? local : remote
+        let older = local.meta.resetEpoch > remote.meta.resetEpoch ? remote : local
+
+        let revoked = newer.meta.revokedPurchases.union(older.meta.revokedPurchases)
+        let unseenOro = older.meta.oroPurchases
+            .filter { newer.meta.oroPurchases[$0.key] == nil && !revoked.contains($0.key) }
+            .values.reduce(0, +)
+        newer.meta.oro += unseenOro
+        for (id, amount) in older.meta.oroPurchases {
+            newer.meta.recordOroPurchase(transactionID: id, amount: amount)
+        }
+        for id in older.meta.revokedPurchases {
+            newer.meta.revokePurchase(transactionID: id)
+        }
+        newer.meta.creditedPurchases.formUnion(older.meta.creditedPurchases)
+        newer.meta.purchasedOroReconstructed = newer.meta.purchasedOroReconstructed && older.meta.purchasedOroReconstructed
+        newer.meta.removedAds = newer.meta.removedAds || older.meta.removedAds
+        newer.meta.ownedSkins = Array(Set(newer.meta.ownedSkins).union(older.meta.ownedSkins)).sorted()
+        return newer
     }
 
     static func pickWinner(local: PlayerState, remote: PlayerState) -> PlayerState {

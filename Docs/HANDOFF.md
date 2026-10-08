@@ -20,23 +20,18 @@
 > (que también compila Release) lo corre el controlador una vez por ola. Los
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
-> cualquier otra forma choca con el guard). Al 2026-10-07 (cierre del relevo
-> 8): `version-2` = **`baabced`** (`f9207c2`, la ola F, más `tasks.md` al
-> cierre). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de
-> idioma de E3 y las olas B a F: **E1 T1–T12 (con T9b, T5b, T5c, T6c y los
-> arreglos de T10); E11 T1–T5; E3a T1–T8; E2a T1, T2 y T6; E4a T1; E5a T1–T3
-> (con sus mutantes) y E6b T1–T3**. **Progreso: 35 de 167 tareas activas
-> integradas (21,0 %)** (`tasks.md` §2). El `rapido` de `f9207c2`: **VERDE
-> (EK 506 · unit 704 + 1 · release 0)**, pusheado. **El último `completo`
-> VERDE es el de `15318a0`** (relevo 8; EK 484 · unit 691 + 1 · Store 16 · UI
-> 63 · `StoreUITests` 2 · pipeline 49/0 · `pacing-sim` igual · Release 0):
-> la ola F todavía no pasó por UI, Store ni `pacing-sim`.
+> cualquier otra forma choca con el guard). Al 2026-10-08 (cierre del relevo
+> 9): `version-2` = **`8cf4e73`**. Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de
+> idioma de E3 y las olas B a G: **E1 T1–T15 (falta sólo T16, el cierre: dos `completo --limpio`);
+> E11 T1–T6; E3a T1–T10; E3b T1–T2; E2a T1–T10 (las mecánicas nuevas detrás de perillas en 0 = v1);
+> E4a T1–T2; E5a T1–T3; E6a T9; E6b T1–T3 y T1r (sin skins por código)**. **Progreso: 52 de 167
+> tareas activas integradas (31,1 %)** (`tasks.md` §2). **El último `completo` de referencia es el
+> de `528d10b`** (relevo 9; EK 508 · unit 724 + 1 · Store 16 · UI 69/70 con el rojo flaky aislado 2/2 ·
+> `StoreUITests` 2 · pipeline 49/0 · `pacing-sim` 30,73 h / 13, igual · Release 0). Detalle y
+> `rapido` de cierre en `Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`.
 >
-> 🌿 **Lo que queda en ramas, sin mergear a `version-2`:** E2a T7 (`acf633d`,
-> `v2/e2a-mecanicas`: cofres y packs en minutos, los montos suben), y en vuelo
-> al cierre E1 T13 (el Corralito) y E3b T1 (spikes S2/S3, sin commit). Hay
-> planes por tareas para todas las épicas salvo E8 (el resto) y la parte de
-> agente de E10.
+> 🌿 **Ramas sin mergear a `version-2`:** ninguna con trabajo pendiente. Hay planes por tareas para
+> todas las épicas salvo E8 (el resto) y la parte de agente de E10.
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -323,6 +318,29 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-08 (relevo 9) — La ola G: E1 completa en código, la economía de E2a detrás de perillas y ninguna skin por código
+
+`version-2` quedó en `8cf4e73`. **Progreso: 52 de 167 tareas activas integradas (31,1 %).**
+
+- **E1 llegó a T15**: el Corralito (T13) y el video sin efecto que compensa 3 min (T14) pasaron
+  por revisión opus, porque tocan plata, y volvieron con arreglos. Entre ellos, la salida por video
+  ahora aparece sólo con el anuncio precargado y va debajo del texto en el SE. El contrato de
+  efectos (T15) muerde: los mutantes los corrió el controlador. Falta T16, el cierre de E1
+  (dos `completo --limpio`).
+- **E2a T3–T10**: el amortiguador del salto de precio, los pisos en marcha, el piso móvil para
+  reencarnar y las fusiones al amortiguador. Las tres mecánicas están detrás de perillas que en 0
+  dejan la v1 exacta; cada tarea lo prueba con la huella del simulador. FisuJobs muestra cuánto sube
+  la próxima compra.
+- **El dueño dijo que no a las skins por código** (`Docs/SESION-2026-10-08-v2-e6.md`): E6b T1r
+  borró los shaders, la galería y el tratamiento `.effect`.
+- También entraron E11 T6 (las notificaciones al ciclo de vida), E3b T2 (la ficha), E3a T9–T10
+  (las pestañas de a poco y el tablero con `PlayLayout`), E6a T9 (packs 160/550/1.400) y E4a T2.
+- El `completo` de `528d10b` es la referencia nueva. El `completo --limpio` de `72a236b` encontró
+  dos cosas, ya arregladas: la fila bloqueada de FisuJobs mostraba "+6 %" y `pacing-sim` no
+  compilaba con su cache vieja (§7).
+
+Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
 
 ### Sesión del 2026-10-07 (relevo 8) — La ola F: el primer `completo` verde desde la ola B, el embudo de E1 y lo pagado que no se pierde
 
@@ -1728,6 +1746,12 @@ detalle en `Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md` §1):
   relevo 5). Sigue siendo regla que **toda acreditación pasa por
   `recordOroPurchase`**.
 
+**Decisiones del relevo 9** (2026-10-08; el detalle en
+`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`): ninguna skin hecha por código entra a la 2.0 (el
+dueño); contratar gratis sigue permitido durante el Corralito y la UI lo muestra; la salida por
+video del Corralito va debajo del aviso; una fila de FisuJobs que no se puede contratar no muestra
+cuánto sube.
+
 **Decisiones del relevo 8** (2026-10-07; el detalle en
 `Docs/SESION-2026-10-07-v2-relevo-8-ola-f.md` §2):
 
@@ -2128,6 +2152,11 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
   en `af3acde` (2026-10-07, relevo 4): **el pipeline ya no tiene rojo
   declarado**, así que cualquier rojo suyo es nuevo.
 
+**Línea de base nueva: el `completo` sobre `528d10b`** (2026-10-08, relevo 9): EK 508 · unit
+724 + 1 · Store 16 · `StoreUITests` 2 · pipeline 49/0 · `pacing-sim` 30,73 h / 13 (igual) · Release
+0 · UI 69/70: `CustomizationUITests.testSinPrecioLaSkinPagaNoDiceQueNoEstaALaVenta` cayó bajo carga
+(load ~900) y pasó aislado 2 de 2. Reemplaza a la de abajo.
+
 **Línea de base: el `completo` sobre `15318a0`** (2026-10-07, relevo 8; las
 olas B a E más las ramas sueltas del relevo 7: los arreglos de E1 T10, E11 T4,
 E2a T1, E6b T1–T2 y los mutantes de E5a). **Es el último `completo` VERDE y
@@ -2474,6 +2503,18 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la ola G (2026-10-08, relevo 9)
+
+- **`pacing-sim` con cache vieja**: su `.build` incremental no ve los archivos nuevos de
+  EconomyKit y falla con "cannot find type 'PriceCushion'" aunque `swift test` de EK pase.
+  `oraculo.sh` ahora lo recompila de cero si no compila (`549121d`).
+- **No mergear en `version-2` con un oráculo corriendo ahí**: cambia el árbol bajo el build. Las
+  bases nuevas se arman en la rama de la épica (`v2/e2a` con `version-2` adentro).
+- **Snapshot de claves ya aplicado**: al integrar, `catalogo.py aplicar` y `git rm` del snapshot
+  en el mismo commit; uno que dé "0 claves nuevas" se borra.
+- **Mutantes sobre archivos ajenos**: el clasificador se los niega al agente; los corre el
+  controlador en el worktree del agente y revierte con `git checkout`.
 
 ### De la ola F (2026-10-07, relevo 8)
 
@@ -4155,6 +4196,8 @@ Anotado por si algún día importa, con su medición:
     inconsistencias abiertas entre planes;
   - §6, los gates humanos y las dudas con default de cada plan.
 - **`Docs/SESION-2026-10-07-v2-relevo-8-ola-f.md`**: el relevo 8.
+- **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**: el relevo 9.
+- **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.
   - La ola F tarea por tarea (E1 T12, E3a T7–T8, E11 T5, E2a T2 y T6, E6b T3;

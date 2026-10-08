@@ -6,8 +6,9 @@
 > `Docs/superpowers/plans/2026-10-0*-v2-*.md`, los ledgers
 > `.superpowers/sdd/<plan>/progress.md` y el journal AVO del run.
 >
-> **Foto:** 2026-10-07, cierre del relevo 8, sobre `version-2` = `f9207c2` (su `rapido`:
-> VERDE, EK 506 · unit 704 + 1 · release 0; pusheado). Último `completo` VERDE: `15318a0`. Si un ledger
+> **Foto:** 2026-10-08, cierre del relevo 9, sobre `version-2` = `8cf4e73` (ola G + E1 completa en código +
+> E2a T3–T10 + E4a T2 + E3a T10). Último `completo` VERDE de referencia: `528d10b` (UI 69/70, flaky
+> aislado 2/2). Si un ledger
 > dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
 
 ## 1. Cómo se usa
@@ -72,7 +73,7 @@
 
 ## 2. Progreso
 
-**Hoy: 35 de 167 tareas activas integradas (21,0 %)**, más E2a T7 🟢 en su rama. Más las de E9 y E2b cuando tengan plan.
+**Hoy: 52 de 167 tareas activas integradas (31,1 %)**, más E6b T1r (seguimiento, ✅). Más las de E9 y E2b cuando tengan plan.
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
@@ -109,7 +110,7 @@ grep -cE '^\| E[0-9a-z-]+-T[0-9]+ \|[^|]*\| ⏭' tasks.md     # salteadas
 grep -cE '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md           # una épica: cambiar el prefijo
 ```
 
-Progreso = integradas / (filas de tarea − salteadas). Hoy: 35 / (168 − 1). La tabla por épica de arriba quedó del relevo 6: el número que vale es el del `grep`. Cualquier otro estado se
+Progreso = integradas / (filas de tarea − salteadas). Hoy: 52 / (168 − 1). La tabla por épica de arriba quedó del relevo 6: el número que vale es el del `grep`. Cualquier otro estado se
 cuenta igual, cambiando el ✅. Cuando E9 y E2b tengan plan, sus tablas se suman con el mismo
 formato de ID y el total sube solo.
 
@@ -182,30 +183,28 @@ partirlo.
 | `CelebrationQueue.swift` (EK) | E1 T10 · E4b T1, T4 · E6a T12 |
 | `GameState+TutorialTips.swift`, `TutorialAnchor.swift` | E3b T5, T9 · E4b T3, T4, T8 · E5b T5 · E6a T8, T12 · E7b-b T3, T5 |
 
-## 4. Cola de despacho — lo próximo (relevo 9)
-
-**Ciclo barato desde el relevo 7** (pedido del dueño): brief recortado con `Tools/v2/brief.py`, el agente
-verifica con `oraculo.sh tarea <sus clases>`, revisión por riesgo (§1), y el `rapido` completo lo corre
-el controlador una vez por ola al integrar. **Al recibir cada notificación de agente, si dice "stopped
-with background work still running", `TaskStop` antes de integrar** (relevo 8: pasó dos veces).
+## 4. Cola de despacho — lo próximo (relevo 10)
 
 ### 4.1 Al llegar
 
 | # | Qué | Nota |
 |---|---|---|
-| 0 | Lo que quedó en vuelo al cerrar el relevo 8 (ver el handoff): E1 T13 y E3b T1 | si llegaron, revisar e integrar; si no, un agente nuevo con BASE = su commit |
-| 1 | Integrar `v2/e2a-mecanicas` (`acf633d`, E2a T7) + E1 T13 en `version-2` → `rapido` → push | |
-| 2 | Un **`completo`** sobre esa punta | valida `StoreManagerTests` (store-unit 18.6) y el pacing-sim con los cofres y packs en minutos (E2a T7) |
+| 0 | Leer el `rapido` de cierre `build/relevo9-rapido-cierre.log` (sobre `8cf4e73`) | si quedó sin push, push tras el verde |
+| 1 | **E1 T16** (controlador): `completo --limpio` ×2 sobre la punta; pacing-sim 30,73 h / 13 | el #1 del relevo 9 (sobre `72a236b`) dio dos rojos ya arreglados (`253d0f3`, `549121d`); el oráculo nuevo recompila pacing-sim si su cache está vieja |
+| 2 | Docs de cierre de E1 (SESION + general) | destraba E3b T9 → E4a T3 y E4a T9 |
 
-### 4.2 La ola G (≤ 3 compilando)
+### 4.2 La ola H (≤ 3 compilando; un dueño por archivo)
 
 | Tarea | BASE | Dueña de |
 |---|---|---|
-| **E1 T14** un video sin efecto no gasta el cooldown (tras T13) | punta de `v2/e1-correcciones` | `+Bonus`, `GameState` (bloque E1), `RootView`, catálogo; `+BoardChanges`, `+Achievements` |
-| **E11 T6** el cableado al ciclo de vida | `v2/e11-notificaciones` con `version-2` | `GameState` (bloque E11), `+Lifecycle`, `+Celebrations`, `FisuEvolutionApp` |
-| **E3b T2** la ficha de personaje (tras E3b T1: leer su reporte S2/S3) | `v2/e3-ux` con `version-2` | `GameArtComponents`, `DebugPanelView`; catálogo por snapshot |
-| **E3a T9** las pestañas de a poco | ídem | `GameState` (su bloque), `+Debug`, `GameContentLoader`; catálogo por snapshot |
-| **E2a T3 → T4 → T5** | `v2/e2a-mecanicas` con `version-2` | **sólo después de E1 T14** (regla 2 de E2a) |
+| **E4a T4/T5** (tras T3: ⛔ por E3b T9) — mientras tanto **E4a T8** (T1, T2 ✅; E1 T8, T14 ✅) | `version-2` | ver plan |
+| **E2a T11** (+ T12 después) | `version-2` | `ContentSystems`, `+Bonus` |
+| **E2a T13** (snapshot) ∥ **E2a T14** | `version-2` | T14: `+Debug`, `DebugPanelView`, `+BoardChanges` |
+| **E3b T3** | `version-2` | `PanelFrames`, `MenuView`, catálogo (snapshot) |
+| **E6a T3** (E4a T2 ✅, E2a T4 ✅) | `version-2` | `ActiveModifier`, `ActiveBonus*`, `EffectContractTests` — no a la vez que otra que toque esos |
+| **E11 T7** cierre de E11 (T1–T6 ✅) | controlador | `Docs/` |
+
+Revisión opus sólo si la tarea mueve plata (E2a T11/T12, E6a T3).
 
 ### 4.3 La cola, por prioridad
 
@@ -305,7 +304,7 @@ que toma · commit o rama · nota.
 | E1-T13 | El Corralito congela el gasto, con salida por video | ✅ | T12 | 🔥 TowerActions, ContentSystems, +Bonus, GameState, RootView, catálogo; +Hiring, +Actions, ContentConfigs | `d838fdb` + arreglos `8adab56` (merge `9a641c7`) | revisión opus + arreglos (precarga del video, UI coherente con contratar gratis, UpgradeManager, pill debajo en el SE); M5 → E4 |
 | E1-T14 | Un video sin efecto no gasta el cooldown | ✅ | T9–T13 | 🔥 +Bonus, GameState, RootView, catálogo; +BoardChanges, +Achievements | `36885a3` + arreglos `f01e7b6` (merge `545208b`, claves `3d568f6`) | revisión opus + arreglos (test por el camino real con monto exacto, logros, audio) |
 | E1-T15 | `EffectContractTests` | ✅ | T1–T14 | ActiveModifier, ContentConfigs, AdsProvider | `02952ce` (merge `9f9933e`) | mutantes del controlador: 2 rojos |
-| E1-T16 | Cierre de E1 (controlador) | 🔄 | T1–T15, T5c, T6c | `Docs/` | | completo --limpio ×2 en curso (relevo 9) |
+| E1-T16 | Cierre de E1 (controlador) | ⏳ | T1–T15, T5c, T6c | `Docs/` | | completo --limpio #1 sobre `72a236b`: verde salvo FisuJobsUITests (arreglado en `253d0f3`) y pacing-sim por cache vieja (arreglado en `549121d`; corrido a mano: 30,73 h / 13). Faltan los dos `completo --limpio` sobre la punta |
 
 ### E11 — Notificaciones (`2026-10-07-v2-e11-notificaciones.md`)
 
@@ -332,7 +331,7 @@ que toma · commit o rama · nota.
 | E3a-T7 | La barra de abajo más baja, Contratar al centro | ✅ | T4 | GameArtComponents, BottomMenuBar | `c6a4a90` (merge `9eeb9eb`) | carry T10: `BoardScene.bottomInset` → `panelHeight` (64)|
 | E3a-T8 | La botonera del ascensor | ✅ | T6 | catálogo (o snapshot); PanelFrames, HUDView, AudioManager | `aae3a7f` + claves `f9207c2` (merge `9eeb9eb`) | carry T12: en DEBUG el display tapa el chip ×1,0; medir SE|
 | E3a-T9 | Las pestañas aparecen de a poco | ✅ | T7; E1-T4; ventana de GameState | 🔥 GameState, catálogo; +Debug, GameContentLoader | `02ee23b` (merge `c76af46`, claves `528d10b`) | carry T12: captura del ¡Nuevo! y SE con 4 pestañas; carry E9: lecciones sobre pestañas cerradas |
-| E3a-T10 | La escena: PlayLayout, 3 filas, cámara, iPad | 🔄 | T3, T7, T8; E1-T10 | 🔥 BoardScene, GameState, RootView; `oraculo.sh` | | en vuelo (relevo 9, BASE `72a236b`) |
+| E3a-T10 | La escena: PlayLayout, 3 filas, cámara, iPad | ✅ | T3, T7, T8; E1-T10 | 🔥 BoardScene, GameState, RootView; `oraculo.sh` | `789c200` (merge) | sin capturas SE/16 Pro → T12; ElevatorPanelUITests sensible a carga |
 | E3a-T11 | La raíz: chrome en la columna, seis hojas | ⛔ | T6, T10 | 🔥 RootView | | no con E1 T13–T14 |
 | E3a-T12 | Cierre de E3a: SE en castellano, capturas de iPad | ⛔ | T1–T11 | `oraculo.sh` | | carries: `ScreenInsetsUITests` al `se-ui`; fijar Xcode 26.x como SDK del release (el SDK 27 ignora `UIRequiresFullScreen`) |
 
@@ -342,7 +341,7 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E3b-T1 | Spikes S2, S3 | ✅ | — | — | sin commit (reporte en el ledger de E3b) | S2: no hace falta scrollDisabled; carries a T3 (scrollTo inicial, un solo `sheet.close`). S3: la bandera de T7 hace falta |
 | E3b-T2 | La ficha de personaje | ✅ | E3a-T6, E3a-T7 | catálogo (snapshot); GameArtComponents, DebugPanelView | `e33b844` (merge `171241e`, claves `2408acc`) | carry E3a T12: detent `.large` con vacío abajo; captura SE |
-| E3b-T3 | El menú deslizable, las piezas | ⛔ | T2; E3a-T8 | catálogo; PanelFrames, MenuView | | |
+| E3b-T3 | El menú deslizable, las piezas | ⏳ | T2; E3a-T8 | catálogo; PanelFrames, MenuView | | deps listas |
 | E3b-T4 | El menú deslizable, montado | ⛔ | T3; E3a-T9, E3a-T11 | 🔥 RootView | | |
 | E3b-T5 | Renombre `BestHire` → `QuickHireOffer` | ⛔ | ventana sin E1 en GameState y +Hiring | 🔥 GameState, RootView (comentarios); +Hiring, +TutorialTips | | |
 | E3b-T6 | La oferta del atajo v2: pin, motivo, nunca `nil` | ⛔ | T5; E1-T4, E1-T13 | +Hiring | | |
@@ -364,10 +363,10 @@ que toma · commit o rama · nota.
 | E2a-T8 | El piso móvil en pantalla | ✅ | T5; E1-T4 | catálogo (snapshot) | `2ae35c1` (merge, claves `72a236b`) | deps listas (T5 🟢); catálogo por snapshot |
 | E2a-T9 | Las fusiones del juego al amortiguador y al reintegro | ✅ | T2, T3, T6; E1-T7, E1-T9, E1-T12, E1-T14 | 🔥 TowerActions, GameState; GameContentLoader, +Actions, +BoardChanges | `18e8e77` (merge `6976f2f`) | perillas 0 = identidad |
 | E2a-T10 | "+6 % por compra" en FisuJobs | ✅ | T3, T9; E1-T13 | +Hiring; catálogo (snapshot) | `db669f0` (merge, claves `72a236b`) | carry E3a T12: truncados previos en el SE |
-| E2a-T11 | Diario, asado y logros en minutos + presupuesto | ⛔ | T1, T7; E1-T14, E1-T15 | 🔥 ContentSystems, +Bonus | | por tarea con E4/E5 |
+| E2a-T11 | Diario, asado y logros en minutos + presupuesto | ⏳ | T1, T7; E1-T14, E1-T15 | 🔥 ContentSystems, +Bonus | | deps listas |
 | E2a-T12 | Las carreras: gratis, Juicio ganado, Obra social | ⛔ | T11, T7; E1-T11, E1-T13, E1-T15 | 🔥 TowerActions, +Bonus | | `.freeHire`/`.eventImmunity`: nacen acá o en E4a T2, la que llegue primero |
-| E2a-T13 | Pisos en marcha en el mapa | ⛔ | T4, T9; E1-T15 | catálogo (snapshot) | | E3a T8 opcional |
-| E2a-T14 | El panel de debug: variantes, perillas, Fusionar todo | ⛔ | T5, T6, T9 | +Debug, DebugPanelView, +BoardChanges | | habilita el playtest de precios del dueño |
+| E2a-T13 | Pisos en marcha en el mapa | ⏳ | T4, T9; E1-T15 | catálogo (snapshot) | | deps listas |
+| E2a-T14 | El panel de debug: variantes, perillas, Fusionar todo | ⏳ | T5, T6, T9 | +Debug, DebugPanelView, +BoardChanges | | deps listas |
 | E2a-T15 | Cierre de E2a + tabla de perillas para E2b | ⛔ | T1–T14 | `Docs/` | | |
 
 ### E4a — Visitantes y eventos v2, el motor (`2026-10-07-v2-e4a-visitantes-eventos.md`)
@@ -375,13 +374,13 @@ que toma · commit o rama · nota.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E4a-T1 | `RewardSpec` | ✅ | — | — | `8d0a311` (merge `bba9e39`) | EK; cimiento de E5–E7 |
-| E4a-T2 | Efectos nuevos: paro, inmunidad, ritmo de paquetes | 🔄 | E1-T13, E1-T15 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | | en vuelo (relevo 9, BASE `72a236b`) |
+| E4a-T2 | Efectos nuevos: paro, inmunidad, ritmo de paquetes | ✅ | E1-T13, E1-T15 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | `a031ee8` (merge, claves `8cf4e73`) | paro, inmunidad, ritmo de paquetes |
 | E4a-T3 | Los relojes en `meta.engagement` | ⛔ | E1-T4, E3b-T9 | EngagementState | | (ambigua: ver "Inconsistencias", punto 3) |
 | E4a-T4 | El motor de eventos v2 (EK) | ⛔ | T1, T2, T3 | — | | |
 | E4a-T5 | Los visitantes, puros | ⛔ | T1, T3 | — | | |
 | E4a-T6 | `VisitPlanner` | ⛔ | T5; E1-T7, E1-T14 | BoardChange.swift, +BoardChanges | | |
 | E4a-T7 | El contenido de los visitantes | ⛔ | T5, T6; E11-T2, E3a-T1 | catálogo (snapshot); GameContentLoader, LocalizationCompletenessTests | | carga el Anexo A (con los guiños: Coach 67 toques, Crypto Bro "six seven", Vecina "andá pa' allá, bobo"; PLAN-v2 §2) |
-| E4a-T8 | `grant` y el momento calmo | ⛔ | T1, T2; E1-T8, E1-T14 | — | | |
+| E4a-T8 | `grant` y el momento calmo | ⏳ | T1, T2; E1-T8, E1-T14 | — | | |
 | E4a-T9 | La mudanza a eventos v2 | ⛔ | T2, T4, T7, T8; E1-T16 | 🔥 GameState, +Bonus, ContentSystems, catálogo | | |
 | E4a-T10 | Cierre de E4a | ⛔ | T1–T9 | `Docs/` | | |
 
@@ -432,7 +431,7 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E6a-T1 | Tienda y ofertas en `meta.engagement` | ⛔ | E1-T4; E3b-T9, E4a-T3, E5a-T4 | EngagementState | | |
 | E6a-T2 | Catálogo y cuentas de la tienda (EK) | ⛔ | T1; E4a-T1 | — | | |
-| E6a-T3 | El auto-tap | ⛔ | E1-T15; E4a-T2; E2a-T4 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | | |
+| E6a-T3 | El auto-tap | ⏳ | E1-T15; E4a-T2; E2a-T4 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | | deps listas (E4a T2 ✅) |
 | E6a-T4 | `oro_shop.json` | ⛔ | T2; E5b-T1; E5a-T5 | catálogo (dueña); GameContentLoader | | |
 | E6a-T5 | Se entregan auto-tap, Offline ×3 y Diario ×3 | ⛔ | T3; E4a-T8, E4a-T9; E5a-T6, E5a-T8; E2a-T11 | 🔥 +Bonus; +Lifecycle (T8 mudó ahí el offline), +Rewards, +Engagement | | |
 | E6a-T6 | Comprar en la tienda | ⛔ | T4, T5; E2a-T14; E1-T14; E5a-T1, E5a-T3, E5a-T6, E5a-T8 | BoardChange.swift, +BoardChanges | | |

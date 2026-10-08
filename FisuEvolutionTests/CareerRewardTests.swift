@@ -44,20 +44,14 @@ struct CareerRewardTests {
         }
     }
 
-    @Test("el programador cobra un cofre de plata")
-    func programmerGetsACoinChest() async throws {
+    @Test("el programador contrata gratis 2 minutos, sin mover la curva")
+    func programmerHiresForFree() async throws {
         let gameState = await makeGameState()
-        let before = try #require(gameState.player?.run.coins)
-        let earnedBefore = try #require(gameState.player?.meta.lifetimeEarnings)
-
-        gameState.grantCareerReward(optionId: "junior_programmer", now: 1000)
-
-        let after = try #require(gameState.player?.run.coins)
-        let earnedAfter = try #require(gameState.player?.meta.lifetimeEarnings)
-        #expect(after > before)
-        // El cofre cuenta para el ORO como cualquier otra plata.
-        #expect(earnedAfter > earnedBefore)
-        #expect(gameState.careerRewards["junior_programmer"]?.kind == .coinChest)
+        gameState.grantCareerReward(optionId: "junior_programmer", now: 0)
+        let modifier = try #require(gameState.player?.run.activeModifiers.first { $0.sourceKey == "career.junior_programmer" })
+        #expect(modifier.effect == .freeHire)
+        #expect(modifier.expiresAt == 120)
+        #expect(gameState.careerRewards["junior_programmer"]?.kind == .freeHires)
     }
 
     @Test("el arquitecto se lleva una skin desbloqueada")
@@ -74,46 +68,82 @@ struct CareerRewardTests {
         #expect(gameState.careerRewards["junior_architect"]?.kind == .skin)
     }
 
-    /// "Gratis" tiene que ser literal: el regalo activa el boost pero no le come al
-    /// jugador el cooldown, o el premio sería adelantarle algo que ya tenía.
-    @Test("el médico activa un boost gratis sin gastar su cooldown")
-    func doctorGetsAFreeBoost() async throws {
+    @Test("el abogado gana el juicio: 20 minutos de producción")
+    func lawyerWinsTheLawsuit() async throws {
         let gameState = await makeGameState()
         let content = try #require(gameState.content)
-        let career = try #require(content.careers.careers.first { $0.id == "junior_doctor" })
-        let boostId = try #require(career.boostId)
-        let boost = try #require(content.boosts.boosts.first { $0.id == boostId })
+        let before = try #require(gameState.player)
+        let expected = GameState.coinPayout(minutes: 20, player: before, content: content)
+        gameState.grantCareerReward(optionId: "junior_lawyer", now: 0)
+        let after = try #require(gameState.player)
+        #expect(after.run.coins == before.run.coins + expected)
+        #expect(after.meta.lifetimeEarnings == before.meta.lifetimeEarnings + expected)
+        #expect(gameState.careerRewards["junior_lawyer"]?.kind == .lawsuit)
+    }
 
-        gameState.grantCareerReward(optionId: "junior_doctor", now: 1000)
+    @Test("el médico tiene obra social: inmune 30 min, corta el evento malo y cobra 15 min")
+    func doctorGetsAHealthPlan() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        let devaluacion = try #require(content.events.events.first { $0.id == "devaluacion" })
+        let farFuture = Date().timeIntervalSince1970 + 3600
+        gameState.player?.run.activeModifiers = [
+            ActiveModifier(effect: .incomeMultiplier, magnitude: 0.5, expiresAt: farFuture, sourceKey: "event.devaluacion")
+        ]
+        gameState.activeEvent = EventManager.ActiveEvent(
+            id: "devaluacion", flavorTextKey: devaluacion.flavorTextKey, isBuff: false,
+            endsAt: farFuture, escapableByVideo: false
+        )
+        let before = try #require(gameState.player)
+        let expected = GameState.coinPayout(minutes: 15, player: before, content: content)
+        let now = Date().timeIntervalSince1970
 
+        gameState.grantCareerReward(optionId: "junior_doctor", now: now)
+
+        let after = try #require(gameState.player)
+        #expect(after.run.activeModifiers.contains { $0.effect == .eventImmunity && $0.expiresAt == now + 1800 })
+        #expect(!after.run.activeModifiers.contains { $0.sourceKey == "event.devaluacion" })
+        #expect(gameState.activeEvent == nil)
+        #expect(after.run.coins == before.run.coins + expected)
+        #expect(!gameState.eventIsApplicable(devaluacion))
+        #expect(gameState.careerRewards["junior_doctor"]?.kind == .healthPlan)
+    }
+
+    @Test("la obra social no frena a los eventos buenos, y vencida deja pasar a los malos")
+    func healthPlanOnlyBlocksNegativeEventsWhileItLasts() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        let devaluacion = try #require(content.events.events.first { $0.id == "devaluacion" })
+        let buff = try #require(content.events.events.first { $0.isBuff && gameState.eventIsApplicable($0) })
+        let now = Date().timeIntervalSince1970
+        gameState.grantCareerReward(optionId: "junior_doctor", now: now)
+        #expect(gameState.eventIsApplicable(buff))
+        #expect(!gameState.eventIsApplicable(devaluacion))
+
+        gameState.player?.run.activeModifiers.removeAll()
+
+        #expect(gameState.eventIsApplicable(devaluacion))
+    }
+
+    @Test("cortar el evento malo no toca un buff en curso")
+    func cuttingLeavesABuffAlone() async throws {
+        let gameState = await makeGameState()
+        gameState.activeEvent = EventManager.ActiveEvent(
+            id: "plan_platita", flavorTextKey: "x", isBuff: true, endsAt: .infinity, escapableByVideo: false
+        )
+        #expect(!gameState.cutNegativeEvent())
+        #expect(gameState.activeEvent != nil)
+    }
+
+    /// La vista previa dice la plata que se cobra, no un descuento.
+    @Test("la vista previa del abogado dice la plata que cobra")
+    func lawyerPreviewSaysTheCoins() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
         let player = try #require(gameState.player)
-        #expect(player.run.activeModifiers.contains { $0.sourceKey == "boost.\(boostId)" }, "el boost regalado no se activó")
-        #expect(BoostManager.cooldownRemaining(of: boost, state: player, now: 1000) == 0, "el regalo no puede quemar el cooldown")
-        #expect(gameState.careerRewards["junior_doctor"]?.kind == .freeBoost)
-    }
-
-    @Test("el abogado consigue contratar más barato un rato")
-    func lawyerGetsATemporaryModifier() async throws {
-        let gameState = await makeGameState()
-
-        gameState.grantCareerReward(optionId: "junior_lawyer", now: 1000)
-
-        let modifier = try #require(gameState.player?.run.activeModifiers.first { $0.sourceKey == "career.junior_lawyer" })
-        #expect(modifier.effect == .spawnCostMultiplier)
-        #expect(modifier.magnitude < 1, "un modificador de costo mayor a 1 sería un castigo, no un premio")
-        #expect(modifier.expiresAt > 1000)
-        #expect(gameState.careerRewards["junior_lawyer"]?.kind == .temporaryModifier)
-    }
-
-    /// El descuento se muestra como descuento y no como el factor crudo: la pieza
-    /// compartida ya sabe que 0,5 es −50%.
-    @Test("el premio del abogado se lee como descuento")
-    func lawyerPreviewReadsAsDiscount() async throws {
-        let gameState = await makeGameState()
         let preview = try #require(gameState.careerRewards["junior_lawyer"]?.previewText)
-
-        #expect(preview.contains("50%"))
-        #expect(!preview.contains("0,5"))
+        #expect(preview.contains(CoinFormatter.string(from: GameState.coinPayout(minutes: 20, player: player, content: content))))
+        #expect(!preview.contains("career.reward"), "quedó la clave cruda")
     }
 
     /// El premio se paga una sola vez: la carrera dura hasta la reencarnación y

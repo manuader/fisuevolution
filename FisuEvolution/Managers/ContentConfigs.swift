@@ -187,29 +187,27 @@ struct CareersConfig: Codable, Sendable, Equatable {
     /// Los cuatro tipos son distintos ENTRE SÍ a propósito: cuatro variantes del
     /// mismo premio vuelven a ser la elección decorativa que esto arregla.
     enum RewardKind: String, Codable, Sendable, CaseIterable {
-        /// Cofre de plata proporcional al progreso (mismo cálculo que el Asado).
-        case coinChest
-        /// Un boost regalado que NO consume su cooldown.
-        case freeBoost
-        /// Una skin desbloqueada de una.
+        /// El Programador: contratar gratis un rato, sin mover la curva.
+        case freeHires
+        /// El Arquitecto: una skin desbloqueada de una.
         case skin
-        /// Un modificador temporal de costo de contratación.
-        case temporaryModifier
+        /// El Abogado, "Juicio ganado": una suma en minutos de producción.
+        case lawsuit
+        /// El Médico, "Obra social": inmunidad a los eventos negativos, corta el
+        /// que está corriendo y paga unos minutos de producción.
+        case healthPlan
     }
 
     struct Career: Codable, Sendable, Equatable, Identifiable {
         /// typeId de la opción (una de `tiers.json → junior.choiceOptions`).
         let id: String
         let rewardKind: RewardKind
-        /// `coinChest`: factor sobre `passiveUnlockCost(tier máximo)`.
-        let chestFactor: Double?
-        /// `freeBoost`: qué boost se regala.
-        let boostId: String?
         /// `skin`: qué skin se desbloquea.
         let skinId: String?
-        /// `temporaryModifier`: factor de costo (0,5 = mitad de precio) y cuánto dura.
-        let magnitude: Double?
+        /// `freeHires` y `healthPlan`: cuánto dura el efecto.
         let durationSeconds: Double?
+        /// `lawsuit` y `healthPlan`: minutos de producción que paga al elegir.
+        let lumpMinutes: Double?
     }
 
     let schemaVersion: Int

@@ -134,6 +134,7 @@ struct ActiveBonusBar: View {
         case .passiveMultiplier: Color("PaletteGreen")
         case .eventImmunity: Color("PaletteYellow")
         case .packageRateMultiplier: Color("PaletteBrown")
+        case .freeHire: Color("PaletteBlue")
         }
     }
 }

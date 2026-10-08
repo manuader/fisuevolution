@@ -21,6 +21,9 @@ public struct ActiveModifier: Codable, Sendable, Equatable, Identifiable {
         /// Multiplica el ritmo del Paquete de la Aduana (Lluvia ×10, Piquete ×0).
         /// Lo lee el `PackageScheduler` de E5; no toca los ingresos.
         case packageRateMultiplier
+        /// Contratar es gratis mientras dura (el Programador). No cuenta para la
+        /// curva: la compra cuesta 0 y la app pasa `countsAsPurchase: false`.
+        case freeHire
     }
 
     public let id: UUID
@@ -71,8 +74,13 @@ public enum ModifierMath {
         return area / (to - from)
     }
 
+    /// Hasta cuándo dura el efecto vivo más largo de este tipo, o `nil` si no hay.
+    public static func activeUntil(_ effect: ActiveModifier.Effect, in modifiers: [ActiveModifier], now: TimeInterval) -> TimeInterval? {
+        modifiers.filter { $0.effect == effect && $0.isActive(at: now) }.map(\.expiresAt).max()
+    }
+
     public static func spendingFrozenUntil(_ modifiers: [ActiveModifier], now: TimeInterval) -> TimeInterval? {
-        modifiers.filter { $0.effect == .spendingFrozen && $0.isActive(at: now) }.map(\.expiresAt).max()
+        activeUntil(.spendingFrozen, in: modifiers, now: now)
     }
 
     /// Hay una inmunidad viva: los eventos negativos no salen en el sorteo (los

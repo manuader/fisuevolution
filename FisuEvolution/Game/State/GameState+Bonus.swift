@@ -211,6 +211,10 @@ extension GameState {
 
     func eventIsApplicable(_ event: EventsConfig.Event) -> Bool {
         guard let content, let player, let tower else { return false }
+        // La Obra social: un evento negativo no cae mientras dure la inmunidad.
+        if !event.isBuff, ModifierMath.isImmuneToEvents(player.run.activeModifiers, now: Date().timeIntervalSince1970) {
+            return false
+        }
         switch event.effectType {
         case .incomeMultiplier, .spawnCostMultiplier, .spendingFrozen:
             return true
@@ -259,14 +263,24 @@ extension GameState {
 
     /// La salida por video de un evento negativo. E4 la mueve al popup del chip.
     func escapeActiveEvent(now: TimeInterval = Date().timeIntervalSince1970) {
-        guard let event = activeEvent, event.escapableByVideo, var player else { return }
+        guard let event = activeEvent, event.escapableByVideo else { return }
+        cutNegativeEvent()
+        Log.economy.info("event escaped by video: \(event.id)")
+    }
+
+    /// Corta en el acto el evento malo que esté corriendo (la Obra social, la
+    /// salida por video del Corralito): saca sus modificadores y limpia el aviso.
+    /// Un buff no se corta.
+    @discardableResult
+    func cutNegativeEvent() -> Bool {
+        guard let event = activeEvent, !event.isBuff, var player else { return false }
         player.run.activeModifiers.removeAll { $0.sourceKey == "event.\(event.id)" }
         self.player = player
         activeEvent = nil
         effectsVersion += 1
         refreshProjections()
         scheduleSave()
-        Log.economy.info("event escaped by video: \(event.id)")
+        return true
     }
 
     func handleEventRoll(_ roll: EventManager.Roll, now: TimeInterval) {
@@ -533,15 +547,10 @@ extension GameState {
     /// Qué se lleva cada carrera, ya formateado para mostrarlo ANTES de elegir:
     /// una elección a ciegas no es una elección.
     var careerRewards: [String: CareerReward] {
-        guard let content, let economy, let player else { return [:] }
+        guard let content, let player else { return [:] }
         var rewards: [String: CareerReward] = [:]
         for career in content.careers.careers {
-            guard let preview = Self.previewText(
-                for: career,
-                content: content,
-                economy: economy,
-                player: player
-            ) else { continue }
+            guard let preview = Self.previewText(for: career, content: content, player: player) else { continue }
             rewards[career.id] = CareerReward(kind: career.rewardKind, previewText: preview)
         }
         return rewards
@@ -550,89 +559,60 @@ extension GameState {
     private static func previewText(
         for career: CareersConfig.Career,
         content: GameContent,
-        economy: StandardEconomy,
         player: PlayerState
     ) -> String? {
         switch career.rewardKind {
-        case .coinChest:
-            guard let factor = career.chestFactor else { return nil }
-            let chest = economy.passiveUnlockCost(forTier: player.run.maxTierReached) * factor
-            return String(localized: "career.reward.welcome \(CoinFormatter.string(from: chest))")
-        case .freeBoost:
-            guard let boost = content.boosts.boosts.first(where: { $0.id == career.boostId }) else { return nil }
-            let name = localized(boost.displayNameKey(buildVariant: content.flags.effectiveBuildVariant))
-            let effect = EffectFormatter.text(
-                EffectDescriptor.amount(forBoost: boost.effectType, magnitude: boost.magnitude)
-            )
-            return String(localized: "career.reward.boost \(name) \(effect)")
+        case .freeHires:
+            guard let duration = career.durationSeconds else { return nil }
+            return String(localized: "career.reward.free_hires \(minutesText(seconds: duration))")
         case .skin:
             guard let skin = content.skins.skins.first(where: { $0.id == career.skinId }) else { return nil }
             return String(localized: "career.reward.skin \(localized(skin.displayNameKey ?? skin.id))")
-        case .temporaryModifier:
-            guard let magnitude = career.magnitude, let duration = career.durationSeconds else { return nil }
-            let effect = EffectFormatter.text(
-                EffectDescriptor.amount(forBoost: .spawnCostMultiplier, magnitude: magnitude)
-            )
-            return String(localized: "career.reward.modifier \(effect) \(String(Int(duration / 60)))")
+        case .lawsuit:
+            guard let minutes = career.lumpMinutes else { return nil }
+            let coins = CoinFormatter.string(from: coinPayout(minutes: minutes, player: player, content: content))
+            return String(localized: "career.reward.lawsuit \(coins)")
+        case .healthPlan:
+            guard let duration = career.durationSeconds, let minutes = career.lumpMinutes else { return nil }
+            let coins = CoinFormatter.string(from: coinPayout(minutes: minutes, player: player, content: content))
+            return String(localized: "career.reward.health_plan \(minutesText(seconds: duration)) \(coins)")
         }
     }
 
+    private static func minutesText(seconds: Double) -> String {
+        EffectFormatter.text(EffectAmount(unit: .minutes, value: seconds / 60, isCapped: false))
+    }
+
     /// Acredita el premio de una vez de la carrera elegida. La llama `chooseCareer`
-    /// desde `+Actions`: la elección es de allá, el bonus es de acá.
+    /// desde `+Actions`: la elección es de allá, el bonus es de acá. Todo lo que
+    /// no es una skin pasa por `grant`, el único punto de premios.
     func grantCareerReward(optionId: String, now: TimeInterval = Date().timeIntervalSince1970) {
-        guard let content, let economy, var player,
-              let career = content.careers.careers.first(where: { $0.id == optionId })
-        else { return }
+        guard let content, let career = content.careers.careers.first(where: { $0.id == optionId }) else { return }
+        let source = "career.\(optionId)"
 
         switch career.rewardKind {
-        case .coinChest:
-            let chest = economy.passiveUnlockCost(forTier: player.run.maxTierReached) * (career.chestFactor ?? 0)
-            player.run.coins += chest
-            player.meta.lifetimeEarnings += chest
-            audio?.play(.coin)
-        case .freeBoost:
-            guard let boostId = career.boostId else { break }
-            // "Gratis" es literal: se activa por el MISMO camino que el botón de
-            // Bonus (así el regalo no reimplementa los cinco efectos) pero
-            // ignorando el cooldown vigente y sin consumirlo después. El jugador
-            // no pierde el boost que ya tenía cargado.
-            let previous = player.meta.boostActivations[boostId]
-            player.meta.boostActivations[boostId] = nil
-            do {
-                _ = try BoostManager.activate(
-                    boostId: boostId,
-                    state: &player,
-                    config: content.boosts,
-                    upgrades: content.upgradesConfig,
-                    specials: content.specials,
-                    viral: content.viral,
-                    tiers: content.tiers,
-                    floorTable: content.floorTable,
-                    economy: economy,
-                    now: now
-                )
-            } catch {
-                Log.economy.info("career free boost rejected: \(error)")
-            }
-            player.meta.boostActivations[boostId] = previous
+        case .freeHires:
+            grant(.modifier(effect: .freeHire, magnitude: 1, seconds: career.durationSeconds ?? 0), source: source, now: now)
         case .skin:
-            guard let skinId = career.skinId, !player.meta.milestoneSkins.contains(skinId) else { break }
-            player.meta.milestoneSkins = (player.meta.milestoneSkins + [skinId]).sorted()
-            skinSelectionVersion &+= 1
-        case .temporaryModifier:
-            player.run.activeModifiers.append(ActiveModifier(
-                effect: .spawnCostMultiplier,
-                magnitude: career.magnitude ?? 1,
-                expiresAt: now + (career.durationSeconds ?? 0),
-                sourceKey: "career.\(optionId)"
-            ))
+            grantSkin(career.skinId)
+        case .lawsuit:
+            grant(.coinsSeconds((career.lumpMinutes ?? 0) * 60), source: source, now: now)
+        case .healthPlan:
+            grant(.eventImmunity(seconds: career.durationSeconds ?? 0), source: source, now: now)
+            cutNegativeEvent()
+            grant(.coinsSeconds((career.lumpMinutes ?? 0) * 60), source: source, now: now)
         }
+        Log.economy.info("career reward granted: \(optionId) (\(career.rewardKind.rawValue))")
+    }
 
+    private func grantSkin(_ skinId: String?) {
+        guard var player, let skinId, !player.meta.milestoneSkins.contains(skinId) else { return }
+        player.meta.milestoneSkins = (player.meta.milestoneSkins + [skinId]).sorted()
         self.player = player
+        skinSelectionVersion &+= 1
         effectsVersion += 1
         refreshProjections()
         scheduleSave()
-        Log.economy.info("career reward granted: \(optionId) (\(career.rewardKind.rawValue))")
     }
 
     /// Referral local (bible §8): compartir da un boost permanente chico, capeado.

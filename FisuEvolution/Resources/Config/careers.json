@@ -1,10 +1,10 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "careers": [
     {
       "id": "junior_programmer",
-      "rewardKind": "coinChest",
-      "chestFactor": 6.0
+      "rewardKind": "freeHires",
+      "durationSeconds": 120
     },
     {
       "id": "junior_architect",
@@ -13,14 +13,14 @@
     },
     {
       "id": "junior_doctor",
-      "rewardKind": "freeBoost",
-      "boostId": "cafe"
+      "rewardKind": "healthPlan",
+      "durationSeconds": 1800,
+      "lumpMinutes": 15
     },
     {
       "id": "junior_lawyer",
-      "rewardKind": "temporaryModifier",
-      "magnitude": 0.5,
-      "durationSeconds": 600
+      "rewardKind": "lawsuit",
+      "lumpMinutes": 20
     }
   ]
 }

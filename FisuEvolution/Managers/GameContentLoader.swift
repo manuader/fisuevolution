@@ -91,7 +91,7 @@ enum GameContentLoader {
                 reason: "boost \(boost.id) references unknown floor \(boost.unlockFloorId)"
             )
         }
-        try validate(careers: careers, tiers: tiers, boosts: boosts, skins: skins)
+        try validate(careers: careers, tiers: tiers, skins: skins)
         try validate(achievements: achievements, floorTable: floorTable, boosts: boosts)
         try tabs.validate()
         do {
@@ -188,7 +188,6 @@ enum GameContentLoader {
     private static func validate(
         careers: CareersConfig,
         tiers: TierRepository,
-        boosts: BoostsConfig,
         skins: SkinsConfig
     ) throws {
         func fail(_ reason: String) -> GameError { .contentInvalid(file: "careers.json", reason: reason) }
@@ -205,23 +204,23 @@ enum GameContentLoader {
                 throw fail("\(career.id) no es una opción de carrera de tiers.json")
             }
             switch career.rewardKind {
-            case .coinChest:
-                guard let factor = career.chestFactor, factor > 0 else {
-                    throw fail("\(career.id): coinChest necesita chestFactor > 0")
-                }
-            case .freeBoost:
-                guard let boostId = career.boostId, boosts.boosts.contains(where: { $0.id == boostId }) else {
-                    throw fail("\(career.id): freeBoost apunta a un boost inexistente")
+            case .freeHires:
+                guard let duration = career.durationSeconds, duration > 0 else {
+                    throw fail("\(career.id): freeHires necesita durationSeconds > 0")
                 }
             case .skin:
                 guard let skinId = career.skinId, skins.skins.contains(where: { $0.id == skinId }) else {
                     throw fail("\(career.id): skin apunta a una skin inexistente")
                 }
-            case .temporaryModifier:
-                guard let magnitude = career.magnitude, magnitude > 0,
-                      let duration = career.durationSeconds, duration > 0
+            case .lawsuit:
+                guard let minutes = career.lumpMinutes, minutes > 0 else {
+                    throw fail("\(career.id): lawsuit necesita lumpMinutes > 0")
+                }
+            case .healthPlan:
+                guard let duration = career.durationSeconds, duration > 0,
+                      let minutes = career.lumpMinutes, minutes > 0
                 else {
-                    throw fail("\(career.id): temporaryModifier necesita magnitude y durationSeconds > 0")
+                    throw fail("\(career.id): healthPlan necesita durationSeconds y lumpMinutes > 0")
                 }
             }
         }

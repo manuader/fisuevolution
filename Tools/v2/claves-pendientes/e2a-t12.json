@@ -1,0 +1,6 @@
+{
+  "career.reward.free_hires %@": {"es": "Contratás gratis durante %@, sin que suban los precios", "en": "Free hires for %@, and prices don't go up"},
+  "career.reward.lawsuit %@": {"es": "Juicio ganado: %@ de plata", "en": "Lawsuit won: %@ coins"},
+  "career.reward.health_plan %@ %@": {"es": "Obra social: %1$@ sin eventos malos y %2$@ de plata", "en": "Health plan: %1$@ with no bad events and %2$@ coins"},
+  "bonus.chip.free_hire": {"es": "Gratis", "en": "Free"}
+}

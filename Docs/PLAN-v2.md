@@ -345,6 +345,7 @@ planes, y se corre de a uno lo que se pisa. **Las olas reales y la cola viven en
 | P3 | Splash sin logo, tips sin traducir, arte calado | E3 + E8 |
 | 20 | Notificaciones push prendidas por defecto y desactivables (2026-10-06) | E11 (+ E9 Ajustes y Tour, E5 ruleta) |
 | 21 | Ranking global de la llegada a Dios, con nombre moderado y backend propio (2026-10-08) | E12 (+ E9 reset, E3 menú, E10 App Privacy) |
+| 22 | Feedback de un jugador de la v1 (11 ajustes aprobados) + el botón de video que hay que tocar dos veces (2026-10-08) | E13 |
 
 ```
 E0 Preparación
@@ -360,6 +361,7 @@ E0 Preparación
                     └─ E7b Ubicaciones de anuncios + columna lateral + Vendedor
                          └─ E9 Tutorial v2 + Tour de novedades + Ajustes
                               ├─ E12 Ranking de la llegada a Dios       (Supabase + moderación; cuelga del reset de E9b T8)
+                              ├─ E13 Ajustes del feedback de la v1      (12 ajustes chicos; el del video va primero)
                               └─ E2b Calibración final de pacing + contrato
                                    └─ E10 Release: doc ASC/AdMob, capturas, archive, TestFlight
 ```
@@ -1283,6 +1285,73 @@ empuja anuncios y tienda.
 - **Orden**: el plan por tareas lo hace un planificador. `NameRules`, el backend y el cliente van
   en paralelo con el resto; la tarjeta y la pestaña, después de E3 (menú) y E1 (save v6); el
   arranque por reset, después de E9b T8. Termina antes de E2b (que fija el piso) y E10.
+
+### E13 — Ajustes del feedback de la v1 (pedido del dueño, 2026-10-08)
+
+Un jugador de la v1 le pasó al dueño 18 observaciones. Siete ya estaban cubiertas por la 2.0 (el
+pasivo en segundo plano, el atajo de contratar, los pisos en marcha, el piso móvil, la plata y el
+ORO de la tienda, el Corralito y los cofres que sólo dan pintas desbloqueadas). El dueño aprobó
+estos ajustes para el resto, más un bug que reportó él. Ninguno toca una decisión cerrada de §2 ni
+de `Docs/HANDOFF.md` §5.
+
+1. **El botón de video responde al primer toque** (bug del dueño; va primero). Hoy
+   `AdMobAdsProvider.showRewarded(for:)` devuelve `false` en el acto si el anuncio no está cargado,
+   y recién ahí lo pide: el primer toque no hace nada visible y el segundo sí anda.
+   - `showRewarded` espera la carga en curso (o la arranca) hasta **8 s** y presenta apenas llega.
+     Si vence el plazo o no hay inventario, devuelve `false` y la UI dice "No hay videos ahora,
+     probá en un rato".
+   - El botón pasa a "Cargando video…" con spinner desde el primer toque e **ignora los toques
+     siguientes** mientras carga o presenta (un solo `Task` vivo por botón).
+   - Las vistas precargan al aparecer (`preloadRewarded(for:)` en `onAppear`), como ya pide el
+     comentario del provider.
+   - Es el contrato de `RewardedOfferButton` (E4b T3 lo crea; E7b-b T7 lo completa). E13 lo
+     adelanta: arregla el provider y migra los lugares actuales (`GiftsView` boost y regalos,
+     `OfflineEarningsView`, `ChestOpeningView`, `EventBannerView`). Lo que venga después usa el
+     mismo componente.
+   - Tests: `AdsProvider` simulado con carga lenta (presenta al llegar, un solo show con tres
+     toques), con fallo (mensaje, sin gastar el enfriamiento) y un UI test de doble toque.
+2. **Premios por video re-tasados** (`rewarded_ads.json`):
+   - "Personaje de regalo" (`spawn_rare`, `rareUnit`) da un personaje de **frontera − 3** (el
+     mismo tier que el Blanqueo), no de tu mejor tier.
+   - "Evolución gratis" (`accelerate_evolution`, `instantMerge`) sale del catálogo y su lugar lo
+     ocupa **"Fusionar todo" por video** (el de E2a T6/T14).
+   - Los dos entran al perfil `.ads` y a los presupuestos de E2b.
+3. **Cofres de piso, una vez por cuenta**: el contador `run.floorChestsAwarded` pasa a `meta`. Subir
+   de nuevo después de reencarnar ya no vuelve a pagar los cofres de cada 2 pisos. El cofre de
+   reencarnación sigue siendo el de cada partida. Migración: el valor de la run actual pasa a
+   `meta` (`max` con lo ya cobrado).
+4. **Aviso de boosts listos**: el punto de Regalos de `BottomMenuBar.showsBadge` también se prende
+   cuando hay un boost gratis sin enfriamiento (mates, café cargado), con una proyección en
+   `GameState`.
+5. **Los precios al reencarnar, explicados**: una línea en `PrestigeView` ("Al renacer, los precios
+   de contratación vuelven a empezar") y el paso `prestige` del tutorial de E9b lo dice.
+6. **El evento de evolución, sin abrir tiers**: "Startup comprada" (`instantEvolution`) evoluciona
+   el mejor par que esté **2 tiers o más por debajo de la frontera**. Si no hay, paga plata. Nunca
+   abre un tier nuevo. Sigue con su presentador (E4) y su revelación (E1 T10).
+7. **Mejoras permanentes claras**:
+   - textos con el efecto concreto, antes → después ("Offline rinde 35 % → 40 %", "Cada ORO de
+     almas suma +X % a tu multiplicador", "−3 % → −6 % en contrataciones");
+   - "Pegarla" y "Toque de oro" se funden en una línea, "Toque premiado" (crítico y dorado juntos).
+     Los niveles comprados de las dos se suman en la nueva sin perder ORO. Son 6 líneas en vez
+     de 7; E2b recalcula los costos con eso;
+   - la magnitud del descuento la decide la búsqueda de E2b (sube a −5/−6 % por nivel si la
+     calibración lo banca).
+8. **Pisos de arriba con misterio**: en `FloorMapView` (y en la botonera del ascensor) los pisos
+   bloqueados se ven como "Piso ???" con una silueta, sin el nombre ni la miniatura del fondo.
+9. **Ficha y Despedir desde la pestaña Personajes**: un botón por tipo que abre la misma
+   `CharacterSheetView`. El mantener apretado en el tablero queda como atajo.
+10. **FisuJobs por pisos**: dentro de "Abiertas", un `SectionHeader` por piso con su nombre y su
+    número del LED.
+11. **Quién genera plata, a la vista**: un ícono chico de moneda sobre cada `CharacterNode` cuyo
+    tipo tiene el pasivo desbloqueado. Un solo nodo por personaje, sin animación continua.
+12. **Diamante = pack**: la tarjeta de cada pinta de Diamante en `CustomizationView` dice "Pack de
+    las 43" bajo el precio. La venta suelta no se hace (decisión cerrada, HANDOFF §5.7).
+
+- **Textos** nuevos en es + en; las lecciones que cambian (Personajes, mejoras) se registran en
+  `TutorialCoverageTests` (E9).
+- **Orden**: el ítem 1 va primero y solo, apenas haya cupo. Los ítems 2, 3, 6 y 7 tocan la economía:
+  van antes de E2b, que los mide. El resto (4, 5, 8–12) es UI chica, en paralelo, respetando los
+  archivos calientes de `tasks.md` §3.1. El plan por tareas lo hace un planificador.
 
 ### Anexo A — Guiones de visitantes y frases de eventos (propuesta para aprobar)
 

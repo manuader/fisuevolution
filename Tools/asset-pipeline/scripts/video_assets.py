@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Los masters de Higgsfield (pantalla verde) -> los loops y las cinematicas del juego.
+"""Los masters de Higgsfield (pantalla verde o magenta) -> los loops y las cinematicas del juego.
 
 PLAN-v2 E8, "Pipeline de video". Dos clases de pieza, con el mismo keying que
 el cofre (`chest_video_frames.py`):
@@ -18,10 +18,11 @@ juego, un test en Swift.
 calibro a ojo y dos masters dieron dos verdes distintos (ver el docstring de
 `chest_video_frames.py`): un master nuevo con el verde del anterior se come al
 personaje. Se mide como alla, en el stream con la matriz limited-range, pero en
-las cuatro esquinas de tres cuadros, y si las esquinas no son un verde liso el
-script se niega en vez de adivinar.
+las esquinas de tres cuadros (las de arriba si es un retrato: los hombros tocan
+las de abajo), y si no son un fondo liso, verde o magenta, el script se niega
+en vez de adivinar. El magenta es para los personajes de piel verde.
 
-    .venv/bin/python scripts/video_assets.py medir video/chest-animation.mp4
+    .venv/bin/python scripts/video_assets.py medir video/chest-animation.mp4 [--clase retrato]
     .venv/bin/python scripts/video_assets.py retrato npc_comisario
     .venv/bin/python scripts/video_assets.py cinematica arresto [--sin-key]
     .venv/bin/python scripts/video_assets.py ascensor cierra --video <master>
@@ -92,7 +93,13 @@ POSE_SUFFIXES = ("_talk", "_action", "_face")
 # calibro a mano: 12 de tolerancia deja pasar la compresion y no un objeto.
 CORNER_PATCH = 8
 MAX_CORNER_SPREAD = 12
-MIN_GREEN_LEAD = 40
+# Cuanto le gana el canal del key a los otros dos: verde (G sobre R y B) o
+# magenta (R y B sobre G), para los personajes de piel verde.
+MIN_KEY_LEAD = 40
+# Las esquinas que se miden por clase. Un retrato es un busto: los hombros tocan
+# las dos de abajo (10 de los 18 masters de croma), asi que se miden las de
+# arriba; en la cinematica las cuatro son fondo.
+CORNER_ROWS = {"retrato": ("top",), "cinematica": ("top", "bottom")}
 
 # El ascensor (PLAN-v2 E13 item 13): una sola cabina para todos los viajes. Las
 # esquinas del master son la cabina, asi que el verde se mide en el hueco de las
@@ -138,9 +145,27 @@ def validate_id(kind: str, piece_id: str) -> None:
         )
 
 
+def key_family(color: str) -> str | None:
+    """`green` o `magenta` segun el canal que domina el key, None si ninguno."""
+    r, g, b = (int(color[i:i + 2], 16) for i in (2, 4, 6))
+    if g - max(r, b) >= MIN_KEY_LEAD:
+        return "green"
+    if min(r, b) - g >= MIN_KEY_LEAD:
+        return "magenta"
+    return None
+
+
+def keying(color: str, similarity: float, blend: float) -> str:
+    """El filtro del key. El magenta va sin `despill`: ffmpeg sólo lo conoce para
+    verde y azul, y uno verde se comeria a quien esta sobre magenta por ser verde."""
+    if key_family(color) == "green":
+        return key_filter(color, similarity, blend)
+    return f"chromakey={color}:{similarity}:{blend}"
+
+
 def key_color_from_patches(patches: list[np.ndarray],
                            max_spread: int = MAX_CORNER_SPREAD) -> str:
-    """El verde de fondo como `0xRRGGBB`, o MasterError si no es un verde liso.
+    """El verde (o magenta) de fondo como `0xRRGGBB`, o MasterError si no es un fondo liso.
 
     Cada parche es un array (h, w, 3) de una zona de fondo (las esquinas). La
     mediana del conjunto es el verde; si una zona se aparta, hay algo encima del
@@ -150,13 +175,15 @@ def key_color_from_patches(patches: list[np.ndarray],
     spread = float(np.abs(medians - color).max())
     if spread > max_spread:
         raise MasterError(
-            f"las zonas medidas no son un fondo liso (se apartan {spread:.0f} del verde): "
+            f"las zonas medidas no son un fondo liso (se apartan {spread:.0f} del color): "
             "algo tapa una zona o el fondo tiene degrade"
         )
-    r, g, b = color
-    if g - max(r, b) < MIN_GREEN_LEAD:
-        raise MasterError(f"el fondo no es verde: mide {tuple(int(c) for c in color)}")
-    return "0x{:02X}{:02X}{:02X}".format(*(int(round(c)) for c in color))
+    hex_color = "0x{:02X}{:02X}{:02X}".format(*(int(round(c)) for c in color))
+    if key_family(hex_color) is None:
+        raise MasterError(
+            f"el fondo no es verde ni magenta: mide {tuple(int(c) for c in color)}"
+        )
+    return hex_color
 
 
 def probe(video: Path) -> dict:
@@ -194,8 +221,9 @@ def frame_count(video: Path) -> int:
     return int(video_stream(probe(video)).get("nb_frames") or 1)
 
 
-def measure_key_color(video: Path) -> str:
-    """Mide el verde del master en el stream, como lo ve `chromakey`."""
+def measure_key_color(video: Path, rows: tuple[str, ...] = ("top", "bottom")) -> str:
+    """Mide el fondo del master en el stream, como lo ve `chromakey`. `rows` dice
+    cuales esquinas son fondo: `top`, `bottom` o las dos."""
     frames = frame_count(video)
     decoded = decode_frames(video, sorted({0, frames // 2, frames - 1}))
     height, width = decoded.shape[1:3]
@@ -203,7 +231,7 @@ def measure_key_color(video: Path) -> str:
     patches = [
         frame[y:y + p, x:x + p]
         for frame in decoded
-        for y in (0, height - p)
+        for y in [{"top": 0, "bottom": height - p}[row] for row in rows]
         for x in (0, width - p)
     ]
     return key_color_from_patches(patches)
@@ -254,7 +282,7 @@ def keyed_filter(key_color: str, similarity: float, blend: float, framing: str,
 
     `despill` quita el verde que el key deja en los bordes del personaje; en una
     escena con amarillos (la cabina) tambien los vuelve naranja."""
-    key = key_filter(key_color, similarity, blend) if despill \
+    key = keying(key_color, similarity, blend) if despill \
         else f"chromakey={key_color}:{similarity}:{blend}"
     return (
         f"{key},"
@@ -334,7 +362,7 @@ def process(kind: str, piece_id: str, master: Path, keyed: bool = True,
     validate_id(kind, piece_id)
     if kind == "retrato" and not keyed:
         raise ValueError("un retrato va siempre con alfa (PLAN-v2 E8)")
-    key_color = measure_key_color(master) if keyed else None
+    key_color = measure_key_color(master, rows=CORNER_ROWS[kind]) if keyed else None
     spec = KINDS[kind]
     output = RESOURCES / spec["dir"] / f"{spec['prefix']}{piece_id}.mov"
     encode(kind, master, output, key_color, similarity, blend)
@@ -411,8 +439,10 @@ def process_ascensor_stills(source_dir: Path, similarity: float = KEY_SIMILARITY
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="command", required=True)
-    medir = sub.add_parser("medir", help="imprime el verde de fondo de un master")
+    medir = sub.add_parser("medir", help="imprime el color de fondo de un master")
     medir.add_argument("video", type=Path)
+    medir.add_argument("--clase", choices=sorted(CORNER_ROWS),
+                       help="mide las esquinas de esa clase (por defecto, las cuatro)")
     for kind in KINDS:
         piece = sub.add_parser(kind)
         piece.add_argument("id")
@@ -438,7 +468,8 @@ def main() -> int:
 
     try:
         if args.command == "medir":
-            print(measure_key_color(args.video))
+            rows = CORNER_ROWS[args.clase] if args.clase else ("top", "bottom")
+            print(measure_key_color(args.video, rows))
             return 0
         if args.command == "ascensor-cuadros":
             for still_id, entry in process_ascensor_stills(

@@ -59,7 +59,7 @@ def parche(color, ruido=0):
     return np.clip(base + rng.integers(-ruido, ruido + 1, base.shape), 0, 255).astype(np.uint8)
 
 
-class MedicionDelVerde(unittest.TestCase):
+class MedicionDelFondo(unittest.TestCase):
     def test_un_verde_liso_con_ruido_de_compresion_da_su_hex(self):
         parches = [parche((34, 146, 74), ruido=2) for _ in range(12)]
         medido = rgb(key_color_from_patches(parches))
@@ -70,11 +70,29 @@ class MedicionDelVerde(unittest.TestCase):
         with self.assertRaises(MasterError):
             key_color_from_patches(parches)
 
-    def test_un_fondo_que_no_es_verde_se_rechaza(self):
+    def test_un_fondo_que_no_es_ni_verde_ni_magenta_se_rechaza(self):
         with self.assertRaises(MasterError):
             key_color_from_patches([parche((40, 60, 200)) for _ in range(12)])
 
     @unittest.skipUnless(TIENE_FFMPEG, "sin ffmpeg/ffprobe en el PATH")
+    def test_un_magenta_liso_da_su_hex(self):
+        parches = [parche((253, 4, 252), ruido=2) for _ in range(6)]
+        medido = rgb(key_color_from_patches(parches))
+        self.assertLessEqual(np.abs(medido - (253, 4, 252)).max(), 1)
+        self.assertEqual(video_assets.key_family("0xFD04FC"), "magenta")
+
+    def test_la_familia_del_key_sale_del_color(self):
+        self.assertEqual(video_assets.key_family("0x22924A"), "green")
+        self.assertIsNone(video_assets.key_family("0x283CC8"))
+
+    def test_el_magenta_va_sin_despill_y_el_verde_con(self):
+        self.assertIn("despill=type=green", video_assets.keying("0x22924A", 0.11, 0.04))
+        self.assertNotIn("despill", video_assets.keying("0xFD04FC", 0.11, 0.04))
+
+    def test_cada_clase_mide_sus_esquinas(self):
+        self.assertEqual(video_assets.CORNER_ROWS["retrato"], ("top",))
+        self.assertEqual(video_assets.CORNER_ROWS["cinematica"], ("top", "bottom"))
+
     def test_el_master_del_cofre_mide_el_verde_que_se_calibro_a_mano(self):
         """El verde del cofre (`KEY_COLOR`) se saco a ojo leyendo un pixel. Medir
         el mismo master tiene que dar ese verde, o la medicion no sirve."""
@@ -188,14 +206,20 @@ class DePuntaAPunta(unittest.TestCase):
             patcher.start()
             self.addCleanup(patcher.stop)
 
-    def master(self, width: int, height: int) -> Path:
-        path = self.root / f"master_{width}x{height}.mp4"
+    def master(self, width: int, height: int, fondo: str = VERDE,
+               personaje: str = "0xC83C28", hombros: bool = False) -> Path:
+        path = self.root / f"master_{width}x{height}_{fondo}_{hombros}.mp4"
+        cajas = [f"drawbox=x={width // 3}:y={height // 4}:w={width // 3}:h={height // 2}"
+                 f":color={personaje}:t=fill"]
+        if hombros:
+            # Un busto: los hombros llegan a las dos esquinas de abajo.
+            cajas.append(f"drawbox=x=0:y={height - height // 6}:w={width}:h={height // 6}"
+                         f":color={personaje}:t=fill")
         subprocess.run(
             ["ffmpeg", "-v", "error",
-             "-f", "lavfi", "-i", f"color=c={self.VERDE}:s={width}x{height}:r=24:d=1",
+             "-f", "lavfi", "-i", f"color=c={fondo}:s={width}x{height}:r=24:d=1",
              "-f", "lavfi", "-i", "sine=frequency=440:duration=1",
-             "-vf", f"drawbox=x={width // 3}:y={height // 4}:w={width // 3}:h={height // 2}"
-                    ":color=0xC83C28:t=fill",
+             "-vf", ",".join(cajas),
              "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest",
              "-y", str(path)],
             check=True,
@@ -240,6 +264,22 @@ class DePuntaAPunta(unittest.TestCase):
         manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
         self.assertEqual(manifest["portraits"], {"npc_prueba": entry})
         self.assertEqual(manifest["cinematics"], {})
+
+    def test_un_busto_se_mide_por_arriba_y_sale(self):
+        master = self.master(640, 640, hombros=True)
+        with self.assertRaises(MasterError, msg="con las cuatro esquinas, los hombros lo tapan"):
+            video_assets.measure_key_color(master, rows=("top", "bottom"))
+        entry = video_assets.process("retrato", "npc_prueba", master)
+        self.assertLessEqual(np.abs(rgb(entry["keyColor"]) - rgb(self.VERDE)).max(), 4)
+
+    def test_un_retrato_verde_sobre_magenta_conserva_su_verde(self):
+        master = self.master(640, 640, fondo="0xFF00FF", personaje="0x2CA02C")
+        entry = video_assets.process("retrato", "sp_prueba", master)
+        self.assertEqual(video_assets.key_family(entry["keyColor"]), "magenta")
+        frame = self.cuadro(self.resources / "Loops" / "loop_sp_prueba.mov")
+        h, w = frame.shape[:2]
+        self.assertLessEqual(frame[4, 4, :3].max(), 8, "el fondo magenta se fue")
+        self.assertGreater(frame[h // 2, w // 2, 1], 120, "y el personaje sigue verde")
 
     def test_una_cinematica_cubre_el_vertical_y_lleva_el_sonido(self):
         entry = video_assets.process("cinematica", "arresto", self.master(480, 640))

@@ -50,10 +50,20 @@ public struct RankingState: Codable, Sendable, Equatable {
     public struct CarriedSubmission: Codable, Sendable, Equatable {
         public var runId: String
         public var name: String?
+        /// El servidor ya anotó la llegada: sólo falta el nombre (si lo hay).
+        public var sealed: Bool
 
-        public init(runId: String, name: String? = nil) {
+        public init(runId: String, name: String? = nil, sealed: Bool = false) {
             self.runId = runId
             self.name = name
+            self.sealed = sealed
+        }
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            runId = try c.decode(String.self, forKey: .runId)
+            name = try c.decodeIfPresent(String.self, forKey: .name)
+            sealed = try c.decodeIfPresent(Bool.self, forKey: .sealed) ?? false
         }
     }
 
@@ -214,25 +224,33 @@ public struct RankingState: Codable, Sendable, Equatable {
     }
 
     private var unsentArrival: CarriedSubmission? {
-        guard case .reachedGod(let runId, _, _) = phase else { return nil }
+        guard case .reachedGod(let runId, _, let sealed) = phase else { return nil }
         switch submission?.nameStatus {
         case .ok?, .pending?: return nil
-        default: return CarriedSubmission(runId: runId, name: submission?.name)
+        case .rejected?: return CarriedSubmission(runId: runId, sealed: sealed)
+        default: return CarriedSubmission(runId: runId, name: submission?.name, sealed: sealed)
         }
     }
 
     // MARK: - Conflicto entre dispositivos
 
-    /// Gana la fase más avanzada; a igual fase, el `winner`. Con la misma partida se funden los
-    /// datos (tiempo jugado máximo, el nombre aceptado antes que el que no); con partidas
-    /// distintas manda la ganadora entera.
+    /// Con la misma partida (mismo `runId`) gana la fase más avanzada y se funden los datos
+    /// (tiempo jugado máximo, sello, el nombre aceptado antes que el que no). Con partidas
+    /// distintas manda el `winner` entero, aunque el otro tenga una fase más avanzada: una
+    /// partida vieja no se vuelve elegible por un conflicto. La llegada a Dios sin enviar del
+    /// perdedor pasa a `carriedSubmission` (sin pisar una ya cargada).
     public static func resolve(winner: RankingState, loser: RankingState) -> RankingState {
+        guard winner.phase.isSameGame(as: loser.phase) else {
+            var merged = winner
+            merged.lastName = winner.lastName ?? loser.lastName
+            merged.carriedSubmission = winner.carriedSubmission ?? loser.unsentArrival ?? loser.carriedSubmission
+            return merged
+        }
         let (base, other) = loser.phase.stage > winner.phase.stage ? (loser, winner) : (winner, loser)
         var merged = base
         merged.lastName = base.lastName ?? other.lastName
         merged.carriedSubmission = base.carriedSubmission ?? other.carriedSubmission
         merged.playedSeconds = max(base.playedSeconds, other.playedSeconds)
-        guard base.phase.isSameGame(as: other.phase) else { return merged }
         merged.cardOffered = base.cardOffered || other.cardOffered
         if case .reachedGod(let runId, let startedAt, _) = base.phase,
            base.phase.isSealed || other.phase.isSealed {
@@ -277,7 +295,7 @@ private extension RankingState.Phase {
     }
 
     func isSameGame(as other: Self) -> Bool {
-        guard stage == other.stage else { return false }
-        return runId == other.runId
+        if runId != nil || other.runId != nil { return runId == other.runId }
+        return stage == other.stage
     }
 }

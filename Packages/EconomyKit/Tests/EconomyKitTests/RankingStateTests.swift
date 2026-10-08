@@ -248,10 +248,10 @@ struct RankingStateTests {
         #expect(god().forNewGame().carriedSubmission == .init(runId: "r1"))
         var named = god(sealed: true)
         named.nameChosen("Fisu")
-        #expect(named.forNewGame().carriedSubmission == .init(runId: "r1", name: "Fisu"))
+        #expect(named.forNewGame().carriedSubmission == .init(runId: "r1", name: "Fisu", sealed: true))
         var rejected = god(sealed: true)
         rejected.nameAnswered("Mal", status: .rejected, rank: nil)
-        #expect(rejected.forNewGame().carriedSubmission == .init(runId: "r1", name: "Mal"))
+        #expect(rejected.forNewGame().carriedSubmission == .init(runId: "r1", sealed: true))
     }
 
     @Test("forNewGame no carga una llegada ya aceptada o pendiente, y no pierde la ya cargada")
@@ -281,7 +281,7 @@ struct RankingStateTests {
         var unregistered = RankingState.newGame
         unregistered.reachedGod(at: 1)
         var carrying = RankingState.newGame
-        carrying.carriedSubmission = .init(runId: "x", name: "N")
+        carrying.carriedSubmission = .init(runId: "x", name: "N", sealed: true)
         carrying.lastName = "Fisu"
         let all: [RankingState] = [.legacy, .newGame, running(), god(), god(sealed: true), named, unregistered, carrying]
         for state in all { #expect(try roundTrip(state) == state) }
@@ -308,7 +308,7 @@ struct RankingStateTests {
          "playedSeconds":3600,"activeSince":50,
          "submission":{"name":"Fisu","nameStatus":"ok","realSeconds":7200,"underReview":false,"rank":3},
          "lastName":"Fisu","cardOffered":true,
-         "carriedSubmission":{"runId":"old","name":"Z"}}
+         "carriedSubmission":{"runId":"old","name":"Z","sealed":true}}
         """
         let decoded = try JSONDecoder().decode(RankingState.self, from: Data(json.utf8))
         #expect(decoded.phase == .reachedGod(runId: "abc", serverStartedAt: 1000.5, sealed: true))
@@ -317,7 +317,9 @@ struct RankingStateTests {
         #expect(decoded.submission == .init(name: "Fisu", nameStatus: .ok, realSeconds: 7200, underReview: false, rank: 3))
         #expect(decoded.lastName == "Fisu")
         #expect(decoded.cardOffered)
-        #expect(decoded.carriedSubmission == .init(runId: "old", name: "Z"))
+        #expect(decoded.carriedSubmission == .init(runId: "old", name: "Z", sealed: true))
+        let legacyCarry = try JSONDecoder().decode(RankingState.CarriedSubmission.self, from: Data(#"{"runId":"q"}"#.utf8))
+        #expect(legacyCarry == .init(runId: "q"))
 
         let runningJSON = #"{"phase":{"running":{"runId":"r","serverStartedAt":9}},"playedSeconds":1}"#
         let r = try JSONDecoder().decode(RankingState.self, from: Data(runningJSON.utf8))
@@ -330,15 +332,22 @@ struct RankingStateTests {
 
     // MARK: resolve
 
-    @Test("resolve: gana la fase más avanzada, sin importar quién es el winner")
+    @Test("resolve: la misma partida, gana la fase más avanzada sin importar el winner")
     func resolveByPhase() {
-        let ladder: [RankingState] = [.legacy, .newGame, running(), god()]
-        for i in ladder.indices {
-            for j in ladder.indices where i != j {
-                let result = RankingState.resolve(winner: ladder[i], loser: ladder[j])
-                #expect(result.phase == ladder[max(i, j)].phase)
-            }
-        }
+        let early = running()
+        let late = god()
+        #expect(RankingState.resolve(winner: early, loser: late).phase == late.phase)
+        #expect(RankingState.resolve(winner: late, loser: early).phase == late.phase)
+    }
+
+    @Test("resolve: una partida vieja no se vuelve elegible por un conflicto")
+    func resolveLegacyStaysIneligible() {
+        var old = RankingState.legacy
+        old.playedSeconds = 500
+        #expect(RankingState.resolve(winner: old, loser: .newGame).phase == .ineligible)
+        #expect(RankingState.resolve(winner: old, loser: running()).phase == .ineligible)
+        #expect(RankingState.resolve(winner: old, loser: god()).phase == .ineligible)
+        #expect(RankingState.resolve(winner: .newGame, loser: old).phase == .awaitingStart)
     }
 
     @Test("resolve: a igual fase gana el winner; lastName cae al del perdedor")
@@ -352,7 +361,7 @@ struct RankingStateTests {
         #expect(RankingState.resolve(winner: winner, loser: loser).lastName == "Nuevo")
     }
 
-    @Test("resolve: Dios sin registrar y Dios registrado, el winner manda")
+    @Test("resolve: Dios sin registrar y Dios registrado son partidas distintas, manda el winner")
     func resolveGodKinds() {
         var unregistered = RankingState.newGame
         unregistered.reachedGod(at: 1)
@@ -360,14 +369,16 @@ struct RankingStateTests {
         #expect(RankingState.resolve(winner: god(), loser: unregistered).phase == god().phase)
     }
 
-    @Test("resolve: tiempo jugado máximo")
+    @Test("resolve: tiempo jugado máximo sólo dentro de la misma partida")
     func resolvePlayedSeconds() {
         var a = running(); a.playedSeconds = 50
         var b = running(); b.playedSeconds = 80
         #expect(RankingState.resolve(winner: a, loser: b).playedSeconds == 80)
         #expect(RankingState.resolve(winner: b, loser: a).playedSeconds == 80)
         var legacy = RankingState.legacy; legacy.playedSeconds = 500
-        #expect(RankingState.resolve(winner: a, loser: legacy).playedSeconds == 500)
+        #expect(RankingState.resolve(winner: a, loser: legacy).playedSeconds == 50)
+        var other = running("otra"); other.playedSeconds = 900
+        #expect(RankingState.resolve(winner: a, loser: other).playedSeconds == 50)
     }
 
     @Test("resolve: la misma llegada funde el sello y prefiere el nombre aceptado")
@@ -388,7 +399,7 @@ struct RankingStateTests {
         #expect(c.cardOffered)
     }
 
-    @Test("resolve: dos Dios con partidas distintas, la del winner entera")
+    @Test("resolve: dos Dios con partidas distintas, la del winner entera; la ajena sin enviar se carga")
     func resolveDifferentArrivals() {
         var named = god("otra", sealed: true)
         named.nameAnswered("Fisu", status: .ok, rank: 2)
@@ -397,6 +408,16 @@ struct RankingStateTests {
         #expect(r.phase == mine.phase)
         #expect(r.submission == mine.submission)
         #expect(r.submission?.nameStatus == .missing)
+        #expect(r.carriedSubmission == nil)
+
+        let unsent = god("ajena")
+        let carried = RankingState.resolve(winner: mine, loser: unsent)
+        #expect(carried.phase == mine.phase)
+        #expect(carried.carriedSubmission == .init(runId: "ajena"))
+
+        var already = mine
+        already.carriedSubmission = .init(runId: "vieja")
+        #expect(RankingState.resolve(winner: already, loser: unsent).carriedSubmission == .init(runId: "vieja"))
     }
 
     @Test("resolve: dos running con runId distintos, el winner")

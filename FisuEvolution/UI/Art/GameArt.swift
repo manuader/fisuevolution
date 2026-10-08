@@ -244,8 +244,20 @@ struct GameToggle: View {
 /// — así lo componen las referencias); es decoración, el título ya dice todo,
 /// y por eso va tapado de VoiceOver acá y no en cada llamador.
 struct PanelTitleBanner: View {
-    let titleKey: LocalizedStringKey
+    private let title: Text
     var icon: AnyView?
+
+    init(titleKey: LocalizedStringKey, icon: AnyView? = nil) {
+        self.title = Text(titleKey)
+        self.icon = icon
+    }
+
+    /// Para un título ya resuelto (el nombre de un personaje): pasarlo como
+    /// clave buscaría una traducción que no existe (trampa 5).
+    init(verbatim title: String, icon: AnyView? = nil) {
+        self.title = Text(verbatim: title)
+        self.icon = icon
+    }
 
     var body: some View {
         HStack(spacing: Tokens.s8) {
@@ -254,7 +266,7 @@ struct PanelTitleBanner: View {
                     .frame(width: 26, height: 26)
                     .accessibilityHidden(true)
             }
-            Text(titleKey)
+            title
                 .font(.system(.title3, design: .rounded).weight(.heavy))
                 .foregroundStyle(Color("PaletteInk"))
                 .lineLimit(1)

@@ -677,6 +677,63 @@ struct ActionPill: View {
     }
 }
 
+// MARK: - PagerChevronButton
+
+/// Las flechas ‹ › de un paginador de la casa (la ficha, el menú deslizable):
+/// plato crema con borde marrón. Sin vuelta en los extremos: el llamador pone
+/// `.disabled` y la cara lo dibuja leyendo `isEnabled`, sin el atenuado del
+/// sistema (que deja el glifo ilegible).
+struct PagerChevronButton: View {
+    enum Direction {
+        case previous
+        case next
+    }
+
+    let direction: Direction
+    let identifier: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            PagerChevronLabel(systemName: direction == .previous ? "chevron.left" : "chevron.right")
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(identifier)
+        .accessibilityLabel(Text(labelKey))
+    }
+
+    /// Escritas enteras: armar la clave por interpolación no la resuelve (trampa 5).
+    private var labelKey: LocalizedStringKey {
+        switch direction {
+        case .previous: "pager.previous.ax"
+        case .next: "pager.next.ax"
+        }
+    }
+}
+
+private struct PagerChevronLabel: View {
+    let systemName: String
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        Image(systemName: systemName)
+            .font(.system(size: 15, weight: .black))
+            .foregroundStyle(Color("PaletteInk").opacity(isEnabled ? 1 : 0.3))
+            .frame(width: 34, height: 34)
+            .background(
+                Circle()
+                    .fill(Color("PaletteCream"))
+                    .overlay(
+                        Circle().strokeBorder(
+                            Color("PaletteBrown").opacity(isEnabled ? 0.7 : 0.3),
+                            lineWidth: 2
+                        )
+                    )
+            )
+            .contentShape(Circle())
+    }
+}
+
 // MARK: - StateBadge
 
 /// Lo que ocupa el lugar del botón cuando la fila **no ofrece una acción**:

@@ -51,7 +51,7 @@ final class UpgradesMenuUITests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(
-            app.buttons["character.skin.equip"].waitForExistence(timeout: 15),
+            app.buttons["character.skin.next"].waitForExistence(timeout: 15),
             "character sheet skin section never appeared"
         )
 
@@ -70,14 +70,17 @@ final class UpgradesMenuUITests: XCTestCase {
             "character.skin.previous",
             "character.skin.next",
             "character.skin.equip",
+            "character.skin.buy",
             "character.dismiss",
         ]
         let sheetButtons = app.scrollViews.firstMatch.buttons
         let identifiers = Set((0 ..< sheetButtons.count).map { sheetButtons.element(boundBy: $0).identifier })
         XCTAssertFalse(identifiers.isEmpty, "la ficha no expuso ningún control: el query no encontró la hoja")
+        // Las miniaturas de la tira son controles de pintas: se aceptan por prefijo.
+        let unknown = identifiers.filter { !known.contains($0) && !$0.hasPrefix("character.skin.thumb.") }
         XCTAssertTrue(
-            identifiers.isSubset(of: known),
-            "la ficha tiene controles que no son de skins (\(identifiers.subtracting(known))); el pasivo se compra en el menú"
+            unknown.isEmpty,
+            "la ficha tiene controles que no son de skins (\(unknown)); el pasivo se compra en el menú"
         )
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())

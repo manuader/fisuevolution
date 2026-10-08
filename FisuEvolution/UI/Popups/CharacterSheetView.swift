@@ -2,179 +2,208 @@ import EconomyKit
 import StoreKit
 import SwiftUI
 
-/// Ficha por tipo de personaje: apariencia y despedir.
+/// La ficha de un personaje: su pinta en grande, cambiarla y despedirlo
+/// (PLAN-v2 E3). Es una pantalla con el andamio de FisuJobs —`NavigationStack`
+/// + `panelSheet` + la X de la casa— y no una tarjeta suelta.
 ///
-/// El pasivo **ya no se compra acá** (RF-04). Se compraba sólo manteniendo
-/// apretado un personaje del tablero, un gesto que nadie descubre, y ahora tiene
-/// su botón en cada fila del menú de mejoras. Sacada la sección, el long-press
-/// —que sigue abriendo esta ficha— pasa a servir únicamente para cambiar la
-/// skin, que es lo pedido.
+/// El pasivo **no se compra acá** (RF-04): lo vende cada fila de Mejoras.
 struct CharacterSheetView: View {
     @Environment(GameState.self) private var gameState
     @Environment(StoreManager.self) private var store
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let sheet: GameState.CharacterSheet
-    @State private var selectedIndex = 0
+    @State private var selectedID = SkinOption.baseID
     @State private var confirmingDismissal = false
 
+    /// La pinta en grande: hasta 248 pt (216 en el SE), ~2,6× la de la v1.
+    static let portraitMaxSide: CGFloat = 248
+
     private struct SkinOption: Identifiable {
+        static let baseID = "base"
         let skin: SkinsConfig.Entry?
-        var id: String { skin?.id ?? "base" }
+        var id: String { skin?.id ?? Self.baseID }
     }
 
     private var options: [SkinOption] {
         [SkinOption(skin: nil)] + gameState.skinOptions(forCharacterType: sheet.type.id).map(SkinOption.init)
     }
 
-    private var selected: SkinOption {
-        options.indices.contains(selectedIndex) ? options[selectedIndex] : options[0]
-    }
-
-    private var selectedTreatment: SkinResolver.Treatment {
-        SkinResolver.treatment(
-            for: selected.skin?.id,
-            characterType: sheet.type.id,
-            config: gameState.content?.skins ?? SkinsConfig(schemaVersion: 1, skins: [])
-        )
-    }
-
-    private var isSelectedOwned: Bool {
-        selected.skin.map { gameState.ownsSkin($0.id) } ?? true
-    }
+    private var selectedIndex: Int { options.firstIndex { $0.id == selectedID } ?? 0 }
+    private var selected: SkinOption { options[selectedIndex] }
 
     var body: some View {
-        // Proyección observada: entitlements/milestones/equipar refrescan el
-        // estado del botón sin observar PlayerState (que cambia 8 veces/s).
+        // Proyección observada: entitlements, milestones y equipar refrescan la
+        // ficha sin observar `PlayerState`.
         let _ = gameState.skinSelectionVersion
-        // El panel se ajusta a su contenido y el Spacer lo empuja arriba: con
-        // `.large` a secas el marco decorativo se estiraba a toda la pantalla y
-        // quedaba media hoja vacía abajo.
-        VStack(spacing: 0) {
-            // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
-            // insets son del componente, no medidos contra un PNG (pedido del
-            // dueño 2026-08-18: una sola familia visual para hojas y popups).
-            PanelCard {
-                ScrollView {
-                    VStack(spacing: 12) {
-                        header
-                        skinPager
-                        dismissalSection
-                    }
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: Tokens.s16) {
+                    pager
+                    names
+                    thumbnails
+                    action
+                    dismissal
                 }
-                .scrollBounceBehavior(.basedOnSize)
+                .padding(.horizontal, WoodPanelBackground.columnInset)
+                .padding(.top, Tokens.s8)
+                .padding(.bottom, Tokens.s24)
             }
-            .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
+            .scrollBounceBehavior(.basedOnSize)
+            .panelSheet { header }
+            .navigationTitle(Text(verbatim: ""))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
+            }
         }
-        .padding(16)
-        // SÓLo `.large`. Con `.medium` la ficha abría a media pantalla y lo de
-        // abajo quedaba tapado por el pliegue: había que descubrir que se
-        // scrollea, y no se notaba. Entra todo de una.
-        .presentationDetents([.large])
-        // El panel ya no ocupa toda la hoja, así que el fondo del sheet dejaba
-        // una franja blanca muerta: transparente, el panel flota sobre el juego.
+        .overlay {
+            if confirmingDismissal {
+                GameConfirmCard(
+                    titleKey: "character.dismiss.title",
+                    message: Text("character.dismiss.message"),
+                    confirmTitleKey: "character.dismiss.confirm",
+                    confirmSystemImage: "person.fill.xmark",
+                    cancelTitleKey: "character.dismiss.cancel",
+                    onConfirm: {
+                        gameState.dismissCharacter(atCell: sheet.cellIndex)
+                        dismiss()
+                    },
+                    onCancel: { confirmingDismissal = false }
+                )
+            }
+        }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: confirmingDismissal)
         .fisuSheet()
-        .alert("character.dismiss.title", isPresented: $confirmingDismissal) {
-            Button("character.dismiss.confirm", role: .destructive) {
-                gameState.dismissCharacter(atCell: sheet.cellIndex)
-                dismiss()
-            }
-            Button("character.dismiss.cancel", role: .cancel) {}
-        } message: {
-            Text("character.dismiss.message")
-        }
         .onAppear { selectActiveSkin() }
     }
 
+    // MARK: Cabecera
+
     private var header: some View {
-        VStack(spacing: 5) {
-            CharacterPortrait(
-                type: sheet.type,
-                treatment: selectedTreatment,
-                asSilhouette: !isSelectedOwned
-            )
-            // El plato de la casa para todo retrato (`JobPortrait`, `SkinCard`):
-            // amarillo tenue + borde marrón. El padding va ANTES del frame para
-            // que el plato ocupe los mismos 96 pt que ocupaba el retrato pelado
-            // y la ficha no cambie de alto. Radio 18 —el de las tarjetas— y no
-            // 12 porque acá el retrato no es una celda de lista: es el héroe.
-            .padding(6)
-            .frame(width: 96, height: 96)
+        VStack(spacing: Tokens.s4) {
+            PanelTitleBanner(verbatim: sheet.type.localizedName)
+            // Los Int se interpolan como %lld y no matchean la clave declarada
+            // con %@: van como String.
+            Text("character.count \(String(sheet.instanceCount))")
+                .font(Tokens.caption)
+                .foregroundStyle(Color("PaletteInk").opacity(0.75))
+        }
+    }
+
+    // MARK: La pinta en grande
+
+    private var pager: some View {
+        HStack(spacing: Tokens.s8) {
+            PagerChevronButton(direction: .previous, identifier: "character.skin.previous") { move(by: -1) }
+                .disabled(selectedIndex == 0)
+            TabView(selection: $selectedID) {
+                ForEach(options) { option in
+                    CharacterPortrait(type: sheet.type, treatment: treatment(for: option), asSilhouette: !owns(option))
+                        .padding(Tokens.s16)
+                        .tag(option.id)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(maxWidth: Self.portraitMaxSide)
+            .aspectRatio(1, contentMode: .fit)
+            .background(portraitPlate)
+            // El marcador del test de UI: el tamaño real del retrato y qué pinta
+            // muestra (de FONDO, como `board.units`).
             .background(
-                RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
-                    .fill(Color("PaletteYellow").opacity(0.35))
+                Color.clear
+                    .accessibilityElement()
+                    .accessibilityIdentifier("character.portrait")
+                    .accessibilityValue(Text(verbatim: selectedID))
             )
+            PagerChevronButton(direction: .next, identifier: "character.skin.next") { move(by: 1) }
+                .disabled(selectedIndex == options.count - 1)
+        }
+    }
+
+    private var portraitPlate: some View {
+        RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
+            .fill(Color("PaletteYellow").opacity(0.35))
             .overlay(
                 RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
                     .strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2)
             )
-            Text(sheet.type.localizedName)
-                .font(.system(.title2, design: .rounded).weight(.black))
+    }
+
+    private var names: some View {
+        VStack(spacing: 3) {
+            Text(verbatim: skinName(selected))
+                .font(Tokens.title)
                 .foregroundStyle(Color("PaletteInk"))
-            // Los Int se interpolan como %lld y no matchean la clave declarada
-            // con %@: se pasan como String, igual que `passive.explainer`.
-            Text("character.count \(String(sheet.instanceCount))")
-                .font(Tokens.body)
+            Text("character.skin.index \(String(selectedIndex + 1)) \(String(options.count))")
+                .font(Tokens.caption)
+                .monospacedDigit()
                 .foregroundStyle(Color("PaletteInk").opacity(0.65))
         }
     }
 
-    private var skinPager: some View {
-        // `GameCard` y no el crema translúcido a mano de antes: sobre el
-        // pergamino del panel v3 la que despega es la tarjeta de la casa
-        // (mismo radio, borde marrón y sombra que todas las filas del juego).
-        // El padding interno no cambia: `GameCard` pone los mismos 12.
-        GameCard {
-            VStack(spacing: 9) {
-                HStack(spacing: 14) {
-                    Button { moveSelection(by: -1) } label: {
-                        PagerChevronLabel(systemName: "chevron.left")
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(selectedIndex == 0)
-                    .accessibilityIdentifier("character.skin.previous")
+    // MARK: La tira de miniaturas
 
-                    VStack(spacing: 3) {
-                        Text(skinName)
-                            .font(.system(.headline, design: .rounded))
-                            .foregroundStyle(Color("PaletteInk"))
-                        Text("character.skin.index \(String(selectedIndex + 1)) \(String(options.count))")
-                            .font(Tokens.caption)
-                            .monospacedDigit()
-                            .foregroundStyle(Color("PaletteInk").opacity(0.65))
-                    }
-                    .frame(maxWidth: .infinity)
-
-                    Button { moveSelection(by: 1) } label: {
-                        PagerChevronLabel(systemName: "chevron.right")
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(selectedIndex == options.count - 1)
-                    .accessibilityIdentifier("character.skin.next")
-                }
-
-                if isSelectedOwned {
-                    // El Button y su `.disabled` se conservan tal cual —los
-                    // tests pinean esa semántica—: el v3 vive en el label, que
-                    // lee `isEnabled` y dibuja cápsula caramelo o badge gris.
+    private var thumbnails: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: Tokens.s8) {
+                ForEach(options) { option in
                     Button {
-                        gameState.equipSkin(id: selected.skin?.id, forCharacterType: sheet.type.id)
+                        withAnimation(reduceMotion ? nil : .snappy) { selectedID = option.id }
                     } label: {
-                        EquipButtonLabel(
-                            titleKey: isSelectedActive ? "character.skin.equipped" : "character.skin.equip"
-                        )
+                        thumbnail(option)
                     }
                     .buttonStyle(.plain)
-                    .disabled(isSelectedActive)
-                    .accessibilityIdentifier("character.skin.equip")
-                } else {
-                    lockedSkinDetails
+                    .accessibilityIdentifier("character.skin.thumb.\(option.id)")
+                    .accessibilityLabel(Text(verbatim: skinName(option)))
+                    .accessibilityAddTraits(option.id == selectedID ? .isSelected : [])
                 }
             }
+            .padding(.horizontal, 2)
+            .padding(.vertical, Tokens.s4)
         }
     }
 
-    @ViewBuilder private var lockedSkinDetails: some View {
+    private func thumbnail(_ option: SkinOption) -> some View {
+        let isSelected = option.id == selectedID
+        let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
+        return CharacterPortrait(type: sheet.type, treatment: treatment(for: option), asSilhouette: !owns(option))
+            .padding(4)
+            .frame(width: 52, height: 52)
+            .background(shape.fill(Color("PaletteYellow").opacity(isSelected ? 0.55 : 0.2)))
+            .overlay(shape.strokeBorder(Color("PaletteBrown").opacity(isSelected ? 0.9 : 0.4), lineWidth: isSelected ? 2.5 : 1.5))
+    }
+
+    // MARK: Ponérsela o comprarla
+
+    @ViewBuilder private var action: some View {
+        if owns(selected) {
+            if isActive(selected) {
+                StateBadge(
+                    text: String(localized: "skins.equipped"),
+                    systemImage: "checkmark.circle.fill",
+                    textAlignment: .center,
+                    muted: true
+                )
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("character.skin.wearing")
+            } else {
+                ActionPill(
+                    titleKey: "character.skin.equip",
+                    systemImage: "tshirt.fill",
+                    tint: Color("PaletteBlue"),
+                    identifier: "character.skin.equip",
+                    accessibilityLabel: Text("character.skin.equip.ax \(skinName(selected))")
+                ) {
+                    gameState.equipSkin(id: selected.skin?.id, forCharacterType: sheet.type.id)
+                }
+            }
+        } else {
+            lockedDetails
+        }
+    }
+
+    @ViewBuilder private var lockedDetails: some View {
         Label("character.skin.locked", systemImage: "lock.fill")
             .font(.system(.body, design: .rounded))
             .foregroundStyle(Color("PaletteInk"))
@@ -183,26 +212,25 @@ struct CharacterSheetView: View {
             .foregroundStyle(Color("PaletteInk").opacity(0.75))
             .multilineTextAlignment(.center)
         if let product = selected.skin.flatMap(product(for:)) {
-            // La misma cápsula que cobra en toda la casa; gana identifier
-            // (regla: todo control interactivo lleva el suyo — este no tenía).
             PricePill(
                 text: product.displayPrice,
                 currency: .money,
                 affordable: true,
                 identifier: "character.skin.buy",
-                accessibilityPurpose: Text("skins.buy.ax \(skinName)")
+                accessibilityPurpose: Text("skins.buy.ax \(skinName(selected))")
             ) {
                 Task { await store.purchase(product) }
             }
         }
     }
 
-    @ViewBuilder private var dismissalSection: some View {
+    // MARK: Despedir
+
+    @ViewBuilder private var dismissal: some View {
         if sheet.canDismiss {
-            // Destructivo pero subordinado: cápsula crema de la casa con la
-            // firma rosa (texto y borde), no la pill llena — despedir no puede
-            // competir con equipar. Button + role intactos: los tests lo listan.
-            Button(role: .destructive) { confirmingDismissal = true } label: {
+            // Destructivo pero subordinado: cápsula crema con la firma rosa, no
+            // la pill llena — despedir no compite con ponérsela.
+            Button { confirmingDismissal = true } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "person.fill.xmark")
                         .font(.system(size: 14, weight: .black))
@@ -226,22 +254,31 @@ struct CharacterSheetView: View {
         }
     }
 
-    private var skinName: String {
-        guard let skin = selected.skin else { return String(localized: "character.skin.base") }
-        // La resolución (clave del catálogo, o el id embellecido si la skin no
-        // declara nombre) vive en el estado desde la T11: el Customization Shop
-        // muestra los mismos nombres y dos copias divergen.
-        return gameState.skinDisplayName(for: skin)
+    // MARK: Datos
+
+    private func owns(_ option: SkinOption) -> Bool {
+        option.skin.map { gameState.ownsSkin($0.id) } ?? true
     }
 
-    private var isSelectedActive: Bool {
-        gameState.activeSkinID(forCharacterType: sheet.type.id) == selected.skin?.id
+    private func isActive(_ option: SkinOption) -> Bool {
+        gameState.activeSkinID(forCharacterType: sheet.type.id) == option.skin?.id
+    }
+
+    private func treatment(for option: SkinOption) -> SkinResolver.Treatment {
+        SkinResolver.treatment(
+            for: option.skin?.id,
+            characterType: sheet.type.id,
+            config: gameState.content?.skins ?? SkinsConfig(schemaVersion: 1, skins: [])
+        )
+    }
+
+    private func skinName(_ option: SkinOption) -> String {
+        guard let skin = option.skin else { return String(localized: "character.skin.base") }
+        return gameState.skinDisplayName(for: skin)
     }
 
     private var unlockDescription: String {
         guard let skin = selected.skin else { return "" }
-        // El id crudo del piso ("urban") no es un nombre: se muestra el
-        // localizado, el mismo que usa la pill de la torre.
         if let floor = skin.floorReached {
             return String(localized: "character.skin.reach-floor \(TowerNaming.floorName(for: floor))")
         }
@@ -255,11 +292,12 @@ struct CharacterSheetView: View {
 
     private func selectActiveSkin() {
         let active = gameState.activeSkinID(forCharacterType: sheet.type.id)
-        selectedIndex = options.firstIndex { $0.skin?.id == active } ?? 0
+        selectedID = options.first { $0.skin?.id == active }?.id ?? SkinOption.baseID
     }
 
-    private func moveSelection(by delta: Int) {
-        selectedIndex = min(max(selectedIndex + delta, 0), options.count - 1)
+    private func move(by delta: Int) {
+        let target = min(max(selectedIndex + delta, 0), options.count - 1)
+        withAnimation(reduceMotion ? nil : .snappy) { selectedID = options[target].id }
     }
 }
 
@@ -317,70 +355,5 @@ private struct CharacterPortrait: View {
 
     private var tintColor: Color? {
         SkinResolver.swiftUITint(for: treatment)
-    }
-}
-
-// MARK: - Labels v3 de los controles de sistema
-
-/// La cara v3 del chevron del pager. El `Button` de afuera conserva su
-/// `.disabled` —`LaunchSmokeTests` pinea que el del borde está deshabilitado—
-/// así que el estado se dibuja acá, leyendo `isEnabled`, sin depender del
-/// dimming del sistema (que deja el glifo ilegible, la razón por la que la
-/// casa evita `.disabled` en todo lo demás).
-private struct PagerChevronLabel: View {
-    let systemName: String
-    @Environment(\.isEnabled) private var isEnabled
-
-    var body: some View {
-        Image(systemName: systemName)
-            .font(.system(size: 15, weight: .black))
-            .foregroundStyle(Color("PaletteInk").opacity(isEnabled ? 1 : 0.3))
-            .frame(width: 34, height: 34)
-            .background(
-                Circle()
-                    .fill(Color("PaletteCream"))
-                    .overlay(
-                        Circle().strokeBorder(
-                            Color("PaletteBrown").opacity(isEnabled ? 0.7 : 0.3),
-                            lineWidth: 2
-                        )
-                    )
-            )
-            .contentShape(Circle())
-    }
-}
-
-/// El botón de ponerse la pinta: cápsula caramelo azul cuando se puede, y el
-/// gris de estado de la casa cuando ya está puesta — el mismo lenguaje que el
-/// par ActionPill/StateBadge de Pintas, pero acá sigue siendo UN `Button`
-/// deshabilitado porque los tests pinean esa semántica.
-private struct EquipButtonLabel: View {
-    let titleKey: LocalizedStringKey
-    @Environment(\.isEnabled) private var isEnabled
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: isEnabled ? "tshirt.fill" : "checkmark.circle.fill")
-                .font(.system(size: 15, weight: .black))
-            Text(titleKey)
-                .font(Tokens.body)
-                .lineLimit(1)
-                .minimumScaleFactor(0.6)
-        }
-        .foregroundStyle(isEnabled ? .white : Color("PaletteInk").opacity(0.6))
-        .shadow(color: .black.opacity(isEnabled ? 0.45 : 0), radius: 1, y: 1)
-        .padding(.horizontal, Tokens.s12)
-        .padding(.vertical, Tokens.s8)
-        .frame(minWidth: 92)
-        .background {
-            if isEnabled {
-                PillBackground(fill: Color("PaletteBlue"))
-            } else {
-                Capsule()
-                    .fill(CardMaterials.lockedFill)
-                    .overlay(Capsule().strokeBorder(CardMaterials.lockedBorder, lineWidth: 2))
-            }
-        }
-        .contentShape(Capsule())
     }
 }

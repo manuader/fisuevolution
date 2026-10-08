@@ -18,7 +18,7 @@ import SwiftUI
 /// barra en nada que lleve identificador propio.
 struct BottomMenuBar: View {
     /// Qué pantalla abrir. La barra no presenta nada: el `.sheet(item:)` único
-    /// de las seis vive en `GameBoardView`.
+    /// de las cinco vive en `GameBoardView`.
     let select: (GameScreen) -> Void
 
     /// Para los dos puntitos: logros cobrables en el tab Menú y cofres sin abrir
@@ -104,7 +104,7 @@ struct BottomMenuBar: View {
     /// puesta donde corresponde**.
     ///
     /// ⚠️ El ancla va en el ICONO y no en la barra: `GameTabItem` no expone el
-    /// botón, y marcar el contenedor le daría al tutorial el frame de los seis
+    /// botón, y marcar el contenedor le daría al tutorial el frame de los cinco
     /// tabs juntos —un recorte que abarca media pantalla y no enseña nada—. El
     /// icono está centrado en su plato y mide `iconSide`, así que el recorte
     /// —que `TutorialOverlay` infla 10 pt por lado— cae sobre el plato con un
@@ -140,10 +140,10 @@ struct BottomMenuBar: View {
                 GameIcon(artKey: "ui_tab_gifts", size: side) { VectorTabGiftsIcon() }
                     .tutorialAnchor(.gifts)
             )
+        // La Tienda no llega a la barra (`barOrder`); la abre el + de la moneda.
         case .store:
             return AnyView(
                 GameIcon(artKey: "ui_tab_shop", size: side) { VectorTabShopIcon() }
-                    .tutorialAnchor(.store)
             )
         case .menu:
             return AnyView(

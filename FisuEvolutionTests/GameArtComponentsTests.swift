@@ -20,10 +20,10 @@ struct GameArtComponentsTests {
         #expect(GameScreen.allCases.map(\.rawValue) == ["jobs", "upgrades", "skins", "gifts", "store", "menu"])
     }
 
-    @Test("la barra va con Contratar al centro: dos a la izquierda y tres a la derecha")
+    @Test("la barra va con Contratar al centro: dos y dos, y la Tienda afuera")
     func barOrderPutsHiringInTheCenter() {
-        #expect(GameScreen.barOrder == [.upgrades, .skins, .jobs, .gifts, .store, .menu])
-        #expect(Set(GameScreen.barOrder) == Set(GameScreen.allCases))
+        #expect(GameScreen.barOrder == [.upgrades, .skins, .jobs, .gifts, .menu])
+        #expect(Set(GameScreen.barOrder) == Set(GameScreen.allCases).subtracting([.store]))
         #expect(GameScreen.centerTab == .jobs)
     }
 
@@ -51,7 +51,7 @@ struct GameArtComponentsTests {
 
     // MARK: - GameTabItem
 
-    @Test("una barra con las 6 pantallas no repite ni ids ni identifiers, y sólo Contratar se destaca")
+    @Test("una barra con las 5 pantallas no repite ni ids ni identifiers, y sólo Contratar se destaca")
     func tabItemsAreDistinct() {
         let items = GameScreen.barOrder.map { screen in
             GameTabItem(
@@ -62,9 +62,9 @@ struct GameArtComponentsTests {
                 prominent: screen == GameScreen.centerTab
             )
         }
-        #expect(items.count == 6)
-        #expect(Set(items.map(\.id)).count == 6)
-        #expect(Set(items.map(\.identifier)).count == 6)
+        #expect(items.count == 5)
+        #expect(Set(items.map(\.id)).count == 5)
+        #expect(Set(items.map(\.identifier)).count == 5)
         #expect(items.filter(\.prominent).map(\.screen) == [.jobs])
     }
 
@@ -78,7 +78,7 @@ struct GameArtComponentsTests {
 
     /// Las dos zonas miden lo mismo, así que manda la más poblada: tres pestañas
     /// a la derecha. 16 + 72 + 2 × 136 + 4 = 364 de los 375 del SE.
-    @Test("las seis pestañas entran en el SE")
+    @Test("las cinco pestañas entran en el SE")
     func sixTabsFitTheSE() {
         #expect(GameTabBar.minimumWidth(tabsPerSide: 3) <= 375)
     }

@@ -19,8 +19,11 @@ extension GameState {
         guard let content, var player else { return }
         let earned = progressiveTabsEnabled
             ? TabUnlockRules.unlocked(config: content.tabs, signals: tabSignals(player: player))
-            : Set(GameScreen.allCases)
+            : Set(GameScreen.barOrder)
+        // Un save viejo puede traer "store": no se reescribe (por si la Tienda
+        // vuelve), pero tampoco se cuela en la barra.
         let saved = Set(player.meta.unlockedTabs.compactMap(GameScreen.init(rawValue:)))
+            .intersection(GameScreen.barOrder)
         let fresh = earned.subtracting(saved)
         if !fresh.isEmpty {
             player.meta.unlockedTabs.formUnion(fresh.map(\.rawValue))

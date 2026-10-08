@@ -23,12 +23,13 @@ final class BottomMenuUITests: XCTestCase {
         // empezada.
         ("hud.skins", ["skins.row.base"]),
         ("hud.bonus", ["bonus.activate.mate"]),
-        // La tienda depende de StoreKit y su lista es perezosa: con los
+        // La Tienda ya no está en la barra: se abre con el + de la moneda, así
+        // que ése es su camino. Depende de StoreKit y su lista es perezosa: con los
         // productos cargados se ve la primera fila, mientras carga se ve el
         // botón de restaurar, y si la carga falla, el cartel de "no hay nada"
         // con su reintento. Los cuatro son ids exclusivos de `StoreView`, así
         // que cualquiera de ellos la discrimina de las otras cinco pantallas.
-        ("hud.store", ["store.buy.com.fisuevolution.iap.starter_pack", "store.restore",
+        ("hud.coins.plus", ["store.buy.com.fisuevolution.iap.starter_pack", "store.restore",
                        "store.unavailable", "store.retry"]),
         // El Menú dejó de ser un placeholder en la T15: abre la grilla 2×2, y
         // la tarjeta del organigrama es un identifier que sólo vive ahí.
@@ -90,7 +91,7 @@ final class BottomMenuUITests: XCTestCase {
         attach(app, named: "E3 Contratar al centro")
 
         XCTAssertEqual(jobs.frame.midX, screen.midX, accuracy: 2, "Contratar tiene que ir al centro")
-        for identifier in ["hud.upgrades", "hud.skins", "hud.bonus", "hud.store", "hud.settings"] {
+        for identifier in ["hud.upgrades", "hud.skins", "hud.bonus", "hud.settings"] {
             let tab = app.buttons[identifier]
             XCTAssertTrue(tab.exists, "falta \(identifier)")
             XCTAssertGreaterThan(jobs.frame.height, tab.frame.height,
@@ -98,6 +99,7 @@ final class BottomMenuUITests: XCTestCase {
             XCTAssertGreaterThan(tab.frame.minY, screen.height - 100,
                                  "\(identifier) arrancó en \(tab.frame.minY): la barra no bajó")
         }
+        XCTAssertFalse(app.buttons["hud.store"].exists, "la Tienda salió de la barra")
         XCTAssertGreaterThan(jobs.frame.minY, screen.height * 0.75,
                              "la barra tiene que estar pegada abajo, arrancó en \(jobs.frame.minY)")
     }

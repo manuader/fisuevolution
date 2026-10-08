@@ -635,6 +635,7 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13-T12 | El Diamante dice "Pack de las 43" | ⏳ | — | catálogo (snapshot); +Store, CustomizationView | | revisión ninguna; +Store es tibio de E6b T4/T5 |
 | E13-T13 | Las mejoras dicen su efecto, de antes a después | ⛔ | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |
 | E13-T14 | Cierre de E13 (controlador) | ⛔ | T2–T13 | `Docs/` | | `completo`; HANDOFF §5.7 "las seis" |
+| P-E13b | Plan de E13 ítems 13–14: la placa colgante del ascensor (mantener apretado el ícono del HUD; una columna, sin nombres ni oscurecer, ≤ 10 botones), el LED fuera del tablero, el viaje en cabina al elegir piso (placa o mapa, nunca al scrollear) y la barra de 5 pestañas sin la Tienda | ⏳ | — | 🔥 `ElevatorPanel`, `HUDView`, `GameTabBar`, `RootView` | | **PRIORIDAD ALTA del dueño (lo que ve primero)**; planificador opus en el próximo cupo; referencia `Docs/superpowers/specs/referencias/2026-10-08-ascensor-y-barra.png`; **manda sobre E3a T8 y la barra de E3a**; los clips de la cabina (Higgsfield) los genera la sesión del dueño y avisa en DUENO.md; despachar en paralelo respetando los calientes |
 
 Dependencias que E13 le suma a otras épicas (plan E13, "Lo que E13 le deja a otras épicas"): **E2b**
 T5 ← E13-T3; T6 ← E13-T2; T10 ← E13-T6; T12 ← E13-T2, T3, T6, T7; T14 ← E13-T7 (seis líneas, 348 ORO).
@@ -681,7 +682,7 @@ T5 ← E13-T3; T6 ← E13-T2; T10 ← E13-T6; T12 ← E13-T2, T3, T6, T7; T14 �
 
 | Gate | Qué hace el dueño | Bloquea | Estado |
 |---|---|---|---|
-| Supabase para E12 | crear el proyecto de Supabase y pasar URL + clave anónima; cargar `ANTHROPIC_API_KEY` como secreto de Supabase | E12 (backend y cliente real; mientras tanto, cliente simulado) | 🔒 abierto |
+| Supabase para E12 | crear el proyecto de Supabase y pasar URL + clave anónima; cargar `ANTHROPIC_API_KEY` como secreto de Supabase | E12 (backend y cliente real; mientras tanto, cliente simulado) | ✅ proyecto creado y `ANTHROPIC_API_KEY` cargada por el dueño (2026-10-08); ref, URL y clave pública en DUENO.md "Hecho por el dueño — Supabase de E12" (la clave entra al repo en E12 T16); los agentes lo ven por el conector de Supabase |
 | Lista de palabras de E12 | aprobar la lista inicial de palabras bloqueadas | E12 (moderación en `finish-run`) | 🔒 abierto |
 | Revisión del ranking | revisar las partidas en `review` (bajo el piso de plausibilidad) y los nombres reportados | operación de E12 tras el lanzamiento | 🔒 permanente |
 | Batch de imágenes | (2026-10-07: corriendo, ~155/222; los 10 `bg_*` esperan a ChatGPT) login en el Chrome aislado de ChatGPT (`--launch` + `--probe`) y correr el batch **con la app de Claude cerrada** (roba el foco); proyecto `~/Desktop/projects/automatic-image-generation/projects/fisu-evolution-v2` (222 prompts), **primero el piloto 001–005**; paso a paso en su `README.md` | E6b T9 (familias), el resto de E8 (visitantes, fondos, íconos); E4b y E6a caen a respaldos y no esperan | ✅ terminado y APROBADO por el dueño (222/222, 2026-10-08); los 10 `bg_*` escalados a 2048 (Real-ESRGAN). Crudos en `automatic-image-generation/projects/fisu-evolution-v2/output/`. Destraba la integración de E8 (dropbox → `process_dropbox.py`, `npc`/`skinfam`, `prompts.json`, atlas) y E6b T9 |

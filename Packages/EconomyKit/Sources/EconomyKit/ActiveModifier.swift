@@ -13,6 +13,14 @@ public struct ActiveModifier: Codable, Sendable, Equatable, Identifiable {
         case spawnCostMultiplier
         /// No se puede gastar plata mientras dura (Corralito). Los ingresos siguen.
         case spendingFrozen
+        /// Multiplica SÓLO el pasivo (el Paro General lo lleva a ×0): el toque sigue.
+        case passiveMultiplier
+        /// Inmunidad a los eventos negativos (la Obra social del Médico). La
+        /// magnitud no importa: lo que cuenta es hasta cuándo.
+        case eventImmunity
+        /// Multiplica el ritmo del Paquete de la Aduana (Lluvia ×10, Piquete ×0).
+        /// Lo lee el `PackageScheduler` de E5; no toca los ingresos.
+        case packageRateMultiplier
     }
 
     public let id: UUID
@@ -65,6 +73,12 @@ public enum ModifierMath {
 
     public static func spendingFrozenUntil(_ modifiers: [ActiveModifier], now: TimeInterval) -> TimeInterval? {
         modifiers.filter { $0.effect == .spendingFrozen && $0.isActive(at: now) }.map(\.expiresAt).max()
+    }
+
+    /// Hay una inmunidad viva: los eventos negativos no salen en el sorteo (los
+    /// mixtos sí: la inmunidad es contra lo que sólo resta).
+    public static func isImmuneToEvents(_ modifiers: [ActiveModifier], now: TimeInterval) -> Bool {
+        modifiers.contains { $0.effect == .eventImmunity && $0.isActive(at: now) }
     }
 
     /// Drops expired modifiers. Returns true if anything was removed.

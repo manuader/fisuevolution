@@ -87,6 +87,18 @@ struct EffectContractTests {
                     try TowerActions.hire(quote: try quote(boosted), state: &boosted, tower: &tower,
                                           floorTable: content.floorTable, config: content.economy, countsAsPurchase: true)
                 }
+            case .passiveMultiplier:
+                #expect(chip == applied(passive(boosted) / passive(plain), as: .multiplier))
+                let tapPlain = economy.applyTap(type: base, state: &plain, tiers: content.tiers, floorTable: content.floorTable, now: 0)
+                let tapBoosted = economy.applyTap(type: base, state: &boosted, tiers: content.tiers, floorTable: content.floorTable, now: 0)
+                #expect(tapBoosted == tapPlain, "el pasivo no es el toque")
+            case .eventImmunity:
+                #expect(chip == String(localized: "bonus.chip.immunity"))
+                #expect(passive(boosted) == passive(plain))
+                #expect(ModifierMath.isImmuneToEvents(boosted.run.activeModifiers, now: 0))
+            case .packageRateMultiplier:
+                #expect(chip == String(localized: "bonus.chip.packages \(applied(3, as: .multiplier))"))
+                #expect(passive(boosted) == passive(plain))
             }
         }
     }

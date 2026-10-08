@@ -86,10 +86,16 @@ enum ActiveBonusBuilder {
     private static func effectText(for modifier: ActiveModifier) -> String {
         let boostEffect: BoostsConfig.EffectType
         switch modifier.effect {
-        case .incomeMultiplier: boostEffect = .incomeMultiplier
+        case .incomeMultiplier, .passiveMultiplier: boostEffect = .incomeMultiplier
         case .tapMultiplier: boostEffect = .tapMultiplier
         case .spawnCostMultiplier: boostEffect = .spawnCostMultiplier
         case .spendingFrozen: return String(localized: "bonus.chip.spending_frozen")
+        case .eventImmunity: return String(localized: "bonus.chip.immunity")
+        case .packageRateMultiplier:
+            let value = EffectFormatter.text(
+                EffectDescriptor.amount(forBoost: .incomeMultiplier, magnitude: modifier.magnitude)
+            )
+            return String(localized: "bonus.chip.packages \(value)")
         }
         return EffectFormatter.text(
             EffectDescriptor.amount(forBoost: boostEffect, magnitude: modifier.magnitude)

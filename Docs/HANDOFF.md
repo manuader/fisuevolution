@@ -21,23 +21,22 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-07 (cierre del relevo
-> 7): `version-2` = **`60af174`** (la punta con `tasks.md` al cierre es
-> `2a83e26`). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de
-> idioma de E3 y las olas B a E: **E1 T1–T9 (con T9b, T5b, T5c y T6c), T10
-> (sin sus arreglos de revisión) y T11; E11 T1–T3; E3a T1–T6; E4a T1 y E5a
-> T1–T3**. `GameState.swift` se partió en extensiones (1.174 → 334 líneas).
-> El `rapido` de `60af174`: **VERDE (EK 447 · unit 683 + 1 · release 0)**,
-> pusheado. El último `completo` es el de `8d17b8d` (todo verde menos
-> Release, ya arreglado): **nada de las olas D y E pasó por UI, Store ni
-> `pacing-sim`.**
+> 8): `version-2` = **`baabced`** (`f9207c2`, la ola F, más `tasks.md` al
+> cierre). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de
+> idioma de E3 y las olas B a F: **E1 T1–T12 (con T9b, T5b, T5c, T6c y los
+> arreglos de T10); E11 T1–T5; E3a T1–T8; E2a T1, T2 y T6; E4a T1; E5a T1–T3
+> (con sus mutantes) y E6b T1–T3**. **Progreso: 35 de 167 tareas activas
+> integradas (21,0 %)** (`tasks.md` §2). El `rapido` de `f9207c2`: **VERDE
+> (EK 506 · unit 704 + 1 · release 0)**, pusheado. **El último `completo`
+> VERDE es el de `15318a0`** (relevo 8; EK 484 · unit 691 + 1 · Store 16 · UI
+> 63 · `StoreUITests` 2 · pipeline 49/0 · `pacing-sim` igual · Release 0):
+> la ola F todavía no pasó por UI, Store ni `pacing-sim`.
 >
-> 🌿 **Lo que queda en ramas, sin mergear a `version-2`:** E11 T4 (`02cc5fb`,
-> `v2/e11-notificaciones`; ⚠️ un UI test rojo no medido en la base), E2a T1
-> (`434b0ee`, `v2/e2a-mecanicas`), E6b T1 (`f9cd4b9`, `v2/e6-tienda`), los
-> mutantes de E5a T2+T3 (`f6f8e2f`, `v2/e5-premios`) y los arreglos de E1 T10
-> (en el worktree `agent-a6243c7787c9be294`, sobre `4c11a0a`, si llegaron).
-> Hay planes por tareas para todas las épicas salvo E8 (el resto) y la parte
-> de agente de E10.
+> 🌿 **Lo que queda en ramas, sin mergear a `version-2`:** E2a T7 (`acf633d`,
+> `v2/e2a-mecanicas`: cofres y packs en minutos, los montos suben), y en vuelo
+> al cierre E1 T13 (el Corralito) y E3b T1 (spikes S2/S3, sin commit). Hay
+> planes por tareas para todas las épicas salvo E8 (el resto) y la parte de
+> agente de E10.
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -166,7 +165,9 @@ dice, no lo repitas.
   subagente ni tarea de fondo en vuelo, **relevo**: un `CronCreate` de un
   disparo con "continúa — protocolo de relevo FisuEvolution v2" +
   `clear_session("self")`. **Ese cron no despertó a nadie en los relevos 2 a
-  7** (el 7 lo despertó el dueño escribiendo en la sesión, no la rutina). Desde el relevo 6 existen las rutinas manuales `fisu-v2-relevo-a` y
+  7** (el 7 lo despertó el dueño escribiendo en la sesión); **el 8 lo despertó
+  la rutina `fisu-v2-relevo-a`**, lanzada por el 7: la primera vez que un
+  relevo despierta solo. Desde el relevo 6 existen las rutinas manuales `fisu-v2-relevo-a` y
   `-b` (decisión del dueño, §5): el que cierra lanza la otra con
   `run_scheduled_task`. En última instancia, el dueño escribe "continúa".
 - Las skills `handoff-system`, `writing-session-handoff` y
@@ -322,6 +323,33 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-07 (relevo 8) — La ola F: el primer `completo` verde desde la ola B, el embudo de E1 y lo pagado que no se pierde
+
+`version-2` quedó en `baabced` (`f9207c2` más `tasks.md`), con `rapido`
+VERDE sobre `f9207c2` (EK 506 · unit 704 + 1 · release 0), pusheado.
+**Progreso: 35 de 167 tareas activas integradas (21,0 %).**
+
+- **La llegada integró las ramas sueltas del relevo 7**: los arreglos de E1
+  T10, los mutantes de E5a T2–T3, E11 T4, E2a T1 y E6b T1–T2. Sobre esa punta
+  (`15318a0`) **el `completo` dio VERDE** y es la referencia nueva (§6): el
+  primero verde desde `d22eb7a`. El rojo de `MenuUITests` en E11 T4 era flaky
+  de carga.
+- **La ola F**: E1 T12 (Startup, Blanqueo, videos y carrera por el embudo;
+  borró `resyncTower` y `performInstantMerge`), E3a T7–T8 (la barra baja y la
+  botonera del ascensor), E11 T5 (la tarjeta del permiso), E2a T2 (el
+  reintegro detrás de `EconomyKnobs`, en 0 = v1) y T6 (el plan de Fusionar
+  todo), y E6b T3 (`skins.json` v2).
+- **E1 T12 abrió y cerró una pérdida de video pagado** (§5): el carry pedía
+  asentar toda la cola en `.inactive` sin animación; la revisión opus vio que
+  un kill desde el App Switcher perdía el video. Ahora en `.inactive` se
+  asienta sólo lo pagado, también lo que está en vuelo.
+- **E2a T3/T4 van después de E1 T14**, porque E1 T12 salió antes (§5).
+
+Quedan E2a T7 (`acf633d`, en su rama) y, en vuelo al cierre, E1 T13 y E3b T1.
+**Lo próximo**: integrarlos, un `completo` que mida los montos de E2a T7, y la
+ola G (`tasks.md` §4). Detalle en
+**`Docs/SESION-2026-10-07-v2-relevo-8-ola-f.md`**.
 
 ### Sesión del 2026-10-07 (relevo 7) — La ola E: el turno de los cambios, `GameState` partido, el ORO exacto y el ciclo más barato
 
@@ -1700,6 +1728,25 @@ detalle en `Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md` §1):
   relevo 5). Sigue siendo regla que **toda acreditación pasa por
   `recordOroPurchase`**.
 
+**Decisiones del relevo 8** (2026-10-07; el detalle en
+`Docs/SESION-2026-10-07-v2-relevo-8-ola-f.md` §2):
+
+- **E1 T12 salió antes que E2a T3/T4, así que E2a T3 → T4 → T5 van después de
+  E1 T14.** Motivo: E1 es el camino crítico, y la regla 2 de E2a prohíbe que
+  E2a T3/T4 y E1 T12–T14 vayan a la vez. Descarta esperar a E2a para arrancar
+  T12.
+- **Al pasar a `.inactive` se asienta sólo lo que el jugador ya pagó**
+  (orígenes `rewardedInstantMerge`, `rewardedRareUnit` y `career`), **también
+  el cambio que está en vuelo**; Startup, Blanqueo y debug esperan a
+  `.background` (`settlePrepaidBoardChanges`, `664f3cc`). Motivo: un kill
+  desde el App Switcher no manda `.background`, y el carry original (asentar
+  la cola entera en `.inactive`) dejaba perder un video ya visto si el cambio
+  estaba en vuelo. **Por diseño no se compensan** un Startup o un Blanqueo
+  descartados en el turno; el video cuyo plan sale `nil` lo compensa E1 T14.
+- **En la ola F el catálogo lo tomó E11 T5**, porque E1 T12 no sumó strings;
+  E3a T8 entregó snapshot (`e3a-t8.json`) y el controlador aplicó sus 4 claves
+  al integrar (`f9207c2`).
+
 **Decisiones tomadas al implementar la 2.0** (2026-10-06, con el frente entre
 paréntesis; el porqué completo está en la sesión de cada uno):
 
@@ -2081,7 +2128,32 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
   en `af3acde` (2026-10-07, relevo 4): **el pipeline ya no tiene rojo
   declarado**, así que cualquier rojo suyo es nuevo.
 
-**Línea de base: el `completo` sobre `d22eb7a`** (2026-10-07, relevo 5; es
+**Línea de base: el `completo` sobre `15318a0`** (2026-10-07, relevo 8; las
+olas B a E más las ramas sueltas del relevo 7: los arreglos de E1 T10, E11 T4,
+E2a T1, E6b T1–T2 y los mutantes de E5a). **Es el último `completo` VERDE y
+reemplaza al de `d22eb7a`** (abajo, como historia):
+
+| Suite | `d22eb7a` (relevo 5) | **Hoy (`15318a0`)** |
+|---|---|---|
+| EconomyKit | 317 | **484** |
+| unit (26.5) | 593 + 1 declarado | **691 + 1 declarado** (746 s) |
+| Store unit (18.6) | 12 | **16** (1.338 s) |
+| UI (26.5) | 57 | **63** (2.935 s) |
+| `StoreUITests` (18.6) | 2 | **2** (399 s) |
+| pipeline | 49 / 0 | **49 / 0** |
+| `pacing-sim` | Dios en 30,73 h activas · 13 reencarnaciones | **igual** |
+| Release | 0 warnings | **0 warnings** (478 s) |
+
+- **`MenuUITests.testAjustesTraeSusControlesYApagaLasParticulas`**, rojo en
+  E11 T4 en el relevo 7, dio VERDE: era flaky de carga, no de T4.
+- Los +3 de Store unit y los +4 de UI no están desglosados por tarea.
+- ~101 min (la suma de las etapas). Log:
+  `version-2/build/relevo8-completo-15318a0.log`.
+- **La ola F no pasó por un `completo`.** Sobre la próxima punta (con E2a T7,
+  que sube los montos de cofres y packs) el `pacing-sim` puede moverse: es lo
+  que hay que medir, junto con `StoreManagerTests`.
+
+**El `completo` sobre `d22eb7a`** (2026-10-07, relevo 5; es
 `5a65335`, la ola B, más docs), contra las anteriores:
 
 | Suite | E0 (`0442022`) | `6b5e408` (relevo 3) | **Hoy (`d22eb7a`)** |
@@ -2103,8 +2175,8 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
 - Un `completo` entero tarda **~45 min** con la máquina tranquila (build en
   frío 106 s); éste, con la máquina cargada, tardó **~81 min** (4.886 s).
 - Log: `version-2/build/relevo5-completo-d22eb7a.log`.
-- ⚠️ **Es de antes de la ola C.** Sigue siendo el último `completo` VERDE:
-  el de `8d17b8d` (abajo) dio rojo en Release.
+- Es de antes de la ola C. El de `8d17b8d` (abajo) dio rojo en Release, así
+  que fue el último `completo` VERDE hasta el de `15318a0` (arriba).
 
 **El `completo` sobre `8d17b8d`** (2026-10-07, relevo 6; la ola C entera):
 **todo verde salvo Release.**
@@ -2131,22 +2203,26 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
   espera: EK 357 · unit 639 + 1 · Store unit 13 · UI 59 · `StoreUITests` 2 ·
   pipeline 49/0 · `pacing-sim` igual · Release 0 warnings.
 
-**El `rapido` de la ola E** (2026-10-07, relevo 7). **Los números de
-referencia del `rapido` son los de `60af174`: EK 447 · unit 683 + 1 ·
+**El `rapido` de la ola F** (2026-10-07, relevo 8). **Los números de
+referencia del `rapido` son los de `f9207c2`: EK 506 · unit 704 + 1 ·
 release 0.**
+
+| Árbol | EconomyKit | unit (26.5) | Release | Veredicto | De dónde sale |
+|---|---:|---:|---|---|---|
+| `15318a0` (las ramas sueltas; el `completo`) | 484 | 691 + 1 | 0 warnings | VERDE | ver la línea de base, arriba |
+| `f9207c2` (la ola F) | **506** | **704 + 1** (1.032 s) | **0 warnings** (411 s) | **VERDE** | E1 T12, E3a T7–T8, E11 T5, E2a T2 y T6, E6b T3; no desglosado por tarea |
+
+- Log: `version-2/build/relevo8-rapido-f9207c2.log`.
+
+**El `rapido` de la ola E** (2026-10-07, relevo 7; números viejos):
 
 | Árbol | EconomyKit | unit (26.5) | Release | Veredicto | De dónde sale |
 |---|---:|---:|---|---|---|
 | `b0f6f6c` (+ E11 T3 con arreglos) | — | 653 + 1 | — | VERDE | cuadra con 639 + 21 − 9 + 2 de los arreglos |
 | `60af174` (`version-2`, la ola E entera) | **447** | **683 + 1** | **0 warnings** | **VERDE** | los 30 de 653 a 683 no están desglosados por tarea |
 
-- **Con las ramas sueltas integradas** (E5a mutantes, E11 T4, E2a T1, E6b T1 y
-  los arreglos de T10) se espera EK ≈ 480 y unit ≥ 690 + 1.
-- **Nada de la ola E pasó por un `completo`.** Sobre `60af174` o la punta que
-  venga se espera: EK 447 · unit 683 + 1 · Store unit 13 · UI 59 (más lo que
-  sume la ola) · `StoreUITests` 2 · pipeline 49/0 · `pacing-sim` igual (Dios
-  en 30,73 h, 13 reencarnaciones) · Release 0 warnings. Además decide
-  `MenuUITests.testAjustesTraeSusControlesYApagaLasParticulas`, rojo en E11 T4.
+- Con las ramas sueltas integradas se esperaba EK ≈ 480 y unit ≥ 690 + 1;
+  dio 484 y 691 + 1 (`15318a0`, relevo 8), que además pasó el `completo`.
 
 **El `rapido` de la ola D** (2026-10-07, relevo 6). **Los números de
 referencia del `rapido` son los de `ca2d12c`: EK 357 · unit 633 + 1 ·
@@ -2201,7 +2277,7 @@ sim 26 virgen.
 ```bash
 UDID=$(xcrun simctl create "mi-frente" "iPhone 16 Pro")
 
-cd Packages/EconomyKit && swift test                      # 447 en version-2 al relevo 7 (60af174)
+cd Packages/EconomyKit && swift test                      # 506 en version-2 al relevo 8 (f9207c2)
 cd - && /opt/homebrew/bin/xcodegen generate               # si agregaste/borraste Swift
 
 # 1) UNIT PRIMERO
@@ -2398,6 +2474,29 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la ola F (2026-10-07, relevo 8)
+
+- **Un agente puede reportar terminado con trabajo de fondo todavía vivo.**
+  Pasó dos veces (E3a T7 y E2a T7): la notificación dice "stopped with
+  background work still running". La regla del protocolo no alcanza: **el
+  controlador lo mira en cada notificación y hace `TaskStop` antes de
+  integrar** (está en `tasks.md` §4).
+- **El load de 5 min llegó a 780 y no eran builds**: eran `fileproviderd`,
+  `bird` y `mds`, o sea iCloud. No se mata nada; se espera.
+- **El clasificador le niega `catalogo.py aplicar` a un subagente que no es
+  dueño del catálogo.** No es un error del agente: el que entrega snapshot no
+  aplica; **las claves las aplica el controlador al integrar** (`f9207c2` con
+  las de E3a T8).
+- **Un carry escrito por un relevo anterior puede estar incompleto.** El de E1
+  T12 ("`seal` en `.inactive` asienta la cola sin animación") abría la
+  pérdida de un video pagado si el cambio estaba en vuelo y mataban la app
+  desde el App Switcher. Lo atrapó la revisión opus (I1); el arreglo está en
+  §5, decisiones del relevo 8.
+- **Lo que funcionó, y hay que mantener:** integrar las ramas sueltas y
+  correr el `completo` *antes* de la ola siguiente, para que un rojo se
+  atribuya a una integración y no a una ola entera; y la revisión opus para
+  todo lo que toca el turno del tablero o la plata.
 
 ### De la ola E (2026-10-07, relevo 7)
 
@@ -4055,6 +4154,15 @@ Anotado por si algún día importa, con su medición:
   - §5, una tabla por épica con el estado de cada tarea, y las
     inconsistencias abiertas entre planes;
   - §6, los gates humanos y las dudas con default de cada plan.
+- **`Docs/SESION-2026-10-07-v2-relevo-8-ola-f.md`**: el relevo 8.
+  - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
+    `15318a0`, la referencia nueva, con lo que se esperaba al lado.
+  - La ola F tarea por tarea (E1 T12, E3a T7–T8, E11 T5, E2a T2 y T6, E6b T3;
+    E2a T7 en su rama) y sus carries a T5, T10, T12 y T14.
+  - Por qué E2a T3/T4 pasaron a después de E1 T14, y la pérdida de video que
+    abrió el carry de T12 y cómo se cerró.
+  - Las trampas: agentes con fondo vivo (`TaskStop`), load por iCloud,
+    `catalogo.py` negado a no-dueños.
 - **`Docs/SESION-2026-10-07-v2-relevo-7-ola-e.md`**: el relevo 7.
   - Los dos pedidos del dueño: los guiños escondidos (con su tope) y el
     desarrollo más barato, con la medición que lo justifica (`unit` 1.244 s

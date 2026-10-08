@@ -1,0 +1,6 @@
+{
+  "prestige.wall.goal %@": {"es": "Meta para reencarnar: %@", "en": "Goal to reincarnate: %@"},
+  "prestige.wall.goal_tier %@": {"es": "Meta para reencarnar: el tier %@", "en": "Goal to reincarnate: tier %@"},
+  "prestige.wall.short %@": {"es": "Meta: %@", "en": "Goal: %@"},
+  "prestige.wall.short_tier %@": {"es": "Meta: tier %@", "en": "Goal: tier %@"}
+}

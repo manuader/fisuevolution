@@ -22,6 +22,10 @@ struct PrestigePreview: Equatable {
     /// `giveEarningsForPrestigeTesting` usa del otro lado.
     let coinsToNextOro: Double
     let nextOroProgress: Double
+    /// Piso móvil: el tier al que hay que llegar para poder reencarnar, y el
+    /// personaje de ese tier si es uno solo. `nil` en el tier = no se pide nada.
+    let wallGoalTier: Int?
+    let wallGoalName: String?
 
     /// Antes del bootstrap no hay economía ni jugador: multiplicador neutro.
     static let empty = PrestigePreview(
@@ -31,8 +35,26 @@ struct PrestigePreview: Equatable {
         unitsLost: 0,
         coinsLost: 0,
         coinsToNextOro: 0,
-        nextOroProgress: 0
+        nextOroProgress: 0,
+        wallGoalTier: nil,
+        wallGoalName: nil
     )
+
+    var isBlockedByWall: Bool { wallGoalTier != nil }
+
+    /// "Meta para reencarnar: Director" o "Meta para reencarnar: el tier 11".
+    var wallGoalText: String? {
+        guard let tier = wallGoalTier else { return nil }
+        if let name = wallGoalName { return String(localized: "prestige.wall.goal \(name)") }
+        return String(localized: "prestige.wall.goal_tier \(String(tier))")
+    }
+
+    /// La versión corta, para la cápsula del HUD.
+    var wallGoalShortText: String? {
+        guard let tier = wallGoalTier else { return nil }
+        if let name = wallGoalName { return String(localized: "prestige.wall.short \(name)") }
+        return String(localized: "prestige.wall.short_tier \(String(tier))")
+    }
 
     /// Reencarnar ahora cambia algo. Con 0 ORO por cobrar, el "después" es el
     /// "antes" y la flecha no tiene nada que mostrar.
@@ -59,7 +81,7 @@ extension GameState {
     /// `refreshProjections` a 8 Hz. Este getter existe para alimentarla (y para
     /// que el test pueda comparar la proyección contra la verdad).
     var prestigePreviewNow: PrestigePreview {
-        guard let economy, let player else { return .empty }
+        guard let economy, let content, let player else { return .empty }
         let gained = PrestigeCalculator.oroGained(state: player, economy: economy)
         let prestigeBonus = player.meta.derivedEffects.prestigeBonus
         // La inversa de `oroTotal`: con cuánto lifetime cae el ORO que sigue.
@@ -67,6 +89,7 @@ extension GameState {
         let earnedTotal = player.meta.oroEarnedLifetime + gained
         let nextOroAt = curve.divisor * pow(Double(earnedTotal + 1), 1 / curve.exponent)
         let lifetime = player.meta.lifetimeEarnings
+        let wallGoal = PrestigeCalculator.lastRunWallGoal(state: player, economy: economy)
         return PrestigePreview(
             oroGained: gained,
             multiplierBefore: economy.globalMultiplier(
@@ -80,8 +103,20 @@ extension GameState {
             unitsLost: player.run.totalUnits,
             coinsLost: player.run.coins,
             coinsToNextOro: max(0, nextOroAt - lifetime),
-            nextOroProgress: nextOroAt > 0 ? min(1, max(0, lifetime / nextOroAt)) : 0
+            nextOroProgress: nextOroAt > 0 ? min(1, max(0, lifetime / nextOroAt)) : 0,
+            wallGoalTier: wallGoal,
+            wallGoalName: wallGoal.flatMap { Self.wallGoalName(tier: $0, player: player, content: content) }
         )
+    }
+
+    /// El nombre de la meta del piso móvil: el único personaje de ese tier, o el
+    /// de la rama elegida en esta run. Con varias ramas posibles y ninguna
+    /// elegida, `nil`: la pantalla dice el número de tier.
+    static func wallGoalName(tier: Int, player: PlayerState, content: GameContent) -> String? {
+        let candidates = content.tiers.concreteTypes.filter { $0.tier == tier }
+        if candidates.count == 1 { return candidates[0].localizedName }
+        guard let career = player.run.chosenCareerPath else { return nil }
+        return candidates.first { $0.id.hasSuffix(career) }?.localizedName
     }
 
     /// La llama `refreshProjections`. Escribe sólo si cambió, como el resto de

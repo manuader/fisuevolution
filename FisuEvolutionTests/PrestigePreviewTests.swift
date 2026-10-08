@@ -126,4 +126,60 @@ struct PrestigePreviewTests {
         #expect(gameState.prestigePreview == gameState.prestigePreviewNow,
                 "la proyección publicada no puede quedar atrasada respecto del cálculo")
     }
+
+    private func walledGame(lastWall: Int, frontier: Int, career: String? = nil) async throws -> GameState {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        gameState.economy = StandardEconomy(config: try content.economy.tuned(EconomyKnobs(requiresLastRunWall: true)))
+        gameState.giveEarningsForPrestigeTesting(oro: 9)
+        gameState.player?.meta.lastRunMaxTier = lastWall
+        _ = gameState.player?.run.raiseFrontier(to: frontier)
+        gameState.player?.run.chosenCareerPath = career.map { MergeRules.careerPath(fromOptionId: $0) }
+        // `refreshProjections` y no sólo la vista previa: `prestigeAvailable`
+        // también se republica ahí, y el fixture de ORO lo dejó calculado antes
+        // de la pared.
+        gameState.refreshProjections()
+        return gameState
+    }
+
+    @Test("con el piso móvil, la vista previa nombra la meta y confirmar no hace nada")
+    func theMovingWallNamesTheGoal() async throws {
+        let gameState = try await walledGame(lastWall: 13, frontier: 9)
+        let content = try #require(gameState.content)
+        let preview = gameState.prestigePreview
+        #expect(preview.isWorthIt)
+        #expect(preview.wallGoalTier == 13)
+        #expect(preview.wallGoalName == content.tiers.type(id: "director")?.localizedName)
+        #expect(!gameState.prestigeAvailable)
+        let level = gameState.player?.meta.prestigeLevel
+        gameState.confirmPrestige()
+        #expect(gameState.player?.meta.prestigeLevel == level)
+    }
+
+    @Test("con cuatro carreras posibles y ninguna elegida, la meta es el número de tier")
+    func anAmbiguousWallNamesTheTier() async throws {
+        let preview = try await walledGame(lastWall: 11, frontier: 9).prestigePreview
+        #expect(preview.wallGoalTier == 11)
+        #expect(preview.wallGoalName == nil)
+        #expect(preview.wallGoalText?.contains("11") == true)
+        #expect(preview.wallGoalText?.contains("prestige.wall") == false, "quedó la clave cruda")
+        #expect(preview.wallGoalShortText?.contains("prestige.wall") == false, "quedó la clave cruda")
+    }
+
+    @Test("con la carrera elegida, la meta es el personaje de esa rama")
+    func theChosenCareerNamesTheBranch() async throws {
+        let gameState = try await walledGame(lastWall: 12, frontier: 11, career: "junior_lawyer")
+        let content = try #require(gameState.content)
+        #expect(gameState.prestigePreview.wallGoalName == content.tiers.type(id: "senior_lawyer")?.localizedName)
+    }
+
+    @Test("sin la perilla no hay meta: es la v1")
+    func withoutTheKnobThereIsNoWall() async throws {
+        let gameState = await makeGameState()
+        gameState.giveEarningsForPrestigeTesting(oro: 9)
+        gameState.player?.meta.lastRunMaxTier = 13
+        gameState.refreshProjections()
+        #expect(!gameState.prestigePreview.isBlockedByWall)
+        #expect(gameState.prestigeAvailable)
+    }
 }

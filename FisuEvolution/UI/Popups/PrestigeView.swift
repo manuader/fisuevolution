@@ -61,14 +61,22 @@ struct PrestigeView: View {
                     // identifier), la semántica que el test tapea no cambia.
                     // En el teaser NO se dibuja: una acción que no corresponde
                     // no se apaga, no existe (la doctrina de `ActionPill`).
-                    ActionPill(
-                        titleKey: "prestige.confirm",
-                        systemImage: "arrow.triangle.2.circlepath",
-                        tint: Color("PalettePink"),
-                        identifier: "prestige.confirm"
-                    ) {
-                        gameState.confirmPrestige()
-                        dismiss()
+                    if let goal = preview.wallGoalText {
+                        // El piso móvil: hay ORO, falta la pared. No se apaga el
+                        // botón, se dice qué falta (doctrina de `ActionPill`).
+                        StateBadge(text: goal, systemImage: "lock.fill", textAlignment: .center, muted: true)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("prestige.wall")
+                    } else {
+                        ActionPill(
+                            titleKey: "prestige.confirm",
+                            systemImage: "arrow.triangle.2.circlepath",
+                            tint: Color("PalettePink"),
+                            identifier: "prestige.confirm"
+                        ) {
+                            gameState.confirmPrestige()
+                            dismiss()
+                        }
                     }
                 }
 

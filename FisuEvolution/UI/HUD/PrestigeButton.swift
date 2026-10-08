@@ -20,7 +20,8 @@ struct PrestigeButton: View {
         // Desde el piso del teaser ("al llegar a lujo", dueño 2026-08-28) el
         // botón EXISTE aunque no haya ORO por cobrar: enseña la mecánica y
         // muestra el camino. La hoja que abre sabe contar los dos estados.
-        if gameState.prestigeAvailable || gameState.prestigeTeaser {
+        // Con el piso móvil, también aunque falte la pared: dice la meta.
+        if gameState.prestigeAvailable || gameState.prestigeTeaser || gameState.prestigePreview.isBlockedByWall {
             button
         }
     }
@@ -97,6 +98,7 @@ struct PrestigeButton: View {
     /// necesita clave).
     private var secondLine: String {
         let preview = gameState.prestigePreview
+        if let goal = preview.wallGoalShortText { return goal }
         return preview.isWorthIt
             ? "+\(preview.oroGained)"
             : preview.nextOroProgress.formatted(.percent.precision(.fractionLength(0)))
@@ -115,6 +117,7 @@ struct PrestigeButton: View {
     /// ya pasó dos veces).
     private var spokenLabel: Text {
         let preview = gameState.prestigePreview
+        if let goal = preview.wallGoalText { return Text("prestige.button") + Text(verbatim: ", \(goal)") }
         return preview.isWorthIt
             ? Text("prestige.button")
                 + Text(verbatim: " ")

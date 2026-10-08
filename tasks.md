@@ -559,6 +559,8 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 
 ### E2b — Calibración final y contrato de pacing (`2026-10-07-v2-e2b-calibracion.md`)
 
+> Relevo 12: E13 agrega dependencias a T5, T6, T10, T12 y T14 (ver §5 E13).
+
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | P-E2b | Plan de E2b | ✅ | — | — | `5b15b82` | 15 tareas; reporte `.superpowers/sdd/2026-10-07-v2-e2b/plan-report.md` |
@@ -610,7 +612,7 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T17 | El piso calibrado | ⛔ | T16; E2b-T14 | — | | controlador; no frena el cierre |
 | E12-T18 | Cierre de E12 (controlador) | ⛔ | T1–T16 | `Docs/` | | |
 
-### E13 — Ajustes del feedback de la v1 (PLAN-v2 E13; plan por tareas pendiente)
+### E13 — Ajustes del feedback de la v1 (PLAN-v2 E13; plan `2026-10-08-v2-e13-feedback-v1.md`)
 
 Épica nueva del dueño (2026-10-08, docs `63a55a0` → cherry-pick en el relevo 12). 12 ítems. **El 1 va
 primero y solo** (bug que el dueño ve en cada video); 2, 3, 6 y 7 tocan la economía y van **antes de
@@ -619,7 +621,28 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E13-T1 | El botón de video responde al primer toque (ítem 1) | 🔄 | — | `AdMobAdsProvider`, `GiftsView`, `OfflineEarningsView`, `ChestOpeningView`, `EventBannerView`; adelanta el contrato de `RewardedOfferButton` (E4b T3 / E7b-b T7) | | **primera de la cola**; despacho directo desde PLAN-v2 E13 ítem 1 (no espera al plan); revisión opus (mueve el enfriamiento de los videos) |
-| P-E13 | Plan de E13 por tareas (ítems 2–12) | 🔄 | — | — | | planificador opus (relevo 12) |
+| P-E13 | Plan de E13 por tareas (ítems 2–12) | ✅ | — | — | `a9433f2` | 13 tareas (T2–T14); `2026-10-08-v2-e13-feedback-v1.md`; 14 dudas con default |
+| E13-T2 | Premios por video: regalo de frontera − 3, Fusionar todo en lugar de la Evolución gratis | ⛔ | T1, T6 | 🔥 +Bonus, catálogo (snapshot); AdsProvider, rewarded_ads.json, BoardChange.swift, +BoardChanges, EffectContractTests | | revisión opus (plata); crea `Origin.rewardedMergeAll` y `giftType` (carries a E7b-b T1/T2, E4a T4, E2b T6) |
+| E13-T3 | Cofres de piso, una vez por cuenta | ⛔ | E9b-T6 | 🔥 PlayerState; SaveConflictResolver, +Chests | | revisión opus (save); migra en el decodificador; carries a E2b T5 y E9b T7 |
+| E13-T4 | El punto de Regalos avisa los boosts listos | ⛔ | ventana de GameState.swift | 🔥 GameState (una propiedad); +Projections, BottomMenuBar | | no ∥ dueños de GameState (E3b T5 en la ola I) |
+| E13-T5 | Los precios al reencarnar, explicados | ⏳ | — | catálogo (snapshot); PrestigeView | | revisión ninguna; carry de texto a E9b T1; antes de E2b T11 (PrestigeView) |
+| E13-T6 | La Startup evoluciona dos tiers abajo de la frontera o paga | ⏳ | — | 🔥 +Bonus, catálogo (snapshot); events.json, ContentConfigs, BoardChange.swift, catalogo.py | | revisión opus (plata); PRIMERA de E13 (camino a E2b); suma `catalogo.py quitar` (E4a T9 lo saltea); carries a E4a T4/T7/T9, E2b T10 |
+| E13-T7 | Toque premiado: seis líneas, los niveles se suman | ⛔ | T3, T6; E9b-T6 | 🔥 PlayerState, ContentSystems, catálogo (snapshot); upgrades.json, ContentConfigs, PermanentUpgrades, EffectDescriptor, pacing-sim, GameContentValidationTests, PacingTests | | revisión opus (save + plata); 193 → 192 ORO (348 con baseCost 2); HANDOFF §5.7 pasa a "las seis"; carry a E2b T14 |
+| E13-T8 | Pisos de arriba con misterio ("Piso ???") | ⏳ | — | catálogo (snapshot); FloorMapView, ElevatorPanel, TowerNaming, +Types, +Projections | | ElevatorPanel es tibio de E7b-b T3; integrar en serie con T4 (+Projections) |
+| E13-T9 | Ficha y Despedir desde Personajes | ⛔ | verificar CharacterSheetUITests sobre `ab7ba84` (arreglo del panel de debug) | catálogo (snapshot); UpgradesView, +Types, +Actions, CharacterSheetView | | no ∥ T13 (UpgradesView) ni T11 (+Actions); carry de texto a E9b T1 |
+| E13-T10 | FisuJobs por pisos | ⛔ | T8 | FisuJobsView | | revisión ninguna; `JobGroups` testeable |
+| E13-T11 | La moneda sobre quien genera plata | ⏳ | — | 🔥 BoardScene; CharacterNode, BoardReconciliation, +Actions | | no ∥ T9 (+Actions); un nodo por personaje, sin animación |
+| E13-T12 | El Diamante dice "Pack de las 43" | ⏳ | — | catálogo (snapshot); +Store, CustomizationView | | revisión ninguna; +Store es tibio de E6b T4/T5 |
+| E13-T13 | Las mejoras dicen su efecto, de antes a después | ⛔ | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |
+| E13-T14 | Cierre de E13 (controlador) | ⛔ | T2–T13 | `Docs/` | | `completo`; HANDOFF §5.7 "las seis" |
+
+Dependencias que E13 le suma a otras épicas (plan E13, "Lo que E13 le deja a otras épicas"): **E2b**
+T5 ← E13-T3; T6 ← E13-T2; T10 ← E13-T6; T12 ← E13-T2, T3, T6, T7; T14 ← E13-T7 (seis líneas, 348 ORO).
+**E7b-b** T1/T2 reusan `.rewardedMergeAll` y el video `merge_all` (ya no crean `siderail.mergeAll`).
+**E4a** T4/T7/T9: `evolveBestUnit` con `tiersBelowFrontier: 2` y respaldo en plata; `planEvolve` pide
+`maxSourceTier`. **E9b** T1 (textos `tutorial.prestige.oro`, `tutorial.character_sheet.hold`) y T7
+(el reset vuelve `meta.floorChestsAwarded` a 0). En §3.1 E13 suma: `GameState.swift` (T4), `+Bonus`
+(T2, T6), `ContentSystems` (T7), `PlayerState` (T3, T7), `BoardScene` (T11).
 
 ### E10 — Release 2.0
 

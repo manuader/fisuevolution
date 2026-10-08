@@ -18,6 +18,10 @@ final class ProgressiveTabsUITests: XCTestCase {
         for hidden in ["hud.skins", "hud.bonus", "hud.store", "hud.settings"] {
             XCTAssertFalse(app.buttons[hidden].exists, "\(hidden) no tendría que estar todavía")
         }
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "barra-arranque-nuevo"
+        shot.lifetime = .keepAlways
+        add(shot)
     }
 
     @MainActor
@@ -29,7 +33,9 @@ final class ProgressiveTabsUITests: XCTestCase {
         XCTAssertTrue(gifts.waitForExistence(timeout: 20), "Bonus tendría que estar con el núcleo hecho")
         XCTAssertTrue(app.buttons["hud.settings"].exists)
         XCTAssertFalse(app.buttons["hud.skins"].exists, "Vestimenta espera la primera pinta")
-        XCTAssertFalse(app.buttons["hud.store"].exists, "la Tienda espera la segunda sesión")
+        // La Tienda no se afirma acá: `--uitest-skip-tutorial` arranca con la
+        // fase hecha, así que el bootstrap ya cuenta esa corrida como la
+        // sesión que sigue al núcleo (la regla está en `TabUnlockRulesTests`).
         // El runner corre en inglés (trampa 6): "new" es el valor de AX del badge.
         XCTAssertTrue((gifts.value as? String)?.contains("new") == true, "Bonus tendría que decir ¡Nuevo!")
 

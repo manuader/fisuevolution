@@ -608,14 +608,14 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T1 | `NameRules` (EK) + la tabla compartida | ✅ | — | — | `82dcab9` (merge `3e7772c`) | sonnet; EK puro + `supabase/tests/fixtures/`; tabla de 31 casos compartida con el servidor; EK 553 → 556; tarea VERDE; destraba T3 y T9a |
 | E12-T2 | Backend: esquema, RLS, funciones SQL, `supabase/test.sh` | ✅ | — | — | `b498fa2` (merge `b8a6c2e`; arreglo del oráculo `9c26baa`) | opus; Postgres local, sin compilar la app; `supabase/test.sh` VERDE 23 casos SQL; vista partida en `leaderboard` pública + `leaderboard_internal`; carries a T3: fijar `npm:@anthropic-ai/sdk`, `deno.lock`, deno no instalado (Docker sin probar) |
 | E12-T3 | Backend: reglas, lista y moderación (Deno) | ✅ | T1 | — | `f61195b` (merge en integ-r13) | sonnet; Haiku inyectable, sin red en tests; DONE_WITH_CONCERNS: `haikuClassifier` sin probar contra la API real (prueba manual con la clave: dueño o T16); SDK fijado en 0.131.0 (la política de 24 h de Deno bloqueó 0.132.x); deno 2.9.7 por brew; `supabase/test.sh` VERDE (sql 23 · deno 52) |
-| E12-T4 | Backend: las cuatro Edge Functions | ⛔ | T2, T3 | — | | sonnet, rev. opus; integración contra Postgres temporal |
+| E12-T4 | Backend: las cuatro Edge Functions | ⏳ | T2, T3 | — | | sonnet, rev. opus; integración contra Postgres temporal |
 | E12-T5 | Backend: cron, propuesta de lista, deploy y panel | ⛔ | T4 | — | | sonnet; la lista es propuesta (🔒 3) |
 | E12-T6 | `RankingState` (EK) | ✅ | — | — | `97c15fa`+`ab3492a` | revisión opus: Approved con arreglos (la fase más avanzada sólo con el mismo runId; max de playedSeconds sólo en la misma partida; `CarriedSubmission.sealed`). Carries: T8/T12 reenvío de la llegada arrastrada idempotente (409/not_active = hecho) y `sessionBegan` tras `forNewGame()`; T10 `ranking` con `(try? …) ?? .legacy` (Phase sintetizado) y default `.newGame`; T8/T11 mandar el start sólo tras `newGameStarted`, no al abrir la app |
-| E12-T7 | Cliente, identidad en el Keychain y config remota | ⛔ | T6 | — | | sonnet; compila (archivos nuevos + xcodegen) |
+| E12-T7 | Cliente, identidad en el Keychain y config remota | ⏳ | T6 | — | | sonnet; compila (archivos nuevos + xcodegen) |
 | E12-T8 | `RankingStore` | ⛔ | T6, T7 | — | | sonnet, rev. opus |
 | E12-T9a | La tarjeta de Dios (vista suelta) | ⛔ | T1, T8 | catálogo (snapshot) | | sonnet |
 | E12-T9b | La pestaña (vista suelta) | ⛔ | T8 | catálogo (snapshot) | | sonnet |
-| E12-T10 | `MetaState.ranking` + resolver | ⛔ | T6; E1-T16 | 🔥 PlayerState; SaveConflictResolver, SaveMigratorTests | | sonnet, **rev. opus**; no en la ola de E9b T6 |
+| E12-T10 | `MetaState.ranking` + resolver | ⏳ | T6; E1-T16 | 🔥 PlayerState; SaveConflictResolver, SaveMigratorTests | | sonnet, **rev. opus**; no en la ola de E9b T6 |
 | E12-T11 | Los ganchos en `GameState` | ⛔ | T8, T10 | 🔥 GameState (una línea); +Celebrations, +Lifecycle, +BoardChanges, +Bootstrap, +Debug, FisuEvolutionApp | | sonnet, **rev. opus**; ventana libre de `GameState.swift` |
 | E12-T12 | El reset abre un intento nuevo | ⛔ | T11; E9b-T7, E9b-T8 | ResetPlan, +Reset | | sonnet, rev. opus |
 | E12-T13 | La 7.ª pestaña montada | ⛔ | T9b, T11; E3b-T4, E3a-T11 | 🔥 RootView, catálogo; GameArtComponents, BottomMenuBar, MenuPagerView, TabUnlocks, tabs.json, +Tabs | | sonnet; captura SE (plan B: tarjeta en la Oficina) |

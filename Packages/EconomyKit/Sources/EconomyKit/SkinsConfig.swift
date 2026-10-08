@@ -6,6 +6,9 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
     public enum Treatment: String, Codable, Sendable {
         case tint
         case texture
+        /// Un efecto por código sobre el arte base (PLAN-v2 E6): lo dibuja la app
+        /// con el shader de `shaderId`.
+        case effect
     }
 
     /// Rareza de una skin de cofre. El orden de declaración es el de escalada:
@@ -54,6 +57,16 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         /// ella la ficha muestra el id embellecido, que alcanza para una skin
         /// de prueba pero no para una que se shippea.
         public let displayNameKey: String?
+        /// `effect`: el id del shader (`SkinShaders.ids`, en la app).
+        public let shaderId: String?
+        /// Se compra con ORO en la tienda (E6). Excluyente con el cofre y con los
+        /// milestones: una pinta tiene una sola vía.
+        public let oroPrice: Int?
+        /// La familia dibujada a la que pertenece (pijama, gaucho, dinosaurio): el
+        /// mismo id repetido en los 43, como `oro` y `diamante`.
+        public let family: String?
+        /// El atlas de su textura cuando no es el del personaje (`fam_<familia>`).
+        public let textureAtlas: String?
 
         /// Los campos de tratamiento y de milestone son mutuamente excluyentes
         /// según el tipo de skin, así que van con default: declarar una entrada
@@ -68,7 +81,11 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             reincarnations: Int? = nil,
             upgradesMaxed: Bool? = nil,
             chestRarity: Rarity? = nil,
-            displayNameKey: String? = nil
+            displayNameKey: String? = nil,
+            shaderId: String? = nil,
+            oroPrice: Int? = nil,
+            family: String? = nil,
+            textureAtlas: String? = nil
         ) {
             self.id = id
             self.characterType = characterType
@@ -80,6 +97,10 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             self.upgradesMaxed = upgradesMaxed
             self.chestRarity = chestRarity
             self.displayNameKey = displayNameKey
+            self.shaderId = shaderId
+            self.oroPrice = oroPrice
+            self.family = family
+            self.textureAtlas = textureAtlas
         }
 
         public var isMilestone: Bool {
@@ -95,6 +116,13 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         case missingTexture(String)
         case invalidReincarnations(String)
         case chestAndMilestone(String)
+        case missingShader(String)
+        case unknownShader(String)
+        case nonPositiveOroPrice(String)
+        case oroAndChest(String)
+        case oroAndMilestone(String)
+        case inconsistentOroPrice(String)
+        case familyWithoutAtlas(String)
     }
 
     public let schemaVersion: Int
@@ -137,6 +165,19 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         return dueño.filter { !compartidas.contains($0.key) }
     }
 
+    /// Las pintas que se compran con ORO, una vez por id y en el orden del catálogo.
+    public var oroSkinIDs: [String] {
+        var seen = Set<String>()
+        return skins.compactMap { skin in
+            guard skin.oroPrice != nil, seen.insert(skin.id).inserted else { return nil }
+            return skin.id
+        }
+    }
+
+    public func oroPrice(of skinID: String) -> Int? {
+        skins.first { $0.id == skinID && $0.oroPrice != nil }?.oroPrice
+    }
+
     public func entry(id: String) -> Entry? {
         skins.first { $0.id == id }
     }
@@ -146,7 +187,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         skins.filter { $0.characterType == "*" || $0.characterType == typeID }
     }
 
-    public func validate(characterTypeIDs: Set<String>, floorIDs: Set<String>) throws {
+    public func validate(characterTypeIDs: Set<String>, floorIDs: Set<String>, shaderIDs: Set<String> = []) throws {
         // La unicidad es por (personaje, id), no por id global. Una variante como
         // "oro" existe una vez por personaje, y que las 43 compartan el id es
         // justamente lo que hace que un solo paquete las desbloquee todas: la
@@ -154,6 +195,7 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
         // significa tenerlo en todos. Con unicidad global habría que inventar
         // ids por personaje y romper la convención `<baseKey>__<skinId>`.
         var vistas = Set<String>()
+        var precios: [String: Int] = [:]
         for skin in skins {
             guard vistas.insert("\(skin.characterType)/\(skin.id)").inserted else {
                 throw ValidationError.duplicateID(skin.id)
@@ -173,11 +215,24 @@ public struct SkinsConfig: Codable, Sendable, Equatable {
             if skin.chestRarity != nil, skin.isMilestone {
                 throw ValidationError.chestAndMilestone(skin.id)
             }
+            if let price = skin.oroPrice {
+                guard price > 0 else { throw ValidationError.nonPositiveOroPrice(skin.id) }
+                guard skin.chestRarity == nil else { throw ValidationError.oroAndChest(skin.id) }
+                guard !skin.isMilestone else { throw ValidationError.oroAndMilestone(skin.id) }
+                if let anterior = precios[skin.id], anterior != price { throw ValidationError.inconsistentOroPrice(skin.id) }
+                precios[skin.id] = price
+            }
+            if skin.family != nil, skin.textureAtlas?.isEmpty != false {
+                throw ValidationError.familyWithoutAtlas(skin.id)
+            }
             switch skin.treatment {
             case .tint:
                 guard skin.tintHex?.isEmpty == false else { throw ValidationError.missingTint(skin.id) }
             case .texture:
                 guard skin.textureKey?.isEmpty == false else { throw ValidationError.missingTexture(skin.id) }
+            case .effect:
+                guard let shader = skin.shaderId, !shader.isEmpty else { throw ValidationError.missingShader(skin.id) }
+                guard shaderIDs.contains(shader) else { throw ValidationError.unknownShader(shader) }
             }
         }
     }

@@ -40,6 +40,9 @@ struct UpgradesView: View {
             ScrollView {
                 VStack(spacing: Tokens.s12) {
                     if selectedTab == .characters {
+                        if let until = gameState.spendingFrozenUntil {
+                            SpendingFrozenStrip(until: until, identifier: "upgrades.spending_frozen")
+                        }
                         characterRows
                     } else {
                         permanentRows

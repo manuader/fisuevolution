@@ -11,6 +11,8 @@ public struct ActiveModifier: Codable, Sendable, Equatable, Identifiable {
         case tapMultiplier
         /// Multiplies the spawn cost (Unos Mates: 0.7 = 30% discount).
         case spawnCostMultiplier
+        /// No se puede gastar plata mientras dura (Corralito). Los ingresos siguen.
+        case spendingFrozen
     }
 
     public let id: UUID
@@ -59,6 +61,10 @@ public enum ModifierMath {
             total + factor(buffs, effect: effect, now: segment.0) * (segment.1 - segment.0)
         }
         return area / (to - from)
+    }
+
+    public static func spendingFrozenUntil(_ modifiers: [ActiveModifier], now: TimeInterval) -> TimeInterval? {
+        modifiers.filter { $0.effect == .spendingFrozen && $0.isActive(at: now) }.map(\.expiresAt).max()
     }
 
     /// Drops expired modifiers. Returns true if anything was removed.

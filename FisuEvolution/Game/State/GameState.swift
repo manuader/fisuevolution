@@ -122,6 +122,9 @@ final class GameState {
     var towerIncomePerSecondText = "0"
     var visibleFloorIsUnlocked = false
     var towerNotice: TowerNotice?
+    /// Hasta cuándo dura el Corralito, o `nil`. Lo escribe `+Projections` sólo
+    /// cuando empieza o termina, nunca por segundo.
+    var spendingFrozenUntil: TimeInterval?
 
     // MARK: Eventos y bonus
 

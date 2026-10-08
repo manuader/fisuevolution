@@ -9,7 +9,7 @@ struct EventsConfig: Codable, Sendable, Equatable {
         case instantEvolution
         case freeHighTier
         case spawnCostMultiplier
-        case frozenCoins
+        case spendingFrozen
         case bonusCoins
     }
 
@@ -23,6 +23,8 @@ struct EventsConfig: Codable, Sendable, Equatable {
         let cooldownSeconds: Double
         let flavorTextKey: String
         let isBuff: Bool
+        /// `"video"`: el jugador puede levantar el evento mirando un video.
+        let escape: String?
     }
 
     let schemaVersion: Int

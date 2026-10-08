@@ -282,6 +282,34 @@ extension GameState {
         syncCelebrations()
     }
 
+    /// Arranca el Corralito por el camino real del sorteo (`EventManager`), con un
+    /// config de un solo evento que ya no pide tier ni cooldown.
+    func debugStartCorralito() {
+        guard let economy, let content, var player,
+              let corralito = content.events.events.first(where: { $0.id == "corralito" })
+        else { return }
+        let now = Date().timeIntervalSince1970
+        let always = EventsConfig.Event(
+            id: corralito.id, effectType: corralito.effectType, magnitude: corralito.magnitude,
+            durationSeconds: corralito.durationSeconds, weight: 1, minTier: 0, cooldownSeconds: 0,
+            flavorTextKey: corralito.flavorTextKey, isBuff: corralito.isBuff, escape: corralito.escape
+        )
+        let config = EventsConfig(
+            schemaVersion: content.events.schemaVersion,
+            baseIntervalSeconds: content.events.baseIntervalSeconds,
+            intervalJitterSeconds: content.events.intervalJitterSeconds,
+            resumeGraceSeconds: content.events.resumeGraceSeconds,
+            retryWhenNoneApplicableSeconds: content.events.retryWhenNoneApplicableSeconds,
+            events: [always]
+        )
+        guard let roll = EventManager.fireRandomEvent(
+            state: &player, config: config, tiers: content.tiers, floorTable: content.floorTable,
+            economy: economy, now: now, lastFired: [:], isApplicable: { _ in true }, rng: &rng
+        ) else { return }
+        self.player = player
+        handleEventRoll(roll, now: now)
+    }
+
     /// Deja tres logros **conseguidos y sin cobrar** para poder fotografiar y
     /// ejercitar la pantalla de Logros.
     ///

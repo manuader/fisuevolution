@@ -73,14 +73,15 @@
     },
     {
       "id": "corralito",
-      "effectType": "frozenCoins",
+      "effectType": "spendingFrozen",
       "magnitude": 1.0,
       "durationSeconds": 45,
       "weight": 8,
       "minTier": 6,
       "cooldownSeconds": 2400,
       "flavorTextKey": "event.corralito.flavor",
-      "isBuff": false
+      "isBuff": false,
+      "escape": "video"
     },
     {
       "id": "aguinaldo",

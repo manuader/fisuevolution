@@ -130,6 +130,7 @@ struct ActiveBonusBar: View {
         case .incomeMultiplier: Color("PaletteGreen")
         case .tapMultiplier: Color("PaletteOrange")
         case .spawnCostMultiplier: Color("PaletteBlue")
+        case .spendingFrozen: Color("PalettePink")
         }
     }
 }

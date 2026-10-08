@@ -127,6 +127,7 @@ enum EventManager {
         let flavorTextKey: String
         let isBuff: Bool
         let endsAt: TimeInterval
+        let escapableByVideo: Bool
     }
 
     enum BoardIntent: Equatable {
@@ -208,11 +209,10 @@ enum EventManager {
                 expiresAt: now + event.durationSeconds,
                 sourceKey: "event.\(event.id)"
             ))
-        case .frozenCoins:
-            // Corralito: los coins no crecen (income x0) durante N segundos.
+        case .spendingFrozen:
             state.run.activeModifiers.append(ActiveModifier(
-                effect: .incomeMultiplier,
-                magnitude: 0,
+                effect: .spendingFrozen,
+                magnitude: 1,
                 expiresAt: now + event.durationSeconds,
                 sourceKey: "event.\(event.id)"
             ))
@@ -234,10 +234,10 @@ enum EventManager {
         }
 
         let active: ActiveEvent = if event.durationSeconds > 0 {
-            ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + event.durationSeconds)
+            ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + event.durationSeconds, escapableByVideo: event.escape == "video")
         } else {
             // Efectos instantáneos: banner corto informativo.
-            ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + 6)
+            ActiveEvent(id: event.id, flavorTextKey: event.flavorTextKey, isBuff: event.isBuff, endsAt: now + 6, escapableByVideo: event.escape == "video")
         }
         return Roll(event: event, active: active, boardIntent: boardIntent)
     }

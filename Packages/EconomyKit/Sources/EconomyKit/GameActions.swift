@@ -4,6 +4,7 @@ public enum PassiveUnlockError: Error, Equatable {
     case unknownType
     case alreadyUnlocked
     case insufficientCoins
+    case spendingFrozen
 }
 
 /// Player actions as pure mutations over `PlayerState`. No UI, fully unit-tested.
@@ -37,9 +38,12 @@ extension StandardEconomy {
 
     /// Comprar el passive de un tipo hace que TODAS sus instancias generen income
     /// (en todos los pisos, siempre — F7 §3.5). Per-type, independent purchases.
-    public func applyPassiveUnlock(typeId: String, state: inout PlayerState, tiers: TierRepository) throws {
+    public func applyPassiveUnlock(typeId: String, state: inout PlayerState, tiers: TierRepository, now: TimeInterval) throws {
         guard let type = tiers.type(id: typeId) else { throw PassiveUnlockError.unknownType }
         guard state.run.passiveUnlocked[typeId] != true else { throw PassiveUnlockError.alreadyUnlocked }
+        guard ModifierMath.spendingFrozenUntil(state.run.activeModifiers, now: now) == nil else {
+            throw PassiveUnlockError.spendingFrozen
+        }
         guard state.run.coins >= type.passiveUnlockCost else { throw PassiveUnlockError.insufficientCoins }
         state.run.coins -= type.passiveUnlockCost
         state.run.passiveUnlocked[typeId] = true

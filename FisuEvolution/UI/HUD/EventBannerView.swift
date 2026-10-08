@@ -4,23 +4,24 @@ import SwiftUI
 /// color lleva ícono direccional y texto — nunca solo color.
 struct EventBannerView: View {
     let event: EventManager.ActiveEvent
+    @Environment(GameState.self) private var gameState
+    @Environment(AdsCoordinator.self) private var ads
     @State private var now = Date()
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: event.isBuff ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
-                .font(.title3)
-            Text(LocalizedStringKey(event.flavorTextKey))
-                .font(Tokens.body)
-                .lineLimit(2)
-                .minimumScaleFactor(0.7)
-            Spacer(minLength: 4)
-            if remainingSeconds > 0 {
-                Text(verbatim: "\(remainingSeconds)s")
-                    .font(Tokens.caption)
-                    .monospacedDigit()
+            bannerText
+            if event.escapableByVideo {
+                ActionPill(
+                    titleKey: "event.escape.video", systemImage: "play.fill",
+                    tint: Color("PaletteGreen"), identifier: "event.escape"
+                ) {
+                    Task {
+                        if await ads.showRewarded(for: .visitor) { gameState.escapeActiveEvent() }
+                    }
+                }
             }
         }
         .padding(.horizontal, 14)
@@ -40,6 +41,25 @@ struct EventBannerView: View {
         .foregroundStyle(Color("PaletteInk"))
         .padding(.horizontal, 16)
         .onReceive(timer) { now = $0 }
+    }
+
+    /// El texto del evento es el único elemento con `hud.event`: el botón de
+    /// video queda afuera (un id en un contenedor pisa el de sus hijos).
+    private var bannerText: some View {
+        HStack(spacing: 8) {
+            Image(systemName: event.isBuff ? "arrow.up.circle.fill" : "arrow.down.circle.fill")
+                .font(.title3)
+            Text(LocalizedStringKey(event.flavorTextKey))
+                .font(Tokens.body)
+                .lineLimit(2)
+                .minimumScaleFactor(0.7)
+            Spacer(minLength: 4)
+            if remainingSeconds > 0 {
+                Text(verbatim: "\(remainingSeconds)s")
+                    .font(Tokens.caption)
+                    .monospacedDigit()
+            }
+        }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("hud.event")
     }

@@ -18,7 +18,7 @@ struct OfflineModifierTests {
     private func producing(_ modifiers: [ActiveModifier]) throws -> PlayerState {
         var state = fxState(units: ["a": 2])
         state.run.coins = 100
-        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
+        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers, now: 0)
         state.run.activeModifiers = modifiers
         state.meta.lastSeenTimestamp = 1000
         state.meta.derivedEffects.offlineEfficiency = 1

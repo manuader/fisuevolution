@@ -154,7 +154,7 @@ struct PassiveUnlockPurchaseTests {
     @Test func unlockDebitsCoinsAndMarksType() throws {
         var state = fxState()
         state.run.coins = 150
-        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
+        try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers, now: 0)
         // Costo almacenado del tipo: tapYield 1 × 100.
         #expect(state.run.coins == 50)
         #expect(state.run.passiveUnlocked["a"] == true)
@@ -164,7 +164,7 @@ struct PassiveUnlockPurchaseTests {
         var state = fxState()
         state.run.coins = 1_000_000
         #expect(throws: PassiveUnlockError.unknownType) {
-            try economy.applyPassiveUnlock(typeId: "sin_registrar", state: &state, tiers: tiers)
+            try economy.applyPassiveUnlock(typeId: "sin_registrar", state: &state, tiers: tiers, now: 0)
         }
         #expect(state.run.coins == 1_000_000)
         #expect(state.run.passiveUnlocked.isEmpty)
@@ -175,7 +175,7 @@ struct PassiveUnlockPurchaseTests {
         state.run.coins = 500
         state.run.passiveUnlocked["a"] = true
         #expect(throws: PassiveUnlockError.alreadyUnlocked) {
-            try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
+            try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers, now: 0)
         }
         #expect(state.run.coins == 500)
     }
@@ -184,7 +184,7 @@ struct PassiveUnlockPurchaseTests {
         var state = fxState()
         state.run.coins = 99
         #expect(throws: PassiveUnlockError.insufficientCoins) {
-            try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers)
+            try economy.applyPassiveUnlock(typeId: "a", state: &state, tiers: tiers, now: 0)
         }
         #expect(state.run.coins == 99)
         #expect(state.run.passiveUnlocked["a"] != true)

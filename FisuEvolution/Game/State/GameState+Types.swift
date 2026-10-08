@@ -95,6 +95,8 @@ extension GameState {
             case destinationFloorFull(floorID: String)
             /// Un piso que antes no dejaba contratar ahora sí.
             case hireUnlocked(floorID: String)
+            /// El Corralito rebotó una compra de plata.
+            case spendingFrozen
         }
 
         let id = UUID()

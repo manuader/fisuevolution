@@ -145,7 +145,7 @@ struct ContentSystemsTests {
     @Test func aguinaldoPaysPassiveIncomeSeconds() throws {
         var state = makeState(maxTier: 30)
         state.run.coins = 1e6
-        try economy.applyPassiveUnlock(typeId: content.tiers.baseType.id, state: &state, tiers: content.tiers)
+        try economy.applyPassiveUnlock(typeId: content.tiers.baseType.id, state: &state, tiers: content.tiers, now: 0)
         let coinsBefore = state.run.coins
         var rng = FixedRNG(values: [0])
         // Forzar aguinaldo: solo él sin cooldown.

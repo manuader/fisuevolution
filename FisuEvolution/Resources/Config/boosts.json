@@ -65,7 +65,7 @@
       "id": "asado",
       "iconKey": "ui_boost_asado",
       "effectType": "periodicPayout",
-      "magnitude": 4.0,
+      "magnitude": 10.0,
       "durationSeconds": 0,
       "cooldownSeconds": 21600,
       "unlockFloorId": "mars",

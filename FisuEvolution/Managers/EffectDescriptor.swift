@@ -30,6 +30,8 @@ enum EffectUnit: Equatable {
     case percentDiscount
     case chance
     case multiplier
+    /// Minutos de producción (PLAN-v2 E2a): "10 min".
+    case minutes
 }
 
 struct EffectAmount: Equatable {
@@ -63,8 +65,10 @@ enum EffectDescriptor {
     /// Boosts: el efecto es la magnitud sola, no depende de ningún nivel.
     static func amount(forBoost effectType: BoostsConfig.EffectType, magnitude: Double) -> EffectAmount {
         switch effectType {
-        case .incomeMultiplier, .tapMultiplier, .periodicPayout:
+        case .incomeMultiplier, .tapMultiplier:
             return EffectAmount(unit: .multiplier, value: magnitude, isCapped: false)
+        case .periodicPayout:
+            return EffectAmount(unit: .minutes, value: magnitude, isCapped: false)
         case .spawnCostMultiplier:
             // La magnitud es un FACTOR de costo (0,7 = cuesta 0,7×). Mostrarla
             // cruda deja al jugador leyendo "0,7" y adivinando si es bueno.
@@ -82,7 +86,7 @@ enum EffectDescriptor {
 // MARK: - El formato
 
 enum EffectFormatter {
-    /// "+30%", "−9%", "3%", "×2,5"
+    /// "+30%", "−9%", "3%", "×2,5", "10 min"
     static func text(_ amount: EffectAmount) -> String {
         let percent = Int((amount.value * 100).rounded())
         switch amount.unit {
@@ -92,6 +96,8 @@ enum EffectFormatter {
         case .multiplier:
             let formatted = amount.value.formatted(.number.precision(.fractionLength(0...1)))
             return "×\(formatted)"
+        case .minutes:
+            return String(localized: "effect.minutes \(String(Int(amount.value.rounded())))")
         }
     }
 

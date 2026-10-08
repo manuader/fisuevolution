@@ -19,13 +19,14 @@
     {
       "id": "startup_comprada",
       "effectType": "instantEvolution",
-      "magnitude": 1,
+      "magnitude": 2,
       "durationSeconds": 0,
       "weight": 8,
       "minTier": 5,
       "cooldownSeconds": 2700,
       "flavorTextKey": "event.startup_comprada.flavor",
-      "isBuff": true
+      "isBuff": true,
+      "fallback": {"coinsSeconds": 300, "flavorTextKey": "event.startup_comprada.cash"}
     },
     {
       "id": "devaluacion",

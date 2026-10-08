@@ -37,8 +37,11 @@ struct BoardChangeTests {
         BoardChangePlanner.planAutoMerge(state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable, origin: .debug)
     }
 
-    private func evolve(_ fx: Board, origin: BoardChange.Origin = .debug) -> BoardChange? {
-        BoardChangePlanner.planEvolve(state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable, origin: origin)
+    private func evolve(_ fx: Board, maxSourceTier: Int = .max, origin: BoardChange.Origin = .debug) -> BoardChange? {
+        BoardChangePlanner.planEvolve(
+            state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable,
+            maxSourceTier: maxSourceTier, origin: origin
+        )
     }
 
     private func arrival(_ typeId: String, _ fx: Board, origin: BoardChange.Origin = .debug) -> BoardChange? {
@@ -129,6 +132,15 @@ struct BoardChangeTests {
         let fx = try board(units: ["a": 1, "d": 1])
         let change = try #require(evolve(fx))
         #expect(change.kind == .evolve(floorOrdinal: 0, slot: 0, typeId: "a", newTypeId: "b"))
+    }
+
+    @Test("la evolución con tope nunca toca una unidad por encima de él")
+    func evolveRespectsTheCap() throws {
+        let fx = try board(units: ["a": 1, "b": 1], unlockedFloors: ["f1", "f2"])
+        #expect(evolve(fx, maxSourceTier: 0) == nil, "nadie está tan abajo")
+        let change = try #require(evolve(fx, maxSourceTier: 1))
+        guard case .evolve(_, _, let typeId, let newTypeId) = change.kind else { Issue.record("no es una evolución"); return }
+        #expect(typeId == "a" && newTypeId == "b")
     }
 
     @Test("sin ninguna unidad que pueda crecer sola no hay evolución")

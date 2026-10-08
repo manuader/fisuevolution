@@ -330,7 +330,8 @@ extension GameState {
         let always = EventsConfig.Event(
             id: corralito.id, effectType: corralito.effectType, magnitude: corralito.magnitude,
             durationSeconds: corralito.durationSeconds, weight: 1, minTier: 0, cooldownSeconds: 0,
-            flavorTextKey: corralito.flavorTextKey, isBuff: corralito.isBuff, escape: corralito.escape
+            flavorTextKey: corralito.flavorTextKey, isBuff: corralito.isBuff, escape: corralito.escape,
+            fallback: corralito.fallback
         )
         let config = EventsConfig(
             schemaVersion: content.events.schemaVersion,

@@ -12,7 +12,7 @@ extension GameState {
         case (_, .background), (.active, .inactive):
             let wasActive = isSceneActive
             isSceneActive = false
-            if new == .background { settleAllPendingBoardChanges() }
+            if new == .background { settleAllPendingBoardChanges() } else { settlePrepaidBoardChanges() }
             seal(now: now, stamping: wasActive)
         case (_, .active):
             isSceneActive = true

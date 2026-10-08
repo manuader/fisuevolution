@@ -83,6 +83,26 @@ extension GameState {
         }
     }
 
+    /// Al pasar a inactivo (App Switcher: un kill puede venir sin `.background`)
+    /// se asienta lo que el jugador ya pagó —un video visto, una carrera
+    /// elegida—; lo demás espera a `.background`.
+    func settlePrepaidBoardChanges() {
+        guard let content else { return }
+        let prepaid = pendingBoardChanges.filter(\.isPrepaid)
+        pendingBoardChanges.removeAll(where: \.isPrepaid)
+        for planned in prepaid {
+            guard let player, let tower,
+                  let valid = BoardChangePlanner.revalidate(
+                      planned, state: player, tower: tower, tiers: content.tiers, floorTable: content.floorTable
+                  )
+            else {
+                discardBoardChange(planned)
+                continue
+            }
+            applyBoardChange(valid)
+        }
+    }
+
     /// La escena lo llama al ARRANCAR un reveal: un reveal salteado ya se vio.
     func markRevealed(tier: Int) {
         guard var player, tier > player.run.revealedTier else { return }
@@ -139,6 +159,15 @@ extension GameState {
             Log.economy.info("board change rejected on confirm: \(error)")
             discardBoardChange(change)
             return nil
+        }
+    }
+}
+
+private extension BoardChange {
+    var isPrepaid: Bool {
+        switch origin {
+        case .rewardedInstantMerge, .rewardedRareUnit, .career: true
+        case .eventStartup, .eventBlanqueo, .debug: false
         }
     }
 }

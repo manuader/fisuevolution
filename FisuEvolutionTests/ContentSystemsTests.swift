@@ -193,7 +193,7 @@ struct ContentSystemsTests {
         #expect(roll.event.id == "startup_comprada")
         #expect(roll.boardIntent == .evolveBestUnit)
         #expect(state.run.units == unitsBefore)
-        // Evolucionar a T2 no baja el máximo histórico de la run.
+        // El máximo histórico de la run no se mueve: el cambio sólo se planeó.
         #expect(state.run.maxTierReached == 5)
     }
 

@@ -238,6 +238,7 @@ extension GameState {
         // que se cobra, sin el salto de frontera del embudo en el medio.
         grantCareerReward(optionId: optionId)
         if let sourceType = tower.typeId(floorOrdinal: prompt.floorOrdinal, slot: prompt.sourceCell),
+           tower.typeId(floorOrdinal: prompt.floorOrdinal, slot: prompt.targetCell) == sourceType,
            case .merged(let newTypeId) = MergeRules.evaluate(
                sourceTypeId: sourceType, targetTypeId: sourceType,
                chosenCareerPath: player.run.chosenCareerPath, tiers: content.tiers

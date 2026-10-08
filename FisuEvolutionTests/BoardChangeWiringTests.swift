@@ -141,18 +141,21 @@ struct BoardChangeWiringTests {
         #expect(gameState.player?.run.totalUnits == units - 2)
     }
 
-    @Test("pasar a inactivo (Centro de Control) no asienta la cola; irse a background sí")
-    func inactiveDoesNotSettleButBackgroundDoes() async throws {
+    @Test("al pasar a inactivo se asienta lo ya pagado (un video) y el resto espera a background")
+    func inactiveSettlesOnlyWhatWasPaidFor() async throws {
         let gameState = try await gameWithPlannedMerge()
+        gameState.debugGrantPair()
+        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
+        #expect(gameState.pendingBoardChanges.map(\.origin) == [.debug, .rewardedInstantMerge])
         let units = try #require(gameState.player?.run.totalUnits)
         gameState.handleScenePhase(from: .active, to: .inactive)
         await gameState.sealTask?.value
-        #expect(gameState.pendingBoardChanges.count == 1)
-        #expect(gameState.player?.run.totalUnits == units)
+        #expect(gameState.pendingBoardChanges.map(\.origin) == [.debug])
+        #expect(gameState.player?.run.totalUnits == units - 1)
         gameState.handleScenePhase(from: .inactive, to: .background)
         await gameState.sealTask?.value
         #expect(gameState.pendingBoardChanges.isEmpty)
-        #expect(gameState.player?.run.totalUnits == units - 1)
+        #expect(gameState.player?.run.totalUnits == units - 2)
     }
 
     @Test("reencarnar asienta lo pendiente de la run que se va")

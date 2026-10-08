@@ -58,6 +58,7 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@std/assert@1",
       "npm:@anthropic-ai/sdk@0.131.0",
       "npm:postgres@3.4.5"
     ]

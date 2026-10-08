@@ -44,7 +44,7 @@ begin
   loop
     raise exception 'la función % no es security definer con search_path fijo', r.proname;
   end loop;
-  if not has_function_privilege('service_role', 'public.start_run(text, text, timestamptz)', 'EXECUTE') then
+  if not has_function_privilege('service_role', 'public.start_run(text, text, timestamptz, uuid)', 'EXECUTE') then
     raise exception 'service_role no puede ejecutar start_run';
   end if;
   raise notice 'OK las funciones son security definer con search_path fijo y sólo para service_role';

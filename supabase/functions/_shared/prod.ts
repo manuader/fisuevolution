@@ -12,7 +12,7 @@ const unavailable: Classifier = () => Promise.resolve("unavailable");
 export function prodDeps(): Deps {
   const url = Deno.env.get("SUPABASE_DB_URL");
   if (!url) throw new Error("falta SUPABASE_DB_URL");
-  const repo = pgRepo(postgres(url));
+  const repo = pgRepo(postgres(url, { prepare: false, max: 3 }));
   const apiKey = Deno.env.get("ANTHROPIC_API_KEY");
   const classify = apiKey ? haikuClassifier(apiKey) : unavailable;
 

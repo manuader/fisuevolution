@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "@std/assert";
 
 // Nada de SQL armado con texto: sólo consultas parametrizadas.
 function* tsFiles(dir: URL): Generator<URL> {

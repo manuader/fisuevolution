@@ -35,7 +35,7 @@ export interface Repo {
   settings(): Promise<Settings>;
   blocklist(): Promise<string[]>;
   hitRateLimit(hash: string, now: Date): Promise<boolean>;
-  startRun(hash: string, appVersion: string, now: Date): Promise<{ runId: string; startedAt: number }>;
+  startRun(hash: string, appVersion: string, clientRunId: string, now: Date): Promise<{ runId: string; startedAt: number }>;
   finishRun(hash: string, runId: string, played: number, now: Date): Promise<
     { status: RunStatus; nameStatus: NameStatus; realSeconds: number }
   >;
@@ -78,8 +78,8 @@ export function pgRepo(sql: Sql): Repo {
       const [row] = await sql`select hit_rate_limit(${hash}, ${now}) as limited`;
       return row.limited as boolean;
     },
-    async startRun(hash, appVersion, now) {
-      const [row] = await sql`select * from start_run(${hash}, ${appVersion}, ${now})`;
+    async startRun(hash, appVersion, clientRunId, now) {
+      const [row] = await sql`select * from start_run(${hash}, ${appVersion}, ${now}, ${clientRunId})`;
       return { runId: row.run_id, startedAt: epochSeconds(row.started_at) };
     },
     async finishRun(hash, runId, played, now) {

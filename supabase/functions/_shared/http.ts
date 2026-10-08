@@ -64,6 +64,13 @@ export function runIdOf(body: Body): string {
   return value;
 }
 
+/** El id que el cliente genera una vez por partida nueva o reset: hace idempotente a start-run. */
+export function clientRunIdOf(body: Body): string {
+  const value = body.clientRunId;
+  if (typeof value !== "string" || !UUID.test(value)) throw invalid();
+  return value;
+}
+
 export function playedSecondsOf(body: Body): number {
   const value = body.playedSeconds;
   if (typeof value !== "number" || !Number.isInteger(value) || value < 0 || value > MAX_PLAYED_SECONDS) {

@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "@std/assert";
 import postgres from "postgres";
 import { makeHandlers } from "./handlers.ts";
 import { sha256Hex } from "./http.ts";
@@ -24,6 +24,7 @@ async function withBackend(
   body: (api: Api) => Promise<void>,
   moderate: (name: string) => Promise<Moderation> = aprueba,
 ) {
+  moderated = [];
   const sql = postgres(url!, { max: 2, onnotice: () => {} });
   try {
     await sql`truncate players, runs, reports, api_calls, blocklist cascade`;
@@ -50,7 +51,7 @@ async function withBackend(
         clock = new Date(clock.getTime() + ms);
       },
       start: async (installId: string) => {
-        const res = await call("startRun", { installId, appVersion: "2.0" });
+        const res = await call("startRun", { installId, appVersion: "2.0", clientRunId: crypto.randomUUID() });
         assertEquals(res.status, 200);
         return res.body.runId as string;
       },
@@ -85,7 +86,7 @@ async function fullRun(api: Api, installId: string, hours: number, extra: Body =
 
 integration("el tiempo real lo pone el servidor, no el cuerpo", async (api) => {
   api.at(T0);
-  const started = await api.call("startRun", { installId: ALICE, appVersion: "2.0.1" });
+  const started = await api.call("startRun", { installId: ALICE, appVersion: "2.0.1", clientRunId: crypto.randomUUID() });
   assertEquals(started.status, 200);
   assertEquals(started.body.startedAt, T0.getTime() / 1000);
   api.later((42 * 3600 + 14 * 60) * 1000);
@@ -164,6 +165,8 @@ integration("sin nombre no se publica; con nombre aparece con el tiempo del sell
 integration("tres reportes la muestran como Anónimo, en el top y en la fila propia", async (api) => {
   const { runId } = await fullRun(api, ALICE, 40, { name: "Alice" });
   const reporters = [BOB, "33333333-3333-4333-8333-333333333333", "44444444-4444-4444-8444-444444444444"];
+  for (const installId of reporters) await fullRun(api, installId, 40);
+  api.at(T0);
   for (const installId of reporters) {
     const res = await api.call("report", { installId, runId });
     assertEquals(res.body, { ok: true });
@@ -179,6 +182,8 @@ integration("tres reportes la muestran como Anónimo, en el top y en la fila pro
 
 integration("dos reportes no alcanzan", async (api) => {
   const { runId } = await fullRun(api, ALICE, 40, { name: "Alice" });
+  await fullRun(api, BOB, 40);
+  await fullRun(api, "33333333-3333-4333-8333-333333333333", 40);
   await api.call("report", { installId: BOB, runId });
   await api.call("report", { installId: "33333333-3333-4333-8333-333333333333", runId });
   api.later(2 * 60_000);
@@ -196,7 +201,7 @@ integration("un nombre inválido por reglas es 400 y no toca la partida", async 
   assertEquals(row.status, "active");
   assertEquals(row.name_status, "missing");
   assertEquals(row.name, null);
-}, (name) => Promise.resolve(name.includes("<") ? { status: "invalid" } : { status: "ok", name }));
+});
 
 integration("sellar dos veces devuelve lo mismo (idempotente)", async (api) => {
   const { runId, finish } = await fullRun(api, ALICE, 40, { name: "Alice" });
@@ -233,7 +238,7 @@ integration("el interruptor apaga las cuatro con 503", async (api) => {
   await api.sql`update settings set value = ${api.sql.json(false)} where key = 'ranking_enabled'`;
   const runId = crypto.randomUUID();
   const bodies = {
-    startRun: { installId: ALICE, appVersion: "2.0" },
+    startRun: { installId: ALICE, appVersion: "2.0", clientRunId: crypto.randomUUID() },
     finishRun: { installId: ALICE, runId, playedSeconds: 1 },
     leaderboard: { installId: ALICE },
     report: { installId: ALICE, runId },
@@ -250,13 +255,15 @@ integration("el interruptor apaga las cuatro con 503", async (api) => {
 integration("cuerpos raros son 400", async (api) => {
   const runId = crypto.randomUUID();
   const cases: [string, unknown][] = [
-    ["installId que no es UUID", { installId: "no-soy-uuid", appVersion: "2.0" }],
-    ["installId en mayúsculas", { installId: CAROL.toUpperCase(), appVersion: "2.0" }],
-    ["sin installId", { appVersion: "2.0" }],
-    ["appVersion con letras", { installId: ALICE, appVersion: "2.0-beta" }],
+    ["installId que no es UUID", { installId: "no-soy-uuid", appVersion: "2.0", clientRunId: crypto.randomUUID() }],
+    ["installId en mayúsculas", { installId: CAROL.toUpperCase(), appVersion: "2.0", clientRunId: crypto.randomUUID() }],
+    ["sin installId", { appVersion: "2.0", clientRunId: crypto.randomUUID() }],
+    ["appVersion con letras", { installId: ALICE, appVersion: "2.0-beta", clientRunId: crypto.randomUUID() }],
     ["JSON roto", "{no es json"],
     ["un arreglo", "[1,2]"],
-    ["cuerpo de 3 KB", { installId: ALICE, appVersion: "2.0", relleno: "x".repeat(3000) }],
+    ["sin clientRunId", { installId: ALICE, appVersion: "2.0" }],
+    ["clientRunId que no es UUID", { installId: ALICE, appVersion: "2.0", clientRunId: "x" }],
+    ["cuerpo de 3 KB", { installId: ALICE, appVersion: "2.0", clientRunId: crypto.randomUUID(), relleno: "x".repeat(3000) }],
   ];
   for (const [label, payload] of cases) {
     const res = await api.call("startRun", payload);
@@ -332,3 +339,67 @@ integration("el install id se guarda como hash, nunca en claro", async (api) => 
   const [player] = await api.sql`select install_id_hash from players`;
   assertEquals(player.install_id_hash, await sha256Hex(ALICE));
 });
+
+integration("start-run con el mismo clientRunId devuelve la misma partida y no abandona nada", async (api) => {
+  const clientRunId = crypto.randomUUID();
+  const body = { installId: ALICE, appVersion: "2.0", clientRunId };
+  const first = await api.call("startRun", body);
+  api.later(5 * 60_000);
+  const second = await api.call("startRun", body);
+  assertEquals(second.body, first.body);
+  const rows = await api.sql`select status from runs`;
+  assertEquals(rows.map((r) => r.status), ["active"]);
+  // la partida sigue sellándose con el id del primer disparo
+  api.later(40 * HOUR);
+  const finish = await api.call("finishRun", { installId: ALICE, runId: first.body.runId, playedSeconds: 1 });
+  assertEquals(finish.status, 200);
+  assertEquals(finish.body.realSeconds, 40 * 3600 + 5 * 60);
+});
+
+integration("start-run con otro clientRunId abandona la anterior", async (api) => {
+  const first = await api.call("startRun", { installId: ALICE, appVersion: "2.0", clientRunId: crypto.randomUUID() });
+  const second = await api.call("startRun", { installId: ALICE, appVersion: "2.0", clientRunId: crypto.randomUUID() });
+  assert(first.body.runId !== second.body.runId);
+  const [old] = await api.sql`select status from runs where id = ${first.body.runId}`;
+  assertEquals(old.status, "abandoned");
+});
+
+integration("una partida ajena con nombre es 403 y no se paga la moderación", async (api) => {
+  const runId = await api.start(ALICE);
+  api.later(40 * HOUR);
+  const res = await api.call("finishRun", { installId: BOB, runId, playedSeconds: 1, name: "Bob" });
+  assertEquals(res.status, 403);
+  assertEquals(moderated, []);
+}, spyModerate);
+
+integration("review y nombre ya aprobado no llaman al clasificador", async (api) => {
+  const { runId } = await fullRun(api, ALICE, 3, { name: "Rapido" });
+  assertEquals(moderated, []);
+  const [review] = await api.sql`select status, name_status from runs where id = ${runId}`;
+  assertEquals([review.status, review.name_status], ["review", "pending"]);
+
+  const ok = await fullRun(api, BOB, 40, { name: "Bob" });
+  assertEquals(moderated, ["Bob"]);
+  api.later(HOUR);
+  const again = await api.call("finishRun", { installId: BOB, runId: ok.runId, playedSeconds: 1, name: "Otro" });
+  assertEquals(again.body.nameStatus, "ok");
+  assertEquals(again.body.rank, 1);
+  assertEquals(moderated, ["Bob"]);
+}, spyModerate);
+
+integration("tres installIds inventados no ocultan un nombre", async (api) => {
+  const { runId } = await fullRun(api, ALICE, 40, { name: "Alice" });
+  for (const installId of [BOB, CAROL, "55555555-5555-4555-8555-555555555555"]) {
+    assertEquals((await api.call("report", { installId, runId })).status, 200);
+  }
+  const [count] = await api.sql`select count(*)::int as n from reports`;
+  assertEquals(count.n, 0);
+  api.later(2 * 60_000);
+  assertEquals((await api.call("leaderboard", { installId: ALICE })).body.top[0].name, "Alice");
+});
+
+let moderated: string[] = [];
+function spyModerate(name: string): Promise<Moderation> {
+  moderated.push(name);
+  return aprueba(name);
+}

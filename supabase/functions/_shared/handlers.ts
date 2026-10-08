@@ -1,5 +1,6 @@
 import {
   appVersionOf,
+  clientRunIdOf,
   type Body,
   epochSeconds,
   HttpError,
@@ -13,6 +14,7 @@ import {
   sha256Hex,
 } from "./http.ts";
 import type { Moderation } from "./moderation.ts";
+import { validateName } from "./name_rules.ts";
 import type { BoardRow, Repo, Settings } from "./repo.ts";
 
 export const TOP_SIZE = 100;
@@ -67,10 +69,13 @@ export function makeHandlers(deps: Deps) {
     };
   }
 
-  const startRun = endpoint(appVersionOf, async (appVersion, { hash, now }) => {
-    const run = await repo.startRun(hash, appVersion, now);
-    return json(run);
-  });
+  const startRun = endpoint(
+    (body) => ({ appVersion: appVersionOf(body), clientRunId: clientRunIdOf(body) }),
+    async ({ appVersion, clientRunId }, { hash, now }) => {
+      const run = await repo.startRun(hash, appVersion, clientRunId, now);
+      return json(run);
+    },
+  );
 
   const finishRun = endpoint(
     (body) => ({
@@ -79,14 +84,23 @@ export function makeHandlers(deps: Deps) {
       name: optionalNameOf(body),
     }),
     async ({ runId, played, name }, { hash, now }) => {
-      // Un nombre inválido por reglas corta antes de tocar la partida.
-      const verdict = name === undefined ? undefined : await deps.moderate(name);
-      if (verdict?.status === "invalid") throw new HttpError(400, "invalid");
+      // 1) Las reglas puras: un nombre inválido corta antes de tocar la partida.
+      const checked = name === undefined ? undefined : validateName(name);
+      if (checked !== undefined && !checked.ok) throw new HttpError(400, "invalid");
 
+      // 2) El dueño y el sello (idempotente).
       const sealed = await repo.finishRun(hash, runId, played, now);
-      if (verdict === undefined) {
+      if (checked === undefined) {
         return json({ status: sealed.status, nameStatus: sealed.nameStatus, realSeconds: sealed.realSeconds });
       }
+
+      // 3) Lista y Haiku, sólo si hace falta: ni una partida en review ni un nombre ya aprobado
+      // pagan moderación (la review queda pending y la resuelve el cron).
+      const needsModeration = sealed.status !== "review" && sealed.nameStatus !== "ok";
+      const verdict: Moderation = needsModeration
+        ? await deps.moderate(checked.name)
+        : { status: "pending", name: checked.name };
+      if (verdict.status === "invalid") throw new HttpError(400, "invalid");
       const named = await repo.setRunName(hash, runId, verdict.name, verdict.status, now);
       return json({
         status: sealed.status,

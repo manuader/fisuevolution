@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assertEquals } from "@std/assert";
 import { matches } from "./blocklist.ts";
 
 const terms = ["boludo", "puto", "idiot"];

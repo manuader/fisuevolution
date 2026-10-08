@@ -100,6 +100,16 @@ struct EffectContractTests {
             case .packageRateMultiplier:
                 #expect(chip == String(localized: "bonus.chip.packages \(applied(3, as: .multiplier))"))
                 #expect(passive(boosted) == passive(plain))
+            case .autoTapPerSecond:
+                #expect(chip == String(localized: "bonus.chip.autotap \(ActiveBonusBuilder.autoTapRateText(magnitude))"))
+                #expect(passive(boosted) == passive(plain), "tocar solo no es el pasivo")
+                let target = try #require(AutoTapper.target(state: plain, tiers: content.tiers))
+                var probe = plain
+                let oneTap = economy.applyTap(type: target, state: &probe, tiers: content.tiers,
+                                              floorTable: content.floorTable, now: 0)
+                let paid = AutoTapper.advance(state: &boosted, delta: 1, now: 0, tiers: content.tiers,
+                                              floorTable: content.floorTable, economy: economy)
+                #expect(abs(paid - oneTap * magnitude) < 1e-9 * max(1, paid), "el chip dice \(magnitude) por segundo y eso cobra")
             }
         }
     }

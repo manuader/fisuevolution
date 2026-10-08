@@ -96,9 +96,17 @@ enum ActiveBonusBuilder {
                 EffectDescriptor.amount(forBoost: .incomeMultiplier, magnitude: modifier.magnitude)
             )
             return String(localized: "bonus.chip.packages \(value)")
+        case .autoTapPerSecond:
+            return String(localized: "bonus.chip.autotap \(Self.autoTapRateText(modifier.magnitude))")
         }
         return EffectFormatter.text(
             EffectDescriptor.amount(forBoost: boostEffect, magnitude: modifier.magnitude)
         )
+    }
+
+    /// "5" toques por segundo: sin decimales salvo que el dato los traiga. Lo usa
+    /// también `EffectContractTests` para leer el chip con la misma vara.
+    static func autoTapRateText(_ perSecond: Double) -> String {
+        perSecond.formatted(.number.precision(.fractionLength(0...1)))
     }
 }

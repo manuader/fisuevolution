@@ -21,6 +21,10 @@ public struct ActiveModifier: Codable, Sendable, Equatable, Identifiable {
         /// Multiplica el ritmo del Paquete de la Aduana (Lluvia ×10, Piquete ×0).
         /// Lo lee el `PackageScheduler` de E5; no toca los ingresos.
         case packageRateMultiplier
+        /// Toques automáticos por segundo (el auto-tap de la tienda de ORO). La
+        /// magnitud son toques, no un factor: dos auto-taps se SUMAN. Lo cobra
+        /// `AutoTapper` y no entra en ningún `factor` de ingresos.
+        case autoTapPerSecond
     }
 
     public let id: UUID
@@ -69,6 +73,13 @@ public enum ModifierMath {
             total + factor(buffs, effect: effect, now: segment.0) * (segment.1 - segment.0)
         }
         return area / (to - from)
+    }
+
+    /// Cuántos toques por segundo dan los auto-taps vivos: la suma de sus magnitudes.
+    public static func autoTapsPerSecond(_ modifiers: [ActiveModifier], now: TimeInterval) -> Double {
+        modifiers
+            .filter { $0.effect == .autoTapPerSecond && $0.isActive(at: now) }
+            .reduce(0) { $0 + $1.magnitude }
     }
 
     public static func spendingFrozenUntil(_ modifiers: [ActiveModifier], now: TimeInterval) -> TimeInterval? {

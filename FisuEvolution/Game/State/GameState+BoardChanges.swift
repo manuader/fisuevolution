@@ -131,6 +131,10 @@ extension GameState {
 
     func discardBoardChange(_ change: BoardChange) {
         Log.economy.info("board change dropped: \(change.origin.rawValue)")
+        switch change.origin {
+        case .rewardedInstantMerge, .rewardedRareUnit: compensateRewardedVideo()
+        case .eventStartup, .eventBlanqueo, .career, .debug: break
+        }
     }
 
     @discardableResult

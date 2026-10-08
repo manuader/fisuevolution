@@ -262,6 +262,7 @@ struct GiftsView: View {
     /// que el botón sigue tappable y el segundo toque no hace nada.
     private func watch(rewardId: String) {
         guard watchingRewardId == nil,
+              gameState.isRewardApplicable(rewardId),
               adsProvider.isRewardedReady(for: .gifts) else { return }
         watchingRewardId = rewardId
         Task {
@@ -861,6 +862,10 @@ private struct VideoCard: View {
                 .monospacedDigit()
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("ads.cooldown.\(row.id)")
+            } else if let reason = row.unavailableReason {
+                StateBadge(text: reason, systemImage: "nosign", muted: true)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("ads.unavailable.\(row.id)")
             } else if isWatching {
                 // Mientras corre el video la fila no ofrece nada: el botón se va
                 // y queda el spinner. Es lo que reemplaza al `.disabled`, que

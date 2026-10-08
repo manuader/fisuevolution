@@ -345,7 +345,7 @@ planes, y se corre de a uno lo que se pisa. **Las olas reales y la cola viven en
 | P3 | Splash sin logo, tips sin traducir, arte calado | E3 + E8 |
 | 20 | Notificaciones push prendidas por defecto y desactivables (2026-10-06) | E11 (+ E9 Ajustes y Tour, E5 ruleta) |
 | 21 | Ranking global de la llegada a Dios, con nombre moderado y backend propio (2026-10-08) | E12 (+ E9 reset, E3 menú, E10 App Privacy) |
-| 22 | Feedback de un jugador de la v1 (11 ajustes aprobados) + el botón de video que hay que tocar dos veces (2026-10-08) | E13 |
+| 22 | Feedback de un jugador de la v1 (11 ajustes aprobados) + el botón de video que hay que tocar dos veces + el viaje en ascensor (2026-10-08) | E13 |
 
 ```
 E0 Preparación
@@ -1347,10 +1347,41 @@ de `Docs/HANDOFF.md` §5.
 12. **Diamante = pack**: la tarjeta de cada pinta de Diamante en `CustomizationView` dice "Pack de
     las 43" bajo el precio. La venta suelta no se hace (decisión cerrada, HANDOFF §5.7).
 
+13. **El viaje en ascensor** (pedido del dueño, 2026-10-08; reemplaza el "vuelo" de los botones de
+    la botonera de E3a T8). Tiene que verse high-end, suave e integrado a los materiales v3 (metal
+    del ascensor, FisuJobs como referencia).
+    - **Botonera desplegable**: mantener apretado el display LED de `ElevatorPanel` despliega hacia
+      abajo una placa de metal con remaches de **una sola columna**, con un botón redondo por
+      **piso desbloqueado** (los bloqueados no aparecen). La placa crece con los pisos que tengas y
+      se recoge tocando afuera o al elegir. El toque corto y el scroll siguen como en E3a.
+    - **Cuándo hay viaje**: al elegir un piso en la botonera desplegable **o** al tocar un botón de
+      la columna de E3a. **Al scrollear entre pisos, nunca**: ahí sigue el desplazamiento de hoy.
+    - **El viaje, desde adentro de la cabina** (≤ 3 s aunque vayas del 1 al 10; los pisos del medio
+      pasan más rápido):
+      1. se cierran las puertas de metal: clip de Higgsfield con el hueco de las puertas en verde
+         croma, así el código compone detrás el fondo del piso de salida;
+      2. por la ventana de vidrio de las puertas pasan, de abajo hacia arriba (o al revés si
+         bajás), los fondos reales de cada piso con una franja de número y nombre
+         (`TowerNaming.floorName`). Lo hace el código (SpriteKit o SwiftUI con el atlas de
+         fondos). El LED cuenta los pisos con los dígitos que ruedan y la cabina vibra apenas;
+      3. "ding", se abren las puertas (el mismo clip, al revés, o uno propio si se ve mejor) con
+         el fondo del piso de destino detrás, y la cámara ya está en el piso.
+    - **Saltear**: tocar la pantalla lleva directo a la llegada.
+    - **Sonido**: el clic de cada botón, el golpe de las puertas al cerrar y abrir, el zumbido del
+      motor durante el viaje, un roce de cables y el "ding" de llegada (`sfx_elevator_*`).
+    - **Una sola cabina** para todos los viajes. Clips en `Resources/Cinematics/` con el pipeline
+      de video (`scripts/video_assets.py`, color de key medido en cada master).
+    - **Reduce Motion**: puertas y fondos en fundido, sin vibración.
+    - **Tutorial**: una lección corta, "Mantené apretado el ascensor para elegir piso", al
+      desbloquear el piso 3 (registrada en `TutorialCoverageTests`).
+    - **AX**: `hud.elevator.keypad`, `hud.elevator.keypad.floor.<id>` y `elevator.ride.skip`. Bajo
+      `--uitest*` el viaje dura 0 s salvo que el test lo pida.
+    - Tests: la placa crece con los pisos desbloqueados; scroll sin viaje; botón con viaje;
+      saltear; el destino queda visible al terminar; Reduce Motion.
 - **Textos** nuevos en es + en; las lecciones que cambian (Personajes, mejoras) se registran en
   `TutorialCoverageTests` (E9).
 - **Orden**: el ítem 1 va primero y solo, apenas haya cupo. Los ítems 2, 3, 6 y 7 tocan la economía:
-  van antes de E2b, que los mide. El resto (4, 5, 8–12) es UI chica, en paralelo, respetando los
+  van antes de E2b, que los mide. El resto (4, 5, 8–13) es UI chica, en paralelo (el 13 es el más grande: va con su propio plan de tareas), respetando los
   archivos calientes de `tasks.md` §3.1. El plan por tareas lo hace un planificador.
 
 ### Anexo A — Guiones de visitantes y frases de eventos (propuesta para aprobar)

@@ -3393,19 +3393,36 @@
         }
       }
     },
-    "event.startup_comprada.flavor" : {
-      "extractionState" : "stale",
+    "event.startup_comprada.cash" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A big tech just acquired you! Hoodie on: your top unit evolves for free."
+            "value" : "A big tech just acquired you! Nobody to promote, so they paid you in cash."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Te compró una big tech! Ponete el hoodie: tu unidad top evoluciona gratis."
+            "value" : "¡Te compró una big tech! Nadie para ascender, así que te pagaron en efectivo."
+          }
+        }
+      }
+    },
+    "event.startup_comprada.flavor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A big tech just acquired you! Hoodie on: one of your workers evolves for free."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Te compró una big tech! Ponete el hoodie: uno de tus empleados evoluciona gratis."
           }
         }
       }

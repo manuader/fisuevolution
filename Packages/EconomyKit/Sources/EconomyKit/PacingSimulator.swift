@@ -208,6 +208,7 @@ public struct PacingSimulator: Sendable {
     let tiers: TierRepository
     let floorTable: FloorTable
     let economy: StandardEconomy
+    let cushion: PriceCushion
     let human: HumanModel
     /// Payback máximo aceptado para compras de eficiencia (passive/charUpgrade).
     let maxPaybackSeconds: Double
@@ -228,6 +229,7 @@ public struct PacingSimulator: Sendable {
         self.tiers = tiers
         self.floorTable = try FloorTable(floors: config.floors, maxTier: tiers.maxTier)
         self.economy = StandardEconomy(config: config)
+        self.cushion = config.priceCushion
         self.human = human
         self.maxPaybackSeconds = maxPaybackSeconds
         self.careerPath = careerPath
@@ -597,9 +599,10 @@ public struct PacingSimulator: Sendable {
 
         let floorId = floor.id
         let typeId = type.id
+        let cushion = self.cushion
         let action = Action(cost: cost) { s in
             s.run.coins -= cost
-            s.run.registerHire(floorId: floorId, typeId: typeId)
+            s.run.registerHire(floorId: floorId, typeId: typeId, cushion: cushion)
             s.run.units[typeId, default: 0] += 1
         }
         // Cuántas de éstas hacen falta para una unidad de tu frontera: `2^d`.
@@ -665,7 +668,7 @@ public struct PacingSimulator: Sendable {
                     counts: config.hire.mergeRefundCounts
                 )
                 state.run.units[newTypeId, default: 0] += 1
-                if state.run.raiseFrontier(to: newType.tier) {
+                if state.run.raiseFrontier(to: newType.tier, cushion: cushion) {
                     // El reloj de la pared es ACTIVO y relativo al inicio de la
                     // run: reencarnar reinicia la cuenta, que es lo que permite
                     // comparar "volver a la pared" contra "llegar la primera vez".

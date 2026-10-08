@@ -112,6 +112,15 @@ struct PacingSimulatorKnobTests {
         let tuned = try PacingSimulator(config: upConfig().tuned(EconomyKnobs(mergeRefundCounts: 1)), tiers: upTiers()).run(maxDays: 5)
         #expect(fingerprint(tuned) != fingerprint(base))
     }
+
+    @Test("con el amortiguador en cero el bot juega igual; prendido, el simulador lo lee")
+    func theSimulatorReadsTheCushion() throws {
+        let base = try upSimulator().run(maxDays: 5)
+        let zero = try PacingSimulator(config: upConfig().tuned(EconomyKnobs(priceReliefPurchases: 0)), tiers: upTiers()).run(maxDays: 5)
+        let on = try PacingSimulator(config: upConfig().tuned(EconomyKnobs(priceReliefPurchases: 24)), tiers: upTiers()).run(maxDays: 5)
+        #expect(fingerprint(zero) == fingerprint(base))
+        #expect(fingerprint(on) != fingerprint(base))
+    }
 }
 
 /// El bot compra las siete mejoras permanentes con ORO. Sin esto todo

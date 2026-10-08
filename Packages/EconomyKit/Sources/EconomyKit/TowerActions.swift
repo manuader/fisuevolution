@@ -79,9 +79,12 @@ public enum TowerActions {
         // `floor.firstTier` y no `type.tier`: son el mismo número —`baseHireType`
         // filtra por `tier == floor.firstTier`— pero acá lo que se cotiza es "el
         // tier base de este piso", que es el contrato de esta función.
-        let base = config.hireCost(
-            floor: floor, tier: floor.firstTier,
-            frontierTier: state.run.maxTierReached, purchases: purchases
+        let base = config.priceCushion.price(
+            v1: config.hireCost(
+                floor: floor, tier: floor.firstTier,
+                frontierTier: state.run.maxTierReached, purchases: purchases
+            ),
+            relief: state.run.priceRelief
         )
         let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
@@ -129,9 +132,12 @@ public enum TowerActions {
         let ordinal = floorTable.ordinal(forTier: type.tier)
         let floor = floorTable[ordinal]
         let purchases = state.run.hireCountsByType[typeId] ?? 0
-        let base = config.hireCost(
-            floor: floor, tier: type.tier,
-            frontierTier: state.run.maxTierReached, purchases: purchases
+        let base = config.priceCushion.price(
+            v1: config.hireCost(
+                floor: floor, tier: type.tier,
+                frontierTier: state.run.maxTierReached, purchases: purchases
+            ),
+            relief: state.run.priceRelief
         )
         let modifier = ModifierMath.factor(state.run.activeModifiers, effect: .spawnCostMultiplier, now: now)
         let discount = max(0, 1 - state.meta.derivedEffects.spawnDiscount)
@@ -321,13 +327,65 @@ public enum TowerActions {
         // Una contratación que no costó nada (`countsAsPurchase: false`) no es una
         // compra: encarecería la curva sin haber pagado, pero sí es una contratación.
         if countsAsPurchase {
-            state.run.registerHire(floorId: floor.id, typeId: quote.type.id)
+            state.run.registerHire(floorId: floor.id, typeId: quote.type.id, cushion: config.priceCushion)
         }
         state.meta.stats.totalHiresEver += 1
         state.run.units[quote.type.id, default: 0] += 1
         state.run.markSeen(quote.type.id)
         tower.floors[quote.floorOrdinal].slots[slot] = quote.type.id
         return TowerPlacement(floorOrdinal: quote.floorOrdinal, slot: slot, typeId: quote.type.id)
+    }
+
+    /// Cuánto sube el precio de este tipo con la próxima compra que cuenta
+    /// ("+6 % por compra", PLAN-v2 E2a): `quote(n+1)/quote(n) − 1`, con la curva,
+    /// el amortiguador y todo lo demás adentro, porque se calcula haciendo la
+    /// compra sobre una copia. `nil` si no cotiza o es gratis.
+    public static func nextHireStep(
+        typeId: String,
+        state: PlayerState,
+        config: EconomyConfig,
+        floorTable: FloorTable,
+        tiers: TierRepository,
+        costMultiplier: Double = 1.0,
+        now: TimeInterval = 0
+    ) -> Double? {
+        guard let quote = hireQuote(typeId: typeId, state: state, config: config, floorTable: floorTable,
+                                    tiers: tiers, costMultiplier: costMultiplier, now: now),
+              quote.cost > 0
+        else { return nil }
+        var after = state
+        after.run.registerHire(floorId: floorTable[quote.floorOrdinal].id, typeId: typeId, cushion: config.priceCushion)
+        guard let next = hireQuote(typeId: typeId, state: after, config: config, floorTable: floorTable,
+                                   tiers: tiers, costMultiplier: costMultiplier, now: now)
+        else { return nil }
+        return next.cost / quote.cost - 1
+    }
+
+    /// Cuánto baja el precio de este tipo si fusionás un par ("fusionar lo
+    /// abarata X %"): el reintegro aplicado sobre una copia. `nil` sin reintegro,
+    /// si el tipo no se fusiona o si no hay compras que devolver.
+    public static func mergeRelief(
+        typeId: String,
+        state: PlayerState,
+        config: EconomyConfig,
+        floorTable: FloorTable,
+        tiers: TierRepository,
+        costMultiplier: Double = 1.0,
+        now: TimeInterval = 0
+    ) -> Double? {
+        let refund = config.hire.mergeRefundCounts
+        guard refund > 0, let type = tiers.type(id: typeId), type.mergesInto != nil,
+              let quote = hireQuote(typeId: typeId, state: state, config: config, floorTable: floorTable,
+                                    tiers: tiers, costMultiplier: costMultiplier, now: now),
+              quote.cost > 0
+        else { return nil }
+        var after = state
+        after.run.refundMergeCounts(typeId: typeId, floorId: floorTable[quote.floorOrdinal].id, counts: refund)
+        guard let relieved = hireQuote(typeId: typeId, state: after, config: config, floorTable: floorTable,
+                                       tiers: tiers, costMultiplier: costMultiplier, now: now)
+        else { return nil }
+        let relief = 1 - relieved.cost / quote.cost
+        return relief > 0 ? relief : nil
     }
 
     // MARK: Move (reacomodar dentro del piso)

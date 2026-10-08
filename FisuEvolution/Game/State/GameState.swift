@@ -95,6 +95,15 @@ final class GameState {
     /// ella y no contra esto, que se refresca a 8 Hz y llega tarde a las dos
     /// llamadas seguidas de `debugOpenChest()`.
     var hasPendingChests = false
+    /// Las pestañas de la barra que el jugador ya tiene (PLAN-v2 E3). Las escribe
+    /// `+Tabs` desde `refreshProjections`, sólo si cambiaron.
+    var unlockedTabs: Set<GameScreen> = [.jobs, .upgrades]
+    /// Las que se abrieron en esta instalación y todavía no se miraron: llevan
+    /// "¡Nuevo!". Las escribe `+Tabs`.
+    var newTabs: Set<GameScreen> = []
+    /// Con `false` la barra está entera (corridas de UI sin
+    /// `--uitest-progressive-tabs`). Lo apaga `+Debug`.
+    @ObservationIgnored var progressiveTabsEnabled = true
     /// Invalida la ficha cuando llega un entitlement, milestone o equipamiento.
     /// Lo escriben `+Store` (entitlements y equipar) y `+Debug`.
     var skinSelectionVersion = 0

@@ -22,6 +22,8 @@ struct GameContent: Sendable {
     let viral: ViralConfig
     let gameCenter: GameCenterConfig
     let achievements: AchievementsConfig
+    /// Qué abre cada pestaña de la barra (PLAN-v2 E3).
+    let tabs: TabsConfig
     /// Las notificaciones locales: el catálogo y sus reglas (PLAN-v2 E11).
     let notifications: NotificationsConfig
 }
@@ -49,6 +51,7 @@ enum GameContentLoader {
         let gameCenter: GameCenterConfig = try decode("gamecenter", from: bundle)
         let achievements: AchievementsConfig = try decode("achievements", from: bundle)
         let notifications: NotificationsConfig = try decode("notifications", from: bundle)
+        let tabs: TabsConfig = try decode("tabs", from: bundle)
 
         let tiers: TierRepository
         do {
@@ -90,6 +93,7 @@ enum GameContentLoader {
         }
         try validate(careers: careers, tiers: tiers, boosts: boosts, skins: skins)
         try validate(achievements: achievements, floorTable: floorTable, boosts: boosts)
+        try tabs.validate()
         do {
             try notifications.validate()
         } catch {
@@ -115,6 +119,7 @@ enum GameContentLoader {
             viral: viral,
             gameCenter: gameCenter,
             achievements: achievements,
+            tabs: tabs,
             notifications: notifications
         )
     }

@@ -42,6 +42,7 @@ extension GameState {
             // test que dispara la lección de Mejoras se la dejaría "dada" al
             // siguiente.
             wipeTutorialLessonProgress()
+            defaults.removeObject(forKey: Self.newTabsKey)
         }
         // `--uitest-open-sheet` presenta una hoja modal: el tutorial no puede
         // estar adelante, así que implica saltearlo.
@@ -58,6 +59,13 @@ extension GameState {
         if arguments.contains(where: { $0.hasPrefix("--uitest") }),
            !arguments.contains("--uitest-lessons") {
             tutorialLessonsAutorun = false
+        }
+        // La barra progresiva es nueva de la 2.0: bajo `--uitest*` arranca
+        // entera salvo que el test la pida, porque los tests de la v1 tocan las
+        // seis pestañas (`testCadaTabAbreSuPantallaYSeCierra`, sin cambios).
+        if arguments.contains(where: { $0.hasPrefix("--uitest") }),
+           !arguments.contains("--uitest-progressive-tabs") {
+            progressiveTabsEnabled = false
         }
     }
 

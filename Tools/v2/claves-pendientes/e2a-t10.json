@@ -1,0 +1,4 @@
+{
+  "jobs.step %@": {"es": "%@ por compra", "en": "%@ per hire"},
+  "jobs.merge_relief %@": {"es": "fusionar lo abarata %@", "en": "merging cuts it %@"}
+}

@@ -56,6 +56,13 @@ struct JobRow: Identifiable, Equatable {
     let purchases: Int
     /// "" cuando el tipo nunca se vio: una fila "???" no es una oferta.
     let costText: String
+    /// Cuánto sube la próxima compra (0,06 = "+6 %"), con la curva, el
+    /// amortiguador y todo lo demás adentro. `nil` en una fila "???".
+    let priceStep: Double?
+    /// Cuánto la abarata fusionar un par, con reintegro. `nil` sin reintegro.
+    let mergeRelief: Double?
+    /// "+6 % por compra · fusionar lo abarata 11 %", ya resuelto.
+    let priceTrendText: String?
     let affordable: Bool
     let state: State
     let tier: Int
@@ -118,6 +125,7 @@ extension GameState {
             let floor = content.floorTable[quote.floorOrdinal]
             let state = jobState(for: type, ordinal: quote.floorOrdinal, player: player, content: content)
             let unseen = state == .unseen
+            let trend = unseen ? (step: nil, relief: nil) : priceTrend(player: player, typeId: type.id)
             return JobRow(
                 id: type.id,
                 displayName: unseen ? "???" : type.localizedName,
@@ -129,6 +137,9 @@ extension GameState {
                 // tarjeta diga "3 contratados" con la curva en otro exponente.
                 purchases: Int(quote.purchases.rounded(.down)),
                 costText: unseen ? "" : CoinFormatter.cost(from: quote.cost),
+                priceStep: trend.step,
+                mergeRelief: trend.relief,
+                priceTrendText: Self.priceTrendText(step: trend.step, relief: trend.relief),
                 affordable: !unseen && !quote.blockedBySpendingFreeze && coins >= quote.cost,
                 state: state,
                 tier: type.tier,
@@ -322,6 +333,32 @@ extension GameState {
             costMultiplier: 1 - prestigeDiscount,
             now: Date().timeIntervalSince1970
         )
+    }
+
+    /// El paso y el reintegro con los MISMOS argumentos que `currentQuote`: si
+    /// cotizaran distinto, la tarjeta diría un número y la compra cobraría otro.
+    func priceTrend(player: PlayerState, typeId: String) -> (step: Double?, relief: Double?) {
+        guard let content else { return (nil, nil) }
+        let costMultiplier = 1 - content.prestigeUnlocks.cumulativeSpawnDiscount(atPrestigeLevel: player.meta.prestigeLevel)
+        let now = Date().timeIntervalSince1970
+        let step = TowerActions.nextHireStep(
+            typeId: typeId, state: player, config: content.economy, floorTable: content.floorTable,
+            tiers: content.tiers, costMultiplier: costMultiplier, now: now
+        )
+        let relief = TowerActions.mergeRelief(
+            typeId: typeId, state: player, config: content.economy, floorTable: content.floorTable,
+            tiers: content.tiers, costMultiplier: costMultiplier, now: now
+        )
+        return (step, relief)
+    }
+
+    /// ⚠️ Los porcentajes van como `String` (trampa 5).
+    static func priceTrendText(step: Double?, relief: Double?) -> String? {
+        guard let step else { return nil }
+        let percent: (Double) -> String = { $0.formatted(.percent.precision(.fractionLength(0))) }
+        let stepText = String(localized: "jobs.step \("+" + percent(step))")
+        guard let relief else { return stepText }
+        return stepText + " · " + String(localized: "jobs.merge_relief \(percent(relief))")
     }
 
     /// Qué se puede hacer con este tipo, en orden de prioridad.

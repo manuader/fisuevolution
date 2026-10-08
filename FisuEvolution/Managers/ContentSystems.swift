@@ -16,6 +16,7 @@ enum UpgradeManager {
         case maxLevelReached
         case insufficientCoins
         case insufficientOro
+        case spendingFrozen
     }
 
     static func purchase(
@@ -25,7 +26,8 @@ enum UpgradeManager {
         specials: SpecialsConfig,
         viral: ViralConfig,
         boosts: BoostsConfig,
-        economy: StandardEconomy
+        economy: StandardEconomy,
+        now: TimeInterval
     ) throws {
         guard let line = config.upgrades.first(where: { $0.id == lineId }) else {
             throw PurchaseError.unknownLine
@@ -35,6 +37,9 @@ enum UpgradeManager {
         let price = cost(of: line, level: level)
         switch line.currency {
         case .coins:
+            guard ModifierMath.spendingFrozenUntil(state.run.activeModifiers, now: now) == nil else {
+                throw PurchaseError.spendingFrozen
+            }
             guard state.run.coins >= price else { throw PurchaseError.insufficientCoins }
             state.run.coins -= price
         case .oro:

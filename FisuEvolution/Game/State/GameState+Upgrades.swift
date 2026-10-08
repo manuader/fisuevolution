@@ -238,7 +238,8 @@ extension GameState {
                 specials: content.specials,
                 viral: content.viral,
                 boosts: content.boosts,
-                economy: economy
+                economy: economy,
+                now: Date().timeIntervalSince1970
             )
             self.player = player
             haptics?.play(.purchase)

@@ -439,6 +439,9 @@ struct GameLoopWiringTests {
 
         gameState.chooseCareer(optionId: "junior_programmer")
         #expect(gameState.careerPrompt == nil)
+        // El merge de la carrera espera su turno en el embudo.
+        #expect(gameState.player?.run.units["administrativo"] == 2)
+        gameState.settleAllPendingBoardChanges()
         #expect(gameState.player?.run.chosenCareerPath == "programmer")
         #expect(gameState.player?.run.units["junior_programmer"] == 1)
         #expect(gameState.player?.run.maxTierReached == 11)
@@ -459,6 +462,7 @@ struct GameLoopWiringTests {
         let admins = slots(of: "administrativo", in: gameState)
         _ = gameState.handleDrop(fromCell: admins[0], toCell: admins[1])
         gameState.chooseCareer(optionId: "junior_programmer")
+        gameState.settleAllPendingBoardChanges()
         #expect(gameState.player?.run.maxTierReached == 11)
 
         // Con la carrera elegida, debugGrantPair coloca la rama correcta.
@@ -499,6 +503,7 @@ struct GameLoopWiringTests {
         let admins = slots(of: "administrativo", in: gameState)
         _ = gameState.handleDrop(fromCell: admins[0], toCell: admins[1])
         gameState.chooseCareer(optionId: "junior_programmer")
+        gameState.settleAllPendingBoardChanges()
         gameState.debugSetMaxTier(12)
         gameState.debugGrantPair() // dos seniors que intentarán ascender
 

@@ -50,9 +50,14 @@ extension GameState {
             self.player = player
             refreshProjections()
         case .instantMerge:
-            performInstantMerge()
+            if let tower {
+                BoardChangePlanner.planAutoMerge(
+                    state: player, tower: tower, tiers: content.tiers,
+                    floorTable: content.floorTable, origin: .rewardedInstantMerge
+                ).map(enqueueBoardChange)
+            }
         case .rareUnit:
-            grantRareUnit()
+            rareUnitChange().map(enqueueBoardChange)
         case .skinChest:
             awardChest(minRarity: nil)
         }
@@ -63,67 +68,18 @@ extension GameState {
         Log.economy.info("rewarded effect applied: \(reward.id)")
     }
 
-    /// Merge gratis del par más alto disponible (saltea pares que pidan carrera).
-    private func performInstantMerge() {
-        guard var player, var tower, let content else { return }
-        // Buscar el par de mayor tier en TODA la torre.
-        let candidates: [(floorOrdinal: Int, slots: [Int], typeId: String, tier: Int)] = tower.floors.indices.flatMap { ordinal in
-            var slotsByType: [String: [Int]] = [:]
-            for placement in tower.placements(onFloor: ordinal) {
-                slotsByType[placement.typeId, default: []].append(placement.slot)
-            }
-            return slotsByType.compactMap { typeId, slots -> (floorOrdinal: Int, slots: [Int], typeId: String, tier: Int)? in
-                guard slots.count >= 2, let type = content.tiers.type(id: typeId) else { return nil }
-                return (floorOrdinal: ordinal, slots: slots, typeId: typeId, tier: type.tier)
-            }
-        }.sorted { $0.tier > $1.tier }
-
-        for candidate in candidates {
-            guard case .merged(let newTypeId) = MergeRules.evaluate(
-                sourceTypeId: candidate.typeId,
-                targetTypeId: candidate.typeId,
-                chosenCareerPath: player.run.chosenCareerPath,
-                tiers: content.tiers
-            ) else { continue }
-            do {
-                _ = try TowerActions.applyMerge(
-                    floorOrdinal: candidate.floorOrdinal,
-                    sourceSlot: candidate.slots[0],
-                    targetSlot: candidate.slots[1],
-                    newTypeId: newTypeId,
-                    state: &player,
-                    tower: &tower,
-                    tiers: content.tiers,
-                    floorTable: content.floorTable
-                )
-                self.player = player
-                self.tower = tower
-                updateMaxFloorStat()
-                bumpBoard()
-                scheduleSave()
-                return
-            } catch {
-                continue  // piso destino lleno: probar el siguiente par
-            }
-        }
-    }
-
-    /// F4: "spawn rare" — dropea una unidad del tier máximo en su piso.
-    private func grantRareUnit() {
-        guard var player, var tower, let content else { return }
+    /// El "Personaje de regalo": una unidad del tier máximo (respetando la carrera)
+    /// que llega por el embudo. La usa también la fila del video (T14).
+    func rareUnitChange() -> BoardChange? {
+        guard let content, let player, let tower else { return nil }
         let tier = player.run.maxTierReached
         guard let type = content.tiers.concreteTypes.first(where: { candidate in
             candidate.tier == tier && (player.run.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
-        }) ?? content.tiers.concreteTypes.first(where: { $0.tier == tier }) else { return }
-        let ordinal = content.floorTable.ordinal(forTier: type.tier)
-        guard let slot = tower.floors[ordinal].firstFreeSlot() else { return }
-        tower.floors[ordinal].slots[slot] = type.id
-        player.run.units[type.id, default: 0] += 1
-        player.run.markSeen(type.id)
-        self.player = player
-        self.tower = tower
-        bumpBoard()
-        scheduleSave()
+        }) ?? content.tiers.concreteTypes.first(where: { $0.tier == tier }) else { return nil }
+        return BoardChangePlanner.planArrival(
+            typeId: type.id, state: player, tower: tower, tiers: content.tiers,
+            floorTable: content.floorTable, origin: .rewardedRareUnit
+        )
     }
 
     // MARK: Boosts (F5 — bible §1)
@@ -252,13 +208,23 @@ extension GameState {
         }
         scheduleNextEvent(from: now)
         self.player = player
-        // Si el evento regaló una unidad, colocarla en su piso (si hay lugar).
-        if let grantedTypeId = roll.grantedUnitTypeId {
-            placeGrantedUnit(typeId: grantedTypeId)
-        }
-        // instantEvolution mutó run.units directamente: re-sincronizar la torre.
-        if roll.unitsChanged {
-            resyncTower()
+        handleEventRoll(roll, now: now)
+    }
+
+    func handleEventRoll(_ roll: EventManager.Roll, now: TimeInterval) {
+        guard let content, let player, let tower else { return }
+        switch roll.boardIntent {
+        case .evolveBestUnit:
+            BoardChangePlanner.planEvolve(
+                state: player, tower: tower, tiers: content.tiers, floorTable: content.floorTable, origin: .eventStartup
+            ).map(enqueueBoardChange)
+        case .grantUnit(let typeId):
+            BoardChangePlanner.planArrival(
+                typeId: typeId, state: player, tower: tower, tiers: content.tiers,
+                floorTable: content.floorTable, origin: .eventBlanqueo
+            ).map(enqueueBoardChange)
+        case nil:
+            break
         }
         eventLastFired[roll.event.id] = now
         activeEvent = roll.active
@@ -266,25 +232,6 @@ extension GameState {
         bumpBoard()
         scheduleSave()
         Log.economy.info("event fired: \(roll.event.id)")
-    }
-
-    /// Coloca una unidad regalada (evento) en el piso de su tier; si el piso está
-    /// lleno, el regalo se pierde con log (sin bloquear el evento).
-    private func placeGrantedUnit(typeId: String) {
-        guard var player, var tower, let content,
-              let type = content.tiers.type(id: typeId) else { return }
-        let ordinal = content.floorTable.ordinal(forTier: type.tier)
-        guard let slot = tower.floors[ordinal].firstFreeSlot() else {
-            Log.economy.info("granted unit skipped (floor full): \(typeId)")
-            return
-        }
-        tower.floors[ordinal].slots[slot] = typeId
-        player.run.units[typeId, default: 0] += 1
-        player.run.markSeen(typeId)
-        player.run.raiseFrontier(to: type.tier)
-        self.player = player
-        self.tower = tower
-        updateMaxFloorStat()
     }
 
     // MARK: Daily + shares (F5)

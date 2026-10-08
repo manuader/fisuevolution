@@ -15,7 +15,8 @@ extension GameState {
     struct CareerPrompt: Identifiable, Equatable {
         let id = UUID()
         let options: [CharacterType]
-        /// Slots del PISO VISIBLE (el merge diferido ocurre donde se arrastró).
+        let floorOrdinal: Int
+        /// Slots de ese piso (el merge diferido ocurre donde se arrastró).
         let sourceCell: Int
         let targetCell: Int
     }

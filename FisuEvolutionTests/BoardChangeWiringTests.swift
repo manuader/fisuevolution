@@ -141,6 +141,43 @@ struct BoardChangeWiringTests {
         #expect(gameState.player?.run.totalUnits == units - 2)
     }
 
+    @Test("al pasar a inactivo se asienta lo ya pagado (un video) y el resto espera a background")
+    func inactiveSettlesOnlyWhatWasPaidFor() async throws {
+        let gameState = try await gameWithPlannedMerge()
+        gameState.debugGrantPair()
+        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
+        #expect(gameState.pendingBoardChanges.map(\.origin) == [.debug, .rewardedInstantMerge])
+        let units = try #require(gameState.player?.run.totalUnits)
+        gameState.handleScenePhase(from: .active, to: .inactive)
+        await gameState.sealTask?.value
+        #expect(gameState.pendingBoardChanges.map(\.origin) == [.debug])
+        #expect(gameState.player?.run.totalUnits == units - 1)
+        gameState.handleScenePhase(from: .inactive, to: .background)
+        await gameState.sealTask?.value
+        #expect(gameState.pendingBoardChanges.isEmpty)
+        #expect(gameState.player?.run.totalUnits == units - 2)
+    }
+
+    @Test("en vuelo: un video pagado se asienta al pasar a inactivo, un evento sigue en vuelo")
+    func inactiveSettlesAPaidInFlightChange() async throws {
+        let gameState = await makeGameState()
+        gameState.debugGrantPair()
+        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
+        _ = try #require(gameState.beginNextBoardChange())
+        #expect(gameState.inFlightBoardChange?.origin == .rewardedInstantMerge)
+        let units = try #require(gameState.player?.run.totalUnits)
+        gameState.handleScenePhase(from: .active, to: .inactive)
+        await gameState.sealTask?.value
+        #expect(gameState.inFlightBoardChange == nil)
+        #expect(gameState.player?.run.totalUnits == units - 1)
+
+        let eventState = try await gameWithPlannedMerge()
+        _ = try #require(eventState.beginNextBoardChange())
+        eventState.handleScenePhase(from: .active, to: .inactive)
+        await eventState.sealTask?.value
+        #expect(eventState.inFlightBoardChange?.origin == .debug)
+    }
+
     @Test("reencarnar asienta lo pendiente de la run que se va")
     func prestigeSettlesThePendingChanges() async throws {
         let gameState = try await gameWithPlannedMerge()

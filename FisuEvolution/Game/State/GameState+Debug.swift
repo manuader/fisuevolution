@@ -275,6 +275,7 @@ extension GameState {
         let slots = visiblePlacements.map(\.slot).sorted()
         careerPrompt = CareerPrompt(
             options: types,
+            floorOrdinal: visibleFloorOrdinal,
             sourceCell: slots.first ?? 0,
             targetCell: slots.dropFirst().first ?? 1
         )

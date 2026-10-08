@@ -30,23 +30,7 @@ extension GameState {
         updateMaxFloorStat()
     }
 
-    /// Re-sincroniza la torre desde `run.units` SIN mover el piso visible
-    /// (para mutaciones fuera de TowerActions, ej. instantEvolution).
-    /// La llama `+Bonus`, que es donde vive el evento que muta `run.units`.
-    func resyncTower() {
-        guard let content, var player else { return }
-        let outcome = TowerReconciler.reconcile(
-            run: &player.run,
-            floorTable: content.floorTable,
-            tiers: content.tiers
-        )
-        self.player = player
-        self.tower = outcome.tower
-        updateMaxFloorStat()
-    }
-
-    /// La llaman `+Actions` (merge y carrera) y `+Bonus` (merge instantáneo y
-    /// la unidad regalada por un evento).
+    /// La llaman `+Actions` (merge) y `+BoardChanges`.
     func updateMaxFloorStat() {
         guard let content, var player else { return }
         let maxUnlocked = content.floorTable.floors.enumerated()

@@ -28,6 +28,16 @@ struct HUDView: View {
     /// el bezel. Medido en un SE 3 antes del piso: los botones a 5 pt del borde.
     private static let minimumTopGap: CGFloat = 14
 
+    /// Margen de la botonera contra el borde derecho. En DEBUG la llave del
+    /// panel de debug (`GameBoardView.debugButton`) flota justo en ese rincón: la
+    /// botonera se corre a su izquierda para que no la tape ni la tape ella.
+    private static var elevatorTrailingInset: CGFloat {
+        #if DEBUG
+        if !GameBoardView.isScreenshotMode { return Tokens.s12 + 52 }
+        #endif
+        return Tokens.s12
+    }
+
     /// Cuánto baja la fila principal desde el borde de la safe area.
     ///
     /// El diseño la quiere pegada arriba (de ahí el 2), pero nunca más cerca de
@@ -47,6 +57,15 @@ struct HUDView: View {
                 .playColumn()
                 .background { topPanel }
             prestigeIndicator
+                .frame(maxWidth: .infinity, minHeight: ElevatorPanel.displayHeight, alignment: .top)
+                .overlay(alignment: .topTrailing) {
+                    // Contra el borde derecho, debajo del ícono del ascensor
+                    // (`hud.map`, que sigue abriendo el mapa). La fila reserva el
+                    // alto del display; la persiana desplegada flota por encima
+                    // del tablero mientras dura.
+                    ElevatorPanel()
+                        .padding(.trailing, Self.elevatorTrailingInset)
+                }
         }
         .background(ScreenInsetsReader().accessibilityHidden(true))
         // El panel del `panelSheet` ES la hoja: flota sobre el juego atenuado

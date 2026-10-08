@@ -22,7 +22,9 @@ struct MenuView: View {
     /// que trae al jugador desde el tab Menú).
     @Environment(GameState.self) private var gameState
     @Environment(\.menuPager) private var pager
-    @State private var path: [Destination] = []
+    /// `NavigationPath` y no `[Destination]`: la pila también empuja los legales
+    /// (`LegalDocument.Kind`), y un arreglo tipado no admite otro tipo de valor.
+    @State private var path = NavigationPath()
 
     /// Margen lateral del contenido de las CUATRO pantallas del menú. Desde el
     /// rediseño v3 el marco es `WoodPanelBackground` —geometría propia, no un

@@ -579,6 +579,17 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 
 Fase A (T1–T4) tras E2a T15, EK puro ∥ E4–E7; fase B en paralelo con E9 y antes de su cierre (decide el punto 4 de "Inconsistencias"). Reemplaza el rojo declarado `theOwnersTargetsAreMet` (T14). Dudas top del plan: contrato 6 (≥ 65 %) choca con HANDOFF §5.2 (se mide en T3/T12; si no llega, al dueño); `.free` incluye paquete y diario base; los visitantes rompen el 12 % de E2a (T10 baja `coinsSecondsScale`); logros 33 → 66 ORO con las líneas a 348.
 
+### E12 — Ranking de la llegada a Dios (spec `2026-10-08-v2-e12-ranking-design.md`; plan por tareas pendiente)
+
+Épica nueva del dueño (2026-10-08, llegó por la sesión "Fisu Evolution v2 roadmap", commit de docs
+`7671880` → `92dbc45`). Depende de E9b T8 (reset), E3 (menú deslizable) y E1 (save v6); termina
+antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos, notas a App Review).
+`NameRules`, el backend y el cliente van en paralelo con el resto.
+
+| ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
+|---|---|---|---|---|---|---|
+| P-E12 | Plan de E12 por tareas | 🔄 | — | — | | planificador opus (relevo 12); las filas E12-T<n> salen de ahí |
+
 ### E10 — Release 2.0
 
 | Pieza | Estado | Qué falta |
@@ -616,6 +627,9 @@ Fase A (T1–T4) tras E2a T15, EK puro ∥ E4–E7; fase B en paralelo con E9 y 
 
 | Gate | Qué hace el dueño | Bloquea | Estado |
 |---|---|---|---|
+| Supabase para E12 | crear el proyecto de Supabase y pasar URL + clave anónima; cargar `ANTHROPIC_API_KEY` como secreto de Supabase | E12 (backend y cliente real; mientras tanto, cliente simulado) | 🔒 abierto |
+| Lista de palabras de E12 | aprobar la lista inicial de palabras bloqueadas | E12 (moderación en `finish-run`) | 🔒 abierto |
+| Revisión del ranking | revisar las partidas en `review` (bajo el piso de plausibilidad) y los nombres reportados | operación de E12 tras el lanzamiento | 🔒 permanente |
 | Batch de imágenes | (2026-10-07: corriendo, ~155/222; los 10 `bg_*` esperan a ChatGPT) login en el Chrome aislado de ChatGPT (`--launch` + `--probe`) y correr el batch **con la app de Claude cerrada** (roba el foco); proyecto `~/Desktop/projects/automatic-image-generation/projects/fisu-evolution-v2` (222 prompts), **primero el piloto 001–005**; paso a paso en su `README.md` | E6b T9 (familias), el resto de E8 (visitantes, fondos, íconos); E4b y E6a caen a respaldos y no esperan | ✅ terminado y APROBADO por el dueño (222/222, 2026-10-08); los 10 `bg_*` escalados a 2048 (Real-ESRGAN). Crudos en `automatic-image-generation/projects/fisu-evolution-v2/output/`. Destraba la integración de E8 (dropbox → `process_dropbox.py`, `npc`/`skinfam`, `prompts.json`, atlas) y E6b T9 |
 | Higgsfield | OK de créditos para el piloto de 2 loops (tope 600) | los loops de retrato y las 3 cinemáticas (E8); E4b T3 cae a la foto quieta | ✅ OK a todo, tope 600 (2026-10-07) |
 | Anexos A y B | aprobar los guiones y frases (A) y la biblia de los 8 visitantes (B) | (ambigua: ningún plan lo gatea) A: E4a T7 y T9; B: los prompts del batch | ✅ aprobados sin cambios (2026-10-07) |

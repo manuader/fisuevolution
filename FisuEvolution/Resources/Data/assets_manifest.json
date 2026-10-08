@@ -480,16 +480,16 @@
     }
   },
   "backgrounds": {
-    "alley": "bg_alley",
-    "urban": "bg_urban",
-    "corporate": "bg_corporate",
-    "luxury": "bg_luxury",
-    "island": "bg_island",
-    "moon": "bg_moon",
-    "mars": "bg_mars",
-    "solar": "bg_solar",
-    "galaxy": "bg_galaxy",
-    "god_realm": "bg_god_realm"
+    "alley": "bg_alley.jpg",
+    "urban": "bg_urban.jpg",
+    "corporate": "bg_corporate.jpg",
+    "luxury": "bg_luxury.jpg",
+    "island": "bg_island.jpg",
+    "moon": "bg_moon.jpg",
+    "mars": "bg_mars.jpg",
+    "solar": "bg_solar.jpg",
+    "galaxy": "bg_galaxy.jpg",
+    "god_realm": "bg_god_realm.jpg"
   },
   "ui": {
     "ui_money": "ui_money",

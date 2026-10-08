@@ -127,6 +127,16 @@ struct FloorMapView: View {
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
                 .padding(.horizontal, Tokens.s24)
+            if let summary = gameState.staffedSummary {
+                StateBadge(
+                    text: gameState.staffedSummaryText(summary),
+                    systemImage: "bolt.fill",
+                    textAlignment: .center,
+                    muted: summary.staffed == 0
+                )
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("map.staffed")
+            }
         }
     }
 

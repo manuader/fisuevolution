@@ -317,4 +317,38 @@ struct EffectContractTests {
         } * state.meta.derivedEffects.offlineEfficiency
         #expect(abs(credited - integral) < 1e-6 * integral)
     }
+
+    @Test("pisos en marcha: lo que dice el mapa es lo que cobra la torre")
+    func staffedFloorsShowWhatTheyPay() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        let plainEconomy = content.economy
+        gameState.replaceEconomy(try content.economy.tuned(EconomyKnobs(staffedFloorBonus: 0.05)))
+        gameState.player?.run.units = [base.id: content.floorTable[0].capacity]
+        gameState.player?.run.passiveUnlocked[base.id] = true
+        gameState.reconcileTower()
+        let summary = try #require(gameState.staffedSummary)
+        #expect(summary.staffed == 1 && summary.total == content.floorTable.count)
+        #expect(gameState.staffedSummaryText(summary).contains("1/\(content.floorTable.count)"),
+                "sin la clave en el catálogo sale cruda y no dice 1/10")
+        let player = try #require(gameState.player)
+        let tuned = try #require(gameState.content).economy
+        let staffed = IncomeTicker.basePassivePerSecond(state: player, tiers: content.tiers, floorTable: content.floorTable, config: tuned)
+        let plain = IncomeTicker.basePassivePerSecond(state: player, tiers: content.tiers, floorTable: content.floorTable, config: plainEconomy)
+        #expect(abs(staffed / plain - (1 + summary.bonus)) < 1e-9)
+        #expect(abs(summary.bonus - 0.05) < 1e-12)
+    }
+
+    @Test("la luz verde de la botonera es la de los pisos en marcha")
+    func theElevatorLightIsTheStaffedRule() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        gameState.player?.run.units = [base.id: content.floorTable[0].capacity]
+        gameState.reconcileTower()
+        let player = try #require(gameState.player)
+        let lit = Set(ElevatorPanelModel(map: gameState.floorMap).floors.filter(\.isStaffed).map(\.id))
+        let staffed = Set(StaffedFloors.ordinals(state: player, tiers: content.tiers, floorTable: content.floorTable)
+            .map { content.floorTable[$0].id })
+        #expect(lit == staffed)
+    }
 }

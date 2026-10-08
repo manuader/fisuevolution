@@ -374,8 +374,8 @@ que toma · commit o rama · nota.
 | E3b-T2 | La ficha de personaje | ✅ | E3a-T6, E3a-T7 | catálogo (snapshot); GameArtComponents, DebugPanelView | `e33b844` (merge `171241e`, claves `2408acc`) | carry E3a T12: detent `.large` con vacío abajo; captura SE |
 | E3b-T3 | El menú deslizable, las piezas | ✅ | T2; E3a-T8 | catálogo; PanelFrames, MenuView | `77c277e` (merge `e378307`) | MenuSessionTests verde; carries a T4: MenuPagerUITests, menuDidOpen/PageChanged/Close en RootView, comprobar S2 (carrusel de Pintas vs gesto) en simulador |
 | E3b-T4 | El menú deslizable, montado | ⛔ | T3; E3a-T9, E3a-T11 | 🔥 RootView | | |
-| E3b-T5 | Renombre `BestHire` → `QuickHireOffer` | ⏳ | ventana sin E1 en GameState y +Hiring | 🔥 GameState, RootView (comentarios); +Hiring, +TutorialTips | | |
-| E3b-T6 | La oferta del atajo v2: pin, motivo, nunca `nil` | ⛔ | T5; E1-T4, E1-T13 | +Hiring | | |
+| E3b-T5 | Renombre `BestHire` → `QuickHireOffer` | ✅ | ventana sin E1 en GameState y +Hiring | 🔥 GameState, RootView (comentarios); +Hiring, +TutorialTips | `61a661d` |; tocó también `GameState+Projections.swift` (2 líneas) y dos tests; `PacingSimulator.bestHire` es otra cosa y queda |
+| E3b-T6 | La oferta del atajo v2: pin, motivo, nunca `nil` | ⏳ | T5; E1-T4, E1-T13 | +Hiring | | |
 | E3b-T7 | El botón del atajo nunca desaparece | ⛔ | T6 | catálogo; QuickHireButton | | |
 | E3b-T8 | El selector del atajo | ⛔ | T7, T4 | 🔥 RootView, catálogo; DebugPanelView | | |
 | E3b-T9 | Compartir recableado (y cierre de E3) | ⛔ | T8; E1-T16 | 🔥 GameState, +Bonus, RootView, catálogo; +BoardChanges, +Debug, ContentConfigs, EngagementState | | su `sharedMoments` lo esperan E4a T3 y E5a T4 |
@@ -536,8 +536,8 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8-T3 | Familia Pijama (43) | ✅ | T2 | `fam_pijama.atlas` | `3004952` (merge `8dd7258`) | pipeline, no compila; ∥ T4, T5 y cualquiera; destraba (con T4, T5) el arte de E6b T9; 43/43; a T9: loza en cartonero, estanciero_estelar; islas en dueno_pyme, magnate_solar, dueno_marte; 15 MB por atlas |
 | E8-T4 | Familia Gaucho (43) | ✅ | T2 | `fam_gaucho.atlas` | `a2e0458` (merge `d0b6f9e`) | ídem; 43/43; a T9: cartonero (loza + isla entre carrito y cuerpo); 15 MB por atlas |
 | E8-T5 | Familia Disfraz de Dinosaurio (43) | ✅ | T2 | `fam_dinosaurio.atlas` | `61463e5` (merge `cb1b606`) | ídem; 43/43; a T9: loza en cartonero; god (nube) y ser_ascendido (halo) parecen dibujo; 15 MB por atlas |
-| E8-T6 | Visitantes y especiales (52) | ⛔ | T2 | `npcs.atlas`; 🔥 `assets_manifest.json` (`npcs`) | | `oraculo.sh tarea GameContentValidationTests GameArtComponentsTests`; la ven E4b T1–T5, T8 y E5b T1 (todas con respaldo) |
-| E8-T7 | Paquete, Colchón, Ruleta, tienda y Álbum (31) | ⛔ | T2 | `ui.atlas`; 🔥 `assets_manifest.json` (`ui`) | | `oraculo.sh tarea GameArtComponentsTests GameContentValidationTests`; carries a E5b T1–T3, E6b T9, E4b T8, E7b-b T3 |
+| E8-T6 | Visitantes y especiales (52) | ✅ | T2 | `npcs.atlas`; 🔥 `assets_manifest.json` (`npcs`) | `d74f330` | `oraculo.sh tarea GameContentValidationTests GameArtComponentsTests`; la ven E4b T1–T5, T8 y E5b T1 (todas con respaldo); npcs.atlas 13 MB (recursos 152 MB); notas para T9: islas intencionales en sp_bug_simulacion_talk/_face, sp_influencer_talk, sp_contador_dios_talk, npc_conductor_action; caras `_face` cortadas por el encuadre del generador |
+| E8-T7 | Paquete, Colchón, Ruleta, tienda y Álbum (31) | ⏳ | T2 | `ui.atlas`; 🔥 `assets_manifest.json` (`ui`) | | `oraculo.sh tarea GameArtComponentsTests GameContentValidationTests`; carries a E5b T1–T3, E6b T9, E4b T8, E7b-b T3 |
 | E8-T8 | Los fondos a 2048 (JPEG) | ✅ | T2 | `Backgrounds/`, `process_dropbox.py`; 🔥 `assets_manifest.json` (`backgrounds`) | `6029e73` | crea `BackgroundArtTests` (xcodegen); mide la memoria del vuelo; revisión sonnet; `Backgrounds/` 38 → 9 MB; PSNR q90 35–40 dB (bajo la vara de 40 del plan; a ojo sin bloques, q95 igual a la vista → q90); **memoria del vuelo SIN medir → carry a T10** |
 | E8-T9 | 🔒 La revisión de recortes de la 2.0 | ⛔ | T1, T3–T7 | `recut_assets.py`, los atlas elegidos | | la página la arma el agente; elige el dueño; no frena a nadie |
 | E8-T10 | Peso, memoria y cierre (controlador) | ⛔ | T1–T8 | `Docs/`, `tasks.md` | | `completo --limpio`; 🔒 sólo si el bundle crece > 60 MB (estimado ≈ +29 MB) |

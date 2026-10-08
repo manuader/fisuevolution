@@ -25,7 +25,7 @@ struct TapActionTests {
     @Test func tapCreditsCoinsAndLifetime() throws {
         var state = fxState()
         let a = try #require(tiers.type(id: "a"))
-        let gain = economy.applyTap(type: a, state: &state, floorTable: floorTable, now: 0)
+        let gain = economy.applyTap(type: a, state: &state, tiers: tiers, floorTable: floorTable, now: 0)
         #expect(gain == 1)
         #expect(state.run.coins == 1)
         // El lifetime es la base del ORO: cada tap tiene que sumar ahí también.
@@ -36,7 +36,7 @@ struct TapActionTests {
         var state = fxState()
         state.run.charUpgradeLevels["a"] = 2
         let a = try #require(tiers.type(id: "a"))
-        let gain = economy.applyTap(type: a, state: &state, floorTable: floorTable, now: 0)
+        let gain = economy.applyTap(type: a, state: &state, tiers: tiers, floorTable: floorTable, now: 0)
         // Efecto SECUENCIAL desde el 2026-08-22 (`1 + nivel`): nivel 2 ⇒ ×3.
         // Con la potencia vieja este mismo nivel valía ×4, y el tap de "a" es 1.
         #expect(abs(gain - 3) < 1e-12)
@@ -49,10 +49,10 @@ struct TapActionTests {
         let boostedTable = try fxFloorTable(config: boosted)
         var state = fxState()
         let cLaw = try #require(tiers.type(id: "c_law"))
-        let gainF2 = economy.applyTap(type: cLaw, state: &state, floorTable: boostedTable, now: 0)
+        let gainF2 = economy.applyTap(type: cLaw, state: &state, tiers: tiers, floorTable: boostedTable, now: 0)
         #expect(abs(gainF2 - 14.44 * 3) < 1e-9)
         let a = try #require(tiers.type(id: "a"))
-        let gainF1 = economy.applyTap(type: a, state: &state, floorTable: boostedTable, now: 0)
+        let gainF1 = economy.applyTap(type: a, state: &state, tiers: tiers, floorTable: boostedTable, now: 0)
         #expect(abs(gainF1 - 1) < 1e-12)
     }
 
@@ -68,7 +68,7 @@ struct TapActionTests {
         var state = fxState()
         let cLaw = try #require(tiers.type(id: "c_law"))
         let gain = StandardEconomy(config: sinPiso).applyTap(
-            type: cLaw, state: &state, floorTable: table, now: 0
+            type: cLaw, state: &state, tiers: tiers, floorTable: table, now: 0
         )
         #expect(abs(gain - 14.44) < 1e-9, "el tap del tier alto ya no cobra el ×620 del piso")
 
@@ -90,7 +90,7 @@ struct TapActionTests {
         var state = fxState()
         let cLaw = try #require(tiers.type(id: "c_law"))
         let gain = StandardEconomy(config: sinDeclarar).applyTap(
-            type: cLaw, state: &state, floorTable: table, now: 0
+            type: cLaw, state: &state, tiers: tiers, floorTable: table, now: 0
         )
         #expect(abs(gain - 14.44 * 620) < 1e-9)
     }
@@ -100,7 +100,7 @@ struct TapActionTests {
         state.meta.derivedEffects.tapMultiplier = 2
         state.meta.derivedEffects.incomeMultiplier = 1.5
         let a = try #require(tiers.type(id: "a"))
-        let gain = economy.applyTap(type: a, state: &state, floorTable: floorTable, now: 0)
+        let gain = economy.applyTap(type: a, state: &state, tiers: tiers, floorTable: floorTable, now: 0)
         // Las dos líneas de mejora permanente multiplican entre sí.
         #expect(abs(gain - 3) < 1e-12)
     }
@@ -109,7 +109,7 @@ struct TapActionTests {
         var state = fxState()
         state.meta.globalMultiplier = 1.5
         let a = try #require(tiers.type(id: "a"))
-        let gain = economy.applyTap(type: a, state: &state, floorTable: floorTable, now: 0)
+        let gain = economy.applyTap(type: a, state: &state, tiers: tiers, floorTable: floorTable, now: 0)
         #expect(abs(gain - 1.5) < 1e-12)
     }
 
@@ -120,7 +120,7 @@ struct TapActionTests {
             ActiveModifier(effect: .incomeMultiplier, magnitude: 3, expiresAt: 100, sourceKey: "event.plan_platita"),
         ]
         let a = try #require(tiers.type(id: "a"))
-        let gain = economy.applyTap(type: a, state: &state, floorTable: floorTable, now: 50)
+        let gain = economy.applyTap(type: a, state: &state, tiers: tiers, floorTable: floorTable, now: 50)
         // tap × income vivos: 2 × 3.
         #expect(abs(gain - 6) < 1e-12)
     }
@@ -134,7 +134,7 @@ struct TapActionTests {
             ActiveModifier(effect: .spawnCostMultiplier, magnitude: 0.5, expiresAt: 100, sourceKey: "boost.mate"),
         ]
         let a = try #require(tiers.type(id: "a"))
-        let gain = economy.applyTap(type: a, state: &state, floorTable: floorTable, now: 50)
+        let gain = economy.applyTap(type: a, state: &state, tiers: tiers, floorTable: floorTable, now: 50)
         #expect(gain == 1)
     }
 }

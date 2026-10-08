@@ -29,14 +29,14 @@ private func upTiers(maxTier: Int = 20) throws -> TierRepository {
 /// fixture sin compuerta mediría un bot que compra donde el jugador no puede.
 /// Lo que la compuerta hace por sí sola lo mide `HireGateTests`; acá está para
 /// que el instrumental corra contra la torre que existe.
-private func upConfig(maxTier: Int = 20, gateTierDistance: Int = 5) -> EconomyConfig {
+private func upConfig(maxTier: Int = 20, gateTierDistance: Int = 5, capacity: Int = 10) -> EconomyConfig {
     let floors = stride(from: 1, through: maxTier, by: 4).enumerated().map { index, first in
         FloorDef(
             id: "f\(index + 1)",
             background: "alley",
             firstTier: first,
             lastTier: first + 3,
-            capacity: 10,
+            capacity: capacity,
             incomeMultiplier: pow(2.0, Double(index)),
             hireCostMultiplierOverride: index == 0 ? 25 : nil
         )
@@ -111,6 +111,27 @@ struct PacingSimulatorKnobTests {
         let base = try upSimulator().run(maxDays: 5)
         let tuned = try PacingSimulator(config: upConfig().tuned(EconomyKnobs(mergeRefundCounts: 1)), tiers: upTiers()).run(maxDays: 5)
         #expect(fingerprint(tuned) != fingerprint(base))
+    }
+
+    @Test("con el amortiguador en cero el bot juega igual; prendido, el simulador lo lee")
+    func theSimulatorReadsTheCushion() throws {
+        let base = try upSimulator().run(maxDays: 5)
+        let zero = try PacingSimulator(config: upConfig().tuned(EconomyKnobs(priceReliefPurchases: 0)), tiers: upTiers()).run(maxDays: 5)
+        let on = try PacingSimulator(config: upConfig().tuned(EconomyKnobs(priceReliefPurchases: 24)), tiers: upTiers()).run(maxDays: 5)
+        #expect(fingerprint(zero) == fingerprint(base))
+        #expect(fingerprint(on) != fingerprint(base))
+    }
+
+    @Test("con el bono en cero el bot juega igual; con pisos chicos y el bono puesto, cobra distinto")
+    func theSimulatorReadsTheStaffedBonus() throws {
+        // Con 10 lugares el bot fusiona todo y nunca llena un piso: llenarlos
+        // a propósito es la política de E2b. Con 3, se llenan solos.
+        let small = upConfig(capacity: 3)
+        let base = try PacingSimulator(config: small, tiers: upTiers()).run(maxDays: 5)
+        let zero = try PacingSimulator(config: small.tuned(EconomyKnobs(staffedFloorBonus: 0)), tiers: upTiers()).run(maxDays: 5)
+        let on = try PacingSimulator(config: small.tuned(EconomyKnobs(staffedFloorBonus: 0.5)), tiers: upTiers()).run(maxDays: 5)
+        #expect(fingerprint(zero) == fingerprint(base))
+        #expect(fingerprint(on) != fingerprint(base))
     }
 }
 

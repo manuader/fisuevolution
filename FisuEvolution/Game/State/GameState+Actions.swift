@@ -24,6 +24,7 @@ extension GameState {
         var gain = economy.applyTap(
             type: type,
             state: &player,
+            tiers: content.tiers,
             floorTable: content.floorTable,
             now: Date().timeIntervalSince1970
         )

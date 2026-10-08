@@ -6,10 +6,19 @@ import Foundation
 public struct EconomyKnobs: Codable, Sendable, Equatable {
     public var defaultCostGrowth: Double?
     public var mergeRefundCounts: Double?
+    public var priceReliefPurchases: Int?
+    public var staffedFloorBonus: Double?
 
-    public init(defaultCostGrowth: Double? = nil, mergeRefundCounts: Double? = nil) {
+    public init(
+        defaultCostGrowth: Double? = nil,
+        mergeRefundCounts: Double? = nil,
+        priceReliefPurchases: Int? = nil,
+        staffedFloorBonus: Double? = nil
+    ) {
+        self.staffedFloorBonus = staffedFloorBonus
         self.defaultCostGrowth = defaultCostGrowth
         self.mergeRefundCounts = mergeRefundCounts
+        self.priceReliefPurchases = priceReliefPurchases
     }
 }
 
@@ -28,7 +37,9 @@ extension EconomyConfig {
         else { throw EconomyKnobsError.notAnObject }
         if let value = knobs.defaultCostGrowth { hire["defaultCostGrowth"] = value }
         if let value = knobs.mergeRefundCounts { hire["mergeRefundCounts"] = value }
+        if let value = knobs.priceReliefPurchases { hire["priceReliefPurchases"] = value }
         root["hire"] = hire
+        if let value = knobs.staffedFloorBonus { root["staffedFloorBonus"] = value }
         return try JSONDecoder().decode(EconomyConfig.self, from: JSONSerialization.data(withJSONObject: root))
     }
 }

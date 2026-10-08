@@ -116,6 +116,10 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         /// con el growth. **0 = la v1**, y ése es el default mientras E2b no la
         /// calibre. [TUNEABLE]
         public let mergeRefundCounts: Double
+        /// El amortiguador del salto de precio (`PriceCushion`): en cuántas
+        /// compras se paga lo que subir la frontera habría subido de golpe.
+        /// **0 = apagado, la v1**; PLAN-v2 E2a propone 24. [TUNEABLE]
+        public let priceReliefPurchases: Int
 
         /// El default de `priceGrowthPerTier` para las FIXTURES: **2,0**, el
         /// factor de merge, o sea la indiferencia exacta —bajar un tier no
@@ -154,7 +158,8 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             gateTierDistance: Int = HireConfig.noTierGate,
             frontierEscalationPerTier: Double = HireConfig.noFrontierEscalation,
             frontierEscalationFromTier: Int = HireConfig.escalationFromFirstTier,
-            mergeRefundCounts: Double = 0
+            mergeRefundCounts: Double = 0,
+            priceReliefPurchases: Int = 0
         ) {
             self.defaultCostMultiplier = defaultCostMultiplier
             self.defaultCostGrowth = defaultCostGrowth
@@ -163,6 +168,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             self.frontierEscalationPerTier = frontierEscalationPerTier
             self.frontierEscalationFromTier = frontierEscalationFromTier
             self.mergeRefundCounts = mergeRefundCounts
+            self.priceReliefPurchases = priceReliefPurchases
         }
 
         /// Decoder a mano porque los dos knobs de abajo se agregaron después: el
@@ -198,12 +204,13 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             // `decodeIfPresent` y al revés que las de arriba: el default (0) ES la
             // v1, una conducta conocida y medida, no una regla que se apaga.
             mergeRefundCounts = try container.decodeIfPresent(Double.self, forKey: .mergeRefundCounts) ?? 0
+            priceReliefPurchases = try container.decodeIfPresent(Int.self, forKey: .priceReliefPurchases) ?? 0
         }
 
         enum CodingKeys: String, CodingKey {
             case defaultCostMultiplier, defaultCostGrowth, priceGrowthPerTier
             case gateTierDistance, frontierEscalationPerTier, frontierEscalationFromTier
-            case mergeRefundCounts
+            case mergeRefundCounts, priceReliefPurchases
         }
     }
 
@@ -315,6 +322,11 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     /// el valor efectivo sale de `offlinePopupThreshold`, el único lugar donde
     /// vive el default. [TUNEABLE]
     public let offlinePopupMinSeconds: Double?
+    /// Pisos en marcha: cuánto suma a los ingresos globales cada piso con todos
+    /// sus lugares ocupados (0,05 = +5 %). Vive en la raíz y no en `floors`,
+    /// que es un array. Opcional como `tapFloorMultiplierExponent`: sin la
+    /// clave vale 0, la v1. [TUNEABLE]
+    public let staffedFloorBonus: Double?
     /// La Torre: pisos en orden ascendente de tiers. Validados por `FloorTable`.
     public let floors: [FloorDef]
 
@@ -333,6 +345,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         offlineEfficiencyBase: Double,
         offlineCapHours: Double,
         offlinePopupMinSeconds: Double? = nil,
+        staffedFloorBonus: Double? = nil,
         floors: [FloorDef]
     ) {
         self.schemaVersion = schemaVersion
@@ -349,10 +362,12 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         self.offlineEfficiencyBase = offlineEfficiencyBase
         self.offlineCapHours = offlineCapHours
         self.offlinePopupMinSeconds = offlinePopupMinSeconds
+        self.staffedFloorBonus = staffedFloorBonus
         self.floors = floors
     }
 
     public var offlinePopupThreshold: TimeInterval { offlinePopupMinSeconds ?? 30 }
+    public var staffedBonusPerFloor: Double { staffedFloorBonus ?? 0 }
 
     /// Multiplicador de hire efectivo del piso (override o default punitivo).
     public func hireCostMultiplier(for floor: FloorDef) -> Double {

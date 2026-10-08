@@ -215,10 +215,24 @@ extension RunState {
         return true
     }
 
-    /// Único escritor de las curvas de compra (por piso y por tipo).
-    public mutating func registerHire(floorId: String, typeId: String) {
+    /// Sube la frontera y, con el amortiguador, guarda el salto del precio en
+    /// `priceRelief`. Es la que usan las fusiones del juego y el simulador; la
+    /// de un argumento queda para la carga (`TowerReconciler`), los fixtures y
+    /// el panel de debug, que no amortiguan.
+    @discardableResult
+    public mutating func raiseFrontier(to tier: Int, cushion: PriceCushion) -> Bool {
+        let before = maxTierReached
+        guard raiseFrontier(to: tier) else { return false }
+        priceRelief = cushion.relief(priceRelief, raisingFrom: before, to: maxTierReached)
+        return true
+    }
+
+    /// Único escritor de las curvas de compra (por piso y por tipo). Una compra
+    /// que cuenta también descuenta un paso del amortiguador.
+    public mutating func registerHire(floorId: String, typeId: String, cushion: PriceCushion) {
         hireCounts[floorId, default: 0] += 1
         hireCountsByType[typeId, default: 0] += 1
+        priceRelief = cushion.relief(priceRelief, afterPurchaseAt: maxTierReached)
     }
 
     /// Fusionar un par devuelve `counts` compras a la curva del tipo fusionado y

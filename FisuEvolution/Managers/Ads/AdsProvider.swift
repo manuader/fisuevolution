@@ -190,6 +190,9 @@ struct RewardedAdsConfig: Codable, Sendable, Equatable {
 
     let schemaVersion: Int
     let rewards: [Reward]
+    /// Segundos de producción que se acreditan cuando un video visto ya no tiene
+    /// dónde aplicar su efecto.
+    let compensationSeconds: Double
     /// Ausente en schema 1.
     let interstitial: Interstitial?
 

@@ -26,6 +26,7 @@ public enum IncomeTicker {
                 * floorTable.floor(forTier: type.tier).incomeMultiplier
         }
         return total * state.meta.globalMultiplier * state.meta.derivedEffects.incomeMultiplier
+            * StaffedFloors.multiplier(state: state, tiers: tiers, floorTable: floorTable, config: config)
     }
 
     public static func passivePerSecond(

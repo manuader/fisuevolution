@@ -14,11 +14,13 @@ extension StandardEconomy {
     /// por tipo (charUpgrades) y por piso además de los globales. El de piso entra
     /// por `config.tapFloorMultiplier(for:)` y no crudo: el tap y el pasivo dejaron
     /// de compartir esa curva en el rebalance de pacing (el click del tier alto
-    /// financiaba el piso siguiente en un minuto).
+    /// financiaba el piso siguiente en un minuto). Lleva también el bono de pisos
+    /// en marcha, global como el de ORO.
     /// Returns the gain so the scene can show feedback.
     public func applyTap(
         type: CharacterType,
         state: inout PlayerState,
+        tiers: TierRepository,
         floorTable: FloorTable,
         now: TimeInterval
     ) -> Double {
@@ -30,6 +32,7 @@ extension StandardEconomy {
             * state.meta.derivedEffects.tapMultiplier
             * state.meta.derivedEffects.incomeMultiplier
             * state.meta.globalMultiplier
+            * StaffedFloors.multiplier(state: state, tiers: tiers, floorTable: floorTable, config: config)
             * modifierFactor
         state.run.coins += gain
         state.meta.lifetimeEarnings += gain

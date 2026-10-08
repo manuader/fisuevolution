@@ -30,13 +30,20 @@ extension GameState {
             return
         }
 
-        // El cooldown se marca ANTES de aplicar el efecto: si el efecto no
-        // encuentra dónde caer (torre llena, sin par mergeable), el video igual
-        // se miró y el anunciante igual cobró.
+        // El cooldown se marca ANTES de aplicar el efecto: el video ya se miró y
+        // el anunciante ya cobró. Si el efecto dejó de tener dónde caer entre el
+        // toque y el final del video, se compensa en producción.
         player.meta.rewardedActivations[rewardId] = now
         // El contador va donde va el cooldown, y por el mismo motivo.
         player.meta.stats.videosWatchedEver += 1
         self.player = player
+
+        guard isRewardApplicable(rewardId) else {
+            compensateRewardedVideo()
+            effectsVersion += 1
+            evaluateAchievements()
+            return
+        }
 
         switch reward.effectType {
         case .incomeMultiplier:
@@ -80,6 +87,44 @@ extension GameState {
             typeId: type.id, state: player, tower: tower, tiers: content.tiers,
             floorTable: content.floorTable, origin: .rewardedRareUnit
         )
+    }
+
+    /// Por qué este video no tendría efecto ahora, o `nil` si lo tiene.
+    func rewardUnavailableReason(_ rewardId: String) -> String? {
+        guard let content, let player, let tower,
+              let reward = content.rewardedAds.rewards.first(where: { $0.id == rewardId })
+        else { return nil }
+        switch reward.effectType {
+        case .incomeMultiplier, .skinChest:
+            return nil
+        case .instantMerge:
+            let plan = BoardChangePlanner.planAutoMerge(
+                state: player, tower: tower, tiers: content.tiers,
+                floorTable: content.floorTable, origin: .rewardedInstantMerge
+            )
+            return plan == nil ? String(localized: "ads.unavailable.merge") : nil
+        case .rareUnit:
+            return rareUnitChange() == nil ? String(localized: "ads.unavailable.floor_full") : nil
+        }
+    }
+
+    func isRewardApplicable(_ rewardId: String) -> Bool {
+        rewardUnavailableReason(rewardId) == nil
+    }
+
+    /// Un video visto que no tiene dónde aplicarse paga producción en vez de nada.
+    /// Sólo lo llaman los caminos de video, y cada uno una sola vez por video.
+    func compensateRewardedVideo() {
+        guard let content, let economy, var player else { return }
+        let seconds = content.rewardedAds.compensationSeconds
+        let amount = Self.coinReward(seconds: seconds, player: player, content: content, economy: economy)
+        player.run.coins += amount
+        player.meta.lifetimeEarnings += amount
+        self.player = player
+        towerNotice = TowerNotice(kind: .rewardCompensated(durationText: Self.durationText(seconds)))
+        if isSceneActive { audio?.play(.coin) }
+        refreshProjections()
+        scheduleSave()
     }
 
     // MARK: Boosts (F5 — bible §1)
@@ -397,12 +442,14 @@ extension GameState {
         guard let content else { return [] }
         let now = Date().timeIntervalSince1970
         return content.rewardedAds.rewards.map { reward in
-            RewardRow(
+            let cooldown = rewardCooldownRemaining(id: reward.id, now: now)
+            return RewardRow(
                 id: reward.id,
                 titleKey: reward.titleKey,
                 rewardText: Self.rewardText(for: reward),
-                cooldownRemaining: rewardCooldownRemaining(id: reward.id, now: now),
-                cooldownTotal: reward.cooldownSeconds
+                cooldownRemaining: cooldown,
+                cooldownTotal: reward.cooldownSeconds,
+                unavailableReason: cooldown > 0 ? nil : rewardUnavailableReason(reward.id)
             )
         }
     }
@@ -639,6 +686,8 @@ extension GameState {
         let cooldownRemaining: TimeInterval
         /// Las cuatro horas enteras del cooldown, para el aro (ver `BoostRow`).
         let cooldownTotal: TimeInterval
+        /// Por qué el video no se ofrece ahora (ya resuelto), o `nil` si se puede mirar.
+        let unavailableReason: String?
     }
 
     /// Un día del ciclo de 7 del daily, tal como se dibuja la tira del

@@ -486,6 +486,8 @@ struct ContentSystemsTests {
         state.meta.ownedSkins = content.skins.chestPool.map(\.id)
         state.meta.daily.cycleDay = 7
         state.meta.daily.lastClaimDay = nil
+        let expected = RewardScale.coinPayout(minutes: 15, state: state, tiers: content.tiers,
+                                              floorTable: content.floorTable, config: content.economy)
         let conTodo = try #require(DailyRewardManager.claimIfAvailable(
             state: &state, config: content.dailyRewards, specials: content.specials,
             skins: content.skins, upgrades: content.upgradesConfig, viral: content.viral,
@@ -493,7 +495,7 @@ struct ContentSystemsTests {
             tiers: content.tiers, floorTable: content.floorTable, today: today, rng: &rng
         ))
         #expect(conTodo.chestGranted == false)
-        #expect(conTodo.coinsGranted > 0)
+        #expect(abs(conTodo.coinsGranted - expected) < 1e-6, "el día 7 sin nada que sortear paga sus 15 minutos")
         #expect(state.meta.chestsPending == 1, "la colección completa no suma un cofre más")
     }
 

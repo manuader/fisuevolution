@@ -424,8 +424,8 @@ enum DailyRewardManager {
                 chest = true
             } else {
                 coins = RewardScale.coinPayout(
-                minutes: day.minutes ?? 0, state: state, tiers: tiers, floorTable: floorTable, config: economy.config
-            )
+                    minutes: day.minutes ?? 0, state: state, tiers: tiers, floorTable: floorTable, config: economy.config
+                )
                 state.run.coins += coins
                 state.meta.lifetimeEarnings += coins
             }

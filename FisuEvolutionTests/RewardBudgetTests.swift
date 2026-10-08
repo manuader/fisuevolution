@@ -8,6 +8,8 @@ import Testing
 /// (`PacingSimulator.HumanModel`) y la producción se mide en minutos del pasivo
 /// base, la misma unidad en la que se pagan los premios. Cuenta lo que se
 /// repite cada día (el diario y el asado); logros, carreras y cofres son de una vez.
+/// Se mide en minutos de producción base: con la torre parada (arranque o
+/// recién reencarnado) el piso del premio puede pasar el 12 %.
 @Suite("Presupuesto de premios sin anuncios")
 struct RewardBudgetTests {
     static let budget = 0.12

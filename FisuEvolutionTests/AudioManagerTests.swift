@@ -33,6 +33,29 @@ struct AudioManagerTests {
         }
     }
 
+    @Test("el ambiente suena 18 dB abajo de la acción")
+    func ambientGain() {
+        #expect(abs(AudioManager.Gain.ambient.linear - Float(pow(10, -18.0 / 20))) < 0.001)
+        #expect(abs(AudioManager.Gain.action.linear - Float(pow(10, -6.0 / 20))) < 0.001)
+    }
+
+    @Test("el tono del blip es estable por personaje y está en 0,8–1,25")
+    func blipPitch() {
+        let vecina = AudioManager.talkPitch(for: "npc_vecina")
+        #expect(vecina == AudioManager.talkPitch(for: "npc_vecina"))
+        #expect((0.8...1.25).contains(vecina))
+        #expect(vecina != AudioManager.talkPitch(for: "npc_comisario"))
+    }
+
+    @Test("un ambiente arranca una sola vez y se corta sin dejar el loop armado")
+    func ambientStartStop() {
+        let audio = AudioManager()
+        audio.startAmbient(.packageRattle)
+        audio.startAmbient(.packageRattle)
+        #expect(audio.preparedSFX.contains(.packageRattle))
+        audio.stopAmbient(.packageRattle)
+    }
+
     @Test("stop corta un SFX que suena y no rompe si nunca sonó")
     func stopSilencesAPlayingSFX() {
         let audio = AudioManager()

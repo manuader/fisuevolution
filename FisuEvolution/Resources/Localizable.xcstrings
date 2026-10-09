@@ -5588,6 +5588,57 @@
         }
       }
     },
+    "quickhire.picker.best" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Best available"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mejor disponible"
+          }
+        }
+      }
+    },
+    "quickhire.picker.full" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lleno"
+          }
+        }
+      }
+    },
+    "quickhire.picker.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Who are we hiring?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿A quién contratamos?"
+          }
+        }
+      }
+    },
     "ranking.anonymous" : {
       "extractionState" : "manual",
       "localizations" : {

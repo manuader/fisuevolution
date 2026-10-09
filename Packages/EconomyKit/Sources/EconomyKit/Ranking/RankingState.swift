@@ -85,13 +85,15 @@ public struct RankingState: Codable, Sendable, Equatable {
     /// La tarjeta de Dios ya se ofreció en esta partida (no vuelve a saltar; queda la pestaña).
     public var cardOffered: Bool
     public var carriedSubmission: CarriedSubmission?
+    /// El id que el cliente genera una vez por partida nueva o reset: reenviarlo hace idempotente al `start-run`.
+    public var clientRunId: String?
 
     public static let legacy = RankingState(phase: .ineligible)
     public static let newGame = RankingState(phase: .awaitingStart)
 
     public init(phase: Phase, playedSeconds: Double = 0, activeSince: TimeInterval? = nil,
                 submission: Submission? = nil, lastName: String? = nil, cardOffered: Bool = false,
-                carriedSubmission: CarriedSubmission? = nil) {
+                carriedSubmission: CarriedSubmission? = nil, clientRunId: String? = nil) {
         self.phase = phase
         self.playedSeconds = playedSeconds
         self.activeSince = activeSince
@@ -99,6 +101,7 @@ public struct RankingState: Codable, Sendable, Equatable {
         self.lastName = lastName
         self.cardOffered = cardOffered
         self.carriedSubmission = carriedSubmission
+        self.clientRunId = clientRunId
     }
 
     public init(from decoder: Decoder) throws {
@@ -110,14 +113,24 @@ public struct RankingState: Codable, Sendable, Equatable {
         lastName = try c.decodeIfPresent(String.self, forKey: .lastName)
         cardOffered = try c.decodeIfPresent(Bool.self, forKey: .cardOffered) ?? false
         carriedSubmission = try c.decodeIfPresent(CarriedSubmission.self, forKey: .carriedSubmission)
+        clientRunId = try c.decodeIfPresent(String.self, forKey: .clientRunId)
     }
 
     // MARK: - Transiciones (puras; devuelven si cambió algo las que pueden no hacer nada)
+
+    /// El id con el que se (re)intenta el `start-run`: nace al primer intento y se reusa hasta que el servidor responde.
+    public mutating func startAttemptId(make: () -> String) -> String {
+        if let clientRunId { return clientRunId }
+        let id = make()
+        clientRunId = id
+        return id
+    }
 
     @discardableResult
     public mutating func registered(runId: String, serverStartedAt: TimeInterval) -> Bool {
         guard phase == .awaitingStart else { return false }
         phase = .running(runId: runId, serverStartedAt: serverStartedAt)
+        clientRunId = nil
         return true
     }
 

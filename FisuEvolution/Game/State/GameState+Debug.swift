@@ -198,6 +198,25 @@ extension GameState {
         bumpBoard()
     }
 
+    /// El callejón con `homeless` Homeless y "Fusionar todo" encolado: la cadena
+    /// entera, con tres tiers nuevos, sin salir del piso. Devuelve los eslabones.
+    @discardableResult
+    func debugSeedMergeAll(homeless count: Int) -> Int {
+        guard var player, var tower else { return 0 }
+        let present = tower.placements(onFloor: 0).filter { $0.typeId == "homeless" }.count
+        for _ in present..<max(present, count) {
+            guard let slot = tower.floors[0].firstFreeSlot() else { break }
+            tower.floors[0].slots[slot] = "homeless"
+            player.run.units["homeless", default: 0] += 1
+        }
+        player.run.markSeen("homeless")
+        self.player = player
+        self.tower = tower
+        bumpBoard()
+        setVisibleFloor(0)
+        return enqueueMergeAll(onFloor: 0, origin: .debug)
+    }
+
     /// Un par planeado como lo planearía un video, para ver el embudo entero.
     func debugPlanBoardChange() {
         debugGrantPair()

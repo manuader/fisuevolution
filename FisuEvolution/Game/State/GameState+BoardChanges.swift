@@ -16,7 +16,8 @@ extension GameState {
 
     /// "Fusionar todo" (PLAN-v2 §2): encola todos los pares del piso como
     /// cambios del tablero, en el orden en que se funden; cada uno se juega en
-    /// su turno y un tier nuevo se revela como siempre. Devuelve cuántos. E6
+    /// su turno y un tier nuevo se revela como siempre. Cada par es un eslabón
+    /// (`chain`): la escena los juega en un solo turno. Devuelve cuántos. E6
     /// (por ORO) y E7b (por video) lo llaman con su propio origen.
     @discardableResult
     func enqueueMergeAll(onFloor ordinal: Int, origin: BoardChange.Origin) -> Int {
@@ -73,6 +74,24 @@ extension GameState {
             return nil
         }
         return applyBoardChange(change)
+    }
+
+    /// El eslabón siguiente de la misma cadena, en el mismo turno. `nil` si el
+    /// tablero dejó de estar a la vista o lo próximo es otra cosa: la escena
+    /// suelta el turno y lo que queda se juega en el siguiente.
+    func beginNextChainLink(after chain: BoardChange.Chain) -> BoardChange? {
+        guard !chain.isLast, inFlightBoardChange == nil, boardIsVisibleForChanges,
+              celebrations.current == .boardCelebration,
+              pendingBoardChanges.first?.chain?.id == chain.id
+        else { return nil }
+        renewBoardTurnForNextLink()
+        return beginNextBoardChange()
+    }
+
+    /// El toque dentro de una cadena: el eslabón en vuelo se asienta en
+    /// silencio y el turno sigue.
+    func hurryChainLink() {
+        settleInFlightBoardChange()
     }
 
     func settleInFlightBoardChange() {

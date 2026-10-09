@@ -56,6 +56,19 @@ extension GameState {
         audio = manager
     }
 
+    /// Las fusiones que no hizo el jugador también suenan; en "Fusionar todo"
+    /// el plin sube de tono eslabón a eslabón.
+    func playBoardMergeFeedback(chainIndex: Int?, evolved: Bool) {
+        let rate = chainIndex.map { MergeAllTempo(reduceMotion: false).pitch(index: $0) } ?? 1
+        audio?.play(evolved ? .evolution : .merge, rate: evolved ? 1 : rate)
+        haptics?.play(.merge)
+    }
+
+    func playMergeAllFinale() {
+        audio?.play(.mergeAllDone)
+        haptics?.play(.mergeAllFinale)
+    }
+
     func attachBackgroundTasks(_ runner: any BackgroundTaskRunning) {
         backgroundTasks = runner
     }

@@ -744,6 +744,20 @@ def sfx_reveal_whoosh():
     return buf
 
 
+def sfx_merge_all_done():
+    """Remate de Fusionar todo ~600 ms: acorde mayor que sube (C5-E5-G5-C6) y brillo."""
+    dur = 0.600
+    buf = [0.0] * int(dur * SR)
+    for i, f in enumerate([523.25, 659.26, 783.99, 1046.5]):
+        t0 = 0.06 * i
+        render_tone(buf, t0, dur - t0, f, "square", 0.45,
+                    env_perc(dur - t0, attack=0.004, curve=3.5),
+                    detune_cents=(-6.0 if i % 2 else 6.0))
+    render_tone(buf, 0.24, dur - 0.24, glide(2093.0, 2637.0, dur - 0.24), "sine", 0.25,
+                env_perc(dur - 0.24, attack=0.01, curve=3.0))
+    return buf
+
+
 def sfx_elevator_cable():
     """Cable del ascensor ~1,2 s: el roce metálico de la roldana, que tirita
     a 14 Hz sobre un quejido grave de cable tenso."""
@@ -1723,6 +1737,7 @@ SFX = {
     "sfx_shop_shimmer": sfx_shop_shimmer,
     "sfx_reveal_whoosh": sfx_reveal_whoosh,
     "sfx_elevator_cable": sfx_elevator_cable,
+    "sfx_merge_all_done": sfx_merge_all_done,
 }
 # Los efectos de la 2.0 nivelan por RMS (pico a -3 dBFS como techo) y no sólo
 # por pico: normalizar al pico dejó el motor del ascensor 8 dB arriba de los
@@ -1739,6 +1754,7 @@ SFX_RMS_DB = {
     "sfx_shop_shimmer": -21.0,
     "sfx_reveal_whoosh": -21.0,
     "sfx_elevator_cable": -24.0,
+    "sfx_merge_all_done": -20.0,
 }
 SFX_LOOPS = {"sfx_package_rattle", "sfx_mattress_squeak"}
 MUSIC = {

@@ -22,6 +22,7 @@ import Testing
         "tap", "merge", "evolution", "coin", "buy",
         "error", "rare", "prestige", "event", "daily",
         "chestShakeA", "chestShakeB", "revealWhoosh",
+        "mergeAllDone",
     ]
 
     /// Los efectos sintetizados que todavía no tienen call site, con la tarea

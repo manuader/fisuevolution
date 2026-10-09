@@ -92,4 +92,24 @@ struct AudioManagerTests {
 
         #expect(audio.floorTracks.isEmpty)
     }
+
+    @Test("el remate de Fusionar todo existe en el bundle y se precarga")
+    func mergeAllFinaleIsBundled() async {
+        let audio = AudioManager()
+        await audio.preloadSFX()
+        #expect(audio.preparedSFX.contains(.mergeAllDone))
+    }
+
+    @Test("play con rate deja el player con el rate pedido, acotado a 0,5–2")
+    func playWithRateSetsTheRate() async {
+        let audio = AudioManager()
+        audio.sfxVolume = 0.9
+        await audio.preloadSFX()
+        audio.play(.merge, rate: 1.25)
+        #expect(audio.debugRate(of: .merge) == 1.25)
+        audio.play(.coin, rate: 9)
+        #expect(audio.debugRate(of: .coin) == 2)
+        audio.play(.buy, rate: 0.1)
+        #expect(audio.debugRate(of: .buy) == 0.5)
+    }
 }

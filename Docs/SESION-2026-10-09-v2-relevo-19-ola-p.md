@@ -12,7 +12,7 @@ con picos cuando compilaban tres; tope de 2 compilando con carga > 200.
 |---|---|
 | `version-2` | **`f3a2155`**: el `rapido` sobre `f3a2155` dio VERDE y avanzó por fast-forward con E13 T3, E8c T7 y E13 T10 |
 | `v2i/integ-r19` | **`6df1ed2`** = lo anterior más E8d T7, E13 T4, E8 T7, E8c T8 y E7b-a T1 (🟢) + los docs del cierre |
-| `rapido` | sobre `f3a2155`: VERDE (EK 628 · unit 1020 + 1 declarado `theOwnersTargetsAreMet` · Release 0) → `version-2` a `f3a2155`. Final sobre `6df1ed2`: RAPIDO_PENDIENTE |
+| `rapido` | sobre `f3a2155`: VERDE (EK 628 · unit 1020 + 1 declarado `theOwnersTargetsAreMet` · Release 0) → `version-2` a `f3a2155`. Final sobre `6df1ed2`: VERDE sobre `6df1ed2` (EK 628 · unit 1039 + 1 declarado `theOwnersTargetsAreMet` · Release 0) |
 | Progreso | **121 de 254 en `version-2` (47,6 %); 126 de 254 (49,6 %)** si el `rapido` de `integ-r19` da VERDE (`tasks.md` §2) |
 
 ## Lo que se integró (8 tareas)
@@ -124,7 +124,7 @@ refresco. `cadence:` y `armIfDue` siguen hasta T2.
 
 - `rapido` sobre `f3a2155` (E13 T3, E8c T7, E13 T10): VERDE (EK 628 · unit 1020 + 1 declarado `theOwnersTargetsAreMet` · Release 0)
   → `version-2` a `f3a2155` (121 de 254, 47,6 %).
-- `rapido` final sobre `integ-r19` (`6df1ed2`, con E8d T7, E13 T4, E8 T7, E8c T8 y E7b-a T1): RAPIDO_PENDIENTE
+- `rapido` final sobre `integ-r19` (`6df1ed2`, con E8d T7, E13 T4, E8 T7, E8c T8 y E7b-a T1): VERDE sobre `6df1ed2` (EK 628 · unit 1039 + 1 declarado `theOwnersTargetsAreMet` · Release 0)
 - Tareas: E13 T3 EK 628 · unit 38; E8c T7 unit 59; E13 T10 unit 23; E8d T7 unit 43; E13 T4 unit 10; E8c T8 unit 64; E8 T7 unit 61
   y pipeline 89; E7b-a T1 unit 43.
 - No se corrió un `completo` nuevo; el de referencia sigue siendo el `--limpio` de `c94f75f`.

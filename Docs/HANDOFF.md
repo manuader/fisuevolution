@@ -22,7 +22,7 @@
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
 > 19): `version-2` = **`f3a2155`** (`rapido` VERDE sobre `f3a2155`: EK 628 · unit 1020 + 1 declarado `theOwnersTargetsAreMet` ·
-> Release 0) · la rama de integración `v2i/integ-r19` = **`6df1ed2`** + estos docs (`rapido` final: RAPIDO_PENDIENTE). Están E0,
+> Release 0) · la rama de integración `v2i/integ-r19` = **`6df1ed2`** + estos docs (`rapido` final: VERDE sobre `6df1ed2` (EK 628 · unit 1039 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0,
 > E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a O, más lo del relevo 19: **los cofres de
 > piso una vez por cuenta** (**E13 T3**), **la escena que encadena sin soltar el turno** (**E8c T7**), **FisuJobs por pisos**
 > (**E13 T10**) y, en `integ-r19`, **los 8 acentos de evento** (**E8d T7**), **el punto de Regalos que avisa los boosts** (**E13

@@ -390,6 +390,9 @@ public struct MetaState: Codable, Sendable, Equatable {
     /// distintas gana el más nuevo entero: así un save viejo de otro dispositivo (o de la
     /// nube) no resucita la partida que el jugador borró.
     public var resetEpoch: Int
+    /// La partida rankeada (E12). Toda cuenta nacida en la 2.0 arranca elegible; un save sin la
+    /// clave es de antes y no compite hasta resetear.
+    public var ranking: RankingState
 
     public init(
         lifetimeEarnings: Double,
@@ -424,7 +427,8 @@ public struct MetaState: Codable, Sendable, Equatable {
         quickHirePinnedTypeId: String? = nil,
         unlockedTabs: Set<String> = [],
         engagement: EngagementState = .initial,
-        resetEpoch: Int = 0
+        resetEpoch: Int = 0,
+        ranking: RankingState = .newGame
     ) {
         self.lifetimeEarnings = lifetimeEarnings
         self.oro = oro
@@ -459,6 +463,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.unlockedTabs = unlockedTabs
         self.engagement = engagement
         self.resetEpoch = resetEpoch
+        self.ranking = ranking
     }
 
     /// Decodificador a mano por los campos que llegaron después de v4
@@ -527,6 +532,8 @@ public struct MetaState: Codable, Sendable, Equatable {
         unlockedTabs = try container.decodeIfPresent(Set<String>.self, forKey: .unlockedTabs) ?? []
         engagement = try container.decodeIfPresent(EngagementState.self, forKey: .engagement) ?? .initial
         resetEpoch = try container.decodeIfPresent(Int.self, forKey: .resetEpoch) ?? 0
+        // `try?`: un ranking ilegible (escrito por una versión futura) vale `.legacy`, no la partida entera.
+        ranking = (try? container.decodeIfPresent(RankingState.self, forKey: .ranking)) ?? .legacy
     }
 
     private enum LegacyKeys: String, CodingKey {

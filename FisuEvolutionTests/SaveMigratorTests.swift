@@ -251,7 +251,7 @@ struct SaveMigratorTests {
         var stats = try #require(meta["stats"] as? [String: Any])
         for key in ["revealedTier", "priceRelief"] { run.removeValue(forKey: key) }
         for key in ["oroPurchases", "revokedPurchases", "purchasedOroReconstructed", "lastRunMaxTier",
-                    "quickHirePinnedTypeId", "unlockedTabs", "engagement"] { meta.removeValue(forKey: key) }
+                    "quickHirePinnedTypeId", "unlockedTabs", "engagement", "ranking"] { meta.removeValue(forKey: key) }
         stats.removeValue(forKey: "oroSpentEver")
         meta["stats"] = stats
         object["run"] = run
@@ -652,6 +652,7 @@ struct SaveMigratorTests {
         expected.run.revealedTier = 9
         expected.meta.unlockedTabs = Set(SaveMigrator.v1Tabs)
         expected.meta.purchasedOroReconstructed = false
+        expected.meta.ranking = .legacy
         #expect(migrated == expected)
     }
 
@@ -732,6 +733,7 @@ struct SaveMigratorTests {
             #expect(migrated.meta.lastRunMaxTier == 0, "v\(version)")
             #expect(migrated.meta.quickHirePinnedTypeId == nil, "v\(version)")
             #expect(migrated.meta.engagement == .initial, "v\(version)")
+            #expect(migrated.meta.ranking.phase == .ineligible, "v\(version): las partidas de antes no compiten")
             #expect(migrated.meta.stats.oroSpentEver == 0, "v\(version)")
 
             let resaved = try SaveMigrator.migrate(JSONEncoder().encode(migrated))

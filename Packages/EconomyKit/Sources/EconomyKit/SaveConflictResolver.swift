@@ -84,6 +84,7 @@ public enum SaveConflictResolver {
         winner.meta.unlockedTabs = local.meta.unlockedTabs.union(remote.meta.unlockedTabs)
         winner.meta.stats.oroSpentEver = max(local.meta.stats.oroSpentEver, remote.meta.stats.oroSpentEver)
         winner.meta.engagement = EngagementState.resolve(winner: winner.meta.engagement, loser: loser.meta.engagement)
+        winner.meta.ranking = RankingState.resolve(winner: winner.meta.ranking, loser: loser.meta.ranking)
         return winner
     }
 
@@ -105,7 +106,8 @@ public enum SaveConflictResolver {
     /// Dos épocas distintas: gana entera la del reset más nuevo, sin mirar el progreso. Del
     /// lado viejo cruzan sólo las compras —lo pagado con plata no se pierde por resetear— y
     /// el ORO de las transacciones que el lado nuevo todavía no vio (cada una, una vez: la
-    /// segunda resolución ya las encuentra anotadas y no suma nada). Las compras que no son
+    /// segunda resolución ya las encuentra anotadas y no suma nada) y, del ranking, el último
+    /// nombre y una llegada a Dios sin enviar (ver `RankingState.resolveAcrossReset`). Las compras que no son
     /// de ORO (monedas, starter) hechas en el dispositivo viejo después del reset no cruzan:
     /// es una decisión tomada.
     static func resolveAcrossReset(local: PlayerState, remote: PlayerState) -> PlayerState {
@@ -126,6 +128,7 @@ public enum SaveConflictResolver {
         newer.meta.purchasedOroReconstructed = newer.meta.purchasedOroReconstructed && older.meta.purchasedOroReconstructed
         newer.meta.removedAds = newer.meta.removedAds || older.meta.removedAds
         newer.meta.ownedSkins = Array(Set(newer.meta.ownedSkins).union(older.meta.ownedSkins)).sorted()
+        newer.meta.ranking = RankingState.resolveAcrossReset(newer: newer.meta.ranking, older: older.meta.ranking)
         return newer
     }
 

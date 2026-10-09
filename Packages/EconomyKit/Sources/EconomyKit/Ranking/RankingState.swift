@@ -110,7 +110,7 @@ public struct RankingState: Codable, Sendable, Equatable {
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        phase = try c.decodeIfPresent(Phase.self, forKey: .phase) ?? .ineligible
+        phase = (try? c.decodeIfPresent(Phase.self, forKey: .phase)) ?? .ineligible
         playedSeconds = try c.decodeIfPresent(Double.self, forKey: .playedSeconds) ?? 0
         activeSince = try c.decodeIfPresent(TimeInterval.self, forKey: .activeSince)
         submission = try c.decodeIfPresent(Submission.self, forKey: .submission)
@@ -279,6 +279,16 @@ public struct RankingState: Codable, Sendable, Equatable {
         } else {
             merged.submission = base.submission ?? other.submission
         }
+        return merged
+    }
+
+    /// Dos épocas de reset distintas: manda el save del reset más nuevo, entero (su partida es
+    /// otra). Del lado viejo cruza sólo lo que no se debe perder: el último nombre y una llegada
+    /// a Dios que nunca se envió. Una partida a medio andar de la época vieja se descarta.
+    public static func resolveAcrossReset(newer: RankingState, older: RankingState) -> RankingState {
+        var merged = newer
+        merged.lastName = newer.lastName ?? older.lastName
+        merged.carriedSubmission = newer.carriedSubmission ?? older.unsentArrival ?? older.carriedSubmission
         return merged
     }
 

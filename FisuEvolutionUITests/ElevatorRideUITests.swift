@@ -5,12 +5,12 @@ final class ElevatorRideUITests: XCTestCase {
 
     @MainActor
     func testElegirUnPisoEnElMapaViajaEnCabinaYSeSaltea() throws {
-        let app = launchedApp()
+        // x5: el viaje dura ~10 s, así que si la cabina se va en un par de segundos fue por saltear.
+        let app = launchedApp(slow: true)
         let skip = pickUrbanInTheMap(app)
         XCTAssertTrue(skip.waitForExistence(timeout: 3), "elegir en el mapa no abrió la cabina")
-        // La cabina dura ~2 s: resolver el botón de nuevo para tocarlo llega tarde, se toca la pantalla.
         app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        XCTAssertTrue(skip.waitForNonExistence(timeout: 2), "saltear no cerró la cabina")
+        XCTAssertTrue(skip.waitForNonExistence(timeout: 3), "saltear no cerró la cabina")
         XCTAssertEqual(app.otherElements["board.floor"].value as? String, "urban",
                        "al saltear, el destino queda a la vista")
     }
@@ -39,10 +39,10 @@ final class ElevatorRideUITests: XCTestCase {
     }
 
     @MainActor
-    private func launchedApp() -> XCUIApplication {
+    private func launchedApp(slow: Bool = false) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-unlock-tower",
-                               "--uitest-elevator-ride"]
+                               "--uitest-elevator-ride"] + (slow ? ["--uitest-elevator-ride-slow"] : [])
         app.launch()
         return app
     }

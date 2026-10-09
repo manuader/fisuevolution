@@ -106,15 +106,19 @@ struct ElevatorRideView: View {
             }
             func eased(_ t: Double) -> Double { t * t * (3 - 2 * t) }
             switch phase {
-            case .idle, .closing:
+            case .closing:
                 position = Double(plan.origin)
-                doors = phase == .closing ? eased(progress(plan.close)) : 0
+                doors = eased(progress(plan.close))
             case .traveling:
                 position = plan.position(atTravelProgress: progress(plan.travel))
                 doors = 1
             case .opening:
                 position = Double(plan.destination)
                 doors = 1 - eased(progress(plan.open))
+            case .idle:
+                // El fundido de salida: la cabina ya llegó, con las puertas abiertas.
+                position = Double(plan.destination)
+                doors = 0
             }
         }
     }
@@ -222,14 +226,14 @@ struct ElevatorRideView: View {
         let closer = warmup.currentClosing(url: close)
         let opener = warmup.currentOpening(url: open)
         switch moment.phase {
-        case .idle, .closing:
+        case .closing:
             if let closer { ChestCinematicView(player: closer.player) } else { VectorCabin(doors: moment.doors) }
         case .traveling:
             ZStack {
                 if let opener { ChestCinematicView(player: opener.player) }
                 if let closer { ChestCinematicView(player: closer.player) } else { VectorCabin(doors: 1) }
             }
-        case .opening:
+        case .opening, .idle:
             if let opener { ChestCinematicView(player: opener.player) } else { VectorCabin(doors: moment.doors) }
         }
     }
@@ -251,7 +255,7 @@ struct ElevatorRideView: View {
         guard case .video(let close, let open) = art, !plan.fades else { return }
         switch phase {
         case .idle:
-            warmup.release()
+            break
         case .closing:
             warmup.cancelExpiry()
             Self.play(warmup.closingPlayer(url: close), over: plan.close)

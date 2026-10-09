@@ -10,6 +10,7 @@ struct ElevatorRideOverlay: View {
         ZStack {
             if ride.phase != .idle, let plan = ride.plan {
                 ElevatorRideView(ride: ride, plan: plan, art: ElevatorCabinArt.shared)
+                    .accessibilityAddTraits(.isModal)
                     .transition(.opacity)
             }
         }
@@ -27,13 +28,11 @@ struct ElevatorRideOverlay: View {
 extension AudioManager {
     /// El motor es un ambiente (-18 dB, con fundido al cortar): el viaje lo arranca y lo para.
     func play(_ cue: ElevatorRide.Cue) {
-        switch cue {
-        case .keypadOpen, .keypadClose: play(.elevatorSpring, gain: .action)
-        case .button: play(.elevatorClick, gain: .action)
-        case .doorsClose, .doorsOpen: play(.elevatorDoors, gain: .action)
-        case .motorStart: startAmbient(.elevatorMotor)
-        case .motorStop: stopAmbient(.elevatorMotor)
-        case .ding: play(.elevatorDing)
+        switch cue.sound {
+        case .oneShot(let sfx, let gain?): play(sfx, gain: gain)
+        case .oneShot(let sfx, nil): play(sfx)
+        case .startLoop(let sfx): startAmbient(sfx)
+        case .stopLoop(let sfx): stopAmbient(sfx)
         }
     }
 }

@@ -67,7 +67,8 @@ struct FisuEvolutionApp: App {
             cue: { [audio] in audio.play($0) },
             sleep: { try? await Task.sleep(for: $0) },
             reduceMotion: { UIAccessibility.isReduceMotionEnabled },
-            instant: ElevatorRide.isInstantForUITests
+            instant: ElevatorRide.isInstantForUITests,
+            slowdown: ElevatorRide.uiTestSlowdown
         ))
     }
 

@@ -522,7 +522,7 @@ que toma · commit o rama · nota.
 | E6b-T6 | Lugares extra (EK) | ⛔ | E6a-T2; E2a-T4 | — | | |
 | E6b-T7 | Lugares extra en la partida | ⛔ | T6; E6a-T6, E6a-T8, E6a-T12; E3a-T10; E5a-T6 | 🔥 GameState, catálogo; GameContentLoader, +Engagement | | 🔒 si las 4 filas no entran en el SE |
 | E6b-T8 | Exclusivas de ORO elegidas entre skins de la v1 | ⛔ | T1r, T5 | catálogo | | el agente propone y se las muestra al dueño antes de cerrar |
-| E6b-T9 | Las tres familias entran | ⛔ | E8 T3–T5; T5 | catálogo | | 🔒 arte de E8 = E8 T3–T5; 🔒 si el bundle crece > 60 MB (E8 T10 lo mide; estimado ≈ +29 MB con fondos en JPEG) |
+| E6b-T9 | Las tres familias entran | ⏳ | E8 T3–T5; T5 | catálogo | | 🔒 arte de E8 = E8 T3–T5; 🔒 si el bundle crece > 60 MB (E8 T10 lo mide; estimado ≈ +29 MB con fondos en JPEG) |
 | E6b-T10 | Cierre de E6b | ⛔ | T1–T9 | `Docs/` | | |
 
 ### E7b-a — Anuncios v2, los forzados (`2026-10-07-v2-e7b-a-forzados-mediacion.md`)
@@ -575,7 +575,7 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8-T7 | Paquete, Colchón, Ruleta, tienda y Álbum (31) | ✅ | T2 | `ui.atlas`; 🔥 `assets_manifest.json` (`ui`) | `5c33986` (integ-r19) | `oraculo.sh tarea GameArtComponentsTests GameContentValidationTests`; carries a E5b T1–T3, E6b T9, E4b T8, E7b-b T3; **hecha (r19):** +62 PNG en `ui.atlas` (+4,3 MB), 31 claves `ui`; `wheel_frame` y `ui_album_card_frame` con la ventana interior blanca opaca; `ui_shop_income_x2` y `x3` son la misma imagen |
 | E8-T8 | Los fondos a 2048 (JPEG) | ✅ | T2 | `Backgrounds/`, `process_dropbox.py`; 🔥 `assets_manifest.json` (`backgrounds`) | `6029e73` | crea `BackgroundArtTests` (xcodegen); mide la memoria del vuelo; revisión sonnet; `Backgrounds/` 38 → 9 MB; PSNR q90 35–40 dB (bajo la vara de 40 del plan; a ojo sin bloques, q95 igual a la vista → q90); **memoria del vuelo SIN medir → carry a T10** |
 | E8-T9 | 🔒 La revisión de recortes de la 2.0 | ⛔ | T1, T3–T7 | `recut_assets.py`, los atlas elegidos | | la página la arma el agente; elige el dueño; no frena a nadie |
-| E8-T10 | Peso, memoria y cierre (controlador) | ⛔ | T1–T8 | `Docs/`, `tasks.md` | | `completo --limpio`; 🔒 sólo si el bundle crece > 60 MB (estimado ≈ +29 MB) |
+| E8-T10 | Peso, memoria y cierre (controlador) | ⏳ | T1–T8 | `Docs/`, `tasks.md` | | `completo --limpio`; 🔒 sólo si el bundle crece > 60 MB (estimado ≈ +29 MB) |
 | P-E8b | Plan de E8b: cinemáticas y retratos animados | ✅ | — | — | `f035a5d` | 12 tareas; `2026-10-08-v2-e8b-cinematicas.md`; 11 dudas con default; ⚠️ `loops/` hoy es blanco, no croma |
 | E8b-T1 | `video_assets.py`: el retrato mide arriba y el key acepta magenta | ✅ | — | video_assets.py, test_video_assets.py | `25c6b35` | pipeline, no compila; los dos ajustes de `DUENO.md`; los 18 de croma miden sin error (`medir --clase retrato`) |
 | E8b-T2 | `video_assets.py`: retratos sobre blanco por conectividad | ✅ | T1 | video_assets.py, test_video_assets.py | (merge en integ-r13) | pipeline; `whitebg_cutout` cuadro por cuadro a 512²; revisión sonnet; 29–51 s por loop escalando a 512 antes de recortar (no 270); mirar el cuello del lagarto en T3 |
@@ -663,7 +663,7 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 |---|---|---|---|---|---|---|
 | P-E2b | Plan de E2b | ✅ | — | — | `5b15b82` | 15 tareas; reporte `.superpowers/sdd/2026-10-07-v2-e2b/plan-report.md` |
 | E2b-T1 | Bandas de escalada y curva por piso (EK) | ✅ | E2a-T3, E2a-T5 | — | `42b2e8c` (integ-r20) | **hecha (r20):** `EscalationBand` + `escalation(atFrontier:)` única fórmula (`hireCost`, `PriceCushion.jump`), `costGrowthStepPerFloor`; apagadas (umbral 7 = v1) |
-| E2b-T2 | Herencia de pasivos al reencarnar (EK) | ⛔ | T1 | — | | |
+| E2b-T2 | Herencia de pasivos al reencarnar (EK) | 🔄 | T1 | — | | |
 | E2b-T3 | El simulador cobra como el juego (EK) | ⛔ | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
 | E2b-T4 | Política de pisos en marcha del bot (EK, opus) | ⛔ | T3; E2a-T4 | — | | |
 | E2b-T5 | Perfiles y fuentes gratis (EK) | ⛔ | T4; E5a-T1 | archivo de `PackageRoller` | | |
@@ -704,8 +704,8 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T11 | Los ganchos en `GameState` | ✅ | T8, T10 | 🔥 GameState (una línea); +Celebrations, +Lifecycle, +BoardChanges, +Bootstrap, +Debug, FisuEvolutionApp | | sonnet, **rev. opus**; ventana libre de `GameState.swift` |
 | E12-T12 | El reset abre un intento nuevo | ⛔ | T11; E9b-T7, E9b-T8 | ResetPlan, +Reset | | sonnet, rev. opus |
 | E12-T13 | La 7.ª pestaña montada | ✅ | T9b, T11; E3b-T4, E3a-T11 | 🔥 RootView, catálogo; GameArtComponents, BottomMenuBar, MenuPagerView, TabUnlocks, tabs.json, +Tabs | | sonnet; captura SE (plan B: tarjeta en la Oficina); **destrabada (r20):** E3b T4 🟢 y E3a T11 ✅; dueña de `RootView` (no ∥ E3b T8, E7b-a T2) |
-| E12-T14 | La tarjeta de Dios montada | ⛔ | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
-| E12-T15 | Privacidad, Términos y notas a App Review | ⛔ | T11 | PrivacyInfo.xcprivacy, Legal | | sonnet; insumo de E10 |
+| E12-T14 | La tarjeta de Dios montada | ⏳ | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
+| E12-T15 | Privacidad, Términos y notas a App Review | ⏳ | T11 | PrivacyInfo.xcprivacy, Legal | | sonnet; insumo de E10 |
 | E12-T16 | Despliegue real y humo | 🔒 | T5, T14 | — | | Supabase (URL + anon), `ANTHROPIC_API_KEY`, lista aprobada |
 | E12-T17 | El piso calibrado | ⛔ | T16; E2b-T14 | — | | controlador; no frena el cierre |
 | E12-T18 | Cierre de E12 (controlador) | ⛔ | T1–T16 | `Docs/` | | |
@@ -731,7 +731,7 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13-T10 | FisuJobs por pisos | ✅ | T8 | FisuJobsView | `54c5648` (integ-r19) | revisión ninguna; `JobGroups` testeable; **hecha (r19):** `GameState.floorDisplayName(for:)` → "Piso ???" también en la ficha y la tienda de pintas (cierra el carry de E13 T8); cartel del LED `TowerNaming.ledText`; el orden es el de `jobRows`; sin receta R ni captura SE con tres pisos |
 | E13-T11 | La moneda sobre quien genera plata | ✅ | — | 🔥 BoardScene; CharacterNode, BoardReconciliation, +Actions | `17b29fb` (integ-r18) | no ∥ T9 (+Actions); un nodo por personaje, sin animación |
 | E13-T12 | El Diamante dice "Pack de las 43" | ✅ | — | catálogo (snapshot); +Store, CustomizationView | `221f9b6`+`ff3b1ef` (integ-r18; catálogo +1) | revisión ninguna; +Store es tibio de E6b T4/T5 |
-| E13-T13 | Las mejoras dicen su efecto, de antes a después | ⛔ | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |
+| E13-T13 | Las mejoras dicen su efecto, de antes a después | 🔄 | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |
 | E13-T14 | Cierre de E13 (controlador) | ⛔ | T2–T13 | `Docs/` | | `completo`; HANDOFF §5.7 "las seis" |
 | P-E13b | Plan de E13 ítems 13–14 (ascensor y barra) | ✅ | — | — | `2560366` (merge `f395ac2`) | 11 tareas (T1–T11); `2026-10-08-v2-e13b-ascensor-barra.md`; 14 dudas con default; **no toca RootView ni GameState** |
 | E13b-T1 | El director del viaje en cabina y sus tiempos (≤ 3 s, nunca menos que el vuelo) | ✅ | — | nuevos (`UI/Elevator/ElevatorRide.swift`) | `8b090d4` | sonnet; ola 1 |
@@ -744,7 +744,7 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13b-T8 | Mantener apretado el ascensor despliega la placa; el display LED se va | ✅ | T2, T6, T7; T9 integrada | 🔥 HUDView (épica); ElevatorRideOverlay; borra ElevatorPanel.swift; catálogo (snapshot) | `fc86813`+`5f33a26` (en `v2i/integ-r16`; catálogo +1 −3) | revisión opus: Changes requested → hechos (la bandera del long press baja con `DragGesture` como E3b T7; la placa sólo se recoge al pasar `showing` de nil a un tipo que cubre —`CelebrationKind.coversElevator`—, y `ride.openKeypad()` va antes de `elevatorKeypadOpened()`; capa `.isModal` + `.escape`; guard en `openKeypad()`); tarea VERDE unit 43; UI ElevatorPanel 5 en 16 Pro, SE e iPad, ElevatorRide 3, HUDRedesign 3; placa de 10 pisos en el SE cabe (`--uitest-unlock-tower-all`; tapa parte de Reencarnar mientras está abierta). Carries: `onChoose` del atajo pasa a **E3b T8** (no existe `QuickHirePicker`); sin test con el tip `.elevatorKeypad` en pantalla (no hay fixture); flake bajo carga en `ElevatorRideTests` 'saltear con las puertas abriendo' (subir las iteraciones de `Task.yield`); comentarios viejos de 'la luz de la botonera' en `GameState.swift:130` y `BoardScene.swift:1926` |
 | E13b-T9 | La Tienda sale de la barra (se abre con el + de la moneda) | ✅ | — | 🔥 HUDView (una línea); GameArtComponents (barOrder), TabUnlocks, tabs.json, +Tabs, BottomMenuBar; catálogo (snapshot) | `98d7d9f` | ola 1; migra BottomMenu/Store/ProgressiveTabs UITests al `hud.coins.plus`; carry E3b T4 (5 páginas) — duda 1; tarea VERDE unit 89 + UI a mano (BottomMenu/ProgressiveTabs/HUDRedesign 8 en 26.5, Store 2 en 18.6); queda `TabUnlockCondition.secondSession` sin uso; `sixTabsFitTheSE` lo rehace T10; comentarios "seis pantallas" ajenos |
 | E13b-T10 | La barra simétrica 2 + 1 + 2, sin rótulos y con íconos grandes | ✅ | T9 | GameArtComponents (GameTabBar), BottomMenuBar | `66e997c` (integ-r14) | `panelHeight` 64 y `barHeight` 84 se conservan; capturas SE e iPad; platos 52/72, íconos 46/64, `bottomPadding` 6; `fiveTabsFitTheSE`, `sidesFillTowardTheCenter`; UI BottomMenu 4/4 en SE, 16 Pro e iPad; `TabUnlockCondition.secondSession` sigue sin uso |
-| E13b-T11 | Cierre de E13b (controlador) | ⛔ | T1–T10 | `Docs/` | | `completo`; grabaciones para el dueño |
+| E13b-T11 | Cierre de E13b (controlador) | ⏳ | T1–T10 | `Docs/` | | `completo`; grabaciones para el dueño |
 
 Dependencias que E13 le suma a otras épicas (plan E13, "Lo que E13 le deja a otras épicas"): **E2b**
 T5 ← E13-T3; T6 ← E13-T2; T10 ← E13-T6; T12 ← E13-T2, T3, T6, T7; T14 ← E13-T7 (seis líneas, 348 ORO).

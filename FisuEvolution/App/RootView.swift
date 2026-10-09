@@ -316,7 +316,8 @@ struct GameBoardView: View {
             PrestigeView()
         }
         // El menú deslizable: las pestañas desbloqueadas como páginas de UNA
-        // hoja. Cada página conserva su `NavigationStack`, su marco y su X; el
+        // hoja. Sólo la página quieta queda montada (con su `NavigationStack`,
+        // su marco y su X; al deslizar se desmonta y pierde su estado); el
         // panel del `panelSheet` ES la hoja (`fisuSheet` la deja sin el material
         // del sistema debajo): flota sobre el juego atenuado con su banda
         // inferior a la vista, como los popups. La Tienda no está en la barra

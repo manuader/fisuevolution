@@ -288,7 +288,7 @@ struct CharacterSheetView: View {
     private var unlockDescription: String {
         guard let skin = selected.skin else { return "" }
         if let floor = skin.floorReached {
-            return String(localized: "character.skin.reach-floor \(TowerNaming.floorName(for: floor))")
+            return String(localized: "character.skin.reach-floor \(gameState.floorDisplayName(for: floor))")
         }
         if let lives = skin.reincarnations { return String(localized: "character.skin.reincarnations \(String(lives))") }
         return String(localized: "character.skin.store")

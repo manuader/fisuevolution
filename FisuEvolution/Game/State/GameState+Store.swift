@@ -196,6 +196,12 @@ extension GameState {
         return .milestoneLocked(conditionText: String(localized: "skins.locked.generic"))
     }
 
+    /// El nombre de un piso, o "Piso ???" mientras no lo abriste (PLAN-v2 E13).
+    func floorDisplayName(for floorID: String) -> String {
+        let isUnlocked = player?.run.unlockedFloors.contains(floorID) ?? false
+        return TowerNaming.displayName(for: floorID, isUnlocked: isUnlocked)
+    }
+
     /// La condición de una skin de milestone, ya traducida, o `nil` si no es de
     /// milestone.
     ///
@@ -205,7 +211,7 @@ extension GameState {
     private func milestoneConditionText(for entry: SkinsConfig.Entry) -> String? {
         if let floorID = entry.floorReached {
             // El id crudo del piso ("urban") no es un nombre.
-            return String(localized: "skins.unlock.floor \(TowerNaming.floorName(for: floorID))")
+            return String(localized: "skins.unlock.floor \(floorDisplayName(for: floorID))")
         }
         if entry.upgradesMaxed == true {
             // El oro no se vende: el texto genérico ("todavía no está a la

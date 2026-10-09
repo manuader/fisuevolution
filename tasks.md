@@ -382,7 +382,7 @@ que toma · commit o rama · nota.
 | E3a-T8 | La botonera del ascensor | ✅ | T6 | catálogo (o snapshot); PanelFrames, HUDView, AudioManager | `aae3a7f` + claves `f9207c2` (merge `9eeb9eb`) | carry T12: en DEBUG el display tapa el chip ×1,0; medir SE|
 | E3a-T9 | Las pestañas aparecen de a poco | ✅ | T7; E1-T4; ventana de GameState | 🔥 GameState, catálogo; +Debug, GameContentLoader | `02ee23b` (merge `c76af46`, claves `528d10b`) | carry T12: captura del ¡Nuevo! y SE con 4 pestañas; carry E9: lecciones sobre pestañas cerradas |
 | E3a-T10 | La escena: PlayLayout, 3 filas, cámara, iPad | ✅ | T3, T7, T8; E1-T10 | 🔥 BoardScene, GameState, RootView; `oraculo.sh` | `789c200` (merge) | sin capturas SE/16 Pro → T12; ElevatorPanelUITests sensible a carga |
-| E3a-T11 | La raíz: chrome en la columna, seis hojas | 🟢 | T6, T10 | 🔥 RootView | | no con E1 T13–T14 |
+| E3a-T11 | La raíz: chrome en la columna, seis hojas | ✅ | T6, T10 | 🔥 RootView | | no con E1 T13–T14 |
 | E3a-T12 | Cierre de E3a: SE en castellano, capturas de iPad | ⛔ | T1–T11 | `oraculo.sh` | | carries: `ScreenInsetsUITests` al `se-ui`; fijar Xcode 26.x como SDK del release (el SDK 27 ignora `UIRequiresFullScreen`) |
 
 ### E3b — UX núcleo, las interacciones (`2026-10-07-v2-e3b-ux-nucleo.md`)
@@ -517,7 +517,7 @@ que toma · commit o rama · nota.
 | E7b-a-T2 | Los cortes naturales | ⛔ | T1; E1-T8; E3b-T4; E4a-T8 | 🔥 GameState, RootView; +Lifecycle, +Celebrations, FisuEvolutionApp | | |
 | E7b-a-T3 | La pausa publicitaria | ⛔ | T2; E4a-T8; E5a-T6; E5b-T1; E4b-T3; E1-T14 | 🔥 GameState, RootView, catálogo; DebugPanelView | | |
 | E7b-a-T4 | El app open al volver | ⛔ | T2 | — | | no ∥ T3 (los dos editan `+Ads`) |
-| E7b-a-T5 | "Opciones de privacidad" (UMP) en Ajustes | 🟢 | E11-T4 | 🔥 SettingsView, catálogo | | antes de los Ajustes de E9 |
+| E7b-a-T5 | "Opciones de privacidad" (UMP) en Ajustes | ✅ | E11-T4 | 🔥 SettingsView, catálogo | | antes de los Ajustes de E9 |
 | E7b-a-T6 | La mediación: adaptadores, SKAdNetwork, Ad Inspector | ⛔ | T1; E3a-T5 | 🔥 project.yml; Info.plist, DebugPanelView | | las cuentas de las redes no la bloquean. **Dueño (2026-10-08):** sólo adaptadores de **Unity Ads** y **Meta Audience Network** por SPM (no AppLovin ni Mintegral); SKAdNetwork de Unity (`https://skan.mz.unity3d.com/v3/partner/skadnetworks.plist.json`) al `Info.plist` (los de Meta `v9wttpbfk9`, `n38lu8286q` ya están); IDs en `Distribution/release/release.json → mediation` |
 | E7b-a-T7 | Cierre de E7b-a (controlador) | ⛔ | T1–T6 | `Docs/` | | |
 
@@ -602,7 +602,7 @@ Encargos a E4b T3/T4/T8, E5b T2/T3, E6a T8, E9a/E9b, E7b-a T2: plan, "Lo que E8d
 | E8d-T5 | El especial que te cayó y la ficha, animados | ✅ | T3 | SpecialDropView, CharacterSheetView (tibio: E13 T9) | | sonnet, revisión ninguna; capturas SE/16 Pro con `--uitest-video`; reemplaza E8b T6 |
 | E8d-T6 | Sonidos nuevos A (paquete, colchón, visitante, tienda, revelación, cable) | ✅ | — | AudioManager (tibio: E8c T4 → E8d T6 → T7 → E8b T9), generate_audio.py, AudioWiringTests | `7c31fc8` (merge `0079647` en `v2i/integ-r15`) | sonnet; 11 `.caf`; `pendingWiring` con dueño; 🔒 oído del dueño (no frena); ola 1; 11 `.caf` a −18/−24 dB RMS; `Gain` acción/ambiente, `startAmbient`, `talkPitch`; `pendingWiring` con dueños (E5b T2/T3, E4b T3, E6a T8, E8d T5/T9/T10); `elevatorCases` los cablea E13b T6; el motor sigue a −8,5 (bajarlo con `.ambient` o `SFX_RMS_DB`) |
 | E8d-T7 | Los 8 acentos de evento | ✅ | T6; ventana de +Bonus (o E4a T9) | 🔥 +Bonus (una línea); AudioManager, generate_audio.py | `b451e4d` (integ-r19) | sonnet, revisión ninguna; **hecha (r19):** 8 `sfx_ev_*.caf` a −20 dB RMS **sin escuchar (G7)**; `AudioManager.accent(forEvent:)` con default `.event`; `AudioWiringTests.eventAccents` |
-| E8d-T8 | El fondo del piso visible, animado | 🟢 | T4; ventana de BoardScene | 🔥 BoardScene; FloorNode | | sonnet, **rev. opus**; inerte hasta T14; scroll y viaje = póster |
+| E8d-T8 | El fondo del piso visible, animado | ✅ | T4; ventana de BoardScene | 🔥 BoardScene; FloorNode | | sonnet, **rev. opus**; inerte hasta T14; scroll y viaje = póster |
 | E8d-T9 | La revelación con el cuerpo entero | 🔧 | T8 | 🔥 BoardScene | | sonnet, **rev. opus**; ruta A (`SKVideoNode`) o B (overlay) según T4 |
 | E8d-T10 | El viaje suspende los videos; la cabina reserva su decodificador; `sfx_elevator_cable` | ⛔ | T2, T6; E13b T6, T8 | ElevatorCabin.swift, ElevatorRideOverlay | | sonnet, **rev. opus**; no frena a E13b T6 |
 | E8d-T11 | La intro, la primera vez | ⛔ | E8b T10 | +Cinematics, +Bootstrap (tibio); catálogo (snapshot, 1 clave) | | sonnet, rev. sonnet; inerte sin `cinematics.intro` |

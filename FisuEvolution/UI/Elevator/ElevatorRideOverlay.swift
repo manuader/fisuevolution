@@ -25,16 +25,14 @@ struct ElevatorRideOverlay: View {
 }
 
 extension AudioManager {
-    /// El motor del ascensor sale del sintetizador ~8 dB más fuerte que el resto: se baja al tocarlo.
-    private static let elevatorMotorGain: Float = 0.4
-
+    /// El motor es un ambiente (-18 dB, con fundido al cortar): el viaje lo arranca y lo para.
     func play(_ cue: ElevatorRide.Cue) {
         switch cue {
-        case .keypadOpen, .keypadClose: play(.elevatorSpring)
-        case .button: play(.elevatorClick)
-        case .doorsClose, .doorsOpen: play(.elevatorDoors)
-        case .motorStart: play(.elevatorMotor, gain: Self.elevatorMotorGain)
-        case .motorStop: stop(.elevatorMotor)
+        case .keypadOpen, .keypadClose: play(.elevatorSpring, gain: .action)
+        case .button: play(.elevatorClick, gain: .action)
+        case .doorsClose, .doorsOpen: play(.elevatorDoors, gain: .action)
+        case .motorStart: startAmbient(.elevatorMotor)
+        case .motorStop: stopAmbient(.elevatorMotor)
         case .ding: play(.elevatorDing)
         }
     }

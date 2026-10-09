@@ -20,23 +20,24 @@
 > (que también compila Release) lo corre el controlador una vez por ola. Los
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
-> cualquier otra forma choca con el guard). Al 2026-10-08 (cierre del relevo
-> 14): `version-2` = **`596cacd`** (pusheado; `rapido` VERDE: EK 605 · unit 822 + 1 declarado · release 0) y la
-> rama de integración `v2i/integ-r14` = **`32afc93`** (`rapido`: VERDE sobre `32afc93` (EK 606 · unit 865 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0, E10 en papel,
-> E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a J (con **E13b T5, la cabina**, ya en
-> `version-2`), más lo del relevo 14 en `integ-r14`: **la reconciliación de los videos con la rama del dueño**, el plan
-> **P-E8d** (el lado Swift de las animaciones, 15 tareas), **E13b T7 y T10** (la lección del ascensor y la barra
-> simétrica 2 + 1 + 2), **E3b T6** (la oferta del atajo), **E12 T7** (el cliente del ranking) y **E8d T1** (el
-> manifest entero). **Progreso: 87 de 254 tareas activas en `version-2`; 87 + 5 = 92 de 254 (36,2 %) si el `rapido`
-> de `integ-r14` da VERDE** (`tasks.md` §2; el denominador subió por E8d). **El último `completo` de referencia es el
-> `--limpio` de `c94f75f` (E1 T16).** Detalle en `Docs/SESION-2026-10-08-v2-relevo-14-ola-k.md`.
+> cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
+> 15): `version-2` = **`fa8781a`** (pusheado; el relevo 14 la dejó con `rapido` VERDE: EK 606 · unit 865 + 1 declarado ·
+> release 0) y la rama de integración `v2i/integ-r15` = **`e6e8c53`** (`rapido`: RAPIDO_PENDIENTE). Están E0, E10 en
+> papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a K (con la reconciliación de los videos, el
+> plan **P-E8d**, **E13b T5, T7 y T10**, E3b T6, E12 T7 y E8d T1), más lo del relevo 15 en `integ-r15`: **el viaje del
+> ascensor montado encima de `RootView` (E13b T6)**, **el `VideoPlayerPool` y `AnimatedArtView` (E8d T2 y T3)**, los
+> **sonidos A (E8d T6)**, **el botón del atajo que no desaparece (E3b T7)** y **el store del ranking (E12 T8)**.
+> **Progreso: 92 de 254 tareas activas en `version-2`; 92 + 6 = 98 de 254 (38,6 %) si el `rapido` de `integ-r15` da
+> VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16).** Detalle en
+> `Docs/SESION-2026-10-09-v2-relevo-15-ola-l.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r14` (cinco tareas, los videos reconciliados, P-E8d y los docs del
-> cierre; si su `rapido` dio verde, el primer paso del relevo 15 es el fast-forward). `v2/e12-plan`,
-> `v2/release-ops`, `v2/e8-videos` y `v2/e8-animaciones-docs` son de la sesión del dueño (esas dos últimas ya están
-> mergeadas en `integ-r14`: manda la versión del dueño de cada pieza); no se tocan. Hay planes por tareas para todas
-> las épicas salvo la parte de agente de E10. **Lo primero del relevo 15:** el `rapido` de `integ-r14` si no quedó hecho y
-> después E13b T6 → T8 (prioridad alta del dueño; T8 llama `elevatorKeypadOpened()`), con E8d T2 ∥ T6 al lado (`tasks.md` §4).
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r15` (seis tareas y los docs del cierre; si su `rapido` dio verde,
+> el primer paso del relevo 16 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión
+> del dueño; no se tocan (la segunda tanda de videos corre ahí y carga la máquina). Hay planes por tareas para todas
+> las épicas salvo la parte de agente de E10. **Lo primero del relevo 16:** el `rapido` de `integ-r15` si no quedó hecho
+> y después **E13b T8** (la placa al mantener apretado el ícono; llama `elevatorKeypadOpened()`; prioridad alta del
+> dueño), con **E8d T4** y **E12 T10** al lado (`tasks.md` §4). Con la carga de la máquina alta, no más de dos
+> compilando.
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -346,6 +347,25 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-09 (relevo 15) — La ola L: el ascensor montado, el pool de videos y el store del ranking
+
+`version-2` quedó en `fa8781a` y `v2i/integ-r15` en `e6e8c53`. **Progreso: 92 de 254 en `version-2`; 98 de 254 (38,6 %) con las seis de `integ-r15`.**
+
+- **E13b T6, el viaje montado:** el overlay vive en `FisuEvolutionApp` y el mapa viaja; bajo `--uitest*` el viaje dura
+  0 s. La revisión opus cazó el parpadeo al salir, el doble ding al saltear y el `prepare()` con Reduce Motion; UI tests
+  de ElevatorRide en 16 Pro e iPad. Falta T8 (la placa), con el carry de que los popups de `RootView` se dibujan encima
+  de la cabina.
+- **E8d T2 y T3:** `VideoPlayerPool` con `VideoPlaybackPolicy` (≤ 3 vivos, roles, suspensiones) y `AnimatedArtView`
+  (póster instantáneo, video en overlay, `loop` o `once` que no revive). Ambas pasaron por opus con arreglos. El
+  publisher de `isReadyForDisplay` no dispara en el simulador y quedó el sondeo.
+- **E8d T6, E3b T7 y E12 T8:** 11 sonidos nuevos con `Gain`/`startAmbient`; el botón del atajo con `blocker` y long
+  press (un toque tras mantener sigue comprando); `RankingStore` con `startAttemptId` y `playedSeconds` en la llegada
+  arrastrada.
+- **Dos `xcodebuild` colgados dos horas** y una carga de ~600 por la segunda tanda de videos del dueño: trampas nuevas
+  en §7.
+
+Detalle en **`Docs/SESION-2026-10-09-v2-relevo-15-ola-l.md`**.
 
 ### Sesión del 2026-10-08 (relevo 14) — La ola K: los videos reconciliados, el plan Swift de las animaciones y cinco tareas más
 
@@ -2612,6 +2632,22 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la ola L (2026-10-09, relevo 15)
+
+- **Un `xcodebuild` de tests puede no salir nunca.** Después de `Test run with…` el proceso sigue vivo (E12 T8: 2 h 16 min
+  con los 18 tests ya terminados en 1 s; lanzó `simctl diagnose`), o se cuelga en `Resolve Package Graph` bajo carga.
+  Correr con `-disableAutomaticPackageResolution -skipPackageUpdates`, el simulador ya booteado y un timeout; mirar
+  `etime` en cada borde y **no esperar más de 15 minutos**. UI tests de a una clase.
+- **La carga de la máquina la puede poner la sesión del dueño** (la segunda tanda de videos, `tanda2.sh` →
+  `video_assets.py personaje <id>`, multiproceso, más Vorssaint): carga ~600. Con eso, **no más de 2 compilando**; no
+  se toca la sesión del dueño.
+- **`pkill -f "until ! pgrep"` mata bucles ajenos.** Nunca: cortar un bucle de espera sólo por su PID propio.
+- **Un agente que pasó un oráculo al fondo por timeout se re-despierta** (el de E8d T6 se despertó 3 veces tras entregar).
+  `TaskStop` sólo después de que entregó.
+- **El publisher de `isReadyForDisplay` no dispara en el simulador.** El sondeo (50 ms × 40, con `giveUp`) es el camino
+  real; el publisher se prueba en un dispositivo.
+- **`AudioWiringTests` sólo ve `audio?.play(`:** `startAmbient` no cuenta y `UI/Elevator` no se escanea.
 
 ### De la ola K (2026-10-08, relevo 14)
 

@@ -52,3 +52,8 @@ build-*/
 # Capturas de la ficha: las regenera AppStoreScreenshotTests en un comando.
 # 14 MB de PNG derivados no son fuente (mismo criterio que el .xcodeproj).
 Distribution/screenshots/
+
+# Masters de video: viven en automatic-image-generation (su revision.json dice
+# cuales van). Solo el del cofre se versiona.
+Tools/asset-pipeline/video/*
+!Tools/asset-pipeline/video/chest-animation.mp4

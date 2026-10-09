@@ -26,15 +26,23 @@ extension EnvironmentValues {
 /// páginas, en el orden de la barra. Cada página conserva su `NavigationStack`, su
 /// marco y su X.
 ///
-/// Se montan la página actual y sus vecinas; las ocultas no tienen AX ni toques,
-/// así que `sheet.close` es uno solo en el árbol. El arranque en la página pedida
-/// va por `ScrollViewReader`: `scrollPosition(id:)` no aplica el valor inicial.
+/// En reposo se monta SOLO la página actual: la X de cada página vive en la barra
+/// de navegación de UIKit, que `accessibilityHidden` no oculta, y con vecinas
+/// montadas `sheet.close` aparecería tres veces en el árbol. Mientras el scroll
+/// se mueve (gesto, flechas) se montan también las vecinas, para que el
+/// deslizado no muestre un hueco. El arranque en la página pedida va por
+/// `ScrollViewReader`: `scrollPosition(id:)` no aplica el valor inicial.
 struct MenuPagerView: View {
     let pages: [GameScreen]
     let adsProvider: AdsCoordinator
     let onPageChange: (GameScreen) -> Void
     @State private var current: GameScreen?
+    /// La última página que el scroll fijó. `current` pasa por `nil` mientras el
+    /// scroll se resuelve; montar según él desmontaría la página que se está mirando
+    /// (y perdería su estado).
+    @State private var shown: GameScreen
     @State private var locked = false
+    @State private var moving = false
     private let start: GameScreen
 
     init(pages: [GameScreen], start: GameScreen, adsProvider: AdsCoordinator,
@@ -45,6 +53,7 @@ struct MenuPagerView: View {
         let first = pages.isEmpty ? start : pages[Self.startIndex(of: start, in: pages)]
         self.start = first
         _current = State(initialValue: first)
+        _shown = State(initialValue: first)
     }
 
     static func startIndex(of screen: GameScreen, in pages: [GameScreen]) -> Int {
@@ -58,7 +67,7 @@ struct MenuPagerView: View {
     }
 
     private var currentIndex: Int {
-        current.flatMap { pages.firstIndex(of: $0) } ?? 0
+        pages.firstIndex(of: shown) ?? 0
     }
 
     var body: some View {
@@ -77,24 +86,27 @@ struct MenuPagerView: View {
             .scrollPosition(id: $current)
             .scrollIndicators(.hidden)
             .scrollDisabled(locked)
+            .onScrollPhaseChange { _, phase in moving = phase != .idle }
             .onAppear { proxy.scrollTo(start, anchor: .leading) }
         }
         .onChange(of: current) { _, page in
-            if let page { onPageChange(page) }
+            guard let page else { return }
+            shown = page
+            onPageChange(page)
         }
     }
 
     @ViewBuilder private func slot(_ page: GameScreen, index: Int) -> some View {
         let isCurrent = index == currentIndex
         Group {
-            if Self.isMounted(index: index, current: currentIndex) {
+            if isCurrent || (moving && Self.isMounted(index: index, current: currentIndex)) {
                 MenuPage(screen: page, adsProvider: adsProvider)
-                    .environment(\.menuPager, MenuPagerContext(
+                    .environment(\.menuPager, pages.count > 1 ? MenuPagerContext(
                         index: index,
                         count: pages.count,
                         go: { go(to: $0) },
                         lock: { locked = $0 }
-                    ))
+                    ) : nil)
             } else {
                 Color.clear
             }

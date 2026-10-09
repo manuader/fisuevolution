@@ -99,11 +99,18 @@ struct GameBoardView: View {
     @Environment(GameState.self) private var gameState
     @State private var scene: BoardScene?
     @State private var showPrestige = false
-    /// La pantalla de la barra inferior que está abierta, o `nil`. Las seis
-    /// comparten UN `.fisuSheet(item:)` en vez de tener un `@State showX` cada una:
-    /// con un booleano por hoja, dos tabs seguidos podían dejar dos banderas en
-    /// `true` y SwiftUI presentar una sola. El enum lo hace imposible.
-    @State private var activeScreen: GameScreen?
+    /// La sesión del menú deslizable, o `nil`. Su `id` es estable mientras la
+    /// hoja está arriba: deslizar entre pestañas cambia la página adentro, no
+    /// la sesión, así que la hoja no se vuelve a presentar (PLAN-v2 E3). Las
+    /// seis pestañas comparten UN `.fisuSheet(item:)`: con un booleano por hoja,
+    /// dos tabs seguidos podían dejar dos banderas en `true` y SwiftUI presentar
+    /// una sola.
+    @State private var menuSession: MenuSession?
+
+    private struct MenuSession: Identifiable {
+        let id = UUID()
+        let start: GameScreen
+    }
     /// El coordinador de anuncios lo construye la App (necesita los feature
     /// flags, que no existen cuando este `@State` se inicializaría): acá sólo
     /// se lee del entorno.
@@ -248,22 +255,23 @@ struct GameBoardView: View {
         // prestigio) tapando el tablero: el coach señala controles de ESTA
         // pantalla. `GameState` no puede ver estos `@State`, así que se los
         // publica esta vista.
-        .onChange(of: activeScreen) { _, screen in
-            gameState.uiCoversBoard = screen != nil || showPrestige
-            // **La pausa natural del juego**: el jugador cerró una pantalla y
-            // vuelve al tablero. No estaba tapeando, no hay nada en curso, y no
-            // se le interrumpe ninguna acción — que es exactamente lo que un
-            // interstitial disparado por reloj NO puede garantizar por su
-            // cuenta. Si no le toca, esto no hace nada y vuelve enseguida.
-            if screen == nil {
-                Task { await gameState.showInterstitialIfAppropriate() }
+        .onChange(of: menuSession?.id) { _, id in
+            gameState.uiCoversBoard = id != nil || showPrestige
+            // **La pausa natural del juego**: el jugador cerró el menú entero y
+            // vuelve al tablero (no cada página: deslizar no es una pausa). No
+            // estaba tapeando, no hay nada en curso, y no se le interrumpe
+            // ninguna acción — que es exactamente lo que un interstitial
+            // disparado por reloj NO puede garantizar por su cuenta. Si no le
+            // toca, esto no hace nada y vuelve enseguida.
+            if id == nil {
+                Task { await gameState.menuDidClose() }
             }
         }
         .onChange(of: showPrestige) { _, prestige in
-            gameState.uiCoversBoard = prestige || activeScreen != nil
+            gameState.uiCoversBoard = prestige || menuSession != nil
         }
         .onChange(of: gameState.specialInfo) { _, info in
-            gameState.uiCoversBoard = info != nil || activeScreen != nil || showPrestige
+            gameState.uiCoversBoard = info != nil || menuSession != nil || showPrestige
         }
         // La música por piso sigue al piso visible que ya publica `GameState`
         // —scroll, ascensor, el piso con el que carga la partida—, sin que la
@@ -307,24 +315,20 @@ struct GameBoardView: View {
         .fisuSheet(isPresented: $showPrestige) {
             PrestigeView()
         }
-        // Las seis pantallas de la barra inferior, en UN solo sheet. Ya no queda
-        // ningún placeholder: el Menú es la última que se construyó (T15) y es
-        // la única que navega hacia adentro.
-        .fisuSheet(item: $activeScreen) { screen in
-            Group {
-                switch screen {
-                case .jobs: FisuJobsView()
-                case .upgrades: UpgradesView()
-                case .skins: CustomizationView()
-                case .gifts: GiftsView(adsProvider: adsProvider)
-                case .store: StoreView()
-                case .menu: MenuView()
-                }
+        // El menú deslizable: las pestañas desbloqueadas como páginas de UNA
+        // hoja. Cada página conserva su `NavigationStack`, su marco y su X; el
+        // panel del `panelSheet` ES la hoja (`fisuSheet` la deja sin el material
+        // del sistema debajo): flota sobre el juego atenuado con su banda
+        // inferior a la vista, como los popups. La Tienda no está en la barra
+        // (E13b): el `+` de la plata la abre sola, sin flechas ni puntos.
+        .fisuSheet(item: $menuSession) { session in
+            MenuPagerView(
+                pages: session.start == .store ? [.store] : gameState.unlockedTabsInBarOrder,
+                start: session.start,
+                adsProvider: adsProvider
+            ) { page in
+                gameState.menuPageChanged(to: page)
             }
-            // El panel del `panelSheet` ES la hoja: `fisuSheet` la deja sin el
-            // material del sistema debajo y, en iPad, del tamaño de una página;
-            // flota sobre el juego atenuado con su banda inferior a la vista —
-            // como los popups, que es como componen las referencias.
         }
         .fisuSheet(item: specialDropBinding) { special in
             SpecialDropView(special: special)
@@ -492,12 +496,12 @@ struct GameBoardView: View {
         gameState.celebrationHidesUI
     }
 
-    /// Abre una pantalla de la barra. Si la lección contextual en pantalla
-    /// señalaba justo esta hoja, abrirla la da por cumplida — la mejor de sus
-    /// tres salidas.
+    /// Abre el menú deslizable en una pestaña (la barra o el `+` de la plata).
+    /// Si la lección contextual en pantalla señalaba justo esta hoja, abrirla la
+    /// da por cumplida — la mejor de sus tres salidas.
     private func open(_ screen: GameScreen) {
-        gameState.tutorialTipHandled(opening: screen)
-        activeScreen = screen
+        gameState.menuDidOpen(at: screen)
+        menuSession = MenuSession(start: screen)
     }
 
     /// La franja de abajo: el botón flotante de reencarnar, el atajo de

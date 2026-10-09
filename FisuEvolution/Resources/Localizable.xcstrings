@@ -2917,6 +2917,74 @@
         }
       }
     },
+    "cinematic.arresto.a11y" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The police chief blows the whistle and writes up the ticket."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El comisario toca el silbato y labra el acta."
+          }
+        }
+      }
+    },
+    "cinematic.dios.a11y" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heaven's gates open: God welcomes you from the throne."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se abren las puertas del cielo: Dios te recibe en su trono."
+          }
+        }
+      }
+    },
+    "cinematic.reencarnacion.a11y" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reincarnation: the Hobo rises through a storm of gold coins."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reencarnación: el Fisura sube entre monedas de oro."
+          }
+        }
+      }
+    },
+    "cinematic.skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saltar"
+          }
+        }
+      }
+    },
     "daily.day1.title" : {
       "extractionState" : "stale",
       "localizations" : {

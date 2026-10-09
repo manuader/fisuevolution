@@ -731,7 +731,7 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13-T10 | FisuJobs por pisos | ✅ | T8 | FisuJobsView | `54c5648` (integ-r19) | revisión ninguna; `JobGroups` testeable; **hecha (r19):** `GameState.floorDisplayName(for:)` → "Piso ???" también en la ficha y la tienda de pintas (cierra el carry de E13 T8); cartel del LED `TowerNaming.ledText`; el orden es el de `jobRows`; sin receta R ni captura SE con tres pisos |
 | E13-T11 | La moneda sobre quien genera plata | ✅ | — | 🔥 BoardScene; CharacterNode, BoardReconciliation, +Actions | `17b29fb` (integ-r18) | no ∥ T9 (+Actions); un nodo por personaje, sin animación |
 | E13-T12 | El Diamante dice "Pack de las 43" | ✅ | — | catálogo (snapshot); +Store, CustomizationView | `221f9b6`+`ff3b1ef` (integ-r18; catálogo +1) | revisión ninguna; +Store es tibio de E6b T4/T5 |
-| E13-T13 | Las mejoras dicen su efecto, de antes a después | 🔄 | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |
+| E13-T13 | Las mejoras dicen su efecto, de antes a después | ⏳ | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |
 | E13-T14 | Cierre de E13 (controlador) | ⛔ | T2–T13 | `Docs/` | | `completo`; HANDOFF §5.7 "las seis" |
 | P-E13b | Plan de E13 ítems 13–14 (ascensor y barra) | ✅ | — | — | `2560366` (merge `f395ac2`) | 11 tareas (T1–T11); `2026-10-08-v2-e13b-ascensor-barra.md`; 14 dudas con default; **no toca RootView ni GameState** |
 | E13b-T1 | El director del viaje en cabina y sus tiempos (≤ 3 s, nunca menos que el vuelo) | ✅ | — | nuevos (`UI/Elevator/ElevatorRide.swift`) | `8b090d4` | sonnet; ola 1 |

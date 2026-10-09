@@ -582,7 +582,7 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8c-T6 | El contador "×N" | ✅ | — | nuevos (`Scenes/Nodes/MergeAllComboNode.swift`); catálogo (snapshot, 1 clave) | `0c15d3d` (integ-r18; catálogo +1) | revisión ninguna; `claves-pendientes/e8c-t6.json` |
 | E8c-T7 | La escena encadena sin soltar el turno | ✅ | T3, T4, T5; ventana de BoardScene (tras E13 T11) | 🔥 BoardScene | `e79696f`+`520d54c` (integ-r19) | sonnet, **rev. opus**; `endBoardChangeTurn` es el borde único; grabación; **hecha (r19, opus: Approved con arreglos hechos):** tempo por `MergeAllTempo` con `next.chain`; `playBoardMergeFeedback` reemplaza el háptico `.merge`; aborto en `update` si la cadena pierde el turno; guard `playingChain == nil` en `touchesBegan`; sin captura ni grabación (SE + Reduce Motion) |
 | E8c-T8 | El toque apura; contador, remate y VoiceOver | ✅ | T6, T7 | 🔥 BoardScene | `b6cc8f0`+`a59037f` (integ-r19) | sonnet, **rev. opus**; duda 1 (apura, no corta); SE + Reduce Motion; **hecha (r19, opus: Approved):** `tapDuringCelebration` primer paso de `touchesBegan`; con cadena viva el toque se consume siempre y sólo apura pasado el piso de 0,6 s por eslabón; `MergeAllComboNode` en `cameraOverlay` a `size.height * 0.8` (posición provisoria); remate y VoiceOver con `chain.index + 1 >= 2` |
-| E8c-T9 | El fixture `--uitest-merge-all` y `MergeAllChainUITests` | 🟢 | T8 | +Bootstrap (tibio) | | sonnet; receta R en un 16 Pro |
+| E8c-T9 | El fixture `--uitest-merge-all` y `MergeAllChainUITests` | ✅ | T8 | +Bootstrap (tibio) | | sonnet; receta R en un 16 Pro |
 | E8c-T10 | Cierre de E8c (controlador) | ⏳ | T1–T9 | `Docs/` | | `completo`; grabaciones para el dueño (sin tocar, tocando, por ORO/video si ya existen) |
 
 ### E8d — Todo el juego animado, lado Swift (`2026-10-08-v2-e8d-animaciones-swift.md`)
@@ -646,7 +646,7 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | P-E2b | Plan de E2b | ✅ | — | — | `5b15b82` | 15 tareas; reporte `.superpowers/sdd/2026-10-07-v2-e2b/plan-report.md` |
-| E2b-T1 | Bandas de escalada y curva por piso (EK) | 🟢 | E2a-T3, E2a-T5 | — | | |
+| E2b-T1 | Bandas de escalada y curva por piso (EK) | ✅ | E2a-T3, E2a-T5 | — | | |
 | E2b-T2 | Herencia de pasivos al reencarnar (EK) | ⛔ | T1 | — | | |
 | E2b-T3 | El simulador cobra como el juego (EK) | ⛔ | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
 | E2b-T4 | Política de pisos en marcha del bot (EK, opus) | ⛔ | T3; E2a-T4 | — | | |

@@ -565,23 +565,10 @@ private struct SkinCard: View {
                 .accessibilityHidden(true)
         case .purchasable(let productID):
             if let price {
-                // Mismo namespace que la tienda (`store.buy.<productId>`): es la
-                // misma compra por el mismo camino, y los tests de la tienda
-                // buscan ese identifier.
-                PricePill(
-                    text: price,
-                    currency: .money,
-                    affordable: true,
-                    identifier: "store.buy.\(productID)",
-                    // El nombre de la pinta va por el propósito del componente y
-                    // no por un `.accessibilityLabel` de afuera: pisar la etiqueta
-                    // entera se llevaba puesto el precio, y en una grilla de tres
-                    // cápsulas iguales el botón tiene que decir las dos cosas
-                    // —qué pinta y cuánto sale—. La misma cápsula, en la tienda,
-                    // dice lo mismo.
-                    accessibilityPurpose: Text("skins.buy.ax \(row.displayName)"),
-                    action: buy
-                )
+                VStack(spacing: Tokens.s4) {
+                    purchasePill(price: price, productID: productID)
+                    packCaption
+                }
             } else {
                 // El precio todavía no llegó (StoreKit sin contestar, sin red, o
                 // la app corriendo sin configuración de tienda).
@@ -600,6 +587,39 @@ private struct SkinCard: View {
         }
     }
 
+    private func purchasePill(price: String, productID: String) -> some View {
+        // Mismo namespace que la tienda (`store.buy.<productId>`): es la
+        // misma compra por el mismo camino, y los tests de la tienda
+        // buscan ese identifier.
+        PricePill(
+            text: price,
+            currency: .money,
+            affordable: true,
+            identifier: "store.buy.\(productID)",
+            // El nombre de la pinta va por el propósito del componente y
+            // no por un `.accessibilityLabel` de afuera: pisar la etiqueta
+            // entera se llevaba puesto el precio, y en una grilla de tres
+            // cápsulas iguales el botón tiene que decir las dos cosas
+            // —qué pinta y cuánto sale—. La misma cápsula, en la tienda,
+            // dice lo mismo.
+            accessibilityPurpose: Text("skins.buy.ax \(row.displayName)"),
+            action: buy
+        )
+    }
+
+    private var packCaptionText: String? {
+        row.packSize.map { String(localized: "skins.pack.caption \(String($0))") }
+    }
+
+    @ViewBuilder private var packCaption: some View {
+        if let packCaptionText {
+            Text(verbatim: packCaptionText)
+                .font(Tokens.caption)
+                .foregroundStyle(Color("PaletteInk").opacity(0.65))
+                .accessibilityHidden(true)
+        }
+    }
+
     /// El valor de la tarjeta es **su estado o lo que cuesta**, igual que en
     /// FisuJobs. Es lo que leen los tests: el runner corre la app en inglés
     /// (trampa 6), así que comparan el valor de dos tarjetas entre sí en vez de
@@ -611,7 +631,10 @@ private struct SkinCard: View {
         case .milestoneLocked(let conditionText): conditionText
         // Sin precio, el valor dice que falta el precio — no que la skin no se
         // venda. Es el mismo texto que muestra el badge, por la misma razón.
-        case .purchasable: price ?? String(localized: "skins.price.unavailable")
+        case .purchasable:
+            [price ?? String(localized: "skins.price.unavailable"), packCaptionText]
+                .compactMap { $0 }
+                .joined(separator: ". ")
         }
     }
 }

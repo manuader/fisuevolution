@@ -30,6 +30,9 @@ struct SkinCatalogRow: Identifiable, Equatable {
     /// dibuja con el arte del personaje).
     let textureKey: String?
     let state: State
+    /// Cuántos personajes trae la compra, si es un pack: la pinta paga que
+    /// comparten varios tipos (el Diamante) se vende por todos a la vez.
+    let packSize: Int?
 }
 
 /// Tienda (F4): entitlements de StoreKit y el equipamiento de skins. Separado de
@@ -140,16 +143,25 @@ extension GameState {
             id: Self.baseSkinRowID,
             displayName: String(localized: "skins.base"),
             textureKey: nil,
-            state: active == nil ? .equipped : .owned
+            state: active == nil ? .equipped : .owned,
+            packSize: nil
         )
         return [base] + skinOptions(forCharacterType: typeID).map { entry in
-            SkinCatalogRow(
+            let state = skinState(for: entry, activeSkinID: active)
+            return SkinCatalogRow(
                 id: entry.id,
                 displayName: skinDisplayName(for: entry),
                 textureKey: entry.textureKey,
-                state: skinState(for: entry, activeSkinID: active)
+                state: state,
+                packSize: packSize(of: entry, state: state, in: content)
             )
         }
+    }
+
+    private func packSize(of entry: SkinsConfig.Entry, state: SkinCatalogRow.State, in content: GameContent) -> Int? {
+        guard case .purchasable = state else { return nil }
+        let size = content.skins.skins.filter { $0.id == entry.id }.count
+        return size > 1 ? size : nil
     }
 
     /// El nombre visible de una skin del catálogo.

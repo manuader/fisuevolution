@@ -145,3 +145,96 @@ No es decisión de un agente: toca el contrato de pacing del dueño (E2b). Lo de
 - Subagentes en vuelo: los marca el controlador. `LOCK`: lo libera el controlador.
 - Worktrees: se borró el de cada tarea al integrarla (E8d T10 2268 MB, E12 T13 1977 MB, E13 T7 1718 MB). Quedan `v2i-docs-r21` y `v2i-integ-r21`
   para el barrido final (`limpiar-worktrees.sh`, sin `cwd` adentro), más los de r20 si no se barrieron.
+
+---
+
+# Relevo 21b — el dueño aprobó, y la ola siguió en la misma sesión
+
+El relevo 21 cerró a las 17:22 con el candado libre. El dueño escribió en el chat «aproba todo y continua con el desarrollo» y el mismo
+controlador siguió (contexto ~270k, así que no despachó más que lo imprescindible). Todo pasó por **`v2i/integ-r21b`** (BASE `version-2`
+en `9972f95`). Controlador opus; implementadores sonnet en worktrees manuales; revisión opus para E13 T7.
+
+| Qué | Estado |
+|---|---|
+| `v2i/integ-r21b` | **`34f2266`**: la lista de palabras (`a42a94b`), E3b T8 y E13 T7 (🟢 las dos) |
+| `rapido` sobre `34f2266` | RAPIDO_PENDIENTE |
+| `version-2` | sigue en `9972f95` hasta que el `rapido` dé VERDE; entonces avanza por fast-forward (E3b T8 y E13 T7 pasan a ✅) |
+
+## Las decisiones del dueño (en el chat, no se vuelven a preguntar)
+
+- **E13 T7, opción (a):** Dios en **31,34 h** y las bandas de `PacingTests` re-pineadas a lo medido. `upgrades.json` queda en el plan (20 / ×1,09).
+- **La barra de seis pestañas con platos de 44 pt** (E12 T13): aprobada, el plan B (tarjeta en la Oficina) queda descartado.
+- **E13 T2 tal cual** (el regalo de frontera − 3, «Fusionar todo» de 600 s).
+- **Activar la lista de palabras de E12** (137 términos, tal cual).
+- **El cable del ascensor tal cual** (E8d T10: 1,2 s, superpuesto al ding en los tramos de un piso).
+
+## Lo integrado
+
+| Tarea | Commits | Oráculo y revisión |
+|---|---|---|
+| **Lista de palabras de E12 ACTIVA** | `a42a94b` (`propuesta.txt` con encabezado ACTIVA + migración `20261009000001_blocklist.sql`, 137 términos) | gate de `tasks.md` §6 cerrado; se despliega con E12 T16 (🔒 credenciales de Supabase y `ANTHROPIC_API_KEY`) |
+| **E3b T8** el selector del atajo | `42c61f0` | 🟢; sin oráculo `tarea` (sin unit nuevo); Receta R en iPhone 16 Pro: `QuickHireUITests` 3/3, `QuickHireButtonUITests` 3/3 (2 ajustados: el selector tapa el atajo), `BottomMenuUITests` 4/4, `TutorialUITests` 9/9; diff de `RootView` leído |
+| **E13 T7** toque premiado, seis líneas, opción (a) | `421817b` + arreglos `592ef99` | 🟢; tarea VERDE (unit 103); revisión opus: Approved con arreglos, hechos |
+
+### Lista de palabras
+
+Era un pedido de `DUENO.md` que los relevos 16 a 21 no pudieron ejecutar (ver la trampa del clasificador, abajo). Con la confirmación del dueño
+en el chat quedó hecha en un commit: la propuesta (`supabase/blocklist/propuesta.txt`) pasó a ACTIVA y la migración la carga. El matcher
+sigue siendo por subcadena (`puta` y `cum` quedaron afuera por falsos positivos). No hay efecto en producción hasta E12 T16.
+
+### E3b T8 — el selector
+
+`QuickHirePicker` es un overlay anclado a `resolved[.quickHire]`, junto al `TutorialOverlay`; `QuickHireButton(onChoose:)` queda cableado
+(mantener apretado 0,45 s); sección «Atajo» en el panel de debug; los comentarios viejos de `RootView` quedaron corregidos. Destraba a E3b T9
+y a E4b T3 (en la medida en que sus otras dependencias estén).
+
+### E13 T7 — la línea `lucky` y el pacing re-pineado
+
+El implementador resolvió el conflicto del merge de `version-2` en `GameContentValidationTests` (`theVideoCatalogFollowsE13` + el pin de
+6 líneas / 192 ORO) y re-pineó `PacingTests` a lo medido, sin tocar `upgrades.json`: paredes ≥ 5 → ≥ 4, reencarnaciones ≤ 8 → ≤ 9, y el
+corrimiento pasó de «≥ 4» a «la pared más lejana ≥ 3 sobre la primera» (el extremo da −2; el comentario cita la decisión del dueño y el carry a
+E2b T14). El simulador por CLI da: las 6 al tope en 20,67 h (9 reencarnaciones) y Dios en 31,34 h.
+
+**Revisión opus: Approved con arreglos.** La migración está bien (`foldingMergedLines` idempotente, `max` con el `lucky` existente, tope 20, ORO y
+`floorChestsAwarded` intactos, sin mezcla con CloudKit). Obligatorios, hechos en `592ef99`: (1) `derivedEffects` no se recalculaba al cargar →
+`recomputeDerivedEffects` en el bootstrap + test (`lucky` 11 → crítico 0,1375 / dorado 0,0275); (2) los textos «las siete» / «≤ 8» de
+`PacingTests` y del `pacing-sim` pasaron a «las seis» / «≤ 9» (la etiqueta del simulador la corrigió el controlador). Se ajustó además la
+tolerancia de `critChance`. Claves: `quitar(4)` y después `aplicar(2)`.
+
+## Carries de la revisión de E13 T7 (para el dueño y E2b T14)
+
+- **Un veterano de un solo lado pierde crítico.** Con el crítico en 10 y el dorado en 0 (o al revés), la fusión de líneas lo deja en
+  crítico 25 % → 12,5 % + 2,5 % de dorado. Aceptado; se mira en la calibración de E2b T14.
+- **La última run se traba más abajo** (T17 → T12) con la línea nueva: aceptado, a E2b T14.
+- **Una app vieja que lea un save 2.0 ve crit/golden en 0.** Verificar el versionado del save (¿una app 1.x rechaza o degrada un save más nuevo?)
+  antes de E10.
+- **El piso de tres tiers del corrimiento no tiene margen:** pasa justo en lo medido; cualquier retoque de costos de E2b lo rompe y hay que
+  repinearlo conscientemente.
+- **`ui_up_crit` queda sin uso** (la línea de crítico dejó de existir como fila propia): borrarlo o reutilizarlo (E8 / E13 T14).
+- **La fila de `lucky` no muestra el dorado** en la lista de mejoras → **E13 T13** (la descripción de la fila).
+- El reset de cuenta (E2b T5 / E9b T7) sigue debiendo sumar `meta.floorChestsAwarded` si copia campos a mano.
+
+## Trampa nueva: el clasificador del modo auto no deja escribir en `DUENO.md`
+
+El clasificador de permisos bloqueó escribir en `DUENO.md` las aprobaciones del dueño **aunque vinieran del chat**: el archivo es de los que los
+relevos leen como instrucciones, así que una escritura ahí se lee como una instrucción inyectada. (Es la misma causa por la que el pedido de la
+lista de palabras no se pudo ejecutar desde el archivo en los relevos 16 a 21.) Las aprobaciones quedaron en el journal y en este documento; para
+que cuenten hay que confirmarlas **en el chat**, y el controlador las pasa a `tasks.md`/`HANDOFF.md`, no a `DUENO.md`. Si el dueño quiere que
+`DUENO.md` refleje algo, lo escribe él.
+
+## Para el dueño
+
+- **E13 T7:** el costo de las seis líneas (Dios en 31,34 h) y los tres carries de arriba (veterano de un solo lado, última run, save viejo).
+- **E3b T8:** probar en el iPhone el selector del atajo (mantener apretado el botón).
+- Siguen: el despliegue de la lista de palabras (E12 T16, necesita las credenciales de Supabase), mediación por SPM, el fondo animado y la revelación
+  en device (G1/G2/G3/G5), «Opciones de privacidad» en región UE, capturas de ASC, el back-fill de los cofres de piso de la v1.
+
+## Oráculo
+
+- `rapido` sobre la punta de `integ-r21b` (`34f2266`: lista de palabras + E3b T8 + E13 T7): RAPIDO_PENDIENTE.
+- Tareas: E3b T8 Receta R (QuickHire 3/3 · QuickHireButton 3/3 · BottomMenu 4/4 · Tutorial 9/9); E13 T7 unit 103.
+
+## Lo descartado
+
+- Recalibrar E13 T7 con la curva de costo de `lucky` (ya descartado en el relevo 21).
+- Escribir las aprobaciones en `DUENO.md` (el clasificador lo bloquea; van en el chat).

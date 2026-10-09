@@ -68,10 +68,16 @@ struct FisuJobsView: View {
                     if gameState.tutorialPhaseActive, !gameState.ftueMilestones.spawned {
                         TutorialJobsHint()
                     }
-                    ForEach(Self.groups(of: rows)) { group in
-                        SectionHeader(group.section.titleKey)
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, Tokens.s8)
+                    ForEach(groups) { group in
+                        if group.opensSection {
+                            SectionHeader(group.section.titleKey)
+                                .frame(maxWidth: .infinity)
+                                .padding(.top, Tokens.s8)
+                        }
+                        if let floorID = group.floorID, let ordinal = group.floorOrdinal {
+                            SectionHeader(verbatim: TowerNaming.ledText(ordinal: ordinal, floorID: floorID, isUnlocked: true))
+                                .frame(maxWidth: .infinity)
+                        }
                         ForEach(Array(group.rows.enumerated()), id: \.element.id) { offset, row in
                             JobCard(row: row, recommended: row.id == recommended) {
                                 gameState.hireCharacter(typeId: row.id)
@@ -134,32 +140,16 @@ struct FisuJobsView: View {
 
     // MARK: Secciones
 
-    /// Parte las filas —**ya ordenadas** por `jobRows`— en las tres secciones
-    /// del portal, respetando el orden que trae el estado en vez de reordenar.
-    ///
-    /// Si algún día el criterio de orden cambiara y un grupo apareciera dos
-    /// veces, esto dibuja su encabezado dos veces: es feo pero honesto. La
-    /// alternativa —agrupar con `Dictionary(grouping:)`— perdería el orden por
-    /// tier, que es la mitad del diseño de la pantalla.
-    private static func groups(of rows: [JobRow]) -> [JobGroup] {
-        var groups: [JobGroup] = []
-        for (index, row) in rows.enumerated() {
-            let section = JobSection(row.state)
-            if var last = groups.last, last.section == section {
-                last.rows.append(row)
-                groups[groups.count - 1] = last
-            } else {
-                groups.append(JobGroup(section: section, startIndex: index, rows: [row]))
-            }
-        }
-        return groups
+    private var groups: [JobGroup] {
+        let floorTable = gameState.content?.floorTable
+        return JobGroups.make(gameState.jobRows) { floorTable?.ordinal(of: $0) }
     }
 }
 
 // MARK: - Secciones del portal
 
 /// Las tres secciones, en el orden en que `jobRows` las entrega.
-private enum JobSection: Int {
+enum JobSection: Int {
     /// Lo que se puede comprar hoy — incluye el piso lleno, que es un problema
     /// de espacio y no de permiso.
     case open
@@ -185,13 +175,50 @@ private enum JobSection: Int {
     }
 }
 
-private struct JobGroup: Identifiable {
+struct JobGroup: Identifiable {
     let section: JobSection
+    /// Sólo en las abiertas: el piso al que pertenecen las filas del grupo.
+    let floorID: String?
+    let floorOrdinal: Int?
+    /// El primer grupo de cada sección lleva el título de la sección.
+    let opensSection: Bool
     /// Posición de su primera fila dentro de la lista COMPLETA. Es lo que hace
     /// que la cascada de entrada sea del panel entero y no de cada sección.
     let startIndex: Int
     var rows: [JobRow]
-    var id: Int { section.rawValue }
+    var id: String { "\(section.rawValue)-\(floorID ?? "")" }
+}
+
+enum JobGroups {
+    /// Parte las filas —**ya ordenadas** por `jobRows`— en las tres secciones
+    /// del portal y, adentro de las abiertas, por piso, respetando el orden que
+    /// trae el estado en vez de reordenar.
+    ///
+    /// Si algún día el criterio de orden cambiara y un grupo apareciera dos
+    /// veces, esto dibuja su encabezado dos veces: es feo pero honesto. La
+    /// alternativa —agrupar con `Dictionary(grouping:)`— perdería el orden por
+    /// tier, que es la mitad del diseño de la pantalla.
+    static func make(_ rows: [JobRow], ordinalOf: (String) -> Int?) -> [JobGroup] {
+        var groups: [JobGroup] = []
+        for (index, row) in rows.enumerated() {
+            let section = JobSection(row.state)
+            let floorID = section == .open ? row.floorID : nil
+            if var last = groups.last, last.section == section, last.floorID == floorID {
+                last.rows.append(row)
+                groups[groups.count - 1] = last
+            } else {
+                groups.append(JobGroup(
+                    section: section,
+                    floorID: floorID,
+                    floorOrdinal: floorID.flatMap(ordinalOf),
+                    opensSection: groups.last?.section != section,
+                    startIndex: index,
+                    rows: [row]
+                ))
+            }
+        }
+        return groups
+    }
 }
 
 // MARK: - Logo
@@ -434,12 +461,18 @@ private struct JobCard: View {
         }
     }
 
+    /// Un piso cerrado no se nombra (PLAN-v2 E13): sólo `lockedFloor` apunta a uno.
+    private var floorName: String {
+        if case .lockedFloor = row.state { return TowerNaming.displayName(for: row.floorID, isUnlocked: false) }
+        return TowerNaming.floorName(for: row.floorID)
+    }
+
     /// El piso destino, como el campo "ubicación" de un aviso.
     private var floorTag: some View {
         HStack(spacing: 3) {
             Image(systemName: "mappin")
                 .font(.system(size: 9, weight: .bold))
-            Text(TowerNaming.floorNameKey(for: row.floorID))
+            Text(verbatim: floorName)
                 .font(Tokens.caption)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
@@ -514,7 +547,7 @@ private struct JobCard: View {
         case .hirable: nil
         case .floorFull: String(localized: "jobs.state.full")
         case .gated(let requiredTier): String(localized: "jobs.state.gated \(requiredTier)")
-        case .lockedFloor(let floorName): String(localized: "jobs.state.locked \(floorName)")
+        case .lockedFloor: String(localized: "jobs.state.locked \(floorName)")
         case .unseen: String(localized: "jobs.state.unseen")
         }
     }
@@ -543,7 +576,7 @@ private struct JobCard: View {
         }
         return [
             row.displayName,
-            floorAlreadyInValue ? nil : TowerNaming.floorName(for: row.floorID),
+            floorAlreadyInValue ? nil : floorName,
             row.incomeText,
             String(localized: "jobs.hired_count \(String(row.hiredCount))"),
             row.priceTrendText

@@ -45,4 +45,9 @@ enum TowerNaming {
     static func displayName(for floorID: String, isUnlocked: Bool) -> String {
         isUnlocked ? floorName(for: floorID) : String(localized: "tower.floor.unknown")
     }
+
+    /// El cartel del LED del ascensor: "3 · Corporativo".
+    static func ledText(ordinal: Int, floorID: String, isUnlocked: Bool) -> String {
+        "\(ordinal + 1) · \(displayName(for: floorID, isUnlocked: isUnlocked))"
+    }
 }

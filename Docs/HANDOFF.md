@@ -21,23 +21,23 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
-> 15): `version-2` = **la punta de `v2i/integ-r15`** por fast-forward (pusheado; el relevo 14 la había dejado en `246beb7`) ·
-> la rama de integración `v2i/integ-r15` = **`e6e8c53`** (`rapido`: VERDE sobre `e6e8c53` (EK 607 · unit 930 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0, E10 en
-> papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a K (con la reconciliación de los videos, el
-> plan **P-E8d**, **E13b T5, T7 y T10**, E3b T6, E12 T7 y E8d T1), más lo del relevo 15 en `integ-r15`: **el viaje del
-> ascensor montado encima de `RootView` (E13b T6)**, **el `VideoPlayerPool` y `AnimatedArtView` (E8d T2 y T3)**, los
-> **sonidos A (E8d T6)**, **el botón del atajo que no desaparece (E3b T7)** y **el store del ranking (E12 T8)**.
-> **Progreso: 92 de 254 tareas activas en `version-2`; 92 + 6 = 98 de 254 (38,6 %) si el `rapido` de `integ-r15` da
-> VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16).** Detalle en
-> `Docs/SESION-2026-10-09-v2-relevo-15-ola-l.md`.
+> 16): `version-2` = **`bce2fc2`** (el `rapido` intermedio dio VERDE y avanzó; pasa a la punta de `v2i/integ-r16` con
+> los docs del cierre si el `rapido` final da verde) · la rama de integración `v2i/integ-r16` = **`2779ddb`** + estos docs
+> (`rapido` final: RAPIDO_PENDIENTE). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las
+> olas B a L, más lo del relevo 16 en `integ-r16`: **la segunda tanda de videos del dueño (108 piezas) y su doc**,
+> `LoopingVideoNode` (**E8d T4**, ruta A para T9), **`MetaState.ranking`** (**E12 T10**), **la tarjeta de Dios y la
+> pestaña del ranking** (**E12 T9a/T9b**, vistas sueltas todavía sin montar), **On-Demand Resources** (**E8d T12**) y
+> **la placa por long press** (**E13b T8**). **Progreso: 98 de 254 tareas activas en `version-2`; 98 + 6 = 104 de 254
+> (40,9 %) si el `rapido` de `integ-r16` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el
+> `--limpio` de `c94f75f` (E1 T16).** Detalle en `Docs/SESION-2026-10-09-v2-relevo-16-ola-m.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r15` (seis tareas y los docs del cierre; si su `rapido` dio verde,
-> el primer paso del relevo 16 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión
-> del dueño; no se tocan (la segunda tanda de videos corre ahí y carga la máquina). Hay planes por tareas para todas
-> las épicas salvo la parte de agente de E10. **Lo primero del relevo 16:** el `rapido` de `integ-r15` si no quedó hecho
-> y después **E13b T8** (la placa al mantener apretado el ícono; llama `elevatorKeypadOpened()`; prioridad alta del
-> dueño), con **E8d T4** y **E12 T10** al lado (`tasks.md` §4). Con la carga de la máquina alta, no más de dos
-> compilando.
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r16` (seis tareas, la tanda del dueño y los docs del cierre; si su
+> `rapido` dio verde, el primer paso del relevo 17 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos`
+> son de la sesión del dueño; no se tocan. Hay planes por tareas para todas las épicas salvo la parte de agente de E10.
+> **Lo primero del relevo 17:** el `rapido` de `integ-r16` si no quedó hecho y después **E8d T14** (los tags ODR; la
+> revisión de la tanda ya está cerrada), **E8d T5**, **E8d T13** y **E12 T11** (los ganchos; ventana libre de
+> `GameState.swift`) (`tasks.md` §4). Con la carga de la máquina alta, no más de dos compilando. **Pendiente del dueño:**
+> confirmar en el chat la lista de palabras de E12 (el clasificador de permisos la bloqueó).
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -347,6 +347,25 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-09 (relevo 16) — La ola M: la segunda tanda de videos, el video en la escena, la ODR y el ranking en el save
+
+Entraron la segunda tanda del dueño (108 videos aprobados, `v2/e8-videos`) y su doc, y seis tareas sobre `v2i/integ-r16`.
+`version-2` avanzó a `bce2fc2` con el `rapido` intermedio; el final cubre las seis. **Progreso: 98 de 254 en `version-2`; 104 de 254 (40,9 %) con las seis de `integ-r16`.**
+
+- **La tanda del dueño** destrabó E8d T14 (la revisión ya está) y cerró el carry de los stills de la cabina (regenerados
+  sin la línea verde). Dejó un rojo: `LoopsManifestTests.cinematics` esperaba la intro ausente.
+- **E8d T4:** `LoopingVideoNode` sobre el `Lease` del pool; la revisión opus pidió un control del alfa (retrato con centro
+  no rojo + el gemelo opaco `cine_arresto`) y el release del lease en `deinit`. Con eso, ruta A para T9 en el simulador
+  (la vara real, G3 en device). **E8d T12:** `ArtPacks` y ODR; ninguna entrada tiene tag todavía (T14).
+- **E12 T10:** la partida rankeada entra al save v6; sin clave → `.legacy`, las viejas no compiten. **T9a/T9b:** la tarjeta
+  de Dios y la pestaña, vistas sueltas aún sin montar. Para el dueño: el `installId` no viaja por CloudKit.
+- **E13b T8:** mantener apretado el ícono despliega la placa; la revisión opus cazó una bandera de long press que
+  quedaba en `true` y una lección que cerraba la placa.
+- **El clasificador de permisos del modo auto bloqueó activar la lista de palabras de E12** (el pedido venía de
+  `DUENO.md`); queda pendiente. Trampas nuevas en §7.
+
+Detalle en **`Docs/SESION-2026-10-09-v2-relevo-16-ola-m.md`**.
 
 ### Sesión del 2026-10-09 (relevo 15) — La ola L: el ascensor montado, el pool de videos y el store del ranking
 
@@ -2633,6 +2652,23 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la ola M (2026-10-09, relevo 16)
+
+- **El clasificador de permisos del modo auto puede bloquear un pedido de `DUENO.md`.** Lo lee como una instrucción metida
+  en un archivo, no como una orden del dueño. No se fuerza: se avisa y el dueño lo confirma en el chat o en los permisos
+  (la lista de palabras de E12 sigue sin activar por esto).
+- **Un rojo del `rapido` puede ser un test que cuenta contenido del dueño.** `LoopsManifestTests.cinematics` esperaba la
+  intro ausente y la segunda tanda la trajo; al integrar una tanda, mirar los tests que cuentan piezas del manifest
+  antes de culpar al código.
+- **Carga de la máquina 200–600 y `Mach error -308`:** una corrida de tests (E8d T12) murió así bajo carga. Mirar el
+  `uptime` antes de despachar y reintentar la corrida antes de sospechar del código.
+- **Un agente usó `pkill -f` con un patrón propio:** la misma trampa del relevo 15; cortar sólo por PID propio.
+- **`ElevatorRideTests` 'saltear con las puertas abriendo' flakea bajo carga:** subir las iteraciones de `Task.yield`.
+- **Una bandera de long press que sólo baja en `onEnded` queda en `true` si el dedo se suelta fuera** y se traga el próximo
+  toque (E13b T8, la misma de E3b T7): bajarla con un `DragGesture`, como `QuickHireButton`.
+- **Completar una lección no debe cerrar la placa:** cerrar sólo cuando `showing` pasa de nil a un tipo que cubre el
+  ascensor (`CelebrationKind.coversElevator`).
+
 ### De la ola L (2026-10-09, relevo 15)
 
 - **Un `xcodebuild` de tests puede no salir nunca.** Después de `Test run with…` el proceso sigue vivo (E12 T8: 2 h 16 min
@@ -4079,6 +4115,20 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
+### Lo que queda de la 2.0 (cierre del relevo 16)
+
+La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
+
+- **Del dueño:** confirmar en el chat la **lista de palabras de E12** (137 términos, ya aprobada; el clasificador bloqueó
+  activarla); decidir el **`installId` que no viaja por CloudKit** (una partida registrada en A que llega a Dios en B
+  queda `.unregisteredGod`: sincronizar el Keychain o aceptarlo); si el botón **Entrar** de `RankingEntryCard` sigue con
+  `.disabled` (rompe la convención de `ActionPill`); si molesta que la **placa de 10 pisos tape parte de Reencarnar**
+  mientras está abierta. Siguen: mediación por SPM, capturas de ASC, Meta, TestFlight, oír los sonidos (G7).
+- **Sin probar en device:** ODR (nada tiene tag hasta E8d T14), el alfa del HEVC a ×5 (G3), el publisher de
+  `isReadyForDisplay`.
+- **Montaje pendiente:** la tarjeta y la pestaña del ranking (T9a/T9b) esperan a E12 T11 y T13; `onChoose` del atajo
+  espera a E3b T8.
+
 ### Precargar el atlas de personaje fuera del hilo principal (levantada 2026-08-27)
 
 **El problema, medido.** `UIArt.characterImage` en frío cuesta **~320 ms de hilo
@@ -4403,6 +4453,12 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**: el relevo 9.
 - **`Docs/SESION-2026-10-08-v2-relevo-11-ola-h.md`**: los relevos 10 y 11 (la ola H).
 - **`Docs/SESION-2026-10-08-v2-relevo-12-ola-i.md`**: el relevo 12 (las 3 regresiones de UI, la bandeja del dueño, E8/E12/E13 con plan y el cierre sin resultado del `completo`).
+- **`Docs/SESION-2026-10-08-sesion-del-dueno-epicas-y-videos.md`**: la sesión paralela del dueño (los relevos que se
+  encadenan solos, E12 y E13 sumadas al plan, todos los videos).
+- **`Docs/SESION-2026-10-08-v2-relevo-13-ola-j.md`**, **`…-14-ola-k.md`** y **`SESION-2026-10-09-v2-relevo-15-ola-l.md`**:
+  los relevos 13 a 15.
+- **`Docs/SESION-2026-10-09-v2-relevo-16-ola-m.md`**: el relevo 16 (la segunda tanda de videos entra; `LoopingVideoNode`,
+  ODR, `MetaState.ranking`, las vistas del ranking y la placa; las trampas del clasificador de permisos y de la carga).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

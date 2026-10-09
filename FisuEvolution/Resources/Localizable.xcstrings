@@ -5486,6 +5486,57 @@
         }
       }
     },
+    "quickhire.ax.cant_afford" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "not enough coins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no te alcanza"
+          }
+        }
+      }
+    },
+    "quickhire.ax.choose" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose who to hire"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir a quién contratar"
+          }
+        }
+      }
+    },
+    "quickhire.ax.pinned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pinned"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "fijado"
+          }
+        }
+      }
+    },
     "quickhire.ax.purpose %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5499,6 +5550,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Contratar a %@"
+          }
+        }
+      }
+    },
+    "quickhire.blocker.floor_full" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Floor full"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piso lleno"
           }
         }
       }

@@ -14,7 +14,8 @@ import Foundation
 ///
 /// Además es el dueño de las **dos políticas** que no son del SDK:
 /// 1. Qué respeta `remove_ads` y qué no (ver `removedAds`).
-/// 2. **Cuándo se puede mostrar un interstitial** (ver `armIfDue` / `showInterstitialIfArmed`).
+/// 2. **Que nunca haya dos anuncios encimados** (`isPresentingFullScreen`); cuándo puede caer
+/// un forzado lo decide `NaturalBreakPolicy` y lo pide `GameState+Ads`.
 ///
 /// ## `@Observable`, pero con TODO `@ObservationIgnored` — y no es una
 /// contradicción
@@ -87,27 +88,10 @@ final class AdsCoordinator: AdsProvider {
         return ready
     }
 
-    // MARK: - La política del interstitial
-
-    @ObservationIgnored private var cadence = RewardedAdsConfig.Interstitial.default
     @ObservationIgnored private let now: @Sendable () -> Date
-    /// Cuándo arrancó la app (o volvió del background, que cuenta igual para la
-    /// gracia: llegar y comerse un anuncio se siente igual de mal).
-    @ObservationIgnored private var sessionStartedAt: Date
-    @ObservationIgnored private var lastInterstitialAt: Date?
-    /// Cuándo se cerró el último video con premio. Lo lee también la política
-    /// de cortes naturales de la 2.0 para su gracia post-video.
+    /// Cuándo se cerró el último video con premio. Lo lee la política de cortes
+    /// naturales para su gracia post-video.
     @ObservationIgnored private(set) var lastRewardedAt: Date?
-    /// El interstitial está ARMADO: le toca, y espera una pausa natural.
-    ///
-    /// ⚠️ **Esta bandera es toda la idea.** El pedido del dueño fue "un anuncio
-    /// normal cada 5 o 10 minutos de juego", y la implementación literal —un
-    /// timer que presenta— es la que Google penaliza: un interstitial que cae
-    /// encima del tablero mientras el jugador tapea produce clicks accidentales
-    /// (política de invalid traffic) y es la peor experiencia posible en un
-    /// juego de tapear. Así que el reloj sólo **arma**; el disparo lo pide la UI
-    /// desde un lugar donde se sabe que no hay nada en curso.
-    @ObservationIgnored private(set) var isInterstitialArmed = false
 
     /// `provider` es el que atiende hasta que `configure` decida; los tests
     /// pasan uno guionado para controlar cuándo se cierra un anuncio.
@@ -116,7 +100,6 @@ final class AdsCoordinator: AdsProvider {
         provider: any AdsProvider = StubAdsProvider()
     ) {
         self.now = now
-        self.sessionStartedAt = now()
         self.active = provider
     }
 
@@ -146,11 +129,9 @@ final class AdsCoordinator: AdsProvider {
     func configure(
         flags: FeatureFlags,
         remoteUnitIDs: FeatureFlags.AdUnitIDs?,
-        cadence: RewardedAdsConfig.Interstitial,
         removedAds: Bool
     ) async {
         self.removedAds = removedAds
-        self.cadence = cadence
         guard !isConfigured else { return }
         isConfigured = true
 
@@ -171,13 +152,6 @@ final class AdsCoordinator: AdsProvider {
     /// Se llama cuando el jugador compra `remove_ads` en la sesión.
     func setRemovedAds(_ removed: Bool) {
         removedAds = removed
-    }
-
-    /// La app volvió del background. Reinicia la gracia de sesión: el tiempo en
-    /// background **no es tiempo de juego**, así que no debería acercar el
-    /// próximo interstitial.
-    func sessionResumed() {
-        sessionStartedAt = now()
     }
 
     // MARK: - AdsProvider
@@ -221,7 +195,6 @@ final class AdsCoordinator: AdsProvider {
         isPresentingFullScreen = true
         defer { isPresentingFullScreen = false }
         await active.showInterstitial()
-        forcedAdFinished()
     }
 
     /// Misma regla que el interstitial: `false` con `remove_ads`.
@@ -241,9 +214,7 @@ final class AdsCoordinator: AdsProvider {
         guard !removedAds, !isPresentingFullScreen else { return false }
         isPresentingFullScreen = true
         defer { isPresentingFullScreen = false }
-        let earned = await active.showRewardedInterstitial()
-        forcedAdFinished()
-        return earned
+        return await active.showRewardedInterstitial()
     }
 
     var isAppOpenReady: Bool {
@@ -260,49 +231,6 @@ final class AdsCoordinator: AdsProvider {
         isPresentingFullScreen = true
         defer { isPresentingFullScreen = false }
         await active.showAppOpen()
-        forcedAdFinished()
-    }
-
-    /// Un formato forzado terminó, el que sea. El reloj de la 1.x es uno solo
-    /// para los tres: una pausa publicitaria o un app open recién cerrados
-    /// cuentan como "acaba de comer un anuncio" para el próximo interstitial.
-    /// Es el mismo criterio del `lastFullScreenAt` único de la 2.0.
-    private func forcedAdFinished() {
-        lastInterstitialAt = now()
-        isInterstitialArmed = false
-    }
-
-    // MARK: - El reloj del interstitial
-
-    /// ¿Le toca? Arma la bandera si pasó el tiempo y las dos gracias.
-    ///
-    /// Lo llama el tick del juego. Es barato a propósito —tres restas de
-    /// fechas— porque corre seguido.
-    func armIfDue() {
-        guard !removedAds, !isInterstitialArmed else { return }
-        let instant = now()
-        guard instant.timeIntervalSince(sessionStartedAt) >= cadence.graceSecondsAfterLaunch
-        else { return }
-        if let lastRewardedAt,
-           instant.timeIntervalSince(lastRewardedAt) < cadence.graceSecondsAfterRewarded {
-            return
-        }
-        // Sin interstitial previo, el reloj cuenta desde el arranque de sesión,
-        // que ya pasó su gracia.
-        let since = lastInterstitialAt ?? sessionStartedAt
-        guard instant.timeIntervalSince(since) >= cadence.minSecondsBetween else { return }
-        isInterstitialArmed = true
-    }
-
-    /// Muestra el interstitial **si estaba armado y hay uno cargado**. Se llama
-    /// desde una pausa natural del juego; si no le toca, no hace nada y vuelve
-    /// enseguida.
-    ///
-    /// El llamador no necesita saber ninguna de las reglas: pregunta "¿es un
-    /// buen momento?" llamando acá, y la política vive de este lado.
-    func showInterstitialIfArmed() async {
-        guard isInterstitialArmed, isInterstitialReady else { return }
-        await showInterstitial()
     }
 
     func prepare() {

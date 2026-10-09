@@ -45,11 +45,6 @@ extension GameState {
             }
             fireEventIfDue(now: now)
             beatIfDue(now: now)
-            // El reloj del interstitial vive acá y no en un `Timer` (regla 2 de
-            // concurrencia). Sólo ARMA la bandera —tres restas de fechas, barato a
-            // 8 Hz—; el disparo lo pide la UI en una pausa natural. El porqué de
-            // esa separación está en `AdsCoordinator.isInterstitialArmed`.
-            ads?.armIfDue()
         }
         refreshProjections()
     }

@@ -149,14 +149,10 @@ struct LifecycleTests {
         #expect(tasks.ended == tasks.begun)
     }
 
-    @Test("con la escena inactiva el flush no dispara el evento, no arma el anuncio ni poda buffs")
+    @Test("con la escena inactiva el flush no dispara el evento ni poda buffs")
     func flushWhileInactiveWaitsForActive() async throws {
         let gameState = try await producingGame()
         let content = try #require(gameState.content)
-        let clock = TestClock()
-        let ads = AdsCoordinator(now: clock.read, provider: ScriptedAdsProvider())
-        gameState.attachAds(ads)
-        clock.advance(by: 10_000)
         let t0 = Date().timeIntervalSince1970
         let overdue = t0 - 1
         gameState.nextEventAt = overdue
@@ -175,7 +171,6 @@ struct LifecycleTests {
         gameState.handleScenePhase(from: .background, to: .inactive, now: t0)
         for _ in 0..<8 { gameState.flushHUD() }
         #expect(gameState.nextEventAt == overdue)
-        #expect(!ads.isInterstitialArmed)
         #expect(gameState.player?.run.activeModifiers == [buff])
 
         gameState.handleScenePhase(from: .inactive, to: .active, now: t0)

@@ -205,11 +205,20 @@ extension GameState {
 
     private func publishCelebration() {
         let kind = celebrations.current
+        let finished = showing
         if showing != kind { showing = kind }
         // El cofre y la cinemática apagan la UI SIEMPRE: ocupan la pantalla entera y el
         // HUD asomando por debajo rompe el telón.
         let hides = (kind == .boardCelebration && boardCelebrationShowsSomethingNew)
             || kind == .chestOpening || kind == .cinematic
         if celebrationHidesUI != hides { celebrationHidesUI = hides }
+        // La cola se vació y en esta tanda hubo alguna de las grandes —aunque un
+        // aviso chico haya sido el último en irse—: corte natural.
+        guard let finished, showing != finished else { return }
+        bigCelebrationSinceIdle = bigCelebrationSinceIdle || finished.endsInNaturalBreak
+        if kind == nil {
+            if bigCelebrationSinceIdle { scheduleNaturalBreak(.celebrationsDrained) }
+            bigCelebrationSinceIdle = false
+        }
     }
 }

@@ -34,25 +34,13 @@ struct AdsPacingStore {
 /// `NaturalBreakPolicy` y persiste lo que se mostró. La política es pura; esto
 /// es la mínima cantidad de estado alrededor para usarla.
 ///
-/// ⚠️ **Lo crea la App (`ForcedAdsSetup`), pero todavía nadie le pregunta.**
-/// Quien lo consulta es E7b, junto con la pantalla previa de la pausa
-/// publicitaria. Hasta entonces la 1.x sigue con `AdsCoordinator.armIfDue` /
-/// `GameState.showInterstitialIfAppropriate`, intactos. Cómo se cablea:
-///
-/// 1. La App crea **uno por proceso** (cada construcción cuenta un arranque en
-///    frío), con `NaturalBreakPolicy(config:)` de `AdsRemoteConfigLoader`
-///    (hecho: `ForcedAdsSetup.makePacer`).
-/// 2. `.background` → `didEnterBackground()`, y ahí mismo
-///    `ads.preloadAppOpen()`; `.active` → `didReturnFromBackground()` y el
-///    corte `.returnFromBackground`.
-/// 3. En cada corte: `decide(_:context:)` con el contexto armado desde
-///    `GameState` (tutorial, hoja, celebración, `removedAds`) y desde
-///    `AdsCoordinator` (`isPresentingFullScreen`, `lastRewardedAt`, qué
-///    formatos están listos). Si dice `.show`, se muestra y **después** se
-///    llama `recordShown(_:)`.
-/// 4. Los llamadores de `showInterstitialIfAppropriate` pasan a ser cortes:
-///    cerrar hoja → `.sheetClosed`, cerrar el offline →
-///    `.offlinePopupDismissed`, `confirmPrestige` → `.reincarnation`.
+/// Lo crea la App (`ForcedAdsSetup.makePacer`, uno por proceso: cada construcción
+/// cuenta un arranque en frío) y lo consulta `GameState+Ads` en cada corte:
+/// `decide(_:context:)` con el contexto armado desde el juego y desde
+/// `AdsCoordinator`; si dice `.show`, se muestra y **después** se llama
+/// `recordShown(_:)`. El ciclo de vida lo alimenta con `didEnterBackground()` y
+/// `didReturnFromBackground()`; el app open (`.returnFromBackground`) todavía
+/// no se cablea.
 @MainActor
 final class ForcedAdsPacer {
     private(set) var pacing: AdsPacingState

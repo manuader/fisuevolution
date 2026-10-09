@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import FisuEvolution
 
@@ -12,10 +13,13 @@ struct MenuSessionTests {
         let clock = TestClock()
         let provider = ScriptedAdsProvider()
         let ads = AdsCoordinator(now: clock.read, provider: provider)
+        ads.settleDelay = .zero
+        let suite = "menu-session-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite) ?? .standard
+        defer { defaults.removePersistentDomain(forName: suite) }
+        ads.attachPacer(ForcedAdsPacer(store: AdsPacingStore(defaults: defaults), now: clock.read))
         gameState.attachAds(ads)
         clock.advance(by: 10_000)
-        ads.armIfDue()
-        #expect(ads.isInterstitialArmed, "el escenario es un intersticial que ya toca")
 
         gameState.menuDidOpen(at: .upgrades)
         gameState.menuPageChanged(to: .skins)

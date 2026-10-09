@@ -37,10 +37,5 @@
       "cooldownSeconds": 14400,
       "titleKey": "ads.reward.chest"
     }
-  ],
-  "interstitial": {
-    "minSecondsBetween": 420,
-    "graceSecondsAfterLaunch": 180,
-    "graceSecondsAfterRewarded": 90
-  }
+  ]
 }

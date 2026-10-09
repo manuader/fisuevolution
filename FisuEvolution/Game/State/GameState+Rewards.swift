@@ -16,9 +16,7 @@ extension GameState {
 
     /// Un momento en que algo puede aparecer solo sin pisar al jugador: el tablero
     /// a la vista (escena activa, sin hoja, sin ficha, sin carrera), sin
-    /// celebración en pantalla y fuera de la fase obligatoria del tutorial. Es
-    /// `isSafeMomentForInterstitial` más la escena y la ficha; E7b pasa los
-    /// intersticiales a éste.
+    /// celebración en pantalla y fuera de la fase obligatoria del tutorial.
     var isCalmMoment: Bool {
         phase == .ready && isSceneActive && !uiCoversBoard && celebrations.current == nil
             && !tutorialPhaseActive && characterSheet == nil && careerPrompt == nil

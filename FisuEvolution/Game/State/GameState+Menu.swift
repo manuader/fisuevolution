@@ -16,6 +16,6 @@ extension GameState {
     }
 
     func menuDidClose() async {
-        await showInterstitialIfAppropriate()
+        await naturalBreak(.sheetClosed)
     }
 }

@@ -135,21 +135,6 @@ struct AdFormatsTests {
         await first.value
         #expect(!ads.isPresentingFullScreen)
     }
-
-    /// El reloj de la 1.x es uno para los tres forzados: una pausa o un app
-    /// open recién cerrados desarman el interstitial igual que uno común.
-    @Test("cerrar un app open desarma el interstitial de la 1.x")
-    func aForcedFormatDisarmsTheLegacyInterstitial() async {
-        let clock = TestClock()
-        let ads = AdsCoordinator(now: clock.read, provider: ScriptedAdsProvider())
-        clock.advance(by: 10_000)
-        ads.armIfDue()
-        #expect(ads.isInterstitialArmed)
-
-        await ads.showAppOpen()
-
-        #expect(!ads.isInterstitialArmed)
-    }
 }
 
 // MARK: - Andamio

@@ -153,7 +153,8 @@ extension GameState {
         case .elevatorKeypad:
             unlockedFloorsCount >= 3
         case .quickHire:
-            quickHireOffer?.affordable == true
+            // Comprable de verdad: con el piso lleno la oferta existe pero no compra.
+            quickHireOffer.map { $0.blocker == nil } ?? false
         case .skins:
             // "Tener una pinta que ponerse", literal — que es la regla de oro
             // aplicada a esta pantalla. La proyección publica `allOwnedSkins`

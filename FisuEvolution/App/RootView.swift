@@ -517,8 +517,8 @@ struct GameBoardView: View {
     /// contracara está anotada en los dos toasts: **el tope de esta pila cambió
     /// de altura** y sus paddings se re-derivaron para el caso más alto.
     ///
-    /// La aparición/desaparición del atajo (`quickHireOffer` pasa a `nil` cuando no
-    /// queda nada contratable) va **sin animación**, igual que la del botón de
+    /// La aparición/desaparición del atajo (`quickHireOffer` es `nil` sólo cuando no
+    /// hay ni un candidato; con el piso lleno sigue ahí con su motivo) va **sin animación**, igual que la del botón de
     /// prestigio que tiene arriba: son los dos hijos opcionales de la misma
     /// pila, y animar uno solo dejaría la franja moviéndose de dos maneras
     /// distintas. Si algún día se anima, se animan los dos juntos y con
@@ -805,7 +805,7 @@ private struct TowerNoticeView: View {
                 // que le agregue un pixel a cualquiera de los tres pisos tiene
                 // que volver a medir.
                 //
-                // ⚠️ Cuando `quickHireOffer` es `nil` el atajo no se dibuja y la pila
+                // ⚠️ Cuando `quickHireOffer` es `nil` (sin ningún candidato) el atajo no se dibuja y la pila
                 // baja 64 pt (la cápsula + su spacing), pero el aviso NO baja: se
                 // queda donde está y flota esos 64 pt más arriba de lo que
                 // necesita. Es cosmético y es la elección correcta: el número es

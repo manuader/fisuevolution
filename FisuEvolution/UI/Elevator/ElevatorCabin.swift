@@ -51,9 +51,10 @@ enum CabinFrame {
 /// Los dos clips de la cabina calentados, de a uno. Se preparan al abrir la placa o el mapa
 /// (`prepare()`), nunca al elegir el piso: el arranque en frío del HEVC con alfa congela el primer cuadro.
 ///
-/// Memoria: vive un solo player por vez. El de "abre" se crea cuando arranca el tramo de viaje
-/// (hay ≥ 300 ms para calentarlo) y el de "cierra" se suelta al abrir las puertas. Si nadie usa el
-/// que se preparó, se suelta solo.
+/// Memoria: el de "abre" se crea cuando arranca el tramo de viaje (hay ≥ 300 ms para calentarlo)
+/// y el de "cierra" se suelta al abrir las puertas, así que en `.traveling` conviven los dos. Si
+/// nadie usa el que se preparó, se suelta solo. Mientras haya un player vivo, el pool tiene un
+/// decodificador reservado.
 @MainActor
 final class ElevatorCabinWarmup {
     static let shared = ElevatorCabinWarmup()
@@ -63,11 +64,18 @@ final class ElevatorCabinWarmup {
     private var closing: (url: URL, player: ChestCinematicPlayer)?
     private var opening: (url: URL, player: ChestCinematicPlayer)?
     private var expiry: Task<Void, Never>?
+    private let pool: VideoPlayerPool
+    private var reservation: VideoPlayerPool.Reservation?
+
+    init(pool: VideoPlayerPool = .shared) {
+        self.pool = pool
+    }
 
     /// Idempotente y sin esperar: el calentado corre en el `Task` del player.
     func prepare(art: ElevatorCabinArt = .shared) {
         guard case .video(let close, _) = art, !UIAccessibility.isReduceMotionEnabled else { return }
         _ = closingPlayer(url: close)
+        reserveDecoder()
         expiry?.cancel()
         expiry = Task { [weak self] in
             try? await Task.sleep(for: Self.patience)
@@ -91,6 +99,18 @@ final class ElevatorCabinWarmup {
         expiry = nil
     }
 
+    /// Mientras la cabina tiene un player calentado, el pool le deja uno de sus tres decodificadores.
+    private func reserveDecoder() {
+        guard reservation == nil else { return }
+        reservation = pool.reserve()
+    }
+
+    private func unreserveDecoder() {
+        guard let reservation else { return }
+        pool.unreserve(reservation)
+        self.reservation = nil
+    }
+
     private static func isUsable(_ player: ChestCinematicPlayer) -> Bool {
         player.player.currentItem.map { $0.status != .failed } ?? false
     }
@@ -99,6 +119,7 @@ final class ElevatorCabinWarmup {
         if let closing, closing.url == url { return closing.player }
         Self.dispose(closing?.player)
         let player = ChestCinematicPlayer(url: url)
+        reserveDecoder()
         closing = (url, player)
         return player
     }
@@ -107,6 +128,7 @@ final class ElevatorCabinWarmup {
         if let opening, opening.url == url { return opening.player }
         Self.dispose(opening?.player)
         let player = ChestCinematicPlayer(url: url)
+        reserveDecoder()
         opening = (url, player)
         return player
     }
@@ -120,6 +142,7 @@ final class ElevatorCabinWarmup {
     func release() {
         expiry?.cancel()
         expiry = nil
+        unreserveDecoder()
         releaseClosing()
         Self.dispose(opening?.player)
         opening = nil

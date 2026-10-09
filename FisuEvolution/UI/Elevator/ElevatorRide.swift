@@ -66,7 +66,7 @@ final class ElevatorRide {
     enum Phase: Equatable { case idle, closing, traveling, opening }
 
     /// Los bordes que suenan. `ElevatorRideOverlay` los traduce a `AudioManager.SFX`.
-    enum Cue: Equatable { case keypadOpen, keypadClose, button, doorsClose, motorStart, motorStop, ding, doorsOpen }
+    enum Cue: Equatable { case keypadOpen, keypadClose, button, doorsClose, motorStart, motorStop, cable, ding, doorsOpen }
 
     struct Hooks {
         var visibleOrdinal: @MainActor () -> Int
@@ -187,6 +187,7 @@ final class ElevatorRide {
         hooks.jump(plan.destination)
         jumped = true
         hooks.cue(.motorStart)
+        hooks.cue(.cable)
         await hooks.sleep(plan.travel)
         guard !Task.isCancelled else { return }
         hooks.cue(.motorStop)
@@ -224,7 +225,7 @@ enum ElevatorSound: Equatable {
 }
 
 extension ElevatorRide.Cue {
-    static let all: [ElevatorRide.Cue] = [.keypadOpen, .keypadClose, .button, .doorsClose, .motorStart, .motorStop, .ding, .doorsOpen]
+    static let all: [ElevatorRide.Cue] = [.keypadOpen, .keypadClose, .button, .doorsClose, .motorStart, .motorStop, .cable, .ding, .doorsOpen]
 
     var sound: ElevatorSound {
         switch self {
@@ -233,6 +234,7 @@ extension ElevatorRide.Cue {
         case .doorsClose, .doorsOpen: .oneShot(.elevatorDoors, .action)
         case .motorStart: .startLoop(.elevatorMotor)
         case .motorStop: .stopLoop(.elevatorMotor)
+        case .cable: .oneShot(.elevatorCable, .action)
         case .ding: .oneShot(.elevatorDing, nil)
         }
     }

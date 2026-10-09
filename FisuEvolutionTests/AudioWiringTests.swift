@@ -32,7 +32,6 @@ import Testing
         "mattressSqueak": "E5b T2", "mattressRip": "E5b T2", "cashBurst": "E5b T2",
         "visitorArrive": "E4b T3", "talkBlip": "E4b T3",
         "shopShimmer": "E6a T8",
-        "elevatorCable": "E8d T10",
     ]
 
     /// Los acentos de evento suenan por `AudioManager.accent(forEvent:)`, cuyo
@@ -48,7 +47,7 @@ import Testing
     /// Los del ascensor suenan desde `UI/HUD` y `UI/Elevator` (E13b), no desde
     /// una acción de `GameState`.
     private static let elevatorCases = [
-        "elevatorDing", "elevatorSpring", "elevatorClick", "elevatorDoors", "elevatorMotor",
+        "elevatorDing", "elevatorSpring", "elevatorClick", "elevatorDoors", "elevatorMotor", "elevatorCable",
     ]
 
     /// Las acciones de `GameState` más los popups: las sacudidas del cofre

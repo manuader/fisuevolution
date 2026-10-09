@@ -93,6 +93,7 @@ struct SettingsView: View {
     @State private var language = LanguagePreference.current()
     @State private var showRestartAlert = false
     @State private var restore = RestoreOutcome.idle
+    @State private var showsPrivacyRow = false
 
     var body: some View {
         // Los volúmenes son `var` del manager y persisten solos en su `didSet`:
@@ -109,6 +110,7 @@ struct SettingsView: View {
                 gameSection
                 notificationsSection
                 purchasesSection
+                privacySection
                 legalSection
                 aboutSection
             }
@@ -136,6 +138,7 @@ struct SettingsView: View {
         // El permiso se puede revocar desde Ajustes de iOS sin que la app se
         // entere: al abrir la pantalla se vuelve a leer antes de mostrarlo.
         .task { await notifications.refreshAuthorization() }
+        .onAppear { showsPrivacyRow = AdsConsent.privacyRowVisible }
     }
 
     // MARK: Cabecera
@@ -377,6 +380,37 @@ struct SettingsView: View {
             // Lo restaurado son los **no consumibles** que StoreKit reconoce
             // como vigentes: es exactamente lo que el jugador recupera.
             restore = .done(store.purchasedProductIDs.count)
+        }
+    }
+
+    // MARK: Privacidad
+
+    /// "Opciones de privacidad" de UMP (PLAN-v2 §3, bug 10): la UE exige poder
+    /// revisar el consentimiento, no sólo darlo una vez. Sale sólo donde UMP
+    /// dice que hace falta.
+    @ViewBuilder private var privacySection: some View {
+        if showsPrivacyRow {
+            VStack(spacing: Tokens.s12) {
+                SectionHeader("settings.section.privacy")
+                GameCard(style: .normal) {
+                    VStack(spacing: Tokens.s8) {
+                        Text("settings.privacy.hint")
+                            .font(Tokens.caption)
+                            .foregroundStyle(Color("PaletteInk").opacity(0.7))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        ActionPill(
+                            titleKey: "settings.privacy.options",
+                            systemImage: "hand.raised.fill",
+                            tint: Color("PaletteBlue"),
+                            identifier: "settings.privacy.options"
+                        ) {
+                            Task { await AdsConsent.presentPrivacyOptions() }
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
         }
     }
 

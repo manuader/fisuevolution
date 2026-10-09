@@ -576,7 +576,7 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8c-T2 | El reloj del turno se renueva (`CelebrationQueue.renew`) | ✅ | — | CelebrationQueue.swift (tibio: E4b T1, E8b T8, E6a T12) | `6550e6b` (integ-r18) | EK; sonnet; ola 1 |
 | E8c-T3 | El tempo de la cadena, puro (`MergeAllTempo`) | ✅ | — | nuevos (`Scenes/MergeAllTempo.swift`) | | revisión ninguna; 7 pares ≤ 3,5 s; ola 1 |
 | E8c-T4 | El plin que sube de tono y el remate | ⏳ | — | AudioManager (tibio: E13b T3, E5b), HapticsManager, +Services, generate_audio.py, 1 `.caf` | | revisión ninguna; las fusiones del embudo hoy no suenan |
-| E8c-T5 | El turno de la cadena en GameState | 🟢 | T1, T2 | +BoardChanges, +Celebrations, +Debug (tibios) | `ae952bf`+`de11f12` (integ-r18) | sonnet, **rev. opus** (turno, watchdog, HUD); crea `debugSeedMergeAll` |
+| E8c-T5 | El turno de la cadena en GameState | ✅ | T1, T2 | +BoardChanges, +Celebrations, +Debug (tibios) | `ae952bf`+`de11f12` (integ-r18) | sonnet, **rev. opus** (turno, watchdog, HUD); crea `debugSeedMergeAll` |
 | E8c-T6 | El contador "×N" | ⏳ | — | nuevos (`Scenes/Nodes/MergeAllComboNode.swift`); catálogo (snapshot, 1 clave) | | revisión ninguna; `claves-pendientes/e8c-t6.json` |
 | E8c-T7 | La escena encadena sin soltar el turno | ⛔ | T3, T4, T5; ventana de BoardScene (tras E13 T11) | 🔥 BoardScene | | sonnet, **rev. opus**; `endBoardChangeTurn` es el borde único; grabación |
 | E8c-T8 | El toque apura; contador, remate y VoiceOver | ⛔ | T6, T7 | 🔥 BoardScene | | sonnet, **rev. opus**; duda 1 (apura, no corta); SE + Reduce Motion |
@@ -712,7 +712,7 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13-T9 | Ficha y Despedir desde Personajes | ⛔ | verificar CharacterSheetUITests sobre `ab7ba84` (arreglo del panel de debug) | catálogo (snapshot); UpgradesView, +Types, +Actions, CharacterSheetView | | no ∥ T13 (UpgradesView) ni T11 (+Actions); carry de texto a E9b T1 |
 | E13-T10 | FisuJobs por pisos | ⛔ | T8 | FisuJobsView | | revisión ninguna; `JobGroups` testeable |
 | E13-T11 | La moneda sobre quien genera plata | ✅ | — | 🔥 BoardScene; CharacterNode, BoardReconciliation, +Actions | `17b29fb` (integ-r18) | no ∥ T9 (+Actions); un nodo por personaje, sin animación |
-| E13-T12 | El Diamante dice "Pack de las 43" | 🟢 | — | catálogo (snapshot); +Store, CustomizationView | `221f9b6`+`ff3b1ef` (integ-r18; catálogo +1) | revisión ninguna; +Store es tibio de E6b T4/T5 |
+| E13-T12 | El Diamante dice "Pack de las 43" | ✅ | — | catálogo (snapshot); +Store, CustomizationView | `221f9b6`+`ff3b1ef` (integ-r18; catálogo +1) | revisión ninguna; +Store es tibio de E6b T4/T5 |
 | E13-T13 | Las mejoras dicen su efecto, de antes a después | ⛔ | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |
 | E13-T14 | Cierre de E13 (controlador) | ⛔ | T2–T13 | `Docs/` | | `completo`; HANDOFF §5.7 "las seis" |
 | P-E13b | Plan de E13 ítems 13–14 (ascensor y barra) | ✅ | — | — | `2560366` (merge `f395ac2`) | 11 tareas (T1–T11); `2026-10-08-v2-e13b-ascensor-barra.md`; 14 dudas con default; **no toca RootView ni GameState** |

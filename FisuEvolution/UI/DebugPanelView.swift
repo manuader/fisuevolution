@@ -97,6 +97,16 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.chest.award")
                 }
+                // Las cinemáticas, a demanda y sin mirar si le tocan: se anotan vistas igual.
+                Section("Cinemáticas") {
+                    ForEach(CinematicID.allCases.filter { $0 != .intro }, id: \.self) { id in
+                        Button("Ver \(id.rawValue)") {
+                            gameState.debugPlayCinematic(id)
+                            dismiss()
+                        }
+                        .accessibilityIdentifier("debug.cinematic.\(id.rawValue)")
+                    }
+                }
                 // La ficha con un segundo Fisura en la torre: el fixture
                 // `--uitest-open-sheet` la abre sobre el único de una partida
                 // nueva, que no se puede despedir.

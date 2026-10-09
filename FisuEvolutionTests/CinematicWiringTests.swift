@@ -66,12 +66,15 @@ struct CinematicWiringTests {
         #expect(gameState.player?.meta.engagement.seenCinematics["dios"] == 1)
     }
 
-    @Test("el tap que saltea también la cuenta vista, y una sola vez")
-    func skipRecordsOnce() async {
+    @Test("un tap al tablero no la saltea; el Saltar del overlay la cuenta vista, una sola vez")
+    func tapDoesNotSkipButSaltarRecordsOnce() async {
         let gameState = await world()
         #expect(gameState.playCinematicIfDue(.arresto))
-        gameState.advanceCelebrations(delta: CelebrationQueue.skipFloor)
-        #expect(gameState.skipCurrentCelebration())
+        gameState.advanceCelebrations(delta: CelebrationQueue.skipFloor + 1)
+        #expect(!gameState.skipCurrentCelebration(), "el tap del tablero no llega a cortarla")
+        #expect(gameState.showing == .cinematic)
+        #expect(gameState.cinematic == .arresto)
+        gameState.celebrationFinished(.cinematic)
         #expect(gameState.showing == nil)
         gameState.celebrationFinished(.cinematic)
         gameState.advanceCelebrations(delta: 12.5)

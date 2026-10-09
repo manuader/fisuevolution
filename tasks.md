@@ -512,7 +512,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E7b-a-T1 | La config remota en marcha | 🔧 | E1-T8, E11-T6 | FisuEvolutionApp | | |
+| E7b-a-T1 | La config remota en marcha | 🟢 | E1-T8, E11-T6 | FisuEvolutionApp | `5fee22d` (integ-r19) | |
 | E7b-a-T2 | Los cortes naturales | ⛔ | T1; E1-T8; E3b-T4; E4a-T8 | 🔥 GameState, RootView; +Lifecycle, +Celebrations, FisuEvolutionApp | | |
 | E7b-a-T3 | La pausa publicitaria | ⛔ | T2; E4a-T8; E5a-T6; E5b-T1; E4b-T3; E1-T14 | 🔥 GameState, RootView, catálogo; DebugPanelView | | |
 | E7b-a-T4 | El app open al volver | ⛔ | T2 | — | | no ∥ T3 (los dos editan `+Ads`) |
@@ -580,8 +580,8 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8c-T5 | El turno de la cadena en GameState | ✅ | T1, T2 | +BoardChanges, +Celebrations, +Debug (tibios) | `ae952bf`+`de11f12` (integ-r18) | sonnet, **rev. opus** (turno, watchdog, HUD); crea `debugSeedMergeAll` |
 | E8c-T6 | El contador "×N" | ✅ | — | nuevos (`Scenes/Nodes/MergeAllComboNode.swift`); catálogo (snapshot, 1 clave) | `0c15d3d` (integ-r18; catálogo +1) | revisión ninguna; `claves-pendientes/e8c-t6.json` |
 | E8c-T7 | La escena encadena sin soltar el turno | ✅ | T3, T4, T5; ventana de BoardScene (tras E13 T11) | 🔥 BoardScene | `e79696f`+`520d54c` (integ-r19) | sonnet, **rev. opus**; `endBoardChangeTurn` es el borde único; grabación |
-| E8c-T8 | El toque apura; contador, remate y VoiceOver | 🔧 | T6, T7 | 🔥 BoardScene | | sonnet, **rev. opus**; duda 1 (apura, no corta); SE + Reduce Motion |
-| E8c-T9 | El fixture `--uitest-merge-all` y `MergeAllChainUITests` | ⛔ | T8 | +Bootstrap (tibio) | | sonnet; receta R en un 16 Pro |
+| E8c-T8 | El toque apura; contador, remate y VoiceOver | 🟢 | T6, T7 | 🔥 BoardScene | `b6cc8f0`+`a59037f` (integ-r19) | sonnet, **rev. opus**; duda 1 (apura, no corta); SE + Reduce Motion |
+| E8c-T9 | El fixture `--uitest-merge-all` y `MergeAllChainUITests` | ⏳ | T8 | +Bootstrap (tibio) | | sonnet; receta R en un 16 Pro |
 | E8c-T10 | Cierre de E8c (controlador) | ⛔ | T1–T9 | `Docs/` | | `completo`; grabaciones para el dueño (sin tocar, tocando, por ORO/video si ya existen) |
 
 ### E8d — Todo el juego animado, lado Swift (`2026-10-08-v2-e8d-animaciones-swift.md`)

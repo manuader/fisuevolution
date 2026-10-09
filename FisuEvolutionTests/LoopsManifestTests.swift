@@ -24,6 +24,15 @@ struct LoopsManifestTests {
         return try JSONDecoder().decode(LoopsManifest.self, from: Data(json.utf8))
     }
 
+    /// Como `fixture`, pero cada piso lleva su `odrTag`.
+    static func fixture(floors: [String: String], odrTag: String) throws -> LoopsManifest {
+        let entries = floors.map { id, file in
+            #""\#(id)":{"file":"\#(file)","width":720,"height":1280,"fps":24,"frames":120,"alpha":false,"audio":false,"odrTag":"\#(odrTag)"}"#
+        }.joined(separator: ",")
+        let json = #"{"schemaVersion":1,"floors":{\#(entries)}}"#
+        return try JSONDecoder().decode(LoopsManifest.self, from: Data(json.utf8))
+    }
+
     @Test("la primera tanda: retratos y objetos 512² con alfa, mudos y en el bundle")
     func firstBatch() throws {
         let manifest = try LoopsManifest.load(from: .main)

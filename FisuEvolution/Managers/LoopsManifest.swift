@@ -106,6 +106,11 @@ struct LoopsManifest: Decodable, Sendable, Equatable {
     /// El del bundle, leído una vez. Sin archivo o roto, vacío: nada depende de que haya videos.
     static let main: LoopsManifest = (try? load(from: .main)) ?? .empty
 
+    /// El pack ODR que hay que bajar para esta pieza; `nil` si viaja en el paquete base.
+    func odrTag(for clip: ArtClip) -> String? {
+        entry(for: clip)?.odrTag
+    }
+
     func entry(for clip: ArtClip) -> Entry? {
         switch clip {
         case .portrait(let id): portraits[id]
@@ -120,17 +125,22 @@ struct LoopsManifest: Decodable, Sendable, Equatable {
         }
     }
 
-    /// `nil` sin entrada o sin archivo. Xcode aplana los recursos: se busca por nombre.
-    func url(for clip: ArtClip, in bundle: Bundle = .main) -> URL? {
+    /// `nil` sin entrada, sin archivo o con el pack ODR todavía sin bajar. Xcode aplana los recursos:
+    /// se busca por nombre.
+    @MainActor
+    func url(for clip: ArtClip, in bundle: Bundle = .main, packs: ArtPacks = .shared) -> URL? {
         guard let entry = entry(for: clip) else { return nil }
+        if let tag = entry.odrTag, !packs.isReady(tag) { return nil }
         let file = entry.file as NSString
         return bundle.url(forResource: file.deletingPathExtension, withExtension: file.pathExtension)
     }
 
+    @MainActor
     func portraitURL(for id: String, in bundle: Bundle = .main) -> URL? {
         url(for: .portrait(id), in: bundle)
     }
 
+    @MainActor
     func cinematicURL(for id: CinematicID, in bundle: Bundle = .main) -> URL? {
         url(for: .cinematic(id), in: bundle)
     }

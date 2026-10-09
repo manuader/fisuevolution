@@ -24,4 +24,16 @@ struct EconomyKnobsTests {
         #expect(tuned.oro.globalMultiplierPerOro == fxConfig().oro.globalMultiplierPerOro)
         #expect(tuned.oro.prestigeTeaserFloorId == fxConfig().oro.prestigeTeaserFloorId)
     }
+
+    @Test("las perillas de E2b llegan por el decoder")
+    func e2bKnobsLand() throws {
+        let band = EconomyConfig.HireConfig.EscalationBand(fromTier: 8, factor: 1.45)
+        let tuned = try fxConfig().tuned(EconomyKnobs(
+            escalationBands: [band], costGrowthStepPerFloor: 0.01, costGrowthStepFromFloorId: "f2"
+        ))
+        #expect(tuned.hire.escalationBands == [band])
+        #expect(tuned.hire.costGrowthStepPerFloor == 0.01)
+        #expect(tuned.hire.costGrowthStepFromFloorId == "f2")
+        #expect(try fxConfig().tuned(EconomyKnobs()) == fxConfig())
+    }
 }

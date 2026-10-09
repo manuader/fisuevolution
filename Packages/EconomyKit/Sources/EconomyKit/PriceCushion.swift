@@ -20,8 +20,7 @@ public struct PriceCushion: Sendable, Equatable {
     public let purchases: Int
     private let yieldGrowthPerTier: Double
     private let priceGrowthPerTier: Double
-    private let escalationPerTier: Double
-    private let escalationFromTier: Int
+    private let hire: EconomyConfig.HireConfig
 
     /// Un `D` a menos de esto de 1 es 1: después de K divisiones el redondeo no
     /// puede dejar el precio un pelo debajo de la v1 para siempre.
@@ -31,8 +30,7 @@ public struct PriceCushion: Sendable, Equatable {
         purchases = max(0, config.hire.priceReliefPurchases)
         yieldGrowthPerTier = config.yieldGrowthPerTier
         priceGrowthPerTier = config.hire.priceGrowthPerTier
-        escalationPerTier = config.hire.frontierEscalationPerTier
-        escalationFromTier = config.hire.frontierEscalationFromTier
+        hire = config.hire
     }
 
     public var isEnabled: Bool { purchases > 0 }
@@ -42,9 +40,8 @@ public struct PriceCushion: Sendable, Equatable {
     /// la frontera (rendimiento, escalada y la pendiente por tier).
     public func jump(from: Int, to: Int) -> Double {
         guard to > from else { return 1 }
-        let escalated = max(0, to - escalationFromTier) - max(0, from - escalationFromTier)
         return pow(yieldGrowthPerTier / priceGrowthPerTier, Double(to - from))
-            * pow(escalationPerTier, Double(escalated))
+            * hire.escalation(atFrontier: to) / hire.escalation(atFrontier: from)
     }
 
     /// `ρ` en esta frontera: el salto que llevó hasta ella, repartido en K compras.

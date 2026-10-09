@@ -15,6 +15,15 @@ struct LoopsManifestTests {
     ]
     static let objects: Set<String> = ["paquete_abre", "paquete_espera", "colchon_abre", "colchon_espera"]
 
+    /// Un manifest en memoria que apunta pisos a `.mov` reales del bundle.
+    static func fixture(floors: [String: String]) throws -> LoopsManifest {
+        let entries = floors.map { id, file in
+            #""\#(id)":{"file":"\#(file)","width":720,"height":1280,"fps":24,"frames":120,"alpha":false,"audio":false}"#
+        }.joined(separator: ",")
+        let json = #"{"schemaVersion":1,"floors":{\#(entries)}}"#
+        return try JSONDecoder().decode(LoopsManifest.self, from: Data(json.utf8))
+    }
+
     @Test("la primera tanda: retratos y objetos 512² con alfa, mudos y en el bundle")
     func firstBatch() throws {
         let manifest = try LoopsManifest.load(from: .main)

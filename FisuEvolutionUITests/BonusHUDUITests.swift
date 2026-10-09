@@ -122,6 +122,17 @@ final class BonusHUDUITests: XCTestCase {
 
         let regalos = app.buttons["hud.bonus"]
         XCTAssertTrue(regalos.waitForExistence(timeout: 15))
+
+        // ⚠️ El puntito de Regalos también avisa de un boost gratis listo, y el
+        // mate arranca desbloqueado y sin cooldown: en una partida nueva la
+        // pestaña ya nace encendida. Se gasta el mate (cooldown de 30 min, no
+        // vuelve en lo que dura el test) para que el puntito dependa SÓLO del
+        // cofre, que es lo que este test prueba.
+        regalos.tap()
+        let mate = app.buttons["bonus.activate.mate"]
+        XCTAssertTrue(mate.waitForExistence(timeout: 6), "el mate tiene que estar disponible en una partida nueva")
+        mate.tap()
+        app.buttons["sheet.close"].tap()
         XCTAssertTrue(Self.valor(regalos).isEmpty,
                       "sin cofres guardados la pestaña no puede tener puntito")
 

@@ -21,7 +21,7 @@ import Testing
     private static let declaredCases = [
         "tap", "merge", "evolution", "coin", "buy",
         "error", "rare", "prestige", "event", "daily",
-        "chestShakeA", "chestShakeB",
+        "chestShakeA", "chestShakeB", "revealWhoosh",
     ]
 
     /// Los efectos sintetizados que todavía no tienen call site, con la tarea
@@ -31,7 +31,6 @@ import Testing
         "mattressSqueak": "E5b T2", "mattressRip": "E5b T2", "cashBurst": "E5b T2",
         "visitorArrive": "E4b T3", "talkBlip": "E4b T3",
         "shopShimmer": "E6a T8",
-        "revealWhoosh": "E8d T5/T9",
         "elevatorCable": "E8d T10",
     ]
 

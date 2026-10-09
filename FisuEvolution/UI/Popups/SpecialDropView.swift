@@ -93,10 +93,12 @@ struct SpecialDropView: View {
         Group {
             if let asset = gameState.content?.manifest.characters[special.id],
                let image = UIArt.characterImage(atlas: asset.atlas, key: asset.key) {
-                image
-                    .resizable()
-                    .scaledToFit()
-                    .padding(Tokens.s8)
+                AnimatedArtView(clip: .portrait(special.id), role: .popup) {
+                    image
+                        .resizable()
+                        .scaledToFit()
+                }
+                .padding(Tokens.s8)
             } else {
                 Image(systemName: "star.circle.fill")
                     .font(.system(size: 76))

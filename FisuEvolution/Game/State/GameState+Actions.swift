@@ -325,24 +325,42 @@ extension GameState {
     /// Long-press on a unit → ficha por personaje (§2.3 regla 3).
     /// `cellIndex` = slot del piso visible.
     func presentCharacterSheet(cellIndex: Int) {
-        guard let content, let player, let tower,
-              let typeId = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: cellIndex),
-              let type = content.tiers.type(id: typeId)
-        else { return }
-        characterSheet = CharacterSheet(
+        guard let tower, let typeId = tower.typeId(floorOrdinal: visibleFloorOrdinal, slot: cellIndex) else { return }
+        characterSheet = makeCharacterSheet(typeId: typeId, floorOrdinal: visibleFloorOrdinal, cellIndex: cellIndex)
+    }
+
+    /// La ficha desde Personajes: apunta a una unidad del tipo —la del piso
+    /// visible si la hay, si no la del primer piso que la tenga— o, sin
+    /// unidades, abre igual pero sin poder despedir.
+    func characterSheet(forTypeId typeId: String) -> CharacterSheet? {
+        guard let tower else { return nil }
+        let visibleFirst = [visibleFloorOrdinal] + tower.floors.indices.filter { $0 != visibleFloorOrdinal }
+        for floorOrdinal in visibleFirst {
+            if let placement = tower.placements(onFloor: floorOrdinal).first(where: { $0.typeId == typeId }) {
+                return makeCharacterSheet(typeId: typeId, floorOrdinal: floorOrdinal, cellIndex: placement.slot)
+            }
+        }
+        return makeCharacterSheet(typeId: typeId, floorOrdinal: -1, cellIndex: -1)
+    }
+
+    private func makeCharacterSheet(typeId: String, floorOrdinal: Int, cellIndex: Int) -> CharacterSheet? {
+        guard let content, let player, let type = content.tiers.type(id: typeId) else { return nil }
+        let instanceCount = player.run.units[type.id] ?? 0
+        return CharacterSheet(
             type: type,
+            floorOrdinal: floorOrdinal,
             cellIndex: cellIndex,
-            instanceCount: player.run.units[type.id] ?? 0,
+            instanceCount: instanceCount,
             isUnlocked: player.run.passiveUnlocked[type.id] == true,
             canAfford: player.run.coins >= type.passiveUnlockCost,
-            canDismiss: player.run.totalUnits > 1
+            canDismiss: floorOrdinal >= 0 && instanceCount > 0 && player.run.totalUnits > 1
         )
     }
 
     /// "Dejar de contratar": saca la unidad del slot y libera el espacio.
-    func dismissCharacter(atCell cell: Int) {
+    func dismissCharacter(floorOrdinal: Int, slot: Int) {
         guard var player, var tower else { return }
-        guard TowerActions.removeUnit(floorOrdinal: visibleFloorOrdinal, slot: cell, state: &player, tower: &tower) else { return }
+        guard TowerActions.removeUnit(floorOrdinal: floorOrdinal, slot: slot, state: &player, tower: &tower) else { return }
         self.player = player
         self.tower = tower
         characterSheet = nil

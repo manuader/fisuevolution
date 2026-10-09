@@ -333,26 +333,94 @@ struct QuickHireOfferTests {
         #expect(best.affordable)
     }
 
-    @Test("sin ningún contratable no hay oferta, y el botón no contrata nada")
-    func noHirableMeansNoOffer() async throws {
+    @Test("con el piso lleno la oferta sigue ahí con su motivo, y tocar no compra pero avisa")
+    func fullFloorKeepsAnOfferWithFloorFullBlocker() async throws {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
-        // El callejón lleno y el resto de la cadena sin ver: no queda un solo
-        // tipo en estado `hirable`.
         let capacity = gameState.floorOccupancy(ordinal: 0).capacity
         for _ in gameState.floorOccupancy(ordinal: 0).occupied..<capacity {
             gameState.hireCharacter(typeId: "homeless")
         }
         gameState.refreshProjections()
 
-        #expect(gameState.floorOccupancy(ordinal: 0).occupied == capacity)
-        #expect(gameState.quickHireOffer == nil, "sin nada contratable el botón no se dibuja")
+        let offer = try #require(gameState.quickHireOffer, "el atajo nunca desaparece")
+        #expect(offer.typeId == "homeless")
+        #expect(!offer.fits)
+        #expect(offer.blocker == .floorFull, "piso lleno gana a no te alcanza")
+        #expect(offer.accessibilityState == "floorFull:homeless")
 
         let unitsBefore = try #require(gameState.player?.run.units)
-        let coinsBefore = try #require(gameState.player?.run.coins)
+        gameState.towerNotice = nil
         gameState.hireQuickOffer()
-        #expect(gameState.player?.run.units == unitsBefore, "sin oferta no hay compra")
-        #expect(gameState.player?.run.coins == coinsBefore)
+        #expect(gameState.player?.run.units == unitsBefore, "con el piso lleno no hay compra")
+        #expect(gameState.towerNotice?.kind == .floorFull, "y el aviso de piso lleno aparece")
+    }
+
+    @Test("el pin manda: la oferta es el fijado aunque haya uno mejor, y sin plata no cae a otro")
+    func thePinWins() async throws {
+        let gameState = await makeGameState()
+        gameState.debugUnlockFloors(throughTier: 13)
+        gameState.debugMarkTypesSeen(throughTier: 12)
+        gameState.debugSetMaxTier(18)
+        try giveCoins(400_000_000_000, to: gameState)
+        gameState.refreshProjections()
+        #expect(gameState.quickHireOffer?.typeId == "senior_architect", "sin pin, el más alto pagable")
+
+        gameState.pinQuickHire(typeId: "oficinista")
+        var offer = try #require(gameState.quickHireOffer)
+        #expect(offer.typeId == "oficinista")
+        #expect(offer.isPinned)
+        #expect(offer.blocker == nil)
+        #expect(offer.accessibilityState == "ready:oficinista;pinned")
+        #expect(gameState.player?.meta.quickHirePinnedTypeId == "oficinista", "el pin va al save")
+
+        try giveCoins(0, to: gameState)
+        gameState.refreshProjections()
+        offer = try #require(gameState.quickHireOffer)
+        #expect(offer.typeId == "oficinista", "el pin muestra su motivo, no cae a otro en silencio")
+        #expect(offer.blocker == .cantAfford)
+
+        gameState.pinQuickHire(typeId: nil)
+        try giveCoins(400_000_000_000, to: gameState)
+        gameState.refreshProjections()
+        #expect(gameState.quickHireOffer?.typeId == "senior_architect", "soltar el pin vuelve a la regla")
+        #expect(gameState.quickHireOffer?.isPinned == false)
+    }
+
+    @Test("un pin que dejó de estar desbloqueado se ignora sin borrarse")
+    func aStalePinIsIgnoredNotErased() async throws {
+        let gameState = await makeGameState()
+        gameState.debugGrantCoins()
+        gameState.pinQuickHire(typeId: "senior_architect")
+        gameState.refreshProjections()
+        let offer = try #require(gameState.quickHireOffer)
+        #expect(offer.typeId == "homeless", "un tipo nunca visto no se ofrece (RF-03)")
+        #expect(!offer.isPinned)
+        #expect(gameState.player?.meta.quickHirePinnedTypeId == "senior_architect",
+                "vuelve a mandar cuando se desbloquee")
+    }
+
+    @Test("el selector lista sólo lo desbloqueado, el más alto primero, con lleno y fijado")
+    func pickerListsOnlyUnlockedTypes() async throws {
+        let gameState = await makeGameState()
+        gameState.debugUnlockFloors(throughTier: 13)
+        gameState.debugMarkTypesSeen(throughTier: 12)
+        gameState.debugSetMaxTier(18)
+        try giveCoins(400_000_000_000, to: gameState)
+        gameState.pinQuickHire(typeId: "oficinista")
+        gameState.refreshProjections()
+
+        let entries = gameState.quickHirePickerEntries
+        #expect(!entries.isEmpty)
+        let rows = Dictionary(uniqueKeysWithValues: gameState.jobRows.map { ($0.id, $0) })
+        for entry in entries {
+            let state = try #require(rows[entry.id]?.state)
+            #expect(state == .hirable || state == .floorFull, "\(entry.id) no está desbloqueado (\(state))")
+            #expect(entry.fits == (state == .hirable))
+        }
+        let tiers = entries.compactMap { rows[$0.id]?.tier }
+        #expect(tiers == tiers.sorted(by: >), "el más alto primero")
+        #expect(entries.filter(\.isPinned).map(\.id) == ["oficinista"])
     }
 
     // MARK: La acción

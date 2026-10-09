@@ -69,29 +69,63 @@ struct JobRow: Identifiable, Equatable {
     let floorID: String
 }
 
-/// La oferta del botón "contratar al mejor" de la pantalla principal: el **tier
-/// más alto que la plata alcanza**, entre los que FisuJobs ofrece como
-/// contratables. Sin nada pagable, el más barato como meta de ahorro.
+/// La oferta del atajo de contratar de la pantalla principal (PLAN-v2 E3).
 ///
-/// ⚠️ **El botón ofrece exactamente lo mismo que FisuJobs vende**, y ésa es la
-/// regla desde el 2026-08-28: el atajo no recorta nada que la pantalla de
-/// laburos no recorte. Entre el 2026-08-21 y esa fecha vendió sólo el tier base
-/// del piso (§4.5 del rebalance) — el porqué de la vuelta atrás, con los tres
-/// datos que la sostienen, está en `computeQuickHireOffer()`.
+/// Se resuelve en un orden fijo (ver `computeQuickHireOffer()`): el personaje
+/// fijado, el mejor que alcanza y entra, la meta de ahorro, y el mejor con piso
+/// lleno. **Con la partida cargada nunca es `nil`**: el botón no desaparece,
+/// dice por qué no compra.
 ///
-/// Es una fila de FisuJobs recortada a lo que el botón dibuja, y no un `JobRow`
-/// entero, porque el botón no muestra ni el income ni cuántos tenés ni el piso:
-/// publicar los quince campos invitaría a la vista a decidir con ellos, que es
-/// justo lo que esta proyección viene a evitar.
+/// ⚠️ **El atajo ofrece exactamente lo mismo que FisuJobs vende**, y ésa es la
+/// regla desde el 2026-08-28: no recorta nada que la pantalla de laburos no
+/// recorte. El porqué de la vuelta atrás, con los tres datos que la sostienen,
+/// está en `computeQuickHireOffer()`.
+///
+/// Es una fila de FisuJobs recortada a lo que el botón dibuja: publicar los
+/// quince campos de `JobRow` invitaría a la vista a decidir con ellos.
 struct QuickHireOffer: Equatable {
+    /// Por qué el atajo no compra ahora. Piso lleno gana a "no te alcanza":
+    /// juntar plata no destraba un piso lleno; fusionar, sí.
+    enum Blocker: String, Equatable {
+        case floorFull
+        case cantAfford
+    }
+
     let typeId: String
     let displayName: String
     let faceKey: String
     let costText: String
-    /// La plata alcanza. Igual que en `JobRow`, `false` NO deshabilita el botón:
-    /// muestra la meta de ahorro y tiembla al tocarlo (patrón `SpawnButtonView`).
+    /// La plata alcanza. `false` no deshabilita: el botón tiembla (patrón `PricePill`).
     let affordable: Bool
+    /// Hay lugar en el piso donde cae la contratación.
+    let fits: Bool
+    /// Es el personaje que el jugador fijó manteniendo apretado el atajo.
+    let isPinned: Bool
     let tier: Int
+
+    var blocker: Blocker? {
+        if !fits { return .floorFull }
+        if !affordable { return .cantAfford }
+        return nil
+    }
+
+    /// El estado como lo leen los tests de UI: `ready:homeless`,
+    /// `cantAfford:oficinista;pinned`, `floorFull:homeless`.
+    var accessibilityState: String {
+        "\(blocker?.rawValue ?? "ready"):\(typeId)" + (isPinned ? ";pinned" : "")
+    }
+}
+
+/// Una cara del selector del atajo: un tipo desbloqueado, con su precio y si
+/// entra. Nunca un tipo que el jugador no puede contratar.
+struct QuickHirePickerEntry: Identifiable, Equatable {
+    let id: String
+    let displayName: String
+    let faceKey: String
+    let costText: String
+    let affordable: Bool
+    let fits: Bool
+    let isPinned: Bool
 }
 
 /// La pantalla FisuJobs: qué se ofrece y qué pasa al comprarlo (§5).
@@ -195,65 +229,107 @@ extension GameState {
     ///   lo impida el botón.
     func computeQuickHireOffer() -> QuickHireOffer? {
         guard let content, let player else { return nil }
-        let coins = player.run.coins
-
-        struct Candidate {
-            let type: CharacterType
-            let cost: Double
-            let frozen: Bool
-        }
-        let candidates: [Candidate] = content.tiers.concreteTypes.compactMap { type in
-            guard let quote = currentQuote(player: player, typeId: type.id),
-                  jobState(for: type, ordinal: quote.floorOrdinal, player: player, content: content) == .hirable
-            else { return nil }
-            return Candidate(type: type, cost: quote.cost, frozen: quote.blockedBySpendingFreeze)
-        }
-        guard !candidates.isEmpty else { return nil }
-
-        let pick: Candidate
-        // ⚠️ Los dos comparadores van al revés uno del otro y es a propósito:
-        // `max(by:)` recibe un "menor que", así que para que gane el MÁS BARATO
-        // hay que declarar barato = mayor (`lhs.cost > rhs.cost`), y para que
-        // gane el id ASCENDENTE hay que declarar id chico = mayor
-        // (`lhs.type.id > rhs.type.id`). En el `min(by:)` de abajo, que devuelve
-        // el mínimo, los mismos dos criterios se escriben derechos.
-        //
-        // ⚠️⚠️ **Los desempates del `max` vuelven a decidir de verdad** desde que
-        // se sacó el filtro de tier base (2026-08-28): sin él, los tiers 11 y 12
-        // aportan CUATRO candidatos cada uno —las ramas de carrera— y el empate
-        // de tier es la regla, no el borde. Están cubiertos por
-        // `tiesOnTierPreferTheCheapest` y `tiesFallBackToTheAscendingID`, que
-        // volvieron a la suite por eso mismo. El `min` de la meta de ahorro sigue
-        // pineado por `brokePlayerSeesTheCheapestAsAGoal` y
-        // `withoutCoinsTheGoalIsTheCheapestOfMany`.
-        if let best = candidates.filter({ !$0.frozen && coins >= $0.cost }).max(by: { lhs, rhs in
-            if lhs.type.tier != rhs.type.tier { return lhs.type.tier < rhs.type.tier }
-            if lhs.cost != rhs.cost { return lhs.cost > rhs.cost }
-            return lhs.type.id > rhs.type.id
-        }) {
-            pick = best
-        } else if let goal = candidates.min(by: { lhs, rhs in
-            if lhs.cost != rhs.cost { return lhs.cost < rhs.cost }
-            return lhs.type.id < rhs.type.id
-        }) {
-            // Nada pagable: la oferta es lo más barato que hay, para que el
-            // botón muestre a cuánto tiene que llegar en vez de desaparecer.
-            pick = goal
-        } else {
-            return nil
-        }
-
+        let candidates = quickHireCandidates(player: player, content: content)
+        let pinnedID = player.meta.quickHirePinnedTypeId
+        // ⚠️ El orden es el contrato; cada paso sólo corre si el anterior no eligió.
+        let pick = candidates.first { $0.type.id == pinnedID }              // 1. el pin
+            ?? Self.best(candidates.filter { $0.fits && $0.affordable })    // 2. el mejor que alcanza y entra
+            ?? Self.cheapest(candidates.filter(\.fits))                     // 3. la meta de ahorro
+            ?? Self.best(candidates.filter(\.affordable))                   // 4. el mejor, con "Piso lleno"
+            ?? Self.cheapest(candidates)
+        guard let pick else { return nil }
         return QuickHireOffer(
             typeId: pick.type.id,
             displayName: pick.type.localizedName,
             faceKey: "\(pick.type.id)_face",
             costText: CoinFormatter.cost(from: pick.cost),
-            affordable: !pick.frozen && coins >= pick.cost,
+            affordable: pick.affordable,
+            fits: pick.fits,
+            isPinned: pick.type.id == pinnedID,
             tier: pick.type.tier
         )
     }
 
-    /// Contrata la oferta vigente; no-op si no hay ninguna.
+    private struct QuickHireCandidate {
+        let type: CharacterType
+        let cost: Double
+        let fits: Bool
+        let affordable: Bool
+    }
+
+    /// Lo que el atajo puede ofrecer: lo que FisuJobs vende (piso abierto,
+    /// compuerta abierta, tipo visto), con lugar o sin él. Que la compuerta sea
+    /// `jobState` y no una regla propia es lo que impide espoilear la cadena.
+    private func quickHireCandidates(player: PlayerState, content: GameContent) -> [QuickHireCandidate] {
+        content.tiers.concreteTypes.compactMap { type in
+            guard let quote = currentQuote(player: player, typeId: type.id) else { return nil }
+            let state = jobState(for: type, ordinal: quote.floorOrdinal, player: player, content: content)
+            guard state == .hirable || state == .floorFull else { return nil }
+            return QuickHireCandidate(
+                type: type,
+                cost: quote.cost,
+                fits: state == .hirable,
+                affordable: !quote.blockedBySpendingFreeze && player.run.coins >= quote.cost
+            )
+        }
+    }
+
+    /// El tier más alto; empate de tier (las cuatro ramas de carrera), el más
+    /// barato; empate de precio, el id ascendente. Pineado por
+    /// `tiesOnTierPreferTheCheapest` y `tiesFallBackToTheAscendingID`.
+    ///
+    /// ⚠️ Los comparadores van al revés de `cheapest`: `max(by:)` recibe un
+    /// "menor que", así que para que gane el más barato hay que declarar
+    /// barato = mayor (`lhs.cost > rhs.cost`), y lo mismo con el id.
+    private static func best(_ candidates: [QuickHireCandidate]) -> QuickHireCandidate? {
+        candidates.max { lhs, rhs in
+            if lhs.type.tier != rhs.type.tier { return lhs.type.tier < rhs.type.tier }
+            if lhs.cost != rhs.cost { return lhs.cost > rhs.cost }
+            return lhs.type.id > rhs.type.id
+        }
+    }
+
+    /// El más barato; empate, el id ascendente.
+    private static func cheapest(_ candidates: [QuickHireCandidate]) -> QuickHireCandidate? {
+        candidates.min { lhs, rhs in
+            if lhs.cost != rhs.cost { return lhs.cost < rhs.cost }
+            return lhs.type.id < rhs.type.id
+        }
+    }
+
+    /// Las caras del selector, el más alto primero.
+    var quickHirePickerEntries: [QuickHirePickerEntry] {
+        guard let content, let player else { return [] }
+        let pinned = player.meta.quickHirePinnedTypeId
+        return quickHireCandidates(player: player, content: content)
+            .sorted { lhs, rhs in
+                lhs.type.tier != rhs.type.tier ? lhs.type.tier > rhs.type.tier : lhs.type.id < rhs.type.id
+            }
+            .map { candidate in
+                QuickHirePickerEntry(
+                    id: candidate.type.id,
+                    displayName: candidate.type.localizedName,
+                    faceKey: "\(candidate.type.id)_face",
+                    costText: CoinFormatter.cost(from: candidate.cost),
+                    affordable: candidate.affordable,
+                    fits: candidate.fits,
+                    isPinned: candidate.type.id == pinned
+                )
+            }
+    }
+
+    /// Fija (o con `nil` suelta) el personaje del atajo. Va al save
+    /// (`meta.quickHirePinnedTypeId`) y sobrevive a reencarnar.
+    func pinQuickHire(typeId: String?) {
+        guard var player, player.meta.quickHirePinnedTypeId != typeId else { return }
+        player.meta.quickHirePinnedTypeId = typeId
+        self.player = player
+        scheduleSave()
+        refreshProjections()
+    }
+
+    /// Contrata la oferta vigente; no-op si no hay ninguna. Con piso lleno o sin
+    /// plata, `hireCharacter` rechaza y avisa: el botón no decide nada.
     ///
     /// Reusa `hireCharacter` ENTERO en vez de llamar a `TowerActions.hire` por
     /// su cuenta: FTUE, hápticos, audio, logros, aviso de piso lleno y save

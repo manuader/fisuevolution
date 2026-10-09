@@ -73,6 +73,20 @@ struct SkinCatalogRowsTests {
         #expect(!skin.displayName.contains("skin.name"), "el nombre llegó como clave, no como texto")
     }
 
+    // MARK: El Diamante es un pack
+
+    @Test("el Diamante sin comprar sabe de cuántos personajes es el pack; la pinta suelta, no")
+    func diamondIsAPackOfAllTheEntriesSharingIt() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        let packSize = content.skins.skins.filter { $0.id == "diamante" }.count
+
+        #expect(packSize > 1)
+        #expect(try row(gameState, "homeless", "diamante").packSize == packSize)
+        #expect(try row(gameState, "homeless", "mundialista").packSize == nil)
+        #expect(try row(gameState, "homeless", "base").packSize == nil)
+    }
+
     // MARK: Los cuatro estados
 
     /// ⚠️ Acá se pineaba que la pinta del Cartonero decía "llegá a la Ciudad".

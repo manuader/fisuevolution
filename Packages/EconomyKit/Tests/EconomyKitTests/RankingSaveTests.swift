@@ -154,4 +154,33 @@ struct RankingSaveTests {
         newer.meta.ranking = .newGame
         #expect(SaveConflictResolver.resolve(local: older, remote: newer).meta.ranking.carriedSubmission == nil)
     }
+
+    @Test("un campo ilegible no tira la llegada a Dios sin enviar que viaja en el mismo ranking")
+    func unreadableFieldKeepsTheCarriedArrival() throws {
+        let ranking: [String: Any] = [
+            "phase": ["awaitingStart": [String: Any]()],
+            "lastName": 42,
+            "playedSeconds": "mucho",
+            "carriedSubmission": ["runId": "r1", "sealed": true, "playedSeconds": 9] as [String: Any],
+        ]
+        let back = try decoded { $0["ranking"] = ranking }.meta.ranking
+        #expect(back.phase == .awaitingStart)
+        #expect(back.lastName == nil)
+        #expect(back.playedSeconds == 0)
+        #expect(back.carriedSubmission == .init(runId: "r1", sealed: true, playedSeconds: 9))
+    }
+
+    @Test("a través de un reset, la llegada sin enviar del viejo va antes que su carry anterior")
+    func acrossResetPrefersTheUnsentArrivalOverTheOlderCarry() {
+        var newer = fxSave(lifetime: 0)
+        newer.meta.resetEpoch = 2
+        newer.meta.ranking = .newGame
+        var older = fxSave(lifetime: 5000)
+        older.meta.resetEpoch = 1
+        var arrived = god("actual", played: 50)
+        arrived.carriedSubmission = .init(runId: "anterior", playedSeconds: 1)
+        older.meta.ranking = arrived
+        let resolved = SaveConflictResolver.resolve(local: older, remote: newer).meta.ranking
+        #expect(resolved.carriedSubmission?.runId == "actual")
+    }
 }

@@ -108,16 +108,18 @@ public struct RankingState: Codable, Sendable, Equatable {
         self.clientRunId = clientRunId
     }
 
+    /// Cada campo se lee por separado: uno ilegible (de una versión futura) no tira la partida entera,
+    /// que puede traer una llegada a Dios sin enviar.
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         phase = (try? c.decodeIfPresent(Phase.self, forKey: .phase)) ?? .ineligible
-        playedSeconds = try c.decodeIfPresent(Double.self, forKey: .playedSeconds) ?? 0
-        activeSince = try c.decodeIfPresent(TimeInterval.self, forKey: .activeSince)
-        submission = try c.decodeIfPresent(Submission.self, forKey: .submission)
-        lastName = try c.decodeIfPresent(String.self, forKey: .lastName)
-        cardOffered = try c.decodeIfPresent(Bool.self, forKey: .cardOffered) ?? false
-        carriedSubmission = try c.decodeIfPresent(CarriedSubmission.self, forKey: .carriedSubmission)
-        clientRunId = try c.decodeIfPresent(String.self, forKey: .clientRunId)
+        playedSeconds = (try? c.decodeIfPresent(Double.self, forKey: .playedSeconds)) ?? 0
+        activeSince = try? c.decodeIfPresent(TimeInterval.self, forKey: .activeSince)
+        submission = try? c.decodeIfPresent(Submission.self, forKey: .submission)
+        lastName = try? c.decodeIfPresent(String.self, forKey: .lastName)
+        cardOffered = (try? c.decodeIfPresent(Bool.self, forKey: .cardOffered)) ?? false
+        carriedSubmission = try? c.decodeIfPresent(CarriedSubmission.self, forKey: .carriedSubmission)
+        clientRunId = try? c.decodeIfPresent(String.self, forKey: .clientRunId)
     }
 
     // MARK: - Transiciones (puras; devuelven si cambió algo las que pueden no hacer nada)

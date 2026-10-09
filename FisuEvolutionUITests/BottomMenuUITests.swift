@@ -104,6 +104,33 @@ final class BottomMenuUITests: XCTestCase {
                              "la barra tiene que estar pegada abajo, arrancó en \(jobs.frame.minY)")
     }
 
+    /// La barra es 2 + 1 + 2: simétrica alrededor de Contratar, con los cuatro botones
+    /// comunes iguales y más bajos que el del centro, y todo adentro de la ventana.
+    @MainActor
+    func testLaBarraEsSimetrica() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
+        app.launch()
+
+        let hire = app.buttons["hud.hire"]
+        XCTAssertTrue(hire.waitForExistence(timeout: 20))
+        let window = app.windows.element(boundBy: 0).frame
+        let upgrades = app.buttons["hud.upgrades"], skins = app.buttons["hud.skins"]
+        let gifts = app.buttons["hud.bonus"], menu = app.buttons["hud.settings"]
+        attach(app, named: "E13b la barra simétrica")
+
+        XCTAssertEqual(upgrades.frame.midX + menu.frame.midX, 2 * hire.frame.midX, accuracy: 2)
+        XCTAssertEqual(skins.frame.midX + gifts.frame.midX, 2 * hire.frame.midX, accuracy: 2)
+        for tab in [skins, gifts, menu] {
+            XCTAssertEqual(tab.frame.width, upgrades.frame.width, accuracy: 1)
+        }
+        XCTAssertLessThan(upgrades.frame.height, hire.frame.height)
+        for tab in [upgrades, skins, hire, gifts, menu] {
+            XCTAssertGreaterThanOrEqual(tab.frame.minX, window.minX)
+            XCTAssertLessThanOrEqual(tab.frame.maxX, window.maxX)
+        }
+    }
+
     /// El atajo de contratar al mejor vive **encima** de la barra y nunca está
     /// apagado.
     ///

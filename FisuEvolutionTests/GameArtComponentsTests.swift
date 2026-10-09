@@ -68,19 +68,37 @@ struct GameArtComponentsTests {
         #expect(items.filter(\.prominent).map(\.screen) == [.jobs])
     }
 
-    @Test("la barra baja 20 pt: el panel mide 64 y Contratar sobresale 20")
+    @Test("la barra no cambia de alto: el panel mide 64 y Contratar sobresale 20")
     func barGeometry() {
+        #expect(GameTabBar.plateSide == 52)
+        #expect(GameTabBar.centerPlateSide == 72)
         #expect(GameTabBar.panelHeight == 64)
         #expect(GameTabBar.centerRise == GameTabBar.centerPlateSide - GameTabBar.plateSide)
-        #expect(GameTabBar.barHeight == GameTabBar.panelHeight + GameTabBar.centerRise)
         #expect(GameTabBar.barHeight == 84, "la pila de arriba (atajo, prestigio, toasts) no se mueve")
     }
 
-    /// Las dos zonas miden lo mismo, así que manda la más poblada: tres pestañas
-    /// a la derecha. 16 + 72 + 2 × 136 + 4 = 364 de los 375 del SE.
-    @Test("las cinco pestañas entran en el SE")
-    func sixTabsFitTheSE() {
-        #expect(GameTabBar.minimumWidth(tabsPerSide: 3) <= 375)
+    @Test("las cinco pestañas entran en el SE con aire")
+    func fiveTabsFitTheSE() {
+        #expect(GameTabBar.minimumWidth(tabsPerSide: 2) <= 320)
+    }
+
+    @Test("cada lado se llena desde Contratar hacia afuera")
+    func sidesFillTowardTheCenter() {
+        let up = item(.upgrades), sk = item(.skins), gi = item(.gifts), me = item(.menu)
+        #expect(GameTabBar.slots([up], towardCenterFrom: .leading).map { $0?.screen } == [nil, .upgrades])
+        #expect(GameTabBar.slots([up, sk], towardCenterFrom: .leading).map { $0?.screen } == [.upgrades, .skins])
+        #expect(GameTabBar.slots([gi], towardCenterFrom: .trailing).map { $0?.screen } == [.gifts, nil])
+        #expect(GameTabBar.slots([gi, me], towardCenterFrom: .trailing).map { $0?.screen } == [.gifts, .menu])
+        #expect(GameTabBar.slots([], towardCenterFrom: .trailing).map { $0?.screen } == [nil, nil])
+    }
+
+    private func item(_ screen: GameScreen) -> GameTabItem {
+        GameTabItem(
+            screen: screen,
+            icon: AnyView(EmptyView()),
+            labelKey: "hud.\(screen.rawValue).label",
+            identifier: screen.identifier
+        )
     }
 
     @Test("el tab no es prominente si no se lo pide")

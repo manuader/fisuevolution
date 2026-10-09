@@ -88,6 +88,8 @@ final class BoardScene: SKScene {
     /// del tier nuevo, que es cuando `playingBoardChange` ya está en `nil`.
     private var playingChain: BoardChange.Chain?
     private var combo: MergeAllComboNode?
+    /// El video de cuerpo entero del reveal en curso: su lease vive lo que vive el reveal.
+    private var revealVideo: LoopingVideoNode?
     #if DEBUG
     private var debugNextStep: (() -> Void)?
     #endif
@@ -321,12 +323,14 @@ final class BoardScene: SKScene {
     override func didMove(to view: SKView) {
         isDetached = false
         updateScrollState()
+        revealVideo?.setVisible(true)
         layoutBoard()
         particles.preheat()
     }
 
     override func willMove(from view: SKView) {
         isDetached = true
+        revealVideo?.setVisible(false)
         updateScrollState()
     }
 
@@ -498,6 +502,7 @@ final class BoardScene: SKScene {
         #endif
         clearMergeCandidates()
         for node in characterNodes.values { node.removeAction(forKey: "assistedMerge") }
+        releaseRevealVideo()
         for layer in [cameraOverlay, backgroundLayer] {
             for node in layer.children where node.name?.hasPrefix(Self.celebrationNodePrefix) == true {
                 node.removeAllActions()
@@ -1336,6 +1341,7 @@ final class BoardScene: SKScene {
     /// Lo que el test de los cambios del tablero necesita ver de la escena.
     var debugIsPlayingBoardChange: Bool { playingBoardChange != nil }
     var debugPlayingChain: BoardChange.Chain? { playingChain }
+    var debugRevealVideo: LoopingVideoNode? { revealVideo }
 
     /// Corre lo que dispararía la acción en curso (entrada, destaque,
     /// deslizamiento o final del reveal) y deja armado el paso que sigue.
@@ -1440,6 +1446,10 @@ final class BoardScene: SKScene {
 
         // Scrim para enfocar la atención en el personaje recién desbloqueado.
         let layout = Self.revealLayout(size: size)
+        let closeReveal: () -> Void = { [weak self] in
+            self?.releaseRevealVideo()
+            completion()
+        }
         let scrim = SKSpriteNode(color: SKColor.black.withAlphaComponent(0.72), size: size)
         scrim.anchorPoint = .zero
         scrim.position = .zero
@@ -1452,10 +1462,12 @@ final class BoardScene: SKScene {
             .wait(forDuration: hold),
             .fadeOut(withDuration: 0.3),
             .removeFromParent(),
-        ]), completion: completion)
+        ]), completion: closeReveal)
         #if DEBUG
-        debugNextStep = completion
+        debugNextStep = closeReveal
         #endif
+
+        mountRevealVideo(for: type, side: layout.photoSide, at: CGPoint(x: size.width / 2, y: layout.photoY), hold: hold)
 
         // Foto del personaje: el arte real (o el placeholder) en grande y centrado.
         if let content = gameState.content,
@@ -1526,6 +1538,45 @@ final class BoardScene: SKScene {
             .removeFromParent(),
         ]))
     }
+
+    /// El cuerpo entero en movimiento sobre la foto, que queda debajo como póster. Sin entrada en el
+    /// manifest no hay nada que montar y el reveal es el de siempre.
+    private func mountRevealVideo(for type: CharacterType, side: CGFloat, at position: CGPoint, hold: TimeInterval) {
+        releaseRevealVideo()
+        guard loops.entry(for: .character(type.id)) != nil else { return }
+        let video = LoopingVideoNode(
+            clip: .character(type.id), poster: Self.clearPoster, size: CGSize(width: side, height: side),
+            role: .popup, manifest: loops, pool: videoPool, packs: packs)
+        video.position = position
+        video.zPosition = 209
+        video.name = Self.celebrationNodePrefix + "video"
+        let reduceMotion = Self.prefersReducedMotion
+        video.setScale(reduceMotion ? 1.0 : 0.5)
+        if !reduceMotion {
+            video.run(.sequence([.scale(to: 1.1, duration: 0.24), .scale(to: 1.0, duration: 0.12)]))
+        }
+        video.run(.sequence([
+            .wait(forDuration: hold - 0.2),
+            .run { [weak video] in video?.videoNode?.run(.fadeOut(withDuration: 0.3)) },
+        ]))
+        cameraOverlay.addChild(video)
+        revealVideo = video
+        if loops.url(for: .character(type.id), packs: packs) != nil { gameState.playRevealWhoosh() }
+        video.setVisible(!isDetached)
+    }
+
+    /// Todos los caminos que cierran un reveal (final, toque que apura, watchdog, cadena cortada)
+    /// pasan por acá: el decodificador nunca sobrevive al reveal.
+    private func releaseRevealVideo() {
+        revealVideo?.setVisible(false)
+        revealVideo?.removeFromParent()
+        revealVideo = nil
+    }
+
+    private static let clearPoster: SKTexture = {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image { _ in }
+        return SKTexture(image: image)
+    }()
 
     // MARK: - Layout (campo, no grilla)
 

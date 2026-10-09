@@ -19,14 +19,32 @@ public struct BoardChange: Sendable, Equatable, Identifiable {
         case debug
     }
 
+    /// Un eslabón de "Fusionar todo": la escena encadena los de la misma cadena
+    /// en un solo turno, con su ritmo y su contador.
+    public struct Chain: Sendable, Equatable {
+        public let id: UUID
+        public let index: Int
+        public let count: Int
+
+        public init(id: UUID, index: Int, count: Int) {
+            self.id = id
+            self.index = index
+            self.count = count
+        }
+
+        public var isLast: Bool { index == count - 1 }
+    }
+
     public let id: UUID
     public let kind: Kind
     public let origin: Origin
+    public let chain: Chain?
 
-    public init(id: UUID = UUID(), kind: Kind, origin: Origin) {
+    public init(id: UUID = UUID(), kind: Kind, origin: Origin, chain: Chain? = nil) {
         self.id = id
         self.kind = kind
         self.origin = origin
+        self.chain = chain
     }
 
     public var resultTypeId: String? {
@@ -48,7 +66,7 @@ public struct BoardChange: Sendable, Equatable, Identifiable {
     }
 
     func replanned(_ kind: Kind) -> BoardChange {
-        BoardChange(id: id, kind: kind, origin: origin)
+        BoardChange(id: id, kind: kind, origin: origin, chain: chain)
     }
 }
 
@@ -98,7 +116,8 @@ public enum BoardChangePlanner {
     /// que se funden. Lo que sale de una fusión vuelve a contar, así que la
     /// cadena sube sola; nunca toca el par que pide carrera ni planea un ascenso
     /// sin lugar arriba. Se planea sobre una copia: cada cambio se juega después
-    /// en su turno, revalidado como cualquier otro.
+    /// en su turno, revalidado como cualquier otro. Cada cambio lleva su eslabón
+    /// (`chain`): la escena los juega en un solo turno.
     public static func planMergeAll(
         floorOrdinal: Int,
         state: PlayerState,
@@ -121,7 +140,11 @@ public enum BoardChangePlanner {
             else { break }
             plan.append(change)
         }
-        return plan
+        let chainID = UUID()
+        return plan.enumerated().map { index, change in
+            BoardChange(id: change.id, kind: change.kind, origin: change.origin,
+                        chain: BoardChange.Chain(id: chainID, index: index, count: plan.count))
+        }
     }
 
     /// El par más bajo del piso que se puede fundir: la cadena sube de abajo.

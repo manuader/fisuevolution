@@ -65,4 +65,52 @@ struct MergeAllPlannerTests {
     func unknownFloor() throws {
         #expect(plan(try fxStateAndTower(units: ["a": 4]), floor: 9).isEmpty)
     }
+
+    @Test("cada cambio del plan es un eslabón de la misma cadena, en orden")
+    func everyChangeIsALinkOfTheSameChain() throws {
+        var fx = try fxStateAndTower(units: ["a": 4])
+        fx.state.run.chosenCareerPath = "prog"
+        let changes = plan(fx)
+        let chains = changes.compactMap(\.chain)
+        #expect(chains.count == changes.count)
+        #expect(Set(chains.map(\.id)).count == 1)
+        #expect(chains.map(\.index) == [0, 1, 2])
+        #expect(chains.allSatisfy { $0.count == 3 })
+        #expect(chains.map(\.isLast) == [false, false, true])
+    }
+
+    @Test("dos planes son dos cadenas")
+    func twoPlansAreTwoChains() throws {
+        let fx = try fxStateAndTower(units: ["a": 4])
+        #expect(plan(fx).first?.chain?.id != plan(fx).first?.chain?.id)
+    }
+
+    @Test("replanear un eslabón con otros slots conserva el sello")
+    func revalidationKeepsTheLink() throws {
+        var fx = try fxStateAndTower(units: ["a": 3])
+        let link = try #require(plan(fx).first)
+        guard case let .merge(ordinal, typeId, source, _, _) = link.kind else {
+            Issue.record("no es un merge")
+            return
+        }
+        let free = try #require(fx.tower.floors[ordinal].firstFreeSlot())
+        fx.tower.floors[ordinal].slots[free] = typeId
+        fx.tower.floors[ordinal].slots[source] = nil
+        let replanned = try #require(BoardChangePlanner.revalidate(
+            link, state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable
+        ))
+        #expect(replanned.kind != link.kind)
+        #expect(replanned.chain == link.chain)
+        #expect(replanned.id == link.id)
+    }
+
+    @Test("los cambios sueltos no son cadena")
+    func singleChangesHaveNoChain() throws {
+        var fx = try fxStateAndTower(units: ["a": 2])
+        fx.state.run.chosenCareerPath = "prog"
+        let auto = BoardChangePlanner.planAutoMerge(
+            state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable, origin: .debug
+        )
+        #expect(auto?.chain == nil)
+    }
 }

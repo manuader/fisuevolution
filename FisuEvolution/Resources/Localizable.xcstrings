@@ -10337,6 +10337,23 @@
         }
       }
     },
+    "tower.floor.unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Floor ???"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piso ???"
+          }
+        }
+      }
+    },
     "tower.floor.urban" : {
       "extractionState" : "stale",
       "localizations" : {

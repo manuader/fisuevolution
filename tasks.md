@@ -6,10 +6,10 @@
 > `Docs/superpowers/plans/2026-10-0*-v2-*.md`, los ledgers
 > `.superpowers/sdd/<plan>/progress.md` y el journal AVO del run.
 >
-> **Foto:** 2026-10-08, cierre del relevo 14. `version-2` = `596cacd` (pusheado; `rapido` VERDE: EK 605 · unit 822 + 1 declarado ·
-> release 0) y la rama de integración `v2i/integ-r14` = `32afc93` (suma la reconciliación de los videos, P-E8d, E13b T7 y T10,
-> E3b T6, E12 T7 y E8d T1; `rapido`: VERDE sobre `32afc93` (EK 606 · unit 865 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). El último `completo` de referencia es el `--limpio` de `c94f75f`
-> (E1 T16). Detalle en `Docs/SESION-2026-10-08-v2-relevo-14-ola-k.md`.
+> **Foto:** 2026-10-09, cierre del relevo 15. `version-2` = `fa8781a` (pusheado; el `rapido` de `246beb7` fue VERDE: EK 606 · unit 865 + 1
+> declarado · release 0) y la rama de integración `v2i/integ-r15` = `e6e8c53` (suma E8d T6, E3b T7, E8d T2, E12 T8, E13b T6 y
+> E8d T3; `rapido`: RAPIDO_PENDIENTE). El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16). Detalle en
+> `Docs/SESION-2026-10-09-v2-relevo-15-ola-l.md`.
 > **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
 > Si un ledger dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
 
@@ -82,16 +82,17 @@
 
 ## 2. Progreso
 
-**Hoy: 92 de 254 tareas activas integradas (36,2 %)**: el relevo 14 sumó E13b T7 y T10, E3b T6, E12 T7 y E8d T1 (`rapido` VERDE sobre `32afc93`: EK 606 · unit 865 + 1 declarado · Release 0; `version-2` ff). 259 filas, 5 salteadas (E8b T4/T5/T6/T12
-reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). El conteo creció de 243 a 254 activas
-porque P-E8d sumó 15 filas y se salteaban 4 de E8b. Las tareas del relevo 13 y E13b T5 están en `version-2` (`596cacd`).
+**Hoy: 92 de 254 tareas activas integradas en `version-2` (36,2 %); 98 de 254 (38,6 %) con las seis 🟢 de `integ-r15`** si su `rapido`
+da VERDE: el relevo 15 sumó E8d T6, E3b T7, E8d T2, E12 T8, E13b T6 y E8d T3. 259 filas, 5 salteadas (E8b T4/T5/T6/T12
+reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Al cerrar el relevo 15 se
+pasaron a ⏳ las que se destraban con las 🟢: E13b T8, E8d T4 y T5, E12 T9a y T9b.
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
 | E1 | 16 | 16 |  |  |  |  |  |  |
 | E11 | 7 | 6 |  |  | 1 |  |  |  |
 | E3a | 12 | 10 |  |  | 1 | 1 |  |  |
-| E3b | 9 | 4 | 1 |  | 1 | 3 |  |  |
+| E3b | 9 | 5 | 1 |  |  | 3 |  |  |
 | E2a | 15 | 14 |  |  | 1 |  |  |  |
 | E4a | 10 | 3 |  |  |  | 7 |  |  |
 | E4b | 10 |  |  |  |  | 10 |  |  |
@@ -107,11 +108,11 @@ porque P-E8d sumó 15 filas y se salteaban 4 de E8b. Las tareas del relevo 13 y 
 | E8 (arte) | 10 | 7 |  |  | 1 | 2 |  |  |
 | E8b | 8 | 4 |  |  |  | 4 |  | 4 |
 | E8c | 10 |  |  |  | 5 | 5 |  |  |
-| E8d | 15 | | 1 | | 2 | 12 | | |
-| E12 | 19 | 6 | 1 |  | 1 | 10 | 1 |  |
+| E8d | 15 | 1 | 3 |  | 2 | 9 |  |  |
+| E12 | 19 | 7 | 1 |  | 3 | 7 | 1 |  |
 | E13 | 14 | 2 |  |  | 5 | 7 |  |  |
-| E13b | 11 | 6 | 2 |  | 1 | 2 |  |  |
-| **Total** | **254** | **87** | **5** | | **22** | **139** | **1** | **5** |
+| E13b | 11 | 8 | 1 |  | 1 | 1 |  |  |
+| **Total** | **254** | **92** | **6** | | **23** | **132** | **1** | **5** |
 
 Fuera del conteo:
 
@@ -130,9 +131,9 @@ grep -E '^\| E[0-9a-z-]+-T[0-9]+[ab]? \|[^|]*\| ⏭' tasks.md | grep -vc seguimi
 grep -E '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md | grep -vc seguimiento                   # una épica: cambiar el prefijo
 ```
 
-Progreso = integradas / (filas de tarea − salteadas). Hoy: 92 / (259 − 5). Con el sufijo `[ab]?` el grep levanta
+Progreso = integradas / (filas de tarea − salteadas). Hoy: 92 / (259 − 5); con las 🟢 (mismo grep cambiando ✅ por 🟢: 6), 98 / 254. Con el sufijo `[ab]?` el grep levanta
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
-La tabla por épica se recalculó en el relevo 14 (con E8d); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
+La tabla por épica se recalculó en el relevo 15 (con un `awk` sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
 
 ## 3. Reglas de concurrencia (PLAN-v2 §0.1, operativas)
 
@@ -203,43 +204,47 @@ partirlo.
 | `CelebrationQueue.swift` (EK) | E1 T10 · E4b T1, T4 · E6a T12 |
 | `GameState+TutorialTips.swift`, `TutorialAnchor.swift` | E3b T5, T9 · E4b T3, T4, T8 · E5b T5 · E6a T8, T12 · E7b-b T3, T5 |
 
-## 4. Cola de despacho — lo próximo (relevo 15)
+## 4. Cola de despacho — lo próximo (relevo 16)
 
 ### 4.1 Al llegar
 
 | # | Qué | Nota |
 |---|---|---|
-| 1 | **`rapido` sobre `v2i/integ-r14` (`32afc93`)**, si no quedó hecho. Resultado del relevo 14: VERDE sobre `32afc93` (EK 606 · unit 865 + 1 declarado `theOwnersTargetsAreMet` · Release 0) | Con VERDE: fast-forward de `version-2` y push (las cinco 🟢 pasan a ✅: 92 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. Mirá `rojos-declarados.txt` |
-| 2 | Leer `DUENO.md` entero por pendientes nuevos y la revisión de la segunda tanda de videos (`video/revision.json`) | los worktrees `v2-e12-plan` y `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
-| 3 | Barrer los worktrees `v2i-*` que queden (p. ej. `v2i-e3b-t6`, cuyo cwd tenían los bucles de espera de otro agente) | todo en GitHub antes; nunca `--force`; mirar el comando de cada bucle antes de cortarlo |
+| 1 | **`rapido` sobre `v2i/integ-r15` (`e6e8c53`)**, si no quedó hecho. Resultado del relevo 15: RAPIDO_PENDIENTE | Con VERDE: fast-forward de `version-2` y push (las seis 🟢 pasan a ✅: 98 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. Mirá `rojos-declarados.txt` |
+| 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 15 vio ~600 por la segunda tanda de videos del dueño (`tanda2.sh`, en `v2-e8-videos`). Con carga alta: **no más de 2 compilando** y `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y timeouts (no esperar > 15 min) |
+| 3 | Leer `DUENO.md` entero por pendientes nuevos y la revisión de la segunda tanda de videos (`video/revision.json`) | los worktrees `v2-e12-plan`, `v2-release-ops` y `v2-e8-videos` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
+| 4 | Barrer los worktrees `v2i-*` que queden con `limpiar-worktrees.sh` | todo en GitHub antes; nunca `--force`; mirar el comando de cada bucle antes de cortarlo y **nunca `pkill -f "until ! pgrep"`** |
 
-### 4.2 La ola siguiente, por prioridad del dueño (≤ 3 compilando; un dueño por archivo)
+### 4.2 La ola siguiente, por prioridad del dueño (≤ 3 compilando, ≤ 2 con la máquina cargada; un dueño por archivo)
 
-BASE de todas: `version-2` tras el paso 1 (o `v2i/integ-r14` si el `rapido` no se corrió). Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
+BASE de todas: `version-2` tras el paso 1 (o `v2i/integ-r15` si el `rapido` no se corrió). Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
 
 | # | Tarea | Modelo | Dueña de / nota |
 |---|---|---|---|
-| 1 | **E13b T6** el viaje montado encima de `RootView`; el mapa viaja → **T8** | sonnet (T6 y T8: revisión opus) | **PRIORIDAD ALTA del dueño.** Carries de T5 a T6: `prepare()` al abrir la placa y en `requestFromMap`, `release()` si se cierra sin viajar, `ElevatorRideView` con `.environment(gameState)` sólo con `phase != .idle`; bajar el volumen del motor. **T8 (🔥 `HUDView`, borra `ElevatorPanel.swift`) llama `gameState.elevatorKeypadOpened()` al desplegar la placa** (carry de T7: sin eso la lección no se marca). T7 y T10 ya están. La cabina usa `cabina_puertas_*` y el tope de rate ×5; los stills `cabina_{cerrada,abierta}.png` todavía tienen la línea verde (regenerar con `video_assets.py cabina-cuadros`) |
-| 2 | **E8d ola 1, lo que falta: T2 (`VideoPlayerPool`, rev. opus) ∥ T6 (sonidos A)**; después **T3 ∥ T4** | sonnet (T2, T3, T4: rev. opus) | T1 (manifest, `ArtClip`, `CinematicID`) ya está. T6 tiene dueño en `AudioManager` (orden E8c T4 → E8d T6 → T7 → E8b T9). Los gates G1–G7 del plan; el HEVC con alfa a ×5 en device es **E13b T11 / E8d G3** |
-| 3 | **E3b T7** (el botón del atajo nunca desaparece) | sonnet | **Carry de T6:** `QuickHireButton` tiene que usar `blocker` (temblor, label, `accessibilityState`) y no marcar la lección al tocar bloqueado. Dueña: catálogo, `QuickHireButton` |
-| 4 | **E12 T8** (`RankingStore`, rev. opus) y **T10** (`MetaState.ranking` + resolver, rev. opus) | sonnet | **Carries de T7 a T8:** `startAttemptId` (el `clientRunId` del intento) y persistir **antes** del `start-run`; la config remota queda `null` hasta T16. T10 lee `Phase` con `(try? …) ?? .legacy` |
-| 5 | **E13** T3 · T5 · T8 · T11 · T12 | sonnet | T3 suma sus campos a `resolveAcrossReset` (E9b T6 ✅); T8 en serie con E3b `+Projections`; T11 no ∥ T9 (`+Actions`); T12 toca `+Store` |
-| 6 | **E8c T1–T3** | sonnet | E8c T1 toca `BoardChange.swift` (EK, rev. opus); T2 `CelebrationQueue`; T3 es puro. T4 (audio) y T6 (contador) libres |
-| 7 | **E8b T8** (el turno de la cinemática) | sonnet, rev. opus | espera a **E8d T1 ✅** (en `integ-r14`) y a E8b T7 ✅; importa `CinematicID`/`LoopsManifest` de E8d |
-| 8 | **E8 T7** (paquete, colchón, ruleta, tienda y álbum: 31) · **E2b T1** · **E7b-a T1 ∥ T5** | sonnet | E8 T7 es dueña de `assets_manifest.json`; los videos de Paquete/Colchón del dueño ya están en el manifest. E7b-a T5 después de E11 T4 |
-| 9 | **Mediación por SPM** (Unity + Meta) | — | **pendiente del dueño** (`DUENO.md`); no se despacha |
-| 10 | **E8 T10** (medir la memoria del vuelo con los fondos a 2048) | controlador / sonnet | carry de E8 T8; lo cubre E8d T15 |
+| 1 | **E13b T8** la placa al mantener apretado el ícono del ascensor | sonnet, **rev. opus** | **PRIORIDAD ALTA del dueño.** 🔥 `HUDView`, borra `ElevatorPanel.swift`, reescribe `ElevatorPanelUITests`; capturas SE (10 pisos) e iPad. **Llama `gameState.elevatorKeypadOpened()` al desplegar la placa** (carry de T7). **Carry de T6:** los popups de `RootView` se dibujan encima de la cabina; `openKeypad()` calienta la cabina (`prepare()`). Pasa también el `onChoose` del long press del atajo (E3b T7) desde `RootView`. Los stills `cabina_{cerrada,abierta}.png` todavía tienen la línea verde (regenerar con `video_assets.py cabina-cuadros`) |
+| 2 | **E8d T4** `LoopingVideoNode` (SpriteKit) y la medición del alfa | sonnet, **rev. opus** | decide la ruta A/B de T9. T2 ya está: guardar el `Lease` y crear el player sólo con `isLive`. Después **T5** (el especial y la ficha, ∥ T4 por archivos), **T12** (ODR; espera T4) y **T13** (la sonda de fps; espera T4). T10 espera a E13b T8 |
+| 3 | **E12 T10** `MetaState.ranking` + `GameState` conforma `RankingStateHost` | sonnet, **rev. opus** | 🔥 `PlayerState`; `SaveConflictResolver`, `SaveMigratorTests`; lee `Phase` con `(try? …) ?? .legacy`; no en la ola de E9b T6. Después **T9a/T9b** (vistas sueltas, leen `board`/`myRuns`/`entryPrompt`/`nameError`/`isSubmitting`/`isEnabled`) y **T11** (los ganchos; ventana libre de `GameState.swift`). La config remota sigue `null` hasta T16 |
+| 4 | **E13** T3 · T5 · T8 · T11 · T12 | sonnet | T3 suma sus campos a `resolveAcrossReset` (E9b T6 ✅) y es de save: rev. opus; T8 en serie con E3b `+Projections`; T11 no ∥ T9 (`+Actions`); T12 toca `+Store` |
+| 5 | **E8c T1–T3** | sonnet | E8c T1 toca `BoardChange.swift` (EK, rev. opus); T2 `CelebrationQueue`; T3 es puro. T4 (audio) y T6 (contador) libres |
+| 6 | **E8b T8** (el turno de la cinemática) | sonnet, rev. opus | importa `CinematicID`/`LoopsManifest` de E8d (T1 ✅) y espera a E8b T7 ✅ |
+| 7 | **E8 T7** (paquete, colchón, ruleta, tienda y álbum: 31) · **E2b T1** · **E7b-a T1 ∥ T5** | sonnet | E8 T7 es dueña de `assets_manifest.json`; los videos de Paquete/Colchón del dueño ya están en el manifest. E7b-a T5 después de E11 T4 |
+| 8 | **Mediación por SPM** (Unity + Meta) | — | **pendiente del dueño** (`DUENO.md`); no se despacha |
+| 9 | **E8 T10** (medir la memoria del vuelo con los fondos a 2048) | controlador / sonnet | carry de E8 T8; lo cubre E8d T15 |
 
 Lo que **no** se despacha todavía: E4a T3–T7 y T9 (esperan a E3b T9 y a E4a T5–T7); E6a T1–T2 y T4–T13; E5a T4–T9, E4b y E5b
-(cadena de E4a); E12 T11 en adelante (esperan a T7/T8 y a E9b); E8d T14 (🔒 la segunda tanda). Revisión opus: E13b T6/T8, E8c
-T1/T5/T7/T8, E13 T3 (save), E12 T8/T10, E8d T2/T3/T4.
+(cadena de E4a); E12 T12 en adelante (esperan a T10/T11 y a E9b); E8d T7 (ventana de `+Bonus`), T8–T9 (ventana de `BoardScene`, esperan a T4),
+T10 (espera a E13b T8) y T14 (🔒 la segunda tanda). Revisión opus: E13b T8, E8d T4, E12 T10/T11, E8c T1/T5/T7/T8, E13 T3 (save).
 
-Carries vigentes (detalle en `Docs/SESION-2026-10-08-v2-relevo-14-ola-k.md` y en `…relevo-13-ola-j.md`): de E13b T7 a T8
-(`elevatorKeypadOpened()`); de E3b T6 a T7 (`blocker`); de E12 T7 a T8 (`startAttemptId`, persistir antes del start-run, config
-`null` hasta T16); HEVC-alfa a ×5 en device (E13b T11 / E8d G3); stills de la cabina a regenerar; de E9b T6 a T7/T8
-(`OffersState.purchases` y `seenCinematics` cruzan `resolveAcrossReset`); de E12 T6 (reenvío idempotente de `carriedSubmission`;
-`pendingWork .start`); de E12 T4 a T5/T16 (`prepare: false`, límite por IP); de E8b T3 (`sp_contador_dios`, `sp_bug_simulacion`
-al dueño); de E13b T9 a E3b T4 (cinco páginas); de E13 T1 a E4b T3 / E7b-b T7 (`RewardedOfferButton`); los de las olas H e I.
+Carries vigentes (detalle en `Docs/SESION-2026-10-09-v2-relevo-15-ola-l.md` y en `…relevo-14-ola-k.md`): de E13b T6 a T8
+(popups de `RootView` sobre la cabina; `elevatorKeypadOpened()`; `openKeypad()` calienta la cabina; motor a gain 0,4 a ojo);
+de E3b T7 a T8 (`onChoose`); de E12 T8 a T10/T9/T11 (`RankingStateHost`, `godTier` sin uso, config `null` hasta T16);
+de E8d T2 a T3/T4/T10 (`Lease`, `isLive`, `suspend(.elevatorRide)`, la cinemática ignora las suspensiones); de E8d T3 a T12
+(la capa no re-resuelve la URL; el publisher de `isReadyForDisplay` no dispara en el simulador, queda el sondeo); de E8d T6
+(motor a −8,5 dB; `pendingWiring` con dueños); HEVC-alfa a ×5 en device (E13b T11 / E8d G3); stills de la cabina a regenerar;
+de E9b T6 a T7/T8 (`OffersState.purchases` y `seenCinematics` cruzan `resolveAcrossReset`); de E12 T6 (reenvío idempotente de
+`carriedSubmission`; `pendingWork .start`); de E12 T4 a T5/T16 (`prepare: false`, límite por IP); de E8b T3 (`sp_contador_dios`,
+`sp_bug_simulacion` al dueño); de E13b T9 a E3b T4 (cinco páginas); de E13 T1 a E4b T3 / E7b-b T7 (`RewardedOfferButton`); los
+de las olas H a K.
 
 ### 4.3 La cola, por prioridad
 
@@ -583,8 +588,8 @@ Encargos a E4b T3/T4/T8, E5b T2/T3, E6a T8, E9a/E9b, E7b-a T2: plan, "Lo que E8d
 | E8d-T1 | El manifest entero, `ArtClip` y `CinematicID` (+intro) | ✅ | — | nuevos | `29a8d5f` (integ-r14) | sonnet, revisión ninguna; reemplaza E8b T4 con su API; ola 1 |
 | E8d-T2 | `VideoPlayerPool` y `VideoPlaybackPolicy` (≤ 3 vivos, roles, suspensiones, reservas) | 🟢 | — | nuevos | `e097c1e`+`0866227` (en `v2i/integ-r15`) | sonnet, **rev. opus**; reemplaza `VideoSlot` (E8b T5); ola 1; revisión opus: Approved con arreglos (forcedStill apaga la cinemática; `policy` legible; `recompute` reentrante con `notified`; `suspendsVideoPool(active:reason:)`; `launch(arguments:environment:xctestLoaded:)` puro), hechos; tarea VERDE unit 19. Carries: T3/T4 guardan el `Lease`, crean el player sólo con `isLive`; T10 usa `suspend(.elevatorRide)` y `reserve()`; la cinemática ignora suspensiones (si el viaje debe apagarla, cambiar `liveIDs`) |
 | E8d-T3 | `AnimatedArtView`: póster instantáneo, video con fundido, loop o una vez | 🟢 | T1, T2 | nuevos | `cd38b39`+`e31b466` (en `v2i/integ-r15`) | sonnet, **rev. opus** (AVFoundation); reemplaza `LoopingPortraitView` (E8b T5); ∥ T4; revisión opus: Approved con arreglos, hechos (video como overlay del póster; `.id(url|rol)`; un `.once` no revive y desmontar no llama `onEnd`; vigía de 1 s del `.once`; `.loop` siempre pide lease; al agotar el sondeo suelta todo; `art.video` live/still); el publisher de `isReadyForDisplay` no disparó en el simulador → sigue el sondeo 50 ms × 40; tarea VERDE unit 9. Carries: T12 la capa no re-resuelve la URL (lo cubre `.id`); el test de `queue.play()` es débil |
-| E8d-T4 | `LoopingVideoNode` (SpriteKit) y la medición del alfa en `SKVideoNode` | ⛔ | T1, T2 | nuevos | | sonnet, **rev. opus**; la medición decide la ruta de T9 |
-| E8d-T5 | El especial que te cayó y la ficha, animados | ⛔ | T3 | SpecialDropView, CharacterSheetView (tibio: E13 T9) | | sonnet, revisión ninguna; capturas SE/16 Pro con `--uitest-video`; reemplaza E8b T6 |
+| E8d-T4 | `LoopingVideoNode` (SpriteKit) y la medición del alfa en `SKVideoNode` | ⏳ | T1, T2 | nuevos | | sonnet, **rev. opus**; la medición decide la ruta de T9 |
+| E8d-T5 | El especial que te cayó y la ficha, animados | ⏳ | T3 | SpecialDropView, CharacterSheetView (tibio: E13 T9) | | sonnet, revisión ninguna; capturas SE/16 Pro con `--uitest-video`; reemplaza E8b T6 |
 | E8d-T6 | Sonidos nuevos A (paquete, colchón, visitante, tienda, revelación, cable) | 🟢 | — | AudioManager (tibio: E8c T4 → E8d T6 → T7 → E8b T9), generate_audio.py, AudioWiringTests | `7c31fc8` (merge `0079647` en `v2i/integ-r15`) | sonnet; 11 `.caf`; `pendingWiring` con dueño; 🔒 oído del dueño (no frena); ola 1; 11 `.caf` a −18/−24 dB RMS; `Gain` acción/ambiente, `startAmbient`, `talkPitch`; `pendingWiring` con dueños (E5b T2/T3, E4b T3, E6a T8, E8d T5/T9/T10); `elevatorCases` los cablea E13b T6; el motor sigue a −8,5 (bajarlo con `.ambient` o `SFX_RMS_DB`) |
 | E8d-T7 | Los 8 acentos de evento | ⛔ | T6; ventana de +Bonus (o E4a T9) | 🔥 +Bonus (una línea); AudioManager, generate_audio.py | | sonnet, revisión ninguna |
 | E8d-T8 | El fondo del piso visible, animado | ⛔ | T4; ventana de BoardScene | 🔥 BoardScene; FloorNode | | sonnet, **rev. opus**; inerte hasta T14; scroll y viaje = póster |
@@ -667,8 +672,8 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T6 | `RankingState` (EK) | ✅ | — | — | `97c15fa`+`ab3492a` | revisión opus: Approved con arreglos (la fase más avanzada sólo con el mismo runId; max de playedSeconds sólo en la misma partida; `CarriedSubmission.sealed`). Carries: T8/T12 reenvío de la llegada arrastrada idempotente (409/not_active = hecho) y `sessionBegan` tras `forNewGame()`; T10 `ranking` con `(try? …) ?? .legacy` (Phase sintetizado) y default `.newGame`; T8/T11 mandar el start sólo tras `newGameStarted`, no al abrir la app |
 | E12-T7 | Cliente, identidad en el Keychain y config remota | ✅ | T6 | — | `a4691a5`+`e20870a` (integ-r14) | sonnet; compila (archivos nuevos + xcodegen); revisión: el controlador leyó el cambio de EK (`RankingState.clientRunId` + `startAttemptId`, se suelta al registrar). Carries a T8: llamar `startAttemptId` y persistir antes del start-run; `ranking.json` con `baseURL`/`anonKey` null hasta T16 (el cliente real tira `.disabled`; el loader remoto rechaza otra clave); escenarios `--uitest-ranking-*` |
 | E12-T8 | `RankingStore` | 🟢 | T6, T7 | — | `40e6eaf`+`b5c8a55` (en `v2i/integ-r15`) | sonnet, rev. opus; revisión opus: Approved con arreglos, hechos (`CarriedSubmission.playedSeconds` en EK; reintento sin nombre ante invalidName; `nameError` aparte de `entryPrompt`; `offerCardIfDue()` en reachedGod y becameActive; guards de respuesta vieja; cliente suspendible en tests); tarea VERDE EK 607 · unit 29. Carries: T10 GameState conforma `RankingStateHost`; T9/T11 leen board/myRuns/entryPrompt/nameError/isSubmitting/isEnabled; `godTier` sin uso todavía |
-| E12-T9a | La tarjeta de Dios (vista suelta) | ⛔ | T1, T8 | catálogo (snapshot) | | sonnet |
-| E12-T9b | La pestaña (vista suelta) | ⛔ | T8 | catálogo (snapshot) | | sonnet |
+| E12-T9a | La tarjeta de Dios (vista suelta) | ⏳ | T1, T8 | catálogo (snapshot) | | sonnet |
+| E12-T9b | La pestaña (vista suelta) | ⏳ | T8 | catálogo (snapshot) | | sonnet |
 | E12-T10 | `MetaState.ranking` + resolver | ⏳ | T6; E1-T16 | 🔥 PlayerState; SaveConflictResolver, SaveMigratorTests | | sonnet, **rev. opus**; no en la ola de E9b T6 |
 | E12-T11 | Los ganchos en `GameState` | ⛔ | T8, T10 | 🔥 GameState (una línea); +Celebrations, +Lifecycle, +BoardChanges, +Bootstrap, +Debug, FisuEvolutionApp | | sonnet, **rev. opus**; ventana libre de `GameState.swift` |
 | E12-T12 | El reset abre un intento nuevo | ⛔ | T11; E9b-T7, E9b-T8 | ResetPlan, +Reset | | sonnet, rev. opus |
@@ -710,7 +715,7 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13b-T5 | La cabina y la vista del viaje (clip → cuadros → vectorial) | ✅ | T1 | nuevos (`ElevatorCabin.swift`, `ElevatorRideView.swift`); catálogo (snapshot) | `f008f85`+`d3d3b7c`+`6fb8e83` | **revisión opus** (AVFoundation, memoria de fondos en el SE); no espera a T4; revisión opus: Approved con arreglos (lookups que no crean players; respaldo vectorial si el clip falla; el expiry se cancela al viajar; Reduce Motion = cabina vectorial; dos capas sin parpadeo; thumbnails de a 2). En integ-r13, **SIN `rapido`** (entró después). Carries a T6: `prepare()` al abrir la placa y en `requestFromMap`, `release()` si se cierra sin viajar, montar `ElevatorRideView` con `.environment(gameState)` sólo con `phase != .idle`; memoria del SE y el parpadeo sin medir (T11, en device) |
 | E13b-T6 | El viaje montado encima de RootView; el mapa viaja | 🟢 | T1, T3, T5 | FisuEvolutionApp (tibio), FloorMapView (tibio, E13 T8); nuevo ElevatorRideOverlay | `5e8b9a5`+`7fcd753`+`323e4bc` (en `v2i/integ-r15`) | **revisión opus**; bajo `--uitest*` el viaje es 0 s (los UI tests de siempre no cambian); revisión opus: Approved con arreglos, hechos (`.idle` = llegado, sin parpadeo; `--uitest-elevator-ride-slow`; `ElevatorSound`/`Cue.sound` puro y testeado; saltear en `.opening` sin doble ding; `.isModal`; `prepare()` no calienta con Reduce Motion; `requestFromMap` ignora con viaje en curso); tarea VERDE unit 44; UI ElevatorRide 3 en 16 Pro + iPad (el onDisappear del mapa dispara), FloorMap 2, CareerChoice 2, AscentRendering 1. Carry a T8: los popups de RootView se dibujan encima de la cabina |
 | E13b-T7 | La lección "Mantené apretado el ascensor" al tercer piso | ✅ | — | +TutorialTips (tibio); catálogo (snapshot) | `18fb478` (merge `1ffc9c4` en `v2i/integ-r14`) | revisión ninguna (diff leído por el controlador); clave `tutorial.tip.elevator.hold`, nace con `unlockedFloorsCount >= 3`; **carry a T8: llamar `gameState.elevatorKeypadOpened()` al desplegar la placa** (no sale en una release sin T8); carry E9a T9 / E9b T1 |
-| E13b-T8 | Mantener apretado el ascensor despliega la placa; el display LED se va | ⛔ | T2, T6, T7; T9 integrada | 🔥 HUDView (épica); ElevatorRideOverlay; borra ElevatorPanel.swift; catálogo (snapshot) | | **revisión opus**; reescribe ElevatorPanelUITests; capturas SE (10 pisos) e iPad |
+| E13b-T8 | Mantener apretado el ascensor despliega la placa; el display LED se va | ⏳ | T2, T6, T7; T9 integrada | 🔥 HUDView (épica); ElevatorRideOverlay; borra ElevatorPanel.swift; catálogo (snapshot) | | **revisión opus**; reescribe ElevatorPanelUITests; capturas SE (10 pisos) e iPad |
 | E13b-T9 | La Tienda sale de la barra (se abre con el + de la moneda) | ✅ | — | 🔥 HUDView (una línea); GameArtComponents (barOrder), TabUnlocks, tabs.json, +Tabs, BottomMenuBar; catálogo (snapshot) | `98d7d9f` | ola 1; migra BottomMenu/Store/ProgressiveTabs UITests al `hud.coins.plus`; carry E3b T4 (5 páginas) — duda 1; tarea VERDE unit 89 + UI a mano (BottomMenu/ProgressiveTabs/HUDRedesign 8 en 26.5, Store 2 en 18.6); queda `TabUnlockCondition.secondSession` sin uso; `sixTabsFitTheSE` lo rehace T10; comentarios "seis pantallas" ajenos |
 | E13b-T10 | La barra simétrica 2 + 1 + 2, sin rótulos y con íconos grandes | ✅ | T9 | GameArtComponents (GameTabBar), BottomMenuBar | `66e997c` (integ-r14) | `panelHeight` 64 y `barHeight` 84 se conservan; capturas SE e iPad; platos 52/72, íconos 46/64, `bottomPadding` 6; `fiveTabsFitTheSE`, `sidesFillTowardTheCenter`; UI BottomMenu 4/4 en SE, 16 Pro e iPad; `TabUnlockCondition.secondSession` sigue sin uso |
 | E13b-T11 | Cierre de E13b (controlador) | ⛔ | T1–T10 | `Docs/` | | `completo`; grabaciones para el dueño |

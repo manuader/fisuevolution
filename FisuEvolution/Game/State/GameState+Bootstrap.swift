@@ -256,6 +256,9 @@ extension GameState {
             debugPlayCinematic(id)
         }
         #endif
+        // La intro de una cuenta nueva toma el turno antes que el tutorial: no se estorban
+        // (ver `reconcileIntro`).
+        reconcileIntro(isNewGame: isFreshInstall)
         // El tutorial entra a la cola ANTES de que nadie encole nada: el
         // offline, el daily del día 2 y los logros de un save viejo pasan
         // todos por `syncCelebrations`, y el gate tiene que estar puesto

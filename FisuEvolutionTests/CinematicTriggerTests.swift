@@ -172,4 +172,62 @@ struct CinematicTriggerTests {
         #expect(gameState.cinematic == nil)
         #expect(gameState.showing == nil)
     }
+
+    @Test("la intro: una partida nueva la pide y el tutorial no la estorba ni ella a él")
+    func introOnNewGameCoexistsWithTheTutorial() async {
+        let gameState = await world()
+        gameState.reconcileIntro(isNewGame: true)
+        gameState.beginTutorialPhase()
+        gameState.celebrations.enqueue(.boardCelebration)
+        gameState.syncCelebrations()
+        #expect(gameState.showing == .cinematic, "la restricción no la desaloja")
+        #expect(gameState.cinematic == .intro)
+        #expect(!gameState.isCalmMoment)
+        gameState.celebrationFinished(.cinematic)
+        #expect(gameState.player?.meta.engagement.seenCinematics["intro"] == 1)
+        #expect(gameState.showing == .boardCelebration, "el reveal del tutorial toma el turno detrás")
+    }
+
+    @Test("la intro pedida con el tutorial ya activo espera sin trabar al reveal")
+    func introRequestedDuringTutorialWaits() async {
+        let gameState = await world()
+        gameState.beginTutorialPhase()
+        gameState.celebrations.enqueue(.boardCelebration)
+        gameState.reconcileIntro(isNewGame: true)
+        #expect(gameState.showing == .boardCelebration)
+        gameState.celebrationFinished(.boardCelebration)
+        #expect(gameState.showing == nil, "la fase obligatoria la retiene")
+        gameState.tutorialPhaseFinished()
+        #expect(gameState.showing == .cinematic)
+    }
+
+    @Test("un save de antes de la 2.0 da la intro por vista sin mostrarla")
+    func introSkippedForVeterans() async {
+        let gameState = await world()
+        gameState.reconcileIntro(isNewGame: false)
+        #expect(gameState.cinematic == nil)
+        #expect(gameState.showing == nil)
+        #expect(gameState.player?.meta.engagement.seenCinematics["intro"] == 1)
+        gameState.reconcileIntro(isNewGame: true)
+        #expect(gameState.cinematic == nil, "ya anotada: no vuelve")
+    }
+
+    @Test("sin cinemáticas habilitadas la intro no se pide ni se anota")
+    func introRespectsAutorun() async {
+        let gameState = await makeGameState()
+        gameState.reconcileIntro(isNewGame: true)
+        gameState.reconcileIntro(isNewGame: false)
+        #expect(gameState.cinematic == nil)
+        #expect(gameState.player?.meta.engagement.seenCinematics["intro"] == nil)
+    }
+
+    @Test("sin entrada en el manifest la intro es inerte")
+    func introInertWithoutManifestEntry() async {
+        let gameState = await world()
+        gameState.reconcileIntro(isNewGame: true, manifest: .empty)
+        gameState.reconcileIntro(isNewGame: false, manifest: .empty)
+        #expect(gameState.cinematic == nil)
+        #expect(gameState.showing == nil)
+        #expect(gameState.player?.meta.engagement.seenCinematics["intro"] == nil)
+    }
 }

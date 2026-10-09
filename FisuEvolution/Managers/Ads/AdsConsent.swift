@@ -73,6 +73,18 @@ enum AdsConsent {
         ConsentInformation.shared.privacyOptionsRequirementStatus == .required
     }
 
+    /// Si Ajustes muestra "Opciones de privacidad".
+    static var privacyRowVisible: Bool {
+        privacyRowVisible(required: showsPrivacyOptions, arguments: ProcessInfo.processInfo.arguments)
+    }
+
+    nonisolated static func privacyRowVisible(required: Bool, arguments: [String]) -> Bool {
+        #if DEBUG
+        if arguments.contains("--uitest-privacy-options") { return true }
+        #endif
+        return required
+    }
+
     static func presentPrivacyOptions() async {
         try? await ConsentForm.presentPrivacyOptionsForm(from: nil)
     }

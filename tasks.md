@@ -74,7 +74,7 @@
 | E8 (arte) | `v2/e8-arte` | T1–T8 integradas (T6, T7 en el relevo 13); faltan T9 (🔒 el dueño) y T10 |
 | E12 | — (ramas de tarea `v2i/*`) | T1–T6 integradas (relevo 13); el plan y la spec vienen de `v2/e12-plan` (worktree `v2-e12-plan`, **de la sesión del dueño**) |
 | E13 | — (ramas de tarea `v2i/*`) | T1 y T6 integradas |
-| E13b | — (ramas de tarea `v2i/*`) | T1–T5 y T9 en `v2i/integ-r13` (`a74d6e7`; T5 sin `rapido`) |
+| E13b | — (ramas de tarea `v2i/*`) | T1–T5 y T9 integradas (`596cacd`, `rapido` VERDE en el relevo 14); T7 y T10 en vuelo |
 | E8b / E8c | — (ramas de tarea `v2i/*`) | E8b T1–T3, T7 integradas; E8c sin empezar. **Solapa con `v2/e8-videos` del dueño** |
 
 ## 2. Progreso
@@ -82,7 +82,7 @@
 **Hoy: 87 de 243 tareas activas integradas (35,8 %)**, más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅).
 El conteo creció de 211 a 244 filas (243 activas, 1 salteada) porque P-E8b, P-E8c y P-E13b sumaron 33 filas (12 + 10 + 11).
 Las integradas subieron de 69 a 87. Las tareas del relevo 13 están en `version-2` (hasta `4ab1817`) salvo E13b T5, que está
-sólo en `v2i/integ-r13` y entra con el próximo `rapido`.
+en `version-2` desde el relevo 14 (`596cacd`, `rapido` VERDE: EK 605 · unit 822 + 1 declarado · Release 0).
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
@@ -677,10 +677,10 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13b-T4 | Los clips y los cuadros de la cabina (`video_assets.py ascensor`) | ✅ | — | video_assets.py (tibio: pedido de cinemáticas); Resources/Cinematics, loops_manifest.json | `93a76cf` | Python, no compila; key medido en el hueco y las ventanas; masters por `--video`; 4 recursos en `Resources/Cinematics/` (cine_ascensor_{cierra,abre}.mov 87+76 KB; cine_ascensor_{cerrada,abierta}.png 0,86+0,51 MB); sin despill (viraba el amarillo); `xcodegen generate` al integrar |
 | E13b-T5 | La cabina y la vista del viaje (clip → cuadros → vectorial) | ✅ | T1 | nuevos (`ElevatorCabin.swift`, `ElevatorRideView.swift`); catálogo (snapshot) | `f008f85`+`d3d3b7c`+`6fb8e83` | **revisión opus** (AVFoundation, memoria de fondos en el SE); no espera a T4; revisión opus: Approved con arreglos (lookups que no crean players; respaldo vectorial si el clip falla; el expiry se cancela al viajar; Reduce Motion = cabina vectorial; dos capas sin parpadeo; thumbnails de a 2). En integ-r13, **SIN `rapido`** (entró después). Carries a T6: `prepare()` al abrir la placa y en `requestFromMap`, `release()` si se cierra sin viajar, montar `ElevatorRideView` con `.environment(gameState)` sólo con `phase != .idle`; memoria del SE y el parpadeo sin medir (T11, en device) |
 | E13b-T6 | El viaje montado encima de RootView; el mapa viaja | ⏳ | T1, T3, T5 | FisuEvolutionApp (tibio), FloorMapView (tibio, E13 T8); nuevo ElevatorRideOverlay | | **revisión opus**; bajo `--uitest*` el viaje es 0 s (los UI tests de siempre no cambian) |
-| E13b-T7 | La lección "Mantené apretado el ascensor" al tercer piso | ⏳ | — | +TutorialTips (tibio); catálogo (snapshot) | | revisión ninguna; carry E9a T9 / E9b T1 |
+| E13b-T7 | La lección "Mantené apretado el ascensor" al tercer piso | 🔄 | — | +TutorialTips (tibio); catálogo (snapshot) | | revisión ninguna; carry E9a T9 / E9b T1 |
 | E13b-T8 | Mantener apretado el ascensor despliega la placa; el display LED se va | ⛔ | T2, T6, T7; T9 integrada | 🔥 HUDView (épica); ElevatorRideOverlay; borra ElevatorPanel.swift; catálogo (snapshot) | | **revisión opus**; reescribe ElevatorPanelUITests; capturas SE (10 pisos) e iPad |
 | E13b-T9 | La Tienda sale de la barra (se abre con el + de la moneda) | ✅ | — | 🔥 HUDView (una línea); GameArtComponents (barOrder), TabUnlocks, tabs.json, +Tabs, BottomMenuBar; catálogo (snapshot) | `98d7d9f` | ola 1; migra BottomMenu/Store/ProgressiveTabs UITests al `hud.coins.plus`; carry E3b T4 (5 páginas) — duda 1; tarea VERDE unit 89 + UI a mano (BottomMenu/ProgressiveTabs/HUDRedesign 8 en 26.5, Store 2 en 18.6); queda `TabUnlockCondition.secondSession` sin uso; `sixTabsFitTheSE` lo rehace T10; comentarios "seis pantallas" ajenos |
-| E13b-T10 | La barra simétrica 2 + 1 + 2, sin rótulos y con íconos grandes | ⏳ | T9 | GameArtComponents (GameTabBar), BottomMenuBar | | `panelHeight` 64 y `barHeight` 84 se conservan; capturas SE e iPad |
+| E13b-T10 | La barra simétrica 2 + 1 + 2, sin rótulos y con íconos grandes | 🔄 | T9 | GameArtComponents (GameTabBar), BottomMenuBar | | `panelHeight` 64 y `barHeight` 84 se conservan; capturas SE e iPad |
 | E13b-T11 | Cierre de E13b (controlador) | ⛔ | T1–T10 | `Docs/` | | `completo`; grabaciones para el dueño |
 
 Dependencias que E13 le suma a otras épicas (plan E13, "Lo que E13 le deja a otras épicas"): **E2b**

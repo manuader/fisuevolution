@@ -10,7 +10,7 @@ from PIL import Image, ImageDraw
 SCRIPTS = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from whitebg_cutout import cutout  # noqa: E402
+from whitebg_cutout import background_mask, cutout, white_distance  # noqa: E402
 
 
 def draw(size: int = 256) -> tuple[Image.Image, ImageDraw.ImageDraw]:
@@ -63,6 +63,20 @@ class CutoutTests(unittest.TestCase):
 
         self.assertEqual(alpha[5, 5], 0, "arriba sigue siendo fondo")
         self.assertEqual(alpha[220, 128], 255, "los hombros pegados al marco quedan")
+
+    def test_un_busto_sin_linea_abajo_no_se_siembra_desde_abajo(self):
+        """El retrato animado corta la camisa blanca contra el marco de abajo sin
+        linea que la cierre: sembrando desde los cuatro lados se la come entera."""
+        canvas, pen = draw()
+        pen.rectangle((60, 150, 195, 260), fill=(255, 255, 255), outline=(0, 0, 0), width=5)
+        distance = white_distance(np.array(canvas))
+
+        todos = background_mask(distance)
+        busto = background_mask(distance, bordes=("arriba", "izquierda", "derecha"))
+
+        self.assertTrue(todos[220, 128], "desde abajo la camisa es fondo")
+        self.assertFalse(busto[220, 128], "sin sembrar abajo la camisa queda")
+        self.assertTrue(busto[250, 10], "el fondo de abajo sigue siendo fondo por los costados")
 
     def test_el_borde_queda_con_antialias_y_sin_halo_blanco(self):
         # ImageDraw dibuja con filo duro, asi que el antialias —que es lo que se

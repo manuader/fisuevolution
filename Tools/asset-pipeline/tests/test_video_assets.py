@@ -1,11 +1,11 @@
 """El contrato de los loops y las cinematicas (`loops_manifest.json`) visto desde
 el pipeline.
 
-Tres partes: la medicion del verde (sin video y contra el master del cofre, cuyo
-verde se calibro a mano), el manifest versionado con lo que quedo INTEGRADO, y
-una corrida de punta a punta sobre un master sintetico que el test arma con
-ffmpeg, porque todavia no hay masters de Higgsfield. Del lado del juego lo pinea
-un test en Swift.
+Cuatro partes: la medicion del verde (sin video y contra el master del cofre,
+cuyo verde se calibro a mano), el recorte de fondo blanco de un cuadro, el
+manifest versionado con lo que quedo INTEGRADO, y una corrida de punta a punta
+sobre masters sinteticos que el test arma con ffmpeg (los de Higgsfield no se
+versionan). Del lado del juego lo pinea un test en Swift.
 """
 
 import json
@@ -25,15 +25,23 @@ sys.path.insert(0, str(SCRIPTS))
 
 import video_assets  # noqa: E402
 from chest_video_frames import CHEST_ANIM, CINEMATIC_FILE, KEY_COLOR, VIDEO  # noqa: E402
+from PIL import ImageDraw  # noqa: E402
 from video_assets import (  # noqa: E402
+    BUSTO,
+    CABIN_IDS,
+    CABIN_STILLS,
     CINEMATIC_IDS,
     KINDS,
     MANIFEST,
+    OBJECT_IDS,
     RESOURCES,
     MasterError,
+    cutout_frame,
+    green_patches,
     key_color_from_patches,
     validate_id,
 )
+from whitebg_cutout import TODOS_LOS_BORDES  # noqa: E402
 
 TIENE_FFMPEG = shutil.which("ffmpeg") is not None and shutil.which("ffprobe") is not None
 
@@ -59,7 +67,7 @@ def parche(color, ruido=0):
     return np.clip(base + rng.integers(-ruido, ruido + 1, base.shape), 0, 255).astype(np.uint8)
 
 
-class MedicionDelFondo(unittest.TestCase):
+class MedicionDelVerde(unittest.TestCase):
     def test_un_verde_liso_con_ruido_de_compresion_da_su_hex(self):
         parches = [parche((34, 146, 74), ruido=2) for _ in range(12)]
         medido = rgb(key_color_from_patches(parches))
@@ -70,42 +78,29 @@ class MedicionDelFondo(unittest.TestCase):
         with self.assertRaises(MasterError):
             key_color_from_patches(parches)
 
-    def test_un_fondo_que_no_es_ni_verde_ni_magenta_se_rechaza(self):
+    def test_un_fondo_que_no_es_verde_se_rechaza(self):
         with self.assertRaises(MasterError):
             key_color_from_patches([parche((40, 60, 200)) for _ in range(12)])
 
-    @unittest.skipUnless(TIENE_FFMPEG, "sin ffmpeg/ffprobe en el PATH")
-    def test_un_magenta_liso_da_su_hex(self):
-        parches = [parche((253, 4, 252), ruido=2) for _ in range(6)]
+    def test_en_la_cabina_el_verde_se_mide_en_el_hueco_y_no_en_las_esquinas(self):
+        # Pared crema en las esquinas, una ventana verde en el medio.
+        cuadro = np.full((64, 36, 3), (240, 225, 180), np.uint8)
+        cuadro[20:44, 10:26] = (4, 246, 30)
+        parches = green_patches(np.stack([cuadro, cuadro]))
         medido = rgb(key_color_from_patches(parches))
-        self.assertLessEqual(np.abs(medido - (253, 4, 252)).max(), 1)
-        self.assertEqual(video_assets.key_family("0xFD04FC"), "magenta")
+        self.assertLessEqual(np.abs(medido - (4, 246, 30)).max(), 1)
 
-    def test_la_familia_del_key_sale_del_color(self):
-        self.assertEqual(video_assets.key_family("0x22924A"), "green")
-        self.assertIsNone(video_assets.key_family("0x283CC8"))
+    def test_una_cabina_sin_verde_se_rechaza(self):
+        pared = np.full((1, 64, 36, 3), (240, 225, 180), np.uint8)
+        with self.assertRaises(MasterError):
+            green_patches(pared)
 
-    def test_el_magenta_va_sin_despill_y_el_verde_con(self):
-        self.assertIn("despill=type=green", video_assets.keying("0x22924A", 0.11, 0.04))
-        self.assertNotIn("despill", video_assets.keying("0xFD04FC", 0.11, 0.04))
-
-    def test_cada_clase_mide_sus_esquinas(self):
-        self.assertEqual(video_assets.CORNER_ROWS["retrato"], ("top",))
-        self.assertEqual(video_assets.CORNER_ROWS["cinematica"], ("top", "bottom"))
-
+    @unittest.skipUnless(TIENE_FFMPEG, "sin ffmpeg/ffprobe en el PATH")
     def test_el_master_del_cofre_mide_el_verde_que_se_calibro_a_mano(self):
         """El verde del cofre (`KEY_COLOR`) se saco a ojo leyendo un pixel. Medir
         el mismo master tiene que dar ese verde, o la medicion no sirve."""
         medido = rgb(video_assets.measure_key_color(VIDEO))
         self.assertLessEqual(np.abs(medido - rgb(KEY_COLOR)).max(), 3)
-
-
-class FondoBlanco(unittest.TestCase):
-    def test_el_blanco_se_reconoce_como_familia(self):
-        self.assertEqual(video_assets.key_family("0xFEFEFE"), "white")
-        medido = rgb(key_color_from_patches([parche((254, 254, 254), ruido=1)] * 6))
-        self.assertGreaterEqual(medido.min(), 252)
-        self.assertEqual(video_assets.key_family("0xE0E0E0"), None)
 
 
 class Identificadores(unittest.TestCase):
@@ -121,9 +116,72 @@ class Identificadores(unittest.TestCase):
         with self.assertRaises(ValueError):
             validate_id("cinematica", "boda")
 
-    def test_los_clips_del_ascensor_son_cinematicas_validas(self):
-        for clip in ("ascensor_cierra", "ascensor_abre"):
-            validate_id("cinematica", clip)
+    def test_los_objetos_y_la_cabina_son_los_del_plan(self):
+        self.assertEqual(
+            OBJECT_IDS, ("paquete_abre", "paquete_espera", "colchon_abre", "colchon_espera")
+        )
+        self.assertEqual(CABIN_IDS, ("puertas_cierran", "puertas_abren"))
+        for kind, invalido in (("objeto", "cofre_abre"), ("cabina", "puertas")):
+            with self.subTest(kind=kind), self.assertRaises(ValueError):
+                validate_id(kind, invalido)
+
+    def test_cada_clase_tiene_su_alfa(self):
+        """Regla del dueno: el arte va sobre blanco; el verde, solo en la cabina
+        (y en la cinematica, si alguna vez trae croma)."""
+        self.assertEqual({k: s["matte"] for k, s in KINDS.items()}, {
+            "retrato": "blanco", "objeto": "blanco", "cabina": "verde", "cinematica": "verde",
+        })
+        self.assertEqual(KINDS["retrato"]["bordes"], BUSTO)
+        self.assertEqual(KINDS["objeto"]["bordes"], TODOS_LOS_BORDES)
+        # Comparten carpeta: lo que los separa en el bundle aplanado es el prefijo.
+        prefijos = [s["prefix"] for s in KINDS.values()]
+        self.assertEqual(len(prefijos), len(set(prefijos)))
+
+
+def lienzo(alto: int = 240, ancho: int = 240):
+    canvas = Image.new("RGB", (ancho, alto), (255, 255, 255))
+    return canvas, ImageDraw.Draw(canvas)
+
+
+class RecorteDeUnCuadro(unittest.TestCase):
+    """`cutout_frame`: el criterio de `whitebg_cutout`, cuadro por cuadro."""
+
+    def test_saca_el_fondo_y_conserva_lo_blanco_de_adentro(self):
+        canvas, pen = lienzo()
+        pen.ellipse((40, 40, 200, 200), fill=(255, 255, 255), outline=(0, 0, 0), width=6)
+        rgba = cutout_frame(np.array(canvas), TODOS_LOS_BORDES).astype(int)
+
+        self.assertEqual(rgba[5, 5].tolist(), [0, 0, 0, 0], "fondo: transparente y premultiplicado")
+        self.assertEqual(rgba[120, 120].tolist(), [255, 255, 255, 255], "el blanco encerrado queda")
+
+    def test_solo_cuenta_el_blanco_conectado_al_borde(self):
+        # Dos blancos iguales: el de afuera toca el marco, el de adentro no.
+        canvas, pen = lienzo()
+        pen.rectangle((60, 60, 180, 180), outline=(0, 0, 0), width=4)
+        alpha = cutout_frame(np.array(canvas), TODOS_LOS_BORDES)[..., 3]
+
+        self.assertEqual(alpha[30, 120], 0)
+        self.assertEqual(alpha[120, 120], 255)
+
+    def test_un_retrato_no_se_come_la_camisa_apoyada_en_el_marco(self):
+        canvas, pen = lienzo()
+        pen.rectangle((70, 140, 170, 260), fill=(255, 255, 255), outline=(0, 0, 0), width=5)
+        frame = np.array(canvas)
+
+        self.assertEqual(cutout_frame(frame, BUSTO)[220, 120, 3], 255)
+        self.assertEqual(cutout_frame(frame, BUSTO)[230, 10, 3], 0)
+        self.assertEqual(cutout_frame(frame, TODOS_LOS_BORDES)[220, 120, 3], 0)
+
+    def test_el_filo_sale_premultiplicado_y_sin_blanco(self):
+        grande = Image.new("RGB", (960, 960), (255, 255, 255))
+        ImageDraw.Draw(grande).ellipse((240, 240, 720, 720), fill=(200, 40, 40))
+        frame = np.array(grande.resize((240, 240), Image.LANCZOS))
+        rgba = cutout_frame(frame, TODOS_LOS_BORDES).astype(int)
+
+        filo = (rgba[..., 3] > 10) & (rgba[..., 3] < 245)
+        self.assertGreater(filo.sum(), 0)
+        # Premultiplicado: ningun canal pasa al alfa. Un halo blanco lo violaria.
+        self.assertLessEqual((rgba[..., :3].max(axis=2) - rgba[..., 3]).max(), 1)
 
 
 class ManifestVersionado(unittest.TestCase):
@@ -140,11 +198,13 @@ class ManifestVersionado(unittest.TestCase):
         self.assertEqual(self.manifest["schemaVersion"], 1)
         self.assertEqual(self.manifest["schemaVersion"], video_assets.SCHEMA_VERSION)
         self.assertEqual(
-            set(self.manifest), {"schemaVersion", "portraits", "cinematics", "stills"}
+            set(self.manifest), {"schemaVersion", "portraits", "objects", "cabin", "cinematics"}
         )
 
     def test_cada_entrada_apunta_a_su_pieza_con_su_tamano(self):
-        campos = {"file", "width", "height", "fps", "frames", "alpha", "audio", "keyColor"}
+        campos = {
+            "file", "width", "height", "fps", "frames", "alpha", "audio", "matte", "keyColor",
+        }
         for kind, spec in KINDS.items():
             for piece_id, entry in self.manifest[spec["section"]].items():
                 with self.subTest(kind=kind, id=piece_id):
@@ -153,51 +213,42 @@ class ManifestVersionado(unittest.TestCase):
                     self.assertEqual(entry["file"], f"{spec['prefix']}{piece_id}.mov")
                     self.assertEqual((entry["width"], entry["height"]), spec["size"])
                     self.assertTrue((RESOURCES / spec["dir"] / entry["file"]).exists())
-                    self.assertEqual(entry["alpha"], entry["keyColor"] is not None)
-                    if kind == "retrato":
-                        self.assertTrue(entry["alpha"], "un retrato va siempre con alfa")
-                        self.assertFalse(entry["audio"], "un loop de retrato es mudo")
+                    self.assertEqual(entry["alpha"], entry["matte"] is not None)
+                    self.assertIn(entry["matte"], (spec["matte"], None))
+                    self.assertEqual(entry["keyColor"] is not None, entry["matte"] == "verde")
+                    if kind != "cinematica":
+                        self.assertTrue(entry["alpha"], f"un {kind} va siempre con alfa")
+                        self.assertFalse(entry["audio"], f"un {kind} es mudo")
 
-    # Los 18 de la tanda de Higgsfield (PLAN-v2 E8): 8 visitantes y los 10 especiales.
-    # El gemelo en Swift es `LoopsManifestTests.portraits`.
-    RETRATOS = {
-        "npc_comisario", "npc_conductor", "npc_ministro", "npc_puntero",
-        "npc_sindicalista", "npc_turista", "npc_vecina", "npc_vendedor",
-        "sp_alien_investor", "sp_arbolito", "sp_bug_simulacion", "sp_coach",
-        "sp_contador_dios", "sp_cryptobro", "sp_demonio_arca", "sp_influencer",
-        "sp_lizard", "sp_zombie_ceo",
-    }
+    def test_las_piezas_del_plan_estan_todas(self):
+        for kind, ids in (("objeto", OBJECT_IDS), ("cabina", CABIN_IDS),
+                          ("cinematica", CINEMATIC_IDS)):
+            with self.subTest(kind=kind):
+                self.assertEqual(set(self.manifest[KINDS[kind]["section"]]), set(ids))
+        self.assertEqual(len(self.manifest["portraits"]), 18)
 
-    def test_estan_los_18_retratos(self):
-        self.assertEqual(set(self.manifest["portraits"]), self.RETRATOS)
-
-    def test_las_tres_cinematicas_son_opacas_y_suenan(self):
-        # Subconjunto y no igualdad: P-E13b suma las puertas de la cabina a esta sección.
-        for piece_id in CINEMATIC_IDS:
+    def test_las_cinematicas_son_opacas_y_suenan(self):
+        for piece_id, entry in self.manifest["cinematics"].items():
             with self.subTest(id=piece_id):
-                entry = self.manifest["cinematics"][piece_id]
-                self.assertFalse(entry["alpha"], "la escena trae su propio fondo: --sin-key")
-                self.assertTrue(entry["audio"], "Seedance la entregó con sonido")
-
-    def test_cada_cuadro_fijo_apunta_a_su_png_con_su_tamano(self):
-        for still_id, entry in self.manifest["stills"].items():
-            with self.subTest(id=still_id):
-                self.assertIn(still_id, video_assets.ELEVATOR_STILLS)
-                self.assertEqual(set(entry), {"file", "width", "height", "keyColor"})
-                self.assertEqual(entry["file"], f"cine_{still_id}.png")
-                self.assertEqual((entry["width"], entry["height"]), KINDS["cinematica"]["size"])
-                self.assertTrue((RESOURCES / "Cinematics" / entry["file"]).exists())
+                self.assertFalse(entry["alpha"])
+                self.assertTrue(entry["audio"])
 
     def test_no_hay_piezas_huerfanas(self):
-        for spec in KINDS.values():
-            carpeta = RESOURCES / spec["dir"]
-            en_disco = {p.name for p in carpeta.glob("*.mov")} if carpeta.exists() else set()
-            declaradas = {e["file"] for e in self.manifest[spec["section"]].values()}
-            self.assertEqual(en_disco, declaradas, spec["dir"])
-        carpeta = RESOURCES / "Cinematics"
-        en_disco = {p.name for p in carpeta.glob("*.png")} if carpeta.exists() else set()
-        declaradas = {e["file"] for e in self.manifest["stills"].values()}
-        self.assertEqual(en_disco, declaradas, "Cinematics (cuadros fijos)")
+        # Por carpeta y no por clase: retratos y objetos comparten `Loops/`.
+        carpetas = {spec["dir"] for spec in KINDS.values()}
+        for carpeta in carpetas:
+            en_disco = {p.name for p in (RESOURCES / carpeta).glob("*.mov")}
+            declaradas = {
+                e["file"]
+                for spec in KINDS.values() if spec["dir"] == carpeta
+                for e in self.manifest[spec["section"]].values()
+            }
+            self.assertEqual(en_disco, declaradas, carpeta)
+
+    def test_los_unicos_png_son_los_cuadros_fijos_de_la_cabina(self):
+        # Sin entrada en el manifest: `ElevatorCabinArt` los pide por nombre.
+        carpeta = RESOURCES / KINDS["cabina"]["dir"]
+        self.assertEqual({p.name for p in carpeta.glob("*.png")}, set(CABIN_STILLS))
 
 
 def alfa_decodificable() -> bool:
@@ -217,10 +268,12 @@ def alfa_decodificable() -> bool:
 
 @unittest.skipUnless(PUEDE_CODIFICAR, "sin ffmpeg con hevc_videotoolbox y libx264")
 class DePuntaAPunta(unittest.TestCase):
-    """Un master sintetico: fondo verde del cofre, un rectangulo rojo en el medio
-    (el "personaje") y un tono de fondo como pista de sonido."""
+    """Masters sinteticos con un tono de fondo como pista de sonido: un rectangulo
+    en el medio (el "personaje", o el hueco de la cabina) sobre un fondo liso."""
 
     VERDE = "0x22924A"
+    CROMA = "0x04F61E"
+    AMARILLO = "0xF5C518"
 
     def setUp(self):
         temp = tempfile.TemporaryDirectory()
@@ -236,19 +289,16 @@ class DePuntaAPunta(unittest.TestCase):
             self.addCleanup(patcher.stop)
 
     def master(self, width: int, height: int, fondo: str = VERDE,
-               personaje: str = "0xC83C28", hombros: bool = False) -> Path:
-        path = self.root / f"master_{width}x{height}_{fondo}_{hombros}.mp4"
-        cajas = [f"drawbox=x={width // 3}:y={height // 4}:w={width // 3}:h={height // 2}"
-                 f":color={personaje}:t=fill"]
-        if hombros:
-            # Un busto: los hombros llegan a las dos esquinas de abajo.
-            cajas.append(f"drawbox=x=0:y={height - height // 6}:w={width}:h={height // 6}"
-                         f":color={personaje}:t=fill")
+               caja: str = "0xC83C28", t: str = "fill") -> Path:
+        """`t` es el grosor del borde de la caja: "fill" la pinta llena, un numero
+        deja el adentro del color del fondo (el blanco encerrado del dibujo)."""
+        path = self.root / f"master_{width}x{height}_{fondo}_{t}.mp4"
         subprocess.run(
             ["ffmpeg", "-v", "error",
              "-f", "lavfi", "-i", f"color=c={fondo}:s={width}x{height}:r=24:d=1",
              "-f", "lavfi", "-i", "sine=frequency=440:duration=1",
-             "-vf", ",".join(cajas),
+             "-vf", f"drawbox=x={width // 3}:y={height // 4}:w={width // 3}:h={height // 2}"
+                    f":color={caja}:t={t}",
              "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest",
              "-y", str(path)],
             check=True,
@@ -275,9 +325,20 @@ class DePuntaAPunta(unittest.TestCase):
             self.assertEqual(esquina[3], 0)
             self.assertEqual(centro[3], 255)
 
-    def test_un_retrato_sale_cuadrado_con_alfa_mudo_y_registrado(self):
+    def assert_recortado(self, frame: np.ndarray) -> None:
+        """Fondo blanco afuera, transparente; blanco encerrado adentro, opaco."""
+        h, w = frame.shape[:2]
+        esquina, centro = frame[4, 4], frame[h // 2, w // 2]
+        self.assertLessEqual(esquina[:3].max(), 8, f"esquina {esquina}")
+        self.assertGreater(centro[:3].min(), 230, f"centro {centro}")
+        if alfa_decodificable():
+            self.assertEqual(esquina[3], 0)
+            self.assertEqual(centro[3], 255, "el blanco de adentro no se recorta")
+
+    def test_un_retrato_sale_cuadrado_recortado_mudo_y_registrado(self):
         # 640x480 a proposito: el retrato se recorta al cuadrado del centro.
-        entry = video_assets.process("retrato", "npc_prueba", self.master(640, 480))
+        master = self.master(640, 480, fondo="0xFFFFFF", caja="0x101010", t="8")
+        entry = video_assets.process("retrato", "npc_prueba", master)
 
         mov = self.resources / "Loops" / "loop_npc_prueba.mov"
         info = video_assets.probe(mov)
@@ -285,60 +346,77 @@ class DePuntaAPunta(unittest.TestCase):
         self.assertEqual((video["codec_name"], video["codec_tag_string"]), ("hevc", "hvc1"))
         self.assertEqual((video["width"], video["height"]), (512, 512))
         self.assertFalse(video_assets.has_audio(info))
-        self.assert_keyeado(self.cuadro(mov))
+        self.assert_recortado(self.cuadro(mov))
 
-        self.assertLessEqual(np.abs(rgb(entry["keyColor"]) - rgb(self.VERDE)).max(), 4)
+        self.assertEqual((entry["alpha"], entry["matte"], entry["keyColor"]),
+                         (True, "blanco", None))
         self.assertEqual(entry["frames"], 24)
         self.assertEqual(entry["fps"], 24)
         manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
         self.assertEqual(manifest["portraits"], {"npc_prueba": entry})
         self.assertEqual(manifest["cinematics"], {})
 
-    def master_blanco(self, side: int = 640) -> Path:
-        path = self.root / "master_blanco.mp4"
-        c, r = side // 2, side // 8
-        subprocess.run(
-            ["ffmpeg", "-v", "error",
-             "-f", "lavfi", "-i", f"color=c=white:s={side}x{side}:r=24:d=1",
-             "-vf", (f"drawbox=x={side // 4}:y={side // 4}:w={side // 2}:h={side // 2}:color=0xC83C28:t=fill,"
-                     f"drawbox=x={c - r}:y={c - r}:w={2 * r}:h={2 * r}:color=black:t=fill,"
-                     f"drawbox=x={c - r + 6}:y={c - r + 6}:w={2 * r - 12}:h={2 * r - 12}:color=white:t=fill"),
-             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-an", "-y", str(path)],
-            check=True,
-        )
-        return path
+    def test_un_objeto_sale_recortado_en_su_seccion(self):
+        master = self.master(720, 720, fondo="0xFFFFFF", caja="0x101010", t="8")
+        entry = video_assets.process("objeto", "paquete_espera", master)
 
-    def test_un_retrato_sobre_blanco_recorta_el_fondo_y_no_el_ojo(self):
-        entry = video_assets.process("retrato", "npc_prueba", self.master_blanco())
-        self.assertEqual(video_assets.key_family(entry["keyColor"]), "white")
-        self.assertTrue(entry["alpha"])
-        self.assertEqual((entry["frames"], entry["fps"]), (24, 24))
-        frame = self.cuadro(self.resources / "Loops" / "loop_npc_prueba.mov")
-        self.assertLessEqual(frame[4, 4, :3].max(), 8, "el fondo blanco se fue (premultiplicado)")
-        self.assertGreater(frame[256, 256, :3].min(), 230, "el blanco encerrado es dibujo y queda")
+        mov = self.resources / "Loops" / "obj_paquete_espera.mov"
+        self.assertEqual((entry["file"], entry["width"], entry["height"]),
+                         (mov.name, 512, 512))
+        self.assert_recortado(self.cuadro(mov))
+        manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
+        self.assertEqual(manifest["objects"], {"paquete_espera": entry})
+        self.assertEqual(manifest["portraits"], {})
+
+    def test_la_cabina_deja_transparente_solo_el_hueco_verde(self):
+        # Pared amarilla a proposito: el despill del cofre la volveria naranja.
+        master = self.master(540, 956, fondo=self.AMARILLO, caja=self.CROMA)
+        entry = video_assets.process("cabina", "puertas_abren", master)
+
+        frame = self.cuadro(self.resources / "Cinematics" / "cabina_puertas_abren.mov")
+        self.assertEqual((entry["width"], entry["height"]), (720, 1280))
+        self.assertEqual(entry["matte"], "verde")
+        self.assertFalse(entry["audio"], "la cabina es muda")
+        self.assertLessEqual(np.abs(rgb(entry["keyColor"]) - rgb(self.CROMA)).max(), 4)
+        esquina, hueco = frame[4, 4], frame[640, 360]
+        self.assertLessEqual(np.abs(esquina[:3] - rgb(self.AMARILLO)).max(), 12,
+                             f"la pared queda y del mismo amarillo: {esquina}")
+        self.assertLessEqual(hueco[:3].max(), 8, f"hueco {hueco}")
         if alfa_decodificable():
-            self.assertEqual(frame[4, 4, 3], 0)
-            self.assertEqual(frame[256, 256, 3], 255)
+            self.assertEqual((esquina[3], hueco[3]), (255, 0))
 
-    def test_una_cinematica_sobre_blanco_se_rechaza(self):
-        with self.assertRaises(MasterError):
-            video_assets.process("cinematica", "dios", self.master_blanco())
+    def test_los_cuadros_fijos_de_la_cabina_salen_keyeados_y_sin_manifest(self):
+        fuente = self.root / "ascensor"
+        fuente.mkdir()
+        for still, (x, y, ancho, alto) in zip(CABIN_STILLS, ((.28, .25, .12, .4), (.2, .2, .6, .6))):
+            w, h = 1520, 2688
+            subprocess.run(
+                ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", f"color=c={self.AMARILLO}:s={w}x{h}",
+                 "-vf", f"drawbox=x={int(w * x)}:y={int(h * y)}:w={int(w * ancho)}"
+                        f":h={int(h * alto)}:color={self.CROMA}:t=fill",
+                 "-frames:v", "1", "-y", str(fuente / still)],
+                check=True,
+            )
 
-    def test_un_busto_se_mide_por_arriba_y_sale(self):
-        master = self.master(640, 640, hombros=True)
-        with self.assertRaises(MasterError, msg="con las cuatro esquinas, los hombros lo tapan"):
-            video_assets.measure_key_color(master, rows=("top", "bottom"))
-        entry = video_assets.process("retrato", "npc_prueba", master)
-        self.assertLessEqual(np.abs(rgb(entry["keyColor"]) - rgb(self.VERDE)).max(), 4)
+        escritos = video_assets.process_cabin_stills(fuente)
 
-    def test_un_retrato_verde_sobre_magenta_conserva_su_verde(self):
-        master = self.master(640, 640, fondo="0xFF00FF", personaje="0x2CA02C")
-        entry = video_assets.process("retrato", "sp_prueba", master)
-        self.assertEqual(video_assets.key_family(entry["keyColor"]), "magenta")
-        frame = self.cuadro(self.resources / "Loops" / "loop_sp_prueba.mov")
-        h, w = frame.shape[:2]
-        self.assertLessEqual(frame[4, 4, :3].max(), 8, "el fondo magenta se fue")
-        self.assertGreater(frame[h // 2, w // 2, 1], 120, "y el personaje sigue verde")
+        self.assertEqual([p.name for p in escritos], list(CABIN_STILLS))
+        self.assertFalse((self.resources / "Data" / "loops_manifest.json").exists())
+        for png, hueco in zip(escritos, ((.34, .45), (.5, .5))):
+            with self.subTest(png=png.name), Image.open(png) as img:
+                self.assertEqual((img.mode, img.size), ("RGBA", (720, 1280)))
+                pixels = np.asarray(img).astype(int)
+                self.assertEqual(pixels[int(1280 * hueco[1]), int(720 * hueco[0]), 3], 0)
+                pared = pixels[10, 10]
+                self.assertEqual(pared[3], 255)
+                self.assertLessEqual(np.abs(pared[:3] - rgb(self.AMARILLO)).max(), 12,
+                                     f"la pared queda y del mismo amarillo: {pared}")
+
+    def test_solo_la_cinematica_puede_ir_sin_alfa(self):
+        for kind, piece_id in (("retrato", "npc_prueba"), ("objeto", "colchon_abre"),
+                               ("cabina", "puertas_cierran")):
+            with self.subTest(kind=kind), self.assertRaises(ValueError):
+                video_assets.process(kind, piece_id, self.root / "no.mp4", keyed=False)
 
     def test_una_cinematica_cubre_el_vertical_y_lleva_el_sonido(self):
         entry = video_assets.process("cinematica", "arresto", self.master(480, 640))
@@ -356,116 +434,6 @@ class DePuntaAPunta(unittest.TestCase):
         frame = self.cuadro(self.resources / "Cinematics" / "cine_dios.mov")
         self.assertEqual(frame[..., 3].min(), 255)
         self.assertGreater(frame[4, 4, 1], 100, "el verde queda: no se keyeo")
-
-    # --- El ascensor: las esquinas son la cabina, el verde esta en el hueco ---
-
-    HUECO = "0x04F523"
-    VENTANA = "0x03FA0E"
-
-    def master_de_puertas(self, width=360, height=640, abierto_primero=True) -> Path:
-        """73 cuadros a 24 fps (como los masters de Higgsfield): la cabina gris
-        en todos lados, el hueco verde en un cuadro y las dos ventanas en el otro."""
-        w, h = width, height
-        hueco = f"drawbox=x={int(w * .2)}:y={int(h * .2)}:w={int(w * .6)}:h={int(h * .6)}:color={self.HUECO}:t=fill"
-        ventanas = ",".join(
-            f"drawbox=x={int(w * x)}:y={int(h * .25)}:w={int(w * .12)}:h={int(h * .4)}:color={self.VENTANA}:t=fill"
-            for x in (.28, .60)
-        )
-        abierto, cerrado = (hueco, ventanas) if abierto_primero else (ventanas, hueco)
-        path = self.root / f"puertas_{abierto_primero}.mp4"
-        gris = f"color=c=0x808080:s={w}x{h}:r=24:d=1.5"
-        subprocess.run(
-            ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", gris, "-f", "lavfi", "-i", gris,
-             "-filter_complex",
-             f"[0]{abierto}[a];[1]{cerrado}[b];[a][b]concat=n=2:v=1:a=0,trim=end_frame=73",
-             "-c:v", "libx264", "-pix_fmt", "yuv420p", "-y", str(path)],
-            check=True,
-        )
-        return path
-
-    def cuadros(self, mov: Path) -> np.ndarray:
-        info = video_assets.video_stream(video_assets.probe(mov))
-        raw = subprocess.run(
-            ["ffmpeg", "-v", "error", "-i", str(mov), "-pix_fmt", "rgba",
-             "-f", "rawvideo", "-"], capture_output=True, check=True,
-        ).stdout
-        return np.frombuffer(raw, np.uint8).reshape(-1, info["height"], info["width"], 4).astype(int)
-
-    def test_el_ascensor_mide_el_verde_en_el_hueco(self):
-        master = self.master_de_puertas()
-        with self.assertRaises(MasterError):
-            video_assets.measure_key_color(master)
-        medido = rgb(video_assets.measure_key_in_regions(
-            master, "first", video_assets.HOLE_POINTS, video_assets.WINDOW_POINTS))
-        self.assertLessEqual(np.abs(medido - rgb(self.HUECO)).max(), 4)
-
-    def test_los_dos_verdes_del_ascensor_se_keyean(self):
-        entry = video_assets.process_ascensor("ascensor_cierra", self.master_de_puertas())
-
-        cuadros = self.cuadros(self.resources / "Cinematics" / "cine_ascensor_cierra.mov")
-        abierto, cerrado = cuadros[0], cuadros[-1]
-        h, w = abierto.shape[:2]
-        self.assertLessEqual(np.abs(rgb(entry["keyColor"]) - rgb(self.HUECO)).max(), 4)
-        if not alfa_decodificable():
-            self.skipTest("este ffmpeg no decodifica el alfa del HEVC de Apple")
-        self.assertEqual(abierto[h // 2, w // 2, 3], 0, "el hueco")
-        self.assertEqual(abierto[10, 10, 3], 255, "la cabina")
-        for fx in (.34, .66):
-            self.assertEqual(cerrado[int(h * .45), int(w * fx), 3], 0, f"la ventana en {fx}")
-        self.assertEqual(cerrado[h // 2, w // 2, 3], 255, "la puerta entre las ventanas")
-
-    def test_el_ascensor_se_recorta_y_acelera(self):
-        for clip, segundos in (("ascensor_cierra", .75), ("ascensor_abre", .65)):
-            with self.subTest(clip=clip):
-                abierto = video_assets.ELEVATOR_CLIPS[clip][0] == "first"
-                entry = video_assets.process_ascensor(clip, self.master_de_puertas(abierto_primero=abierto))
-
-                mov = self.resources / "Cinematics" / f"cine_{clip}.mov"
-                info = video_assets.probe(mov)
-                video = video_assets.video_stream(info)
-                self.assertLessEqual(abs(entry["frames"] - segundos * 30), 1)
-                self.assertEqual(entry["fps"], 30)
-                self.assertEqual((video["width"], video["height"]), (720, 1280))
-                self.assertFalse(video_assets.has_audio(info))
-                self.assertTrue(entry["alpha"])
-                manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
-                self.assertEqual(manifest["cinematics"][clip], entry)
-
-    def test_los_cuadros_del_ascensor_salen_keyeados_y_registrados(self):
-        w, h = 1520, 2688
-        fuente = self.root / "cuadros"
-        fuente.mkdir()
-        cajas = {
-            "cabina_abierta.png": [(.2, .2, .6, .6, self.HUECO), (.02, .02, .1, .1, "0xFFC02B")],
-            "cabina_cerrada.png": [(.28, .25, .12, .4, self.VENTANA), (.60, .25, .12, .4, self.VENTANA)],
-        }
-        for archivo, rectangulos in cajas.items():
-            filtro = ",".join(
-                f"drawbox=x={int(w * x)}:y={int(h * y)}:w={int(w * ancho)}:h={int(h * alto)}:color={c}:t=fill"
-                for x, y, ancho, alto, c in rectangulos
-            )
-            subprocess.run(
-                ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", f"color=c=0x808080:s={w}x{h}",
-                 "-vf", filtro, "-frames:v", "1", "-y", str(fuente / archivo)], check=True)
-
-        entries = video_assets.process_ascensor_stills(fuente)
-
-        manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
-        self.assertEqual(manifest["stills"], entries)
-        self.assertEqual(set(entries), {"ascensor_cerrada", "ascensor_abierta"})
-        for still_id, hueco in (("ascensor_abierta", (.5, .5)), ("ascensor_cerrada", (.34, .45))):
-            with self.subTest(still_id=still_id):
-                entry = entries[still_id]
-                self.assertEqual(entry["file"], f"cine_{still_id}.png")
-                with Image.open(self.resources / "Cinematics" / entry["file"]) as img:
-                    self.assertEqual((img.mode, img.size), ("RGBA", (720, 1280)))
-                    pixels = np.asarray(img).astype(int)
-                self.assertEqual(pixels[int(1280 * hueco[1]), int(720 * hueco[0]), 3], 0)
-                self.assertEqual(pixels[10, 10, 3], 255)
-        # El amarillo de la cabina sobrevive: sin despill no vira a naranja.
-        with Image.open(self.resources / "Cinematics" / "cine_ascensor_abierta.png") as img:
-            amarillo = np.asarray(img).astype(int)[1280 // 20, 720 // 20]
-        self.assertGreater(amarillo[1], 170, f"el amarillo viro: {amarillo}")
 
 
 if __name__ == "__main__":

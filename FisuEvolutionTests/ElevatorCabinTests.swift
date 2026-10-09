@@ -16,7 +16,7 @@ struct ElevatorCabinTests {
         #expect(stills.isStills)
         let vector = ElevatorCabinArt.resolve(url: { _ in nil }, image: { _ in nil })
         #expect(vector == .vector)
-        let halfVideo = ElevatorCabinArt.resolve(url: { $0 == "cine_ascensor_cierra" ? url : nil }, image: { _ in nil })
+        let halfVideo = ElevatorCabinArt.resolve(url: { $0 == "cabina_puertas_cierran" ? url : nil }, image: { _ in nil })
         #expect(halfVideo == .vector, "un clip solo no alcanza: cierra y abre van juntos")
     }
 
@@ -33,8 +33,8 @@ struct ElevatorCabinTests {
         let art = ElevatorCabinArt.resolve()
         let manifest = try JSONSerialization.jsonObject(with: Data(contentsOf: #require(
             Bundle.main.url(forResource: "loops_manifest", withExtension: "json")))) as? [String: Any]
-        let cinematics = manifest?["cinematics"] as? [String: Any] ?? [:]
-        #expect(art.isVideo == (cinematics["ascensor_cierra"] != nil && cinematics["ascensor_abre"] != nil))
+        let cabin = manifest?["cabin"] as? [String: Any] ?? [:]
+        #expect(art.isVideo == (cabin["puertas_cierran"] != nil && cabin["puertas_abren"] != nil))
     }
 
     @Test("en el teléfono la cabina cubre la pantalla; en el iPad va al alto, centrada")
@@ -49,7 +49,7 @@ struct ElevatorCabinTests {
 
     @Test("el calentado suelta lo que no se usa")
     func warmupReleases() {
-        let url = Bundle.main.url(forResource: "cine_ascensor_cierra", withExtension: "mov")
+        let url = Bundle.main.url(forResource: "cabina_puertas_cierran", withExtension: "mov")
         guard let url else { return }
         let warmup = ElevatorCabinWarmup()
         let first = warmup.closingPlayer(url: url)
@@ -62,7 +62,7 @@ struct ElevatorCabinTests {
 
     @Test("el dibujo sólo busca: sin player creado no hay nada, y el que se soltó desaparece")
     func lookupsNeverCreate() {
-        guard let url = Bundle.main.url(forResource: "cine_ascensor_cierra", withExtension: "mov") else { return }
+        guard let url = Bundle.main.url(forResource: "cabina_puertas_cierran", withExtension: "mov") else { return }
         let warmup = ElevatorCabinWarmup()
         #expect(warmup.currentClosing(url: url) == nil)
         #expect(warmup.currentOpening(url: url) == nil)

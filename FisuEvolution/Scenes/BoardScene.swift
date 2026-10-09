@@ -666,9 +666,10 @@ final class BoardScene: SKScene {
         if gameState.skipCurrentCelebration() {
             abortBoardCelebration()
         }
-        // Mientras un cambio se mueve el toque sólo puede saltearlo: si no, el
-        // jugador arrastraría al par a mitad del gesto.
-        guard playingBoardChange == nil else { return }
+        // Mientras un cambio se mueve (o una cadena sigue, aun en el reveal de un
+        // eslabón) el toque sólo puede saltearlo: si no, el jugador arrastraría al
+        // par a mitad del gesto.
+        guard playingBoardChange == nil, playingChain == nil else { return }
 
         guard let node = characterNode(at: touch.location(in: self)) else {
             let point = touch.location(in: self)
@@ -822,7 +823,8 @@ final class BoardScene: SKScene {
         _ resolution: GameState.DropResolution?,
         at dropPoint: CGPoint,
         sourceNode node: CharacterNode,
-        withinTurn: Bool
+        withinTurn: Bool,
+        soundsMerge: Bool = true
     ) {
         clearMergeCandidates()
         guard case .merged(let cell, let evolvedTo, let promotedType, let promotedToFloor, let unlockedFloorID)? = resolution else {
@@ -849,7 +851,7 @@ final class BoardScene: SKScene {
                 .scale(to: 1.0, duration: 0.12),
             ]))
         }
-        if withinTurn {
+        if withinTurn, soundsMerge {
             gameState.playBoardMergeFeedback(chainIndex: playingChain?.index, evolved: evolvedTo != nil)
         }
         guard evolvedTo != nil || promotedType != nil else {
@@ -1076,7 +1078,7 @@ final class BoardScene: SKScene {
 
         partner.run(.sequence([
             slide,
-            stepAction { [weak self, weak partner] in
+            resolveAction(registeredForTest: resolve != nil) { [weak self, weak partner] in
                 guard let self, let partner else { return }
                 if let resolve {
                     resolve(originCell, targetCell, meetingPoint, partner)
@@ -1176,7 +1178,14 @@ final class BoardScene: SKScene {
         guard case .merged(let cell, _, _, _, _)? = resolution, let node = characterNodes[cell] else {
             return finishBoardChangeTurn()
         }
-        presentResolution(resolution, at: node.position, sourceNode: node, withinTurn: true)
+        var soundsMerge = false
+        switch change.kind {
+        case .merge, .evolve: soundsMerge = true
+        case .arrival, .departure: break
+        }
+        presentResolution(
+            resolution, at: node.position, sourceNode: node, withinTurn: true, soundsMerge: soundsMerge
+        )
     }
 
     private func finishBoardChangeTurn() {
@@ -1200,8 +1209,12 @@ final class BoardScene: SKScene {
     /// Una `SKAction.run` que en DEBUG también queda a mano del test: sin
     /// `SKView` nadie evalúa las acciones.
     private func stepAction(_ block: @escaping () -> Void) -> SKAction {
+        resolveAction(registeredForTest: true, block)
+    }
+
+    private func resolveAction(registeredForTest: Bool, _ block: @escaping () -> Void) -> SKAction {
         #if DEBUG
-        debugNextStep = block
+        if registeredForTest { debugNextStep = block }
         #endif
         return .run(block)
     }

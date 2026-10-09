@@ -27,6 +27,7 @@ struct MergeAllChainSceneTests {
             #expect(gameState.showing == .boardCelebration)
             scene.debugCompleteBoardChangeStep()
             guardrail += 1
+            scene.update(1 + Double(guardrail) * 0.01)
         }
         #expect(gameState.pendingBoardChanges.isEmpty)
         #expect(gameState.player?.run.units["cartonero"] == 1)
@@ -45,13 +46,22 @@ struct MergeAllChainSceneTests {
         #expect(!gameState.pendingBoardChanges.isEmpty)
     }
 
-    @Test("el watchdog que asienta un eslabón corta la escena sin trabar la cadena")
+    @Test("el watchdog que se lleva el turno en pleno reveal corta la cadena")
     func watchdogMidChain() async {
         let (scene, gameState) = await sceneWithChain()
         scene.update(1)
+        var guardrail = 0
+        while scene.debugIsPlayingBoardChange, guardrail < 10 {
+            scene.debugCompleteBoardChangeStep()
+            guardrail += 1
+        }
+        #expect(scene.debugPlayingChain != nil, "el reveal del eslabón 0 sigue con la cadena viva")
         for _ in 0..<15 { gameState.tick(delta: 1) }
         scene.update(2)
-        #expect(scene.debugPlayingChain == nil || gameState.inFlightBoardChange != nil,
-                "o cortó, o arrancó el turno siguiente con el eslabón que sigue")
+        #expect(
+            (scene.debugPlayingChain == nil && gameState.showing != .boardCelebration)
+                || scene.debugPlayingChain?.index == 1,
+            "o cortó, o retomó la cadena en el eslabón siguiente"
+        )
     }
 }

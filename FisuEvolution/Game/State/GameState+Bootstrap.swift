@@ -278,6 +278,9 @@ extension GameState {
                 UserDefaults.standard.set(sessions + 1, forKey: Self.sessionsAfterPhaseKey)
             }
         }
+        // Después de la restricción del tutorial: con la fase activa la cinemática queda
+        // esperando en `pending`, no se pierde.
+        reconcileCinematics()
         applyOfflineProgressIfNeeded()
         // El primer launch de una cuenta nueva no reclama daily: el jugador
         // todavía no jugó y el popup compite con el tutorial (FTUE).

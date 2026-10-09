@@ -34,4 +34,13 @@ extension GameState {
         self.player = player
         scheduleSave()
     }
+
+    /// Al arrancar: lo que esperaba turno no se guarda, así que una partida parada en
+    /// Dios que la cuenta todavía no vio (la app murió entre el reveal y la cinemática,
+    /// o un veterano que llega a la 2.0 en el tope) se vuelve a pedir. Una vez vista no
+    /// vuelve: `isCinematicDue` lo corta.
+    func reconcileCinematics() {
+        guard let godTier, let player, player.run.revealedTier >= godTier else { return }
+        playCinematicIfDue(.dios)
+    }
 }

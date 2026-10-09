@@ -73,6 +73,13 @@ final class BoardScene: SKScene {
     private var boardCelebrationRunning = false
     /// El cambio del tablero que se está reproduciendo, hasta que se confirma.
     private var playingBoardChange: BoardChange?
+    /// El eslabón de "Fusionar todo" que la escena está jugando: sobrevive al reveal
+    /// del tier nuevo, que es cuando `playingBoardChange` ya está en `nil`.
+    private var playingChain: BoardChange.Chain?
+    #if DEBUG
+    private var debugNextStep: (() -> Void)?
+    #endif
+    private var tempo: MergeAllTempo { MergeAllTempo(reduceMotion: Self.prefersReducedMotion) }
     private static let boardChangeActionKey = "boardChange"
     /// Lo que se destaca el par antes de fundirse: se tiene que alcanzar a ver.
     private static let boardChangeBeat: TimeInterval = 0.35
@@ -333,6 +340,8 @@ final class BoardScene: SKScene {
         // siguiente no arrancaría.
         if let playing = playingBoardChange, gameState.inFlightBoardChange?.id != playing.id {
             abortBoardCelebration()
+        } else if playingChain != nil, gameState.showing != .boardCelebration {
+            abortBoardCelebration()
         }
         startBoardCelebrationIfItsTurn()
         refreshCrowdDepth()
@@ -360,8 +369,9 @@ final class BoardScene: SKScene {
     /// acá, así que no hay nada que montar.
     ///
     /// Decide qué reproduce el turno, en este orden: el merge del jugador que
-    /// dejó su payload, el próximo cambio del tablero y, si falta, la revelación
-    /// del personaje más alto que nadie vio.
+    /// dejó su payload, el próximo cambio del tablero (o, en una cadena, el
+    /// eslabón siguiente: `endBoardChangeTurn`) y, si falta, la revelación del
+    /// personaje más alto que nadie vio.
     ///
     /// ⚠️ El merge del jugador no cae en la última rama: `handleDrop` pide el
     /// turno y `resolveDrop` guarda `pendingBoardCelebration` en la misma pasada
@@ -404,8 +414,7 @@ final class BoardScene: SKScene {
             // false y este completion tardío no puede liberar el turno del ítem
             // SIGUIENTE, que es lo que se comería una celebración.
             guard let self, self.boardCelebrationRunning else { return }
-            self.boardCelebrationRunning = false
-            self.gameState.celebrationFinished(.boardCelebration)
+            self.endBoardChangeTurn()
         }
         let celebrateFloor: () -> Void = { [weak self] in
             guard let self, let floorID = pending.unlockedFloorID,
@@ -447,6 +456,10 @@ final class BoardScene: SKScene {
         pendingBoardCelebration = nil
         removeAction(forKey: Self.boardChangeActionKey)
         playingBoardChange = nil
+        playingChain = nil
+        #if DEBUG
+        debugNextStep = nil
+        #endif
         clearMergeCandidates()
         for node in characterNodes.values { node.removeAction(forKey: "assistedMerge") }
         for layer in [cameraOverlay, backgroundLayer] {
@@ -836,9 +849,11 @@ final class BoardScene: SKScene {
                 .scale(to: 1.0, duration: 0.12),
             ]))
         }
+        if withinTurn {
+            gameState.playBoardMergeFeedback(chainIndex: playingChain?.index, evolved: evolvedTo != nil)
+        }
         guard evolvedTo != nil || promotedType != nil else {
-            gameState.playHaptic(.merge)
-            if withinTurn { finishBoardChangeTurn() }
+            if withinTurn { finishBoardChangeTurn() } else { gameState.playHaptic(.merge) }
             return
         }
         // El vuelo, el reveal y la celebración de piso son UN ítem de la
@@ -1033,6 +1048,7 @@ final class BoardScene: SKScene {
     private func runAssistedMerge(
         partner: CharacterNode,
         into target: CharacterNode,
+        duration: TimeInterval = BoardScene.assistedMergeSlide,
         resolve: ((Int, Int, CGPoint, CharacterNode) -> Void)? = nil
     ) {
         let originCell = partner.cellIndex
@@ -1046,21 +1062,21 @@ final class BoardScene: SKScene {
         mergeCandidates.insert(originCell)
 
         let reduceMotion = Self.prefersReducedMotion
-        let approach = SKAction.move(to: meetingPoint, duration: Self.assistedMergeSlide)
+        let approach = SKAction.move(to: meetingPoint, duration: duration)
         approach.timingMode = .easeIn
         let slide: SKAction = reduceMotion
             ? .move(to: meetingPoint, duration: 0.01)
             : .group([
                 approach,
                 .sequence([
-                    .scale(to: 1.16, duration: Self.assistedMergeSlide * 0.5),
-                    .scale(to: 0.94, duration: Self.assistedMergeSlide * 0.5),
+                    .scale(to: 1.16, duration: duration * 0.5),
+                    .scale(to: 0.94, duration: duration * 0.5),
                 ]),
             ])
 
         partner.run(.sequence([
             slide,
-            .run { [weak self, weak partner] in
+            stepAction { [weak self, weak partner] in
                 guard let self, let partner else { return }
                 if let resolve {
                     resolve(originCell, targetCell, meetingPoint, partner)
@@ -1082,18 +1098,20 @@ final class BoardScene: SKScene {
         let floor = gameState.floorOrdinal(of: change) ?? gameState.visibleFloorOrdinal
         let travels = floor != gameState.visibleFloorOrdinal
         gameState.setVisibleFloor(floor)
-        let leadIn = travels && !Self.prefersReducedMotion
-            ? Self.flightMaxDuration + 0.1
-            : Self.boardChangeBeat
+        playingChain = change.chain
+        let leadIn = change.chain.map { tempo.leadIn(index: $0.index, travels: travels) }
+            ?? (travels && !Self.prefersReducedMotion ? Self.flightMaxDuration + 0.1 : Self.boardChangeBeat)
         run(.sequence([
             .wait(forDuration: leadIn),
-            .run { [weak self] in self?.performBoardChange(change) },
+            stepAction { [weak self] in self?.performBoardChange(change) },
         ]), withKey: Self.boardChangeActionKey)
     }
 
     private func performBoardChange(_ change: BoardChange) {
         guard playingBoardChange?.id == change.id else { return }
         if gameState.boardVersion != renderedBoardVersion { layoutBoard() }
+        let beat = change.chain.map { tempo.beat(index: $0.index) } ?? Self.boardChangeBeat
+        let slide = change.chain.map { tempo.slide(index: $0.index) } ?? Self.assistedMergeSlide
         switch change.kind {
         case .merge(_, _, let source, let target, _):
             guard let partner = characterNodes[source], let into = characterNodes[target] else {
@@ -1101,14 +1119,14 @@ final class BoardScene: SKScene {
             }
             highlightForBoardChange([partner, into])
             run(.sequence([
-                .wait(forDuration: Self.boardChangeBeat),
-                .run { [weak self] in
+                .wait(forDuration: beat),
+                stepAction { [weak self] in
                     guard let self, self.playingBoardChange?.id == change.id else { return }
                     // El par pudo moverse o desaparecer durante la espera.
                     guard let partner = self.characterNodes[source], let into = self.characterNodes[target] else {
                         return self.confirmWithoutGesture(change)
                     }
-                    self.runAssistedMerge(partner: partner, into: into) { [weak self] _, _, point, node in
+                    self.runAssistedMerge(partner: partner, into: into, duration: slide) { [weak self] _, _, point, node in
                         guard let self else { return }
                         self.presentResolution(
                             self.gameState.confirmBoardChange(id: change.id),
@@ -1121,8 +1139,8 @@ final class BoardScene: SKScene {
             guard let node = characterNodes[slot] else { return confirmWithoutGesture(change) }
             highlightForBoardChange([node])
             run(.sequence([
-                .wait(forDuration: Self.boardChangeBeat),
-                .run { [weak self] in
+                .wait(forDuration: beat),
+                stepAction { [weak self] in
                     guard let self, self.playingBoardChange?.id == change.id else { return }
                     guard let node = self.characterNodes[slot] else { return self.confirmWithoutGesture(change) }
                     self.presentResolution(
@@ -1162,10 +1180,30 @@ final class BoardScene: SKScene {
     }
 
     private func finishBoardChangeTurn() {
+        endBoardChangeTurn()
+    }
+
+    /// Terminó un cambio del tablero (con o sin reveal). Si es un eslabón de
+    /// "Fusionar todo" y hay otro, sigue en el mismo turno; si no, lo suelta.
+    private func endBoardChangeTurn() {
         playingBoardChange = nil
         guard boardCelebrationRunning else { return }
+        if let chain = playingChain, let next = gameState.beginNextChainLink(after: chain) {
+            playBoardChange(next)
+            return
+        }
+        playingChain = nil
         boardCelebrationRunning = false
         gameState.celebrationFinished(.boardCelebration)
+    }
+
+    /// Una `SKAction.run` que en DEBUG también queda a mano del test: sin
+    /// `SKView` nadie evalúa las acciones.
+    private func stepAction(_ block: @escaping () -> Void) -> SKAction {
+        #if DEBUG
+        debugNextStep = block
+        #endif
+        return .run(block)
     }
 
     #if DEBUG
@@ -1193,6 +1231,15 @@ final class BoardScene: SKScene {
 
     /// Lo que el test de los cambios del tablero necesita ver de la escena.
     var debugIsPlayingBoardChange: Bool { playingBoardChange != nil }
+    var debugPlayingChain: BoardChange.Chain? { playingChain }
+
+    /// Corre lo que dispararía la acción en curso (entrada, destaque,
+    /// deslizamiento o final del reveal) y deja armado el paso que sigue.
+    func debugCompleteBoardChangeStep() {
+        guard let step = debugNextStep else { return }
+        debugNextStep = nil
+        step()
+    }
     func debugHoldInHand(slot: Int) { dragNode = characterNodes[slot] }
     #endif
 
@@ -1298,6 +1345,9 @@ final class BoardScene: SKScene {
             .fadeOut(withDuration: 0.3),
             .removeFromParent(),
         ]), completion: completion)
+        #if DEBUG
+        debugNextStep = completion
+        #endif
 
         // Foto del personaje: el arte real (o el placeholder) en grande y centrado.
         if let content = gameState.content,

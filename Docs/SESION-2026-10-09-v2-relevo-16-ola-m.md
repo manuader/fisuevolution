@@ -13,7 +13,7 @@ revisión de E8d T12).
 |---|---|
 | `version-2` | **`bce2fc2`** al escribir esto (el `rapido` intermedio dio VERDE y avanzó por fast-forward); pasa a la punta de `integ-r16` con estos docs si el `rapido` final da verde |
 | `v2i/integ-r16` | **`2779ddb`** = la segunda tanda del dueño y las seis tareas de abajo |
-| `rapido` | intermedio sobre `0689227` (la segunda tanda sola): EK 607 · unit 929 + 2 rojos (`theOwnersTargetsAreMet` declarado; `LoopsManifestTests.cinematics`, ver abajo) · Release 0. Final sobre `2779ddb`: RAPIDO_PENDIENTE |
+| `rapido` | intermedio sobre `0689227` (la segunda tanda sola): EK 607 · unit 929 + 2 rojos (`theOwnersTargetsAreMet` declarado; `LoopsManifestTests.cinematics`, ver abajo) · Release 0. Final sobre `2779ddb`: VERDE sobre `2779ddb` (EK 618 · unit 968 + 1 declarado `theOwnersTargetsAreMet` · Release 0) |
 | Progreso | **98 de 254 en `version-2`; 98 + 6 = 104 de 254 (40,9 %)** si el `rapido` de `integ-r16` da VERDE (`tasks.md` §2) |
 
 El paso 1 del handoff anterior (el `rapido` de `integ-r15` y su fast-forward) ya lo había hecho el relevo 15: las seis
@@ -156,7 +156,7 @@ vieja y sus tests. **Revisión opus: Changes requested**, hechos:
 
 - `rapido` intermedio sobre `0689227`: EK 607 · unit 929 + 2 rojos (uno declarado, `theOwnersTargetsAreMet`; el otro,
   `LoopsManifestTests.cinematics`, resuelto en `bce2fc2` con el oráculo de tarea VERDE 6) · Release 0.
-- `rapido` final sobre `integ-r16` (`2779ddb`): RAPIDO_PENDIENTE
+- `rapido` final sobre `integ-r16` (`2779ddb`): VERDE sobre `2779ddb` (EK 618 · unit 968 + 1 declarado `theOwnersTargetsAreMet` · Release 0)
 - Tareas: E8d T4 unit 32 · E12 T10 EK 618 · unit 64 + `swift test` 82 · E12 T9a/T9b unit 24 (EK 618) · E8d T12 unit 36 ·
   E13b T8 unit 43 + UI ElevatorPanel 5 (16 Pro, SE, iPad) / ElevatorRide 3 / HUDRedesign 3 / FloorMap 2 / BottomMenu 4.
 - No se corrió un `completo` nuevo; el de referencia sigue siendo el `--limpio` de `c94f75f`.

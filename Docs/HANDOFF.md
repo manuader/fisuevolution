@@ -23,7 +23,7 @@
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
 > 16): `version-2` = **`bce2fc2`** (el `rapido` intermedio dio VERDE y avanzó; pasa a la punta de `v2i/integ-r16` con
 > los docs del cierre si el `rapido` final da verde) · la rama de integración `v2i/integ-r16` = **`2779ddb`** + estos docs
-> (`rapido` final: RAPIDO_PENDIENTE). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las
+> (`rapido` final: VERDE sobre `2779ddb` (EK 618 · unit 968 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las
 > olas B a L, más lo del relevo 16 en `integ-r16`: **la segunda tanda de videos del dueño (108 piezas) y su doc**,
 > `LoopingVideoNode` (**E8d T4**, ruta A para T9), **`MetaState.ranking`** (**E12 T10**), **la tarjeta de Dios y la
 > pestaña del ranking** (**E12 T9a/T9b**, vistas sueltas todavía sin montar), **On-Demand Resources** (**E8d T12**) y

@@ -160,6 +160,23 @@ struct PacingSimulatorKnobTests {
     }
 }
 
+extension PacingSimulatorKnobTests {
+    @Test("el simulador lee la herencia: el bot compra menos pasivos desde la run 2")
+    func theSimulatorReadsTheInheritance() throws {
+        let off = try upSimulator(upgrades: upCheapLines()).run(maxDays: 5)
+        let on = try PacingSimulator(
+            config: upConfig().tuned(EconomyKnobs(inheritsPassiveUnlocks: true)),
+            tiers: upTiers(), upgrades: upCheapLines()
+        ).run(maxDays: 5)
+        #expect(off.reincarnations > 0)
+        #expect(fingerprint(on) != fingerprint(off))
+        #expect(off.passiveUnlocksPerRun.count == off.reincarnations + 1)
+        let bought = on.passiveUnlocksPerRun.dropFirst().reduce(0, +)
+        let boughtOff = off.passiveUnlocksPerRun.dropFirst().reduce(0, +)
+        #expect(bought < boughtOff, "con herencia \(bought), sin \(boughtOff)")
+    }
+}
+
 /// El bot compra las siete mejoras permanentes con ORO. Sin esto todo
 /// `derivedEffects` viajaba en cero durante la simulación entera —le faltaban el
 /// **tap ×6,0** y el **income ×3,0** que el jugador real sí tiene— y calibrar

@@ -21,8 +21,17 @@ public enum PrestigeCalculator {
         return state.meta.lastRunMaxTier
     }
 
+    /// Los pasivos que la run nueva conserva: los desbloqueados de ésta, que ya
+    /// traen los de las anteriores. Vacío con la herencia apagada. La pantalla
+    /// de reencarnar muestra esto mismo.
+    public static func inheritedPassiveUnlocks(state: PlayerState, economy: StandardEconomy) -> [String: Bool] {
+        guard economy.config.oro.inheritsPassives else { return [:] }
+        return state.run.passiveUnlocked.filter(\.value)
+    }
+
     /// Reencarnar: `run = .fresh(...)` (muere TODO lo de la run — imposible
-    /// olvidarse un campo) y la meta acredita el ORO ganado.
+    /// olvidarse un campo, salvo los pasivos si la herencia está prendida) y la
+    /// meta acredita el ORO ganado.
     public static func applyReincarnation(
         state: inout PlayerState,
         economy: StandardEconomy,
@@ -40,7 +49,9 @@ public enum PrestigeCalculator {
         )
         state.meta.lastSeenTimestamp = now
         state.meta.lastRunMaxTier = state.run.maxTierReached
+        let inherited = inheritedPassiveUnlocks(state: state, economy: economy)
         state.run = .fresh(startTypeId: tiers.baseType.id, startFloorId: floorTable[0].id)
+        state.run.passiveUnlocked.merge(inherited) { _, kept in kept }
     }
 }
 

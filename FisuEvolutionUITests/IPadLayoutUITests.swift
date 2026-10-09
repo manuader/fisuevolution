@@ -35,6 +35,42 @@ final class IPadLayoutUITests: XCTestCase {
         XCTAssertTrue(value.hasSuffix("·1.25"), "los textos de la escena escalan en iPad: \(value)")
     }
 
+    /// El chrome vive en una columna de 592 pt centrada (`PlayColumn`): ningún
+    /// control se estira hacia los bordes del iPad.
+    @MainActor
+    func testElChromeVaEnUnaColumnaCentrada() throws {
+        let app = launch()
+        let window = app.windows.element(boundBy: 0).frame
+        let left = window.midX - 296 - 1
+        let right = window.midX + 296 + 1
+        for identifier in ["hud.coins.plus", "hud.map", "hud.upgrades", "hud.hire", "hud.settings", "hud.quickhire"] {
+            let element = app.buttons[identifier]
+            XCTAssertTrue(element.waitForExistence(timeout: 10), "falta \(identifier)")
+            XCTAssertGreaterThanOrEqual(element.frame.minX, left, "\(identifier) se sale de la columna por la izquierda")
+            XCTAssertLessThanOrEqual(element.frame.maxX, right, "\(identifier) se sale de la columna por la derecha")
+        }
+    }
+
+    /// Una hoja de la barra se abre como página, se cierra con su X, y el cofre
+    /// es un telón a pantalla completa con el video a su tamaño.
+    @MainActor
+    func testUnaHojaYElCofreEnIPad() throws {
+        let app = launch()
+        app.buttons["hud.upgrades"].tap()
+        let close = app.buttons["sheet.close"]
+        XCTAssertTrue(close.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 10))
+        attach(app, named: "E3 iPad hoja de Mejoras")
+        close.tap()
+        XCTAssertTrue(close.waitForNonExistence(timeout: 10))
+
+        let chest = XCUIApplication()
+        chest.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-chest", "--uitest-chest-manual"]
+        chest.launch()
+        XCTAssertTrue(chest.buttons["chest.tap"].waitForExistence(timeout: 30))
+        attach(chest, named: "E3 iPad cofre")
+    }
+
     @MainActor
     private func launch() -> XCUIApplication {
         let app = XCUIApplication()

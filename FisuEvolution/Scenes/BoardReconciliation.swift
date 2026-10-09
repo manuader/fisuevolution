@@ -10,6 +10,8 @@ struct RenderedUnit: Equatable {
     let skinID: String?
     let cellSize: CGFloat
     let columns: Int
+    /// Si el tipo ya tiene el pasivo comprado, el nodo lleva la moneda encima.
+    let earnsPassive: Bool
 }
 
 /// Qué hacer con cada slot al re-renderizar el piso visible.

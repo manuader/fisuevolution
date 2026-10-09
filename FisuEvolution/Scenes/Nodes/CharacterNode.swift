@@ -21,6 +21,10 @@ final class CharacterNode: SKNode {
     private let plate = SKShapeNode()
     private let sprite = SKSpriteNode()
     private let nameLabel = SKLabelNode(fontNamed: "AvenirNext-Medium")
+    /// La moneda de "este empleado genera plata solo". Cuelga del nodo y no del
+    /// sprite para que el espejado no la dé vuelta; no se anima ni toma toques.
+    private let coinBadge = SKSpriteNode()
+    private static let coinTexture = AtlasCache.texture(named: "ui_coin", inAtlas: "ui")
 
     private(set) var typeId: String = ""
     private(set) var cellIndex: Int = -1
@@ -42,7 +46,17 @@ final class CharacterNode: SKNode {
         nameLabel.horizontalAlignmentMode = .center
         nameLabel.verticalAlignmentMode = .bottom
         addChild(nameLabel)
+
+        coinBadge.texture = Self.coinTexture
+        coinBadge.color = Palette.yellow
+        coinBadge.colorBlendFactor = Self.coinTexture == nil ? 1 : 0
+        coinBadge.zPosition = 1
+        coinBadge.isUserInteractionEnabled = false
+        coinBadge.isHidden = true
+        addChild(coinBadge)
     }
+
+    var showsPassiveCoin: Bool { !coinBadge.isHidden }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) {
@@ -58,12 +72,16 @@ final class CharacterNode: SKNode {
         cellIndex: Int,
         cellSize: CGFloat,
         skinTint: SKColor? = nil,
-        hasRealArt: Bool = false
+        hasRealArt: Bool = false,
+        earnsPassive: Bool = false
     ) {
         typeId = type.id
         self.cellIndex = cellIndex
 
         let plateSize = cellSize * 0.92
+        let coinSide = cellSize * 0.22
+        coinBadge.size = CGSize(width: coinSide, height: coinSide)
+        coinBadge.isHidden = !earnsPassive
         let shadowRect = CGRect(
             x: -plateSize * 0.34,
             y: -plateSize * 0.56,
@@ -84,6 +102,7 @@ final class CharacterNode: SKNode {
             sprite.position = CGPoint(x: 0, y: (artSide - plateSize) / 2)
             sprite.color = skinTint ?? .white
             sprite.colorBlendFactor = skinTint == nil ? 0 : 0.25
+            coinBadge.position = CGPoint(x: 0, y: artSide - plateSize / 2 + coinSide * 0.2)
             return
         }
 
@@ -107,6 +126,7 @@ final class CharacterNode: SKNode {
         let spriteSide = plateSize * 0.52
         sprite.size = CGSize(width: spriteSide, height: spriteSide)
         sprite.position = CGPoint(x: 0, y: plateSize * 0.04)
+        coinBadge.position = CGPoint(x: 0, y: plateSize / 2 + coinSide / 2)
 
         setLabel(nameLabel, text: type.localizedName, fontSize: plateSize * 0.11)
         nameLabel.fontColor = Palette.ink

@@ -382,7 +382,7 @@ que toma · commit o rama · nota.
 | E11-T4 | Ajustes: el maestro, uno por motivo, "Abrir Ajustes" | ✅ | T3 | 🔥 SettingsView, catálogo | `02cc5fb` (merge `d3a4912`) | el rojo de `MenuUITests…ApagaLasParticulas` era flaky: verde en el `completo` de `15318a0`|
 | E11-T5 | La tarjeta del permiso en el popup offline | ✅ | T3 | catálogo (snapshot si va con T4); OfflineEarningsView | `597b60e` (merge `c47d93e`) | SE e iPad sin medir (E3a T12)|
 | E11-T6 | El cableado al ciclo de vida | ✅ | T3; E1-T1, E1-T5, E1-T8, E1-T9 | 🔥 GameState; +Lifecycle, +Celebrations, FisuEvolutionApp | `3825d8c` (merge `2604119`) | completo pendiente (sin UI tests propios) |
-| E11-T7 | Cierre de E11 (controlador) | ⏳ | T1–T6 | `Docs/` | | |
+| E11-T7 | Cierre de E11 (controlador) | 🔄 | T1–T6 | `Docs/` | | |
 
 ### E3a — UX núcleo, la pantalla (`2026-10-07-v2-e3a-ux-nucleo.md`)
 
@@ -399,7 +399,7 @@ que toma · commit o rama · nota.
 | E3a-T9 | Las pestañas aparecen de a poco | ✅ | T7; E1-T4; ventana de GameState | 🔥 GameState, catálogo; +Debug, GameContentLoader | `02ee23b` (merge `c76af46`, claves `528d10b`) | carry T12: captura del ¡Nuevo! y SE con 4 pestañas; carry E9: lecciones sobre pestañas cerradas |
 | E3a-T10 | La escena: PlayLayout, 3 filas, cámara, iPad | ✅ | T3, T7, T8; E1-T10 | 🔥 BoardScene, GameState, RootView; `oraculo.sh` | `789c200` (merge) | sin capturas SE/16 Pro → T12; ElevatorPanelUITests sensible a carga |
 | E3a-T11 | La raíz: chrome en la columna, seis hojas | ✅ | T6, T10 | 🔥 RootView | `558b6cf` (integ-r20) | no con E1 T13–T14; **hecha (r20):** `playColumn` en ActiveBonusBar/EventBannerView/fila atajo-prestigio; seis hojas por `fisuSheet`; iPad Pro 13 `IPadLayoutUITests` 4/0; sin iPhone de `BottomMenu`/`BonusHUD`/`HUDRedesign` |
-| E3a-T12 | Cierre de E3a: SE en castellano, capturas de iPad | ⏳ | T1–T11 | `oraculo.sh` | | carries: `ScreenInsetsUITests` al `se-ui`; fijar Xcode 26.x como SDK del release (el SDK 27 ignora `UIRequiresFullScreen`); **destrabada (r20):** T11 ✅; corre `BottomMenuUITests`, `BonusHUDUITests` y `HUDRedesignUITests` en iPhone (T11 no los corrió); controlador, con el `completo` |
+| E3a-T12 | Cierre de E3a: SE en castellano, capturas de iPad | 🔄 | T1–T11 | `oraculo.sh` | | carries: `ScreenInsetsUITests` al `se-ui`; fijar Xcode 26.x como SDK del release (el SDK 27 ignora `UIRequiresFullScreen`); **destrabada (r20):** T11 ✅; corre `BottomMenuUITests`, `BonusHUDUITests` y `HUDRedesignUITests` en iPhone (T11 no los corrió); controlador, con el `completo` |
 
 ### E3b — UX núcleo, las interacciones (`2026-10-07-v2-e3b-ux-nucleo.md`)
 
@@ -433,7 +433,7 @@ que toma · commit o rama · nota.
 | E2a-T12 | Las carreras: gratis, Juicio ganado, Obra social | ✅ | T11, T7; E1-T11, E1-T13, E1-T15 | 🔥 TowerActions, +Bonus | `2d42b83` (merge `860e944`, claves `e378307`) | revisión opus: Approved con arreglos (M3 hecho en el merge). `freeHire` nace acá; `eventImmunity` cableada a `eventIsApplicable`. Carries Minor: M1 `activeEvent` no se persiste (el Médico no corta un evento negativo tras relanzar: sacar modificadores `event.*` !isBuff si `activeEvent == nil`); M2 `eventIsApplicable` usa `Date()` y criterio !isBuff vs "mixtos" de E4a (reconciliar en E4a); M4 contratar gratis atraviesa el Corralito (decisión a anotar); M5 FisuJobs muestra "0" y no "Gratis"; claves huérfanas `career.reward.welcome %@`, `career.reward.boost %@ %@`, `career.reward.modifier %@ %@` y `bonus.effect.payout %@` (las saca una tarea dueña del catálogo) |
 | E2a-T13 | Pisos en marcha en el mapa | ✅ | T4, T9; E1-T15 | catálogo (snapshot) | `ab2a137` (merge `e378307`, claves aplicadas) | `staffedSummary` + badge `map.staffed` |
 | E2a-T14 | El panel de debug: variantes, perillas, Fusionar todo | ✅ | T5, T6, T9 | +Debug, DebugPanelView, +BoardChanges | `05136be` (merge `e378307`) | todo bajo #if DEBUG salvo `enqueueMergeAll` (sin llamadores); falta la prueba manual del paso 4 del plan (el dueño) |
-| E2a-T15 | Cierre de E2a + tabla de perillas para E2b | ⏳ | T1–T14 | `Docs/` | | |
+| E2a-T15 | Cierre de E2a + tabla de perillas para E2b | 🔄 | T1–T14 | `Docs/` | | |
 
 ### E4a — Visitantes y eventos v2, el motor (`2026-10-07-v2-e4a-visitantes-eventos.md`)
 
@@ -584,7 +584,7 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8b-T5 | `VideoSlot` y `LoopingPortraitView` | ⏭️ | — | — | | **reemplazada por E8d-T2 + T3** (plan E8d, spec de animaciones del dueño, relevo 14); archivos nuevos; ∥ T1–T4, T7 |
 | E8b-T6 | El especial que te cayó, animado | ⏭️ | T4, T5 | SpecialDropView | | **reemplazada por E8d-T5** (plan E8d, spec de animaciones del dueño, relevo 14); revisión ninguna; captura SE/16 Pro (duda 3) |
 | E8b-T7 | `seenCinematics` en `meta.engagement` | ✅ | E1-T4 ✅ | EngagementState (EK) | `4714671` | sonnet, **rev. opus** (save); antes de E3b T9 o al final de su cadena; revisión opus (controlador): Approved. Carry a E9b T7/T8: `seenCinematics` es de la cuenta y `resolveAcrossReset` hoy no lo cruza (duda 8: el reset lo conserva) |
-| E8b-T8 | El turno de la cinemática (`.cinematic`, payload, autorun) | ⏳ | E8d-T1, T7 | 🔥 GameState (dos propiedades); CelebrationQueue, +Celebrations, +Debug, +Bootstrap | | **cambia (E8d)**: importa `CinematicID`/`LoopsManifest` de E8d T1 y suma `.intro`; sonnet, **rev. opus**; ventana libre de GameState.swift; antes de E9a T1; **destrabada (r20):** E8d T1 y T7 ✅ |
+| E8b-T8 | El turno de la cinemática (`.cinematic`, payload, autorun) | 🔄 | E8d-T1, T7 | 🔥 GameState (dos propiedades); CelebrationQueue, +Celebrations, +Debug, +Bootstrap | | **cambia (E8d)**: importa `CinematicID`/`LoopsManifest` de E8d T1 y suma `.intro`; sonnet, **rev. opus**; ventana libre de GameState.swift; antes de E9a T1; **destrabada (r20):** E8d T1 y T7 ✅ |
 | E8b-T9 | La cinemática en pantalla (overlay, sonido, Saltar) | ⏳ | E8d-T2, T8 | 🔥 RootView, catálogo (snapshot, 4 claves); AudioManager, DebugPanelView | | **cambia (E8d)**: lease `fullscreen` del `VideoPlayerPool`; `.suspendsVideoPool()` en el overlay del cofre; sonnet; `CinematicUITests` por Receta R; capturas SE + iPad; **destrabada (r20):** E8d T2 y T8 ✅; dueña de `RootView` (no ∥ E3b T8, E12 T13) |
 | E8b-T10 | Reencarnación y Dios | ⛔ | T8, T9 | +Prestige, +BoardChanges, +Bootstrap | | sonnet, **rev. opus**; pinea el momento calmo que espera E12 T14; carry `godTier` a E12 T11 |
 | E8b-T11 | El arresto | ⛔ | T10; E4b-T2 | +Visitors | | sonnet; al dejarlo ir (duda 5) |
@@ -599,7 +599,7 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8c-T7 | La escena encadena sin soltar el turno | ✅ | T3, T4, T5; ventana de BoardScene (tras E13 T11) | 🔥 BoardScene | `e79696f`+`520d54c` (integ-r19) | sonnet, **rev. opus**; `endBoardChangeTurn` es el borde único; grabación; **hecha (r19, opus: Approved con arreglos hechos):** tempo por `MergeAllTempo` con `next.chain`; `playBoardMergeFeedback` reemplaza el háptico `.merge`; aborto en `update` si la cadena pierde el turno; guard `playingChain == nil` en `touchesBegan`; sin captura ni grabación (SE + Reduce Motion) |
 | E8c-T8 | El toque apura; contador, remate y VoiceOver | ✅ | T6, T7 | 🔥 BoardScene | `b6cc8f0`+`a59037f` (integ-r19) | sonnet, **rev. opus**; duda 1 (apura, no corta); SE + Reduce Motion; **hecha (r19, opus: Approved):** `tapDuringCelebration` primer paso de `touchesBegan`; con cadena viva el toque se consume siempre y sólo apura pasado el piso de 0,6 s por eslabón; `MergeAllComboNode` en `cameraOverlay` a `size.height * 0.8` (posición provisoria); remate y VoiceOver con `chain.index + 1 >= 2` |
 | E8c-T9 | El fixture `--uitest-merge-all` y `MergeAllChainUITests` | ✅ | T8 | +Bootstrap (tibio) | `fd9623d`+`ea019c1` (integ-r20) | sonnet; receta R en un 16 Pro; **hecha (r20):** cadena 19,9 s / 28,5 s con toques en un 16 Pro; techo del UI test 20 → 30 s (controlador) |
-| E8c-T10 | Cierre de E8c (controlador) | ⏳ | T1–T9 | `Docs/` | | `completo`; grabaciones para el dueño (sin tocar, tocando, por ORO/video si ya existen); destrabada (r20): T9 ✅ |
+| E8c-T10 | Cierre de E8c (controlador) | 🔄 | T1–T9 | `Docs/` | | `completo`; grabaciones para el dueño (sin tocar, tocando, por ORO/video si ya existen); destrabada (r20): T9 ✅ |
 
 ### E8d — Todo el juego animado, lado Swift (`2026-10-08-v2-e8d-animaciones-swift.md`)
 

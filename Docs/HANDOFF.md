@@ -21,21 +21,23 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
-> 17): `version-2` = **`b093db5`** (`rapido` VERDE sobre `2d33c08`: EK 618 · unit 980 + 1 declarado `theOwnersTargetsAreMet` ·
-> Release 0) · la rama de integración `v2i/integ-r17` = **`b5043b5`** + estos docs (`rapido` final: VERDE sobre `b5043b5` (EK 618 · unit 993 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0,
-> E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a M, más lo del relevo 17: **los tags ODR de
-> la segunda tanda** (**E8d T14**, 99 `.mov` en 14 packs), **el especial animado** (**E8d T5**), **los ganchos del ranking en
-> `GameState`** (**E12 T11**), **los precios al reencarnar** (**E13 T5**) y, en `integ-r17`, **la sonda de fps** (**E8d T13**) y
-> **el tempo de la cadena** (**E8c T3**). **Progreso: 108 de 254 tareas activas en `version-2`; 110 de 254 (43,3 %) si el
-> `rapido` de `integ-r17` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1
-> T16).** Detalle en `Docs/SESION-2026-10-09-v2-relevo-17-ola-n.md`.
+> 18): `version-2` = **`1776145`** (`rapido` VERDE sobre `4638ef1`: EK 624 · unit 1007 + 1 declarado `theOwnersTargetsAreMet` ·
+> Release 0) · la rama de integración `v2i/integ-r18` = **`8b35414`** + estos docs (`rapido` final: RAPIDO_PENDIENTE). Están E0,
+> E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a N, más lo del relevo 18: **la cadena de
+> Fusionar todo en el plan** (**E8c T1**), **el reloj del turno que se renueva** (**E8c T2**), **el turno de la cadena en
+> `GameState`** (**E8c T5**), **"Piso ???" en los pisos cerrados** (**E13 T8**), **la moneda sobre quien genera plata** (**E13
+> T11**), **el "Pack de las 43"** (**E13 T12**) y, en `integ-r18`, **el contador ×N** (**E8c T6**) y **el plin que sube de tono
+> con su remate** (**E8c T4**). **Progreso: 116 de 254 tareas activas en `version-2`; 118 de 254 (46,5 %) si el `rapido` de
+> `integ-r18` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16).**
+> Detalle en `Docs/SESION-2026-10-09-v2-relevo-18-ola-o.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r17` (dos tareas y los docs del cierre; si su `rapido` dio verde, el
-> primer paso del relevo 18 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño;
-> no se tocan. Hay planes por tareas para todas las épicas salvo la parte de agente de E10. **Lo primero del relevo 18:** el
-> `rapido` de `integ-r17` si no quedó hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de
-> `tasks.md` §4.2: **E13** T3/T8/T11/T12, **E8c** T1/T2/T4/T6, **E8d** T7–T10 según ventanas, **E12 T12/T13** apenas se
-> cumplan sus otras dependencias (E9b T7/T8; E3b T4 y E3a T11). Con la carga de la máquina alta, no más de dos compilando.
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r18` (dos tareas y los docs del cierre; si su `rapido` dio verde, el
+> primer paso del relevo 19 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño;
+> no se tocan. Hay planes por tareas para todas las épicas salvo la parte de agente de E10. **Lo primero del relevo 19:** el
+> `rapido` de `integ-r18` si no quedó hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de
+> `tasks.md` §4.2: **E8c T7** (`BoardScene`, rev. opus; ya destrabada) y después T8, **E13 T3** (save, rev. opus), **E8d T7** y
+> T8/T9 (`BoardScene`, tras E8c T7/T8), **E13 T10** y T4, **E8 T7**, **E2b T1**, **E7b-a T1 ∥ T5**; E12 T12/T13 siguen ⛔. Con la
+> carga de la máquina alta, no más de dos compilando.
 > **Pendiente del dueño:** confirmar en el chat la lista de palabras de E12 (el clasificador de permisos la bloqueó).
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
@@ -346,6 +348,23 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-09 (relevo 18) — La ola O: la cadena de Fusionar todo en el plan, el turno y el remate
+
+Con el `rapido` VERDE sobre `4638ef1`, `version-2` avanzó a `1776145`. **Progreso: 116 de 254 en `version-2`; 118 de 254 (46,5 %) con las dos 🟢 de `integ-r18`.**
+
+- **E8c T1 / T2 / T5:** `BoardChange.Chain` sellada por `planMergeAll`, `CelebrationQueue.renew(_:)` y el turno de la cadena en
+  `GameState` (`beginNextChainLink`, `hurryChainLink`, `debugSeedMergeAll`). Revisión opus en T1 (Approved) y T5 (Approved con
+  arreglos: `beginNextBoardChange(while:)` privado, tests de dos cadenas y del turno soltado). T7 decide el tempo por
+  `next.chain`; un video que compense en `discardBoardChange` compensaría por eslabón.
+- **E13 T8:** pisos cerrados como "Piso ???" con silueta. `ElevatorPanel` ya no existía (E13b T8): el brief lo corrigió.
+- **E13 T11 / T12:** la moneda hija del `CharacterNode` (sin captura con pasivos) y el "Pack de las 43" (la clave salía `%@`
+  en vez de `%lld`; devuelto una vez).
+- **E8c T6 / T4** (🟢 en `integ-r18`): el contador ×N (sin montar) y el plin que sube de tono con su remate (`.caf` sin
+  escuchar: G7; el háptico `.merge` de `presentResolution` pasa a `playBoardMergeFeedback` en T7).
+- Trampas nuevas en §7 (el `pgrep -f` que se encuentra a sí mismo, entre otras).
+
+Detalle en **`Docs/SESION-2026-10-09-v2-relevo-18-ola-o.md`**.
 
 ### Sesión del 2026-10-09 (relevo 17) — La ola N: la ODR por tag, el especial animado y los ganchos del ranking
 
@@ -2669,6 +2688,17 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la ola O (2026-10-09, relevo 18)
+
+- **`pgrep -f "oraculo.sh tarea X"` dentro de un `while` lanzado con `zsh -c` se encuentra a sí mismo:** el patrón está en la
+  línea de comando del propio shell y el bucle no termina nunca (E8c T4 dejó cinco colgados). Esperar por PID (`$!`) o por la
+  última línea del log; cortar por PID tras leer el comando.
+- **El rango entre dos puntas de `integ` no es el diff de una tarea** (la rama de E8c T5 salía de `43e4f4f`): para revisar,
+  `git show <sha>` o el merge-base.
+- **El log de `tarea` no siempre nombra las clases** (XCTest vs Swift Testing): verificar por el título del `@Test`.
+- **Un plan puede nombrar archivos que otra tarea ya borró** (`ElevatorPanel` en E13 T8): el brief del controlador lo
+  corrige antes de despachar.
+
 ### De la ola N (2026-10-09, relevo 17)
 
 - **Un `rapido` lanzado en background con `cd` relativo muere con exit 127.** Lanzarlo con la ruta absoluta:
@@ -4148,7 +4178,7 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
-### Lo que queda de la 2.0 (cierre del relevo 17)
+### Lo que queda de la 2.0 (cierre del relevo 18)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
 
@@ -4156,11 +4186,11 @@ La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
   activarla); decidir el **`installId` que no viaja por CloudKit** (una partida registrada en A que llega a Dios en B
   queda `.unregisteredGod`: sincronizar el Keychain o aceptarlo); si el botón **Entrar** de `RankingEntryCard` sigue con
   `.disabled` (rompe la convención de `ActionPill`); si molesta que la **placa de 10 pisos tape parte de Reencarnar**
-  mientras está abierta; si `--uitest-ranking-*` de `RankingStore.live()` pasa a `#if DEBUG`. Siguen: mediación por SPM, capturas de ASC, Meta, TestFlight, oír los sonidos (G7).
+  mientras está abierta; si `--uitest-ranking-*` de `RankingStore.live()` pasa a `#if DEBUG`; si la moneda de E13 T11 tapa la cara del personaje de atrás en un piso con pasivos; tres textos que todavía nombran pisos cerrados (`FisuJobsView`, `CharacterSheetView`, `+Store`). Siguen: mediación por SPM, capturas de ASC, Meta, TestFlight, oír los sonidos (G7).
 - **Sin probar en device:** ODR (E8d T14 ya asignó los tags, pero en Debug los packs van embebidos; G5), el alfa del HEVC a ×5 (G3), el publisher de
   `isReadyForDisplay`.
 - **Montaje pendiente:** la tarjeta y la pestaña del ranking (T9a/T9b) esperan a E12 T13 (T11 ya está); `onChoose` del atajo
-  espera a E3b T8.
+  espera a E3b T8; el contador ×N y el remate de Fusionar todo (E8c T6/T4) esperan a E8c T7/T8.
 
 ### Precargar el atlas de personaje fuera del hilo principal (levantada 2026-08-27)
 
@@ -4494,6 +4524,8 @@ Anotado por si algún día importa, con su medición:
   ODR, `MetaState.ranking`, las vistas del ranking y la placa; las trampas del clasificador de permisos y de la carga).
 - **`Docs/SESION-2026-10-09-v2-relevo-17-ola-n.md`**: el relevo 17 (los tags ODR de la segunda tanda, el especial animado,
   los ganchos del ranking con su guard del tutorial, la sonda de fps; las trampas del `rapido` en background y de la red).
+- **`Docs/SESION-2026-10-09-v2-relevo-18-ola-o.md`**: el relevo 18 (la cadena de Fusionar todo en el plan, el turno y el remate;
+  "Piso ???", la moneda y el pack de las 43; la trampa del `pgrep -f` que se encuentra a sí mismo).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

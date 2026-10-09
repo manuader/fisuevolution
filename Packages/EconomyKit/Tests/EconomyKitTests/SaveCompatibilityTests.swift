@@ -214,7 +214,7 @@ struct SaveCompatibilityTests {
         var stats = try #require(meta["stats"] as? [String: Any])
         for key in ["revealedTier", "priceRelief"] { run.removeValue(forKey: key) }
         for key in ["oroPurchases", "revokedPurchases", "purchasedOroReconstructed", "lastRunMaxTier",
-                    "quickHirePinnedTypeId", "unlockedTabs", "engagement"] { meta.removeValue(forKey: key) }
+                    "quickHirePinnedTypeId", "unlockedTabs", "engagement", "ranking"] { meta.removeValue(forKey: key) }
         stats.removeValue(forKey: "oroSpentEver")
         meta["stats"] = stats
         object["run"] = run
@@ -234,6 +234,7 @@ struct SaveCompatibilityTests {
         #expect(decoded.meta.quickHirePinnedTypeId == nil)
         #expect(decoded.meta.unlockedTabs.isEmpty)
         #expect(decoded.meta.engagement == .initial)
+        #expect(decoded.meta.ranking == .legacy)
         #expect(decoded.meta.stats.oroSpentEver == 0)
     }
 

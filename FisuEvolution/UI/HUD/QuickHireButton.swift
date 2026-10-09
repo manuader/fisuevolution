@@ -31,7 +31,9 @@ struct QuickHireButton: View {
     var onChoose: () -> Void = {}
     @State private var shake = 0
     /// El mantener presionado ya abrió el selector: el toque de soltar que le
-    /// sigue no compra.
+    /// sigue no compra. Si SwiftUI cancela la acción del `Button`, la bandera la
+    /// baja el fin del dedo (ver el `DragGesture`), para que no se trague el
+    /// próximo toque real.
     @State private var longPressFired = false
 
     /// Cuánto mide de alto la cápsula, para lo que se apoye sobre ella.
@@ -113,6 +115,15 @@ struct QuickHireButton: View {
                     gameState.playHaptic(.merge)
                     onChoose()
                 }
+        )
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0).onEnded { _ in
+                // Después de la acción del `Button`, que si corre ya la bajó.
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(250))
+                    longPressFired = false
+                }
+            }
         )
         // UNA sola parada, sin el nombre suelto como hijo: la única forma que da
         // a la vez "sin hijos", "sigue siendo botón" y "sigue siendo tocable" es

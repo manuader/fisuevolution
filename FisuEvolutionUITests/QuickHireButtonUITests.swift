@@ -40,6 +40,24 @@ final class QuickHireButtonUITests: XCTestCase {
     }
 
     @MainActor
+    func testUnToqueDespuesDeMantenerPresionadoSiCompra() throws {
+        let app = launch(["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins"])
+        let quickHire = app.buttons["hud.quickhire"]
+        XCTAssertTrue(quickHire.waitForExistence(timeout: 20))
+        let units = app.otherElements["board.units"]
+        let before = units.value as? String
+
+        quickHire.press(forDuration: 1.0)
+        Thread.sleep(forTimeInterval: 1.0)
+        XCTAssertEqual(units.value as? String, before, "mantener no compra")
+
+        quickHire.tap()
+        let bought = NSPredicate(format: "value != %@", before ?? "")
+        XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: bought, evaluatedWith: units)], timeout: 5),
+                       .completed, "el toque que sigue a un mantener compra")
+    }
+
+    @MainActor
     private func launch(_ arguments: [String]) -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = arguments

@@ -97,6 +97,7 @@ struct CelebrationWiringTests {
         case .eventBanner: #expect(gameState.activeEvent != nil)
         case .tutorialTip: #expect(gameState.tutorialTip != nil)
         case .chestOpening: #expect(gameState.chestReward != nil)
+        case .cinematic: #expect(gameState.cinematic != nil)
         }
     }
 

@@ -74,6 +74,7 @@ extension GameState {
             celebrations.enqueue(.eventBanner)
         }
         if tutorialTip != nil { celebrations.enqueue(.tutorialTip) }
+        if cinematic != nil { celebrations.enqueue(.cinematic) }
         if boardIsVisibleForChanges, !pendingBoardChanges.isEmpty || typePendingReveal != nil {
             celebrations.enqueue(.boardCelebration)
         }
@@ -193,6 +194,9 @@ extension GameState {
             // maneja el director (`refreshTutorialTip`).
             if let tip = tutorialTip { markLessonDone(tip.lesson) }
             tutorialTip = nil
+        case .cinematic:
+            // Fin del video, "Saltar" y watchdog cuentan igual: la pantalla ya fue suya.
+            recordCinematicSeen()
         case .offlineEarnings, .dailyReward,
              .careerChoice, .skinAward, .specialDrop, .chestOpening:
             break
@@ -202,10 +206,10 @@ extension GameState {
     private func publishCelebration() {
         let kind = celebrations.current
         if showing != kind { showing = kind }
-        // El cofre apaga la UI SIEMPRE: su animación ocupa la pantalla entera y el
+        // El cofre y la cinemática apagan la UI SIEMPRE: ocupan la pantalla entera y el
         // HUD asomando por debajo rompe el telón.
         let hides = (kind == .boardCelebration && boardCelebrationShowsSomethingNew)
-            || kind == .chestOpening
+            || kind == .chestOpening || kind == .cinematic
         if celebrationHidesUI != hides { celebrationHidesUI = hides }
     }
 }

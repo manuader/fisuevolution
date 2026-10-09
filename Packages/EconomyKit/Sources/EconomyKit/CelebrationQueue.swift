@@ -3,9 +3,9 @@ import Foundation
 /// Cada cosa que la app muestra SOLA y que narra algo: premios, celebraciones,
 /// avisos.
 ///
-/// Quedan afuera las pantallas que abre el jugador (tienda, mejoras, ficha) y la
-/// reencarnación, que sale de un botón: ésas no compiten por atención, las pidió
-/// él.
+/// Quedan afuera las pantallas que abre el jugador (tienda, mejoras, ficha): ésas
+/// no compiten por atención, las pidió él. La reencarnación sí entra, por su
+/// cinemática.
 public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     /// Lo que ganaste mientras no estabas.
     case offlineEarnings
@@ -35,6 +35,10 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     /// cola como cualquier celebración: así el "de a una" y el no-pisarse no
     /// son un caso especial del tutorial, son la regla de siempre.
     case tutorialTip
+    /// Una cinemática de Higgsfield —reencarnación, arresto, Dios— a pantalla
+    /// completa. Pide turno como cualquier celebración: así no pisa el reveal y la
+    /// tarjeta de Dios espera a que termine.
+    case cinematic
 
     /// Menor es antes. Los de arranque de sesión primero —cobrás y seguís—, la
     /// carrera antes que las celebraciones porque BLOQUEA la progresión (hasta
@@ -43,7 +47,7 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     public var priority: Int {
         switch self {
         case .offlineEarnings, .dailyReward: 1
-        case .careerChoice: 2
+        case .careerChoice, .cinematic: 2
         case .boardCelebration: 3
         case .skinAward, .specialDrop, .chestOpening: 4
         case .eventBanner: 5
@@ -65,7 +69,7 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         switch self {
         case .offlineEarnings, .dailyReward, .careerChoice,
              .skinAward, .specialDrop, .chestOpening: nil
-        // Cubre navegar al piso, destacar el par, fundirlo, el vuelo del ascenso y el reveal.
+        // Cubre destacar el par, fundirlo, el vuelo del ascenso y el reveal.
         // En una cadena, por eslabón (`renew`).
         case .boardCelebration: 14
         case .eventBanner: 6
@@ -75,6 +79,8 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         // Lo que tarda en leerse el globo con margen: una lección ignorada se
         // va sola, nunca deja la pantalla ocupada.
         case .tutorialTip: 12
+        // 5 s de video, la hoja que se va y margen.
+        case .cinematic: 12
         }
     }
 

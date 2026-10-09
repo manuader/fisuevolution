@@ -246,6 +246,12 @@ final class GameState {
     /// los tests de wiring cuentan con que nada se encole solo.
     @ObservationIgnored var tutorialLessonsAutorun =
         ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
+    /// La cinemática que pidió turno (E8b). La suelta `releasePayload`, que la anota vista.
+    var cinematic: CinematicID?
+    /// Bajo XCTest y `--uitest*` las cinemáticas no corren solas (patrón
+    /// `tutorialLessonsAutorun`): una de 5 s en medio de un test ajeno le tapa la pantalla.
+    @ObservationIgnored var cinematicsAutorun =
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
     /// Recorte resuelto para `tutorialBoardTarget`, en puntos de la VISTA.
     ///
     /// Lo publica `BoardScene` porque es la única que sabe dónde quedó parado el

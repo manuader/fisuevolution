@@ -251,6 +251,10 @@ extension GameState {
         if ProcessInfo.processInfo.arguments.contains("--uitest-anim-stress") {
             debugStartAnimStress()
         }
+        if let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--uitest-cinematic=") }),
+           let id = CinematicID(rawValue: String(argument.dropFirst("--uitest-cinematic=".count))) {
+            debugPlayCinematic(id)
+        }
         #endif
         // El tutorial entra a la cola ANTES de que nadie encole nada: el
         // offline, el daily del día 2 y los logros de un save viejo pasan

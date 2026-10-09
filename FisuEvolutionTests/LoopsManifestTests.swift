@@ -41,16 +41,15 @@ struct LoopsManifestTests {
         }
     }
 
-    @Test("las cinemáticas que hay: 720×1280, opacas, con sonido, la intro incluida")
+    @Test("las cuatro cinemáticas: 720×1280, opacas, con sonido")
     func cinematics() throws {
         let manifest = try LoopsManifest.load(from: .main)
-        for id in [CinematicID.reencarnacion, .arresto, .dios] {
+        for id in [CinematicID.intro, .reencarnacion, .arresto, .dios] {
             let entry = try #require(manifest.cinematics[id.rawValue], "\(id.rawValue)")
             #expect(entry.file == "cine_\(id.rawValue).mov")
             #expect(entry.width == 720 && entry.height == 1280 && !entry.alpha && entry.audio)
             #expect(manifest.cinematicURL(for: id) != nil)
         }
-        #expect(manifest.cinematicURL(for: .intro) != nil, "la intro entró con la segunda tanda")
     }
 
     @Test("la cabina está en su sección y fuera de las cinemáticas")

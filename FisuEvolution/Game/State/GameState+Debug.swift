@@ -242,6 +242,24 @@ extension GameState {
         refreshProjections()
     }
 
+    /// Una partida rankeada ya registrada (con un `runId` de mentira) y la frontera a un tier del tope.
+    func debugStartRankedRunNearGod(now: TimeInterval = Date().timeIntervalSince1970) {
+        guard let godTier else { return }
+        updateRanking {
+            $0.phase = .running(runId: "simulated-run", serverStartedAt: now - 3_600)
+            $0.playedSeconds = 1_800
+        }
+        debugUnlockFloors(throughTier: godTier - 1)
+    }
+
+    /// Llega a Dios como si se hubiera revelado el tier tope.
+    func debugReachGod() {
+        guard let godTier, var player else { return }
+        player.run.raiseFrontier(to: godTier)
+        self.player = player
+        markRevealed(tier: godTier)
+    }
+
     /// Marca como vistos los tipos concretos hasta cierto tier.
     ///
     /// `--uitest-unlock-tower` abre PISOS y no toca `run.seenTypes`, que es de

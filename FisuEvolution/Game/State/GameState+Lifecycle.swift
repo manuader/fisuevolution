@@ -12,11 +12,13 @@ extension GameState {
         case (_, .background), (.active, .inactive):
             let wasActive = isSceneActive
             isSceneActive = false
+            if wasActive { ranking?.resignedActive() }
             if new == .background { settleAllPendingBoardChanges() } else { settlePrepaidBoardChanges() }
             seal(now: now, stamping: wasActive)
             if new == .background { scheduleNotificationsForAbsence(now: now) }
         case (_, .active):
             isSceneActive = true
+            ranking?.becameActive()
             clearNotificationsOnReturn()
             guard phase == .ready else { return }
             // El tiempo en background NO es tiempo de juego: reiniciar la gracia

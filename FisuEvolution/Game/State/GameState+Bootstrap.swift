@@ -229,6 +229,11 @@ extension GameState {
         if ProcessInfo.processInfo.arguments.contains("--uitest-career") {
             debugPresentCareerChoice()
         }
+        // La partida rankeada corriendo y a un tier de Dios: el test sólo arma el escenario del
+        // servidor (`--uitest-ranking-<escenario>`) y llega con `debugReachGod()`.
+        if ProcessInfo.processInfo.arguments.contains("--uitest-ranking-god") {
+            debugStartRankedRunNearGod()
+        }
         #endif
         // El tutorial entra a la cola ANTES de que nadie encole nada: el
         // offline, el daily del día 2 y los logros de un save viejo pasan
@@ -280,6 +285,7 @@ extension GameState {
         // Corre con `phase == .loading`, así que acredita sin toastear.
         evaluateAchievements()
         refreshProjections()
+        rankingReconcile()
         phase = .ready
     }
 }

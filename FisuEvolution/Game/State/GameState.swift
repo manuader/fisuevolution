@@ -331,6 +331,8 @@ final class GameState {
     /// Las notificaciones locales (E11): las programa el sellado al irse y las
     /// borra la vuelta. `nil` en los tests que no las piden.
     @ObservationIgnored var notifications: NotificationsManager?
+    /// El ranking de Dios (E12): lo enganchan `+Ranking` y los ganchos del ciclo de vida.
+    @ObservationIgnored weak var ranking: RankingStore?
     /// El último trabajo con el manager, para que los tests lo esperen.
     @ObservationIgnored var notificationsTask: Task<Void, Never>?
     /// Falso desde que la app deja `.active` hasta que vuelve: en ese tramo el

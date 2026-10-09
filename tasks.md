@@ -79,7 +79,7 @@
 
 ## 2. Progreso
 
-**Hoy: 87 de 243 tareas activas integradas (35,8 %)**, más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅).
+**Hoy: 87 de 254 tareas activas integradas (34,3 %)** (relevo 14: P-E8d sumó 15 filas y salteó 4 de E8b reemplazadas; 259 filas, 5 salteadas), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅).
 El conteo creció de 211 a 244 filas (243 activas, 1 salteada) porque P-E8b, P-E8c y P-E13b sumaron 33 filas (12 + 10 + 11).
 Las integradas subieron de 69 a 87. Las tareas del relevo 13 están en `version-2` (hasta `4ab1817`) salvo E13b T5, que está
 en `version-2` desde el relevo 14 (`596cacd`, `rapido` VERDE: EK 605 · unit 822 + 1 declarado · Release 0).
@@ -543,15 +543,15 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8b-T1 | `video_assets.py`: el retrato mide arriba y el key acepta magenta | ✅ | — | video_assets.py, test_video_assets.py | `25c6b35` | pipeline, no compila; los dos ajustes de `DUENO.md`; los 18 de croma miden sin error (`medir --clase retrato`) |
 | E8b-T2 | `video_assets.py`: retratos sobre blanco por conectividad | ✅ | T1 | video_assets.py, test_video_assets.py | (merge en integ-r13) | pipeline; `whitebg_cutout` cuadro por cuadro a 512²; revisión sonnet; 29–51 s por loop escalando a 512 antes de recortar (no 270); mirar el cuello del lagarto en T3 |
 | E8b-T3 | Los 18 retratos y las 3 cinemáticas, integrados y pesados | ✅ | T2 | Resources/Loops, Resources/Cinematics, loops_manifest.json, masters | `2a6cb5e` | pipeline (~25 min en background); hoja de contacto al controlador; estimado +8,5 MB de bundle, ≈ 41 MB de masters; +10 MB (loops 3,5 · cinemáticas 6,5, el doble de lo estimado); masters NO versionados; arresto = toma 2; 🔒 el dueño mira `sp_contador_dios` (el saco blanco quedó comido: regenerar con otro color o fondo) y `sp_bug_simulacion` (sale chico); hojas de contacto en `build/e8b-contacto/` del checkout principal |
-| E8b-T4 | `LoopsManifest`, `CinematicID` y `LoopsManifestTests` | ⏳ | T3 | — | | la API de E4b T3 (carry: E4b T3 no los crea) |
-| E8b-T5 | `VideoSlot` y `LoopingPortraitView` | ⏳ | — | — | | archivos nuevos; ∥ T1–T4, T7 |
-| E8b-T6 | El especial que te cayó, animado | ⛔ | T4, T5 | SpecialDropView | | revisión ninguna; captura SE/16 Pro (duda 3) |
+| E8b-T4 | `LoopsManifest`, `CinematicID` y `LoopsManifestTests` | ⏭️ | T3 | — | | **reemplazada por E8d-T1** (plan E8d, spec de animaciones del dueño, relevo 14); la API de E4b T3 (carry: E4b T3 no los crea) |
+| E8b-T5 | `VideoSlot` y `LoopingPortraitView` | ⏭️ | — | — | | **reemplazada por E8d-T2 + T3** (plan E8d, spec de animaciones del dueño, relevo 14); archivos nuevos; ∥ T1–T4, T7 |
+| E8b-T6 | El especial que te cayó, animado | ⏭️ | T4, T5 | SpecialDropView | | **reemplazada por E8d-T5** (plan E8d, spec de animaciones del dueño, relevo 14); revisión ninguna; captura SE/16 Pro (duda 3) |
 | E8b-T7 | `seenCinematics` en `meta.engagement` | ✅ | E1-T4 ✅ | EngagementState (EK) | `4714671` | sonnet, **rev. opus** (save); antes de E3b T9 o al final de su cadena; revisión opus (controlador): Approved. Carry a E9b T7/T8: `seenCinematics` es de la cuenta y `resolveAcrossReset` hoy no lo cruza (duda 8: el reset lo conserva) |
-| E8b-T8 | El turno de la cinemática (`.cinematic`, payload, autorun) | ⛔ | T4, T7 | 🔥 GameState (dos propiedades); CelebrationQueue, +Celebrations, +Debug, +Bootstrap | | sonnet, **rev. opus**; ventana libre de GameState.swift; antes de E9a T1 |
-| E8b-T9 | La cinemática en pantalla (overlay, sonido, Saltar) | ⛔ | T5, T8 | 🔥 RootView, catálogo (snapshot, 4 claves); AudioManager, DebugPanelView | | sonnet; `CinematicUITests` por Receta R; capturas SE + iPad |
+| E8b-T8 | El turno de la cinemática (`.cinematic`, payload, autorun) | ⛔ | E8d-T1, T7 | 🔥 GameState (dos propiedades); CelebrationQueue, +Celebrations, +Debug, +Bootstrap | | **cambia (E8d)**: importa `CinematicID`/`LoopsManifest` de E8d T1 y suma `.intro`; sonnet, **rev. opus**; ventana libre de GameState.swift; antes de E9a T1 |
+| E8b-T9 | La cinemática en pantalla (overlay, sonido, Saltar) | ⛔ | E8d-T2, T8 | 🔥 RootView, catálogo (snapshot, 4 claves); AudioManager, DebugPanelView | | **cambia (E8d)**: lease `fullscreen` del `VideoPlayerPool`; `.suspendsVideoPool()` en el overlay del cofre; sonnet; `CinematicUITests` por Receta R; capturas SE + iPad |
 | E8b-T10 | Reencarnación y Dios | ⛔ | T8, T9 | +Prestige, +BoardChanges, +Bootstrap | | sonnet, **rev. opus**; pinea el momento calmo que espera E12 T14; carry `godTier` a E12 T11 |
 | E8b-T11 | El arresto | ⛔ | T10; E4b-T2 | +Visitors | | sonnet; al dejarlo ir (duda 5) |
-| E8b-T12 | Cierre de E8b (controlador) | ⛔ | T1–T11 | `Docs/` | | `completo`; en un iPhone real (HEVC-alfa por hardware) y la memoria a E8 T10 |
+| E8b-T12 | Cierre de E8b (controlador) | ⏭️ | T1–T11 | `Docs/` | | **reemplazada por E8d-T15** (plan E8d, spec de animaciones del dueño, relevo 14); `completo`; en un iPhone real (HEVC-alfa por hardware) y la memoria a E8 T10 |
 | P-E8c | Plan de E8c: la cadena animada de Fusionar todo | ✅ | — | — | (el commit de este plan) | 10 tareas (T1–T10); `2026-10-08-v2-e8c-fusionar-todo.md`; 11 dudas con default; **un solo 🔥 (BoardScene, T7/T8); no toca GameState ni RootView** |
 | E8c-T1 | El eslabón en el plan (`BoardChange.Chain`) | ⏳ | E2a-T6 ✅ | BoardChange.swift (tibio: E13 T2, E6a T6, E7b-b T1), MergeAllPlannerTests | | EK; sonnet, **rev. opus** (la igualdad que compara `confirmBoardChange`); ola 1 |
 | E8c-T2 | El reloj del turno se renueva (`CelebrationQueue.renew`) | ⏳ | — | CelebrationQueue.swift (tibio: E4b T1, E8b T8, E6a T12) | | EK; sonnet; ola 1 |
@@ -563,6 +563,32 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8c-T8 | El toque apura; contador, remate y VoiceOver | ⛔ | T6, T7 | 🔥 BoardScene | | sonnet, **rev. opus**; duda 1 (apura, no corta); SE + Reduce Motion |
 | E8c-T9 | El fixture `--uitest-merge-all` y `MergeAllChainUITests` | ⛔ | T8 | +Bootstrap (tibio) | | sonnet; receta R en un 16 Pro |
 | E8c-T10 | Cierre de E8c (controlador) | ⛔ | T1–T9 | `Docs/` | | `completo`; grabaciones para el dueño (sin tocar, tocando, por ORO/video si ya existen) |
+
+### E8d — Todo el juego animado, lado Swift (`2026-10-08-v2-e8d-animaciones-swift.md`)
+
+Plan del relevo 14 sobre la spec del dueño `2026-10-08-v2-e8-animaciones-design.md`. Reemplaza E8b T4/T5/T6/T12; E8b T8/T9
+cambian; E13b T6 sigue igual (E8d T10 va después de E13b T6 y T8). Olas: T1 ∥ T2 ∥ T6 → T3 ∥ T4 → T5, T12, T13 → T7, T8 → T9;
+T14 espera el 🔒 de la segunda tanda. Gates G1–G7 en el plan (G6 revisión de la segunda tanda y G7 oír los sonidos: 🔒 dueño).
+Encargos a E4b T3/T4/T8, E5b T2/T3, E6a T8, E9a/E9b, E7b-a T2: plan, "Lo que E8d le deja a otras épicas".
+
+| ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
+|---|---|---|---|---|---|---|
+| P-E8d | Plan de E8d: todo el juego animado, lado Swift | ✅ | — | — | `fdb1d39` | 15 tareas; reemplaza E8b T4/T5/T6/T12; E8b T8/T9 cambian; E13b T6 igual; 15 dudas con default; 7 gates |
+| E8d-T1 | El manifest entero, `ArtClip` y `CinematicID` (+intro) | ⏳ | — | nuevos | | sonnet, revisión ninguna; reemplaza E8b T4 con su API; ola 1 |
+| E8d-T2 | `VideoPlayerPool` y `VideoPlaybackPolicy` (≤ 3 vivos, roles, suspensiones, reservas) | ⏳ | — | nuevos | | sonnet, **rev. opus**; reemplaza `VideoSlot` (E8b T5); ola 1 |
+| E8d-T3 | `AnimatedArtView`: póster instantáneo, video con fundido, loop o una vez | ⛔ | T1, T2 | nuevos | | sonnet, **rev. opus** (AVFoundation); reemplaza `LoopingPortraitView` (E8b T5); ∥ T4 |
+| E8d-T4 | `LoopingVideoNode` (SpriteKit) y la medición del alfa en `SKVideoNode` | ⛔ | T1, T2 | nuevos | | sonnet, **rev. opus**; la medición decide la ruta de T9 |
+| E8d-T5 | El especial que te cayó y la ficha, animados | ⛔ | T3 | SpecialDropView, CharacterSheetView (tibio: E13 T9) | | sonnet, revisión ninguna; capturas SE/16 Pro con `--uitest-video`; reemplaza E8b T6 |
+| E8d-T6 | Sonidos nuevos A (paquete, colchón, visitante, tienda, revelación, cable) | ⏳ | — | AudioManager (tibio: E8c T4 → E8d T6 → T7 → E8b T9), generate_audio.py, AudioWiringTests | | sonnet; 11 `.caf`; `pendingWiring` con dueño; 🔒 oído del dueño (no frena); ola 1 |
+| E8d-T7 | Los 8 acentos de evento | ⛔ | T6; ventana de +Bonus (o E4a T9) | 🔥 +Bonus (una línea); AudioManager, generate_audio.py | | sonnet, revisión ninguna |
+| E8d-T8 | El fondo del piso visible, animado | ⛔ | T4; ventana de BoardScene | 🔥 BoardScene; FloorNode | | sonnet, **rev. opus**; inerte hasta T14; scroll y viaje = póster |
+| E8d-T9 | La revelación con el cuerpo entero | ⛔ | T8 | 🔥 BoardScene | | sonnet, **rev. opus**; ruta A (`SKVideoNode`) o B (overlay) según T4 |
+| E8d-T10 | El viaje suspende los videos; la cabina reserva su decodificador; `sfx_elevator_cable` | ⛔ | T2, T6; E13b T6, T8 | ElevatorCabin.swift, ElevatorRideOverlay | | sonnet, **rev. opus**; no frena a E13b T6 |
+| E8d-T11 | La intro, la primera vez | ⛔ | E8b T10 | +Cinematics, +Bootstrap (tibio); catálogo (snapshot, 1 clave) | | sonnet, rev. sonnet; inerte sin `cinematics.intro` |
+| E8d-T12 | On-Demand Resources: `ArtPacks` y el pedido por familia | ⛔ | T1, T3, T4 | nuevos + LoopsManifest, AnimatedArtView, LoopingVideoNode | | sonnet, rev. sonnet |
+| E8d-T13 | La sonda de fps y memoria (DEBUG) y `--uitest-anim-stress` | ⛔ | T3, T4 | DebugPanelView, +Bootstrap, +Debug (tibios) | | sonnet, revisión ninguna; habilita G1/G2/G4 antes de la segunda tanda |
+| E8d-T14 | 🔒 La segunda tanda entra (sólo lo `va`) | ⛔ | 🔒 revisión de la segunda tanda; T12; pipeline del dueño | 🔥 project.yml; Resources, loops_manifest.json | | cero Swift; ODR por tag; base ≤ +60 MB |
+| E8d-T15 | Cierre de E8d: gates en dispositivo y barrido de lugares (controlador) | ⛔ | T1–T14; E8b T8–T11 | `Docs/` | | `completo`; G1–G5 con números; `AnimatedPlacesTests` |
 
 ### E9 — Tutorial v2 + Tour de novedades + Ajustes (`2026-10-07-v2-e9a-…` motor, `…-e9b-…` currículo y reset)
 

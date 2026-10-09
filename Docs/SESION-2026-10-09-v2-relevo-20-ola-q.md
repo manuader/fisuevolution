@@ -12,7 +12,7 @@ Carga de la máquina: 1,8 → 204 → 367 → 36 → 602, con tope de 2 compilan
 |---|---|
 | `version-2` | **`7a5395b`**: el `rapido` sobre `b8a3c1e` dio VERDE y avanzó por fast-forward con E2b T1, E8c T9, E8d T8, E3a T11 y E7b-a T5 |
 | `v2i/integ-r20` | **`2e43db0`** = lo anterior más E8d T9 y E3b T4 (🟢) + los docs del cierre |
-| `rapido` | sobre `f2308e7` (E2b T1 + E8c T9): VERDE (EK 636 · unit 1039 + 1 declarado · Release 0). Sobre `b8a3c1e` (+ E8d T8, E3a T11, E7b-a T5): VERDE (EK 636 · unit 1047 + 1 declarado · Release 0). Final sobre la punta de `integ-r20`: RAPIDO_PENDIENTE |
+| `rapido` | sobre `f2308e7` (E2b T1 + E8c T9): VERDE (EK 636 · unit 1039 + 1 declarado · Release 0). Sobre `b8a3c1e` (+ E8d T8, E3a T11, E7b-a T5): VERDE (EK 636 · unit 1047 + 1 declarado · Release 0). Final sobre la punta de `integ-r20`: VERDE sobre `2e43db0` (EK 636 · unit 1055 + 1 declarado `theOwnersTargetsAreMet` · Release 0) |
 | Progreso | **131 de 254 en `version-2` (51,6 %); 133 de 254 (52,4 %)** si el `rapido` final de `integ-r20` da VERDE (`tasks.md` §2) |
 
 ## Lo que se integró (7 tareas)
@@ -120,7 +120,7 @@ páginas (E13b). El comentario de la hoja lo corrigió el controlador (`49aecc0`
 
 - `rapido` sobre `f2308e7` (E2b T1, E8c T9): VERDE (EK 636 · unit 1039 + 1 declarado · Release 0).
 - `rapido` sobre `b8a3c1e` (+ E8d T8, E3a T11, E7b-a T5): VERDE (EK 636 · unit 1047 + 1 declarado · Release 0) → `version-2` a `7a5395b`.
-- `rapido` final sobre la punta de `integ-r20` (con E8d T9 y E3b T4): RAPIDO_PENDIENTE
+- `rapido` final sobre la punta de `integ-r20` (con E8d T9 y E3b T4): VERDE sobre `2e43db0` (EK 636 · unit 1055 + 1 declarado `theOwnersTargetsAreMet` · Release 0)
 - Tareas: E2b T1 EK 636 · unit 34; E8c T9 unit 9; E8d T8 unit 63; E3a T11 unit 4; E7b-a T5 unit 11; E8d T9 unit 54; E3b T4 sus UI tests.
 - No se corrió un `completo` nuevo; el de referencia sigue siendo el `--limpio` de `c94f75f`.
 

@@ -22,7 +22,7 @@
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
 > 20): `version-2` = **`7a5395b`** (`rapido` VERDE sobre `b8a3c1e`: EK 636 · unit 1047 + 1 declarado · Release 0) · la rama
-> de integración `v2i/integ-r20` = **`2e43db0`** + estos docs (`rapido` final: RAPIDO_PENDIENTE). Están E0,
+> de integración `v2i/integ-r20` = **`2e43db0`** + estos docs (`rapido` final: VERDE sobre `2e43db0` (EK 636 · unit 1055 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0,
 > E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a P, más lo del relevo 20: **la escalada por
 > bandas** (**E2b T1**), **la cadena de Fusionar todo en el simulador** (**E8c T9**), **el fondo vivo del piso** (**E8d T8**), **el
 > chrome de la raíz en la columna** (**E3a T11**), **«Opciones de privacidad»** (**E7b-a T5**) y, en `integ-r20`, **la revelación

@@ -356,6 +356,40 @@ struct QuickHireOfferTests {
         #expect(gameState.towerNotice?.kind == .floorFull, "y el aviso de piso lleno aparece")
     }
 
+    @Test("piso lleno y sin plata: el motivo es piso lleno, no te alcanza")
+    func fullFloorWithoutCoinsReportsFloorFull() async throws {
+        let gameState = await makeGameState()
+        gameState.debugGrantCoins()
+        let capacity = gameState.floorOccupancy(ordinal: 0).capacity
+        for _ in gameState.floorOccupancy(ordinal: 0).occupied..<capacity {
+            gameState.hireCharacter(typeId: "homeless")
+        }
+        try giveCoins(0, to: gameState)
+        gameState.refreshProjections()
+        let offer = try #require(gameState.quickHireOffer)
+        #expect(!offer.affordable)
+        #expect(offer.blocker == .floorFull)
+    }
+
+    @Test("con todo el piso lleno, la oferta es el mejor que pagarías, no el más barato")
+    func fullFloorOffersTheBestAffordableNotTheCheapest() async throws {
+        let gameState = await makeGameState()
+        gameState.debugGrantCoins()
+        gameState.debugMarkTypesSeen(throughTier: 3)
+        gameState.debugSetMaxTier(10)
+        let capacity = gameState.floorOccupancy(ordinal: 0).capacity
+        for _ in gameState.floorOccupancy(ordinal: 0).occupied..<capacity {
+            gameState.hireCharacter(typeId: "homeless")
+        }
+        try giveCoins(1_000_000, to: gameState)
+        gameState.refreshProjections()
+        let entries = gameState.quickHirePickerEntries
+        #expect(entries.count > 1 && entries.allSatisfy { !$0.fits }, "escenario: todo lleno, varios tipos")
+        let offer = try #require(gameState.quickHireOffer)
+        #expect(offer.tier > 1, "el mejor pagable manda sobre el homeless barato")
+        #expect(offer.blocker == .floorFull)
+    }
+
     @Test("el pin manda: la oferta es el fijado aunque haya uno mejor, y sin plata no cae a otro")
     func thePinWins() async throws {
         let gameState = await makeGameState()
@@ -375,6 +409,7 @@ struct QuickHireOfferTests {
         #expect(gameState.player?.meta.quickHirePinnedTypeId == "oficinista", "el pin va al save")
 
         try giveCoins(0, to: gameState)
+        #expect(gameState.player?.run.coins == 0)
         gameState.refreshProjections()
         offer = try #require(gameState.quickHireOffer)
         #expect(offer.typeId == "oficinista", "el pin muestra su motivo, no cae a otro en silencio")

@@ -319,7 +319,7 @@ extension GameState {
     }
 
     /// Fija (o con `nil` suelta) el personaje del atajo. Va al save
-    /// (`meta.quickHirePinnedTypeId`) y sobrevive a reencarnar.
+    /// (`meta.quickHirePinnedTypeId`).
     func pinQuickHire(typeId: String?) {
         guard var player, player.meta.quickHirePinnedTypeId != typeId else { return }
         player.meta.quickHirePinnedTypeId = typeId

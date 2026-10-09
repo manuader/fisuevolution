@@ -187,6 +187,25 @@ struct TutorialTipsTests {
                 "el primer ORO pagable tiene que llevar a las permanentes")
     }
 
+    @Test("con el piso lleno y plata la lección del atajo no nace: no hay nada que comprar")
+    func theQuickHireLessonNeedsARealPurchase() async throws {
+        let gameState = await makeGameState()
+        gameState.debugGrantCoins()
+        let capacity = gameState.floorOccupancy(ordinal: 0).capacity
+        for _ in gameState.floorOccupancy(ordinal: 0).occupied..<capacity {
+            gameState.hireCharacter(typeId: "homeless")
+        }
+        gameState.debugGrantCoins()
+        gameState.refreshProjections()
+        let offer = try #require(gameState.quickHireOffer)
+        #expect(offer.affordable && !offer.fits)
+        for lesson in [GameState.TutorialLesson.upgrades, .elevator, .skins, .achievements] {
+            gameState.markLessonDone(lesson)
+        }
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson != .quickHire, "enseñaría un botón que no compra")
+    }
+
     @Test("el badge de logros: la señal nace con el cobrable y muere al cobrarlo")
     func claimableSignalTracksTheSets() async throws {
         let gameState = await makeGameState()

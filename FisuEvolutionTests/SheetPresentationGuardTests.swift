@@ -36,15 +36,15 @@ struct SheetPresentationGuardTests {
     /// El único archivo autorizado: el que define `fisuSheet`.
     private static let definition = "PanelFrames.swift"
 
-    /// Los que presentan a mano a propósito, con su motivo. `RootView` ya
-    /// presenta todas las hojas del juego con `fisuSheet`; le quedan dos `.sheet(`
-    /// que no son hojas del juego: la de compartir del sistema y el panel de debug.
-    private static let pending: Set<String> = ["RootView.swift"]
+    /// Vacío: toda hoja pasa por `fisuSheet()`. Un archivo nuevo acá es una deuda
+    /// con nombre, no una excepción.
+    private static let pending: Set<String> = []
 
     /// Presentan con un `.sheet(` que no es una hoja del juego: la hoja de
     /// compartir del sistema (`UIActivityViewController`), que el sistema
-    /// presenta como quiere.
-    private static let systemSheets: Set<String> = ["ShareCardView.swift"]
+    /// presenta como quiere, y `RootView`, que conserva dos: la tarjeta de
+    /// compartir, con su propio tamaño y fondo, y el panel de debug.
+    private static let systemSheets: Set<String> = ["ShareCardView.swift", "RootView.swift"]
 
     /// Las líneas de código (sin comentarios) de cada fuente que le toca al guardia.
     private static func guardedSources() throws -> [(name: String, code: [String])] {

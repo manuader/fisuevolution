@@ -321,10 +321,10 @@ struct GameBoardView: View {
                 case .menu: MenuView()
                 }
             }
-            // El panel del `panelSheet` ES la hoja: sin el material del sistema
-            // debajo, flota sobre el juego atenuado con su banda inferior a la
-            // vista — como los popups, que es como componen las referencias.
-            .presentationBackground(.clear)
+            // El panel del `panelSheet` ES la hoja: `fisuSheet` la deja sin el
+            // material del sistema debajo y, en iPad, del tamaño de una página;
+            // flota sobre el juego atenuado con su banda inferior a la vista —
+            // como los popups, que es como componen las referencias.
         }
         .fisuSheet(item: specialDropBinding) { special in
             SpecialDropView(special: special)
@@ -460,9 +460,11 @@ struct GameBoardView: View {
                 ActiveBonusBar(bonuses: gameState.activeBonuses)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 12)
+                    .playColumn()
             }
             if let event = gameState.activeEvent, gameState.eventBannerIsVisible {
                 EventBannerView(event: event)
+                    .playColumn()
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
             Spacer()
@@ -545,6 +547,7 @@ struct GameBoardView: View {
                 .tutorialAnchor(.prestige)
             }
             .padding(.horizontal, Tokens.s8)
+            .playColumn()
             BottomMenuBar(select: open)
         }
         .tutorialAnchor(.bottomBar)

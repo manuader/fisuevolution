@@ -47,20 +47,34 @@ struct TabUnlockWiringTests {
         }
     }
 
-    @Test("terminar el núcleo abre Bonus y Menú, con ¡Nuevo!, y se guarda")
+    @Test("terminar el núcleo abre Bonus, Menú y Ranking, con ¡Nuevo!, y se guarda")
     func coreUnlocksAndPersists() async throws {
         try await withDefaults(core: false, sessions: 0) {
             let gameState = await makeGameState()
             gameState.refreshProjections()
             UserDefaults.standard.set(true, forKey: "fisuTutorialDone")
             gameState.refreshProjections()
-            #expect(gameState.unlockedTabs == [.jobs, .upgrades, .gifts, .menu])
-            #expect(gameState.newTabs == [.gifts, .menu])
+            #expect(gameState.unlockedTabs == [.jobs, .upgrades, .gifts, .menu, .ranking])
+            #expect(gameState.newTabs == [.gifts, .menu, .ranking])
             let saved = try #require(gameState.player?.meta.unlockedTabs)
             #expect(saved.isSuperset(of: ["gifts", "menu"]))
 
             gameState.markTabOpened(.gifts)
-            #expect(gameState.newTabs == [.menu])
+            #expect(gameState.newTabs == [.menu, .ranking])
+        }
+    }
+
+    @Test("con el interruptor del ranking apagado la pestaña no está, pero sigue abierta en el save")
+    func rankingSwitchHidesTheTab() async {
+        await withDefaults(core: true, sessions: 0) {
+            let gameState = await makeGameState()
+            let off = RankingConfig(
+                schemaVersion: RankingConfig.supportedSchemaVersion, enabled: false, baseURL: nil, anonKey: nil)
+            let store = RankingStore(client: SimulatedRankingClient(), config: off)
+            gameState.attachRanking(store)
+            gameState.refreshProjections()
+            #expect(gameState.unlockedTabs.contains(.ranking))
+            #expect(!gameState.unlockedTabsInBarOrder.contains(.ranking))
         }
     }
 

@@ -147,9 +147,14 @@ struct DailyCalendarTests {
 
         // Los dos que no son multiplicadores tienen su propia frase y no la del
         // multiplicador vacía.
-        let merge = try #require(gameState.rewardRows.first { $0.id == "accelerate_evolution" })
+        let merge = try #require(gameState.rewardRows.first { $0.id == "merge_all" })
         let rare = try #require(gameState.rewardRows.first { $0.id == "spawn_rare" })
         #expect(!merge.rewardText.contains("×"))
         #expect(merge.rewardText != rare.rewardText)
+        let player = try #require(gameState.player)
+        let gift = try #require(gameState.content.flatMap {
+            BoardChangePlanner.giftType(tiersBelowFrontier: 3, state: player, tiers: $0.tiers)
+        })
+        #expect(rare.rewardText.contains(gift.localizedName), "la fila nombra al personaje que llega")
     }
 }

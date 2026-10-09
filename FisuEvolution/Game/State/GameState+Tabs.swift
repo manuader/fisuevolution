@@ -8,9 +8,12 @@ extension GameState {
     /// `UserDefaults` y no en el save: es una pista de UI, como las lecciones.
     static let newTabsKey = "tabs.new"
 
-    /// Las pestañas abiertas, en el orden de la barra (y del paginador del menú).
+    /// Las pestañas abiertas, en el orden de la barra (y del paginador del menú). Con el
+    /// interruptor del ranking apagado la pestaña no está, pero sigue abierta en el save:
+    /// al prenderlo vuelve sin otro "¡Nuevo!".
     var unlockedTabsInBarOrder: [GameScreen] {
-        GameScreen.barOrder.filter(unlockedTabs.contains)
+        let rankingOn = ranking?.isEnabled != false
+        return GameScreen.barOrder.filter { unlockedTabs.contains($0) && ($0 != .ranking || rankingOn) }
     }
 
     /// Lo llama `refreshProjections` a 8 Hz: son cuatro lecturas y unas

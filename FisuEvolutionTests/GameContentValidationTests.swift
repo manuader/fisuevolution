@@ -244,6 +244,15 @@ struct GameContentValidationTests {
         }
     }
 
+    @Test func theVideoCatalogFollowsE13() throws {
+        let rewards = content.rewardedAds.rewards
+        #expect(!rewards.contains { $0.id == "accelerate_evolution" })
+        let merge = try #require(rewards.first { $0.effectType == .mergeAll })
+        #expect(merge.id == "merge_all")
+        let gift = try #require(rewards.first { $0.effectType == .rareUnit })
+        #expect(gift.tiersBelowFrontier == 3, "el mismo tier que el Blanqueo")
+    }
+
     /// Pin del catálogo de las seis líneas. `economy.json` tiene el suyo desde
     /// F7 y `upgrades.json` no tenía ninguno — y sobre estos 192 ORO (348 con `baseCost` 2, E2b T14) descansa
     /// toda la calibración del rebalance, incluido el techo de 8

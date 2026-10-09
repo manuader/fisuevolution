@@ -22,6 +22,7 @@ struct ElevatorRideOverlay: View {
                     .transition(.opacity)
             }
         }
+        .suspendsVideoPool(ride.phase != .idle, reason: .elevatorRide)
         .animation(.easeOut(duration: 0.2), value: ride.phase == .idle)
         .animation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.4, bounce: 0.35),
                    value: ride.isKeypadOpen)

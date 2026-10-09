@@ -5,6 +5,7 @@
     { "id": "skins", "unlockWhen": ["firstSkin"] },
     { "id": "jobs", "unlockWhen": ["always"] },
     { "id": "gifts", "unlockWhen": ["tutorialCore", "firstChest"] },
-    { "id": "menu", "unlockWhen": ["tutorialCore"] }
+    { "id": "menu", "unlockWhen": ["tutorialCore"] },
+    { "id": "ranking", "unlockWhen": ["tutorialCore"] }
   ]
 }

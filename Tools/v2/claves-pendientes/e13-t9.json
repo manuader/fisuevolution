@@ -1,0 +1,4 @@
+{
+  "upgrades.character.sheet": {"es": "Ficha", "en": "Profile"},
+  "upgrades.character.sheet.ax %@": {"es": "Ver la ficha de %@", "en": "See %@'s profile"}
+}

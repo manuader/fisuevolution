@@ -21,12 +21,15 @@ extension GameState {
         let targetCell: Int
     }
 
-    /// Modelo mínimo de la ficha abierta desde un personaje del tablero. Mantiene
-    /// el slot para que despedir siga siendo una acción explícita y confirmable.
+    /// Modelo mínimo de la ficha de un personaje, abierta desde el tablero o desde
+    /// Personajes. Mantiene piso y slot para que despedir siga siendo una acción
+    /// explícita y confirmable.
     struct CharacterSheet: Identifiable, Equatable {
         let id = UUID()
         let type: CharacterType
-        /// Slot del piso visible.
+        /// Piso de la unidad a despedir; -1 si el tipo no tiene unidades.
+        let floorOrdinal: Int
+        /// Slot de esa unidad en su piso.
         let cellIndex: Int
         let instanceCount: Int
         let isUnlocked: Bool

@@ -1650,19 +1650,19 @@
         }
       }
     },
-    "ads.reward.evolve" : {
-      "extractionState" : "stale",
+    "ads.reward.merge_all" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Free evolution"
+            "value" : "Merge all"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Evolución gratis"
+            "value" : "Fusionar todo"
           }
         }
       }
@@ -1701,6 +1701,23 @@
         }
       }
     },
+    "ads.reward.text.gift %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A %@ joins you, on the house"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te llega un %@, de regalo"
+          }
+        }
+      }
+    },
     "ads.reward.text.income %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1718,36 +1735,19 @@
         }
       }
     },
-    "ads.reward.text.merge" : {
+    "ads.reward.text.merge_all" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Merges the best pair you have, free"
+            "value" : "Merges every pair on this floor at once"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Te fusiona el mejor par que tengas, gratis"
-          }
-        }
-      }
-    },
-    "ads.reward.text.rare" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A character from your best tier, on the house"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un personaje de tu mejor tier, de arriba"
+            "value" : "Fusiona de una todos los pares de este piso"
           }
         }
       }
@@ -3912,6 +3912,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Multiplicador global"
+          }
+        }
+      }
+    },
+    "hud.ranking.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ranking"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ranking"
           }
         }
       }
@@ -11180,6 +11197,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ya genera"
+          }
+        }
+      }
+    },
+    "upgrades.character.sheet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ficha"
+          }
+        }
+      }
+    },
+    "upgrades.character.sheet.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "See %@'s profile"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver la ficha de %@"
           }
         }
       }

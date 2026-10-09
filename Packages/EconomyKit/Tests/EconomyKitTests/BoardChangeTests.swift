@@ -111,10 +111,20 @@ struct BoardChangeTests {
         let free = try #require(fx.tower.floors[0].firstFreeSlot())
         #expect(TowerActions.move(floorOrdinal: 0, fromSlot: 0, toSlot: free, tower: &fx.tower))
         let change = try #require(BoardChangePlanner.planAutoMerge(
-            state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable, origin: .rewardedInstantMerge
+            state: fx.state, tower: fx.tower, tiers: tiers, floorTable: fx.floorTable, origin: .debug
         ))
-        #expect(change.origin == .rewardedInstantMerge)
+        #expect(change.origin == .debug)
         #expect(change.kind == .merge(floorOrdinal: 0, typeId: "a", sourceSlot: 1, targetSlot: 2, newTypeId: "b"))
+    }
+
+    @Test("el regalo de frontera − n respeta la carrera y nunca baja del tier 1")
+    func giftTypeFollowsTheFrontier() throws {
+        var fx = try board(units: ["a": 1], unlockedFloors: ["f1", "f2"])
+        fx.state.run.raiseFrontier(to: 4)
+        #expect(BoardChangePlanner.giftType(tiersBelowFrontier: 3, state: fx.state, tiers: tiers)?.id == "a")
+        #expect(BoardChangePlanner.giftType(tiersBelowFrontier: 9, state: fx.state, tiers: tiers)?.tier == 1)
+        fx.state.run.chosenCareerPath = "law"
+        #expect(BoardChangePlanner.giftType(tiersBelowFrontier: 1, state: fx.state, tiers: tiers)?.id == "c_law")
     }
 
     // MARK: Evolución

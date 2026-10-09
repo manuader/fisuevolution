@@ -49,13 +49,13 @@ struct StatsCountersAppTests {
     }
 
     /// El contador va donde va el cooldown: si el efecto no encuentra dónde caer
-    /// —acá, un `instantMerge` en una partida nueva, que tiene una sola unidad y
+    /// —acá, un `mergeAll` en una partida nueva, que tiene una sola unidad y
     /// por lo tanto ningún par— el video igual se miró y el anunciante igual cobró.
     @Test("el video cuenta aunque el efecto no caiga")
     func videoCountsEvenWhenEffectDoesNotLand() async throws {
         let gameState = await makeGameState()
 
-        gameState.applyRewardedReward(rewardId: "accelerate_evolution", now: 1000)
+        gameState.applyRewardedReward(rewardId: "merge_all", now: 1000)
 
         #expect(gameState.player?.meta.stats.videosWatchedEver == 1)
         #expect(gameState.player?.meta.stats.totalMergesEver == 0, "no había par: no hubo fusión que contar")

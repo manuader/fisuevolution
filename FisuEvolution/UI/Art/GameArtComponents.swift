@@ -1008,7 +1008,7 @@ struct GameIcon<Vector: View>: View {
 
 // MARK: - GameTabBar
 
-/// Las 6 pantallas de la barra inferior. El orden de `allCases` **es** el orden
+/// Las pantallas de la barra inferior. El orden de `allCases` **es** el orden
 /// de los tabs (spec §4) y los tests lo pinean.
 enum GameScreen: String, Identifiable, CaseIterable {
     case jobs
@@ -1017,6 +1017,7 @@ enum GameScreen: String, Identifiable, CaseIterable {
     case gifts
     case store
     case menu
+    case ranking
 
     var id: String { rawValue }
 
@@ -1031,14 +1032,15 @@ enum GameScreen: String, Identifiable, CaseIterable {
         case .gifts: "hud.bonus"
         case .store: "hud.store"
         case .menu: "hud.settings"
+        case .ranking: "hud.ranking"
         }
     }
 
     /// El orden de la barra de abajo y del paginador del menú (PLAN-v2 E3):
-    /// Contratar al centro, dos y dos. La Tienda no está: la abre el + de la
-    /// moneda (PLAN-v2 E13, ítem 14). NO es `allCases`, que conserva el orden
-    /// histórico.
-    static let barOrder: [GameScreen] = [.upgrades, .skins, .jobs, .gifts, .menu]
+    /// Contratar al centro, tres lugares por lado (el Ranking abre el tercero de la
+    /// izquierda). La Tienda no está: la abre el + de la moneda (PLAN-v2 E13, ítem
+    /// 14). NO es `allCases`, que conserva el orden histórico.
+    static let barOrder: [GameScreen] = [.ranking, .upgrades, .skins, .jobs, .gifts, .menu]
 
     /// La pestaña del centro, la más grande.
     static let centerTab: GameScreen = .jobs
@@ -1115,16 +1117,20 @@ struct GameTabBar: View {
 
     /// Aire arriba de los platos comunes, adentro del panel.
     static let topPadding: CGFloat = 6
-    /// Plato de una pestaña común y el de Contratar.
+    /// Plato de una pestaña común y el de Contratar. `plateSide` es la altura de
+    /// referencia de la barra (de ahí salen `panelHeight` y `centerRise`);
+    /// `tabPlateSide` es lo que se dibuja: con tres lugares por lado el plato de 52 no
+    /// entra en el SE.
     static let plateSide: CGFloat = 52
+    static let tabPlateSide: CGFloat = 44
     static let centerPlateSide: CGFloat = 72
     /// El espacio entre pestañas: el literal 2 de la v1.
     static let spacing: CGFloat = 2
 
     /// Aire entre los platos y el piso de la barra, ahora que no hay rótulos.
     static let bottomPadding: CGFloat = 6
-    /// Lugares por lado de Contratar: la barra es 2 + 1 + 2.
-    static let slotsPerSide = 2
+    /// Lugares por lado de Contratar: la barra es 3 + 1 + 3.
+    static let slotsPerSide = 3
 
     enum Side { case leading, trailing }
 
@@ -1164,7 +1170,7 @@ struct GameTabBar: View {
     /// El ancho mínimo de la barra. Las dos zonas miden lo mismo, así que manda
     /// la que tiene más pestañas.
     static func minimumWidth(tabsPerSide: Int) -> CGFloat {
-        let zone = CGFloat(tabsPerSide) * plateSide + CGFloat(max(0, tabsPerSide - 1)) * spacing
+        let zone = CGFloat(tabsPerSide) * tabPlateSide + CGFloat(max(0, tabsPerSide - 1)) * spacing
         return Tokens.s8 * 2 + centerColumnWidth + zone * 2 + spacing * 2
     }
 
@@ -1262,10 +1268,10 @@ private struct GameTabButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bounce = 0
 
-    /// Platos de 52 y 72 (Contratar) con iconos de 46 y 64, sin rótulos: el centro
-    /// sobresale 20 pt. Las cinco entran en el SE con aire (`GameTabBar.minimumWidth`).
-    private var side: CGFloat { item.prominent ? GameTabBar.centerPlateSide : GameTabBar.plateSide }
-    private var iconSide: CGFloat { item.prominent ? 64 : 46 }
+    /// Platos de 44 y 72 (Contratar) con iconos de 39 y 64, sin rótulos: el centro
+    /// sobresale 20 pt del panel. Las seis entran en el SE (`GameTabBar.minimumWidth`).
+    private var side: CGFloat { item.prominent ? GameTabBar.centerPlateSide : GameTabBar.tabPlateSide }
+    private var iconSide: CGFloat { item.prominent ? 64 : 39 }
 
     var body: some View {
         Button {

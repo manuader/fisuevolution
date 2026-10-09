@@ -109,7 +109,7 @@ struct GameBoardView: View {
 
     private struct MenuSession: Identifiable {
         let id = UUID()
-        let start: GameScreen
+        var start: GameScreen
     }
     /// El coordinador de anuncios lo construye la App (necesita los feature
     /// flags, que no existen cuando este `@State` se inicializaría): acá sólo
@@ -326,10 +326,12 @@ struct GameBoardView: View {
             MenuPagerView(
                 pages: session.start == .store ? [.store] : gameState.unlockedTabsInBarOrder,
                 start: session.start,
-                adsProvider: adsProvider
+                adsProvider: adsProvider,
+                onStore: { menuSession?.start = .store }
             ) { page in
                 gameState.menuPageChanged(to: page)
             }
+            .id(session.start)
         }
         .fisuSheet(item: specialDropBinding) { special in
             SpecialDropView(special: special)

@@ -1,0 +1,5 @@
+{
+  "ads.reward.merge_all": {"es": "Fusionar todo", "en": "Merge all"},
+  "ads.reward.text.merge_all": {"es": "Fusiona de una todos los pares de este piso", "en": "Merges every pair on this floor at once"},
+  "ads.reward.text.gift %@": {"es": "Te llega un %@, de regalo", "en": "A %@ joins you, on the house"}
+}

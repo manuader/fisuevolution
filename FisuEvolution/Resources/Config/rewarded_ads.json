@@ -19,14 +19,15 @@
       "titleKey": "ads.reward.boost"
     },
     {
-      "id": "accelerate_evolution",
-      "effectType": "instantMerge",
-      "cooldownSeconds": 14400,
-      "titleKey": "ads.reward.evolve"
+      "id": "merge_all",
+      "effectType": "mergeAll",
+      "cooldownSeconds": 600,
+      "titleKey": "ads.reward.merge_all"
     },
     {
       "id": "spawn_rare",
       "effectType": "rareUnit",
+      "tiersBelowFrontier": 3,
       "cooldownSeconds": 14400,
       "titleKey": "ads.reward.rare"
     },

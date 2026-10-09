@@ -79,13 +79,13 @@ extension GameState {
     /// reloj sólo si el anuncio llegó a la pantalla: un inventario vencido o una
     /// falla al presentar no gastan el cupo de nadie.
     private func presentHeld(_ format: ForcedAdFormat, pacer: ForcedAdsPacer) async {
+        defer { releaseCelebrationsAfterAd() }
         guard let ads else { return }
         let presented = switch format {
         case .appOpen: await ads.showAppOpen()
         default: await ads.showInterstitial()
         }
         if presented { pacer.recordShown(format) }
-        releaseCelebrationsAfterAd()
     }
 
     // MARK: - La cola, quieta mientras hay un anuncio

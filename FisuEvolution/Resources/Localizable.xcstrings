@@ -3916,6 +3916,23 @@
         }
       }
     },
+    "hud.ranking.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ranking"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ranking"
+          }
+        }
+      }
+    },
     "hud.settings.label" : {
       "extractionState" : "manual",
       "localizations" : {

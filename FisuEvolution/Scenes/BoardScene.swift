@@ -320,13 +320,14 @@ final class BoardScene: SKScene {
 
     override func didMove(to view: SKView) {
         isDetached = false
+        updateScrollState()
         layoutBoard()
         particles.preheat()
     }
 
     override func willMove(from view: SKView) {
         isDetached = true
-        applyBackgroundAnimation()
+        updateScrollState()
     }
 
     deinit {
@@ -1661,10 +1662,12 @@ final class BoardScene: SKScene {
     private var isScrolling: Bool { isCameraTravelling || isSwipeDragging }
     private var animatesBackground: Bool { !isScrolling && !isDetached }
 
+    #if DEBUG
     /// Dónde corre el video de fondo, o `nil` si no corre en ninguno.
     var animatedFloorOrdinal: Int? {
         floorNodes.first { $0.value.hasBackgroundVideo }?.key
     }
+    #endif
 
     func scrollBegan() {
         isCameraTravelling = true
@@ -1683,9 +1686,9 @@ final class BoardScene: SKScene {
     }
 
     private func updateScrollState() {
-        if isScrolling, scrollSuspension == nil {
+        if isScrolling, !isDetached, scrollSuspension == nil {
             scrollSuspension = videoPool.suspend(.scrolling)
-        } else if !isScrolling, let suspension = scrollSuspension {
+        } else if !isScrolling || isDetached, let suspension = scrollSuspension {
             scrollSuspension = nil
             videoPool.resume(suspension)
         }
@@ -1697,17 +1700,26 @@ final class BoardScene: SKScene {
         for (ordinal, node) in floorNodes {
             node.setBackgroundAnimating(ordinal == animated)
         }
-        if animated != nil { prefetchNextFloorPack() }
+        if animated != nil { prefetchNextFloorPack() } else if isDetached { releasePrefetchedPack() }
+    }
+
+    private func releasePrefetchedPack() {
+        guard let tag = prefetchedPackTag else { return }
+        prefetchedPackTag = nil
+        packs.release(tag)
     }
 
     /// El piso de arriba es el que viene: su pack ODR se pide en segundo plano apenas el actual se asienta.
     private func prefetchNextFloorPack() {
-        guard videoPool.policy.allowsLoops, let table = gameState.floorTable else { return }
+        guard videoPool.policy.allowsLoops, let table = gameState.floorTable else {
+            releasePrefetchedPack()
+            return
+        }
         let next = gameState.visibleFloorOrdinal + 1
         let tag = table.floors.indices.contains(next)
             ? loops.odrTag(for: .floor(table.floors[next].background)) : nil
         guard tag != prefetchedPackTag else { return }
-        if let prefetchedPackTag { packs.release(prefetchedPackTag) }
+        releasePrefetchedPack()
         prefetchedPackTag = tag
         if let tag { packs.prefetch(tag) }
     }

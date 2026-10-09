@@ -31,8 +31,7 @@ struct FloorBackgroundAnimationTests {
         let (scene, gameState) = try await makeScene(
             floors: ["alley": "cine_arresto.mov", "urban": "cine_arresto.mov"], pool: pool)
 
-        scene.scrollBegan()
-        #expect(scene.animatedFloorOrdinal == nil && pool.liveCount == 0)
+        #expect(scene.animatedFloorOrdinal == 0)
 
         #expect(gameState.moveVisibleFloor(by: 1))
         scene.layoutBoard()
@@ -58,6 +57,22 @@ struct FloorBackgroundAnimationTests {
         let pool = VideoPlayerPool(policy: .allowAll)
         let (scene, gameState) = try await makeScene(floors: [:], pool: pool)
         #expect(scene.animatedFloorOrdinal == nil && pool.liveCount == 0)
+        #expect(scene["//*"].allSatisfy { !($0 is SKVideoNode) })
+        withExtendedLifetime(gameState) {}
+    }
+
+    @Test("sacar la escena de la vista en pleno viaje devuelve el cupo al pool")
+    func detachingMidTravelResumesThePool() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let (scene, gameState) = try await makeScene(floors: ["alley": "cine_arresto.mov"], pool: pool)
+        scene.scrollBegan()
+        scene.willMove(from: SKView())
+        let other = LoopingVideoNode(clip: .floor("alley"), poster: SKTexture(), size: CGSize(width: 10, height: 10),
+                                     role: .background, manifest: try LoopsManifestTests.fixture(floors: ["alley": "cine_arresto.mov"]),
+                                     pool: pool)
+        other.setVisible(true)
+        #expect(pool.liveCount == 1, "la escena soltó la suspensión")
+        other.setVisible(false)
         withExtendedLifetime(gameState) {}
     }
 

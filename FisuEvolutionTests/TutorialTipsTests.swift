@@ -71,6 +71,48 @@ struct TutorialTipsTests {
         #expect(gameState.tutorialTip?.lesson != .upgrades, "la que sigue puede nacer, la dada no")
     }
 
+    @Test("la lección de la placa nace con el tercer piso, no antes")
+    func theKeypadLessonWaitsForTheThirdFloor() async {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where lesson != .elevatorKeypad {
+            gameState.markLessonDone(lesson)
+        }
+        gameState.debugUnlockFloors(throughTier: 5)
+        gameState.refreshProjections()
+        #expect(gameState.unlockedFloorsCount == 2)
+        #expect(gameState.tutorialTip == nil, "con dos pisos todavía no hay placa que enseñar")
+
+        for tier in 6...12 where gameState.unlockedFloorsCount < 3 {
+            gameState.debugUnlockFloors(throughTier: tier)
+        }
+        gameState.refreshProjections()
+        #expect(gameState.unlockedFloorsCount >= 3)
+        #expect(gameState.tutorialTip?.lesson == .elevatorKeypad)
+        #expect(GameState.TutorialLesson.elevatorKeypad.textKey == "tutorial.tip.elevator.hold")
+    }
+
+    @Test("desplegar la placa cumple la lección aunque no se haya visto")
+    func openingTheKeypadCompletesTheLesson() async {
+        let gameState = await makeGameState()
+        gameState.elevatorKeypadOpened()
+        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.elevatorKeypad.defaultsKey))
+    }
+
+    @Test("desplegar la placa con la lección en pantalla la retira")
+    func openingTheKeypadDismissesTheShownTip() async {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where lesson != .elevatorKeypad {
+            gameState.markLessonDone(lesson)
+        }
+        for tier in 5...12 where gameState.unlockedFloorsCount < 3 {
+            gameState.debugUnlockFloors(throughTier: tier)
+        }
+        gameState.refreshProjections()
+        #expect(gameState.showing == .tutorialTip)
+        gameState.elevatorKeypadOpened()
+        #expect(gameState.showing != .tutorialTip)
+    }
+
     @Test("abrir el destino cumple la lección sin esperar el piso de skip")
     func openingTheDestinationCompletesTheLesson() async {
         let gameState = await makeGameState()

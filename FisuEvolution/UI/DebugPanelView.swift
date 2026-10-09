@@ -9,6 +9,7 @@ struct DebugPanelView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var timeWarpOn = false
     @State private var knobs = EconomyKnobs()
+    private let probe = FrameRateProbe.shared
 
     /// Los pares (g, r) del plan: v1, y tres que dejan ~6 % por compra al que
     /// fusiona y cobran más al que acumula. El callejón conserva su 1,03.
@@ -137,6 +138,18 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.e2a.mergeAll")
                 }
+                Section("Rendimiento") {
+                    Text(probe.line)
+                        .font(.system(.footnote, design: .monospaced))
+                        .accessibilityIdentifier("debug.probe.line")
+                }
+                Section("Ranking") {
+                    Button("Llegar a Dios (ranking)") {
+                        gameState.debugReachGod()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.ranking.reachGod")
+                }
                 Section("Peligro") {
                     Button("Resetear partida", role: .destructive) {
                         gameState.debugResetSave()
@@ -150,6 +163,7 @@ struct DebugPanelView: View {
         .onAppear {
             timeWarpOn = gameState.debugTimeScale > 1
             knobs = GameState.storedEconomyKnobs(in: .standard)
+            probe.start()
         }
     }
 }

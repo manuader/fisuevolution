@@ -104,7 +104,16 @@ struct LoopsManifest: Decodable, Sendable, Equatable {
     }
 
     /// El del bundle, leído una vez. Sin archivo o roto, vacío: nada depende de que haya videos.
-    static let main: LoopsManifest = (try? load(from: .main)) ?? .empty
+    static let main: LoopsManifest = {
+        let bundled = (try? load(from: .main)) ?? .empty
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--uitest-anim-stress"),
+           let content = try? GameContentLoader.load(from: .main) {
+            return animStress(over: bundled, content: content)
+        }
+        #endif
+        return bundled
+    }()
 
     /// El pack ODR que hay que bajar para esta pieza; `nil` si viaja en el paquete base.
     func odrTag(for clip: ArtClip) -> String? {

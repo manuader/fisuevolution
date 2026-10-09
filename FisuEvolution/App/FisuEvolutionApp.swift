@@ -10,6 +10,8 @@ struct FisuEvolutionApp: App {
     /// Los avisos de la ausencia (E11). Construirlo no pide permiso: el provisional
     /// sale al cerrar el núcleo del tutorial y el completo, de la tarjeta del popup offline.
     @State private var notifications = NotificationsManager()
+    /// El ranking de la llegada a Dios (E12). Sin config usable es un no-op; bajo tests, el cliente simulado.
+    @State private var ranking = RankingStore.live()
     /// Los anuncios. Se construye acá y NO en `RootView` porque elegir entre el
     /// stub y AdMob necesita los feature flags, que recién existen después de
     /// `bootstrap()`; el coordinador arranca con el stub adentro y se resuelve
@@ -30,6 +32,7 @@ struct FisuEvolutionApp: App {
                 .environment(haptics)
                 .environment(audio)
                 .environment(notifications)
+                .environment(ranking)
                 .environment(ads)
                 .task {
                     haptics.prepare()
@@ -97,6 +100,7 @@ struct FisuEvolutionApp: App {
                 removedAds: gameState.player?.meta.removedAds ?? false
             )
         }
+        gameState.attachRanking(ranking)
         gameState.attachNotifications(notifications)
         await gameState.notificationsLaunched()
     }

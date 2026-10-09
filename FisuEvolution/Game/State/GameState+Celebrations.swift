@@ -106,6 +106,7 @@ extension GameState {
         guard tutorialPhaseActive else { return }
         tutorialPhaseActive = false
         celebrations.restrict(to: nil)
+        rankingCoreFinished()
         grantWelcomeChest()
         // El primer paso del permiso de notificaciones (E11): provisional, sin diálogo.
         requestProvisionalNotifications()

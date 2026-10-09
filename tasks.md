@@ -579,8 +579,8 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8c-T4 | El plin que sube de tono y el remate | ✅ | — | AudioManager (tibio: E13b T3, E5b), HapticsManager, +Services, generate_audio.py, 1 `.caf` | `db94359` (integ-r18) | revisión ninguna; las fusiones del embudo hoy no suenan |
 | E8c-T5 | El turno de la cadena en GameState | ✅ | T1, T2 | +BoardChanges, +Celebrations, +Debug (tibios) | `ae952bf`+`de11f12` (integ-r18) | sonnet, **rev. opus** (turno, watchdog, HUD); crea `debugSeedMergeAll` |
 | E8c-T6 | El contador "×N" | ✅ | — | nuevos (`Scenes/Nodes/MergeAllComboNode.swift`); catálogo (snapshot, 1 clave) | `0c15d3d` (integ-r18; catálogo +1) | revisión ninguna; `claves-pendientes/e8c-t6.json` |
-| E8c-T7 | La escena encadena sin soltar el turno | 🔧 | T3, T4, T5; ventana de BoardScene (tras E13 T11) | 🔥 BoardScene | | sonnet, **rev. opus**; `endBoardChangeTurn` es el borde único; grabación |
-| E8c-T8 | El toque apura; contador, remate y VoiceOver | ⛔ | T6, T7 | 🔥 BoardScene | | sonnet, **rev. opus**; duda 1 (apura, no corta); SE + Reduce Motion |
+| E8c-T7 | La escena encadena sin soltar el turno | 🟢 | T3, T4, T5; ventana de BoardScene (tras E13 T11) | 🔥 BoardScene | `e79696f`+`520d54c` (integ-r19) | sonnet, **rev. opus**; `endBoardChangeTurn` es el borde único; grabación |
+| E8c-T8 | El toque apura; contador, remate y VoiceOver | ⏳ | T6, T7 | 🔥 BoardScene | | sonnet, **rev. opus**; duda 1 (apura, no corta); SE + Reduce Motion |
 | E8c-T9 | El fixture `--uitest-merge-all` y `MergeAllChainUITests` | ⛔ | T8 | +Bootstrap (tibio) | | sonnet; receta R en un 16 Pro |
 | E8c-T10 | Cierre de E8c (controlador) | ⛔ | T1–T9 | `Docs/` | | `completo`; grabaciones para el dueño (sin tocar, tocando, por ORO/video si ya existen) |
 

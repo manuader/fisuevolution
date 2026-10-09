@@ -21,8 +21,8 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
-> 15): `version-2` = **`fa8781a`** (pusheado; el relevo 14 la dejó con `rapido` VERDE: EK 606 · unit 865 + 1 declarado ·
-> release 0) y la rama de integración `v2i/integ-r15` = **`e6e8c53`** (`rapido`: RAPIDO_PENDIENTE). Están E0, E10 en
+> 15): `version-2` = **la punta de `v2i/integ-r15`** por fast-forward (pusheado; el relevo 14 la había dejado en `246beb7`) ·
+> la rama de integración `v2i/integ-r15` = **`e6e8c53`** (`rapido`: VERDE sobre `e6e8c53` (EK 607 · unit 930 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0, E10 en
 > papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a K (con la reconciliación de los videos, el
 > plan **P-E8d**, **E13b T5, T7 y T10**, E3b T6, E12 T7 y E8d T1), más lo del relevo 15 en `integ-r15`: **el viaje del
 > ascensor montado encima de `RootView` (E13b T6)**, **el `VideoPlayerPool` y `AnimatedArtView` (E8d T2 y T3)**, los
@@ -350,7 +350,7 @@ Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
 
 ### Sesión del 2026-10-09 (relevo 15) — La ola L: el ascensor montado, el pool de videos y el store del ranking
 
-`version-2` quedó en `fa8781a` y `v2i/integ-r15` en `e6e8c53`. **Progreso: 92 de 254 en `version-2`; 98 de 254 (38,6 %) con las seis de `integ-r15`.**
+Con el `rapido` VERDE sobre `e6e8c53`, `version-2` avanzó por fast-forward a la punta de `v2i/integ-r15`. **Progreso: 98 de 254 (38,6 %).**
 
 - **E13b T6, el viaje montado:** el overlay vive en `FisuEvolutionApp` y el mapa viaja; bajo `--uitest*` el viaje dura
   0 s. La revisión opus cazó el parpadeo al salir, el doble ding al saltear y el `prepare()` con Reduce Motion; UI tests

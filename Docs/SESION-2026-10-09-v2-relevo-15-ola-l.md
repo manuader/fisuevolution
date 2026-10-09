@@ -10,8 +10,8 @@ sonnet en worktrees manuales (`worktrees.nosync/v2i-<tarea>`); revisores opus. T
 
 | Qué | Estado |
 |---|---|
-| `version-2` | `fa8781a` (los docs de arranque del relevo; el relevo 14 había dejado `246beb7`). Avanza por fast-forward a `integ-r15` si el `rapido` da verde |
-| `v2i/integ-r15` | **`e6e8c53`** = las seis tareas de abajo. `rapido`: RAPIDO_PENDIENTE |
+| `version-2` | la punta de `v2i/integ-r15` por fast-forward, con el `rapido` VERDE (el relevo 14 había dejado `246beb7`) |
+| `v2i/integ-r15` | **`e6e8c53`** = las seis tareas de abajo. `rapido`: VERDE sobre `e6e8c53` (EK 607 · unit 930 + 1 declarado `theOwnersTargetsAreMet` · Release 0) |
 | Progreso | **92 de 254 en `version-2`; 92 + 6 = 98 de 254 (38,6 %)** si el `rapido` de `integ-r15` da VERDE (`tasks.md` §2) |
 
 El paso 1 del handoff (el `rapido` de `integ-r14` y su fast-forward) ya lo había hecho el relevo 14: las cinco tareas
@@ -138,7 +138,7 @@ Approved con arreglos**, hechos:
 
 ## Oráculo
 
-- `rapido` sobre `integ-r15` (`e6e8c53`): RAPIDO_PENDIENTE
+- `rapido` sobre `integ-r15` (`e6e8c53`): VERDE sobre `e6e8c53` (EK 607 · unit 930 + 1 declarado `theOwnersTargetsAreMet` · Release 0)
 - Tareas: E8d T6 unit 12 · E3b T7 unit 24 + UI QuickHire 3 / Tutorial 6 / BottomMenu 4 / FisuJobs 2 / HUDRedesign 3 ·
   E8d T2 unit 19 · E12 T8 EK 607 · unit 29 · E13b T6 unit 44 + UI ElevatorRide 3 / FloorMap 2 / CareerChoice 2 /
   AscentRendering 1 · E8d T3 unit 9.

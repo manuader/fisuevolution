@@ -169,6 +169,28 @@ struct CelebrationQueueTests {
         #expect(expired == nil, "el banner recién empieza, no hereda los 3,9 s")
     }
 
+    @Test("renovar reinicia el reloj del que está en pantalla, y sólo el suyo")
+    func renewRestartsTheClockOfTheCurrentOne() {
+        var queue = CelebrationQueue()
+        queue.enqueue(.boardCelebration)
+        #expect(queue.tick(10) == nil)
+        queue.renew(.boardCelebration)
+        #expect(queue.elapsed == 0)
+        #expect(queue.tick(10) == nil, "sin el renew, a los 20 s el watchdog lo habría cortado")
+        queue.renew(.towerNotice)
+        #expect(queue.elapsed == 10, "renovar a otro no toca el reloj")
+        #expect(queue.tick(5) == .boardCelebration, "el watchdog sigue vivo")
+    }
+
+    @Test("renovar también vuelve a poner el piso del skip")
+    func renewResetsTheSkipFloor() {
+        var queue = CelebrationQueue()
+        queue.enqueue(.boardCelebration)
+        _ = queue.tick(1)
+        queue.renew(.boardCelebration)
+        #expect(queue.skip() == false, "recién renovado, un toque no lo saltea")
+    }
+
     // MARK: Saltear con un tap
 
     @Test("el tap no saltea antes del piso de tiempo")

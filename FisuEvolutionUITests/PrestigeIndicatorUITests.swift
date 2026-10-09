@@ -70,6 +70,8 @@ final class PrestigeIndicatorUITests: XCTestCase {
 
         prestige.tap()
         XCTAssertTrue(arrow.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["prestige.prices_reset"].exists,
+                      "la hoja no avisa que los precios vuelven a empezar")
         assertNoRawKeys(app, context: "popup de la segunda vida")
         attach(app, named: "RF-16 segunda vida: el antes ya no es ×1")
     }

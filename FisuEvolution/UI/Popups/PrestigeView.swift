@@ -38,6 +38,13 @@ struct PrestigeView: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color("PaletteInk").opacity(0.75))
 
+                Text("prestige.prices_reset")
+                    .font(Tokens.caption)
+                    .foregroundStyle(Color("PaletteInk").opacity(0.75))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("prestige.prices_reset")
+
                 if preview.isWorthIt {
                     VStack(alignment: .leading, spacing: 6) {
                         Label(

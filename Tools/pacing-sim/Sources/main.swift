@@ -273,7 +273,7 @@ do {
     }
     if ratiosSeen == 0 { print("    ❌ sin datos (no se desbloqueó ningún piso más allá del 2º)") }
     // Los dos targets del rebalance (PROMPT-rebalance-pacing §1): maxear las
-    // siete en 20-30 h ACTIVAS y con ≤8 reencarnaciones.
+    // seis en 20-30 h ACTIVAS y con ≤9 reencarnaciones.
     check("las 7 al tope (activo)", value: report.maxedUpgradesActiveSeconds, range: (20.0 * 3600)...(30.0 * 3600), format: hours)
     check(
         "reencarnaciones al maxear",
@@ -288,7 +288,7 @@ do {
     print("  Los asserts de PacingTests miden otra cosa: sus cuatro BANDAS se")
     print("  re-pinearon el 2026-08-21 a la conducta real del rebalance de pacing")
     print("  (ver Docs/balance-log.md), y aparte assertean el objetivo del dueño")
-    print("  —maxear las seis en 20-30 h activas con <=8 reencarnaciones—, que sí")
+    print("  —maxear las seis en 20-30 h activas con <=9 reencarnaciones—, que sí")
     print("  se cumple. La brecha que queda es la fase fisura: el spec pide 20-30")
     print("  min activos y el Fisura a 25 la deja en segundos.")
 

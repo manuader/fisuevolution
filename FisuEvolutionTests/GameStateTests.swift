@@ -53,4 +53,29 @@ struct GameStateTests {
         #expect(gameState.phase == .ready)
         #expect(gameState.player?.run.coins == 999)
     }
+
+    @Test("un save con efectos derivados viejos arranca con los de sus niveles de hoy")
+    func bootstrapRecomputesDerivedEffects() async throws {
+        let repository = makeRepository()
+        var existing = PlayerState.newGame(
+            startTypeId: "homeless",
+            startFloorId: "alley",
+            offlineEfficiencyBase: 0.5,
+            critChanceBase: 0,
+            now: 1_700_000_000
+        )
+        existing.meta.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
+        // El veterano de Pegarla 7 + Toque de oro 4: 11 niveles de "lucky" con los
+        // efectos que dejó la fórmula vieja (17,5 % de crítico).
+        existing.meta.oroUpgradeLevels = ["lucky": 11]
+        existing.meta.derivedEffects.critChance = 0.175
+        await repository.save(existing)
+
+        let gameState = GameState(repository: repository)
+        await gameState.bootstrap()
+
+        let effects = try #require(gameState.player?.meta.derivedEffects)
+        #expect(abs(effects.critChance - 11 * 0.0125) < 1e-12)
+        #expect(abs(effects.goldenChance - 11 * 0.0025) < 1e-12)
+    }
 }

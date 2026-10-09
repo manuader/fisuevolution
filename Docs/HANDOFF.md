@@ -21,21 +21,22 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-08 (cierre del relevo
-> 13): `version-2` = **`4ab1817`** (pusheado; `rapido` VERDE: EK 605 · unit 816 + 1 declarado · release 0) y la
-> rama de integración `v2i/integ-r13` = **`a74d6e7`** (suma E13b T5, **sin `rapido`**). Están E0, E10 en papel,
-> E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a I, más lo del relevo 13: **E9b T6**
-> (`resetEpoch`), **E12 T3–T6** (moderación, cuatro Edge Functions, cron y `RankingState`), **E8 T6 y E8b T1–T3,
-> T7** (visitantes y especiales; retratos y cinemáticas, pipeline), **E3b T5**, **E13 T6** (la Startup) y
-> **E13b T1–T5 y T9** (el ascensor: director, placa, sonidos, clips y cabina; la Tienda fuera de la barra).
-> **Progreso: 87 de 243 tareas activas integradas (35,8 %)** (`tasks.md` §2; el denominador subió por E8b, E8c y
-> E13b). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16, E1 cerrada).** Detalle en
-> `Docs/SESION-2026-10-08-v2-relevo-13-ola-j.md`.
+> 14): `version-2` = **`596cacd`** (pusheado; `rapido` VERDE: EK 605 · unit 822 + 1 declarado · release 0) y la
+> rama de integración `v2i/integ-r14` = **`32afc93`** (`rapido`: <<RAPIDO-R14>>). Están E0, E10 en papel,
+> E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a J (con **E13b T5, la cabina**, ya en
+> `version-2`), más lo del relevo 14 en `integ-r14`: **la reconciliación de los videos con la rama del dueño**, el plan
+> **P-E8d** (el lado Swift de las animaciones, 15 tareas), **E13b T7 y T10** (la lección del ascensor y la barra
+> simétrica 2 + 1 + 2), **E3b T6** (la oferta del atajo), **E12 T7** (el cliente del ranking) y **E8d T1** (el
+> manifest entero). **Progreso: 87 de 254 tareas activas en `version-2`; 87 + 5 = 92 de 254 (36,2 %) si el `rapido`
+> de `integ-r14` da VERDE** (`tasks.md` §2; el denominador subió por E8d). **El último `completo` de referencia es el
+> `--limpio` de `c94f75f` (E1 T16).** Detalle en `Docs/SESION-2026-10-08-v2-relevo-14-ola-k.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r13` (E13b T5 + docs del cierre, `rapido` pendiente).
-> `v2/e12-plan`, `v2/release-ops` y, **nueva, `v2/e8-videos`** (y `v2/e8-animaciones-docs`) son de la sesión del
-> dueño: no se tocan. **`v2/e8-videos` solapa con lo que integró el relevo 13** (E13b T4, E8b T1–T3): el paso 1
-> del relevo 14 es reconciliarlas antes de despachar E8b T4 o E13b T6 (`tasks.md` §4.1). Hay planes por
-> tareas para todas las épicas salvo la parte de agente de E10.
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r14` (cinco tareas, los videos reconciliados, P-E8d y los docs del
+> cierre; si su `rapido` dio verde, el primer paso del relevo 15 es el fast-forward). `v2/e12-plan`,
+> `v2/release-ops`, `v2/e8-videos` y `v2/e8-animaciones-docs` son de la sesión del dueño (esas dos últimas ya están
+> mergeadas en `integ-r14`: manda la versión del dueño de cada pieza); no se tocan. Hay planes por tareas para todas
+> las épicas salvo la parte de agente de E10. **Lo primero del relevo 15:** el `rapido` de `integ-r14` si no quedó hecho y
+> después E13b T6 → T8 (prioridad alta del dueño; T8 llama `elevatorKeypadOpened()`), con E8d T2 ∥ T6 al lado (`tasks.md` §4).
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -345,6 +346,22 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-08 (relevo 14) — La ola K: los videos reconciliados, el plan Swift de las animaciones y cinco tareas más
+
+`version-2` quedó en `596cacd` (y `v2i/integ-r14` en `32afc93`). **Progreso: 87 de 254 en `version-2`; 92 de 254 (36,2 %) con las cinco de `integ-r14`.**
+
+- **Los videos, reconciliados:** se mergearon `v2/e8-videos` y `v2/e8-animaciones-docs`; manda la versión del dueño de
+  cada pieza (27 piezas y su manifest); la cabina es `cabina_puertas_*`, los stills `cabina_{cerrada,abierta}.png` hay que
+  regenerarlos (línea verde) y el tope de rate de la cabina subió a ×5.
+- **P-E8d (opus):** el lado Swift de las animaciones, 15 tareas; reemplaza E8b T4/T5/T6/T12 y cambia E8b T8/T9.
+  E8d T1 (manifest, `ArtClip`, `CinematicID`) ya está.
+- **El ascensor y la barra:** E13b T7 (la lección de mantener apretado) y T10 (barra 2 + 1 + 2, sin rótulos). Faltan T6,
+  T8 y T11.
+- **E3b T6** (la oferta del atajo con pin, motivo y siempre presente; revisión sonnet, un arreglo) y **E12 T7** (cliente,
+  identidad en el Keychain y config remota `null` hasta T16).
+
+Detalle en **`Docs/SESION-2026-10-08-v2-relevo-14-ola-k.md`**.
 
 ### Sesión del 2026-10-08 (relevo 13) — La ola J: el ascensor y la barra con plan, el backend del ranking y los videos
 
@@ -2595,6 +2612,15 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la ola K (2026-10-08, relevo 14)
+
+- **Los agentes dejan bucles de espera vivos y se re-despiertan.** Un agente que ya entregó puede seguir despertándose
+  por un `while pgrep …` o un `sleep` propio. Antes de borrar su worktree, preguntar si dejó algo en el fondo.
+- **Un bucle con el cwd en el worktree de OTRO agente impide borrarlo.** Los `sleep` de `v2i-e3b-t6` esperaban el
+  `oraculo.sh tarea LoopsManifestTests` de E8d T1. **Mirar el comando del bucle antes de cortarlo**, no suponer de quién es.
+- **`TaskStop` sólo a un agente que ya entregó** (commit hecho e integrado), nunca a uno en vuelo.
+- **Manda la versión del dueño de cada pieza de arte** y el plan Swift se escribe después de reconciliar, no antes.
 
 ### De la ola J (2026-10-08, relevo 13)
 

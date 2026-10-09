@@ -9892,6 +9892,23 @@
         }
       }
     },
+    "tutorial.tip.elevator.hold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press and hold the elevator to pick a floor."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantené apretado el ascensor para elegir piso."
+          }
+        }
+      }
+    },
     "tutorial.tip.gifts" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -4812,6 +4812,23 @@
         }
       }
     },
+    "merge_all.chain.done %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge all: %lld merges"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fusionar todo: %lld fusiones"
+          }
+        }
+      }
+    },
     "notif.comeback.body" : {
       "extractionState" : "manual",
       "localizations" : {

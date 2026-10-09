@@ -20,17 +20,17 @@ struct BoardSnapshot: Codable, Sendable, Equatable {
     var isStale: Bool
 }
 
-/// La tarjeta de llegada a Dios: el tiempo real, si quedó en revisión, el último nombre y el error del campo.
+/// La tarjeta de llegada a Dios: el tiempo real, si quedó en revisión y el último nombre.
 struct EntryPrompt: Equatable, Sendable {
-    enum NameError: Equatable, Sendable {
-        case invalid(NameRules.Rejection)
-        case rejected
-    }
-
     var realSeconds: Int?
     var underReview: Bool
     var lastName: String?
-    var error: NameError?
+}
+
+/// Por qué el último nombre no pasó. Vive aparte de la tarjeta: la pestaña también lo muestra.
+enum NameError: Equatable, Sendable {
+    case invalid(NameRules.Rejection)
+    case rejected
 }
 
 /// El estado observable del ranking y quien habla con el servidor. El `RankingState` vive en el
@@ -48,7 +48,10 @@ final class RankingStore {
     private(set) var board: BoardSnapshot?
     private(set) var myRuns: [MyRun] = []
     private(set) var isEnabled: Bool
+    /// La tarjeta de llegada a Dios; `nil` si no está abierta (ya se ofreció, se pospuso o se cerró).
     private(set) var entryPrompt: EntryPrompt?
+    /// El error del último nombre mandado (campo de la tarjeta o de la pestaña).
+    private(set) var nameError: NameError?
     private(set) var isSubmitting = false
 
     @ObservationIgnored private let client: any RankingClient
@@ -60,7 +63,7 @@ final class RankingStore {
     @ObservationIgnored private var lastBoardRefresh: TimeInterval?
     @ObservationIgnored private var pumpTask: Task<Void, Never>?
     @ObservationIgnored private var pumpAgain = false
-    @ObservationIgnored private var scheduled: [Task<Void, Never>] = []
+    @ObservationIgnored private var scheduled: [UUID: Task<Void, Never>] = [:]
 
     init(
         client: any RankingClient,
@@ -117,8 +120,9 @@ final class RankingStore {
     }
 
     func becameActive() {
+        if !isActive { host?.updateRanking { $0.sessionBegan(at: now()) } }
         isActive = true
-        host?.updateRanking { $0.sessionBegan(at: now()) }
+        offerCardIfDue()
         schedulePump()
         if lastBoardRefresh.map({ now() - $0 >= Self.boardRefreshInterval }) ?? true {
             schedule { await $0.refreshBoard(mine: false) }
@@ -133,26 +137,33 @@ final class RankingStore {
     func reachedGod() {
         var changed = false
         host?.updateRanking { changed = $0.reachedGod(at: now()) }
-        guard changed, let state = host?.rankingState, case .reachedGod = state.phase else { return }
-        if !state.cardOffered {
-            host?.updateRanking { $0.cardWasOffered() }
-            entryPrompt = prompt(for: state, error: nil)
-        }
+        guard changed else { return }
+        offerCardIfDue()
         schedulePump()
+    }
+
+    /// La tarjeta se ofrece una sola vez por partida y se marca al abrirse (`cardOffered`); si la app
+    /// murió con la tarjeta abierta no vuelve a saltar: queda la pestaña. Se pide al llegar a Dios y al
+    /// volver activo, por si la llegada ocurrió con la app ya en otro estado.
+    private func offerCardIfDue() {
+        guard let state = host?.rankingState, case .reachedGod = state.phase, !state.cardOffered,
+              entryPrompt == nil else { return }
+        host?.updateRanking { $0.cardWasOffered() }
+        entryPrompt = prompt(for: state)
     }
 
     // MARK: - El nombre
 
     func submit(name: String) async {
-        guard let state = host?.rankingState, case .reachedGod = state.phase else { return }
+        guard !isSubmitting, let state = host?.rankingState, case .reachedGod = state.phase else { return }
         switch NameRules.validate(name) {
         case .failure(let rejection):
-            entryPrompt = prompt(for: state, error: .invalid(rejection))
+            nameError = .invalid(rejection)
         case .success(let valid):
             var chosen = false
             host?.updateRanking { chosen = $0.nameChosen(valid) }
             guard chosen else { return }
-            entryPrompt = entryPrompt.map { var kept = $0; kept.error = nil; return kept }
+            nameError = nil
             isSubmitting = true
             await pump()
             isSubmitting = false
@@ -173,6 +184,7 @@ final class RankingStore {
         do {
             let response = try await client.leaderboard(LeaderboardRequest(mine: mine))
             lastBoardRefresh = now()
+            if let current = board, response.fetchedAt < current.fetchedAt { return }
             let snapshot = BoardSnapshot(
                 top: response.top, me: response.me, myRank: response.myRank,
                 fetchedAt: response.fetchedAt, isStale: false)
@@ -220,9 +232,8 @@ final class RankingStore {
 
     /// Espera lo que `newGameStarted`, `becameActive` y `reachedGod` dejaron en marcha.
     func settled() async {
-        while let next = scheduled.first {
+        while let next = scheduled.values.first {
             await next.value
-            scheduled.removeFirst()
         }
     }
 
@@ -231,22 +242,34 @@ final class RankingStore {
     }
 
     private func schedule(_ work: @escaping @MainActor (RankingStore) async -> Void) {
-        scheduled.append(Task { await work(self) })
+        let id = UUID()
+        scheduled[id] = Task {
+            await work(self)
+            scheduled[id] = nil
+        }
     }
 
     /// Devuelve si terminó sin error (si no, no tiene sentido insistir en este mismo recorrido).
     private func runPump() async -> Bool {
         guard isEnabled else { return true }
+        var carriedFailed = false
         for _ in 0..<Self.maxStepsPerPump {
             guard let state = host?.rankingState else { return true }
-            if let carried = state.carriedSubmission {
-                guard await sendCarried(carried) else { return false }
+            if let carried = state.carriedSubmission, !carriedFailed {
+                if carried.sealed && carried.name == nil {
+                    dropCarried(carried.runId)
+                    continue
+                }
+                if await sendCarried(carried) { continue }
+                // Una llegada sin sellar frena todo hasta salir; una ya sellada sólo espera su nombre.
+                guard carried.sealed else { return false }
+                carriedFailed = true
                 continue
             }
             switch state.pendingWork {
             case .none:
                 settlePrompt()
-                return true
+                return !carriedFailed
             case .start:
                 guard await register() else { return false }
             case .seal:
@@ -306,13 +329,13 @@ final class RankingStore {
                     $0.nameAnswered(name, status: response.nameStatus, rank: response.rank)
                 }
             }
-            if response.nameStatus == .rejected { settlePrompt(error: .rejected) }
+            if response.nameStatus == .rejected { nameError = .rejected }
             return true
         } catch {
             switch error {
             case .invalidName:
                 host?.updateRanking { $0.nameAnswered(name, status: .rejected, rank: nil) }
-                settlePrompt(error: .rejected)
+                nameError = .rejected
                 return true
             case .notActive, .notOwner:
                 host?.updateRanking { $0.phase = .unregisteredGod }
@@ -324,50 +347,58 @@ final class RankingStore {
         }
     }
 
-    /// Una llegada que el reset encontró sin enviar. Reenviarla es idempotente: lo definitivo la descarta.
+    /// Una llegada que el reset encontró sin enviar. Reenviarla es idempotente. Devuelve si quedó resuelta
+    /// (enviada o descartada por definitiva); un nombre que el servidor no acepta se suelta y se reintenta
+    /// sin nombre, para no perder la llegada.
     private func sendCarried(_ carried: RankingState.CarriedSubmission) async -> Bool {
         do {
-            _ = try await client.finishRun(FinishRunRequest(runId: carried.runId, playedSeconds: 0, name: carried.name))
-            host?.updateRanking { $0.carriedSubmissionSent() }
+            _ = try await client.finishRun(FinishRunRequest(
+                runId: carried.runId, playedSeconds: carried.playedSeconds, name: carried.name))
+            dropCarried(carried.runId)
             return true
         } catch {
-            if error == .notActive || error == .notOwner || error == .invalidName {
-                host?.updateRanking { $0.carriedSubmissionSent() }
+            switch error {
+            case .invalidName where carried.name != nil && !carried.sealed:
+                host?.updateRanking { if $0.carriedSubmission?.runId == carried.runId { $0.carriedSubmission?.name = nil } }
                 return true
+            case .notActive, .notOwner, .invalidName:
+                dropCarried(carried.runId)
+                return true
+            default:
+                note(error)
+                return false
             }
-            note(error)
-            return false
         }
+    }
+
+    private func dropCarried(_ runId: String) {
+        host?.updateRanking { if $0.carriedSubmission?.runId == runId { $0.carriedSubmissionSent() } }
     }
 
     // MARK: - Lo que se muestra
 
-    private func prompt(for state: RankingState, error: EntryPrompt.NameError?) -> EntryPrompt {
+    private func prompt(for state: RankingState) -> EntryPrompt {
         EntryPrompt(
             realSeconds: state.submission?.realSeconds, underReview: state.submission?.underReview ?? false,
-            lastName: state.lastName, error: error)
+            lastName: state.lastName)
     }
 
-    /// Pone la tarjeta al día con el estado: cierra la tarjeta si el nombre ya salió, o lo muestra rechazado.
-    private func settlePrompt(error: EntryPrompt.NameError? = nil) {
-        guard let current = entryPrompt, let state = host?.rankingState else { return }
+    /// Pone la tarjeta (si está abierta) al día con el estado: se cierra cuando el nombre ya salió o está
+    /// en camino; con el nombre rechazado o sin elegir sigue abierta. Nunca la reabre.
+    private func settlePrompt() {
+        guard entryPrompt != nil, let state = host?.rankingState else { return }
         guard case .reachedGod = state.phase else {
             entryPrompt = nil
             return
         }
-        switch state.submission?.nameStatus {
+        let submission = state.submission
+        switch submission?.nameStatus {
         case .ok?, .pending?:
             entryPrompt = nil
         case .rejected?:
-            entryPrompt = prompt(for: state, error: .rejected)
+            entryPrompt = prompt(for: state)
         default:
-            if state.submission?.name != nil {
-                entryPrompt = nil
-            } else {
-                var updated = prompt(for: state, error: error ?? current.error)
-                updated.error = error ?? current.error
-                entryPrompt = updated
-            }
+            entryPrompt = submission?.name != nil ? nil : prompt(for: state)
         }
     }
 

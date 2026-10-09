@@ -7,12 +7,13 @@ import Testing
 @MainActor
 @Suite("GameState como host del ranking")
 struct GameStateRankingHostTests {
-    @Test("el store lee y muta meta.ranking; godTier todavía no se usa")
+    @Test("el store lee y muta meta.ranking; godTier es el último tier del contenido")
     func readsAndMutatesMetaRanking() async {
         let state = await makeGameState()
         state.saveTask = nil
         #expect(state.rankingState == state.player?.meta.ranking)
-        #expect(state.godTier == nil)
+        #expect(state.godTier == state.content?.tiers.maxTier)
+        #expect(state.godTier != nil)
 
         state.updateRanking { $0.lastName = "Ana" }
 

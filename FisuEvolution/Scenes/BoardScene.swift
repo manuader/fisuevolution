@@ -42,6 +42,17 @@ final class BoardScene: SKScene {
     /// un parpadeo, que es exactamente el tirón que el vuelo no puede tener.
     private var flightTextures: [SKTexture] = []
 
+    private let loops: LoopsManifest
+    private let videoPool: VideoPlayerPool
+    private let packs: ArtPacks
+    /// El fondo animado sólo corre con la cámara quieta: mientras viaja o el dedo arrastra la torre,
+    /// los pisos muestran su póster y el pool no decodifica nada.
+    private var isCameraTravelling = false
+    private var isSwipeDragging = false
+    private var isDetached = false
+    private var scrollSuspension: VideoPlayerPool.Suspension?
+    private var prefetchedPackTag: String?
+
     // Geometría del campo, cacheada por layoutBoard.
     private var boardColumns = 0
     private var boardRows = 0
@@ -281,8 +292,12 @@ final class BoardScene: SKScene {
         }
     }
 
-    init(gameState: GameState) {
+    init(gameState: GameState, loops: LoopsManifest = .main,
+         videoPool: VideoPlayerPool = .shared, packs: ArtPacks = .shared) {
         self.gameState = gameState
+        self.loops = loops
+        self.videoPool = videoPool
+        self.packs = packs
         super.init(size: CGSize(width: 390, height: 844))
         scaleMode = .resizeFill
         backgroundColor = Palette.cream
@@ -304,8 +319,19 @@ final class BoardScene: SKScene {
     }
 
     override func didMove(to view: SKView) {
+        isDetached = false
         layoutBoard()
         particles.preheat()
+    }
+
+    override func willMove(from view: SKView) {
+        isDetached = true
+        applyBackgroundAnimation()
+    }
+
+    deinit {
+        if let scrollSuspension { Task { @MainActor [videoPool] in videoPool.resume(scrollSuspension) } }
+        if let prefetchedPackTag { Task { @MainActor [packs] in packs.release(prefetchedPackTag) } }
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -749,6 +775,7 @@ final class BoardScene: SKScene {
                 let now = touch.location(in: self)
                 if hypot(now.x - start.x, now.y - start.y) > 12 {
                     removeAction(forKey: Self.longPressKey)
+                    swipeDragChanged(true)
                 }
             }
             return
@@ -781,6 +808,10 @@ final class BoardScene: SKScene {
     }
 
     #if DEBUG
+    func simulateSwipeDrag(_ dragging: Bool) {
+        swipeDragChanged(dragging)
+    }
+
     /// Punto de entrada del test: ejecuta la MISMA decisión que el gesto.
     func simulateSwipe(deltaY: CGFloat) {
         if let delta = floorDelta(deltaX: 0, deltaY: deltaY) {
@@ -796,9 +827,10 @@ final class BoardScene: SKScene {
             let end = touch.location(in: self)
             let deltaY = end.y - start.y
             let deltaX = end.x - start.x
-            if let delta = floorDelta(deltaX: deltaX, deltaY: deltaY) {
-                _ = gameState.moveVisibleFloor(by: delta)
-            }
+            // Si el piso cambia, el arrastre lo cierra el viaje de la cámara: soltarlo antes
+            // devolvería el video al piso de salida por un instante.
+            let moved = floorDelta(deltaX: deltaX, deltaY: deltaY).map { gameState.moveVisibleFloor(by: $0) } ?? false
+            if !moved { swipeDragChanged(false) }
             return
         }
         guard let node = dragNode, let touch = touches.first else { return }
@@ -922,6 +954,7 @@ final class BoardScene: SKScene {
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         removeAction(forKey: Self.longPressKey)
         emptyTouchStart = nil
+        swipeDragChanged(false)
         cancelDrag(snapBack: true)
     }
 
@@ -1602,12 +1635,16 @@ final class BoardScene: SKScene {
         // enumera puede invalidar su iterador al desalojar un piso lejano.
         let staleOrdinals = floorNodes.keys.filter { !liveOrdinals.contains($0) }
         for ordinal in staleOrdinals {
-            floorNodes.removeValue(forKey: ordinal)?.removeFromParent()
+            if let node = floorNodes.removeValue(forKey: ordinal) {
+                node.setBackgroundAnimating(false)
+                node.removeFromParent()
+            }
         }
 
         for ordinal in liveOrdinals {
             let definition = content.floorTable[ordinal]
-            let node = floorNodes[ordinal] ?? FloorNode(ordinal: ordinal, definition: definition)
+            let node = floorNodes[ordinal] ?? FloorNode(ordinal: ordinal, definition: definition, loops: loops,
+                                                        pool: videoPool, packs: packs)
             node.position = CGPoint(x: 0, y: CGFloat(ordinal) * size.height)
             node.render(content: content, size: size)
             node.isPaused = ordinal != visible
@@ -1616,6 +1653,63 @@ final class BoardScene: SKScene {
                 floorNodes[ordinal] = node
             }
         }
+        applyBackgroundAnimation()
+    }
+
+    // MARK: - Fondo animado del piso visible
+
+    private var isScrolling: Bool { isCameraTravelling || isSwipeDragging }
+    private var animatesBackground: Bool { !isScrolling && !isDetached }
+
+    /// Dónde corre el video de fondo, o `nil` si no corre en ninguno.
+    var animatedFloorOrdinal: Int? {
+        floorNodes.first { $0.value.hasBackgroundVideo }?.key
+    }
+
+    func scrollBegan() {
+        isCameraTravelling = true
+        updateScrollState()
+    }
+
+    func scrollSettled() {
+        isCameraTravelling = false
+        updateScrollState()
+    }
+
+    private func swipeDragChanged(_ dragging: Bool) {
+        guard isSwipeDragging != dragging else { return }
+        isSwipeDragging = dragging
+        updateScrollState()
+    }
+
+    private func updateScrollState() {
+        if isScrolling, scrollSuspension == nil {
+            scrollSuspension = videoPool.suspend(.scrolling)
+        } else if !isScrolling, let suspension = scrollSuspension {
+            scrollSuspension = nil
+            videoPool.resume(suspension)
+        }
+        applyBackgroundAnimation()
+    }
+
+    private func applyBackgroundAnimation() {
+        let animated = animatesBackground ? gameState.visibleFloorOrdinal : nil
+        for (ordinal, node) in floorNodes {
+            node.setBackgroundAnimating(ordinal == animated)
+        }
+        if animated != nil { prefetchNextFloorPack() }
+    }
+
+    /// El piso de arriba es el que viene: su pack ODR se pide en segundo plano apenas el actual se asienta.
+    private func prefetchNextFloorPack() {
+        guard videoPool.policy.allowsLoops, let table = gameState.floorTable else { return }
+        let next = gameState.visibleFloorOrdinal + 1
+        let tag = table.floors.indices.contains(next)
+            ? loops.odrTag(for: .floor(table.floors[next].background)) : nil
+        guard tag != prefetchedPackTag else { return }
+        if let prefetchedPackTag { packs.release(prefetchedPackTag) }
+        prefetchedPackTag = tag
+        if let tag { packs.prefetch(tag) }
     }
 
     /// Lleva la cámara al piso visible. Un piso de distancia es un salto corto;
@@ -1637,10 +1731,17 @@ final class BoardScene: SKScene {
         isFlying = false
         guard !Self.prefersReducedMotion else {
             cameraNode.position = target
+            isSwipeDragging = false
+            scrollSettled()
             return
         }
+        isSwipeDragging = false
         guard distance > 1, let totalFloors = gameState.floorTable?.floors.count else {
-            cameraNode.run(.move(to: target, duration: Self.floorHopDuration), withKey: Self.floorCameraKey)
+            scrollBegan()
+            cameraNode.run(
+                .sequence([.move(to: target, duration: Self.floorHopDuration), .run { [weak self] in self?.scrollSettled() }]),
+                withKey: Self.floorCameraKey
+            )
             return
         }
         let flight = SKAction.move(to: target, duration: Self.flightDuration(floors: distance, totalFloors: totalFloors))
@@ -1648,6 +1749,7 @@ final class BoardScene: SKScene {
         // justo lo que el mapa vino a reemplazar.
         flight.timingMode = .easeInEaseOut
         isFlying = true
+        scrollBegan()
         preloadFlightBackgrounds(from: origin, to: destination)
         cameraNode.run(
             .sequence([flight, .run { [weak self] in self?.finishFlight() }]),
@@ -1721,6 +1823,7 @@ final class BoardScene: SKScene {
     private func finishFlight() {
         isFlying = false
         flightTextures = []
+        defer { scrollSettled() }
         guard let content = gameState.content else { return }
         renderLiveFloorNodes(content: content, centeredOn: gameState.visibleFloorOrdinal)
     }

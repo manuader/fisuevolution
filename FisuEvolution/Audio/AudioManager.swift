@@ -98,11 +98,27 @@ final class AudioManager {
     var musicVolume: Double {
         didSet {
             UserDefaults.standard.set(musicVolume, forKey: Self.musicVolumeKey)
-            musicPlayer?.volume = Float(musicVolume)
+            musicPlayer?.volume = effectiveMusicVolume
             // Sólo el tema que manda: el que se está yendo baja a cero solo.
             if let lead = floorMusic.lead {
-                floorPlayers[lead]?.volume = Float(musicVolume)
+                floorPlayers[lead]?.volume = effectiveMusicVolume
             }
+        }
+    }
+
+    /// Cuánto queda la música mientras suena una cinemática: se oye, no compite.
+    static let duckFactor: Float = 0.25
+    private static let duckFade: TimeInterval = 0.4
+    @ObservationIgnored private var musicDucked = false
+
+    var effectiveMusicVolume: Float { Float(musicVolume) * (musicDucked ? Self.duckFactor : 1) }
+
+    func setMusicDucked(_ ducked: Bool) {
+        guard musicDucked != ducked else { return }
+        musicDucked = ducked
+        musicPlayer?.setVolume(effectiveMusicVolume, fadeDuration: Self.duckFade)
+        if let lead = floorMusic.lead {
+            floorPlayers[lead]?.setVolume(effectiveMusicVolume, fadeDuration: Self.duckFade)
         }
     }
 
@@ -197,7 +213,7 @@ final class AudioManager {
               let player = try? AVAudioPlayer(data: data)
         else { return }
         player.numberOfLoops = -1
-        player.volume = Float(musicVolume)
+        player.volume = effectiveMusicVolume
         musicPlayer = player
         player.play()
     }
@@ -228,7 +244,7 @@ final class AudioManager {
             Task { await fadeIn(track) }
         case .restore(let track):
             if let player = floorPlayers[track] {
-                player.setVolume(Float(musicVolume), fadeDuration: FloorMusicDirector.crossfade)
+                player.setVolume(effectiveMusicVolume, fadeDuration: FloorMusicDirector.crossfade)
             } else {
                 // Se fue antes de terminar de cargar: entra como nuevo.
                 Task { await fadeIn(track) }
@@ -264,7 +280,7 @@ final class AudioManager {
         player.volume = 0
         floorPlayers[track] = player
         player.play()
-        player.setVolume(Float(musicVolume), fadeDuration: FloorMusicDirector.crossfade)
+        player.setVolume(effectiveMusicVolume, fadeDuration: FloorMusicDirector.crossfade)
     }
 
     /// El tema entero decodificado a PCM de 16 bits y envuelto en un WAV en

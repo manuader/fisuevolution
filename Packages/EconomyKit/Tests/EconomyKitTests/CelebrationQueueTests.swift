@@ -327,12 +327,24 @@ struct CelebrationQueueTests {
     /// jugador tiene su propio botón, así que ni se saltea ni se vence.
     @Test("salteable y con tope son la misma lista")
     func skippableMatchesSelfClosing() {
-        for kind in CelebrationKind.allCases {
+        for kind in CelebrationKind.allCases where kind != .cinematic {
             #expect(
                 kind.isSkippable == (kind.timeout != nil),
                 "\(kind.rawValue) rompe la invariante: se cierra solo pero no se saltea, o al revés"
             )
         }
+    }
+
+    @Test("la cinemática se cierra sola pero un tap no la saltea: tiene su propio Saltar")
+    func cinematicIsNotSkippableByTap() {
+        #expect(CelebrationKind.cinematic.timeout != nil)
+        #expect(!CelebrationKind.cinematic.isSkippable)
+        var queue = CelebrationQueue()
+        queue.enqueue(.cinematic)
+        _ = queue.tick(CelebrationQueue.skipFloor + 1)
+        let skipped = queue.skip()
+        #expect(!skipped)
+        #expect(queue.current == .cinematic)
     }
 
     @Test("todo ítem declara una prioridad usable")

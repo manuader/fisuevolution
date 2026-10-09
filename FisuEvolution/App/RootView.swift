@@ -236,6 +236,17 @@ struct GameBoardView: View {
                 }
             }
             .animation(.easeInOut(duration: 0.25), value: gameState.chestReward?.id)
+
+            // La cinemática, al lado del cofre y por lo mismo: pantalla entera, su propio telón y su
+            // propio `ZStack` para que la `.animation` no tiña el resto.
+            ZStack {
+                if let cinematic = gameState.cinematic, gameState.showing == .cinematic {
+                    CinematicOverlay(id: cinematic)
+                        .id(cinematic)
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut(duration: 0.25), value: gameState.showing == .cinematic)
         }
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los
         // anchors que publican los controles de adentro: `overlayPreferenceValue`

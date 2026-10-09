@@ -33,6 +33,16 @@ struct AudioManagerTests {
         }
     }
 
+    @Test("con la música bajada, el volumen efectivo es una fracción; al soltar, vuelve")
+    func duckingLowersAndRestores() {
+        let audio = AudioManager()
+        audio.musicVolume = 0.8
+        audio.setMusicDucked(true)
+        #expect(abs(audio.effectiveMusicVolume - 0.8 * AudioManager.duckFactor) < 0.0001)
+        audio.setMusicDucked(false)
+        #expect(abs(audio.effectiveMusicVolume - 0.8) < 0.0001)
+    }
+
     @Test("el ambiente suena 18 dB abajo de la acción")
     func ambientGain() {
         #expect(abs(AudioManager.Gain.ambient.linear - Float(pow(10, -18.0 / 20))) < 0.001)

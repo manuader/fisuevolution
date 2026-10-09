@@ -84,9 +84,11 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         }
     }
 
-    /// Se puede saltear con un tap exactamente lo que se cierra solo. Un sheet
-    /// tiene su botón: un tap al vacío no lo cierra.
-    public var isSkippable: Bool { timeout != nil }
+    /// Se puede saltear con un tap lo que se cierra solo. Un sheet tiene su botón:
+    /// un tap al vacío no lo cierra. La cinemática se cierra sola pero tapa la
+    /// pantalla con su propio "Saltar": un tap al tablero de abajo no la corta
+    /// (ni le borra a una celebración del tablero la animación que esperaba).
+    public var isSkippable: Bool { timeout != nil && self != .cinematic }
 }
 
 /// Hace que las celebraciones se reproduzcan **de a una**.

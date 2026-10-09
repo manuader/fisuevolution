@@ -29,11 +29,11 @@ struct MenuSessionTests {
     @Test("el paginador arranca en la página pedida y monta sólo a las vecinas")
     func pagerStartsOnTheRequestedPage() {
         let pages = GameScreen.barOrder
-        #expect(MenuPagerView.startIndex(of: .jobs, in: pages) == 2)
+        #expect(MenuPagerView.startIndex(of: .jobs, in: pages) == 3)
         #expect(MenuPagerView.startIndex(of: .menu, in: [.upgrades, .skins]) == 0,
                 "una página que no está desbloqueada cae en la primera")
-        #expect(MenuPagerView.isMounted(index: 1, current: 2))
-        #expect(MenuPagerView.isMounted(index: 3, current: 2))
-        #expect(!MenuPagerView.isMounted(index: 4, current: 2))
+        #expect(MenuPagerView.isMounted(index: 2, current: 3))
+        #expect(MenuPagerView.isMounted(index: 4, current: 3))
+        #expect(!MenuPagerView.isMounted(index: 5, current: 3))
     }
 }

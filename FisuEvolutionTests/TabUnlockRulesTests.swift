@@ -12,6 +12,7 @@ struct TabUnlockRulesTests {
         .init(id: "jobs", unlockWhen: [.always]),
         .init(id: "gifts", unlockWhen: [.tutorialCore, .firstChest]),
         .init(id: "menu", unlockWhen: [.tutorialCore]),
+        .init(id: "ranking", unlockWhen: [.tutorialCore]),
     ])
 
     private func signals(core: Bool = false, skin: Bool = false, chest: Bool = false, sessions: Int = 0) -> TabUnlockSignals {
@@ -23,9 +24,9 @@ struct TabUnlockRulesTests {
         #expect(TabUnlockRules.unlocked(config: config, signals: signals()) == [.jobs, .upgrades])
     }
 
-    @Test("el núcleo del tutorial abre Bonus y Menú")
+    @Test("el núcleo del tutorial abre Bonus, Menú y Ranking")
     func coreOpensGiftsAndMenu() {
-        #expect(TabUnlockRules.unlocked(config: config, signals: signals(core: true)) == [.jobs, .upgrades, .gifts, .menu])
+        #expect(TabUnlockRules.unlocked(config: config, signals: signals(core: true)) == [.jobs, .upgrades, .gifts, .menu, .ranking])
     }
 
     @Test("el primer cofre abre Bonus aunque el tutorial siga")
@@ -38,7 +39,7 @@ struct TabUnlockRulesTests {
         #expect(TabUnlockRules.unlocked(config: config, signals: signals(skin: true)).contains(.skins))
     }
 
-    @Test("el tabs.json embarcado es válido y cubre las cinco pestañas de la barra")
+    @Test("el tabs.json embarcado es válido y cubre las pestañas de la barra")
     func bundledConfigIsValid() throws {
         let content = try GameContentLoader.load(from: .main)
         try content.tabs.validate()

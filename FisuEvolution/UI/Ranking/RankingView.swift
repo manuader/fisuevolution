@@ -10,6 +10,8 @@ struct RankingView: View {
     var now: TimeInterval = Date().timeIntervalSince1970
     let onStore: () -> Void
 
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.menuPager) private var pager
     @State private var path = NavigationPath()
     @State private var reporting: LeaderboardRow?
     @State private var isNaming = false
@@ -47,6 +49,9 @@ struct RankingView: View {
             .panelSheet { header }
             .navigationTitle(Text(verbatim: ""))
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
+            }
             .navigationDestination(for: Destination.self) { _ in
                 MyRunsView(store: store).clearNavigationBackdrop()
             }
@@ -54,6 +59,7 @@ struct RankingView: View {
         }
         .overlay { overlays(model) }
         .tint(Color("PaletteInk"))
+        .onChange(of: path.isEmpty) { _, isEmpty in pager?.lock(!isEmpty) }
     }
 
     // MARK: Contenido

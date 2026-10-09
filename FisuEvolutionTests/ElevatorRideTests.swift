@@ -83,7 +83,7 @@ struct ElevatorRideTests {
         await ride.waitUntilIdle()
         #expect(recorder.jumps == [4])
         #expect(recorder.phasesAtJump == [.traveling])
-        #expect(recorder.cues == [.keypadOpen, .button, .doorsClose, .motorStart, .motorStop, .ding, .doorsOpen])
+        #expect(recorder.cues == [.keypadOpen, .button, .doorsClose, .motorStart, .cable, .motorStop, .ding, .doorsOpen])
         #expect(ride.phase == .idle)
     }
 
@@ -177,10 +177,11 @@ struct ElevatorRideTests {
     func cuesMapToSounds() {
         #expect(ElevatorRide.Cue.motorStart.sound == .startLoop(.elevatorMotor))
         #expect(ElevatorRide.Cue.motorStop.sound == .stopLoop(.elevatorMotor))
+        #expect(ElevatorRide.Cue.cable.sound == .oneShot(.elevatorCable, .action))
         #expect(ElevatorRide.Cue.ding.sound == .oneShot(.elevatorDing, nil))
         #expect(ElevatorRide.Cue.button.sound == .oneShot(.elevatorClick, .action))
         #expect(Set(ElevatorRide.Cue.all.map(\.sound.sfx)) == [
-            .elevatorSpring, .elevatorClick, .elevatorDoors, .elevatorMotor, .elevatorDing,
+            .elevatorSpring, .elevatorClick, .elevatorDoors, .elevatorMotor, .elevatorCable, .elevatorDing,
         ])
     }
 }

@@ -71,4 +71,60 @@ struct ElevatorCabinTests {
         warmup.release()
         #expect(warmup.currentClosing(url: url) == nil)
     }
+
+    private final class Holder: VideoLeaseHolder {
+        func videoLeaseDidChange(isLive: Bool) {}
+    }
+
+    private static let clip = URL(fileURLWithPath: "/dev/null/cabina.mov")
+
+    private func fullPool() -> (pool: VideoPlayerPool, holders: [Holder]) {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let holders = [Holder(), Holder(), Holder()]
+        _ = pool.acquire(holders[0], role: .background)
+        _ = pool.acquire(holders[1], role: .popup)
+        _ = pool.acquire(holders[2], role: .icon)
+        return (pool, holders)
+    }
+
+    @Test("preparar con video reserva un decodificador: de 3 vivos a 2; soltar lo devuelve")
+    func prepareReservesADecoder() {
+        let (pool, holders) = fullPool()
+        withExtendedLifetime(holders) {
+            #expect(pool.liveCount == 3)
+            let warmup = ElevatorCabinWarmup(pool: pool)
+            warmup.prepare(art: .video(close: Self.clip, open: Self.clip))
+            #expect(pool.liveCount == 2)
+            warmup.release()
+            #expect(pool.liveCount == 3)
+        }
+    }
+
+    @Test("preparar dos veces reserva uno solo")
+    func prepareTwiceReservesOnce() {
+        let (pool, holders) = fullPool()
+        withExtendedLifetime(holders) {
+            let warmup = ElevatorCabinWarmup(pool: pool)
+            let art = ElevatorCabinArt.video(close: Self.clip, open: Self.clip)
+            warmup.prepare(art: art)
+            warmup.prepare(art: art)
+            #expect(pool.liveCount == 2)
+            warmup.release()
+            warmup.release()
+            #expect(pool.liveCount == 3, "un solo unreserve alcanza y el segundo release no resta de más")
+        }
+    }
+
+    @Test("con cuadros o vectorial no se reserva nada")
+    func stillsAndVectorDoNotReserve() throws {
+        let (pool, holders) = fullPool()
+        try withExtendedLifetime(holders) {
+            let warmup = ElevatorCabinWarmup(pool: pool)
+            let image = try #require(UIImage(systemName: "circle"))
+            warmup.prepare(art: .stills(closed: image, open: image))
+            warmup.prepare(art: .vector)
+            #expect(pool.liveCount == 3)
+            warmup.release()
+        }
+    }
 }

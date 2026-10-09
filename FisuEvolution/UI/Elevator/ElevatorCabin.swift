@@ -63,11 +63,18 @@ final class ElevatorCabinWarmup {
     private var closing: (url: URL, player: ChestCinematicPlayer)?
     private var opening: (url: URL, player: ChestCinematicPlayer)?
     private var expiry: Task<Void, Never>?
+    private let pool: VideoPlayerPool
+    private var reservation: VideoPlayerPool.Reservation?
+
+    init(pool: VideoPlayerPool = .shared) {
+        self.pool = pool
+    }
 
     /// Idempotente y sin esperar: el calentado corre en el `Task` del player.
     func prepare(art: ElevatorCabinArt = .shared) {
         guard case .video(let close, _) = art, !UIAccessibility.isReduceMotionEnabled else { return }
         _ = closingPlayer(url: close)
+        reserveDecoder()
         expiry?.cancel()
         expiry = Task { [weak self] in
             try? await Task.sleep(for: Self.patience)
@@ -89,6 +96,18 @@ final class ElevatorCabinWarmup {
     func cancelExpiry() {
         expiry?.cancel()
         expiry = nil
+    }
+
+    /// Mientras la cabina tiene un player calentado, el pool le deja uno de sus tres decodificadores.
+    private func reserveDecoder() {
+        guard reservation == nil else { return }
+        reservation = pool.reserve()
+    }
+
+    private func unreserveDecoder() {
+        guard let reservation else { return }
+        pool.unreserve(reservation)
+        self.reservation = nil
     }
 
     private static func isUsable(_ player: ChestCinematicPlayer) -> Bool {
@@ -120,6 +139,7 @@ final class ElevatorCabinWarmup {
     func release() {
         expiry?.cancel()
         expiry = nil
+        unreserveDecoder()
         releaseClosing()
         Self.dispose(opening?.player)
         opening = nil

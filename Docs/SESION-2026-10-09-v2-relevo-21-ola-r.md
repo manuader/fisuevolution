@@ -157,7 +157,7 @@ en `9972f95`). Controlador opus; implementadores sonnet en worktrees manuales; r
 | Qué | Estado |
 |---|---|
 | `v2i/integ-r21b` | **`34f2266`**: la lista de palabras (`a42a94b`), E3b T8 y E13 T7 (🟢 las dos) |
-| `rapido` sobre `34f2266` | RAPIDO_PENDIENTE |
+| `rapido` sobre `34f2266` | VERDE sobre `34f2266` (EK 642 · unit 1070 · 0 rojos · Release 0) |
 | `version-2` | sigue en `9972f95` hasta que el `rapido` dé VERDE; entonces avanza por fast-forward (E3b T8 y E13 T7 pasan a ✅) |
 
 ## Las decisiones del dueño (en el chat, no se vuelven a preguntar)
@@ -231,7 +231,7 @@ que cuenten hay que confirmarlas **en el chat**, y el controlador las pasa a `ta
 
 ## Oráculo
 
-- `rapido` sobre la punta de `integ-r21b` (`34f2266`: lista de palabras + E3b T8 + E13 T7): RAPIDO_PENDIENTE.
+- `rapido` sobre la punta de `integ-r21b` (`34f2266`: lista de palabras + E3b T8 + E13 T7): VERDE sobre `34f2266` (EK 642 · unit 1070 · 0 rojos · Release 0).
 - Tareas: E3b T8 Receta R (QuickHire 3/3 · QuickHireButton 3/3 · BottomMenu 4/4 · Tutorial 9/9); E13 T7 unit 103.
 
 ## Lo descartado

@@ -23,7 +23,7 @@
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
 > 21b, la continuación del 21 en la misma sesión): `version-2` = **`9972f95`** (`rapido` VERDE sobre `3424ae5`: EK 637 · unit 1066 + 1 declarado
 > `theOwnersTargetsAreMet` · Release 0) · la rama de integración `v2i/integ-r21b` = **`34f2266`** + estos docs (`rapido` sobre `34f2266`:
-> RAPIDO_PENDIENTE). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a R (E8d T10 el viaje que suspende los
+> VERDE sobre `34f2266` (EK 642 · unit 1070 · 0 rojos · Release 0)). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a R (E8d T10 el viaje que suspende los
 > videos, E12 T13 la barra de seis, E13 T2 los premios por video, E13 T9 la ficha con Despedir), más lo del relevo 21b, en `integ-r21b`: **la lista
 > de palabras de E12 ACTIVA** (migración `20261009000001_blocklist.sql`; se despliega con E12 T16), **E3b T8** (el selector del atajo) y **E13 T7**
 > (el toque premiado en **seis** líneas, Dios en 31,34 h, `PacingTests` re-pineado). **Progreso: 137 de 254 tareas activas en `version-2` (53,9 %);
@@ -352,7 +352,7 @@ Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
 ### Sesión del 2026-10-09 (relevo 21b) — El dueño aprobó: la lista de palabras, el selector del atajo y las seis líneas
 
 Continuación del relevo 21 en la misma sesión, después de que el dueño escribiera en el chat «aproba todo y continua con el desarrollo». Todo en
-`v2i/integ-r21b` (`34f2266`; `rapido`: RAPIDO_PENDIENTE). **Progreso: 137 de 254 en `version-2`; 139 de 254 (54,7 %) con las dos 🟢 de `integ-r21b`.**
+`v2i/integ-r21b` (`34f2266`; `rapido`: VERDE sobre `34f2266` (EK 642 · unit 1070 · 0 rojos · Release 0)). **Progreso: 137 de 254 en `version-2`; 139 de 254 (54,7 %) con las dos 🟢 de `integ-r21b`.**
 
 - **Decisiones del dueño (no se re-litigan):** E13 T7 opción (a) (Dios 31,34 h, bandas re-pineadas); barra de 6 pestañas con platos de 44 pt; E13 T2 tal
   cual; activar la lista de palabras de E12; el cable del ascensor tal cual.

@@ -43,6 +43,7 @@ public enum SaveConflictResolver {
         // jugador se ganó, el juego prefiere lo primero. Son premios cosméticos.
         winner.meta.chestsPending = max(local.meta.chestsPending, remote.meta.chestsPending)
         winner.meta.prestigeChestsPending = max(local.meta.prestigeChestsPending, remote.meta.prestigeChestsPending)
+        winner.meta.floorChestsAwarded = max(local.meta.floorChestsAwarded, remote.meta.floorChestsAwarded)
 
         // Skins activas: manda el ganador; las keys que solo el perdedor tenía se
         // completan (elección cosmética hecha en el otro device).

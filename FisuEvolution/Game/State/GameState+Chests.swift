@@ -13,9 +13,10 @@ import Foundation
 /// guarda ni se sortea: su premio lo nombra `chests.json` y nace abierto, porque
 /// es una escena del tutorial y no plata que el jugador administra.
 extension GameState {
-    /// La torre paga cada `floorsPerChest` pisos. El contador vive en `run` y
-    /// cuenta CUÁNTOS pagó, no cuáles: así re-desbloquear un piso que ya viste
-    /// no vuelve a pagar, y volver a subir la torre después de reencarnar sí.
+    /// La torre paga cada `floorsPerChest` pisos. El contador vive en `meta` y
+    /// cuenta CUÁNTOS pagó la cuenta, no cuáles: re-desbloquear un piso que ya
+    /// viste no vuelve a pagar, ni volver a subir la torre después de reencarnar
+    /// (PLAN-v2 E13): sólo paga un piso que la cuenta nunca alcanzó en una partida.
     ///
     /// ⚠️ Cuelga de `updateMaxFloorStat()`, que corre en CADA merge: sin el
     /// contador esto sería un cofre por fusión.
@@ -26,9 +27,9 @@ extension GameState {
         // embudo más caliente del juego, no un cofre mal contado.
         let cadaCuantos = max(1, content.chests.floorsPerChest)
         let debidos = player.run.unlockedFloors.count / cadaCuantos
-        guard debidos > player.run.floorChestsAwarded else { return }
-        let nuevos = debidos - player.run.floorChestsAwarded
-        player.run.floorChestsAwarded = debidos
+        guard debidos > player.meta.floorChestsAwarded else { return }
+        let nuevos = debidos - player.meta.floorChestsAwarded
+        player.meta.floorChestsAwarded = debidos
         player.meta.chestsPending += nuevos
         self.player = player
         Log.economy.info("cofres de torre: +\(nuevos) (pisos \(player.run.unlockedFloors.count))")

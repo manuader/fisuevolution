@@ -28,6 +28,19 @@ struct ResetEpochTests {
         }
     }
 
+    @Test("el contador de cofres de piso no cruza el reset: manda el de la época nueva, aunque sea cero")
+    func floorChestsDoNotCrossTheReset() {
+        let fresh = state(epoch: 1, earnings: 10, oro: 0)
+        var old = state(epoch: 0, earnings: 1e12, oro: 0)
+        old.meta.floorChestsAwarded = 6
+        for resolved in [
+            SaveConflictResolver.resolve(local: fresh, remote: old),
+            SaveConflictResolver.resolve(local: old, remote: fresh)
+        ] {
+            #expect(resolved.meta.floorChestsAwarded == 0)
+        }
+    }
+
     @Test("entre tres épocas manda la mayor, sin importar el orden")
     func highestEpochOfThree() {
         let a = state(epoch: 0, earnings: 9e9, oro: 0)

@@ -110,10 +110,6 @@ public struct RunState: Codable, Sendable, Equatable {
     /// tiene por qué borrarte de la pantalla la mejora que le compraste
     /// (RF-03). `TowerReconciler` los rellena en la carga.
     public var seenTypes: Set<String>
-    /// Cuántos cofres dio la torre en ESTA partida. Muere con la run a
-    /// propósito: volver a subir la torre vuelve a pagar, que es lo que empuja
-    /// a reencarnar.
-    public var floorChestsAwarded: Int
     /// Hasta qué tier ya se le mostró su revelación al jugador. Red de seguridad:
     /// si queda por debajo de `maxTierReached`, falta una revelación por encolar.
     /// Un save que no lo trae arranca parejo con la frontera: nunca una lluvia de
@@ -135,7 +131,6 @@ public struct RunState: Codable, Sendable, Equatable {
         unlockedFloors: [String],
         activeModifiers: [ActiveModifier],
         seenTypes: Set<String> = [],
-        floorChestsAwarded: Int = 0,
         revealedTier: Int? = nil,
         priceRelief: Double = 1
     ) {
@@ -150,7 +145,6 @@ public struct RunState: Codable, Sendable, Equatable {
         self.unlockedFloors = unlockedFloors
         self.activeModifiers = activeModifiers
         self.seenTypes = seenTypes
-        self.floorChestsAwarded = floorChestsAwarded
         self.revealedTier = revealedTier ?? maxTierReached
         self.priceRelief = priceRelief
     }
@@ -174,7 +168,6 @@ public struct RunState: Codable, Sendable, Equatable {
         unlockedFloors = try container.decode([String].self, forKey: .unlockedFloors)
         activeModifiers = try container.decode([ActiveModifier].self, forKey: .activeModifiers)
         seenTypes = try container.decodeIfPresent(Set<String>.self, forKey: .seenTypes) ?? []
-        floorChestsAwarded = try container.decodeIfPresent(Int.self, forKey: .floorChestsAwarded) ?? 0
         revealedTier = try container.decodeIfPresent(Int.self, forKey: .revealedTier) ?? maxTierReached
         priceRelief = try container.decodeIfPresent(Double.self, forKey: .priceRelief) ?? 1
     }
@@ -364,6 +357,10 @@ public struct MetaState: Codable, Sendable, Equatable {
     public var prestigeChestsPending: Int
     /// El cofre del tutorial se da UNA vez por save, no una por partida.
     public var welcomeChestGiven: Bool
+    /// Cuántos cofres de piso pagó la torre en la historia de la cuenta (uno cada
+    /// `floorsPerChest` pisos abiertos en una misma partida). Vive en `meta`:
+    /// volver a subir después de reencarnar no vuelve a pagar (PLAN-v2 E13).
+    public var floorChestsAwarded: Int
     /// ORO comprado con plata real, por transacción (id → ORO). Sólo crece: la
     /// única puerta es `recordOroPurchase`, y es un mapa y no un contador para
     /// que dos devices con compras distintas se unan sin contar de más ni de menos.
@@ -420,6 +417,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         chestsPending: Int = 0,
         prestigeChestsPending: Int = 0,
         welcomeChestGiven: Bool = false,
+        floorChestsAwarded: Int = 0,
         oroPurchases: [String: Int] = [:],
         revokedPurchases: Set<String> = [],
         purchasedOroReconstructed: Bool = true,
@@ -455,6 +453,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.chestsPending = chestsPending
         self.prestigeChestsPending = prestigeChestsPending
         self.welcomeChestGiven = welcomeChestGiven
+        self.floorChestsAwarded = floorChestsAwarded
         self.oroPurchases = oroPurchases
         self.revokedPurchases = revokedPurchases
         self.purchasedOroReconstructed = purchasedOroReconstructed
@@ -516,6 +515,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         chestsPending = try container.decodeIfPresent(Int.self, forKey: .chestsPending) ?? 0
         prestigeChestsPending = try container.decodeIfPresent(Int.self, forKey: .prestigeChestsPending) ?? 0
         welcomeChestGiven = try container.decodeIfPresent(Bool.self, forKey: .welcomeChestGiven) ?? false
+        floorChestsAwarded = try container.decodeIfPresent(Int.self, forKey: .floorChestsAwarded) ?? 0
         oroPurchases = try container.decodeIfPresent([String: Int].self, forKey: .oroPurchases) ?? [:]
         revokedPurchases = try container.decodeIfPresent(Set<String>.self, forKey: .revokedPurchases) ?? []
         purchasedOroReconstructed = try container.decodeIfPresent(Bool.self, forKey: .purchasedOroReconstructed) ?? true
@@ -615,6 +615,28 @@ public struct PlayerState: Codable, Sendable, Equatable {
         self.schemaVersion = schemaVersion
         self.run = run
         self.meta = meta
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case schemaVersion, run, meta
+    }
+
+    private enum LegacyRunKeys: String, CodingKey {
+        case floorChestsAwarded
+    }
+
+    /// El contador de cofres de piso vivía en `run` hasta E13: el de la partida en
+    /// curso pasa a `meta` sin bajar lo que la cuenta ya cobró. Corre en cada
+    /// decodificación —el save local, el de la nube y el que sale de `migrateV5toV6`—
+    /// y es idempotente: la clave vieja no se vuelve a escribir.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try container.decode(Int.self, forKey: .schemaVersion)
+        run = try container.decode(RunState.self, forKey: .run)
+        meta = try container.decode(MetaState.self, forKey: .meta)
+        let legacyRun = try container.nestedContainer(keyedBy: LegacyRunKeys.self, forKey: .run)
+        let legacyChests = try legacyRun.decodeIfPresent(Int.self, forKey: .floorChestsAwarded) ?? 0
+        meta.floorChestsAwarded = max(meta.floorChestsAwarded, legacyChests)
     }
 
     /// A fresh account: one starter unit, everything else at its baseline.

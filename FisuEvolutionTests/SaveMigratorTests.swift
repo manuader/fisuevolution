@@ -202,7 +202,7 @@ struct SaveMigratorTests {
         state.run.charUpgradeLevels = ["homeless": 2]
         state.run.unlockedFloors = ["alley", "urban"]
         state.run.seenTypes = ["homeless", "oficinista"]
-        state.run.floorChestsAwarded = 1
+        state.meta.floorChestsAwarded = 1
         state.run.activeModifiers = [
             ActiveModifier(
                 id: UUID(uuidString: "11111111-2222-3333-4444-555555555555")!,
@@ -530,7 +530,7 @@ struct SaveMigratorTests {
         // cofre YA otorgado — que es exactamente lo que evita que la torre le
         // pague de nuevo por pisos que subió antes de que los cofres existieran.
         // El caso del veterano lo ejerce `v4VeteranDoesNotCollectBackChests`.
-        #expect(state.run.floorChestsAwarded == 1)
+        #expect(state.meta.floorChestsAwarded == 1)
         // El sobre queda ESTAMPADO —la cadena sigue hasta v6—, y eso es lo único
         // que evita que el save vuelva a cruzar la migración —y con ella un
         // reescalado que no es idempotente— en cada carga. Que `migrate` llame
@@ -567,7 +567,7 @@ struct SaveMigratorTests {
         let data = try JSONSerialization.data(withJSONObject: v4Fixture(unlockedFloors: ochoPisos))
         let state = try SaveMigrator.migrate(data)
 
-        #expect(state.run.floorChestsAwarded == 4, "ocho pisos abiertos son cuatro cofres ya otorgados")
+        #expect(state.meta.floorChestsAwarded == 4, "ocho pisos abiertos son cuatro cofres ya otorgados")
         #expect(state.meta.chestsPending == 0, "y ninguno esperando ser cobrado")
         // Impar: el back-fill trunca, y el piso suelto queda del lado del jugador
         // —el noveno le paga—. Redondear para arriba le cobraría un cofre que
@@ -576,7 +576,7 @@ struct SaveMigratorTests {
         let impar = try SaveMigrator.migrate(
             JSONSerialization.data(withJSONObject: v4Fixture(unlockedFloors: nuevePisos))
         )
-        #expect(impar.run.floorChestsAwarded == 4, "nueve pisos siguen siendo cuatro, no cinco")
+        #expect(impar.meta.floorChestsAwarded == 4, "nueve pisos siguen siendo cuatro, no cinco")
     }
 
     /// El arreglo de las skins doradas. Un `crit` en 24 sólo existe con el tope

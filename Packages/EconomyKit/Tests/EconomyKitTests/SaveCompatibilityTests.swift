@@ -51,7 +51,7 @@ struct SaveCompatibilityTests {
         #expect(state.meta.chestsPending == 0)
         #expect(state.meta.prestigeChestsPending == 0)
         #expect(state.meta.welcomeChestGiven == false)
-        #expect(state.run.floorChestsAwarded == 0)
+        #expect(state.meta.floorChestsAwarded == 0)
     }
 
     @Test("un save v4 guardado antes de elegir carrera decodifica con carrera nil")
@@ -66,6 +66,39 @@ struct SaveCompatibilityTests {
         let data = try JSONSerialization.data(withJSONObject: object)
         let state = try JSONDecoder().decode(PlayerState.self, from: data)
         #expect(state.run.chosenCareerPath == nil)
+    }
+
+    @Test("el contador de cofres de un save viejo viaja de run a meta, sin perder lo cobrado")
+    func floorChestsMoveFromRunToMeta() throws {
+        var state = fxState()
+        state.meta.floorChestsAwarded = 2
+        var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+        var run = try #require(object["run"] as? [String: Any])
+        run["floorChestsAwarded"] = 3
+        object["run"] = run
+        let decoded = try JSONDecoder().decode(PlayerState.self, from: JSONSerialization.data(withJSONObject: object))
+        #expect(decoded.meta.floorChestsAwarded == 3, "max(meta 2, run 3)")
+
+        run["floorChestsAwarded"] = 1
+        object["run"] = run
+        let lower = try JSONDecoder().decode(PlayerState.self, from: JSONSerialization.data(withJSONObject: object))
+        #expect(lower.meta.floorChestsAwarded == 2, "lo ya cobrado no retrocede")
+
+        let reencoded = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(decoded)) as? [String: Any])
+        #expect((reencoded["run"] as? [String: Any])?["floorChestsAwarded"] == nil, "la clave vieja no vuelve a escribirse")
+    }
+
+    @Test("un save sin el contador en ningún lado carga con cero y sin perder nada más")
+    func floorChestsDefaultToZero() throws {
+        var state = fxState()
+        state.meta.chestsPending = 4
+        var object = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+        var meta = try #require(object["meta"] as? [String: Any])
+        meta["floorChestsAwarded"] = nil
+        object["meta"] = meta
+        let decoded = try JSONDecoder().decode(PlayerState.self, from: JSONSerialization.data(withJSONObject: object))
+        #expect(decoded.meta.floorChestsAwarded == 0)
+        #expect(decoded.meta.chestsPending == 4)
     }
 
     @Test("round trip: los campos nuevos sobreviven encode → decode")
@@ -86,7 +119,7 @@ struct SaveCompatibilityTests {
         )
         state.meta.unlockedAchievements = ["ach_primer_merge", "ach_piso_2"]
         state.meta.claimedAchievements = ["ach_primer_merge"]
-        state.run.floorChestsAwarded = 2
+        state.meta.floorChestsAwarded = 2
         state.meta.chestsPending = 3
         state.meta.prestigeChestsPending = 1
         state.meta.welcomeChestGiven = true
@@ -103,7 +136,7 @@ struct SaveCompatibilityTests {
         #expect(decoded.meta.stats.boostsActivatedEver == 6)
         #expect(decoded.meta.unlockedAchievements == ["ach_primer_merge", "ach_piso_2"])
         #expect(decoded.meta.claimedAchievements == ["ach_primer_merge"])
-        #expect(decoded.run.floorChestsAwarded == 2)
+        #expect(decoded.meta.floorChestsAwarded == 2)
         #expect(decoded.meta.chestsPending == 3)
         #expect(decoded.meta.prestigeChestsPending == 1)
         #expect(decoded.meta.welcomeChestGiven == true)
@@ -197,9 +230,6 @@ struct SaveCompatibilityTests {
         // `hireCountsByType` es curva de costo de ESTA run: reencarnar la resetea.
         let run = RunState.fresh(startTypeId: "a", startFloorId: "f1")
         #expect(run.hireCountsByType.isEmpty)
-        // Y los cofres que pagó la torre: volver a subirla vuelve a pagar, que
-        // es justo lo que empuja a reencarnar.
-        #expect(run.floorChestsAwarded == 0)
     }
 
     // MARK: - Save v6 (la 2.0)

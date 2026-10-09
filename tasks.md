@@ -517,7 +517,7 @@ que toma · commit o rama · nota.
 | E7b-a-T2 | Los cortes naturales | ⛔ | T1; E1-T8; E3b-T4; E4a-T8 | 🔥 GameState, RootView; +Lifecycle, +Celebrations, FisuEvolutionApp | | |
 | E7b-a-T3 | La pausa publicitaria | ⛔ | T2; E4a-T8; E5a-T6; E5b-T1; E4b-T3; E1-T14 | 🔥 GameState, RootView, catálogo; DebugPanelView | | |
 | E7b-a-T4 | El app open al volver | ⛔ | T2 | — | | no ∥ T3 (los dos editan `+Ads`) |
-| E7b-a-T5 | "Opciones de privacidad" (UMP) en Ajustes | ⏳ | E11-T4 | 🔥 SettingsView, catálogo | | antes de los Ajustes de E9 |
+| E7b-a-T5 | "Opciones de privacidad" (UMP) en Ajustes | 🟢 | E11-T4 | 🔥 SettingsView, catálogo | | antes de los Ajustes de E9 |
 | E7b-a-T6 | La mediación: adaptadores, SKAdNetwork, Ad Inspector | ⛔ | T1; E3a-T5 | 🔥 project.yml; Info.plist, DebugPanelView | | las cuentas de las redes no la bloquean. **Dueño (2026-10-08):** sólo adaptadores de **Unity Ads** y **Meta Audience Network** por SPM (no AppLovin ni Mintegral); SKAdNetwork de Unity (`https://skan.mz.unity3d.com/v3/partner/skadnetworks.plist.json`) al `Info.plist` (los de Meta `v9wttpbfk9`, `n38lu8286q` ya están); IDs en `Distribution/release/release.json → mediation` |
 | E7b-a-T7 | Cierre de E7b-a (controlador) | ⛔ | T1–T6 | `Docs/` | | |
 

@@ -82,7 +82,7 @@
 
 ## 2. Progreso
 
-**Hoy: 121 de 254 tareas activas integradas en `version-2` (47,6 %); 126 de 254 (49,6 %) con las cinco 🟢 de `integ-r19`. `rapido` final: VERDE sobre `6df1ed2` (EK 628 · unit 1039 + 1 declarado `theOwnersTargetsAreMet` · Release 0).** El relevo 19 sumó E13 T3, E8c T7 y E13 T10 a `version-2` (`rapido` VERDE sobre `f3a2155`: EK 628 · unit 1020 + 1 declarado `theOwnersTargetsAreMet` · Release 0); E8d T7, E13 T4, E8 T7, E8c T8 y E7b-a T1 son 🟢 en `integ-r19` (`6df1ed2`). 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
+**Hoy: 126 de 254 tareas activas integradas en `version-2` (49,6 %); las cinco 🟢 de `integ-r19` pasaron a ✅ con el `rapido` final (en la tabla por épica, la columna 🟢 de esta foto ya cuenta como ✅). `rapido` final: VERDE sobre `6df1ed2` (EK 628 · unit 1039 + 1 declarado `theOwnersTargetsAreMet` · Release 0).** El relevo 19 sumó E13 T3, E8c T7 y E13 T10 a `version-2` (`rapido` VERDE sobre `f3a2155`: EK 628 · unit 1020 + 1 declarado `theOwnersTargetsAreMet` · Release 0); E8d T7, E13 T4, E8 T7, E8c T8 y E7b-a T1 son 🟢 en `integ-r19` (`6df1ed2`). 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
 seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 6 (E11 T7 y E2a T15, cierres del controlador; E3a T11, E7b-a T5, E8c T9 y E2b T1).
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |

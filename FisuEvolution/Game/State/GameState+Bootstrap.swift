@@ -118,6 +118,9 @@ extension GameState {
         if ProcessInfo.processInfo.arguments.contains("--uitest-board-change") {
             debugPlanBoardChange()
         }
+        if ProcessInfo.processInfo.arguments.contains("--uitest-merge-all") {
+            debugSeedMergeAll(homeless: 8)
+        }
         // RF-05: el menú de mejoras lista lo que el jugador VIO, no los pisos
         // que abrió, así que abrir la torre no alcanza para tener varias
         // filas en pantalla.

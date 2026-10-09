@@ -75,7 +75,10 @@ struct CharacterSheetView: View {
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: confirmingDismissal)
         .fisuSheet()
-        .onAppear { selectActiveSkin() }
+        .onAppear {
+            selectActiveSkin()
+            gameState.audio?.play(.revealWhoosh)
+        }
     }
 
     // MARK: Cabecera
@@ -99,9 +102,14 @@ struct CharacterSheetView: View {
                 .disabled(selectedIndex == 0)
             TabView(selection: $selectedID) {
                 ForEach(options) { option in
-                    CharacterPortrait(type: sheet.type, treatment: treatment(for: option), asSilhouette: !owns(option))
-                        .padding(Tokens.s16)
-                        .tag(option.id)
+                    CharacterPortrait(
+                        type: sheet.type,
+                        treatment: treatment(for: option),
+                        asSilhouette: !owns(option),
+                        animated: option.skin == nil
+                    )
+                    .padding(Tokens.s16)
+                    .tag(option.id)
                 }
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -308,6 +316,8 @@ private struct CharacterPortrait: View {
     /// plena (spec §3.10, "personaje misterioso"). Enseñar el arte a color
     /// regalaría la sorpresa de lo que estás por desbloquear.
     var asSilhouette = false
+    /// El video es del cuerpo entero con la pinta canónica: una pinta puesta, o la silueta, no anima.
+    var animated = false
     @Environment(GameState.self) private var gameState
 
     var body: some View {
@@ -319,6 +329,13 @@ private struct CharacterPortrait: View {
                         .renderingMode(.template)
                         .scaledToFit()
                         .foregroundStyle(Color("PaletteInk"))
+                } else if animated {
+                    AnimatedArtView(clip: .character(type.id), role: .popup) {
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .colorMultiply(tintColor ?? .white)
+                    }
                 } else {
                     image
                         .resizable()

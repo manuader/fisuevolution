@@ -40,6 +40,16 @@ struct SaveConflictResolverTests {
         #expect(SaveConflictResolver.resolve(local: local, remote: remote).run.coins == 42)
     }
 
+    @Test("los cofres de piso cobrados no retroceden, gane quien gane")
+    func floorChestsAwardedTakeTheMax() {
+        var ahead = fxSave(lifetime: 1000)
+        ahead.meta.floorChestsAwarded = 2
+        var behind = fxSave(lifetime: 10)
+        behind.meta.floorChestsAwarded = 4
+        #expect(SaveConflictResolver.resolve(local: ahead, remote: behind).meta.floorChestsAwarded == 4)
+        #expect(SaveConflictResolver.resolve(local: behind, remote: ahead).meta.floorChestsAwarded == 4)
+    }
+
     @Test("compras, milestones y specials se unen sobre el ganador")
     func purchasesMergeByUnion() {
         // Lo comprado/ganado en el device perdedor no se puede esfumar.

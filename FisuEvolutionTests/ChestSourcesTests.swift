@@ -56,8 +56,8 @@ struct ChestSourcesTests {
         #expect(state.pendingChestCount == 1)
     }
 
-    @Test("reencarnar reinicia el contador de la torre pero conserva los cofres sin abrir")
-    func prestigeResetsTheCounterAndKeepsPendingChests() async throws {
+    @Test("reencarnar conserva el contador de la torre y los cofres sin abrir")
+    func prestigeKeepsTheCounterAndThePendingChests() async throws {
         let state = await makeGameState()
         state.player!.run.unlockedFloors = state.content!.floorTable.floors.map(\.id)
         state.awardFloorChestsIfDue()
@@ -67,16 +67,31 @@ struct ChestSourcesTests {
         state.confirmPrestige()
         let player = try #require(state.player)
 
-        // Los 5 de la partida anterior siguen ahí (viven en `meta`), más el de la
-        // reencarnación, que es el que garantiza épica.
-        #expect(player.run.floorChestsAwarded == 0)
+        // Los 5 de la partida anterior siguen ahí, más el de la reencarnación, que
+        // es el que garantiza épica.
+        #expect(player.meta.floorChestsAwarded == 5)
         #expect(player.meta.chestsPending == 5)
         #expect(player.meta.prestigeChestsPending == 1)
 
-        // Y volver a subir vuelve a pagar los cinco.
+        // Volver a subir ya no paga: la cuenta cobró esos pisos (PLAN-v2 E13).
         state.player!.run.unlockedFloors = state.content!.floorTable.floors.map(\.id)
         state.awardFloorChestsIfDue()
-        #expect(state.player!.meta.chestsPending == 10)
+        #expect(state.player!.meta.chestsPending == 5)
+    }
+
+    @Test("un piso que la cuenta nunca alcanzó sí paga")
+    func aFloorTheAccountNeverReachedPays() async {
+        let state = await makeGameState()
+        let pisos = state.content!.floorTable.floors.map(\.id)
+        state.player!.meta.floorChestsAwarded = 2
+
+        state.player!.run.unlockedFloors = Array(pisos.prefix(4))
+        state.awardFloorChestsIfDue()
+        #expect(state.pendingChestCount == 0)
+
+        state.player!.run.unlockedFloors = Array(pisos.prefix(6))
+        state.awardFloorChestsIfDue()
+        #expect(state.pendingChestCount == 1)
     }
 
     @Test("el video paga un cofre y recién vuelve a ofrecerse pasado el cooldown")

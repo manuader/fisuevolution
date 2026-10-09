@@ -73,6 +73,31 @@ final class CharacterSheetUITests: XCTestCase {
     }
 
     @MainActor
+    func testLaFichaSeAbreDesdePersonajes() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
+        app.launch()
+        XCTAssertTrue(app.otherElements["board.units"].waitForExistence(timeout: 20))
+
+        let upgrades = app.buttons["hud.upgrades"]
+        XCTAssertTrue(upgrades.waitForExistence(timeout: 6))
+        upgrades.tap()
+        let sheetButton = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'upgrades.character.' AND identifier ENDSWITH '.sheet'")).firstMatch
+        XCTAssertTrue(sheetButton.waitForExistence(timeout: 8), "Personajes no ofreció la ficha")
+        sheetButton.tap()
+
+        let portrait = app.otherElements["character.portrait"]
+        XCTAssertTrue(portrait.waitForExistence(timeout: 10), "la ficha no mostró su retrato")
+        attach(app, named: "E13 ficha desde Personajes")
+        // Debajo de la ficha sigue la X de Mejoras: la de la ficha es la de arriba.
+        let closes = app.buttons.matching(identifier: "sheet.close")
+        XCTAssertEqual(closes.count, 2)
+        closes.element(boundBy: 1).tap()
+        XCTAssertTrue(portrait.waitForNonExistence(timeout: 8))
+        XCTAssertTrue(sheetButton.exists, "cerrar la ficha deja a Personajes abierta")
+    }
+
+    @MainActor
     private func attach(_ app: XCUIApplication, named name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name

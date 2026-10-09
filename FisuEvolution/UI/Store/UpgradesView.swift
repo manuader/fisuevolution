@@ -23,6 +23,7 @@ struct UpgradesView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab: Tab = .characters
+    @State private var sheet: GameState.CharacterSheet?
 
     /// Margen lateral de la columna: el del marco vectorial, publicado por el
     /// componente. Un solo número para las nueve hojas — el marco es el
@@ -62,6 +63,7 @@ struct UpgradesView: View {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
         }
+        .fisuSheet(item: $sheet) { CharacterSheetView(sheet: $0) }
     }
 
     // MARK: Cabecera
@@ -229,14 +231,23 @@ struct UpgradesView: View {
                 // y frame propios (ver `CharacterPortrait`). Si este `Text`
                 // también fuera elemento, VoiceOver leería el nombre dos veces
                 // — el defecto del HANDOFF §8 que el spec §6 manda arreglar.
-                Text(verbatim: row.displayName)
-                    .font(Tokens.title)
-                    .foregroundStyle(Color("PaletteInk"))
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.6)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityHidden(true)
+                HStack(spacing: Tokens.s8) {
+                    Text(verbatim: row.displayName)
+                        .font(Tokens.title)
+                        .foregroundStyle(Color("PaletteInk"))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.6)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityHidden(true)
+                    ActionPill(
+                        titleKey: "upgrades.character.sheet", systemImage: "person.text.rectangle",
+                        identifier: "upgrades.character.\(row.id).sheet",
+                        accessibilityLabel: Text("upgrades.character.sheet.ax \(row.displayName)")
+                    ) {
+                        sheet = gameState.characterSheet(forTypeId: row.id)
+                    }
+                }
 
                 upgradeLine(text: gameState.characterIncomeText(for: row), accent: Color("PaletteBlue")) {
                     if row.upgradeMaxed {

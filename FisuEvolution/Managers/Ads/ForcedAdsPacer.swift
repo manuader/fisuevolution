@@ -34,13 +34,14 @@ struct AdsPacingStore {
 /// `NaturalBreakPolicy` y persiste lo que se mostró. La política es pura; esto
 /// es la mínima cantidad de estado alrededor para usarla.
 ///
-/// ⚠️ **Todavía no lo crea nadie.** Es la infraestructura de E7a; quien lo
-/// cablea es E7b, junto con la pantalla previa de la pausa publicitaria. Hasta
-/// entonces la 1.x sigue con `AdsCoordinator.armIfDue` /
+/// ⚠️ **Lo crea la App (`ForcedAdsSetup`), pero todavía nadie le pregunta.**
+/// Quien lo consulta es E7b, junto con la pantalla previa de la pausa
+/// publicitaria. Hasta entonces la 1.x sigue con `AdsCoordinator.armIfDue` /
 /// `GameState.showInterstitialIfAppropriate`, intactos. Cómo se cablea:
 ///
 /// 1. La App crea **uno por proceso** (cada construcción cuenta un arranque en
-///    frío), con `NaturalBreakPolicy(config:)` de `AdsRemoteConfigLoader`.
+///    frío), con `NaturalBreakPolicy(config:)` de `AdsRemoteConfigLoader`
+///    (hecho: `ForcedAdsSetup.makePacer`).
 /// 2. `.background` → `didEnterBackground()`, y ahí mismo
 ///    `ads.preloadAppOpen()`; `.active` → `didReturnFromBackground()` y el
 ///    corte `.returnFromBackground`.

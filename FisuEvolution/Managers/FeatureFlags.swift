@@ -213,12 +213,23 @@ struct FeatureFlags: Codable, Sendable, Equatable {
     /// Lo que se pierde: en Debug no se puede comprobar que las unidades reales
     /// sirven inventario. Eso se verifica donde corresponde, en TestFlight, que
     /// es un build Release.
-    var effectiveAdUnitIDs: AdUnitIDs {
+    var effectiveAdUnitIDs: AdUnitIDs { effectiveAdUnitIDs(remote: nil) }
+
+    /// Los IDs efectivos con los de la config remota adelante (PLAN-v2 E7: los
+    /// IDs cambian sin pasar por Apple). En DEBUG, los de prueba siempre.
+    func effectiveAdUnitIDs(remote: AdUnitIDs?) -> AdUnitIDs {
         #if DEBUG
         .googleTest
         #else
-        adUnitIDs ?? .googleTest
+        Self.releaseAdUnitIDs(declared: adUnitIDs, remote: remote)
         #endif
+    }
+
+    /// La regla de Release, sin `#if` para poder probarla en Debug: lo remoto
+    /// (que llegó validado contra el publisher propio) gana; si no hay, el JSON;
+    /// si tampoco, los de prueba.
+    static func releaseAdUnitIDs(declared: AdUnitIDs?, remote: AdUnitIDs?) -> AdUnitIDs {
+        remote ?? declared ?? .googleTest
     }
 
     /// Los IDs tal como vienen del JSON, sin la sustitución de DEBUG. Es lo que

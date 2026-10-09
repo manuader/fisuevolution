@@ -94,11 +94,28 @@ struct FisuEvolutionApp: App {
         // interstitial hasta el próximo arranque.
         gameState.attachAds(ads)
         if let content = gameState.content {
+            let process = ProcessInfo.processInfo
+            let mode = ForcedAdsSetup.mode(arguments: process.arguments, environment: process.environment)
+            // Disco y nada más: la caché revalidada o el respaldo del bundle. La red
+            // va aparte, abajo, y no demora el arranque (E7a).
+            let loader = AdsRemoteConfigLoader()
+            let remote = loader.current()?.config
             await ads.configure(
                 flags: content.flags,
+                remoteUnitIDs: mode == .production ? remote?.adUnitIDs : nil,
                 cadence: content.rewardedAds.effectiveInterstitial,
                 removedAds: gameState.player?.meta.removedAds ?? false
             )
+            if let pacer = ForcedAdsSetup.makePacer(mode: mode, config: remote) {
+                ads.attachPacer(pacer)
+                if mode == .production {
+                    Task {
+                        let outcome = await loader.refresh()
+                        Log.ads.info("config remota: \(String(describing: outcome))")
+                        ForcedAdsSetup.apply(outcome, to: pacer)
+                    }
+                }
+            }
         }
         gameState.attachRanking(ranking)
         gameState.attachNotifications(notifications)

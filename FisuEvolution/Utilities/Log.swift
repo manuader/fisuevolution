@@ -11,4 +11,5 @@ enum Log {
     static let persistence = Logger(subsystem: subsystem, category: "persistence")
     static let store = Logger(subsystem: subsystem, category: "store")
     static let assets = Logger(subsystem: subsystem, category: "assets")
+    static let ads = Logger(subsystem: subsystem, category: "ads")
 }

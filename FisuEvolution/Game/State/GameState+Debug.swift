@@ -61,6 +61,12 @@ extension GameState {
            !arguments.contains("--uitest-lessons") {
             tutorialLessonsAutorun = false
         }
+        // Las cinemáticas, lo mismo: bajo `--uitest*` no corren salvo que el test
+        // las pida (`--uitest-cinematics` o `--uitest-cinematic=<id>`).
+        if arguments.contains(where: { $0.hasPrefix("--uitest") }) {
+            cinematicsAutorun = arguments.contains("--uitest-cinematics")
+                || arguments.contains(where: { $0.hasPrefix("--uitest-cinematic=") })
+        }
         // La barra progresiva es nueva de la 2.0: bajo `--uitest*` arranca
         // entera salvo que el test la pida, porque los tests de la v1 tocan las
         // seis pestañas (`testCadaTabAbreSuPantallaYSeCierra`, sin cambios).
@@ -464,6 +470,13 @@ extension GameState {
         specialDrop = special
         refreshProjections()
         bumpBoard()
+    }
+
+    /// Pide la cinemática sin mirar si le toca: el dueño las quiere ver cuantas veces
+    /// haga falta. Igual se anotan al cerrar.
+    func debugPlayCinematic(_ id: CinematicID) {
+        cinematic = id
+        syncCelebrations()
     }
 
     /// Un cofre regalado y abierto en el acto, para poder mirar la animación.

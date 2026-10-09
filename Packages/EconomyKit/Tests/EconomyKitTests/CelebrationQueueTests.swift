@@ -298,6 +298,29 @@ struct CelebrationQueueTests {
         #expect(CelebrationKind.chestOpening.isSkippable == false)
     }
 
+    @Test("la cinemática pasa antes que el tablero y espera al que está en pantalla")
+    func cinematicOutranksTheBoard() {
+        var queue = CelebrationQueue()
+        queue.enqueue(.boardCelebration)       // el reveal de Dios ya está en pantalla
+        queue.enqueue(.towerNotice)
+        queue.enqueue(.cinematic)
+        #expect(queue.current == .boardCelebration, "no corta el reveal que se está viendo")
+        queue.finish(.boardCelebration)
+        #expect(queue.current == .cinematic)
+        queue.enqueue(.boardCelebration)       // la salida del arrestado, detrás
+        queue.finish(.cinematic)
+        #expect(queue.current == .boardCelebration)
+    }
+
+    @Test("la cinemática tiene tope: un video que no avisa no congela la cola")
+    func cinematicHasAWatchdog() {
+        #expect(CelebrationKind.cinematic.timeout == 12)
+        var queue = CelebrationQueue()
+        queue.enqueue(.cinematic)
+        #expect(queue.tick(12) == .cinematic)
+        #expect(queue.current == nil)
+    }
+
     // MARK: Invariantes del catálogo
 
     /// Se puede saltear exactamente lo que se cierra solo. Lo que espera al

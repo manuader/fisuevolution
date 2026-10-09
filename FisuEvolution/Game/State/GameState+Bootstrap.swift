@@ -48,6 +48,14 @@ extension GameState {
                 if let cloudSync, let remote = try? await cloudSync.fetch() {
                     resolved = SaveConflictResolver.resolve(local: saved, remote: remote)
                 }
+                UpgradeManager.recomputeDerivedEffects(
+                    state: &resolved,
+                    config: content.upgradesConfig,
+                    specials: content.specials,
+                    viral: content.viral,
+                    boosts: content.boosts,
+                    economy: StandardEconomy(config: content.economy)
+                )
                 player = resolved
                 isFreshInstall = false
                 Log.lifecycle.info("save loaded: prestige \(resolved.meta.prestigeLevel), maxTier \(resolved.run.maxTierReached)")

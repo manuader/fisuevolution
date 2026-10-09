@@ -597,14 +597,23 @@ struct SaveMigratorTests {
         let maxeado = try SaveMigrator.migrate(
             JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["income": 20, "tap": 20, "crit": 24]))
         )
-        #expect(maxeado.meta.oroUpgradeLevels["crit"] == 10) // 24/25 × 10 ≈ 10
+        #expect(maxeado.meta.oroUpgradeLevels["lucky"] == 10) // 24/25 × 10 ≈ 10, y crit ya es "Toque premiado"
         #expect(maxeado.meta.oroUpgradeLevels["income"] == 10) // 20/20 × 10 = 10
 
         // El que SÍ tenía poco no se lleva nada regalado:
         let flojo = try SaveMigrator.migrate(
             JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["income": 20, "tap": 20, "crit": 12]))
         )
-        #expect(flojo.meta.oroUpgradeLevels["crit"] == 5) // 12/25 × 10 = 4,8 → 5
+        #expect(flojo.meta.oroUpgradeLevels["lucky"] == 5) // 12/25 × 10 = 4,8 → 5
+    }
+
+    @Test("un save con Pegarla y Toque de oro llega con los niveles sumados y el ORO intacto")
+    func theTwoMergedLinesArriveFolded() throws {
+        let state = try SaveMigrator.migrate(
+            JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["crit": 7, "golden": 4, "income": 5]))
+        )
+        #expect(state.meta.oroUpgradeLevels == ["lucky": 11, "income": 5])
+        #expect(state.meta.oro == 12)
     }
 
     /// El save que CRUZA el rebalance, y la decisión del dueño sobre él: se
@@ -620,7 +629,7 @@ struct SaveMigratorTests {
             JSONSerialization.data(withJSONObject: v4Fixture(oroUpgradeLevels: ["crit": 24, "income": 10, "offline": 2]))
         )
         // La pre-rebalance sí: 24 no puede existir con el tope de hoy.
-        #expect(state.meta.oroUpgradeLevels["crit"] == 10)
+        #expect(state.meta.oroUpgradeLevels["lucky"] == 10)
         // La comprada con la curva nueva NO se toca. Pasando el diccionario
         // entero habría caído a 5 (10/20 × 10) y el jugador habría perdido siete
         // niveles pagados: es exactamente lo que el dueño no quiere.

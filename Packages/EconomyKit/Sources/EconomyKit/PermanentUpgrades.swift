@@ -26,12 +26,16 @@ public struct PermanentUpgradeLine: Sendable, Equatable, Identifiable {
         case tapMultiplier
         case critChance
         case goldenTouchChance
+        /// Crítico y dorado juntos: `magnitudePerLevel` es el crítico y
+        /// `goldenPerLevel` el dorado.
+        case luckyTouch
         case prestigeBonusPerSoulPoint
     }
 
     public let id: String
     public let effect: Effect
     public let magnitudePerLevel: Double
+    public let goldenPerLevel: Double
     public let maxLevel: Int
     public let baseCost: Double
     public let costGrowth: Double
@@ -40,6 +44,7 @@ public struct PermanentUpgradeLine: Sendable, Equatable, Identifiable {
         id: String,
         effect: Effect,
         magnitudePerLevel: Double,
+        goldenPerLevel: Double = 0,
         maxLevel: Int,
         baseCost: Double,
         costGrowth: Double
@@ -47,6 +52,7 @@ public struct PermanentUpgradeLine: Sendable, Equatable, Identifiable {
         self.id = id
         self.effect = effect
         self.magnitudePerLevel = magnitudePerLevel
+        self.goldenPerLevel = goldenPerLevel
         self.maxLevel = maxLevel
         self.baseCost = baseCost
         self.costGrowth = costGrowth
@@ -113,6 +119,9 @@ public enum PermanentUpgrades {
             case .critChance: crit += level * line.magnitudePerLevel
             case .offlineEfficiency: offline += level * line.magnitudePerLevel
             case .goldenTouchChance: golden += level * line.magnitudePerLevel
+            case .luckyTouch:
+                crit += level * line.magnitudePerLevel
+                golden += level * line.goldenPerLevel
             case .spawnCostDiscount: spawnDiscount += level * line.magnitudePerLevel
             case .prestigeBonusPerSoulPoint: prestigeBonus += level * line.magnitudePerLevel
             }
@@ -132,7 +141,7 @@ public enum PermanentUpgrades {
     }
 
     /// ¿Están TODAS las líneas al tope? Es la condición de victoria del dueño
-    /// (maxear las siete desbloquea las skins doradas).
+    /// (maxear las seis desbloquea las skins doradas).
     ///
     /// Un catálogo vacío NO cuenta como maxeado: `allSatisfy` sobre la lista
     /// vacía es `true` y eso haría que una corrida sin catálogo —el modelo
@@ -140,5 +149,21 @@ public enum PermanentUpgrades {
     public static func allMaxed(levels: [String: Int], lines: [PermanentUpgradeLine]) -> Bool {
         guard !lines.isEmpty else { return false }
         return lines.allSatisfy { (levels[$0.id] ?? 0) >= $0.maxLevel }
+    }
+
+    /// Líneas que la 2.0 fundió (PLAN-v2 E13): "Pegarla" y "Toque de oro" son
+    /// "Toque premiado". Es un hecho del save, no del catálogo: por eso vive acá.
+    public static let mergedLines: [String: [String]] = ["lucky": ["crit", "golden"]]
+
+    /// Los niveles de las líneas fundidas se suman en la nueva y las viejas se
+    /// van. Idempotente: si la nueva ya tiene más (se compró después), queda.
+    public static func foldingMergedLines(_ levels: [String: Int]) -> [String: Int] {
+        var folded = levels
+        for (line, retired) in mergedLines {
+            let carried = retired.reduce(0) { $0 + (folded.removeValue(forKey: $1) ?? 0) }
+            guard carried > 0 else { continue }
+            folded[line] = max(folded[line] ?? 0, carried)
+        }
+        return folded
     }
 }

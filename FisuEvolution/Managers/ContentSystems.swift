@@ -85,6 +85,9 @@ enum UpgradeManager {
             case .critChance: crit += level * line.magnitudePerLevel
             case .offlineEfficiency: offline += level * line.magnitudePerLevel
             case .goldenTouchChance: golden += level * line.magnitudePerLevel
+            case .luckyTouch:
+                crit += level * line.magnitudePerLevel
+                golden += level * line.goldenPerLevel
             case .spawnCostDiscount: spawnDiscount += level * line.magnitudePerLevel
             case .prestigeBonusPerSoulPoint: prestigeBonus += level * line.magnitudePerLevel
             }

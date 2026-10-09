@@ -240,6 +240,9 @@ struct EffectContractTests {
                 #expect(a.critChance == k.critChance && abs(a.critChance - shown) < 1e-9)
             case .goldenTouchChance:
                 #expect(a.goldenChance == k.goldenChance && abs(a.goldenChance - shown) < 1e-9)
+            case .luckyTouch:
+                #expect(a.critChance == k.critChance && abs(a.critChance - shown) < 1e-9)
+                #expect(a.goldenChance == k.goldenChance && abs(a.goldenChance - 2 * line.goldenPerLevel) < 1e-9)
             case .offlineEfficiency:
                 #expect(a.offlineEfficiency == k.offlineEfficiency
                         && abs(a.offlineEfficiency - content.economy.offlineEfficiencyBase - shown) < 1e-9)

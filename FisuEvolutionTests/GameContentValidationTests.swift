@@ -214,7 +214,7 @@ struct GameContentValidationTests {
         #expect(content.economy.offlinePopupMinSeconds == 30)
     }
 
-    /// El catálogo de las siete líneas nunca puede pasarse de su `EffectCaps`.
+    /// El catálogo de las seis líneas nunca puede pasarse de su `EffectCaps`.
     ///
     /// No es cosmético: `UpgradeManager.recomputeDerivedEffects` (app) CLAMPEA
     /// con esos topes y `PermanentUpgrades.recomputeDerivedEffects` (EconomyKit,
@@ -233,6 +233,9 @@ struct GameContentValidationTests {
                 #expect(economy.offlineEfficiencyBase + total <= EffectCaps.offline, "\(line.id): \(total)")
             case .goldenTouchChance:
                 #expect(total <= EffectCaps.golden, "\(line.id): \(total)")
+            case .luckyTouch:
+                #expect(economy.critChanceBase + total <= EffectCaps.crit, "\(line.id): \(total)")
+                #expect(Double(line.maxLevel) * line.goldenPerLevel <= EffectCaps.golden, "\(line.id): dorado")
             case .spawnCostDiscount:
                 #expect(total <= EffectCaps.spawnDiscount, "\(line.id): \(total)")
             case .incomeMultiplier, .tapMultiplier, .prestigeBonusPerSoulPoint:
@@ -250,17 +253,17 @@ struct GameContentValidationTests {
         #expect(gift.tiersBelowFrontier == 3, "el mismo tier que el Blanqueo")
     }
 
-    /// Pin del catálogo de las siete líneas. `economy.json` tiene el suyo desde
-    /// F7 y `upgrades.json` no tenía ninguno — y sobre estos 193 ORO descansa
+    /// Pin del catálogo de las seis líneas. `economy.json` tiene el suyo desde
+    /// F7 y `upgrades.json` no tenía ninguno — y sobre estos 192 ORO (348 con `baseCost` 2, E2b T14) descansa
     /// toda la calibración del rebalance, incluido el techo de 8
     /// reencarnaciones: el bot reencarna al DUPLICAR su ORO histórico, así que
-    /// las reencarnaciones para maxear son log₂(costo total), y log₂(193) = 7,6.
+    /// las reencarnaciones para maxear son log₂(costo total), y log₂(192) = 7,6.
     /// Un catálogo por encima de ~450 ORO totales rompe ese techo en silencio.
     @Test func upgradeCatalogMatchesTunedValues() {
         let esperado: [String: (levels: Int, magnitude: Double, base: Double, growth: Double)] = [
             "income": (10, 0.2, 1, 1.10), "tap": (10, 0.5, 1, 1.10),
             "offline": (10, 0.05, 1, 1.15), "spawn": (10, 0.03, 1, 1.15),
-            "crit": (10, 0.025, 1, 1.20), "golden": (10, 0.005, 1, 1.20),
+            "lucky": (20, 0.0125, 1, 1.09),
             "prestige": (10, 0.005, 1, 1.25),
         ]
         let lineas = content.upgradesConfig.upgrades
@@ -273,6 +276,7 @@ struct GameContentValidationTests {
             }
             #expect(line.maxLevel == pin.levels, "\(line.id).maxLevel")
             #expect(abs(line.magnitudePerLevel - pin.magnitude) < 1e-12, "\(line.id).magnitudePerLevel")
+            #expect(line.effectType != .luckyTouch || abs(line.goldenPerLevel - 0.0025) < 1e-12, "\(line.id).goldenPerLevel")
             #expect(abs(line.baseCost - pin.base) < 1e-12, "\(line.id).baseCost")
             #expect(abs(line.costGrowth - pin.growth) < 1e-12, "\(line.id).costGrowth")
             #expect(line.currency == .oro, "\(line.id) tiene que pagarse con ORO")
@@ -280,15 +284,16 @@ struct GameContentValidationTests {
             // (`UpgradeManager.purchase`), así que el total se suma así.
             total += (0..<line.maxLevel).reduce(0) { $0 + Int(UpgradeManager.cost(of: line, level: $1).rounded(.up)) }
         }
-        #expect(total == 193, "maxear las siete cuesta \(total) ORO")
+        #expect(total == 192, "maxear las seis cuesta \(total) ORO")
         // Y ninguna línea puede volver a ser el 99,99% del costo de ganar, que
         // es lo que `crit` era antes del rebalance (1,776e10 de 1,778e10).
-        let porLinea = lineas.map { line in
-            (0..<line.maxLevel).reduce(0) { $0 + Int(UpgradeManager.cost(of: line, level: $1).rounded(.up)) }
+        let porNivel = lineas.map { line in
+            Double((0..<line.maxLevel).reduce(0) { $0 + Int(UpgradeManager.cost(of: line, level: $1).rounded(.up)) })
+                / Double(line.maxLevel)
         }
-        let masCara = porLinea.max() ?? 0
-        let masBarata = porLinea.min() ?? 1
-        #expect(Double(masCara) / Double(masBarata) < 2.0, "\(masCara) vs \(masBarata)")
+        let masCara = porNivel.max() ?? 0
+        let masBarata = porNivel.min() ?? 1
+        #expect(masCara / masBarata < 2.0, "\(masCara) vs \(masBarata)")
     }
 
     /// Pin de los DOCE logros que pagan ORO fijo, contra los 193 que cuesta

@@ -92,6 +92,7 @@ struct UpgradesFile: Decodable {
         let id: String
         let effectType: PermanentUpgradeLine.Effect
         let magnitudePerLevel: Double
+        let goldenPerLevel: Double?
         let maxLevel: Int
         let baseCost: Double
         let costGrowth: Double
@@ -112,6 +113,7 @@ struct UpgradesFile: Decodable {
                     id: $0.id,
                     effect: $0.effectType,
                     magnitudePerLevel: $0.magnitudePerLevel,
+                    goldenPerLevel: $0.goldenPerLevel ?? 0,
                     maxLevel: $0.maxLevel,
                     baseCost: $0.baseCost,
                     costGrowth: $0.costGrowth
@@ -121,7 +123,7 @@ struct UpgradesFile: Decodable {
 }
 
 /// "income 20/20 · tap 20/20 · crit 7/25 …" — dónde se atascó el bot, que es lo
-/// que la calibración de las siete líneas necesita ver.
+/// que la calibración de las seis líneas necesita ver.
 func upgradeLevelsSummary(report: PacingSimulator.Report, lines: [PermanentUpgradeLine]) -> String {
     guard !lines.isEmpty else { return "—" }
     return lines
@@ -214,7 +216,7 @@ do {
         .map { String(format: "%.1f", $0 / 3600) }
         .joined(separator: " · ")
     print("  cadencia (h ACTIVAS de cada una): \(cadence.isEmpty ? "—" : cadence)\(report.reincarnations > 12 ? " · …" : "")")
-    // La métrica que pidió el dueño: horas ACTIVAS hasta maxear las siete líneas
+    // La métrica que pidió el dueño: horas ACTIVAS hasta maxear las seis líneas
     // permanentes, o sea hasta las skins doradas ("ganarlo al máximo").
     let maxedReincarnations = report.reincarnationsAtMaxedUpgrades.map { "\($0) reencarnaciones" } ?? "—"
     print("  las 7 al tope: \(report.maxedUpgradesActiveSeconds.map(hours) ?? "      — ") ACTIVAS"
@@ -271,7 +273,7 @@ do {
     }
     if ratiosSeen == 0 { print("    ❌ sin datos (no se desbloqueó ningún piso más allá del 2º)") }
     // Los dos targets del rebalance (PROMPT-rebalance-pacing §1): maxear las
-    // siete en 20-30 h ACTIVAS y con ≤8 reencarnaciones.
+    // seis en 20-30 h ACTIVAS y con ≤9 reencarnaciones.
     check("las 7 al tope (activo)", value: report.maxedUpgradesActiveSeconds, range: (20.0 * 3600)...(30.0 * 3600), format: hours)
     check(
         "reencarnaciones al maxear",
@@ -286,7 +288,7 @@ do {
     print("  Los asserts de PacingTests miden otra cosa: sus cuatro BANDAS se")
     print("  re-pinearon el 2026-08-21 a la conducta real del rebalance de pacing")
     print("  (ver Docs/balance-log.md), y aparte assertean el objetivo del dueño")
-    print("  —maxear las siete en 20-30 h activas con <=8 reencarnaciones—, que sí")
+    print("  —maxear las seis en 20-30 h activas con <=9 reencarnaciones—, que sí")
     print("  se cumple. La brecha que queda es la fase fisura: el spec pide 20-30")
     print("  min activos y el Fisura a 25 la deja en segundos.")
 
@@ -313,8 +315,8 @@ do {
                 rows.append("costo,\(floor.id)_proximo_del_mas_comprado_en_segundos,\(String(format: "%.2f", peak)),s de income")
             }
         }
-        rows.append("hito,siete_al_tope_activo,\(report.maxedUpgradesActiveSeconds.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
-        rows.append("hito,siete_al_tope_pared,\(report.maxedUpgradesWall.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
+        rows.append("hito,seis_al_tope_activo,\(report.maxedUpgradesActiveSeconds.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
+        rows.append("hito,seis_al_tope_pared,\(report.maxedUpgradesWall.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
         rows.append("hito,reencarnaciones_al_maxear,\(report.reincarnationsAtMaxedUpgrades.map(String.init) ?? ""),conteo")
         rows.append("hito,primera_reencarnacion,\(report.firstReincarnationWall.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")
         rows.append("hito,dios,\(report.godWall.map { String(format: "%.2f", $0 / 3600) } ?? ""),h")

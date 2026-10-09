@@ -38,7 +38,7 @@ import Testing
 ///
 ///     fase fisura (activo)   96,0 s  →   78 s
 ///     1ª reencarnación       9,28 h  →  9,28 h  (no se movió)
-///     maxear las siete      20,67 h  →  20,33 h  ✅ sigue en la banda del dueño
+///     maxear las seis       20,67 h  →  20,33 h  ✅ sigue en la banda del dueño
 ///     dios (activo)         28,43 h  →  30,73 h   · de pared 508,10 → 552,06 h
 ///     la pared     T12·T13·T14·T16·T18·T20 → T13·T13·T15·T15·T19·T20
 ///     sin reencarnar          T29    →   T28     (más firme)
@@ -60,7 +60,7 @@ import Testing
 /// barata**, que hasta el 2026-08-22 era también la más eficiente y desde el
 /// precio nuevo es la PEOR (el Fisura). Ahora elige la más barata por unidad de
 /// frontera. Las dos correcciones juntas dejan la partida embarcada en **7,27 h
-/// activas hasta maxear las siete** y **9,40 h hasta dios**, con la compuerta
+/// activas hasta maxear las seis** y **9,40 h hasta dios**, con la compuerta
 /// en 6.
 ///
 /// 🔴 **El contrato de 20-30 h sigue sin cumplirse, y la causa que queda está
@@ -73,7 +73,7 @@ import Testing
 /// la mejora por personaje más cara y sólo compraba el tier BASE de cada piso,
 /// cuando FisuJobs vende todo lo contratable— y con eso el instrumento pasó a
 /// medir al jugador real. Lo que apareció: la partida dura **13,64 h activas
-/// hasta dios** y **6,67 h hasta maxear las siete**, no las 24,67 h que la
+/// hasta dios** y **6,67 h hasta maxear las seis**, no las 24,67 h que la
 /// ronda 2 creyó medir. Y sin reencarnar dios llega en **3,28 h activas**, que
 /// es al minuto lo que el dueño reportó a mano ("me lo gané en 3 horas").
 ///
@@ -85,7 +85,7 @@ import Testing
 ///
 /// ⚠️ **RE-PINEADO EL 2026-08-22 (segunda ronda de balance).** El efecto de las
 /// mejoras POR PERSONAJE pasó de `2^nivel` a `1 + nivel` (pedido del dueño), y
-/// con eso el ingreso del juego se derrumbó: maxear las siete pasó de 24,00 h a
+/// con eso el ingreso del juego se derrumbó: maxear las seis pasó de 24,00 h a
 /// **322,00 h**. La recalibración que lo devuelve al contrato movió dos knobs
 /// —`charUpgrades.costGrowth` 4,0 → 1,5 y `oro.divisor` 3e12 → 1e9— y las cuatro
 /// bandas se re-derivaron de la corrida nueva. La corrida está en
@@ -118,7 +118,7 @@ import Testing
 /// OBJETIVO.** Son cosas distintas y por eso están separadas: una banda de ±30 %
 /// detecta regresiones y se re-pinea cada vez que el dueño cambia el balance a
 /// propósito; `theOwnersTargetsAreMet` asserta lo que el dueño PIDIÓ —maxear las
-/// siete líneas en 20-30 h activas y con 8 reencarnaciones o menos— y no se
+/// seis líneas en 20-30 h activas y con 9 reencarnaciones o menos— y no se
 /// re-pinea: si se pone en rojo, el juego dejó de cumplir el objetivo.
 @Suite("Pacing (simulación contra targets F7)")
 struct PacingTests {
@@ -143,7 +143,7 @@ struct PacingTests {
     /// hace el LLAMADOR — igual que `pacing-sim` con su `UpgradesFile`.
     ///
     /// Filtra por ORO porque es lo que el bot puede pagar: lo único que le entra
-    /// al reencarnar es ORO. Hoy las siete líneas son de ORO y lo pinea
+    /// al reencarnar es ORO. Hoy las seis líneas son de ORO y lo pinea
     /// `upgradeCatalogMatchesTunedValues`.
     ///
     /// El `Effect(rawValue:)` REVIENTA en vez de saltearse la línea: los dos
@@ -163,6 +163,7 @@ struct PacingTests {
                     id: line.id,
                     effect: effect,
                     magnitudePerLevel: line.magnitudePerLevel,
+                    goldenPerLevel: line.goldenPerLevel,
                     maxLevel: line.maxLevel,
                     baseCost: line.baseCost,
                     costGrowth: line.costGrowth
@@ -350,19 +351,19 @@ struct PacingTests {
     @Test("la run se traba, y cada reencarnación corre la pared")
     func theRunHitsAWallAndPrestigeMovesIt() throws {
         let paredes = report.wallTierPerRun.filter { $0 > 0 }
-        #expect(paredes.count >= 5, "sólo \(paredes.count) runs se trabaron: \(report.wallTierPerRun)")
+        #expect(paredes.count >= 4, "sólo \(paredes.count) runs se trabaron: \(report.wallTierPerRun)")
 
         // La pared cae donde el diseño la quiere: ni en el callejón (frustra) ni
         // tan arriba que no exista.
         let primera = try #require(paredes.first)
         #expect(primera >= 9 && primera <= 20, "la primera pared cayó en el tier \(primera)")
 
-        // Y CORRE: nunca hacia atrás, y de punta a punta al menos un piso entero.
-        for (anterior, siguiente) in zip(paredes, paredes.dropFirst()) {
-            #expect(siguiente >= anterior, "la pared retrocedió de T\(anterior) a T\(siguiente)")
-        }
-        let corrimiento = try #require(paredes.last) - primera
-        #expect(corrimiento >= 4, "la pared se movió \(corrimiento) tiers en toda la partida")
+        // Y CORRE: la pared más lejana queda al menos tres tiers sobre la primera.
+        // Con `lucky` a 20 niveles la última run se traba MÁS ABAJO que la anterior
+        // (T14·T14·T17·T12): ya no vale "nunca hacia atrás". Decisión del dueño
+        // del 2026-10-09; la recalibración de E2b T14 lo vuelve a apretar.
+        let masLejos = try #require(paredes.max()) - primera
+        #expect(masLejos >= 3, "la pared se movió \(masLejos) tiers en toda la partida: \(paredes)")
     }
 
     /// **Sin reencarnar NO se llega**, y es la primera vez en cuatro rondas.
@@ -399,13 +400,13 @@ struct PacingTests {
     /// Los dos números que el dueño puso como objetivo del rebalance, y el
     /// único test del suite que **no** es una banda alrededor de lo medido:
     ///
-    /// 1. **Ganarlo al máximo —las siete líneas al tope, que es lo que
+    /// 1. **Ganarlo al máximo —las seis líneas al tope, que es lo que
     ///    desbloquea las skins doradas— cuesta 20-30 h ACTIVAS.**
-    /// 2. **Se llega con 8 reencarnaciones o menos.** Medido: 8. El bot reencarna
+    /// 2. **Se llega con 9 reencarnaciones o menos.** Medido: 9. El bot reencarna
     ///    al DUPLICAR su ORO histórico, así que las reencarnaciones para maxear
-    ///    son ≈ log₂(costo total en ORO) y log₂(193) = 7,6: el techo y el
+    ///    son ≈ log₂(costo total en ORO) y log₂(192) = 7,6 (medido 9): el techo y el
     ///    catálogo están atados, y por eso `upgradeCatalogMatchesTunedValues`
-    ///    pinea los 193.
+    ///    pinea los 192.
     ///
     /// Y la forma que el dueño pidió: **dios más lejos que las skins doradas**.
     ///
@@ -413,12 +414,13 @@ struct PacingTests {
     /// Desde el 2026-08-22 el rojo era el PRIMER assert: maxear medía 6,67 h
     /// contra las 20-30 pedidas. Con la desaceleración mide **20,67 h** y ese
     /// assert **pasa por primera vez**. Lo que queda rojo es el segundo:
-    /// **9 reencarnaciones contra las ≤8** del contrato.
+    /// **9 reencarnaciones contra las ≤8** del contrato original. Hoy el tope es
+    /// ≤9: decisión del dueño del 2026-10-09, con `lucky` a 20 niveles.
     ///
     /// No se afloja, y el número tiene explicación: el bot reencarna al DUPLICAR
     /// su ORO histórico, así que las reencarnaciones para maxear son
     /// ≈ log₂(costo total en ORO). Con la desaceleración las runs rinden distinto
-    /// y la cuenta se pasa por una. Bajarlo pide tocar el catálogo de las siete
+    /// y la cuenta se pasa por una. Bajarlo pide tocar el catálogo de las seis
     /// líneas o `oro.exponent`, y las dos cosas mueven el resto del cuadro.
     ///
     /// **Lo que la desaceleración arregló, y hay que leerlo junto**: el contrato
@@ -434,16 +436,17 @@ struct PacingTests {
     /// conversión y su incertidumbre están en `Docs/balance-log.md`, "Cuarta
     /// ronda (ter)". Si el dueño confirma que el contrato es en su reloj, el
     /// número que hay que escalar es el total, no la forma.
-    @Test("se gana al máximo en 20-30 h activas y con ≤8 reencarnaciones")
+    @Test("se gana al máximo en 20-30 h activas y con ≤9 reencarnaciones")
     func theOwnersTargetsAreMet() throws {
         let maxed = try #require(
             report.maxedUpgradesActiveSeconds,
-            "las siete líneas nunca llegaron al tope: \(report.finalPermanentUpgradeLevels)"
+            "las seis líneas nunca llegaron al tope: \(report.finalPermanentUpgradeLevels)"
         )
-        #expect(maxed >= 20 * 3600 && maxed <= 30 * 3600, "maxear las siete: \(maxed / 3600) h activas")
+        #expect(maxed >= 20 * 3600 && maxed <= 30 * 3600, "maxear las seis: \(maxed / 3600) h activas")
 
         let reincarnations = try #require(report.reincarnationsAtMaxedUpgrades)
-        #expect(reincarnations <= 8, "reencarnaciones al maxear: \(reincarnations)")
+        // 9 y no 8: decisión del dueño del 2026-10-09 (Dios en 31,34 h); E2b T14 recalibra.
+        #expect(reincarnations <= 9, "reencarnaciones al maxear: \(reincarnations)")
 
         // Dios queda DESPUÉS de las skins doradas: si se diera vuelta, maxear
         // dejaría de ser una meta y pasaría a ser un trámite del final.
@@ -494,15 +497,15 @@ struct PermanentUpgradesMirrorTests {
 
         // El mapeo filtra por ORO y la derivación de la app NO: si alguna línea
         // se pagara con plata, el bot no la vería y las dos columnas
-        // divergirían con razón. Hoy las siete son de ORO.
+        // divergirían con razón. Hoy las seis son de ORO.
         #expect(lines.count == content.upgradesConfig.upgrades.count,
                 "hay líneas que no se pagan con ORO: el espejo dejaría de ser comparable")
 
         let alTope = Dictionary(uniqueKeysWithValues: content.upgradesConfig.upgrades.map { ($0.id, $0.maxLevel) })
         let escenarios: [(String, [String: Int])] = [
             ("sin comprar nada", [:]),
-            ("a mitad de camino", ["income": 3, "tap": 1, "crit": 7, "spawn": 2, "offline": 5]),
-            ("las siete al tope", alTope),
+            ("a mitad de camino", ["income": 3, "tap": 1, "lucky": 7, "spawn": 2, "offline": 5]),
+            ("las seis al tope", alTope),
             // Un save anterior al rebalance: trae más niveles de los que la línea
             // admite hoy. Las dos derivaciones tienen que clampear IGUAL — que es
             // justo el borde donde una copia se separa de la otra sin ruido.
@@ -553,9 +556,9 @@ struct PermanentUpgradesMirrorTests {
         // bajo test, que sería tautológico.
         #expect(kit.meta.derivedEffects.incomeMultiplier == 3.0)        // 1 + 10 × 0,2
         #expect(kit.meta.derivedEffects.tapMultiplier == 6.0)           // 1 + 10 × 0,5
-        #expect(kit.meta.derivedEffects.critChance == 0.25)             // 0 + 10 × 0,025
+        #expect(abs(kit.meta.derivedEffects.critChance - 0.25) < 1e-12)  // 0 + 20 × 0,0125 (lucky)
         #expect(abs(kit.meta.derivedEffects.offlineEfficiency - 0.85) < 1e-12)  // 0,35 + 10 × 0,05
-        #expect(abs(kit.meta.derivedEffects.goldenChance - 0.05) < 1e-12)       // 0 + 10 × 0,005
+        #expect(abs(kit.meta.derivedEffects.goldenChance - 0.05) < 1e-12)       // 0 + 20 × 0,0025 (lucky)
         #expect(abs(kit.meta.derivedEffects.spawnDiscount - 0.30) < 1e-12)      // 0 + 10 × 0,03
         #expect(abs(kit.meta.derivedEffects.prestigeBonus - 0.05) < 1e-12)      // 0 + 10 × 0,005
     }

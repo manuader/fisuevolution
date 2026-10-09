@@ -61,6 +61,32 @@ final class AdsCoordinator: AdsProvider {
     /// hoja, volver del background, reencarnar), sí.
     @ObservationIgnored private(set) var isPresentingFullScreen = false
 
+    // MARK: - Los forzados de la 2.0
+
+    /// El estado de la política de cortes naturales. `nil` = este proceso no
+    /// muestra forzados (tests, o UI tests que no los piden).
+    @ObservationIgnored private(set) var pacer: ForcedAdsPacer?
+    /// Cuánto se espera entre el corte y el anuncio: que termine de irse la hoja
+    /// que se cerró, y que el toque que la cerró no caiga en el anuncio. Los
+    /// tests lo ponen en cero.
+    @ObservationIgnored var settleDelay: Duration = .milliseconds(600)
+    /// El corte en vuelo: uno a la vez, y los tests lo esperan.
+    @ObservationIgnored var naturalBreakTask: Task<Void, Never>?
+
+    func attachPacer(_ pacer: ForcedAdsPacer) {
+        self.pacer = pacer
+    }
+
+    /// Los forzados con inventario, ya filtrados por `remove_ads` y por el
+    /// anuncio en pantalla: lo que la política llama `readyFormats`.
+    var readyForcedFormats: Set<ForcedAdFormat> {
+        var ready: Set<ForcedAdFormat> = []
+        if isInterstitialReady { ready.insert(.interstitial) }
+        if isRewardedInterstitialReady { ready.insert(.rewardedInterstitial) }
+        if isAppOpenReady { ready.insert(.appOpen) }
+        return ready
+    }
+
     // MARK: - La política del interstitial
 
     @ObservationIgnored private var cadence = RewardedAdsConfig.Interstitial.default
@@ -119,6 +145,7 @@ final class AdsCoordinator: AdsProvider {
     /// permutar: **consentimiento (UMP → ATT) y sólo después el SDK.**
     func configure(
         flags: FeatureFlags,
+        remoteUnitIDs: FeatureFlags.AdUnitIDs?,
         cadence: RewardedAdsConfig.Interstitial,
         removedAds: Bool
     ) async {
@@ -136,7 +163,7 @@ final class AdsCoordinator: AdsProvider {
         }
 
         await AdsConsent.resolve()
-        let provider = AdMobAdsProvider(unitIDs: flags.effectiveAdUnitIDs, now: now)
+        let provider = AdMobAdsProvider(unitIDs: flags.effectiveAdUnitIDs(remote: remoteUnitIDs), now: now)
         active = provider
         provider.prepare()
     }

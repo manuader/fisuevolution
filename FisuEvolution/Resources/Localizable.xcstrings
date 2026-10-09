@@ -2951,6 +2951,23 @@
         }
       }
     },
+    "cinematic.intro.a11y" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The story begins: your first day at the tower."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comienza la historia: tu primer día en la torre."
+          }
+        }
+      }
+    },
     "cinematic.reencarnacion.a11y" : {
       "extractionState" : "manual",
       "localizations" : {

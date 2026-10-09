@@ -51,6 +51,8 @@ final class AudioManager {
         case shopShimmer = "sfx_shop_shimmer"
         /// El soplido de una revelación.
         case revealWhoosh = "sfx_reveal_whoosh"
+        /// El remate de "Fusionar todo": un acorde mayor que sube.
+        case mergeAllDone = "sfx_merge_all_done"
     }
 
     /// Cuánto se atenúa un efecto respecto del volumen de Ajustes: la acción
@@ -124,6 +126,10 @@ final class AudioManager {
 
     /// Los SFX que ya tienen su player construido y sus buffers reservados.
     var preparedSFX: Set<SFX> { Set(sfxPlayers.keys) }
+
+    #if DEBUG
+    func debugRate(of sfx: SFX) -> Float? { sfxPlayers[sfx]?.rate }
+    #endif
 
     func prepare() {
         // .ambient: respeta la música que el jugador ya tiene sonando.
@@ -287,6 +293,11 @@ final class AudioManager {
 
     func play(_ sfx: SFX) {
         play(sfx, volume: Float(sfxVolume), rate: 1)
+    }
+
+    /// Un efecto a otro tono, acotado a lo que `AVAudioPlayer.rate` acepta (0,5–2).
+    func play(_ sfx: SFX, rate: Float) {
+        play(sfx, volume: Float(sfxVolume), rate: min(2, max(0.5, rate)))
     }
 
     /// Un efecto con ganancia (`Gain`) y tono: `pitch` 1 es el original, 1,25 una

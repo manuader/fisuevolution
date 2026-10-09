@@ -16,6 +16,7 @@ final class HapticsManager {
         case error
         case evolution
         case rarity
+        case mergeAllFinale
     }
 
     var isEnabled: Bool {
@@ -103,6 +104,10 @@ final class HapticsManager {
             [transient(time: 0, intensity: 0.6, sharpness: 0.9),
              transient(time: 0.12, intensity: 0.8, sharpness: 0.9),
              transient(time: 0.24, intensity: 1.0, sharpness: 1.0)]
+        case .mergeAllFinale:
+            [transient(time: 0, intensity: 0.5, sharpness: 0.5),
+             transient(time: 0.08, intensity: 0.7, sharpness: 0.6),
+             transient(time: 0.18, intensity: 1.0, sharpness: 0.8)]
         }
 
         return try CHHapticPattern(events: events, parameters: [])

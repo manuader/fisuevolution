@@ -21,21 +21,25 @@ struct ElevatorRidePlan: Equatable {
     /// Reduce Motion: puertas y fondos se funden, nada se desliza ni vibra.
     let fades: Bool
 
-    init?(origin: Int, destination: Int, reduceMotion: Bool, instant: Bool) {
+    init?(origin: Int, destination: Int, reduceMotion: Bool, instant: Bool, slowdown: Int = 1) {
         guard origin != destination else { return nil }
         self.origin = origin
         self.destination = destination
         fades = reduceMotion
+        let times: (close: Duration, travel: Duration, open: Duration)
         if instant {
-            (close, travel, open) = (.zero, .zero, .zero)
+            times = (.zero, .zero, .zero)
         } else if reduceMotion {
-            (close, travel, open) = (Self.fadeDuration, Self.fadeDuration, Self.fadeDuration)
+            times = (Self.fadeDuration, Self.fadeDuration, Self.fadeDuration)
         } else {
-            close = Self.closeDuration
-            open = Self.openDuration
             let wanted = Self.travelBase + Self.travelPerFloor * abs(destination - origin)
-            travel = min(wanted, Self.budget - Self.closeDuration - Self.openDuration)
+            times = (Self.closeDuration, min(wanted, Self.budget - Self.closeDuration - Self.openDuration),
+                     Self.openDuration)
         }
+        let factor = max(slowdown, 1)
+        close = times.close * factor
+        travel = times.travel * factor
+        open = times.open * factor
     }
 
     var total: Duration { close + travel + open }
@@ -72,6 +76,8 @@ final class ElevatorRide {
         var sleep: @MainActor (Duration) async -> Void
         var reduceMotion: @MainActor () -> Bool
         var instant: Bool
+        /// Sólo para UI tests: estira el viaje para poder saltearlo sin carrera.
+        var slowdown = 1
     }
 
     /// Bajo `--uitest*` el viaje dura 0 s, salvo que el test lo pida con `--uitest-elevator-ride`.
@@ -81,6 +87,15 @@ final class ElevatorRide {
         return arguments.contains { $0.hasPrefix("--uitest") } && !arguments.contains("--uitest-elevator-ride")
         #else
         return false
+        #endif
+    }
+
+    /// `--uitest-elevator-ride-slow`: el viaje dura ×5.
+    static var uiTestSlowdown: Int {
+        #if DEBUG
+        ProcessInfo.processInfo.arguments.contains("--uitest-elevator-ride-slow") ? 5 : 1
+        #else
+        1
         #endif
     }
 
@@ -120,7 +135,10 @@ final class ElevatorRide {
     }
 
     /// Una fila del mapa: el viaje arranca cuando el mapa termina de irse (`startPendingRide`).
-    func requestFromMap(ordinal: Int) { pendingFromMap = ordinal }
+    func requestFromMap(ordinal: Int) {
+        guard phase == .idle else { return }
+        pendingFromMap = ordinal
+    }
 
     func startPendingRide() {
         guard let ordinal = pendingFromMap else { return }
@@ -134,8 +152,10 @@ final class ElevatorRide {
         rideTask?.cancel()
         rideTask = nil
         if !jumped { hooks?.jump(plan.destination) }
-        hooks?.cue(.motorStop)
-        hooks?.cue(.ding)
+        if phase != .opening {
+            hooks?.cue(.motorStop)
+            hooks?.cue(.ding)
+        }
         finish()
     }
 
@@ -144,7 +164,8 @@ final class ElevatorRide {
     private func start(to destination: Int) {
         guard phase == .idle, let hooks, hooks.isUnlocked(destination),
               let plan = ElevatorRidePlan(origin: hooks.visibleOrdinal(), destination: destination,
-                                          reduceMotion: hooks.reduceMotion(), instant: hooks.instant)
+                                          reduceMotion: hooks.reduceMotion(), instant: hooks.instant,
+                                          slowdown: hooks.slowdown)
         else { return }
         guard plan.total > .zero else {
             hooks.jump(destination)
@@ -186,5 +207,33 @@ final class ElevatorRide {
         phase = .idle
         plan = nil
         rideTask = nil
+    }
+}
+
+/// Qué suena en cada borde del viaje. Puro: lo traduce `AudioManager.play(_ cue:)` y lo pinea un test.
+enum ElevatorSound: Equatable {
+    case oneShot(AudioManager.SFX, AudioManager.Gain?)
+    case startLoop(AudioManager.SFX)
+    case stopLoop(AudioManager.SFX)
+
+    var sfx: AudioManager.SFX {
+        switch self {
+        case .oneShot(let sfx, _), .startLoop(let sfx), .stopLoop(let sfx): sfx
+        }
+    }
+}
+
+extension ElevatorRide.Cue {
+    static let all: [ElevatorRide.Cue] = [.keypadOpen, .keypadClose, .button, .doorsClose, .motorStart, .motorStop, .ding, .doorsOpen]
+
+    var sound: ElevatorSound {
+        switch self {
+        case .keypadOpen, .keypadClose: .oneShot(.elevatorSpring, .action)
+        case .button: .oneShot(.elevatorClick, .action)
+        case .doorsClose, .doorsOpen: .oneShot(.elevatorDoors, .action)
+        case .motorStart: .startLoop(.elevatorMotor)
+        case .motorStop: .stopLoop(.elevatorMotor)
+        case .ding: .oneShot(.elevatorDing, nil)
+        }
     }
 }

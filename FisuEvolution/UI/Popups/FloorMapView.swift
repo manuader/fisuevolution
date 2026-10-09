@@ -8,7 +8,7 @@ import SwiftUI
 /// resuelto en `gameState.floorMap`, que sale de `floors[]`.
 ///
 /// El restyle **no le tocó una línea a la lógica**: la misma proyección, la misma
-/// re-evaluación contra `boardVersion`, el mismo `jumpToFloor(ordinal:)`, el
+/// re-evaluación contra `boardVersion`, el mismo pedido de piso (la fila pide el viaje al ascensor), el
 /// mismo caché de miniaturas y los mismos identifiers `map.floor.<id>`. Lo que
 /// cambió es el idioma visual —`GameCard`, `Tokens`, el botón redondo con el
 /// número de piso y el riel que los une— y que el título dejó de ser "La torre"
@@ -16,6 +16,7 @@ import SwiftUI
 struct FloorMapView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
+    @Environment(ElevatorRide.self) private var ride
 
     /// Margen lateral de la columna: el del marco vectorial, publicado por el
     /// componente. Un solo número para las nueve hojas — el marco es el
@@ -84,6 +85,11 @@ struct FloorMapView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
+        }
+        .onAppear { ElevatorCabinWarmup.shared.prepare() }
+        .onDisappear {
+            ride.startPendingRide()
+            if ride.phase == .idle { ElevatorCabinWarmup.shared.release() }
         }
     }
 
@@ -171,7 +177,8 @@ struct FloorMapView: View {
     private func floorButton(_ entry: FloorMapEntry) -> some View {
         let tone: Tone = entry.isUnlocked ? (entry.isVisible ? .current : .plain) : .locked
         return Button {
-            gameState.jumpToFloor(ordinal: entry.ordinal)
+            ride.requestFromMap(ordinal: entry.ordinal)
+            ElevatorCabinWarmup.shared.prepare()
             dismiss()
         } label: {
             Group {

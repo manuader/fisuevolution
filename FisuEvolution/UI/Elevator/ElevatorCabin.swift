@@ -66,7 +66,7 @@ final class ElevatorCabinWarmup {
 
     /// Idempotente y sin esperar: el calentado corre en el `Task` del player.
     func prepare(art: ElevatorCabinArt = .shared) {
-        guard case .video(let close, _) = art else { return }
+        guard case .video(let close, _) = art, !UIAccessibility.isReduceMotionEnabled else { return }
         _ = closingPlayer(url: close)
         expiry?.cancel()
         expiry = Task { [weak self] in

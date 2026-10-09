@@ -141,4 +141,46 @@ struct ElevatorRideTests {
         #expect(ride.phase == .idle)
         #expect(!recorder.cues.contains(.doorsClose))
     }
+
+    @Test("saltear con las puertas abriendo no repite el ding")
+    func skipWhileOpeningDoesNotDingTwice() async {
+        let recorder = Recorder()
+        let ride = director(recorder)
+        ride.select(ordinal: 4)
+        for _ in 0..<100 where ride.phase != .opening { await Task.yield() }
+        #expect(ride.phase == .opening)
+        ride.skip()
+        #expect(ride.phase == .idle)
+        #expect(recorder.cues.filter { $0 == .ding }.count == 1)
+    }
+
+    @Test("el pedido del mapa se descarta si ya hay un viaje en curso")
+    func mapRequestIsIgnoredDuringARide() async {
+        let recorder = Recorder()
+        let ride = director(recorder)
+        ride.select(ordinal: 4)
+        ride.requestFromMap(ordinal: 2)
+        ride.startPendingRide()
+        await ride.waitUntilIdle()
+        #expect(recorder.jumps == [4])
+    }
+
+    @Test("el slowdown de los UI tests estira las tres fases")
+    func slowdownStretchesThePlan() throws {
+        let plan = try #require(ElevatorRidePlan(origin: 0, destination: 1, reduceMotion: false, instant: false))
+        let slow = try #require(ElevatorRidePlan(origin: 0, destination: 1, reduceMotion: false, instant: false,
+                                                 slowdown: 5))
+        #expect(slow.total == plan.total * 5)
+    }
+
+    @Test("cada borde del viaje tiene sonido; el motor arranca y corta el mismo loop")
+    func cuesMapToSounds() {
+        #expect(ElevatorRide.Cue.motorStart.sound == .startLoop(.elevatorMotor))
+        #expect(ElevatorRide.Cue.motorStop.sound == .stopLoop(.elevatorMotor))
+        #expect(ElevatorRide.Cue.ding.sound == .oneShot(.elevatorDing, nil))
+        #expect(ElevatorRide.Cue.button.sound == .oneShot(.elevatorClick, .action))
+        #expect(Set(ElevatorRide.Cue.all.map(\.sound.sfx)) == [
+            .elevatorSpring, .elevatorClick, .elevatorDoors, .elevatorMotor, .elevatorDing,
+        ])
+    }
 }

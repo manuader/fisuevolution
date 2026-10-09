@@ -572,7 +572,7 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8b-T11 | El arresto | ⛔ | T10; E4b-T2 | +Visitors | | sonnet; al dejarlo ir (duda 5) |
 | E8b-T12 | Cierre de E8b (controlador) | ⏭️ | T1–T11 | `Docs/` | | **reemplazada por E8d-T15** (plan E8d, spec de animaciones del dueño, relevo 14); `completo`; en un iPhone real (HEVC-alfa por hardware) y la memoria a E8 T10 |
 | P-E8c | Plan de E8c: la cadena animada de Fusionar todo | ✅ | — | — | (el commit de este plan) | 10 tareas (T1–T10); `2026-10-08-v2-e8c-fusionar-todo.md`; 11 dudas con default; **un solo 🔥 (BoardScene, T7/T8); no toca GameState ni RootView** |
-| E8c-T1 | El eslabón en el plan (`BoardChange.Chain`) | 🔧 | E2a-T6 ✅ | BoardChange.swift (tibio: E13 T2, E6a T6, E7b-b T1), MergeAllPlannerTests | | EK; sonnet, **rev. opus** (la igualdad que compara `confirmBoardChange`); ola 1 |
+| E8c-T1 | El eslabón en el plan (`BoardChange.Chain`) | 🟢 | E2a-T6 ✅ | BoardChange.swift (tibio: E13 T2, E6a T6, E7b-b T1), MergeAllPlannerTests | `cbb97f3` (integ-r18) | EK; sonnet, **rev. opus** (la igualdad que compara `confirmBoardChange`); ola 1 |
 | E8c-T2 | El reloj del turno se renueva (`CelebrationQueue.renew`) | 🔧 | — | CelebrationQueue.swift (tibio: E4b T1, E8b T8, E6a T12) | | EK; sonnet; ola 1 |
 | E8c-T3 | El tempo de la cadena, puro (`MergeAllTempo`) | ✅ | — | nuevos (`Scenes/MergeAllTempo.swift`) | | revisión ninguna; 7 pares ≤ 3,5 s; ola 1 |
 | E8c-T4 | El plin que sube de tono y el remate | ⏳ | — | AudioManager (tibio: E13b T3, E5b), HapticsManager, +Services, generate_audio.py, 1 `.caf` | | revisión ninguna; las fusiones del embudo hoy no suenan |

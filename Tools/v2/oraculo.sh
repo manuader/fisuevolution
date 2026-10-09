@@ -176,6 +176,8 @@ if [[ "$MODE" == "completo" ]]; then
   step store-ui run_tests store-ui "$SIM18" "${STORE_UI[@]}"
   new_sim 26-5 SIMIPAD "iPad Pro 13-inch (M4)" || { note "❌ no se pudo crear el iPad"; exit 1; }
   step ipad-ui run_tests ipad-ui "$SIMIPAD" -only-testing:FisuEvolutionUITests/IPadLayoutUITests
+  new_sim 26-5 SIMSE "iPhone SE (3rd generation)" || { note "❌ no se pudo crear el SE"; exit 1; }
+  step se-ui run_tests se-ui "$SIMSE" -only-testing:FisuEvolutionUITests/LocalizationLayoutUITests
   step pipeline pipeline
   step pacing-sim pacing_sim
 fi

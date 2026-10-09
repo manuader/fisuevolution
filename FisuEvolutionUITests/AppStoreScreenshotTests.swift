@@ -22,6 +22,10 @@ import XCTest
 /// y después se sacan los PNG del bundle de resultados con
 /// `xcrun xcresulttool export attachments`.
 ///
+/// Para el iPad (2064 × 2752, el slot de 13" de App Store Connect), el mismo
+/// comando con `-destination 'platform=iOS Simulator,name=iPad Pro 13-inch (M4)'`.
+/// Los archivos salen con el prefijo del dispositivo (`ipad13-`/`iphone69-`).
+///
 /// ⚠️ **El simulador tiene que ser de 6,9"** (iPhone 16/17 Pro Max): App Store
 /// pide 1320×2868 para esa clase y rechaza cualquier otro tamaño en ese slot.
 ///
@@ -179,6 +183,11 @@ final class AppStoreScreenshotTests: XCTestCase {
         Thread.sleep(forTimeInterval: 1.6)
     }
 
+    /// El slot de App Store Connect de este dispositivo.
+    private static var deviceSlot: String {
+        UIDevice.current.userInterfaceIdiom == .pad ? "ipad13" : "iphone69"
+    }
+
     /// Guarda la captura como attachment del resultado.
     ///
     /// `XCUIScreen.main.screenshot()` y no `app.screenshot()`: el primero toma
@@ -188,7 +197,7 @@ final class AppStoreScreenshotTests: XCTestCase {
     @MainActor
     private func shoot(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-        attachment.name = name
+        attachment.name = "\(Self.deviceSlot)-\(name)"
         attachment.lifetime = .keepAlways
         add(attachment)
     }

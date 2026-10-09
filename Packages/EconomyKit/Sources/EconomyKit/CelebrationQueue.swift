@@ -66,6 +66,7 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         case .offlineEarnings, .dailyReward, .careerChoice,
              .skinAward, .specialDrop, .chestOpening: nil
         // Cubre navegar al piso, destacar el par, fundirlo, el vuelo del ascenso y el reveal.
+        // En una cadena, por eslabón (`renew`).
         case .boardCelebration: 14
         case .eventBanner: 6
         // Cubre unos diez toasts seguidos; pasado eso corta y lo loguea.
@@ -154,6 +155,14 @@ public struct CelebrationQueue: Sendable, Equatable {
         current = nil
         elapsed = 0
         promoteIfIdle()
+    }
+
+    /// El ítem en pantalla empieza de nuevo su reloj: lo usa una celebración
+    /// hecha de partes (los eslabones de "Fusionar todo"), donde el watchdog
+    /// cuida cada parte y no la suma.
+    public mutating func renew(_ kind: CelebrationKind) {
+        guard current == kind else { return }
+        elapsed = 0
     }
 
     /// El jugador tocó la pantalla. Devuelve `true` si eso salteó algo, así el

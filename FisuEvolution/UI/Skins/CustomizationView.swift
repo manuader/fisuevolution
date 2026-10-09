@@ -608,7 +608,7 @@ private struct SkinCard: View {
     }
 
     private var packCaptionText: String? {
-        row.packSize.map { String(localized: "skins.pack.caption \(String($0))") }
+        row.packSize.map { String(localized: "skins.pack.caption \($0)") }
     }
 
     @ViewBuilder private var packCaption: some View {

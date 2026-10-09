@@ -3121,23 +3121,6 @@
         }
       }
     },
-    "elevator.display.label" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elevator"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ascensor"
-          }
-        }
-      }
-    },
     "elevator.floor.ax %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3172,40 +3155,6 @@
         }
       }
     },
-    "elevator.floor.locked" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "locked"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "bloqueado"
-          }
-        }
-      }
-    },
-    "elevator.floor.staffed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "fully staffed"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "en marcha"
-          }
-        }
-      }
-    },
     "elevator.keypad.ax" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3219,6 +3168,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Botonera del ascensor"
+          }
+        }
+      }
+    },
+    "elevator.keypad.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open the floor keypad"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir la botonera de pisos"
           }
         }
       }

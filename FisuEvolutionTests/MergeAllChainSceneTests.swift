@@ -109,6 +109,7 @@ struct MergeAllChainSceneTests {
         gameState.tick(delta: 1)
         #expect(scene.debugTapDuringCelebration(), "el toque se consume: no llega a agarrar a nadie")
         #expect(scene.debugPlayingChain != nil)
+        #expect(!scene.debugIsHoldingCharacter)
     }
 
     @Test("el contador cuenta desde el segundo eslabón")
@@ -137,5 +138,50 @@ struct MergeAllChainSceneTests {
         scene.debugTapDuringCelebration()
         #expect(gameState.inFlightBoardChange == nil)
         #expect(scene.debugIsPlayingBoardChange == false)
+    }
+
+    @Test("el watchdog que corta la cadena se lleva el contador")
+    func abortingTheChainDropsTheCombo() async {
+        let (scene, gameState) = await sceneWithChain()
+        scene.update(1)
+        var guardrail = 0
+        while scene.debugComboText == nil, guardrail < 20 {
+            scene.debugCompleteBoardChangeStep()
+            guardrail += 1
+        }
+        #expect(scene.debugComboText != nil)
+        for _ in 0..<15 { gameState.tick(delta: 1) }
+        scene.update(2)
+        #expect(scene.debugComboText == nil)
+    }
+
+    @Test("una cadena de un solo eslabón no deja contador")
+    func aSingleLinkLeavesNoCombo() async {
+        let gameState = await makeGameState()
+        gameState.debugSeedMergeAll(homeless: 2)
+        let scene = BoardScene(gameState: gameState)
+        scene.layoutBoard()
+        gameState.syncCelebrations()
+        scene.update(1)
+        var guardrail = 0
+        while scene.debugIsPlayingBoardChange || scene.debugPlayingChain != nil, guardrail < 30 {
+            scene.debugCompleteBoardChangeStep()
+            guardrail += 1
+            scene.update(1 + Double(guardrail) * 0.01)
+        }
+        #expect(scene.debugComboText == nil)
+        #expect(gameState.showing != .boardCelebration)
+    }
+
+    @Test("si el turno ya no es de la cadena, el toque se consume pero no apura")
+    func aTapAfterTheTurnLeftDoesNotHurry() async {
+        let (scene, gameState) = await sceneWithChain()
+        scene.update(1)
+        gameState.tick(delta: 1)
+        gameState.uiCoversBoard = true
+        gameState.syncCelebrations()
+        let pending = gameState.pendingBoardChanges.count
+        #expect(scene.debugTapDuringCelebration())
+        #expect(gameState.pendingBoardChanges.count == pending)
     }
 }

@@ -497,7 +497,10 @@ final class BoardScene: SKScene {
     /// y nunca llega a agarrar un personaje; un cambio suelto sólo se saltea.
     private func tapDuringCelebration() -> Bool {
         if playingChain != nil {
-            if gameState.celebrations.elapsed >= CelebrationQueue.skipFloor { hurryChain() }
+            if gameState.showing == .boardCelebration,
+               gameState.celebrations.elapsed >= CelebrationQueue.skipFloor {
+                hurryChain()
+            }
             return true
         }
         if gameState.skipCurrentCelebration() { abortBoardCelebration() }
@@ -694,9 +697,9 @@ final class BoardScene: SKScene {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         guard dragNode == nil, let touch = touches.first else { return }
 
-        // Un tap saltea la celebración en curso, pasado el piso de tiempo. NO se
-        // consume: el tap es el verbo principal del juego y comérselo se
-        // sentiría como un tap perdido, así que sigue de largo y también juega.
+        // Un tap saltea la celebración en curso, pasado el piso de tiempo, y si
+        // era un cambio suelto sigue de largo y también juega: el tap es el verbo
+        // principal del juego y comérselo se sentiría como un tap perdido.
         // Mientras un cambio se mueve o una cadena sigue (aun en el reveal de un
         // eslabón) el toque no juega: si no, el jugador arrastraría al par a
         // mitad del gesto.
@@ -1252,10 +1255,11 @@ final class BoardScene: SKScene {
     private func finishChain(_ chain: BoardChange.Chain) {
         combo?.finish {}
         combo = nil
-        guard chain.count >= 2 else { return }
+        let merges = chain.index + 1
+        guard merges >= 2 else { return }
         gameState.playMergeAllFinale()
         UIAccessibility.post(
-            notification: .announcement, argument: MergeAllComboNode.announcement(merges: chain.count)
+            notification: .announcement, argument: MergeAllComboNode.announcement(merges: merges)
         )
     }
 
@@ -1307,6 +1311,7 @@ final class BoardScene: SKScene {
         step()
     }
     var debugComboText: String? { combo?.text }
+    var debugIsHoldingCharacter: Bool { dragNode != nil }
     @discardableResult
     func debugTapDuringCelebration() -> Bool { tapDuringCelebration() }
     func debugHoldInHand(slot: Int) { dragNode = characterNodes[slot] }

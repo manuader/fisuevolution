@@ -184,6 +184,7 @@ final class AppStoreScreenshotTests: XCTestCase {
     }
 
     /// El slot de App Store Connect de este dispositivo.
+    @MainActor
     private static var deviceSlot: String {
         UIDevice.current.userInterfaceIdiom == .pad ? "ipad13" : "iphone69"
     }

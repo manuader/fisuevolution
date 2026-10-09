@@ -73,6 +73,7 @@ final class FloorMapUITests: XCTestCase {
         // El techo de la torre también, para que el mapa no dependa de dónde
         // caiga el corte de pisos entre versiones.
         XCTAssertFalse(app.buttons["map.floor.god_realm"].isEnabled)
+        XCTAssertTrue(app.buttons["map.floor.god_realm"].label.contains("???"), "a locked floor must not tell its name")
         XCTAssertTrue(app.buttons["map.floor.alley"].isEnabled, "the alley is always open")
 
         let screenshot = XCTAttachment(screenshot: app.screenshot())

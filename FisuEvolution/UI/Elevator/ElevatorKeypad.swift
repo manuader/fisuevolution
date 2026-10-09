@@ -104,7 +104,7 @@ struct ElevatorKeypadButton: View {
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("hud.elevator.keypad.floor.\(floor.id)")
-        .accessibilityLabel(Text("elevator.floor.ax \(String(floor.number)) \(TowerNaming.floorName(for: floor.id))"))
+        .accessibilityLabel(Text("elevator.floor.ax \(String(floor.number)) \(TowerNaming.displayName(for: floor.id, isUnlocked: true))"))
         .accessibilityValue(floor.isCurrent ? Text("elevator.floor.current") : Text(verbatim: ""))
     }
 

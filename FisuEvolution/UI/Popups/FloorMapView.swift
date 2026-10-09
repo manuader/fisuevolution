@@ -205,7 +205,7 @@ struct FloorMapView: View {
         .accessibilityLabel(
             Text("map.floor.ordinal \(String(entry.ordinal + 1))")
                 + Text(verbatim: ", ")
-                + Text(TowerNaming.floorNameKey(for: entry.id))
+                + Text(verbatim: TowerNaming.displayName(for: entry.id, isUnlocked: entry.isUnlocked))
         )
         .accessibilityValue(visibleAwareValue(for: entry))
     }
@@ -216,7 +216,7 @@ struct FloorMapView: View {
             numberButton(entry, tone: tone)
             thumbnail(entry)
             VStack(alignment: .leading, spacing: Tokens.s4) {
-                Text(TowerNaming.floorNameKey(for: entry.id))
+                Text(verbatim: TowerNaming.displayName(for: entry.id, isUnlocked: entry.isUnlocked))
                     .font(Tokens.title)
                     .foregroundStyle(Color("PaletteInk"))
                     .lineLimit(2)
@@ -342,6 +342,7 @@ struct FloorMapView: View {
 
     /// Miniatura del fondo REAL del piso. El puente código→arte sigue siendo el
     /// manifest: sin entrada ahí, un rectángulo neutro (igual que en la escena).
+    /// Un piso cerrado no muestra su fondo: es una silueta con un signo de pregunta.
     ///
     /// El apagado de los pisos cerrados ya no se hace acá: `GameCard(style:
     /// .locked)` desatura y baja la opacidad de la tarjeta ENTERA, así que
@@ -351,12 +352,17 @@ struct FloorMapView: View {
     private func thumbnail(_ entry: FloorMapEntry) -> some View {
         let asset = gameState.content?.manifest.backgrounds[entry.backgroundKey]
         ZStack {
-            if let asset, let image = FloorThumbnail.image(named: asset) {
+            if entry.isUnlocked, let asset, let image = FloorThumbnail.image(named: asset) {
                 image
                     .resizable()
                     .scaledToFill()
             } else {
                 Color("PaletteInk").opacity(0.18)
+                    .overlay {
+                        Image(systemName: entry.isUnlocked ? "photo" : "questionmark")
+                            .font(.system(size: 22, weight: .black))
+                            .foregroundStyle(Color("PaletteInk").opacity(0.45))
+                    }
             }
         }
         .frame(width: 86, height: 54)

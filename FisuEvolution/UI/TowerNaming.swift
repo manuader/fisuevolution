@@ -40,4 +40,9 @@ enum TowerNaming {
         default: floorID
         }
     }
+
+    /// El nombre de un piso que todavía no abriste no se cuenta (PLAN-v2 E13).
+    static func displayName(for floorID: String, isUnlocked: Bool) -> String {
+        isUnlocked ? floorName(for: floorID) : String(localized: "tower.floor.unknown")
+    }
 }

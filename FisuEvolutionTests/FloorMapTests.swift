@@ -66,6 +66,14 @@ struct FloorMapTests {
         #expect(gameState.visibleFloorOrdinal == start)
     }
 
+    @Test("un piso cerrado no dice su nombre")
+    func lockedFloorDoesNotRevealItsName() {
+        let hidden = TowerNaming.displayName(for: "god_realm", isUnlocked: false)
+        #expect(hidden != TowerNaming.floorName(for: "god_realm"))
+        #expect(hidden.contains("???"))
+        #expect(TowerNaming.displayName(for: "corporate", isUnlocked: true) == TowerNaming.floorName(for: "corporate"))
+    }
+
     @Test("saltar a un piso desbloqueado lleva directo, sin pasar por los del medio")
     func unlockedFloorsAreReachableInOneJump() async throws {
         let gameState = await makeGameState()

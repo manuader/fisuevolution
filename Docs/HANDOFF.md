@@ -21,23 +21,22 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
-> 16): `version-2` = **`bce2fc2`** (el `rapido` intermedio dio VERDE y avanzó; pasa a la punta de `v2i/integ-r16` con
-> los docs del cierre si el `rapido` final da verde) · la rama de integración `v2i/integ-r16` = **`2779ddb`** + estos docs
-> (`rapido` final: VERDE sobre `2779ddb` (EK 618 · unit 968 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las
-> olas B a L, más lo del relevo 16 en `integ-r16`: **la segunda tanda de videos del dueño (108 piezas) y su doc**,
-> `LoopingVideoNode` (**E8d T4**, ruta A para T9), **`MetaState.ranking`** (**E12 T10**), **la tarjeta de Dios y la
-> pestaña del ranking** (**E12 T9a/T9b**, vistas sueltas todavía sin montar), **On-Demand Resources** (**E8d T12**) y
-> **la placa por long press** (**E13b T8**). **Progreso: 98 de 254 tareas activas en `version-2`; 98 + 6 = 104 de 254
-> (40,9 %) si el `rapido` de `integ-r16` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el
-> `--limpio` de `c94f75f` (E1 T16).** Detalle en `Docs/SESION-2026-10-09-v2-relevo-16-ola-m.md`.
+> 17): `version-2` = **`b093db5`** (`rapido` VERDE sobre `2d33c08`: EK 618 · unit 980 + 1 declarado `theOwnersTargetsAreMet` ·
+> Release 0) · la rama de integración `v2i/integ-r17` = **`b5043b5`** + estos docs (`rapido` final: RAPIDO_PENDIENTE). Están E0,
+> E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a M, más lo del relevo 17: **los tags ODR de
+> la segunda tanda** (**E8d T14**, 99 `.mov` en 14 packs), **el especial animado** (**E8d T5**), **los ganchos del ranking en
+> `GameState`** (**E12 T11**), **los precios al reencarnar** (**E13 T5**) y, en `integ-r17`, **la sonda de fps** (**E8d T13**) y
+> **el tempo de la cadena** (**E8c T3**). **Progreso: 108 de 254 tareas activas en `version-2`; 110 de 254 (43,3 %) si el
+> `rapido` de `integ-r17` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1
+> T16).** Detalle en `Docs/SESION-2026-10-09-v2-relevo-17-ola-n.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r16` (seis tareas, la tanda del dueño y los docs del cierre; si su
-> `rapido` dio verde, el primer paso del relevo 17 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos`
-> son de la sesión del dueño; no se tocan. Hay planes por tareas para todas las épicas salvo la parte de agente de E10.
-> **Lo primero del relevo 17:** el `rapido` de `integ-r16` si no quedó hecho y después **E8d T14** (los tags ODR; la
-> revisión de la tanda ya está cerrada), **E8d T5**, **E8d T13** y **E12 T11** (los ganchos; ventana libre de
-> `GameState.swift`) (`tasks.md` §4). Con la carga de la máquina alta, no más de dos compilando. **Pendiente del dueño:**
-> confirmar en el chat la lista de palabras de E12 (el clasificador de permisos la bloqueó).
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r17` (dos tareas y los docs del cierre; si su `rapido` dio verde, el
+> primer paso del relevo 18 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño;
+> no se tocan. Hay planes por tareas para todas las épicas salvo la parte de agente de E10. **Lo primero del relevo 18:** el
+> `rapido` de `integ-r17` si no quedó hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de
+> `tasks.md` §4.2: **E13** T3/T8/T11/T12, **E8c** T1/T2/T4/T6, **E8d** T7–T10 según ventanas, **E12 T12/T13** apenas se
+> cumplan sus otras dependencias (E9b T7/T8; E3b T4 y E3a T11). Con la carga de la máquina alta, no más de dos compilando.
+> **Pendiente del dueño:** confirmar en el chat la lista de palabras de E12 (el clasificador de permisos la bloqueó).
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -347,6 +346,24 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-09 (relevo 17) — La ola N: la ODR por tag, el especial animado y los ganchos del ranking
+
+Con el `rapido` VERDE sobre `2d33c08`, `version-2` avanzó a `b093db5`. **Progreso: 108 de 254 en `version-2`; 110 de 254 (43,3 %) con las dos 🟢 de `integ-r17`.**
+
+- **E8d T14:** 99 `.mov` a 14 packs ODR (base +10,2 MB, packs 19,8 MB). El manifest de la tanda tenía `visitors`/`icons` y
+  Swift lee `talking`/`visitorActions`/`shopIcons`: se reescribió y `video_assets.py` quedó al día. Los íconos 256² llevan
+  claves `ui_oro_*` para E6a. El ODR real nunca se probó en device (en Debug los packs van embebidos).
+- **E8d T5:** el póster del especial es de cuerpo entero y `.portrait` es el busto: el video saltaba al arrancar; el
+  especial anima `.character(special.id)`.
+- **E12 T11:** los ganchos del ranking; la revisión opus cazó que `becameActive` durante el tutorial arrancaba la partida
+  rankeada (guard `!tutorialPhaseActive`, test `tutorialDoesNotRunTheClock`). Un test viejo (`GameStateRankingHostTests`)
+  esperaba `godTier == nil` y se alineó.
+- **E13 T5:** los precios al reencarnar, explicados. **E8d T13 / E8c T3** (🟢 en `integ-r17`): la sonda de fps y el tempo de
+  la cadena, puro.
+- La lista de palabras de E12 no se reintentó. Trampas nuevas en §7.
+
+Detalle en **`Docs/SESION-2026-10-09-v2-relevo-17-ola-n.md`**.
 
 ### Sesión del 2026-10-09 (relevo 16) — La ola M: la segunda tanda de videos, el video en la escena, la ODR y el ranking en el save
 
@@ -2652,6 +2669,22 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la ola N (2026-10-09, relevo 17)
+
+- **Un `rapido` lanzado en background con `cd` relativo muere con exit 127.** Lanzarlo con la ruta absoluta:
+  `bash <ruta absoluta>/Tools/v2/oraculo.sh rapido`.
+- **Carga 150–550 con tres compilando:** el tope es 2, contando el `rapido`; una corrida lenta bajo carga no es un cuelgue.
+- **Un agente sin red a GitHub no resuelve los paquetes** (E8c T3): copiar `SourcePackages` de
+  `version-2/build/DD-oraculo.noindex` y correr con `-disableAutomaticPackageResolution -skipPackageUpdates`.
+- **Póster y video del mismo encuadre:** `.portrait` es el busto y `.character` el cuerpo entero; mezclarlos da un salto al
+  arrancar el video (E8d T5).
+- **Un gancho nuevo del arranque necesita el guard `!tutorialPhaseActive`:** `becameActive` en el tutorial arrancaba la
+  partida rankeada y corría el cronómetro (E12 T11).
+- **Un test que fija el estado anterior de una tarea se pone rojo cuando la siguiente lo cambia a propósito**
+  (`GameStateRankingHostTests` y `godTier == nil`): mirar si quedó viejo antes de culpar al código.
+- **`--uitest-ranking-*` en `RankingStore.live()` no está bajo `#if DEBUG`:** parseo de argumentos de prueba en código de
+  release (carry para el dueño u otra tarea).
+
 ### De la ola M (2026-10-09, relevo 16)
 
 - **El clasificador de permisos del modo auto puede bloquear un pedido de `DUENO.md`.** Lo lee como una instrucción metida
@@ -4115,7 +4148,7 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
-### Lo que queda de la 2.0 (cierre del relevo 16)
+### Lo que queda de la 2.0 (cierre del relevo 17)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
 
@@ -4123,10 +4156,10 @@ La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
   activarla); decidir el **`installId` que no viaja por CloudKit** (una partida registrada en A que llega a Dios en B
   queda `.unregisteredGod`: sincronizar el Keychain o aceptarlo); si el botón **Entrar** de `RankingEntryCard` sigue con
   `.disabled` (rompe la convención de `ActionPill`); si molesta que la **placa de 10 pisos tape parte de Reencarnar**
-  mientras está abierta. Siguen: mediación por SPM, capturas de ASC, Meta, TestFlight, oír los sonidos (G7).
-- **Sin probar en device:** ODR (nada tiene tag hasta E8d T14), el alfa del HEVC a ×5 (G3), el publisher de
+  mientras está abierta; si `--uitest-ranking-*` de `RankingStore.live()` pasa a `#if DEBUG`. Siguen: mediación por SPM, capturas de ASC, Meta, TestFlight, oír los sonidos (G7).
+- **Sin probar en device:** ODR (E8d T14 ya asignó los tags, pero en Debug los packs van embebidos; G5), el alfa del HEVC a ×5 (G3), el publisher de
   `isReadyForDisplay`.
-- **Montaje pendiente:** la tarjeta y la pestaña del ranking (T9a/T9b) esperan a E12 T11 y T13; `onChoose` del atajo
+- **Montaje pendiente:** la tarjeta y la pestaña del ranking (T9a/T9b) esperan a E12 T13 (T11 ya está); `onChoose` del atajo
   espera a E3b T8.
 
 ### Precargar el atlas de personaje fuera del hilo principal (levantada 2026-08-27)
@@ -4459,6 +4492,8 @@ Anotado por si algún día importa, con su medición:
   los relevos 13 a 15.
 - **`Docs/SESION-2026-10-09-v2-relevo-16-ola-m.md`**: el relevo 16 (la segunda tanda de videos entra; `LoopingVideoNode`,
   ODR, `MetaState.ranking`, las vistas del ranking y la placa; las trampas del clasificador de permisos y de la carga).
+- **`Docs/SESION-2026-10-09-v2-relevo-17-ola-n.md`**: el relevo 17 (los tags ODR de la segunda tanda, el especial animado,
+  los ganchos del ranking con su guard del tutorial, la sonda de fps; las trampas del `rapido` en background y de la red).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

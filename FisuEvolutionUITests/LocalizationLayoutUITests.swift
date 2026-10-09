@@ -16,9 +16,10 @@ final class LocalizationLayoutUITests: XCTestCase {
     func testLaPantallaPrincipalNoSeEnciman() throws {
         let app = launch()
         let screen = app.windows.element(boundBy: 0).frame
-        // El display del ascensor se fue del tablero (ElevatorPanelUITests): no está en la lista.
+        // El display del ascensor se fue del tablero (ElevatorPanelUITests) y la Tienda salió
+        // de la barra (E12 T13): no están en la lista.
         let controls = ["hud.coins.plus", "hud.map", "hud.quickhire",
-                        "hud.upgrades", "hud.skins", "hud.hire", "hud.bonus", "hud.store", "hud.settings"]
+                        "hud.upgrades", "hud.skins", "hud.hire", "hud.bonus", "hud.settings"]
             .map { app.buttons[$0] }
         for control in controls {
             XCTAssertTrue(control.waitForExistence(timeout: 10), "falta \(control.identifier)")
@@ -37,7 +38,7 @@ final class LocalizationLayoutUITests: XCTestCase {
     @MainActor
     func testCadaHojaSeAbreYSeCierraEnCastellano() throws {
         let app = launch()
-        for tab in ["hud.upgrades", "hud.skins", "hud.hire", "hud.bonus", "hud.store", "hud.settings"] {
+        for tab in ["hud.upgrades", "hud.skins", "hud.hire", "hud.bonus", "hud.settings"] {
             let button = app.buttons[tab]
             XCTAssertTrue(waitUntilHittable(button), "\(tab) nunca quedó tocable")
             button.tap()

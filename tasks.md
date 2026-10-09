@@ -711,7 +711,7 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13-T7 | Toque premiado: seis líneas, los niveles se suman | ⛔ | T3, T6; E9b-T6 | 🔥 PlayerState, ContentSystems, catálogo (snapshot); upgrades.json, ContentConfigs, PermanentUpgrades, EffectDescriptor, pacing-sim, GameContentValidationTests, PacingTests | | revisión opus (save + plata); 193 → 192 ORO (348 con baseCost 2); HANDOFF §5.7 pasa a "las seis"; carry a E2b T14 |
 | E13-T8 | Pisos de arriba con misterio ("Piso ???") | ✅ | — | catálogo (snapshot); FloorMapView, ElevatorPanel, TowerNaming, +Types, +Projections | `545521f` (integ-r18; catálogo +1) | ElevatorPanel es tibio de E7b-b T3; integrar en serie con T4 (+Projections) |
 | E13-T9 | Ficha y Despedir desde Personajes | ⛔ | verificar CharacterSheetUITests sobre `ab7ba84` (arreglo del panel de debug) | catálogo (snapshot); UpgradesView, +Types, +Actions, CharacterSheetView | | no ∥ T13 (UpgradesView) ni T11 (+Actions); carry de texto a E9b T1 |
-| E13-T10 | FisuJobs por pisos | 🔧 | T8 | FisuJobsView | | revisión ninguna; `JobGroups` testeable |
+| E13-T10 | FisuJobs por pisos | 🟢 | T8 | FisuJobsView | `54c5648` (integ-r19) | revisión ninguna; `JobGroups` testeable |
 | E13-T11 | La moneda sobre quien genera plata | ✅ | — | 🔥 BoardScene; CharacterNode, BoardReconciliation, +Actions | `17b29fb` (integ-r18) | no ∥ T9 (+Actions); un nodo por personaje, sin animación |
 | E13-T12 | El Diamante dice "Pack de las 43" | ✅ | — | catálogo (snapshot); +Store, CustomizationView | `221f9b6`+`ff3b1ef` (integ-r18; catálogo +1) | revisión ninguna; +Store es tibio de E6b T4/T5 |
 | E13-T13 | Las mejoras dicen su efecto, de antes a después | ⛔ | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |

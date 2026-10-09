@@ -20,6 +20,8 @@ extension GameState {
         case upgrades
         /// Se desbloqueó el segundo piso: recién ahora el mapa tiene a dónde ir.
         case elevator
+        /// El tercer piso: la placa colgante (PLAN-v2 E13, ítem 13).
+        case elevatorKeypad
         /// El atajo de contratar al mejor, cuando hay algo contratable.
         case quickHire
         /// Ya hay una pinta para ponerse. Desde que las 41 pintas de piso salen
@@ -50,7 +52,7 @@ extension GameState {
         var anchorTarget: TutorialTarget {
             switch self {
             case .upgrades: .upgrades
-            case .elevator: .map
+            case .elevator, .elevatorKeypad: .map
             case .quickHire: .quickHire
             case .skins: .skins
             case .achievements: .menu
@@ -71,7 +73,7 @@ extension GameState {
             case .achievements: .menu
             case .gifts: .gifts
             case .store: .store
-            case .elevator, .quickHire, .prestige: nil
+            case .elevator, .elevatorKeypad, .quickHire, .prestige: nil
             }
         }
 
@@ -80,6 +82,7 @@ extension GameState {
             switch self {
             case .upgrades: "tutorial.tip.upgrades"
             case .elevator: "tutorial.tip.elevator"
+            case .elevatorKeypad: "tutorial.tip.elevator.hold"
             case .quickHire: "tutorial.tip.quickhire"
             case .skins: "tutorial.tip.skins"
             case .achievements: "tutorial.tip.achievements"
@@ -147,6 +150,8 @@ extension GameState {
             canAffordAnyUpgrade
         case .elevator:
             unlockedFloorsCount >= 2
+        case .elevatorKeypad:
+            unlockedFloorsCount >= 3
         case .quickHire:
             quickHireOffer?.affordable == true
         case .skins:
@@ -210,6 +215,12 @@ extension GameState {
     func tutorialTipHandled(opening screen: GameScreen) {
         guard let lesson = tutorialTip?.lesson, lesson.destinationScreen == screen else { return }
         tutorialTipCompleted(lesson)
+    }
+
+    /// El jugador desplegó la placa del ascensor: la lección se cumple y no vuelve.
+    func elevatorKeypadOpened() {
+        tutorialTipCompleted(.elevatorKeypad)
+        markLessonDone(.elevatorKeypad)
     }
 
     // MARK: La señal de Mejoras

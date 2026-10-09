@@ -93,7 +93,7 @@ struct SpecialDropView: View {
         Group {
             if let asset = gameState.content?.manifest.characters[special.id],
                let image = UIArt.characterImage(atlas: asset.atlas, key: asset.key) {
-                AnimatedArtView(clip: .portrait(special.id), role: .popup) {
+                AnimatedArtView(clip: .character(special.id), role: .popup) {
                     image
                         .resizable()
                         .scaledToFit()

@@ -39,6 +39,15 @@ struct AudioManagerTests {
         #expect(abs(AudioManager.Gain.action.linear - Float(pow(10, -6.0 / 20))) < 0.001)
     }
 
+    @Test("cada evento de events.json suena con su acento y uno desconocido con el genérico")
+    func eventAccents() throws {
+        let ids = try GameContentLoader.load(from: .main).events.events.map(\.id)
+        let accents = ids.map { AudioManager.accent(forEvent: $0) }
+        #expect(!accents.contains(.event), "evento sin acento: \(ids.filter { AudioManager.accent(forEvent: $0) == .event })")
+        #expect(Set(accents).count == ids.count, "dos eventos comparten acento")
+        #expect(AudioManager.accent(forEvent: "no_existe") == .event)
+    }
+
     @Test("el tono del blip es estable por personaje y está en 0,8–1,25")
     func blipPitch() {
         let vecina = AudioManager.talkPitch(for: "npc_vecina")

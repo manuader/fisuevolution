@@ -20,7 +20,7 @@ import Testing
     /// test tiene que fallar cuando el enum crece y el cableado no.
     private static let declaredCases = [
         "tap", "merge", "evolution", "coin", "buy",
-        "error", "rare", "prestige", "event", "daily",
+        "error", "rare", "prestige", "daily",
         "chestShakeA", "chestShakeB", "revealWhoosh",
         "mergeAllDone",
     ]
@@ -33,6 +33,16 @@ import Testing
         "visitorArrive": "E4b T3", "talkBlip": "E4b T3",
         "shopShimmer": "E6a T8",
         "elevatorCable": "E8d T10",
+    ]
+
+    /// Los acentos de evento suenan por `AudioManager.accent(forEvent:)`, cuyo
+    /// resultado el parser no ve como caso: cubierto = el mapa los devuelve y
+    /// `GameState+Bonus` dispara el acento (ver `eventAccentsAreFired`). `event`
+    /// queda como el de un evento sin acento propio.
+    private static let eventAccents = [
+        "event",
+        "eventPlanPlatita", "eventStartup", "eventDevaluacion", "eventBlanqueo",
+        "eventMercadoPago", "eventAlien", "eventCorralito", "eventAguinaldo",
     ]
 
     /// Los del ascensor suenan desde `UI/HUD` y `UI/Elevator` (E13b), no desde
@@ -130,11 +140,26 @@ import Testing
         let known = Set(Self.declaredCases)
             .union(Self.pendingWiring.keys)
             .union(Self.elevatorCases)
+            .union(Self.eventAccents)
         let cases = AudioManager.SFX.allCases.map { "\($0)" }
         let unowned = cases.filter { !known.contains($0) }
         #expect(unowned.isEmpty, "SFX sin cablear y sin dueño: \(unowned)")
         let ghosts = known.filter { !cases.contains($0) }
         #expect(ghosts.isEmpty, "casos declarados que ya no existen: \(ghosts)")
+    }
+
+    @Test("el evento que cae dispara su acento")
+    func eventAccentsAreFired() throws {
+        let sources = try Self.gameStateSources()
+        let arguments = Self.playArguments(receiver: "audio", in: sources)
+        #expect(arguments.contains { $0.contains("AudioManager.accent(forEvent:") })
+        let ids = try Self.eventIds() + ["sin_acento"]
+        let mapped = Set(ids.map { "\(AudioManager.accent(forEvent: $0))" })
+        #expect(Set(Self.eventAccents).isSubset(of: mapped), "acentos sin evento que los pida")
+    }
+
+    private static func eventIds() throws -> [String] {
+        try GameContentLoader.load(from: .main).events.events.map(\.id)
     }
 
     @Test("el parser cuenta un ternario como cableado, no como huérfano")

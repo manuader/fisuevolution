@@ -54,6 +54,24 @@ struct LoopingVideoNodeTests {
         node.setVisible(false)
     }
 
+    @Test("con el pack ODR sin bajar: póster y pedido; al llegar, el video arranca solo")
+    func videoStartsWhenThePackArrives() async throws {
+        let source = FakeArtPackSource()
+        let packs = ArtPacks(source: source)
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"], odrTag: "anim-piso-1")
+        let node = LoopingVideoNode(clip: .floor("urban"), poster: SKTexture(), size: size,
+                                    role: .background, manifest: manifest, pool: pool, packs: packs)
+        node.setVisible(true)
+        #expect(node.videoNode == nil && packs.isRequested("anim-piso-1"))
+        for _ in 0..<5 { await Task.yield() }
+        source.last?.complete()
+        for _ in 0..<5 { await Task.yield() }
+        #expect(node.videoNode != nil && pool.liveCount == 1)
+        node.setVisible(false)
+        #expect(node.videoNode == nil && !packs.isReady("anim-piso-1"))
+    }
+
     private func render(clip: ArtClip, manifest: LoopsManifest) async throws -> (corner: Pixel, center: Pixel) {
         let pool = VideoPlayerPool(policy: .allowAll)
         let view = SKView(frame: CGRect(x: 0, y: 0, width: 256, height: 256))

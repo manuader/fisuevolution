@@ -13,7 +13,10 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
     private static let readyPollNanos: UInt64 = 50_000_000
     private static let readyPollLimit = 40
 
-    private let url: URL?
+    private var url: URL?
+    private let clip: ArtClip
+    private let manifest: LoopsManifest
+    private let packs: ArtPacks
     private let role: VideoRole
     private let pool: VideoPlayerPool
     private let size: CGSize
@@ -23,14 +26,19 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
     private var player: AVQueuePlayer?
     private var readyTask: Task<Void, Never>?
     private var gaveUp = false
+    private var wantsVisible = false
+    private var requestedTag: String?
 
     private(set) var videoNode: SKVideoNode?
 
     var videoAlpha: CGFloat { videoNode?.alpha ?? 0 }
 
     init(clip: ArtClip, poster: SKTexture, size: CGSize, role: VideoRole,
-         manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared) {
-        self.url = manifest.url(for: clip)
+         manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared, packs: ArtPacks = .shared) {
+        self.url = manifest.url(for: clip, packs: packs)
+        self.clip = clip
+        self.manifest = manifest
+        self.packs = packs
         self.role = role
         self.pool = pool
         self.size = size
@@ -47,11 +55,15 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
 
     deinit {
         if let lease { Task { @MainActor [pool] in pool.release(lease) } }
+        if let requestedTag { Task { @MainActor [packs] in packs.release(requestedTag) } }
     }
 
-    /// Sólo el piso visible y asentado anima. Sin video en el manifest, no hace nada.
+    /// Sólo el piso visible y asentado anima. Sin video en el manifest, no hace nada; con el pack ODR
+    /// sin bajar, lo pide y arranca cuando llega.
     func setVisible(_ visible: Bool) {
+        wantsVisible = visible
         if visible {
+            requestPackIfNeeded()
             guard url != nil, lease == nil, !gaveUp else { return }
             lease = pool.acquire(self, role: role)
         } else {
@@ -60,8 +72,26 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
     }
 
     func stop() {
+        wantsVisible = false
         gaveUp = false
         releaseLease()
+        if let requestedTag {
+            self.requestedTag = nil
+            packs.release(requestedTag)
+        }
+    }
+
+    private func requestPackIfNeeded() {
+        guard url == nil, requestedTag == nil, let tag = manifest.odrTag(for: clip) else { return }
+        requestedTag = tag
+        packs.request(tag)
+        packs.whenAvailable(tag) { [weak self] in self?.packArrived() }
+    }
+
+    private func packArrived() {
+        guard requestedTag != nil, url == nil else { return }
+        url = manifest.url(for: clip, packs: packs)
+        if wantsVisible { setVisible(true) }
     }
 
     private func releaseLease() {

@@ -2,9 +2,26 @@ import AVFoundation
 import SwiftUI
 import UIKit
 
+@MainActor
 enum AnimatedArt {
-    static func resolve(_ clip: ArtClip, manifest: LoopsManifest) -> URL? {
-        manifest.url(for: clip)
+    static func resolve(_ clip: ArtClip, manifest: LoopsManifest, packs: ArtPacks = .shared) -> URL? {
+        manifest.url(for: clip, packs: packs)
+    }
+}
+
+/// Pide el pack ODR del clip mientras la vista está en pantalla y lo suelta al salir. Cuando el pack
+/// llega, `ArtPacks` (observable) vuelve a evaluar el `body` y el `.id(url)` monta la capa de video.
+private struct ArtPackLease: ViewModifier {
+    let tag: String?
+
+    func body(content: Content) -> some View {
+        content
+            .onAppear { tag.map { ArtPacks.shared.request($0) } }
+            .onDisappear { tag.map { ArtPacks.shared.release($0) } }
+            .onChange(of: tag) { old, new in
+                old.map { ArtPacks.shared.release($0) }
+                new.map { ArtPacks.shared.request($0) }
+            }
     }
 }
 
@@ -27,7 +44,7 @@ struct AnimatedArtView<Poster: View>: View {
     @Environment(\.loopsManifest) private var manifest
 
     var body: some View {
-        poster().overlay {
+        poster().modifier(ArtPackLease(tag: manifest.odrTag(for: clip))).overlay {
             if let url = AnimatedArt.resolve(clip, manifest: manifest) {
                 ArtVideoLayer(url: url, role: role, playback: playback)
                     .id("\(url.absoluteString)|\(role.rawValue)")

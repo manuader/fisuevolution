@@ -21,22 +21,23 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
-> 20): `version-2` = **`7a5395b`** (`rapido` VERDE sobre `b8a3c1e`: EK 636 · unit 1047 + 1 declarado · Release 0) · la rama
-> de integración `v2i/integ-r20` = **`2e43db0`** + estos docs (`rapido` final: VERDE sobre `2e43db0` (EK 636 · unit 1055 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0,
-> E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a P, más lo del relevo 20: **la escalada por
-> bandas** (**E2b T1**), **la cadena de Fusionar todo en el simulador** (**E8c T9**), **el fondo vivo del piso** (**E8d T8**), **el
-> chrome de la raíz en la columna** (**E3a T11**), **«Opciones de privacidad»** (**E7b-a T5**) y, en `integ-r20`, **la revelación
-> con el cuerpo entero** (**E8d T9**) y **el menú deslizable** (**E3b T4**). **Progreso: 131 de 254 tareas activas en `version-2`;
-> 133 de 254 (52,4 %) si el `rapido` de `integ-r20` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio`
-> de `c94f75f` (E1 T16).** Detalle en `Docs/SESION-2026-10-09-v2-relevo-20-ola-q.md`.
+> 21): `version-2` = **`7604768`** (`rapido` VERDE sobre `cad2d93`: EK 636 · unit 1060 + 1 declarado · Release 0) · la rama
+> de integración `v2i/integ-r21` = **`3424ae5`** + estos docs (`rapido` final: RAPIDO_PENDIENTE). Están E0,
+> E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a Q, más lo del relevo 21: **el viaje del ascensor que suspende los
+> videos** (**E8d T10**), **la pestaña del ranking en una barra de seis** (**E12 T13**) y, en `integ-r21`, **los premios por video nuevos**
+> (**E13 T2**) y **la ficha con Despedir** (**E13 T9**). **E13 T7 (el toque premiado) quedó ⛔: el pacing da rojo con la línea del plan y la
+> decide el dueño.** **Progreso: 135 de 254 tareas activas en `version-2`; 137 de 254 (53,9 %) si el `rapido` de `integ-r21` da VERDE**
+> (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16).** Detalle en
+> `Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r20` (dos tareas y los docs del cierre; si su `rapido` dio verde, el
-> primer paso del relevo 21 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño;
-> no se tocan. Hay planes por tareas para todas las épicas salvo la parte de agente de E10. **Lo primero del relevo 21:** el
-> `rapido` de `integ-r20` si no quedó hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de
-> `tasks.md` §4.2: **E12 T13** y **E3b T8** (`RootView`, uno por ola), **E8b T8** y **E8d T10**, **E7b-a T2**, **E13 T9/T2/T7**;
-> los cierres del controlador (E8c T10, E3a T12, E11 T7, E2a T15) van con el `completo`. Con la carga de la máquina alta, no más de dos compilando.
-> **Pendiente del dueño:** confirmar en el chat la lista de palabras de E12 (el clasificador de permisos la bloqueó).
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r21` (dos tareas y los docs del cierre; si su `rapido` dio verde, el
+> primer paso del relevo 22 es el fast-forward) y `v2i/e13-t7` (`5d587c6`, bloqueada por pacing; no se mergea sin decisión del dueño).
+> `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño; no se tocan. Hay planes por tareas para todas las épicas
+> salvo la parte de agente de E10. **Lo primero del relevo 22:** el `rapido` de `integ-r21` si no quedó hecho (lanzado con
+> `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de `tasks.md` §4.2: **E3b T8 → E7b-a T2 → E8b T9** (en serie por `RootView`),
+> **E8b T8** (`GameState`, rev. opus); los cierres del controlador (E8c T10, E3a T12, E11 T7, E2a T15) van con el `completo`. E13 T7 y E12 T12 siguen ⛔.
+> Con la carga de la máquina alta, no más de dos compilando.
+> **Pendiente del dueño:** decidir E13 T7 y confirmar en el chat la lista de palabras de E12 (el clasificador de permisos la bloqueó).
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -346,6 +347,22 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-09 (relevo 21) — La ola R: el viaje que suspende los videos, la barra de seis y los premios por video
+
+Con el `rapido` VERDE sobre `cad2d93`, `version-2` avanzó a `7604768`. **Progreso: 135 de 254 en `version-2`; 137 de 254 (53,9 %) con las dos 🟢 de `integ-r21`.**
+
+- **E8d T10:** `Warmup` reserva y libera contra un pool inyectable; el viaje suspende los videos y suena el cue `.cable`. Revisión opus con arreglo:
+  la reserva vencía a los 45 s y `closingPlayer`/`openingPlayer` nacían en frío (cuatro decodificadores en el fundido de llegada); hoy reservan al crearse.
+- **E12 T13:** la barra quedó con **seis pestañas** (la Tienda salió) y platos de 44 pt para que entren 3 por lado en el SE (372 ≤ 375). La pestaña
+  del ranking no aparece en producción hasta E12 T16.
+- **E13 T2 / E13 T9:** el regalo por video de frontera − 3 y «Fusionar todo» por video (600 s, sin compensar por eslabón); la ficha del personaje
+  y Despedir desde Personajes. Las dos 🟢 en `integ-r21`.
+- **E13 T7 bloqueada:** con la línea `lucky` del plan (20 niveles, ×1,09) maxear pide 9 reencarnaciones (≤ 8), las paredes bajan a 4 (≥ 5) y Dios pasa de
+  30,73 a 31,34 h (+0,61 > 0,5). 10 variantes de costo y ninguna sirve. Decide el dueño; la rama `v2i/e13-t7` (`5d587c6`) está pusheada.
+- Trampas nuevas en §7: el `pkill -f` de un agente, el `sleep 600` del latido, los simuladores `oraculo-*` borrados por tiempo y el `cwd` que frena la limpieza.
+
+Detalle en **`Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md`**.
 
 ### Sesión del 2026-10-09 (relevo 20) — La ola Q: la escalada por bandas, la cadena en el simulador, el fondo vivo y la revelación en movimiento
 
@@ -2724,6 +2741,16 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la ola R (2026-10-09, relevo 21)
+
+- **`pkill -f "x"` de un agente mata procesos ajenos:** el implementador de E13 T7 lo corrió por error (~15:08) y probablemente se llevó el primer latido
+  (exit 144 a las ~15:11) y alguna corrida de otro agente. Sólo `kill <PID>` propio.
+- **Un `sleep 600` en el latido se colgó 65 min con la carga en ~500** (último latido 15:41, visto a las 16:47). El latido es ahora un script
+  (`scratchpad/latido.sh`) con `sleep 30` y escritura por reloj (≥ 9 min), no un sleep largo.
+- **Borrar simuladores `oraculo-*` «por tiempo» puede llevarse el de otro agente:** E8d T10 lo hizo. Borrar sólo por UDID propio.
+- **`limpiar-worktrees.sh` conserva un worktree si tu propio shell tiene el `cwd` adentro:** trabajar con rutas absolutas y salir antes de barrer.
+- **El simulador de pacing por CLI no replica el umbral de `PacingTests`:** da 9 reencarnaciones también con el catálogo viejo (E13 T7); la vara es el test.
+
 ### De la ola Q (2026-10-09, relevo 20)
 
 - **Lanzar el `rapido` con la carga > 200 y dos agentes compilando excede el tope:** con carga 602 el controlador lo cortó por su
@@ -4584,6 +4611,9 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-09-v2-relevo-20-ola-q.md`**: el relevo 20 (la escalada por bandas, la cadena de Fusionar todo en el simulador,
   el fondo vivo del piso y la revelación con video, «Opciones de privacidad» y el menú deslizable; la trampa del `rapido` con la
   máquina cargada).
+- **`Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md`**: el relevo 21 (el viaje del ascensor que suspende los videos, la barra de seis pestañas,
+  los premios por video y la ficha con Despedir; E13 T7 bloqueada por pacing con la tabla de variantes y las opciones del dueño; las trampas
+  del `pkill -f`, el `sleep` del latido, los simuladores por tiempo y el `cwd` que frena la limpieza).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

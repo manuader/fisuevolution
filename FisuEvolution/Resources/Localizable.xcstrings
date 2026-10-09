@@ -6792,6 +6792,40 @@
         }
       }
     },
+    "settings.privacy.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review or change how ads use your data."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revisá o cambiá cómo usan tus datos los anuncios."
+          }
+        }
+      }
+    },
+    "settings.privacy.options" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy options"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opciones de privacidad"
+          }
+        }
+      }
+    },
     "settings.restart.body" : {
       "localizations" : {
         "en" : {
@@ -6990,6 +7024,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Avisos"
+          }
+        }
+      }
+    },
+    "settings.section.privacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacidad"
           }
         }
       }

@@ -95,6 +95,8 @@ final class GameState {
     /// ella y no contra esto, que se refresca a 8 Hz y llega tarde a las dos
     /// llamadas seguidas de `debugOpenChest()`.
     var hasPendingChests = false
+    /// Un boost gratis desbloqueado y sin enfriamiento: prende el punto de Regalos.
+    var hasReadyBoost = false
     /// Las pestañas de la barra que el jugador ya tiene (PLAN-v2 E3). Las escribe
     /// `+Tabs` desde `refreshProjections`, sólo si cambiaron.
     var unlockedTabs: Set<GameScreen> = [.jobs, .upgrades]

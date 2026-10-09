@@ -574,7 +574,7 @@ Encargos a E4b T3/T4/T8, E5b T2/T3, E6a T8, E9a/E9b, E7b-a T2: plan, "Lo que E8d
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | P-E8d | Plan de E8d: todo el juego animado, lado Swift | ✅ | — | — | `fdb1d39` | 15 tareas; reemplaza E8b T4/T5/T6/T12; E8b T8/T9 cambian; E13b T6 igual; 15 dudas con default; 7 gates |
-| E8d-T1 | El manifest entero, `ArtClip` y `CinematicID` (+intro) | ⏳ | — | nuevos | | sonnet, revisión ninguna; reemplaza E8b T4 con su API; ola 1 |
+| E8d-T1 | El manifest entero, `ArtClip` y `CinematicID` (+intro) | 🟢 | — | nuevos | `29a8d5f` (en `v2i/integ-r14`) | sonnet, revisión ninguna; reemplaza E8b T4 con su API; ola 1 |
 | E8d-T2 | `VideoPlayerPool` y `VideoPlaybackPolicy` (≤ 3 vivos, roles, suspensiones, reservas) | ⏳ | — | nuevos | | sonnet, **rev. opus**; reemplaza `VideoSlot` (E8b T5); ola 1 |
 | E8d-T3 | `AnimatedArtView`: póster instantáneo, video con fundido, loop o una vez | ⛔ | T1, T2 | nuevos | | sonnet, **rev. opus** (AVFoundation); reemplaza `LoopingPortraitView` (E8b T5); ∥ T4 |
 | E8d-T4 | `LoopingVideoNode` (SpriteKit) y la medición del alfa en `SKVideoNode` | ⛔ | T1, T2 | nuevos | | sonnet, **rev. opus**; la medición decide la ruta de T9 |

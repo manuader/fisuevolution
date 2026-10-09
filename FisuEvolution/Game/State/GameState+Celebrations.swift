@@ -45,6 +45,13 @@ extension GameState {
         publishCelebration()
     }
 
+    /// El eslabón siguiente de "Fusionar todo" sigue en el mismo turno: el reloj
+    /// del watchdog vuelve a cero. La bandera de "algo nuevo" ya es la suya:
+    /// `beginNextChainLink` la baja antes de arrancarlo.
+    func renewBoardTurnForNextLink() {
+        celebrations.renew(.boardCelebration)
+    }
+
     /// Encola lo que tenga payload y todavía no esté en la fila.
     ///
     /// Se llama después de cada acción que puede crear una celebración, en vez

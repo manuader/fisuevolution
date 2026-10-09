@@ -16,7 +16,8 @@ extension GameState {
 
     /// "Fusionar todo" (PLAN-v2 §2): encola todos los pares del piso como
     /// cambios del tablero, en el orden en que se funden; cada uno se juega en
-    /// su turno y un tier nuevo se revela como siempre. Devuelve cuántos. E6
+    /// su turno y un tier nuevo se revela como siempre. Cada par es un eslabón
+    /// (`chain`): la escena los juega en un solo turno. Devuelve cuántos. E6
     /// (por ORO) y E7b (por video) lo llaman con su propio origen.
     @discardableResult
     func enqueueMergeAll(onFloor ordinal: Int, origin: BoardChange.Origin) -> Int {
@@ -37,10 +38,16 @@ extension GameState {
     /// El próximo cambio, revalidado contra el tablero de ahora. Lo pide la escena
     /// al empezar su turno.
     func beginNextBoardChange() -> BoardChange? {
+        beginNextBoardChange(while: { _ in true })
+    }
+
+    /// Descarta los inválidos de adelante, pero sólo mientras el primero de la
+    /// fila cumpla `accepts`: lo que viene detrás de eso no se toca.
+    private func beginNextBoardChange(while accepts: (BoardChange) -> Bool) -> BoardChange? {
         guard inFlightBoardChange == nil, boardIsVisibleForChanges else { return nil }
         guard let content, let player, let tower else { return nil }
-        while !pendingBoardChanges.isEmpty {
-            let planned = pendingBoardChanges.removeFirst()
+        while let planned = pendingBoardChanges.first, accepts(planned) {
+            pendingBoardChanges.removeFirst()
             guard let valid = BoardChangePlanner.revalidate(
                 planned, state: player, tower: tower, tiers: content.tiers, floorTable: content.floorTable
             ) else {
@@ -73,6 +80,30 @@ extension GameState {
             return nil
         }
         return applyBoardChange(change)
+    }
+
+    /// El eslabón siguiente de la misma cadena, en el mismo turno. `nil` si el
+    /// tablero dejó de estar a la vista o ya no queda un eslabón válido de esta
+    /// cadena: la escena suelta el turno y lo que queda se juega en el siguiente.
+    func beginNextChainLink(after chain: BoardChange.Chain) -> BoardChange? {
+        guard !chain.isLast, celebrations.current == .boardCelebration else { return nil }
+        let previousFlag = boardCelebrationShowsSomethingNew
+        boardCelebrationShowsSomethingNew = false
+        guard let next = beginNextBoardChange(while: { $0.chain?.id == chain.id }) else {
+            boardCelebrationShowsSomethingNew = previousFlag
+            return nil
+        }
+        renewBoardTurnForNextLink()
+        return next
+    }
+
+    /// El toque dentro de una cadena: el eslabón en vuelo se asienta en
+    /// silencio y el turno sigue. Sin cambio en vuelo no hace nada, y la escena
+    /// igual pide el siguiente.
+    @discardableResult
+    func hurryChainLink() -> DropResolution? {
+        guard let change = inFlightBoardChange else { return nil }
+        return confirmBoardChange(id: change.id)
     }
 
     func settleInFlightBoardChange() {

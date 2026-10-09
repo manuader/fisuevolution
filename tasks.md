@@ -530,7 +530,7 @@ que toma · commit o rama · nota.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E7b-a-T1 | La config remota en marcha | ✅ | E1-T8, E11-T6 | FisuEvolutionApp | `5fee22d` (integ-r19) |; **hecha (r19):** `ForcedAdsSetup` (modo, pacer por proceso); IDs remotos sólo en producción y Release (DEBUG siempre `googleTest`); rigen desde el próximo arranque; carry a T2: sacar `cadence:` de `configure` y el reloj `armIfDue` |
-| E7b-a-T2 | Los cortes naturales | ⏳ | T1; E1-T8; E3b-T4; E4a-T8 | 🔥 GameState, RootView; +Lifecycle, +Celebrations, FisuEvolutionApp | | **destrabada (r20):** E3b T4 🟢; dueña de `RootView` y `GameState`; saca `cadence:` de `configure` y el reloj `armIfDue` |
+| E7b-a-T2 | Los cortes naturales | 🔄 | T1; E1-T8; E3b-T4; E4a-T8 | 🔥 GameState, RootView; +Lifecycle, +Celebrations, FisuEvolutionApp | | **destrabada (r20):** E3b T4 🟢; dueña de `RootView` y `GameState`; saca `cadence:` de `configure` y el reloj `armIfDue` |
 | E7b-a-T3 | La pausa publicitaria | ⛔ | T2; E4a-T8; E5a-T6; E5b-T1; E4b-T3; E1-T14 | 🔥 GameState, RootView, catálogo; DebugPanelView | | |
 | E7b-a-T4 | El app open al volver | ⛔ | T2 | — | | no ∥ T3 (los dos editan `+Ads`) |
 | E7b-a-T5 | "Opciones de privacidad" (UMP) en Ajustes | ✅ | E11-T4 | 🔥 SettingsView, catálogo | `86e6413` (integ-r20) | antes de los Ajustes de E9; **hecha (r20):** `AdsConsent.privacyRowVisible`, fila tras `purchasesSection`, +3 claves; sin prueba en región UE con el SDK real |

@@ -132,7 +132,7 @@ struct AdFormatsTests {
         #expect(provider.shown == ["appOpen"])
 
         provider.closeCurrentAd()
-        await first.value
+        _ = await first.value
         #expect(!ads.isPresentingFullScreen)
     }
 }
@@ -194,14 +194,22 @@ final class ScriptedAdsProvider: AdsProvider {
         return earnsReward
     }
 
-    func showInterstitial() async { await present("interstitial") }
+    func showInterstitial() async -> Bool {
+        guard hasInventory else { return false }
+        await present("interstitial")
+        return true
+    }
 
     func showRewardedInterstitial() async -> Bool {
         await present("rewardedInterstitial")
         return earnsReward
     }
 
-    func showAppOpen() async { await present("appOpen") }
+    func showAppOpen() async -> Bool {
+        guard hasInventory else { return false }
+        await present("appOpen")
+        return true
+    }
 
     func closeCurrentAd() {
         open?.resume()

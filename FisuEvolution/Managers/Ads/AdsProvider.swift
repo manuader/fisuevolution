@@ -41,11 +41,12 @@ protocol AdsProvider: AnyObject {
 
     /// Si hay un interstitial cargado y listo para mostrarse.
     var isInterstitialReady: Bool { get }
-    /// Presenta un interstitial y vuelve cuando se cerró. No devuelve nada
-    /// porque **un interstitial nunca paga**: es publicidad pura, sin premio, y
-    /// por eso quien lo llama no tiene ninguna decisión que tomar con el
-    /// resultado.
-    func showInterstitial() async
+    /// Presenta un interstitial y vuelve cuando se cerró. Sin
+    /// premio: **un interstitial nunca paga**, es publicidad pura. Devuelve si
+    /// llegó a la pantalla (inventario vencido o falla al presentar = `false`):
+    /// es lo que decide si el corte se anota en el reloj de la política.
+    @discardableResult
+    func showInterstitial() async -> Bool
 
     /// Si hay una pausa publicitaria (intersticial bonificado) cargada y fresca.
     var isRewardedInterstitialReady: Bool { get }
@@ -65,8 +66,9 @@ protocol AdsProvider: AnyObject {
     /// volver: un anuncio tarda segundos en cargar, y al volver es tarde.
     func preloadAppOpen()
     /// Presenta un app open y vuelve cuando se cerró. Como el interstitial, no
-    /// paga nada y no devuelve nada.
-    func showAppOpen() async
+    /// paga nada; devuelve si llegó a la pantalla, como el interstitial.
+    @discardableResult
+    func showAppOpen() async -> Bool
 
     /// Arranca la precarga. Se llama una vez al bootstrap; los proveedores que
     /// no precargan nada (el stub) lo implementan vacío.
@@ -164,7 +166,7 @@ final class StubAdsProvider: AdsProvider {
         return earned
     }
 
-    func showInterstitial() async {
+    func showInterstitial() async -> Bool {
         await fakeAd(for: .seconds(1))
     }
 
@@ -173,7 +175,7 @@ final class StubAdsProvider: AdsProvider {
         await fakeAd(for: .seconds(2))
     }
 
-    func showAppOpen() async {
+    func showAppOpen() async -> Bool {
         await fakeAd(for: .seconds(1))
     }
 

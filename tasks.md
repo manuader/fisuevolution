@@ -8,7 +8,7 @@
 >
 > **Foto:** 2026-10-08, cierre del relevo 14. `version-2` = `596cacd` (pusheado; `rapido` VERDE: EK 605 · unit 822 + 1 declarado ·
 > release 0) y la rama de integración `v2i/integ-r14` = `32afc93` (suma la reconciliación de los videos, P-E8d, E13b T7 y T10,
-> E3b T6, E12 T7 y E8d T1; `rapido`: <<RAPIDO-R14>>). El último `completo` de referencia es el `--limpio` de `c94f75f`
+> E3b T6, E12 T7 y E8d T1; `rapido`: VERDE sobre `32afc93` (EK 606 · unit 865 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). El último `completo` de referencia es el `--limpio` de `c94f75f`
 > (E1 T16). Detalle en `Docs/SESION-2026-10-08-v2-relevo-14-ola-k.md`.
 > **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
 > Si un ledger dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
@@ -82,9 +82,7 @@
 
 ## 2. Progreso
 
-**Hoy: 87 de 254 tareas activas integradas en `version-2` (34,3 %)**, más **5 en `v2i/integ-r14`** (🟢: E13b T7 y T10, E3b T6,
-E12 T7, E8d T1): **87 + 5 = 92 de 254 (36,2 %) si el `rapido` de `v2i/integ-r14` da VERDE** (resultado: <<RAPIDO-R14>>). El
-pedido del relevo decía "87 + 7 = 94"; el `grep` de abajo cuenta cinco 🟢, y manda el `grep`. 259 filas, 5 salteadas (E8b T4/T5/T6/T12
+**Hoy: 92 de 254 tareas activas integradas (36,2 %)**: el relevo 14 sumó E13b T7 y T10, E3b T6, E12 T7 y E8d T1 (`rapido` VERDE sobre `32afc93`: EK 606 · unit 865 + 1 declarado · Release 0; `version-2` ff). 259 filas, 5 salteadas (E8b T4/T5/T6/T12
 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). El conteo creció de 243 a 254 activas
 porque P-E8d sumó 15 filas y se salteaban 4 de E8b. Las tareas del relevo 13 y E13b T5 están en `version-2` (`596cacd`).
 
@@ -132,7 +130,7 @@ grep -E '^\| E[0-9a-z-]+-T[0-9]+[ab]? \|[^|]*\| ⏭' tasks.md | grep -vc seguimi
 grep -E '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md | grep -vc seguimiento                   # una épica: cambiar el prefijo
 ```
 
-Progreso = integradas / (filas de tarea − salteadas). Hoy: 87 / (259 − 5) en `version-2` (y 92 con las 5 🟢; el grep de 🟢 va igual, cambiando el ✅). Con el sufijo `[ab]?` el grep levanta
+Progreso = integradas / (filas de tarea − salteadas). Hoy: 92 / (259 − 5). Con el sufijo `[ab]?` el grep levanta
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
 La tabla por épica se recalculó en el relevo 14 (con E8d); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
 
@@ -211,7 +209,7 @@ partirlo.
 
 | # | Qué | Nota |
 |---|---|---|
-| 1 | **`rapido` sobre `v2i/integ-r14` (`32afc93`)**, si no quedó hecho. Resultado del relevo 14: <<RAPIDO-R14>> | Con VERDE: fast-forward de `version-2` y push (las cinco 🟢 pasan a ✅: 92 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. Mirá `rojos-declarados.txt` |
+| 1 | **`rapido` sobre `v2i/integ-r14` (`32afc93`)**, si no quedó hecho. Resultado del relevo 14: VERDE sobre `32afc93` (EK 606 · unit 865 + 1 declarado `theOwnersTargetsAreMet` · Release 0) | Con VERDE: fast-forward de `version-2` y push (las cinco 🟢 pasan a ✅: 92 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. Mirá `rojos-declarados.txt` |
 | 2 | Leer `DUENO.md` entero por pendientes nuevos y la revisión de la segunda tanda de videos (`video/revision.json`) | los worktrees `v2-e12-plan` y `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
 | 3 | Barrer los worktrees `v2i-*` que queden (p. ej. `v2i-e3b-t6`, cuyo cwd tenían los bucles de espera de otro agente) | todo en GitHub antes; nunca `--force`; mirar el comando de cada bucle antes de cortarlo |
 
@@ -381,7 +379,7 @@ que toma · commit o rama · nota.
 | E3b-T3 | El menú deslizable, las piezas | ✅ | T2; E3a-T8 | catálogo; PanelFrames, MenuView | `77c277e` (merge `e378307`) | MenuSessionTests verde; carries a T4: MenuPagerUITests, menuDidOpen/PageChanged/Close en RootView, comprobar S2 (carrusel de Pintas vs gesto) en simulador |
 | E3b-T4 | El menú deslizable, montado | ⛔ | T3; E3a-T9, E3a-T11 | 🔥 RootView | | |
 | E3b-T5 | Renombre `BestHire` → `QuickHireOffer` | ✅ | ventana sin E1 en GameState y +Hiring | 🔥 GameState, RootView (comentarios); +Hiring, +TutorialTips | `61a661d` |; tocó también `GameState+Projections.swift` (2 líneas) y dos tests; `PacingSimulator.bestHire` es otra cosa y queda |
-| E3b-T6 | La oferta del atajo v2: pin, motivo, nunca `nil` | 🟢 | T5; E1-T4, E1-T13 | +Hiring | `741af10`+`6255531` (en `v2i/integ-r14`) | revisión sonnet: Approved con arreglos (la lección del atajo pide `blocker == nil`; tests de piso lleno; comentarios de RootView), hechos. **Carry a T7**: `QuickHireButton` todavía no usa `blocker` (temblor sólo con `!affordable`, label "Contratar a X", `accessibilityState` sin usar) y marca la lección al tocar aunque esté bloqueado; la oferta ya nunca es nil (el botón queda siempre) |
+| E3b-T6 | La oferta del atajo v2: pin, motivo, nunca `nil` | ✅ | T5; E1-T4, E1-T13 | +Hiring | `741af10`+`6255531` (integ-r14) | revisión sonnet: Approved con arreglos (la lección del atajo pide `blocker == nil`; tests de piso lleno; comentarios de RootView), hechos. **Carry a T7**: `QuickHireButton` todavía no usa `blocker` (temblor sólo con `!affordable`, label "Contratar a X", `accessibilityState` sin usar) y marca la lección al tocar aunque esté bloqueado; la oferta ya nunca es nil (el botón queda siempre) |
 | E3b-T7 | El botón del atajo nunca desaparece | ⏳ | T6 | catálogo; QuickHireButton | | |
 | E3b-T8 | El selector del atajo | ⛔ | T7, T4 | 🔥 RootView, catálogo; DebugPanelView | | |
 | E3b-T9 | Compartir recableado (y cierre de E3) | ⛔ | T8; E1-T16 | 🔥 GameState, +Bonus, RootView, catálogo; +BoardChanges, +Debug, ContentConfigs, EngagementState | | su `sharedMoments` lo esperan E4a T3 y E5a T4 |
@@ -582,7 +580,7 @@ Encargos a E4b T3/T4/T8, E5b T2/T3, E6a T8, E9a/E9b, E7b-a T2: plan, "Lo que E8d
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | P-E8d | Plan de E8d: todo el juego animado, lado Swift | ✅ | — | — | `fdb1d39` | 15 tareas; reemplaza E8b T4/T5/T6/T12; E8b T8/T9 cambian; E13b T6 igual; 15 dudas con default; 7 gates |
-| E8d-T1 | El manifest entero, `ArtClip` y `CinematicID` (+intro) | 🟢 | — | nuevos | `29a8d5f` (en `v2i/integ-r14`) | sonnet, revisión ninguna; reemplaza E8b T4 con su API; ola 1 |
+| E8d-T1 | El manifest entero, `ArtClip` y `CinematicID` (+intro) | ✅ | — | nuevos | `29a8d5f` (integ-r14) | sonnet, revisión ninguna; reemplaza E8b T4 con su API; ola 1 |
 | E8d-T2 | `VideoPlayerPool` y `VideoPlaybackPolicy` (≤ 3 vivos, roles, suspensiones, reservas) | ⏳ | — | nuevos | | sonnet, **rev. opus**; reemplaza `VideoSlot` (E8b T5); ola 1 |
 | E8d-T3 | `AnimatedArtView`: póster instantáneo, video con fundido, loop o una vez | ⛔ | T1, T2 | nuevos | | sonnet, **rev. opus** (AVFoundation); reemplaza `LoopingPortraitView` (E8b T5); ∥ T4 |
 | E8d-T4 | `LoopingVideoNode` (SpriteKit) y la medición del alfa en `SKVideoNode` | ⛔ | T1, T2 | nuevos | | sonnet, **rev. opus**; la medición decide la ruta de T9 |
@@ -667,7 +665,7 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T4 | Backend: las cuatro Edge Functions | ✅ | T2, T3 | — | `3ab325d`+`30cf56a` | sonnet, rev. opus; integración contra Postgres temporal; revisión opus: Approved con arreglos (start-run idempotente por `clientRunId`; Haiku después del chequeo de dueño; sólo reporta quien selló una partida; lint en test.sh). Carries: **T7/T8** el cliente genera `clientRunId` una vez por partida nueva o reset, lo guarda (en `RankingState.awaitingStart`: el EK de T6 no lo tiene todavía) y lo reusa en cada reintento; forma de `mine` en el contrato del plan; **T5** limpiar `api_calls`/`players` viejos en el cron y evaluar límite por IP; **T16** `prepare:false` verificado contra el pooler |
 | E12-T5 | Backend: cron, propuesta de lista, deploy y panel | ✅ | T4 | — | `27e9986`+`e9a2027` | sonnet; la lista es propuesta (🔒 3); propuesta de 137 términos en `supabase/blocklist/propuesta.txt` SIN activar (🔒 3; ojo: el matcher es por subcadena, `puta`/`cum` quedaron afuera por falsos positivos: decide el dueño); limpieza de players sin partida sellada a 90 días; límite por IP propuesto para T16 (decidir qué `x-forwarded-for` es confiable); T16 prueba pg_cron, pg_net, el Vault y `vault.create_secret` |
 | E12-T6 | `RankingState` (EK) | ✅ | — | — | `97c15fa`+`ab3492a` | revisión opus: Approved con arreglos (la fase más avanzada sólo con el mismo runId; max de playedSeconds sólo en la misma partida; `CarriedSubmission.sealed`). Carries: T8/T12 reenvío de la llegada arrastrada idempotente (409/not_active = hecho) y `sessionBegan` tras `forNewGame()`; T10 `ranking` con `(try? …) ?? .legacy` (Phase sintetizado) y default `.newGame`; T8/T11 mandar el start sólo tras `newGameStarted`, no al abrir la app |
-| E12-T7 | Cliente, identidad en el Keychain y config remota | 🟢 | T6 | — | `a4691a5`+`e20870a` (en `v2i/integ-r14`) | sonnet; compila (archivos nuevos + xcodegen); revisión: el controlador leyó el cambio de EK (`RankingState.clientRunId` + `startAttemptId`, se suelta al registrar). Carries a T8: llamar `startAttemptId` y persistir antes del start-run; `ranking.json` con `baseURL`/`anonKey` null hasta T16 (el cliente real tira `.disabled`; el loader remoto rechaza otra clave); escenarios `--uitest-ranking-*` |
+| E12-T7 | Cliente, identidad en el Keychain y config remota | ✅ | T6 | — | `a4691a5`+`e20870a` (integ-r14) | sonnet; compila (archivos nuevos + xcodegen); revisión: el controlador leyó el cambio de EK (`RankingState.clientRunId` + `startAttemptId`, se suelta al registrar). Carries a T8: llamar `startAttemptId` y persistir antes del start-run; `ranking.json` con `baseURL`/`anonKey` null hasta T16 (el cliente real tira `.disabled`; el loader remoto rechaza otra clave); escenarios `--uitest-ranking-*` |
 | E12-T8 | `RankingStore` | ⛔ | T6, T7 | — | | sonnet, rev. opus |
 | E12-T9a | La tarjeta de Dios (vista suelta) | ⛔ | T1, T8 | catálogo (snapshot) | | sonnet |
 | E12-T9b | La pestaña (vista suelta) | ⛔ | T8 | catálogo (snapshot) | | sonnet |
@@ -711,10 +709,10 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13b-T4 | Los clips y los cuadros de la cabina (`video_assets.py ascensor`) | ✅ | — | video_assets.py (tibio: pedido de cinemáticas); Resources/Cinematics, loops_manifest.json | `93a76cf` | Python, no compila; key medido en el hueco y las ventanas; masters por `--video`; 4 recursos en `Resources/Cinematics/` (cine_ascensor_{cierra,abre}.mov 87+76 KB; cine_ascensor_{cerrada,abierta}.png 0,86+0,51 MB); sin despill (viraba el amarillo); `xcodegen generate` al integrar |
 | E13b-T5 | La cabina y la vista del viaje (clip → cuadros → vectorial) | ✅ | T1 | nuevos (`ElevatorCabin.swift`, `ElevatorRideView.swift`); catálogo (snapshot) | `f008f85`+`d3d3b7c`+`6fb8e83` | **revisión opus** (AVFoundation, memoria de fondos en el SE); no espera a T4; revisión opus: Approved con arreglos (lookups que no crean players; respaldo vectorial si el clip falla; el expiry se cancela al viajar; Reduce Motion = cabina vectorial; dos capas sin parpadeo; thumbnails de a 2). En integ-r13, **SIN `rapido`** (entró después). Carries a T6: `prepare()` al abrir la placa y en `requestFromMap`, `release()` si se cierra sin viajar, montar `ElevatorRideView` con `.environment(gameState)` sólo con `phase != .idle`; memoria del SE y el parpadeo sin medir (T11, en device) |
 | E13b-T6 | El viaje montado encima de RootView; el mapa viaja | ⏳ | T1, T3, T5 | FisuEvolutionApp (tibio), FloorMapView (tibio, E13 T8); nuevo ElevatorRideOverlay | | **revisión opus**; bajo `--uitest*` el viaje es 0 s (los UI tests de siempre no cambian) |
-| E13b-T7 | La lección "Mantené apretado el ascensor" al tercer piso | 🟢 | — | +TutorialTips (tibio); catálogo (snapshot) | `18fb478` (merge `1ffc9c4` en `v2i/integ-r14`) | revisión ninguna (diff leído por el controlador); clave `tutorial.tip.elevator.hold`, nace con `unlockedFloorsCount >= 3`; **carry a T8: llamar `gameState.elevatorKeypadOpened()` al desplegar la placa** (no sale en una release sin T8); carry E9a T9 / E9b T1 |
+| E13b-T7 | La lección "Mantené apretado el ascensor" al tercer piso | ✅ | — | +TutorialTips (tibio); catálogo (snapshot) | `18fb478` (merge `1ffc9c4` en `v2i/integ-r14`) | revisión ninguna (diff leído por el controlador); clave `tutorial.tip.elevator.hold`, nace con `unlockedFloorsCount >= 3`; **carry a T8: llamar `gameState.elevatorKeypadOpened()` al desplegar la placa** (no sale en una release sin T8); carry E9a T9 / E9b T1 |
 | E13b-T8 | Mantener apretado el ascensor despliega la placa; el display LED se va | ⛔ | T2, T6, T7; T9 integrada | 🔥 HUDView (épica); ElevatorRideOverlay; borra ElevatorPanel.swift; catálogo (snapshot) | | **revisión opus**; reescribe ElevatorPanelUITests; capturas SE (10 pisos) e iPad |
 | E13b-T9 | La Tienda sale de la barra (se abre con el + de la moneda) | ✅ | — | 🔥 HUDView (una línea); GameArtComponents (barOrder), TabUnlocks, tabs.json, +Tabs, BottomMenuBar; catálogo (snapshot) | `98d7d9f` | ola 1; migra BottomMenu/Store/ProgressiveTabs UITests al `hud.coins.plus`; carry E3b T4 (5 páginas) — duda 1; tarea VERDE unit 89 + UI a mano (BottomMenu/ProgressiveTabs/HUDRedesign 8 en 26.5, Store 2 en 18.6); queda `TabUnlockCondition.secondSession` sin uso; `sixTabsFitTheSE` lo rehace T10; comentarios "seis pantallas" ajenos |
-| E13b-T10 | La barra simétrica 2 + 1 + 2, sin rótulos y con íconos grandes | 🟢 | T9 | GameArtComponents (GameTabBar), BottomMenuBar | `66e997c` (en `v2i/integ-r14`) | `panelHeight` 64 y `barHeight` 84 se conservan; capturas SE e iPad; platos 52/72, íconos 46/64, `bottomPadding` 6; `fiveTabsFitTheSE`, `sidesFillTowardTheCenter`; UI BottomMenu 4/4 en SE, 16 Pro e iPad; `TabUnlockCondition.secondSession` sigue sin uso |
+| E13b-T10 | La barra simétrica 2 + 1 + 2, sin rótulos y con íconos grandes | ✅ | T9 | GameArtComponents (GameTabBar), BottomMenuBar | `66e997c` (integ-r14) | `panelHeight` 64 y `barHeight` 84 se conservan; capturas SE e iPad; platos 52/72, íconos 46/64, `bottomPadding` 6; `fiveTabsFitTheSE`, `sidesFillTowardTheCenter`; UI BottomMenu 4/4 en SE, 16 Pro e iPad; `TabUnlockCondition.secondSession` sigue sin uso |
 | E13b-T11 | Cierre de E13b (controlador) | ⛔ | T1–T10 | `Docs/` | | `completo`; grabaciones para el dueño |
 
 Dependencias que E13 le suma a otras épicas (plan E13, "Lo que E13 le deja a otras épicas"): **E2b**

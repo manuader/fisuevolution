@@ -11,7 +11,7 @@ se despachó más).
 | Qué | Estado |
 |---|---|
 | `version-2` | **`596cacd`** (= `v2i/integ-r13`, con E13b T5), pusheado; `rapido` VERDE: EK 605 · unit 822 + 1 declarado · release 0 |
-| `v2i/integ-r14` | **`32afc93`** = `596cacd` + todo lo de abajo + estos docs. `rapido`: <<RAPIDO-R14>> |
+| `v2i/integ-r14` | **`32afc93`** = `596cacd` + todo lo de abajo + estos docs. `rapido`: VERDE sobre `32afc93` (EK 606 · unit 865 + 1 declarado `theOwnersTargetsAreMet` · Release 0) |
 | Progreso | **87 de 254 tareas activas en `version-2`**; **87 + 5 = 92 de 254 (36,2 %)** si el `rapido` de `integ-r14` da VERDE. El denominador pasó de 243 a 254: P-E8d sumó 15 filas y se salteaban 4 de E8b |
 
 El primer paso fue el `rapido` de `integ-r13` (`596cacd`, con E13b T5): dio verde a las 21:23, `version-2` avanzó por
@@ -99,7 +99,7 @@ sonidos son del dueño), 15 dudas con default.
 ## Oráculo
 
 - `rapido` sobre `596cacd`: **VERDE** (21:23) — EK 605 · unit 822 + 1 declarado (`theOwnersTargetsAreMet`) · release 0.
-- `rapido` sobre `v2i/integ-r14` (`32afc93`): <<RAPIDO-R14>>
+- `rapido` sobre `v2i/integ-r14` (`32afc93`): VERDE sobre `32afc93` (EK 606 · unit 865 + 1 declarado `theOwnersTargetsAreMet` · Release 0)
 - Tareas: E13b T10 unit 27 · E3b T6 unit 29 · E12 T7 EK 606 · unit 27 · E8d T1 unit 6 · `ElevatorCabinTests` VERDE.
   Pipeline 81 OK.
 - No se corrió un `completo` nuevo; el de referencia sigue siendo el `--limpio` de `c94f75f`. El siguiente va al cierre de

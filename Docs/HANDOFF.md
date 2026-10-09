@@ -22,7 +22,7 @@
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-08 (cierre del relevo
 > 14): `version-2` = **`596cacd`** (pusheado; `rapido` VERDE: EK 605 · unit 822 + 1 declarado · release 0) y la
-> rama de integración `v2i/integ-r14` = **`32afc93`** (`rapido`: <<RAPIDO-R14>>). Están E0, E10 en papel,
+> rama de integración `v2i/integ-r14` = **`32afc93`** (`rapido`: VERDE sobre `32afc93` (EK 606 · unit 865 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0, E10 en papel,
 > E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a J (con **E13b T5, la cabina**, ya en
 > `version-2`), más lo del relevo 14 en `integ-r14`: **la reconciliación de los videos con la rama del dueño**, el plan
 > **P-E8d** (el lado Swift de las animaciones, 15 tareas), **E13b T7 y T10** (la lección del ascensor y la barra

@@ -323,7 +323,7 @@ extension GameState {
         }
         eventLastFired[roll.event.id] = now
         activeEvent = active
-        audio?.play(.event)
+        audio?.play(AudioManager.accent(forEvent: roll.event.id))
         bumpBoard()
         scheduleSave()
         Log.economy.info("event fired: \(roll.event.id)")

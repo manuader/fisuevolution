@@ -53,6 +53,30 @@ final class AudioManager {
         case revealWhoosh = "sfx_reveal_whoosh"
         /// El remate de "Fusionar todo": un acorde mayor que sube.
         case mergeAllDone = "sfx_merge_all_done"
+        /// El acento de cada evento de `events.json`; uno sin acento suena `event`.
+        case eventPlanPlatita = "sfx_ev_plan_platita"
+        case eventStartup = "sfx_ev_startup"
+        case eventDevaluacion = "sfx_ev_devaluacion"
+        case eventBlanqueo = "sfx_ev_blanqueo"
+        case eventMercadoPago = "sfx_ev_mercado_pago"
+        case eventAlien = "sfx_ev_alien"
+        case eventCorralito = "sfx_ev_corralito"
+        case eventAguinaldo = "sfx_ev_aguinaldo"
+    }
+
+    /// El acento con que suena un evento al caer, por su id de `events.json`.
+    nonisolated static func accent(forEvent id: String) -> SFX {
+        switch id {
+        case "plan_platita": .eventPlanPlatita
+        case "startup_comprada": .eventStartup
+        case "devaluacion": .eventDevaluacion
+        case "blanqueo": .eventBlanqueo
+        case "cayo_mercado_pago": .eventMercadoPago
+        case "inversion_alienigena": .eventAlien
+        case "corralito": .eventCorralito
+        case "aguinaldo": .eventAguinaldo
+        default: .event
+        }
     }
 
     /// Cuánto se atenúa un efecto respecto del volumen de Ajustes: la acción

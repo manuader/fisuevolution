@@ -772,6 +772,130 @@ def sfx_elevator_cable():
     return buf
 
 
+def sfx_ev_plan_platita():
+    """Plan platita ~0,6 s: la caja registradora, un chasquido de cajón y el
+    timbre de dos notas que sube (Do7, Sol7)."""
+    dur = 0.600
+    buf = [0.0] * int(dur * SR)
+    render_noise(buf, 0.0, 0.040, 0.7, 0.010, random.Random(7101))
+    for t0, f in ((0.05, 2093.0), (0.17, 3136.0)):
+        d = dur - t0
+        render_tone(buf, t0, d, f, "sine", 0.8, env_perc(d, attack=0.002, curve=5.0))
+        render_tone(buf, t0, d, f * 2.76, "sine", 0.15, env_perc(d, attack=0.002, curve=9.0))
+    return buf
+
+
+def sfx_ev_startup():
+    """Startup comprada ~0,6 s: un arpegio de cuadradas que trepa (Do5, Mi5,
+    Sol5, Do6) y se cierra con un brillo."""
+    dur = 0.600
+    buf = [0.0] * int(dur * SR)
+    for i, m in enumerate((72, 76, 79, 84)):
+        t0 = 0.07 * i
+        d = 0.14 if i < 3 else dur - t0
+        e = env_perc(d, attack=0.004, curve=3.0 if i < 3 else 4.5)
+        render_tone(buf, t0, d, midi_hz(m), "square", 0.5, e)
+        render_tone(buf, t0, d, midi_hz(m), "sine", 0.4, e)
+    render_tone(buf, 0.28, dur - 0.28, glide(2093.0, 3136.0, 0.3), "sine", 0.2,
+                env_perc(dur - 0.28, attack=0.01, curve=4.0))
+    return buf
+
+
+def sfx_ev_devaluacion():
+    """Devaluación ~0,8 s: un trombón que se desinfla, dos caídas
+    (Re4 a Si3, Si3 a Sol3) con vibrato que se afloja."""
+    dur = 0.800
+    buf = [0.0] * int(dur * SR)
+    for t0, f0, f1, d in ((0.0, 293.7, 246.9, 0.34), (0.36, 246.9, 196.0, 0.44)):
+        render_tone(buf, t0, d, glide(f0, f1, d), "triangle", 0.9,
+                    env_sustain(d, a=0.015, r=0.12), vib_hz=5.0, vib_depth=0.012)
+        render_tone(buf, t0, d, glide(f0, f1, d), "square", 0.2,
+                    env_sustain(d, a=0.015, r=0.12))
+    return buf
+
+
+def sfx_ev_blanqueo():
+    """Blanqueo ~0,8 s: un soplido de limpieza que sube y se abre en tres
+    campanitas limpias (Do6, Mi6, Sol6)."""
+    dur = 0.800
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7102)
+    swell = env_swell(0.35, 0.25, 0.10)
+    render_noise_lp(buf, 0.0, 0.35, 0.7, rng, 0.15, swell)
+    for i, m in enumerate((84, 88, 91)):
+        t0 = 0.30 + 0.09 * i
+        d = dur - t0
+        render_tone(buf, t0, d, midi_hz(m), "sine", 0.7, env_perc(d, attack=0.003, curve=4.5))
+        render_tone(buf, t0, d, midi_hz(m) * 2.0, "sine", 0.2, env_perc(d, attack=0.003, curve=7.0))
+    return buf
+
+
+def sfx_ev_mercado_pago():
+    """Cayó Mercado Pago ~0,45 s: la notificación del celular, dos ding
+    seguidos y parejos (Sol6, Re7)."""
+    dur = 0.450
+    buf = [0.0] * int(dur * SR)
+    for t0, f in ((0.0, 1568.0), (0.13, 2349.3)):
+        d = dur - t0
+        render_tone(buf, t0, d, f, "triangle", 0.8, env_perc(d, attack=0.002, curve=6.0))
+        render_tone(buf, t0, d, f * 2.0, "sine", 0.2, env_perc(d, attack=0.002, curve=8.0))
+    return buf
+
+
+def sfx_ev_alien():
+    """Inversión alienígena ~0,9 s: un theremin que se retuerce, con un
+    segundo tono ligeramente desafinado que bate contra el primero."""
+    dur = 0.900
+    buf = [0.0] * int(dur * SR)
+    env = env_sustain(dur, a=0.12, r=0.30)
+
+    def sweep(t):
+        return 520.0 + 380.0 * math.sin(TWO_PI * 1.1 * t) + 260.0 * (t / dur)
+
+    render_tone(buf, 0.0, dur, sweep, "sine", 0.9, env, vib_hz=7.0, vib_depth=0.015)
+    render_tone(buf, 0.0, dur, lambda t: sweep(t) * 1.012, "sine", 0.45, env,
+                vib_hz=6.0, vib_depth=0.02)
+    return buf
+
+
+def sfx_ev_corralito():
+    """Corralito ~0,8 s: la persiana metálica que cae, un chirrido de
+    guías y el golpe seco de la traba contra el piso."""
+    dur = 0.800
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7103)
+    slide = env_sustain(0.45, a=0.02, r=0.10)
+    render_noise_lp(buf, 0.0, 0.45, 0.8, rng, 0.35,
+                    lambda t: slide(t) * (0.5 + 0.5 * abs(math.sin(TWO_PI * 22.0 * t))))
+    render_tone(buf, 0.45, dur - 0.45, glide(120.0, 55.0, 0.2), "sine", 1.0,
+                env_perc(dur - 0.45, attack=0.002, curve=5.0))
+    for ratio, amp in ((1.0, 0.5), (2.32, 0.3), (3.7, 0.2)):
+        render_tone(buf, 0.45, dur - 0.45, 330.0 * ratio, "sine", amp,
+                    env_perc(dur - 0.45, attack=0.002, curve=8.0))
+    render_noise(buf, 0.45, 0.025, 0.8, 0.006, rng)
+    return buf
+
+
+def sfx_ev_aguinaldo():
+    """Aguinaldo ~1,0 s: una fanfarria corta, acorde mayor (Do5, Mi5, Sol5)
+    con un repique de monedas arriba."""
+    dur = 1.000
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7104)
+    for t0, notes in ((0.0, (72, 76)), (0.14, (76, 79)), (0.28, (79, 84, 88))):
+        d = dur - t0
+        e = env_perc(d, attack=0.006, curve=3.2)
+        for m in notes:
+            render_tone(buf, t0, d, midi_hz(m), "square", 0.28, e, detune_cents=5.0)
+            render_tone(buf, t0, d, midi_hz(m), "sine", 0.35, e)
+    for i in range(10):
+        t0 = 0.40 + 0.5 * (i / 10.0) ** 1.3
+        f = rng.choice((2349.0, 2637.0, 3136.0, 3520.0))
+        render_tone(buf, t0, 0.09, f, "sine", 0.22 * (1.0 - i / 14.0),
+                    env_perc(0.09, attack=0.001, curve=7.0))
+    return buf
+
+
 # ---------------------------------------------------------------------------
 # Música — loops perfectos (render con wrap-around)
 # ---------------------------------------------------------------------------
@@ -1738,6 +1862,14 @@ SFX = {
     "sfx_reveal_whoosh": sfx_reveal_whoosh,
     "sfx_elevator_cable": sfx_elevator_cable,
     "sfx_merge_all_done": sfx_merge_all_done,
+    "sfx_ev_plan_platita": sfx_ev_plan_platita,
+    "sfx_ev_startup": sfx_ev_startup,
+    "sfx_ev_devaluacion": sfx_ev_devaluacion,
+    "sfx_ev_blanqueo": sfx_ev_blanqueo,
+    "sfx_ev_mercado_pago": sfx_ev_mercado_pago,
+    "sfx_ev_alien": sfx_ev_alien,
+    "sfx_ev_corralito": sfx_ev_corralito,
+    "sfx_ev_aguinaldo": sfx_ev_aguinaldo,
 }
 # Los efectos de la 2.0 nivelan por RMS (pico a -3 dBFS como techo) y no sólo
 # por pico: normalizar al pico dejó el motor del ascensor 8 dB arriba de los
@@ -1755,6 +1887,14 @@ SFX_RMS_DB = {
     "sfx_reveal_whoosh": -21.0,
     "sfx_elevator_cable": -24.0,
     "sfx_merge_all_done": -20.0,
+    "sfx_ev_plan_platita": -20.0,
+    "sfx_ev_startup": -20.0,
+    "sfx_ev_devaluacion": -20.0,
+    "sfx_ev_blanqueo": -20.0,
+    "sfx_ev_mercado_pago": -20.0,
+    "sfx_ev_alien": -20.0,
+    "sfx_ev_corralito": -20.0,
+    "sfx_ev_aguinaldo": -20.0,
 }
 SFX_LOOPS = {"sfx_package_rattle", "sfx_mattress_squeak"}
 MUSIC = {

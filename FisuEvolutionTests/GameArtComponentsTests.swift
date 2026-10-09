@@ -17,12 +17,12 @@ struct GameArtComponentsTests {
 
     @Test("allCases conserva el orden histórico: es la identidad de la hoja")
     func allCasesKeepsTheHistoricOrder() {
-        #expect(GameScreen.allCases.map(\.rawValue) == ["jobs", "upgrades", "skins", "gifts", "store", "menu"])
+        #expect(GameScreen.allCases.map(\.rawValue) == ["jobs", "upgrades", "skins", "gifts", "store", "menu", "ranking"])
     }
 
-    @Test("la barra va con Contratar al centro: dos y dos, y la Tienda afuera")
+    @Test("la barra va con Contratar en el medio, el Ranking a la izquierda y la Tienda afuera")
     func barOrderPutsHiringInTheCenter() {
-        #expect(GameScreen.barOrder == [.upgrades, .skins, .jobs, .gifts, .menu])
+        #expect(GameScreen.barOrder == [.ranking, .upgrades, .skins, .jobs, .gifts, .menu])
         #expect(Set(GameScreen.barOrder) == Set(GameScreen.allCases).subtracting([.store]))
         #expect(GameScreen.centerTab == .jobs)
     }
@@ -47,11 +47,12 @@ struct GameArtComponentsTests {
         #expect(GameScreen.jobs.identifier == "hud.hire")
         #expect(GameScreen.skins.identifier == "hud.skins")
         #expect(GameScreen.menu.identifier == "hud.settings")
+        #expect(GameScreen.ranking.identifier == "hud.ranking")
     }
 
     // MARK: - GameTabItem
 
-    @Test("una barra con las 5 pantallas no repite ni ids ni identifiers, y sólo Contratar se destaca")
+    @Test("una barra con las 6 pantallas no repite ni ids ni identifiers, y sólo Contratar se destaca")
     func tabItemsAreDistinct() {
         let items = GameScreen.barOrder.map { screen in
             GameTabItem(
@@ -62,9 +63,9 @@ struct GameArtComponentsTests {
                 prominent: screen == GameScreen.centerTab
             )
         }
-        #expect(items.count == 5)
-        #expect(Set(items.map(\.id)).count == 5)
-        #expect(Set(items.map(\.identifier)).count == 5)
+        #expect(items.count == 6)
+        #expect(Set(items.map(\.id)).count == 6)
+        #expect(Set(items.map(\.identifier)).count == 6)
         #expect(items.filter(\.prominent).map(\.screen) == [.jobs])
     }
 
@@ -77,19 +78,19 @@ struct GameArtComponentsTests {
         #expect(GameTabBar.barHeight == 84, "la pila de arriba (atajo, prestigio, toasts) no se mueve")
     }
 
-    @Test("las cinco pestañas entran en el SE con aire")
-    func fiveTabsFitTheSE() {
-        #expect(GameTabBar.minimumWidth(tabsPerSide: 2) <= 320)
+    @Test("tres pestañas por lado entran en el SE (375 pt)")
+    func threeTabsPerSideFitTheSE() {
+        #expect(GameTabBar.minimumWidth(tabsPerSide: GameTabBar.slotsPerSide) <= 375)
     }
 
     @Test("cada lado se llena desde Contratar hacia afuera")
     func sidesFillTowardTheCenter() {
         let up = item(.upgrades), sk = item(.skins), gi = item(.gifts), me = item(.menu)
-        #expect(GameTabBar.slots([up], towardCenterFrom: .leading).map { $0?.screen } == [nil, .upgrades])
-        #expect(GameTabBar.slots([up, sk], towardCenterFrom: .leading).map { $0?.screen } == [.upgrades, .skins])
-        #expect(GameTabBar.slots([gi], towardCenterFrom: .trailing).map { $0?.screen } == [.gifts, nil])
-        #expect(GameTabBar.slots([gi, me], towardCenterFrom: .trailing).map { $0?.screen } == [.gifts, .menu])
-        #expect(GameTabBar.slots([], towardCenterFrom: .trailing).map { $0?.screen } == [nil, nil])
+        #expect(GameTabBar.slots([up], towardCenterFrom: .leading).map { $0?.screen } == [nil, nil, .upgrades])
+        #expect(GameTabBar.slots([up, sk], towardCenterFrom: .leading).map { $0?.screen } == [nil, .upgrades, .skins])
+        #expect(GameTabBar.slots([gi], towardCenterFrom: .trailing).map { $0?.screen } == [.gifts, nil, nil])
+        #expect(GameTabBar.slots([gi, me], towardCenterFrom: .trailing).map { $0?.screen } == [.gifts, .menu, nil])
+        #expect(GameTabBar.slots([], towardCenterFrom: .trailing).map { $0?.screen } == [nil, nil, nil])
     }
 
     private func item(_ screen: GameScreen) -> GameTabItem {

@@ -35,6 +35,7 @@ extension EnvironmentValues {
 struct MenuPagerView: View {
     let pages: [GameScreen]
     let adsProvider: AdsCoordinator
+    let onStore: () -> Void
     let onPageChange: (GameScreen) -> Void
     @State private var current: GameScreen?
     /// La última página que el scroll fijó. `current` pasa por `nil` mientras el
@@ -46,9 +47,10 @@ struct MenuPagerView: View {
     private let start: GameScreen
 
     init(pages: [GameScreen], start: GameScreen, adsProvider: AdsCoordinator,
-         onPageChange: @escaping (GameScreen) -> Void) {
+         onStore: @escaping () -> Void = {}, onPageChange: @escaping (GameScreen) -> Void) {
         self.pages = pages
         self.adsProvider = adsProvider
+        self.onStore = onStore
         self.onPageChange = onPageChange
         let first = pages.isEmpty ? start : pages[Self.startIndex(of: start, in: pages)]
         self.start = first
@@ -100,7 +102,7 @@ struct MenuPagerView: View {
         let isCurrent = index == currentIndex
         Group {
             if isCurrent || (moving && Self.isMounted(index: index, current: currentIndex)) {
-                MenuPage(screen: page, adsProvider: adsProvider)
+                MenuPage(screen: page, adsProvider: adsProvider, onStore: onStore)
                     .environment(\.menuPager, pages.count > 1 ? MenuPagerContext(
                         index: index,
                         count: pages.count,
@@ -125,6 +127,7 @@ struct MenuPagerView: View {
 struct MenuPage: View {
     let screen: GameScreen
     let adsProvider: AdsCoordinator
+    let onStore: () -> Void
 
     var body: some View {
         switch screen {
@@ -134,7 +137,19 @@ struct MenuPage: View {
         case .gifts: GiftsView(adsProvider: adsProvider)
         case .store: StoreView()
         case .menu: MenuView()
+        case .ranking: RankingPage(onStore: onStore)
         }
+    }
+}
+
+/// La pestaña Ranking: el store y el estado de la partida rankeada salen del entorno.
+private struct RankingPage: View {
+    @Environment(GameState.self) private var gameState
+    @Environment(RankingStore.self) private var store
+    let onStore: () -> Void
+
+    var body: some View {
+        RankingView(store: store, state: gameState.rankingState, onStore: onStore)
     }
 }
 

@@ -42,7 +42,7 @@ struct TabsConfig: Codable, Sendable, Equatable {
         let screens = tabs.compactMap(\.screen)
         guard screens.count == tabs.count, Set(screens) == Set(GameScreen.barOrder),
               screens.count == GameScreen.barOrder.count else {
-            throw GameError.contentInvalid(file: "tabs.json", reason: "tiene que nombrar las cinco pestañas de la barra una vez")
+            throw GameError.contentInvalid(file: "tabs.json", reason: "tiene que nombrar cada pestaña de la barra una vez")
         }
         if let empty = tabs.first(where: { $0.unlockWhen.isEmpty }) {
             throw GameError.contentInvalid(file: "tabs.json", reason: "\(empty.id) no tiene condición")

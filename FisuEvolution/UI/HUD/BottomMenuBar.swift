@@ -67,7 +67,7 @@ struct BottomMenuBar: View {
         switch screen {
         case .menu: gameState.hasClaimableAchievements
         case .gifts: gameState.hasPendingChests || gameState.hasReadyBoost
-        case .jobs, .upgrades, .skins, .store: false
+        case .jobs, .upgrades, .skins, .store, .ranking: false
         }
     }
 
@@ -89,6 +89,7 @@ struct BottomMenuBar: View {
         case .gifts: "hud.bonus.label"
         case .store: "hud.store.label"
         case .menu: "hud.settings.label"
+        case .ranking: "hud.ranking.label"
         }
     }
 
@@ -97,7 +98,7 @@ struct BottomMenuBar: View {
     /// Espejan a `GameTabButton.iconSide`, que es privado: el icono se dibuja a
     /// su propio tamaño y el botón lo enmarca en el mismo, así que si allá
     /// cambiaran quedarían centrados en el plato en vez de romperse.
-    private static let iconSide: CGFloat = 46
+    private static let iconSide: CGFloat = 39
     private static let prominentIconSide: CGFloat = 64
 
     /// El glifo de cada tab, ya type-borrado, **y con el ancla del tutorial
@@ -148,6 +149,8 @@ struct BottomMenuBar: View {
                 GameIcon(artKey: "ui_tab_menu", size: side) { VectorTabMenuIcon() }
                     .tutorialAnchor(.menu)
             )
+        case .ranking:
+            return AnyView(VectorTrophyIcon(tier: .gold).frame(width: side, height: side))
         }
     }
 }

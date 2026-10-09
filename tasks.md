@@ -711,7 +711,7 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13-T8 | Pisos de arriba con misterio ("Piso ???") | 🔧 | — | catálogo (snapshot); FloorMapView, ElevatorPanel, TowerNaming, +Types, +Projections | | ElevatorPanel es tibio de E7b-b T3; integrar en serie con T4 (+Projections) |
 | E13-T9 | Ficha y Despedir desde Personajes | ⛔ | verificar CharacterSheetUITests sobre `ab7ba84` (arreglo del panel de debug) | catálogo (snapshot); UpgradesView, +Types, +Actions, CharacterSheetView | | no ∥ T13 (UpgradesView) ni T11 (+Actions); carry de texto a E9b T1 |
 | E13-T10 | FisuJobs por pisos | ⛔ | T8 | FisuJobsView | | revisión ninguna; `JobGroups` testeable |
-| E13-T11 | La moneda sobre quien genera plata | ⏳ | — | 🔥 BoardScene; CharacterNode, BoardReconciliation, +Actions | | no ∥ T9 (+Actions); un nodo por personaje, sin animación |
+| E13-T11 | La moneda sobre quien genera plata | 🔧 | — | 🔥 BoardScene; CharacterNode, BoardReconciliation, +Actions | | no ∥ T9 (+Actions); un nodo por personaje, sin animación |
 | E13-T12 | El Diamante dice "Pack de las 43" | ⏳ | — | catálogo (snapshot); +Store, CustomizationView | | revisión ninguna; +Store es tibio de E6b T4/T5 |
 | E13-T13 | Las mejoras dicen su efecto, de antes a después | ⛔ | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |
 | E13-T14 | Cierre de E13 (controlador) | ⛔ | T2–T13 | `Docs/` | | `completo`; HANDOFF §5.7 "las seis" |

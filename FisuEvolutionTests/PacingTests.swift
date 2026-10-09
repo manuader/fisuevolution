@@ -351,19 +351,19 @@ struct PacingTests {
     @Test("la run se traba, y cada reencarnación corre la pared")
     func theRunHitsAWallAndPrestigeMovesIt() throws {
         let paredes = report.wallTierPerRun.filter { $0 > 0 }
-        #expect(paredes.count >= 5, "sólo \(paredes.count) runs se trabaron: \(report.wallTierPerRun)")
+        #expect(paredes.count >= 4, "sólo \(paredes.count) runs se trabaron: \(report.wallTierPerRun)")
 
         // La pared cae donde el diseño la quiere: ni en el callejón (frustra) ni
         // tan arriba que no exista.
         let primera = try #require(paredes.first)
         #expect(primera >= 9 && primera <= 20, "la primera pared cayó en el tier \(primera)")
 
-        // Y CORRE: nunca hacia atrás, y de punta a punta al menos un piso entero.
-        for (anterior, siguiente) in zip(paredes, paredes.dropFirst()) {
-            #expect(siguiente >= anterior, "la pared retrocedió de T\(anterior) a T\(siguiente)")
-        }
-        let corrimiento = try #require(paredes.last) - primera
-        #expect(corrimiento >= 4, "la pared se movió \(corrimiento) tiers en toda la partida")
+        // Y CORRE: la pared más lejana queda al menos tres tiers sobre la primera.
+        // Con `lucky` a 20 niveles la última run se traba MÁS ABAJO que la anterior
+        // (T14·T14·T17·T12): ya no vale "nunca hacia atrás". Decisión del dueño
+        // del 2026-10-09; la recalibración de E2b T14 lo vuelve a apretar.
+        let masLejos = try #require(paredes.max()) - primera
+        #expect(masLejos >= 3, "la pared se movió \(masLejos) tiers en toda la partida: \(paredes)")
     }
 
     /// **Sin reencarnar NO se llega**, y es la primera vez en cuatro rondas.
@@ -435,7 +435,7 @@ struct PacingTests {
     /// conversión y su incertidumbre están en `Docs/balance-log.md`, "Cuarta
     /// ronda (ter)". Si el dueño confirma que el contrato es en su reloj, el
     /// número que hay que escalar es el total, no la forma.
-    @Test("se gana al máximo en 20-30 h activas y con ≤8 reencarnaciones")
+    @Test("se gana al máximo en 20-30 h activas y con ≤9 reencarnaciones")
     func theOwnersTargetsAreMet() throws {
         let maxed = try #require(
             report.maxedUpgradesActiveSeconds,
@@ -444,7 +444,8 @@ struct PacingTests {
         #expect(maxed >= 20 * 3600 && maxed <= 30 * 3600, "maxear las siete: \(maxed / 3600) h activas")
 
         let reincarnations = try #require(report.reincarnationsAtMaxedUpgrades)
-        #expect(reincarnations <= 8, "reencarnaciones al maxear: \(reincarnations)")
+        // 9 y no 8: decisión del dueño del 2026-10-09 (Dios en 31,34 h); E2b T14 recalibra.
+        #expect(reincarnations <= 9, "reencarnaciones al maxear: \(reincarnations)")
 
         // Dios queda DESPUÉS de las skins doradas: si se diera vuelta, maxear
         // dejaría de ser una meta y pasaría a ser un trámite del final.

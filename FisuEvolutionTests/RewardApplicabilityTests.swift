@@ -6,22 +6,22 @@ import Testing
 @Suite("Videos: sin efecto no se cobra el cooldown")
 @MainActor
 struct RewardApplicabilityTests {
-    @Test("sin pares, la evolución gratis no se ofrece y dice por qué")
+    @Test("sin pares, Fusionar todo no se ofrece y dice por qué")
     func freeMergeWithoutPairsIsNotOffered() async throws {
         let gameState = await makeGameState()
-        #expect(!gameState.isRewardApplicable("accelerate_evolution"))
-        let row = try #require(gameState.rewardRows.first { $0.id == "accelerate_evolution" })
+        #expect(!gameState.isRewardApplicable("merge_all"))
+        let row = try #require(gameState.rewardRows.first { $0.id == "merge_all" })
         let reason = try #require(row.unavailableReason)
         #expect(!reason.contains("ads.unavailable"), "la clave cruda no puede llegar a pantalla")
         #expect(row.cooldownRemaining == 0)
     }
 
-    @Test("con un par, la evolución gratis se ofrece sin motivo de rechazo")
+    @Test("con un par, Fusionar todo se ofrece sin motivo de rechazo")
     func freeMergeWithPairIsOffered() async throws {
         let gameState = await makeGameState()
         gameState.debugGrantPair()
-        #expect(gameState.isRewardApplicable("accelerate_evolution"))
-        let row = try #require(gameState.rewardRows.first { $0.id == "accelerate_evolution" })
+        #expect(gameState.isRewardApplicable("merge_all"))
+        let row = try #require(gameState.rewardRows.first { $0.id == "merge_all" })
         #expect(row.unavailableReason == nil)
     }
 
@@ -38,13 +38,13 @@ struct RewardApplicabilityTests {
     func inapplicableAtTheEndCompensates() async throws {
         let gameState = await makeGameState()
         let before = try #require(gameState.player?.run.coins)
-        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
+        gameState.applyRewardedReward(rewardId: "merge_all")
         #expect(try #require(gameState.player?.run.coins) > before)
         #expect(gameState.pendingBoardChanges.isEmpty)
         if case .rewardCompensated? = gameState.towerNotice?.kind {} else {
             Issue.record("falta el aviso de la compensación")
         }
-        #expect(gameState.rewardCooldownRemaining(id: "accelerate_evolution") > 0, "el video se miró")
+        #expect(gameState.rewardCooldownRemaining(id: "merge_all") > 0, "el video se miró")
     }
 
     @Test("un video que aplica no compensa: paga el cambio, no la plata")
@@ -52,20 +52,43 @@ struct RewardApplicabilityTests {
         let gameState = await makeGameState()
         gameState.debugGrantPair()
         let before = try #require(gameState.player?.run.coins)
-        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
+        gameState.applyRewardedReward(rewardId: "merge_all")
         #expect(try #require(gameState.player?.run.coins) == before)
-        #expect(gameState.pendingBoardChanges.count == 1)
+        #expect(gameState.pendingBoardChanges.count >= 1)
+        #expect(gameState.pendingBoardChanges.allSatisfy { $0.origin == .rewardedMergeAll })
         #expect(gameState.towerNotice == nil)
     }
 
-    /// El video cobró el cooldown y planeó su par; después el tablero quedó con una sola unidad.
-    private func gameStateWithStaleRewardedPlan() async throws -> (GameState, expectedPay: Double, before: Double) {
+    @Test("el cooldown se cobra una sola vez: un segundo toque no paga ni encola de nuevo")
+    func rewardedMergeAllPaysOnce() async throws {
         let gameState = await makeGameState()
         gameState.debugGrantPair()
-        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
+        gameState.applyRewardedReward(rewardId: "merge_all", now: 1000)
+        let queued = gameState.pendingBoardChanges.count
+        let coins = try #require(gameState.player?.run.coins)
+        gameState.applyRewardedReward(rewardId: "merge_all", now: 1001)
+        #expect(gameState.pendingBoardChanges.count == queued)
+        #expect(try #require(gameState.player?.run.coins) == coins)
+        #expect(gameState.rewardCooldownRemaining(id: "merge_all", now: 1001) > 0)
+    }
+
+    @Test("un eslabón de Fusionar todo que ya no cabe no compensa: el video ya pagó")
+    func staleMergeAllLinkDoesNotCompensate() async throws {
+        let gameState = await makeGameState()
+        gameState.debugGrantPair()
+        gameState.applyRewardedReward(rewardId: "merge_all")
+        let before = try #require(gameState.player?.run.coins)
+        gameState.pendingBoardChanges.forEach { gameState.discardBoardChange($0) }
+        #expect(try #require(gameState.player?.run.coins) == before)
+    }
+
+    /// El video cobró el cooldown y planeó su llegada; después el tablero quedó sin lugar.
+    private func gameStateWithStaleRewardedPlan() async throws -> (GameState, expectedPay: Double, before: Double) {
+        let gameState = await makeGameState()
+        gameState.applyRewardedReward(rewardId: "spawn_rare")
         var tower = try #require(gameState.tower)
         for floor in tower.floors.indices {
-            tower.floors[floor].slots = tower.floors[floor].slots.enumerated().map { $0.offset == 0 ? $0.element : nil }
+            tower.floors[floor].slots = tower.floors[floor].slots.map { $0 ?? "homeless" }
         }
         gameState.tower = tower
         let player = try #require(gameState.player)
@@ -97,7 +120,7 @@ struct RewardApplicabilityTests {
     @Test("compensar suma el video mirado a los logros")
     func compensationEvaluatesAchievements() async throws {
         let gameState = await makeGameState()
-        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
+        gameState.applyRewardedReward(rewardId: "merge_all")
         let unlocked = try #require(gameState.player?.meta.unlockedAchievements)
         #expect(unlocked.contains("ach_videos_1"))
     }

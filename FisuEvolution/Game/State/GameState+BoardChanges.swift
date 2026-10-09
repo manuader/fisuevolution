@@ -179,8 +179,8 @@ extension GameState {
     func discardBoardChange(_ change: BoardChange) {
         Log.economy.info("board change dropped: \(change.origin.rawValue)")
         switch change.origin {
-        case .rewardedInstantMerge, .rewardedRareUnit: compensateRewardedVideo()
-        case .eventStartup, .eventBlanqueo, .career, .debug: break
+        case .rewardedRareUnit: compensateRewardedVideo()
+        case .eventStartup, .eventBlanqueo, .rewardedMergeAll, .career, .debug: break
         }
     }
 
@@ -219,7 +219,7 @@ extension GameState {
 private extension BoardChange {
     var isPrepaid: Bool {
         switch origin {
-        case .rewardedInstantMerge, .rewardedRareUnit, .career: true
+        case .rewardedMergeAll, .rewardedRareUnit, .career: true
         case .eventStartup, .eventBlanqueo, .debug: false
         }
     }

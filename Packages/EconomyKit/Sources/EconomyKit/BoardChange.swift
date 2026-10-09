@@ -13,7 +13,8 @@ public struct BoardChange: Sendable, Equatable, Identifiable {
     public enum Origin: String, Sendable, Equatable {
         case eventStartup
         case eventBlanqueo
-        case rewardedInstantMerge
+        /// "Fusionar todo" por video: Regalos y la columna de E7b.
+        case rewardedMergeAll
         case rewardedRareUnit
         case career
         case debug
@@ -205,6 +206,15 @@ public enum BoardChangePlanner {
             )
         }
         return nil
+    }
+
+    /// El tipo de un premio "de frontera − n" (el video del personaje de regalo):
+    /// respeta la carrera y nunca baja del tier 1.
+    public static func giftType(tiersBelowFrontier: Int, state: PlayerState, tiers: TierRepository) -> CharacterType? {
+        let tier = max(1, state.run.maxTierReached - tiersBelowFrontier)
+        let path = state.run.chosenCareerPath
+        return tiers.concreteTypes.first { $0.tier == tier && (path.map($0.id.hasSuffix) ?? true) }
+            ?? tiers.concreteTypes.first { $0.tier == tier }
     }
 
     public static func planArrival(

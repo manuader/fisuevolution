@@ -90,21 +90,38 @@ struct BoardChangeProducersTests {
         #expect(gameState.pendingBoardChanges.first?.origin == .eventBlanqueo)
     }
 
-    @Test("el video de evolución gratis planea su merge y no toca el tablero")
-    func freeMergeVideoPlans() async throws {
+    @Test("Fusionar todo por video encola todos los pares del piso a la vista")
+    func mergeAllVideoQueuesEveryPair() async throws {
         let gameState = await makeGameState()
-        gameState.debugGrantPair()
+        gameState.player?.run.units = ["homeless": 4]
+        gameState.reconcileTower()
         let units = try #require(gameState.player?.run.units)
-        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
-        #expect(gameState.player?.run.units == units)
-        #expect(gameState.pendingBoardChanges.first?.origin == .rewardedInstantMerge)
+        gameState.applyRewardedReward(rewardId: "merge_all")
+        #expect(gameState.player?.run.units == units, "se planea, no se aplica en el acto")
+        #expect(gameState.pendingBoardChanges.count >= 2)
+        #expect(gameState.pendingBoardChanges.allSatisfy { $0.origin == .rewardedMergeAll })
     }
 
-    @Test("el personaje de regalo llega por el embudo")
-    func rareUnitVideoPlans() async throws {
+    @Test("el personaje de regalo es de frontera − 3, como el Blanqueo")
+    func giftUnitIsThreeTiersBelowTheFrontier() async throws {
         let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        gameState.debugUnlockFloors(throughTier: 9)
         gameState.applyRewardedReward(rewardId: "spawn_rare")
-        #expect(gameState.pendingBoardChanges.first?.origin == .rewardedRareUnit)
+        let change = try #require(gameState.pendingBoardChanges.first)
+        #expect(change.origin == .rewardedRareUnit)
+        let frontier = try #require(gameState.player?.run.maxTierReached)
+        #expect(frontier >= 4, "el piso mínimo no tapa la resta")
+        #expect(change.resultTypeId.flatMap { content.tiers.type(id: $0)?.tier } == frontier - 3)
+    }
+
+    @Test("con la frontera baja, el regalo no baja del tier 1")
+    func giftUnitNeverDropsBelowTierOne() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        gameState.applyRewardedReward(rewardId: "spawn_rare")
+        let change = try #require(gameState.pendingBoardChanges.first)
+        #expect(change.resultTypeId.flatMap { content.tiers.type(id: $0)?.tier } == 1)
     }
 
     @Test("elegir carrera acredita ya y deja el merge para su turno, con revelación")

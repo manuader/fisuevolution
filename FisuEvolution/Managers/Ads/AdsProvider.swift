@@ -192,16 +192,16 @@ final class StubAdsProvider: AdsProvider {
     func prepare() {}
 }
 
-/// Mirrored 1:1 from `rewarded_ads.json` — the four effects of bible §4.4 plus
-/// el cofre de pintas, que llegó con el sistema de cofres.
+/// Mirrored 1:1 from `rewarded_ads.json` — los efectos de los videos: el
+/// multiplicador de ingresos, "Fusionar todo", el personaje de regalo y el
+/// cofre de pintas.
 struct RewardedAdsConfig: Codable, Sendable, Equatable {
     enum EffectType: String, Codable, Sendable, CaseIterable {
         /// Temporary income multiplier (double earnings / temp multiplier).
         case incomeMultiplier
-        /// Free instant merge of the highest mergeable pair (accelerate evolution).
-        case instantMerge
-        /// Grants a unit of the highest tier reached (spawn rare — F4 stub;
-        /// F5 rewires this to the real special-character drop).
+        /// "Fusionar todo" del piso a la vista, por el embudo (PLAN-v2 E13).
+        case mergeAll
+        /// Un personaje de `tiersBelowFrontier` por debajo de la frontera (E13).
         case rareUnit
         /// Un cofre de pintas. Es la única fuente con freno propio: el cooldown
         /// del video es lo que evita que la colección se vacíe en una tarde.
@@ -213,6 +213,8 @@ struct RewardedAdsConfig: Codable, Sendable, Equatable {
         let effectType: EffectType
         let magnitude: Double?
         let durationSeconds: Double?
+        /// Sólo lo lleva `rareUnit`: cuántos tiers por debajo de la frontera llega.
+        let tiersBelowFrontier: Int?
         let titleKey: String
         /// Cuánto tarda ESTA recompensa en volver a ofrecerse (RF-11). Los
         /// cooldowns corren en paralelo: mirar un video no bloquea a los otros.

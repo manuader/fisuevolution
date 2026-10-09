@@ -234,6 +234,12 @@ extension GameState {
         if ProcessInfo.processInfo.arguments.contains("--uitest-ranking-god") {
             debugStartRankedRunNearGod()
         }
+        // El peor caso de la spec de los videos (fondo + especial + ícono) con la sonda corriendo.
+        // El manifest de estrés lo arma `LoopsManifest.main`; con los videos prendidos hace falta
+        // pasar también `--uitest-video`.
+        if ProcessInfo.processInfo.arguments.contains("--uitest-anim-stress") {
+            debugStartAnimStress()
+        }
         #endif
         // El tutorial entra a la cola ANTES de que nadie encole nada: el
         // offline, el daily del día 2 y los logros de un save viejo pasan

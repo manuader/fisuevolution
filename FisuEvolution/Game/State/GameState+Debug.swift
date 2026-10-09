@@ -252,6 +252,13 @@ extension GameState {
         debugUnlockFloors(throughTier: godTier - 1)
     }
 
+    /// El especial abierto sobre el piso visible y la sonda de fps corriendo: los videos del estrés
+    /// los pone el manifest de `--uitest-anim-stress`.
+    func debugStartAnimStress() {
+        debugDropFirstSpecial()
+        FrameRateProbe.shared.start()
+    }
+
     /// Llega a Dios como si se hubiera revelado el tier tope.
     func debugReachGod() {
         guard let godTier, var player else { return }

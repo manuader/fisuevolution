@@ -87,6 +87,7 @@ struct ElevatorCabinTests {
         return (pool, holders)
     }
 
+    // `prepare` corta con Reduce Motion: estos tests suponen que está apagado (el simulador de CI).
     @Test("preparar con video reserva un decodificador: de 3 vivos a 2; soltar lo devuelve")
     func prepareReservesADecoder() {
         let (pool, holders) = fullPool()
@@ -112,6 +113,23 @@ struct ElevatorCabinTests {
             warmup.release()
             warmup.release()
             #expect(pool.liveCount == 3, "un solo unreserve alcanza y el segundo release no resta de más")
+        }
+    }
+
+    @Test("un player creado sin prepare, o después de vencer el calentado, también reserva")
+    func lazyPlayersReserve() {
+        let (pool, holders) = fullPool()
+        withExtendedLifetime(holders) {
+            let warmup = ElevatorCabinWarmup(pool: pool)
+            warmup.prepare(art: .video(close: Self.clip, open: Self.clip))
+            warmup.release()
+            #expect(pool.liveCount == 3)
+            _ = warmup.closingPlayer(url: Self.clip)
+            #expect(pool.liveCount == 2)
+            _ = warmup.openingPlayer(url: Self.clip)
+            #expect(pool.liveCount == 2, "los dos players comparten una sola reserva")
+            warmup.release()
+            #expect(pool.liveCount == 3)
         }
     }
 

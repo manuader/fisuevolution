@@ -51,9 +51,10 @@ enum CabinFrame {
 /// Los dos clips de la cabina calentados, de a uno. Se preparan al abrir la placa o el mapa
 /// (`prepare()`), nunca al elegir el piso: el arranque en frío del HEVC con alfa congela el primer cuadro.
 ///
-/// Memoria: vive un solo player por vez. El de "abre" se crea cuando arranca el tramo de viaje
-/// (hay ≥ 300 ms para calentarlo) y el de "cierra" se suelta al abrir las puertas. Si nadie usa el
-/// que se preparó, se suelta solo.
+/// Memoria: el de "abre" se crea cuando arranca el tramo de viaje (hay ≥ 300 ms para calentarlo)
+/// y el de "cierra" se suelta al abrir las puertas, así que en `.traveling` conviven los dos. Si
+/// nadie usa el que se preparó, se suelta solo. Mientras haya un player vivo, el pool tiene un
+/// decodificador reservado.
 @MainActor
 final class ElevatorCabinWarmup {
     static let shared = ElevatorCabinWarmup()
@@ -118,6 +119,7 @@ final class ElevatorCabinWarmup {
         if let closing, closing.url == url { return closing.player }
         Self.dispose(closing?.player)
         let player = ChestCinematicPlayer(url: url)
+        reserveDecoder()
         closing = (url, player)
         return player
     }
@@ -126,6 +128,7 @@ final class ElevatorCabinWarmup {
         if let opening, opening.url == url { return opening.player }
         Self.dispose(opening?.player)
         let player = ChestCinematicPlayer(url: url)
+        reserveDecoder()
         opening = (url, player)
         return player
     }

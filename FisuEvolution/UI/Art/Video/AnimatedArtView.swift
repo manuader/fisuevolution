@@ -19,6 +19,7 @@ enum ArtPlayback {
 struct AnimatedArtView<Poster: View>: View {
     typealias Playback = ArtPlayback
 
+    /// El `onEnd` de `.once` es el del montaje: si cambia el clip o el rol, la capa se rehace.
     let clip: ArtClip
     var role: VideoRole = .popup
     var playback: Playback = .loop
@@ -26,10 +27,10 @@ struct AnimatedArtView<Poster: View>: View {
     @Environment(\.loopsManifest) private var manifest
 
     var body: some View {
-        ZStack {
-            poster()
+        poster().overlay {
             if let url = AnimatedArt.resolve(clip, manifest: manifest) {
                 ArtVideoLayer(url: url, role: role, playback: playback)
+                    .id("\(url.absoluteString)|\(role.rawValue)")
                     .accessibilityHidden(true)
                     .allowsHitTesting(false)
             }
@@ -58,6 +59,7 @@ struct ArtVideoLayer: UIViewRepresentable {
 @MainActor
 final class ArtVideoUIView: UIView, VideoLeaseHolder {
     private static let fadeDuration: TimeInterval = 0.15
+    private static let watchdogSeconds = 1.0
     private static let readyPollNanos: UInt64 = 50_000_000
     private static let readyPollLimit = 40
 
@@ -69,6 +71,12 @@ final class ArtVideoUIView: UIView, VideoLeaseHolder {
     private var looper: AVPlayerLooper?
     private var tasks: [Task<Void, Never>] = []
     private var onceFinished = false
+    private var watchdog: Task<Void, Never>?
+
+    private var isOnce: Bool {
+        if case .once = playback { return true }
+        return false
+    }
 
     private(set) var player: AVPlayer?
 
@@ -94,6 +102,7 @@ final class ArtVideoUIView: UIView, VideoLeaseHolder {
         accessibilityIdentifier = "art.video"
         playerLayer.videoGravity = .resizeAspect
         alpha = 0
+        accessibilityValue = "still"
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) no se usa") }
@@ -102,16 +111,22 @@ final class ArtVideoUIView: UIView, VideoLeaseHolder {
         super.didMoveToWindow()
         if window == nil {
             stop()
-        } else if lease == nil {
-            guard pool.policy.allowsLoops else {
-                finishOnce()
-                return
+        } else if lease == nil, !onceFinished {
+            if isOnce {
+                guard pool.policy.allowsLoops else {
+                    finishOnce()
+                    return
+                }
+                startWatchdog()
             }
             lease = pool.acquire(self, role: role)
         }
     }
 
     func stop() {
+        if isOnce { onceFinished = true }
+        watchdog?.cancel()
+        watchdog = nil
         if let lease {
             self.lease = nil
             pool.release(lease)
@@ -138,7 +153,9 @@ final class ArtVideoUIView: UIView, VideoLeaseHolder {
     }
 
     private func startPlayer() {
-        guard player == nil else { return }
+        guard player == nil, !onceFinished else { return }
+        watchdog?.cancel()
+        watchdog = nil
         let item = AVPlayerItem(url: url)
         let queue = AVQueuePlayer()
         queue.isMuted = true
@@ -169,16 +186,40 @@ final class ArtVideoUIView: UIView, VideoLeaseHolder {
         player = nil
         playerLayer.player = nil
         alpha = 0
+        accessibilityValue = "still"
     }
 
+    /// Sondeo barato (50 ms, con tope): si el primer cuadro no llega, no queda un decodificador
+    /// invisible vivo; se suelta el player y el lease, y se ve el póster.
     private func fadeInWhenReady() async {
         for _ in 0..<Self.readyPollLimit {
             if Task.isCancelled { return }
             if playerLayer.isReadyForDisplay {
                 UIView.animate(withDuration: Self.fadeDuration) { self.alpha = 1 }
+                accessibilityValue = "live"
                 return
             }
             try? await Task.sleep(nanoseconds: Self.readyPollNanos)
+        }
+        if Task.isCancelled { return }
+        giveUp()
+    }
+
+    private func giveUp() {
+        if let lease {
+            self.lease = nil
+            pool.release(lease)
+        }
+        tearDownPlayer()
+        finishOnce()
+    }
+
+    private func startWatchdog() {
+        watchdog = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(Self.watchdogSeconds))
+            if Task.isCancelled { return }
+            guard let self, self.player == nil else { return }
+            self.finishOnce()
         }
     }
 

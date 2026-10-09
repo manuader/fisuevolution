@@ -190,11 +190,12 @@ final class AdsCoordinator: AdsProvider {
         !removedAds && !isPresentingFullScreen && active.isInterstitialReady
     }
 
-    func showInterstitial() async {
-        guard !removedAds, !isPresentingFullScreen else { return }
+    @discardableResult
+    func showInterstitial() async -> Bool {
+        guard !removedAds, !isPresentingFullScreen else { return false }
         isPresentingFullScreen = true
         defer { isPresentingFullScreen = false }
-        await active.showInterstitial()
+        return await active.showInterstitial()
     }
 
     /// Misma regla que el interstitial: `false` con `remove_ads`.
@@ -226,11 +227,12 @@ final class AdsCoordinator: AdsProvider {
         active.preloadAppOpen()
     }
 
-    func showAppOpen() async {
-        guard !removedAds, !isPresentingFullScreen else { return }
+    @discardableResult
+    func showAppOpen() async -> Bool {
+        guard !removedAds, !isPresentingFullScreen else { return false }
         isPresentingFullScreen = true
         defer { isPresentingFullScreen = false }
-        await active.showAppOpen()
+        return await active.showAppOpen()
     }
 
     func prepare() {

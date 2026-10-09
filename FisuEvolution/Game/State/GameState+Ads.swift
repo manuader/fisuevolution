@@ -66,43 +66,74 @@ extension GameState {
     }
 
     private func present(_ format: ForcedAdFormat, pacer: ForcedAdsPacer) async {
-        guard let ads else { return }
         switch format {
-        case .interstitial:
+        case .interstitial, .appOpen:
             holdCelebrationsForAd()
-            await ads.showInterstitial()
-            pacer.recordShown(.interstitial)
-            releaseCelebrationsAfterAd()
-        case .rewardedInterstitial, .appOpen:
+            await presentHeld(format, pacer: pacer)
+        case .rewardedInterstitial:
             break
         }
     }
 
+    /// Muestra con la cola ya retenida y la suelta al volver. Se anota en el
+    /// reloj sólo si el anuncio llegó a la pantalla: un inventario vencido o una
+    /// falla al presentar no gastan el cupo de nadie.
+    private func presentHeld(_ format: ForcedAdFormat, pacer: ForcedAdsPacer) async {
+        defer { releaseCelebrationsAfterAd() }
+        guard let ads else { return }
+        let presented = switch format {
+        case .appOpen: await ads.showAppOpen()
+        default: await ads.showInterstitial()
+        }
+        if presented { pacer.recordShown(format) }
+    }
+
     // MARK: - La cola, quieta mientras hay un anuncio
 
-    /// Nada de la cola toma el turno mientras un forzado tapa la pantalla. Los
-    /// forzados nunca salen con el tutorial (la política), así que la cola no
-    /// tenía otra restricción que haya que guardar.
+    /// Nada de la cola toma el turno mientras un forzado tapa la pantalla. Se
+    /// guarda la restricción que hubiera (la del tutorial) para devolverla tal
+    /// cual. Retener dos veces no pisa lo guardado.
     func holdCelebrationsForAd() {
+        guard restrictionBeforeAd == nil else { return }
+        restrictionBeforeAd = .some(celebrations.allowedKinds)
         celebrations.restrict(to: [])
     }
 
     func releaseCelebrationsAfterAd() {
-        celebrations.restrict(to: nil)
+        guard let previous = restrictionBeforeAd else { return }
+        restrictionBeforeAd = nil
+        celebrations.restrict(to: previous)
         syncCelebrations()
     }
 
     // MARK: - Irse y volver
 
     /// La app se fue, o quedó inactiva viniendo de activa (lo llama el sellado).
+    /// Si a la vuelta podría salir un app open, se pide ahora: un anuncio tarda
+    /// segundos en cargar y al volver es tarde.
     func adsDidEnterBackground() {
-        ads?.pacer?.didEnterBackground()
+        guard let pacer = ads?.pacer else { return }
+        pacer.didEnterBackground()
+        if pacer.couldShowAppOpenOnReturn { ads?.preloadAppOpen() }
     }
 
     /// La app volvió: la gracia de los intersticiales arranca de nuevo (el
-    /// tiempo afuera no es tiempo de juego).
+    /// tiempo afuera no es tiempo de juego), y el app open se decide ACÁ, antes
+    /// de acreditar el offline. Si sale, la cola queda retenida desde ya (esta
+    /// misma pasada acredita el offline) y el popup de ganancias aparece después
+    /// del anuncio, no debajo. Como la gracia arranca de cero y el app open
+    /// anota el reloj común, ningún intersticial sale pegado a él.
     func adsDidReturnFromBackground() {
-        ads?.pacer?.didReturnFromBackground()
+        guard let ads, let pacer = ads.pacer else { return }
+        pacer.didReturnFromBackground()
+        guard ads.naturalBreakTask == nil,
+              case .show(.appOpen) = pacer.decide(.returnFromBackground, context: naturalBreakContext)
+        else { return }
+        holdCelebrationsForAd()
+        ads.naturalBreakTask = Task { [weak self] in
+            await self?.presentHeld(.appOpen, pacer: pacer)
+            self?.ads?.naturalBreakTask = nil
+        }
     }
 }
 

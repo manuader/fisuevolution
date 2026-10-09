@@ -39,8 +39,8 @@ struct AdsPacingStore {
 /// `decide(_:context:)` con el contexto armado desde el juego y desde
 /// `AdsCoordinator`; si dice `.show`, se muestra y **después** se llama
 /// `recordShown(_:)`. El ciclo de vida lo alimenta con `didEnterBackground()` y
-/// `didReturnFromBackground()`; el app open (`.returnFromBackground`) todavía
-/// no se cablea.
+/// `didReturnFromBackground()`; el app open (`.returnFromBackground`) lo decide
+/// `GameState+Ads` al volver.
 @MainActor
 final class ForcedAdsPacer {
     private(set) var pacing: AdsPacingState
@@ -82,6 +82,13 @@ final class ForcedAdsPacer {
         let away = backgroundedAt.map { instant.timeIntervalSince($0) }
         backgroundedAt = nil
         session = AdsSession(startedAt: instant, secondsAway: away)
+    }
+
+    /// Si en la próxima vuelta podría salir un app open: prendido (el
+    /// interruptor de `ads.json`) y desde la sesión mínima. Lo demás (la
+    /// ausencia, el cupo) se sabe recién al volver.
+    var couldShowAppOpenOnReturn: Bool {
+        policy.enabledFormats.contains(.appOpen) && pacing.sessionNumber >= policy.appOpenMinSessionNumber
     }
 
     /// Qué mostrar en este corte, si algo. No cambia nada: decidir no es

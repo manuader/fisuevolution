@@ -2,6 +2,7 @@ import Foundation
 import GoogleMobileAds
 import Observation
 import UIKit
+import UserMessagingPlatform
 
 /// El proveedor real de anuncios: AdMob detrás de `feature_flags.useRealAds`.
 ///
@@ -198,19 +199,20 @@ final class AdMobAdsProvider: AdsProvider {
         }
     }
 
-    func showInterstitial() async {
+    func showInterstitial() async -> Bool {
         guard let entry = interstitial, entry.isFresh(now: now()) else {
             interstitial = nil
             preloadInterstitial()
-            return
+            return false
         }
         interstitial = nil
 
         let ad = entry.ad
         ad.fullScreenContentDelegate = presentation
-        await presentation.present { ad.present(from: nil) }
+        let presented = await presentation.present { ad.present(from: nil) }
 
         preloadInterstitial()
+        return presented
     }
 
     // MARK: - Pausa publicitaria (intersticial bonificado)
@@ -272,6 +274,8 @@ final class AdMobAdsProvider: AdsProvider {
         // [GATE DEL DUEÑO] Mientras no exista la unidad, `appOpen` es `nil` y
         // no hay nada que pedir. Ver el aviso en `FeatureFlags.AdUnitIDs`.
         guard let unitID = unitIDs.appOpen else { return }
+        // Sin consentimiento resuelto (UMP) el SDK no puede pedir anuncios.
+        guard ConsentInformation.shared.canRequestAds else { return }
         if isAppOpenReady || loadingAppOpen { return }
         appOpen = nil
         loadingAppOpen = true
@@ -286,21 +290,22 @@ final class AdMobAdsProvider: AdsProvider {
         }
     }
 
-    func showAppOpen() async {
+    func showAppOpen() async -> Bool {
         guard let entry = appOpen, entry.isFresh(now: now()) else {
             appOpen = nil
             preloadAppOpen()
-            return
+            return false
         }
         appOpen = nil
 
         let ad = entry.ad
         ad.fullScreenContentDelegate = presentation
-        await presentation.present { ad.present(from: nil) }
+        let presented = await presentation.present { ad.present(from: nil) }
 
         // No se repone acá: el próximo app open se pide al volver a irse a
         // background, que es cuando hace falta (y el que se cargue ahora
         // podría vencerse antes).
+        return presented
     }
 }
 
@@ -342,15 +347,32 @@ struct AdInventory<Ad> {
 @MainActor
 private final class FullScreenAdObserver: NSObject, FullScreenContentDelegate {
     private var continuation: CheckedContinuation<Void, Never>?
+    /// Si el SDK avisó que va a presentar lo que está en vuelo.
+    private var willPresentSeen = false
     /// Avisa que el SDK está por poner el anuncio en pantalla.
     var onWillPresent: (() -> Void)?
 
+    /// Cuánto se espera el primer aviso del SDK antes de darlo por perdido. Un
+    /// `present` que no llama a ningún método del delegate dejaría el `await`
+    /// colgado, y con él la cola de celebraciones retenida.
+    static let presentDeadline: Duration = .seconds(10)
+
     /// Presenta y espera hasta que el anuncio se haya cerrado (o haya fallado).
-    func present(_ show: () -> Void) async {
+    /// Devuelve si llegó a la pantalla.
+    @discardableResult
+    func present(_ show: () -> Void) async -> Bool {
+        willPresentSeen = false
+        let watchdog = Task { [weak self] in
+            try? await Task.sleep(for: Self.presentDeadline)
+            guard !Task.isCancelled, let self, !self.willPresentSeen else { return }
+            self.finish()
+        }
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
             self.continuation = continuation
             show()
         }
+        watchdog.cancel()
+        return willPresentSeen
     }
 
     private func finish() {
@@ -360,6 +382,7 @@ private final class FullScreenAdObserver: NSObject, FullScreenContentDelegate {
     }
 
     func adWillPresentFullScreenContent(_ ad: any FullScreenPresentingAd) {
+        willPresentSeen = true
         onWillPresent?()
     }
 

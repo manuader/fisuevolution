@@ -369,6 +369,9 @@ final class GameState {
     /// Los anuncios. `@ObservationIgnored` como los otros servicios: el estado
     /// del inventario de anuncios no dibuja nada.
     @ObservationIgnored var ads: AdsCoordinator?
+    /// La restricción de la cola antes de que un forzado la retuviera (`nil` =
+    /// no hay retención; el `Optional` de adentro es la restricción misma).
+    @ObservationIgnored var restrictionBeforeAd: Set<CelebrationKind>??
     @ObservationIgnored var cloudSync: CloudSaveSync?
 
     init(repository: PlayerStateRepository? = nil) {

@@ -8,8 +8,11 @@ extension GameState {
         tutorialTipHandled(opening: screen)
     }
 
+    /// Deslizar hasta una pestaña nueva también le saca el "¡Nuevo!" (la barra
+    /// ya lo hace al tocarla).
     func menuPageChanged(to screen: GameScreen) {
         tutorialTipHandled(opening: screen)
+        markTabOpened(screen)
     }
 
     func menuDidClose() async {

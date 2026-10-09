@@ -279,6 +279,17 @@ final class CustomizationUITests: XCTestCase {
         // Y elegirla lleva a SU grilla, que es lo que hace que la pinta ganada
         // se pueda poner: verla en el carrusel sin poder llegar a ella sería el
         // mismo bug con otra cara.
+        // XCUITest, para tocar una cara fuera del cuadro, scrollea TODOS los scrolls
+        // de arriba, y el del menú deslizable lo sacaría de Pintas. Se la trae a
+        // la vista a mano, deslizando sólo el carrusel (la mitad S2 del paginador).
+        let cuadro = app.windows.firstMatch.frame
+        let tira = app.buttons["skins.character.\(Self.firstType)"].frame.midY
+        for _ in 0..<12 where !cuadro.contains(cara.frame) {
+            let window = app.windows.firstMatch
+            let from = window.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: tira / cuadro.height))
+            let to = window.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: tira / cuadro.height))
+            from.press(forDuration: 0.05, thenDragTo: to)
+        }
         cara.tap()
         let pinta = app.otherElements["skins.row.\(Self.unseenSkin)"]
         let llego = pinta.waitForExistence(timeout: 10)

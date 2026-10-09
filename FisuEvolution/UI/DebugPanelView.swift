@@ -113,6 +113,33 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.sheet.open")
                 }
+                Section("Atajo") {
+                    // El piso visible lleno con Fisuras: el atajo tiene que
+                    // quedarse y decir "Piso lleno".
+                    Button("Llenar el piso visible") {
+                        gameState.debugGrantCoins()
+                        if let base = gameState.content?.tiers.baseType.id {
+                            var guardrail = 0
+                            while gameState.visibleFloorOccupancy.occupied < gameState.visibleFloorOccupancy.capacity,
+                                  guardrail < 30 {
+                                gameState.hireCharacter(typeId: base)
+                                guardrail += 1
+                            }
+                        }
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.floor.fill")
+                    // Varios contratables a la vez, para que el selector tenga
+                    // a quién fijar (el escenario de `QuickHireOfferTests`).
+                    Button("Varios contratables (frontera 18)") {
+                        gameState.debugUnlockFloors(throughTier: 13)
+                        gameState.debugMarkTypesSeen(throughTier: 12)
+                        gameState.debugSetMaxTier(18)
+                        gameState.debugGrantCoins()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.quickhire.many")
+                }
                 // ⚠️ Va DESPUÉS de las puertas de los tests (Specials, Cofres,
                 // Ficha): la List es perezosa y una fila bajo el pliegue no existe
                 // para XCUITest, así que crecer por arriba las deja sin tap.

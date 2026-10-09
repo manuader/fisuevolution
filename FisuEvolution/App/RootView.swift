@@ -99,6 +99,8 @@ struct GameBoardView: View {
     @Environment(GameState.self) private var gameState
     @State private var scene: BoardScene?
     @State private var showPrestige = false
+    /// El selector del atajo: un overlay sobre el juego, no una hoja.
+    @State private var showQuickHirePicker = false
     /// La sesión del menú deslizable, o `nil`. Su `id` es estable mientras la
     /// hoja está arriba: deslizar entre pestañas cambia la página adentro, no
     /// la sesión, así que la hoja no se vuelve a presentar (PLAN-v2 E3). Las
@@ -247,6 +249,11 @@ struct GameBoardView: View {
                     // Las lecciones contextuales. Nunca conviven con la fase:
                     // el director no dispara ninguna hasta que la fase termina.
                     TutorialTipView(anchors: resolved)
+                    if showQuickHirePicker {
+                        QuickHirePicker(anchor: resolved[.quickHire]) {
+                            withAnimation(.easeOut(duration: 0.2)) { showQuickHirePicker = false }
+                        }
+                    }
                 }
             }
             .ignoresSafeArea()
@@ -526,12 +533,11 @@ struct GameBoardView: View {
     /// contracara está anotada en los dos toasts: **el tope de esta pila cambió
     /// de altura** y sus paddings se re-derivaron para el caso más alto.
     ///
-    /// La aparición/desaparición del atajo (`quickHireOffer` es `nil` sólo cuando no
-    /// hay ni un candidato; con el piso lleno sigue ahí con su motivo) va **sin animación**, igual que la del botón de
-    /// prestigio que tiene arriba: son los dos hijos opcionales de la misma
-    /// pila, y animar uno solo dejaría la franja moviéndose de dos maneras
-    /// distintas. Si algún día se anima, se animan los dos juntos y con
-    /// `accessibilityReduceMotion` apagándolo.
+    /// El atajo no desaparece nunca (PLAN-v2 E3): el único que se dibuja o se va
+    /// es el prestigio, y va arriba para no moverle el piso al atajo. Esa
+    /// aparición va **sin animación**: animarla dejaría la franja moviéndose de
+    /// dos maneras; si algún día se anima, con `accessibilityReduceMotion`
+    /// apagándolo.
     private var bottomBar: some View {
         VStack(spacing: Tokens.s8) {
             // Contratar a la izquierda y reencarnar a la derecha, en la MISMA
@@ -544,8 +550,10 @@ struct GameBoardView: View {
             // crece más que la otra, se alinean por arriba en vez de descolgarse
             // media altura cada una.
             HStack(alignment: .top, spacing: Tokens.s8) {
-                QuickHireButton()
-                    .tutorialAnchor(.quickHire)
+                QuickHireButton(onChoose: {
+                    withAnimation(.spring(duration: 0.3)) { showQuickHirePicker = true }
+                })
+                .tutorialAnchor(.quickHire)
                 Spacer(minLength: Tokens.s8)
                 PrestigeButton {
                     gameState.tutorialTipCompleted(.prestige)
@@ -814,12 +822,6 @@ private struct TowerNoticeView: View {
                 // que quedar pegado a la franja, no flotando— pero es finito: el
                 // que le agregue un pixel a cualquiera de los tres pisos tiene
                 // que volver a medir.
-                //
-                // ⚠️ Cuando `quickHireOffer` es `nil` (sin ningún candidato) el atajo no se dibuja y la pila
-                // baja 64 pt (la cápsula + su spacing), pero el aviso NO baja: se
-                // queda donde está y flota esos 64 pt más arriba de lo que
-                // necesita. Es cosmético y es la elección correcta: el número es
-                // una constante y el caso que no se puede pisar es el ALTO.
                 .padding(.bottom, GameTabBar.barHeight + 8 + QuickHireButton.capsuleHeight
                     + 8 + 45 + GameTabBar.bottomFloor)
         }

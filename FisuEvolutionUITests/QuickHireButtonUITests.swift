@@ -32,6 +32,7 @@ final class QuickHireButtonUITests: XCTestCase {
         quickHire.press(forDuration: 0.9)
         Thread.sleep(forTimeInterval: 0.5)
         XCTAssertEqual(units.value as? String, before, "el toque de soltar después de mantener no compra")
+        closePicker(in: app)
 
         quickHire.tap()
         let bought = NSPredicate(format: "value != %@", before ?? "")
@@ -50,11 +51,22 @@ final class QuickHireButtonUITests: XCTestCase {
         quickHire.press(forDuration: 1.0)
         Thread.sleep(forTimeInterval: 1.0)
         XCTAssertEqual(units.value as? String, before, "mantener no compra")
+        closePicker(in: app)
 
         quickHire.tap()
         let bought = NSPredicate(format: "value != %@", before ?? "")
         XCTAssertEqual(XCTWaiter().wait(for: [expectation(for: bought, evaluatedWith: units)], timeout: 5),
                        .completed, "el toque que sigue a un mantener compra")
+    }
+
+    /// Mantener abre el selector, que tapa el atajo: se lo cierra con "Mejor
+    /// disponible" (no cambia nada) antes del toque que sí tiene que comprar.
+    @MainActor
+    private func closePicker(in app: XCUIApplication) {
+        let best = app.buttons["quickhire.picker.best"]
+        XCTAssertTrue(best.waitForExistence(timeout: 3), "mantener presionado abre el selector")
+        best.tap()
+        XCTAssertTrue(best.waitForNonExistence(timeout: 3))
     }
 
     @MainActor

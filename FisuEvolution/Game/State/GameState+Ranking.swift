@@ -17,12 +17,18 @@ extension GameState: RankingStateHost {
     }
 
     /// Un arranque en frío también es volver a `.active` (`onChange(of: scenePhase)` no dispara para el
-    /// estado inicial). Con el tutorial en curso la partida todavía no empezó: la abre su núcleo.
+    /// estado inicial).
     func attachRanking(_ store: RankingStore) {
         ranking = store
         store.host = self
         rankingReconcile()
-        if isSceneActive, !tutorialPhaseActive { store.becameActive() }
+        if isSceneActive { rankingBecameActive() }
+    }
+
+    /// Con el tutorial en curso la partida todavía no empezó: ni se registra ni se cuenta el tiempo.
+    func rankingBecameActive() {
+        guard !tutorialPhaseActive else { return }
+        ranking?.becameActive()
     }
 
     /// El núcleo del tutorial es el inicio de la partida rankeada.
@@ -32,7 +38,7 @@ extension GameState: RankingStateHost {
         if isSceneActive { ranking.becameActive() }
     }
 
-    /// Al arrancar: una sesión huérfana (cierre a la fuerza) no se cuenta, y una llegada a Dios que
+    /// Al adjuntar el store: una sesión huérfana (cierre a la fuerza) no se cuenta, y una llegada a Dios que
     /// quedó sin registrar se registra.
     func rankingReconcile() {
         guard let godTier, let state = rankingState else { return }

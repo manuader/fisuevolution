@@ -285,7 +285,6 @@ extension GameState {
         // Corre con `phase == .loading`, así que acredita sin toastear.
         evaluateAchievements()
         refreshProjections()
-        rankingReconcile()
         phase = .ready
     }
 }

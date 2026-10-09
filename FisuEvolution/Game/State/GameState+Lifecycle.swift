@@ -18,7 +18,7 @@ extension GameState {
             if new == .background { scheduleNotificationsForAbsence(now: now) }
         case (_, .active):
             isSceneActive = true
-            ranking?.becameActive()
+            rankingBecameActive()
             clearNotificationsOnReturn()
             guard phase == .ready else { return }
             // El tiempo en background NO es tiempo de juego: reiniciar la gracia

@@ -25,10 +25,11 @@ struct RankingWiringTests {
         schemaVersion: RankingConfig.supportedSchemaVersion, enabled: true,
         baseURL: URL(string: "https://example.test"), anonKey: "k")
 
-    private func makeRig(_ state: RankingState = .newGame) async throws -> Rig {
+    private func makeRig(_ state: RankingState = .newGame, atGodFrontier: Bool = false) async throws -> Rig {
         let gameState = await makeGameState()
         let godTier = try #require(gameState.godTier)
         gameState.player?.meta.ranking = state
+        if atGodFrontier { gameState.player?.run.raiseFrontier(to: godTier) }
         let clock = Clock()
         let simulated = SimulatedRankingClient(now: { clock.value })
         let store = RankingStore(
@@ -109,9 +110,30 @@ struct RankingWiringTests {
         #expect(rig.store.entryPrompt != nil)
 
         rig.gameState.markRevealed(tier: rig.godTier)
+        rig.store.reachedGod()
         await rig.store.settled()
 
         #expect(await sealCount(rig) == 1)
+    }
+
+    @Test("con el tutorial abierto la partida no corre; el núcleo la arranca sin el tramo del tutorial")
+    func tutorialDoesNotRunTheClock() async throws {
+        let rig = try await makeRig()
+        rig.clock.value += 100
+        rig.gameState.handleScenePhase(from: .active, to: .inactive, now: rig.clock.value)
+        rig.clock.value += 100
+        rig.gameState.handleScenePhase(from: .inactive, to: .active, now: rig.clock.value)
+        await rig.store.settled()
+        #expect(await startRunCount(rig) == 0)
+
+        rig.clock.value += 100
+        rig.gameState.tutorialPhaseFinished()
+        await rig.store.settled()
+        #expect(await startRunCount(rig) == 1)
+
+        rig.clock.value += 7
+        rig.gameState.handleScenePhase(from: .active, to: .inactive, now: rig.clock.value)
+        #expect(rig.gameState.player?.meta.ranking.playedSeconds == 7)
     }
 
     @Test("revelar un tier que no es Dios no toca el ranking")
@@ -128,11 +150,8 @@ struct RankingWiringTests {
 
     @Test("arrancar con la frontera en Dios y la partida corriendo la deja en reachedGod")
     func bootReconcilesArrival() async throws {
-        let rig = try await makeRig(RankingState(phase: .running(runId: "run-1", serverStartedAt: 1_000)))
-        rig.gameState.player?.run.raiseFrontier(to: rig.godTier)
-
-        rig.gameState.rankingReconcile()
-        await rig.store.settled()
+        let rig = try await makeRig(
+            RankingState(phase: .running(runId: "run-1", serverStartedAt: 1_000)), atGodFrontier: true)
 
         guard case .reachedGod = rig.gameState.player?.meta.ranking.phase else {
             Issue.record("la partida debía quedar en reachedGod")
@@ -142,10 +161,9 @@ struct RankingWiringTests {
 
     @Test("el arranque descarta la sesión huérfana de un cierre a la fuerza")
     func bootDropsOrphanSession() async throws {
-        let rig = try await makeRig(RankingState(phase: .running(runId: "run-1", serverStartedAt: 1_000)))
-        rig.gameState.player?.meta.ranking.activeSince = 5
-
-        rig.gameState.rankingReconcile()
+        var orphan = RankingState(phase: .running(runId: "run-1", serverStartedAt: 1_000))
+        orphan.activeSince = 5
+        let rig = try await makeRig(orphan)
 
         #expect(rig.gameState.player?.meta.ranking.activeSince == nil)
         #expect(rig.gameState.player?.meta.ranking.playedSeconds == 0)

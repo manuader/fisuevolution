@@ -61,7 +61,7 @@ extension GameState {
     func playBoardMergeFeedback(chainIndex: Int?, evolved: Bool) {
         let rate = chainIndex.map { MergeAllTempo(reduceMotion: false).pitch(index: $0) } ?? 1
         audio?.play(evolved ? .evolution : .merge, rate: evolved ? 1 : rate)
-        haptics?.play(.merge)
+        if !evolved { haptics?.play(.merge) }
     }
 
     func playMergeAllFinale() {

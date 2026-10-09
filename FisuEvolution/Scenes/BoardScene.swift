@@ -52,6 +52,7 @@ final class BoardScene: SKScene {
     private var isDetached = false
     private var scrollSuspension: VideoPlayerPool.Suspension?
     private var prefetchedPackTag: String?
+    private var prefetchedCharacterTag: String?
 
     // Geometría del campo, cacheada por layoutBoard.
     private var boardColumns = 0
@@ -88,6 +89,8 @@ final class BoardScene: SKScene {
     /// del tier nuevo, que es cuando `playingBoardChange` ya está en `nil`.
     private var playingChain: BoardChange.Chain?
     private var combo: MergeAllComboNode?
+    /// El video de cuerpo entero del reveal en curso: su lease vive lo que vive el reveal.
+    private var revealVideo: LoopingVideoNode?
     #if DEBUG
     private var debugNextStep: (() -> Void)?
     #endif
@@ -321,18 +324,21 @@ final class BoardScene: SKScene {
     override func didMove(to view: SKView) {
         isDetached = false
         updateScrollState()
+        revealVideo?.setVisible(true)
         layoutBoard()
         particles.preheat()
     }
 
     override func willMove(from view: SKView) {
         isDetached = true
+        revealVideo?.setVisible(false)
         updateScrollState()
     }
 
     deinit {
         if let scrollSuspension { Task { @MainActor [videoPool] in videoPool.resume(scrollSuspension) } }
         if let prefetchedPackTag { Task { @MainActor [packs] in packs.release(prefetchedPackTag) } }
+        if let prefetchedCharacterTag { Task { @MainActor [packs] in packs.release(prefetchedCharacterTag) } }
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -498,6 +504,7 @@ final class BoardScene: SKScene {
         #endif
         clearMergeCandidates()
         for node in characterNodes.values { node.removeAction(forKey: "assistedMerge") }
+        releaseRevealVideo()
         for layer in [cameraOverlay, backgroundLayer] {
             for node in layer.children where node.name?.hasPrefix(Self.celebrationNodePrefix) == true {
                 node.removeAllActions()
@@ -1336,6 +1343,7 @@ final class BoardScene: SKScene {
     /// Lo que el test de los cambios del tablero necesita ver de la escena.
     var debugIsPlayingBoardChange: Bool { playingBoardChange != nil }
     var debugPlayingChain: BoardChange.Chain? { playingChain }
+    var debugRevealVideo: LoopingVideoNode? { revealVideo }
 
     /// Corre lo que dispararía la acción en curso (entrada, destaque,
     /// deslizamiento o final del reveal) y deja armado el paso que sigue.
@@ -1440,6 +1448,10 @@ final class BoardScene: SKScene {
 
         // Scrim para enfocar la atención en el personaje recién desbloqueado.
         let layout = Self.revealLayout(size: size)
+        let closeReveal: () -> Void = { [weak self] in
+            self?.releaseRevealVideo()
+            completion()
+        }
         let scrim = SKSpriteNode(color: SKColor.black.withAlphaComponent(0.72), size: size)
         scrim.anchorPoint = .zero
         scrim.position = .zero
@@ -1452,10 +1464,12 @@ final class BoardScene: SKScene {
             .wait(forDuration: hold),
             .fadeOut(withDuration: 0.3),
             .removeFromParent(),
-        ]), completion: completion)
+        ]), completion: closeReveal)
         #if DEBUG
-        debugNextStep = completion
+        debugNextStep = closeReveal
         #endif
+
+        mountRevealVideo(for: type, side: layout.photoSide, at: CGPoint(x: size.width / 2, y: layout.photoY), hold: hold)
 
         // Foto del personaje: el arte real (o el placeholder) en grande y centrado.
         if let content = gameState.content,
@@ -1526,6 +1540,43 @@ final class BoardScene: SKScene {
             .removeFromParent(),
         ]))
     }
+
+    /// El cuerpo entero en movimiento sobre la foto, que queda debajo como póster. Sin entrada en el
+    /// manifest no hay nada que montar y el reveal es el de siempre.
+    private func mountRevealVideo(for type: CharacterType, side: CGFloat, at position: CGPoint, hold: TimeInterval) {
+        releaseRevealVideo()
+        guard loops.entry(for: .character(type.id)) != nil else { return }
+        let video = LoopingVideoNode(
+            clip: .character(type.id), poster: Self.clearPoster, size: CGSize(width: side, height: side),
+            role: .popup, manifest: loops, pool: videoPool, packs: packs)
+        video.position = position
+        video.zPosition = 209
+        video.name = Self.celebrationNodePrefix + "video"
+        let reduceMotion = Self.prefersReducedMotion
+        video.setScale(reduceMotion ? 1.0 : 0.5)
+        if !reduceMotion {
+            video.run(.sequence([.scale(to: 1.1, duration: 0.24), .scale(to: 1.0, duration: 0.12)]))
+        }
+        let photoEntrance: TimeInterval = reduceMotion ? 0.25 : 0.36
+        video.run(.sequence([.wait(forDuration: photoEntrance + hold - 0.2), .fadeOut(withDuration: 0.3)]))
+        cameraOverlay.addChild(video)
+        revealVideo = video
+        gameState.playRevealWhoosh()
+        video.setVisible(!isDetached)
+    }
+
+    /// Todos los caminos que cierran un reveal (final, toque que apura, watchdog, cadena cortada)
+    /// pasan por acá: el decodificador nunca sobrevive al reveal.
+    private func releaseRevealVideo() {
+        revealVideo?.setVisible(false)
+        revealVideo?.removeFromParent()
+        revealVideo = nil
+    }
+
+    private static let clearPoster: SKTexture = {
+        let image = UIGraphicsImageRenderer(size: CGSize(width: 1, height: 1)).image { _ in }
+        return SKTexture(image: image)
+    }()
 
     // MARK: - Layout (campo, no grilla)
 
@@ -1704,9 +1755,26 @@ final class BoardScene: SKScene {
     }
 
     private func releasePrefetchedPack() {
-        guard let tag = prefetchedPackTag else { return }
-        prefetchedPackTag = nil
-        packs.release(tag)
+        if let tag = prefetchedPackTag {
+            prefetchedPackTag = nil
+            packs.release(tag)
+        }
+        if let tag = prefetchedCharacterTag {
+            prefetchedCharacterTag = nil
+            packs.release(tag)
+        }
+    }
+
+    /// El personaje del tier que sigue a la frontera es el próximo reveal: su pack se baja antes
+    /// de que el reveal dure sus ~2 s.
+    private func prefetchNextRevealPack() {
+        let nextTier = (gameState.player?.run.maxTierReached ?? 0) + 1
+        let tag = gameState.content?.tiers.concreteTypes.first { $0.tier == nextTier }
+            .flatMap { loops.odrTag(for: .character($0.id)) }
+        guard tag != prefetchedCharacterTag else { return }
+        if let old = prefetchedCharacterTag { packs.release(old) }
+        prefetchedCharacterTag = tag
+        if let tag { packs.prefetch(tag) }
     }
 
     /// El piso de arriba es el que viene: su pack ODR se pide en segundo plano apenas el actual se asienta.
@@ -1715,6 +1783,7 @@ final class BoardScene: SKScene {
             releasePrefetchedPack()
             return
         }
+        prefetchNextRevealPack()
         let next = gameState.visibleFloorOrdinal + 1
         let tag = table.floors.indices.contains(next)
             ? loops.odrTag(for: .floor(table.floors[next].background)) : nil

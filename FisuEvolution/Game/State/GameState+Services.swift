@@ -73,6 +73,10 @@ extension GameState {
         backgroundTasks = runner
     }
 
+    func playRevealWhoosh() {
+        audio?.play(.revealWhoosh)
+    }
+
     /// La escena pide feedback háptico sin conocer al manager.
     func playHaptic(_ pattern: HapticsManager.Pattern) {
         haptics?.play(pattern)

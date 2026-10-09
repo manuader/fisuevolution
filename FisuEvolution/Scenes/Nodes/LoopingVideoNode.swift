@@ -4,6 +4,9 @@ import SpriteKit
 /// El par de `AnimatedArtView` para la escena: el póster siempre dibujado y, encima, un
 /// `SKVideoNode` que funde al primer cuadro. El `AVQueuePlayer` nace cuando el pool lo pone vivo
 /// y la escena lo pide visible (`setVisible`); se suelta al bajarlo o si el primer cuadro no llega.
+/// La escena llama `setVisible(false)` al sacar el nodo de pantalla o al pausar; el `deinit` es sólo
+/// la red de seguridad. El póster no puede ser vacío (se dibuja blanco y tapa lo de abajo): quien
+/// lo crea pasa la textura real o una transparente.
 @MainActor
 final class LoopingVideoNode: SKNode, VideoLeaseHolder {
     private static let fadeDuration: TimeInterval = 0.15
@@ -19,6 +22,7 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
     private var looper: AVPlayerLooper?
     private var player: AVQueuePlayer?
     private var readyTask: Task<Void, Never>?
+    private var gaveUp = false
 
     private(set) var videoNode: SKVideoNode?
 
@@ -41,10 +45,14 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
         fatalError("LoopingVideoNode is never decoded")
     }
 
+    deinit {
+        if let lease { Task { @MainActor [pool] in pool.release(lease) } }
+    }
+
     /// Sólo el piso visible y asentado anima. Sin video en el manifest, no hace nada.
     func setVisible(_ visible: Bool) {
         if visible {
-            guard url != nil, lease == nil else { return }
+            guard url != nil, lease == nil, !gaveUp else { return }
             lease = pool.acquire(self, role: role)
         } else {
             stop()
@@ -52,6 +60,11 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
     }
 
     func stop() {
+        gaveUp = false
+        releaseLease()
+    }
+
+    private func releaseLease() {
         if let lease {
             self.lease = nil
             pool.release(lease)
@@ -67,11 +80,13 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
         }
     }
 
+    struct NotVisibleError: Error {}
+
     func waitUntilVisible(timeout: Duration) async throws {
         let clock = ContinuousClock()
         let deadline = clock.now + timeout
         while videoAlpha < 1 {
-            guard clock.now < deadline else { throw CancellationError() }
+            guard clock.now < deadline else { throw NotVisibleError() }
             try await Task.sleep(for: .milliseconds(50))
         }
     }
@@ -121,6 +136,7 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
             try? await Task.sleep(nanoseconds: Self.readyPollNanos)
         }
         if Task.isCancelled { return }
-        stop()
+        gaveUp = true
+        releaseLease()
     }
 }

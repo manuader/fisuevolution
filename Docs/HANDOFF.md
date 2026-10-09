@@ -22,7 +22,7 @@
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
 > 21): `version-2` = **`7604768`** (`rapido` VERDE sobre `cad2d93`: EK 636 · unit 1060 + 1 declarado · Release 0) · la rama
-> de integración `v2i/integ-r21` = **`3424ae5`** + estos docs (`rapido` final: RAPIDO_PENDIENTE). Están E0,
+> de integración `v2i/integ-r21` = **`3424ae5`** + estos docs (`rapido` final: VERDE sobre `3424ae5` (EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0,
 > E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a Q, más lo del relevo 21: **el viaje del ascensor que suspende los
 > videos** (**E8d T10**), **la pestaña del ranking en una barra de seis** (**E12 T13**) y, en `integ-r21`, **los premios por video nuevos**
 > (**E13 T2**) y **la ficha con Despedir** (**E13 T9**). **E13 T7 (el toque premiado) quedó ⛔: el pacing da rojo con la línea del plan y la

@@ -12,7 +12,7 @@ Carga de la máquina: 1,35 → 173 → 448 → 706 → 653 → 536 → 135; tope
 |---|---|
 | `version-2` | **`7604768`**: el `rapido` sobre `cad2d93` (E8d T10 + E12 T13) dio VERDE y avanzó por fast-forward |
 | `v2i/integ-r21` | **`3424ae5`** + los docs del cierre (`v2i/docs-r21`): suma E13 T2 y E13 T9 (🟢) y sus claves de i18n |
-| `rapido` | sobre `cad2d93`: VERDE (EK 636 · unit 1060 + 1 declarado · Release 0). Final sobre la punta de `integ-r21` (`3424ae5`): RAPIDO_PENDIENTE |
+| `rapido` | sobre `cad2d93`: VERDE (EK 636 · unit 1060 + 1 declarado · Release 0). Final sobre la punta de `integ-r21` (`3424ae5`): VERDE sobre `3424ae5` (EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0) |
 | Progreso | **135 de 254 en `version-2` (53,1 %)**; **137 de 254 (53,9 %)** si el `rapido` final de `integ-r21` da VERDE (`tasks.md` §2) |
 | Bloqueada | **E13 T7** (toque premiado, seis líneas): rama `v2i/e13-t7` (`5d587c6`) pusheada, **sin integrar** |
 
@@ -129,7 +129,7 @@ No es decisión de un agente: toca el contrato de pacing del dueño (E2b). Lo de
 ## Oráculo
 
 - `rapido` sobre `cad2d93` (E8d T10 + E12 T13): VERDE (EK 636 · unit 1060 + 1 declarado · Release 0) → `version-2` a `7604768`.
-- `rapido` final sobre la punta de `integ-r21` (`3424ae5`, con E13 T2 y E13 T9): RAPIDO_PENDIENTE
+- `rapido` final sobre la punta de `integ-r21` (`3424ae5`, con E13 T2 y E13 T9): VERDE sobre `3424ae5` (EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0)
 - Tareas: E8d T10 unit 47 · Receta R `ElevatorRideUITests` 3/0; E12 T13 unit 43 · `RankingTabUITests` 6/6; E13 T2 unit 102 · EK 637; E13 T9 unit 17 ·
   `CharacterSheetUITests` 3/3; E13 T7 ROJO (unit 95/4).
 - No se corrió un `completo` nuevo; el de referencia sigue siendo el `--limpio` de `c94f75f`.

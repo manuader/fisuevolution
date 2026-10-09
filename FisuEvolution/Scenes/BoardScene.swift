@@ -76,6 +76,7 @@ final class BoardScene: SKScene {
     /// El eslabón de "Fusionar todo" que la escena está jugando: sobrevive al reveal
     /// del tier nuevo, que es cuando `playingBoardChange` ya está en `nil`.
     private var playingChain: BoardChange.Chain?
+    private var combo: MergeAllComboNode?
     #if DEBUG
     private var debugNextStep: (() -> Void)?
     #endif
@@ -454,9 +455,17 @@ final class BoardScene: SKScene {
     private func abortBoardCelebration() {
         boardCelebrationRunning = false
         pendingBoardCelebration = nil
-        removeAction(forKey: Self.boardChangeActionKey)
         playingBoardChange = nil
         playingChain = nil
+        combo?.removeFromParent()
+        combo = nil
+        cutRunningCelebration()
+    }
+
+    /// Corta lo que la celebración tiene en pantalla: la entrada o el destaque,
+    /// el deslizamiento del par y los nodos del reveal.
+    private func cutRunningCelebration() {
+        removeAction(forKey: Self.boardChangeActionKey)
         #if DEBUG
         debugNextStep = nil
         #endif
@@ -468,6 +477,31 @@ final class BoardScene: SKScene {
                 node.removeFromParent()
             }
         }
+    }
+
+    /// El toque dentro de "Fusionar todo": se corta lo que esté en pantalla, el
+    /// eslabón se asienta en silencio y la cadena sigue con el próximo.
+    private func hurryChain() {
+        pendingBoardCelebration = nil
+        playingBoardChange = nil
+        cutRunningCelebration()
+        if case .merged? = gameState.hurryChainLink(), let chain = playingChain {
+            combo?.show(link: chain)
+        }
+        layoutBoard()
+        endBoardChangeTurn()
+    }
+
+    /// Un toque mientras hay una celebración del tablero. Devuelve `true` si el
+    /// toque se consume acá: dentro de una cadena apura (pasado el piso del skip)
+    /// y nunca llega a agarrar un personaje; un cambio suelto sólo se saltea.
+    private func tapDuringCelebration() -> Bool {
+        if playingChain != nil {
+            if gameState.celebrations.elapsed >= CelebrationQueue.skipFloor { hurryChain() }
+            return true
+        }
+        if gameState.skipCurrentCelebration() { abortBoardCelebration() }
+        return playingBoardChange != nil
     }
 
     /// La profundidad se recalcula con el personaje ya movido, no una sola vez
@@ -663,13 +697,10 @@ final class BoardScene: SKScene {
         // Un tap saltea la celebración en curso, pasado el piso de tiempo. NO se
         // consume: el tap es el verbo principal del juego y comérselo se
         // sentiría como un tap perdido, así que sigue de largo y también juega.
-        if gameState.skipCurrentCelebration() {
-            abortBoardCelebration()
-        }
-        // Mientras un cambio se mueve (o una cadena sigue, aun en el reveal de un
-        // eslabón) el toque sólo puede saltearlo: si no, el jugador arrastraría al
-        // par a mitad del gesto.
-        guard playingBoardChange == nil, playingChain == nil else { return }
+        // Mientras un cambio se mueve o una cadena sigue (aun en el reveal de un
+        // eslabón) el toque no juega: si no, el jugador arrastraría al par a
+        // mitad del gesto.
+        guard !tapDuringCelebration() else { return }
 
         guard let node = characterNode(at: touch.location(in: self)) else {
             let point = touch.location(in: self)
@@ -853,6 +884,7 @@ final class BoardScene: SKScene {
         }
         if withinTurn, soundsMerge {
             gameState.playBoardMergeFeedback(chainIndex: playingChain?.index, evolved: evolvedTo != nil)
+            if let chain = playingChain { combo?.show(link: chain) }
         }
         guard evolvedTo != nil || promotedType != nil else {
             if withinTurn { finishBoardChangeTurn() } else { gameState.playHaptic(.merge) }
@@ -1101,6 +1133,7 @@ final class BoardScene: SKScene {
         let travels = floor != gameState.visibleFloorOrdinal
         gameState.setVisibleFloor(floor)
         playingChain = change.chain
+        if change.chain != nil, combo == nil { mountCombo() }
         let leadIn = change.chain.map { tempo.leadIn(index: $0.index, travels: travels) }
             ?? (travels && !Self.prefersReducedMotion ? Self.flightMaxDuration + 0.1 : Self.boardChangeBeat)
         run(.sequence([
@@ -1201,9 +1234,29 @@ final class BoardScene: SKScene {
             playBoardChange(next)
             return
         }
+        if let chain = playingChain { finishChain(chain) }
         playingChain = nil
         boardCelebrationRunning = false
         gameState.celebrationFinished(.boardCelebration)
+    }
+
+    private func mountCombo() {
+        let node = MergeAllComboNode(reduceMotion: Self.prefersReducedMotion)
+        node.position = CGPoint(x: size.width / 2, y: size.height * 0.8)
+        cameraOverlay.addChild(node)
+        combo = node
+    }
+
+    /// El remate de "Fusionar todo": el sonido, el último pulso del contador y
+    /// el total para VoiceOver. Una cadena de un solo par no se celebra.
+    private func finishChain(_ chain: BoardChange.Chain) {
+        combo?.finish {}
+        combo = nil
+        guard chain.count >= 2 else { return }
+        gameState.playMergeAllFinale()
+        UIAccessibility.post(
+            notification: .announcement, argument: MergeAllComboNode.announcement(merges: chain.count)
+        )
     }
 
     /// Una `SKAction.run` que en DEBUG también queda a mano del test: sin
@@ -1253,6 +1306,9 @@ final class BoardScene: SKScene {
         debugNextStep = nil
         step()
     }
+    var debugComboText: String? { combo?.text }
+    @discardableResult
+    func debugTapDuringCelebration() -> Bool { tapDuringCelebration() }
     func debugHoldInHand(slot: Int) { dragNode = characterNodes[slot] }
     #endif
 

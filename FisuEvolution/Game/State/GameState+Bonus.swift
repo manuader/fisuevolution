@@ -56,15 +56,10 @@ extension GameState {
             ))
             self.player = player
             refreshProjections()
-        case .instantMerge:
-            if let tower {
-                BoardChangePlanner.planAutoMerge(
-                    state: player, tower: tower, tiers: content.tiers,
-                    floorTable: content.floorTable, origin: .rewardedInstantMerge
-                ).map(enqueueBoardChange)
-            }
+        case .mergeAll:
+            enqueueMergeAll(onFloor: visibleFloorOrdinal, origin: .rewardedMergeAll)
         case .rareUnit:
-            rareUnitChange().map(enqueueBoardChange)
+            rareUnitChange(tiersBelowFrontier: reward.tiersBelowFrontier ?? 0).map(enqueueBoardChange)
         case .skinChest:
             awardChest(minRarity: nil)
         }
@@ -75,14 +70,14 @@ extension GameState {
         Log.economy.info("rewarded effect applied: \(reward.id)")
     }
 
-    /// El "Personaje de regalo": una unidad del tier máximo (respetando la carrera)
+    /// El "Personaje de regalo": una unidad de frontera − n (respetando la carrera)
     /// que llega por el embudo. La usa también la fila del video (T14).
-    func rareUnitChange() -> BoardChange? {
-        guard let content, let player, let tower else { return nil }
-        let tier = player.run.maxTierReached
-        guard let type = content.tiers.concreteTypes.first(where: { candidate in
-            candidate.tier == tier && (player.run.chosenCareerPath.map { candidate.id.hasSuffix($0) } ?? true)
-        }) ?? content.tiers.concreteTypes.first(where: { $0.tier == tier }) else { return nil }
+    func rareUnitChange(tiersBelowFrontier: Int) -> BoardChange? {
+        guard let content, let player, let tower,
+              let type = BoardChangePlanner.giftType(
+                  tiersBelowFrontier: tiersBelowFrontier, state: player, tiers: content.tiers
+              )
+        else { return nil }
         return BoardChangePlanner.planArrival(
             typeId: type.id, state: player, tower: tower, tiers: content.tiers,
             floorTable: content.floorTable, origin: .rewardedRareUnit
@@ -97,14 +92,15 @@ extension GameState {
         switch reward.effectType {
         case .incomeMultiplier, .skinChest:
             return nil
-        case .instantMerge:
-            let plan = BoardChangePlanner.planAutoMerge(
-                state: player, tower: tower, tiers: content.tiers,
-                floorTable: content.floorTable, origin: .rewardedInstantMerge
+        case .mergeAll:
+            let plan = BoardChangePlanner.planMergeAll(
+                floorOrdinal: visibleFloorOrdinal, state: player, tower: tower, tiers: content.tiers,
+                floorTable: content.floorTable, config: content.economy, origin: .rewardedMergeAll
             )
-            return plan == nil ? String(localized: "ads.unavailable.merge") : nil
+            return plan.isEmpty ? String(localized: "ads.unavailable.merge") : nil
         case .rareUnit:
-            return rareUnitChange() == nil ? String(localized: "ads.unavailable.floor_full") : nil
+            let change = rareUnitChange(tiersBelowFrontier: reward.tiersBelowFrontier ?? 0)
+            return change == nil ? String(localized: "ads.unavailable.floor_full") : nil
         }
     }
 
@@ -495,7 +491,7 @@ extension GameState {
             return RewardRow(
                 id: reward.id,
                 titleKey: reward.titleKey,
-                rewardText: Self.rewardText(for: reward),
+                rewardText: rewardText(for: reward),
                 cooldownRemaining: cooldown,
                 cooldownTotal: reward.cooldownSeconds,
                 unavailableReason: cooldown > 0 ? nil : rewardUnavailableReason(reward.id)
@@ -516,7 +512,7 @@ extension GameState {
     /// enums distintos con el mismo caso— porque el descriptor traduce EFECTOS,
     /// no orígenes: un ×2 a los ingresos se lee igual venga de un mate o de un
     /// video.
-    private static func rewardText(for reward: RewardedAdsConfig.Reward) -> String {
+    private func rewardText(for reward: RewardedAdsConfig.Reward) -> String {
         switch reward.effectType {
         case .incomeMultiplier:
             // Sin magnitud o sin duración no hay frase que armar: la fila se queda
@@ -525,11 +521,16 @@ extension GameState {
             let value = EffectFormatter.text(
                 EffectDescriptor.amount(forBoost: .incomeMultiplier, magnitude: magnitude)
             )
-            return String(localized: "ads.reward.text.income \(value) \(durationText(duration))")
-        case .instantMerge:
-            return String(localized: "ads.reward.text.merge")
+            return String(localized: "ads.reward.text.income \(value) \(Self.durationText(duration))")
+        case .mergeAll:
+            return String(localized: "ads.reward.text.merge_all")
         case .rareUnit:
-            return String(localized: "ads.reward.text.rare")
+            guard let content, let player,
+                  let type = BoardChangePlanner.giftType(
+                      tiersBelowFrontier: reward.tiersBelowFrontier ?? 0, state: player, tiers: content.tiers
+                  )
+            else { return "" }
+            return String(localized: "ads.reward.text.gift \(type.localizedName)")
         case .skinChest:
             return String(localized: "ads.reward.text.chest")
         }

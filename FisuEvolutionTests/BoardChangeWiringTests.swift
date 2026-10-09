@@ -145,26 +145,30 @@ struct BoardChangeWiringTests {
     func inactiveSettlesOnlyWhatWasPaidFor() async throws {
         let gameState = try await gameWithPlannedMerge()
         gameState.debugGrantPair()
-        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
-        #expect(gameState.pendingBoardChanges.map(\.origin) == [.debug, .rewardedInstantMerge])
+        gameState.applyRewardedReward(rewardId: "merge_all")
+        let origins = gameState.pendingBoardChanges.map(\.origin)
+        let links = origins.count - 1
+        #expect(links >= 1)
+        #expect(origins == [.debug] + Array(repeating: .rewardedMergeAll, count: links))
         let units = try #require(gameState.player?.run.totalUnits)
         gameState.handleScenePhase(from: .active, to: .inactive)
         await gameState.sealTask?.value
         #expect(gameState.pendingBoardChanges.map(\.origin) == [.debug])
-        #expect(gameState.player?.run.totalUnits == units - 1)
+        #expect(gameState.player?.run.totalUnits == units - links)
         gameState.handleScenePhase(from: .inactive, to: .background)
         await gameState.sealTask?.value
         #expect(gameState.pendingBoardChanges.isEmpty)
-        #expect(gameState.player?.run.totalUnits == units - 2)
+        let settled = try #require(gameState.player?.run.totalUnits)
+        #expect(settled <= units - links, "lo que esperaba se asienta o se descarta, nunca queda pendiente")
     }
 
     @Test("en vuelo: un video pagado se asienta al pasar a inactivo, un evento sigue en vuelo")
     func inactiveSettlesAPaidInFlightChange() async throws {
         let gameState = await makeGameState()
         gameState.debugGrantPair()
-        gameState.applyRewardedReward(rewardId: "accelerate_evolution")
+        gameState.applyRewardedReward(rewardId: "merge_all")
         _ = try #require(gameState.beginNextBoardChange())
-        #expect(gameState.inFlightBoardChange?.origin == .rewardedInstantMerge)
+        #expect(gameState.inFlightBoardChange?.origin == .rewardedMergeAll)
         let units = try #require(gameState.player?.run.totalUnits)
         gameState.handleScenePhase(from: .active, to: .inactive)
         await gameState.sealTask?.value

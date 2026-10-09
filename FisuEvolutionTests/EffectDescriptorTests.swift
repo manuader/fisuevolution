@@ -40,6 +40,16 @@ import Testing
         #expect(amount.isCapped, "pasarse del tope tiene que quedar declarado o la fila miente")
     }
 
+    @Test("el toque premiado se describe como el crítico, con su mismo tope")
+    func luckyTouchIsDescribedAsCrit() {
+        let amount = EffectDescriptor.amount(for: .luckyTouch, level: 20, magnitudePerLevel: 0.0125)
+        #expect(amount.unit == .chance)
+        #expect(abs(amount.value - 0.25) < 0.0001)
+        let inflated = EffectDescriptor.amount(for: .luckyTouch, level: 1_000, magnitudePerLevel: 1)
+        #expect(inflated.value == EffectCaps.crit)
+        #expect(inflated.isCapped)
+    }
+
     @Test("el formato usa el signo y el símbolo de cada unidad")
     func formatting() {
         #expect(EffectFormatter.text(EffectAmount(unit: .percentBonus, value: 0.3, isCapped: false)) == "+30%")
@@ -55,7 +65,7 @@ import Testing
         #expect(EffectFormatter.progression(current: current, next: nil) == "+30%")
     }
 
-    @Test("los siete tipos de mejora tienen unidad, ninguno cae en un default")
+    @Test("todos los tipos de mejora tienen unidad, ninguno cae en un default")
     func everyUpgradeEffectIsCovered() {
         for type in UpgradesConfig.EffectType.allCases {
             let amount = EffectDescriptor.amount(for: type, level: 1, magnitudePerLevel: 0.1)

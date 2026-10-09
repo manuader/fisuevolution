@@ -46,25 +46,15 @@
       "currency": "oro"
     },
     {
-      "id": "crit",
-      "titleKey": "upgrade.crit.title",
-      "iconKey": "ui_up_crit",
-      "effectType": "critChance",
-      "magnitudePerLevel": 0.025,
-      "maxLevel": 10,
-      "baseCost": 1,
-      "costGrowth": 1.2,
-      "currency": "oro"
-    },
-    {
-      "id": "golden",
-      "titleKey": "upgrade.golden.title",
+      "id": "lucky",
+      "titleKey": "upgrade.lucky.title",
       "iconKey": "ui_up_golden",
-      "effectType": "goldenTouchChance",
-      "magnitudePerLevel": 0.005,
-      "maxLevel": 10,
+      "effectType": "luckyTouch",
+      "magnitudePerLevel": 0.0125,
+      "goldenPerLevel": 0.0025,
+      "maxLevel": 20,
       "baseCost": 1,
-      "costGrowth": 1.2,
+      "costGrowth": 1.09,
       "currency": "oro"
     },
     {

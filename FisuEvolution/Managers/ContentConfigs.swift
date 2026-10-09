@@ -78,7 +78,7 @@ struct UpgradesConfig: Codable, Sendable, Equatable {
         case oro
     }
     /// `CaseIterable` no es cosmético: es lo que le deja a
-    /// `EffectDescriptorTests` recorrer los siete tipos y verificar que ninguno
+    /// `EffectDescriptorTests` recorrer todos los tipos y verificar que ninguno
     /// se queda sin descripción en pantalla.
     enum EffectType: String, Codable, Sendable, CaseIterable {
         case incomeMultiplier
@@ -87,6 +87,7 @@ struct UpgradesConfig: Codable, Sendable, Equatable {
         case tapMultiplier
         case critChance
         case goldenTouchChance
+        case luckyTouch
         case prestigeBonusPerSoulPoint
     }
 
@@ -96,6 +97,8 @@ struct UpgradesConfig: Codable, Sendable, Equatable {
         let iconKey: String
         let effectType: EffectType
         let magnitudePerLevel: Double
+        /// Sólo `luckyTouch` lo usa: el dorado que da por nivel (el crítico es `magnitudePerLevel`).
+        let goldenPerLevel: Double
         let maxLevel: Int
         let baseCost: Double
         let costGrowth: Double
@@ -104,7 +107,7 @@ struct UpgradesConfig: Codable, Sendable, Equatable {
         let currency: Currency
 
         private enum CodingKeys: String, CodingKey {
-            case id, titleKey, iconKey, effectType, magnitudePerLevel, maxLevel, baseCost, costGrowth, currency
+            case id, titleKey, iconKey, effectType, magnitudePerLevel, goldenPerLevel, maxLevel, baseCost, costGrowth, currency
         }
 
         init(from decoder: Decoder) throws {
@@ -114,6 +117,7 @@ struct UpgradesConfig: Codable, Sendable, Equatable {
             iconKey = try container.decode(String.self, forKey: .iconKey)
             effectType = try container.decode(EffectType.self, forKey: .effectType)
             magnitudePerLevel = try container.decode(Double.self, forKey: .magnitudePerLevel)
+            goldenPerLevel = try container.decodeIfPresent(Double.self, forKey: .goldenPerLevel) ?? 0
             maxLevel = try container.decode(Int.self, forKey: .maxLevel)
             baseCost = try container.decode(Double.self, forKey: .baseCost)
             costGrowth = try container.decode(Double.self, forKey: .costGrowth)

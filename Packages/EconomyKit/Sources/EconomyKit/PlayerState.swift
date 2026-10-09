@@ -481,7 +481,9 @@ public struct MetaState: Codable, Sendable, Equatable {
         oro = try container.decode(Int.self, forKey: .oro)
         oroEarnedLifetime = try container.decode(Int.self, forKey: .oroEarnedLifetime)
         prestigeLevel = try container.decode(Int.self, forKey: .prestigeLevel)
-        oroUpgradeLevels = try container.decode([String: Int].self, forKey: .oroUpgradeLevels)
+        oroUpgradeLevels = PermanentUpgrades.foldingMergedLines(
+            try container.decode([String: Int].self, forKey: .oroUpgradeLevels)
+        )
         // ⚠️ `decodeIfPresent` por la misma razón que las siete claves de
         // `UpgradeState`, un nivel más arriba: son **efectos derivados**. La
         // fuente de verdad es `oroUpgradeLevels` —que se decodifica acá al

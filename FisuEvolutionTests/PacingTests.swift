@@ -143,7 +143,7 @@ struct PacingTests {
     /// hace el LLAMADOR — igual que `pacing-sim` con su `UpgradesFile`.
     ///
     /// Filtra por ORO porque es lo que el bot puede pagar: lo único que le entra
-    /// al reencarnar es ORO. Hoy las siete líneas son de ORO y lo pinea
+    /// al reencarnar es ORO. Hoy las seis líneas son de ORO y lo pinea
     /// `upgradeCatalogMatchesTunedValues`.
     ///
     /// El `Effect(rawValue:)` REVIENTA en vez de saltearse la línea: los dos
@@ -163,6 +163,7 @@ struct PacingTests {
                     id: line.id,
                     effect: effect,
                     magnitudePerLevel: line.magnitudePerLevel,
+                    goldenPerLevel: line.goldenPerLevel,
                     maxLevel: line.maxLevel,
                     baseCost: line.baseCost,
                     costGrowth: line.costGrowth
@@ -399,13 +400,13 @@ struct PacingTests {
     /// Los dos números que el dueño puso como objetivo del rebalance, y el
     /// único test del suite que **no** es una banda alrededor de lo medido:
     ///
-    /// 1. **Ganarlo al máximo —las siete líneas al tope, que es lo que
+    /// 1. **Ganarlo al máximo —las seis líneas al tope, que es lo que
     ///    desbloquea las skins doradas— cuesta 20-30 h ACTIVAS.**
     /// 2. **Se llega con 8 reencarnaciones o menos.** Medido: 8. El bot reencarna
     ///    al DUPLICAR su ORO histórico, así que las reencarnaciones para maxear
-    ///    son ≈ log₂(costo total en ORO) y log₂(193) = 7,6: el techo y el
+    ///    son ≈ log₂(costo total en ORO) y log₂(192) = 7,6: el techo y el
     ///    catálogo están atados, y por eso `upgradeCatalogMatchesTunedValues`
-    ///    pinea los 193.
+    ///    pinea los 192.
     ///
     /// Y la forma que el dueño pidió: **dios más lejos que las skins doradas**.
     ///
@@ -418,7 +419,7 @@ struct PacingTests {
     /// No se afloja, y el número tiene explicación: el bot reencarna al DUPLICAR
     /// su ORO histórico, así que las reencarnaciones para maxear son
     /// ≈ log₂(costo total en ORO). Con la desaceleración las runs rinden distinto
-    /// y la cuenta se pasa por una. Bajarlo pide tocar el catálogo de las siete
+    /// y la cuenta se pasa por una. Bajarlo pide tocar el catálogo de las seis
     /// líneas o `oro.exponent`, y las dos cosas mueven el resto del cuadro.
     ///
     /// **Lo que la desaceleración arregló, y hay que leerlo junto**: el contrato
@@ -438,7 +439,7 @@ struct PacingTests {
     func theOwnersTargetsAreMet() throws {
         let maxed = try #require(
             report.maxedUpgradesActiveSeconds,
-            "las siete líneas nunca llegaron al tope: \(report.finalPermanentUpgradeLevels)"
+            "las seis líneas nunca llegaron al tope: \(report.finalPermanentUpgradeLevels)"
         )
         #expect(maxed >= 20 * 3600 && maxed <= 30 * 3600, "maxear las siete: \(maxed / 3600) h activas")
 
@@ -501,8 +502,8 @@ struct PermanentUpgradesMirrorTests {
         let alTope = Dictionary(uniqueKeysWithValues: content.upgradesConfig.upgrades.map { ($0.id, $0.maxLevel) })
         let escenarios: [(String, [String: Int])] = [
             ("sin comprar nada", [:]),
-            ("a mitad de camino", ["income": 3, "tap": 1, "crit": 7, "spawn": 2, "offline": 5]),
-            ("las siete al tope", alTope),
+            ("a mitad de camino", ["income": 3, "tap": 1, "lucky": 7, "spawn": 2, "offline": 5]),
+            ("las seis al tope", alTope),
             // Un save anterior al rebalance: trae más niveles de los que la línea
             // admite hoy. Las dos derivaciones tienen que clampear IGUAL — que es
             // justo el borde donde una copia se separa de la otra sin ruido.

@@ -51,7 +51,7 @@ enum EffectDescriptor {
         switch effectType {
         case .incomeMultiplier, .tapMultiplier, .prestigeBonusPerSoulPoint:
             return EffectAmount(unit: .percentBonus, value: raw, isCapped: false)
-        case .critChance:
+        case .critChance, .luckyTouch:
             return EffectAmount(unit: .chance, value: min(raw, EffectCaps.crit), isCapped: raw > EffectCaps.crit)
         case .goldenTouchChance:
             return EffectAmount(unit: .chance, value: min(raw, EffectCaps.golden), isCapped: raw > EffectCaps.golden)

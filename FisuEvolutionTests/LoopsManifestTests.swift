@@ -15,6 +15,15 @@ struct LoopsManifestTests {
     ]
     static let objects: Set<String> = ["paquete_abre", "paquete_espera", "colchon_abre", "colchon_espera"]
 
+    /// Un manifest en memoria que apunta pisos a `.mov` reales del bundle.
+    static func fixture(floors: [String: String]) throws -> LoopsManifest {
+        let entries = floors.map { id, file in
+            #""\#(id)":{"file":"\#(file)","width":720,"height":1280,"fps":24,"frames":120,"alpha":false,"audio":false}"#
+        }.joined(separator: ",")
+        let json = #"{"schemaVersion":1,"floors":{\#(entries)}}"#
+        return try JSONDecoder().decode(LoopsManifest.self, from: Data(json.utf8))
+    }
+
     @Test("la primera tanda: retratos y objetos 512² con alfa, mudos y en el bundle")
     func firstBatch() throws {
         let manifest = try LoopsManifest.load(from: .main)
@@ -32,7 +41,7 @@ struct LoopsManifestTests {
         }
     }
 
-    @Test("las cinemáticas que hay: 720×1280, opacas, con sonido; la intro todavía no")
+    @Test("las cinemáticas que hay: 720×1280, opacas, con sonido, la intro incluida")
     func cinematics() throws {
         let manifest = try LoopsManifest.load(from: .main)
         for id in [CinematicID.reencarnacion, .arresto, .dios] {
@@ -41,7 +50,7 @@ struct LoopsManifestTests {
             #expect(entry.width == 720 && entry.height == 1280 && !entry.alpha && entry.audio)
             #expect(manifest.cinematicURL(for: id) != nil)
         }
-        #expect(manifest.cinematicURL(for: .intro) == nil, "la intro es de la segunda tanda (🔒)")
+        #expect(manifest.cinematicURL(for: .intro) != nil, "la intro entró con la segunda tanda")
     }
 
     @Test("la cabina está en su sección y fuera de las cinemáticas")

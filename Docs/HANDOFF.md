@@ -21,23 +21,24 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
-> 21): `version-2` = **`7604768`** (`rapido` VERDE sobre `cad2d93`: EK 636 · unit 1060 + 1 declarado · Release 0) · la rama
-> de integración `v2i/integ-r21` = **`3424ae5`** + estos docs (`rapido` final: VERDE sobre `3424ae5` (EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0,
-> E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a Q, más lo del relevo 21: **el viaje del ascensor que suspende los
-> videos** (**E8d T10**), **la pestaña del ranking en una barra de seis** (**E12 T13**) y, en `integ-r21`, **los premios por video nuevos**
-> (**E13 T2**) y **la ficha con Despedir** (**E13 T9**). **E13 T7 (el toque premiado) quedó ⛔: el pacing da rojo con la línea del plan y la
-> decide el dueño.** **Progreso: 135 de 254 tareas activas en `version-2`; 137 de 254 (53,9 %) si el `rapido` de `integ-r21` da VERDE**
-> (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16).** Detalle en
-> `Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md`.
+> 21b, la continuación del 21 en la misma sesión): `version-2` = **`9972f95`** (`rapido` VERDE sobre `3424ae5`: EK 637 · unit 1066 + 1 declarado
+> `theOwnersTargetsAreMet` · Release 0) · la rama de integración `v2i/integ-r21b` = **`34f2266`** + estos docs (`rapido` sobre `34f2266`:
+> RAPIDO_PENDIENTE). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a R (E8d T10 el viaje que suspende los
+> videos, E12 T13 la barra de seis, E13 T2 los premios por video, E13 T9 la ficha con Despedir), más lo del relevo 21b, en `integ-r21b`: **la lista
+> de palabras de E12 ACTIVA** (migración `20261009000001_blocklist.sql`; se despliega con E12 T16), **E3b T8** (el selector del atajo) y **E13 T7**
+> (el toque premiado en **seis** líneas, Dios en 31,34 h, `PacingTests` re-pineado). **Progreso: 137 de 254 tareas activas en `version-2` (53,9 %);
+> 139 de 254 (54,7 %) si el `rapido` de `integ-r21b` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16).**
+> Detalle en `Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md` (§ «Relevo 21b»).
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r21` (dos tareas y los docs del cierre; si su `rapido` dio verde, el
-> primer paso del relevo 22 es el fast-forward) y `v2i/e13-t7` (`5d587c6`, bloqueada por pacing; no se mergea sin decisión del dueño).
-> `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño; no se tocan. Hay planes por tareas para todas las épicas
-> salvo la parte de agente de E10. **Lo primero del relevo 22:** el `rapido` de `integ-r21` si no quedó hecho (lanzado con
-> `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de `tasks.md` §4.2: **E3b T8 → E7b-a T2 → E8b T9** (en serie por `RootView`),
-> **E8b T8** (`GameState`, rev. opus); los cierres del controlador (E8c T10, E3a T12, E11 T7, E2a T15) van con el `completo`. E13 T7 y E12 T12 siguen ⛔.
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r21b` (tres cambios y los docs del cierre; si su `rapido` dio verde, el
+> primer paso del relevo 22 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño; no se tocan. Hay
+> planes por tareas para todas las épicas salvo la parte de agente de E10. **Lo primero del relevo 22:** el `rapido` de `integ-r21b` si no quedó
+> hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de `tasks.md` §4.2: **E7b-a T2 → E8b T9** (en serie por `RootView`),
+> **E8b T8** (`GameState`, rev. opus), **E3b T9** (destrabada por T8 si sus otras dependencias están); los cierres del controlador (E8c T10, E3a T12,
+> E11 T7, E2a T15) van con el `completo`. E12 T12 sigue ⛔ y E12 T16 🔒 (credenciales de Supabase y `ANTHROPIC_API_KEY`).
 > Con la carga de la máquina alta, no más de dos compilando.
-> **Pendiente del dueño:** decidir E13 T7 y confirmar en el chat la lista de palabras de E12 (el clasificador de permisos la bloqueó).
+> **Pendiente del dueño:** los carries de E13 T7 (veterano de un solo lado, última run, save viejo), escuchar el cable del ascensor, el despliegue de
+> la lista de palabras (E12 T16). **Ojo:** el clasificador del modo auto no deja escribir en `DUENO.md` (§7); las aprobaciones se confirman en el chat.
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -347,6 +348,27 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-09 (relevo 21b) — El dueño aprobó: la lista de palabras, el selector del atajo y las seis líneas
+
+Continuación del relevo 21 en la misma sesión, después de que el dueño escribiera en el chat «aproba todo y continua con el desarrollo». Todo en
+`v2i/integ-r21b` (`34f2266`; `rapido`: RAPIDO_PENDIENTE). **Progreso: 137 de 254 en `version-2`; 139 de 254 (54,7 %) con las dos 🟢 de `integ-r21b`.**
+
+- **Decisiones del dueño (no se re-litigan):** E13 T7 opción (a) (Dios 31,34 h, bandas re-pineadas); barra de 6 pestañas con platos de 44 pt; E13 T2 tal
+  cual; activar la lista de palabras de E12; el cable del ascensor tal cual.
+- **Lista de palabras de E12 ACTIVA** (`a42a94b`): `propuesta.txt` con encabezado ACTIVA y migración `20261009000001_blocklist.sql` (137 términos). Se
+  despliega con E12 T16 (🔒 credenciales de Supabase y `ANTHROPIC_API_KEY`).
+- **E3b T8** (`42c61f0`): `QuickHirePicker` como overlay anclado a `resolved[.quickHire]`, junto al `TutorialOverlay`; `QuickHireButton(onChoose:)`
+  cableado (mantener 0,45 s); sección «Atajo» en el panel de debug. Receta R en 16 Pro: QuickHire 3/3, QuickHireButton 3/3, BottomMenu 4/4, Tutorial 9/9.
+- **E13 T7** (`421817b` + `592ef99`): la línea `lucky` del plan (20 / ×1,09) con `PacingTests` re-pineado a lo medido (paredes ≥ 4, reencarnaciones ≤ 9,
+  corrimiento «pared más lejana ≥ 3 sobre la primera»); `upgrades.json` sin tocar. Revisión opus con arreglos: `recomputeDerivedEffects` en el
+  bootstrap (los efectos derivados no se recalculaban al cargar) y los textos «las seis» / «≤ 9». **Carries** (también en el SESION): un
+  veterano de un solo lado pierde crítico (25 % → 12,5 % + 2,5 % dorado); la última run se traba más abajo (T17 → T12), aceptado, a E2b T14; una app
+  vieja que lea un save 2.0 ve crit/golden en 0 (verificar el versionado); el piso de tres tiers del corrimiento no tiene margen; `ui_up_crit` sin
+  uso; la fila de `lucky` no muestra el dorado → E13 T13.
+- Trampa nueva en §7: el clasificador del modo auto no deja escribir en `DUENO.md`, ni siquiera las aprobaciones del chat.
+
+Detalle en **`Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md`** (§ «Relevo 21b»).
 
 ### Sesión del 2026-10-09 (relevo 21) — La ola R: el viaje que suspende los videos, la barra de seis y los premios por video
 
@@ -2276,7 +2298,8 @@ paréntesis; el porqué completo está en la sesión de cada uno):
    `PacingTests` tiene **dos clases de assert y no hay que confundirlas**: las
    cuatro BANDAS son ±30 % de la conducta medida (se re-pinean cada vez que el
    dueño cambia el balance a propósito), y `theOwnersTargetsAreMet` es el
-   OBJETIVO —maxear las siete en 20-30 h activas con ≤8 reencarnaciones— que
+   OBJETIVO —maxear las seis en 20-30 h activas (≤ 8 reencarnaciones en el plan; la
+   banda medida de `PacingTests` quedó en ≤ 9 desde E13 T7, decisión del dueño)— que
    **no se re-pinea**: si se pone en rojo, el juego dejó de cumplir lo que se
    pidió. `pacing-sim` sigue imprimiendo los targets de DISEÑO del plan F7.1c
    para que la brecha que queda (la fase fisura) siga visible.
@@ -2287,8 +2310,8 @@ paréntesis; el porqué completo está en la sesión de cada uno):
    hay **98 assets elegidos a mano** —las 86 skins de material y 12 personajes—
    y `recut_assets.py` y el barrido del atlas los SALTEAN para no pisar la
    decisión. Cambiar uno es una corrida de `scripts/elegir_recorte.py`.
-7. **Las skins de oro no se venden.** Su única vía es maxear las siete mejoras
-   permanentes. El diamante es al revés: sólo el bundle, sin condición.
+7. **Las skins de oro no se venden.** Su única vía es maxear las seis mejoras
+   permanentes (eran siete hasta E13 T7, que fusionó las líneas de toque premiado). El diamante es al revés: sólo el bundle, sin condición.
 8. **El precio de contratar usa el MISMO factor de piso que el click**
    (`tapFloorMultiplier(for:)`), no el `incomeMultiplier` crudo — salida (a),
    elegida por el dueño el 2026-08-21 sobre otras dos corridas enteras.
@@ -2305,8 +2328,8 @@ paréntesis; el porqué completo está en la sesión de cada uno):
 9. ~~**El atajo del HUD vende el TIER BASE del piso más alto pagable**~~ —
    **REEMPLAZADA por §5.0-quinquies** (el atajo vende el MEJOR tier). Entró a la
    rama del build recién en `version-2` (2026-10-06), por decisión del dueño.
-10. **Los doce logros de ORO fijo suman 33, no 620.** Con 620 contra los 193 que
-   cuesta maxear las siete líneas, juntando logros se ganaba el juego 3,2 veces.
+10. **Los doce logros de ORO fijo suman 33, no 620.** Con 620 contra los 192 que
+   cuesta maxear las seis líneas (193 con las siete, hasta E13 T7), juntando logros se ganaba el juego 3,2 veces.
    El dueño los quiso en montos FIJOS (más legibles en la ficha que un
    porcentaje) aportando el 15-20 % del camino; la regla del re-escalado es el
    monto viejo ÷ 20 redondeado para arriba, con piso en 1. Pineado en
@@ -2370,7 +2393,7 @@ Tools/v2/oraculo.sh completo [--limpio]   # rapido + Store unit y StoreUITests (
 - El `pacing-sim` es un reporte, no un veredicto: el contrato lo juzga
   `PacingTests` en unit. Sus "13 reencarnaciones" son las de la partida hasta
   Dios con el bot de hoy (§7, plan de la 2.0), no las 9 del rojo declarado,
-  que cuenta hasta maxear las siete líneas.
+  que cuenta hasta maxear las líneas (seis desde E13 T7).
 - Rojo declarado hoy, uno solo: `unit theOwnersTargetsAreMet` (lo reemplaza
   el contrato nuevo de E2b). La línea del pipeline
   `test_ningun_asset_quedo_agujereado_por_dentro`, que pasaba desde E8, salió
@@ -2740,6 +2763,13 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### Del relevo 21b (2026-10-09)
+
+- **El clasificador del modo auto bloquea escribir en `DUENO.md`, aunque la aprobación venga del chat:** el archivo es de los que los relevos leen como
+  instrucciones, así que una escritura ahí parece una instrucción inyectada (la misma causa por la que el pedido de la lista de palabras no se pudo
+  ejecutar desde el archivo en los relevos 16 a 21). Las aprobaciones del dueño van al journal, a `tasks.md` y al `HANDOFF`; si quiere que
+  `DUENO.md` las refleje, las escribe él. Una aprobación vale cuando está **en el chat**, no en un archivo.
 
 ### De la ola R (2026-10-09, relevo 21)
 
@@ -3272,7 +3302,7 @@ El panel de debug es el ícono de herramientas del HUD.
   `R ≈ ln(ORO_dios/ORO₁)/ln(1+m)`. Con el m = 1 de hoy da 13, la medición real.
   Calibrar knobs para bajar R sin fijar la política es pelear contra la
   fórmula. El contrato nuevo fija m = 4 (×5).
-- **El ORO total al llegar a Dios es ≈ 12.380**, contra 193 de las 7 líneas.
+- **El ORO total al llegar a Dios es ≈ 12.380**, contra 192 de las 6 líneas (193 de las 7, hasta E13 T7).
   Una tienda de ORO con precios de un dígito queda regalada al final de la
   partida. La escala es 1 h de producción ≈ 90 ORO, con topes diarios en los
   consumibles de poder.
@@ -4257,19 +4287,20 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
-### Lo que queda de la 2.0 (cierre del relevo 20)
+### Lo que queda de la 2.0 (cierre del relevo 21b)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
 
-- **Del dueño:** confirmar en el chat la **lista de palabras de E12** (137 términos, ya aprobada; el clasificador bloqueó
-  activarla); decidir el **`installId` que no viaja por CloudKit** (una partida registrada en A que llega a Dios en B
+- **Del dueño:** la **lista de palabras de E12** ya está activa (relevo 21b; se despliega con E12 T16, que espera las credenciales de Supabase y
+  `ANTHROPIC_API_KEY`); los carries de E13 T7 (veterano de un solo lado, última run, save viejo, fila de `lucky` sin dorado → E13 T13); escuchar el cable del
+  ascensor contra el ding; decidir el **`installId` que no viaja por CloudKit** (una partida registrada en A que llega a Dios en B
   queda `.unregisteredGod`: sincronizar el Keychain o aceptarlo); si el botón **Entrar** de `RankingEntryCard` sigue con
   `.disabled` (rompe la convención de `ActionPill`); si molesta que la **placa de 10 pisos tape parte de Reencarnar**
   mientras está abierta; si `--uitest-ranking-*` de `RankingStore.live()` pasa a `#if DEBUG`; si la moneda de E13 T11 tapa la cara del personaje de atrás en un piso con pasivos; si se hace el back-fill de los cofres de piso de los jugadores de la v1 que ya reencarnaron (E13 T3); las imágenes repetidas y las ventanas blancas opacas del arte de E8 T7 (`ui_shop_income_x2`/`x3`, `wheel_frame`, `ui_album_card_frame`); oír los 8 `sfx_ev_*` y el whoosh del reveal (ahora suena siempre); probar en región UE con el SDK real que «Opciones de privacidad» abre el formulario (E7b-a T5). Siguen: mediación por SPM, capturas de ASC, Meta, TestFlight, oír los sonidos (G7).
 - **Sin probar en device:** el fondo animado de los pisos, **ya activo en producción** (ablande 1024² → 2048² al fundir, tirón al soltar un swipe en el SE; G1/G2/G3), y la revelación con video, que depende de ODR (53 `characters` con `odrTag`; se precarga el del próximo tier; sin test con un `ArtPackSource` falso), ODR (E8d T14 ya asignó los tags, pero en Debug los packs van embebidos; G5), el alfa del HEVC a ×5 (G3), el publisher de
   `isReadyForDisplay`.
 - **Montaje pendiente:** la tarjeta y la pestaña del ranking (T9a/T9b) esperan a E12 T13 (T11 ya está); `onChoose` del atajo
-  espera a E3b T8 (T4 ya está 🟢); el contador ×N y el remate de Fusionar todo ya están montados (E8c T7/T8) y la cadena corre en el simulador (E8c T9), pero sin captura ni grabación (E8c T10); la posición del contador es provisoria. **E12 T13 ya puede** (E3b T4 y E3a T11 hechas).
+  ya está cableado (E3b T8, 🟢 en `integ-r21b`); el contador ×N y el remate de Fusionar todo ya están montados (E8c T7/T8) y la cadena corre en el simulador (E8c T9), pero sin captura ni grabación (E8c T10); la posición del contador es provisoria. **E12 T13 ya puede** (E3b T4 y E3a T11 hechas).
 - **De E3a T11:** el `completo` de cierre de E3a debe correr `BottomMenuUITests`, `BonusHUDUITests` y `HUDRedesignUITests` en iPhone; los toasts de logros y el aviso de torre no usan `playColumn`. **De E3b T4:** sólo la página quieta queda montada (pierde su `NavigationStack` al deslizar).
 
 ### Precargar el atlas de personaje fuera del hilo principal (levantada 2026-08-27)
@@ -4611,7 +4642,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-09-v2-relevo-20-ola-q.md`**: el relevo 20 (la escalada por bandas, la cadena de Fusionar todo en el simulador,
   el fondo vivo del piso y la revelación con video, «Opciones de privacidad» y el menú deslizable; la trampa del `rapido` con la
   máquina cargada).
-- **`Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md`**: el relevo 21 (el viaje del ascensor que suspende los videos, la barra de seis pestañas,
+- **`Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md`**: los relevos 21 y 21b (la lista de palabras activa, E3b T8, E13 T7 con las decisiones del dueño y la trampa del clasificador en `DUENO.md`; el viaje del ascensor que suspende los videos, la barra de seis pestañas,
   los premios por video y la ficha con Despedir; E13 T7 bloqueada por pacing con la tabla de variantes y las opciones del dueño; las trampas
   del `pkill -f`, el `sleep` del latido, los simuladores por tiempo y el `cwd` que frena la limpieza).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).

@@ -6,10 +6,11 @@
 > `Docs/superpowers/plans/2026-10-0*-v2-*.md`, los ledgers
 > `.superpowers/sdd/<plan>/progress.md` y el journal AVO del run.
 >
-> **Foto:** 2026-10-09, cierre del relevo 21. `version-2` = `7604768` (`rapido` VERDE sobre `cad2d93`: EK 636 · unit 1060 + 1 declarado
-> `theOwnersTargetsAreMet` · Release 0; suma E8d T10 y E12 T13, que pasan a ✅, y arrastra E8d T9 y E3b T4 del relevo 20). `v2i/integ-r21` = `3424ae5` + los docs del cierre
-> (suma además E13 T2 y E13 T9, 🟢; `rapido` final: VERDE sobre `3424ae5` (EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). **E13 T7 quedó ⛔: el pacing da rojo con la línea del plan y decide el dueño.**
-> El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16). Detalle en `Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md`.
+> **Foto:** 2026-10-09, cierre del relevo 21b (la continuación del 21 en la misma sesión, tras «aproba todo y continua con el desarrollo» del dueño).
+> `version-2` = `9972f95` (`rapido` VERDE sobre `3424ae5`: EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0; suma E8d T10, E12 T13,
+> E13 T2 y E13 T9, todas ✅). `v2i/integ-r21b` = `34f2266` + los docs del cierre (suma la lista de palabras de E12, **ACTIVA**, E3b T8 y E13 T7, 🟢 las dos;
+> `rapido` sobre `34f2266`: RAPIDO_PENDIENTE). **E13 T7 (opción a): Dios en 31,34 h y `PacingTests` re-pineado, decisión del dueño.**
+> El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16). Detalle en `Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md` (§ «Relevo 21b»).
 > **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
 > Si un ledger dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
 
@@ -74,23 +75,23 @@
 | E8 | `v2/e8-pipeline` | `4ea0678` (integrada; su worktree `v2-e8-pipeline` ya no existe) |
 | E8 (arte) | `v2/e8-arte` | T1–T6 y T8 integradas; faltan T7, T9 (🔒 el dueño) y T10 |
 | E12 | — (ramas de tarea `v2i/*`) | T1–T11 y T13 integradas (T13 en el relevo 21, barra de seis pestañas); sigue T12 (⛔); el plan y la spec vienen de `v2/e12-plan` (worktree `v2-e12-plan`, **de la sesión del dueño**) |
-| E13 | — (ramas de tarea `v2i/*`) | T1, T3, T4, T5, T6, T8, T10, T11 y T12 integradas; T2 y T9 🟢 en `v2i/integ-r21`; **T7 ⛔ (pacing rojo; rama `v2i/e13-t7` = `5d587c6` sin integrar, decide el dueño)**; siguen T13 y T14 |
+| E13 | — (ramas de tarea `v2i/*`) | T1, T3, T4, T5, T6, T8, T10, T11 y T12 integradas; T2 y T9 integradas (relevo 21); **T7 🟢 en `v2i/integ-r21b` (opción a del dueño: Dios 31,34 h, bandas re-pineadas)**; siguen T13 y T14 |
 | E13b | — (ramas de tarea `v2i/*`) | T1–T5 y T9 integradas (`596cacd`); T7 y T10 en `v2i/integ-r14` (`32afc93`); siguen T6 y T8 |
-| E3b | (en `v2/e3-ux`, ya mergeada) + ramas de tarea `v2i/*` | T1–T3, T5–T7 integradas, T4 integrada (relevo 20); siguen T8 (⏳) y T9 |
+| E3b | (en `v2/e3-ux`, ya mergeada) + ramas de tarea `v2i/*` | T1–T7 integradas, T8 🟢 en `v2i/integ-r21b`; sigue T9 (se destraba con T8 ✅; E1 T16 ya está) |
 | E8b / E8c | — (ramas de tarea `v2i/*`) | E8b T1–T3, T7 integradas; T4/T5/T6/T12 reemplazadas por E8d; E8c T1–T9 integradas; sigue T10 (cierre) |
 | E8d | — (ramas de tarea `v2i/*`) | T1–T10 y T12–T14 integradas (T10 en el relevo 21); siguen T11 y T15 |
 
 ## 2. Progreso
 
-**Hoy: 137 de 254 tareas activas integradas en `version-2` (53,9 %): las dos 🟢 de `integ-r21` (E13 T2 y T9) pasaron a ✅ con el `rapido` final (VERDE sobre `3424ae5`). Antes: 135 de 254 (53,1 %); 137 de 254 (53,9 %) con las dos 🟢 de `integ-r21` (E13 T2 y E13 T9), si el `rapido` final da VERDE. `rapido` final de `integ-r21`: VERDE sobre `3424ae5` (EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0).** El relevo 21 sumó E8d T10 y E12 T13 a `version-2` (`rapido` VERDE sobre `cad2d93`: EK 636 · unit 1060 + 1 declarado `theOwnersTargetsAreMet` · Release 0). 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
-seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 8 (E8c T10, E3a T12, E11 T7 y E2a T15, cierres del controlador; E3b T8, E8b T8 y T9, E7b-a T2). E13 T7 y E12 T12 están ⛔.
+**Hoy: 137 de 254 tareas activas integradas en `version-2` (53,9 %); 139 de 254 (54,7 %) con las dos 🟢 de `integ-r21b` (E3b T8 y E13 T7), si el `rapido` sobre `34f2266` da VERDE (RAPIDO_PENDIENTE).** La lista de palabras de E12 se activó en el relevo 21b pero no es una tarea (gate de §6 cerrado). El relevo 21 sumó E8d T10, E12 T13, E13 T2 y E13 T9 a `version-2` (`rapido` VERDE sobre `3424ae5`: EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0). 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
+seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 7 (E8c T10, E3a T12, E11 T7 y E2a T15, cierres del controlador; E8b T8 y T9, E7b-a T2). E12 T12 está ⛔ y E12 T16 🔒.
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
 | E1 | 16 | 16 |  |  |  |  |  |  |
 | E11 | 7 | 6 |  |  | 1 |  |  |  |
 | E3a | 12 | 11 |  |  | 1 |  |  |  |
-| E3b | 9 | 7 |  |  | 1 | 1 |  |  |
+| E3b | 9 | 7 | 1 |  |  | 1 |  |  |
 | E2a | 15 | 14 |  |  | 1 |  |  |  |
 | E4a | 10 | 3 |  |  |  | 7 |  |  |
 | E4b | 10 |  |  |  |  | 10 |  |  |
@@ -108,9 +109,9 @@ seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 8 (E8c T10, E3
 | E8c | 10 | 9 |  |  | 1 |  |  |  |
 | E8d | 15 | 13 |  |  |  | 2 |  |  |
 | E12 | 19 | 13 |  |  |  | 5 | 1 |  |
-| E13 | 14 | 9 | 2 |  |  | 3 |  |  |
+| E13 | 14 | 11 | 1 |  |  | 2 |  |  |
 | E13b | 11 | 10 |  |  |  | 1 |  |  |
-| **Total** | **254** | **135** | **2** | | **8** | **108** | **1** | **5** |
+| **Total** | **254** | **137** | **2** | | **7** | **107** | **1** | **5** |
 
 Fuera del conteo:
 
@@ -129,9 +130,9 @@ grep -E '^\| E[0-9a-z-]+-T[0-9]+[ab]? \|[^|]*\| ⏭' tasks.md | grep -vc seguimi
 grep -E '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md | grep -vc seguimiento                   # una épica: cambiar el prefijo
 ```
 
-Progreso = integradas / (filas de tarea − salteadas). Hoy: 135 / (259 − 5); con las 🟢 (mismo grep cambiando ✅ por 🟢: 2), 137 / 254. Con el sufijo `[ab]?` el grep levanta
+Progreso = integradas / (filas de tarea − salteadas). Hoy: 137 / (259 − 5); con las 🟢 (mismo grep cambiando ✅ por 🟢: 2), 139 / 254. Con el sufijo `[ab]?` el grep levanta
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
-La tabla por épica se recalculó en el relevo 21 (con un `awk` sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
+La tabla por épica se recalculó en el relevo 21b (con un `awk` sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
 
 ## 3. Reglas de concurrencia (PLAN-v2 §0.1, operativas)
 
@@ -208,30 +209,30 @@ partirlo.
 
 | # | Qué | Nota |
 |---|---|---|
-| 1 | **`rapido` sobre `v2i/integ-r21` (`3424ae5`) con los docs del cierre**, si no quedó hecho. Resultado del relevo 21: VERDE sobre `3424ae5` (EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0) | Con VERDE: fast-forward de `version-2` (hoy `7604768`) a la punta con los docs, y push (E13 T2 y E13 T9 pasan a ✅: 137 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. Mirá `rojos-declarados.txt`: `BonusHUDUITests.testElCofreSeGanaSeVeYSeAbreDesdeRegalos` está rojo también en la base. **Lanzarlo con `bash <ruta absoluta>/Tools/v2/oraculo.sh rapido`**, con la carga baja (**con carga > 200 y dos agentes compilando excede el tope**) y esperarlo por PID (`$!`) o por la última línea del log, **no con `pgrep -f`** (se encuentra a sí mismo; ver §7 del general) |
-| 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 21 vio 1,35 → 173 → 448 → 706 → 653 → 536 → 135. Con carga > 200: **no más de 2 compilando** (el `rapido` cuenta); con carga ~100, 3. Con carga > 400 un `tarea` tarda ~11 min. `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y esperas por PID (**`timeout` no existe en esta máquina**). **El latido es un script con `sleep 30` y escritura por reloj** (un `sleep 600` se colgó 65 min con carga ~500). **Nunca `pkill -f`**: sólo `kill <PID>` propio, y los simuladores `oraculo-*` se borran por UDID propio, no «por tiempo». Un agente sin red a GitHub copia `SourcePackages` de `version-2/build/DD-oraculo.noindex`. Verificar por el título del `@Test` en `unit.log` que los tests nuevos corrieron |
-| 3 | Leer `DUENO.md` entero por pendientes nuevos (hay una sección "Del relevo 21") | **E13 T7 espera la decisión del dueño** (opciones en 4.2 #5). **La lista de palabras de E12 sigue sin activar:** el clasificador de permisos del modo auto bloqueó el pedido y los relevos 17 a 21 no lo reintentaron. Activarla **sólo si el dueño la confirma en el chat**. La mediación por SPM espera al dueño. Los worktrees `v2-e12-plan`, `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
-| 4 | Barrer los worktrees `v2i-*` que queden con `limpiar-worktrees.sh` | sólo `v2i-*`, nunca `v2-*`; todo en GitHub antes; nunca `--force`; **con el shell fuera del worktree** (si tu `cwd` está adentro, el script lo conserva); mirar el comando de cada bucle antes de cortarlo. Quedan `v2i-integ-r21` y `v2i-docs-r21` (y los de r20 si no se barrieron) |
+| 1 | **`rapido` sobre `v2i/integ-r21b` (`34f2266`) con los docs del cierre**, si no quedó hecho. Resultado del relevo 21b: RAPIDO_PENDIENTE | Con VERDE: fast-forward de `version-2` (hoy `9972f95`) a la punta con los docs, y push (E3b T8 y E13 T7 pasan a ✅: 139 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. Mirá `rojos-declarados.txt`: `BonusHUDUITests.testElCofreSeGanaSeVeYSeAbreDesdeRegalos` está rojo también en la base. **Lanzarlo con `bash <ruta absoluta>/Tools/v2/oraculo.sh rapido`**, con la carga baja (**con carga > 200 y dos agentes compilando excede el tope**) y esperarlo por PID (`$!`) o por la última línea del log, **no con `pgrep -f`** (se encuentra a sí mismo; ver §7 del general) |
+| 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 21 vio 1,35 → 173 → 448 → 706 → 653 → 536 → 135 (y 1,8 al arrancar el 21b). Con carga > 200: **no más de 2 compilando** (el `rapido` cuenta); con carga ~100, 3. Con carga > 400 un `tarea` tarda ~11 min. `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y esperas por PID (**`timeout` no existe en esta máquina**). **El latido es un script con `sleep 30` y escritura por reloj** (un `sleep 600` se colgó 65 min con carga ~500). **Nunca `pkill -f`**: sólo `kill <PID>` propio, y los simuladores `oraculo-*` se borran por UDID propio, no «por tiempo». Un agente sin red a GitHub copia `SourcePackages` de `version-2/build/DD-oraculo.noindex`. Verificar por el título del `@Test` en `unit.log` que los tests nuevos corrieron |
+| 3 | Leer `DUENO.md` entero por pendientes nuevos (hay una sección "Del relevo 21") | **El clasificador del modo auto no deja escribir en `DUENO.md`** (ni siquiera las aprobaciones del chat): las decisiones del relevo 21b (E13 T7 opción a, barra de seis con platos de 44 pt, E13 T2 tal cual, lista de palabras, cable del ascensor) están en el journal, en el SESION y acá; **no las re-preguntes**. La mediación por SPM espera al dueño. Los worktrees `v2-e12-plan`, `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
+| 4 | Barrer los worktrees `v2i-*` que queden con `limpiar-worktrees.sh` | sólo `v2i-*`, nunca `v2-*`; todo en GitHub antes; nunca `--force`; **con el shell fuera del worktree** (si tu `cwd` está adentro, el script lo conserva); mirar el comando de cada bucle antes de cortarlo. Quedan `v2i-integ-r21b` y `v2i-docs-r21b` (y los de r20/r21 si no se barrieron) |
 
 ### 4.2 La ola siguiente, por prioridad del dueño (≤ 3 compilando con carga ~100, ≤ 2 con la máquina cargada; un dueño por archivo)
 
-BASE de todas: `version-2` tras el paso 1 (o `v2i/integ-r21` si el `rapido` no se corrió). Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
-**Un solo dueño de `RootView` por ola** (E3b T8, E7b-a T2 y E8b T9 lo piden; en serie) y de `GameState` (E7b-a T2, E8b T8).
+BASE de todas: `version-2` tras el paso 1 (o `v2i/integ-r21b` si el `rapido` no se corrió). Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
+**Un solo dueño de `RootView` por ola** (E7b-a T2 y E8b T9 lo piden; en serie) y de `GameState` (E7b-a T2, E8b T8).
 
 | # | Tarea | Modelo | Dueña de / nota |
 |---|---|---|---|
-| 1 | **E3b T8** (el selector del atajo) → **E7b-a T2** (los cortes naturales) → **E8b T9** (overlay, sonido, Saltar) | sonnet | ⏳ las tres, **en serie por `RootView`** (E12 T13 ya está integrada). E3b T8 destraba a E3b T9 y a E4b T3. E7b-a T2 además `GameState`: saca `cadence:` de `configure` y el reloj `armIfDue` de la 1.x. E8b T9 importa `CinematicID`/`LoopsManifest` de E8d T1 (E8d T2 y T8 ✅) |
+| 1 | **E7b-a T2** (los cortes naturales) → **E8b T9** (overlay, sonido, Saltar) | sonnet | ⏳ las dos, **en serie por `RootView`** (E3b T8 y E12 T13 ya están integradas). E7b-a T2 además `GameState`: saca `cadence:` de `configure` y el reloj `armIfDue` de la 1.x. E8b T9 importa `CinematicID`/`LoopsManifest` de E8d T1 (E8d T2 y T8 ✅) |
 | 2 | **E8b T8** (el turno de la cinemática) → T10 | sonnet, **rev. opus** | T8 ⏳ (E8d T1 y T7 ✅): `GameState` (dos propiedades), CelebrationQueue, +Celebrations, +Bootstrap. No ∥ E7b-a T2 (`GameState`). T10 viene después, también rev. opus |
-| 3 | **E13 T7** (toque premiado, seis líneas) | — | **⛔ decisión del dueño.** La rama `v2i/e13-t7` (`5d587c6`) está pusheada y lista salvo el pacing: con `lucky` 20/×1,09 maxear pide 9 reencarnaciones (≤ 8), paredes 4 (≥ 5), corrimiento −2 (≥ 4) y Dios 31,34 h (+0,61 > 0,5). 10 variantes de costo, ninguna sirve. Opciones: (a) aceptar Dios en 31,34 h y re-pinear las bandas de `PacingTests`; (b) recalibrar con la magnitud o el reparto crítico/dorado; (c) dejarla para la búsqueda de E2b T14. Con la decisión: rev. opus, 🔥 `PlayerState`, `ContentSystems`; el reset de cuenta (E2b T5 / E9b T7) tiene que sumar `meta.floorChestsAwarded` si copia campos a mano |
+| 3 | **E3b T9** (compartir recableado, cierre de E3) | sonnet | se destraba con E3b T8 ✅ (y E1 T16, ya está): 🔥 `GameState`, +Bonus, `RootView`, catálogo; no ∥ E7b-a T2 / E8b T8 (`GameState`) ni E8b T9 (`RootView`). Su `sharedMoments` lo esperan E4a T3 y E5a T4. Revisar sus otras dependencias antes de despachar |
 | 4 | **Cierres del controlador:** E8c T10, E3a T12, E11 T7, E2a T15 | controlador | ⏳; van cuando se pueda correr el `completo` (el de E3a T12 tiene que correr `BottomMenuUITests`, `BonusHUDUITests` y `HUDRedesignUITests` en iPhone). E8d T15 sigue ⛔ (espera a T11 y E8b T8–T11) |
 | 5 | **E12 T12** | sonnet, rev. opus | sigue **⛔** (E9b T7/T8) |
-| 6 | ~~Activar la lista de palabras de E12~~ | controlador | ✅ hecho en el relevo 21b (confirmada por el dueño en el chat) |
+| 6 | **E12 T16** (despliegue del ranking y de la lista de palabras) | — | **🔒** credenciales de Supabase y `ANTHROPIC_API_KEY`; la migración `20261009000001_blocklist.sql` se despliega acá |
 | 7 | **Mediación por SPM** (Unity + Meta) | — | **pendiente del dueño** (`DUENO.md`); no se despacha |
 
 Lo que **no** se despacha todavía: E4a T3–T7 y T9 (esperan a E3b T9 y a E4a T5–T7); E6a T1–T2 y T4–T13; E5a T4–T9, E4b y E5b
-(cadena de E4a); E3b T9 (espera a T8); E8d T11 (espera a E8b T10); E8d T15 y E13 T14 (los cierres); E2b T2–T15 (cadena de la EK).
+(cadena de E4a); E8d T11 (espera a E8b T10); E8d T15 y E13 T14 (los cierres); E2b T2–T15 (cadena de la EK).
 
-Carries vigentes (detalle en `Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md`, `…relevo-20-ola-q.md` y `…relevo-19-ola-p.md`):
+Carries vigentes (detalle en `Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md` (relevos 21 y 21b), `…relevo-20-ola-q.md` y `…relevo-19-ola-p.md`):
 **De E8d T10 a T15 y al dueño:** el sonido del cable (1,2 s) se superpone con el ding en los tramos de un piso y sigue sonando si se saltea
 (escuchar en el iPhone); falta la nota de Reduce Motion en el doc. **De E12 T13 a T16 y al dueño:** la pestaña del ranking no aparece en producción
 hasta que haya servidor (`baseURL` nulo); ¿sirve el plato de 44 pt de la barra de seis? **De E13 T2:** `BoardChangeWiringTests.inactiveSettlesOnlyWhatWasPaidFor`
@@ -239,7 +240,7 @@ tiene un límite flojo (`settled <= units - links`) → fijarlo exacto; `rewardU
 podría planear pares de una cadena ya en fila y no pagar) → a E6a (por ORO) y E7b-b; «Te llega un %@, de regalo» es masculino fijo; al dueño y a
 E2b: `merge_all` de 600 s da más valor que la Evolución gratis (14400 s), y frontera − 3 cae en pisos llenos más seguido (con frontera ≤ 4, un tier 1).
 **De E13 T9 a E9b T1:** texto de `tutorial.character_sheet.hold`. **De E13 T7 a E2b T14 y al dueño:** el simulador por CLI no replica el umbral de
-`PacingTests` (9 reencarnaciones también con el catálogo viejo); la vara es el test.
+`PacingTests` (9 reencarnaciones también con el catálogo viejo); la vara es el test. Revisión opus (relevo 21b): un veterano de un solo lado pierde crítico (25 % → 12,5 % + 2,5 % dorado); la última run se traba más abajo (T17 → T12); una app vieja que lea un save 2.0 ve crit/golden en 0 (verificar el versionado); el piso de 3 tiers del corrimiento no tiene margen; `ui_up_crit` sin uso; la fila de `lucky` no muestra el dorado → E13 T13.
 **de E8d T8/T9 a T15 y al dueño:** el fondo animado de los pisos **ya está activo en producción** (10 `bgloop_*` sin `odrTag`); mirar en device
 el ablande 1024² → 2048² al fundir, el `SKVideoNode` en `SKCropNode` y el tirón al soltar un swipe en el SE (G1/G2/G3); los overlays de
 SwiftUI no suspenden el fondo; la revelación con video depende de ODR (53 `characters` con `odrTag`; se precarga el del próximo tier al
@@ -411,7 +412,7 @@ que toma · commit o rama · nota.
 | E3b-T5 | Renombre `BestHire` → `QuickHireOffer` | ✅ | ventana sin E1 en GameState y +Hiring | 🔥 GameState, RootView (comentarios); +Hiring, +TutorialTips | `61a661d` |; tocó también `GameState+Projections.swift` (2 líneas) y dos tests; `PacingSimulator.bestHire` es otra cosa y queda |
 | E3b-T6 | La oferta del atajo v2: pin, motivo, nunca `nil` | ✅ | T5; E1-T4, E1-T13 | +Hiring | `741af10`+`6255531` (integ-r14) | revisión sonnet: Approved con arreglos (la lección del atajo pide `blocker == nil`; tests de piso lleno; comentarios de RootView), hechos. **Carry a T7**: `QuickHireButton` todavía no usa `blocker` (temblor sólo con `!affordable`, label "Contratar a X", `accessibilityState` sin usar) y marca la lección al tocar aunque esté bloqueado; la oferta ya nunca es nil (el botón queda siempre) |
 | E3b-T7 | El botón del atajo nunca desaparece | ✅ | T6 | catálogo; QuickHireButton | `06990b0`+`dc08eb9` (en `v2i/integ-r15`) |; usa `blocker` (gris, "Piso lleno", temblor; la lección sólo con blocker nil); long press 0,45 s → `onChoose` (lo pasa T8 desde RootView); la bandera la baja un DragGesture 250 ms tras soltar; UI QuickHireButton 3, Tutorial 6, BottomMenu verdes |
-| E3b-T8 | El selector del atajo | 🟢 | T7, T4 | 🔥 RootView, catálogo; DebugPanelView | | **destrabada (r20):** T4 🟢; dueña de `RootView` (no ∥ E12 T13, E7b-a T2) |
+| E3b-T8 | El selector del atajo | 🟢 | T7, T4 | 🔥 RootView, catálogo; DebugPanelView | `42c61f0` (en `v2i/integ-r21b`) | `QuickHirePicker` overlay anclado a `resolved[.quickHire]` junto al `TutorialOverlay`; `QuickHireButton(onChoose:)` cableado; sección «Atajo» en el panel de debug; Receta R 16 Pro: QuickHire 3/3, QuickHireButton 3/3 (2 ajustados: el selector tapa el atajo), BottomMenu 4/4, Tutorial 9/9; sin oráculo `tarea` (sin unit nuevo); diff de `RootView` leído; +3 claves. Destraba a E3b T9 y a E4b T3 |
 | E3b-T9 | Compartir recableado (y cierre de E3) | ⛔ | T8; E1-T16 | 🔥 GameState, +Bonus, RootView, catálogo; +BoardChanges, +Debug, ContentConfigs, EngagementState | | su `sharedMoments` lo esperan E4a T3 y E5a T4 |
 
 ### E2a — Mecánicas de economía (`2026-10-07-v2-e2a-mecanicas.md`)
@@ -724,7 +725,7 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13-T4 | El punto de Regalos avisa los boosts listos | ✅ | ventana de GameState.swift | 🔥 GameState (una propiedad); +Projections, BottomMenuBar | `d121c97` (integ-r19) | no ∥ dueños de GameState (E3b T5 en la ola I); **hecha (r19):** `GameState.hasReadyBoost`; `.gifts` = cofres ∨ boost; el punto se prende desde la primera partida |
 | E13-T5 | Los precios al reencarnar, explicados | ✅ | — | catálogo (snapshot); PrestigeView | | revisión ninguna; carry de texto a E9b T1; antes de E2b T11 (PrestigeView) |
 | E13-T6 | La Startup evoluciona dos tiers abajo de la frontera o paga | ✅ | — | 🔥 +Bonus, catálogo (snapshot); events.json, ContentConfigs, BoardChange.swift, catalogo.py | `bc878cc` | revisión opus (plata); PRIMERA de E13 (camino a E2b); suma `catalogo.py quitar` (E4a T9 lo saltea); carries a E4a T4/T7/T9, E2b T10; revisión opus: Approved (tope frontera−2 sin off-by-one; pago una vez, sincrónico). Carries: E4a T4/T9 pagar el `fallback` si la evolución encolada se descarta en `revalidate`; `.evolveBestUnit` con `tiersBelowFrontier: 2` y el fallback; T7 el banner muestra la clave `.cash`; T9 muda `startupEvolution`/`payStartupFallback` a `+Events` y pasa `maxSourceTier`; `GameState+Debug` arma `EventsConfig.Event` a mano; E2b T10 mide la Startup con S(300); el test `result.tier <= 4` no pinea bien el tope (armar tablero con tier 4) |
-| E13-T7 | Toque premiado: seis líneas, los niveles se suman | 🟢 | T3, T6; E9b-T6 | 🔥 PlayerState, ContentSystems, catálogo (snapshot); upgrades.json, ContentConfigs, PermanentUpgrades, EffectDescriptor, pacing-sim, GameContentValidationTests, PacingTests | | revisión opus (save + plata); 193 → 192 ORO (348 con baseCost 2); HANDOFF §5.7 pasa a "las seis"; carry a E2b T14; **destrabada:** T3, T6 y E9b T6 ✅ · **⛔ (r21): PacingTests ROJO con lucky 20/1,09 del plan** (9 reenc. al tope ≤8, paredes 4 ≥5, corrimiento −2 ≥4; Dios 30,73 → 31,34 h, +0,61 > 0,5). Búsqueda de 10 variantes de costo (costGrowth/baseCost/maxLevel): Dios sólo cae en 31,34 / 29,4 / 28,10 h. Rama `v2i/e13-t7` (`5d587c6`) pusheada, sin integrar; espera decisión del dueño o E2b (magnitud/reparto crit-dorado o umbrales) |
+| E13-T7 | Toque premiado: seis líneas, los niveles se suman | 🟢 | T3, T6; E9b-T6 | 🔥 PlayerState, ContentSystems, catálogo (snapshot); upgrades.json, ContentConfigs, PermanentUpgrades, EffectDescriptor, pacing-sim, GameContentValidationTests, PacingTests | `421817b`+`592ef99` (en `v2i/integ-r21b`) | revisión opus (save + plata): Approved con arreglos, hechos; 193 → 192 ORO (348 con baseCost 2); HANDOFF §5.7 pasa a "las seis" (hecho en el relevo 21b). **Opción (a) del dueño:** `lucky` 20/×1,09 tal cual (Dios 30,73 → 31,34 h) y `PacingTests` re-pineado a lo medido (paredes ≥ 4, reenc. ≤ 9, corrimiento = pared más lejana ≥ 3 sobre la primera; el extremo da −2). Arreglos de la revisión: `recomputeDerivedEffects` en el bootstrap + test (lucky 11 → crit 0,1375 / dorado 0,0275), textos «las seis» / «≤ 9». Tarea VERDE (unit 103). **Carries a E2b T14 y al dueño:** un veterano de un solo lado (crit 10 / golden 0) pierde (crítico 25 % → 12,5 % + 2,5 % dorado); la última run se traba más abajo (T17 → T12), aceptado; una app vieja que lea un save 2.0 ve crit/golden en 0 (verificar el versionado); el piso de 3 tiers del corrimiento no tiene margen; `ui_up_crit` sin uso; la fila de `lucky` no muestra el dorado → **E13 T13**; el reset de cuenta (E2b T5 / E9b T7) tiene que sumar `meta.floorChestsAwarded` si copia campos a mano |
 | E13-T8 | Pisos de arriba con misterio ("Piso ???") | ✅ | — | catálogo (snapshot); FloorMapView, ElevatorPanel, TowerNaming, +Types, +Projections | `545521f` (integ-r18; catálogo +1) | ElevatorPanel es tibio de E7b-b T3; integrar en serie con T4 (+Projections) |
 | E13-T9 | Ficha y Despedir desde Personajes | ✅ | verificar CharacterSheetUITests sobre `ab7ba84` (arreglo del panel de debug) | catálogo (snapshot); UpgradesView, +Types, +Actions, CharacterSheetView | | no ∥ T13 (UpgradesView) ni T11 (+Actions); carry de texto a E9b T1; paso 0: verificar `CharacterSheetUITests` |
 | E13-T10 | FisuJobs por pisos | ✅ | T8 | FisuJobsView | `54c5648` (integ-r19) | revisión ninguna; `JobGroups` testeable; **hecha (r19):** `GameState.floorDisplayName(for:)` → "Piso ???" también en la ficha y la tienda de pintas (cierra el carry de E13 T8); cartel del LED `TowerNaming.ledText`; el orden es el de `jobRows`; sin receta R ni captura SE con tres pisos |

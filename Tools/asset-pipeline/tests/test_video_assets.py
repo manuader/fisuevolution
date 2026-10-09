@@ -30,6 +30,9 @@ from video_assets import (  # noqa: E402
     BUSTO,
     CABIN_IDS,
     CINEMATIC_IDS,
+    EVENT_IDS,
+    FLOOR_IDS,
+    ICON_IDS,
     KINDS,
     MANIFEST,
     OBJECT_IDS,
@@ -110,8 +113,8 @@ class Identificadores(unittest.TestCase):
             with self.subTest(invalido=invalido), self.assertRaises(ValueError):
                 validate_id("retrato", invalido)
 
-    def test_las_cinematicas_son_las_tres_del_plan(self):
-        self.assertEqual(CINEMATIC_IDS, ("reencarnacion", "arresto", "dios"))
+    def test_las_cinematicas_son_las_cuatro_del_plan(self):
+        self.assertEqual(CINEMATIC_IDS, ("intro", "reencarnacion", "arresto", "dios"))
         with self.assertRaises(ValueError):
             validate_id("cinematica", "boda")
 
@@ -124,14 +127,40 @@ class Identificadores(unittest.TestCase):
             with self.subTest(kind=kind), self.assertRaises(ValueError):
                 validate_id(kind, invalido)
 
+    def test_un_personaje_es_un_asset_key_sin_version(self):
+        for valido in ("god", "senior_doctor", "sp_contador_dios", "sp_influencer"):
+            validate_id("personaje", valido)
+        for invalido in ("sp_influencer_v2", "God", "senior-doctor"):
+            with self.subTest(invalido=invalido), self.assertRaises(ValueError):
+                validate_id("personaje", invalido)
+
+    def test_un_visitante_es_una_pose(self):
+        for valido in ("npc_vecina_talk", "npc_comisario_action", "sp_contador_dios_talk"):
+            validate_id("visitante", valido)
+        for invalido in ("npc_vecina", "sp_lizard_action", "sp_influencer_talk_v2"):
+            with self.subTest(invalido=invalido), self.assertRaises(ValueError):
+                validate_id("visitante", invalido)
+
+    def test_eventos_iconos_y_fondos_son_los_del_plan(self):
+        self.assertEqual(len(EVENT_IDS), 8)
+        self.assertEqual(len(ICON_IDS), 10)
+        self.assertEqual(len(FLOOR_IDS), 10)
+        for kind, invalido in (("evento", "boda"), ("icono", "ui_oro_nada"),
+                               ("fondo", "bg_alley")):
+            with self.subTest(kind=kind), self.assertRaises(ValueError):
+                validate_id(kind, invalido)
+
     def test_cada_clase_tiene_su_alfa(self):
         """Regla del dueno: el arte va sobre blanco; el verde, solo en la cabina
-        (y en la cinematica, si alguna vez trae croma)."""
+        (y en la cinematica, si alguna vez trae croma). El fondo es opaco."""
         self.assertEqual({k: s["matte"] for k, s in KINDS.items()}, {
             "retrato": "blanco", "objeto": "blanco", "cabina": "verde", "cinematica": "verde",
+            "personaje": "blanco", "visitante": "blanco", "evento": "blanco",
+            "icono": "blanco", "fondo": None,
         })
         self.assertEqual(KINDS["retrato"]["bordes"], BUSTO)
-        self.assertEqual(KINDS["objeto"]["bordes"], TODOS_LOS_BORDES)
+        for kind in ("objeto", "personaje", "visitante", "evento", "icono"):
+            self.assertEqual(KINDS[kind]["bordes"], TODOS_LOS_BORDES, kind)
         # Comparten carpeta: lo que los separa en el bundle aplanado es el prefijo.
         prefijos = [s["prefix"] for s in KINDS.values()]
         self.assertEqual(len(prefijos), len(set(prefijos)))
@@ -196,9 +225,10 @@ class ManifestVersionado(unittest.TestCase):
         # gemelo en Swift que no se entera si cambia solo de este lado.
         self.assertEqual(self.manifest["schemaVersion"], 1)
         self.assertEqual(self.manifest["schemaVersion"], video_assets.SCHEMA_VERSION)
-        self.assertEqual(
-            set(self.manifest), {"schemaVersion", "portraits", "objects", "cabin", "cinematics"}
-        )
+        self.assertEqual(set(self.manifest), {
+            "schemaVersion", "portraits", "objects", "cabin", "cinematics",
+            "characters", "visitors", "events", "icons", "floors",
+        })
 
     def test_cada_entrada_apunta_a_su_pieza_con_su_tamano(self):
         campos = {
@@ -216,15 +246,24 @@ class ManifestVersionado(unittest.TestCase):
                     self.assertIn(entry["matte"], (spec["matte"], None))
                     self.assertEqual(entry["keyColor"] is not None, entry["matte"] == "verde")
                     if kind != "cinematica":
-                        self.assertTrue(entry["alpha"], f"un {kind} va siempre con alfa")
+                        self.assertEqual(entry["matte"], spec["matte"])
                         self.assertFalse(entry["audio"], f"un {kind} es mudo")
 
     def test_las_piezas_del_plan_estan_todas(self):
         for kind, ids in (("objeto", OBJECT_IDS), ("cabina", CABIN_IDS),
-                          ("cinematica", CINEMATIC_IDS)):
+                          ("cinematica", CINEMATIC_IDS), ("evento", EVENT_IDS),
+                          ("icono", ICON_IDS), ("fondo", FLOOR_IDS)):
             with self.subTest(kind=kind):
                 self.assertEqual(set(self.manifest[KINDS[kind]["section"]]), set(ids))
         self.assertEqual(len(self.manifest["portraits"]), 18)
+        self.assertEqual(len(self.manifest["characters"]), 53)
+        self.assertEqual(len(self.manifest["visitors"]), 26)
+        # Cada visitante de la 2.0 tiene su _talk, y los npc ademas su _action.
+        for retrato in self.manifest["portraits"]:
+            with self.subTest(retrato=retrato):
+                self.assertIn(f"{retrato}_talk", self.manifest["visitors"])
+                if retrato.startswith("npc_"):
+                    self.assertIn(f"{retrato}_action", self.manifest["visitors"])
 
     def test_las_cinematicas_son_opacas_y_suenan(self):
         for piece_id, entry in self.manifest["cinematics"].items():
@@ -378,6 +417,27 @@ class DePuntaAPunta(unittest.TestCase):
         self.assertLessEqual(hueco[:3].max(), 8, f"hueco {hueco}")
         if alfa_decodificable():
             self.assertEqual((esquina[3], hueco[3]), (255, 0))
+
+    def test_un_icono_sale_a_256_recortado(self):
+        master = self.master(480, 480, fondo="0xFFFFFF", caja="0x101010", t="6")
+        entry = video_assets.process("icono", "ui_oro_autotap", master)
+
+        mov = self.resources / "Loops" / "icon_ui_oro_autotap.mov"
+        self.assertEqual((entry["width"], entry["height"], entry["matte"]), (256, 256, "blanco"))
+        self.assert_recortado(self.cuadro(mov))
+
+    def test_un_fondo_de_piso_sale_opaco_mudo_y_cuadrado(self):
+        master = self.master(720, 720, fondo=self.AMARILLO)
+        entry = video_assets.process("fondo", "alley", master)
+
+        mov = self.resources / "Backgrounds" / "Loops" / "bgloop_alley.mov"
+        self.assertEqual((entry["file"], entry["width"], entry["height"]),
+                         (mov.name, 1024, 1024))
+        self.assertEqual((entry["alpha"], entry["matte"], entry["audio"]), (False, None, False))
+        frame = self.cuadro(mov)
+        self.assertEqual(frame[..., 3].min(), 255)
+        manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
+        self.assertEqual(manifest["floors"], {"alley": entry})
 
     def test_solo_la_cinematica_puede_ir_sin_alfa(self):
         for kind, piece_id in (("retrato", "npc_prueba"), ("objeto", "colchon_abre"),

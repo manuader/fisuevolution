@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Los masters de Higgsfield -> los loops y las cinematicas del juego.
 
-PLAN-v2 E8, "Pipeline de video". Cuatro clases de pieza:
+PLAN-v2 E8, "Pipeline de video". Estas clases de pieza:
 
 - **Retratos**: los 18 loops de visitante (Kling, cuadro inicial = final = la
   canonica). HEVC con alfa, 512x512, sin sonido, en `Resources/Loops/`.
@@ -9,11 +9,21 @@ PLAN-v2 E8, "Pipeline de video". Cuatro clases de pieza:
   loop. Como los retratos, 512x512 con alfa, en `Resources/Loops/`.
 - **Cabina**: las puertas del ascensor que cierran y abren. 720x1280 en
   `Resources/Cinematics/`, opaca salvo el hueco y las ventanas.
-- **Cinematicas**: reencarnacion, arresto y Dios (Seedance). 720x1280, en
-  `Resources/Cinematics/`, con la pista de sonido del master si la trae.
+- **Cinematicas**: intro, reencarnacion, arresto y Dios (Seedance). 720x1280,
+  en `Resources/Cinematics/`, con la pista de sonido del master si la trae.
+- **Personajes**: los cuerpos enteros de los puestos y los especiales, en loop.
+  512x512 con alfa, `char_<id>` en `Resources/Loops/`.
+- **Visitantes**: las poses de los visitantes (`_talk`, `_action`) en loop.
+  512x512 con alfa, `vis_<id>` en `Resources/Loops/`.
+- **Eventos**: las ilustraciones de los eventos, en loop. 512x512 con alfa,
+  `ev_<id>` en `Resources/Loops/`.
+- **Iconos**: las mejoras de la tienda de ORO, en loop. 256x256 con alfa,
+  `icon_<id>` en `Resources/Loops/`.
+- **Fondos**: el fondo de cada piso, en loop. 1024x1024 opaco, `bgloop_<piso>`
+  en `Resources/Backgrounds/Loops/` (el master es `video/fondos/bg_<piso>.mp4`).
 
-**Regla del dueno (2026-10-08): el arte va sobre fondo blanco.** Retratos y
-objetos se recortan cuadro por cuadro con el criterio topologico de
+**Regla del dueno (2026-10-08): el arte va sobre fondo blanco.** Todo lo que
+lleva alfa salvo la cabina se recorta cuadro por cuadro con el criterio topologico de
 `whitebg_cutout.py` (fondo = lo blanco conectado al borde), que no se come lo
 blanco de adentro del dibujo. El verde croma, con el keying del cofre
 (`chest_video_frames.py`), queda solo para la mascara de la cabina: el hueco y
@@ -37,10 +47,15 @@ en vez de adivinar.
     .venv/bin/python scripts/video_assets.py objeto paquete_espera
     .venv/bin/python scripts/video_assets.py cabina puertas_abren
     .venv/bin/python scripts/video_assets.py cinematica arresto [--sin-key]
+    .venv/bin/python scripts/video_assets.py personaje god
+    .venv/bin/python scripts/video_assets.py personaje sp_influencer \
+        --video video/personajes/sp_influencer_v2.mp4
+    .venv/bin/python scripts/video_assets.py fondo alley
 
-Los masters van en `video/loops/`, `video/objetos/`, `video/ascensor/` y
-`video/cinematicas/`, como `<id>.mp4` (`--video` para otro). Necesita `ffmpeg`
-con `hevc_videotoolbox` en el PATH.
+Los masters van en `video/<carpeta de la clase>/<id>.mp4` (`--video` para otro:
+una version corregida, `_v2`, entra con el id del juego, sin el sufijo). No se
+versionan: la fuente es `automatic-image-generation`, y su `revision.json` dice
+cuales van. Necesita `ffmpeg` con `hevc_videotoolbox` en el PATH.
 """
 
 from __future__ import annotations
@@ -99,7 +114,17 @@ BUSTO = ("arriba", "izquierda", "derecha")
 # solo la isla de mas del 0.4% del cuadro. En el Contador, los dos lados del
 # aire de la aureola miden ~0.7% en los 121 cuadros; el blanco de un ojo abierto
 # del todo, 0.17% como mucho.
-PAPEL_MEDIDO_VIDEO = frozenset({"sp_contador_dios"})
+#
+# Los cuerpos enteros traen el mismo caso que los PNG de `PAPEL_MEDIDO`: el aire
+# entre las piernas que cierra la sombra del piso (cartonero, estanciero, rey de
+# los asteroides), el de adentro del llavero (pyme) y el que encierran las
+# orbitas (magnate solar). Medido en los 53: son los unicos con una isla de
+# papel de mas del 0.4%; la bandera blanca del dueno de la Luna tambien mide
+# como papel, pero es dibujo, y por eso no esta.
+PAPEL_MEDIDO_VIDEO = frozenset({
+    "sp_contador_dios",
+    "cartonero", "estanciero_estelar", "rey_asteroides", "dueno_pyme", "magnate_solar",
+})
 MIN_AIRE_FRACTION = 0.004
 
 # El despill de la cabina. El del cofre le saca al verde lo que le sobra sobre
@@ -133,21 +158,73 @@ KINDS = {
         "dir": "Cinematics", "section": "cinematics", "prefix": "cine_",
         "size": (720, 1280), "masters": "cinematicas", "matte": "verde",
     },
+    # Cuerpos enteros, poses, eventos e iconos flotan en el lienzo: ninguno
+    # toca el marco de abajo (medido en los 26 masters de visitante), asi que
+    # se siembran desde los cuatro lados.
+    "personaje": {
+        "dir": "Loops", "section": "characters", "prefix": "char_",
+        "size": (512, 512), "masters": "personajes", "matte": "blanco",
+        "bordes": TODOS_LOS_BORDES,
+    },
+    "visitante": {
+        "dir": "Loops", "section": "visitors", "prefix": "vis_",
+        "size": (512, 512), "masters": "visitantes", "matte": "blanco",
+        "bordes": TODOS_LOS_BORDES,
+    },
+    "evento": {
+        "dir": "Loops", "section": "events", "prefix": "ev_",
+        "size": (512, 512), "masters": "eventos", "matte": "blanco",
+        "bordes": TODOS_LOS_BORDES,
+    },
+    "icono": {
+        "dir": "Loops", "section": "icons", "prefix": "icon_",
+        "size": (256, 256), "masters": "iconos", "matte": "blanco",
+        "bordes": TODOS_LOS_BORDES,
+    },
+    # El fondo del piso es una escena entera: opaco, sin recorte ni key.
+    "fondo": {
+        "dir": "Backgrounds/Loops", "section": "floors", "prefix": "bgloop_",
+        "size": (1024, 1024), "masters": "fondos", "matte": None,
+        "master_prefix": "bg_",
+    },
 }
 
 # Las piezas con nombre fijo; el juego las pide por este id. Las cinematicas
 # son las tres del plan (E8, "Cuando se reproducen"); el Paquete y el Colchon
 # tienen una apertura y una espera en loop; la cabina, las puertas en un sentido
 # y en el otro (E13, item 13).
-CINEMATIC_IDS = ("reencarnacion", "arresto", "dios")
+CINEMATIC_IDS = ("intro", "reencarnacion", "arresto", "dios")
 OBJECT_IDS = ("paquete_abre", "paquete_espera", "colchon_abre", "colchon_espera")
 CABIN_IDS = ("puertas_cierran", "puertas_abren")
-FIXED_IDS = {"cinematica": CINEMATIC_IDS, "objeto": OBJECT_IDS, "cabina": CABIN_IDS}
+EVENT_IDS = (
+    "aguinaldo", "blanqueo", "cayo_mercado_pago", "corralito", "devaluacion",
+    "inversion_alienigena", "plan_platita", "startup_comprada",
+)
+ICON_IDS = tuple(f"ui_oro_{n}" for n in (
+    "autotap", "better_supplier", "daily_boost", "extra_slots", "extra_spins",
+    "income_boost", "merge_all", "offline_boost", "package_rain", "time_skip",
+))
+FLOOR_IDS = (
+    "alley", "urban", "corporate", "luxury", "island",
+    "moon", "mars", "solar", "galaxy", "god_realm",
+)
+FIXED_IDS = {
+    "cinematica": CINEMATIC_IDS, "objeto": OBJECT_IDS, "cabina": CABIN_IDS,
+    "evento": EVENT_IDS, "icono": ICON_IDS, "fondo": FLOOR_IDS,
+}
 
 # Un retrato es el loop de la canonica de un visitante: `npc_<nombre>` o
 # `sp_<id>`. Las poses (`_talk`, `_action`, `_face`) no tienen loop propio.
 PORTRAIT_ID = re.compile(r"(npc|sp)_[a-z0-9]+(_[a-z0-9]+)*")
 POSE_SUFFIXES = ("_talk", "_action", "_face")
+
+# Un visitante es una pose animada: `_talk` (todos) o `_action` (los npc).
+VISITOR_ID = re.compile(r"(npc_[a-z0-9]+_(talk|action)|sp_[a-z0-9]+(_[a-z0-9]+)*_talk)")
+
+# Un personaje es el assetKey del puesto o del especial (`god`, `senior_doctor`,
+# `sp_lizard`). Un sufijo de version (`_v2`) es del master, nunca del juego.
+CHARACTER_ID = re.compile(r"[a-z0-9]+(_[a-z0-9]+)*")
+VERSION_SUFFIX = re.compile(r".*_v[0-9]+")
 
 # La medicion del verde: un parche por esquina en el primer cuadro, el del medio
 # y el ultimo. En el master del cofre las esquinas se mueven de a 1-3 por canal
@@ -179,6 +256,22 @@ def validate_id(kind: str, piece_id: str) -> None:
         if piece_id not in FIXED_IDS[kind]:
             raise ValueError(
                 f"{kind} desconocido: {piece_id!r}; los del plan son {FIXED_IDS[kind]}"
+            )
+        return
+    if VERSION_SUFFIX.fullmatch(piece_id):
+        raise ValueError(
+            f"{piece_id!r} trae sufijo de version: el id es el del juego, "
+            "y el master corregido entra con --video"
+        )
+    if kind == "personaje":
+        if not CHARACTER_ID.fullmatch(piece_id):
+            raise ValueError(f"personaje invalido {piece_id!r}: es un assetKey en snake_case")
+        return
+    if kind == "visitante":
+        if not VISITOR_ID.fullmatch(piece_id):
+            raise ValueError(
+                f"visitante invalido {piece_id!r}: `npc_<nombre>_talk|_action` "
+                "o `sp_<id>_talk`"
             )
         return
     if not PORTRAIT_ID.fullmatch(piece_id) or piece_id.endswith(POSE_SUFFIXES):
@@ -490,7 +583,10 @@ def main() -> int:
         if args.command == "medir":
             print(measure_key_color(args.video))
             return 0
-        master = args.video or MASTERS / KINDS[args.command]["masters"] / f"{args.id}.mp4"
+        spec = KINDS[args.command]
+        master = args.video or (
+            MASTERS / spec["masters"] / f"{spec.get('master_prefix', '')}{args.id}.mp4"
+        )
         if not master.exists():
             print(f"[ERROR] no existe el master {master}", file=sys.stderr)
             return 1

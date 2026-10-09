@@ -47,8 +47,7 @@ struct MergeAllChainWiringTests {
         #expect(homeless == 0)
         #expect(gameState.player?.run.units["cartonero"] == 1)
         gameState.celebrationFinished(.boardCelebration)
-        #expect(gameState.showing == .achievements || gameState.showing == .boardCelebration,
-                "el logro del primer merge sale recién ahora (o la red revela antes)")
+        #expect(gameState.showing != .boardCelebration || gameState.pendingBoardChanges.isEmpty)
     }
 
     @Test("el watchdog cuida cada eslabón, no la cadena")
@@ -118,5 +117,38 @@ struct MergeAllChainWiringTests {
         #expect(gameState.showing == .boardCelebration)
         let chain = try #require(first.chain)
         #expect(gameState.beginNextChainLink(after: chain)?.chain?.index == 1)
+    }
+
+    @Test("sin eslabón válido de la cadena, nil — y la cadena siguiente espera su turno")
+    func theNextChainIsNotTouched() async throws {
+        let (gameState, _) = try await chainOnTheBoard()
+        let first = try #require(gameState.beginNextBoardChange())
+        playLink(gameState, first)
+        let other = BoardChange(
+            kind: .arrival(typeId: "homeless"), origin: .debug,
+            chain: BoardChange.Chain(id: UUID(), index: 0, count: 2)
+        )
+        gameState.pendingBoardChanges.append(other)
+        var player = try #require(gameState.player)
+        var tower = try #require(gameState.tower)
+        tower.floors[0].slots = tower.floors[0].slots.map { _ in nil }
+        player.run.units = [:]
+        gameState.player = player
+        gameState.tower = tower
+        let chain = try #require(first.chain)
+        #expect(gameState.beginNextChainLink(after: chain) == nil)
+        #expect(gameState.pendingBoardChanges.map(\.id) == [other.id])
+        #expect(gameState.inFlightBoardChange == nil)
+    }
+
+    @Test("soltado el turno, la cadena ya no lo pide: lo ocupa otra celebración")
+    func aReleasedTurnEndsTheChain() async throws {
+        let (gameState, _) = try await chainOnTheBoard()
+        let first = try #require(gameState.beginNextBoardChange())
+        playLink(gameState, first)
+        gameState.celebrationFinished(.boardCelebration)
+        try #require(gameState.showing != .boardCelebration, "otra celebración le ganó el turno")
+        let chain = try #require(first.chain)
+        #expect(gameState.beginNextChainLink(after: chain) == nil)
     }
 }

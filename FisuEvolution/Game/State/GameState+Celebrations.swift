@@ -46,14 +46,10 @@ extension GameState {
     }
 
     /// El eslabón siguiente de "Fusionar todo" sigue en el mismo turno: el reloj
-    /// vuelve a cero y la bandera de "algo nuevo" pasa a ser la suya (la del
-    /// eslabón anterior ya se vio: si sobreviviera, el HUD quedaría apagado
-    /// hasta el final de la cadena).
+    /// del watchdog vuelve a cero. La bandera de "algo nuevo" ya es la suya:
+    /// `beginNextChainLink` la baja antes de arrancarlo.
     func renewBoardTurnForNextLink() {
-        guard celebrations.current == .boardCelebration else { return }
         celebrations.renew(.boardCelebration)
-        boardCelebrationShowsSomethingNew = false
-        publishCelebration()
     }
 
     /// Encola lo que tenga payload y todavía no esté en la fila.

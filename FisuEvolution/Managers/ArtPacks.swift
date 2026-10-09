@@ -5,6 +5,7 @@ import Observation
 @MainActor
 protocol ArtPackRequest: AnyObject {
     func load(urgent: Bool) async throws
+    func raisePriority()
     func end()
 }
 
@@ -34,6 +35,10 @@ private final class BundleArtPackRequest: ArtPackRequest {
         try await request.beginAccessingResources()
     }
 
+    func raisePriority() {
+        request.loadingPriority = NSBundleResourceRequestLoadingPriorityUrgent
+    }
+
     func end() {
         request.endAccessingResources()
     }
@@ -50,13 +55,14 @@ final class ArtPacks {
     private struct Pending {
         let request: any ArtPackRequest
         let generation: Int
+        var urgent: Bool
     }
 
     @ObservationIgnored private let source: any ArtPackSource
     @ObservationIgnored private var pending: [String: Pending] = [:]
     @ObservationIgnored private var users: [String: Int] = [:]
     @ObservationIgnored private var requests: [String: any ArtPackRequest] = [:]
-    @ObservationIgnored private var observers: [String: [@MainActor () -> Void]] = [:]
+    @ObservationIgnored private var observers: [String: [UUID: @MainActor () -> Void]] = [:]
     @ObservationIgnored private var generation = 0
     private var readyTags: Set<String> = []
 
@@ -76,11 +82,19 @@ final class ArtPacks {
     /// Cada `request` se compensa con un `release`.
     func request(_ tag: String, urgent: Bool = true) {
         users[tag, default: 0] += 1
-        guard !isReady(tag), pending[tag] == nil else { return }
+        guard !isReady(tag) else { return }
+        if var inFlight = pending[tag] {
+            if urgent, !inFlight.urgent {
+                inFlight.urgent = true
+                pending[tag] = inFlight
+                inFlight.request.raisePriority()
+            }
+            return
+        }
         generation += 1
         let current = generation
         let packRequest = source.makeRequest(tag: tag)
-        pending[tag] = Pending(request: packRequest, generation: current)
+        pending[tag] = Pending(request: packRequest, generation: current, urgent: urgent)
         Task { [weak self] in
             do {
                 try await packRequest.load(urgent: urgent)
@@ -111,13 +125,21 @@ final class ArtPacks {
         readyTags.remove(tag)
     }
 
-    /// Avisa una sola vez cuando el pack llega; si ya está, en el acto.
-    func whenAvailable(_ tag: String, _ handler: @escaping @MainActor () -> Void) {
+    /// Avisa una sola vez cuando el pack llega; si ya está, en el acto. El token sirve para
+    /// `cancelWait` si quien esperaba se va antes.
+    @discardableResult
+    func whenAvailable(_ tag: String, _ handler: @escaping @MainActor () -> Void) -> UUID {
+        let token = UUID()
         if isReady(tag) {
             handler()
         } else {
-            observers[tag, default: []].append(handler)
+            observers[tag, default: [:]][token] = handler
         }
+        return token
+    }
+
+    func cancelWait(_ tag: String, token: UUID) {
+        observers[tag]?[token] = nil
     }
 
     private func finished(_ tag: String, generation: Int) {
@@ -125,8 +147,8 @@ final class ArtPacks {
         pending[tag] = nil
         requests[tag] = pack.request
         readyTags.insert(tag)
-        let handlers = observers.removeValue(forKey: tag) ?? []
-        handlers.forEach { $0() }
+        let handlers = observers.removeValue(forKey: tag) ?? [:]
+        handlers.values.forEach { $0() }
     }
 
     private func failed(_ tag: String, generation: Int) {

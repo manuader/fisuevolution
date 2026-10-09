@@ -28,6 +28,7 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
     private var gaveUp = false
     private var wantsVisible = false
     private var requestedTag: String?
+    private var waitToken: UUID?
 
     private(set) var videoNode: SKVideoNode?
 
@@ -77,15 +78,18 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
         releaseLease()
         if let requestedTag {
             self.requestedTag = nil
+            if let waitToken { packs.cancelWait(requestedTag, token: waitToken) }
+            waitToken = nil
             packs.release(requestedTag)
+            url = manifest.url(for: clip, packs: packs)
         }
     }
 
     private func requestPackIfNeeded() {
-        guard url == nil, requestedTag == nil, let tag = manifest.odrTag(for: clip) else { return }
+        guard requestedTag == nil, let tag = manifest.odrTag(for: clip) else { return }
         requestedTag = tag
         packs.request(tag)
-        packs.whenAvailable(tag) { [weak self] in self?.packArrived() }
+        waitToken = packs.whenAvailable(tag) { [weak self] in self?.packArrived() }
     }
 
     private func packArrived() {

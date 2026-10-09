@@ -72,6 +72,77 @@ struct LoopingVideoNodeTests {
         #expect(node.videoNode == nil && !packs.isReady("anim-piso-1"))
     }
 
+    private func podNode(packs: ArtPacks, pool: VideoPlayerPool) throws -> LoopingVideoNode {
+        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"], odrTag: "anim-piso-1")
+        return LoopingVideoNode(clip: .floor("urban"), poster: SKTexture(), size: size,
+                                role: .background, manifest: manifest, pool: pool, packs: packs)
+    }
+
+    private func settle() async {
+        for _ in 0..<5 { await Task.yield() }
+    }
+
+    @Test("con el pack ya listo por otra vista, el nodo lo retiene; mostrar-ocultar-mostrar vuelve a pedirlo")
+    func nodeRetainsAReadyPack() async throws {
+        let source = FakeArtPackSource()
+        let packs = ArtPacks(source: source)
+        packs.request("anim-piso-1")
+        await settle()
+        source.last?.complete()
+        await settle()
+        let node = try podNode(packs: packs, pool: VideoPlayerPool(policy: .allowAll))
+        node.setVisible(true)
+        #expect(node.videoNode != nil)
+        packs.release("anim-piso-1")
+        #expect(packs.isReady("anim-piso-1"), "el nodo es usuario: el pack no se purga bajo el video")
+        node.setVisible(false)
+        #expect(!packs.isReady("anim-piso-1"))
+        node.setVisible(true)
+        #expect(node.videoNode == nil && packs.isRequested("anim-piso-1") && source.made.count == 2)
+        await settle()
+        source.last?.complete()
+        await settle()
+        #expect(node.videoNode != nil)
+        node.setVisible(false)
+    }
+
+    @Test("setVisible(true) repetido deja un solo pedido")
+    func repeatedVisibleOneRequest() throws {
+        let source = FakeArtPackSource()
+        let packs = ArtPacks(source: source)
+        let node = try podNode(packs: packs, pool: VideoPlayerPool(policy: .allowAll))
+        node.setVisible(true)
+        node.setVisible(true)
+        #expect(source.made.count == 1)
+        node.setVisible(false)
+    }
+
+    @Test("ocultar con el pedido en vuelo lo termina, y el callback tardío no arranca nada")
+    func hideWhilePending() async throws {
+        let source = FakeArtPackSource()
+        let packs = ArtPacks(source: source)
+        let node = try podNode(packs: packs, pool: VideoPlayerPool(policy: .allowAll))
+        node.setVisible(true)
+        await settle()
+        node.setVisible(false)
+        #expect(source.last?.ended == true)
+        source.last?.complete()
+        await settle()
+        #expect(node.videoNode == nil && !packs.isReady("anim-piso-1"))
+    }
+
+    @Test("el deinit del nodo suelta el tag")
+    func deinitReleasesTheTag() async throws {
+        let source = FakeArtPackSource()
+        let packs = ArtPacks(source: source)
+        var node: LoopingVideoNode? = try podNode(packs: packs, pool: VideoPlayerPool(policy: .allowAll))
+        node?.setVisible(true)
+        await settle()
+        node = nil
+        await settle()
+        #expect(source.last?.ended == true)
+    }
+
     private func render(clip: ArtClip, manifest: LoopsManifest) async throws -> (corner: Pixel, center: Pixel) {
         let pool = VideoPlayerPool(policy: .allowAll)
         let view = SKView(frame: CGRect(x: 0, y: 0, width: 256, height: 256))

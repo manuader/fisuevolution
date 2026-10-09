@@ -15,6 +15,9 @@ final class FakeArtPackRequest: ArtPackRequest {
 
     func end() { ended = true }
 
+    private(set) var raised = false
+    func raisePriority() { raised = true }
+
     func complete() { continuation?.resume(); continuation = nil }
     func fail() { continuation?.resume(throwing: CocoaError(.fileReadUnknown)); continuation = nil }
 }
@@ -118,5 +121,30 @@ struct ArtPacksTests {
         source.last?.complete()
         await settle()
         #expect(!packs.isReady("anim-piso-1"))
+    }
+
+    @Test("un pedido urgente sobre un prefetch en vuelo sube la prioridad")
+    func urgentRaisesPrefetch() async {
+        let source = FakeArtPackSource()
+        let packs = ArtPacks(source: source)
+        packs.prefetch("anim-piso-2")
+        await settle()
+        #expect(source.last?.raised == false)
+        packs.request("anim-piso-2")
+        #expect(source.made.count == 1 && source.last?.raised == true)
+    }
+
+    @Test("cancelar la espera quita el aviso")
+    func cancelWait() async {
+        let source = FakeArtPackSource()
+        let packs = ArtPacks(source: source)
+        packs.request("anim-piso-1")
+        var arrivals = 0
+        let token = packs.whenAvailable("anim-piso-1") { arrivals += 1 }
+        packs.cancelWait("anim-piso-1", token: token)
+        await settle()
+        source.last?.complete()
+        await settle()
+        #expect(arrivals == 0)
     }
 }

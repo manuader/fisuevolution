@@ -8,7 +8,7 @@
 >
 > **Foto:** 2026-10-09, cierre del relevo 18. `version-2` = `1776145` (`rapido` VERDE sobre `4638ef1`: EK 624 · unit 1007 + 1 declarado
 > `theOwnersTargetsAreMet` · Release 0; suma E8d T13, E8c T1, T2, T3 y T5, y E13 T8, T11 y T12, que pasan a ✅). `v2i/integ-r18` = `8b35414` + los docs del cierre
-> (suma además E8c T6 y E8c T4, 🟢; `rapido` final: RAPIDO_PENDIENTE). El último `completo` de referencia es el `--limpio` de
+> (suma además E8c T6 y E8c T4, 🟢; `rapido` final: VERDE sobre `8b35414` (EK 624 · unit 1013 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). El último `completo` de referencia es el `--limpio` de
 > `c94f75f` (E1 T16). Detalle en `Docs/SESION-2026-10-09-v2-relevo-18-ola-o.md`.
 > **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
 > Si un ledger dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
@@ -83,7 +83,7 @@
 ## 2. Progreso
 
 **Hoy: 116 de 254 tareas activas integradas en `version-2` (45,7 %); 118 de 254 (46,5 %) con las dos 🟢 de `v2i/integ-r18`
-si el `rapido` final da VERDE (RAPIDO_PENDIENTE).** El relevo 18 sumó E8d T13, E8c T1, T2, T3 y T5, y E13 T8, T11 y T12 a
+si el `rapido` final da VERDE (VERDE sobre `8b35414` (EK 624 · unit 1013 + 1 declarado `theOwnersTargetsAreMet` · Release 0)).** El relevo 18 sumó E8d T13, E8c T1, T2, T3 y T5, y E13 T8, T11 y T12 a
 `version-2` (`rapido` VERDE sobre `d4d8c2f` y sobre `4638ef1`, `1776145`), y dejó 🟢 en `integ-r18` a E8c T4 y E8c T6; las dos
 cuentan como ✅ **si el `rapido` final da VERDE**. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
 seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 10 (E11 T7 y E2a T15, cierres del controlador; E3a T11, E8 T7, E2b T1,
@@ -212,7 +212,7 @@ partirlo.
 
 | # | Qué | Nota |
 |---|---|---|
-| 1 | **`rapido` sobre `v2i/integ-r18` (`8b35414`) con los docs del cierre**, si no quedó hecho. Resultado del relevo 18: RAPIDO_PENDIENTE | Con VERDE: fast-forward de `version-2` (hoy `1776145`) a la punta con los docs, y push (las dos 🟢, E8c T6 y E8c T4, pasan a ✅: 118 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. Mirá `rojos-declarados.txt`. **Lanzarlo con `bash <ruta absoluta>/Tools/v2/oraculo.sh rapido`** y esperarlo por PID (`$!`) o por la última línea del log, **no con `pgrep -f`** (se encuentra a sí mismo; ver §7 del general) |
+| 1 | **`rapido` sobre `v2i/integ-r18` (`8b35414`) con los docs del cierre**, si no quedó hecho. Resultado del relevo 18: VERDE sobre `8b35414` (EK 624 · unit 1013 + 1 declarado `theOwnersTargetsAreMet` · Release 0) | Con VERDE: fast-forward de `version-2` (hoy `1776145`) a la punta con los docs, y push (las dos 🟢, E8c T6 y E8c T4, pasan a ✅: 118 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. Mirá `rojos-declarados.txt`. **Lanzarlo con `bash <ruta absoluta>/Tools/v2/oraculo.sh rapido`** y esperarlo por PID (`$!`) o por la última línea del log, **no con `pgrep -f`** (se encuentra a sí mismo; ver §7 del general) |
 | 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 18 vio 80–690. Con carga > 200: **no más de 2 compilando** (el `rapido` cuenta); con carga ~100, 3. `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y timeouts (no esperar > 15 min). Un agente sin red a GitHub copia `SourcePackages` de `version-2/build/DD-oraculo.noindex`. Verificar por el título del `@Test` en `unit.log` que los tests nuevos corrieron |
 | 3 | Leer `DUENO.md` entero por pendientes nuevos | **la lista de palabras de E12 sigue sin activar:** el clasificador de permisos del modo auto bloqueó el pedido (venía de `DUENO.md`) y los relevos 17 y 18 no lo reintentaron. Activarla **sólo si el dueño la confirma en el chat**. La mediación por SPM espera al dueño. Los worktrees `v2-e12-plan`, `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
 | 4 | Barrer los worktrees `v2i-*` que queden con `limpiar-worktrees.sh` | sólo `v2i-*`, nunca `v2-*`; todo en GitHub antes; nunca `--force`; mirar el comando de cada bucle antes de cortarlo y **nunca `pkill -f` con un patrón** (cortar por PID propio). Quedan `v2i-integ-r18` y `v2i-docs-r18` (y los de r17 si no se barrieron) |
@@ -579,9 +579,9 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8c-T1 | El eslabón en el plan (`BoardChange.Chain`) | ✅ | E2a-T6 ✅ | BoardChange.swift (tibio: E13 T2, E6a T6, E7b-b T1), MergeAllPlannerTests | `cbb97f3` (integ-r18) | EK; sonnet, **rev. opus** (la igualdad que compara `confirmBoardChange`); ola 1 |
 | E8c-T2 | El reloj del turno se renueva (`CelebrationQueue.renew`) | ✅ | — | CelebrationQueue.swift (tibio: E4b T1, E8b T8, E6a T12) | `6550e6b` (integ-r18) | EK; sonnet; ola 1 |
 | E8c-T3 | El tempo de la cadena, puro (`MergeAllTempo`) | ✅ | — | nuevos (`Scenes/MergeAllTempo.swift`) | | revisión ninguna; 7 pares ≤ 3,5 s; ola 1 |
-| E8c-T4 | El plin que sube de tono y el remate | 🟢 | — | AudioManager (tibio: E13b T3, E5b), HapticsManager, +Services, generate_audio.py, 1 `.caf` | `db94359` (integ-r18) | revisión ninguna; las fusiones del embudo hoy no suenan |
+| E8c-T4 | El plin que sube de tono y el remate | ✅ | — | AudioManager (tibio: E13b T3, E5b), HapticsManager, +Services, generate_audio.py, 1 `.caf` | `db94359` (integ-r18) | revisión ninguna; las fusiones del embudo hoy no suenan |
 | E8c-T5 | El turno de la cadena en GameState | ✅ | T1, T2 | +BoardChanges, +Celebrations, +Debug (tibios) | `ae952bf`+`de11f12` (integ-r18) | sonnet, **rev. opus** (turno, watchdog, HUD); crea `debugSeedMergeAll` |
-| E8c-T6 | El contador "×N" | 🟢 | — | nuevos (`Scenes/Nodes/MergeAllComboNode.swift`); catálogo (snapshot, 1 clave) | `0c15d3d` (integ-r18; catálogo +1) | revisión ninguna; `claves-pendientes/e8c-t6.json` |
+| E8c-T6 | El contador "×N" | ✅ | — | nuevos (`Scenes/Nodes/MergeAllComboNode.swift`); catálogo (snapshot, 1 clave) | `0c15d3d` (integ-r18; catálogo +1) | revisión ninguna; `claves-pendientes/e8c-t6.json` |
 | E8c-T7 | La escena encadena sin soltar el turno | ⏳ | T3, T4, T5; ventana de BoardScene (tras E13 T11) | 🔥 BoardScene | | sonnet, **rev. opus**; `endBoardChangeTurn` es el borde único; grabación |
 | E8c-T8 | El toque apura; contador, remate y VoiceOver | ⛔ | T6, T7 | 🔥 BoardScene | | sonnet, **rev. opus**; duda 1 (apura, no corta); SE + Reduce Motion |
 | E8c-T9 | El fixture `--uitest-merge-all` y `MergeAllChainUITests` | ⛔ | T8 | +Bootstrap (tibio) | | sonnet; receta R en un 16 Pro |

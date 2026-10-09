@@ -12,7 +12,7 @@ desde ahí sólo se esperó a lo que estaba en vuelo.
 |---|---|
 | `version-2` | **`1776145`**: el `rapido` sobre `4638ef1` dio VERDE y avanzó por fast-forward con E8c T1, T2, T3 (de r17), T5, E13 T8, T11 y T12 |
 | `v2i/integ-r18` | **`8b35414`** = lo anterior más E8c T6 y E8c T4 (🟢) + los docs del cierre |
-| `rapido` | sobre `d4d8c2f`: VERDE (EK 624 · unit 997 + 1 declarado `theOwnersTargetsAreMet` · Release 0) → `version-2` a `a9ab381`. Sobre `4638ef1`: VERDE (EK 624 · unit 1007 + 1 declarado · Release 0) → `version-2` a `1776145`. Final sobre `8b35414`: RAPIDO_PENDIENTE |
+| `rapido` | sobre `d4d8c2f`: VERDE (EK 624 · unit 997 + 1 declarado `theOwnersTargetsAreMet` · Release 0) → `version-2` a `a9ab381`. Sobre `4638ef1`: VERDE (EK 624 · unit 1007 + 1 declarado · Release 0) → `version-2` a `1776145`. Final sobre `8b35414`: VERDE sobre `8b35414` (EK 624 · unit 1013 + 1 declarado `theOwnersTargetsAreMet` · Release 0) |
 | Progreso | **116 de 254 en `version-2` (45,7 %); 118 de 254 (46,5 %)** si el `rapido` de `integ-r18` da VERDE (`tasks.md` §2) |
 
 El paso 1 del handoff anterior (el fast-forward de `integ-r17`) ya lo había hecho el relevo 17: `version-2` estaba en
@@ -125,7 +125,7 @@ cadenas, un test del turno soltado y una sola publicación de la bandera. **Nota
 - `rapido` sobre `integ-r18` `d4d8c2f`: VERDE (EK 624 · unit 997 + 1 declarado `theOwnersTargetsAreMet` · Release 0) →
   `version-2` a `a9ab381` (114 de 254).
 - `rapido` sobre `4638ef1`: VERDE (EK 624 · unit 1007 + 1 declarado · Release 0) → `version-2` a `1776145` (116 de 254, 45,7 %).
-- `rapido` final sobre `integ-r18` (`8b35414`, con E8c T6 y T4): RAPIDO_PENDIENTE
+- `rapido` final sobre `integ-r18` (`8b35414`, con E8c T6 y T4): VERDE sobre `8b35414` (EK 624 · unit 1013 + 1 declarado `theOwnersTargetsAreMet` · Release 0)
 - Tareas: `FloorMapUITests` 2/2 (SE) · `BoardGestureUITests` 1/1 · tests de E8c T5 con dos cadenas y turno soltado.
 - No se corrió un `completo` nuevo; el de referencia sigue siendo el `--limpio` de `c94f75f`.
 

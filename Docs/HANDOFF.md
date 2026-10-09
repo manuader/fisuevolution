@@ -22,7 +22,7 @@
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
 > 18): `version-2` = **`1776145`** (`rapido` VERDE sobre `4638ef1`: EK 624 · unit 1007 + 1 declarado `theOwnersTargetsAreMet` ·
-> Release 0) · la rama de integración `v2i/integ-r18` = **`8b35414`** + estos docs (`rapido` final: RAPIDO_PENDIENTE). Están E0,
+> Release 0) · la rama de integración `v2i/integ-r18` = **`8b35414`** + estos docs (`rapido` final: VERDE sobre `8b35414` (EK 624 · unit 1013 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0,
 > E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a N, más lo del relevo 18: **la cadena de
 > Fusionar todo en el plan** (**E8c T1**), **el reloj del turno que se renueva** (**E8c T2**), **el turno de la cadena en
 > `GameState`** (**E8c T5**), **"Piso ???" en los pisos cerrados** (**E13 T8**), **la moneda sobre quien genera plata** (**E13

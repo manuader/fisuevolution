@@ -263,11 +263,13 @@ struct ElevatorRideView: View {
         }
     }
 
-    /// El clip dura lo que dura, la fase lo que dice el plan: la velocidad los iguala.
+    /// El clip dura lo que dura, la fase lo que dice el plan: la velocidad los iguala. Los de la
+    /// cabina son el master entero (3 s): "abre" en 650 ms pide ×4,7, y con tope 4 las puertas no
+    /// terminarían de abrir antes de que la cabina se vaya.
     private static func play(_ player: ChestCinematicPlayer, over span: Duration) {
         let clip = player.player.currentItem?.duration.seconds ?? 0
         let rate = clip.isFinite && clip > 0 && span > .zero ? clip / span.seconds : 1
-        player.play(rate: Float(min(max(rate, 0.25), 4)), volume: 0)
+        player.play(rate: Float(min(max(rate, 0.25), 5)), volume: 0)
     }
 }
 

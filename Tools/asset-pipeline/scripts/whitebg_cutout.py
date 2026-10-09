@@ -124,12 +124,20 @@ def white_distance(rgb: np.ndarray) -> np.ndarray:
     return 255 - rgb.min(axis=2).astype(np.int16)
 
 
-def background_mask(distance: np.ndarray, punch_holes: bool = False) -> np.ndarray:
+TODOS_LOS_BORDES = ("arriba", "abajo", "izquierda", "derecha")
+
+
+def background_mask(distance: np.ndarray, punch_holes: bool = False,
+                    bordes: tuple[str, ...] = TODOS_LOS_BORDES) -> np.ndarray:
     """Lo blanco conectado con el borde del lienzo. El resto es dibujo.
 
     Los primeros planos (`*_face`) apoyan los hombros contra el marco: ahi el
     borde tiene pixeles de personaje, y por eso las semillas se toman solo de los
     pixeles de borde que ademas son blancos.
+
+    `bordes` dice de que lados del lienzo salen las semillas. Un busto cortado
+    por el marco de abajo (los retratos animados) apoya ahi una camisa blanca sin
+    linea que la cierre: sembrar desde abajo se la comeria entera.
 
     `punch_holes` suma tambien las islas blancas que el dibujo encierra; es lo que
     piden los pocos assets de `HUECOS_CALADOS` y lo que arruina a todos los demas."""
@@ -138,7 +146,11 @@ def background_mask(distance: np.ndarray, punch_holes: bool = False) -> np.ndarr
     if count == 0:
         return np.zeros_like(whiteish)
 
-    border = np.concatenate([labels[0], labels[-1], labels[:, 0], labels[:, -1]])
+    lados = {
+        "arriba": labels[0], "abajo": labels[-1],
+        "izquierda": labels[:, 0], "derecha": labels[:, -1],
+    }
+    border = np.concatenate([lados[lado] for lado in bordes])
     seeds = np.unique(border[border > 0])
     if seeds.size == 0:
         # Un dibujo que llena el lienzo de lado a lado no tiene fondo que sacar.

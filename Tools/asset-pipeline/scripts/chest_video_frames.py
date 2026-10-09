@@ -75,9 +75,11 @@ KEY_SIMILARITY = 0.11
 KEY_BLEND = 0.04
 
 
-def key_filter(color: str, similarity: float = KEY_SIMILARITY, blend: float = KEY_BLEND) -> str:
+def key_filter(color: str, similarity: float = KEY_SIMILARITY, blend: float = KEY_BLEND,
+               despill: bool = True) -> str:
     """El keying del cofre con otro verde: `video_assets` lo mide en cada master."""
-    return f"chromakey={color}:{similarity}:{blend},despill=type=green"
+    keying = f"chromakey={color}:{similarity}:{blend}"
+    return f"{keying},despill=type=green" if despill else keying
 
 
 KEY_FILTER = key_filter(KEY_COLOR)

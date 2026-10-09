@@ -23,10 +23,10 @@ enum ElevatorCabinArt: Equatable {
             Bundle.main.url(forResource: name, withExtension: "png").flatMap { UIImage(contentsOfFile: $0.path) }
         }
     ) -> ElevatorCabinArt {
-        if let close = url("cine_ascensor_cierra"), let open = url("cine_ascensor_abre") {
+        if let close = url("cabina_puertas_cierran"), let open = url("cabina_puertas_abren") {
             return .video(close: close, open: open)
         }
-        if let closed = image("cine_ascensor_cerrada"), let open = image("cine_ascensor_abierta") {
+        if let closed = image("cabina_cerrada"), let open = image("cabina_abierta") {
             return .stills(closed: closed, open: open)
         }
         return .vector

@@ -52,11 +52,14 @@ public struct RankingState: Codable, Sendable, Equatable {
         public var name: String?
         /// El servidor ya anotó la llegada: sólo falta el nombre (si lo hay).
         public var sealed: Bool
+        /// El tiempo jugado de esa partida: el servidor sella con este valor si todavía no la selló.
+        public var playedSeconds: Int
 
-        public init(runId: String, name: String? = nil, sealed: Bool = false) {
+        public init(runId: String, name: String? = nil, sealed: Bool = false, playedSeconds: Int = 0) {
             self.runId = runId
             self.name = name
             self.sealed = sealed
+            self.playedSeconds = playedSeconds
         }
 
         public init(from decoder: Decoder) throws {
@@ -64,6 +67,7 @@ public struct RankingState: Codable, Sendable, Equatable {
             runId = try c.decode(String.self, forKey: .runId)
             name = try c.decodeIfPresent(String.self, forKey: .name)
             sealed = try c.decodeIfPresent(Bool.self, forKey: .sealed) ?? false
+            playedSeconds = try c.decodeIfPresent(Int.self, forKey: .playedSeconds) ?? 0
         }
     }
 
@@ -238,10 +242,11 @@ public struct RankingState: Codable, Sendable, Equatable {
 
     private var unsentArrival: CarriedSubmission? {
         guard case .reachedGod(let runId, _, let sealed) = phase else { return nil }
+        let played = Int(playedSeconds.rounded())
         switch submission?.nameStatus {
         case .ok?, .pending?: return nil
-        case .rejected?: return CarriedSubmission(runId: runId, sealed: sealed)
-        default: return CarriedSubmission(runId: runId, name: submission?.name, sealed: sealed)
+        case .rejected?: return CarriedSubmission(runId: runId, sealed: sealed, playedSeconds: played)
+        default: return CarriedSubmission(runId: runId, name: submission?.name, sealed: sealed, playedSeconds: played)
         }
     }
 

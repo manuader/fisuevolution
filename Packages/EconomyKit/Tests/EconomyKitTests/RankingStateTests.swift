@@ -259,6 +259,15 @@ struct RankingStateTests {
         #expect(unregistered.forNewGame().carriedSubmission == nil)
     }
 
+    @Test("la llegada arrastrada lleva el tiempo jugado de su partida")
+    func carriedSubmissionKeepsPlayedSeconds() throws {
+        var unsealed = god()
+        unsealed.playedSeconds = 119.6
+        #expect(unsealed.forNewGame().carriedSubmission?.playedSeconds == 120)
+        let legacy = try JSONDecoder().decode(RankingState.CarriedSubmission.self, from: Data(#"{"runId":"q"}"#.utf8))
+        #expect(legacy.playedSeconds == 0)
+    }
+
     @Test("forNewGame conserva la llegada a Dios que no se envió")
     func forNewGameCarriesUnsent() {
         #expect(god().forNewGame().carriedSubmission == .init(runId: "r1"))

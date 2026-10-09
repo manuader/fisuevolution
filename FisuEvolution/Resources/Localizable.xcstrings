@@ -11031,40 +11031,6 @@
         }
       }
     },
-    "upgrade.crit.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hit It Big"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pegarla"
-          }
-        }
-      }
-    },
-    "upgrade.golden.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Golden Touch"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Toque de Oro"
-          }
-        }
-      }
-    },
     "upgrade.income.title" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -11078,6 +11044,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Más Platita"
+          }
+        }
+      }
+    },
+    "upgrade.lucky.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lucky Tap"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque premiado"
           }
         }
       }
@@ -11302,40 +11285,6 @@
         }
       }
     },
-    "upgrades.flavor.crit" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Every so often a tap comes out lucky and pays several times over."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cada tanto un toque sale premiado y paga varias veces."
-          }
-        }
-      }
-    },
-    "upgrades.flavor.golden" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The golden touch: rare, but it pays ten times over."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El toque de oro: aparece poco, pero paga diez veces."
-          }
-        }
-      }
-    },
     "upgrades.flavor.income" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -11349,6 +11298,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Todo lo que genera la torre entra más gordo."
+          }
+        }
+      }
+    },
+    "upgrades.flavor.lucky" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every so often a tap comes out lucky, and once in a blue moon, golden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada tanto un toque sale premiado, y muy de vez en cuando, uno de oro."
           }
         }
       }

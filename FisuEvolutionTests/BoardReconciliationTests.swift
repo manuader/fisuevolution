@@ -16,12 +16,18 @@ struct BoardReconciliationTests {
     private let cellSize: CGFloat = 71.6
     private let columns = 5
 
-    private func unit(_ typeId: String, skin: String? = nil, cellSize: CGFloat? = nil) -> RenderedUnit {
+    private func unit(
+        _ typeId: String,
+        skin: String? = nil,
+        cellSize: CGFloat? = nil,
+        earnsPassive: Bool = false
+    ) -> RenderedUnit {
         RenderedUnit(
             typeId: typeId,
             skinID: skin,
             cellSize: cellSize ?? self.cellSize,
-            columns: columns
+            columns: columns,
+            earnsPassive: earnsPassive
         )
     }
 
@@ -87,5 +93,16 @@ struct BoardReconciliationTests {
         #expect(plan.kept == [0])
         #expect(plan.rebuilt.isEmpty)
         #expect(plan.discarded == [1], "un nodo huérfano se queda dibujado y clickeable")
+    }
+
+    @Test("comprar el pasivo rearma los slots de ese tipo y deja quietos a los demás")
+    func unlockingThePassiveRebuildsThatType() {
+        let before = [0: unit("homeless"), 1: unit("homeless"), 2: unit("cartonero")]
+        let after = [0: unit("homeless", earnsPassive: true), 1: unit("homeless", earnsPassive: true), 2: unit("cartonero")]
+
+        let plan = BoardReconciliation(rendered: before, wanted: after)
+
+        #expect(plan.rebuilt == [0, 1])
+        #expect(plan.kept == [2])
     }
 }

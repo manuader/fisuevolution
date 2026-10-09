@@ -360,7 +360,7 @@ extension GameState {
             self.player = player
             haptics?.play(.purchase)
             characterSheet = nil
-            refreshProjections()
+            bumpBoard()
             scheduleSave()
         } catch {
             publishNotice(forRejectedSpend: error)

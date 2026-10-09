@@ -1773,7 +1773,8 @@ final class BoardScene: SKScene {
                 typeId: type.id,
                 skinID: gameState.activeSkinID(forCharacterType: type.id),
                 cellSize: cellSize,
-                columns: boardColumns
+                columns: boardColumns,
+                earnsPassive: gameState.player?.run.passiveUnlocked[type.id] == true
             )
         }
 
@@ -1808,7 +1809,8 @@ final class BoardScene: SKScene {
                 cellIndex: slot,
                 cellSize: cellSize,
                 skinTint: SkinResolver.tintColor(for: skinTreatment),
-                hasRealArt: hasRealArt
+                hasRealArt: hasRealArt,
+                earnsPassive: wanted[slot]?.earnsPassive ?? false
             )
             node.position = position(ofCell: slot)
             node.zPosition = depthZ(for: node.position)

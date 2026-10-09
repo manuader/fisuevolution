@@ -61,4 +61,30 @@ struct CharacterNodePoolTests {
         #expect(first === node)
         #expect(second !== first, "dos placements compartiendo un nodo hacen desaparecer a uno")
     }
+
+    @Test("la moneda se muestra sólo si el tipo genera plata solo, y no sobrevive al reconfigurar")
+    func passiveCoinFollowsEarnsPassive() throws {
+        let content = try GameContentLoader.load(from: .main)
+        let type = try #require(content.tiers.type(id: "homeless"))
+        let node = CharacterNodePool().obtain()
+
+        node.configure(type: type, texture: nil, cellIndex: 0, cellSize: 72, earnsPassive: true)
+        #expect(node.showsPassiveCoin)
+
+        node.configure(type: type, texture: nil, cellIndex: 0, cellSize: 72, hasRealArt: true, earnsPassive: true)
+        #expect(node.showsPassiveCoin)
+
+        node.configure(type: type, texture: nil, cellIndex: 0, cellSize: 72)
+        #expect(!node.showsPassiveCoin)
+    }
+
+    @Test("la moneda no intercepta toques")
+    func passiveCoinIgnoresTouches() throws {
+        let content = try GameContentLoader.load(from: .main)
+        let type = try #require(content.tiers.type(id: "homeless"))
+        let node = CharacterNodePool().obtain()
+        node.configure(type: type, texture: nil, cellIndex: 0, cellSize: 72, earnsPassive: true)
+
+        #expect(node.children.allSatisfy { $0 === node || !$0.isUserInteractionEnabled })
+    }
 }

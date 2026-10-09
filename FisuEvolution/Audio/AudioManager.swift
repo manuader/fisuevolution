@@ -254,7 +254,7 @@ final class AudioManager {
         return data
     }
 
-    func play(_ sfx: SFX) {
+    func play(_ sfx: SFX, gain: Float = 1) {
         guard sfxVolume > 0 else { return }
         let now = Date().timeIntervalSince1970
         guard now - (lastPlayed[sfx] ?? 0) > Self.throttleWindow else { return }
@@ -262,14 +262,14 @@ final class AudioManager {
 
         if let player = sfxPlayers[sfx] {
             player.currentTime = 0
-            player.volume = Float(sfxVolume)
+            player.volume = Float(sfxVolume) * gain
             player.play()
             return
         }
         guard let url = url(forResource: sfx.rawValue),
               let player = try? AVAudioPlayer(contentsOf: url)
         else { return }
-        player.volume = Float(sfxVolume)
+        player.volume = Float(sfxVolume) * gain
         sfxPlayers[sfx] = player
         player.play()
     }

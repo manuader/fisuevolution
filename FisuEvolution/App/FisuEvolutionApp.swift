@@ -16,10 +16,14 @@ struct FisuEvolutionApp: App {
     /// abajo, en el `.task`.
     @State private var ads = AdsCoordinator()
     @State private var servicesStarted = false
+    /// El ascensor de E13b: la placa colgante y el viaje en cabina, encima de todo.
+    @State private var elevatorRide = ElevatorRide()
 
     var body: some Scene {
         WindowGroup {
             RootView()
+                .overlay { ElevatorRideOverlay() }
+                .environment(elevatorRide)
                 .environment(gameState)
                 .environment(storeManager)
                 .environment(gameCenter)
@@ -41,6 +45,7 @@ struct FisuEvolutionApp: App {
                     gameState.attachHaptics(haptics)
                     gameState.attachAudio(audio)
                     gameState.attachBackgroundTasks(UIKitBackgroundTasks())
+                    attachElevator()
                     await gameState.bootstrap()
                     await startServices()
                 }
@@ -50,6 +55,20 @@ struct FisuEvolutionApp: App {
                     }
                 }
         }
+    }
+
+    private func attachElevator() {
+        elevatorRide.attach(ElevatorRide.Hooks(
+            visibleOrdinal: { [gameState] in gameState.visibleFloorOrdinal },
+            isUnlocked: { [gameState] ordinal in
+                gameState.floorMap.contains { $0.ordinal == ordinal && $0.isUnlocked }
+            },
+            jump: { [gameState] in gameState.jumpToFloor(ordinal: $0) },
+            cue: { [audio] in audio.play($0) },
+            sleep: { try? await Task.sleep(for: $0) },
+            reduceMotion: { UIAccessibility.isReduceMotionEnabled },
+            instant: ElevatorRide.isInstantForUITests
+        ))
     }
 
     /// La tienda, Game Center y los anuncios arrancan sólo con una partida

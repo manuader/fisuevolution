@@ -262,7 +262,7 @@ struct ChestOpeningView: View {
             // ⚠️ **Durante el tutorial no se ofrece NADA.** El cofre de
             // bienvenida cae al cerrar la fase obligatoria, y un jugador que
             // todavía está aprendiendo a fusionar no tiene que elegir si mira
-            // publicidad. Es la misma regla que `isSafeMomentForInterstitial`
+            // publicidad. Es la misma regla que `isCalmMoment`
             // aplica del otro lado, y la que hace que la primera sesión no
             // arranque vendiendo.
             //

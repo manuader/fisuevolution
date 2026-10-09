@@ -240,6 +240,13 @@ final class GameState {
     /// lo lee el director de lecciones: un coach-mark que señala la barra
     /// inferior no puede nacer debajo de una hoja abierta.
     @ObservationIgnored var uiCoversBoard = false
+    /// Desde que la cola quedó vacía por última vez se fue alguna celebración grande
+    /// (`CelebrationKind.endsInNaturalBreak`): al vaciarse, la cola es un corte natural.
+    @ObservationIgnored var bigCelebrationSinceIdle = false
+    /// Algo que no vive en el juego tapa la pantalla o no se puede interrumpir: el
+    /// viaje en ascensor o una compra en curso. La App lo cablea; un corte natural
+    /// no cae mientras sea verdad.
+    @ObservationIgnored var fullScreenUIActive: @MainActor () -> Bool = { false }
     /// El director de lecciones corre solo (en cada refresh) en la app real;
     /// bajo XCTest arranca apagado —el mismo criterio que el gate del bootstrap
     /// y la `SKTestSession` de StoreManager— y cada test lo prende explícito:

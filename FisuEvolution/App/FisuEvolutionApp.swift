@@ -61,6 +61,9 @@ struct FisuEvolutionApp: App {
     }
 
     private func attachElevator() {
+        gameState.fullScreenUIActive = { [elevatorRide, storeManager] in
+            elevatorRide.phase != .idle || elevatorRide.isKeypadOpen || storeManager.isPurchasing
+        }
         elevatorRide.attach(ElevatorRide.Hooks(
             visibleOrdinal: { [gameState] in gameState.visibleFloorOrdinal },
             isUnlocked: { [gameState] ordinal in
@@ -103,7 +106,6 @@ struct FisuEvolutionApp: App {
             await ads.configure(
                 flags: content.flags,
                 remoteUnitIDs: mode == .production ? remote?.adUnitIDs : nil,
-                cadence: content.rewardedAds.effectiveInterstitial,
                 removedAds: gameState.player?.meta.removedAds ?? false
             )
             if let pacer = ForcedAdsSetup.makePacer(mode: mode, config: remote) {

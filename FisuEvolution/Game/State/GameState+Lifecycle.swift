@@ -15,6 +15,7 @@ extension GameState {
             if wasActive { ranking?.resignedActive() }
             if new == .background { settleAllPendingBoardChanges() } else { settlePrepaidBoardChanges() }
             seal(now: now, stamping: wasActive)
+            adsDidEnterBackground()
             if new == .background { scheduleNotificationsForAbsence(now: now) }
         case (_, .active):
             isSceneActive = true
@@ -23,7 +24,7 @@ extension GameState {
             guard phase == .ready else { return }
             // El tiempo en background NO es tiempo de juego: reiniciar la gracia
             // evita que volver después de horas te reciba con un interstitial.
-            ads?.sessionResumed()
+            adsDidReturnFromBackground()
             applyOfflineProgressIfNeeded(now: now)
             postponeOverdueEvent(now: now)
             claimDailyIfAvailable()

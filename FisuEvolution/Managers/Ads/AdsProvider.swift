@@ -221,44 +221,9 @@ struct RewardedAdsConfig: Codable, Sendable, Equatable {
         let cooldownSeconds: Double
     }
 
-    /// La cadencia del interstitial. Vive en `rewarded_ads.json` porque ése ES
-    /// el archivo de configuración de anuncios del juego, aunque su nombre
-    /// histórico diga "rewarded".
-    ///
-    /// ⚠️ **Los tres números son la política de "no molestar", y ninguno es
-    /// decorativo.** El pedido del dueño (2026-09-02) fue "un anuncio normal
-    /// cada 5 o 10 minutos de juego"; esto lo implementa con dos frenos que
-    /// evitan los dos casos que arruinan la primera sesión:
-    ///
-    /// - `graceSecondsAfterLaunch`: nadie come un interstitial en sus primeros
-    ///   minutos. Es el tramo donde se decide si el juego se desinstala.
-    /// - `graceSecondsAfterRewarded`: un jugador que acaba de mirar un video
-    ///   por elección propia no se come otro de arranque. Sin esto, mirar un
-    ///   rewarded y cerrar la hoja podía encadenar dos pantallas completas de
-    ///   publicidad seguidas, que es la queja número uno de los idle.
-    struct Interstitial: Codable, Sendable, Equatable {
-        /// Segundos de juego ACTIVO (foreground) entre dos interstitials.
-        let minSecondsBetween: Double
-        /// Gracia desde que arrancó la app.
-        let graceSecondsAfterLaunch: Double
-        /// Gracia desde que terminó un rewarded.
-        let graceSecondsAfterRewarded: Double
-
-        /// Los defaults, para los JSON viejos (schema 1) que no traen la sección.
-        static let `default` = Interstitial(
-            minSecondsBetween: 420,
-            graceSecondsAfterLaunch: 180,
-            graceSecondsAfterRewarded: 90
-        )
-    }
-
     let schemaVersion: Int
     let rewards: [Reward]
     /// Segundos de producción que se acreditan cuando un video visto ya no tiene
     /// dónde aplicar su efecto.
     let compensationSeconds: Double
-    /// Ausente en schema 1.
-    let interstitial: Interstitial?
-
-    var effectiveInterstitial: Interstitial { interstitial ?? .default }
 }

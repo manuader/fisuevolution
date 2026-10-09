@@ -559,6 +559,7 @@ extension GameState {
         careerPrompt = nil
         skinAward = nil
         specialDrop = nil
+        cinematic = nil
         towerNotice = nil
         achievementToast = nil
         pendingAchievementToasts.removeAll()

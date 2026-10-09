@@ -156,7 +156,10 @@ extension GameState {
         player.run.revealedTier = tier
         self.player = player
         scheduleSave()
-        if tier == godTier { ranking?.reachedGod() }
+        if tier == godTier {
+            ranking?.reachedGod()
+            playCinematicIfDue(.dios)
+        }
     }
 
     /// El personaje más alto de la run que todavía no se reveló.

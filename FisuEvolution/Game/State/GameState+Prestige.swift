@@ -149,12 +149,14 @@ extension GameState {
             now: Date().timeIntervalSince1970
         )
         self.player = player
+        // La cinemática de la reencarnación va antes del cofre (PLAN-v2 E8) y trae su
+        // propio sonido: el SFX de prestigio sólo suena si ella no.
+        if !playCinematicIfDue(.reencarnacion) { audio?.play(.prestige) }
         // El cofre de la reencarnación —el único con piso de rareza— se otorga
         // DESPUÉS de `applyReincarnation`, que hace `run = .fresh(...)`: darlo
         // antes lo perdería el día que el contador se mude a `run`.
         awardChest(minRarity: .epica)
         reconcileTower()
-        audio?.play(.prestige)
         haptics?.play(.rarity)
         gameCenter?.report(.firstPrestige)
         // Los tres logros de reencarnación miran `meta.prestigeLevel`, que ya
@@ -174,7 +176,8 @@ extension GameState {
         // ⚠️ Va con `Task` y al FINAL: `confirmPrestige` es síncrona y el
         // llamador cuenta con que al volver el estado ya está reencarnado.
         // Y ⚠️ **el cofre de reencarnación se otorgó arriba**, así que la
-        // cola de celebraciones puede tener su turno pedido — por eso el
+        // cola de celebraciones puede tener su turno pedido —el cofre, o desde E8b la
+        // cinemática— por eso el
         // disparo pasa por `showInterstitialIfAppropriate`, que se niega
         // mientras haya una celebración con el turno. Sin ese filtro, el
         // interstitial taparía el cofre épico que el jugador se acaba de

@@ -519,7 +519,92 @@
     "reviewNotes": "HoboEvolution 2.0 - notes for the reviewer\n\nSatirical single-player merge/idle game with Argentine humor. Brands are parodies and characters are archetypes, not real people. No accounts, no login and no server of ours: progress is stored on device. Game Center and iCloud are disabled.\n\nHOW TO TEST\nTap the character to earn coins, tap Hire to buy another one, and drag one onto another to merge them. The tutorial cannot be skipped; it ends with a welcome chest. Everything else unlocks as you play. The Store tab has every IAP and Restore Purchases.\n\nADS (Google AdMob, with AppLovin, Unity Ads, Mintegral and Meta Audience Network as mediation partners)\n1. Opt-in rewarded videos. Always started by an explicit tap on a button that says what you get; they never autoplay. Places: the Gifts list (Bonus tab), doubling offline earnings, opening another skin chest, starting a boost without waiting and \"Merge all\", the prize wheel (spin and \"repeat prize\"), the Mattress Stash (\"another mattress\"), parcel rain, visitor rewards x2, forgiving a fine, the street vendor's boosts, escaping a negative event, and daily or career rewards x2.\n2. Ads that appear on their own, only at natural breaks: at least 2 minutes apart, never during the tutorial, never over an open screen or a celebration, and never two in the same break.\n- Interstitial and \"ad break\" (rewarded interstitial) alternate. Breaks: closing a menu screen and returning to the board, dismissing the offline-earnings popup, reincarnating, and the end of a chain of celebrations. The ad break always shows an intro screen with a 5-second countdown and a visible \"No, thanks\" button; declining has no penalty.\n- App open: only when returning to the app after 3+ minutes away, at most once every 20 minutes, from the second session on, never on first launch or during the tutorial.\n\"Remove Ads\" (US$2.99) and the Starter Pack remove these three formats (interstitial, ad break and app open). Opt-in rewarded videos stay, because they are optional and pay out prizes; the purchase description says so.\nATT is requested on first launch; declining is fully supported. In the EEA, UK and Switzerland, Google's UMP consent form is shown before any ad, and Settings > Privacy options lets the player change it.\n\nRANDOMIZED ITEMS (Guideline 3.1.1)\nThe prize wheel, the skin chest bought with ORO, the Mattress Stash and the skin chest inside the Welcome Pack give randomized items. The odds of every prize are shown on screen before spinning, buying or opening. ORO, the premium currency, can be bought with real money; it has no real-world value and cannot be cashed out or transferred. There is no real-money gambling and no betting. Extra wheel spins and chests bought with ORO are turned off in Belgium and Australia.\n\n24-HOUR OFFERS (consumable IAPs)\n- Welcome Pack (US$0.99): offered once, on the player's 2nd calendar day. To see it: play once, set the device date one day ahead and reopen the app.\n- Rebirth Pack (US$2.99): offered right after reincarnating.\n- Moving Day Pack (US$4.99): offered when a new floor opens outside the tutorial; the early floors open within the first minutes of play.\nEach one stays available for 24 hours behind a chip at the top of the board, and never shows during the tutorial.\n\nIAPs (14): starter pack, remove ads, three cash packs, three ORO packs, three skin purchases and the three offers above. Consumables are not restored by design; remove ads and skins are.",
     "availability": {
       "appleSiliconMac": false,
-      "visionPro": false
+      "visionPro": false,
+      "_estado": "apagados en ASC el 2026-10-08 (Pricing and Availability, por navegador)"
     }
+  },
+  "mediation": {
+    "_comment": "Redes por bidding a través de AdMob. AppLovin rechazó la cuenta (no acepta publishers nuevos) y Mintegral no funcionó: quedan afuera. Los IDs no son secretos (van en el binario o en el mapeo de AdMob).",
+    "networks": {
+      "unity": {
+        "organizationCoreId": "4674265102273",
+        "projectId": "7fda62f3-5541-444f-8ff4-635d79fcb2db",
+        "gameId": "800392624",
+        "placements": {
+          "rewarded": "BP_Rewarded_iOS",
+          "interstitial": "BP_Interstitial_iOS"
+        },
+        "developerWebsite": "https://adergames-site.vercel.app",
+        "appAdsTxt": "Distribution/release/app-ads.unity.txt"
+      },
+      "meta": {
+        "businessId": "4634477516796912",
+        "propertyId": "1495757002385306",
+        "appId": "1067256102983663",
+        "placements": {
+          "interstitial": "1067256102983663_1067256366316970",
+          "rewardedInterstitial": "1067256102983663_1067256369650303",
+          "rewarded": "1067256102983663_1067256362983637"
+        },
+        "appAdsTxt": [
+          "facebook.com, 4634477516796912, RESELLER, c3e20eee3f780d68"
+        ],
+        "pending": [
+          "2FA del negocio",
+          "cuenta de pagos",
+          "información fiscal",
+          "vincular la app a la cuenta de pagos",
+          "verificar la app"
+        ]
+      },
+      "applovin": {
+        "status": "rechazada: AppLovin no acepta publishers nuevos (mail del 2026-10-08)"
+      },
+      "mintegral": {
+        "status": "no se pudo crear la cuenta"
+      }
+    },
+    "groups": [
+      {
+        "name": "Rewarded iOS",
+        "format": "rewarded",
+        "units": [
+          "rewardedGifts",
+          "rewardedOfflineX2",
+          "rewardedChestExtra",
+          "rewardedBoost",
+          "rewardedWheel",
+          "rewardedTreasure",
+          "rewardedVisitor",
+          "rewardedDaily"
+        ],
+        "networks": [
+          "unity",
+          "meta"
+        ]
+      },
+      {
+        "name": "Interstitial iOS",
+        "format": "interstitial",
+        "units": [
+          "interstitial"
+        ],
+        "networks": [
+          "unity",
+          "meta"
+        ]
+      },
+      {
+        "name": "Rewarded interstitial iOS",
+        "format": "rewardedInterstitial",
+        "units": [
+          "rewardedInterstitial"
+        ],
+        "networks": [
+          "meta"
+        ]
+      }
+    ],
+    "_noGroup": "App open: ni Unity ni Meta pujan en app open; queda sólo con AdMob."
   }
 }

@@ -29,6 +29,7 @@ from PIL import ImageDraw  # noqa: E402
 from video_assets import (  # noqa: E402
     BUSTO,
     CABIN_IDS,
+    CABIN_STILLS,
     CINEMATIC_IDS,
     EVENT_IDS,
     FLOOR_IDS,
@@ -283,6 +284,11 @@ class ManifestVersionado(unittest.TestCase):
             }
             self.assertEqual(en_disco, declaradas, carpeta)
 
+    def test_los_unicos_png_son_los_cuadros_fijos_de_la_cabina(self):
+        # Sin entrada en el manifest: `ElevatorCabinArt` los pide por nombre.
+        carpeta = RESOURCES / KINDS["cabina"]["dir"]
+        self.assertEqual({p.name for p in carpeta.glob("*.png")}, set(CABIN_STILLS))
+
 
 def alfa_decodificable() -> bool:
     """¿Este ffmpeg ve la capa alfa del HEVC de Apple? Se pregunta al mov del
@@ -438,6 +444,33 @@ class DePuntaAPunta(unittest.TestCase):
         self.assertEqual(frame[..., 3].min(), 255)
         manifest = json.loads((self.resources / "Data" / "loops_manifest.json").read_text())
         self.assertEqual(manifest["floors"], {"alley": entry})
+
+    def test_los_cuadros_fijos_de_la_cabina_salen_keyeados_y_sin_manifest(self):
+        fuente = self.root / "ascensor"
+        fuente.mkdir()
+        for still, (x, y, ancho, alto) in zip(CABIN_STILLS, ((.28, .25, .12, .4), (.2, .2, .6, .6))):
+            w, h = 1520, 2688
+            subprocess.run(
+                ["ffmpeg", "-v", "error", "-f", "lavfi", "-i", f"color=c={self.AMARILLO}:s={w}x{h}",
+                 "-vf", f"drawbox=x={int(w * x)}:y={int(h * y)}:w={int(w * ancho)}"
+                        f":h={int(h * alto)}:color={self.CROMA}:t=fill",
+                 "-frames:v", "1", "-y", str(fuente / still)],
+                check=True,
+            )
+
+        escritos = video_assets.process_cabin_stills(fuente)
+
+        self.assertEqual([p.name for p in escritos], list(CABIN_STILLS))
+        self.assertFalse((self.resources / "Data" / "loops_manifest.json").exists())
+        for png, hueco in zip(escritos, ((.34, .45), (.5, .5))):
+            with self.subTest(png=png.name), Image.open(png) as img:
+                self.assertEqual((img.mode, img.size), ("RGBA", (720, 1280)))
+                pixels = np.asarray(img).astype(int)
+                self.assertEqual(pixels[int(1280 * hueco[1]), int(720 * hueco[0]), 3], 0)
+                pared = pixels[10, 10]
+                self.assertEqual(pared[3], 255)
+                self.assertLessEqual(np.abs(pared[:3] - rgb(self.AMARILLO)).max(), 12,
+                                     f"la pared queda y del mismo amarillo: {pared}")
 
     def test_solo_la_cinematica_puede_ir_sin_alfa(self):
         for kind, piece_id in (("retrato", "npc_prueba"), ("objeto", "colchon_abre"),

@@ -36,17 +36,25 @@ begin
   return v_calls > setting_int('rate_limit_per_hour');
 end $$;
 
-create function public.start_run(p_hash text, p_app_version text, p_now timestamptz)
+-- Idempotente por (jugador, client_run_id): el cliente genera el id una vez por partida nueva o
+-- reset, así un doble disparo o un reintento devuelve la misma partida sin abandonar nada.
+create function public.start_run(
+  p_hash text, p_app_version text, p_now timestamptz, p_client_run_id uuid default gen_random_uuid())
 returns table (run_id uuid, started_at timestamptz)
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare
   v_player uuid := player_id_for(p_hash);
 begin
   perform 1 from players p where p.id = v_player for update;
+  return query select r.id, r.started_at from runs r
+    where r.player_id = v_player and r.client_run_id = p_client_run_id;
+  if found then
+    return;
+  end if;
   update runs r set status = 'abandoned' where r.player_id = v_player and r.status = 'active';
   return query
-    insert into runs as r (player_id, started_at, app_version)
-    values (v_player, p_now, p_app_version)
+    insert into runs as r (player_id, started_at, app_version, client_run_id)
+    values (v_player, p_now, p_app_version, p_client_run_id)
     returning r.id, r.started_at;
 end $$;
 
@@ -120,14 +128,18 @@ begin
     from runs r where r.id = v_run.id;
 end $$;
 
+-- Sólo cuenta el reporte de quien tiene al menos una partida sellada: un installId descartable
+-- no puede ocultar nombres ajenos.
 create function public.report_run(p_hash text, p_run_id uuid, p_now timestamptz) returns void
 language plpgsql security definer set search_path = public, pg_temp as $$
 declare
-  v_reporter uuid := player_id_for(p_hash);
+  v_reporter uuid := (select p.id from players p where p.install_id_hash = p_hash);
 begin
   insert into reports (run_id, reporter_player_id, created_at)
   select r.id, v_reporter, p_now from runs r
   where r.id = p_run_id and r.player_id <> v_reporter
+    and exists (select 1 from runs mine
+                where mine.player_id = v_reporter and mine.status in ('finished', 'review'))
   on conflict do nothing;
 end $$;
 

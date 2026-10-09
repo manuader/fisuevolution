@@ -53,6 +53,18 @@ class CatalogoTests(unittest.TestCase):
                 catalogo.aplicar([distinta], destino)
             self.assertEqual(destino.read_text(encoding="utf-8"), original, "no escribe nada si frena")
 
+    def test_quitar_borra_y_queda_canonico_y_frena_ante_una_clave_que_no_existe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            destino = Path(tmp) / "Localizable.xcstrings"
+            destino.write_text(catalogo.LOCALIZABLE.read_text(encoding="utf-8"), encoding="utf-8")
+            catalogo.quitar(["splash.tip.merge"], destino)
+            self.assertTrue(catalogo.es_canonico(destino))
+            self.assertNotIn("splash.tip.merge", json.loads(destino.read_text(encoding="utf-8"))["strings"])
+            antes = destino.read_text(encoding="utf-8")
+            with self.assertRaises(SystemExit):
+                catalogo.quitar(["no.existe"], destino)
+            self.assertEqual(destino.read_text(encoding="utf-8"), antes, "no escribe nada si frena")
+
 
 if __name__ == "__main__":
     unittest.main()

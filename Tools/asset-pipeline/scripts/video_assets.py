@@ -8,7 +8,9 @@ PLAN-v2 E8, "Pipeline de video". Estas clases de pieza:
 - **Objetos**: el Paquete de la Aduana y el Colchon, su apertura y su espera en
   loop. Como los retratos, 512x512 con alfa, en `Resources/Loops/`.
 - **Cabina**: las puertas del ascensor que cierran y abren. 720x1280 en
-  `Resources/Cinematics/`, opaca salvo el hueco y las ventanas.
+  `Resources/Cinematics/`, opaca salvo el hueco y las ventanas. Mas sus dos
+  cuadros fijos en PNG (`cabina-cuadros`), el respaldo del juego si faltan los
+  clips; esos no van al manifest: el juego los pide por nombre.
 - **Cinematicas**: intro, reencarnacion, arresto y Dios (Seedance). 720x1280,
   en `Resources/Cinematics/`, con la pista de sonido del master si la trae.
 - **Personajes**: los cuerpos enteros de los puestos y los especiales, en loop.
@@ -46,6 +48,7 @@ en vez de adivinar.
     .venv/bin/python scripts/video_assets.py retrato npc_comisario
     .venv/bin/python scripts/video_assets.py objeto paquete_espera
     .venv/bin/python scripts/video_assets.py cabina puertas_abren
+    .venv/bin/python scripts/video_assets.py cabina-cuadros [--dir video/ascensor]
     .venv/bin/python scripts/video_assets.py cinematica arresto [--sin-key]
     .venv/bin/python scripts/video_assets.py personaje god
     .venv/bin/python scripts/video_assets.py personaje sp_influencer \
@@ -212,6 +215,8 @@ FIXED_IDS = {
     "cinematica": CINEMATIC_IDS, "objeto": OBJECT_IDS, "cabina": CABIN_IDS,
     "evento": EVENT_IDS, "icono": ICON_IDS, "fondo": FLOOR_IDS,
 }
+# Los cuadros fijos de la cabina: el master y el PNG del juego se llaman igual.
+CABIN_STILLS = ("cabina_cerrada.png", "cabina_abierta.png")
 
 # Un retrato es el loop de la canonica de un visitante: `npc_<nombre>` o
 # `sp_<id>`. Las poses (`_talk`, `_action`, `_face`) no tienen loop propio.
@@ -385,6 +390,23 @@ def framing_filter(kind: str, width: int, height: int) -> str:
     )
 
 
+def keyed_filter(kind: str, key_color: str, similarity: float, blend: float,
+                 framing: str) -> str:
+    """Key + despill + premultiplicado + encuadre, en ese orden.
+
+    Premultiplicado ANTES de escalar: el filtro de escala promedia vecinos, y con
+    el alfa recto el RGB de lo transparente (verde despillado) se colaria en el
+    borde. Y premultiplicado porque `AVPlayerLayer` composita el HEVC-alfa asi
+    (ver `encode_cinematic` del cofre: sin esto el fondo keyeado se suma al juego
+    como un velo)."""
+    if KINDS[kind].get("despill") == "tope":
+        keying = (f"{key_filter(key_color, similarity, blend, despill=False)},"
+                  f"format=gbrap,{DESPILL_TOPE}")
+    else:
+        keying = f"{key_filter(key_color, similarity, blend)},format=gbrap"
+    return f"{keying},premultiply=inplace=1,{framing},format=bgra"
+
+
 def encode(kind: str, master: Path, output: Path, key_color: str | None,
            similarity: float, blend: float) -> None:
     info = probe(master)
@@ -394,17 +416,7 @@ def encode(kind: str, master: Path, output: Path, key_color: str | None,
         video_filter = f"{framing},format=yuv420p"
         video_args = ["-c:v", "hevc_videotoolbox", "-q:v", HEVC_QUALITY]
     else:
-        # Premultiplicado ANTES de escalar: el filtro de escala promedia vecinos,
-        # y con el alfa recto el RGB de lo transparente (verde despillado) se
-        # colaria en el borde. Y premultiplicado porque `AVPlayerLayer` composita
-        # el HEVC-alfa asi (ver `encode_cinematic` del cofre: sin esto el fondo
-        # keyeado se suma al juego como un velo).
-        if KINDS[kind].get("despill") == "tope":
-            keying = (f"{key_filter(key_color, similarity, blend, despill=False)},"
-                      f"format=gbrap,{DESPILL_TOPE}")
-        else:
-            keying = f"{key_filter(key_color, similarity, blend)},format=gbrap"
-        video_filter = f"{keying},premultiply=inplace=1,{framing},format=bgra"
+        video_filter = keyed_filter(kind, key_color, similarity, blend, framing)
         video_args = [
             "-c:v", "hevc_videotoolbox",
             "-alpha_quality", HEVC_ALPHA_QUALITY,
@@ -558,6 +570,31 @@ def process(kind: str, piece_id: str, master: Path, keyed: bool = True,
     return entry
 
 
+def process_cabin_stills(source_dir: Path, similarity: float = KEY_SIMILARITY,
+                         blend: float = KEY_BLEND) -> list[Path]:
+    """Los dos cuadros fijos de la cabina -> PNG con alfa de 720x1280, con el key
+    de los clips. El juego los usa solo si no estan los clips (E13b T5), y los
+    pide por nombre: no van al manifest. Devuelve los PNG escritos."""
+    written = []
+    for still in CABIN_STILLS:
+        source = source_dir / still
+        if not source.exists():
+            raise MasterError(f"no existe el cuadro {source}")
+        key_color = measure_key_color(source, en_el_cuadro=True)
+        stream = video_stream(probe(source))
+        framing = framing_filter("cabina", int(stream["width"]), int(stream["height"]))
+        output = RESOURCES / KINDS["cabina"]["dir"] / still
+        output.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            ["ffmpeg", "-v", "error", "-i", str(source),
+             "-vf", keyed_filter("cabina", key_color, similarity, blend, framing),
+             "-frames:v", "1", "-update", "1", "-y", str(output)],
+            check=True,
+        )
+        written.append(output)
+    return written
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -573,6 +610,10 @@ def main() -> int:
         if kind == "cinematica":
             piece.add_argument("--sin-key", action="store_true",
                                help="la escena trae su propio fondo: opaca, sin alfa")
+    cuadros = sub.add_parser("cabina-cuadros", help="los dos cuadros fijos de la cabina")
+    cuadros.add_argument("--dir", type=Path, default=MASTERS / KINDS["cabina"]["masters"])
+    cuadros.add_argument("--similarity", type=float, default=KEY_SIMILARITY)
+    cuadros.add_argument("--blend", type=float, default=KEY_BLEND)
     args = parser.parse_args()
 
     if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
@@ -582,6 +623,10 @@ def main() -> int:
     try:
         if args.command == "medir":
             print(measure_key_color(args.video))
+            return 0
+        if args.command == "cabina-cuadros":
+            for still in process_cabin_stills(args.dir, args.similarity, args.blend):
+                print(f"[OK] {still.name}")
             return 0
         spec = KINDS[args.command]
         master = args.video or (

@@ -527,6 +527,237 @@ def sfx_elevator_ding():
     return buf
 
 
+def sfx_elevator_spring():
+    """Resorte de la placa ~0,45 s: un "boing" metálico que baja de tono, con
+    vibrato que se apaga y un roce de ruido filtrado al arrancar."""
+    dur = 0.450
+    buf = [0.0] * int(dur * SR)
+    render_tone(buf, 0.0, dur, glide(420.0, 260.0, dur), "triangle", 0.9,
+                env_perc(dur, attack=0.003, curve=4.0),
+                vib_hz=8.0, vib_depth=0.05)
+    render_tone(buf, 0.0, dur, glide(840.0, 520.0, dur), "sine", 0.18,
+                env_perc(dur, attack=0.003, curve=6.0),
+                vib_hz=8.0, vib_depth=0.05)
+    render_noise_lp(buf, 0.0, 0.080, 0.35, random.Random(420), 0.25,
+                    env_perc(0.080, attack=0.002, curve=4.0))
+    return buf
+
+
+def sfx_elevator_click():
+    """Clic de botón de metal ~0,08 s: un chasquido de 6 ms y un tono corto
+    de 2,2 kHz que lo cierra."""
+    dur = 0.080
+    buf = [0.0] * int(dur * SR)
+    render_noise(buf, 0.0, 0.006, 0.9, 0.0015, random.Random(2200))
+    render_tone(buf, 0.0, 0.030, 2200.0, "sine", 0.5,
+                env_perc(0.030, attack=0.0005, curve=6.0))
+    return buf
+
+
+def sfx_elevator_doors():
+    """Puertas ~0,6 s: corren con un roce que crece y chocan con un golpe
+    grave al final."""
+    dur = 0.600
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(900)
+    render_noise_lp(buf, 0.0, 0.45, 0.55, rng, 0.12, env_swell(0.45, 0.40, 0.05))
+    render_tone(buf, 0.48, 0.12, 90.0, "sine", 1.0,
+                env_perc(0.12, attack=0.002, curve=5.0))
+    render_noise(buf, 0.48, 0.030, 0.7, 0.008, rng)
+    return buf
+
+
+def sfx_elevator_motor():
+    """Motor ~1,8 s: zumbido de 55 y 110 Hz con el roce grave de los cables
+    que tiembla a 3 Hz."""
+    dur = 1.800
+    buf = [0.0] * int(dur * SR)
+    env = env_sustain(dur, a=0.15, r=0.25)
+    render_tone(buf, 0.0, dur, 55.0, "sine", 0.9, env)
+    render_tone(buf, 0.0, dur, 110.0, "triangle", 0.45, env)
+    shiver = env_sustain(dur, a=0.15, r=0.25)
+    render_noise_lp(buf, 0.0, dur, 0.5, random.Random(55), 0.04,
+                    lambda t: shiver(t) * (0.65 + 0.35 * math.sin(2 * math.pi * 3.0 * t)))
+    return buf
+
+
+def loop_seamless(buf, xfade):
+    """Cierra un buffer de N+xfade muestras en un loop de N sin costura: los
+    primeros `xfade` muestras se mezclan con la cola que sobra, así el final
+    empalma con el principio sin salto (el ruido filtrado no cierra solo)."""
+    n = len(buf) - xfade
+    out = buf[:n]
+    for i in range(xfade):
+        w = i / xfade
+        out[i] = buf[i] * w + buf[n + i] * (1.0 - w)
+    return out
+
+
+def sfx_package_rattle():
+    """Paquete sacudido, ambiente en loop de 2 s: golpecitos secos de cartón
+    y algo suelto que rebota adentro, repartidos sin patrón."""
+    n, x = 2 * SR, int(0.25 * SR)
+    buf = [0.0] * (n + x)
+    rng = random.Random(7001)
+    for t0, amp in ((0.05, 0.9), (0.21, 0.5), (0.52, 0.8), (0.64, 0.4),
+                    (0.98, 0.9), (1.12, 0.55), (1.43, 0.7), (1.58, 0.35),
+                    (1.81, 0.8)):
+        render_noise_lp(buf, t0, 0.045, amp, rng, 0.35,
+                        env_perc(0.045, attack=0.001, curve=5.0))
+        render_tone(buf, t0, 0.06, 170.0 + 40.0 * rng.random(), "triangle",
+                    amp * 0.5, env_perc(0.06, attack=0.001, curve=6.0))
+    # Golpes secos y mucho silencio: sin comprimir, el pico manda y el
+    # ambiente queda 7 dB abajo de lo pedido.
+    peak = max(abs(v) for v in buf)
+    buf = [math.tanh(4.0 * v / peak) for v in buf]
+    return loop_seamless(buf, x)
+
+
+def sfx_package_tape_rip():
+    """Cinta que se arranca ~0,5 s: un raspado largo que sube de tono, con
+    el temblor de los dientes de la cinta."""
+    dur = 0.500
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7002)
+    swell = env_swell(dur, 0.06, 0.12)
+    render_noise_lp(buf, 0.0, dur, 0.9, rng, 0.45,
+                    lambda t: swell(t) * (0.55 + 0.45 * math.sin(TWO_PI * 52.0 * t)))
+    render_noise(buf, 0.0, dur, 0.5, 0.2, rng,
+                 env=lambda t: swell(t) * (0.3 + 0.7 * t / dur))
+    return buf
+
+
+def sfx_package_burst():
+    """El paquete revienta ~0,45 s: un pop de cartón, el golpe grave de lo
+    que sale y una chispa aguda que se apaga."""
+    dur = 0.450
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7003)
+    render_noise(buf, 0.0, 0.040, 1.0, 0.010, rng)
+    render_noise_lp(buf, 0.0, 0.12, 0.8, rng, 0.3, env_perc(0.12, attack=0.001, curve=5.0))
+    render_tone(buf, 0.0, 0.22, glide(220.0, 70.0, 0.22), "sine", 1.0,
+                env_perc(0.22, attack=0.002, curve=4.0))
+    for i, f in enumerate((1568.0, 2093.0, 2637.0)):
+        render_tone(buf, 0.04 + 0.03 * i, 0.30 - 0.03 * i, f, "sine", 0.22,
+                    env_perc(0.30 - 0.03 * i, attack=0.002, curve=6.0))
+    peak = max(abs(v) for v in buf)
+    return [math.tanh(2.0 * v / peak) for v in buf]
+
+
+def sfx_mattress_squeak():
+    """Colchón que cruje, ambiente en loop de 2 s: dos chirridos de resorte
+    que suben y bajan, y un roce de tela entre uno y otro."""
+    n, x = 2 * SR, int(0.25 * SR)
+    buf = [0.0] * (n + x)
+    rng = random.Random(7004)
+    for t0, f0, f1, amp in ((0.10, 620.0, 880.0, 0.8), (0.62, 760.0, 540.0, 0.6),
+                            (1.12, 540.0, 820.0, 0.8), (1.58, 840.0, 600.0, 0.5)):
+        d = 0.26
+        render_tone(buf, t0, d, glide(f0, f1, d), "triangle", amp,
+                    env_swell(d, 0.05, 0.12), vib_hz=14.0, vib_depth=0.03)
+        render_tone(buf, t0, d, glide(f0 * 2, f1 * 2, d), "sine", amp * 0.18,
+                    env_swell(d, 0.05, 0.12), vib_hz=14.0, vib_depth=0.03)
+        render_noise_lp(buf, t0 + 0.3, 0.2, 0.25, rng, 0.08, env_swell(0.2, 0.08, 0.1))
+    return loop_seamless(buf, x)
+
+
+def sfx_mattress_rip():
+    """Tela que se abre ~0,55 s: un desgarro más grave y áspero que el de la
+    cinta, en tirones, y un golpe sordo de relleno al final."""
+    dur = 0.550
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7005)
+    swell = env_swell(0.45, 0.04, 0.10)
+    render_noise_lp(buf, 0.0, 0.45, 1.0, rng, 0.18,
+                    lambda t: swell(t) * (0.5 + 0.5 * abs(math.sin(TWO_PI * 17.0 * t))))
+    render_noise(buf, 0.0, 0.45, 0.3, 0.2, rng, env=lambda t: swell(t) * 0.6)
+    render_tone(buf, 0.44, 0.10, 80.0, "sine", 0.9, env_perc(0.10, attack=0.002, curve=5.0))
+    return buf
+
+
+def sfx_cash_burst():
+    """Lluvia de monedas ~0,7 s: un chasquido de billetes y veinte monedas
+    que repican en tonos distintos, cada vez más ralas."""
+    dur = 0.700
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7006)
+    render_noise(buf, 0.0, 0.050, 0.8, 0.012, rng)
+    for i in range(20):
+        t0 = 0.02 + 0.6 * (i / 20.0) ** 1.4
+        f = rng.choice((1976.0, 2349.0, 2637.0, 3136.0))
+        amp = 0.35 * (1.0 - i / 28.0)
+        render_tone(buf, t0, 0.09, f, "sine", amp, env_perc(0.09, attack=0.001, curve=7.0))
+        render_tone(buf, t0, 0.09, f * 1.5, "sine", amp * 0.4,
+                    env_perc(0.09, attack=0.001, curve=9.0))
+    return buf
+
+
+def sfx_visitor_arrive():
+    """Llegó alguien ~0,6 s: un timbre de dos notas (Mi6, Do6) de campanita."""
+    dur = 0.600
+    buf = [0.0] * int(dur * SR)
+    for t0, f in ((0.0, 1318.5), (0.20, 1046.5)):
+        d = dur - t0
+        for ratio, amp, curve in ((1.0, 1.0, 4.0), (2.0, 0.3, 6.0), (2.76, 0.14, 9.0)):
+            render_tone(buf, t0, d, f * ratio, "sine", amp,
+                        env_perc(d, attack=0.002, curve=curve))
+    return buf
+
+
+def sfx_talk_blip():
+    """Blip de voz ~0,07 s: un pulso redondo y corto. El tono por personaje
+    lo pone `AudioManager.talkPitch`, no el archivo."""
+    dur = 0.070
+    buf = [0.0] * int(dur * SR)
+    render_tone(buf, 0.0, dur, glide(520.0, 480.0, dur), "pulse25", 0.8,
+                env_sustain(dur, a=0.004, r=0.03))
+    render_tone(buf, 0.0, dur, glide(1040.0, 960.0, dur), "sine", 0.15,
+                env_sustain(dur, a=0.004, r=0.03))
+    return buf
+
+
+def sfx_shop_shimmer():
+    """Brillo de la tienda ~0,9 s: un arpegio de campanitas que sube
+    (Sol5 a Re7), cada una con su cola."""
+    dur = 0.900
+    buf = [0.0] * int(dur * SR)
+    for i, m in enumerate((79, 83, 86, 91, 95, 98)):
+        t0 = 0.07 * i
+        d = dur - t0
+        f = midi_hz(m)
+        render_tone(buf, t0, d, f, "sine", 0.7, env_perc(d, attack=0.002, curve=5.0))
+        render_tone(buf, t0, d, f * 2.76, "sine", 0.12, env_perc(d, attack=0.002, curve=9.0))
+    return buf
+
+
+def sfx_reveal_whoosh():
+    """Revelación ~0,7 s: un soplido que sube y se abre, con un tono que
+    barre de grave a agudo por debajo."""
+    dur = 0.700
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7010)
+    swell = env_swell(dur, 0.45, 0.22)
+    render_noise_lp(buf, 0.0, dur, 0.8, rng, 0.06, swell)
+    render_noise_lp(buf, 0.0, dur, 0.6, rng, 0.30,
+                    lambda t: swell(t) * (t / dur) ** 2)
+    render_tone(buf, 0.0, dur, glide(180.0, 900.0, dur), "sine", 0.35, swell)
+    return buf
+
+
+def sfx_elevator_cable():
+    """Cable del ascensor ~1,2 s: el roce metálico de la roldana, que tirita
+    a 14 Hz sobre un quejido grave de cable tenso."""
+    dur = 1.200
+    buf = [0.0] * int(dur * SR)
+    rng = random.Random(7011)
+    env = env_sustain(dur, a=0.2, r=0.3)
+    render_tone(buf, 0.0, dur, glide(150.0, 190.0, dur), "triangle", 0.6, env,
+                vib_hz=6.0, vib_depth=0.02)
+    render_noise_lp(buf, 0.0, dur, 0.7, rng, 0.2,
+                    lambda t: env(t) * (0.45 + 0.55 * abs(math.sin(TWO_PI * 7.0 * t))))
+    return buf
+
+
 # ---------------------------------------------------------------------------
 # Música — loops perfectos (render con wrap-around)
 # ---------------------------------------------------------------------------
@@ -1477,7 +1708,39 @@ SFX = {
     "sfx_wheel_tick": sfx_wheel_tick,
     "sfx_blackout": sfx_blackout,
     "sfx_elevator_ding": sfx_elevator_ding,
+    "sfx_elevator_spring": sfx_elevator_spring,
+    "sfx_elevator_click": sfx_elevator_click,
+    "sfx_elevator_doors": sfx_elevator_doors,
+    "sfx_elevator_motor": sfx_elevator_motor,
+    "sfx_package_rattle": sfx_package_rattle,
+    "sfx_package_tape_rip": sfx_package_tape_rip,
+    "sfx_package_burst": sfx_package_burst,
+    "sfx_mattress_squeak": sfx_mattress_squeak,
+    "sfx_mattress_rip": sfx_mattress_rip,
+    "sfx_cash_burst": sfx_cash_burst,
+    "sfx_visitor_arrive": sfx_visitor_arrive,
+    "sfx_talk_blip": sfx_talk_blip,
+    "sfx_shop_shimmer": sfx_shop_shimmer,
+    "sfx_reveal_whoosh": sfx_reveal_whoosh,
+    "sfx_elevator_cable": sfx_elevator_cable,
 }
+# Los efectos de la 2.0 nivelan por RMS (pico a -3 dBFS como techo) y no sólo
+# por pico: normalizar al pico dejó el motor del ascensor 8 dB arriba de los
+# demás. Los de ambiente van sin fundido de bordes: son loops cerrados.
+SFX_RMS_DB = {
+    "sfx_package_rattle": -23.0,
+    "sfx_package_tape_rip": -20.0,
+    "sfx_package_burst": -18.0,
+    "sfx_mattress_squeak": -23.0,
+    "sfx_mattress_rip": -20.0,
+    "sfx_cash_burst": -19.0,
+    "sfx_visitor_arrive": -19.0,
+    "sfx_talk_blip": -20.0,
+    "sfx_shop_shimmer": -21.0,
+    "sfx_reveal_whoosh": -21.0,
+    "sfx_elevator_cable": -24.0,
+}
+SFX_LOOPS = {"sfx_package_rattle", "sfx_mattress_squeak"}
 MUSIC = {
     "music_earth_loop": music_earth_loop,
 }
@@ -1566,8 +1829,12 @@ def main():
     for name, fn, kind in jobs:
         buf = fn()
         if kind == "sfx":
-            edge_fades(buf)  # anti-click garantizado en los bordes
-            buf = normalize(buf, SFX_PEAK_DB)
+            if name not in SFX_LOOPS:
+                edge_fades(buf)  # anti-click garantizado en los bordes
+            if name in SFX_RMS_DB:
+                buf = normalize_loudness(buf, SFX_RMS_DB[name], SFX_PEAK_DB)
+            else:
+                buf = normalize(buf, SFX_PEAK_DB)
             peak_db = SFX_PEAK_DB
         elif kind == "music":
             buf = normalize(buf, MUSIC_PEAK_DB)

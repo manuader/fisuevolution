@@ -386,6 +386,10 @@ public struct MetaState: Codable, Sendable, Equatable {
     public var unlockedTabs: Set<String>
     /// Lo que suman las épicas de engagement.
     public var engagement: EngagementState
+    /// Cuántas veces se reseteó la partida (E9). Sólo sube. Entre dos saves de épocas
+    /// distintas gana el más nuevo entero: así un save viejo de otro dispositivo (o de la
+    /// nube) no resucita la partida que el jugador borró.
+    public var resetEpoch: Int
 
     public init(
         lifetimeEarnings: Double,
@@ -419,7 +423,8 @@ public struct MetaState: Codable, Sendable, Equatable {
         lastRunMaxTier: Int = 0,
         quickHirePinnedTypeId: String? = nil,
         unlockedTabs: Set<String> = [],
-        engagement: EngagementState = .initial
+        engagement: EngagementState = .initial,
+        resetEpoch: Int = 0
     ) {
         self.lifetimeEarnings = lifetimeEarnings
         self.oro = oro
@@ -453,6 +458,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         self.quickHirePinnedTypeId = quickHirePinnedTypeId
         self.unlockedTabs = unlockedTabs
         self.engagement = engagement
+        self.resetEpoch = resetEpoch
     }
 
     /// Decodificador a mano por los campos que llegaron después de v4
@@ -520,6 +526,7 @@ public struct MetaState: Codable, Sendable, Equatable {
         quickHirePinnedTypeId = try container.decodeIfPresent(String.self, forKey: .quickHirePinnedTypeId)
         unlockedTabs = try container.decodeIfPresent(Set<String>.self, forKey: .unlockedTabs) ?? []
         engagement = try container.decodeIfPresent(EngagementState.self, forKey: .engagement) ?? .initial
+        resetEpoch = try container.decodeIfPresent(Int.self, forKey: .resetEpoch) ?? 0
     }
 
     private enum LegacyKeys: String, CodingKey {

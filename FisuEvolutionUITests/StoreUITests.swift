@@ -21,8 +21,8 @@ final class StoreUITests: XCTestCase {
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
         app.launch()
 
-        let store = app.buttons["hud.store"]
-        XCTAssertTrue(store.waitForExistence(timeout: 20), "el botón del carrito nunca apareció")
+        let store = app.buttons["hud.coins.plus"]
+        XCTAssertTrue(store.waitForExistence(timeout: 20), "el + de la moneda nunca apareció")
         store.tap()
         return app
     }

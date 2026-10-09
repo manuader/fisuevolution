@@ -156,18 +156,23 @@ public enum BoardChangePlanner {
 
     /// La mejor unidad que puede subir sola un tier. Un nodo de carrera no se
     /// cruza solo: eso lo decide el jugador.
+    ///
+    /// `maxSourceTier`: el tier más alto que puede evolucionar. La Startup pasa
+    /// `frontera − 2` y así nunca revela un tier (PLAN-v2 E13). `revalidate`
+    /// conserva el tope: replanea con otra unidad del mismo tipo.
     public static func planEvolve(
         state: PlayerState,
         tower: TowerState,
         tiers: TierRepository,
         floorTable: FloorTable,
+        maxSourceTier: Int,
         origin: BoardChange.Origin
     ) -> BoardChange? {
         let units = tower.floors.indices
             .flatMap { tower.placements(onFloor: $0) }
             .compactMap { placement in tiers.type(id: placement.typeId).map { (placement, $0) } }
             .sorted { (-$0.1.tier, $0.0.floorOrdinal, $0.0.slot) < (-$1.1.tier, $1.0.floorOrdinal, $1.0.slot) }
-        for (placement, type) in units {
+        for (placement, type) in units where type.tier <= maxSourceTier {
             guard let nextId = type.mergesInto, let next = tiers.type(id: nextId), !next.isChoiceNode,
                   fits(nextId, from: placement.floorOrdinal, tower: tower, tiers: tiers, floorTable: floorTable)
             else { continue }

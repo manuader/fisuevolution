@@ -3155,6 +3155,23 @@
         }
       }
     },
+    "elevator.floor.current" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "you are here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "estás acá"
+          }
+        }
+      }
+    },
     "elevator.floor.locked" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3185,6 +3202,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "en marcha"
+          }
+        }
+      }
+    },
+    "elevator.keypad.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elevator keypad"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Botonera del ascensor"
+          }
+        }
+      }
+    },
+    "elevator.ride.skip.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip the ride"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saltear el viaje"
           }
         }
       }
@@ -3393,19 +3444,36 @@
         }
       }
     },
-    "event.startup_comprada.flavor" : {
-      "extractionState" : "stale",
+    "event.startup_comprada.cash" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A big tech just acquired you! Hoodie on: your top unit evolves for free."
+            "value" : "A big tech just acquired you! Nobody to promote, so they paid you in cash."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Te compró una big tech! Ponete el hoodie: tu unidad top evoluciona gratis."
+            "value" : "¡Te compró una big tech! Nadie para ascender, así que te pagaron en efectivo."
+          }
+        }
+      }
+    },
+    "event.startup_comprada.flavor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A big tech just acquired you! Hoodie on: one of your workers evolves for free."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Te compró una big tech! Ponete el hoodie: uno de tus empleados evoluciona gratis."
           }
         }
       }
@@ -3817,18 +3885,18 @@
       }
     },
     "hud.coins.plus.label" : {
-      "extractionState" : "stale",
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Buy coins"
+            "value" : "Store"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comprar monedas"
+            "value" : "Tienda"
           }
         }
       }
@@ -5418,6 +5486,57 @@
         }
       }
     },
+    "quickhire.ax.cant_afford" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "not enough coins"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no te alcanza"
+          }
+        }
+      }
+    },
+    "quickhire.ax.choose" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose who to hire"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir a quién contratar"
+          }
+        }
+      }
+    },
+    "quickhire.ax.pinned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pinned"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "fijado"
+          }
+        }
+      }
+    },
     "quickhire.ax.purpose %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5431,6 +5550,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Contratar a %@"
+          }
+        }
+      }
+    },
+    "quickhire.blocker.floor_full" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Floor full"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piso lleno"
           }
         }
       }
@@ -9820,6 +9956,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Piso nuevo! Tocá el ascensor y saltá directo a cualquier piso desbloqueado."
+          }
+        }
+      }
+    },
+    "tutorial.tip.elevator.hold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press and hold the elevator to pick a floor."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantené apretado el ascensor para elegir piso."
           }
         }
       }

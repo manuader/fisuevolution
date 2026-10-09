@@ -29,6 +29,41 @@ final class AudioManager {
         case chestShakeB = "sfx_chest_shake_b"
         /// La campana de la botonera del ascensor (E8 audio, cableada en E3).
         case elevatorDing = "sfx_elevator_ding"
+        /// El ascensor de E13: placa, botón, puertas y motor.
+        case elevatorSpring = "sfx_elevator_spring"
+        case elevatorClick = "sfx_elevator_click"
+        case elevatorDoors = "sfx_elevator_doors"
+        case elevatorMotor = "sfx_elevator_motor"
+        /// El cable del viaje, por debajo del motor.
+        case elevatorCable = "sfx_elevator_cable"
+        /// El paquete que espera, ambiente en loop; la cinta, el reventón.
+        case packageRattle = "sfx_package_rattle"
+        case packageTapeRip = "sfx_package_tape_rip"
+        case packageBurst = "sfx_package_burst"
+        /// El colchón que espera, ambiente en loop; el desgarro, la lluvia de plata.
+        case mattressSqueak = "sfx_mattress_squeak"
+        case mattressRip = "sfx_mattress_rip"
+        case cashBurst = "sfx_cash_burst"
+        /// El timbre de un visitante que llega y el blip de su voz (el tono lo pone `talkPitch`).
+        case visitorArrive = "sfx_visitor_arrive"
+        case talkBlip = "sfx_talk_blip"
+        /// El brillo de la tarjeta de la tienda.
+        case shopShimmer = "sfx_shop_shimmer"
+        /// El soplido de una revelación.
+        case revealWhoosh = "sfx_reveal_whoosh"
+    }
+
+    /// Cuánto se atenúa un efecto respecto del volumen de Ajustes: la acción
+    /// a -6 dB y el ambiente (espera, zumbido) a -18 dB.
+    enum Gain {
+        case action, ambient
+
+        var linear: Float {
+            switch self {
+            case .action: pow(10, -6.0 / 20)
+            case .ambient: pow(10, -18.0 / 20)
+            }
+        }
     }
 
     static let musicVolumeKey = "settings.musicVolume"
@@ -112,6 +147,7 @@ final class AudioManager {
                   let data = await Self.read(url),
                   let player = try? AVAudioPlayer(data: data)
             else { continue }
+            player.enableRate = true
             player.volume = Float(sfxVolume)
             player.prepareToPlay()
             sfxPlayers[sfx] = player
@@ -250,23 +286,75 @@ final class AudioManager {
     }
 
     func play(_ sfx: SFX) {
+        play(sfx, volume: Float(sfxVolume), rate: 1)
+    }
+
+    /// Un efecto con ganancia (`Gain`) y tono: `pitch` 1 es el original, 1,25 una
+    /// tercera mayor arriba.
+    func play(_ sfx: SFX, gain: Gain, pitch: Float = 1) {
+        play(sfx, volume: Float(sfxVolume) * gain.linear, rate: pitch)
+    }
+
+    private func play(_ sfx: SFX, volume: Float, rate: Float) {
         guard sfxVolume > 0 else { return }
         let now = Date().timeIntervalSince1970
         guard now - (lastPlayed[sfx] ?? 0) > Self.throttleWindow else { return }
         lastPlayed[sfx] = now
+        guard let player = player(for: sfx) else { return }
+        player.currentTime = 0
+        player.volume = volume
+        player.rate = rate
+        player.play()
+    }
 
-        if let player = sfxPlayers[sfx] {
-            player.currentTime = 0
-            player.volume = Float(sfxVolume)
-            player.play()
-            return
+    /// Un ambiente en loop a -18 dB. Si ya suena, no lo reinicia.
+    func startAmbient(_ sfx: SFX) {
+        guard sfxVolume > 0, let player = player(for: sfx), !player.isPlaying else { return }
+        player.numberOfLoops = -1
+        player.currentTime = 0
+        player.rate = 1
+        player.volume = Float(sfxVolume) * Gain.ambient.linear
+        player.play()
+    }
+
+    /// Corta el ambiente con un fundido, que parar una onda a media amplitud hace clic.
+    func stopAmbient(_ sfx: SFX) {
+        guard let player = sfxPlayers[sfx], player.isPlaying else { return }
+        player.setVolume(0, fadeDuration: Self.ambientFade)
+        Task {
+            try? await Task.sleep(for: .seconds(Self.ambientFade))
+            if player.volume == 0 {
+                player.stop()
+                player.numberOfLoops = 0
+            }
         }
+    }
+
+    private static let ambientFade: TimeInterval = 0.2
+
+    /// El tono del blip de un personaje: estable entre corridas (FNV-1a, que
+    /// `hashValue` cambia por proceso) y dentro de 0,8–1,25.
+    nonisolated static func talkPitch(for speakerId: String) -> Float {
+        var hash: UInt32 = 2_166_136_261
+        for byte in speakerId.utf8 {
+            hash = (hash ^ UInt32(byte)) &* 16_777_619
+        }
+        return 0.8 + 0.45 * Float(hash % 1000) / 999
+    }
+
+    private func player(for sfx: SFX) -> AVAudioPlayer? {
+        if let player = sfxPlayers[sfx] { return player }
         guard let url = url(forResource: sfx.rawValue),
               let player = try? AVAudioPlayer(contentsOf: url)
-        else { return }
-        player.volume = Float(sfxVolume)
+        else { return nil }
+        player.enableRate = true
         sfxPlayers[sfx] = player
-        player.play()
+        return player
+    }
+
+    /// Corta un SFX que todavía suena (el motor del ascensor al saltear el viaje).
+    func stop(_ sfx: SFX) {
+        sfxPlayers[sfx]?.stop()
     }
 
     private func url(forResource name: String) -> URL? {

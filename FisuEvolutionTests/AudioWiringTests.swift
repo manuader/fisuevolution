@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+@testable import FisuEvolution
 
 /// `sfx_error` venía en el bundle desde el primer día y no lo disparaba ningún
 /// call site: cinco acciones —contratar sin plata, mergear a un piso lleno,
@@ -21,6 +22,23 @@ import Testing
         "tap", "merge", "evolution", "coin", "buy",
         "error", "rare", "prestige", "event", "daily",
         "chestShakeA", "chestShakeB",
+    ]
+
+    /// Los efectos sintetizados que todavía no tienen call site, con la tarea
+    /// que los cablea. Al cablearse, la tarea mueve el caso a `declaredCases`.
+    private static let pendingWiring: [String: String] = [
+        "packageRattle": "E5b T3", "packageTapeRip": "E5b T3", "packageBurst": "E5b T3",
+        "mattressSqueak": "E5b T2", "mattressRip": "E5b T2", "cashBurst": "E5b T2",
+        "visitorArrive": "E4b T3", "talkBlip": "E4b T3",
+        "shopShimmer": "E6a T8",
+        "revealWhoosh": "E8d T5/T9",
+        "elevatorCable": "E8d T10",
+    ]
+
+    /// Los del ascensor suenan desde `UI/HUD` y `UI/Elevator` (E13b), no desde
+    /// una acción de `GameState`.
+    private static let elevatorCases = [
+        "elevatorDing", "elevatorSpring", "elevatorClick", "elevatorDoors", "elevatorMotor",
     ]
 
     /// Las acciones de `GameState` más los popups: las sacudidas del cofre
@@ -105,6 +123,18 @@ import Testing
             .reduce(into: Set<String>()) { $0.formUnion(Self.enumCases(in: $1)) }
         let orphans = Self.declaredCases.filter { !fired.contains($0) }
         #expect(orphans.isEmpty, "SFX declarados que no dispara nadie: \(orphans)")
+    }
+
+    @Test("todo SFX está cableado o tiene dueño")
+    func everySFXIsWiredOrOwned() {
+        let known = Set(Self.declaredCases)
+            .union(Self.pendingWiring.keys)
+            .union(Self.elevatorCases)
+        let cases = AudioManager.SFX.allCases.map { "\($0)" }
+        let unowned = cases.filter { !known.contains($0) }
+        #expect(unowned.isEmpty, "SFX sin cablear y sin dueño: \(unowned)")
+        let ghosts = known.filter { !cases.contains($0) }
+        #expect(ghosts.isEmpty, "casos declarados que ya no existen: \(ghosts)")
     }
 
     @Test("el parser cuenta un ternario como cableado, no como huérfano")

@@ -1035,9 +1035,10 @@ enum GameScreen: String, Identifiable, CaseIterable {
     }
 
     /// El orden de la barra de abajo y del paginador del menú (PLAN-v2 E3):
-    /// Contratar al centro, con dos pestañas a la izquierda y tres a la derecha.
-    /// NO es `allCases`, que conserva el orden histórico.
-    static let barOrder: [GameScreen] = [.upgrades, .skins, .jobs, .gifts, .store, .menu]
+    /// Contratar al centro, dos y dos. La Tienda no está: la abre el + de la
+    /// moneda (PLAN-v2 E13, ítem 14). NO es `allCases`, que conserva el orden
+    /// histórico.
+    static let barOrder: [GameScreen] = [.upgrades, .skins, .jobs, .gifts, .menu]
 
     /// La pestaña del centro, la más grande.
     static let centerTab: GameScreen = .jobs
@@ -1115,13 +1116,29 @@ struct GameTabBar: View {
     /// Aire arriba de los platos comunes, adentro del panel.
     static let topPadding: CGFloat = 6
     /// Plato de una pestaña común y el de Contratar.
-    static let plateSide: CGFloat = 44
-    static let centerPlateSide: CGFloat = 64
+    static let plateSide: CGFloat = 52
+    static let centerPlateSide: CGFloat = 72
     /// El espacio entre pestañas: el literal 2 de la v1.
     static let spacing: CGFloat = 2
 
+    /// Aire entre los platos y el piso de la barra, ahora que no hay rótulos.
+    static let bottomPadding: CGFloat = 6
+    /// Lugares por lado de Contratar: la barra es 2 + 1 + 2.
+    static let slotsPerSide = 2
+
+    enum Side { case leading, trailing }
+
+    /// Los lugares de un lado de la barra, del borde al centro (`leading`) o del centro al borde
+    /// (`trailing`). Las pestañas se pegan a Contratar: con una sola abierta, ocupa el lugar de al
+    /// lado del centro (PLAN-v2 E13, ítem 14).
+    static func slots(_ items: [GameTabItem], towardCenterFrom side: Side) -> [GameTabItem?] {
+        let padding = [GameTabItem?](repeating: nil, count: max(0, slotsPerSide - items.count))
+        let filled = items.prefix(slotsPerSide).map { Optional($0) }
+        return side == .leading ? padding + filled : filled + padding
+    }
+
     /// Alto del panel visible, sin la safe area ni el piso de abajo: 6 de aire +
-    /// 44 de plato + 2 + 12 del nombre. Es lo que le tapa el tablero a la
+    /// 52 de plato + 6 hasta el piso. Es lo que le tapa el tablero a la
     /// multitud (`BoardScene.bottomInset`): 20 pt menos que la v1 (84), que es lo
     /// que pidió la crítica de la barra (PLAN-v2 §2).
     static let panelHeight: CGFloat = 64
@@ -1160,7 +1177,7 @@ struct GameTabBar: View {
         // Contratar. Las dos zonas miden lo mismo, así que Contratar queda al
         // centro exacto tenga cuantas pestañas tenga cada lado.
         HStack(alignment: .bottom, spacing: Self.spacing) {
-            zone(leading)
+            zone(leading, side: .leading)
             if let center {
                 GameTabButton(item: center) { selection(center.screen) }
                     // Ancho fijo: el botón se estira (`maxWidth: .infinity`) y,
@@ -1168,22 +1185,30 @@ struct GameTabBar: View {
                     // tres pestañas no entraría en el SE.
                     .frame(width: Self.centerColumnWidth)
             }
-            zone(trailing)
+            zone(trailing, side: .trailing)
         }
         .padding(.horizontal, Tokens.s8)
         .padding(.top, Self.topPadding)
-        .padding(.bottom, bottomGap)
+        .padding(.bottom, Self.bottomPadding + bottomGap)
         .playColumn()
         .background(alignment: .bottom) {
             bottomPanel.padding(.top, Self.centerRise)
         }
     }
 
-    private func zone(_ zoneItems: [GameTabItem]) -> some View {
-        HStack(alignment: .bottom, spacing: Self.spacing) {
-            ForEach(zoneItems) { item in
-                GameTabButton(item: item) { selection(item.screen) }
-                    .transition(.scale(scale: 0.4).combined(with: .opacity))
+    private func zone(_ zoneItems: [GameTabItem], side: Side) -> some View {
+        let slots = Self.slots(zoneItems, towardCenterFrom: side)
+        return HStack(alignment: .bottom, spacing: Self.spacing) {
+            ForEach(slots.indices, id: \.self) { index in
+                if let item = slots[index] {
+                    GameTabButton(item: item) { selection(item.screen) }
+                        .frame(maxWidth: .infinity)
+                        .transition(.scale(scale: 0.4).combined(with: .opacity))
+                } else {
+                    Color.clear
+                        .frame(maxWidth: .infinity)
+                        .frame(height: Self.plateSide)
+                }
             }
         }
         .frame(maxWidth: .infinity)
@@ -1237,61 +1262,45 @@ private struct GameTabButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var bounce = 0
 
-    /// Platos de 44 y 64 (Contratar) con iconos de 38 y 56: la barra baja 20 pt
-    /// y el centro sobresale, como en Cow Evolution. Las seis entran en el SE con
-    /// aire (`GameTabBar.minimumWidth`).
+    /// Platos de 52 y 72 (Contratar) con iconos de 46 y 64, sin rótulos: el centro
+    /// sobresale 20 pt. Las cinco entran en el SE con aire (`GameTabBar.minimumWidth`).
     private var side: CGFloat { item.prominent ? GameTabBar.centerPlateSide : GameTabBar.plateSide }
-    private var iconSide: CGFloat { item.prominent ? 56 : 38 }
+    private var iconSide: CGFloat { item.prominent ? 64 : 46 }
 
     var body: some View {
         Button {
             if !reduceMotion { bounce += 1 }
             action()
         } label: {
-            VStack(spacing: 2) {
-                ZStack {
-                    plate
-                    item.icon
-                        .frame(width: iconSide, height: iconSide)
+            ZStack {
+                plate
+                item.icon
+                    .frame(width: iconSide, height: iconSide)
+            }
+            .frame(width: side, height: side)
+            // `.overlay`, no un hijo: el badge no puede mover ni un punto
+            // del layout (374 ≤ 375 en SE). Dentro del `keyframeAnimator`
+            // a propósito: el puntito rebota con su tab.
+            .overlay(alignment: .topTrailing) {
+                if item.showsBadge {
+                    NotificationBadge()
+                        .offset(x: 5, y: -3)
                 }
-                .frame(width: side, height: side)
-                // `.overlay`, no un hijo: el badge no puede mover ni un punto
-                // del layout (374 ≤ 375 en SE). Dentro del `keyframeAnimator`
-                // a propósito: el puntito rebota con su tab.
-                .overlay(alignment: .topTrailing) {
-                    if item.showsBadge {
-                        NotificationBadge()
-                            .offset(x: 5, y: -3)
-                    }
+            }
+            .overlay(alignment: .top) {
+                if item.isNew {
+                    NewTabBadge()
+                        .offset(y: -12)
                 }
-                .overlay(alignment: .top) {
-                    if item.isNew {
-                        NewTabBadge()
-                            .offset(y: -12)
-                    }
+            }
+            .keyframeAnimator(initialValue: 1.0, trigger: bounce) { view, scale in
+                view.scaleEffect(scale)
+            } keyframes: { _ in
+                KeyframeTrack {
+                    CubicKeyframe(0.9, duration: 0.08)
+                    SpringKeyframe(1.14, duration: 0.14, spring: .bouncy)
+                    SpringKeyframe(1.0, duration: 0.22, spring: .bouncy)
                 }
-                .keyframeAnimator(initialValue: 1.0, trigger: bounce) { view, scale in
-                    view.scaleEffect(scale)
-                } keyframes: { _ in
-                    KeyframeTrack {
-                        CubicKeyframe(0.9, duration: 0.08)
-                        SpringKeyframe(1.14, duration: 0.14, spring: .bouncy)
-                        SpringKeyframe(1.0, duration: 0.22, spring: .bouncy)
-                    }
-                }
-                // El nombre del destino, que hasta ahora sólo existía para
-                // VoiceOver: seis glifos sin texto se aprenden a la larga, pero
-                // la primera partida es adivinanza.
-                //
-                // ⚠️ Usa la MISMA clave que el label de AX de abajo, así lo que
-                // se ve y lo que dicta VoiceOver no pueden divergir. Y vive
-                // DENTRO del label del `Button`, así que no arma una parada de
-                // AX propia: el botón sigue siendo un solo elemento.
-                Text(LocalizedStringKey(item.labelKey))
-                    .font(.system(size: 10, design: .rounded).weight(.heavy))
-                    .foregroundStyle(Color("PaletteInk"))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
             }
             .frame(maxWidth: .infinity)
             .contentShape(Rectangle())

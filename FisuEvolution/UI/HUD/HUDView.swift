@@ -6,8 +6,8 @@ import SwiftUI
 ///
 /// Quedan **dos** closures de las cinco que recibía: bonus, mejoras y ajustes se
 /// mudaron a la barra inferior (`BottomMenuBar`) junto con la fila transitoria
-/// de cuatro íconos que vivía acá. La tienda sobrevive porque el HUD conserva su
-/// propio atajo —la moneda con el `+`—, que apunta al mismo destino que el tab.
+/// de cuatro íconos que vivía acá. La tienda ya no está en la barra: la moneda
+/// con el `+` es **la** entrada (PLAN-v2 E13, ítem 14).
 ///
 /// Observa **proyecciones** de `GameState` (`coinsText`, `towerNavigation`,
 /// `towerIncomePerSecondText`, `prestigePreview`), nunca `PlayerState`.
@@ -139,9 +139,9 @@ struct HUDView: View {
         .frame(maxWidth: .infinity)
     }
 
-    /// Atajo a la tienda: la moneda con el `+` rosa. Mismo destino que el
-    /// carrito (`onStoreTap`), pero puesto donde el jugador mira justo cuando
-    /// descubre que no le alcanza.
+    /// La entrada a la tienda: la moneda con el `+` rosa, puesta donde el
+    /// jugador mira justo cuando descubre que no le alcanza. Lleva el ancla de la
+    /// lección `.store` del tutorial.
     private var coinsPlusButton: some View {
         IconButton(
             artKey: "ui_coin_plus",
@@ -155,6 +155,7 @@ struct HUDView: View {
             identifier: "hud.coins.plus",
             action: onStoreTap
         )
+        .tutorialAnchor(.store)
     }
 
     /// El centro de la barra. El `VStack` **no** lleva identifier: adentro hay

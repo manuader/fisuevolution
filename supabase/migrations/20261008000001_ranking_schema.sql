@@ -20,7 +20,9 @@ create table public.runs (
   status public.run_status not null default 'active',
   name_status public.name_status not null default 'missing',
   moderation_attempts integer not null default 0,
-  app_version text not null check (char_length(app_version) <= 32)
+  app_version text not null check (char_length(app_version) <= 32),
+  client_run_id uuid not null default gen_random_uuid(),
+  unique (player_id, client_run_id)
 );
 create unique index runs_one_active_per_player on public.runs(player_id) where status = 'active';
 create index runs_board on public.runs(real_seconds, finished_at) where status = 'finished';

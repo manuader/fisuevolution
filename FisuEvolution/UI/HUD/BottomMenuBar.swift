@@ -18,7 +18,7 @@ import SwiftUI
 /// barra en nada que lleve identificador propio.
 struct BottomMenuBar: View {
     /// Qué pantalla abrir. La barra no presenta nada: el `.sheet(item:)` único
-    /// de las seis vive en `GameBoardView`.
+    /// de las cinco vive en `GameBoardView`.
     let select: (GameScreen) -> Void
 
     /// Para los dos puntitos: logros cobrables en el tab Menú y cofres sin abrir
@@ -97,22 +97,20 @@ struct BottomMenuBar: View {
     /// Espejan a `GameTabButton.iconSide`, que es privado: el icono se dibuja a
     /// su propio tamaño y el botón lo enmarca en el mismo, así que si allá
     /// cambiaran quedarían centrados en el plato en vez de romperse.
-    private static let iconSide: CGFloat = 38
-    private static let prominentIconSide: CGFloat = 56
+    private static let iconSide: CGFloat = 46
+    private static let prominentIconSide: CGFloat = 64
 
     /// El glifo de cada tab, ya type-borrado, **y con el ancla del tutorial
     /// puesta donde corresponde**.
     ///
     /// ⚠️ El ancla va en el ICONO y no en la barra: `GameTabItem` no expone el
-    /// botón, y marcar el contenedor le daría al tutorial el frame de los seis
+    /// botón, y marcar el contenedor le daría al tutorial el frame de los cinco
     /// tabs juntos —un recorte que abarca media pantalla y no enseña nada—. El
     /// icono está centrado en su plato y mide `iconSide`, así que el recorte
     /// —que `TutorialOverlay` infla 10 pt por lado— cae sobre el plato con un
-    /// hilo de aire alrededor: 56+20 = 76 sobre los 64 de Contratar,
-    /// 38+20 = 58 sobre los 44 de una común. Desde que el icono es el que
-    /// manda, el recorte sobra 6 pt por lado en vez de faltar: sigue leyéndose
-    /// como un halo del tab y no como un cuadrado suelto (verificado en
-    /// captura), y como el label vive debajo del plato, el recorte no lo tapa.
+    /// hilo de aire alrededor: 64+20 = 84 sobre los 72 de Contratar,
+    /// 46+20 = 66 sobre los 52 de una común. El recorte sobra 6 pt por lado:
+    /// sigue leyéndose como un halo del tab y no como un cuadrado suelto.
     private func icon(for screen: GameScreen) -> AnyView {
         let side = Self.isProminent(screen) ? Self.prominentIconSide : Self.iconSide
         switch screen {
@@ -140,10 +138,10 @@ struct BottomMenuBar: View {
                 GameIcon(artKey: "ui_tab_gifts", size: side) { VectorTabGiftsIcon() }
                     .tutorialAnchor(.gifts)
             )
+        // La Tienda no llega a la barra (`barOrder`); la abre el + de la moneda.
         case .store:
             return AnyView(
                 GameIcon(artKey: "ui_tab_shop", size: side) { VectorTabShopIcon() }
-                    .tutorialAnchor(.store)
             )
         case .menu:
             return AnyView(

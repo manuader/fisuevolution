@@ -223,9 +223,7 @@ extension GameState {
                 state: player, tiers: content.tiers, floorTable: content.floorTable, config: content.economy
             ) > 0
         case .instantEvolution:
-            return BoardChangePlanner.planEvolve(
-                state: player, tower: tower, tiers: content.tiers, floorTable: content.floorTable, origin: .eventStartup
-            ) != nil
+            return startupEvolution(for: event) != nil || startupFallbackCoins(for: event) > 0
         case .freeHighTier:
             guard let type = EventManager.blanqueoType(for: event, state: player, tiers: content.tiers) else { return false }
             return BoardChangePlanner.planArrival(
@@ -233,6 +231,22 @@ extension GameState {
                 floorTable: content.floorTable, origin: .eventBlanqueo
             ) != nil
         }
+    }
+
+    /// La evolución de la Startup: la mejor unidad a `magnitude` tiers o más de
+    /// la frontera. Nunca abre un tier (PLAN-v2 E13).
+    func startupEvolution(for event: EventsConfig.Event) -> BoardChange? {
+        guard let content, let player, let tower else { return nil }
+        return BoardChangePlanner.planEvolve(
+            state: player, tower: tower, tiers: content.tiers, floorTable: content.floorTable,
+            maxSourceTier: player.run.maxTierReached - Int(event.magnitude), origin: .eventStartup
+        )
+    }
+
+    /// Lo que paga la Startup cuando no hay quién evolucione (0 si no tiene respaldo).
+    func startupFallbackCoins(for event: EventsConfig.Event) -> Double {
+        guard let fallback = event.fallback, let content, let economy, let player else { return 0 }
+        return Self.coinReward(seconds: fallback.coinsSeconds, player: player, content: content, economy: economy)
     }
 
     func fireEventIfDue(now: TimeInterval) {
@@ -285,11 +299,20 @@ extension GameState {
 
     func handleEventRoll(_ roll: EventManager.Roll, now: TimeInterval) {
         guard let content, let player, let tower else { return }
+        var active = roll.active
         switch roll.boardIntent {
         case .evolveBestUnit:
-            BoardChangePlanner.planEvolve(
-                state: player, tower: tower, tiers: content.tiers, floorTable: content.floorTable, origin: .eventStartup
-            ).map(enqueueBoardChange)
+            if let change = startupEvolution(for: roll.event) {
+                enqueueBoardChange(change)
+            } else if let fallback = roll.event.fallback {
+                active = roll.active.map {
+                    EventManager.ActiveEvent(
+                        id: $0.id, flavorTextKey: fallback.flavorTextKey, isBuff: $0.isBuff,
+                        endsAt: $0.endsAt, escapableByVideo: $0.escapableByVideo
+                    )
+                }
+                payStartupFallback(for: roll.event)
+            }
         case .grantUnit(let typeId):
             BoardChangePlanner.planArrival(
                 typeId: typeId, state: player, tower: tower, tiers: content.tiers,
@@ -299,11 +322,20 @@ extension GameState {
             break
         }
         eventLastFired[roll.event.id] = now
-        activeEvent = roll.active
+        activeEvent = active
         audio?.play(.event)
         bumpBoard()
         scheduleSave()
         Log.economy.info("event fired: \(roll.event.id)")
+    }
+
+    private func payStartupFallback(for event: EventsConfig.Event) {
+        let amount = startupFallbackCoins(for: event)
+        guard amount > 0, var player else { return }
+        player.run.coins += amount
+        player.meta.lifetimeEarnings += amount
+        self.player = player
+        if isSceneActive { audio?.play(.coin) }
     }
 
     // MARK: Daily + shares (F5)

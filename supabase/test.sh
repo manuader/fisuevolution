@@ -8,6 +8,8 @@ set -euo pipefail
 
 # Sin un locale válido el postmaster de macOS aborta ("became multithreaded during startup").
 export LC_ALL=C
+# Sin colores: el resumen de deno se lee con grep.
+export NO_COLOR=1
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
@@ -33,7 +35,7 @@ find_deno() {
   if command -v deno >/dev/null 2>&1; then
     DENO=(deno)
   elif [ -x /usr/local/bin/docker ] && /usr/local/bin/docker info >/dev/null 2>&1; then
-    DENO=(/usr/local/bin/docker run --rm -e DATABASE_URL -v "$ROOT":/w -w /w denoland/deno:2.5.0)
+    DENO=(/usr/local/bin/docker run --rm -e DATABASE_URL -e NO_COLOR -v "$ROOT":/w -w /w denoland/deno:2.5.0)
     DENO_DB_HOST=host.docker.internal
   else
     echo "instalar deno: \`brew install deno\`" >&2
@@ -50,6 +52,7 @@ run_deno() {
     echo "deno: 0 archivos de test en supabase/functions/, salteado"
     return
   fi
+  "${DENO[@]}" lint --config supabase/deno.json supabase/functions/ || { echo "deno: lint ROJO"; exit 1; }
   local out
   out="$(mktemp)"
   local status

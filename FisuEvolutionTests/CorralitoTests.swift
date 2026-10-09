@@ -40,7 +40,7 @@ struct CorralitoTests {
         gameState.debugGrantCoins()
         gameState.refreshProjections()
         #expect(gameState.canAffordSpawn)
-        #expect(gameState.bestHire?.affordable == true)
+        #expect(gameState.quickHireOffer?.affordable == true)
         #expect(gameState.jobRows.contains { $0.affordable })
         let upgradable = try #require(gameState.characterUpgradeRows.first { $0.canAffordUpgrade })
         #expect(gameState.characterUpgradeRows.contains { $0.canAffordPassive })
@@ -49,7 +49,7 @@ struct CorralitoTests {
         gameState.refreshProjections()
 
         #expect(!gameState.canAffordSpawn)
-        #expect(gameState.bestHire?.affordable == false)
+        #expect(gameState.quickHireOffer?.affordable == false)
         #expect(gameState.jobRows.allSatisfy { !$0.affordable })
         #expect(gameState.characterUpgradeRows.allSatisfy { !$0.canAffordUpgrade && !$0.canAffordPassive })
 
@@ -74,7 +74,7 @@ struct CorralitoTests {
 
         #expect(gameState.spendingFrozenUntil != nil)
         #expect(gameState.canAffordSpawn)
-        #expect(gameState.bestHire?.affordable == true)
+        #expect(gameState.quickHireOffer?.affordable == true)
         #expect(gameState.jobRows.contains { $0.affordable })
         let base = try #require(gameState.content?.tiers.baseType.id)
         let units = try #require(gameState.player?.run.totalUnits)

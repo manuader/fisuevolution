@@ -23,12 +23,13 @@ final class BottomMenuUITests: XCTestCase {
         // empezada.
         ("hud.skins", ["skins.row.base"]),
         ("hud.bonus", ["bonus.activate.mate"]),
-        // La tienda depende de StoreKit y su lista es perezosa: con los
+        // La Tienda ya no está en la barra: se abre con el + de la moneda, así
+        // que ése es su camino. Depende de StoreKit y su lista es perezosa: con los
         // productos cargados se ve la primera fila, mientras carga se ve el
         // botón de restaurar, y si la carga falla, el cartel de "no hay nada"
         // con su reintento. Los cuatro son ids exclusivos de `StoreView`, así
         // que cualquiera de ellos la discrimina de las otras cinco pantallas.
-        ("hud.store", ["store.buy.com.fisuevolution.iap.starter_pack", "store.restore",
+        ("hud.coins.plus", ["store.buy.com.fisuevolution.iap.starter_pack", "store.restore",
                        "store.unavailable", "store.retry"]),
         // El Menú dejó de ser un placeholder en la T15: abre la grilla 2×2, y
         // la tarjeta del organigrama es un identifier que sólo vive ahí.
@@ -90,7 +91,7 @@ final class BottomMenuUITests: XCTestCase {
         attach(app, named: "E3 Contratar al centro")
 
         XCTAssertEqual(jobs.frame.midX, screen.midX, accuracy: 2, "Contratar tiene que ir al centro")
-        for identifier in ["hud.upgrades", "hud.skins", "hud.bonus", "hud.store", "hud.settings"] {
+        for identifier in ["hud.upgrades", "hud.skins", "hud.bonus", "hud.settings"] {
             let tab = app.buttons[identifier]
             XCTAssertTrue(tab.exists, "falta \(identifier)")
             XCTAssertGreaterThan(jobs.frame.height, tab.frame.height,
@@ -98,8 +99,36 @@ final class BottomMenuUITests: XCTestCase {
             XCTAssertGreaterThan(tab.frame.minY, screen.height - 100,
                                  "\(identifier) arrancó en \(tab.frame.minY): la barra no bajó")
         }
+        XCTAssertFalse(app.buttons["hud.store"].exists, "la Tienda salió de la barra")
         XCTAssertGreaterThan(jobs.frame.minY, screen.height * 0.75,
                              "la barra tiene que estar pegada abajo, arrancó en \(jobs.frame.minY)")
+    }
+
+    /// La barra es 2 + 1 + 2: simétrica alrededor de Contratar, con los cuatro botones
+    /// comunes iguales y más bajos que el del centro, y todo adentro de la ventana.
+    @MainActor
+    func testLaBarraEsSimetrica() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial"]
+        app.launch()
+
+        let hire = app.buttons["hud.hire"]
+        XCTAssertTrue(hire.waitForExistence(timeout: 20))
+        let window = app.windows.element(boundBy: 0).frame
+        let upgrades = app.buttons["hud.upgrades"], skins = app.buttons["hud.skins"]
+        let gifts = app.buttons["hud.bonus"], menu = app.buttons["hud.settings"]
+        attach(app, named: "E13b la barra simétrica")
+
+        XCTAssertEqual(upgrades.frame.midX + menu.frame.midX, 2 * hire.frame.midX, accuracy: 2)
+        XCTAssertEqual(skins.frame.midX + gifts.frame.midX, 2 * hire.frame.midX, accuracy: 2)
+        for tab in [skins, gifts, menu] {
+            XCTAssertEqual(tab.frame.width, upgrades.frame.width, accuracy: 1)
+        }
+        XCTAssertLessThan(upgrades.frame.height, hire.frame.height)
+        for tab in [upgrades, skins, hire, gifts, menu] {
+            XCTAssertGreaterThanOrEqual(tab.frame.minX, window.minX)
+            XCTAssertLessThanOrEqual(tab.frame.maxX, window.maxX)
+        }
     }
 
     /// El atajo de contratar al mejor vive **encima** de la barra y nunca está

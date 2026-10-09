@@ -21,6 +21,22 @@ struct RankingStateTests {
         try JSONDecoder().decode(RankingState.self, from: JSONEncoder().encode(s))
     }
 
+    // MARK: clientRunId
+
+    @Test("el clientRunId nace una vez, se reusa, sobrevive al guardado y se suelta al registrar")
+    func clientRunIdIsStableUntilRegistered() throws {
+        var s = RankingState.newGame
+        let first = s.startAttemptId(make: { "id-1" })
+        let second = s.startAttemptId(make: { "id-2" })
+        #expect(first == "id-1" && second == "id-1")
+        var reloaded = try roundTrip(s)
+        #expect(reloaded.startAttemptId(make: { "id-3" }) == "id-1")
+        reloaded.registered(runId: "r", serverStartedAt: 1)
+        #expect(reloaded.clientRunId == nil)
+        #expect(RankingState.newGame.clientRunId == nil)
+        #expect(running().forNewGame().clientRunId == nil)
+    }
+
     // MARK: transiciones
 
     @Test("registered sólo mueve awaitingStart a running")

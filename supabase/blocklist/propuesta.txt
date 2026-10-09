@@ -1,5 +1,5 @@
-# PROPUESTA de lista de palabras del ranking — NO ESTÁ ACTIVADA.
-# Nada de este archivo se despliega hasta que el dueño la apruebe (decisión 🔒 3 del plan E12).
+# Lista de palabras del ranking — ACTIVA: el dueño la aprobó tal cual (137 términos) el 2026-10-09
+# (decisión 🔒 3 del plan E12). Su migración es migrations/20261009000001_blocklist.sql; se despliega con E12 T16.
 #
 # Formato: una línea por término, `es|término` o `en|término`. Las líneas que empiezan con # y
 # las vacías se ignoran. Los términos van en minúscula; el matcher ya ignora acentos,

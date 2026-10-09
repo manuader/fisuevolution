@@ -6,10 +6,11 @@
 > `Docs/superpowers/plans/2026-10-0*-v2-*.md`, los ledgers
 > `.superpowers/sdd/<plan>/progress.md` y el journal AVO del run.
 >
-> **Foto:** 2026-10-08, cierre del relevo 13. `version-2` = `4ab1817` (pusheado; `rapido` VERDE: EK 605 · unit 816 + 1 declarado ·
-> release 0) y la rama de integración `v2i/integ-r13` = `a74d6e7` (suma E13b T5, sin `rapido`). El último `completo` de
-> referencia es el `--limpio` de `c94f75f` (E1 T16). Detalle en `Docs/SESION-2026-10-08-v2-relevo-13-ola-j.md`.
-> **Ojo:** la sesión del dueño integró los mismos videos en `v2/e8-videos` (solapa con E13b T4 y E8b T1–T3): ver §4.1.
+> **Foto:** 2026-10-08, cierre del relevo 14. `version-2` = `596cacd` (pusheado; `rapido` VERDE: EK 605 · unit 822 + 1 declarado ·
+> release 0) y la rama de integración `v2i/integ-r14` = `32afc93` (suma la reconciliación de los videos, P-E8d, E13b T7 y T10,
+> E3b T6, E12 T7 y E8d T1; `rapido`: <<RAPIDO-R14>>). El último `completo` de referencia es el `--limpio` de `c94f75f`
+> (E1 T16). Detalle en `Docs/SESION-2026-10-08-v2-relevo-14-ola-k.md`.
+> **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
 > Si un ledger dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
 
 ## 1. Cómo se usa
@@ -71,25 +72,28 @@
 | E6a + E6b | `v2/e6-tienda` | `2ba7c2e` (T3; mergeada en `e27efb1`) |
 | E7b-a + E7b-b | `v2/e7b-anuncios` | a crear desde `version-2` |
 | E8 | `v2/e8-pipeline` | `4ea0678` (integrada; su worktree `v2-e8-pipeline` ya no existe) |
-| E8 (arte) | `v2/e8-arte` | T1–T8 integradas (T6, T7 en el relevo 13); faltan T9 (🔒 el dueño) y T10 |
-| E12 | — (ramas de tarea `v2i/*`) | T1–T6 integradas (relevo 13); el plan y la spec vienen de `v2/e12-plan` (worktree `v2-e12-plan`, **de la sesión del dueño**) |
+| E8 (arte) | `v2/e8-arte` | T1–T6 y T8 integradas; faltan T7, T9 (🔒 el dueño) y T10 |
+| E12 | — (ramas de tarea `v2i/*`) | T1–T6 integradas (relevo 13), T7 en `v2i/integ-r14` (relevo 14); el plan y la spec vienen de `v2/e12-plan` (worktree `v2-e12-plan`, **de la sesión del dueño**) |
 | E13 | — (ramas de tarea `v2i/*`) | T1 y T6 integradas |
-| E13b | — (ramas de tarea `v2i/*`) | T1–T5 y T9 integradas (`596cacd`, `rapido` VERDE en el relevo 14); T7 y T10 en vuelo |
-| E8b / E8c | — (ramas de tarea `v2i/*`) | E8b T1–T3, T7 integradas; E8c sin empezar. **Solapa con `v2/e8-videos` del dueño** |
+| E13b | — (ramas de tarea `v2i/*`) | T1–T5 y T9 integradas (`596cacd`); T7 y T10 en `v2i/integ-r14` (`32afc93`); siguen T6 y T8 |
+| E3b | (en `v2/e3-ux`, ya mergeada) + ramas de tarea `v2i/*` | T1–T5 integradas; T6 en `v2i/integ-r14`; sigue T7 |
+| E8b / E8c | — (ramas de tarea `v2i/*`) | E8b T1–T3, T7 integradas; T4/T5/T6/T12 reemplazadas por E8d; E8c sin empezar |
+| E8d | — (ramas de tarea `v2i/*`) | plan `fdb1d39` y T1 (`29a8d5f`) en `v2i/integ-r14`; ola 1 resto: T2 ∥ T6 |
 
 ## 2. Progreso
 
-**Hoy: 87 de 254 tareas activas integradas (34,3 %)** (relevo 14: P-E8d sumó 15 filas y salteó 4 de E8b reemplazadas; 259 filas, 5 salteadas), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅).
-El conteo creció de 211 a 244 filas (243 activas, 1 salteada) porque P-E8b, P-E8c y P-E13b sumaron 33 filas (12 + 10 + 11).
-Las integradas subieron de 69 a 87. Las tareas del relevo 13 están en `version-2` (hasta `4ab1817`) salvo E13b T5, que está
-en `version-2` desde el relevo 14 (`596cacd`, `rapido` VERDE: EK 605 · unit 822 + 1 declarado · Release 0).
+**Hoy: 87 de 254 tareas activas integradas en `version-2` (34,3 %)**, más **5 en `v2i/integ-r14`** (🟢: E13b T7 y T10, E3b T6,
+E12 T7, E8d T1): **87 + 5 = 92 de 254 (36,2 %) si el `rapido` de `v2i/integ-r14` da VERDE** (resultado: <<RAPIDO-R14>>). El
+pedido del relevo decía "87 + 7 = 94"; el `grep` de abajo cuenta cinco 🟢, y manda el `grep`. 259 filas, 5 salteadas (E8b T4/T5/T6/T12
+reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). El conteo creció de 243 a 254 activas
+porque P-E8d sumó 15 filas y se salteaban 4 de E8b. Las tareas del relevo 13 y E13b T5 están en `version-2` (`596cacd`).
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
 | E1 | 16 | 16 |  |  |  |  |  |  |
 | E11 | 7 | 6 |  |  | 1 |  |  |  |
 | E3a | 12 | 10 |  |  | 1 | 1 |  |  |
-| E3b | 9 | 4 |  |  | 1 | 4 |  |  |
+| E3b | 9 | 4 | 1 |  | 1 | 3 |  |  |
 | E2a | 15 | 14 |  |  | 1 |  |  |  |
 | E4a | 10 | 3 |  |  |  | 7 |  |  |
 | E4b | 10 |  |  |  |  | 10 |  |  |
@@ -103,12 +107,13 @@ en `version-2` desde el relevo 14 (`596cacd`, `rapido` VERDE: EK 605 · unit 822
 | E9b | 10 | 1 |  |  |  | 9 |  |  |
 | E2b | 15 |  |  |  | 1 | 14 |  |  |
 | E8 (arte) | 10 | 7 |  |  | 1 | 2 |  |  |
-| E8b | 12 | 4 |  |  | 2 | 6 |  |  |
+| E8b | 8 | 4 |  |  |  | 4 |  | 4 |
 | E8c | 10 |  |  |  | 5 | 5 |  |  |
-| E12 | 19 | 6 |  |  | 2 | 10 | 1 |  |
+| E8d | 15 | | 1 | | 2 | 12 | | |
+| E12 | 19 | 6 | 1 |  | 1 | 10 | 1 |  |
 | E13 | 14 | 2 |  |  | 5 | 7 |  |  |
-| E13b | 11 | 6 |  |  | 3 | 2 |  |  |
-| **Total** | **243** | **87** | | | **25** | **130** | **1** | **1** |
+| E13b | 11 | 6 | 2 |  | 1 | 2 |  |  |
+| **Total** | **254** | **87** | **5** | | **22** | **139** | **1** | **5** |
 
 Fuera del conteo:
 
@@ -127,9 +132,9 @@ grep -E '^\| E[0-9a-z-]+-T[0-9]+[ab]? \|[^|]*\| ⏭' tasks.md | grep -vc seguimi
 grep -E '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md | grep -vc seguimiento                   # una épica: cambiar el prefijo
 ```
 
-Progreso = integradas / (filas de tarea − salteadas). Hoy: 87 / (244 − 1). Con el sufijo `[ab]?` el grep levanta
+Progreso = integradas / (filas de tarea − salteadas). Hoy: 87 / (259 − 5) en `version-2` (y 92 con las 5 🟢; el grep de 🟢 va igual, cambiando el ✅). Con el sufijo `[ab]?` el grep levanta
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
-La tabla por épica se recalculó en el relevo 13 (con E8b, E8c y E13b); si discrepa, vale el `grep`.
+La tabla por épica se recalculó en el relevo 14 (con E8d); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
 
 ## 3. Reglas de concurrencia (PLAN-v2 §0.1, operativas)
 
@@ -200,40 +205,43 @@ partirlo.
 | `CelebrationQueue.swift` (EK) | E1 T10 · E4b T1, T4 · E6a T12 |
 | `GameState+TutorialTips.swift`, `TutorialAnchor.swift` | E3b T5, T9 · E4b T3, T4, T8 · E5b T5 · E6a T8, T12 · E7b-b T3, T5 |
 
-## 4. Cola de despacho — lo próximo (relevo 14)
+## 4. Cola de despacho — lo próximo (relevo 15)
 
 ### 4.1 Al llegar
 
 | # | Qué | Nota |
 |---|---|---|
-| 1 | ✅ **(relevo 14: hecho, merge `5e3b707` en `v2i/integ-r14`; manda la versión del dueño; la cabina es `cabina_puertas_*`; re-plan Swift en vuelo → `2026-10-08-v2-e8d-animaciones-swift.md`)** PRIMERO: reconciliar con `v2/e8-videos`. Leé en `DUENO.md` las secciones "todo el juego animado" y "primera tanda de videos lista". **En paralelo al relevo 13**, una sesión del dueño integró los mismos videos en `v2/e8-videos` (base `0db7746`: `4164fed` PLAN-v2 E8, `60126cb` `video_assets.py` con recorte de blanco y kinds `objeto`/`cabina`, `c739f2f` 27 piezas —18 retratos, 4 Paquete/Colchón, 2 cabina, 3 cinemáticas— y `loops_manifest.json` con `portraits/objects/cabin/cinematics`). El relevo 13 integró trabajo solapado: E13b T4 (cabina, `video_assets.py ascensor`, manifest con `cinematics.ascensor_*` y `stills`) y E8b T1–T3 | **NO despachar E8b T4 en adelante ni E13b T6 hasta reconciliar.** (a) Comparar `v2/e8-videos` contra `v2i/integ-r13`: `video_assets.py`, `loops_manifest.json`, `Resources/Loops` y `Resources/Cinematics`, los contratos de los tests Python; (b) elegir **una sola versión de cada pieza**, manteniendo lo que consume el código de E13b T5 (`cine_ascensor_*`); (c) integrar `v2/e8-animaciones-docs` (docs); (d) **sacar del juego lo que no esté `va`** en `video/revision.json` (los 18 retratos de E8b T3 no pasaron esa revisión); (e) **re-planificar el lado Swift con la spec** `Docs/superpowers/specs/2026-10-08-v2-e8-animaciones-design.md` (`VideoPlayerPool` ≤ 3, `AnimatedArtView`/`LoopingVideoNode`, On-Demand Resources, fps como gate), que puede reemplazar parte de P-E8b (T4–T12) y tocar E13b T5/T6 (la cabina): planificador opus. **No tocar las ramas del dueño** |
-| 2 | `rapido` sobre `v2i/integ-r13` (`a74d6e7`, suma E13b T5) y fast-forward de `version-2` con push | E13b T5 pasó su tarea y la revisión opus; falta la suite entera y el Release. No mergear a `version-2` mientras corra otro oráculo ahí |
-| 3 | Leer `DUENO.md` entero por pendientes nuevos (mediación por SPM, `sp_contador_dios`, videos) | los worktrees `v2-e12-plan` y `v2-release-ops` son de la sesión del dueño |
+| 1 | **`rapido` sobre `v2i/integ-r14` (`32afc93`)**, si no quedó hecho. Resultado del relevo 14: <<RAPIDO-R14>> | Con VERDE: fast-forward de `version-2` y push (las cinco 🟢 pasan a ✅: 92 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. Mirá `rojos-declarados.txt` |
+| 2 | Leer `DUENO.md` entero por pendientes nuevos y la revisión de la segunda tanda de videos (`video/revision.json`) | los worktrees `v2-e12-plan` y `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
+| 3 | Barrer los worktrees `v2i-*` que queden (p. ej. `v2i-e3b-t6`, cuyo cwd tenían los bucles de espera de otro agente) | todo en GitHub antes; nunca `--force`; mirar el comando de cada bucle antes de cortarlo |
 
 ### 4.2 La ola siguiente, por prioridad del dueño (≤ 3 compilando; un dueño por archivo)
 
-BASE de todas: `version-2` tras el paso 2 de arriba. Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
+BASE de todas: `version-2` tras el paso 1 (o `v2i/integ-r14` si el `rapido` no se corrió). Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
 
 | # | Tarea | Modelo | Dueña de / nota |
 |---|---|---|---|
-| 1 | **E13b T6** el viaje montado encima de `RootView`; el mapa viaja → **T7 ∥ T10** → **T8** | sonnet (T6 y T8: revisión opus) | **PRIORIDAD ALTA del dueño.** T6 **espera a la reconciliación del paso 1** (puede tocar la cabina). Carries de T5 a T6: `prepare()` al abrir la placa y en `requestFromMap`, `release()` si se cierra sin viajar, `ElevatorRideView` con `.environment(gameState)` sólo con `phase != .idle`; bajar el volumen del motor. T7 (lección) es libre; T10 (barra simétrica) tras T9 ✅; T8 (🔥 `HUDView`, borra `ElevatorPanel.swift`) tras T2, T6, T7 |
-| 2 | **E8b T4** (`LoopsManifest`/`CinematicID`) · **T5** (`VideoSlot`, `LoopingPortraitView`) y **E8c T1–T3** | sonnet | **E8b T4/T5 esperan a la reconciliación y a la re-planificación con la spec.** E8c T1 toca `BoardChange.swift` (EK, revisión opus); E8c T2 `CelebrationQueue`; E8c T3 es puro. E8c T4 (audio) y T6 (contador) son libres |
-| 3 | **E13** T3 · T5 · T8 · T11 · T12 | sonnet | T3 suma sus campos a `resolveAcrossReset` (E9b T6 ✅); T8 en serie con E3b `+Projections`; T11 no ∥ T9 (`+Actions`); T12 toca `+Store` |
-| 4 | **E8 T7** (paquete, colchón, ruleta, tienda y álbum: 31) | sonnet | dueña de `assets_manifest.json`. **Ojo con el solape de videos de Paquete/Colchón de `v2/e8-videos`** |
-| 5 | **E3b T6** (camino crítico a E4a T3 vía T9) | sonnet | dueña de `GameState`; un dueño por ventana |
-| 6 | **E12 T7** (clientRunId en `RankingState`: `awaitingStart` guarda el `clientRunId`) y **T10** (`Phase` con `(try? …) ?? .legacy`) | sonnet | EK / `Phase`; carries de la revisión de E12 T6/T4 |
-| 7 | **Mediación por SPM** (Unity + Meta) | — | **pendiente del dueño** (`DUENO.md`); no se despacha |
-| 8 | **E2b T1** (EK) · **E7b-a T1 ∥ T5** | sonnet | E7b-a T5 después de E11 T4 |
-| 9 | **E8 T10** (medir la memoria del vuelo con los fondos a 2048) | controlador / sonnet | carry de E8 T8 |
+| 1 | **E13b T6** el viaje montado encima de `RootView`; el mapa viaja → **T8** | sonnet (T6 y T8: revisión opus) | **PRIORIDAD ALTA del dueño.** Carries de T5 a T6: `prepare()` al abrir la placa y en `requestFromMap`, `release()` si se cierra sin viajar, `ElevatorRideView` con `.environment(gameState)` sólo con `phase != .idle`; bajar el volumen del motor. **T8 (🔥 `HUDView`, borra `ElevatorPanel.swift`) llama `gameState.elevatorKeypadOpened()` al desplegar la placa** (carry de T7: sin eso la lección no se marca). T7 y T10 ya están. La cabina usa `cabina_puertas_*` y el tope de rate ×5; los stills `cabina_{cerrada,abierta}.png` todavía tienen la línea verde (regenerar con `video_assets.py cabina-cuadros`) |
+| 2 | **E8d ola 1, lo que falta: T2 (`VideoPlayerPool`, rev. opus) ∥ T6 (sonidos A)**; después **T3 ∥ T4** | sonnet (T2, T3, T4: rev. opus) | T1 (manifest, `ArtClip`, `CinematicID`) ya está. T6 tiene dueño en `AudioManager` (orden E8c T4 → E8d T6 → T7 → E8b T9). Los gates G1–G7 del plan; el HEVC con alfa a ×5 en device es **E13b T11 / E8d G3** |
+| 3 | **E3b T7** (el botón del atajo nunca desaparece) | sonnet | **Carry de T6:** `QuickHireButton` tiene que usar `blocker` (temblor, label, `accessibilityState`) y no marcar la lección al tocar bloqueado. Dueña: catálogo, `QuickHireButton` |
+| 4 | **E12 T8** (`RankingStore`, rev. opus) y **T10** (`MetaState.ranking` + resolver, rev. opus) | sonnet | **Carries de T7 a T8:** `startAttemptId` (el `clientRunId` del intento) y persistir **antes** del `start-run`; la config remota queda `null` hasta T16. T10 lee `Phase` con `(try? …) ?? .legacy` |
+| 5 | **E13** T3 · T5 · T8 · T11 · T12 | sonnet | T3 suma sus campos a `resolveAcrossReset` (E9b T6 ✅); T8 en serie con E3b `+Projections`; T11 no ∥ T9 (`+Actions`); T12 toca `+Store` |
+| 6 | **E8c T1–T3** | sonnet | E8c T1 toca `BoardChange.swift` (EK, rev. opus); T2 `CelebrationQueue`; T3 es puro. T4 (audio) y T6 (contador) libres |
+| 7 | **E8b T8** (el turno de la cinemática) | sonnet, rev. opus | espera a **E8d T1 ✅** (en `integ-r14`) y a E8b T7 ✅; importa `CinematicID`/`LoopsManifest` de E8d |
+| 8 | **E8 T7** (paquete, colchón, ruleta, tienda y álbum: 31) · **E2b T1** · **E7b-a T1 ∥ T5** | sonnet | E8 T7 es dueña de `assets_manifest.json`; los videos de Paquete/Colchón del dueño ya están en el manifest. E7b-a T5 después de E11 T4 |
+| 9 | **Mediación por SPM** (Unity + Meta) | — | **pendiente del dueño** (`DUENO.md`); no se despacha |
+| 10 | **E8 T10** (medir la memoria del vuelo con los fondos a 2048) | controlador / sonnet | carry de E8 T8; lo cubre E8d T15 |
 
 Lo que **no** se despacha todavía: E4a T3–T7 y T9 (esperan a E3b T9 y a E4a T5–T7); E6a T1–T2 y T4–T13; E5a T4–T9, E4b y E5b
-(cadena de E4a); E12 T11 en adelante (esperan a T7/T8 y a E9b). Revisión opus: E13b T6/T8, E8c T1/T5/T7/T8, E13 T3 (save).
+(cadena de E4a); E12 T11 en adelante (esperan a T7/T8 y a E9b); E8d T14 (🔒 la segunda tanda). Revisión opus: E13b T6/T8, E8c
+T1/T5/T7/T8, E13 T3 (save), E12 T8/T10, E8d T2/T3/T4.
 
-Carries vigentes (detalle en `Docs/SESION-2026-10-08-v2-relevo-13-ola-j.md`): de E9b T6 a T7/T8 (`OffersState.purchases` y
-`seenCinematics` cruzan `resolveAcrossReset`; compras no-ORO; un build viejo pierde la época); de E12 T6 a T8/T10/T11/T12
-(reenvío idempotente de `carriedSubmission`; `pendingWork .start`); de E12 T4 a T5/T16 (`prepare: false`, límite por IP);
-de E8b T3 (`sp_contador_dios`, `sp_bug_simulacion` al dueño); de E13b T9 a E3b T4 (cinco páginas); de E13 T1 a E4b T3 /
-E7b-b T7 (`RewardedOfferButton`); los de las olas H e I.
+Carries vigentes (detalle en `Docs/SESION-2026-10-08-v2-relevo-14-ola-k.md` y en `…relevo-13-ola-j.md`): de E13b T7 a T8
+(`elevatorKeypadOpened()`); de E3b T6 a T7 (`blocker`); de E12 T7 a T8 (`startAttemptId`, persistir antes del start-run, config
+`null` hasta T16); HEVC-alfa a ×5 en device (E13b T11 / E8d G3); stills de la cabina a regenerar; de E9b T6 a T7/T8
+(`OffersState.purchases` y `seenCinematics` cruzan `resolveAcrossReset`); de E12 T6 (reenvío idempotente de `carriedSubmission`;
+`pendingWork .start`); de E12 T4 a T5/T16 (`prepare: false`, límite por IP); de E8b T3 (`sp_contador_dios`, `sp_bug_simulacion`
+al dueño); de E13b T9 a E3b T4 (cinco páginas); de E13 T1 a E4b T3 / E7b-b T7 (`RewardedOfferButton`); los de las olas H e I.
 
 ### 4.3 La cola, por prioridad
 

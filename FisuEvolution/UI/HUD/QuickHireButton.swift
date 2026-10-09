@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// El atajo de contratación de la pantalla principal: compra **al mejor
-/// personaje que la plata alcanza** —el tier más alto entre los contratables,
-/// proyección `quickHireOffer`—, sin abrir FisuJobs. Mismo contrato visual que
-/// `PricePill`: nunca `.disabled`, verde cuando alcanza, temblor cuando no.
+/// El atajo de contratación de la pantalla principal: compra la oferta
+/// `quickHireOffer` sin abrir FisuJobs, y mantenerlo presionado abre el selector
+/// para fijar a quién. **Nunca desaparece** con la partida cargada: cuando no
+/// compra dice por qué ("no te alcanza" o "Piso lleno") y tiembla al tocarlo
+/// (patrón `PricePill`: nunca `.disabled`).
 ///
 /// ⚠️ Un toque compra lo mismo que tres toques en FisuJobs: el atajo dejó de
 /// recortar el 2026-08-28. El porqué está en `computeQuickHireOffer()`.
@@ -26,7 +27,12 @@ import SwiftUI
 struct QuickHireButton: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Abre el selector (mantener presionado, o la acción de VoiceOver).
+    var onChoose: () -> Void = {}
     @State private var shake = 0
+    /// El mantener presionado ya abrió el selector: el toque de soltar que le
+    /// sigue no compra.
+    @State private var longPressFired = false
 
     /// Cuánto mide de alto la cápsula, para lo que se apoye sobre ella.
     ///
@@ -73,112 +79,57 @@ struct QuickHireButton: View {
     /// `Sendable` del mismo `View` también.
     static let capsuleHeight: CGFloat = 56
 
+    /// El mismo reloj que el mantener presionado del tablero (`BoardScene`).
+    static let longPressDuration: Double = 0.45
+
     var body: some View {
-        if let best = gameState.quickHireOffer {
-            button(for: best)
+        // `nil` sólo antes de cargar, y antes de cargar la pantalla es el splash.
+        if let offer = gameState.quickHireOffer {
+            button(for: offer)
         }
     }
 
-    private func button(for best: QuickHireOffer) -> some View {
+    private func button(for offer: QuickHireOffer) -> some View {
         Button {
-            gameState.tutorialTipCompleted(.quickHire)
-            // El temblor reemplaza al `.disabled` (patrón `PricePill`): dice "no
-            // te alcanza" sin apagar el botón. Va ANTES de la acción, que en el
-            // caso caro no va a comprar nada.
-            if !best.affordable, !reduceMotion { shake += 1 }
+            if longPressFired {
+                longPressFired = false
+                return
+            }
+            // Un toque bloqueado no cuenta como lección cumplida.
+            if offer.blocker == nil {
+                gameState.tutorialTipCompleted(.quickHire)
+            } else if !reduceMotion {
+                shake += 1
+            }
             gameState.hireQuickOffer()
         } label: {
-            HStack(spacing: Tokens.s8) {
-                GameIcon(artKey: best.faceKey, size: 40) { EmptyView() }
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(verbatim: best.displayName)
-                        .font(Tokens.caption)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.7)
-                    HStack(spacing: 5) {
-                        CoinIcon(size: 20)
-                        Text(verbatim: best.costText)
-                            .font(Tokens.body)
-                            .monospacedDigit()
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.5)
-                    }
-                }
-            }
-            .foregroundStyle(best.affordable ? .white : Color("PaletteInk"))
-            .shadow(color: .black.opacity(best.affordable ? 0.45 : 0), radius: 1, y: 1)
-            .padding(.horizontal, Tokens.s16)
-            .padding(.vertical, Tokens.s8)
-            .frame(minWidth: 170)
-            .background(
-                // La cápsula caramelo del v3 (PillBackground): verde cuando
-                // alcanza, crema con borde marrón cuando no — el mismo material
-                // que PricePill, que es su gemelo de adentro de las hojas.
-                PillBackground(
-                    fill: best.affordable ? Color("PaletteGreen") : Color("PaletteCream"),
-                    border: best.affordable ? nil : Color("PaletteBrown").opacity(0.6)
-                )
-                .shadow(color: .black.opacity(0.12), radius: 3, y: 2)
-            )
-            .saturation(best.affordable ? 1 : 0.7)
-            .contentShape(Capsule())
+            label(for: offer)
         }
         .buttonStyle(.plain)
-        // ⚠️ **UNA sola parada: el botón no puede exponer el nombre del personaje
-        // como un elemento suelto.** Es el patrón T8 de la casa —los nombres los
-        // anuncia el resumen de quien los contiene, nunca un `StaticText`
-        // propio— y lo cazó
-        // `FisuJobsUITests.testContratarSubeElPrecioDeLaFilaYPoneLaUnidadEnElTablero`,
-        // que asserta `app.staticTexts["El Fisura"].exists == false` sobre la app
-        // ENTERA: la hoja de FisuJobs tapa la pantalla principal pero **no** tapa
-        // el árbol de AX, así que este botón le metía el nombre suelto en la
-        // escena a un test más viejo que la rama entera.
-        //
-        // ⚠️⚠️ **Y tiene que ser `accessibilityRepresentation`.** Un `Button` de
-        // SwiftUI publica el contenido de su label como hijos pase lo que pase
-        // —`hud.prestige` expone su 'Reincarnate' y los tabs su 'Outfits',
-        // miralos en cualquier dump—, y las cuatro formas que uno escribiría
-        // NO lo evitan. Medido con dumps del árbol de AX, no supuesto:
-        //
-        //   · `.accessibilityElement(children: .ignore)` sobre el `Button`  → siguen
-        //   · `.accessibilityHidden(true)` sobre el contenido del label       → siguen
-        //   · `.accessibilityElement(children: .ignore)` dentro del label     → siguen
-        //   · `.accessibilityHidden(true)` sobre cada `Text` hoja             → siguen
-        //   · `.accessibilityChildren { EmptyView() }`  → los saca, PERO deja el
-        //     botón `isHittable == false`: rompe el smoke test y, peor, la
-        //     activación por VoiceOver.
-        //
-        // `accessibilityRepresentation` es la única que da las tres cosas a la
-        // vez: sin hijos, sigue siendo `Button` con su label compuesto, y sigue
-        // siendo tocable. Reemplaza la accesibilidad del control por la de este
-        // `Color.clear` —que ocupa el mismo frame— sin tocar el dibujo ni el
-        // hit-testing reales.
-        //
-        // El trait va explícito porque el sustituto es un `Color.clear` pelado:
-        // sin él, `app.buttons["hud.quickhire"]` deja de encontrarlo.
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: Self.longPressDuration)
+                .onEnded { _ in
+                    longPressFired = true
+                    gameState.playHaptic(.merge)
+                    onChoose()
+                }
+        )
+        // UNA sola parada, sin el nombre suelto como hijo: la única forma que da
+        // a la vez "sin hijos", "sigue siendo botón" y "sigue siendo tocable" es
+        // `accessibilityRepresentation` (medido con dumps del árbol de AX).
         .accessibilityRepresentation {
             Color.clear
                 .accessibilityElement()
                 .accessibilityAddTraits(.isButton)
-                .accessibilityLabel(spokenLabel(for: best))
+                .accessibilityLabel(spokenLabel(for: offer))
+                .accessibilityValue(Text(verbatim: offer.accessibilityState))
+                .accessibilityAction(named: Text("quickhire.ax.choose"), onChoose)
         }
-        // ⚠️ **El identifier va DESPUÉS de `accessibilityRepresentation`, y el
-        // orden es load-bearing**: la representación reemplaza el AX del control
-        // entero, así que un identifier puesto ARRIBA de ella se va con lo que
-        // reemplaza y `app.buttons["hud.quickhire"]` deja de encontrar nada.
-        //
-        // Ojo con la nota de acá abajo, que invita justo a la lectura que lo
-        // rompe: lo que la trampa 9a-bis pide es que el identifier no cuelgue de
-        // un CONTENEDOR de más, no que vaya lo más adentro posible. Las dos
-        // reglas conviven —identifier después de la representación, y el
-        // `keyframeAnimator` después del identifier— porque `offset` no crea
-        // elemento de accesibilidad y la representación sí.
+        // ⚠️ DESPUÉS de la representación: puesto arriba, se iría con lo que
+        // ella reemplaza.
         .accessibilityIdentifier("hud.quickhire")
-        // ±4 pt, cuatro tramos, 0,3 s en total — las mismas keyframes que
-        // `PricePill`, para que los dos botones de compra del juego digan "no"
-        // igual. Va **último** para que el identifier quede pegado al botón y no
-        // a un contenedor de más (trampa 9a-bis): `offset` no crea un elemento
-        // de accesibilidad.
+        // Las keyframes de `PricePill`; van últimas para que el identifier quede
+        // pegado al botón (trampa 9a-bis).
         .keyframeAnimator(initialValue: 0.0, trigger: shake) { view, dx in
             view.offset(x: dx)
         } keyframes: { _ in
@@ -191,11 +142,86 @@ struct QuickHireButton: View {
         }
     }
 
-    /// "Contratar a {nombre}, {monto} monedas": propósito + monto CON su
-    /// moneda, mismo reparto que arma `PricePill` (el glifo de la moneda es un
-    /// dibujo y VoiceOver no lo ve).
-    private func spokenLabel(for best: QuickHireOffer) -> Text {
-        Text(verbatim: String(localized: "quickhire.ax.purpose \(best.displayName)"))
-            + Text(verbatim: ", \(String(localized: "price.ax.coins \(best.costText)"))")
+    private func label(for offer: QuickHireOffer) -> some View {
+        let ready = offer.blocker == nil
+        return HStack(spacing: Tokens.s8) {
+            GameIcon(artKey: offer.faceKey, size: 40) { EmptyView() }
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 4) {
+                    Text(verbatim: offer.displayName)
+                        .font(Tokens.caption)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                    if offer.isPinned {
+                        Image(systemName: "pin.fill")
+                            .font(.system(size: 9, weight: .black))
+                            .rotationEffect(.degrees(30))
+                    }
+                }
+                secondLine(for: offer)
+            }
+            // "Hay más": mantener presionado abre el selector.
+            Image(systemName: "chevron.up")
+                .font(.system(size: 10, weight: .black))
+                .opacity(0.6)
+        }
+        .foregroundStyle(ready ? .white : Color("PaletteInk"))
+        .shadow(color: .black.opacity(ready ? 0.45 : 0), radius: 1, y: 1)
+        .padding(.horizontal, Tokens.s16)
+        .padding(.vertical, Tokens.s8)
+        .frame(minWidth: 170)
+        .background(
+            // Verde caramelo cuando compra; el gris de la casa (el de
+            // `GameCard.locked`) cuando no.
+            PillBackground(
+                fill: ready ? Color("PaletteGreen") : CardMaterials.lockedFill,
+                border: ready ? nil : CardMaterials.lockedBorder
+            )
+            .shadow(color: .black.opacity(0.12), radius: 3, y: 2)
+        )
+        .contentShape(Capsule())
+    }
+
+    /// La segunda línea mide lo mismo en los tres estados (20 pt, el alto de la
+    /// moneda): el atajo no cambia de tamaño.
+    @ViewBuilder private func secondLine(for offer: QuickHireOffer) -> some View {
+        if offer.blocker == .floorFull {
+            HStack(spacing: 5) {
+                Image(systemName: "person.3.fill")
+                    .font(.system(size: 12, weight: .black))
+                Text("quickhire.blocker.floor_full")
+                    .font(Tokens.body)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+            }
+            .frame(height: 20)
+        } else {
+            HStack(spacing: 5) {
+                CoinIcon(size: 20)
+                Text(verbatim: offer.costText)
+                    .font(Tokens.body)
+                    .monospacedDigit()
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
+            }
+        }
+    }
+
+    /// "Contratar a {nombre}, {monto} monedas", más el motivo y el pin.
+    private func spokenLabel(for offer: QuickHireOffer) -> Text {
+        var label = Text(verbatim: String(localized: "quickhire.ax.purpose \(offer.displayName)"))
+        switch offer.blocker {
+        case .floorFull:
+            label = label + Text(verbatim: ", ") + Text("quickhire.blocker.floor_full")
+        case .cantAfford:
+            label = label + Text(verbatim: ", \(String(localized: "price.ax.coins \(offer.costText)")), ")
+                + Text("quickhire.ax.cant_afford")
+        case nil:
+            label = label + Text(verbatim: ", \(String(localized: "price.ax.coins \(offer.costText)"))")
+        }
+        if offer.isPinned {
+            label = label + Text(verbatim: ", ") + Text("quickhire.ax.pinned")
+        }
+        return label
     }
 }

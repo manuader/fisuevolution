@@ -185,6 +185,12 @@ extension GameState {
         // de antes.
         let cofres = canOpenChest
         if hasPendingChests != cofres { hasPendingChests = cofres }
+
+        let now = Date().timeIntervalSince1970
+        let boostListo = content.boosts.boosts.contains { boost in
+            isBoostUnlocked(boost) && BoostManager.cooldownRemaining(of: boost, state: player, now: now) <= 0
+        }
+        if hasReadyBoost != boostListo { hasReadyBoost = boostListo }
     }
 
     private func makeTowerNavigation(content: GameContent, player: PlayerState) -> TowerNavigation {

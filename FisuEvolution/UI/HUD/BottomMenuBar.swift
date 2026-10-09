@@ -62,11 +62,11 @@ struct BottomMenuBar: View {
     /// el rastro no se corte, y muere al cobrar lo último.
     ///
     /// - Menú: el primer logro conseguido y sin cobrar.
-    /// - Regalos: el primer cofre de pintas sin abrir.
+    /// - Regalos: el primer cofre de pintas sin abrir, o un boost gratis listo.
     private func showsBadge(for screen: GameScreen) -> Bool {
         switch screen {
         case .menu: gameState.hasClaimableAchievements
-        case .gifts: gameState.hasPendingChests
+        case .gifts: gameState.hasPendingChests || gameState.hasReadyBoost
         case .jobs, .upgrades, .skins, .store: false
         }
     }

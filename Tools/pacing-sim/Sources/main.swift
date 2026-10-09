@@ -219,7 +219,7 @@ do {
     // La métrica que pidió el dueño: horas ACTIVAS hasta maxear las seis líneas
     // permanentes, o sea hasta las skins doradas ("ganarlo al máximo").
     let maxedReincarnations = report.reincarnationsAtMaxedUpgrades.map { "\($0) reencarnaciones" } ?? "—"
-    print("  las 7 al tope: \(report.maxedUpgradesActiveSeconds.map(hours) ?? "      — ") ACTIVAS"
+    print("  las 6 al tope: \(report.maxedUpgradesActiveSeconds.map(hours) ?? "      — ") ACTIVAS"
         + "  (\(report.maxedUpgradesWall.map(hours) ?? "—") de pared, \(maxedReincarnations))")
     print("  niveles finales: \(upgradeLevelsSummary(report: report, lines: upgradeLines))")
     print("  dios: \(report.godActive.map(hours) ?? "      — ") ACTIVAS"
@@ -274,7 +274,7 @@ do {
     if ratiosSeen == 0 { print("    ❌ sin datos (no se desbloqueó ningún piso más allá del 2º)") }
     // Los dos targets del rebalance (PROMPT-rebalance-pacing §1): maxear las
     // seis en 20-30 h ACTIVAS y con ≤9 reencarnaciones.
-    check("las 7 al tope (activo)", value: report.maxedUpgradesActiveSeconds, range: (20.0 * 3600)...(30.0 * 3600), format: hours)
+    check("las 6 al tope (activo)", value: report.maxedUpgradesActiveSeconds, range: (20.0 * 3600)...(30.0 * 3600), format: hours)
     check(
         "reencarnaciones al maxear",
         value: report.reincarnationsAtMaxedUpgrades.map(Double.init),

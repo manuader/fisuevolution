@@ -8113,6 +8113,23 @@
         }
       }
     },
+    "skins.pack.caption %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pack of all %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pack de las %lld"
+          }
+        }
+      }
+    },
     "skins.price.unavailable" : {
       "extractionState" : "stale",
       "localizations" : {

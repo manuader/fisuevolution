@@ -21,23 +21,22 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
-> 18): `version-2` = **`1776145`** (`rapido` VERDE sobre `4638ef1`: EK 624 · unit 1007 + 1 declarado `theOwnersTargetsAreMet` ·
-> Release 0) · la rama de integración `v2i/integ-r18` = **`8b35414`** + estos docs (`rapido` final: VERDE sobre `8b35414` (EK 624 · unit 1013 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0,
-> E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a N, más lo del relevo 18: **la cadena de
-> Fusionar todo en el plan** (**E8c T1**), **el reloj del turno que se renueva** (**E8c T2**), **el turno de la cadena en
-> `GameState`** (**E8c T5**), **"Piso ???" en los pisos cerrados** (**E13 T8**), **la moneda sobre quien genera plata** (**E13
-> T11**), **el "Pack de las 43"** (**E13 T12**) y, en `integ-r18`, **el contador ×N** (**E8c T6**) y **el plin que sube de tono
-> con su remate** (**E8c T4**). **Progreso: 116 de 254 tareas activas en `version-2`; 118 de 254 (46,5 %) si el `rapido` de
-> `integ-r18` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16).**
-> Detalle en `Docs/SESION-2026-10-09-v2-relevo-18-ola-o.md`.
+> 19): `version-2` = **`f3a2155`** (`rapido` VERDE sobre `f3a2155`: EK 628 · unit 1020 + 1 declarado `theOwnersTargetsAreMet` ·
+> Release 0) · la rama de integración `v2i/integ-r19` = **`6df1ed2`** + estos docs (`rapido` final: RAPIDO_PENDIENTE). Están E0,
+> E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a O, más lo del relevo 19: **los cofres de
+> piso una vez por cuenta** (**E13 T3**), **la escena que encadena sin soltar el turno** (**E8c T7**), **FisuJobs por pisos**
+> (**E13 T10**) y, en `integ-r19`, **los 8 acentos de evento** (**E8d T7**), **el punto de Regalos que avisa los boosts** (**E13
+> T4**), **el arte de las cajas, el colchón, la ruleta, la tienda y el Álbum** (**E8 T7**), **el toque que apura la cadena** (**E8c
+> T8**) y **la config remota de anuncios** (**E7b-a T1**). **Progreso: 121 de 254 tareas activas en `version-2`; 126 de 254
+> (49,6 %) si el `rapido` de `integ-r19` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de
+> `c94f75f` (E1 T16).** Detalle en `Docs/SESION-2026-10-09-v2-relevo-19-ola-p.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r18` (dos tareas y los docs del cierre; si su `rapido` dio verde, el
-> primer paso del relevo 19 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño;
-> no se tocan. Hay planes por tareas para todas las épicas salvo la parte de agente de E10. **Lo primero del relevo 19:** el
-> `rapido` de `integ-r18` si no quedó hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de
-> `tasks.md` §4.2: **E8c T7** (`BoardScene`, rev. opus; ya destrabada) y después T8, **E13 T3** (save, rev. opus), **E8d T7** y
-> T8/T9 (`BoardScene`, tras E8c T7/T8), **E13 T10** y T4, **E8 T7**, **E2b T1**, **E7b-a T1 ∥ T5**; E12 T12/T13 siguen ⛔. Con la
-> carga de la máquina alta, no más de dos compilando.
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r19` (cinco tareas y los docs del cierre; si su `rapido` dio verde, el
+> primer paso del relevo 20 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño;
+> no se tocan. Hay planes por tareas para todas las épicas salvo la parte de agente de E10. **Lo primero del relevo 20:** el
+> `rapido` de `integ-r19` si no quedó hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de
+> `tasks.md` §4.2: **E8c T9** (fixture y UI test) y T10 (cierre), **E8d T8/T9** (`BoardScene`, rev. opus; ya pueden), **E2b T1**,
+> **E7b-a T5** y T2, **E3a T11**, **E13 T9/T2/T7**; E12 T12/T13 siguen ⛔. Con la carga de la máquina alta, no más de dos compilando.
 > **Pendiente del dueño:** confirmar en el chat la lista de palabras de E12 (el clasificador de permisos la bloqueó).
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
@@ -348,6 +347,26 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-09 (relevo 19) — La ola P: los cofres de piso por cuenta, la escena que encadena y el toque que apura
+
+Con el `rapido` VERDE sobre `f3a2155`, `version-2` avanzó a `f3a2155`. **Progreso: 121 de 254 en `version-2`; 126 de 254 (49,6 %) con las cinco 🟢 de `integ-r19`.**
+
+- **E13 T3:** `floorChestsAwarded` pasa de `RunState` a `MetaState` (migra `max(meta, run viejo)` en `PlayerState.init(from:)`);
+  no entra a `resolveAcrossReset`, el reset de cuenta lo deja en 0. Revisión opus: Approved. Un jugador de la v1 que ya reencarnó
+  cobra una vez más los cofres de pisos ya alcanzados.
+- **E8c T7 / T8:** la escena encadena sin soltar el turno (`endBoardChangeTurn()` es el borde único; tempo por `next.chain`;
+  `playBoardMergeFeedback` reemplaza el háptico `.merge`) y el toque apura la cadena (`tapDuringCelebration`, piso de 0,6 s por
+  eslabón, contador en `cameraOverlay`, remate y VoiceOver). Revisión opus en las dos; arreglo obligatorio de T7: guard
+  `playingChain == nil` en `touchesBegan`. Sin captura ni grabación.
+- **E13 T10:** FisuJobs por pisos (`JobGroups.make`, `TowerNaming.ledText`) y `GameState.floorDisplayName(for:)`: "Piso ???" también
+  en la ficha y la tienda de pintas (cierra el carry de E13 T8).
+- **E8d T7 / E13 T4 / E8 T7 / E7b-a T1** (🟢 en `integ-r19`): los 8 `sfx_ev_*` (sin escuchar, G7), `GameState.hasReadyBoost`, +62 PNG
+  de arte en `ui.atlas` (con dos ventanas blancas opacas y dos imágenes repetidas) y `ForcedAdsSetup` con los IDs remotos
+  sólo en producción y Release.
+- Trampas nuevas en §7 (el agente que re-entrega el informe, `timeout` que no existe, la carga que estira el `tarea`).
+
+Detalle en **`Docs/SESION-2026-10-09-v2-relevo-19-ola-p.md`**.
 
 ### Sesión del 2026-10-09 (relevo 18) — La ola O: la cadena de Fusionar todo en el plan, el turno y el remate
 
@@ -2688,6 +2707,15 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la ola P (2026-10-09, relevo 19)
+
+- **Un agente puede "terminar con trabajo de fondo propio" y re-entregar el mismo informe varias veces** (E13 T4, E8c T8): no
+  hace falta `TaskStop` si `ps` no muestra procesos suyos; termina solo.
+- **`timeout` no existe en esta máquina** (macOS sin coreutils): un comando que lo use sale con 127.
+- **Con carga > 400 un `tarea` tarda ~11 min** (build-for-testing 328 s): no es un cuelgue.
+- **El reset de cuenta no suma solo un campo de `MetaState`:** si arma el meta copiando campos a mano (en vez de `newGame`/`.fresh`),
+  `floorChestsAwarded` de E13 T3 queda sin resetear (carry a E2b T5 y E9b T7).
+
 ### De la ola O (2026-10-09, relevo 18)
 
 - **`pgrep -f "oraculo.sh tarea X"` dentro de un `while` lanzado con `zsh -c` se encuentra a sí mismo:** el patrón está en la
@@ -4178,7 +4206,7 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
-### Lo que queda de la 2.0 (cierre del relevo 18)
+### Lo que queda de la 2.0 (cierre del relevo 19)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
 
@@ -4186,11 +4214,11 @@ La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
   activarla); decidir el **`installId` que no viaja por CloudKit** (una partida registrada en A que llega a Dios en B
   queda `.unregisteredGod`: sincronizar el Keychain o aceptarlo); si el botón **Entrar** de `RankingEntryCard` sigue con
   `.disabled` (rompe la convención de `ActionPill`); si molesta que la **placa de 10 pisos tape parte de Reencarnar**
-  mientras está abierta; si `--uitest-ranking-*` de `RankingStore.live()` pasa a `#if DEBUG`; si la moneda de E13 T11 tapa la cara del personaje de atrás en un piso con pasivos; tres textos que todavía nombran pisos cerrados (`FisuJobsView`, `CharacterSheetView`, `+Store`). Siguen: mediación por SPM, capturas de ASC, Meta, TestFlight, oír los sonidos (G7).
+  mientras está abierta; si `--uitest-ranking-*` de `RankingStore.live()` pasa a `#if DEBUG`; si la moneda de E13 T11 tapa la cara del personaje de atrás en un piso con pasivos; si se hace el back-fill de los cofres de piso de los jugadores de la v1 que ya reencarnaron (E13 T3); las imágenes repetidas y las ventanas blancas opacas del arte de E8 T7 (`ui_shop_income_x2`/`x3`, `wheel_frame`, `ui_album_card_frame`); oír los 8 `sfx_ev_*`. Siguen: mediación por SPM, capturas de ASC, Meta, TestFlight, oír los sonidos (G7).
 - **Sin probar en device:** ODR (E8d T14 ya asignó los tags, pero en Debug los packs van embebidos; G5), el alfa del HEVC a ×5 (G3), el publisher de
   `isReadyForDisplay`.
 - **Montaje pendiente:** la tarjeta y la pestaña del ranking (T9a/T9b) esperan a E12 T13 (T11 ya está); `onChoose` del atajo
-  espera a E3b T8; el contador ×N y el remate de Fusionar todo (E8c T6/T4) esperan a E8c T7/T8.
+  espera a E3b T8; el contador ×N y el remate de Fusionar todo ya están montados (E8c T7/T8) pero sin captura ni grabación (E8c T9/T10); la posición del contador es provisoria.
 
 ### Precargar el atlas de personaje fuera del hilo principal (levantada 2026-08-27)
 
@@ -4526,6 +4554,8 @@ Anotado por si algún día importa, con su medición:
   los ganchos del ranking con su guard del tutorial, la sonda de fps; las trampas del `rapido` en background y de la red).
 - **`Docs/SESION-2026-10-09-v2-relevo-18-ola-o.md`**: el relevo 18 (la cadena de Fusionar todo en el plan, el turno y el remate;
   "Piso ???", la moneda y el pack de las 43; la trampa del `pgrep -f` que se encuentra a sí mismo).
+- **`Docs/SESION-2026-10-09-v2-relevo-19-ola-p.md`**: el relevo 19 (los cofres de piso por cuenta, la escena que encadena y el
+  toque que apura; FisuJobs por pisos, los acentos de evento y el arte de las cajas; las trampas del agente que re-entrega y de `timeout`).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

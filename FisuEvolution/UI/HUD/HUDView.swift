@@ -13,6 +13,7 @@ import SwiftUI
 /// `towerIncomePerSecondText`, `prestigePreview`), nunca `PlayerState`.
 struct HUDView: View {
     @Environment(GameState.self) private var gameState
+    @Environment(ElevatorRide.self) private var ride
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var onStoreTap: () -> Void = {}
     /// El mapa se abre desde acá (ver `elevatorButton`), así que el tutorial no
@@ -21,22 +22,14 @@ struct HUDView: View {
     /// El mapa se presenta desde acá y no desde `RootView` a propósito: vive
     /// pegado a la navegación de la torre, que es lo único que reemplaza.
     @State private var showFloorMap = false
+    /// El mantener apretado ya desplegó la placa: el toque de soltar no abre el mapa.
+    @State private var keypadLongPressFired = false
 
     /// Aire mínimo entre el borde FÍSICO de arriba y la fila principal. Sólo
     /// entra cuando la safe area de arriba se desploma: en el SE, con la barra de
     /// estado oculta (`RootView.statusBarHidden`), es 0 y la fila se iría contra
     /// el bezel. Medido en un SE 3 antes del piso: los botones a 5 pt del borde.
     private static let minimumTopGap: CGFloat = 14
-
-    /// Margen de la botonera contra el borde derecho. En DEBUG la llave del
-    /// panel de debug (`GameBoardView.debugButton`) flota justo en ese rincón: la
-    /// botonera se corre a su izquierda para que no la tape ni la tape ella.
-    private static var elevatorTrailingInset: CGFloat {
-        #if DEBUG
-        if !GameBoardView.isScreenshotMode { return Tokens.s12 + 52 }
-        #endif
-        return Tokens.s12
-    }
 
     /// Cuánto baja la fila principal desde el borde de la safe area.
     ///
@@ -57,15 +50,7 @@ struct HUDView: View {
                 .playColumn()
                 .background { topPanel }
             prestigeIndicator
-                .frame(maxWidth: .infinity, minHeight: ElevatorPanel.displayHeight, alignment: .top)
-                .overlay(alignment: .topTrailing) {
-                    // Contra el borde derecho, debajo del ícono del ascensor
-                    // (`hud.map`, que sigue abriendo el mapa). La fila reserva el
-                    // alto del display; la persiana desplegada flota por encima
-                    // del tablero mientras dura.
-                    ElevatorPanel()
-                        .padding(.trailing, Self.elevatorTrailingInset)
-                }
+                .frame(maxWidth: .infinity, alignment: .top)
         }
         .background(ScreenInsetsReader().accessibilityHidden(true))
         // El panel del `panelSheet` ES la hoja: flota sobre el juego atenuado
@@ -228,8 +213,9 @@ struct HUDView: View {
         .accessibilityValue(Text(verbatim: rate))
     }
 
-    /// El ascensor abre el mapa de pisos. Conserva id, label y ancla del botón
-    /// viejo: es el mismo destino con otra cara.
+    /// El ascensor: un toque abre el mapa de pisos; mantenerlo apretado despliega la placa
+    /// colgante (la dibuja `ElevatorRideOverlay`, anclada al frame global de este ícono).
+    /// Conserva id, label y ancla del botón viejo: es el mismo destino con otra cara.
     private var elevatorButton: some View {
         IconButton(
             artKey: "ui_elevator",
@@ -245,10 +231,30 @@ struct HUDView: View {
             labelKey: "map.hud.label",
             identifier: "hud.map"
         ) {
+            if keypadLongPressFired {
+                keypadLongPressFired = false
+                return
+            }
             showFloorMap = true
             onMapOpen()
         }
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: QuickHireButton.longPressDuration)
+                .onEnded { _ in
+                    keypadLongPressFired = true
+                    openKeypad()
+                }
+        )
+        .accessibilityAction(named: Text("elevator.keypad.open")) { openKeypad() }
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { ride.keypadAnchor = $0 }
         .tutorialAnchor(.map)
+    }
+
+    private func openKeypad() {
+        ElevatorCabinWarmup.shared.prepare()
+        gameState.playHaptic(.merge)
+        gameState.elevatorKeypadOpened()
+        ride.openKeypad()
     }
 
     // MARK: - Reencarnación

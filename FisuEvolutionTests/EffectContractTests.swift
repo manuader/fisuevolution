@@ -346,17 +346,4 @@ struct EffectContractTests {
         #expect(abs(staffed / plain - (1 + summary.bonus)) < 1e-9)
         #expect(abs(summary.bonus - 0.05) < 1e-12)
     }
-
-    @Test("la luz verde de la botonera es la de los pisos en marcha")
-    func theElevatorLightIsTheStaffedRule() async throws {
-        let gameState = await makeGameState()
-        let content = try #require(gameState.content)
-        gameState.player?.run.units = [base.id: content.floorTable[0].capacity]
-        gameState.reconcileTower()
-        let player = try #require(gameState.player)
-        let lit = Set(ElevatorPanelModel(map: gameState.floorMap).floors.filter(\.isStaffed).map(\.id))
-        let staffed = Set(StaffedFloors.ordinals(state: player, tiers: content.tiers, floorTable: content.floorTable)
-            .map { content.floorTable[$0].id })
-        #expect(lit == staffed)
-    }
 }

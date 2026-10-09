@@ -5317,6 +5317,23 @@
         }
       }
     },
+    "prestige.prices_reset" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you're reborn, hiring prices start over."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al renacer, los precios de contratación vuelven a empezar."
+          }
+        }
+      }
+    },
     "prestige.title" : {
       "localizations" : {
         "en" : {

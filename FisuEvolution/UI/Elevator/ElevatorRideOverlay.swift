@@ -1,3 +1,4 @@
+import EconomyKit
 import SwiftUI
 
 /// La capa del ascensor, por encima de `RootView` (la monta `FisuEvolutionApp`): el viaje en
@@ -27,9 +28,12 @@ struct ElevatorRideOverlay: View {
         // Una celebración que toma el turno (una hoja, el cofre) recoge la placa. Si llega en pleno
         // viaje, el viaje termina: las hojas se presentan por encima de esta capa y taparían la
         // cabina a la mitad.
-        .onChange(of: gameState.showing) { _, showing in
+        .onChange(of: gameState.showing) { old, showing in
+            // Sólo cuando una celebración que cubre toma el turno: la lección de la propia placa
+            // (`.tutorialTip`) y los avisos chicos no la cierran.
+            guard old == nil, showing?.coversElevator == true else { return }
             ride.closeKeypad()
-            if showing != nil { ride.skip() }
+            ride.skip()
         }
         .onChange(of: ride.isKeypadOpen) { _, isOpen in
             if isOpen {
@@ -37,6 +41,16 @@ struct ElevatorRideOverlay: View {
             } else if ride.phase == .idle {
                 ElevatorCabinWarmup.shared.release()
             }
+        }
+    }
+}
+
+extension CelebrationKind {
+    /// Las que se presentan como hoja o tapan todo el tablero: con ellas la placa y la cabina sobran.
+    var coversElevator: Bool {
+        switch self {
+        case .offlineEarnings, .dailyReward, .careerChoice, .skinAward, .specialDrop, .chestOpening, .boardCelebration: true
+        case .eventBanner, .achievements, .towerNotice, .tutorialTip: false
         }
     }
 }
@@ -72,6 +86,8 @@ private struct ElevatorKeypadLayer: View {
             }
         }
         .ignoresSafeArea()
+        .accessibilityElement(children: .contain)
+        .accessibilityAddTraits(.isModal)
         .accessibilityAction(.escape) { ride.closeKeypad() }
     }
 }

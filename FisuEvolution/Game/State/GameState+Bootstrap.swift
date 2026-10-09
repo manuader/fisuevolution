@@ -111,6 +111,10 @@ extension GameState {
         if ProcessInfo.processInfo.arguments.contains("--uitest-unlock-tower") {
             debugUnlockFloors(throughTier: 5)
         }
+        // La torre entera (diez pisos): la placa del ascensor en el peor caso.
+        if ProcessInfo.processInfo.arguments.contains("--uitest-unlock-tower-all") {
+            debugUnlockFloors(throughTier: .max)
+        }
         if ProcessInfo.processInfo.arguments.contains("--uitest-board-change") {
             debugPlanBoardChange()
         }

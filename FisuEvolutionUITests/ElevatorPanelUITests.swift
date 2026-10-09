@@ -60,6 +60,38 @@ final class ElevatorPanelUITests: XCTestCase {
         XCTAssertEqual(app.otherElements["board.floor"].value as? String, "urban")
     }
 
+    /// El gesto natural: mantener y deslizar hacia la placa. Soltar fuera del ícono no abre el mapa
+    /// ni deja la bandera del mantener apretado puesta: el toque corto de después es el mapa.
+    @MainActor
+    func testSoltarFueraDelIconoNoSeTragaElProximoToque() throws {
+        let app = launch()
+        let icon = app.buttons["hud.map"]
+        let away = icon.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 2.5))
+        icon.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 0.9, thenDragTo: away)
+        let keypad = app.otherElements["hud.elevator.keypad"]
+        XCTAssertTrue(keypad.waitForExistence(timeout: 3), "mantener y deslizar no desplegó la placa")
+        XCTAssertFalse(app.buttons["map.floor.urban"].exists)
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.5)).tap()
+        XCTAssertTrue(keypad.waitForNonExistence(timeout: 2))
+        icon.tap()
+        XCTAssertTrue(app.buttons["map.floor.urban"].waitForExistence(timeout: 5), "el toque corto se lo tragó la bandera")
+    }
+
+    /// La torre entera: diez botones tienen que caber (la captura es la prueba a ojo).
+    @MainActor
+    func testLaPlacaConLaTorreEnteraCabeEnPantalla() throws {
+        let app = launch(["--uitest-unlock-tower-all"])
+        app.buttons["hud.map"].press(forDuration: 0.9)
+        let keypad = app.otherElements["hud.elevator.keypad"]
+        XCTAssertTrue(keypad.waitForExistence(timeout: 3))
+        XCTAssertEqual(keypad.value as? String, "10")
+        let last = app.buttons["hud.elevator.keypad.floor.alley"]
+        XCTAssertTrue(last.isHittable, "el último botón queda fuera de pantalla o tapado")
+        let bar = app.buttons["hud.jobs"]
+        if bar.exists { XCTAssertLessThanOrEqual(last.frame.maxY, bar.frame.minY, "la placa pisa la barra") }
+        attach(app, named: "E13b placa con 10 pisos")
+    }
+
     @MainActor
     private func attach(_ app: XCUIApplication, named name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())

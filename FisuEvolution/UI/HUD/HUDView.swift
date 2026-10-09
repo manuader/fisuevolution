@@ -1,3 +1,4 @@
+import EconomyKit
 import SwiftUI
 
 /// HUD superior estilo Cow Evolution (spec §3): **una** barra contigua con el
@@ -245,16 +246,28 @@ struct HUDView: View {
                     openKeypad()
                 }
         )
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0).onEnded { _ in
+                // Si el dedo se soltó fuera del ícono el `Button` no corre y no baja la bandera:
+                // la baja el fin del dedo, para no tragarse el próximo toque corto.
+                Task { @MainActor in
+                    try? await Task.sleep(for: .milliseconds(250))
+                    keypadLongPressFired = false
+                }
+            }
+        )
         .accessibilityAction(named: Text("elevator.keypad.open")) { openKeypad() }
         .onGeometryChange(for: CGRect.self) { $0.frame(in: .global) } action: { ride.keypadAnchor = $0 }
         .tutorialAnchor(.map)
     }
 
     private func openKeypad() {
+        guard ride.phase == .idle, !ride.isKeypadOpen, !(gameState.showing?.coversElevator ?? false) else { return }
         ElevatorCabinWarmup.shared.prepare()
         gameState.playHaptic(.merge)
-        gameState.elevatorKeypadOpened()
+        // La placa primero: cumplir la lección cambia `showing` y no debe encontrarla cerrada.
         ride.openKeypad()
+        gameState.elevatorKeypadOpened()
     }
 
     // MARK: - Reencarnación

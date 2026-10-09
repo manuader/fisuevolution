@@ -8,8 +8,8 @@ final class ElevatorRideUITests: XCTestCase {
         let app = launchedApp()
         let skip = pickUrbanInTheMap(app)
         XCTAssertTrue(skip.waitForExistence(timeout: 3), "elegir en el mapa no abrió la cabina")
-        attach(app, named: "E13b cabina desde el mapa")
-        skip.tap()
+        // La cabina dura ~2 s: resolver el botón de nuevo para tocarlo llega tarde, se toca la pantalla.
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         XCTAssertTrue(skip.waitForNonExistence(timeout: 2), "saltear no cerró la cabina")
         XCTAssertEqual(app.otherElements["board.floor"].value as? String, "urban",
                        "al saltear, el destino queda a la vista")
@@ -56,13 +56,5 @@ final class ElevatorRideUITests: XCTestCase {
         XCTAssertTrue(urban.waitForExistence(timeout: 5))
         urban.tap()
         return app.buttons["elevator.ride.skip"]
-    }
-
-    @MainActor
-    private func attach(_ app: XCUIApplication, named name: String) {
-        let attachment = XCTAttachment(screenshot: app.screenshot())
-        attachment.name = name
-        attachment.lifetime = .keepAlways
-        add(attachment)
     }
 }

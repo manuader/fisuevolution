@@ -23,17 +23,21 @@ struct VideoPlaybackPolicy: Equatable, Sendable {
     var allowsLoops: Bool { reasons.isEmpty }
 
     /// La cinemática es un momento del cuento, a pantalla completa y sola: la apagan sólo lo que
-    /// pide el jugador (Reduce Motion, sin reproducción automática) y el segundo plano.
+    /// pide el jugador (Reduce Motion, sin reproducción automática), el segundo plano y el póster forzado.
     var allowsCinematics: Bool {
-        reasons.isDisjoint(with: [.reduceMotion, .videoAutoplayOff, .background])
+        reasons.isDisjoint(with: [.reduceMotion, .videoAutoplayOff, .background, .forcedStill])
     }
 
     /// La del arranque: `forcedStill` bajo XCTest y bajo `--uitest*` sin `--uitest-video`.
     static var launch: VideoPlaybackPolicy {
         let info = ProcessInfo.processInfo
-        let arguments = info.arguments
-        let underXCTest = info.environment["XCTestConfigurationFilePath"] != nil
-            || NSClassFromString("XCTestCase") != nil
+        return launch(arguments: info.arguments, environment: info.environment,
+                      xctestLoaded: NSClassFromString("XCTestCase") != nil)
+    }
+
+    static func launch(arguments: [String], environment: [String: String],
+                       xctestLoaded: Bool) -> VideoPlaybackPolicy {
+        let underXCTest = xctestLoaded || environment["XCTestConfigurationFilePath"] != nil
         let underUITest = arguments.contains { $0.hasPrefix("--uitest") }
             && !arguments.contains("--uitest-video")
         return underXCTest || underUITest ? allowAll.with(.forcedStill) : allowAll
@@ -50,6 +54,7 @@ final class VideoPlaybackObserver {
 
     func start(pool: VideoPlayerPool) {
         guard tasks.isEmpty else { return }
+        inBackground = UIApplication.shared.applicationState == .background
         let center = NotificationCenter.default
         let names: [Notification.Name] = [
             UIAccessibility.reduceMotionStatusDidChangeNotification,

@@ -25,7 +25,10 @@ final class VideoPlayerPool {
     }()
     private static let observer = VideoPlaybackObserver()
 
-    struct Lease: Hashable { fileprivate let id: Int }
+    struct Lease: Hashable {
+        fileprivate let pool: ObjectIdentifier
+        fileprivate let id: Int
+    }
     struct Suspension: Hashable { fileprivate let id: Int }
     struct Reservation: Hashable { fileprivate let id: Int }
     enum SuspendReason: Sendable { case overlay, elevatorRide, scrolling }
@@ -34,13 +37,15 @@ final class VideoPlayerPool {
         let id: Int
         let role: VideoRole
         weak var holder: VideoLeaseHolder?
+        var notified = false
     }
 
     private var entries: [Entry] = []
     private var suspensions: Set<Int> = []
     private var reservations: Set<Int> = []
-    private var live: Set<Int> = []
-    private var policy: VideoPlaybackPolicy
+    private(set) var policy: VideoPlaybackPolicy
+    private var isRecomputing = false
+    private var needsRecompute = false
     private var nextID = 0
 
     private(set) var liveCount = 0
@@ -53,14 +58,14 @@ final class VideoPlayerPool {
         let id = makeID()
         entries.append(Entry(id: id, role: role, holder: holder))
         recompute()
-        return Lease(id: id)
+        return Lease(pool: ObjectIdentifier(self), id: id)
     }
 
     func release(_ lease: Lease) {
-        guard let index = entries.firstIndex(where: { $0.id == lease.id }) else { return }
-        let holder = entries[index].holder
-        entries.remove(at: index)
-        if live.remove(lease.id) != nil { holder?.videoLeaseDidChange(isLive: false) }
+        guard lease.pool == ObjectIdentifier(self),
+              let index = entries.firstIndex(where: { $0.id == lease.id }) else { return }
+        let entry = entries.remove(at: index)
+        if entry.notified { entry.holder?.videoLeaseDidChange(isLive: false) }
         recompute()
     }
 
@@ -101,20 +106,28 @@ final class VideoPlayerPool {
 
     /// Quién vive: con `fullscreen` (y `allowsCinematics`), sólo él. Si no, con suspensiones o
     /// sin `allowsLoops`, nadie. Si no, el más nuevo de cada rol, de mayor a menor rol, hasta
-    /// `maxLive - reservas`. Al holder que cambia se le avisa una sola vez.
+    /// `maxLive - reservas`. Al holder que cambia se le avisa una sola vez; si un aviso dispara
+    /// otro acquire o release, se vuelve a calcular con el estado vigente.
     private func recompute() {
-        let gone = entries.filter { $0.holder == nil }.map(\.id)
-        entries.removeAll { $0.holder == nil }
-        gone.forEach { live.remove($0) }
-
-        let next = liveIDs()
-        let previous = live
-        live = next
-        liveCount = next.count
-        for entry in entries {
-            let was = previous.contains(entry.id), now = next.contains(entry.id)
-            if was != now { entry.holder?.videoLeaseDidChange(isLive: now) }
+        if isRecomputing {
+            needsRecompute = true
+            return
         }
+        isRecomputing = true
+        defer { isRecomputing = false }
+        repeat {
+            needsRecompute = false
+            entries.removeAll { $0.holder == nil }
+            let next = liveIDs()
+            liveCount = next.count
+            for id in entries.map(\.id) {
+                guard let index = entries.firstIndex(where: { $0.id == id }) else { continue }
+                let now = next.contains(id)
+                guard entries[index].notified != now else { continue }
+                entries[index].notified = now
+                entries[index].holder?.videoLeaseDidChange(isLive: now)
+            }
+        } while needsRecompute
     }
 
     private func liveIDs() -> Set<Int> {
@@ -132,19 +145,34 @@ final class VideoPlayerPool {
 }
 
 private struct SuspendsVideoPool: ViewModifier {
+    let active: Bool
+    let reason: VideoPlayerPool.SuspendReason
     @State private var suspension: VideoPlayerPool.Suspension?
 
     func body(content: Content) -> some View {
         content
-            .onAppear { suspension = VideoPlayerPool.shared.suspend(.overlay) }
-            .onDisappear {
-                if let suspension { VideoPlayerPool.shared.resume(suspension) }
-                suspension = nil
+            .onAppear { begin() }
+            .onDisappear { end() }
+            .onChange(of: active) { _, isActive in
+                if isActive { begin() } else { end() }
             }
+    }
+
+    private func begin() {
+        guard active, suspension == nil else { return }
+        suspension = VideoPlayerPool.shared.suspend(reason)
+    }
+
+    private func end() {
+        if let suspension { VideoPlayerPool.shared.resume(suspension) }
+        suspension = nil
     }
 }
 
 extension View {
-    /// Mientras la vista está en pantalla, el pool no decodifica nada (el cofre, el viaje).
-    func suspendsVideoPool() -> some View { modifier(SuspendsVideoPool()) }
+    /// Mientras la vista está en pantalla (y `active`), el pool no decodifica nada: el cofre, el viaje.
+    func suspendsVideoPool(_ active: Bool = true,
+                           reason: VideoPlayerPool.SuspendReason = .overlay) -> some View {
+        modifier(SuspendsVideoPool(active: active, reason: reason))
+    }
 }

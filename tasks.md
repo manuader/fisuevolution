@@ -82,10 +82,7 @@
 
 ## 2. Progreso
 
-**Hoy: 116 de 254 tareas activas integradas en `version-2` (45,7 %); 118 de 254 (46,5 %) con las dos 🟢 de `v2i/integ-r18`
-si el `rapido` final da VERDE (VERDE sobre `8b35414` (EK 624 · unit 1013 + 1 declarado `theOwnersTargetsAreMet` · Release 0)).** El relevo 18 sumó E8d T13, E8c T1, T2, T3 y T5, y E13 T8, T11 y T12 a
-`version-2` (`rapido` VERDE sobre `d4d8c2f` y sobre `4638ef1`, `1776145`), y dejó 🟢 en `integ-r18` a E8c T4 y E8c T6; las dos
-cuentan como ✅ **si el `rapido` final da VERDE**. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
+**Hoy: 118 de 254 tareas activas integradas en `version-2` (46,5 %). `rapido` final VERDE sobre `8b35414` (EK 624 · unit 1013 + 1 declarado `theOwnersTargetsAreMet` · Release 0).** El relevo 18 sumó E8c T1, T2, T4, T5 y T6, y E13 T8, T11 y T12 a `version-2` (`rapido` VERDE sobre `d4d8c2f`, `4638ef1` y `8b35414`); E8d T13 y E8c T3 eran 🟢 del relevo 17 y ya estaban en `version-2`. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
 seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 10 (E11 T7 y E2a T15, cierres del controlador; E3a T11, E8 T7, E2b T1,
 E7b-a T1 y T5, E8c T7, E13 T3 y T10).
 

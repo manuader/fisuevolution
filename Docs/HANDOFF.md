@@ -22,7 +22,7 @@
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
 > 17): `version-2` = **`b093db5`** (`rapido` VERDE sobre `2d33c08`: EK 618 · unit 980 + 1 declarado `theOwnersTargetsAreMet` ·
-> Release 0) · la rama de integración `v2i/integ-r17` = **`b5043b5`** + estos docs (`rapido` final: RAPIDO_PENDIENTE). Están E0,
+> Release 0) · la rama de integración `v2i/integ-r17` = **`b5043b5`** + estos docs (`rapido` final: VERDE sobre `b5043b5` (EK 618 · unit 993 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0,
 > E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a M, más lo del relevo 17: **los tags ODR de
 > la segunda tanda** (**E8d T14**, 99 `.mov` en 14 packs), **el especial animado** (**E8d T5**), **los ganchos del ranking en
 > `GameState`** (**E12 T11**), **los precios al reencarnar** (**E13 T5**) y, en `integ-r17`, **la sonda de fps** (**E8d T13**) y

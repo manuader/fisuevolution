@@ -12,7 +12,7 @@ manuales (`worktrees.nosync/v2i-<tarea>`); revisor opus para E12 T11. Todo pasó
 |---|---|
 | `version-2` | **`b093db5`**: el `rapido` sobre `2d33c08` dio VERDE y avanzó por fast-forward con E8d T14, E8d T5, E12 T11 y E13 T5 |
 | `v2i/integ-r17` | **`b5043b5`** = lo anterior más E8d T13 y E8c T3 (🟢) + los docs del cierre |
-| `rapido` | intermedio sobre `3e9e965`: EK 618 · unit 979 + 2 rojos (`theOwnersTargetsAreMet` declarado; `GameStateRankingHostTests`, ver abajo) · Release 0. Sobre `2d33c08`: VERDE (EK 618 · unit 980 + 1 declarado `theOwnersTargetsAreMet` · Release 0). Final sobre `b5043b5`: RAPIDO_PENDIENTE |
+| `rapido` | intermedio sobre `3e9e965`: EK 618 · unit 979 + 2 rojos (`theOwnersTargetsAreMet` declarado; `GameStateRankingHostTests`, ver abajo) · Release 0. Sobre `2d33c08`: VERDE (EK 618 · unit 980 + 1 declarado `theOwnersTargetsAreMet` · Release 0). Final sobre `b5043b5`: VERDE sobre `b5043b5` (EK 618 · unit 993 + 1 declarado `theOwnersTargetsAreMet` · Release 0) |
 | Progreso | **108 de 254 en `version-2` (42,5 %); 110 de 254 (43,3 %)** si el `rapido` de `integ-r17` da VERDE (`tasks.md` §2) |
 
 El paso 1 del handoff anterior (el fast-forward de `integ-r16`) ya lo había hecho el relevo 16: `version-2` llegó
@@ -134,7 +134,7 @@ de la red más abajo.
   `GameStateRankingHostTests`, test viejo alineado en `2d33c08`) · Release 0.
 - `rapido` sobre `2d33c08`: VERDE (EK 618 · unit 980 + 1 declarado `theOwnersTargetsAreMet` · Release 0). Avanzó
   `version-2` a `b093db5`.
-- `rapido` final sobre `integ-r17` (`b5043b5`): RAPIDO_PENDIENTE
+- `rapido` final sobre `integ-r17` (`b5043b5`): VERDE sobre `b5043b5` (EK 618 · unit 993 + 1 declarado `theOwnersTargetsAreMet` · Release 0)
 - Tareas: E8d T14 unit 17 + Python 89 · E8d T5 unit 14 + `CharacterSheetUITests` 2 · E12 T11 unit 59 · E13 T5 VERDE +
   `PrestigeIndicatorUITests` · E8d T13 unit 9.
 - No se corrió un `completo` nuevo; el de referencia sigue siendo el `--limpio` de `c94f75f`.

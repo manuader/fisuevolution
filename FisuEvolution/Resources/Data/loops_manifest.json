@@ -326,7 +326,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-3"
     },
     "cartonero": {
       "file": "char_cartonero.mov",
@@ -337,7 +338,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-1"
     },
     "ceo": {
       "file": "char_ceo.mov",
@@ -348,7 +350,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-5"
     },
     "chofer_app": {
       "file": "char_chofer_app.mov",
@@ -359,7 +362,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-2"
     },
     "coleccionista_galaxias": {
       "file": "char_coleccionista_galaxias.mov",
@@ -370,7 +374,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-8"
     },
     "deidad": {
       "file": "char_deidad.mov",
@@ -381,7 +386,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-9"
     },
     "director": {
       "file": "char_director.mov",
@@ -392,7 +398,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-4"
     },
     "dueno_luna": {
       "file": "char_dueno_luna.mov",
@@ -403,7 +410,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-6"
     },
     "dueno_marte": {
       "file": "char_dueno_marte.mov",
@@ -414,7 +422,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-7"
     },
     "dueno_pyme": {
       "file": "char_dueno_pyme.mov",
@@ -425,7 +434,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-4"
     },
     "emperador_cosmico": {
       "file": "char_emperador_cosmico.mov",
@@ -436,7 +446,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-9"
     },
     "emprendedor": {
       "file": "char_emprendedor.mov",
@@ -447,7 +458,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-4"
     },
     "estanciero_estelar": {
       "file": "char_estanciero_estelar.mov",
@@ -458,7 +470,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-8"
     },
     "fast_food": {
       "file": "char_fast_food.mov",
@@ -469,7 +482,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-2"
     },
     "fondo_buitre": {
       "file": "char_fondo_buitre.mov",
@@ -480,7 +494,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-7"
     },
     "fundador_startup": {
       "file": "char_fundador_startup.mov",
@@ -491,7 +506,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-4"
     },
     "god": {
       "file": "char_god.mov",
@@ -502,7 +518,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-10"
     },
     "homeless": {
       "file": "char_homeless.mov",
@@ -513,7 +530,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-1"
     },
     "junior_architect": {
       "file": "char_junior_architect.mov",
@@ -524,7 +542,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-3"
     },
     "junior_doctor": {
       "file": "char_junior_doctor.mov",
@@ -535,7 +554,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-3"
     },
     "junior_lawyer": {
       "file": "char_junior_lawyer.mov",
@@ -546,7 +566,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-3"
     },
     "junior_programmer": {
       "file": "char_junior_programmer.mov",
@@ -557,7 +578,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-3"
     },
     "limpiavidrios": {
       "file": "char_limpiavidrios.mov",
@@ -568,7 +590,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-1"
     },
     "magnate_petrolero": {
       "file": "char_magnate_petrolero.mov",
@@ -579,7 +602,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-6"
     },
     "magnate_solar": {
       "file": "char_magnate_solar.mov",
@@ -590,7 +614,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-7"
     },
     "mantero": {
       "file": "char_mantero.mov",
@@ -601,7 +626,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-2"
     },
     "millonario": {
       "file": "char_millonario.mov",
@@ -612,7 +638,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-5"
     },
     "multimillonario": {
       "file": "char_multimillonario.mov",
@@ -623,7 +650,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-5"
     },
     "oficinista": {
       "file": "char_oficinista.mov",
@@ -634,7 +662,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-3"
     },
     "rentista_soles": {
       "file": "char_rentista_soles.mov",
@@ -645,7 +674,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-8"
     },
     "repartidor": {
       "file": "char_repartidor.mov",
@@ -656,7 +686,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-2"
     },
     "rey_asteroides": {
       "file": "char_rey_asteroides.mov",
@@ -667,7 +698,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-7"
     },
     "rey_ladrillo": {
       "file": "char_rey_ladrillo.mov",
@@ -678,7 +710,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-5"
     },
     "semidios": {
       "file": "char_semidios.mov",
@@ -689,7 +722,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-9"
     },
     "senior_architect": {
       "file": "char_senior_architect.mov",
@@ -700,7 +734,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-3"
     },
     "senior_doctor": {
       "file": "char_senior_doctor.mov",
@@ -711,7 +746,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-3"
     },
     "senior_lawyer": {
       "file": "char_senior_lawyer.mov",
@@ -722,7 +758,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-3"
     },
     "senior_programmer": {
       "file": "char_senior_programmer.mov",
@@ -733,7 +770,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-3"
     },
     "senor_galaxia": {
       "file": "char_senor_galaxia.mov",
@@ -744,7 +782,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-8"
     },
     "ser_ascendido": {
       "file": "char_ser_ascendido.mov",
@@ -755,7 +794,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-9"
     },
     "sp_alien_investor": {
       "file": "char_sp_alien_investor.mov",
@@ -766,7 +806,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-especiales"
     },
     "sp_arbolito": {
       "file": "char_sp_arbolito.mov",
@@ -777,7 +818,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-especiales"
     },
     "sp_bug_simulacion": {
       "file": "char_sp_bug_simulacion.mov",
@@ -788,7 +830,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-especiales"
     },
     "sp_coach": {
       "file": "char_sp_coach.mov",
@@ -799,7 +842,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-especiales"
     },
     "sp_contador_dios": {
       "file": "char_sp_contador_dios.mov",
@@ -810,7 +854,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-especiales"
     },
     "sp_cryptobro": {
       "file": "char_sp_cryptobro.mov",
@@ -821,7 +866,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-especiales"
     },
     "sp_demonio_arca": {
       "file": "char_sp_demonio_arca.mov",
@@ -832,7 +878,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-especiales"
     },
     "sp_influencer": {
       "file": "char_sp_influencer.mov",
@@ -843,7 +890,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-especiales"
     },
     "sp_lizard": {
       "file": "char_sp_lizard.mov",
@@ -854,7 +902,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-especiales"
     },
     "sp_zombie_ceo": {
       "file": "char_sp_zombie_ceo.mov",
@@ -865,7 +914,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-especiales"
     },
     "space_billionaire": {
       "file": "char_space_billionaire.mov",
@@ -876,7 +926,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-6"
     },
     "trapito": {
       "file": "char_trapito.mov",
@@ -887,7 +938,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-1"
     },
     "trillonario": {
       "file": "char_trillonario.mov",
@@ -898,22 +950,12 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-piso-6"
     }
   },
-  "visitors": {
-    "npc_comisario_action": {
-      "file": "vis_npc_comisario_action.mov",
-      "width": 512,
-      "height": 512,
-      "fps": 24,
-      "frames": 121,
-      "alpha": true,
-      "audio": false,
-      "matte": "blanco",
-      "keyColor": null
-    },
-    "npc_comisario_talk": {
+  "talking": {
+    "npc_comisario": {
       "file": "vis_npc_comisario_talk.mov",
       "width": 512,
       "height": 512,
@@ -922,20 +964,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "npc_conductor_action": {
-      "file": "vis_npc_conductor_action.mov",
-      "width": 512,
-      "height": 512,
-      "fps": 24,
-      "frames": 121,
-      "alpha": true,
-      "audio": false,
-      "matte": "blanco",
-      "keyColor": null
-    },
-    "npc_conductor_talk": {
+    "npc_conductor": {
       "file": "vis_npc_conductor_talk.mov",
       "width": 512,
       "height": 512,
@@ -944,20 +976,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "npc_ministro_action": {
-      "file": "vis_npc_ministro_action.mov",
-      "width": 512,
-      "height": 512,
-      "fps": 24,
-      "frames": 121,
-      "alpha": true,
-      "audio": false,
-      "matte": "blanco",
-      "keyColor": null
-    },
-    "npc_ministro_talk": {
+    "npc_ministro": {
       "file": "vis_npc_ministro_talk.mov",
       "width": 512,
       "height": 512,
@@ -966,20 +988,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "npc_puntero_action": {
-      "file": "vis_npc_puntero_action.mov",
-      "width": 512,
-      "height": 512,
-      "fps": 24,
-      "frames": 121,
-      "alpha": true,
-      "audio": false,
-      "matte": "blanco",
-      "keyColor": null
-    },
-    "npc_puntero_talk": {
+    "npc_puntero": {
       "file": "vis_npc_puntero_talk.mov",
       "width": 512,
       "height": 512,
@@ -988,20 +1000,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "npc_sindicalista_action": {
-      "file": "vis_npc_sindicalista_action.mov",
-      "width": 512,
-      "height": 512,
-      "fps": 24,
-      "frames": 121,
-      "alpha": true,
-      "audio": false,
-      "matte": "blanco",
-      "keyColor": null
-    },
-    "npc_sindicalista_talk": {
+    "npc_sindicalista": {
       "file": "vis_npc_sindicalista_talk.mov",
       "width": 512,
       "height": 512,
@@ -1010,20 +1012,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "npc_turista_action": {
-      "file": "vis_npc_turista_action.mov",
-      "width": 512,
-      "height": 512,
-      "fps": 24,
-      "frames": 121,
-      "alpha": true,
-      "audio": false,
-      "matte": "blanco",
-      "keyColor": null
-    },
-    "npc_turista_talk": {
+    "npc_turista": {
       "file": "vis_npc_turista_talk.mov",
       "width": 512,
       "height": 512,
@@ -1032,20 +1024,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "npc_vecina_action": {
-      "file": "vis_npc_vecina_action.mov",
-      "width": 512,
-      "height": 512,
-      "fps": 24,
-      "frames": 121,
-      "alpha": true,
-      "audio": false,
-      "matte": "blanco",
-      "keyColor": null
-    },
-    "npc_vecina_talk": {
+    "npc_vecina": {
       "file": "vis_npc_vecina_talk.mov",
       "width": 512,
       "height": 512,
@@ -1054,20 +1036,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "npc_vendedor_action": {
-      "file": "vis_npc_vendedor_action.mov",
-      "width": 512,
-      "height": 512,
-      "fps": 24,
-      "frames": 121,
-      "alpha": true,
-      "audio": false,
-      "matte": "blanco",
-      "keyColor": null
-    },
-    "npc_vendedor_talk": {
+    "npc_vendedor": {
       "file": "vis_npc_vendedor_talk.mov",
       "width": 512,
       "height": 512,
@@ -1076,9 +1048,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "sp_alien_investor_talk": {
+    "sp_alien_investor": {
       "file": "vis_sp_alien_investor_talk.mov",
       "width": 512,
       "height": 512,
@@ -1087,9 +1060,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "sp_arbolito_talk": {
+    "sp_arbolito": {
       "file": "vis_sp_arbolito_talk.mov",
       "width": 512,
       "height": 512,
@@ -1098,9 +1072,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "sp_bug_simulacion_talk": {
+    "sp_bug_simulacion": {
       "file": "vis_sp_bug_simulacion_talk.mov",
       "width": 512,
       "height": 512,
@@ -1109,9 +1084,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "sp_coach_talk": {
+    "sp_coach": {
       "file": "vis_sp_coach_talk.mov",
       "width": 512,
       "height": 512,
@@ -1120,9 +1096,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "sp_contador_dios_talk": {
+    "sp_contador_dios": {
       "file": "vis_sp_contador_dios_talk.mov",
       "width": 512,
       "height": 512,
@@ -1131,9 +1108,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "sp_cryptobro_talk": {
+    "sp_cryptobro": {
       "file": "vis_sp_cryptobro_talk.mov",
       "width": 512,
       "height": 512,
@@ -1142,9 +1120,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "sp_demonio_arca_talk": {
+    "sp_demonio_arca": {
       "file": "vis_sp_demonio_arca_talk.mov",
       "width": 512,
       "height": 512,
@@ -1153,9 +1132,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "sp_influencer_talk": {
+    "sp_influencer": {
       "file": "vis_sp_influencer_talk.mov",
       "width": 512,
       "height": 512,
@@ -1164,9 +1144,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "sp_lizard_talk": {
+    "sp_lizard": {
       "file": "vis_sp_lizard_talk.mov",
       "width": 512,
       "height": 512,
@@ -1175,9 +1156,10 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     },
-    "sp_zombie_ceo_talk": {
+    "sp_zombie_ceo": {
       "file": "vis_sp_zombie_ceo_talk.mov",
       "width": 512,
       "height": 512,
@@ -1186,7 +1168,106 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
+    }
+  },
+  "visitorActions": {
+    "npc_comisario": {
+      "file": "vis_npc_comisario_action.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
+    },
+    "npc_conductor": {
+      "file": "vis_npc_conductor_action.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
+    },
+    "npc_ministro": {
+      "file": "vis_npc_ministro_action.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
+    },
+    "npc_puntero": {
+      "file": "vis_npc_puntero_action.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
+    },
+    "npc_sindicalista": {
+      "file": "vis_npc_sindicalista_action.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
+    },
+    "npc_turista": {
+      "file": "vis_npc_turista_action.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
+    },
+    "npc_vecina": {
+      "file": "vis_npc_vecina_action.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
+    },
+    "npc_vendedor": {
+      "file": "vis_npc_vendedor_action.mov",
+      "width": 512,
+      "height": 512,
+      "fps": 24,
+      "frames": 121,
+      "alpha": true,
+      "audio": false,
+      "matte": "blanco",
+      "keyColor": null,
+      "odrTag": "anim-visitantes"
     }
   },
   "events": {
@@ -1199,7 +1280,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-eventos"
     },
     "blanqueo": {
       "file": "ev_blanqueo.mov",
@@ -1210,7 +1292,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-eventos"
     },
     "cayo_mercado_pago": {
       "file": "ev_cayo_mercado_pago.mov",
@@ -1221,7 +1304,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-eventos"
     },
     "corralito": {
       "file": "ev_corralito.mov",
@@ -1232,7 +1316,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-eventos"
     },
     "devaluacion": {
       "file": "ev_devaluacion.mov",
@@ -1243,7 +1328,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-eventos"
     },
     "inversion_alienigena": {
       "file": "ev_inversion_alienigena.mov",
@@ -1254,7 +1340,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-eventos"
     },
     "plan_platita": {
       "file": "ev_plan_platita.mov",
@@ -1265,7 +1352,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-eventos"
     },
     "startup_comprada": {
       "file": "ev_startup_comprada.mov",
@@ -1276,10 +1364,11 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-eventos"
     }
   },
-  "icons": {
+  "shopIcons": {
     "ui_oro_autotap": {
       "file": "icon_ui_oro_autotap.mov",
       "width": 256,
@@ -1289,7 +1378,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-tienda"
     },
     "ui_oro_better_supplier": {
       "file": "icon_ui_oro_better_supplier.mov",
@@ -1300,7 +1390,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-tienda"
     },
     "ui_oro_daily_boost": {
       "file": "icon_ui_oro_daily_boost.mov",
@@ -1311,7 +1402,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-tienda"
     },
     "ui_oro_extra_slots": {
       "file": "icon_ui_oro_extra_slots.mov",
@@ -1322,7 +1414,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-tienda"
     },
     "ui_oro_extra_spins": {
       "file": "icon_ui_oro_extra_spins.mov",
@@ -1333,7 +1426,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-tienda"
     },
     "ui_oro_income_boost": {
       "file": "icon_ui_oro_income_boost.mov",
@@ -1344,7 +1438,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-tienda"
     },
     "ui_oro_merge_all": {
       "file": "icon_ui_oro_merge_all.mov",
@@ -1355,7 +1450,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-tienda"
     },
     "ui_oro_offline_boost": {
       "file": "icon_ui_oro_offline_boost.mov",
@@ -1366,7 +1462,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-tienda"
     },
     "ui_oro_package_rain": {
       "file": "icon_ui_oro_package_rain.mov",
@@ -1377,7 +1474,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-tienda"
     },
     "ui_oro_time_skip": {
       "file": "icon_ui_oro_time_skip.mov",
@@ -1388,7 +1486,8 @@
       "alpha": true,
       "audio": false,
       "matte": "blanco",
-      "keyColor": null
+      "keyColor": null,
+      "odrTag": "anim-tienda"
     }
   },
   "floors": {

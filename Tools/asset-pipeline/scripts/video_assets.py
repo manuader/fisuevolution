@@ -24,6 +24,11 @@ PLAN-v2 E8, "Pipeline de video". Estas clases de pieza:
 - **Fondos**: el fondo de cada piso, en loop. 1024x1024 opaco, `bgloop_<piso>`
   en `Resources/Backgrounds/Loops/` (el master es `video/fondos/bg_<piso>.mp4`).
 
+**On-Demand Resources.** Lo pesado de la segunda tanda (personajes, poses,
+eventos, iconos) viaja en packs y no en el paquete base: el `.mov` sale a
+`Resources/AnimPacks/<tag>/` y su entrada lleva `odrTag` (ver `odr_tag`). Retratos,
+objetos, cabina, cinematicas y fondos quedan en el paquete base.
+
 **Regla del dueno (2026-10-08): el arte va sobre fondo blanco.** Todo lo que
 lleva alfa salvo la cabina se recorta cuadro por cuadro con el criterio topologico de
 `whitebg_cutout.py` (fondo = lo blanco conectado al borde), que no se come lo
@@ -170,7 +175,8 @@ KINDS = {
         "bordes": TODOS_LOS_BORDES,
     },
     "visitante": {
-        "dir": "Loops", "section": "visitors", "prefix": "vis_",
+        "dir": "Loops", "section": "talking", "actions_section": "visitorActions",
+        "prefix": "vis_",
         "size": (512, 512), "masters": "visitantes", "matte": "blanco",
         "bordes": TODOS_LOS_BORDES,
     },
@@ -180,7 +186,7 @@ KINDS = {
         "bordes": TODOS_LOS_BORDES,
     },
     "icono": {
-        "dir": "Loops", "section": "icons", "prefix": "icon_",
+        "dir": "Loops", "section": "shopIcons", "prefix": "icon_",
         "size": (256, 256), "masters": "iconos", "matte": "blanco",
         "bordes": TODOS_LOS_BORDES,
     },
@@ -191,6 +197,22 @@ KINDS = {
         "master_prefix": "bg_",
     },
 }
+
+# Las secciones del manifest, en el orden de KINDS (las poses de un visitante
+# abren dos: lo que habla y lo que pide).
+SECTIONS = tuple(dict.fromkeys(
+    section
+    for spec in KINDS.values()
+    for section in (spec["section"], spec.get("actions_section"))
+    if section
+))
+
+# Los packs On-Demand Resources (`odrTag` del manifest). Lo que no figura aca
+# viaja en el paquete base: retratos, objetos, cabina, cinematicas y fondos.
+ODR_SPECIALS = "anim-especiales"
+ODR_VISITORS = "anim-visitantes"
+ODR_EVENTS = "anim-eventos"
+ODR_SHOP = "anim-tienda"
 
 # Las piezas con nombre fijo; el juego las pide por este id. Las cinematicas
 # son las tres del plan (E8, "Cuando se reproducen"); el Paquete y el Colchon
@@ -531,19 +553,62 @@ def manifest_entry(output: Path, matte: str | None, key_color: str | None) -> di
 def load_manifest() -> dict:
     if MANIFEST.exists():
         return json.loads(MANIFEST.read_text(encoding="utf-8"))
-    return {"schemaVersion": SCHEMA_VERSION, **{s["section"]: {} for s in KINDS.values()}}
+    return {"schemaVersion": SCHEMA_VERSION, **{section: {} for section in SECTIONS}}
+
+
+def target(kind: str, piece_id: str) -> tuple[str, str]:
+    """Seccion y clave del manifest: el juego pide al visitante por su id, y la
+    pose (`_talk`, `_action`) decide la seccion."""
+    spec = KINDS[kind]
+    if kind != "visitante":
+        return spec["section"], piece_id
+    base, _, pose = piece_id.rpartition("_")
+    return (spec["section"] if pose == "talk" else spec["actions_section"]), base
+
+
+@functools.cache
+def floor_of_character() -> dict[str, int]:
+    """El piso (1..10) de cada personaje de puesto, por `tiers.json` y `economy.json`."""
+    data = RESOURCES / "Data"
+    tiers = json.loads((data / "tiers.json").read_text(encoding="utf-8"))["types"]
+    floors = json.loads((data / "economy.json").read_text(encoding="utf-8"))["floors"]
+    return {
+        t["id"]: next(
+            n for n, f in enumerate(floors, start=1) if f["firstTier"] <= t["tier"] <= f["lastTier"]
+        )
+        for t in tiers
+    }
+
+
+def odr_tag(kind: str, piece_id: str) -> str | None:
+    """El pack ODR de una pieza; `None` si va en el paquete base."""
+    if kind == "personaje":
+        if piece_id.startswith("sp_"):
+            return ODR_SPECIALS
+        floor = floor_of_character().get(piece_id)
+        if floor is None:
+            raise ValueError(f"personaje {piece_id!r} sin piso en tiers.json: no hay pack")
+        return f"anim-piso-{floor}"
+    return {"visitante": ODR_VISITORS, "evento": ODR_EVENTS, "icono": ODR_SHOP}.get(kind)
+
+
+def piece_dir(kind: str, piece_id: str) -> Path:
+    """Donde vive el `.mov`: la carpeta de su clase, o la de su pack ODR."""
+    tag = odr_tag(kind, piece_id)
+    return RESOURCES / "AnimPacks" / tag if tag else RESOURCES / KINDS[kind]["dir"]
 
 
 def register(kind: str, piece_id: str, entry: dict) -> None:
     manifest = load_manifest()
-    section = manifest.setdefault(KINDS[kind]["section"], {})
-    section[piece_id] = entry
-    manifest[KINDS[kind]["section"]] = dict(sorted(section.items()))
+    name, key = target(kind, piece_id)
+    section = manifest.setdefault(name, {})
+    section[key] = entry
+    manifest[name] = dict(sorted(section.items()))
     # Las secciones siempre todas y en el orden de KINDS: un manifest de antes
     # de una clase nueva la gana vacia, y el diff no baila.
     write_json(MANIFEST, {
         "schemaVersion": manifest["schemaVersion"],
-        **{spec["section"]: manifest.get(spec["section"], {}) for spec in KINDS.values()},
+        **{section: manifest.get(section, {}) for section in SECTIONS},
     })
 
 
@@ -557,7 +622,7 @@ def process(kind: str, piece_id: str, master: Path, keyed: bool = True,
         )
     spec = KINDS[kind]
     matte = spec["matte"] if keyed else None
-    output = RESOURCES / spec["dir"] / f"{spec['prefix']}{piece_id}.mov"
+    output = piece_dir(kind, piece_id) / f"{spec['prefix']}{piece_id}.mov"
     key_color = None
     if matte == "blanco":
         encode_cutout(kind, master, output, papel=piece_id in PAPEL_MEDIDO_VIDEO)
@@ -566,6 +631,8 @@ def process(kind: str, piece_id: str, master: Path, keyed: bool = True,
             key_color = measure_key_color(master, en_el_cuadro=kind == "cabina")
         encode(kind, master, output, key_color, similarity, blend)
     entry = manifest_entry(output, matte, key_color)
+    if tag := odr_tag(kind, piece_id):
+        entry["odrTag"] = tag
     register(kind, piece_id, entry)
     return entry
 

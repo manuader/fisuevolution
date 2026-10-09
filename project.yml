@@ -62,6 +62,7 @@ targets:
         # Info.plist crudo dentro del .app, pisando al compilado.
         excludes:
           - Info.plist
+          - Resources/AnimPacks/**
       # El .storekit viaja en el bundle para que la tienda local funcione en
       # builds lanzadas SIN Xcode (simctl, tocar el icono): el
       # `storeKitConfiguration` del scheme sólo se inyecta cuando Xcode lanza
@@ -71,6 +72,53 @@ targets:
       # en Release el archivo es un JSON inerte de ~4 KB.
       - path: StoreKitConfig/FisuEvolution.storekit
         buildPhase: resources
+      # On-Demand Resources: lo pesado de la segunda tanda (personajes, poses, eventos,
+      # iconos) viaja en packs por `odrTag` del manifest, no en el paquete base. Cada
+      # carpeta de `Resources/AnimPacks/<tag>` es un pack; la raíz la excluye arriba.
+      # Los videos se buscan por nombre (Xcode aplana), así que el pack no cambia cómo
+      # se encuentran: `ArtPacks` pide el tag y `LoopsManifest.url` espera a que llegue.
+      - path: FisuEvolution/Resources/AnimPacks/anim-especiales
+        buildPhase: resources
+        resourceTags: [anim-especiales]
+      - path: FisuEvolution/Resources/AnimPacks/anim-eventos
+        buildPhase: resources
+        resourceTags: [anim-eventos]
+      - path: FisuEvolution/Resources/AnimPacks/anim-piso-1
+        buildPhase: resources
+        resourceTags: [anim-piso-1]
+      - path: FisuEvolution/Resources/AnimPacks/anim-piso-10
+        buildPhase: resources
+        resourceTags: [anim-piso-10]
+      - path: FisuEvolution/Resources/AnimPacks/anim-piso-2
+        buildPhase: resources
+        resourceTags: [anim-piso-2]
+      - path: FisuEvolution/Resources/AnimPacks/anim-piso-3
+        buildPhase: resources
+        resourceTags: [anim-piso-3]
+      - path: FisuEvolution/Resources/AnimPacks/anim-piso-4
+        buildPhase: resources
+        resourceTags: [anim-piso-4]
+      - path: FisuEvolution/Resources/AnimPacks/anim-piso-5
+        buildPhase: resources
+        resourceTags: [anim-piso-5]
+      - path: FisuEvolution/Resources/AnimPacks/anim-piso-6
+        buildPhase: resources
+        resourceTags: [anim-piso-6]
+      - path: FisuEvolution/Resources/AnimPacks/anim-piso-7
+        buildPhase: resources
+        resourceTags: [anim-piso-7]
+      - path: FisuEvolution/Resources/AnimPacks/anim-piso-8
+        buildPhase: resources
+        resourceTags: [anim-piso-8]
+      - path: FisuEvolution/Resources/AnimPacks/anim-piso-9
+        buildPhase: resources
+        resourceTags: [anim-piso-9]
+      - path: FisuEvolution/Resources/AnimPacks/anim-tienda
+        buildPhase: resources
+        resourceTags: [anim-tienda]
+      - path: FisuEvolution/Resources/AnimPacks/anim-visitantes
+        buildPhase: resources
+        resourceTags: [anim-visitantes]
     dependencies:
       - package: EconomyKit
       - package: GoogleMobileAds
@@ -143,8 +191,12 @@ targets:
         # con la 1.0.0 (el 4 es el publicado). Reusarlo hace fallar la subida.
         CURRENT_PROJECT_VERSION: "5"
         MARKETING_VERSION: "2.0.0"
+        ENABLE_ON_DEMAND_RESOURCES: YES
       configs:
         Debug:
+          # Debug lleva los packs adentro del .app: el simulador y los tests los ven sin
+          # servidor de ODR. Release los deja afuera (los sirve la tienda).
+          EMBED_ASSET_PACKS_IN_PRODUCT_BUNDLE: YES
           # StoreKitTest (la tienda local DEBUG de `StoreManager`) vive en
           # `$(SDKROOT)/Developer/Library/Frameworks`, fuera de los search
           # paths de un target de app. Sólo Debug lo importa (`#if DEBUG`),

@@ -121,6 +121,40 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         /// **0 = apagado, la v1**; PLAN-v2 E2a propone 24. [TUNEABLE]
         public let priceReliefPurchases: Int
 
+        /// Un tramo de la escalada: desde `fromTier` (inclusive) hasta el
+        /// `fromTier` del siguiente, cada tier de frontera encarece `factor`.
+        public struct EscalationBand: Codable, Sendable, Equatable {
+            public let fromTier: Int
+            public let factor: Double
+
+            public init(fromTier: Int, factor: Double) {
+                self.fromTier = fromTier
+                self.factor = factor
+            }
+        }
+
+        /// La escalada por bandas (PLAN-v2 E2b, "dificultad tardía"): reemplaza a
+        /// `frontierEscalationPerTier` cuando está. `[{8: 1,6}]` con el umbral en
+        /// 7 es exactamente la v1. Sin la clave, la v1. [TUNEABLE]
+        public let escalationBands: [EscalationBand]?
+        /// Cuánto sube la curva por compra en cada piso desde
+        /// `costGrowthStepFromFloorId` (ése incluido): el piso indicado suma un
+        /// escalón, el siguiente dos. No toca los pisos con curva propia. [TUNEABLE]
+        public let costGrowthStepPerFloor: Double?
+        public let costGrowthStepFromFloorId: String?
+
+        /// LA escalada de tu frontera: el producto del factor de cada tier de 2
+        /// a `frontier`. La cobran `hireCost` y el amortiguador; no hay otra copia.
+        public func escalation(atFrontier frontier: Int) -> Double {
+            guard let bands = escalationBands else {
+                return pow(frontierEscalationPerTier, Double(max(0, frontier - frontierEscalationFromTier)))
+            }
+            guard frontier >= 2 else { return 1 }
+            return (2...frontier).reduce(1.0) { product, tier in
+                product * (bands.last { $0.fromTier <= tier }?.factor ?? 1)
+            }
+        }
+
         /// El default de `priceGrowthPerTier` para las FIXTURES: **2,0**, el
         /// factor de merge, o sea la indiferencia exacta —bajar un tier no
         /// abarata ni encarece—. No es el valor del juego (1,5): es el neutro,
@@ -159,7 +193,10 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             frontierEscalationPerTier: Double = HireConfig.noFrontierEscalation,
             frontierEscalationFromTier: Int = HireConfig.escalationFromFirstTier,
             mergeRefundCounts: Double = 0,
-            priceReliefPurchases: Int = 0
+            priceReliefPurchases: Int = 0,
+            escalationBands: [EscalationBand]? = nil,
+            costGrowthStepPerFloor: Double? = nil,
+            costGrowthStepFromFloorId: String? = nil
         ) {
             self.defaultCostMultiplier = defaultCostMultiplier
             self.defaultCostGrowth = defaultCostGrowth
@@ -169,6 +206,9 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             self.frontierEscalationFromTier = frontierEscalationFromTier
             self.mergeRefundCounts = mergeRefundCounts
             self.priceReliefPurchases = priceReliefPurchases
+            self.escalationBands = escalationBands
+            self.costGrowthStepPerFloor = costGrowthStepPerFloor
+            self.costGrowthStepFromFloorId = costGrowthStepFromFloorId
         }
 
         /// Decoder a mano porque los dos knobs de abajo se agregaron después: el
@@ -205,12 +245,26 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
             // v1, una conducta conocida y medida, no una regla que se apaga.
             mergeRefundCounts = try container.decodeIfPresent(Double.self, forKey: .mergeRefundCounts) ?? 0
             priceReliefPurchases = try container.decodeIfPresent(Int.self, forKey: .priceReliefPurchases) ?? 0
+            // Las tres con `decodeIfPresent`: sin la clave, la v1.
+            escalationBands = try container.decodeIfPresent([EscalationBand].self, forKey: .escalationBands)
+            costGrowthStepPerFloor = try container.decodeIfPresent(Double.self, forKey: .costGrowthStepPerFloor)
+            costGrowthStepFromFloorId = try container.decodeIfPresent(String.self, forKey: .costGrowthStepFromFloorId)
+            if let bands = escalationBands {
+                let ordered = zip(bands, bands.dropFirst()).allSatisfy { $0.fromTier < $1.fromTier }
+                guard ordered, bands.allSatisfy({ $0.fromTier >= 2 && $0.factor >= 1 }) else {
+                    throw DecodingError.dataCorruptedError(
+                        forKey: .escalationBands, in: container,
+                        debugDescription: "bandas en orden creciente, desde el tier 2 y con factor >= 1"
+                    )
+                }
+            }
         }
 
         enum CodingKeys: String, CodingKey {
             case defaultCostMultiplier, defaultCostGrowth, priceGrowthPerTier
             case gateTierDistance, frontierEscalationPerTier, frontierEscalationFromTier
             case mergeRefundCounts, priceReliefPurchases
+            case escalationBands, costGrowthStepPerFloor, costGrowthStepFromFloorId
         }
     }
 
@@ -400,7 +454,14 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
     /// arranque y desarma la pared de la desaceleración (de seis runs trabadas a
     /// dos con 1,03). Lo pinea `thePreGateClimbHasNoWallInIt`.
     public func hireCostGrowth(for floor: FloorDef) -> Double {
-        floor.hireCostGrowthOverride ?? hire.defaultCostGrowth
+        if let override = floor.hireCostGrowthOverride { return override }
+        guard let step = hire.costGrowthStepPerFloor, step != 0,
+              let fromId = hire.costGrowthStepFromFloorId,
+              let from = floors.firstIndex(where: { $0.id == fromId }),
+              let ordinal = floors.firstIndex(where: { $0.id == floor.id }),
+              ordinal >= from
+        else { return hire.defaultCostGrowth }
+        return hire.defaultCostGrowth + step * Double(ordinal - from + 1)
     }
 
     /// El multiplicador de piso que recibe **el tap** — y, desde el rebalance de
@@ -478,10 +539,7 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
         hireCostMultiplier(for: floor)
             * StandardEconomy(config: self).tapYield(forTier: frontierTier)
             * tapFloorMultiplier(for: floor)
-            * pow(
-                hire.frontierEscalationPerTier,
-                Double(max(0, frontierTier - hire.frontierEscalationFromTier))
-            )
+            * hire.escalation(atFrontier: frontierTier)
             * pow(hire.priceGrowthPerTier, Double(tier - frontierTier))
             * pow(hireCostGrowth(for: floor), purchases)
     }

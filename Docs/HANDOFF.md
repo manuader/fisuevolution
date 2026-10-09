@@ -21,22 +21,21 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
-> 19): `version-2` = **`f3a2155`** (`rapido` VERDE sobre `f3a2155`: EK 628 · unit 1020 + 1 declarado `theOwnersTargetsAreMet` ·
-> Release 0) · la rama de integración `v2i/integ-r19` = **`6df1ed2`** + estos docs (`rapido` final: VERDE sobre `6df1ed2` (EK 628 · unit 1039 + 1 declarado `theOwnersTargetsAreMet` · Release 0)). Están E0,
-> E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a O, más lo del relevo 19: **los cofres de
-> piso una vez por cuenta** (**E13 T3**), **la escena que encadena sin soltar el turno** (**E8c T7**), **FisuJobs por pisos**
-> (**E13 T10**) y, en `integ-r19`, **los 8 acentos de evento** (**E8d T7**), **el punto de Regalos que avisa los boosts** (**E13
-> T4**), **el arte de las cajas, el colchón, la ruleta, la tienda y el Álbum** (**E8 T7**), **el toque que apura la cadena** (**E8c
-> T8**) y **la config remota de anuncios** (**E7b-a T1**). **Progreso: 121 de 254 tareas activas en `version-2`; 126 de 254
-> (49,6 %) si el `rapido` de `integ-r19` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de
-> `c94f75f` (E1 T16).** Detalle en `Docs/SESION-2026-10-09-v2-relevo-19-ola-p.md`.
+> 20): `version-2` = **`7a5395b`** (`rapido` VERDE sobre `b8a3c1e`: EK 636 · unit 1047 + 1 declarado · Release 0) · la rama
+> de integración `v2i/integ-r20` = **`2e43db0`** + estos docs (`rapido` final: RAPIDO_PENDIENTE). Están E0,
+> E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a P, más lo del relevo 20: **la escalada por
+> bandas** (**E2b T1**), **la cadena de Fusionar todo en el simulador** (**E8c T9**), **el fondo vivo del piso** (**E8d T8**), **el
+> chrome de la raíz en la columna** (**E3a T11**), **«Opciones de privacidad»** (**E7b-a T5**) y, en `integ-r20`, **la revelación
+> con el cuerpo entero** (**E8d T9**) y **el menú deslizable** (**E3b T4**). **Progreso: 131 de 254 tareas activas en `version-2`;
+> 133 de 254 (52,4 %) si el `rapido` de `integ-r20` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio`
+> de `c94f75f` (E1 T16).** Detalle en `Docs/SESION-2026-10-09-v2-relevo-20-ola-q.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r19` (cinco tareas y los docs del cierre; si su `rapido` dio verde, el
-> primer paso del relevo 20 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño;
-> no se tocan. Hay planes por tareas para todas las épicas salvo la parte de agente de E10. **Lo primero del relevo 20:** el
-> `rapido` de `integ-r19` si no quedó hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de
-> `tasks.md` §4.2: **E8c T9** (fixture y UI test) y T10 (cierre), **E8d T8/T9** (`BoardScene`, rev. opus; ya pueden), **E2b T1**,
-> **E7b-a T5** y T2, **E3a T11**, **E13 T9/T2/T7**; E12 T12/T13 siguen ⛔. Con la carga de la máquina alta, no más de dos compilando.
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r20` (dos tareas y los docs del cierre; si su `rapido` dio verde, el
+> primer paso del relevo 21 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño;
+> no se tocan. Hay planes por tareas para todas las épicas salvo la parte de agente de E10. **Lo primero del relevo 21:** el
+> `rapido` de `integ-r20` si no quedó hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de
+> `tasks.md` §4.2: **E12 T13** y **E3b T8** (`RootView`, uno por ola), **E8b T8** y **E8d T10**, **E7b-a T2**, **E13 T9/T2/T7**;
+> los cierres del controlador (E8c T10, E3a T12, E11 T7, E2a T15) van con el `completo`. Con la carga de la máquina alta, no más de dos compilando.
 > **Pendiente del dueño:** confirmar en el chat la lista de palabras de E12 (el clasificador de permisos la bloqueó).
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
@@ -347,6 +346,24 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-09 (relevo 20) — La ola Q: la escalada por bandas, la cadena en el simulador, el fondo vivo y la revelación en movimiento
+
+Con el `rapido` VERDE sobre `b8a3c1e`, `version-2` avanzó a `7a5395b`. **Progreso: 131 de 254 en `version-2`; 133 de 254 (52,4 %) con las dos 🟢 de `integ-r20`.**
+
+- **E2b T1:** `EscalationBand` y `escalation(atFrontier:)` como única fórmula de `hireCost` y `PriceCushion.jump`, más
+  `costGrowthStepPerFloor`; apagadas (con el umbral 7 el resultado es el de la v1).
+- **E8c T9:** `--uitest-merge-all` y `MergeAllChainUITests`; la cadena mide 19,9 s sola y 28,5 s con toques; el techo del UI test
+  pasó de 20 a 30 s (lo hizo el controlador).
+- **E8d T8 / T9:** el fondo del piso con `LoopingVideoNode` (**ya activo en producción**: 10 `bgloop_*` sin `odrTag`) y la revelación
+  con el video del personaje en `cameraOverlay`. Revisión opus en las dos, con arreglos: la suspensión por scroll que `willMove` no
+  soltaba, el `fadeOut` sobre un nodo nil, el whoosh condicional y la precarga ODR del próximo tier. Falta mirar en device (G1/G2/G3).
+- **E3a T11 / E7b-a T5 / E3b T4:** el chrome de la raíz en la columna con las seis hojas por `fisuSheet`; la fila «Opciones de
+  privacidad» en Ajustes sólo donde UMP la pide (+3 claves); el menú deslizable (sólo la página quieta queda montada, Tienda en una
+  sesión de una página, cinco páginas). `BonusHUDUITests.testElCofreSeGanaSeVeYSeAbreDesdeRegalos` está rojo también en la base.
+- Trampa nueva en §7 (el `rapido` lanzado con la máquina cargada y dos agentes compilando).
+
+Detalle en **`Docs/SESION-2026-10-09-v2-relevo-20-ola-q.md`**.
 
 ### Sesión del 2026-10-09 (relevo 19) — La ola P: los cofres de piso por cuenta, la escena que encadena y el toque que apura
 
@@ -2707,6 +2724,13 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la ola Q (2026-10-09, relevo 20)
+
+- **Lanzar el `rapido` con la carga > 200 y dos agentes compilando excede el tope:** con carga 602 el controlador lo cortó por su
+  árbol de PIDs (no con `pkill -f`) y lo relanzó cuando entregó uno.
+- **El plan puede nombrar el tab equivocado:** el de Ajustes es `hud.settings`, no `hud.menu` (E7b-a T5).
+- **`BonusHUDUITests.testElCofreSeGanaSeVeYSeAbreDesdeRegalos` ya estaba rojo en la base:** no es de E3b T4 (sospecha de E2a T14).
+
 ### De la ola P (2026-10-09, relevo 19)
 
 - **Un agente puede "terminar con trabajo de fondo propio" y re-entregar el mismo informe varias veces** (E13 T4, E8c T8): no
@@ -4206,7 +4230,7 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
-### Lo que queda de la 2.0 (cierre del relevo 19)
+### Lo que queda de la 2.0 (cierre del relevo 20)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
 
@@ -4214,11 +4238,12 @@ La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
   activarla); decidir el **`installId` que no viaja por CloudKit** (una partida registrada en A que llega a Dios en B
   queda `.unregisteredGod`: sincronizar el Keychain o aceptarlo); si el botón **Entrar** de `RankingEntryCard` sigue con
   `.disabled` (rompe la convención de `ActionPill`); si molesta que la **placa de 10 pisos tape parte de Reencarnar**
-  mientras está abierta; si `--uitest-ranking-*` de `RankingStore.live()` pasa a `#if DEBUG`; si la moneda de E13 T11 tapa la cara del personaje de atrás en un piso con pasivos; si se hace el back-fill de los cofres de piso de los jugadores de la v1 que ya reencarnaron (E13 T3); las imágenes repetidas y las ventanas blancas opacas del arte de E8 T7 (`ui_shop_income_x2`/`x3`, `wheel_frame`, `ui_album_card_frame`); oír los 8 `sfx_ev_*`. Siguen: mediación por SPM, capturas de ASC, Meta, TestFlight, oír los sonidos (G7).
-- **Sin probar en device:** ODR (E8d T14 ya asignó los tags, pero en Debug los packs van embebidos; G5), el alfa del HEVC a ×5 (G3), el publisher de
+  mientras está abierta; si `--uitest-ranking-*` de `RankingStore.live()` pasa a `#if DEBUG`; si la moneda de E13 T11 tapa la cara del personaje de atrás en un piso con pasivos; si se hace el back-fill de los cofres de piso de los jugadores de la v1 que ya reencarnaron (E13 T3); las imágenes repetidas y las ventanas blancas opacas del arte de E8 T7 (`ui_shop_income_x2`/`x3`, `wheel_frame`, `ui_album_card_frame`); oír los 8 `sfx_ev_*` y el whoosh del reveal (ahora suena siempre); probar en región UE con el SDK real que «Opciones de privacidad» abre el formulario (E7b-a T5). Siguen: mediación por SPM, capturas de ASC, Meta, TestFlight, oír los sonidos (G7).
+- **Sin probar en device:** el fondo animado de los pisos, **ya activo en producción** (ablande 1024² → 2048² al fundir, tirón al soltar un swipe en el SE; G1/G2/G3), y la revelación con video, que depende de ODR (53 `characters` con `odrTag`; se precarga el del próximo tier; sin test con un `ArtPackSource` falso), ODR (E8d T14 ya asignó los tags, pero en Debug los packs van embebidos; G5), el alfa del HEVC a ×5 (G3), el publisher de
   `isReadyForDisplay`.
 - **Montaje pendiente:** la tarjeta y la pestaña del ranking (T9a/T9b) esperan a E12 T13 (T11 ya está); `onChoose` del atajo
-  espera a E3b T8; el contador ×N y el remate de Fusionar todo ya están montados (E8c T7/T8) pero sin captura ni grabación (E8c T9/T10); la posición del contador es provisoria.
+  espera a E3b T8 (T4 ya está 🟢); el contador ×N y el remate de Fusionar todo ya están montados (E8c T7/T8) y la cadena corre en el simulador (E8c T9), pero sin captura ni grabación (E8c T10); la posición del contador es provisoria. **E12 T13 ya puede** (E3b T4 y E3a T11 hechas).
+- **De E3a T11:** el `completo` de cierre de E3a debe correr `BottomMenuUITests`, `BonusHUDUITests` y `HUDRedesignUITests` en iPhone; los toasts de logros y el aviso de torre no usan `playColumn`. **De E3b T4:** sólo la página quieta queda montada (pierde su `NavigationStack` al deslizar).
 
 ### Precargar el atlas de personaje fuera del hilo principal (levantada 2026-08-27)
 
@@ -4556,6 +4581,9 @@ Anotado por si algún día importa, con su medición:
   "Piso ???", la moneda y el pack de las 43; la trampa del `pgrep -f` que se encuentra a sí mismo).
 - **`Docs/SESION-2026-10-09-v2-relevo-19-ola-p.md`**: el relevo 19 (los cofres de piso por cuenta, la escena que encadena y el
   toque que apura; FisuJobs por pisos, los acentos de evento y el arte de las cajas; las trampas del agente que re-entrega y de `timeout`).
+- **`Docs/SESION-2026-10-09-v2-relevo-20-ola-q.md`**: el relevo 20 (la escalada por bandas, la cadena de Fusionar todo en el simulador,
+  el fondo vivo del piso y la revelación con video, «Opciones de privacidad» y el menú deslizable; la trampa del `rapido` con la
+  máquina cargada).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

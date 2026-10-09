@@ -52,6 +52,7 @@ final class BoardScene: SKScene {
     private var isDetached = false
     private var scrollSuspension: VideoPlayerPool.Suspension?
     private var prefetchedPackTag: String?
+    private var prefetchedCharacterTag: String?
 
     // Geometría del campo, cacheada por layoutBoard.
     private var boardColumns = 0
@@ -337,6 +338,7 @@ final class BoardScene: SKScene {
     deinit {
         if let scrollSuspension { Task { @MainActor [videoPool] in videoPool.resume(scrollSuspension) } }
         if let prefetchedPackTag { Task { @MainActor [packs] in packs.release(prefetchedPackTag) } }
+        if let prefetchedCharacterTag { Task { @MainActor [packs] in packs.release(prefetchedCharacterTag) } }
     }
 
     override func didChangeSize(_ oldSize: CGSize) {
@@ -1555,13 +1557,11 @@ final class BoardScene: SKScene {
         if !reduceMotion {
             video.run(.sequence([.scale(to: 1.1, duration: 0.24), .scale(to: 1.0, duration: 0.12)]))
         }
-        video.run(.sequence([
-            .wait(forDuration: hold - 0.2),
-            .run { [weak video] in video?.videoNode?.run(.fadeOut(withDuration: 0.3)) },
-        ]))
+        let photoEntrance: TimeInterval = reduceMotion ? 0.25 : 0.36
+        video.run(.sequence([.wait(forDuration: photoEntrance + hold - 0.2), .fadeOut(withDuration: 0.3)]))
         cameraOverlay.addChild(video)
         revealVideo = video
-        if loops.url(for: .character(type.id), packs: packs) != nil { gameState.playRevealWhoosh() }
+        gameState.playRevealWhoosh()
         video.setVisible(!isDetached)
     }
 
@@ -1755,9 +1755,26 @@ final class BoardScene: SKScene {
     }
 
     private func releasePrefetchedPack() {
-        guard let tag = prefetchedPackTag else { return }
-        prefetchedPackTag = nil
-        packs.release(tag)
+        if let tag = prefetchedPackTag {
+            prefetchedPackTag = nil
+            packs.release(tag)
+        }
+        if let tag = prefetchedCharacterTag {
+            prefetchedCharacterTag = nil
+            packs.release(tag)
+        }
+    }
+
+    /// El personaje del tier que sigue a la frontera es el próximo reveal: su pack se baja antes
+    /// de que el reveal dure sus ~2 s.
+    private func prefetchNextRevealPack() {
+        let nextTier = (gameState.player?.run.maxTierReached ?? 0) + 1
+        let tag = gameState.content?.tiers.concreteTypes.first { $0.tier == nextTier }
+            .flatMap { loops.odrTag(for: .character($0.id)) }
+        guard tag != prefetchedCharacterTag else { return }
+        if let old = prefetchedCharacterTag { packs.release(old) }
+        prefetchedCharacterTag = tag
+        if let tag { packs.prefetch(tag) }
     }
 
     /// El piso de arriba es el que viene: su pack ODR se pide en segundo plano apenas el actual se asienta.
@@ -1766,6 +1783,7 @@ final class BoardScene: SKScene {
             releasePrefetchedPack()
             return
         }
+        prefetchNextRevealPack()
         let next = gameState.visibleFloorOrdinal + 1
         let tag = table.floors.indices.contains(next)
             ? loops.odrTag(for: .floor(table.floors[next].background)) : nil

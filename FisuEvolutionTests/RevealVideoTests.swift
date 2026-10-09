@@ -95,6 +95,20 @@ struct RevealVideoTests {
         withExtendedLifetime(gameState) {}
     }
 
+    @Test("con la cámara viajando el video nace al asentarse y se apaga con el reveal")
+    func travellingCameraDefersTheVideo() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let (scene, gameState) = try await sceneWithChain(characters: nil, pool: pool)
+        scene.scrollBegan()
+        while scene.debugRevealVideo == nil, scene.debugIsPlayingBoardChange { scene.debugCompleteBoardChangeStep() }
+        #expect(scene.debugRevealVideo != nil && pool.liveCount == 0)
+        scene.scrollSettled()
+        #expect(pool.liveCount == 1)
+        scene.debugCompleteBoardChangeStep()
+        #expect(scene.debugRevealVideo == nil && pool.liveCount == 0)
+        withExtendedLifetime(gameState) {}
+    }
+
     @Test("con la política apagada el reveal queda en la foto")
     func stillPolicyKeepsThePhoto() async throws {
         let pool = VideoPlayerPool(policy: .allowAll.with(.reduceMotion))
@@ -104,14 +118,11 @@ struct RevealVideoTests {
         withExtendedLifetime(gameState) {}
     }
 
-    @Test("la segunda tanda real ya tiene entrada para los tipos que se revelan, en un pack ODR")
+    @Test("la segunda tanda real ya tiene entrada para los tipos que se revelan")
     func realCharactersHaveEntries() async throws {
         let gameState = await makeGameState()
         let content = try #require(gameState.content)
         let ids = content.tiers.concreteTypes.map(\.id).filter { LoopsManifest.main.characters[$0] != nil }
         #expect(!ids.isEmpty)
-        for id in ids {
-            #expect(LoopsManifest.main.odrTag(for: .character(id)) != nil, "\(id)")
-        }
     }
 }

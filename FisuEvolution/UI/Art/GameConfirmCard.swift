@@ -14,6 +14,9 @@ struct GameConfirmCard: View {
     /// Rosa para lo destructivo (despedir, resetear), como la firma de la casa.
     var confirmTint: Color = Color("PalettePink")
     let cancelTitleKey: LocalizedStringKey
+    /// Los identificadores de las dos salidas; la reset de E9 usa los de siempre.
+    var acceptIdentifier = "confirm.accept"
+    var cancelIdentifier = "confirm.cancel"
     let onConfirm: () -> Void
     let onCancel: () -> Void
 
@@ -39,7 +42,7 @@ struct GameConfirmCard: View {
                         titleKey: confirmTitleKey,
                         systemImage: confirmSystemImage,
                         tint: confirmTint,
-                        identifier: "confirm.accept",
+                        identifier: acceptIdentifier,
                         action: onConfirm
                     )
                     // La salida silenciosa no compite con la acción: texto
@@ -53,7 +56,7 @@ struct GameConfirmCard: View {
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    .accessibilityIdentifier("confirm.cancel")
+                    .accessibilityIdentifier(cancelIdentifier)
                 }
             }
             .frame(maxWidth: 360)

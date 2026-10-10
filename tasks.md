@@ -543,7 +543,7 @@ que toma · commit o rama · nota.
 | E4b-T7 | La Liquidación en el precio | ✅ | E4a-T9; E3b-T5, E3b-T6, E3b-T7 | ActiveModifier, +Hiring, GameArtComponents; catálogo (snapshot) | `a8c7a06` + arreglos `0999169` (merge `bbd1586`), piso de la gratis `25cc5da` | |
 | E4b-T8 | El Álbum de especiales | ✅ | E4a (cerrada); E3b-T3 | catálogo; MenuView, +TutorialTips | `53cafaf` (merge en `v2i/integ-r25`) | |
 | E4b-T9 | Los especiales salen del tablero | ✅ | T8, T6 | 🔥 BoardScene, GameState, RootView, PlayerState (docstring); +BoardChanges, +Debug | `0fc9ea9` (merge `0d3d327`, quitar 2 claves `3a1b514`, en `v2i/integ-r28`) | **Carry del relevo 27 (de E4b T4):** `eventPresenters` nunca se vacía · **Relevo 28 ✅** (`rapido3` VERDE sobre `a5ef14c`). Sólo borra: `renderAnchoredSpecials`/`specialID`/long-press/`specialInfo`/`visibleFloorSpecials`/`presentSpecialInfo`/`isRecap`/`debug.special.info`; `rollSpecialDrop` y `debugDropFirstSpecial` ya no anclan; `SpecialsOffTheBoardTests` sin RED; tarea VERDE (EK 838 · unit 63, 7 clases por grep de símbolos); UI Tutorial 8/8, CharacterSheet 3/3, QuickHire 3/3, BonusHUD 3/3, SpecialsAlbum 1/1. **Carry → E4b T10:** `meta.specialAnchors` sin escritores, se borra en el próximo bump de schema |
-| E4b-T10 | Cierre de E4 | ⏳ | T1–T9 | `Docs/` | | **Relevo 28:** T1–T9 ✅ → lista (docs, controlador). Pasa a E5b/E6 los carries de `eventPresenters` y de `specialAnchors` |
+| E4b-T10 | Cierre de E4 | 🔄 | T1–T9 | `Docs/` | | **Relevo 28:** T1–T9 ✅ → lista (docs, controlador). Pasa a E5b/E6 los carries de `eventPresenters` y de `specialAnchors` · **Relevo 29:** 🔄 docs (sonnet, `v2i-cierres-r29`); el `completo` lo corre el controlador al final de la ola |
 
 ### E5a — Aduana, Colchón y Ruleta, el motor (`2026-10-07-v2-e5a-aduana-colchon-ruleta.md`)
 
@@ -557,14 +557,14 @@ que toma · commit o rama · nota.
 | E5a-T6 | El Paquete en la partida | ✅ | T4, T5; E1-T9, E1-T10, E1-T14; E4a-T2, E4a-T6, E4a-T8, E4a-T9 | +Rewards, +Engagement, +BoardChanges, BoardChange.swift | | no con E4b T2 |
 | E5a-T7 | El Colchón en la partida | ✅ | T6 | +Engagement | `95cd194` (merge en `v2i/integ-r25`) | |
 | E5a-T8 | La Ruleta en la partida | ✅ | T7 | +Rewards, +Engagement | `a6750c4` + arreglos `ecfae53` (en `v2i/integ-r25`) | crea `LootBoxGate` |
-| E5a-T9 | Cierre de E5a | ⏳ | T1–T8 | `Docs/` | | |
+| E5a-T9 | Cierre de E5a | 🔄 | T1–T8 | `Docs/` | **Relevo 29:** 🔄 docs (sonnet, `v2i-cierres-r29`); el `completo` al final de la ola |
 
 ### E5b — Aduana, Colchón y Ruleta, lo que se ve (`2026-10-07-v2-e5b-aduana-colchon-ruleta.md`)
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E5b-T1 | La Ruleta en pantalla | ✅ | E5a-T8; E4b-T3 | catálogo (snapshot); AudioManager | `44259ad` + arreglos `747492a` (merge `4644e67`, claves `7c6ad1d`, en `v2i/integ-r26`) | cablea `sfx_wheel_tick`; crea `OddsDisclosureView` y `RewardCopy` · rev. opus **Approved con arreglos** (candado `resolving` con Reduce Motion, freno del tic de 0,08 s, `isBusy` en los `RewardedOfferButton`). **Carries → E5b T2/T4:** aplicar `claves-pendientes/e5b-t1.json` (27 claves) antes del oráculo si falta; probar el candado con Reduce Motion (sin test unitario); `wheel_frame` sin usar. **→ E6a:** reusar `OddsDisclosureView`/`RewardCopy` y el candado anti doble toque en el cofre por ORO. **→ dueño:** la tabla de probabilidades queda bajo el pliegue del SE (¿3.1.1?) |
-| E5b-T2 | Los accesos y las hojas | ⏳ | T1; E5a-T6, E5a-T7, E5a-T8; E4b-T3, E4b-T4, E4b-T9; E3a-T6, E3a-T11 | 🔥 GameState, RootView, catálogo; +Rewards, DebugPanelView | | **Carries del relevo 26 (de E5b T1):** aplicar `e5b-t1.json`; probar con Reduce Motion; UI test del candado de la Ruleta · **Carries del relevo 27 (de E5b T4):** el doble cobro de ORO de la Ruleta sin fixture de ORO; Reduce Motion en la vista · **Relevo 28:** E4b T9 ✅ → lista (dueña de `GameState`, `RootView` y catálogo en la ola 29). Carries de E6a T8: `chanceAllowed` por aparición; probar un cerrojo con un unitario con RED (un `doubleTap()` de XCUITest no lo prueba) |
+| E5b-T2 | Los accesos y las hojas | 🔄 | T1; E5a-T6, E5a-T7, E5a-T8; E4b-T3, E4b-T4, E4b-T9; E3a-T6, E3a-T11 | 🔥 GameState, RootView, catálogo; +Rewards, DebugPanelView | | **Carries del relevo 26 (de E5b T1):** aplicar `e5b-t1.json`; probar con Reduce Motion; UI test del candado de la Ruleta · **Carries del relevo 27 (de E5b T4):** el doble cobro de ORO de la Ruleta sin fixture de ORO; Reduce Motion en la vista · **Relevo 28:** E4b T9 ✅ → lista (dueña de `GameState`, `RootView` y catálogo en la ola 29). Carries de E6a T8: `chanceAllowed` por aparición; probar un cerrojo con un unitario con RED (un `doubleTap()` de XCUITest no lo prueba) · **Relevo 29:** 🔄 despachada (sonnet, `v2i-e5b-t2`, BASE `73f5494`; claves por snapshot; rev. opus al entregar) |
 | E5b-T3 | La escena: cajas, colchón, apertura | ⛔ | T2; E1-T10; E4b-T1, E4b-T6, E4b-T9; E3a-T10 | 🔥 BoardScene | | |
 | E5b-T4 | La Ruleta en Regalos | ✅ | T1 | catálogo (dueña o snapshot) | `223b772` (merge + claves `41d98c7`, en `v2i/integ-r27`) | sin revisión opus (UI sin plata nueva); `WheelUITests` 3/3 en SE. **Carries → E5b T2:** el doble cobro de ORO no está cubierto (sin fixture de ORO el gate cierra en el simulador); confirmar que la vista lee Reduce Motion (por `simctl` no se vio). El subtítulo usa `wheelAvailability(storefrontAllows: false)`; el gate real vive en `WheelView` |
 | E5b-T5 | Las lecciones del paquete, el colchón y la ruleta | ⛔ | T2, T4 | catálogo (snapshot); +TutorialTips, TutorialAnchor | | |
@@ -597,7 +597,7 @@ que toma · commit o rama · nota.
 | E6b-T2 | La galería de los 8 efectos (→ 🔒 dueño) | ✅ | T1 | DebugPanelView | `d3c0889` (merge `15318a0`) | el dueño no aprobó ningún efecto → se borra en T1r |
 | E6b-T3 | `skins.json` v2 (EK) | ✅ | T1 | GameContentLoader | `2ba7c2e` (merge `e27efb1`) | el caso `.effect` se quita en T1r |
 | E6b-T1r | Sin skins por código: borrar shaders (T1), galería (T2) y `Treatment.effect`/`shaderId` (T3) | ✅ | E3b-T2 (dueña de DebugPanelView) | DebugPanelView, GameContentLoader | `255749b` (merge `9c5df1e`) | −495 líneas; grep vacío |
-| E6b-T4 | La pinta comprada con ORO es tuya | ⛔ | T3; E6a-T1, E6a-T2, E6a-T8; E3b-T2 | 🔥 PlayerState, catálogo; +Store | | |
+| E6b-T4 | La pinta comprada con ORO es tuya | 🔄 | T3; E6a-T1, E6a-T2, E6a-T8; E3b-T2 | 🔥 PlayerState, catálogo; +Store | **Relevo 29:** E6a T8 ✅ → ⏳; 🔄 despachada (sonnet, `v2i-e6b-t4`, BASE `73f5494`; ∥ E5b T2 sin solape: no toca GameState/RootView; claves por snapshot) |
 | E6b-T5 | Familias se ven (sin efectos) | ⛔ | T1, T4; E6a-T8; E5b-T3 | 🔥 BoardScene, catálogo; +Store | | |
 | E6b-T6 | Lugares extra (EK) | ✅ | E6a-T2; E2a-T4 | — | | |
 | E6b-T7 | Lugares extra en la partida | ⛔ | T6; E6a-T6, E6a-T8, E6a-T12; E3a-T10; E5a-T6 | 🔥 GameState, catálogo; GameContentLoader, +Engagement | | 🔒 si las 4 filas no entran en el SE |

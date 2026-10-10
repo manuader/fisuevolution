@@ -1003,6 +1003,1296 @@
       "treatment": "texture",
       "textureKey": "god_idle__diamante",
       "displayNameKey": "skin.name.diamante"
+    },
+    {
+      "id": "pijama",
+      "characterType": "homeless",
+      "treatment": "texture",
+      "textureKey": "homeless_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "trapito",
+      "treatment": "texture",
+      "textureKey": "trapito_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "limpiavidrios",
+      "treatment": "texture",
+      "textureKey": "limpiavidrios_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "cartonero",
+      "treatment": "texture",
+      "textureKey": "cartonero_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "mantero",
+      "treatment": "texture",
+      "textureKey": "mantero_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "repartidor",
+      "treatment": "texture",
+      "textureKey": "repartidor_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "chofer_app",
+      "treatment": "texture",
+      "textureKey": "chofer_app_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "fast_food",
+      "treatment": "texture",
+      "textureKey": "fast_food_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "oficinista",
+      "treatment": "texture",
+      "textureKey": "oficinista_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "administrativo",
+      "treatment": "texture",
+      "textureKey": "administrativo_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "junior_programmer",
+      "treatment": "texture",
+      "textureKey": "junior_programmer_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "junior_architect",
+      "treatment": "texture",
+      "textureKey": "junior_architect_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "junior_doctor",
+      "treatment": "texture",
+      "textureKey": "junior_doctor_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "junior_lawyer",
+      "treatment": "texture",
+      "textureKey": "junior_lawyer_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "senior_programmer",
+      "treatment": "texture",
+      "textureKey": "senior_programmer_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "senior_architect",
+      "treatment": "texture",
+      "textureKey": "senior_architect_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "senior_doctor",
+      "treatment": "texture",
+      "textureKey": "senior_doctor_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "senior_lawyer",
+      "treatment": "texture",
+      "textureKey": "senior_lawyer_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "director",
+      "treatment": "texture",
+      "textureKey": "director_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "fundador_startup",
+      "treatment": "texture",
+      "textureKey": "fundador_startup_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "dueno_pyme",
+      "treatment": "texture",
+      "textureKey": "dueno_pyme_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "emprendedor",
+      "treatment": "texture",
+      "textureKey": "emprendedor_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "ceo",
+      "treatment": "texture",
+      "textureKey": "ceo_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "millonario",
+      "treatment": "texture",
+      "textureKey": "millonario_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "multimillonario",
+      "treatment": "texture",
+      "textureKey": "multimillonario_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "rey_ladrillo",
+      "treatment": "texture",
+      "textureKey": "rey_ladrillo_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "magnate_petrolero",
+      "treatment": "texture",
+      "textureKey": "magnate_petrolero_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "space_billionaire",
+      "treatment": "texture",
+      "textureKey": "space_billionaire_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "trillonario",
+      "treatment": "texture",
+      "textureKey": "trillonario_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "dueno_luna",
+      "treatment": "texture",
+      "textureKey": "dueno_luna_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "dueno_marte",
+      "treatment": "texture",
+      "textureKey": "dueno_marte_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "rey_asteroides",
+      "treatment": "texture",
+      "textureKey": "rey_asteroides_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "magnate_solar",
+      "treatment": "texture",
+      "textureKey": "magnate_solar_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "fondo_buitre",
+      "treatment": "texture",
+      "textureKey": "fondo_buitre_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "rentista_soles",
+      "treatment": "texture",
+      "textureKey": "rentista_soles_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "estanciero_estelar",
+      "treatment": "texture",
+      "textureKey": "estanciero_estelar_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "senor_galaxia",
+      "treatment": "texture",
+      "textureKey": "senor_galaxia_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "coleccionista_galaxias",
+      "treatment": "texture",
+      "textureKey": "coleccionista_galaxias_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "emperador_cosmico",
+      "treatment": "texture",
+      "textureKey": "emperador_cosmico_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "ser_ascendido",
+      "treatment": "texture",
+      "textureKey": "ser_ascendido_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "semidios",
+      "treatment": "texture",
+      "textureKey": "semidios_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "deidad",
+      "treatment": "texture",
+      "textureKey": "deidad_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "pijama",
+      "characterType": "god",
+      "treatment": "texture",
+      "textureKey": "god_idle__pijama",
+      "displayNameKey": "skin.name.pijama",
+      "textureAtlas": "fam_pijama",
+      "family": "pijama",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "homeless",
+      "treatment": "texture",
+      "textureKey": "homeless_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "trapito",
+      "treatment": "texture",
+      "textureKey": "trapito_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "limpiavidrios",
+      "treatment": "texture",
+      "textureKey": "limpiavidrios_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "cartonero",
+      "treatment": "texture",
+      "textureKey": "cartonero_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "mantero",
+      "treatment": "texture",
+      "textureKey": "mantero_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "repartidor",
+      "treatment": "texture",
+      "textureKey": "repartidor_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "chofer_app",
+      "treatment": "texture",
+      "textureKey": "chofer_app_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "fast_food",
+      "treatment": "texture",
+      "textureKey": "fast_food_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "oficinista",
+      "treatment": "texture",
+      "textureKey": "oficinista_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "administrativo",
+      "treatment": "texture",
+      "textureKey": "administrativo_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "junior_programmer",
+      "treatment": "texture",
+      "textureKey": "junior_programmer_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "junior_architect",
+      "treatment": "texture",
+      "textureKey": "junior_architect_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "junior_doctor",
+      "treatment": "texture",
+      "textureKey": "junior_doctor_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "junior_lawyer",
+      "treatment": "texture",
+      "textureKey": "junior_lawyer_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "senior_programmer",
+      "treatment": "texture",
+      "textureKey": "senior_programmer_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "senior_architect",
+      "treatment": "texture",
+      "textureKey": "senior_architect_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "senior_doctor",
+      "treatment": "texture",
+      "textureKey": "senior_doctor_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "senior_lawyer",
+      "treatment": "texture",
+      "textureKey": "senior_lawyer_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "director",
+      "treatment": "texture",
+      "textureKey": "director_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "fundador_startup",
+      "treatment": "texture",
+      "textureKey": "fundador_startup_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "dueno_pyme",
+      "treatment": "texture",
+      "textureKey": "dueno_pyme_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "emprendedor",
+      "treatment": "texture",
+      "textureKey": "emprendedor_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "ceo",
+      "treatment": "texture",
+      "textureKey": "ceo_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "millonario",
+      "treatment": "texture",
+      "textureKey": "millonario_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "multimillonario",
+      "treatment": "texture",
+      "textureKey": "multimillonario_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "rey_ladrillo",
+      "treatment": "texture",
+      "textureKey": "rey_ladrillo_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "magnate_petrolero",
+      "treatment": "texture",
+      "textureKey": "magnate_petrolero_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "space_billionaire",
+      "treatment": "texture",
+      "textureKey": "space_billionaire_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "trillonario",
+      "treatment": "texture",
+      "textureKey": "trillonario_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "dueno_luna",
+      "treatment": "texture",
+      "textureKey": "dueno_luna_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "dueno_marte",
+      "treatment": "texture",
+      "textureKey": "dueno_marte_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "rey_asteroides",
+      "treatment": "texture",
+      "textureKey": "rey_asteroides_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "magnate_solar",
+      "treatment": "texture",
+      "textureKey": "magnate_solar_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "fondo_buitre",
+      "treatment": "texture",
+      "textureKey": "fondo_buitre_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "rentista_soles",
+      "treatment": "texture",
+      "textureKey": "rentista_soles_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "estanciero_estelar",
+      "treatment": "texture",
+      "textureKey": "estanciero_estelar_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "senor_galaxia",
+      "treatment": "texture",
+      "textureKey": "senor_galaxia_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "coleccionista_galaxias",
+      "treatment": "texture",
+      "textureKey": "coleccionista_galaxias_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "emperador_cosmico",
+      "treatment": "texture",
+      "textureKey": "emperador_cosmico_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "ser_ascendido",
+      "treatment": "texture",
+      "textureKey": "ser_ascendido_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "semidios",
+      "treatment": "texture",
+      "textureKey": "semidios_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "deidad",
+      "treatment": "texture",
+      "textureKey": "deidad_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "gaucho",
+      "characterType": "god",
+      "treatment": "texture",
+      "textureKey": "god_idle__gaucho",
+      "displayNameKey": "skin.name.gaucho",
+      "textureAtlas": "fam_gaucho",
+      "family": "gaucho",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "homeless",
+      "treatment": "texture",
+      "textureKey": "homeless_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "trapito",
+      "treatment": "texture",
+      "textureKey": "trapito_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "limpiavidrios",
+      "treatment": "texture",
+      "textureKey": "limpiavidrios_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "cartonero",
+      "treatment": "texture",
+      "textureKey": "cartonero_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "mantero",
+      "treatment": "texture",
+      "textureKey": "mantero_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "repartidor",
+      "treatment": "texture",
+      "textureKey": "repartidor_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "chofer_app",
+      "treatment": "texture",
+      "textureKey": "chofer_app_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "fast_food",
+      "treatment": "texture",
+      "textureKey": "fast_food_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "oficinista",
+      "treatment": "texture",
+      "textureKey": "oficinista_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "administrativo",
+      "treatment": "texture",
+      "textureKey": "administrativo_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "junior_programmer",
+      "treatment": "texture",
+      "textureKey": "junior_programmer_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "junior_architect",
+      "treatment": "texture",
+      "textureKey": "junior_architect_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "junior_doctor",
+      "treatment": "texture",
+      "textureKey": "junior_doctor_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "junior_lawyer",
+      "treatment": "texture",
+      "textureKey": "junior_lawyer_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "senior_programmer",
+      "treatment": "texture",
+      "textureKey": "senior_programmer_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "senior_architect",
+      "treatment": "texture",
+      "textureKey": "senior_architect_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "senior_doctor",
+      "treatment": "texture",
+      "textureKey": "senior_doctor_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "senior_lawyer",
+      "treatment": "texture",
+      "textureKey": "senior_lawyer_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "director",
+      "treatment": "texture",
+      "textureKey": "director_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "fundador_startup",
+      "treatment": "texture",
+      "textureKey": "fundador_startup_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "dueno_pyme",
+      "treatment": "texture",
+      "textureKey": "dueno_pyme_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "emprendedor",
+      "treatment": "texture",
+      "textureKey": "emprendedor_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "ceo",
+      "treatment": "texture",
+      "textureKey": "ceo_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "millonario",
+      "treatment": "texture",
+      "textureKey": "millonario_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "multimillonario",
+      "treatment": "texture",
+      "textureKey": "multimillonario_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "rey_ladrillo",
+      "treatment": "texture",
+      "textureKey": "rey_ladrillo_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "magnate_petrolero",
+      "treatment": "texture",
+      "textureKey": "magnate_petrolero_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "space_billionaire",
+      "treatment": "texture",
+      "textureKey": "space_billionaire_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "trillonario",
+      "treatment": "texture",
+      "textureKey": "trillonario_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "dueno_luna",
+      "treatment": "texture",
+      "textureKey": "dueno_luna_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "dueno_marte",
+      "treatment": "texture",
+      "textureKey": "dueno_marte_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "rey_asteroides",
+      "treatment": "texture",
+      "textureKey": "rey_asteroides_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "magnate_solar",
+      "treatment": "texture",
+      "textureKey": "magnate_solar_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "fondo_buitre",
+      "treatment": "texture",
+      "textureKey": "fondo_buitre_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "rentista_soles",
+      "treatment": "texture",
+      "textureKey": "rentista_soles_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "estanciero_estelar",
+      "treatment": "texture",
+      "textureKey": "estanciero_estelar_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "senor_galaxia",
+      "treatment": "texture",
+      "textureKey": "senor_galaxia_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "coleccionista_galaxias",
+      "treatment": "texture",
+      "textureKey": "coleccionista_galaxias_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "emperador_cosmico",
+      "treatment": "texture",
+      "textureKey": "emperador_cosmico_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "ser_ascendido",
+      "treatment": "texture",
+      "textureKey": "ser_ascendido_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "semidios",
+      "treatment": "texture",
+      "textureKey": "semidios_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "deidad",
+      "treatment": "texture",
+      "textureKey": "deidad_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
+    },
+    {
+      "id": "dinosaurio",
+      "characterType": "god",
+      "treatment": "texture",
+      "textureKey": "god_idle__dinosaurio",
+      "displayNameKey": "skin.name.dinosaurio",
+      "textureAtlas": "fam_dinosaurio",
+      "family": "dinosaurio",
+      "oroPrice": 450
     }
   ]
 }

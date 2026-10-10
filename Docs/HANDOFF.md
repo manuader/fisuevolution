@@ -15,7 +15,7 @@
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
-> 📍 **Estado al cierre del relevo 25 (la ola W, 2026-10-10; manda sobre el párrafo de abajo, que es del 24 y del 22):** `version-2` = la punta tras el `rapido` VERDE sobre `73a7196` (EK 827 · unit 1247 · 0 rojos · Release 0) · `v2i/integ-r25` = `c435bad` (suma E5a T8 y E4b T3, 🟢) + `tasks.md` + los docs del cierre · `rapido` de la punta: RAPIDO_PENDIENTE.
+> 📍 **Estado al cierre del relevo 25 (la ola W, 2026-10-10; manda sobre el párrafo de abajo, que es del 24 y del 22):** `version-2` = la punta tras el `rapido` VERDE sobre `73a7196` (EK 827 · unit 1247 · 0 rojos · Release 0) · `v2i/integ-r25` = `c435bad` (suma E5a T8 y E4b T3, 🟢) + `tasks.md` + los docs del cierre · `rapido` de la punta: VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %).
 > **Progreso: 186 de 254 en `version-2` (73,2 %); 188 de 254 (74,0 %) con E5a T8 y E4b T3 ✅** si el `rapido` de la punta da VERDE. Entraron E4b T8 (el Álbum de especiales), E4b T2 (los visitantes en la partida) y E5a T7 (el Colchón); quedan 🟢 E5a T8 (la Ruleta + `LootBoxGate`) y E4b T3 (el chip, el popup y el retrato). El `rapido` de E5a T8 dio ROJO por un flake de ODR (`ArtPacksTests.failureDoesNotLoop`, aislado 8/8 VERDE). Detalle en `Docs/SESION-2026-10-10-v2-relevo-25-ola-w.md`. Lo que sigue: `tasks.md` §4 (relevo 26): **E5b T1** primero, y **E7b-a T3 (bloqueo de publicación) en cuanto E5b T1 entre**; en paralelo E4b T5 y E6a T5.
 >
 > 📍 **Estado al cierre del relevo 24 (la ola V, 2026-10-10; lo pisa el párrafo de arriba, el del 25):** `version-2` = **`91b7634`** tras el `rapido` VERDE sobre
@@ -337,7 +337,7 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ### Sesión del 2026-10-10 (relevo 25) — La ola W: el Álbum, los visitantes en la partida, el Colchón, la Ruleta y el chip del visitante
 
-Un solo relevo, abierto a las 05:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~250k de contexto. Todo en `v2i/integ-r25`. `version-2` quedó en la punta del `rapido` VERDE sobre `73a7196` (EK 827 · unit 1247 · 0 rojos · Release 0). **Progreso: 186 de 254 en `version-2`; 188 de 254 (74,0 %) con E5a T8 y E4b T3 ✅** si el `rapido` de la punta da VERDE (RAPIDO_PENDIENTE).
+Un solo relevo, abierto a las 05:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~250k de contexto. Todo en `v2i/integ-r25`. `version-2` quedó en la punta del `rapido` VERDE sobre `73a7196` (EK 827 · unit 1247 · 0 rojos · Release 0). **Progreso: 186 de 254 en `version-2`; 188 de 254 (74,0 %) con E5a T8 y E4b T3 ✅** si el `rapido` de la punta da VERDE (VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %)).
 
 - **E4b T8** (el Álbum de especiales: quinta tarjeta del menú con glifo SF, `SpecialsAlbumView`, lección `.album`), **E4b T2** (los visitantes llegan solos, cotizan y cierran el trato por el embudo; `GameState+Visitors`) y **E5a T7** (el Colchón: `GameState+Treasures`, sortea antes de gastar): ✅, cada una con su `rapido` VERDE (unit 1211, 1236, 1247).
 - **E5a T8** (la Ruleta: `GameState+Wheel`, `LootBoxGate` que falla cerrado, `.wheelSpin` entregable) y **E4b T3** (`VisitorFace`/`StageChips`/`VisitorPopupView`, el retrato con `AnimatedArtView`): 🟢.

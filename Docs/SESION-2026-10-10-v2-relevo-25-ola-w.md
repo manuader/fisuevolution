@@ -13,11 +13,11 @@ después (E4b T3 fue la última tarea) y se cerró con los subagentes de tarea e
 | `version-2` | la punta tras el `rapido` VERDE sobre `73a7196` (EK 827 · unit 1247 · 0 rojos · Release 0): **186 de 254 (73,2 %)** |
 | `v2i/integ-r25` | `c435bad` (suma E5a T8 y E4b T3, 🟢) + `tasks.md` + los docs del cierre (`v2i/docs-r25`) |
 | Progreso | **186 de 254 en `version-2`; 188 de 254 (74,0 %) con E5a T8 y E4b T3 ✅** si el `rapido` de la punta da VERDE |
-| `rapido` de la punta | **RAPIDO_PENDIENTE** |
+| `rapido` de la punta | **VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %)** |
 | Bloqueadas | ninguna nueva. E7b-a T3 sigue ⛔ y es **bloqueo de publicación**: se destraba con E5b T1, que la ola W dejó ⏳. E12 T12 ⛔ (espera a E9b T8) |
 
 `rapido` de la tanda, en orden: `c4381ea` VERDE (EK 827 · unit 1211 · 0 rojos · Release 0; E4b T8 ✅); `e6bc1a4` VERDE (EK 827 · unit 1236; E4b T2 ✅); `73a7196` VERDE (EK 827 · unit 1247; E5a T7 ✅);
-la punta con E5a T8 (`ecfae53` mergeada): **ROJO por un flake**, unit 1272 con 1 rojo, `ArtPacksTests.failureDoesNotLoop` (abajo); la punta final con E4b T3 (`c435bad`): RAPIDO_PENDIENTE.
+la punta con E5a T8 (`ecfae53` mergeada): **ROJO por un flake**, unit 1272 con 1 rojo, `ArtPacksTests.failureDoesNotLoop` (abajo); la punta final con E4b T3 (`c435bad`): VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %).
 No hubo `completo` en esta ola: el último de referencia sigue siendo el de los cierres del 23 (sobre `bab8a9c`).
 
 ## Lo que se integró
@@ -114,7 +114,7 @@ Para saber si era de T8 se chequeó la **base `257d2aa` sola** (worktree `v2i-ba
 
 ## Oráculo
 
-- `rapido`: `c4381ea` VERDE (EK 827 · unit 1211); `e6bc1a4` VERDE (EK 827 · unit 1236); `73a7196` VERDE (EK 827 · unit 1247); punta con E5a T8 ROJO por flake (unit 1272 / 1: `ArtPacksTests.failureDoesNotLoop`, aislado 8/8 VERDE); punta final (`c435bad` + docs): **RAPIDO_PENDIENTE**.
+- `rapido`: `c4381ea` VERDE (EK 827 · unit 1211); `e6bc1a4` VERDE (EK 827 · unit 1236); `73a7196` VERDE (EK 827 · unit 1247); punta con E5a T8 ROJO por flake (unit 1272 / 1: `ArtPacksTests.failureDoesNotLoop`, aislado 8/8 VERDE); punta final (`c435bad` + docs): **VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %)**.
 - Todos los VERDE: 0 rojos, Release 0.
 - UI sueltos: `MenuUITests`, `SpecialsAlbumUITests` y `MenuPagerUITests` (cada uno sola: VERDE); `CharacterSheet`/`QuickHire`/`BonusHUD`/`HUDRedesign` y `VisitorUITests` 3/3.
 - Sin `completo`: el de referencia sigue siendo el de los cierres del 23 sobre `bab8a9c`.

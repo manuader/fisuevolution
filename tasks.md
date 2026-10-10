@@ -8,7 +8,7 @@
 >
 > **Foto:** 2026-10-10, cierre del relevo 25 (la ola W, un solo relevo abierto por el disparo horario de `fisu-v2-relevo-a`).
 > `version-2` = la punta tras el `rapido` de `integ-r25` que el controlador deja anotado en `ESTADO.md` (suma E4b T8, E4b T2 y E5a T7, todas ✅ con `rapido` VERDE: unit 1211, 1236 y 1247).
-> `v2i/integ-r25` = `c435bad` + `tasks.md` + los docs del cierre (suma E5a T8 y E4b T3, 🟢); `rapido` de la punta: RAPIDO_PENDIENTE.
+> `v2i/integ-r25` = `c435bad` + `tasks.md` + los docs del cierre (suma E5a T8 y E4b T3, 🟢); `rapido` de la punta: VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %).
 > **Progreso: 186 de 254 en `version-2`; 188 con E5a T8 y E4b T3 si el `rapido` de la punta da VERDE.** **No publicar E7b-a T2 sin E7b-a T3: E7b-a T3 sale en cuanto E5b T1 entre.**
 > El último `completo` de referencia sigue siendo el de los cierres del 23, sobre `bab8a9c`. Detalle en `Docs/SESION-2026-10-10-v2-relevo-25-ola-w.md` (y `…relevo-24-ola-v.md`, `…relevo-23-ola-u.md`, `…cierres-r23.md`).
 > **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
@@ -83,7 +83,7 @@
 
 ## 2. Progreso
 
-**Hoy: 186 de 254 tareas activas integradas en `version-2` (73,2 %): E4b T8, E4b T2 y E5a T7 entraron, cada una con el `rapido` VERDE de la punta de `integ-r25` (EK 827 · unit 1211, 1236 y 1247); antes, 183 (72,0 %).** Quedan 🟢 en `v2i/integ-r25` (`c435bad`) **E5a T8** (la Ruleta + `LootBoxGate`) y **E4b T3** (el chip, el popup y el retrato): el `rapido` de la punta es **RAPIDO_PENDIENTE**; **con el `rapido` VERDE suman las dos y el progreso pasa a 188 de 254 (74,0 %)**. El `rapido` de E5a T8 dio ROJO por un flake (`ArtPacksTests.failureDoesNotLoop`, un `await settle()` bajo carga; aislado 8/8 VERDE; E5a T8 no toca ODR). En el relevo 25 entraron E4b T8 (el Álbum de especiales), E4b T2 (los visitantes en la partida) y E5a T7 (el Colchón); antes: 183 en el cierre del 24, 177 (69,7 %) con los cierres del 23, 174 (68,5 %) al cierre del 23 y 162 (63,8 %) al cierre del 22. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 7, las que destrabó la ola W: **E4b T4**, **E4b T5**, **E5a T9**, **E5b T1**, **E6a T5**, **E7b-b T6** y **E8b T11** (E8b T11 se destrabó al entrar E4b T2). Las que dependen de E5a T8 o E4b T3 (todas menos E8b T11) arrancan de la punta de `integ-r25`, o de `version-2` una vez que el `rapido` la deje ahí. **E5b T1 → E7b-a T3 (bloqueo de publicación, §4.2).** E12 T12 está ⛔ y E12 T16 🔒.
+**Hoy: 188 de 254 tareas activas integradas en `version-2` (74,0 %; E5a T8 y E4b T3 entraron con el `rapido` VERDE de la punta: EK 827 · unit 1275): E4b T8, E4b T2 y E5a T7 entraron, cada una con el `rapido` VERDE de la punta de `integ-r25` (EK 827 · unit 1211, 1236 y 1247); antes, 183 (72,0 %).** Quedan 🟢 en `v2i/integ-r25` (`c435bad`) **E5a T8** (la Ruleta + `LootBoxGate`) y **E4b T3** (el chip, el popup y el retrato): el `rapido` de la punta es **VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %)**; **con el `rapido` VERDE suman las dos y el progreso pasa a 188 de 254 (74,0 %)**. El `rapido` de E5a T8 dio ROJO por un flake (`ArtPacksTests.failureDoesNotLoop`, un `await settle()` bajo carga; aislado 8/8 VERDE; E5a T8 no toca ODR). En el relevo 25 entraron E4b T8 (el Álbum de especiales), E4b T2 (los visitantes en la partida) y E5a T7 (el Colchón); antes: 183 en el cierre del 24, 177 (69,7 %) con los cierres del 23, 174 (68,5 %) al cierre del 23 y 162 (63,8 %) al cierre del 22. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 7, las que destrabó la ola W: **E4b T4**, **E4b T5**, **E5a T9**, **E5b T1**, **E6a T5**, **E7b-b T6** y **E8b T11** (E8b T11 se destrabó al entrar E4b T2). Las que dependen de E5a T8 o E4b T3 (todas menos E8b T11) arrancan de la punta de `integ-r25`, o de `version-2` una vez que el `rapido` la deje ahí. **E5b T1 → E7b-a T3 (bloqueo de publicación, §4.2).** E12 T12 está ⛔ y E12 T16 🔒.
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
@@ -93,8 +93,8 @@
 | E3b | 9 | 9 |  |  |  |  |  |  |
 | E2a | 15 | 15 |  |  |  |  |  |  |
 | E4a | 10 | 10 |  |  |  |  |  |  |
-| E4b | 10 | 4 | 1 |  | 2 | 3 |  |  |
-| E5a | 9 | 7 | 1 |  | 1 |  |  |  |
+| E4b | 10 | 5 |  |  | 2 | 3 |  |  |
+| E5a | 9 | 8 |  |  | 1 |  |  |  |
 | E5b | 7 |  |  |  | 1 | 6 |  |  |
 | E6a | 13 | 6 |  |  | 1 | 6 |  |  |
 | E6b | 10 | 5 |  |  |  | 5 |  |  |
@@ -110,7 +110,7 @@
 | E12 | 19 | 15 |  |  |  | 3 | 1 |  |
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
-| **Total** | **254** | **186** | **2** |  | **7** | **58** | **1** | **5** |
+| **Total** | **254** | **188** | |  | **7** | **58** | **1** | **5** |
 
 Fuera del conteo:
 
@@ -208,7 +208,7 @@ partirlo.
 
 | # | Qué | Nota |
 |---|---|---|
-| 1 | **El `rapido` final sobre la punta de `v2i/integ-r25`** (`c435bad` + `tasks.md` + los docs del 25, con E5a T8 y E4b T3 🟢). Resultado del relevo 25: **RAPIDO_PENDIENTE** | **Si dio VERDE, `version-2` ya está en la punta** (la dejó el controlador al cerrar): confirmar con `git log` y pasar E5a T8 y E4b T3 a ✅ (188 de 254). **Si no dio VERDE o no quedó hecho, correrlo** sobre la punta de `v2i/integ-r25` con la ruta absoluta del worktree: `nohup perl -e 'setpgrp(0,0); exec @ARGV' bash <ruta>/Tools/v2/oraculo.sh rapido > build/<log> 2>&1 &` (`setsid` no existe en macOS; el oráculo usa el repo de su propia ruta) y esperarlo por PID o por la última línea del log, no con `pgrep -f`. Con ROJO, leer primero **qué test** cae. **El único rojo del 25 fue un flake:** `ArtPacksTests.failureDoesNotLoop` (`await settle()` bajo carga 120–150) cayó en el `rapido` de E5a T8 y aislado dio 8/8 VERDE. Antes de declarar un rojo de ODR, correr la tarea `ArtPacksTests` sola sobre la misma punta. No mergear a `version-2` mientras corra otro oráculo ahí |
+| 1 | **El `rapido` final sobre la punta de `v2i/integ-r25`** (`c435bad` + `tasks.md` + los docs del 25, con E5a T8 y E4b T3 🟢). Resultado del relevo 25: **VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %)** | **Si dio VERDE, `version-2` ya está en la punta** (la dejó el controlador al cerrar): confirmar con `git log` y pasar E5a T8 y E4b T3 a ✅ (188 de 254). **Si no dio VERDE o no quedó hecho, correrlo** sobre la punta de `v2i/integ-r25` con la ruta absoluta del worktree: `nohup perl -e 'setpgrp(0,0); exec @ARGV' bash <ruta>/Tools/v2/oraculo.sh rapido > build/<log> 2>&1 &` (`setsid` no existe en macOS; el oráculo usa el repo de su propia ruta) y esperarlo por PID o por la última línea del log, no con `pgrep -f`. Con ROJO, leer primero **qué test** cae. **El único rojo del 25 fue un flake:** `ArtPacksTests.failureDoesNotLoop` (`await settle()` bajo carga 120–150) cayó en el `rapido` de E5a T8 y aislado dio 8/8 VERDE. Antes de declarar un rojo de ODR, correr la tarea `ArtPacksTests` sola sobre la misma punta. No mergear a `version-2` mientras corra otro oráculo ahí |
 | 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 25 vio 1,3 al llegar y trabajó con 2 compilando (la carga llegó a 195 con el `rapido`). Con carga > 200: **no más de 2 compilando** (el `rapido` cuenta); con ~100, 3. **Las tareas de EK pura (`swift test`) no ocupan cupo**. `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y esperas por PID (**`timeout` no existe**). **El latido es un script con `sleep 30` y escritura por reloj.** **Nunca `pkill -f`**. Un agente con una espera de fondo re-entrega el mismo reporte: **`TaskStop` una vez integrado**; si el reporte de arreglos no llega, leer su commit |
 | 3 | Leer `DUENO.md` entero por pendientes nuevos | **El clasificador del modo auto no deja escribir en `DUENO.md` ni en `.claude/worktrees/version-2/.superpowers/`**: la tabla de dueños va **en cada brief de despacho** (los briefs nuevos se arman con `brief.py` en el `.superpowers/sdd/` del worktree de integración). Las decisiones del dueño del 21b están en el journal, los SESION y acá; **no las re-preguntes**. La mediación por SPM espera al dueño. Las ramas `v2/e8-*` son de la sesión del dueño; no tocar (en el 25 los worktrees `v2-e12-plan` y `v2-release-ops` ya no existían) |
 | 4 | **Toda tarea que toque `DebugPanelView` corre además `CharacterSheetUITests`, `QuickHireUITests` y `BonusHUDUITests`**; su fila nueva va al final de la `List` | un `tarea` no corre UI. E4b T2 los corrió (3/3 cada uno). Va en el brief de E4b T4/T9, E5b T2, E7b-a T3/T6 |
@@ -497,7 +497,7 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E4b-T1 | El escenario y su turno | ✅ | E4a-T10; E3a-T10, E1-T10 | 🔥 GameState, BoardScene; CelebrationQueue, +Celebrations, +Debug | `52a1b9f` + arreglos `788db95` (merge `9b02cdd`, en `v2i/integ-r24`) | |
 | E4b-T2 | Los visitantes en la partida | ✅ | T1 | catálogo (snapshot); +Engagement, +Debug, DebugPanelView | `cdda9c8` + arreglos `2aba4ed` (merge en `v2i/integ-r25`) | no con E5a T7 (`+Engagement`) |
-| E4b-T3 | El chip, el popup y el retrato | 🟢 | T2; E3a-T11, E3b-T4, E3b-T8, E3b-T9 | 🔥 RootView, catálogo; +TutorialTips, TutorialAnchor | `13a0b2a` (en `v2i/integ-r25`) | crea `RewardedOfferButton` (lo completa E7b-b T7) |
+| E4b-T3 | El chip, el popup y el retrato | ✅ | T2; E3a-T11, E3b-T4, E3b-T8, E3b-T9 | 🔥 RootView, catálogo; +TutorialTips, TutorialAnchor | `13a0b2a` (en `v2i/integ-r25`) | crea `RewardedOfferButton` (lo completa E7b-b T7) |
 | E4b-T4 | Eventos con presentador; adiós al banner | ⏳ | T3 | 🔥 GameState, RootView, catálogo, +Bonus; CelebrationQueue, +Celebrations, ActiveBonus* | | |
 | E4b-T5 | El reto y las cartas del Vendedor | ⏳ | T3 | catálogo (snapshot) | | ∥ T4 |
 | E4b-T6 | El Apagón y los Campeones | ⛔ | T4 | 🔥 BoardScene; AudioManager | | cablea `sfx_blackout` |
@@ -517,7 +517,7 @@ que toma · commit o rama · nota.
 | E5a-T5 | El contenido: `packages/treasures/wheel.json` | ✅ | T1–T3; E4a-T7, E4a-T9 | GameContentLoader | | carry: validador `isFinite` |
 | E5a-T6 | El Paquete en la partida | ✅ | T4, T5; E1-T9, E1-T10, E1-T14; E4a-T2, E4a-T6, E4a-T8, E4a-T9 | +Rewards, +Engagement, +BoardChanges, BoardChange.swift | | no con E4b T2 |
 | E5a-T7 | El Colchón en la partida | ✅ | T6 | +Engagement | `95cd194` (merge en `v2i/integ-r25`) | |
-| E5a-T8 | La Ruleta en la partida | 🟢 | T7 | +Rewards, +Engagement | `a6750c4` + arreglos `ecfae53` (en `v2i/integ-r25`) | crea `LootBoxGate` |
+| E5a-T8 | La Ruleta en la partida | ✅ | T7 | +Rewards, +Engagement | `a6750c4` + arreglos `ecfae53` (en `v2i/integ-r25`) | crea `LootBoxGate` |
 | E5a-T9 | Cierre de E5a | ⏳ | T1–T8 | `Docs/` | | |
 
 ### E5b — Aduana, Colchón y Ruleta, lo que se ve (`2026-10-07-v2-e5b-aduana-colchon-ruleta.md`)

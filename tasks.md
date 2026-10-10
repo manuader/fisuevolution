@@ -682,14 +682,14 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 | E2b-T1 | Bandas de escalada y curva por piso (EK) | ✅ | E2a-T3, E2a-T5 | — | `42b2e8c` (integ-r20) | **hecha (r20):** `EscalationBand` + `escalation(atFrontier:)` única fórmula (`hireCost`, `PriceCushion.jump`), `costGrowthStepPerFloor`; apagadas (umbral 7 = v1) |
 | E2b-T2 | Herencia de pasivos al reencarnar (EK) | ✅ | T1 | — | | |
 | E2b-T3 | El simulador cobra como el juego (EK) | ✅ | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
-| E2b-T4 | Política de pisos en marcha del bot (EK, opus) | 🔄 | T3; E2a-T4 | — | | |
+| E2b-T4 | Política de pisos en marcha del bot (EK, opus) | 🟢 | T3; E2a-T4 | — | | |
 | E2b-T5 | Perfiles y fuentes gratis (EK) | ⛔ | T4; E5a-T1 | archivo de `PackageRoller` | | |
 | E2b-T6 | El perfil `.ads` (EK) | ⛔ | T5; E4a-T1, E4a-T8, E5a-T2, E5a-T3 | — | | |
 | E2b-T7 | El perfil `.max` (EK) | ⛔ | T6; E6a-T2, E6b-T6 | — | | |
 | E2b-T8 | El CLI del pacing-sim | ⛔ | T7 | — | | |
 | E2b-T9 | La suite del contrato (apagada) | ⛔ | T8; E5a-T5, E6a-T4, E7b-a-T3, E7b-b-T2, E2a-T11, E2a-T12 | — | | |
 | E2b-T10 | Presupuestos analíticos | ⛔ | E2a-T11, E4a-T7, E4a-T9, E6a-T4 | `visitors.json` | | |
-| E2b-T11 | La herencia en pantalla | ⏳ | T2; E2a-T8 | catálogo (snapshot) | | |
+| E2b-T11 | La herencia en pantalla | 🔄 | T2; E2a-T8 | catálogo (snapshot) | | |
 | E2b-T12 | Medir cada mecánica, en orden | ⛔ | T9; 🔒 playtest E2a-T14 | — | | |
 | E2b-T13 | La búsqueda (run AVO, opus) | ⛔ | T12; E4a-T10, E5a-T9, E6a-T13, E6b-T7, E7b-b-T8 | — | | |
 | E2b-T14 | Declarar la calibración y prender el contrato | ⛔ | T13 | `economy.json`, `upgrades.json`, `achievements.json`, tests de pacing | | |

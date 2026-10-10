@@ -267,7 +267,12 @@ extension GameState {
         case .offer:
             // Lo pagado se entrega siempre: fuera de la ventana, en una tienda
             // restringida o repetido en otro dispositivo. La guarda es la de la
-            // transacción, que ya pasó.
+            // transacción, que ya pasó. Una oferta que el catálogo no conoce no
+            // consume la transacción: no se anota como acreditada sin haber entregado.
+            guard content.offers.offer(id: entry.offerId ?? "") != nil else {
+                Log.store.error("offer purchase without a known offer: \(entry.offerId ?? "nil")")
+                return
+            }
             self.player = player
             creditOffer(entry.offerId, transactionID: transactionID)
             return

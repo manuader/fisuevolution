@@ -359,7 +359,7 @@ final class StoreManager {
 
         if transaction.revocationDate != nil {
             purchasedProductIDs.remove(transaction.productID)
-            if entry?.entitlement == .oro {
+            if entry?.entitlement == .oro || entry?.entitlement == .offer {
                 gameState?.revokeStorePurchase(transactionID: String(transaction.id))
             }
             Log.store.warning("entitlement revoked: \(transaction.productID)")

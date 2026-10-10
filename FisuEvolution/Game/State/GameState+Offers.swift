@@ -14,7 +14,6 @@ extension GameState {
     ) {
         guard let offerId, let offer = content?.offers.offer(id: offerId) else {
             Log.store.error("offer purchase without a known offer: \(offerId ?? "nil")")
-            scheduleSave()
             return
         }
         grant(offer.rewards, source: "offer.\(offerId)", now: now)

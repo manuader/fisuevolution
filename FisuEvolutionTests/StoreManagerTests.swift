@@ -241,6 +241,29 @@ struct StoreManagerTests {
         #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
     }
 
+    /// Lo mismo con una oferta: su ORO es comprado y el reembolso lo descuenta.
+    @Test func refundingAnOfferLowersThePurchasedTotal() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let store = StoreManager()
+        await store.start(gameState: gameState)
+
+        let offer = try #require(store.products.first { $0.id == "com.fisuevolution.iap.offer_renacer" })
+        await store.purchase(offer)
+        await waitUntil { gameState.player?.meta.oroPurchasedLifetime == 300 }
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 300)
+
+        let transaction = try #require(
+            session.allTransactions().first { $0.productIdentifier == offer.id },
+            "no apareció la transacción de offer_renacer"
+        )
+        try session.refundTransaction(identifier: UInt(transaction.identifier))
+
+        await waitUntil(timeout: 180) { gameState.player?.meta.oroPurchasedLifetime == 0 }
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
+    }
+
     /// Un consumible se vuelve a comprar. Si quedara marcado como "comprado" la
     /// tienda le pondría el tilde y el jugador no podría comprar el segundo.
     @Test func aCoinPackStaysBuyableAfterBuyingIt() async throws {

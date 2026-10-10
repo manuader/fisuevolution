@@ -42,9 +42,48 @@ struct OffersPurchaseTests {
     func creditsOnce() async throws {
         let gameState = await makeGameState()
         let renacer = try entry("renacer")
+        let content = try #require(gameState.content)
+        let economy = try #require(gameState.economy)
+        let before = try #require(gameState.player)
+        let production = GameState.coinReward(seconds: 14_400, player: before, content: content, economy: economy)
         gameState.creditStorePurchase(renacer, transactionID: "offer-3")
         gameState.creditStorePurchase(renacer, transactionID: "offer-3")
-        #expect(gameState.player?.meta.oroPurchasedLifetime == 300)
+        let player = try #require(gameState.player)
+        #expect(player.meta.oroPurchasedLifetime == 300)
+        #expect(player.meta.oro == 300)
+        #expect(player.meta.engagement.offers.purchases["renacer"] == 1)
+        #expect(player.run.activeModifiers.filter { $0.sourceKey == "offer.renacer" }.count == 1)
+        #expect(abs(player.run.coins - production) < 1e-6 * max(1, production), "la plata, una sola vez")
+    }
+
+    @Test("una oferta que el catálogo no conoce no consume la transacción")
+    func unknownOfferKeepsTheTransactionOpen() async throws {
+        let gameState = await makeGameState()
+        let before = try #require(gameState.player)
+        var ghost = try entry("renacer")
+        ghost.offerId = "fantasma"
+        gameState.creditStorePurchase(ghost, transactionID: "offer-6")
+        #expect(gameState.player?.meta.creditedPurchases.contains("offer-6") == false)
+        #expect(gameState.player?.meta.oro == before.meta.oro)
+        gameState.creditStorePurchase(try entry("renacer"), transactionID: "offer-6")
+        #expect(gameState.player?.meta.oro == before.meta.oro + 300)
+    }
+
+    @Test("una oferta comprada en el dispositivo que pierde entra una sola vez al cruzar los saves")
+    func purchaseOnTheLosingDeviceCreditsOnce() async throws {
+        let gameState = await makeGameState()
+        let base = try #require(gameState.player)
+        gameState.creditStorePurchase(try entry("renacer"), transactionID: "offer-7")
+        var loser = try #require(gameState.player)
+        loser.meta.lifetimeEarnings = base.meta.lifetimeEarnings
+        var winner = base
+        winner.meta.lifetimeEarnings = base.meta.lifetimeEarnings + 1_000
+        let resolved = SaveConflictResolver.resolve(local: winner, remote: loser)
+        #expect(resolved.meta.oro == winner.meta.oro + 300)
+        #expect(resolved.meta.oroPurchasedLifetime == 300)
+        let again = SaveConflictResolver.resolve(local: resolved, remote: loser)
+        #expect(again.meta.oro == resolved.meta.oro)
+        #expect(again.meta.engagement.offers.purchases["renacer"] == 1)
     }
 
     @Test("una compra cierra su ventana; fuera de la ventana se entrega igual")

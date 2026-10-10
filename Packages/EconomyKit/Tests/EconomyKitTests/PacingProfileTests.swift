@@ -106,6 +106,12 @@ struct PacingAdsProfileTests {
                                    profile: profile, sources: sources).run(maxDays: days)
     }
 
+    @Test("una pausa sin premios no vence nunca: el reloj no se clava en cero")
+    func emptyAdBreakDoesNotStall() throws {
+        let report = try run(.ads, ads: ads { $0.adBreakPrizes = [] }, days: 2)
+        #expect(report.finalLifetimeEarnings > 0)
+    }
+
     @Test(".free ignora las fuentes de video")
     func freeIgnoresAds() throws {
         #expect(fingerprint(try run(.free, ads: ads())) == fingerprint(try run(.free, ads: nil)))

@@ -13,6 +13,9 @@ public struct EconomyKnobs: Codable, Sendable, Equatable {
     public var costGrowthStepPerFloor: Double?
     public var costGrowthStepFromFloorId: String?
     public var inheritsPassiveUnlocks: Bool?
+    public var floorCapacity: Int?
+    public var oroDivisor: Double?
+    public var oroExponent: Double?
 
     public init(
         defaultCostGrowth: Double? = nil,
@@ -23,7 +26,10 @@ public struct EconomyKnobs: Codable, Sendable, Equatable {
         escalationBands: [EconomyConfig.HireConfig.EscalationBand]? = nil,
         costGrowthStepPerFloor: Double? = nil,
         costGrowthStepFromFloorId: String? = nil,
-        inheritsPassiveUnlocks: Bool? = nil
+        inheritsPassiveUnlocks: Bool? = nil,
+        floorCapacity: Int? = nil,
+        oroDivisor: Double? = nil,
+        oroExponent: Double? = nil
     ) {
         self.requiresLastRunWall = requiresLastRunWall
         self.staffedFloorBonus = staffedFloorBonus
@@ -34,6 +40,9 @@ public struct EconomyKnobs: Codable, Sendable, Equatable {
         self.costGrowthStepPerFloor = costGrowthStepPerFloor
         self.costGrowthStepFromFloorId = costGrowthStepFromFloorId
         self.inheritsPassiveUnlocks = inheritsPassiveUnlocks
+        self.floorCapacity = floorCapacity
+        self.oroDivisor = oroDivisor
+        self.oroExponent = oroExponent
     }
 }
 
@@ -62,6 +71,15 @@ extension EconomyConfig {
         if let value = knobs.staffedFloorBonus { root["staffedFloorBonus"] = value }
         if let value = knobs.requiresLastRunWall { oro["requiresLastRunWall"] = value }
         if let value = knobs.inheritsPassiveUnlocks { oro["inheritsPassiveUnlocks"] = value }
+        if let value = knobs.oroDivisor { oro["divisor"] = value }
+        if let value = knobs.oroExponent { oro["exponent"] = value }
+        if let capacity = knobs.floorCapacity, let floors = root["floors"] as? [[String: Any]] {
+            root["floors"] = floors.map { floor in
+                var floor = floor
+                floor["capacity"] = capacity
+                return floor
+            }
+        }
         root["hire"] = hire
         root["oro"] = oro
         return try JSONDecoder().decode(EconomyConfig.self, from: JSONSerialization.data(withJSONObject: root))

@@ -37,6 +37,8 @@ struct GiftsView: View {
     /// Lo que pagó la picada del Asado, si se activó en esta visita.
     @State private var payoutAmount: Double?
     @State private var now = Date()
+    /// La ruleta se empuja dentro de esta misma hoja (PLAN-v2 E5: "vive en Regalos").
+    @State private var showWheel = false
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -102,6 +104,7 @@ struct GiftsView: View {
         // que sumar la fila que la tarjeta ocupa — o no ocupa.
         let chests = gameState.pendingChestCount
         let chestRows = chests > 0 ? 1 : 0
+        let wheel = gameState.wheelAvailability(storefrontAllows: false)
 
         NavigationStack {
             ScrollView {
@@ -114,7 +117,7 @@ struct GiftsView: View {
                 // veces para encontrarla.
                 // Las tarjetas caen escalonadas de arriba abajo al abrir la hoja
                 // (spec §11.2). El índice corre a través de TODAS las secciones
-                // —la fila 0 es el cofre si está, y si no la tira del calendario—
+                // —la fila 0 es el cofre si está, y si no la ruleta—
                 // así que la cascada es del panel y no de cada sección por su
                 // cuenta. Las cintas de sección no participan: son el esqueleto,
                 // y lo que entra es el contenido.
@@ -128,9 +131,13 @@ struct GiftsView: View {
                             .staggeredAppearance(index: 0)
                     }
 
+                    section("gifts.section.wheel")
+                    WheelGiftCard(availability: wheel) { showWheel = true }
+                        .staggeredAppearance(index: chestRows)
+
                     section("gifts.section.daily")
                     DailyStrip(days: days)
-                        .staggeredAppearance(index: chestRows)
+                        .staggeredAppearance(index: chestRows + 1)
 
                     section("gifts.section.boosts")
                     ForEach(Array(boosts.enumerated()), id: \.element.id) { offset, row in
@@ -140,7 +147,7 @@ struct GiftsView: View {
                             adReady: boostAdReady,
                             boostWatched: { boostWatched(boostId: row.id) }
                         )
-                            .staggeredAppearance(index: chestRows + 1 + offset)
+                            .staggeredAppearance(index: chestRows + 2 + offset)
                     }
                     if let payoutAmount {
                         payoutBanner(payoutAmount)
@@ -151,7 +158,7 @@ struct GiftsView: View {
                         VideoCard(row: row) {
                             gameState.applyRewardedReward(rewardId: row.id)
                         }
-                        .staggeredAppearance(index: chestRows + 1 + boosts.count + offset)
+                        .staggeredAppearance(index: chestRows + 2 + boosts.count + offset)
                     }
                 }
                 .padding(.horizontal, Self.panelInset)
@@ -173,9 +180,15 @@ struct GiftsView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { ArtCloseButton { dismiss() } }
             }
+            .navigationDestination(isPresented: $showWheel) {
+                WheelView(close: { dismiss() })
+                    // Empujada, la vista pierde el telón transparente de la hoja.
+                    .clearNavigationBackdrop()
+            }
             .onReceive(timer) { now = $0 }
             .task { await preloadVideos() }
         }
+        .tint(Color("PaletteInk"))
     }
 
     // MARK: Cabecera

@@ -63,20 +63,6 @@ struct DebugPanelView: View {
                         gameState.debugSimulateOffline(hours: 4)
                     }
                 }
-                // La misma carta que reabre el long-press sobre el personaje
-                // del tablero, sin pelear el gesto: es la puerta de los tests
-                // (precedente `--uitest-open-sheet`: los gestos del tablero no
-                // se automatizan por coordenada) y sirve para mirar el
-                // beneficio sin puntería.
-                if let special = gameState.visibleFloorSpecials.first {
-                    Section("Specials") {
-                        Button("Carta del special activo") {
-                            gameState.presentSpecialInfo(id: special.id)
-                            dismiss()
-                        }
-                        .accessibilityIdentifier("debug.special.info")
-                    }
-                }
                 // Un cofre abierto de una, con su animación. La vía real —cada
                 // dos pisos, un video, el día 7— es media hora de partida por
                 // cofre, así que sin esto la animación no se puede mirar dos

@@ -314,7 +314,8 @@ public struct MetaState: Codable, Sendable, Equatable {
     /// 1 + oroEarnedLifetime × perOro × (1 + prestigeBonus). Cacheado.
     public var globalMultiplier: Double
     public var ownedSpecials: [String]
-    /// Piso (id) al que quedó anclado visualmente cada special. Sin slot (⚠️5).
+    /// Sin escritores desde E4b: los especiales viven en el Álbum. Se decodifica
+    /// para no romper saves viejos; se borra con el próximo bump de schema.
     public var specialAnchors: [String: String]
     /// Skins de IAP (cache de entitlements — StoreKit la REESCRIBE entera).
     public var ownedSkins: [String]

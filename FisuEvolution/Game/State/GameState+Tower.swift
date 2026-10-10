@@ -93,29 +93,6 @@ extension GameState {
         content.map { $0.floorTable[visibleFloorOrdinal] }
     }
 
-    /// Specials anclados al piso visible (⚠️5: no ocupan slot ni se mergean —
-    /// quedan de decorado en el piso donde cayeron). Un special sin ancla (o con
-    /// un ancla de una config vieja) simplemente no se dibuja.
-    var visibleFloorSpecials: [SpecialsConfig.Special] {
-        guard let content, let player, let floorID = visibleFloorDef?.id else { return [] }
-        return content.specials.specials.filter {
-            player.meta.ownedSpecials.contains($0.id) && player.meta.specialAnchors[$0.id] == floorID
-        }
-    }
-
-    /// El jugador mantuvo apretado un special del tablero: se reabre su carta.
-    /// El id viene del nodo de la escena; acá se resuelve contra el catálogo —
-    /// si el special ya no existe (venció entre el toque y el frame), no pasa
-    /// nada, que es lo correcto.
-    func presentSpecialInfo(id: String) {
-        guard let special = content?.specials.specials.first(where: { $0.id == id }) else { return }
-        specialInfo = special
-    }
-
-    func dismissSpecialInfo() {
-        specialInfo = nil
-    }
-
     /// Placements del piso visible (la escena solo dibuja este piso en F7.1).
     var visiblePlacements: [TowerPlacement] {
         tower?.placements(onFloor: visibleFloorOrdinal) ?? []

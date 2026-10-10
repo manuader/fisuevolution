@@ -71,24 +71,6 @@ struct CrowdDepthTests {
         #expect(BoardScene.fieldBaseZ > (try highestFloorZ()))
     }
 
-    /// Los specials son decorado: van detrás de la multitud entera, pero delante
-    /// de los fondos. Su z sale de la franja justamente porque una constante
-    /// fija se queda corta apenas la franja se agranda.
-    @Test("los specials quedan detrás de la multitud y delante del fondo")
-    func specialsSitBetweenTheFloorAndTheCrowd() throws {
-        let floorZ = try highestFloorZ()
-        for capacity in capacities {
-            for screen in screens {
-                let layout = PlayLayout(size: screen, capacity: capacity)
-                let band = BoardScene.crowdBand(sceneHeight: screen.height, cellSize: layout.cellSize, rows: layout.rows)
-                let specialZ = BoardScene.fieldBaseZ
-                    + BoardScene.specialZ(band: band, rows: layout.rows, cellSize: layout.cellSize)
-                #expect(specialZ < lowestCrowdZ(screen: screen, capacity: capacity))
-                #expect(specialZ > floorZ, "un special tampoco puede irse detrás del fondo")
-            }
-        }
-    }
-
     /// La profundidad entre personajes tiene que seguir funcionando: el de
     /// adelante (menor `y`) tapa al de atrás. Es lo que le da volumen a la
     /// multitud y lo que usa el hit-testing para elegir a quién tocaste.

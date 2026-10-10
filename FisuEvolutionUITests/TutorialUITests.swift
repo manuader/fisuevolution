@@ -541,18 +541,11 @@ final class TutorialUITests: XCTestCase {
         close.tap()
     }
 
-    /// El personaje especial muestra su SKIN en la carta (no el glifo de
-    /// estrella) y su carta se puede REABRIR para consultar el beneficio
-    /// (corrección del dueño, 2026-08-25). La reapertura entra por la puerta
-    /// del panel de debug — `presentSpecialInfo`, el MISMO camino que dispara
-    /// el long-press sobre el personaje del tablero — siguiendo el precedente
-    /// de `--uitest-open-sheet`: los gestos del tablero no se automatizan por
-    /// coordenada (el press-lotería costó una corrida completa: el personaje
-    /// deambulando gana el toque por diseño, y los sheets del runtime 26
-    /// animan lento y dejan al siguiente press cayendo en el lugar
-    /// equivocado). El gesto en sí quedó smoke-manual, verificado en vivo.
+    /// El personaje especial muestra su SKIN en la carta del drop (no el glifo
+    /// de estrella). La consulta del beneficio es del Álbum
+    /// (`SpecialsAlbumUITests`): el tablero ya no reabre la carta.
     @MainActor
-    func testElSpecialMuestraSuSkinYSuCartaSePuedeReabrir() throws {
+    func testElSpecialMuestraSuSkin() throws {
         let app = XCUIApplication()
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-special"]
         app.launch()
@@ -569,31 +562,5 @@ final class TutorialUITests: XCTestCase {
             predicate: NSPredicate(format: "exists == 0"), object: claim
         )
         XCTAssertEqual(XCTWaiter().wait(for: [claimGone], timeout: 8), .completed)
-        // El sheet del runtime 26 anima su salida con calma: el botón de
-        // debug de abajo se toca por coordenada y un resto de scrim se lo
-        // comería.
-        Thread.sleep(forTimeInterval: 1.0)
-
-        // La reapertura, por la puerta de debug (el camino del long-press).
-        let debugKey = app.buttons["hud.debug"]
-        XCTAssertTrue(debugKey.waitForExistence(timeout: 6))
-        debugKey.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-        let reopen = app.buttons["debug.special.info"]
-        XCTAssertTrue(reopen.waitForExistence(timeout: 6),
-                      "el panel tiene que ofrecer la carta del special activo")
-        reopen.tap()
-
-        XCTAssertTrue(claim.waitForExistence(timeout: 8),
-                      "la carta del special tiene que reabrirse para consultar el beneficio")
-        let recapShot = XCTAttachment(screenshot: app.screenshot())
-        recapShot.name = "special: recap reabierto"
-        recapShot.lifetime = .keepAlways
-        add(recapShot)
-
-        // Y la carta del recap se cierra por su botón, sin dejar nada colgado.
-        claim.tap()
-        XCTAssertEqual(XCTWaiter().wait(for: [XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "exists == 0"), object: claim
-        )], timeout: 8), .completed)
     }
 }

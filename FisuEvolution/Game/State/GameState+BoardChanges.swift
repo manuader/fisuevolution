@@ -6,7 +6,7 @@ import Foundation
 extension GameState {
     var boardIsVisibleForChanges: Bool {
         phase == .ready && isSceneActive && !uiCoversBoard && !tutorialPhaseActive
-            && careerPrompt == nil && characterSheet == nil && specialInfo == nil
+            && careerPrompt == nil && characterSheet == nil
     }
 
     func enqueueBoardChange(_ change: BoardChange) {

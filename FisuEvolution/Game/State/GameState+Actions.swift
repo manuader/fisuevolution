@@ -307,10 +307,6 @@ extension GameState {
             economy: economy,
             rng: &rng
         ) {
-            // Anclaje visual: el special queda en el piso donde cayó (⚠️5).
-            if let floorId = visibleFloorDef?.id {
-                player.meta.specialAnchors[dropped.id] = floorId
-            }
             self.player = player
             specialDrop = dropped
             haptics?.play(.rarity)

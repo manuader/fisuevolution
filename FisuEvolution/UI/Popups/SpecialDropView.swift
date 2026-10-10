@@ -8,15 +8,9 @@ import SwiftUI
 /// salida. El protagonista es la SKIN del personaje, grande (corrección del
 /// dueño, 2026-08-21: antes iba un glifo de estrella y no se apreciaba a
 /// quién te ganaste); la estrella queda de fallback para un special sin arte.
-///
-/// La misma carta sirve dos momentos: el DROP (celebración, con "¡Es mío!")
-/// y el RECAP — el jugador mantiene apretado al special en el tablero y la
-/// carta vuelve para contarle qué beneficio le está dando. Cambian el título,
-/// el botón y a quién se avisa al cerrar; el cuerpo es idéntico a propósito.
 struct SpecialDropView: View {
     @Environment(GameState.self) private var gameState
     let special: SpecialsConfig.Special
-    var isRecap = false
 
     /// El plato del retrato: el mismo cuadrado redondeado de `CareerPortrait`
     /// y de los glifos de Regalos, a escala de protagonista.
@@ -30,7 +24,7 @@ struct SpecialDropView: View {
         // marco es la firma de la familia de premio: se abre como un regalo.
         PanelCard {
             VStack(spacing: Tokens.s16) {
-                PanelTitleBanner(titleKey: isRecap ? "special.info.title" : "special.drop.title")
+                PanelTitleBanner(titleKey: "special.drop.title")
                 GameCard(style: .highlighted(Color("PaletteYellow"))) {
                     VStack(spacing: Tokens.s12) {
                         portrait
@@ -47,19 +41,17 @@ struct SpecialDropView: View {
                             .foregroundStyle(Color("PaletteInk").opacity(0.65))
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
-                        if !isRecap {
-                            Text("special.drop.album_hint")
-                                .font(Tokens.caption)
-                                .foregroundStyle(Color("PaletteInk").opacity(0.55))
-                                .multilineTextAlignment(.center)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                        Text("special.drop.album_hint")
+                            .font(Tokens.caption)
+                            .foregroundStyle(Color("PaletteInk").opacity(0.55))
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Tokens.s4)
                 }
                 ActionPill(
-                    titleKey: isRecap ? "special.info.ok" : "special.drop.claim",
+                    titleKey: "special.drop.claim",
                     systemImage: "checkmark",
                     tint: Color("PaletteGreen"),
                     identifier: "special.drop.claim",
@@ -120,10 +112,6 @@ struct SpecialDropView: View {
     }
 
     private func dismiss() {
-        if isRecap {
-            gameState.dismissSpecialInfo()
-        } else {
-            gameState.dismissSpecialDrop()
-        }
+        gameState.dismissSpecialDrop()
     }
 }

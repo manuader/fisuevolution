@@ -15,6 +15,12 @@
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
+> 📍 **Estado al cierre del relevo 24 (la ola V, 2026-10-10; manda sobre el párrafo de abajo, que es del 22):** `version-2` = **`91b7634`** tras el `rapido` VERDE sobre
+> `25cc5da` (EK 825 · unit 1190 · 0 rojos · Release 0) · `v2i/integ-r24` = `9b02cdd` (suma E4b T1, 🟢) + `tasks.md` · `rapido` de la punta: RAPIDO_PENDIENTE.
+> **Progreso: 182 de 254 en `version-2` (71,7 %); 183 de 254 con E4b T1 🟢.** Entraron E4a T10 (cierre de E4a), E2b T7/T8 (perfil `.max` y CLI del simulador), E4b T7 (la Liquidación
+> en el precio) y E6a T11 (las ofertas se cobran). El `rapido` encontró un bug real: el piso de descuentos de E4b T7 anulaba la contratación gratis (`25cc5da`). Detalle en
+> `Docs/SESION-2026-10-10-v2-relevo-24-ola-v.md`. Lo que sigue: `tasks.md` §4 (relevo 25): **E4b T2** o **E5a T7** (comparten `+Engagement`: una por ola), **E4b T8**.
+>
 > 🧪 **Se verifica con `Tools/v2/oraculo.sh tarea|rapido|completo`** (§6): el
 > agente de una tarea corre `tarea <Clases>` (sólo sus tests); el `rapido`
 > (que también compila Release) lo corre el controlador una vez por ola. Los
@@ -325,6 +331,18 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-10 (relevo 24) — La ola V: el cierre de E4a, el perfil `.max` y el CLI del simulador, la Liquidación en el precio, las ofertas que se cobran y el escenario
+
+Un solo relevo, abierto a las 03:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~253k de contexto. Todo en `v2i/integ-r24`. `version-2` quedó en `91b7634` (`rapido` VERDE sobre `25cc5da`: EK 825 · unit 1190 · 0 rojos · Release 0). **Progreso: 182 de 254 en `version-2`; 183 de 254 (72,0 %) con E4b T1 🟢** si el `rapido` de la punta da VERDE (RAPIDO_PENDIENTE).
+
+- **E4a T10** (cierre de E4a, docs) y **E2b T7/T8** (el perfil `.max` y el CLI del pacing-sim, EK): la base sigue **byte a byte idéntica** (Dios 31,34 h · 13 reenc.); con `--prestige-threshold 4`, `.bare` 22,34 h · `.free` 18,77 · `.ads` 12,84 · `.max` 12,75 (6 reenc.).
+- **E4b T7** (la Liquidación en el precio: piso 0,25 sólo en `spawnCostMultiplier`, precio tachado «antes X») y **E6a T11** (`offer_*` consumibles, `creditOffer` sin mirar la ventana, ORO por `recordOroPurchase`); las dos con revisión opus Approved con arreglos, hechos.
+- **E4b T1** (el escenario y su turno, 🟢): `StageController`, `VisitorNode`, `SpeechBubbleNode`, `.visitorEncounter` en `CelebrationQueue`; sin verificación visual a mano; los UI tests no se re-corrieron tras mover la `Section` del panel de debug.
+- **El bug del `rapido`:** el piso de E4b T7 subía a 0,25 la contratación gratis (magnitud 0) y la revisión opus no lo vio; arreglado por el controlador en `25cc5da` (`product > 0` + test EK `freeHiringSkipsTheFloor`).
+- Trampas nuevas en §7: el agente con trabajo de fondo que re-entrega, el reporte de arreglos que nunca llega (leer el commit) y los opus revisores que deben buscar magnitud 0 en los modificadores.
+
+Detalle en **`Docs/SESION-2026-10-10-v2-relevo-24-ola-v.md`**.
 
 ### Cierre de E4a (2026-10-10) — El motor de visitantes y eventos v2
 
@@ -2427,6 +2445,9 @@ paréntesis; el porqué completo está en la sesión de cada uno):
 15. **El bot del pacing-sim no fusiona el piso que está llenando** (E2b T4, relevo 23). La regla literal del plan («fusionar siempre») nunca completaba un piso de capacidad 10/15, porque
     cada contratación se fusionaba antes de llenarlo; el objetivo se busca debajo del piso de compra. Medido: la base sin bono queda idéntica (Dios 31,34 h · 13 reenc.); con bono 0,05 y cap 10/15,
     Dios en 25,76 h · 11 reenc. · 7 pisos en marcha. Lo discrimina `fillingSurvivesTheMerges` (cap 10). «Fusionar todo» literal, aunque sea pérdida neta para el bot, se re-mide en E2b T13.
+16. **El piso de descuentos apilados no alcanza a la contratación gratis** (E4b T7, relevo 24). Los descuentos que se apilan sobre `spawnCostMultiplier` no bajan de 0,25 del precio, pero «gratis» es un modificador
+    de magnitud 0 y su producto queda en 0: el piso se aplica sólo si `product > 0` (`25cc5da`, test `freeHiringSkipsTheFloor`). Y `creditOffer` (E6a T11) acredita una oferta comprada **aunque ya no figure abierta**:
+    la compra está cobrada, la ventana no decide.
 
 ---
 
@@ -2866,6 +2887,14 @@ El panel de debug es el ícono de herramientas del HUD.
 - **`loops_manifest` todavía tiene que mover `events.cayo_mercado_pago` a `home_banking`:** E4a T9 sacó ese id de `AudioWiringTests` y la revisión opus lo encontró.
 - **La cuota sin plata no se atenúa** en el evento de Corralito: se muestra igual aunque no se pueda pagar (E4b).
 - **`isCalmMoment` no se unificó con `isSafeMomentForInterstitial`:** `naturalBreakContext` suma `fullScreenUI`/`adOnScreen`; no copiar uno al otro, lo unifica E7b.
+
+### De la ola V (2026-10-10, relevo 24)
+
+- **Un clamp nuevo en una función compartida cambia a todos sus llamadores:** el piso de 0,25 de E4b T7 en `ModifierMath.factor` subió la contratación gratis (magnitud 0) al 25 %. Lo vio el `rapido`, no la tarea ni la revisión
+  opus. **Los revisores opus de precios y de modificadores tienen que probar magnitud 0, 1 y el borde exacto del clamp**; va en el brief de la revisión.
+- **Un agente con trabajo de fondo colgado re-entrega el mismo reporte** (E2b T7: 4 entregas; E4b T7). Una vez integrado, `TaskStop` sobre ese agente y mirar `ps`: sin procesos suyos, no hay nada que perder.
+- **Un agente cuyo reporte de arreglos nunca llega** (E4b T1: «entregado» sin mensaje, y un `SendMessage` pidiéndolo no sirvió). No esperarlo: leer su commit (`788db95`), leer el diff y verificar contra la lista de la revisión.
+- **Un `tarea` no corre UI, y los arreglos tampoco se re-corren solos:** mover la `Section` del panel de debug (E4b T1) dejó `CharacterSheetUITests`, `QuickHireUITests` y `BonusHUDUITests` sin volver a correr. Los corre E4b T2 (toca el panel) o el próximo `completo`.
 
 ### De la ola U (2026-10-10, relevo 23)
 
@@ -4431,7 +4460,17 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
-### Lo que queda de la 2.0 (cierre del relevo 23)
+### Lo que queda de la 2.0 (cierre del relevo 24)
+
+La cola con orden, BASE y modelo está en `tasks.md` §4 (relevo 25). Lo nuevo del 24, además de lo que sigue de abajo (que se mantiene):
+
+- **Destrabadas por la ola V (ahora ⏳):** E4b T2 (los visitantes en la partida; dueña de `+Engagement`/`+Debug`/`DebugPanelView`) y E4b T8 (el Álbum de especiales). E5a T7 sigue ⏳ y comparte `+Engagement` con E4b T2: una por ola o en serie.
+- **Siguen ⛔:** E6a T12 (faltan E6a T7/T8, E5a T8, E4b T3, E5b T1/T2), E2b T9/T10 (esperan a E6a T4, E7b-a T3, E7b-b T2), E7b-a T3 (**bloqueo de publicación**: faltan E5b T1 y E4b T3), E9b T8 (E9a T3), E12 T12.
+- **Carries del 24:** E4b T2 (`presentOnStage` por `canPresentOnStage`, la paciencia no corre en intersticial, stubs de `arrive`/`openStagePopup`, correr los UI de debug); E4b T3/T4 (los `switch` y la prioridad 5); E6a T12 (no ofrecer la Bienvenida en BE/AU);
+  E9b T8 (oferta reembolsada); E7b (forma de `sideRail`/`adBreak` en `rewarded_ads.json`); E2b T12 (`.free` da 3 de 8 pisos en banda; `oro_shop.json`).
+- **Al dueño:** capturas SE del precio tachado y del escenario (SE/iPad/Reduce Motion); los tres escenarios a mano de E4a; el reembolso de una oferta sólo revoca su ORO.
+
+### Lo que queda de la 2.0 (cierre del relevo 23, vigente salvo lo de arriba)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4. Lo nuevo del 23, además de lo que sigue de abajo (que se mantiene):
 
@@ -4819,6 +4858,8 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-10-v2-cierres-r23.md`**: el relevo 23, los cierres de E8, E13b y E13 con un solo `completo` (el peso +39 MB, el panel de
   debug que se comió las puertas, las grabaciones del ascensor). Planes cerrados: `2026-10-08-v2-e8-integracion-arte.md`,
   `2026-10-08-v2-e13b-ascensor-barra.md` y `2026-10-08-v2-e13-feedback-v1.md`.
+- **`Docs/SESION-2026-10-10-v2-relevo-24-ola-v.md`**: el relevo 24 (E4a T10, el perfil `.max` y el CLI del simulador con su tabla, la Liquidación en el precio, las ofertas que se cobran, el escenario de E4b T1; el bug
+  del piso que anulaba la contratación gratis, las revisiones opus y sus carries, las trampas del agente que re-entrega y del reporte que no llega).
 - **`Docs/SESION-2026-10-10-v2-e4.md`**: el cierre de E4a (la tabla por tarea con su commit, la verificación que lo cubre, el porqué de
   cada default de «Para el dueño» y lo que le deja a E4b). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e4a-visitantes-eventos.md`.
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).

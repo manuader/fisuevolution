@@ -230,4 +230,47 @@ struct CinematicTriggerTests {
         #expect(gameState.showing == nil)
         #expect(gameState.player?.meta.engagement.seenCinematics["intro"] == nil)
     }
+
+    private func visitorWorld() async -> GameState {
+        let gameState = await world()
+        gameState.debugUnlockFloors(throughTier: 6)
+        gameState.debugGrantCoins()
+        gameState.debugGrantPair()
+        gameState.debugGrantPair()
+        gameState.engagementAutorun = true
+        return gameState
+    }
+
+    private func arrive(_ gameState: GameState, _ scriptId: String) throws {
+        let script = try #require(gameState.content?.visitors.script(id: scriptId))
+        gameState.presentVisitor(script)
+        gameState.stageActorArrived(id: try #require(gameState.stageVisit?.id))
+    }
+
+    @Test("dejar ir al arrestado la pide las dos primeras veces, antes de la salida")
+    func arrestTwiceBeforeTheDeparture() async throws {
+        for vez in 1...3 {
+            let gameState = await visitorWorld()
+            gameState.player?.meta.engagement.seenCinematics["arresto"] = vez - 1
+            try arrive(gameState, "comisario_arresto")
+            #expect(gameState.chooseVisitOption("release"))
+            if vez <= 2 {
+                #expect(gameState.showing == .cinematic, "vez \(vez)")
+                #expect(gameState.cinematic == .arresto)
+                gameState.celebrationFinished(.cinematic)
+                #expect(gameState.player?.meta.engagement.seenCinematics["arresto"] == vez)
+            } else {
+                #expect(gameState.cinematic == nil, "la tercera ya no")
+            }
+            #expect(!gameState.pendingBoardChanges.isEmpty, "la salida sigue en su turno")
+        }
+    }
+
+    @Test("pagar la fianza no la pide")
+    func bailNoCinematic() async throws {
+        let gameState = await visitorWorld()
+        try arrive(gameState, "comisario_arresto")
+        #expect(gameState.chooseVisitOption("bail"))
+        #expect(gameState.cinematic == nil)
+    }
 }

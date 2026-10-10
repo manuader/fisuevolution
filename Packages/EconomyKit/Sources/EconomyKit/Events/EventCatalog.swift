@@ -1,8 +1,7 @@
 import Foundation
 
 /// `events.json` schema 2 (PLAN-v2 E4): cada evento tiene efectos compuestos, una
-/// polaridad, quiénes lo presentan y por dónde se sale. Se llama así y no
-/// `EventsConfig` para no chocar con el config de la v1 mientras conviven.
+/// polaridad, quiénes lo presentan y por dónde se sale.
 public struct EventCatalog: Codable, Sendable, Equatable {
     public enum Polarity: String, Codable, Sendable {
         case positive, negative, mixed

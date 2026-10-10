@@ -184,7 +184,7 @@ extension GameState {
         // El Corralito en curso, con su banner y su salida por video: el evento
         // real es RNG con cooldown de 40 minutos y tier mínimo 6.
         if ProcessInfo.processInfo.arguments.contains("--uitest-corralito") {
-            debugStartCorralito()
+            debugStartEvent(id: "corralito")
         }
         // La tira del calendario de Regalos con días ya cobrados atrás. Va
         // ANTES del claim automático de más abajo a propósito: en una partida
@@ -304,8 +304,8 @@ extension GameState {
         if ProcessInfo.processInfo.arguments.contains("--uitest-daily-popup") {
             debugClaimDailyAgain()
         }
+        applyEngagementFixtures()
         #endif
-        scheduleNextEvent(from: Date().timeIntervalSince1970)
         // Una sola pasada post-carga: un save escrito ANTES de que
         // existieran los logros llega con medio catálogo ya ganado, y sin
         // esto quedaría esperando a la próxima fusión para enterarse.

@@ -85,14 +85,13 @@ struct CareerRewardTests {
     func doctorGetsAHealthPlan() async throws {
         let gameState = await makeGameState()
         let content = try #require(gameState.content)
-        let devaluacion = try #require(content.events.events.first { $0.id == "devaluacion" })
         let farFuture = Date().timeIntervalSince1970 + 3600
         gameState.player?.run.activeModifiers = [
             ActiveModifier(effect: .incomeMultiplier, magnitude: 0.5, expiresAt: farFuture, sourceKey: "event.devaluacion")
         ]
-        gameState.activeEvent = EventManager.ActiveEvent(
-            id: "devaluacion", flavorTextKey: devaluacion.flavorTextKey, isBuff: false,
-            endsAt: farFuture, escapableByVideo: false
+        gameState.activeEvent = GameState.ActiveEvent(
+            id: "devaluacion", phraseKey: "event.devaluacion.phrase", polarity: .negative,
+            endsAt: farFuture, escapes: []
         )
         let before = try #require(gameState.player)
         let expected = GameState.coinPayout(minutes: 15, player: before, content: content)
@@ -105,7 +104,6 @@ struct CareerRewardTests {
         #expect(!after.run.activeModifiers.contains { $0.sourceKey == "event.devaluacion" })
         #expect(gameState.activeEvent == nil)
         #expect(after.run.coins == before.run.coins + expected)
-        #expect(!gameState.eventIsApplicable(devaluacion))
         #expect(gameState.careerRewards["junior_doctor"]?.kind == .healthPlan)
     }
 
@@ -113,25 +111,36 @@ struct CareerRewardTests {
     func healthPlanOnlyBlocksNegativeEventsWhileItLasts() async throws {
         let gameState = await makeGameState()
         let content = try #require(gameState.content)
-        let devaluacion = try #require(content.events.events.first { $0.id == "devaluacion" })
-        let buff = try #require(content.events.events.first { $0.isBuff && gameState.eventIsApplicable($0) })
         let now = Date().timeIntervalSince1970
+        gameState.player?.run.raiseFrontier(to: content.tiers.maxTier)
         gameState.grantCareerReward(optionId: "junior_doctor", now: now)
-        #expect(gameState.eventIsApplicable(buff))
-        #expect(!gameState.eventIsApplicable(devaluacion))
+
+        func drawable() throws -> Set<String> {
+            let player = try #require(gameState.player)
+            let pool = EventScheduler.eligible(
+                catalog: content.events, state: player.meta.engagement.events, maxTier: player.run.maxTierReached,
+                isImmune: ModifierMath.isImmuneToEvents(player.run.activeModifiers, now: now),
+                isApplicable: { _ in true }
+            )
+            return Set(pool.map(\.id))
+        }
+
+        let immune = try drawable()
+        #expect(immune.contains("plan_platita"))
+        #expect(!immune.contains("devaluacion"))
 
         gameState.player?.run.activeModifiers.removeAll()
 
-        #expect(gameState.eventIsApplicable(devaluacion))
+        #expect(try drawable().contains("devaluacion"))
     }
 
     @Test("cortar el evento malo no toca un buff en curso")
     func cuttingLeavesABuffAlone() async throws {
         let gameState = await makeGameState()
-        gameState.activeEvent = EventManager.ActiveEvent(
-            id: "plan_platita", flavorTextKey: "x", isBuff: true, endsAt: .infinity, escapableByVideo: false
+        gameState.activeEvent = GameState.ActiveEvent(
+            id: "plan_platita", phraseKey: "event.plan_platita.phrase", polarity: .positive, endsAt: .infinity, escapes: []
         )
-        #expect(!gameState.cutNegativeEvent())
+        gameState.cutNegativeEvents()
         #expect(gameState.activeEvent != nil)
     }
 

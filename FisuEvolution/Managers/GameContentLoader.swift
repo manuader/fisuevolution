@@ -11,7 +11,7 @@ struct GameContent: Sendable {
     let flags: FeatureFlags
     let prestigeUnlocks: PrestigeUnlocks
     let rewardedAds: RewardedAdsConfig
-    let events: EventsConfig
+    let events: EventCatalog
     let specials: SpecialsConfig
     let skins: SkinsConfig
     let chests: ChestsConfig
@@ -41,7 +41,7 @@ enum GameContentLoader {
         let flags: FeatureFlags = try decode("feature_flags", from: bundle)
         let prestigeUnlocks: PrestigeUnlocks = try decode("prestige_unlocks", from: bundle)
         let rewardedAds: RewardedAdsConfig = try decode("rewarded_ads", from: bundle)
-        let events: EventsConfig = try decode("events", from: bundle)
+        let events: EventCatalog = try decode("events", from: bundle)
         let specials: SpecialsConfig = try decode("specials", from: bundle)
         let skins: SkinsConfig = try decode("skins", from: bundle)
         let chests: ChestsConfig = try decode("chests", from: bundle)
@@ -106,6 +106,14 @@ enum GameContentLoader {
             try visitors.validate()
         } catch {
             throw GameError.contentInvalid(file: "visitors.json", reason: "\(error)")
+        }
+        do {
+            try events.validate(
+                visitorIDs: Set(visitors.visitors.map(\.id)),
+                scriptIDs: Set(visitors.scripts.map(\.id))
+            )
+        } catch {
+            throw GameError.contentInvalid(file: "events.json", reason: "\(error)")
         }
         // Un especial que visita tiene que existir: si no, su guion nunca sale
         // (nadie lo consigue) y su arte no se encuentra.

@@ -1,49 +1,7 @@
 import Foundation
 
 /// Codable mirrors de los JSON del track Content (F5). Nada de esto se hardcodea:
-/// eventos, boosts, upgrades, specials, daily, viral y Game Center son datos.
-
-struct EventsConfig: Codable, Sendable, Equatable {
-    enum EffectType: String, Codable, Sendable, CaseIterable {
-        case incomeMultiplier
-        case instantEvolution
-        case freeHighTier
-        case spawnCostMultiplier
-        case spendingFrozen
-        case bonusCoins
-    }
-
-    struct Event: Codable, Sendable, Equatable, Identifiable {
-        let id: String
-        let effectType: EffectType
-        let magnitude: Double
-        let durationSeconds: Double
-        let weight: Int
-        let minTier: Int
-        let cooldownSeconds: Double
-        let flavorTextKey: String
-        let isBuff: Bool
-        /// `"video"`: el jugador puede levantar el evento mirando un video.
-        let escape: String?
-        /// Si el evento no tiene sobre quién caer, paga esto (la Startup sin nadie
-        /// que evolucione). `nil` = el evento no es aplicable.
-        let fallback: Fallback?
-
-        struct Fallback: Codable, Sendable, Equatable {
-            let coinsSeconds: Double
-            let flavorTextKey: String
-        }
-    }
-
-    let schemaVersion: Int
-    let baseIntervalSeconds: Double
-    let intervalJitterSeconds: Double
-    /// Lo que se corre un evento que venció mientras la app estaba afuera.
-    let resumeGraceSeconds: Double
-    /// Cuando el sorteo no tiene nada que pueda pasar, cuánto se espera para volver a intentar.
-    let retryWhenNoneApplicableSeconds: Double
-    let events: [Event]
-}
+/// boosts, upgrades, specials, daily, viral y Game Center son datos.
 
 struct SpecialsConfig: Codable, Sendable, Equatable {
     struct PassiveEffect: Codable, Sendable, Equatable {

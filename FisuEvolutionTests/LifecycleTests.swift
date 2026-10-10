@@ -76,12 +76,12 @@ struct LifecycleTests {
     func overdueEventIsPostponed() async throws {
         let gameState = await makeGameState()
         let t0 = Date().timeIntervalSince1970
-        gameState.nextEventAt = t0 + 10
+        gameState.player?.meta.engagement.events.secondsUntilNext = 0
         gameState.handleScenePhase(from: .active, to: .background, now: t0)
         gameState.handleScenePhase(from: .background, to: .inactive, now: t0 + 3600)
         gameState.handleScenePhase(from: .inactive, to: .active, now: t0 + 3601)
         let grace = try #require(gameState.content?.events.resumeGraceSeconds)
-        #expect(gameState.nextEventAt == t0 + 3601 + grace)
+        #expect(gameState.player?.meta.engagement.events.secondsUntilNext == grace)
     }
 
     @Test("el watchdog recibe el delta con tope: el salto del background no vence nada")
@@ -154,8 +154,7 @@ struct LifecycleTests {
         let gameState = try await producingGame()
         let content = try #require(gameState.content)
         let t0 = Date().timeIntervalSince1970
-        let overdue = t0 - 1
-        gameState.nextEventAt = overdue
+        gameState.player?.meta.engagement.events.secondsUntilNext = 0
         let buff = ActiveModifier(
             effect: .incomeMultiplier, magnitude: 3, expiresAt: t0 - 1800, sourceKey: "test.buff"
         )
@@ -170,12 +169,12 @@ struct LifecycleTests {
         gameState.handleScenePhase(from: .active, to: .background, now: t0 - 3600)
         gameState.handleScenePhase(from: .background, to: .inactive, now: t0)
         for _ in 0..<8 { gameState.flushHUD() }
-        #expect(gameState.nextEventAt == overdue)
+        #expect(gameState.player?.meta.engagement.events.secondsUntilNext == 0)
         #expect(gameState.player?.run.activeModifiers == [buff])
 
         gameState.handleScenePhase(from: .inactive, to: .active, now: t0)
         let grace = content.events.resumeGraceSeconds
-        #expect(gameState.nextEventAt == t0 + grace)
+        #expect(gameState.player?.meta.engagement.events.secondsUntilNext == grace)
         let paid = try #require(gameState.offlineReward?.amount)
         #expect(abs(paid - expected) < 1e-9)
     }

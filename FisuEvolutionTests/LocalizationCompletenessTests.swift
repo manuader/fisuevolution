@@ -135,7 +135,7 @@ struct LocalizationCompletenessTests {
                     [$0.displayNameKey, $0.flavorTextKey, $0.reviewSafe.displayNameKey, $0.reviewSafe.flavorTextKey]
                 }
             case .events:
-                return content.events.events.map(\.flavorTextKey)
+                return content.events.events.flatMap { [$0.titleKey, $0.phraseKey] }
             case .dailyRewards:
                 return content.dailyRewards.days.map(\.titleKey)
             case .gameCenter:

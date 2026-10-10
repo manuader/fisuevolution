@@ -22,11 +22,12 @@ extension GameState {
         // acelera la economía, no el tiempo que el jugador tiene para mirar. Con el
         // mismo tope que la plata: el primer frame tras volver del background trae
         // todo el salto, y el watchdog no debe darlo todo por vencido.
+        advanceEngagement(delta: min(delta, IncomeTicker.deltaClampThreshold))
         advanceCelebrations(delta: min(delta, IncomeTicker.deltaClampThreshold))
     }
 
     /// 8 Hz projection flush driven by the scene's frame counter. Also prunes
-    /// expired modifiers and fires scheduled events.
+    /// expired modifiers and retires the event banner.
     ///
     /// Con la escena inactiva sólo proyecta: el regreso del background pasa por
     /// `.inactive` con la escena ya dibujando, y podar buffs, disparar el evento
@@ -43,7 +44,7 @@ extension GameState {
                     scheduleSave()
                 }
             }
-            fireEventIfDue(now: now)
+            expireActiveEvent(now: now)
             beatIfDue(now: now)
         }
         refreshProjections()

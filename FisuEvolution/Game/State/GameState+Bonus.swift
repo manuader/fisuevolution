@@ -209,7 +209,7 @@ extension GameState {
             rng: &rng
         ) {
             self.player = player
-            dailyClaim = claim
+            dailyClaim = applyPendingDailyMultiplier(to: claim)
             audio?.play(.daily)
             // El día 7 del ciclo y el special que puede tirar el cofre: los dos
             // logros que sólo se cruzan por acá.

@@ -6,6 +6,7 @@ import Foundation
 /// escenario; E5, paquetes y colchón. Todos acá, en este orden.
 extension GameState {
     func advanceEngagement(delta: TimeInterval) {
+        advanceAutoTap(delta: delta)
         advanceEvents(delta: delta)
         advanceVisitors(delta: delta)
         advancePackages(delta: delta)

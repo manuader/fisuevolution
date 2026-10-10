@@ -5,13 +5,14 @@ import Foundation
 /// compartidos"): visitantes, eventos y, después, ruleta, colchón, tienda y
 /// ofertas pasan por acá. `multiplier` es el "×2 con video".
 extension GameState {
-    /// Lo que este punto ya sabe dar. E5 sumó `.package` y `.wheelSpin`; E6 suma
-    /// `.autoTap`, los multiplicadores del próximo offline y diario y `.extraSlots`.
+    /// Lo que este punto sabe dar. `.extraSlots` no: los lugares extra son un
+    /// permanente de la tienda que se lee de su nivel, no un premio entregable.
     /// Un guion o un evento que da algo de afuera de esta lista **no se ofrece**
     /// (`VisitorScheduler`, `eventIsApplicable`): mejor que no venga a que prometa
     /// y no cumpla.
     static let grantableRewardKinds: Set<RewardSpec.Kind> = [
         .coinsSeconds, .oro, .skinChest, .modifier, .clearBoostCooldowns, .eventImmunity, .package, .wheelSpin,
+        .autoTap, .nextOfflineMultiplier, .nextDailyMultiplier,
     ]
 
     /// Un momento en que algo puede aparecer solo sin pisar al jugador: el tablero
@@ -80,7 +81,22 @@ extension GameState {
             player.meta.engagement.packages.waiting += count
         case .wheelSpin(let count):
             player.meta.engagement.wheel.bonusSpins += count
-        case .autoTap, .nextOfflineMultiplier, .nextDailyMultiplier, .extraSlots:
+        case let .autoTap(perSecond, seconds):
+            player.run.activeModifiers.append(ActiveModifier(
+                effect: .autoTapPerSecond, magnitude: perSecond, expiresAt: now + seconds, sourceKey: source
+            ))
+        case .nextOfflineMultiplier(let multiplier):
+            guard multiplier > 1 else { return 0 }
+            // Dos no se apilan: queda el más alto, y se usa una vez.
+            player.meta.engagement.shop.pendingOfflineMultiplier = max(
+                player.meta.engagement.shop.pendingOfflineMultiplier ?? 1, multiplier
+            )
+        case .nextDailyMultiplier(let multiplier):
+            guard multiplier > 1 else { return 0 }
+            player.meta.engagement.shop.pendingDailyMultiplier = max(
+                player.meta.engagement.shop.pendingDailyMultiplier ?? 1, multiplier
+            )
+        case .extraSlots:
             return 0
         }
         self.player = player

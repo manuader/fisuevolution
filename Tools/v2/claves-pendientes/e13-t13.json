@@ -1,0 +1,8 @@
+{
+  "upgrade.effect.income %@": {"es": "Ingresos %@", "en": "Income %@"},
+  "upgrade.effect.tap %@": {"es": "Cada toque %@", "en": "Each tap %@"},
+  "upgrade.effect.offline %@": {"es": "Offline rinde %@", "en": "Offline earns %@"},
+  "upgrade.effect.spawn %@": {"es": "%@ en contrataciones", "en": "%@ on hiring"},
+  "upgrade.effect.prestige %@": {"es": "Cada ORO suma %@ a tu multiplicador", "en": "Each ORO adds %@ to your multiplier"},
+  "upgrade.effect.lucky %@ %@": {"es": "Premiado %1$@ · Dorado %2$@", "en": "Lucky %1$@ · Golden %2$@"}
+}

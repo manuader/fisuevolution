@@ -47,8 +47,7 @@ extension GameState {
         guard let content, var player, let tower, player.meta.engagement.packages.waiting > 0 else {
             return .noneWaiting
         }
-        // E6: el nivel del permanente "mejor proveedor".
-        let ratio = content.packages.tierRatio(bestSupplierLevel: 0)
+        let ratio = content.packages.tierRatio(bestSupplierLevel: bestSupplierLevel)
         guard let type = PackageRoller.roll(
                   eligible: packageCandidates, windowTiers: content.packages.windowTiers, ratio: ratio, using: &rng
               ),

@@ -22,6 +22,8 @@ public struct BoardChange: Sendable, Equatable, Identifiable {
         case visitor
         /// Un Paquete de la Aduana abierto (E5): el empleado llega a la vista.
         case package
+        /// "Fusionar todo" comprado con ORO (E6).
+        case oroShop
     }
 
     /// Un eslabón de "Fusionar todo": la escena encadena los de la misma cadena

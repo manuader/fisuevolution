@@ -226,6 +226,9 @@ public struct PacingSimulator: Sendable {
         public var staffedFloorsAtGod: Int?
         /// El máximo de pisos en marcha que el bot llegó a tener a la vez.
         public var maxStaffedFloors = 0
+        /// Monedas por fuente (`coins.daily`, `coins.boosts`) y paquetes
+        /// abiertos (`packages.opened`): lo que el perfil cobró sin comprar.
+        public var sourceTotals: [String: Double] = [:]
 
         /// Tiempo ACTIVO de la primera reencarnación (la de pared es
         /// `firstReincarnationWall`). El dueño mide en horas de dedo, no de
@@ -250,6 +253,11 @@ public struct PacingSimulator: Sendable {
     /// El descuento de prestigio que cobra la app en cada cotización. `nil` =
     /// el bot de siempre, que no lo ve. [TUNEABLE]
     let prestigeUnlocks: PrestigeUnlocks?
+    /// Qué jugador simula el bot. `.bare` es el de siempre. [TUNEABLE]
+    let profile: PacingProfile
+    let sources: PacingSources
+    /// Dónde arrancan los acumuladores de los sorteos por valor esperado.
+    let seedFraction: Double
 
     public init(
         config: EconomyConfig,
@@ -258,7 +266,10 @@ public struct PacingSimulator: Sendable {
         maxPaybackSeconds: Double = 1800,
         careerPath: String = "programmer",
         upgrades: [PermanentUpgradeLine] = [],
-        prestigeUnlocks: PrestigeUnlocks? = nil
+        prestigeUnlocks: PrestigeUnlocks? = nil,
+        profile: PacingProfile = .bare,
+        sources: PacingSources = .none,
+        seedFraction: Double = 0.5
     ) throws {
         self.config = config
         self.tiers = tiers
@@ -270,6 +281,9 @@ public struct PacingSimulator: Sendable {
         self.careerPath = careerPath
         self.permanentUpgrades = upgrades
         self.prestigeUnlocks = prestigeUnlocks
+        self.profile = profile
+        self.sources = sources
+        self.seedFraction = seedFraction
     }
 
     // MARK: - Run
@@ -286,6 +300,10 @@ public struct PacingSimulator: Sendable {
         var wall = 0.0
         var activeTotal = 0.0
         var tracker = RunTracker()
+        var clocks = SourceClocks(
+            nextPackageAt: profile.usesFreeGifts ? sources.packages?.firstPackageAfterSeconds ?? .infinity : .infinity,
+            seedFraction: seedFraction
+        )
         recordUnlocks(state: &state, report: &report, wall: wall, active: activeTotal)
 
         let horizon = Double(maxDays) * human.daySeconds
@@ -303,6 +321,7 @@ public struct PacingSimulator: Sendable {
                     state: &state,
                     report: &report,
                     tracker: &tracker,
+                    clocks: &clocks,
                     wallStart: wall,
                     activeStart: activeTotal
                 )
@@ -394,11 +413,16 @@ public struct PacingSimulator: Sendable {
         state: inout PlayerState,
         report: inout Report,
         tracker: inout RunTracker,
+        clocks: inout SourceClocks,
         wallStart: Double,
         activeStart: Double
     ) -> (wall: Double, active: Double) {
         var elapsed = 0.0
+        startSession(state: &state, clocks: &clocks, report: &report, wall: wallStart)
         while elapsed < human.sessionSeconds {
+            let opened = tickPackages(state: &state, clocks: &clocks, report: &report, active: activeStart + elapsed)
+            elapsed += Double(opened) * human.hireSeconds
+            tracker.actionSeconds += Double(opened) * human.hireSeconds
             doAllMerges(
                 state: &state, report: &report, tracker: &tracker,
                 wallStart: wallStart, activeStart: activeStart, elapsed: &elapsed
@@ -423,15 +447,24 @@ public struct PacingSimulator: Sendable {
                 break
             }
 
-            guard let action = nextAction(state: state) else {
-                // Nada que comprar: acumular hasta el fin de la sesión.
-                let remaining = human.sessionSeconds - elapsed
-                earn(state: &state, amount: rate * remaining)
-                elapsed = human.sessionSeconds
-                break
+            // Lo que falta para que caiga el próximo paquete (infinito sin ellos).
+            let untilPackage = clocks.nextPackageAt - (activeStart + elapsed)
+            guard let action = nextAction(state: state, now: wallStart + elapsed) else {
+                // Nada que comprar: acumular hasta el fin de la sesión o hasta
+                // el próximo paquete, que puede traer algo.
+                let span = min(human.sessionSeconds - elapsed, untilPackage)
+                earn(state: &state, amount: rate * span)
+                elapsed += span
+                if elapsed >= human.sessionSeconds { break }
+                continue
             }
 
             let wait = max(0, (action.cost - state.run.coins) / rate)
+            if untilPackage < wait, elapsed + untilPackage < human.sessionSeconds {
+                earn(state: &state, amount: rate * untilPackage)
+                elapsed += untilPackage
+                continue
+            }
             if elapsed + wait >= human.sessionSeconds {
                 let remaining = human.sessionSeconds - elapsed
                 earn(state: &state, amount: rate * remaining)
@@ -501,7 +534,7 @@ public struct PacingSimulator: Sendable {
     /// Las otras dos categorías siguen compitiendo por PRECIO, y también está
     /// bien: un passive unlock o un nivel de mejora no producen frontera, así
     /// que su moneda es la de siempre.
-    private func nextAction(state: PlayerState) -> Action? {
+    private func nextAction(state: PlayerState, now: Double) -> Action? {
         var candidates: [Action] = []
 
         // 1. Passive unlocks con payback corto (o el primero del tipo base, siempre).
@@ -533,12 +566,13 @@ public struct PacingSimulator: Sendable {
         //    es justo el rol que el diseño le da al Fisura.
         //    Y 4. el backfill de los pisos superiores: los dos compiten en
         //    `bestHire`, que elige por unidad de frontera.
-        if let mejor = bestHire(state: state) {
+        if let mejor = bestHire(state: state, now: now) {
             candidates.append(mejor.action)
         }
 
         // 5. Completar un piso en marcha, si el bono lo paga.
-        if let target = staffingTarget(state: state), let fill = cheapestHire(onFloor: target, state: state) {
+        if let target = staffingTarget(state: state, now: now),
+           let fill = cheapestHire(onFloor: target, state: state, now: now) {
             candidates.append(fill.action)
         }
 
@@ -553,10 +587,10 @@ public struct PacingSimulator: Sendable {
     /// del bot, o sea de las pocas cosas que deciden en qué se gasta la plata de
     /// la run, y ya se demostró dos veces que una regla de selección sin test
     /// propio se queda vieja en silencio cuando cambia la economía.
-    func bestHire(state: PlayerState) -> HireCandidate? {
-        var hires = hireActions(floorOrdinal: 0, state: state, requireProfit: false)
+    func bestHire(state: PlayerState, now: Double = 0) -> HireCandidate? {
+        var hires = hireActions(floorOrdinal: 0, state: state, requireProfit: false, now: now)
         for ordinal in 1..<floorTable.count where state.run.unlockedFloors.contains(floorTable[ordinal].id) {
-            hires += hireActions(floorOrdinal: ordinal, state: state, requireProfit: true)
+            hires += hireActions(floorOrdinal: ordinal, state: state, requireProfit: true, now: now)
         }
         return hires.min {
             $0.frontierUnitCost == $1.frontierUnitCost
@@ -602,7 +636,9 @@ public struct PacingSimulator: Sendable {
     /// ocupación de `run.units`). Por eso replica los dos contadores que la curva
     /// necesita —el del piso y el del TIPO—: si se olvidara del segundo, cotizaría
     /// siempre el precio de la primera compra.
-    private func hireActions(floorOrdinal: Int, state: PlayerState, requireProfit: Bool) -> [HireCandidate] {
+    private func hireActions(
+        floorOrdinal: Int, state: PlayerState, requireProfit: Bool, now: Double
+    ) -> [HireCandidate] {
         let floor = floorTable[floorOrdinal]
         guard floorCount(floorOrdinal, state: state) < floor.capacity else { return [] }
         return (floor.firstTier...floor.lastTier).compactMap { tier in
@@ -610,27 +646,27 @@ public struct PacingSimulator: Sendable {
                 tier: tier, maxTierReached: state.run.maxTierReached,
                 floorTable: floorTable, config: config
             ) else { return nil }
-            return hireAction(tier: tier, floor: floor, state: state, requireProfit: requireProfit)
+            return hireAction(tier: tier, floor: floor, state: state, requireProfit: requireProfit, now: now)
         }
     }
 
     /// Una contratación concreta: el tipo de este tier (respetando la carrera
     /// elegida cuando el tier se bifurca), cotizado y con su regla de payback.
     private func hireAction(
-        tier: Int, floor: FloorDef, state: PlayerState, requireProfit: Bool
+        tier: Int, floor: FloorDef, state: PlayerState, requireProfit: Bool, now: Double
     ) -> HireCandidate? {
         let candidates = tiers.concreteTypes.filter { $0.tier == tier }
         guard let type = candidates.first(where: { $0.id.hasSuffix(careerPath) }) ?? candidates.sorted(by: { $0.id < $1.id }).first
         else { return nil }
-        // `now: 0` alcanza porque el bot no tiene modificadores temporales: el
-        // factor de `ModifierMath` vale 1 y no mira el reloj.
+        // `now` es el reloj de pared: el único modificador temporal del bot es
+        // la contratación gratis del Programador.
         //
         // ⚠️ El TERCER factor del quote —`1 − derivedEffects.spawnDiscount`— SÍ
         // varía desde que el bot compra mejoras permanentes: la línea `spawn`
         // llega a 0,30 y le abarata las contrataciones un 30 %. Que entre está
         // bien (el jugador la tiene igual), pero ya no es un factor neutro, y
         // darlo por 1 es leer el precio del bot como si fuera el de catálogo.
-        guard let cost = quote(typeId: type.id, state: state, now: 0)?.cost else { return nil }
+        guard let cost = quote(typeId: type.id, state: state, now: now)?.cost else { return nil }
 
         if requireProfit {
             // Política del plan (§F7.1c): backfill si es BARATO relativo al wallet
@@ -651,17 +687,21 @@ public struct PacingSimulator: Sendable {
         let floorId = floor.id
         let typeId = type.id
         let cushion = self.cushion
+        // Una contratación gratis no cuenta para la curva (`countsAsPurchase`).
         let action = Action(cost: cost) { s in
             s.run.coins -= cost
-            s.run.registerHire(floorId: floorId, typeId: typeId, cushion: cushion)
+            if cost > 0 { s.run.registerHire(floorId: floorId, typeId: typeId, cushion: cushion) }
             s.run.units[typeId, default: 0] += 1
+            s.run.markSeen(typeId)
         }
         // Cuántas de éstas hacen falta para una unidad de tu frontera: `2^d`.
         // Con la frontera POR DEBAJO del tier —imposible con la compuerta puesta,
         // posible con la compuerta apagada— el exponente es negativo y el número
         // sigue significando lo mismo: comprar arriba te ahorra merges.
         let profundidad = Double(state.run.maxTierReached - tier)
-        return HireCandidate(typeId: typeId, action: action, frontierUnitCost: cost * pow(2, profundidad))
+        // Gratis, lo que decide es cuánta frontera trae: gana el tier más alto.
+        let frontierUnitCost = cost > 0 ? cost * pow(2, profundidad) : -Double(tier)
+        return HireCandidate(typeId: typeId, action: action, frontierUnitCost: frontierUnitCost)
     }
 
     // MARK: - Pisos en marcha
@@ -672,7 +712,7 @@ public struct PacingSimulator: Sendable {
     ///
     /// Sólo por debajo del piso de compra porque ahí arriba vive el material de
     /// fusión: llenar ese piso es frenar la frontera.
-    func staffingTarget(state: PlayerState) -> Int? {
+    func staffingTarget(state: PlayerState, now: Double = 0) -> Int? {
         let bonus = config.staffedBonusPerFloor
         guard bonus > 0 else { return nil }
         let gain = bonus * activeIncomeRate(state: state)
@@ -682,7 +722,8 @@ public struct PacingSimulator: Sendable {
             && state.run.unlockedFloors.contains(floorTable[ordinal].id) {
             let floor = floorTable[ordinal]
             let missing = floor.capacity - floorCount(ordinal, state: state)
-            guard missing > 0, let cheapest = cheapestHire(onFloor: ordinal, state: state) else { continue }
+            guard missing > 0, let cheapest = cheapestHire(onFloor: ordinal, state: state, now: now)
+            else { continue }
             let growth = config.hireCostGrowth(for: floor)
             let cost = growth == 1
                 ? cheapest.action.cost * Double(missing)
@@ -704,9 +745,9 @@ public struct PacingSimulator: Sendable {
     /// llenando. Sin el segundo, cada compra para el llenado se fusiona en la
     /// vuelta siguiente y el piso no se completa nunca: con cuatro tiers por
     /// piso y diez lugares, las fusiones dejan a lo sumo una unidad por tier.
-    private func mergeLockedFloors(state: PlayerState) -> Set<Int> {
+    private func mergeLockedFloors(state: PlayerState, now: Double) -> Set<Int> {
         var locked = frozenFloors(state: state)
-        if let target = staffingTarget(state: state) { locked.insert(target) }
+        if let target = staffingTarget(state: state, now: now) { locked.insert(target) }
         return locked
     }
 
@@ -716,8 +757,8 @@ public struct PacingSimulator: Sendable {
     }
 
     /// La contratación más barata del piso, con la misma cotización que el resto.
-    private func cheapestHire(onFloor ordinal: Int, state: PlayerState) -> HireCandidate? {
-        hireActions(floorOrdinal: ordinal, state: state, requireProfit: false).min {
+    private func cheapestHire(onFloor ordinal: Int, state: PlayerState, now: Double) -> HireCandidate? {
+        hireActions(floorOrdinal: ordinal, state: state, requireProfit: false, now: now).min {
             $0.action.cost == $1.action.cost ? $0.typeId < $1.typeId : $0.action.cost < $1.action.cost
         }
     }
@@ -743,7 +784,7 @@ public struct PacingSimulator: Sendable {
         var merged = true
         while merged {
             merged = false
-            let locked = mergeLockedFloors(state: state)
+            let locked = mergeLockedFloors(state: state, now: wallStart + elapsed)
             let mergeables = state.run.units
                 .filter { $0.value >= 2 }
                 .compactMap { typeId, _ in tiers.type(id: typeId) }
@@ -755,6 +796,7 @@ public struct PacingSimulator: Sendable {
                 )
                 if case .requiresCareerChoice = outcome {
                     state.run.chosenCareerPath = careerPath
+                    grantFreeHire(state: &state, wall: wallStart + elapsed)
                     outcome = MergeRules.evaluate(
                         sourceTypeId: type.id, targetTypeId: type.id,
                         chosenCareerPath: careerPath, tiers: tiers
@@ -779,6 +821,7 @@ public struct PacingSimulator: Sendable {
                     counts: config.hire.mergeRefundCounts
                 )
                 state.run.units[newTypeId, default: 0] += 1
+                state.run.markSeen(newTypeId)
                 if state.run.raiseFrontier(to: newType.tier, cushion: cushion) {
                     // El reloj de la pared es ACTIVO y relativo al inicio de la
                     // run: reencarnar reinicia la cuenta, que es lo que permite
@@ -1006,7 +1049,7 @@ public struct PacingSimulator: Sendable {
             * StaffedFloors.multiplier(state: state, tiers: tiers, floorTable: floorTable, config: config)
     }
 
-    private func earn(state: inout PlayerState, amount: Double) {
+    func earn(state: inout PlayerState, amount: Double) {
         guard amount > 0 else { return }
         state.run.coins += amount
         state.meta.lifetimeEarnings += amount
@@ -1036,7 +1079,7 @@ public struct PacingSimulator: Sendable {
 
     // MARK: - Helpers
 
-    private func floorCount(_ ordinal: Int, state: PlayerState) -> Int {
+    func floorCount(_ ordinal: Int, state: PlayerState) -> Int {
         let floor = floorTable[ordinal]
         return state.run.units.reduce(0) { acc, entry in
             guard let type = tiers.type(id: entry.key), floor.contains(tier: type.tier) else { return acc }

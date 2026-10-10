@@ -9,7 +9,7 @@
   "patienceSeconds": 30,
   "presenterTalkSeconds": 4,
   "antiRepeat": 3,
-  "coinsSecondsScale": 1,
+  "coinsSecondsScale": 0.31,
   "visitors": [
     {"id": "npc_comisario", "kind": "npc", "nameKey": "visitor.npc_comisario.name", "fallbackSymbol": "figure.stand", "fallbackTint": "PaletteBlue"},
     {"id": "npc_sindicalista", "kind": "npc", "nameKey": "visitor.npc_sindicalista.name", "fallbackSymbol": "megaphone.fill", "fallbackTint": "PalettePink"},

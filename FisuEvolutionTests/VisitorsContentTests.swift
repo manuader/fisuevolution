@@ -83,7 +83,7 @@ struct VisitorsContentTests {
         #expect(visitors.intervalMinSeconds == 240 && visitors.intervalMaxSeconds == 360)
         #expect(visitors.vendorIntervalSeconds == 180)
         #expect(visitors.patienceSeconds == 30)
-        #expect(visitors.coinsSecondsScale == 1, "E2b es quien la mueve, con el simulador")
+        #expect(visitors.coinsSecondsScale > 0 && visitors.coinsSecondsScale <= 1, "E2b la baja con el presupuesto (EngagementBudgetTests)")
     }
 
     @Test("todo texto recibe los datos que pide", arguments: ["es", "en"])

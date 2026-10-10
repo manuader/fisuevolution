@@ -47,6 +47,22 @@ public enum PackageRoller {
         floorTable: FloorTable,
         config: EconomyConfig
     ) -> [CharacterType] {
+        eligibleTypes(
+            state: state, tiers: tiers, floorTable: floorTable, config: config,
+            occupancy: tower.floors.map(\.occupiedCount)
+        )
+    }
+
+    /// La misma regla sin torre en memoria: `occupancy` trae cuántas unidades
+    /// hay en cada piso y el lugar libre sale de la capacidad del piso. Es la
+    /// que usa el simulador, que no mantiene slots.
+    public static func eligibleTypes(
+        state: PlayerState,
+        tiers: TierRepository,
+        floorTable: FloorTable,
+        config: EconomyConfig,
+        occupancy: [Int]
+    ) -> [CharacterType] {
         tiers.concreteTypes.filter { type in
             let ordinal = floorTable.ordinal(forTier: type.tier)
             return state.run.seenTypes.contains(type.id)
@@ -55,8 +71,8 @@ public enum PackageRoller {
                     tier: type.tier, maxTierReached: state.run.maxTierReached,
                     floorTable: floorTable, config: config
                 )
-                && tower.floors.indices.contains(ordinal)
-                && tower.floors[ordinal].firstFreeSlot() != nil
+                && occupancy.indices.contains(ordinal)
+                && occupancy[ordinal] < floorTable[ordinal].capacity
         }
     }
 

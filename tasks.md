@@ -502,7 +502,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E6a-T1 | Tienda y ofertas en `meta.engagement` | 🔄 | E1-T4; E3b-T9, E4a-T3, E5a-T4 | EngagementState | | |
+| E6a-T1 | Tienda y ofertas en `meta.engagement` | 🟢 | E1-T4; E3b-T9, E4a-T3, E5a-T4 | EngagementState | `229579f`+`f52c803` (en `v2i/integ-r22`) |  rev. opus Approved; carries: T2/T10 marcan `lastClosedAt` en toda compra y vencimiento; T11 acredita aunque la oferta ya no figure abierta; E9b T7: `resolveAcrossReset` no cruza `engagement.offers`; al dueño: oferta abierta sólo en el save perdedor (Bienvenida) se pierde, ×3 regalado en el caso raro |
 | E6a-T2 | Catálogo y cuentas de la tienda (EK) | ⛔ | T1; E4a-T1 | — | | |
 | E6a-T3 | El auto-tap | ✅ | E1-T15; E4a-T2; E2a-T4 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | `720f3fe` (merge `e378307`, claves aplicadas) | revisión opus: Approved. Carries a T5: el "mejor" se elige por tier y no por pago (fiel al plan; anotar la decisión); un `now` para todo el delta (despreciable con tope 2 s); `RewardSpec` admite `.modifier(autoTapPerSecond)` y saltea `.autoTap` (rechazarlo en `validate` o declararlo válido) |
 | E6a-T4 | `oro_shop.json` | ⛔ | T2; E5b-T1; E5a-T5 | catálogo (dueña); GameContentLoader | | |

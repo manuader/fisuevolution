@@ -71,6 +71,15 @@ struct PrizesContentTests {
         #expect(content.wheel.chestFallbackSegmentId == "coins_30")
     }
 
+    @Test("todo premio del colchón y de la ruleta se puede entregar")
+    @MainActor
+    func everyPrizeIsGrantable() {
+        let rewards = content.treasures.prizes.flatMap(\.rewards) + content.wheel.segments.map(\.reward)
+        for reward in rewards {
+            #expect(GameState.grantableRewardKinds.contains(reward.kind), "\(reward.kind) no se entrega")
+        }
+    }
+
     @Test("el arranque rechaza una ruleta que no suma 100")
     func loaderRejectsABrokenWheel() throws {
         let fileManager = FileManager.default

@@ -57,8 +57,7 @@ struct RewardGrantTests {
     }
 
     @Test("lo que todavía no se puede entregar no toca nada",
-          arguments: [RewardSpec.wheelSpin(1), .autoTap(perSecond: 5, seconds: 60),
-                      .nextOfflineMultiplier(3), .nextDailyMultiplier(3), .extraSlots(3)])
+          arguments: [RewardSpec.autoTap(perSecond: 5, seconds: 60), .nextOfflineMultiplier(3), .nextDailyMultiplier(3), .extraSlots(3)])
     func notYetGrantable(reward: RewardSpec) async throws {
         let gameState = await makeGameState()
         let before = try #require(gameState.player)
@@ -68,7 +67,7 @@ struct RewardGrantTests {
 
     @Test("lo entregable es exactamente lo que este punto sabe dar")
     func grantableKinds() {
-        #expect(GameState.grantableRewardKinds == [.coinsSeconds, .oro, .skinChest, .modifier, .clearBoostCooldowns, .eventImmunity, .package])
+        #expect(GameState.grantableRewardKinds == [.coinsSeconds, .oro, .skinChest, .modifier, .clearBoostCooldowns, .eventImmunity, .package, .wheelSpin])
     }
 
     @Test("varios premios juntos: una sola pasada, la plata sumada")

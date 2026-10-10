@@ -161,6 +161,7 @@ extension GameState {
             // La plata ya está; la salida, a la vista y en su turno (E1). Si al
             // llegar su turno ya no es válida se descarta y la plata queda: el
             // trato se cerró con lo que había (duda 6 de E4a).
+            if checked.kind == .release { playCinematicIfDue(.arresto) }
             for change in checked.departures { enqueueBoardChange(change) }
             finishVisit(saying: "visit.thanks")
             return true

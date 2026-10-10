@@ -131,6 +131,25 @@ struct ShopOffersStateTests {
         #expect(resolved.lastClosedAt == ["mudanza": 40])
     }
 
+    @Test("con días distintos vale el cupo del día mayor, gane quien gane")
+    func resolveTakesTheLaterDaysCaps() {
+        let older = ShopState(day: "2026-10-07", purchasesToday: ["income_x2": 3])
+        let newer = ShopState(day: "2026-10-08", purchasesToday: ["merge_all": 1])
+        for (winner, loser) in [(older, newer), (newer, older)] {
+            let resolved = ShopState.resolve(winner: winner, loser: loser)
+            #expect(resolved.day == "2026-10-08")
+            #expect(resolved.purchasesToday == ["merge_all": 1])
+        }
+    }
+
+    @Test("una reabierta legítima no se cierra por tener menos compras que el otro save")
+    func resolveKeepsAReopenedOfferDespiteMorePurchasesElsewhere() {
+        let reopened = ActiveOffer(id: "mudanza", openedAt: 500, expiresAt: 900, presented: false)
+        let winner = OffersState(active: [reopened], lastClosedAt: ["mudanza": 100], purchases: ["mudanza": 1])
+        let loser = OffersState(lastClosedAt: ["mudanza": 100], purchases: ["mudanza": 2])
+        #expect(OffersState.resolve(winner: winner, loser: loser).active == [reopened])
+    }
+
     @Test("el cierre de una apertura anterior no cierra la oferta que se volvió a abrir")
     func resolveKeepsAReopenedOffer() {
         let reopened = ActiveOffer(id: "mudanza", openedAt: 500, expiresAt: 900, presented: false)

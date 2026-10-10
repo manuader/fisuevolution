@@ -59,15 +59,25 @@ public struct ShopState: Codable, Sendable, Equatable {
     /// Lo comprado no retrocede: niveles al más alto, pintas unidas y el ×3
     /// pendiente de cualquiera de los dos (el mayor si hay ambos). Los topes, si
     /// los dos saves hablan del mismo día, se quedan con lo más alto: dos
-    /// dispositivos no duplican el cupo.
+    /// dispositivos no duplican el cupo; si hablan de días distintos, vale el del
+    /// día mayor. El ×3 pendiente puede reaparecer si se compró en A, se sincronizó,
+    /// se usó en A y se cruzó con B: igual que `chestsPending`, aceptado a la vista.
     public static func resolve(winner: ShopState, loser: ShopState) -> ShopState {
         var resolved = winner
         resolved.levels = winner.levels.merging(loser.levels, uniquingKeysWith: max)
         resolved.skins = winner.skins.union(loser.skins)
         resolved.pendingOfflineMultiplier = larger(winner.pendingOfflineMultiplier, loser.pendingOfflineMultiplier)
         resolved.pendingDailyMultiplier = larger(winner.pendingDailyMultiplier, loser.pendingDailyMultiplier)
-        if winner.day != nil, winner.day == loser.day {
-            resolved.purchasesToday = winner.purchasesToday.merging(loser.purchasesToday, uniquingKeysWith: max)
+        if let winnerDay = winner.day, let loserDay = loser.day {
+            if winnerDay == loserDay {
+                resolved.purchasesToday = winner.purchasesToday.merging(loser.purchasesToday, uniquingKeysWith: max)
+            } else if loserDay > winnerDay {
+                resolved.day = loserDay
+                resolved.purchasesToday = loser.purchasesToday
+            }
+        } else if winner.day == nil, let loserDay = loser.day {
+            resolved.day = loserDay
+            resolved.purchasesToday = loser.purchasesToday
         }
         return resolved
     }

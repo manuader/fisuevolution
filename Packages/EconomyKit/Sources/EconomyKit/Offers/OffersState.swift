@@ -65,16 +65,15 @@ public struct OffersState: Codable, Sendable, Equatable {
     /// ese dispositivo). Lo usado y lo comprado, unido: una oferta de una vez que
     /// se abrió en el otro dispositivo no vuelve, y su enfriamiento tampoco se
     /// pierde. Una abierta que el otro dispositivo ya cerró (venció o la compró)
-    /// no sigue abierta: no se vende dos veces.
+    /// no sigue abierta: no se vende dos veces. Eso lo cubre `lastClosedAt`, así que
+    /// toda compra y todo vencimiento tienen que marcarlo (`markPurchased`, T2/T10).
     public static func resolve(winner: OffersState, loser: OffersState) -> OffersState {
         var resolved = winner
         resolved.lastClosedAt = winner.lastClosedAt.merging(loser.lastClosedAt, uniquingKeysWith: max)
         resolved.everOpened = winner.everOpened.union(loser.everOpened)
         resolved.purchases = winner.purchases.merging(loser.purchases, uniquingKeysWith: max)
         resolved.active = winner.active.filter { offer in
-            let closedSinceOpening = (resolved.lastClosedAt[offer.id] ?? -.infinity) >= offer.openedAt
-            let boughtElsewhere = (loser.purchases[offer.id] ?? 0) > (winner.purchases[offer.id] ?? 0)
-            return !closedSinceOpening && !boughtElsewhere
+            (resolved.lastClosedAt[offer.id] ?? -.infinity) < offer.openedAt
         }
         return resolved
     }

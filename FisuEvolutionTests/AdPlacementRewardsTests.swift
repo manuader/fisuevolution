@@ -72,6 +72,26 @@ struct AdPlacementRewardsTests {
         #expect(twice.careerPrompt == nil, "se eligió")
     }
 
+    @Test("sin prompt, con una opción ajena o en el segundo toque, el ×2 no paga")
+    func careerTimesTwoOnlyWhenApplied() async throws {
+        let gameState = await makeGameState()
+        let idle = try #require(gameState.player?.run.coins)
+        gameState.chooseCareerWithVideo(optionId: "junior_lawyer")
+        #expect(try #require(gameState.player?.run.coins) == idle, "sin prompt no paga")
+
+        gameState.debugPresentCareerChoice()
+        gameState.chooseCareerWithVideo(optionId: "no_existe")
+        #expect(try #require(gameState.player?.run.coins) == idle, "opción ajena no paga")
+        #expect(gameState.careerPrompt != nil)
+
+        gameState.chooseCareerWithVideo(optionId: "junior_lawyer")
+        let paid = try #require(gameState.player?.run.coins)
+        let videos = try #require(gameState.player?.meta.stats.videosWatchedEver)
+        gameState.chooseCareerWithVideo(optionId: "junior_lawyer")
+        #expect(try #require(gameState.player?.run.coins) == paid, "el segundo toque no paga")
+        #expect(try #require(gameState.player?.meta.stats.videosWatchedEver) == videos)
+    }
+
     @Test("sólo las carreras con premio de una vez ofrecen el ×2")
     func onlyLumpCareersOffer() async {
         let gameState = await makeGameState()

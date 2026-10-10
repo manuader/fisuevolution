@@ -48,9 +48,10 @@ extension GameState {
     /// se paga otra vez con la misma cuenta. `chooseCareer` acredita antes del
     /// merge (E1 T12): las dos pagas caen en el mismo instante.
     func chooseCareerWithVideo(optionId: String) {
+        guard let prompt = careerPrompt, prompt.options.contains(where: { $0.id == optionId }) else { return }
         let minutes = careerLumpMinutes(optionId: optionId)
         chooseCareer(optionId: optionId)
-        guard var player else { return }
+        guard careerPrompt == nil, var player else { return }
         player.meta.stats.videosWatchedEver += 1
         self.player = player
         if let minutes {

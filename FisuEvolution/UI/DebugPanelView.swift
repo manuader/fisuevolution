@@ -62,12 +62,6 @@ struct DebugPanelView: View {
                     Button("Simular 4 h offline") {
                         gameState.debugSimulateOffline(hours: 4)
                     }
-                    Menu("Disparar un evento") {
-                        ForEach(gameState.content?.events.events ?? []) { event in
-                            Button(event.id) { gameState.debugStartEvent(id: event.id) }
-                        }
-                    }
-                    .accessibilityIdentifier("debug.event.start")
                 }
                 // La misma carta que reabre el long-press sobre el personaje
                 // del tablero, sin pelear el gesto: es la puerta de los tests
@@ -102,16 +96,6 @@ struct DebugPanelView: View {
                         dismiss()
                     }
                     .accessibilityIdentifier("debug.chest.award")
-                }
-                // Las cinemáticas, a demanda y sin mirar si le tocan: se anotan vistas igual.
-                Section("Cinemáticas") {
-                    ForEach(CinematicID.allCases.filter { $0 != .intro }, id: \.self) { id in
-                        Button("Ver \(id.rawValue)") {
-                            gameState.debugPlayCinematic(id)
-                            dismiss()
-                        }
-                        .accessibilityIdentifier("debug.cinematic.\(id.rawValue)")
-                    }
                 }
                 // La ficha con un segundo Fisura en la torre: el fixture
                 // `--uitest-open-sheet` la abre sobre el único de una partida
@@ -188,6 +172,16 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.e2a.mergeAll")
                 }
+                // Las cinemáticas, a demanda y sin mirar si le tocan: se anotan vistas igual.
+                Section("Cinemáticas") {
+                    ForEach(CinematicID.allCases.filter { $0 != .intro }, id: \.self) { id in
+                        Button("Ver \(id.rawValue)") {
+                            gameState.debugPlayCinematic(id)
+                            dismiss()
+                        }
+                        .accessibilityIdentifier("debug.cinematic.\(id.rawValue)")
+                    }
+                }
                 Section("Rendimiento") {
                     Text(probe.line)
                         .font(.system(.footnote, design: .monospaced))
@@ -199,6 +193,14 @@ struct DebugPanelView: View {
                         dismiss()
                     }
                     .accessibilityIdentifier("debug.ranking.reachGod")
+                }
+                Section("Eventos") {
+                    Menu("Disparar un evento") {
+                        ForEach(gameState.content?.events.events ?? []) { event in
+                            Button(event.id) { gameState.debugStartEvent(id: event.id) }
+                        }
+                    }
+                    .accessibilityIdentifier("debug.event.start")
                 }
                 Section("Peligro") {
                     Button("Resetear partida", role: .destructive) {

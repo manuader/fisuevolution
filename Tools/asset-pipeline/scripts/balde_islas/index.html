@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Balde de islas</title>
+<style>
+  :root {
+    --papel: #e9e3d7; --tinta: #23201b; --suave: #6f6858; --linea: #cdc4b2;
+    --panel: #f3efe6; --rojo: #c0392b; --rojo-osc: #8e231a; --verde: #2e7d4f;
+    --verde-osc: #1f5a38; --aviso: #c98a00; --blanco: #fff;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+         background: var(--papel); color: var(--tinta); overflow: hidden; }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  #marco { display: grid; grid-template-columns: 320px 1fr; height: 100vh; }
+
+  /* ---------- Lista ---------- */
+  #lado { display: flex; flex-direction: column; background: var(--panel);
+          border-right: 1px solid var(--linea); min-height: 0; }
+  #lado header { padding: 14px 14px 10px; border-bottom: 1px solid var(--linea); }
+  #lado h1 { font-size: 18px; margin: 0 0 2px; }
+  #progreso { color: var(--suave); font-size: 13px; }
+  #barra { height: 6px; background: var(--linea); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  #barra div { height: 100%; width: 0; background: var(--verde); transition: width .3s; }
+  #filtros { display: grid; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--linea); }
+  #filtros input, #filtros select { width: 100%; padding: 7px 10px; border: 1px solid var(--linea);
+                                    border-radius: 8px; background: var(--blanco); }
+  #filtros .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  #lista { overflow-y: auto; flex: 1; min-height: 0; }
+  .item { display: flex; gap: 10px; align-items: center; padding: 6px 12px; cursor: pointer;
+          border-bottom: 1px solid rgba(0,0,0,.05); }
+  .item:hover { background: rgba(0,0,0,.05); }
+  .item.actual { background: var(--tinta); color: #fff; }
+  .item img { width: 40px; height: 40px; object-fit: contain; flex: none; border-radius: 6px;
+              background: rgba(255,255,255,.6); }
+  .item .txt { flex: 1; min-width: 0; }
+  .item .nom { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .item .sub { font-size: 12px; opacity: .7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .estado { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; flex: none; }
+  .estado.listo { background: var(--verde); color: #fff; }
+  .estado.cambios { background: var(--aviso); color: #fff; }
+  .estado.regen { background: var(--rojo-osc); color: #fff; }
+  #vacio { padding: 20px; color: var(--suave); text-align: center; display: none; }
+
+  /* ---------- Trabajo ---------- */
+  #trabajo { display: grid; grid-template-rows: auto 1fr auto; min-height: 0; min-width: 0; }
+  #herramientas { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 10px 16px;
+                  background: var(--panel); border-bottom: 1px solid var(--linea); }
+  .balde { display: flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 10px;
+           border: 2px solid var(--linea); background: var(--blanco); font-weight: 600; }
+  .balde .gota { width: 16px; height: 16px; border-radius: 50%; }
+  .balde kbd { font-size: 11px; opacity: .6; }
+  #balde-rojo .gota { background: var(--rojo); }
+  #balde-verde .gota { background: var(--verde); }
+  #balde-rojo[aria-pressed="true"] { border-color: var(--rojo); background: var(--rojo); color: #fff; }
+  #balde-verde[aria-pressed="true"] { border-color: var(--verde); background: var(--verde); color: #fff; }
+  .grupo { display: flex; border: 1px solid var(--linea); border-radius: 8px; overflow: hidden; background: var(--blanco); }
+  .grupo button { border: 0; background: none; padding: 7px 12px; }
+  .grupo button + button { border-left: 1px solid var(--linea); }
+  .grupo button[aria-pressed="true"] { background: var(--tinta); color: #fff; }
+  .suelto { padding: 7px 12px; border: 1px solid var(--linea); border-radius: 8px; background: var(--blanco); }
+  .crece { flex: 1; }
+  select.suelto { padding: 6px 8px; }
+
+  #escenario { overflow: auto; position: relative; display: grid; place-items: center; min-height: 0; }
+  #lienzo-caja { position: relative; margin: 20px; border-radius: 10px; box-shadow: 0 2px 14px rgba(0,0,0,.15); }
+  #lienzo-caja.damero { background-image:
+      linear-gradient(45deg, #c9c2b4 25%, transparent 25%, transparent 75%, #c9c2b4 75%),
+      linear-gradient(45deg, #c9c2b4 25%, transparent 25%, transparent 75%, #c9c2b4 75%);
+      background-size: 24px 24px; background-position: 0 0, 12px 12px; background-color: #fff; }
+  #lienzo { display: block; cursor: crosshair; border-radius: 10px; }
+  #lienzo.rojo { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cpath d='M5 13l7-8 9 9-7 7z' fill='%23c0392b' stroke='%23000' stroke-width='1.5'/%3E%3Ccircle cx='5' cy='21' r='3' fill='%23c0392b' stroke='%23000'/%3E%3C/svg%3E") 4 22, crosshair; }
+  #lienzo.verde { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26'%3E%3Cpath d='M5 13l7-8 9 9-7 7z' fill='%232e7d4f' stroke='%23000' stroke-width='1.5'/%3E%3Ccircle cx='5' cy='21' r='3' fill='%232e7d4f' stroke='%23000'/%3E%3C/svg%3E") 4 22, crosshair; }
+  #lienzo.mirando { cursor: default; }
+  #globo { position: fixed; pointer-events: none; background: var(--tinta); color: #fff; font-size: 12px;
+           padding: 4px 8px; border-radius: 6px; display: none; z-index: 5; white-space: nowrap; }
+  #regen-aviso { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 2;
+                 background: var(--rojo-osc); color: #fff; padding: 6px 14px; border-radius: 999px;
+                 font-size: 13px; font-weight: 600; display: none; }
+
+  #pie { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 10px 16px;
+         background: var(--panel); border-top: 1px solid var(--linea); }
+  #titulo { font-size: 18px; font-weight: 700; }
+  #cuenta { color: var(--suave); font-size: 13px; }
+  #chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; max-height: 64px; overflow-y: auto; }
+  .chip { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--linea);
+          background: var(--blanco); cursor: pointer; }
+  .chip.roja { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+  .chip.verde { background: var(--verde); border-color: var(--verde); color: #fff; }
+  .chip.chica { border-style: dashed; border-color: var(--aviso); }
+  #guardar { padding: 14px 34px; font-size: 18px; font-weight: 700; border-radius: 12px; border: 0;
+             background: var(--verde); color: #fff; box-shadow: 0 2px 0 var(--verde-osc); }
+  #guardar:hover { filter: brightness(1.08); }
+  #guardar:disabled { opacity: .5; cursor: not-allowed; }
+  #ayuda { color: var(--suave); font-size: 12px; margin-top: 4px; }
+  #aviso { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); z-index: 6;
+           background: var(--tinta); color: #fff; padding: 10px 18px; border-radius: 10px;
+           font-weight: 600; display: none; }
+  #sin-servidor { display: none; background: var(--rojo-osc); color: #fff; padding: 8px 16px; font-size: 14px; }
+  @media (max-width: 900px) {
+    body { overflow: auto; }
+    #marco { grid-template-columns: 1fr; grid-template-rows: auto auto; height: auto; }
+    #lado { max-height: 34vh; border-right: 0; border-bottom: 1px solid var(--linea); }
+    #trabajo { min-height: 90vh; }
+    #escenario { min-height: 50vh; }
+    #pie { grid-template-columns: 1fr; }
+  }
+  kbd { font: 11px ui-monospace, Menlo, monospace; padding: 1px 5px; border-radius: 4px;
+        border: 1px solid currentColor; opacity: .75; }
+</style>
+</head>
+<body>
+<div id="marco">
+  <aside id="lado">
+    <header>
+      <h1>Balde de islas</h1>
+      <div id="progreso"></div>
+      <div id="barra"><div></div></div>
+    </header>
+    <div id="filtros">
+      <input id="buscar" type="search" placeholder="Buscar personaje o skin…" autocomplete="off">
+      <div class="dos">
+        <select id="f-grupo"><option value="">Todos los grupos</option></select>
+        <select id="f-estado">
+          <option value="">Todos</option>
+          <option value="pendiente">Sin revisar</option>
+          <option value="listo">Listos</option>
+          <option value="regen">A regenerar</option>
+        </select>
+      </div>
+    </div>
+    <div id="lista"></div>
+    <div id="vacio">Nada coincide con la búsqueda.</div>
+  </aside>
+
+  <section id="trabajo">
+    <div>
+      <div id="sin-servidor">Así no se puede guardar: abrí la revisión con doble clic en «Abrir revisión de islas.command».</div>
+      <div id="herramientas">
+        <button class="balde" id="balde-rojo" aria-pressed="true" title="Pintar de rojo = sacar (R)">
+          <span class="gota"></span> Sacar <kbd>R</kbd></button>
+        <button class="balde" id="balde-verde" aria-pressed="false" title="Pintar de verde = conservar (V)">
+          <span class="gota"></span> Conservar <kbd>V</kbd></button>
+        <div class="grupo" title="Ver cómo queda sin las islas rojas (C)">
+          <button id="ver-pintado" aria-pressed="true">Pintado</button>
+          <button id="ver-queda" aria-pressed="false">Cómo queda <kbd>C</kbd></button>
+        </div>
+        <span class="crece"></span>
+        <button class="suelto" id="deshacer" title="Deshacer (⌘Z)">↶ Deshacer</button>
+        <button class="suelto" id="limpiar-todo" title="Sacar toda la pintura de este sprite">Borrar pintura</button>
+        <div class="grupo" title="Zoom (+ / − / 0)">
+          <button id="zoom-menos">−</button>
+          <button id="zoom-ajustar">Ajustar</button>
+          <button id="zoom-mas">+</button>
+        </div>
+        <select class="suelto" id="fondo" title="Fondo">
+          <option value="damero">Damero</option>
+          <option value="#2e7d4f">Verde</option>
+          <option value="#1a1a1e">Negro</option>
+          <option value="#ffffff">Blanco</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="escenario">
+      <div id="regen-aviso">Este sprite está marcado para regenerar</div>
+      <div id="lienzo-caja" class="damero"><canvas id="lienzo"></canvas></div>
+    </div>
+
+    <div id="pie">
+      <div>
+        <div><span id="titulo"></span> <span id="cuenta"></span></div>
+        <div id="chips"></div>
+        <div id="ayuda">Clic en una isla para pintarla · <kbd>R</kbd> rojo · <kbd>V</kbd> verde ·
+          <kbd>C</kbd> cómo queda · <kbd>←</kbd> <kbd>→</kbd> otro sprite · <kbd>⌘Z</kbd> deshacer ·
+          <kbd>⌘S</kbd> guardar · las islas chiquitas tienen un círculo naranja</div>
+      </div>
+      <button id="guardar" title="Guardar la imagen limpia (⌘S)">Guardar</button>
+    </div>
+  </section>
+</div>
+<div id="globo"></div>
+<div id="aviso"></div>
+
+<script src="datos.js"></script>
+<script>
+"use strict";
+const SPRITES = window.SPRITES || [];
+const BORRADOR = "balde-islas-borrador-v1";
+const $ = (id) => document.getElementById(id);
+
+// ---------- Estado ----------
+let guardadas = {};          // lo que dice el servidor: clave -> {rojas, verdes, listo, origen}
+let borradores = cargarBorradores();
+let hayServidor = false;
+let balde = "roja";
+let verQueda = false;
+let zoom = 1, zoomAjustado = true;
+let fondo = "damero";
+let visibles = [];
+let actual = null;           // ficha del sprite abierto
+let carga = null;            // { sprite: Image, pix: ImageData, sid: Int32Array, hid: Uint8Array, ancho, alto }
+let sobre = null;            // id de la isla bajo el mouse
+const historia = {};         // clave -> pila de estados
+
+function cargarBorradores() {
+  try { return JSON.parse(localStorage.getItem(BORRADOR)) || {}; } catch (e) { return {}; }
+}
+function guardarBorradores() {
+  try { localStorage.setItem(BORRADOR, JSON.stringify(borradores)); } catch (e) {}
+}
+
+function pintura(clave) {
+  const b = borradores[clave], g = guardadas[clave];
+  const p = b || g || { rojas: [], verdes: [] };
+  return { rojas: new Set(p.rojas || []), verdes: new Set(p.verdes || []) };
+}
+function iguales(a, b) {
+  return a.size === b.size && [...a].every((x) => b.has(x));
+}
+function estado(f) {
+  const g = guardadas[f.clave];
+  if (!g || !g.listo) return borradores[f.clave] ? "cambios" : "pendiente";
+  const b = borradores[f.clave];
+  if (b && (!iguales(new Set(b.rojas), new Set(g.rojas)) || !iguales(new Set(b.verdes), new Set(g.verdes))))
+    return "cambios";
+  return "listo";
+}
+
+// ---------- Lista ----------
+function armarFiltros() {
+  const grupos = [...new Set(SPRITES.map((s) => s.grupo))];
+  for (const g of grupos) $("f-grupo").add(new Option(g, g));
+}
+function nombreCompleto(f) {
+  return f.skin ? `${f.nombre} — ${f.skin}` : f.nombre;
+}
+function filtrar() {
+  const q = $("buscar").value.trim().toLowerCase();
+  const grupo = $("f-grupo").value, est = $("f-estado").value;
+  visibles = SPRITES.filter((f) => {
+    if (grupo && f.grupo !== grupo) return false;
+    if (est === "regen" && !f.regenerar) return false;
+    if (est === "listo" && estado(f) !== "listo") return false;
+    if (est === "pendiente" && estado(f) === "listo") return false;
+    if (q && !`${f.nombre} ${f.skin} ${f.clave} ${f.grupo}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  dibujarLista();
+}
+function dibujarLista() {
+  const lista = $("lista");
+  lista.textContent = "";
+  for (const f of visibles) {
+    const fila = document.createElement("div");
+    fila.className = "item" + (actual && f.clave === actual.clave ? " actual" : "");
+    fila.dataset.clave = f.clave;
+    const img = document.createElement("img");
+    img.loading = "lazy"; img.src = `img/${f.clave}.png`; img.alt = "";
+    const txt = document.createElement("div");
+    txt.className = "txt";
+    txt.innerHTML = `<div class="nom"></div><div class="sub"></div>`;
+    txt.firstChild.textContent = f.nombre;
+    txt.lastChild.textContent = [f.skin || f.variante, f.grupo].filter(Boolean).join(" · ");
+    fila.append(img, txt);
+    const est = estado(f);
+    const chips = [];
+    if (f.regenerar) chips.push(["regen", "A regenerar"]);
+    if (est === "listo") chips.push(["listo", "Listo"]);
+    if (est === "cambios") chips.push(["cambios", "Sin guardar"]);
+    for (const [c, t] of chips) {
+      const e = document.createElement("span");
+      e.className = "estado " + c; e.textContent = t; fila.append(e);
+    }
+    fila.onclick = () => abrir(f);
+    lista.append(fila);
+  }
+  $("vacio").style.display = visibles.length ? "none" : "block";
+  const listos = SPRITES.filter((f) => estado(f) === "listo").length;
+  $("progreso").textContent = `${listos} de ${SPRITES.length} listos`;
+  $("barra").firstChild.style.width = `${(100 * listos) / Math.max(SPRITES.length, 1)}%`;
+  const fila = lista.querySelector(".actual");
+  if (fila) fila.scrollIntoView({ block: "nearest" });
+}
+
+// ---------- Abrir un sprite ----------
+function cargarImagen(src) {
+  return new Promise((ok, mal) => {
+    const i = new Image();
+    i.onload = () => ok(i); i.onerror = () => mal(new Error(src)); i.src = src;
+  });
+}
+function pixeles(img) {
+  const c = document.createElement("canvas");
+  c.width = img.naturalWidth; c.height = img.naturalHeight;
+  const x = c.getContext("2d", { willReadFrequently: true });
+  x.drawImage(img, 0, 0);
+  return x.getImageData(0, 0, c.width, c.height);
+}
+async function abrir(f) {
+  actual = f;
+  sobre = null;
+  const [sprite, mapa] = await Promise.all([cargarImagen(`img/${f.clave}.png`), cargarImagen(`mapas/${f.clave}.png`)]);
+  if (actual !== f) return;
+  const m = pixeles(mapa).data;
+  const n = sprite.naturalWidth * sprite.naturalHeight;
+  const sid = new Int32Array(n), hid = new Uint8Array(n);
+  for (let i = 0; i < n; i++) { sid[i] = m[4 * i] + 256 * m[4 * i + 1]; hid[i] = m[4 * i + 2]; }
+  carga = { sprite, pix: pixeles(sprite), sid, hid, ancho: sprite.naturalWidth, alto: sprite.naturalHeight };
+  porId = Object.fromEntries(f.islas.map((i) => [i.id, i]));
+  if (zoomAjustado) ajustar(); else dibujar();
+  $("regen-aviso").style.display = f.regenerar ? "block" : "none";
+  dibujarLista();
+  try { localStorage.setItem(BORRADOR + "-ultimo", f.clave); } catch (e) {}
+}
+let porId = {};
+
+// ---------- Pintar ----------
+function islaEn(x, y) {
+  if (!carga || x < 0 || y < 0 || x >= carga.ancho || y >= carga.alto) return null;
+  const i = y * carga.ancho + x;
+  if (carga.hid[i]) return "h" + carga.hid[i];
+  if (carga.sid[i]) return "s" + carga.sid[i];
+  return null;
+}
+function islaCerca(x, y) {
+  // Las islas diminutas no se embocan con el mouse: se busca la mas cercana a unos pixeles.
+  const directa = islaEn(x, y);
+  if (directa) return directa;
+  const radio = Math.max(3, Math.round(8 / zoom));
+  let mejor = null, dist = Infinity;
+  for (let dy = -radio; dy <= radio; dy++)
+    for (let dx = -radio; dx <= radio; dx++) {
+      const d = dx * dx + dy * dy;
+      if (d >= dist || d > radio * radio) continue;
+      const id = islaEn(x + dx, y + dy);
+      if (id) { mejor = id; dist = d; }
+    }
+  return mejor;
+}
+function recordar() {
+  const p = pintura(actual.clave);
+  (historia[actual.clave] ||= []).push({ rojas: [...p.rojas], verdes: [...p.verdes] });
+}
+function fijar(p) {
+  borradores[actual.clave] = { rojas: [...p.rojas].sort(), verdes: [...p.verdes].sort() };
+  const g = guardadas[actual.clave];
+  const vacio = !p.rojas.size && !p.verdes.size;
+  if ((!g && vacio) || (g && iguales(p.rojas, new Set(g.rojas)) && iguales(p.verdes, new Set(g.verdes))))
+    delete borradores[actual.clave];
+  guardarBorradores();
+  dibujar(); dibujarLista();
+}
+function pintar(id) {
+  if (!actual || !id) return;
+  const p = pintura(actual.clave);
+  if (balde === "roja" && id === "s1" && !p.rojas.has(id) &&
+      !confirm("Esa es la isla más grande: casi seguro es el personaje.\n¿La pinto de rojo igual (se borra entera)?")) return;
+  recordar();
+  const [pon, saca] = balde === "roja" ? [p.rojas, p.verdes] : [p.verdes, p.rojas];
+  pon.add(id); saca.delete(id);
+  fijar(p);
+}
+function deshacer() {
+  const pila = actual && historia[actual.clave];
+  if (!pila || !pila.length) return avisar("No hay nada para deshacer");
+  const previo = pila.pop();
+  fijar({ rojas: new Set(previo.rojas), verdes: new Set(previo.verdes) });
+}
+function borrarPintura() {
+  if (!actual) return;
+  recordar();
+  fijar({ rojas: new Set(), verdes: new Set() });
+}
+
+// ---------- Dibujar ----------
+const lienzo = $("lienzo");
+const ctx = lienzo.getContext("2d");
+const capa = document.createElement("canvas");
+const cctx = capa.getContext("2d");
+
+function componer() {
+  const { pix, sid, hid, ancho, alto } = carga;
+  const p = pintura(actual.clave);
+  const rS = new Set(), rH = new Set(), vS = new Set(), vH = new Set();
+  for (const id of p.rojas) (id[0] === "s" ? rS : rH).add(+id.slice(1));
+  for (const id of p.verdes) (id[0] === "s" ? vS : vH).add(+id.slice(1));
+  const hS = sobre && sobre[0] === "s" ? +sobre.slice(1) : -1;
+  const hH = sobre && sobre[0] === "h" ? +sobre.slice(1) : -1;
+  const salida = new ImageData(new Uint8ClampedArray(pix.data), ancho, alto);
+  const d = salida.data;
+  for (let i = 0; i < ancho * alto; i++) {
+    const s = sid[i], h = hid[i];
+    if (!s && !h) continue;
+    const roja = rS.has(s) || (h && rH.has(h));
+    const o = 4 * i;
+    if (verQueda) { if (roja) d[o + 3] = 0; continue; }
+    let tinte = null, fuerza = 0;
+    if (roja) { tinte = [214, 40, 40]; fuerza = 0.62; }
+    else if ((h && vH.has(h)) || (!h && vS.has(s))) { tinte = [46, 160, 90]; fuerza = 0.45; }
+    if ((h && h === hH) || s === hS) {
+      tinte = tinte ? tinte.map((c, k) => (c + [255, 210, 0][k]) / 2) : [255, 210, 0];
+      fuerza = Math.max(fuerza, 0.55);
+    }
+    if (!tinte) continue;
+    for (let k = 0; k < 3; k++) d[o + k] = d[o + k] * (1 - fuerza) + tinte[k] * fuerza;
+    if (d[o + 3] < 90) d[o + 3] = 90;   // que hasta el antialias se vea pintado
+  }
+  capa.width = ancho; capa.height = alto;
+  cctx.putImageData(salida, 0, 0);
+}
+function dibujar() {
+  if (!carga) return;
+  componer();
+  const w = Math.round(carga.ancho * zoom), h = Math.round(carga.alto * zoom);
+  const ppp = window.devicePixelRatio || 1;
+  lienzo.width = w * ppp; lienzo.height = h * ppp;
+  lienzo.style.width = w + "px"; lienzo.style.height = h + "px";
+  ctx.setTransform(ppp, 0, 0, ppp, 0, 0);
+  ctx.imageSmoothingEnabled = zoom < 1.5;
+  ctx.drawImage(capa, 0, 0, w, h);
+  if (!verQueda) circulosDeChiquitas();
+  const caja = $("lienzo-caja");
+  caja.className = fondo === "damero" ? "damero" : "";
+  caja.style.background = fondo === "damero" ? "" : fondo;
+  lienzo.className = verQueda ? "mirando" : balde === "roja" ? "rojo" : "verde";
+  contar();
+}
+function circulosDeChiquitas() {
+  const p = pintura(actual.clave);
+  for (const isla of actual.islas) {
+    if (!isla.diminuta) continue;
+    const [x0, y0, x1, y1] = isla.caja;
+    const cx = ((x0 + x1) / 2) * zoom, cy = ((y0 + y1) / 2) * zoom;
+    const r = Math.max(10, (Math.max(x1 - x0, y1 - y0) * zoom) / 2 + 6);
+    const resaltada = sobre === isla.id;
+    ctx.beginPath();
+    ctx.arc(cx, cy, resaltada ? r + 6 : r, 0, 2 * Math.PI);
+    ctx.lineWidth = resaltada ? 3 : 2;
+    ctx.setLineDash(resaltada ? [] : [4, 3]);
+    ctx.strokeStyle = p.rojas.has(isla.id) ? "#c0392b" : p.verdes.has(isla.id) ? "#2e7d4f"
+                    : resaltada ? "#ffd200" : "#e08a00";
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+}
+function contar() {
+  const p = pintura(actual.clave);
+  const n = actual.islas.length;
+  const rojas = actual.islas.filter((i) => p.rojas.has(i.id)).length;
+  const verdes = actual.islas.filter((i) => p.verdes.has(i.id)).length;
+  const chicas = actual.islas.filter((i) => i.diminuta).length;
+  $("titulo").textContent = nombreCompleto(actual);
+  $("cuenta").textContent = `· ${n} islas: ${rojas} rojas, ${verdes} verdes, ${n - rojas - verdes} sin pintar` +
+    (chicas ? ` · ${chicas} chiquitas` : "") + (estado(actual) === "listo" ? " · ✓ guardado" : "");
+  const chips = $("chips");
+  chips.textContent = "";
+  for (const isla of actual.islas) {
+    const c = document.createElement("span");
+    c.className = "chip" + (p.rojas.has(isla.id) ? " roja" : p.verdes.has(isla.id) ? " verde" : "") +
+                  (isla.diminuta ? " chica" : "");
+    c.textContent = describir(isla);
+    c.onmouseenter = () => { sobre = isla.id; dibujar(); };
+    c.onmouseleave = () => { sobre = null; dibujar(); };
+    c.onclick = () => pintar(isla.id);
+    chips.append(c);
+  }
+}
+function describir(isla) {
+  if (isla.id === "s1") return "Isla 1 (la más grande)";
+  const tipo = isla.id[0] === "h" ? "Hueco blanco" : "Isla";
+  return `${tipo} ${isla.id.slice(1)}${isla.diminuta ? " · chiquita" : ""} · ${isla.area} px`;
+}
+
+// ---------- Zoom ----------
+function ajustar() {
+  if (!carga) return;
+  const e = $("escenario");
+  zoom = Math.max(0.25, Math.min((e.clientWidth - 40) / carga.ancho, (e.clientHeight - 40) / carga.alto));
+  zoomAjustado = true;
+  dibujar();
+}
+function hacerZoom(factor) {
+  zoom = Math.max(0.25, Math.min(12, zoom * factor));
+  zoomAjustado = false;
+  dibujar();
+}
+
+// ---------- Mouse ----------
+function pixelDe(ev) {
+  const r = lienzo.getBoundingClientRect();
+  return [Math.floor((ev.clientX - r.left) / zoom), Math.floor((ev.clientY - r.top) / zoom)];
+}
+lienzo.addEventListener("mousemove", (ev) => {
+  if (!carga || verQueda) return;
+  const id = islaCerca(...pixelDe(ev));
+  const globo = $("globo");
+  if (id) {
+    globo.textContent = describir(porId[id] || { id, area: "?" }) +
+      (pintura(actual.clave).rojas.has(id) ? " — se saca" : pintura(actual.clave).verdes.has(id) ? " — se queda" : "");
+    globo.style.left = ev.clientX + 14 + "px"; globo.style.top = ev.clientY + 14 + "px";
+    globo.style.display = "block";
+  } else globo.style.display = "none";
+  if (id !== sobre) { sobre = id; dibujar(); }
+});
+lienzo.addEventListener("mouseleave", () => {
+  $("globo").style.display = "none";
+  if (sobre) { sobre = null; dibujar(); }
+});
+lienzo.addEventListener("click", (ev) => {
+  if (!carga) return;
+  if (verQueda) return avisar("Estás viendo cómo queda: tocá «Pintado» (o C) para pintar");
+  const id = islaCerca(...pixelDe(ev));
+  if (!id) return avisar("Ahí no hay ninguna isla");
+  pintar(id);
+});
+$("escenario").addEventListener("wheel", (ev) => {
+  if (!ev.ctrlKey && !ev.metaKey) return;
+  ev.preventDefault();
+  hacerZoom(ev.deltaY < 0 ? 1.15 : 1 / 1.15);
+}, { passive: false });
+
+// ---------- Botones ----------
+function elegirBalde(b) {
+  balde = b;
+  $("balde-rojo").setAttribute("aria-pressed", b === "roja");
+  $("balde-verde").setAttribute("aria-pressed", b === "verde");
+  if (verQueda) cambiarVista(false); else dibujar();
+}
+function cambiarVista(queda) {
+  verQueda = queda;
+  $("ver-queda").setAttribute("aria-pressed", queda);
+  $("ver-pintado").setAttribute("aria-pressed", !queda);
+  $("globo").style.display = "none";
+  dibujar();
+}
+function mover(paso) {
+  if (!visibles.length) return;
+  const i = actual ? visibles.findIndex((f) => f.clave === actual.clave) : -1;
+  const j = i < 0 ? 0 : Math.min(visibles.length - 1, Math.max(0, i + paso));
+  abrir(visibles[j]);
+}
+let temporizador = null;
+function avisar(texto) {
+  const a = $("aviso");
+  a.textContent = texto; a.style.display = "block";
+  clearTimeout(temporizador);
+  temporizador = setTimeout(() => (a.style.display = "none"), 1800);
+}
+
+async function guardar() {
+  if (!actual || !carga) return;
+  if (!hayServidor) return avisar("Para guardar, abrí la revisión con «Abrir revisión de islas.command»");
+  const f = actual;
+  const p = pintura(f.clave);
+  const rS = new Set(), rH = new Set();
+  for (const id of p.rojas) (id[0] === "s" ? rS : rH).add(+id.slice(1));
+  const limpio = new ImageData(new Uint8ClampedArray(carga.pix.data), carga.ancho, carga.alto);
+  for (let i = 0; i < carga.ancho * carga.alto; i++)
+    if (rS.has(carga.sid[i]) || (carga.hid[i] && rH.has(carga.hid[i]))) limpio.data.fill(0, 4 * i, 4 * i + 4);
+  const c = document.createElement("canvas");
+  c.width = carga.ancho; c.height = carga.alto;
+  c.getContext("2d").putImageData(limpio, 0, 0);
+  $("guardar").disabled = true;
+  try {
+    const r = await fetch("api/guardar", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clave: f.clave, png: c.toDataURL("image/png"), rojas: [...p.rojas],
+                             verdes: [...p.verdes], origen: f.origen }),
+    });
+    const respuesta = await r.json();
+    if (!r.ok) throw new Error(respuesta.error || r.status);
+    guardadas[f.clave] = respuesta.marca;
+    delete borradores[f.clave]; guardarBorradores();
+    avisar(`✓ Guardado: ${nombreCompleto(f)}`);
+    const siguiente = visibles.slice(visibles.indexOf(f) + 1).find((s) => estado(s) !== "listo");
+    filtrar();
+    if (siguiente) setTimeout(() => abrir(siguiente), 500); else { dibujar(); }
+  } catch (e) {
+    avisar("No se pudo guardar: " + e.message);
+  } finally {
+    $("guardar").disabled = false;
+  }
+}
+
+$("balde-rojo").onclick = () => elegirBalde("roja");
+$("balde-verde").onclick = () => elegirBalde("verde");
+$("ver-pintado").onclick = () => cambiarVista(false);
+$("ver-queda").onclick = () => cambiarVista(true);
+$("deshacer").onclick = deshacer;
+$("limpiar-todo").onclick = borrarPintura;
+$("zoom-mas").onclick = () => hacerZoom(1.25);
+$("zoom-menos").onclick = () => hacerZoom(1 / 1.25);
+$("zoom-ajustar").onclick = ajustar;
+$("fondo").onchange = (e) => { fondo = e.target.value; dibujar(); };
+$("guardar").onclick = guardar;
+$("buscar").oninput = filtrar;
+$("f-grupo").onchange = filtrar;
+$("f-estado").onchange = filtrar;
+window.addEventListener("resize", () => { if (zoomAjustado) ajustar(); });
+
+document.addEventListener("keydown", (ev) => {
+  const escribiendo = ev.target.matches("input, select, textarea");
+  const cmd = ev.metaKey || ev.ctrlKey;
+  if (cmd && ev.key.toLowerCase() === "z") { ev.preventDefault(); return deshacer(); }
+  if (cmd && ev.key.toLowerCase() === "s") { ev.preventDefault(); return guardar(); }
+  if (escribiendo || cmd || ev.altKey) return;
+  const k = ev.key.toLowerCase();
+  if (k === "r") elegirBalde("roja");
+  else if (k === "v") elegirBalde("verde");
+  else if (k === "c") cambiarVista(!verQueda);
+  else if (ev.key === "ArrowRight" || ev.key === "ArrowDown") { ev.preventDefault(); mover(1); }
+  else if (ev.key === "ArrowLeft" || ev.key === "ArrowUp") { ev.preventDefault(); mover(-1); }
+  else if (k === "+" || k === "=") hacerZoom(1.25);
+  else if (k === "-") hacerZoom(1 / 1.25);
+  else if (k === "0") ajustar();
+});
+
+// ---------- Arranque ----------
+async function arrancar() {
+  if (!SPRITES.length) {
+    document.body.innerHTML = "<p style='padding:30px'>No hay sprites: falta datos.js. Volvé a armar la página con balde_islas.py.</p>";
+    return;
+  }
+  try {
+    const r = await fetch("api/marcas", { cache: "no-store" });
+    if (r.ok) { guardadas = await r.json(); hayServidor = true; }
+  } catch (e) {}
+  if (!hayServidor) $("sin-servidor").style.display = "block";
+  armarFiltros();
+  filtrar();
+  let ultimo = null;
+  try { ultimo = localStorage.getItem(BORRADOR + "-ultimo"); } catch (e) {}
+  const primero = SPRITES.find((f) => f.clave === ultimo) || visibles.find((f) => estado(f) !== "listo") || visibles[0];
+  if (primero) abrir(primero);
+}
+arrancar();
+</script>
+</body>
+</html>

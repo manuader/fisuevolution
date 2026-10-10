@@ -71,6 +71,7 @@ El recorte se elige a ojo, asset por asset (decisión del dueño, HANDOFF §5).
 |---|---|
 | `revision_recortes.py` → `aplicar_revision.py` | Comparar conectividad contra saliencia y aplicar la elegida |
 | `revision_islas.py` → `aplicar_islas.py` | Islas de papel blanco que el recorte deja pegadas |
+| `balde_islas.py` → `aplicar_limpias.py` | Sacar a mano, con un balde rojo/verde, las islas sueltas de los sprites ya integrados (`~/Desktop/projects/islas-review`) |
 | `elegir_recorte.py` | Cambiar el recorte de UN asset |
 | `recut_assets.py` | Re-recortar en lote; respeta los elegidos a mano |
 

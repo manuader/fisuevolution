@@ -17,6 +17,7 @@ final class HapticsManager {
         case evolution
         case rarity
         case mergeAllFinale
+        case tick
     }
 
     var isEnabled: Bool {
@@ -76,6 +77,8 @@ final class HapticsManager {
         let events: [CHHapticEvent] = switch pattern {
         case .merge:
             [transient(time: 0, intensity: 0.8, sharpness: 0.6)]
+        case .tick:
+            [transient(time: 0, intensity: 0.35, sharpness: 0.9)]
         case .purchase:
             [transient(time: 0, intensity: 0.55, sharpness: 0.4),
              transient(time: 0.09, intensity: 0.7, sharpness: 0.5)]

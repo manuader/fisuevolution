@@ -27,6 +27,8 @@ final class AudioManager {
         // dedo, así que van como clips y no dentro del mov del cinemático.
         case chestShakeA = "sfx_chest_shake_a"
         case chestShakeB = "sfx_chest_shake_b"
+        /// El tic de cada rebanada de la ruleta que pasa bajo el puntero.
+        case wheelTick = "sfx_wheel_tick"
         /// La campana de la botonera del ascensor (E8 audio, cableada en E3).
         case elevatorDing = "sfx_elevator_ding"
         /// El ascensor de E13: placa, botón, puertas y motor.

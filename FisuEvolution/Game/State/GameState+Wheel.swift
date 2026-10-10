@@ -135,6 +135,14 @@ extension GameState {
         return state
     }
 
+    /// El tic de una rebanada que pasa bajo el puntero: el sonido y una
+    /// vibración corta. El ritmo lo marca la vista (`WheelGeometry.boundariesCrossed`);
+    /// el anti-duplicado de `AudioManager` evita la ametralladora al arrancar.
+    func playWheelTick() {
+        audio?.play(.wheelTick)
+        haptics?.play(.tick)
+    }
+
     #if DEBUG
     func debugAddWheelSpins(_ count: Int) {
         guard var player, count > 0 else { return }

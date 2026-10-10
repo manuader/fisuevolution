@@ -7,15 +7,15 @@ import StoreKit
 enum LootBoxGate {
     /// Sin tienda conocida, no: mejor no ofrecerlo que ofrecerlo donde está
     /// prohibido.
-    static func allows(countryCode: String?, restricted: [String]) -> Bool {
+    static func allows(countryCode: String?, config: AdsRemoteConfig) -> Bool {
         guard let countryCode, !countryCode.isEmpty else { return false }
-        return !restricted.contains(countryCode.uppercased())
+        return !config.isRestricted(storefront: countryCode)
     }
 
     /// La respuesta de hoy: la tienda del jugador contra la config que haya en
     /// disco (caché o respaldo del bundle, sin red). Sin config, no.
     static func current(loader: AdsRemoteConfigLoader = AdsRemoteConfigLoader()) async -> Bool {
         guard let config = loader.current()?.config else { return false }
-        return allows(countryCode: await Storefront.current?.countryCode, restricted: config.restrictedStorefronts)
+        return allows(countryCode: await Storefront.current?.countryCode, config: config)
     }
 }

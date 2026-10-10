@@ -97,31 +97,42 @@ extension GameState {
     func repeatWheelPrize(now: TimeInterval = Date().timeIntervalSince1970) -> WheelSpinOutcome? {
         guard let content, var player else { return nil }
         var wheel = Self.wheelState(player.meta.engagement.wheel, at: now)
-        guard let id = wheel.repeatableSegmentId,
-              let segment = content.wheel.segments.first(where: { $0.id == id })
-        else { return nil }
+        guard let id = wheel.repeatableSegmentId else { return nil }
+        let segments = wheelSegments
+        // Si el cofre ya no tiene nada que dar, lo que se repite es su respaldo.
+        let wasChest = content.wheel.segments.first { $0.id == id }?.reward.kind == .skinChest
+        let repeated = segments.first { $0.id == id }
+            ?? (wasChest ? segments.first { $0.id == content.wheel.chestFallbackSegmentId } : nil)
+        guard let repeated, let index = segments.firstIndex(of: repeated) else { return nil }
         wheel.repeatableSegmentId = nil
         player.meta.engagement.wheel = wheel
         self.player = player
-        let coins = grant(segment.reward, source: "wheel.\(segment.id)", now: now)
+        let coins = grant(repeated.reward, source: "wheel.\(repeated.id)", now: now)
         Task { await persistNow() }
-        Log.economy.info("wheel prize repeated: \(segment.id)")
-        let segments = wheelSegments
-        let index = segments.firstIndex { $0.id == id }
-        return index.map { WheelSpinOutcome(segments: segments, index: $0, coins: coins) }
-            ?? WheelSpinOutcome(segments: [segment], index: 0, coins: coins)
+        Log.economy.info("wheel prize repeated: \(repeated.id)")
+        return WheelSpinOutcome(segments: segments, index: index, coins: coins)
     }
 
-    /// El día de los cupos: el mismo que el del diario.
+    /// El día de los cupos: el del diario, pero siempre en calendario
+    /// gregoriano. Con el japonés o el budista el año cambia y cambiar de
+    /// calendario dejaría el día guardado "en el futuro".
     static func wheelDay(_ now: TimeInterval) -> String {
-        DailyRewardManager.dayString(for: Date(timeIntervalSince1970: now))
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .current
+        return DailyRewardManager.dayString(for: Date(timeIntervalSince1970: now), calendar: calendar)
     }
 
-    /// El estado pasado al día de `now`, pero el día sólo avanza: un reloj
-    /// atrasado (o un viaje al oeste) no devuelve los cupos de ayer. Los días
+    /// El estado pasado al día de `now`. Un reloj atrasado (o un viaje al
+    /// oeste) no devuelve los cupos de ayer: se respeta un día guardado que
+    /// llegue hasta mañana. Uno más lejano es un reloj roto o el día de otro
+    /// dispositivo, y no puede bloquear la ruleta: se vuelve a hoy. Los días
     /// "yyyy-MM-dd" se ordenan como texto.
     static func wheelState(_ state: WheelState, at now: TimeInterval) -> WheelState {
-        state.rolledOver(to: max(state.day ?? "", wheelDay(now)))
+        let today = wheelDay(now)
+        guard let saved = state.day, saved > today, saved <= wheelDay(now + 86_400) else {
+            return state.rolledOver(to: today)
+        }
+        return state
     }
 
     #if DEBUG

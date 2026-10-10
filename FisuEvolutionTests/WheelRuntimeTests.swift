@@ -43,16 +43,53 @@ struct WheelRuntimeTests {
         for _ in 0..<6 { _ = gameState.spinWheel(.video, now: noon) }
         #expect(gameState.spinWheel(.video, now: noon - day) == nil)
         #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon - day).videoLeft == 0)
-        #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon - 30 * day).videoLeft == 0)
     }
 
-    @Test("adelantar el reloj y volver no da dos días de cupos: el día no retrocede")
-    func aFastForwardedClockCannotComeBack() async throws {
+    @Test("viaje al oeste: un día guardado que es mañana se respeta, y el reloj real no da cupos nuevos")
+    func aDayAheadIsRespected() async throws {
         let gameState = await makeGameState()
         for _ in 0..<6 { _ = gameState.spinWheel(.video, now: noon + day) }
         #expect(gameState.spinWheel(.video, now: noon) == nil)
         #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon).videoLeft == 0)
         #expect(gameState.wheelAvailability(storefrontAllows: false, now: noon + 2 * day).videoLeft == 6)
+    }
+
+    @Test("un día guardado un año adelante (reloj roto, otro dispositivo) no bloquea: hoy vuelven los cupos")
+    func aFarFutureDayDoesNotLockTheWheel() async throws {
+        let gameState = await makeGameState()
+        gameState.player?.meta.engagement.wheel = WheelState(
+            day: GameState.wheelDay(noon + 365 * day), videoSpinsUsed: 6, oroSpinsUsed: 6, bonusSpins: 2
+        )
+        let availability = gameState.wheelAvailability(storefrontAllows: true, now: noon)
+        #expect(availability.videoLeft == 6 && availability.oroLeft == 6 && availability.bonus == 2)
+        #expect(gameState.spinWheel(.video, now: noon) != nil)
+        #expect(gameState.player?.meta.engagement.wheel.day == GameState.wheelDay(noon))
+    }
+
+    @Test("el día es gregoriano aunque el calendario del dispositivo no lo sea")
+    func theDayIsGregorian() {
+        #expect(GameState.wheelDay(noon) == "2026-06-15")
+        let date = Date(timeIntervalSince1970: noon)
+        for identifier in [Calendar.Identifier.japanese, .buddhist, .persian] {
+            let other = DailyRewardManager.dayString(for: date, calendar: Calendar(identifier: identifier))
+            #expect(other != GameState.wheelDay(noon), "\(identifier) cambia el año")
+        }
+    }
+
+    @Test("repetir un cofre que ya no tiene nada que dar da el segmento de respaldo")
+    func repeatingAChestFallsBackToCoins() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        gameState.player?.meta.engagement.wheel = WheelState(day: GameState.wheelDay(noon), repeatableSegmentId: "chest")
+        let unlocked = gameState.chestUnlockedCharacterTypes
+        gameState.player?.meta.milestoneSkins = content.skins.chestPool
+            .filter { unlocked.contains($0.characterType) }.map(\.id)
+        #expect(!gameState.wheelChestHasSomethingToGive)
+        let chests = try #require(gameState.player?.meta.chestsPending)
+        let outcome = try #require(gameState.repeatWheelPrize(now: noon))
+        #expect(outcome.segment.id == content.wheel.chestFallbackSegmentId)
+        #expect(outcome.coins > 0)
+        #expect(gameState.player?.meta.chestsPending == chests)
     }
 
     @Test("el premio se acredita al girar, antes de cualquier animación")

@@ -508,7 +508,7 @@ que toma · commit o rama · nota.
 | E5a-T5 | El contenido: `packages/treasures/wheel.json` | ✅ | T1–T3; E4a-T7, E4a-T9 | GameContentLoader | | carry: validador `isFinite` |
 | E5a-T6 | El Paquete en la partida | ✅ | T4, T5; E1-T9, E1-T10, E1-T14; E4a-T2, E4a-T6, E4a-T8, E4a-T9 | +Rewards, +Engagement, +BoardChanges, BoardChange.swift | | no con E4b T2 |
 | E5a-T7 | El Colchón en la partida | ✅ | T6 | +Engagement | `95cd194` (merge en `v2i/integ-r25`) | |
-| E5a-T8 | La Ruleta en la partida | ⛔ | T7 | +Rewards, +Engagement | | crea `LootBoxGate` |
+| E5a-T8 | La Ruleta en la partida | 🟢 | T7 | +Rewards, +Engagement | `a6750c4` + arreglos `ecfae53` (en `v2i/integ-r25`) | crea `LootBoxGate` |
 | E5a-T9 | Cierre de E5a | ⛔ | T1–T8 | `Docs/` | | |
 
 ### E5b — Aduana, Colchón y Ruleta, lo que se ve (`2026-10-07-v2-e5b-aduana-colchon-ruleta.md`)

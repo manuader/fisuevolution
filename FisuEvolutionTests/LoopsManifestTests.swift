@@ -77,6 +77,16 @@ struct LoopsManifestTests {
         }
     }
 
+    @Test("cada retrato es de un visitante, y el popup lo encuentra por su id")
+    func portraitsBelongToVisitors() throws {
+        let visitors = Set(try GameContentLoader.load(from: .main).visitors.visitors.map(\.id))
+        let manifest = try LoopsManifest.load(from: .main)
+        for id in manifest.portraits.keys {
+            #expect(visitors.contains(id), "\(id): un retrato que ningún visitante pide")
+            #expect(manifest.portraitURL(for: id) != nil, "\(id): el popup caería a la foto")
+        }
+    }
+
     @Test("las secciones de la segunda tanda decodifican: vacías si faltan, llenas si vienen")
     func secondBatchSections() throws {
         let empty = try JSONDecoder().decode(LoopsManifest.self, from: Data(#"{"schemaVersion":1}"#.utf8))

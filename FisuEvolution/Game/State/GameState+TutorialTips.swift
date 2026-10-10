@@ -16,6 +16,10 @@ extension GameState {
     /// desempate cuando hay más de una elegible a la vez (el de la tabla del
     /// prompt); en la práctica casi siempre decide el gating solo.
     enum TutorialLesson: String, CaseIterable {
+        /// Alguien en escena esperando que lo toquen: la primera visita enseña el
+        /// chip. Va primera: una visita se va sola, y si esperara su turno
+        /// detrás de otra lección se perdería.
+        case visitor
         /// Hay una mejora pagable (personaje, pasivo o permanente).
         case upgrades
         /// Se desbloqueó el segundo piso: recién ahora el mapa tiene a dónde ir.
@@ -55,6 +59,7 @@ extension GameState {
         /// El control que el coach-mark señala.
         var anchorTarget: TutorialTarget {
             switch self {
+            case .visitor: .visitor
             case .upgrades: .upgrades
             case .elevator, .elevatorKeypad: .map
             case .quickHire: .quickHire
@@ -79,13 +84,14 @@ extension GameState {
             case .achievements, .album: .menu
             case .gifts: .gifts
             case .store: .store
-            case .elevator, .elevatorKeypad, .quickHire, .prestige, .share: nil
+            case .visitor, .elevator, .elevatorKeypad, .quickHire, .prestige, .share: nil
             }
         }
 
         /// La clave del globo. Escrita entera, nunca interpolada (trampa 5).
         var textKey: String {
             switch self {
+            case .visitor: "tutorial.tip.visitor"
             case .upgrades: "tutorial.tip.upgrades"
             case .elevator: "tutorial.tip.elevator"
             case .elevatorKeypad: "tutorial.tip.elevator.hold"
@@ -154,6 +160,8 @@ extension GameState {
     /// La señal de cada lección, contra proyecciones ya publicadas.
     private func isEligible(_ lesson: TutorialLesson) -> Bool {
         switch lesson {
+        case .visitor:
+            stageVisit?.phase == .waiting && stageVisit?.offer != nil && stageChallenge == nil
         case .upgrades:
             canAffordAnyUpgrade
         case .elevator:

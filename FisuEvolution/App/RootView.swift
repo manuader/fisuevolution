@@ -308,6 +308,9 @@ struct GameBoardView: View {
         .onChange(of: gameState.specialInfo) {
             gameState.uiCoversBoard = boardIsCovered
         }
+        .onChange(of: gameState.visitorPopup) {
+            gameState.uiCoversBoard = boardIsCovered
+        }
         .onChange(of: gameState.shareCardMoment) {
             gameState.uiCoversBoard = boardIsCovered
         }
@@ -374,6 +377,12 @@ struct GameBoardView: View {
         .fisuSheet(item: $gameState.specialInfo) { special in
             SpecialDropView(special: special, isRecap: true)
         }
+        .fisuSheet(item: Binding(
+            get: { gameState.visitorPopup },
+            set: { if $0 == nil { gameState.closeVisitorPopup() } }
+        )) { _ in
+            VisitorPopupView()
+        }
         .sheet(item: shareCardBinding) { moment in
             ShareCardSheet(moment: moment)
         }
@@ -432,7 +441,7 @@ struct GameBoardView: View {
     /// Lo que tapa el tablero y vive en esta vista; `GameState` no puede ver estos `@State`.
     private var boardIsCovered: Bool {
         menuSession != nil || showPrestige || gameState.specialInfo != nil || rankingCardUp
-            || gameState.shareCardMoment != nil
+            || gameState.shareCardMoment != nil || gameState.visitorPopup != nil
     }
 
     private var boardLayoutMarker: some View {
@@ -524,6 +533,11 @@ struct GameBoardView: View {
                     .padding(.leading, 12)
                     .playColumn()
             }
+            // Quien está en escena se toca desde acá: la cara, el nombre y su "!".
+            StageChips()
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .padding(.trailing, 12)
+                .playColumn()
             if let event = gameState.activeEvent, gameState.eventBannerIsVisible {
                 EventBannerView(event: event)
                     .playColumn()

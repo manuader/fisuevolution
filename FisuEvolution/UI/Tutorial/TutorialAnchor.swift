@@ -20,6 +20,8 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case menu
     case quickHire
     case prestige
+    /// El chip de quien está en escena (`StageChips`).
+    case visitor
     /// El botón de compartir un momento viral.
     case share
     /// No se ilumina: es la franja que el globo tiene que ESQUIVAR. Sin esto el

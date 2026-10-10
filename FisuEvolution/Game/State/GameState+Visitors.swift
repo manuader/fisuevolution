@@ -115,6 +115,7 @@ extension GameState {
     func openVisitorPopup() {
         guard let visit = stageVisit, visit.phase == .waiting, visit.offer != nil, stageChallenge == nil else { return }
         visitorPopup = VisitorPopup(id: visit.id)
+        tutorialTipCompleted(.visitor)
     }
 
     /// Cerrar sin elegir no lo echa: sigue esperando con su paciencia.

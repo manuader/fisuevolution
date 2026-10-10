@@ -70,18 +70,18 @@ final class OroShopUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["oroShop.footer.reincarnate"].exists, "los boosts avisan que se pierden al reencarnar")
     }
 
+    /// Un toque cobra una vez, con el saldo esperado. El cerrojo contra el doble
+    /// toque se prueba sin reloj en `OroShopScreenTests.latch`: dos `tap()` de
+    /// XCUITest esperan a que la app quede quieta y pueden caer fuera de su ventana.
     @MainActor
-    func testADoubleTapChargesOnce() throws {
+    func testOneTapChargesOnce() throws {
         let (app, balance) = openSpendSide()
         let buy = app.buttons["oroShop.buy.income_x2"]
         XCTAssertTrue(buy.waitForExistence(timeout: 5))
-        // Dos toques seguidos, más rápidos que el cerrojo: el tope diario es 3, así
-        // que sin él el segundo habría cobrado otros 30.
-        buy.tap()
         buy.tap()
         waitForBalance(balance, "470")
         sleep(1)
-        XCTAssertEqual(balance.value as? String, "470", "un doble toque cobra una sola vez")
+        XCTAssertEqual(balance.value as? String, "470")
     }
 
     @MainActor

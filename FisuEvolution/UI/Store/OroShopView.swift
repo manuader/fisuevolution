@@ -87,9 +87,8 @@ struct OroShopShelves: View {
                         .frame(maxWidth: .infinity)
                         .padding(.top, Tokens.s8)
                     ForEach(Array(shelfRows.enumerated()), id: \.element.0.id) { offset, entry in
-                        OroShopItemRow(row: entry.0, odds: entry.1, pendingNote: pendingNote(for: entry.0.item),
-                                       buyingLocked: latch.isLocked) {
-                            purchase(entry.0.id)
+                        OroShopItemRow(row: entry.0, odds: entry.1, pendingNote: pendingNote(for: entry.0.item)) {
+                            purchase(entry.0)
                         }
                         .staggeredAppearance(index: offset)
                     }
@@ -105,9 +104,14 @@ struct OroShopShelves: View {
         }
     }
 
-    private func purchase(_ id: String) {
+    private func purchase(_ row: OroShopRow) {
+        // Sin saldo o con tope no se cobra nada: no hace falta cerrojo.
+        guard row.quote.blocker == nil else {
+            gameState.buyOroShopItem(id: row.id, chanceAllowed: chanceAllowed)
+            return
+        }
         guard latch.claim() else { return }
-        gameState.buyOroShopItem(id: id, chanceAllowed: chanceAllowed)
+        gameState.buyOroShopItem(id: row.id, chanceAllowed: chanceAllowed)
         Task {
             try? await Task.sleep(for: .seconds(Self.latchSeconds))
             latch.release()
@@ -172,7 +176,6 @@ private struct OroShopItemRow: View {
     let row: OroShopRow
     let odds: ChestOddsDisplay
     let pendingNote: String?
-    let buyingLocked: Bool
     let buy: () -> Void
 
     private var name: String { OroShopCopy.name(for: row.item) }
@@ -264,7 +267,6 @@ private struct OroShopItemRow: View {
             ) {
                 buy()
             }
-            .disabled(buyingLocked)
         }
     }
 

@@ -381,6 +381,12 @@ extension GameState {
         syncCelebrations()
     }
 
+    /// Alguien en escena ya mismo, sin guion: para mirar la entrada, el globo y la
+    /// salida en el simulador.
+    func debugPresentStageDemo() {
+        presentOnStage(actorId: "npc_vecina", role: .visitor(scriptId: "vecina_chisme"))
+    }
+
     /// Un evento arrancado ya mismo, con su efecto real. Los eventos salen cada
     /// 15–20 min de juego: sin esta puerta no se pueden ni fotografiar ni probar.
     func debugStartEvent(id: String) {
@@ -558,6 +564,11 @@ extension GameState {
         shareOffer = nil
         pendingShareMoment = nil
         tutorialTip = nil
+        stageVisit = nil
+        visitorPopup = nil
+        eventPopup = nil
+        stageChallenge = nil
+        stageRuntime = StageRuntime()
         boardCelebrationShowsSomethingNew = false
         pendingBoardChanges.removeAll()
         inFlightBoardChange = nil

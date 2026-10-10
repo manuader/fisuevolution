@@ -208,6 +208,12 @@ struct DebugPanelView: View {
                         dismiss()
                     }
                 }
+                Section("Escenario") {
+                    Button("Escenario: que entre alguien") {
+                        gameState.debugPresentStageDemo()
+                    }
+                    .accessibilityIdentifier("debug.stage.demo")
+                }
             }
             .navigationTitle("Debug")
             .navigationBarTitleDisplayMode(.inline)

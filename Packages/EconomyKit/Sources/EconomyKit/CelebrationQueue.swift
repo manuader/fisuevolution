@@ -23,6 +23,11 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     /// El cofre que el jugador abrió. Es un ítem más de la cola: el "de a una" y el
     /// no pisarse con el reveal del tablero salen del árbitro que ya existe.
     case chestOpening
+    /// La entrada de alguien a escena (un visitante o el presentador de un
+    /// evento): camina desde el borde y se para. Es corta y salteable, y nunca
+    /// pisa un reveal ni un cofre. Lo que pasa después —esperar a que lo toquen—
+    /// ya no ocupa la cola.
+    case visitorEncounter
     /// La franja del evento activo.
     case eventBanner
     /// Los logros recién conseguidos. Es UN casillero para toda la tanda: la
@@ -50,7 +55,7 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         case .careerChoice, .cinematic: 2
         case .boardCelebration: 3
         case .skinAward, .specialDrop, .chestOpening: 4
-        case .eventBanner: 5
+        case .eventBanner, .visitorEncounter: 5
         case .achievements, .towerNotice: 6
         // Una lección puede esperar a todo el mundo: enseña una pantalla que
         // no se va a ir a ningún lado.
@@ -73,6 +78,8 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         // En una cadena, por eslabón (`renew`).
         case .boardCelebration: 14
         case .eventBanner: 6
+        // Cubre la caminata en la pantalla más ancha (el iPad 13") con margen.
+        case .visitorEncounter: 10
         // Cubre unos diez toasts seguidos; pasado eso corta y lo loguea.
         case .achievements: 30
         case .towerNotice: 4

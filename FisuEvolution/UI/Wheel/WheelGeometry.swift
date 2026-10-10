@@ -77,3 +77,17 @@ struct WheelSpinAnimation: Equatable {
         date.timeIntervalSince(start) >= duration - Self.tolerance
     }
 }
+
+/// El freno del tic: sonido y háptico a la vez, a lo sumo uno por ventana (la
+/// misma que el corte de `AudioManager`). Al arrancar la rueda pasa una raya
+/// cada ~25 ms y cada tic crea un reproductor háptico.
+struct WheelTickGate {
+    static let window: TimeInterval = 0.08
+    private var last: TimeInterval = -.infinity
+
+    mutating func allows(at now: TimeInterval) -> Bool {
+        guard now - last >= Self.window - 1e-9 else { return false }
+        last = now
+        return true
+    }
+}

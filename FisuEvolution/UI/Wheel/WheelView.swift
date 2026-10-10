@@ -20,6 +20,13 @@ struct WheelView: View {
     @State private var spin: WheelSpinAnimation?
     @State private var lastTick: Double = 0
     @State private var result: WheelSpinOutcome?
+    @State private var tickGate = WheelTickGate()
+    /// Un giro se está resolviendo (con Reduce Motion no hay animación que lo
+    /// trabe) o un video de la ruleta está en curso: nada más se puede tocar.
+    @State private var resolving = false
+    @State private var videoBusy = false
+
+    private var locked: Bool { spin != nil || resolving || videoBusy }
 
     /// Quien presenta la ruleta (PLAN-v2 §2).
     private static let hostVisitorId = "npc_conductor"
@@ -29,7 +36,7 @@ struct WheelView: View {
     var body: some View {
         let _ = gameState.effectsVersion
         let availability = gameState.wheelAvailability(storefrontAllows: storefrontAllows)
-        let segments = spin?.outcome.segments ?? result?.segments ?? gameState.wheelSegments
+        let segments = spin?.outcome.segments ?? (result == nil ? gameState.wheelSegments : result?.segments ?? [])
         ScrollView {
             VStack(spacing: Tokens.s16) {
                 host
@@ -91,9 +98,11 @@ struct WheelView: View {
     @ViewBuilder
     private func buttons(_ availability: WheelAvailability) -> some View {
         VStack(spacing: Tokens.s8) {
-            if spin != nil {
+            if spin != nil || resolving {
                 StateBadge(text: String(localized: "wheel.spinning"), systemImage: "hourglass",
                            textAlignment: .center, muted: true)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("wheel.spinning")
             } else {
                 if availability.bonus > 0 {
                     ActionPill(titleKey: "wheel.spin.bonus", systemImage: "gift.fill",
@@ -102,7 +111,8 @@ struct WheelView: View {
                     RewardedOfferButton(
                         title: RewardCopy.text("wheel.spin.video", String(availability.videoLeft)),
                         identifier: "wheel.spin.video",
-                        placement: .wheel
+                        placement: .wheel,
+                        isBusy: $videoBusy
                     ) { start(.video) }
                 } else {
                     StateBadge(text: String(localized: "wheel.empty"), systemImage: "moon.zzz.fill",
@@ -118,10 +128,11 @@ struct WheelView: View {
                 }
                 if availability.canRepeat, result != nil {
                     RewardedOfferButton(title: String(localized: "wheel.repeat"), identifier: "wheel.repeat",
-                                        placement: .wheel) { repeatPrize() }
+                                        placement: .wheel, isBusy: $videoBusy) { repeatPrize() }
                 }
             }
         }
+        .disabled(locked)
     }
 
     private func resultCard(_ outcome: WheelSpinOutcome) -> some View {
@@ -161,14 +172,16 @@ struct WheelView: View {
     // MARK: El giro
 
     private func start(_ source: WheelSpinSource) {
-        guard spin == nil, let outcome = gameState.spinWheel(source, storefrontAllows: storefrontAllows) else { return }
+        guard !locked, let outcome = gameState.spinWheel(source, storefrontAllows: storefrontAllows) else { return }
         result = nil
+        resolving = true
         let arcs = WheelGeometry.arcs(count: outcome.segments.count)
         let target = WheelGeometry.stopRotation(from: resting, arc: arcs[outcome.index], turns: Self.turns,
                                                 landing: .random(in: 0...1))
         guard !reduceMotion else {
             resting = target.truncatingRemainder(dividingBy: 360)
             result = outcome
+            releaseSoon()
             return
         }
         lastTick = resting
@@ -179,7 +192,8 @@ struct WheelView: View {
     private func advance(to date: Date) {
         guard let spin else { return }
         let rotation = spin.rotation(at: date)
-        if WheelGeometry.boundariesCrossed(from: lastTick, to: rotation, count: spin.outcome.segments.count) > 0 {
+        if WheelGeometry.boundariesCrossed(from: lastTick, to: rotation, count: spin.outcome.segments.count) > 0,
+           tickGate.allows(at: date.timeIntervalSinceReferenceDate) {
             gameState.playWheelTick()
         }
         lastTick = rotation
@@ -187,10 +201,20 @@ struct WheelView: View {
         resting = spin.to.truncatingRemainder(dividingBy: 360)
         result = spin.outcome
         self.spin = nil
+        resolving = false
+    }
+
+    /// Sin animación que lo trabe (Reduce Motion), el candado se suelta tras un
+    /// instante: el doble toque no gasta dos giros.
+    private func releaseSoon() {
+        Task {
+            try? await Task.sleep(for: .milliseconds(500))
+            resolving = false
+        }
     }
 
     private func repeatPrize() {
-        guard spin == nil, let outcome = gameState.repeatWheelPrize() else { return }
+        guard !locked, let outcome = gameState.repeatWheelPrize() else { return }
         result = outcome
     }
 }

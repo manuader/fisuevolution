@@ -33,7 +33,7 @@ enum RewardCopy {
         case .nextDailyMultiplier(let value):
             text("reward.title.next_daily", multiplier(value))
         case .extraSlots(let count):
-            text("reward.title.slots", String(count))
+            count == 1 ? text("reward.title.slot") : text("reward.title.slots", String(count))
         }
     }
 

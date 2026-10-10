@@ -14,6 +14,7 @@
   "reward.title.autotap": {"es": "Toques automáticos por %1$@ min", "en": "Auto-taps for %1$@ min"},
   "reward.title.next_offline": {"es": "La próxima vuelta, ×%1$@", "en": "Your next return, ×%1$@"},
   "reward.title.next_daily": {"es": "El próximo diario, ×%1$@", "en": "Your next daily, ×%1$@"},
+  "reward.title.slot": {"es": "+1 lugar por piso", "en": "+1 slot per floor"},
   "reward.title.slots": {"es": "+%1$@ lugares por piso", "en": "+%1$@ slots per floor"},
   "wheel.title": {"es": "La Ruleta", "en": "The Wheel"},
   "wheel.host.line": {"es": "¡Y ahora… el momento que todos esperaban… LA RULETA!", "en": "And now… the moment you've all been waiting for… THE WHEEL!"},

@@ -41,6 +41,28 @@ struct WheelGeometryTests {
         #expect(WheelGeometry.boundariesCrossed(from: 40, to: 30, count: 10) == 0)
     }
 
+    @Test("el tic no es una ametralladora: uno por ventana")
+    func tickGate() {
+        var gate = WheelTickGate()
+        let first = gate.allows(at: 100)
+        let soon = gate.allows(at: 100.025)
+        let almost = gate.allows(at: 100.079)
+        let next = gate.allows(at: 100.08)
+        #expect(first && !soon && !almost && next)
+    }
+
+    @Test("una raya justa cuenta una vez, y los argumentos fuera de rango se acotan")
+    func edges() {
+        #expect(WheelGeometry.boundariesCrossed(from: 36, to: 36.5, count: 10) == 0)
+        #expect(WheelGeometry.boundariesCrossed(from: 35.9, to: 36, count: 10) == 1)
+        let arc = WheelGeometry.arcs(count: 10)[3]
+        let low = WheelGeometry.stopRotation(from: 0, arc: arc, turns: 5, landing: -4)
+        let high = WheelGeometry.stopRotation(from: 0, arc: arc, turns: 5, landing: 9)
+        for stop in [low, high] {
+            #expect(WheelGeometry.segmentIndex(at: WheelGeometry.pointerAngle(rotation: stop), count: 10) == 3)
+        }
+    }
+
     @Test("frena como una rueda: arranca rápido y llega justo")
     func easeOut() {
         #expect(WheelGeometry.easeOut(0) == 0)

@@ -45,6 +45,12 @@ struct RewardCopyTests {
         #expect(RewardCopy.slice(.package(1)) == nil, "el paquete se dice con el ícono")
     }
 
+    @Test("uno solo va en singular")
+    func singulars() {
+        #expect(!RewardCopy.title(.extraSlots(1)).contains("lugares"))
+        #expect(RewardCopy.title(.extraSlots(2)).contains("2"))
+    }
+
     @Test("los porcentajes no inventan decimales")
     func percents() {
         #expect(OddsDisclosureView.percent(0.18).contains("18"))

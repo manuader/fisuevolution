@@ -1,0 +1,326 @@
+{
+  "visitor.npc_comisario.name": {
+    "es": "El Comisario",
+    "en": "The Police Chief"
+  },
+  "visitor.npc_sindicalista.name": {
+    "es": "El Sindicalista",
+    "en": "The Union Rep"
+  },
+  "visitor.npc_turista.name": {
+    "es": "El Turista Gringo",
+    "en": "The Gringo Tourist"
+  },
+  "visitor.npc_puntero.name": {
+    "es": "El Puntero",
+    "en": "The Local Fixer"
+  },
+  "visitor.npc_ministro.name": {
+    "es": "El Ministro de Economía",
+    "en": "The Economy Minister"
+  },
+  "visitor.npc_vecina.name": {
+    "es": "La Vecina Chusma",
+    "en": "The Nosy Neighbor"
+  },
+  "visitor.npc_vendedor.name": {
+    "es": "El Vendedor Ambulante",
+    "en": "The Street Vendor"
+  },
+  "visitor.npc_conductor.name": {
+    "es": "El Conductor de TV",
+    "en": "The TV Host"
+  },
+  "visit.comisario_arresto.bubble": {
+    "es": "¡Alto! Su %1$@ queda demorado por %2$@.",
+    "en": "Freeze! Your %1$@ is being held for %2$@."
+  },
+  "visit.comisario_arresto.ask": {
+    "es": "Si pagás la fianza, tu %1$@ vuelve a laburar. Si lo dejás ir, te indemnizan más de lo que cuesta reponerlo.",
+    "en": "Pay the bail and your %1$@ gets back to work. Let him go and you're paid more than it costs to replace him."
+  },
+  "visit.comisario_multa.bubble": {
+    "es": "Exceso de productividad en vía pública. Tiene 24 horas para quejarse… o sea, ahora.",
+    "en": "Excessive productivity in a public space. You have 24 hours to complain… meaning right now."
+  },
+  "visit.comisario_multa.ask": {
+    "es": "Pagala y te ganás un sello de productividad: ingresos %1$@ por %2$@. O mirá un video y te la perdona.",
+    "en": "Pay it and earn a productivity stamp: income %1$@ for %2$@. Or watch a video and it's forgiven."
+  },
+  "visit.arca_paraiso.bubble": {
+    "es": "Su %1$@ declaró un monoambiente y tiene tres islas en el Caribe. Queda detenido.",
+    "en": "Your %1$@ declared a studio flat and owns three Caribbean islands. He's under arrest."
+  },
+  "visit.arca_paraiso.ask": {
+    "es": "Pagá la fianza y tu %1$@ sigue en la torre. Si lo dejás ir, te indemnizan más de lo que cuesta reponerlo.",
+    "en": "Pay the bail and your %1$@ stays in the tower. Let him go and you're paid more than it costs to replace him."
+  },
+  "visit.arca_factura.bubble": {
+    "es": "Con factura A todo sale más barato. Firmá acá, acá y acá.",
+    "en": "With a proper invoice everything's cheaper. Sign here, here and here."
+  },
+  "visit.arca_factura.ask": {
+    "es": "Contratar %1$@ por %2$@.",
+    "en": "Hiring %1$@ for %2$@."
+  },
+  "visit.influencer_novio.bubble": {
+    "es": "¡Me puse de novio con tu %1$@! Nos vamos a Tulum. Te dejo un canje.",
+    "en": "I'm dating your %1$@! We're off to Tulum. I'll leave you a sponsored gift."
+  },
+  "visit.influencer_novio.ask": {
+    "es": "Se lleva a tu %1$@ y te deja plata y un Paquete de la Aduana: más de lo que vale.",
+    "en": "Takes your %1$@ and leaves you cash and a Customs Package: worth more than him."
+  },
+  "visit.influencer_codigo.bubble": {
+    "es": "¡Chicos! Con el código FISURA tienen %1$@ en TODO. Link en la bio.",
+    "en": "Guys! Use code HOBO for %1$@ on EVERYTHING. Link in bio."
+  },
+  "visit.influencer_codigo.ask": {
+    "es": "Contratar %1$@ por %2$@. Con video, dura el doble.",
+    "en": "Hiring %1$@ for %2$@. With a video, it lasts twice as long."
+  },
+  "visit.sindicalista_aumento.bubble": {
+    "es": "¡Paritaria cerrada! Tus muchachos cobran un plus. Yo me llevo el aplauso.",
+    "en": "Wage deal closed! Your crew gets a bonus. I'll take the applause."
+  },
+  "visit.sindicalista_aumento.ask": {
+    "es": "Ingresos %1$@ por %2$@. Con video, dura el doble.",
+    "en": "Income %1$@ for %2$@. With a video, it lasts twice as long."
+  },
+  "visit.sindicalista_asado.bubble": {
+    "es": "Hoy hay asado en el sindicato. Traje un paquetito para el barrio.",
+    "en": "Barbecue at the union today. I brought a little package for the block."
+  },
+  "visit.sindicalista_asado.ask": {
+    "es": "Un Paquete de la Aduana y plata para el barrio. Con video, el doble.",
+    "en": "A Customs Package and cash for the block. Double with a video."
+  },
+  "visit.turista_compra.bubble": {
+    "es": "¡Wow, very authentic! Pago cash por ese empleado. Todo es barato acá, che.",
+    "en": "Wow, very authentic! I'll pay cash for that worker. Everything's so cheap here!"
+  },
+  "visit.turista_compra.ask": {
+    "es": "Te paga por tu %1$@ mucho más de lo que cuesta reponerlo.",
+    "en": "He pays far more for your %1$@ than it costs to replace him."
+  },
+  "visit.turista_propina.bubble": {
+    "es": "¡Propina! En mi país es el 20 por ciento. Acá es más que un sueldo.",
+    "en": "A tip! Back home it's 20 percent. Here it's more than a salary."
+  },
+  "visit.turista_propina.ask": {
+    "es": "Una propina en efectivo. Con video, el doble.",
+    "en": "A cash tip. Double with a video."
+  },
+  "visit.puntero_acto.bubble": {
+    "es": "Necesito unos muchachos para un acto. Vuelven con choripán y un bolsón de regalo.",
+    "en": "I need a few guys for a rally. They'll come back with a sausage sandwich and a gift bag."
+  },
+  "visit.puntero_acto.ask": {
+    "es": "Se lleva unos %1$@ al acto y te deja un bolsón: un Paquete y plata, más de lo que valen.",
+    "en": "Takes some of your %1$@ to the rally and leaves a gift bag: a Package and cash, worth more than them."
+  },
+  "visit.puntero_bolson.bubble": {
+    "es": "Te dejo un bolsón. No preguntes de dónde sale ni quién lo manda.",
+    "en": "Here's a gift bag. Don't ask where it came from or who sent it."
+  },
+  "visit.puntero_bolson.ask": {
+    "es": "Un Paquete de la Aduana. Con video, el doble.",
+    "en": "A Customs Package. Double with a video."
+  },
+  "visit.ministro_subsidio.bubble": {
+    "es": "Subsidio focalizado a tu empresa. Focalizado en vos, sí.",
+    "en": "A targeted subsidy for your company. Targeted at you, yes."
+  },
+  "visit.ministro_subsidio.ask": {
+    "es": "Plata para tu empresa. Con video, el doble.",
+    "en": "Cash for your company. Double with a video."
+  },
+  "visit.vecina_chisme.bubble": {
+    "es": "¿Qué mirás, bobo? Andá pa' allá… ¡ah, sos vos! ¿Viste lo que dicen? Que se viene un evento… ¡yo no dije nada!",
+    "en": "What are you looking at, dummy? Go over there… oh, it's you! Did you hear? Word is something's coming… I didn't say a thing!"
+  },
+  "visit.vecina_chisme.ask": {
+    "es": "Te cuenta qué evento se viene y te deja algo de plata.",
+    "en": "She tells you which event is coming and leaves you some cash."
+  },
+  "visit.vecina_favor.bubble": {
+    "es": "Nene, ayudame con las bolsas del súper que me duele la cintura.",
+    "en": "Sweetie, help me with the grocery bags, my back is killing me."
+  },
+  "visit.vecina_favor.ask": {
+    "es": "Tocá a tus empleados %1$@ veces en %2$@ segundos y te regala un Paquete. Con video, el doble.",
+    "en": "Tap your workers %1$@ times in %2$@ seconds and she gives you a Package. Double with a video."
+  },
+  "visit.vendedor_ofertas.bubble": {
+    "es": "¡Llevá, llevá! Boost calentito, recién salido del horno. Con video te lo regalo.",
+    "en": "Get it, get it! Fresh boosts, right out of the oven. Watch a video and it's yours."
+  },
+  "visit.vendedor_ofertas.ask": {
+    "es": "Elegí un boost y miralo en video: es tuyo.",
+    "en": "Pick a boost and watch a video: it's yours."
+  },
+  "visit.conductor_ruleta.bubble": {
+    "es": "¡Y ahora… el momento que todos esperaban… LA RULETA! ¡Aplausos!",
+    "en": "And now… the moment you've all been waiting for… THE WHEEL! Applause!"
+  },
+  "visit.conductor_ruleta.ask": {
+    "es": "Un giro gratis de la ruleta.",
+    "en": "A free spin of the wheel."
+  },
+  "visit.cryptobro_senal.bubble": {
+    "es": "Hermano, el gráfico hizo six seven: todo en verde. Aprovechá y no preguntes cómo.",
+    "en": "Bro, the chart went six seven: everything's green. Cash in and don't ask how."
+  },
+  "visit.cryptobro_senal.ask": {
+    "es": "Ingresos %1$@ por %2$@. Con video, dura el doble.",
+    "en": "Income %1$@ for %2$@. With a video, it lasts twice as long."
+  },
+  "visit.contador_credito.bubble": {
+    "es": "Encontré un crédito fiscal en una dimensión que ni sabías que tenías.",
+    "en": "I found a tax credit in a dimension you didn't even know you had."
+  },
+  "visit.contador_credito.ask": {
+    "es": "Plata de una, sin trámite.",
+    "en": "Cash right away, no paperwork."
+  },
+  "visit.zombie_reto.bubble": {
+    "es": "No… duermo… hace… tres… quinquenios. ¿Tocamos… %1$@… veces?",
+    "en": "Haven't… slept… in… fifteen… years. Shall we… tap… %1$@… times?"
+  },
+  "visit.zombie_reto.ask": {
+    "es": "%1$@ toques en %2$@ segundos: ingresos %3$@ por %4$@. Si no llegás, no pasa nada.",
+    "en": "%1$@ taps in %2$@ seconds: income %3$@ for %4$@. If you don't make it, nothing happens."
+  },
+  "visit.lizard_lengua.bubble": {
+    "es": "Sssí, soy de este barrio. Tocá, tocá, que te rinde %1$@.",
+    "en": "Yesss, I'm from around here. Tap, tap, it pays %1$@."
+  },
+  "visit.lizard_lengua.ask": {
+    "es": "Tus toques valen %1$@ por %2$@.",
+    "en": "Your taps are worth %1$@ for %2$@."
+  },
+  "visit.alien_inversion.bubble": {
+    "es": "Mi planeta invierte en tu esquina. No entendemos la economía, pero nos gusta el dulce de leche.",
+    "en": "My planet is investing in your corner. We don't get the economy, but we love dulce de leche."
+  },
+  "visit.alien_inversion.ask": {
+    "es": "Plata de otro planeta. Con video, el doble.",
+    "en": "Cash from another planet. Double with a video."
+  },
+  "visit.bug_reinicio.bubble": {
+    "es": "Encontré un bug en la Matrix: tus cooldowns se reiniciaron. Que no se entere nadie.",
+    "en": "Found a bug in the Matrix: your cooldowns were reset. Don't tell anyone."
+  },
+  "visit.bug_reinicio.ask": {
+    "es": "Todos tus boosts quedan listos para usar.",
+    "en": "All your boosts are ready to use again."
+  },
+  "visit.arbolito_cambio.bubble": {
+    "es": "¡Cambio, cambio, cambiooo! Plata por ORO, buen precio, sin preguntar.",
+    "en": "Exchange, exchange, exchaaange! Cash for ORO, good rate, no questions asked."
+  },
+  "visit.arbolito_cambio.ask": {
+    "es": "Te vende ORO a cambio de plata. Hasta %1$@ por día.",
+    "en": "Sells you ORO for cash. Up to %1$@ a day."
+  },
+  "visit.arbolito_blue.bubble": {
+    "es": "Con el cepo el único que te cambia soy yo… ¡al blue, ni preguntes!",
+    "en": "With the currency clamp I'm the only one who'll swap… black-market rate, don't ask!"
+  },
+  "visit.arbolito_blue.ask": {
+    "es": "Mientras dure el cepo, ORO más barato y sin tope.",
+    "en": "While the clamp lasts, cheaper ORO with no limit."
+  },
+  "visit.coach_reto.bubble": {
+    "es": "¿Y si el techo era una creencia limitante? Dale: %1$@ toques, ahora.",
+    "en": "What if the ceiling was just a limiting belief? Come on: %1$@ taps, right now."
+  },
+  "visit.coach_reto.ask": {
+    "es": "%1$@ toques en %2$@ segundos: ingresos %3$@ por %4$@. Si no llegás, es un proceso.",
+    "en": "%1$@ taps in %2$@ seconds: income %3$@ for %4$@. If you don't make it, it's a journey."
+  },
+  "visit.reason.alley": {
+    "es": "cuidar autos sin habilitación",
+    "en": "parking cars without a permit"
+  },
+  "visit.reason.urban": {
+    "es": "carrito en doble fila",
+    "en": "double-parking a shopping cart"
+  },
+  "visit.reason.corporate": {
+    "es": "responder un mail un domingo",
+    "en": "answering an email on a Sunday"
+  },
+  "visit.reason.luxury": {
+    "es": "estacionar el yate en la vereda",
+    "en": "parking a yacht on the sidewalk"
+  },
+  "visit.reason.island": {
+    "es": "broncearse sin factura",
+    "en": "tanning without a receipt"
+  },
+  "visit.reason.moon": {
+    "es": "hacer sombra sin permiso lunar",
+    "en": "casting a shadow without a lunar permit"
+  },
+  "visit.reason.mars": {
+    "es": "pisar el polvo rojo con zapatillas blancas",
+    "en": "stepping on red dust in white sneakers"
+  },
+  "visit.reason.solar": {
+    "es": "tapar el sol sin permiso",
+    "en": "blocking the sun without a permit"
+  },
+  "visit.reason.galaxy": {
+    "es": "exceso de velocidad warp",
+    "en": "warp speeding"
+  },
+  "visit.reason.god_realm": {
+    "es": "un milagro no declarado",
+    "en": "an undeclared miracle"
+  },
+  "visit.option.accept": {
+    "es": "¡De una!",
+    "en": "Deal!"
+  },
+  "visit.option.accept_video": {
+    "es": "×2 con video",
+    "en": "×2 with a video"
+  },
+  "visit.option.pay_bail": {
+    "es": "Pagar la fianza · %@",
+    "en": "Pay the bail · %@"
+  },
+  "visit.option.release": {
+    "es": "Que se lo lleve · +%@",
+    "en": "Let him go · +%@"
+  },
+  "visit.option.pay_fine": {
+    "es": "Pagar la multa · %@",
+    "en": "Pay the fine · %@"
+  },
+  "visit.option.forgive_video": {
+    "es": "Perdonala con un video",
+    "en": "Let it slide with a video"
+  },
+  "visit.option.sell": {
+    "es": "Vendérselo · +%@",
+    "en": "Sell · +%@"
+  },
+  "visit.option.exchange": {
+    "es": "Cambiar %1$@ por %2$@ ORO",
+    "en": "Swap %1$@ for %2$@ ORO"
+  },
+  "visit.option.start_challenge": {
+    "es": "¡Acepto el reto!",
+    "en": "Challenge accepted!"
+  },
+  "visit.option.card": {
+    "es": "%@ con video",
+    "en": "%@ with a video"
+  },
+  "visit.option.listen": {
+    "es": "Contame todo",
+    "en": "Spill it"
+  }
+}

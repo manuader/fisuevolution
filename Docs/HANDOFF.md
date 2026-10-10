@@ -15,7 +15,10 @@
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
-> 📍 **Estado al cierre del relevo 24 (la ola V, 2026-10-10; manda sobre el párrafo de abajo, que es del 22):** `version-2` = **`91b7634`** tras el `rapido` VERDE sobre
+> 📍 **Estado al cierre del relevo 25 (la ola W, 2026-10-10; manda sobre el párrafo de abajo, que es del 24 y del 22):** `version-2` = la punta tras el `rapido` VERDE sobre `73a7196` (EK 827 · unit 1247 · 0 rojos · Release 0) · `v2i/integ-r25` = `c435bad` (suma E5a T8 y E4b T3, 🟢) + `tasks.md` + los docs del cierre · `rapido` de la punta: RAPIDO_PENDIENTE.
+> **Progreso: 186 de 254 en `version-2` (73,2 %); 188 de 254 (74,0 %) con E5a T8 y E4b T3 ✅** si el `rapido` de la punta da VERDE. Entraron E4b T8 (el Álbum de especiales), E4b T2 (los visitantes en la partida) y E5a T7 (el Colchón); quedan 🟢 E5a T8 (la Ruleta + `LootBoxGate`) y E4b T3 (el chip, el popup y el retrato). El `rapido` de E5a T8 dio ROJO por un flake de ODR (`ArtPacksTests.failureDoesNotLoop`, aislado 8/8 VERDE). Detalle en `Docs/SESION-2026-10-10-v2-relevo-25-ola-w.md`. Lo que sigue: `tasks.md` §4 (relevo 26): **E5b T1** primero, y **E7b-a T3 (bloqueo de publicación) en cuanto E5b T1 entre**; en paralelo E4b T5 y E6a T5.
+>
+> 📍 **Estado al cierre del relevo 24 (la ola V, 2026-10-10; lo pisa el párrafo de arriba, el del 25):** `version-2` = **`91b7634`** tras el `rapido` VERDE sobre
 > `25cc5da` (EK 825 · unit 1190 · 0 rojos · Release 0) · `v2i/integ-r24` = `9b02cdd` (suma E4b T1, 🟢) + `tasks.md` · `rapido` de la punta: VERDE (EK 827 · unit 1207 · 0 rojos · Release 0).
 > **Progreso: 182 de 254 en `version-2` (71,7 %); 183 de 254 con E4b T1 🟢.** Entraron E4a T10 (cierre de E4a), E2b T7/T8 (perfil `.max` y CLI del simulador), E4b T7 (la Liquidación
 > en el precio) y E6a T11 (las ofertas se cobran). El `rapido` encontró un bug real: el piso de descuentos de E4b T7 anulaba la contratación gratis (`25cc5da`). Detalle en
@@ -331,6 +334,18 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-10 (relevo 25) — La ola W: el Álbum, los visitantes en la partida, el Colchón, la Ruleta y el chip del visitante
+
+Un solo relevo, abierto a las 05:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~250k de contexto. Todo en `v2i/integ-r25`. `version-2` quedó en la punta del `rapido` VERDE sobre `73a7196` (EK 827 · unit 1247 · 0 rojos · Release 0). **Progreso: 186 de 254 en `version-2`; 188 de 254 (74,0 %) con E5a T8 y E4b T3 ✅** si el `rapido` de la punta da VERDE (RAPIDO_PENDIENTE).
+
+- **E4b T8** (el Álbum de especiales: quinta tarjeta del menú con glifo SF, `SpecialsAlbumView`, lección `.album`), **E4b T2** (los visitantes llegan solos, cotizan y cierran el trato por el embudo; `GameState+Visitors`) y **E5a T7** (el Colchón: `GameState+Treasures`, sortea antes de gastar): ✅, cada una con su `rapido` VERDE (unit 1211, 1236, 1247).
+- **E5a T8** (la Ruleta: `GameState+Wheel`, `LootBoxGate` que falla cerrado, `.wheelSpin` entregable) y **E4b T3** (`VisitorFace`/`StageChips`/`VisitorPopupView`, el retrato con `AnimatedArtView`): 🟢.
+- **Tres revisiones opus:** E4b T2 **Changes requested** (fixture que no hacía nada, `confirmPrestige` sin despedir al visitante, rename de `loops_manifest` a medias) → arreglado en `2aba4ed`; E5a T7 Approved; E5a T8 Approved con arreglos (el día de los cupos con `Calendar.current`, un guardado futuro que bloquea la rueda) → `ecfae53`.
+- **El rojo que no era:** `ArtPacksTests.failureDoesNotLoop` cayó en el `rapido` de E5a T8 bajo carga (120–150) y aislado dio 8/8 VERDE. **El hallazgo de UI:** `MenuPagerUITests` cuenta 6 páginas (Ranking) si corre después de `MenuUITests` en el mismo simulador; aislado pasa en la base y en `integ`. Carry a E12.
+- Trampas nuevas en §7: el fixture de arranque que exige un momento calmo, el rename de un id de `loops_manifest`, las fechas de día con `Calendar.current`, el orden de los UI tests y el flake de ODR.
+
+Detalle en **`Docs/SESION-2026-10-10-v2-relevo-25-ola-w.md`**.
 
 ### Sesión del 2026-10-10 (relevo 24) — La ola V: el cierre de E4a, el perfil `.max` y el CLI del simulador, la Liquidación en el precio, las ofertas que se cobran y el escenario
 
@@ -2448,6 +2463,7 @@ paréntesis; el porqué completo está en la sesión de cada uno):
 16. **El piso de descuentos apilados no alcanza a la contratación gratis** (E4b T7, relevo 24). Los descuentos que se apilan sobre `spawnCostMultiplier` no bajan de 0,25 del precio, pero «gratis» es un modificador
     de magnitud 0 y su producto queda en 0: el piso se aplica sólo si `product > 0` (`25cc5da`, test `freeHiringSkipsTheFloor`). Y `creditOffer` (E6a T11) acredita una oferta comprada **aunque ya no figure abierta**:
     la compra está cobrada, la ventana no decide.
+17. **La Ruleta falla cerrada y cuenta el día en gregoriano** (E5a T8, relevo 25). `LootBoxGate` (Storefront alpha-3) dice que no si falta el storefront, la config o el `publisherID`, y se apoya en `isRestricted`; E6a lo reusa. El día de los cupos (`wheelDay`) es gregoriano fijo —con `Calendar.current` un usuario japonés, budista o persa tendría otro año y su día guardado quedaría en el futuro para siempre— y un día guardado en el futuro se acepta sólo hasta mañana. **Costo medido y aceptado:** atrasar el reloj ≥ 2 días devuelve los cupos. El ORO del giro se cobra una vez (copia + asignación atómica). Y en E4b T2 `.visitor` entra en `isPrepaid` (`2aba4ed`): una visita pagada con video que se descarte se compensa.
 
 ---
 
@@ -2887,6 +2903,15 @@ El panel de debug es el ícono de herramientas del HUD.
 - **`loops_manifest` todavía tiene que mover `events.cayo_mercado_pago` a `home_banking`:** E4a T9 sacó ese id de `AudioWiringTests` y la revisión opus lo encontró.
 - **La cuota sin plata no se atenúa** en el evento de Corralito: se muestra igual aunque no se pueda pagar (E4b).
 - **`isCalmMoment` no se unificó con `isSafeMomentForInterstitial`:** `naturalBreakContext` suma `fullScreenUI`/`adOnScreen`; no copiar uno al otro, lo unifica E7b.
+
+### De la ola W (2026-10-10, relevo 25)
+
+- **Un fixture de arranque que exige un momento calmo no entra:** corre antes de `phase == .ready` y lo que pide `isCalmMoment` (como `presentOnStage` con `canPresentOnStage`) no se cumple. El fixture `--uitest-visitor=` de E4b T2 no hacía nada hasta que se difirió a `advanceVisitors` bajo `#if DEBUG`.
+- **Un rename de id en `loops_manifest` exige renombrar el `.mov` y `EVENT_IDS` del pipeline** (y `git mv`): si no, `ManifestVersionado` cae. `events.cayo_mercado_pago` ya es `events.home_banking` (el pendiente de más abajo, hecho en `2aba4ed`).
+- **Las fechas de día con `Calendar.current` dependen del calendario del usuario:** el calendario japonés, budista o persa da otro año. Usar gregoriano fijo y probar esos tres calendarios (E5a T8, `wheelDay`).
+- **El orden de los UI tests en un mismo simulador contamina:** `MenuUITests` deja el ranking prendido y `MenuPagerUITests` cuenta 6 páginas en vez de 5 (`unlockedTabsInBarOrder` usa `ranking?.isEnabled != false` y `--uitest-reset` no lo apaga). Aislado pasa en la base y en `integ`: antes de culpar a una tarea, correr la clase sola sobre la base.
+- **Un flake de ODR bajo carga:** `ArtPacksTests.failureDoesNotLoop` (`await settle()`) cayó con la carga en 120–150 y aislado dio 8/8 VERDE. Aislar antes de declarar o de tocar ODR.
+- Siguen: el reporte de arreglos que no llega (leer el commit), el agente que re-entrega (`TaskStop` ya integrado), un `tarea` no corre UI, y magnitud 0/1/borde del clamp en las revisiones de precios.
 
 ### De la ola V (2026-10-10, relevo 24)
 
@@ -4460,7 +4485,16 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
-### Lo que queda de la 2.0 (cierre del relevo 24)
+### Lo que queda de la 2.0 (cierre del relevo 25)
+
+La cola con orden, BASE y modelo está en `tasks.md` §4 (relevo 26). Lo nuevo del 25, además de lo que sigue de abajo (que se mantiene):
+
+- **Destrabadas por la ola W (ahora ⏳):** E5b T1 (la Ruleta en pantalla; destraba E7b-a T3, E6a T4, E5b T4/T6), E4b T4 y E4b T5 (siguen a T3), E6a T5 (los premios del auto-tap y los ×3; reusa `LootBoxGate`), E5a T9 (cierre de E5a, docs), E7b-b T6 y E8b T11 (el arresto, destrabada con E4b T2). Con el `rapido` VERDE, E5a T8 y E4b T3 pasan a ✅.
+- **Siguen ⛔:** E6a T4 (espera a E5b T1), E6a T12 (faltan E6a T7/T8 y E5b T1/T2), E4b T6/T9/T10, E2b T9/T10 (esperan a E6a T4, E7b-a T3, E7b-b T2), **E7b-a T3 (bloqueo de publicación; sale en cuanto E5b T1 entre)**, E9b T8 (E9a T3), E12 T12.
+- **Carries del 25:** E5b T1 (`LootBoxGate.current()` a `wheelAvailability`/`spinWheel`, el video antes de `.video`/`repeat`, el extra del colchón sólo con `mattressExtraOpensLeft > 0` y el `nil` tras el video); E4b T4/T5 (`eventIsApplicable`, `pendingEvent`, el reto y los cortes naturales); E6a (`restrictedStorefronts` vaciable: ¿piso BEL/AUS?); E12 (`--uitest-reset` y el ranking).
+- **Al dueño:** el chip del visitante contra la llave de debug (arriba a la derecha) y la columna de E7b; el loop real del retrato; la pasada a mano de iPad/oscuro/VoiceOver/Reduce Motion; si los giros de la ruleta ×30 apilan o renuevan; atrasar el reloj ≥ 2 días devuelve cupos; los del 24 y anteriores.
+
+### Lo que queda de la 2.0 (cierre del relevo 24, vigente salvo lo de arriba)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4 (relevo 25). Lo nuevo del 24, además de lo que sigue de abajo (que se mantiene):
 
@@ -4858,6 +4892,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-10-v2-cierres-r23.md`**: el relevo 23, los cierres de E8, E13b y E13 con un solo `completo` (el peso +39 MB, el panel de
   debug que se comió las puertas, las grabaciones del ascensor). Planes cerrados: `2026-10-08-v2-e8-integracion-arte.md`,
   `2026-10-08-v2-e13b-ascensor-barra.md` y `2026-10-08-v2-e13-feedback-v1.md`.
+- **`Docs/SESION-2026-10-10-v2-relevo-25-ola-w.md`**: el relevo 25 (el Álbum, los visitantes en la partida, el Colchón, la Ruleta con `LootBoxGate` y el chip del visitante; las tres revisiones opus y sus carries, el rojo que era un flake de ODR, el `MenuPagerUITests` que depende del orden y las trampas del fixture, del rename del manifest y de las fechas).
 - **`Docs/SESION-2026-10-10-v2-relevo-24-ola-v.md`**: el relevo 24 (E4a T10, el perfil `.max` y el CLI del simulador con su tabla, la Liquidación en el precio, las ofertas que se cobran, el escenario de E4b T1; el bug
   del piso que anulaba la contratación gratis, las revisiones opus y sus carries, las trampas del agente que re-entrega y del reporte que no llega).
 - **`Docs/SESION-2026-10-10-v2-e4.md`**: el cierre de E4a (la tabla por tarea con su commit, la verificación que lo cubre, el porqué de

@@ -29,6 +29,26 @@ enum ChestRarityStyle {
         case .legendaria: "chest.rarity.legendaria"
         }
     }
+
+    /// El nombre ya traducido, para las tablas de probabilidades.
+    static func name(_ rarity: SkinsConfig.Rarity) -> String {
+        switch rarity {
+        case .comun: String(localized: "chest.rarity.comun")
+        case .rara: String(localized: "chest.rarity.rara")
+        case .epica: String(localized: "chest.rarity.epica")
+        case .legendaria: String(localized: "chest.rarity.legendaria")
+        }
+    }
+
+    /// El ícono de la fila (SF Symbols), para `OddsDisclosureView.Row.symbol`.
+    static func symbol(_ rarity: SkinsConfig.Rarity) -> String {
+        switch rarity {
+        case .comun: "circle.fill"
+        case .rara: "diamond.fill"
+        case .epica: "star.fill"
+        case .legendaria: "crown.fill"
+        }
+    }
 }
 
 /// Abrir un cofre: **el video del animador, entero**, con los tres toques del

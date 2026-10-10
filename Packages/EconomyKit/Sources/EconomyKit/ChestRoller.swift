@@ -30,6 +30,17 @@ public enum ChestDraw: Sendable, Equatable {
     case needsProgress
 }
 
+/// Lo que un cofre puede dar hoy, para mostrarlo ANTES de comprar (Apple 3.1.1).
+public enum ChestOddsTable: Sendable, Equatable {
+    /// Las rarezas con su chance real (`id` = `Rarity.rawValue`), en orden de
+    /// rareza; suman 1. Las mismas `PrizeOdds` que la ruleta y el colchón.
+    case skins([PrizeOdds])
+    /// La colección está completa: el cofre paga plata.
+    case coins
+    /// No hay ninguna pinta alcanzable todavía: el cofre espera (`needsProgress`).
+    case nothingYet
+}
+
 /// El sorteo de un cofre. Puro y con RNG inyectado, como `special_roll`: los
 /// tests fijan la semilla y el resultado es reproducible.
 public enum ChestRoller {
@@ -86,6 +97,43 @@ public enum ChestRoller {
     ) -> Bool {
         if !stockAcrossRarities(owned: owned, unlocked: unlocked, skins: skins).isEmpty { return true }
         return skins.chestPool.allSatisfy { owned.contains($0.id) }
+    }
+
+    /// Las probabilidades que de verdad sortea `roll`: el peso de cada rareza
+    /// candidata va a la rareza en la que TERMINA (`firstWithStock`: sube si se
+    /// agotó, baja si lo de arriba está bloqueado). Mostrar los pesos crudos de
+    /// `chests.json` mentiría apenas el jugador tiene la mitad de la colección.
+    public static func effectiveOdds(
+        owned: Set<String>,
+        unlocked: Set<String>,
+        skins: SkinsConfig,
+        config: ChestsConfig,
+        minRarity: SkinsConfig.Rarity? = nil
+    ) -> ChestOddsTable {
+        let candidatas = SkinsConfig.Rarity.allCases.filter { $0 >= (minRarity ?? .comun) }
+        let total = candidatas.reduce(0) { $0 + config.weight(for: $1) }
+        var odds: [SkinsConfig.Rarity: Double] = [:]
+        for rarity in candidatas {
+            // Sin pesos, `weightedPick` devuelve la primera: la misma regla.
+            let share = total > 0
+                ? Double(config.weight(for: rarity)) / Double(total)
+                : (rarity == candidatas.first ? 1 : 0)
+            guard share > 0 else { continue }
+            guard let resuelta = firstWithStock(from: rarity, owned: owned, unlocked: unlocked, skins: skins) else {
+                return skins.chestPool.allSatisfy { owned.contains($0.id) } ? .coins : .nothingYet
+            }
+            odds[resuelta, default: 0] += share
+        }
+        return .skins(SkinsConfig.Rarity.allCases.compactMap { rarity in
+            odds[rarity].map { PrizeOdds(id: rarity.rawValue, probability: $0) }
+        })
+    }
+
+    /// Cuántas pintas puede ganar hoy el jugador (sin dueño y desbloqueadas).
+    public static func reachableSkinCount(
+        owned: Set<String>, unlocked: Set<String>, skins: SkinsConfig
+    ) -> Int {
+        stockAcrossRarities(owned: owned, unlocked: unlocked, skins: skins).count
     }
 
     /// Sube a la primera rareza con stock; si arriba no hay ninguna, baja.

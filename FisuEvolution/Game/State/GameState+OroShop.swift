@@ -47,10 +47,30 @@ extension GameState {
             reachedFloorIds: reached,
             mergeAllPairs: pairs,
             anyBoostCoolingDown: coolingDown,
-            chestHasSomethingToGive: ChestRoller.hasSomethingToGive(
-                owned: player.meta.allOwnedSkins, unlocked: chestUnlockedCharacterTypes, skins: content.skins
-            ),
+            chestHasSomethingToGive: chestHasSomethingToGive(player: player, content: content),
             supportedPerks: perks
+        )
+    }
+
+    /// ¿Un cofre más tiene qué dar? Los que ya esperan (`pendingChestCount`)
+    /// van a quedarse con las pintas que hoy faltan: con una sola pinta alcanzable
+    /// y un cofre guardado, otro cofre pagaría plata. Con la colección completa
+    /// el cofre paga plata a propósito y sigue siendo comprable.
+    private func chestHasSomethingToGive(player: PlayerState, content: GameContent) -> Bool {
+        let owned = player.meta.allOwnedSkins
+        let unlocked = chestUnlockedCharacterTypes
+        guard ChestRoller.hasSomethingToGive(owned: owned, unlocked: unlocked, skins: content.skins) else { return false }
+        let reachable = ChestRoller.reachableSkinCount(owned: owned, unlocked: unlocked, skins: content.skins)
+        return reachable == 0 || reachable > pendingChestCount
+    }
+
+    /// Las probabilidades del cofre de pintas para ESTE jugador (Apple 3.1.1): la
+    /// tabla que sortea `ChestRoller.roll`, con su colección y su desbloqueo de hoy.
+    var chestOdds: ChestOddsTable {
+        guard let content, let player else { return .nothingYet }
+        return ChestRoller.effectiveOdds(
+            owned: player.meta.allOwnedSkins, unlocked: chestUnlockedCharacterTypes,
+            skins: content.skins, config: content.chests
         )
     }
 

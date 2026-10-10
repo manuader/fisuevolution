@@ -129,6 +129,11 @@ final class StoreManager {
 
         await loadProducts()
         await refreshEntitlements()
+        // La puerta del azar (E5a), para lo que se decide sin esperar a StoreKit.
+        // Bajo XCTest no: las suites deciden la puerta por parámetro.
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
+            await LootBoxGate.refreshLastKnown()
+        }
     }
 
     #if DEBUG

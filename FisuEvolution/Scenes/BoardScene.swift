@@ -17,6 +17,7 @@ final class BoardScene: SKScene {
     /// Los visitantes y presentadores (PLAN-v2 E4). Vive en su colaborador: la
     /// escena sólo lo adjunta, lo ubica, lo actualiza y le pasa los toques.
     private lazy var stage = StageController(gameState: gameState)
+    private lazy var stageEffects = StageEffects(gameState: gameState)
 
     /// Campo de juego (estilo Cow Evolution): fondo de escena + personajes
     /// parados en anclas orgánicas — sin grilla visible.
@@ -317,6 +318,7 @@ final class BoardScene: SKScene {
         cameraNode.addChild(cameraOverlay)
         addChild(cameraNode)
         stage.attach(to: cameraOverlay)
+        stageEffects.attach(to: cameraOverlay)
         camera = cameraNode
     }
 
@@ -383,6 +385,7 @@ final class BoardScene: SKScene {
         }
         startBoardCelebrationIfItsTurn()
         stage.update(delta: delta, reduceMotion: Self.prefersReducedMotion)
+        stageEffects.update(delta: delta, reduceMotion: Self.prefersReducedMotion, units: Array(characterNodes.values))
         refreshCrowdDepth()
         updateFTUEHint()
         publishTutorialSpotlight()
@@ -1622,6 +1625,7 @@ final class BoardScene: SKScene {
         renderAnchoredSpecials(content: content)
         renderLockedFloorOverlay()
         stage.layout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize)
+        stageEffects.layout(sceneSize: size, bottomInset: Self.bottomInset)
     }
 
     /// El special bajo el dedo, si hay: los nodos llevan `special.<id>` de

@@ -267,4 +267,46 @@ extension GameState {
     func closeEventPopup() {
         eventPopup = nil
     }
+
+    // MARK: Las escenas (E4b T6)
+
+    /// Las escenas de los eventos corriendo (Apagón, Campeones, Liquidación).
+    func runningEventScenes(now: TimeInterval = Date().timeIntervalSince1970) -> Set<EventCatalog.Scene> {
+        guard let content, let player else { return [] }
+        return Set(EventPlanner.running(player.run.activeModifiers, catalog: content.events, now: now).compactMap(\.scene))
+    }
+
+    /// Las velitas del Apagón: cuántas hay prendidas y cuántas llevan a ×1.
+    func blackoutCandles(now: TimeInterval = Date().timeIntervalSince1970) -> (lit: Int, total: Int)? {
+        guard let content, let player,
+              let event = content.events.events.first(where: { $0.scene == .blackout }),
+              let step = event.candleStep, step > 0,
+              let live = player.run.activeModifiers.first(where: {
+                  $0.sourceKey == event.sourceKey && $0.effect == .incomeMultiplier && $0.isActive(at: now)
+              })
+        else { return nil }
+        var base = live.magnitude
+        for case let .modifier(effect, magnitude) in event.effects where effect == .incomeMultiplier {
+            base = magnitude
+        }
+        // El épsilon salva el redondeo de 0,7 / 0,07 (= 10,000000000000002).
+        let total = max(1, Int(((1 - base) / step - 1e-9).rounded(.up)))
+        let lit = Int(((live.magnitude - base) / step).rounded())
+        return (min(max(lit, 0), total), total)
+    }
+
+    /// Un toque a un empleado durante el Apagón prende una velita: el ingreso del
+    /// evento sube `candleStep`, hasta ×1. Lo llama `registerTap`, que después
+    /// refresca y guarda.
+    @discardableResult
+    func lightCandleIfBlackout(now: TimeInterval = Date().timeIntervalSince1970) -> Bool {
+        guard let content, var player,
+              let event = content.events.events.first(where: { $0.scene == .blackout }),
+              let lit = EventPlanner.lightCandle(player.run.activeModifiers, event: event, now: now)
+        else { return false }
+        player.run.activeModifiers = lit
+        self.player = player
+        effectsVersion += 1
+        return true
+    }
 }

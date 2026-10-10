@@ -41,7 +41,7 @@ import Testing
     private static let eventAccents = [
         "event",
         "eventPlanPlatita", "eventStartup", "eventDevaluacion", "eventBlanqueo",
-        "eventMercadoPago", "eventAlien", "eventCorralito", "eventAguinaldo",
+        "eventMercadoPago", "eventAlien", "eventCorralito", "eventAguinaldo", "blackout",
     ]
 
     /// Los del ascensor suenan desde `UI/HUD` y `UI/Elevator` (E13b), no desde

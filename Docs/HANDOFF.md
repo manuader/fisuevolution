@@ -21,24 +21,24 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
-> 21b, la continuación del 21 en la misma sesión): `version-2` = **`9972f95`** (`rapido` VERDE sobre `3424ae5`: EK 637 · unit 1066 + 1 declarado
-> `theOwnersTargetsAreMet` · Release 0) · la rama de integración `v2i/integ-r21b` = **`34f2266`** + estos docs (`rapido` sobre `34f2266`:
-> VERDE sobre `34f2266` (EK 642 · unit 1070 · 0 rojos · Release 0)). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a R (E8d T10 el viaje que suspende los
-> videos, E12 T13 la barra de seis, E13 T2 los premios por video, E13 T9 la ficha con Despedir), más lo del relevo 21b, en `integ-r21b`: **la lista
-> de palabras de E12 ACTIVA** (migración `20261009000001_blocklist.sql`; se despliega con E12 T16), **E3b T8** (el selector del atajo) y **E13 T7**
-> (el toque premiado en **seis** líneas, Dios en 31,34 h, `PacingTests` re-pineado). **Progreso: 137 de 254 tareas activas en `version-2` (53,9 %);
-> 139 de 254 (54,7 %) si el `rapido` de `integ-r21b` da VERDE** (`tasks.md` §2). **El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16).**
-> Detalle en `Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md` (§ «Relevo 21b»).
+> 21c, la tercera tanda de la misma sesión, tras el «continua» del dueño): `version-2` = la punta de **`c7f0330`** tras su `rapido` VERDE (EK 651 · unit 1117 ·
+> 0 rojos · Release 0) · la rama de integración `v2i/integ-r21c` = **`f830217`** + estos docs (`rapido` sobre `f830217`: RAPIDO_PENDIENTE). Están E0, E10 en papel,
+> E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a S: **las cinemáticas con su overlay** (E8b T8, T9, T10 y la intro de E8d T11), **los cortes
+> naturales de anuncios y el app open al volver** (E7b-a T2 y T4), **los cuatro cierres** (E11 T7, E2a T15, E8c T10, E3a T12), reencarnar conserva los pasivos
+> detrás de una perilla apagada (E2b T2), las mejoras con su efecto de antes a después (E13 T13) y, en `integ-r21c`, la tarjeta del nombre al llegar a Dios
+> (E12 T14). **Progreso: 150 de 254 tareas activas en `version-2` (59,1 %); 152 de 254 (59,8 %) si el `rapido` de `integ-r21c` da VERDE** (`tasks.md` §2).
+> **El último `completo` de referencia es el de los cierres, sobre `0383a1d`** (`Docs/SESION-2026-10-09-v2-cierres-e11-e2a-e8c-e3a.md`).
+> Detalle en `Docs/SESION-2026-10-09-v2-relevo-21c-ola-s.md`.
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r21b` (tres cambios y los docs del cierre; si su `rapido` dio verde, el
-> primer paso del relevo 22 es el fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño; no se tocan. Hay
-> planes por tareas para todas las épicas salvo la parte de agente de E10. **Lo primero del relevo 22:** el `rapido` de `integ-r21b` si no quedó
-> hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la ola de `tasks.md` §4.2: **E7b-a T2 → E8b T9** (en serie por `RootView`),
-> **E8b T8** (`GameState`, rev. opus), **E3b T9** (destrabada por T8 si sus otras dependencias están); los cierres del controlador (E8c T10, E3a T12,
-> E11 T7, E2a T15) van con el `completo`. E12 T12 sigue ⛔ y E12 T16 🔒 (credenciales de Supabase y `ANTHROPIC_API_KEY`).
-> Con la carga de la máquina alta, no más de dos compilando.
-> **Pendiente del dueño:** los carries de E13 T7 (veterano de un solo lado, última run, save viejo), escuchar el cable del ascensor, el despliegue de
-> la lista de palabras (E12 T16). **Ojo:** el clasificador del modo auto no deja escribir en `DUENO.md` (§7); las aprobaciones se confirman en el chat.
+> 🛑 **No publicar E7b-a T2 sin E7b-a T3:** sin la pausa publicitaria sale un intersticial en **cada** corte natural (no alterna). Falta además `canRequestAds`
+> en el intersticial y el rewarded (UE sin consentimiento).
+>
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r21c` (dos cambios y los docs del cierre; si su `rapido` dio verde, el primer paso del relevo 22 es el
+> fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño; no se tocan. **Lo primero del relevo 22:** el `rapido` de
+> `integ-r21c` si no quedó hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la cola de `tasks.md` §4.2: **E3b T9** (la llave de E4a),
+> los cierres con `completo` (**E12 T15, E6b T9, E8 T10, E13b T11**) y **E7b-a T3** en cuanto se destrabe. Los 🔒 del dueño: E12 T16 (credenciales de Supabase y
+> `ANTHROPIC_API_KEY`), mediación por SPM (E7b-a T6), capturas de iPad a ASC, los escenarios de E11 en device. Con la carga de la máquina alta, no más de dos compilando.
+> **Ojo:** el clasificador del modo auto no deja escribir en `DUENO.md` (§7); las aprobaciones se confirman en el chat.
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
 > una línea por tarea con su estado, dependencias, archivos calientes, la cola
@@ -348,6 +348,22 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-09 (relevo 21c) — La ola S: las cinemáticas con overlay, los cortes naturales de anuncios y los cuatro cierres
+
+Tercera tanda de la misma sesión («continua» del dueño). Todo en `v2i/integ-r21c` (`f830217`; `rapido`: RAPIDO_PENDIENTE). **Progreso: 150 de 254 en `version-2`; 152 de 254 (59,8 %) con las dos 🟢.**
+
+- **Cinemáticas:** E8b T8 (`CelebrationQueue .cinematic`, watchdog 12 s), T9 (overlay a pantalla completa, lease `fullscreen`, ducking, sólo «Saltar»), T10 (reencarnación
+  y Dios la disparan; `reconcileCinematics` re-encola Dios tras una muerte de la app) y E8d T11 (la intro sale en **partida nueva**).
+- **Anuncios:** E7b-a T2 (`GameState+Ads`, cortes `sheetClosed`/`offlinePopupDismissed`/`reincarnation`/`celebrationsDrained`; el reloj 1.x borrado) y T4 (app open al volver,
+  antes del offline). **No publicar T2 sin T3.** Falta `canRequestAds` en intersticial y rewarded; un solo observador de AdMob para todos los formatos (carry).
+- **Cierres** (un `completo`): E11 T7, E2a T15 (tabla de perillas, base Dios 31,34 h), E8c T10, E3a T12.
+- **E2b T2** (pasivos que se heredan, perilla apagada), **E13 T13** (efecto de antes a después), **E12 T14** (la tarjeta del nombre; con el ranking apagado no sale).
+- **`BonusHUDUITests`:** era el test (el puntito de Regalos se enciende con el mate listo, que nace listo).
+- Conflicto resuelto en `confirmPrestige`: quedó `scheduleNaturalBreak(.reincarnation)` de E7b-a T2.
+- Trampas nuevas en §7: el agente que re-entrega el mismo reporte con una espera de fondo, y el oráculo que usa el repo de su propia ruta, no el `cwd`.
+
+Detalle en **`Docs/SESION-2026-10-09-v2-relevo-21c-ola-s.md`** y **`Docs/SESION-2026-10-09-v2-cierres-e11-e2a-e8c-e3a.md`**.
 
 ### Sesión del 2026-10-09 (relevo 21b) — El dueño aprobó: la lista de palabras, el selector del atajo y las seis líneas
 
@@ -2764,6 +2780,17 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la ola S (2026-10-09, relevo 21c)
+
+- **El oráculo usa el repo de su propia ruta, no el `cwd`:** `bash <ruta>/Tools/v2/oraculo.sh` corre sobre el repo donde vive ese script. Lanzarlo con la
+  ruta del worktree (o la rama) que se quiere verificar; con otra ruta se verifica otra cosa y el VERDE no vale.
+- **Un agente con una espera de fondo propia re-entrega el mismo reporte varias veces** (otra vez, como en la ola P): no hace falta `TaskStop` si `ps` no muestra
+  procesos suyos; termina solo.
+- **Un rojo del cierre puede ser del test:** `BonusHUDUITests` estaba rojo porque `d121c97` enciende el puntito de Regalos también con un boost gratis listo
+  y el mate nace listo. Antes de declarar un rojo de base, mirar qué commit cambió la semántica de lo que el test mide.
+- **`isModal` en un overlay SwiftUI confunde a XCUITest** (lo trata como `Alert` y rompe los selectores): el overlay de la cinemática se come los toques sin él.
+- **Sin el overlay, el disparador de cinemáticas no puede entrar:** `reconcileCinematics` (E8b T10) iba después de T9; invertirlo traba 12 s con el watchdog.
+
 ### Del relevo 21b (2026-10-09)
 
 - **El clasificador del modo auto bloquea escribir en `DUENO.md`, aunque la aprobación venga del chat:** el archivo es de los que los relevos leen como
@@ -4287,10 +4314,14 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
-### Lo que queda de la 2.0 (cierre del relevo 21b)
+### Lo que queda de la 2.0 (cierre del relevo 21c)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
 
+- **Del relevo 21c, al dueño:** **no publicar E7b-a T2 sin T3** (intersticial en cada corte); `canRequestAds` falta en intersticial y rewarded (UE); verificar en device el *fill* del
+  app open; la cinemática de reencarnación casi siempre se saltea y el intersticial sale antes del cofre; un veterano v1 en Dios ve la de Dios en el primer arranque; la intro sale en
+  partida nueva; 2 renglones de E13 T13 por mirar en el SE y `ui_up_crit` por borrar; los escenarios de E11 (diálogo del sistema) y de E2a/E8c (Reduce Motion, hoja, fondo, ORO/video)
+  a mano; PNG de iPad a ASC (E10). Las perillas de E2a T15 (base Dios 31,34 h) están en el SESION de los cierres.
 - **Del dueño:** la **lista de palabras de E12** ya está activa (relevo 21b; se despliega con E12 T16, que espera las credenciales de Supabase y
   `ANTHROPIC_API_KEY`); los carries de E13 T7 (veterano de un solo lado, última run, save viejo, fila de `lucky` sin dorado → E13 T13); escuchar el cable del
   ascensor contra el ding; decidir el **`installId` que no viaja por CloudKit** (una partida registrada en A que llega a Dios en B
@@ -4645,6 +4676,10 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md`**: los relevos 21 y 21b (la lista de palabras activa, E3b T8, E13 T7 con las decisiones del dueño y la trampa del clasificador en `DUENO.md`; el viaje del ascensor que suspende los videos, la barra de seis pestañas,
   los premios por video y la ficha con Despedir; E13 T7 bloqueada por pacing con la tabla de variantes y las opciones del dueño; las trampas
   del `pkill -f`, el `sleep` del latido, los simuladores por tiempo y el `cwd` que frena la limpieza).
+- **`Docs/SESION-2026-10-09-v2-cierres-e11-e2a-e8c-e3a.md`**: los cuatro cierres del controlador (E11 T7, E2a T15 con la tabla de perillas, E8c T10, E3a T12)
+  y el `completo` que los cubrió.
+- **`Docs/SESION-2026-10-09-v2-relevo-21c-ola-s.md`**: el relevo 21c (las cinemáticas con su overlay, los cortes naturales y el app open, E2b T2, E13 T13, E12 T14;
+  las revisiones opus y sus carries, el conflicto de `confirmPrestige`, la tabla de perillas, las trampas del oráculo con otra ruta y del agente que re-entrega).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

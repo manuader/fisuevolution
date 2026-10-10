@@ -5,4 +5,3 @@
 # Un rojo que no esté acá pone el oráculo en rojo. Uno de la lista que deja de
 # fallar se avisa al final: sacalo en el mismo commit que lo arregla.
 
-unit theOwnersTargetsAreMet  # 9 reencarnaciones contra ≤8 (viene del build 4); E2b lo reemplaza por el contrato nuevo

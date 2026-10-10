@@ -83,3 +83,246 @@ struct PacingProfileTests {
         #expect(without.map(\.id) == withTower.map(\.id))
     }
 }
+
+@Suite("El perfil .ads")
+struct PacingAdsProfileTests {
+    private func ads(_ change: (inout AdsSources) -> Void = { _ in }) -> AdsSources {
+        var ads = AdsSources(
+            videoSeconds: 30, offlineMultiplier: 2, dailyMultiplier: 2, careerMultiplier: 2,
+            wheel: nil, wheelRepeats: true, treasures: nil,
+            adBreakIntervalSeconds: 240,
+            adBreakPrizes: [.coinsSeconds(600), .modifier(effect: .incomeMultiplier, magnitude: 2, seconds: 300), .package(1)],
+            mergeAllCooldownSeconds: 600, packageRainCooldownSeconds: 1800, packageRain: .package(10)
+        )
+        change(&ads)
+        return ads
+    }
+
+    private func run(_ profile: PacingProfile, ads: AdsSources?, days: Int = 5) throws -> PacingSimulator.Report {
+        var sources = PacingSources.none
+        sources.dailyMinutes = [5, 8, 12, 18, 25, 40, 15]
+        sources.ads = ads
+        return try PacingSimulator(config: upConfig(), tiers: upTiers(), upgrades: upCheapLines(),
+                                   profile: profile, sources: sources).run(maxDays: days)
+    }
+
+    @Test(".free ignora las fuentes de video")
+    func freeIgnoresAds() throws {
+        #expect(fingerprint(try run(.free, ads: ads())) == fingerprint(try run(.free, ads: nil)))
+    }
+
+    @Test(".ads cobra más y mira videos")
+    func adsEarnsMore() throws {
+        let free = try run(.free, ads: ads())
+        let withAds = try run(.ads, ads: ads())
+        #expect((withAds.sourceTotals["videos"] ?? 0) > 0)
+        #expect((withAds.sourceTotals["coins.adBreak"] ?? 0) > 0)
+        #expect(withAds.finalLifetimeEarnings > free.finalLifetimeEarnings)
+    }
+
+    @Test("mirar un video cuesta tiempo de sesión: con videos de 10 minutos, .ads pierde")
+    func videosCostTime() throws {
+        let slow = try run(.ads, ads: ads { $0.videoSeconds = 600 })
+        let fast = try run(.ads, ads: ads())
+        #expect(slow.finalLifetimeEarnings < fast.finalLifetimeEarnings)
+    }
+
+    @Test("el offline ×2 duplica lo que cobra al volver")
+    func offlineDoubles() throws {
+        // Un día: la partida de cinco llega a Dios a distinta hora con cada
+        // multiplicador y el total de offline compara recorridos, no el ×2.
+        let base = try run(.ads, ads: ads { $0.offlineMultiplier = 1 }, days: 1)
+        let doubled = try run(.ads, ads: ads(), days: 1)
+        #expect((doubled.sourceTotals["coins.offline"] ?? 0) > 1.5 * (base.sourceTotals["coins.offline"] ?? 0))
+    }
+
+    @Test("un premio ignorado no mueve nada")
+    func ignoredRewardsDoNothing() throws {
+        let chest = try run(.ads, ads: ads { $0.adBreakPrizes = [.skinChest(1)] })
+        let none = try run(.ads, ads: ads { $0.adBreakPrizes = [] ; $0.adBreakIntervalSeconds = .infinity })
+        #expect(chest.finalLifetimeEarnings <= none.finalLifetimeEarnings)
+    }
+}
+
+@Suite("El perfil .ads: cada fuente y el traductor de premios")
+struct PacingAdsSourcesTests {
+    /// Todas las fuentes de video apagadas: cada test prende la que mide.
+    private func quiet(_ change: (inout AdsSources) -> Void = { _ in }) -> AdsSources {
+        var ads = AdsSources(
+            videoSeconds: 30, offlineMultiplier: 1, dailyMultiplier: 1, careerMultiplier: 1,
+            wheel: nil, wheelRepeats: false, treasures: nil,
+            adBreakIntervalSeconds: .infinity, adBreakPrizes: [],
+            mergeAllCooldownSeconds: .infinity, packageRainCooldownSeconds: .infinity, packageRain: nil
+        )
+        change(&ads)
+        return ads
+    }
+
+    private func packages() -> PackagesConfig {
+        PackagesConfig(schemaVersion: 1, spawnIntervalSeconds: 600, firstPackageAfterSeconds: 600,
+                       maxWaiting: 2, windowTiers: 4, tierRatioByBestSupplierLevel: [2, 1.8, 1.6, 1.4])
+    }
+
+    private func run(
+        _ ads: AdsSources?, profile: PacingProfile = .ads, days: Int = 1, freeHireSeconds: Double = 0,
+        withPackages: Bool = false
+    ) throws -> PacingSimulator.Report {
+        var sources = PacingSources.none
+        sources.freeHireSeconds = freeHireSeconds
+        sources.packages = withPackages ? packages() : nil
+        sources.ads = ads
+        return try PacingSimulator(config: upConfig(), tiers: upTiers(), upgrades: upCheapLines(),
+                                   profile: profile, sources: sources).run(maxDays: days)
+    }
+
+    private func breakWith(_ prize: RewardSpec, withPackages: Bool = false) throws -> PacingSimulator.Report {
+        try run(quiet { $0.adBreakIntervalSeconds = 120; $0.adBreakPrizes = [prize] }, withPackages: withPackages)
+    }
+
+    @Test("sin ninguna fuente prendida no se mira ningún video")
+    func quietWatchesNothing() throws {
+        let report = try run(quiet())
+        #expect((report.sourceTotals["videos"] ?? 0) == 0)
+    }
+
+    @Test("el traductor: segundos de monedas, modificadores de ingreso y de toque pagan monedas")
+    func coinRewardsPay() throws {
+        for prize in [RewardSpec.coinsSeconds(600),
+                      .modifier(effect: .incomeMultiplier, magnitude: 2, seconds: 300),
+                      .modifier(effect: .passiveMultiplier, magnitude: 2, seconds: 300),
+                      .modifier(effect: .tapMultiplier, magnitude: 2, seconds: 300)] {
+            let report = try breakWith(prize)
+            #expect((report.sourceTotals["coins.adBreak"] ?? 0) > 0, "\(prize)")
+        }
+    }
+
+    @Test("el traductor: lo que no mueve la economía del bot no paga monedas ni ORO")
+    func ignoredRewardsPayNothing() throws {
+        for prize in [RewardSpec.skinChest(1), .clearBoostCooldowns, .autoTap(perSecond: 3, seconds: 60),
+                      .extraSlots(1), .eventImmunity(seconds: 60),
+                      .modifier(effect: .spawnCostMultiplier, magnitude: 0.7, seconds: 300)] {
+            let report = try breakWith(prize)
+            #expect((report.sourceTotals["coins.adBreak"] ?? 0) == 0, "\(prize)")
+            #expect((report.sourceTotals["oro.fromSources"] ?? 0) == 0, "\(prize)")
+        }
+    }
+
+    @Test("el ORO de una fuente se gasta en líneas en el acto, sin tocar el ORO histórico")
+    func oroBuysLines() throws {
+        let report = try breakWith(.oro(2))
+        #expect((report.sourceTotals["oro.fromSources"] ?? 0) > 0)
+        #expect(report.finalPermanentUpgradeLevels.values.reduce(0, +) > 0)
+    }
+
+    @Test("los paquetes de un premio se suman a la cola y se abren")
+    func packagesJoinTheQueue() throws {
+        let with = try breakWith(.package(2), withPackages: true)
+        let without = try run(quiet(), withPackages: true)
+        #expect((with.sourceTotals["packages.opened"] ?? 0) > (without.sourceTotals["packages.opened"] ?? 0))
+    }
+
+    @Test("la pausa rota sus premios en orden: el segundo también sale")
+    func adBreakRotates() throws {
+        let rotating = try run(quiet {
+            $0.adBreakIntervalSeconds = 120
+            $0.adBreakPrizes = [.skinChest(1), .coinsSeconds(60)]
+        })
+        let stuck = try run(quiet {
+            $0.adBreakIntervalSeconds = 120
+            $0.adBreakPrizes = [.skinChest(1)]
+        })
+        #expect((rotating.sourceTotals["coins.adBreak"] ?? 0) > 0)
+        #expect((stuck.sourceTotals["coins.adBreak"] ?? 0) == 0)
+    }
+
+    @Test("el diario ×2 es un video por día")
+    func dailyDoublesWithOneVideoPerDay() throws {
+        var sources = PacingSources.none
+        sources.dailyMinutes = [5, 8, 12]
+        sources.ads = quiet { $0.dailyMultiplier = 2 }
+        let report = try PacingSimulator(config: upConfig(), tiers: upTiers(), upgrades: upCheapLines(),
+                                         profile: .ads, sources: sources).run(maxDays: 2)
+        #expect(report.sourceTotals["videos"] == 2)
+        #expect((report.sourceTotals["coins.daily"] ?? 0) > 0)
+    }
+
+    @Test("la carrera ×2 duplica la contratación gratis con un video, y sin ella no se mira")
+    func careerDoublesWithOneVideo() throws {
+        func grant(_ ads: AdsSources, freeHireSeconds: Double) throws -> (video: Double, seconds: Double, videos: Double) {
+            var sources = PacingSources.none
+            sources.freeHireSeconds = freeHireSeconds
+            sources.ads = ads
+            let simulator = try PacingSimulator(config: upConfig(), tiers: upTiers(), profile: .ads, sources: sources)
+            var state = PlayerState.newGame(
+                startTypeId: "t1", startFloorId: "f1", offlineEfficiencyBase: 0.5, critChanceBase: 0, now: 0
+            )
+            var report = PacingSimulator.Report()
+            let video = simulator.grantFreeHire(state: &state, wall: 100, report: &report)
+            let modifier = state.run.activeModifiers.first { $0.effect == .freeHire }
+            return (video, (modifier?.expiresAt ?? 100) - 100, report.sourceTotals["videos"] ?? 0)
+        }
+        let doubled = try grant(quiet { $0.careerMultiplier = 2 }, freeHireSeconds: 120)
+        #expect(doubled.seconds == 240 && doubled.videos == 1 && doubled.video == 30)
+        let plain = try grant(quiet(), freeHireSeconds: 120)
+        #expect(plain.seconds == 120 && plain.videos == 0 && plain.video == 0)
+        let none = try grant(quiet { $0.careerMultiplier = 2 }, freeHireSeconds: 0)
+        #expect(none.videos == 0 && none.video == 0)
+    }
+
+    @Test("la ruleta: giros del día, y el repetir premio es otro video por giro")
+    func wheelSpinsAndRepeats() throws {
+        let wheel = WheelConfig(
+            schemaVersion: 1, videoSpinsPerDay: 3, oroSpinCost: 1, oroSpinsPerDay: 0, spinSeconds: 1,
+            chestFallbackSegmentId: "plata",
+            segments: [.init(id: "plata", weight: 60, reward: .coinsSeconds(300)),
+                       .init(id: "cofre", weight: 40, reward: .skinChest(1))]
+        )
+        let single = try run(quiet { $0.wheel = wheel })
+        let repeating = try run(quiet { $0.wheel = wheel; $0.wheelRepeats = true })
+        #expect(single.sourceTotals["videos"] == 3)
+        #expect(repeating.sourceTotals["videos"] == 6)
+        // Sin pintas que dar, el peso del cofre se va a la plata: 3 × 300 s.
+        #expect((single.sourceTotals["coins.wheel"] ?? 0) > 0)
+        #expect((repeating.sourceTotals["coins.wheel"] ?? 0) > (single.sourceTotals["coins.wheel"] ?? 0))
+    }
+
+    @Test("el colchón: cada apertura es un video, con sus 'otro colchón'")
+    func mattressOpens() throws {
+        func treasures(extra: Int) -> TreasuresConfig {
+            TreasuresConfig(
+                schemaVersion: 1, spawnIntervalSeconds: 300, firstTreasureAfterSeconds: 300,
+                extraOpensPerTreasure: extra,
+                prizes: [.init(id: "plata", weight: 1, rewards: [.coinsSeconds(600)])]
+            )
+        }
+        let single = try run(quiet { $0.treasures = treasures(extra: 0) })
+        let more = try run(quiet { $0.treasures = treasures(extra: 1) })
+        #expect((single.sourceTotals["coins.mattress"] ?? 0) > 0)
+        #expect(more.sourceTotals["videos"] == 2 * (single.sourceTotals["videos"] ?? 0))
+    }
+
+    @Test("Fusionar todo: sólo con ficha, y sólo cuando la tanda hace dos fusiones o más")
+    func mergeAllCostsAVideo() throws {
+        let off = try run(quiet())
+        let on = try run(quiet { $0.mergeAllCooldownSeconds = 60 })
+        #expect((off.sourceTotals["videos"] ?? 0) == 0)
+        #expect((on.sourceTotals["videos"] ?? 0) > 0)
+    }
+
+    @Test("la lluvia de paquetes: un video por cooldown de pared")
+    func packageRainRespectsItsCooldown() throws {
+        let rain = try run(quiet { $0.packageRainCooldownSeconds = 3600; $0.packageRain = .package(5) }, withPackages: true)
+        let none = try run(quiet(), withPackages: true)
+        #expect((rain.sourceTotals["videos"] ?? 0) > 0)
+        #expect((rain.sourceTotals["packages.opened"] ?? 0) > (none.sourceTotals["packages.opened"] ?? 0))
+        let daily = try run(quiet { $0.packageRainCooldownSeconds = 86_400; $0.packageRain = .package(5) }, withPackages: true)
+        #expect((daily.sourceTotals["videos"] ?? 0) < (rain.sourceTotals["videos"] ?? 0))
+    }
+
+    @Test(".max también mira videos; .bare no")
+    func maxWatchesBareDoesNot() throws {
+        let ads = quiet { $0.adBreakIntervalSeconds = 120; $0.adBreakPrizes = [.coinsSeconds(60)] }
+        #expect((try run(ads, profile: .max).sourceTotals["videos"] ?? 0) > 0)
+        #expect((try run(ads, profile: .bare).sourceTotals["videos"] ?? 0) == 0)
+    }
+}

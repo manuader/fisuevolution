@@ -42,13 +42,63 @@ public struct PacingSources: Sendable, Equatable {
     public var freeBoosts: [FreeBoost]
     /// Las contrataciones gratis del Programador al elegir carrera.
     public var freeHireSeconds: Double
+    /// Lo que da mirar videos. Sólo lo juegan los perfiles que miran (`.ads`, `.max`).
+    public var ads: AdsSources?
 
-    public init(packages: PackagesConfig?, dailyMinutes: [Double], freeBoosts: [FreeBoost], freeHireSeconds: Double) {
+    public init(
+        packages: PackagesConfig?, dailyMinutes: [Double], freeBoosts: [FreeBoost], freeHireSeconds: Double,
+        ads: AdsSources? = nil
+    ) {
         self.packages = packages
         self.dailyMinutes = dailyMinutes
         self.freeBoosts = freeBoosts
         self.freeHireSeconds = freeHireSeconds
+        self.ads = ads
     }
 
     public static let none = PacingSources(packages: nil, dailyMinutes: [], freeBoosts: [], freeHireSeconds: 0)
+}
+
+/// Las fuentes que se cobran mirando un video (PLAN-v2 E2b y E7b-b), con lo que
+/// cuesta mirarlas: cada video le saca `videoSeconds` a la sesión del bot.
+public struct AdsSources: Sendable, Equatable {
+    /// Segundos de sesión que cuesta mirar un video.
+    public var videoSeconds: Double
+    /// El "×2 con video" del offline, del diario y de la carrera (1 = no se mira).
+    public var offlineMultiplier: Double
+    public var dailyMultiplier: Double
+    public var careerMultiplier: Double
+    public var wheel: WheelConfig?
+    /// "Repetir premio": otro video por giro, y el mismo sorteo otra vez.
+    public var wheelRepeats: Bool
+    public var treasures: TreasuresConfig?
+    /// Cada cuántos segundos activos sale la pausa publicitaria (`.infinity` = nunca).
+    public var adBreakIntervalSeconds: Double
+    /// Los premios de la pausa, que rotan en orden.
+    public var adBreakPrizes: [RewardSpec]
+    /// Cada cuántos segundos activos vuelve a haber un "Fusionar todo" por video.
+    public var mergeAllCooldownSeconds: Double
+    /// Cooldown de pared de la lluvia de paquetes.
+    public var packageRainCooldownSeconds: Double
+    public var packageRain: RewardSpec?
+
+    public init(
+        videoSeconds: Double, offlineMultiplier: Double, dailyMultiplier: Double, careerMultiplier: Double,
+        wheel: WheelConfig?, wheelRepeats: Bool, treasures: TreasuresConfig?,
+        adBreakIntervalSeconds: Double, adBreakPrizes: [RewardSpec],
+        mergeAllCooldownSeconds: Double, packageRainCooldownSeconds: Double, packageRain: RewardSpec?
+    ) {
+        self.videoSeconds = videoSeconds
+        self.offlineMultiplier = offlineMultiplier
+        self.dailyMultiplier = dailyMultiplier
+        self.careerMultiplier = careerMultiplier
+        self.wheel = wheel
+        self.wheelRepeats = wheelRepeats
+        self.treasures = treasures
+        self.adBreakIntervalSeconds = adBreakIntervalSeconds
+        self.adBreakPrizes = adBreakPrizes
+        self.mergeAllCooldownSeconds = mergeAllCooldownSeconds
+        self.packageRainCooldownSeconds = packageRainCooldownSeconds
+        self.packageRain = packageRain
+    }
 }

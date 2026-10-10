@@ -302,7 +302,8 @@ public struct PacingSimulator: Sendable {
         var tracker = RunTracker()
         var clocks = SourceClocks(
             nextPackageAt: profile.usesFreeGifts ? sources.packages?.firstPackageAfterSeconds ?? .infinity : .infinity,
-            seedFraction: seedFraction
+            seedFraction: seedFraction,
+            ads: activeAds
         )
         recordUnlocks(state: &state, report: &report, wall: wall, active: activeTotal)
 
@@ -314,7 +315,7 @@ public struct PacingSimulator: Sendable {
                 let sessionStart = dayStart + offset
                 guard sessionStart >= wall else { continue }
                 // Offline hasta el inicio de la sesión.
-                applyOffline(state: &state, from: wall, to: sessionStart)
+                applyOffline(state: &state, report: &report, clocks: &clocks, from: wall, to: sessionStart)
                 wall = sessionStart
                 // Sesión activa.
                 let consumed = playSession(
@@ -334,13 +335,13 @@ public struct PacingSimulator: Sendable {
             if !sessionRan {
                 // Ya pasaron todas las sesiones de hoy: dormir hasta mañana.
                 let nextDay = dayStart + human.daySeconds + (human.sessionStartOffsets.min() ?? 0)
-                applyOffline(state: &state, from: wall, to: nextDay)
+                applyOffline(state: &state, report: &report, clocks: &clocks, from: wall, to: nextDay)
                 wall = nextDay
             } else {
                 // Gap final del día → primera sesión de mañana.
                 let nextDay = dayStart + human.daySeconds + (human.sessionStartOffsets.min() ?? 0)
                 if nextDay > wall {
-                    applyOffline(state: &state, from: wall, to: nextDay)
+                    applyOffline(state: &state, report: &report, clocks: &clocks, from: wall, to: nextDay)
                     wall = nextDay
                 }
             }
@@ -417,14 +418,22 @@ public struct PacingSimulator: Sendable {
         wallStart: Double,
         activeStart: Double
     ) -> (wall: Double, active: Double) {
-        var elapsed = 0.0
-        startSession(state: &state, clocks: &clocks, report: &report, wall: wallStart)
+        var elapsed = startSession(
+            state: &state, clocks: &clocks, report: &report, wall: wallStart, active: activeStart
+        )
+        tracker.actionSeconds += elapsed
         while elapsed < human.sessionSeconds {
+            let videos = tickAds(
+                state: &state, clocks: &clocks, report: &report,
+                active: activeStart + elapsed, wall: wallStart + elapsed
+            )
+            elapsed += videos
+            tracker.actionSeconds += videos
             let opened = tickPackages(state: &state, clocks: &clocks, report: &report, active: activeStart + elapsed)
             elapsed += Double(opened) * human.hireSeconds
             tracker.actionSeconds += Double(opened) * human.hireSeconds
             doAllMerges(
-                state: &state, report: &report, tracker: &tracker,
+                state: &state, report: &report, tracker: &tracker, clocks: &clocks,
                 wallStart: wallStart, activeStart: activeStart, elapsed: &elapsed
             )
             if state.run.maxTierReached >= tiers.maxTier, report.godWall == nil {
@@ -447,8 +456,12 @@ public struct PacingSimulator: Sendable {
                 break
             }
 
-            // Lo que falta para que caiga el próximo paquete (infinito sin ellos).
-            let untilPackage = clocks.nextPackageAt - (activeStart + elapsed)
+            // Lo que falta para el próximo evento de las fuentes: el paquete, y con
+            // videos el colchón, la pausa y la lluvia (infinito sin ellos).
+            let untilPackage = min(
+                clocks.nextPackageAt - (activeStart + elapsed),
+                untilNextAdsEvent(clocks: clocks, active: activeStart + elapsed, wall: wallStart + elapsed)
+            )
             guard let action = nextAction(state: state, now: wallStart + elapsed) else {
                 // Nada que comprar: acumular hasta el fin de la sesión o hasta
                 // el próximo paquete, que puede traer algo.
@@ -777,10 +790,16 @@ public struct PacingSimulator: Sendable {
         state: inout PlayerState,
         report: inout Report,
         tracker: inout RunTracker,
+        clocks: inout SourceClocks,
         wallStart: Double,
         activeStart: Double,
         elapsed: inout Double
     ) {
+        // "Fusionar todo" por video: si hay ficha y la tanda llega a dos fusiones,
+        // se hacen de una (sin `mergeSeconds`) a cambio de un video.
+        let ads = activeAds
+        var batchMerges = 0
+        var mergeAllActive = false
         var merged = true
         while merged {
             merged = false
@@ -796,7 +815,9 @@ public struct PacingSimulator: Sendable {
                 )
                 if case .requiresCareerChoice = outcome {
                     state.run.chosenCareerPath = careerPath
-                    grantFreeHire(state: &state, wall: wallStart + elapsed)
+                    let careerVideo = grantFreeHire(state: &state, wall: wallStart + elapsed, report: &report)
+                    elapsed += careerVideo
+                    tracker.actionSeconds += careerVideo
                     outcome = MergeRules.evaluate(
                         sourceTypeId: type.id, targetTypeId: type.id,
                         chosenCareerPath: careerPath, tiers: tiers
@@ -811,6 +832,14 @@ public struct PacingSimulator: Sendable {
                     continue
                 }
                 if locked.contains(srcOrdinal), newType.tier <= state.run.maxTierReached { continue }
+                batchMerges += 1
+                if batchMerges == 2, ads != nil, activeStart + elapsed >= clocks.mergeAllReadyAt {
+                    mergeAllActive = true
+                    // La primera ya se cobró: con "Fusionar todo" se hizo gratis.
+                    elapsed -= human.mergeSeconds
+                    tracker.actionSeconds -= human.mergeSeconds
+                }
+                let mergeCost = mergeAllActive ? 0 : human.mergeSeconds
                 state.run.units[type.id, default: 0] -= 2
                 if state.run.units[type.id] == 0 { state.run.units[type.id] = nil }
                 // El reintegro de la fusión (PLAN-v2 E2a). Con la perilla en 0 no
@@ -827,18 +856,24 @@ public struct PacingSimulator: Sendable {
                     // run: reencarnar reinicia la cuenta, que es lo que permite
                     // comparar "volver a la pared" contra "llegar la primera vez".
                     tracker.tierReached[newType.tier] =
-                        activeStart + elapsed + human.mergeSeconds - tracker.startActive
-                    tracker.actionsAtTier[newType.tier] = tracker.actionSeconds + human.mergeSeconds
+                        activeStart + elapsed + mergeCost - tracker.startActive
+                    tracker.actionsAtTier[newType.tier] = tracker.actionSeconds + mergeCost
                 }
                 merged = true
-                tracker.actionSeconds += human.mergeSeconds
-                elapsed += human.mergeSeconds
+                tracker.actionSeconds += mergeCost
+                elapsed += mergeCost
                 recordUnlocks(
                     state: &state, report: &report,
                     wall: wallStart + elapsed, active: activeStart + elapsed
                 )
                 break
             }
+        }
+        if mergeAllActive, let ads {
+            let video = watchVideo(ads, report: &report)
+            elapsed += video
+            tracker.actionSeconds += video
+            clocks.mergeAllReadyAt = activeStart + elapsed + ads.mergeAllCooldownSeconds
         }
     }
 
@@ -895,7 +930,7 @@ public struct PacingSimulator: Sendable {
     /// simulador es determinístico y no tira dados. Como `crit` es hoy el
     /// 99,99 % del costo de maxear, eso lo vuelve un techo pesimista —el
     /// jugador real, con los mismos niveles, gana más—.
-    private func buyPermanentUpgrades(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
+    func buyPermanentUpgrades(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
         guard !permanentUpgrades.isEmpty else { return }
         var bought = false
         while let line = cheapestAffordableUpgrade(state: state) {
@@ -1063,8 +1098,21 @@ public struct PacingSimulator: Sendable {
         return OfflineCalculator.earnings(state: stamped, tiers: tiers, floorTable: floorTable, config: config, now: to)
     }
 
-    private func applyOffline(state: inout PlayerState, from: Double, to: Double) {
-        earn(state: &state, amount: offlineCredit(state: state, from: from, to: to))
+    /// Lo que cobra al volver, y con videos el ×2 (un video, que se descuenta de
+    /// la sesión que arranca) y el "próximo offline ×k" que dejó un premio.
+    private func applyOffline(
+        state: inout PlayerState, report: inout Report, clocks: inout SourceClocks, from: Double, to: Double
+    ) {
+        var credit = offlineCredit(state: state, from: from, to: to)
+        guard credit > 0 else { return }
+        credit *= clocks.pendingOfflineMultiplier
+        clocks.pendingOfflineMultiplier = 1
+        if let ads = activeAds, ads.offlineMultiplier > 1 {
+            credit *= ads.offlineMultiplier
+            clocks.pendingVideoSeconds += watchVideo(ads, report: &report)
+        }
+        earn(state: &state, amount: credit)
+        report.sourceTotals["coins.offline", default: 0] += credit
     }
 
     /// Lo que cobra el juego por contratar `typeId`: la curva, el amortiguador y

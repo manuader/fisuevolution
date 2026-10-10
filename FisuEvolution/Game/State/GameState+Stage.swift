@@ -6,14 +6,18 @@ import Foundation
 /// llegó o el que se iba salió.
 extension GameState {
     /// El escenario está libre y es un momento calmo: puede entrar alguien.
-    var canPresentOnStage: Bool { stageVisit == nil && isCalmMoment }
+    var canPresentOnStage: Bool { stageVisit == nil && isCalmMoment && ads?.isPresentingFullScreen != true }
 
     /// Pone a alguien en escena. Entra cuando la cola le da el turno
-    /// (`.visitorEncounter`); hasta entonces no se ve.
-    func presentOnStage(actorId: String, role: StageVisit.Role) {
+    /// (`.visitorEncounter`); hasta entonces no se ve. Devuelve si lo puso: con el
+    /// escenario ocupado o fuera de un momento calmo, no.
+    @discardableResult
+    func presentOnStage(actorId: String, role: StageVisit.Role) -> Bool {
+        guard canPresentOnStage else { return false }
         stageVisit = StageVisit(id: UUID(), actorId: actorId, role: role, phase: .entering, bubble: nil, offer: nil)
         stageRuntime.patienceLeft = 0
         syncCelebrations()
+        return true
     }
 
     /// La escena terminó la entrada.
@@ -64,9 +68,14 @@ extension GameState {
     }
 
     /// La paciencia corre con el delta del tick y sólo en un momento calmo, con
-    /// su popup cerrado y sin un reto en curso.
+    /// su popup cerrado, sin un anuncio en pantalla y sin un reto en curso. El
+    /// reto corre con reloj de pared (es corto y se juega mirando): vence antes
+    /// de la puerta de la paciencia.
     func advanceStage(delta: TimeInterval, now: TimeInterval = Date().timeIntervalSince1970) {
-        guard stageVisit?.phase == .waiting, isCalmMoment,
+        if let challenge = stageChallenge, now >= challenge.endsAt {
+            finishChallenge(won: false, now: now)
+        }
+        guard stageVisit?.phase == .waiting, isCalmMoment, ads?.isPresentingFullScreen != true,
               visitorPopup == nil, eventPopup == nil, stageChallenge == nil
         else { return }
         stageRuntime.patienceLeft -= delta
@@ -81,18 +90,24 @@ extension GameState {
         stageVisit = visit
     }
 
-    /// Lo que pasa cuando alguien llega: la oferta del visitante se cotiza acá (T2)
+    /// Lo que pasa cuando alguien llega: la oferta del visitante se cotiza acá
     /// y el evento del presentador se aplica acá (T4).
     private func arrive(_ visit: inout StageVisit) {
         switch visit.role {
-        case .visitor:
-            break
+        case .visitor(let scriptId):
+            arriveVisitor(&visit, scriptId: scriptId)
         case .presenter:
             break
         }
     }
 
     private func openStagePopup() {
-        // T2: el popup del visitante.
+        guard let visit = stageVisit else { return }
+        switch visit.role {
+        case .visitor:
+            openVisitorPopup()
+        case .presenter:
+            break
+        }
     }
 }

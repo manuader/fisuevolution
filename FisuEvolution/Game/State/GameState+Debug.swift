@@ -387,6 +387,26 @@ extension GameState {
         presentOnStage(actorId: "npc_vecina", role: .visitor(scriptId: "vecina_chisme"))
     }
 
+    /// Un visitante en escena ya mismo, con su guion real y salteando el sorteo
+    /// (no el tope ni el tier: eso lo decide el que lo llama). Los visitantes
+    /// vienen cada 4–6 min de juego: sin esta puerta no se pueden ni fotografiar
+    /// ni probar.
+    func debugPresentVisitor(scriptId: String) {
+        guard let script = content?.visitors.script(id: scriptId) else { return }
+        debugClearStage()
+        presentVisitor(script)
+    }
+
+    /// Saca a quien esté en escena, sin despedida (es una puerta de debug, no una
+    /// regla del juego). Si estaba entrando, su turno de la cola se cierra.
+    func debugClearStage() {
+        guard stageVisit != nil else { return }
+        stageVisit = nil
+        visitorPopup = nil
+        stageChallenge = nil
+        celebrationFinished(.visitorEncounter)
+    }
+
     /// Un evento arrancado ya mismo, con su efecto real. Los eventos salen cada
     /// 15–20 min de juego: sin esta puerta no se pueden ni fotografiar ni probar.
     func debugStartEvent(id: String) {

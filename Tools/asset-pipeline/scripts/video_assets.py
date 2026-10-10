@@ -222,7 +222,7 @@ CINEMATIC_IDS = ("intro", "reencarnacion", "arresto", "dios")
 OBJECT_IDS = ("paquete_abre", "paquete_espera", "colchon_abre", "colchon_espera")
 CABIN_IDS = ("puertas_cierran", "puertas_abren")
 EVENT_IDS = (
-    "aguinaldo", "blanqueo", "cayo_mercado_pago", "corralito", "devaluacion",
+    "aguinaldo", "blanqueo", "home_banking", "corralito", "devaluacion",
     "inversion_alienigena", "plan_platita", "startup_comprada",
 )
 ICON_IDS = tuple(f"ui_oro_{n}" for n in (

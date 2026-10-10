@@ -1295,8 +1295,8 @@
       "keyColor": null,
       "odrTag": "anim-eventos"
     },
-    "cayo_mercado_pago": {
-      "file": "ev_cayo_mercado_pago.mov",
+    "home_banking": {
+      "file": "ev_home_banking.mov",
       "width": 512,
       "height": 512,
       "fps": 24,

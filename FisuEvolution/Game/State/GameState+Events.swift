@@ -63,6 +63,7 @@ extension GameState {
         player.run.activeModifiers.removeAll { $0.sourceKey == event.sourceKey }
         player.run.activeModifiers += application.modifiers
         self.player = player
+        if let called = application.calledScript { stageRuntime.calledScript = called }
         if application.coinsSeconds > 0 {
             grant(.coinsSeconds(application.coinsSeconds), source: event.sourceKey, now: now)
         }

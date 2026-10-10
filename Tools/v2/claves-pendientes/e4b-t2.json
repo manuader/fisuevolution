@@ -1,0 +1,10 @@
+{
+  "visit.wrong_office": {"es": "Uy, me equivoqué de oficina. ¡Perdón, perdón!", "en": "Oops, wrong office. Sorry, sorry!"},
+  "visit.deal_off": {"es": "Ya no hay trato: cambió todo. ¡Otra vez será!", "en": "Deal's off: everything changed. Next time!"},
+  "visit.thanks": {"es": "¡Un placer hacer negocios con vos!", "en": "A pleasure doing business with you!"},
+  "visit.gossip.next": {"es": "Dicen que se viene… %1$@. ¡Yo no te dije nada!", "en": "Word is… %1$@ is coming. You didn't hear it from me!"},
+  "visit.gossip.none": {"es": "Hoy está todo tranquilo. Raro, ¿no?", "en": "All quiet today. Weird, huh?"},
+  "visit.challenge.won": {"es": "¡Bien ahí! Lo prometido es deuda.", "en": "Nailed it! A promise is a promise."},
+  "visit.challenge.double": {"es": "¡Ganaste! ¿Lo duplicamos con un video?", "en": "You won! Double it with a video?"},
+  "visit.challenge.lost": {"es": "Casi… ¡la próxima sale!", "en": "So close… next time!"}
+}

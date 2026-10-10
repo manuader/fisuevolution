@@ -52,6 +52,10 @@ struct StageRuntime {
     var pendingEvent: EventCatalog.Event?
     /// El guion que llamó un evento (el Cepo al Arbolito, T2).
     var calledScript: String?
+    /// El guion que pidió un fixture de arranque (`--uitest-visitor=`): el
+    /// bootstrap corre antes de `phase = .ready`, así que entra al primer
+    /// momento calmo, salteando el sorteo.
+    var debugScript: String?
     /// Quién anunció cada evento corriendo: su cara va en el chip (T4). En
     /// memoria: después de relanzar, el chip cae al primer presentador del dato.
     var eventPresenters: [String: String] = [:]

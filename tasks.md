@@ -540,7 +540,7 @@ que toma · commit o rama · nota.
 | E6a-T2 | Catálogo y cuentas de la tienda (EK) | ✅ | T1; E4a-T1 | — | | |
 | E6a-T3 | El auto-tap | ✅ | E1-T15; E4a-T2; E2a-T4 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | `720f3fe` (merge `e378307`, claves aplicadas) | revisión opus: Approved. Carries a T5: el "mejor" se elige por tier y no por pago (fiel al plan; anotar la decisión); un `now` para todo el delta (despreciable con tope 2 s); `RewardSpec` admite `.modifier(autoTapPerSecond)` y saltea `.autoTap` (rechazarlo en `validate` o declararlo válido) |
 | E6a-T4 | `oro_shop.json` | ⛔ | T2; E5b-T1; E5a-T5 | catálogo (dueña); GameContentLoader | | |
-| E6a-T5 | Se entregan auto-tap, Offline ×3 y Diario ×3 | 🔄 | T3; E4a-T8, E4a-T9; E5a-T6, E5a-T8; E2a-T11 | 🔥 +Bonus; +Lifecycle (T8 mudó ahí el offline), +Rewards, +Engagement | | |
+| E6a-T5 | Se entregan auto-tap, Offline ×3 y Diario ×3 | 🟢 | T3; E4a-T8, E4a-T9; E5a-T6, E5a-T8; E2a-T11 | 🔥 +Bonus; +Lifecycle (T8 mudó ahí el offline), +Rewards, +Engagement | | |
 | E6a-T6 | Comprar en la tienda | ⛔ | T4, T5; E2a-T14; E1-T14; E5a-T1, E5a-T3, E5a-T6, E5a-T8 | BoardChange.swift, +BoardChanges | | |
 | E6a-T7 | La suerte: probabilidades | ⛔ | T6; E5a-T1, E5a-T8; E1-T6 | StoreManager | | sale con E1 T6c adentro |
 | E6a-T8 | La pantalla "Comprar ORO / Gastar ORO" | ⛔ | T6, T7; E3b-T4; E5b-T1; E5a-T8 | catálogo (dueña); StoreView | | |

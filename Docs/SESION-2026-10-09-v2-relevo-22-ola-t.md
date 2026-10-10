@@ -11,12 +11,12 @@ dos tocan el save o dinero). Todo pasó por **`v2i/integ-r22`** (BASE `version-2
 |---|---|
 | `version-2` | la punta de `9cccaf6` tras su `rapido` VERDE (fast-forward y push; progreso 159 de 254) |
 | `v2i/integ-r22` | **`8ab8b33`**: suma E4a T6, E4a T7 y E6a T1 (🟢 las tres) sobre `9cccaf6` |
-| `rapido` sobre `8ab8b33` | RAPIDO_PENDIENTE |
+| `rapido` sobre `8ab8b33` | VERDE (EK 735 · unit 1143 · 0 rojos · Release 0) |
 | Progreso | **159 de 254 en `version-2` (62,6 %)**; **162 de 254 (63,8 %)** si el `rapido` sobre `8ab8b33` da VERDE (`tasks.md` §2) |
 | Bloqueadas | ninguna nueva. E7b-a T3 sigue ⛔ por sus dependencias y es **bloqueo de publicación** (sin cambios desde el 21c) |
 
 `rapido` de la tanda, en orden: `a0e7255` **ROJO** (unit 1128/1: `SkinCatalogRowsTests`, ver «El rojo del rapido»); `ddea816` VERDE (EK 654 · unit 1136 · 0 rojos ·
-Release 0); `9cccaf6` VERDE (EK 708 · unit 1136 · 0 rojos · Release 0); `8ab8b33` RAPIDO_PENDIENTE.
+Release 0); `9cccaf6` VERDE (EK 708 · unit 1136 · 0 rojos · Release 0); `8ab8b33` VERDE (EK 735 · unit 1143 · 0 rojos · Release 0).
 
 ## Lo que se integró
 
@@ -84,7 +84,7 @@ rojo del `rapido` después de una tarea de contenido, mirar primero qué test cu
 
 ## Oráculo
 
-- `rapido` sobre la punta de `integ-r22` (`8ab8b33`: E4a T6, T7 y E6a T1 sobre `9cccaf6`): RAPIDO_PENDIENTE.
+- `rapido` sobre la punta de `integ-r22` (`8ab8b33`: E4a T6, T7 y E6a T1 sobre `9cccaf6`): VERDE (EK 735 · unit 1143 · 0 rojos · Release 0).
 - Sin `completo` en esta tanda. Los cierres que lo piden (E8 T10 `--limpio`, E13b T11) quedan para el 23; E12 T15 y E6b T9 se integraron con `tarea` + `rapido`, no con `completo`.
 
 ## Lo descartado

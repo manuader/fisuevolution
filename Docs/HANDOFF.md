@@ -22,7 +22,7 @@
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
 > 22, la ola T): `version-2` = la punta de **`9cccaf6`** tras su `rapido` VERDE (EK 708 · unit 1136 · 0 rojos · Release 0) · la rama de integración `v2i/integ-r22` = **`8ab8b33`** + estos
-> docs (`rapido` sobre `8ab8b33`: RAPIDO_PENDIENTE). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a T: **compartir recableado** (E3b T9, la
+> docs (`rapido` sobre `8ab8b33`: VERDE (EK 735 · unit 1143 · 0 rojos · Release 0)). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a T: **compartir recableado** (E3b T9, la
 > llave de E4a), **la privacidad del ranking** (E12 T15), **las tres familias en el catálogo** (E6b T9), **los relojes de visitantes y eventos en el save** (E4a T3), **el motor de eventos
 > y los visitantes puros** (E4a T4 y T5), **buzón, colchón y ruleta en el save** (E5a T4) y, en `integ-r22`, el `VisitPlanner` (E4a T6), el contenido de los 18 visitantes (E4a T7) y la
 > tienda y las ofertas en el save (E6a T1). **Progreso: 159 de 254 tareas activas en `version-2` (62,6 %); 162 de 254 (63,8 %) si el `rapido` de `integ-r22` da VERDE** (`tasks.md` §2).
@@ -351,7 +351,7 @@ Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
 
 ### Sesión del 2026-10-09 (relevo 22) — La ola T: compartir recableado, la privacidad del ranking, las familias y el motor de visitantes
 
-Un solo relevo, abierto a las 22:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a 268k de contexto. Todo en `v2i/integ-r22` (`8ab8b33`; `rapido`: RAPIDO_PENDIENTE). **Progreso: 159 de 254 en `version-2`; 162 de 254 (63,8 %) con las tres 🟢.**
+Un solo relevo, abierto a las 22:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a 268k de contexto. Todo en `v2i/integ-r22` (`8ab8b33`; `rapido`: VERDE (EK 735 · unit 1143 · 0 rojos · Release 0)). **Progreso: 159 de 254 en `version-2`; 162 de 254 (63,8 %) con las tres 🟢.**
 
 - **La llave de E4a:** E3b T9 (`GameState+Share`, `EngagementState.sharedMoments`; revisión opus Approved con arreglos) destrabó E4a T3 y E5a T4, y con ellos el resto de la cadena.
 - **El motor de visitantes y eventos:** E4a T3 (los relojes en `meta.engagement`), T4 (eventos v2, EK), T5 (visitantes puros, EK), T6 (`VisitPlanner`; `Origin.visitor`) y T7 (los 18

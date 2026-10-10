@@ -524,7 +524,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E5b-T1 | La Ruleta en pantalla | 🔄 | E5a-T8; E4b-T3 | catálogo (snapshot); AudioManager | | cablea `sfx_wheel_tick`; crea `OddsDisclosureView` y `RewardCopy` |
+| E5b-T1 | La Ruleta en pantalla | 🟢 | E5a-T8; E4b-T3 | catálogo (snapshot); AudioManager | | cablea `sfx_wheel_tick`; crea `OddsDisclosureView` y `RewardCopy` |
 | E5b-T2 | Los accesos y las hojas | ⛔ | T1; E5a-T6, E5a-T7, E5a-T8; E4b-T3, E4b-T4, E4b-T9; E3a-T6, E3a-T11 | 🔥 GameState, RootView, catálogo; +Rewards, DebugPanelView | | |
 | E5b-T3 | La escena: cajas, colchón, apertura | ⛔ | T2; E1-T10; E4b-T1, E4b-T6, E4b-T9; E3a-T10 | 🔥 BoardScene | | |
 | E5b-T4 | La Ruleta en Regalos | ⛔ | T1 | catálogo (dueña o snapshot) | | |

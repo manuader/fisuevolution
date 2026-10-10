@@ -83,7 +83,7 @@
 
 ## 2. Progreso
 
-**Hoy: 177 de 254 tareas activas integradas en `version-2` (69,7 %): los cierres E8 T10, E13b T11 y E13 T14 entraron con el `rapido` VERDE sobre `5fca66d` (EK 814 · unit 1175 · 0 rojos · Release 0); antes, 174 (68,5 %).** En el relevo 23 pasaron a ✅: E6a T2, E6a T10, E9b T7, E2b T3 y E6b T6 (`rapido` VERDE sobre `ed85656`: EK 784 · unit 1143), E4a T9 y E2b T4 (sobre `a997a30`: EK 791 · unit 1154) y E2b T11, T5, T6, E5a T5 y T6 (sobre `9dcf469`: EK 814 · unit 1175 · 0 rojos · Release 0); partían de 162 (63,8 %) al cierre del 22. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 5, las que destrabó la ola U: E4a T10, E5a T7, E4b T7, E2b T7 y E6a T11. E12 T12 está ⛔, E12 T16 🔒 y E7b-a T3 ⛔ (bloqueo de publicación, §4.2).
+**Hoy: 182 de 254 tareas activas integradas en `version-2` (71,7 %): en el relevo 24 entraron E4a T10, E2b T7, E2b T8, E4b T7 y E6a T11 con el `rapido` VERDE sobre `25cc5da` (EK 825 · unit 1190 · 0 rojos · Release 0; la tabla por épica se recalcula al cierre del relevo). Antes: 177 de 254 (69,7 %): los cierres E8 T10, E13b T11 y E13 T14 entraron con el `rapido` VERDE sobre `5fca66d` (EK 814 · unit 1175 · 0 rojos · Release 0); antes, 174 (68,5 %).** En el relevo 23 pasaron a ✅: E6a T2, E6a T10, E9b T7, E2b T3 y E6b T6 (`rapido` VERDE sobre `ed85656`: EK 784 · unit 1143), E4a T9 y E2b T4 (sobre `a997a30`: EK 791 · unit 1154) y E2b T11, T5, T6, E5a T5 y T6 (sobre `9dcf469`: EK 814 · unit 1175 · 0 rojos · Release 0); partían de 162 (63,8 %) al cierre del 22. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 5, las que destrabó la ola U: E4a T10, E5a T7, E4b T7, E2b T7 y E6a T11. E12 T12 está ⛔, E12 T16 🔒 y E7b-a T3 ⛔ (bloqueo de publicación, §4.2).
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
@@ -471,7 +471,7 @@ que toma · commit o rama · nota.
 | E4a-T7 | El contenido de los visitantes | ✅ | T5, T6; E11-T2, E3a-T1 | catálogo (snapshot); GameContentLoader, LocalizationCompletenessTests | `9eb8efd` (en `v2i/integ-r22`, 81 claves) | carga el Anexo A (con los guiños: Coach 67 toques, Crypto Bro "six seven", Vecina "andá pa' allá, bobo"; PLAN-v2 §2) |
 | E4a-T8 | `grant` y el momento calmo | ✅ | T1, T2; E1-T8, E1-T14 | — | `8376c23` (merge `e378307`) | sin llamadores todavía; carries a T9: `isCalmMoment` duplica `isSafeMomentForInterstitial` (E7b lo unifica); los kinds fuera de `grantableRewardKinds` no se ofrecen (VisitorScheduler/`eventIsApplicable`) |
 | E4a-T9 | La mudanza a eventos v2 | ✅ | T2, T4, T7, T8; E1-T16 | 🔥 GameState, +Bonus, ContentSystems, catálogo | | |
-| E4a-T10 | Cierre de E4a | 🟢 | T1–T9 | `Docs/` | | |
+| E4a-T10 | Cierre de E4a | ✅ | T1–T9 | `Docs/` | | |
 
 ### E4b — Visitantes y eventos v2, lo que se ve (`2026-10-07-v2-e4b-visitantes-eventos.md`)
 
@@ -483,7 +483,7 @@ que toma · commit o rama · nota.
 | E4b-T4 | Eventos con presentador; adiós al banner | ⛔ | T3 | 🔥 GameState, RootView, catálogo, +Bonus; CelebrationQueue, +Celebrations, ActiveBonus* | | |
 | E4b-T5 | El reto y las cartas del Vendedor | ⛔ | T3 | catálogo (snapshot) | | ∥ T4 |
 | E4b-T6 | El Apagón y los Campeones | ⛔ | T4 | 🔥 BoardScene; AudioManager | | cablea `sfx_blackout` |
-| E4b-T7 | La Liquidación en el precio | 🟢 | E4a-T9; E3b-T5, E3b-T6, E3b-T7 | ActiveModifier, +Hiring, GameArtComponents; catálogo (snapshot) | | |
+| E4b-T7 | La Liquidación en el precio | ✅ | E4a-T9; E3b-T5, E3b-T6, E3b-T7 | ActiveModifier, +Hiring, GameArtComponents; catálogo (snapshot) | | |
 | E4b-T8 | El Álbum de especiales | ⛔ | E4a (cerrada); E3b-T3 | catálogo; MenuView, +TutorialTips | | |
 | E4b-T9 | Los especiales salen del tablero | ⛔ | T8, T6 | 🔥 BoardScene, GameState, RootView, PlayerState (docstring); +BoardChanges, +Debug | | |
 | E4b-T10 | Cierre de E4 | ⛔ | T1–T9 | `Docs/` | | |
@@ -528,7 +528,7 @@ que toma · commit o rama · nota.
 | E6a-T8 | La pantalla "Comprar ORO / Gastar ORO" | ⛔ | T6, T7; E3b-T4; E5b-T1; E5a-T8 | catálogo (dueña); StoreView | | |
 | E6a-T9 | Los packs 160 / 550 / 1.400 | ✅ | E1-T6; E2a-T7 | products.json, StoreManagerTests | `7cc20d9` (merge `2446069`) | StoreManagerTests 13/14 a mano (timeout de carga, solo pasa) |
 | E6a-T10 | Las ofertas de 24 h, puras | ✅ | T1; E4a-T1 | — | | |
-| E6a-T11 | Las ofertas se cobran | 🟢 | T9, T10; E4a-T8; E2a-T7; E5a-T6 | catálogo (snapshot); products.json, +Store | | con T6c: por `recordOroPurchase`, no `+=` |
+| E6a-T11 | Las ofertas se cobran | ✅ | T9, T10; E4a-T8; E2a-T7; E5a-T6 | catálogo (snapshot); products.json, +Store | | con T6c: por `recordOroPurchase`, no `+=` |
 | E6a-T12 | Las ofertas se ven | ⛔ | T7, T8, T11; E5a-T8; E4b-T3; E3a-T6; E5b-T1, E5b-T2 | 🔥 RootView, catálogo; CelebrationQueue, +Celebrations | | |
 | E6a-T13 | Cierre de E6a | ⛔ | T1–T12 | `Docs/` | | |
 
@@ -691,8 +691,8 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 | E2b-T4 | Política de pisos en marcha del bot (EK, opus) | ✅ | T3; E2a-T4 | — | | |
 | E2b-T5 | Perfiles y fuentes gratis (EK) | ✅ | T4; E5a-T1 | archivo de `PackageRoller` | | |
 | E2b-T6 | El perfil `.ads` (EK) | ✅ | T5; E4a-T1, E4a-T8, E5a-T2, E5a-T3 | — | | |
-| E2b-T7 | El perfil `.max` (EK) | 🟢 | T6; E6a-T2, E6b-T6 | — | | |
-| E2b-T8 | El CLI del pacing-sim | 🟢 | T7 | — | | |
+| E2b-T7 | El perfil `.max` (EK) | ✅ | T6; E6a-T2, E6b-T6 | — | | |
+| E2b-T8 | El CLI del pacing-sim | ✅ | T7 | — | | |
 | E2b-T9 | La suite del contrato (apagada) | ⛔ | T8; E5a-T5, E6a-T4, E7b-a-T3, E7b-b-T2, E2a-T11, E2a-T12 | — | | |
 | E2b-T10 | Presupuestos analíticos | ⛔ | E2a-T11, E4a-T7, E4a-T9, E6a-T4 | `visitors.json` | | |
 | E2b-T11 | La herencia en pantalla | ✅ | T2; E2a-T8 | catálogo (snapshot) | | |

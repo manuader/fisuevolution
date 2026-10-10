@@ -67,9 +67,27 @@ struct DiscountedPriceTests {
         gameState.player?.run.activeModifiers += [
             ActiveModifier(effect: .spawnCostMultiplier, magnitude: 0.7, expiresAt: now + 60, sourceKey: "boost.mate"),
             ActiveModifier(effect: .spawnCostMultiplier, magnitude: 0.7, expiresAt: now + 60, sourceKey: "visit.arca_factura"),
+            ActiveModifier(effect: .spawnCostMultiplier, magnitude: 0.7, expiresAt: now + 60, sourceKey: "influencer_codigo"),
         ]
         let discounted = try #require(gameState.player)
         let charged = try #require(gameState.currentQuote(player: discounted, typeId: typeId)?.cost)
-        #expect(abs(charged / list - ModifierMath.spawnCostStackFloor) < 0.01)
+        #expect(abs(charged / list - ModifierMath.spawnCostStackFloor) < 1e-3)
+    }
+
+    @Test("recargo y descuento a la vez: la lista incluye el recargo")
+    func listIncludesTheSurcharge() async throws {
+        let gameState = await world()
+        let player = try #require(gameState.player)
+        let typeId = try #require(hirable(gameState).first?.id)
+        let base = try #require(gameState.currentQuote(player: player, typeId: typeId)?.cost)
+        let now = Date().timeIntervalSince1970
+        gameState.player?.run.activeModifiers += [
+            ActiveModifier(effect: .spawnCostMultiplier, magnitude: 2, expiresAt: now + 60, sourceKey: "event.recargo"),
+            ActiveModifier(effect: .spawnCostMultiplier, magnitude: 0.5, expiresAt: now + 60, sourceKey: "event.liquidacion"),
+        ]
+        let both = try #require(gameState.player)
+        let charged = try #require(gameState.currentQuote(player: both, typeId: typeId)?.cost)
+        #expect(abs(charged / base - 1) < 1e-3, "2 x 0,5 cobra lo de lista")
+        #expect(gameState.listCostText(typeId: typeId, cost: charged, player: both) == CoinFormatter.cost(from: base * 2))
     }
 }

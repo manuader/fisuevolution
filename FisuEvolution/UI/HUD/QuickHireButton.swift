@@ -236,6 +236,9 @@ struct QuickHireButton: View {
         case nil:
             label = label + Text(verbatim: ", \(String(localized: "price.ax.coins \(offer.costText)"))")
         }
+        if let list = offer.listCostText, offer.blocker != .floorFull {
+            label = label + Text(verbatim: ", \(String(localized: "price.ax.was \(list)"))")
+        }
         if offer.isPinned {
             label = label + Text(verbatim: ", ") + Text("quickhire.ax.pinned")
         }

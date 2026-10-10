@@ -135,6 +135,23 @@ extension GameState {
         return state
     }
 
+    /// Cuándo vuelven los giros por video, si hoy se usó alguno: la medianoche
+    /// que cierra el día guardado, con el mismo calendario gregoriano fijo de
+    /// `wheelDay` y la misma tolerancia (un día guardado futuro sólo cuenta hasta
+    /// mañana). Los giros regalados y los de ORO no avisan: los regalados no
+    /// vencen y el de ORO depende de la tienda. Sin giros por video usados, nada.
+    func wheelSpinsReadyAt(now: TimeInterval) -> TimeInterval? {
+        guard let wheel = player?.meta.engagement.wheel else { return nil }
+        let state = Self.wheelState(wheel, at: now)
+        guard state.videoSpinsUsed > 0, let saved = state.day else { return nil }
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .current
+        let today = calendar.startOfDay(for: Date(timeIntervalSince1970: now))
+        return (1...2)
+            .compactMap { calendar.date(byAdding: .day, value: $0, to: today)?.timeIntervalSince1970 }
+            .first { Self.wheelDay($0) > saved }
+    }
+
     /// El tic de una rebanada que pasa bajo el puntero: el sonido y una
     /// vibración corta. El ritmo lo marca la vista (`WheelGeometry.boundariesCrossed`);
     /// el anti-duplicado de `AudioManager` evita la ametralladora al arrancar.

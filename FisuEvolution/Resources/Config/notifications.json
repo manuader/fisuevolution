@@ -3,7 +3,8 @@
   "notifications": [
     { "id": "vault_full" },
     { "id": "daily_ready" },
-    { "id": "comeback" }
+    { "id": "comeback" },
+    { "id": "wheel_ready" }
   ],
   "quietHours": { "startHour": 22, "endHour": 9 },
   "minSpacingHours": 4,

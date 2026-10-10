@@ -58,6 +58,7 @@ struct NotificationPlannerTests {
         producesOffline: Bool = true,
         capHours: Double = 10,
         dailyClaimedToday: Bool = true,
+        wheelReadyAt: TimeInterval? = nil,
         config: NotificationsConfig = fxNotifications(),
         preferences: NotificationPreferences = NotificationPreferences()
     ) -> [PlannedNotification] {
@@ -66,7 +67,8 @@ struct NotificationPlannerTests {
                 now: now,
                 producesOffline: producesOffline,
                 offlineCapHours: capHours,
-                dailyClaimedToday: dailyClaimedToday
+                dailyClaimedToday: dailyClaimedToday,
+                wheelSpinsReadyAt: wheelReadyAt
             ),
             config: config,
             preferences: preferences,
@@ -79,6 +81,19 @@ struct NotificationPlannerTests {
     }
 
     // MARK: Cada motivo
+
+    @Test("la ruleta avisa cuando vuelven los giros, corrida fuera del silencio")
+    func wheelReadyAfterTheQuietHours() throws {
+        let midnight = try ba.at(6, 0)
+        let nine = try ba.at(6, 9)
+        let planned = plan(leavingAt: try ba.at(5, 20), producesOffline: false, wheelReadyAt: midnight)
+        #expect(fireAt(.wheelReady, in: planned) == nine)
+    }
+
+    @Test("sin giros por recuperar, la ruleta no avisa")
+    func noWheelNoNotice() throws {
+        #expect(fireAt(.wheelReady, in: plan(leavingAt: try ba.at(5, 20))) == nil)
+    }
 
     @Test("la caja fuerte avisa cuando se llena: al irse más el tope offline")
     func vaultFullAtTheOfflineCap() throws {

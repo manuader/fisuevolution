@@ -14,6 +14,8 @@ public enum NotificationKind: String, CaseIterable, Sendable {
     case dailyReady = "daily_ready"
     /// Días sin entrar, una sola vez por ausencia.
     case comeback
+    /// La ruleta tiene giros nuevos (E5).
+    case wheelReady = "wheel_ready"
 }
 
 /// Espejo Codable de `notifications.json`: el catálogo y las reglas del

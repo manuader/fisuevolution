@@ -25,7 +25,8 @@ extension GameState {
             now: now,
             producesOffline: passive > 0,
             offlineCapHours: content.economy.offlineCapHours,
-            dailyClaimedToday: player.meta.daily.lastClaimDay == today
+            dailyClaimedToday: player.meta.daily.lastClaimDay == today,
+            wheelSpinsReadyAt: wheelSpinsReadyAt(now: now)
         )
     }
 

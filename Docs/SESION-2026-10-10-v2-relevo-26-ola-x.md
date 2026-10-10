@@ -14,11 +14,11 @@ después (E7b-b T6 fue la última tarea) y se cerró con los subagentes de tarea
 | `version-2` | `652bc6a`, la punta tras el `rapido` VERDE sobre `4b44a4e` (EK 827 · unit 1308 · 0 rojos · Release 0): **193 de 254 (76,0 %)** |
 | `v2i/integ-r26` | `1f090ef` (suma E7b-a T3, 🟢) + `tasks.md` + los docs del cierre (`v2i/docs-r26`) |
 | Progreso | **193 de 254 en `version-2`; 194 de 254 (76,4 %) con E7b-a T3 ✅** si el `rapido` de la punta da VERDE |
-| `rapido` de la punta | RAPIDO_PENDIENTE |
+| `rapido` de la punta | VERDE (EK 827 · unit 1329 · 0 rojos · Release 0): E7b-a T3 ✅, 194 de 254 (76,4 %) |
 | Bloqueadas | ninguna nueva. **El bloqueo de publicación (E7b-a T3) está hecho a falta del `rapido`: sin él no se publica E7b-a T2.** E12 T12 ⛔ (espera a E9b T8) |
 
 `rapido` de la tanda, en orden: `015c5f7` VERDE (EK 827 · unit 1289 · 0 rojos · Release 0; E4b T5 y E6a T5 ✅, 190 de 254); `7c6ad1d` VERDE (unit 1300; E5b T1 ✅, 191); `93d2d65` VERDE (unit 1302; E8b T11 ✅, 192);
-`4b44a4e` VERDE (unit 1308; E7b-b T6 ✅, 193); la punta final con E7b-a T3 (`1f090ef`): RAPIDO_PENDIENTE. Cuatro `rapido` seguidos en VERDE, ninguno con flake. No hubo `completo` en esta ola: el último de referencia sigue siendo el de los cierres del 23 (sobre `bab8a9c`).
+`4b44a4e` VERDE (unit 1308; E7b-b T6 ✅, 193); la punta final con E7b-a T3 (`1f090ef`): VERDE (EK 827 · unit 1329 · 0 rojos · Release 0): E7b-a T3 ✅, 194 de 254 (76,4 %). Cuatro `rapido` seguidos en VERDE, ninguno con flake. No hubo `completo` en esta ola: el último de referencia sigue siendo el de los cierres del 23 (sobre `bab8a9c`).
 
 ## Lo que se integró
 
@@ -29,7 +29,7 @@ después (E7b-b T6 fue la última tarea) y se cerró con los subagentes de tarea
 | **E5b T1** la Ruleta en pantalla | `44259ad` + arreglos `747492a` (merge `4644e67`, claves `7c6ad1d`, tasks `26396aa`) | tarea VERDE (EK 827 · unit 30, luego 33); revisión opus: **Approved con arreglos**, hechos. DONE_WITH_CONCERNS. `rapido` VERDE (unit 1300) → ✅ | `WheelGeometry`/`WheelCanvas`/`WheelView`, `OddsDisclosureView`, `RewardCopy`, `SFX.wheelTick`, `Pattern.tick`, `playWheelTick`; `LootBoxGate.current()` a `wheelAvailability`/`spinWheel` (arranca en false); `.video`/`repeat` sólo desde `onRewarded`; girar bloqueado al animar; 27 claves por snapshot; el colchón y `wheel_frame` no aplican en T1; `isFinished` con tolerancia 1e-6 |
 | **E8b T11** el arresto | `5f52ed3` (merge `7acc765`, tasks `93d2d65`) | tarea VERDE (EK 827 · unit 48); sin revisión opus, diff de 1 línea leído por el controlador. `rapido` VERDE (unit 1302) → ✅ | `playCinematicIfDue(.arresto)` en `chooseVisitOption` con `.release`, antes de las salidas; la fianza no lleva cinemática; 2 tests; 0 claves. Destraba E8d T15 |
 | **E7b-b T6** Diario ×2 y carrera ×2 por video | `6519071` + arreglo `2fb2e90` (merge `4548554`, claves `4b44a4e`, tasks `652bc6a`) | tarea VERDE (EK 827 · unit 27, luego 16); sin revisión opus: el controlador leyó el diff y devolvió un obligatorio. `rapido` VERDE (unit 1308) → ✅ | `doubleDailyReward` una vez por día por `rewardedActivations['daily.x2']`, sólo plata; `chooseCareerWithVideo` + `grant coinsSeconds` del `lumpMinutes`; `DailyRewardView` `daily.double` (detent 0,6 sin medir), `CareerChoiceView` `career.x2.<id>`; `isBusy`; 2 claves |
-| **E7b-a T3** la pausa publicitaria | `de150c6` + arreglos `bf63962` (merge `06379f6`, claves `1f090ef`) | tarea VERDE (EK 827 · unit 80, luego 61); `AdBreakUITests` 2/2 en SE y 16 Pro; `CharacterSheet` 3/3, `QuickHire` 3/3; revisión opus: **Approved con arreglos**, hechos. DONE_WITH_CONCERNS. 🟢 (`rapido` RAPIDO_PENDIENTE) | previa de 5 s, «No, gracias» sin castigo, premio que rota; `isBoardBusy` como definición única de calma; `lastRewardedInterstitialAttempt` en `AdsProvider` para `recordShown`; tocó también `+FrameLoop`/`+Types`/`+Rewards`/`AdsCoordinator`/`AdMobAdsProvider`/`AdFormatsTests`; 6 claves |
+| **E7b-a T3** la pausa publicitaria | `de150c6` + arreglos `bf63962` (merge `06379f6`, claves `1f090ef`) | tarea VERDE (EK 827 · unit 80, luego 61); `AdBreakUITests` 2/2 en SE y 16 Pro; `CharacterSheet` 3/3, `QuickHire` 3/3; revisión opus: **Approved con arreglos**, hechos. DONE_WITH_CONCERNS. 🟢 (`rapido` VERDE (EK 827 · unit 1329 · 0 rojos · Release 0): E7b-a T3 ✅, 194 de 254 (76,4 %)) | previa de 5 s, «No, gracias» sin castigo, premio que rota; `isBoardBusy` como definición única de calma; `lastRewardedInterstitialAttempt` en `AdsProvider` para `recordShown`; tocó también `+FrameLoop`/`+Types`/`+Rewards`/`AdsCoordinator`/`AdMobAdsProvider`/`AdFormatsTests`; 6 claves |
 
 Merges en `integ-r26` (encadenados): E4b T5 `d475a04`; E6a T5 `a9f865c`; E5b T1 `4644e67`; E8b T11 `7acc765`; E7b-b T6 `4548554`; E7b-a T3 `06379f6`. Los worktrees se borraron al integrar (E4b T5 1.641 MB, E6a T5 1.642 MB, E5b T1 1.767 MB, E8b T11 1.690 MB;
 los de E7b-b T6 y E7b-a T3 también). Claves por snapshot aplicadas al integrar E4b T5 (3), E5b T1 (27), E7b-b T6 (2) y E7b-a T3 (6). Progreso por `rapido`: 188 → 190 → 191 → 192 → 193 en `version-2`.
@@ -117,7 +117,7 @@ el tutorial, los paquetes y el colchón no usan `isCalmMoment`).
 
 ## Oráculo
 
-- `rapido`: `015c5f7` VERDE (EK 827 · unit 1289); `7c6ad1d` VERDE (unit 1300); `93d2d65` VERDE (unit 1302); `4b44a4e` VERDE (unit 1308); punta final con E7b-a T3 (`1f090ef` + docs): RAPIDO_PENDIENTE.
+- `rapido`: `015c5f7` VERDE (EK 827 · unit 1289); `7c6ad1d` VERDE (unit 1300); `93d2d65` VERDE (unit 1302); `4b44a4e` VERDE (unit 1308); punta final con E7b-a T3 (`1f090ef` + docs): VERDE (EK 827 · unit 1329 · 0 rojos · Release 0): E7b-a T3 ✅, 194 de 254 (76,4 %).
 - Todos los VERDE: EK 827, 0 rojos, Release 0.
 - UI sueltos: `VisitorMechanicsUITests` 2/2 y `VisitorUITests` 3/3 (SE); `AdBreakUITests` 2/2 en SE y en 16 Pro; `CharacterSheet`/`QuickHire` 3/3; `BonusHUDUITests.testTwoBonusesShowAtTheSameTime` rojo la 1ª vez y verde sola.
 - Sin `completo`: el de referencia sigue siendo el de los cierres del 23 sobre `bab8a9c`.

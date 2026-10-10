@@ -103,6 +103,11 @@ struct PrizeAccessTests {
         #expect(gameState.wheelSheet == nil)
         gameState.grant(.wheelSpin(1), source: "visit.conductor_ruleta")
         gameState.visitorPopupDismissed()
+        #expect(gameState.wheelSheet == nil, "un giro de visita sin popup abierto (un reto) no abre nada")
+        gameState.visitorPopup = VisitorPopup(id: UUID())
+        gameState.grant(.wheelSpin(1), source: "visit.conductor_ruleta")
+        gameState.visitorPopup = nil
+        gameState.visitorPopupDismissed()
         #expect(gameState.wheelSheet != nil)
         gameState.closeWheel()
         gameState.visitorPopupDismissed()
@@ -135,5 +140,58 @@ struct PrizeAccessTests {
         #expect(gameState.isBoardBusy)
         gameState.closeWheel()
         #expect(gameState.isBoardBusy == calm)
+    }
+
+    @Test("si algo más tapa la pantalla, la ruleta no se abre: el giro queda para Regalos")
+    func theWheelWaitsForACalmBoard() async {
+        let gameState = await makeGameState()
+        gameState.uiCoversBoard = true
+        gameState.openWheel()
+        #expect(gameState.wheelSheet == nil)
+        gameState.uiCoversBoard = false
+        gameState.openWheel()
+        #expect(gameState.wheelSheet != nil)
+    }
+
+    @Test("con dos paquetes y un solo lugar, el segundo toque dice LLENO y no encola otra llegada")
+    func queuedArrivalsTakeTheRoom() async throws {
+        let gameState = await makeGameState()
+        let base = try #require(gameState.content?.tiers.baseType.id)
+        let capacity = try #require(gameState.tower?.floors.first?.def.capacity)
+        gameState.player?.run.units = [base: capacity - 1]
+        gameState.reconcileTower()
+        gameState.debugAddPackages(2)
+        guard case .opened = gameState.packageTapped() else {
+            Issue.record("el primero tenía lugar")
+            return
+        }
+        #expect(gameState.packageTapped() == .full)
+        #expect(gameState.pendingBoardChanges.filter { $0.origin == .package }.count == 1)
+        #expect(gameState.prizeAccess.packagesWaiting == 1)
+        #expect(gameState.prizeAccess.packagesBlocked)
+    }
+}
+
+@Suite("El cerrojo de la ruleta")
+@MainActor
+struct WheelSpinLatchTests {
+    @Test("dos toques seguidos al giro por ORO cobran uno solo")
+    func oroSpinChargesOnce() async {
+        let gameState = await makeGameState()
+        gameState.player?.meta.oro = 100
+        var latch = PurchaseLatch()
+        let before = gameState.wheelAvailability(storefrontAllows: true).oroLeft
+        #expect(gameState.beginWheelSpin(.oro, latch: &latch, storefrontAllows: true) != nil)
+        #expect(gameState.beginWheelSpin(.oro, latch: &latch, storefrontAllows: true) == nil)
+        #expect(gameState.wheelAvailability(storefrontAllows: true).oroLeft == before - 1)
+    }
+
+    @Test("un giro que no sale suelta el cerrojo")
+    func aFailedSpinReleasesTheLatch() async {
+        let gameState = await makeGameState()
+        gameState.player?.meta.oro = 0
+        var latch = PurchaseLatch()
+        #expect(gameState.beginWheelSpin(.oro, latch: &latch, storefrontAllows: true) == nil)
+        #expect(!latch.isLocked)
     }
 }

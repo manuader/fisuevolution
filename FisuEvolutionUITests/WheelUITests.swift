@@ -46,19 +46,38 @@ final class WheelUITests: XCTestCase {
         XCTAssertTrue(app.buttons["wheel.spin.video"].exists, "después del regalado quedan los de video")
     }
 
-    /// Dos toques seguidos gastan UN giro: con dos regalados, queda uno.
-    func testDoubleTapSpendsOneSpin() {
+    /// Un toque al giro regalado gasta UNO: con dos regalados, queda uno. El doble
+    /// cobro se prueba con un unitario del cerrojo (`WheelSpinLatchTests`).
+    func testASpinSpendsOneSpin() {
         let app = launch(spins: 2)
         openWheel(app)
 
         let free = app.buttons["wheel.spin.bonus"]
         XCTAssertTrue(free.waitForExistence(timeout: 5))
-        free.doubleTap()
+        free.tap()
 
         XCTAssertTrue(app.descendants(matching: .any)["wheel.result"].waitForExistence(timeout: 8))
         XCTAssertTrue(app.buttons["wheel.spin.bonus"].waitForExistence(timeout: 5),
-                      "el doble toque no gastó el segundo giro regalado")
+                      "gastó un giro regalado y quedó el otro")
         XCTAssertFalse(app.buttons["wheel.spin.video"].exists, "con un regalado en pie no se ofrece el de video")
+    }
+
+    /// El giro por video gira cuando el video se premia (el stub paga a los 2 s) y
+    /// la cuenta de videos de hoy baja.
+    func testTheVideoSpinSpinsAndCountsDown() {
+        let app = launch(spins: 0)
+        openWheel(app)
+
+        let video = app.buttons["wheel.spin.video"]
+        XCTAssertTrue(video.waitForExistence(timeout: 5))
+        let before = video.label
+        video.tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["wheel.result"].waitForExistence(timeout: 12),
+                      "el video se miró y la rueda tiene que girar")
+        let after = app.buttons["wheel.spin.video"]
+        XCTAssertTrue(after.waitForExistence(timeout: 8))
+        XCTAssertNotEqual(after.label, before, "la cuenta de videos bajó")
     }
 
     /// Mientras carga el video de "repetir" no se puede girar.
@@ -74,8 +93,10 @@ final class WheelUITests: XCTestCase {
         again.tap()
 
         XCTAssertTrue(app.descendants(matching: .any)["wheel.repeat.watching"].waitForExistence(timeout: 3))
-        XCTAssertFalse(app.buttons["wheel.spin.bonus"].isEnabled, "con el video en curso nada se toca")
+        app.buttons["wheel.spin.bonus"].tap()
+        XCTAssertFalse(app.descendants(matching: .any)["wheel.spinning"].exists, "con el video en curso no se gira")
         XCTAssertTrue(app.descendants(matching: .any)["wheel.repeat.watching"].waitForNonExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["wheel.spin.bonus"].isEnabled, "al pagar el video, el candado se suelta")
+        XCTAssertTrue(app.buttons["wheel.spin.bonus"].waitForExistence(timeout: 3),
+                      "el toque durante el video no gastó el giro regalado")
     }
 }

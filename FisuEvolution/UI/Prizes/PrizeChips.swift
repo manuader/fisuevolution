@@ -46,7 +46,7 @@ struct MattressChip: View {
                 Image(systemName: "exclamationmark.circle.fill")
                     .font(.system(size: 16, weight: .heavy))
                     .foregroundStyle(Color("PaletteOrange"))
-                    .scaleEffect(pulse ? 1.15 : 1)
+                    .scaleEffect(pulse && !reduceMotion ? 1.15 : 1)
             }
             .prizeChipBackground()
         }

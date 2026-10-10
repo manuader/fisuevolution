@@ -7,6 +7,8 @@ import SwiftUI
 struct MattressPopupView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.dismiss) private var dismiss
+    /// Un video del colchón está en curso: la hoja no se cierra bajo el anuncio.
+    @State private var watching = false
 
     var body: some View {
         let outcome = gameState.mattressPopup?.outcome
@@ -17,10 +19,10 @@ struct MattressPopupView: View {
                     result(outcome)
                     if outcome.extraOpensLeft > 0 {
                         RewardedOfferButton(title: String(localized: "mattress.extra"), identifier: "mattress.extra",
-                                            placement: .treasure) { gameState.extraMattressVideoWatched() }
+                                            placement: .treasure, isBusy: $watching) { gameState.extraMattressVideoWatched() }
                     }
                     ActionPill(titleKey: "mattress.collect", systemImage: "checkmark",
-                               identifier: "mattress.collect") { dismiss() }
+                               identifier: "mattress.collect") { if !watching { dismiss() } }
                 } else {
                     Text("mattress.pitch")
                         .font(Tokens.body)
@@ -28,18 +30,19 @@ struct MattressPopupView: View {
                         .foregroundStyle(Color("PaletteInk"))
                     GameIcon(artKey: "pickup_mattress", size: 88) { MattressGlyph() }
                     RewardedOfferButton(title: String(localized: "mattress.open"), identifier: "mattress.open",
-                                        placement: .treasure) { gameState.mattressVideoWatched() }
+                                        placement: .treasure, isBusy: $watching) { gameState.mattressVideoWatched() }
                     OddsDisclosureView(titleKey: "mattress.odds.title", rows: oddsRows, identifier: "mattress.odds")
                 }
             }
             .frame(maxWidth: .infinity)
         }
         .overlay(alignment: .topTrailing) {
-            ArtCloseButton { dismiss() }
+            ArtCloseButton { if !watching { dismiss() } }
                 .padding(10)
         }
         .padding(16)
         .presentationDetents([.fraction(outcome == nil ? 0.66 : 0.5)])
+        .interactiveDismissDisabled(watching)
         .fisuSheet()
     }
 

@@ -49,8 +49,11 @@ extension GameState {
         mattressPopup = nil
     }
 
+    /// Sólo con el tablero en calma: si algo más tapa la pantalla (un momento
+    /// para compartir, una pausa, el menú) la hoja no se vería y trabaría
+    /// `isBoardBusy`. Los giros ya están en `bonusSpins`: quedan para Regalos.
     func openWheel() {
-        guard wheelSheet == nil, mattressPopup == nil else { return }
+        guard wheelSheet == nil, mattressPopup == nil, !isBoardBusy else { return }
         wheelSheet = WheelSheet()
     }
 

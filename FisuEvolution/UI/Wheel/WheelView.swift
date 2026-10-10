@@ -22,11 +22,11 @@ struct WheelView: View {
     @State private var result: WheelSpinOutcome?
     @State private var tickGate = WheelTickGate()
     /// Un giro se está resolviendo (con Reduce Motion no hay animación que lo
-    /// trabe) o un video de la ruleta está en curso: nada más se puede tocar.
-    @State private var resolving = false
+    /// trabe): corta el cobro de un segundo toque sin apagar los botones.
+    @State private var latch = PurchaseLatch()
     @State private var videoBusy = false
 
-    private var locked: Bool { spin != nil || resolving || videoBusy }
+    private var resolving: Bool { latch.isLocked }
 
     /// Quien presenta la ruleta (PLAN-v2 §2).
     private static let hostVisitorId = "npc_conductor"
@@ -132,7 +132,6 @@ struct WheelView: View {
                 }
             }
         }
-        .disabled(locked)
     }
 
     private func resultCard(_ outcome: WheelSpinOutcome) -> some View {
@@ -172,9 +171,12 @@ struct WheelView: View {
     // MARK: El giro
 
     private func start(_ source: WheelSpinSource) {
-        guard !locked, let outcome = gameState.spinWheel(source, storefrontAllows: storefrontAllows) else { return }
+        // Un giro por video llega acá cuando el video ya se miró, pero `videoBusy`
+        // se apaga recién en el próximo ciclo: no puede trabar el premio.
+        guard spin == nil, source == .video || !videoBusy,
+              let outcome = gameState.beginWheelSpin(source, latch: &latch, storefrontAllows: storefrontAllows)
+        else { return }
         result = nil
-        resolving = true
         let arcs = WheelGeometry.arcs(count: outcome.segments.count)
         let target = WheelGeometry.stopRotation(from: resting, arc: arcs[outcome.index], turns: Self.turns,
                                                 landing: .random(in: 0...1))
@@ -201,7 +203,7 @@ struct WheelView: View {
         resting = spin.to.truncatingRemainder(dividingBy: 360)
         result = spin.outcome
         self.spin = nil
-        resolving = false
+        latch.release()
     }
 
     /// Sin animación que lo trabe (Reduce Motion), el candado se suelta tras un
@@ -209,12 +211,12 @@ struct WheelView: View {
     private func releaseSoon() {
         Task {
             try? await Task.sleep(for: .milliseconds(500))
-            resolving = false
+            latch.release()
         }
     }
 
     private func repeatPrize() {
-        guard !locked, let outcome = gameState.repeatWheelPrize() else { return }
+        guard spin == nil, !resolving, let outcome = gameState.repeatWheelPrize() else { return }
         result = outcome
     }
 }

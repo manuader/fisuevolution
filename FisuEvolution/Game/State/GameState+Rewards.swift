@@ -81,7 +81,7 @@ extension GameState {
             player.meta.engagement.packages.waiting += count
         case .wheelSpin(let count):
             player.meta.engagement.wheel.bonusSpins += count
-            if source.hasPrefix("visit.") { wheelOpensAfterVisit = true }
+            if source.hasPrefix("visit."), visitorPopup != nil { wheelOpensAfterVisit = true }
         case let .autoTap(perSecond, seconds):
             player.run.activeModifiers.append(ActiveModifier(
                 effect: .autoTapPerSecond, magnitude: perSecond, expiresAt: now + seconds, sourceKey: source

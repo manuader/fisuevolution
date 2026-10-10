@@ -111,6 +111,9 @@ struct LocalizationCompletenessTests {
         case tutorialTips
         /// `notif.<id>.title` y `.body` (`NotificationCopy`), sobre `notifications.json`.
         case notifications
+        /// Los visitantes (E4): el nombre de cada uno, el globo y el popup de cada
+        /// guion, los motivos del arresto por piso y las opciones de los popups.
+        case visitors
         /// Las filas de Ajustes cuyo identifier es también su clave.
         case settingsRows
 
@@ -151,6 +154,11 @@ struct LocalizationCompletenessTests {
                 return GameState.TutorialLesson.allCases.map(\.textKey)
             case .notifications:
                 return content.notifications.kinds.flatMap { [$0.titleKey, $0.bodyKey] }
+            case .visitors:
+                return content.visitors.visitors.map(\.nameKey)
+                    + content.visitors.scripts.flatMap { [$0.bubbleKey, $0.askKey] }
+                    + content.floorTable.floors.map { VisitCopy.reasonKey(floorID: $0.id) }
+                    + VisitOption.Kind.allCases.map(VisitCopy.optionKey)
             case .settingsRows:
                 return LanguagePreference.allCases.map(\.identifier) + LegalDocument.Kind.allCases.map(\.identifier)
                     + content.notifications.kinds.map(\.settingsKey)

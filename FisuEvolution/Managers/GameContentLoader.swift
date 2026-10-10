@@ -26,6 +26,8 @@ struct GameContent: Sendable {
     let tabs: TabsConfig
     /// Las notificaciones locales: el catálogo y sus reglas (PLAN-v2 E11).
     let notifications: NotificationsConfig
+    /// Los visitantes y sus guiones (PLAN-v2 E4, Anexos A y B).
+    let visitors: VisitorsConfig
 }
 
 /// Decodes and validates the bundled JSON content. Any failure produces a typed
@@ -52,6 +54,7 @@ enum GameContentLoader {
         let achievements: AchievementsConfig = try decode("achievements", from: bundle)
         let notifications: NotificationsConfig = try decode("notifications", from: bundle)
         let tabs: TabsConfig = try decode("tabs", from: bundle)
+        let visitors: VisitorsConfig = try decode("visitors", from: bundle)
 
         let tiers: TierRepository
         do {
@@ -99,6 +102,17 @@ enum GameContentLoader {
         } catch {
             throw GameError.contentInvalid(file: "notifications.json", reason: "\(error)")
         }
+        do {
+            try visitors.validate()
+        } catch {
+            throw GameError.contentInvalid(file: "visitors.json", reason: "\(error)")
+        }
+        // Un especial que visita tiene que existir: si no, su guion nunca sale
+        // (nadie lo consigue) y su arte no se encuentra.
+        let specialIDs = Set(specials.specials.map(\.id))
+        for visitor in visitors.visitors where visitor.kind == .special && !specialIDs.contains(visitor.id) {
+            throw GameError.contentInvalid(file: "visitors.json", reason: "\(visitor.id) no está en specials.json")
+        }
 
         return GameContent(
             economy: economy,
@@ -120,7 +134,8 @@ enum GameContentLoader {
             gameCenter: gameCenter,
             achievements: achievements,
             tabs: tabs,
-            notifications: notifications
+            notifications: notifications,
+            visitors: visitors
         )
     }
 

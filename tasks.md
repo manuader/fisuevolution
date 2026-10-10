@@ -6,11 +6,11 @@
 > `Docs/superpowers/plans/2026-10-0*-v2-*.md`, los ledgers
 > `.superpowers/sdd/<plan>/progress.md` y el journal AVO del run.
 >
-> **Foto:** 2026-10-10, cierre del relevo 24 (la ola V, un solo relevo abierto por el disparo horario de `fisu-v2-relevo-a`).
-> `version-2` = `91b7634` (`rapido` VERDE sobre `25cc5da`: EK 825 · unit 1190 · 0 rojos · Release 0; suma E4a T10, E2b T7/T8, E4b T7 y E6a T11, todas ✅; el piso de descuentos que anulaba la contratación gratis se arregló en `25cc5da`).
-> `v2i/integ-r24` = `9b02cdd` + `tasks.md` (suma E4b T1, 🟢); `rapido` de la punta: VERDE (EK 827 · unit 1207 · 0 rojos · Release 0).
-> **Progreso: 182 de 254 en `version-2`; 183 con E4b T1 🟢.** **No publicar E7b-a T2 sin E7b-a T3.**
-> El último `completo` de referencia sigue siendo el de los cierres del 23, sobre `bab8a9c`. Detalle en `Docs/SESION-2026-10-10-v2-relevo-24-ola-v.md` (y `…relevo-23-ola-u.md`, `…cierres-r23.md`).
+> **Foto:** 2026-10-10, cierre del relevo 25 (la ola W, un solo relevo abierto por el disparo horario de `fisu-v2-relevo-a`).
+> `version-2` = la punta tras el `rapido` de `integ-r25` que el controlador deja anotado en `ESTADO.md` (suma E4b T8, E4b T2 y E5a T7, todas ✅ con `rapido` VERDE: unit 1211, 1236 y 1247).
+> `v2i/integ-r25` = `c435bad` + `tasks.md` + los docs del cierre (suma E5a T8 y E4b T3, 🟢); `rapido` de la punta: VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %).
+> **Progreso: 186 de 254 en `version-2`; 188 con E5a T8 y E4b T3 si el `rapido` de la punta da VERDE.** **No publicar E7b-a T2 sin E7b-a T3: E7b-a T3 sale en cuanto E5b T1 entre.**
+> El último `completo` de referencia sigue siendo el de los cierres del 23, sobre `bab8a9c`. Detalle en `Docs/SESION-2026-10-10-v2-relevo-25-ola-w.md` (y `…relevo-24-ola-v.md`, `…relevo-23-ola-u.md`, `…cierres-r23.md`).
 > **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
 > Si un ledger dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
 
@@ -83,7 +83,7 @@
 
 ## 2. Progreso
 
-**Hoy: 183 de 254 tareas activas integradas en `version-2` (72,0 %): E4b T1 entró con el `rapido` VERDE de la punta de `integ-r24` (EK 827 · unit 1207 · 0 rojos · Release 0); antes, 182 (71,7 %).** En el relevo 24 entraron E4a T10, E2b T7, E2b T8, E4b T7 y E6a T11 con el `rapido` VERDE sobre `25cc5da` (EK 825 · unit 1190 · 0 rojos · Release 0); E4b T1 quedó 🟢 en `integ-r24` (`9b02cdd`; `rapido` de la punta: VERDE (EK 827 · unit 1207 · 0 rojos · Release 0)). Antes: 177 de 254 (69,7 %) con los cierres del 23, 174 (68,5 %) en `version-2` al cierre del 23 y 162 (63,8 %) al cierre del 22. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 3, las que destrabó la ola V: **E4b T2**, **E4b T8** y E5a T7 (que viene del 23). E4b T2 y E5a T7 comparten `+Engagement`: una por ola o en serie (§4.2). E12 T12 está ⛔, E12 T16 🔒 y E7b-a T3 ⛔ (bloqueo de publicación, §4.2).
+**Hoy: 188 de 254 tareas activas integradas en `version-2` (74,0 %; E5a T8 y E4b T3 entraron con el `rapido` VERDE de la punta: EK 827 · unit 1275): E4b T8, E4b T2 y E5a T7 entraron, cada una con el `rapido` VERDE de la punta de `integ-r25` (EK 827 · unit 1211, 1236 y 1247); antes, 183 (72,0 %).** Quedan 🟢 en `v2i/integ-r25` (`c435bad`) **E5a T8** (la Ruleta + `LootBoxGate`) y **E4b T3** (el chip, el popup y el retrato): el `rapido` de la punta es **VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %)**; **con el `rapido` VERDE suman las dos y el progreso pasa a 188 de 254 (74,0 %)**. El `rapido` de E5a T8 dio ROJO por un flake (`ArtPacksTests.failureDoesNotLoop`, un `await settle()` bajo carga; aislado 8/8 VERDE; E5a T8 no toca ODR). En el relevo 25 entraron E4b T8 (el Álbum de especiales), E4b T2 (los visitantes en la partida) y E5a T7 (el Colchón); antes: 183 en el cierre del 24, 177 (69,7 %) con los cierres del 23, 174 (68,5 %) al cierre del 23 y 162 (63,8 %) al cierre del 22. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 7, las que destrabó la ola W: **E4b T4**, **E4b T5**, **E5a T9**, **E5b T1**, **E6a T5**, **E7b-b T6** y **E8b T11** (E8b T11 se destrabó al entrar E4b T2). Las que dependen de E5a T8 o E4b T3 (todas menos E8b T11) arrancan de la punta de `integ-r25`, o de `version-2` una vez que el `rapido` la deje ahí. **E5b T1 → E7b-a T3 (bloqueo de publicación, §4.2).** E12 T12 está ⛔ y E12 T16 🔒.
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
@@ -93,15 +93,15 @@
 | E3b | 9 | 9 |  |  |  |  |  |  |
 | E2a | 15 | 15 |  |  |  |  |  |  |
 | E4a | 10 | 10 |  |  |  |  |  |  |
-| E4b | 10 | 2 |  |  | 2 | 6 |  |  |
-| E5a | 9 | 6 |  |  | 1 | 2 |  |  |
-| E5b | 7 |  |  |  |  | 7 |  |  |
-| E6a | 13 | 6 |  |  |  | 7 |  |  |
+| E4b | 10 | 5 |  |  | 2 | 3 |  |  |
+| E5a | 9 | 8 |  |  | 1 |  |  |  |
+| E5b | 7 |  |  |  | 1 | 6 |  |  |
+| E6a | 13 | 6 |  |  | 1 | 6 |  |  |
 | E6b | 10 | 5 |  |  |  | 5 |  |  |
 | E7b-a | 7 | 4 |  |  |  | 3 |  |  |
-| E7b-b | 7 |  |  |  |  | 7 |  | 1 |
+| E7b-b | 7 |  |  |  | 1 | 6 |  | 1 |
 | E8 | 10 | 9 |  |  |  | 1 |  |  |
-| E8b | 8 | 7 |  |  |  | 1 |  | 4 |
+| E8b | 8 | 7 |  |  | 1 |  |  | 4 |
 | E8c | 10 | 10 |  |  |  |  |  |  |
 | E8d | 15 | 14 |  |  |  | 1 |  |  |
 | E9a | 10 |  |  |  |  | 10 |  |  |
@@ -110,7 +110,7 @@
 | E12 | 19 | 15 |  |  |  | 3 | 1 |  |
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
-| **Total** | **254** | **183** | |  | **3** | **67** | **1** | **5** |
+| **Total** | **254** | **188** | |  | **7** | **58** | **1** | **5** |
 
 Fuera del conteo:
 
@@ -129,9 +129,9 @@ grep -E '^\| E[0-9a-z-]+-T[0-9]+[ab]? \|[^|]*\| ⏭' tasks.md | grep -vc seguimi
 grep -E '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md | grep -vc seguimiento                   # una épica: cambiar el prefijo
 ```
 
-Progreso = integradas / (filas de tarea − salteadas). Hoy: 182 / (259 − 5); con las 🟢 (mismo grep cambiando ✅ por 🟢: 1), 183 / 254. Con el sufijo `[ab]?` el grep levanta
+Progreso = integradas / (filas de tarea − salteadas). Hoy: 186 / (259 − 5); con las 🟢 (mismo grep cambiando ✅ por 🟢: 2), 188 / 254. Con el sufijo `[ab]?` el grep levanta
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
-La tabla por épica se recalculó en el relevo 24 (con un `awk` sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
+La tabla por épica se recalculó en el relevo 25 (con un script sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
 
 ## 3. Reglas de concurrencia (PLAN-v2 §0.1, operativas)
 
@@ -202,38 +202,47 @@ partirlo.
 | `CelebrationQueue.swift` (EK) | E1 T10 · E4b T1, T4 · E6a T12 |
 | `GameState+TutorialTips.swift`, `TutorialAnchor.swift` | E3b T5, T9 · E4b T3, T4, T8 · E5b T5 · E6a T8, T12 · E7b-b T3, T5 |
 
-## 4. Cola de despacho — lo próximo (relevo 25)
+## 4. Cola de despacho — lo próximo (relevo 26)
 
 ### 4.1 Al llegar
 
 | # | Qué | Nota |
 |---|---|---|
-| 1 | **El `rapido` final sobre la punta de `v2i/integ-r24`** (`9b02cdd` + `tasks.md` + los docs del 24, con E4b T1 🟢). Resultado del relevo 24: VERDE (EK 827 · unit 1207 · 0 rojos · Release 0) | **Si dio VERDE, `version-2` ya está en la punta** (la dejó el controlador al cerrar): confirmar con `git log` y pasar E4b T1 a ✅ (183 de 254). **Si no dio VERDE o no quedó hecho, correrlo** sobre la punta de `v2i/integ-r24` con la ruta absoluta del worktree: `nohup perl -e 'setpgrp(0,0); exec @ARGV' bash <ruta>/Tools/v2/oraculo.sh rapido > build/<log> 2>&1 &` (`setsid` no existe en macOS; el oráculo usa el repo de su propia ruta) y esperarlo por PID o por la última línea del log, no con `pgrep -f`. Con ROJO, leer primero **qué test** cae (el último fue el piso de E4b T7 contra la contratación gratis). No mergear a `version-2` mientras corra otro oráculo ahí |
-| 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 24 vio 3,3 y trabajó con 3 compilando. Con carga > 200: **no más de 2 compilando** (el `rapido` cuenta); con ~100, 3. **Las tareas de EK pura (`swift test`) no ocupan cupo**. `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y esperas por PID (**`timeout` no existe**). **El latido es un script con `sleep 30` y escritura por reloj.** **Nunca `pkill -f`**. Un agente con una espera de fondo re-entrega el mismo reporte: **`TaskStop` una vez integrado**; si el reporte de arreglos no llega, leer su commit |
-| 3 | Leer `DUENO.md` entero por pendientes nuevos | **El clasificador del modo auto no deja escribir en `DUENO.md` ni en `.claude/worktrees/version-2/.superpowers/`**: la tabla de dueños va **en cada brief de despacho** (los briefs nuevos se arman con `brief.py` en el `.superpowers/sdd/` del worktree de integración). Las decisiones del dueño del 21b están en el journal, los SESION y acá; **no las re-preguntes**. La mediación por SPM espera al dueño. Los worktrees `v2-e12-plan`, `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
-| 4 | **Toda tarea que toque `DebugPanelView` corre además `CharacterSheetUITests` y `QuickHireUITests`** (y `BonusHUDUITests`); su fila nueva va al final de la `List` | un `tarea` no corre UI. **E4b T1 movió la `Section` Escenario antes de Peligro y esas tres clases no se re-corrieron**: E4b T2 las corre (toca el panel) y, si no, el próximo `completo`. Va en el brief de E4b T2/T4/T9, E5b T2, E7b-a T3/T6 |
-| 5 | **En el brief de toda revisión de precios o de `ModifierMath`: probar magnitud 0, 1 y el borde exacto del clamp** | la revisión opus de E4b T7 no vio que el piso de 0,25 subía la contratación gratis (magnitud 0); lo vio el `rapido` |
-| 6 | Barrer los worktrees `v2i-*` que queden con `limpiar-worktrees.sh` | sólo `v2i-*`, nunca `v2-*`; todo en GitHub antes; nunca `--force`; **con el shell fuera del worktree**. Quedan `v2i-integ-r24` y `v2i-docs-r24` (y los anteriores si no se barrieron: `v2i-integ-r23`, `v2i-cierres-r23`, `v2i-docs-r23`) |
+| 1 | **El `rapido` final sobre la punta de `v2i/integ-r25`** (`c435bad` + `tasks.md` + los docs del 25, con E5a T8 y E4b T3 🟢). Resultado del relevo 25: **VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %)** | **Si dio VERDE, `version-2` ya está en la punta** (la dejó el controlador al cerrar): confirmar con `git log` y pasar E5a T8 y E4b T3 a ✅ (188 de 254). **Si no dio VERDE o no quedó hecho, correrlo** sobre la punta de `v2i/integ-r25` con la ruta absoluta del worktree: `nohup perl -e 'setpgrp(0,0); exec @ARGV' bash <ruta>/Tools/v2/oraculo.sh rapido > build/<log> 2>&1 &` (`setsid` no existe en macOS; el oráculo usa el repo de su propia ruta) y esperarlo por PID o por la última línea del log, no con `pgrep -f`. Con ROJO, leer primero **qué test** cae. **El único rojo del 25 fue un flake:** `ArtPacksTests.failureDoesNotLoop` (`await settle()` bajo carga 120–150) cayó en el `rapido` de E5a T8 y aislado dio 8/8 VERDE. Antes de declarar un rojo de ODR, correr la tarea `ArtPacksTests` sola sobre la misma punta. No mergear a `version-2` mientras corra otro oráculo ahí |
+| 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 25 vio 1,3 al llegar y trabajó con 2 compilando (la carga llegó a 195 con el `rapido`). Con carga > 200: **no más de 2 compilando** (el `rapido` cuenta); con ~100, 3. **Las tareas de EK pura (`swift test`) no ocupan cupo**. `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y esperas por PID (**`timeout` no existe**). **El latido es un script con `sleep 30` y escritura por reloj.** **Nunca `pkill -f`**. Un agente con una espera de fondo re-entrega el mismo reporte: **`TaskStop` una vez integrado**; si el reporte de arreglos no llega, leer su commit |
+| 3 | Leer `DUENO.md` entero por pendientes nuevos | **El clasificador del modo auto no deja escribir en `DUENO.md` ni en `.claude/worktrees/version-2/.superpowers/`**: la tabla de dueños va **en cada brief de despacho** (los briefs nuevos se arman con `brief.py` en el `.superpowers/sdd/` del worktree de integración). Las decisiones del dueño del 21b están en el journal, los SESION y acá; **no las re-preguntes**. La mediación por SPM espera al dueño. Las ramas `v2/e8-*` son de la sesión del dueño; no tocar (en el 25 los worktrees `v2-e12-plan` y `v2-release-ops` ya no existían) |
+| 4 | **Toda tarea que toque `DebugPanelView` corre además `CharacterSheetUITests`, `QuickHireUITests` y `BonusHUDUITests`**; su fila nueva va al final de la `List` | un `tarea` no corre UI. E4b T2 los corrió (3/3 cada uno). Va en el brief de E4b T4/T9, E5b T2, E7b-a T3/T6 |
+| 5 | **Los UI tests de un mismo simulador se contaminan por el orden** | `MenuPagerUITests` falla (cuenta 6 páginas, aparece Ranking) si corre **después** de `MenuUITests`; aislado pasa en la base y en `integ`. `unlockedTabsInBarOrder` usa `ranking?.isEnabled != false` y `--uitest-reset` no lo apaga. El `completo` corre `MenuPager` antes que `MenuUITests` (orden alfabético), así que ahí no cae. **Carry a E12:** que `--uitest-reset` apague el ranking. Quien corra a mano las dos clases las corre por separado |
+| 6 | **En el brief de toda revisión de precios o de `ModifierMath`: probar magnitud 0, 1 y el borde exacto del clamp** | la revisión opus de E4b T7 no vio que el piso de 0,25 subía la contratación gratis |
+| 7 | **En el brief de toda tarea con fechas de día, fixtures de arranque o ids de `loops_manifest`: las tres trampas del 25** | fechas con `Calendar.current` (usar gregoriano fijo); un fixture que exige `isCalmMoment` corre antes de `phase == .ready` (diferirlo); renombrar un id de `loops_manifest` exige renombrar el `.mov` y `EVENT_IDS` del pipeline. Detalle en `Docs/HANDOFF.md` §7 |
+| 8 | Barrer los worktrees `v2i-*` que queden con `limpiar-worktrees.sh` | sólo `v2i-*`, nunca `v2-*`; todo en GitHub antes; nunca `--force`; **con el shell fuera del worktree**. Quedan `v2i-integ-r25` y `v2i-docs-r25` (y los anteriores si no se barrieron: `v2i-integ-r24`, `v2i-docs-r24`, `v2i-integ-r23`, `v2i-cierres-r23`, `v2i-docs-r23`) |
 
 ### 4.2 La ola siguiente (≤ 3 compilando con carga ~100, ≤ 2 con la máquina cargada; un dueño por archivo)
 
-BASE de todas: `version-2` tras el paso 1 (o `v2i/integ-r24` si el `rapido` no se corrió). Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
+BASE de todas: `version-2` tras el paso 1 (o `v2i/integ-r25` si el `rapido` no se corrió). Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
 **Un solo dueño de `RootView` y de `GameState` por ola.** Revisar cada dependencia contra la tabla de §5 antes de despachar.
+**Lo que manda: el bloqueo de publicación.** E7b-a T3 (la pausa publicitaria) se despacha **en cuanto E5b T1 entre**; sin T3, E7b-a T2 saca un intersticial en cada corte. La ola 26 empieza por E5b T1 y sigue con E7b-a T3 apenas la primera esté integrada.
 
 | # | Tarea | Modelo | Dueña de / nota |
 |---|---|---|---|
-| 1 | **E4b T2** (los visitantes en la partida) | sonnet, rev. opus | ⏳ E4b T1 🟢 (✅ con el paso 1). Dueña de `+Engagement`, `+Debug` y `DebugPanelView` de la ola (corre `CharacterSheetUITests`, `QuickHireUITests` y `BonusHUDUITests`); catálogo por snapshot. **No ∥ E5a T7** (`+Engagement`). Es la cadena que destraba E4b T3 → E5b T1 y E7b-a T3 (**bloqueo de publicación**). **Carries:** `presentOnStage` por `canPresentOnStage`; la paciencia no corre en intersticial; `arrive`/`openStagePopup` vacíos; el presentador re-chequea `eventIsApplicable`; `loops_manifest` `events.cayo_mercado_pago` → `home_banking`; atenuar la cuota sin plata; carry de E4a T6 (`.visitor` no es prepago) |
-| 2 | **E5a T7** (el Colchón en la partida) | sonnet, rev. opus | ⏳ T6 ✅. `+Engagement`: **no ∥ E4b T2** → **una de las dos por ola, o serializar** (la primera en integrar, la otra con BASE nueva). Recomendado: E4b T2 en esta ola y E5a T7 en cuanto E4b T2 esté integrada, o al revés si el cupo sobra y el `rapido` de la primera ya dio VERDE. Toca save → revisión opus. Después **E5a T8** (la Ruleta; crea `LootBoxGate`; `+Rewards`), que abre E6a T4/T5 y E5b T1 |
-| 3 | **E4b T8** (el Álbum de especiales) | sonnet | ⏳ E4a cerrada (T10 ✅), E3b T3 ✅. Catálogo, `MenuView`, `+TutorialTips`. No toca `+Engagement` ni `DebugPanelView`: puede ir ∥ E4b T2 o E5a T7 si el catálogo (snapshot) no choca con el dueño de la ola. Su cierre y T9/T10 esperan a E4b T6 |
-| 4 | **E4b T3** (el chip, el popup y el retrato) y **E4b T4/T5/T6/T9/T10** | — | ⛔ siguen la cadena T1 → T2 → T3 (crea `RewardedOfferButton`; 🔥 `RootView`). T3 y E5a T8 destraban **E5b T1**; T3 y E5b T1, **E7b-a T3**. Con los carries de E4b T1: revisar los `switch` exhaustivos y la prioridad 5 de `.visitorEncounter` al irse `.eventBanner` |
-| 5 | **E6a T12** (las ofertas se ven) | — | ⛔ **no se destraba todavía**: faltan E6a T7/T8, E5a T8, E4b T3 y E5b T1/T2. Carry de E6a T11: **no ofrecer la Bienvenida (cofre) en BE/AU**. Las capturas de revisión de las 3 ofertas a ASC salen cuando exista la hoja |
-| 6 | **E2b T9–T15** | — | ⛔ T9 espera a E6a T4, E7b-a T3, E7b-b T2 (y E5a T5, E2a T11/T12 ya están); T10 a E6a T4; T12 al 🔒 playtest. T8 dejó el CLI listo: cuando destrabe, T12 parte de **`.free`: 3 de 8 pisos en banda** y de `oro_shop.json` (no existe: `.max` es `.ads` sin `--shop`); confirmar la forma de `sideRail`/`adBreak` en `rewarded_ads.json` (E7b) |
-| 7 | **E7b-a T3** (la pausa publicitaria) | sonnet | ⛔ faltan **E5b T1** (espera a E5a T8 y E4b T3) y **E4b T3**. **BLOQUEO DE PUBLICACIÓN:** sin T3 sale un intersticial en cada corte. Despacharla en cuanto se destrabe, con los carries de T2/T4 (`canRequestAds` en intersticial y rewarded, un solo observador de AdMob, `recordShown`, `Set<CelebrationKind>??` → enum), el de E3b T9 y unificar `isCalmMoment` con `isSafeMomentForInterstitial` |
-| 8 | **E9b T8**, **E12 T12**, **E6a T5** | — | siguen **⛔**: E9b T8 espera a E9a T3 (E6a T11 ya está); E12 T12 a E9b T8; E6a T5 a E5a T8. E9b T8 lleva los carries de unir `offers.purchases` y `seenCinematics` en `resolveAcrossReset` y del **caso de la oferta reembolsada** |
-| 9 | **🔒 del dueño** | — | **E8 T9** (revisión de recortes; no frena a nadie); **E12 T16** (credenciales de Supabase y `ANTHROPIC_API_KEY`; ahí se despliega `20261009000001_blocklist.sql`); **mediación por SPM** (E7b-a T6: Unity + Meta); **capturas de iPad a ASC** (E10); **escenarios de E11 en device** y de E2a/E8c; **los tres escenarios a mano de E4a**; **captura SE del precio tachado y visual del escenario** (SE/iPad/Reduce Motion); un viaje 1 → 10 del ascensor en un SE real; las dudas de los relevos 22, 23 y 24 de abajo |
+| 1 | **E5b T1** (la Ruleta en pantalla) | sonnet, rev. opus | ⏳ E5a T8 y E4b T3 (🟢; ✅ con el paso 1). Catálogo (snapshot) y `AudioManager`; cablea `sfx_wheel_tick`; crea `OddsDisclosureView` y `RewardCopy`. Es plata y una *loot box*: revisión opus. **Destraba E7b-a T3, E6a T4, E5b T4/T6 y, con E4b T4/T9, E5b T2.** **Carries de E5a T8:** pasar `LootBoxGate.current()` a `wheelAvailability(...)` y a `spinWheel(...)` (sin storefront/config el gate dice que no); verificar el video **antes** de entrar en `.video`/`repeat`; bloquear el botón mientras anima. **Carries de E5a T7 (colchón):** ofrecer el extra sólo con `mattressExtraOpensLeft > 0`; manejar el `nil` tras el video (caso borde: aparece el siguiente mientras se mira el video del extra → video sin premio); el chip con `isCalmMoment`; `MattressOutcome` |
+| 2 | **E7b-a T3** (la pausa publicitaria) | sonnet, rev. opus | ⛔ → ⏳ en cuanto E5b T1 entre (E4b T3 ya está). **BLOQUEO DE PUBLICACIÓN.** 🔥 `GameState`, `RootView`, catálogo, `DebugPanelView` (corre `CharacterSheetUITests`, `QuickHireUITests` y `BonusHUDUITests`); **no ∥ E4b T4** (los dos son dueños de `RootView`/`GameState`): E7b-a T3 va primero. Despacharla con los carries de T2/T4 (`canRequestAds` en intersticial y rewarded, **un solo observador de AdMob** para todos los formatos, `recordShown` sólo si se mostró, `Set<CelebrationKind>??` → enum), el de E3b T9 y **unificar `isCalmMoment` con `isSafeMomentForInterstitial`** (`naturalBreakContext` suma `fullScreenUI`/`adOnScreen`). Carry del 25: E4b T3 metió `visitorPopup` en `boardIsCovered` y el chip en `hudColumn`; la pausa y el intersticial tienen que respetarlos |
+| 3 | **E4b T5** (el reto y las cartas del Vendedor) | sonnet | ⏳ T3 (🟢). Catálogo (snapshot). ∥ T4, ∥ E5b T1. **Carries de E4b T2:** el reto bloquea los cortes naturales; reloj por delta |
+| 4 | **E6a T5** (se entregan auto-tap, Offline ×3 y Diario ×3) | sonnet, rev. opus | ⏳ T3 ✅ y E5a T8 (🟢); **E6a T4 no hace falta** (T5 depende de T3, no de T4). 🔥 `+Bonus`; `+Lifecycle` (T8 mudó ahí el offline), `+Rewards`, `+Engagement`. **No ∥ E4b T4** (`+Bonus`). **Carries de E5a T8:** E6a **reusa `LootBoxGate`** (no crear otro); la config remota puede vaciar `restrictedStorefronts` (¿piso BEL/AUS?); `+Rewards:8` y `RewardGrantTests:71` ya cuentan `.wheelSpin`. Plata de ORO: revisión opus |
+| 5 | **E4b T4** (eventos con presentador; adiós al banner) | sonnet, rev. opus | ⏳ T3 (🟢). 🔥 `GameState`, `RootView`, catálogo, `+Bonus`; `CelebrationQueue`, `+Celebrations`, `ActiveBonus*`. **Después de E7b-a T3** (dueño de `RootView`/`GameState`). **Carries:** `.presenter` en `arrive`/`openStagePopup`; el presentador re-chequea `eventIsApplicable` al llegar; el orden de `pendingEvent` frente al visitante; revisar los `switch` exhaustivos y la prioridad 5 de `.visitorEncounter` al irse `.eventBanner`; las dos palabras en `false` (`endsInNaturalBreak`, `coversElevator`) |
+| 6 | **E8b T11** (el arresto) | sonnet | ⏳ T10 ✅ y E4b T2 ✅ (destrabada al entrar E4b T2 en la ola W). `+Visitors`: no ∥ tareas que toquen `GameState+Visitors`. Destraba E8d T15 |
+| 7 | **E7b-b T6** (Diario ×2 y carrera ×2 por video) | sonnet | ⏳ E4b T3 (🟢). Catálogo (snapshot). Sin choque de dueños; baja prioridad |
+| 8 | **E5a T9** (cierre de E5a, docs) | controlador | ⏳ T1–T8 (T8 🟢). Sólo docs; puede ir ∥ a todo. Pasa los carries de E5a T7/T8 a E5b y E6a |
+| 9 | **E4b T6, T9, T10; E5b T2–T7; E6a T4, T6–T8, T12–T13; E6b T4–T10; E7b-a T6–T7; E7b-b T1–T3, T5, T7–T8; E9a; E9b T1–T5, T8–T10; E2b T9–T15; E12 T12** | — | ⛔ siguen. E6a T4 espera a E5b T1; E4b T6 a T4; E4b T9 a T6/T8; E5b T2 a T1, E4b T4 y T9; E6a T12 a E6a T7/T8 y E5b T1/T2; E2b T9 a E6a T4, E7b-a T3 y E7b-b T2; E9b T8 a E9a T3; E12 T12 a E9b T8 |
+| 10 | **🔒 del dueño** | — | **E8 T9** (revisión de recortes); **E12 T16** (credenciales de Supabase y `ANTHROPIC_API_KEY`; ahí se despliega `20261009000001_blocklist.sql`); **mediación por SPM** (E7b-a T6: Unity + Meta); **capturas de iPad a ASC** (E10); **escenarios de E11 en device** y de E2a/E8c; **los tres escenarios a mano de E4a**; **captura SE del precio tachado y visual del escenario** (SE/iPad/Reduce Motion); **el chip del visitante (pegado a la llave de debug, arriba a la derecha) contra la columna de E7b en release**; **el loop real del retrato** (nunca visto) y **una pasada a mano de iPad/oscuro/VoiceOver/Reduce Motion** de los visitantes; un viaje 1 → 10 del ascensor en un SE real; las dudas de los relevos 22, 23, 24 y 25 de abajo |
 
-Lo que **no** se despacha todavía: E4b T3–T6, T9, T10 (cadena de E4b T2); E5a T8, T9; E5b entera (arranca en E5b T1, que espera a E5a T8 y E4b T3); E6a T4–T8 y T12–T13 (cadena de E5a T8/E5b T1);
-E6b T4, T5, T7, T8, T10 (esperan a E6a T8 y T6); E8d T15 (espera a E8b T11, que espera al arresto de E4b T2); E2b T9–T15 (cadena de la EK y de las épicas); E9a (espera a E6a T12); E9b T1–T5, T8–T10.
+Lo que **no** se despacha todavía: E4b T6, T9, T10 (cadena de E4b T4/T8); E5b T2–T7 (esperan a E5b T1 y E4b T4/T9); E6a T4 y T6–T8, T12–T13 (cadena de E5b T1 y E6a T5); E6b T4, T5, T7, T8, T10 (esperan a E6a T8 y T6); E2b T9–T15 (cadena de la EK y de las épicas); E9a (espera a E6a T12); E9b T1–T5, T8–T10.
+
+Carries del relevo 25 (detalle en `Docs/SESION-2026-10-10-v2-relevo-25-ola-w.md`): **E4b T8 → E4b T9:** `debugDropFirstSpecial` también ancla en `specialAnchors`; la tarjeta del Álbum usa un glifo SF porque `ui_menu_specials` no existe como PNG. **E4b T2 (rev. opus: Changes requested, arreglado en `2aba4ed`) → E4b T4/T5 y dueño:**
+el presentador re-chequea `eventIsApplicable` y el orden de `pendingEvent` (T4); el reto bloquea los cortes naturales y el reloj va por delta (T5); un reloj adelantado vacía `visitsToday`/`oroExchangedToday`; la cuota sin plata no se atenúa; `.presenter` sigue a T4. **E5a T7 (Approved) → E5b y dueño:** ver la fila de E5b T1; el colchón sobrevive a la reencarnación;
+un crash dentro de los 2 s del debounce re-sortea. **E5a T8 (Approved con arreglos, hechos en `ecfae53`) → E5b, E2b/dueño y E6a:** `LootBoxGate.current()` a `wheelAvailability`/`spinWheel`; verificar el video antes de `.video`/`repeat`; repetir ×5 da ×25 y los giros apilan ×30 (¿suma o renueva el mismo `sourceKey`?: E2b/dueño);
+la config remota puede vaciar `restrictedStorefronts` (¿piso BEL/AUS?: E6a); atrasar el reloj ≥ 2 días devuelve cupos (costo del tope «hasta mañana»). **E4b T3 (sin revisión opus: UI, sin plata/save/turno) → dueño:** el chip pegado a la llave de debug; el loop real del retrato nunca visto; sin pasada a mano de iPad/oscuro/VoiceOver/Reduce Motion. **UI → E12 / próximo `completo`:** `MenuPagerUITests` tras `MenuUITests`.
+**Los del 24 que siguen** (abajo): E6a T12 (no ofrecer la Bienvenida en BE/AU), E9b T8 (oferta reembolsada), E2b T12/T13, el piso de 0,25 con recargos y los del dueño.
 
 Carries del relevo 24 (detalle en `Docs/SESION-2026-10-10-v2-relevo-24-ola-v.md`): **E4b T7 (precios):** el piso de 0,25 se aplica al producto **con recargos incluidos** (hoy no pasa con el contenido); captura SE del precio tachado (dueño);
 la contratación gratis (magnitud 0) queda fuera del piso desde `25cc5da`. **E6a T11 → E6a T12 / E9b T8 / dueño:** no ofrecer la Bienvenida (cofre) en BE/AU; caso de oferta reembolsada; el reembolso de una oferta sólo revoca su ORO
@@ -488,9 +497,9 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E4b-T1 | El escenario y su turno | ✅ | E4a-T10; E3a-T10, E1-T10 | 🔥 GameState, BoardScene; CelebrationQueue, +Celebrations, +Debug | `52a1b9f` + arreglos `788db95` (merge `9b02cdd`, en `v2i/integ-r24`) | |
 | E4b-T2 | Los visitantes en la partida | ✅ | T1 | catálogo (snapshot); +Engagement, +Debug, DebugPanelView | `cdda9c8` + arreglos `2aba4ed` (merge en `v2i/integ-r25`) | no con E5a T7 (`+Engagement`) |
-| E4b-T3 | El chip, el popup y el retrato | 🟢 | T2; E3a-T11, E3b-T4, E3b-T8, E3b-T9 | 🔥 RootView, catálogo; +TutorialTips, TutorialAnchor | `13a0b2a` (en `v2i/integ-r25`) | crea `RewardedOfferButton` (lo completa E7b-b T7) |
-| E4b-T4 | Eventos con presentador; adiós al banner | ⛔ | T3 | 🔥 GameState, RootView, catálogo, +Bonus; CelebrationQueue, +Celebrations, ActiveBonus* | | |
-| E4b-T5 | El reto y las cartas del Vendedor | ⛔ | T3 | catálogo (snapshot) | | ∥ T4 |
+| E4b-T3 | El chip, el popup y el retrato | ✅ | T2; E3a-T11, E3b-T4, E3b-T8, E3b-T9 | 🔥 RootView, catálogo; +TutorialTips, TutorialAnchor | `13a0b2a` (en `v2i/integ-r25`) | crea `RewardedOfferButton` (lo completa E7b-b T7) |
+| E4b-T4 | Eventos con presentador; adiós al banner | ⏳ | T3 | 🔥 GameState, RootView, catálogo, +Bonus; CelebrationQueue, +Celebrations, ActiveBonus* | | |
+| E4b-T5 | El reto y las cartas del Vendedor | ⏳ | T3 | catálogo (snapshot) | | ∥ T4 |
 | E4b-T6 | El Apagón y los Campeones | ⛔ | T4 | 🔥 BoardScene; AudioManager | | cablea `sfx_blackout` |
 | E4b-T7 | La Liquidación en el precio | ✅ | E4a-T9; E3b-T5, E3b-T6, E3b-T7 | ActiveModifier, +Hiring, GameArtComponents; catálogo (snapshot) | `a8c7a06` + arreglos `0999169` (merge `bbd1586`), piso de la gratis `25cc5da` | |
 | E4b-T8 | El Álbum de especiales | ✅ | E4a (cerrada); E3b-T3 | catálogo; MenuView, +TutorialTips | `53cafaf` (merge en `v2i/integ-r25`) | |
@@ -508,14 +517,14 @@ que toma · commit o rama · nota.
 | E5a-T5 | El contenido: `packages/treasures/wheel.json` | ✅ | T1–T3; E4a-T7, E4a-T9 | GameContentLoader | | carry: validador `isFinite` |
 | E5a-T6 | El Paquete en la partida | ✅ | T4, T5; E1-T9, E1-T10, E1-T14; E4a-T2, E4a-T6, E4a-T8, E4a-T9 | +Rewards, +Engagement, +BoardChanges, BoardChange.swift | | no con E4b T2 |
 | E5a-T7 | El Colchón en la partida | ✅ | T6 | +Engagement | `95cd194` (merge en `v2i/integ-r25`) | |
-| E5a-T8 | La Ruleta en la partida | 🟢 | T7 | +Rewards, +Engagement | `a6750c4` + arreglos `ecfae53` (en `v2i/integ-r25`) | crea `LootBoxGate` |
-| E5a-T9 | Cierre de E5a | ⛔ | T1–T8 | `Docs/` | | |
+| E5a-T8 | La Ruleta en la partida | ✅ | T7 | +Rewards, +Engagement | `a6750c4` + arreglos `ecfae53` (en `v2i/integ-r25`) | crea `LootBoxGate` |
+| E5a-T9 | Cierre de E5a | ⏳ | T1–T8 | `Docs/` | | |
 
 ### E5b — Aduana, Colchón y Ruleta, lo que se ve (`2026-10-07-v2-e5b-aduana-colchon-ruleta.md`)
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E5b-T1 | La Ruleta en pantalla | ⛔ | E5a-T8; E4b-T3 | catálogo (snapshot); AudioManager | | cablea `sfx_wheel_tick`; crea `OddsDisclosureView` y `RewardCopy` |
+| E5b-T1 | La Ruleta en pantalla | ⏳ | E5a-T8; E4b-T3 | catálogo (snapshot); AudioManager | | cablea `sfx_wheel_tick`; crea `OddsDisclosureView` y `RewardCopy` |
 | E5b-T2 | Los accesos y las hojas | ⛔ | T1; E5a-T6, E5a-T7, E5a-T8; E4b-T3, E4b-T4, E4b-T9; E3a-T6, E3a-T11 | 🔥 GameState, RootView, catálogo; +Rewards, DebugPanelView | | |
 | E5b-T3 | La escena: cajas, colchón, apertura | ⛔ | T2; E1-T10; E4b-T1, E4b-T6, E4b-T9; E3a-T10 | 🔥 BoardScene | | |
 | E5b-T4 | La Ruleta en Regalos | ⛔ | T1 | catálogo (dueña o snapshot) | | |
@@ -531,7 +540,7 @@ que toma · commit o rama · nota.
 | E6a-T2 | Catálogo y cuentas de la tienda (EK) | ✅ | T1; E4a-T1 | — | | |
 | E6a-T3 | El auto-tap | ✅ | E1-T15; E4a-T2; E2a-T4 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | `720f3fe` (merge `e378307`, claves aplicadas) | revisión opus: Approved. Carries a T5: el "mejor" se elige por tier y no por pago (fiel al plan; anotar la decisión); un `now` para todo el delta (despreciable con tope 2 s); `RewardSpec` admite `.modifier(autoTapPerSecond)` y saltea `.autoTap` (rechazarlo en `validate` o declararlo válido) |
 | E6a-T4 | `oro_shop.json` | ⛔ | T2; E5b-T1; E5a-T5 | catálogo (dueña); GameContentLoader | | |
-| E6a-T5 | Se entregan auto-tap, Offline ×3 y Diario ×3 | ⛔ | T3; E4a-T8, E4a-T9; E5a-T6, E5a-T8; E2a-T11 | 🔥 +Bonus; +Lifecycle (T8 mudó ahí el offline), +Rewards, +Engagement | | |
+| E6a-T5 | Se entregan auto-tap, Offline ×3 y Diario ×3 | ⏳ | T3; E4a-T8, E4a-T9; E5a-T6, E5a-T8; E2a-T11 | 🔥 +Bonus; +Lifecycle (T8 mudó ahí el offline), +Rewards, +Engagement | | |
 | E6a-T6 | Comprar en la tienda | ⛔ | T4, T5; E2a-T14; E1-T14; E5a-T1, E5a-T3, E5a-T6, E5a-T8 | BoardChange.swift, +BoardChanges | | |
 | E6a-T7 | La suerte: probabilidades | ⛔ | T6; E5a-T1, E5a-T8; E1-T6 | StoreManager | | sale con E1 T6c adentro |
 | E6a-T8 | La pantalla "Comprar ORO / Gastar ORO" | ⛔ | T6, T7; E3b-T4; E5b-T1; E5a-T8 | catálogo (dueña); StoreView | | |
@@ -578,7 +587,7 @@ que toma · commit o rama · nota.
 | E7b-b-T3 | La columna plegable en pantalla | ⛔ | T2; E3a-T8, E3a-T10, E3a-T11; E5b-T2, E5b-T5; E4b-T3; E6a-T12; E7b-a-T3 | 🔥 RootView, catálogo; StageChips, PrizeChips, TutorialAnchor, ElevatorPanel | | |
 | E7b-b-T4 | La multitud le deja lugar a la columna | ⏭️ | — | — | | el dueño eligió C (plegable) |
 | E7b-b-T5 | Las lecciones de la columna | ⛔ | T3 | catálogo (snapshot); +TutorialTips | | ∥ T7 |
-| E7b-b-T6 | Diario ×2 y carrera ×2 por video | ⛔ | E2a-T11, E2a-T12; E1-T12; E4a-T8; E4b-T3 | catálogo (snapshot) | | |
+| E7b-b-T6 | Diario ×2 y carrera ×2 por video | ⏳ | E2a-T11, E2a-T12; E1-T12; E4a-T8; E4b-T3 | catálogo (snapshot) | | |
 | E7b-b-T7 | El botón de video completo y el mapa de ubicaciones | ⛔ | T3, T6; E4b-T3…T5; E5b-T1, E5b-T2 | catálogo (snapshot) | | |
 | E7b-b-T8 | Cierre de E7b (controlador) | ⛔ | T1–T7 | `Docs/` | | |
 
@@ -619,7 +628,7 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8b-T8 | El turno de la cinemática (`.cinematic`, payload, autorun) | ✅ | E8d-T1, T7 | 🔥 GameState (dos propiedades); CelebrationQueue, +Celebrations, +Debug, +Bootstrap | | **cambia (E8d)**: importa `CinematicID`/`LoopsManifest` de E8d T1 y suma `.intro`; sonnet, **rev. opus**; ventana libre de GameState.swift; antes de E9a T1; **destrabada (r20):** E8d T1 y T7 ✅ |
 | E8b-T9 | La cinemática en pantalla (overlay, sonido, Saltar) | ✅ | E8d-T2, T8 | 🔥 RootView, catálogo (snapshot, 4 claves); AudioManager, DebugPanelView | | **cambia (E8d)**: lease `fullscreen` del `VideoPlayerPool`; `.suspendsVideoPool()` en el overlay del cofre; sonnet; `CinematicUITests` por Receta R; capturas SE + iPad; **destrabada (r20):** E8d T2 y T8 ✅; dueña de `RootView` (no ∥ E3b T8, E12 T13) |
 | E8b-T10 | Reencarnación y Dios | ✅ | T8, T9 | +Prestige, +BoardChanges, +Bootstrap | | sonnet, **rev. opus**; pinea el momento calmo que espera E12 T14; carry `godTier` a E12 T11 |
-| E8b-T11 | El arresto | ⛔ | T10; E4b-T2 | +Visitors | | sonnet; al dejarlo ir (duda 5) |
+| E8b-T11 | El arresto | ⏳ | T10; E4b-T2 | +Visitors | | sonnet; al dejarlo ir (duda 5) |
 | E8b-T12 | Cierre de E8b (controlador) | ⏭️ | T1–T11 | `Docs/` | | **reemplazada por E8d-T15** (plan E8d, spec de animaciones del dueño, relevo 14); `completo`; en un iPhone real (HEVC-alfa por hardware) y la memoria a E8 T10 |
 | P-E8c | Plan de E8c: la cadena animada de Fusionar todo | ✅ | — | — | (el commit de este plan) | 10 tareas (T1–T10); `2026-10-08-v2-e8c-fusionar-todo.md`; 11 dudas con default; **un solo 🔥 (BoardScene, T7/T8); no toca GameState ni RootView** |
 | E8c-T1 | El eslabón en el plan (`BoardChange.Chain`) | ✅ | E2a-T6 ✅ | BoardChange.swift (tibio: E13 T2, E6a T6, E7b-b T1), MergeAllPlannerTests | `cbb97f3` (integ-r18) | EK; sonnet, **rev. opus** (la igualdad que compara `confirmBoardChange`); ola 1 |

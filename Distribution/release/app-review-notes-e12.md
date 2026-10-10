@@ -51,9 +51,19 @@ Se suman a lo que ya declara AdMob (que no se toca). Coincide con `NSPrivacyColl
 
 ## Avisos para E10
 
-- Llegar a Dios lleva horas: la nota no da un atajo para el revisor. **Confirmar con la build** si
-  la pestaña se ve sin haber llegado; si no, sumar un camino de prueba (guía 2.1) antes de pegar.
-- `PrivacyInfo.xcprivacy` tiene `NSPrivacyTracking` en `false`, pero `checklist-submission.md` y
-  la nota de `privacy.md` dicen `true` (AdMob con ATT). No lo toca esta tarea: lo decide quien
-  dueña el manifiesto de anuncios.
-- La Política de Privacidad ya no dice "sin servidores propios": ahora explica el ranking.
+- Llegar a Dios lleva horas, así que la nota no promete que el revisor pueda anotarse. Lo que sí
+  puede ver: la pestaña **Ranking** aparece en la barra inferior apenas termina el tutorial
+  (`tabs.json`: `unlockWhen: tutorialCore`), muestra el tablero y permite **Reportar** con un
+  mantener apretado. El texto aplicado a ASC vive en `release.json → store.reviewNotes`
+  (sección LEADERBOARD, resumida por el tope de 4000 caracteres); este archivo es la versión larga.
+- **`NSPrivacyTracking` sigue en `false` a propósito (B22 pendiente de dominios).** El dueño
+  aceptó pasarlo a `true`, pero Apple rechaza el build si es `true` sin `NSPrivacyTrackingDomains`
+  (ITMS-91064, ya pasó dos veces en la v1: `Docs/HANDOFF-v2.md`). Ni el manifiesto de
+  GoogleMobileAds ni el de UMP (SPM resuelto) declaran dominios, y los adaptadores de Unity y Meta
+  no están en el proyecto, así que no hay una fuente en el repo para listarlos. Hay que sacar los
+  dominios de la documentación de cada SDK (o de un reporte de privacidad de la app corriendo en
+  un dispositivo), ponerlos en `NSPrivacyTrackingDomains` y recién ahí pasar a `true`.
+  `PrivacyManifestTests.trackingNeedsDomains` impide que quede `true` sin dominios.
+- La Política de Privacidad (`Distribution/site/privacy.md` y su copia en la app,
+  `Resources/Legal/privacy.md`) nombra a Anthropic (Claude) como quien revisa los nombres y dice
+  que sólo recibe el nombre elegido.

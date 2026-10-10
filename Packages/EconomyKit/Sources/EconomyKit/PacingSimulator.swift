@@ -194,6 +194,26 @@ public struct PacingSimulator: Sendable {
                 primera > 0 ? 1 - vuelta / primera : 0
             }
         }
+        /// A qué tier llegó cada run y en cuántos segundos activos desde su
+        /// inicio. La última es la run que quedó abierta. Es la serie del
+        /// contrato 5 ("más rápida en cada tier ya visto").
+        public var tierReachedPerRun: [[Int: Double]] = []
+        /// De `secondsBackToPreviousWall`, cuánto fue apretar el botón (una
+        /// compra o una fusión cuestan su segundo) y no esperar plata. Alineada
+        /// índice a índice.
+        public var actionSecondsBackToPreviousWall: [Double] = []
+        /// El techo del prestigio (`balance-log`): `1 − acción/primera_vez`.
+        /// Ningún precio lo cruza, porque la acción no se compra con plata.
+        public var prestigeCeilingPerRun: [Double] {
+            zip(actionSecondsBackToPreviousWall, secondsToOwnWallFirstTime).map { acción, primera in
+                primera > 0 ? 1 - acción / primera : 0
+            }
+        }
+        /// El ORO que dio cada reencarnación.
+        public var oroGainedPerReincarnation: [Int] = []
+        /// El ORO de la cuenta al llegar a Dios, contando el que había por
+        /// reencarnar en ese momento.
+        public var oroAtGod: Int?
         /// Segundos ACTIVOS hasta tener las siete líneas permanentes al tope.
         public var maxedUpgradesActiveSeconds: Double?
         public var maxedUpgradesWall: Double?
@@ -222,6 +242,9 @@ public struct PacingSimulator: Sendable {
     /// Catálogo de mejoras permanentes que el bot puede comprar con ORO. Vacío
     /// = el bot no compra ninguna, que es el modelo viejo. [TUNEABLE]
     let permanentUpgrades: [PermanentUpgradeLine]
+    /// El descuento de prestigio que cobra la app en cada cotización. `nil` =
+    /// el bot de siempre, que no lo ve. [TUNEABLE]
+    let prestigeUnlocks: PrestigeUnlocks?
 
     public init(
         config: EconomyConfig,
@@ -229,7 +252,8 @@ public struct PacingSimulator: Sendable {
         human: HumanModel = HumanModel(),
         maxPaybackSeconds: Double = 1800,
         careerPath: String = "programmer",
-        upgrades: [PermanentUpgradeLine] = []
+        upgrades: [PermanentUpgradeLine] = [],
+        prestigeUnlocks: PrestigeUnlocks? = nil
     ) throws {
         self.config = config
         self.tiers = tiers
@@ -240,6 +264,7 @@ public struct PacingSimulator: Sendable {
         self.maxPaybackSeconds = maxPaybackSeconds
         self.careerPath = careerPath
         self.permanentUpgrades = upgrades
+        self.prestigeUnlocks = prestigeUnlocks
     }
 
     // MARK: - Run
@@ -266,7 +291,7 @@ public struct PacingSimulator: Sendable {
                 let sessionStart = dayStart + offset
                 guard sessionStart >= wall else { continue }
                 // Offline hasta el inicio de la sesión.
-                applyOffline(state: &state, elapsed: sessionStart - wall)
+                applyOffline(state: &state, from: wall, to: sessionStart)
                 wall = sessionStart
                 // Sesión activa.
                 let consumed = playSession(
@@ -285,13 +310,13 @@ public struct PacingSimulator: Sendable {
             if !sessionRan {
                 // Ya pasaron todas las sesiones de hoy: dormir hasta mañana.
                 let nextDay = dayStart + human.daySeconds + (human.sessionStartOffsets.min() ?? 0)
-                applyOffline(state: &state, elapsed: nextDay - wall)
+                applyOffline(state: &state, from: wall, to: nextDay)
                 wall = nextDay
             } else {
                 // Gap final del día → primera sesión de mañana.
                 let nextDay = dayStart + human.daySeconds + (human.sessionStartOffsets.min() ?? 0)
                 if nextDay > wall {
-                    applyOffline(state: &state, elapsed: nextDay - wall)
+                    applyOffline(state: &state, from: wall, to: nextDay)
                     wall = nextDay
                 }
             }
@@ -317,6 +342,10 @@ public struct PacingSimulator: Sendable {
         /// Tier de frontera → segundos activos DESDE el inicio de la run en que
         /// se alcanzó por primera vez. El tier 1 está desde el segundo cero.
         var tierReached: [Int: Double] = [1: 0]
+        /// Segundos de la run gastados en apretar el botón (compras y fusiones).
+        var actionSeconds: Double = 0
+        /// Tier de frontera → `actionSeconds` cuando se alcanzó.
+        var actionsAtTier: [Int: Double] = [1: 0]
     }
 
     /// Cuándo se considera que la run se TRABÓ: cuando un solo tier de frontera
@@ -343,11 +372,13 @@ public struct PacingSimulator: Sendable {
            let vuelta = tracker.tierReached[anterior],
            let primera = report.secondsToOwnWallCandidate {
             report.secondsBackToPreviousWall.append(vuelta)
+            report.actionSecondsBackToPreviousWall.append(tracker.actionsAtTier[anterior] ?? vuelta)
             report.secondsToOwnWallFirstTime.append(primera)
         }
+        report.tierReachedPerRun.append(tracker.tierReached)
         report.wallTierPerRun.append(pared)
         report.secondsToOwnWallCandidate = pared > 0 ? tracker.tierReached[pared] : nil
-        tracker = RunTracker(startActive: active, tierReached: [1: 0])
+        tracker = RunTracker(startActive: active)
     }
 
     // MARK: - Sesión activa
@@ -370,6 +401,8 @@ public struct PacingSimulator: Sendable {
             if state.run.maxTierReached >= tiers.maxTier, report.godWall == nil {
                 report.godWall = wallStart + elapsed
                 report.godActive = activeStart + elapsed
+                report.oroAtGod = state.meta.oroEarnedLifetime
+                    + PrestigeCalculator.oroGained(state: state, economy: economy)
                 return (elapsed, elapsed)
             }
             maybeReincarnate(
@@ -377,7 +410,7 @@ public struct PacingSimulator: Sendable {
                 wall: wallStart + elapsed, active: activeStart + elapsed
             )
 
-            let rate = incomeRate(state: state, active: true)
+            let rate = activeIncomeRate(state: state)
             guard rate > 0 else {
                 // Sin income (imposible en la práctica): quemar la sesión.
                 elapsed = human.sessionSeconds
@@ -401,6 +434,7 @@ public struct PacingSimulator: Sendable {
             }
             earn(state: &state, amount: rate * wait)
             elapsed += wait + human.hireSeconds
+            tracker.actionSeconds += human.hireSeconds
             let passivesBefore = state.run.passiveUnlocked.values.filter { $0 }.count
             action.perform(&state)
             report.passiveUnlocksPerRun[report.passiveUnlocksPerRun.count - 1] +=
@@ -585,11 +619,7 @@ public struct PacingSimulator: Sendable {
         // llega a 0,30 y le abarata las contrataciones un 30 %. Que entre está
         // bien (el jugador la tiene igual), pero ya no es un factor neutro, y
         // darlo por 1 es leer el precio del bot como si fuera el de catálogo.
-        guard let quote = TowerActions.hireQuote(
-            typeId: type.id, state: state, config: config,
-            floorTable: floorTable, tiers: tiers
-        ) else { return nil }
-        let cost = quote.cost
+        guard let cost = quote(typeId: type.id, state: state, now: 0)?.cost else { return nil }
 
         if requireProfit {
             // Política del plan (§F7.1c): backfill si es BARATO relativo al wallet
@@ -684,8 +714,10 @@ public struct PacingSimulator: Sendable {
                     // comparar "volver a la pared" contra "llegar la primera vez".
                     tracker.tierReached[newType.tier] =
                         activeStart + elapsed + human.mergeSeconds - tracker.startActive
+                    tracker.actionsAtTier[newType.tier] = tracker.actionSeconds + human.mergeSeconds
                 }
                 merged = true
+                tracker.actionSeconds += human.mergeSeconds
                 elapsed += human.mergeSeconds
                 recordUnlocks(
                     state: &state, report: &report,
@@ -718,6 +750,7 @@ public struct PacingSimulator: Sendable {
     ) {
         guard wantsToReincarnate(state: state) else { return }
         report.maxTierPerRun.append(state.run.maxTierReached)
+        report.oroGainedPerReincarnation.append(PrestigeCalculator.oroGained(state: state, economy: economy))
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: wall)
         closeRun(tracker: &tracker, report: &report, active: active)
         report.passiveUnlocksPerRun.append(0)
@@ -811,16 +844,9 @@ public struct PacingSimulator: Sendable {
 
     // MARK: - Income
 
-    private func passivePerSecond(state: PlayerState) -> Double {
-        var total = 0.0
-        for (typeId, count) in state.run.units where state.run.passiveUnlocked[typeId] == true {
-            guard count > 0, let type = tiers.type(id: typeId) else { continue }
-            total += type.passiveYieldPerInstance * Double(count)
-                * CharUpgrades.multiplier(typeId: typeId, levels: state.run.charUpgradeLevels, config: config)
-                * floorTable.floor(forTier: type.tier).incomeMultiplier
-        }
-        return total * state.meta.globalMultiplier * state.meta.derivedEffects.incomeMultiplier
-            * StaffedFloors.multiplier(state: state, tiers: tiers, floorTable: floorTable, config: config)
+    /// Lo que la torre rinde sola por segundo: la cuenta del juego.
+    func passiveRate(state: PlayerState) -> Double {
+        IncomeTicker.basePassivePerSecond(state: state, tiers: tiers, floorTable: floorTable, config: config)
     }
 
     /// Qué mejora por personaje comprar: la de mejor **income por moneda**.
@@ -886,30 +912,27 @@ public struct PacingSimulator: Sendable {
     }
 
     /// Income durante juego activo: passive + taps sobre la mejor unidad.
-    private func incomeRate(state: PlayerState, active: Bool) -> Double {
-        var rate = passivePerSecond(state: state)
-        if active {
-            let bestTap = state.run.units.keys
-                .compactMap { tiers.type(id: $0) }
-                .map { type in
-                    type.tapYield
-                        * CharUpgrades.multiplier(typeId: type.id, levels: state.run.charUpgradeLevels, config: config)
-                        * config.tapFloorMultiplier(for: floorTable.floor(forTier: type.tier))
-                }
-                .max() ?? 0
-            // Los mismos factores que `GameActions.applyTap`, incluido el
-            // `incomeMultiplier` que al bot le faltaba: el tap del juego lo
-            // lleva, así que sin él el simulador cobraba de menos cada toque. El
-            // de piso pasa por `tapFloorMultiplier` por el mismo motivo: si acá
-            // se leyera `incomeMultiplier` crudo, el bot cobraría un tap que el
-            // juego ya no paga.
-            rate += bestTap * human.tapsPerSecond
-                * state.meta.derivedEffects.tapMultiplier
-                * state.meta.derivedEffects.incomeMultiplier
-                * state.meta.globalMultiplier
-                * StaffedFloors.multiplier(state: state, tiers: tiers, floorTable: floorTable, config: config)
-        }
-        return rate
+    func activeIncomeRate(state: PlayerState) -> Double {
+        let bestTap = state.run.units.keys
+            .compactMap { tiers.type(id: $0) }
+            .map { type in
+                type.tapYield
+                    * CharUpgrades.multiplier(typeId: type.id, levels: state.run.charUpgradeLevels, config: config)
+                    * config.tapFloorMultiplier(for: floorTable.floor(forTier: type.tier))
+            }
+            .max() ?? 0
+        // Los mismos factores que `GameActions.applyTap`, incluido el
+        // `incomeMultiplier` que al bot le faltaba: el tap del juego lo
+        // lleva, así que sin él el simulador cobraba de menos cada toque. El
+        // de piso pasa por `tapFloorMultiplier` por el mismo motivo: si acá
+        // se leyera `incomeMultiplier` crudo, el bot cobraría un tap que el
+        // juego ya no paga.
+        return passiveRate(state: state)
+            + bestTap * human.tapsPerSecond
+            * state.meta.derivedEffects.tapMultiplier
+            * state.meta.derivedEffects.incomeMultiplier
+            * state.meta.globalMultiplier
+            * StaffedFloors.multiplier(state: state, tiers: tiers, floorTable: floorTable, config: config)
     }
 
     private func earn(state: inout PlayerState, amount: Double) {
@@ -918,11 +941,26 @@ public struct PacingSimulator: Sendable {
         state.meta.lifetimeEarnings += amount
     }
 
-    private func applyOffline(state: inout PlayerState, elapsed: Double) {
-        guard elapsed > 0 else { return }
-        let capped = min(elapsed, config.offlineCapHours * 3600)
-        let amount = capped * passivePerSecond(state: state) * state.meta.derivedEffects.offlineEfficiency
-        earn(state: &state, amount: amount)
+    /// Lo que el jugador cobra al volver de una ausencia de `from` a `to`: la
+    /// misma cuenta que el popup offline.
+    func offlineCredit(state: PlayerState, from: Double, to: Double) -> Double {
+        var stamped = state
+        stamped.meta.lastSeenTimestamp = from
+        return OfflineCalculator.earnings(state: stamped, tiers: tiers, floorTable: floorTable, config: config, now: to)
+    }
+
+    private func applyOffline(state: inout PlayerState, from: Double, to: Double) {
+        earn(state: &state, amount: offlineCredit(state: state, from: from, to: to))
+    }
+
+    /// Lo que cobra el juego por contratar `typeId`: la curva, el amortiguador y
+    /// el descuento de prestigio. `nil` = no se puede contratar.
+    func quote(typeId: String, state: PlayerState, now: Double) -> HireQuote? {
+        let discount = prestigeUnlocks?.cumulativeSpawnDiscount(atPrestigeLevel: state.meta.prestigeLevel) ?? 0
+        return TowerActions.hireQuote(
+            typeId: typeId, state: state, config: config, floorTable: floorTable, tiers: tiers,
+            costMultiplier: 1 - discount, now: now
+        )
     }
 
     // MARK: - Helpers
@@ -936,24 +974,21 @@ public struct PacingSimulator: Sendable {
     }
 
     /// Cuántos segundos de income cuesta el PRÓXIMO hire del tier base del piso,
-    /// al contador de compras que el bot tiene de ese tipo. Cotiza por
-    /// `config.hireCost` —sin descuentos ni modificadores, que el bot no tiene—
-    /// y divide por el income de juego activo, que es el que el jugador tiene en
-    /// la mano cuando abre el piso.
+    /// al contador de compras que el bot tiene de ese tipo. Cotiza lo que cobra
+    /// el juego (`quote`: con el amortiguador y los descuentos) y divide por el
+    /// income de juego activo, que es el que el jugador tiene en la mano cuando
+    /// abre el piso.
     ///
-    /// El contador sale de `hireCountsByType`, el mismo que alimenta la curva en
-    /// `TowerActions.hireQuote(typeId:)`: cotizar siempre con `purchases: 0`
-    /// —como hacía la primera versión de esta métrica— la volvía
-    /// matemáticamente ciega a `hireCostGrowth`, porque `growth^0 = 1`.
+    /// El contador sale de `hireCountsByType`, el mismo que alimenta la curva:
+    /// cotizar siempre con `purchases: 0` —como hacía la primera versión de esta
+    /// métrica— la volvía ciega a `hireCostGrowth`, porque `growth^0 = 1`.
     private func hireSeconds(floor: FloorDef, state: PlayerState) -> Double {
-        let rate = incomeRate(state: state, active: true)
+        let rate = activeIncomeRate(state: state)
         guard rate > 0 else { return .infinity }
-        let typeId = baseTypeId(of: floor)
-        let purchases = typeId.map { state.run.hireCountsByType[$0] ?? 0 } ?? 0
-        return config.hireCost(
-            floor: floor, tier: floor.firstTier,
-            frontierTier: state.run.maxTierReached, purchases: purchases
-        ) / rate
+        guard let cost = baseTypeId(of: floor).flatMap({ quote(typeId: $0, state: state, now: 0)?.cost }) else {
+            return .infinity
+        }
+        return cost / rate
     }
 
     /// El tipo del tier base del piso, elegido igual que en `hireAction` (misma
@@ -985,14 +1020,11 @@ public struct PacingSimulator: Sendable {
         let ordered = state.run.hireCountsByType
             .filter { $0.value > 0 }
             .sorted { $0.value == $1.value ? $0.key < $1.key : $0.value > $1.value }
-        guard let (typeId, purchases) = ordered.first, let type = tiers.type(id: typeId) else { return nil }
-        let rate = incomeRate(state: state, active: true)
-        guard rate > 0 else { return (typeId, purchases, .infinity) }
-        let floor = floorTable.floor(forTier: type.tier)
-        let cost = config.hireCost(
-            floor: floor, tier: type.tier,
-            frontierTier: state.run.maxTierReached, purchases: purchases
-        )
+        guard let (typeId, purchases) = ordered.first else { return nil }
+        let rate = activeIncomeRate(state: state)
+        guard rate > 0, let cost = quote(typeId: typeId, state: state, now: 0)?.cost else {
+            return (typeId, purchases, .infinity)
+        }
         return (typeId, purchases, cost / rate)
     }
 

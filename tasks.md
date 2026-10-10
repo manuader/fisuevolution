@@ -536,7 +536,7 @@ que toma · commit o rama · nota.
 | E6b-T1r | Sin skins por código: borrar shaders (T1), galería (T2) y `Treatment.effect`/`shaderId` (T3) | ✅ | E3b-T2 (dueña de DebugPanelView) | DebugPanelView, GameContentLoader | `255749b` (merge `9c5df1e`) | −495 líneas; grep vacío |
 | E6b-T4 | La pinta comprada con ORO es tuya | ⛔ | T3; E6a-T1, E6a-T2, E6a-T8; E3b-T2 | 🔥 PlayerState, catálogo; +Store | | |
 | E6b-T5 | Familias se ven (sin efectos) | ⛔ | T1, T4; E6a-T8; E5b-T3 | 🔥 BoardScene, catálogo; +Store | | |
-| E6b-T6 | Lugares extra (EK) | ⛔ | E6a-T2; E2a-T4 | — | | |
+| E6b-T6 | Lugares extra (EK) | 🔄 | E6a-T2; E2a-T4 | — | | |
 | E6b-T7 | Lugares extra en la partida | ⛔ | T6; E6a-T6, E6a-T8, E6a-T12; E3a-T10; E5a-T6 | 🔥 GameState, catálogo; GameContentLoader, +Engagement | | 🔒 si las 4 filas no entran en el SE |
 | E6b-T8 | Exclusivas de ORO elegidas entre skins de la v1 | ⛔ | T1r, T5 | catálogo | | el agente propone y se las muestra al dueño antes de cerrar |
 | E6b-T9 | Las tres familias entran | ✅ | E8 T3–T5; T5 | catálogo | `b9e2cd0` (en `v2i/integ-r22`) | 🔒 arte de E8 = E8 T3–T5; 🔒 si el bundle crece > 60 MB (E8 T10 lo mide; estimado ≈ +29 MB con fondos en JPEG) |
@@ -681,8 +681,8 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 | P-E2b | Plan de E2b | ✅ | — | — | `5b15b82` | 15 tareas; reporte `.superpowers/sdd/2026-10-07-v2-e2b/plan-report.md` |
 | E2b-T1 | Bandas de escalada y curva por piso (EK) | ✅ | E2a-T3, E2a-T5 | — | `42b2e8c` (integ-r20) | **hecha (r20):** `EscalationBand` + `escalation(atFrontier:)` única fórmula (`hireCost`, `PriceCushion.jump`), `costGrowthStepPerFloor`; apagadas (umbral 7 = v1) |
 | E2b-T2 | Herencia de pasivos al reencarnar (EK) | ✅ | T1 | — | | |
-| E2b-T3 | El simulador cobra como el juego (EK) | 🔄 | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
-| E2b-T4 | Política de pisos en marcha del bot (EK, opus) | ⛔ | T3; E2a-T4 | — | | |
+| E2b-T3 | El simulador cobra como el juego (EK) | 🟢 | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
+| E2b-T4 | Política de pisos en marcha del bot (EK, opus) | 🔄 | T3; E2a-T4 | — | | |
 | E2b-T5 | Perfiles y fuentes gratis (EK) | ⛔ | T4; E5a-T1 | archivo de `PackageRoller` | | |
 | E2b-T6 | El perfil `.ads` (EK) | ⛔ | T5; E4a-T1, E4a-T8, E5a-T2, E5a-T3 | — | | |
 | E2b-T7 | El perfil `.max` (EK) | ⛔ | T6; E6a-T2, E6b-T6 | — | | |

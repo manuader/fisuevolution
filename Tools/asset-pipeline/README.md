@@ -67,10 +67,20 @@ efectos por código).
 
 El recorte se elige a ojo, asset por asset (decisión del dueño, HANDOFF §5).
 
+**Desde 2026-10-10 todo esto se hace en el Estudio de assets**
+(`Tools/asset-studio/`, doble clic en `~/Desktop/estudio-assets/Abrir Estudio de assets.command`):
+fondo, islas, pincel, video y notas de regeneración en una sola página, con un
+registro central en `~/Desktop/estudio-assets/registro.json`. Lo listo va al juego con
+`Tools/asset-studio/aplicar.py --dry-run` / `--en-rama` (rama y worktree propios, tests
+del pipeline, commit). Los tests del Estudio:
+`.venv/bin/python -m unittest discover -s ../asset-studio/tests`. Los scripts de abajo
+siguen andando y el Estudio los reusa.
+
 | Script | Para qué |
 |---|---|
 | `revision_recortes.py` → `aplicar_revision.py` | Comparar conectividad contra saliencia y aplicar la elegida |
 | `revision_islas.py` → `aplicar_islas.py` | Islas de papel blanco que el recorte deja pegadas |
+| `balde_islas.py` → `aplicar_limpias.py` | Sacar a mano, con un balde rojo/verde, las islas sueltas de los sprites ya integrados (`~/Desktop/projects/islas-review`) |
 | `elegir_recorte.py` | Cambiar el recorte de UN asset |
 | `recut_assets.py` | Re-recortar en lote; respeta los elegidos a mano |
 

@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estudio de assets</title>
+<link rel="stylesheet" href="/web/estilo.css">
+</head>
+<body>
+<div id="app">
+  <header id="cabecera">
+    <h1>Estudio de assets</h1>
+    <span id="progreso-global"></span>
+    <span class="crece"></span>
+    <button id="btn-importar" title="Traer una imagen o un video nuevo">＋ Importar</button>
+    <button id="btn-aplicar" title="Llevar al juego lo que está listo">Aplicar al juego</button>
+    <button id="btn-ayuda" title="Atajos y ayuda">?</button>
+  </header>
+
+  <aside id="izquierda">
+    <input id="buscar" type="search" placeholder="Buscar por nombre…" autocomplete="off">
+    <div id="filtros">
+      <label>Tipo <select data-filtro="tipo"></select></label>
+      <label>Tipo de skin <select data-filtro="tipo_skin"></select></label>
+      <label>Personaje <select data-filtro="personaje"></select></label>
+      <label>Atlas <select data-filtro="atlas"></select></label>
+      <label>Imagen <select data-filtro="estado_imagen"></select></label>
+      <label>Video <select data-filtro="estado_video"></select></label>
+      <label class="check"><input type="checkbox" id="con-notas"> Con notas <span id="cuenta-notas"></span></label>
+      <button id="limpiar-filtros" class="chico">Sacar filtros</button>
+    </div>
+    <div id="cuenta-lista"></div>
+    <div id="lista" tabindex="0"></div>
+  </aside>
+
+  <main id="centro">
+    <div id="barra">
+      <div id="pasos">
+        <button data-paso="1" class="paso">1 · Fondo</button>
+        <button data-paso="2" class="paso">2 · Islas</button>
+      </div>
+      <span class="crece"></span>
+      <div class="grupo" id="herramientas-vista">
+        <button id="zoom-menos" title="Alejar">−</button>
+        <span id="zoom-num">100%</span>
+        <button id="zoom-mas" title="Acercar">＋</button>
+        <button id="ajustar" title="Ajustar a pantalla (F)">Ajustar</button>
+        <button id="mano" title="Mano: arrastrar para mover (también espacio + arrastrar)">✋</button>
+        <label class="fondo-sel">Fondo
+          <select id="fondo">
+            <option value="damero">Damero</option>
+            <option value="#ffffff">Blanco</option>
+            <option value="#000000">Negro</option>
+            <option value="piso">Color del piso</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <section id="paso1" class="paso-panel">
+      <div id="tarjetas"></div>
+      <div id="paso1-pie">
+        <span id="paso1-ayuda">Un clic elige el recorte. Rueda o pellizco para acercar: las vistas se mueven juntas.</span>
+        <span class="crece"></span>
+        <button id="ninguno" class="malo">Ninguno sirve</button>
+        <button id="a-islas" class="principal">Seguir con las islas →</button>
+      </div>
+    </section>
+
+    <section id="paso2" class="paso-panel">
+      <div id="herramientas">
+        <button data-herr="rojo" class="herr" title="Balde rojo: la isla se saca (1)"><i class="punto rojo"></i>Sacar</button>
+        <button data-herr="verde" class="herr" title="Balde verde: la isla se queda (2)"><i class="punto verde"></i>Conservar</button>
+        <button data-herr="pincel" class="herr" title="Pincel: borrar a mano (P)">🖌 Pincel</button>
+        <button data-herr="goma" class="herr" title="Goma: devolver lo borrado (G)">⌫ Goma</button>
+        <label id="tamano-caja">Tamaño <input id="tamano" type="range" min="1" max="120" value="12"> <span id="tamano-num">12</span></label>
+        <span class="sep"></span>
+        <button id="deshacer" title="Deshacer (⌘Z)">↶</button>
+        <button id="rehacer" title="Rehacer (⇧⌘Z)">↷</button>
+        <button id="como-queda" title="Ver cómo queda (C)">Cómo queda</button>
+        <button id="borrar-todo" class="chico" title="Sacar todas las marcas">Empezar de nuevo</button>
+      </div>
+      <div id="escenario"><canvas id="lienzo"></canvas><div id="cargando" hidden></div></div>
+      <div id="paso2-pie">
+        <span id="cuenta-islas"></span>
+        <span class="crece"></span>
+        <span id="chiquitas"></span>
+      </div>
+    </section>
+
+    <section id="solo-video" class="paso-panel">
+      <p>Este asset es solo de video: se revisa en el panel de la derecha.</p>
+      <img id="poster" alt="">
+    </section>
+  </main>
+
+  <aside id="derecha">
+    <div id="ficha">
+      <h2 id="nombre">—</h2>
+      <div id="datos"></div>
+    </div>
+
+    <section class="caja" id="caja-video">
+      <h3>Video</h3>
+      <div id="sin-video">Sin video.</div>
+      <div id="con-video">
+        <div id="video-marco"><video id="video" loop muted autoplay playsinline></video></div>
+        <div class="fila">
+          <select id="video-cual" title="Qué versión mirar">
+            <option value="estudio">Procesado en el Estudio</option>
+            <option value="juego">El del juego (.mov)</option>
+            <option value="master">Master (.mp4, con fondo)</option>
+          </select>
+          <select id="video-fondo" title="Fondo del video">
+            <option value="damero">Damero</option>
+            <option value="#ffffff">Blanco</option>
+            <option value="#000000">Negro</option>
+            <option value="piso">Piso</option>
+          </select>
+        </div>
+        <div id="aviso-safari" class="aviso" hidden>Si el video se ve con fondo en vez de transparente, <b>abrí el Estudio en Safari</b>: es el que muestra la transparencia de estos videos.</div>
+        <div id="aviso-video" class="aviso" hidden></div>
+        <div class="fila">
+          <button id="procesar-video" title="Recortar el master con video_assets.py, sin tocar el juego">Procesar video</button>
+          <label class="chico">Limpiar motas &lt; <input id="menores" type="number" min="0" max="5000" step="10" value="0"> px</label>
+        </div>
+        <div id="progreso-video" class="barra-progreso" hidden><div></div><span></span></div>
+        <div class="estados" id="estados-video">
+          <button data-video="va" class="bueno">Va</button>
+          <button data-video="regenerar" class="malo">Regenerar</button>
+          <button data-video="obviar">Obviar</button>
+        </div>
+        <textarea id="nota-video" rows="2" placeholder="Nota del video (qué hay que cambiar)…"></textarea>
+      </div>
+    </section>
+
+    <section class="caja" id="caja-imagen">
+      <h3>Imagen</h3>
+      <label>Estado
+        <select id="estado-imagen"></select>
+      </label>
+      <textarea id="nota-imagen" rows="2" placeholder="Nota para regenerar (ej.: que tenga dos manos, no tres)…"></textarea>
+      <div id="previo" class="aviso suave" hidden></div>
+    </section>
+
+    <div id="acciones">
+      <button id="guardar" class="principal grande" title="⌘S">Guardar <small>⌘S</small></button>
+      <button id="regenerar" class="malo grande">Marcar para regenerar</button>
+    </div>
+    <details id="historial-caja"><summary>Historial</summary><ol id="historial"></ol></details>
+  </aside>
+</div>
+
+<div id="globo" hidden></div>
+<div id="toast" hidden></div>
+
+<dialog id="dlg-regenerar">
+  <form method="dialog">
+    <h3>Marcar para regenerar</h3>
+    <p>¿Qué hay que cambiar? Esto le llega al generador.</p>
+    <label class="radio"><input type="radio" name="que" value="imagen" checked> La imagen</label>
+    <label class="radio" id="radio-video"><input type="radio" name="que" value="video"> El video</label>
+    <textarea id="regenerar-nota" rows="4" placeholder="Ej.: que tenga dos manos, no tres; pelo castaño"></textarea>
+    <menu><button value="cancelar">Cancelar</button><button value="ok" class="malo">Marcar</button></menu>
+  </form>
+</dialog>
+
+<dialog id="dlg-importar">
+  <form method="dialog" id="form-importar">
+    <h3>Importar una imagen o un video</h3>
+    <div id="soltar">Arrastrá acá un PNG, JPG o MP4<br><small>o</small><br><label class="boton">Elegir archivo<input type="file" id="archivo" accept=".png,.jpg,.jpeg,.mp4,image/png,image/jpeg,video/mp4" hidden></label></div>
+    <div id="archivo-nombre"></div>
+    <div class="fila">
+      <label>Personaje <input id="imp-personaje" list="lista-personajes" placeholder="cartonero"></label>
+      <label>Skin <input id="imp-skin" list="lista-skins" placeholder="(vacío = base)"></label>
+    </div>
+    <label>Nombre (id) <input id="imp-id" list="lista-ids" placeholder="cartonero__vaquero" required></label>
+    <label id="imp-carpeta-caja" hidden>Clase de video
+      <select id="imp-carpeta"></select>
+    </label>
+    <p id="imp-aviso" class="aviso suave"></p>
+    <datalist id="lista-personajes"></datalist>
+    <datalist id="lista-skins"></datalist>
+    <datalist id="lista-ids"></datalist>
+    <menu><button value="cancelar">Cancelar</button><button id="imp-ok" value="ok" class="principal">Importar</button></menu>
+  </form>
+</dialog>
+
+<dialog id="dlg-aplicar">
+  <form method="dialog">
+    <h3>Aplicar al juego</h3>
+    <div id="aplicar-resumen">Calculando…</div>
+    <pre id="aplicar-detalle"></pre>
+    <div id="progreso-aplicar" class="barra-progreso" hidden><div></div><span></span></div>
+    <menu><button value="cancelar">Cerrar</button><button id="aplicar-ok" class="principal" value="ok">Aplicar en una rama nueva</button></menu>
+  </form>
+</dialog>
+
+<dialog id="dlg-ayuda">
+  <form method="dialog">
+    <h3>Atajos</h3>
+    <table>
+      <tr><td>← →</td><td>anterior / siguiente de la lista</td></tr>
+      <tr><td>⌘S</td><td>guardar y pasar al siguiente sin revisar</td></tr>
+      <tr><td>1 / 2</td><td>balde rojo (sacar) / verde (conservar)</td></tr>
+      <tr><td>P / G</td><td>pincel / goma</td></tr>
+      <tr><td>[ ]</td><td>achicar / agrandar el pincel</td></tr>
+      <tr><td>C</td><td>ver cómo queda</td></tr>
+      <tr><td>⌘Z / ⇧⌘Z</td><td>deshacer / rehacer</td></tr>
+      <tr><td>F</td><td>ajustar a pantalla</td></tr>
+      <tr><td>espacio + arrastrar</td><td>mover la imagen (o botón del medio, o ✋)</td></tr>
+      <tr><td>rueda / pellizco</td><td>acercar y alejar donde está el mouse</td></tr>
+    </table>
+    <menu><button value="ok" class="principal">Entendido</button></menu>
+  </form>
+</dialog>
+
+<script src="/web/app.js"></script>
+</body>
+</html>

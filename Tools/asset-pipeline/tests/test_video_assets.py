@@ -234,6 +234,19 @@ class RecorteDeUnCuadro(unittest.TestCase):
         # Premultiplicado: ningun canal pasa al alfa. Un halo blanco lo violaria.
         self.assertLessEqual((rgba[..., :3].max(axis=2) - rgba[..., 3]).max(), 1)
 
+    def test_menores_saca_las_motas_y_deja_el_cuerpo(self):
+        canvas = Image.new("RGB", (240, 240), (255, 255, 255))
+        ImageDraw.Draw(canvas).ellipse((60, 60, 180, 180), fill=(40, 40, 160))
+        ImageDraw.Draw(canvas).ellipse((210, 20, 214, 24), fill=(200, 60, 20))  # la mota
+        frame = np.array(canvas)
+
+        intacto = cutout_frame(frame, TODOS_LOS_BORDES)
+        limpio = cutout_frame(frame, TODOS_LOS_BORDES, menores=100)
+
+        self.assertGreater(intacto[22, 212, 3], 0)
+        self.assertEqual(limpio[15:30, 205:220, 3].max(), 0, "la mota se fue entera")
+        np.testing.assert_array_equal(limpio[50:190, 50:190], intacto[50:190, 50:190])
+
 
 class ManifestVersionado(unittest.TestCase):
     """Sobre `Resources/Data/loops_manifest.json` versionado, no sobre una corrida

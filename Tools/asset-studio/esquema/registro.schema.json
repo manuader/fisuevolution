@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "estudio-assets/registro.schema.json",
+  "title": "Registro del Estudio de assets (~/Desktop/estudio-assets/registro.json)",
+  "description": "Una entrada por asset. Los campos marcados 'del catálogo' se rehacen en cada arranque desde el juego; el resto es del dueño y no se pisa.",
+  "type": "object",
+  "required": ["version", "assets"],
+  "properties": {
+    "version": {"const": 1},
+    "creado": {"type": "string", "format": "date-time"},
+    "importado_previo": {
+      "description": "Resumen de la importación única del trabajo previo (revision-v2/decisiones.json e islas-review/marcas.json).",
+      "type": ["object", "null"],
+      "properties": {
+        "fecha": {"type": "string"},
+        "elecciones": {"type": "integer"},
+        "regenerar": {"type": "integer"},
+        "islas": {"type": "integer"},
+        "faltan": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "assets": {"type": "object", "additionalProperties": {"$ref": "#/$defs/asset"}}
+  },
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "required": ["id", "tipo", "imagen", "archivos", "recorte", "fechas", "historial"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9_]+$", "description": "assetKey del pipeline; las fichas solo-video usan el nombre del .mov sin extensión (ev_aguinaldo)."},
+        "nombre": {"type": "string", "description": "del catálogo"},
+        "tipo": {"enum": ["personaje base", "skin", "visitante/especial", "retrato", "ícono", "evento", "objeto", "fondo", "UI", "cinemática"], "description": "del catálogo"},
+        "personaje": {"type": "string", "description": "del catálogo: tipo base (cartonero, npc_comisario, sp_lizard) o vacío"},
+        "tipo_skin": {"enum": ["", "base", "oro", "diamante", "temática", "pijama", "gaucho", "dinosaurio"], "description": "del catálogo"},
+        "atlas": {"type": "string", "description": "del catálogo: earth, cosmic, npcs, fam_pijama… o Backgrounds"},
+        "sprite": {"type": "string", "description": "del catálogo: nombre del PNG en el atlas, sin @Nx"},
+        "categoria": {"type": "string", "description": "del catálogo: category de process_dropbox (decide el tamaño @2x/@3x)"},
+        "en_prompts": {"type": "boolean", "description": "del catálogo: tiene entrada en prompts.json"},
+        "solo_video": {"type": ["boolean", "null"], "description": "del catálogo: ficha sin imagen propia"},
+        "origen": {"enum": ["juego", "importado"]},
+        "en_juego": {"type": "boolean", "description": "lo que dice ya está en el juego (trabajo previo aplicado)"},
+        "archivos": {
+          "type": "object",
+          "properties": {
+            "original": {"type": ["string", "null"], "description": "PNG con fondo blanco del que salen los cortes"},
+            "juego": {"type": ["string", "null"], "description": "el @3x (o el JPEG del fondo) que hoy está en el juego"},
+            "poster": {"type": ["string", "null"]},
+            "final": {"type": ["string", "null"], "description": "PNG final guardado en trabajos/<id>/final.png"},
+            "cortes": {"type": "object"}
+          }
+        },
+        "recorte": {
+          "type": "object",
+          "properties": {
+            "metodo": {"enum": [null, "conectividad", "rembg", "juego", "opaco"]},
+            "origen": {"enum": [null, "revision-v2", "estudio"]}
+          }
+        },
+        "marcas": {
+          "type": ["object", "null"],
+          "description": "lo pintado en el paso 2 sobre el corte elegido",
+          "properties": {
+            "corte": {"type": "string"},
+            "rojas": {"type": "array", "items": {"type": "string", "pattern": "^[sh][0-9]+$"}},
+            "verdes": {"type": "array", "items": {"type": "string", "pattern": "^[sh][0-9]+$"}},
+            "trazos": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "modo": {"enum": ["pincel", "goma"]},
+                  "radio": {"type": "number"},
+                  "puntos": {"type": "array", "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}}
+                }
+              }
+            },
+            "firma_corte": {"type": "string"},
+            "corte_ruta": {"type": "string"}
+          }
+        },
+        "marcas_previas": {"type": ["object", "null"], "description": "las del balde de islas (islas-review), con la ruta a su PNG limpio archivado"},
+        "imagen": {
+          "type": "object",
+          "required": ["estado"],
+          "properties": {
+            "estado": {"enum": ["sin revisar", "listo", "refinar", "ninguno sirve", "regenerar", "sin imagen"]},
+            "nota": {"type": "string", "description": "nota de regeneración de la imagen"},
+            "fecha": {"type": "string"}
+          }
+        },
+        "video": {
+          "type": ["object", "null"],
+          "properties": {
+            "estado": {"enum": ["sin video", "sin revisar", "va", "regenerar", "obviar"]},
+            "nota": {"type": "string", "description": "nota de regeneración del video"},
+            "tocado": {"type": "boolean", "description": "el dueño lo cambió en el Estudio: ya no se copia de revision.json"},
+            "kind": {"type": "string", "description": "del catálogo: clase de video_assets.py"},
+            "carpeta": {"type": "string"},
+            "id_juego": {"type": "string"},
+            "clave_revision": {"type": "string", "description": "clave en video/revision.json (<carpeta>/<master>)"},
+            "master": {"type": ["string", "null"]},
+            "mov": {"type": ["string", "null"], "description": "el .mov que hoy está en el juego"},
+            "archivo_mov": {"type": "string"},
+            "mov_estudio": {"type": ["string", "null"], "description": "el .mov procesado en el Estudio (todavía no en el juego)"},
+            "procesado": {"type": ["object", "null"]}
+          }
+        },
+        "aplicado": {
+          "type": "object",
+          "properties": {
+            "imagen": {"type": ["object", "null"], "properties": {"huella": {"type": "string"}, "rama": {"type": "string"}, "fecha": {"type": "string"}}},
+            "video": {"type": ["object", "null"]}
+          }
+        },
+        "fechas": {"type": "object", "properties": {"creado": {"type": "string"}, "actualizado": {"type": "string"}, "guardado": {"type": ["string", "null"]}}},
+        "historial": {"type": "array", "items": {"type": "object", "properties": {"fecha": {"type": "string"}, "que": {"type": "string"}}}}
+      }
+    }
+  }
+}

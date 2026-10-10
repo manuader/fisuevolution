@@ -487,13 +487,13 @@ que toma · commit o rama · nota.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E4b-T1 | El escenario y su turno | ✅ | E4a-T10; E3a-T10, E1-T10 | 🔥 GameState, BoardScene; CelebrationQueue, +Celebrations, +Debug | `52a1b9f` + arreglos `788db95` (merge `9b02cdd`, en `v2i/integ-r24`) | |
-| E4b-T2 | Los visitantes en la partida | ⏳ | T1 | catálogo (snapshot); +Engagement, +Debug, DebugPanelView | | no con E5a T7 (`+Engagement`) |
+| E4b-T2 | Los visitantes en la partida | 🔄 | T1 | catálogo (snapshot); +Engagement, +Debug, DebugPanelView | | no con E5a T7 (`+Engagement`) |
 | E4b-T3 | El chip, el popup y el retrato | ⛔ | T2; E3a-T11, E3b-T4, E3b-T8, E3b-T9 | 🔥 RootView, catálogo; +TutorialTips, TutorialAnchor | | crea `RewardedOfferButton` (lo completa E7b-b T7) |
 | E4b-T4 | Eventos con presentador; adiós al banner | ⛔ | T3 | 🔥 GameState, RootView, catálogo, +Bonus; CelebrationQueue, +Celebrations, ActiveBonus* | | |
 | E4b-T5 | El reto y las cartas del Vendedor | ⛔ | T3 | catálogo (snapshot) | | ∥ T4 |
 | E4b-T6 | El Apagón y los Campeones | ⛔ | T4 | 🔥 BoardScene; AudioManager | | cablea `sfx_blackout` |
 | E4b-T7 | La Liquidación en el precio | ✅ | E4a-T9; E3b-T5, E3b-T6, E3b-T7 | ActiveModifier, +Hiring, GameArtComponents; catálogo (snapshot) | `a8c7a06` + arreglos `0999169` (merge `bbd1586`), piso de la gratis `25cc5da` | |
-| E4b-T8 | El Álbum de especiales | ⏳ | E4a (cerrada); E3b-T3 | catálogo; MenuView, +TutorialTips | | |
+| E4b-T8 | El Álbum de especiales | 🔄 | E4a (cerrada); E3b-T3 | catálogo; MenuView, +TutorialTips | | |
 | E4b-T9 | Los especiales salen del tablero | ⛔ | T8, T6 | 🔥 BoardScene, GameState, RootView, PlayerState (docstring); +BoardChanges, +Debug | | |
 | E4b-T10 | Cierre de E4 | ⛔ | T1–T9 | `Docs/` | | |
 

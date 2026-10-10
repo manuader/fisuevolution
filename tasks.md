@@ -499,7 +499,7 @@ que toma · commit o rama · nota.
 | E4b-T2 | Los visitantes en la partida | ✅ | T1 | catálogo (snapshot); +Engagement, +Debug, DebugPanelView | `cdda9c8` + arreglos `2aba4ed` (merge en `v2i/integ-r25`) | no con E5a T7 (`+Engagement`) |
 | E4b-T3 | El chip, el popup y el retrato | ✅ | T2; E3a-T11, E3b-T4, E3b-T8, E3b-T9 | 🔥 RootView, catálogo; +TutorialTips, TutorialAnchor | `13a0b2a` (en `v2i/integ-r25`) | crea `RewardedOfferButton` (lo completa E7b-b T7) |
 | E4b-T4 | Eventos con presentador; adiós al banner | ⏳ | T3 | 🔥 GameState, RootView, catálogo, +Bonus; CelebrationQueue, +Celebrations, ActiveBonus* | | |
-| E4b-T5 | El reto y las cartas del Vendedor | 🔄 | T3 | catálogo (snapshot) | | ∥ T4 |
+| E4b-T5 | El reto y las cartas del Vendedor | 🟢 | T3 | catálogo (snapshot) | | ∥ T4 |
 | E4b-T6 | El Apagón y los Campeones | ⛔ | T4 | 🔥 BoardScene; AudioManager | | cablea `sfx_blackout` |
 | E4b-T7 | La Liquidación en el precio | ✅ | E4a-T9; E3b-T5, E3b-T6, E3b-T7 | ActiveModifier, +Hiring, GameArtComponents; catálogo (snapshot) | `a8c7a06` + arreglos `0999169` (merge `bbd1586`), piso de la gratis `25cc5da` | |
 | E4b-T8 | El Álbum de especiales | ✅ | E4a (cerrada); E3b-T3 | catálogo; MenuView, +TutorialTips | `53cafaf` (merge en `v2i/integ-r25`) | |

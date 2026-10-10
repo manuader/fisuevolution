@@ -12865,6 +12865,23 @@
         }
       }
     },
+    "visit.challenge.ax %lld %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Challenge: %1$lld of %2$lld taps"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reto: %1$lld de %2$lld toques"
+          }
+        }
+      }
+    },
     "visit.challenge.double" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12878,6 +12895,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Ganaste! ¿Lo duplicamos con un video?"
+          }
+        }
+      }
+    },
+    "visit.challenge.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap your workers!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tocá a tus empleados!"
           }
         }
       }
@@ -14000,6 +14034,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Llevá, llevá! Boost calentito, recién salido del horno. Con video te lo regalo."
+          }
+        }
+      }
+    },
+    "visit.vendor.take" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Llevalo"
           }
         }
       }

@@ -448,10 +448,10 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E4a-T1 | `RewardSpec` | ✅ | — | — | `8d0a311` (merge `bba9e39`) | EK; cimiento de E5–E7 |
 | E4a-T2 | Efectos nuevos: paro, inmunidad, ritmo de paquetes | ✅ | E1-T13, E1-T15 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | `a031ee8` (merge, claves `8cf4e73`) | paro, inmunidad, ritmo de paquetes |
-| E4a-T3 | Los relojes en `meta.engagement` | 🟢 | E1-T4, E3b-T9 | EngagementState | `938efcb` (en `v2i/integ-r22`) | (ambigua: ver "Inconsistencias", punto 3) |
-| E4a-T4 | El motor de eventos v2 (EK) | 🟢 | T1, T2, T3 | — | `9db72db` (en `v2i/integ-r22`) | |
-| E4a-T5 | Los visitantes, puros | 🟢 | T1, T3 | — | `7f51f23` (en `v2i/integ-r22`) | |
-| E4a-T6 | `VisitPlanner` | 🔄 | T5; E1-T7, E1-T14 | BoardChange.swift, +BoardChanges | | |
+| E4a-T3 | Los relojes en `meta.engagement` | ✅ | E1-T4, E3b-T9 | EngagementState | `938efcb` (en `v2i/integ-r22`) | (ambigua: ver "Inconsistencias", punto 3) |
+| E4a-T4 | El motor de eventos v2 (EK) | ✅ | T1, T2, T3 | — | `9db72db` (en `v2i/integ-r22`) | |
+| E4a-T5 | Los visitantes, puros | ✅ | T1, T3 | — | `7f51f23` (en `v2i/integ-r22`) | |
+| E4a-T6 | `VisitPlanner` | 🟢 | T5; E1-T7, E1-T14 | BoardChange.swift, +BoardChanges | `d37ab28` (en `v2i/integ-r22`) |  carry a E4b T2/E4a T9: `.visitor` no es prepago, una visita pagada con video que se descarte no se compensa |
 | E4a-T7 | El contenido de los visitantes | ⛔ | T5, T6; E11-T2, E3a-T1 | catálogo (snapshot); GameContentLoader, LocalizationCompletenessTests | | carga el Anexo A (con los guiños: Coach 67 toques, Crypto Bro "six seven", Vecina "andá pa' allá, bobo"; PLAN-v2 §2) |
 | E4a-T8 | `grant` y el momento calmo | ✅ | T1, T2; E1-T8, E1-T14 | — | `8376c23` (merge `e378307`) | sin llamadores todavía; carries a T9: `isCalmMoment` duplica `isSafeMomentForInterstitial` (E7b lo unifica); los kinds fuera de `grantableRewardKinds` no se ofrecen (VisitorScheduler/`eventIsApplicable`) |
 | E4a-T9 | La mudanza a eventos v2 | ⛔ | T2, T4, T7, T8; E1-T16 | 🔥 GameState, +Bonus, ContentSystems, catálogo | | |
@@ -479,7 +479,7 @@ que toma · commit o rama · nota.
 | E5a-T1 | El Paquete de la Aduana, puro | ✅ | E1-T3 | — | `b4800c5` + `a4c156f` (merge `bba9e39`) | carries a T2/T3/T5/T6 en el ledger |
 | E5a-T2 | El Colchón, puro | ✅ | T1; E4a-T1 | — | `d6a1421` (merge `bba9e39`) + mutantes `f6f8e2f` (merge `0fa932c`) | |
 | E5a-T3 | La Ruleta, pura | ✅ | T1; E4a-T1 | — | `4d1d426` (merge `bba9e39`) + mutantes `f6f8e2f` (merge `0fa932c`) | mutantes T2+T3: 92/93 |
-| E5a-T4 | Paquetes, colchón y ruleta en `meta.engagement` | 🟢 | T1–T3; E3b-T9, E4a-T3 | EngagementState | `c00943c` (en `v2i/integ-r22`) | |
+| E5a-T4 | Paquetes, colchón y ruleta en `meta.engagement` | ✅ | T1–T3; E3b-T9, E4a-T3 | EngagementState | `c00943c` (en `v2i/integ-r22`) | |
 | E5a-T5 | El contenido: `packages/treasures/wheel.json` | ⛔ | T1–T3; E4a-T7, E4a-T9 | GameContentLoader | | carry: validador `isFinite` |
 | E5a-T6 | El Paquete en la partida | ⛔ | T4, T5; E1-T9, E1-T10, E1-T14; E4a-T2, E4a-T6, E4a-T8, E4a-T9 | +Rewards, +Engagement, +BoardChanges, BoardChange.swift | | no con E4b T2 |
 | E5a-T7 | El Colchón en la partida | ⛔ | T6 | +Engagement | | |

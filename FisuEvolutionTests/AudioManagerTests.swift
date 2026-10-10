@@ -49,11 +49,11 @@ struct AudioManagerTests {
         #expect(abs(AudioManager.Gain.action.linear - Float(pow(10, -6.0 / 20))) < 0.001)
     }
 
-    @Test("los ocho eventos con acento propio no lo comparten; los demás suenan el genérico")
+    @Test("los nueve eventos con acento propio no lo comparten; los demás suenan el genérico")
     func eventAccents() throws {
         let ids = try GameContentLoader.load(from: .main).events.events.map(\.id)
         let withAccent = ["plan_platita", "startup_comprada", "devaluacion", "blanqueo",
-                          "inversion_alienigena", "corralito", "aguinaldo", "home_banking"]
+                          "inversion_alienigena", "corralito", "aguinaldo", "home_banking", "apagon"]
         #expect(withAccent.allSatisfy(ids.contains))
         let accents = withAccent.map { AudioManager.accent(forEvent: $0) }
         #expect(!accents.contains(.event), "evento sin acento: \(withAccent.filter { AudioManager.accent(forEvent: $0) == .event })")

@@ -370,4 +370,19 @@ struct CelebrationQueueTests {
         queue.finish(.towerNotice)
         #expect(queue.current == .boardCelebration)
     }
+
+    @Test("una oferta es una hoja del jugador: va al final y nunca se cierra sola")
+    func offerIsALastPlacePlayerClosedSheet() {
+        #expect(CelebrationKind.offer.priority == 6)
+        #expect(CelebrationKind.offer.timeout == nil)
+        #expect(!CelebrationKind.offer.isSkippable)
+        var queue = CelebrationQueue()
+        queue.enqueue(.towerNotice)
+        queue.enqueue(.offer)
+        queue.enqueue(.chestOpening)
+        queue.finish(.towerNotice)
+        #expect(queue.current == .chestOpening, "la oferta no le pasa por encima a un premio")
+        queue.finish(.chestOpening)
+        #expect(queue.current == .offer)
+    }
 }

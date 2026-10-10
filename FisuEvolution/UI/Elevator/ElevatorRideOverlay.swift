@@ -50,7 +50,7 @@ extension CelebrationKind {
     /// Las que se presentan como hoja o tapan todo el tablero: con ellas la placa y la cabina sobran.
     var coversElevator: Bool {
         switch self {
-        case .offlineEarnings, .dailyReward, .careerChoice, .skinAward, .specialDrop, .chestOpening, .boardCelebration, .cinematic: true
+        case .offlineEarnings, .dailyReward, .careerChoice, .skinAward, .specialDrop, .chestOpening, .boardCelebration, .cinematic, .offer: true
         case .visitorEncounter, .achievements, .towerNotice, .tutorialTip: false
         }
     }

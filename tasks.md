@@ -129,8 +129,8 @@
 | E12 | 19 | 15 |  |  |  | 3 | 1 |  |
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
-| E8e | 15 |  | 2 | 2 | 3 | 8 |  |  |
-| **Total** | **269** | **209** | **2** | **2** | **8** | **47** | **1** | **5** |
+| E8e | 15 | 2 |  | 2 | 3 | 8 |  |  |
+| **Total** | **269** | **211** |  | **2** | **8** | **47** | **1** | **5** |
 
 Fuera del conteo:
 
@@ -730,13 +730,13 @@ Olas: T1 ∥ T7 → T2 ∥ T3 ∥ T4 → T8 (ventana de `BoardScene`); T5 tras E
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | P-E8e | Plan de E8e: los videos al juego y las pintas con video | ✅ | — | — | (el commit de este plan) | 9 tareas; 12 dudas con default; gates en device del dueño en T9 |
-| E8e-T1 | `ArtClips` y el contrato manifest ↔ contenido | 🟢 | — | nuevos; LoopsManifestTests | | sonnet, revisión ninguna; fija la tabla ítem → clip de la tienda (`ui_oro_*` ≠ `ui_shop_*`) y `ui_oro_extra_slots` → E6b T7 · **r30:** `a8d3da4` (merge `17e4430`); RED visto; tarea VERDE unit 25; tabla ítem → clip en `ArtClips.shopIconKeys`; `ui_oro_extra_slots` en `pendingShopIcons` (E6b T7 lo mueve o el contrato queda rojo) |
+| E8e-T1 | `ArtClips` y el contrato manifest ↔ contenido | ✅ | — | nuevos; LoopsManifestTests | | sonnet, revisión ninguna; fija la tabla ítem → clip de la tienda (`ui_oro_*` ≠ `ui_shop_*`) y `ui_oro_extra_slots` → E6b T7 · **r30:** `a8d3da4` (merge `17e4430`); RED visto; tarea VERDE unit 25; tabla ítem → clip en `ArtClips.shopIconKeys`; `ui_oro_extra_slots` en `pendingShopIcons` (E6b T7 lo mueve o el contrato queda rojo) · ✅ con el `rapido2` VERDE sobre `76de0ff` (EK 845 · unit 1435 · Release 0) |
 | E8e-T2 | El visitante habla y actúa en el escenario | 🔄 | T1 | StageController, VisitorNode; +Stage (tibio), AudioWiringTests | | sonnet, el controlador lee el diff + capturas; cablea `visitorArrive` y `talkBlip` (pendientes de E4b T3); si la pausa de la escena pide una línea de 🔥 BoardScene, `NEEDS_CONTEXT` |
 | E8e-T3 | La ilustración del evento, animada | 🔄 | T1 | EventPopupView; ui.atlas, assets_manifest.json | | sonnet, capturas; integra los 8 pósters `ui_event_<id>` desde `video/eventos/frames/` del generador (`cayo_mercado_pago` → `home_banking`); no ∥ con quien regenere `ui.atlas` (E8 T9 Step 3) |
 | E8e-T4 | El ícono enfocado de la Tienda de ORO | ⏳ | T1 | OroShopView; AudioWiringTests, +OroShop | | sonnet, capturas; rol `icon`, una sola vista animada; cablea `shopShimmer` (pendiente de E6a T8); no ∥ con E6a T12 ni E6b T7 si tocan `OroShopView` |
 | E8e-T5 | El colchón espera y se abre | ⏳ | E5b-T2 | MattressPopupView (de E5b T2) | | sonnet, capturas; el premio se acredita como hoy, el video sólo demora mostrarlo |
 | E8e-T6 | `.once` en `LoopingVideoNode`; la caja espera y se abre | ⛔ | E5b-T3 | LoopingVideoNode; PickupNode, PackageOpeningPlayer (de E5b T3) | | sonnet, **rev. opus** (AVFoundation en un componente compartido) |
-| E8e-T7 | El Álbum, con la tarjeta enfocada animada | 🟢 | — | SpecialsAlbumView | | sonnet, capturas; `.character(sp_*)`, una sola tarjeta; el id `album.card.*` no cambia · **r30:** `8a879e6` (merge `360d5b2`); `AlbumFocus`; RED visto; unit 5 + SpecialsAlbumUITests 1/1; el movimiento real no se vio (🔒 dueño en device) |
+| E8e-T7 | El Álbum, con la tarjeta enfocada animada | ✅ | — | SpecialsAlbumView | | sonnet, capturas; `.character(sp_*)`, una sola tarjeta; el id `album.card.*` no cambia · **r30:** `8a879e6` (merge `360d5b2`); `AlbumFocus`; RED visto; unit 5 + SpecialsAlbumUITests 1/1; el movimiento real no se vio (🔒 dueño en device) · ✅ con el `rapido2` VERDE sobre `76de0ff` (EK 845 · unit 1435 · Release 0) |
 | E8e-T8 | Las pintas con video (ficha, revelación, pipeline) | ⛔ | T1; ventana de BoardScene | CharacterSheetView; 🔥 BoardScene (dos líneas); video_assets.py | | sonnet, revisión ninguna; pinta sin clip = quieta, nunca la base; `odr_tag`/`validate_id` aceptan `<tipo>__<pinta>` + test Python; no ∥ E9a T7 (CharacterSheetView), ni E5b T3/E6b T5 (BoardScene) |
 | E8e-T9 | Cierre de E8e (controlador) | ⛔ | T1–T8; E8d-T15 | `Docs/` | | `completo`; `AnimatedPlacesTests` con `pendingPlaces` vacío; gates en device del dueño 🔒: fps/memoria en el SE con el tope de 3, Reduce Motion, bajo consumo, ODR |
 | P-E8e-T10 | Plan de E8e T10: el tablero animado con los videos base | ✅ | — | — | f5dc07f | `2026-10-10-v2-e8e-t10-tablero-animado.md`; 6 tareas (10a–10f); 12 dudas con default; gate 🔒 en el SE antes de integrar |

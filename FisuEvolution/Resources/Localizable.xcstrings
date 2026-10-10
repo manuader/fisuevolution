@@ -12085,6 +12085,23 @@
         }
       }
     },
+    "tutorial.tip.visitor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've got a visitor! Tap their face to see what they brought."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tenés visita! Tocá su cara para ver qué trae."
+          }
+        }
+      }
+    },
     "upgrade.effect.income %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12895,6 +12912,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Bien ahí! Lo prometido es deuda."
+          }
+        }
+      }
+    },
+    "visit.chip.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants to talk to you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ quiere hablar con vos"
           }
         }
       }

@@ -14,11 +14,11 @@ La sesión de los cierres (el `completo` de E8, E13b y E13) tiene su propio docu
 |---|---|
 | `version-2` | **`2e51d29`** tras el `rapido` VERDE sobre `9dcf469` (EK 814 · unit 1175 · 0 rojos · Release 0); **174 de 254 (68,5 %)** |
 | `v2i/integ-r23` | `5fca66d`: suma los cierres (E8 T10, E13b T11, E13 T14, 🟢 las tres) y el arreglo del panel de debug (`534fd51`) sobre `2e51d29` |
-| Progreso | **174 de 254 en `version-2`; 177 de 254 (69,7 %) con las tres 🟢** si el `rapido` de la punta da VERDE: `RAPIDO_PENDIENTE` |
+| Progreso | **174 de 254 en `version-2`; 177 de 254 (69,7 %) con las tres 🟢** si el `rapido` de la punta da VERDE: VERDE (EK 814 · unit 1175 · 0 rojos · Release 0) |
 | Bloqueadas | ninguna nueva. E7b-a T3 sigue ⛔ y es **bloqueo de publicación**; E12 T12 ⛔ (espera a E9b T8) |
 
 `rapido` de la tanda, en orden: `ed85656` VERDE (EK 784 · unit 1143 · 0 rojos · Release 0); `a997a30` VERDE (EK 791 · unit 1154 · 0 rojos · Release 0); `9dcf469` VERDE
-(EK 814 · unit 1175 · 0 rojos · Release 0); la punta con los cierres (`5fca66d`): `RAPIDO_PENDIENTE`. El `completo` de los cierres (sobre `bab8a9c`) está en su documento.
+(EK 814 · unit 1175 · 0 rojos · Release 0); la punta con los cierres (`5fca66d`): VERDE (EK 814 · unit 1175 · 0 rojos · Release 0). El `completo` de los cierres (sobre `bab8a9c`) está en su documento.
 
 ## Lo que se integró
 
@@ -108,7 +108,7 @@ Aceptado: el offline ×2 a 1 día llega antes a Dios y suma menos offline total.
 
 ## Oráculo
 
-- `rapido`: `ed85656` · `a997a30` · `9dcf469` VERDES (arriba). Punta con los cierres: `RAPIDO_PENDIENTE`.
+- `rapido`: `ed85656` · `a997a30` · `9dcf469` VERDES (arriba). Punta con los cierres: VERDE (EK 814 · unit 1175 · 0 rojos · Release 0).
 - `completo --limpio` sobre `bab8a9c`: ver la sesión de los cierres (3 rojos de UI reales y arreglados; 1 rojo de carga del store que pasa aislado).
 
 ## Lo descartado

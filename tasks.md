@@ -452,7 +452,7 @@ que toma · commit o rama · nota.
 | E4a-T4 | El motor de eventos v2 (EK) | ✅ | T1, T2, T3 | — | `9db72db` (en `v2i/integ-r22`) | |
 | E4a-T5 | Los visitantes, puros | ✅ | T1, T3 | — | `7f51f23` (en `v2i/integ-r22`) | |
 | E4a-T6 | `VisitPlanner` | 🟢 | T5; E1-T7, E1-T14 | BoardChange.swift, +BoardChanges | `d37ab28` (en `v2i/integ-r22`) |  carry a E4b T2/E4a T9: `.visitor` no es prepago, una visita pagada con video que se descarte no se compensa |
-| E4a-T7 | El contenido de los visitantes | ⛔ | T5, T6; E11-T2, E3a-T1 | catálogo (snapshot); GameContentLoader, LocalizationCompletenessTests | | carga el Anexo A (con los guiños: Coach 67 toques, Crypto Bro "six seven", Vecina "andá pa' allá, bobo"; PLAN-v2 §2) |
+| E4a-T7 | El contenido de los visitantes | 🔄 | T5, T6; E11-T2, E3a-T1 | catálogo (snapshot); GameContentLoader, LocalizationCompletenessTests | | carga el Anexo A (con los guiños: Coach 67 toques, Crypto Bro "six seven", Vecina "andá pa' allá, bobo"; PLAN-v2 §2) |
 | E4a-T8 | `grant` y el momento calmo | ✅ | T1, T2; E1-T8, E1-T14 | — | `8376c23` (merge `e378307`) | sin llamadores todavía; carries a T9: `isCalmMoment` duplica `isSafeMomentForInterstitial` (E7b lo unifica); los kinds fuera de `grantableRewardKinds` no se ofrecen (VisitorScheduler/`eventIsApplicable`) |
 | E4a-T9 | La mudanza a eventos v2 | ⛔ | T2, T4, T7, T8; E1-T16 | 🔥 GameState, +Bonus, ContentSystems, catálogo | | |
 | E4a-T10 | Cierre de E4a | ⛔ | T1–T9 | `Docs/` | | |

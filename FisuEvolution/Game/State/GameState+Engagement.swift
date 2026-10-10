@@ -9,6 +9,7 @@ extension GameState {
         advanceEvents(delta: delta)
         advanceVisitors(delta: delta)
         advancePackages(delta: delta)
+        advanceTreasures(delta: delta)
         advanceStage(delta: delta)
     }
 
@@ -24,6 +25,9 @@ extension GameState {
         }
         if let count = Self.fixtureValue("--uitest-packages=", in: arguments).flatMap(Int.init) {
             debugAddPackages(count)
+        }
+        if arguments.contains("--uitest-mattress") {
+            debugSpawnMattress()
         }
     }
 

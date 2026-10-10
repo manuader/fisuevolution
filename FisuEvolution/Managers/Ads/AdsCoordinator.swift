@@ -212,11 +212,16 @@ final class AdsCoordinator: AdsProvider {
     /// `false` sin mostrar nada si el jugador compró `remove_ads` o si ya hay
     /// otro anuncio en pantalla.
     func showRewardedInterstitial() async -> Bool {
+        lastRewardedInterstitialAttempt = .busy
         guard !removedAds, !isPresentingFullScreen else { return false }
         isPresentingFullScreen = true
         defer { isPresentingFullScreen = false }
-        return await active.showRewardedInterstitial()
+        let earned = await active.showRewardedInterstitial()
+        lastRewardedInterstitialAttempt = active.lastRewardedInterstitialAttempt
+        return earned
     }
+
+    @ObservationIgnored private(set) var lastRewardedInterstitialAttempt = RewardedAttempt.noInventory
 
     var isAppOpenReady: Bool {
         !removedAds && !isPresentingFullScreen && active.isAppOpenReady

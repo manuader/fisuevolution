@@ -264,6 +264,16 @@ struct GameBoardView: View {
                 }
             }
             .animation(.easeInOut(duration: 0.25), value: gameState.showing == .cinematic)
+
+            // La pantalla previa de la pausa publicitaria (E7b): encima de todo,
+            // como el cofre, y sin hoja (ver la vista).
+            ZStack {
+                if let offer = gameState.adBreakOffer {
+                    RewardedInterstitialIntroView(offer: offer)
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut(duration: 0.25), value: gameState.adBreakOffer?.id)
         }
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los
         // anchors que publican los controles de adentro: `overlayPreferenceValue`
@@ -312,6 +322,9 @@ struct GameBoardView: View {
             gameState.uiCoversBoard = boardIsCovered
         }
         .onChange(of: gameState.shareCardMoment) {
+            gameState.uiCoversBoard = boardIsCovered
+        }
+        .onChange(of: gameState.adBreakOffer?.id) { _, _ in
             gameState.uiCoversBoard = boardIsCovered
         }
         // La música por piso sigue al piso visible que ya publica `GameState`
@@ -442,6 +455,7 @@ struct GameBoardView: View {
     private var boardIsCovered: Bool {
         menuSession != nil || showPrestige || gameState.specialInfo != nil || rankingCardUp
             || gameState.shareCardMoment != nil || gameState.visitorPopup != nil
+            || gameState.adBreakOffer != nil
     }
 
     private var boardLayoutMarker: some View {
@@ -811,6 +825,7 @@ private struct TowerNoticeView: View {
         case .hireUnlocked: "tower.notice.hire_unlocked"
         case .spendingFrozen: "tower.notice.spending_frozen"
         case .rewardCompensated(let durationText): "tower.notice.reward_compensated \(durationText)"
+        case .rewardGranted(let text): "tower.notice.reward_granted \(text)"
         }
     }
 

@@ -16,11 +16,11 @@ extension GameState {
     ]
 
     /// Un momento en que algo puede aparecer solo sin pisar al jugador: el tablero
-    /// a la vista (escena activa, sin hoja, sin ficha, sin carrera), sin
-    /// celebración en pantalla y fuera de la fase obligatoria del tutorial.
+    /// a la vista (`isBoardBusy`), sin celebración ni anuncio en pantalla y fuera
+    /// de la fase obligatoria del tutorial.
     var isCalmMoment: Bool {
-        phase == .ready && isSceneActive && !uiCoversBoard && celebrations.current == nil
-            && !tutorialPhaseActive && characterSheet == nil && careerPrompt == nil
+        phase == .ready && !isBoardBusy && celebrations.current == nil && !tutorialPhaseActive
+            && ads?.isPresentingFullScreen != true
     }
 
     /// Cuánto vale un segundo de producción ahora: la misma base que los premios de

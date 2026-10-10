@@ -1,3 +1,4 @@
+import EconomyKit
 import Foundation
 import Observation
 
@@ -59,6 +60,10 @@ protocol AdsProvider: AnyObject {
     /// premio. Es **el mismo contrato que `showRewarded`**, con la misma
     /// trampa: devolver `true` al cerrarla a la mitad regala la economía.
     func showRewardedInterstitial() async -> Bool
+    /// Qué pasó con el último `showRewardedInterstitial`: lo que separa "se
+    /// cerró sin premio" (`.presented`) de "no llegó a la pantalla"
+    /// (`.noInventory`, `.busy`). Sólo lo primero gasta el cupo de la pausa.
+    var lastRewardedInterstitialAttempt: RewardedAttempt { get }
 
     /// Si hay un app open cargado y fresco.
     var isAppOpenReady: Bool { get }
@@ -147,6 +152,7 @@ final class StubAdsProvider: AdsProvider {
     /// dos veces con el primer toque todavía cargando.
     @ObservationIgnored private let loadDelay: Duration = ProcessInfo.processInfo.arguments.contains("--uitest-slow-ad-load")
         ? .milliseconds(1500) : .zero
+    @ObservationIgnored private(set) var lastRewardedInterstitialAttempt = RewardedAttempt.noInventory
     var isInterstitialReady: Bool { !isShowing }
     var isRewardedInterstitialReady: Bool { !isShowing }
     var isAppOpenReady: Bool { !isShowing }
@@ -172,7 +178,8 @@ final class StubAdsProvider: AdsProvider {
 
     /// Dura lo que un rewarded: es un video con premio, aunque nadie lo pidió.
     func showRewardedInterstitial() async -> Bool {
-        await fakeAd(for: .seconds(2))
+        lastRewardedInterstitialAttempt = isShowing ? .busy : .presented
+        return await fakeAd(for: .seconds(2))
     }
 
     func showAppOpen() async -> Bool {
@@ -228,4 +235,31 @@ struct RewardedAdsConfig: Codable, Sendable, Equatable {
     /// Segundos de producción que se acreditan cuando un video visto ya no tiene
     /// dónde aplicar su efecto.
     let compensationSeconds: Double
+
+    /// La pausa publicitaria (PLAN-v2 §2): cuánto dura la pantalla previa y los
+    /// premios que rotan. Opcional: un JSON sin la sección usa el default.
+    struct AdBreak: Codable, Sendable, Equatable {
+        let introSeconds: Int
+        let prizes: [RewardSpec]
+
+        static let minIntroSeconds = 5
+
+        static let `default` = AdBreak(
+            introSeconds: 5,
+            prizes: [
+                .coinsSeconds(600),
+                .modifier(effect: .incomeMultiplier, magnitude: 2, seconds: 300),
+                .package(1),
+            ]
+        )
+    }
+
+    let adBreak: AdBreak?
+
+    /// Con el piso de la pantalla previa: la pausa nunca sale sin que el
+    /// jugador lea qué gana (política de AdMob).
+    var effectiveAdBreak: AdBreak {
+        let config = adBreak ?? .default
+        return AdBreak(introSeconds: max(AdBreak.minIntroSeconds, config.introSeconds), prizes: config.prizes)
+    }
 }

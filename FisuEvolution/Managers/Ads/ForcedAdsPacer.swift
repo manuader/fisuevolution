@@ -1,3 +1,4 @@
+import EconomyKit
 import Foundation
 
 /// Guarda `AdsPacingState` entre arranques, en `UserDefaults`.
@@ -51,6 +52,7 @@ final class ForcedAdsPacer {
     private let store: AdsPacingStore
     private let now: @Sendable () -> Date
     private var backgroundedAt: Date?
+    private var lastAdBreakRequestAt: Date?
 
     /// Construirlo ES el arranque en frío: suma una sesión y la persiste.
     init(
@@ -89,6 +91,42 @@ final class ForcedAdsPacer {
     /// ausencia, el cupo) se sabe recién al volver.
     var couldShowAppOpenOnReturn: Bool {
         policy.enabledFormats.contains(.appOpen) && pacing.sessionNumber >= policy.appOpenMinSessionNumber
+    }
+
+    /// El intersticial al que le toca —la pausa o el común—, sin contar los
+    /// que la config remota apagó.
+    var nextAlternatingFormat: ForcedAdFormat? {
+        policy.turnOrder(pacing).first { policy.enabledFormats.contains($0) }
+    }
+
+    func secondsUntilAlternatingDue() -> TimeInterval {
+        policy.secondsUntilAlternatingDue(pacing: pacing, session: session, now: now())
+    }
+
+    /// El premio de turno de la pausa publicitaria.
+    func adBreakPrize(in prizes: [RewardSpec]) -> RewardSpec? {
+        guard !prizes.isEmpty else { return nil }
+        return prizes[((pacing.adBreakPrizeIndex % prizes.count) + prizes.count) % prizes.count]
+    }
+
+    /// La pausa se ganó: el próximo premio. Se persiste como lo demás.
+    func advanceAdBreakPrize(count: Int) {
+        guard count > 0 else { return }
+        pacing.adBreakPrizeIndex = (((pacing.adBreakPrizeIndex % count) + count) % count + 1) % count
+        store.save(pacing)
+    }
+
+    /// Si hay que pedir ahora el anuncio de la pausa: le toca, su corte se abre
+    /// en menos de `leadSeconds` y no se pidió hace menos de `retrySeconds`
+    /// (una carga que falla no se reintenta a 8 Hz). Anota el pedido.
+    func shouldRequestAdBreakAd(leadSeconds: TimeInterval, retrySeconds: TimeInterval) -> Bool {
+        guard nextAlternatingFormat == .rewardedInterstitial,
+              secondsUntilAlternatingDue() <= leadSeconds
+        else { return false }
+        let instant = now()
+        if let last = lastAdBreakRequestAt, (0..<retrySeconds).contains(instant.timeIntervalSince(last)) { return false }
+        lastAdBreakRequestAt = instant
+        return true
     }
 
     /// Qué mostrar en este corte, si algo. No cambia nada: decidir no es

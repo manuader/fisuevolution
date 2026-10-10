@@ -139,6 +139,8 @@ final class GameState {
     var towerIncomePerSecondText = "0"
     var visibleFloorIsUnlocked = false
     var towerNotice: TowerNotice?
+    /// La pantalla previa de la pausa publicitaria, mientras está arriba (`+Ads`).
+    var adBreakOffer: AdBreakOffer?
     /// Hasta cuándo dura el Corralito, o `nil`. Lo escribe `+Projections` sólo
     /// cuando empieza o termina, nunca por segundo.
     var spendingFrozenUntil: TimeInterval?
@@ -389,9 +391,12 @@ final class GameState {
     /// Los anuncios. `@ObservationIgnored` como los otros servicios: el estado
     /// del inventario de anuncios no dibuja nada.
     @ObservationIgnored var ads: AdsCoordinator?
-    /// La restricción de la cola antes de que un forzado la retuviera (`nil` =
-    /// no hay retención; el `Optional` de adentro es la restricción misma).
-    @ObservationIgnored var restrictionBeforeAd: Set<CelebrationKind>??
+    /// Si un forzado tiene la cola de celebraciones retenida, y qué restricción
+    /// había antes (`+Ads`).
+    @ObservationIgnored var celebrationHold = CelebrationHold.released
+    /// La pausa publicitaria aceptada que todavía no llegó a la pantalla: la
+    /// pantalla previa ya se fue y el anuncio aún no entró (`+Ads`).
+    @ObservationIgnored var adBreakInFlight = false
     @ObservationIgnored var cloudSync: CloudSaveSync?
 
     init(repository: PlayerStateRepository? = nil) {

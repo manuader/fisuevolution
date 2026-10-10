@@ -102,6 +102,8 @@ extension GameState {
             case spendingFrozen
             /// Un video visto que ya no tenía dónde aplicarse: se pagó en producción.
             case rewardCompensated(durationText: String)
+            /// Un premio que entregó un anuncio (la pausa publicitaria, E7b).
+            case rewardGranted(text: String)
         }
 
         let id = UUID()

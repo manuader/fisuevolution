@@ -1,6 +1,14 @@
 {
   "schemaVersion": 2,
   "compensationSeconds": 180,
+  "adBreak": {
+    "introSeconds": 5,
+    "prizes": [
+      {"kind": "coinsSeconds", "seconds": 600},
+      {"kind": "modifier", "effect": "incomeMultiplier", "magnitude": 2, "seconds": 300},
+      {"kind": "package", "count": 1}
+    ]
+  },
   "rewards": [
     {
       "id": "double_earnings",

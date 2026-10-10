@@ -66,6 +66,7 @@ final class AdMobAdsProvider: AdsProvider {
     /// pantalla.
     @ObservationIgnored private let presentation = FullScreenAdObserver()
     @ObservationIgnored private(set) var lastRewardedAttempt = RewardedAttempt.noInventory
+    @ObservationIgnored private(set) var lastRewardedInterstitialAttempt = RewardedAttempt.noInventory
     @ObservationIgnored private var didStartSDK = false
 
     init(
@@ -74,6 +75,12 @@ final class AdMobAdsProvider: AdsProvider {
     ) {
         self.unitIDs = unitIDs
         self.now = now
+    }
+
+    /// Sin consentimiento resuelto (UMP) el SDK no puede pedir anuncios, de
+    /// ningún formato.
+    private static var canRequestAds: Bool {
+        ConsentInformation.shared.canRequestAds
     }
 
     // MARK: - Arranque
@@ -118,6 +125,7 @@ final class AdMobAdsProvider: AdsProvider {
 
     func preloadRewarded(for placement: RewardedPlacement) {
         // Ya hay uno fresco, o ya se está pidiendo.
+        guard Self.canRequestAds else { return }
         if isRewardedReady(for: placement) || loadingRewarded.contains(placement) { return }
         rewarded[placement] = nil
         loadingRewarded.insert(placement)
@@ -184,7 +192,7 @@ final class AdMobAdsProvider: AdsProvider {
     func preloadInterstitial() {
         // Sin unidad declarada, este build no muestra interstitials y no hay
         // nada que precargar. Ver el aviso en `FeatureFlags.AdUnitIDs`.
-        guard let unitID = unitIDs.interstitial else { return }
+        guard let unitID = unitIDs.interstitial, Self.canRequestAds else { return }
         if isInterstitialReady || loadingInterstitial { return }
         interstitial = nil
         loadingInterstitial = true
@@ -224,7 +232,7 @@ final class AdMobAdsProvider: AdsProvider {
 
     func preloadRewardedInterstitial() {
         // Sin unidad declarada, este build no muestra la pausa publicitaria.
-        guard let unitID = unitIDs.rewardedInterstitial else { return }
+        guard let unitID = unitIDs.rewardedInterstitial, Self.canRequestAds else { return }
         if isRewardedInterstitialReady || loadingRewardedInterstitial { return }
         rewardedInterstitial = nil
         loadingRewardedInterstitial = true
@@ -245,6 +253,7 @@ final class AdMobAdsProvider: AdsProvider {
     /// haya pasado con el premio, que llega por otro callback (ver el punto 1
     /// del docstring de la clase).
     func showRewardedInterstitial() async -> Bool {
+        lastRewardedInterstitialAttempt = .noInventory
         guard let entry = rewardedInterstitial, entry.isFresh(now: now()) else {
             rewardedInterstitial = nil
             preloadRewardedInterstitial()
@@ -255,6 +264,8 @@ final class AdMobAdsProvider: AdsProvider {
         var earnedReward = false
         let ad = entry.ad
         ad.fullScreenContentDelegate = presentation
+        presentation.onWillPresent = { [weak self] in self?.lastRewardedInterstitialAttempt = .presented }
+        defer { presentation.onWillPresent = nil }
         await presentation.present {
             ad.present(from: nil) { earnedReward = true }
         }
@@ -273,9 +284,7 @@ final class AdMobAdsProvider: AdsProvider {
     func preloadAppOpen() {
         // [GATE DEL DUEÑO] Mientras no exista la unidad, `appOpen` es `nil` y
         // no hay nada que pedir. Ver el aviso en `FeatureFlags.AdUnitIDs`.
-        guard let unitID = unitIDs.appOpen else { return }
-        // Sin consentimiento resuelto (UMP) el SDK no puede pedir anuncios.
-        guard ConsentInformation.shared.canRequestAds else { return }
+        guard let unitID = unitIDs.appOpen, Self.canRequestAds else { return }
         if isAppOpenReady || loadingAppOpen { return }
         appOpen = nil
         loadingAppOpen = true

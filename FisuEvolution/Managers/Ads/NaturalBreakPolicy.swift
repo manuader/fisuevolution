@@ -57,6 +57,9 @@ struct AdsPacingState: Codable, Sendable, Equatable {
     var lastAppOpenAt: Date?
     /// A quién le toca en la alternancia (índice en `alternation`).
     var alternationIndex = 0
+    /// Qué premio de la pausa publicitaria toca (índice en `adBreak.prizes`).
+    /// Avanza sólo cuando se gana.
+    var adBreakPrizeIndex = 0
 
     init() {}
 
@@ -69,6 +72,7 @@ struct AdsPacingState: Codable, Sendable, Equatable {
         lastFullScreenAt = try container.decodeIfPresent(Date.self, forKey: .lastFullScreenAt)
         lastAppOpenAt = try container.decodeIfPresent(Date.self, forKey: .lastAppOpenAt)
         alternationIndex = try container.decodeIfPresent(Int.self, forKey: .alternationIndex) ?? 0
+        adBreakPrizeIndex = try container.decodeIfPresent(Int.self, forKey: .adBreakPrizeIndex) ?? 0
     }
 }
 
@@ -266,6 +270,22 @@ struct NaturalBreakPolicy: Sendable, Equatable {
             if !order.contains(format) { order.append(format) }
         }
         return order
+    }
+
+    /// Cuánto falta para que la gracia de arranque y el reloj común dejen pasar
+    /// un intersticial; 0 si ya pueden. No cuenta la gracia post-video: depende
+    /// de lo que haga el jugador. Mismo criterio que `decide` (`hasElapsed`,
+    /// con su tolerancia a un reloj que fue para atrás).
+    func secondsUntilAlternatingDue(pacing: AdsPacingState, session: AdsSession, now: Date) -> TimeInterval {
+        var remaining: TimeInterval = 0
+        if !Self.hasElapsed(graceSecondsAfterLaunch, since: session.startedAt, now: now) {
+            remaining = max(remaining, session.startedAt.addingTimeInterval(graceSecondsAfterLaunch).timeIntervalSince(now))
+        }
+        if let last = pacing.lastFullScreenAt,
+           !Self.hasElapsed(minSecondsBetweenForced, since: last, now: now) {
+            remaining = max(remaining, last.addingTimeInterval(minSecondsBetweenForced).timeIntervalSince(now))
+        }
+        return remaining
     }
 
     /// El estado después de mostrar `format`. Lo llama quien cablea **cuando

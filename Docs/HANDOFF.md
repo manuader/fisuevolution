@@ -15,7 +15,10 @@
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
-> 📍 **Estado al cierre del relevo 26 (la ola X, 2026-10-10; manda sobre los párrafos de abajo, que son del 25, del 24 y del 22):** `version-2` = **`652bc6a`**, la punta tras el `rapido` VERDE sobre `4b44a4e` (EK 827 · unit 1308 · 0 rojos · Release 0) · `v2i/integ-r26` = `1f090ef` (suma E7b-a T3, 🟢) + `tasks.md` + los docs del cierre (`v2i/docs-r26`) · `rapido` de la punta: VERDE (EK 827 · unit 1329 · 0 rojos · Release 0): E7b-a T3 ✅, 194 de 254 (76,4 %).
+> 📍 **Estado al cierre del relevo 27 (la ola Y, 2026-10-10; manda sobre los párrafos de abajo, que son del 26, del 25 y del 24):** `version-2` = **`9a0ee06`**, la punta tras el `rapido3` VERDE sobre `d860556` (EK 829 · unit 1356 · 0 rojos · Release 0) · `v2i/integ-r27` = `e2709d9` (suma E6a T6 y E2b T10, 🟢) + `tasks.md` + los docs del cierre (`v2i/docs-r27`) · `rapido4` de la punta: VERDE (EK 829 · unit 1380 · 0 rojos · Release 0): E6a T6 y E2b T10 ✅, 200 de 254 (78,7 %).
+> **Progreso: 200 de 254 en `version-2` (78,7 %)**: el `rapido4` de la punta dio VERDE (EK 829 · unit 1380) y E6a T6 y E2b T10 son ✅. Entraron E6a T4 (`oro_shop.json`), E5b T4 (la Ruleta en Regalos), E5b T6 (`wheel_ready`) y E4b T4 (eventos con presentador; adiós al banner), cada una con su `rapido` VERDE (unit 1336, 1341, 1341, 1356); quedan 🟢 **E6a T6 (comprar en la Tienda de ORO)** y **E2b T10 (presupuestos analíticos)**. Dos revisiones opus (E4b T4 Approved con arreglos; E6a T6 Changes requested, arreglado). Detalle en `Docs/SESION-2026-10-10-v2-relevo-27-ola-y.md`. Lo que sigue: `tasks.md` §4 (relevo 28): **E4b T6** (el Apagón; destraba T9 → E5b T2) y **E6a T7** (la suerte), más **E5a T9** y **E8d T15**.
+>
+> 📍 **Estado al cierre del relevo 26 (la ola X, 2026-10-10; lo pisa el párrafo de arriba, el del 27):** `version-2` = **`652bc6a`**, la punta tras el `rapido` VERDE sobre `4b44a4e` (EK 827 · unit 1308 · 0 rojos · Release 0) · `v2i/integ-r26` = `1f090ef` (suma E7b-a T3, 🟢) + `tasks.md` + los docs del cierre (`v2i/docs-r26`) · `rapido` de la punta: VERDE (EK 827 · unit 1329 · 0 rojos · Release 0): E7b-a T3 ✅, 194 de 254 (76,4 %).
 > **Progreso: 193 de 254 en `version-2` (76,0 %); 194 de 254 (76,4 %) con E7b-a T3 ✅** si el `rapido` de la punta da VERDE. Entraron E4b T5 (el reto y las cartas del Vendedor), E6a T5 (auto-tap, Offline ×3 y Diario ×3 se entregan), E5b T1 (la Ruleta en pantalla), E8b T11 (el arresto) y E7b-b T6 (Diario ×2 y carrera ×2 por video), cada una con su `rapido` VERDE (unit 1289, 1289, 1300, 1302, 1308); queda 🟢 **E7b-a T3 (la pausa publicitaria: el bloqueo de publicación)**. Tres revisiones opus (E6a T5 Approved; E5b T1 y E7b-a T3 Approved con arreglos, hechos). Detalle en `Docs/SESION-2026-10-10-v2-relevo-26-ola-x.md`. Lo que sigue: `tasks.md` §4 (relevo 27): **E4b T4** (eventos con presentador; dueña de `GameState`/`RootView`), **E6a T4**, **E5b T4**/**T6**, **E5a T9** y **E8d T15**.
 >
 > 📍 **Estado al cierre del relevo 25 (la ola W, 2026-10-10; lo pisa el párrafo de arriba, el del 26):** `version-2` = la punta tras el `rapido` VERDE sobre `73a7196` (EK 827 · unit 1247 · 0 rojos · Release 0) · `v2i/integ-r25` = `c435bad` (suma E5a T8 y E4b T3, 🟢) + `tasks.md` + los docs del cierre · `rapido` de la punta: VERDE (EK 827 · unit 1275 · 0 rojos · Release 0): E5a T8 y E4b T3 ✅, 188 de 254 (74,0 %).
@@ -337,6 +340,18 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-10 (relevo 27) — La ola Y: los eventos con presentador, la Ruleta en Regalos aviso incluido, la Tienda de ORO y los presupuestos de visitantes
+
+Un solo relevo, abierto a las 10:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~245k de contexto. Todo en `v2i/integ-r27`. `version-2` quedó en `9a0ee06`, la punta del `rapido3` VERDE sobre `d860556` (EK 829 · unit 1356 · 0 rojos · Release 0). **Progreso: 198 de 254 en `version-2`; 200 de 254 (78,7 %) con E6a T6 y E2b T10 ✅** si el `rapido4` de la punta da VERDE (VERDE (EK 829 · unit 1380 · 0 rojos · Release 0): E6a T6 y E2b T10 ✅, 200 de 254 (78,7 %)).
+
+- **E6a T4** (`oro_shop.json`, 13 ítems, 20 claves), **E5b T4** (la Ruleta en Regalos con `WheelGiftCard`), **E5b T6** (`NotificationKind.wheelReady`, `wheelSpinsReadyAt`) y **E4b T4** (el presentador de cada evento, el chip con su cara, adiós al `.eventBanner`): ✅, cada una con su `rapido` VERDE (unit 1336, 1341, 1341, 1356).
+- **E6a T6** (comprar con ORO: cobro y entrega en un paso, Fusionar todo por el embudo, los permanentes que enchufan en E5) y **E2b T10** (`RewardBudget` y `EngagementBudgetTests`; `coinsSecondsScale` de los visitantes 1 → 0,31): 🟢.
+- **Dos revisiones opus:** E4b T4 Approved con arreglos (`completeArrival` dejaba un fantasma en `current` al re-encolarse la entrada; `advanceEvents` sorteaba con un evento pendiente; la salida por video de Hiperinflación ya sin qué sacar); E6a T6 Changes requested (Fusionar todo cobraba dos veces porque `planMergeAll` no ve la cola), arreglado en `9cf32d9`.
+- **Pregunta nueva al dueño:** los visitantes pagan ~un tercio de lo que pagaban (E2b T10).
+- Trampas nuevas en §7: los agentes que lanzan `find /` buscando `v2-agente-protocolo.md` (no está versionado), `limpiar-worktrees.sh --apply` de a un worktree, `maxPerAbsence` 3 con 4 motivos, `planMergeAll` que no ve la cola y el test sin RED.
+
+Detalle en **`Docs/SESION-2026-10-10-v2-relevo-27-ola-y.md`**.
 
 ### Sesión del 2026-10-10 (relevo 26) — La ola X: la Ruleta en pantalla, el reto, los ×3 que se entregan, el arresto, los ×2 por video y la pausa publicitaria
 
@@ -2480,6 +2495,7 @@ paréntesis; el porqué completo está en la sesión de cada uno):
     la compra está cobrada, la ventana no decide.
 17. **La Ruleta falla cerrada y cuenta el día en gregoriano** (E5a T8, relevo 25). `LootBoxGate` (Storefront alpha-3) dice que no si falta el storefront, la config o el `publisherID`, y se apoya en `isRestricted`; E6a lo reusa. El día de los cupos (`wheelDay`) es gregoriano fijo —con `Calendar.current` un usuario japonés, budista o persa tendría otro año y su día guardado quedaría en el futuro para siempre— y un día guardado en el futuro se acepta sólo hasta mañana. **Costo medido y aceptado:** atrasar el reloj ≥ 2 días devuelve los cupos. El ORO del giro se cobra una vez (copia + asignación atómica). Y en E4b T2 `.visitor` entra en `isPrepaid` (`2aba4ed`): una visita pagada con video que se descarte se compensa.
 18. **Los ×3 pendientes y los videos se multiplican, y la calma del tablero es una sola** (E6a T5, E5b T1, E7b-b T6 y E7b-a T3, relevo 26). Un ×3 pendiente (`.nextOfflineMultiplier`/`.nextDailyMultiplier`, `Double`, `isFinite` en el `grant`) se consume una sola vez y **se apila con el ×2 del video**: el Offline ×3 con video da ×6 y el Diario ×3 con video da ×6 del base; en la Obra social el ×2 duplica sólo la plata. **Default medido, sin capar; va al dueño.** El auto-tap corre sólo con la escena activa y con el delta topado en 2 s, se pierde al reencarnar y vence con la app cerrada. **La Ruleta se bloquea desde la vista** (`resolving`, `videoBusy`; el estado caliente de `GameState` no se toca por Reduce Motion), el tic tiene un freno de 0,08 s para sonido y háptico, y `.video`/`repeat` salen sólo de `onRewarded`. **Un video no paga si la acción que premia no se aplicó** (`chooseCareerWithVideo`, `2fb2e90`). **`isBoardBusy` es la definición única de calma** (el reto, el ascensor, la compra y la previa frenan a los visitantes, a Compartir y al ranking; el tutorial, los paquetes y el colchón no usan `isCalmMoment`); `sheetOpen` suma `shareOffer` y `stageChallenge`. **La pausa publicitaria** alterna con el intersticial común con piso y gracia, tiene piso de 5 s aunque la config diga menos, sin premios no se ofrece, «No, gracias» no da anuncio ni premio, y `recordShown` sólo corre con `.presented`.
+19. **La Tienda de ORO cobra y entrega en un solo paso, y los visitantes pagan un tercio** (E6a T4, E6a T6, E4b T4, E5b T6 y E2b T10, relevo 27). `buyOroShopItem` cobra sobre una copia y entrega en el mismo paso con **un solo guardado** (`persistNow` cancelando el `saveTask`); si el premio no rinde da `.unavailable` **antes** de cobrar; el segundo ×3 da `.refused(.alreadyPending)`; los topes y el enfriamiento cuentan en día gregoriano; `Origin.oroShop` es prepago. **Fusionar todo no cobra dos veces:** `mergeAllPairs` da 0 si hay un `.oroShop` o una cadena en `pendingBoardChanges`/`inFlight` (`planMergeAll` no ve la cola). El presentador de un evento llega **antes** que el visitante en la misma puerta (`presentPendingEvent` antes de `advanceVisitors`), `advanceEvents` no sortea con un `pendingEvent`, `isBoardBusy` mira `visitorPopup` y `eventPopup`, y `stageVisit` se escribe antes de `arrive`. **`wheel_ready` es el aviso de menor prioridad** (con `maxPerAbsence` 3 y 4 motivos queda afuera si entran los otros tres) y avisa sólo si hoy hubo giro por video. **`visitors.json` `coinsSecondsScale` = 0,31** (E2b T10): visitantes 24,19 min/día, eventos 1,42, total 25,61 (87,9 % de lo que dejan diario y asado). **Default medido; va al dueño.** Los boosts de la tienda multiplican entre sí (3 × `income_x2` + 2 × `income_x3` = ×72 por 30 min): lo mira E2b.
 
 ---
 
@@ -2919,6 +2935,17 @@ El panel de debug es el ícono de herramientas del HUD.
 - **`loops_manifest` todavía tiene que mover `events.cayo_mercado_pago` a `home_banking`:** E4a T9 sacó ese id de `AudioWiringTests` y la revisión opus lo encontró.
 - **La cuota sin plata no se atenúa** en el evento de Corralito: se muestra igual aunque no se pueda pagar (E4b).
 - **`isCalmMoment` no se unificó con `isSafeMomentForInterstitial`:** `naturalBreakContext` suma `fullScreenUI`/`adOnScreen`; no copiar uno al otro, lo unifica E7b.
+
+### De la ola Y (2026-10-10, relevo 27)
+
+- **Los agentes lanzan `find /` buscando `v2-agente-protocolo.md`:** el archivo **no está versionado**; vive sólo en `.claude/worktrees/version-2/.superpowers/sdd/`, así que ningún worktree de tarea lo tiene. Dos agentes (E5b T4 y E4b T4) dejaron un `find /` colgado 40 min tras entregar; se mataron los `bfs` por PID. **El brief da la ruta absoluta del protocolo y prohíbe `find /`.**
+- **`limpiar-worktrees.sh --apply` procesa un solo worktree por llamada:** para barrer varios, un `--apply` por cada uno y con el shell fuera del worktree.
+- **`maxPerAbsence` es 3 y hay 4 motivos de notificación:** `wheelReady`, la de prioridad más baja, queda afuera si entran los otros tres. Subir el tope o aceptarlo es de E11/dueño.
+- **`planMergeAll` no ve la cola:** con la tienda abierta la cola no avanza, un segundo toque cobra de nuevo y los pares duplicados se descartan sin compensar (hasta 80 ORO). Toda compra que encola cambios de tablero mira `pendingBoardChanges` e `inFlight` **antes** de cobrar.
+- **Un test sin RED comprobado no prueba el arreglo** (`mergeAllDoubleTap`): el brief de todo arreglo de un obligatorio pide el RED.
+- **Una tarea de contenido que mueve una constante rompe el test que la pineaba** (`VisitorsContentTests:86` fijaba `coinsSecondsScale` en 1): `grep` de quién fija el valor antes de moverlo.
+- **Los UI tests no se re-corren tras un arreglo de revisión:** E4b T4 quedó verde por unit y el `rapido` no corre UI; el siguiente que toque ese archivo corre los de eventos.
+- **Un evento pendiente se pierde si se mata la app,** con el enfriamiento gastado y sin cobro (carry al dueño); `eventPresenters` nunca se vacía (menor).
 
 ### De la ola X (2026-10-10, relevo 26)
 
@@ -4511,6 +4538,15 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
+### Lo que queda de la 2.0 (cierre del relevo 27)
+
+La cola con orden, BASE y modelo está en `tasks.md` §4 (relevo 28). Lo nuevo del 27, además de lo que sigue de abajo (que se mantiene):
+
+- **Destrabadas por la ola Y (ahora ⏳):** E4b T6 (el Apagón y los Campeones; dueña de `BoardScene`/`AudioManager`; destraba E4b T9 → E5b T2) y E6a T7 (la suerte; `StoreManager`; destraba E6a T8). Siguen ⏳ E5a T9 (cierre de E5a, docs) y E8d T15 (cierre de E8d; `completo` solo).
+- **Siguen ⛔:** E4b T9/T10, E5b T2/T3/T5/T7, E6a T8 y T12–T13 (cadena de E6a T7), E7b-b T1–T3/T5/T7–T8, E2b T9 (espera a E7b-b T2) y T12–T15, E9a, E9b, E12 T12.
+- **Carries del 27:** E4b T6/T9 (`eventPresenters`, re-correr los UI de eventos); E5b T2 (doble cobro de ORO de la Ruleta sin fixture, Reduce Motion); E6a T7 (`LootBoxGate` → `chanceAllowed`, `chestHasSomethingToGive`, ítems sin tope); E6a T8 (botón deshabilitado al comprar, avisar los boosts por tiempo); E6a T12 (gregoriano); E2b (boosts que multiplican ×72, visitantes con la escala 0,31).
+- **Al dueño:** los visitantes pagan ~un tercio; Fusionar todo (par descartado, kill antes de asentar); el reloj que resetea topes; el evento pendiente que se pierde al matar la app; `wheel_ready` fuera del aviso; los del 26 y anteriores.
+
 ### Lo que queda de la 2.0 (cierre del relevo 26)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4 (relevo 27). Lo nuevo del 26, además de lo que sigue de abajo (que se mantiene):
@@ -4927,6 +4963,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-10-v2-cierres-r23.md`**: el relevo 23, los cierres de E8, E13b y E13 con un solo `completo` (el peso +39 MB, el panel de
   debug que se comió las puertas, las grabaciones del ascensor). Planes cerrados: `2026-10-08-v2-e8-integracion-arte.md`,
   `2026-10-08-v2-e13b-ascensor-barra.md` y `2026-10-08-v2-e13-feedback-v1.md`.
+- **`Docs/SESION-2026-10-10-v2-relevo-27-ola-y.md`**: el relevo 27 (los eventos con presentador, la Ruleta en Regalos y su aviso, la Tienda de ORO, los presupuestos de visitantes; las dos revisiones opus y sus carries, el `find /` que busca un protocolo no versionado, el `--apply` de a un worktree, `maxPerAbsence` con 4 motivos y el `planMergeAll` que no ve la cola).
 - **`Docs/SESION-2026-10-10-v2-relevo-26-ola-x.md`**: el relevo 26 (la Ruleta en pantalla, el reto y las cartas, los ×3 que se entregan, el arresto, los ×2 por video y la pausa publicitaria; las tres revisiones opus y el arreglo de `chooseCareerWithVideo`, el modo auto que deja de aprobar `Bash`, el agente que re-entrega, el `rapido` encadenado de a uno).
 - **`Docs/SESION-2026-10-10-v2-relevo-25-ola-w.md`**: el relevo 25 (el Álbum, los visitantes en la partida, el Colchón, la Ruleta con `LootBoxGate` y el chip del visitante; las tres revisiones opus y sus carries, el rojo que era un flake de ODR, el `MenuPagerUITests` que depende del orden y las trampas del fixture, del rename del manifest y de las fechas).
 - **`Docs/SESION-2026-10-10-v2-relevo-24-ola-v.md`**: el relevo 24 (E4a T10, el perfil `.max` y el CLI del simulador con su tabla, la Liquidación en el precio, las ofertas que se cobran, el escenario de E4b T1; el bug

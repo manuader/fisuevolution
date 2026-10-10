@@ -420,7 +420,7 @@ que toma · commit o rama · nota.
 | E3b-T6 | La oferta del atajo v2: pin, motivo, nunca `nil` | ✅ | T5; E1-T4, E1-T13 | +Hiring | `741af10`+`6255531` (integ-r14) | revisión sonnet: Approved con arreglos (la lección del atajo pide `blocker == nil`; tests de piso lleno; comentarios de RootView), hechos. **Carry a T7**: `QuickHireButton` todavía no usa `blocker` (temblor sólo con `!affordable`, label "Contratar a X", `accessibilityState` sin usar) y marca la lección al tocar aunque esté bloqueado; la oferta ya nunca es nil (el botón queda siempre) |
 | E3b-T7 | El botón del atajo nunca desaparece | ✅ | T6 | catálogo; QuickHireButton | `06990b0`+`dc08eb9` (en `v2i/integ-r15`) |; usa `blocker` (gris, "Piso lleno", temblor; la lección sólo con blocker nil); long press 0,45 s → `onChoose` (lo pasa T8 desde RootView); la bandera la baja un DragGesture 250 ms tras soltar; UI QuickHireButton 3, Tutorial 6, BottomMenu verdes |
 | E3b-T8 | El selector del atajo | ✅ | T7, T4 | 🔥 RootView, catálogo; DebugPanelView | `42c61f0` (en `v2i/integ-r21b`) | `QuickHirePicker` overlay anclado a `resolved[.quickHire]` junto al `TutorialOverlay`; `QuickHireButton(onChoose:)` cableado; sección «Atajo» en el panel de debug; Receta R 16 Pro: QuickHire 3/3, QuickHireButton 3/3 (2 ajustados: el selector tapa el atajo), BottomMenu 4/4, Tutorial 9/9; sin oráculo `tarea` (sin unit nuevo); diff de `RootView` leído; +3 claves. Destraba a E3b T9 y a E4b T3 |
-| E3b-T9 | Compartir recableado (y cierre de E3) | ⏳ | T8; E1-T16 | 🔥 GameState, +Bonus, RootView, catálogo; +BoardChanges, +Debug, ContentConfigs, EngagementState | | su `sharedMoments` lo esperan E4a T3 y E5a T4 |
+| E3b-T9 | Compartir recableado (y cierre de E3) | 🔄 | T8; E1-T16 | 🔥 GameState, +Bonus, RootView, catálogo; +BoardChanges, +Debug, ContentConfigs, EngagementState | | su `sharedMoments` lo esperan E4a T3 y E5a T4 |
 
 ### E2a — Mecánicas de economía (`2026-10-07-v2-e2a-mecanicas.md`)
 
@@ -529,7 +529,7 @@ que toma · commit o rama · nota.
 | E6b-T6 | Lugares extra (EK) | ⛔ | E6a-T2; E2a-T4 | — | | |
 | E6b-T7 | Lugares extra en la partida | ⛔ | T6; E6a-T6, E6a-T8, E6a-T12; E3a-T10; E5a-T6 | 🔥 GameState, catálogo; GameContentLoader, +Engagement | | 🔒 si las 4 filas no entran en el SE |
 | E6b-T8 | Exclusivas de ORO elegidas entre skins de la v1 | ⛔ | T1r, T5 | catálogo | | el agente propone y se las muestra al dueño antes de cerrar |
-| E6b-T9 | Las tres familias entran | ⏳ | E8 T3–T5; T5 | catálogo | | 🔒 arte de E8 = E8 T3–T5; 🔒 si el bundle crece > 60 MB (E8 T10 lo mide; estimado ≈ +29 MB con fondos en JPEG) |
+| E6b-T9 | Las tres familias entran | 🔄 | E8 T3–T5; T5 | catálogo | | 🔒 arte de E8 = E8 T3–T5; 🔒 si el bundle crece > 60 MB (E8 T10 lo mide; estimado ≈ +29 MB con fondos en JPEG) |
 | E6b-T10 | Cierre de E6b | ⛔ | T1–T9 | `Docs/` | | |
 
 ### E7b-a — Anuncios v2, los forzados (`2026-10-07-v2-e7b-a-forzados-mediacion.md`)
@@ -712,7 +712,7 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T12 | El reset abre un intento nuevo | ⛔ | T11; E9b-T7, E9b-T8 | ResetPlan, +Reset | | sonnet, rev. opus |
 | E12-T13 | La 7.ª pestaña montada | ✅ | T9b, T11; E3b-T4, E3a-T11 | 🔥 RootView, catálogo; GameArtComponents, BottomMenuBar, MenuPagerView, TabUnlocks, tabs.json, +Tabs | | sonnet; captura SE (plan B: tarjeta en la Oficina); **destrabada (r20):** E3b T4 🟢 y E3a T11 ✅; dueña de `RootView` (no ∥ E3b T8, E7b-a T2) |
 | E12-T14 | La tarjeta de Dios montada | ✅ | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
-| E12-T15 | Privacidad, Términos y notas a App Review | ⏳ | T11 | PrivacyInfo.xcprivacy, Legal | | sonnet; insumo de E10 |
+| E12-T15 | Privacidad, Términos y notas a App Review | 🔄 | T11 | PrivacyInfo.xcprivacy, Legal | | sonnet; insumo de E10 |
 | E12-T16 | Despliegue real y humo | 🔒 | T5, T14 | — | | Supabase (URL + anon), `ANTHROPIC_API_KEY`, lista aprobada |
 | E12-T17 | El piso calibrado | ⛔ | T16; E2b-T14 | — | | controlador; no frena el cierre |
 | E12-T18 | Cierre de E12 (controlador) | ⛔ | T1–T16 | `Docs/` | | |

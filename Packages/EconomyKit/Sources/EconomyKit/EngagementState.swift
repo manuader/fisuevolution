@@ -21,16 +21,31 @@ public struct EngagementState: Codable, Sendable, Equatable {
     /// Eventos v2: reloj de juego, cooldowns y el próximo ya sorteado (PLAN-v2 E4).
     public var events: EventsState
 
+    /// El buzón del Paquete de la Aduana: reloj de juego y los que esperan (PLAN-v2 E5).
+    public var packages: PackagesState
+
+    /// El Colchón: reloj de juego, si espera y los "otro colchón" que quedan (PLAN-v2 E5).
+    public var treasures: TreasuresState
+
+    /// La ruleta: el día de los cupos, lo usado y los giros regalados (PLAN-v2 E5).
+    public var wheel: WheelState
+
     public init(
         seenCinematics: [String: Int] = [:],
         sharedMoments: Set<String> = [],
         visitors: VisitorsState = .initial,
-        events: EventsState = .initial
+        events: EventsState = .initial,
+        packages: PackagesState = .initial,
+        treasures: TreasuresState = .initial,
+        wheel: WheelState = .initial
     ) {
         self.seenCinematics = seenCinematics
         self.sharedMoments = sharedMoments
         self.visitors = visitors
         self.events = events
+        self.packages = packages
+        self.treasures = treasures
+        self.wheel = wheel
     }
 
     public init(from decoder: Decoder) throws {
@@ -39,6 +54,9 @@ public struct EngagementState: Codable, Sendable, Equatable {
         sharedMoments = try container.decodeIfPresent(Set<String>.self, forKey: .sharedMoments) ?? []
         visitors = try container.decodeIfPresent(VisitorsState.self, forKey: .visitors) ?? .initial
         events = try container.decodeIfPresent(EventsState.self, forKey: .events) ?? .initial
+        packages = try container.decodeIfPresent(PackagesState.self, forKey: .packages) ?? .initial
+        treasures = try container.decodeIfPresent(TreasuresState.self, forKey: .treasures) ?? .initial
+        wheel = try container.decodeIfPresent(WheelState.self, forKey: .wheel) ?? .initial
     }
 
     public mutating func recordCinematic(_ id: String) {
@@ -54,6 +72,8 @@ public struct EngagementState: Codable, Sendable, Equatable {
         resolved.sharedMoments.formUnion(loser.sharedMoments)
         resolved.visitors = VisitorsState.resolve(winner: winner.visitors, loser: loser.visitors)
         resolved.events = EventsState.resolve(winner: winner.events, loser: loser.events)
+        // El buzón y el colchón son relojes y una cuenta: unirlos fabricaría paquetes. Viajan con el ganador.
+        resolved.wheel = WheelState.resolve(winner: winner.wheel, loser: loser.wheel)
         return resolved
     }
 }

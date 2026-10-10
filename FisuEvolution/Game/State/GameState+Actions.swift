@@ -41,6 +41,7 @@ extension GameState {
         }
         player.meta.stats.totalTapsEver += 1
         self.player = player
+        noteStageTap()
         if !ftueTapped {
             ftueTapped = true
             UserDefaults.standard.set(true, forKey: "ftue.tapped")

@@ -8,6 +8,13 @@ import Foundation
 /// `IAPCopy`. Un "30 % off" escrito a mano se quedaría viejo en silencio el día
 /// que el dato cambie.
 enum VisitCopy {
+    /// Lo que dice un visitante fuera de su guion: al cerrar el trato, al
+    /// quedarse sin él y en los retos. `LocalizationCompletenessTests` las pide.
+    static let lineKeys = [
+        "visit.wrong_office", "visit.deal_off", "visit.thanks", "visit.gossip.next", "visit.gossip.none",
+        "visit.challenge.won", "visit.challenge.double", "visit.challenge.lost",
+    ]
+
     static func optionKey(_ kind: VisitOption.Kind) -> String {
         switch kind {
         case .accept: "visit.option.accept"

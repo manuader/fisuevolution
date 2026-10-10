@@ -214,6 +214,16 @@ struct DebugPanelView: View {
                         dismiss()
                     }
                 }
+                // Al final de la lista: los UI tests de otras pantallas scrollean hasta
+                // las filas de arriba y no se mueven si la nueva no está en el medio.
+                Section("Visitantes") {
+                    Menu("Llamar a un visitante") {
+                        ForEach(gameState.content?.visitors.scripts ?? []) { script in
+                            Button(script.id) { gameState.debugPresentVisitor(scriptId: script.id) }
+                        }
+                    }
+                    .accessibilityIdentifier("debug.visitor.call")
+                }
             }
             .navigationTitle("Debug")
             .navigationBarTitleDisplayMode(.inline)

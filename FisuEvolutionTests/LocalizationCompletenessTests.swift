@@ -159,6 +159,7 @@ struct LocalizationCompletenessTests {
                     + content.visitors.scripts.flatMap { [$0.bubbleKey, $0.askKey] }
                     + content.floorTable.floors.map { VisitCopy.reasonKey(floorID: $0.id) }
                     + VisitOption.Kind.allCases.map(VisitCopy.optionKey)
+                    + VisitCopy.lineKeys
             case .settingsRows:
                 return LanguagePreference.allCases.map(\.identifier) + LegalDocument.Kind.allCases.map(\.identifier)
                     + content.notifications.kinds.map(\.settingsKey)

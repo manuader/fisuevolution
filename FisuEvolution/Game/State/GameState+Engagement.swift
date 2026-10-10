@@ -7,6 +7,7 @@ import Foundation
 extension GameState {
     func advanceEngagement(delta: TimeInterval) {
         advanceEvents(delta: delta)
+        advanceVisitors(delta: delta)
         advancePackages(delta: delta)
         advanceStage(delta: delta)
     }
@@ -17,6 +18,9 @@ extension GameState {
     func applyEngagementFixtures(arguments: [String] = ProcessInfo.processInfo.arguments) {
         if let id = Self.fixtureValue("--uitest-event=", in: arguments) {
             debugStartEvent(id: id)
+        }
+        if let scriptId = Self.fixtureValue("--uitest-visitor=", in: arguments) {
+            debugPresentVisitor(scriptId: scriptId)
         }
         if let count = Self.fixtureValue("--uitest-packages=", in: arguments).flatMap(Int.init) {
             debugAddPackages(count)

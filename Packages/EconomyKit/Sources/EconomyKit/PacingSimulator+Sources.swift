@@ -62,6 +62,9 @@ extension PacingSimulator {
     /// Las fuentes de video, sólo si el perfil las mira.
     var activeAds: AdsSources? { profile.watchesVideos ? sources.ads : nil }
 
+    /// Los permanentes de la tienda, sólo si el perfil los tiene.
+    var activeShop: ShopPermanents? { profile.ownsShopPermanents ? sources.shop : nil }
+
     // MARK: - Regalos de inicio de sesión
 
     /// El diario y los boosts gratis cuyo cooldown venció: lo que el jugador
@@ -102,7 +105,7 @@ extension PacingSimulator {
 
         if let ads, let wheel = ads.wheel, day != clocks.wheelDay {
             clocks.wheelDay = day
-            for _ in 0..<max(0, wheel.videoSpinsPerDay) {
+            for _ in 0..<max(0, wheel.videoSpinsPerDay + (activeShop?.bonusDailyWheelSpins ?? 0)) {
                 videoSeconds += watchVideo(ads, report: &report)
                 spin(wheel, state: &state, clocks: &clocks, report: &report)
                 if ads.wheelRepeats {
@@ -195,7 +198,7 @@ extension PacingSimulator {
         )
         let table = PackageRoller.odds(
             eligible: eligible, windowTiers: packages.windowTiers,
-            ratio: packages.tierRatio(bestSupplierLevel: 0)
+            ratio: packages.tierRatio(bestSupplierLevel: activeShop?.bestSupplierLevel ?? 0)
         )
         guard !table.isEmpty else { return false }
         for odds in table {

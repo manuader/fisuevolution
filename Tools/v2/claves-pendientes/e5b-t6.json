@@ -1,0 +1,5 @@
+{
+  "notif.wheel_ready.title": {"es": "¡La Ruleta tiene giros nuevos!", "en": "The Wheel has new spins!"},
+  "notif.wheel_ready.body": {"es": "El Conductor ya está calentando el estudio. Vení a girar.", "en": "The TV host is warming up the studio. Come spin."},
+  "settings.notifications.wheel_ready": {"es": "La Ruleta", "en": "The Wheel"}
+}

@@ -11,12 +11,21 @@ public struct NotificationSnapshot: Sendable, Equatable {
     public var offlineCapHours: Double
     /// El diario de hoy ya se cobró (al volver se cobra solo).
     public var dailyClaimedToday: Bool
+    /// Cuándo vuelve a haber giros de la ruleta (E5), o `nil` si no hay por qué avisar.
+    public var wheelSpinsReadyAt: TimeInterval?
 
-    public init(now: TimeInterval, producesOffline: Bool, offlineCapHours: Double, dailyClaimedToday: Bool) {
+    public init(
+        now: TimeInterval,
+        producesOffline: Bool,
+        offlineCapHours: Double,
+        dailyClaimedToday: Bool,
+        wheelSpinsReadyAt: TimeInterval? = nil
+    ) {
         self.now = now
         self.producesOffline = producesOffline
         self.offlineCapHours = offlineCapHours
         self.dailyClaimedToday = dailyClaimedToday
+        self.wheelSpinsReadyAt = wheelSpinsReadyAt
     }
 }
 
@@ -107,6 +116,9 @@ public enum NotificationPlanner {
             kind: .comeback,
             fireAt: snapshot.now + config.comebackAfterHours * 3600
         ))
+        if let wheel = snapshot.wheelSpinsReadyAt {
+            moments.append(PlannedNotification(kind: .wheelReady, fireAt: wheel))
+        }
         return moments
     }
 

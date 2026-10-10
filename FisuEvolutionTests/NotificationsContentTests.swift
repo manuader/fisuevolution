@@ -12,9 +12,9 @@ struct NotificationsContentTests {
         config = try GameContentLoader.load(from: .main).notifications
     }
 
-    @Test("los tres motivos de la 2.0, en su orden de prioridad")
+    @Test("los cuatro motivos de la 2.0, en su orden de prioridad")
     func catalogOrder() {
-        #expect(config.kinds == [.vaultFull, .dailyReady, .comeback])
+        #expect(config.kinds == [.vaultFull, .dailyReady, .comeback, .wheelReady])
     }
 
     @Test("las reglas de PLAN-v2 E11, pineadas")

@@ -1,0 +1,46 @@
+{
+  "menu.card.specials": {
+    "es": "Álbum",
+    "en": "Album"
+  },
+  "album.title": {
+    "es": "Álbum de especiales",
+    "en": "Specials Album"
+  },
+  "album.progress %lld %lld": {
+    "es": "Tenés %1$lld de %2$lld",
+    "en": "You have %1$lld of %2$lld"
+  },
+  "album.unknown": {
+    "es": "Por descubrir",
+    "en": "Yet to find"
+  },
+  "album.locked %lld": {
+    "es": "Puede caer desde el tier %lld",
+    "en": "Can drop from tier %lld"
+  },
+  "album.effect.income %@": {
+    "es": "%@ de ingresos",
+    "en": "%@ income"
+  },
+  "album.effect.offline %@": {
+    "es": "%@ de ganancia offline",
+    "en": "%@ offline earnings"
+  },
+  "album.effect.crit %@": {
+    "es": "%@ de golpe crítico",
+    "en": "%@ critical hit chance"
+  },
+  "album.effect.discount %@": {
+    "es": "%@ al contratar",
+    "en": "%@ on hiring"
+  },
+  "special.drop.album_hint": {
+    "es": "Desde ahora lo tenés en el Álbum de la Oficina central.",
+    "en": "From now on you'll find them in the Head Office Album."
+  },
+  "tutorial.tip.album": {
+    "es": "Tus especiales viven en el Álbum de la Oficina central.",
+    "en": "Your specials live in the Head Office Album."
+  }
+}

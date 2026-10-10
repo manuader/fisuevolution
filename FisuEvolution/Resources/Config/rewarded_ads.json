@@ -9,6 +9,11 @@
       {"kind": "package", "count": 1}
     ]
   },
+  "sideRail": {
+    "mergeAllCooldownSeconds": 600,
+    "packageRainCooldownSeconds": 1800,
+    "packageRain": {"kind": "modifier", "effect": "packageRateMultiplier", "magnitude": 10, "seconds": 60}
+  },
   "rewards": [
     {
       "id": "double_earnings",

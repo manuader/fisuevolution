@@ -262,4 +262,22 @@ struct RewardedAdsConfig: Codable, Sendable, Equatable {
         let config = adBreak ?? .default
         return AdBreak(introSeconds: max(AdBreak.minIntroSeconds, config.introSeconds), prizes: config.prizes)
     }
+
+    /// Los dos videos de la columna lateral (E7b): cada cuánto se puede volver a
+    /// mirar cada uno y qué da la lluvia de paquetes. Opcional, con default.
+    struct SideRail: Codable, Sendable, Equatable {
+        let mergeAllCooldownSeconds: Double
+        let packageRainCooldownSeconds: Double
+        let packageRain: RewardSpec
+
+        static let `default` = SideRail(
+            mergeAllCooldownSeconds: 600,
+            packageRainCooldownSeconds: 1800,
+            packageRain: .modifier(effect: .packageRateMultiplier, magnitude: 10, seconds: 60)
+        )
+    }
+
+    var sideRail: SideRail?
+
+    var effectiveSideRail: SideRail { sideRail ?? .default }
 }

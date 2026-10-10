@@ -12,7 +12,8 @@ import Foundation
 ///   offline entre sesiones (fórmula de OfflineCalculator).
 /// - **Política greedy** (prioridad): merges legales gratis → passive unlock con
 ///   payback corto → charUpgrade con payback corto → hire (piso 1 o backfill
-///   rentable) → reencarnar según `HumanModel.reincarnation` (por defecto, al
+///   rentable) → completar un piso en marcha si el bono lo paga (y no
+///   desarmarlo fusionando) → reencarnar según `HumanModel.reincarnation` (por defecto, al
 ///   duplicar el ORO ganado histórico) → gastar el ORO en mejoras permanentes.
 /// - Determinístico: sin RNG (crit/golden apagados), carrera fija.
 public struct PacingSimulator: Sendable {
@@ -221,6 +222,10 @@ public struct PacingSimulator: Sendable {
         public var finalPermanentUpgradeLevels: [String: Int] = [:]
         public var finalLifetimeEarnings: Double = 0
         public var finalMaxTier = 0
+        /// Pisos en marcha al llegar a Dios (`nil` = no llegó).
+        public var staffedFloorsAtGod: Int?
+        /// El máximo de pisos en marcha que el bot llegó a tener a la vez.
+        public var maxStaffedFloors = 0
 
         /// Tiempo ACTIVO de la primera reencarnación (la de pared es
         /// `firstReincarnationWall`). El dueño mide en horas de dedo, no de
@@ -403,6 +408,7 @@ public struct PacingSimulator: Sendable {
                 report.godActive = activeStart + elapsed
                 report.oroAtGod = state.meta.oroEarnedLifetime
                     + PrestigeCalculator.oroGained(state: state, economy: economy)
+                report.staffedFloorsAtGod = StaffedFloors.ordinals(state: state, tiers: tiers, floorTable: floorTable).count
                 return (elapsed, elapsed)
             }
             maybeReincarnate(
@@ -531,6 +537,11 @@ public struct PacingSimulator: Sendable {
             candidates.append(mejor.action)
         }
 
+        // 5. Completar un piso en marcha, si el bono lo paga.
+        if let target = staffingTarget(state: state), let fill = cheapestHire(onFloor: target, state: state) {
+            candidates.append(fill.action)
+        }
+
         return candidates.min { $0.cost < $1.cost }
     }
 
@@ -653,6 +664,64 @@ public struct PacingSimulator: Sendable {
         return HireCandidate(typeId: typeId, action: action, frontierUnitCost: cost * pow(2, profundidad))
     }
 
+    // MARK: - Pisos en marcha
+
+    /// El piso que conviene completar: el abierto más bajo, por debajo del piso
+    /// donde el bot compra, que no está en marcha y cuyo llenado se paga con el
+    /// bono en `maxPaybackSeconds`.
+    ///
+    /// Sólo por debajo del piso de compra porque ahí arriba vive el material de
+    /// fusión: llenar ese piso es frenar la frontera.
+    func staffingTarget(state: PlayerState) -> Int? {
+        let bonus = config.staffedBonusPerFloor
+        guard bonus > 0 else { return nil }
+        let gain = bonus * activeIncomeRate(state: state)
+        guard gain > 0 else { return nil }
+        let staffed = Set(StaffedFloors.ordinals(state: state, tiers: tiers, floorTable: floorTable))
+        for ordinal in 0..<buyingFloor(state: state) where !staffed.contains(ordinal)
+            && state.run.unlockedFloors.contains(floorTable[ordinal].id) {
+            let floor = floorTable[ordinal]
+            let missing = floor.capacity - floorCount(ordinal, state: state)
+            guard missing > 0, let cheapest = cheapestHire(onFloor: ordinal, state: state) else { continue }
+            let growth = config.hireCostGrowth(for: floor)
+            let cost = growth == 1
+                ? cheapest.action.cost * Double(missing)
+                : cheapest.action.cost * (pow(growth, Double(missing)) - 1) / (growth - 1)
+            if cost / gain <= maxPaybackSeconds { return ordinal }
+        }
+        return nil
+    }
+
+    /// Los pisos en marcha que el bot no fusiona: los que están por debajo del
+    /// piso donde compra (desarmar uno de ésos le saca el bono a cambio de nada).
+    func frozenFloors(state: PlayerState) -> Set<Int> {
+        guard config.staffedBonusPerFloor > 0 else { return [] }
+        let buying = buyingFloor(state: state)
+        return Set(StaffedFloors.ordinals(state: state, tiers: tiers, floorTable: floorTable).filter { $0 < buying })
+    }
+
+    /// Los pisos cuyas unidades el bot no fusiona: los congelados y el que está
+    /// llenando. Sin el segundo, cada compra para el llenado se fusiona en la
+    /// vuelta siguiente y el piso no se completa nunca: con cuatro tiers por
+    /// piso y diez lugares, las fusiones dejan a lo sumo una unidad por tier.
+    private func mergeLockedFloors(state: PlayerState) -> Set<Int> {
+        var locked = frozenFloors(state: state)
+        if let target = staffingTarget(state: state) { locked.insert(target) }
+        return locked
+    }
+
+    /// El piso del tier más alto que la compuerta deja contratar.
+    private func buyingFloor(state: PlayerState) -> Int {
+        floorTable.ordinal(forTier: max(1, state.run.maxTierReached - config.hire.gateTierDistance))
+    }
+
+    /// La contratación más barata del piso, con la misma cotización que el resto.
+    private func cheapestHire(onFloor ordinal: Int, state: PlayerState) -> HireCandidate? {
+        hireActions(floorOrdinal: ordinal, state: state, requireProfit: false).min {
+            $0.action.cost == $1.action.cost ? $0.typeId < $1.typeId : $0.action.cost < $1.action.cost
+        }
+    }
+
     // MARK: - Merges
 
     /// Aplica todos los merges legales (greedy, del tier más alto hacia abajo),
@@ -674,6 +743,7 @@ public struct PacingSimulator: Sendable {
         var merged = true
         while merged {
             merged = false
+            let locked = mergeLockedFloors(state: state)
             let mergeables = state.run.units
                 .filter { $0.value >= 2 }
                 .compactMap { typeId, _ in tiers.type(id: typeId) }
@@ -698,6 +768,7 @@ public struct PacingSimulator: Sendable {
                 if destOrdinal != srcOrdinal, floorCount(destOrdinal, state: state) >= floorTable[destOrdinal].capacity {
                     continue
                 }
+                if locked.contains(srcOrdinal), newType.tier <= state.run.maxTierReached { continue }
                 state.run.units[type.id, default: 0] -= 2
                 if state.run.units[type.id] == 0 { state.run.units[type.id] = nil }
                 // El reintegro de la fusión (PLAN-v2 E2a). Con la perilla en 0 no
@@ -1030,6 +1101,10 @@ public struct PacingSimulator: Sendable {
 
     /// Registra pisos recién alcanzados (unlockTier ≤ maxTier) con sus tiempos.
     private func recordUnlocks(state: inout PlayerState, report: inout Report, wall: Double, active: Double) {
+        report.maxStaffedFloors = max(
+            report.maxStaffedFloors,
+            StaffedFloors.ordinals(state: state, tiers: tiers, floorTable: floorTable).count
+        )
         for floor in floorTable.floors where state.run.maxTierReached >= floor.unlockTier {
             if !state.run.unlockedFloors.contains(floor.id) {
                 state.run.unlockedFloors.append(floor.id)

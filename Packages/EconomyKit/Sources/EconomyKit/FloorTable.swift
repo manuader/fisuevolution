@@ -77,6 +77,19 @@ public struct FloorDef: Codable, Sendable, Equatable, Identifiable {
         backgroundOffset = try container.decodeIfPresent(Double.self, forKey: .backgroundOffset) ?? 0
     }
 
+    /// El mismo piso con otra capacidad (los lugares extra de la tienda de ORO).
+    /// Copia TODOS los campos: uno que se olvide acá cambia el piso en silencio.
+    public func withCapacity(_ capacity: Int) -> FloorDef {
+        FloorDef(
+            id: id, background: background, firstTier: firstTier, lastTier: lastTier,
+            capacity: capacity, incomeMultiplier: incomeMultiplier,
+            hireCostMultiplierOverride: hireCostMultiplierOverride,
+            hireCostGrowthOverride: hireCostGrowthOverride,
+            unlockTierOverride: unlockTierOverride,
+            backgroundOffset: backgroundOffset
+        )
+    }
+
     enum CodingKeys: String, CodingKey {
         case id, background, firstTier, lastTier, capacity, incomeMultiplier
         case hireCostMultiplierOverride = "hireCostMultiplier"
@@ -171,6 +184,26 @@ public struct FloorTable: Sendable, Equatable {
         }
         self.ordinalByTier = byTier
         self.ordinalById = Dictionary(uniqueKeysWithValues: sorted.enumerated().map { ($1.id, $0) })
+    }
+
+    /// Una tabla ya validada, con los mismos índices: lo usa `expanded(by:)`.
+    private init(validated floors: [FloorDef], ordinalByTier: [Int], ordinalById: [String: Int]) {
+        self.floors = floors
+        self.ordinalByTier = ordinalByTier
+        self.ordinalById = ordinalById
+    }
+
+    /// La misma torre con `extra` lugares más en cada piso: el permanente de la
+    /// tienda de ORO (PLAN-v2 E6). Es el ÚNICO lugar donde cambia la capacidad: la
+    /// torre, el reconciliador, los pisos en marcha y el simulador la leen de la
+    /// tabla que reciben. No tira: la tabla ya está validada y sólo crece.
+    public func expanded(by extra: Int) -> FloorTable {
+        guard extra > 0 else { return self }
+        return FloorTable(
+            validated: floors.map { $0.withCapacity($0.capacity + extra) },
+            ordinalByTier: ordinalByTier,
+            ordinalById: ordinalById
+        )
     }
 
     public subscript(ordinal: Int) -> FloorDef { floors[ordinal] }

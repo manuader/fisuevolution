@@ -44,19 +44,36 @@ public struct PacingSources: Sendable, Equatable {
     public var freeHireSeconds: Double
     /// Lo que da mirar videos. Sólo lo juegan los perfiles que miran (`.ads`, `.max`).
     public var ads: AdsSources?
+    /// Los permanentes de la tienda de ORO. Sólo los juega el perfil que paga (`.max`).
+    public var shop: ShopPermanents?
 
     public init(
         packages: PackagesConfig?, dailyMinutes: [Double], freeBoosts: [FreeBoost], freeHireSeconds: Double,
-        ads: AdsSources? = nil
+        ads: AdsSources? = nil, shop: ShopPermanents? = nil
     ) {
         self.packages = packages
         self.dailyMinutes = dailyMinutes
         self.freeBoosts = freeBoosts
         self.freeHireSeconds = freeHireSeconds
         self.ads = ads
+        self.shop = shop
     }
 
     public static let none = PacingSources(packages: nil, dailyMinutes: [], freeBoosts: [], freeHireSeconds: 0)
+}
+
+/// Los niveles de los tres permanentes de la tienda de ORO, ya resueltos por el
+/// llamador con `OroShop.extraSlots/bestSupplierLevel/bonusDailyWheelSpins`.
+public struct ShopPermanents: Sendable, Equatable {
+    public var extraSlots: Int
+    public var bestSupplierLevel: Int
+    public var bonusDailyWheelSpins: Int
+
+    public init(extraSlots: Int, bestSupplierLevel: Int, bonusDailyWheelSpins: Int) {
+        self.extraSlots = extraSlots
+        self.bestSupplierLevel = bestSupplierLevel
+        self.bonusDailyWheelSpins = bonusDailyWheelSpins
+    }
 }
 
 /// Las fuentes que se cobran mirando un video (PLAN-v2 E2b y E7b-b), con lo que

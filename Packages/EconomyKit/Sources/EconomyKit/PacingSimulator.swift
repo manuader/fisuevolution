@@ -273,7 +273,8 @@ public struct PacingSimulator: Sendable {
     ) throws {
         self.config = config
         self.tiers = tiers
-        self.floorTable = try FloorTable(floors: config.floors, maxTier: tiers.maxTier)
+        let baseTable = try FloorTable(floors: config.floors, maxTier: tiers.maxTier)
+        self.floorTable = profile.ownsShopPermanents ? baseTable.expanded(by: sources.shop?.extraSlots ?? 0) : baseTable
         self.economy = StandardEconomy(config: config)
         self.cushion = config.priceCushion
         self.human = human

@@ -326,3 +326,74 @@ struct PacingAdsSourcesTests {
         #expect((try run(ads, profile: .bare).sourceTotals["videos"] ?? 0) == 0)
     }
 }
+
+@Suite("El perfil .max")
+struct PacingMaxProfileTests {
+    private func shop(slots: Int = 0, supplier: Int = 0, spins: Int = 0) -> PacingSources {
+        var sources = PacingSources.none
+        sources.shop = ShopPermanents(extraSlots: slots, bestSupplierLevel: supplier, bonusDailyWheelSpins: spins)
+        return sources
+    }
+
+    @Test(".max agranda los pisos y sólo .max lo hace")
+    func maxExpandsFloors() throws {
+        let sources = shop(slots: 5, supplier: 3, spins: 3)
+        let maxed = try PacingSimulator(config: upConfig(capacity: 4), tiers: upTiers(), profile: .max, sources: sources)
+        let ads = try PacingSimulator(config: upConfig(capacity: 4), tiers: upTiers(), profile: .ads, sources: sources)
+        #expect(maxed.floorTable[0].capacity == 9)
+        #expect(ads.floorTable[0].capacity == 4)
+    }
+
+    @Test("con lugares extra el bot llega más lejos en el mismo tiempo")
+    func maxIsFaster() throws {
+        let sources = shop(slots: 5)
+        let ads = try PacingSimulator(config: upConfig(capacity: 4), tiers: upTiers(), upgrades: upCheapLines(),
+                                      profile: .ads, sources: sources).run(maxDays: 5)
+        let maxed = try PacingSimulator(config: upConfig(capacity: 4), tiers: upTiers(), upgrades: upCheapLines(),
+                                        profile: .max, sources: sources).run(maxDays: 5)
+        #expect(maxed.finalLifetimeEarnings > ads.finalLifetimeEarnings)
+    }
+
+    @Test("sin permanentes, .max juega igual que .ads")
+    func maxWithoutShopIsAds() throws {
+        let ads = try PacingSimulator(config: upConfig(), tiers: upTiers(), upgrades: upCheapLines(),
+                                      profile: .ads, sources: .none).run(maxDays: 3)
+        let maxed = try PacingSimulator(config: upConfig(), tiers: upTiers(), upgrades: upCheapLines(),
+                                        profile: .max, sources: .none).run(maxDays: 3)
+        #expect(fingerprint(maxed) == fingerprint(ads))
+    }
+
+    @Test("los giros de más son videos de más, y sólo con .max")
+    func bonusSpinsAreVideos() throws {
+        let wheel = WheelConfig(
+            schemaVersion: 1, videoSpinsPerDay: 3, oroSpinCost: 1, oroSpinsPerDay: 0, spinSeconds: 1,
+            chestFallbackSegmentId: "plata",
+            segments: [.init(id: "plata", weight: 100, reward: .coinsSeconds(300))]
+        )
+        func videos(_ profile: PacingProfile) throws -> Double {
+            var sources = shop(spins: 2)
+            sources.ads = AdsSources(
+                videoSeconds: 30, offlineMultiplier: 1, dailyMultiplier: 1, careerMultiplier: 1,
+                wheel: wheel, wheelRepeats: false, treasures: nil, adBreakIntervalSeconds: .infinity,
+                adBreakPrizes: [], mergeAllCooldownSeconds: 0, packageRainCooldownSeconds: 0, packageRain: nil
+            )
+            let report = try PacingSimulator(config: upConfig(), tiers: upTiers(), upgrades: upCheapLines(),
+                                             profile: profile, sources: sources).run(maxDays: 1)
+            return report.sourceTotals["videos"] ?? 0
+        }
+        #expect(try videos(.ads) == 3)
+        #expect(try videos(.max) == 5)
+    }
+
+    @Test("el mejor proveedor mueve el r del paquete sólo con .max")
+    func supplierShiftsPackages() throws {
+        var sources = shop(supplier: 3)
+        sources.packages = PackagesConfig(schemaVersion: 1, spawnIntervalSeconds: 120, firstPackageAfterSeconds: 120,
+                                          maxWaiting: 2, windowTiers: 4, tierRatioByBestSupplierLevel: [2, 1.8, 1.6, 1.4])
+        func run(_ profile: PacingProfile) throws -> PacingSimulator.Report {
+            try PacingSimulator(config: upConfig(), tiers: upTiers(), upgrades: upCheapLines(),
+                                profile: profile, sources: sources).run(maxDays: 5)
+        }
+        #expect(fingerprint(try run(.max)) != fingerprint(try run(.free)))
+    }
+}

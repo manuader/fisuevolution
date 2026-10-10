@@ -787,6 +787,12 @@ pergamino, pills caramelo—, iconografía y paleta del juego):
 
 ### E4 — Visitantes + Eventos v2 + Álbum de especiales
 
+> **Estado (2026-10-10, relevo 29): hecha.** E4a (el motor) y E4b (lo que se ve) están en `version-2`; el cierre es
+> `Docs/SESION-2026-10-10-v2-e4.md` (E4a) y `Docs/SESION-2026-10-10-v2-e4b.md` (E4b). **Desvíos:** ninguna de las
+> dudas con default cambió (el dueño no contestó ninguna); el retrato del popup salió con `AnimatedArtView` y no con
+> un `LoopingPortraitView` aparte; el escenario es de una sola entrada y el banner de eventos se fue en E4b T4.
+> Pendiente: `completo` de la ola r29 (`COMPLETO_PENDIENTE`) y los escenarios a mano en device (🔒 del dueño).
+
 - **Motor puro** (`EconomyKit/Visitors/`):
   - `VisitorsConfig` (definición, guiones por tipo y condiciones).
   - `VisitorScheduler.advance/pickNext`: cuenta **sólo juego activo** (delta con clamp de 2 s);
@@ -850,6 +856,11 @@ pergamino, pills caramelo—, iconografía y paleta del juego):
   aprobar.
 
 ### E5 — Paquete de la Aduana + El Colchón + Ruleta
+
+> **Estado (2026-10-10, relevo 29): E5a (el motor) hecha, E5b (lo que se ve) en curso.** El cierre de E5a es
+> `Docs/SESION-2026-10-10-v2-e5a.md`. **Desvíos:** ninguna de las dudas con default cambió; `LootBoxGate` nació en E5
+> (el plan lo ponía en E6) y el paquete entra por el embudo de E1 y no por un `placeGrantedUnit` generalizado.
+> Pendiente: `completo` de la ola r29 (`COMPLETO_PENDIENTE`) y los tres escenarios a mano (🔒 del dueño).
 
 - **Paquete** (`packages.json`, `PackageScheduler`, `PackageRoller`):
   - 1 cada 120 s de juego activo, hasta 2 en espera; sin acumular offline. Los paquetes regalados

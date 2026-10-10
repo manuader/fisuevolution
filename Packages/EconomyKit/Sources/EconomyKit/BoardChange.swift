@@ -18,6 +18,8 @@ public struct BoardChange: Sendable, Equatable, Identifiable {
         case rewardedRareUnit
         case career
         case debug
+        /// Un visitante se llevó a alguien (arresto, compra, novio, acto).
+        case visitor
     }
 
     /// Un eslabón de "Fusionar todo": la escena encadena los de la misma cadena

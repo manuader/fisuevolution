@@ -129,8 +129,8 @@
 | E12 | 19 | 15 |  |  |  | 3 | 1 |  |
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
-| E8e | 9 |  |  | 2 | 1 | 6 |  |  |
-| **Total** | **263** | **208** | **1** | **2** | **6** | **45** | **1** | **5** |
+| E8e | 15 |  |  | 2 | 2 | 11 |  |  |
+| **Total** | **269** | **208** | **1** | **2** | **7** | **50** | **1** | **5** |
 
 Fuera del conteo:
 
@@ -182,7 +182,7 @@ La tabla por épica se recalculó en el relevo 28 (con un script sobre las misma
 |---|---|
 | `GameState.swift` | E1 T9, T10, T12, T13, T14 · E11 T6 · E3a T9, T10 · E3b T5, T9 · E2a T9 · E4a T9 · E4b T1, T4, T9 · E5b T2 · E6b T7 · E7b-a T2, T3 · E7b-b T1 |
 | `RootView.swift` | E1 T10, T13, T14 · E3a T10, T11 · E3b T4, T5 (comentarios), T8, T9 · E4b T3, T4, T9 · E5b T2 · E6a T12 · E7b-a T2, T3 · E7b-b T3 |
-| `BoardScene.swift` | E1 T10 · E3a T10 · E4b T1, T6, T9 · E5b T3 · E6b T5 |
+| `BoardScene.swift` | E1 T10 · E3a T10 · E4b T1, T6, T9 · E5b T3 · E6b T5 · E8e T8, T10d |
 | `ContentSystems.swift` | E1 T11, T12, T13 · E2a T11 · E4a T9 |
 | `GameState+Bonus.swift` | E1 T11, T12, T13, T14 · E3b T9 · E2a T11, T12 · E4a T9 · E4b T4 · E6a T5 |
 | `PlayerState.swift` | E1 T6c (sólo `MetaState`) · E2a T2, T3 · E4b T9 (un docstring) · E6b T4 |
@@ -739,6 +739,13 @@ Olas: T1 ∥ T7 → T2 ∥ T3 ∥ T4 → T8 (ventana de `BoardScene`); T5 tras E
 | E8e-T7 | El Álbum, con la tarjeta enfocada animada | 🔄 | — | SpecialsAlbumView | | sonnet, capturas; `.character(sp_*)`, una sola tarjeta; el id `album.card.*` no cambia |
 | E8e-T8 | Las pintas con video (ficha, revelación, pipeline) | ⛔ | T1; ventana de BoardScene | CharacterSheetView; 🔥 BoardScene (dos líneas); video_assets.py | | sonnet, revisión ninguna; pinta sin clip = quieta, nunca la base; `odr_tag`/`validate_id` aceptan `<tipo>__<pinta>` + test Python; no ∥ E9a T7 (CharacterSheetView), ni E5b T3/E6b T5 (BoardScene) |
 | E8e-T9 | Cierre de E8e (controlador) | ⛔ | T1–T8; E8d-T15 | `Docs/` | | `completo`; `AnimatedPlacesTests` con `pendingPlaces` vacío; gates en device del dueño 🔒: fps/memoria en el SE con el tope de 3, Reduce Motion, bajo consumo, ODR |
+| P-E8e-T10 | Plan de E8e T10: el tablero animado con los videos base | ✅ | — | — | f5dc07f | `2026-10-10-v2-e8e-t10-tablero-animado.md`; 6 tareas (10a–10f); 12 dudas con default; gate 🔒 en el SE antes de integrar |
+| E8e-T10a | Spike con medición: cuadros, tamaño, formato, ritmo | ⏳ | — | rama desechable `v2i/e8e-t10a-spike` (no se integra) | | **opus**; compila (cuenta para el tope de 3); reporte en `.superpowers/sdd/e8e/task-10a-report.md` con "Parámetros fijados"; **🔒 el dueño mide en su SE** (`--uitest-idle-bench[-still] --uitest-video`, sonda DEBUG): ≥ 59 fps, ≤ 1 % > 25 ms, animado − quieto ≤ 20 MB; si no entra, escalera 12 cuadros → 192 px → ASTC → N más cercanos → quieto < 3 GB |
+| E8e-T10b | Pipeline: las hojas de cuadros y `idle_frames.json` | ⛔ | T10a 🔒 | nuevos; 43 PNG en `AnimPacks/anim-piso-*` | | sonnet, revisión ninguna; `idle_frames.py` importa `odr_tag` de `video_assets.py` (no lo edita: es de T8); sin `sp_` ni `__`; ≤ 10 MB ODR, base +0; sin `project.yml` |
+| E8e-T10c | El runtime sin `BoardScene`: `BoardIdleAnimator`, `CharacterNode.setIdleFrames`, `observePolicy` | ⛔ | T10b | CharacterNode, VideoPlayerPool | | sonnet, el controlador lee el diff; no ∥ E6b T5 (CharacterNode); decodifica fuera del main y aplica tras `preload`; el pool de nodos corta la animación del sprite |
+| E8e-T10d | El cableado: tres líneas de `BoardScene` + banco DEBUG | ⛔ | T10c; ventana de BoardScene | 🔥 BoardScene (3 líneas); +Debug, +Bootstrap (tibios) | | sonnet, controlador lee el diff + capturas; después de E5b T3, no ∥ E6b T5 ni E8e T8; sin ventana → `NEEDS_CONTEXT` y las aplica el controlador |
+| E8e-T10e | Cierre de T10 (controlador) | ⛔ | T10d | `Docs/` | | `completo`; **🔒 el dueño en su SE con la partida real** (piso 3, 10 min, Reduce Motion, bajo consumo, ODR, modo avión); docs y trampas |
+| E8e-T10f | La carta base de Personalización, animada (opcional) | ⛔ | E6b-T5; duda 11 | CustomizationView | | sonnet, capturas; una sola `AnimatedArtView` por grilla, la base |
 
 ### E9 — Tutorial v2 + Tour de novedades + Ajustes (`2026-10-07-v2-e9a-…` motor, `…-e9b-…` currículo y reset)
 

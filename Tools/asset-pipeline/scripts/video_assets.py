@@ -458,7 +458,8 @@ def encode(kind: str, master: Path, output: Path, key_color: str | None,
     )
 
 
-def cutout_frame(rgb: np.ndarray, bordes: tuple[str, ...], papel: bool = False) -> np.ndarray:
+def cutout_frame(rgb: np.ndarray, bordes: tuple[str, ...], papel: bool = False,
+                 menores: int = 0) -> np.ndarray:
     """Un cuadro sobre fondo blanco -> RGBA premultiplicado, con `whitebg_cutout`.
 
     Lo mismo que `cutout` de alla, sin las excepciones a mano por asset (huecos
@@ -466,7 +467,10 @@ def cutout_frame(rgb: np.ndarray, bordes: tuple[str, ...], papel: bool = False) 
     que miden como el lienzo (`PAPEL_MEDIDO_VIDEO`), salvo las que tocan un borde:
     esas son la ropa del busto, que solo quedo encerrada porque no se siembra
     desde abajo. Premultiplicado por lo mismo que el camino del key: lo escala
-    ffmpeg despues, y `AVPlayerLayer` composita el HEVC-alfa asi."""
+    ffmpeg despues, y `AVPlayerLayer` composita el HEVC-alfa asi.
+
+    `menores` saca ademas las islas sueltas de menos de esos pixeles (ver
+    `sin_islas_chicas`)."""
     distance = white_distance(rgb)
     background = background_mask(distance, bordes=bordes)
     if papel:
@@ -478,20 +482,41 @@ def cutout_frame(rgb: np.ndarray, bordes: tuple[str, ...], papel: bool = False) 
             background = background | np.isin(labels, grandes)
     alpha = alpha_from_background(distance, background)
     color = undo_white_matte(rgb, alpha).astype(np.float32) * alpha[..., None]
-    return np.dstack([
+    rgba = np.dstack([
         color.round().astype(np.uint8),
         (alpha * 255).round().astype(np.uint8),
     ])
+    return sin_islas_chicas(rgba, menores) if menores else rgba
 
 
-def encode_cutout(kind: str, master: Path, output: Path, papel: bool = False) -> None:
+def sin_islas_chicas(rgba: np.ndarray, menores: int) -> np.ndarray:
+    """El cuadro sin los pedacitos sueltos de menos de `menores` pixeles visibles:
+    las motas que el recorte deja flotando y que en un cuadro aparecen y en el
+    siguiente no (titilan). Cuenta todo lo visible, antialias incluido, asi la
+    mota se va entera y no deja su borde."""
+    visible = rgba[..., 3] > 0
+    labels, count = ndimage.label(visible, structure=np.ones((3, 3), dtype=bool))
+    if count < 2:
+        return rgba
+    areas = ndimage.sum_labels(visible, labels, index=np.arange(1, count + 1))
+    chicas = np.flatnonzero(areas < menores) + 1
+    if not chicas.size:
+        return rgba
+    limpio = rgba.copy()
+    limpio[np.isin(labels, chicas)] = 0
+    return limpio
+
+
+def encode_cutout(kind: str, master: Path, output: Path, papel: bool = False,
+                  menores: int = 0, progreso=None) -> None:
     """El camino del fondo blanco: un ffmpeg decodifica, Python recorta cada
     cuadro a la resolucion del master, y otro ffmpeg encuadra y codifica.
 
     El recorte va antes de escalar: el anillo de antialias del dibujo es de unos
     pocos pixeles, y achicado a 512 no queda de donde sacar la opacidad. Cuesta
     ~1 s por cuadro de 960x960, asi que los cuadros se reparten entre los
-    nucleos (`imap` los devuelve en orden)."""
+    nucleos (`imap` los devuelve en orden). `progreso(hechos, total)` se llama
+    por cuadro (el Estudio de assets lo muestra)."""
     spec = KINDS[kind]
     stream = video_stream(probe(master))
     width, height = int(stream["width"]), int(stream["height"])
@@ -518,11 +543,14 @@ def encode_cutout(kind: str, master: Path, output: Path, papel: bool = False) ->
         while len(raw := decoder.stdout.read(frame_bytes)) == frame_bytes:
             yield np.frombuffer(raw, np.uint8).reshape(height, width, 3)
 
-    recortar = functools.partial(cutout_frame, bordes=spec["bordes"], papel=papel)
+    recortar = functools.partial(cutout_frame, bordes=spec["bordes"], papel=papel, menores=menores)
+    total = int(stream.get("nb_frames") or 0)
     try:
         with multiprocessing.Pool() as pool:
-            for rgba in pool.imap(recortar, frames(), chunksize=2):
+            for hechos, rgba in enumerate(pool.imap(recortar, frames(), chunksize=2), 1):
                 encoder.stdin.write(rgba.tobytes())
+                if progreso:
+                    progreso(hechos, total)
     finally:
         encoder.stdin.close()
         decoder.stdout.close()

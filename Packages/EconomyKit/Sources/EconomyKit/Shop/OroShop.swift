@@ -129,12 +129,14 @@ public enum OroShop {
     public enum SkinPurchaseError: Error, Equatable {
         case alreadyOwned
         case cantAfford
+        case invalidPrice
     }
 
     /// Una pinta con ORO: `spendOro` y a `shop.skins`, en un solo paso. El precio
     /// lo trae quien llama, desde `skins.json` (`SkinsConfig.oroPrice(of:)`).
     /// Lo que ya es tuyo no se cobra: una segunda llamada ve la primera.
     public static func purchaseSkin(_ skinID: String, price: Int, state: inout PlayerState) throws {
+        guard price > 0 else { throw SkinPurchaseError.invalidPrice }
         guard !state.meta.allOwnedSkins.contains(skinID) else { throw SkinPurchaseError.alreadyOwned }
         guard state.meta.spendOro(price) else { throw SkinPurchaseError.cantAfford }
         state.meta.engagement.shop.skins.insert(skinID)

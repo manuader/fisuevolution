@@ -41,7 +41,7 @@ public struct ResetPlan: Sendable, Equatable {
         result.meta.engagement.firstLaunchDay = old.engagement.firstLaunchDay
         result.meta.resetEpoch = old.resetEpoch + 1
 
-        let lostSkins = old.allOwnedSkins.union(old.engagement.shop.skins).subtracting(old.ownedSkins)
+        let lostSkins = old.allOwnedSkins.subtracting(old.ownedSkins)
         let summary = Summary(
             oroBalance: old.oro,
             oroPurchased: old.oroPurchasedLifetime,

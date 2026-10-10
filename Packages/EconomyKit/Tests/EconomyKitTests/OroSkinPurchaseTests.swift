@@ -34,6 +34,17 @@ struct OroSkinPurchaseTests {
         #expect(state.meta.engagement.shop.skins.isEmpty)
     }
 
+    @Test("un precio de cero o negativo no regala ni cobra")
+    func invalidPriceIsRefused() {
+        for price in [0, -50] {
+            var state = fxState()
+            state.meta.oro = 500
+            #expect(throws: OroShop.SkinPurchaseError.invalidPrice) { try OroShop.purchaseSkin("neon", price: price, state: &state) }
+            #expect(state.meta.oro == 500)
+            #expect(state.meta.engagement.shop.skins.isEmpty)
+        }
+    }
+
     @Test("lo que ya es tuyo no se cobra, venga de la vía que venga")
     func alreadyOwnedIsFree() {
         var viaMilestone = fxState()

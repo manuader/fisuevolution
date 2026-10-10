@@ -642,9 +642,9 @@ private struct SkinCard: View {
         case .equipped: String(localized: "skins.equipped")
         case .owned: String(localized: "skins.owned")
         case .milestoneLocked(let conditionText): conditionText
+        case .oroPurchasable(let price): String(localized: "price.ax.oro \(String(price))")
         // Sin precio, el valor dice que falta el precio — no que la skin no se
         // venda. Es el mismo texto que muestra el badge, por la misma razón.
-        case .oroPurchasable(let price): String(price)
         case .purchasable:
             [price ?? String(localized: "skins.price.unavailable"), packCaptionText]
                 .compactMap { $0 }

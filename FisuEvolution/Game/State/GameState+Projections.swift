@@ -64,6 +64,7 @@ extension GameState {
         refreshUnlockedTabs()
         presentShareMomentIfCalm()
         refreshPrizeAccess()
+        refreshSideRail()
         refreshTutorialTip()
     }
 

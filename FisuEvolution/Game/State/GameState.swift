@@ -285,6 +285,8 @@ final class GameState {
     var stageChallenge: StageChallenge?
     /// Los accesos a paquetes, colchón y ruleta. Lo escribe `+Prizes`.
     var prizeAccess = PrizeAccess.none
+    /// La columna lateral (`+SideRail`): cambia a lo sumo una vez por segundo.
+    var sideRail = SideRailState.hidden
     /// El popup del colchón (`+Prizes`).
     var mattressPopup: MattressPopup?
     /// La ruleta presentada sola (`+Prizes`).

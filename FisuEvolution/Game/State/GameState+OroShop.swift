@@ -25,11 +25,7 @@ extension GameState {
     func oroShopContext(chanceAllowed: Bool, now: Date = Date()) -> OroShop.Context? {
         guard let content, let player, let tower else { return nil }
         let reached = Set(content.floorTable.floors.prefix(player.meta.stats.maxFloorOrdinalEver + 1).map(\.id))
-        // El plan mira el tablero sin lo ya encolado: con una fusión pendiente
-        // volvería a ver los mismos pares y los cobraría de nuevo.
-        let mergeQueued = (pendingBoardChanges + [inFlightBoardChange].compactMap { $0 })
-            .contains { $0.origin == .oroShop || $0.chain != nil }
-        let pairs = mergeQueued ? 0 : BoardChangePlanner.planMergeAll(
+        let pairs = mergeAllIsQueued ? 0 : BoardChangePlanner.planMergeAll(
             floorOrdinal: visibleFloorOrdinal, state: player, tower: tower, tiers: content.tiers,
             floorTable: content.floorTable, config: content.economy, origin: .oroShop
         ).count

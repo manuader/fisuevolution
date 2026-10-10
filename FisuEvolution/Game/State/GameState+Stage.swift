@@ -69,11 +69,12 @@ extension GameState {
 
     /// La paciencia corre con el delta del tick y sólo en un momento calmo, con
     /// su popup cerrado, sin un anuncio en pantalla y sin un reto en curso. El
-    /// reto corre con reloj de pared (es corto y se juega mirando): vence antes
-    /// de la puerta de la paciencia.
-    func advanceStage(delta: TimeInterval, now: TimeInterval = Date().timeIntervalSince1970) {
-        if let challenge = stageChallenge, now >= challenge.endsAt {
-            finishChallenge(won: false, now: now)
+    /// reto corre con el delta del juego activo (`challengeClock`): vence antes
+    /// de la puerta de la paciencia. `now` fija el reloj, para los tests.
+    func advanceStage(delta: TimeInterval, now: TimeInterval? = nil) {
+        if let now { stageRuntime.challengeClock = now } else if stageChallenge != nil { stageRuntime.challengeClock += delta }
+        if let challenge = stageChallenge, stageRuntime.challengeClock >= challenge.endsAt {
+            finishChallenge(won: false, now: stageRuntime.challengeClock)
         }
         guard stageVisit?.phase == .waiting, isCalmMoment, ads?.isPresentingFullScreen != true,
               visitorPopup == nil, eventPopup == nil, stageChallenge == nil

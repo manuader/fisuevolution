@@ -22,7 +22,7 @@ extension GameState {
         NaturalBreakContext(
             removedAds: player?.meta.removedAds ?? false,
             tutorialActive: tutorialPhaseActive || celebrations.allowedKinds != nil,
-            sheetOpen: uiCoversBoard || characterSheet != nil || careerPrompt != nil
+            sheetOpen: uiCoversBoard || characterSheet != nil || careerPrompt != nil || stageChallenge != nil
                 || !isSceneActive || fullScreenUIActive(),
             celebrationActive: celebrations.current != nil,
             adOnScreen: ads?.isPresentingFullScreen ?? false,

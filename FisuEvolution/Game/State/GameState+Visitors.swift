@@ -182,20 +182,24 @@ extension GameState {
     /// El reto arranca: el popup se cierra y los toques van al tablero.
     func beginChallenge(scriptId: String, terms: ChallengeTerms, now: TimeInterval) {
         visitorPopup = nil
+        stageRuntime.challengeClock = now
         stageChallenge = StageChallenge(scriptId: scriptId, terms: terms, taps: 0, endsAt: now + terms.windowSeconds)
         stageVisit?.bubble = nil
     }
 
-    /// Un toque a un empleado (`registerTap`). Sólo cuenta dentro de la ventana.
-    func noteStageTap(now: TimeInterval = Date().timeIntervalSince1970) {
+    /// Un toque a un empleado (`registerTap`). Sólo cuenta dentro de la ventana,
+    /// medida con el reloj del reto.
+    func noteStageTap(now: TimeInterval? = nil) {
+        let now = now ?? stageRuntime.challengeClock
         guard var challenge = stageChallenge, now < challenge.endsAt else { return }
         challenge.taps += 1
         stageChallenge = challenge
         if challenge.taps >= challenge.terms.taps { finishChallenge(won: true, now: now) }
     }
 
-    func finishChallenge(won: Bool, now: TimeInterval = Date().timeIntervalSince1970) {
+    func finishChallenge(won: Bool, now: TimeInterval? = nil) {
         guard let challenge = stageChallenge else { return }
+        let now = now ?? Date().timeIntervalSince1970
         stageChallenge = nil
         guard won else { return finishVisit(saying: "visit.challenge.lost") }
         creditCoins(challenge.terms.coins)

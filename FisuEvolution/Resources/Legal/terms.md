@@ -101,6 +101,22 @@ la economía ni intentos de acceder a partes del Juego o de los servicios de
 Apple que no te correspondan. Sos responsable del uso que hagas del Juego
 desde tu dispositivo.
 
+### El ranking y los nombres
+
+Si llegás a Dios, podés entrar al ranking con un nombre, que ven los demás
+jugadores. El nombre puede tener hasta 15 caracteres (letras, números, espacios y
+. - _) y no puede ser ofensivo, discriminatorio ni sexual, ni contener datos
+personales, la marca de otra persona o empresa, ni hacerse pasar por alguien. Lo revisamos con
+reglas, una lista de palabras y una revisión automática con IA; esa revisión
+puede equivocarse, y podemos rechazar, cambiar u ocultar cualquier nombre.
+
+Cualquier jugador puede reportar un nombre desde el ranking. **Un nombre
+reportado se oculta** (con tres reportes, o antes si lo decidimos nosotros) y
+la partida deja de mostrarse hasta que se revise. Si usás el ranking para
+molestar, podemos sacarte de él. Para reportar algo que no se pueda hacer desde
+el juego, o para pedir que borremos tu nombre, escribinos a
+**adermanu@gmail.com**.
+
 ## 6. Sin garantías
 
 El Juego se entrega **"tal cual" y "según disponibilidad"**, sin garantías de
@@ -255,6 +271,21 @@ Play in good faith: no cheating, exploits, reverse engineering of the
 economy, or attempts to access parts of the Game or of Apple's services you
 are not entitled to. You are responsible for how the Game is used from your
 device.
+
+### The leaderboard and names
+
+If you reach God you may enter the leaderboard with a name that other players
+can see. A name can be up to 15 characters (letters, numbers, spaces and
+. - _) and may not be offensive, discriminatory or sexual, nor contain
+personal data or another person's or company's brand, nor impersonate anyone. We check it with rules, a word list
+and an automated AI check; that check can be wrong, and we may reject, change
+or hide any name.
+
+Any player can report a name from the leaderboard. **A reported name is
+hidden** (after three reports, or earlier if we decide so) and the run stops
+being shown until it is reviewed. If you use the leaderboard to harass others we
+may remove you from it. To report something you can't report from the game, or
+to ask us to delete your name, write to **adermanu@gmail.com**.
 
 ## 6. No warranties
 

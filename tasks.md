@@ -490,8 +490,8 @@ que toma · commit o rama · nota.
 | E5a-T2 | El Colchón, puro | ✅ | T1; E4a-T1 | — | `d6a1421` (merge `bba9e39`) + mutantes `f6f8e2f` (merge `0fa932c`) | |
 | E5a-T3 | La Ruleta, pura | ✅ | T1; E4a-T1 | — | `4d1d426` (merge `bba9e39`) + mutantes `f6f8e2f` (merge `0fa932c`) | mutantes T2+T3: 92/93 |
 | E5a-T4 | Paquetes, colchón y ruleta en `meta.engagement` | ✅ | T1–T3; E3b-T9, E4a-T3 | EngagementState | `c00943c` (en `v2i/integ-r22`) | |
-| E5a-T5 | El contenido: `packages/treasures/wheel.json` | ⛔ | T1–T3; E4a-T7, E4a-T9 | GameContentLoader | | carry: validador `isFinite` |
-| E5a-T6 | El Paquete en la partida | ⛔ | T4, T5; E1-T9, E1-T10, E1-T14; E4a-T2, E4a-T6, E4a-T8, E4a-T9 | +Rewards, +Engagement, +BoardChanges, BoardChange.swift | | no con E4b T2 |
+| E5a-T5 | El contenido: `packages/treasures/wheel.json` | 🟢 | T1–T3; E4a-T7, E4a-T9 | GameContentLoader | | carry: validador `isFinite` |
+| E5a-T6 | El Paquete en la partida | 🔄 | T4, T5; E1-T9, E1-T10, E1-T14; E4a-T2, E4a-T6, E4a-T8, E4a-T9 | +Rewards, +Engagement, +BoardChanges, BoardChange.swift | | no con E4b T2 |
 | E5a-T7 | El Colchón en la partida | ⛔ | T6 | +Engagement | | |
 | E5a-T8 | La Ruleta en la partida | ⛔ | T7 | +Rewards, +Engagement | | crea `LootBoxGate` |
 | E5a-T9 | Cierre de E5a | ⛔ | T1–T8 | `Docs/` | | |
@@ -683,13 +683,13 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 | E2b-T2 | Herencia de pasivos al reencarnar (EK) | ✅ | T1 | — | | |
 | E2b-T3 | El simulador cobra como el juego (EK) | ✅ | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
 | E2b-T4 | Política de pisos en marcha del bot (EK, opus) | ✅ | T3; E2a-T4 | — | | |
-| E2b-T5 | Perfiles y fuentes gratis (EK) | ⛔ | T4; E5a-T1 | archivo de `PackageRoller` | | |
-| E2b-T6 | El perfil `.ads` (EK) | ⛔ | T5; E4a-T1, E4a-T8, E5a-T2, E5a-T3 | — | | |
+| E2b-T5 | Perfiles y fuentes gratis (EK) | 🟢 | T4; E5a-T1 | archivo de `PackageRoller` | | |
+| E2b-T6 | El perfil `.ads` (EK) | 🔄 | T5; E4a-T1, E4a-T8, E5a-T2, E5a-T3 | — | | |
 | E2b-T7 | El perfil `.max` (EK) | ⛔ | T6; E6a-T2, E6b-T6 | — | | |
 | E2b-T8 | El CLI del pacing-sim | ⛔ | T7 | — | | |
 | E2b-T9 | La suite del contrato (apagada) | ⛔ | T8; E5a-T5, E6a-T4, E7b-a-T3, E7b-b-T2, E2a-T11, E2a-T12 | — | | |
 | E2b-T10 | Presupuestos analíticos | ⛔ | E2a-T11, E4a-T7, E4a-T9, E6a-T4 | `visitors.json` | | |
-| E2b-T11 | La herencia en pantalla | 🔄 | T2; E2a-T8 | catálogo (snapshot) | | |
+| E2b-T11 | La herencia en pantalla | 🟢 | T2; E2a-T8 | catálogo (snapshot) | | |
 | E2b-T12 | Medir cada mecánica, en orden | ⛔ | T9; 🔒 playtest E2a-T14 | — | | |
 | E2b-T13 | La búsqueda (run AVO, opus) | ⛔ | T12; E4a-T10, E5a-T9, E6a-T13, E6b-T7, E7b-b-T8 | — | | |
 | E2b-T14 | Declarar la calibración y prender el contrato | ⛔ | T13 | `economy.json`, `upgrades.json`, `achievements.json`, tests de pacing | | |

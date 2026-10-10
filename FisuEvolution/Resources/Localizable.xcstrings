@@ -5846,6 +5846,23 @@
         }
       }
     },
+    "prestige.inherited.passives %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You keep the passive income of %@ characters"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se conservan los pasivos de %@ personajes"
+          }
+        }
+      }
+    },
     "prestige.keeps %@" : {
       "extractionState" : "stale",
       "localizations" : {

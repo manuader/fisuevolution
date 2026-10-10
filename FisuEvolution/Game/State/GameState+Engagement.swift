@@ -26,6 +26,9 @@ extension GameState {
         if let count = Self.fixtureValue("--uitest-packages=", in: arguments).flatMap(Int.init) {
             debugAddPackages(count)
         }
+        if let count = Self.fixtureValue("--uitest-wheel-spins=", in: arguments).flatMap(Int.init) {
+            debugAddWheelSpins(count)
+        }
         if arguments.contains("--uitest-mattress") {
             debugSpawnMattress()
         }

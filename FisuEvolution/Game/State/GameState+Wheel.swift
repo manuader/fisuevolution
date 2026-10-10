@@ -48,12 +48,12 @@ extension GameState {
     }
 
     func wheelAvailability(storefrontAllows: Bool, now: TimeInterval = Date().timeIntervalSince1970) -> WheelAvailability {
-        guard let content, let player else { return .none }
+        guard let content, let wheelConfig = effectiveWheel, let player else { return .none }
         let state = Self.wheelState(player.meta.engagement.wheel, at: now)
-        let oroLeft = storefrontAllows ? WheelRoller.spinsLeft(.oro, state: state, config: content.wheel) : 0
+        let oroLeft = storefrontAllows ? WheelRoller.spinsLeft(.oro, state: state, config: wheelConfig) : 0
         return WheelAvailability(
-            bonus: WheelRoller.spinsLeft(.bonus, state: state, config: content.wheel),
-            videoLeft: WheelRoller.spinsLeft(.video, state: state, config: content.wheel),
+            bonus: WheelRoller.spinsLeft(.bonus, state: state, config: wheelConfig),
+            videoLeft: WheelRoller.spinsLeft(.video, state: state, config: wheelConfig),
             oroLeft: oroLeft,
             oroCost: content.wheel.oroSpinCost,
             canPayOro: oroLeft > 0 && player.meta.oro >= content.wheel.oroSpinCost,
@@ -71,15 +71,15 @@ extension GameState {
         storefrontAllows: Bool = false,
         now: TimeInterval = Date().timeIntervalSince1970
     ) -> WheelSpinOutcome? {
-        guard let content, var player else { return nil }
+        guard let content, let wheelConfig = effectiveWheel, var player else { return nil }
         var wheel = Self.wheelState(player.meta.engagement.wheel, at: now)
         if source == .oro {
-            guard storefrontAllows, WheelRoller.spinsLeft(.oro, state: wheel, config: content.wheel) > 0,
+            guard storefrontAllows, WheelRoller.spinsLeft(.oro, state: wheel, config: wheelConfig) > 0,
                   player.meta.spendOro(content.wheel.oroSpinCost)
             else { return nil }
         }
         let segments = wheelSegments
-        guard WheelRoller.consume(source, state: &wheel, config: content.wheel),
+        guard WheelRoller.consume(source, state: &wheel, config: wheelConfig),
               let index = WheelRoller.roll(segments, using: &rng)
         else { return nil }
         wheel.repeatableSegmentId = segments[index].id

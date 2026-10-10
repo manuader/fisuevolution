@@ -185,7 +185,7 @@ extension GameState {
         switch change.origin {
         case .rewardedRareUnit: compensateRewardedVideo()
         case .package: refundPackage()
-        case .eventStartup, .eventBlanqueo, .rewardedMergeAll, .career, .debug, .visitor: break
+        case .eventStartup, .eventBlanqueo, .rewardedMergeAll, .career, .debug, .visitor, .oroShop: break
         }
     }
 
@@ -226,7 +226,7 @@ private extension BoardChange {
     /// paquete se descuenta del buzón al abrirlo, así que también lo es.
     var isPrepaid: Bool {
         switch origin {
-        case .rewardedMergeAll, .rewardedRareUnit, .career, .package, .visitor: true
+        case .rewardedMergeAll, .rewardedRareUnit, .career, .package, .visitor, .oroShop: true
         case .eventStartup, .eventBlanqueo, .debug: false
         }
     }

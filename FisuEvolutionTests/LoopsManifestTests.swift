@@ -191,4 +191,66 @@ struct LoopsManifestTests {
         #expect(manifest.url(for: .portrait("npc_que_no_existe")) == nil)
         #expect(LoopsManifest.empty.url(for: .cinematic(.dios)) == nil)
     }
+
+    // MARK: - El contrato manifest <-> contenido
+
+    @Test("cada charla es de un visitante o de un especial")
+    func talkingBelongsToVisitorsOrSpecials() throws {
+        let content = try GameContentLoader.load(from: .main)
+        let owners = Set(content.visitors.visitors.map(\.id)).union(content.specials.specials.map(\.id))
+        for id in try LoopsManifest.load(from: .main).talking.keys {
+            #expect(owners.contains(id), "\(id): una charla que nadie pide")
+        }
+    }
+
+    @Test("cada pedido es de un visitante")
+    func actionsBelongToVisitors() throws {
+        let visitors = Set(try GameContentLoader.load(from: .main).visitors.visitors.map(\.id))
+        for id in try LoopsManifest.load(from: .main).visitorActions.keys {
+            #expect(visitors.contains(id), "\(id): un pedido que ningún visitante hace")
+        }
+    }
+
+    @Test("cada clip de evento es de un evento de events.json")
+    func eventsBelongToEvents() throws {
+        let events = Set(try GameContentLoader.load(from: .main).events.events.map(\.id))
+        for id in try LoopsManifest.load(from: .main).events.keys {
+            #expect(events.contains(id), "\(id): un clip de un evento que no existe")
+        }
+    }
+
+    @Test("cada ícono de la tienda tiene dueño: un ítem o una tarea pendiente, no los dos")
+    func shopIconsHaveAnOwner() throws {
+        let manifest = try LoopsManifest.load(from: .main)
+        let items = Set(try GameContentLoader.load(from: .main).oroShop.items.map(\.id))
+        let mapped = Set(ArtClips.shopIconKeys.values)
+        let pending = Set(ArtClips.pendingShopIcons.keys)
+        for key in manifest.shopIcons.keys {
+            #expect(mapped.contains(key) != pending.contains(key), "\(key): sin dueño, o con dos")
+        }
+        for (item, key) in ArtClips.shopIconKeys {
+            #expect(items.contains(item), "\(item): no es un ítem de oro_shop.json")
+            #expect(manifest.shopIcons[key] != nil, "\(item) -> \(key): el clip no está en el manifest")
+        }
+        for key in pending {
+            #expect(manifest.shopIcons[key] != nil, "\(key): pendiente pero no está en el manifest")
+        }
+    }
+
+    @Test("cada personaje es un tipo, un especial o tipo__pinta de una pinta que existe")
+    func charactersBelongToTypesSpecialsOrSkins() throws {
+        let content = try GameContentLoader.load(from: .main)
+        let types = Set(content.tiers.types.map(\.id))
+        let specials = Set(content.specials.specials.map(\.id))
+        let skins = Set(content.skins.skins.map { ArtClips.skinKey(type: $0.characterType, skin: $0.id) })
+        for id in try LoopsManifest.load(from: .main).characters.keys {
+            #expect(types.contains(id) || specials.contains(id) || skins.contains(id),
+                    "\(id): un clip de algo que no existe")
+        }
+    }
+
+    @Test("los objetos son los cuatro de E5")
+    func objectsAreTheFourOfE5() throws {
+        #expect(Set(try LoopsManifest.load(from: .main).objects.keys) == Self.objects)
+    }
 }

@@ -119,7 +119,7 @@
 | E6b | 10 | 6 |  |  |  | 4 |  |  |
 | E7b-a | 7 | 5 |  |  |  | 2 |  |  |
 | E7b-b | 7 | 1 |  |  | 1 | 5 |  | 1 |
-| E8 | 10 | 9 |  |  |  |  | 1 |  |
+| E8 | 10 | 9 | 1 |  |  |  |  |  |
 | E8b | 8 | 8 |  |  |  |  |  | 4 |
 | E8c | 10 | 10 |  |  |  |  |  |  |
 | E8d | 15 | 14 |  |  | 1 |  |  |  |
@@ -129,7 +129,8 @@
 | E12 | 19 | 15 |  |  |  | 3 | 1 |  |
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
-| **Total** | **254** | **208** |  |  | **5** | **39** | **2** | **5** |
+| E8e | 9 |  |  | 2 | 1 | 6 |  |  |
+| **Total** | **263** | **208** | **1** | **2** | **6** | **45** | **1** | **5** |
 
 Fuera del conteo:
 
@@ -666,7 +667,7 @@ Integración del arte aprobado (plan `2026-10-08-v2-e8-integracion-arte.md`, ram
 | E8-T6 | Visitantes y especiales (52) | ✅ | T2 | `npcs.atlas`; 🔥 `assets_manifest.json` (`npcs`) | `d74f330` | `oraculo.sh tarea GameContentValidationTests GameArtComponentsTests`; la ven E4b T1–T5, T8 y E5b T1 (todas con respaldo); npcs.atlas 13 MB (recursos 152 MB); notas para T9: islas intencionales en sp_bug_simulacion_talk/_face, sp_influencer_talk, sp_contador_dios_talk, npc_conductor_action; caras `_face` cortadas por el encuadre del generador |
 | E8-T7 | Paquete, Colchón, Ruleta, tienda y Álbum (31) | ✅ | T2 | `ui.atlas`; 🔥 `assets_manifest.json` (`ui`) | `5c33986` (integ-r19) | `oraculo.sh tarea GameArtComponentsTests GameContentValidationTests`; carries a E5b T1–T3, E6b T9, E4b T8, E7b-b T3; **hecha (r19):** +62 PNG en `ui.atlas` (+4,3 MB), 31 claves `ui`; `wheel_frame` y `ui_album_card_frame` con la ventana interior blanca opaca; `ui_shop_income_x2` y `x3` son la misma imagen |
 | E8-T8 | Los fondos a 2048 (JPEG) | ✅ | T2 | `Backgrounds/`, `process_dropbox.py`; 🔥 `assets_manifest.json` (`backgrounds`) | `6029e73` | crea `BackgroundArtTests` (xcodegen); mide la memoria del vuelo; revisión sonnet; `Backgrounds/` 38 → 9 MB; PSNR q90 35–40 dB (bajo la vara de 40 del plan; a ojo sin bloques, q95 igual a la vista → q90); **memoria del vuelo SIN medir → carry a T10** |
-| E8-T9 | 🔒 La revisión de recortes de la 2.0 | 🔒 | T1, T3–T7 | `recut_assets.py`, los atlas elegidos | `2c805cc` (Step 1; merge `a5ef14c`, en `v2i/integ-r28`) | la página la arma el agente; elige el dueño; no frena a nadie · **Relevo 28: Step 1 hecho.** `revision_recortes.py` suma `npcs` + 3 `fam_*`; la página `~/Desktop/revision-v2/index.html` (359 recortes: earth 117, cosmic 57, npcs 52, 3 × 43 familias, ui 4; los sospechosos arriba) tiene el botón «Bajar decisiones.json» → `~/Downloads/decisiones.json`. **Step 2: el dueño elige.** Step 3: un relevo aplica con `aplicar_revision.py` (los `.quitar` van con `catalogo.py quitar $(cat archivo)`, no con `aplicar`) |
+| E8-T9 | La revisión de recortes de la 2.0 | 🟢 | T1, T3–T7 | `recut_assets.py`, los atlas elegidos | `2c805cc` (Step 1; merge `a5ef14c`, en `v2i/integ-r28`) | la página la arma el agente; elige el dueño; no frena a nadie · **Relevo 28: Step 1 hecho.** `revision_recortes.py` suma `npcs` + 3 `fam_*`; la página `~/Desktop/revision-v2/index.html` (359 recortes: earth 117, cosmic 57, npcs 52, 3 × 43 familias, ui 4; los sospechosos arriba) tiene el botón «Bajar decisiones.json» → `~/Downloads/decisiones.json`. **Step 2: el dueño elige.** Step 3: un relevo aplica con `aplicar_revision.py` (los `.quitar` van con `catalogo.py quitar $(cat archivo)`, no con `aplicar`) | · **Relevo 30: Step 2/3 hechos por la sesión del dueño** (`v2/e8-recortes` `9394a8f` 30 sprites/60 PNG, `f33bb20` balde de islas + `aplicar_limpias.py`, `32a3b29` 47 islas a mano), mergeados con `v2/estudio-assets` en `v2i/integ-r30` (`2dcf084`); ✅ con el `rapido --limpio`
 | E8-T10 | Peso, memoria y cierre (controlador) | ✅ | T1–T8 | `Docs/`, `tasks.md` | | `completo --limpio`; 🔒 sólo si el bundle crece > 60 MB (estimado ≈ +29 MB) |
 | P-E8b | Plan de E8b: cinemáticas y retratos animados | ✅ | — | — | `f035a5d` | 12 tareas; `2026-10-08-v2-e8b-cinematicas.md`; 11 dudas con default; ⚠️ `loops/` hoy es blanco, no croma |
 | E8b-T1 | `video_assets.py`: el retrato mide arriba y el key acepta magenta | ✅ | — | video_assets.py, test_video_assets.py | `25c6b35` | pipeline, no compila; los dos ajustes de `DUENO.md`; los 18 de croma miden sin error (`medir --clase retrato`) |
@@ -729,13 +730,13 @@ Olas: T1 ∥ T7 → T2 ∥ T3 ∥ T4 → T8 (ventana de `BoardScene`); T5 tras E
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | P-E8e | Plan de E8e: los videos al juego y las pintas con video | ✅ | — | — | (el commit de este plan) | 9 tareas; 12 dudas con default; gates en device del dueño en T9 |
-| E8e-T1 | `ArtClips` y el contrato manifest ↔ contenido | ⏳ | — | nuevos; LoopsManifestTests | | sonnet, revisión ninguna; fija la tabla ítem → clip de la tienda (`ui_oro_*` ≠ `ui_shop_*`) y `ui_oro_extra_slots` → E6b T7 |
+| E8e-T1 | `ArtClips` y el contrato manifest ↔ contenido | 🔄 | — | nuevos; LoopsManifestTests | | sonnet, revisión ninguna; fija la tabla ítem → clip de la tienda (`ui_oro_*` ≠ `ui_shop_*`) y `ui_oro_extra_slots` → E6b T7 |
 | E8e-T2 | El visitante habla y actúa en el escenario | ⛔ | T1 | StageController, VisitorNode; +Stage (tibio), AudioWiringTests | | sonnet, el controlador lee el diff + capturas; cablea `visitorArrive` y `talkBlip` (pendientes de E4b T3); si la pausa de la escena pide una línea de 🔥 BoardScene, `NEEDS_CONTEXT` |
 | E8e-T3 | La ilustración del evento, animada | ⛔ | T1 | EventPopupView; ui.atlas, assets_manifest.json | | sonnet, capturas; integra los 8 pósters `ui_event_<id>` desde `video/eventos/frames/` del generador (`cayo_mercado_pago` → `home_banking`); no ∥ con quien regenere `ui.atlas` (E8 T9 Step 3) |
 | E8e-T4 | El ícono enfocado de la Tienda de ORO | ⛔ | T1 | OroShopView; AudioWiringTests, +OroShop | | sonnet, capturas; rol `icon`, una sola vista animada; cablea `shopShimmer` (pendiente de E6a T8); no ∥ con E6a T12 ni E6b T7 si tocan `OroShopView` |
-| E8e-T5 | El colchón espera y se abre | ⛔ | E5b-T2 | MattressPopupView (de E5b T2) | | sonnet, capturas; el premio se acredita como hoy, el video sólo demora mostrarlo |
+| E8e-T5 | El colchón espera y se abre | ⏳ | E5b-T2 | MattressPopupView (de E5b T2) | | sonnet, capturas; el premio se acredita como hoy, el video sólo demora mostrarlo |
 | E8e-T6 | `.once` en `LoopingVideoNode`; la caja espera y se abre | ⛔ | E5b-T3 | LoopingVideoNode; PickupNode, PackageOpeningPlayer (de E5b T3) | | sonnet, **rev. opus** (AVFoundation en un componente compartido) |
-| E8e-T7 | El Álbum, con la tarjeta enfocada animada | ⏳ | — | SpecialsAlbumView | | sonnet, capturas; `.character(sp_*)`, una sola tarjeta; el id `album.card.*` no cambia |
+| E8e-T7 | El Álbum, con la tarjeta enfocada animada | 🔄 | — | SpecialsAlbumView | | sonnet, capturas; `.character(sp_*)`, una sola tarjeta; el id `album.card.*` no cambia |
 | E8e-T8 | Las pintas con video (ficha, revelación, pipeline) | ⛔ | T1; ventana de BoardScene | CharacterSheetView; 🔥 BoardScene (dos líneas); video_assets.py | | sonnet, revisión ninguna; pinta sin clip = quieta, nunca la base; `odr_tag`/`validate_id` aceptan `<tipo>__<pinta>` + test Python; no ∥ E9a T7 (CharacterSheetView), ni E5b T3/E6b T5 (BoardScene) |
 | E8e-T9 | Cierre de E8e (controlador) | ⛔ | T1–T8; E8d-T15 | `Docs/` | | `completo`; `AnimatedPlacesTests` con `pendingPlaces` vacío; gates en device del dueño 🔒: fps/memoria en el SE con el tope de 3, Reduce Motion, bajo consumo, ODR |
 

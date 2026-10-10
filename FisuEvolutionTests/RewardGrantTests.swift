@@ -67,7 +67,8 @@ struct RewardGrantTests {
 
     @Test("lo entregable es exactamente lo que este punto sabe dar")
     func grantableKinds() {
-        #expect(GameState.grantableRewardKinds == Set(RewardSpec.Kind.allCases).subtracting([.extraSlots]))
+        #expect(GameState.grantableRewardKinds == [.coinsSeconds, .oro, .skinChest, .modifier, .clearBoostCooldowns, .eventImmunity, .package, .wheelSpin,
+                .autoTap, .nextOfflineMultiplier, .nextDailyMultiplier])
     }
 
     @Test("varios premios juntos: una sola pasada, la plata sumada")

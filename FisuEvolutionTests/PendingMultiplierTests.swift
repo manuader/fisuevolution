@@ -69,6 +69,9 @@ struct PendingMultiplierTests {
         gameState.grant(.nextOfflineMultiplier(0), source: "a")
         gameState.grant(.nextDailyMultiplier(1), source: "a")
         gameState.grant(.nextDailyMultiplier(0), source: "a")
+        gameState.grant(.nextOfflineMultiplier(.infinity), source: "a")
+        gameState.grant(.nextDailyMultiplier(.infinity), source: "a")
+        gameState.grant(.nextDailyMultiplier(.nan), source: "a")
         #expect(gameState.player == before)
     }
 

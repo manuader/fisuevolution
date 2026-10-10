@@ -86,13 +86,13 @@ extension GameState {
                 effect: .autoTapPerSecond, magnitude: perSecond, expiresAt: now + seconds, sourceKey: source
             ))
         case .nextOfflineMultiplier(let multiplier):
-            guard multiplier > 1 else { return 0 }
+            guard multiplier > 1, multiplier.isFinite else { return 0 }
             // Dos no se apilan: queda el más alto, y se usa una vez.
             player.meta.engagement.shop.pendingOfflineMultiplier = max(
                 player.meta.engagement.shop.pendingOfflineMultiplier ?? 1, multiplier
             )
         case .nextDailyMultiplier(let multiplier):
-            guard multiplier > 1 else { return 0 }
+            guard multiplier > 1, multiplier.isFinite else { return 0 }
             player.meta.engagement.shop.pendingDailyMultiplier = max(
                 player.meta.engagement.shop.pendingDailyMultiplier ?? 1, multiplier
             )

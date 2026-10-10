@@ -31,6 +31,12 @@ extension GameState {
         if let count = Self.fixtureValue("--uitest-wheel-spins=", in: arguments).flatMap(Int.init) {
             debugAddWheelSpins(count)
         }
+        // El ORO para ejercitar la tienda sin reencarnar.
+        if let oro = Self.fixtureValue("--uitest-oro=", in: arguments).flatMap(Int.init), var player {
+            player.meta.oro = oro
+            self.player = player
+            refreshProjections()
+        }
         if arguments.contains("--uitest-mattress") {
             debugSpawnMattress()
         }

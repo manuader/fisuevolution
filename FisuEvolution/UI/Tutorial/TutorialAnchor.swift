@@ -17,6 +17,8 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case skins
     case gifts
     case store
+    /// La mitad "Gastar ORO" de la tienda (E6): la lección de la tienda de ORO (E9).
+    case oroShop
     case menu
     case quickHire
     case prestige

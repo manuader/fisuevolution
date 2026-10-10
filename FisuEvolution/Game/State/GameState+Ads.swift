@@ -21,12 +21,25 @@ extension GameState {
         NaturalBreakContext(
             removedAds: player?.meta.removedAds ?? false,
             tutorialActive: tutorialPhaseActive || celebrations.allowedKinds != nil,
-            sheetOpen: isBoardBusy,
+            // La oferta de Compartir gasta sus 10 s a la vista: la pausa no la tapa.
+            sheetOpen: isBoardBusy || shareOffer != nil,
             celebrationActive: celebrations.current != nil,
             adOnScreen: ads?.isPresentingFullScreen ?? false,
             lastRewardedAt: ads?.lastRewardedAt,
-            readyFormats: ads?.readyForcedFormats ?? []
+            readyFormats: readyForcedFormats
         )
+    }
+
+    /// Los forzados con inventario; sin premios que ofrecer, la pausa no se elige
+    /// (si no, se quedaría con el turno para siempre).
+    private var readyForcedFormats: Set<ForcedAdFormat> {
+        Self.offerableFormats(ads?.readyForcedFormats ?? [], adBreak: content?.rewardedAds.effectiveAdBreak)
+    }
+
+    static func offerableFormats(_ ready: Set<ForcedAdFormat>, adBreak: RewardedAdsConfig.AdBreak?) -> Set<ForcedAdFormat> {
+        var formats = ready
+        if adBreak?.prizes.isEmpty ?? true { formats.remove(.rewardedInterstitial) }
+        return formats
     }
 
     /// El tablero no está a la vista o el jugador está en medio de algo: una
@@ -131,6 +144,7 @@ extension GameState {
         releaseCelebrationsAfterAd()
         guard earned, let content else { return }
         grant(offer.prize, source: "adbreak")
+        Task { await persistNow(includingCloud: false) }
         pacer.advanceAdBreakPrize(count: content.rewardedAds.effectiveAdBreak.prizes.count)
         towerNotice = TowerNotice(kind: .rewardGranted(text: RewardCopy.title(offer.prize)))
         syncCelebrations()

@@ -236,6 +236,32 @@ struct AdBreakTests {
         return rig
     }
 
+    @Test("con la oferta de Compartir a la vista, la pausa no sale")
+    func shareOfferIsNotCovered() async {
+        let rig = await rig()
+        defer { rig.scratch.clear() }
+        rig.gameState.shareOffer = .reincarnation(level: 1)
+        await rig.gameState.naturalBreak(.sheetClosed)
+        #expect(rig.gameState.adBreakOffer == nil)
+        #expect(rig.provider.shown.isEmpty)
+    }
+
+    @Test("la pantalla previa tiene piso de 5 s aunque el JSON pida menos")
+    func introHasAFloor() {
+        let short = RewardedAdsConfig.AdBreak(introSeconds: 0, prizes: [.oro(1)])
+        let config = RewardedAdsConfig(schemaVersion: 2, rewards: [], compensationSeconds: 1, adBreak: short)
+        #expect(config.effectiveAdBreak.introSeconds == 5)
+        #expect(RewardedAdsConfig.AdBreak(introSeconds: 9, prizes: [.oro(1)]).introSeconds == 9)
+    }
+
+    @Test("sin premios la pausa no se elige, y con premios sí")
+    func emptyPrizesDisableTheBreak() {
+        let ready: Set<ForcedAdFormat> = [.interstitial, .rewardedInterstitial]
+        let empty = RewardedAdsConfig.AdBreak(introSeconds: 5, prizes: [])
+        #expect(GameState.offerableFormats(ready, adBreak: empty) == [.interstitial])
+        #expect(GameState.offerableFormats(ready, adBreak: .default) == ready)
+    }
+
     @Test("los premios de la pausa están en el JSON y se pueden entregar")
     func prizesAreGrantable() throws {
         let content = try GameContentLoader.load(from: .main)

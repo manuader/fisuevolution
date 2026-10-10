@@ -242,6 +242,8 @@ struct RewardedAdsConfig: Codable, Sendable, Equatable {
         let introSeconds: Int
         let prizes: [RewardSpec]
 
+        static let minIntroSeconds = 5
+
         static let `default` = AdBreak(
             introSeconds: 5,
             prizes: [
@@ -254,5 +256,10 @@ struct RewardedAdsConfig: Codable, Sendable, Equatable {
 
     let adBreak: AdBreak?
 
-    var effectiveAdBreak: AdBreak { adBreak ?? .default }
+    /// Con el piso de la pantalla previa: la pausa nunca sale sin que el
+    /// jugador lea qué gana (política de AdMob).
+    var effectiveAdBreak: AdBreak {
+        let config = adBreak ?? .default
+        return AdBreak(introSeconds: max(AdBreak.minIntroSeconds, config.introSeconds), prizes: config.prizes)
+    }
 }

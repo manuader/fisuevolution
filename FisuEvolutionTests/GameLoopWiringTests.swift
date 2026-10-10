@@ -382,38 +382,6 @@ struct GameLoopWiringTests {
         #expect(gameState.floorOccupancy(ordinal: 1).occupied == urbanBefore + 1)
     }
 
-    /// Los specials no ocupan slot: quedan de decorado en el piso donde cayeron
-    /// (⚠️5). La escena los dibuja desde esta proyección, así que un ancla de una
-    /// config vieja (o un special no poseído) simplemente no aparece.
-    @Test func anchoredSpecialsAreScopedToTheirFloor() async throws {
-        let repository = PlayerStateRepository(
-            persistence: PersistenceController(inMemory: true),
-            snapshotURL: FileManager.default.temporaryDirectory.appending(path: "anchor-\(UUID().uuidString).json")
-        )
-        var seeded = PlayerState.newGame(
-            startTypeId: "homeless",
-            startFloorId: "alley",
-            offlineEfficiencyBase: 0.35,
-            critChanceBase: 0,
-            now: Date().timeIntervalSince1970
-        )
-        seeded.meta.ownedSpecials = ["sp_arbolito", "sp_cryptobro"]
-        seeded.meta.specialAnchors = [
-            "sp_arbolito": "alley",
-            "sp_cryptobro": "urban",
-            // Ancla huérfana: el special no está en ownedSpecials.
-            "sp_lizard": "alley",
-        ]
-        seeded.meta.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
-        await repository.save(seeded)
-
-        let gameState = GameState(repository: repository)
-        await gameState.bootstrap()
-
-        #expect(gameState.visibleFloorDef?.id == "alley")
-        #expect(gameState.visibleFloorSpecials.map(\.id) == ["sp_arbolito"])
-    }
-
     // MARK: Carrera (T10+T10 → choice node diferido)
 
     @Test func tier10MergeAsksForCareerAndResolvesAfterChoice() async throws {

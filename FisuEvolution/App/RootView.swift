@@ -314,9 +314,6 @@ struct GameBoardView: View {
         .onChange(of: showPrestige) {
             gameState.uiCoversBoard = boardIsCovered
         }
-        .onChange(of: gameState.specialInfo) {
-            gameState.uiCoversBoard = boardIsCovered
-        }
         .onChange(of: gameState.visitorPopup) {
             gameState.uiCoversBoard = boardIsCovered
         }
@@ -386,12 +383,6 @@ struct GameBoardView: View {
         .fisuSheet(item: specialDropBinding) { special in
             SpecialDropView(special: special)
         }
-        // El RECAP del special: lo abre el jugador manteniendo apretado al
-        // personaje en el tablero, así que no pasa por la cola (misma familia
-        // que la ficha). La carta es la misma; cambia quién la pidió.
-        .fisuSheet(item: $gameState.specialInfo) { special in
-            SpecialDropView(special: special, isRecap: true)
-        }
         .fisuSheet(item: visitorPopupBinding) { _ in
             VisitorPopupView()
         }
@@ -455,7 +446,7 @@ struct GameBoardView: View {
 
     /// Lo que tapa el tablero y vive en esta vista; `GameState` no puede ver estos `@State`.
     private var boardIsCovered: Bool {
-        menuSession != nil || showPrestige || gameState.specialInfo != nil || rankingCardUp
+        menuSession != nil || showPrestige || rankingCardUp
             || gameState.shareCardMoment != nil || gameState.visitorPopup != nil
             || gameState.eventPopup != nil || gameState.adBreakOffer != nil
     }

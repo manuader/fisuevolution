@@ -475,19 +475,14 @@ extension GameState {
         refreshProjections()
     }
 
-    /// El primer special del catálogo, caído y ANCLADO al piso visible: deja
-    /// la carta del drop abierta (vía la cola, como el drop real) y al
-    /// personaje en el tablero — que es lo que necesita ejercitar el recap del
-    /// mantener-apretado. Sin esta puerta ninguna de las dos superficies se
-    /// puede fotografiar: el drop real es RNG sobre merges.
+    /// El primer especial del catálogo, caído ya mismo: deja la carta del drop
+    /// abierta (vía la cola, como el drop real) y al especial en el Álbum.
     func debugDropFirstSpecial() {
         guard let content, var player,
-              let special = content.specials.specials.first,
-              let floorId = visibleFloorDef?.id else { return }
+              let special = content.specials.specials.first else { return }
         if !player.meta.ownedSpecials.contains(special.id) {
             player.meta.ownedSpecials.append(special.id)
         }
-        player.meta.specialAnchors[special.id] = floorId
         self.player = player
         specialDrop = special
         refreshProjections()

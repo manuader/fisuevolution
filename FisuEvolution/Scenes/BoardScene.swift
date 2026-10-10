@@ -62,7 +62,7 @@ final class BoardScene: SKScene {
     private var boardColumns = 0
     private var boardRows = 0
     /// La franja de la multitud vigente. La recalcula `rebuildAnchors`; la leen
-    /// el deambular y el z de los specials.
+    /// el deambular.
     private var band = CrowdBand(frontY: 0, rowDepth: 0, wanderRange: 0, topY: 0)
     private var cellSize: CGFloat = 0
     /// La geometría vigente; la recalcula `layoutBoard`.
@@ -79,7 +79,6 @@ final class BoardScene: SKScene {
     private static let longPressKey = "longPress"
     private static let ascentDuration: TimeInterval = 0.7
     private static let ascentDistanceRatio: CGFloat = 0.78
-    private static let specialNodePrefix = "special."
     /// Con esto `abortBoardCelebration` encuentra y borra todo lo que la
     /// celebración puso en escena, sin llevar una lista a mano.
     static let celebrationNodePrefix = "celebration."
@@ -311,8 +310,7 @@ final class BoardScene: SKScene {
         addChild(backgroundLayer)
         // Todo el campo va montado por encima de la banda de los fondos, así que
         // `depthZ` puede dar negativo sin hundir a nadie detrás de su piso. Los
-        // hijos del campo (arrastre 50, labels 100, ring 80, specials por debajo
-        // de la multitud) suben con él y conservan su orden relativo.
+        // hijos del campo (arrastre 50, labels 100, ring 80) suben con él y conservan su orden relativo.
         fieldNode.zPosition = Self.fieldBaseZ
         addChild(fieldNode)
         cameraNode.addChild(cameraOverlay)
@@ -753,20 +751,6 @@ final class BoardScene: SKScene {
         guard let node = characterNode(at: touch.location(in: self)) else {
             let point = touch.location(in: self)
             emptyTouchStart = point
-            // Mantener apretado un special reabre su carta (pedido del dueño,
-            // 2026-08-21: volver a ver qué beneficio te está dando). Mismo
-            // reloj que el long-press de la ficha; si el dedo se mueve —el
-            // swipe de pisos usa esta misma rama— `touchesMoved` lo cancela.
-            if let specialID = specialID(at: point) {
-                run(.sequence([
-                    .wait(forDuration: 0.45),
-                    .run { [weak self] in
-                        guard let self, self.emptyTouchStart != nil else { return }
-                        self.emptyTouchStart = nil
-                        self.gameState.presentSpecialInfo(id: specialID)
-                    },
-                ]), withKey: Self.longPressKey)
-            }
             return
         }
         dragNode = node
@@ -1622,60 +1606,9 @@ final class BoardScene: SKScene {
         // fondo que se descarga en el frame siguiente.
         renderLiveFloorNodes(content: content, centeredOn: isFlying ? cameraFloorOrdinal : gameState.visibleFloorOrdinal)
         renderPlacements(content: content)
-        renderAnchoredSpecials(content: content)
         renderLockedFloorOverlay()
         stage.layout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize)
         stageEffects.layout(sceneSize: size, bottomInset: Self.bottomInset)
-    }
-
-    /// El special bajo el dedo, si hay: los nodos llevan `special.<id>` de
-    /// nombre y el sprite puede ser un hijo del nombrado, así que se mira el
-    /// nodo y a su padre.
-    private func specialID(at point: CGPoint) -> String? {
-        for node in nodes(at: point) {
-            if let name = node.name, name.hasPrefix(Self.specialNodePrefix) {
-                return String(name.dropFirst(Self.specialNodePrefix.count))
-            }
-            if let parentName = node.parent?.name, parentName.hasPrefix(Self.specialNodePrefix) {
-                return String(parentName.dropFirst(Self.specialNodePrefix.count))
-            }
-        }
-        return nil
-    }
-
-    /// Los specials no ocupan slot (⚠️5): se anclan al borde del piso donde
-    /// cayeron, detrás de la multitud, como parte del decorado. No juegan —
-    /// `cellIndex(at:)` sólo mira `characterNodes`— pero desde el 2026-08-21
-    /// SÍ escuchan un "mantener": el long-press reabre su carta informativa
-    /// (`specialID(at:)` arriba).
-    private func renderAnchoredSpecials(content: GameContent) {
-        fieldNode.children
-            .filter { $0.name?.hasPrefix(Self.specialNodePrefix) == true }
-            .forEach { $0.removeFromParent() }
-
-        let specials = gameState.visibleFloorSpecials
-        guard !specials.isEmpty else { return }
-
-        let side = cellSize * 0.62
-        for (index, special) in specials.enumerated() {
-            guard let asset = content.manifest.characters[special.id] else { continue }
-            guard let texture = AtlasCache.texture(named: asset.key, inAtlas: asset.atlas) else { continue }
-
-            let node = SKSpriteNode(texture: texture)
-            node.name = Self.specialNodePrefix + special.id
-            node.size = CGSize(width: side, height: side)
-            // Alternan izquierda/derecha y suben por el fondo del campo, para no
-            // taparse entre sí ni pisar las anclas de personajes.
-            let isLeft = index.isMultiple(of: 2)
-            let row = CGFloat(index / 2)
-            node.position = CGPoint(
-                x: isLeft ? side * 0.55 : layout.fieldWidth - side * 0.55,
-                y: cellSize * 1.65 + row * side * 0.9
-            )
-            node.zPosition = Self.specialZ(band: band, rows: boardRows, cellSize: cellSize)
-            node.alpha = 0.95
-            fieldNode.addChild(node)
-        }
     }
 
     /// Mantiene sólo un piso y sus vecinos inmediatos. El resto de los fondos se
@@ -2234,14 +2167,6 @@ final class BoardScene: SKScene {
             wanderRange: halfWander * 2,
             topY: topY
         )
-    }
-
-    /// Profundidad de un special: detrás de TODA la multitud, incluido el
-    /// personaje que más arriba pueda llegar. Sale de la franja y no de una
-    /// constante porque un valor fijo se queda corto en cuanto la franja se
-    /// agranda — el techo ya da un `depthZ` de −2 en las pantallas grandes.
-    static func specialZ(band: CrowdBand, rows: Int, cellSize: CGFloat) -> CGFloat {
-        depthZ(y: band.topY, rows: rows, cellSize: cellSize) - 1
     }
 
     /// El piso donde está la cámara, continuo: 0 en el callejón, 2,5 a mitad de

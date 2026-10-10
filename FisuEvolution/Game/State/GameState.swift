@@ -178,11 +178,6 @@ final class GameState {
 
     var careerPrompt: CareerPrompt?
     var characterSheet: CharacterSheet?
-    /// La carta informativa de un special ACTIVO del tablero, reabierta por el
-    /// jugador manteniendo apretado al personaje (pedido del dueño,
-    /// 2026-08-21: poder volver a ver qué beneficio te está dando). No pasa
-    /// por la cola de celebraciones: como la ficha, la pidió él.
-    var specialInfo: SpecialsConfig.Special?
     var offlineReward: OfflineReward?
     /// Si el premio offline de ESTA vuelta ya se duplicó con un video. Se
     /// resetea en cada `applyOfflineProgressIfNeeded` que abre el popup, así

@@ -524,7 +524,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E5b-T1 | La Ruleta en pantalla | 🟢 | E5a-T8; E4b-T3 | catálogo (snapshot); AudioManager | | cablea `sfx_wheel_tick`; crea `OddsDisclosureView` y `RewardCopy` |
+| E5b-T1 | La Ruleta en pantalla | ✅ | E5a-T8; E4b-T3 | catálogo (snapshot); AudioManager | | cablea `sfx_wheel_tick`; crea `OddsDisclosureView` y `RewardCopy` |
 | E5b-T2 | Los accesos y las hojas | ⛔ | T1; E5a-T6, E5a-T7, E5a-T8; E4b-T3, E4b-T4, E4b-T9; E3a-T6, E3a-T11 | 🔥 GameState, RootView, catálogo; +Rewards, DebugPanelView | | |
 | E5b-T3 | La escena: cajas, colchón, apertura | ⛔ | T2; E1-T10; E4b-T1, E4b-T6, E4b-T9; E3a-T10 | 🔥 BoardScene | | |
 | E5b-T4 | La Ruleta en Regalos | ⛔ | T1 | catálogo (dueña o snapshot) | | |
@@ -572,7 +572,7 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E7b-a-T1 | La config remota en marcha | ✅ | E1-T8, E11-T6 | FisuEvolutionApp | `5fee22d` (integ-r19) |; **hecha (r19):** `ForcedAdsSetup` (modo, pacer por proceso); IDs remotos sólo en producción y Release (DEBUG siempre `googleTest`); rigen desde el próximo arranque; carry a T2: sacar `cadence:` de `configure` y el reloj `armIfDue` |
 | E7b-a-T2 | Los cortes naturales | ✅ | T1; E1-T8; E3b-T4; E4a-T8 | 🔥 GameState, RootView; +Lifecycle, +Celebrations, FisuEvolutionApp | | **destrabada (r20):** E3b T4 🟢; dueña de `RootView` y `GameState`; saca `cadence:` de `configure` y el reloj `armIfDue` |
-| E7b-a-T3 | La pausa publicitaria | ⛔ | T2; E4a-T8; E5a-T6; E5b-T1; E4b-T3; E1-T14 | 🔥 GameState, RootView, catálogo; DebugPanelView | | · **carries de E7b-a T2 (r21c, rev. opus):** hasta que entre T3 sale un intersticial en CADA corte (no alterna: `readyFormats` excluye la pausa, GameState+Ads.swift:32) → **no publicar T2 sin T3**; `recordShown` aunque no se haya mostrado (GameState+Ads.swift:74, usar un aviso de presentación); `releaseCelebrationsAfterAd` hace `restrict(to: nil)` a ciegas (:90-91, guardar/restaurar); sin plazo si el SDK no llama al delegado (congela la cola) |
+| E7b-a-T3 | La pausa publicitaria | 🔄 | T2; E4a-T8; E5a-T6; E5b-T1; E4b-T3; E1-T14 | 🔥 GameState, RootView, catálogo; DebugPanelView | | · **carries de E7b-a T2 (r21c, rev. opus):** hasta que entre T3 sale un intersticial en CADA corte (no alterna: `readyFormats` excluye la pausa, GameState+Ads.swift:32) → **no publicar T2 sin T3**; `recordShown` aunque no se haya mostrado (GameState+Ads.swift:74, usar un aviso de presentación); `releaseCelebrationsAfterAd` hace `restrict(to: nil)` a ciegas (:90-91, guardar/restaurar); sin plazo si el SDK no llama al delegado (congela la cola) |
 | E7b-a-T4 | El app open al volver | ✅ | T2 | — | | no ∥ T3 (los dos editan `+Ads`) |
 | E7b-a-T5 | "Opciones de privacidad" (UMP) en Ajustes | ✅ | E11-T4 | 🔥 SettingsView, catálogo | `86e6413` (integ-r20) | antes de los Ajustes de E9; **hecha (r20):** `AdsConsent.privacyRowVisible`, fila tras `purchasesSection`, +3 claves; sin prueba en región UE con el SDK real |
 | E7b-a-T6 | La mediación: adaptadores, SKAdNetwork, Ad Inspector | ⛔ | T1; E3a-T5 | 🔥 project.yml; Info.plist, DebugPanelView | | las cuentas de las redes no la bloquean. **Dueño (2026-10-08):** sólo adaptadores de **Unity Ads** y **Meta Audience Network** por SPM (no AppLovin ni Mintegral); SKAdNetwork de Unity (`https://skan.mz.unity3d.com/v3/partner/skadnetworks.plist.json`) al `Info.plist` (los de Meta `v9wttpbfk9`, `n38lu8286q` ya están); IDs en `Distribution/release/release.json → mediation` |
@@ -587,7 +587,7 @@ que toma · commit o rama · nota.
 | E7b-b-T3 | La columna plegable en pantalla | ⛔ | T2; E3a-T8, E3a-T10, E3a-T11; E5b-T2, E5b-T5; E4b-T3; E6a-T12; E7b-a-T3 | 🔥 RootView, catálogo; StageChips, PrizeChips, TutorialAnchor, ElevatorPanel | | |
 | E7b-b-T4 | La multitud le deja lugar a la columna | ⏭️ | — | — | | el dueño eligió C (plegable) |
 | E7b-b-T5 | Las lecciones de la columna | ⛔ | T3 | catálogo (snapshot); +TutorialTips | | ∥ T7 |
-| E7b-b-T6 | Diario ×2 y carrera ×2 por video | ⏳ | E2a-T11, E2a-T12; E1-T12; E4a-T8; E4b-T3 | catálogo (snapshot) | | |
+| E7b-b-T6 | Diario ×2 y carrera ×2 por video | 🔄 | E2a-T11, E2a-T12; E1-T12; E4a-T8; E4b-T3 | catálogo (snapshot) | | |
 | E7b-b-T7 | El botón de video completo y el mapa de ubicaciones | ⛔ | T3, T6; E4b-T3…T5; E5b-T1, E5b-T2 | catálogo (snapshot) | | |
 | E7b-b-T8 | Cierre de E7b (controlador) | ⛔ | T1–T7 | `Docs/` | | |
 

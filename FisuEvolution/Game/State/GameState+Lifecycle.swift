@@ -92,7 +92,7 @@ extension GameState {
         guard credit.showsPopup else { return }
         // Vuelta nueva, oferta nueva: el video puede duplicar ESTE premio.
         offlineRewardDoubled = false
-        offlineReward = OfflineReward(amount: credit.amount)
+        offlineReward = OfflineReward(amount: applyPendingOfflineMultiplier(to: credit.amount))
         // Plata que cae de golpe: suena como tal, igual que un tap dorado.
         audio?.play(.coin)
     }

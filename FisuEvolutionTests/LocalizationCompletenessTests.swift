@@ -116,6 +116,9 @@ struct LocalizationCompletenessTests {
         case visitors
         /// Las filas de Ajustes cuyo identifier es también su clave.
         case settingsRows
+        /// `oroShop.item.<id>.name` (y `.desc` en lo que no es un premio: Fusionar
+        /// todo y los permanentes), sobre `oro_shop.json`, y los estantes (`OroShopCopy`).
+        case oroShop
 
         var testDescription: String { rawValue }
 
@@ -163,6 +166,10 @@ struct LocalizationCompletenessTests {
             case .settingsRows:
                 return LanguagePreference.allCases.map(\.identifier) + LegalDocument.Kind.allCases.map(\.identifier)
                     + content.notifications.kinds.map(\.settingsKey)
+            case .oroShop:
+                return content.oroShop.items.flatMap { item in
+                    [OroShopCopy.nameKey(item.id)] + (OroShopCopy.hasOwnDescription(item) ? [OroShopCopy.descriptionKey(item.id)] : [])
+                } + OroShopCatalog.Shelf.allCases.map(OroShopCopy.shelfKey)
             }
         }
     }

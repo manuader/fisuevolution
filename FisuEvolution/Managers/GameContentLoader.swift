@@ -34,6 +34,8 @@ struct GameContent: Sendable {
     let wheel: WheelConfig
     /// Las ofertas de 24 h (PLAN-v2 E6).
     let offers: OffersCatalog
+    /// La tienda de ORO: consumibles, permanentes y suerte (PLAN-v2 E6).
+    let oroShop: OroShopCatalog
 }
 
 /// Decodes and validates the bundled JSON content. Any failure produces a typed
@@ -65,6 +67,7 @@ enum GameContentLoader {
         let treasures: TreasuresConfig = try decode("treasures", from: bundle)
         let wheel: WheelConfig = try decode("wheel", from: bundle)
         let offers: OffersCatalog = try decode("offers", from: bundle)
+        let oroShop: OroShopCatalog = try decode("oro_shop", from: bundle)
 
         let tiers: TierRepository
         do {
@@ -136,6 +139,7 @@ enum GameContentLoader {
         try validatePrize(treasures.validate, file: "treasures.json")
         try validatePrize(wheel.validate, file: "wheel.json")
         try validatePrize(offers.validate, file: "offers.json")
+        try validatePrize({ try validate(oroShop: oroShop, floorIDs: floorIDs, packages: packages) }, file: "oro_shop.json")
 
         return GameContent(
             economy: economy,
@@ -162,7 +166,8 @@ enum GameContentLoader {
             packages: packages,
             treasures: treasures,
             wheel: wheel,
-            offers: offers
+            offers: offers,
+            oroShop: oroShop
         )
     }
 
@@ -266,6 +271,28 @@ enum GameContentLoader {
                 }
             }
         }
+    }
+
+    /// Además de lo que valida el catálogo: un número que no es finito no se cobra ni se
+    /// muestra, y un nivel de "mejor proveedor" que `packages.json` no conoce no se vende.
+    static func validate(oroShop: OroShopCatalog, floorIDs: Set<String>, packages: PackagesConfig) throws {
+        try oroShop.validate(floorIDs: floorIDs)
+        for item in oroShop.items {
+            if let growth = item.priceGrowthPerPurchase, !growth.isFinite {
+                throw OroShopContentError.notFinite(item.id)
+            }
+            if item.levels.contains(where: { !$0.value.isFinite }) {
+                throw OroShopContentError.notFinite(item.id)
+            }
+            if item.perk == .bestSupplier, item.levels.contains(where: { $0.value >= Double(packages.tierRatioByBestSupplierLevel.count) }) {
+                throw OroShopContentError.supplierLevelUnknown(item.id)
+            }
+        }
+    }
+
+    enum OroShopContentError: Error, Equatable {
+        case notFinite(String)
+        case supplierLevelUnknown(String)
     }
 
     /// Un premio mal declarado se descubre al arrancar, no cuando el jugador lo

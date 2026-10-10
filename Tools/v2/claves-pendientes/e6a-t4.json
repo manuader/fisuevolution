@@ -1,0 +1,22 @@
+{
+  "oroShop.shelf.boosts": {"es": "Boosts", "en": "Boosts"},
+  "oroShop.shelf.shortcuts": {"es": "Atajos", "en": "Shortcuts"},
+  "oroShop.shelf.permanents": {"es": "Permanentes", "en": "Permanent"},
+  "oroShop.shelf.luck": {"es": "Suerte", "en": "Luck"},
+  "oroShop.item.income_x2.name": {"es": "Doble turno", "en": "Double Shift"},
+  "oroShop.item.income_x3.name": {"es": "Triple turno", "en": "Triple Shift"},
+  "oroShop.item.auto_tap.name": {"es": "Dedo de goma", "en": "Rubber Finger"},
+  "oroShop.item.package_rain.name": {"es": "Lluvia de paquetes", "en": "Parcel Rain"},
+  "oroShop.item.time_jump_1h.name": {"es": "Hora extra", "en": "Overtime"},
+  "oroShop.item.time_jump_4h.name": {"es": "Media jornada", "en": "Half Shift"},
+  "oroShop.item.offline_x3.name": {"es": "Siesta productiva", "en": "Productive Nap"},
+  "oroShop.item.daily_x3.name": {"es": "Diario reforzado", "en": "Boosted Daily"},
+  "oroShop.item.skip_cooldowns.name": {"es": "Recarga express", "en": "Express Recharge"},
+  "oroShop.item.merge_all.name": {"es": "Fusionar todo", "en": "Merge Everything"},
+  "oroShop.item.merge_all.desc": {"es": "Fusiona todos los pares del piso que estás mirando", "en": "Merges every pair on the floor you're looking at"},
+  "oroShop.item.better_supplier.name": {"es": "Mejor proveedor", "en": "Better Supplier"},
+  "oroShop.item.better_supplier.desc": {"es": "Nivel %1$@ de %2$@: los Paquetes traen más seguido a los de arriba", "en": "Level %1$@ of %2$@: Parcels bring top hires more often"},
+  "oroShop.item.wheel_spins.name": {"es": "Abono a la ruleta", "en": "Wheel Pass"},
+  "oroShop.item.wheel_spins.desc": {"es": "+%@ giros por video, todos los días", "en": "+%@ video spins, every day"},
+  "oroShop.item.skin_chest.name": {"es": "Cofre de pintas", "en": "Outfit Chest"}
+}

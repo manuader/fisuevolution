@@ -34,12 +34,14 @@ struct RankingNameField: View {
             )
             .accessibilityIdentifier("ranking.entry.name")
             .accessibilityLabel(Text("ranking.entry.name.ax"))
-            Text(verbatim: "\(text.unicodeScalars.count)/\(NameRules.maxLength)")
+            let count = "\(text.unicodeScalars.count)/\(NameRules.maxLength)"
+            Text(verbatim: count)
                 .font(Tokens.caption)
                 .monospacedDigit()
                 .foregroundStyle(Color("PaletteInk").opacity(0.65))
                 .accessibilityIdentifier("ranking.entry.counter")
                 .accessibilityLabel(Text("ranking.entry.counter.ax"))
+                .accessibilityValue(Text(verbatim: count))
         }
     }
 }

@@ -182,4 +182,81 @@ struct RankingWiringTests {
 
         #expect(rig.gameState.player?.meta.ranking == before)
     }
+
+    // MARK: - La tarjeta del nombre (T14)
+
+    /// Lo que el cierre del tutorial deja en la cola (el cofre, la skin, el daily…) no es lo que se mira.
+    private func drainTutorialLeftovers(_ gameState: GameState) {
+        gameState.skinAward = nil
+        gameState.chestReward = nil
+        gameState.dailyClaim = nil
+        gameState.offlineReward = nil
+        gameState.achievementToast = nil
+        gameState.pendingAchievementToasts.removeAll()
+        for _ in 0..<12 {
+            guard let current = gameState.showing else { return }
+            gameState.celebrationFinished(current)
+        }
+    }
+
+    /// Llega a Dios como en el juego: el reveal en la cola, la cinemática detrás y la tarjeta ofrecida.
+    private func arriveAtGod(_ rig: Rig) async {
+        rig.gameState.cinematicsAutorun = true
+        await closeTutorialCore(rig)
+        drainTutorialLeftovers(rig.gameState)
+        rig.gameState.celebrations.enqueue(.boardCelebration)
+        rig.gameState.syncCelebrations()
+        rig.gameState.markRevealed(tier: rig.godTier)
+        await rig.store.settled()
+    }
+
+    @Test("la tarjeta espera a la cinemática de Dios y sale en el primer momento calmo")
+    func cardWaitsForTheGodCinematic() async throws {
+        let rig = try await makeRig()
+        await arriveAtGod(rig)
+        #expect(rig.store.entryPrompt != nil)
+        #expect(rig.gameState.showing == .boardCelebration)
+        #expect(!rig.gameState.rankingCardDue(alreadyUp: false), "el reveal todavía está en pantalla")
+
+        rig.gameState.celebrationFinished(.boardCelebration)
+        #expect(rig.gameState.showing == .cinematic)
+        #expect(!rig.gameState.rankingCardDue(alreadyUp: false), "la cinemática es a pantalla completa")
+
+        rig.gameState.celebrationFinished(.cinematic)
+        #expect(rig.gameState.rankingCardDue(alreadyUp: false))
+    }
+
+    @Test("la tarjeta no sale sobre una hoja y, una vez arriba, no la desaloja un momento no calmo")
+    func cardNeverOverASheetAndStaysUp() async throws {
+        let rig = try await makeRig()
+        await arriveAtGod(rig)
+        rig.gameState.celebrationFinished(.boardCelebration)
+        rig.gameState.celebrationFinished(.cinematic)
+
+        rig.gameState.uiCoversBoard = true
+        #expect(!rig.gameState.rankingCardDue(alreadyUp: false))
+        #expect(rig.gameState.rankingCardDue(alreadyUp: true), "ya estaba arriba: se queda")
+
+        rig.gameState.uiCoversBoard = false
+        #expect(rig.gameState.rankingCardDue(alreadyUp: false))
+    }
+
+    @Test("con el ranking apagado la tarjeta no se ofrece, y vuelve a poder ofrecerse si se prende")
+    func cardNeedsTheRankingEnabled() async throws {
+        let off = RankingConfig(
+            schemaVersion: RankingConfig.supportedSchemaVersion, enabled: false, baseURL: nil, anonKey: nil)
+        let gameState = await makeGameState()
+        gameState.player?.meta.ranking = RankingState(phase: .running(runId: "run-1", serverStartedAt: 1_000))
+        let store = RankingStore(
+            client: SimulatedRankingClient(), config: off,
+            cacheURL: URL.temporaryDirectory.appending(path: "ranking-board-\(UUID().uuidString).json"))
+        gameState.attachRanking(store)
+
+        gameState.markRevealed(tier: try #require(gameState.godTier))
+        await store.settled()
+
+        #expect(store.entryPrompt == nil)
+        #expect(!gameState.rankingCardDue(alreadyUp: false))
+        #expect(gameState.player?.meta.ranking.cardOffered == false, "no gastó su única oportunidad")
+    }
 }

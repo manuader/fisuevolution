@@ -118,6 +118,10 @@ struct GameBoardView: View {
     /// se lee del entorno.
     @Environment(AdsCoordinator.self) private var adsProvider
     @Environment(AudioManager.self) private var audio
+    @Environment(RankingStore.self) private var ranking
+    /// La tarjeta del nombre de Dios ya salió: desde ahí se queda hasta que el store la suelta, aunque el
+    /// momento deje de ser calmo (la propia tarjeta tapa el tablero).
+    @State private var rankingCardUp = false
     // La ficha de personaje espera al tutorial: no es una celebración de la
     // cola, así que éste es su único gate.
     @AppStorage("fisuTutorialDone") private var tutorialDone = false
@@ -237,6 +241,10 @@ struct GameBoardView: View {
             }
             .animation(.easeInOut(duration: 0.25), value: gameState.chestReward?.id)
 
+            // La tarjeta del nombre del ranking va debajo de la cinemática: sale en el primer momento
+            // calmo, o sea después de ella, y nunca a la vez.
+            rankingCardLayer
+
             // La cinemática, al lado del cofre y por lo mismo: pantalla entera, su propio telón y su
             // propio `ZStack` para que la `.animation` no tiña el resto.
             ZStack {
@@ -274,7 +282,7 @@ struct GameBoardView: View {
         // pantalla. `GameState` no puede ver estos `@State`, así que se los
         // publica esta vista.
         .onChange(of: menuSession?.id) { _, id in
-            gameState.uiCoversBoard = id != nil || showPrestige
+            gameState.uiCoversBoard = boardIsCovered
             // **La pausa natural del juego**: el jugador cerró el menú entero y
             // vuelve al tablero (no cada página: deslizar no es una pausa). No
             // estaba tapeando, no hay nada en curso, y no se le interrumpe
@@ -285,11 +293,11 @@ struct GameBoardView: View {
                 Task { await gameState.menuDidClose() }
             }
         }
-        .onChange(of: showPrestige) { _, prestige in
-            gameState.uiCoversBoard = prestige || menuSession != nil
+        .onChange(of: showPrestige) {
+            gameState.uiCoversBoard = boardIsCovered
         }
-        .onChange(of: gameState.specialInfo) { _, info in
-            gameState.uiCoversBoard = info != nil || menuSession != nil || showPrestige
+        .onChange(of: gameState.specialInfo) {
+            gameState.uiCoversBoard = boardIsCovered
         }
         // La música por piso sigue al piso visible que ya publica `GameState`
         // —scroll, ascensor, el piso con el que carga la partida—, sin que la
@@ -365,31 +373,53 @@ struct GameBoardView: View {
             DebugPanelView()
         }
         #endif
-        // Invisible para la UI, medible para los UI tests.
-        .background(
+        .background(uiTestMarkers)
+        // La geometría del tablero ("5x2@112·1.25"), para `IPadLayoutUITests`.
+        .background(boardLayoutMarker)
+    }
+
+    /// Invisibles para la UI, medibles para los UI tests. Tres marcas en un solo `background`: el `body`
+    /// ya venía al límite del type-checker.
+    private var uiTestMarkers: some View {
+        ZStack {
             Color.clear
                 .accessibilityElement()
                 .accessibilityIdentifier("board.units")
                 .accessibilityValue(Text(verbatim: String(gameState.unitCount)))
-        )
-        .background(
             Color.clear
                 .accessibilityElement()
                 .accessibilityIdentifier("board.revealed")
                 .accessibilityValue(Text(verbatim: String(gameState.revealedTierMarker)))
-        )
-        // El piso visible, como ID crudo (no nombre traducido: a prueba de la
-        // trampa 6). Desde que la píldora del HUD se retiró (2026-08-18) es el
-        // único observable del piso que sobrevive a las celebraciones que
-        // apagan la UI — `exists` y `value` se leen igual con la opacidad en 0.
-        .background(
+            // El piso visible, como ID crudo (no nombre traducido: a prueba de la trampa 6). Desde que la
+            // píldora del HUD se retiró (2026-08-18) es el único observable del piso que sobrevive a las
+            // celebraciones que apagan la UI — `exists` y `value` se leen igual con la opacidad en 0.
             Color.clear
                 .accessibilityElement()
                 .accessibilityIdentifier("board.floor")
                 .accessibilityValue(Text(verbatim: gameState.towerNavigation.floorID))
-        )
-        // La geometría del tablero ("5x2@112·1.25"), para `IPadLayoutUITests`.
-        .background(boardLayoutMarker)
+        }
+    }
+
+    /// La tarjeta del nombre de Dios. Cerrarla sin elegir es "Ahora no".
+    private var rankingCardLayer: some View {
+        ZStack {
+            if rankingCardUp, let prompt = ranking.entryPrompt {
+                RankingEntryCard(
+                    prompt: prompt, nameError: ranking.nameError, isSubmitting: ranking.isSubmitting,
+                    onSubmit: { name in Task { await ranking.submit(name: name) } },
+                    onLater: { ranking.postpone() })
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: rankingCardUp)
+        .onChange(of: gameState.rankingCardDue(alreadyUp: rankingCardUp)) { _, due in
+            rankingCardUp = due
+            gameState.uiCoversBoard = boardIsCovered
+        }
+    }
+
+    /// Lo que tapa el tablero y vive en esta vista; `GameState` no puede ver estos `@State`.
+    private var boardIsCovered: Bool {
+        menuSession != nil || showPrestige || gameState.specialInfo != nil || rankingCardUp
     }
 
     private var boardLayoutMarker: some View {

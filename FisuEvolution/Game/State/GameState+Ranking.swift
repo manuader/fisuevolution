@@ -45,4 +45,12 @@ extension GameState: RankingStateHost {
         if state.activeSince != nil { updateRanking { $0.activeSince = nil } }
         if case .running = state.phase, player?.run.maxTierReached ?? 0 >= godTier { ranking?.reachedGod() }
     }
+
+    /// La tarjeta del nombre sale en el primer momento calmo: después del reveal y de la cinemática de Dios,
+    /// que viajan por la cola, y nunca sobre una hoja. Con el ranking apagado no sale. Una vez arriba se
+    /// queda hasta que el store la suelta.
+    func rankingCardDue(alreadyUp: Bool) -> Bool {
+        guard let ranking, ranking.isEnabled, ranking.entryPrompt != nil else { return false }
+        return alreadyUp || isCalmMoment
+    }
 }

@@ -33,7 +33,7 @@ from PIL import Image
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from process_dropbox import PIPELINE, RESOURCES, destination  # noqa: E402
-from process_dropbox import export_atlas  # noqa: E402
+from process_dropbox import export_atlas, export_size  # noqa: E402
 from whitebg_cutout import cutout  # noqa: E402
 
 REMBG = PIPELINE / "state" / "rembg"
@@ -99,11 +99,36 @@ def escribir_elegidos_a_mano(claves: set[str]) -> None:
     RECUT.write_text(texto[:desde] + cuerpo + texto[hasta:])
 
 
+_sesion_rembg = None
+
+
+def recortar_con_rembg(entrada: dict, atlas: str, sprite: str) -> str | None:
+    """La version de rembg que la pagina mostro y no quedo en `state/rembg/` (se
+    armo en otro checkout): se rehace con el mismo modelo, que da lo mismo."""
+    global _sesion_rembg
+    clave = entrada["assetKey"]
+    original = ORIGINALES_APARTE.get(clave, ORIGINALES / f"{clave}.png")
+    if not original.exists():
+        return f"no hay version de rembg ni original {original.name} para rehacerla"
+    from rembg import new_session, remove
+
+    if _sesion_rembg is None:
+        print("Cargando modelo rembg isnet-general-use...", flush=True)
+        _sesion_rembg = new_session("isnet-general-use")
+    saliencia = remove(Image.open(original), session=_sesion_rembg)
+    a2x, a3x = export_size(entrada.get("category", "character"), clave)
+    (REMBG / atlas).mkdir(parents=True, exist_ok=True)
+    saliencia.resize((a3x, a3x), Image.LANCZOS).save(REMBG / atlas / f"{sprite}@3x.png")
+    saliencia.resize((a2x, a2x), Image.LANCZOS).save(REMBG / atlas / f"{sprite}@2x.png")
+    return None
+
+
 def poner_rembg(entrada: dict) -> str | None:
     atlas, sprite, _ = destination(entrada)
-    faltan = [e for e in ("@2x", "@3x") if not (REMBG / atlas / f"{sprite}{e}.png").exists()]
-    if faltan:
-        return f"no hay version de rembg ({', '.join(faltan)})"
+    if any(not (REMBG / atlas / f"{sprite}{e}.png").exists() for e in ("@2x", "@3x")):
+        problema = recortar_con_rembg(entrada, atlas, sprite)
+        if problema:
+            return problema
     for escala in ("@2x", "@3x"):
         shutil.copy2(REMBG / atlas / f"{sprite}{escala}.png", RESOURCES / atlas / f"{sprite}{escala}.png")
     return None

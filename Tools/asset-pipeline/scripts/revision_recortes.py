@@ -39,7 +39,30 @@ ORIGINALES = PIPELINE / "dropbox" / "procesadas"
 REMBG = PIPELINE / "state" / "rembg"
 DATOS = RESOURCES / "Data" / "tiers.json"
 TEXTOS = RESOURCES / "Localizable.xcstrings"
-ATLASES = ("earth.atlas", "cosmic.atlas")
+ATLASES = (
+    "earth.atlas", "cosmic.atlas", "npcs.atlas",
+    "fam_pijama.atlas", "fam_gaucho.atlas", "fam_dinosaurio.atlas",
+)
+# Atlas cuyos sprites no se llaman `*_idle`: entran todos, no se filtran por nombre.
+ATLASES_SIN_IDLE = ("npcs.atlas",)
+# Sueltos de ui.atlas que los reportes de E8 marcaron: no es un atlas de personajes,
+# asi que entran por nombre y no por glob.
+EXTRAS = (
+    ("ui.atlas", "wheel_frame"),
+    ("ui.atlas", "ui_album_card_frame"),
+    ("ui.atlas", "ui_shop_income_x2"),
+    ("ui.atlas", "ui_shop_income_x3"),
+)
+
+# Lo que los reportes de E8 (T3–T7) dejaron dudoso: va arriba en la pagina.
+SOSPECHOSOS = {
+    "cartonero__pijama", "cartonero__gaucho", "cartonero__dinosaurio",
+    "estanciero_estelar__pijama", "dueno_pyme__pijama", "magnate_solar__pijama",
+    "dueno_marte__pijama", "god__dinosaurio", "ser_ascendido__dinosaurio",
+    "sp_bug_simulacion_talk", "sp_bug_simulacion_face", "sp_influencer_talk",
+    "sp_contador_dios_talk", "npc_conductor_action",
+    "wheel_frame", "ui_album_card_frame", "ui_shop_income_x2", "ui_shop_income_x3",
+}
 
 # `homeless` es El Fisura: su original nunca paso por el dropbox, es la referencia
 # de estilo aprobada a mano con la que se genero todo lo demas.
@@ -102,9 +125,16 @@ def sprites_integrados() -> list[tuple[str, str]]:
     """(atlas, sprite) de cada idle que hoy esta en el juego."""
     encontrados = []
     for atlas in ATLASES:
-        for png in sorted((RESOURCES / atlas).glob("*_idle*@3x.png")):
+        patron = "*@3x.png" if atlas in ATLASES_SIN_IDLE else "*_idle*@3x.png"
+        for png in sorted((RESOURCES / atlas).glob(patron)):
             encontrados.append((atlas, png.name[: -len("@3x.png")]))
+    encontrados.extend(EXTRAS)
     return encontrados
+
+
+def es_sospechoso(ficha: dict) -> bool:
+    # Las caras caen en un recorte del encuadre: toda `_face` de npcs se mira primero.
+    return ficha["key"] in SOSPECHOSOS or (ficha["atlas"] == "npcs" and ficha["key"].endswith("_face"))
 
 
 PLANTILLA = """<meta charset="utf-8">
@@ -620,7 +650,7 @@ def main() -> int:
         })
         print(f"  [{numero:3}/{len(integrados)}] {key} → {en_el_juego} (dif {diferencia}%)", flush=True)
 
-    fichas.sort(key=lambda f: (f["personaje"], f["variante"], f["key"]))
+    fichas.sort(key=lambda f: (not es_sospechoso(f), f["personaje"], f["variante"], f["key"]))
     (destino / "index.html").write_text(pagina(fichas), encoding="utf-8")
 
     visibles = sum(1 for f in fichas if f["dif"] >= DIFERENCIA_VISIBLE)

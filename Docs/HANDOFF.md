@@ -326,6 +326,19 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-10-10 (relevo 23) — La ola U: la mudanza a eventos v2, el Paquete en la partida, el simulador de pacing con perfiles y los tres cierres
+
+Un solo relevo, abierto a las 00:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~260k de contexto. Todo en `v2i/integ-r23`. `version-2` quedó en `2e51d29` (`rapido`: VERDE, EK 814 · unit 1175 · 0 rojos · Release 0). **Progreso: 174 de 254 en `version-2`; 177 de 254 (69,7 %) con las tres 🟢 de los cierres** si el `rapido` de la punta da VERDE.
+
+- **La llave de la cadena:** E4a T9 (eventos v2 con 18 eventos, schema 2; se van `EventManager` y `EventsConfig`; revisión opus Approved con arreglos) destrabó E5a T5/T6 y deja a la vista E4a T10, E4b T7 y E5a T7.
+- **El Paquete:** E5a T5 (`packages/treasures/wheel.json` validado) y T6 (buzón, candidatos por `PackageRoller`, abrir/devolver; revisión opus Approved, opcionales a E5b).
+- **EK puro sin cupo:** E6a T2 y T10 (tienda y ofertas, `lastClosedAt`), E9b T7 (`ResetPlan`), E6b T6 (`FloorTable.expanded`).
+- **El simulador de pacing:** E2b T3 (cobra como el juego), T4 (el piso que se llena no se fusiona: la regla literal nunca llenaba un piso de cap 10/15; medido), T5 (perfiles `.bare`/`.free`/`.ads`/`.max`) y T6 (`.ads`: Dios en 23,71 h con 662 videos). **La base siguió idéntica byte a byte: Dios 31,34 h · 13 reencarnaciones.** E2b T11: la herencia en `PrestigeView`.
+- **Los cierres** (un `completo --limpio`): E8 T10 (peso **+39,3 MB** sobre la v1, bajo el gate de 60; sin 🔒; memoria pico 117 MB en el SE), E13b T11 (tres grabaciones del ascensor) y E13 T14; **3 UI rojos reales de E4a T9** (el menú de eventos tapó las puertas del panel de debug), arreglados en `534fd51`.
+- Trampas nuevas en §7: el clasificador del modo auto no deja escribir en `.superpowers/` del worktree `version-2` (la tabla de dueños va en cada brief), y el panel de debug exige correr `CharacterSheetUITests` y `QuickHireUITests`.
+
+Detalle en **`Docs/SESION-2026-10-10-v2-relevo-23-ola-u.md`** y, para los cierres, **`Docs/SESION-2026-10-10-v2-cierres-r23.md`**.
+
 ### Sesión del 2026-10-10 (relevo 23, los cierres) — El `completo` de E8, E13b y E13, y el panel de debug que se comió sus puertas
 
 Un solo `completo --limpio` sobre `bab8a9c` cerró tres épicas (detalle y números en `Docs/SESION-2026-10-10-v2-cierres-r23.md`).
@@ -2390,6 +2403,9 @@ paréntesis; el porqué completo está en la sesión de cada uno):
 14. **El ascensor es una placa colgante y el viaje sólo ocurre al elegir** (E13b): mantener apretado el ícono del mapa despliega un botón por piso abierto
     (34–46 pt); se recoge tocando afuera; el viaje dura 2–3 s (0,9 s de fundidos con Reduce Motion) y bajo `--uitest*` es 0 s salvo `--uitest-elevator-ride`.
     La barra es de **cinco** pestañas; la Tienda vive en el "+" de la moneda y es una pantalla aparte, no una página del paginador.
+15. **El bot del pacing-sim no fusiona el piso que está llenando** (E2b T4, relevo 23). La regla literal del plan («fusionar siempre») nunca completaba un piso de capacidad 10/15, porque
+    cada contratación se fusionaba antes de llenarlo; el objetivo se busca debajo del piso de compra. Medido: la base sin bono queda idéntica (Dios 31,34 h · 13 reenc.); con bono 0,05 y cap 10/15,
+    Dios en 25,76 h · 11 reenc. · 7 pisos en marcha. Lo discrimina `fillingSurvivesTheMerges` (cap 10). «Fusionar todo» literal, aunque sea pérdida neta para el bot, se re-mide en E2b T13.
 
 ---
 
@@ -2819,6 +2835,15 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De la ola U (2026-10-10, relevo 23)
+
+- **El clasificador del modo auto no deja escribir en `.claude/worktrees/version-2/.superpowers/` ni crear archivos ahí** (frenó `ola-r23-duenos.md`, la tabla de dueños de la ola). La tabla de
+  dueños va **en cada brief de despacho**; los briefs nuevos viven en `.superpowers/sdd/` del worktree `v2i-integ-r23`, gitignoreado y efímero: no guardar nada ahí que importe.
+- **Un `tarea` y el `rapido` no corren UI:** E4a T9 rompió 3 UI tests que ninguno vio; salió en el `completo`. Toda tarea que toque `DebugPanelView` corre además `CharacterSheetUITests` y `QuickHireUITests`.
+- **Una regla de bot «literal» puede no ejecutarse nunca** (E2b T4: con cap 10/15 el piso no se llenaba porque cada contratación se fusionaba). Antes de medir con una perilla, comparar la base sin ella
+  byte a byte, y escribir un test que discrimine la regla (cap 10).
+- **`AudioWiringTests` aceptaba un id fantasma** (`cayo_mercado_pago`) que E4a T9 dejó sin evento: el test se había debilitado para que pasara. Un test que se reescribe fuera del brief se lee entero en la revisión.
 
 ### De los cierres (2026-10-10, relevo 23)
 
@@ -4375,7 +4400,18 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
-### Lo que queda de la 2.0 (cierre del relevo 22)
+### Lo que queda de la 2.0 (cierre del relevo 23)
+
+La cola con orden, BASE y modelo está en `tasks.md` §4. Lo nuevo del 23, además de lo que sigue de abajo (que se mantiene):
+
+- **Destrabadas por la ola U (ahora ⏳):** E4a T10 (cierre de E4a), E5a T7 (el Colchón), E4b T7 (la Liquidación en el precio), E2b T7 (el perfil `.max`) y E6a T11 (las ofertas se cobran).
+- **Siguen ⛔:** E5a T8 (espera a T7), E6a T5 (espera a E5a T8), E6a T4 y E5b T1 (esperan a E5a T8 / E4b T3), E7b-a T3 (**bloqueo de publicación**: faltan E5b T1 y E4b T3), E9b T8 (espera a E9a T3 y E6a T11), E12 T12.
+- **Carries del 23:** E9b T8 debe unir `offers.purchases` y `seenCinematics` en `resolveAcrossReset`; E4b re-chequea `eventIsApplicable`, mueve `events.cayo_mercado_pago` a `home_banking` en `loops_manifest` y atenúa la cuota
+  sin plata; E5b arregla `packageCandidates` (llegadas en cola) y el guardado de `advancePackages`; E2b T8 imprime `maxStaffedFloors` y T13 re-mide cap 10 vs 15 y «Fusionar todo»; `isFinite` en los validadores de
+  paquetes/tesoros/ruleta; `startupTiersBelowFrontier` al schema.
+- **Al dueño:** un viaje 1 → 10 del ascensor en un SE real y las tres grabaciones; el video de salida no sirve si el evento vence mientras corre; `.eventStartup`/`.eventBlanqueo` no son prepagos al matar la app (previo).
+
+### Lo que queda de la 2.0 (cierre del relevo 22, vigente salvo lo de arriba)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
 
@@ -4747,6 +4783,8 @@ Anotado por si algún día importa, con su medición:
   las revisiones opus y sus carries, el conflicto de `confirmPrestige`, la tabla de perillas, las trampas del oráculo con otra ruta y del agente que re-entrega).
 - **`Docs/SESION-2026-10-09-v2-relevo-22-ola-t.md`**: el relevo 22 (compartir recableado, la privacidad del ranking, las familias en el catálogo, el motor de visitantes y las ofertas
   en el save; el rojo de `SkinCatalogRowsTests`, las revisiones opus y sus carries, las trampas de `setsid` y de las tareas de EK pura).
+- **`Docs/SESION-2026-10-10-v2-relevo-23-ola-u.md`**: el relevo 23 (la mudanza a eventos v2, el Paquete en la partida, los perfiles del simulador de pacing y por qué la regla del bot de E2b T4 cambió;
+  las revisiones opus de E4a T9 y E5a T6 con sus carries; las trampas del clasificador en `.superpowers/` y del panel de debug).
 - **`Docs/SESION-2026-10-10-v2-cierres-r23.md`**: el relevo 23, los cierres de E8, E13b y E13 con un solo `completo` (el peso +39 MB, el panel de
   debug que se comió las puertas, las grabaciones del ascensor). Planes cerrados: `2026-10-08-v2-e8-integracion-arte.md`,
   `2026-10-08-v2-e13b-ascensor-barra.md` y `2026-10-08-v2-e13-feedback-v1.md`.

@@ -52,12 +52,19 @@ public struct ActiveModifier: Codable, Sendable, Equatable, Identifiable {
 }
 
 public enum ModifierMath {
+    /// El piso de los descuentos de contratar apilados (Liquidación × Mate ×
+    /// Factura A): contratar nunca sale menos que un cuarto del precio de lista.
+    /// Sin él, tres descuentos juntos regalan la torre.
+    public static let spawnCostStackFloor = 0.25
+
     /// Product of the magnitudes of every live modifier with the given effect.
+    /// The hiring cost has a floor (`spawnCostStackFloor`).
     public static func factor(_ modifiers: [ActiveModifier], effect: ActiveModifier.Effect, now: TimeInterval) -> Double {
-        modifiers
+        let product = modifiers
             .filter { $0.effect == effect && $0.isActive(at: now) }
             .map(\.magnitude)
             .reduce(1, *)
+        return effect == .spawnCostMultiplier ? max(product, spawnCostStackFloor) : product
     }
 
     /// Promedio del factor de `effect` sobre `[from, to]` contando sólo los buffs

@@ -543,6 +543,8 @@ struct PricePill: View {
     /// Fisura", "Comprar Pack de Arranque"). El componente le pega el monto y la
     /// moneda detrás; sin él la parada dice sólo el número.
     var accessibilityPurpose: Text?
+    /// El precio de lista tachado arriba del que se cobra (un descuento temporal).
+    var strikeText: String?
     let action: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -565,8 +567,9 @@ struct PricePill: View {
 
     /// La parada completa: propósito (si lo hay) y monto.
     private var spokenLabel: Text {
-        guard let accessibilityPurpose else { return Text(verbatim: spokenAmount) }
-        return accessibilityPurpose + Text(verbatim: ", \(spokenAmount)")
+        let was = strikeText.map { Text(verbatim: ", ") + Text("price.ax.was \($0)") } ?? Text(verbatim: "")
+        guard let accessibilityPurpose else { return Text(verbatim: spokenAmount) + was }
+        return accessibilityPurpose + Text(verbatim: ", \(spokenAmount)") + was
     }
 
     var body: some View {
@@ -587,13 +590,19 @@ struct PricePill: View {
                         .foregroundStyle(affordable ? .white : Color("PaletteInk"))
                         .frame(width: 20, height: 20)
                 }
-                Text(verbatim: text)
-                    .font(Tokens.body)
-                    .monospacedDigit()
-                    .foregroundStyle(affordable ? .white : Color("PaletteInk"))
-                    .shadow(color: .black.opacity(affordable ? 0.45 : 0), radius: 1, y: 1)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
+                VStack(spacing: -2) {
+                    if let strikeText {
+                        StrikePrice(text: strikeText,
+                                    color: affordable ? .white.opacity(0.8) : Color("PaletteInk").opacity(0.6))
+                    }
+                    Text(verbatim: text)
+                        .font(Tokens.body)
+                        .monospacedDigit()
+                        .foregroundStyle(affordable ? .white : Color("PaletteInk"))
+                        .shadow(color: .black.opacity(affordable ? 0.45 : 0), radius: 1, y: 1)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                }
             }
             .padding(.horizontal, Tokens.s12)
             .padding(.vertical, Tokens.s8)
@@ -625,6 +634,27 @@ struct PricePill: View {
                 CubicKeyframe(0, duration: 0.07)
             }
         }
+    }
+}
+
+// MARK: - StrikePrice
+
+/// El precio de lista tachado, arriba del que se cobra (la Liquidación, el Mate,
+/// la Factura A): el descuento se VE, no sólo se nota en la caja. Lo usan
+/// `PricePill` y el atajo de contratar.
+struct StrikePrice: View {
+    let text: String
+    var color: Color = Color("PaletteInk").opacity(0.6)
+
+    var body: some View {
+        Text(verbatim: text)
+            .font(.system(size: 11, design: .rounded).weight(.bold))
+            .monospacedDigit()
+            .strikethrough(true, color: color)
+            .foregroundStyle(color)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .accessibilityHidden(true)
     }
 }
 

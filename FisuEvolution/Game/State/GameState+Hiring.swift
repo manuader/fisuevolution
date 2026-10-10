@@ -67,6 +67,9 @@ struct JobRow: Identifiable, Equatable {
     let state: State
     let tier: Int
     let floorID: String
+    /// El precio sin los descuentos del momento, tachado arriba del que se cobra.
+    /// `nil` sin descuento (un recargo no tacha nada).
+    var listCostText: String? = nil
 }
 
 /// La oferta del atajo de contratar de la pantalla principal (PLAN-v2 E3).
@@ -102,6 +105,9 @@ struct QuickHireOffer: Equatable {
     /// Es el personaje que el jugador fijó manteniendo apretado el atajo.
     let isPinned: Bool
     let tier: Int
+    /// El precio sin los descuentos del momento, tachado arriba del que se cobra.
+    /// `nil` sin descuento (un recargo no tacha nada).
+    var listCostText: String? = nil
 
     var blocker: Blocker? {
         if !fits { return .floorFull }
@@ -178,7 +184,8 @@ extension GameState {
                 affordable: !unseen && !quote.blockedBySpendingFreeze && coins >= quote.cost,
                 state: state,
                 tier: type.tier,
-                floorID: floor.id
+                floorID: floor.id,
+                listCostText: unseen ? nil : listCostText(typeId: type.id, cost: quote.cost, player: player)
             )
         }
         return rows.sorted { lhs, rhs in
@@ -246,8 +253,22 @@ extension GameState {
             affordable: pick.affordable,
             fits: pick.fits,
             isPinned: pick.type.id == pinnedID,
-            tier: pick.type.tier
+            tier: pick.type.tier,
+            listCostText: listCostText(typeId: pick.type.id, cost: pick.cost, player: player)
         )
+    }
+
+    /// El precio de lista de un tipo: el mismo quote sin los descuentos temporales
+    /// de contratar (los recargos se quedan: no son "el precio de lista"). `nil`
+    /// si no hay descuento que mostrar.
+    func listCostText(typeId: String, cost: Double, player: PlayerState) -> String? {
+        var bare = player
+        bare.run.activeModifiers.removeAll { $0.effect == .spawnCostMultiplier && $0.magnitude < 1 }
+        guard bare.run.activeModifiers.count != player.run.activeModifiers.count,
+              let list = currentQuote(player: bare, typeId: typeId)?.cost,
+              list > cost * 1.005
+        else { return nil }
+        return CoinFormatter.cost(from: list)
     }
 
     private struct QuickHireCandidate {

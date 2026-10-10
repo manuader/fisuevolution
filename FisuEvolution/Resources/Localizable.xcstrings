@@ -6081,6 +6081,23 @@
         }
       }
     },
+    "price.ax.was %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "was %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "antes %@"
+          }
+        }
+      }
+    },
     "progress.ax.label" : {
       "extractionState" : "manual",
       "localizations" : {

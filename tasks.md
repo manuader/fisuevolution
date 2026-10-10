@@ -483,7 +483,7 @@ que toma · commit o rama · nota.
 | E4b-T4 | Eventos con presentador; adiós al banner | ⛔ | T3 | 🔥 GameState, RootView, catálogo, +Bonus; CelebrationQueue, +Celebrations, ActiveBonus* | | |
 | E4b-T5 | El reto y las cartas del Vendedor | ⛔ | T3 | catálogo (snapshot) | | ∥ T4 |
 | E4b-T6 | El Apagón y los Campeones | ⛔ | T4 | 🔥 BoardScene; AudioManager | | cablea `sfx_blackout` |
-| E4b-T7 | La Liquidación en el precio | 🔄 | E4a-T9; E3b-T5, E3b-T6, E3b-T7 | ActiveModifier, +Hiring, GameArtComponents; catálogo (snapshot) | | |
+| E4b-T7 | La Liquidación en el precio | 🟢 | E4a-T9; E3b-T5, E3b-T6, E3b-T7 | ActiveModifier, +Hiring, GameArtComponents; catálogo (snapshot) | | |
 | E4b-T8 | El Álbum de especiales | ⛔ | E4a (cerrada); E3b-T3 | catálogo; MenuView, +TutorialTips | | |
 | E4b-T9 | Los especiales salen del tablero | ⛔ | T8, T6 | 🔥 BoardScene, GameState, RootView, PlayerState (docstring); +BoardChanges, +Debug | | |
 | E4b-T10 | Cierre de E4 | ⛔ | T1–T9 | `Docs/` | | |

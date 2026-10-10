@@ -83,7 +83,7 @@
 
 ## 2. Progreso
 
-**Hoy: 162 de 254 tareas activas integradas en `version-2` (63,8 %): en el relevo 22 pasaron a ✅ E3b T9, E12 T15, E6b T9 (`rapido` VERDE sobre `ddea816`), E4a T3, T4, T5 y E5a T4 (VERDE sobre `9cccaf6`) y E4a T6, E4a T7 y E6a T1 (VERDE sobre `8ab8b33`: EK 735 · unit 1143 · 0 rojos · Release 0).** Antes: 152 (59,8 %) al cierre del 21c. El relevo 22 también corrigió un test (`SkinCatalogRowsTests`, `ababa57`) que pineaba el catálogo sin las tres familias. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
+**Hoy: 167 de 254 tareas activas integradas en `version-2` (65,7 %): en el relevo 23 pasaron a ✅ E6a T2, E6a T10, E9b T7, E2b T3 y E6b T6 (`rapido` VERDE sobre `ed85656`: EK 784 · unit 1143 · 0 rojos · Release 0; la tabla por épica la recalcula el cierre del 23). Antes, 162 (63,8 %): en el relevo 22 pasaron a ✅ E3b T9, E12 T15, E6b T9 (`rapido` VERDE sobre `ddea816`), E4a T3, T4, T5 y E5a T4 (VERDE sobre `9cccaf6`) y E4a T6, E4a T7 y E6a T1 (VERDE sobre `8ab8b33`: EK 735 · unit 1143 · 0 rojos · Release 0).** Antes: 152 (59,8 %) al cierre del 21c. El relevo 22 también corrigió un test (`SkinCatalogRowsTests`, `ababa57`) que pineaba el catálogo sin las tres familias. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
 seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 9 (E8 T10 y E13b T11 ya lo estaban; E4a T9, E6a T2 y T10, E9b T7, E2b T3 y T11 y E13 T14 los pasó a ⏳ el relevo 22 al revisar §5 contra las 🟢 y los ✅). E12 T12 está ⛔, E12 T16 🔒 y E7b-a T3 ⛔ (bloqueo de publicación, §4.2).
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
@@ -513,7 +513,7 @@ que toma · commit o rama · nota.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E6a-T1 | Tienda y ofertas en `meta.engagement` | ✅ | E1-T4; E3b-T9, E4a-T3, E5a-T4 | EngagementState | `229579f`+`f52c803` (en `v2i/integ-r22`) |  rev. opus Approved; carries: T2/T10 marcan `lastClosedAt` en toda compra y vencimiento; T11 acredita aunque la oferta ya no figure abierta; E9b T7: `resolveAcrossReset` no cruza `engagement.offers`; al dueño: oferta abierta sólo en el save perdedor (Bienvenida) se pierde, ×3 regalado en el caso raro |
-| E6a-T2 | Catálogo y cuentas de la tienda (EK) | 🟢 | T1; E4a-T1 | — | | |
+| E6a-T2 | Catálogo y cuentas de la tienda (EK) | ✅ | T1; E4a-T1 | — | | |
 | E6a-T3 | El auto-tap | ✅ | E1-T15; E4a-T2; E2a-T4 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | `720f3fe` (merge `e378307`, claves aplicadas) | revisión opus: Approved. Carries a T5: el "mejor" se elige por tier y no por pago (fiel al plan; anotar la decisión); un `now` para todo el delta (despreciable con tope 2 s); `RewardSpec` admite `.modifier(autoTapPerSecond)` y saltea `.autoTap` (rechazarlo en `validate` o declararlo válido) |
 | E6a-T4 | `oro_shop.json` | ⛔ | T2; E5b-T1; E5a-T5 | catálogo (dueña); GameContentLoader | | |
 | E6a-T5 | Se entregan auto-tap, Offline ×3 y Diario ×3 | ⛔ | T3; E4a-T8, E4a-T9; E5a-T6, E5a-T8; E2a-T11 | 🔥 +Bonus; +Lifecycle (T8 mudó ahí el offline), +Rewards, +Engagement | | |
@@ -521,7 +521,7 @@ que toma · commit o rama · nota.
 | E6a-T7 | La suerte: probabilidades | ⛔ | T6; E5a-T1, E5a-T8; E1-T6 | StoreManager | | sale con E1 T6c adentro |
 | E6a-T8 | La pantalla "Comprar ORO / Gastar ORO" | ⛔ | T6, T7; E3b-T4; E5b-T1; E5a-T8 | catálogo (dueña); StoreView | | |
 | E6a-T9 | Los packs 160 / 550 / 1.400 | ✅ | E1-T6; E2a-T7 | products.json, StoreManagerTests | `7cc20d9` (merge `2446069`) | StoreManagerTests 13/14 a mano (timeout de carga, solo pasa) |
-| E6a-T10 | Las ofertas de 24 h, puras | 🟢 | T1; E4a-T1 | — | | |
+| E6a-T10 | Las ofertas de 24 h, puras | ✅ | T1; E4a-T1 | — | | |
 | E6a-T11 | Las ofertas se cobran | ⛔ | T9, T10; E4a-T8; E2a-T7; E5a-T6 | catálogo (snapshot); products.json, +Store | | con T6c: por `recordOroPurchase`, no `+=` |
 | E6a-T12 | Las ofertas se ven | ⛔ | T7, T8, T11; E5a-T8; E4b-T3; E3a-T6; E5b-T1, E5b-T2 | 🔥 RootView, catálogo; CelebrationQueue, +Celebrations | | |
 | E6a-T13 | Cierre de E6a | ⛔ | T1–T12 | `Docs/` | | |
@@ -536,7 +536,7 @@ que toma · commit o rama · nota.
 | E6b-T1r | Sin skins por código: borrar shaders (T1), galería (T2) y `Treatment.effect`/`shaderId` (T3) | ✅ | E3b-T2 (dueña de DebugPanelView) | DebugPanelView, GameContentLoader | `255749b` (merge `9c5df1e`) | −495 líneas; grep vacío |
 | E6b-T4 | La pinta comprada con ORO es tuya | ⛔ | T3; E6a-T1, E6a-T2, E6a-T8; E3b-T2 | 🔥 PlayerState, catálogo; +Store | | |
 | E6b-T5 | Familias se ven (sin efectos) | ⛔ | T1, T4; E6a-T8; E5b-T3 | 🔥 BoardScene, catálogo; +Store | | |
-| E6b-T6 | Lugares extra (EK) | 🟢 | E6a-T2; E2a-T4 | — | | |
+| E6b-T6 | Lugares extra (EK) | ✅ | E6a-T2; E2a-T4 | — | | |
 | E6b-T7 | Lugares extra en la partida | ⛔ | T6; E6a-T6, E6a-T8, E6a-T12; E3a-T10; E5a-T6 | 🔥 GameState, catálogo; GameContentLoader, +Engagement | | 🔒 si las 4 filas no entran en el SE |
 | E6b-T8 | Exclusivas de ORO elegidas entre skins de la v1 | ⛔ | T1r, T5 | catálogo | | el agente propone y se las muestra al dueño antes de cerrar |
 | E6b-T9 | Las tres familias entran | ✅ | E8 T3–T5; T5 | catálogo | `b9e2cd0` (en `v2i/integ-r22`) | 🔒 arte de E8 = E8 T3–T5; 🔒 si el bundle crece > 60 MB (E8 T10 lo mide; estimado ≈ +29 MB con fondos en JPEG) |
@@ -665,7 +665,7 @@ Encargos a E4b T3/T4/T8, E5b T2/T3, E6a T8, E9a/E9b, E7b-a T2: plan, "Lo que E8d
 | E9b-T4 | El Tour de novedades (veteranos) | ⛔ | E9a-T6; T3 | +Tutorial, +Debug, catálogo | | sonnet |
 | E9b-T5 | "Ver tutorial de nuevo" / "Ver novedades" en Ajustes | ⛔ | T4; E11-T4, E7b-a-T5 | 🔥 SettingsView, catálogo | | sonnet |
 | E9b-T6 | `resetEpoch` en `MetaState` + regla en el resolver | ✅ | E1-T6c | 🔥 PlayerState (MetaState); SaveConflictResolver | `8e50efa`+`cccde55` (merge `8d1eeeb`) | revisión opus: Approved con arreglos (el ORO no visto se acredita en las dos ramas del resolver). Carries a T7/T8: el reset sube la época y lleva oroPurchases/revoked/credited/removedAds/ownedSkins con `oro = min(saldo, comprado)`; `OffersState.purchases` (E6a T1) debe cruzar en `resolveAcrossReset`; un build viejo que reescribe el save pierde la época |
-| E9b-T7 | `ResetPlan` puro (matriz del ORO) | 🟢 | T6; E1-T6c, E6a-T1 | — | | sonnet |
+| E9b-T7 | `ResetPlan` puro (matriz del ORO) | ✅ | T6; E1-T6c, E6a-T1 | — | | sonnet |
 | E9b-T8 | El reset en la app (backup, entitlements re-empujados, `clearSessionRuntime`) | ⛔ | T7; E9a-T3; E6a-T11 | +Reset (nuevo), +Debug, +Store, StoreManager, SaveBackupStore, PlayerStateRepository (GameState.swift sólo si `newGame` sigue private) | | sonnet (rev. opus) |
 | E9b-T9 | Zona de peligro + `ResetGameFlowView` (3 pasos, nada deshabilitado) | ⛔ | T8, T5; E3b-T2 | 🔥 SettingsView, catálogo | | sonnet |
 | E9b-T10 | Cierre de E9 (controlador) | ⛔ | E9a, T1–T9 | `Docs/` | | controlador |
@@ -681,7 +681,7 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 | P-E2b | Plan de E2b | ✅ | — | — | `5b15b82` | 15 tareas; reporte `.superpowers/sdd/2026-10-07-v2-e2b/plan-report.md` |
 | E2b-T1 | Bandas de escalada y curva por piso (EK) | ✅ | E2a-T3, E2a-T5 | — | `42b2e8c` (integ-r20) | **hecha (r20):** `EscalationBand` + `escalation(atFrontier:)` única fórmula (`hireCost`, `PriceCushion.jump`), `costGrowthStepPerFloor`; apagadas (umbral 7 = v1) |
 | E2b-T2 | Herencia de pasivos al reencarnar (EK) | ✅ | T1 | — | | |
-| E2b-T3 | El simulador cobra como el juego (EK) | 🟢 | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
+| E2b-T3 | El simulador cobra como el juego (EK) | ✅ | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
 | E2b-T4 | Política de pisos en marcha del bot (EK, opus) | 🔄 | T3; E2a-T4 | — | | |
 | E2b-T5 | Perfiles y fuentes gratis (EK) | ⛔ | T4; E5a-T1 | archivo de `PackageRoller` | | |
 | E2b-T6 | El perfil `.ads` (EK) | ⛔ | T5; E4a-T1, E4a-T8, E5a-T2, E5a-T3 | — | | |

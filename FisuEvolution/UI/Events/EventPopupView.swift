@@ -8,6 +8,7 @@ struct EventPopupView: View {
     let eventId: String
     @Environment(GameState.self) private var gameState
     @State private var now = Date()
+    @Environment(\.loopsManifest) private var loops
 
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -16,6 +17,7 @@ struct EventPopupView: View {
             if let event = gameState.content?.events.event(id: eventId) {
                 VStack(spacing: Tokens.s12) {
                     PanelTitleBanner(verbatim: VisitCopy.text(event.titleKey))
+                    illustration(event)
                     HStack(alignment: .center, spacing: Tokens.s12) {
                         VisitorFace(visitorId: gameState.eventPresenterId(event), side: 76)
                         Text(verbatim: VisitCopy.text(event.phraseKey))
@@ -52,11 +54,37 @@ struct EventPopupView: View {
                 .padding(10)
         }
         .padding(16)
-        .presentationDetents([.fraction(0.52)])
+        .presentationDetents([.fraction(hasIllustration ? 0.62 : 0.52)])
         .fisuSheet()
         .onReceive(timer) { tick in
             now = tick
             if !gameState.isEventRunning(id: eventId, now: tick.timeIntervalSince1970) { gameState.closeEventPopup() }
+        }
+    }
+
+    private static let illustrationHeight: CGFloat = 120
+
+    private var hasIllustration: Bool {
+        Self.illustrationClip(for: eventId, in: loops) != nil
+    }
+
+    /// El clip del evento, sólo si además tiene póster: sin los dos, el popup queda como siempre.
+    static func illustrationClip(for eventId: String, in manifest: LoopsManifest) -> ArtClip? {
+        guard UIArt.image(posterKey(eventId)) != nil else { return nil }
+        return ArtClips.event(eventId, in: manifest)
+    }
+
+    private static func posterKey(_ eventId: String) -> String { "ui_event_\(eventId)" }
+
+    @ViewBuilder
+    private func illustration(_ event: EventCatalog.Event) -> some View {
+        if let clip = Self.illustrationClip(for: event.id, in: loops),
+           let poster = UIArt.image(Self.posterKey(event.id)) {
+            AnimatedArtView(clip: clip, role: .popup) {
+                poster.resizable().scaledToFit()
+            }
+            .frame(height: Self.illustrationHeight)
+            .accessibilityHidden(true)
         }
     }
 

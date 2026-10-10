@@ -55,8 +55,8 @@ public struct TreasuresConfig: Codable, Sendable, Equatable {
     }
 
     public func validate() throws {
-        guard spawnIntervalSeconds > 0 else { throw ValidationError.outOfRange("spawnIntervalSeconds") }
-        guard firstTreasureAfterSeconds > 0 else { throw ValidationError.outOfRange("firstTreasureAfterSeconds") }
+        guard spawnIntervalSeconds > 0, spawnIntervalSeconds.isFinite else { throw ValidationError.outOfRange("spawnIntervalSeconds") }
+        guard firstTreasureAfterSeconds > 0, firstTreasureAfterSeconds.isFinite else { throw ValidationError.outOfRange("firstTreasureAfterSeconds") }
         guard extraOpensPerTreasure >= 0 else { throw ValidationError.outOfRange("extraOpensPerTreasure") }
         guard !prizes.isEmpty else { throw ValidationError.noPrizes }
         var seen: Set<String> = []

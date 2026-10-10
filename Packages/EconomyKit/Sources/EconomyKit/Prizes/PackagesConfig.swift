@@ -48,11 +48,14 @@ public struct PackagesConfig: Codable, Sendable, Equatable {
     }
 
     public func validate() throws {
-        guard spawnIntervalSeconds > 0 else { throw ValidationError.notPositive("spawnIntervalSeconds") }
-        guard firstPackageAfterSeconds > 0 else { throw ValidationError.notPositive("firstPackageAfterSeconds") }
+        guard spawnIntervalSeconds > 0, spawnIntervalSeconds.isFinite else { throw ValidationError.notPositive("spawnIntervalSeconds") }
+        guard firstPackageAfterSeconds > 0, firstPackageAfterSeconds.isFinite else { throw ValidationError.notPositive("firstPackageAfterSeconds") }
         guard maxWaiting > 0 else { throw ValidationError.notPositive("maxWaiting") }
         guard windowTiers > 0 else { throw ValidationError.notPositive("windowTiers") }
         guard !tierRatioByBestSupplierLevel.isEmpty else { throw ValidationError.noRatios }
+        if let odd = tierRatioByBestSupplierLevel.first(where: { !$0.isFinite }) {
+            throw ValidationError.notPositive("tierRatioByBestSupplierLevel \(odd)")
+        }
         if let low = tierRatioByBestSupplierLevel.first(where: { $0 < 1 }) {
             throw ValidationError.ratioBelowOne(low)
         }

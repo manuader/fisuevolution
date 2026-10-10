@@ -77,16 +77,16 @@ public enum RewardSpec: Sendable, Equatable, Hashable {
     public func validate() throws {
         switch self {
         case .coinsSeconds(let seconds), .eventImmunity(seconds: let seconds):
-            guard seconds > 0 else { throw ValidationError.notPositive(kind) }
+            guard seconds > 0, seconds.isFinite else { throw ValidationError.notPositive(kind) }
         case .oro(let count), .package(let count), .skinChest(let count), .wheelSpin(let count), .extraSlots(let count):
             guard count > 0 else { throw ValidationError.notPositive(kind) }
         case let .modifier(_, magnitude, seconds):
-            guard seconds > 0, magnitude > 0 else { throw ValidationError.notPositive(kind) }
+            guard seconds > 0, magnitude > 0, seconds.isFinite, magnitude.isFinite else { throw ValidationError.notPositive(kind) }
             guard magnitude != 1 else { throw ValidationError.neutralModifier }
         case let .autoTap(perSecond, seconds):
-            guard perSecond > 0, seconds > 0 else { throw ValidationError.notPositive(kind) }
+            guard perSecond > 0, seconds > 0, perSecond.isFinite, seconds.isFinite else { throw ValidationError.notPositive(kind) }
         case .nextOfflineMultiplier(let multiplier), .nextDailyMultiplier(let multiplier):
-            guard multiplier > 1 else { throw ValidationError.notPositive(kind) }
+            guard multiplier > 1, multiplier.isFinite else { throw ValidationError.notPositive(kind) }
         case .clearBoostCooldowns:
             break
         }

@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "spawnIntervalSeconds": 120,
+  "firstPackageAfterSeconds": 120,
+  "maxWaiting": 2,
+  "windowTiers": 4,
+  "tierRatioByBestSupplierLevel": [2.0, 1.8, 1.6, 1.4]
+}

@@ -43,6 +43,8 @@ extension GameState {
         case store
         /// El indicador de reencarnar se encendió por primera vez.
         case prestige
+        /// El primer momento viral ofrecido: el botón de compartir y su premio.
+        case share
 
         /// La bandera persistida de "esta lección ya se dio". Versionable por
         /// prefijo, y `--uitest-reset` las barre (`+Debug`).
@@ -60,6 +62,7 @@ extension GameState {
             case .gifts: .gifts
             case .store: .store
             case .prestige: .prestige
+            case .share: .share
             }
         }
 
@@ -73,7 +76,7 @@ extension GameState {
             case .achievements: .menu
             case .gifts: .gifts
             case .store: .store
-            case .elevator, .elevatorKeypad, .quickHire, .prestige: nil
+            case .elevator, .elevatorKeypad, .quickHire, .prestige, .share: nil
             }
         }
 
@@ -90,6 +93,7 @@ extension GameState {
             case .gifts: "tutorial.tip.gifts"
             case .store: "tutorial.tip.store"
             case .prestige: "tutorial.tip.prestige"
+            case .share: "tutorial.tip.share"
             }
         }
     }
@@ -136,7 +140,7 @@ extension GameState {
         }
         // Con una hoja abierta no nace nada: el coach señala controles que
         // están DEBAJO de la hoja. Al cerrarse, el próximo refresh la agarra.
-        guard !uiCoversBoard, characterSheet == nil, shareCardSubject == nil else { return }
+        guard !uiCoversBoard, characterSheet == nil, shareCardMoment == nil else { return }
         guard let lesson = TutorialLesson.allCases.first(where: { !isLessonDone($0) && isEligible($0) })
         else { return }
         tutorialTip = TutorialTip(lesson: lesson)
@@ -181,6 +185,8 @@ extension GameState {
             UserDefaults.standard.integer(forKey: Self.sessionsAfterPhaseKey) >= 2
         case .prestige:
             prestigeAvailable
+        case .share:
+            shareOffer != nil
         }
     }
 

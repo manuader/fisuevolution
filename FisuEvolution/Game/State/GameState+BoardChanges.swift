@@ -156,6 +156,7 @@ extension GameState {
         player.run.revealedTier = tier
         self.player = player
         scheduleSave()
+        noteRevealedTier(tier)
         if tier == godTier {
             ranking?.reachedGod()
             playCinematicIfDue(.dios)

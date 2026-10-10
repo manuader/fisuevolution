@@ -230,6 +230,9 @@ struct ViralConfig: Codable, Sendable, Equatable {
     let schemaVersion: Int
     let shareBonusGlobalMultiplier: Double
     let maxShares: Int
+    /// El premio de compartir un momento viral, en minutos de producción real, una
+    /// vez por momento.
+    let momentRewardMinutes: Int
 }
 
 /// Los logros del spec §10.3. Data-driven como todo lo demás: qué hay que hacer

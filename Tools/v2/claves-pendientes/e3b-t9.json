@@ -1,0 +1,8 @@
+{
+  "share.offer %@": {"es": "¡Compartilo! +%@ min", "en": "Share it! +%@ min"},
+  "share.card.floor %@": {"es": "Abrí %@ y vos seguís en el callejón 💀", "en": "I opened %@ and you're still in the alley 💀"},
+  "share.card.reincarnation.title %@": {"es": "Reencarnación %@", "en": "Reincarnation %@"},
+  "share.card.reincarnation": {"es": "Volví a empezar, pero con plata 😎", "en": "Started over, but loaded 😎"},
+  "share.card.god": {"es": "Llegué a Dios. Literal. 🙏", "en": "I made it to God. Literally. 🙏"},
+  "tutorial.tip.share": {"es": "¡Compartilo y te llevás un premio! Una vez por cada logro.", "en": "Share it and grab a bonus! Once per milestone."}
+}

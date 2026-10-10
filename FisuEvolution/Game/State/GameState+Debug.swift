@@ -74,6 +74,12 @@ extension GameState {
            !arguments.contains("--uitest-progressive-tabs") {
             progressiveTabsEnabled = false
         }
+        // Compartir es nuevo de la 2.0: bajo `--uitest*` no se ofrece nada salvo
+        // que el test lo pida, o el botón aparecería encima de cualquier test.
+        if arguments.contains(where: { $0.hasPrefix("--uitest") }),
+           !arguments.contains("--uitest-share") {
+            shareOffersEnabled = false
+        }
         // Las perillas que el dueño dejó puestas en el panel (PLAN-v2 E2a).
         let knobs = Self.storedEconomyKnobs(in: defaults)
         if knobs != EconomyKnobs() {
@@ -563,7 +569,9 @@ extension GameState {
         towerNotice = nil
         achievementToast = nil
         pendingAchievementToasts.removeAll()
-        shareCardSubject = nil
+        shareCardMoment = nil
+        shareOffer = nil
+        pendingShareMoment = nil
         tutorialTip = nil
         boardCelebrationShowsSomethingNew = false
         pendingBoardChanges.removeAll()

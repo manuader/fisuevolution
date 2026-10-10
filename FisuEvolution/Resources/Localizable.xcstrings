@@ -11827,6 +11827,1383 @@
           }
         }
       }
+    },
+    "visit.alien_inversion.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cash from another planet. Double with a video."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plata de otro planeta. Con video, el doble."
+          }
+        }
+      }
+    },
+    "visit.alien_inversion.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My planet is investing in your corner. We don't get the economy, but we love dulce de leche."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mi planeta invierte en tu esquina. No entendemos la economía, pero nos gusta el dulce de leche."
+          }
+        }
+      }
+    },
+    "visit.arbolito_blue.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "While the clamp lasts, cheaper ORO with no limit."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mientras dure el cepo, ORO más barato y sin tope."
+          }
+        }
+      }
+    },
+    "visit.arbolito_blue.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With the currency clamp I'm the only one who'll swap… black-market rate, don't ask!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con el cepo el único que te cambia soy yo… ¡al blue, ni preguntes!"
+          }
+        }
+      }
+    },
+    "visit.arbolito_cambio.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sells you ORO for cash. Up to %1$@ a day."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te vende ORO a cambio de plata. Hasta %1$@ por día."
+          }
+        }
+      }
+    },
+    "visit.arbolito_cambio.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exchange, exchange, exchaaange! Cash for ORO, good rate, no questions asked."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Cambio, cambio, cambiooo! Plata por ORO, buen precio, sin preguntar."
+          }
+        }
+      }
+    },
+    "visit.arca_factura.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiring %1$@ for %2$@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contratar %1$@ por %2$@."
+          }
+        }
+      }
+    },
+    "visit.arca_factura.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With a proper invoice everything's cheaper. Sign here, here and here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con factura A todo sale más barato. Firmá acá, acá y acá."
+          }
+        }
+      }
+    },
+    "visit.arca_paraiso.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay the bail and your %1$@ stays in the tower. Let him go and you're paid more than it costs to replace him."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagá la fianza y tu %1$@ sigue en la torre. Si lo dejás ir, te indemnizan más de lo que cuesta reponerlo."
+          }
+        }
+      }
+    },
+    "visit.arca_paraiso.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your %1$@ declared a studio flat and owns three Caribbean islands. He's under arrest."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Su %1$@ declaró un monoambiente y tiene tres islas en el Caribe. Queda detenido."
+          }
+        }
+      }
+    },
+    "visit.bug_reinicio.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All your boosts are ready to use again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos tus boosts quedan listos para usar."
+          }
+        }
+      }
+    },
+    "visit.bug_reinicio.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Found a bug in the Matrix: your cooldowns were reset. Don't tell anyone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encontré un bug en la Matrix: tus cooldowns se reiniciaron. Que no se entere nadie."
+          }
+        }
+      }
+    },
+    "visit.coach_reto.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ taps in %2$@ seconds: income %3$@ for %4$@. If you don't make it, it's a journey."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ toques en %2$@ segundos: ingresos %3$@ por %4$@. Si no llegás, es un proceso."
+          }
+        }
+      }
+    },
+    "visit.coach_reto.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What if the ceiling was just a limiting belief? Come on: %1$@ taps, right now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Y si el techo era una creencia limitante? Dale: %1$@ toques, ahora."
+          }
+        }
+      }
+    },
+    "visit.comisario_arresto.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay the bail and your %1$@ gets back to work. Let him go and you're paid more than it costs to replace him."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si pagás la fianza, tu %1$@ vuelve a laburar. Si lo dejás ir, te indemnizan más de lo que cuesta reponerlo."
+          }
+        }
+      }
+    },
+    "visit.comisario_arresto.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freeze! Your %1$@ is being held for %2$@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Alto! Su %1$@ queda demorado por %2$@."
+          }
+        }
+      }
+    },
+    "visit.comisario_multa.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay it and earn a productivity stamp: income %1$@ for %2$@. Or watch a video and it's forgiven."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagala y te ganás un sello de productividad: ingresos %1$@ por %2$@. O mirá un video y te la perdona."
+          }
+        }
+      }
+    },
+    "visit.comisario_multa.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excessive productivity in a public space. You have 24 hours to complain… meaning right now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exceso de productividad en vía pública. Tiene 24 horas para quejarse… o sea, ahora."
+          }
+        }
+      }
+    },
+    "visit.conductor_ruleta.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A free spin of the wheel."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un giro gratis de la ruleta."
+          }
+        }
+      }
+    },
+    "visit.conductor_ruleta.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "And now… the moment you've all been waiting for… THE WHEEL! Applause!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Y ahora… el momento que todos esperaban… LA RULETA! ¡Aplausos!"
+          }
+        }
+      }
+    },
+    "visit.contador_credito.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cash right away, no paperwork."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plata de una, sin trámite."
+          }
+        }
+      }
+    },
+    "visit.contador_credito.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I found a tax credit in a dimension you didn't even know you had."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encontré un crédito fiscal en una dimensión que ni sabías que tenías."
+          }
+        }
+      }
+    },
+    "visit.cryptobro_senal.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Income %1$@ for %2$@. With a video, it lasts twice as long."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingresos %1$@ por %2$@. Con video, dura el doble."
+          }
+        }
+      }
+    },
+    "visit.cryptobro_senal.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bro, the chart went six seven: everything's green. Cash in and don't ask how."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hermano, el gráfico hizo six seven: todo en verde. Aprovechá y no preguntes cómo."
+          }
+        }
+      }
+    },
+    "visit.influencer_codigo.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiring %1$@ for %2$@. With a video, it lasts twice as long."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contratar %1$@ por %2$@. Con video, dura el doble."
+          }
+        }
+      }
+    },
+    "visit.influencer_codigo.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guys! Use code HOBO for %1$@ on EVERYTHING. Link in bio."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Chicos! Con el código FISURA tienen %1$@ en TODO. Link en la bio."
+          }
+        }
+      }
+    },
+    "visit.influencer_novio.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takes your %1$@ and leaves you cash and a Customs Package: worth more than him."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se lleva a tu %1$@ y te deja plata y un Paquete de la Aduana: más de lo que vale."
+          }
+        }
+      }
+    },
+    "visit.influencer_novio.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I'm dating your %1$@! We're off to Tulum. I'll leave you a sponsored gift."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Me puse de novio con tu %1$@! Nos vamos a Tulum. Te dejo un canje."
+          }
+        }
+      }
+    },
+    "visit.lizard_lengua.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your taps are worth %1$@ for %2$@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus toques valen %1$@ por %2$@."
+          }
+        }
+      }
+    },
+    "visit.lizard_lengua.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yesss, I'm from around here. Tap, tap, it pays %1$@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sssí, soy de este barrio. Tocá, tocá, que te rinde %1$@."
+          }
+        }
+      }
+    },
+    "visit.ministro_subsidio.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cash for your company. Double with a video."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plata para tu empresa. Con video, el doble."
+          }
+        }
+      }
+    },
+    "visit.ministro_subsidio.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A targeted subsidy for your company. Targeted at you, yes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subsidio focalizado a tu empresa. Focalizado en vos, sí."
+          }
+        }
+      }
+    },
+    "visit.option.accept" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deal!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡De una!"
+          }
+        }
+      }
+    },
+    "visit.option.accept_video" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×2 with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "×2 con video"
+          }
+        }
+      }
+    },
+    "visit.option.card" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ con video"
+          }
+        }
+      }
+    },
+    "visit.option.exchange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swap %1$@ for %2$@ ORO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiar %1$@ por %2$@ ORO"
+          }
+        }
+      }
+    },
+    "visit.option.forgive_video" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let it slide with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perdonala con un video"
+          }
+        }
+      }
+    },
+    "visit.option.listen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spill it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contame todo"
+          }
+        }
+      }
+    },
+    "visit.option.pay_bail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay the bail · %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagar la fianza · %@"
+          }
+        }
+      }
+    },
+    "visit.option.pay_fine" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay the fine · %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagar la multa · %@"
+          }
+        }
+      }
+    },
+    "visit.option.release" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let him go · +%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Que se lo lleve · +%@"
+          }
+        }
+      }
+    },
+    "visit.option.sell" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sell · +%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vendérselo · +%@"
+          }
+        }
+      }
+    },
+    "visit.option.start_challenge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Challenge accepted!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Acepto el reto!"
+          }
+        }
+      }
+    },
+    "visit.puntero_acto.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Takes some of your %1$@ to the rally and leaves a gift bag: a Package and cash, worth more than them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se lleva unos %1$@ al acto y te deja un bolsón: un Paquete y plata, más de lo que valen."
+          }
+        }
+      }
+    },
+    "visit.puntero_acto.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I need a few guys for a rally. They'll come back with a sausage sandwich and a gift bag."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necesito unos muchachos para un acto. Vuelven con choripán y un bolsón de regalo."
+          }
+        }
+      }
+    },
+    "visit.puntero_bolson.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Customs Package. Double with a video."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un Paquete de la Aduana. Con video, el doble."
+          }
+        }
+      }
+    },
+    "visit.puntero_bolson.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Here's a gift bag. Don't ask where it came from or who sent it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te dejo un bolsón. No preguntes de dónde sale ni quién lo manda."
+          }
+        }
+      }
+    },
+    "visit.reason.alley" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "parking cars without a permit"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cuidar autos sin habilitación"
+          }
+        }
+      }
+    },
+    "visit.reason.corporate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "answering an email on a Sunday"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "responder un mail un domingo"
+          }
+        }
+      }
+    },
+    "visit.reason.galaxy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "warp speeding"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "exceso de velocidad warp"
+          }
+        }
+      }
+    },
+    "visit.reason.god_realm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "an undeclared miracle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "un milagro no declarado"
+          }
+        }
+      }
+    },
+    "visit.reason.island" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tanning without a receipt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "broncearse sin factura"
+          }
+        }
+      }
+    },
+    "visit.reason.luxury" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "parking a yacht on the sidewalk"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "estacionar el yate en la vereda"
+          }
+        }
+      }
+    },
+    "visit.reason.mars" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "stepping on red dust in white sneakers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pisar el polvo rojo con zapatillas blancas"
+          }
+        }
+      }
+    },
+    "visit.reason.moon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "casting a shadow without a lunar permit"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "hacer sombra sin permiso lunar"
+          }
+        }
+      }
+    },
+    "visit.reason.solar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "blocking the sun without a permit"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "tapar el sol sin permiso"
+          }
+        }
+      }
+    },
+    "visit.reason.urban" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "double-parking a shopping cart"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "carrito en doble fila"
+          }
+        }
+      }
+    },
+    "visit.sindicalista_asado.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Customs Package and cash for the block. Double with a video."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un Paquete de la Aduana y plata para el barrio. Con video, el doble."
+          }
+        }
+      }
+    },
+    "visit.sindicalista_asado.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barbecue at the union today. I brought a little package for the block."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy hay asado en el sindicato. Traje un paquetito para el barrio."
+          }
+        }
+      }
+    },
+    "visit.sindicalista_aumento.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Income %1$@ for %2$@. With a video, it lasts twice as long."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingresos %1$@ por %2$@. Con video, dura el doble."
+          }
+        }
+      }
+    },
+    "visit.sindicalista_aumento.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wage deal closed! Your crew gets a bonus. I'll take the applause."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Paritaria cerrada! Tus muchachos cobran un plus. Yo me llevo el aplauso."
+          }
+        }
+      }
+    },
+    "visit.turista_compra.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "He pays far more for your %1$@ than it costs to replace him."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te paga por tu %1$@ mucho más de lo que cuesta reponerlo."
+          }
+        }
+      }
+    },
+    "visit.turista_compra.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wow, very authentic! I'll pay cash for that worker. Everything's so cheap here!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Wow, very authentic! Pago cash por ese empleado. Todo es barato acá, che."
+          }
+        }
+      }
+    },
+    "visit.turista_propina.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A cash tip. Double with a video."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una propina en efectivo. Con video, el doble."
+          }
+        }
+      }
+    },
+    "visit.turista_propina.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A tip! Back home it's 20 percent. Here it's more than a salary."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Propina! En mi país es el 20 por ciento. Acá es más que un sueldo."
+          }
+        }
+      }
+    },
+    "visit.vecina_chisme.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "She tells you which event is coming and leaves you some cash."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te cuenta qué evento se viene y te deja algo de plata."
+          }
+        }
+      }
+    },
+    "visit.vecina_chisme.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What are you looking at, dummy? Go over there… oh, it's you! Did you hear? Word is something's coming… I didn't say a thing!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué mirás, bobo? Andá pa' allá… ¡ah, sos vos! ¿Viste lo que dicen? Que se viene un evento… ¡yo no dije nada!"
+          }
+        }
+      }
+    },
+    "visit.vecina_favor.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap your workers %1$@ times in %2$@ seconds and she gives you a Package. Double with a video."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá a tus empleados %1$@ veces en %2$@ segundos y te regala un Paquete. Con video, el doble."
+          }
+        }
+      }
+    },
+    "visit.vecina_favor.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sweetie, help me with the grocery bags, my back is killing me."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nene, ayudame con las bolsas del súper que me duele la cintura."
+          }
+        }
+      }
+    },
+    "visit.vendedor_ofertas.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a boost and watch a video: it's yours."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegí un boost y miralo en video: es tuyo."
+          }
+        }
+      }
+    },
+    "visit.vendedor_ofertas.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get it, get it! Fresh boosts, right out of the oven. Watch a video and it's yours."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Llevá, llevá! Boost calentito, recién salido del horno. Con video te lo regalo."
+          }
+        }
+      }
+    },
+    "visit.zombie_reto.ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ taps in %2$@ seconds: income %3$@ for %4$@. If you don't make it, nothing happens."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ toques en %2$@ segundos: ingresos %3$@ por %4$@. Si no llegás, no pasa nada."
+          }
+        }
+      }
+    },
+    "visit.zombie_reto.bubble" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haven't… slept… in… fifteen… years. Shall we… tap… %1$@… times?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No… duermo… hace… tres… quinquenios. ¿Tocamos… %1$@… veces?"
+          }
+        }
+      }
+    },
+    "visitor.npc_comisario.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Police Chief"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Comisario"
+          }
+        }
+      }
+    },
+    "visitor.npc_conductor.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The TV Host"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Conductor de TV"
+          }
+        }
+      }
+    },
+    "visitor.npc_ministro.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Economy Minister"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Ministro de Economía"
+          }
+        }
+      }
+    },
+    "visitor.npc_puntero.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Local Fixer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Puntero"
+          }
+        }
+      }
+    },
+    "visitor.npc_sindicalista.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Union Rep"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Sindicalista"
+          }
+        }
+      }
+    },
+    "visitor.npc_turista.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Gringo Tourist"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Turista Gringo"
+          }
+        }
+      }
+    },
+    "visitor.npc_vecina.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Nosy Neighbor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Vecina Chusma"
+          }
+        }
+      }
+    },
+    "visitor.npc_vendedor.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Street Vendor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Vendedor Ambulante"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

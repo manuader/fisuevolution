@@ -1,0 +1,8 @@
+{
+  "event.immune": {"es": "¡Tenés obra social! Este no te toca.", "en": "You're covered! This one doesn't touch you."},
+  "event.popup.remaining %@": {"es": "Termina en %@", "en": "Ends in %@"},
+  "event.popup.enjoy": {"es": "¡Aprovechalo mientras dura!", "en": "Make the most of it while it lasts!"},
+  "event.popup.wait": {"es": "No hay con qué zafar: aguantá, que ya pasa.", "en": "No way out of this one: hang in there, it'll pass."},
+  "hud.event.chip.ax %@": {"es": "Evento: %@", "en": "Event: %@"},
+  "tutorial.tip.event_chip": {"es": "Cada evento deja acá la cara de quien lo trajo. Tocala para ver qué cambia y cómo zafar.", "en": "Every event leaves the face of whoever brought it here. Tap it to see what changes and how to get out of it."}
+}

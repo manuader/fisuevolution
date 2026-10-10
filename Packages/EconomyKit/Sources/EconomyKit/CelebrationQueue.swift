@@ -28,8 +28,6 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     /// pisa un reveal ni un cofre. Lo que pasa después —esperar a que lo toquen—
     /// ya no ocupa la cola.
     case visitorEncounter
-    /// La franja del evento activo.
-    case eventBanner
     /// Los logros recién conseguidos. Es UN casillero para toda la tanda: la
     /// sub-cola de toasts los desfila adentro con su título cada uno.
     case achievements
@@ -55,7 +53,7 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         case .careerChoice, .cinematic: 2
         case .boardCelebration: 3
         case .skinAward, .specialDrop, .chestOpening: 4
-        case .eventBanner, .visitorEncounter: 5
+        case .visitorEncounter: 5
         case .achievements, .towerNotice: 6
         // Una lección puede esperar a todo el mundo: enseña una pantalla que
         // no se va a ir a ningún lado.
@@ -77,7 +75,6 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         // Cubre destacar el par, fundirlo, el vuelo del ascenso y el reveal.
         // En una cadena, por eslabón (`renew`).
         case .boardCelebration: 14
-        case .eventBanner: 6
         // Cubre la caminata en la pantalla más ancha (el iPad 13") con margen.
         case .visitorEncounter: 10
         // Cubre unos diez toasts seguidos; pasado eso corta y lo loguea.

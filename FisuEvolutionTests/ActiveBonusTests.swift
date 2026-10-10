@@ -57,12 +57,31 @@ struct ActiveBonusTests {
         #expect(bonuses.count == 3)
     }
 
-    @Test("el evento no entra: ya tiene su propio banner")
-    func eventsStayOutBecauseTheyHaveTheirOwnBanner() {
+    @Test("un evento sin su fuente no entra: el chip de evento necesita la cara")
+    func eventsWithoutTheirSourceStayOut() {
         let bonuses = build([modifier(source: "event.plan_platita"), modifier(source: "boost.mate")])
 
         #expect(bonuses.count == 1)
         #expect(bonuses.first?.icon == .art("ui_boost_mate"))
+    }
+
+    @Test("los modificadores de un evento son UN chip, con la cara, la polaridad y sus efectos")
+    func anEventIsOneChipWithAFace() throws {
+        let events = ["event.hiperinflacion": EventChipSource(presenterId: "npc_ministro", polarity: .mixed, duration: 60)]
+        let bonuses = ActiveBonusBuilder.bonuses(
+            from: [
+                modifier(.spawnCostMultiplier, magnitude: 2, source: "event.hiperinflacion"),
+                modifier(.incomeMultiplier, magnitude: 3, source: "event.hiperinflacion"),
+                modifier(source: "boost.fernet"),
+            ],
+            catalog: catalog, events: events, now: now
+        )
+        #expect(bonuses.count == 2)
+        let chip = try #require(bonuses.first { $0.eventId == "hiperinflacion" })
+        #expect(chip.icon == .face("npc_ministro"))
+        #expect(chip.polarity == .mixed)
+        #expect(chip.totalDuration == 60)
+        #expect(chip.effectText.contains(" · "), "los dos efectos, en el mismo chip")
     }
 
     @Test("un modificador vencido no entra")

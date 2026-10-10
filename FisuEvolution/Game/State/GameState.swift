@@ -147,8 +147,6 @@ final class GameState {
 
     // MARK: Eventos y bonus
 
-    /// Lo escribe `+Events`: el evento que arranca y el que vence.
-    var activeEvent: ActiveEvent?
     /// Lo escribe `+Actions`: el drop del merge y su descarte.
     var specialDrop: SpecialsConfig.Special?
     /// Lo escribe `+Bonus`: el daily que se reclama y su descarte.
@@ -331,9 +329,6 @@ final class GameState {
     /// Lo escribe `celebrateBoard` y lo suelta `releasePayload`, en
     /// `+Celebrations`.
     @ObservationIgnored var boardCelebrationShowsSomethingNew = false
-    /// El evento cuyo banner ya tuvo su turno. Sin esto el banner se reencolaría
-    /// para siempre: el evento sigue activo 30 s y el banner se cierra a los 6.
-    @ObservationIgnored var announcedEventID: String?
 
     // MARK: Authoritative state
 

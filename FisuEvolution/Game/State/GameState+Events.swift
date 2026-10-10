@@ -7,18 +7,6 @@ import Foundation
 /// (`meta.engagement.events`): cerrar la app ya no reinicia la espera y el
 /// background no cuenta.
 extension GameState {
-    /// El evento del banner. E4b lo reemplaza por el chip con la cara del presentador.
-    struct ActiveEvent: Equatable, Identifiable {
-        let id: String
-        let phraseKey: String
-        let polarity: EventCatalog.Polarity
-        let endsAt: TimeInterval
-        let escapes: [EventCatalog.Escape]
-    }
-
-    /// Lo que dura el banner de un evento sin duración (Aguinaldo, Startup, Blanqueo).
-    static let instantEventBannerSeconds: TimeInterval = 6
-
     /// La Startup sólo hace crecer a quien está a esta distancia de la frontera o
     /// más abajo: un evento nunca abre un tier (PLAN-v2 E13).
     static let startupTiersBelowFrontier = 2
@@ -26,7 +14,10 @@ extension GameState {
     /// Lo llama `advanceEngagement` con el delta del tick (juego activo, con tope).
     /// Durante la fase obligatoria del tutorial no corre.
     func advanceEvents(delta: TimeInterval) {
-        guard engagementAutorun, !tutorialPhaseActive, let content, var player else { return }
+        // Con un evento esperando su presentador el reloj no sortea otro: pisaría
+        // al que ya gastó su cooldown.
+        guard engagementAutorun, !tutorialPhaseActive, stageRuntime.pendingEvent == nil,
+              let content, var player else { return }
         let due = EventScheduler.advance(&player.meta.engagement.events, delta: delta, catalog: content.events)
         self.player = player
         if due { fireDueEvent(now: Date().timeIntervalSince1970) }
@@ -51,12 +42,12 @@ extension GameState {
         }
         EventScheduler.markFired(event, state: &player.meta.engagement.events, catalog: content.events, rng: &rng)
         self.player = player
-        startEvent(event, now: now)
+        presentEvent(event)
     }
 
     /// Aplica un evento: sus modificadores (`event.<id>`), su plata por `grant`, su
-    /// intención de tablero por el embudo de E1 y el anuncio. E4b lo llama cuando
-    /// el presentador llega a escena.
+    /// intención de tablero por el embudo de E1 y el anuncio. Lo llama el
+    /// presentador al llegar a escena.
     func startEvent(_ event: EventCatalog.Event, now: TimeInterval) {
         guard let content, var player, let tower else { return }
         let application = EventPlanner.apply(event, state: player, tiers: content.tiers, now: now)
@@ -84,20 +75,11 @@ extension GameState {
             }
             if let change { enqueueBoardChange(change) }
         }
-        activeEvent = ActiveEvent(
-            id: event.id, phraseKey: event.phraseKey, polarity: event.polarity,
-            endsAt: now + max(event.durationSeconds, Self.instantEventBannerSeconds), escapes: event.escapes
-        )
         audio?.play(AudioManager.accent(forEvent: event.id))
         effectsVersion += 1
         bumpBoard()
         scheduleSave()
         Log.economy.info("event fired: \(event.id)")
-    }
-
-    /// El banner se va cuando el evento termina. Lo llama `flushHUD`.
-    func expireActiveEvent(now: TimeInterval) {
-        if let active = activeEvent, now >= active.endsAt { activeEvent = nil }
     }
 
     /// Puede pasar AHORA: el Aguinaldo pide pasivo, la Startup alguien que crezca
@@ -142,6 +124,22 @@ extension GameState {
         CoinFormatter.string(from: eventFee(id: id) ?? 0)
     }
 
+    /// La salida todavía saca algo: la del video de la Hiperinflación sólo saca el
+    /// costo de contratar, y una vez usada no queda nada que sacar.
+    func escapeStillRemoves(
+        _ escape: EventCatalog.Escape, of event: EventCatalog.Event,
+        in modifiers: [ActiveModifier], now: TimeInterval
+    ) -> Bool {
+        guard let removes = escape.removes else { return true }
+        return modifiers.contains { $0.sourceKey == event.sourceKey && $0.isActive(at: now) && removes.contains($0.effect) }
+    }
+
+    /// Las salidas del popup: sólo las que todavía sirven.
+    func usableEscapes(of event: EventCatalog.Event, now: TimeInterval = Date().timeIntervalSince1970) -> [EventCatalog.Escape] {
+        let modifiers = player?.run.activeModifiers ?? []
+        return event.escapes.filter { escapeStillRemoves($0, of: event, in: modifiers, now: now) }
+    }
+
     /// Salir de un evento por una de sus salidas. La cuota se cobra; el video ya se
     /// miró (lo llama la vista al terminar); gratis es gratis.
     @discardableResult
@@ -153,7 +151,8 @@ extension GameState {
         guard let content, let event = content.events.event(id: id),
               let escape = event.escapes.first(where: { $0.kind == kind }),
               var player,
-              player.run.activeModifiers.contains(where: { $0.sourceKey == event.sourceKey && $0.isActive(at: now) })
+              player.run.activeModifiers.contains(where: { $0.sourceKey == event.sourceKey && $0.isActive(at: now) }),
+              escapeStillRemoves(escape, of: event, in: player.run.activeModifiers, now: now)
         else { return false }
         if kind == .fee {
             let fee = eventFee(id: id) ?? 0
@@ -162,9 +161,7 @@ extension GameState {
         }
         player.run.activeModifiers = EventPlanner.escape(escape, of: event, from: player.run.activeModifiers)
         self.player = player
-        if activeEvent?.id == id, !player.run.activeModifiers.contains(where: { $0.sourceKey == event.sourceKey }) {
-            activeEvent = nil
-        }
+        if eventPopup?.eventId == id, !isEventRunning(id: id, now: now) { eventPopup = nil }
         effectsVersion += 1
         refreshProjections()
         scheduleSave()
@@ -177,7 +174,7 @@ extension GameState {
         guard let content, var player else { return }
         player.run.activeModifiers = EventPlanner.cutNegatives(player.run.activeModifiers, catalog: content.events)
         self.player = player
-        if let active = activeEvent, active.polarity == .negative { activeEvent = nil }
+        if let popup = eventPopup, !isEventRunning(id: popup.eventId, now: now) { eventPopup = nil }
         effectsVersion += 1
         refreshProjections()
         scheduleSave()
@@ -206,5 +203,68 @@ extension GameState {
         self.player = player
         scheduleSave()
         return event
+    }
+
+    // MARK: El presentador
+
+    /// El evento sale con su presentador: entra a escena, lo anuncia y recién al
+    /// llegar pasa. Con el escenario ocupado espera, y ningún visitante entra antes.
+    func presentEvent(_ event: EventCatalog.Event) {
+        stageRuntime.pendingEvent = event
+        presentPendingEventIfPossible()
+    }
+
+    func presentPendingEventIfPossible() {
+        guard let event = stageRuntime.pendingEvent, canPresentOnStage else { return }
+        stageRuntime.pendingEvent = nil
+        presentOnStage(actorId: presenter(for: event), role: .presenter(eventId: event.id))
+    }
+
+    /// Uno de sus presentadores que pueda venir: un especial, sólo si lo tenés.
+    func presenter(for event: EventCatalog.Event) -> String {
+        let owned = Set(player?.meta.ownedSpecials ?? [])
+        let candidates = event.presenters.filter { id in
+            content?.visitors.visitor(id: id)?.kind == .npc || owned.contains(id)
+        }
+        return candidates.randomElement(using: &rng) ?? event.presenters.first ?? "npc_conductor"
+    }
+
+    /// La cara del chip: quien lo anunció, o el primero del dato (después de relanzar).
+    func eventPresenterId(_ event: EventCatalog.Event) -> String {
+        stageRuntime.eventPresenters[event.id] ?? event.presenters.first ?? "npc_conductor"
+    }
+
+    /// Llegó el presentador: el evento pasa ahora y él dice la frase. Si el evento
+    /// dejó de aplicar mientras caminaba, no se presenta; contra un negativo con
+    /// inmunidad (la Obra social), llega y avisa que no te toca.
+    func arrivePresenter(_ visit: inout StageVisit, eventId: String, now: TimeInterval = Date().timeIntervalSince1970) {
+        guard let content, let event = content.events.event(id: eventId), let player else { return }
+        stageRuntime.patienceLeft = content.visitors.presenterTalkSeconds
+        guard eventIsApplicable(event) else {
+            stageRuntime.patienceLeft = 0
+            return
+        }
+        if event.polarity == .negative, ModifierMath.isImmuneToEvents(player.run.activeModifiers, now: now) {
+            visit.bubble = VisitCopy.text("event.immune")
+            return
+        }
+        stageRuntime.eventPresenters[event.id] = visit.actorId
+        startEvent(event, now: now)
+        visit.bubble = VisitCopy.text(event.phraseKey)
+    }
+
+    func isEventRunning(id: String, now: TimeInterval = Date().timeIntervalSince1970) -> Bool {
+        player?.run.activeModifiers.contains { $0.sourceKey == "event.\(id)" && $0.isActive(at: now) } == true
+    }
+
+    /// El popup de un evento corriendo (su chip o su presentador).
+    func openEventPopup(id: String) {
+        guard isEventRunning(id: id) else { return }
+        eventPopup = EventPopup(eventId: id)
+        tutorialTipCompleted(.eventChip)
+    }
+
+    func closeEventPopup() {
+        eventPopup = nil
     }
 }

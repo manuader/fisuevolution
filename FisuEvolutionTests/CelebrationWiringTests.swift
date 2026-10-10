@@ -95,7 +95,6 @@ struct CelebrationWiringTests {
         case .achievements:
             #expect(gameState.achievementToast != nil || !gameState.pendingAchievementToasts.isEmpty)
         case .visitorEncounter: #expect(gameState.stageVisit?.phase == .entering)
-        case .eventBanner: #expect(gameState.activeEvent != nil)
         case .tutorialTip: #expect(gameState.tutorialTip != nil)
         case .chestOpening: #expect(gameState.chestReward != nil)
         case .cinematic: #expect(gameState.cinematic != nil)

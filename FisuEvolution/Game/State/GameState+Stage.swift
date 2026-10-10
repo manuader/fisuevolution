@@ -87,18 +87,21 @@ extension GameState {
         guard var visit = stageVisit, visit.phase == .entering else { return }
         visit.phase = .waiting
         stageRuntime.patienceLeft = content?.visitors.patienceSeconds ?? 30
+        // Ya `.waiting` en el estado ANTES de llegar: lo que `arrive` dispara
+        // (`syncCelebrations`) no tiene que ver una entrada pendiente y re-encolarla.
+        stageVisit = visit
         arrive(&visit)
         stageVisit = visit
     }
 
     /// Lo que pasa cuando alguien llega: la oferta del visitante se cotiza acá
-    /// y el evento del presentador se aplica acá (T4).
+    /// y el evento del presentador se aplica acá.
     private func arrive(_ visit: inout StageVisit) {
         switch visit.role {
         case .visitor(let scriptId):
             arriveVisitor(&visit, scriptId: scriptId)
-        case .presenter:
-            break
+        case .presenter(let eventId):
+            arrivePresenter(&visit, eventId: eventId)
         }
     }
 
@@ -107,8 +110,8 @@ extension GameState {
         switch visit.role {
         case .visitor:
             openVisitorPopup()
-        case .presenter:
-            break
+        case .presenter(let eventId):
+            openEventPopup(id: eventId)
         }
     }
 }

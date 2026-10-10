@@ -106,14 +106,6 @@ struct EventsRuntimeTests {
         #expect(modifiers.allSatisfy { $0.expiresAt == 1060 })
     }
 
-    @Test("el banner muestra el evento con sus salidas")
-    func bannerShowsTheEvent() async throws {
-        let gameState = try await game()
-        gameState.startEvent(try event("hiperinflacion", in: gameState), now: 1000)
-        #expect(gameState.activeEvent?.id == "hiperinflacion")
-        #expect(gameState.activeEvent?.escapes.map(\.kind) == [.video])
-    }
-
     @Test("la salida por video saca el evento; la de la hiperinflación, sólo el ×2 de contratar")
     func videoEscapes() async throws {
         let gameState = try await game()
@@ -193,16 +185,7 @@ struct EventsRuntimeTests {
         #expect(fired(gameState) == [peeked.id])
     }
 
-    @Test("el banner de un evento instantáneo dura sus segundos y se va")
-    func bannerLifetime() async throws {
-        let gameState = try await game()
-        gameState.startEvent(try event("aguinaldo", in: gameState), now: 100)
-        #expect(gameState.activeEvent?.endsAt == 100 + GameState.instantEventBannerSeconds)
-        gameState.expireActiveEvent(now: 100 + GameState.instantEventBannerSeconds)
-        #expect(gameState.activeEvent == nil)
-    }
-
-    @Test("resetear la partida limpia los relojes de eventos y de visitantes, y el banner")
+    @Test("resetear la partida limpia los relojes de eventos y de visitantes, y el popup")
     func debugResetClearsEngagement() async throws {
         let gameState = try await game()
         gameState.startEvent(try event("devaluacion", in: gameState), now: 1000)
@@ -211,6 +194,6 @@ struct EventsRuntimeTests {
         gameState.debugResetSave()
         #expect(gameState.player?.meta.engagement.events == .initial)
         #expect(gameState.player?.meta.engagement.visitors == .initial)
-        #expect(gameState.activeEvent == nil)
+        #expect(gameState.eventPopup == nil)
     }
 }

@@ -414,6 +414,13 @@ extension GameState {
         startEvent(event, now: Date().timeIntervalSince1970)
     }
 
+    /// Un evento con su presentador, ya mismo: lo que ve el jugador. Si hay alguien
+    /// en escena, el evento espera a que se vaya, como en el juego.
+    func debugPresentEvent(id: String) {
+        guard let event = content?.events.event(id: id) else { return }
+        presentEvent(event)
+    }
+
     /// Deja tres logros **conseguidos y sin cobrar** para poder fotografiar y
     /// ejercitar la pantalla de Logros.
     ///
@@ -575,8 +582,6 @@ extension GameState {
         skinAward = nil
         specialDrop = nil
         cinematic = nil
-        activeEvent = nil
-        announcedEventID = nil
         towerNotice = nil
         achievementToast = nil
         pendingAchievementToasts.removeAll()

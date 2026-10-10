@@ -46,7 +46,6 @@ struct BoardChangeProducersTests {
         gameState.startEvent(event, now: 1000)
         #expect(gameState.pendingBoardChanges.count == 1)
         #expect(try #require(gameState.player?.run.coins) == before)
-        #expect(gameState.activeEvent?.phraseKey == event.phraseKey)
     }
 
     @Test("el Blanqueo llega por el embudo")

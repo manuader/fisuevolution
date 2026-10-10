@@ -1,0 +1,12 @@
+{
+  "prize.package.full": {"es": "LLENO", "en": "FULL"},
+  "prize.package.ax %@": {"es": "Paquetes de la Aduana esperando: %@", "en": "Customs Packages waiting: %@"},
+  "prize.package.full.ax": {"es": "Paquete de la Aduana: no hay lugar. Fusioná para hacer lugar.", "en": "Customs Package: no room. Merge to make room."},
+  "prize.mattress.ax": {"es": "El colchón tiene plata escondida", "en": "There's cash hidden in the mattress"},
+  "mattress.title": {"es": "El Colchón", "en": "The Mattress"},
+  "mattress.pitch": {"es": "Tus empleados escondieron plata en el colchón. ¿Lo abrimos?", "en": "Your workers stashed cash in the mattress. Shall we open it?"},
+  "mattress.open": {"es": "Abrir con un video", "en": "Open with a video"},
+  "mattress.extra": {"es": "Otro colchón con un video", "en": "Another mattress with a video"},
+  "mattress.collect": {"es": "¡Guardar!", "en": "Keep it!"},
+  "mattress.odds.title": {"es": "Lo que puede haber adentro", "en": "What could be inside"}
+}

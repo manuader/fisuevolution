@@ -245,6 +245,8 @@ final class GameState {
     /// lo lee el director de lecciones: un coach-mark que señala la barra
     /// inferior no puede nacer debajo de una hoja abierta.
     @ObservationIgnored var uiCoversBoard = false
+    /// Un visitante regaló un giro: la ruleta se abre al cerrarse su popup.
+    @ObservationIgnored var wheelOpensAfterVisit = false
     /// Desde que la cola quedó vacía por última vez se fue alguna celebración grande
     /// (`CelebrationKind.endsInNaturalBreak`): al vaciarse, la cola es un corte natural.
     @ObservationIgnored var bigCelebrationSinceIdle = false
@@ -281,6 +283,12 @@ final class GameState {
     var eventPopup: EventPopup?
     /// El reto de toques en curso (`+Visitors`).
     var stageChallenge: StageChallenge?
+    /// Los accesos a paquetes, colchón y ruleta. Lo escribe `+Prizes`.
+    var prizeAccess = PrizeAccess.none
+    /// El popup del colchón (`+Prizes`).
+    var mattressPopup: MattressPopup?
+    /// La ruleta presentada sola (`+Prizes`).
+    var wheelSheet: WheelSheet?
 
     // MARK: Celebraciones
 

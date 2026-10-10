@@ -168,6 +168,7 @@ final class ScriptedAdsProvider: AdsProvider {
     /// presentar nada.
     var hasInventory = true
     private(set) var lastRewardedAttempt = RewardedAttempt.noInventory
+    private(set) var lastRewardedInterstitialAttempt = RewardedAttempt.noInventory
     /// Si es `true`, el anuncio queda en pantalla hasta `closeCurrentAd()`.
     var holdsOpen = false
     private var open: CheckedContinuation<Void, Never>?
@@ -201,6 +202,9 @@ final class ScriptedAdsProvider: AdsProvider {
     }
 
     func showRewardedInterstitial() async -> Bool {
+        lastRewardedInterstitialAttempt = .noInventory
+        guard hasInventory else { return false }
+        lastRewardedInterstitialAttempt = .presented
         await present("rewardedInterstitial")
         return earnsReward
     }

@@ -46,6 +46,7 @@ extension GameState {
             }
             expireActiveEvent(now: now)
             beatIfDue(now: now)
+            warmForcedAds()
         }
         refreshProjections()
     }

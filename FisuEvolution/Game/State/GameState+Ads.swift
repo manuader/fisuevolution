@@ -15,22 +15,28 @@ extension GameState {
     // MARK: - El contexto
 
     /// Lo que el juego sabe ahora, en los términos de la política. "Hoja
-    /// abierta" es todo lo que tapa el tablero o no se puede interrumpir: una
-    /// hoja, la ficha, la carrera, la escena inactiva, el viaje en ascensor o una
-    /// compra en curso. La celebración incluye la cinemática, que viaja por la cola.
+    /// abierta" es `isBoardBusy`: todo lo que tapa el tablero o no se puede
+    /// interrumpir. La celebración incluye la cinemática, que viaja por la cola.
     var naturalBreakContext: NaturalBreakContext {
         NaturalBreakContext(
             removedAds: player?.meta.removedAds ?? false,
             tutorialActive: tutorialPhaseActive || celebrations.allowedKinds != nil,
-            sheetOpen: uiCoversBoard || characterSheet != nil || careerPrompt != nil || stageChallenge != nil
-                || !isSceneActive || fullScreenUIActive(),
+            sheetOpen: isBoardBusy,
             celebrationActive: celebrations.current != nil,
             adOnScreen: ads?.isPresentingFullScreen ?? false,
             lastRewardedAt: ads?.lastRewardedAt,
-            // La pausa entra con su pantalla previa; hasta entonces la política
-            // sólo ve el común.
-            readyFormats: (ads?.readyForcedFormats ?? []).subtracting([.rewardedInterstitial])
+            readyFormats: ads?.readyForcedFormats ?? []
         )
+    }
+
+    /// El tablero no está a la vista o el jugador está en medio de algo: una
+    /// hoja, la ficha, la carrera, el reto de un visitante (y el popup que lo
+    /// ofrece, que entra por `uiCoversBoard`), la pantalla previa de la pausa,
+    /// la escena inactiva, el viaje en ascensor o una compra en curso. Es la
+    /// única definición: `isCalmMoment` y los cortes naturales la comparten.
+    var isBoardBusy: Bool {
+        uiCoversBoard || characterSheet != nil || careerPrompt != nil || stageChallenge != nil
+            || adBreakOffer != nil || adBreakInFlight || !isSceneActive || fullScreenUIActive()
     }
 
     // MARK: - Los cortes
@@ -71,7 +77,7 @@ extension GameState {
             holdCelebrationsForAd()
             await presentHeld(format, pacer: pacer)
         case .rewardedInterstitial:
-            break
+            presentAdBreak(pacer: pacer)
         }
     }
 
@@ -88,20 +94,90 @@ extension GameState {
         if presented { pacer.recordShown(format) }
     }
 
+    // MARK: - La pausa publicitaria
+
+    /// Cuánto antes de su corte se pide el anuncio de la pausa.
+    static let adWarmUpSeconds: TimeInterval = 60
+    /// Cada cuánto, como máximo, se reintenta pedirlo.
+    static let adWarmRetrySeconds: TimeInterval = 30
+
+    private func presentAdBreak(pacer: ForcedAdsPacer) {
+        guard adBreakOffer == nil, let content else { return }
+        let config = content.rewardedAds.effectiveAdBreak
+        guard let prize = pacer.adBreakPrize(in: config.prizes) else { return }
+        holdCelebrationsForAd()
+        adBreakOffer = AdBreakOffer(prize: prize, countdownSeconds: config.introSeconds)
+    }
+
+    /// La cuenta llegó a cero, o el jugador tocó "Ver ahora". Si la app ya no
+    /// está activa la oferta se cae sin costo: nadie la vio terminar.
+    func adBreakAccepted() async {
+        guard let offer = adBreakOffer, let ads, let pacer = ads.pacer else { return }
+        adBreakOffer = nil
+        guard isSceneActive else {
+            releaseCelebrationsAfterAd()
+            return
+        }
+        adBreakInFlight = true
+        defer { adBreakInFlight = false }
+        // La pantalla previa se va con un fundido; el anuncio entra después.
+        if ads.settleDelay > .zero {
+            try? await Task.sleep(for: ads.settleDelay)
+        }
+        let earned = await ads.showRewardedInterstitial()
+        if ads.lastRewardedInterstitialAttempt == .presented {
+            pacer.recordShown(.rewardedInterstitial)
+        }
+        releaseCelebrationsAfterAd()
+        guard earned, let content else { return }
+        grant(offer.prize, source: "adbreak")
+        pacer.advanceAdBreakPrize(count: content.rewardedAds.effectiveAdBreak.prizes.count)
+        towerNotice = TowerNotice(kind: .rewardGranted(text: RewardCopy.title(offer.prize)))
+        syncCelebrations()
+    }
+
+    /// "No, gracias": no castiga. Cuenta como el corte —la ventana de 2 min se
+    /// cierra y el turno pasa al común—, así no vuelve a ofrecerse al toque.
+    func adBreakDeclined() {
+        guard adBreakOffer != nil else { return }
+        adBreakOffer = nil
+        ads?.pacer?.recordShown(.rewardedInterstitial)
+        releaseCelebrationsAfterAd()
+    }
+
+    /// A 8 Hz desde `flushHUD`. Si a la pausa le toca y su corte se abre en
+    /// menos de `adWarmUpSeconds`, se pide su anuncio: que esté cargado cuando
+    /// llegue, sin pedir uno que no se va a mostrar (E7a: la tasa de
+    /// presentación de la unidad). El pacer limita los reintentos.
+    func warmForcedAds() {
+        guard let ads, let pacer = ads.pacer, !(player?.meta.removedAds ?? false),
+              pacer.shouldRequestAdBreakAd(leadSeconds: Self.adWarmUpSeconds, retrySeconds: Self.adWarmRetrySeconds)
+        else { return }
+        ads.preloadRewardedInterstitial()
+    }
+
+    #if DEBUG
+    /// El panel de debug: la pantalla previa ahora, con el premio de turno.
+    func debugPresentAdBreak() {
+        guard let pacer = ads?.pacer else { return }
+        presentAdBreak(pacer: pacer)
+    }
+    #endif
+
     // MARK: - La cola, quieta mientras hay un anuncio
 
     /// Nada de la cola toma el turno mientras un forzado tapa la pantalla. Se
     /// guarda la restricción que hubiera (la del tutorial) para devolverla tal
     /// cual. Retener dos veces no pisa lo guardado.
     func holdCelebrationsForAd() {
-        guard restrictionBeforeAd == nil else { return }
-        restrictionBeforeAd = .some(celebrations.allowedKinds)
+        guard case .released = celebrationHold else { return }
+        celebrationHold = .held(restoring: celebrations.allowedKinds)
         celebrations.restrict(to: [])
     }
 
     func releaseCelebrationsAfterAd() {
-        guard let previous = restrictionBeforeAd else { return }
-        restrictionBeforeAd = nil
+        guard case .held(let previous) = celebrationHold else { return }
+        celebrationHold = .released
         celebrations.restrict(to: previous)
         syncCelebrations()
     }
@@ -135,6 +211,25 @@ extension GameState {
             self?.ads?.naturalBreakTask = nil
         }
     }
+}
+
+/// La cola de celebraciones retenida por un forzado (`holdCelebrationsForAd`).
+enum CelebrationHold {
+    case released
+    /// `restoring`: la restricción que había antes (`nil` = ninguna).
+    case held(restoring: Set<CelebrationKind>?)
+
+    var isReleased: Bool {
+        if case .released = self { return true }
+        return false
+    }
+}
+
+/// La pantalla previa de la pausa publicitaria: qué se gana y cuánto falta.
+struct AdBreakOffer: Identifiable, Equatable {
+    let id = UUID()
+    let prize: RewardSpec
+    let countdownSeconds: Int
 }
 
 extension CelebrationKind {

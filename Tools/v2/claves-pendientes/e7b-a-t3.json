@@ -1,0 +1,8 @@
+{
+  "adbreak.title": {"es": "Pausa publicitaria", "en": "Ad break"},
+  "adbreak.pitch": {"es": "Un anuncio cortito y te llevás esto. Si no querés, seguí jugando: no pasa nada.", "en": "One short ad and this is yours. Not in the mood? Keep playing, no harm done."},
+  "adbreak.decline": {"es": "No, gracias", "en": "No, thanks"},
+  "adbreak.watch": {"es": "Ver ahora", "en": "Watch now"},
+  "adbreak.countdown.ax %@": {"es": "El anuncio empieza en %@ segundos", "en": "The ad starts in %@ seconds"},
+  "tower.notice.reward_granted %@": {"es": "¡Te llevaste: %@!", "en": "You got: %@!"}
+}

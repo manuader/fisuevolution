@@ -321,6 +321,37 @@ struct NaturalBreakPolicyTests {
         #expect(Self.decide(.sheetClosed, policy: policy, pacing: pacing, at: Self.t0.addingTimeInterval(299)) == .skip(.tooSoonAfterForced))
         #expect(Self.decide(.sheetClosed, policy: policy, pacing: pacing, at: Self.t0.addingTimeInterval(300)) == .show(.interstitial))
     }
+
+    @Test("cuánto falta para un intersticial: la gracia de arranque y el reloj común, el que llegue último")
+    func secondsUntilAlternatingDue() {
+        let session = AdsSession(startedAt: Self.t0, secondsAway: nil)
+        #expect(Self.policy.secondsUntilAlternatingDue(pacing: AdsPacingState(), session: session, now: Self.t0) == 180)
+        var pacing = AdsPacingState()
+        pacing.lastFullScreenAt = Self.t0.addingTimeInterval(170)
+        #expect(Self.policy.secondsUntilAlternatingDue(pacing: pacing, session: session, now: Self.t0.addingTimeInterval(200)) == 90)
+        #expect(Self.policy.secondsUntilAlternatingDue(pacing: pacing, session: session, now: Self.t0.addingTimeInterval(400)) == 0)
+    }
+
+    @Test("un estado viejo sin el premio de la pausa arranca en el primero")
+    func oldStateHasNoPrizeIndex() throws {
+        let old = try JSONDecoder().decode(AdsPacingState.self, from: Data(#"{"sessionNumber": 3}"#.utf8))
+        #expect(old.adBreakPrizeIndex == 0)
+    }
+
+    @Test("cuánto falta, en los bordes: justo en la gracia, justo en la ventana y con el reloj para atrás")
+    func secondsUntilAlternatingDueEdges() {
+        let session = AdsSession(startedAt: Self.t0, secondsAway: nil)
+        #expect(Self.policy.secondsUntilAlternatingDue(pacing: AdsPacingState(), session: session, now: Self.t0.addingTimeInterval(179)) == 1)
+        #expect(Self.policy.secondsUntilAlternatingDue(pacing: AdsPacingState(), session: session, now: Self.t0.addingTimeInterval(180)) == 0)
+        var pacing = AdsPacingState()
+        pacing.lastFullScreenAt = Self.t0.addingTimeInterval(1000)
+        let window = Self.policy.minSecondsBetweenForced
+        #expect(Self.policy.secondsUntilAlternatingDue(pacing: pacing, session: session, now: Self.t0.addingTimeInterval(1000 + window - 1)) == 1)
+        #expect(Self.policy.secondsUntilAlternatingDue(pacing: pacing, session: session, now: Self.t0.addingTimeInterval(1000 + window)) == 0)
+        pacing.lastFullScreenAt = Self.t0.addingTimeInterval(1_000_000)
+        #expect(Self.policy.secondsUntilAlternatingDue(pacing: pacing, session: session, now: Self.t0.addingTimeInterval(500)) == 0,
+                "un reloj que fue muy para atrás no frena para siempre")
+    }
 }
 
 /// El estado que sobrevive entre arranques y el pacer que lo maneja.

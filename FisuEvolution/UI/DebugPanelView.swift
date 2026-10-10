@@ -224,6 +224,13 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.visitor.call")
                 }
+                Section("Anuncios") {
+                    Button("Pausa publicitaria ahora") {
+                        gameState.debugPresentAdBreak()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.ads.adbreak")
+                }
             }
             .navigationTitle("Debug")
             .navigationBarTitleDisplayMode(.inline)

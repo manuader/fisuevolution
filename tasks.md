@@ -420,7 +420,7 @@ que toma · commit o rama · nota.
 | E3b-T6 | La oferta del atajo v2: pin, motivo, nunca `nil` | ✅ | T5; E1-T4, E1-T13 | +Hiring | `741af10`+`6255531` (integ-r14) | revisión sonnet: Approved con arreglos (la lección del atajo pide `blocker == nil`; tests de piso lleno; comentarios de RootView), hechos. **Carry a T7**: `QuickHireButton` todavía no usa `blocker` (temblor sólo con `!affordable`, label "Contratar a X", `accessibilityState` sin usar) y marca la lección al tocar aunque esté bloqueado; la oferta ya nunca es nil (el botón queda siempre) |
 | E3b-T7 | El botón del atajo nunca desaparece | ✅ | T6 | catálogo; QuickHireButton | `06990b0`+`dc08eb9` (en `v2i/integ-r15`) |; usa `blocker` (gris, "Piso lleno", temblor; la lección sólo con blocker nil); long press 0,45 s → `onChoose` (lo pasa T8 desde RootView); la bandera la baja un DragGesture 250 ms tras soltar; UI QuickHireButton 3, Tutorial 6, BottomMenu verdes |
 | E3b-T8 | El selector del atajo | ✅ | T7, T4 | 🔥 RootView, catálogo; DebugPanelView | `42c61f0` (en `v2i/integ-r21b`) | `QuickHirePicker` overlay anclado a `resolved[.quickHire]` junto al `TutorialOverlay`; `QuickHireButton(onChoose:)` cableado; sección «Atajo» en el panel de debug; Receta R 16 Pro: QuickHire 3/3, QuickHireButton 3/3 (2 ajustados: el selector tapa el atajo), BottomMenu 4/4, Tutorial 9/9; sin oráculo `tarea` (sin unit nuevo); diff de `RootView` leído; +3 claves. Destraba a E3b T9 y a E4b T3 |
-| E3b-T9 | Compartir recableado (y cierre de E3) | 🔄 | T8; E1-T16 | 🔥 GameState, +Bonus, RootView, catálogo; +BoardChanges, +Debug, ContentConfigs, EngagementState | | su `sharedMoments` lo esperan E4a T3 y E5a T4 |
+| E3b-T9 | Compartir recableado (y cierre de E3) | 🟢 | T8; E1-T16 | 🔥 GameState, +Bonus, RootView, catálogo; +BoardChanges, +Debug, ContentConfigs, EngagementState | `2189a09`+`c8af0ca` (en `v2i/integ-r22`) | su `sharedMoments` lo esperan E4a T3 y E5a T4 ; rev. opus: arreglos hechos (lifetimeEarnings, comentario de BoardScene, la X cierra la lección); **al dueño:** la oferta descartada se pierde; puede gastar sus 10 s detrás del intersticial de `celebrationsDrained` (→ E7b-a T3); el premio de reencarnación es casi nulo |
 
 ### E2a — Mecánicas de economía (`2026-10-07-v2-e2a-mecanicas.md`)
 
@@ -448,7 +448,7 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E4a-T1 | `RewardSpec` | ✅ | — | — | `8d0a311` (merge `bba9e39`) | EK; cimiento de E5–E7 |
 | E4a-T2 | Efectos nuevos: paro, inmunidad, ritmo de paquetes | ✅ | E1-T13, E1-T15 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | `a031ee8` (merge, claves `8cf4e73`) | paro, inmunidad, ritmo de paquetes |
-| E4a-T3 | Los relojes en `meta.engagement` | ⛔ | E1-T4, E3b-T9 | EngagementState | | (ambigua: ver "Inconsistencias", punto 3) |
+| E4a-T3 | Los relojes en `meta.engagement` | ⏳ | E1-T4, E3b-T9 | EngagementState | | (ambigua: ver "Inconsistencias", punto 3) |
 | E4a-T4 | El motor de eventos v2 (EK) | ⛔ | T1, T2, T3 | — | | |
 | E4a-T5 | Los visitantes, puros | ⛔ | T1, T3 | — | | |
 | E4a-T6 | `VisitPlanner` | ⛔ | T5; E1-T7, E1-T14 | BoardChange.swift, +BoardChanges | | |

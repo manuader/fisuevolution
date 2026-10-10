@@ -7315,6 +7315,91 @@
         }
       }
     },
+    "share.card.floor %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I opened %@ and you're still in the alley 💀"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrí %@ y vos seguís en el callejón 💀"
+          }
+        }
+      }
+    },
+    "share.card.god" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I made it to God. Literally. 🙏"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Llegué a Dios. Literal. 🙏"
+          }
+        }
+      }
+    },
+    "share.card.reincarnation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Started over, but loaded 😎"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volví a empezar, pero con plata 😎"
+          }
+        }
+      }
+    },
+    "share.card.reincarnation.title %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reincarnation %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reencarnación %@"
+          }
+        }
+      }
+    },
+    "share.offer %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share it! +%@ min"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Compartilo! +%@ min"
+          }
+        }
+      }
+    },
     "share.skip" : {
       "localizations" : {
         "en" : {
@@ -11112,6 +11197,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Este botón contrata al mejor que tengas habilitado, sin abrir nada. Probalo."
+          }
+        }
+      }
+    },
+    "tutorial.tip.share" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share it and grab a bonus! Once per milestone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Compartilo y te llevás un premio! Una vez por cada logro."
           }
         }
       }

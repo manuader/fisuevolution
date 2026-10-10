@@ -600,8 +600,12 @@ public struct MetaState: Codable, Sendable, Equatable {
         )
     }
 
-    /// Todas las skins que el jugador posee (IAP ∪ milestones).
-    public var allOwnedSkins: Set<String> { Set(ownedSkins).union(milestoneSkins) }
+    /// Todas las skins que el jugador posee: IAP ∪ milestones ∪ compradas con ORO.
+    /// Las de ORO viven en `engagement.shop` porque `ownedSkins` es la caché de
+    /// StoreKit y se reescribe entera en cada sincronización.
+    public var allOwnedSkins: Set<String> {
+        Set(ownedSkins).union(milestoneSkins).union(engagement.shop.skins)
+    }
 }
 
 /// The complete player save (schema v6): un sobre con dos secciones —`run`

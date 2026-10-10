@@ -230,6 +230,17 @@ struct CharacterSheetView: View {
                 Task { await store.purchase(product) }
             }
         }
+        if let skin = selected.skin, let price = gameState.content?.skins.oroPrice(of: skin.id) {
+            PricePill(
+                text: String(price),
+                currency: .oro,
+                affordable: (gameState.player?.meta.oro ?? 0) >= price,
+                identifier: "character.skin.buyOro",
+                accessibilityPurpose: Text("skins.buy.ax \(skinName(selected))")
+            ) {
+                gameState.buySkinWithOro(skinID: skin.id)
+            }
+        }
     }
 
     // MARK: Despedir
@@ -291,6 +302,7 @@ struct CharacterSheetView: View {
             return String(localized: "character.skin.reach-floor \(gameState.floorDisplayName(for: floor))")
         }
         if let lives = skin.reincarnations { return String(localized: "character.skin.reincarnations \(String(lives))") }
+        if gameState.content?.skins.oroPrice(of: skin.id) != nil { return String(localized: "character.skin.oro_shop") }
         return String(localized: "character.skin.store")
     }
 

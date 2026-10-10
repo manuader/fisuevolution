@@ -53,7 +53,8 @@ extension GameState {
 
     /// Milestones no dependen de la escena: cualquier unlock/reencarnación que
     /// actualice el estado de torre acredita una vez en MetaState. StoreKit usa
-    /// `ownedSkins` aparte y por eso esta unión nunca borra una compra.
+    /// `ownedSkins` aparte y las compradas con ORO viven en `engagement.shop.skins`,
+    /// así que esta unión (milestone ∪ ORO ∪ IAP) nunca borra una compra.
     private func awardEligibleMilestoneSkins() {
         guard let content, var player else { return }
         // Las skins de oro no se venden: la única vía es tener las siete líneas

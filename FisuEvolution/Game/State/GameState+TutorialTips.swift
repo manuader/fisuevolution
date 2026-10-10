@@ -180,7 +180,7 @@ extension GameState {
         case .skins:
             // "Tener una pinta que ponerse", literal — que es la regla de oro
             // aplicada a esta pantalla. La proyección publica `allOwnedSkins`
-            // (tienda ∪ milestone) y el cofre acredita en `milestoneSkins`, así
+            // (tienda ∪ milestone ∪ ORO) y el cofre acredita en `milestoneSkins`, así
             // que el de bienvenida la enciende apenas se abre, y el carrusel
             // muestra a su dueño aunque el jugador todavía no lo haya conocido
             // (`skinnableTypes` incluye a los personajes con pinta).

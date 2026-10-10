@@ -30,6 +30,16 @@ public struct EngagementState: Codable, Sendable, Equatable {
     /// La ruleta: el día de los cupos, lo usado y los giros regalados (PLAN-v2 E5).
     public var wheel: WheelState
 
+    /// La tienda de ORO: topes del día, permanentes, ×3 pendientes y pintas de ORO (PLAN-v2 E6).
+    public var shop: ShopState
+
+    /// Las ofertas de 24 h (PLAN-v2 E6).
+    public var offers: OffersState
+
+    /// El día del primer arranque con la 2.0 ("yyyy-MM-dd"). Para un veterano de la
+    /// v1 es el día que actualizó: la oferta de Bienvenida es del 2º día (PLAN-v2 E6).
+    public var firstLaunchDay: String?
+
     public init(
         seenCinematics: [String: Int] = [:],
         sharedMoments: Set<String> = [],
@@ -37,7 +47,10 @@ public struct EngagementState: Codable, Sendable, Equatable {
         events: EventsState = .initial,
         packages: PackagesState = .initial,
         treasures: TreasuresState = .initial,
-        wheel: WheelState = .initial
+        wheel: WheelState = .initial,
+        shop: ShopState = .initial,
+        offers: OffersState = .initial,
+        firstLaunchDay: String? = nil
     ) {
         self.seenCinematics = seenCinematics
         self.sharedMoments = sharedMoments
@@ -46,6 +59,9 @@ public struct EngagementState: Codable, Sendable, Equatable {
         self.packages = packages
         self.treasures = treasures
         self.wheel = wheel
+        self.shop = shop
+        self.offers = offers
+        self.firstLaunchDay = firstLaunchDay
     }
 
     public init(from decoder: Decoder) throws {
@@ -57,6 +73,9 @@ public struct EngagementState: Codable, Sendable, Equatable {
         packages = try container.decodeIfPresent(PackagesState.self, forKey: .packages) ?? .initial
         treasures = try container.decodeIfPresent(TreasuresState.self, forKey: .treasures) ?? .initial
         wheel = try container.decodeIfPresent(WheelState.self, forKey: .wheel) ?? .initial
+        shop = try container.decodeIfPresent(ShopState.self, forKey: .shop) ?? .initial
+        offers = try container.decodeIfPresent(OffersState.self, forKey: .offers) ?? .initial
+        firstLaunchDay = try container.decodeIfPresent(String.self, forKey: .firstLaunchDay)
     }
 
     public mutating func recordCinematic(_ id: String) {
@@ -74,6 +93,10 @@ public struct EngagementState: Codable, Sendable, Equatable {
         resolved.events = EventsState.resolve(winner: winner.events, loser: loser.events)
         // El buzón y el colchón son relojes y una cuenta: unirlos fabricaría paquetes. Viajan con el ganador.
         resolved.wheel = WheelState.resolve(winner: winner.wheel, loser: loser.wheel)
+        // Lo comprado no retrocede y una oferta cerrada en un dispositivo no sigue abierta en el otro.
+        resolved.shop = ShopState.resolve(winner: winner.shop, loser: loser.shop)
+        resolved.offers = OffersState.resolve(winner: winner.offers, loser: loser.offers)
+        resolved.firstLaunchDay = [winner.firstLaunchDay, loser.firstLaunchDay].compactMap { $0 }.min()
         return resolved
     }
 }

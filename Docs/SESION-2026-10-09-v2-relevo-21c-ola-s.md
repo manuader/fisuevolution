@@ -11,7 +11,7 @@ manuales (`worktrees.nosync/v2i-<tarea>`); revisión opus para E8b T8, E7b-a T2,
 |---|---|
 | `version-2` | la punta de `c7f0330` tras su `rapido` VERDE (fast-forward y push; progreso 150 de 254) |
 | `v2i/integ-r21c` | **`f830217`**: suma E13 T13 y E12 T14 (🟢 las dos) sobre `c7f0330` |
-| `rapido` sobre `f830217` | RAPIDO_PENDIENTE |
+| `rapido` sobre `f830217` | VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0) |
 | Progreso | **150 de 254 en `version-2` (59,1 %)**; **152 de 254 (59,8 %)** si el `rapido` sobre `f830217` da VERDE (`tasks.md` §2) |
 | Bloqueadas | ninguna nueva. E7b-a T3 sigue ⛔ por sus dependencias y es **bloqueo de publicación** (ver «Carries») |
 
@@ -139,7 +139,7 @@ Sólo el par growth+refund y el amortiguador mueven el simulador; pisos en march
 
 ## Oráculo
 
-- `rapido` sobre la punta de `integ-r21c` (`f830217`: todo lo de arriba): RAPIDO_PENDIENTE.
+- `rapido` sobre la punta de `integ-r21c` (`f830217`: todo lo de arriba): VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0).
 - `completo` de los cierres sobre `0383a1d`: EK 642 · unit 1070 · store 16 · Release 0 · ui 96/4/4 (los 4 rojos de `LocalizationLayoutUITests` se corrigieron;
   `BonusHUD…Regalos` se arregló en `91d0187`; `RankingTabUITests.testSeDeslizaHastaElRankingDesdeMejoras` flaky 6/6 aislado) · store-ui 2 · ipad-ui 4 · pipeline 89.
 

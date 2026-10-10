@@ -22,7 +22,7 @@
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
 > 21c, la tercera tanda de la misma sesión, tras el «continua» del dueño): `version-2` = la punta de **`c7f0330`** tras su `rapido` VERDE (EK 651 · unit 1117 ·
-> 0 rojos · Release 0) · la rama de integración `v2i/integ-r21c` = **`f830217`** + estos docs (`rapido` sobre `f830217`: RAPIDO_PENDIENTE). Están E0, E10 en papel,
+> 0 rojos · Release 0) · la rama de integración `v2i/integ-r21c` = **`f830217`** + estos docs (`rapido` sobre `f830217`: VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0)). Están E0, E10 en papel,
 > E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a S: **las cinemáticas con su overlay** (E8b T8, T9, T10 y la intro de E8d T11), **los cortes
 > naturales de anuncios y el app open al volver** (E7b-a T2 y T4), **los cuatro cierres** (E11 T7, E2a T15, E8c T10, E3a T12), reencarnar conserva los pasivos
 > detrás de una perilla apagada (E2b T2), las mejoras con su efecto de antes a después (E13 T13) y, en `integ-r21c`, la tarjeta del nombre al llegar a Dios
@@ -351,7 +351,7 @@ Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
 
 ### Sesión del 2026-10-09 (relevo 21c) — La ola S: las cinemáticas con overlay, los cortes naturales de anuncios y los cuatro cierres
 
-Tercera tanda de la misma sesión («continua» del dueño). Todo en `v2i/integ-r21c` (`f830217`; `rapido`: RAPIDO_PENDIENTE). **Progreso: 150 de 254 en `version-2`; 152 de 254 (59,8 %) con las dos 🟢.**
+Tercera tanda de la misma sesión («continua» del dueño). Todo en `v2i/integ-r21c` (`f830217`; `rapido`: VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0)). **Progreso: 150 de 254 en `version-2`; 152 de 254 (59,8 %) con las dos 🟢.**
 
 - **Cinemáticas:** E8b T8 (`CelebrationQueue .cinematic`, watchdog 12 s), T9 (overlay a pantalla completa, lease `fullscreen`, ducking, sólo «Saltar»), T10 (reencarnación
   y Dios la disparan; `reconcileCinematics` re-encola Dios tras una muerte de la app) y E8d T11 (la intro sale en **partida nueva**).

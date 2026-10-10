@@ -9,7 +9,7 @@
 > **Foto:** 2026-10-09, cierre del relevo 21c (la tercera tanda de la misma sesión, tras el «continua» del dueño).
 > `version-2` = la punta de `c7f0330` (`rapido` VERDE: EK 651 · unit 1117 · 0 rojos · Release 0; suma E8b T8/T9/T10, E7b-a T2/T4, E8d T11, E2b T2 y los cierres
 > E11 T7, E2a T15, E8c T10 y E3a T12, todas ✅). `v2i/integ-r21c` = `f830217` + los docs del cierre (suma E13 T13 y E12 T14, 🟢 las dos; `rapido` sobre `f830217`:
-> RAPIDO_PENDIENTE). **Progreso: 150 de 254 en `version-2`; 152 con las dos 🟢.** **No publicar E7b-a T2 sin E7b-a T3.**
+> VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0)). **Progreso: 150 de 254 en `version-2`; 152 con las dos 🟢.** **No publicar E7b-a T2 sin E7b-a T3.**
 > El último `completo` de referencia es el de los cierres, sobre `0383a1d`. Detalle en `Docs/SESION-2026-10-09-v2-relevo-21c-ola-s.md`.
 > **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
 > Si un ledger dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
@@ -83,7 +83,7 @@
 
 ## 2. Progreso
 
-**Hoy: 150 de 254 tareas activas integradas en `version-2` (59,1 %), con el `rapido` VERDE sobre `c7f0330` (EK 651 · unit 1117 · 0 rojos · Release 0); 152 de 254 (59,8 %) con las dos 🟢 de `integ-r21c` (E13 T13 y E12 T14), si el `rapido` sobre `f830217` da VERDE (RAPIDO_PENDIENTE).** El relevo 21c sumó E8b T8, T9 y T10, E7b-a T2 y T4, E8d T11, E2b T2 y los cuatro cierres (E11 T7, E2a T15, E8c T10, E3a T12) a ✅. La lista de palabras de E12 se activó en el relevo 21b pero no es una tarea (gate de §6 cerrado). 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
+**Hoy: 150 de 254 tareas activas integradas en `version-2` (59,1 %), con el `rapido` VERDE sobre `c7f0330` (EK 651 · unit 1117 · 0 rojos · Release 0); 152 de 254 (59,8 %) con las dos 🟢 de `integ-r21c` (E13 T13 y E12 T14), si el `rapido` sobre `f830217` da VERDE (VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0)).** El relevo 21c sumó E8b T8, T9 y T10, E7b-a T2 y T4, E8d T11, E2b T2 y los cuatro cierres (E11 T7, E2a T15, E8c T10, E3a T12) a ✅. La lista de palabras de E12 se activó en el relevo 21b pero no es una tarea (gate de §6 cerrado). 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
 seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 5 (E3b T9, E12 T15, E6b T9, E8 T10 y E13b T11, destrabadas por el script de dependencias en el 21c). E12 T12 está ⛔, E12 T16 🔒 y E7b-a T3 ⛔ (bloqueo de publicación, §4.2).
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
@@ -209,7 +209,7 @@ partirlo.
 
 | # | Qué | Nota |
 |---|---|---|
-| 1 | **`rapido` sobre `v2i/integ-r21c` (`f830217`) con los docs del cierre**, si no quedó hecho. Resultado del relevo 21c: RAPIDO_PENDIENTE | Con VERDE: fast-forward de `version-2` (hoy la punta de `c7f0330`) a la punta con los docs, y push (E13 T13 y E12 T14 pasan a ✅: 152 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. **Lanzarlo con `bash <ruta absoluta del worktree que querés verificar>/Tools/v2/oraculo.sh rapido`** (el oráculo usa el repo de su propia ruta, no el `cwd`), con la carga baja (**con carga > 200 y dos agentes compilando excede el tope**) y esperarlo por PID (`$!`) o por la última línea del log, no con `pgrep -f` |
+| 1 | **`rapido` sobre `v2i/integ-r21c` (`f830217`) con los docs del cierre**, si no quedó hecho. Resultado del relevo 21c: VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0) | Con VERDE: fast-forward de `version-2` (hoy la punta de `c7f0330`) a la punta con los docs, y push (E13 T13 y E12 T14 pasan a ✅: 152 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. **Lanzarlo con `bash <ruta absoluta del worktree que querés verificar>/Tools/v2/oraculo.sh rapido`** (el oráculo usa el repo de su propia ruta, no el `cwd`), con la carga baja (**con carga > 200 y dos agentes compilando excede el tope**) y esperarlo por PID (`$!`) o por la última línea del log, no con `pgrep -f` |
 | 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 21c vio 1,8 → 4 → 52 → 392 → 337 → 61. Con carga > 200: **no más de 2 compilando** (el `rapido` cuenta); con carga ~100, 3. Con carga > 400 un `tarea` tarda ~11 min. `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y esperas por PID (**`timeout` no existe en esta máquina**). **El latido es un script con `sleep 30` y escritura por reloj.** **Nunca `pkill -f`**: sólo `kill <PID>` propio; los simuladores `oraculo-*` se borran por UDID propio. Un agente con una espera de fondo puede re-entregar el mismo reporte: no hace falta `TaskStop` si `ps` no muestra procesos suyos |
 | 3 | Leer `DUENO.md` entero por pendientes nuevos | **El clasificador del modo auto no deja escribir en `DUENO.md`** (ni las aprobaciones del chat): las decisiones del dueño del 21b (E13 T7 opción a, barra de seis con platos de 44 pt, E13 T2 tal cual, lista de palabras, cable del ascensor) están en el journal, en los SESION y acá; **no las re-preguntes**. La mediación por SPM espera al dueño. Los worktrees `v2-e12-plan`, `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
 | 4 | Barrer los worktrees `v2i-*` que queden con `limpiar-worktrees.sh` | sólo `v2i-*`, nunca `v2-*`; todo en GitHub antes; nunca `--force`; **con el shell fuera del worktree**. Quedan `v2i-integ-r21c` y `v2i-docs-r21c` (y los anteriores si no se barrieron) |
@@ -711,7 +711,7 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T11 | Los ganchos en `GameState` | ✅ | T8, T10 | 🔥 GameState (una línea); +Celebrations, +Lifecycle, +BoardChanges, +Bootstrap, +Debug, FisuEvolutionApp | | sonnet, **rev. opus**; ventana libre de `GameState.swift` |
 | E12-T12 | El reset abre un intento nuevo | ⛔ | T11; E9b-T7, E9b-T8 | ResetPlan, +Reset | | sonnet, rev. opus |
 | E12-T13 | La 7.ª pestaña montada | ✅ | T9b, T11; E3b-T4, E3a-T11 | 🔥 RootView, catálogo; GameArtComponents, BottomMenuBar, MenuPagerView, TabUnlocks, tabs.json, +Tabs | | sonnet; captura SE (plan B: tarjeta en la Oficina); **destrabada (r20):** E3b T4 🟢 y E3a T11 ✅; dueña de `RootView` (no ∥ E3b T8, E7b-a T2) |
-| E12-T14 | La tarjeta de Dios montada | 🟢 | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
+| E12-T14 | La tarjeta de Dios montada | ✅ | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
 | E12-T15 | Privacidad, Términos y notas a App Review | ⏳ | T11 | PrivacyInfo.xcprivacy, Legal | | sonnet; insumo de E10 |
 | E12-T16 | Despliegue real y humo | 🔒 | T5, T14 | — | | Supabase (URL + anon), `ANTHROPIC_API_KEY`, lista aprobada |
 | E12-T17 | El piso calibrado | ⛔ | T16; E2b-T14 | — | | controlador; no frena el cierre |
@@ -738,7 +738,7 @@ E2b**; 4, 5 y 8–12 son UI chica en paralelo respetando §3.1.
 | E13-T10 | FisuJobs por pisos | ✅ | T8 | FisuJobsView | `54c5648` (integ-r19) | revisión ninguna; `JobGroups` testeable; **hecha (r19):** `GameState.floorDisplayName(for:)` → "Piso ???" también en la ficha y la tienda de pintas (cierra el carry de E13 T8); cartel del LED `TowerNaming.ledText`; el orden es el de `jobRows`; sin receta R ni captura SE con tres pisos |
 | E13-T11 | La moneda sobre quien genera plata | ✅ | — | 🔥 BoardScene; CharacterNode, BoardReconciliation, +Actions | `17b29fb` (integ-r18) | no ∥ T9 (+Actions); un nodo por personaje, sin animación |
 | E13-T12 | El Diamante dice "Pack de las 43" | ✅ | — | catálogo (snapshot); +Store, CustomizationView | `221f9b6`+`ff3b1ef` (integ-r18; catálogo +1) | revisión ninguna; +Store es tibio de E6b T4/T5 |
-| E13-T13 | Las mejoras dicen su efecto, de antes a después | 🟢 | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |
+| E13-T13 | Las mejoras dicen su efecto, de antes a después | ✅ | T7 | catálogo (snapshot); +Upgrades, EffectDescriptor, UpgradesView | | no ∥ T9 (UpgradesView) |
 | E13-T14 | Cierre de E13 (controlador) | ⛔ | T2–T13 | `Docs/` | | `completo`; HANDOFF §5.7 "las seis" |
 | P-E13b | Plan de E13 ítems 13–14 (ascensor y barra) | ✅ | — | — | `2560366` (merge `f395ac2`) | 11 tareas (T1–T11); `2026-10-08-v2-e13b-ascensor-barra.md`; 14 dudas con default; **no toca RootView ni GameState** |
 | E13b-T1 | El director del viaje en cabina y sus tiempos (≤ 3 s, nunca menos que el vuelo) | ✅ | — | nuevos (`UI/Elevator/ElevatorRide.swift`) | `8b090d4` | sonnet; ola 1 |

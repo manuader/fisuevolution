@@ -274,4 +274,20 @@ struct TutorialTipsTests {
         gameState.tutorialTipHandled(opening: .menu)
         #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.album.defaultsKey))
     }
+
+    @Test("la primera visita enseña el chip, y abrir su popup la cumple")
+    func theFirstVisitorTeachesTheChip() async throws {
+        let gameState = await makeGameState()
+        gameState.debugUnlockFloors(throughTier: 2)
+        let script = try #require(gameState.content?.visitors.script(id: "turista_propina"))
+        gameState.presentVisitor(script)
+        gameState.stageActorArrived(id: try #require(gameState.stageVisit?.id))
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .visitor)
+        #expect(gameState.showing == .tutorialTip)
+        gameState.openVisitorPopup()
+        #expect(gameState.visitorPopup != nil)
+        #expect(gameState.showing != .tutorialTip)
+        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.visitor.defaultsKey))
+    }
 }

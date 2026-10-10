@@ -23,6 +23,7 @@ import Testing
         "error", "rare", "prestige", "daily",
         "chestShakeA", "chestShakeB", "revealWhoosh",
         "mergeAllDone", "wheelTick",
+        "visitorArrive", "talkBlip",
     ]
 
     /// Los efectos sintetizados que todavía no tienen call site, con la tarea
@@ -30,7 +31,6 @@ import Testing
     private static let pendingWiring: [String: String] = [
         "packageRattle": "E5b T3", "packageTapeRip": "E5b T3", "packageBurst": "E5b T3",
         "mattressSqueak": "E5b T2", "mattressRip": "E5b T2", "cashBurst": "E5b T2",
-        "visitorArrive": "E4b T3", "talkBlip": "E4b T3",
         "shopShimmer": "E6a T8",
     ]
 

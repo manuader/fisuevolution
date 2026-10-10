@@ -72,6 +72,7 @@ extension GameState {
     /// reto corre con el delta del juego activo (`challengeClock`): vence antes
     /// de la puerta de la paciencia. `now` fija el reloj, para los tests.
     func advanceStage(delta: TimeInterval, now: TimeInterval? = nil) {
+        blipIfBubbleChanged()
         if let now { stageRuntime.challengeClock = now } else if stageChallenge != nil { stageRuntime.challengeClock += delta }
         if let challenge = stageChallenge, stageRuntime.challengeClock >= challenge.endsAt {
             finishChallenge(won: false, now: stageRuntime.challengeClock)
@@ -83,8 +84,20 @@ extension GameState {
         if stageRuntime.patienceLeft <= 0 { sendStageActorAway() }
     }
 
+    /// Un blip con la voz del que habla cada vez que el globo cambia a un texto.
+    private func blipIfBubbleChanged() {
+        guard let visit = stageVisit, visit.phase == .waiting, let text = visit.bubble, !text.isEmpty else {
+            stageRuntime.lastBlipText = nil
+            return
+        }
+        guard stageRuntime.lastBlipText != text else { return }
+        stageRuntime.lastBlipText = text
+        audio?.play(.talkBlip, gain: .action, pitch: AudioManager.talkPitch(for: visit.actorId))
+    }
+
     private func completeArrival() {
         guard var visit = stageVisit, visit.phase == .entering else { return }
+        audio?.play(.visitorArrive, gain: .action)
         visit.phase = .waiting
         stageRuntime.patienceLeft = content?.visitors.patienceSeconds ?? 30
         // Ya `.waiting` en el estado ANTES de llegar: lo que `arrive` dispara

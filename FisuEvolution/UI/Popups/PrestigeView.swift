@@ -55,6 +55,10 @@ struct PrestigeView: View {
                             "prestige.keeps \(preview.multiplierAfterText)",
                             systemImage: "sparkles"
                         )
+                        if let inherited = preview.inheritedPassivesText {
+                            Label(inherited, systemImage: "figure.walk")
+                                .accessibilityIdentifier("prestige.inherited")
+                        }
                     }
                     .font(.system(.footnote, design: .rounded).weight(.semibold))
                     .foregroundStyle(Color("PaletteInk"))

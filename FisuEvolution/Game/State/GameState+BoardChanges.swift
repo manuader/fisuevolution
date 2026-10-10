@@ -30,6 +30,13 @@ extension GameState {
         return plan.count
     }
 
+    /// Hay un "Fusionar todo" (por video o por ORO) encolado o en vuelo: todo
+    /// plan suyo lleva `chain`. El plan mira el tablero sin lo ya encolado: con
+    /// una fusión pendiente volvería a ver los mismos pares y los cobraría de nuevo.
+    var mergeAllIsQueued: Bool {
+        (pendingBoardChanges + [inFlightBoardChange].compactMap { $0 }).contains { $0.chain != nil }
+    }
+
     func floorOrdinal(of change: BoardChange) -> Int? {
         guard let content else { return nil }
         return change.floorOrdinal(floorTable: content.floorTable, tiers: content.tiers)

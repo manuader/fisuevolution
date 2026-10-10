@@ -24,14 +24,6 @@ extension GameState {
         if sideRail != state { sideRail = state }
     }
 
-    /// Hay un "Fusionar todo" (por video, por ORO o en cadena) encolado o en
-    /// vuelo. El plan mira el tablero sin lo ya encolado: con una fusión
-    /// pendiente volvería a ver los mismos pares y los cobraría de nuevo.
-    var mergeAllIsQueued: Bool {
-        (pendingBoardChanges + [inFlightBoardChange].compactMap { $0 })
-            .contains { $0.origin == .oroShop || $0.origin == .rewardedMergeAll || $0.chain != nil }
-    }
-
     /// Cuántas fusiones encolaría "Fusionar todo" ahora: el mismo plan que se
     /// ejecuta (lo que se muestra es lo que se aplica).
     func mergeAllPairsOnVisibleFloor() -> Int {
@@ -80,6 +72,6 @@ extension GameState {
 
     private func cooldownRemaining(key: String, seconds: Double, now: TimeInterval) -> Double {
         let last = player?.meta.rewardedActivations[key] ?? -.infinity
-        return max(0, seconds - (now - last))
+        return min(seconds, max(0, seconds - (now - last)))
     }
 }

@@ -101,6 +101,39 @@ struct SideRailProjectionTests {
         #expect(gameState.towerNotice == nil)
     }
 
+    @Test("un video de Fusionar todo con otro ya en la cola no tiene efecto: compensa y no toca la cola")
+    func rewardedMergeAllWithQueuedChainCompensates() async throws {
+        let gameState = await gameStateWithPairs()
+        gameState.enqueueMergeAll(onFloor: gameState.visibleFloorOrdinal, origin: .oroShop)
+        let queued = gameState.pendingBoardChanges
+        let coins = try #require(gameState.player?.run.coins)
+        gameState.applyRewardedReward(rewardId: "merge_all")
+        #expect(try #require(gameState.player?.run.coins) > coins)
+        guard case .rewardCompensated? = gameState.towerNotice?.kind else {
+            Issue.record("no hubo compensación")
+            return
+        }
+        #expect(gameState.pendingBoardChanges == queued)
+    }
+
+    @Test("un reloj atrasado no infla el enfriamiento más allá de su tope")
+    func backwardsClockIsCapped() async throws {
+        let gameState = await gameStateWithPairs()
+        let now = Date().timeIntervalSince1970
+        gameState.player?.meta.rewardedActivations[GameState.mergeAllVideoKey] = now + 100_000
+        gameState.refreshSideRail(now: now)
+        let rail = try #require(gameState.content?.rewardedAds.effectiveSideRail)
+        #expect(gameState.sideRail.status(of: .boost) == .waiting(seconds: Int(rail.mergeAllCooldownSeconds)))
+    }
+
+    @Test("un rewarded_ads.json sin sideRail usa el default")
+    func missingSectionUsesDefault() throws {
+        let json = #"{"schemaVersion": 2, "compensationSeconds": 180, "rewards": []}"#
+        let config = try JSONDecoder().decode(RewardedAdsConfig.self, from: Data(json.utf8))
+        #expect(config.sideRail == nil)
+        #expect(config.effectiveSideRail == .default)
+    }
+
     @Test("el reloj de la ruleta va hasta la medianoche local")
     func wheelClock() throws {
         var calendar = Calendar(identifier: .gregorian)

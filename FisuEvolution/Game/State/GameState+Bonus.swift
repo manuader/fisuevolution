@@ -93,6 +93,7 @@ extension GameState {
         case .incomeMultiplier, .skinChest:
             return nil
         case .mergeAll:
+            if mergeAllIsQueued { return String(localized: "ads.unavailable.merge") }
             let plan = BoardChangePlanner.planMergeAll(
                 floorOrdinal: visibleFloorOrdinal, state: player, tower: tower, tiers: content.tiers,
                 floorTable: content.floorTable, config: content.economy, origin: .rewardedMergeAll

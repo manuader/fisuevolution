@@ -181,7 +181,7 @@ extension GameState {
         if ProcessInfo.processInfo.arguments.contains("--uitest-coins") {
             debugGrantCoins()
         }
-        // El Corralito en curso, con su banner y su salida por video: el evento
+        // El Corralito en curso, con su chip y su salida por video: el evento
         // real es RNG con cooldown de 40 minutos y tier mínimo 6.
         if ProcessInfo.processInfo.arguments.contains("--uitest-corralito") {
             debugStartEvent(id: "corralito")

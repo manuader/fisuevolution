@@ -43,13 +43,14 @@ extension GameState {
     }
 
     /// El tablero no está a la vista o el jugador está en medio de algo: una
-    /// hoja, la ficha, la carrera, el reto de un visitante (y el popup que lo
-    /// ofrece, que entra por `uiCoversBoard`), la pantalla previa de la pausa,
-    /// la escena inactiva, el viaje en ascensor o una compra en curso. Es la
+    /// hoja, la ficha, la carrera, el reto de un visitante, el popup de un
+    /// visitante o de un evento (que además entran por `uiCoversBoard`), la
+    /// pantalla previa de la pausa, la escena inactiva, el viaje en ascensor o una compra en curso. Es la
     /// única definición: `isCalmMoment` y los cortes naturales la comparten.
     var isBoardBusy: Bool {
         uiCoversBoard || characterSheet != nil || careerPrompt != nil || stageChallenge != nil
-            || adBreakOffer != nil || adBreakInFlight || !isSceneActive || fullScreenUIActive()
+            || visitorPopup != nil || eventPopup != nil || adBreakOffer != nil || adBreakInFlight
+            || !isSceneActive || fullScreenUIActive()
     }
 
     // MARK: - Los cortes
@@ -256,7 +257,7 @@ extension CelebrationKind {
         switch self {
         case .boardCelebration, .chestOpening, .skinAward, .specialDrop, .dailyReward, .careerChoice:
             true
-        case .offlineEarnings, .eventBanner, .visitorEncounter, .achievements, .towerNotice, .tutorialTip, .cinematic:
+        case .offlineEarnings, .visitorEncounter, .achievements, .towerNotice, .tutorialTip, .cinematic:
             false
         }
     }

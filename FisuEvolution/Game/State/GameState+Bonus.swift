@@ -299,6 +299,10 @@ extension GameState {
         return ActiveBonusBuilder.bonuses(
             from: player.run.activeModifiers,
             catalog: Self.bonusCatalog(content: content),
+            events: Dictionary(uniqueKeysWithValues: content.events.events.map { event in
+                (event.sourceKey, EventChipSource(presenterId: eventPresenterId(event), polarity: event.polarity,
+                                                  duration: event.durationSeconds))
+            }),
             now: Date().timeIntervalSince1970
         )
     }
@@ -324,6 +328,27 @@ extension GameState {
             catalog["career.\(career.id)"] = BonusSource(
                 icon: .symbol("briefcase.fill"), duration: duration
             )
+        }
+        for script in content.visitors.scripts {
+            let face = ActiveBonus.Icon.face(script.visitor)
+            switch script.mechanic {
+            case .vendor(let cards):
+                for card in cards {
+                    guard case let .modifier(_, _, seconds) = card.reward else { continue }
+                    catalog["visit.\(script.id).card.\(card.id)"] = BonusSource(icon: .art(card.iconKey), duration: seconds)
+                }
+            case .challenge(_, _, let rewards, _):
+                // El ×2 de un reto es otra tanda igual: dura lo mismo.
+                for case let .modifier(_, _, seconds) in rewards {
+                    catalog["visit.\(script.id)"] = BonusSource(icon: face, duration: seconds)
+                    catalog["visit.\(script.id).x2"] = BonusSource(icon: face, duration: seconds)
+                }
+            default:
+                for case let .modifier(_, _, seconds) in script.mechanic.rewards {
+                    catalog["visit.\(script.id)"] = BonusSource(icon: face, duration: seconds)
+                    catalog["visit.\(script.id).x2"] = BonusSource(icon: face, duration: seconds * 2)
+                }
+            }
         }
         return catalog
     }

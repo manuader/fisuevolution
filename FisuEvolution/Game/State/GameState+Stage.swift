@@ -92,13 +92,13 @@ extension GameState {
     }
 
     /// Lo que pasa cuando alguien llega: la oferta del visitante se cotiza acá
-    /// y el evento del presentador se aplica acá (T4).
+    /// y el evento del presentador se aplica acá.
     private func arrive(_ visit: inout StageVisit) {
         switch visit.role {
         case .visitor(let scriptId):
             arriveVisitor(&visit, scriptId: scriptId)
-        case .presenter:
-            break
+        case .presenter(let eventId):
+            arrivePresenter(&visit, eventId: eventId)
         }
     }
 
@@ -107,8 +107,8 @@ extension GameState {
         switch visit.role {
         case .visitor:
             openVisitorPopup()
-        case .presenter:
-            break
+        case .presenter(let eventId):
+            openEventPopup(id: eventId)
         }
     }
 }

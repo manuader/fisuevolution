@@ -224,8 +224,6 @@ struct VisitorRuntimeTests {
         gameState.player?.meta.ownedSpecials.append("sp_arbolito")
         gameState.debugStartEvent(id: "cepo")
         #expect(gameState.stageRuntime.calledScript == "arbolito_blue")
-        // Mientras el banner del evento esté en pantalla no es un momento calmo.
-        gameState.celebrationFinished(.eventBanner)
         gameState.advanceVisitors(delta: 0)
         #expect(gameState.stageVisit?.role == .visitor(scriptId: "arbolito_blue"))
         #expect(gameState.stageRuntime.calledScript == nil)

@@ -161,12 +161,12 @@ struct CelebrationQueueTests {
     func elapsedResetsPerItem() {
         var queue = CelebrationQueue()
         queue.enqueue(.towerNotice)        // tope 4 s
-        queue.enqueue(.eventBanner)        // tope 6 s
+        queue.enqueue(.visitorEncounter)  // tope 10 s
         _ = queue.tick(3.9)
         queue.finish(.towerNotice)
-        #expect(queue.current == .eventBanner)
+        #expect(queue.current == .visitorEncounter)
         let expired = queue.tick(3.9)
-        #expect(expired == nil, "el banner recién empieza, no hereda los 3,9 s")
+        #expect(expired == nil, "la entrada recién empieza, no hereda los 3,9 s")
     }
 
     @Test("renovar reinicia el reloj del que está en pantalla, y sólo el suyo")

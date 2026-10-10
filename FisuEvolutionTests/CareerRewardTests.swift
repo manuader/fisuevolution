@@ -89,10 +89,7 @@ struct CareerRewardTests {
         gameState.player?.run.activeModifiers = [
             ActiveModifier(effect: .incomeMultiplier, magnitude: 0.5, expiresAt: farFuture, sourceKey: "event.devaluacion")
         ]
-        gameState.activeEvent = GameState.ActiveEvent(
-            id: "devaluacion", phraseKey: "event.devaluacion.phrase", polarity: .negative,
-            endsAt: farFuture, escapes: []
-        )
+        gameState.eventPopup = EventPopup(eventId: "devaluacion")
         let before = try #require(gameState.player)
         let expected = GameState.coinPayout(minutes: 15, player: before, content: content)
         let now = Date().timeIntervalSince1970
@@ -102,7 +99,7 @@ struct CareerRewardTests {
         let after = try #require(gameState.player)
         #expect(after.run.activeModifiers.contains { $0.effect == .eventImmunity && $0.expiresAt == now + 1800 })
         #expect(!after.run.activeModifiers.contains { $0.sourceKey == "event.devaluacion" })
-        #expect(gameState.activeEvent == nil)
+        #expect(gameState.eventPopup == nil)
         #expect(after.run.coins == before.run.coins + expected)
         #expect(gameState.careerRewards["junior_doctor"]?.kind == .healthPlan)
     }
@@ -137,11 +134,12 @@ struct CareerRewardTests {
     @Test("cortar el evento malo no toca un buff en curso")
     func cuttingLeavesABuffAlone() async throws {
         let gameState = await makeGameState()
-        gameState.activeEvent = GameState.ActiveEvent(
-            id: "plan_platita", phraseKey: "event.plan_platita.phrase", polarity: .positive, endsAt: .infinity, escapes: []
-        )
+        gameState.player?.run.activeModifiers = [
+            ActiveModifier(effect: .incomeMultiplier, magnitude: 2, expiresAt: .infinity, sourceKey: "event.plan_platita")
+        ]
+        gameState.eventPopup = EventPopup(eventId: "plan_platita")
         gameState.cutNegativeEvents()
-        #expect(gameState.activeEvent != nil)
+        #expect(gameState.eventPopup != nil)
     }
 
     /// La vista previa dice la plata que se cobra, no un descuento.

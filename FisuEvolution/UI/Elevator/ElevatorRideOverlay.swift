@@ -51,7 +51,7 @@ extension CelebrationKind {
     var coversElevator: Bool {
         switch self {
         case .offlineEarnings, .dailyReward, .careerChoice, .skinAward, .specialDrop, .chestOpening, .boardCelebration, .cinematic: true
-        case .eventBanner, .visitorEncounter, .achievements, .towerNotice, .tutorialTip: false
+        case .visitorEncounter, .achievements, .towerNotice, .tutorialTip: false
         }
     }
 }

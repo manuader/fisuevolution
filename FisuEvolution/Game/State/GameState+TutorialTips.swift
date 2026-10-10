@@ -20,6 +20,8 @@ extension GameState {
         /// chip. Va primera: una visita se va sola, y si esperara su turno
         /// detrás de otra lección se perdería.
         case visitor
+        /// Un evento corriendo deja su chip: la primera vez se enseña a tocarlo.
+        case eventChip
         /// Hay una mejora pagable (personaje, pasivo o permanente).
         case upgrades
         /// Se desbloqueó el segundo piso: recién ahora el mapa tiene a dónde ir.
@@ -60,6 +62,7 @@ extension GameState {
         var anchorTarget: TutorialTarget {
             switch self {
             case .visitor: .visitor
+            case .eventChip: .eventChip
             case .upgrades: .upgrades
             case .elevator, .elevatorKeypad: .map
             case .quickHire: .quickHire
@@ -84,7 +87,7 @@ extension GameState {
             case .achievements, .album: .menu
             case .gifts: .gifts
             case .store: .store
-            case .visitor, .elevator, .elevatorKeypad, .quickHire, .prestige, .share: nil
+            case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .prestige, .share: nil
             }
         }
 
@@ -92,6 +95,7 @@ extension GameState {
         var textKey: String {
             switch self {
             case .visitor: "tutorial.tip.visitor"
+            case .eventChip: "tutorial.tip.event_chip"
             case .upgrades: "tutorial.tip.upgrades"
             case .elevator: "tutorial.tip.elevator"
             case .elevatorKeypad: "tutorial.tip.elevator.hold"
@@ -162,6 +166,8 @@ extension GameState {
         switch lesson {
         case .visitor:
             stageVisit?.phase == .waiting && stageVisit?.offer != nil && stageChallenge == nil
+        case .eventChip:
+            activeBonuses.contains { $0.eventId != nil }
         case .upgrades:
             canAffordAnyUpgrade
         case .elevator:

@@ -197,7 +197,7 @@ struct DebugPanelView: View {
                 Section("Eventos") {
                     Menu("Disparar un evento") {
                         ForEach(gameState.content?.events.events ?? []) { event in
-                            Button(event.id) { gameState.debugStartEvent(id: event.id) }
+                            Button(event.id) { gameState.debugPresentEvent(id: event.id) }
                         }
                     }
                     .accessibilityIdentifier("debug.event.start")

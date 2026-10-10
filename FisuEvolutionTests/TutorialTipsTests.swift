@@ -150,6 +150,18 @@ struct TutorialTipsTests {
         #expect(gameState.tutorialTip?.lesson == .upgrades)
     }
 
+    @Test("el primer evento corriendo enseña su chip, y abrirlo la cumple")
+    func theFirstEventTeachesItsChip() async throws {
+        let gameState = await makeGameState()
+        gameState.markLessonDone(.visitor)
+        gameState.debugStartEvent(id: "devaluacion")
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .eventChip)
+        gameState.openEventPopup(id: "devaluacion")
+        #expect(gameState.showing != .tutorialTip)
+        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.eventChip.defaultsKey))
+    }
+
     @Test("con una hoja tapando el tablero no nace nada")
     func noLessonUnderAnOpenSheet() async {
         let gameState = await makeGameState()

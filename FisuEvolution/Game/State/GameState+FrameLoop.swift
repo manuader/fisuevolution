@@ -44,7 +44,6 @@ extension GameState {
                     scheduleSave()
                 }
             }
-            expireActiveEvent(now: now)
             beatIfDue(now: now)
             warmForcedAds()
         }

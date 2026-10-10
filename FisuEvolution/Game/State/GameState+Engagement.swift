@@ -8,6 +8,7 @@ extension GameState {
     func advanceEngagement(delta: TimeInterval) {
         advanceAutoTap(delta: delta)
         advanceEvents(delta: delta)
+        presentPendingEventIfPossible()
         advanceVisitors(delta: delta)
         advancePackages(delta: delta)
         advanceTreasures(delta: delta)
@@ -19,7 +20,7 @@ extension GameState {
     /// cada épica suma la suya acá y no vuelve a abrir `GameState.swift`.
     func applyEngagementFixtures(arguments: [String] = ProcessInfo.processInfo.arguments) {
         if let id = Self.fixtureValue("--uitest-event=", in: arguments) {
-            debugStartEvent(id: id)
+            debugPresentEvent(id: id)
         }
         if let scriptId = Self.fixtureValue("--uitest-visitor=", in: arguments) {
             stageRuntime.debugScript = scriptId

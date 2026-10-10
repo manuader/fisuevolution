@@ -70,9 +70,6 @@ extension GameState {
         if achievementToast != nil || !pendingAchievementToasts.isEmpty {
             celebrations.enqueue(.achievements)
         }
-        if let event = activeEvent, event.id != announcedEventID {
-            celebrations.enqueue(.eventBanner)
-        }
         if boardIsVisibleForChanges, stageVisit?.phase == .entering { celebrations.enqueue(.visitorEncounter) }
         if tutorialTip != nil { celebrations.enqueue(.tutorialTip) }
         if cinematic != nil { celebrations.enqueue(.cinematic) }
@@ -155,14 +152,6 @@ extension GameState {
         syncCelebrations()
     }
 
-    /// El banner acompaña al evento durante toda su vida, pero su ANUNCIO pide
-    /// turno como cualquier otra celebración. Una vez anunciado se queda sin
-    /// volver a la cola: el evento dura ~30 s y el banner libera a los 6.
-    var eventBannerIsVisible: Bool {
-        guard let event = activeEvent else { return false }
-        return showing == .eventBanner || announcedEventID == event.id
-    }
-
     // MARK: Internos
 
     /// Limpia el payload de lo que se cierra SOLO.
@@ -177,10 +166,6 @@ extension GameState {
         case .achievements:
             achievementToast = nil
             pendingAchievementToasts.removeAll()
-        case .eventBanner:
-            // El banner ya se anunció; de acá en más acompaña al evento sin
-            // volver a pedir turno.
-            announcedEventID = activeEvent?.id
         case .boardCelebration:
             settleInFlightBoardChange()
             // La bandera describe UNA celebración, no un estado de la partida: si

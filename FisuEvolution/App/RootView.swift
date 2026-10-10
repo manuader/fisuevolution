@@ -197,9 +197,8 @@ struct GameBoardView: View {
             // rama y abre la transacción lo mismo. Es una propiedad de tener UN
             // solo hijo opcional: agregarle un segundo hermano al `Group`
             // pondría una `.animation` por hermano. El `ZStack` no depende de
-            // eso, está montado siempre, y es la forma que ya usan el `VStack`
-            // del `EventBannerView` (arriba, misma pantalla) y el de
-            // `ActiveBonusBar`.
+            // eso, está montado siempre, y es la forma que ya usa el `VStack`
+            // de `ActiveBonusBar`.
             //
             // No cambia el layout: el hijo se ancla solo (su raíz es un `VStack`
             // con `Spacer()`, o sea que ocupa todo el alto igual que antes).
@@ -321,6 +320,9 @@ struct GameBoardView: View {
         .onChange(of: gameState.visitorPopup) {
             gameState.uiCoversBoard = boardIsCovered
         }
+        .onChange(of: gameState.eventPopup) {
+            gameState.uiCoversBoard = boardIsCovered
+        }
         .onChange(of: gameState.shareCardMoment) {
             gameState.uiCoversBoard = boardIsCovered
         }
@@ -390,11 +392,11 @@ struct GameBoardView: View {
         .fisuSheet(item: $gameState.specialInfo) { special in
             SpecialDropView(special: special, isRecap: true)
         }
-        .fisuSheet(item: Binding(
-            get: { gameState.visitorPopup },
-            set: { if $0 == nil { gameState.closeVisitorPopup() } }
-        )) { _ in
+        .fisuSheet(item: visitorPopupBinding) { _ in
             VisitorPopupView()
+        }
+        .fisuSheet(item: eventPopupBinding) { popup in
+            EventPopupView(eventId: popup.eventId)
         }
         .sheet(item: shareCardBinding) { moment in
             ShareCardSheet(moment: moment)
@@ -455,7 +457,7 @@ struct GameBoardView: View {
     private var boardIsCovered: Bool {
         menuSession != nil || showPrestige || gameState.specialInfo != nil || rankingCardUp
             || gameState.shareCardMoment != nil || gameState.visitorPopup != nil
-            || gameState.adBreakOffer != nil
+            || gameState.eventPopup != nil || gameState.adBreakOffer != nil
     }
 
     private var boardLayoutMarker: some View {
@@ -501,6 +503,20 @@ struct GameBoardView: View {
         )
     }
 
+    private var visitorPopupBinding: Binding<VisitorPopup?> {
+        Binding(
+            get: { gameState.visitorPopup },
+            set: { if $0 == nil { gameState.closeVisitorPopup() } }
+        )
+    }
+
+    private var eventPopupBinding: Binding<EventPopup?> {
+        Binding(
+            get: { gameState.eventPopup },
+            set: { if $0 == nil { gameState.closeEventPopup() } }
+        )
+    }
+
     private var specialDropBinding: Binding<SpecialsConfig.Special?> {
         Binding(
             get: { gameState.showing == .specialDrop ? gameState.specialDrop : nil },
@@ -537,12 +553,12 @@ struct GameBoardView: View {
                 onStoreTap: { open(.store) },
                 onMapOpen: { gameState.tutorialTipCompleted(.elevator) }
             )
-            // Los contadores de bonus van pegados al HUD y a la izquierda; el
-            // banner del evento, que es ancho y centrado, va debajo. Se monta
+            // Los contadores de bonus (y los chips de evento, con la cara de
+            // quien los anunció) van pegados al HUD y a la izquierda. Se monta
             // sólo cuando hay algo que contar: así el timer de 1 Hz de la barra
             // no existe durante una partida sin boosts.
             if !gameState.activeBonuses.isEmpty {
-                ActiveBonusBar(bonuses: gameState.activeBonuses)
+                ActiveBonusBar(bonuses: gameState.activeBonuses) { gameState.openEventPopup(id: $0) }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 12)
                     .playColumn()
@@ -552,15 +568,9 @@ struct GameBoardView: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
                 .padding(.trailing, 12)
                 .playColumn()
-            if let event = gameState.activeEvent, gameState.eventBannerIsVisible {
-                EventBannerView(event: event)
-                    .playColumn()
-                    .transition(.move(edge: .top).combined(with: .opacity))
-            }
             Spacer()
             bottomBar
         }
-        .animation(.spring(duration: 0.35), value: gameState.activeEvent)
         // Durante la celebración a pantalla completa la UI se va del todo: el
         // reveal va centrado en la pantalla entera y no tiene que esquivar nada.
         // Con `allowsHitTesting` atado a lo mismo, además, no se puede tocar algo

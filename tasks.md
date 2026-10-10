@@ -83,7 +83,7 @@
 
 ## 2. Progreso
 
-**Hoy: 150 de 254 tareas activas integradas en `version-2` (59,1 %), con el `rapido` VERDE sobre `c7f0330` (EK 651 · unit 1117 · 0 rojos · Release 0); 152 de 254 (59,8 %) con las dos 🟢 de `integ-r21c` (E13 T13 y E12 T14), si el `rapido` sobre `f830217` da VERDE (VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0)).** El relevo 21c sumó E8b T8, T9 y T10, E7b-a T2 y T4, E8d T11, E2b T2 y los cuatro cierres (E11 T7, E2a T15, E8c T10, E3a T12) a ✅. La lista de palabras de E12 se activó en el relevo 21b pero no es una tarea (gate de §6 cerrado). 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
+**Hoy: 152 de 254 tareas activas integradas en `version-2` (59,8 %): E13 T13 y E12 T14 pasaron a ✅ con el `rapido` VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0). Antes: 150 (59,1 %), con el `rapido` VERDE sobre `c7f0330` (EK 651 · unit 1117 · 0 rojos · Release 0); 152 de 254 (59,8 %) con las dos 🟢 de `integ-r21c` (E13 T13 y E12 T14), si el `rapido` sobre `f830217` da VERDE (VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0)).** El relevo 21c sumó E8b T8, T9 y T10, E7b-a T2 y T4, E8d T11, E2b T2 y los cuatro cierres (E11 T7, E2a T15, E8c T10, E3a T12) a ✅. La lista de palabras de E12 se activó en el relevo 21b pero no es una tarea (gate de §6 cerrado). 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
 seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 5 (E3b T9, E12 T15, E6b T9, E8 T10 y E13b T11, destrabadas por el script de dependencias en el 21c). E12 T12 está ⛔, E12 T16 🔒 y E7b-a T3 ⛔ (bloqueo de publicación, §4.2).
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |

@@ -607,7 +607,15 @@
     "wheel_icon": "wheel_icon",
     "wheel_pointer": "wheel_pointer",
     "wheel_seg_jackpot": "wheel_seg_jackpot",
-    "wheel_seg_respin": "wheel_seg_respin"
+    "wheel_seg_respin": "wheel_seg_respin",
+    "ui_event_aguinaldo": "ui_event_aguinaldo",
+    "ui_event_blanqueo": "ui_event_blanqueo",
+    "ui_event_corralito": "ui_event_corralito",
+    "ui_event_devaluacion": "ui_event_devaluacion",
+    "ui_event_home_banking": "ui_event_home_banking",
+    "ui_event_inversion_alienigena": "ui_event_inversion_alienigena",
+    "ui_event_plan_platita": "ui_event_plan_platita",
+    "ui_event_startup_comprada": "ui_event_startup_comprada"
   },
   "npcs": {
     "npc_comisario": "npc_comisario",

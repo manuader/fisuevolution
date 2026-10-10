@@ -4693,5 +4693,61 @@
     "category": "skinfam",
     "tanda": "v2",
     "prompt": "Match EXACTLY the art style, line weight, proportions and color treatment of the attached reference character - same game, same studio.\n\nDios - ALTERNATE OUTFIT \"Dinosaur Costume\". This is the same character as the attached reference: supreme god of everything standing calm and colossal, one open palm holding a tiny spinning universe at chest height, the other hand raising a mate gourd like a toast, from Fisura Evolution, an Argentine merge-idle mobile game where a street survivor evolves all the way into a god. Keep the pose, body proportions, silhouette, face, visible hair, facial hair, skin tone, any glasses and the warm omnipotent smile EXACTLY as in the reference, and keep everything the character holds, carries or has beside them or at their feet: it must read as the same character at a glance. Also keep any non-clothing trait such as a halo, a glow, wings, horns, extra arms or floating objects.\n\nChange ONLY the clothing: a full-body plush dinosaur costume onesie in bright green with a pale yellow belly panel, a big hood shaped like a friendly cartoon dinosaur head with rounded white felt teeth along its rim, worn so that the character's whole face stays fully visible inside the open mouth of the hood (it replaces any hat), a row of soft orange spikes running from the top of the hood down the back, a chunky stuffed tail resting on the ground behind, and plush three-toed dinosaur feet. The costume must be boldly different in color from the reference so the two are never confused at a glance, and all 43 characters of the game wear this SAME costume design, so the family reads as a set.\n\nIf the reference shows any letters, words, numbers, logos or brand marks (on clothes, bags, stickers, papers or signs), draw them as plain blank shapes instead: no readable text and no brand of any kind.\n\nFull body standing character, both feet planted on the ground, hands visible, generous margins, centered on a plain pure white background, square image, no text, no watermark, no cropping."
+  },
+  {
+    "assetKey": "ui_event_aguinaldo",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "e8e",
+    "prompt": "Cuadro maestro del video del evento aguinaldo, tomado de video/eventos/frames/aguinaldo.png del generador (no se vuelve a generar)."
+  },
+  {
+    "assetKey": "ui_event_blanqueo",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "e8e",
+    "prompt": "Cuadro maestro del video del evento blanqueo, tomado de video/eventos/frames/blanqueo.png del generador (no se vuelve a generar)."
+  },
+  {
+    "assetKey": "ui_event_home_banking",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "e8e",
+    "prompt": "Cuadro maestro del video del evento home_banking, tomado de video/eventos/frames/cayo_mercado_pago.png del generador (no se vuelve a generar)."
+  },
+  {
+    "assetKey": "ui_event_corralito",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "e8e",
+    "prompt": "Cuadro maestro del video del evento corralito, tomado de video/eventos/frames/corralito.png del generador (no se vuelve a generar)."
+  },
+  {
+    "assetKey": "ui_event_devaluacion",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "e8e",
+    "prompt": "Cuadro maestro del video del evento devaluacion, tomado de video/eventos/frames/devaluacion.png del generador (no se vuelve a generar)."
+  },
+  {
+    "assetKey": "ui_event_inversion_alienigena",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "e8e",
+    "prompt": "Cuadro maestro del video del evento inversion_alienigena, tomado de video/eventos/frames/inversion_alienigena.png del generador (no se vuelve a generar)."
+  },
+  {
+    "assetKey": "ui_event_plan_platita",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "e8e",
+    "prompt": "Cuadro maestro del video del evento plan_platita, tomado de video/eventos/frames/plan_platita.png del generador (no se vuelve a generar)."
+  },
+  {
+    "assetKey": "ui_event_startup_comprada",
+    "category": "ui",
+    "atlas": "ui",
+    "tanda": "e8e",
+    "prompt": "Cuadro maestro del video del evento startup_comprada, tomado de video/eventos/frames/startup_comprada.png del generador (no se vuelve a generar)."
   }
 ]

@@ -19,6 +19,12 @@ struct SpawnCostFloorTests {
         #expect(abs(ModifierMath.factor(two, effect: .spawnCostMultiplier, now: 0) - 0.35) < 1e-12)
     }
 
+    @Test("contratar gratis no es un descuento: sigue valiendo cero, también con descuentos encima")
+    func freeHiringSkipsTheFloor() {
+        let free = [discount(0, "boost.free_hire"), discount(0.5, "event.liquidacion")]
+        #expect(ModifierMath.factor(free, effect: .spawnCostMultiplier, now: 0) == 0)
+    }
+
     @Test("el piso es sólo de contratar: un ingreso puede bajar más")
     func onlyHiringHasAFloor() {
         let income = [

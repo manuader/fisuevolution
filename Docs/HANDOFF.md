@@ -377,7 +377,7 @@ Un solo relevo, abierto a las 15:03 por el disparo horario de `fisu-v2-relevo-a`
 
 - **E6b T4** (`OroShop.purchaseSkin`: `alreadyOwned` antes de `spendOro`, la pinta a `shop.skins`; `allOwnedSkins` la une; `buySkinWithOro` síncrono, un guardado; rechaza `price <= 0`): ✅ con el `rapido` (unit 1403). Opus **Approved con arreglos** menores, hechos en `08fbf82`.
 - **E5b T2** (`PrizeAccess`, chips, `MattressPopupView`, las hojas en el `ViewModifier` `PrizeSheets`, `isBoardBusy` suma colchón y ruleta): ✅ con el `completo`. Opus **Approved con arreglos** (`a502ef6`) y un **BUG ALTO de `WheelView`: `videoBusy` en el guard de los callbacks premiados hacía que el video de giro se viera y no pagara**; `openWheel` exige un tablero calmo; `packageTapped` cuenta la cola.
-- **E4b T10 y E5a T9** (cierres, sólo docs): ✅; los `COMPLETO_PENDIENTE` se reemplazaron por este `completo`.
+- **E4b T10 y E5a T9** (cierres, sólo docs): ✅; los marcadores de `completo` pendiente se reemplazaron por este `completo`.
 - **El `completo`** dio 2 rojos por orden (`MenuPagerUITests`, `CustomizationUITests`) que aislados sobre la misma build dieron VERDE: contaminación de UI tests de un mismo simulador.
 - **Pedidos del dueño en el chat:** sus elecciones de recortes (354: 113 rembg; 4 a regenerar) aplicadas en `v2/e8-recortes`, el balde de islas, el estudio de assets (`v2/estudio-assets`), el plan E8e (`v2/e8e-plan`, 9 tareas) y los defaults de `PREGUNTAS-DUENO-v2.md` (B1–B26) aceptados; borrada la rama remota `v2/e12-plan`. Todo en `DUENO.md`.
 - Trampas nuevas en §7: `RootView.body` al límite del type-checker, el guard con estado que se come el pago de un video premiado, los dos UI por orden y el `.xcodeproj` no versionado.

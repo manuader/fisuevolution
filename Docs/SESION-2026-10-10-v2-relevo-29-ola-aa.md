@@ -26,7 +26,7 @@ Es el primer `completo` desde los cierres del 23 (sobre `bab8a9c`): cubre ademá
 |---|---|---|---|
 | **E6b T4** la pinta comprada con ORO es tuya | `fa6b4cc` + arreglos `08fbf82` (merge `d6b8450`, 1 clave `26df563`) | tarea VERDE (EK 845 · unit 17); `CharacterSheetUITests` 3/3 y `CustomizationUITests` 5/5; RED visto del guard `alreadyOwned`; revisión opus **Approved con arreglos** (sin obligatorios), hechos. `rapido` VERDE → ✅ | `OroShop.purchaseSkin`: `alreadyOwned` **antes** de `spendOro`, y la pinta a `shop.skins`; `allOwnedSkins` une `shop.skins`; `buySkinWithOro` síncrono, un solo guardado; `.oroPurchasable` en `skinState`; `PricePill(.oro)` sin `.disabled` en Pintas y en la ficha; `purchaseSkin` rechaza `price <= 0` (`invalidPrice`, con RED); `alreadyOwned` sale como `.unavailable`; tocó `SkinCatalogRowsTests` (`switch` exhaustivo); 1 clave `e6b-t4.json` |
 | **E5b T2** los accesos y las hojas | `18e45d1` + arreglos `a502ef6` (merge + 10 claves `7c494ea`) | tarea VERDE (unit 51); UI Prizes 2/2, Wheel 4/4, BonusHUD 3/3 (y, antes de los arreglos, CharacterSheet 3/3, QuickHire 3/3, EventChip 1/1, Visitor 3/3); revisión opus **Approved con arreglos** + un **BUG ALTO** de T1, hechos. `completo` VERDE → ✅ | `PrizeAccess`, `+Prizes`, `PrizeChips`, `MattressPopupView`, `StageChips`, `DebugPanelView`; las hojas nuevas en **`PrizeSheets`, un `ViewModifier`** (`RootView.body` quedó al límite del type-checker); `refreshPrizeAccess` en `+Projections`; `isBoardBusy` (`+Ads`) suma `mattressPopup` y `wheelSheet`; Reduce Motion leído en los chips; 10 claves `e5b-t2.json`; RED visto de los dos cerrojos del colchón |
-| **E4b T10** cierre de E4 | `b25a52e` (merge `6ff2b2c`) | sólo docs; diff leído | `Docs/SESION-2026-10-10-v2-e4b.md` + `HANDOFF` §4 + nota en `PLAN-v2`; `COMPLETO_PENDIENTE` → resuelto por el `completo` de esta ola. 🔒 dueño: siete escenarios |
+| **E4b T10** cierre de E4 | `b25a52e` (merge `6ff2b2c`) | sólo docs; diff leído | `Docs/SESION-2026-10-10-v2-e4b.md` + `HANDOFF` §4 + nota en `PLAN-v2`; el marcador de `completo` pendiente quedó resuelto por el `completo` de esta ola. 🔒 dueño: siete escenarios |
 | **E5a T9** cierre de E5a | `a8a8591` (merge `6ff2b2c`) | sólo docs; diff leído | `Docs/SESION-2026-10-10-v2-e5a.md` + `HANDOFF` §4/§5/§7/§9 + nota en `PLAN-v2`. 🔒 dueño: tres escenarios |
 
 ## Las dos revisiones opus
@@ -56,7 +56,7 @@ EK 845 · unit 1417 · store-unit 18 · store-ui 2 · iPad 4 · SE 2 · pipeline
 
 - `MenuPagerUITests.testDeslizarYLasFlechas…` y `CustomizationUITests.testElCarrusel…` (navegación de menú).
 - **Aislados sobre la misma build, VERDES:** Customization 5/5, MenuPager 2/2. Es la contaminación por orden de los UI tests de un mismo simulador (carry conocido de E12: `--uitest-reset` no apaga el ranking). **No son regresiones de esta ola.**
-- Declarado VERDE: E5b T2, E4b T10 y E5a T9 → ✅; `version-2` ff → `236080b`, pusheado. Se reemplazaron todos los `COMPLETO_PENDIENTE` (SESION de e4b y e5a, `HANDOFF` §4, `PLAN-v2`).
+- Declarado VERDE: E5b T2, E4b T10 y E5a T9 → ✅; `version-2` ff → `236080b`, pusheado. Se reemplazaron todos los marcadores de `completo` pendiente (SESION de e4b y e5a, `HANDOFF` §4, `PLAN-v2`).
 
 ## Pedidos del dueño en el chat (fuera del relevo)
 

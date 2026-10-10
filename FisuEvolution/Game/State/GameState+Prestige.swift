@@ -26,6 +26,9 @@ struct PrestigePreview: Equatable {
     /// personaje de ese tier si es uno solo. `nil` en el tier = no se pide nada.
     let wallGoalTier: Int?
     let wallGoalName: String?
+    /// Cuántos pasivos conserva la run nueva. La misma función que reencarna;
+    /// 0 con la herencia apagada.
+    let inheritedPassives: Int
 
     /// Antes del bootstrap no hay economía ni jugador: multiplicador neutro.
     static let empty = PrestigePreview(
@@ -37,8 +40,15 @@ struct PrestigePreview: Equatable {
         coinsToNextOro: 0,
         nextOroProgress: 0,
         wallGoalTier: nil,
-        wallGoalName: nil
+        wallGoalName: nil,
+        inheritedPassives: 0
     )
+
+    /// "Se conservan los pasivos de 3 personajes". `nil` si no se hereda nada.
+    var inheritedPassivesText: String? {
+        guard inheritedPassives > 0 else { return nil }
+        return String(localized: "prestige.inherited.passives \(String(inheritedPassives))")
+    }
 
     var isBlockedByWall: Bool { wallGoalTier != nil }
 
@@ -105,7 +115,8 @@ extension GameState {
             coinsToNextOro: max(0, nextOroAt - lifetime),
             nextOroProgress: nextOroAt > 0 ? min(1, max(0, lifetime / nextOroAt)) : 0,
             wallGoalTier: wallGoal,
-            wallGoalName: wallGoal.flatMap { Self.wallGoalName(tier: $0, player: player, content: content) }
+            wallGoalName: wallGoal.flatMap { Self.wallGoalName(tier: $0, player: player, content: content) },
+            inheritedPassives: PrestigeCalculator.inheritedPassiveUnlocks(state: player, economy: economy).count
         )
     }
 

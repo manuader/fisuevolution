@@ -182,4 +182,28 @@ struct PrestigePreviewTests {
         #expect(!gameState.prestigePreview.isBlockedByWall)
         #expect(gameState.prestigeAvailable)
     }
+
+    @Test("la hoja dice cuántos pasivos se conservan, y es lo que la reencarnación conserva")
+    func inheritedPassivesAreShown() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        gameState.economy = StandardEconomy(config: try content.economy.tuned(EconomyKnobs(inheritsPassiveUnlocks: true)))
+        gameState.player?.run.passiveUnlocked = ["homeless": true, "cartonero": true]
+        gameState.giveEarningsForPrestigeTesting(oro: 5)
+        let preview = gameState.prestigePreview
+        #expect(preview.inheritedPassives == 2)
+        #expect(preview.inheritedPassivesText?.contains("2") == true)
+        gameState.confirmPrestige()
+        #expect(gameState.player?.run.passiveUnlocked.filter(\.value).count == 2)
+    }
+
+    @Test("con la herencia apagada, la hoja no la menciona")
+    func noInheritanceNoRow() async throws {
+        let gameState = await makeGameState()
+        gameState.player?.run.passiveUnlocked = ["homeless": true]
+        gameState.giveEarningsForPrestigeTesting(oro: 5)
+        let preview = gameState.prestigePreview
+        #expect(preview.inheritedPassives == 0)
+        #expect(preview.inheritedPassivesText == nil)
+    }
 }

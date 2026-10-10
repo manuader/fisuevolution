@@ -59,7 +59,7 @@ enum IAPCopy {
             guard let skinID = entry.skinId, let skins else { return nil }
             let count = skins.skins.filter { $0.id == skinID }.count
             return count > 1 ? count : nil
-        case .coins, .removeAds, .starterPack:
+        case .coins, .removeAds, .starterPack, .offer:
             return nil
         }
     }

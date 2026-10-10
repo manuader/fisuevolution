@@ -221,6 +221,66 @@
       "productID": "com.fisuevolution.iap.skins_diamante",
       "referenceName": "Skins Diamante",
       "type": "NonConsumable"
+    },
+    {
+      "displayPrice": "0.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000E1",
+      "localizations": [
+        {
+          "description": "ORO, 2 h de ingresos y un cofre de pintas",
+          "displayName": "Pack de Bienvenida",
+          "locale": "es"
+        },
+        {
+          "description": "ORO, 2 h of income and a skin chest",
+          "displayName": "Welcome Pack",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.offer_bienvenida",
+      "referenceName": "Offer Bienvenida",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000E2",
+      "localizations": [
+        {
+          "description": "ORO, 4 h de ingresos y ×3 por 30 minutos",
+          "displayName": "Pack Renacer",
+          "locale": "es"
+        },
+        {
+          "description": "ORO, 4 h of income and ×3 for 30 minutes",
+          "displayName": "Rebirth Pack",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.offer_renacer",
+      "referenceName": "Offer Renacer",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "4.99",
+      "familyShareable": false,
+      "internalID": "F15CE001-0000-4000-8000-0000000000E3",
+      "localizations": [
+        {
+          "description": "ORO, 8 h de ingresos y 3 Paquetes",
+          "displayName": "Pack Mudanza",
+          "locale": "es"
+        },
+        {
+          "description": "ORO, 8 h of income and 3 Parcels",
+          "displayName": "Moving Day Pack",
+          "locale": "en"
+        }
+      ],
+      "productID": "com.fisuevolution.iap.offer_mudanza",
+      "referenceName": "Offer Mudanza",
+      "type": "Consumable"
     }
   ],
   "settings": {

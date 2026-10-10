@@ -66,6 +66,24 @@
       "type": "nonConsumable",
       "entitlement": "skin",
       "skinId": "diamante"
+    },
+    {
+      "id": "com.fisuevolution.iap.offer_bienvenida",
+      "type": "consumable",
+      "entitlement": "offer",
+      "offerId": "bienvenida"
+    },
+    {
+      "id": "com.fisuevolution.iap.offer_renacer",
+      "type": "consumable",
+      "entitlement": "offer",
+      "offerId": "renacer"
+    },
+    {
+      "id": "com.fisuevolution.iap.offer_mudanza",
+      "type": "consumable",
+      "entitlement": "offer",
+      "offerId": "mudanza"
     }
   ]
 }

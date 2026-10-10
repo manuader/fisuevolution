@@ -587,7 +587,7 @@ que toma · commit o rama · nota.
 | E7b-b-T3 | La columna plegable en pantalla | ⛔ | T2; E3a-T8, E3a-T10, E3a-T11; E5b-T2, E5b-T5; E4b-T3; E6a-T12; E7b-a-T3 | 🔥 RootView, catálogo; StageChips, PrizeChips, TutorialAnchor, ElevatorPanel | | |
 | E7b-b-T4 | La multitud le deja lugar a la columna | ⏭️ | — | — | | el dueño eligió C (plegable) |
 | E7b-b-T5 | Las lecciones de la columna | ⛔ | T3 | catálogo (snapshot); +TutorialTips | | ∥ T7 |
-| E7b-b-T6 | Diario ×2 y carrera ×2 por video | 🟢 | E2a-T11, E2a-T12; E1-T12; E4a-T8; E4b-T3 | catálogo (snapshot) | | |
+| E7b-b-T6 | Diario ×2 y carrera ×2 por video | ✅ | E2a-T11, E2a-T12; E1-T12; E4a-T8; E4b-T3 | catálogo (snapshot) | | |
 | E7b-b-T7 | El botón de video completo y el mapa de ubicaciones | ⛔ | T3, T6; E4b-T3…T5; E5b-T1, E5b-T2 | catálogo (snapshot) | | |
 | E7b-b-T8 | Cierre de E7b (controlador) | ⛔ | T1–T7 | `Docs/` | | |
 

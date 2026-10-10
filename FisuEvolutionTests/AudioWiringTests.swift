@@ -152,8 +152,7 @@ import Testing
         let sources = try Self.gameStateSources()
         let arguments = Self.playArguments(receiver: "audio", in: sources)
         #expect(arguments.contains { $0.contains("AudioManager.accent(forEvent:") })
-        // "cayo_mercado_pago" se retiró de events.json (la marca real): su acento queda hasta que el audio lo limpie.
-        let ids = try Self.eventIds() + ["sin_acento", "cayo_mercado_pago"]
+        let ids = try Self.eventIds() + ["sin_acento"]
         let mapped = Set(ids.map { "\(AudioManager.accent(forEvent: $0))" })
         #expect(Set(Self.eventAccents).isSubset(of: mapped), "acentos sin evento que los pida")
     }

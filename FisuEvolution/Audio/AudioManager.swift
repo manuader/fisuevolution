@@ -71,7 +71,7 @@ final class AudioManager {
         case "startup_comprada": .eventStartup
         case "devaluacion": .eventDevaluacion
         case "blanqueo": .eventBlanqueo
-        case "cayo_mercado_pago": .eventMercadoPago
+        case "home_banking": .eventMercadoPago
         case "inversion_alienigena": .eventAlien
         case "corralito": .eventCorralito
         case "aguinaldo": .eventAguinaldo

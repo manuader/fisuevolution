@@ -17,12 +17,12 @@ extension GameState {
             now: Date().timeIntervalSince1970
         )
         self.player = player
+        advanceEngagement(delta: min(delta, IncomeTicker.deltaClampThreshold))
         // El watchdog de la cola de celebraciones corre acá y no en un `Timer`
         // (regla 2 de concurrencia). `delta` sin `debugTimeScale`: el time-warp
         // acelera la economía, no el tiempo que el jugador tiene para mirar. Con el
         // mismo tope que la plata: el primer frame tras volver del background trae
         // todo el salto, y el watchdog no debe darlo todo por vencido.
-        advanceEngagement(delta: min(delta, IncomeTicker.deltaClampThreshold))
         advanceCelebrations(delta: min(delta, IncomeTicker.deltaClampThreshold))
     }
 

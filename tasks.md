@@ -663,7 +663,7 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 |---|---|---|---|---|---|---|
 | P-E2b | Plan de E2b | ✅ | — | — | `5b15b82` | 15 tareas; reporte `.superpowers/sdd/2026-10-07-v2-e2b/plan-report.md` |
 | E2b-T1 | Bandas de escalada y curva por piso (EK) | ✅ | E2a-T3, E2a-T5 | — | `42b2e8c` (integ-r20) | **hecha (r20):** `EscalationBand` + `escalation(atFrontier:)` única fórmula (`hireCost`, `PriceCushion.jump`), `costGrowthStepPerFloor`; apagadas (umbral 7 = v1) |
-| E2b-T2 | Herencia de pasivos al reencarnar (EK) | 🔄 | T1 | — | | |
+| E2b-T2 | Herencia de pasivos al reencarnar (EK) | 🟢 | T1 | — | | |
 | E2b-T3 | El simulador cobra como el juego (EK) | ⛔ | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
 | E2b-T4 | Política de pisos en marcha del bot (EK, opus) | ⛔ | T3; E2a-T4 | — | | |
 | E2b-T5 | Perfiles y fuentes gratis (EK) | ⛔ | T4; E5a-T1 | archivo de `PackageRoller` | | |
@@ -704,7 +704,7 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T11 | Los ganchos en `GameState` | ✅ | T8, T10 | 🔥 GameState (una línea); +Celebrations, +Lifecycle, +BoardChanges, +Bootstrap, +Debug, FisuEvolutionApp | | sonnet, **rev. opus**; ventana libre de `GameState.swift` |
 | E12-T12 | El reset abre un intento nuevo | ⛔ | T11; E9b-T7, E9b-T8 | ResetPlan, +Reset | | sonnet, rev. opus |
 | E12-T13 | La 7.ª pestaña montada | ✅ | T9b, T11; E3b-T4, E3a-T11 | 🔥 RootView, catálogo; GameArtComponents, BottomMenuBar, MenuPagerView, TabUnlocks, tabs.json, +Tabs | | sonnet; captura SE (plan B: tarjeta en la Oficina); **destrabada (r20):** E3b T4 🟢 y E3a T11 ✅; dueña de `RootView` (no ∥ E3b T8, E7b-a T2) |
-| E12-T14 | La tarjeta de Dios montada | ⏳ | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
+| E12-T14 | La tarjeta de Dios montada | 🔄 | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
 | E12-T15 | Privacidad, Términos y notas a App Review | ⏳ | T11 | PrivacyInfo.xcprivacy, Legal | | sonnet; insumo de E10 |
 | E12-T16 | Despliegue real y humo | 🔒 | T5, T14 | — | | Supabase (URL + anon), `ANTHROPIC_API_KEY`, lista aprobada |
 | E12-T17 | El piso calibrado | ⛔ | T16; E2b-T14 | — | | controlador; no frena el cierre |

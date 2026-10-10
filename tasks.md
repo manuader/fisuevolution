@@ -8,7 +8,7 @@
 >
 > **Foto:** 2026-10-10, cierre del relevo 24 (la ola V, un solo relevo abierto por el disparo horario de `fisu-v2-relevo-a`).
 > `version-2` = `91b7634` (`rapido` VERDE sobre `25cc5da`: EK 825 · unit 1190 · 0 rojos · Release 0; suma E4a T10, E2b T7/T8, E4b T7 y E6a T11, todas ✅; el piso de descuentos que anulaba la contratación gratis se arregló en `25cc5da`).
-> `v2i/integ-r24` = `9b02cdd` + `tasks.md` (suma E4b T1, 🟢); `rapido` de la punta: RAPIDO_PENDIENTE.
+> `v2i/integ-r24` = `9b02cdd` + `tasks.md` (suma E4b T1, 🟢); `rapido` de la punta: VERDE (EK 827 · unit 1207 · 0 rojos · Release 0).
 > **Progreso: 182 de 254 en `version-2`; 183 con E4b T1 🟢.** **No publicar E7b-a T2 sin E7b-a T3.**
 > El último `completo` de referencia sigue siendo el de los cierres del 23, sobre `bab8a9c`. Detalle en `Docs/SESION-2026-10-10-v2-relevo-24-ola-v.md` (y `…relevo-23-ola-u.md`, `…cierres-r23.md`).
 > **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
@@ -83,7 +83,7 @@
 
 ## 2. Progreso
 
-**Hoy: 182 de 254 tareas activas integradas en `version-2` (71,7 %); con E4b T1 🟢, 183 de 254 (72,0 %).** En el relevo 24 entraron E4a T10, E2b T7, E2b T8, E4b T7 y E6a T11 con el `rapido` VERDE sobre `25cc5da` (EK 825 · unit 1190 · 0 rojos · Release 0); E4b T1 quedó 🟢 en `integ-r24` (`9b02cdd`; `rapido` de la punta: RAPIDO_PENDIENTE). Antes: 177 de 254 (69,7 %) con los cierres del 23, 174 (68,5 %) en `version-2` al cierre del 23 y 162 (63,8 %) al cierre del 22. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 3, las que destrabó la ola V: **E4b T2**, **E4b T8** y E5a T7 (que viene del 23). E4b T2 y E5a T7 comparten `+Engagement`: una por ola o en serie (§4.2). E12 T12 está ⛔, E12 T16 🔒 y E7b-a T3 ⛔ (bloqueo de publicación, §4.2).
+**Hoy: 183 de 254 tareas activas integradas en `version-2` (72,0 %): E4b T1 entró con el `rapido` VERDE de la punta de `integ-r24` (EK 827 · unit 1207 · 0 rojos · Release 0); antes, 182 (71,7 %).** En el relevo 24 entraron E4a T10, E2b T7, E2b T8, E4b T7 y E6a T11 con el `rapido` VERDE sobre `25cc5da` (EK 825 · unit 1190 · 0 rojos · Release 0); E4b T1 quedó 🟢 en `integ-r24` (`9b02cdd`; `rapido` de la punta: VERDE (EK 827 · unit 1207 · 0 rojos · Release 0)). Antes: 177 de 254 (69,7 %) con los cierres del 23, 174 (68,5 %) en `version-2` al cierre del 23 y 162 (63,8 %) al cierre del 22. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 3, las que destrabó la ola V: **E4b T2**, **E4b T8** y E5a T7 (que viene del 23). E4b T2 y E5a T7 comparten `+Engagement`: una por ola o en serie (§4.2). E12 T12 está ⛔, E12 T16 🔒 y E7b-a T3 ⛔ (bloqueo de publicación, §4.2).
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
@@ -93,7 +93,7 @@
 | E3b | 9 | 9 |  |  |  |  |  |  |
 | E2a | 15 | 15 |  |  |  |  |  |  |
 | E4a | 10 | 10 |  |  |  |  |  |  |
-| E4b | 10 | 1 | 1 |  | 2 | 6 |  |  |
+| E4b | 10 | 2 |  |  | 2 | 6 |  |  |
 | E5a | 9 | 6 |  |  | 1 | 2 |  |  |
 | E5b | 7 |  |  |  |  | 7 |  |  |
 | E6a | 13 | 6 |  |  |  | 7 |  |  |
@@ -110,7 +110,7 @@
 | E12 | 19 | 15 |  |  |  | 3 | 1 |  |
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
-| **Total** | **254** | **182** | **1** |  | **3** | **67** | **1** | **5** |
+| **Total** | **254** | **183** | |  | **3** | **67** | **1** | **5** |
 
 Fuera del conteo:
 
@@ -208,7 +208,7 @@ partirlo.
 
 | # | Qué | Nota |
 |---|---|---|
-| 1 | **El `rapido` final sobre la punta de `v2i/integ-r24`** (`9b02cdd` + `tasks.md` + los docs del 24, con E4b T1 🟢). Resultado del relevo 24: RAPIDO_PENDIENTE | **Si dio VERDE, `version-2` ya está en la punta** (la dejó el controlador al cerrar): confirmar con `git log` y pasar E4b T1 a ✅ (183 de 254). **Si no dio VERDE o no quedó hecho, correrlo** sobre la punta de `v2i/integ-r24` con la ruta absoluta del worktree: `nohup perl -e 'setpgrp(0,0); exec @ARGV' bash <ruta>/Tools/v2/oraculo.sh rapido > build/<log> 2>&1 &` (`setsid` no existe en macOS; el oráculo usa el repo de su propia ruta) y esperarlo por PID o por la última línea del log, no con `pgrep -f`. Con ROJO, leer primero **qué test** cae (el último fue el piso de E4b T7 contra la contratación gratis). No mergear a `version-2` mientras corra otro oráculo ahí |
+| 1 | **El `rapido` final sobre la punta de `v2i/integ-r24`** (`9b02cdd` + `tasks.md` + los docs del 24, con E4b T1 🟢). Resultado del relevo 24: VERDE (EK 827 · unit 1207 · 0 rojos · Release 0) | **Si dio VERDE, `version-2` ya está en la punta** (la dejó el controlador al cerrar): confirmar con `git log` y pasar E4b T1 a ✅ (183 de 254). **Si no dio VERDE o no quedó hecho, correrlo** sobre la punta de `v2i/integ-r24` con la ruta absoluta del worktree: `nohup perl -e 'setpgrp(0,0); exec @ARGV' bash <ruta>/Tools/v2/oraculo.sh rapido > build/<log> 2>&1 &` (`setsid` no existe en macOS; el oráculo usa el repo de su propia ruta) y esperarlo por PID o por la última línea del log, no con `pgrep -f`. Con ROJO, leer primero **qué test** cae (el último fue el piso de E4b T7 contra la contratación gratis). No mergear a `version-2` mientras corra otro oráculo ahí |
 | 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 24 vio 3,3 y trabajó con 3 compilando. Con carga > 200: **no más de 2 compilando** (el `rapido` cuenta); con ~100, 3. **Las tareas de EK pura (`swift test`) no ocupan cupo**. `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y esperas por PID (**`timeout` no existe**). **El latido es un script con `sleep 30` y escritura por reloj.** **Nunca `pkill -f`**. Un agente con una espera de fondo re-entrega el mismo reporte: **`TaskStop` una vez integrado**; si el reporte de arreglos no llega, leer su commit |
 | 3 | Leer `DUENO.md` entero por pendientes nuevos | **El clasificador del modo auto no deja escribir en `DUENO.md` ni en `.claude/worktrees/version-2/.superpowers/`**: la tabla de dueños va **en cada brief de despacho** (los briefs nuevos se arman con `brief.py` en el `.superpowers/sdd/` del worktree de integración). Las decisiones del dueño del 21b están en el journal, los SESION y acá; **no las re-preguntes**. La mediación por SPM espera al dueño. Los worktrees `v2-e12-plan`, `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
 | 4 | **Toda tarea que toque `DebugPanelView` corre además `CharacterSheetUITests` y `QuickHireUITests`** (y `BonusHUDUITests`); su fila nueva va al final de la `List` | un `tarea` no corre UI. **E4b T1 movió la `Section` Escenario antes de Peligro y esas tres clases no se re-corrieron**: E4b T2 las corre (toca el panel) y, si no, el próximo `completo`. Va en el brief de E4b T2/T4/T9, E5b T2, E7b-a T3/T6 |
@@ -486,7 +486,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E4b-T1 | El escenario y su turno | 🟢 | E4a-T10; E3a-T10, E1-T10 | 🔥 GameState, BoardScene; CelebrationQueue, +Celebrations, +Debug | `52a1b9f` + arreglos `788db95` (merge `9b02cdd`, en `v2i/integ-r24`) | |
+| E4b-T1 | El escenario y su turno | ✅ | E4a-T10; E3a-T10, E1-T10 | 🔥 GameState, BoardScene; CelebrationQueue, +Celebrations, +Debug | `52a1b9f` + arreglos `788db95` (merge `9b02cdd`, en `v2i/integ-r24`) | |
 | E4b-T2 | Los visitantes en la partida | ⏳ | T1 | catálogo (snapshot); +Engagement, +Debug, DebugPanelView | | no con E5a T7 (`+Engagement`) |
 | E4b-T3 | El chip, el popup y el retrato | ⛔ | T2; E3a-T11, E3b-T4, E3b-T8, E3b-T9 | 🔥 RootView, catálogo; +TutorialTips, TutorialAnchor | | crea `RewardedOfferButton` (lo completa E7b-b T7) |
 | E4b-T4 | Eventos con presentador; adiós al banner | ⛔ | T3 | 🔥 GameState, RootView, catálogo, +Bonus; CelebrationQueue, +Celebrations, ActiveBonus* | | |

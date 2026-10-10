@@ -16,7 +16,7 @@
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
 > 📍 **Estado al cierre del relevo 24 (la ola V, 2026-10-10; manda sobre el párrafo de abajo, que es del 22):** `version-2` = **`91b7634`** tras el `rapido` VERDE sobre
-> `25cc5da` (EK 825 · unit 1190 · 0 rojos · Release 0) · `v2i/integ-r24` = `9b02cdd` (suma E4b T1, 🟢) + `tasks.md` · `rapido` de la punta: RAPIDO_PENDIENTE.
+> `25cc5da` (EK 825 · unit 1190 · 0 rojos · Release 0) · `v2i/integ-r24` = `9b02cdd` (suma E4b T1, 🟢) + `tasks.md` · `rapido` de la punta: VERDE (EK 827 · unit 1207 · 0 rojos · Release 0).
 > **Progreso: 182 de 254 en `version-2` (71,7 %); 183 de 254 con E4b T1 🟢.** Entraron E4a T10 (cierre de E4a), E2b T7/T8 (perfil `.max` y CLI del simulador), E4b T7 (la Liquidación
 > en el precio) y E6a T11 (las ofertas se cobran). El `rapido` encontró un bug real: el piso de descuentos de E4b T7 anulaba la contratación gratis (`25cc5da`). Detalle en
 > `Docs/SESION-2026-10-10-v2-relevo-24-ola-v.md`. Lo que sigue: `tasks.md` §4 (relevo 25): **E4b T2** o **E5a T7** (comparten `+Engagement`: una por ola), **E4b T8**.
@@ -334,7 +334,7 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ### Sesión del 2026-10-10 (relevo 24) — La ola V: el cierre de E4a, el perfil `.max` y el CLI del simulador, la Liquidación en el precio, las ofertas que se cobran y el escenario
 
-Un solo relevo, abierto a las 03:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~253k de contexto. Todo en `v2i/integ-r24`. `version-2` quedó en `91b7634` (`rapido` VERDE sobre `25cc5da`: EK 825 · unit 1190 · 0 rojos · Release 0). **Progreso: 182 de 254 en `version-2`; 183 de 254 (72,0 %) con E4b T1 🟢** si el `rapido` de la punta da VERDE (RAPIDO_PENDIENTE).
+Un solo relevo, abierto a las 03:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~253k de contexto. Todo en `v2i/integ-r24`. `version-2` quedó en `91b7634` (`rapido` VERDE sobre `25cc5da`: EK 825 · unit 1190 · 0 rojos · Release 0). **Progreso: 182 de 254 en `version-2`; 183 de 254 (72,0 %) con E4b T1 🟢** si el `rapido` de la punta da VERDE (VERDE (EK 827 · unit 1207 · 0 rojos · Release 0)).
 
 - **E4a T10** (cierre de E4a, docs) y **E2b T7/T8** (el perfil `.max` y el CLI del pacing-sim, EK): la base sigue **byte a byte idéntica** (Dios 31,34 h · 13 reenc.); con `--prestige-threshold 4`, `.bare` 22,34 h · `.free` 18,77 · `.ads` 12,84 · `.max` 12,75 (6 reenc.).
 - **E4b T7** (la Liquidación en el precio: piso 0,25 sólo en `spawnCostMultiplier`, precio tachado «antes X») y **E6a T11** (`offer_*` consumibles, `creditOffer` sin mirar la ventana, ORO por `recordOroPurchase`); las dos con revisión opus Approved con arreglos, hechos.

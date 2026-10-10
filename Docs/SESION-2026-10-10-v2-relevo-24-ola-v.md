@@ -13,10 +13,10 @@ nada nuevo después, se terminó E4b T1 y se cerró.
 | `version-2` | **`91b7634`** tras el `rapido` VERDE sobre `25cc5da` (EK 825 · unit 1190 · 0 rojos · Release 0); **182 de 254 (71,7 %)** |
 | `v2i/integ-r24` | `9b02cdd` (suma E4b T1, 🟢) + `tasks.md`; los docs del cierre van en `v2i/docs-r24` |
 | Progreso | **182 de 254 en `version-2`; 183 de 254 (72,0 %) con E4b T1 🟢** si el `rapido` de la punta da VERDE |
-| `rapido` de la punta | RAPIDO_PENDIENTE |
+| `rapido` de la punta | VERDE (EK 827 · unit 1207 · 0 rojos · Release 0) |
 | Bloqueadas | ninguna nueva. E7b-a T3 sigue ⛔ y es **bloqueo de publicación**; E12 T12 ⛔ (espera a E9b T8) |
 
-`rapido` de la tanda, en orden: `db27a2c` **ROJO** (unit 1188 / 2 rojos: el bug de abajo); `25cc5da` VERDE (EK 825 · unit 1190 · 0 rojos · Release 0); la punta con E4b T1 (`9b02cdd` + `tasks.md`): RAPIDO_PENDIENTE.
+`rapido` de la tanda, en orden: `db27a2c` **ROJO** (unit 1188 / 2 rojos: el bug de abajo); `25cc5da` VERDE (EK 825 · unit 1190 · 0 rojos · Release 0); la punta con E4b T1 (`9b02cdd` + `tasks.md`): VERDE (EK 827 · unit 1207 · 0 rojos · Release 0).
 No hubo `completo` en esta ola: el último de referencia sigue siendo el de los cierres del 23 (sobre `bab8a9c`).
 
 ## Lo que se integró
@@ -114,7 +114,7 @@ La vara fue la de siempre: la base queda idéntica `cmp` línea por línea antes
 
 ## Oráculo
 
-- `rapido`: `db27a2c` ROJO (unit 1188 / 2: el piso y la contratación gratis); `25cc5da` VERDE (EK 825 · unit 1190 · 0 rojos · Release 0); punta (`9b02cdd` + `tasks.md`): RAPIDO_PENDIENTE.
+- `rapido`: `db27a2c` ROJO (unit 1188 / 2: el piso y la contratación gratis); `25cc5da` VERDE (EK 825 · unit 1190 · 0 rojos · Release 0); punta (`9b02cdd` + `tasks.md`): VERDE (EK 827 · unit 1207 · 0 rojos · Release 0).
 - Tarea del fix (`CorralitoTests`, `JobRowsTests`, `DiscountedPriceTests`, `QuickHireOfferTests`): VERDE (EK 825 · unit 48/0).
 - Sin `completo`: el de referencia sigue siendo el de los cierres del 23 sobre `bab8a9c`.
 

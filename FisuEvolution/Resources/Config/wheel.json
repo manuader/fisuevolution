@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "videoSpinsPerDay": 6,
+  "oroSpinCost": 12,
+  "oroSpinsPerDay": 6,
+  "spinSeconds": 3.8,
+  "chestFallbackSegmentId": "coins_30",
+  "segments": [
+    {"id": "coins_30", "weight": 18, "reward": {"kind": "coinsSeconds", "seconds": 1800}},
+    {"id": "income_x2", "weight": 14, "reward": {"kind": "modifier", "effect": "incomeMultiplier", "magnitude": 2, "seconds": 600}},
+    {"id": "oro_1", "weight": 15, "reward": {"kind": "oro", "amount": 1}},
+    {"id": "coins_45", "weight": 12, "reward": {"kind": "coinsSeconds", "seconds": 2700}},
+    {"id": "package", "weight": 12, "reward": {"kind": "package", "count": 1}},
+    {"id": "income_x3", "weight": 8, "reward": {"kind": "modifier", "effect": "incomeMultiplier", "magnitude": 3, "seconds": 600}},
+    {"id": "coins_60", "weight": 8, "reward": {"kind": "coinsSeconds", "seconds": 3600}},
+    {"id": "chest", "weight": 5, "reward": {"kind": "skinChest", "count": 1}},
+    {"id": "oro_3", "weight": 5, "reward": {"kind": "oro", "amount": 3}},
+    {"id": "income_x5", "weight": 3, "reward": {"kind": "modifier", "effect": "incomeMultiplier", "magnitude": 5, "seconds": 600}}
+  ]
+}

@@ -28,6 +28,10 @@ struct GameContent: Sendable {
     let notifications: NotificationsConfig
     /// Los visitantes y sus guiones (PLAN-v2 E4, Anexos A y B).
     let visitors: VisitorsConfig
+    /// El Paquete de la Aduana, El Colchón y la Ruleta (PLAN-v2 E5).
+    let packages: PackagesConfig
+    let treasures: TreasuresConfig
+    let wheel: WheelConfig
 }
 
 /// Decodes and validates the bundled JSON content. Any failure produces a typed
@@ -55,6 +59,9 @@ enum GameContentLoader {
         let notifications: NotificationsConfig = try decode("notifications", from: bundle)
         let tabs: TabsConfig = try decode("tabs", from: bundle)
         let visitors: VisitorsConfig = try decode("visitors", from: bundle)
+        let packages: PackagesConfig = try decode("packages", from: bundle)
+        let treasures: TreasuresConfig = try decode("treasures", from: bundle)
+        let wheel: WheelConfig = try decode("wheel", from: bundle)
 
         let tiers: TierRepository
         do {
@@ -122,6 +129,10 @@ enum GameContentLoader {
             throw GameError.contentInvalid(file: "visitors.json", reason: "\(visitor.id) no está en specials.json")
         }
 
+        try validatePrize(packages.validate, file: "packages.json")
+        try validatePrize(treasures.validate, file: "treasures.json")
+        try validatePrize(wheel.validate, file: "wheel.json")
+
         return GameContent(
             economy: economy,
             tiers: tiers,
@@ -143,7 +154,10 @@ enum GameContentLoader {
             achievements: achievements,
             tabs: tabs,
             notifications: notifications,
-            visitors: visitors
+            visitors: visitors,
+            packages: packages,
+            treasures: treasures,
+            wheel: wheel
         )
     }
 
@@ -246,6 +260,16 @@ enum GameContentLoader {
                     throw fail("\(career.id): healthPlan necesita durationSeconds y lumpMinutes > 0")
                 }
             }
+        }
+    }
+
+    /// Un premio mal declarado se descubre al arrancar, no cuando el jugador lo
+    /// abre: el error dice qué archivo y por qué.
+    private static func validatePrize(_ validate: () throws -> Void, file: String) throws {
+        do {
+            try validate()
+        } catch {
+            throw GameError.contentInvalid(file: file, reason: "\(error)")
         }
     }
 

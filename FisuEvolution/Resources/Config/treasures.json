@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "spawnIntervalSeconds": 480,
+  "firstTreasureAfterSeconds": 480,
+  "extraOpensPerTreasure": 1,
+  "prizes": [
+    {"id": "coins", "weight": 60, "rewards": [{"kind": "coinsSeconds", "seconds": 1200}]},
+    {"id": "package", "weight": 25, "rewards": [{"kind": "package", "count": 1}]},
+    {"id": "oro", "weight": 15, "rewards": [{"kind": "oro", "amount": 2}]}
+  ]
+}

@@ -81,7 +81,7 @@ public struct WheelConfig: Codable, Sendable, Equatable {
         guard videoSpinsPerDay > 0 else { throw ValidationError.outOfRange("videoSpinsPerDay") }
         guard oroSpinCost > 0 else { throw ValidationError.outOfRange("oroSpinCost") }
         guard oroSpinsPerDay >= 0 else { throw ValidationError.outOfRange("oroSpinsPerDay") }
-        guard spinSeconds > 0 else { throw ValidationError.outOfRange("spinSeconds") }
+        guard spinSeconds > 0, spinSeconds.isFinite else { throw ValidationError.outOfRange("spinSeconds") }
         var ids: Set<String> = []
         for segment in segments {
             guard ids.insert(segment.id).inserted else { throw ValidationError.duplicateSegment(segment.id) }

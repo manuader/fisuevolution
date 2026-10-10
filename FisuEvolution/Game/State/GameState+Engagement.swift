@@ -20,7 +20,7 @@ extension GameState {
             debugStartEvent(id: id)
         }
         if let scriptId = Self.fixtureValue("--uitest-visitor=", in: arguments) {
-            debugPresentVisitor(scriptId: scriptId)
+            stageRuntime.debugScript = scriptId
         }
         if let count = Self.fixtureValue("--uitest-packages=", in: arguments).flatMap(Int.init) {
             debugAddPackages(count)

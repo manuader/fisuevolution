@@ -226,8 +226,8 @@ private extension BoardChange {
     /// paquete se descuenta del buzón al abrirlo, así que también lo es.
     var isPrepaid: Bool {
         switch origin {
-        case .rewardedMergeAll, .rewardedRareUnit, .career, .package: true
-        case .eventStartup, .eventBlanqueo, .debug, .visitor: false
+        case .rewardedMergeAll, .rewardedRareUnit, .career, .package, .visitor: true
+        case .eventStartup, .eventBlanqueo, .debug: false
         }
     }
 }

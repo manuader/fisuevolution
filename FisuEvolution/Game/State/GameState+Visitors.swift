@@ -35,6 +35,13 @@ extension GameState {
     /// El guion que llamó un evento entra primero; un evento esperando a su
     /// presentador, antes que cualquier visitante (T4).
     func advanceVisitors(delta: TimeInterval, today: String = DailyRewardManager.dayString(for: Date())) {
+        #if DEBUG
+        if let scriptId = stageRuntime.debugScript, canPresentOnStage {
+            stageRuntime.debugScript = nil
+            if let script = content?.visitors.script(id: scriptId) { presentVisitor(script) }
+            return
+        }
+        #endif
         if stageRuntime.calledScript != nil, canPresentOnStage {
             presentCalledScript()
             return

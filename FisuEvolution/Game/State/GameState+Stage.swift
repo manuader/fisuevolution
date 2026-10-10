@@ -6,7 +6,7 @@ import Foundation
 /// llegó o el que se iba salió.
 extension GameState {
     /// El escenario está libre y es un momento calmo: puede entrar alguien.
-    var canPresentOnStage: Bool { stageVisit == nil && isCalmMoment }
+    var canPresentOnStage: Bool { stageVisit == nil && isCalmMoment && ads?.isPresentingFullScreen != true }
 
     /// Pone a alguien en escena. Entra cuando la cola le da el turno
     /// (`.visitorEncounter`); hasta entonces no se ve. Devuelve si lo puso: con el

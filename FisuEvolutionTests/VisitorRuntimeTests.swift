@@ -275,4 +275,77 @@ struct VisitorRuntimeTests {
         gameState.advanceStage(delta: 5)
         #expect(gameState.stageRuntime.patienceLeft == before - 5)
     }
+
+    @Test("el fixture de arranque presenta al visitante en el primer momento calmo")
+    func theBootFixtureWaitsForACalmMoment() async {
+        let gameState = await world()
+        gameState.applyEngagementFixtures(arguments: ["--uitest-visitor=turista_propina"])
+        #expect(gameState.stageVisit == nil)
+        gameState.advanceVisitors(delta: 0)
+        #expect(gameState.stageVisit?.role == .visitor(scriptId: "turista_propina"))
+        #expect(gameState.stageRuntime.debugScript == nil)
+    }
+
+    @Test("reencarnar despide al visitante y cancela el reto y el llamado")
+    func reincarnatingDismissesTheVisitor() async throws {
+        let gameState = await world()
+        gameState.player?.meta.ownedSpecials.append("sp_coach")
+        try arrive(gameState, "coach_reto")
+        #expect(gameState.chooseVisitOption("challenge"))
+        gameState.stageRuntime.calledScript = "arbolito_blue"
+        gameState.giveEarningsForPrestigeTesting(oro: 3)
+        gameState.confirmPrestige()
+        #expect(gameState.stageChallenge == nil)
+        #expect(gameState.stageRuntime.calledScript == nil)
+        #expect(gameState.stageVisit == nil || gameState.stageVisit?.phase == .leaving)
+        #expect(gameState.stageVisit?.offer == nil)
+    }
+
+    @Test("lo que se lleva un visitante cuenta como pagado: un kill no deja plata y unidad")
+    func visitorDeparturesArePrepaid() async throws {
+        let gameState = await world()
+        try arrive(gameState, "comisario_arresto")
+        let typeId = try #require(gameState.stageVisit?.offer?.subjectTypeId)
+        let unitsBefore = gameState.player?.run.units[typeId] ?? 0
+        #expect(gameState.chooseVisitOption("release"))
+        gameState.settlePrepaidBoardChanges()
+        #expect(gameState.pendingBoardChanges.isEmpty)
+        #expect(gameState.player?.run.units[typeId] == unitsBefore - 1)
+    }
+
+    @Test("un toque real a un empleado cuenta para el reto")
+    func aRealTapCountsForTheChallenge() async throws {
+        let gameState = await world()
+        gameState.player?.meta.ownedSpecials.append("sp_coach")
+        try arrive(gameState, "coach_reto")
+        #expect(gameState.chooseVisitOption("challenge"))
+        let slot = try #require(gameState.visiblePlacements.first?.slot)
+        #expect(gameState.registerTap(cellIndex: slot) != nil)
+        #expect(gameState.stageChallenge?.taps == 1)
+    }
+
+    @Test("una segunda elección sobre un trato cerrado no toca la plata")
+    func aSecondChoiceIsRefused() async throws {
+        let gameState = await world()
+        try arrive(gameState, "turista_propina")
+        #expect(gameState.chooseVisitOption("accept"))
+        let after = coins(gameState)
+        #expect(!gameState.chooseVisitOption("accept"))
+        #expect(coins(gameState) == after)
+    }
+
+    @Test("con un anuncio en pantalla nadie entra a escena")
+    func noEntranceOverAnAd() async throws {
+        let gameState = await world()
+        let provider = ScriptedAdsProvider()
+        provider.holdsOpen = true
+        let ads = AdsCoordinator(provider: provider)
+        gameState.ads = ads
+        let showing = Task { await ads.showInterstitial() }
+        await provider.waitUntilShowing()
+        #expect(!gameState.canPresentOnStage)
+        provider.closeCurrentAd()
+        _ = await showing.value
+        #expect(gameState.canPresentOnStage)
+    }
 }

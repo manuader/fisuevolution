@@ -160,6 +160,11 @@ extension GameState {
             now: Date().timeIntervalSince1970
         )
         self.player = player
+        // El que estaba en escena es de la run que se fue: un regalo, un chisme
+        // o un reto se cobrarían en la nueva con el rendimiento de la vieja.
+        stageChallenge = nil
+        stageRuntime.calledScript = nil
+        sendStageActorAway()
         // La cinemática de la reencarnación va antes del cofre (PLAN-v2 E8) y trae su
         // propio sonido: el SFX de prestigio sólo suena si ella no.
         if !playCinematicIfDue(.reencarnacion) { audio?.play(.prestige) }

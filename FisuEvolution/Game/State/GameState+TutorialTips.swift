@@ -45,6 +45,8 @@ extension GameState {
         case prestige
         /// El primer momento viral ofrecido: el botón de compartir y su premio.
         case share
+        /// El primer especial conseguido: vive en el Álbum de la Oficina central.
+        case album
 
         /// La bandera persistida de "esta lección ya se dio". Versionable por
         /// prefijo, y `--uitest-reset` las barre (`+Debug`).
@@ -63,6 +65,7 @@ extension GameState {
             case .store: .store
             case .prestige: .prestige
             case .share: .share
+            case .album: .menu
             }
         }
 
@@ -73,7 +76,7 @@ extension GameState {
             switch self {
             case .upgrades, .oroUpgrades: .upgrades
             case .skins: .skins
-            case .achievements: .menu
+            case .achievements, .album: .menu
             case .gifts: .gifts
             case .store: .store
             case .elevator, .elevatorKeypad, .quickHire, .prestige, .share: nil
@@ -94,6 +97,7 @@ extension GameState {
             case .store: "tutorial.tip.store"
             case .prestige: "tutorial.tip.prestige"
             case .share: "tutorial.tip.share"
+            case .album: "tutorial.tip.album"
             }
         }
     }
@@ -187,6 +191,10 @@ extension GameState {
             prestigeAvailable
         case .share:
             shareOffer != nil
+        case .album:
+            // Una partida vieja con especiales la ve una vez: es justo el aviso
+            // de que se mudaron del piso al Álbum.
+            !(player?.meta.ownedSpecials.isEmpty ?? true)
         }
     }
 

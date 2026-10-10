@@ -77,6 +77,16 @@ enum EffectDescriptor {
             return EffectAmount(unit: .percentBonus, value: magnitude, isCapped: false)
         }
     }
+
+    /// Especiales: lo que da tenerlo (el Álbum). `incomeMultiplier` es un factor
+    /// (1,03 = +3 %); los otros tres ya son la fracción que se suma o se descuenta.
+    static func amount(forSpecial effectType: SpecialsConfig.PassiveEffect.Kind, magnitude: Double) -> EffectAmount {
+        switch effectType {
+        case .incomeMultiplier: EffectAmount(unit: .percentBonus, value: magnitude - 1, isCapped: false)
+        case .offlineEfficiencyBonus, .critChanceBonus: EffectAmount(unit: .percentBonus, value: magnitude, isCapped: false)
+        case .spawnDiscount: EffectAmount(unit: .percentDiscount, value: magnitude, isCapped: false)
+        }
+    }
 }
 
 // Ninguno de los dos `switch` de arriba lleva `default`. Es a propósito: cuando

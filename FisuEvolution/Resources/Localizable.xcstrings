@@ -6342,6 +6342,125 @@
         }
       }
     },
+    "oroShop.blocked.daily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More tomorrow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mañana hay más"
+          }
+        }
+      }
+    },
+    "oroShop.blocked.nothing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to do now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora no hace nada"
+          }
+        }
+      }
+    },
+    "oroShop.blocked.pending" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One is already waiting"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya tenés uno esperando"
+          }
+        }
+      }
+    },
+    "oroShop.buy.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprar %@"
+          }
+        }
+      }
+    },
+    "oroShop.chest.coins" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You own every skin in the chest: this chest pays coins."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya tenés todas las pintas del cofre: este cofre paga monedas."
+          }
+        }
+      }
+    },
+    "oroShop.chest.odds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What you can get"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Qué puede salir"
+          }
+        }
+      }
+    },
+    "oroShop.footer.reincarnate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timed boosts are lost when you reincarnate."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los boosts por tiempo se pierden al reencarnar."
+          }
+        }
+      }
+    },
     "oroShop.item.auto_tap.name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6614,6 +6733,40 @@
         }
       }
     },
+    "oroShop.pending.daily %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your next daily reward comes ×%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El próximo diario viene ×%@"
+          }
+        }
+      }
+    },
+    "oroShop.pending.offline %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your next away popup comes ×%@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El popup de tu próxima ausencia viene ×%@"
+          }
+        }
+      }
+    },
     "oroShop.shelf.boosts" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6678,6 +6831,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Atajos"
+          }
+        }
+      }
+    },
+    "oroShop.today %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today: %1$@ of %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy: %1$@ de %2$@"
           }
         }
       }
@@ -11473,6 +11643,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skins"
+          }
+        }
+      }
+    },
+    "store.segment.buy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy ORO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprar ORO"
+          }
+        }
+      }
+    },
+    "store.segment.spend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spend ORO"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gastar ORO"
           }
         }
       }

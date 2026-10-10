@@ -2481,6 +2481,23 @@
         }
       }
     },
+    "career.double" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick it with a ×2 prize (video)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir con premio ×2 (video)"
+          }
+        }
+      }
+    },
     "career.reward.boost %@ %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3253,6 +3270,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Día 7: Aparece Alguien Turbio"
+          }
+        }
+      }
+    },
+    "daily.double" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Double it with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duplicar con un video"
           }
         }
       }

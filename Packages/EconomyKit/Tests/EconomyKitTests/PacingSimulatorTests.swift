@@ -8,7 +8,7 @@ import Testing
 /// dios en la primera sesión y `run` corta ahí, o sea ANTES de la primera
 /// reencarnación — que es el único momento en el que entra ORO y justo lo que
 /// estos tests miden.
-private func upTiers(maxTier: Int = 20) throws -> TierRepository {
+func upTiers(maxTier: Int = 20) throws -> TierRepository {
     let types = (1...maxTier).map { tier in
         fxType(
             "t\(tier)",
@@ -29,7 +29,7 @@ private func upTiers(maxTier: Int = 20) throws -> TierRepository {
 /// fixture sin compuerta mediría un bot que compra donde el jugador no puede.
 /// Lo que la compuerta hace por sí sola lo mide `HireGateTests`; acá está para
 /// que el instrumental corra contra la torre que existe.
-private func upConfig(maxTier: Int = 20, gateTierDistance: Int = 5, capacity: Int = 10) -> EconomyConfig {
+func upConfig(maxTier: Int = 20, gateTierDistance: Int = 5, capacity: Int = 10) -> EconomyConfig {
     let floors = stride(from: 1, through: maxTier, by: 4).enumerated().map { index, first in
         FloorDef(
             id: "f\(index + 1)",
@@ -60,7 +60,7 @@ private func upConfig(maxTier: Int = 20, gateTierDistance: Int = 5, capacity: In
 }
 
 /// Catálogo barato: llega al tope dentro del horizonte del test.
-private func upCheapLines() -> [PermanentUpgradeLine] {
+func upCheapLines() -> [PermanentUpgradeLine] {
     [
         PermanentUpgradeLine(
             id: "income", effect: .incomeMultiplier,
@@ -75,7 +75,7 @@ private func upCheapLines() -> [PermanentUpgradeLine] {
 
 /// Catálogo inalcanzable: un solo nivel que cuesta más ORO del que la economía
 /// entera produce en el horizonte.
-private func upUnreachableLines() -> [PermanentUpgradeLine] {
+func upUnreachableLines() -> [PermanentUpgradeLine] {
     [
         PermanentUpgradeLine(
             id: "income", effect: .incomeMultiplier,
@@ -84,13 +84,13 @@ private func upUnreachableLines() -> [PermanentUpgradeLine] {
     ]
 }
 
-private func upSimulator(upgrades: [PermanentUpgradeLine] = [], maxTier: Int = 20) throws -> PacingSimulator {
+func upSimulator(upgrades: [PermanentUpgradeLine] = [], maxTier: Int = 20) throws -> PacingSimulator {
     try PacingSimulator(config: upConfig(maxTier: maxTier), tiers: upTiers(maxTier: maxTier), upgrades: upgrades)
 }
 
 /// Lo que distingue dos corridas del bot: si una perilla no mueve esto, el
 /// simulador no la lee (trampa 28: un knob horneado no hace nada).
-private func fingerprint(_ report: PacingSimulator.Report) -> [Double] {
+func fingerprint(_ report: PacingSimulator.Report) -> [Double] {
     [report.godActive ?? -1, Double(report.reincarnations), report.finalLifetimeEarnings, Double(report.finalMaxTier)]
         + report.reincarnationActiveSeconds
 }

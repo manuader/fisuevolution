@@ -712,7 +712,7 @@ antes de E2b (fija el piso `minRealSecondsToGod`) y E10 (App Privacy, Términos,
 | E12-T12 | El reset abre un intento nuevo | ⛔ | T11; E9b-T7, E9b-T8 | ResetPlan, +Reset | | sonnet, rev. opus |
 | E12-T13 | La 7.ª pestaña montada | ✅ | T9b, T11; E3b-T4, E3a-T11 | 🔥 RootView, catálogo; GameArtComponents, BottomMenuBar, MenuPagerView, TabUnlocks, tabs.json, +Tabs | | sonnet; captura SE (plan B: tarjeta en la Oficina); **destrabada (r20):** E3b T4 🟢 y E3a T11 ✅; dueña de `RootView` (no ∥ E3b T8, E7b-a T2) |
 | E12-T14 | La tarjeta de Dios montada | ✅ | T9a, T11, T13 | 🔥 RootView, catálogo | | sonnet; de a una con T13 |
-| E12-T15 | Privacidad, Términos y notas a App Review | 🔄 | T11 | PrivacyInfo.xcprivacy, Legal | | sonnet; insumo de E10 |
+| E12-T15 | Privacidad, Términos y notas a App Review | 🟢 | T11 | PrivacyInfo.xcprivacy, Legal | `700c02a`+`a223c0b` (en `v2i/integ-r22`) | sonnet; insumo de E10 ; **carry a E10 y al dueño:** `NSPrivacyTracking` sigue en `false` (de antes) aunque AdMob/ATT; la nota no da atajo al revisor para ver el ranking; la privacidad no nombra al proveedor de la IA que modera |
 | E12-T16 | Despliegue real y humo | 🔒 | T5, T14 | — | | Supabase (URL + anon), `ANTHROPIC_API_KEY`, lista aprobada |
 | E12-T17 | El piso calibrado | ⛔ | T16; E2b-T14 | — | | controlador; no frena el cierre |
 | E12-T18 | Cierre de E12 (controlador) | ⛔ | T1–T16 | `Docs/` | | |

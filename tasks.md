@@ -953,7 +953,9 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 - La columna nunca se abre sola por un "!" nuevo: sólo al tocarla o por una lección.
 - La columna es de metal (`MetalPlate`), no de madera.
 
-## 7. Decisiones del dueño del relevo 6 (no se vuelven a preguntar)
+## 7. Decisiones del dueño (no se vuelven a preguntar)
+
+### Decisiones del dueño del relevo 6
 
 | Tema | Decisión | Consecuencia |
 |---|---|---|
@@ -972,6 +974,46 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 | Anexos A y B | Aprobados sin cambios | Destraba E4a T7 y T9 |
 | Batch de imágenes | Corriendo | Integrarlo es una tarea aparte cuando termine (`process_dropbox.py`, categorías `npc`/`skinfam`, `prompts.json`) |
 | Worktrees viejos | Limpiados por el dueño | El sintetizador sustractivo vive en `rescate/audio-sintesis-sustractiva`, candidato para los temas de E8 |
+
+### 2026-10-10 — B1–B26 aceptados con su default
+
+El dueño contestó «hacé todo lo recomendado» a `Docs/PREGUNTAS-DUENO-v2.md` (copia en el run: `PREGUNTAS-DUENO.md`):
+**cada pregunta B queda decidida con su default y no se vuelve a preguntar** (26 decisiones; B8 y B22 ya están en código, abajo). Las A1–A10 siguen siendo gates 🔒 del dueño. Lo que cambia en el código, por pregunta:
+
+| # | Decisión (el default) | Afecta |
+|---|---|---|
+| B1 | Los visitantes pagan el 31 % (`coinsSecondsScale` 0,31; ~24 min/día); Dios sigue en 31,34 h | Nada nuevo (E2b T10 ✅); E2b T13 mide sobre eso |
+| B2 | Los boosts de la Tienda de ORO se multiplican entre sí (×72 por 30 min), sin tomar el mayor | Nada nuevo (E6a T4/T6 ✅); E2b T12/T13 lo miden tal cual |
+| B3 | Offline ×3 + video ×2 = ×6 y Diario ×3 + video ×2 = ×6 del base; sin capar | Nada nuevo (E6a T5, E7b-a T3 ✅) |
+| B4 | La pausa publicitaria regala un ×2 que se apila con otros ×2; pantalla previa de 5 s fijos | Nada nuevo (E7b-a ✅); E2b T12 |
+| B5 | Ruleta: un premio repetido suma (×5 repetido = ×25 por 10 min; ×2·×3·×5 = ×30) | Nada nuevo (E5a T8 ✅) |
+| B6 | Obra social: el ×2 por video duplica sólo la plata, no la inmunidad | Nada nuevo (E7b-b T6 ✅) |
+| B7 | El premio de reencarnación es casi nulo (5 min de la run nueva) | Nada nuevo; E2b lo deja así |
+| B8 | Los boosts por tiempo comprados con ORO se pierden al reencarnar (los ×3 pendientes no), **con aviso en la pantalla** | ✅ hecho: aviso en E6a T8 |
+| B9 | El auto-tap comprado se pierde al reencarnar y sigue venciendo con la app cerrada | Nada nuevo (E2a/E6a ✅) |
+| B10 | El reset de cuenta borra un ×3 ya pagado | E9b T8 (el reset) |
+| B11 | Fusionar todo con ORO: el par que ya no existe no se devuelve y un kill antes de asentar pierde los pares cobrados; no se compensa con ORO | Nada nuevo (E5b T2 ✅) |
+| B12 | Un evento esperando al presentador se pierde si matás la app (sin cobrar); si al llegar ya no aplica, el presentador se va callado | Nada nuevo (E4a T9, E4b T3/T4 ✅) |
+| B13 | El Colchón sobrevive a la reencarnación; si la app cae en los 2 s después de abrirlo, se vuelve a sortear | Nada nuevo (E5a ✅) |
+| B14 | La oferta de Compartir descartada se pierde y puede gastar sus 10 s detrás de un intersticial | Nada nuevo (E3b T9 ✅, E7b-a) |
+| B15 | Ofertas entre dos dispositivos: la abierta sólo en el save que pierde el cruce se pierde; un reembolso descuenta sólo su ORO y lo no-ORO comprado en el iPhone que pierde se puede perder | E9b T8 (oferta reembolsada) y E6a T12 |
+| B16 | Mover el reloj reinicia los topes diarios, vacía los cupos de visitas y de cambio de ORO, y atrasarlo 2 días o más devuelve cupos de la Ruleta; se acepta ese costo | Nada nuevo; no se agregan defensas |
+| B17 | Probabilidades del cofre: la tabla muestra las del próximo cofre con la colección de hoy; no proyecta los pendientes | E6a T12 (la pantalla las enseña así) |
+| B18 | Ruleta en el SE: la tabla queda bajo el pliegue (se scrollea); sin «ver probabilidades» junto al botón de ORO | Nada nuevo (E5b); A8 la mira |
+| B19 | Sin piso fijo en el código para la lista de países sin cajas sorpresa (BE, AU): manda la config remota | Nada nuevo (E5a T8/E6a T7 ✅) |
+| B20 | La puerta de cajas sorpresa se decide una vez por arranque; cambiar el país de la tienda con la app abierta se nota en el siguiente arranque | Nada nuevo (`LootBoxGate`); E6a T12 no reescucha `Storefront.updates` |
+| B21 | No se ofrece la Bienvenida (trae cofre) en Bélgica ni Australia | E6a T12 (carry ya anotado) |
+| B22 | Privacidad: la política nombra a Anthropic y la nota a App Review da el atajo al Ranking; `NSPrivacyTracking` queda en `false` a propósito (true sin `NSPrivacyTrackingDomains` = rechazo ITMS-91064) | ✅ hecho en código (relevo 30, `v2i/b22`, mergeada). 🔒 del dueño: los dominios de AdMob/Unity/Meta para poder pasarlo a `true` (E10) |
+| B23 | Hasta 3 avisos por ausencia con 4 motivos: el de la Ruleta queda afuera si entran los otros tres; no se sube a 4 | Nada nuevo (E11 ✅) |
+| B24 | El chip del visitante en el SE queda pegado a la llave de debug (sólo DEBUG); se revisa contra la columna de anuncios en release | Gate A8 (pasada en iPhone real); sin tarea |
+| B25 | El Álbum usa el glifo del sistema (`ui_menu_specials` no existe); `ui_shop_income_x2` y `x3` quedan iguales; `wheel_frame` y el marco del Álbum conservan la ventana blanca; no se generan los que faltan | Nada nuevo; cierra el carry de E4b T8 |
+| B26 | El plato de 44 pt de la barra de seis pestañas sirve | Nada nuevo (E13 T2 ✅); sale de las dudas abiertas |
+
+**Trabajo sin fila (para el controlador):**
+
+- **B22, `NSPrivacyTrackingDomains`:** pasar `NSPrivacyTracking` a `true` con los dominios de AdMob/Unity/Meta es 🔒 del dueño (ningún dominio confirmable desde el repo); no hay fila en E10 que lo recoja ni tarea que lo haga cuando los pase.
+- **B10 y B15, avisos del reset en pantalla:** que la pantalla del reset diga que se pierde un ×3 pagado y que un reembolso sólo descuenta su ORO no está en la fila de E9b T8 (el carry de `skinsLost` sí); hay que sumarlo a su brief.
+- **B24:** la comprobación del chip del visitante contra la columna en release es del gate A8; ninguna fila de `tasks.md` lo lleva.
 
 ## 8. El camino hasta el final
 

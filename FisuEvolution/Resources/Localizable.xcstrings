@@ -12848,6 +12848,57 @@
         }
       }
     },
+    "visit.challenge.double" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You won! Double it with a video?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Ganaste! ¿Lo duplicamos con un video?"
+          }
+        }
+      }
+    },
+    "visit.challenge.lost" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So close… next time!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Casi… ¡la próxima sale!"
+          }
+        }
+      }
+    },
+    "visit.challenge.won" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nailed it! A promise is a promise."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Bien ahí! Lo prometido es deuda."
+          }
+        }
+      }
+    },
     "visit.coach_reto.ask" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13048,6 +13099,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hermano, el gráfico hizo six seven: todo en verde. Aprovechá y no preguntes cómo."
+          }
+        }
+      }
+    },
+    "visit.deal_off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deal's off: everything changed. Next time!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya no hay trato: cambió todo. ¡Otra vez será!"
+          }
+        }
+      }
+    },
+    "visit.gossip.next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Word is… %1$@ is coming. You didn't hear it from me!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dicen que se viene… %1$@. ¡Yo no te dije nada!"
+          }
+        }
+      }
+    },
+    "visit.gossip.none" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All quiet today. Weird, huh?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy está todo tranquilo. Raro, ¿no?"
           }
         }
       }
@@ -13681,6 +13783,23 @@
         }
       }
     },
+    "visit.thanks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A pleasure doing business with you!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Un placer hacer negocios con vos!"
+          }
+        }
+      }
+    },
     "visit.turista_compra.ask" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13847,6 +13966,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Llevá, llevá! Boost calentito, recién salido del horno. Con video te lo regalo."
+          }
+        }
+      }
+    },
+    "visit.wrong_office" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oops, wrong office. Sorry, sorry!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uy, me equivoqué de oficina. ¡Perdón, perdón!"
           }
         }
       }

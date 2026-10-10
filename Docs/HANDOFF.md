@@ -15,7 +15,10 @@
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
-> 📍 **Estado al cierre del relevo 29 (la ola AA, 2026-10-10; manda sobre los párrafos de abajo, que son del 28, del 27, del 26, del 25 y del 24):** `version-2` = **`236080b`**, la punta tras el `completo` VERDE de `integ-r29` sobre `7c494ea` (EK 845 · unit 1417 · store-unit 18 · store-ui 2 · iPad 4 · SE 2 · pipeline 89 · pacing-sim ✅ · Release 0; UI 129 verdes + 2 rojos por orden, `MenuPagerUITests` y `CustomizationUITests`, aislados VERDES) · `v2i/integ-r29` = `7c494ea` + `tasks.md` + los docs del cierre (`v2i/docs-r29`). Es el primer `completo` desde los cierres del 23.
+> 📍 **Estado al cierre del relevo 30 (la ola AB, 2026-10-10; manda sobre los párrafos de abajo, que son del 29, del 28, del 27, del 26, del 25 y del 24):** `version-2` = **`56d7bfb`**, la punta tras el `rapido3` VERDE de `integ-r30` sobre `c2708aa` (EK 845 · unit 1444 · Release 0) · `v2i/integ-r30` = `6c4a770` (suma E8e T5, 🟢) + los docs del cierre (`v2i/docs-r30b`) · **`rapido4` sobre `6c4a770` EN CURSO** (`build/relevo30-rapido4.log`): decide E8e T5.
+> **Progreso: 213 de 269 en `version-2` (79,2 %); 214 con E8e T5 ✅** si el `rapido4` da VERDE. El total subió de 254 a 269 porque entraron al tablero el plan E8e (9 tareas) y el de E8e T10 (6). Entraron E8 T9 (los recortes del dueño y el Estudio de assets, `rapido1` 209), E8e T1 y T7 (`ArtClips` y el Álbum con la tarjeta enfocada animada; B22 con ellas, 211), E8e T2 y T3 (el visitante que habla y la ilustración del evento, 213); queda 🟢 **E8e T5 (el colchón espera y se abre)**. B1–B26 quedaron como decisiones. **E8e T4 ⏳** (no ∥ E6a T12: `OroShopView`); **E8e T10a ⏳** (spike opus con medición; el gate lo mide el dueño en su SE). Detalle en `Docs/SESION-2026-10-10-v2-relevo-30-ola-ab.md`. Lo que sigue: `tasks.md` §4 (relevo 31): confirmar `version-2`, el veredicto del `rapido4`, y despachar **E8e T4**, **E8e T10a**, **E6a T12**, **E5b T3**, **E7b-b T1**, **E5b T5** y **E8d T15**.
+>
+> 📍 **Estado al cierre del relevo 29 (la ola AA, 2026-10-10; lo pisa el párrafo de arriba, el del 30):** `version-2` = **`236080b`**, la punta tras el `completo` VERDE de `integ-r29` sobre `7c494ea` (EK 845 · unit 1417 · store-unit 18 · store-ui 2 · iPad 4 · SE 2 · pipeline 89 · pacing-sim ✅ · Release 0; UI 129 verdes + 2 rojos por orden, `MenuPagerUITests` y `CustomizationUITests`, aislados VERDES) · `v2i/integ-r29` = `7c494ea` + `tasks.md` + los docs del cierre (`v2i/docs-r29`). Es el primer `completo` desde los cierres del 23.
 > **Progreso: 208 de 254 en `version-2` (81,9 %).** Entraron E6b T4 (la pinta comprada con ORO; opus Approved con arreglos; `rapido` VERDE sobre `26df563`, 205), E5b T2 (los accesos y las hojas; opus Approved con arreglos y un BUG ALTO de la Ruleta: el video se veía y no pagaba), E4b T10 y E5a T9 (los cierres), cada una ✅ con el `completo`. **E5b T2 ✅ destraba E5b T3, E5b T5, E6a T12 y E7b-b T1 (⏳)**; E8d T15 sigue ⏳. El dueño mandó en el chat sus elecciones de recortes (`~/Desktop/revision-v2/decisiones.json`; `v2/e8-recortes` y `v2/estudio-assets` esperan integración) y pidió el plan E8e (`v2/e8e-plan`). Detalle en `Docs/SESION-2026-10-10-v2-relevo-29-ola-aa.md`. Lo que sigue: `tasks.md` §4 (relevo 30): **E6a T12** (dueña de `RootView` y catálogo), **E5b T3** (`BoardScene`), **E7b-b T1** (`GameState`), **E5b T5** y **E8d T15** (primero `AnimatedPlacesTests`, que no existe; después un `completo` solo).
 >
 > 📍 **Estado al cierre del relevo 28 (la ola Z, 2026-10-10; lo pisa el párrafo de arriba, el del 29):** `version-2` = **`a5ef14c`**, la punta tras el `rapido3` VERDE (EK 838 · unit 1389 · 0 rojos · Release 0) · `v2i/integ-r28` = `40f076e` (suma E6a T8, 🟢) + `tasks.md` + los docs del cierre (`v2i/docs-r28`) · `rapido4` de la punta: VERDE (EK 838 · unit 1396 · 0 rojos · Release 0): E6a T8 ✅, 204 de 254 (80,3 %).
@@ -370,6 +373,20 @@ E5a T1–T8 están en `version-2` y T9 es este cierre, sólo documentación. Es 
 - **Verificación:** `completo` VERDE (el mismo de arriba, `integ-r29` sobre `7c494ea`); `pacing-sim` igual que antes (no modela premios); `rojos-declarados.txt` no cambió por E5a.
 - **🔒 del dueño:** los tres escenarios a mano (el log de `package opened: …` con `--uitest-packages=2`, el primer paquete a los 2 min y el colchón a los 8 con los relojes bajados en un build local, y matar la app con dos paquetes esperando).
 - **Carries a E5b y E6a:** `packageCandidates` no descuenta las llegadas en cola; el extra del colchón sólo con `mattressExtraOpensLeft > 0` y el `nil` tras su video; `LootBoxGate.current()` a `wheelAvailability`/`spinWheel`; el doble cobro de ORO de la Ruleta sin fixture; los giros ×30 que apilan (¿suma o renueva?); `restrictedStorefronts` que la config remota puede vaciar; el colchón que sobrevive a la reencarnación.
+
+### Sesión del 2026-10-10 (relevo 30) — La ola AB: los recortes del dueño y el Estudio entran, y los videos empiezan a verse en el juego (E8e)
+
+Un solo relevo, abierto a las 18:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~248k de contexto. Todo en `v2i/integ-r30`. `version-2` quedó en `56d7bfb`, la punta del `rapido3` VERDE sobre `c2708aa` (EK 845 · unit 1444 · Release 0). **Progreso: 213 de 269 (79,2 %).** El `rapido4` sobre `6c4a770` (E8e T5) sigue corriendo.
+
+- **E8 T9** ✅: se integraron `v2/e8-recortes` y `v2/estudio-assets` (`2dcf084`; pipeline 94, estudio 15) con el `rapido1` VERDE (unit 1417). El plan E8e entró por cherry-pick y el de E8e T10 (6 tareas, gate 🔒 del dueño en el SE).
+- **E8e T1** (`ArtClips`, resolvedor puro, y el contrato manifest ↔ contenido) y **E8e T7** (`AlbumFocus`: sólo la tarjeta enfocada y tuya monta el video): ✅ con el `rapido2` (unit 1435). **B22** (el manifiesto de privacidad, la política nombra a Anthropic, el atajo a App Review) entró con ellas: `NSPrivacyTracking` sigue en `false` a propósito.
+- **E8e T2** (`VisitorNode.showClip`: el visitante habla y actúa; `visitorArrive` y `talkBlip` cableados) y **E8e T3** (8 pósters `ui_event_*` al atlas y la ilustración animada del evento): ✅ con el `rapido3` (unit 1444).
+- **E8e T5** (`MattressStage`: el colchón espera en loop y se abre `.once`; el premio se acredita como antes): 🟢, RED por mutación; falta el `rapido4`.
+- **Docs B1–B26**: los 26 defaults del dueño como decisiones (§5.22 y `tasks.md` §7). Pendiente de B10/B15: los avisos del reset van al brief de E9b T8.
+- Ninguna tarea tuvo revisión opus (sin plata, save ni turno de tablero; el controlador leyó cada diff). **El movimiento real de lo nuevo no se vio en simulador: 🔒 dueño en device.**
+- Trampas nuevas en §7: el test que nace verde y no prueba nada (por mutación), los eventos de 0 s sin ilustración, `NSPrivacyTracking` `true` sin dominios = ITMS-91064.
+
+Detalle en **`Docs/SESION-2026-10-10-v2-relevo-30-ola-ab.md`**.
 
 ### Sesión del 2026-10-10 (relevo 29) — La ola AA: la pinta comprada con ORO, los accesos y las hojas de los premios, y el primer `completo` verde desde el 23
 
@@ -2578,6 +2595,8 @@ paréntesis; el porqué completo está en la sesión de cada uno):
     los topes diarios (B16), Fusionar todo no se compensa (B11), la tabla del cofre no proyecta pendientes (B17) y el ícono del Álbum sigue siendo un glifo SF (B25). Se pierde al reencarnar lo comprado por tiempo con ORO, avisándolo
     (B8, hecho en E6a T8), y al resetear la cuenta un ×3 pagado (B10: lo dice la pantalla de E9b T8). La Bienvenida no se ofrece en BE/AU (B21: E6a T12). B22 está hecha: la política nombra a Anthropic y la nota a App Review da el atajo al Ranking,
     pero `NSPrivacyTracking` queda en `false` a propósito (`true` sin `NSPrivacyTrackingDomains` = rechazo ITMS-91064); 🔒 del dueño: los dominios de AdMob/Unity/Meta. Las A1–A10 siguen siendo gates humanos.
+23. **E8e: lo que se hizo por default y no se «arregla»** (relevo 30). Una pinta sin clip propio se queda quieta, nunca anima la base (T8); los videos del juego usan `ArtClips` y no un componente nuevo; el premio del colchón se acredita como antes y el video sólo demora mostrarlo (Reduce Motion lo muestra al toque); el Álbum anima una sola tarjeta, la enfocada y tuya; el visitante suelta su textura al hablar.
+    **Un evento de 0 s (aguinaldo, blanqueo, `startup_comprada`) no muestra su ilustración**: no se le inventa una pausa sin que el dueño lo decida. El tablero animado (E8e T10) no se integra sin el gate 🔒 del dueño en su SE (≥ 59 fps, ≤ 1 % de cuadros > 25 ms, ≤ 20 MB animado − quieto).
 ---
 
 ## 6. Cómo verificar
@@ -3028,6 +3047,15 @@ El panel de debug es el ícono de herramientas del HUD.
 - **`loops_manifest` todavía tiene que mover `events.cayo_mercado_pago` a `home_banking`:** E4a T9 sacó ese id de `AudioWiringTests` y la revisión opus lo encontró.
 - **La cuota sin plata no se atenúa** en el evento de Corralito: se muestra igual aunque no se pueda pagar (E4b).
 - **`isCalmMoment` no se unificó con `isSafeMomentForInterstitial`:** `naturalBreakContext` suma `fullScreenUI`/`adOnScreen`; no copiar uno al otro, lo unifica E7b.
+
+### De la ola AB (2026-10-10, relevo 30)
+
+- **Un test que nace verde y no prueba nada:** `doubleVideoPaysOnce` (E8e T5) pasaba sin el arreglo. La tarea lo comprobó **por mutación** (romper el código y mirar que caiga) y quedó `theMattressVideoPaysOnce` más dos de `MattressStageTests`. Todo test de un pago único se prueba por mutación, no sólo viéndolo verde.
+- **Los eventos de 0 s no muestran su ilustración:** aguinaldo, blanqueo y `startup_comprada` duran 0 s, así que el popup con video no llega a mostrarse (E8e T3). Una ilustración animada nueva se contrasta con la duración real del evento antes de darla por vista.
+- **`NSPrivacyTracking = true` sin `NSPrivacyTrackingDomains` = rechazo ITMS-91064** (la v1, dos veces). Por eso B22 lo deja en `false` hasta que el dueño confirme los dominios; el test `trackingNeedsDomains` lo cuida.
+- **No se toca el árbol de `integ` mientras corre un `rapido`:** los merges de la ola esperaron a que terminara el oráculo en curso; mergear en medio compila otra cosa que lo que se declara.
+- **Una captura sin `--uitest-video` es el póster quieto:** «se ve el movimiento» exige la captura con el flag y, aun así, el movimiento real se mira en device (ODR en simulador).
+- **Tres tareas y un `rapido` compilando llevaron la carga a 446:** respetar el cupo (≤ 2 con la máquina cargada) y esperar a que baje antes de despachar.
 
 ### De la ola AA (2026-10-10, relevo 29)
 
@@ -4652,6 +4680,15 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
+### Lo que queda de la 2.0 (cierre del relevo 30)
+
+La cola con orden, BASE y modelo está en `tasks.md` §4 (relevo 31). Lo nuevo del 30, además de lo que sigue de abajo (que se mantiene):
+
+- **Al llegar:** confirmar `version-2` y leer el veredicto del `rapido4` sobre `6c4a770` (`build/relevo30-rapido4.log`); si es VERDE, E8e T5 ✅ (214 de 269) y `version-2` avanza por ff a `6c4a770`.
+- **⏳:** E8e T4 (el ícono de la Tienda de ORO; no ∥ E6a T12 por `OroShopView`), E8e T10a (spike opus; el gate lo mide el dueño en el SE), E6a T12, E5b T3, E7b-b T1, E5b T5 y E8d T15. E8e T6 espera a E5b T3; E8e T8, a una ventana de `BoardScene`.
+- **Carries del 30:** el movimiento real sin ver en device (Álbum, visitante, evento, colchón); `visitorArrive` suena también con el presentador; aguinaldo/blanqueo/`startup_comprada` sin ilustración (0 s); `EventChipUITests` y `CorralitoUITests` al `completo`; `ui_oro_extra_slots` en `pendingShopIcons` (E6b T7); los sonidos del colchón en `pendingWiring`; los avisos del reset B10/B15 al brief de E9b T8.
+- **Al dueño:** los dominios de tracking para B22; mirar lo animado en un iPhone; qué hacer con los eventos de 0 s; `PREGUNTAS-DUENO.md`; el reset que pierde las pintas de ORO; `skinsAll` a 1350 ORO.
+
 ### Lo que queda de la 2.0 (cierre del relevo 29)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4 (relevo 30). Lo nuevo del 29, además de lo que sigue de abajo (que se mantiene):
@@ -5101,6 +5138,7 @@ Anotado por si algún día importa, con su medición:
   `Docs/superpowers/plans/2026-10-07-v2-e4b-visitantes-eventos.md`.
 - **`Docs/SESION-2026-10-10-v2-e5a.md`**: el cierre de E5a (la tabla por tarea con su commit, la verificación que lo cubre, el porqué de cada default de
   «Para el dueño» y lo que le deja a E5b y a E6a). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e5a-aduana-colchon-ruleta.md`.
+- **`Docs/SESION-2026-10-10-v2-relevo-30-ola-ab.md`**: el relevo 30 (los recortes del dueño y el Estudio de assets integrados, `ArtClips`, el Álbum, el visitante y el evento con video, el colchón que espera y se abre, B22 y B1–B26; los `rapido` 1 a 3 y el 4 en curso, el test que nace verde, los eventos de 0 s y el ITMS-91064).
 - **`Docs/SESION-2026-10-10-v2-relevo-29-ola-aa.md`**: el relevo 29 (la pinta comprada con ORO, los accesos y las hojas de los premios, los cierres de E4b y E5a y el primer `completo` verde desde el 23; las dos revisiones opus y el bug de la Ruleta que se veía y no pagaba, los 2 UI rojos por orden, `RootView.body` al límite del type-checker, el `.xcodeproj` no versionado y los pedidos del dueño en el chat).
 - **`Docs/SESION-2026-10-10-v2-relevo-28-ola-z.md`**: el relevo 28 (el Apagón y los Campeones, las probabilidades del cofre, los especiales fuera del tablero, la Tienda de ORO en pantalla y la revisión de recortes de E8 T9 Step 1; las dos revisiones opus y sus carries, el `rapido` rojo por `AudioManagerTests`, el flake de `GameLoopWiringTests` bajo carga, los agentes que re-entregan, el `doubleTap()` que no prueba un cerrojo y `PREGUNTAS-DUENO.md`).
 - **`Docs/SESION-2026-10-10-v2-relevo-27-ola-y.md`**: el relevo 27 (los eventos con presentador, la Ruleta en Regalos y su aviso, la Tienda de ORO, los presupuestos de visitantes; las dos revisiones opus y sus carries, el `find /` que busca un protocolo no versionado, el `--apply` de a un worktree, `maxPerAbsence` con 4 motivos y el `planMergeAll` que no ve la cola).

@@ -42,6 +42,7 @@ extension GameState {
     }
 
     func dismissShareOffer() {
+        tutorialTipCompleted(.share)
         shareOffer = nil
     }
 
@@ -61,7 +62,9 @@ extension GameState {
         guard let content, let economy, var player else { return }
         if player.meta.engagement.sharedMoments.insert(moment.key).inserted {
             let seconds = Double(content.viral.momentRewardMinutes) * 60
-            player.run.coins += Self.coinReward(seconds: seconds, player: player, content: content, economy: economy)
+            let credited = Self.coinReward(seconds: seconds, player: player, content: content, economy: economy)
+            player.run.coins += credited
+            player.meta.lifetimeEarnings += credited
             audio?.play(.coin)
         }
         if player.meta.sharesCompleted < content.viral.maxShares {

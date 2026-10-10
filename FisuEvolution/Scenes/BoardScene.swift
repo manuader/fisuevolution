@@ -1531,8 +1531,7 @@ final class BoardScene: SKScene {
             ? .fadeIn(withDuration: 0.25)
             : .group([.fadeIn(withDuration: 0.15), .sequence([.scale(to: 1.15, duration: 0.2), .scale(to: 1.0, duration: 0.1)])])
         // El reveal cierra solo; ya no se ofrece el share card (interrumpía el
-        // ritmo del juego). offerShareCard sigue disponible por si se dispara
-        // desde otro lado en el futuro.
+        // ritmo del juego): compartir se ofrece como botón (`noteRevealedTier`).
         banner.run(.sequence([
             entrance,
             .wait(forDuration: hold),

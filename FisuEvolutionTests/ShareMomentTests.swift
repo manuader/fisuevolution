@@ -64,9 +64,12 @@ struct ShareMomentTests {
     func paysOncePerMoment() async throws {
         let gameState = await makeGameState()
         let coins0 = try #require(gameState.player?.run.coins)
+        let lifetime0 = try #require(gameState.player?.meta.lifetimeEarnings)
 
         gameState.registerShareCompleted(.newFloor(floorID: "urban"))
         let coins1 = try #require(gameState.player?.run.coins)
+        #expect(gameState.player?.meta.lifetimeEarnings == lifetime0 + (coins1 - coins0),
+                "el premio también cuenta en lo ganado de por vida")
         #expect(coins1 > coins0, "el primer share del momento paga")
         #expect(gameState.player?.meta.sharesCompleted == 1)
         #expect(gameState.player?.meta.engagement.sharedMoments.contains("floor.urban") == true)

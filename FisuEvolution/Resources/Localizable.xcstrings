@@ -2934,6 +2934,23 @@
         }
       }
     },
+    "character.skin.oro_shop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bought with ORO, here or in the Store"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se compra con ORO, acá o en la Tienda"
+          }
+        }
+      }
+    },
     "character.skin.reach-floor %@" : {
       "extractionState" : "stale",
       "localizations" : {

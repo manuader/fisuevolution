@@ -1,6 +1,20 @@
 import EconomyKit
 import SwiftUI
 
+/// En qué momento está el colchón. El premio se acredita al llegar el resultado
+/// (`opening`); el clip de apertura sólo demora mostrarlo.
+enum MattressStage: Equatable {
+    case waiting, opening, revealed
+
+    init(hasOutcome: Bool, revealed: Bool) {
+        self = switch (hasOutcome, revealed) {
+        case (false, _): .waiting
+        case (true, false): .opening
+        case (true, true): .revealed
+        }
+    }
+}
+
 /// El Colchón (PLAN-v2 E5): "tus empleados escondieron plata en el colchón".
 /// Se abre sólo con video, y lo que puede tocar está a la vista antes de
 /// mirarlo. Después: lo que salió y "otro colchón" con un segundo video.
@@ -9,13 +23,20 @@ struct MattressPopupView: View {
     @Environment(\.dismiss) private var dismiss
     /// Un video del colchón está en curso: la hoja no se cierra bajo el anuncio.
     @State private var watching = false
+    /// El clip de apertura terminó (o la política lo dejó quieto): ya se ve lo que salió.
+    @State private var revealed = false
 
     var body: some View {
         let outcome = gameState.mattressPopup?.outcome
+        let stage = MattressStage(hasOutcome: outcome != nil, revealed: revealed)
         PanelCard {
             VStack(spacing: Tokens.s12) {
                 PanelTitleBanner(titleKey: "mattress.title")
-                if let outcome {
+                if stage == .opening {
+                    AnimatedArtView(clip: .object("colchon_abre"), role: .popup, playback: .once { revealed = true }) {
+                        GameIcon(artKey: "pickup_mattress", size: 160) { MattressGlyph() }
+                    }
+                } else if let outcome {
                     result(outcome)
                     if outcome.extraOpensLeft > 0 {
                         RewardedOfferButton(title: String(localized: "mattress.extra"), identifier: "mattress.extra",
@@ -28,7 +49,9 @@ struct MattressPopupView: View {
                         .font(Tokens.body)
                         .multilineTextAlignment(.center)
                         .foregroundStyle(Color("PaletteInk"))
-                    GameIcon(artKey: "pickup_mattress", size: 88) { MattressGlyph() }
+                    AnimatedArtView(clip: .object("colchon_espera"), role: .popup) {
+                        GameIcon(artKey: "pickup_mattress", size: 160) { MattressGlyph() }
+                    }
                     RewardedOfferButton(title: String(localized: "mattress.open"), identifier: "mattress.open",
                                         placement: .treasure, isBusy: $watching) { gameState.mattressVideoWatched() }
                     OddsDisclosureView(titleKey: "mattress.odds.title", rows: oddsRows, identifier: "mattress.odds")
@@ -41,7 +64,7 @@ struct MattressPopupView: View {
                 .padding(10)
         }
         .padding(16)
-        .presentationDetents([.fraction(outcome == nil ? 0.66 : 0.5)])
+        .presentationDetents([.fraction(stage == .revealed ? 0.5 : 0.66)])
         .interactiveDismissDisabled(watching)
         .fisuSheet()
     }

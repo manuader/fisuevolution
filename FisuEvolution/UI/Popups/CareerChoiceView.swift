@@ -19,6 +19,9 @@ struct CareerChoiceView: View {
     @Environment(GameState.self) private var gameState
     let prompt: GameState.CareerPrompt
 
+    /// Con un video en vuelo no se puede elegir otra carrera por abajo.
+    @State private var watching = false
+
     var body: some View {
         // `PanelCard` es el tablón de las hojas en escala de tarjeta: los
         // insets son del componente, no medidos contra un PNG (pedido del
@@ -31,7 +34,24 @@ struct CareerChoiceView: View {
                 let rewards = gameState.careerRewards
                 VStack(spacing: Tokens.s12) {
                     ForEach(prompt.options) { option in
-                        optionRow(option, reward: rewards[option.id]?.previewText)
+                        VStack(spacing: Tokens.s4) {
+                            optionRow(option, reward: rewards[option.id]?.previewText)
+                            // El ×2 va APARTE de la tarjeta (que es el control de
+                            // elegir): un video nunca es el mismo botón que la acción.
+                            if gameState.careerLumpMinutes(optionId: option.id) != nil {
+                                RewardedOfferButton(
+                                    title: String(localized: "career.double"),
+                                    identifier: "career.x2.\(option.id)",
+                                    placement: .daily,
+                                    systemImage: "play.rectangle.fill",
+                                    tint: Color("PaletteBlue"),
+                                    isBusy: $watching
+                                ) {
+                                    gameState.chooseCareerWithVideo(optionId: option.id)
+                                }
+                                .frame(maxWidth: .infinity, alignment: .trailing)
+                            }
+                        }
                     }
                 }
             }
@@ -65,7 +85,7 @@ struct CareerChoiceView: View {
     /// Una carrera, con la misma anatomía que una fila de FisuJobs.
     private func optionRow(_ option: CharacterType, reward: String?) -> some View {
         Button {
-            gameState.chooseCareer(optionId: option.id)
+            if !watching { gameState.chooseCareer(optionId: option.id) }
         } label: {
             GameCard {
                 HStack(spacing: Tokens.s12) {

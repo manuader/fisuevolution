@@ -20,6 +20,20 @@ struct DailyRewardView: View {
     @Environment(GameState.self) private var gameState
     let claim: DailyRewardManager.Claim
 
+    /// El ×2 se miró en esta hoja: el botón se va por estado local (el `player`
+    /// no se observa acá), como en el popup offline.
+    @State private var doubled = false
+    @State private var watching = false
+
+    private var offersDouble: Bool {
+        !doubled && gameState.canDoubleDailyReward(claim)
+    }
+
+    /// Duplicado, el monto que se muestra es el TOTAL (el mismo criterio del offline).
+    private var shownCoins: Double {
+        doubled ? claim.coinsGranted * 2 : claim.coinsGranted
+    }
+
     /// ⚠️ **El monto NO rueda con `.contentTransition(.numericText())`, y se
     /// probó.** La versión que arrancaba en `+0` y rodaba hasta el premio
     /// terminaba **antes de que la hoja terminara de subir**: medido cuadro a
@@ -28,7 +42,7 @@ struct DailyRewardView: View {
     /// una animación muerta con dos propiedades de estado atrás. El contador del
     /// HUD, que sí cambia con la hoja quieta, es el que la usa de verdad.
     private var amountText: String {
-        "+\(CoinFormatter.string(from: claim.coinsGranted))"
+        "+\(CoinFormatter.string(from: shownCoins))"
     }
 
     /// Los tres premios que puede traer el ciclo. Excluyentes: la tarjeta muestra
@@ -69,12 +83,26 @@ struct DailyRewardView: View {
             VStack(spacing: Tokens.s16) {
                 PanelTitleBanner(titleKey: "daily.title")
                 prizeCard
+                if offersDouble || watching {
+                    RewardedOfferButton(
+                        title: String(localized: "daily.double"),
+                        identifier: "daily.double",
+                        placement: .daily,
+                        systemImage: "play.rectangle.fill",
+                        tint: Color("PaletteBlue"),
+                        isBusy: $watching
+                    ) {
+                        gameState.doubleDailyReward(claim)
+                        doubled = true
+                    }
+                }
                 ActionPill(
                     titleKey: "offline.collect",
                     systemImage: "checkmark",
                     tint: Color("PaletteGreen"),
                     identifier: "daily.collect",
-                    action: { gameState.dismissDailyClaim() }
+                    // Con el anuncio en vuelo no cierra (como el offline).
+                    action: { if !watching { gameState.dismissDailyClaim() } }
                 )
             }
             .frame(maxWidth: .infinity)
@@ -95,7 +123,8 @@ struct DailyRewardView: View {
         // borde de la hoja lo recorta.
         .padding(.top, 26)
         .padding(16)
-        .presentationDetents([.fraction(0.52)])
+        // Medido en el SE: el botón del ×2 no puede recortar el de cobrar.
+        .presentationDetents([.fraction(offersDouble || watching ? 0.6 : 0.52)])
         // El tablón no llega a los bordes de la hoja, así que el fondo de
         // sistema dejaba un rectángulo BLANCO alrededor del panel —el único
         // blanco puro de todo el juego, y justo en la pantalla que celebra la

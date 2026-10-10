@@ -83,7 +83,7 @@
 
 ## 2. Progreso
 
-**Hoy: 167 de 254 tareas activas integradas en `version-2` (65,7 %): en el relevo 23 pasaron a ✅ E6a T2, E6a T10, E9b T7, E2b T3 y E6b T6 (`rapido` VERDE sobre `ed85656`: EK 784 · unit 1143 · 0 rojos · Release 0; la tabla por épica la recalcula el cierre del 23). Antes, 162 (63,8 %): en el relevo 22 pasaron a ✅ E3b T9, E12 T15, E6b T9 (`rapido` VERDE sobre `ddea816`), E4a T3, T4, T5 y E5a T4 (VERDE sobre `9cccaf6`) y E4a T6, E4a T7 y E6a T1 (VERDE sobre `8ab8b33`: EK 735 · unit 1143 · 0 rojos · Release 0).** Antes: 152 (59,8 %) al cierre del 21c. El relevo 22 también corrigió un test (`SkinCatalogRowsTests`, `ababa57`) que pineaba el catálogo sin las tres familias. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
+**Hoy: 169 de 254 tareas activas integradas en `version-2` (66,5 %): en el relevo 23 pasaron a ✅ E6a T2, E6a T10, E9b T7, E2b T3 y E6b T6 (`rapido` VERDE sobre `ed85656`: EK 784 · unit 1143 · 0 rojos · Release 0) y E4a T9 y E2b T4 (VERDE sobre `a997a30`: EK 791 · unit 1154 · 0 rojos · Release 0; la tabla por épica la recalcula el cierre del 23). Antes, 162 (63,8 %): en el relevo 22 pasaron a ✅ E3b T9, E12 T15, E6b T9 (`rapido` VERDE sobre `ddea816`), E4a T3, T4, T5 y E5a T4 (VERDE sobre `9cccaf6`) y E4a T6, E4a T7 y E6a T1 (VERDE sobre `8ab8b33`: EK 735 · unit 1143 · 0 rojos · Release 0).** Antes: 152 (59,8 %) al cierre del 21c. El relevo 22 también corrigió un test (`SkinCatalogRowsTests`, `ababa57`) que pineaba el catálogo sin las tres familias. 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
 seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 9 (E8 T10 y E13b T11 ya lo estaban; E4a T9, E6a T2 y T10, E9b T7, E2b T3 y T11 y E13 T14 los pasó a ⏳ el relevo 22 al revisar §5 contra las 🟢 y los ✅). E12 T12 está ⛔, E12 T16 🔒 y E7b-a T3 ⛔ (bloqueo de publicación, §4.2).
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
@@ -464,7 +464,7 @@ que toma · commit o rama · nota.
 | E4a-T6 | `VisitPlanner` | ✅ | T5; E1-T7, E1-T14 | BoardChange.swift, +BoardChanges | `d37ab28` (en `v2i/integ-r22`) |  carry a E4b T2/E4a T9: `.visitor` no es prepago, una visita pagada con video que se descarte no se compensa |
 | E4a-T7 | El contenido de los visitantes | ✅ | T5, T6; E11-T2, E3a-T1 | catálogo (snapshot); GameContentLoader, LocalizationCompletenessTests | `9eb8efd` (en `v2i/integ-r22`, 81 claves) | carga el Anexo A (con los guiños: Coach 67 toques, Crypto Bro "six seven", Vecina "andá pa' allá, bobo"; PLAN-v2 §2) |
 | E4a-T8 | `grant` y el momento calmo | ✅ | T1, T2; E1-T8, E1-T14 | — | `8376c23` (merge `e378307`) | sin llamadores todavía; carries a T9: `isCalmMoment` duplica `isSafeMomentForInterstitial` (E7b lo unifica); los kinds fuera de `grantableRewardKinds` no se ofrecen (VisitorScheduler/`eventIsApplicable`) |
-| E4a-T9 | La mudanza a eventos v2 | 🟢 | T2, T4, T7, T8; E1-T16 | 🔥 GameState, +Bonus, ContentSystems, catálogo | | |
+| E4a-T9 | La mudanza a eventos v2 | ✅ | T2, T4, T7, T8; E1-T16 | 🔥 GameState, +Bonus, ContentSystems, catálogo | | |
 | E4a-T10 | Cierre de E4a | ⛔ | T1–T9 | `Docs/` | | |
 
 ### E4b — Visitantes y eventos v2, lo que se ve (`2026-10-07-v2-e4b-visitantes-eventos.md`)
@@ -682,7 +682,7 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 | E2b-T1 | Bandas de escalada y curva por piso (EK) | ✅ | E2a-T3, E2a-T5 | — | `42b2e8c` (integ-r20) | **hecha (r20):** `EscalationBand` + `escalation(atFrontier:)` única fórmula (`hireCost`, `PriceCushion.jump`), `costGrowthStepPerFloor`; apagadas (umbral 7 = v1) |
 | E2b-T2 | Herencia de pasivos al reencarnar (EK) | ✅ | T1 | — | | |
 | E2b-T3 | El simulador cobra como el juego (EK) | ✅ | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
-| E2b-T4 | Política de pisos en marcha del bot (EK, opus) | 🟢 | T3; E2a-T4 | — | | |
+| E2b-T4 | Política de pisos en marcha del bot (EK, opus) | ✅ | T3; E2a-T4 | — | | |
 | E2b-T5 | Perfiles y fuentes gratis (EK) | ⛔ | T4; E5a-T1 | archivo de `PackageRoller` | | |
 | E2b-T6 | El perfil `.ads` (EK) | ⛔ | T5; E4a-T1, E4a-T8, E5a-T2, E5a-T3 | — | | |
 | E2b-T7 | El perfil `.max` (EK) | ⛔ | T6; E6a-T2, E6b-T6 | — | | |

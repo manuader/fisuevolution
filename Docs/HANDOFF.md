@@ -21,23 +21,23 @@
 > agentes en paralelo se
 > lanzan con `Agent(isolation: "worktree")` (PLAN-v2 §0.1; §7 explica por qué
 > cualquier otra forma choca con el guard). Al 2026-10-09 (cierre del relevo
-> 21c, la tercera tanda de la misma sesión, tras el «continua» del dueño): `version-2` = la punta de **`c7f0330`** tras su `rapido` VERDE (EK 651 · unit 1117 ·
-> 0 rojos · Release 0) · la rama de integración `v2i/integ-r21c` = **`f830217`** + estos docs (`rapido` sobre `f830217`: VERDE sobre `f830217` (EK 651 · unit 1122 · 0 rojos · Release 0)). Están E0, E10 en papel,
-> E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a S: **las cinemáticas con su overlay** (E8b T8, T9, T10 y la intro de E8d T11), **los cortes
-> naturales de anuncios y el app open al volver** (E7b-a T2 y T4), **los cuatro cierres** (E11 T7, E2a T15, E8c T10, E3a T12), reencarnar conserva los pasivos
-> detrás de una perilla apagada (E2b T2), las mejoras con su efecto de antes a después (E13 T13) y, en `integ-r21c`, la tarjeta del nombre al llegar a Dios
-> (E12 T14). **Progreso: 150 de 254 tareas activas en `version-2` (59,1 %); 152 de 254 (59,8 %) si el `rapido` de `integ-r21c` da VERDE** (`tasks.md` §2).
-> **El último `completo` de referencia es el de los cierres, sobre `0383a1d`** (`Docs/SESION-2026-10-09-v2-cierres-e11-e2a-e8c-e3a.md`).
-> Detalle en `Docs/SESION-2026-10-09-v2-relevo-21c-ola-s.md`.
+> 22, la ola T): `version-2` = la punta de **`9cccaf6`** tras su `rapido` VERDE (EK 708 · unit 1136 · 0 rojos · Release 0) · la rama de integración `v2i/integ-r22` = **`8ab8b33`** + estos
+> docs (`rapido` sobre `8ab8b33`: RAPIDO_PENDIENTE). Están E0, E10 en papel, E8 pipeline, E8 audio, E7a, la parte de idioma de E3 y las olas B a T: **compartir recableado** (E3b T9, la
+> llave de E4a), **la privacidad del ranking** (E12 T15), **las tres familias en el catálogo** (E6b T9), **los relojes de visitantes y eventos en el save** (E4a T3), **el motor de eventos
+> y los visitantes puros** (E4a T4 y T5), **buzón, colchón y ruleta en el save** (E5a T4) y, en `integ-r22`, el `VisitPlanner` (E4a T6), el contenido de los 18 visitantes (E4a T7) y la
+> tienda y las ofertas en el save (E6a T1). **Progreso: 159 de 254 tareas activas en `version-2` (62,6 %); 162 de 254 (63,8 %) si el `rapido` de `integ-r22` da VERDE** (`tasks.md` §2).
+> **El último `completo` de referencia sigue siendo el de los cierres, sobre `0383a1d`** (`Docs/SESION-2026-10-09-v2-cierres-e11-e2a-e8c-e3a.md`).
+> Detalle en `Docs/SESION-2026-10-09-v2-relevo-22-ola-t.md`.
 >
 > 🛑 **No publicar E7b-a T2 sin E7b-a T3:** sin la pausa publicitaria sale un intersticial en **cada** corte natural (no alterna). Falta además `canRequestAds`
 > en el intersticial y el rewarded (UE sin consentimiento).
 >
-> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r21c` (dos cambios y los docs del cierre; si su `rapido` dio verde, el primer paso del relevo 22 es el
-> fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño; no se tocan. **Lo primero del relevo 22:** el `rapido` de
-> `integ-r21c` si no quedó hecho (lanzado con `bash <ruta absoluta>/Tools/v2/oraculo.sh`) y después la cola de `tasks.md` §4.2: **E3b T9** (la llave de E4a),
-> los cierres con `completo` (**E12 T15, E6b T9, E8 T10, E13b T11**) y **E7b-a T3** en cuanto se destrabe. Los 🔒 del dueño: E12 T16 (credenciales de Supabase y
-> `ANTHROPIC_API_KEY`), mediación por SPM (E7b-a T6), capturas de iPad a ASC, los escenarios de E11 en device. Con la carga de la máquina alta, no más de dos compilando.
+> 🌿 **Ramas sin mergear a `version-2`:** `v2i/integ-r22` (tres cambios y los docs del cierre; si su `rapido` dio verde, el primer paso del relevo 23 es el
+> fast-forward). `v2/e12-plan`, `v2/release-ops` y `v2/e8-videos` son de la sesión del dueño; no se tocan. **Lo primero del relevo 23:** el `rapido` de
+> `integ-r22` si no quedó hecho (lanzado con `nohup perl -e 'setpgrp(0,0); exec @ARGV' bash <ruta absoluta>/Tools/v2/oraculo.sh rapido`; `setsid` no existe) y después la cola de
+> `tasks.md` §4.2: **E4a T9** (la mudanza a eventos v2), **E6a T2 y T10** (EK puras), **E5a T5** cuando E4a T9 entre, los cierres con `completo` (**E8 T10, E13b T11**) y
+> **E7b-a T3** en cuanto se destrabe. Los 🔒 del dueño: E12 T16 (credenciales de Supabase y `ANTHROPIC_API_KEY`), mediación por SPM (E7b-a T6), capturas de iPad a ASC, los
+> escenarios de E11 en device. Con la carga de la máquina alta, no más de dos compilando; las tareas de EK pura se verifican con `swift test` y no cuentan.
 > **Ojo:** el clasificador del modo auto no deja escribir en `DUENO.md` (§7); las aprobaciones se confirman en el chat.
 >
 > 📋 **El tablero de la ejecución es `tasks.md`**, en la raíz de `version-2`:
@@ -348,6 +348,19 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
   compilaba con su cache vieja (§7).
 
 Detalle en **`Docs/SESION-2026-10-08-v2-relevo-9-ola-g.md`**.
+
+### Sesión del 2026-10-09 (relevo 22) — La ola T: compartir recableado, la privacidad del ranking, las familias y el motor de visitantes
+
+Un solo relevo, abierto a las 22:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a 268k de contexto. Todo en `v2i/integ-r22` (`8ab8b33`; `rapido`: RAPIDO_PENDIENTE). **Progreso: 159 de 254 en `version-2`; 162 de 254 (63,8 %) con las tres 🟢.**
+
+- **La llave de E4a:** E3b T9 (`GameState+Share`, `EngagementState.sharedMoments`; revisión opus Approved con arreglos) destrabó E4a T3 y E5a T4, y con ellos el resto de la cadena.
+- **El motor de visitantes y eventos:** E4a T3 (los relojes en `meta.engagement`), T4 (eventos v2, EK), T5 (visitantes puros, EK), T6 (`VisitPlanner`; `Origin.visitor`) y T7 (los 18
+  visitantes y 26 guiones del Anexo A, 81 claves); E5a T4 (buzón, colchón y ruleta en el save) y E6a T1 (tienda y ofertas en el save; revisión opus Approved).
+- **Cierres de contenido:** E6b T9 (las tres familias, 129 entradas en `skins.json`) y E12 T15 (privacidad, términos y notas a App Review; `PrivacyInfo.xcprivacy`).
+- **El rojo del `rapido`:** `SkinCatalogRowsTests` pineaba las filas del Fisura sin las familias que E6b T9 suma a propósito; se arregló el test (`ababa57`).
+- Trampas nuevas en §7: `setsid` no existe en macOS, las tareas de EK pura no ocupan cupo de compilación, y el rojo que es un test que pinea un catálogo.
+
+Detalle en **`Docs/SESION-2026-10-09-v2-relevo-22-ola-t.md`**.
 
 ### Sesión del 2026-10-09 (relevo 21c) — La ola S: las cinemáticas con overlay, los cortes naturales de anuncios y los cuatro cierres
 
@@ -2780,6 +2793,15 @@ El panel de debug es el ícono de herramientas del HUD.
 
 ## 7. Trampas en las que ya caímos
 
+### De la ola T (2026-10-09, relevo 22)
+
+- **`setsid` no existe en macOS.** Para desacoplar el oráculo del shell del agente: `nohup perl -e 'setpgrp(0,0); exec @ARGV' bash <ruta>/Tools/v2/oraculo.sh rapido > build/<log> 2>&1 &`,
+  y esperarlo por PID o por la última línea del log.
+- **Las tareas de EK pura se verifican con `swift test` y no ocupan cupo de compilación:** no tocan la app, así que se pueden despachar mientras el `rapido` ocupa el cupo
+  (E4a T4, T5 y E5a T4 corrieron así).
+- **Un rojo del `rapido` puede ser un test que pinea un catálogo que la tarea agrandó a propósito** (`SkinCatalogRowsTests` tras E6b T9): antes de culpar al juego, mirar si el
+  test cuenta o enumera filas del catálogo.
+
 ### De la ola S (2026-10-09, relevo 21c)
 
 - **El oráculo usa el repo de su propia ruta, no el `cwd`:** `bash <ruta>/Tools/v2/oraculo.sh` corre sobre el repo donde vive ese script. Lanzarlo con la
@@ -4314,10 +4336,14 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
-### Lo que queda de la 2.0 (cierre del relevo 21c)
+### Lo que queda de la 2.0 (cierre del relevo 22)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4. Lo que no cabe ahí:
 
+- **Del relevo 22, al dueño:** E3b T9: la oferta de compartir descartada se pierde, puede gastar sus 10 s detrás del intersticial de `celebrationsDrained` (→ E7b-a T3) y el
+  premio de reencarnación es casi nulo (5 min de la run nueva); E6a T1: una oferta abierta sólo en el save perdedor (la Bienvenida) se pierde al cruzar y el ×3 se regala en el
+  caso raro; E12 T15 / E10: `NSPrivacyTracking` en `false` con AdMob y ATT, sin atajo para el revisor, la privacidad no nombra al proveedor de IA; E4a T6: `.visitor` no es
+  prepago; E4a T3: el reset de debug no limpia `visitors`/`events`.
 - **Del relevo 21c, al dueño:** **no publicar E7b-a T2 sin T3** (intersticial en cada corte); `canRequestAds` falta en intersticial y rewarded (UE); verificar en device el *fill* del
   app open; la cinemática de reencarnación casi siempre se saltea y el intersticial sale antes del cofre; un veterano v1 en Dios ve la de Dios en el primer arranque; la intro sale en
   partida nueva; 2 renglones de E13 T13 por mirar en el SE y `ui_up_crit` por borrar; los escenarios de E11 (diálogo del sistema) y de E2a/E8c (Reduce Motion, hoja, fondo, ORO/video)
@@ -4680,6 +4706,8 @@ Anotado por si algún día importa, con su medición:
   y el `completo` que los cubrió.
 - **`Docs/SESION-2026-10-09-v2-relevo-21c-ola-s.md`**: el relevo 21c (las cinemáticas con su overlay, los cortes naturales y el app open, E2b T2, E13 T13, E12 T14;
   las revisiones opus y sus carries, el conflicto de `confirmPrestige`, la tabla de perillas, las trampas del oráculo con otra ruta y del agente que re-entrega).
+- **`Docs/SESION-2026-10-09-v2-relevo-22-ola-t.md`**: el relevo 22 (compartir recableado, la privacidad del ranking, las familias en el catálogo, el motor de visitantes y las ofertas
+  en el save; el rojo de `SkinCatalogRowsTests`, las revisiones opus y sus carries, las trampas de `setsid` y de las tareas de EK pura).
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

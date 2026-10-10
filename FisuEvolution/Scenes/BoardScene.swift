@@ -18,6 +18,10 @@ final class BoardScene: SKScene {
     /// escena sólo lo adjunta, lo ubica, lo actualiza y le pasa los toques.
     private lazy var stage = StageController(gameState: gameState)
     private lazy var stageEffects = StageEffects(gameState: gameState)
+    /// Las cajas del Paquete y el colchón (PLAN-v2 E5): un colaborador más, como el escenario.
+    private lazy var pickups = PickupController(gameState: gameState)
+    /// La caja que se abre en el turno del tablero.
+    private let packageOpening = PackageOpeningPlayer()
 
     /// Campo de juego (estilo Cow Evolution): fondo de escena + personajes
     /// parados en anclas orgánicas — sin grilla visible.
@@ -317,6 +321,7 @@ final class BoardScene: SKScene {
         addChild(cameraNode)
         stage.attach(to: cameraOverlay)
         stageEffects.attach(to: cameraOverlay)
+        pickups.attach(to: cameraOverlay)
         camera = cameraNode
     }
 
@@ -384,6 +389,8 @@ final class BoardScene: SKScene {
         startBoardCelebrationIfItsTurn()
         stage.update(delta: delta, reduceMotion: Self.prefersReducedMotion)
         stageEffects.update(delta: delta, reduceMotion: Self.prefersReducedMotion, units: Array(characterNodes.values))
+        pickups.update(delta: delta, reduceMotion: Self.prefersReducedMotion)
+        packageOpening.update(delta: delta, reduceMotion: Self.prefersReducedMotion)
         refreshCrowdDepth()
         updateFTUEHint()
         publishTutorialSpotlight()
@@ -496,6 +503,7 @@ final class BoardScene: SKScene {
         pendingBoardCelebration = nil
         playingBoardChange = nil
         playingChain = nil
+        packageOpening.cancel()
         combo?.removeFromParent()
         combo = nil
         cutRunningCelebration()
@@ -747,6 +755,7 @@ final class BoardScene: SKScene {
 
         // El que está en escena se toca antes que la multitud: está adelante.
         if stage.handleTap(at: touch.location(in: stage.layer)) { return }
+        if pickups.handleTap(at: touch.location(in: pickups.layer)) { return }
 
         guard let node = characterNode(at: touch.location(in: self)) else {
             let point = touch.location(in: self)
@@ -1223,6 +1232,8 @@ final class BoardScene: SKScene {
                     )
                 },
             ]), withKey: Self.boardChangeActionKey)
+        case .arrival where change.origin == .package:
+            playPackageArrival(change)
         case .arrival, .departure:
             confirmWithoutGesture(change)
         }
@@ -1257,6 +1268,28 @@ final class BoardScene: SKScene {
         }
         presentResolution(
             resolution, at: node.position, sourceNode: node, withinTurn: true, soundsMerge: soundsMerge
+        )
+    }
+
+    /// El paquete se abre donde va a quedar el empleado y recién ahí llega
+    /// (PLAN-v2 E5): la llegada confirma, el empleado aparece en ese lugar y la
+    /// revelación sale como siempre. Si el piso no está a la vista o ya no hay
+    /// lugar, llega sin caja: la revalidación del turno es de E1.
+    private func playPackageArrival(_ change: BoardChange) {
+        guard let ordinal = gameState.floorOrdinal(of: change), ordinal == gameState.visibleFloorOrdinal,
+              let slot = gameState.tower?.floors[ordinal].firstFreeSlot()
+        else { return confirmWithoutGesture(change) }
+        let point = position(ofCell: slot)
+        packageOpening.play(
+            at: point, in: fieldNode, z: depthZ(for: point) + 1, side: cellSize * PickupLayout.sideRatio,
+            burst: { [weak self] at in
+                guard let self else { return }
+                self.particles.emit(.coins, at: at, in: self.fieldNode)
+            },
+            opened: { [weak self] in
+                guard let self, self.playingBoardChange?.id == change.id else { return }
+                self.confirmWithoutGesture(change)
+            }
         )
     }
 
@@ -1609,6 +1642,7 @@ final class BoardScene: SKScene {
         renderLockedFloorOverlay()
         stage.layout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize)
         stageEffects.layout(sceneSize: size, bottomInset: Self.bottomInset)
+        pickups.layout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize)
     }
 
     /// Mantiene sólo un piso y sus vecinos inmediatos. El resto de los fondos se

@@ -43,4 +43,23 @@ struct SpecialsAlbumTests {
         #expect(EffectFormatter.text(EffectDescriptor.amount(forSpecial: .critChanceBonus, magnitude: 0.02)) == "+2%")
         #expect(EffectFormatter.text(EffectDescriptor.amount(forSpecial: .spawnDiscount, magnitude: 0.05)) == "−5%")
     }
+
+    private func entry(_ id: String, owned: Bool) -> AlbumEntry {
+        AlbumEntry(id: id, owned: owned, nameKey: "", flavorKey: "", effectText: "", minTier: 1)
+    }
+
+    @Test("al entrar, la enfocada es el primer especial que tenés; sin ninguno, nadie")
+    func initialFocusIsTheFirstOwned() {
+        let entries = [entry("a", owned: false), entry("b", owned: true), entry("c", owned: true)]
+        #expect(AlbumFocus.initial(entries) == "b")
+        #expect(AlbumFocus.initial([entry("a", owned: false)]) == nil)
+    }
+
+    @Test("tocar uno tuyo lo enfoca; uno que falta o el enfocado no cambian nada")
+    func tapMovesFocusOnlyToOwned() {
+        let entries = [entry("a", owned: true), entry("b", owned: true), entry("c", owned: false)]
+        #expect(AlbumFocus.tap("b", entries: entries, current: "a") == "b")
+        #expect(AlbumFocus.tap("c", entries: entries, current: "a") == "a")
+        #expect(AlbumFocus.tap("a", entries: entries, current: "a") == "a")
+    }
 }

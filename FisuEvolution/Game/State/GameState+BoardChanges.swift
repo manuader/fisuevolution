@@ -184,7 +184,7 @@ extension GameState {
         Log.economy.info("board change dropped: \(change.origin.rawValue)")
         switch change.origin {
         case .rewardedRareUnit: compensateRewardedVideo()
-        case .eventStartup, .eventBlanqueo, .rewardedMergeAll, .career, .debug: break
+        case .eventStartup, .eventBlanqueo, .rewardedMergeAll, .career, .debug, .visitor: break
         }
     }
 
@@ -224,7 +224,7 @@ private extension BoardChange {
     var isPrepaid: Bool {
         switch origin {
         case .rewardedMergeAll, .rewardedRareUnit, .career: true
-        case .eventStartup, .eventBlanqueo, .debug: false
+        case .eventStartup, .eventBlanqueo, .debug, .visitor: false
         }
     }
 }

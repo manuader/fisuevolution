@@ -4681,6 +4681,108 @@
         }
       }
     },
+    "iap.com.fisuevolution.iap.offer_bienvenida.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ORO, 2 h of income and a skin chest"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ORO, 2 h de ingresos y un cofre de pintas"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.offer_bienvenida.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome Pack"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pack de Bienvenida"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.offer_mudanza.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ORO, 8 h of income and 3 Parcels"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ORO, 8 h de ingresos y 3 Paquetes"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.offer_mudanza.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moving Day Pack"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pack Mudanza"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.offer_renacer.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ORO, 4 h of income and ×3 for 30 minutes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ORO, 4 h de ingresos y ×3 por 30 minutos"
+          }
+        }
+      }
+    },
+    "iap.com.fisuevolution.iap.offer_renacer.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rebirth Pack"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pack Renacer"
+          }
+        }
+      }
+    },
     "iap.com.fisuevolution.iap.oro_large.desc" : {
       "extractionState" : "manual",
       "localizations" : {

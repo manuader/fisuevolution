@@ -536,7 +536,7 @@ que toma · commit o rama · nota.
 | E6b-T1r | Sin skins por código: borrar shaders (T1), galería (T2) y `Treatment.effect`/`shaderId` (T3) | ✅ | E3b-T2 (dueña de DebugPanelView) | DebugPanelView, GameContentLoader | `255749b` (merge `9c5df1e`) | −495 líneas; grep vacío |
 | E6b-T4 | La pinta comprada con ORO es tuya | ⛔ | T3; E6a-T1, E6a-T2, E6a-T8; E3b-T2 | 🔥 PlayerState, catálogo; +Store | | |
 | E6b-T5 | Familias se ven (sin efectos) | ⛔ | T1, T4; E6a-T8; E5b-T3 | 🔥 BoardScene, catálogo; +Store | | |
-| E6b-T6 | Lugares extra (EK) | 🔄 | E6a-T2; E2a-T4 | — | | |
+| E6b-T6 | Lugares extra (EK) | 🟢 | E6a-T2; E2a-T4 | — | | |
 | E6b-T7 | Lugares extra en la partida | ⛔ | T6; E6a-T6, E6a-T8, E6a-T12; E3a-T10; E5a-T6 | 🔥 GameState, catálogo; GameContentLoader, +Engagement | | 🔒 si las 4 filas no entran en el SE |
 | E6b-T8 | Exclusivas de ORO elegidas entre skins de la v1 | ⛔ | T1r, T5 | catálogo | | el agente propone y se las muestra al dueño antes de cerrar |
 | E6b-T9 | Las tres familias entran | ✅ | E8 T3–T5; T5 | catálogo | `b9e2cd0` (en `v2i/integ-r22`) | 🔒 arte de E8 = E8 T3–T5; 🔒 si el bundle crece > 60 MB (E8 T10 lo mide; estimado ≈ +29 MB con fondos en JPEG) |

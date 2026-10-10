@@ -1,0 +1,8 @@
+{
+  "gifts.section.wheel": {"es": "La Ruleta", "en": "The Wheel"},
+  "gifts.wheel.title": {"es": "La Ruleta del Conductor", "en": "The TV Host's Wheel"},
+  "gifts.wheel.left": {"es": "Giros de hoy: %1$@", "en": "Spins today: %1$@"},
+  "gifts.wheel.bonus": {"es": "Giros gratis: %1$@", "en": "Free spins: %1$@"},
+  "gifts.wheel.empty": {"es": "Mañana hay más giros", "en": "More spins tomorrow"},
+  "gifts.wheel.open": {"es": "Girar", "en": "Spin"}
+}

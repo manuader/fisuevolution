@@ -64,7 +64,15 @@ servidor:
 No los usamos para seguirte ni los vinculamos con tu identidad, y no los
 compartimos con anunciantes. Los nombres pasan por reglas, una lista de
 palabras y una revisión automática con IA antes de mostrarse; no pongas datos
-personales en el nombre. Cualquier jugador puede **reportar** un nombre, y un
+personales en el nombre.
+
+### Quién hace la revisión con IA
+
+La revisión automática la hace **Anthropic** con su modelo **Claude**, a pedido de
+nuestro servidor. Le mandamos **sólo el nombre que elegiste** (el texto, hasta
+15 caracteres): no le mandamos el identificador de tu instalación, tus tiempos,
+tu identificador de publicidad ni ningún dato de tu dispositivo. Anthropic la
+procesa según su propia política de privacidad: <https://www.anthropic.com/legal/privacy>. Cualquier jugador puede **reportar** un nombre, y un
 nombre reportado se oculta. Si querés que borremos tu nombre o tus partidas del
 ranking, escribinos al contacto de abajo con tu nombre y lo hacemos.
 

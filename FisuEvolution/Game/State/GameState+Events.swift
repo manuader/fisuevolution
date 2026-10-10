@@ -14,7 +14,10 @@ extension GameState {
     /// Lo llama `advanceEngagement` con el delta del tick (juego activo, con tope).
     /// Durante la fase obligatoria del tutorial no corre.
     func advanceEvents(delta: TimeInterval) {
-        guard engagementAutorun, !tutorialPhaseActive, let content, var player else { return }
+        // Con un evento esperando su presentador el reloj no sortea otro: pisaría
+        // al que ya gastó su cooldown.
+        guard engagementAutorun, !tutorialPhaseActive, stageRuntime.pendingEvent == nil,
+              let content, var player else { return }
         let due = EventScheduler.advance(&player.meta.engagement.events, delta: delta, catalog: content.events)
         self.player = player
         if due { fireDueEvent(now: Date().timeIntervalSince1970) }
@@ -121,6 +124,22 @@ extension GameState {
         CoinFormatter.string(from: eventFee(id: id) ?? 0)
     }
 
+    /// La salida todavía saca algo: la del video de la Hiperinflación sólo saca el
+    /// costo de contratar, y una vez usada no queda nada que sacar.
+    func escapeStillRemoves(
+        _ escape: EventCatalog.Escape, of event: EventCatalog.Event,
+        in modifiers: [ActiveModifier], now: TimeInterval
+    ) -> Bool {
+        guard let removes = escape.removes else { return true }
+        return modifiers.contains { $0.sourceKey == event.sourceKey && $0.isActive(at: now) && removes.contains($0.effect) }
+    }
+
+    /// Las salidas del popup: sólo las que todavía sirven.
+    func usableEscapes(of event: EventCatalog.Event, now: TimeInterval = Date().timeIntervalSince1970) -> [EventCatalog.Escape] {
+        let modifiers = player?.run.activeModifiers ?? []
+        return event.escapes.filter { escapeStillRemoves($0, of: event, in: modifiers, now: now) }
+    }
+
     /// Salir de un evento por una de sus salidas. La cuota se cobra; el video ya se
     /// miró (lo llama la vista al terminar); gratis es gratis.
     @discardableResult
@@ -132,7 +151,8 @@ extension GameState {
         guard let content, let event = content.events.event(id: id),
               let escape = event.escapes.first(where: { $0.kind == kind }),
               var player,
-              player.run.activeModifiers.contains(where: { $0.sourceKey == event.sourceKey && $0.isActive(at: now) })
+              player.run.activeModifiers.contains(where: { $0.sourceKey == event.sourceKey && $0.isActive(at: now) }),
+              escapeStillRemoves(escape, of: event, in: player.run.activeModifiers, now: now)
         else { return false }
         if kind == .fee {
             let fee = eventFee(id: id) ?? 0

@@ -180,4 +180,45 @@ struct EventPresenterTests {
         #expect(gameState.activeBonuses.filter { $0.eventId == "hiperinflacion" }.count == 1,
                 "un evento con dos efectos es UN chip")
     }
+
+    @Test("saltear la entrada del presentador no deja un turno fantasma y el evento corre")
+    func skippingThePresenterEntryLeavesNoGhostTurn() async throws {
+        let gameState = await world()
+        gameState.debugPresentEvent(id: "devaluacion")
+        #expect(gameState.showing == .visitorEncounter)
+        gameState.advanceCelebrations(delta: 5)
+        #expect(gameState.skipCurrentCelebration())
+        #expect(running(gameState, "devaluacion"))
+        #expect(gameState.stageVisit?.phase == .waiting)
+        #expect(gameState.celebrations.current == nil, "la llegada no re-encola su propia entrada")
+        #expect(gameState.showing == nil)
+    }
+
+    @Test("un evento que espera no lo pisa el reloj con otro sorteo")
+    func aPendingEventIsNotOverwrittenByTheClock() async throws {
+        let gameState = await world()
+        gameState.engagementAutorun = true
+        gameState.debugPresentEvent(id: "ola_calor")
+        gameState.uiCoversBoard = true
+        gameState.debugPresentEvent(id: "paro_general")
+        #expect(gameState.stageVisit?.role == .presenter(eventId: "ola_calor"))
+        gameState.uiCoversBoard = false
+        let pending = try #require(gameState.content?.events.event(id: "devaluacion"))
+        gameState.stageRuntime.pendingEvent = pending
+        gameState.player?.meta.engagement.events.secondsUntilNext = 0
+        gameState.advanceEvents(delta: 1)
+        #expect(gameState.stageRuntime.pendingEvent?.id == "devaluacion")
+    }
+
+    @Test("la salida por video de la Hiperinflación desaparece cuando ya sacó lo suyo")
+    func aSpentEscapeIsHidden() async throws {
+        let gameState = await world()
+        gameState.debugStartEvent(id: "hiperinflacion")
+        let event = try #require(gameState.content?.events.event(id: "hiperinflacion"))
+        #expect(gameState.usableEscapes(of: event).map(\.kind) == [.video])
+        #expect(gameState.escapeEvent(id: "hiperinflacion", via: .video))
+        #expect(running(gameState, "hiperinflacion"), "el ×3 de ingresos sigue")
+        #expect(gameState.usableEscapes(of: event).isEmpty)
+        #expect(!gameState.escapeEvent(id: "hiperinflacion", via: .video), "un segundo video no paga")
+    }
 }

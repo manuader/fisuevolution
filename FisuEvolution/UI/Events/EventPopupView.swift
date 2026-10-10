@@ -62,7 +62,8 @@ struct EventPopupView: View {
 
     @ViewBuilder
     private func escapes(_ event: EventCatalog.Event) -> some View {
-        if event.escapes.isEmpty {
+        let usable = gameState.usableEscapes(of: event)
+        if usable.isEmpty {
             // Dos `Text` y no un ternario adentro de uno: el ternario de dos literales
             // es un `String` y `Text` lo mostraría crudo, sin traducir.
             (event.polarity == .negative ? Text("event.popup.wait") : Text("event.popup.enjoy"))
@@ -70,7 +71,7 @@ struct EventPopupView: View {
                 .foregroundStyle(Color("PaletteInk").opacity(0.7))
         } else {
             VStack(spacing: Tokens.s8) {
-                ForEach(event.escapes, id: \.kind) { escape in
+                ForEach(usable, id: \.kind) { escape in
                     escapeButton(escape, of: event)
                 }
             }

@@ -87,6 +87,9 @@ extension GameState {
         guard var visit = stageVisit, visit.phase == .entering else { return }
         visit.phase = .waiting
         stageRuntime.patienceLeft = content?.visitors.patienceSeconds ?? 30
+        // Ya `.waiting` en el estado ANTES de llegar: lo que `arrive` dispara
+        // (`syncCelebrations`) no tiene que ver una entrada pendiente y re-encolarla.
+        stageVisit = visit
         arrive(&visit)
         stageVisit = visit
     }

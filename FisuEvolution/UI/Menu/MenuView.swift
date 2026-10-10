@@ -43,6 +43,7 @@ struct MenuView: View {
         case stats
         case achievements
         case settings
+        case specials
     }
 
     var body: some View {
@@ -71,6 +72,13 @@ struct MenuView: View {
                             AnyView(VectorSettingsIcon())
                         }
                     }
+                    // El Álbum: quinta tarjeta, sola y de ancho completo, para no
+                    // tocar la grilla de las cuatro (PLAN-v2 E4).
+                    card(.specials, "menu.card.specials", identifier: "menu.card.specials") {
+                        AnyView(Image(systemName: "rectangle.stack.badge.person.crop.fill")
+                            .font(.system(size: 60, weight: .bold))
+                            .foregroundStyle(Color("PaletteBrown")))
+                    }
                 }
                 .padding(.horizontal, Self.panelInset)
                 .padding(.top, Tokens.s12)
@@ -89,6 +97,7 @@ struct MenuView: View {
                     case .stats: StatsView(close: { dismiss() })
                     case .achievements: AchievementsView(close: { dismiss() })
                     case .settings: SettingsView(close: { dismiss() })
+                    case .specials: SpecialsAlbumView(close: { dismiss() })
                     }
                 }
                 // Empujada, la vista pierde el telón transparente de la hoja:
@@ -202,6 +211,7 @@ struct MenuView: View {
         case .stats: "ui_menu_stats"
         case .achievements: "ui_menu_trophy"
         case .settings: "ui_menu_settings"
+        case .specials: "ui_menu_specials"
         }
     }
 }

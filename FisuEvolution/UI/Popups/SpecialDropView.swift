@@ -47,6 +47,13 @@ struct SpecialDropView: View {
                             .foregroundStyle(Color("PaletteInk").opacity(0.65))
                             .multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
+                        if !isRecap {
+                            Text("special.drop.album_hint")
+                                .font(Tokens.caption)
+                                .foregroundStyle(Color("PaletteInk").opacity(0.55))
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Tokens.s4)

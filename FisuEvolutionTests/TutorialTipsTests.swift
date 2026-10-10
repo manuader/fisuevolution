@@ -263,4 +263,15 @@ struct TutorialTipsTests {
         #expect(!gameState.hasClaimableAchievements, "cobrado el último, el puntito muere")
         _ = before
     }
+
+    @Test("el primer especial enseña el Álbum, y abrir la Oficina la cumple")
+    func theFirstSpecialTeachesTheAlbum() async throws {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where lesson != .album { gameState.markLessonDone(lesson) }
+        gameState.player?.meta.ownedSpecials.append("sp_cryptobro")
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .album)
+        gameState.tutorialTipHandled(opening: .menu)
+        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.album.defaultsKey))
+    }
 }

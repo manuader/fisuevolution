@@ -5866,6 +5866,108 @@
         }
       }
     },
+    "mattress.collect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep it!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Guardar!"
+          }
+        }
+      }
+    },
+    "mattress.extra" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Another mattress with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otro colchón con un video"
+          }
+        }
+      }
+    },
+    "mattress.odds.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What could be inside"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo que puede haber adentro"
+          }
+        }
+      }
+    },
+    "mattress.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open with a video"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir con un video"
+          }
+        }
+      }
+    },
+    "mattress.pitch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your workers stashed cash in the mattress. Shall we open it?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus empleados escondieron plata en el colchón. ¿Lo abrimos?"
+          }
+        }
+      }
+    },
+    "mattress.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Mattress"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Colchón"
+          }
+        }
+      }
+    },
     "menu.card.achievements" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7216,6 +7318,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "antes %@"
+          }
+        }
+      }
+    },
+    "prize.mattress.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's cash hidden in the mattress"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El colchón tiene plata escondida"
+          }
+        }
+      }
+    },
+    "prize.package.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customs Packages waiting: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paquetes de la Aduana esperando: %@"
+          }
+        }
+      }
+    },
+    "prize.package.full" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FULL"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LLENO"
+          }
+        }
+      }
+    },
+    "prize.package.full.ax" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Customs Package: no room. Merge to make room."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paquete de la Aduana: no hay lugar. Fusioná para hacer lugar."
           }
         }
       }

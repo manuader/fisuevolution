@@ -17,6 +17,7 @@ extension GameState {
             now: Date().timeIntervalSince1970
         )
         self.player = player
+        advanceEngagement(delta: min(delta, IncomeTicker.deltaClampThreshold))
         // El watchdog de la cola de celebraciones corre acá y no en un `Timer`
         // (regla 2 de concurrencia). `delta` sin `debugTimeScale`: el time-warp
         // acelera la economía, no el tiempo que el jugador tiene para mirar. Con el
@@ -26,7 +27,7 @@ extension GameState {
     }
 
     /// 8 Hz projection flush driven by the scene's frame counter. Also prunes
-    /// expired modifiers and fires scheduled events.
+    /// expired modifiers and retires the event banner.
     ///
     /// Con la escena inactiva sólo proyecta: el regreso del background pasa por
     /// `.inactive` con la escena ya dibujando, y podar buffs, disparar el evento
@@ -43,7 +44,7 @@ extension GameState {
                     scheduleSave()
                 }
             }
-            fireEventIfDue(now: now)
+            expireActiveEvent(now: now)
             beatIfDue(now: now)
         }
         refreshProjections()

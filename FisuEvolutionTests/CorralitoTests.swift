@@ -10,7 +10,7 @@ struct CorralitoTests {
     func corralitoFreezesAndTheVideoLifts() async throws {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
-        gameState.debugStartCorralito()
+        gameState.debugStartEvent(id: "corralito")
         gameState.refreshProjections()
         #expect(gameState.spendingFrozenUntil != nil)
         let base = try #require(gameState.content?.tiers.baseType.id)
@@ -18,7 +18,7 @@ struct CorralitoTests {
         gameState.hireCharacter(typeId: base)
         #expect(gameState.player?.run.totalUnits == units)
         #expect(gameState.towerNotice?.kind == .spendingFrozen)
-        gameState.escapeActiveEvent()
+        gameState.escapeEvent(id: "corralito", via: .video)
         gameState.refreshProjections()
         #expect(gameState.spendingFrozenUntil == nil)
         gameState.hireCharacter(typeId: base)
@@ -28,9 +28,9 @@ struct CorralitoTests {
     @Test("el JSON del Corralito dice lo que hace")
     func corralitoDataMatchesTheDecision() async throws {
         let gameState = await makeGameState()
-        let corralito = try #require(gameState.content?.events.events.first { $0.id == "corralito" })
-        #expect(corralito.effectType == .spendingFrozen)
-        #expect(corralito.escape == "video")
+        let corralito = try #require(gameState.content?.events.event(id: "corralito"))
+        #expect(corralito.effects == [.modifier(effect: .spendingFrozen, magnitude: 1)])
+        #expect(corralito.escapes.map(\.kind) == [.video])
         #expect(corralito.durationSeconds == 45)
     }
 
@@ -45,7 +45,7 @@ struct CorralitoTests {
         let upgradable = try #require(gameState.characterUpgradeRows.first { $0.canAffordUpgrade })
         #expect(gameState.characterUpgradeRows.contains { $0.canAffordPassive })
 
-        gameState.debugStartCorralito()
+        gameState.debugStartEvent(id: "corralito")
         gameState.refreshProjections()
 
         #expect(!gameState.canAffordSpawn)
@@ -62,7 +62,7 @@ struct CorralitoTests {
     @Test("contratar gratis sigue valiendo durante el Corralito, y la UI lo dice")
     func freeHiringStaysAvailable() async throws {
         let gameState = await makeGameState()
-        gameState.debugStartCorralito()
+        gameState.debugStartEvent(id: "corralito")
         var player = try #require(gameState.player)
         player.run.coins = 0
         player.run.activeModifiers.append(ActiveModifier(

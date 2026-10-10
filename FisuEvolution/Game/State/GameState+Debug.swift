@@ -61,6 +61,11 @@ extension GameState {
            !arguments.contains("--uitest-lessons") {
             tutorialLessonsAutorun = false
         }
+        // Los motores de engagement, lo mismo: nada nace solo bajo `--uitest*`
+        // salvo que el test lo pida (`--uitest-engagement`).
+        if arguments.contains(where: { $0.hasPrefix("--uitest") }), !arguments.contains("--uitest-engagement") {
+            engagementAutorun = false
+        }
         // Las cinemáticas, lo mismo: bajo `--uitest*` no corren salvo que el test
         // las pida (`--uitest-cinematics` o `--uitest-cinematic=<id>`).
         if arguments.contains(where: { $0.hasPrefix("--uitest") }) {
@@ -376,33 +381,11 @@ extension GameState {
         syncCelebrations()
     }
 
-    /// Arranca el Corralito por el camino real del sorteo (`EventManager`), con un
-    /// config de un solo evento que ya no pide tier ni cooldown.
-    func debugStartCorralito() {
-        guard let economy, let content, var player,
-              let corralito = content.events.events.first(where: { $0.id == "corralito" })
-        else { return }
-        let now = Date().timeIntervalSince1970
-        let always = EventsConfig.Event(
-            id: corralito.id, effectType: corralito.effectType, magnitude: corralito.magnitude,
-            durationSeconds: corralito.durationSeconds, weight: 1, minTier: 0, cooldownSeconds: 0,
-            flavorTextKey: corralito.flavorTextKey, isBuff: corralito.isBuff, escape: corralito.escape,
-            fallback: corralito.fallback
-        )
-        let config = EventsConfig(
-            schemaVersion: content.events.schemaVersion,
-            baseIntervalSeconds: content.events.baseIntervalSeconds,
-            intervalJitterSeconds: content.events.intervalJitterSeconds,
-            resumeGraceSeconds: content.events.resumeGraceSeconds,
-            retryWhenNoneApplicableSeconds: content.events.retryWhenNoneApplicableSeconds,
-            events: [always]
-        )
-        guard let roll = EventManager.fireRandomEvent(
-            state: &player, config: config, tiers: content.tiers, floorTable: content.floorTable,
-            economy: economy, now: now, lastFired: [:], isApplicable: { _ in true }, rng: &rng
-        ) else { return }
-        self.player = player
-        handleEventRoll(roll, now: now)
+    /// Un evento arrancado ya mismo, con su efecto real. Los eventos salen cada
+    /// 15–20 min de juego: sin esta puerta no se pueden ni fotografiar ni probar.
+    func debugStartEvent(id: String) {
+        guard let event = content?.events.event(id: id) else { return }
+        startEvent(event, now: Date().timeIntervalSince1970)
     }
 
     /// Deja tres logros **conseguidos y sin cobrar** para poder fotografiar y
@@ -566,6 +549,8 @@ extension GameState {
         skinAward = nil
         specialDrop = nil
         cinematic = nil
+        activeEvent = nil
+        announcedEventID = nil
         towerNotice = nil
         achievementToast = nil
         pendingAchievementToasts.removeAll()

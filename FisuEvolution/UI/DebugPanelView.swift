@@ -62,6 +62,12 @@ struct DebugPanelView: View {
                     Button("Simular 4 h offline") {
                         gameState.debugSimulateOffline(hours: 4)
                     }
+                    Menu("Disparar un evento") {
+                        ForEach(gameState.content?.events.events ?? []) { event in
+                            Button(event.id) { gameState.debugStartEvent(id: event.id) }
+                        }
+                    }
+                    .accessibilityIdentifier("debug.event.start")
                 }
                 // La misma carta que reabre el long-press sobre el personaje
                 // del tablero, sin pelear el gesto: es la puerta de los tests

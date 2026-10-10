@@ -145,8 +145,8 @@ final class GameState {
 
     // MARK: Eventos y bonus
 
-    /// Lo escribe `+Bonus`: el evento que arranca y el que vence.
-    var activeEvent: EventManager.ActiveEvent?
+    /// Lo escribe `+Events`: el evento que arranca y el que vence.
+    var activeEvent: ActiveEvent?
     /// Lo escribe `+Actions`: el drop del merge y su descarte.
     var specialDrop: SpecialsConfig.Special?
     /// Lo escribe `+Bonus`: el daily que se reclama y su descarte.
@@ -166,9 +166,13 @@ final class GameState {
     /// regresiva no invalida SwiftUI. Lo arma `+Bonus`, lo escribe
     /// `refreshProjections`.
     var activeBonuses: [ActiveBonus] = []
-    /// El scheduler de eventos vive entero en `+Bonus`.
-    @ObservationIgnored var nextEventAt: TimeInterval = .infinity
-    @ObservationIgnored var eventLastFired: [String: TimeInterval] = [:]
+    /// Los motores de engagement (eventos; E4b visitantes; E5 paquetes y colchón)
+    /// corren solos en la app real. Bajo XCTest arrancan apagados, y bajo
+    /// `--uitest*` también salvo `--uitest-engagement` (`+Debug`): un evento que
+    /// nace en medio de un test ajeno le tapa coordenadas (el criterio de
+    /// `tutorialLessonsAutorun`).
+    @ObservationIgnored var engagementAutorun =
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil
 
     // MARK: Popups y premios
 

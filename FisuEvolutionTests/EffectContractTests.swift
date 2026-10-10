@@ -119,43 +119,38 @@ struct EffectContractTests {
     }
 
     @Test("cada evento hace lo que su dato declara")
-    func eventEffects() throws {
+    func eventEffects() async throws {
         for event in content.events.events {
-            var (state, _) = try producing()
-            state.run.raiseFrontier(to: max(event.minTier, 12))
-            let single = EventsConfig(schemaVersion: 1, baseIntervalSeconds: 1, intervalJitterSeconds: 0,
-                                      resumeGraceSeconds: 60, retryWhenNoneApplicableSeconds: 30, events: [event])
-            var rng = SystemRandomNumberGenerator()
-            let coinsBefore = state.run.coins
-            let unitsBefore = state.run.units
-            let roll = try #require(EventManager.fireRandomEvent(
-                state: &state, config: single, tiers: content.tiers, floorTable: content.floorTable,
-                economy: economy, now: 0, lastFired: [:], isApplicable: { _ in true }, rng: &rng
-            ))
-            #expect(String(localized: String.LocalizationValue(event.flavorTextKey)) != event.flavorTextKey)
-            switch event.effectType {
-            case .incomeMultiplier, .spawnCostMultiplier, .spendingFrozen:
-                let modifier = try #require(state.run.activeModifiers.first { $0.sourceKey == "event.\(event.id)" })
-                #expect(modifier.expiresAt == event.durationSeconds)
-                switch event.effectType {
-                case .spendingFrozen: #expect(modifier.effect == .spendingFrozen)
-                default: #expect(modifier.magnitude == event.magnitude)
+            let gameState = await makeGameState()
+            gameState.debugUnlockFloors(throughTier: max(event.minTier, 12))
+            gameState.player?.run.passiveUnlocked[base.id] = true
+            let before = try #require(gameState.player)
+            let now = Date().timeIntervalSince1970
+            gameState.startEvent(event, now: now)
+            let after = try #require(gameState.player)
+            #expect(String(localized: String.LocalizationValue(event.phraseKey)) != event.phraseKey)
+            #expect(String(localized: String.LocalizationValue(event.titleKey)) != event.titleKey)
+            for effect in event.effects {
+                switch effect {
+                case let .modifier(kind, magnitude):
+                    let modifier = try #require(after.run.activeModifiers.first { $0.sourceKey == event.sourceKey && $0.effect == kind })
+                    #expect(modifier.magnitude == magnitude)
+                    #expect(modifier.expiresAt == now + event.durationSeconds)
+                case .coinsSeconds(let seconds):
+                    let expected = GameState.coinReward(seconds: seconds, player: before, content: content, economy: economy)
+                    #expect(abs(after.run.coins - before.run.coins - expected) < 1e-6 * max(1, expected))
+                case .evolveBestUnit:
+                    #expect(after.run.units == before.run.units, "el evento no muta el tablero: lo planea")
+                    #expect(gameState.pendingBoardChanges.contains { $0.origin == .eventStartup })
+                case .grantUnit(let below):
+                    guard case .arrival(let typeId)? = gameState.pendingBoardChanges.first(where: { $0.origin == .eventBlanqueo })?.kind else {
+                        Issue.record("\(event.id) no planeó una llegada")
+                        continue
+                    }
+                    #expect(content.tiers.type(id: typeId)?.tier == max(1, before.run.maxTierReached - below))
+                case .callVisitor(let script):
+                    #expect(content.visitors.script(id: script) != nil)
                 }
-            case .bonusCoins:
-                var reference = state
-                reference.run.activeModifiers = []
-                let expected = IncomeTicker.basePassivePerSecond(state: reference, tiers: content.tiers,
-                                                                 floorTable: content.floorTable, config: content.economy) * event.magnitude
-                #expect(abs(state.run.coins - coinsBefore - expected) < 1e-6 * max(1, expected))
-            case .instantEvolution:
-                #expect(roll.boardIntent == .evolveBestUnit)
-                #expect(state.run.units == unitsBefore, "el evento no muta el tablero: lo planea")
-            case .freeHighTier:
-                guard case .grantUnit(let typeId) = roll.boardIntent else {
-                    Issue.record("el Blanqueo no pidió una llegada")
-                    continue
-                }
-                #expect(content.tiers.type(id: typeId)?.tier == state.run.maxTierReached - Int(event.magnitude))
             }
         }
     }

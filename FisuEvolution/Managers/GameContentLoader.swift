@@ -32,6 +32,8 @@ struct GameContent: Sendable {
     let packages: PackagesConfig
     let treasures: TreasuresConfig
     let wheel: WheelConfig
+    /// Las ofertas de 24 h (PLAN-v2 E6).
+    let offers: OffersCatalog
 }
 
 /// Decodes and validates the bundled JSON content. Any failure produces a typed
@@ -62,6 +64,7 @@ enum GameContentLoader {
         let packages: PackagesConfig = try decode("packages", from: bundle)
         let treasures: TreasuresConfig = try decode("treasures", from: bundle)
         let wheel: WheelConfig = try decode("wheel", from: bundle)
+        let offers: OffersCatalog = try decode("offers", from: bundle)
 
         let tiers: TierRepository
         do {
@@ -132,6 +135,7 @@ enum GameContentLoader {
         try validatePrize(packages.validate, file: "packages.json")
         try validatePrize(treasures.validate, file: "treasures.json")
         try validatePrize(wheel.validate, file: "wheel.json")
+        try validatePrize(offers.validate, file: "offers.json")
 
         return GameContent(
             economy: economy,
@@ -157,7 +161,8 @@ enum GameContentLoader {
             visitors: visitors,
             packages: packages,
             treasures: treasures,
-            wheel: wheel
+            wheel: wheel,
+            offers: offers
         )
     }
 

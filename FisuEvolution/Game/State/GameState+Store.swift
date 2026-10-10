@@ -264,6 +264,18 @@ extension GameState {
             // multiplicador global y sube únicamente al reencarnar.
             player.meta.oro += amount
             player.meta.recordOroPurchase(transactionID: transactionID, amount: amount)
+        case .offer:
+            // Lo pagado se entrega siempre: fuera de la ventana, en una tienda
+            // restringida o repetido en otro dispositivo. La guarda es la de la
+            // transacción, que ya pasó. Una oferta que el catálogo no conoce no
+            // consume la transacción: no se anota como acreditada sin haber entregado.
+            guard content.offers.offer(id: entry.offerId ?? "") != nil else {
+                Log.store.error("offer purchase without a known offer: \(entry.offerId ?? "nil")")
+                return
+            }
+            self.player = player
+            creditOffer(entry.offerId, transactionID: transactionID)
+            return
         case .removeAds, .skin:
             return
         }
@@ -326,7 +338,7 @@ extension GameState {
             guard let minutes = entry.coinMinutes else { return nil }
             let amount = Self.coinPayout(minutes: minutes, player: player, content: content)
             return String(localized: "store.pack.starter \(CoinFormatter.string(from: amount))")
-        case .removeAds, .skin:
+        case .removeAds, .skin, .offer:
             return nil
         }
     }

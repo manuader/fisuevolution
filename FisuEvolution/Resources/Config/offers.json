@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "windowHours": 24,
+  "cooldownDays": 3,
+  "offers": [
+    {"id": "bienvenida", "productId": "com.fisuevolution.iap.offer_bienvenida", "trigger": "secondDay",
+     "oncePerAccount": true, "isChance": true, "iconKey": "ui_offer_bienvenida", "symbol": "hand.wave.fill",
+     "rewards": [{"kind": "oro", "amount": 120}, {"kind": "coinsSeconds", "seconds": 7200}, {"kind": "skinChest", "count": 1}]},
+    {"id": "renacer", "productId": "com.fisuevolution.iap.offer_renacer", "trigger": "reincarnation",
+     "iconKey": "ui_offer_renacer", "symbol": "arrow.counterclockwise.circle.fill",
+     "rewards": [{"kind": "oro", "amount": 300}, {"kind": "coinsSeconds", "seconds": 14400},
+                 {"kind": "modifier", "effect": "incomeMultiplier", "magnitude": 3, "seconds": 1800}]},
+    {"id": "mudanza", "productId": "com.fisuevolution.iap.offer_mudanza", "trigger": "newFloor",
+     "iconKey": "ui_offer_mudanza", "symbol": "box.truck.fill",
+     "rewards": [{"kind": "oro", "amount": 500}, {"kind": "coinsSeconds", "seconds": 28800}, {"kind": "package", "count": 3}]}
+  ]
+}

@@ -15,6 +15,9 @@ struct ProductCatalog: Codable, Sendable, Equatable {
             /// El combo de bienvenida: plata + quitar los ads + una skin. Es
             /// `nonConsumable` porque dos de las tres cosas son restaurables.
             case starterPack
+            /// Consumible: una oferta de 24 h (`offers.json`). Lo que entrega lo
+            /// dice la oferta, no el producto.
+            case offer
         }
 
         let id: String
@@ -28,6 +31,8 @@ struct ProductCatalog: Codable, Sendable, Equatable {
         /// `oro`: monto fijo. Acá sí es fijo porque los sinks de ORO
         /// (`upgrades.json`) tienen costos fijos, no exponenciales en la run.
         let oroAmount: Int?
+        /// `offer`: el id de la oferta en `offers.json`.
+        var offerId: String? = nil
 
         /// Sale del entitlement y no del campo `type`, que es un String suelto:
         /// lo que decide si algo se puede volver a comprar es QUÉ entrega, y una
@@ -35,7 +40,7 @@ struct ProductCatalog: Codable, Sendable, Equatable {
         /// El starter pack no entra: dos de sus tres cosas son restaurables.
         var isConsumable: Bool {
             switch entitlement {
-            case .coins, .oro: true
+            case .coins, .oro, .offer: true
             case .removeAds, .skin, .starterPack: false
             }
         }

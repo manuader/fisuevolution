@@ -1,0 +1,8 @@
+{
+  "iap.com.fisuevolution.iap.offer_bienvenida.name": {"es": "Pack de Bienvenida", "en": "Welcome Pack"},
+  "iap.com.fisuevolution.iap.offer_bienvenida.desc": {"es": "ORO, 2 h de ingresos y un cofre de pintas", "en": "ORO, 2 h of income and a skin chest"},
+  "iap.com.fisuevolution.iap.offer_renacer.name": {"es": "Pack Renacer", "en": "Rebirth Pack"},
+  "iap.com.fisuevolution.iap.offer_renacer.desc": {"es": "ORO, 4 h de ingresos y ×3 por 30 minutos", "en": "ORO, 4 h of income and ×3 for 30 minutes"},
+  "iap.com.fisuevolution.iap.offer_mudanza.name": {"es": "Pack Mudanza", "en": "Moving Day Pack"},
+  "iap.com.fisuevolution.iap.offer_mudanza.desc": {"es": "ORO, 8 h de ingresos y 3 Paquetes", "en": "ORO, 8 h of income and 3 Parcels"}
+}

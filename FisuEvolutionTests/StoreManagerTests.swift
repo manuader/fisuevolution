@@ -71,7 +71,30 @@ struct StoreManagerTests {
             // El bundle de diamante: un solo producto para las 43, porque la
             // propiedad se guarda por id de skin y las 43 comparten "diamante".
             "com.fisuevolution.iap.skins_diamante",
+            "com.fisuevolution.iap.offer_bienvenida",
+            "com.fisuevolution.iap.offer_renacer",
+            "com.fisuevolution.iap.offer_mudanza",
         ])
+    }
+
+    /// Una oferta es un consumible: se cobra por el listener como un pack, se
+    /// entrega entera y se vuelve a vender.
+    @Test func purchasingAnOfferCreditsItsBundle() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let store = StoreManager()
+        await store.start(gameState: gameState)
+        let before = try #require(gameState.player).meta
+
+        let offer = try #require(store.products.first { $0.id == "com.fisuevolution.iap.offer_renacer" })
+        await store.purchase(offer)
+
+        await waitUntil { (gameState.player?.meta.oro ?? 0) > before.oro }
+        #expect(gameState.player?.meta.oro == before.oro + 300)
+        #expect(gameState.player?.meta.oroPurchasedLifetime == before.oroPurchasedLifetime + 300)
+        #expect(gameState.player?.run.activeModifiers.contains { $0.sourceKey == "offer.renacer" } == true)
+        #expect(!store.isPurchased("com.fisuevolution.iap.offer_renacer"), "consumible: se vuelve a vender")
     }
 
     /// RF-02b, el recorrido entero de un CONSUMIBLE, que no es el de un
@@ -211,6 +234,29 @@ struct StoreManagerTests {
         let transaction = try #require(
             session.allTransactions().first { $0.productIdentifier == pack.id },
             "no apareció la transacción de oro_small"
+        )
+        try session.refundTransaction(identifier: UInt(transaction.identifier))
+
+        await waitUntil(timeout: 180) { gameState.player?.meta.oroPurchasedLifetime == 0 }
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 0)
+    }
+
+    /// Lo mismo con una oferta: su ORO es comprado y el reembolso lo descuenta.
+    @Test func refundingAnOfferLowersThePurchasedTotal() async throws {
+        let session = try makeSession()
+        defer { session.clearTransactions() }
+        let gameState = await makeGameState()
+        let store = StoreManager()
+        await store.start(gameState: gameState)
+
+        let offer = try #require(store.products.first { $0.id == "com.fisuevolution.iap.offer_renacer" })
+        await store.purchase(offer)
+        await waitUntil { gameState.player?.meta.oroPurchasedLifetime == 300 }
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 300)
+
+        let transaction = try #require(
+            session.allTransactions().first { $0.productIdentifier == offer.id },
+            "no apareció la transacción de offer_renacer"
         )
         try session.refundTransaction(identifier: UInt(transaction.identifier))
 

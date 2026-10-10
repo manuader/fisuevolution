@@ -13,6 +13,10 @@ struct StageChips: View {
                 VisitorChip(visit: visit) { gameState.openVisitorPopup() }
                     .transition(.scale(scale: 0.7).combined(with: .opacity))
             }
+            if let challenge = gameState.stageChallenge, let visit = gameState.stageVisit {
+                ChallengeChip(challenge: challenge, visitorId: visit.actorId)
+                    .transition(.scale(scale: 0.7).combined(with: .opacity))
+            }
         }
         .animation(.spring(duration: 0.3), value: gameState.stageVisit?.offer != nil)
     }
@@ -62,5 +66,57 @@ struct VisitorChip: View {
             guard !reduceMotion else { return }
             withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) { pulse = true }
         }
+    }
+}
+
+/// El reto en curso: la cara de quien lo propuso, la consigna, "12/15" y un aro
+/// con el tiempo que queda (el del reloj del juego, no el de pared). No es un
+/// botón: los toques van a los empleados.
+struct ChallengeChip: View {
+    let challenge: StageChallenge
+    let visitorId: String
+    @Environment(GameState.self) private var gameState
+    @State private var clock: TimeInterval?
+
+    private let timer = Timer.publish(every: 0.25, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        let remaining = challenge.remaining(at: clock ?? gameState.stageRuntime.challengeClock)
+        HStack(spacing: 8) {
+            ZStack {
+                Circle()
+                    .trim(from: 0, to: remaining / max(challenge.terms.windowSeconds, 1))
+                    .stroke(Color("PaletteOrange"), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                VisitorFace(visitorId: visitorId, side: 32)
+            }
+            .frame(width: 40, height: 40)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("visit.challenge.hint")
+                    .font(Tokens.caption)
+                    .foregroundStyle(Color("PaletteInk").opacity(0.75))
+                Text(verbatim: "\(challenge.taps)/\(challenge.terms.taps)")
+                    .font(.system(size: 20, design: .rounded).weight(.heavy))
+                    .monospacedDigit()
+                    .foregroundStyle(Color("PaletteInk"))
+            }
+            Text(verbatim: "\(Int(remaining.rounded(.up)))s")
+                .font(.system(size: 13, design: .rounded).weight(.bold))
+                .monospacedDigit()
+                .foregroundStyle(Color("PaletteOrange"))
+        }
+        .padding(.leading, 5)
+        .padding(.trailing, 12)
+        .padding(.vertical, 4)
+        .background(
+            Capsule().fill(Color("PaletteCream"))
+                .overlay(Capsule().strokeBorder(Color("PaletteOrange"), lineWidth: 2))
+                .shadow(color: .black.opacity(0.18), radius: 4, y: 2)
+        )
+        .allowsHitTesting(false)
+        .accessibilityElement(children: .ignore)
+        .accessibilityIdentifier("stage.chip.challenge")
+        .accessibilityLabel(Text("visit.challenge.ax \(challenge.taps) \(challenge.terms.taps)"))
+        .onReceive(timer) { _ in clock = gameState.stageRuntime.challengeClock }
     }
 }

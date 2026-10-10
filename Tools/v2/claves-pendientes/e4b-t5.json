@@ -1,0 +1,5 @@
+{
+  "visit.challenge.hint": {"es": "¡Tocá a tus empleados!", "en": "Tap your workers!"},
+  "visit.challenge.ax %lld %lld": {"es": "Reto: %1$lld de %2$lld toques", "en": "Challenge: %1$lld of %2$lld taps"},
+  "visit.vendor.take": {"es": "Llevalo", "en": "Take it"}
+}

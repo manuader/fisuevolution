@@ -59,4 +59,18 @@ struct StageRuntime {
     /// Quién anunció cada evento corriendo: su cara va en el chip (T4). En
     /// memoria: después de relanzar, el chip cae al primer presentador del dato.
     var eventPresenters: [String: String] = [:]
+    /// El reloj del reto en curso: arranca en el `now` de la elección y avanza sólo
+    /// con el delta del juego activo (`advanceStage`), nunca con la fecha de pared.
+    var challengeClock: TimeInterval = 0
+}
+
+extension StageChallenge {
+    /// Toques sobre la meta, con tope en 1.
+    var progress: Double {
+        min(1, Double(taps) / Double(max(terms.taps, 1)))
+    }
+
+    func remaining(at now: TimeInterval) -> TimeInterval {
+        max(0, endsAt - now)
+    }
 }

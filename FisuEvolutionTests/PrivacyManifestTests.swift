@@ -42,6 +42,13 @@ struct PrivacyManifestTests {
         }
     }
 
+    @Test("si declara seguimiento tiene que listar sus dominios (Apple rechaza el build si no: ITMS-91064)")
+    func trackingNeedsDomains() {
+        let tracking = manifest["NSPrivacyTracking"] as? Bool ?? false
+        let domains = manifest["NSPrivacyTrackingDomains"] as? [String] ?? []
+        #expect(!tracking || !domains.isEmpty)
+    }
+
     @Test("las APIs de razón requerida siguen declaradas")
     func requiredReasonAPIsRemain() {
         let apis = (manifest["NSPrivacyAccessedAPITypes"] as? [[String: Any]] ?? [])

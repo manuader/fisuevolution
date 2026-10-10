@@ -6,11 +6,11 @@
 > `Docs/superpowers/plans/2026-10-0*-v2-*.md`, los ledgers
 > `.superpowers/sdd/<plan>/progress.md` y el journal AVO del run.
 >
-> **Foto:** 2026-10-10, cierre del relevo 24 (la ola V, un solo relevo abierto por el disparo horario de `fisu-v2-relevo-a`).
-> `version-2` = `91b7634` (`rapido` VERDE sobre `25cc5da`: EK 825 · unit 1190 · 0 rojos · Release 0; suma E4a T10, E2b T7/T8, E4b T7 y E6a T11, todas ✅; el piso de descuentos que anulaba la contratación gratis se arregló en `25cc5da`).
-> `v2i/integ-r24` = `9b02cdd` + `tasks.md` (suma E4b T1, 🟢); `rapido` de la punta: VERDE (EK 827 · unit 1207 · 0 rojos · Release 0).
-> **Progreso: 182 de 254 en `version-2`; 183 con E4b T1 🟢.** **No publicar E7b-a T2 sin E7b-a T3.**
-> El último `completo` de referencia sigue siendo el de los cierres del 23, sobre `bab8a9c`. Detalle en `Docs/SESION-2026-10-10-v2-relevo-24-ola-v.md` (y `…relevo-23-ola-u.md`, `…cierres-r23.md`).
+> **Foto:** 2026-10-10, cierre del relevo 25 (la ola W, un solo relevo abierto por el disparo horario de `fisu-v2-relevo-a`).
+> `version-2` = la punta tras el `rapido` de `integ-r25` que el controlador deja anotado en `ESTADO.md` (suma E4b T8, E4b T2 y E5a T7, todas ✅ con `rapido` VERDE: unit 1211, 1236 y 1247).
+> `v2i/integ-r25` = `c435bad` + `tasks.md` + los docs del cierre (suma E5a T8 y E4b T3, 🟢); `rapido` de la punta: RAPIDO_PENDIENTE.
+> **Progreso: 186 de 254 en `version-2`; 188 con E5a T8 y E4b T3 si el `rapido` de la punta da VERDE.** **No publicar E7b-a T2 sin E7b-a T3: E7b-a T3 sale en cuanto E5b T1 entre.**
+> El último `completo` de referencia sigue siendo el de los cierres del 23, sobre `bab8a9c`. Detalle en `Docs/SESION-2026-10-10-v2-relevo-25-ola-w.md` (y `…relevo-24-ola-v.md`, `…relevo-23-ola-u.md`, `…cierres-r23.md`).
 > **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
 > Si un ledger dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
 

@@ -2573,6 +2573,11 @@ paréntesis; el porqué completo está en la sesión de cada uno):
 
 
 21. **El reset de cuenta pierde las pintas de ORO, `skinsAll` exige las 3 familias, la ruleta del Conductor espera un tablero calmo y el paquete cuenta la cola** (E6b T4 y E5b T2, relevo 29). La pinta comprada con ORO vive en `shop.skins` (sobrevive a la reencarnación; `allOwnedSkins` la une) y `purchaseSkin` mira `alreadyOwned` antes de `spendOro` y rechaza `price <= 0`; **el reset de cuenta las pierde** (la pantalla del reset debe decirlo en `skinsLost`: E9b T8) y **el logro `skinsAll` ahora exige comprar las 3 familias (1350 ORO)**. `openWheel` exige `!isBoardBusy`: **si el tablero no está calmo, el giro queda en Regalos** (`bonusSpins`), no se abre sobre una visita. `packageTapped` y `packageCandidates` **cuentan la cola** (`pendingBoardChanges` e `inFlight`), así que «LLENO» puede tardar un instante de más (conservador). El cerrojo de la Ruleta por ORO es `PurchaseLatch` vía `GameState.beginWheelSpin`, no un `.disabled`. **Sin decisión nueva del dueño;** el reset que pierde las pintas de ORO y el costo de `skinsAll` van a `PREGUNTAS-DUENO.md`.
+22. **El dueño aceptó los 26 defaults de `Docs/PREGUNTAS-DUENO-v2.md` (B1–B26) y ya no se preguntan** (2026-10-10, «hacé todo lo recomendado»). El detalle, pregunta por pregunta, está en `tasks.md` §7 («B1–B26 aceptados con su default»).
+    Para los relevos: ninguna cambia el ritmo medido (Dios en 31,34 h) ni pide perillas nuevas; **no se «arreglan» como bugs** los costos aceptados: los boosts de ORO y los videos se multiplican sin capar (B2–B5), el reloj movido reinicia
+    los topes diarios (B16), Fusionar todo no se compensa (B11), la tabla del cofre no proyecta pendientes (B17) y el ícono del Álbum sigue siendo un glifo SF (B25). Se pierde al reencarnar lo comprado por tiempo con ORO, avisándolo
+    (B8, hecho en E6a T8), y al resetear la cuenta un ×3 pagado (B10: lo dice la pantalla de E9b T8). La Bienvenida no se ofrece en BE/AU (B21: E6a T12). B22 está hecha: la política nombra a Anthropic y la nota a App Review da el atajo al Ranking,
+    pero `NSPrivacyTracking` queda en `false` a propósito (`true` sin `NSPrivacyTrackingDomains` = rechazo ITMS-91064); 🔒 del dueño: los dominios de AdMob/Unity/Meta. Las A1–A10 siguen siendo gates humanos.
 ---
 
 ## 6. Cómo verificar

@@ -326,6 +326,18 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Cierre de E4a (2026-10-10) — El motor de visitantes y eventos v2
+
+E4a T1–T9 están en `version-2` y T10 es este cierre, sólo documentación. Es el motor sin escena: qué pasa, cuándo y qué se da. Detalle, la tabla por tarea con su commit y el porqué de cada default en **`Docs/SESION-2026-10-10-v2-e4.md`**.
+
+- **`RewardSpec` + `grant` son el único camino de premios** (E4a T1 y T8, `GameState+Rewards`). Un premio que `grantableRewardKinds` no tiene no se ofrece.
+- **El reloj de eventos está en el save** (`meta.engagement`, E4a T3) y corre en juego activo: el primer evento a los 15 min de juego, con 60 s de gracia al volver.
+- **Los 18 eventos compuestos** (`events.json` schema 2; `EventCatalog`, E4a T4 y T9): se fueron `EventManager` y el `EventsConfig` de la v1. Efectos nuevos: paro, inmunidad y ritmo de paquetes (T2).
+- **`visitors.json`**: 18 del elenco y 26 guiones, en dos idiomas, todavía **sin escena** (E4a T5–T7; la escena es E4b T1).
+- **Verificación:** la cubren los cierres del 23 (`completo --limpio` sobre `bab8a9c`: EK 796 · unit 1162 · UI con 3 rojos de E4a T9, arreglados en `534fd51`; pacing-sim Dios 31,34 h / 13 reenc., igual que antes de E4a) y el `rapido` VERDE sobre `5fca66d` (EK 814 · unit 1175 · 0 rojos · Release 0). `rojos-declarados.txt` no cambió por E4a.
+- **🔒 del dueño (no se hicieron en device):** los tres escenarios a mano del plan: «Disparar un evento» con los 18 en el panel de debug, el primer evento a los 15 min con `--uitest-engagement` (y Home y volver no dispara en la cara), y matar la app en la espera y volver con el reloj donde estaba. Lo visto: `CorralitoUITests` PASS en SE y la captura SE de `paro_general`.
+- **Carries a E4b:** el presentador re-chequea `eventIsApplicable`; `loops_manifest` `events.cayo_mercado_pago` → `home_banking`; la cuota sin plata no se atenúa; `isCalmMoment` sin unificar (`naturalBreakContext` suma `fullScreenUI`/`adOnScreen`; lo unifica E7b).
+
 ### Sesión del 2026-10-10 (relevo 23) — La ola U: la mudanza a eventos v2, el Paquete en la partida, el simulador de pacing con perfiles y los tres cierres
 
 Un solo relevo, abierto a las 00:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~260k de contexto. Todo en `v2i/integ-r23`. `version-2` quedó en `2e51d29` (`rapido`: VERDE, EK 814 · unit 1175 · 0 rojos · Release 0). **Progreso: 174 de 254 en `version-2`; 177 de 254 (69,7 %) con las tres 🟢 de los cierres** si el `rapido` de la punta da VERDE.
@@ -1969,6 +1981,15 @@ tocan decisiones de esta sección:
   con popup offline. Un veterano que las apagó en la v1 las sigue teniendo
   apagadas. Nunca anuncios ni precios (guía 4.5.4).
 
+**Decisiones de E4a** (2026-10-10; los 13 defaults de «Para el dueño» del plan quedaron tal cual, el dueño no
+cambió ninguno; el porqué de cada uno en `Docs/SESION-2026-10-10-v2-e4.md` §4): la plata de los visitantes
+sale del Anexo A sin tocar y la palanca es `visitors.json` `coinsSecondsScale` (E2b la calibra); «nunca deja
+menos de 2» es que la torre no queda con menos de 2 empleados ni se pierde el último de un tipo; ignorar una
+visita nunca cuesta, y pagar la multa es un trueque opcional; los especiales visitan sólo si ya los
+conseguiste; cinco guiones y dos eventos (los de Paquetes o giros, Lluvia y Piquete) esperan a E5; los
+botones de los popups son genéricos; el reloj de eventos es de juego activo y va al save; el ×2 con video de
+un modificador alarga, no potencia; el ORO del Arbolito (1 por S(5400)) lo revisa E2b.
+
 **Decisiones del dueño del relevo 6** (2026-10-07, preguntadas en vivo; el
 detalle en `Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md` §1):
 
@@ -2835,6 +2856,16 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De E4a (2026-10-10, cierre)
+
+- **Un guion o evento que da algo que `grantableRewardKinds` no tiene no se ofrece:** E5/E6 los habilitan sumándolo ahí (hoy esperan cinco guiones y dos eventos).
+- **Los textos de visitantes llevan `%N$@` en el VALOR y se llenan con `VisitCopy`:** un `%` suelto en un texto con datos se come el carácter de al lado.
+- **El motor de eventos se llama `EventCatalog`:** el `EventsConfig` de la v1 ya no existe (ni `EventManager`).
+- **El presentador de E4b re-chequea `eventIsApplicable`:** entre el sorteo y la escena el evento puede haber dejado de aplicar.
+- **`loops_manifest` todavía tiene que mover `events.cayo_mercado_pago` a `home_banking`:** E4a T9 sacó ese id de `AudioWiringTests` y la revisión opus lo encontró.
+- **La cuota sin plata no se atenúa** en el evento de Corralito: se muestra igual aunque no se pueda pagar (E4b).
+- **`isCalmMoment` no se unificó con `isSafeMomentForInterstitial`:** `naturalBreakContext` suma `fullScreenUI`/`adOnScreen`; no copiar uno al otro, lo unifica E7b.
 
 ### De la ola U (2026-10-10, relevo 23)
 
@@ -4788,6 +4819,8 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-10-v2-cierres-r23.md`**: el relevo 23, los cierres de E8, E13b y E13 con un solo `completo` (el peso +39 MB, el panel de
   debug que se comió las puertas, las grabaciones del ascensor). Planes cerrados: `2026-10-08-v2-e8-integracion-arte.md`,
   `2026-10-08-v2-e13b-ascensor-barra.md` y `2026-10-08-v2-e13-feedback-v1.md`.
+- **`Docs/SESION-2026-10-10-v2-e4.md`**: el cierre de E4a (la tabla por tarea con su commit, la verificación que lo cubre, el porqué de
+  cada default de «Para el dueño» y lo que le deja a E4b). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e4a-visitantes-eventos.md`.
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

@@ -586,7 +586,7 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E5b-T1 | La Ruleta en pantalla | ✅ | E5a-T8; E4b-T3 | catálogo (snapshot); AudioManager | `44259ad` + arreglos `747492a` (merge `4644e67`, claves `7c6ad1d`, en `v2i/integ-r26`) | cablea `sfx_wheel_tick`; crea `OddsDisclosureView` y `RewardCopy` · rev. opus **Approved con arreglos** (candado `resolving` con Reduce Motion, freno del tic de 0,08 s, `isBusy` en los `RewardedOfferButton`). **Carries → E5b T2/T4:** aplicar `claves-pendientes/e5b-t1.json` (27 claves) antes del oráculo si falta; probar el candado con Reduce Motion (sin test unitario); `wheel_frame` sin usar. **→ E6a:** reusar `OddsDisclosureView`/`RewardCopy` y el candado anti doble toque en el cofre por ORO. **→ dueño:** la tabla de probabilidades queda bajo el pliegue del SE (¿3.1.1?) |
 | E5b-T2 | Los accesos y las hojas | ✅ | T1; E5a-T6, E5a-T7, E5a-T8; E4b-T3, E4b-T4, E4b-T9; E3a-T6, E3a-T11 | 🔥 GameState, RootView, catálogo; +Rewards, DebugPanelView | `18e45d1` + arreglos `a502ef6` (merge + 10 claves `7c494ea`, en `v2i/integ-r29`) · rev. opus **Approved con arreglos** (hechos en `a502ef6`: `openWheel` con `!isBoardBusy`, `packageTapped` cuenta la cola, el colchón no se cierra con el video en curso; **bug de T1:** el video de la Ruleta se veía y no pagaba → `videoBusy` fuera del guard; `.disabled(locked)` → `PurchaseLatch` con RED). Carries: E7b-b T1 reusa `packageTapped`/`mattressTapped`/`openWheel`; E5b T3 «LLENO» de la misma cuenta; dueño: matar la app con el popup del colchón abierto pierde el «otro colchón»; `testTheVideoSpinSpinsAndCountsDown` sin RED; `wheel_frame` sin usar · **Relevo 29 ✅** (`completo` sobre `7c494ea`: EK 845 · unit 1417 · store 18+2 · iPad 4 · SE 2 · pipeline 89 · pacing-sim · Release 0; UI 129 + 2 rojos por orden — `MenuPagerUITests` y `CustomizationUITests` aislados VERDES 2/2 y 5/5) |
-| E5b-T3 | La escena: cajas, colchón, apertura | ⏳ | T2; E1-T10; E4b-T1, E4b-T6, E4b-T9; E3a-T10 | 🔥 BoardScene | | |
+| E5b-T3 | La escena: cajas, colchón, apertura | 🔄 | T2; E1-T10; E4b-T1, E4b-T6, E4b-T9; E3a-T10 | 🔥 BoardScene | | |
 | E5b-T4 | La Ruleta en Regalos | ✅ | T1 | catálogo (dueña o snapshot) | `223b772` (merge + claves `41d98c7`, en `v2i/integ-r27`) | sin revisión opus (UI sin plata nueva); `WheelUITests` 3/3 en SE. **Carries → E5b T2:** el doble cobro de ORO no está cubierto (sin fixture de ORO el gate cierra en el simulador); confirmar que la vista lee Reduce Motion (por `simctl` no se vio). El subtítulo usa `wheelAvailability(storefrontAllows: false)`; el gate real vive en `WheelView` |
 | E5b-T5 | Las lecciones del paquete, el colchón y la ruleta | ⏳ | T2, T4 | catálogo (snapshot); +TutorialTips, TutorialAnchor | | |
 | E5b-T6 | `wheel_ready` | ✅ | T1; E11-T4, E11-T6 | catálogo (snapshot) | `59e2ea1` (merge + claves `41d98c7`, en `v2i/integ-r27`) | sin revisión opus. **Carry → E11/E2b/dueño:** `maxPerAbsence` es 3 y hay 4 motivos: `wheel_ready` (prioridad más baja) queda afuera si entran los otros tres; avisa sólo si hoy hubo giro por video |
@@ -607,7 +607,7 @@ que toma · commit o rama · nota.
 | E6a-T9 | Los packs 160 / 550 / 1.400 | ✅ | E1-T6; E2a-T7 | products.json, StoreManagerTests | `7cc20d9` (merge `2446069`) | StoreManagerTests 13/14 a mano (timeout de carga, solo pasa) |
 | E6a-T10 | Las ofertas de 24 h, puras | ✅ | T1; E4a-T1 | — | | |
 | E6a-T11 | Las ofertas se cobran | ✅ | T9, T10; E4a-T8; E2a-T7; E5a-T6 | catálogo (snapshot); products.json, +Store | `6daa880` + arreglos `05019e2` (merge `db27a2c`, claves aplicadas) | con T6c: por `recordOroPurchase`, no `+=` |
-| E6a-T12 | Las ofertas se ven | ⏳ | T7, T8, T11; E5a-T8; E4b-T3; E3a-T6; E5b-T1, E5b-T2 | 🔥 RootView, catálogo; CelebrationQueue, +Celebrations | | **Carry del relevo 27 (de E6a T6):** gregoriano para días y enfriamiento |
+| E6a-T12 | Las ofertas se ven | 🔄 | T7, T8, T11; E5a-T8; E4b-T3; E3a-T6; E5b-T1, E5b-T2 | 🔥 RootView, catálogo; CelebrationQueue, +Celebrations | | **Carry del relevo 27 (de E6a T6):** gregoriano para días y enfriamiento |
 | E6a-T13 | Cierre de E6a | ⛔ | T1–T12 | `Docs/` | | |
 
 ### E6b — Lugares extra, pintas con ORO, efectos y familias (`2026-10-07-v2-e6b-lugares-skins.md`)
@@ -642,7 +642,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E7b-b-T1 | La columna, pura | ⏳ | E5b-T2; E2a-T14; E1-T14; E5a-T4…T8; E6a-T6 | 🔥 GameState; BoardChange.swift, +BoardChanges | | (ambigua: ver "Inconsistencias", punto 2) |
+| E7b-b-T1 | La columna, pura | 🔄 | E5b-T2; E2a-T14; E1-T14; E5a-T4…T8; E6a-T6 | 🔥 GameState; BoardChange.swift, +BoardChanges | | (ambigua: ver "Inconsistencias", punto 2) |
 | E7b-b-T2 | Los videos de la columna | ⛔ | T1; E4a-T2, E4a-T8 | — | | |
 | E7b-b-T3 | La columna plegable en pantalla | ⛔ | T2; E3a-T8, E3a-T10, E3a-T11; E5b-T2, E5b-T5; E4b-T3; E6a-T12; E7b-a-T3 | 🔥 RootView, catálogo; StageChips, PrizeChips, TutorialAnchor, ElevatorPanel | | |
 | E7b-b-T4 | La multitud le deja lugar a la columna | ⏭️ | — | — | | el dueño eligió C (plegable) |

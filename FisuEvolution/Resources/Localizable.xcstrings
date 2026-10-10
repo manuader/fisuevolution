@@ -4617,6 +4617,23 @@
         }
       }
     },
+    "gifts.section.wheel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Wheel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Ruleta"
+          }
+        }
+      }
+    },
     "gifts.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4630,6 +4647,91 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Regalos"
+          }
+        }
+      }
+    },
+    "gifts.wheel.bonus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free spins: %1$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giros gratis: %1$@"
+          }
+        }
+      }
+    },
+    "gifts.wheel.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More spins tomorrow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mañana hay más giros"
+          }
+        }
+      }
+    },
+    "gifts.wheel.left" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spins today: %1$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giros de hoy: %1$@"
+          }
+        }
+      }
+    },
+    "gifts.wheel.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spin"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Girar"
+          }
+        }
+      }
+    },
+    "gifts.wheel.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The TV Host's Wheel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Ruleta del Conductor"
           }
         }
       }
@@ -5896,6 +5998,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡La caja fuerte no cierra más!"
+          }
+        }
+      }
+    },
+    "notif.wheel_ready.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The TV host is warming up the studio. Come spin."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Conductor ya está calentando el estudio. Vení a girar."
+          }
+        }
+      }
+    },
+    "notif.wheel_ready.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Wheel has new spins!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡La Ruleta tiene giros nuevos!"
           }
         }
       }
@@ -8420,6 +8556,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Caja fuerte llena"
+          }
+        }
+      }
+    },
+    "settings.notifications.wheel_ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Wheel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Ruleta"
           }
         }
       }

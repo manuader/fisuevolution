@@ -1,5 +1,17 @@
 import SwiftUI
 
+/// Qué tarjeta del Álbum se mueve: una sola, la enfocada (el pool de video deja vivo al más nuevo
+/// de cada rol, así que animar varias dejaría vivo a cualquiera menos al que se mira).
+enum AlbumFocus {
+    static func initial(_ entries: [AlbumEntry]) -> String? {
+        entries.first(where: \.owned)?.id
+    }
+
+    static func tap(_ id: String, entries: [AlbumEntry], current: String?) -> String? {
+        entries.contains(where: { $0.id == id && $0.owned }) ? id : current
+    }
+}
+
 /// **Álbum de especiales** (PLAN-v2 E4): los diez personajes raros, los que
 /// tenés con su retrato y lo que te dan, los que faltan en silueta. Se empuja
 /// desde la Oficina central como las otras cuatro pantallas del menú.
@@ -7,6 +19,7 @@ struct SpecialsAlbumView: View {
     @Environment(GameState.self) private var gameState
     /// Cierra la HOJA entera (ver `MenuView`: `dismiss` acá desapilaría).
     let close: () -> Void
+    @State private var focusedID: String?
 
     var body: some View {
         let entries = gameState.albumEntries
@@ -34,6 +47,7 @@ struct SpecialsAlbumView: View {
             .padding(.top, Tokens.s12)
             .padding(.bottom, Tokens.s24)
         }
+        .onAppear { focusedID = focusedID ?? AlbumFocus.initial(entries) }
         .panelSheet { PanelTitleBanner(titleKey: "album.title") }
         .navigationTitle(Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)
@@ -71,7 +85,9 @@ struct SpecialsAlbumView: View {
             }
             .frame(maxWidth: .infinity)
         }
+        .onTapGesture { focusedID = AlbumFocus.tap(entry.id, entries: gameState.albumEntries, current: focusedID) }
         .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(entry.owned ? .isButton : [])
         // El estado va en el id y no en un valor hablado: VoiceOver ya dice el
         // nombre o "Por descubrir", y un "owned" crudo se leería en inglés.
         .accessibilityIdentifier("album.card.\(entry.id).\(entry.owned ? "owned" : "locked")")
@@ -82,9 +98,14 @@ struct SpecialsAlbumView: View {
         if let manifest = gameState.content?.manifest,
            let image = VisitorArt.image(for: entry.id, pose: .canonical, manifest: manifest) {
             // Los que faltan, en silueta: se sabe que existen, no cómo son.
-            image.resizable().scaledToFit()
+            let still = image.resizable().scaledToFit()
                 .colorMultiply(entry.owned ? .white : .black)
                 .opacity(entry.owned ? 1 : 0.35)
+            if entry.owned, entry.id == focusedID {
+                AnimatedArtView(clip: .character(entry.id), role: .popup) { still }
+            } else {
+                still
+            }
         } else {
             Image(systemName: entry.owned ? "star.circle.fill" : "questionmark.circle.fill")
                 .font(.system(size: 56))

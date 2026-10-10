@@ -25,6 +25,12 @@ struct EconomyKnobsTests {
         #expect(tuned.oro.prestigeTeaserFloorId == fxConfig().oro.prestigeTeaserFloorId)
     }
 
+    @Test("la herencia de pasivos llega por el decoder y apagada vale la v1")
+    func inheritanceKnobLands() throws {
+        #expect(try fxConfig().tuned(EconomyKnobs(inheritsPassiveUnlocks: true)).oro.inheritsPassives)
+        #expect(!fxConfig().oro.inheritsPassives)
+    }
+
     @Test("las perillas de E2b llegan por el decoder")
     func e2bKnobsLand() throws {
         let band = EconomyConfig.HireConfig.EscalationBand(fromTier: 8, factor: 1.45)

@@ -330,18 +330,26 @@ public struct EconomyConfig: Codable, Sendable, Equatable {
 
         public var requiresWall: Bool { requiresLastRunWall ?? false }
 
+        /// Herencia (PLAN-v2 §2): al reencarnar se conservan los pasivos
+        /// desbloqueados, nada más. Sin la clave, false: la v1. [TUNEABLE]
+        public let inheritsPassiveUnlocks: Bool?
+
+        public var inheritsPassives: Bool { inheritsPassiveUnlocks ?? false }
+
         public init(
             divisor: Double,
             exponent: Double,
             globalMultiplierPerOro: Double,
             prestigeTeaserFloorId: String? = nil,
-            requiresLastRunWall: Bool? = nil
+            requiresLastRunWall: Bool? = nil,
+            inheritsPassiveUnlocks: Bool? = nil
         ) {
             self.divisor = divisor
             self.exponent = exponent
             self.globalMultiplierPerOro = globalMultiplierPerOro
             self.prestigeTeaserFloorId = prestigeTeaserFloorId
             self.requiresLastRunWall = requiresLastRunWall
+            self.inheritsPassiveUnlocks = inheritsPassiveUnlocks
         }
     }
 

@@ -147,6 +147,9 @@ public struct PacingSimulator: Sendable {
         /// Hasta qué tier llegó cada run, en orden; la última es la que quedó
         /// abierta. Es la serie del contrato "cada run llega más lejos" (E2b).
         public var maxTierPerRun: [Int] = []
+        /// Cuántos pasivos compró el bot en cada run (la última es la abierta).
+        /// Con la herencia, de la segunda en adelante tiene que bajar.
+        public var passiveUnlocksPerRun: [Int] = [0]
 
         // MARK: La FORMA de la curva (2026-08-23, decisión del dueño)
         //
@@ -398,7 +401,10 @@ public struct PacingSimulator: Sendable {
             }
             earn(state: &state, amount: rate * wait)
             elapsed += wait + human.hireSeconds
+            let passivesBefore = state.run.passiveUnlocked.values.filter { $0 }.count
             action.perform(&state)
+            report.passiveUnlocksPerRun[report.passiveUnlocksPerRun.count - 1] +=
+                state.run.passiveUnlocked.values.filter { $0 }.count - passivesBefore
             recordUnlocks(state: &state, report: &report, wall: wallStart + elapsed, active: activeStart + elapsed)
         }
         return (elapsed, elapsed)
@@ -714,6 +720,7 @@ public struct PacingSimulator: Sendable {
         report.maxTierPerRun.append(state.run.maxTierReached)
         PrestigeCalculator.applyReincarnation(state: &state, economy: economy, tiers: tiers, floorTable: floorTable, now: wall)
         closeRun(tracker: &tracker, report: &report, active: active)
+        report.passiveUnlocksPerRun.append(0)
         report.reincarnations += 1
         report.reincarnationActiveSeconds.append(active)
         if report.firstReincarnationWall == nil { report.firstReincarnationWall = wall }

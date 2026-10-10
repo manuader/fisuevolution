@@ -12,6 +12,7 @@ public struct EconomyKnobs: Codable, Sendable, Equatable {
     public var escalationBands: [EconomyConfig.HireConfig.EscalationBand]?
     public var costGrowthStepPerFloor: Double?
     public var costGrowthStepFromFloorId: String?
+    public var inheritsPassiveUnlocks: Bool?
 
     public init(
         defaultCostGrowth: Double? = nil,
@@ -21,7 +22,8 @@ public struct EconomyKnobs: Codable, Sendable, Equatable {
         requiresLastRunWall: Bool? = nil,
         escalationBands: [EconomyConfig.HireConfig.EscalationBand]? = nil,
         costGrowthStepPerFloor: Double? = nil,
-        costGrowthStepFromFloorId: String? = nil
+        costGrowthStepFromFloorId: String? = nil,
+        inheritsPassiveUnlocks: Bool? = nil
     ) {
         self.requiresLastRunWall = requiresLastRunWall
         self.staffedFloorBonus = staffedFloorBonus
@@ -31,6 +33,7 @@ public struct EconomyKnobs: Codable, Sendable, Equatable {
         self.escalationBands = escalationBands
         self.costGrowthStepPerFloor = costGrowthStepPerFloor
         self.costGrowthStepFromFloorId = costGrowthStepFromFloorId
+        self.inheritsPassiveUnlocks = inheritsPassiveUnlocks
     }
 }
 
@@ -58,6 +61,7 @@ extension EconomyConfig {
         if let value = knobs.costGrowthStepFromFloorId { hire["costGrowthStepFromFloorId"] = value }
         if let value = knobs.staffedFloorBonus { root["staffedFloorBonus"] = value }
         if let value = knobs.requiresLastRunWall { oro["requiresLastRunWall"] = value }
+        if let value = knobs.inheritsPassiveUnlocks { oro["inheritsPassiveUnlocks"] = value }
         root["hire"] = hire
         root["oro"] = oro
         return try JSONDecoder().decode(EconomyConfig.self, from: JSONSerialization.data(withJSONObject: root))

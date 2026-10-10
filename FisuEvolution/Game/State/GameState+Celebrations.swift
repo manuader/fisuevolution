@@ -73,7 +73,7 @@ extension GameState {
         if let event = activeEvent, event.id != announcedEventID {
             celebrations.enqueue(.eventBanner)
         }
-        if stageVisit?.phase == .entering { celebrations.enqueue(.visitorEncounter) }
+        if boardIsVisibleForChanges, stageVisit?.phase == .entering { celebrations.enqueue(.visitorEncounter) }
         if tutorialTip != nil { celebrations.enqueue(.tutorialTip) }
         if cinematic != nil { celebrations.enqueue(.cinematic) }
         if boardIsVisibleForChanges, !pendingBoardChanges.isEmpty || typePendingReveal != nil {

@@ -121,4 +121,26 @@ struct StageControllerTests {
         gameState.advanceStage(delta: 2)
         #expect(gameState.stageVisit?.phase == .leaving)
     }
+
+    @Test("cancelar la entrada mientras espera su turno no lo muestra: desaparece sin entrar")
+    func cancellingBeforeItsTurn() async throws {
+        let (gameState, controller) = await stage()
+        gameState.towerNotice = GameState.TowerNotice(kind: .floorFull)
+        gameState.syncCelebrations()
+        gameState.presentOnStage(actorId: "npc_vecina", role: .visitor(scriptId: "vecina_chisme"))
+        gameState.sendStageActorAway()
+        #expect(gameState.stageVisit == nil)
+        controller.update(delta: 1.0 / 60, reduceMotion: false)
+        #expect(controller.actor == nil)
+    }
+
+    @Test("el watchdog del turno deja la visita llegada")
+    func watchdogSettlesTheArrival() async throws {
+        let (gameState, _) = await stage()
+        gameState.presentOnStage(actorId: "npc_vecina", role: .visitor(scriptId: "vecina_chisme"))
+        #expect(gameState.showing == .visitorEncounter)
+        gameState.advanceCelebrations(delta: 11)
+        #expect(gameState.stageVisit?.phase == .waiting)
+        #expect(gameState.showing != .visitorEncounter)
+    }
 }

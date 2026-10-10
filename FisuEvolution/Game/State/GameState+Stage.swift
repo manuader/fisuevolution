@@ -47,6 +47,14 @@ extension GameState {
     func sendStageActorAway() {
         guard var visit = stageVisit, visit.phase != .leaving else { return }
         let wasEntering = visit.phase == .entering
+        // Si la entrada se cancela antes de que le toque el turno, nunca se vio:
+        // no hay nada que hacer salir.
+        if wasEntering, showing != .visitorEncounter {
+            stageVisit = nil
+            visitorPopup = nil
+            celebrationFinished(.visitorEncounter)
+            return
+        }
         visit.phase = .leaving
         visit.bubble = nil
         visit.offer = nil

@@ -202,17 +202,17 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.event.start")
                 }
-                Section("Peligro") {
-                    Button("Resetear partida", role: .destructive) {
-                        gameState.debugResetSave()
-                        dismiss()
-                    }
-                }
                 Section("Escenario") {
                     Button("Escenario: que entre alguien") {
                         gameState.debugPresentStageDemo()
                     }
                     .accessibilityIdentifier("debug.stage.demo")
+                }
+                Section("Peligro") {
+                    Button("Resetear partida", role: .destructive) {
+                        gameState.debugResetSave()
+                        dismiss()
+                    }
                 }
             }
             .navigationTitle("Debug")

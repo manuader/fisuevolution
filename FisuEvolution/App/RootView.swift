@@ -383,12 +383,13 @@ struct GameBoardView: View {
         .fisuSheet(item: specialDropBinding) { special in
             SpecialDropView(special: special)
         }
-        .fisuSheet(item: visitorPopupBinding) { _ in
+        .fisuSheet(item: visitorPopupBinding, onDismiss: { gameState.visitorPopupDismissed() }) { _ in
             VisitorPopupView()
         }
         .fisuSheet(item: eventPopupBinding) { popup in
             EventPopupView(eventId: popup.eventId)
         }
+        .modifier(PrizeSheets(syncCover: { gameState.uiCoversBoard = boardIsCovered }))
         .sheet(item: shareCardBinding) { moment in
             ShareCardSheet(moment: moment)
         }
@@ -448,7 +449,8 @@ struct GameBoardView: View {
     private var boardIsCovered: Bool {
         menuSession != nil || showPrestige || rankingCardUp
             || gameState.shareCardMoment != nil || gameState.visitorPopup != nil
-            || gameState.eventPopup != nil || gameState.adBreakOffer != nil
+            || gameState.eventPopup != nil || gameState.mattressPopup != nil || gameState.wheelSheet != nil
+            || gameState.adBreakOffer != nil
     }
 
     private var boardLayoutMarker: some View {

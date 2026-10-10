@@ -49,7 +49,8 @@ extension GameState {
     /// única definición: `isCalmMoment` y los cortes naturales la comparten.
     var isBoardBusy: Bool {
         uiCoversBoard || characterSheet != nil || careerPrompt != nil || stageChallenge != nil
-            || visitorPopup != nil || eventPopup != nil || adBreakOffer != nil || adBreakInFlight
+            || visitorPopup != nil || eventPopup != nil || mattressPopup != nil || wheelSheet != nil
+            || adBreakOffer != nil || adBreakInFlight
             || !isSceneActive || fullScreenUIActive()
     }
 

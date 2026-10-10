@@ -91,6 +91,24 @@ extension GameState {
         return WheelSpinOutcome(segments: segments, index: index, coins: coins)
     }
 
+    /// Lo que llama la vista: el cerrojo corta el segundo toque ANTES de cobrar
+    /// (el giro por ORO descuenta al instante) y se suelta si el giro no sale.
+    /// Quien lo tomó lo suelta al terminar la animación.
+    @discardableResult
+    func beginWheelSpin(
+        _ source: WheelSpinSource,
+        latch: inout PurchaseLatch,
+        storefrontAllows: Bool = false,
+        now: TimeInterval = Date().timeIntervalSince1970
+    ) -> WheelSpinOutcome? {
+        guard latch.claim() else { return nil }
+        guard let outcome = spinWheel(source, storefrontAllows: storefrontAllows, now: now) else {
+            latch.release()
+            return nil
+        }
+        return outcome
+    }
+
     /// "Repetir premio": otro video que vuelve a dar lo mismo (no es otro
     /// giro). Una vez por giro.
     @discardableResult

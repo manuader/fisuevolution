@@ -19,9 +19,19 @@ extension GameState {
     var packageCandidates: [CharacterType] {
         guard let content, let player, let tower else { return [] }
         return PackageRoller.eligibleTypes(
-            state: player, tower: tower, tiers: content.tiers,
-            floorTable: content.floorTable, config: content.economy
+            state: player, tiers: content.tiers, floorTable: content.floorTable, config: content.economy,
+            occupancy: tower.floors.map(\.occupiedCount).enumerated().map { $0.element + queuedArrivals(onFloor: $0.offset) }
         )
+    }
+
+    /// Las llegadas ya encoladas o en vuelo que van a ocupar un lugar del piso:
+    /// sin contarlas, dos toques rápidos con un solo lugar libre traerían a dos
+    /// al mismo lugar.
+    private func queuedArrivals(onFloor ordinal: Int) -> Int {
+        (pendingBoardChanges + [inFlightBoardChange].compactMap { $0 }).filter {
+            if case .arrival = $0.kind { return floorOrdinal(of: $0) == ordinal }
+            return false
+        }.count
     }
 
     /// Hay paquetes esperando y ninguno entra: el cartel "LLENO".

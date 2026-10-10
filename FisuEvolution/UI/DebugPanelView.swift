@@ -217,6 +217,30 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.ads.adbreak")
                 }
+                // Los premios de E5 salen cada 2 y 8 minutos de juego: sin esta
+                // puerta no se pueden ni fotografiar ni probar dos veces seguidas.
+                Section("Paquete, colchón y ruleta") {
+                    Button("+1 Paquete de la Aduana") {
+                        gameState.debugAddPackages(1)
+                        gameState.refreshPrizeAccess()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.prizes.package")
+                    Button("Que aparezca el colchón") {
+                        gameState.debugSpawnMattress()
+                        gameState.refreshPrizeAccess()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.prizes.mattress")
+                    Button("+3 giros de la ruleta") {
+                        gameState.debugAddWheelSpins(3)
+                    }
+                    .accessibilityIdentifier("debug.prizes.spins")
+                    Button("La ruleta: un día nuevo") {
+                        gameState.debugWheelNewDay()
+                    }
+                    .accessibilityIdentifier("debug.prizes.newday")
+                }
             }
             .navigationTitle("Debug")
             .navigationBarTitleDisplayMode(.inline)

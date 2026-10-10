@@ -1,0 +1,14 @@
+{
+  "store.segment.buy": {"es": "Comprar ORO", "en": "Buy ORO"},
+  "store.segment.spend": {"es": "Gastar ORO", "en": "Spend ORO"},
+  "oroShop.today %@ %@": {"es": "Hoy: %1$@ de %2$@", "en": "Today: %1$@ of %2$@"},
+  "oroShop.blocked.daily": {"es": "Mañana hay más", "en": "More tomorrow"},
+  "oroShop.blocked.pending": {"es": "Ya tenés uno esperando", "en": "One is already waiting"},
+  "oroShop.blocked.nothing": {"es": "Ahora no hace nada", "en": "Nothing to do now"},
+  "oroShop.buy.ax %@": {"es": "Comprar %@", "en": "Buy %@"},
+  "oroShop.chest.odds": {"es": "Qué puede salir", "en": "What you can get"},
+  "oroShop.chest.coins": {"es": "Ya tenés todas las pintas: este cofre paga monedas.", "en": "You own every skin: this chest pays coins."},
+  "oroShop.pending.offline %@": {"es": "El popup de tu próxima ausencia viene ×%@", "en": "Your next away popup comes ×%@"},
+  "oroShop.pending.daily %@": {"es": "El próximo diario viene ×%@", "en": "Your next daily reward comes ×%@"},
+  "oroShop.footer.reincarnate": {"es": "Los boosts por tiempo se pierden al reencarnar.", "en": "Timed boosts are lost when you reincarnate."}
+}

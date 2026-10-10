@@ -464,7 +464,7 @@ que toma · commit o rama · nota.
 | E4a-T6 | `VisitPlanner` | ✅ | T5; E1-T7, E1-T14 | BoardChange.swift, +BoardChanges | `d37ab28` (en `v2i/integ-r22`) |  carry a E4b T2/E4a T9: `.visitor` no es prepago, una visita pagada con video que se descarte no se compensa |
 | E4a-T7 | El contenido de los visitantes | ✅ | T5, T6; E11-T2, E3a-T1 | catálogo (snapshot); GameContentLoader, LocalizationCompletenessTests | `9eb8efd` (en `v2i/integ-r22`, 81 claves) | carga el Anexo A (con los guiños: Coach 67 toques, Crypto Bro "six seven", Vecina "andá pa' allá, bobo"; PLAN-v2 §2) |
 | E4a-T8 | `grant` y el momento calmo | ✅ | T1, T2; E1-T8, E1-T14 | — | `8376c23` (merge `e378307`) | sin llamadores todavía; carries a T9: `isCalmMoment` duplica `isSafeMomentForInterstitial` (E7b lo unifica); los kinds fuera de `grantableRewardKinds` no se ofrecen (VisitorScheduler/`eventIsApplicable`) |
-| E4a-T9 | La mudanza a eventos v2 | ⏳ | T2, T4, T7, T8; E1-T16 | 🔥 GameState, +Bonus, ContentSystems, catálogo | | |
+| E4a-T9 | La mudanza a eventos v2 | 🔄 | T2, T4, T7, T8; E1-T16 | 🔥 GameState, +Bonus, ContentSystems, catálogo | | |
 | E4a-T10 | Cierre de E4a | ⛔ | T1–T9 | `Docs/` | | |
 
 ### E4b — Visitantes y eventos v2, lo que se ve (`2026-10-07-v2-e4b-visitantes-eventos.md`)
@@ -513,7 +513,7 @@ que toma · commit o rama · nota.
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
 | E6a-T1 | Tienda y ofertas en `meta.engagement` | ✅ | E1-T4; E3b-T9, E4a-T3, E5a-T4 | EngagementState | `229579f`+`f52c803` (en `v2i/integ-r22`) |  rev. opus Approved; carries: T2/T10 marcan `lastClosedAt` en toda compra y vencimiento; T11 acredita aunque la oferta ya no figure abierta; E9b T7: `resolveAcrossReset` no cruza `engagement.offers`; al dueño: oferta abierta sólo en el save perdedor (Bienvenida) se pierde, ×3 regalado en el caso raro |
-| E6a-T2 | Catálogo y cuentas de la tienda (EK) | ⏳ | T1; E4a-T1 | — | | |
+| E6a-T2 | Catálogo y cuentas de la tienda (EK) | 🟢 | T1; E4a-T1 | — | | |
 | E6a-T3 | El auto-tap | ✅ | E1-T15; E4a-T2; E2a-T4 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | `720f3fe` (merge `e378307`, claves aplicadas) | revisión opus: Approved. Carries a T5: el "mejor" se elige por tier y no por pago (fiel al plan; anotar la decisión); un `now` para todo el delta (despreciable con tope 2 s); `RewardSpec` admite `.modifier(autoTapPerSecond)` y saltea `.autoTap` (rechazarlo en `validate` o declararlo válido) |
 | E6a-T4 | `oro_shop.json` | ⛔ | T2; E5b-T1; E5a-T5 | catálogo (dueña); GameContentLoader | | |
 | E6a-T5 | Se entregan auto-tap, Offline ×3 y Diario ×3 | ⛔ | T3; E4a-T8, E4a-T9; E5a-T6, E5a-T8; E2a-T11 | 🔥 +Bonus; +Lifecycle (T8 mudó ahí el offline), +Rewards, +Engagement | | |
@@ -521,7 +521,7 @@ que toma · commit o rama · nota.
 | E6a-T7 | La suerte: probabilidades | ⛔ | T6; E5a-T1, E5a-T8; E1-T6 | StoreManager | | sale con E1 T6c adentro |
 | E6a-T8 | La pantalla "Comprar ORO / Gastar ORO" | ⛔ | T6, T7; E3b-T4; E5b-T1; E5a-T8 | catálogo (dueña); StoreView | | |
 | E6a-T9 | Los packs 160 / 550 / 1.400 | ✅ | E1-T6; E2a-T7 | products.json, StoreManagerTests | `7cc20d9` (merge `2446069`) | StoreManagerTests 13/14 a mano (timeout de carga, solo pasa) |
-| E6a-T10 | Las ofertas de 24 h, puras | ⏳ | T1; E4a-T1 | — | | |
+| E6a-T10 | Las ofertas de 24 h, puras | 🟢 | T1; E4a-T1 | — | | |
 | E6a-T11 | Las ofertas se cobran | ⛔ | T9, T10; E4a-T8; E2a-T7; E5a-T6 | catálogo (snapshot); products.json, +Store | | con T6c: por `recordOroPurchase`, no `+=` |
 | E6a-T12 | Las ofertas se ven | ⛔ | T7, T8, T11; E5a-T8; E4b-T3; E3a-T6; E5b-T1, E5b-T2 | 🔥 RootView, catálogo; CelebrationQueue, +Celebrations | | |
 | E6a-T13 | Cierre de E6a | ⛔ | T1–T12 | `Docs/` | | |
@@ -665,7 +665,7 @@ Encargos a E4b T3/T4/T8, E5b T2/T3, E6a T8, E9a/E9b, E7b-a T2: plan, "Lo que E8d
 | E9b-T4 | El Tour de novedades (veteranos) | ⛔ | E9a-T6; T3 | +Tutorial, +Debug, catálogo | | sonnet |
 | E9b-T5 | "Ver tutorial de nuevo" / "Ver novedades" en Ajustes | ⛔ | T4; E11-T4, E7b-a-T5 | 🔥 SettingsView, catálogo | | sonnet |
 | E9b-T6 | `resetEpoch` en `MetaState` + regla en el resolver | ✅ | E1-T6c | 🔥 PlayerState (MetaState); SaveConflictResolver | `8e50efa`+`cccde55` (merge `8d1eeeb`) | revisión opus: Approved con arreglos (el ORO no visto se acredita en las dos ramas del resolver). Carries a T7/T8: el reset sube la época y lleva oroPurchases/revoked/credited/removedAds/ownedSkins con `oro = min(saldo, comprado)`; `OffersState.purchases` (E6a T1) debe cruzar en `resolveAcrossReset`; un build viejo que reescribe el save pierde la época |
-| E9b-T7 | `ResetPlan` puro (matriz del ORO) | ⏳ | T6; E1-T6c, E6a-T1 | — | | sonnet |
+| E9b-T7 | `ResetPlan` puro (matriz del ORO) | 🟢 | T6; E1-T6c, E6a-T1 | — | | sonnet |
 | E9b-T8 | El reset en la app (backup, entitlements re-empujados, `clearSessionRuntime`) | ⛔ | T7; E9a-T3; E6a-T11 | +Reset (nuevo), +Debug, +Store, StoreManager, SaveBackupStore, PlayerStateRepository (GameState.swift sólo si `newGame` sigue private) | | sonnet (rev. opus) |
 | E9b-T9 | Zona de peligro + `ResetGameFlowView` (3 pasos, nada deshabilitado) | ⛔ | T8, T5; E3b-T2 | 🔥 SettingsView, catálogo | | sonnet |
 | E9b-T10 | Cierre de E9 (controlador) | ⛔ | E9a, T1–T9 | `Docs/` | | controlador |
@@ -681,7 +681,7 @@ E9b T6–T8 (el reset) pueden ir al lado de E9a T4–T9. Dudas top: una lección
 | P-E2b | Plan de E2b | ✅ | — | — | `5b15b82` | 15 tareas; reporte `.superpowers/sdd/2026-10-07-v2-e2b/plan-report.md` |
 | E2b-T1 | Bandas de escalada y curva por piso (EK) | ✅ | E2a-T3, E2a-T5 | — | `42b2e8c` (integ-r20) | **hecha (r20):** `EscalationBand` + `escalation(atFrontier:)` única fórmula (`hireCost`, `PriceCushion.jump`), `costGrowthStepPerFloor`; apagadas (umbral 7 = v1) |
 | E2b-T2 | Herencia de pasivos al reencarnar (EK) | ✅ | T1 | — | | |
-| E2b-T3 | El simulador cobra como el juego (EK) | ⏳ | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
+| E2b-T3 | El simulador cobra como el juego (EK) | 🔄 | T2; E2a-T3, E2a-T4, E2a-T5 | — | | |
 | E2b-T4 | Política de pisos en marcha del bot (EK, opus) | ⛔ | T3; E2a-T4 | — | | |
 | E2b-T5 | Perfiles y fuentes gratis (EK) | ⛔ | T4; E5a-T1 | archivo de `PackageRoller` | | |
 | E2b-T6 | El perfil `.ads` (EK) | ⛔ | T5; E4a-T1, E4a-T8, E5a-T2, E5a-T3 | — | | |

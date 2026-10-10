@@ -6,11 +6,11 @@
 > `Docs/superpowers/plans/2026-10-0*-v2-*.md`, los ledgers
 > `.superpowers/sdd/<plan>/progress.md` y el journal AVO del run.
 >
-> **Foto:** 2026-10-09, cierre del relevo 21b (la continuación del 21 en la misma sesión, tras «aproba todo y continua con el desarrollo» del dueño).
-> `version-2` = `9972f95` (`rapido` VERDE sobre `3424ae5`: EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0; suma E8d T10, E12 T13,
-> E13 T2 y E13 T9, todas ✅). `v2i/integ-r21b` = `34f2266` + los docs del cierre (suma la lista de palabras de E12, **ACTIVA**, E3b T8 y E13 T7, 🟢 las dos;
-> `rapido` sobre `34f2266`: VERDE sobre `34f2266` (EK 642 · unit 1070 · 0 rojos · Release 0)). **E13 T7 (opción a): Dios en 31,34 h y `PacingTests` re-pineado, decisión del dueño.**
-> El último `completo` de referencia es el `--limpio` de `c94f75f` (E1 T16). Detalle en `Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md` (§ «Relevo 21b»).
+> **Foto:** 2026-10-09, cierre del relevo 21c (la tercera tanda de la misma sesión, tras el «continua» del dueño).
+> `version-2` = la punta de `c7f0330` (`rapido` VERDE: EK 651 · unit 1117 · 0 rojos · Release 0; suma E8b T8/T9/T10, E7b-a T2/T4, E8d T11, E2b T2 y los cierres
+> E11 T7, E2a T15, E8c T10 y E3a T12, todas ✅). `v2i/integ-r21c` = `f830217` + los docs del cierre (suma E13 T13 y E12 T14, 🟢 las dos; `rapido` sobre `f830217`:
+> RAPIDO_PENDIENTE). **Progreso: 150 de 254 en `version-2`; 152 con las dos 🟢.** **No publicar E7b-a T2 sin E7b-a T3.**
+> El último `completo` de referencia es el de los cierres, sobre `0383a1d`. Detalle en `Docs/SESION-2026-10-09-v2-relevo-21c-ola-s.md`.
 > **Ojo:** los videos ya se reconciliaron con la rama del dueño (manda su versión de cada pieza); el lado Swift es E8d (§5).
 > Si un ledger dice otra cosa que este archivo, manda el ledger y este archivo se corrige.
 
@@ -83,35 +83,35 @@
 
 ## 2. Progreso
 
-**Hoy: 139 de 254 tareas activas integradas en `version-2` (54,7 %): E3b T8 y E13 T7 pasaron a ✅ con el `rapido` VERDE sobre `34f2266` (EK 642 · unit 1070 · 0 rojos · Release 0). Antes: 137 (53,9 %); 139 de 254 (54,7 %) con las dos 🟢 de `integ-r21b` (E3b T8 y E13 T7), si el `rapido` sobre `34f2266` da VERDE (VERDE sobre `34f2266` (EK 642 · unit 1070 · 0 rojos · Release 0)).** La lista de palabras de E12 se activó en el relevo 21b pero no es una tarea (gate de §6 cerrado). El relevo 21 sumó E8d T10, E12 T13, E13 T2 y E13 T9 a `version-2` (`rapido` VERDE sobre `3424ae5`: EK 637 · unit 1066 + 1 declarado `theOwnersTargetsAreMet` · Release 0). 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
-seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 7 (E8c T10, E3a T12, E11 T7 y E2a T15, cierres del controlador; E8b T8 y T9, E7b-a T2). E12 T12 está ⛔ y E12 T16 🔒.
+**Hoy: 150 de 254 tareas activas integradas en `version-2` (59,1 %), con el `rapido` VERDE sobre `c7f0330` (EK 651 · unit 1117 · 0 rojos · Release 0); 152 de 254 (59,8 %) con las dos 🟢 de `integ-r21c` (E13 T13 y E12 T14), si el `rapido` sobre `f830217` da VERDE (RAPIDO_PENDIENTE).** El relevo 21c sumó E8b T8, T9 y T10, E7b-a T2 y T4, E8d T11, E2b T2 y los cuatro cierres (E11 T7, E2a T15, E8c T10, E3a T12) a ✅. La lista de palabras de E12 se activó en el relevo 21b pero no es una tarea (gate de §6 cerrado). 259 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los
+seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 5 (E3b T9, E12 T15, E6b T9, E8 T10 y E13b T11, destrabadas por el script de dependencias en el 21c). E12 T12 está ⛔, E12 T16 🔒 y E7b-a T3 ⛔ (bloqueo de publicación, §4.2).
 
 | Épica | Activas | ✅ | 🟢 | 🔧 🔄 | ⏳ | ⛔ | 🔒 | ⏭️ |
 |---|---|---|---|---|---|---|---|---|
 | E1 | 16 | 16 |  |  |  |  |  |  |
-| E11 | 7 | 6 |  |  | 1 |  |  |  |
-| E3a | 12 | 11 |  |  | 1 |  |  |  |
-| E3b | 9 | 7 | 1 |  |  | 1 |  |  |
-| E2a | 15 | 14 |  |  | 1 |  |  |  |
+| E11 | 7 | 7 |  |  |  |  |  |  |
+| E3a | 12 | 12 |  |  |  |  |  |  |
+| E3b | 9 | 8 |  |  | 1 |  |  |  |
+| E2a | 15 | 15 |  |  |  |  |  |  |
 | E4a | 10 | 3 |  |  |  | 7 |  |  |
 | E4b | 10 |  |  |  |  | 10 |  |  |
 | E5a | 9 | 3 |  |  |  | 6 |  |  |
 | E5b | 7 |  |  |  |  | 7 |  |  |
 | E6a | 13 | 2 |  |  |  | 11 |  |  |
-| E6b | 10 | 3 |  |  |  | 7 |  |  |
-| E7b-a | 7 | 2 |  |  | 1 | 4 |  |  |
+| E6b | 10 | 3 |  |  | 1 | 6 |  |  |
+| E7b-a | 7 | 4 |  |  |  | 3 |  |  |
 | E7b-b | 7 |  |  |  |  | 7 |  | 1 |
 | E9a | 10 |  |  |  |  | 10 |  |  |
 | E9b | 10 | 1 |  |  |  | 9 |  |  |
-| E2b | 15 | 1 |  |  |  | 14 |  |  |
-| E8 (arte) | 10 | 8 |  |  |  | 2 |  |  |
-| E8b | 8 | 4 |  |  | 2 | 2 |  | 4 |
-| E8c | 10 | 9 |  |  | 1 |  |  |  |
-| E8d | 15 | 13 |  |  |  | 2 |  |  |
-| E12 | 19 | 13 |  |  |  | 5 | 1 |  |
-| E13 | 14 | 11 | 1 |  |  | 2 |  |  |
-| E13b | 11 | 10 |  |  |  | 1 |  |  |
-| **Total** | **254** | **137** | **2** | | **7** | **107** | **1** | **5** |
+| E2b | 15 | 2 |  |  |  | 13 |  |  |
+| E8 | 10 | 8 |  |  | 1 | 1 |  |  |
+| E8b | 8 | 7 |  |  |  | 1 |  | 4 |
+| E8c | 10 | 10 |  |  |  |  |  |  |
+| E8d | 15 | 14 |  |  |  | 1 |  |  |
+| E12 | 19 | 13 | 1 |  | 1 | 3 | 1 |  |
+| E13 | 14 | 12 | 1 |  |  | 1 |  |  |
+| E13b | 11 | 10 |  |  | 1 |  |  |  |
+| **Total** | **254** | **150** | **2** | | **5** | **96** | **1** | **5** |
 
 Fuera del conteo:
 
@@ -130,9 +130,9 @@ grep -E '^\| E[0-9a-z-]+-T[0-9]+[ab]? \|[^|]*\| ⏭' tasks.md | grep -vc seguimi
 grep -E '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md | grep -vc seguimiento                   # una épica: cambiar el prefijo
 ```
 
-Progreso = integradas / (filas de tarea − salteadas). Hoy: 137 / (259 − 5); con las 🟢 (mismo grep cambiando ✅ por 🟢: 2), 139 / 254. Con el sufijo `[ab]?` el grep levanta
+Progreso = integradas / (filas de tarea − salteadas). Hoy: 150 / (259 − 5); con las 🟢 (mismo grep cambiando ✅ por 🟢: 2), 152 / 254. Con el sufijo `[ab]?` el grep levanta
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
-La tabla por épica se recalculó en el relevo 21b (con un `awk` sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
+La tabla por épica se recalculó en el relevo 21c (con un `awk` sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
 
 ## 3. Reglas de concurrencia (PLAN-v2 §0.1, operativas)
 
@@ -209,28 +209,35 @@ partirlo.
 
 | # | Qué | Nota |
 |---|---|---|
-| 1 | **`rapido` sobre `v2i/integ-r21b` (`34f2266`) con los docs del cierre**, si no quedó hecho. Resultado del relevo 21b: VERDE sobre `34f2266` (EK 642 · unit 1070 · 0 rojos · Release 0) | Con VERDE: fast-forward de `version-2` (hoy `9972f95`) a la punta con los docs, y push (E3b T8 y E13 T7 pasan a ✅: 139 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. Mirá `rojos-declarados.txt`: `BonusHUDUITests.testElCofreSeGanaSeVeYSeAbreDesdeRegalos` está rojo también en la base. **Lanzarlo con `bash <ruta absoluta>/Tools/v2/oraculo.sh rapido`**, con la carga baja (**con carga > 200 y dos agentes compilando excede el tope**) y esperarlo por PID (`$!`) o por la última línea del log, **no con `pgrep -f`** (se encuentra a sí mismo; ver §7 del general) |
-| 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 21 vio 1,35 → 173 → 448 → 706 → 653 → 536 → 135 (y 1,8 al arrancar el 21b). Con carga > 200: **no más de 2 compilando** (el `rapido` cuenta); con carga ~100, 3. Con carga > 400 un `tarea` tarda ~11 min. `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y esperas por PID (**`timeout` no existe en esta máquina**). **El latido es un script con `sleep 30` y escritura por reloj** (un `sleep 600` se colgó 65 min con carga ~500). **Nunca `pkill -f`**: sólo `kill <PID>` propio, y los simuladores `oraculo-*` se borran por UDID propio, no «por tiempo». Un agente sin red a GitHub copia `SourcePackages` de `version-2/build/DD-oraculo.noindex`. Verificar por el título del `@Test` en `unit.log` que los tests nuevos corrieron |
-| 3 | Leer `DUENO.md` entero por pendientes nuevos (hay una sección "Del relevo 21") | **El clasificador del modo auto no deja escribir en `DUENO.md`** (ni siquiera las aprobaciones del chat): las decisiones del relevo 21b (E13 T7 opción a, barra de seis con platos de 44 pt, E13 T2 tal cual, lista de palabras, cable del ascensor) están en el journal, en el SESION y acá; **no las re-preguntes**. La mediación por SPM espera al dueño. Los worktrees `v2-e12-plan`, `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
-| 4 | Barrer los worktrees `v2i-*` que queden con `limpiar-worktrees.sh` | sólo `v2i-*`, nunca `v2-*`; todo en GitHub antes; nunca `--force`; **con el shell fuera del worktree** (si tu `cwd` está adentro, el script lo conserva); mirar el comando de cada bucle antes de cortarlo. Quedan `v2i-integ-r21b` y `v2i-docs-r21b` (y los de r20/r21 si no se barrieron) |
+| 1 | **`rapido` sobre `v2i/integ-r21c` (`f830217`) con los docs del cierre**, si no quedó hecho. Resultado del relevo 21c: RAPIDO_PENDIENTE | Con VERDE: fast-forward de `version-2` (hoy la punta de `c7f0330`) a la punta con los docs, y push (E13 T13 y E12 T14 pasan a ✅: 152 de 254). No mergear a `version-2` mientras corra otro oráculo ahí. **Lanzarlo con `bash <ruta absoluta del worktree que querés verificar>/Tools/v2/oraculo.sh rapido`** (el oráculo usa el repo de su propia ruta, no el `cwd`), con la carga baja (**con carga > 200 y dos agentes compilando excede el tope**) y esperarlo por PID (`$!`) o por la última línea del log, no con `pgrep -f` |
+| 2 | **Mirar la carga de la máquina** (`uptime`) antes de despachar | el relevo 21c vio 1,8 → 4 → 52 → 392 → 337 → 61. Con carga > 200: **no más de 2 compilando** (el `rapido` cuenta); con carga ~100, 3. Con carga > 400 un `tarea` tarda ~11 min. `xcodebuild` con `-disableAutomaticPackageResolution -skipPackageUpdates`, simulador booteado y esperas por PID (**`timeout` no existe en esta máquina**). **El latido es un script con `sleep 30` y escritura por reloj.** **Nunca `pkill -f`**: sólo `kill <PID>` propio; los simuladores `oraculo-*` se borran por UDID propio. Un agente con una espera de fondo puede re-entregar el mismo reporte: no hace falta `TaskStop` si `ps` no muestra procesos suyos |
+| 3 | Leer `DUENO.md` entero por pendientes nuevos | **El clasificador del modo auto no deja escribir en `DUENO.md`** (ni las aprobaciones del chat): las decisiones del dueño del 21b (E13 T7 opción a, barra de seis con platos de 44 pt, E13 T2 tal cual, lista de palabras, cable del ascensor) están en el journal, en los SESION y acá; **no las re-preguntes**. La mediación por SPM espera al dueño. Los worktrees `v2-e12-plan`, `v2-release-ops` y las ramas `v2/e8-*` son de la sesión del dueño; no tocar |
+| 4 | Barrer los worktrees `v2i-*` que queden con `limpiar-worktrees.sh` | sólo `v2i-*`, nunca `v2-*`; todo en GitHub antes; nunca `--force`; **con el shell fuera del worktree**. Quedan `v2i-integ-r21c` y `v2i-docs-r21c` (y los anteriores si no se barrieron) |
 
-### 4.2 La ola siguiente, por prioridad del dueño (≤ 3 compilando con carga ~100, ≤ 2 con la máquina cargada; un dueño por archivo)
+### 4.2 La ola siguiente (≤ 3 compilando con carga ~100, ≤ 2 con la máquina cargada; un dueño por archivo)
 
-BASE de todas: `version-2` tras el paso 1 (o `v2i/integ-r21b` si el `rapido` no se corrió). Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
-**Un solo dueño de `RootView` por ola** (E7b-a T2 y E8b T9 lo piden; en serie) y de `GameState` (E7b-a T2, E8b T8).
+BASE de todas: `version-2` tras el paso 1 (o `v2i/integ-r21c` si el `rapido` no se corrió). Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
+**Un solo dueño de `RootView` por ola** y de `GameState`. Las cinco ⏳ las destrabó el script de dependencias en el 21c.
 
 | # | Tarea | Modelo | Dueña de / nota |
 |---|---|---|---|
-| 1 | **E7b-a T2** (los cortes naturales) → **E8b T9** (overlay, sonido, Saltar) | sonnet | ⏳ las dos, **en serie por `RootView`** (E3b T8 y E12 T13 ya están integradas). E7b-a T2 además `GameState`: saca `cadence:` de `configure` y el reloj `armIfDue` de la 1.x. E8b T9 importa `CinematicID`/`LoopsManifest` de E8d T1 (E8d T2 y T8 ✅) |
-| 2 | **E8b T8** (el turno de la cinemática) → T10 | sonnet, **rev. opus** | T8 ⏳ (E8d T1 y T7 ✅): `GameState` (dos propiedades), CelebrationQueue, +Celebrations, +Bootstrap. No ∥ E7b-a T2 (`GameState`). T10 viene después, también rev. opus |
-| 3 | **E3b T9** (compartir recableado, cierre de E3) | sonnet | se destraba con E3b T8 ✅ (y E1 T16, ya está): 🔥 `GameState`, +Bonus, `RootView`, catálogo; no ∥ E7b-a T2 / E8b T8 (`GameState`) ni E8b T9 (`RootView`). Su `sharedMoments` lo esperan E4a T3 y E5a T4. Revisar sus otras dependencias antes de despachar |
-| 4 | **Cierres del controlador:** E8c T10, E3a T12, E11 T7, E2a T15 | controlador | ⏳; van cuando se pueda correr el `completo` (el de E3a T12 tiene que correr `BottomMenuUITests`, `BonusHUDUITests` y `HUDRedesignUITests` en iPhone). E8d T15 sigue ⛔ (espera a T11 y E8b T8–T11) |
-| 5 | **E12 T12** | sonnet, rev. opus | sigue **⛔** (E9b T7/T8) |
-| 6 | **E12 T16** (despliegue del ranking y de la lista de palabras) | — | **🔒** credenciales de Supabase y `ANTHROPIC_API_KEY`; la migración `20261009000001_blocklist.sql` se despliega acá |
-| 7 | **Mediación por SPM** (Unity + Meta) | — | **pendiente del dueño** (`DUENO.md`); no se despacha |
+| 1 | **E3b T9** (compartir recableado, cierre de E3) | sonnet | ⏳ **la llave de E4a** (su `sharedMoments` lo esperan E4a T3 y E5a T4 y, con ellos, E4b, E5a T4–T8, E5b, E6a y E7b-b). 🔥 `GameState`, +Bonus, `RootView`, catálogo; +BoardChanges, +Debug, ContentConfigs, EngagementState. Va primero y sola en `RootView`/`GameState` |
+| 2 | **E12 T15** (Privacidad, Términos y notas a App Review) | sonnet | ⏳ `PrivacyInfo.xcprivacy`, Legal; insumo de E10. Cierre **con `completo`** |
+| 3 | **E6b T9** (las tres familias entran) | sonnet | ⏳ catálogo; 🔒 si el bundle crece > 60 MB (E8 T10 lo mide). Cierre **con `completo`** |
+| 4 | **E8 T10** (peso, memoria y cierre) | controlador | ⏳ `completo --limpio`; 🔒 sólo si el bundle crece > 60 MB (estimado ≈ +29 MB) |
+| 5 | **E13b T11** (cierre de E13b) | controlador | ⏳ `completo`; grabaciones para el dueño |
+| 6 | **E7b-a T3** (la pausa publicitaria) | sonnet | ⛔ hasta que se destrabe (T2 ✅; faltan E4a T8, E5a T6, E5b T1, E4b T3, E1 T14 en su fila). **BLOQUEO DE PUBLICACIÓN:** sin T3 sale un intersticial en cada corte. Despacharla en cuanto se destrabe, con los carries de T2 y T4 de su fila (`canRequestAds` en intersticial y rewarded, un solo observador de AdMob, `recordShown`, `Set<CelebrationKind>??` → enum) |
+| 7 | **E12 T12** | sonnet, rev. opus | sigue **⛔** (E9b T7/T8) |
+| 8 | **🔒 del dueño** | — | **E12 T16** (credenciales de Supabase y `ANTHROPIC_API_KEY`; ahí se despliega `20261009000001_blocklist.sql`); **mediación por SPM** (E7b-a T6: Unity + Meta); **capturas de iPad a ASC** (E10); **escenarios de E11 en device** (diálogo del sistema de notificaciones) y de E2a/E8c (Reduce Motion, hoja, fondo, ORO/video) |
 
 Lo que **no** se despacha todavía: E4a T3–T7 y T9 (esperan a E3b T9 y a E4a T5–T7); E6a T1–T2 y T4–T13; E5a T4–T9, E4b y E5b
-(cadena de E4a); E8d T11 (espera a E8b T10); E8d T15 y E13 T14 (los cierres); E2b T2–T15 (cadena de la EK).
+(cadena de E4a); E8d T15 y E13 T14 (los cierres); E2b T3–T15 (cadena de la EK; E2b T2 ya está).
+
+Carries del relevo 21c (detalle en `Docs/SESION-2026-10-09-v2-relevo-21c-ola-s.md`): **E7b-a T2/T4 → T3 y al dueño:** no publicar sin T3; falta `canRequestAds` en
+intersticial y rewarded; un solo observador de AdMob para todos los formatos; verificar el *fill* del app open en device. **E8b T10 → al dueño:** el corte
+`.reincarnation` casi siempre se saltea por la cinemática y el intersticial sale por `.celebrationsDrained` antes del cofre; un veterano v1 en Dios ve la de Dios en
+el primer arranque. **E8d T11 → T15:** la intro sale en partida nueva; clave de accesibilidad redactada sin ver el video. **E13 T13:** verificar 2 renglones en el SE;
+borrar `ui_up_crit`. **E12 T14 → T16:** con el ranking apagado la tarjeta no sale. **E2a T15 → E2b:** tabla de perillas (base Dios 31,34 h) en el SESION de los cierres.
 
 Carries vigentes (detalle en `Docs/SESION-2026-10-09-v2-relevo-21-ola-r.md` (relevos 21 y 21b), `…relevo-20-ola-q.md` y `…relevo-19-ola-p.md`):
 **De E8d T10 a T15 y al dueño:** el sonido del cable (1,2 s) se superpone con el ding en los tramos de un piso y sigue sonando si se saltea

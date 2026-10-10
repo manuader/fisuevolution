@@ -39,6 +39,7 @@ extension GameState {
         if maxUnlocked > player.meta.stats.maxFloorOrdinalEver {
             player.meta.stats.maxFloorOrdinalEver = maxUnlocked
             self.player = player
+            queueShareMoment(.newFloor(floorID: content.floorTable[maxUnlocked].id))
         }
         awardEligibleMilestoneSkins()
         // El cofre de la torre se cuelga del mismo embudo por el mismo motivo, y

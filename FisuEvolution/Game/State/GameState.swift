@@ -151,8 +151,14 @@ final class GameState {
     var specialDrop: SpecialsConfig.Special?
     /// Lo escribe `+Bonus`: el daily que se reclama y su descarte.
     var dailyClaim: DailyRewardManager.Claim?
-    /// Lo escribe `+Bonus`: la oferta de share card y su descarte.
-    var shareCardSubject: CharacterType?
+    /// La tarjeta de compartir abierta. Lo escribe `+Share`.
+    var shareCardMoment: ShareMoment?
+    /// El momento viral ofrecido como botón. Lo escribe `+Share`.
+    var shareOffer: ShareMoment?
+    /// El momento que espera una pausa para ofrecerse. Lo escribe `+Share`.
+    @ObservationIgnored var pendingShareMoment: ShareMoment?
+    /// Con `false` no se ofrece nada (corridas de UI sin `--uitest-share`).
+    @ObservationIgnored var shareOffersEnabled = true
     /// Los bonus temporales corriendo, para los contadores del HUD.
     ///
     /// No llevan el tiempo restante adentro (ver `ActiveBonus`), así que este

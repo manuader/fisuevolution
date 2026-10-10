@@ -4,15 +4,15 @@ import UIKit
 
 /// Share card vertical (bible §8): "la sátira ES el marketing". Se renderiza con
 /// ImageRenderer y se comparte con UIActivityViewController — su completion
-/// dispara el bonus viral (`registerShareCompleted`), cosa que ShareLink no permite.
+/// dispara el bonus viral (`registerShareCompleted(_:)`), cosa que ShareLink no permite.
 struct ShareCardSheet: View {
     @Environment(GameState.self) private var gameState
-    let subject: CharacterType
+    let moment: ShareMoment
     @State private var showActivity = false
 
     var body: some View {
         VStack(spacing: Tokens.s16) {
-            ShareCardContent(subject: subject)
+            ShareCardContent(moment: moment)
                 .frame(width: 270, height: 480)
                 .clipShape(RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous))
                 // El contorno de tarjeta v3 va en la VISTA PREVIA y no dentro
@@ -50,6 +50,7 @@ struct ShareCardSheet: View {
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("share.skip")
         }
         .padding(Tokens.s24)
         .presentationDetents([.large])
@@ -77,7 +78,7 @@ struct ShareCardSheet: View {
         .sheet(isPresented: $showActivity) {
             ActivityShareView(image: renderCard()) { completed in
                 if completed {
-                    gameState.registerShareCompleted()
+                    gameState.registerShareCompleted(moment)
                 }
                 gameState.dismissShareCard()
             }
@@ -86,7 +87,7 @@ struct ShareCardSheet: View {
 
     @MainActor
     private func renderCard() -> UIImage {
-        let renderer = ImageRenderer(content: ShareCardContent(subject: subject).frame(width: 540, height: 960))
+        let renderer = ImageRenderer(content: ShareCardContent(moment: moment).frame(width: 540, height: 960))
         renderer.scale = 2 // 1080×1920, formato video vertical
         return renderer.uiImage ?? UIImage()
     }
@@ -99,7 +100,33 @@ struct ShareCardSheet: View {
 /// materiales acá adentro: esto lo dibuja ImageRenderer, así que todo es
 /// vectorial y de paleta, sin arte del atlas que pueda faltar en el render.
 private struct ShareCardContent: View {
-    let subject: CharacterType
+    let moment: ShareMoment
+
+    private var headline: String {
+        switch moment {
+        case .newCharacter(let type), .god(let type): type.localizedName.uppercased()
+        case .newFloor(let floorID): TowerNaming.floorName(for: floorID).uppercased()
+        case .reincarnation(let level): String(localized: "share.card.reincarnation.title \(String(level))").uppercased()
+        }
+    }
+
+    private var caption: Text {
+        switch moment {
+        case .newCharacter(let type): Text("share.card.caption \(type.localizedName)")
+        case .newFloor(let floorID): Text("share.card.floor \(TowerNaming.floorName(for: floorID))")
+        case .reincarnation: Text("share.card.reincarnation")
+        case .god: Text("share.card.god")
+        }
+    }
+
+    private var symbolName: String {
+        switch moment {
+        case .newCharacter(let type), .god(let type):
+            type.spritePlaceholder.hasPrefix("sf:") ? String(type.spritePlaceholder.dropFirst(3)) : "person.fill"
+        case .newFloor: "building.2.fill"
+        case .reincarnation: "arrow.triangle.2.circlepath"
+        }
+    }
 
     var body: some View {
         ZStack {
@@ -130,11 +157,11 @@ private struct ShareCardContent: View {
                     .frame(width: 116, height: 116)
                     .frame(width: 176, height: 176)
                     .background(portraitPlate)
-                Text(verbatim: subject.localizedName.uppercased())
+                Text(verbatim: headline)
                     .font(.system(size: 34, design: .rounded).weight(.heavy))
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color("PaletteInk"))
-                Text("share.card.caption \(subject.localizedName)")
+                caption
                     .font(Tokens.body)
                     .multilineTextAlignment(.center)
                     .foregroundStyle(Color("PaletteInk").opacity(0.8))
@@ -159,10 +186,6 @@ private struct ShareCardContent: View {
                     .strokeBorder(Color("PaletteBrown").opacity(0.55), lineWidth: 2)
             )
             .shadow(color: .black.opacity(0.15), radius: 4, y: 2)
-    }
-
-    private var symbolName: String {
-        subject.spritePlaceholder.hasPrefix("sf:") ? String(subject.spritePlaceholder.dropFirst(3)) : "person.fill"
     }
 }
 

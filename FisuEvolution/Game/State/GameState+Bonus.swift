@@ -405,15 +405,6 @@ extension GameState {
         }
     }
 
-    /// La escena ofrece el share card al terminar el reveal de evolución.
-    func offerShareCard(for type: CharacterType) {
-        shareCardSubject = type
-    }
-
-    func dismissShareCard() {
-        shareCardSubject = nil
-    }
-
     // MARK: Proyecciones de la pantalla de Bonus (RF-06, RF-11, RF-12)
 
     /// Las filas de boost, ya resueltas: qué hace cada uno, si está abierto y qué
@@ -645,25 +636,6 @@ extension GameState {
         skinSelectionVersion &+= 1
         effectsVersion += 1
         refreshProjections()
-        scheduleSave()
-    }
-
-    /// Referral local (bible §8): compartir da un boost permanente chico, capeado.
-    func registerShareCompleted() {
-        guard let economy, let content, var player = player else { return }
-        guard player.meta.sharesCompleted < content.viral.maxShares else { return }
-        player.meta.sharesCompleted += 1
-        UpgradeManager.recomputeDerivedEffects(
-            state: &player,
-            config: content.upgradesConfig,
-            specials: content.specials,
-            viral: content.viral,
-            boosts: content.boosts,
-            economy: economy
-        )
-        self.player = player
-        effectsVersion += 1
-        evaluateAchievements()
         scheduleSave()
     }
 }

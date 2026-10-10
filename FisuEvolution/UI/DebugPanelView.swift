@@ -150,6 +150,13 @@ struct DebugPanelView: View {
                     }
                     .accessibilityIdentifier("debug.quickhire.many")
                 }
+                Section("Compartir") {
+                    Button("Ofrecer compartir (piso nuevo)") {
+                        gameState.debugOfferShareMoment()
+                        dismiss()
+                    }
+                    .accessibilityIdentifier("debug.share.offer")
+                }
                 // ⚠️ Va DESPUÉS de las puertas de los tests (Specials, Cofres,
                 // Ficha): la List es perezosa y una fila bajo el pliegue no existe
                 // para XCUITest, así que crecer por arriba las deja sin tap.

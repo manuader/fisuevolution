@@ -62,6 +62,7 @@ extension GameState {
         refreshBadgeProjections(content: content, player: player)
 
         refreshUnlockedTabs()
+        presentShareMomentIfCalm()
         refreshTutorialTip()
     }
 

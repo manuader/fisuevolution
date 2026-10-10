@@ -157,6 +157,9 @@ extension GameState {
         // antes lo perdería el día que el contador se mude a `run`.
         awardChest(minRarity: .epica)
         reconcileTower()
+        // Reencarnar es un momento viral: se ofrece cuando el cofre épico y el
+        // resto de la celebración terminan (`presentShareMomentIfCalm`).
+        queueShareMoment(.reincarnation(level: player.meta.prestigeLevel))
         haptics?.play(.rarity)
         gameCenter?.report(.firstPrestige)
         // Los tres logros de reencarnación miran `meta.prestigeLevel`, que ya

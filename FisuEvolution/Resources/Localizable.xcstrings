@@ -7552,6 +7552,23 @@
         }
       }
     },
+    "skin.name.dinosaurio" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dino Costume"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disfraz de Dinosaurio"
+          }
+        }
+      }
+    },
     "skin.name.directorio" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7633,6 +7650,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Filántropo"
+          }
+        }
+      }
+    },
+    "skin.name.gaucho" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gaucho"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gaucho"
           }
         }
       }
@@ -7956,6 +7990,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Penalista"
+          }
+        }
+      }
+    },
+    "skin.name.pijama" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teddy Pajamas"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pijama de Ositos"
           }
         }
       }

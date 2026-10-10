@@ -1514,6 +1514,91 @@
         }
       }
     },
+    "adbreak.countdown.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The ad starts in %@ seconds"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El anuncio empieza en %@ segundos"
+          }
+        }
+      }
+    },
+    "adbreak.decline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, thanks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, gracias"
+          }
+        }
+      }
+    },
+    "adbreak.pitch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One short ad and this is yours. Not in the mood? Keep playing, no harm done."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un anuncio cortito y te llevás esto. Si no querés, seguí jugando: no pasa nada."
+          }
+        }
+      }
+    },
+    "adbreak.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ad break"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausa publicitaria"
+          }
+        }
+      }
+    },
+    "adbreak.watch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver ahora"
+          }
+        }
+      }
+    },
     "ads.duration.min %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11965,6 +12050,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No había dónde aplicarlo: te dimos %@ de producción"
+          }
+        }
+      }
+    },
+    "tower.notice.reward_granted %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You got: %@!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Te llevaste: %@!"
           }
         }
       }

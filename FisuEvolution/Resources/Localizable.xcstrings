@@ -4005,6 +4005,23 @@
         }
       }
     },
+    "event.immune" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're covered! This one doesn't touch you."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tenés obra social! Este no te toca."
+          }
+        }
+      }
+    },
     "event.inversion_alienigena.phrase" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4239,6 +4256,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plan Platita"
+          }
+        }
+      }
+    },
+    "event.popup.enjoy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make the most of it while it lasts!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Aprovechalo mientras dura!"
+          }
+        }
+      }
+    },
+    "event.popup.remaining %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ends in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termina en %@"
+          }
+        }
+      }
+    },
+    "event.popup.wait" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No way out of this one: hang in there, it'll pass."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay con qué zafar: aguantá, que ya pasa."
           }
         }
       }
@@ -4798,6 +4866,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tienda"
+          }
+        }
+      }
+    },
+    "hud.event.chip.ax %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Event: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evento: %@"
           }
         }
       }
@@ -12846,6 +12931,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mantené apretado el ascensor para elegir piso."
+          }
+        }
+      }
+    },
+    "tutorial.tip.event_chip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every event leaves the face of whoever brought it here. Tap it to see what changes and how to get out of it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada evento deja acá la cara de quien lo trajo. Tocala para ver qué cambia y cómo zafar."
           }
         }
       }

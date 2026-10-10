@@ -146,7 +146,7 @@ final class RankingStore {
     /// murió con la tarjeta abierta no vuelve a saltar: queda la pestaña. Se pide al llegar a Dios y al
     /// volver activo, por si la llegada ocurrió con la app ya en otro estado.
     private func offerCardIfDue() {
-        guard let state = host?.rankingState, case .reachedGod = state.phase, !state.cardOffered,
+        guard isEnabled, let state = host?.rankingState, case .reachedGod = state.phase, !state.cardOffered,
               entryPrompt == nil else { return }
         host?.updateRanking { $0.cardWasOffered() }
         entryPrompt = prompt(for: state)

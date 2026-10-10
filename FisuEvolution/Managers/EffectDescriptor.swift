@@ -86,9 +86,11 @@ enum EffectDescriptor {
 // MARK: - El formato
 
 enum EffectFormatter {
-    /// "+30%", "−9%", "3%", "×2,5", "10 min"
+    /// "+30%", "−9%", "3%", "1,3%", "×2,5", "10 min". El porcentaje lleva un
+    /// decimal sólo cuando no es entero: las mejoras chicas (+0,25% por nivel)
+    /// no pueden redondearse a un número que no se mueve.
     static func text(_ amount: EffectAmount) -> String {
-        let percent = Int((amount.value * 100).rounded())
+        let percent = percentText(amount.value)
         switch amount.unit {
         case .percentBonus: return "+\(percent)%"
         case .percentDiscount: return "−\(percent)%" // menos tipográfico, no guion
@@ -99,6 +101,11 @@ enum EffectFormatter {
         case .minutes:
             return String(localized: "effect.minutes \(String(Int(amount.value.rounded())))")
         }
+    }
+
+    private static func percentText(_ value: Double) -> String {
+        let tenths = (value * 1000).rounded() / 10
+        return tenths.formatted(.number.precision(.fractionLength(0...1)))
     }
 
     /// "+30% → +40%", o sólo "+30%" cuando `next` es nil (nivel máximo).

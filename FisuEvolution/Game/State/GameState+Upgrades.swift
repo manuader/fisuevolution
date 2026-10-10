@@ -1,7 +1,7 @@
 import EconomyKit
 import Foundation
 
-/// Mejoras (F5 — las 7 líneas; pasan a ORO en F7.4) y mejoras por personaje.
+/// Mejoras (F5; pasan a ORO en F7.4) y mejoras por personaje.
 /// Separado de `GameState.swift` para que el frente del menú de mejoras no
 /// comparta archivo con los otros cinco dominios.
 extension GameState {
@@ -49,23 +49,65 @@ extension GameState {
         UpgradeManager.cost(of: line, level: upgradeLevel(of: line.id))
     }
 
-    /// Qué hace una mejora permanente, en números que salen del JSON (RF-06):
-    /// "+30% → +40%". Al calcularse desde el config no se puede desincronizar de
-    /// un cambio de balance, y la traducción la hace la pieza única
-    /// `EffectDescriptor` que comparten mejoras, boosts y prestigio.
+    /// Qué hace una mejora permanente, de antes a después y con los números del
+    /// JSON (RF-06): "Ingresos +20% → +40%". Al calcularse desde el config no se
+    /// puede desincronizar de un cambio de balance, y la traducción la hace la
+    /// pieza única `EffectDescriptor` que comparten mejoras, boosts y prestigio.
     func upgradeEffectText(for line: UpgradesConfig.Line) -> String {
         let level = upgradeLevel(of: line.id)
-        let current = EffectDescriptor.amount(
+        let nextLevel = level >= line.maxLevel ? nil : level + 1
+        let progression = { (amount: (Int) -> EffectAmount) -> (text: String, isCapped: Bool) in
+            let current = amount(level)
+            let next = nextLevel.map(amount)
+            return (
+                EffectFormatter.progression(current: current, next: next),
+                current.isCapped || next?.isCapped == true
+            )
+        }
+        let main = progression { lineAmount(line, level: $0) }
+        let text: String
+        switch line.effectType {
+        case .incomeMultiplier:
+            text = String(localized: "upgrade.effect.income \(main.text)")
+        case .tapMultiplier:
+            text = String(localized: "upgrade.effect.tap \(main.text)")
+        case .offlineEfficiency:
+            text = String(localized: "upgrade.effect.offline \(main.text)")
+        case .spawnCostDiscount:
+            text = String(localized: "upgrade.effect.spawn \(main.text)")
+        case .prestigeBonusPerSoulPoint:
+            text = String(localized: "upgrade.effect.prestige \(main.text)")
+        case .luckyTouch:
+            let golden = progression {
+                EffectDescriptor.amount(
+                    for: .goldenTouchChance, level: $0, magnitudePerLevel: line.goldenPerLevel
+                )
+            }
+            text = String(localized: "upgrade.effect.lucky \(main.text) \(golden.text)")
+        case .critChance, .goldenTouchChance:
+            text = main.text
+        }
+        guard main.isCapped else { return text }
+        return "\(text) (\(EffectFormatter.cappedNote))"
+    }
+
+    /// El efecto de la línea a un nivel dado. Offline y prestigio suman sobre lo
+    /// que el juego da de base: el jugador lee lo que rinde, no el delta.
+    private func lineAmount(_ line: UpgradesConfig.Line, level: Int) -> EffectAmount {
+        let step = EffectDescriptor.amount(
             for: line.effectType, level: level, magnitudePerLevel: line.magnitudePerLevel
         )
-        let next = level >= line.maxLevel
-            ? nil
-            : EffectDescriptor.amount(
-                for: line.effectType, level: level + 1, magnitudePerLevel: line.magnitudePerLevel
-            )
-        let progression = EffectFormatter.progression(current: current, next: next)
-        guard current.isCapped || next?.isCapped == true else { return progression }
-        return "\(progression) (\(EffectFormatter.cappedNote))"
+        guard let config = economy?.config else { return step }
+        switch line.effectType {
+        case .offlineEfficiency:
+            let total = config.offlineEfficiencyBase + step.value
+            return EffectAmount(unit: .chance, value: min(total, EffectCaps.offline), isCapped: step.isCapped)
+        case .prestigeBonusPerSoulPoint:
+            let perOro = config.oro.globalMultiplierPerOro
+            return EffectAmount(unit: step.unit, value: perOro * (1 + step.value), isCapped: false)
+        case .incomeMultiplier, .tapMultiplier, .spawnCostDiscount, .critChance, .goldenTouchChance, .luckyTouch:
+            return step
+        }
     }
 
     /// El chiste de la mejora, la segunda línea de la fila (RF-06).

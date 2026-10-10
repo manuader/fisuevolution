@@ -185,6 +185,35 @@ struct UpgradesMenuTests {
         #expect(!maxed.contains("→"), "en el nivel máximo no hay salto que mostrar")
     }
 
+    @Test("cada línea dice su efecto de antes a después, con el número del dato")
+    func effectTextPerLine() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        func text(_ id: String, level: Int) throws -> String {
+            let line = try #require(content.upgradesConfig.upgrades.first { $0.id == id })
+            var player = try #require(gameState.player)
+            player.meta.oroUpgradeLevels[id] = level
+            gameState.player = player
+            return gameState.upgradeEffectText(for: line)
+        }
+        let offline = try text("offline", level: 0)
+        #expect(offline.contains("35") && offline.contains("40"))
+        let spawn = try text("spawn", level: 1)
+        #expect(spawn.contains("−3") && spawn.contains("−6"))
+        let prestige = try text("prestige", level: 0)
+        #expect(prestige.contains("18") && prestige.contains("→"))
+        let lucky = try text("lucky", level: 1)
+        #expect(lucky.components(separatedBy: "→").count == 3, "el toque premiado dice crítico Y dorado: \(lucky)")
+
+        for line in content.upgradesConfig.upgrades {
+            let atMax = try text(line.id, level: line.maxLevel)
+            #expect(!atMax.contains("→"), "\(line.id) al tope no tiene salto: \(atMax)")
+            for level in [0, line.maxLevel] {
+                #expect(!(try text(line.id, level: level)).contains("upgrade.effect"), "\(line.id) dejó una clave cruda")
+            }
+        }
+    }
+
     @Test("las siete mejoras permanentes tienen su texto de color en el catálogo")
     func everyPermanentUpgradeHasFlavor() async throws {
         let gameState = await makeGameState()

@@ -57,6 +57,13 @@ import Testing
         #expect(EffectFormatter.text(EffectAmount(unit: .chance, value: 0.03, isCapped: false)) == "3%")
     }
 
+    @Test("el porcentaje lleva un decimal sólo cuando no es entero")
+    func percentKeepsOneDecimalWhenNeeded() {
+        let fractional = EffectFormatter.text(EffectAmount(unit: .chance, value: 0.0125, isCapped: false))
+        #expect(fractional.hasPrefix("1") && fractional.hasSuffix("%") && fractional.count == 4)
+        #expect(EffectFormatter.text(EffectAmount(unit: .chance, value: 0.3, isCapped: false)) == "30%")
+    }
+
     @Test("la progresión muestra el salto, y al máximo muestra sólo el actual")
     func progression() {
         let current = EffectAmount(unit: .percentBonus, value: 0.3, isCapped: false)

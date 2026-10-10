@@ -448,7 +448,7 @@ que toma · commit o rama · nota.
 |---|---|---|---|---|---|---|
 | E4a-T1 | `RewardSpec` | ✅ | — | — | `8d0a311` (merge `bba9e39`) | EK; cimiento de E5–E7 |
 | E4a-T2 | Efectos nuevos: paro, inmunidad, ritmo de paquetes | ✅ | E1-T13, E1-T15 | catálogo (snapshot); ActiveModifier, ActiveBonus*, EffectContractTests | `a031ee8` (merge, claves `8cf4e73`) | paro, inmunidad, ritmo de paquetes |
-| E4a-T3 | Los relojes en `meta.engagement` | ⏳ | E1-T4, E3b-T9 | EngagementState | | (ambigua: ver "Inconsistencias", punto 3) |
+| E4a-T3 | Los relojes en `meta.engagement` | 🔄 | E1-T4, E3b-T9 | EngagementState | | (ambigua: ver "Inconsistencias", punto 3) |
 | E4a-T4 | El motor de eventos v2 (EK) | ⛔ | T1, T2, T3 | — | | |
 | E4a-T5 | Los visitantes, puros | ⛔ | T1, T3 | — | | |
 | E4a-T6 | `VisitPlanner` | ⛔ | T5; E1-T7, E1-T14 | BoardChange.swift, +BoardChanges | | |

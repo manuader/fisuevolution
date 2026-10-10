@@ -46,6 +46,8 @@ struct StageChallenge: Equatable {
 
 /// Lo del escenario que no se dibuja: relojes y pendientes.
 struct StageRuntime {
+    /// El último globo que sonó (`talkBlip`): un blip por texto nuevo, no por frame.
+    var lastBlipText: String?
     /// Lo que le queda de paciencia (o de charla, a un presentador).
     var patienceLeft: TimeInterval = 0
     /// El evento que espera a su presentador (T4).

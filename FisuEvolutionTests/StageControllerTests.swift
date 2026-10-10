@@ -143,4 +143,97 @@ struct StageControllerTests {
         #expect(gameState.stageVisit?.phase == .waiting)
         #expect(gameState.showing != .visitorEncounter)
     }
+
+    // MARK: - El video del visitante
+
+    private func clipManifest(talking: [String] = [], actions: [String] = []) throws -> LoopsManifest {
+        func entries(_ ids: [String]) -> String {
+            ids.map { #""\#($0)":{"file":"cine_arresto.mov","width":512,"height":512,"alpha":true,"audio":false}"# }
+                .joined(separator: ",")
+        }
+        let json = #"{"schemaVersion":1,"talking":{\#(entries(talking))},"visitorActions":{\#(entries(actions))}}"#
+        return try JSONDecoder().decode(LoopsManifest.self, from: Data(json.utf8))
+    }
+
+    private func videoStage(talking: [String] = ["npc_vecina"], actions: [String] = ["npc_vecina"])
+        async throws -> (GameState, StageController, VideoPlayerPool) {
+        let gameState = await makeGameState()
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let controller = StageController(gameState: gameState, loops: try clipManifest(talking: talking, actions: actions),
+                                         pool: pool)
+        controller.attach(to: SKNode())
+        controller.layout(sceneSize: CGSize(width: 393, height: 852), bottomInset: 118, cellSize: 72)
+        gameState.presentOnStage(actorId: "npc_vecina", role: .visitor(scriptId: "vecina_chisme"))
+        controller.update(delta: 1.0 / 60, reduceMotion: false)
+        return (gameState, controller, pool)
+    }
+
+    private func arrive(_ gameState: GameState, _ controller: StageController) throws {
+        gameState.stageActorArrived(id: try #require(gameState.stageVisit?.id))
+        gameState.stageVisit?.bubble = nil
+        controller.update(delta: 1.0 / 60, reduceMotion: false)
+    }
+
+    @Test("esperando con globo, su clip hablado")
+    func waitingWithBubbleShowsTalking() async throws {
+        let (gameState, controller, _) = try await videoStage()
+        try arrive(gameState, controller)
+        gameState.stageVisit?.bubble = "¡Hola, vecino!"
+        controller.update(delta: 1.0 / 60, reduceMotion: false)
+        #expect(controller.actor?.videoClip == .talking("npc_vecina"))
+    }
+
+    @Test("esperando sin globo, su clip de acción")
+    func waitingWithoutBubbleShowsAction() async throws {
+        let (gameState, controller, _) = try await videoStage()
+        try arrive(gameState, controller)
+        #expect(controller.actor?.videoClip == .visitorAction("npc_vecina"))
+    }
+
+    @Test("sin entradas en el manifest: ni clip ni nodo de video")
+    func noClipNoVideoNode() async throws {
+        let (gameState, controller, pool) = try await videoStage(talking: [], actions: [])
+        try arrive(gameState, controller)
+        gameState.stageVisit?.bubble = "¡Hola!"
+        controller.update(delta: 1.0 / 60, reduceMotion: false)
+        let actor = try #require(controller.actor)
+        #expect(actor.videoClip == nil)
+        #expect(!actor.children.contains { $0 is LoopingVideoNode })
+        #expect(actor.texture != nil && pool.liveCount == 0)
+    }
+
+    @Test("entrando y saliendo camina con su textura: sin video")
+    func enteringAndLeavingHaveNoVideo() async throws {
+        let (gameState, controller, pool) = try await videoStage()
+        let actor = try #require(controller.actor)
+        #expect(actor.videoClip == nil, "entrando")
+        try arrive(gameState, controller)
+        #expect(actor.videoClip != nil && pool.liveCount == 1)
+        gameState.sendStageActorAway()
+        controller.update(delta: 1.0 / 60, reduceMotion: false)
+        #expect(actor.videoClip == nil, "saliendo")
+        #expect(pool.liveCount == 0)
+    }
+
+    @Test("el mismo clip en dos frames no se vuelve a montar")
+    func sameClipIsNotRemounted() async throws {
+        let (gameState, controller, _) = try await videoStage()
+        try arrive(gameState, controller)
+        gameState.stageVisit?.bubble = "¡Hola, vecino!"
+        controller.update(delta: 1.0 / 60, reduceMotion: false)
+        let first = try #require(controller.actor?.children.first { $0 is LoopingVideoNode })
+        controller.update(delta: 1.0 / 60, reduceMotion: false)
+        let second = try #require(controller.actor?.children.first { $0 is LoopingVideoNode })
+        #expect(ObjectIdentifier(first) == ObjectIdentifier(second))
+    }
+
+    @Test("sacar al visitante apaga su video")
+    func clearStopsVideo() async throws {
+        let (gameState, controller, pool) = try await videoStage()
+        try arrive(gameState, controller)
+        #expect(pool.liveCount == 1)
+        gameState.stageVisit = nil
+        controller.update(delta: 1.0 / 60, reduceMotion: false)
+        #expect(controller.actor == nil && pool.liveCount == 0)
+    }
 }

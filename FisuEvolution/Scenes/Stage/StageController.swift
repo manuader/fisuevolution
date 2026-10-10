@@ -21,9 +21,16 @@ final class StageController {
     private var entersFromLeft = false
     private var bubbleAge: TimeInterval = 0
     private var textures: [String: SKTexture] = [:]
+    private let loops: LoopsManifest
+    private let pool: VideoPlayerPool
+    private let packs: ArtPacks
 
-    init(gameState: GameState) {
+    init(gameState: GameState, loops: LoopsManifest = .main, pool: VideoPlayerPool = .shared,
+         packs: ArtPacks = .shared) {
         self.gameState = gameState
+        self.loops = loops
+        self.pool = pool
+        self.packs = packs
         layer.zPosition = Self.layerZ
         layer.name = "stage"
     }
@@ -71,7 +78,8 @@ final class StageController {
         clear()
         entersFromLeft.toggle()
         let node = VisitorNode(visitId: visit.id, actorId: visit.actorId,
-                               texture: texture(for: visit.actorId, pose: .canonical), side: layout.actorSide)
+                               texture: texture(for: visit.actorId, pose: .canonical), side: layout.actorSide,
+                               loops: loops, pool: pool, packs: packs)
         let walksIn = visit.phase == .entering && !reduceMotion
         node.position = CGPoint(x: walksIn ? layout.offstageX(left: entersFromLeft) : layout.standX, y: layout.baselineY)
         node.alpha = visit.phase == .entering && reduceMotion ? 0 : 1
@@ -82,6 +90,7 @@ final class StageController {
 
     private func enter(_ node: VisitorNode, visit: StageVisit, delta: TimeInterval, reduceMotion: Bool) {
         hideBubble()
+        showPose(on: node, visit: visit, talking: false, animated: false)
         if reduceMotion {
             node.position = CGPoint(x: layout.standX, y: layout.baselineY)
             node.alpha = min(1, node.alpha + CGFloat(delta / Self.fadeDuration))
@@ -101,8 +110,7 @@ final class StageController {
         node.position = CGPoint(x: layout.standX, y: layout.baselineY)
         if reduceMotion { node.setScale(1) } else { node.breathe(delta: delta) }
         let talking = visit.bubble.map { !$0.isEmpty } ?? false
-        let pose = texture(for: visit.actorId, pose: talking ? .talk : .canonical)
-        if node.texture !== pose { node.texture = pose }
+        showPose(on: node, visit: visit, talking: talking, animated: true)
         guard talking, let text = visit.bubble else { return hideBubble() }
         let bubble = self.bubble ?? makeBubble()
         if bubble.text != text {
@@ -120,6 +128,7 @@ final class StageController {
 
     private func leave(_ node: VisitorNode, visit: StageVisit, delta: TimeInterval, reduceMotion: Bool) {
         hideBubble()
+        showPose(on: node, visit: visit, talking: false, animated: false)
         node.setScale(1)
         if reduceMotion {
             node.alpha = max(0, node.alpha - CGFloat(delta / Self.fadeDuration))
@@ -131,6 +140,15 @@ final class StageController {
         let x = node.position.x < exit ? min(exit, node.position.x + step) : max(exit, node.position.x - step)
         node.position = CGPoint(x: x, y: layout.baselineY + node.walkBob(delta: delta))
         if x == exit { gameState?.stageActorLeft(id: visit.id) }
+    }
+
+    /// Parado: con globo, su clip hablado; sin globo, su clip de acción; sin clip, su pose quieta.
+    /// Caminando (`animated == false`) va con la textura y el `walkBob`.
+    private func showPose(on node: VisitorNode, visit: StageVisit, talking: Bool, animated: Bool) {
+        let pose: VisitorArt.Pose = talking ? .talk : .canonical
+        let clip = animated ? ArtClips.stageVisitor(visit.actorId, talking: talking, in: loops) : nil
+        let poster: VisitorArt.Pose = clip.map { if case .visitorAction = $0 { .action } else { .talk } } ?? pose
+        node.showClip(clip, poster: texture(for: visit.actorId, pose: poster))
     }
 
     private func makeBubble() -> SpeechBubbleNode {
@@ -148,6 +166,7 @@ final class StageController {
 
     private func clear() {
         hideBubble()
+        actor?.removeClip()
         actor?.removeFromParent()
         actor = nil
     }

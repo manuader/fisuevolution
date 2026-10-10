@@ -344,6 +344,30 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Cierre de E4b (2026-10-10) — Los visitantes, los eventos y el Álbum en pantalla
+
+E4b T1–T9 están en `version-2` y T10 es este cierre, sólo documentación; con él, **E4 queda entera** (E4a + E4b). Detalle, la tabla por tarea con su commit y el porqué de cada default en **`Docs/SESION-2026-10-10-v2-e4b.md`**.
+
+- **El escenario es de una sola entrada** (`StageController` + `stageVisit`): un visitante o un presentador a la vez, y su entrada es el turno `.visitorEncounter` de `CelebrationQueue`. Lo que viene después —esperar a que lo toquen— no ocupa la cola. Todo se mueve por frame, sin `SKAction`.
+- **Los visitantes** (`GameState+Visitors`) llegan solos, cotizan al llegar y cierran el trato por el embudo. La paciencia (30 s) corre sólo en momento calmo y se congela con el popup, con una hoja o con un intersticial. Viven en memoria: sobreviven al background, no a matar la app; el reloj de su carril sí está en el save.
+- **Lo que se ve:** los chips bajo el HUD (`StageChips`), el popup con loop o foto (`VisitorPopupView`, el retrato con `AnimatedArtView`), el reto con las tres cartas del Vendedor, y los eventos con presentador y chip con cara. **El banner de eventos no existe más** (`.eventBanner` se fue en T4). El Apagón (velo ∝ velitas apagadas, baile con confeti, `SFX.blackout`) y los Campeones son efectos de escena.
+- **La Liquidación está en el precio:** piso de 0,25 al producto de descuentos apilados (sólo en `spawnCostMultiplier`, la contratación gratis queda afuera) y precio tachado «antes X».
+- **El Álbum de especiales** es la quinta tarjeta del menú, y los especiales ya no están anclados en el tablero (T9 sólo borró).
+- **Verificación:** `completo` = `COMPLETO_PENDIENTE` (lo corre el controlador al final de la ola r29); hasta entonces cubren los `rapido` de cada merge y el `rapido4` de la punta del relevo 28 (EK 838 · unit 1396 · 0 rojos · Release 0). `rojos-declarados.txt` no cambió por E4.
+- **🔒 del dueño (no se hicieron en device):** los siete escenarios a mano del plan, en SE y iPad 13", claro y oscuro, con y sin Reduce Motion (están listados en el SESION de E4b §3); la captura SE del precio tachado; el loop real del retrato, que nunca se vio.
+- **Carries (a E5b/E6 y al dueño):** `eventPresenters` acotado por id (nunca se vacía); `Array(characterNodes.values)` por frame; la `zRotation` del baile compartida con el deambular; `meta.specialAnchors` sin escritores (se borra en el próximo bump de schema); el presentador que se va sin globo; matar la app con un evento pendiente lo pierde sin cobro.
+
+### Cierre de E5a (2026-10-10) — El motor del Paquete, el Colchón y la Ruleta
+
+E5a T1–T8 están en `version-2` y T9 es este cierre, sólo documentación. Es el motor sin pantalla; lo que se ve es E5b. Detalle, la tabla por tarea con su commit y el porqué de cada default en **`Docs/SESION-2026-10-10-v2-e5a.md`**.
+
+- **Tres puros en `EconomyKit/Prizes/`:** el Paquete de la Aduana (`PackageScheduler`/`PackageRoller`), el Colchón (`TreasureScheduler`/`TreasureRoller`) y la Ruleta (`WheelTable`/`WheelRoller`), con `packages.json`, `treasures.json` y `wheel.json` validados al cargar.
+- **El estado vive en `meta.engagement`** y sobrevive a la reencarnación. El paquete entra por el embudo de E1 con `Origin.package` y, si en su turno ya no entra, vuelve al buzón.
+- **La Ruleta acredita antes de animar,** y `LootBoxGate` (Storefront alpha-3) decide si hay giro con ORO: falla cerrado, y E6a lo reusa para el cofre.
+- **Verificación:** `completo` = `COMPLETO_PENDIENTE`; `pacing-sim` igual que antes (no modela premios); `rojos-declarados.txt` no cambió por E5a.
+- **🔒 del dueño:** los tres escenarios a mano (el log de `package opened: …` con `--uitest-packages=2`, el primer paquete a los 2 min y el colchón a los 8 con los relojes bajados en un build local, y matar la app con dos paquetes esperando).
+- **Carries a E5b y E6a:** `packageCandidates` no descuenta las llegadas en cola; el extra del colchón sólo con `mattressExtraOpensLeft > 0` y el `nil` tras su video; `LootBoxGate.current()` a `wheelAvailability`/`spinWheel`; el doble cobro de ORO de la Ruleta sin fixture; los giros ×30 que apilan (¿suma o renueva?); `restrictedStorefronts` que la config remota puede vaciar; el colchón que sobrevive a la reencarnación.
+
 ### Sesión del 2026-10-10 (relevo 28) — La ola Z: el Apagón y los Campeones, las probabilidades del cofre, los especiales fuera del tablero y la Tienda de ORO en pantalla
 
 Un solo relevo, abierto a las 12:03 por el disparo horario de `fisu-v2-relevo-a` y cerrado a ~265k de contexto. Todo en `v2i/integ-r28`. `version-2` quedó en `a5ef14c`, la punta del `rapido3` VERDE (EK 838 · unit 1389 · 0 rojos · Release 0). **Progreso: 203 de 254 en `version-2`; 204 de 254 (80,3 %) con E6a T8 ✅** si el `rapido4` de la punta (`40f076e`) da VERDE (VERDE (EK 838 · unit 1396 · 0 rojos · Release 0): E6a T8 ✅, 204 de 254 (80,3 %)).
@@ -2069,6 +2093,23 @@ conseguiste; cinco guiones y dos eventos (los de Paquetes o giros, Lluvia y Piqu
 botones de los popups son genéricos; el reloj de eventos es de juego activo y va al save; el ×2 con video de
 un modificador alarga, no potencia; el ORO del Arbolito (1 por S(5400)) lo revisa E2b.
 
+**Decisiones de E4b** (2026-10-10; los 13 defaults de «Para el dueño» del plan quedaron tal cual, el dueño no
+cambió ninguno; el porqué de cada uno en `Docs/SESION-2026-10-10-v2-e4b.md` §4): E4b usa una sola celebración nueva
+(`.visitorEncounter`, la entrada) y lo que pasa después no ocupa la cola; el visitante se mueve por frame; un visitante
+sobrevive al background pero no a matar la app; el precio tachado sale con cualquier descuento temporal de contratar
+y el piso de los apilados es 0,25, en código; el Vendedor da una carta por visita; con el corralito puesto se cobra
+pero no se paga; el reto ganado con «×2 con video» ofrece otra tanda igual; los presentadores hablan 4 s; el evento
+espera al escenario y le gana al próximo visitante; el escenario va a z 190 y el velo del Apagón a 185; la silueta del
+Álbum es la canónica teñida de negro.
+
+**Decisiones de E5a** (2026-10-10; los 12 defaults de «Para el dueño» del plan quedaron tal cual, el dueño no cambió
+ninguno; el porqué de cada uno en `Docs/SESION-2026-10-10-v2-e5a.md` §4): un paquete nunca trae a alguien que no
+viste; el reloj del paquete se frena con dos esperando y la Lluvia respeta ese tope; paquetes y colchón sobreviven a
+la reencarnación; las tablas de la ruleta y del colchón son propuestas que calibra E2b; «Repetir premio» es otro video
+y no gasta un giro del cupo de 6; los giros regalados no vencen con el día; el giro con ORO falla cerrado
+(`LootBoxGate` nace en E5); el paquete entra por el embudo y no por un `placeGrantedUnit` generalizado; el paquete es
+gratis cada 2 min y la palanca es `packages.json`; el cofre de la ruleta suma un cofre pendiente y no lo abre.
+
 **Decisiones del dueño del relevo 6** (2026-10-07, preguntadas en vivo; el
 detalle en `Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md` §1):
 
@@ -2942,6 +2983,18 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De E4b y E5a (2026-10-10, cierres)
+
+- **El escenario es de una sola entrada:** un evento espera al visitante en escena y ningún visitante entra con un evento esperando. Si agregás algo que sube al escenario, entra por `stageVisit` y por el turno `.visitorEncounter`; una segunda vía rompe las dos reglas.
+- **Todo lo que se mueve en el escenario va por frame, nunca con `SKAction`:** así `StageControllerTests` prueba entrada, espera, toque y salida sin vista. Los efectos de `StageEffects` también son por frame.
+- **Una hoja nueva va con `fisuSheet()`, y su `onChange` escribe `gameState.uiCoversBoard`** (`RootView.boardIsCovered`): si la hoja no está en esa lista, la paciencia de los visitantes corre con la hoja abierta y el visitante se va mientras mirás otra cosa.
+- **`ActionPill(verbatim:)` para los títulos que salen del dato** (los botones de los popups de visitantes y eventos): envolverlos en un `LocalizedStringKey` los vuelve una clave que el catálogo no tiene (trampa 5).
+- **`debugStartEvent` aplica el evento en el acto y `debugPresentEvent` pasa por el presentador:** el segundo es el que ve el jugador y espera si hay alguien en escena; para fotografiar o probar el efecto real, el primero.
+- **`meta.specialAnchors` no tiene escritores desde E4b T9:** `PlayerState`, el migrador y `SaveCompatibilityTests` todavía lo llevan. Se borra en el próximo bump de schema; hasta entonces nadie lo escribe ni lo lee para decidir nada.
+- **Un paquete sólo trae lo que FisuJobs vende con lugar** (`PackageRoller.eligibleTypes` = `jobState == .hirable`): si cambia una regla de FisuJobs, `candidatesMatchFisuJobs` (`PackageRuntimeTests`) se pone rojo. No se parchea el test: se alinea la regla.
+- **La Ruleta muestra y sortea la tabla EFECTIVA** (`WheelConfig.effectiveSegments(chestHasSomethingToGive:)`): nunca dibujar `wheel.segments` crudo, porque con el cofre vacío el segmento del cofre pasa a la plata de 30 min y la rueda mentiría.
+- **`LootBoxGate` falla cerrado:** sin tienda conocida no hay giro con ORO (ver la decisión 17 de §5). Un fixture o un test de la Ruleta por ORO tiene que armar el gate, no esquivarlo.
 
 ### De E4a (2026-10-10, cierre)
 
@@ -5000,6 +5053,11 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-10-v2-cierres-r23.md`**: el relevo 23, los cierres de E8, E13b y E13 con un solo `completo` (el peso +39 MB, el panel de
   debug que se comió las puertas, las grabaciones del ascensor). Planes cerrados: `2026-10-08-v2-e8-integracion-arte.md`,
   `2026-10-08-v2-e13b-ascensor-barra.md` y `2026-10-08-v2-e13-feedback-v1.md`.
+- **`Docs/SESION-2026-10-10-v2-e4b.md`**: el cierre de E4b y, con él, de E4 (la tabla por tarea con su commit, la verificación que lo cubre y los siete
+  escenarios a mano que quedan para el dueño, el porqué de cada default de «Para el dueño» y lo que le deja a E5b y a E6). Plan cerrado:
+  `Docs/superpowers/plans/2026-10-07-v2-e4b-visitantes-eventos.md`.
+- **`Docs/SESION-2026-10-10-v2-e5a.md`**: el cierre de E5a (la tabla por tarea con su commit, la verificación que lo cubre, el porqué de cada default de
+  «Para el dueño» y lo que le deja a E5b y a E6a). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e5a-aduana-colchon-ruleta.md`.
 - **`Docs/SESION-2026-10-10-v2-relevo-28-ola-z.md`**: el relevo 28 (el Apagón y los Campeones, las probabilidades del cofre, los especiales fuera del tablero, la Tienda de ORO en pantalla y la revisión de recortes de E8 T9 Step 1; las dos revisiones opus y sus carries, el `rapido` rojo por `AudioManagerTests`, el flake de `GameLoopWiringTests` bajo carga, los agentes que re-entregan, el `doubleTap()` que no prueba un cerrojo y `PREGUNTAS-DUENO.md`).
 - **`Docs/SESION-2026-10-10-v2-relevo-27-ola-y.md`**: el relevo 27 (los eventos con presentador, la Ruleta en Regalos y su aviso, la Tienda de ORO, los presupuestos de visitantes; las dos revisiones opus y sus carries, el `find /` que busca un protocolo no versionado, el `--apply` de a un worktree, `maxPerAbsence` con 4 motivos y el `planMergeAll` que no ve la cola).
 - **`Docs/SESION-2026-10-10-v2-relevo-26-ola-x.md`**: el relevo 26 (la Ruleta en pantalla, el reto y las cartas, los ×3 que se entregan, el arresto, los ×2 por video y la pausa publicitaria; las tres revisiones opus y el arreglo de `chooseCareerWithVideo`, el modo auto que deja de aprobar `Bash`, el agente que re-entrega, el `rapido` encadenado de a uno).

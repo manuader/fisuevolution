@@ -1819,6 +1819,142 @@
         }
       }
     },
+    "album.effect.crit %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ critical hit chance"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de golpe crítico"
+          }
+        }
+      }
+    },
+    "album.effect.discount %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ on hiring"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ al contratar"
+          }
+        }
+      }
+    },
+    "album.effect.income %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ income"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de ingresos"
+          }
+        }
+      }
+    },
+    "album.effect.offline %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ offline earnings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ de ganancia offline"
+          }
+        }
+      }
+    },
+    "album.locked %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can drop from tier %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puede caer desde el tier %lld"
+          }
+        }
+      }
+    },
+    "album.progress %lld %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have %1$lld of %2$lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tenés %1$lld de %2$lld"
+          }
+        }
+      }
+    },
+    "album.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Specials Album"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Álbum de especiales"
+          }
+        }
+      }
+    },
+    "album.unknown" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yet to find"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Por descubrir"
+          }
+        }
+      }
+    },
     "badge.claimable.ax" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5454,6 +5590,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ajustes"
+          }
+        }
+      }
+    },
+    "menu.card.specials" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Album"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Álbum"
           }
         }
       }
@@ -9439,6 +9592,23 @@
         }
       }
     },
+    "special.drop.album_hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From now on you'll find them in the Head Office Album."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desde ahora lo tenés en el Álbum de la Oficina central."
+          }
+        }
+      }
+    },
     "special.drop.claim" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -11707,6 +11877,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¿Ves el puntito rojo en el Menú? Hay un logro para cobrar. ¡Entrá y llevate el premio!"
+          }
+        }
+      }
+    },
+    "tutorial.tip.album" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your specials live in the Head Office Album."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus especiales viven en el Álbum de la Oficina central."
           }
         }
       }

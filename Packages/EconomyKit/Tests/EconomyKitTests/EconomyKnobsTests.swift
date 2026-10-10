@@ -42,4 +42,13 @@ struct EconomyKnobsTests {
         #expect(tuned.hire.costGrowthStepFromFloorId == "f2")
         #expect(try fxConfig().tuned(EconomyKnobs()) == fxConfig())
     }
+
+    @Test("la capacidad llega a todos los pisos y el ORO a su bloque")
+    func capacityAndOroLand() throws {
+        let tuned = try fxConfig().tuned(EconomyKnobs(floorCapacity: 15, oroDivisor: 5e9, oroExponent: 0.3))
+        #expect(tuned.floors.allSatisfy { $0.capacity == 15 })
+        #expect(tuned.oro.divisor == 5e9)
+        #expect(tuned.oro.exponent == 0.3)
+        #expect(tuned.floors.map(\.id) == fxConfig().floors.map(\.id))
+    }
 }

@@ -7,6 +7,11 @@ import Foundation
 ///     swift run pacing-sim --economy <economy.json> --tiers <tiers.json> \
 ///         [--upgrades <upgrades.json>] [--max-days 90] [--csv <out.csv>] \
 ///         [--prestige-threshold X | --no-reincarnation]
+///         [--profile bare|free|ads|max] [--sources <dir>] [--seed-fraction x] [--contract]
+///         [--prestige-discount | --no-prestige-discount]
+///         [--merge-refund r] [--growth g] [--price-relief K] [--staffed x] [--wall] [--inherit]
+///         [--capacity n] [--bands "8:1.45,13:1.6,25:1.7"] [--growth-step "0.01@luxury"]
+///         [--oro-divisor d] [--oro-exponent e] [--shop slots,supplier,spins]
 ///
 /// Sin `--upgrades` busca el catálogo real al lado de `economy.json` (ver
 /// `resolveUpgradesURL`). Sin catálogo el bot NO compra mejoras permanentes, o
@@ -32,6 +37,29 @@ struct SimArguments {
     /// del 2026-08-22 y que **ningún múltiplo puede expresar** (el umbral se
     /// calcula sobre el ORO histórico, que arranca en cero).
     let reincarnation: PacingSimulator.ReincarnationPolicy
+    let profile: PacingProfile
+    /// Dónde están `packages.json`, `boosts.json`… `nil` = no se encontró.
+    let sourcesURL: URL?
+    let seedFraction: Double
+    let knobs: EconomyKnobs
+    /// Cobrar o no el descuento de `prestige_unlocks.json` (default no hasta E2b T14).
+    let prestigeDiscount: Bool
+    /// Imprime el contrato de la 2.0 en vez de los targets de F7.1c. Con
+    /// cualquier perfil que no sea `.bare` va solo.
+    let contract: Bool
+    /// `--shop lugares,proveedor,giros`: los permanentes de la tienda a mano, para
+    /// medir `.max` mientras `oro_shop.json` no esté en el árbol.
+    let shop: ShopPermanents?
+}
+
+func parseBands(_ text: String) throws -> [EconomyConfig.HireConfig.EscalationBand] {
+    try text.split(separator: ",").map { pair in
+        let parts = pair.split(separator: ":")
+        guard parts.count == 2, let tier = Int(parts[0]), let factor = Double(parts[1]) else {
+            throw SimToolError(description: "--bands espera 'tier:factor,tier:factor', no '\(text)'")
+        }
+        return .init(fromTier: tier, factor: factor)
+    }
 }
 
 func parseArguments() throws -> SimArguments {
@@ -42,6 +70,13 @@ func parseArguments() throws -> SimArguments {
     var maxDays = 90
     var prestigeThreshold = 1.0
     var noReincarnation = false
+    var profile = PacingProfile.bare
+    var sourcesPath: String?
+    var seedFraction = 0.5
+    var knobs = EconomyKnobs()
+    var prestigeDiscount = false
+    var contract = false
+    var shop: ShopPermanents?
     var iterator = CommandLine.arguments.dropFirst().makeIterator()
     while let argument = iterator.next() {
         switch argument {
@@ -52,11 +87,48 @@ func parseArguments() throws -> SimArguments {
         case "--max-days": maxDays = iterator.next().flatMap { Int($0) } ?? maxDays
         case "--prestige-threshold": prestigeThreshold = iterator.next().flatMap { Double($0) } ?? prestigeThreshold
         case "--no-reincarnation": noReincarnation = true
+        case "--profile":
+            let name = iterator.next() ?? ""
+            switch name {
+            case "bare": profile = .bare
+            case "free": profile = .free
+            case "ads": profile = .ads
+            case "max": profile = .max
+            default: throw SimToolError(description: "--profile espera bare|free|ads|max, no '\(name)'")
+            }
+        case "--sources": sourcesPath = iterator.next()
+        case "--seed-fraction": seedFraction = try number(iterator.next(), for: argument)
+        case "--merge-refund": knobs.mergeRefundCounts = try number(iterator.next(), for: argument)
+        case "--growth": knobs.defaultCostGrowth = try number(iterator.next(), for: argument)
+        case "--price-relief": knobs.priceReliefPurchases = Int(try number(iterator.next(), for: argument))
+        case "--staffed": knobs.staffedFloorBonus = try number(iterator.next(), for: argument)
+        case "--wall": knobs.requiresLastRunWall = true
+        case "--inherit": knobs.inheritsPassiveUnlocks = true
+        case "--capacity": knobs.floorCapacity = Int(try number(iterator.next(), for: argument))
+        case "--bands": knobs.escalationBands = try parseBands(iterator.next() ?? "")
+        case "--growth-step":
+            let parts = (iterator.next() ?? "").split(separator: "@")
+            guard parts.count == 2, let step = Double(parts[0]) else {
+                throw SimToolError(description: "--growth-step espera 'paso@piso', por ejemplo 0.01@luxury")
+            }
+            knobs.costGrowthStepPerFloor = step
+            knobs.costGrowthStepFromFloorId = String(parts[1])
+        case "--oro-divisor": knobs.oroDivisor = try number(iterator.next(), for: argument)
+        case "--oro-exponent": knobs.oroExponent = try number(iterator.next(), for: argument)
+        case "--prestige-discount": prestigeDiscount = true
+        case "--no-prestige-discount": prestigeDiscount = false
+        case "--contract": contract = true
+        case "--shop":
+            let levels = (iterator.next() ?? "").split(separator: ",").compactMap { Int($0) }
+            guard levels.count == 3 else {
+                throw SimToolError(description: "--shop espera 'lugares,proveedor,giros', por ejemplo 5,3,3")
+            }
+            shop = ShopPermanents(extraSlots: levels[0], bestSupplierLevel: levels[1], bonusDailyWheelSpins: levels[2])
         default: throw SimToolError(description: "unknown argument '\(argument)'")
         }
     }
     guard let economyPath, let tiersPath else {
-        throw SimToolError(description: "usage: pacing-sim --economy <economy.json> --tiers <tiers.json> [--upgrades <upgrades.json>] [--max-days N] [--csv <out.csv>] [--prestige-threshold X | --no-reincarnation]")
+        throw SimToolError(description: "usage: pacing-sim --economy <economy.json> --tiers <tiers.json> [--upgrades <upgrades.json>] [--max-days N] [--csv <out.csv>] [--prestige-threshold X | --no-reincarnation] [--profile bare|free|ads|max] [--sources <dir>] [perillas…]")
     }
     let economyURL = URL(fileURLWithPath: economyPath)
     return SimArguments(
@@ -65,8 +137,22 @@ func parseArguments() throws -> SimArguments {
         upgradesURL: upgradesPath.map { URL(fileURLWithPath: $0) } ?? resolveUpgradesURL(nextTo: economyURL),
         maxDays: maxDays,
         csvURL: csvPath.map { URL(fileURLWithPath: $0) },
-        reincarnation: noReincarnation ? .never : .whenOroMultiplies(prestigeThreshold)
+        reincarnation: noReincarnation ? .never : .whenOroMultiplies(prestigeThreshold),
+        profile: profile,
+        sourcesURL: sourcesPath.map { URL(fileURLWithPath: $0) } ?? resolveSourcesURL(nextTo: economyURL),
+        seedFraction: seedFraction,
+        knobs: knobs,
+        prestigeDiscount: prestigeDiscount,
+        contract: contract || profile != .bare,
+        shop: shop
     )
+}
+
+func number(_ text: String?, for flag: String) throws -> Double {
+    guard let value = text.flatMap({ Double($0) }) else {
+        throw SimToolError(description: "\(flag) espera un número, no '\(text ?? "nada")'")
+    }
+    return value
 }
 
 /// Dónde está `upgrades.json` cuando nadie lo dijo. En el repo NO está al lado
@@ -150,7 +236,7 @@ func check(_ label: String, value: Double?, range: ClosedRange<Double>, format: 
 do {
     let arguments = try parseArguments()
     let maxDays = arguments.maxDays
-    let config = try JSONDecoder().decode(EconomyConfig.self, from: Data(contentsOf: arguments.economyURL))
+    let config = try JSONDecoder().decode(EconomyConfig.self, from: Data(contentsOf: arguments.economyURL)).tuned(arguments.knobs)
     let tiersFile = try JSONDecoder().decode(TiersFile.self, from: Data(contentsOf: arguments.tiersURL))
     let tiers = try TierRepository(types: tiersFile.types)
     let floorTable = try FloorTable(floors: config.floors, maxTier: tiers.maxTier)
@@ -158,15 +244,38 @@ do {
         try JSONDecoder().decode(UpgradesFile.self, from: Data(contentsOf: $0)).permanentLines
     } ?? []
 
+    // `.bare` no pide fuentes: el default no lee ni avisa nada que no leía.
+    var loaded = LoadedSources()
+    if arguments.profile != .bare || arguments.prestigeDiscount {
+        guard let sourcesURL = arguments.sourcesURL else {
+            throw SimToolError(description: "no encuentro las fuentes (../Config/ al lado de --economy): pasá --sources <dir>")
+        }
+        loaded = loadSources(from: sourcesURL, requireDiscount: arguments.prestigeDiscount)
+        if let shop = arguments.shop {
+            loaded.sources.shop = shop
+            loaded.warnings.removeAll { $0.contains("oro_shop.json") }
+        }
+    }
+    if arguments.prestigeDiscount, loaded.prestigeUnlocks == nil {
+        throw SimToolError(description: "--prestige-discount pide prestige_unlocks.json y no se pudo leer")
+    }
+
     let simulator = try PacingSimulator(
         config: config,
         tiers: tiers,
         human: .init(reincarnation: arguments.reincarnation),
-        upgrades: upgradeLines
+        upgrades: upgradeLines,
+        prestigeUnlocks: arguments.prestigeDiscount ? loaded.prestigeUnlocks : nil,
+        profile: arguments.profile,
+        sources: loaded.sources,
+        seedFraction: arguments.seedFraction
     )
     let report = simulator.run(maxDays: maxDays)
 
     print("== pacing-sim — horizonte \(maxDays) días ==")
+    if arguments.contract {
+        printProfileHeader(arguments: arguments, loaded: loaded)
+    }
     if let upgradesURL = arguments.upgradesURL, !upgradeLines.isEmpty {
         print("   mejoras permanentes: \(upgradeLines.count) líneas de ORO (\(upgradesURL.lastPathComponent))")
     } else {
@@ -225,6 +334,9 @@ do {
     print("  dios: \(report.godActive.map(hours) ?? "      — ") ACTIVAS"
         + "  (\(report.godWall.map(hours) ?? "—") de pared, maxTier final \(report.finalMaxTier))")
     print("  lifetimeEarnings final: \(String(format: "%.3e", report.finalLifetimeEarnings))")
+    if arguments.contract {
+        printContractMilestones(report: report)
+    }
 
     // La FORMA de la curva (decisión del dueño, 2026-08-23): el contrato dejó de
     // ser un total de horas y pasó a ser "la run se traba, el prestigio corre esa
@@ -247,50 +359,11 @@ do {
     print("  reencarnar paga (ahorro al volver a tu pared): \(pago.isEmpty ? "—" : pago)")
     print("     (contrato del dueño: ≥67 %, o sea volver cuesta menos de un tercio)")
 
-    print("\n-- Targets (±30% ya aplicado) --")
-    let secondFloorId = floorTable.floors.count > 1 ? floorTable[1].id : floorTable[0].id
-    check(
-        "piso 2 (\(secondFloorId)) activo",
-        value: report.floorUnlockActiveSeconds[secondFloorId],
-        range: (14.0 * 60)...(39.0 * 60),
-        format: minutes
-    )
-    // Ratio de tiempo activo entre pisos consecutivos alcanzados.
-    var ratioViolations = 0
-    var ratiosSeen = 0
-    var previous: Double?
-    print("  ratios activos entre pisos (target 1.15…2.6):")
-    for (ordinal, floor) in floorTable.floors.enumerated() where ordinal > 0 {
-        guard let active = report.floorUnlockActiveSeconds[floor.id] else { break }
-        if let previous, previous > 0 {
-            let ratio = active / previous
-            ratiosSeen += 1
-            let ok = (1.15...2.6).contains(ratio)
-            if !ok { ratioViolations += 1 }
-            print("    \(ok ? "✅" : "❌") \(pad(floor.id, 10)) ×\(String(format: "%.2f", ratio))")
-        }
-        previous = active
+    if arguments.contract {
+        printContract(report: report, floorTable: floorTable)
+    } else {
+        printLegacyTargets(report: report, floorTable: floorTable)
     }
-    if ratiosSeen == 0 { print("    ❌ sin datos (no se desbloqueó ningún piso más allá del 2º)") }
-    // Los dos targets del rebalance (PROMPT-rebalance-pacing §1): maxear las
-    // seis en 20-30 h ACTIVAS y con ≤9 reencarnaciones.
-    check("las 6 al tope (activo)", value: report.maxedUpgradesActiveSeconds, range: (20.0 * 3600)...(30.0 * 3600), format: hours)
-    check(
-        "reencarnaciones al maxear",
-        value: report.reincarnationsAtMaxedUpgrades.map(Double.init),
-        range: 1...8,
-        format: { String(format: "%.0f", $0) }
-    )
-    check("1ª reencarnación (pared)", value: report.firstReincarnationWall, range: (2.8 * 3600)...(7.8 * 3600), format: hours)
-    check("dios (pared)", value: report.godWall, range: (21.0 * 3600)...(65.0 * 3600), format: hours)
-    check("reencarnaciones al llegar", value: Double(report.reincarnations), range: 3...1000, format: { String(format: "%.0f", $0) })
-    print("\n  Nota: estos rangos son los OBJETIVOS DE DISEÑO del plan F7.1c.")
-    print("  Los asserts de PacingTests miden otra cosa: sus cuatro BANDAS se")
-    print("  re-pinearon el 2026-08-21 a la conducta real del rebalance de pacing")
-    print("  (ver Docs/balance-log.md), y aparte assertean el objetivo del dueño")
-    print("  —maxear las seis en 20-30 h activas con <=9 reencarnaciones—, que sí")
-    print("  se cumple. La brecha que queda es la fase fisura: el spec pide 20-30")
-    print("  min activos y el Fisura a 25 la deja en segundos.")
 
     if let csvURL = arguments.csvURL {
         var rows = ["seccion,clave,valor,unidad"]
@@ -349,6 +422,9 @@ do {
             if let growth = floor.hireCostGrowthOverride {
                 rows.append("knob,\(floor.id)_hireCostGrowth,\(growth),")
             }
+        }
+        if arguments.contract {
+            rows += contractCSVRows(report: report, arguments: arguments, config: config)
         }
         try (rows.joined(separator: "\n") + "\n").write(to: csvURL, atomically: true, encoding: .utf8)
         print("\n  CSV escrito en \(csvURL.path)")

@@ -53,7 +53,7 @@ extension PacingSimulator {
             self.draws = ExpectedDraws(seed: seedFraction)
             guard let ads else { return }
             nextMattressAt = ads.treasures.map { $0.firstTreasureAfterSeconds > 0 ? $0.firstTreasureAfterSeconds : .infinity } ?? .infinity
-            nextAdBreakAt = ads.adBreakIntervalSeconds > 0 ? ads.adBreakIntervalSeconds : .infinity
+            nextAdBreakAt = ads.adBreakIntervalSeconds > 0 && !ads.adBreakPrizes.isEmpty ? ads.adBreakIntervalSeconds : .infinity
             mergeAllReadyAt = ads.mergeAllCooldownSeconds > 0 ? ads.mergeAllCooldownSeconds : .infinity
             nextRainWall = ads.packageRain == nil || ads.packageRainCooldownSeconds <= 0 ? .infinity : 0
         }

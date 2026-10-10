@@ -278,6 +278,14 @@ final class GameState {
     /// La lección contextual que está esperando turno o en pantalla, o `nil`.
     /// La escribe `+TutorialTips` (el director) y la suelta `releasePayload`.
     var tutorialTip: TutorialTip?
+    /// Quién está en escena. Lo escribe `+Stage`; la escena lo lee por frame.
+    var stageVisit: StageVisit?
+    /// El popup de quien está en escena (`+Visitors`).
+    var visitorPopup: VisitorPopup?
+    /// El popup de un chip de evento (`+Events`, T4).
+    var eventPopup: EventPopup?
+    /// El reto de toques en curso (`+Visitors`).
+    var stageChallenge: StageChallenge?
 
     // MARK: Celebraciones
 
@@ -330,6 +338,8 @@ final class GameState {
     /// Era `private(set)`. Lo mutan los seis dominios: cada acción del jugador
     /// escribe el estado autoritativo y ninguno vive ya en este archivo.
     @ObservationIgnored var player: PlayerState?
+    /// Los relojes y pendientes del escenario (`+Stage`). No dibujan nada.
+    @ObservationIgnored var stageRuntime = StageRuntime()
     /// La torre en memoria (pisos/slots). No se serializa: se reconstruye por
     /// reconciliación desde `run.units` en cada carga.
     /// Era `private(set)` por el mismo motivo que `player`.

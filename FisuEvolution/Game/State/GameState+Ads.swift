@@ -147,7 +147,7 @@ extension CelebrationKind {
         switch self {
         case .boardCelebration, .chestOpening, .skinAward, .specialDrop, .dailyReward, .careerChoice:
             true
-        case .offlineEarnings, .eventBanner, .achievements, .towerNotice, .tutorialTip, .cinematic:
+        case .offlineEarnings, .eventBanner, .visitorEncounter, .achievements, .towerNotice, .tutorialTip, .cinematic:
             false
         }
     }

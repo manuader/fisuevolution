@@ -18,4 +18,8 @@ struct AssetsManifest: Codable, Sendable, Equatable {
     let characters: [String: CharacterAsset]
     let backgrounds: [String: String]
     let ui: [String: String]
+    /// Las poses de los visitantes (`npcs.atlas`): la canónica de los 8 nuevos y
+    /// `_talk`/`_action`/`_face`. La sección la crea `process_dropbox.py` con el
+    /// primer visitante integrado; hasta entonces no está y todo cae a su respaldo.
+    var npcs: [String: String]? = nil
 }

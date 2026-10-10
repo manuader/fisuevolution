@@ -8,6 +8,7 @@ extension GameState {
     func advanceEngagement(delta: TimeInterval) {
         advanceEvents(delta: delta)
         advancePackages(delta: delta)
+        advanceStage(delta: delta)
     }
 
     #if DEBUG

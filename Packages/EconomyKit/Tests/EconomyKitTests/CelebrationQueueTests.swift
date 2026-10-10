@@ -353,4 +353,21 @@ struct CelebrationQueueTests {
             #expect(kind.priority >= 1)
         }
     }
+
+    @Test("la entrada de un visitante es un turno corto y salteable, a la altura de los avisos")
+    func visitorEncounterIsAShortSkippableTurn() {
+        #expect(CelebrationKind.visitorEncounter.priority == 5)
+        #expect(CelebrationKind.visitorEncounter.timeout == 10)
+        #expect(CelebrationKind.visitorEncounter.isSkippable)
+    }
+
+    @Test("un reveal pasa antes que la entrada de un visitante")
+    func boardCelebrationGoesBeforeAVisitor() {
+        var queue = CelebrationQueue()
+        queue.enqueue(.towerNotice)
+        queue.enqueue(.visitorEncounter)
+        queue.enqueue(.boardCelebration)
+        queue.finish(.towerNotice)
+        #expect(queue.current == .boardCelebration)
+    }
 }

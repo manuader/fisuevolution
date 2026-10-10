@@ -73,6 +73,7 @@ extension GameState {
         if let event = activeEvent, event.id != announcedEventID {
             celebrations.enqueue(.eventBanner)
         }
+        if boardIsVisibleForChanges, stageVisit?.phase == .entering { celebrations.enqueue(.visitorEncounter) }
         if tutorialTip != nil { celebrations.enqueue(.tutorialTip) }
         if cinematic != nil { celebrations.enqueue(.cinematic) }
         if boardIsVisibleForChanges, !pendingBoardChanges.isEmpty || typePendingReveal != nil {
@@ -197,6 +198,10 @@ extension GameState {
         case .cinematic:
             // Fin del video, "Saltar" y watchdog cuentan igual: la pantalla ya fue suya.
             recordCinematicSeen()
+        case .visitorEncounter:
+            // Las tres salidas —la escena que avisa que llegó, el toque que saltea y
+            // el watchdog— pasan por acá: llega igual, una sola vez.
+            settleStageArrival()
         case .offlineEarnings, .dailyReward,
              .careerChoice, .skinAward, .specialDrop, .chestOpening:
             break

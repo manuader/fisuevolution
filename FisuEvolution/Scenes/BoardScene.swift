@@ -14,6 +14,9 @@ final class BoardScene: SKScene {
     /// Overlay fijo a la cámara: reveal, flash y textos no se quedan atrás al
     /// cambiar de piso.
     private let cameraOverlay = SKNode()
+    /// Los visitantes y presentadores (PLAN-v2 E4). Vive en su colaborador: la
+    /// escena sólo lo adjunta, lo ubica, lo actualiza y le pasa los toques.
+    private lazy var stage = StageController(gameState: gameState)
 
     /// Campo de juego (estilo Cow Evolution): fondo de escena + personajes
     /// parados en anclas orgánicas — sin grilla visible.
@@ -313,6 +316,7 @@ final class BoardScene: SKScene {
         addChild(fieldNode)
         cameraNode.addChild(cameraOverlay)
         addChild(cameraNode)
+        stage.attach(to: cameraOverlay)
         camera = cameraNode
     }
 
@@ -378,6 +382,7 @@ final class BoardScene: SKScene {
             abortBoardCelebration()
         }
         startBoardCelebrationIfItsTurn()
+        stage.update(delta: delta, reduceMotion: Self.prefersReducedMotion)
         refreshCrowdDepth()
         updateFTUEHint()
         publishTutorialSpotlight()
@@ -738,6 +743,9 @@ final class BoardScene: SKScene {
         // eslabón) el toque no juega: si no, el jugador arrastraría al par a
         // mitad del gesto.
         guard !tapDuringCelebration() else { return }
+
+        // El que está en escena se toca antes que la multitud: está adelante.
+        if stage.handleTap(at: touch.location(in: stage.layer)) { return }
 
         guard let node = characterNode(at: touch.location(in: self)) else {
             let point = touch.location(in: self)
@@ -1613,6 +1621,7 @@ final class BoardScene: SKScene {
         renderPlacements(content: content)
         renderAnchoredSpecials(content: content)
         renderLockedFloorOverlay()
+        stage.layout(sceneSize: size, bottomInset: Self.bottomInset, cellSize: cellSize)
     }
 
     /// El special bajo el dedo, si hay: los nodos llevan `special.<id>` de

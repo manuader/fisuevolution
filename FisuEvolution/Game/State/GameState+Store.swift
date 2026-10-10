@@ -19,6 +19,8 @@ struct SkinCatalogRow: Identifiable, Equatable {
         /// de StoreKit — la vista le pide el precio a `StoreManager`, porque el
         /// precio real depende de la tienda del jugador y no puede vivir acá.
         case purchasable(productID: String)
+        /// Skin que se compra con ORO (`oroPrice` en `skins.json`) y todavía no tenés.
+        case oroPurchasable(price: Int)
     }
 
     /// El id de la skin del catálogo, o `"base"` para la apariencia original.
@@ -186,6 +188,9 @@ extension GameState {
         }
         if let condition = milestoneConditionText(for: entry) {
             return .milestoneLocked(conditionText: condition)
+        }
+        if let price = content?.skins.oroPrice(of: entry.id) {
+            return .oroPurchasable(price: price)
         }
         if let productID = SkinProductIndex.productIDBySkinID[entry.id] {
             return .purchasable(productID: productID)
@@ -368,6 +373,33 @@ extension GameState {
     /// ya se re-evalúa contra `skinSelectionVersion`.
     var anySkinEverEquipped: Bool {
         player?.meta.activeSkinByType.isEmpty == false
+    }
+
+    /// Compra con ORO una pinta de `skins.json`: cobra y entrega en un solo paso
+    /// sobre la partida en memoria, con un solo guardado. Una segunda llamada ve
+    /// la primera (`alreadyOwned`) y no cobra. Se equipa en Pintas o en la ficha,
+    /// como cualquier otra: la tienda vende, no viste.
+    @discardableResult
+    func buySkinWithOro(skinID: String) -> OroShopOutcome {
+        guard let content, var player, let price = content.skins.oroPrice(of: skinID) else { return .unavailable }
+        do {
+            try OroShop.purchaseSkin(skinID, price: price, state: &player)
+        } catch OroShop.SkinPurchaseError.cantAfford {
+            return .refused(.cantAfford)
+        } catch {
+            return .unavailable
+        }
+        self.player = player
+        skinSelectionVersion &+= 1
+        effectsVersion += 1
+        evaluateAchievements()
+        audio?.play(.coin)
+        refreshProjections()
+        saveTask?.cancel()
+        saveTask = nil
+        Task { await persistNow() }
+        Log.economy.info("oro shop: skin \(skinID) for \(price) ORO")
+        return .bought
     }
 
     func equipSkin(id skinID: String?, forCharacterType typeID: String) {

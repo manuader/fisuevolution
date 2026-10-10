@@ -199,7 +199,7 @@ struct SkinSilhouetteTests {
     private func enSilueta(_ state: SkinCatalogRow.State) -> Bool {
         switch state {
         case .equipped, .owned: false
-        case .milestoneLocked, .purchasable: true
+        case .milestoneLocked, .purchasable, .oroPurchasable: true
         }
     }
 
@@ -212,6 +212,7 @@ struct SkinSilhouetteTests {
     @Test("lo que está a la venta también se esconde: es lo que se quiere vender")
     func loPagoSeEsconde() {
         #expect(enSilueta(.purchasable(productID: "com.fisuevolution.iap.skins_diamante")))
+        #expect(enSilueta(.oroPurchasable(price: 450)))
         #expect(enSilueta(.milestoneLocked(conditionText: "Maxeá todas las mejoras")))
     }
 }

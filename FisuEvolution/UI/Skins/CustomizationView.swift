@@ -275,8 +275,10 @@ struct CustomizationView: View {
             atlas: asset?.atlas,
             baseKey: asset?.key,
             price: price(for: row),
+            oroBalance: gameState.player?.meta.oro ?? 0,
             equip: { equip(row, on: type.id) },
-            buy: { buy(row) }
+            buy: { buy(row) },
+            buyWithOro: { gameState.buySkinWithOro(skinID: row.id) }
         )
         // La manito sobre la pinta sin estrenar, SOLO hasta que el jugador se
         // ponga la primera (corrección del dueño, 2026-08-21: donde haya que
@@ -370,8 +372,10 @@ private struct SkinCard: View {
     let baseKey: String?
     /// `displayPrice` de StoreKit, sólo para las que están a la venta.
     let price: String?
+    let oroBalance: Int
     let equip: () -> Void
     let buy: () -> Void
+    let buyWithOro: () -> Void
 
     private static let previewSide: CGFloat = 104
 
@@ -402,7 +406,7 @@ private struct SkinCard: View {
         // los productos llegaban. El estado del catálogo manda sobre el de la red:
         // si es mercadería se ve como mercadería, y lo que falta —el precio— lo
         // dice el badge de abajo.
-        case .purchasable: .plain
+        case .purchasable, .oroPurchasable: .plain
         case .milestoneLocked: .locked
         }
     }
@@ -529,7 +533,7 @@ private struct SkinCard: View {
     private var isSilhouette: Bool {
         switch row.state {
         case .equipped, .owned: false
-        case .milestoneLocked, .purchasable: true
+        case .milestoneLocked, .purchasable, .oroPurchasable: true
         }
     }
 
@@ -563,6 +567,15 @@ private struct SkinCard: View {
         case .milestoneLocked(let conditionText):
             StateBadge(text: conditionText, systemImage: "lock.fill", textAlignment: .center, muted: true)
                 .accessibilityHidden(true)
+        case .oroPurchasable(let price):
+            PricePill(
+                text: String(price),
+                currency: .oro,
+                affordable: oroBalance >= price,
+                identifier: "skins.buyOro.\(row.id)",
+                accessibilityPurpose: Text("skins.buy.ax \(row.displayName)"),
+                action: buyWithOro
+            )
         case .purchasable(let productID):
             if let price {
                 VStack(spacing: Tokens.s4) {
@@ -631,6 +644,7 @@ private struct SkinCard: View {
         case .milestoneLocked(let conditionText): conditionText
         // Sin precio, el valor dice que falta el precio — no que la skin no se
         // venda. Es el mismo texto que muestra el badge, por la misma razón.
+        case .oroPurchasable(let price): String(price)
         case .purchasable:
             [price ?? String(localized: "skins.price.unavailable"), packCaptionText]
                 .compactMap { $0 }

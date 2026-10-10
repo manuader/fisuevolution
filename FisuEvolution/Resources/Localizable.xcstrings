@@ -3359,87 +3359,274 @@
         }
       }
     },
-    "event.aguinaldo.flavor" : {
-      "extractionState" : "stale",
+    "event.aguinaldo.phrase" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bonus paycheck day! Enjoy it: it lasts less than ice cream in January."
+            "value" : "Year-end bonus secured! Enjoy it before inflation eats it."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Llegó el aguinaldo! Disfrutalo: dura menos que un helado en enero."
+            "value" : "¡Aguinaldo conseguido! Disfrutalo antes de que se licúe."
           }
         }
       }
     },
-    "event.blanqueo.flavor" : {
-      "extractionState" : "stale",
+    "event.aguinaldo.title" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Capital amnesty: a high-tier character shows up that was \"totally declared all along\"."
+            "value" : "Year-end bonus"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Blanqueo de capitales: apareció un personaje high-tier que \"siempre estuvo declarado\"."
+            "value" : "Aguinaldo"
           }
         }
       }
     },
-    "event.cayo_mercado_pago.flavor" : {
-      "extractionState" : "stale",
+    "event.apagon.phrase" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The payment app is down. Nobody can pay for anything. Everything costs double in cash."
+            "value" : "Blackout in the whole neighborhood! Light candles by tapping your workers."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Se cayó Mercado Pago. Nadie puede pagar nada. Todo sale el doble en efectivo."
+            "value" : "¡Se cortó la luz en todo el barrio! Prendé velitas tocando a tus empleados."
           }
         }
       }
     },
-    "event.corralito.flavor" : {
-      "extractionState" : "stale",
+    "event.apagon.title" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Corralito! Your coins are right there… you just can't touch them. Sound familiar?"
+            "value" : "Blackout"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Corralito! Tus coins están ahí… pero no las podés tocar. ¿Te suena?"
+            "value" : "Apagón"
           }
         }
       }
     },
-    "event.devaluacion.flavor" : {
-      "extractionState" : "stale",
+    "event.blanqueo.phrase" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Surprise devaluation: your money is worth half. Relax, you've trained for this."
+            "value" : "Capital amnesty: a top worker showed up who was totally declared all along."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Devaluación sorpresa: tu plata vale la mitad. Tranqui, ya estás entrenado."
+            "value" : "Blanqueo de capitales: apareció un empleado top que siempre estuvo declarado."
+          }
+        }
+      }
+    },
+    "event.blanqueo.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capital amnesty"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blanqueo"
+          }
+        }
+      }
+    },
+    "event.campeones.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WE'RE THE CHAMPIONS!! Everybody's celebrating and the till is multiplying."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡¡SALIMOS CAMPEONES!! Todo el mundo festeja y la caja se multiplica."
+          }
+        }
+      }
+    },
+    "event.campeones.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We're the champions!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Salimos campeones!"
+          }
+        }
+      }
+    },
+    "event.cepo.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Currency clamp: hiring costs more. But a guy shows up who swaps on the black market."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cepo cambiario: contratar sale más caro. Pero aparece un señor que cambia al blue."
+          }
+        }
+      }
+    },
+    "event.cepo.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Currency clamp"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cepo cambiario"
+          }
+        }
+      }
+    },
+    "event.corralito.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Express bank freeze: your money's there, you just can't touch it. Sound familiar?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corralito express: tu plata está, pero no la podés tocar. ¿Te suena?"
+          }
+        }
+      }
+    },
+    "event.corralito.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bank freeze"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corralito"
+          }
+        }
+      }
+    },
+    "event.devaluacion.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A small technical adjustment: your money's worth less for a while. It's for your own good."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pequeño ajuste técnico: tu plata vale menos por un rato. Es por tu bien."
+          }
+        }
+      }
+    },
+    "event.devaluacion.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devaluation"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devaluación"
+          }
+        }
+      }
+    },
+    "event.escape.fee %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pay the dues · %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pagar la cuota · %@"
+          }
+        }
+      }
+    },
+    "event.escape.free" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sacarlo"
           }
         }
       }
@@ -3461,70 +3648,376 @@
         }
       }
     },
-    "event.inversion_alienigena.flavor" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aliens are investing in you: x5. They don't get the local economy either, but they're all in."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aliens invierten en vos: x5. No entienden la economía argentina, pero le ponen fichas."
-          }
-        }
-      }
-    },
-    "event.plan_platita.flavor" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan Platita just dropped! Printing happiness at x3. Don't ask where it comes from."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Cayó el Plan Platita! Imprimimos alegría x3. No preguntes de dónde sale."
-          }
-        }
-      }
-    },
-    "event.startup_comprada.cash" : {
+    "event.feriado_puente.phrase" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A big tech just acquired you! Nobody to promote, so they paid you in cash."
+            "value" : "Long weekend by decree: every tap is worth more. Resting is working."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Te compró una big tech! Nadie para ascender, así que te pagaron en efectivo."
+            "value" : "Feriado puente por decreto: cada toque vale más. Descansar es trabajar."
           }
         }
       }
     },
-    "event.startup_comprada.flavor" : {
+    "event.feriado_puente.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A big tech just acquired you! Hoodie on: one of your workers evolves for free."
+            "value" : "Long weekend"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¡Te compró una big tech! Ponete el hoodie: uno de tus empleados evoluciona gratis."
+            "value" : "Feriado puente"
+          }
+        }
+      }
+    },
+    "event.hiperinflacion.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Controlled hyperinflation: hiring costs more, but the till pays more."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiperinflación controlada: contratar sale más caro, pero la caja rinde más."
+          }
+        }
+      }
+    },
+    "event.hiperinflacion.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hyperinflation"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hiperinflación"
+          }
+        }
+      }
+    },
+    "event.home_banking.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Online banking is down! Cash only today: hiring costs more."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Se cayó el home banking! Hoy sólo efectivo: contratar sale más caro."
+          }
+        }
+      }
+    },
+    "event.home_banking.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Online banking down"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se cayó el home banking"
+          }
+        }
+      }
+    },
+    "event.inversion_alienigena.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Investors from another galaxy are betting on you. They don't get the local economy."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inversores de otra galaxia apuestan por vos. No entienden la economía argentina."
+          }
+        }
+      }
+    },
+    "event.inversion_alienigena.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alien investment"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inversión alienígena"
+          }
+        }
+      }
+    },
+    "event.liquidacion.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything must go! Hiring is cheaper. Get it while it lasts!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Liquidación total! Contratar sale más barato. ¡Llevá, llevá, que no se repite!"
+          }
+        }
+      }
+    },
+    "event.liquidacion.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything must go"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liquidación total"
+          }
+        }
+      }
+    },
+    "event.lluvia_paquetes.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The gift bags are here! It's raining packages: start picking them up, folks."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Llegaron los bolsones! Lluvia de paquetes: andá recogiendo, muchachos."
+          }
+        }
+      }
+    },
+    "event.lluvia_paquetes.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Package rain"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lluvia de paquetes"
+          }
+        }
+      }
+    },
+    "event.ola_calor.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heat wave! Nobody wants to move: your taps are worth less."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Ola de calor! Nadie quiere moverse: tus toques valen menos."
+          }
+        }
+      }
+    },
+    "event.ola_calor.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heat wave"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ola de calor"
+          }
+        }
+      }
+    },
+    "event.paro_general.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General strike! Not even the parrot is working. Pay the dues or wait for the talks."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Paro general! Hoy no produce ni el loro. Pagá la cuota o esperá que se negocie."
+          }
+        }
+      }
+    },
+    "event.paro_general.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General strike"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paro general"
+          }
+        }
+      }
+    },
+    "event.piquete.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Highway blockade: no packages getting through. I saw it all from my balcony."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piquete en la autopista: no llegan los paquetes. Yo vi todo desde el balcón."
+          }
+        }
+      }
+    },
+    "event.piquete.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Highway blockade"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piquete en la autopista"
+          }
+        }
+      }
+    },
+    "event.plan_platita.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan Platita! We're printing happiness for everyone. Don't ask where it comes from."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Plan Platita! Imprimimos alegría para todos. No preguntes de dónde sale."
+          }
+        }
+      }
+    },
+    "event.plan_platita.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan Platita"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan Platita"
+          }
+        }
+      }
+    },
+    "event.startup_comprada.phrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Breaking news! A big tech just bought your startup. Your best worker evolves for free."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Última hora! Una big tech te compró la startup. Tu mejor empleado evoluciona gratis."
+          }
+        }
+      }
+    },
+    "event.startup_comprada.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startup acquired"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Startup comprada"
           }
         }
       }

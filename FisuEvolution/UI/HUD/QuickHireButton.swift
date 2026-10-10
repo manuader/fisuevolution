@@ -209,11 +209,17 @@ struct QuickHireButton: View {
         } else {
             HStack(spacing: 5) {
                 CoinIcon(size: 20)
-                Text(verbatim: offer.costText)
-                    .font(Tokens.body)
-                    .monospacedDigit()
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
+                VStack(spacing: -2) {
+                    if let list = offer.listCostText {
+                        StrikePrice(text: list,
+                                    color: offer.blocker == nil ? .white.opacity(0.8) : Color("PaletteInk").opacity(0.6))
+                    }
+                    Text(verbatim: offer.costText)
+                        .font(Tokens.body)
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                }
             }
         }
     }

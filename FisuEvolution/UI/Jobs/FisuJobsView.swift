@@ -509,6 +509,7 @@ private struct JobCard: View {
                     // ARGUMENTO de una clave propia (trampa 5). La moneda no va
                     // acá: la pone el componente.
                     accessibilityPurpose: Text("jobs.hire.ax \(row.displayName)"),
+                    strikeText: row.listCostText,
                     action: hire
                 )
             } else if let stateText {

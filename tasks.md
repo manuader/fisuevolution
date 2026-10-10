@@ -477,7 +477,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E4b-T1 | El escenario y su turno | 🔄 | E4a-T10; E3a-T10, E1-T10 | 🔥 GameState, BoardScene; CelebrationQueue, +Celebrations, +Debug | | |
+| E4b-T1 | El escenario y su turno | 🟢 | E4a-T10; E3a-T10, E1-T10 | 🔥 GameState, BoardScene; CelebrationQueue, +Celebrations, +Debug | | |
 | E4b-T2 | Los visitantes en la partida | ⛔ | T1 | catálogo (snapshot); +Engagement, +Debug, DebugPanelView | | no con E5a T6 |
 | E4b-T3 | El chip, el popup y el retrato | ⛔ | T2; E3a-T11, E3b-T4, E3b-T8, E3b-T9 | 🔥 RootView, catálogo; +TutorialTips, TutorialAnchor | | crea `RewardedOfferButton` (lo completa E7b-b T7) |
 | E4b-T4 | Eventos con presentador; adiós al banner | ⛔ | T3 | 🔥 GameState, RootView, catálogo, +Bonus; CelebrationQueue, +Celebrations, ActiveBonus* | | |

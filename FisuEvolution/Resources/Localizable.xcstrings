@@ -11116,6 +11116,108 @@
         }
       }
     },
+    "upgrade.effect.income %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Income %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingresos %@"
+          }
+        }
+      }
+    },
+    "upgrade.effect.lucky %@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lucky %1$@ · Golden %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Premiado %1$@ · Dorado %2$@"
+          }
+        }
+      }
+    },
+    "upgrade.effect.offline %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offline earns %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Offline rinde %@"
+          }
+        }
+      }
+    },
+    "upgrade.effect.prestige %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each ORO adds %@ to your multiplier"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada ORO suma %@ a tu multiplicador"
+          }
+        }
+      }
+    },
+    "upgrade.effect.spawn %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ on hiring"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ en contrataciones"
+          }
+        }
+      }
+    },
+    "upgrade.effect.tap %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each tap %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada toque %@"
+          }
+        }
+      }
+    },
     "upgrade.income.title" : {
       "extractionState" : "stale",
       "localizations" : {

@@ -5,13 +5,13 @@ import Foundation
 /// compartidos"): visitantes, eventos y, después, ruleta, colchón, tienda y
 /// ofertas pasan por acá. `multiplier` es el "×2 con video".
 extension GameState {
-    /// Lo que este punto ya sabe dar. E5 suma `.package` y `.wheelSpin`; E6,
+    /// Lo que este punto ya sabe dar. E5 sumó `.package` y suma `.wheelSpin`; E6,
     /// `.autoTap`, los multiplicadores del próximo offline y diario y `.extraSlots`.
     /// Un guion o un evento que da algo de afuera de esta lista **no se ofrece**
     /// (`VisitorScheduler`, `eventIsApplicable`): mejor que no venga a que prometa
     /// y no cumpla.
     static let grantableRewardKinds: Set<RewardSpec.Kind> = [
-        .coinsSeconds, .oro, .skinChest, .modifier, .clearBoostCooldowns, .eventImmunity,
+        .coinsSeconds, .oro, .skinChest, .modifier, .clearBoostCooldowns, .eventImmunity, .package,
     ]
 
     /// Un momento en que algo puede aparecer solo sin pisar al jugador: el tablero
@@ -76,7 +76,9 @@ extension GameState {
             player.run.activeModifiers.append(ActiveModifier(
                 effect: .eventImmunity, magnitude: 1, expiresAt: now + seconds, sourceKey: source
             ))
-        case .package, .wheelSpin, .autoTap, .nextOfflineMultiplier, .nextDailyMultiplier, .extraSlots:
+        case .package(let count):
+            player.meta.engagement.packages.waiting += count
+        case .wheelSpin, .autoTap, .nextOfflineMultiplier, .nextDailyMultiplier, .extraSlots:
             return 0
         }
         self.player = player

@@ -69,12 +69,12 @@ struct EventsRuntimeTests {
         #expect(!gameState.eventIsApplicable(try event("startup_comprada", in: gameState)))
     }
 
-    @Test("sin pasivo, el Aguinaldo no aplica; los paquetes esperan a E5")
+    @Test("sin pasivo, el Aguinaldo no aplica; los paquetes ya se entregan (E5)")
     func applicability() async throws {
         let gameState = await makeGameState()
         #expect(!gameState.eventIsApplicable(try event("aguinaldo", in: gameState)))
-        #expect(!gameState.eventIsApplicable(try event("lluvia_paquetes", in: gameState)))
-        #expect(!gameState.eventIsApplicable(try event("piquete", in: gameState)))
+        #expect(gameState.eventIsApplicable(try event("lluvia_paquetes", in: gameState)))
+        #expect(gameState.eventIsApplicable(try event("piquete", in: gameState)))
         #expect(gameState.eventIsApplicable(try event("devaluacion", in: gameState)))
     }
 

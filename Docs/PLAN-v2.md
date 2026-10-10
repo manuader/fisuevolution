@@ -791,7 +791,7 @@ pergamino, pills caramelo—, iconografía y paleta del juego):
 > `Docs/SESION-2026-10-10-v2-e4.md` (E4a) y `Docs/SESION-2026-10-10-v2-e4b.md` (E4b). **Desvíos:** ninguna de las
 > dudas con default cambió (el dueño no contestó ninguna); el retrato del popup salió con `AnimatedArtView` y no con
 > un `LoopingPortraitView` aparte; el escenario es de una sola entrada y el banner de eventos se fue en E4b T4.
-> Pendiente: `completo` de la ola r29 (`COMPLETO_PENDIENTE`) y los escenarios a mano en device (🔒 del dueño).
+> `completo` de `integ-r29` sobre `7c494ea`: VERDE (EK 845 · unit 1417 · UI 129 + 2 rojos por orden, aislados verdes). Pendiente: los escenarios a mano en device (🔒 del dueño).
 
 - **Motor puro** (`EconomyKit/Visitors/`):
   - `VisitorsConfig` (definición, guiones por tipo y condiciones).
@@ -860,7 +860,7 @@ pergamino, pills caramelo—, iconografía y paleta del juego):
 > **Estado (2026-10-10, relevo 29): E5a (el motor) hecha, E5b (lo que se ve) en curso.** El cierre de E5a es
 > `Docs/SESION-2026-10-10-v2-e5a.md`. **Desvíos:** ninguna de las dudas con default cambió; `LootBoxGate` nació en E5
 > (el plan lo ponía en E6) y el paquete entra por el embudo de E1 y no por un `placeGrantedUnit` generalizado.
-> Pendiente: `completo` de la ola r29 (`COMPLETO_PENDIENTE`) y los tres escenarios a mano (🔒 del dueño).
+> `completo` de `integ-r29` sobre `7c494ea`: VERDE (EK 845 · unit 1417 · UI 129 + 2 rojos por orden, aislados verdes). Pendiente: los tres escenarios a mano (🔒 del dueño).
 
 - **Paquete** (`packages.json`, `PackageScheduler`, `PackageRoller`):
   - 1 cada 120 s de juego activo, hasta 2 en espera; sin acumular offline. Los paquetes regalados

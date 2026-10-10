@@ -7,6 +7,7 @@ import Foundation
 extension GameState {
     func advanceEngagement(delta: TimeInterval) {
         advanceEvents(delta: delta)
+        advancePackages(delta: delta)
     }
 
     #if DEBUG
@@ -15,6 +16,9 @@ extension GameState {
     func applyEngagementFixtures(arguments: [String] = ProcessInfo.processInfo.arguments) {
         if let id = Self.fixtureValue("--uitest-event=", in: arguments) {
             debugStartEvent(id: id)
+        }
+        if let count = Self.fixtureValue("--uitest-packages=", in: arguments).flatMap(Int.init) {
+            debugAddPackages(count)
         }
     }
 

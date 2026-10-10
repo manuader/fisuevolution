@@ -184,6 +184,7 @@ extension GameState {
         Log.economy.info("board change dropped: \(change.origin.rawValue)")
         switch change.origin {
         case .rewardedRareUnit: compensateRewardedVideo()
+        case .package: refundPackage()
         case .eventStartup, .eventBlanqueo, .rewardedMergeAll, .career, .debug, .visitor: break
         }
     }
@@ -221,9 +222,11 @@ extension GameState {
 }
 
 private extension BoardChange {
+    /// Lo que el jugador ya gastó al pedirlo; un kill no lo puede perder. El
+    /// paquete se descuenta del buzón al abrirlo, así que también lo es.
     var isPrepaid: Bool {
         switch origin {
-        case .rewardedMergeAll, .rewardedRareUnit, .career: true
+        case .rewardedMergeAll, .rewardedRareUnit, .career, .package: true
         case .eventStartup, .eventBlanqueo, .debug, .visitor: false
         }
     }

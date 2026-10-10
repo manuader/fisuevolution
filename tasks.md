@@ -642,7 +642,7 @@ que toma · commit o rama · nota.
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
-| E7b-b-T1 | La columna, pura | 🔄 | E5b-T2; E2a-T14; E1-T14; E5a-T4…T8; E6a-T6 | 🔥 GameState; BoardChange.swift, +BoardChanges | | (ambigua: ver "Inconsistencias", punto 2) |
+| E7b-b-T1 | La columna, pura | 🟢 | E5b-T2; E2a-T14; E1-T14; E5a-T4…T8; E6a-T6 | 🔥 GameState; BoardChange.swift, +BoardChanges | | (ambigua: ver "Inconsistencias", punto 2) |
 | E7b-b-T2 | Los videos de la columna | ⛔ | T1; E4a-T2, E4a-T8 | — | | |
 | E7b-b-T3 | La columna plegable en pantalla | ⛔ | T2; E3a-T8, E3a-T10, E3a-T11; E5b-T2, E5b-T5; E4b-T3; E6a-T12; E7b-a-T3 | 🔥 RootView, catálogo; StageChips, PrizeChips, TutorialAnchor, ElevatorPanel | | |
 | E7b-b-T4 | La multitud le deja lugar a la columna | ⏭️ | — | — | | el dueño eligió C (plegable) |

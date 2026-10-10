@@ -326,6 +326,22 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Sesión del 2026-10-10 (relevo 23, los cierres) — El `completo` de E8, E13b y E13, y el panel de debug que se comió sus puertas
+
+Un solo `completo --limpio` sobre `bab8a9c` cerró tres épicas (detalle y números en `Docs/SESION-2026-10-10-v2-cierres-r23.md`).
+
+- **Resultado:** EK 796 · unit 1162 · pipeline 89 · pacing-sim (Dios 31,34 h activas) · Release 0 avisos · iPad 4 · SE 2 · store-ui 2. UI: 3 rojos
+  **reales**, todos del mismo bug de debug (abajo); arreglado en `534fd51`, los tres verdes. `store-unit`: 1 rojo (`loadsTheCatalogProducts`, 280 s) que
+  **pasa aislado** (16 verdes): el simulador 18.6 frío bajo carga.
+- **El bug:** E4a T9 sumó el menú "Disparar un evento" en la sección Offline del panel de debug, **arriba** de las puertas de los UI tests, y la `List`
+  perezosa dejó `debug.sheet.open`, `debug.floor.fill` y `debug.quickhire.many` bajo el pliegue (trampa de §7 "las puertas de los tests"). Ahora el menú
+  vive en su propia sección al final y las Cinemáticas bajaron antes de Rendimiento.
+- **E8 T10 (peso):** el Release de la punta pesa **206,8 MB** contra **167,6 MB** de la v1.0.0 (build 4): **+39,3 MB**, bajo el gate de 60 MB (estimado +29): no hay 🔒.
+  Memoria (huella de la app Debug en el SE con la torre entera, durante los viajes del ascensor): **pico 117 MB** (estimaba 168 con fondos de 2048 sin comprimir).
+- **E13 T14 / E13b T11:** §5.7 y compañía ya dicen "las seis" (192 ORO; 348 con `baseCost` 2 en E2b T14); la frase "los cofres de torre se vuelven a cobrar al
+  reencarnar" no estaba en el HANDOFF (sólo en la sesión del relevo 19): queda asentado en §5.11 que los cofres de piso son **una vez por cuenta**.
+  Tres grabaciones del ascensor y la barra para el dueño (build `…/build/grabaciones/` del worktree de los cierres, gitignoreado).
+
 ### Sesión del 2026-10-08 (relevo 9) — La ola G: E1 completa en código, la economía de E2a detrás de perillas y ninguna skin por código
 
 `version-2` quedó en `8cf4e73`. **Progreso: 52 de 167 tareas activas integradas (31,1 %).**
@@ -911,7 +927,7 @@ Lo que un agente necesita saber sin abrir nada:
   multiplicar ×5 su ORO**, más tiempos por piso. Se reescribe en la épica
   E2b. Hasta entonces el test viejo sigue rojo por la misma razón de siempre.
 - **El ORO pasa a ser la moneda premium de todo** (tienda de ORO, ruleta,
-  skins). Las 7 líneas pasan a costar 348. Los packs serán 160/550/1.400 por
+  skins). Las líneas pasan a costar 348 (seis desde E13 T7; el costo base 2 lo pone E2b T14). Los packs serán 160/550/1.400 por
   USD 1,99/4,99/9,99.
 - **La app pasa a universal**: iPad sólo vertical, iOS mínimo 18.
 - **Herramientas nuevas, globales**: harness AVO y skills de documentación.
@@ -1528,8 +1544,8 @@ Lo que hay que saber sin abrirlo:
   `<baseKey>__<skinId>` exige que el id sea el sufijo. A cambio sale gratis lo
   que se quería: la propiedad se guarda POR ID, así que **un único producto
   desbloquea el bundle entero** sin inventar un campo de paquete.
-- **Desbloqueo**: el oro NO se vende (`upgradesMaxed`, las siete mejoras
-  permanentes al tope); el diamante sólo por
+- **Desbloqueo**: el oro NO se vende (`upgradesMaxed`, las seis mejoras
+  permanentes al tope; eran siete hasta E13 T7); el diamante sólo por
   `com.fisuevolution.iap.skins_diamante` (19,99).
 - **La silueta es el argumento de venta**: la ficha esconde TODO lo no
   adquirido, también lo que está a la venta. La tienda las muestra a color a
@@ -2364,6 +2380,17 @@ paréntesis; el porqué completo está en la sesión de cada uno):
    monto viejo ÷ 20 redondeado para arriba, con piso en 1. Pineado en
    `fixedOroAchievementsFundAFifthOfTheRun`.
 
+11. **Los cofres de piso son una vez por cuenta** (E13 T3). `meta.floorChestsAwarded` no entra a `resolveAcrossReset`: reencarnar y volver a subir
+    los mismos pisos **no** da cofres de nuevo; sólo cobra el piso más alto jamás alcanzado. Un veterano v1 que ya reencarnó cobra una última vez (migra
+    `max(meta, run viejo)`). El reset de cuenta lo devuelve a 0. Cualquier texto o sim que diga "se vuelven a cobrar al reencarnar" está mal.
+12. **Maxear son las seis mejoras** (E13 T7): `lucky` ("Toque premiado", 20 niveles, ×1,09) reemplaza a las dos de toque; 192 ORO con `baseCost` 1, 348 con
+    `baseCost` 2 (E2b T14). Dios en 31,34 h activas (decisión del dueño, opción a).
+13. **La Startup y el regalo por video salen de frontera − n** (E13 T2/T6): el regalo nombra a quién llega (frontera − 3, cooldown 14400 s) y la Startup
+    evoluciona dos tiers abajo de la frontera o paga S(300). "Fusionar todo" por video es uno solo, 600 s, en Regalos y en la columna.
+14. **El ascensor es una placa colgante y el viaje sólo ocurre al elegir** (E13b): mantener apretado el ícono del mapa despliega un botón por piso abierto
+    (34–46 pt); se recoge tocando afuera; el viaje dura 2–3 s (0,9 s de fundidos con Reduce Motion) y bajo `--uitest*` es 0 s salvo `--uitest-elevator-ride`.
+    La barra es de **cinco** pestañas; la Tienda vive en el "+" de la moneda y es una pantalla aparte, no una página del paginador.
+
 ---
 
 ## 6. Cómo verificar
@@ -2792,6 +2819,18 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De los cierres (2026-10-10, relevo 23)
+
+- **Una fila nueva en el panel de debug se pone AL FINAL.** La `List` es perezosa: todo lo que crece arriba de `debug.sheet.open`, `debug.floor.fill` o
+  `debug.quickhire.many` los deja bajo el pliegue y para XCUITest no existen (3 rojos en el `completo` de E4a T9, no los vio ningún `tarea`). El comentario
+  del panel ya lo decía; E4a T9 lo ignoró porque nadie corre UI en una `tarea`. Si tocás ese archivo, corré `CharacterSheetUITests` y `QuickHireUITests`.
+- **El `store-unit` del `completo` puede dar un rojo de carga** (`loadsTheCatalogProducts`, 280 s, `loadState == .failed`): aislado pasa. Antes de tocar nada,
+  corrélo solo en un 18.6 recién creado.
+- **Con Reduce Motion prendido, dos UI tests del ascensor no ven la cabina** (`testElViajeTerminaSoloEnElDestino`, `testElBotonDeLaPlacaViajaEnCabina`):
+  el viaje dura 0,9 s de fundidos y el sondeo del test no lo alcanza. Es del test, no del juego; el oráculo corre con Reduce Motion apagado.
+- **El peso se mide contra el Release de la v1 construido aparte** (`git archive v1.0.0-build4` a una carpeta de `build/`, `xcodegen`, `xcodebuild -configuration Release
+  -destination generic/platform=iOS`, `du -sk` del `.app`): no hay un número de referencia guardado en ningún lado.
 
 ### De la ola T (2026-10-09, relevo 22)
 
@@ -4708,6 +4747,9 @@ Anotado por si algún día importa, con su medición:
   las revisiones opus y sus carries, el conflicto de `confirmPrestige`, la tabla de perillas, las trampas del oráculo con otra ruta y del agente que re-entrega).
 - **`Docs/SESION-2026-10-09-v2-relevo-22-ola-t.md`**: el relevo 22 (compartir recableado, la privacidad del ranking, las familias en el catálogo, el motor de visitantes y las ofertas
   en el save; el rojo de `SkinCatalogRowsTests`, las revisiones opus y sus carries, las trampas de `setsid` y de las tareas de EK pura).
+- **`Docs/SESION-2026-10-10-v2-cierres-r23.md`**: el relevo 23, los cierres de E8, E13b y E13 con un solo `completo` (el peso +39 MB, el panel de
+  debug que se comió las puertas, las grabaciones del ascensor). Planes cerrados: `2026-10-08-v2-e8-integracion-arte.md`,
+  `2026-10-08-v2-e13b-ascensor-barra.md` y `2026-10-08-v2-e13-feedback-v1.md`.
 - **`Docs/SESION-2026-10-08-v2-e6.md`**: la respuesta del dueño a la galería (ninguna skin por código).
   - La llegada (las ramas sueltas del relevo 7) y el `completo` VERDE sobre
     `15318a0`, la referencia nueva, con lo que se esperaba al lado.

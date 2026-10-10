@@ -11,6 +11,7 @@ final class ParticlePool {
         case merge
         case evolution
         case coins
+        case confetti
     }
 
     /// El toggle de Ajustes (spec §10.4). `nonisolated` porque lo lee también el
@@ -125,6 +126,26 @@ final class ParticlePool {
             emitter.particleScaleSpeed = -0.4
             emitter.particleColor = Palette.yellow
             emitter.particleColorBlendFactor = 1
+        case .confetti:
+            emitter.numParticlesToEmit = 26
+            emitter.particleBirthRate = 120
+            emitter.particleLifetime = 2.2
+            emitter.particleSpeed = 60
+            emitter.particleSpeedRange = 40
+            emitter.emissionAngle = -.pi / 2
+            emitter.emissionAngleRange = .pi / 3
+            emitter.yAcceleration = -140
+            emitter.particleRotationRange = .pi * 2
+            emitter.particleRotationSpeed = 3
+            emitter.particleScale = 0.45
+            emitter.particleScaleRange = 0.2
+            emitter.particleAlphaSpeed = -0.35
+            emitter.particleColorBlendFactor = 1
+            emitter.particleColorSequence = SKKeyframeSequence(
+                keyframeValues: [Palette.yellow, SKColor(named: "PalettePink") ?? .magenta,
+                                 SKColor(named: "PaletteBlue") ?? .cyan, SKColor(named: "PaletteGreen") ?? .green],
+                times: [0, 0.33, 0.66, 1]
+            )
         }
         return emitter
     }

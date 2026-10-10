@@ -64,6 +64,8 @@ final class AudioManager {
         case eventAlien = "sfx_ev_alien"
         case eventCorralito = "sfx_ev_corralito"
         case eventAguinaldo = "sfx_ev_aguinaldo"
+        /// El corte de luz del Apagón (E4b).
+        case blackout = "sfx_blackout"
     }
 
     /// El acento con que suena un evento al caer, por su id de `events.json`.
@@ -77,6 +79,7 @@ final class AudioManager {
         case "inversion_alienigena": .eventAlien
         case "corralito": .eventCorralito
         case "aguinaldo": .eventAguinaldo
+        case "apagon": .blackout
         default: .event
         }
     }

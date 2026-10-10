@@ -25,7 +25,11 @@ extension GameState {
     func oroShopContext(chanceAllowed: Bool, now: Date = Date()) -> OroShop.Context? {
         guard let content, let player, let tower else { return nil }
         let reached = Set(content.floorTable.floors.prefix(player.meta.stats.maxFloorOrdinalEver + 1).map(\.id))
-        let pairs = BoardChangePlanner.planMergeAll(
+        // El plan mira el tablero sin lo ya encolado: con una fusión pendiente
+        // volvería a ver los mismos pares y los cobraría de nuevo.
+        let mergeQueued = (pendingBoardChanges + [inFlightBoardChange].compactMap { $0 })
+            .contains { $0.origin == .oroShop || $0.chain != nil }
+        let pairs = mergeQueued ? 0 : BoardChangePlanner.planMergeAll(
             floorOrdinal: visibleFloorOrdinal, state: player, tower: tower, tiers: content.tiers,
             floorTable: content.floorTable, config: content.economy, origin: .oroShop
         ).count
@@ -60,7 +64,7 @@ extension GameState {
     /// Las filas de la tienda, en el orden del catálogo y ya cotizadas.
     func oroShopRows(chanceAllowed: Bool, now: Date = Date()) -> [OroShopRow] {
         guard let content, let player, let context = oroShopContext(chanceAllowed: chanceAllowed, now: now) else { return [] }
-        return OroShop.visibleItems(catalog: content.oroShop, context: context).map {
+        return OroShop.visibleItems(catalog: content.oroShop, context: context).filter(Self.canDeliver).map {
             OroShopRow(item: $0, quote: OroShop.quote($0, state: player, context: context))
         }
     }
@@ -95,7 +99,8 @@ extension GameState {
         effectsVersion += 1
         audio?.play(.coin)
         refreshProjections()
-        scheduleSave()
+        saveTask?.cancel()
+        saveTask = nil
         Task { await persistNow() }
         Log.economy.info("oro shop: \(id) for \(purchase.price) ORO")
         return .bought

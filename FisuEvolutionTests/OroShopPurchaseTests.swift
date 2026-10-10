@@ -224,4 +224,29 @@ struct OroShopPurchaseTests {
         #expect(gameState.buyOroShopItem(id: "no_existe", chanceAllowed: true) == .unavailable)
         #expect(gameState.player?.meta.oro == 5_000)
     }
+
+    @Test("un segundo toque de Fusionar todo, con los pares ya encolados, no cobra ni duplica")
+    func mergeAllDoubleTap() async throws {
+        let gameState = await rich()
+        gameState.player?.run.units = ["homeless": 4]
+        gameState.reconcileTower()
+        #expect(gameState.buyOroShopItem(id: "merge_all", chanceAllowed: true) == .bought)
+        let queued = gameState.pendingBoardChanges.count + (gameState.inFlightBoardChange == nil ? 0 : 1)
+        #expect(gameState.buyOroShopItem(id: "merge_all", chanceAllowed: true) == .refused(.nothingToDo))
+        #expect(gameState.player?.meta.oro == 4_980)
+        #expect(gameState.pendingBoardChanges.count + (gameState.inFlightBoardChange == nil ? 0 : 1) == queued)
+    }
+
+    @Test("el día de la tienda es gregoriano aunque el calendario del sistema no lo sea")
+    func gregorianDay() async throws {
+        let gameState = await rich()
+        let date = Date(timeIntervalSince1970: 1_791_000_000)
+        var buddhist = Calendar(identifier: .buddhist)
+        buddhist.timeZone = .current
+        var gregorian = Calendar(identifier: .gregorian)
+        gregorian.timeZone = .current
+        let today = try #require(gameState.oroShopContext(chanceAllowed: true, now: date)?.today)
+        #expect(today == DailyRewardManager.dayString(for: date, calendar: gregorian))
+        #expect(today != DailyRewardManager.dayString(for: date, calendar: buddhist))
+    }
 }

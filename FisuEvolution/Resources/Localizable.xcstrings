@@ -13992,6 +13992,40 @@
         }
       }
     },
+    "tutorial.character_sheet.hold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press and hold a worker to see their card."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantené apretado a un empleado para ver su ficha."
+          }
+        }
+      }
+    },
+    "tutorial.character_sheet.inside" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Here you see your worker, change their outfit, or let them go."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acá ves a tu empleado, le cambiás la pinta o lo despedís."
+          }
+        }
+      }
+    },
     "tutorial.confirm" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14021,6 +14055,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Vamos!"
+          }
+        }
+      }
+    },
+    "tutorial.floor_full.explain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This floor is full. Merge two of a kind to make room, or move up a floor."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este piso está lleno. Fusioná dos iguales para hacer lugar, o subí a otro piso."
+          }
+        }
+      }
+    },
+    "tutorial.floor_swipe.explain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can also swipe the board up or down to change floors."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "También podés deslizar el tablero para arriba o para abajo y cambiar de piso."
           }
         }
       }
@@ -14059,6 +14127,142 @@
         }
       }
     },
+    "tutorial.org_chart.card" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Org Chart shows who's in charge, how many of each you have, and how much each one earns."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En el Organigrama ves quién manda, cuántos tenés de cada uno y cuánto produce cada uno."
+          }
+        }
+      }
+    },
+    "tutorial.org_chart.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your tower has a pecking order now. Open the Menu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu torre ya tiene jerarquías. Abrí el Menú."
+          }
+        }
+      }
+    },
+    "tutorial.passive.done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done: now they earn on their own, even with the game closed."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo: ahora gana solo, incluso con el juego cerrado."
+          }
+        }
+      }
+    },
+    "tutorial.passive.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can afford something important. Open Upgrades."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Te alcanza para algo importante. Abrí Mejoras."
+          }
+        }
+      }
+    },
+    "tutorial.passive.unlock" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlock passive income: this worker will earn even when you don't tap."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desbloqueá el ingreso pasivo: este empleado va a producir aunque no lo toques."
+          }
+        }
+      }
+    },
+    "tutorial.prestige.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap here to see how much ORO you'd get."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá acá para ver cuánto ORO te llevás."
+          }
+        }
+      }
+    },
+    "tutorial.prestige.oro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can reincarnate! You start over, but with ORO that multiplies everything forever."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Ya podés reencarnar! Empezás de cero, pero con ORO que multiplica todo para siempre."
+          }
+        }
+      }
+    },
+    "tutorial.prestige_gate.explain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To reincarnate you need to reach your previous life's top character. The button tells you who."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para reencarnar tenés que llegar al personaje más alto de tu vida anterior. El botón te dice a quién."
+          }
+        }
+      }
+    },
     "tutorial.progress.label" : {
       "localizations" : {
         "en" : {
@@ -14071,6 +14275,91 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paso del tutorial"
+          }
+        }
+      }
+    },
+    "tutorial.quick_hire.blocked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If the floor is full or you're short on cash, the button turns gray and tells you why. It never disappears."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si el piso está lleno o no te alcanza, el botón se pone gris y te dice por qué. Nunca desaparece."
+          }
+        }
+      }
+    },
+    "tutorial.quick_hire.hold" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now press and hold it: you pick who to hire."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora mantenelo apretado: elegís vos a quién contratar."
+          }
+        }
+      }
+    },
+    "tutorial.quick_hire.pin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap a face to pin it. The button will always hire that one."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá una cara para fijarla. El botón va a contratar siempre a ése."
+          }
+        }
+      }
+    },
+    "tutorial.quick_hire.tap" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This button hires the best worker you can afford. Tap it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este botón contrata al mejor empleado que te alcanza. Tocalo."
+          }
+        }
+      }
+    },
+    "tutorial.quick_hire.unpin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold the button and tap the pinned face to unpin it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantené el botón y tocá la cara fijada para soltarla."
           }
         }
       }
@@ -14088,6 +14377,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terminar repaso"
+          }
+        }
+      }
+    },
+    "tutorial.staffed_floors.bonus" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each running floor adds a bonus to everything you earn. Open the map: the top shows how many you have and what they add."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada piso en marcha suma un bono a todo lo que ganás. Abrí el mapa: arriba ves cuántos tenés y cuánto suman."
+          }
+        }
+      }
+    },
+    "tutorial.staffed_floors.floor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A floor with every spot filled is “up and running”."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un piso con todos sus lugares ocupados está «en marcha»."
           }
         }
       }
@@ -14364,40 +14687,6 @@
         }
       }
     },
-    "tutorial.tip.prestige" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reincarnate just lit up: you start over, but with GOLD that multiplies everything forever."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se encendió Reencarnar: arrancás de cero, pero con ORO que multiplica todo para siempre."
-          }
-        }
-      }
-    },
-    "tutorial.tip.quickhire" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This button hires the best one you have unlocked, no menus. Try it."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Este botón contrata al mejor que tengas habilitado, sin abrir nada. Probalo."
-          }
-        }
-      }
-    },
     "tutorial.tip.share" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14466,23 +14755,6 @@
         }
       }
     },
-    "tutorial.tip.upgrades" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You can afford an upgrade! Open Upgrades and boost your earnings."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Te alcanza para una mejora! Entrá a Mejoras y potenciá tus ganancias."
-          }
-        }
-      }
-    },
     "tutorial.tip.visitor" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14530,6 +14802,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Tenés giros de la Ruleta! Están acá, en la columna."
+          }
+        }
+      }
+    },
+    "tutorial.upgrades.buy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buy a level: it multiplies everything that character makes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprá un nivel: multiplica todo lo que produce ese personaje."
+          }
+        }
+      }
+    },
+    "tutorial.upgrades.done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every level adds up. Check back often: there's always one to buy."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada nivel suma. Volvé seguido: siempre hay alguna para comprar."
+          }
+        }
+      }
+    },
+    "tutorial.upgrades.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can afford an upgrade. Open Upgrades."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya te alcanza para una mejora. Abrí Mejoras."
           }
         }
       }

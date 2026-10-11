@@ -17,6 +17,8 @@ public struct ResetPlan: Sendable, Equatable {
         public let skinsLost: Int
         public let keepsRemoveAds: Bool
         public let keptSkins: Int
+        /// Hay un ×3 (offline o diario) comprado y todavía sin usar: el reset lo pierde.
+        public let losesPendingTriple: Bool
     }
 
     public let summary: Summary
@@ -52,7 +54,9 @@ public struct ResetPlan: Sendable, Equatable {
             achievements: old.unlockedAchievements.count,
             skinsLost: lostSkins.count,
             keepsRemoveAds: old.removedAds,
-            keptSkins: old.ownedSkins.count
+            keptSkins: old.ownedSkins.count,
+            losesPendingTriple: old.engagement.shop.pendingOfflineMultiplier != nil
+                || old.engagement.shop.pendingDailyMultiplier != nil
         )
         return ResetPlan(summary: summary, result: result)
     }

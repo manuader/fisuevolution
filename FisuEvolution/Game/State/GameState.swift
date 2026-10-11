@@ -282,6 +282,11 @@ final class GameState {
     /// El reloj del paso, el ritmo y la página abierta: cambian por frame, así que no se
     /// observan.
     @ObservationIgnored var tutorialEngine = TutorialEngine()
+    /// Dónde viven las banderas de la partida (`TutorialFlags`, `tabs.new`). En la app es
+    /// `.standard`; un test que cierra el núcleo inyecta uno propio
+    /// (`UserDefaults.isolatedForTest()`) para no dejarle `tutorial.v2.completed` al host ni
+    /// depender del orden.
+    @ObservationIgnored var flagDefaults: UserDefaults = .standard
     /// Quién está en escena. Lo escribe `+Stage`; la escena lo lee por frame.
     var stageVisit: StageVisit?
     /// El popup de quien está en escena (`+Visitors`).

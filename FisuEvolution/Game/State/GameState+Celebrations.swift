@@ -108,14 +108,14 @@ extension GameState {
     /// de la v1 lo trae hecho por la migración (`applyTutorialMigration`, que
     /// corre antes) y no lo ve otra vez.
     func startTutorialCoreIfPending() {
-        if !TutorialFlags.coreCompleted() {
+        if !TutorialFlags.coreCompleted(in: flagDefaults) {
             beginTutorialPhase()
         } else {
             // La lección de Tienda espera a la SEGUNDA sesión con la fase
             // hecha ("una vez, suave": nunca en el mismo arranque en el que el
             // jugador recién aprendió a jugar).
-            let sessions = UserDefaults.standard.integer(forKey: TutorialFlags.sessionsAfterCoreKey)
-            UserDefaults.standard.set(sessions + 1, forKey: TutorialFlags.sessionsAfterCoreKey)
+            let sessions = flagDefaults.integer(forKey: TutorialFlags.sessionsAfterCoreKey)
+            flagDefaults.set(sessions + 1, forKey: TutorialFlags.sessionsAfterCoreKey)
         }
     }
 
@@ -139,7 +139,7 @@ extension GameState {
     func finishTutorialCore() {
         guard tutorialPhaseActive else { return }
         tutorialPhaseActive = false
-        TutorialFlags.setCoreCompleted(true)
+        TutorialFlags.setCoreCompleted(true, in: flagDefaults)
         if tutorialRun?.script == .core { tutorialRun = nil }
         tutorialBoardTarget = nil
         celebrations.restrict(to: nil)
@@ -209,10 +209,11 @@ extension GameState {
             // escena, el tap que saltea y el watchdog que destraba.
             boardCelebrationShowsSomethingNew = false
         case .tutorialTip:
-            // Estuvo en pantalla y su turno terminó —el último paso, el watchdog,
-            // el botón y, hasta T6, el tap que saltea y el timeout—: no vuelve. La
-            // retirada SIN marcar (la condición que murió esperando turno) no pasa
-            // por acá: la maneja el director (`progressTutorialRun`).
+            // Estuvo en pantalla y su turno terminó —el último paso, el watchdog
+            // del paso o su momento que murió en pantalla—: no vuelve. Ni timeout
+            // ni tap que saltee (PLAN-v2 §2). La retirada SIN marcar (la condición
+            // que murió esperando turno) no pasa por acá: la maneja el director
+            // (`progressTutorialRun`).
             releaseTutorialTurn()
         case .cinematic:
             // Fin del video, "Saltar" y watchdog cuentan igual: la pantalla ya fue suya.

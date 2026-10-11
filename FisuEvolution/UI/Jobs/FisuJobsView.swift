@@ -438,6 +438,7 @@ private struct JobCard: View {
                     .lineLimit(2)
                     .minimumScaleFactor(0.7)
                     .fixedSize(horizontal: false, vertical: true)
+                    .tutorialAnchor(.jobsPriceStep, when: recommended)
             }
         }
     }

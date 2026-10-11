@@ -53,6 +53,18 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case upgradesRow
     /// La tarjeta del Organigrama en el Menú.
     case menuOrgChart
+    /// La primera tarjeta de boost de Regalos.
+    case giftsBoosts
+    /// La tarjeta del cofre sin abrir de Regalos.
+    case giftsChest
+    /// El "+6 %" de la fila recomendada de FisuJobs.
+    case jobsPriceStep
+    /// La tabla de probabilidades del cofre en "Gastar ORO".
+    case storeOdds
+    /// La primera pinta del estante de cosméticos.
+    case storeCosmetics
+    /// El chip del auto-tap corriendo, bajo el HUD.
+    case autoTapChip
     /// No se ilumina: es la franja que el globo tiene que ESQUIVAR. Sin esto el
     /// globo se apoyaba encima del HUD y lo tapaba entero — y como el HUD es
     /// justamente lo que los pasos siguientes iluminan, el tutorial terminaba

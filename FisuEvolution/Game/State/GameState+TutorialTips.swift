@@ -84,6 +84,30 @@ extension GameState {
         case wheel
         /// Fusionar todo por video, adentro de la columna (E7b): con pares en el piso a la vista.
         case mergeAllVideo
+        /// Un boost listo para activar en Regalos y ninguno usado todavía.
+        case boosts
+        /// Un cofre ganado y abrible en Regalos.
+        case chests
+        /// Cinco contrataciones: cada compra del mismo empleado encarece la siguiente (+6 %).
+        case hirePriceStep
+        /// Tres pestañas abiertas: el menú también se desliza.
+        case menuSwipe
+        /// Una pestaña recién abierta, con su «¡Nuevo!».
+        case newTabs
+        /// ORO para gastar: la mitad «Gastar ORO» de la Tienda y los topes del día.
+        case oroShop
+        /// El azar pagado con ORO muestra sus probabilidades a la vista.
+        case luck
+        /// Una pinta de ORO a la venta que el saldo alcanza.
+        case cosmetics
+        /// Un ×3 comprado, esperando a la próxima vuelta o al próximo premio diario.
+        case pendingTriple
+        /// El auto-tap corriendo.
+        case autoTap
+        /// Una oferta de 24 h ya vista, con su chip bajo el HUD.
+        case offers
+        /// Lugares extra comprados.
+        case extraSlots
 
         /// Las que señalan algo del tablero: nunca salen con el tablero ocupado.
         var needsCalmBoard: Bool {
@@ -102,7 +126,7 @@ extension GameState {
         var introducedIn: TutorialRelease {
             switch self {
             case .upgrades, .passive, .orgChart, .elevator, .floorSwipe, .floorFull, .skins, .achievements, .oroUpgrades,
-                 .gifts, .store, .prestige: .v1
+                 .gifts, .store, .prestige, .boosts, .chests: .v1
             default: .v2
             }
         }
@@ -135,6 +159,13 @@ extension GameState {
             case .mattress: .sideMattress
             case .wheel: .sideWheel
             case .mergeAllVideo: .sideBoost
+            case .boosts, .chests: .gifts
+            case .hirePriceStep: .hire
+            case .menuSwipe: .upgrades
+            case .newTabs, .pendingTriple, .extraSlots: .bottomBar
+            case .oroShop, .luck, .cosmetics: .store
+            case .autoTap: .autoTapChip
+            case .offers: .offerChip
             }
         }
 
@@ -146,10 +177,12 @@ extension GameState {
             case .upgrades, .passive, .oroUpgrades: .upgrades
             case .skins: .skins
             case .achievements, .album, .orgChart: .menu
-            case .gifts: .gifts
-            case .store: .store
+            case .gifts, .boosts, .chests: .gifts
+            case .store, .oroShop, .luck, .cosmetics: .store
+            case .hirePriceStep: .jobs
             case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .floorSwipe, .floorFull, .staffedFloors,
-                 .prestige, .prestigeGate, .characterSheet, .share, .sideRail, .packages, .mattress, .wheel, .mergeAllVideo: nil
+                 .prestige, .prestigeGate, .characterSheet, .share, .sideRail, .packages, .mattress, .wheel, .mergeAllVideo,
+                 .menuSwipe, .newTabs, .pendingTriple, .autoTap, .offers, .extraSlots: nil
             }
         }
 
@@ -174,7 +207,8 @@ extension GameState {
             case .wheel: "tutorial.tip.wheel.rail"
             case .mergeAllVideo: "tutorial.tip.merge_all_video"
             case .upgrades, .passive, .quickHire, .orgChart, .floorSwipe, .floorFull, .staffedFloors,
-                 .prestigeGate, .prestige, .characterSheet: nil
+                 .prestigeGate, .prestige, .characterSheet, .boosts, .chests, .hirePriceStep, .menuSwipe, .newTabs,
+                 .oroShop, .luck, .cosmetics, .pendingTriple, .autoTap, .offers, .extraSlots: nil
             }
         }
 
@@ -241,6 +275,54 @@ extension GameState {
                 .act("character_sheet.hold", .characterSheetOpened, text: "tutorial.character_sheet.hold",
                      on: .boardUnit, hand: .hold, boardTarget: .anyUnit),
                 .explain("character_sheet.inside", text: "tutorial.character_sheet.inside", surface: .characterSheet),
+            ]
+            case .boosts: [
+                .act("boosts.open", .screenOpened(.gifts), text: "tutorial.boosts.open", on: .gifts),
+                .explain("boosts.explain", text: "tutorial.boosts.explain", on: .giftsBoosts, surface: .page(.gifts)),
+            ]
+            case .chests: [
+                .act("chests.open", .screenOpened(.gifts), text: "tutorial.chests.open", on: .gifts),
+                .explain("chests.explain", text: "tutorial.chests.explain", on: .giftsChest, surface: .page(.gifts)),
+            ]
+            case .hirePriceStep: [
+                .act("hire_price_step.open", .screenOpened(.jobs), text: "tutorial.hire_price_step.open", on: .hire),
+                .explain("hire_price_step.explain", text: "tutorial.hire_price_step.explain", on: .jobsPriceStep,
+                         surface: .page(.jobs)),
+            ]
+            case .menuSwipe: [
+                .act("menu_swipe.open", .screenOpened(.upgrades), text: "tutorial.menu_swipe.open", on: .upgrades),
+                .act("menu_swipe.swipe", .pagerMoved, text: "tutorial.menu_swipe.swipe", on: .menuPager,
+                     surface: .page(.upgrades), hand: .swipe(.left)),
+            ]
+            case .newTabs: [
+                .explain("new_tabs.explain", text: "tutorial.new_tabs.explain"),
+            ]
+            case .oroShop: [
+                .act("oro_shop.open", .screenOpened(.store), text: "tutorial.oro_shop.open", on: .store),
+                .act("oro_shop.spend", .lessonAction, text: "tutorial.oro_shop.spend", on: .oroShop, surface: .page(.store)),
+                .explain("oro_shop.caps", text: "tutorial.oro_shop.caps", surface: .page(.store)),
+            ]
+            case .luck: [
+                .act("luck.open", .screenOpened(.store), text: "tutorial.luck.open", on: .store),
+                .act("luck.spend", .lessonAction, text: "tutorial.luck.spend", on: .oroShop, surface: .page(.store)),
+                .explain("luck.odds", text: "tutorial.luck.odds", on: .storeOdds, surface: .page(.store)),
+            ]
+            case .cosmetics: [
+                .act("cosmetics.open", .screenOpened(.store), text: "tutorial.cosmetics.open", on: .store),
+                .act("cosmetics.spend", .lessonAction, text: "tutorial.cosmetics.spend", on: .oroShop, surface: .page(.store)),
+                .explain("cosmetics.where", text: "tutorial.cosmetics.where", on: .storeCosmetics, surface: .page(.store)),
+            ]
+            case .pendingTriple: [
+                .explain("pending_triple.explain", text: "tutorial.pending_triple.explain"),
+            ]
+            case .autoTap: [
+                .explain("auto_tap.explain", text: "tutorial.auto_tap.explain", on: .autoTapChip),
+            ]
+            case .offers: [
+                .explain("offers.chip", text: "tutorial.offers.chip", on: .offerChip),
+            ]
+            case .extraSlots: [
+                .explain("extra_slots.explain", text: "tutorial.extra_slots.explain"),
             ]
             default: nil
             }
@@ -344,7 +426,86 @@ extension GameState {
             isLessonDone(.sideRail) && prizeAccess.wheelSpinsReady > 0
         case .mergeAllVideo:
             isLessonDone(.sideRail) && sideRail.status(of: .boost) == .ready(count: nil)
+        case .boosts:
+            unlockedTabs.contains(.gifts) && isLessonDone(.gifts)
+                && (player?.meta.stats.boostsActivatedEver ?? 0) == 0 && hasUsableBoost()
+        case .chests:
+            unlockedTabs.contains(.gifts) && canOpenChest
+        case .hirePriceStep:
+            (player?.meta.stats.totalHiresEver ?? 0) >= 5 && quickHirePriceStepIsShown()
+        case .menuSwipe:
+            unlockedTabsInBarOrder.count >= 3
+        case .newTabs:
+            !newTabs.isEmpty
+        case .oroShop:
+            cheapestOroShopPrice().map { (player?.meta.oro ?? 0) >= $0 } ?? false
+        case .luck:
+            luckMomentIsOn()
+        case .cosmetics:
+            isLessonDone(.oroShop) && cheapestCosmeticPrice().map { (player?.meta.oro ?? 0) >= $0 } ?? false
+        case .pendingTriple:
+            hasPendingTriple
+        case .autoTap:
+            activeBonuses.contains { $0.effect == .autoTapPerSecond }
+        case .offers:
+            visibleOffers().contains(where: \.presented)
+        case .extraSlots:
+            (player?.meta.engagement.shop.levels["extra_slots"] ?? 0) > 0
         }
+    }
+
+    /// Un boost desbloqueado y sin enfriamiento: lo que Regalos ofrece activar hoy.
+    private func hasUsableBoost() -> Bool {
+        guard let content, let player else { return false }
+        let now = Date().timeIntervalSince1970
+        return content.boosts.boosts.contains {
+            isBoostUnlocked($0) && BoostManager.cooldownRemaining(of: $0, state: player, now: now) <= 0
+        }
+    }
+
+    /// FisuJobs muestra el «+6 %» en la fila que el atajo contrataría hoy, y a ésa la alcanza la plata.
+    private func quickHirePriceStepIsShown() -> Bool {
+        guard let player, let offer = quickHireOffer, offer.affordable else { return false }
+        return priceTrend(player: player, typeId: offer.typeId).step != nil
+    }
+
+    /// El ×3 de la vuelta o del premio diario, comprado y esperando su momento.
+    private var hasPendingTriple: Bool {
+        guard let shop = player?.meta.engagement.shop else { return false }
+        return shop.pendingOfflineMultiplier != nil || shop.pendingDailyMultiplier != nil
+    }
+
+    /// Lo más barato que la tienda de ORO ofrece hoy (lo que no se vende, no cuenta).
+    func cheapestOroShopPrice() -> Int? {
+        guard let content, let player else { return nil }
+        return content.oroShop.items.compactMap { item -> Int? in
+            if item.isChance, !LootBoxGate.lastKnown { return nil }
+            if let floor = item.unlockFloorId,
+               (content.floorTable.ordinal(of: floor) ?? .max) > player.meta.stats.maxFloorOrdinalEver { return nil }
+            return item.price ?? item.levels.first?.price
+        }.min()
+    }
+
+    /// La pinta de ORO más barata que todavía no es tuya.
+    func cheapestCosmeticPrice() -> Int? {
+        guard let content, let player else { return nil }
+        let owned = player.meta.allOwnedSkins
+        return content.skins.skins.compactMap { skin in
+            skin.oroPrice.flatMap { owned.contains(skin.id) ? nil : $0 }
+        }.min()
+    }
+
+    /// El azar pagado muestra sus probabilidades: la tienda de ORO ya se enseñó, la puerta del azar
+    /// está abierta y el cofre tiene qué sortear.
+    func luckMomentIsOn(chanceAllowed: Bool = LootBoxGate.lastKnown) -> Bool {
+        isLessonDone(.oroShop) && chanceAllowed && chestOdds != .nothingYet
+    }
+
+    /// El jugador eligió «Gastar ORO» en la Tienda: cumple el paso que lo pide.
+    func oroShopSpendChosen() {
+        guard let id = tutorialRun?.lessonID, [TutorialLesson.oroShop, .luck, .cosmetics].map(\.rawValue).contains(id)
+        else { return }
+        tutorialSignal(.lessonAction(id))
     }
 
     func isLessonDone(_ lesson: TutorialLesson) -> Bool {

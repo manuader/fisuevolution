@@ -89,21 +89,30 @@ enum TutorialMechanic: String, CaseIterable {
         case .characterSheet: .lesson(.characterSheet)
         case .staffedFloors: .lesson(.staffedFloors)
         case .prestigeGate: .lesson(.prestigeGate)
-        case .boosts, .chests, .menuSwipe, .newTabs, .hirePriceStep, .oroShopShelf,
-             .pendingTriple, .autoTap, .luckOdds, .offers, .cosmetics, .skinEffects, .extraSlots:
-            .gap
+        case .boosts: .lesson(.boosts)
+        case .chests: .lesson(.chests)
+        case .menuSwipe: .lesson(.menuSwipe)
+        case .newTabs: .lesson(.newTabs)
+        case .hirePriceStep: .lesson(.hirePriceStep)
+        case .oroShopShelf: .lesson(.oroShop)
+        case .pendingTriple: .lesson(.pendingTriple)
+        case .autoTap: .lesson(.autoTap)
+        case .luckOdds: .lesson(.luck)
+        case .offers: .lesson(.offers)
+        case .cosmetics: .lesson(.cosmetics)
+        case .extraSlots: .lesson(.extraSlots)
+        case .skinEffects: .gap
         }
     }
 
-    /// Lo que E9b tiene que enseñar, con la lección que cierra cada uno. Su cierre exige que
-    /// esté vacío; un caso que gana lección sin salir de acá (o al revés) pone el test en rojo.
-    static let knownGaps: Set<TutorialMechanic> = [
-        // E9b T2: las de la economía, el ORO, la tienda y el menú
-        .boosts, .chests, .hirePriceStep, .menuSwipe, .newTabs, .oroShopShelf, .pendingTriple, .autoTap,
-        .luckOdds, .offers, .cosmetics, .skinEffects, .extraSlots,
+    /// Lo que todavía no tiene lección, con la razón de cada uno. Un caso que gana lección sin
+    /// salir de acá (o al revés) pone el test en rojo.
+    static let gapReasons: [TutorialMechanic: String] = [
+        .skinEffects: "la mecánica no existe: el dueño dijo que no a las skins por código y E6b T1r borró los efectos",
     ]
+    static var knownGaps: Set<TutorialMechanic> { Set(gapReasons.keys) }
     /// El techo de hoy: un hueco nuevo sin lección pone el test en rojo.
-    static let knownGapsCeiling = 13
+    static let knownGapsCeiling = 1
 
     /// El id con el que la pantalla previa de la pausa publicitaria se publica.
     static let adBreakIntroID = "adbreak.intro"

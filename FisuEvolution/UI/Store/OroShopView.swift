@@ -130,6 +130,7 @@ struct OroShopShelves: View {
                 .padding(.top, Tokens.s8)
             ForEach(cosmetics) { row in
                 CosmeticItemRow(row: row, preview: preview(for: row)) { purchaseSkin(row.id) }
+                    .tutorialAnchor(.storeCosmetics, when: row.id == cosmetics.first?.id)
             }
         }
     }
@@ -289,12 +290,14 @@ private struct OroShopItemRow: View {
         switch odds {
         case .table(let rows):
             OddsDisclosureView(titleKey: "oroShop.chest.odds", rows: rows, identifier: "oroShop.odds")
+                .tutorialAnchor(.storeOdds)
         case .collectionComplete:
             Text("oroShop.chest.coins")
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.7))
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("oroShop.odds.coins")
+                .tutorialAnchor(.storeOdds)
         case .notChance, .hidden:
             EmptyView()
         }

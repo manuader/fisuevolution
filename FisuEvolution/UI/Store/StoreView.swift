@@ -183,7 +183,10 @@ struct StoreView: View {
 
     private func segmentButton(_ value: Segment, key: LocalizedStringKey, symbol: String) -> some View {
         let selected = segment == value
-        return Button { segment = value } label: {
+        return Button {
+            segment = value
+            if value == .spend { gameState.oroShopSpendChosen() }
+        } label: {
             HStack(spacing: 6) {
                 Image(systemName: symbol)
                     .font(.system(size: 13, weight: .black))

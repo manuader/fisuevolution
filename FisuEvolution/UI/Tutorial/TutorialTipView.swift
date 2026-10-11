@@ -32,17 +32,20 @@ struct TutorialTipView: View {
         .animation(motion(.spring(duration: 0.38, bounce: 0.25)), value: visibleTip?.lesson)
     }
 
-    /// La lección en pantalla: tiene el turno en la cola y nada la tapa. El
-    /// director ya no dispara con una hoja abierta; este segundo chequeo cubre
-    /// la carrera de "el turno llegó justo mientras una hoja subía".
+    /// La lección en pantalla: su paso tiene la superficie a la vista (el turno
+    /// de la cola y nada tapando el tablero). El director ya no dispara con una
+    /// hoja abierta; este segundo chequeo cubre la carrera de "el turno llegó
+    /// justo mientras una hoja subía".
     private var visibleTip: GameState.TutorialTip? {
-        guard gameState.showing == .tutorialTip, !gameState.uiCoversBoard else { return nil }
-        return gameState.tutorialTip
+        gameState.tutorialStepIsVisible ? gameState.tutorialTip : nil
     }
+
+    /// El paso que se dibuja: el ancla y el texto salen de él (E9b reescribe los guiones).
+    private var step: TutorialStep? { gameState.tutorialRun?.step }
 
     @ViewBuilder
     private func marks(_ tip: GameState.TutorialTip) -> some View {
-        let anchor = anchors[tip.lesson.anchorTarget]
+        let anchor = anchors[step?.target ?? tip.lesson.anchorTarget]
         GeometryReader { proxy in
             ZStack {
                 if let anchor {
@@ -75,7 +78,7 @@ struct TutorialTipView: View {
         return VStack(spacing: 0) {
             if anchorIsLow { Spacer(minLength: 0) }
             TipBalloon(
-                text: LocalizedStringKey(tip.lesson.textKey),
+                text: LocalizedStringKey(step?.textKey ?? tip.lesson.textKey),
                 onDismiss: { gameState.dismissTutorialTip() }
             )
             .frame(maxWidth: PlayColumn.tutorialCardMaxWidth)

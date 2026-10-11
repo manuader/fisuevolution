@@ -275,9 +275,13 @@ final class GameState {
     /// personaje después de deambular: el ancla lógica del slot ya no alcanza
     /// desde que el reconciliador conserva la posición deambulada.
     var boardSpotlight: CGRect?
-    /// La lección contextual que está esperando turno o en pantalla, o `nil`.
-    /// La escribe `+TutorialTips` (el director) y la suelta `releasePayload`.
-    var tutorialTip: TutorialTip?
+    /// Lo que el tutorial está mostrando (PLAN-v2 E9): el núcleo, una lección, el Tour o el
+    /// repaso. La UI sólo lee esto; lo mueve el director (`+Tutorial`). La lección de la v1
+    /// (`tutorialTip`) es un alias calculado.
+    var tutorialRun: TutorialRun?
+    /// El reloj del paso, el ritmo y la página abierta: cambian por frame, así que no se
+    /// observan.
+    @ObservationIgnored var tutorialEngine = TutorialEngine()
     /// Quién está en escena. Lo escribe `+Stage`; la escena lo lee por frame.
     var stageVisit: StageVisit?
     /// El popup de quien está en escena (`+Visitors`).

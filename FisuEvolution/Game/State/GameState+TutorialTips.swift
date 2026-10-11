@@ -157,6 +157,19 @@ extension GameState {
             case .mergeAllVideo: "tutorial.tip.merge_all_video"
             }
         }
+
+        /// El guion de la lección (PLAN-v2 E9). E9b los reescribe uno por uno;
+        /// hasta entonces, uno solo: el destino de siempre, con el texto de siempre.
+        var steps: [TutorialStep] {
+            [legacyStep]
+        }
+
+        /// Repite la conducta de la v1: si tiene hoja de destino, abrirla la
+        /// cumple; si no, su acción firma (`tutorialTipCompleted`).
+        var legacyStep: TutorialStep {
+            let signal: TutorialSignal = destinationScreen.map { .screenOpened($0) } ?? .lessonAction
+            return .act("\(rawValue).legacy", signal, text: textKey, on: anchorTarget)
+        }
     }
 
     /// El payload de `.tutorialTip`: qué lección tiene (o espera) el turno.
@@ -179,37 +192,11 @@ extension GameState {
         defaults.removeObject(forKey: TutorialFlags.sessionsAfterCoreKey)
     }
 
-    // MARK: El director
+    // MARK: La señal de gating
 
-    /// Decide si nace una lección. Corre al final de `refreshProjections` (8 Hz,
-    /// contra señales ya publicadas: acá no se computa nada caro) y es la única
-    /// puerta de entrada: una lección por vez, la primera elegible del orden.
-    ///
-    /// También es la puerta de SALIDA anticipada: si la condición de la lección
-    /// murió mientras esperaba turno (gastó las monedas antes de que el tip
-    /// saliera), se retira de la fila sin marcarse como dada — la regla de oro
-    /// vale hasta el último frame, y la lección vuelve cuando su momento
-    /// vuelva.
-    func refreshTutorialTip() {
-        guard tutorialLessonsAutorun, phase == .ready, !tutorialPhaseActive else { return }
-        if let tip = tutorialTip {
-            if showing != .tutorialTip, !isEligible(tip.lesson) {
-                tutorialTip = nil
-                celebrations.finish(.tutorialTip)
-            }
-            return
-        }
-        // Con una hoja abierta no nace nada: el coach señala controles que
-        // están DEBAJO de la hoja. Al cerrarse, el próximo refresh la agarra.
-        guard !uiCoversBoard, characterSheet == nil, shareCardMoment == nil else { return }
-        guard let lesson = TutorialLesson.allCases.first(where: { !isLessonDone($0) && isEligible($0) && (!$0.needsCalmBoard || isCalmMoment) })
-        else { return }
-        tutorialTip = TutorialTip(lesson: lesson)
-        syncCelebrations()
-    }
-
-    /// La señal de cada lección, contra proyecciones ya publicadas.
-    private func isEligible(_ lesson: TutorialLesson) -> Bool {
+    /// La señal de cada lección, contra proyecciones ya publicadas. La lee el
+    /// director (`+Tutorial`) al elegir la próxima y mientras espera turno.
+    func isEligible(_ lesson: TutorialLesson) -> Bool {
         switch lesson {
         case .visitor:
             stageVisit?.phase == .waiting && stageVisit?.offer != nil && stageChallenge == nil
@@ -271,39 +258,17 @@ extension GameState {
         }
     }
 
-    private func isLessonDone(_ lesson: TutorialLesson) -> Bool {
-        UserDefaults.standard.bool(forKey: lesson.defaultsKey)
+    func isLessonDone(_ lesson: TutorialLesson) -> Bool {
+        TutorialFlags.isLessonDone(lesson.rawValue)
     }
 
-    /// La marca `releasePayload`: las tres salidas del turno —el botón del
-    /// globo, el tap que saltea y el timeout— pasan por ahí, así que una
-    /// lección que estuvo en pantalla no vuelve, la hayan leído o ignorado.
+    /// Una lección que estuvo en pantalla no vuelve, la hayan hecho o ignorado:
+    /// la marca la salida del turno (`releaseTutorialTurn`).
     func markLessonDone(_ lesson: TutorialLesson) {
-        UserDefaults.standard.set(true, forKey: lesson.defaultsKey)
+        TutorialFlags.markLessonDone(lesson.rawValue)
     }
 
     // MARK: Salidas
-
-    /// El botón del globo ("¡Dale!").
-    func dismissTutorialTip() {
-        guard showing == .tutorialTip else { return }
-        celebrationFinished(.tutorialTip)
-    }
-
-    /// El jugador HIZO lo que la lección señalaba (abrió la hoja, el mapa, el
-    /// prestigio, usó el atajo): la lección se cumple y el globo se va. Es la
-    /// mejor de las tres salidas y por eso no espera el piso de skip.
-    func tutorialTipCompleted(_ lesson: TutorialLesson) {
-        guard showing == .tutorialTip, tutorialTip?.lesson == lesson else { return }
-        celebrationFinished(.tutorialTip)
-    }
-
-    /// La variante para las hojas de la barra: `RootView.open` no tiene por qué
-    /// saber qué lección está corriendo.
-    func tutorialTipHandled(opening screen: GameScreen) {
-        guard let lesson = tutorialTip?.lesson, lesson.destinationScreen == screen else { return }
-        tutorialTipCompleted(lesson)
-    }
 
     /// El jugador desplegó la placa del ascensor: la lección se cumple y no vuelve.
     func elevatorKeypadOpened() {

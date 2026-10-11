@@ -12,10 +12,12 @@ extension GameState {
     /// ya lo hace al tocarla).
     func menuPageChanged(to screen: GameScreen) {
         tutorialTipHandled(opening: screen)
+        tutorialSignal(.pagerMoved)
         markTabOpened(screen)
     }
 
     func menuDidClose() async {
+        tutorialEngine.openPage = nil
         await naturalBreak(.sheetClosed)
     }
 }

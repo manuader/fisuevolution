@@ -54,9 +54,19 @@ extension GameState {
         // comió el globo de la lección de Mejoras (nacida por el fixture de
         // monedas). Mismo criterio que el resto de los fixtures: el estado
         // del tutorial lo decide cada test, nunca el azar del gating.
+        // `--uitest-lesson=<id>` fuerza una lección (gana sobre el orden y la
+        // señal mientras no esté dada) e implica `--uitest-lessons`.
+        let forcedLesson = arguments.first { $0.hasPrefix("--uitest-lesson=") }
+            .map { String($0.dropFirst("--uitest-lesson=".count)) }
+        tutorialEngine.forcedLesson = forcedLesson
         if arguments.contains(where: { $0.hasPrefix("--uitest") }),
-           !arguments.contains("--uitest-lessons") {
+           !arguments.contains("--uitest-lessons"), forcedLesson == nil {
             tutorialLessonsAutorun = false
+        }
+        // `--uitest-tutorial-lock=<s>` cambia los 5 s del candado (fixtures de UI).
+        if let lock = arguments.first(where: { $0.hasPrefix("--uitest-tutorial-lock=") })
+            .flatMap({ TimeInterval($0.dropFirst("--uitest-tutorial-lock=".count)) }) {
+            tutorialEngine.lockSeconds = lock
         }
         // Los motores de engagement, lo mismo: nada nace solo bajo `--uitest*`
         // salvo que el test lo pida (`--uitest-engagement`).
@@ -580,7 +590,10 @@ extension GameState {
         shareCardMoment = nil
         shareOffer = nil
         pendingShareMoment = nil
-        tutorialTip = nil
+        tutorialRun = nil
+        tutorialEngine.clock = TutorialStepClock(kind: .explain, lock: tutorialEngine.lockSeconds)
+        tutorialEngine.pacing = TutorialPacing()
+        tutorialEngine.openPage = nil
         stageVisit = nil
         visitorPopup = nil
         eventPopup = nil

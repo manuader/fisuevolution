@@ -55,6 +55,9 @@ struct TutorialTipsTests {
         gameState.refreshProjections()
         #expect(gameState.tutorialTip == nil, "las lecciones arrancan recién cuando la fase termina")
         gameState.tutorialPhaseFinished()
+        // El cofre de bienvenida toma el turno al cerrar la fase; la lección
+        // nace con la cola libre (director v2).
+        gameState.dismissChestReward()
         gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson == .upgrades)
     }
@@ -129,20 +132,23 @@ struct TutorialTipsTests {
         #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey))
     }
 
-    @Test("la condición que muere esperando turno la retira sin quemarla")
+    /// Desde el director v2 (E9a T4) una lección nace sólo con la cola libre, así que ya no
+    /// espera turno detrás de otra: la condición que muere mientras la cola está ocupada
+    /// simplemente no la hace nacer, y nada se quema.
+    @Test("la condición que muere con la cola ocupada no la quema")
     func aStaleTipRetiresWithoutBurningTheLesson() async {
         let gameState = await makeGameState()
-        // La cola ocupada: la lección nace pero queda esperando turno.
         gameState.towerNotice = GameState.TowerNotice(kind: .floorFull)
         gameState.syncCelebrations()
         #expect(gameState.showing == .towerNotice)
         gameState.debugGrantCoins()
         gameState.refreshProjections()
-        #expect(gameState.tutorialTip?.lesson == .upgrades)
-        #expect(gameState.showing == .towerNotice, "el aviso sigue en pantalla; la lección espera")
+        #expect(gameState.tutorialTip == nil, "con la cola ocupada no nace: espera la cola libre")
 
         // La plata se va antes de que le toque: la lección ya no manda a nada.
         gameState.player?.run.coins = 0
+        gameState.towerNotice = nil
+        gameState.celebrationFinished(.towerNotice)
         gameState.refreshProjections()
         #expect(gameState.tutorialTip == nil, "la regla de oro vale hasta el último frame")
         #expect(!UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey),
@@ -367,6 +373,9 @@ struct TutorialTipsTests {
         #expect(GameState.TutorialLesson.sideRail.anchorTarget == .sideRail)
         gameState.sideRailOpened()
         #expect(gameState.showing != .tutorialTip)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip == nil, "la siguiente espera los 20 s del ritmo")
+        gameState.advanceTutorial(delta: TutorialPacing.gapBetweenLessons)
         gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson == .packages, "abierta, ahora sí el botón de los paquetes")
     }

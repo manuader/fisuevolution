@@ -5,6 +5,11 @@ import SpriteKit
 /// monedas y recién ahí se confirma la llegada, que hace el resto (el pop del
 /// empleado y, si fuera nuevo, su revelación). Por frame, como el escenario de
 /// E4b: se prueba sin vista.
+///
+/// Si el manifest tiene `paquete_abre` y el pool deja decodificar, la apertura es el video (una
+/// pasada, sobre el póster de la caja). La confirmación de la llegada nunca depende de él: si no
+/// hay video, no arranca o falla, corre la animación por código; y un tope por cuadros cierra el
+/// video que no avise.
 @MainActor
 final class PackageOpeningPlayer {
     static let dropSeconds: TimeInterval = 0.25
@@ -12,6 +17,11 @@ final class PackageOpeningPlayer {
     static let lidSeconds: TimeInterval = 0.3
     static let fadeSeconds: TimeInterval = 0.3
     static var totalSeconds: TimeInterval { dropSeconds + shakeSeconds + lidSeconds }
+    static let videoBurstSeconds: TimeInterval = 1.5
+    static let videoCapSeconds: TimeInterval = 4
+
+    private let manifest: LoopsManifest
+    private let pool: VideoPlayerPool
 
     private var box: SKSpriteNode?
     private var lid: SKSpriteNode?
@@ -22,7 +32,14 @@ final class PackageOpeningPlayer {
     private var onBurst: ((CGPoint) -> Void)?
     private var onOpened: (() -> Void)?
 
+    private(set) var video: LoopingVideoNode?
+
     var isPlaying: Bool { box != nil }
+
+    init(manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared) {
+        self.manifest = manifest
+        self.pool = pool
+    }
 
     func play(
         at point: CGPoint,
@@ -52,11 +69,71 @@ final class PackageOpeningPlayer {
         burstDone = false
         onBurst = burst
         onOpened = opened
+        mountVideo(on: box)
+    }
+
+    /// `.once` termina en el acto si no hay video (manifest, política, pack): ahí queda la animación
+    /// por código. Si termina sin haberse visto (el pool no lo dejó vivo), también.
+    private func mountVideo(on box: SKSpriteNode) {
+        let mount = MountState()
+        let node = LoopingVideoNode(
+            clip: .object("paquete_abre"), poster: PickupArt.texture(.package), size: box.size, role: .popup,
+            playback: .once { [weak self] in
+                if mount.isMounting {
+                    mount.endedAtMount = true
+                } else {
+                    self?.videoEnded()
+                }
+            },
+            manifest: manifest, pool: pool
+        )
+        node.zPosition = 0.5
+        box.addChild(node)
+        video = node
+        node.setVisible(true)
+        mount.isMounting = false
+        if mount.endedAtMount {
+            dropVideo()
+        } else {
+            lid?.isHidden = true
+        }
+    }
+
+    private final class MountState {
+        var isMounting = true
+        var endedAtMount = false
+    }
+
+    private func videoEnded() {
+        if video?.didShowVideo == true {
+            finish()
+        } else {
+            dropVideo()
+        }
+    }
+
+    /// Vuelve a la animación por código, desde el principio.
+    private func dropVideo() {
+        releaseVideo()
+        lid?.isHidden = false
+        elapsed = 0
+        burstDone = false
+    }
+
+    private func releaseVideo() {
+        video?.setVisible(false)
+        video?.removeFromParent()
+        video = nil
     }
 
     func update(delta: TimeInterval, reduceMotion: Bool) {
         guard let box, let lid else { return }
+        if video != nil, reduceMotion { dropVideo() }
         elapsed += delta
+        if video != nil {
+            updateVideo()
+            return
+        }
         if reduceMotion {
             box.setScale(1)
             box.zRotation = 0
@@ -90,9 +167,18 @@ final class PackageOpeningPlayer {
         }
     }
 
+    private func updateVideo() {
+        if !burstDone, elapsed >= Self.videoBurstSeconds {
+            burstDone = true
+            onBurst?(point)
+        }
+        if elapsed >= Self.videoCapSeconds { finish() }
+    }
+
     /// Se corta (el salto o el watchdog del turno): sin avisos. El cambio en
     /// vuelo lo asienta `GameState` (E1).
     func cancel() {
+        releaseVideo()
         box?.removeFromParent()
         box = nil
         lid = nil

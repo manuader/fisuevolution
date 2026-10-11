@@ -2,7 +2,9 @@ import SpriteKit
 
 /// Una caja del Paquete o el colchón, en el tablero. Todo lo que se mueve va por
 /// frame (`update`): entra con un resorte, respira, y tiembla si se la toca sin
-/// lugar.
+/// lugar. Si tiene clip de espera, lo reproduce en loop sobre su textura mientras la escena lo
+/// pide (`setWaiting`): el póster no se saca nunca, y sin video queda quieto.
+@MainActor
 final class PickupNode: SKNode {
     enum Kind: Equatable {
         case package
@@ -14,15 +16,24 @@ final class PickupNode: SKNode {
 
     let kind: Kind
     private let sprite: SKSpriteNode
+    private let waitingVideo: LoopingVideoNode?
     private let fullSign = SKLabelNode(fontNamed: "AvenirNext-Heavy")
     private var age: TimeInterval = 0
     private var shakeLeft: TimeInterval = 0
 
-    init(kind: Kind, texture: SKTexture, side: CGFloat) {
+    init(kind: Kind, texture: SKTexture, side: CGFloat, waitingClip: ArtClip? = nil,
+         manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared) {
         self.kind = kind
         sprite = SKSpriteNode(texture: texture)
+        waitingVideo = waitingClip.map {
+            LoopingVideoNode(clip: $0, poster: texture, size: .zero, role: .icon, manifest: manifest, pool: pool)
+        }
         super.init()
         addChild(sprite)
+        if let waitingVideo {
+            waitingVideo.zPosition = 0.5
+            addChild(waitingVideo)
+        }
         fullSign.text = String(localized: "prize.package.full")
         fullSign.fontColor = UIColor(named: "PaletteOrange")
         fullSign.verticalAlignmentMode = .center
@@ -40,8 +51,25 @@ final class PickupNode: SKNode {
     func resize(side: CGFloat) {
         let size = sprite.texture?.size() ?? CGSize(width: 1, height: 1)
         sprite.size = CGSize(width: side, height: side * size.height / max(size.width, 1))
+        waitingVideo?.resize(sprite.size)
         fullSign.fontSize = side * 0.3
         fullSign.position = CGPoint(x: 0, y: sprite.size.height * 0.75)
+    }
+
+    private(set) var isWaiting = false
+    var waitingVideoNode: LoopingVideoNode? { waitingVideo }
+
+    /// Sólo la caja que está a la vista pide el cupo del pool; al salir o taparse lo suelta.
+    func setWaiting(_ waiting: Bool) {
+        guard waiting != isWaiting else { return }
+        isWaiting = waiting
+        waitingVideo?.setVisible(waiting)
+    }
+
+    /// Se va del tablero: suelta el video antes de salir de la escena.
+    func retire() {
+        setWaiting(false)
+        removeFromParent()
     }
 
     /// El cartel "LLENO" (PLAN-v2 §2).

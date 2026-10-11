@@ -56,5 +56,8 @@ final class PrizesUITests: XCTestCase {
         XCTAssertTrue(extra.waitForNonExistence(timeout: 8), "otro colchón es uno solo")
         XCTAssertTrue(app.descendants(matching: .any)["mattress.extra.watching"].waitForNonExistence(timeout: 10),
                       "el video del segundo colchón no terminó")
+
+        app.buttons["mattress.collect"].tap()
+        XCTAssertTrue(app.buttons["mattress.collect"].waitForNonExistence(timeout: 5), "Keep it! no cerró el colchón")
     }
 }

@@ -5,8 +5,12 @@ import Foundation
 struct GameContent: Sendable {
     var economy: EconomyConfig
     let tiers: TierRepository
-    /// La Torre (F7): mapeo tier→piso validado, derivado de `economy.floors`.
-    let floorTable: FloorTable
+    /// La Torre (F7): mapeo tier→piso validado, derivado de `economy.floors`, CON
+    /// los lugares extra del permanente de ORO aplicados (`GameState.applyExtraSlots`).
+    /// Es lo que leen la torre, el reconciliador, el mapa y la escena.
+    var floorTable: FloorTable
+    /// La misma tabla tal como la declara `economy.json`, sin lugares extra.
+    let baseFloorTable: FloorTable
     let manifest: AssetsManifest
     let flags: FeatureFlags
     let prestigeUnlocks: PrestigeUnlocks
@@ -145,6 +149,7 @@ enum GameContentLoader {
             economy: economy,
             tiers: tiers,
             floorTable: floorTable,
+            baseFloorTable: floorTable,
             manifest: manifest,
             flags: flags,
             prestigeUnlocks: prestigeUnlocks,

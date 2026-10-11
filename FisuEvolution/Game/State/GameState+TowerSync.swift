@@ -8,6 +8,7 @@ extension GameState {
     /// vez de romperla (spec §3.1). Arranca mirando el piso más alto desbloqueado.
     /// La llaman `+Prestige` (reencarnar) y `+Debug` (resetear el save).
     func reconcileTower() {
+        applyExtraSlots()
         guard let content, var player else { return }
         let before = player.run.units
         let outcome = TowerReconciler.reconcile(

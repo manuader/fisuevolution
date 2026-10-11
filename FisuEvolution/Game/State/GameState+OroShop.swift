@@ -114,6 +114,7 @@ extension GameState {
             player = before
             return .refused(.nothingToDo)
         }
+        if item.perk == .extraSlots { growTowerToTheExtraSlots() }
         if !item.rewards.isEmpty {
             grant(item.rewards, source: "shop.\(id)", now: now.timeIntervalSince1970)
         }
@@ -125,6 +126,23 @@ extension GameState {
         Task { await persistNow() }
         Log.economy.info("oro shop: \(id) for \(purchase.price) ORO")
         return .bought
+    }
+
+    /// Los lugares comprados agrandan la torre que está en pantalla SIN
+    /// reconstruirla desde `run.units`: el reconciliador compacta los slots, y
+    /// eso movería a la gente y dejaría inválido el cambio que la escena está
+    /// jugando (un video ya visto se perdería). Cada piso conserva sus slots y
+    /// suma los vacíos del final.
+    private func growTowerToTheExtraSlots() {
+        applyExtraSlots()
+        guard let content, let current = tower else { return }
+        var grown = TowerState(floorTable: content.floorTable)
+        for index in current.floors.indices where grown.floors.indices.contains(index) {
+            let slots = current.floors[index].slots
+            grown.floors[index].slots.replaceSubrange(slots.indices, with: slots)
+        }
+        tower = grown
+        boardVersion += 1
     }
 
     /// Un ítem con un premio mal formado (magnitud o duración que no rinden, un

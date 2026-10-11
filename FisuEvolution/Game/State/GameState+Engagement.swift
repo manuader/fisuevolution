@@ -41,6 +41,18 @@ extension GameState {
         if let offer = Self.fixtureValue("--uitest-offer=", in: arguments) {
             debugOpenOffer(id: offer)
         }
+        // Los dos niveles de lugares extra y el piso de abajo lleno: la foto de las
+        // 4 filas sin jugar horas.
+        if arguments.contains("--uitest-extra-slots"), var player, let content {
+            player.meta.engagement.shop.levels["extra_slots"] = 2
+            self.player = player
+            reconcileTower()
+            if var filled = self.player {
+                filled.run.units = [content.tiers.baseType.id: self.content?.floorTable[0].capacity ?? 0]
+                self.player = filled
+                reconcileTower()
+            }
+        }
         if arguments.contains("--uitest-mattress") {
             debugSpawnMattress()
         }

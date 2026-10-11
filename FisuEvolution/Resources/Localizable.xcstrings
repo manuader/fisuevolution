@@ -1684,6 +1684,23 @@
         }
       }
     },
+    "ads.offline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No connection · tap to retry"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin conexión · tocá para reintentar"
+          }
+        }
+      }
+    },
     "ads.preparing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6790,13 +6807,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%@ spots on every floor"
+            "value" : "+%@ spots on every floor. Full floors stop counting as \"running\" until you fill them."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "+%@ lugares en cada piso"
+            "value" : "+%@ lugares en cada piso. Los pisos llenos dejan de estar «en marcha» hasta que los completes."
           }
         }
       }

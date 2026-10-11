@@ -165,7 +165,7 @@ struct LocalizationCompletenessTests {
                     + VisitCopy.lineKeys
             case .settingsRows:
                 return LanguagePreference.allCases.map(\.identifier) + LegalDocument.Kind.allCases.map(\.identifier)
-                    + content.notifications.kinds.map(\.settingsKey)
+                    + ["settings.reset"] + content.notifications.kinds.map(\.settingsKey)
             case .oroShop:
                 return content.oroShop.items.flatMap { item in
                     [OroShopCopy.nameKey(item.id)] + (OroShopCopy.hasOwnDescription(item) ? [OroShopCopy.descriptionKey(item.id)] : [])

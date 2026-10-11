@@ -251,6 +251,9 @@ VISITOR_ID = re.compile(r"(npc_[a-z0-9]+_(talk|action)|sp_[a-z0-9]+(_[a-z0-9]+)*
 # Un personaje es el assetKey del puesto o del especial (`god`, `senior_doctor`,
 # `sp_lizard`). Un sufijo de version (`_v2`) es del master, nunca del juego.
 CHARACTER_ID = re.compile(r"[a-z0-9]+(_[a-z0-9]+)*")
+# Una pinta (skin) con video: `<tipo>__<pinta>`, la misma clave que los PNG del
+# generador. El id de pinta no es unico (`pijama` existe en cada tipo): el par manda.
+SKIN_ID = re.compile(r"([a-z0-9]+(?:_[a-z0-9]+)*)__([a-z0-9]+(?:_[a-z0-9]+)*)")
 VERSION_SUFFIX = re.compile(r".*_v[0-9]+")
 
 # La medicion del verde: un parche por esquina en el primer cuadro, el del medio
@@ -278,6 +281,13 @@ class MasterError(ValueError):
     """El master no sirve tal como vino: se avisa en vez de adivinar."""
 
 
+@functools.cache
+def skin_pairs() -> frozenset[tuple[str, str]]:
+    """Los pares `(characterType, id)` de `skins.json`: la pinta no se identifica sola."""
+    skins = json.loads((RESOURCES / "Config" / "skins.json").read_text(encoding="utf-8"))["skins"]
+    return frozenset((s["characterType"], s["id"]) for s in skins)
+
+
 def validate_id(kind: str, piece_id: str) -> None:
     if kind in FIXED_IDS:
         if piece_id not in FIXED_IDS[kind]:
@@ -291,6 +301,13 @@ def validate_id(kind: str, piece_id: str) -> None:
             "y el master corregido entra con --video"
         )
     if kind == "personaje":
+        skin = SKIN_ID.fullmatch(piece_id)
+        if skin:
+            if skin.groups() not in skin_pairs():
+                raise ValueError(
+                    f"pinta {piece_id!r} desconocida: el par (tipo, pinta) no esta en skins.json"
+                )
+            return
         if not CHARACTER_ID.fullmatch(piece_id):
             raise ValueError(f"personaje invalido {piece_id!r}: es un assetKey en snake_case")
         return
@@ -611,9 +628,11 @@ def floor_of_character() -> dict[str, int]:
 def odr_tag(kind: str, piece_id: str) -> str | None:
     """El pack ODR de una pieza; `None` si va en el paquete base."""
     if kind == "personaje":
-        if piece_id.startswith("sp_"):
+        # El clip de una pinta viaja en el pack de su tipo.
+        base = piece_id.split("__")[0]
+        if base.startswith("sp_"):
             return ODR_SPECIALS
-        floor = floor_of_character().get(piece_id)
+        floor = floor_of_character().get(base)
         if floor is None:
             raise ValueError(f"personaje {piece_id!r} sin piso en tiers.json: no hay pack")
         return f"anim-piso-{floor}"

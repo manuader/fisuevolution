@@ -42,6 +42,7 @@ struct QuickHirePicker: View {
         }
         .ignoresSafeArea()
         .transition(reduceMotion ? .opacity : .scale(scale: 0.85, anchor: .bottomLeading).combined(with: .opacity))
+        .onAppear { gameState.tutorialSignal(.pickerOpened) }
     }
 
     private func cardLeading(in size: CGSize) -> CGFloat {
@@ -50,7 +51,9 @@ struct QuickHirePicker: View {
     }
 
     private func card(_ entries: [QuickHirePickerEntry], tailX: CGFloat) -> some View {
-        PanelCard {
+        // La cara que el tutorial señala: la fijada o, sin fijada, la primera.
+        let faceID = (entries.first(where: \.isPinned) ?? entries.first)?.id
+        return PanelCard {
             VStack(alignment: .leading, spacing: Tokens.s12) {
                 Text("quickhire.picker.title")
                     .font(Tokens.title)
@@ -61,7 +64,7 @@ struct QuickHirePicker: View {
                     Grid(horizontalSpacing: Tokens.s8, verticalSpacing: Tokens.s8) {
                         ForEach(Array(rows(entries).enumerated()), id: \.offset) { _, row in
                             GridRow {
-                                ForEach(row) { entry in option(entry) }
+                                ForEach(row) { entry in option(entry, isFace: entry.id == faceID) }
                             }
                         }
                     }
@@ -115,7 +118,7 @@ struct QuickHirePicker: View {
         .accessibilityAddTraits(isActive ? .isSelected : [])
     }
 
-    private func option(_ entry: QuickHirePickerEntry) -> some View {
+    private func option(_ entry: QuickHirePickerEntry, isFace: Bool) -> some View {
         let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
         return Button {
             gameState.pinQuickHire(typeId: entry.isPinned ? nil : entry.id)
@@ -156,6 +159,7 @@ struct QuickHirePicker: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .tutorialAnchor(.pickerFace, when: isFace)
         .accessibilityIdentifier("quickhire.picker.option.\(entry.id)")
         .accessibilityLabel(Text(verbatim: String(localized: "quickhire.ax.purpose \(entry.displayName)")))
         .accessibilityValue(entry.isPinned

@@ -44,6 +44,10 @@ struct MenuPagerView: View {
     @State private var shown: GameScreen
     @State private var locked = false
     @State private var moving = false
+    /// El dedo sigue apoyado: la página que pasa por debajo todavía no es una página vista.
+    @State private var dragging = false
+    /// La página más cercana al offset, para asentarla cuando suelta.
+    @State private var nearest: Int?
     private let start: GameScreen
 
     init(pages: [GameScreen], start: GameScreen, adsProvider: AdsCoordinator,
@@ -88,19 +92,26 @@ struct MenuPagerView: View {
             .scrollPosition(id: $current)
             .scrollIndicators(.hidden)
             .scrollDisabled(locked)
-            .onScrollPhaseChange { _, phase in moving = phase != .idle }
+            .onScrollPhaseChange { old, phase in
+                moving = phase != .idle
+                dragging = phase == .interacting
+                if old == .interacting, phase != .interacting, let nearest, pages.indices.contains(nearest) {
+                    settle(on: pages[nearest])
+                }
+            }
             .onScrollGeometryChange(for: Int.self) { geometry in
                 Self.pageIndex(offset: geometry.contentOffset.x, width: geometry.containerSize.width)
             } action: { _, index in
                 // Sólo mientras el scroll se mueve: el arranque programático
                 // (`scrollTo(start)`) parte del offset 0 y no debe asentar la página 0.
-                guard moving, pages.indices.contains(index) else { return }
+                nearest = index
+                guard moving, !dragging, pages.indices.contains(index) else { return }
                 settle(on: pages[index])
             }
             .onAppear { proxy.scrollTo(start, anchor: .leading) }
         }
         .onChange(of: current) { _, page in
-            guard let page else { return }
+            guard let page, !dragging else { return }
             settle(on: page)
         }
     }
@@ -151,6 +162,10 @@ struct MenuPage: View {
     let onStore: () -> Void
 
     var body: some View {
+        page.tutorialSheetCoach(.page(screen))
+    }
+
+    @ViewBuilder private var page: some View {
         switch screen {
         case .jobs: FisuJobsView()
         case .upgrades: UpgradesView()
@@ -197,6 +212,7 @@ struct PagerDots: View {
                 }
             }
         }
+        .tutorialAnchor(.menuPager)
         .accessibilityElement(children: .ignore)
         .accessibilityIdentifier("menu.pager.dots")
         .accessibilityValue(Text(verbatim: "\(index + 1)/\(count)"))

@@ -39,6 +39,14 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case sideRail
     case sideWheel
     case sideBoost
+    /// La fila de FisuJobs que el atajo contrataría hoy (la recomendada): el paso de adentro
+    /// del núcleo la ilumina desde el coach de la hoja.
+    case jobsRecommended
+    /// La cara del selector del atajo (la fijada, o la primera). El selector vive en la raíz,
+    /// fuera de la hoja.
+    case pickerFace
+    /// Los puntos del paginador del menú: lo que señala un "deslizá".
+    case menuPager
     /// No se ilumina: es la franja que el globo tiene que ESQUIVAR. Sin esto el
     /// globo se apoyaba encima del HUD y lo tapaba entero — y como el HUD es
     /// justamente lo que los pasos siguientes iluminan, el tutorial terminaba
@@ -75,9 +83,13 @@ extension View {
     /// anclas del contador de monedas, de mejoras y del mapa —que viven adentro—
     /// y el recorte quedaba en la nada sin que nada fallara a la vista: el
     /// tutorial dibujaba el scrim entero y el paso no se podía completar.
-    func tutorialAnchor(_ target: TutorialTarget) -> some View {
+    ///
+    /// `when` es para el control que sólo a veces es el destino (la fila recomendada): publicar
+    /// condicionalmente, y no armar la vista con un `if`, conserva la identidad y el estado de
+    /// la vista cuando la condición cambia.
+    func tutorialAnchor(_ target: TutorialTarget, when condition: Bool = true) -> some View {
         transformAnchorPreference(key: TutorialAnchorKey.self, value: .bounds) { value, anchor in
-            value[target] = anchor
+            if condition { value[target] = anchor }
         }
     }
 }

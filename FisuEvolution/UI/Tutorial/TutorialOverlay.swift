@@ -72,10 +72,8 @@ struct TutorialOverlay: View {
         GeometryReader { proxy in
             ZStack {
                 scrim(run, step, hole: hole, windows: windows)
-                if SpotlightShape.isDrawable(hole) {
-                    spotlightRing(hole)
-                    if step.hand == .tap { hand(hole, screen: proxy.size) }
-                }
+                if SpotlightShape.isDrawable(hole) { spotlightRing(hole, insistent: run.nudges > 0) }
+                TutorialHandView(hand: step.hand, hole: hole, screen: proxy.size, insistent: run.nudges > 0)
                 card(run, step, hole: hole, screen: proxy.size)
             }
             .background(markers(run, step, hole: hole))
@@ -143,17 +141,16 @@ struct TutorialOverlay: View {
 
     /// Borde luminoso del agujero: sin esto el recorte se lee como un bache en
     /// el scrim en vez de como algo que hay que tocar.
-    private func spotlightRing(_ hole: CGRect) -> some View {
+    ///
+    /// `insistent` es el paso que el vigilante del núcleo vuelve a mostrar: el mismo anillo, más
+    /// grueso y con más brillo.
+    private func spotlightRing(_ hole: CGRect, insistent: Bool) -> some View {
         RoundedRectangle(cornerRadius: min(28, min(hole.width, hole.height) / 2), style: .continuous)
-            .strokeBorder(Color("PaletteYellow"), lineWidth: 3)
-            .shadow(color: Color("PaletteYellow").opacity(0.75), radius: 10)
+            .strokeBorder(Color("PaletteYellow"), lineWidth: insistent ? 6 : 3)
+            .shadow(color: Color("PaletteYellow").opacity(insistent ? 1 : 0.75), radius: insistent ? 18 : 10)
             .frame(width: hole.width, height: hole.height)
             .position(x: hole.midX, y: hole.midY)
             .allowsHitTesting(false)
-    }
-
-    private func hand(_ hole: CGRect, screen: CGSize) -> some View {
-        TutorialHand(hole: hole, screen: screen)
     }
 
     // MARK: - El globo
@@ -266,65 +263,5 @@ struct TutorialOverlay: View {
     /// de celebraciones encadena por completion y no por delays.
     private func motion(_ animation: Animation) -> Animation? {
         reduceMotion ? nil : animation
-    }
-}
-
-/// La manito de "tocá acá": el SF Symbol del sistema con su latido, lista para
-/// apoyarse por overlay sobre CUALQUIER control que una guía señale — la fase,
-/// los coach-marks de lecciones, la fila recomendada de FisuJobs, la tarjeta de
-/// Logros, el "Ponérsela" de Pintas. Una sola manito para toda la app (pedido
-/// del dueño, 2026-08-21): donde haya que hacer click, se ve el click.
-///
-/// ⚠️ Hereda las dos reglas de la mano de la fase: el latido es un
-/// `repeatForever` disparado por el CAMBIO de `up` en su propio `onAppear` (si
-/// el cambio ocurre antes de existir la vista, la mano queda quieta para
-/// siempre), y con Reduce Motion `up` no cambia nunca (un `repeatForever`
-/// colapsado deja el display link corriendo toda la sesión).
-struct TapHereHand: View {
-    var size: CGFloat = 40
-
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var up = false
-
-    var body: some View {
-        Image(systemName: "hand.point.up.left.fill")
-            .font(.system(size: size, weight: .black))
-            .foregroundStyle(.white)
-            .shadow(color: .black.opacity(0.6), radius: 5, y: 3)
-            .scaleEffect(up ? 1.14 : 0.92)
-            .offset(x: up ? 5 : 0, y: up ? 7 : 0)
-            .animation(
-                up ? .easeInOut(duration: 0.62).repeatForever(autoreverses: true) : .default,
-                value: up
-            )
-            .allowsHitTesting(false)
-            .accessibilityHidden(true)
-            .onAppear { up = !reduceMotion }
-    }
-}
-
-/// La mano de la FASE: la `TapHereHand` de siempre, acomodada al borde del
-/// recorte del paso. La historia del latido que nacía muerto (el `onAppear`
-/// del overlay corría antes de que el recorte llegara de la escena) vive en el
-/// doc de `TapHereHand`, que es quien guarda las dos reglas.
-private struct TutorialHand: View {
-    let hole: CGRect
-    let screen: CGSize
-
-    private static let size: CGFloat = 46
-
-    var body: some View {
-        // El SF Symbol a propósito: se probó una mano vectorial de la casa (el
-        // guante del Fisura) y el dueño prefirió la manito del sistema
-        // apretando el botón (2026-08-21) — más legible como "tocá acá". El
-        // dibujo y el latido viven en `TapHereHand`, que es la misma manito
-        // que usan las lecciones y las pantallas.
-        TapHereHand(size: Self.size)
-            // La mano se acomoda al borde del agujero, pero nunca se sale de la
-            // pantalla: el botón de contratar vive pegado al borde de abajo.
-            .position(
-                x: min(max(hole.maxX - 6, Self.size), screen.width - Self.size / 2),
-                y: min(max(hole.maxY - 2, Self.size), screen.height - Self.size)
-            )
     }
 }

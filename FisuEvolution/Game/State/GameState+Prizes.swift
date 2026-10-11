@@ -47,6 +47,8 @@ extension GameState {
         guard let popup = mattressPopup, popup.outcome != nil || popup.extraOnly,
               let outcome = openExtraMattress() else { return }
         mattressPopup?.outcome = outcome
+        refreshPrizeAccess()
+        scheduleSave()
     }
 
     func closeMattressPopup() {

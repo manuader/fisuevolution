@@ -94,3 +94,25 @@ struct MattressExtraSavedTests {
         #expect(plan.result.meta.engagement.treasures.extraOpensLeft == 0)
     }
 }
+
+@Suite("El «otro colchón» y el reloj del colchón nuevo")
+@MainActor
+struct MattressExtraClockTests {
+    @Test("con el popup del «otro colchón» abierto, el próximo colchón no pisa el pago")
+    func newMattressWaitsForThePopup() async throws {
+        let gameState = await makeGameState()
+        gameState.debugSpawnMattress()
+        gameState.mattressTapped()
+        gameState.mattressVideoWatched()
+        gameState.closeMattressPopup()
+        gameState.mattressTapped()
+        #expect(gameState.mattressPopup?.extraOnly == true)
+        gameState.engagementAutorun = true
+        gameState.player?.meta.engagement.treasures.secondsUntilNext = 0.5
+        gameState.advanceEngagement(delta: 1)
+        #expect(!gameState.mattressWaiting)
+        gameState.extraMattressVideoWatched()
+        let paid = try #require(gameState.mattressPopup?.outcome, "el video se vio y tiene que pagar")
+        #expect(paid.extraOpensLeft == 0)
+    }
+}

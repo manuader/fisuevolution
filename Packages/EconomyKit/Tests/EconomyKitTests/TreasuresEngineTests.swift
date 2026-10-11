@@ -271,3 +271,23 @@ struct TreasureExtraSaveTests {
         #expect(plan.result.meta.engagement.treasures == .initial)
     }
 }
+
+@Suite("Un modificador desconocido no tira el save")
+struct LossyModifierTests {
+    @Test("el efecto que no se conoce se descarta y el resto del save carga")
+    func unknownEffectIsDropped() throws {
+        var state = fxState(units: ["a": 1])
+        state.run.activeModifiers = [ActiveModifier(effect: .eventImmunity, magnitude: 1, expiresAt: 100, sourceKey: "k")]
+        var json = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
+        var run = try #require(json["run"] as? [String: Any])
+        var mods = try #require(run["activeModifiers"] as? [[String: Any]])
+        var unknown = mods[0]
+        unknown["effect"] = "unknownX"
+        mods.append(unknown)
+        run["activeModifiers"] = mods
+        json["run"] = run
+        let back = try JSONDecoder().decode(PlayerState.self, from: JSONSerialization.data(withJSONObject: json))
+        #expect(back.run.activeModifiers.count == 1)
+        #expect(back.run.activeModifiers.first?.effect == .eventImmunity)
+    }
+}

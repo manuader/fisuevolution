@@ -166,7 +166,8 @@ public struct RunState: Codable, Sendable, Equatable {
         maxTierReached = try container.decode(Int.self, forKey: .maxTierReached)
         charUpgradeLevels = try container.decode([String: Int].self, forKey: .charUpgradeLevels)
         unlockedFloors = try container.decode([String].self, forKey: .unlockedFloors)
-        activeModifiers = try container.decode([ActiveModifier].self, forKey: .activeModifiers)
+        // Un efecto que esta versión no conoce se descarta solo: no tira el save entero.
+        activeModifiers = try container.decode([LossyModifier].self, forKey: .activeModifiers).compactMap(\.value)
         seenTypes = try container.decodeIfPresent(Set<String>.self, forKey: .seenTypes) ?? []
         revealedTier = try container.decodeIfPresent(Int.self, forKey: .revealedTier) ?? maxTierReached
         priceRelief = try container.decodeIfPresent(Double.self, forKey: .priceRelief) ?? 1
@@ -611,6 +612,14 @@ public struct MetaState: Codable, Sendable, Equatable {
 /// The complete player save (schema v6): un sobre con dos secciones —`run`
 /// muere al reencarnar, `meta` sobrevive—, forma que estrenó F7 "La Torre" en
 /// v4. CoreData lo guarda como JSON blob y el snapshot es la misma codificación.
+private struct LossyModifier: Decodable {
+    let value: ActiveModifier?
+
+    init(from decoder: Decoder) throws {
+        value = try? ActiveModifier(from: decoder)
+    }
+}
+
 public struct PlayerState: Codable, Sendable, Equatable {
     public var schemaVersion: Int
     public var run: RunState

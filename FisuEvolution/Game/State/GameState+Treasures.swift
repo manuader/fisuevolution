@@ -24,7 +24,7 @@ extension GameState {
 
     /// El reloj de juego activo. Lo llama `advanceEngagement` con el delta del tick.
     func advanceTreasures(delta: TimeInterval) {
-        guard engagementAutorun, !tutorialPhaseActive, let content, var player else { return }
+        guard engagementAutorun, !tutorialPhaseActive, mattressPopup == nil, let content, var player else { return }
         let appeared = TreasureScheduler.advance(&player.meta.engagement.treasures, delta: delta, config: content.treasures)
         self.player = player
         guard appeared else { return }

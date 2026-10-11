@@ -13465,6 +13465,23 @@
         }
       }
     },
+    "tutorial.confirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Got it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entendido"
+          }
+        }
+      }
+    },
     "tutorial.done" : {
       "localizations" : {
         "en" : {
@@ -13514,18 +13531,19 @@
         }
       }
     },
-    "tutorial.skip" : {
+    "tutorial.replay.end" : {
+      "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Skip"
+            "value" : "End review"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saltar"
+            "value" : "Terminar repaso"
           }
         }
       }

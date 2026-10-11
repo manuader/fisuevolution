@@ -96,7 +96,13 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     /// un tap al vacío no lo cierra. La cinemática se cierra sola pero tapa la
     /// pantalla con su propio "Saltar": un tap al tablero de abajo no la corta
     /// (ni le borra a una celebración del tablero la animación que esperaba).
-    public var isSkippable: Bool { timeout != nil && self != .cinematic }
+    public var isSkippable: Bool {
+        switch self {
+        case .offlineEarnings, .dailyReward, .careerChoice, .skinAward, .specialDrop,
+             .chestOpening, .cinematic, .offer: false
+        case .boardCelebration, .visitorEncounter, .achievements, .towerNotice, .tutorialTip: true
+        }
+    }
 }
 
 /// Hace que las celebraciones se reproduzcan **de a una**.

@@ -335,6 +335,18 @@ struct CelebrationQueueTests {
         }
     }
 
+    /// La tabla explícita: E9 T6 cambia `.tutorialTip` a propósito, y este test es el que avisa.
+    @Test("quién se saltea con un tap, kind por kind")
+    func skippablePartitionIsPinned() {
+        let skippable: Set<CelebrationKind> = [
+            .boardCelebration, .visitorEncounter, .achievements, .towerNotice, .tutorialTip
+        ]
+        for kind in CelebrationKind.allCases {
+            #expect(kind.isSkippable == skippable.contains(kind), "\(kind.rawValue)")
+        }
+        #expect(!CelebrationKind.offer.isSkippable, "una venta no se salta sola")
+    }
+
     @Test("la cinemática se cierra sola pero un tap no la saltea: tiene su propio Saltar")
     func cinematicIsNotSkippableByTap() {
         #expect(CelebrationKind.cinematic.timeout != nil)

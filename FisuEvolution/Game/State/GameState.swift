@@ -229,16 +229,16 @@ final class GameState {
     /// promueve lo que el tutorial pide (`+Celebrations`, `beginTutorialPhase`)
     /// y las lecciones contextuales todavía no existen.
     ///
-    /// La fuente es `tutorial.v2.completed` en `UserDefaults` —la misma bandera del
-    /// overlay—, leída UNA vez en el bootstrap: la cola no lee `AppStorage`, le
-    /// llega como estado. La apaga `tutorialPhaseFinished()`, que llama el
-    /// overlay al cerrar (por el botón del final o por "Saltar").
+    /// La fuente es `tutorial.v2.completed` en `UserDefaults` (`TutorialFlags`),
+    /// leída UNA vez en el bootstrap. La apaga `finishTutorialCore()`, que llama
+    /// el director al confirmar `core.finish` (no hay "Saltar").
     ///
     /// Sin `private(set)` por lo mismo que `showing`: la escribe
     /// `+Celebrations`, que es otro archivo. Nadie más la toca.
     var tutorialPhaseActive = false
     /// Qué quiere iluminar el tutorial en el TABLERO, o nil si el paso actual no
-    /// es de tablero. Lo escribe el overlay; lo lee el frame loop de la escena.
+    /// es de tablero. Lo escribe el director (`progressCore`); lo lee el frame
+    /// loop de la escena.
     @ObservationIgnored var tutorialBoardTarget: TutorialBoardTarget?
     /// Una hoja de la barra (o el popup de prestigio) está tapando el tablero.
     /// Lo escribe `RootView` —es estado de SU `@State`, invisible desde acá— y

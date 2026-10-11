@@ -22,7 +22,7 @@ struct MattressRuntimeTests {
         gameState.player?.meta.engagement.treasures.secondsUntilNext = 0.5
         gameState.advanceEngagement(delta: 1)
         #expect(!gameState.mattressWaiting)
-        gameState.tutorialPhaseFinished()
+        gameState.finishTutorialCore()
         gameState.advanceEngagement(delta: 1)
         #expect(gameState.mattressWaiting)
     }

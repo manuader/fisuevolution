@@ -25,9 +25,9 @@ final class TutorialUITests: XCTestCase {
     /// Partida nueva CON tutorial y con plata para poder contratar. Sin la
     /// plata, el primer paso pide ~50 toques sobre un personaje que deambula.
     @MainActor
-    private func launchWithTutorial(coins: Bool = true) -> XCUIApplication {
+    private func launchWithTutorial(coins: Bool = true, extra: [String] = []) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset"] + (coins ? ["--uitest-coins"] : [])
+        app.launchArguments = ["--uitest-reset"] + (coins ? ["--uitest-coins"] : []) + extra
         app.launch()
         return app
     }
@@ -46,6 +46,15 @@ final class TutorialUITests: XCTestCase {
         return XCTWaiter().wait(for: [reached], timeout: timeout) == .completed
     }
 
+    /// El botón del candado publica `locked`/`unlocked` (sin traducir).
+    @MainActor
+    private func waitUnlocked(_ button: XCUIElement, timeout: TimeInterval = 10) -> Bool {
+        let unlocked = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value == 'unlocked'"), object: button
+        )
+        return XCTWaiter().wait(for: [unlocked], timeout: timeout) == .completed
+    }
+
     /// El recorte publicado por el overlay, en coordenadas de pantalla.
     @MainActor
     private func spotlight(_ app: XCUIApplication) -> CGRect? {
@@ -62,7 +71,7 @@ final class TutorialUITests: XCTestCase {
         let app = launchWithTutorial()
         XCTAssertTrue(app.otherElements["tutorial.step"].waitForExistence(timeout: 20),
                       "el tutorial no apareció en una partida nueva")
-        XCTAssertEqual(stepID(app), "tap", "el tutorial tiene que arrancar por el paso del tap")
+        XCTAssertEqual(stepID(app), "core.tap", "el tutorial tiene que arrancar por el paso del tap")
 
         // Cuatro esquinas, todas fuera del recorte del paso 1 (que está sobre el
         // personaje, abajo a la izquierda). Ninguna puede avanzar el paso.
@@ -70,15 +79,15 @@ final class TutorialUITests: XCTestCase {
                        CGVector(dx: 0.5, dy: 0.95), CGVector(dx: 0.05, dy: 0.5)] {
             app.coordinate(withNormalizedOffset: offset).tap()
         }
-        XCTAssertEqual(stepID(app), "tap", "tocar afuera del recorte NO puede avanzar el paso")
+        XCTAssertEqual(stepID(app), "core.tap", "tocar afuera del recorte NO puede avanzar el paso")
 
         // La acción que el paso pide sí: tocar al personaje iluminado.
-        try tapSpotlight(app, advancesTo: "hire")
+        try tapSpotlight(app, advancesTo: "core.hire")
 
         // Y el paso siguiente ilumina el tab de FisuJobs, que abre la pantalla
         // donde se contrata de verdad — y contratar vuelve a avanzar.
         try hireFromFisuJobs(app)
-        XCTAssertTrue(waitForStep(app, "merge"), "contratar tiene que completar el paso")
+        XCTAssertTrue(waitForStep(app, "core.merge"), "contratar tiene que completar el paso")
     }
 
     /// El agujero cae sobre el frame REAL del control, no sobre coordenadas
@@ -88,7 +97,7 @@ final class TutorialUITests: XCTestCase {
     func testElRecorteCaeSobreElControlDeVerdad() throws {
         let app = launchWithTutorial()
         XCTAssertTrue(app.otherElements["tutorial.step"].waitForExistence(timeout: 20))
-        try tapSpotlight(app, advancesTo: "hire")
+        try tapSpotlight(app, advancesTo: "core.hire")
 
         let raw = app.otherElements["tutorial.spotlight"].value as? String ?? "<sin marcador>"
         let hole = try XCTUnwrap(spotlight(app),
@@ -116,7 +125,7 @@ final class TutorialUITests: XCTestCase {
     func testElScrimBloqueaLosControlesQueNoSonLosDelPaso() throws {
         let app = launchWithTutorial()
         XCTAssertTrue(app.otherElements["tutorial.step"].waitForExistence(timeout: 20))
-        try tapSpotlight(app, advancesTo: "hire")
+        try tapSpotlight(app, advancesTo: "core.hire")
 
         // ⚠️ Se toca por COORDENADA sobre el frame real del botón, no con
         // `upgrades.tap()`. Un `.tap()` sobre un elemento que XCUITest considera
@@ -136,7 +145,7 @@ final class TutorialUITests: XCTestCase {
             .tap()
         XCTAssertFalse(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 3),
                        "el scrim tiene que impedir abrir Mejoras durante un paso que no es el suyo")
-        XCTAssertEqual(stepID(app), "hire", "y el paso no puede haberse movido")
+        XCTAssertEqual(stepID(app), "core.hire", "y el paso no puede haberse movido")
     }
 
     // MARK: - El recorrido entero
@@ -148,13 +157,14 @@ final class TutorialUITests: XCTestCase {
     /// avisa que terminó.
     @MainActor
     func testRecorreElTutorialEnteroHastaElFinal() throws {
-        let app = launchWithTutorial()
+        // El candado del cierre baja a 0,3 s: los 5 s de verdad los pinea `TutorialCoreTests`.
+        let app = launchWithTutorial(extra: ["--uitest-tutorial-lock=0.3"])
         XCTAssertTrue(app.otherElements["tutorial.step"].waitForExistence(timeout: 20))
 
-        try tapSpotlight(app, advancesTo: "hire")
+        try tapSpotlight(app, advancesTo: "core.hire")
 
         try hireFromFisuJobs(app)
-        XCTAssertTrue(waitForStep(app, "merge"))
+        XCTAssertTrue(waitForStep(app, "core.merge"))
 
         // `mergeTheHighlightedPair` ya verificó la mitad del arbitraje: su
         // señal de éxito ES que el marker desaparezca del árbol, o sea que el
@@ -165,7 +175,7 @@ final class TutorialUITests: XCTestCase {
 
         // La otra mitad: cuando la escena avisa que terminó, el cierre
         // aparece solo.
-        XCTAssertTrue(waitForStep(app, "finish", timeout: 12),
+        XCTAssertTrue(waitForStep(app, "core.finish", timeout: 12),
                       "el paso del cierre tiene que aparecer al terminar el reveal")
 
         // La captura espera al BOTÓN y un respiro más: el marker cambia a
@@ -174,6 +184,8 @@ final class TutorialUITests: XCTestCase {
         // la foto del paso anterior a medio fundir (pasó: la primera foto de
         // "último paso" mostraba el globo de merge atenuado).
         XCTAssertTrue(app.buttons["tutorial.done"].waitForExistence(timeout: 4))
+        XCTAssertTrue(waitUnlocked(app.buttons["tutorial.done"]),
+                      "«¡Vamos!» se habilita recién cuando su candado se abre")
         Thread.sleep(forTimeInterval: 0.8)
         let shot = XCTAttachment(screenshot: app.screenshot())
         shot.name = "RF-01 último paso"
@@ -239,41 +251,20 @@ final class TutorialUITests: XCTestCase {
         XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 6))
     }
 
-    /// Saltear cierra el tutorial y devuelve la pantalla.
+    /// No se saltea (PLAN-v2 §2): no hay botón de saltear y tocar el scrim no
+    /// mueve el paso. La salida es hacerlo.
     @MainActor
-    func testSaltearCierraElTutorialYDevuelveLosControles() throws {
+    func testNoHayBotonDeSaltear() throws {
         let app = launchWithTutorial(coins: false)
         XCTAssertTrue(app.otherElements["tutorial.step"].waitForExistence(timeout: 20))
-        // ⚠️ El tap se REINTENTA (patrón `tapSpotlight`): la tarjeta entra con
-        // pop de spring, y bajo carga el primer tap puede caer con el botón
-        // todavía en su frame de entrada (a escala 0.92) — medido 2026-08-21:
-        // fallaba en suite y pasaba aislado. Y la espera es de DESAPARICIÓN,
-        // no `XCTAssertFalse(waitForExistence(3))`: aquello devolvía true al
-        // primer poll si el overlay seguía desvaneciéndose (medido
-        // 2026-08-18). Tres intentos no esconden una regresión real: un skip
-        // roto falla los tres.
-        let marker = app.otherElements["tutorial.step"]
-        var closed = false
-        for _ in 0..<3 where !closed {
-            app.buttons["tutorial.skip"].tap()
-            let stepGone = XCTNSPredicateExpectation(
-                predicate: NSPredicate(format: "exists == 0"), object: marker
-            )
-            closed = XCTWaiter().wait(for: [stepGone], timeout: 4) == .completed
+        XCTAssertEqual(stepID(app), "core.tap")
+        XCTAssertFalse(app.buttons["tutorial.skip"].exists, "el tutorial no se saltea")
+        for offset in [CGVector(dx: 0.5, dy: 0.2), CGVector(dx: 0.85, dy: 0.45)] {
+            app.coordinate(withNormalizedOffset: offset).tap()
         }
-        XCTAssertTrue(closed, "saltear tiene que cerrar el tutorial")
-
-        // Saltear también termina la fase, así que el cofre de bienvenida cae
-        // igual: la única pinta temprana del juego no puede depender de haberse
-        // bancado el guion entero. Se cierra sin ponérsela, que es la otra salida
-        // de la carta.
-        awaitWelcomeChest(app, screenshotNamed: "cofre de bienvenida: también al saltear")
-        app.buttons["chest.dismiss"].tap()
-        awaitChestGone(app)
-
-        app.buttons["hud.upgrades"].tap()
-        XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 12),
-                      "sin tutorial, el HUD tiene que volver a responder")
+        XCTAssertTrue(app.otherElements["tutorial.step"].exists, "tocar el scrim no cierra nada")
+        XCTAssertEqual(stepID(app), "core.tap", "ni mueve el paso")
+        XCTAssertFalse(app.buttons["tutorial.skip"].exists)
     }
 
     // MARK: - Las lecciones contextuales
@@ -293,20 +284,26 @@ final class TutorialUITests: XCTestCase {
     @MainActor
     func testLaLeccionDePintasNaceConLaPintaDelCofreDeBienvenida() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-lessons"]
+        // Sin "Saltar", el núcleo se retoma en su cierre (los tres milestones hechos, como
+        // quien cerró la app ahí) y se cierra por su botón.
+        app.launchArguments = ["--uitest-reset", "--uitest-lessons", "--uitest-tutorial-at-finish",
+                               "--uitest-tutorial-lock=0.3"]
         app.launch()
 
-        XCTAssertTrue(app.otherElements["tutorial.step"].waitForExistence(timeout: 20))
+        XCTAssertTrue(waitForStep(app, "core.finish", timeout: 20))
+        let done = app.buttons["tutorial.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 10))
+        XCTAssertTrue(waitUnlocked(done))
         let marker = app.otherElements["tutorial.step"]
         var closed = false
         for _ in 0..<3 where !closed {
-            app.buttons["tutorial.skip"].tap()
+            done.tap()
             let stepGone = XCTNSPredicateExpectation(
                 predicate: NSPredicate(format: "exists == 0"), object: marker
             )
             closed = XCTWaiter().wait(for: [stepGone], timeout: 4) == .completed
         }
-        XCTAssertTrue(closed, "saltear tiene que cerrar el tutorial")
+        XCTAssertTrue(closed, "«¡Vamos!» tiene que cerrar el tutorial")
 
         awaitWelcomeChest(app, screenshotNamed: "lección de Pintas: el cofre que la habilita")
         app.buttons["chest.dismiss"].tap()
@@ -476,7 +473,7 @@ final class TutorialUITests: XCTestCase {
     private func mergeTheHighlightedPair(_ app: XCUIApplication, attempts: Int = 4) throws {
         let marker = app.otherElements["tutorial.step"]
         for _ in 0..<attempts {
-            guard (marker.value as? String) == "merge" else { return }
+            guard (marker.value as? String) == "core.merge" else { return }
             guard let hole = spotlight(app) else { continue }
             // El recorte abraza a los DOS del par: su centro puede caer en el
             // aire entre medio. Se apunta al cuerpo del de la izquierda.

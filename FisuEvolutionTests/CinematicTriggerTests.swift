@@ -197,7 +197,7 @@ struct CinematicTriggerTests {
         #expect(gameState.showing == .boardCelebration)
         gameState.celebrationFinished(.boardCelebration)
         #expect(gameState.showing == nil, "la fase obligatoria la retiene")
-        gameState.tutorialPhaseFinished()
+        gameState.finishTutorialCore()
         #expect(gameState.showing == .cinematic)
     }
 

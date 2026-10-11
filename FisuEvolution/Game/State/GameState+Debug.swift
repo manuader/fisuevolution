@@ -47,6 +47,15 @@ extension GameState {
             TutorialFlags.setCoreCompleted(true, in: defaults)
             TutorialFlags.markCurrent(in: defaults)
         }
+        // `--uitest-tutorial-at-finish`: el núcleo retoma en su cierre (los tres
+        // milestones hechos, como quien cerró la app ahí). Sin "Saltar", es la
+        // forma de llegar al cofre de bienvenida sin jugar el guion entero.
+        if arguments.contains("--uitest-tutorial-at-finish") {
+            for key in TutorialFlags.milestoneKeys { defaults.set(true, forKey: key) }
+            ftueTapped = true
+            ftueSpawned = true
+            ftueMerged = true
+        }
         // En una corrida de UI tests las lecciones contextuales arrancan
         // APAGADAS salvo que el test las pida (`--uitest-lessons`): un coach
         // nacido en medio de un test ajeno tapa coordenadas que ese test toca

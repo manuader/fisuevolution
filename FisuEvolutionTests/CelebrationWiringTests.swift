@@ -508,7 +508,7 @@ struct CelebrationWiringTests {
         gameState.syncCelebrations()
         #expect(gameState.showing == nil,
                 "el sheet está gateado por el tutorial: si tomara el turno acá, congelaría la cola")
-        gameState.tutorialPhaseFinished()
+        gameState.finishTutorialCore()
         #expect(gameState.showing == .skinAward, "al terminar la fase, lo que esperó desfila")
         assertPayloadExists(gameState)
     }
@@ -524,7 +524,7 @@ struct CelebrationWiringTests {
         gameState.debugClaimDailyAgain()
         #expect(gameState.dailyClaim != nil, "el claim del día 2 corre aunque la fase esté viva")
         #expect(gameState.showing == nil, "pero el popup no toma el turno hasta que la fase termine")
-        gameState.tutorialPhaseFinished()
+        gameState.finishTutorialCore()
         #expect(gameState.showing == .dailyReward)
         assertPayloadExists(gameState)
     }
@@ -541,7 +541,7 @@ struct CelebrationWiringTests {
         #expect(gameState.celebrationHidesUI, "y apaga la UI como siempre: el overlay se esconde solo")
         gameState.celebrationFinished(.boardCelebration)
         #expect(gameState.showing == nil, "el aviso de torre sigue esperando a que la fase termine")
-        gameState.tutorialPhaseFinished()
+        gameState.finishTutorialCore()
         #expect(gameState.showing == .towerNotice)
     }
 
@@ -572,7 +572,7 @@ struct CelebrationWiringTests {
         gameState.skinAward = try anAward(gameState)
         gameState.syncCelebrations()
         #expect(gameState.showing == nil, "con la fase revivida, el sheet espera su turno")
-        gameState.tutorialPhaseFinished()
+        gameState.finishTutorialCore()
         #expect(gameState.showing == .skinAward)
     }
 }

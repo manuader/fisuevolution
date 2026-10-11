@@ -50,7 +50,7 @@ struct RankingWiringTests {
     }
 
     private func closeTutorialCore(_ rig: Rig) async {
-        rig.gameState.tutorialPhaseFinished()
+        rig.gameState.finishTutorialCore()
         await rig.store.settled()
     }
 
@@ -59,7 +59,7 @@ struct RankingWiringTests {
         let rig = try await makeRig()
         #expect(await startRunCount(rig) == 0)
 
-        rig.gameState.tutorialPhaseFinished()
+        rig.gameState.finishTutorialCore()
         await rig.store.settled()
 
         #expect(await startRunCount(rig) == 1)
@@ -127,7 +127,7 @@ struct RankingWiringTests {
         #expect(await startRunCount(rig) == 0)
 
         rig.clock.value += 100
-        rig.gameState.tutorialPhaseFinished()
+        rig.gameState.finishTutorialCore()
         await rig.store.settled()
         #expect(await startRunCount(rig) == 1)
 

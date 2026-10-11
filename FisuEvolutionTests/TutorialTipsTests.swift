@@ -54,7 +54,7 @@ struct TutorialTipsTests {
         gameState.debugGrantCoins()
         gameState.refreshProjections()
         #expect(gameState.tutorialTip == nil, "las lecciones arrancan recién cuando la fase termina")
-        gameState.tutorialPhaseFinished()
+        gameState.finishTutorialCore()
         // El cofre de bienvenida toma el turno al cerrar la fase; la lección
         // nace con la cola libre (director v2).
         gameState.dismissChestReward()
@@ -217,7 +217,7 @@ struct TutorialTipsTests {
         gameState.player?.meta.welcomeChestGiven = false
 
         gameState.beginTutorialPhase()
-        gameState.tutorialPhaseFinished()
+        gameState.finishTutorialCore()
         gameState.dismissChestReward()
         gameState.refreshProjections()
 

@@ -120,11 +120,13 @@ enum TutorialSignal: Hashable, Sendable {
     case characterSheetOpened
 
     /// Las del núcleo son absolutas (los milestones `ftue.*` persisten: retomar a mitad no
-    /// rehace nada); las demás miran el cambio desde el inicio del paso.
+    /// rehace nada, y un milestone posterior cumple los anteriores —quien retoma en el merge
+    /// sin plata no queda trabado en el toque—); las demás miran el cambio desde el inicio
+    /// del paso.
     func isSatisfied(baseline: TutorialProbe, now: TutorialProbe, events: Set<TutorialEvent>, lesson: String?) -> Bool {
         switch self {
-        case .coreTappedAndAffordable: now.ftueTapped && now.canAffordSpawn
-        case .coreHired: now.ftueSpawned
+        case .coreTappedAndAffordable: now.ftueSpawned || now.ftueMerged || (now.ftueTapped && now.canAffordSpawn)
+        case .coreHired: now.ftueSpawned || now.ftueMerged
         case .coreMerged: now.ftueMerged
         case .tapped: now.taps > baseline.taps
         case .hired: now.hires > baseline.hires

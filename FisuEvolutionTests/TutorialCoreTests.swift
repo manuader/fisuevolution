@@ -190,4 +190,111 @@ struct TutorialCoreTests {
             #expect(fresh.tutorialRun?.script == .core)
         }
     }
+
+    // MARK: El vigilante de 180 s (opción B del dueño)
+
+    /// Lo que el vigilante no puede mover: ni el currículo ni los milestones del jugador.
+    private func expectUntouched(_ gameState: GameState, stillOn id: String) {
+        #expect(gameState.tutorialRun?.step?.id == id)
+        #expect(gameState.tutorialPhaseActive)
+        #expect(gameState.tutorialRun?.unlocked == false)
+        #expect(gameState.tutorialEngine.clock.elapsed == 0, "el reloj vuelve a empezar")
+    }
+
+    @Test("el vigilante no saca del toque a quien no tocó: se queda y se muestra más insistente")
+    func theWatchdogKeepsTheTapStep() async {
+        let gameState = await makeGameState()
+        gameState.beginTutorialPhase()
+        gameState.refreshProjections()
+        gameState.advanceTutorial(delta: 179)
+        #expect(gameState.tutorialRun?.nudges == 0, "a los 179 s todavía no")
+        gameState.advanceTutorial(delta: 1)
+        expectUntouched(gameState, stillOn: "core.tap")
+        #expect(gameState.tutorialRun?.nudges == 1)
+        #expect(!gameState.ftueTapped && !gameState.ftueSpawned, "no se cumplió nada por él")
+        gameState.advanceTutorial(delta: 180)
+        #expect(gameState.tutorialRun?.nudges == 2, "y se repite mientras siga sin cumplirse")
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.step?.id == "core.tap", "el refresh tampoco lo mueve")
+        gameState.ftueTapped = true
+        gameState.debugGrantCoins()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.step?.id == "core.hire", "haciéndolo, sí avanza")
+        #expect(gameState.tutorialRun?.nudges == 0, "el paso nuevo empieza sin insistencia")
+    }
+
+    @Test("el vigilante no lleva a contratar a quien no puede pagarlo, ni a fusionar a quien no tiene par")
+    func theWatchdogNeverLeadsToAnImpossibleStep() async {
+        let gameState = await makeGameState()
+        gameState.ftueTapped = true
+        gameState.debugGrantCoins()
+        gameState.beginTutorialPhase()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.step?.id == "core.hire")
+        gameState.advanceTutorial(delta: 180)
+        expectUntouched(gameState, stillOn: "core.hire")
+
+        let merging = await makeGameState()
+        merging.ftueTapped = true
+        merging.ftueSpawned = true
+        merging.beginTutorialPhase()
+        merging.refreshProjections()
+        #expect(merging.tutorialRun?.step?.id == "core.merge")
+        merging.advanceTutorial(delta: 180)
+        expectUntouched(merging, stillOn: "core.merge")
+        #expect(!merging.ftueMerged)
+        #expect(merging.tutorialBoardTarget == .mergePair, "sigue pidiendo el recorte del par")
+    }
+
+    // MARK: Contratar adentro de la hoja
+
+    @Test("abrir FisuJobs lleva al paso de adentro; cerrarla sin contratar vuelve al que la abre")
+    func hiringLivesInsideTheSheet() async {
+        let gameState = await makeGameState()
+        gameState.ftueTapped = true
+        gameState.debugGrantCoins()
+        gameState.beginTutorialPhase()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.step?.id == "core.hire")
+
+        gameState.menuDidOpen(at: .jobs)
+        #expect(gameState.tutorialRun?.step?.id == "core.hire.inside")
+        #expect(gameState.tutorialRun?.step?.surface == .page(.jobs))
+        #expect(gameState.tutorialStepIsVisible, "el coach de la hoja lo ve")
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.step?.id == "core.hire.inside", "abierta la hoja, el refresh no lo rebobina")
+
+        gameState.menuPageChanged(to: .upgrades)
+        #expect(!gameState.tutorialStepIsVisible, "deslizó a otra página")
+
+        gameState.uiCoversBoard = false
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.step?.id == "core.hire", "cerró la hoja sin contratar")
+        #expect(gameState.tutorialRun?.nudges == 0)
+    }
+
+    @Test("contratar adentro de la hoja pasa a fusionar, con la hoja abierta o cerrada")
+    func hiringInsideAdvances() async {
+        let gameState = await makeGameState()
+        gameState.ftueTapped = true
+        gameState.debugGrantCoins()
+        gameState.beginTutorialPhase()
+        gameState.refreshProjections()
+        gameState.menuDidOpen(at: .jobs)
+        gameState.ftueSpawned = true
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.step?.id == "core.merge")
+        #expect(gameState.tutorialBoardTarget == .mergePair)
+    }
+
+    @Test("quien ya contrató retoma en fusionar sin pasar por abrir FisuJobs")
+    func resumingSkipsTheHireSteps() async {
+        let gameState = await makeGameState()
+        gameState.ftueTapped = true
+        gameState.ftueSpawned = true
+        gameState.beginTutorialPhase()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.index == 3)
+        #expect(gameState.tutorialRun?.step?.id == "core.merge")
+    }
 }

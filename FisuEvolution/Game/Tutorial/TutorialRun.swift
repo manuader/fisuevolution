@@ -18,6 +18,9 @@ struct TutorialRun: Equatable {
     var events: Set<TutorialEvent> = []
     /// El candado del paso actual ya se abrió. Se publica una vez por paso (no por frame).
     var unlocked = false
+    /// Cuántas veces el vigilante del núcleo (180 s) volvió a mostrar este paso sin que se cumpliera.
+    /// Sólo lo lee la UI, para mostrarlo más insistente; vuelve a cero con cada paso nuevo.
+    private(set) var nudges = 0
 
     init(script: Script, steps: [TutorialStep], probe: TutorialProbe) {
         self.script = script
@@ -40,11 +43,32 @@ struct TutorialRun: Equatable {
         return signal.isSatisfied(baseline: baseline, now: probe, events: events, lesson: lessonID)
     }
 
+    /// Retomar: un milestone absoluto del núcleo cumple los pasos que lo preceden. Quien ya
+    /// contrató no tiene por qué abrir FisuJobs a "abrir FisuJobs" (`screenOpened` no persiste).
+    func isNextStepDone(probe: TutorialProbe) -> Bool {
+        guard steps.indices.contains(index + 1), let signal = steps[index + 1].signal, signal.isAbsolute else { return false }
+        return signal.isSatisfied(baseline: baseline, now: probe, events: events, lesson: lessonID)
+    }
+
     mutating func advance(probe: TutorialProbe) {
         index += 1
         baseline = probe
         events.removeAll()
         unlocked = false
+        nudges = 0
+    }
+
+    /// El vigilante vuelve a mostrar el paso en vez de saltarlo: no toca la foto ni las señales.
+    mutating func insist() {
+        nudges += 1
+    }
+
+    /// El paso que sigue vive fuera del tablero (una hoja): saltearlo por tiempo lo dejaría
+    /// invisible y `rewindToBoard` lo devolvería acá, sin fin.
+    var nextStepLeavesTheBoard: Bool {
+        guard steps.indices.contains(index + 1) else { return false }
+        let surface = steps[index + 1].surface
+        return surface != .board && surface != .embedded
     }
 
     /// Un paso que vive en una hoja no tiene sentido con la hoja cerrada: vuelve al último
@@ -56,6 +80,7 @@ struct TutorialRun: Equatable {
         baseline = probe
         events.removeAll()
         unlocked = false
+        nudges = 0
         return true
     }
 }

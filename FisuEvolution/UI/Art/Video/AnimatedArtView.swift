@@ -40,14 +40,16 @@ struct AnimatedArtView<Poster: View>: View {
     let clip: ArtClip
     var role: VideoRole = .popup
     var playback: Playback = .loop
+    /// El tinte en vivo del clip (pintas recoloreo); el póster ya viene con los colores de la pinta.
+    var tint: ArtTint?
     @ViewBuilder let poster: () -> Poster
     @Environment(\.loopsManifest) private var manifest
 
     var body: some View {
         poster().modifier(ArtPackLease(tag: manifest.odrTag(for: clip))).overlay {
             if let url = AnimatedArt.resolve(clip, manifest: manifest) {
-                ArtVideoLayer(url: url, role: role, playback: playback)
-                    .id("\(url.absoluteString)|\(role.rawValue)")
+                ArtVideoLayer(url: url, role: role, playback: playback, tint: tint)
+                    .id("\(url.absoluteString)|\(role.rawValue)|\(tint?.rawValue ?? "")")
                     .accessibilityHidden(true)
                     .allowsHitTesting(false)
             }
@@ -59,9 +61,10 @@ struct ArtVideoLayer: UIViewRepresentable {
     let url: URL
     let role: VideoRole
     let playback: ArtPlayback
+    var tint: ArtTint?
 
     func makeUIView(context: Context) -> ArtVideoUIView {
-        ArtVideoUIView(url: url, role: role, playback: playback, pool: .shared)
+        ArtVideoUIView(url: url, role: role, playback: playback, pool: .shared, tint: tint)
     }
 
     func updateUIView(_ uiView: ArtVideoUIView, context: Context) {}
@@ -84,6 +87,7 @@ final class ArtVideoUIView: UIView, VideoLeaseHolder {
     private let role: VideoRole
     private let playback: ArtPlayback
     private let pool: VideoPlayerPool
+    private let tint: ArtTint?
     private var lease: VideoPlayerPool.Lease?
     private var looper: AVPlayerLooper?
     private var tasks: [Task<Void, Never>] = []
@@ -107,7 +111,8 @@ final class ArtVideoUIView: UIView, VideoLeaseHolder {
         layer as! AVPlayerLayer
     }
 
-    init(url: URL, role: VideoRole, playback: ArtPlayback, pool: VideoPlayerPool) {
+    init(url: URL, role: VideoRole, playback: ArtPlayback, pool: VideoPlayerPool, tint: ArtTint? = nil) {
+        self.tint = tint
         self.url = url
         self.role = role
         self.playback = playback
@@ -171,9 +176,25 @@ final class ArtVideoUIView: UIView, VideoLeaseHolder {
 
     private func startPlayer() {
         guard player == nil, !onceFinished else { return }
+        guard let tint else {
+            play(AVPlayerItem(url: url))
+            return
+        }
+        // La composición del tinte se arma async; el pool ya dio el cupo y el sondeo de primer cuadro
+        // (con su tope) corre recién cuando el player existe.
+        let asset = AVURLAsset(url: url)
+        tasks.append(Task { [weak self] in
+            let composition = try? await tint.videoComposition(for: asset)
+            guard let self, !Task.isCancelled, self.player == nil, self.lease != nil else { return }
+            let item = AVPlayerItem(asset: asset)
+            item.videoComposition = composition
+            self.play(item)
+        })
+    }
+
+    private func play(_ item: AVPlayerItem) {
         watchdog?.cancel()
         watchdog = nil
-        let item = AVPlayerItem(url: url)
         let queue = AVQueuePlayer()
         queue.isMuted = true
         queue.automaticallyWaitsToMinimizeStalling = false

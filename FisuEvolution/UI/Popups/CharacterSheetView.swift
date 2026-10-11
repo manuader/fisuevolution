@@ -32,10 +32,14 @@ struct CharacterSheetView: View {
 
     /// El clip de una opción: sólo la seleccionada y que sea tuya. El `TabView(.page)` monta las vecinas
     /// y el pool dejaría vivo al más nuevo, no al que se mira. Una pinta sin clip queda quieta: nunca
-    /// el video de la base.
-    static func clip(skinID: String?, type: String, isSelected: Bool, owned: Bool, in manifest: LoopsManifest) -> ArtClip? {
+    /// el video de la base sin tinte (las recoloreo habilitadas en `SkinTints` sí usan el base, tintado).
+    static func playable(skinID: String?, type: String, isSelected: Bool, owned: Bool, in manifest: LoopsManifest) -> ArtClips.Playable? {
         guard isSelected, owned else { return nil }
-        return ArtClips.character(type: type, skin: skinID, in: manifest)
+        return ArtClips.characterPlayable(type: type, skin: skinID, in: manifest)
+    }
+
+    static func clip(skinID: String?, type: String, isSelected: Bool, owned: Bool, in manifest: LoopsManifest) -> ArtClip? {
+        playable(skinID: skinID, type: type, isSelected: isSelected, owned: owned, in: manifest)?.clip
     }
 
     private var selectedIndex: Int { options.firstIndex { $0.id == selectedID } ?? 0 }
@@ -118,7 +122,7 @@ struct CharacterSheetView: View {
                         skinID: option.skin?.id,
                         treatment: treatment(for: option),
                         asSilhouette: !owns(option),
-                        clip: Self.clip(
+                        playable: Self.playable(
                             skinID: option.skin?.id, type: sheet.type.id,
                             isSelected: option.id == selectedID, owned: owns(option), in: loops)
                     )
@@ -343,8 +347,8 @@ private struct CharacterPortrait: View {
     /// plena (spec §3.10, "personaje misterioso"). Enseñar el arte a color
     /// regalaría la sorpresa de lo que estás por desbloquear.
     var asSilhouette = false
-    /// El video de esta pinta (`ArtClips.character`); `nil` = quieta. La silueta nunca anima.
-    var clip: ArtClip?
+    /// El video de esta pinta (`ArtClips.characterPlayable`); `nil` = quieta. La silueta nunca anima.
+    var playable: ArtClips.Playable?
     @Environment(GameState.self) private var gameState
 
     var body: some View {
@@ -356,8 +360,8 @@ private struct CharacterPortrait: View {
                         .renderingMode(.template)
                         .scaledToFit()
                         .foregroundStyle(Color("PaletteInk"))
-                } else if let clip {
-                    AnimatedArtView(clip: clip, role: .popup) {
+                } else if let playable {
+                    AnimatedArtView(clip: playable.clip, role: .popup, tint: playable.tint) {
                         image
                             .resizable()
                             .scaledToFit()

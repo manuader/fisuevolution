@@ -21,6 +21,7 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
 
     private var url: URL?
     let clip: ArtClip
+    private let tint: ArtTint?
     private let manifest: LoopsManifest
     private let packs: ArtPacks
     private let role: VideoRole
@@ -52,9 +53,10 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
     var videoAlpha: CGFloat { videoNode?.alpha ?? 0 }
 
     init(clip: ArtClip, poster: SKTexture, size: CGSize, role: VideoRole,
-         playback: ArtPlayback = .loop, manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared, packs: ArtPacks = .shared) {
+         playback: ArtPlayback = .loop, tint: ArtTint? = nil, manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared, packs: ArtPacks = .shared) {
         self.url = manifest.url(for: clip, packs: packs)
         self.clip = clip
+        self.tint = tint
         self.manifest = manifest
         self.packs = packs
         self.role = role
@@ -161,8 +163,22 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
 
     private func startPlayer() {
         guard let url, player == nil, !onceFinished else { return }
+        guard let tint else {
+            play(AVPlayerItem(url: url))
+            return
+        }
+        let asset = AVURLAsset(url: url)
+        endTasks.append(Task { [weak self] in
+            let composition = try? await tint.videoComposition(for: asset)
+            guard let self, !Task.isCancelled, self.player == nil, self.lease != nil else { return }
+            let item = AVPlayerItem(asset: asset)
+            item.videoComposition = composition
+            self.play(item)
+        })
+    }
+
+    private func play(_ item: AVPlayerItem) {
         cancelWatchdog()
-        let item = AVPlayerItem(url: url)
         let queue = AVQueuePlayer()
         queue.isMuted = true
         queue.automaticallyWaitsToMinimizeStalling = false

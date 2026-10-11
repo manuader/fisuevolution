@@ -46,7 +46,9 @@ Hay pasos que tardan días en aprobarse, así que van primero:
 
 ### 1.1 La versión 2.0.0 — Novedades
 
-🔒 Crear la versión **2.0.0** y pegar estos textos en *What's New*.
+🔒 Crear la versión **2.0.0** y pegar estos textos en *What's New*. La fuente de
+verdad aplicada es `Distribution/release/release.json → store.localizations.*.whatsNew`
+(este bloque es copia de lectura).
 
 ⚠️ Antes de pegar, confirmar en TestFlight que todo lo que se nombra entró.
 Si una pieza quedó afuera (por ejemplo, las familias de skins, que dependen
@@ -328,38 +330,45 @@ Cómo armar la declaración de la 2.0:
 
 ### 1.8 Notas a App Review
 
-🔒 Van en **App Review Information → Notes** (máximo 4000 caracteres). Este
-texto tiene 3.459 caracteres, todos ASCII. Cubre lo que las notas de
-la v1 no decían: el intersticial al **cerrar menús** (bug 12 del plan) y el
-**app open**.
+🔒 Van en **App Review Information → Notes** (máximo 4000 caracteres). **El texto
+aplicado vive en `Distribution/release/release.json → store.reviewNotes`** (la
+fuente de verdad; `releaseops asc listing plan` lo muestra y `asc listing apply`
+lo sube): lo de abajo es una copia de lectura. Tiene 3,837 caracteres, todos ASCII.
+Lista **cada** lugar de anuncios del código (las 8 unidades de video más la
+columna del tablero), con las redes reales (Google, Unity Ads y Meta Audience
+Network: AppLovin y Mintegral quedaron afuera el 2026-10-08), el atajo al Ranking,
+las probabilidades y las ofertas de 24 h.
 
-⚠️ Antes de pegar, confirmarlo contra el build de TestFlight: si E7 cambió una
-cadencia o E6 cambió dónde se ven las ofertas, se corrige acá primero.
+⚠️ Borrador de E10 T5: se cierra contra el build de TestFlight (E10 T11). Si E7b-b
+cambió algo de la columna, o E7 una cadencia, se corrige primero en `release.json`.
 
 ```
 HoboEvolution 2.0 - notes for the reviewer
 
-Satirical single-player merge/idle game with Argentine humor. Brands are parodies and characters are archetypes, not real people. No accounts, no login and no server of ours: progress is stored on device. Game Center and iCloud are disabled.
+Satirical single-player merge/idle game with Argentine humor. Brands are parodies and characters are archetypes, not real people. No accounts, no login: progress is stored on device. The only server of ours is the optional leaderboard (see LEADERBOARD). Game Center and iCloud are disabled.
+
+LEADERBOARD (Guideline 1.2)
+The Ranking tab is in the bottom bar right after the tutorial: open it to see the board; long-press any row for Report. Entering a name is only offered after reaching the final stage (God), which takes hours, so it is not reachable in review. It is optional; the name (max 15 chars) is checked by rules, a word list and an automated classifier (Anthropic's Claude Haiku, which receives only the name), and hidden after 3 reports.
 
 HOW TO TEST
-Tap the character to earn coins, tap Hire to buy another one, and drag one onto another to merge them. The tutorial cannot be skipped; it ends with a welcome chest. Everything else unlocks as you play. The Store tab has every IAP and Restore Purchases.
+Tap the character to earn coins, tap Hire to buy another one, and drag one onto another to merge them. The tutorial cannot be skipped; it ends with a welcome chest. The bottom-bar tabs appear one by one as you play. The Store tab has every IAP and Restore Purchases.
 
-ADS (Google AdMob, with AppLovin, Unity Ads, Mintegral and Meta Audience Network as mediation partners)
-1. Opt-in rewarded videos. Always started by an explicit tap on a button that says what you get; they never autoplay. Places: the Gifts list (Bonus tab), doubling offline earnings, opening another skin chest, starting a boost without waiting and "Merge all", the prize wheel (spin and "repeat prize"), the Mattress Stash ("another mattress"), parcel rain, visitor rewards x2, forgiving a fine, the street vendor's boosts, escaping a negative event, and daily or career rewards x2.
-2. Ads that appear on their own, only at natural breaks: at least 2 minutes apart, never during the tutorial, never over an open screen or a celebration, and never two in the same break.
-- Interstitial and "ad break" (rewarded interstitial) alternate. Breaks: closing a menu screen and returning to the board, dismissing the offline-earnings popup, reincarnating, and the end of a chain of celebrations. The ad break always shows an intro screen with a 5-second countdown and a visible "No, thanks" button; declining has no penalty.
-- App open: only when returning to the app after 3+ minutes away, at most once every 20 minutes, from the second session on, never on first launch or during the tutorial.
-"Remove Ads" (US$2.99) and the Starter Pack remove these three formats (interstitial, ad break and app open). Opt-in rewarded videos stay, because they are optional and pay out prizes; the purchase description says so.
+ADS (Google AdMob; mediation partners: Unity Ads and Meta Audience Network)
+1. Opt-in rewarded videos, always started by an explicit tap on a button that says what you get; they never autoplay. Places: the Gifts list (4 prizes, and skipping a boost cooldown); the side column of the board ("Merge all" and parcel rain); doubling offline earnings; opening another skin chest; the prize wheel (spin and "repeat prize"); the Mattress Stash (open and "another mattress"); visitors (reward x2, forgiving a fine, the street vendor's boosts, the x2 challenge); escaping a negative event; daily and career rewards x2.
+2. Ads that appear on their own, only at natural breaks: at least 2 minutes apart, never during the tutorial, never over an open screen or a celebration, never two in the same break.
+- Interstitial and "ad break" (rewarded interstitial) alternate. Breaks: closing a menu screen back to the board, dismissing the offline-earnings popup, reincarnating, and the end of a chain of celebrations. The ad break always shows an intro with a 5-second countdown and a visible "No, thanks" button; declining has no penalty.
+- App open: only when returning after 3+ minutes away, at most once every 20 minutes, from the second session on, never on first launch or in the tutorial.
+"Remove Ads" (US$2.99) and the Starter Pack remove these three formats. Opt-in rewarded videos stay, because they are optional and pay out prizes; the purchase description says so.
 ATT is requested on first launch; declining is fully supported. In the EEA, UK and Switzerland, Google's UMP consent form is shown before any ad, and Settings > Privacy options lets the player change it.
 
 RANDOMIZED ITEMS (Guideline 3.1.1)
-The prize wheel, the skin chest bought with ORO, the Mattress Stash and the skin chest inside the Welcome Pack give randomized items. The odds of every prize are shown on screen before spinning, buying or opening. ORO, the premium currency, can be bought with real money; it has no real-world value and cannot be cashed out or transferred. There is no real-money gambling and no betting. Extra wheel spins and chests bought with ORO are turned off in Belgium and Australia.
+The prize wheel, the skin chest bought with ORO, the Mattress Stash and the skin chest in the Welcome Pack give randomized items. The odds of every prize are shown on screen before spinning, buying or opening. ORO, the premium currency, can be bought with real money; it has no real-world value and cannot be cashed out or transferred. No real-money gambling or betting. Extra wheel spins and ORO chests are off in Belgium and Australia.
 
 24-HOUR OFFERS (consumable IAPs)
-- Welcome Pack (US$0.99): offered once, on the player's 2nd calendar day. To see it: play once, set the device date one day ahead and reopen the app.
-- Rebirth Pack (US$2.99): offered right after reincarnating.
-- Moving Day Pack (US$4.99): offered when a new floor opens outside the tutorial; the early floors open within the first minutes of play.
-Each one stays available for 24 hours behind a chip at the top of the board, and never shows during the tutorial.
+- Welcome Pack (US$0.99): once, on the player's 2nd calendar day. To see it: play once, set the device date one day ahead and reopen the app.
+- Rebirth Pack (US$2.99): right after reincarnating.
+- Moving Day Pack (US$4.99): when a new floor opens outside the tutorial; early floors open within the first minutes.
+Each stays for 24 hours behind a chip at the top of the board, never during the tutorial.
 
 IAPs (14): starter pack, remove ads, three cash packs, three ORO packs, three skin purchases and the three offers above. Consumables are not restored by design; remove ads and skins are.
 ```

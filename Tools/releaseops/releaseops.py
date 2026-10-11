@@ -13,6 +13,7 @@
     python3 Tools/releaseops/releaseops.py admob set-id <clave> <ad-unit-id>
     python3 Tools/releaseops/releaseops.py admob sync-code [--dry-run]
     python3 Tools/releaseops/releaseops.py version bump [--build | --patch | --minor]
+    python3 Tools/releaseops/releaseops.py app verify <.app|.xcarchive> [--json]   # el .app antes de exportar
 
 La fuente de verdad es `Distribution/release/release.json`. Nada borra recursos
 ni cambia el precio de un producto publicado sin `--allow-price-change`. Los logs
@@ -31,7 +32,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 
-from rocore import admob, config as cfg  # noqa: E402
+from rocore import admob, appcheck, config as cfg  # noqa: E402
 
 REPO = HERE.parents[1]
 CONFIG = REPO / "Distribution" / "release" / "release.json"
@@ -232,6 +233,24 @@ def cmd_version_bump(args) -> int:
     return 0
 
 
+def cmd_app_verify(args) -> int:
+    try:
+        app = appcheck.locate_app(args.path)
+    except FileNotFoundError as error:
+        print(f"✗ {error}")
+        return 1
+    checks = appcheck.verify(app, args.repo / "FisuEvolution" / "Info.plist",
+                             args.repo / "FisuEvolution" / "Resources" / "PrivacyInfo.xcprivacy",
+                             cfg.load(args.config))
+    if args.json:
+        print(json.dumps([c.__dict__ for c in checks], ensure_ascii=False, indent=2))
+    else:
+        print(f"app verify {app}")
+        for c in checks:
+            print(f"  {'✓' if c.ok else '✗'} {c.name}: {c.detail}")
+    return 0 if all(c.ok for c in checks) else 1
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", type=Path, default=CONFIG)
@@ -278,6 +297,12 @@ def main() -> int:
     group.add_argument("--build", action="store_true", help="sólo el build number (default)")
     bump.add_argument("--dry-run", action="store_true")
     bump.set_defaults(run=cmd_version_bump)
+
+    app = sub.add_parser("app").add_subparsers(dest="cmd", required=True)
+    verify = app.add_parser("verify", help="verifica un .app o .xcarchive local (sin red)")
+    verify.add_argument("path", type=Path)
+    verify.add_argument("--json", action="store_true")
+    verify.set_defaults(run=cmd_app_verify)
 
     args = parser.parse_args()
     return args.run(args)

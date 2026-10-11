@@ -665,7 +665,7 @@ que toma · commit o rama · nota.
 | E7b-b-T4 | La multitud le deja lugar a la columna | ⏭️ | — | — | | el dueño eligió C (plegable) |
 | E7b-b-T5 | Las lecciones de la columna | ✅ | T3 | catálogo (snapshot); +TutorialTips | | ∥ T7 |
 | E7b-b-T6 | Diario ×2 y carrera ×2 por video | ✅ | E2a-T11, E2a-T12; E1-T12; E4a-T8; E4b-T3 | catálogo (snapshot) | `6519071` + arreglo `2fb2e90` (merge `4548554`, claves `4b44a4e`, en `v2i/integ-r26`) | · sin revisión opus: el controlador leyó el diff y devolvió un obligatorio (`chooseCareerWithVideo` pagaba sin elección aplicada). **Dudas al dueño:** Diario ×3 + video = ×6 del base; en la Obra social el ×2 duplica sólo la plata |
-| E7b-b-T7 | El botón de video completo y el mapa de ubicaciones | 🟢 | T3, T6; E4b-T3…T5; E5b-T1, E5b-T2 | catálogo (snapshot) | | |
+| E7b-b-T7 | El botón de video completo y el mapa de ubicaciones | ✅ | T3, T6; E4b-T3…T5; E5b-T1, E5b-T2 | catálogo (snapshot) | | |
 | E7b-b-T8 | Cierre de E7b (controlador) | ⛔ | T1–T7 | `Docs/` | | |
 
 ### E8 — Arte y animación (sin plan por tareas)
@@ -780,7 +780,7 @@ Olas: T1 ∥ T7 → T2 ∥ T3 ∥ T4 → T8 (ventana de `BoardScene`); T5 tras E
 | E9a-T1 | Relojes (candado 5 s, watchdog 180 s, ritmo 20 s/1 s) y migración, puros en EK; `isSkippable` explícito | ✅ | E6a-T12 (último en `CelebrationQueue`) | CelebrationQueue (EK) | `85eb240` (en `v2i/integ-r31`) | sonnet · `TutorialClock` + `TutorialMigration` en EK; `isSkippable` con switch explícito (`.offer` false); `skippablePartitionIsPinned`; RED: no compila sin `TutorialStepClock`; EK 863 VERDE · **Relevo 31 ✅** (`completo` sobre `45bc9bf` VERDE con el rojo de Ranking declarado; `rapido` sobre `7dc2ec7` VERDE: EK 863 · unit 1581 · Release 0; `version-2` = `0152277`) |
 | E9a-T2 | El modelo (`TutorialStep`, `TutorialSignal`, `TutorialProbe`, `TutorialRun`) y `TutorialFlags` | ✅ | T1 | — | `6626568` (merge `b5fc1e2`, en `v2i/integ-r31`) | sonnet · `TutorialStep/Probe/Event/Signal`, `TutorialRun`, `TutorialFlags`; RED: no compila; tarea VERDE EK 863 · unit 10 · **Relevo 31 ✅** (`completo` sobre `45bc9bf` VERDE con el rojo de Ranking declarado; `rapido` sobre `7dc2ec7` VERDE: EK 863 · unit 1581 · Release 0; `version-2` = `0152277`) |
 | E9a-T3 | Las banderas cableadas: `tutorial.v2.*` en todos los lectores, migración en el arranque | ✅ | T2; E3a-T9, E11-T6 | 🔥 GameState, RootView; +Debug, +Tabs, +Notifications, TutorialOverlay, CelebrationWiringTests | | sonnet (rev. opus) · **Relevo 31:** ⏳ (T2 ✅); 🔥 `GameState`/`RootView`: un solo dueño |
-| E9a-T4 | El director: guiones de pasos, ritmo, watchdog; las 18 lecciones a un paso | 🟢 | T3; E7b-b-T5 (último en +TutorialTips) | 🔥 GameState; +TutorialTips, +Celebrations, +Menu, +Debug, TutorialTipView | | opus |
+| E9a-T4 | El director: guiones de pasos, ritmo, watchdog; las 18 lecciones a un paso | ✅ | T3; E7b-b-T5 (último en +TutorialTips) | 🔥 GameState; +TutorialTips, +Celebrations, +Menu, +Debug, TutorialTipView | | opus |
 | E9a-T5 | El núcleo en el director, sin "Saltar", cierre con candado (`finishTutorialCore`) | ⛔ | T4 | TutorialOverlay, +Celebrations, +Notifications, +Debug, catálogo | | opus |
 | E9a-T6 | Las lecciones en el renderer único; `.tutorialTip` sin timeout ni salto; `TutorialTipView` se borra | ⛔ | T5 | 🔥 RootView, catálogo; CelebrationQueue (EK), TutorialOverlay | | opus |
 | E9a-T7 | `TutorialSheetCoach`, `HoldHand`, `SwipeHand`; el núcleo contrata adentro de FisuJobs | ⛔ | T6 | MenuPagerView, CharacterSheetView, QuickHirePicker, FisuJobsView, TutorialAnchor | | sonnet |

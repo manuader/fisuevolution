@@ -1684,6 +1684,23 @@
         }
       }
     },
+    "ads.preparing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cargando…"
+          }
+        }
+      }
+    },
     "ads.reward.boost" : {
       "extractionState" : "stale",
       "localizations" : {

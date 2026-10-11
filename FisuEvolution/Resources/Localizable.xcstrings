@@ -13975,6 +13975,57 @@
         }
       }
     },
+    "tutorial.auto_tap.explain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto-tap taps for you while it lasts. The chip's clock shows how long is left."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El auto-tap toca solo por vos mientras dure. El reloj del chip te dice cuánto falta."
+          }
+        }
+      }
+    },
+    "tutorial.boosts.explain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A boost multiplies what you earn for a while. Then it cools down, or you can speed it up with a video."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un boost multiplica lo que ganás por un rato. Después se enfría, o lo apurás con un video."
+          }
+        }
+      }
+    },
+    "tutorial.boosts.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's a boost waiting for you in Gifts."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay un boost esperándote en Regalos."
+          }
+        }
+      }
+    },
     "tutorial.career.inline" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14026,6 +14077,40 @@
         }
       }
     },
+    "tutorial.chests.explain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open it: there's a new outfit inside for your workers."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrilo: adentro hay una pinta nueva para tus empleados."
+          }
+        }
+      }
+    },
+    "tutorial.chests.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You won a chest! It's in Gifts."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Ganaste un cofre! Está en Regalos."
+          }
+        }
+      }
+    },
     "tutorial.confirm" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14043,6 +14128,57 @@
         }
       }
     },
+    "tutorial.cosmetics.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are ORO outfits within reach. Open the Store with the +."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay pintas de ORO a tu alcance. Abrí la Tienda con el +."
+          }
+        }
+      }
+    },
+    "tutorial.cosmetics.spend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap “Spend ORO”."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá «Gastar ORO»."
+          }
+        }
+      }
+    },
+    "tutorial.cosmetics.where" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ORO outfits are bought here and worn in Outfits."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las pintas de ORO se compran acá y se ponen en Pintas."
+          }
+        }
+      }
+    },
     "tutorial.done" : {
       "localizations" : {
         "en" : {
@@ -14055,6 +14191,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Vamos!"
+          }
+        }
+      }
+    },
+    "tutorial.extra_slots.explain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More room! Every floor now has extra spots."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Más lugar! Ahora cada piso tiene lugares de más."
           }
         }
       }
@@ -14093,6 +14246,40 @@
         }
       }
     },
+    "tutorial.hire_price_step.explain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each hire of the same worker raises their price. Merging brings it down a bit."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada compra del mismo empleado sube su precio. Fusionar lo abarata un poco."
+          }
+        }
+      }
+    },
+    "tutorial.hire_price_step.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch how prices climb. Open Hire."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mirá cómo suben los precios. Abrí Contratar."
+          }
+        }
+      }
+    },
     "tutorial.jobs.hint" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14106,6 +14293,125 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tocá la fila con halo verde: ese laburo ya lo podés pagar."
+          }
+        }
+      }
+    },
+    "tutorial.luck.odds" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everything random shows its odds right here, before you pay."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todo lo que es al azar muestra sus probabilidades acá, antes de pagar."
+          }
+        }
+      }
+    },
+    "tutorial.luck.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open the Store with the +."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrí la Tienda con el +."
+          }
+        }
+      }
+    },
+    "tutorial.luck.spend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap “Spend ORO”."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá «Gastar ORO»."
+          }
+        }
+      }
+    },
+    "tutorial.menu_swipe.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Upgrades."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrí Mejoras."
+          }
+        }
+      }
+    },
+    "tutorial.menu_swipe.swipe" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swipe to move between tabs without closing."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deslizá para pasar de una pestaña a otra sin cerrar."
+          }
+        }
+      }
+    },
+    "tutorial.new_tabs.explain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A new tab opened! The ones marked “New!” you haven't visited yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Se abrió una pestaña nueva! Las que dicen «¡Nuevo!» todavía no las visitaste."
+          }
+        }
+      }
+    },
+    "tutorial.offers.chip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A 24-hour offer. Tap the chip to see it; if you're not interested, it goes away on its own."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una oferta por 24 horas. Tocá el chip para verla; si no te interesa, se va sola."
           }
         }
       }
@@ -14161,6 +14467,57 @@
         }
       }
     },
+    "tutorial.oro_shop.caps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some have a daily cap. Your ORO balance is at the very top."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algunos tienen tope por día. El saldo de ORO se ve arriba de todo."
+          }
+        }
+      }
+    },
+    "tutorial.oro_shop.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have ORO to spend. Open the Store with the +."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tenés ORO para gastar. Abrí la Tienda con el +."
+          }
+        }
+      }
+    },
+    "tutorial.oro_shop.spend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap “Spend ORO”: boosts, shortcuts and permanent upgrades."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocá «Gastar ORO»: boosts, atajos y mejoras permanentes."
+          }
+        }
+      }
+    },
     "tutorial.passive.done" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14208,6 +14565,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Desbloqueá el ingreso pasivo: este empleado va a producir aunque no lo toques."
+          }
+        }
+      }
+    },
+    "tutorial.pending_triple.explain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have a ×3 saved: it applies to your next return or your next daily reward."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tenés un ×3 guardado: se aplica en tu próxima vuelta o en tu próximo premio diario."
           }
         }
       }

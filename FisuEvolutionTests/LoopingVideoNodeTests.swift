@@ -195,6 +195,157 @@ struct LoopingVideoNodeTests {
         node.stop()
     }
 
+    private final class EndCounter {
+        var count = 0
+    }
+
+    private func onceNode(clip: ArtClip = .object("paquete_abre"), manifest: LoopsManifest = .main,
+                          pool: VideoPlayerPool, counter: EndCounter) -> LoopingVideoNode {
+        LoopingVideoNode(clip: clip, poster: SKTexture(), size: size, role: .popup, playback: .once { counter.count += 1 },
+                         manifest: manifest, pool: pool)
+    }
+
+    private func waitFor(_ seconds: Double = 8, _ condition: () -> Bool) async throws {
+        let clock = ContinuousClock()
+        let deadline = clock.now + .seconds(seconds)
+        while !condition(), clock.now < deadline { try await Task.sleep(for: .milliseconds(50)) }
+    }
+
+    @Test("once sin entrada en el manifest: termina en el acto y no monta nada")
+    func onceWithoutEntryEndsAtOnce() {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let counter = EndCounter()
+        let node = onceNode(clip: .object("no_existe"), pool: pool, counter: counter)
+        node.setVisible(true)
+        #expect(counter.count == 1 && node.videoNode == nil && pool.liveCount == 0)
+    }
+
+    @Test("once con la política quieta: termina en el acto, sin pedir cupo")
+    func onceForcedStillEndsAtOnce() {
+        let pool = VideoPlayerPool(policy: .allowAll.with(.forcedStill))
+        let counter = EndCounter()
+        let node = onceNode(pool: pool, counter: counter)
+        node.setVisible(true)
+        #expect(counter.count == 1 && node.videoNode == nil && pool.liveCount == 0)
+    }
+
+    @Test("once con el pack ODR sin bajar: pide el pack y termina en el acto")
+    func onceWithoutPackEndsAtOnce() throws {
+        let source = FakeArtPackSource()
+        let packs = ArtPacks(source: source)
+        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "cine_arresto.mov"], odrTag: "anim-piso-1")
+        let counter = EndCounter()
+        let node = LoopingVideoNode(clip: .floor("urban"), poster: SKTexture(), size: size, role: .popup,
+                                    playback: .once { counter.count += 1 },
+                                    manifest: manifest, pool: VideoPlayerPool(policy: .allowAll), packs: packs)
+        node.setVisible(true)
+        #expect(counter.count == 1 && node.videoNode == nil && packs.isRequested("anim-piso-1"))
+        node.stop()
+    }
+
+    @Test("once reproduce, termina exactamente una vez y no vuelve a arrancar")
+    func onceEndsExactlyOnce() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let counter = EndCounter()
+        let node = onceNode(pool: pool, counter: counter)
+        node.setVisible(true)
+        #expect(node.videoNode != nil && counter.count == 0)
+        try await waitFor { counter.count > 0 }
+        node.setVisible(true)
+        try await Task.sleep(for: .milliseconds(1500))
+        #expect(counter.count == 1)
+        node.stop()
+        #expect(counter.count == 1 && pool.liveCount == 0)
+    }
+
+    @Test("once no es un loop: al terminar el player queda quieto")
+    func onceDoesNotLoop() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let counter = EndCounter()
+        let node = onceNode(pool: pool, counter: counter)
+        node.setVisible(true)
+        try await waitFor { counter.count > 0 }
+        try await Task.sleep(for: .milliseconds(400))
+        #expect(counter.count == 1)
+        #expect(node.player?.rate == 0)
+        node.stop()
+    }
+
+    @Test("stop() a mitad de camino no llama onEnd, suelta el player y el cupo")
+    func stopDoesNotCallOnEnd() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let counter = EndCounter()
+        let node = onceNode(pool: pool, counter: counter)
+        node.setVisible(true)
+        node.stop()
+        try await Task.sleep(for: .milliseconds(400))
+        #expect(counter.count == 0 && node.player == nil && node.videoNode == nil && pool.liveCount == 0)
+        node.setVisible(true)
+        #expect(counter.count == 0 && node.videoNode == nil, "un once parado no vuelve a montarse")
+    }
+
+    @Test("soltar el nodo a mitad de camino (sin stop) no llama onEnd ni deja el cupo ocupado")
+    func deinitDoesNotCallOnEnd() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let counter = EndCounter()
+        var node: LoopingVideoNode? = onceNode(pool: pool, counter: counter)
+        node?.setVisible(true)
+        node = nil
+        try await Task.sleep(for: .milliseconds(400))
+        #expect(counter.count == 0 && pool.liveCount == 0)
+    }
+
+    @Test("si el pool baja el video antes del final (suspensión), once termina una sola vez")
+    func suspensionEndsOnce() {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let counter = EndCounter()
+        let node = onceNode(pool: pool, counter: counter)
+        node.setVisible(true)
+        let suspension = pool.suspend(.overlay)
+        #expect(counter.count == 1 && node.videoNode == nil)
+        pool.resume(suspension)
+        #expect(counter.count == 1 && node.videoNode == nil)
+        node.stop()
+    }
+
+    @Test("si el pool nunca lo pone vivo, el vigía de 1 s termina el once")
+    func watchdogEndsAnOnceThatNeverStarts() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let suspension = pool.suspend(.overlay)
+        let counter = EndCounter()
+        let node = onceNode(pool: pool, counter: counter)
+        node.setVisible(true)
+        #expect(counter.count == 0)
+        try await waitFor(3) { counter.count > 0 }
+        #expect(counter.count == 1)
+        pool.resume(suspension)
+        #expect(node.videoNode == nil, "ya terminó: no arranca tarde")
+        node.stop()
+    }
+
+    @Test("un archivo que no es video: once termina cuando se da por vencido")
+    func onceGiveUpEnds() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let manifest = try LoopsManifestTests.fixture(floors: ["urban": "loops_manifest.json"])
+        let counter = EndCounter()
+        let node = onceNode(clip: .floor("urban"), manifest: manifest, pool: pool, counter: counter)
+        node.setVisible(true)
+        try await waitFor(6) { counter.count > 0 }
+        #expect(counter.count == 1 && node.videoNode == nil && pool.liveCount == 0)
+        node.stop()
+    }
+
+    @Test("resize cambia el póster y el video")
+    func resizing() throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let node = LoopingVideoNode(clip: .object("paquete_espera"), poster: SKTexture(), size: size,
+                                    role: .icon, manifest: .main, pool: pool)
+        node.setVisible(true)
+        node.resize(CGSize(width: 40, height: 30))
+        #expect(node.videoNode?.size == CGSize(width: 40, height: 30))
+        node.stop()
+    }
+
     struct Pixel: CustomStringConvertible {
         let red: Int, green: Int, blue: Int, alpha: Int
         var isRed: Bool { red > 200 && green < 60 && blue < 60 }

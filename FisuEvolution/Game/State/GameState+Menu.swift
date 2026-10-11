@@ -5,6 +5,10 @@ import Foundation
 /// es cerrar la sesión entera, y sólo ahí se pide el intersticial.
 extension GameState {
     func menuDidOpen(at screen: GameScreen) {
+        // La hoja se presenta justo después de esta llamada y `RootView` recién lo publica en el
+        // frame siguiente: sin esto, un refresh en el medio daría el paso de la hoja por
+        // abandonado (`openPage` se limpia y el núcleo rebobina) antes de que la hoja exista.
+        uiCoversBoard = true
         tutorialTipHandled(opening: screen)
     }
 

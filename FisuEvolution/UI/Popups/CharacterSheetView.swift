@@ -84,9 +84,11 @@ struct CharacterSheetView: View {
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: confirmingDismissal)
         .fisuSheet()
+        .tutorialSheetCoach(.characterSheet)
         .onAppear {
             selectActiveSkin()
             gameState.audio?.play(.revealWhoosh)
+            gameState.tutorialSignal(.characterSheetOpened)
         }
     }
 

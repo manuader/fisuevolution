@@ -59,15 +59,6 @@ struct FisuJobsView: View {
                     if let until = gameState.spendingFrozenUntil {
                         SpendingFrozenStrip(until: until, identifier: "jobs.spending_frozen")
                     }
-                    // La guía del paso "contratar" de la fase obligatoria: la
-                    // hoja se presenta ENCIMA del overlay del tutorial (decisión
-                    // documentada en `TutorialOverlay.steps`), así que el guía
-                    // tiene que vivir TAMBIÉN acá adentro — la fila verde de
-                    // affordable orienta, pero no es una instrucción. Muere al
-                    // contratar y no vuelve.
-                    if gameState.tutorialPhaseActive, !gameState.ftueMilestones.spawned {
-                        TutorialJobsHint()
-                    }
                     ForEach(groups) { group in
                         if group.opensSection {
                             SectionHeader(group.section.titleKey)
@@ -82,20 +73,10 @@ struct FisuJobsView: View {
                             JobCard(row: row, recommended: row.id == recommended) {
                                 gameState.hireCharacter(typeId: row.id)
                             }
-                            // En el paso "contratar" de la fase, la manito late
-                            // sobre la fila recomendada: la banda de arriba
-                            // instruye y la mano señala DÓNDE (corrección del
-                            // dueño, 2026-08-21 — la fila verde sola no se leía
-                            // como "tocá acá").
-                            .overlay(alignment: .trailing) {
-                                if gameState.tutorialPhaseActive,
-                                   !gameState.ftueMilestones.spawned,
-                                   row.id == recommended {
-                                    TapHereHand(size: 36)
-                                        .padding(.trailing, Tokens.s16)
-                                        .offset(y: 12)
-                                }
-                            }
+                            // El paso "contratar" del tutorial ilumina la fila recomendada
+                            // desde el coach de la hoja (`core.hire.inside`): la mano, el
+                            // anillo y el cartel los pone él; la fila sólo publica dónde está.
+                            .tutorialAnchor(.jobsRecommended, when: row.id == recommended)
                             // La cascada es del PANEL, no de la sección: el
                             // índice cuenta desde la primera tarjeta de arriba
                             // de todo, así las tres secciones caen seguidas y no
@@ -648,35 +629,3 @@ private struct JobPortrait: View {
 // `JobStateBadge` se mudó a `GameArtComponents` como `StateBadge` (T11): el
 // Customization Shop necesitaba el mismo badge y una segunda copia privada era
 // el camino corto para que los dos dibujos se separaran.
-
-/// La banda compacta del tutorial dentro de FisuJobs: pose del Fisura + una
-/// instrucción, en el pergamino v3 a escala de fila. Sin botones: se va sola
-/// cuando el jugador contrata, que es lo único que pide.
-private struct TutorialJobsHint: View {
-    var body: some View {
-        HStack(spacing: Tokens.s8) {
-            if let art = UIArt.image("fisura_wave") ?? UIArt.image("fisura_celebrate") {
-                art.resizable()
-                    .scaledToFit()
-                    .frame(width: 40, height: 48)
-                    .accessibilityHidden(true)
-            }
-            Text("tutorial.jobs.hint")
-                .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                .foregroundStyle(Color("PaletteInk"))
-                .fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding(.horizontal, Tokens.s12)
-        .padding(.vertical, Tokens.s8)
-        .background {
-            let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)
-            shape
-                .fill(Color("PaletteParchment"))
-                .overlay(shape.strokeBorder(Color("PaletteYellow"), lineWidth: 2.5))
-                .shadow(color: Color("PaletteYellow").opacity(0.45), radius: 6)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("tutorial.jobs.hint")
-    }
-}

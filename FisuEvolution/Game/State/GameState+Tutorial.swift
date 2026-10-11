@@ -45,9 +45,34 @@ extension GameState {
             tutorialRun = run
         }
         if tutorialEngine.clock.watchdogExpired, let step = run.step {
+            releaseStalledStep(run, step)
+        }
+    }
+
+    /// El vigilante de 180 s. En el núcleo NO salta de paso: cada uno se apoya en lo que dejó el
+    /// anterior (contratar necesita la plata del toque, fusionar necesita el par), así que
+    /// saltarlo llevaría al jugador a un paso que no puede cumplir. Se queda, lo muestra más
+    /// insistente y vuelve a contar. Una lección sí termina por tiempo; si el paso que sigue
+    /// vive en una hoja la termina entera, porque saltarlo dejaría un paso invisible que
+    /// `rewindToBoard` devuelve acá cada 3 min, sin fin.
+    private func releaseStalledStep(_ run: TutorialRun, _ step: TutorialStep) {
+        if run.script == .core {
+            Log.lifecycle.error("tutorial: paso del núcleo trabado, se repite más insistente: \(step.id, privacy: .public)")
+            insistOnTutorialStep()
+        } else if !run.isDemo, run.nextStepLeavesTheBoard {
+            Log.lifecycle.error("tutorial: lección trabada liberada por watchdog: \(step.id, privacy: .public)")
+            finishTutorialRun()
+        } else {
             Log.lifecycle.error("tutorial: paso trabado liberado por watchdog: \(step.id, privacy: .public)")
             advanceTutorialStep()
         }
+    }
+
+    private func insistOnTutorialStep() {
+        guard var run = tutorialRun else { return }
+        run.insist()
+        tutorialRun = run
+        resetTutorialClock()
     }
 
     /// El botón "Entendido". Con el candado puesto no hace nada.
@@ -232,9 +257,17 @@ extension GameState {
     /// milestones `ftue.*`, que persisten, así que matar la app a mitad de guion retoma en el
     /// primer paso no cumplido. El recorte del tablero lo pide el director (lo lee `BoardScene`);
     /// con una celebración en pantalla —el reveal del primer merge— se calla.
+    ///
+    /// Un paso de la hoja (`core.hire.inside`) no sobrevive a su hoja: cerrada sin haber
+    /// contratado, el núcleo vuelve al paso del tablero que la abre.
     private func progressCore(probe: TutorialProbe) {
-        while let run = tutorialRun, run.script == .core, run.isStepSatisfied(probe: probe) {
+        while let run = tutorialRun, run.script == .core,
+              run.isStepSatisfied(probe: probe) || run.isNextStepDone(probe: probe) {
             advanceTutorialStep()
+        }
+        if !uiCoversBoard, var run = tutorialRun, run.rewindToBoard(probe: probe) {
+            tutorialRun = run
+            resetTutorialClock()
         }
         let target = showing == nil ? tutorialRun?.step?.boardTarget : nil
         if tutorialBoardTarget != target { tutorialBoardTarget = target }

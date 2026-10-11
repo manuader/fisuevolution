@@ -119,6 +119,14 @@ enum TutorialSignal: Hashable, Sendable {
     case elevatorExpanded
     case characterSheetOpened
 
+    /// Las del núcleo miran un milestone que persiste, no un cambio.
+    var isAbsolute: Bool {
+        switch self {
+        case .coreTappedAndAffordable, .coreHired, .coreMerged: true
+        default: false
+        }
+    }
+
     /// Las del núcleo son absolutas (los milestones `ftue.*` persisten: retomar a mitad no
     /// rehace nada, y un milestone posterior cumple los anteriores —quien retoma en el merge
     /// sin plata no queda trabado en el toque—); las demás miran el cambio desde el inicio

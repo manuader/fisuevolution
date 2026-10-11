@@ -21,6 +21,8 @@ struct TutorialCard: View {
     let confirmKey: String
     let onConfirm: () -> Void
     var onEnd: (() -> Void)?
+    /// La versión de coach-mark de las hojas: retrato chico y sin puntos de progreso.
+    var compact = false
 
     var body: some View {
         VStack(spacing: 12) {
@@ -32,10 +34,12 @@ struct TutorialCard: View {
                         .foregroundStyle(Color("PaletteInk"))
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    HStack(spacing: 10) {
-                        dots
-                        Spacer(minLength: 8)
-                        if let onEnd { endButton(onEnd) }
+                    if !compact || onEnd != nil {
+                        HStack(spacing: 10) {
+                            if !compact { dots }
+                            Spacer(minLength: 8)
+                            if let onEnd { endButton(onEnd) }
+                        }
                     }
                 }
             }
@@ -95,8 +99,8 @@ struct TutorialCard: View {
         if let art = UIArt.image(step.pose) ?? UIArt.image("fisura_wave") ?? UIArt.image("fisura_celebrate") {
             art.resizable()
                 .scaledToFit()
-                .frame(width: 96, height: 112)
-                .offset(y: -12)
+                .frame(width: compact ? 54 : 96, height: compact ? 66 : 112)
+                .offset(y: compact ? 0 : -12)
                 .accessibilityHidden(true)
         }
     }

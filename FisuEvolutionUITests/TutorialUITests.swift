@@ -148,6 +148,27 @@ final class TutorialUITests: XCTestCase {
         XCTAssertEqual(stepID(app), "core.hire", "y el paso no puede haberse movido")
     }
 
+    /// El paso de adentro no sobrevive a su hoja: cerrada sin contratar, el overlay vuelve a
+    /// iluminar el tab y el coach se va con la hoja.
+    @MainActor
+    func testCerrarFisuJobsSinContratarVuelveAlPasoQueLaAbre() throws {
+        let app = launchWithTutorial()
+        XCTAssertTrue(app.otherElements["tutorial.step"].waitForExistence(timeout: 20))
+        try tapSpotlight(app, advancesTo: "core.hire")
+
+        let tab = app.buttons["hud.hire"]
+        XCTAssertTrue(tab.waitForExistence(timeout: 6))
+        tab.tap()
+        let coach = app.otherElements["tutorial.coach"]
+        XCTAssertTrue(coach.waitForExistence(timeout: 6))
+        XCTAssertEqual(coach.value as? String, "core.hire.inside")
+
+        dismissSheet(app)
+        XCTAssertTrue(waitForStep(app, "core.hire", timeout: 10),
+                      "cerrada la hoja sin contratar, el núcleo vuelve a pedir abrirla")
+        XCTAssertFalse(coach.exists, "y el coach se va con la hoja")
+    }
+
     // MARK: - El recorrido entero
 
     /// La fase corta: tap → contratar → fusionar → cierre. Entre el merge y el
@@ -430,6 +451,10 @@ final class TutorialUITests: XCTestCase {
         let hire = app.buttons["jobs.hire.homeless"]
         XCTAssertTrue(hire.waitForExistence(timeout: 6),
                       "el tab iluminado tiene que abrir FisuJobs con el Fisura contratable")
+        // Adentro de la hoja el que guía es el coach, no el overlay de la raíz.
+        let coach = app.otherElements["tutorial.coach"]
+        XCTAssertTrue(coach.waitForExistence(timeout: 6), "FisuJobs tiene que traer su coach")
+        XCTAssertEqual(coach.value as? String, "core.hire.inside")
         hire.tap()
         dismissSheet(app)
     }

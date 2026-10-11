@@ -45,6 +45,17 @@ final class FrameRateProbe {
 
     var isRunning: Bool { link != nil }
 
+    /// Spike T10a: el peor cuadro y los lentos desde la última marca (cambio de piso).
+    @ObservationIgnored private(set) var peakMs: Double = 0
+    @ObservationIgnored private(set) var peakSlow = 0
+    @ObservationIgnored private(set) var peakFrames = 0
+
+    func resetPeak() {
+        peakMs = 0
+        peakSlow = 0
+        peakFrames = 0
+    }
+
     func start() {
         guard link == nil else { return }
         let link = CADisplayLink(target: DisplayLinkTarget(probe: self), selector: #selector(DisplayLinkTarget.tick(_:)))
@@ -61,7 +72,11 @@ final class FrameRateProbe {
     fileprivate func tick(timestamp: CFTimeInterval) {
         defer { lastTimestamp = timestamp }
         guard lastTimestamp > 0 else { return }
-        stats.add(frameDuration: timestamp - lastTimestamp)
+        let duration = timestamp - lastTimestamp
+        stats.add(frameDuration: duration)
+        peakMs = max(peakMs, duration * 1000)
+        peakFrames += 1
+        if duration > FrameStats.slowThreshold { peakSlow += 1 }
         framesSinceRefresh += 1
         if framesSinceRefresh >= Self.refreshEvery {
             framesSinceRefresh = 0

@@ -57,6 +57,7 @@ final class BoardScene: SKScene {
     private var scrollSuspension: VideoPlayerPool.Suspension?
     private var prefetchedPackTag: String?
     private var prefetchedCharacterTag: String?
+    private let idleBench: IdleBenchAnimator
 
     // Geometría del campo, cacheada por layoutBoard.
     private var boardColumns = 0
@@ -304,6 +305,7 @@ final class BoardScene: SKScene {
         self.loops = loops
         self.videoPool = videoPool
         self.packs = packs
+        idleBench = IdleBenchAnimator(packs: packs, pool: videoPool, loops: loops)
         super.init(size: CGSize(width: 390, height: 844))
         scaleMode = .resizeFill
         backgroundColor = Palette.cream
@@ -358,6 +360,7 @@ final class BoardScene: SKScene {
         // El primer frame (o el primero tras resume) trae un delta gigante;
         // IncomeTicker lo clampa (el offline ya cubrió ese tiempo).
         let delta = lastUpdateTime > 0 ? currentTime - lastUpdateTime : 0
+        idleBench.pollPolicy()
         gameState.tick(delta: delta)
 
         frameCounter += 1
@@ -2075,6 +2078,7 @@ final class BoardScene: SKScene {
         }
 
         renderedUnits = wanted
+        idleBench.sync(nodes: characterNodes, unskinned: Set(wanted.filter { $0.value.skinID == nil }.keys))
     }
 
     /// Un único vistazo al siguiente piso bloqueado hace visible la meta sin

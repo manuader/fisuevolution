@@ -1,0 +1,1851 @@
+{
+  "administrativo": {
+    "tag": "anim-piso-3",
+    "motionPerFrame": 0.572528616587321,
+    "clipLastToFirst": 1.2567710876464844,
+    "variants": {
+      "A16x256": {
+        "bytes": 195462,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 2.5658828735351564,
+        "lastToFirst": 1.7401809692382812
+      },
+      "A12x256": {
+        "bytes": 157190,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 2.7982940673828125,
+        "lastToFirst": 2.15960693359375
+      },
+      "A16x192": {
+        "bytes": 117143,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 2.290286820023148,
+        "lastToFirst": 1.5283203125
+      },
+      "A12x192": {
+        "bytes": 94637,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 2.5080936316287876,
+        "lastToFirst": 1.9228244357638888
+      }
+    }
+  },
+  "cartonero": {
+    "tag": "anim-piso-1",
+    "motionPerFrame": 0.46186758677164713,
+    "clipLastToFirst": 1.577392578125,
+    "variants": {
+      "A16x256": {
+        "bytes": 213229,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 2.3888916015625,
+        "lastToFirst": 1.5950775146484375
+      },
+      "A12x256": {
+        "bytes": 188012,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 2.6508359042080967,
+        "lastToFirst": 1.6668548583984375
+      },
+      "A16x192": {
+        "bytes": 131396,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 2.2079413519965274,
+        "lastToFirst": 1.44769287109375
+      },
+      "A12x192": {
+        "bytes": 115323,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 2.431019792653093,
+        "lastToFirst": 1.5186971028645833
+      }
+    }
+  },
+  "ceo": {
+    "tag": "anim-piso-5",
+    "motionPerFrame": 0.09648803075154623,
+    "clipLastToFirst": 0.5744514465332031,
+    "variants": {
+      "A16x256": {
+        "bytes": 72280,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.5425809224446615,
+        "lastToFirst": 0.7498435974121094
+      },
+      "A12x256": {
+        "bytes": 65197,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 0.6872593272816051,
+        "lastToFirst": 0.773773193359375
+      },
+      "A16x192": {
+        "bytes": 44058,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.49335621021412035,
+        "lastToFirst": 0.6756795247395834
+      },
+      "A12x192": {
+        "bytes": 39651,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.6224149453519572,
+        "lastToFirst": 0.6951158311631944
+      }
+    }
+  },
+  "chofer_app": {
+    "tag": "anim-piso-2",
+    "motionPerFrame": 0.27406056722005206,
+    "clipLastToFirst": 0.8553237915039062,
+    "variants": {
+      "A16x256": {
+        "bytes": 107250,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.1909962972005208,
+        "lastToFirst": 0.9420318603515625
+      },
+      "A12x256": {
+        "bytes": 95266,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.1754427823153408,
+        "lastToFirst": 0.9442672729492188
+      },
+      "A16x192": {
+        "bytes": 66410,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 1.09735107421875,
+        "lastToFirst": 0.8602091471354166
+      },
+      "A12x192": {
+        "bytes": 58500,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.0631282305476641,
+        "lastToFirst": 0.8565199110243056
+      }
+    }
+  },
+  "coleccionista_galaxias": {
+    "tag": "anim-piso-8",
+    "motionPerFrame": 0.2606991132100423,
+    "clipLastToFirst": 1.6000938415527344,
+    "variants": {
+      "A16x256": {
+        "bytes": 153389,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.050090535481771,
+        "lastToFirst": 1.2027740478515625
+      },
+      "A12x256": {
+        "bytes": 141036,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.3178707469593396,
+        "lastToFirst": 1.4370384216308594
+      },
+      "A16x192": {
+        "bytes": 91754,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.9735717773437499,
+        "lastToFirst": 1.0742526584201388
+      },
+      "A12x192": {
+        "bytes": 83636,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.213025642163826,
+        "lastToFirst": 1.3095228407118056
+      }
+    }
+  },
+  "deidad": {
+    "tag": "anim-piso-9",
+    "motionPerFrame": 0.26729745864868165,
+    "clipLastToFirst": 1.6034431457519531,
+    "variants": {
+      "A16x256": {
+        "bytes": 200930,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.2346954345703125,
+        "lastToFirst": 1.7550888061523438
+      },
+      "A12x256": {
+        "bytes": 184963,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.573607704856179,
+        "lastToFirst": 2.0283966064453125
+      },
+      "A16x192": {
+        "bytes": 118120,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 1.1069620768229167,
+        "lastToFirst": 1.5608927408854167
+      },
+      "A12x192": {
+        "bytes": 108077,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.4005410550820707,
+        "lastToFirst": 1.8193359375
+      }
+    }
+  },
+  "director": {
+    "tag": "anim-piso-4",
+    "motionPerFrame": 0.17937275568644206,
+    "clipLastToFirst": 0.6207237243652344,
+    "variants": {
+      "A16x256": {
+        "bytes": 81942,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.7191975911458334,
+        "lastToFirst": 0.8410186767578125
+      },
+      "A12x256": {
+        "bytes": 73400,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 0.9269648465243253,
+        "lastToFirst": 0.6302223205566406
+      },
+      "A16x192": {
+        "bytes": 51066,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.6690479419849535,
+        "lastToFirst": 0.7696194118923612
+      },
+      "A12x192": {
+        "bytes": 45337,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.8617590701941289,
+        "lastToFirst": 0.56207275390625
+      }
+    }
+  },
+  "dueno_luna": {
+    "tag": "anim-piso-6",
+    "motionPerFrame": 0.1871006965637207,
+    "clipLastToFirst": 1.1378288269042969,
+    "variants": {
+      "A16x256": {
+        "bytes": 158205,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.9820048014322916,
+        "lastToFirst": 1.161529541015625
+      },
+      "A12x256": {
+        "bytes": 142118,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.2909074263139204,
+        "lastToFirst": 1.1604461669921875
+      },
+      "A16x192": {
+        "bytes": 93815,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.8601865415219908,
+        "lastToFirst": 1.02703857421875
+      },
+      "A12x192": {
+        "bytes": 83991,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.1295252327967171,
+        "lastToFirst": 1.0255533854166667
+      }
+    }
+  },
+  "dueno_marte": {
+    "tag": "anim-piso-7",
+    "motionPerFrame": 0.2076200485229492,
+    "clipLastToFirst": 1.4564132690429688,
+    "variants": {
+      "A16x256": {
+        "bytes": 187696,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.0572214762369792,
+        "lastToFirst": 1.4790878295898438
+      },
+      "A12x256": {
+        "bytes": 173974,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.3347528631036931,
+        "lastToFirst": 1.5651016235351562
+      },
+      "A16x192": {
+        "bytes": 111636,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.9458310727719907,
+        "lastToFirst": 1.3129950629340277
+      },
+      "A12x192": {
+        "bytes": 102875,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.186050569168245,
+        "lastToFirst": 1.3864407009548612
+      }
+    }
+  },
+  "dueno_pyme": {
+    "tag": "anim-piso-4",
+    "motionPerFrame": 0.15712966918945312,
+    "clipLastToFirst": 0.9751510620117188,
+    "variants": {
+      "A16x256": {
+        "bytes": 122978,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.7096661885579427,
+        "lastToFirst": 1.1383705139160156
+      },
+      "A12x256": {
+        "bytes": 113380,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.0064849853515625,
+        "lastToFirst": 1.3294677734375
+      },
+      "A16x192": {
+        "bytes": 73882,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.6323897750289352,
+        "lastToFirst": 1.0149400499131944
+      },
+      "A12x192": {
+        "bytes": 67958,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.9029208096590909,
+        "lastToFirst": 1.2128770616319444
+      }
+    }
+  },
+  "emperador_cosmico": {
+    "tag": "anim-piso-9",
+    "motionPerFrame": 0.26534945170084634,
+    "clipLastToFirst": 2.0092086791992188,
+    "variants": {
+      "A16x256": {
+        "bytes": 257272,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.5046414693196615,
+        "lastToFirst": 2.0277976989746094
+      },
+      "A12x256": {
+        "bytes": 238826,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.891383084383878,
+        "lastToFirst": 2.0307464599609375
+      },
+      "A16x192": {
+        "bytes": 151771,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 1.3522637261284722,
+        "lastToFirst": 1.7933688693576388
+      },
+      "A12x192": {
+        "bytes": 139696,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.6895338886916031,
+        "lastToFirst": 1.7974921332465277
+      }
+    }
+  },
+  "emprendedor": {
+    "tag": "anim-piso-4",
+    "motionPerFrame": 0.189403502146403,
+    "clipLastToFirst": 0.8709678649902344,
+    "variants": {
+      "A16x256": {
+        "bytes": 128984,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.9208918253580729,
+        "lastToFirst": 0.8954010009765625
+      },
+      "A12x256": {
+        "bytes": 113837,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.162959705699574,
+        "lastToFirst": 0.9047698974609375
+      },
+      "A16x192": {
+        "bytes": 77941,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.8212036132812499,
+        "lastToFirst": 0.7952948676215278
+      },
+      "A12x192": {
+        "bytes": 68750,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.0353042140151516,
+        "lastToFirst": 0.8032497829861112
+      }
+    }
+  },
+  "estanciero_estelar": {
+    "tag": "anim-piso-8",
+    "motionPerFrame": 0.2745068550109863,
+    "clipLastToFirst": 1.5561408996582031,
+    "variants": {
+      "A16x256": {
+        "bytes": 183778,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.173572031656901,
+        "lastToFirst": 1.5687141418457031
+      },
+      "A12x256": {
+        "bytes": 168735,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.494603243741122,
+        "lastToFirst": 1.57684326171875
+      },
+      "A16x192": {
+        "bytes": 110688,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 1.0731684932002314,
+        "lastToFirst": 1.4133232964409723
+      },
+      "A12x192": {
+        "bytes": 100746,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.358035309146149,
+        "lastToFirst": 1.4197658962673612
+      }
+    }
+  },
+  "fast_food": {
+    "tag": "anim-piso-2",
+    "motionPerFrame": 0.8151560147603353,
+    "clipLastToFirst": 0.9411506652832031,
+    "variants": {
+      "A16x256": {
+        "bytes": 151877,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 3.5281748453776043,
+        "lastToFirst": 0.97308349609375
+      },
+      "A12x256": {
+        "bytes": 130590,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 3.8905438509854404,
+        "lastToFirst": 0.973236083984375
+      },
+      "A16x192": {
+        "bytes": 92764,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 3.316845251012731,
+        "lastToFirst": 0.86590576171875
+      },
+      "A12x192": {
+        "bytes": 79514,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 3.6608892883917297,
+        "lastToFirst": 0.8659600151909722
+      }
+    }
+  },
+  "fondo_buitre": {
+    "tag": "anim-piso-7",
+    "motionPerFrame": 0.23886982599894205,
+    "clipLastToFirst": 1.0747184753417969,
+    "variants": {
+      "A16x256": {
+        "bytes": 164611,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.1637115478515625,
+        "lastToFirst": 1.2233657836914062
+      },
+      "A12x256": {
+        "bytes": 142903,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.2640110362659802,
+        "lastToFirst": 1.749237060546875
+      },
+      "A16x192": {
+        "bytes": 98510,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 1.0164492006655093,
+        "lastToFirst": 1.0924818250868056
+      },
+      "A12x192": {
+        "bytes": 85122,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.105452720565025,
+        "lastToFirst": 1.5192328559027777
+      }
+    }
+  },
+  "fundador_startup": {
+    "tag": "anim-piso-4",
+    "motionPerFrame": 0.20644938151041667,
+    "clipLastToFirst": 0.8470535278320312,
+    "variants": {
+      "A16x256": {
+        "bytes": 111513,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.8940167744954427,
+        "lastToFirst": 0.8735847473144531
+      },
+      "A12x256": {
+        "bytes": 98881,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.0700430436567827,
+        "lastToFirst": 1.0842933654785156
+      },
+      "A16x192": {
+        "bytes": 65696,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.813508662471065,
+        "lastToFirst": 0.7812974717881944
+      },
+      "A12x192": {
+        "bytes": 57947,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.9714971985479797,
+        "lastToFirst": 0.9989149305555556
+      }
+    }
+  },
+  "god": {
+    "tag": "anim-piso-10",
+    "motionPerFrame": 0.19433453877766926,
+    "clipLastToFirst": 1.173736572265625,
+    "variants": {
+      "A16x256": {
+        "bytes": 152621,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.8982877095540365,
+        "lastToFirst": 1.1821861267089844
+      },
+      "A12x256": {
+        "bytes": 138606,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.181231065229936,
+        "lastToFirst": 1.1837882995605469
+      },
+      "A16x192": {
+        "bytes": 92625,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.7967488606770835,
+        "lastToFirst": 1.0568915473090277
+      },
+      "A12x192": {
+        "bytes": 83652,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.0516190962357954,
+        "lastToFirst": 1.0588582356770833
+      }
+    }
+  },
+  "homeless": {
+    "tag": "anim-piso-1",
+    "motionPerFrame": 0.23687130610148113,
+    "clipLastToFirst": 0.8626060485839844,
+    "variants": {
+      "A16x256": {
+        "bytes": 128705,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.9882870992024739,
+        "lastToFirst": 0.8721961975097656
+      },
+      "A12x256": {
+        "bytes": 111043,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.4565960277210583,
+        "lastToFirst": 0.8730430603027344
+      },
+      "A16x192": {
+        "bytes": 79324,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.9013635706018517,
+        "lastToFirst": 0.7862684461805556
+      },
+      "A12x192": {
+        "bytes": 68069,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.3553479127209596,
+        "lastToFirst": 0.7870415581597222
+      }
+    }
+  },
+  "junior_architect": {
+    "tag": "anim-piso-3",
+    "motionPerFrame": 0.23165146509806314,
+    "clipLastToFirst": 0.9045982360839844,
+    "variants": {
+      "A16x256": {
+        "bytes": 121755,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.0322471618652345,
+        "lastToFirst": 0.9130439758300781
+      },
+      "A12x256": {
+        "bytes": 110752,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.1210465864701704,
+        "lastToFirst": 0.9181900024414062
+      },
+      "A16x192": {
+        "bytes": 74282,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.9254109700520833,
+        "lastToFirst": 0.8183525933159722
+      },
+      "A12x192": {
+        "bytes": 67156,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.9902596521859217,
+        "lastToFirst": 0.8219197591145834
+      }
+    }
+  },
+  "junior_doctor": {
+    "tag": "anim-piso-3",
+    "motionPerFrame": 0.13613983790079753,
+    "clipLastToFirst": 0.8047218322753906,
+    "variants": {
+      "A16x256": {
+        "bytes": 109587,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.6760971069335937,
+        "lastToFirst": 0.831817626953125
+      },
+      "A12x256": {
+        "bytes": 99384,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 0.8621458573774858,
+        "lastToFirst": 0.8392181396484375
+      },
+      "A16x192": {
+        "bytes": 66960,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.6081312391493056,
+        "lastToFirst": 0.7446356879340278
+      },
+      "A12x192": {
+        "bytes": 60174,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.7735201132417928,
+        "lastToFirst": 0.7504747178819444
+      }
+    }
+  },
+  "junior_lawyer": {
+    "tag": "anim-piso-3",
+    "motionPerFrame": 0.14233392079671223,
+    "clipLastToFirst": 0.9090728759765625,
+    "variants": {
+      "A16x256": {
+        "bytes": 122607,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.8048263549804687,
+        "lastToFirst": 0.9024658203125
+      },
+      "A12x256": {
+        "bytes": 112567,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.031847520308061,
+        "lastToFirst": 0.8993492126464844
+      },
+      "A16x192": {
+        "bytes": 73550,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.7338916919849537,
+        "lastToFirst": 0.80413818359375
+      },
+      "A12x192": {
+        "bytes": 66932,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.9376054243607954,
+        "lastToFirst": 0.8012356228298612
+      }
+    }
+  },
+  "junior_programmer": {
+    "tag": "anim-piso-3",
+    "motionPerFrame": 0.21496203740437825,
+    "clipLastToFirst": 0.9173851013183594,
+    "variants": {
+      "A16x256": {
+        "bytes": 124554,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.0569071451822916,
+        "lastToFirst": 1.3764877319335938
+      },
+      "A12x256": {
+        "bytes": 109268,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.2396933815696023,
+        "lastToFirst": 1.739715576171875
+      },
+      "A16x192": {
+        "bytes": 74836,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.957616283275463,
+        "lastToFirst": 1.2298719618055556
+      },
+      "A12x192": {
+        "bytes": 65275,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.1178243617818813,
+        "lastToFirst": 1.5768025716145833
+      }
+    }
+  },
+  "limpiavidrios": {
+    "tag": "anim-piso-1",
+    "motionPerFrame": 0.14961862564086914,
+    "clipLastToFirst": 0.9447822570800781,
+    "variants": {
+      "A16x256": {
+        "bytes": 119643,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.7055048624674479,
+        "lastToFirst": 0.9842071533203125
+      },
+      "A12x256": {
+        "bytes": 109636,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 0.8895267139781605,
+        "lastToFirst": 1.0397911071777344
+      },
+      "A16x192": {
+        "bytes": 72046,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.6351779513888888,
+        "lastToFirst": 0.8736165364583334
+      },
+      "A12x192": {
+        "bytes": 65688,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.7966746320628157,
+        "lastToFirst": 0.9269951714409722
+      }
+    }
+  },
+  "magnate_petrolero": {
+    "tag": "anim-piso-6",
+    "motionPerFrame": 0.15317754745483397,
+    "clipLastToFirst": 0.8198127746582031,
+    "variants": {
+      "A16x256": {
+        "bytes": 104860,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.638354746500651,
+        "lastToFirst": 0.8339958190917969
+      },
+      "A12x256": {
+        "bytes": 94615,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 0.805585341020064,
+        "lastToFirst": 0.8324012756347656
+      },
+      "A16x192": {
+        "bytes": 64836,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.5794456199363426,
+        "lastToFirst": 0.7527737087673612
+      },
+      "A12x192": {
+        "bytes": 57915,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.729336208767361,
+        "lastToFirst": 0.7505357530381944
+      }
+    }
+  },
+  "magnate_solar": {
+    "tag": "anim-piso-7",
+    "motionPerFrame": 0.2178047815958659,
+    "clipLastToFirst": 1.563507080078125,
+    "variants": {
+      "A16x256": {
+        "bytes": 138214,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.0759068806966146,
+        "lastToFirst": 1.5879058837890625
+      },
+      "A12x256": {
+        "bytes": 124322,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.3285484313964844,
+        "lastToFirst": 1.6466560363769531
+      },
+      "A16x192": {
+        "bytes": 83440,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.995749240451389,
+        "lastToFirst": 1.4775933159722223
+      },
+      "A12x192": {
+        "bytes": 74566,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.2269638523910984,
+        "lastToFirst": 1.5351630316840277
+      }
+    }
+  },
+  "mantero": {
+    "tag": "anim-piso-2",
+    "motionPerFrame": 0.2896706581115723,
+    "clipLastToFirst": 1.3673439025878906,
+    "variants": {
+      "A16x256": {
+        "bytes": 178693,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.256798553466797,
+        "lastToFirst": 1.6357307434082031
+      },
+      "A12x256": {
+        "bytes": 163824,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.5915565490722656,
+        "lastToFirst": 1.9185295104980469
+      },
+      "A16x192": {
+        "bytes": 106906,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 1.1409677010995372,
+        "lastToFirst": 1.4823404947916667
+      },
+      "A12x192": {
+        "bytes": 97428,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.447231716579861,
+        "lastToFirst": 1.7591349283854167
+      }
+    }
+  },
+  "millonario": {
+    "tag": "anim-piso-5",
+    "motionPerFrame": 0.5047653834025065,
+    "clipLastToFirst": 1.6168670654296875,
+    "variants": {
+      "A16x256": {
+        "bytes": 238583,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 2.5901718139648438,
+        "lastToFirst": 2.2046279907226562
+      },
+      "A12x256": {
+        "bytes": 199922,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 2.7949582880193535,
+        "lastToFirst": 1.9470405578613281
+      },
+      "A16x192": {
+        "bytes": 142012,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 2.306843623408565,
+        "lastToFirst": 1.9485880533854167
+      },
+      "A12x192": {
+        "bytes": 118480,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 2.4959883256392046,
+        "lastToFirst": 1.7198011610243056
+      }
+    }
+  },
+  "multimillonario": {
+    "tag": "anim-piso-5",
+    "motionPerFrame": 0.13121045430501302,
+    "clipLastToFirst": 0.959259033203125,
+    "variants": {
+      "A16x256": {
+        "bytes": 121747,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.7804252624511718,
+        "lastToFirst": 0.9553489685058594
+      },
+      "A12x256": {
+        "bytes": 110169,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.0409258062189275,
+        "lastToFirst": 0.9567527770996094
+      },
+      "A16x192": {
+        "bytes": 73680,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.6934077510127314,
+        "lastToFirst": 0.8514200846354166
+      },
+      "A12x192": {
+        "bytes": 66423,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.9240932271938131,
+        "lastToFirst": 0.8524305555555556
+      }
+    }
+  },
+  "oficinista": {
+    "tag": "anim-piso-3",
+    "motionPerFrame": 0.40849733352661133,
+    "clipLastToFirst": 0.8073997497558594,
+    "variants": {
+      "A16x256": {
+        "bytes": 126343,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.990288798014323,
+        "lastToFirst": 1.101806640625
+      },
+      "A12x256": {
+        "bytes": 110816,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 2.5764340487393467,
+        "lastToFirst": 1.1085205078125
+      },
+      "A16x192": {
+        "bytes": 76829,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 1.7758870442708334,
+        "lastToFirst": 1.0038926866319444
+      },
+      "A12x192": {
+        "bytes": 67708,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 2.2989612926136362,
+        "lastToFirst": 0.9949544270833334
+      }
+    }
+  },
+  "rentista_soles": {
+    "tag": "anim-piso-8",
+    "motionPerFrame": 0.23473119735717773,
+    "clipLastToFirst": 1.3955192565917969,
+    "variants": {
+      "A16x256": {
+        "bytes": 178597,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.088372039794922,
+        "lastToFirst": 1.5067253112792969
+      },
+      "A12x256": {
+        "bytes": 160100,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.4858013499866833,
+        "lastToFirst": 1.9955940246582031
+      },
+      "A16x192": {
+        "bytes": 104691,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.9733461733217592,
+        "lastToFirst": 1.3392198350694444
+      },
+      "A12x192": {
+        "bytes": 93302,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.3369442718197602,
+        "lastToFirst": 1.7869127061631944
+      }
+    }
+  },
+  "repartidor": {
+    "tag": "anim-piso-2",
+    "motionPerFrame": 1.1726822217305501,
+    "clipLastToFirst": 1.2543907165527344,
+    "variants": {
+      "A16x256": {
+        "bytes": 204320,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 4.580636850992838,
+        "lastToFirst": 2.074604034423828
+      },
+      "A12x256": {
+        "bytes": 155070,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 2.9723500338467685,
+        "lastToFirst": 2.004016876220703
+      },
+      "A16x192": {
+        "bytes": 124374,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 4.157276294849537,
+        "lastToFirst": 1.7981770833333333
+      },
+      "A12x192": {
+        "bytes": 93556,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 2.634777338817866,
+        "lastToFirst": 1.8088446723090277
+      }
+    }
+  },
+  "rey_asteroides": {
+    "tag": "anim-piso-7",
+    "motionPerFrame": 0.27678988774617513,
+    "clipLastToFirst": 1.5550041198730469,
+    "variants": {
+      "A16x256": {
+        "bytes": 207431,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.2572552998860678,
+        "lastToFirst": 1.5768241882324219
+      },
+      "A12x256": {
+        "bytes": 186327,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.6470447887073865,
+        "lastToFirst": 1.7109756469726562
+      },
+      "A16x192": {
+        "bytes": 122764,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 1.1060158058449074,
+        "lastToFirst": 1.3863796657986112
+      },
+      "A12x192": {
+        "bytes": 109704,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.4629017223011365,
+        "lastToFirst": 1.5059814453125
+      }
+    }
+  },
+  "rey_ladrillo": {
+    "tag": "anim-piso-5",
+    "motionPerFrame": 0.14964958826700847,
+    "clipLastToFirst": 1.0451469421386719,
+    "variants": {
+      "A16x256": {
+        "bytes": 134376,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.7394238789876302,
+        "lastToFirst": 1.2757148742675781
+      },
+      "A12x256": {
+        "bytes": 123508,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 0.9703053561123934,
+        "lastToFirst": 1.1086616516113281
+      },
+      "A16x192": {
+        "bytes": 80275,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.663416431568287,
+        "lastToFirst": 1.1687757703993056
+      },
+      "A12x192": {
+        "bytes": 73213,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.8721294981060607,
+        "lastToFirst": 0.9971381293402778
+      }
+    }
+  },
+  "semidios": {
+    "tag": "anim-piso-9",
+    "motionPerFrame": 0.29191741943359373,
+    "clipLastToFirst": 1.5000152587890625,
+    "variants": {
+      "A16x256": {
+        "bytes": 185233,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.1935234069824219,
+        "lastToFirst": 1.5835380554199219
+      },
+      "A12x256": {
+        "bytes": 168081,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.5561825145374646,
+        "lastToFirst": 1.6872367858886719
+      },
+      "A16x192": {
+        "bytes": 111072,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 1.0892528392650465,
+        "lastToFirst": 1.4256930881076388
+      },
+      "A12x192": {
+        "bytes": 100173,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.4207541725852273,
+        "lastToFirst": 1.5244276258680556
+      }
+    }
+  },
+  "senior_architect": {
+    "tag": "anim-piso-3",
+    "motionPerFrame": 0.1205569585164388,
+    "clipLastToFirst": 0.8604660034179688,
+    "variants": {
+      "A16x256": {
+        "bytes": 111575,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.663488260904948,
+        "lastToFirst": 0.897705078125
+      },
+      "A12x256": {
+        "bytes": 102070,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 0.9229212674227628,
+        "lastToFirst": 0.9009513854980469
+      },
+      "A16x192": {
+        "bytes": 68010,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.6025413230613427,
+        "lastToFirst": 0.8054945203993056
+      },
+      "A12x192": {
+        "bytes": 61589,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.8400046608664773,
+        "lastToFirst": 0.8087090386284722
+      }
+    }
+  },
+  "senior_doctor": {
+    "tag": "anim-piso-3",
+    "motionPerFrame": 0.14874887466430664,
+    "clipLastToFirst": 0.8273811340332031,
+    "variants": {
+      "A16x256": {
+        "bytes": 101047,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.7222918192545573,
+        "lastToFirst": 1.0486259460449219
+      },
+      "A12x256": {
+        "bytes": 91545,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 0.9101305874911222,
+        "lastToFirst": 1.2437896728515625
+      },
+      "A16x192": {
+        "bytes": 61963,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.6621274594907408,
+        "lastToFirst": 0.9507514105902778
+      },
+      "A12x192": {
+        "bytes": 55551,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.8297211618134469,
+        "lastToFirst": 1.1443888346354167
+      }
+    }
+  },
+  "senior_lawyer": {
+    "tag": "anim-piso-3",
+    "motionPerFrame": 0.16764465967814127,
+    "clipLastToFirst": 1.0073738098144531,
+    "variants": {
+      "A16x256": {
+        "bytes": 130251,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.9615381876627604,
+        "lastToFirst": 1.0260086059570312
+      },
+      "A12x256": {
+        "bytes": 116730,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.099059365012429,
+        "lastToFirst": 1.03143310546875
+      },
+      "A16x192": {
+        "bytes": 77461,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.8571216724537035,
+        "lastToFirst": 0.9128689236111112
+      },
+      "A12x192": {
+        "bytes": 69282,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.9767973928740532,
+        "lastToFirst": 0.9181247287326388
+      }
+    }
+  },
+  "senior_programmer": {
+    "tag": "anim-piso-3",
+    "motionPerFrame": 0.2419189453125,
+    "clipLastToFirst": 0.8356246948242188,
+    "variants": {
+      "A16x256": {
+        "bytes": 115988,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.8630643208821615,
+        "lastToFirst": 0.8707237243652344
+      },
+      "A12x256": {
+        "bytes": 103553,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.1046614213423296,
+        "lastToFirst": 1.0097122192382812
+      },
+      "A16x192": {
+        "bytes": 69935,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.7841973198784724,
+        "lastToFirst": 0.7853664822048612
+      },
+      "A12x192": {
+        "bytes": 62336,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.0040609956991793,
+        "lastToFirst": 0.9062025282118056
+      }
+    }
+  },
+  "senor_galaxia": {
+    "tag": "anim-piso-8",
+    "motionPerFrame": 0.22361631393432618,
+    "clipLastToFirst": 1.3988227844238281,
+    "variants": {
+      "A16x256": {
+        "bytes": 182712,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.1332931518554688,
+        "lastToFirst": 1.3994369506835938
+      },
+      "A12x256": {
+        "bytes": 166662,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.477311914617365,
+        "lastToFirst": 1.4613914489746094
+      },
+      "A16x192": {
+        "bytes": 110085,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 1.0225061487268519,
+        "lastToFirst": 1.2591688368055556
+      },
+      "A12x192": {
+        "bytes": 98327,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.3318419793639522,
+        "lastToFirst": 1.31243896484375
+      }
+    }
+  },
+  "ser_ascendido": {
+    "tag": "anim-piso-9",
+    "motionPerFrame": 0.14904925028483074,
+    "clipLastToFirst": 1.271026611328125,
+    "variants": {
+      "A16x256": {
+        "bytes": 92892,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.7631589253743489,
+        "lastToFirst": 1.2867851257324219
+      },
+      "A12x256": {
+        "bytes": 81531,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 0.9442017295143821,
+        "lastToFirst": 1.2877006530761719
+      },
+      "A16x192": {
+        "bytes": 57407,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.6974238642939814,
+        "lastToFirst": 1.1947157118055556
+      },
+      "A12x192": {
+        "bytes": 50100,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.8637830946180557,
+        "lastToFirst": 1.1950005425347223
+      }
+    }
+  },
+  "space_billionaire": {
+    "tag": "anim-piso-6",
+    "motionPerFrame": 0.24788395563761392,
+    "clipLastToFirst": 0.8398017883300781,
+    "variants": {
+      "A16x256": {
+        "bytes": 117889,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.8576769510904948,
+        "lastToFirst": 1.1488685607910156
+      },
+      "A12x256": {
+        "bytes": 102954,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.06212026422674,
+        "lastToFirst": 1.7507286071777344
+      },
+      "A16x192": {
+        "bytes": 72620,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.7756528501157407,
+        "lastToFirst": 1.0298936631944444
+      },
+      "A12x192": {
+        "bytes": 63312,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 0.9592599579782196,
+        "lastToFirst": 1.6067911783854167
+      }
+    }
+  },
+  "trapito": {
+    "tag": "anim-piso-1",
+    "motionPerFrame": 0.19432668685913085,
+    "clipLastToFirst": 1.1898841857910156,
+    "variants": {
+      "A16x256": {
+        "bytes": 164061,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 1.0124244689941406,
+        "lastToFirst": 1.2435722351074219
+      },
+      "A12x256": {
+        "bytes": 146649,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.2023429870605469,
+        "lastToFirst": 1.4517402648925781
+      },
+      "A16x192": {
+        "bytes": 98941,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.9056306061921295,
+        "lastToFirst": 1.1074625651041667
+      },
+      "A12x192": {
+        "bytes": 87959,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.0758007319286615,
+        "lastToFirst": 1.2892388237847223
+      }
+    }
+  },
+  "trillonario": {
+    "tag": "anim-piso-6",
+    "motionPerFrame": 0.15764424006144206,
+    "clipLastToFirst": 1.1567802429199219,
+    "variants": {
+      "A16x256": {
+        "bytes": 131510,
+        "sheet": [
+          1024,
+          1024
+        ],
+        "meanStep": 0.8637189229329427,
+        "lastToFirst": 1.1805534362792969
+      },
+      "A12x256": {
+        "bytes": 118540,
+        "sheet": [
+          1024,
+          768
+        ],
+        "meanStep": 1.1057281494140625,
+        "lastToFirst": 0.9436874389648438
+      },
+      "A16x192": {
+        "bytes": 80102,
+        "sheet": [
+          768,
+          768
+        ],
+        "meanStep": 0.7950276692708333,
+        "lastToFirst": 1.0888264973958333
+      },
+      "A12x192": {
+        "bytes": 71608,
+        "sheet": [
+          768,
+          576
+        ],
+        "meanStep": 1.017113887902462,
+        "lastToFirst": 0.8494398328993056
+      }
+    }
+  }
+}

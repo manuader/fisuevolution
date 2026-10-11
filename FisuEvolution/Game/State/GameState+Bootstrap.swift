@@ -251,6 +251,10 @@ extension GameState {
         if ProcessInfo.processInfo.arguments.contains("--uitest-anim-stress") {
             debugStartAnimStress()
         }
+        if ProcessInfo.processInfo.arguments.contains("--uitest-idle-bench")
+            || ProcessInfo.processInfo.arguments.contains("--uitest-idle-bench-still") {
+            debugStartIdleBench()
+        }
         if let argument = ProcessInfo.processInfo.arguments.first(where: { $0.hasPrefix("--uitest-cinematic=") }),
            let id = CinematicID(rawValue: String(argument.dropFirst("--uitest-cinematic=".count))) {
             debugPlayCinematic(id)

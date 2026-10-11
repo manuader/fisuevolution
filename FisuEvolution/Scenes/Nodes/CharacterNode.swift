@@ -28,6 +28,11 @@ final class CharacterNode: SKNode {
 
     private(set) var typeId: String = ""
     private(set) var cellIndex: Int = -1
+    private(set) var showsRealArt = false
+    private var idleBaseTexture: SKTexture?
+    static let idleActionKey = "idleFrames"
+
+    var isIdleAnimating: Bool { sprite.action(forKey: Self.idleActionKey) != nil }
 
     override init() {
         super.init()
@@ -75,8 +80,11 @@ final class CharacterNode: SKNode {
         hasRealArt: Bool = false,
         earnsPassive: Bool = false
     ) {
+        stopIdleFrames()
         typeId = type.id
         self.cellIndex = cellIndex
+        showsRealArt = hasRealArt && texture != nil
+        idleBaseTexture = texture
 
         let plateSize = cellSize * 0.92
         let coinSide = cellSize * 0.22
@@ -156,6 +164,25 @@ final class CharacterNode: SKNode {
 
     var isFacingLeft: Bool { sprite.xScale < 0 }
 
+    /// Spike T10a: los cuadros del clip base en loop sobre el sprite, con la fase corrida.
+    func runIdleFrames(_ frames: [SKTexture], timePerFrame: TimeInterval, phase: Int) {
+        guard showsRealArt, !frames.isEmpty else { return }
+        let offset = ((phase % frames.count) + frames.count) % frames.count
+        let ordered = Array(frames[offset...] + frames[..<offset])
+        sprite.run(.repeatForever(.animate(with: ordered, timePerFrame: timePerFrame, resize: false, restore: true)),
+                   withKey: Self.idleActionKey)
+    }
+
+    /// Devuelve `true` si `restore: true` ya había dejado la textura quieta (para el reporte).
+    @discardableResult
+    func stopIdleFrames() -> Bool {
+        guard sprite.action(forKey: Self.idleActionKey) != nil else { return true }
+        sprite.removeAction(forKey: Self.idleActionKey)
+        let restored = sprite.texture === idleBaseTexture
+        sprite.texture = idleBaseTexture
+        return restored
+    }
+
     /// Asignar `text` o `fontSize` a un `SKLabelNode` lo marca sucio y obliga a
     /// rehacer el layout de Core Text y a re-subir su textura, aunque el valor
     /// sea idéntico. Como `configure` corre sobre los 10 personajes en cada
@@ -188,6 +215,7 @@ final class CharacterNodePool {
     func obtain() -> CharacterNode {
         guard let node = free.popLast() else { return CharacterNode() }
         node.removeAllActions()
+        node.stopIdleFrames()
         node.alpha = 1
         node.setScale(1)
         // `setScale(1)` limpia el NODO y no a sus hijos, y el espejado vive en el

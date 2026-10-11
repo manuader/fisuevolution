@@ -37,7 +37,10 @@ struct VideoPlaybackPolicy: Equatable, Sendable {
 
     static func launch(arguments: [String], environment: [String: String],
                        xctestLoaded: Bool) -> VideoPlaybackPolicy {
-        let underXCTest = xctestLoaded || environment["XCTestConfigurationFilePath"] != nil
+        // Spike T10a: StoreKitTest (linkeado débil en DEBUG) carga XCTest, así que `xctestLoaded` da
+        // verdadero en toda build Debug lanzada a mano y `--uitest-video` no alcanzaba: lo ignora.
+        let underXCTest = (xctestLoaded && !arguments.contains("--uitest-video"))
+            || environment["XCTestConfigurationFilePath"] != nil
         let underUITest = arguments.contains { $0.hasPrefix("--uitest") }
             && !arguments.contains("--uitest-video")
         return underXCTest || underUITest ? allowAll.with(.forcedStill) : allowAll

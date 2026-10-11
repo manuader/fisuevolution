@@ -1,0 +1,18 @@
+{
+  "images": [
+    {
+      "filename": "idle_junior_architect_01.png",
+      "idiom": "universal"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  },
+  "properties": {
+    "compression-type": "gpu-optimized-best",
+    "on-demand-resource-tags": [
+      "anim-piso-3"
+    ]
+  }
+}

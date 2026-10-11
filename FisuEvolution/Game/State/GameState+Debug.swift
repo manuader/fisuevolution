@@ -1,5 +1,6 @@
 import EconomyKit
 import Foundation
+import UIKit
 
 /// Fixtures de DEBUG: el panel de herramientas del HUD y los launch arguments de
 /// los tests de UI. Separado de `GameState.swift` para que ningún frente tenga
@@ -293,6 +294,70 @@ extension GameState {
     func debugStartAnimStress() {
         debugDropFirstSpecial()
         FrameRateProbe.shared.start()
+    }
+
+    /// Spike E8e T10a: el piso 3 con sus 10 tipos distintos (el peor caso de memoria), el piso 2
+    /// lleno con sus 4, el visitante hablando y la sonda. `--uitest-idle-bench-cycle` cambia 2 ↔ 3
+    /// veinte veces; `--uitest-idle-bench-memwarn` dispara un aviso de memoria a los 40 s.
+    func debugStartIdleBench() {
+        debugUnlockFloors(throughTier: 12)
+        guard let content, var player, var tower else { return }
+        for ordinal in [1, 2] {
+            let types = content.tiers.concreteTypes.filter { content.floorTable.ordinal(forTier: $0.tier) == ordinal }
+            guard !types.isEmpty else { continue }
+            for slot in tower.floors[ordinal].slots.indices {
+                let type = types[slot % types.count]
+                tower.floors[ordinal].slots[slot] = type.id
+                player.run.units[type.id, default: 0] += 1
+                player.run.markSeen(type.id)
+            }
+        }
+        self.player = player
+        self.tower = tower
+        bumpBoard()
+        setVisibleFloor(2)
+        FrameRateProbe.shared.start()
+        let arguments = ProcessInfo.processInfo.arguments
+        Task { @MainActor [weak self] in
+            for tick in 0..<200 {
+                try? await Task.sleep(for: .seconds(1))
+                guard let self else { return }
+                if self.stageVisit == nil, self.phase == .ready { self.debugPresentVisitor(scriptId: "vecina_chisme") }
+                if tick % 10 == 9 {
+                    Log.lifecycle.info("idle-bench t=\(tick + 1)s MB \(Int(FrameRateProbe.footprintMB().rounded())) floor \(self.visibleFloorOrdinal)")
+                }
+            }
+        }
+        if arguments.contains("--uitest-idle-bench-cycle") {
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .seconds(30))
+                for step in 0..<20 {
+                    guard let self else { return }
+                    FrameRateProbe.shared.resetPeak()
+                    self.setVisibleFloor(step % 2 == 0 ? 1 : 2)
+                    try? await Task.sleep(for: .seconds(3))
+                    let probe = FrameRateProbe.shared
+                    Log.lifecycle.info("idle-bench switch \(step) floor \(self.visibleFloorOrdinal) peak \(Int(probe.peakMs.rounded())) ms slow \(probe.peakSlow)/\(probe.peakFrames) MB \(Int(FrameRateProbe.footprintMB().rounded()))")
+                }
+                Log.lifecycle.info("idle-bench cycle done")
+            }
+        }
+        if arguments.contains("--uitest-idle-bench-memwarn") {
+            Task { @MainActor in
+                try? await Task.sleep(for: .seconds(40))
+                Log.lifecycle.info("idle-bench memwarn before MB \(Int(FrameRateProbe.footprintMB().rounded()))")
+                let selector = Selector(("_performMemoryWarning"))
+                if UIApplication.shared.responds(to: selector) {
+                    UIApplication.shared.perform(selector)
+                } else {
+                    NotificationCenter.default.post(name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+                }
+                for after in [1, 5, 15] {
+                    try? await Task.sleep(for: .seconds(after == 1 ? 1 : after == 5 ? 4 : 10))
+                    Log.lifecycle.info("idle-bench memwarn +\(after)s MB \(Int(FrameRateProbe.footprintMB().rounded()))")
+                }
+            }
+        }
     }
 
     /// Llega a Dios como si se hubiera revelado el tier tope.

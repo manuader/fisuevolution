@@ -1015,6 +1015,16 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 - La columna es de metal (`MetalPlate`), no de madera.
 
 
+**2026-10-11 — del chat del relevo 34 (el dueño: «hacé todo lo recomendado»):**
+- **E6b T8 destrabada:** las pintas de la v1 que pasan a exclusivas de ORO ya no se ganan jugando; quien ya las tiene las conserva.
+- **`terms.md` §3:** se corrige «No tenemos servidores» en la app y el sitio; el texto nombra a Supabase y a Anthropic (sólo el nombre del jugador va al ranking).
+- **Reset, aviso del ×3 (B10):** `ResetPlan.Summary` suma el dato del ×3 pagado sin usar y el aviso sale sólo si existe.
+- **Botón de video sin red:** a los 10 s pasa de «Cargando…» a «Sin conexión» con reintento.
+- **Lugares extra:** el texto de la compra avisa que los pisos llenos dejan de estar «en marcha».
+- **Lista de palabras (137):** va en la migración/seed de E12 y queda activa cuando exista el proyecto de Supabase (E12 T16).
+- **Pintas sin video (el dueño: sólo los personajes base están animados):** (1) las pintas recoloreo (oro/diamante) reusan el clip del tipo base con un tinte en vivo — primero un spike con una sola (`cartonero__oro`) para que el dueño la mire; (2) las de dibujo propio siguen estáticas (la ficha con un pulso suave; en el tablero, la animación normal del personaje); el lookup por `tipo__skin` ya existe (E8e T8): una pinta que se anime después entra sola. **No se animan las 260 con Higgsfield.**
+- **Publicar el sitio sigue 🔒:** lo publica el dueño (o lo pide explícito).
+
 **2026-10-11 — del chat del relevo 33 (el dueño):**
 - **El «cofre bajo la hoja» (carry de la rev. opus de E6a T12) queda CERRADO como «no se reproduce»**: era una sospecha de lectura de código; dos UI tests (hoja de oferta por la cola y por el chip) dieron el cofre visible y tocable al cerrar. Se reabre sólo si el dueño lo ve en device.
 - **El vigilante del núcleo del tutorial NO saltea a un paso imposible (opción B):** si a los 180 s el jugador no cumplió el paso (p. ej. `core.tap`), el núcleo no avanza a `core.hire`/`core.merge` sin plata ni par: se queda en el mismo paso y lo vuelve a mostrar más insistente (reinicia el reloj). El núcleo sigue sin poder saltearse; nadie cae en un paso que no puede cumplir. Las lecciones (de un paso) siguen terminando por watchdog como hoy. Lo hace la próxima tarea de tutorial que toque `GameState+Tutorial` (E9a T7), con test que lo fije y RED por mutación.

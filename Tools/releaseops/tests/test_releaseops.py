@@ -42,6 +42,20 @@ def asc_state(**overrides) -> dict:
     return {"app": {"id": "app", "name": "HoboEvolution"}, "products": products}
 
 
+class StoreKitConfigTests(unittest.TestCase):
+    """El .storekit local (pruebas y simulador) dice lo mismo que release.json."""
+
+    def test_the_storekit_texts_match_release_json(self):
+        storekit = json.loads((REPO / "StoreKitConfig" / "FisuEvolution.storekit").read_text())
+        local = {p["productID"]: {l["locale"]: (l["displayName"], l["description"]) for l in p["localizations"]}
+                 for p in storekit["products"]}
+        for p in CONFIG["inAppPurchases"]["products"]:
+            expected = {"es": p["localizations"]["es-MX"], "en": p["localizations"]["en-US"]}
+            for locale, text in expected.items():
+                self.assertEqual(local[p["productId"]][locale], (text["name"], text["description"]),
+                                 f"{p['productId']} [{locale}]")
+
+
 class ValidateTests(unittest.TestCase):
     def test_the_repo_config_is_green(self):
         report = cfg.validate(CONFIG, REPO)

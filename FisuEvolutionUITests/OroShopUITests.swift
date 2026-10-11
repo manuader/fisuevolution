@@ -46,6 +46,26 @@ final class OroShopUITests: XCTestCase {
         XCTAssertFalse(app.descendants(matching: .any)["oroShop.balance"].exists, "abre en Comprar ORO: App Review ve primero los IAP")
     }
 
+    /// La bajada de la cabecera acompaña a la mitad elegida: en Gastar ORO ya no
+    /// habla de plata de verdad, y al volver a Comprar ORO vuelve la de los packs.
+    @MainActor
+    func testTheStoreSubtitleFollowsTheSelectedSide() throws {
+        let app = openStore()
+        let buySubtitle = app.staticTexts["store.subtitle.buy"]
+        let spendSubtitle = app.staticTexts["store.subtitle.spend"]
+        XCTAssertTrue(buySubtitle.waitForExistence(timeout: 10), "abre en Comprar ORO con su bajada")
+        XCTAssertFalse(spendSubtitle.exists)
+
+        app.buttons["store.segment.spend"].tap()
+        XCTAssertTrue(spendSubtitle.waitForExistence(timeout: 5), "Gastar ORO tiene su bajada")
+        XCTAssertFalse(buySubtitle.exists, "la bajada de la plata no queda en Gastar ORO")
+        XCTAssertTrue(app.buttons["store.restore"].exists, "restaurar compras se ve en las dos mitades")
+
+        app.buttons["store.segment.buy"].tap()
+        XCTAssertTrue(buySubtitle.waitForExistence(timeout: 5))
+        XCTAssertFalse(spendSubtitle.exists)
+    }
+
     @MainActor
     func testTheOroShopChargesAndCountsTheDay() throws {
         let (app, balance) = openSpendSide()

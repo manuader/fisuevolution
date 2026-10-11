@@ -8,6 +8,7 @@
     python3 Tools/releaseops/releaseops.py asc diff           # exit 0 si ASC == config
     python3 Tools/releaseops/releaseops.py asc ready          # exit 0 si todo puede ir a revisión
     python3 Tools/releaseops/releaseops.py asc screenshot <producto> <png>
+    python3 Tools/releaseops/releaseops.py asc builds [--json f]   # builds subidos y próximo número libre (sólo GET)
     python3 Tools/releaseops/releaseops.py asc listing plan|apply --yes|diff   # ficha de la versión
     python3 Tools/releaseops/releaseops.py admob plan         # unidades por crear
     python3 Tools/releaseops/releaseops.py admob set-id <clave> <ad-unit-id>
@@ -152,6 +153,28 @@ def cmd_asc_screenshot(args) -> int:
     return 0
 
 
+def cmd_asc_builds(args) -> int:
+    """Una foto de los builds subidos: sólo `GET`, siempre exit 0."""
+    from rocore import asc, asc_builds
+    config = cfg.load(args.config)
+    text = (args.repo / config["codeBindings"]["projectYml"]).read_text(encoding="utf-8")
+    marketing = re.search(r'MARKETING_VERSION: "([\d.]+)"', text).group(1)
+    project_build = int(re.search(r'CURRENT_PROJECT_VERSION: "(\d+)"', text).group(1))
+    try:
+        client = asc.Client()
+        builds = asc_builds.fetch(client, asc.find_app(client, config["app"]["bundleId"])["id"])
+    except asc.AscError as error:
+        print(f"NEEDS_CONTEXT: {error}")
+        return 0
+    free = asc_builds.next_free(builds, marketing, project_build)
+    print(asc_builds.render(builds, marketing, free))
+    if args.json:
+        Path(args.json).write_text(json.dumps(
+            {"version": marketing, "nextFreeBuild": free, "builds": [b.__dict__ for b in builds]},
+            ensure_ascii=False, indent=2))
+    return 0
+
+
 def cmd_listing(args) -> int:
     """La ficha de la versión: plan (dry-run), apply o diff."""
     from rocore import asc, listing
@@ -269,6 +292,9 @@ def main() -> int:
         p.set_defaults(run=run)
     asc_p.add_parser("diff").set_defaults(run=cmd_asc_diff)
     asc_p.add_parser("ready").set_defaults(run=cmd_asc_ready)
+    builds = asc_p.add_parser("builds", help="builds subidos y el próximo número libre (sólo lectura)")
+    builds.add_argument("--json", help="guarda la foto en este archivo")
+    builds.set_defaults(run=cmd_asc_builds)
     lst = asc_p.add_parser("listing", help="la ficha de la versión: plan | apply | diff")
     lst.add_argument("mode", choices=("plan", "apply", "diff"))
     lst.add_argument("--yes", action="store_true")

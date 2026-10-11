@@ -25,7 +25,7 @@ struct SideRailOfferCard: View {
                         Image(systemName: "xmark")
                             .font(.system(size: 13, weight: .black))
                             .foregroundStyle(Color("PaletteInk").opacity(0.6))
-                            .frame(width: 32, height: 32)
+                            .frame(width: 44, height: 44)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)

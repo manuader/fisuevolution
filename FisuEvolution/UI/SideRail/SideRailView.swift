@@ -34,6 +34,7 @@ enum SideRailLayout {
 struct SideRailView: View {
     @Environment(GameState.self) private var gameState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
     /// La tarjeta del video abierta. Vive afuera: el toque en el tablero la cierra.
     @Binding var offer: SideRailKind?
     @State private var expanded = false
@@ -41,7 +42,9 @@ struct SideRailView: View {
     @State private var activity = 0
 
     var body: some View {
-        Group {
+        // Un `ZStack` y no un `Group`: los `onChange` tienen que colgar de algo
+        // que existe también con la columna escondida.
+        ZStack(alignment: .topLeading) {
             if gameState.sideRail.isVisible {
                 column(gameState.sideRail)
             }
@@ -49,6 +52,9 @@ struct SideRailView: View {
         .onChange(of: gameState.sideRail.isVisible) { _, visible in
             guard !visible else { return }
             fold()
+        }
+        .onChange(of: gameState.sideRail) { _, rail in
+            offer = SideRailOffer.kept(offer, in: rail)
         }
         .onChange(of: gameState.celebrationHidesUI) { _, hides in
             if hides { fold() }
@@ -68,6 +74,7 @@ struct SideRailView: View {
                     // Con la persiana recogida, la tarjeta sale al lado de "Premios".
                     if let offer {
                         SideRailOfferCard(kind: offer) { self.offer = nil }
+                            .id(offer)
                             .fixedSize()
                             .offset(x: SideRailLayout.restSide + Tokens.s12)
                             .transition(.opacity)
@@ -77,7 +84,8 @@ struct SideRailView: View {
         .animation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.35), value: expanded)
         .animation(.easeInOut(duration: 0.2), value: offer)
         .task(id: activity) {
-            guard expanded else { return }
+            // Con VoiceOver la persiana no se recoge sola: 3 s no alcanzan para leerla.
+            guard expanded, !voiceOver else { return }
             try? await Task.sleep(for: SideRailLayout.collapseDelay)
             guard !Task.isCancelled else { return }
             expanded = false

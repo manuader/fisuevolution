@@ -151,3 +151,31 @@ struct SideRailTapTests {
         #expect(gameState.player?.run.coins == coins)
     }
 }
+
+@Suite("La tarjeta del video sigue a la columna")
+struct SideRailOfferKeptTests {
+    private func rail(boost: SideRailStatus = .ready(count: nil), rain: RailVideoStatus = .available) -> SideRailState {
+        SideRailState(
+            items: SideRailKind.allCases.map { SideRailItem(kind: $0, status: $0 == .boost ? boost : .idle) },
+            packageRain: rain)
+    }
+
+    @Test("con la columna escondida la tarjeta se cierra")
+    func hiddenRailClosesTheCard() {
+        #expect(SideRailOffer.kept(.boost, in: .hidden) == nil)
+        #expect(SideRailOffer.kept(.packages, in: .hidden) == nil)
+    }
+
+    @Test("con la columna a la vista y el video ofrecible, se queda")
+    func visibleRailKeepsTheCard() {
+        #expect(SideRailOffer.kept(.boost, in: rail()) == .boost)
+        #expect(SideRailOffer.kept(.packages, in: rail()) == .packages)
+    }
+
+    @Test("cuando el video deja de estar listo, se cierra")
+    func notReadyAnymoreClosesTheCard() {
+        #expect(SideRailOffer.kept(.boost, in: rail(boost: .waiting(seconds: 30))) == nil)
+        #expect(SideRailOffer.kept(.packages, in: rail(rain: .coolingDown(seconds: 30))) == nil)
+        #expect(SideRailOffer.kept(nil, in: rail()) == nil)
+    }
+}

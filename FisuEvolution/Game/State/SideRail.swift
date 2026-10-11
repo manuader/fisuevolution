@@ -131,6 +131,19 @@ enum SideRailClock {
     }
 }
 
+/// La tarjeta del video sólo vive mientras la columna se ve y su video sigue
+/// siendo ofrecible: escondida o ya no listo, se cierra sola.
+enum SideRailOffer {
+    static func kept(_ offer: SideRailKind?, in rail: SideRailState) -> SideRailKind? {
+        guard let offer, rail.isVisible else { return nil }
+        switch offer {
+        case .boost: return rail.status(of: .boost) == .ready(count: nil) ? offer : nil
+        case .packages: return rail.packageRain == .available ? offer : nil
+        case .wheel, .mattress: return nil
+        }
+    }
+}
+
 /// El valor de accesibilidad de un botón: lo leen VoiceOver y los tests de UI.
 enum SideRailAX {
     static func value(_ status: SideRailStatus) -> String {

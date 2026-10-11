@@ -607,7 +607,7 @@ que toma · commit o rama · nota.
 | E6a-T9 | Los packs 160 / 550 / 1.400 | ✅ | E1-T6; E2a-T7 | products.json, StoreManagerTests | `7cc20d9` (merge `2446069`) | StoreManagerTests 13/14 a mano (timeout de carga, solo pasa) |
 | E6a-T10 | Las ofertas de 24 h, puras | ✅ | T1; E4a-T1 | — | | |
 | E6a-T11 | Las ofertas se cobran | ✅ | T9, T10; E4a-T8; E2a-T7; E5a-T6 | catálogo (snapshot); products.json, +Store | `6daa880` + arreglos `05019e2` (merge `db27a2c`, claves aplicadas) | con T6c: por `recordOroPurchase`, no `+=` |
-| E6a-T12 | Las ofertas se ven | 🔄 | T7, T8, T11; E5a-T8; E4b-T3; E3a-T6; E5b-T1, E5b-T2 | 🔥 RootView, catálogo; CelebrationQueue, +Celebrations | | **Carry del relevo 27 (de E6a T6):** gregoriano para días y enfriamiento |
+| E6a-T12 | Las ofertas se ven | 🟢 | T7, T8, T11; E5a-T8; E4b-T3; E3a-T6; E5b-T1, E5b-T2 | 🔥 RootView, catálogo; CelebrationQueue, +Celebrations | | **Carry del relevo 27 (de E6a T6):** gregoriano para días y enfriamiento |
 | E6a-T13 | Cierre de E6a | ⛔ | T1–T12 | `Docs/` | | |
 
 ### E6b — Lugares extra, pintas con ORO, efectos y familias (`2026-10-07-v2-e6b-lugares-skins.md`)

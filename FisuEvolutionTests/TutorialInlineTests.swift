@@ -13,7 +13,19 @@ struct TutorialInlineTests {
         ))
         gameState.flagDefaults = .isolatedForTest()
         await gameState.bootstrap()
+        gameState.tutorialLessonsAutorun = true
         return gameState
+    }
+
+    @Test("con las lecciones apagadas (XCTest, --uitest*) la tarjeta no aparece")
+    func silentWithoutAutorun() async {
+        let gameState = await makeGameState()
+        gameState.tutorialLessonsAutorun = false
+        gameState.beginInlineLesson(.career)
+        #expect(gameState.tutorialRun == nil)
+        gameState.tutorialLessonsAutorun = true
+        gameState.beginInlineLesson(.career)
+        #expect(gameState.tutorialRun?.lessonID == "career", "con las lecciones prendidas SÍ aparece")
     }
 
     @Test("la tarjeta del offline espera 5 s, no pasa por la cola y queda dada una sola vez")

@@ -8,7 +8,6 @@ struct StageChips: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            prizeChips
             Group {
                 if let visit = gameState.stageVisit, visit.phase == .waiting,
                    visit.offer != nil, gameState.stageChallenge == nil {
@@ -22,23 +21,6 @@ struct StageChips: View {
             }
         }
         .animation(.spring(duration: 0.3), value: gameState.stageVisit?.offer != nil)
-        .animation(.spring(duration: 0.3), value: gameState.prizeAccess)
-    }
-
-    /// El paquete y el colchón esperando (PLAN-v2 E5). Hasta que exista la
-    /// columna de E7b, éste es su acceso tocable y accesible.
-    @ViewBuilder private var prizeChips: some View {
-        let access = gameState.prizeAccess
-        if access.packagesWaiting > 0 {
-            PackageChip(count: access.packagesWaiting, blocked: access.packagesBlocked) {
-                _ = gameState.packageTapped()
-            }
-            .transition(.scale(scale: 0.7).combined(with: .opacity))
-        }
-        if access.mattressReady {
-            MattressChip { gameState.mattressTapped() }
-                .transition(.scale(scale: 0.7).combined(with: .opacity))
-        }
     }
 }
 

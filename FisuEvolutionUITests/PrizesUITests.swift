@@ -1,7 +1,8 @@
 import XCTest
 
-/// El paquete y el colchón se tocan desde sus chips (PLAN-v2 E5). El video del
-/// colchón lo pone el stub de anuncios: 2 s y paga.
+/// El paquete y el colchón se tocan desde la columna plegable (PLAN-v2 E5 y
+/// E7b): "Premios" despliega la persiana y el botón de cada uno abre lo suyo. El
+/// video del colchón lo pone el stub de anuncios: 2 s y paga.
 @MainActor
 final class PrizesUITests: XCTestCase {
     override func setUp() {
@@ -10,29 +11,36 @@ final class PrizesUITests: XCTestCase {
 
     func testAPackageBringsAWorker() {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-packages=1"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-packages=1", "--uitest-rail-hold"]
         app.launch()
 
         let units = app.otherElements["board.units"]
         XCTAssertTrue(units.waitForExistence(timeout: 15))
         let before = Int(units.value as? String ?? "") ?? 0
-        let chip = app.buttons["prize.chip.package"]
+        app.buttons["siderail.toggle"].tap()
+        let chip = app.buttons["siderail.packages"]
         XCTAssertTrue(chip.waitForExistence(timeout: 5))
-        XCTAssertEqual(chip.value as? String, "1")
+        XCTAssertEqual(chip.value as? String, "ready:1")
         chip.tap()
 
         expectation(for: NSPredicate(format: "value == %@", String(before + 1)), evaluatedWith: units)
         waitForExpectations(timeout: 10)
-        XCTAssertTrue(chip.waitForNonExistence(timeout: 3), "con el buzón vacío el chip se va")
+        app.buttons["siderail.toggle"].tap()
+        XCTAssertTrue(chip.waitForExistence(timeout: 3))
+        XCTAssertNotEqual(chip.value as? String, "ready:1", "con el buzón vacío el botón se queda y cambia de estado")
     }
 
     func testTheMattressOpensWithAVideo() {
         let app = XCUIApplication()
-        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-mattress"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-mattress", "--uitest-rail-hold"]
         app.launch()
 
-        let chip = app.buttons["prize.chip.mattress"]
-        XCTAssertTrue(chip.waitForExistence(timeout: 15))
+        let toggle = app.buttons["siderail.toggle"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 15))
+        toggle.tap()
+        let chip = app.buttons["siderail.mattress"]
+        XCTAssertTrue(chip.waitForExistence(timeout: 3))
+        XCTAssertEqual(chip.value as? String, "ready")
         chip.tap()
 
         XCTAssertTrue(app.descendants(matching: .any)["mattress.odds.coins"].waitForExistence(timeout: 5),
@@ -46,7 +54,10 @@ final class PrizesUITests: XCTestCase {
         XCTAssertTrue(extra.waitForExistence(timeout: 3))
         extra.tap()
         XCTAssertTrue(extra.waitForNonExistence(timeout: 8), "otro colchón es uno solo")
+        XCTAssertTrue(app.descendants(matching: .any)["mattress.extra.watching"].waitForNonExistence(timeout: 10),
+                      "el video del segundo colchón no terminó")
+
         app.buttons["mattress.collect"].tap()
-        XCTAssertTrue(chip.waitForNonExistence(timeout: 5), "abierto, el colchón se va")
+        XCTAssertTrue(app.buttons["mattress.collect"].waitForNonExistence(timeout: 5), "Keep it! no cerró el colchón")
     }
 }

@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 @testable import FisuEvolution
 
@@ -196,5 +197,27 @@ struct AdLoadWaitTests {
     @Test("el plazo del botón es de 8 s")
     func timeoutIsEightSeconds() {
         #expect(AdLoadWait.rewardedTimeout == .seconds(8))
+    }
+}
+
+@Suite("El botón de video suelta el isBusy del padre")
+@MainActor
+struct RewardedBusyTests {
+    @Test("tras pagar, isBusy vuelve a false aunque el premio saque al botón del árbol")
+    func busyReleasedWhenTheRewardRemovesTheButton() async {
+        var busy = true
+        let binding = Binding(get: { busy }, set: { busy = $0 })
+        let provider = ScriptedAdsProvider()
+        let ads = AdsCoordinator(provider: provider)
+        let offer = RewardedOffer(messageDuration: .milliseconds(80))
+        var paid = 0
+
+        // Sin vista no hay `onChange` de la fase: es el botón que ya no está.
+        offer.tap(ads: ads, placement: .treasure,
+                  onRewarded: RewardedOfferButton.releasing(binding) { paid += 1 })
+        await offer.settle()
+
+        #expect(paid == 1)
+        #expect(busy == false, "Keep it! y la X quedaban muertos")
     }
 }

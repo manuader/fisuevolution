@@ -24,8 +24,9 @@ final class EconomyLoopUITests: XCTestCase {
         XCTAssertTrue(coins.waitForExistence(timeout: 15))
         let before = coins.value as? String
 
-        // El Fisura arranca en la celda 0 (abajo-izquierda del board).
-        let boardTap = app.coordinate(withNormalizedOffset: CGVector(dx: 0.13, dy: 0.77))
+        // El Fisura arranca en la celda 0 (abajo-izquierda del board), a ~88 pt
+        // del borde y fuera del botón «Premios» de la columna (E7b), que termina en 56.
+        let boardTap = app.coordinate(withNormalizedOffset: CGVector(dx: 0.22, dy: 0.77))
         for _ in 0..<20 {
             boardTap.tap()
         }

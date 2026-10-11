@@ -55,14 +55,26 @@ struct RewardedOfferButton: View {
             }
         }
         .onAppear { ads.preloadRewarded(for: placement) }
-        .onDisappear { offer.cancel() }
+        .onDisappear {
+            offer.cancel()
+            isBusy?.wrappedValue = false
+        }
         .onChange(of: offer.phase) { _, phase in
             isBusy?.wrappedValue = phase == .busy
         }
     }
 
     private func tap() {
-        offer.tap(ads: ads, placement: placement, onRewarded: onRewarded)
+        offer.tap(ads: ads, placement: placement, onRewarded: Self.releasing(isBusy, then: onRewarded))
+    }
+
+    /// El premio suelta el `isBusy` ANTES de entregarse: `onRewarded` suele sacar
+    /// al botón del árbol, y entonces el `onChange` de la fase ya no corre.
+    static func releasing(_ isBusy: Binding<Bool>?, then onRewarded: @escaping () -> Void) -> () -> Void {
+        {
+            isBusy?.wrappedValue = false
+            onRewarded()
+        }
     }
 
     /// El botón mientras carga o corre el video: misma cápsula, ruedita y

@@ -193,8 +193,11 @@ struct UpgradesView: View {
         } else {
             // Cascada de entrada del panel (spec §11.2). Se recalcula al cambiar
             // de pestaña, que es lo correcto: son otras tarjetas entrando.
+            // La lección del pasivo y la de Mejoras señalan la PRIMERA fila con algo pagable.
+            let passiveRow = rows.first { !$0.passiveUnlocked && $0.canAffordPassive }?.id
+            let multiplierRow = rows.first { !$0.upgradeMaxed && $0.canAffordUpgrade }?.id
             ForEach(Array(rows.enumerated()), id: \.element.id) { offset, row in
-                characterRow(row)
+                characterRow(row, tutorialPassive: row.id == passiveRow, tutorialMultiplier: row.id == multiplierRow)
                     .staggeredAppearance(index: offset)
             }
         }
@@ -215,7 +218,9 @@ struct UpgradesView: View {
     /// del contenido y el fondo opaco del retrato se lo come justo en el borde
     /// izquierdo (la tarjeta se veía partida en dos, con marco sólo alrededor
     /// del texto).
-    private func characterRow(_ row: GameState.CharacterUpgradeRow) -> some View {
+    private func characterRow(
+        _ row: GameState.CharacterUpgradeRow, tutorialPassive: Bool, tutorialMultiplier: Bool
+    ) -> some View {
         let shape = RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
         return HStack(spacing: 0) {
             CharacterPortrait(
@@ -283,6 +288,7 @@ struct UpgradesView: View {
                         ) {
                             gameState.buyCharacterUpgrade(typeID: row.id)
                         }
+                        .tutorialAnchor(.upgradesRow, when: tutorialMultiplier)
                     }
                 }
 
@@ -340,6 +346,7 @@ struct UpgradesView: View {
                         ) {
                             gameState.buyPassiveFromMenu(typeId: row.id)
                         }
+                        .tutorialAnchor(.upgradesPassive, when: tutorialPassive)
                     }
                 }
             }

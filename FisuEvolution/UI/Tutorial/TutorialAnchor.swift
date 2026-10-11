@@ -47,6 +47,12 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case pickerFace
     /// Los puntos del paginador del menú: lo que señala un "deslizá".
     case menuPager
+    /// El precio del primer pasivo pagable de Mejoras.
+    case upgradesPassive
+    /// El precio del primer multiplicador pagable de Mejoras.
+    case upgradesRow
+    /// La tarjeta del Organigrama en el Menú.
+    case menuOrgChart
     /// No se ilumina: es la franja que el globo tiene que ESQUIVAR. Sin esto el
     /// globo se apoyaba encima del HUD y lo tapaba entero — y como el HUD es
     /// justamente lo que los pasos siguientes iluminan, el tutorial terminaba

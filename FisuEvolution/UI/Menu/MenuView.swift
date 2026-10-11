@@ -197,6 +197,7 @@ struct MenuView: View {
             }
         }
         .buttonStyle(.plain)
+        .tutorialAnchor(.menuOrgChart, when: destination == .orgChart)
         .accessibilityIdentifier(identifier)
         .accessibilityLabel(Text(titleKey))
         .accessibilityValue(showsBadge ? Text("badge.claimable.ax") : Text(verbatim: ""))

@@ -67,7 +67,7 @@ struct TutorialTipsTests {
         gameState.refreshProjections()
         #expect(gameState.showing == .tutorialTip)
 
-        gameState.tutorialTipHandled(opening: .upgrades)
+        gameState.finishUpgradesLessonForTest()
         #expect(gameState.showing != .tutorialTip)
         #expect(gameState.isLessonDone(.upgrades), "cumplirla la deja dada: no vuelve nunca")
 
@@ -118,14 +118,14 @@ struct TutorialTipsTests {
         #expect(gameState.showing != .tutorialTip)
     }
 
-    @Test("abrir el destino cumple la lección sin esperar el piso de skip")
+    @Test("hacer lo que señala cumple la lección sin esperar el piso de skip")
     func openingTheDestinationCompletesTheLesson() async {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
         gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson == .upgrades)
 
-        gameState.tutorialTipHandled(opening: .upgrades)
+        gameState.finishUpgradesLessonForTest()
         #expect(gameState.showing != .tutorialTip, "hacer lo que señala es la mejor salida")
         #expect(gameState.isLessonDone(.upgrades))
     }

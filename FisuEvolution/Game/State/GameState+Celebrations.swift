@@ -79,7 +79,7 @@ extension GameState {
             celebrations.enqueue(.achievements)
         }
         if boardIsVisibleForChanges, stageVisit?.phase == .entering { celebrations.enqueue(.visitorEncounter) }
-        if tutorialTip != nil { celebrations.enqueue(.tutorialTip) }
+        if let tutorialRun, runTakesAQueueTurn(tutorialRun) { celebrations.enqueue(.tutorialTip) }
         if cinematic != nil { celebrations.enqueue(.cinematic) }
         if boardIsVisibleForChanges, !pendingBoardChanges.isEmpty || typePendingReveal != nil {
             celebrations.enqueue(.boardCelebration)
@@ -140,6 +140,9 @@ extension GameState {
     /// salteable y ya pasó el piso de tiempo. Devuelve si salteó algo.
     @discardableResult
     func skipCurrentCelebration() -> Bool {
+        // El toque al tablero, salteé o no: el ritmo no hace nacer una lección
+        // en medio de una ráfaga de toques.
+        tutorialEngine.pacing.boardTouched()
         guard let showingNow = celebrations.current else { return false }
         guard celebrations.skip() else { return false }
         releasePayload(for: showingNow)
@@ -151,6 +154,7 @@ extension GameState {
     /// (regla 2 de concurrencia) y con tests que inyectan deltas en vez de
     /// esperar segundos reales.
     func advanceCelebrations(delta: TimeInterval) {
+        advanceTutorial(delta: delta)
         guard let expired = celebrations.tick(delta) else { return }
         // No es un caso normal: es el síntoma de que una animación no avisó que
         // terminó. Sin el watchdog eso congelaría TODAS las celebraciones hasta
@@ -182,12 +186,11 @@ extension GameState {
             // escena, el tap que saltea y el watchdog que destraba.
             boardCelebrationShowsSomethingNew = false
         case .tutorialTip:
-            // Estuvo en pantalla y su turno terminó —por el botón, por el tap
-            // que saltea o por el timeout—: no vuelve. La retirada SIN marcar
-            // (la condición que murió esperando turno) no pasa por acá: la
-            // maneja el director (`refreshTutorialTip`).
-            if let tip = tutorialTip { markLessonDone(tip.lesson) }
-            tutorialTip = nil
+            // Estuvo en pantalla y su turno terminó —el último paso, el watchdog,
+            // el botón y, hasta T6, el tap que saltea y el timeout—: no vuelve. La
+            // retirada SIN marcar (la condición que murió esperando turno) no pasa
+            // por acá: la maneja el director (`progressTutorialRun`).
+            releaseTutorialTurn()
         case .cinematic:
             // Fin del video, "Saltar" y watchdog cuentan igual: la pantalla ya fue suya.
             recordCinematicSeen()
@@ -204,7 +207,7 @@ extension GameState {
         }
     }
 
-    private func publishCelebration() {
+    func publishCelebration() {
         let kind = celebrations.current
         let finished = showing
         if showing != kind { showing = kind }

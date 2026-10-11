@@ -65,7 +65,7 @@ extension GameState {
         presentShareMomentIfCalm()
         refreshPrizeAccess()
         refreshSideRail()
-        refreshTutorialTip()
+        refreshTutorial()
     }
 
     private func refreshEconomyProjections(player: PlayerState) {

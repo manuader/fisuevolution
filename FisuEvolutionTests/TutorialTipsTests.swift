@@ -55,6 +55,9 @@ struct TutorialTipsTests {
         gameState.refreshProjections()
         #expect(gameState.tutorialTip == nil, "las lecciones arrancan recién cuando la fase termina")
         gameState.tutorialPhaseFinished()
+        // El cofre de bienvenida toma el turno al cerrar la fase; la lección
+        // nace con la cola libre (director v2).
+        gameState.dismissChestReward()
         gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson == .upgrades)
     }
@@ -129,29 +132,37 @@ struct TutorialTipsTests {
         #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey))
     }
 
+    /// Una lección esperando turno, armada a mano: el director v2 sólo hace nacer lecciones
+    /// con la cola libre, así que la espera sale de una cola restringida.
+    private func pendingUpgradesLesson() async -> GameState {
+        let gameState = await makeGameState()
+        gameState.tutorialLessonsAutorun = false
+        gameState.celebrations.restrict(to: [.boardCelebration])
+        gameState.debugGrantCoins()
+        gameState.startTutorialRun(.lesson("upgrades"), steps: GameState.TutorialLesson.upgrades.steps)
+        #expect(gameState.tutorialRun != nil)
+        #expect(gameState.showing != .tutorialTip, "la cola restringida la deja esperando turno")
+        return gameState
+    }
+
     @Test("la condición que muere esperando turno la retira sin quemarla")
     func aStaleTipRetiresWithoutBurningTheLesson() async {
-        let gameState = await makeGameState()
-        // La cola ocupada: la lección nace pero queda esperando turno.
-        gameState.towerNotice = GameState.TowerNotice(kind: .floorFull)
-        gameState.syncCelebrations()
-        #expect(gameState.showing == .towerNotice)
-        gameState.debugGrantCoins()
-        gameState.refreshProjections()
-        #expect(gameState.tutorialTip?.lesson == .upgrades)
-        #expect(gameState.showing == .towerNotice, "el aviso sigue en pantalla; la lección espera")
-
-        // La plata se va antes de que le toque: la lección ya no manda a nada.
+        let gameState = await pendingUpgradesLesson()
         gameState.player?.run.coins = 0
         gameState.refreshProjections()
-        #expect(gameState.tutorialTip == nil, "la regla de oro vale hasta el último frame")
+        #expect(gameState.tutorialRun == nil, "la regla de oro vale hasta el último frame")
+        #expect(!gameState.celebrations.contains(.tutorialTip), "y suelta su lugar en la fila")
         #expect(!UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey),
                 "no se quema: nunca estuvo en pantalla")
+    }
 
-        // Y cuando el momento vuelve, vuelve.
-        gameState.debugGrantCoins()
-        gameState.refreshProjections()
-        #expect(gameState.tutorialTip?.lesson == .upgrades)
+    @Test("la señal de una lección que espera turno no la cumple ni la quema")
+    func aPendingTipIsNotBurnedByItsSignal() async {
+        let gameState = await pendingUpgradesLesson()
+        gameState.tutorialTipHandled(opening: .upgrades)
+        #expect(gameState.tutorialRun != nil, "avanzar espera al turno")
+        #expect(!UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey),
+                "no se marca dada sin haberse visto")
     }
 
     @Test("el primer evento corriendo enseña su chip, y abrirlo la cumple")
@@ -367,6 +378,9 @@ struct TutorialTipsTests {
         #expect(GameState.TutorialLesson.sideRail.anchorTarget == .sideRail)
         gameState.sideRailOpened()
         #expect(gameState.showing != .tutorialTip)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip == nil, "la siguiente espera los 20 s del ritmo")
+        gameState.advanceTutorial(delta: TutorialPacing.gapBetweenLessons)
         gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson == .packages, "abierta, ahora sí el botón de los paquetes")
     }

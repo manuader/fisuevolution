@@ -13,21 +13,6 @@ enum ArtClips {
         return manifest.characters[key] == nil ? nil : .character(key)
     }
 
-    /// Un clip y, si hace falta, el tinte con el que se reproduce.
-    struct Playable: Equatable {
-        let clip: ArtClip
-        var tint: ArtTint?
-    }
-
-    /// Como `character`, pero una pinta recoloreo habilitada en `SkinTints` reusa el clip de su tipo
-    /// base con el tinte. Sin clip base, o con pinta de dibujo propio, → `nil` (queda el póster).
-    static func characterPlayable(type: String, skin: String?, in manifest: LoopsManifest) -> Playable? {
-        if let clip = character(type: type, skin: skin, in: manifest) { return Playable(clip: clip) }
-        guard let skin, let tint = SkinTints.tint(type: type, skin: skin),
-              let base = character(type: type, skin: nil, in: manifest) else { return nil }
-        return Playable(clip: base, tint: tint)
-    }
-
     /// El visitante del escenario: con globo, `.talking`; esperando sin globo, `.visitorAction`.
     static func stageVisitor(_ id: String, talking: Bool, in manifest: LoopsManifest) -> ArtClip? {
         if talking { return manifest.talking[id] == nil ? nil : .talking(id) }

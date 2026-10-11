@@ -1574,11 +1574,11 @@ final class BoardScene: SKScene {
     /// manifest no hay nada que montar y el reveal es el de siempre.
     private func mountRevealVideo(for type: CharacterType, side: CGFloat, at position: CGPoint, hold: TimeInterval) {
         releaseRevealVideo()
-        guard let playable = ArtClips.characterPlayable(
+        guard let clip = ArtClips.character(
             type: type.id, skin: gameState.activeSkinID(forCharacterType: type.id), in: loops) else { return }
         let video = LoopingVideoNode(
-            clip: playable.clip, poster: Self.clearPoster, size: CGSize(width: side, height: side),
-            role: .popup, tint: playable.tint, manifest: loops, pool: videoPool, packs: packs)
+            clip: clip, poster: Self.clearPoster, size: CGSize(width: side, height: side),
+            role: .popup, manifest: loops, pool: videoPool, packs: packs)
         video.position = position
         video.zPosition = 209
         video.name = Self.celebrationNodePrefix + "video"
@@ -1752,8 +1752,8 @@ final class BoardScene: SKScene {
     private func prefetchNextRevealPack() {
         let nextTier = (gameState.player?.run.maxTierReached ?? 0) + 1
         let tag = gameState.content?.tiers.concreteTypes.first { $0.tier == nextTier }
-            .flatMap { ArtClips.characterPlayable(type: $0.id, skin: gameState.activeSkinID(forCharacterType: $0.id), in: loops) }
-            .flatMap { loops.odrTag(for: $0.clip) }
+            .flatMap { ArtClips.character(type: $0.id, skin: gameState.activeSkinID(forCharacterType: $0.id), in: loops) }
+            .flatMap { loops.odrTag(for: $0) }
         guard tag != prefetchedCharacterTag else { return }
         if let old = prefetchedCharacterTag { packs.release(old) }
         prefetchedCharacterTag = tag

@@ -103,7 +103,7 @@ extension GameState {
             openWheel()
             return wheelSheet != nil ? .acted : .refused
         case .mattress:
-            guard mattressWaiting else { return .refused }
+            guard mattressWaiting || mattressExtraPending else { return .refused }
             mattressTapped()
             return mattressPopup != nil ? .acted : .refused
         case .packages:

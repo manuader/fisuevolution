@@ -18,9 +18,13 @@ extension GameState {
 
     var mattressExtraOpensLeft: Int { player?.meta.engagement.treasures.extraOpensLeft ?? 0 }
 
+    /// El «otro colchón» de uno ya abierto sigue guardado: sobrevive a cerrar el
+    /// popup y a matar la app, hasta que aparece un colchón nuevo.
+    var mattressExtraPending: Bool { !mattressWaiting && mattressExtraOpensLeft > 0 }
+
     /// El reloj de juego activo. Lo llama `advanceEngagement` con el delta del tick.
     func advanceTreasures(delta: TimeInterval) {
-        guard engagementAutorun, !tutorialPhaseActive, let content, var player else { return }
+        guard engagementAutorun, !tutorialPhaseActive, mattressPopup == nil, let content, var player else { return }
         let appeared = TreasureScheduler.advance(&player.meta.engagement.treasures, delta: delta, config: content.treasures)
         self.player = player
         guard appeared else { return }

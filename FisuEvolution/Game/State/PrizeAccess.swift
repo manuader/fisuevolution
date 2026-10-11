@@ -8,6 +8,8 @@ struct PrizeAccess: Equatable {
     var packagesBlocked = false
     var mattressReady = false
     var wheelSpinsReady = 0
+    /// Ya se abrió un colchón y su «otro colchón» sigue sin pedir.
+    var mattressExtraReady = false
 
     static let none = PrizeAccess()
 }
@@ -15,6 +17,8 @@ struct PrizeAccess: Equatable {
 /// El popup del colchón; `outcome` es lo que salió, cuando ya se abrió.
 struct MattressPopup: Identifiable, Equatable {
     let id = UUID()
+    /// Se abrió desde el «otro colchón» guardado (no hay uno nuevo esperando).
+    var extraOnly = false
     var outcome: MattressOutcome?
 }
 

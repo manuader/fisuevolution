@@ -93,7 +93,7 @@ enum SideRailModel {
             if input.access.wheelSpinsReady > 0 { return .ready(count: input.access.wheelSpinsReady) }
             return input.wheelSecondsUntilReset.map { .waiting(seconds: whole($0)) } ?? .idle
         case .mattress:
-            if input.access.mattressReady { return .ready(count: nil) }
+            if input.access.mattressReady || input.access.mattressExtraReady { return .ready(count: nil) }
             return input.mattressSecondsUntilNext.map { .waiting(seconds: whole($0)) } ?? .idle
         case .packages:
             if input.access.packagesBlocked { return .blocked }

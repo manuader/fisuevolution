@@ -13752,23 +13752,6 @@
         }
       }
     },
-    "tutorial.tip.gotit" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Got it!"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Dale!"
-          }
-        }
-      }
-    },
     "tutorial.tip.mattress" : {
       "extractionState" : "manual",
       "localizations" : {

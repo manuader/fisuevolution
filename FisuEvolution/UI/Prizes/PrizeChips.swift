@@ -26,6 +26,7 @@ struct PackageChip: View {
         .buttonStyle(.plain)
         .chipShake(shakes)
         .accessibilityIdentifier("prize.chip.package")
+        .tutorialAnchor(.sidePackages)
         // Dos `Text` y no un ternario adentro de uno: con el ternario, Swift elige
         // el `init` de `String` y la clave se lee cruda.
         .accessibilityLabel(blocked ? Text("prize.package.full.ax") : Text("prize.package.ax \(String(count))"))
@@ -53,6 +54,7 @@ struct MattressChip: View {
         .buttonStyle(.plain)
         .accessibilityIdentifier("prize.chip.mattress")
         .accessibilityLabel(Text("prize.mattress.ax"))
+        .tutorialAnchor(.sideMattress)
         .onAppear {
             guard !reduceMotion else { return }
             withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) { pulse = true }

@@ -19,6 +19,7 @@ extension GameState {
     /// El chip o una caja del tablero.
     @discardableResult
     func packageTapped() -> PackageOpenResult {
+        tutorialTipCompleted(.packages)
         let result = openPackage()
         refreshPrizeAccess()
         return result
@@ -27,6 +28,7 @@ extension GameState {
     /// El chip o el colchón del tablero: abre su popup.
     func mattressTapped() {
         guard mattressWaiting, mattressPopup == nil, wheelSheet == nil else { return }
+        tutorialTipCompleted(.mattress)
         mattressPopup = MattressPopup()
     }
 

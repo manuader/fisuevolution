@@ -26,6 +26,8 @@ struct MenuSessionTests {
         gameState.menuPageChanged(to: .jobs)
         #expect(provider.shown.isEmpty, "cambiar de página no es una pausa natural")
 
+        // `RootView` re-publica la tapa del tablero antes de avisar el cierre (`menuDidOpen` la prende).
+        gameState.uiCoversBoard = false
         await gameState.menuDidClose()
         #expect(provider.shown == ["interstitial"])
     }

@@ -7,6 +7,9 @@ import SwiftUI
 /// - **No ofrece lo que no tiene.** Precarga al aparecer y sondea hasta que el
 ///   video llega (`pollInterval`): mientras tanto dice "Cargando…" en vez de un
 ///   botón que no haría nada; el sondeo se corta cuando la vista se va.
+/// - **Sin red, lo dice.** Si a los 10 s el video no llegó, el "Cargando…" pasa a
+///   "Sin conexión" y un toque reintenta (`InventoryWait`): vuelve a "Cargando…"
+///   y reinicia el reloj. El sondeo sigue: si el video llega, el botón aparece.
 /// - **Responde al primer toque.** Desde ahí dice "Cargando video…" con su
 ///   ruedita, aunque el anuncio todavía no haya llegado: el proveedor espera la
 ///   carga hasta 8 s y presenta apenas está.
@@ -19,8 +22,22 @@ import SwiftUI
 ///
 /// La recompensa se entrega SÓLO si el anuncio terminó con premio
 /// (`onRewarded`). Los ids de accesibilidad: `<identifier>` (el botón),
-/// `<identifier>.loading` (esperando el video), `<identifier>.watching` (cargando
-/// o en pantalla) y `<identifier>.unavailable` (el aviso).
+/// `<identifier>.loading` (esperando el video), `<identifier>.offline` (pasaron
+/// 10 s sin video; tappable), `<identifier>.watching` (cargando o en pantalla) y
+/// `<identifier>.unavailable` (el aviso).
+/// El reloj de la espera del video: a los `timeout` sin que llegue, el botón
+/// pasa de "Cargando…" a "Sin conexión". Valor puro: el instante de "ahora" lo
+/// pone el llamador, así la transición se prueba sin esperar.
+struct InventoryWait: Equatable {
+    static let timeout: Duration = .seconds(10)
+
+    let startedAt: ContinuousClock.Instant
+
+    func isOffline(at now: ContinuousClock.Instant) -> Bool {
+        now - startedAt >= Self.timeout
+    }
+}
+
 struct RewardedOfferButton: View {
     let title: String
     let identifier: String
@@ -38,6 +55,8 @@ struct RewardedOfferButton: View {
     @State private var offer = RewardedOffer()
     /// Hay un video listo para mostrar. Lo decide el sondeo, no el toque.
     @State private var inventoryReady = false
+    /// Pasaron `InventoryWait.timeout` sin video: el badge dice "Sin conexión".
+    @State private var offline = false
     /// Cambia después de cada video: rearranca la espera del próximo.
     @State private var generation = 0
 
@@ -46,7 +65,7 @@ struct RewardedOfferButton: View {
             if offer.phase == .busy {
                 busyPill
             } else if !inventoryReady && offer.phase != .unavailable {
-                loadingBadge
+                if offline { offlineBadge } else { loadingBadge }
             } else {
                 ActionPill(
                     verbatim: title, systemImage: systemImage, tint: tint, identifier: identifier,
@@ -74,6 +93,7 @@ struct RewardedOfferButton: View {
             if old == .busy {
                 // El video se gastó: el próximo hay que esperarlo de nuevo.
                 inventoryReady = false
+                offline = false
                 generation += 1
             }
         }
@@ -89,12 +109,15 @@ struct RewardedOfferButton: View {
     /// la vista se va, así que no quedan esperas colgadas.
     private func waitForInventory() async {
         ads.preloadRewarded(for: placement)
+        let wait = InventoryWait(startedAt: .now)
         var attempt = 0
         while !Task.isCancelled {
             if ads.isRewardedReady(for: placement) {
                 inventoryReady = true
+                offline = false
                 return
             }
+            if wait.isOffline(at: .now) { offline = true }
             try? await Task.sleep(for: Self.pollInterval(attempt: attempt))
             attempt += 1
         }
@@ -118,6 +141,21 @@ struct RewardedOfferButton: View {
         StateBadge(text: String(localized: "ads.preparing"), systemImage: "hourglass", textAlignment: .center, muted: true)
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("\(identifier).loading")
+    }
+
+    /// Pasaron 10 s sin video: un toque reintenta (vuelve a "Cargando…" y
+    /// reinicia el reloj).
+    private var offlineBadge: some View {
+        Button(action: retry) {
+            StateBadge(text: String(localized: "ads.offline"), systemImage: "wifi.slash", textAlignment: .center, muted: true)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("\(identifier).offline")
+    }
+
+    private func retry() {
+        offline = false
+        generation += 1
     }
 
     /// El botón mientras carga o corre el video: misma cápsula, ruedita y

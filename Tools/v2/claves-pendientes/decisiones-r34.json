@@ -1,0 +1,4 @@
+{
+  "ads.offline": {"es": "Sin conexión · tocá para reintentar", "en": "No connection · tap to retry"},
+  "oroShop.item.extra_slots.desc": {"es": "+%@ lugares en cada piso. Los pisos llenos dejan de estar «en marcha» hasta que los completes.", "en": "+%@ spots on every floor. Full floors stop counting as \"running\" until you fill them."}
+}

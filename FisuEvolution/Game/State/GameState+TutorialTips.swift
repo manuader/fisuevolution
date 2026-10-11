@@ -53,6 +53,20 @@ extension GameState {
         case share
         /// El primer especial conseguido: vive en el Álbum de la Oficina central.
         case album
+        /// Un Paquete de la Aduana esperando (E5).
+        case packages
+        /// El Colchón esperando (E5).
+        case mattress
+        /// La Ruleta, después de la lección de Regalos (E5).
+        case wheel
+
+        /// Las que señalan algo del tablero: nunca salen con el tablero ocupado.
+        var needsCalmBoard: Bool {
+            switch self {
+            case .packages, .mattress, .wheel: true
+            default: false
+            }
+        }
 
         /// La bandera persistida de "esta lección ya se dio". Versionable por
         /// prefijo, y `--uitest-reset` las barre (`+Debug`).
@@ -74,6 +88,9 @@ extension GameState {
             case .prestige: .prestige
             case .share: .share
             case .album: .menu
+            case .packages: .sidePackages
+            case .mattress: .sideMattress
+            case .wheel: .gifts
             }
         }
 
@@ -85,9 +102,9 @@ extension GameState {
             case .upgrades, .oroUpgrades: .upgrades
             case .skins: .skins
             case .achievements, .album: .menu
-            case .gifts: .gifts
+            case .gifts, .wheel: .gifts
             case .store: .store
-            case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .prestige, .share: nil
+            case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .prestige, .share, .packages, .mattress: nil
             }
         }
 
@@ -108,6 +125,9 @@ extension GameState {
             case .prestige: "tutorial.tip.prestige"
             case .share: "tutorial.tip.share"
             case .album: "tutorial.tip.album"
+            case .packages: "tutorial.tip.packages"
+            case .mattress: "tutorial.tip.mattress"
+            case .wheel: "tutorial.tip.wheel"
             }
         }
     }
@@ -155,7 +175,7 @@ extension GameState {
         // Con una hoja abierta no nace nada: el coach señala controles que
         // están DEBAJO de la hoja. Al cerrarse, el próximo refresh la agarra.
         guard !uiCoversBoard, characterSheet == nil, shareCardMoment == nil else { return }
-        guard let lesson = TutorialLesson.allCases.first(where: { !isLessonDone($0) && isEligible($0) })
+        guard let lesson = TutorialLesson.allCases.first(where: { !isLessonDone($0) && isEligible($0) && (!$0.needsCalmBoard || isCalmMoment) })
         else { return }
         tutorialTip = TutorialTip(lesson: lesson)
         syncCelebrations()
@@ -209,6 +229,15 @@ extension GameState {
             // Una partida vieja con especiales la ve una vez: es justo el aviso
             // de que se mudaron del piso al Álbum.
             !(player?.meta.ownedSpecials.isEmpty ?? true)
+        case .packages:
+            // Uno que se puede abrir: con todo lleno la lección mandaría a
+            // tocar algo que tiembla y no hace nada.
+            prizeAccess.packagesWaiting > 0 && !prizeAccess.packagesBlocked
+        case .mattress:
+            prizeAccess.mattressReady
+        case .wheel:
+            // Después de Regalos: es la lección de esa pestaña la que la presenta.
+            prizeAccess.wheelSpinsReady > 0 && isLessonDone(.gifts)
         }
     }
 

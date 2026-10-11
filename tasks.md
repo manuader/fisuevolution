@@ -272,7 +272,7 @@ BASE de todas: `version-2` tras promover `v2i/integ-r34` (código `40804c31`; el
 
 | # | Tarea | Modelo | Dueña de / nota |
 |---|---|---|---|
-| 0 | **Spike del tinte de pintas** (sin fila: `cartonero__oro` recoloreada con tinte en vivo sobre el clip del tipo base) | sonnet | 🔄 relevo 35 (`v2i-spike-tinte`) · Decisión del dueño del 34 (§7): las pintas recoloreo (oro/diamante) reusan el clip del tipo base con un tinte; **una sola primero, para que el dueño la mire.** Dueña de `CharacterPortrait` y `AnimatedArtView` (confirmar contra el árbol, trampa del 34). El lookup por `tipo__skin` ya existe (E8e T8). **No se animan las 260 con Higgsfield:** las de dibujo propio quedan estáticas (ficha con pulso suave; en el tablero, la animación normal del personaje). Entrega capturas/clip para el dueño; no generaliza hasta su OK |
+| 0 | **Spike del tinte de pintas** (sin fila: `cartonero__oro` recoloreada con tinte en vivo sobre el clip del tipo base) | sonnet | ❌ **relevo 35: hecho (`cb9c264b`) y RECHAZADO por el dueño** (eligió el PNG real; revertido en `integ-r35`, §7) · Decisión del dueño del 34 (§7): las pintas recoloreo (oro/diamante) reusan el clip del tipo base con un tinte; **una sola primero, para que el dueño la mire.** Dueña de `CharacterPortrait` y `AnimatedArtView` (confirmar contra el árbol, trampa del 34). El lookup por `tipo__skin` ya existe (E8e T8). **No se animan las 260 con Higgsfield:** las de dibujo propio quedan estáticas (ficha con pulso suave; en el tablero, la animación normal del personaje). Entrega capturas/clip para el dueño; no generaliza hasta su OK |
 | 1 | **E6b T8** (exclusivas de ORO entre skins de la v1) | sonnet | ⏳ **Destrabada por el dueño en el chat del 34:** las pintas de la v1 que pasan a exclusivas de ORO ya no se ganan jugando; quien ya las tiene las **conserva**. Fila de §5 de E6b T8; plata y save: revisión opus. ∥ con el spike si los dueños de archivo no se pisan |
 | 2 | **La lista de 137 palabras en la migración/seed de E12** | — | ✅ **Ya estaba (relevo 35 lo verificó):** `supabase/migrations/20261009000001_blocklist.sql` carga los 137 términos de `supabase/blocklist/propuesta.txt` (cabecera «ACTIVA»); se despliega con E12 T16. Nada que despachar |
 | 3 | **E9b T2** (los 13 huecos de `knownGaps` de la regla de cobertura) | sonnet | ⏳ E9a T9 ✅ y E9b T1 ✅. Cada hueco que se cierra sale de `knownGaps` (la regla de cobertura da 3 rojos si se saca uno sin lección). Dueña del director/currículo y del catálogo (snapshot) |
@@ -1021,6 +1021,14 @@ Las cinco nuevas de E7b-b (relevo 6), con su default:
 - La columna nunca se abre sola por un "!" nuevo: sólo al tocarla o por una lección.
 - La columna es de metal (`MetalPlate`), no de madera.
 
+
+**2026-10-11 — del chat del relevo 35 (el dueño):**
+- **El tinte de pintas NO va:** vio las tres variantes sobre `cartonero__oro` y eligió el PNG real de la pinta. Las pintas sin clip propio (recoloreo y dibujo propio) quedan con su PNG estático; el spike (`cb9c264b`) se revirtió en `integ-r35` (queda en la rama `v2i/spike-tinte` como traza). No se reabre.
+- **Videos de las pintas: no existen.** Lo «animado» eran los personajes base. Se cierra el pendiente; una pinta que tenga clip después entra sola por `tipo__skin` (E8e T8).
+- **Eventos de 0 s (aguinaldo, blanqueo, `startup_comprada`):** se les da duración para que se vea su ilustración: **25 s** (el dueño mencionó 20 s «de anuncio» como alternativa; se toma 25 s). El efecto sigue siendo el mismo; sólo dura en pantalla.
+- **El sonido de llegada (`visitorArrive`) suena también con el presentador de evento:** queda así (era un carry de E8e T2).
+- **«Todas las pintas» a 1350 ORO:** queda.
+- **El «otro colchón» se guarda:** matar la app con el popup del colchón abierto ya no lo pierde (va al save).
 
 **2026-10-11 — del chat del relevo 34 (el dueño: «hacé todo lo recomendado»):**
 - **E6b T8 destrabada:** las pintas de la v1 que pasan a exclusivas de ORO ya no se ganan jugando; quien ya las tiene las conserva.

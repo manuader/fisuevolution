@@ -36,12 +36,11 @@ enum ArtClips {
         "merge_all": "ui_oro_merge_all",
         "better_supplier": "ui_oro_better_supplier",
         "wheel_spins": "ui_oro_extra_spins",
+        "extra_slots": "ui_oro_extra_slots",
     ]
 
     /// Clips de la tienda que todavía no tienen ítem, con la tarea que lo estrena.
-    static let pendingShopIcons: [String: String] = [
-        "ui_oro_extra_slots": "E6b T7",
-    ]
+    static let pendingShopIcons: [String: String] = [:]
 
     static func shopIcon(item: String, in manifest: LoopsManifest) -> ArtClip? {
         guard let key = shopIconKeys[item], manifest.shopIcons[key] != nil else { return nil }

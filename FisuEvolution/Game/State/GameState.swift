@@ -406,6 +406,20 @@ final class GameState {
         self.injectedRepository = repository
     }
 
+    /// Los lugares extra del permanente de ORO (E6) agrandan TODOS los pisos en un
+    /// solo lugar: la tabla que leen la torre, el reconciliador, los pisos en
+    /// marcha y la escena. Corre antes de reconstruir la torre (`reconcileTower`:
+    /// la carga, el arranque, los fixtures y reencarnar); al comprar, la torre en
+    /// pantalla se agranda en el lugar (`growTowerToTheExtraSlots`) sin reconstruirse.
+    func applyExtraSlots() {
+        guard var content, let player else { return }
+        let extra = OroShop.extraSlots(levels: player.meta.engagement.shop.levels, catalog: content.oroShop)
+        let table = content.baseFloorTable.expanded(by: extra)
+        guard table != content.floorTable else { return }
+        content.floorTable = table
+        self.content = content
+    }
+
     func publishCameraFloor(_ value: Double) {
         let clamped = max(0, value)
         if abs(cameraFloor - clamped) > 0.01 { cameraFloor = clamped }

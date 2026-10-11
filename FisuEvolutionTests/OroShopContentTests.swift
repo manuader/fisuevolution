@@ -20,7 +20,7 @@ struct OroShopContentTests {
         "time_jump_1h": [90], "time_jump_4h": [320], "offline_x3": [120], "daily_x3": [40],
         "skip_cooldowns": [25], "merge_all": [20],
         "better_supplier": [150, 400, 1000], "wheel_spins": [120, 300, 750],
-        "skin_chest": [45],
+        "extra_slots": [600, 1500], "skin_chest": [45],
     ]
 
     static let approvedDailyLimits: [String: Int] = [
@@ -60,6 +60,8 @@ struct OroShopContentTests {
         #expect(try item("better_supplier").levels.map(\.value) == [1, 2, 3])
         #expect(try item("wheel_spins").perk == .wheelDailySpins)
         #expect(try item("wheel_spins").levels.map(\.value) == [1, 2, 3])
+        #expect(try item("extra_slots").perk == .extraSlots)
+        #expect(try item("extra_slots").levels.map(\.value) == [3, 2])
     }
 
     @Test("cada nivel de 'mejor proveedor' tiene su r en packages.json, el 1,8 / 1,6 / 1,4 aprobado")

@@ -1,0 +1,4 @@
+{
+  "oroShop.item.extra_slots.name": {"es": "Ampliación", "en": "Expansion"},
+  "oroShop.item.extra_slots.desc": {"es": "+%@ lugares en cada piso", "en": "+%@ spots on every floor"}
+}

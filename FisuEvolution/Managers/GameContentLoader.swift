@@ -5,8 +5,12 @@ import Foundation
 struct GameContent: Sendable {
     var economy: EconomyConfig
     let tiers: TierRepository
-    /// La Torre (F7): mapeo tier→piso validado, derivado de `economy.floors`.
-    let floorTable: FloorTable
+    /// La Torre (F7): mapeo tier→piso validado, derivado de `economy.floors`, CON
+    /// los lugares extra del permanente de ORO aplicados (`GameState.applyExtraSlots`).
+    /// Es lo que leen la torre, el reconciliador, el mapa y la escena.
+    var floorTable: FloorTable
+    /// La misma tabla tal como la declara `economy.json`, sin lugares extra.
+    let baseFloorTable: FloorTable
     let manifest: AssetsManifest
     let flags: FeatureFlags
     let prestigeUnlocks: PrestigeUnlocks
@@ -145,6 +149,7 @@ enum GameContentLoader {
             economy: economy,
             tiers: tiers,
             floorTable: floorTable,
+            baseFloorTable: floorTable,
             manifest: manifest,
             flags: flags,
             prestigeUnlocks: prestigeUnlocks,
@@ -284,6 +289,9 @@ enum GameContentLoader {
             if item.levels.contains(where: { !$0.value.isFinite }) {
                 throw OroShopContentError.notFinite(item.id)
             }
+            if item.perk == .extraSlots, item.levels.contains(where: { $0.value < 1 || $0.value != $0.value.rounded() }) {
+                throw OroShopContentError.extraSlotsNotWholeNumber(item.id)
+            }
             if item.perk == .bestSupplier, item.levels.contains(where: { $0.value >= Double(packages.tierRatioByBestSupplierLevel.count) }) {
                 throw OroShopContentError.supplierLevelUnknown(item.id)
             }
@@ -293,6 +301,7 @@ enum GameContentLoader {
     enum OroShopContentError: Error, Equatable {
         case notFinite(String)
         case supplierLevelUnknown(String)
+        case extraSlotsNotWholeNumber(String)
     }
 
     /// Un premio mal declarado se descubre al arrancar, no cuando el jugador lo

@@ -232,6 +232,29 @@ struct LegalDocumentTests {
         }
     }
 
+    /// La política dice lo que la 2.0 hace: las dos redes de mediación que
+    /// viajan (Unity y Meta), con el link de cada una, el servidor del ranking
+    /// y la revisión de Anthropic; y ninguna red que quedó afuera.
+    @Test("la política nombra a las redes de mediación y al ranking, en las dos lenguas")
+    func privacyNamesTheNetworksAndTheRanking() throws {
+        let blocks = try #require(LegalDocument.load(.privacy))
+        for (lengua, half) in [("es", LegalDocument.half(of: blocks, forLanguage: "es")),
+                               ("en", LegalDocument.half(of: blocks, forLanguage: "en"))] {
+            let texto = half.map { block -> String in
+                switch block {
+                case .title(let t), .heading(let t), .bullet(let t), .paragraph(let t): return t
+                }
+            }.joined(separator: "\n")
+            for debe in ["Google AdMob", "Unity Ads", "Meta Audience Network", "Supabase", "Anthropic",
+                         "https://unity.com/legal/privacy-policy", "https://www.facebook.com/privacy/policy/"] {
+                #expect(texto.contains(debe), "la mitad \(lengua) no nombra \"\(debe)\"")
+            }
+            for noDebe in ["AppLovin", "Mintegral"] {
+                #expect(!texto.contains(noDebe), "la mitad \(lengua) nombra a \"\(noDebe)\", una red que no viaja")
+            }
+        }
+    }
+
     // MARK: El corte por idioma
 
     /// ⚠️ El defecto: la pantalla mostraba el documento ENTERO, con el español

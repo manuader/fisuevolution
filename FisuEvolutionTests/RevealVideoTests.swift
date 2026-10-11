@@ -69,8 +69,14 @@ struct RevealVideoTests {
     func skinWithoutClipRevealsStill() async throws {
         let pool = VideoPlayerPool(policy: .allowAll)
         let (scene, gameState) = try await sceneWithChain(characters: nil, pool: pool, activeSkin: "pijama")
-        for _ in 0..<20 { scene.scrollSettled(); scene.debugCompleteBoardChangeStep() }
-        #expect(scene.debugRevealVideo == nil && pool.liveCount == 0)
+        var sawReveal = false
+        for _ in 0..<20 {
+            scene.scrollSettled()
+            sawReveal = sawReveal || scene.debugPlayingChain != nil
+            #expect(scene.debugRevealVideo == nil && pool.liveCount == 0)
+            scene.debugCompleteBoardChangeStep()
+        }
+        #expect(sawReveal, "el test tiene que pasar por una cadena de reveal de verdad")
         withExtendedLifetime(gameState) {}
     }
 

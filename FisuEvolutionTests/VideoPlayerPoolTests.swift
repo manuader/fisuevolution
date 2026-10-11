@@ -113,17 +113,16 @@ struct VideoPlayerPoolTests {
         #expect(pool.policy.contains(.thermal))
     }
 
-    @Test("el arranque: póster bajo XCTest o --uitest, video con --uitest-video")
+    @Test("el arranque: póster sólo en el host de unit tests o bajo --uitest sin --uitest-video")
     func launchPolicyBranches() {
         typealias Policy = VideoPlaybackPolicy
-        #expect(Policy.launch(arguments: [], environment: [:], xctestLoaded: false) == .allowAll)
-        #expect(Policy.launch(arguments: [], environment: [:], xctestLoaded: true).contains(.forcedStill))
-        #expect(Policy.launch(arguments: [], environment: ["XCTestConfigurationFilePath": "x"],
-                              xctestLoaded: false).contains(.forcedStill))
-        #expect(Policy.launch(arguments: ["--uitest-board"], environment: [:],
-                              xctestLoaded: false).contains(.forcedStill))
-        #expect(Policy.launch(arguments: ["--uitest-board", "--uitest-video"], environment: [:],
-                              xctestLoaded: false) == .allowAll)
+        #expect(Policy.launch(arguments: [], environment: [:]) == .allowAll)
+        #expect(Policy.launch(arguments: [], environment: ["XCTestConfigurationFilePath": "x"])
+            .contains(.forcedStill))
+        #expect(Policy.launch(arguments: ["--uitest"], environment: [:]).contains(.forcedStill))
+        #expect(Policy.launch(arguments: ["--uitest-board"], environment: [:]).contains(.forcedStill))
+        #expect(Policy.launch(arguments: ["--uitest", "--uitest-video"], environment: [:]) == .allowAll)
+        #expect(Policy.launch(arguments: ["--uitest-board", "--uitest-video"], environment: [:]) == .allowAll)
     }
 
     @Test("dos reservas: sólo el popup; cuatro: nadie")

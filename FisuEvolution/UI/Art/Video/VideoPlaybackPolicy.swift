@@ -28,19 +28,19 @@ struct VideoPlaybackPolicy: Equatable, Sendable {
         reasons.isDisjoint(with: [.reduceMotion, .videoAutoplayOff, .background, .forcedStill])
     }
 
-    /// La del arranque: `forcedStill` bajo XCTest y bajo `--uitest*` sin `--uitest-video`.
+    /// La del arranque: `forcedStill` en el host de unit tests y bajo `--uitest*` sin `--uitest-video`.
+    /// El host se reconoce por `XCTestConfigurationFilePath`, no por tener `XCTestCase` cargada: un
+    /// build Debug lanzado a mano la carga igual (`StoreKitTest` arrastra XCTest) y quedaría en póster.
     static var launch: VideoPlaybackPolicy {
         let info = ProcessInfo.processInfo
-        return launch(arguments: info.arguments, environment: info.environment,
-                      xctestLoaded: NSClassFromString("XCTestCase") != nil)
+        return launch(arguments: info.arguments, environment: info.environment)
     }
 
-    static func launch(arguments: [String], environment: [String: String],
-                       xctestLoaded: Bool) -> VideoPlaybackPolicy {
-        let underXCTest = xctestLoaded || environment["XCTestConfigurationFilePath"] != nil
+    static func launch(arguments: [String], environment: [String: String]) -> VideoPlaybackPolicy {
+        let unitTestHost = environment["XCTestConfigurationFilePath"] != nil
         let underUITest = arguments.contains { $0.hasPrefix("--uitest") }
             && !arguments.contains("--uitest-video")
-        return underXCTest || underUITest ? allowAll.with(.forcedStill) : allowAll
+        return unitTestHost || underUITest ? allowAll.with(.forcedStill) : allowAll
     }
 }
 

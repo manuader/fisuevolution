@@ -37,6 +37,25 @@ struct ResetPlanTests {
         #expect(plan.result.meta.oro == kept, "lo que se muestra es lo que se ejecuta")
     }
 
+    @Test("avisa del ×3 pagado y sin usar, sea el offline, el diario o los dos",
+          arguments: [(3.0 as Double?, nil as Double?), (nil, 3.0), (3.0, 3.0)])
+    func pendingTripleIsReported(offline: Double?, daily: Double?) {
+        var state = current(balance: 0, purchased: [:])
+        state.meta.engagement.shop.pendingOfflineMultiplier = offline
+        state.meta.engagement.shop.pendingDailyMultiplier = daily
+        let plan = ResetPlan.make(current: state, fresh: fxState())
+        #expect(plan.summary.losesPendingTriple)
+        #expect(plan.result.meta.engagement.shop.pendingOfflineMultiplier == nil, "la partida nueva no lo hereda")
+        #expect(plan.result.meta.engagement.shop.pendingDailyMultiplier == nil)
+    }
+
+    @Test("sin ningún ×3 pendiente no hay aviso, y lo demás del resumen sí se calcula")
+    func noPendingTripleNoWarning() {
+        let plan = ResetPlan.make(current: current(balance: 0, purchased: [:]), fresh: fxState())
+        #expect(!plan.summary.losesPendingTriple)
+        #expect(plan.summary.prestigeLevel == 3)
+    }
+
     @Test("una compra reembolsada no se conserva")
     func refundedDoesNotCount() {
         let plan = ResetPlan.make(

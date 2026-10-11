@@ -221,3 +221,27 @@ struct RewardedBusyTests {
         #expect(busy == false, "Keep it! y la X quedaban muertos")
     }
 }
+
+/// El reloj del botón de video: a los 10 s sin anuncio dice "Sin conexión", y
+/// reintentar es arrancar otro reloj.
+@Suite("El botón de video: sin red a los 10 s")
+struct InventoryWaitTests {
+    private let t0 = ContinuousClock.Instant.now
+
+    @Test("antes de los 10 s sigue cargando; a los 10 s pasa a sin conexión")
+    func offlineAfterTimeout() {
+        let wait = InventoryWait(startedAt: t0)
+        #expect(!wait.isOffline(at: t0))
+        #expect(!wait.isOffline(at: t0 + .milliseconds(9_999)))
+        #expect(wait.isOffline(at: t0 + .seconds(10)))
+        #expect(wait.isOffline(at: t0 + .seconds(60)))
+    }
+
+    @Test("reintentar reinicia el reloj: otra espera, otros 10 s")
+    func retryRestartsTheClock() {
+        let retry = InventoryWait(startedAt: t0 + .seconds(12))
+        #expect(!retry.isOffline(at: t0 + .seconds(12)))
+        #expect(!retry.isOffline(at: t0 + .seconds(21)))
+        #expect(retry.isOffline(at: t0 + .seconds(22)))
+    }
+}

@@ -137,7 +137,7 @@ struct ResetGameFlowView: View {
                     row("reset.summary.units \(String(summary.unitsOnBoard))")
                     row("reset.summary.achievements \(String(summary.achievements))")
                     row("reset.summary.skins \(String(summary.skinsLost))")
-                    row("reset.summary.triple")
+                    if summary.losesPendingTriple { row("reset.summary.triple") }
                     RowDivider()
                     Text("reset.summary.kept").font(Tokens.body.weight(.heavy))
                     if summary.keepsRemoveAds { row("reset.summary.no_ads") }

@@ -28,6 +28,9 @@ public struct ActiveModifier: Codable, Sendable, Equatable, Identifiable {
         /// Contratar es gratis mientras dura (el Programador). No cuenta para la
         /// curva: la compra cuesta 0 y la app pasa `countsAsPurchase: false`.
         case freeHire
+        /// Marca de un evento instantáneo (Aguinaldo, Blanqueo, Startup): no toca
+        /// ningún número, sólo lo mantiene en pantalla —chip, popup— mientras dura.
+        case eventPresence
     }
 
     public let id: UUID

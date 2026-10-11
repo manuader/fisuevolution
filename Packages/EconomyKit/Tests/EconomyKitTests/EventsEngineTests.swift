@@ -285,6 +285,28 @@ struct EventPlannerTests {
         #expect(application.boardIntent == nil)
     }
 
+    @Test("un instantáneo con duración se queda en pantalla sin mover ningún número")
+    func instantEventStaysOnScreenWithoutChangingNumbers() throws {
+        let event = fxEvent("aguinaldo_25", .positive, duration: 25, effects: [.coinsSeconds(300)])
+        let application = EventPlanner.apply(event, state: fxState(), tiers: tiers, now: 100)
+        #expect(application.coinsSeconds == 300)
+        let marker = try #require(application.modifiers.first)
+        #expect(application.modifiers.count == 1)
+        #expect(marker.effect == .eventPresence && marker.sourceKey == "event.aguinaldo_25" && marker.expiresAt == 125)
+        for effect in ActiveModifier.Effect.allCases {
+            #expect(ModifierMath.factor(application.modifiers, effect: effect, now: 110) == 1, "\(effect)")
+        }
+        let catalog = fxEventCatalog(events: [event])
+        #expect(EventPlanner.running(application.modifiers, catalog: catalog, now: 110).map(\.id) == ["aguinaldo_25"])
+        #expect(EventPlanner.running(application.modifiers, catalog: catalog, now: 125).isEmpty)
+    }
+
+    @Test("un instantáneo de 0 s sigue sin dejar nada corriendo")
+    func zeroSecondInstantLeavesNothing() throws {
+        let event = fxEvent("rapido", .positive, duration: 0, effects: [.coinsSeconds(300)])
+        #expect(EventPlanner.apply(event, state: fxState(), tiers: tiers, now: 0).modifiers.isEmpty)
+    }
+
     @Test("el regalo pide una llegada un tier abajo de la frontera, y paga sus segundos")
     func grantUnitAndCoins() throws {
         var state = fxState()

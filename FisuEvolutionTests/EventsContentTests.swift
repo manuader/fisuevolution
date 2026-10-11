@@ -85,6 +85,13 @@ struct EventsContentTests {
         #expect(try event("blanqueo").cooldownSeconds >= 5400)
     }
 
+    @Test("los instantáneos duran 25 s en pantalla")
+    func instantEventsLastTwentyFiveSeconds() throws {
+        for id in ["aguinaldo", "blanqueo", "startup_comprada"] {
+            #expect(try event(id).durationSeconds == 25, "\(id)")
+        }
+    }
+
     @Test("los efectos de §2: paro sobre el pasivo, corralito sobre el gasto, lluvia y piquete sobre los paquetes")
     func theNewEffects() throws {
         #expect(try event("paro_general").effects == [.modifier(effect: .passiveMultiplier, magnitude: 0)])

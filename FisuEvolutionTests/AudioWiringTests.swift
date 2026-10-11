@@ -23,7 +23,7 @@ import Testing
         "error", "rare", "prestige", "daily",
         "chestShakeA", "chestShakeB", "revealWhoosh",
         "mergeAllDone", "wheelTick",
-        "visitorArrive", "talkBlip",
+        "visitorArrive", "talkBlip", "shopShimmer",
     ]
 
     /// Los efectos sintetizados que todavía no tienen call site, con la tarea
@@ -31,7 +31,6 @@ import Testing
     private static let pendingWiring: [String: String] = [
         "packageRattle": "E5b T3", "packageTapeRip": "E5b T3", "packageBurst": "E5b T3",
         "mattressSqueak": "E5b T2", "mattressRip": "E5b T2", "cashBurst": "E5b T2",
-        "shopShimmer": "E6a T8",
     ]
 
     /// Los acentos de evento suenan por `AudioManager.accent(forEvent:)`, cuyo

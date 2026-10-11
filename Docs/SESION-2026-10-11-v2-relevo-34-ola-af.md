@@ -12,7 +12,7 @@ Controlador opus; implementadores sonnet en worktrees manuales (`worktrees.nosyn
 | Progreso | 246 al llegar → **250 de 283 (88,3 %)** en `version-2` (E9a T7, T8, T9 y E9b T9) (el `grep` de `tasks.md` §2, con `[a-f]?`); **E9b T1 y las decisiones chicas están 🟢 en `v2i/integ-r34` y entran a `version-2` con el `completo` de `40804c31`** (entonces, 251) |
 | `completo` de `97811c64` | ROJO sólo unit por 1 (`MenuSessionTests.interstitialOnlyOnClose`, ver Trampas); el resto VERDE: EK 865 · unit 1686 · UI 149 + 4 salteados (`CustomizationUITests` verde: flake resuelto) · store 18+2 · iPad 4 · SE 2 · Release 0 · pipeline 97 · pacing Dios 31,34 h · 13 reenc. |
 | `rapido` de `cb71f4a9` | VERDE (EK 865 · unit 1687 · Release 0) |
-| `completo` de `40804c31` | **pendiente: lo completa el controlador** (`build/relevo34-completo2.log`) |
+| `completo` de `40804c31` | **VERDE (EK 867 · unit 1707 · UI 152 + 4 salteados · store 18+2 · iPad 4 · SE 2 · Release 0 · pipeline 97 · pacing Dios 31,34 h · 13 reenc.)** (`build/relevo34-completo2.log`) |
 | En vuelo al cierre | ninguno |
 
 ## Lo que se integró

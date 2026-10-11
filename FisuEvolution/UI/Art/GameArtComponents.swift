@@ -147,6 +147,8 @@ struct GameCard<Content: View>: View {
         case normal
         case highlighted(Color)
         case locked
+        /// La zona de peligro: borde y teñido rosas, como la firma de lo destructivo.
+        case danger
     }
 
     var style: Style = .normal
@@ -164,8 +166,11 @@ struct GameCard<Content: View>: View {
     }
 
     private var accent: Color? {
-        if case .highlighted(let color) = style { return color }
-        return nil
+        switch style {
+        case .highlighted(let color): return color
+        case .danger: return Color("PalettePink")
+        case .normal, .locked: return nil
+        }
     }
 
     var body: some View {
@@ -211,9 +216,11 @@ struct GameCard<Content: View>: View {
 /// el cambio es invisible.
 struct SectionHeader: View {
     private let label: Text
+    private let tint: Color
 
-    init(_ titleKey: LocalizedStringKey) {
+    init(_ titleKey: LocalizedStringKey, tint: Color = Color("PaletteOrange")) {
         label = Text(titleKey)
+        self.tint = tint
     }
 
     /// Cinta con un texto **ya resuelto**. La necesita todo título que lleve
@@ -221,8 +228,9 @@ struct SectionHeader: View {
     /// arma con `String(localized: "clave \(nombre)")` en el estado, y volver a
     /// envolverla en un `LocalizedStringKey` la convertiría en una clave que el
     /// catálogo no tiene (trampa 5 del HANDOFF).
-    init(verbatim text: String) {
+    init(verbatim text: String, tint: Color = Color("PaletteOrange")) {
         label = Text(verbatim: text)
+        self.tint = tint
     }
 
     var body: some View {
@@ -238,7 +246,7 @@ struct SectionHeader: View {
         }
         .padding(.horizontal, Tokens.s16)
         .padding(.vertical, Tokens.s8)
-        .background { RibbonBackground() }
+        .background { RibbonBackground(tint: tint) }
         // Aire para que las colas —que sobresalen de la banda— no queden
         // recortadas por el borde del scroll.
         .padding(.horizontal, 20)
@@ -264,6 +272,8 @@ private struct Sparkle: View {
 private struct RibbonBackground: View {
     private static let tailWidth: CGFloat = 30
 
+    let tint: Color
+
     var body: some View {
         ZStack {
             tails
@@ -278,12 +288,12 @@ private struct RibbonBackground: View {
         return shape
             .fill(
                 LinearGradient(
-                    colors: [Color("PaletteOrange").lifted(0.14), Color("PaletteOrange")],
+                    colors: [tint.lifted(0.14), tint],
                     startPoint: .top,
                     endPoint: .bottom
                 )
             )
-            .overlay(shape.strokeBorder(Color("PaletteOrange").deepened(0.3), lineWidth: 2.5))
+            .overlay(shape.strokeBorder(tint.deepened(0.3), lineWidth: 2.5))
             // Los pliegues: el dobladillo oscuro que asoma bajo cada esquina,
             // donde la cola pasa por detrás de la banda.
             .overlay(alignment: .bottomLeading) { fold }
@@ -292,7 +302,7 @@ private struct RibbonBackground: View {
 
     private var fold: some View {
         FoldTriangleShape()
-            .fill(Color("PaletteOrange").deepened(0.55))
+            .fill(tint.deepened(0.55))
             .frame(width: 10, height: 7)
             .offset(y: 6)
     }
@@ -311,8 +321,8 @@ private struct RibbonBackground: View {
     /// escondida detrás de la banda, así que sólo se ve la V del extremo.
     private var tail: some View {
         RibbonShape()
-            .fill(Color("PaletteOrange").deepened(0.18))
-            .overlay(RibbonShape().strokeBorder(Color("PaletteOrange").deepened(0.45), lineWidth: 2))
+            .fill(tint.deepened(0.18))
+            .overlay(RibbonShape().strokeBorder(tint.deepened(0.45), lineWidth: 2))
             .frame(width: Self.tailWidth + 14, height: 30)
     }
 }

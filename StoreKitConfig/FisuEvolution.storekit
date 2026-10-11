@@ -8,12 +8,12 @@
       "internalID": "F15CE001-0000-4000-8000-0000000000B0",
       "localizations": [
         {
-          "description": "Un fajo de plata, la skin Mundialista y chau anuncios",
+          "description": "Plata, la Mundialista y sin anuncios forzados",
           "displayName": "Pack de Arranque",
           "locale": "es"
         },
         {
-          "description": "A wad of cash, the Mundialista skin and no more ads",
+          "description": "Cash, the Mundialista skin and no forced ads",
           "displayName": "Starter Pack",
           "locale": "en"
         }
@@ -28,12 +28,12 @@
       "internalID": "F15CE001-0000-4000-8000-0000000000A1",
       "localizations": [
         {
-          "description": "Sacá los anuncios para siempre",
+          "description": "Chau a los anuncios que aparecen solos",
           "displayName": "Sin anuncios",
           "locale": "es"
         },
         {
-          "description": "Remove ads forever",
+          "description": "No more ads that pop up on their own",
           "displayName": "Remove Ads",
           "locale": "en"
         }
@@ -108,12 +108,12 @@
       "internalID": "F15CE001-0000-4000-8000-0000000000D1",
       "localizations": [
         {
-          "description": "Para esa mejora que venís mirando hace rato",
+          "description": "Para un boost o esa mejora que venís mirando",
           "displayName": "Puñado de ORO",
           "locale": "es"
         },
         {
-          "description": "For that upgrade you keep staring at",
+          "description": "For a boost or that upgrade you keep eyeing",
           "displayName": "Handful of ORO",
           "locale": "en"
         }
@@ -128,13 +128,13 @@
       "internalID": "F15CE001-0000-4000-8000-0000000000D2",
       "localizations": [
         {
-          "description": "Alcanza para varias, y todavía te sobra",
-          "displayName": "Cofre de ORO",
+          "description": "Boosts, mejoras y skins, y todavía te sobra",
+          "displayName": "Saco de ORO",
           "locale": "es"
         },
         {
-          "description": "Enough for several, with change left over",
-          "displayName": "Chest of ORO",
+          "description": "Boosts, upgrades and skins, with change left",
+          "displayName": "Sack of ORO",
           "locale": "en"
         }
       ],
@@ -168,12 +168,12 @@
       "internalID": "F15CE001-0000-4000-8000-0000000000A5",
       "localizations": [
         {
-          "description": "El Fisura con la camiseta y la copa que no ganó él",
+          "description": "La camiseta y una copa que no ganó él",
           "displayName": "Skin Mundialista",
           "locale": "es"
         },
         {
-          "description": "The Fisura in the jersey, holding a cup he didn't win",
+          "description": "The jersey, and a cup he didn't win",
           "displayName": "Mundialista Skin",
           "locale": "en"
         }
@@ -210,7 +210,7 @@
         {
           "locale": "es",
           "displayName": "Todas las skins de Diamante",
-          "description": "Los 43 personajes tallados en diamante, de una"
+          "description": "Los 43 personajes tallados en diamante"
         },
         {
           "locale": "en",

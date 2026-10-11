@@ -46,12 +46,12 @@ extension GameState {
     func markTabOpened(_ screen: GameScreen) {
         var stored = storedNewTabs
         guard stored.remove(screen) != nil else { return }
-        UserDefaults.standard.set(stored.map(\.rawValue).sorted(), forKey: Self.newTabsKey)
+        flagDefaults.set(stored.map(\.rawValue).sorted(), forKey: Self.newTabsKey)
         newTabs.remove(screen)
     }
 
     func tabSignals(player: PlayerState) -> TabUnlockSignals {
-        let defaults = UserDefaults.standard
+        let defaults = flagDefaults
         return TabUnlockSignals(
             tutorialCoreDone: TutorialFlags.coreCompleted(in: defaults),
             ownsAnySkin: !player.meta.allOwnedSkins.isEmpty,
@@ -63,12 +63,12 @@ extension GameState {
     }
 
     private var storedNewTabs: Set<GameScreen> {
-        Set((UserDefaults.standard.stringArray(forKey: Self.newTabsKey) ?? []).compactMap(GameScreen.init(rawValue:)))
+        Set((flagDefaults.stringArray(forKey: Self.newTabsKey) ?? []).compactMap(GameScreen.init(rawValue:)))
     }
 
     private func rememberNew(_ screens: Set<GameScreen>) {
         guard !screens.isEmpty else { return }
         let all = storedNewTabs.union(screens)
-        UserDefaults.standard.set(all.map(\.rawValue).sorted(), forKey: Self.newTabsKey)
+        flagDefaults.set(all.map(\.rawValue).sorted(), forKey: Self.newTabsKey)
     }
 }

@@ -325,9 +325,9 @@ struct CelebrationQueueTests {
 
     /// Se puede saltear exactamente lo que se cierra solo. Lo que espera al
     /// jugador tiene su propio botón, así que ni se saltea ni se vence.
-    @Test("salteable y con tope son la misma lista")
+    @Test("salteable y con tope son la misma lista, salvo la cinemática y las lecciones")
     func skippableMatchesSelfClosing() {
-        for kind in CelebrationKind.allCases where kind != .cinematic {
+        for kind in CelebrationKind.allCases where kind != .cinematic && kind != .tutorialTip {
             #expect(
                 kind.isSkippable == (kind.timeout != nil),
                 "\(kind.rawValue) rompe la invariante: se cierra solo pero no se saltea, o al revés"
@@ -335,16 +335,35 @@ struct CelebrationQueueTests {
         }
     }
 
-    /// La tabla explícita: E9 T6 cambia `.tutorialTip` a propósito, y este test es el que avisa.
+    /// La tabla explícita: E9 T6 sacó `.tutorialTip` a propósito (el tutorial no se saltea).
     @Test("quién se saltea con un tap, kind por kind")
     func skippablePartitionIsPinned() {
         let skippable: Set<CelebrationKind> = [
-            .boardCelebration, .visitorEncounter, .achievements, .towerNotice, .tutorialTip
+            .boardCelebration, .visitorEncounter, .achievements, .towerNotice
         ]
         for kind in CelebrationKind.allCases {
             #expect(kind.isSkippable == skippable.contains(kind), "\(kind.rawValue)")
         }
         #expect(!CelebrationKind.offer.isSkippable, "una venta no se salta sola")
+    }
+
+    /// PLAN-v2 E9: el tutorial no se saltea. Una lección no se va sola —la cierra su último
+    /// paso o el watchdog de 3 min del director— y un toque al tablero no la corta.
+    @Test("las lecciones no se saltean ni se vencen")
+    func lessonsAreNeitherSkippableNorTimed() {
+        #expect(CelebrationKind.tutorialTip.timeout == nil)
+        #expect(!CelebrationKind.tutorialTip.isSkippable)
+    }
+
+    @Test("un toque no saltea una lección, por más que haya pasado el piso")
+    func aTapDoesNotSkipALesson() {
+        var queue = CelebrationQueue()
+        queue.enqueue(.tutorialTip)
+        let expired = queue.tick(600)
+        #expect(expired == nil, "ni el watchdog de la cola la suelta")
+        let skipped = queue.skip()
+        #expect(!skipped)
+        #expect(queue.current == .tutorialTip)
     }
 
     @Test("la cinemática se cierra sola pero un tap no la saltea: tiene su propio Saltar")

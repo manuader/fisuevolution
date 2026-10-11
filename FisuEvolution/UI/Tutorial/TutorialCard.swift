@@ -164,7 +164,9 @@ struct TutorialConfirmButton: View {
         return Button {
             if unlocked { action() } else { shakes += 1 }
         } label: {
-            TimelineView(.periodic(from: .now, by: reduceMotion ? 0.5 : 1.0 / 30)) { _ in
+            // Con el candado abierto el relleno ya está lleno: el reloj se pausa y no
+            // redibuja a 30 Hz mientras el jugador lee.
+            TimelineView(.animation(minimumInterval: reduceMotion ? 0.5 : 1.0 / 30, paused: unlocked)) { _ in
                 let fill = unlocked ? 1 : min(max(progress(), 0), 1)
                 Text(titleKey)
                     .font(.system(.headline, design: .rounded).weight(.heavy))

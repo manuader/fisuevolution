@@ -330,8 +330,9 @@ final class TutorialUITests: XCTestCase {
     }
 
     /// La lección de Mejoras: nace sólo cuando hay una mejora PAGABLE (la regla
-    /// de oro del gating), señala el tab sin congelar nada, y hacer lo que
-    /// señala la cumple y la retira para siempre.
+    /// de oro del gating), señala el tab con el scrim de las lecciones —tocar el
+    /// tablero no la saltea—, y hacer lo que señala la cumple y la retira para
+    /// siempre.
     @MainActor
     func testLaLeccionDeMejorasSenalaYSeCumpleAlAbrir() throws {
         let app = XCUIApplication()
@@ -346,10 +347,17 @@ final class TutorialUITests: XCTestCase {
                       "con plata para pagar una mejora, la lección tiene que nacer")
         XCTAssertEqual(tip.value as? String, "upgrades",
                        "la primera lección con plata es la de Mejoras")
-        XCTAssertTrue(app.buttons["tutorial.tip.dismiss"].exists, "el globo trae su botón")
+        XCTAssertEqual(app.descendants(matching: .any)["tutorial.step"].value as? String, "upgrades.legacy",
+                       "la lección la dibuja el renderer único, con su paso")
+        XCTAssertFalse(app.buttons["tutorial.confirm"].exists,
+                       "un paso de acción no tiene botón: avanza haciéndolo")
 
-        // El coach no congela el juego: el tab señalado se puede tocar, y
-        // tocarlo CUMPLE la lección.
+        // No se saltea: tocar el tablero no la cierra (PLAN-v2 §2).
+        for _ in 0..<3 { app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap() }
+        XCTAssertTrue(tip.exists, "tocar el tablero no saltea la lección")
+
+        // El recorte deja pasar el toque al tab señalado, y tocarlo CUMPLE la
+        // lección.
         app.buttons["hud.upgrades"].tap()
         XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 6),
                       "la lección no puede interceptar la apertura de la hoja")

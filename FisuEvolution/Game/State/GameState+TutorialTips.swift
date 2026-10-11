@@ -185,7 +185,7 @@ extension GameState {
     /// sobrevivirían a cualquier partida nueva — la misma trampa que el
     /// tutorial y los ajustes.
     func wipeTutorialLessonProgress() {
-        let defaults = UserDefaults.standard
+        let defaults = flagDefaults
         for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(TutorialFlags.lessonPrefix) {
             defaults.removeObject(forKey: key)
         }
@@ -234,7 +234,7 @@ extension GameState {
             // nueva y persistido en el save.
             (player?.meta.daily.cycleDay ?? 1) > 1
         case .store:
-            UserDefaults.standard.integer(forKey: Self.sessionsAfterPhaseKey) >= 2
+            flagDefaults.integer(forKey: Self.sessionsAfterPhaseKey) >= 2
         case .prestige:
             prestigeAvailable
         case .share:
@@ -259,13 +259,13 @@ extension GameState {
     }
 
     func isLessonDone(_ lesson: TutorialLesson) -> Bool {
-        TutorialFlags.isLessonDone(lesson.rawValue)
+        TutorialFlags.isLessonDone(lesson.rawValue, in: flagDefaults)
     }
 
     /// Una lección que estuvo en pantalla no vuelve, la hayan hecho o ignorado:
     /// la marca la salida del turno (`releaseTutorialTurn`).
     func markLessonDone(_ lesson: TutorialLesson) {
-        TutorialFlags.markLessonDone(lesson.rawValue)
+        TutorialFlags.markLessonDone(lesson.rawValue, in: flagDefaults)
     }
 
     // MARK: Salidas
@@ -314,7 +314,8 @@ extension GameState {
     /// save y ninguna versión: queda con el núcleo hecho y el Tour pendiente (E9b).
     func applyTutorialMigration(hasSave: Bool) {
         guard let plan = TutorialFlags.migrate(hasSave: hasSave,
-                                               veteranKnownLessons: TutorialLesson.veteranKnownLessons)
+                                               veteranKnownLessons: TutorialLesson.veteranKnownLessons,
+                                               in: flagDefaults)
         else { return }
         Log.lifecycle.info("tutorial migrado: núcleo \(plan.coreCompleted), tour \(plan.tourPending)")
     }

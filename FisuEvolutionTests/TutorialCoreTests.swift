@@ -7,8 +7,9 @@ import Testing
 /// director: no se saltea, el cierre espera su candado de 5 s, y al cerrarlo la cola se libera
 /// y cae el cofre de bienvenida.
 ///
-/// ⚠️ Las banderas viven en los defaults del host: los milestones se barren antes de crear el
-/// `GameState` (se leen en el `init`) y las del núcleo se guardan y se restauran.
+/// ⚠️ Los milestones `ftue.*` viven en los defaults del host y se leen en el `init`: se barren
+/// antes de crear el `GameState`. Las del núcleo van al dominio propio de cada test
+/// (`UserDefaults.isolatedForTest()`): cerrarlo acá no le deja nada al host.
 @Suite("El núcleo del tutorial en el director", .serialized)
 @MainActor
 struct TutorialCoreTests {
@@ -16,23 +17,13 @@ struct TutorialCoreTests {
                             TutorialFlags.tourPendingKey, TutorialFlags.legacyCompletedKey,
                             TutorialFlags.sessionsAfterCoreKey]
 
-    private func withSavedFlags(_ body: () async throws -> Void) async rethrows {
-        let defaults = UserDefaults.standard
-        let keys = flagKeys + GameState.TutorialLesson.allCases.map(\.defaultsKey)
-        let saved = keys.map { defaults.object(forKey: $0) }
-        defer {
-            for (key, value) in zip(keys, saved) { defaults.set(value, forKey: key) }
-        }
-        for key in keys { defaults.removeObject(forKey: key) }
-        try await body()
-    }
-
     private func makeGameState() async -> GameState {
         for key in TutorialFlags.milestoneKeys { UserDefaults.standard.set(false, forKey: key) }
         let gameState = GameState(repository: PlayerStateRepository(
             persistence: PersistenceController(inMemory: true),
             snapshotURL: FileManager.default.temporaryDirectory.appending(path: "core-\(UUID().uuidString).json")
         ))
+        gameState.flagDefaults = .isolatedForTest()
         await gameState.bootstrap()
         return gameState
     }
@@ -94,65 +85,59 @@ struct TutorialCoreTests {
 
     @Test("el cierre espera 5 s, entrega el cofre una vez y termina la fase")
     func theFinishStep() async {
-        await withSavedFlags {
-            let gameState = await gameStateAtTheFinish()
-            #expect(gameState.tutorialRun?.step?.id == "core.finish")
-            gameState.confirmTutorialStep()
-            #expect(gameState.tutorialPhaseActive, "con el candado puesto, «¡Vamos!» no hace nada")
-            gameState.advanceTutorial(delta: 4.9)
-            gameState.confirmTutorialStep()
-            #expect(gameState.tutorialPhaseActive, "a los 4,9 s tampoco")
-            #expect(gameState.tutorialRun?.unlocked == false)
-            gameState.advanceTutorial(delta: 0.1)
-            #expect(gameState.tutorialRun?.unlocked == true, "a los 5 s el candado se abre")
-            gameState.confirmTutorialStep()
-            #expect(!gameState.tutorialPhaseActive)
-            #expect(gameState.tutorialRun == nil)
-            #expect(gameState.tutorialBoardTarget == nil)
-            #expect(TutorialFlags.coreCompleted())
-            #expect(gameState.player?.meta.welcomeChestGiven == true)
-        }
+        let gameState = await gameStateAtTheFinish()
+        #expect(gameState.tutorialRun?.step?.id == "core.finish")
+        gameState.confirmTutorialStep()
+        #expect(gameState.tutorialPhaseActive, "con el candado puesto, «¡Vamos!» no hace nada")
+        gameState.advanceTutorial(delta: 4.9)
+        gameState.confirmTutorialStep()
+        #expect(gameState.tutorialPhaseActive, "a los 4,9 s tampoco")
+        #expect(gameState.tutorialRun?.unlocked == false)
+        gameState.advanceTutorial(delta: 0.1)
+        #expect(gameState.tutorialRun?.unlocked == true, "a los 5 s el candado se abre")
+        gameState.confirmTutorialStep()
+        #expect(!gameState.tutorialPhaseActive)
+        #expect(gameState.tutorialRun == nil)
+        #expect(gameState.tutorialBoardTarget == nil)
+        #expect(TutorialFlags.coreCompleted(in: gameState.flagDefaults))
+        #expect(gameState.player?.meta.welcomeChestGiven == true)
     }
 
     @Test("el candado del cierre no corre con una celebración en pantalla (el reveal del merge)")
     func theLockWaitsForTheReveal() async {
-        await withSavedFlags {
-            let gameState = await gameStateAtTheFinish()
-            gameState.celebrateBoard(showsSomethingNew: true)
-            #expect(gameState.showing == .boardCelebration)
-            gameState.advanceTutorial(delta: 5)
-            #expect(gameState.tutorialRun?.unlocked == false, "el cierre todavía no se ve")
-            gameState.celebrationFinished(.boardCelebration)
-            gameState.advanceTutorial(delta: 5)
-            #expect(gameState.tutorialRun?.unlocked == true)
-        }
+        let gameState = await gameStateAtTheFinish()
+        gameState.celebrateBoard(showsSomethingNew: true)
+        #expect(gameState.showing == .boardCelebration)
+        gameState.advanceTutorial(delta: 5)
+        #expect(gameState.tutorialRun?.unlocked == false, "el cierre todavía no se ve")
+        gameState.celebrationFinished(.boardCelebration)
+        gameState.advanceTutorial(delta: 5)
+        #expect(gameState.tutorialRun?.unlocked == true)
     }
 
     @Test("al cerrar el núcleo la cola se libera: lo que esperó desfila")
     func theCoreReleasesTheQueue() async {
-        await withSavedFlags {
-            let gameState = await gameStateAtTheFinish()
-            gameState.towerNotice = GameState.TowerNotice(kind: .floorFull)
-            gameState.syncCelebrations()
-            #expect(gameState.showing == nil, "con el núcleo vivo, el aviso espera (y el núcleo no ocupa turno)")
-            gameState.advanceTutorial(delta: 5)
-            gameState.confirmTutorialStep()
-            #expect(gameState.showing != nil, "la cola quedó libre al cerrar")
-            // Lo que esperaba (el aviso y el cofre de bienvenida) desfila de a uno, sin trabarse.
-            var seen: Set<CelebrationKind> = []
-            var turns = 0
-            while let current = gameState.showing, turns < 6 {
-                turns += 1
-                seen.insert(current)
-                switch current {
-                case .chestOpening: gameState.dismissChestReward()
-                default: gameState.celebrationFinished(current)
-                }
+        let gameState = await gameStateAtTheFinish()
+        gameState.towerNotice = GameState.TowerNotice(kind: .floorFull)
+        gameState.syncCelebrations()
+        #expect(gameState.showing == nil, "con el núcleo vivo, el aviso espera (y el núcleo no ocupa turno)")
+        gameState.advanceTutorial(delta: 5)
+        gameState.confirmTutorialStep()
+        #expect(gameState.showing != nil, "la cola quedó libre al cerrar")
+        // Lo que esperaba (el aviso y el cofre de bienvenida) desfila de a uno, sin trabarse.
+        var seen: Set<CelebrationKind> = []
+        var turns = 0
+        while let current = gameState.showing, turns < 6 {
+            turns += 1
+            seen.insert(current)
+            switch current {
+            case .chestOpening: gameState.dismissChestReward()
+            default: gameState.celebrationFinished(current)
             }
-            #expect(seen.contains(.towerNotice))
-            #expect(seen.contains(.chestOpening))
-            #expect(gameState.showing == nil)
         }
+        #expect(seen.contains(.towerNotice))
+        #expect(seen.contains(.chestOpening))
+        #expect(gameState.showing == nil)
     }
 
     @Test("ninguna otra corrida pisa al núcleo vivo (la cola quedaría restringida para siempre)")
@@ -187,18 +172,18 @@ struct TutorialCoreTests {
     func veteransSkipTheCore() async {
         // El bootstrap ya corrió su migración (partida en memoria = instalación nueva): las
         // banderas se barren DESPUÉS, para que la del test sea la primera.
-        await withSavedFlags {
+        do {
             let veteran = await makeGameState()
-            for key in flagKeys { UserDefaults.standard.removeObject(forKey: key) }
-            UserDefaults.standard.set(true, forKey: TutorialFlags.legacyCompletedKey)
+            for key in flagKeys { veteran.flagDefaults.removeObject(forKey: key) }
+            veteran.flagDefaults.set(true, forKey: TutorialFlags.legacyCompletedKey)
             veteran.applyTutorialMigration(hasSave: true)
             veteran.startTutorialCoreIfPending()
             #expect(!veteran.tutorialPhaseActive)
             #expect(veteran.tutorialRun?.script != .core)
         }
-        await withSavedFlags {
+        do {
             let fresh = await makeGameState()
-            for key in flagKeys { UserDefaults.standard.removeObject(forKey: key) }
+            for key in flagKeys { fresh.flagDefaults.removeObject(forKey: key) }
             fresh.applyTutorialMigration(hasSave: false)
             fresh.startTutorialCoreIfPending()
             #expect(fresh.tutorialPhaseActive)

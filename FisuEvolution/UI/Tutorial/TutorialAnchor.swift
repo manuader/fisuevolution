@@ -13,7 +13,7 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case coins
     // Los destinos de las lecciones contextuales: los cuatro tabs restantes y
     // los dos botones flotantes de la franja de abajo. La fase obligatoria no
-    // los usa; los señala el coach-mark (`TutorialTipView`).
+    // los usa; los señalan las lecciones (`TutorialOverlay`).
     case skins
     case gifts
     case store

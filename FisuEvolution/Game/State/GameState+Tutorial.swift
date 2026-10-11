@@ -76,12 +76,6 @@ extension GameState {
         tutorialSignal(.screenOpened(screen))
     }
 
-    /// El botón del globo de la v1 (`TutorialTipView`, hasta T6): termina la lección.
-    func dismissTutorialTip() {
-        guard showing == .tutorialTip else { return }
-        celebrationFinished(.tutorialTip)
-    }
-
     // MARK: Lo que la UI lee
 
     /// El paso tiene a la vista la superficie donde se dibuja: sólo ahí corre su reloj.
@@ -151,11 +145,30 @@ extension GameState {
     private func startNextLessonIfDue() {
         guard tutorialLessonsAutorun, !tutorialPhaseActive, showing == nil,
               tutorialEngine.pacing.mayStartLesson,
-              !uiCoversBoard, characterSheet == nil, shareCardMoment == nil,
-              let lesson = nextLesson()
+              !uiCoversBoard, characterSheet == nil, shareCardMoment == nil
         else { return }
+        #if DEBUG
+        if let probe = probeLessonScript() {
+            startTutorialRun(.lesson(Self.probeExplainLesson), steps: probe)
+            return
+        }
+        #endif
+        guard let lesson = nextLesson() else { return }
         startTutorialRun(.lesson(lesson.rawValue), steps: lesson.steps)
     }
+
+    #if DEBUG
+    /// Una lección SÓLO de DEBUG para `TutorialLockUITests`: un paso de explicar y nada más,
+    /// para medir el candado real sin armar el momento de ninguna lección. No está en el
+    /// currículo ni en la cobertura; la pide `--uitest-lesson=probe_explain`.
+    static let probeExplainLesson = "probe_explain"
+
+    private func probeLessonScript() -> [TutorialStep]? {
+        guard tutorialEngine.forcedLesson == Self.probeExplainLesson,
+              !TutorialFlags.isLessonDone(Self.probeExplainLesson, in: flagDefaults) else { return nil }
+        return [.explain("probe_explain.one", text: "tutorial.confirm")]
+    }
+    #endif
 
     /// La forzada (`--uitest-lesson`) saltea la señal de gating y `needsCalmBoard`: es para
     /// fixtures que quieren la lección sin armar su momento.
@@ -176,17 +189,17 @@ extension GameState {
             progressCore(probe: probe)
             return
         }
+        let onScreen = showing == .tutorialTip
         // La regla de oro hasta el último frame: una lección que todavía no tomó el turno y
         // cuya condición murió se retira SIN marcarse, y vuelve cuando su momento vuelva.
-        if let id = run.lessonID, let lesson = TutorialLesson(rawValue: id),
-           showing != .tutorialTip, run.index == 0, !isEligible(lesson) {
+        if !onScreen, lessonMomentDied(run) {
             tutorialRun = nil
             celebrations.finish(.tutorialTip)
             return
         }
         // Sin el turno de la cola no avanza: los eventos quedan anotados y cuentan cuando
         // le toque. Avanzar acá terminaría la lección (y la marcaría dada) sin haberse visto.
-        if runTakesAQueueTurn(run), showing != .tutorialTip { return }
+        if runTakesAQueueTurn(run), !onScreen { return }
         if !uiCoversBoard, run.rewindToBoard(probe: probe) {
             tutorialRun = run
             resetTutorialClock()
@@ -194,7 +207,25 @@ extension GameState {
         }
         if run.isStepSatisfied(probe: probe) {
             advanceTutorialStep()
+            return
         }
+        // Ya en pantalla y su momento murió (el visitante se fue, la plata se gastó): ya no
+        // se puede cumplir y, sin timeout ni salto, trabaría la cola hasta el watchdog de
+        // 3 min con el scrim puesto. Se retira MARCADA —estuvo en pantalla—, por la misma
+        // salida del turno que el último paso.
+        if lessonMomentDied(run) {
+            Log.lifecycle.info("tutorial: lección retirada en pantalla, su momento murió: \(run.lessonID ?? "", privacy: .public)")
+            celebrationFinished(.tutorialTip)
+        }
+    }
+
+    /// La señal de gating de la lección se apagó antes de que el jugador avanzara un paso.
+    /// Pasado el primero ya está adentro de la lección: la termina su guion (o el watchdog).
+    /// La forzada (`--uitest-lesson`) no mira la señal al nacer y tampoco acá.
+    private func lessonMomentDied(_ run: TutorialRun) -> Bool {
+        guard run.index == 0, let id = run.lessonID, id != tutorialEngine.forcedLesson,
+              let lesson = TutorialLesson(rawValue: id) else { return false }
+        return !isEligible(lesson)
     }
 
     /// El núcleo avanza en bucle mientras el paso esté cumplido: sus señales son los
@@ -228,7 +259,7 @@ extension GameState {
             tutorialRun = nil
             finishTutorialCore()
         case .lesson where isInlineRun(run):
-            if let id = run.lessonID { TutorialFlags.markLessonDone(id) }
+            if let id = run.lessonID { TutorialFlags.markLessonDone(id, in: flagDefaults) }
             tutorialRun = nil
             tutorialEngine.pacing.lessonEnded()
         case .lesson, .tour, .replay:
@@ -237,13 +268,13 @@ extension GameState {
     }
 
     /// Lo que suelta el turno de `.tutorialTip` (`releasePayload`): el último paso, el
-    /// watchdog, el botón del globo y —hasta T6— el timeout y el toque que saltea. La lección
-    /// queda dada y el ritmo empieza a contar. El Tour y el repaso no marcan lecciones acá:
-    /// lo hacen al terminar (E9b).
+    /// watchdog del paso y el momento que murió en pantalla. Ya no hay timeout ni toque que
+    /// saltee (PLAN-v2 §2). La lección queda dada y el ritmo empieza a contar. El Tour y el
+    /// repaso no marcan lecciones acá: lo hacen al terminar (E9b).
     func releaseTutorialTurn() {
         // El núcleo y las tarjetas embebidas no tienen turno en la cola: no se sueltan acá.
         guard let run = tutorialRun, runTakesAQueueTurn(run) else { return }
-        if let id = run.lessonID { TutorialFlags.markLessonDone(id) }
+        if let id = run.lessonID { TutorialFlags.markLessonDone(id, in: flagDefaults) }
         tutorialRun = nil
         tutorialEngine.pacing.lessonEnded()
     }

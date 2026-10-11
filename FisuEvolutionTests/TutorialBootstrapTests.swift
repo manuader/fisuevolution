@@ -69,11 +69,52 @@ struct TutorialBootstrapTests {
         }
     }
 
-    @Test("lo nuevo de la 2.0 no se da por visto: se le enseña al veterano la primera vez")
-    func newMechanicsAreNotKnown() {
-        let known = GameState.TutorialLesson.veteranKnownLessons
-        for lesson in GameState.TutorialLesson.allCases where lesson.introducedIn == .v2 {
-            #expect(!known.contains(lesson.rawValue), "\(lesson)")
+    private func makeRepository() -> PlayerStateRepository {
+        PlayerStateRepository(
+            persistence: PersistenceController(inMemory: true),
+            snapshotURL: FileManager.default.temporaryDirectory.appending(path: "boot-\(UUID().uuidString).json")
+        )
+    }
+
+    @Test("bootstrap con save previo y la bandera de la v1: veterano")
+    func bootstrapVeteran() async {
+        await withSavedDefaults {
+            let repository = makeRepository()
+            var existing = PlayerState.newGame(
+                startTypeId: "homeless", startFloorId: "alley", offlineEfficiencyBase: 0.5,
+                critChanceBase: 0, now: 1_700_000_000
+            )
+            existing.meta.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
+            await repository.save(existing)
+            UserDefaults.standard.set(true, forKey: TutorialFlags.legacyCompletedKey)
+
+            await GameState(repository: repository).bootstrap()
+
+            #expect(TutorialFlags.coreCompleted())
+            #expect(TutorialFlags.tourPending())
         }
+    }
+
+    @Test("bootstrap sin save aunque quede la bandera de la v1: instalación nueva, no veterano")
+    func bootstrapFreshInstall() async {
+        await withSavedDefaults {
+            UserDefaults.standard.set(true, forKey: TutorialFlags.legacyCompletedKey)
+
+            await GameState(repository: makeRepository()).bootstrap()
+
+            #expect(!TutorialFlags.coreCompleted())
+            #expect(!TutorialFlags.tourPending())
+            #expect(UserDefaults.standard.integer(forKey: TutorialFlags.versionKey) == TutorialFlags.currentVersion)
+        }
+    }
+
+    @Test("qué lecciones enseñaba la v1: el conjunto es explícito, lo nuevo no entra")
+    func veteranKnownLessonsAreExplicit() {
+        #expect(GameState.TutorialLesson.veteranKnownLessons == [
+            "upgrades", "elevator", "skins", "achievements", "oroUpgrades", "gifts", "store", "prestige"
+        ])
+        #expect(GameState.TutorialLesson.quickHire.introducedIn == .v2)
+        #expect(GameState.TutorialLesson.visitor.introducedIn == .v2)
+        #expect(GameState.TutorialLesson.upgrades.introducedIn == .v1)
     }
 }

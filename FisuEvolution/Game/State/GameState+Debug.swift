@@ -363,8 +363,8 @@ extension GameState {
         else { return }
         let types = options.compactMap { content.tiers.type(id: $0) }
         guard types.count > 1 else { return }
-        // El sheet está gateado por `fisuTutorialDone`, y `--uitest-reset` NO lo
-        // toca: sin esto el fixture abre el prompt y la vista no lo muestra, que
+        // El sheet está gateado por `tutorial.v2.completed`, y `--uitest-reset` la
+        // deja en false (`wipeGameFlags`): sin esto el fixture abre el prompt y la vista no lo muestra, que
         // es la forma más confusa de fallar. Mismo criterio que
         // `--uitest-daily-popup`, que también existe para saltear una puerta.
         TutorialFlags.setCoreCompleted(true)

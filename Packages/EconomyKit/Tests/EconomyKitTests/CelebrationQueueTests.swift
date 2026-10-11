@@ -371,6 +371,18 @@ struct CelebrationQueueTests {
         #expect(queue.current == .boardCelebration)
     }
 
+    @Test("contains mira lo que está en pantalla y lo que espera")
+    func containsSeesCurrentAndPending() {
+        var queue = CelebrationQueue()
+        #expect(!queue.contains(.offer))
+        queue.enqueue(.towerNotice)
+        queue.enqueue(.offer)
+        #expect(queue.contains(.towerNotice) && queue.contains(.offer))
+        queue.finish(.towerNotice)
+        queue.finish(.offer)
+        #expect(!queue.contains(.offer))
+    }
+
     @Test("una oferta es una hoja del jugador: va al final y nunca se cierra sola")
     func offerIsALastPlacePlayerClosedSheet() {
         #expect(CelebrationKind.offer.priority == 6)

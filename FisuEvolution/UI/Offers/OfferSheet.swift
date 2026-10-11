@@ -17,13 +17,17 @@ struct OfferPresentation: Identifiable, Equatable {
 struct OfferSheets: ViewModifier {
     @Environment(GameState.self) private var gameState
     @Binding var selection: OfferPresentation?
+    /// Re-publica `uiCoversBoard`: la hoja abierta tapa el tablero.
+    let syncCover: () -> Void
 
     func body(content: Content) -> some View {
         content
             .onChange(of: gameState.showing, initial: true) {
                 guard gameState.showing == .offer, let offer = gameState.offerToPresent else { return }
+                gameState.offerPresentationStarted(offer.id)
                 selection = OfferPresentation(id: offer.id)
             }
+            .onChange(of: selection) { syncCover() }
             .fisuSheet(item: $selection, onDismiss: {
                 if gameState.showing == .offer { gameState.celebrationFinished(.offer) }
             }) { presentation in

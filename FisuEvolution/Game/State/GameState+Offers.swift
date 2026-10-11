@@ -52,7 +52,11 @@ extension GameState {
                 self.isOfferOfferable($0, chanceAllowed: chanceAllowed ?? LootBoxGate.lastKnown)
             }
         }
-        guard player.meta.engagement != before else { return }
+        guard player.meta.engagement != before else {
+            // Nada cambió, pero el tablero pudo destaparse: la oferta que esperaba su lugar lo toma.
+            if offerToPresent != nil, !celebrations.contains(.offer), isCalmMoment { syncCelebrations() }
+            return
+        }
         self.player = player
         effectsVersion += 1
         syncCelebrations()
@@ -98,13 +102,30 @@ extension GameState {
 
     var offerToPresent: ActiveOffer? { presentableOffer() }
 
-    func markOfferPresented() {
-        guard var player, let offer = offerToPresent,
-              let index = player.meta.engagement.offers.active.firstIndex(where: { $0.id == offer.id })
+    /// La oferta que muestra la hoja ya se vio: no vuelve a presentarse sola, ni
+    /// siquiera si la app se mata con la hoja arriba.
+    func markOfferPresented(id: String) {
+        guard var player,
+              let index = player.meta.engagement.offers.active.firstIndex(where: { $0.id == id }),
+              !player.meta.engagement.offers.active[index].presented
         else { return }
         player.meta.engagement.offers.active[index].presented = true
         self.player = player
         scheduleSave()
+    }
+
+    /// La hoja de esta oferta arrancó su turno de la cola: se marca vista y el
+    /// turno es suyo hasta que se cierre.
+    func offerPresentationStarted(_ id: String) {
+        presentingOfferId = id
+        markOfferPresented(id: id)
+    }
+
+    /// El turno de `.offer` sigue mientras la oferta que se muestra se pueda ver;
+    /// si todavía no se mostró ninguna, mientras haya una por presentar.
+    var offerTurnHasSomethingToShow: Bool {
+        guard let presentingOfferId else { return offerToPresent != nil }
+        return visibleOffers().contains { $0.id == presentingOfferId }
     }
 
     /// El permiso para iniciar la compra de una oferta, ANTES de llamar a StoreKit.
@@ -134,6 +155,7 @@ extension GameState {
         self.player = player
         effectsVersion += 1
         syncCelebrations()
+        scheduleSave()
     }
     #endif
 }

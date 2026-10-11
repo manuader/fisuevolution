@@ -69,8 +69,12 @@ extension GameState {
         if towerNotice != nil { celebrations.enqueue(.towerNotice) }
         // Una hoja que se quedó sin oferta (venció, se compró, cerró la puerta del
         // azar) no tiene quién la cierre: se suelta el turno acá.
-        if celebrations.current == .offer, offerToPresent == nil { celebrations.finish(.offer) }
-        if offerToPresent != nil { celebrations.enqueue(.offer) }
+        if celebrations.current == .offer, !offerTurnHasSomethingToShow {
+            presentingOfferId = nil
+            celebrations.finish(.offer)
+        }
+        // Una oferta no se apila sobre otra hoja: sólo toma el turno con el tablero a la vista.
+        if offerToPresent != nil, isCalmMoment { celebrations.enqueue(.offer) }
         if achievementToast != nil || !pendingAchievementToasts.isEmpty {
             celebrations.enqueue(.achievements)
         }
@@ -192,8 +196,8 @@ extension GameState {
             // el watchdog— pasan por acá: llega igual, una sola vez.
             settleStageArrival()
         case .offer:
-            // Se mostró su única vez: de acá en más vive en el chip.
-            markOfferPresented()
+            // Se mostró su única vez (se marcó al abrir la hoja): de acá en más vive en el chip.
+            presentingOfferId = nil
         case .offlineEarnings, .dailyReward,
              .careerChoice, .skinAward, .specialDrop, .chestOpening:
             break

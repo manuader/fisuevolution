@@ -148,6 +148,11 @@ public struct CelebrationQueue: Sendable, Equatable {
         promoteIfIdle()
     }
 
+    /// Está en pantalla o esperando su turno.
+    public func contains(_ kind: CelebrationKind) -> Bool {
+        current == kind || pending.contains(kind)
+    }
+
     /// Pone un ítem en la fila. **Deduplica**: encolar `.achievements` tres veces
     /// deja un solo casillero, que es lo que agrupa la tanda de logros sin
     /// lógica aparte.

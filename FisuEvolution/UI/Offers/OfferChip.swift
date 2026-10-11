@@ -30,6 +30,7 @@ struct OfferChip: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("hud.offer.chip")
+                .accessibilityValue(Text(verbatim: OfferCopy.countdown(until: offer.expiresAt, now: context.date)))
                 .accessibilityLabel(Text("offer.chip.ax \(IAPCopy.name(for: definition.productId, fallback: definition.id))"))
                 .tutorialAnchor(.offerChip)
             }

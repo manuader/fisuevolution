@@ -48,6 +48,7 @@ struct OffersRuntimeTests {
         #expect(gameState.offerToPresent?.id == "renacer")
         gameState.syncCelebrations()
         #expect(gameState.showing == .offer)
+        gameState.offerPresentationStarted("renacer")
         drain(gameState)
         #expect(gameState.offerToPresent == nil, "ya se presentó")
         #expect(gameState.activeOffers(now: now + 2).map(\.id) == ["renacer"], "sigue en el chip")
@@ -114,6 +115,45 @@ struct OffersRuntimeTests {
         gameState.player?.meta.engagement.offers.active.removeAll()
         gameState.syncCelebrations()
         #expect(gameState.showing == nil)
+    }
+
+    // MARK: Presentarse sin pisar nada
+
+    @Test("con el tablero tapado la oferta no toma el turno; al destaparse, sí")
+    func offerWaitsForTheBoardToBeUncovered() async throws {
+        let gameState = await running()
+        gameState.uiCoversBoard = true
+        gameState.debugOpenOffer(id: "renacer", now: now)
+        #expect(gameState.showing == nil, "otra hoja está arriba: la oferta espera")
+        gameState.advanceOffers(now: now + 1, chanceAllowed: true)
+        #expect(gameState.showing == nil)
+        gameState.uiCoversBoard = false
+        gameState.advanceOffers(now: now + 2, chanceAllowed: true)
+        #expect(gameState.showing == .offer)
+    }
+
+    @Test("la hoja que se muestra queda marcada al abrirse y conserva el turno")
+    func presentedOnShow() async throws {
+        let gameState = await running()
+        gameState.debugOpenOffer(id: "renacer", now: now)
+        gameState.offerPresentationStarted("renacer")
+        #expect(gameState.activeOffers(now: now + 1).first?.presented == true)
+        gameState.syncCelebrations()
+        #expect(gameState.showing == .offer, "el turno dura hasta que se cierra la hoja")
+    }
+
+    @Test("comprar la que se muestra y cerrar no marca vista a la otra, y ésta toma su turno")
+    func closingDoesNotMarkTheOtherOne() async throws {
+        let gameState = await running()
+        gameState.debugOpenOffer(id: "renacer", now: now)
+        gameState.debugOpenOffer(id: "mudanza", now: now)
+        gameState.offerPresentationStarted("renacer")
+        gameState.creditOffer("renacer", transactionID: "t-ab", now: now + 1)
+        gameState.celebrationFinished(.offer)
+        let mudanza = try #require(gameState.activeOffers(now: now + 2).first { $0.id == "mudanza" })
+        #expect(!mudanza.presented)
+        #expect(gameState.showing == .offer)
+        #expect(gameState.presentingOfferId == nil)
     }
 
     // MARK: Plata: un solo cobro por toque

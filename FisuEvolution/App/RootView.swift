@@ -392,7 +392,7 @@ struct GameBoardView: View {
             EventPopupView(eventId: popup.eventId)
         }
         .modifier(PrizeSheets(syncCover: { gameState.uiCoversBoard = boardIsCovered }))
-        .modifier(OfferSheets(selection: $offerSelection))
+        .modifier(OfferSheets(selection: $offerSelection, syncCover: { gameState.uiCoversBoard = boardIsCovered }))
         .sheet(item: shareCardBinding) { moment in
             ShareCardSheet(moment: moment)
         }
@@ -453,7 +453,7 @@ struct GameBoardView: View {
         menuSession != nil || showPrestige || rankingCardUp
             || gameState.shareCardMoment != nil || gameState.visitorPopup != nil
             || gameState.eventPopup != nil || gameState.mattressPopup != nil || gameState.wheelSheet != nil
-            || gameState.adBreakOffer != nil
+            || gameState.adBreakOffer != nil || offerSelection != nil
     }
 
     private var boardLayoutMarker: some View {
@@ -559,10 +559,15 @@ struct GameBoardView: View {
                     .padding(.leading, 12)
                     .playColumn()
             }
-            OfferChip { offerSelection = OfferPresentation(id: $0) }
+            if !gameState.visibleOffers().isEmpty {
+                OfferChip {
+                    gameState.markOfferPresented(id: $0)
+                    offerSelection = OfferPresentation(id: $0)
+                }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.leading, 12)
                 .playColumn()
+            }
             // Quien está en escena se toca desde acá: la cara, el nombre y su "!".
             StageChips()
                 .frame(maxWidth: .infinity, alignment: .trailing)

@@ -75,11 +75,11 @@ extension GameState {
     }
 
     /// El día de los topes y de las ofertas, siempre en calendario gregoriano (nunca `Calendar.current`).
-    static var gregorianCalendar: Calendar {
+    static let gregorianCalendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = .current
+        calendar.timeZone = .autoupdatingCurrent
         return calendar
-    }
+    }()
 
     /// Las filas de la tienda, en el orden del catálogo y ya cotizadas.
     func oroShopRows(chanceAllowed: Bool, now: Date = Date()) -> [OroShopRow] {

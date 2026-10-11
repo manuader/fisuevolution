@@ -17,6 +17,7 @@ final class OffersUITests: XCTestCase {
         XCTAssertTrue(sheet.waitForExistence(timeout: 20), "la oferta no se presentó sola")
         attach(app, named: "E6 la oferta Renacer")
         app.buttons["sheet.close"].firstMatch.tap()
+        XCTAssertFalse(sheet.waitForExistence(timeout: 2), "la hoja no se cerró")
 
         let chip = app.buttons["hud.offer.chip"]
         XCTAssertTrue(chip.waitForExistence(timeout: 10), "la oferta no quedó en el chip")

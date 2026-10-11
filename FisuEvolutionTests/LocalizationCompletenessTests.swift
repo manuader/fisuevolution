@@ -154,7 +154,7 @@ struct LocalizationCompletenessTests {
                     [IAPCopy.nameKey(for: $0.id), IAPCopy.descriptionKey(for: $0.id)]
                 }
             case .tutorialTips:
-                return GameState.TutorialLesson.allCases.map(\.textKey)
+                return GameState.TutorialLesson.allCases.compactMap(\.textKey)
             case .notifications:
                 return content.notifications.kinds.flatMap { [$0.titleKey, $0.bodyKey] }
             case .visitors:

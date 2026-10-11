@@ -27,6 +27,7 @@ extension GameState {
     /// Corre al final de `refreshProjections` (8 Hz) contra señales ya publicadas.
     func refreshTutorial() {
         guard phase == .ready else { return }
+        defer { syncLessonBoardTarget() }
         if !uiCoversBoard { tutorialEngine.openPage = nil }
         if tutorialRun != nil {
             progressTutorialRun()
@@ -241,7 +242,9 @@ extension GameState {
         // Sin el turno de la cola no avanza: los eventos quedan anotados y cuentan cuando
         // le toque. Avanzar acá terminaría la lección (y la marcaría dada) sin haberse visto.
         if runTakesAQueueTurn(run), !onScreen { return }
-        if !uiCoversBoard, run.rewindToBoard(probe: probe) {
+        // La ficha del personaje no cuenta en `uiCoversBoard` (la raíz no la ve): sin mirarla, el
+        // paso de adentro de la ficha rebobinaba apenas se abría.
+        if !uiCoversBoard, characterSheet == nil, run.rewindToBoard(probe: probe) {
             tutorialRun = run
             resetTutorialClock()
             return
@@ -286,6 +289,16 @@ extension GameState {
             resetTutorialClock()
         }
         let target = showing == nil ? tutorialRun?.step?.boardTarget : nil
+        if tutorialBoardTarget != target { tutorialBoardTarget = target }
+    }
+
+    /// El recorte del tablero de una lección (la ficha señala a un empleado). El del núcleo lo
+    /// pide `progressCore`; acá se pide el de las lecciones, y se suelta al terminar la corrida.
+    private func syncLessonBoardTarget() {
+        if tutorialRun?.script == .core { return }
+        let target = tutorialRun.flatMap { run in
+            showing == .tutorialTip && run.step?.surface == .board ? run.step?.boardTarget : nil
+        }
         if tutorialBoardTarget != target { tutorialBoardTarget = target }
     }
 

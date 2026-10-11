@@ -32,17 +32,18 @@ struct TutorialDirectorTests {
         gameState.debugGrantCoins()
         gameState.refreshProjections()
         #expect(gameState.tutorialRun?.script == .lesson("upgrades"))
-        #expect(gameState.tutorialRun?.step == GameState.TutorialLesson.upgrades.legacyStep)
+        #expect(gameState.tutorialRun?.step?.id == "upgrades.open")
         #expect(gameState.showing == .tutorialTip)
         #expect(gameState.tutorialTip?.lesson == .upgrades, "el alias que leen los tests de E4b/E5b/E7b-b")
     }
 
-    @Test("cada lección de hoy es un paso: su destino o su acción firma, con su texto y su ancla")
-    func everyLessonIsOneLegacyStep() {
+    @Test("cada lección heredada es un paso: su destino o su acción firma, con su texto y su ancla")
+    func everyLegacyLessonIsOneStep() {
         for lesson in GameState.TutorialLesson.allCases {
+            guard let textKey = lesson.textKey else { continue }
             #expect(lesson.steps == [lesson.legacyStep])
             let step = lesson.legacyStep
-            #expect(step.textKey == lesson.textKey)
+            #expect(step.textKey == textKey)
             #expect(step.target == lesson.anchorTarget)
             #expect(step.surface == .board)
             if let screen = lesson.destinationScreen {
@@ -58,7 +59,7 @@ struct TutorialDirectorTests {
         let gameState = await makeGameState()
         gameState.debugGrantCoins()
         gameState.refreshProjections()
-        gameState.tutorialTipHandled(opening: .upgrades)
+        gameState.finishUpgradesLessonForTest()
         gameState.refreshProjections()
         #expect(gameState.tutorialRun == nil)
         #expect(gameState.isLessonDone(.upgrades))
@@ -185,7 +186,7 @@ struct TutorialDirectorTests {
         #expect(gameState.tutorialRun != nil)
         #expect(!gameState.isLessonDone(.upgrades))
         // Y lo que sí la cumple, la sigue cumpliendo: el toque no la rompió.
-        gameState.tutorialTipHandled(opening: .upgrades)
+        gameState.finishUpgradesLessonForTest()
         #expect(gameState.tutorialRun == nil)
         #expect(gameState.isLessonDone(.upgrades))
     }

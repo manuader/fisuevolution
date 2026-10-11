@@ -278,6 +278,8 @@ struct GameBoardView: View {
             }
             .animation(.easeInOut(duration: 0.25), value: gameState.adBreakOffer?.id)
         }
+        // El selector del atajo va ANTES del overlay del tutorial: así su cara fijada le llega.
+        .modifier(QuickHirePickerLayer(isPresented: $showQuickHirePicker))
         // El overlay se monta acá y no dentro del `ZStack` porque necesita los
         // anchors que publican los controles de adentro: `overlayPreferenceValue`
         // los entrega ya recolectados, y el `GeometryReader` a pantalla completa
@@ -288,11 +290,6 @@ struct GameBoardView: View {
                 ZStack {
                     // El renderer único del tutorial: el núcleo y las lecciones.
                     TutorialOverlay(anchors: resolved)
-                    if showQuickHirePicker {
-                        QuickHirePicker(anchor: resolved[.quickHire]) {
-                            withAnimation(.easeOut(duration: 0.2)) { showQuickHirePicker = false }
-                        }
-                    }
                 }
             }
             .ignoresSafeArea()

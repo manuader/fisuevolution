@@ -179,3 +179,25 @@ private struct PickerTail: Shape {
         return path
     }
 }
+
+/// Monta el selector del atajo como una capa PROPIA, por debajo del overlay del tutorial.
+///
+/// ⚠️ Un `overlayPreferenceValue` no ve las preferencias del contenido de su propio cierre: con el
+/// selector adentro del overlay de la raíz, su ancla `.pickerFace` nunca llegaba al recorte del
+/// tutorial. Aplicada ANTES de ese overlay, esta capa lee el marco del atajo y le devuelve la cara.
+struct QuickHirePickerLayer: ViewModifier {
+    @Binding var isPresented: Bool
+
+    func body(content: Content) -> some View {
+        content.overlayPreferenceValue(TutorialAnchorKey.self) { anchors in
+            GeometryReader { proxy in
+                if isPresented {
+                    QuickHirePicker(anchor: anchors[.quickHire].map { proxy[$0] }) {
+                        withAnimation(.easeOut(duration: 0.2)) { isPresented = false }
+                    }
+                }
+            }
+            .ignoresSafeArea()
+        }
+    }
+}

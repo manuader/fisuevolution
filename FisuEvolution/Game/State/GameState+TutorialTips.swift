@@ -27,14 +27,29 @@ extension GameState {
         case visitor
         /// Un evento corriendo deja su chip: la primera vez se enseña a tocarlo.
         case eventChip
-        /// Hay una mejora pagable (personaje, pasivo o permanente).
+        /// Hay una mejora de personaje pagable: el multiplicador.
         case upgrades
+        /// Hay un ingreso pasivo pagable (la v1 lo tenía, sin lección).
+        case passive
         /// Se desbloqueó el segundo piso: recién ahora el mapa tiene a dónde ir.
         case elevator
         /// El tercer piso: la placa colgante (PLAN-v2 E13, ítem 13).
         case elevatorKeypad
-        /// El atajo de contratar al mejor, cuando hay algo contratable.
+        /// El atajo de contratar al mejor, cuando hay algo contratable: tocar, mantener, fijar,
+        /// soltar y el botón gris.
         case quickHire
+        /// Ya hay jerarquías: cuatro tipos vistos y el Menú abierto.
+        case orgChart
+        /// Dos pisos: también se cambia deslizando.
+        case floorSwipe
+        /// El atajo está gris por piso lleno.
+        case floorFull
+        /// Un piso con todos sus lugares ocupados (pisos en marcha, E2a).
+        case staffedFloors
+        /// Reencarnar pide llegar al tier más alto de la vida anterior (piso móvil, E2a).
+        case prestigeGate
+        /// La ficha del personaje (mantener presionado).
+        case characterSheet
         /// Ya hay una pinta para ponerse. Desde que las 41 pintas de piso salen
         /// **sólo** de cofres, la primera llega en el cofre de bienvenida, al
         /// cerrar la fase obligatoria — la vía vieja (la skin de milestone del
@@ -86,7 +101,8 @@ extension GameState {
         /// las de la v1 (`TutorialMigration`); las de la 2.0 las ve en su primera vez.
         var introducedIn: TutorialRelease {
             switch self {
-            case .upgrades, .elevator, .skins, .achievements, .oroUpgrades, .gifts, .store, .prestige: .v1
+            case .upgrades, .passive, .orgChart, .elevator, .floorSwipe, .floorFull, .skins, .achievements, .oroUpgrades,
+                 .gifts, .store, .prestige: .v1
             default: .v2
             }
         }
@@ -100,9 +116,13 @@ extension GameState {
             switch self {
             case .visitor: .visitor
             case .eventChip: .eventChip
-            case .upgrades: .upgrades
-            case .elevator, .elevatorKeypad: .map
-            case .quickHire: .quickHire
+            case .upgrades, .passive: .upgrades
+            case .orgChart, .album: .menu
+            case .elevator, .elevatorKeypad, .staffedFloors: .map
+            case .floorSwipe: .boardUnit
+            case .quickHire, .floorFull: .quickHire
+            case .prestigeGate: .prestige
+            case .characterSheet: .boardUnit
             case .skins: .skins
             case .achievements: .menu
             case .oroUpgrades: .upgrades
@@ -110,7 +130,6 @@ extension GameState {
             case .store: .store
             case .prestige: .prestige
             case .share: .share
-            case .album: .menu
             case .sideRail: .sideRail
             case .packages: .sidePackages
             case .mattress: .sideMattress
@@ -124,30 +143,29 @@ extension GameState {
         /// mapa, el atajo y el prestigio avisan desde su propia acción).
         var destinationScreen: GameScreen? {
             switch self {
-            case .upgrades, .oroUpgrades: .upgrades
+            case .upgrades, .passive, .oroUpgrades: .upgrades
             case .skins: .skins
-            case .achievements, .album: .menu
+            case .achievements, .album, .orgChart: .menu
             case .gifts: .gifts
             case .store: .store
-            case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .prestige, .share, .sideRail, .packages, .mattress, .wheel, .mergeAllVideo: nil
+            case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .floorSwipe, .floorFull, .staffedFloors,
+                 .prestige, .prestigeGate, .characterSheet, .share, .sideRail, .packages, .mattress, .wheel, .mergeAllVideo: nil
             }
         }
 
-        /// La clave del globo. Escrita entera, nunca interpolada (trampa 5).
-        var textKey: String {
+        /// La clave del globo de las lecciones que todavía son un solo paso heredado. Escrita
+        /// entera, nunca interpolada (trampa 5). `nil` en las que tienen guion propio (`script`).
+        var textKey: String? {
             switch self {
             case .visitor: "tutorial.tip.visitor"
             case .eventChip: "tutorial.tip.event_chip"
-            case .upgrades: "tutorial.tip.upgrades"
             case .elevator: "tutorial.tip.elevator"
             case .elevatorKeypad: "tutorial.tip.elevator.hold"
-            case .quickHire: "tutorial.tip.quickhire"
             case .skins: "tutorial.tip.skins"
             case .achievements: "tutorial.tip.achievements"
             case .oroUpgrades: "tutorial.tip.oro"
             case .gifts: "tutorial.tip.gifts"
             case .store: "tutorial.tip.store"
-            case .prestige: "tutorial.tip.prestige"
             case .share: "tutorial.tip.share"
             case .album: "tutorial.tip.album"
             case .sideRail: "tutorial.tip.side_rail"
@@ -155,20 +173,77 @@ extension GameState {
             case .mattress: "tutorial.tip.mattress"
             case .wheel: "tutorial.tip.wheel.rail"
             case .mergeAllVideo: "tutorial.tip.merge_all_video"
+            case .upgrades, .passive, .quickHire, .orgChart, .floorSwipe, .floorFull, .staffedFloors,
+                 .prestigeGate, .prestige, .characterSheet: nil
             }
         }
 
-        /// El guion de la lección (PLAN-v2 E9). E9b los reescribe uno por uno;
-        /// hasta entonces, uno solo: el destino de siempre, con el texto de siempre.
+        /// El guion de la lección (PLAN-v2 E9). E9b los reescribe uno por uno; las que todavía no
+        /// tienen el suyo son un solo paso: el destino de siempre, con el texto de siempre.
         var steps: [TutorialStep] {
-            [legacyStep]
+            script ?? [legacyStep]
         }
 
         /// Repite la conducta de la v1: si tiene hoja de destino, abrirla la
         /// cumple; si no, su acción firma (`tutorialTipCompleted`).
         var legacyStep: TutorialStep {
             let signal: TutorialSignal = destinationScreen.map { .screenOpened($0) } ?? .lessonAction
-            return .act("\(rawValue).legacy", signal, text: textKey, on: anchorTarget)
+            return .act("\(rawValue).legacy", signal, text: textKey ?? "", on: anchorTarget)
+        }
+
+        /// ⚠️ El cierre «listo» de Mejoras y del pasivo vive en el tablero y no en la hoja: con la
+        /// hoja cerrada `rewindToBoard` devuelve un paso de hoja al que abre la lección, y quien
+        /// compró y cerró el menú volvería a oír «abrí Mejoras».
+        private var script: [TutorialStep]? {
+            switch self {
+            case .quickHire: [
+                .act("quick_hire.tap", .lessonAction, text: "tutorial.quick_hire.tap", on: .quickHire),
+                .act("quick_hire.hold", .pickerOpened, text: "tutorial.quick_hire.hold", on: .quickHire, hand: .hold),
+                .act("quick_hire.pin", .pinned, text: "tutorial.quick_hire.pin", on: .pickerFace, windows: [.quickHire]),
+                .act("quick_hire.unpin", .unpinned, text: "tutorial.quick_hire.unpin", on: .quickHire,
+                     hand: .hold, windows: [.pickerFace]),
+                .explain("quick_hire.blocked", text: "tutorial.quick_hire.blocked", on: .quickHire),
+            ]
+            case .passive: [
+                .act("passive.open", .screenOpened(.upgrades), text: "tutorial.passive.open", on: .upgrades),
+                .act("passive.unlock", .passiveUnlocked, text: "tutorial.passive.unlock", on: .upgradesPassive,
+                     surface: .page(.upgrades)),
+                .explain("passive.done", text: "tutorial.passive.done"),
+            ]
+            case .upgrades: [
+                .act("upgrades.open", .screenOpened(.upgrades), text: "tutorial.upgrades.open", on: .upgrades),
+                .act("upgrades.buy", .upgradeBought, text: "tutorial.upgrades.buy", on: .upgradesRow,
+                     surface: .page(.upgrades)),
+                .explain("upgrades.done", text: "tutorial.upgrades.done"),
+            ]
+            case .orgChart: [
+                .act("org_chart.open", .screenOpened(.menu), text: "tutorial.org_chart.open", on: .menu),
+                .explain("org_chart.card", text: "tutorial.org_chart.card", on: .menuOrgChart, surface: .page(.menu)),
+            ]
+            case .floorSwipe: [
+                .explain("floor_swipe.explain", text: "tutorial.floor_swipe.explain", hand: .swipe(.up)),
+            ]
+            case .floorFull: [
+                .explain("floor_full.explain", text: "tutorial.floor_full.explain", on: .quickHire),
+            ]
+            case .staffedFloors: [
+                .explain("staffed_floors.floor", text: "tutorial.staffed_floors.floor", on: .map),
+                .explain("staffed_floors.bonus", text: "tutorial.staffed_floors.bonus", on: .map),
+            ]
+            case .prestigeGate: [
+                .explain("prestige_gate.explain", text: "tutorial.prestige_gate.explain", on: .prestige),
+            ]
+            case .prestige: [
+                .explain("prestige.oro", text: "tutorial.prestige.oro", on: .prestige),
+                .act("prestige.open", .lessonAction, text: "tutorial.prestige.open", on: .prestige),
+            ]
+            case .characterSheet: [
+                .act("character_sheet.hold", .characterSheetOpened, text: "tutorial.character_sheet.hold",
+                     on: .boardUnit, hand: .hold, boardTarget: .anyUnit),
+                .explain("character_sheet.inside", text: "tutorial.character_sheet.inside", surface: .characterSheet),
+            ]
+            default: nil
+            }
         }
     }
 
@@ -203,7 +278,21 @@ extension GameState {
         case .eventChip:
             activeBonuses.contains { $0.eventId != nil }
         case .upgrades:
-            canAffordAnyUpgrade
+            canAffordAnyCharacterUpgrade()
+        case .passive:
+            canAffordAnyPassiveUnlock()
+        case .orgChart:
+            (player?.run.seenTypes.count ?? 0) >= 4 && unlockedTabs.contains(.menu)
+        case .floorSwipe:
+            unlockedFloorsCount >= 2 && isLessonDone(.elevator)
+        case .floorFull:
+            quickHireOffer?.blocker == .floorFull
+        case .staffedFloors:
+            hasStaffedFloor()
+        case .prestigeGate:
+            prestigePreview.isBlockedByWall
+        case .characterSheet:
+            (player?.meta.stats.totalHiresEver ?? 0) >= 3 && visibleFloorOccupancy.occupied > 0
         case .elevator:
             unlockedFloorsCount >= 2
         case .elevatorKeypad:
@@ -277,6 +366,33 @@ extension GameState {
     }
 
     // MARK: La señal de Mejoras
+
+    /// Los tipos de los que hay mejora para comprar: los vistos, sin ordenar. Corre a 8 Hz.
+    private func seenConcreteTypes(_ player: PlayerState, _ content: GameContent) -> [CharacterType] {
+        content.tiers.concreteTypes.filter { player.run.seenTypes.contains($0.id) }
+    }
+
+    /// Un multiplicador de personaje pagable (la lección de Mejoras).
+    func canAffordAnyCharacterUpgrade() -> Bool {
+        guard let player, let content else { return false }
+        return seenConcreteTypes(player, content).contains {
+            characterUpgradeCost(of: $0).map { player.run.coins >= $0 } ?? false
+        }
+    }
+
+    /// Un ingreso pasivo pagable y todavía sin desbloquear (la lección del pasivo).
+    func canAffordAnyPassiveUnlock() -> Bool {
+        guard let player, let content else { return false }
+        return seenConcreteTypes(player, content).contains {
+            player.run.passiveUnlocked[$0.id] != true && player.run.coins >= $0.passiveUnlockCost
+        }
+    }
+
+    /// Hay un piso con todos sus lugares ocupados y la perilla de pisos en marcha prendida.
+    func hasStaffedFloor() -> Bool {
+        guard let player, let content, content.economy.staffedBonusPerFloor > 0 else { return false }
+        return !StaffedFloors.ordinals(state: player, tiers: content.tiers, floorTable: content.floorTable).isEmpty
+    }
 
     /// Cotiza costos CRUDOS contra los dos balances. Nunca `characterUpgradeRows`
     /// —que arma textos localizados por fila— ni nada por frame que no sea una

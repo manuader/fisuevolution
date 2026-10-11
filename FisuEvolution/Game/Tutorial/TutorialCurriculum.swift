@@ -82,8 +82,14 @@ enum TutorialMechanic: String, CaseIterable {
         case .visitorPopup: .inline(.visitorPopup)
         case .notificationsPermission: .selfExplained(NotificationPermissionCard.lessonID)
         case .adBreak: .selfExplained(Self.adBreakIntroID)
-        case .passiveIncome, .orgChart, .floorSwipe, .floorFull, .boosts, .chests, .menuSwipe,
-             .characterSheet, .newTabs, .hirePriceStep, .staffedFloors, .prestigeGate, .oroShopShelf,
+        case .passiveIncome: .lesson(.passive)
+        case .orgChart: .lesson(.orgChart)
+        case .floorSwipe: .lesson(.floorSwipe)
+        case .floorFull: .lesson(.floorFull)
+        case .characterSheet: .lesson(.characterSheet)
+        case .staffedFloors: .lesson(.staffedFloors)
+        case .prestigeGate: .lesson(.prestigeGate)
+        case .boosts, .chests, .menuSwipe, .newTabs, .hirePriceStep, .oroShopShelf,
              .pendingTriple, .autoTap, .luckOdds, .offers, .cosmetics, .skinEffects, .extraSlots:
             .gap
         }
@@ -92,14 +98,12 @@ enum TutorialMechanic: String, CaseIterable {
     /// Lo que E9b tiene que enseñar, con la lección que cierra cada uno. Su cierre exige que
     /// esté vacío; un caso que gana lección sin salir de acá (o al revés) pone el test en rojo.
     static let knownGaps: Set<TutorialMechanic> = [
-        // E9b T1: las lecciones del tablero y la torre
-        .passiveIncome, .orgChart, .floorSwipe, .floorFull, .characterSheet, .staffedFloors, .prestigeGate,
         // E9b T2: las de la economía, el ORO, la tienda y el menú
         .boosts, .chests, .hirePriceStep, .menuSwipe, .newTabs, .oroShopShelf, .pendingTriple, .autoTap,
         .luckOdds, .offers, .cosmetics, .skinEffects, .extraSlots,
     ]
     /// El techo de hoy: un hueco nuevo sin lección pone el test en rojo.
-    static let knownGapsCeiling = 20
+    static let knownGapsCeiling = 13
 
     /// El id con el que la pantalla previa de la pausa publicitaria se publica.
     static let adBreakIntroID = "adbreak.intro"

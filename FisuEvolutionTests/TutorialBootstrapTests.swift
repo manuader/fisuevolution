@@ -87,10 +87,11 @@ struct TutorialBootstrapTests {
         #expect(gameState.flagDefaults.integer(forKey: TutorialFlags.versionKey) == TutorialFlags.currentVersion)
     }
 
-    @Test("qué lecciones enseñaba la v1: el conjunto es explícito, lo nuevo no entra")
+    @Test("qué mecánicas conocía la v1: el conjunto es explícito, lo nuevo no entra")
     func veteranKnownLessonsAreExplicit() {
         #expect(GameState.TutorialLesson.veteranKnownLessons == [
-            "upgrades", "elevator", "skins", "achievements", "oroUpgrades", "gifts", "store", "prestige"
+            "upgrades", "elevator", "skins", "achievements", "oroUpgrades", "gifts", "store", "prestige",
+            "passive", "orgChart", "floorSwipe", "floorFull",
         ])
         #expect(GameState.TutorialLesson.quickHire.introducedIn == .v2)
         #expect(GameState.TutorialLesson.visitor.introducedIn == .v2)

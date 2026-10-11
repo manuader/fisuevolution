@@ -60,6 +60,6 @@ struct TutorialCoverageTests {
     @Test("los huecos declarados sólo se achican (E9b los vacía; su cierre exige cero)")
     func gapsAreDeclared() {
         #expect(TutorialMechanic.knownGaps.count <= TutorialMechanic.knownGapsCeiling)
-        #expect(TutorialMechanic.knownGaps.count == 20)
+        #expect(TutorialMechanic.knownGaps.count == 13)
     }
 }

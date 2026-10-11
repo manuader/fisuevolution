@@ -130,8 +130,7 @@ final class CustomizationUITests: XCTestCase {
         app.launch()
 
         _ = openSkins(app)
-        let first = app.buttons["skins.character.\(Self.firstType)"]
-        XCTAssertTrue(first.waitForExistence(timeout: 10), "el carrusel no dibujó al primer personaje")
+        let first = carouselFace(app, id: Self.firstType)
         // Desde f541bde el default es el personaje más nuevo: este test razona
         // desde la grilla del Fisura, así que lo elige explícitamente.
         first.tap()
@@ -422,9 +421,33 @@ final class CustomizationUITests: XCTestCase {
     /// tres tests empieza a fallar en `tap()`, es acá donde hay que mirar.
     @MainActor
     private func selectCharacter(_ app: XCUIApplication, id: String) {
+        carouselFace(app, id: id).tap()
+    }
+
+    /// La cara del Fisura (primera de la tira), lista para tocar. Es el único
+    /// camino a un personaje concreto: con la máquina cargada (el `completo`
+    /// corre varias clases UI) el carrusel tarda en dibujarse, y 10 s no
+    /// alcanzaban; los 20 s valen para el primer acceso.
+    ///
+    /// ⚠️ Y existir no es ser tocable: el aterrizaje es el tier 8, así que el
+    /// Fisura cae fuera del cuadro (frame `{0,0,0,0}`) y el `scrollToVisible`
+    /// del `tap()` falla con «Computed hit point {-1, -1}»; sus reintentos
+    /// terminan pasando la página del pager del menú (cayó en Mejoras). Por eso
+    /// la tira se arrastra a mano, **desde una cara que ya se ve** —un swipe
+    /// sobre el `ScrollView` que contiene al botón es el de la hoja entera— y
+    /// despacio y de a poco, sin la inercia que pasa el borde y arrastra el pager.
+    @MainActor
+    private func carouselFace(_ app: XCUIApplication, id: String, timeout: TimeInterval = 20) -> XCUIElement {
         let face = app.buttons["skins.character.\(id)"]
-        XCTAssertTrue(face.waitForExistence(timeout: 10), "el carrusel no dibujó a \(id)")
-        face.tap()
+        XCTAssertTrue(face.waitForExistence(timeout: timeout), "el carrusel no dibujó a \(id)")
+        let faces = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'skins.character.'"))
+        for _ in 0..<16 where !face.isHittable {
+            guard let visible = faces.allElementsBoundByIndex.first(where: { $0.isHittable }) else { break }
+            let start = visible.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+            start.press(forDuration: 0.05, thenDragTo: start.withOffset(CGVector(dx: 100, dy: 0)),
+                        withVelocity: .slow, thenHoldForDuration: 0.3)
+        }
+        return face
     }
 
     @MainActor

@@ -90,6 +90,9 @@ private struct VideoChainTally {
 }
 
 extension GameState {
+    /// Provisional: estado global hasta poder tocar `GameState.swift`. Carry:
+    /// pasarlo a una propiedad de instancia y vaciarlo en el reset de debug
+    /// (`GameState+Debug.swift:593`).
     @MainActor private static var videoChains: [UUID: VideoChainTally] = [:]
 
     /// ¿Se puede ofrecer el video de Fusionar todo ahora? Relee el piso en
@@ -113,14 +116,17 @@ extension GameState {
     /// espera su turno a la vista.
     func mergeAllVideoWatched(now: TimeInterval = Date().timeIntervalSince1970) {
         countRailVideo()
-        guard mergeAllVideoStatus(pairs: mergeAllPairsOnVisibleFloor(), now: now) == .available,
-              enqueueMergeAll(onFloor: visibleFloorOrdinal, origin: .rewardedMergeAll) > 0
-        else {
+        guard mergeAllVideoStatus(pairs: mergeAllPairsOnVisibleFloor(), now: now) == .available else {
+            compensateRewardedVideo()
+            return
+        }
+        let queued = enqueueMergeAll(onFloor: visibleFloorOrdinal, origin: .rewardedMergeAll)
+        guard queued > 0 else {
             compensateRewardedVideo()
             return
         }
         player?.meta.rewardedActivations[Self.mergeAllVideoKey] = now
-        Log.ads.info("fusionar todo por video")
+        Log.ads.info("fusionar todo por video: \(queued) pares")
         refreshSideRail(now: now)
         scheduleSave()
     }

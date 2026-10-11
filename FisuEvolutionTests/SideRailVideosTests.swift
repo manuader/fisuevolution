@@ -50,8 +50,8 @@ struct SideRailVideosTests {
         #expect(gameState.player?.meta.stats.videosWatchedEver == 1)
     }
 
-    @Test("un aviso repetido del mismo video no vuelve a encolar: compensa y el enfriamiento sigue siendo el primero")
-    func aRepeatedCallbackQueuesOnce() async throws {
+    @Test("un segundo video mirado no vuelve a encolar: compensa y el enfriamiento sigue siendo el del primero")
+    func aSecondWatchedVideoQueuesNothing() async throws {
         let gameState = await gameStateWithPairs()
         gameState.mergeAllVideoWatched(now: 1000)
         let queued = queuedCount(gameState)

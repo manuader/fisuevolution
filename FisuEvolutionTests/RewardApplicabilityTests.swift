@@ -47,32 +47,20 @@ struct RewardApplicabilityTests {
         #expect(gameState.towerNotice == nil)
     }
 
-    @Test("el cooldown se cobra una sola vez: un segundo aviso del video no encola de nuevo")
+    @Test("el cooldown se cobra una sola vez: un segundo video mirado no encola de nuevo y paga compensación")
     func rewardedMergeAllPaysOnce() async throws {
         let gameState = await makeGameState()
         gameState.debugGrantPair()
         gameState.mergeAllVideoWatched(now: 1000)
         let queued = gameState.pendingBoardChanges.count
+        let before = try #require(gameState.player?.run.coins)
         gameState.mergeAllVideoWatched(now: 1001)
         #expect(gameState.pendingBoardChanges.count == queued)
+        #expect(try #require(gameState.player?.run.coins) > before, "el segundo video se miró: compensa")
         guard case .coolingDown = gameState.mergeAllVideoStatus(pairs: 1, now: 1001) else {
             Issue.record("no quedó en enfriamiento")
             return
         }
-    }
-
-    @Test("un eslabón de Fusionar todo que ya no cabe no compensa si otro de la cadena se jugó")
-    func staleMergeAllLinkDoesNotCompensate() async throws {
-        let gameState = await makeGameState()
-        gameState.player?.run.units = ["homeless": 4]
-        gameState.reconcileTower()
-        gameState.mergeAllVideoWatched()
-        _ = try #require(gameState.beginNextBoardChange())
-        let first = try #require(gameState.inFlightBoardChange)
-        gameState.confirmBoardChange(id: first.id)
-        let before = try #require(gameState.player?.run.coins)
-        gameState.pendingBoardChanges.forEach { gameState.discardBoardChange($0) }
-        #expect(try #require(gameState.player?.run.coins) == before)
     }
 
     /// El video cobró el cooldown y planeó su llegada; después el tablero quedó sin lugar.

@@ -125,7 +125,7 @@ struct DailyCalendarTests {
 
         let rows = gameState.rewardRows
 
-        #expect(rows.count == 5, "los cuatro videos de siempre más el del cofre")
+        #expect(rows.count == 4, "los videos de Regalos: sin Fusionar todo, que vive en la columna")
         for row in rows {
             #expect(!row.rewardText.isEmpty, "\(row.id) no dice qué da")
             #expect(!row.rewardText.contains("ads."), "\(row.id) dejó una clave cruda: '\(row.rewardText)'")
@@ -145,12 +145,10 @@ struct DailyCalendarTests {
         let turbo = try #require(gameState.rewardRows.first { $0.id == "temp_multiplier" })
         #expect(turbo.rewardText.contains("×3"), "magnitud 3,0 se lee ×3, dijo '\(turbo.rewardText)'")
 
-        // Los dos que no son multiplicadores tienen su propia frase y no la del
+        // El que no es multiplicador tiene su propia frase y no la del
         // multiplicador vacía.
-        let merge = try #require(gameState.rewardRows.first { $0.id == "merge_all" })
         let rare = try #require(gameState.rewardRows.first { $0.id == "spawn_rare" })
-        #expect(!merge.rewardText.contains("×"))
-        #expect(merge.rewardText != rare.rewardText)
+        #expect(!rare.rewardText.contains("×"))
         let player = try #require(gameState.player)
         let gift = try #require(gameState.content.flatMap {
             BoardChangePlanner.giftType(tiersBelowFrontier: 3, state: player, tiers: $0.tiers)

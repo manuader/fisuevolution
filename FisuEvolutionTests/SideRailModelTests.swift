@@ -30,6 +30,8 @@ struct SideRailModelTests {
     func wheel() {
         #expect(SideRailModel.state(input { $0.access.wheelSpinsReady = 3 }).status(of: .wheel) == .ready(count: 3))
         #expect(SideRailModel.state(input()).status(of: .wheel) == .waiting(seconds: 7200))
+        #expect(SideRailModel.state(input { $0.wheelSecondsUntilReset = nil }).status(of: .wheel) == .idle,
+                "sin ruleta o sin nada que esperar no hay reloj")
     }
 
     @Test("el colchón: «!» si espera, el reloj si no, nada si no hay reloj")
@@ -47,6 +49,8 @@ struct SideRailModelTests {
             $0.access.packagesBlocked = true
         }).status(of: .packages) == .blocked)
         #expect(SideRailModel.state(input()).status(of: .packages) == .waiting(seconds: 90))
+        #expect(SideRailModel.state(input { $0.packagesPaused = true }).status(of: .packages) == .idle,
+                "con un piquete el reloj no corre: no se muestra")
     }
 
     @Test("Fusionar todo: listo con pares, el reloj si se está enfriando, apagado sin pares")

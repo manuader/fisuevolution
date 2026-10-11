@@ -63,7 +63,7 @@ struct BoardChangeProducersTests {
         gameState.player?.run.units = ["homeless": 4]
         gameState.reconcileTower()
         let units = try #require(gameState.player?.run.units)
-        gameState.applyRewardedReward(rewardId: "merge_all")
+        gameState.mergeAllVideoWatched()
         #expect(gameState.player?.run.units == units, "se planea, no se aplica en el acto")
         #expect(gameState.pendingBoardChanges.count >= 2)
         #expect(gameState.pendingBoardChanges.allSatisfy { $0.origin == .rewardedMergeAll })

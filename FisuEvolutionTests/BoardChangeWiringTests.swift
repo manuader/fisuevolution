@@ -145,7 +145,7 @@ struct BoardChangeWiringTests {
     func inactiveSettlesOnlyWhatWasPaidFor() async throws {
         let gameState = try await gameWithPlannedMerge()
         gameState.debugGrantPair()
-        gameState.applyRewardedReward(rewardId: "merge_all")
+        gameState.mergeAllVideoWatched()
         let origins = gameState.pendingBoardChanges.map(\.origin)
         let links = origins.count - 1
         #expect(links >= 1)
@@ -166,7 +166,7 @@ struct BoardChangeWiringTests {
     func inactiveSettlesAPaidInFlightChange() async throws {
         let gameState = await makeGameState()
         gameState.debugGrantPair()
-        gameState.applyRewardedReward(rewardId: "merge_all")
+        gameState.mergeAllVideoWatched()
         _ = try #require(gameState.beginNextBoardChange())
         #expect(gameState.inFlightBoardChange?.origin == .rewardedMergeAll)
         let units = try #require(gameState.player?.run.totalUnits)

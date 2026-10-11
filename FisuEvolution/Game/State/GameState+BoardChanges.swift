@@ -191,8 +191,9 @@ extension GameState {
         Log.economy.info("board change dropped: \(change.origin.rawValue)")
         switch change.origin {
         case .rewardedRareUnit: compensateRewardedVideo()
+        case .rewardedMergeAll: noteVideoChainLink(change, applied: false)
         case .package: refundPackage()
-        case .eventStartup, .eventBlanqueo, .rewardedMergeAll, .career, .debug, .visitor, .oroShop: break
+        case .eventStartup, .eventBlanqueo, .career, .debug, .visitor, .oroShop: break
         }
     }
 
@@ -206,6 +207,7 @@ extension GameState {
             )
             self.player = player
             self.tower = tower
+            noteVideoChainLink(change, applied: true)
             let result = outcome.resultTypeId.flatMap { content.tiers.type(id: $0) }
             let evolvedTo = player.run.maxTierReached > outcome.tierBefore ? result : nil
             announceNewlyHireableFloor(maxTierBefore: outcome.tierBefore, player: player, content: content)

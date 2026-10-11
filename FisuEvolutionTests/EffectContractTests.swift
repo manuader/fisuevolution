@@ -167,7 +167,7 @@ struct EffectContractTests {
                 let modifier = try #require(gameState.player?.run.activeModifiers.first { $0.sourceKey == "rewarded.\(reward.id)" })
                 #expect(modifier.magnitude == magnitude)
                 #expect(modifier.expiresAt == reward.durationSeconds)
-            case .mergeAll, .rareUnit:
+            case .rareUnit:
                 if gameState.isRewardApplicable(reward.id) {
                     gameState.applyRewardedReward(rewardId: reward.id)
                     #expect(!gameState.pendingBoardChanges.isEmpty)

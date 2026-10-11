@@ -34,6 +34,13 @@ struct SaveBackupStore: Sendable {
         return kept ?? write(payload, stampedBy: "unreadable-", now: now)
     }
 
+    /// La foto de antes de "Resetear partida". Como las otras, nunca se borra. `nil` si no
+    /// se pudo escribir: el reset no sigue sin su copia.
+    @discardableResult
+    func keepBeforeReset(_ payload: Data, now: Date = Date()) -> URL? {
+        write(payload, stampedBy: "reset-", now: now)
+    }
+
     /// El nombre lleva los milisegundos con ancho fijo, así el orden alfabético es el
     /// cronológico. La copia nueva se estampa siempre después de todas las que hay (con el
     /// reloj quieto o atrasado se corre al milisegundo siguiente): nunca pisa a otra ni

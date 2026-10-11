@@ -568,68 +568,17 @@ extension GameState {
         refreshProjections()
     }
 
-    /// "Resetear partida" del panel = una instalación fresca DE VERDAD, no
-    /// sólo un save nuevo (pedido del dueño, 2026-08-21): el tutorial, las
-    /// lecciones y el puntito viven en `UserDefaults` y sin este barrido la
-    /// partida nueva nacía sin su primera experiencia — que es justamente lo
-    /// que el botón quiere poder mirar.
+    /// "Resetear partida" del panel = el reset real (`+Reset`) sin sus tres pasos: una
+    /// instalación fresca DE VERDAD, no sólo un save nuevo (pedido del dueño, 2026-08-21) —
+    /// el tutorial, las lecciones y el puntito viven en `UserDefaults`—, que desde la 2.0
+    /// conserva lo comprado, `seenCinematics` y la época igual que el de Ajustes (la intro no se
+    /// repite). Síncrono: los tests de las épicas lo
+    /// leen en la línea de abajo. Para un borrado total, `--uitest-reset`.
     func debugResetSave() {
-        guard let content else { return }
-        var fresh = PlayerState.newGame(
-            startTypeId: content.tiers.baseType.id,
-            startFloorId: content.floorTable[0].id,
-            offlineEfficiencyBase: content.economy.offlineEfficiencyBase,
-            critChanceBase: content.economy.critChanceBase,
-            now: Date().timeIntervalSince1970
-        )
-        // Igual que la instalación fresca del bootstrap: el daily de HOY no
-        // pisa el arranque (el freno del día 1 del FTUE).
-        fresh.meta.daily.lastClaimDay = DailyRewardManager.dayString(for: Date())
-        player = fresh
+        guard let plan = resetPlan(), let player else { return }
         debugTimeScale = 1
-
-        // La partida vieja se lleva sus celebraciones: payloads y turnos. Sin
-        // esto, un aviso o un sheet pendiente del save anterior aparecía
-        // ENCIMA del tutorial recién revivido.
-        offlineReward = nil
-        dailyClaim = nil
-        careerPrompt = nil
-        skinAward = nil
-        specialDrop = nil
-        cinematic = nil
-        towerNotice = nil
-        achievementToast = nil
-        pendingAchievementToasts.removeAll()
-        shareCardMoment = nil
-        shareOffer = nil
-        pendingShareMoment = nil
-        tutorialRun = nil
-        tutorialEngine.clock = TutorialStepClock(kind: .explain, lock: tutorialEngine.lockSeconds)
-        tutorialEngine.pacing = TutorialPacing()
-        tutorialEngine.openPage = nil
-        stageVisit = nil
-        visitorPopup = nil
-        eventPopup = nil
-        stageChallenge = nil
-        stageRuntime = StageRuntime()
-        boardCelebrationShowsSomethingNew = false
-        pendingBoardChanges.removeAll()
-        inFlightBoardChange = nil
-        celebrations = CelebrationQueue()
-
-        // El tutorial vuelve entero: banderas del FTUE (defaults Y espejo en
-        // memoria), lecciones, y la fase con su restricción en la cola —
-        // exactamente el estado del primer arranque.
-        let defaults = UserDefaults.standard
-        TutorialFlags.wipeGameFlags(in: defaults)
-        ftueTapped = false
-        ftueSpawned = false
-        ftueMerged = false
-        wipeTutorialLessonProgress()
-        beginTutorialPhase()
-
-        reconcileTower()
-        bumpBoard()
+        _ = repository?.keepBeforeReset(player)
+        applyReset(plan)
         Task { await persistNow() }
     }
     #endif

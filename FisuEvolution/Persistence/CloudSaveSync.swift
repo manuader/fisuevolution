@@ -47,7 +47,8 @@ actor CloudSaveSync {
             } catch let error as CKError where error.code == .serverRecordChanged {
                 if let remote = try await fetch() {
                     let resolved = SaveConflictResolver.resolve(local: state, remote: remote)
-                    if resolved.meta.lifetimeEarnings > remote.meta.lifetimeEarnings {
+                    if resolved.meta.lifetimeEarnings > remote.meta.lifetimeEarnings
+                        || resolved.meta.resetEpoch > remote.meta.resetEpoch {
                         await push(resolved)
                     }
                 }

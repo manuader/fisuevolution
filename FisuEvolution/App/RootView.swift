@@ -99,6 +99,8 @@ struct GameBoardView: View {
     @Environment(GameState.self) private var gameState
     @State private var scene: BoardScene?
     @State private var showPrestige = false
+    /// La oferta que el jugador abrió desde el chip (o que se presentó sola).
+    @State private var offerSelection: OfferPresentation?
     /// El selector del atajo: un overlay sobre el juego, no una hoja.
     @State private var showQuickHirePicker = false
     /// La sesión del menú deslizable, o `nil`. Su `id` es estable mientras la
@@ -390,6 +392,7 @@ struct GameBoardView: View {
             EventPopupView(eventId: popup.eventId)
         }
         .modifier(PrizeSheets(syncCover: { gameState.uiCoversBoard = boardIsCovered }))
+        .modifier(OfferSheets(selection: $offerSelection, syncCover: { gameState.uiCoversBoard = boardIsCovered }))
         .sheet(item: shareCardBinding) { moment in
             ShareCardSheet(moment: moment)
         }
@@ -450,7 +453,7 @@ struct GameBoardView: View {
         menuSession != nil || showPrestige || rankingCardUp
             || gameState.shareCardMoment != nil || gameState.visitorPopup != nil
             || gameState.eventPopup != nil || gameState.mattressPopup != nil || gameState.wheelSheet != nil
-            || gameState.adBreakOffer != nil
+            || gameState.adBreakOffer != nil || offerSelection != nil
     }
 
     private var boardLayoutMarker: some View {
@@ -555,6 +558,15 @@ struct GameBoardView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.leading, 12)
                     .playColumn()
+            }
+            if !gameState.visibleOffers().isEmpty {
+                OfferChip {
+                    gameState.markOfferPresented(id: $0)
+                    offerSelection = OfferPresentation(id: $0)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 12)
+                .playColumn()
             }
             // Quien está en escena se toca desde acá: la cara, el nombre y su "!".
             StageChips()

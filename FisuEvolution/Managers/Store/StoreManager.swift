@@ -133,6 +133,7 @@ final class StoreManager {
         // Bajo XCTest no: las suites deciden la puerta por parámetro.
         if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
             await LootBoxGate.refreshLastKnown()
+            LootBoxGate.startWatchingStorefront()
         }
     }
 

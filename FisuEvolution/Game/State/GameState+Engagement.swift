@@ -13,6 +13,7 @@ extension GameState {
         advancePackages(delta: delta)
         advanceTreasures(delta: delta)
         advanceStage(delta: delta)
+        advanceOffers()
     }
 
     #if DEBUG
@@ -36,6 +37,9 @@ extension GameState {
             player.meta.oro = oro
             self.player = player
             refreshProjections()
+        }
+        if let offer = Self.fixtureValue("--uitest-offer=", in: arguments) {
+            debugOpenOffer(id: offer)
         }
         if arguments.contains("--uitest-mattress") {
             debugSpawnMattress()

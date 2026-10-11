@@ -42,6 +42,10 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     /// completa. Pide turno como cualquier celebración: así no pisa el reveal y la
     /// tarjeta de Dios espera a que termine.
     case cinematic
+    /// Una oferta de 24 h que se acaba de abrir (E6). Se presenta UNA vez y
+    /// después vive en el chip: comparte el último lugar con los avisos, así que
+    /// nunca le pasa por encima a un premio ni a una celebración.
+    case offer
 
     /// Menor es antes. Los de arranque de sesión primero —cobrás y seguís—, la
     /// carrera antes que las celebraciones porque BLOQUEA la progresión (hasta
@@ -54,7 +58,7 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         case .boardCelebration: 3
         case .skinAward, .specialDrop, .chestOpening: 4
         case .visitorEncounter: 5
-        case .achievements, .towerNotice: 6
+        case .achievements, .towerNotice, .offer: 6
         // Una lección puede esperar a todo el mundo: enseña una pantalla que
         // no se va a ir a ningún lado.
         case .tutorialTip: 7
@@ -71,7 +75,7 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     public var timeout: TimeInterval? {
         switch self {
         case .offlineEarnings, .dailyReward, .careerChoice,
-             .skinAward, .specialDrop, .chestOpening: nil
+             .skinAward, .specialDrop, .chestOpening, .offer: nil
         // Cubre destacar el par, fundirlo, el vuelo del ascenso y el reveal.
         // En una cadena, por eslabón (`renew`).
         case .boardCelebration: 14
@@ -142,6 +146,11 @@ public struct CelebrationQueue: Sendable, Equatable {
     public mutating func restrict(to allowed: Set<CelebrationKind>?) {
         allowedKinds = allowed
         promoteIfIdle()
+    }
+
+    /// Está en pantalla o esperando su turno.
+    public func contains(_ kind: CelebrationKind) -> Bool {
+        current == kind || pending.contains(kind)
     }
 
     /// Pone un ítem en la fila. **Deduplica**: encolar `.achievements` tres veces

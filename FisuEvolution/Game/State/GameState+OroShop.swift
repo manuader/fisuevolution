@@ -37,7 +37,7 @@ extension GameState {
         if Self.grantableRewardKinds.contains(.package) { perks.insert(.bestSupplier) }
         if Self.grantableRewardKinds.contains(.wheelSpin) { perks.insert(.wheelDailySpins) }
         return OroShop.Context(
-            today: DailyRewardManager.dayString(for: now, calendar: Self.shopCalendar),
+            today: DailyRewardManager.dayString(for: now, calendar: Self.gregorianCalendar),
             grantableKinds: Self.grantableRewardKinds,
             chanceAllowed: chanceAllowed,
             reachedFloorIds: reached,
@@ -70,12 +70,12 @@ extension GameState {
         )
     }
 
-    /// El día de los topes, siempre en calendario gregoriano (nunca `Calendar.current`).
-    private static var shopCalendar: Calendar {
+    /// El día de los topes y de las ofertas, siempre en calendario gregoriano (nunca `Calendar.current`).
+    static let gregorianCalendar: Calendar = {
         var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = .current
+        calendar.timeZone = .autoupdatingCurrent
         return calendar
-    }
+    }()
 
     /// Las filas de la tienda, en el orden del catálogo y ya cotizadas.
     func oroShopRows(chanceAllowed: Bool, now: Date = Date()) -> [OroShopRow] {

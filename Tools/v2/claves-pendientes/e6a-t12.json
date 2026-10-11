@@ -1,0 +1,6 @@
+{
+  "offer.endsIn %@": {"es": "Termina en %@", "en": "Ends in %@"},
+  "offer.decline": {"es": "No, gracias", "en": "No, thanks"},
+  "offer.buy.ax %@": {"es": "Comprar %@", "en": "Buy %@"},
+  "offer.chip.ax %@": {"es": "Oferta: %@", "en": "Offer: %@"}
+}

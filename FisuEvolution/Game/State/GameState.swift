@@ -245,6 +245,9 @@ final class GameState {
     /// lo lee el director de lecciones: un coach-mark que señala la barra
     /// inferior no puede nacer debajo de una hoja abierta.
     @ObservationIgnored var uiCoversBoard = false
+    /// La oferta cuya hoja tiene el turno de la cola (E6): el turno se suelta cuando
+    /// ESA deja de verse, no cuando otra ocupa su lugar.
+    @ObservationIgnored var presentingOfferId: String?
     /// Un visitante regaló un giro: la ruleta se abre al cerrarse su popup.
     @ObservationIgnored var wheelOpensAfterVisit = false
     /// Desde que la cola quedó vacía por última vez se fue alguna celebración grande

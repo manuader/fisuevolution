@@ -270,15 +270,16 @@ extension GameState {
         // defaults en cualquier estado y cada test arma su propio
         // escenario con `beginTutorialPhase()` (mismo criterio que
         // `StoreManager` con su `SKTestSession`).
+        applyTutorialMigration(hasSave: !isFreshInstall)
         if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
-            if !UserDefaults.standard.bool(forKey: "fisuTutorialDone") {
+            if !TutorialFlags.coreCompleted() {
                 beginTutorialPhase()
             } else {
                 // La lección de Tienda espera a la SEGUNDA sesión con la
                 // fase hecha ("una vez, suave": nunca en el mismo arranque
                 // en el que el jugador recién aprendió a jugar).
-                let sessions = UserDefaults.standard.integer(forKey: Self.sessionsAfterPhaseKey)
-                UserDefaults.standard.set(sessions + 1, forKey: Self.sessionsAfterPhaseKey)
+                let sessions = UserDefaults.standard.integer(forKey: TutorialFlags.sessionsAfterCoreKey)
+                UserDefaults.standard.set(sessions + 1, forKey: TutorialFlags.sessionsAfterCoreKey)
             }
         }
         // Después de la restricción del tutorial: con la fase activa la cinemática queda

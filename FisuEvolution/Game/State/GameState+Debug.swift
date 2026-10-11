@@ -9,7 +9,7 @@ extension GameState {
     /// Deja el estado que vive en `UserDefaults` —tutorial y ajustes— DECLARADO
     /// por el test en vez de heredado del simulador.
     ///
-    /// ⚠️ Esto es el arreglo de la trampa 9 del HANDOFF. `fisuTutorialDone` y
+    /// ⚠️ Esto es el arreglo de la trampa 9 del HANDOFF. `tutorial.v2.completed` y
     /// las tres banderas `ftue.*` viven en `UserDefaults`, que sobrevive a
     /// `--uitest-reset` porque ese fixture sólo rehacía la PARTIDA. El resultado
     /// era que `LaunchSmokeTests` y `EconomyLoopUITests` pasaban únicamente si
@@ -26,10 +26,7 @@ extension GameState {
         let arguments = ProcessInfo.processInfo.arguments
         let defaults = UserDefaults.standard
         if forceNewGame {
-            defaults.set(false, forKey: "fisuTutorialDone")
-            defaults.set(false, forKey: "ftue.tapped")
-            defaults.set(false, forKey: "ftue.spawned")
-            defaults.set(false, forKey: "ftue.merged")
+            TutorialFlags.wipeGameFlags(in: defaults)
             ftueTapped = false
             ftueSpawned = false
             ftueMerged = false
@@ -42,13 +39,13 @@ extension GameState {
             // test que dispara la lección de Mejoras se la dejaría "dada" al
             // siguiente.
             wipeTutorialLessonProgress()
-            defaults.removeObject(forKey: Self.newTabsKey)
             defaults.removeObject(forKey: Self.economyKnobsDefaultsKey)
         }
         // `--uitest-open-sheet` presenta una hoja modal: el tutorial no puede
         // estar adelante, así que implica saltearlo.
         if arguments.contains("--uitest-skip-tutorial") || arguments.contains("--uitest-open-sheet") {
-            defaults.set(true, forKey: "fisuTutorialDone")
+            TutorialFlags.setCoreCompleted(true, in: defaults)
+            TutorialFlags.markCurrent(in: defaults)
         }
         // En una corrida de UI tests las lecciones contextuales arrancan
         // APAGADAS salvo que el test las pida (`--uitest-lessons`): un coach
@@ -370,7 +367,7 @@ extension GameState {
         // toca: sin esto el fixture abre el prompt y la vista no lo muestra, que
         // es la forma más confusa de fallar. Mismo criterio que
         // `--uitest-daily-popup`, que también existe para saltear una puerta.
-        UserDefaults.standard.set(true, forKey: "fisuTutorialDone")
+        TutorialFlags.setCoreCompleted(true)
         let slots = visiblePlacements.map(\.slot).sorted()
         careerPrompt = CareerPrompt(
             options: types,
@@ -598,10 +595,7 @@ extension GameState {
         // memoria), lecciones, y la fase con su restricción en la cola —
         // exactamente el estado del primer arranque.
         let defaults = UserDefaults.standard
-        defaults.set(false, forKey: "fisuTutorialDone")
-        defaults.set(false, forKey: "ftue.tapped")
-        defaults.set(false, forKey: "ftue.spawned")
-        defaults.set(false, forKey: "ftue.merged")
+        TutorialFlags.wipeGameFlags(in: defaults)
         ftueTapped = false
         ftueSpawned = false
         ftueMerged = false

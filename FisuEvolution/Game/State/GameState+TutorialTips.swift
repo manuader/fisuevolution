@@ -15,6 +15,11 @@ extension GameState {
     /// Una pantalla de la app, con su momento. El orden de `allCases` es el
     /// desempate cuando hay más de una elegible a la vez (el de la tabla del
     /// prompt); en la práctica casi siempre decide el gating solo.
+    enum TutorialRelease: Equatable, Sendable {
+        case v1
+        case v2
+    }
+
     enum TutorialLesson: String, CaseIterable {
         /// Alguien en escena esperando que lo toquen: la primera visita enseña el
         /// chip. Va primera: una visita se va sola, y si esperara su turno
@@ -70,7 +75,20 @@ extension GameState {
 
         /// La bandera persistida de "esta lección ya se dio". Versionable por
         /// prefijo, y `--uitest-reset` las barre (`+Debug`).
-        var defaultsKey: String { "tutorial.lesson.\(rawValue)" }
+        var defaultsKey: String { TutorialFlags.lessonKey(rawValue) }
+
+        /// En qué versión nació la mecánica que enseña. Al veterano de la v1 se le dan por vistas
+        /// las de la v1 (`TutorialMigration`); las de la 2.0 las ve en su primera vez.
+        var introducedIn: TutorialRelease {
+            switch self {
+            case .upgrades, .elevator, .skins, .achievements, .oroUpgrades, .gifts, .store, .prestige: .v1
+            default: .v2
+            }
+        }
+
+        static var veteranKnownLessons: Set<String> {
+            Set(allCases.filter { $0.introducedIn == .v1 }.map(\.rawValue))
+        }
 
         /// El control que el coach-mark señala.
         var anchorTarget: TutorialTarget {
@@ -137,7 +155,7 @@ extension GameState {
         let lesson: TutorialLesson
     }
 
-    static let sessionsAfterPhaseKey = "tutorial.sessionsAfterPhase"
+    static let sessionsAfterPhaseKey = TutorialFlags.sessionsAfterCoreKey
 
     /// Borra el progreso persistido de las lecciones (los flags por lección y
     /// el contador de sesiones). Lo comparten `--uitest-reset` y el "Resetear
@@ -146,10 +164,10 @@ extension GameState {
     /// tutorial y los ajustes.
     func wipeTutorialLessonProgress() {
         let defaults = UserDefaults.standard
-        for lesson in TutorialLesson.allCases {
-            defaults.removeObject(forKey: lesson.defaultsKey)
+        for key in defaults.dictionaryRepresentation().keys where key.hasPrefix(TutorialFlags.lessonPrefix) {
+            defaults.removeObject(forKey: key)
         }
-        defaults.removeObject(forKey: Self.sessionsAfterPhaseKey)
+        defaults.removeObject(forKey: TutorialFlags.sessionsAfterCoreKey)
     }
 
     // MARK: El director
@@ -311,5 +329,16 @@ extension GameState {
             if oro >= upgradeCost(of: line) { return true }
         }
         return false
+    }
+}
+
+extension GameState {
+    /// Corre una vez por instalación (las siguientes es un `nil`). Un veterano es quien tiene
+    /// save y ninguna versión: queda con el núcleo hecho y el Tour pendiente (E9b).
+    func applyTutorialMigration(hasSave: Bool) {
+        guard let plan = TutorialFlags.migrate(hasSave: hasSave,
+                                               veteranKnownLessons: TutorialLesson.veteranKnownLessons)
+        else { return }
+        Log.lifecycle.info("tutorial migrado: núcleo \(plan.coreCompleted), tour \(plan.tourPending)")
     }
 }

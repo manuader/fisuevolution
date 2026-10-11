@@ -128,7 +128,7 @@ struct GameBoardView: View {
     @State private var rankingCardUp = false
     // La ficha de personaje espera al tutorial: no es una celebración de la
     // cola, así que éste es su único gate.
-    @AppStorage("fisuTutorialDone") private var tutorialDone = false
+    @AppStorage(TutorialFlags.completedKey) private var tutorialDone = false
     #if DEBUG
     @State private var showDebugPanel = false
     #endif

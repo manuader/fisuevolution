@@ -61,7 +61,7 @@ extension GameState {
     /// El arranque (`startServices`): un arranque en frío también es volver, y un
     /// veterano —que nunca va a ver el cierre del núcleo— recibe acá su provisional.
     func notificationsLaunched(
-        tutorialDone: Bool = UserDefaults.standard.bool(forKey: "fisuTutorialDone")
+        tutorialDone: Bool = TutorialFlags.coreCompleted()
     ) async {
         guard let notifications else { return }
         await notifications.appBecameActive()

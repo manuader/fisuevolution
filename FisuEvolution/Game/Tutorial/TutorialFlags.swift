@@ -81,8 +81,10 @@ enum TutorialFlags {
         )
         guard let plan = TutorialMigration.plan(input, currentVersion: currentVersion,
                                                 veteranKnownLessons: veteranKnownLessons) else { return nil }
-        setCoreCompleted(plan.coreCompleted, in: defaults)
-        setTourPending(plan.tourPending, in: defaults)
+        // Sólo se enciende, nunca se apaga: el `false` es el default, y el host de los tests
+        // comparte los defaults (un test que arma "núcleo hecho" no puede perderlo en el arranque).
+        if plan.coreCompleted { setCoreCompleted(true, in: defaults) }
+        if plan.tourPending { setTourPending(true, in: defaults) }
         for id in plan.lessonsDone { markLessonDone(id, in: defaults) }
         defaults.set(plan.version, forKey: versionKey)
         defaults.removeObject(forKey: legacyCompletedKey)

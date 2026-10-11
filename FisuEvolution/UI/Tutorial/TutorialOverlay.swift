@@ -17,7 +17,7 @@ struct TutorialOverlay: View {
 
     @Environment(GameState.self) private var gameState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @AppStorage("fisuTutorialDone") private var done = false
+    @AppStorage(TutorialFlags.completedKey) private var done = false
     @State private var step = 0
 
     // MARK: - El guion

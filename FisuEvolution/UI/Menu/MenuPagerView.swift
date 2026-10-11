@@ -89,13 +89,32 @@ struct MenuPagerView: View {
             .scrollIndicators(.hidden)
             .scrollDisabled(locked)
             .onScrollPhaseChange { _, phase in moving = phase != .idle }
+            .onScrollGeometryChange(for: Int.self) { geometry in
+                Self.pageIndex(offset: geometry.contentOffset.x, width: geometry.containerSize.width)
+            } action: { _, index in
+                guard pages.indices.contains(index) else { return }
+                settle(on: pages[index])
+            }
             .onAppear { proxy.scrollTo(start, anchor: .leading) }
         }
         .onChange(of: current) { _, page in
             guard let page else { return }
-            shown = page
-            onPageChange(page)
+            settle(on: page)
         }
+    }
+
+    /// La página que el scroll tiene a la vista. `scrollPosition(id:)` a veces no
+    /// reporta el id al asentarse (el scroll queda en la página 0 y `current` no
+    /// cambia): el offset del scroll es la fuente que no falla.
+    static func pageIndex(offset: CGFloat, width: CGFloat) -> Int {
+        guard width > 0 else { return 0 }
+        return Int((offset / width).rounded())
+    }
+
+    private func settle(on page: GameScreen) {
+        guard page != shown else { return }
+        shown = page
+        onPageChange(page)
     }
 
     @ViewBuilder private func slot(_ page: GameScreen, index: Int) -> some View {

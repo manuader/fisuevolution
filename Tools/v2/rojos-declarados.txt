@@ -5,4 +5,3 @@
 # Un rojo que no esté acá pone el oráculo en rojo. Uno de la lista que deja de
 # fallar se avisa al final: sacalo en el mismo commit que lo arregla.
 
-ui testSeDeslizaHastaElRankingDesdeMejoras  # intermitente y previo a la ola r31 (base e1e39c1: 4/10 rojos): MenuPagerView no actualiza `shown` al asentarse el scroll en la página 0; arreglo propio pendiente (relevo 31)

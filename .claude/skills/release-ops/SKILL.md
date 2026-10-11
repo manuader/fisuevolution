@@ -56,6 +56,7 @@ ES256 la hace el `openssl` del sistema). Tests: `python3 -m unittest discover To
 | `asc diff` | Exit 0 si ASC == config. |
 | `asc ready` | Exit 0 si todos los productos pueden ir a revisión con la versión. |
 | `asc screenshot <producto> <png>` | Sube la captura de revisión (no reemplaza una existente). |
+| `asc builds [--json f]` | Sólo `GET /v1/builds`: tabla versión · build · estado · fecha y `próximo build libre para <versión>: N` (`max(builds de la versión, 4) + 1`, o el de `project.yml` si es mayor). Exit 0 siempre; sin credenciales imprime `NEEDS_CONTEXT`. |
 | `asc listing plan\|apply --yes\|diff` | Ficha de la versión (`store` en release.json): crea la versión si falta, textos por idioma, notas para App Review. Mac/Vision Pro quedan como pasos manuales. |
 | `admob plan` | Unidades de la config sin ID: las que hay que crear. |
 | `admob set-id <clave> <id>` | Anota el ID devuelto por AdMob (valida publisher y `/`). |
@@ -150,7 +151,7 @@ pestaña Configuración de una fuente marca "cambios sin guardar" aunque no se t
 | 1 | Monetización (AdMob) | ✅ `admob plan/set-id/sync-code` + navegador |
 | 2 | Compras | ✅ `asc plan/apply/diff/ready/screenshot` |
 | 3 | Metadatos y localizaciones de la ficha | ✅ `asc listing` (versión, idiomas, Novedades, notas de revisión); Mac/Vision Pro y App Privacy por navegador |
-| 4 | Versión y build | ✅ `version bump` |
+| 4 | Versión y build | ✅ `asc builds` antes de `version bump` (qué número está libre) |
 | 5 | Compilar y validar | 📋 `xcodegen generate` + `Tools/v2/oraculo.sh rapido` (o `completo`) |
 | 6 | Archivo de distribución | 📋 `xcodebuild archive -scheme FisuEvolution -configuration Release -archivePath build/FisuEvolution.xcarchive` |
 | 7 | Subida a ASC | 📋 🔒 `xcodebuild -exportArchive -archivePath … -exportOptionsPlist Distribution/ExportOptions.plist -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_<KEY>.p8 -authenticationKeyID <KEY> -authenticationKeyIssuerID <ISSUER> -allowProvisioningUpdates` (la misma key; ExportOptions ya dice `destination: upload`) |

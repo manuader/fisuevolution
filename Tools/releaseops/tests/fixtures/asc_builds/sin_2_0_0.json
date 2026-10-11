@@ -1,0 +1,47 @@
+{
+  "data": [
+    {
+      "type": "builds",
+      "id": "b0",
+      "attributes": {
+        "version": "3",
+        "uploadedDate": "2026-09-01T10:00:00-07:00",
+        "processingState": "VALID"
+      },
+      "relationships": {
+        "preReleaseVersion": {
+          "data": {
+            "type": "preReleaseVersions",
+            "id": "pv-1.9.0"
+          }
+        }
+      }
+    },
+    {
+      "type": "builds",
+      "id": "b1",
+      "attributes": {
+        "version": "4",
+        "uploadedDate": "2026-09-20T10:00:00-07:00",
+        "processingState": "VALID"
+      },
+      "relationships": {
+        "preReleaseVersion": {
+          "data": {
+            "type": "preReleaseVersions",
+            "id": "pv-1.9.0"
+          }
+        }
+      }
+    }
+  ],
+  "included": [
+    {
+      "type": "preReleaseVersions",
+      "id": "pv-1.9.0",
+      "attributes": {
+        "version": "1.9.0"
+      }
+    }
+  ]
+}

@@ -802,7 +802,7 @@ Olas: T1 ∥ T7 → T2 ∥ T3 ∥ T4 → T8 (ventana de `BoardScene`); T5 tras E
 | E9a-T8 | `TutorialInlineCard`: offline, carrera, primer visitante | ✅ | T6 | OfflineEarningsView, CareerChoiceView, popup del visitante, catálogo (snapshot) | | sonnet |
 | E9a-T9 | `TutorialMechanic` + `TutorialCoverageTests` + `TutorialCurriculumTests` (20 huecos declarados) | ✅ | T7, T8 | TutorialCurriculum, tests | | sonnet |
 | E9a-T10 | Cierre de E9a (controlador) | ⛔ | T1–T9 | `Docs/` | | controlador |
-| E9b-T1 | Lecciones del tablero y la torre (atajo con pin en 5 pasos, pasivo, botonera, ficha, piso móvil…) | 🔧 | E9a-T9; E3a-T8, E3b-T8, E2a-T8, E2a-T13 | catálogo (dueña); +TutorialTips, varias vistas | | sonnet |
+| E9b-T1 | Lecciones del tablero y la torre (atajo con pin en 5 pasos, pasivo, botonera, ficha, piso móvil…) | 🟢 | E9a-T9; E3a-T8, E3b-T8, E2a-T8, E2a-T13 | catálogo (dueña); +TutorialTips, varias vistas | | sonnet |
 | E9b-T2 | Lecciones de economía, ORO, tienda y menú (18) | ⛔ | T1; E2a-T10, E3a-T9, E6a-T8, E6a-T12, E6b-T7 | catálogo; +TutorialTips, varias vistas | | sonnet |
 | E9b-T3 | Las 9 heredadas al formato, orden fijado, cero huecos | ⛔ | T2 | catálogo (snapshot); +TutorialTips | | sonnet |
 | E9b-T4 | El Tour de novedades (veteranos) | ⛔ | E9a-T6; T3 | +Tutorial, +Debug, catálogo | | sonnet |

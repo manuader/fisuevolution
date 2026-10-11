@@ -20,6 +20,8 @@ final class ExtraSlotsLayoutUITests: XCTestCase {
         let marker = try XCTUnwrap(layout.value as? String)
         let rows = try XCTUnwrap(Int(marker.split(separator: "x")[1].split(separator: "@")[0]))
         let count = try XCTUnwrap(Int(units.value as? String ?? ""))
+        XCTAssertGreaterThan(count, 10, "el piso lleno tiene más que la base: los lugares se aplicaron")
+        XCTAssertGreaterThanOrEqual(rows, 3, "con los lugares extra el tablero crece de filas")
         XCTAssertEqual(rows, (count + 4) / 5, "las filas son las de la capacidad agrandada")
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "E6 lugares extra, piso lleno (\(marker))"

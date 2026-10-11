@@ -138,7 +138,7 @@ extension GameState {
         guard let content, let current = tower else { return }
         var grown = TowerState(floorTable: content.floorTable)
         for index in current.floors.indices where grown.floors.indices.contains(index) {
-            let slots = current.floors[index].slots
+            let slots = current.floors[index].slots.prefix(grown.floors[index].slots.count)
             grown.floors[index].slots.replaceSubrange(slots.indices, with: slots)
         }
         tower = grown

@@ -38,7 +38,7 @@ struct ExtraSlotsWiringTests {
     }
 
     @Test("los lugares se recuerdan: una carga nueva los vuelve a aplicar")
-    func levelsArePersisted() async throws {
+    func savedLevelsAreReappliedByReconcile() async throws {
         let gameState = await makeGameState()
         let base = try #require(gameState.content?.baseFloorTable[0].capacity)
         gameState.player?.meta.engagement.shop.levels["extra_slots"] = 2
@@ -122,6 +122,23 @@ struct ExtraSlotsWiringTests {
         #expect(throws: Never.self) { try shop.validate(floorIDs: floorIDs) }
     }
 
+    @Test("un nivel de lugares que no es un entero positivo no carga")
+    func extraSlotsValueMustBeAPositiveWholeNumber() throws {
+        let content = try GameContentLoader.load(from: .main)
+        let floorIDs = Set(content.floorTable.floors.map(\.id))
+        for value in ["0", "-2", "2.5"] {
+            let json = """
+            {"schemaVersion": 1, "items": [
+              {"id": "extra_slots", "shelf": "permanents", "iconKey": "x", "symbol": "x",
+               "perk": "extraSlots", "levels": [{"price": 600, "value": \(value)}]}]}
+            """
+            let shop = try JSONDecoder().decode(OroShopCatalog.self, from: Data(json.utf8))
+            #expect(throws: GameContentLoader.OroShopContentError.extraSlotsNotWholeNumber("extra_slots")) {
+                try GameContentLoader.validate(oroShop: shop, floorIDs: floorIDs, packages: content.packages)
+            }
+        }
+    }
+
     // MARK: El tablero no se mueve
 
     @Test("comprar no reacomoda a nadie: cada unidad sigue en su lugar")
@@ -149,8 +166,12 @@ struct ExtraSlotsWiringTests {
         let type = try #require(gameState.content?.tiers.baseType)
         gameState.player?.run.units = [type.id: 2]
         gameState.reconcileTower()
-        let tower = try #require(gameState.tower)
-        let slots = tower.placements(onFloor: 0).map(\.slot)
+        var tower = try #require(gameState.tower)
+        tower.floors[0].slots = tower.floors[0].slots.map { _ in nil }
+        tower.floors[0].slots[3] = type.id
+        tower.floors[0].slots[7] = type.id
+        gameState.tower = tower
+        let slots = [3, 7]
         let next = try #require(gameState.content?.tiers.type(id: type.id)?.mergesInto)
         let change = BoardChange(
             kind: .merge(floorOrdinal: 0, typeId: type.id, sourceSlot: slots[0], targetSlot: slots[1], newTypeId: next),
@@ -164,6 +185,7 @@ struct ExtraSlotsWiringTests {
         let player = try #require(gameState.player)
         let content = try #require(gameState.content)
         let tower2 = try #require(gameState.tower)
+        #expect(tower2.floors[0].slots[3] == type.id && tower2.floors[0].slots[7] == type.id)
         #expect(BoardChangePlanner.revalidate(
             change, state: player, tower: tower2, tiers: content.tiers, floorTable: content.floorTable
         ) == change, "el mismo cambio, intacto, contra la torre agrandada")

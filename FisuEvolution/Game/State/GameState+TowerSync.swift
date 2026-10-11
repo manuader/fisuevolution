@@ -6,7 +6,8 @@ extension GameState {
     /// Reconstruye la torre desde `run.units` contra el mapeo vigente. Corre en
     /// cada carga: un remapeo tier→piso entre versiones reacomoda la partida en
     /// vez de romperla (spec §3.1). Arranca mirando el piso más alto desbloqueado.
-    /// La llaman `+Prestige` (reencarnar) y `+Debug` (resetear el save).
+    /// La llaman el arranque (`+Bootstrap`), `+Prestige` (reencarnar), `+Debug`
+    /// (resetear el save) y los fixtures de `+Engagement`.
     func reconcileTower() {
         applyExtraSlots()
         guard let content, var player else { return }

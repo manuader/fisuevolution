@@ -289,6 +289,9 @@ enum GameContentLoader {
             if item.levels.contains(where: { !$0.value.isFinite }) {
                 throw OroShopContentError.notFinite(item.id)
             }
+            if item.perk == .extraSlots, item.levels.contains(where: { $0.value < 1 || $0.value != $0.value.rounded() }) {
+                throw OroShopContentError.extraSlotsNotWholeNumber(item.id)
+            }
             if item.perk == .bestSupplier, item.levels.contains(where: { $0.value >= Double(packages.tierRatioByBestSupplierLevel.count) }) {
                 throw OroShopContentError.supplierLevelUnknown(item.id)
             }
@@ -298,6 +301,7 @@ enum GameContentLoader {
     enum OroShopContentError: Error, Equatable {
         case notFinite(String)
         case supplierLevelUnknown(String)
+        case extraSlotsNotWholeNumber(String)
     }
 
     /// Un premio mal declarado se descubre al arrancar, no cuando el jugador lo

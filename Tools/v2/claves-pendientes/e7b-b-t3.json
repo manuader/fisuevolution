@@ -1,0 +1,14 @@
+{
+  "siderail.toggle.ax": {"es": "Premios", "en": "Prizes"},
+  "siderail.wheel.ax": {"es": "Ruleta", "en": "Wheel"},
+  "siderail.mattress.ax": {"es": "El Colchón", "en": "The Mattress"},
+  "siderail.packages.ax": {"es": "Paquetes de la Aduana", "en": "Customs packages"},
+  "siderail.boost.ax": {"es": "Fusionar todo", "en": "Merge all"},
+  "siderail.hours %@": {"es": "%@h", "en": "%@h"},
+  "siderail.boost.pitch %@": {"es": "Mirá un video y se hacen de una las %@ fusiones de este piso.", "en": "Watch a video and all %@ merges on this floor happen at once."},
+  "siderail.boost.video": {"es": "Fusionar con video", "en": "Merge with a video"},
+  "siderail.rain.title": {"es": "Lluvia de paquetes", "en": "Package rain"},
+  "siderail.rain.pitch %@": {"es": "Con un video: %@. ¡Andá recogiendo, muchachos!", "en": "Watch a video: %@. Start collecting!"},
+  "siderail.rain.video": {"es": "Que llueva", "en": "Make it rain"},
+  "siderail.offer.close.ax": {"es": "Cerrar", "en": "Close"}
+}

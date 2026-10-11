@@ -80,6 +80,57 @@ extension GameState {
     }
 }
 
+// MARK: - Los toques
+
+/// Qué hizo un toque a un botón de la columna.
+enum SideRailTap: Equatable {
+    /// Abrió algo (la ruleta, el colchón, un paquete).
+    case acted
+    /// Ofrece un video: la vista muestra su tarjeta.
+    case offer
+    /// No hay nada que hacer: el botón tiembla.
+    case refused
+}
+
+extension GameState {
+    /// Lo que pasa al tocar un botón de la persiana. Todo se relee en vivo (la
+    /// proyección llega a lo sumo una vez por segundo): los paquetes, el colchón,
+    /// el piso y el tablero. No se apaga el botón; se decide al tocar.
+    func sideRailTapped(_ kind: SideRailKind) -> SideRailTap {
+        switch kind {
+        case .wheel:
+            openWheel()
+            return wheelSheet != nil ? .acted : .refused
+        case .mattress:
+            guard mattressWaiting else { return .refused }
+            mattressTapped()
+            return mattressPopup != nil ? .acted : .refused
+        case .packages:
+            if packagesWaiting > 0 {
+                if case .opened = packageTapped() { return .acted }
+                return .refused
+            }
+            return canOfferPackageRainVideo() ? .offer : .refused
+        case .boost:
+            return canOfferMergeAllVideo() ? .offer : .refused
+        }
+    }
+
+    /// Terminó el video de una tarjeta de la columna. El cerrojo corta el aviso
+    /// repetido ANTES de pagar: un segundo aviso del mismo video no compensa ni
+    /// cuenta de más. Quien lo reclamó no lo suelta; la tarjeta se cierra.
+    @discardableResult
+    func railVideoWatched(
+        _ kind: SideRailKind,
+        latch: inout PurchaseLatch,
+        now: TimeInterval = Date().timeIntervalSince1970
+    ) -> Bool {
+        guard kind == .boost || kind == .packages, latch.claim() else { return false }
+        if kind == .boost { mergeAllVideoWatched(now: now) } else { packageRainVideoWatched(now: now) }
+        return true
+    }
+}
+
 // MARK: - Los videos
 
 /// Cuántos eslabones de una cadena de Fusionar todo por video ya se jugaron o

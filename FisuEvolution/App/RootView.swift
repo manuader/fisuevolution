@@ -103,6 +103,8 @@ struct GameBoardView: View {
     @State private var offerSelection: OfferPresentation?
     /// El selector del atajo: un overlay sobre el juego, no una hoja.
     @State private var showQuickHirePicker = false
+    /// La tarjeta del video de la columna plegable (E7b), o `nil`.
+    @State private var railOffer: SideRailKind?
     /// La sesión del menú deslizable, o `nil`. Su `id` es estable mientras la
     /// hoja está arriba: deslizar entre pestañas cambia la página adentro, no
     /// la sesión, así que la hoja no se vuelve a presentar (PLAN-v2 E3). Las
@@ -581,6 +583,7 @@ struct GameBoardView: View {
         // Con `allowsHitTesting` atado a lo mismo, además, no se puede tocar algo
         // que no se ve. Sólo esa celebración lo hace — un toast de logro de 4 s
         // no justifica apagar la interfaz.
+        .modifier(SideRailTapAway(offer: $railOffer))
         .opacity(hidesUIForCelebration ? 0 : 1)
         .allowsHitTesting(!hidesUIForCelebration)
         .animation(.easeInOut(duration: 0.25), value: hidesUIForCelebration)
@@ -657,6 +660,7 @@ struct GameBoardView: View {
             BottomMenuBar(select: open)
         }
         .tutorialAnchor(.bottomBar)
+        .modifier(SideRailMount(offer: $railOffer))
     }
 
         /// DailyRewardManager.Claim no es Identifiable; wrapper para .fisuSheet(item:).

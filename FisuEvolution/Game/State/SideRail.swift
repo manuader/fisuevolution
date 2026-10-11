@@ -123,8 +123,9 @@ enum SideRailModel {
 /// El reloj de un botón: "42s", "4:05", y arriba de la hora "3h" (la ruleta
 /// espera a la medianoche y los minutos ahí no dicen nada).
 enum SideRailClock {
-    static func text(_ seconds: Int) -> String {
-        if seconds >= 3600 { return "\(seconds / 3600)h" }
+    /// `hours` pone la unidad de las horas: la vista la pasa localizada.
+    static func text(_ seconds: Int, hours: (Int) -> String = { "\($0)h" }) -> String {
+        if seconds >= 3600 { return hours(seconds / 3600) }
         guard seconds >= 60 else { return "\(seconds)s" }
         return "\(seconds / 60):" + String(format: "%02d", seconds % 60)
     }

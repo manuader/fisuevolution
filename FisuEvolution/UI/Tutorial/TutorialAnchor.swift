@@ -34,6 +34,11 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     /// el ancla viaja con el botón cuando se mude).
     case sidePackages
     case sideMattress
+    /// La columna plegable (E7b): el botón "Premios" en reposo y los otros dos
+    /// botones de su persiana.
+    case sideRail
+    case sideWheel
+    case sideBoost
     /// No se ilumina: es la franja que el globo tiene que ESQUIVAR. Sin esto el
     /// globo se apoyaba encima del HUD y lo tapaba entero — y como el HUD es
     /// justamente lo que los pasos siguientes iluminan, el tutorial terminaba

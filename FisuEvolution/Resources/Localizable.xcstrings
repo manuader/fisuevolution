@@ -6767,6 +6767,40 @@
         }
       }
     },
+    "oroShop.item.extra_slots.desc" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ spots on every floor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%@ lugares en cada piso"
+          }
+        }
+      }
+    },
+    "oroShop.item.extra_slots.name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expansion"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ampliación"
+          }
+        }
+      }
+    },
     "oroShop.item.income_x2.name" : {
       "extractionState" : "manual",
       "localizations" : {

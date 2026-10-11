@@ -17,6 +17,8 @@ struct CelebrationWiringTests {
             snapshotURL: FileManager.default.temporaryDirectory.appending(path: "celeb-\(UUID().uuidString).json")
         )
         let gameState = GameState(repository: repository)
+        // Varios tests cierran el núcleo: sus banderas no le quedan al host.
+        gameState.flagDefaults = .isolatedForTest()
         await gameState.bootstrap()
         return gameState
     }

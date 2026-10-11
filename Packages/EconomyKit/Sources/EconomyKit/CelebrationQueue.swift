@@ -76,6 +76,9 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         switch self {
         case .offlineEarnings, .dailyReward, .careerChoice,
              .skinAward, .specialDrop, .chestOpening, .offer: nil
+        // Una lección no se va sola: la cierra su último paso, o el watchdog de
+        // 3 min del tutorial (PLAN-v2 E9).
+        case .tutorialTip: nil
         // Cubre destacar el par, fundirlo, el vuelo del ascenso y el reveal.
         // En una cadena, por eslabón (`renew`).
         case .boardCelebration: 14
@@ -84,9 +87,6 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
         // Cubre unos diez toasts seguidos; pasado eso corta y lo loguea.
         case .achievements: 30
         case .towerNotice: 4
-        // Lo que tarda en leerse el globo con margen: una lección ignorada se
-        // va sola, nunca deja la pantalla ocupada.
-        case .tutorialTip: 12
         // 5 s de video, la hoja que se va y margen.
         case .cinematic: 12
         }
@@ -96,11 +96,12 @@ public enum CelebrationKind: String, CaseIterable, Hashable, Sendable {
     /// un tap al vacío no lo cierra. La cinemática se cierra sola pero tapa la
     /// pantalla con su propio "Saltar": un tap al tablero de abajo no la corta
     /// (ni le borra a una celebración del tablero la animación que esperaba).
+    /// Una lección tampoco: el tutorial no se saltea (PLAN-v2 §2).
     public var isSkippable: Bool {
         switch self {
         case .offlineEarnings, .dailyReward, .careerChoice, .skinAward, .specialDrop,
-             .chestOpening, .cinematic, .offer: false
-        case .boardCelebration, .visitorEncounter, .achievements, .towerNotice, .tutorialTip: true
+             .chestOpening, .cinematic, .offer, .tutorialTip: false
+        case .boardCelebration, .visitorEncounter, .achievements, .towerNotice: true
         }
     }
 }

@@ -2,7 +2,9 @@ import Foundation
 @testable import FisuEvolution
 
 /// Un `GameState` arrancado contra el contenido real bundleado, con persistencia
-/// en memoria y snapshot descartable.
+/// en memoria, snapshot descartable y sus banderas de partida en un dominio propio
+/// (`UserDefaults.isolatedForTest()`): nada de lo que el test haga con el tutorial le
+/// queda al host.
 ///
 /// Vive acá y no `private` en una suite porque varias suites lo necesitan y dos
 /// copias divergen: la que se olvida de `bootstrap()` o la que comparte el
@@ -14,6 +16,7 @@ func makeGameState() async -> GameState {
         snapshotURL: FileManager.default.temporaryDirectory.appending(path: "fixture-\(UUID().uuidString).json")
     )
     let gameState = GameState(repository: repository)
+    gameState.flagDefaults = .isolatedForTest()
     await gameState.bootstrap()
     return gameState
 }

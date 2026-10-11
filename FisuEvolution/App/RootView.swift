@@ -286,10 +286,8 @@ struct GameBoardView: View {
             GeometryReader { proxy in
                 let resolved = anchors.mapValues { proxy[$0] }
                 ZStack {
+                    // El renderer único del tutorial: el núcleo y las lecciones.
                     TutorialOverlay(anchors: resolved)
-                    // Las lecciones contextuales. Nunca conviven con la fase:
-                    // el director no dispara ninguna hasta que la fase termina.
-                    TutorialTipView(anchors: resolved)
                     if showQuickHirePicker {
                         QuickHirePicker(anchor: resolved[.quickHire]) {
                             withAnimation(.easeOut(duration: 0.2)) { showQuickHirePicker = false }

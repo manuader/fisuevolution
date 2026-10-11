@@ -8,23 +8,21 @@ import Testing
 /// pantalla donde en ese momento no hay nada que hacer** — ni al nacer, ni
 /// después de esperar turno.
 ///
-/// ⚠️ Los defaults de lecciones persisten en el host de los tests: cada caso
-/// arranca barriéndolos, o una lección "dada" por el test anterior cambia qué
-/// nace en éste. Y el director arranca APAGADO bajo XCTest (mismo criterio que
-/// el gate del bootstrap): cada test lo prende explícito.
+/// ⚠️ Las banderas de lecciones de cada caso viven en su propio dominio
+/// (`UserDefaults.isolatedForTest()`): una lección "dada" por el test anterior
+/// no cambia qué nace en éste, y nada le queda al host. Y el director arranca
+/// APAGADO bajo XCTest (mismo criterio que el gate del bootstrap): cada test lo
+/// prende explícito.
 @Suite("Lecciones contextuales del tutorial", .serialized)
 @MainActor
 struct TutorialTipsTests {
     private func makeGameState() async -> GameState {
-        for lesson in GameState.TutorialLesson.allCases {
-            UserDefaults.standard.removeObject(forKey: lesson.defaultsKey)
-        }
-        UserDefaults.standard.removeObject(forKey: GameState.sessionsAfterPhaseKey)
         let repository = PlayerStateRepository(
             persistence: PersistenceController(inMemory: true),
             snapshotURL: FileManager.default.temporaryDirectory.appending(path: "tips-\(UUID().uuidString).json")
         )
         let gameState = GameState(repository: repository)
+        gameState.flagDefaults = .isolatedForTest()
         await gameState.bootstrap()
         gameState.tutorialLessonsAutorun = true
         // Una partida nueva ya tiene un giro de la ruleta listo: sin esto las
@@ -69,11 +67,11 @@ struct TutorialTipsTests {
         gameState.refreshProjections()
         #expect(gameState.showing == .tutorialTip)
 
-        gameState.dismissTutorialTip()
+        gameState.tutorialTipHandled(opening: .upgrades)
         #expect(gameState.showing != .tutorialTip)
-        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey),
-                "cerrarla la deja dada: no vuelve nunca")
+        #expect(gameState.isLessonDone(.upgrades), "cumplirla la deja dada: no vuelve nunca")
 
+        gameState.advanceTutorial(delta: TutorialPacing.gapBetweenLessons)
         gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson != .upgrades, "la que sigue puede nacer, la dada no")
     }
@@ -102,7 +100,7 @@ struct TutorialTipsTests {
     func openingTheKeypadCompletesTheLesson() async {
         let gameState = await makeGameState()
         gameState.elevatorKeypadOpened()
-        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.elevatorKeypad.defaultsKey))
+        #expect(gameState.isLessonDone(.elevatorKeypad))
     }
 
     @Test("desplegar la placa con la lección en pantalla la retira")
@@ -129,7 +127,7 @@ struct TutorialTipsTests {
 
         gameState.tutorialTipHandled(opening: .upgrades)
         #expect(gameState.showing != .tutorialTip, "hacer lo que señala es la mejor salida")
-        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey))
+        #expect(gameState.isLessonDone(.upgrades))
     }
 
     /// Una lección esperando turno, armada a mano: el director v2 sólo hace nacer lecciones
@@ -152,7 +150,7 @@ struct TutorialTipsTests {
         gameState.refreshProjections()
         #expect(gameState.tutorialRun == nil, "la regla de oro vale hasta el último frame")
         #expect(!gameState.celebrations.contains(.tutorialTip), "y suelta su lugar en la fila")
-        #expect(!UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey),
+        #expect(!gameState.isLessonDone(.upgrades),
                 "no se quema: nunca estuvo en pantalla")
     }
 
@@ -161,7 +159,7 @@ struct TutorialTipsTests {
         let gameState = await pendingUpgradesLesson()
         gameState.tutorialTipHandled(opening: .upgrades)
         #expect(gameState.tutorialRun != nil, "avanzar espera al turno")
-        #expect(!UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey),
+        #expect(!gameState.isLessonDone(.upgrades),
                 "no se marca dada sin haberse visto")
     }
 
@@ -174,7 +172,7 @@ struct TutorialTipsTests {
         #expect(gameState.tutorialTip?.lesson == .eventChip)
         gameState.openEventPopup(id: "devaluacion")
         #expect(gameState.showing != .tutorialTip)
-        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.eventChip.defaultsKey))
+        #expect(gameState.isLessonDone(.eventChip))
     }
 
     @Test("con una hoja tapando el tablero no nace nada")
@@ -299,7 +297,7 @@ struct TutorialTipsTests {
         gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson == .album)
         gameState.tutorialTipHandled(opening: .menu)
-        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.album.defaultsKey))
+        #expect(gameState.isLessonDone(.album))
     }
 
     @Test("la primera visita enseña el chip, y abrir su popup la cumple")
@@ -315,7 +313,7 @@ struct TutorialTipsTests {
         gameState.openVisitorPopup()
         #expect(gameState.visitorPopup != nil)
         #expect(gameState.showing != .tutorialTip)
-        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.visitor.defaultsKey))
+        #expect(gameState.isLessonDone(.visitor))
     }
 
     @Test("un paquete esperando enseña a tocarlo, y tocarlo cumple la lección")
@@ -331,7 +329,7 @@ struct TutorialTipsTests {
         #expect(GameState.TutorialLesson.packages.anchorTarget == .sidePackages)
         _ = gameState.packageTapped()
         #expect(gameState.showing != .tutorialTip)
-        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.packages.defaultsKey))
+        #expect(gameState.isLessonDone(.packages))
     }
 
     @Test("un colchón esperando enseña a abrirlo, y tocarlo la cumple")
@@ -346,7 +344,7 @@ struct TutorialTipsTests {
         #expect(GameState.TutorialLesson.mattress.anchorTarget == .sideMattress)
         gameState.mattressTapped()
         #expect(gameState.showing != .tutorialTip)
-        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.mattress.defaultsKey))
+        #expect(gameState.isLessonDone(.mattress))
     }
 
     @Test("la ruleta se enseña en la columna, no en Regalos, y tocarla la cumple")
@@ -355,7 +353,7 @@ struct TutorialTipsTests {
         for lesson in GameState.TutorialLesson.allCases where lesson != .wheel {
             gameState.markLessonDone(lesson)
         }
-        UserDefaults.standard.removeObject(forKey: GameState.TutorialLesson.wheel.defaultsKey)
+        gameState.flagDefaults.removeObject(forKey: GameState.TutorialLesson.wheel.defaultsKey)
         gameState.debugAddWheelSpins(1)
         gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson == .wheel)
@@ -371,7 +369,7 @@ struct TutorialTipsTests {
         for lesson in GameState.TutorialLesson.allCases where lesson != .sideRail && lesson != .packages {
             gameState.markLessonDone(lesson)
         }
-        UserDefaults.standard.removeObject(forKey: GameState.TutorialLesson.sideRail.defaultsKey)
+        gameState.flagDefaults.removeObject(forKey: GameState.TutorialLesson.sideRail.defaultsKey)
         gameState.debugAddPackages(1)
         gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson == .sideRail, "la de los paquetes espera a la de abrir la columna")
@@ -391,7 +389,7 @@ struct TutorialTipsTests {
         for lesson in GameState.TutorialLesson.allCases where lesson != .sideRail {
             gameState.markLessonDone(lesson)
         }
-        UserDefaults.standard.removeObject(forKey: GameState.TutorialLesson.sideRail.defaultsKey)
+        gameState.flagDefaults.removeObject(forKey: GameState.TutorialLesson.sideRail.defaultsKey)
         gameState.debugAddWheelSpins(1)
         gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson == .sideRail)

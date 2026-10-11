@@ -1,12 +1,16 @@
+import EconomyKit
 import SwiftUI
 
-/// Tutorial interactivo (RF-01), patrón Clash of Clans: el renderer del núcleo.
+/// Tutorial interactivo (RF-01), patrón Clash of Clans: el renderer ÚNICO del
+/// tutorial sobre el tablero —el núcleo, las lecciones, el Tour y el repaso—.
 ///
 /// Cada paso recorta un agujero sobre el control **real** —resuelto por
 /// `TutorialAnchorKey` para los controles de SwiftUI y por `BoardScene` para el
 /// personaje del tablero— con una mano que late encima. El resto de la pantalla
 /// queda oscurecido y **no responde al toque**, así que el paso sólo avanza
-/// cuando el jugador ejecuta la acción que se le pide.
+/// cuando el jugador ejecuta la acción que se le pide. Una lección pone un
+/// scrim más liviano que el del núcleo, pero igual de firme: no se saltea
+/// (PLAN-v2 §2).
 ///
 /// El guion, el paso y el candado son del director (`GameState+Tutorial`,
 /// `TutorialCurriculum.core`): esta vista sólo lee `gameState.tutorialRun`. No
@@ -22,22 +26,43 @@ struct TutorialOverlay: View {
     // MARK: - Cuerpo
 
     var body: some View {
-        // Mientras una celebración tiene el turno, el overlay ENTERO se esconde
-        // —scrim, recorte, mano y globo—. Durante la fase la única que puede
-        // tomarlo es el reveal del tablero (`beginTutorialPhase` restringe la
-        // cola), y ése es EL momento del primer merge: se reproduce limpio, a
-        // pantalla completa y sin un segundo scrim encima, y el paso siguiente
-        // aparece recién cuando la escena avisa `celebrationFinished`. Regla
-        // dura: nunca dos scrims a la vez.
-        //
-        // ⚠️ Lee `showing` y no `tutorialStepIsVisible`: éste mira además
-        // `uiCoversBoard`, que no se observa. Con FisuJobs abierta (el paso de
-        // contratar) la hoja se presenta por encima del overlay, que es lo
-        // correcto; esconderlo por la hoja lo dejaba escondido al cerrarla.
-        if let run = gameState.tutorialRun, run.script == .core,
-           gameState.showing == nil, let step = run.step {
-            overlay(run, step)
+        // El `ZStack` montado SIEMPRE + `.animation(value:)` acá es lo que hace
+        // correr la transición de la entrada (declarada adentro, está muerta).
+        // Sólo las lecciones entran y salen con fundido: el núcleo aparece y se
+        // esconde en el acto, como siempre, alrededor del reveal del tablero.
+        ZStack {
+            if let run = visibleRun, let step = run.step {
+                overlay(run, step)
+                    .transition(.opacity)
+            }
         }
+        .animation(motion(.easeInOut(duration: 0.25)), value: visibleLesson)
+    }
+
+    private var visibleLesson: TutorialRun.Script? {
+        visibleRun.flatMap { $0.script == .core ? nil : $0.script }
+    }
+
+    /// La corrida que se dibuja, o `nil`.
+    ///
+    /// Mientras una celebración tiene el turno, el overlay ENTERO se esconde
+    /// —scrim, recorte, mano y globo—. Durante el núcleo la única que puede
+    /// tomarlo es el reveal del tablero (`beginTutorialPhase` restringe la
+    /// cola), y ése es EL momento del primer merge: se reproduce limpio, a
+    /// pantalla completa y sin un segundo scrim encima. Una lección, el Tour y
+    /// el repaso viajan por la cola: se dibujan sólo con SU turno
+    /// (`.tutorialTip`). Regla dura: nunca dos scrims a la vez.
+    ///
+    /// ⚠️ Lee `showing` y no `tutorialStepIsVisible`: éste mira además
+    /// `uiCoversBoard`, que no se observa. Con una hoja abierta (FisuJobs en el
+    /// paso de contratar, Mejoras al cumplir su lección) la hoja se presenta
+    /// por encima del overlay, que es lo correcto; esconderlo por la hoja lo
+    /// dejaba escondido al cerrarla. Las tarjetas embebidas (`.embedded`) y los
+    /// pasos de hoja no se dibujan acá: tienen su propio renderer.
+    private var visibleRun: TutorialRun? {
+        guard let run = gameState.tutorialRun, run.step?.surface == .board else { return nil }
+        let turn: CelebrationKind? = run.script == .core ? nil : .tutorialTip
+        return gameState.showing == turn ? run : nil
     }
 
     @ViewBuilder
@@ -46,14 +71,14 @@ struct TutorialOverlay: View {
         let windows = step.windows.compactMap { anchors[$0] }
         GeometryReader { proxy in
             ZStack {
-                scrim(hole: hole, windows: windows, screen: proxy.size)
+                scrim(run, step, hole: hole, windows: windows)
                 if SpotlightShape.isDrawable(hole) {
                     spotlightRing(hole)
-                    hand(hole, screen: proxy.size)
+                    if step.hand == .tap { hand(hole, screen: proxy.size) }
                 }
                 card(run, step, hole: hole, screen: proxy.size)
             }
-            .background(markers(step, hole: hole))
+            .background(markers(run, step, hole: hole))
         }
         .ignoresSafeArea()
         .animation(motion(.easeInOut(duration: 0.32)), value: hole)
@@ -75,16 +100,45 @@ struct TutorialOverlay: View {
         return rect.insetBy(dx: -10, dy: -10)
     }
 
-    private func scrim(hole: CGRect, windows: [CGRect], screen: CGSize) -> some View {
+    /// El scrim: el del núcleo es el más oscuro; el de una lección, más
+    /// liviano, pero bloquea igual —sólo se puede hacer lo que pide—.
+    @ViewBuilder
+    private func scrim(_ run: TutorialRun, _ step: TutorialStep, hole: CGRect, windows: [CGRect]) -> some View {
         let shape = SpotlightShape(primary: hole, extras: windows)
-        return shape
-            .fill(Color.black.opacity(0.68), style: FillStyle(eoFill: true))
-            // La MISMA forma de hit-testing: fuera del agujero el toque se lo
-            // come el scrim y no llega ni al HUD ni a la escena. Es lo único que
-            // impide saltear un paso sin hacer lo que pide.
-            .contentShape(shape, eoFill: true)
-            .accessibilityIdentifier("tutorial.scrim")
-            .accessibilityHidden(true)
+        let fill = shape.fill(Color.black.opacity(Self.scrimOpacity(run)), style: FillStyle(eoFill: true))
+        if run.isDemo {
+            // Una demostración (Tour, repaso) sólo se mira: el agujero ilumina
+            // pero no deja pasar el toque.
+            fill
+                .contentShape(Rectangle())
+                .accessibilityIdentifier("tutorial.scrim")
+                .accessibilityHidden(true)
+        } else if Self.passesTouches(run, step, hole: hole) {
+            // Una lección cuyo control no publicó su ancla no puede trabar el
+            // juego 3 minutos detrás de un scrim sin agujero: se ve, no bloquea.
+            fill
+                .allowsHitTesting(false)
+                .accessibilityIdentifier("tutorial.scrim")
+                .accessibilityHidden(true)
+        } else {
+            fill
+                // La MISMA forma de hit-testing: fuera del agujero el toque se lo
+                // come el scrim y no llega ni al HUD ni a la escena. Es lo único que
+                // impide saltear un paso sin hacer lo que pide.
+                .contentShape(shape, eoFill: true)
+                .accessibilityIdentifier("tutorial.scrim")
+                .accessibilityHidden(true)
+        }
+    }
+
+    static func scrimOpacity(_ run: TutorialRun) -> Double {
+        run.script == .core ? 0.68 : 0.55
+    }
+
+    /// Una lección con un paso de acción sin recorte deja pasar el toque. El
+    /// núcleo no: su cierre va sin recorte a propósito y espera su botón.
+    static func passesTouches(_ run: TutorialRun, _ step: TutorialStep, hole: CGRect) -> Bool {
+        run.script != .core && step.clockKind == .action && !SpotlightShape.isDrawable(hole)
     }
 
     /// Borde luminoso del agujero: sin esto el recorte se lee como un bache en
@@ -114,7 +168,8 @@ struct TutorialOverlay: View {
         let holeIsLow = hasHole ? hole.midY > screen.height / 2 : false
         let topInset = (anchors[.hudBar]?.maxY ?? 0) + 14
         let bottomInset = anchors[.bottomBar].map { screen.height - $0.minY + 14 } ?? 40
-        let isLast = run.index == run.steps.count - 1
+        // "¡Vamos!" es el cierre del núcleo; todo otro paso de explicar dice "Entendido".
+        let isCoreClose = run.script == .core && run.index == run.steps.count - 1
         return VStack(spacing: 0) {
             if !holeIsLow { Spacer(minLength: 0) }
             TutorialCard(
@@ -123,7 +178,7 @@ struct TutorialOverlay: View {
                 total: run.steps.count,
                 unlocked: run.unlocked,
                 lockProgress: { gameState.tutorialLockProgress },
-                confirmKey: isLast ? "tutorial.done" : "tutorial.confirm",
+                confirmKey: isCoreClose ? "tutorial.done" : "tutorial.confirm",
                 onConfirm: gameState.confirmTutorialStep
             )
             .frame(maxWidth: PlayColumn.tutorialCardMaxWidth)
@@ -157,8 +212,19 @@ struct TutorialOverlay: View {
     /// botón, siempre es algo tapándolo. Los toques por coordenada seguían
     /// funcionando, así que el bug sólo se ve en los tests que usan `.tap()`
     /// sobre un elemento.
-    private func markers(_ step: TutorialStep, hole: CGRect) -> some View {
+    ///
+    /// `tutorial.tip` (valor: el id de la lección, o `tour`/`replay`) es el de
+    /// las lecciones: lo leen los tests de E4b/E5b/E7b-b desde que el globo de
+    /// la v1 se fue (E9a T6). El núcleo no lo publica.
+    private func markers(_ run: TutorialRun, _ step: TutorialStep, hole: CGRect) -> some View {
         VStack(spacing: 2) {
+            if let tip = Self.tipMarkerValue(run) {
+                Color.clear
+                    .frame(width: 1, height: 1)
+                    .accessibilityElement()
+                    .accessibilityIdentifier("tutorial.tip")
+                    .accessibilityValue(Text(verbatim: tip))
+            }
             Color.clear
                 .frame(width: 1, height: 1)
                 .accessibilityElement()
@@ -178,6 +244,15 @@ struct TutorialOverlay: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .allowsHitTesting(false)
+    }
+
+    static func tipMarkerValue(_ run: TutorialRun) -> String? {
+        switch run.script {
+        case .core: nil
+        case .lesson(let id): id
+        case .tour: "tour"
+        case .replay: "replay"
+        }
     }
 
     static func describe(_ rect: CGRect) -> String {

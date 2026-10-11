@@ -68,7 +68,7 @@ struct VisitorPopupView: View {
         let title = VisitCopy.optionTitle(option, script: script, content: content)
         let identifier = "visit.option.\(option.id)"
         if option.requiresVideo {
-            RewardedOfferButton(title: title, identifier: identifier) {
+            RewardedOfferButton(title: title, identifier: identifier, placement: .visitor) {
                 gameState.chooseVisitOption(option.id)
             }
         } else if option.cost > 0, !gameState.canAfford(option) {

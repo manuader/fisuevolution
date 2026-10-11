@@ -44,7 +44,7 @@ struct VendorCardsView: View {
                                 .minimumScaleFactor(0.6)
                         }
                         RewardedOfferButton(title: String(localized: "visit.vendor.take"),
-                                            identifier: "visit.option.card.\(card.id)") {
+                                            identifier: "visit.option.card.\(card.id)", placement: .visitor) {
                             gameState.chooseVisitOption("card.\(card.id)")
                         }
                     }

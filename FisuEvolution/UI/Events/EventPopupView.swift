@@ -110,7 +110,7 @@ struct EventPopupView: View {
     private func escapeButton(_ escape: EventCatalog.Escape, of event: EventCatalog.Event) -> some View {
         switch escape.kind {
         case .video:
-            RewardedOfferButton(title: String(localized: "event.escape.video"), identifier: "event.escape") {
+            RewardedOfferButton(title: String(localized: "event.escape.video"), identifier: "event.escape", placement: .visitor) {
                 gameState.escapeEvent(id: event.id, via: .video)
             }
         case .fee:

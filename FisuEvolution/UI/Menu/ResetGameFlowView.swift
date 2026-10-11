@@ -90,7 +90,8 @@ struct ResetGameFlowView: View {
         .panelSheet { PanelTitleBanner(titleKey: "reset.title") }
         .navigationTitle(Text(verbatim: ""))
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar { ToolbarItem(placement: .topBarTrailing) { ArtCloseButton(action: leave) } }
+        .toolbar { ToolbarItem(placement: .topBarTrailing) { ArtCloseButton(action: requestLeave) } }
+        .navigationBarBackButtonHidden(running)
         .overlay {
             if askLeave {
                 GameConfirmCard(
@@ -100,13 +101,24 @@ struct ResetGameFlowView: View {
                     confirmSystemImage: "arrow.uturn.backward",
                     confirmTint: Color("PaletteBlue"),
                     cancelTitleKey: "reset.leave.stay",
-                    onConfirm: leave,
+                    onConfirm: requestLeave,
                     onCancel: { askLeave = false }
                 )
             }
         }
         .onAppear { plan = plan ?? gameState.resetPlan() }
         .onDisappear { plan = nil }
+    }
+
+    /// Irse a pedido del jugador. Con el reset corriendo no se puede: el resultado tiene que
+    /// verse acá (un `.done` borraría la partida después de un «Tu partida queda como está»).
+    /// No se deshabilita nada: tiembla.
+    private func requestLeave() {
+        guard !running else {
+            shakes += 1
+            return
+        }
+        leave()
     }
 
     private func leave() {
@@ -224,7 +236,13 @@ struct ResetGameFlowView: View {
                 .accessibilityAddTraits(.isButton)
                 .accessibilityLabel(Text("reset.hold"))
                 .accessibilityIdentifier("reset.hold")
-                Button("reset.cancel") { askLeave = true }
+                Button("reset.cancel") {
+                    guard !running else {
+                        shakes += 1
+                        return
+                    }
+                    askLeave = true
+                }
                     .font(Tokens.caption)
                     .accessibilityIdentifier("reset.cancel")
             }

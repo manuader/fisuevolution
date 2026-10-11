@@ -15,9 +15,16 @@ struct RevealVideoTests {
     }
 
     /// `BoardScene` guarda el `GameState` como `unowned`: el test tiene que sostenerlo.
-    private func sceneWithChain(characters: [String]?, pool: VideoPlayerPool) async throws -> (BoardScene, GameState) {
+    private func sceneWithChain(
+        characters: [String]?, pool: VideoPlayerPool, activeSkin: String? = nil, skinClips: Bool = false
+    ) async throws -> (BoardScene, GameState) {
         let gameState = await makeGameState()
-        let ids = characters ?? gameState.content?.tiers.concreteTypes.map(\.id) ?? []
+        let types = gameState.content?.tiers.concreteTypes.map(\.id) ?? []
+        var ids = characters ?? types
+        if skinClips, let activeSkin { ids += types.map { ArtClips.skinKey(type: $0, skin: activeSkin) } }
+        if let activeSkin {
+            for type in types { gameState.player?.meta.activeSkinByType[type] = activeSkin }
+        }
         let scene = BoardScene(gameState: gameState, loops: try manifest(characters: ids), videoPool: pool)
         gameState.debugSeedMergeAll(homeless: 8)
         scene.didMove(to: SKView())
@@ -55,6 +62,26 @@ struct RevealVideoTests {
         let (scene, gameState) = try await sceneWithChain(characters: [], pool: pool)
         for _ in 0..<20 { scene.debugCompleteBoardChangeStep() }
         #expect(scene.debugRevealVideo == nil && pool.liveCount == 0)
+        withExtendedLifetime(gameState) {}
+    }
+
+    @Test("con una pinta puesta y sin clip propio el reveal queda quieto, aunque la base tenga video")
+    func skinWithoutClipRevealsStill() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let (scene, gameState) = try await sceneWithChain(characters: nil, pool: pool, activeSkin: "pijama")
+        for _ in 0..<20 { scene.scrollSettled(); scene.debugCompleteBoardChangeStep() }
+        #expect(scene.debugRevealVideo == nil && pool.liveCount == 0)
+        withExtendedLifetime(gameState) {}
+    }
+
+    @Test("con una pinta puesta y clip propio el reveal es el de la pinta")
+    func skinWithClipRevealsSkin() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let (scene, gameState) = try await sceneWithChain(characters: [], pool: pool, activeSkin: "pijama", skinClips: true)
+        #expect(stepUntilReveal(scene))
+        let clip = try #require(scene.debugRevealVideo?.clip)
+        guard case .character(let key) = clip else { Issue.record("no es un clip de personaje"); return }
+        #expect(key.hasSuffix("__pijama"))
         withExtendedLifetime(gameState) {}
     }
 

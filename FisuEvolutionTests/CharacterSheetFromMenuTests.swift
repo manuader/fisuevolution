@@ -1,4 +1,5 @@
 import EconomyKit
+import Foundation
 import Testing
 @testable import FisuEvolution
 
@@ -35,5 +36,25 @@ struct CharacterSheetFromMenuTests {
         let sheet = try #require(gameState.characterSheet(forTypeId: type.id))
 
         #expect(sheet.instanceCount == 0 && !sheet.canDismiss && sheet.floorOrdinal == -1)
+    }
+
+    private func manifest(_ keys: [String]) throws -> LoopsManifest {
+        let entries = keys.map { #""\#($0)":{"file":"\#($0).mov","width":512,"height":512,"alpha":true,"audio":false}"# }
+            .joined(separator: ",")
+        return try JSONDecoder().decode(
+            LoopsManifest.self, from: Data(#"{"schemaVersion":1,"characters":{\#(entries)}}"#.utf8))
+    }
+
+    @Test("en la ficha sólo la opción seleccionada y tuya lleva clip; una pinta sin clip queda quieta")
+    func sheetClipOnlyForSelectedOwnedWithOwnClip() throws {
+        let loops = try manifest(["homeless", "homeless__pijama"])
+        func clip(_ skin: String?, selected: Bool = true, owned: Bool = true) -> ArtClip? {
+            CharacterSheetView.clip(skinID: skin, type: "homeless", isSelected: selected, owned: owned, in: loops)
+        }
+        #expect(clip(nil) == .character("homeless"))
+        #expect(clip("pijama") == .character("homeless__pijama"))
+        #expect(clip("oro") == nil, "una pinta sin clip no hereda el video de la base")
+        #expect(clip(nil, selected: false) == nil && clip("pijama", selected: false) == nil)
+        #expect(clip("pijama", owned: false) == nil, "la silueta no anima")
     }
 }

@@ -61,6 +61,7 @@ ES256 la hace el `openssl` del sistema). Tests: `python3 -m unittest discover To
 | `admob set-id <clave> <id>` | Anota el ID devuelto por AdMob (valida publisher y `/`). |
 | `admob sync-code [--dry-run]` | Copia los IDs a `feature_flags.json` y `ads.json` (sólo esas líneas) y prende `switches.appOpen` si hay unidad. |
 | `version bump [--patch\|--minor] [--dry-run]` | `project.yml`: sube el build (y la versión si se pide). |
+| `app verify <.app\|.xcarchive> [--json]` | Sin red: lee el `.app` local y da exit 0/1 por chequeo (familia de dispositivos, `UIRequiresFullScreen`, `NSPrivacyTracking` vs fuente e ITMS-91064, `GADApplicationIdentifier`, `SKAdNetworkItems` por red, versión/build ≥ 5, `PrivacyInfo.xcprivacy`). |
 
 ## Recetas
 
@@ -134,6 +135,8 @@ Pasos (Claude in Chrome, con la sesión del dueño en cada panel):
    Guardar la lista en `Distribution/release/app-ads.<red>.txt`, publicar y verificar con `curl`.
 6. **Código** (relevo/E7): adaptador SPM de la red, sus SKAdNetwork IDs en el Info.plist y
    probar con Ad Inspector en un dispositivo.
+7. **Antes de cualquier export**: `app verify build/FisuEvolution.xcarchive` (exit 0). Nunca correr
+   `-exportArchive` con `Distribution/ExportOptions.plist`: `destination upload` sube (🔒 del dueño).
 
 Trampas del panel: el combo de asignaciones de un grupo no toma el click por referencia — hay
 que clickear la opción por coordenadas (aparece ~110 px debajo del desplegable abierto); el

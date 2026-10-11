@@ -495,7 +495,7 @@ struct WelcomeChestTests {
         let state = await stateInTutorial()
         #expect(state.chestReward == nil, "durante la fase no cae ningún cofre")
 
-        state.tutorialPhaseFinished()
+        state.finishTutorialCore()
 
         let esperado = try #require(state.content?.chests.welcomeSkinId)
         #expect(skinID(of: state) == esperado, "el premio es la pinta que nombra `chests.json`")
@@ -522,7 +522,7 @@ struct WelcomeChestTests {
         let esperado = try #require(state.content?.chests.welcomeSkinId)
         state.player?.meta.milestoneSkins = [esperado]
 
-        state.tutorialPhaseFinished()
+        state.finishTutorialCore()
 
         #expect(skinID(of: state) == esperado,
                 "una tirada habría tenido que dar cualquier OTRA pinta: ésta ya estaba en la bolsa del jugador")
@@ -536,7 +536,7 @@ struct WelcomeChestTests {
         let state = await stateInTutorial()
         let versionAntes = state.skinSelectionVersion
 
-        state.tutorialPhaseFinished()
+        state.finishTutorialCore()
 
         let pinta = try #require(state.content?.chests.welcomeSkinId)
         #expect(state.player?.meta.milestoneSkins.contains(pinta) == true)
@@ -561,12 +561,12 @@ struct WelcomeChestTests {
     @Test("un save paga un solo cofre de bienvenida")
     func theWelcomeChestIsGrantedOnlyOncePerSave() async throws {
         let state = await stateInTutorial()
-        state.tutorialPhaseFinished()
+        state.finishTutorialCore()
         #expect(state.chestReward != nil)
         state.dismissChestReward()
 
         state.beginTutorialPhase()
-        state.tutorialPhaseFinished()
+        state.finishTutorialCore()
 
         #expect(state.chestReward == nil, "el segundo cierre no puede pagar otro cofre")
         #expect(state.showing == nil)
@@ -579,7 +579,7 @@ struct WelcomeChestTests {
     @Test("cerrar el cofre de bienvenida destraba la cola")
     func closingTheWelcomeChestReleasesTheQueue() async throws {
         let state = await stateInTutorial()
-        state.tutorialPhaseFinished()
+        state.finishTutorialCore()
         #expect(state.showing == .chestOpening)
 
         state.dismissChestReward()
@@ -601,7 +601,7 @@ struct WelcomeChestTests {
         state.syncCelebrations()
         #expect(state.showing == nil, "la fase lo tiene esperando")
 
-        state.tutorialPhaseFinished()
+        state.finishTutorialCore()
         #expect(state.showing == .towerNotice, "lo que esperó su turno desfila primero")
 
         state.celebrationFinished(.towerNotice)

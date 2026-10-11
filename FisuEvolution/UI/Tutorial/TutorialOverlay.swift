@@ -1,15 +1,16 @@
 import SwiftUI
 
-/// Tutorial interactivo (RF-01), patrón Clash of Clans.
+/// Tutorial interactivo (RF-01), patrón Clash of Clans: el renderer del núcleo.
 ///
 /// Cada paso recorta un agujero sobre el control **real** —resuelto por
 /// `TutorialAnchorKey` para los controles de SwiftUI y por `BoardScene` para el
 /// personaje del tablero— con una mano que late encima. El resto de la pantalla
 /// queda oscurecido y **no responde al toque**, así que el paso sólo avanza
-/// cuando el jugador ejecuta la acción que se le pide. Tocar en cualquier lado
-/// ya no hace nada: era eso lo que hacía que el tutorial no enseñara nada.
+/// cuando el jugador ejecuta la acción que se le pide.
 ///
-/// Se conservan el botón de saltear y el `AppStorage` de "ya lo vi".
+/// El guion, el paso y el candado son del director (`GameState+Tutorial`,
+/// `TutorialCurriculum.core`): esta vista sólo lee `gameState.tutorialRun`. No
+/// hay "Saltar" (PLAN-v2 §2).
 struct TutorialOverlay: View {
     /// Frames reales de los controles, ya resueltos por el `GeometryProxy` que
     /// monta el overlay. Nunca coordenadas escritas a mano.
@@ -17,82 +18,6 @@ struct TutorialOverlay: View {
 
     @Environment(GameState.self) private var gameState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @AppStorage(TutorialFlags.completedKey) private var done = false
-    @State private var step = 0
-
-    // MARK: - El guion
-
-    /// Qué completa un paso. Es un enum y no un closure guardado para que el
-    /// guion siga siendo un valor puro y la condición viva en un solo `switch`
-    /// que se puede leer entero de una.
-    private enum Completion: Equatable {
-        /// Tocó al Fisura Y ya junta para contratar. Las dos cosas: con sólo el
-        /// primer toque, el paso siguiente iluminaría un botón que no se puede
-        /// pagar hasta dentro de cincuenta toques, y con el resto de la pantalla
-        /// bloqueada eso es un callejón sin salida.
-        case earnedEnoughToHire
-        case hired
-        case merged
-        /// Lo cierra el botón del paso final.
-        case explicitButton
-    }
-
-    private struct Step {
-        let id: String
-        let target: TutorialTarget?
-        /// Recortes de sólo mirar: no llevan mano y no son la acción del paso,
-        /// pero dejan ver el marcador que el jugador necesita seguir.
-        var windows: [TutorialTarget] = []
-        var boardTarget: GameState.TutorialBoardTarget?
-        let text: LocalizedStringKey
-        let pose: String
-        let completion: Completion
-    }
-
-    /// La fase obligatoria, corta a propósito: tap → contratar → fusionar →
-    /// cierre, 2-3 minutos, y termina justo después del reveal del primer
-    /// merge — que se reproduce LIMPIO, porque al completarse "merge" la
-    /// celebración toma el turno y este overlay entero se esconde (ver `body`).
-    /// El resto de la app no se enseña acá: cada pantalla tiene su lección
-    /// contextual (`TutorialTipView` + `GameState+TutorialTips`), disparada la
-    /// primera vez que hay algo que HACER en ella. Los pasos viejos de "abrí
-    /// Mejoras" y "abrí el mapa" murieron por eso: abrían vidrieras vacías
-    /// (mejoras impagables, un mapa con un solo piso), y sus claves
-    /// `tutorial.step.upgrades`/`.map` quedan en el catálogo como reserva.
-    ///
-    /// ⚠️ El paso de contratar no ilumina un botón que compra: ilumina el tab
-    /// que abre una PANTALLA. La hoja se presenta **por encima** del overlay
-    /// —que es lo correcto: el scrim sólo tiene que gobernar el tablero—, la
-    /// guía sigue DENTRO de FisuJobs (su banda del tutorial), el jugador
-    /// contrata y `hireCharacter` marca `ftue.spawned`, así que el paso se
-    /// completa aunque el globo esté tapado y el tutorial ya está en "fusioná"
-    /// cuando la hoja se cierra.
-    ///
-    /// ⚠️ Poses: el guion usa sólo `wave` y `celebrate`. `fisura_point` y
-    /// `fisura_explain` quedaron en el estilo viejo y salieron del atlas;
-    /// volver a usarlas pide regenerarlas (prompts 117/118 del pipeline).
-    private var steps: [Step] {
-        [
-            Step(id: "tap", target: .boardUnit, windows: [.coins], boardTarget: .anyUnit,
-                 text: "tutorial.step.tap", pose: "fisura_wave", completion: .earnedEnoughToHire),
-            Step(id: "hire", target: .hire, windows: [.coins],
-                 text: "tutorial.step.hire", pose: "fisura_wave", completion: .hired),
-            // Enseña los DOS gestos de fusión y se completa con cualquiera de
-            // los dos. No son dos pasos porque después de contratar hay un solo
-            // par mergeable: darle un paso propio al doble toque deja al del
-            // arrastre sin par, y conseguirle otro cuesta tres pasos más —ganar
-            // plata, contratar, fusionar— porque el paso de contratar tiene el
-            // tablero bajo el scrim y no se puede tapear para ganar.
-            Step(id: "merge", target: .boardUnit, boardTarget: .mergePair,
-                 text: "tutorial.step.merge", pose: "fisura_wave", completion: .merged),
-            // El cierre deja UN objetivo (fusionar hasta el T5, que abre el
-            // piso 2) y aparece recién cuando el reveal terminó de
-            // reproducirse: la escena avisa `celebrationFinished` y este
-            // overlay reaparece ya avanzado.
-            Step(id: "finish", target: nil,
-                 text: "tutorial.step.finish", pose: "fisura_celebrate", completion: .explicitButton),
-        ]
-    }
 
     // MARK: - Cuerpo
 
@@ -104,15 +29,21 @@ struct TutorialOverlay: View {
         // pantalla completa y sin un segundo scrim encima, y el paso siguiente
         // aparece recién cuando la escena avisa `celebrationFinished`. Regla
         // dura: nunca dos scrims a la vez.
-        if !done, step < steps.count, gameState.showing == nil {
-            overlay(steps[step])
+        //
+        // ⚠️ Lee `showing` y no `tutorialStepIsVisible`: éste mira además
+        // `uiCoversBoard`, que no se observa. Con FisuJobs abierta (el paso de
+        // contratar) la hoja se presenta por encima del overlay, que es lo
+        // correcto; esconderlo por la hoja lo dejaba escondido al cerrarla.
+        if let run = gameState.tutorialRun, run.script == .core,
+           gameState.showing == nil, let step = run.step {
+            overlay(run, step)
         }
     }
 
     @ViewBuilder
-    private func overlay(_ current: Step) -> some View {
-        let hole = holeRect(for: current)
-        let windows = current.windows.compactMap { anchors[$0] }
+    private func overlay(_ run: TutorialRun, _ step: TutorialStep) -> some View {
+        let hole = holeRect(for: step)
+        let windows = step.windows.compactMap { anchors[$0] }
         GeometryReader { proxy in
             ZStack {
                 scrim(hole: hole, windows: windows, screen: proxy.size)
@@ -120,44 +51,23 @@ struct TutorialOverlay: View {
                     spotlightRing(hole)
                     hand(hole, screen: proxy.size)
                 }
-                card(current, hole: hole, screen: proxy.size)
+                card(run, step, hole: hole, screen: proxy.size)
             }
-            .background(markers(current, hole: hole))
+            .background(markers(step, hole: hole))
         }
         .ignoresSafeArea()
         .animation(motion(.easeInOut(duration: 0.32)), value: hole)
         // El cambio de paso entra con pop de spring (la familia del
         // `keyframeAnimator` de los tabs), no con el fundido de formulario.
-        .animation(motion(.spring(duration: 0.42, bounce: 0.24)), value: step)
-        .onAppear {
-            // Si el paso guardado no pudo haberse ganado —su paso ANTERIOR no
-            // está cumplido—, esto no es una reaparición (el overlay se
-            // esconde y vuelve con cada reveal): es el tutorial REVIVIDO por
-            // el "Resetear partida" del panel de debug sobre una partida
-            // nueva. `step` es @State y sobrevive al reset de todo lo demás,
-            // así que sin este guard el tutorial resucitaba en el paso viejo.
-            if step > 0, !isSatisfied(steps[step - 1].completion) {
-                step = 0
-            }
-            gameState.tutorialBoardTarget = current.boardTarget
-        }
-        .onDisappear {
-            gameState.tutorialBoardTarget = nil
-        }
-        .onChange(of: current.boardTarget) { _, target in
-            gameState.tutorialBoardTarget = target
-        }
-        .onChange(of: progress, initial: true) { _, _ in
-            advanceWhileSatisfied()
-        }
+        .animation(motion(.spring(duration: 0.42, bounce: 0.24)), value: run.index)
     }
 
     // MARK: - El recorte
 
-    /// El agujero del paso. `.null` = sin recorte (el paso final va con el scrim
+    /// El agujero del paso. `.null` = sin recorte (el cierre va con el scrim
     /// entero, que es lo correcto: no pide tocar nada del juego).
-    private func holeRect(for current: Step) -> CGRect {
-        guard let target = current.target else { return .null }
+    private func holeRect(for step: TutorialStep) -> CGRect {
+        guard let target = step.target else { return .null }
         let rect: CGRect? = target == .boardUnit ? gameState.boardSpotlight : anchors[target]
         guard let rect, SpotlightShape.isDrawable(rect) else { return .null }
         // Un poco de aire alrededor: pegado al borde del control el recorte se
@@ -197,23 +107,24 @@ struct TutorialOverlay: View {
     /// El globo va del lado OPUESTO al recorte, así nunca tapa el control que
     /// está pidiendo que toques, y **esquiva las dos barras de controles** con
     /// sus frames reales: apoyado sin ese margen se comía el HUD entero.
-    private func card(_ current: Step, hole: CGRect, screen: CGSize) -> some View {
-        // Sin recorte —el paso final— no hay nada que esquivar: va centrado, que
+    private func card(_ run: TutorialRun, _ step: TutorialStep, hole: CGRect, screen: CGSize) -> some View {
+        // Sin recorte —el cierre— no hay nada que esquivar: va centrado, que
         // es donde se lee un cierre.
         let hasHole = SpotlightShape.isDrawable(hole)
         let holeIsLow = hasHole ? hole.midY > screen.height / 2 : false
         let topInset = (anchors[.hudBar]?.maxY ?? 0) + 14
         let bottomInset = anchors[.bottomBar].map { screen.height - $0.minY + 14 } ?? 40
+        let isLast = run.index == run.steps.count - 1
         return VStack(spacing: 0) {
             if !holeIsLow { Spacer(minLength: 0) }
             TutorialCard(
-                text: current.text,
-                pose: current.pose,
-                index: step,
-                total: steps.count,
-                showsDoneButton: current.completion == .explicitButton,
-                onDone: finish,
-                onSkip: finish
+                step: step,
+                index: run.index,
+                total: run.steps.count,
+                unlocked: run.unlocked,
+                lockProgress: { gameState.tutorialLockProgress },
+                confirmKey: isLast ? "tutorial.done" : "tutorial.confirm",
+                onConfirm: gameState.confirmTutorialStep
             )
             .frame(maxWidth: PlayColumn.tutorialCardMaxWidth)
             .padding(.horizontal, 14)
@@ -224,7 +135,7 @@ struct TutorialOverlay: View {
         .transition(reduceMotion
             ? .opacity
             : .scale(scale: 0.92).combined(with: .opacity))
-        .id(step)
+        .id(run.index)
     }
 
     // MARK: - Marcadores para los tests de UI
@@ -241,18 +152,18 @@ struct TutorialOverlay: View {
     /// arriba del `ZStack` y a pantalla completa —que es lo natural— son dos
     /// elementos de accesibilidad que TAPAN a todos los controles de abajo en el
     /// árbol de AX: XCUITest deja de considerarlos "hittable" y cada `.tap()`
-    /// falla con "Failed to scroll to visible", incluido el botón de saltear del
-    /// propio tutorial. Es la trampa 4 del HANDOFF con un disfraz nuevo: nunca
-    /// es el botón, siempre es algo tapándolo. Los toques por coordenada seguían
+    /// falla con "Failed to scroll to visible", incluido el botón del propio
+    /// tutorial. Es la trampa 4 del HANDOFF con un disfraz nuevo: nunca es el
+    /// botón, siempre es algo tapándolo. Los toques por coordenada seguían
     /// funcionando, así que el bug sólo se ve en los tests que usan `.tap()`
     /// sobre un elemento.
-    private func markers(_ current: Step, hole: CGRect) -> some View {
+    private func markers(_ step: TutorialStep, hole: CGRect) -> some View {
         VStack(spacing: 2) {
             Color.clear
                 .frame(width: 1, height: 1)
                 .accessibilityElement()
                 .accessibilityIdentifier("tutorial.step")
-                .accessibilityValue(Text(verbatim: current.id))
+                .accessibilityValue(Text(verbatim: step.id))
             Color.clear
                 .frame(width: 1, height: 1)
                 .accessibilityElement()
@@ -263,7 +174,7 @@ struct TutorialOverlay: View {
                 // ve exactamente igual que lo primero.
                 .accessibilityValue(Text(verbatim: SpotlightShape.isDrawable(hole)
                     ? Self.describe(hole)
-                    : (current.target.map { "missing:\($0.rawValue)" } ?? "none")))
+                    : (step.target.map { "missing:\($0.rawValue)" } ?? "none")))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .allowsHitTesting(false)
@@ -273,67 +184,6 @@ struct TutorialOverlay: View {
         guard SpotlightShape.isDrawable(rect) else { return "none" }
         return "\(Int(rect.minX.rounded())),\(Int(rect.minY.rounded()))," +
             "\(Int(rect.width.rounded())),\(Int(rect.height.rounded()))"
-    }
-
-    // MARK: - Avanzar POR ACCIÓN
-
-    /// Todo lo que puede completar un paso, en un valor `Equatable`: es lo que
-    /// hace que un `onChange` alcance para reevaluar el guion entero.
-    private var progress: Progress {
-        Progress(
-            milestones: gameState.ftueMilestones,
-            canAffordSpawn: gameState.canAffordSpawn
-        )
-    }
-
-    private struct Progress: Equatable {
-        let milestones: GameState.FTUEMilestones
-        let canAffordSpawn: Bool
-    }
-
-    /// Todo sale de los milestones `ftue.*`, que PERSISTEN: matar la app a
-    /// mitad de guion no rehace nada al volver — el bucle de
-    /// `advanceWhileSatisfied` retoma en el primer paso no cumplido. (Los
-    /// pasos viejos por evento de UI no persistían y se rehacían; murieron con
-    /// este guion.)
-    private func isSatisfied(_ completion: Completion) -> Bool {
-        switch completion {
-        case .earnedEnoughToHire: gameState.ftueMilestones.tapped && gameState.canAffordSpawn
-        case .hired: gameState.ftueMilestones.spawned
-        case .merged: gameState.ftueMilestones.merged
-        case .explicitButton: false
-        }
-    }
-
-    /// Avanza en bucle y no de a un paso: al reanudar una partida a medio
-    /// tutorial puede haber varios pasos ya cumplidos, y un `onChange` sobre el
-    /// booleano "el paso actual está cumplido" no vuelve a disparar cuando el
-    /// siguiente también lo está (true → true no es un cambio).
-    private func advanceWhileSatisfied() {
-        let script = steps
-        var next = step
-        while next < script.count, isSatisfied(script[next].completion) {
-            next += 1
-        }
-        guard next != step else { return }
-        withAnimation(motion(.easeInOut(duration: 0.3))) {
-            step = next
-            if step >= script.count { done = true }
-        }
-        // Fuera del `withAnimation`: soltar la cola no es un cambio visual de
-        // esta vista. Con el guion actual no se llega acá (el último paso lo
-        // cierra su botón), pero si un guion futuro vuelve a terminar por
-        // acción, la cola no puede quedarse restringida para siempre.
-        if done { gameState.tutorialPhaseFinished() }
-    }
-
-    private func finish() {
-        gameState.tutorialBoardTarget = nil
-        withAnimation(motion(.easeInOut(duration: 0.3))) { done = true }
-        // Las dos salidas —"¡Vamos!" y "Saltar"— terminan la fase: la cola
-        // levanta la restricción y lo que esperó su turno (el daily del día 2,
-        // la skin, los toasts) desfila recién ahora, de a uno.
-        gameState.tutorialPhaseFinished()
     }
 
     /// ⚠️ Con Reduce Motion las transiciones **colapsan**: se devuelve `nil`, que
@@ -401,148 +251,5 @@ private struct TutorialHand: View {
                 x: min(max(hole.maxX - 6, Self.size), screen.width - Self.size / 2),
                 y: min(max(hole.maxY - 2, Self.size), screen.height - Self.size)
             )
-    }
-}
-
-/// El globo del tutorial: pose del Fisura + texto + progreso, en la gramática
-/// v3 entera — pergamino con su luz, borde tono-sobre-tono, dots caramelo — y
-/// con el retrato GRANDE pisando el borde de la tarjeta, como componen las
-/// referencias.
-///
-/// Es horizontal y compacto —y no el Fisura de 300×380 con el globo arriba que
-/// había antes— porque tiene que convivir con el recorte sin taparlo.
-private struct TutorialCard: View {
-    let text: LocalizedStringKey
-    let pose: String
-    let index: Int
-    let total: Int
-    let showsDoneButton: Bool
-    let onDone: () -> Void
-    let onSkip: () -> Void
-
-    var body: some View {
-        VStack(spacing: 12) {
-            HStack(alignment: .center, spacing: 12) {
-                portrait
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(text)
-                        .font(Tokens.body)
-                        .foregroundStyle(Color("PaletteInk"))
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    HStack(spacing: 10) {
-                        dots
-                        Spacer(minLength: 8)
-                        // En el último paso no: "Saltar" y "¡Vamos!" harían lo
-                        // mismo, uno al lado del otro.
-                        if !showsDoneButton { skipButton }
-                    }
-                }
-            }
-            if showsDoneButton {
-                ArtButton(art: "ui_btn_buy", tint: Color("PaletteGreen"), minHeight: 52, action: onDone) {
-                    Text("tutorial.done")
-                        .font(.system(.headline, design: .rounded).weight(.heavy))
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.5), radius: 2, y: 1)
-                }
-                .accessibilityIdentifier("tutorial.done")
-                // Aire propio además del `spacing` del VStack: pegado a los
-                // dots y al borde de la tarjeta el botón se leía embutido
-                // (corrección del dueño sobre captura, 2026-08-21).
-                .padding(.top, Tokens.s8)
-                .padding(.bottom, Tokens.s4)
-            }
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(
-            // Materiales v3: pergamino con su luz —claridad arriba, sombra
-            // cálida abajo, la receta de `PanelCard` a escala de tarjeta— y
-            // borde tono-sobre-tono. Conserva la sombra grande porque flota
-            // sobre el scrim oscuro, donde ese peso es lo que la despega.
-            parchment
-        )
-    }
-
-    private var parchment: some View {
-        let shape = RoundedRectangle(cornerRadius: CardMaterials.cornerRadius, style: .continuous)
-        return shape
-            .fill(Color("PaletteParchment"))
-            .overlay {
-                shape.fill(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.35),
-                            .clear,
-                            Color("PaletteBrown").opacity(0.10),
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-            }
-            .overlay(shape.strokeBorder(Color("PaletteBrown").opacity(0.55), lineWidth: 3))
-            .shadow(color: .black.opacity(0.35), radius: 12, y: 5)
-    }
-
-    /// Sólo poses del Fisura, y GRANDE: la pose pisa el borde superior de la
-    /// tarjeta (el `offset` sobresale sin mover el layout — la tarjeta no
-    /// recorta). Sin atlas se cae a las otras poses sanas, y si no hay ninguna
-    /// el globo habla solo: el SF Symbol de persona gris murió con la regla
-    /// "sólo fotos del Fisura".
-    @ViewBuilder private var portrait: some View {
-        if let art = UIArt.image(pose) ?? UIArt.image("fisura_wave") ?? UIArt.image("fisura_celebrate") {
-            art.resizable()
-                .scaledToFit()
-                .frame(width: 96, height: 112)
-                .offset(y: -12)
-                .accessibilityHidden(true)
-        }
-    }
-
-    /// Vive DENTRO del globo: suelto arriba a la derecha se apoyaba sobre el
-    /// carrito y el contador de monedas, que son controles que el tutorial
-    /// ilumina dos pasos después.
-    private var skipButton: some View {
-        Button(action: onSkip) {
-            Text("tutorial.skip")
-                .font(.system(.footnote, design: .rounded).weight(.heavy))
-                .foregroundStyle(Color("PaletteInk").opacity(0.55))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Capsule().fill(Color("PaletteInk").opacity(0.09)))
-                .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityIdentifier("tutorial.skip")
-    }
-
-    private var dots: some View {
-        HStack(spacing: 6) {
-            ForEach(0..<total, id: \.self) { i in
-                // El activo es una pill caramelo en miniatura: relleno con luz
-                // y borde hundido del mismo tono (v3), no un chip plano.
-                Capsule()
-                    .fill(
-                        i == index
-                            ? AnyShapeStyle(LinearGradient(
-                                colors: [Color("PaletteOrange").lifted(), Color("PaletteOrange")],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            ))
-                            : AnyShapeStyle(Color("PaletteInk").opacity(0.18))
-                    )
-                    .overlay {
-                        if i == index {
-                            Capsule().strokeBorder(Color("PaletteOrange").deepened(), lineWidth: 1.5)
-                        }
-                    }
-                    .frame(width: i == index ? 20 : 8, height: 8)
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text("tutorial.progress.label"))
-        .accessibilityValue(Text(verbatim: "\(index + 1)/\(total)"))
     }
 }

@@ -99,7 +99,7 @@ struct RewardGrantTests {
         #expect(gameState.isCalmMoment)
         gameState.beginTutorialPhase()
         #expect(!gameState.isCalmMoment)
-        gameState.tutorialPhaseFinished()
+        gameState.finishTutorialCore()
         drain(gameState)
         gameState.handleScenePhase(from: .active, to: .inactive)
         #expect(!gameState.isCalmMoment, "con la escena inactiva no aparece nadie")

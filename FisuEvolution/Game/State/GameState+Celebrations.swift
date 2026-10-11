@@ -89,26 +89,46 @@ extension GameState {
 
     // MARK: El tutorial como cliente
 
-    /// Arranca la fase obligatoria del tutorial: desde acá y hasta
-    /// `tutorialPhaseFinished()`, la cola sólo promueve el reveal del tablero
+    /// Arranca la fase obligatoria del tutorial —el núcleo, que corre el
+    /// director (`TutorialCurriculum.core`)—: desde acá y hasta
+    /// `finishTutorialCore()`, la cola sólo promueve el reveal del tablero
     /// —que es EL momento de la fase, no un estorbo— y todo lo demás queda en
     /// `pending`: no se presenta (su sheet está gateado por el tutorial y
-    /// congelaría la cola) ni se pierde.
+    /// congelaría la cola) ni se pierde. El núcleo no pide turno en la cola:
+    /// la restringe, y la libera su cierre.
     func beginTutorialPhase() {
         tutorialPhaseActive = true
         celebrations.restrict(to: [.boardCelebration])
         publishCelebration()
+        startTutorialRun(.core, steps: TutorialCurriculum.core)
+        refreshTutorial()
     }
 
-    /// La fase terminó (el botón del cierre o "Saltar"): se levanta la
-    /// restricción y lo que esperó su turno desfila en su orden de siempre —
-    /// el daily del día 2 primero, después la skin, al final los toasts.
+    /// El gate del arranque: el núcleo corre sólo si no está hecho. Un veterano
+    /// de la v1 lo trae hecho por la migración (`applyTutorialMigration`, que
+    /// corre antes) y no lo ve otra vez.
+    func startTutorialCoreIfPending() {
+        if !TutorialFlags.coreCompleted() {
+            beginTutorialPhase()
+        } else {
+            // La lección de Tienda espera a la SEGUNDA sesión con la fase
+            // hecha ("una vez, suave": nunca en el mismo arranque en el que el
+            // jugador recién aprendió a jugar).
+            let sessions = UserDefaults.standard.integer(forKey: TutorialFlags.sessionsAfterCoreKey)
+            UserDefaults.standard.set(sessions + 1, forKey: TutorialFlags.sessionsAfterCoreKey)
+        }
+    }
+
+    /// El cierre del núcleo (`core.finish`, su "¡Vamos!" con el candado de
+    /// 5 s): se levanta la restricción y lo que esperó su turno desfila en su
+    /// orden de siempre — el daily del día 2 primero, después la skin, al
+    /// final los toasts. Lo llama el director al confirmar el último paso del
+    /// núcleo —nunca el repaso—; ya no hay "Saltar".
     ///
-    /// Y acá cae el **cofre de bienvenida**, que es el momento que el dueño pidió
-    /// para enseñar la mecánica: el jugador acaba de fusionar y todavía no vio
-    /// una sola pinta. Cae por las DOS salidas de la fase —el botón del cierre y
-    /// "Saltar"—, porque saltear el tutorial no puede costarle la única pinta
-    /// temprana que el juego reparte.
+    /// Y acá cae el **cofre de bienvenida** (una vez por save:
+    /// `welcomeChestGiven`), que es el momento que el dueño pidió para enseñar
+    /// la mecánica: el jugador acaba de fusionar y todavía no vio una sola
+    /// pinta.
     ///
     /// ⚠️ **Se otorga DESPUÉS de levantar la restricción**, y el orden es la
     /// decisión: así el cofre entra a la cola detrás de lo que ya estaba
@@ -116,9 +136,12 @@ extension GameState {
     /// nueva no hay nada esperando —no hay offline, el día 1 del daily no se
     /// cobra y la carrera está a horas de distancia—, así que en la práctica se
     /// abre en el acto.
-    func tutorialPhaseFinished() {
+    func finishTutorialCore() {
         guard tutorialPhaseActive else { return }
         tutorialPhaseActive = false
+        TutorialFlags.setCoreCompleted(true)
+        if tutorialRun?.script == .core { tutorialRun = nil }
+        tutorialBoardTarget = nil
         celebrations.restrict(to: nil)
         rankingCoreFinished()
         grantWelcomeChest()

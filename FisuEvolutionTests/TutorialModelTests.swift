@@ -20,13 +20,20 @@ struct TutorialModelTests {
     @Test("las del núcleo son absolutas: retomar a mitad de camino no rehace nada")
     func coreSignalsAreAbsolute() {
         var now = base
-        now.ftueSpawned = true
-        #expect(TutorialSignal.coreHired.isSatisfied(baseline: now, now: now, events: [], lesson: nil))
         now.ftueTapped = true
         #expect(!TutorialSignal.coreTappedAndAffordable.isSatisfied(baseline: now, now: now, events: [], lesson: nil),
                 "tocó, pero todavía no le alcanza para contratar")
         now.canAffordSpawn = true
         #expect(TutorialSignal.coreTappedAndAffordable.isSatisfied(baseline: now, now: now, events: [], lesson: nil))
+        now.canAffordSpawn = false
+        now.ftueSpawned = true
+        #expect(TutorialSignal.coreHired.isSatisfied(baseline: now, now: now, events: [], lesson: nil))
+        #expect(TutorialSignal.coreTappedAndAffordable.isSatisfied(baseline: now, now: now, events: [], lesson: nil),
+                "ya contrató: retomar sin plata no lo deja trabado en el toque")
+        var merged = base
+        merged.ftueMerged = true
+        #expect(TutorialSignal.coreHired.isSatisfied(baseline: merged, now: merged, events: [], lesson: nil),
+                "ya fusionó: el contrato quedó atrás")
     }
 
     @Test("fijar y soltar miran el pin del atajo")

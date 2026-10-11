@@ -96,7 +96,7 @@ struct NotificationsWiringTests {
         defer { rig.scratch.clear() }
 
         rig.gameState.beginTutorialPhase()
-        rig.gameState.tutorialPhaseFinished()
+        rig.gameState.finishTutorialCore()
         await rig.gameState.notificationsTask?.value
 
         #expect(rig.spy.requestedOptions == [.alert, .sound, .badge, .provisional])

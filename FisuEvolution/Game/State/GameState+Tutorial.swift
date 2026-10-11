@@ -125,6 +125,12 @@ extension GameState {
     /// Arma la corrida, reinicia el reloj y —salvo el núcleo y las tarjetas embebidas— pide
     /// el turno de la cola. Lo usan el director, el núcleo (T5), E9b y los tests.
     func startTutorialRun(_ script: TutorialRun.Script, steps: [TutorialStep]) {
+        // Nada pisa al núcleo vivo: su fase restringe la cola y sólo su cierre la levanta, así
+        // que soltarlo a medias la dejaría congelada para siempre.
+        if tutorialRun?.script == .core, tutorialPhaseActive, script != .core {
+            Log.lifecycle.error("tutorial: corrida rechazada con el núcleo vivo: \(String(describing: script), privacy: .public)")
+            return
+        }
         // Una corrida por vez: la anterior se suelta sin marcarse (y sin su turno en la cola).
         if let previous = tutorialRun {
             Log.lifecycle.error("tutorial: corrida pisada sin terminar: \(String(describing: previous.script), privacy: .public)")
@@ -166,6 +172,10 @@ extension GameState {
     private func progressTutorialRun() {
         guard var run = tutorialRun else { return }
         let probe = tutorialProbe()
+        if run.script == .core {
+            progressCore(probe: probe)
+            return
+        }
         // La regla de oro hasta el último frame: una lección que todavía no tomó el turno y
         // cuya condición murió se retira SIN marcarse, y vuelve cuando su momento vuelva.
         if let id = run.lessonID, let lesson = TutorialLesson(rawValue: id),
@@ -187,6 +197,18 @@ extension GameState {
         }
     }
 
+    /// El núcleo avanza en bucle mientras el paso esté cumplido: sus señales son los
+    /// milestones `ftue.*`, que persisten, así que matar la app a mitad de guion retoma en el
+    /// primer paso no cumplido. El recorte del tablero lo pide el director (lo lee `BoardScene`);
+    /// con una celebración en pantalla —el reveal del primer merge— se calla.
+    private func progressCore(probe: TutorialProbe) {
+        while let run = tutorialRun, run.script == .core, run.isStepSatisfied(probe: probe) {
+            advanceTutorialStep()
+        }
+        let target = showing == nil ? tutorialRun?.step?.boardTarget : nil
+        if tutorialBoardTarget != target { tutorialBoardTarget = target }
+    }
+
     func advanceTutorialStep() {
         guard var run = tutorialRun else { return }
         run.advance(probe: tutorialProbe())
@@ -203,9 +225,8 @@ extension GameState {
         guard let run = tutorialRun else { return }
         switch run.script {
         case .core:
-            // T5 lo muda a `finishTutorialCore()`.
             tutorialRun = nil
-            tutorialPhaseFinished()
+            finishTutorialCore()
         case .lesson where isInlineRun(run):
             if let id = run.lessonID { TutorialFlags.markLessonDone(id) }
             tutorialRun = nil

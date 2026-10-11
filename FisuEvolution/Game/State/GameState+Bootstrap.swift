@@ -272,15 +272,7 @@ extension GameState {
         // `StoreManager` con su `SKTestSession`).
         applyTutorialMigration(hasSave: !isFreshInstall)
         if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil {
-            if !TutorialFlags.coreCompleted() {
-                beginTutorialPhase()
-            } else {
-                // La lección de Tienda espera a la SEGUNDA sesión con la
-                // fase hecha ("una vez, suave": nunca en el mismo arranque
-                // en el que el jugador recién aprendió a jugar).
-                let sessions = UserDefaults.standard.integer(forKey: TutorialFlags.sessionsAfterCoreKey)
-                UserDefaults.standard.set(sessions + 1, forKey: TutorialFlags.sessionsAfterCoreKey)
-            }
+            startTutorialCoreIfPending()
         }
         // Después de la restricción del tutorial: con la fase activa la cinemática queda
         // esperando en `pending`, no se pierde.

@@ -201,15 +201,13 @@ final class StubAdsProvider: AdsProvider {
     func prepare() {}
 }
 
-/// Mirrored 1:1 from `rewarded_ads.json` — los efectos de los videos: el
-/// multiplicador de ingresos, "Fusionar todo", el personaje de regalo y el
-/// cofre de pintas.
+/// Mirrored 1:1 from `rewarded_ads.json` — los efectos de los videos de Regalos:
+/// el multiplicador de ingresos, el personaje de regalo y el cofre de pintas.
+/// "Fusionar todo" por video vive en la columna (`sideRail`), no acá.
 struct RewardedAdsConfig: Codable, Sendable, Equatable {
     enum EffectType: String, Codable, Sendable, CaseIterable {
         /// Temporary income multiplier (double earnings / temp multiplier).
         case incomeMultiplier
-        /// "Fusionar todo" del piso a la vista, por el embudo (PLAN-v2 E13).
-        case mergeAll
         /// Un personaje de `tiersBelowFrontier` por debajo de la frontera (E13).
         case rareUnit
         /// Un cofre de pintas. Es la única fuente con freno propio: el cooldown

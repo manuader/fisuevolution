@@ -56,8 +56,6 @@ extension GameState {
             ))
             self.player = player
             refreshProjections()
-        case .mergeAll:
-            enqueueMergeAll(onFloor: visibleFloorOrdinal, origin: .rewardedMergeAll)
         case .rareUnit:
             rareUnitChange(tiersBelowFrontier: reward.tiersBelowFrontier ?? 0).map(enqueueBoardChange)
         case .skinChest:
@@ -86,19 +84,12 @@ extension GameState {
 
     /// Por qué este video no tendría efecto ahora, o `nil` si lo tiene.
     func rewardUnavailableReason(_ rewardId: String) -> String? {
-        guard let content, let player, let tower,
+        guard let content,
               let reward = content.rewardedAds.rewards.first(where: { $0.id == rewardId })
         else { return nil }
         switch reward.effectType {
         case .incomeMultiplier, .skinChest:
             return nil
-        case .mergeAll:
-            if mergeAllIsQueued { return String(localized: "ads.unavailable.merge") }
-            let plan = BoardChangePlanner.planMergeAll(
-                floorOrdinal: visibleFloorOrdinal, state: player, tower: tower, tiers: content.tiers,
-                floorTable: content.floorTable, config: content.economy, origin: .rewardedMergeAll
-            )
-            return plan.isEmpty ? String(localized: "ads.unavailable.merge") : nil
         case .rareUnit:
             let change = rareUnitChange(tiersBelowFrontier: reward.tiersBelowFrontier ?? 0)
             return change == nil ? String(localized: "ads.unavailable.floor_full") : nil
@@ -395,8 +386,6 @@ extension GameState {
                 EffectDescriptor.amount(forBoost: .incomeMultiplier, magnitude: magnitude)
             )
             return String(localized: "ads.reward.text.income \(value) \(Self.durationText(duration))")
-        case .mergeAll:
-            return String(localized: "ads.reward.text.merge_all")
         case .rareUnit:
             guard let content, let player,
                   let type = BoardChangePlanner.giftType(

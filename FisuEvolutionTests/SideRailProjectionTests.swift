@@ -90,24 +90,13 @@ struct SideRailProjectionTests {
         #expect(gameState.sideRail.packageRain == .notApplicable)
     }
 
-    @Test("un Fusionar todo descartado no compensa: el video ya pagó con los pares que se jugaron")
-    func discardedMergeAllDoesNotCompensate() async throws {
-        let gameState = await gameStateWithPairs()
-        gameState.enqueueMergeAll(onFloor: gameState.visibleFloorOrdinal, origin: .rewardedMergeAll)
-        let coins = try #require(gameState.player?.run.coins)
-        let planned = gameState.pendingBoardChanges
-        planned.forEach(gameState.discardBoardChange)
-        #expect(gameState.player?.run.coins == coins)
-        #expect(gameState.towerNotice == nil)
-    }
-
     @Test("un video de Fusionar todo con otro ya en la cola no tiene efecto: compensa y no toca la cola")
     func rewardedMergeAllWithQueuedChainCompensates() async throws {
         let gameState = await gameStateWithPairs()
         gameState.enqueueMergeAll(onFloor: gameState.visibleFloorOrdinal, origin: .oroShop)
         let queued = gameState.pendingBoardChanges
         let coins = try #require(gameState.player?.run.coins)
-        gameState.applyRewardedReward(rewardId: "merge_all")
+        gameState.mergeAllVideoWatched()
         #expect(try #require(gameState.player?.run.coins) > coins)
         guard case .rewardCompensated? = gameState.towerNotice?.kind else {
             Issue.record("no hubo compensación")
@@ -132,14 +121,6 @@ struct SideRailProjectionTests {
         let config = try JSONDecoder().decode(RewardedAdsConfig.self, from: Data(json.utf8))
         #expect(config.sideRail == nil)
         #expect(config.effectiveSideRail == .default)
-    }
-
-    @Test("el reloj de la ruleta va hasta la medianoche local")
-    func wheelClock() throws {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = try #require(TimeZone(identifier: "America/Argentina/Buenos_Aires"))
-        let lateNight = try #require(calendar.date(from: DateComponents(year: 2026, month: 10, day: 7, hour: 23, minute: 59)))
-        #expect(GameState.secondsUntilNextWheelDay(now: lateNight, calendar: calendar) == 60)
     }
 
     @Test("el JSON trae la sección de la columna y la lluvia se puede entregar")

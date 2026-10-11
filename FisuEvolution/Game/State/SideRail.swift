@@ -65,8 +65,11 @@ struct SideRailInput: Equatable, Sendable {
     var shown: Bool
     var access: PrizeAccess
     var packageSecondsUntilNext: Double?
+    /// Un piquete corta los paquetes: su reloj no corre, así que no se muestra.
+    var packagesPaused = false
     var mattressSecondsUntilNext: Double?
-    var wheelSecondsUntilReset: Double
+    /// Hasta que vuelven los giros por video; `nil` sin ruleta o sin giros que esperar.
+    var wheelSecondsUntilReset: Double?
     var mergeAllPairs: Int
     var mergeAll: RailVideoStatus
     var packageRain: RailVideoStatus
@@ -88,13 +91,14 @@ enum SideRailModel {
         switch kind {
         case .wheel:
             if input.access.wheelSpinsReady > 0 { return .ready(count: input.access.wheelSpinsReady) }
-            return .waiting(seconds: whole(input.wheelSecondsUntilReset))
+            return input.wheelSecondsUntilReset.map { .waiting(seconds: whole($0)) } ?? .idle
         case .mattress:
             if input.access.mattressReady { return .ready(count: nil) }
             return input.mattressSecondsUntilNext.map { .waiting(seconds: whole($0)) } ?? .idle
         case .packages:
             if input.access.packagesBlocked { return .blocked }
             if input.access.packagesWaiting > 0 { return .ready(count: input.access.packagesWaiting) }
+            guard !input.packagesPaused else { return .idle }
             return input.packageSecondsUntilNext.map { .waiting(seconds: whole($0)) } ?? .idle
         case .boost:
             switch input.mergeAll {

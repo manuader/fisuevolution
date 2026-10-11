@@ -7,7 +7,7 @@ import Foundation
 ///
 /// La separación es por MOMENTO y no por premio: AdMob reporta por unidad, así
 /// que lo que conviene poder comparar es "¿factura más el video del cofre o el
-/// del offline?". Los cinco premios de la lista de Regalos comparten pantalla y
+/// del offline?". Los premios de la lista de Regalos comparten pantalla y
 /// momento, así que comparten unidad (`gifts`).
 ///
 /// Los cuatro de la 2.0 (`wheel`, `treasure`, `visitor`, `daily`) agrupan cada
@@ -15,7 +15,7 @@ import Foundation
 /// quince ofertas en quince unidades serían quince columnas de reporte con
 /// tres impresiones cada una, que no dicen nada.
 enum RewardedPlacement: String, Sendable, CaseIterable {
-    /// La lista de videos de **Regalos**: los cinco premios de `rewarded_ads.json`.
+    /// La lista de videos de **Regalos**: los cuatro premios de `rewarded_ads.json`.
     case gifts
     /// El popup de ganancias offline: duplicar lo que juntó mientras no estabas.
     case offlineX2

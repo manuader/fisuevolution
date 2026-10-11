@@ -247,8 +247,7 @@ struct GameContentValidationTests {
     @Test func theVideoCatalogFollowsE13() throws {
         let rewards = content.rewardedAds.rewards
         #expect(!rewards.contains { $0.id == "accelerate_evolution" })
-        let merge = try #require(rewards.first { $0.effectType == .mergeAll })
-        #expect(merge.id == "merge_all")
+        #expect(!rewards.contains { $0.id == "merge_all" }, "Fusionar todo por video vive sólo en la columna")
         let gift = try #require(rewards.first { $0.effectType == .rareUnit })
         #expect(gift.tiersBelowFrontier == 3, "el mismo tier que el Blanqueo")
     }

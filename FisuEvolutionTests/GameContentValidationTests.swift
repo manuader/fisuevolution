@@ -740,7 +740,8 @@ struct GameContentValidationTests {
 
         // Lo que ataja de verdad una migración a medias es esto: una entrada que
         // se quedó con `floorReached` no entra a la bolsa y el conteo se cae.
-        #expect(pool.count == 41)
+        // 41 de la v1 menos las 8 que pasaron a venderse con ORO (`OroSkinsContentTests`).
+        #expect(pool.count == 33)
         // Las dos de acá abajo NO pueden fallar, y quedan como documentación del
         // invariante: el `init()` de la suite carga con `GameContentLoader`, que
         // corre `skins.validate(...)`, que ya tira `chestAndMilestone` para este
@@ -748,7 +749,7 @@ struct GameContentValidationTests {
         #expect(content.skins.skins.allSatisfy { $0.floorReached == nil || $0.chestRarity == nil })
         #expect(pool.allSatisfy { !$0.isMilestone })
 
-        let esperado: [SkinsConfig.Rarity: Int] = [.comun: 7, .rara: 14, .epica: 12, .legendaria: 8]
+        let esperado: [SkinsConfig.Rarity: Int] = [.comun: 7, .rara: 14, .epica: 8, .legendaria: 4]
         for (rareza, cuantas) in esperado {
             #expect(pool.filter { $0.chestRarity == rareza }.count == cuantas, "\(rareza)")
         }

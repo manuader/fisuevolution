@@ -207,7 +207,7 @@
       "treatment": "texture",
       "textureKey": "trillonario_idle__moneda_propia",
       "displayNameKey": "skin.name.moneda_propia",
-      "chestRarity": "epica"
+      "oroPrice": 150
     },
     {
       "id": "selenita",
@@ -215,7 +215,7 @@
       "treatment": "texture",
       "textureKey": "dueno_luna_idle__selenita",
       "displayNameKey": "skin.name.selenita",
-      "chestRarity": "epica"
+      "oroPrice": 150
     },
     {
       "id": "terraformador",
@@ -223,7 +223,7 @@
       "treatment": "texture",
       "textureKey": "dueno_marte_idle__terraformador",
       "displayNameKey": "skin.name.terraformador",
-      "chestRarity": "epica"
+      "oroPrice": 150
     },
     {
       "id": "corona_solar",
@@ -231,7 +231,7 @@
       "treatment": "texture",
       "textureKey": "magnate_solar_idle__corona_solar",
       "displayNameKey": "skin.name.corona_solar",
-      "chestRarity": "epica"
+      "oroPrice": 150
     },
     {
       "id": "agujero_negro",
@@ -239,7 +239,7 @@
       "treatment": "texture",
       "textureKey": "senor_galaxia_idle__agujero_negro",
       "displayNameKey": "skin.name.agujero_negro",
-      "chestRarity": "legendaria"
+      "oroPrice": 300
     },
     {
       "id": "dinastia",
@@ -247,7 +247,7 @@
       "treatment": "texture",
       "textureKey": "emperador_cosmico_idle__dinastia",
       "displayNameKey": "skin.name.dinastia",
-      "chestRarity": "legendaria"
+      "oroPrice": 300
     },
     {
       "id": "iluminado",
@@ -255,7 +255,7 @@
       "treatment": "texture",
       "textureKey": "ser_ascendido_idle__iluminado",
       "displayNameKey": "skin.name.iluminado",
-      "chestRarity": "legendaria"
+      "oroPrice": 300
     },
     {
       "id": "titan",
@@ -263,7 +263,7 @@
       "treatment": "texture",
       "textureKey": "semidios_idle__titan",
       "displayNameKey": "skin.name.titan",
-      "chestRarity": "legendaria"
+      "oroPrice": 300
     },
     {
       "id": "oraculo",

@@ -627,7 +627,7 @@ que toma · commit o rama · nota.
 | E6b-T3 | `skins.json` v2 (EK) | ✅ | T1 | GameContentLoader | `2ba7c2e` (merge `e27efb1`) | el caso `.effect` se quita en T1r |
 | E6b-T1r | Sin skins por código: borrar shaders (T1), galería (T2) y `Treatment.effect`/`shaderId` (T3) | ✅ | E3b-T2 (dueña de DebugPanelView) | DebugPanelView, GameContentLoader | `255749b` (merge `9c5df1e`) | −495 líneas; grep vacío |
 | E6b-T4 | La pinta comprada con ORO es tuya | ✅ | T3; E6a-T1, E6a-T2, E6a-T8; E3b-T2 | 🔥 PlayerState, catálogo; +Store | `fa6b4cc` + arreglos `08fbf82` (merge `d6b8450`, clave `26df563`, en `v2i/integ-r29`) · rev. opus **Approved con arreglos menores** (hechos en `08fbf82`: voz con moneda, `invalidPrice` con RED, union redundante de `ResetPlan`). Carries: el reset de cuenta pierde las pintas de ORO (dueño/E9b T8); `skinsAll` ahora exige las 3 familias (dueño); la leyenda «incluye 43» (T5) · **Relevo 29 ✅** (`rapido` VERDE sobre `26df563`: EK 845 · unit 1403 · 0 rojos · Release 0) |
-| E6b-T5 | Familias se ven (sin efectos) | ⛔ | T1, T4; E6a-T8; E5b-T3 | 🔥 BoardScene, catálogo; +Store | | |
+| E6b-T5 | Familias se ven (sin efectos) | 🟢 | T1, T4; E6a-T8; E5b-T3 | 🔥 BoardScene, catálogo; +Store | | |
 | E6b-T6 | Lugares extra (EK) | ✅ | E6a-T2; E2a-T4 | — | | |
 | E6b-T7 | Lugares extra en la partida | ⛔ | T6; E6a-T6, E6a-T8, E6a-T12; E3a-T10; E5a-T6 | 🔥 GameState, catálogo; GameContentLoader, +Engagement | | 🔒 si las 4 filas no entran en el SE |
 | E6b-T8 | Exclusivas de ORO elegidas entre skins de la v1 | ⛔ | T1r, T5 | catálogo | | el agente propone y se las muestra al dueño antes de cerrar |

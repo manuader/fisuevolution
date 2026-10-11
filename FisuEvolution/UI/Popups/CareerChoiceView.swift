@@ -62,6 +62,7 @@ struct CareerChoiceView: View {
         .padding(Tokens.s16)
         .presentationDetents([.large])
         .interactiveDismissDisabled()
+        .inlineLesson(.career)
         // El tablón no llega a los bordes de la hoja: sin esto el fondo de
         // sistema deja un rectángulo alrededor del panel. Transparente, el
         // fork flota sobre el tablero que está por bifurcar (mismo criterio

@@ -1,7 +1,7 @@
 # Notas a App Review — ranking de la llegada a Dios (E12)
 
 Texto para pegar en **App Review Information → Notes** de la build 2.0 (en inglés, como las notas
-de la submission anterior) y datos para la **App Privacy** de App Store Connect. Lo pega E10.
+de la submission anterior) y datos para la **App Privacy** de App Store Connect. El texto aplicado vive en `release.json → store.reviewNotes` (E10 T5).
 
 ## Texto para pegar
 
@@ -36,7 +36,7 @@ Data: the leaderboard stores a random install identifier (not linked to the play
 Apple account or advertising identifier) and the chosen name plus run times. Neither is used for
 tracking. See App Privacy.
 
-To test: the leaderboard tab is in the sliding menu.
+To test: the Ranking tab is in the bottom bar right after the tutorial.
 ```
 
 ## App Privacy (App Store Connect)
@@ -51,6 +51,9 @@ Se suman a lo que ya declara AdMob (que no se toca). Coincide con `NSPrivacyColl
 
 ## Avisos para E10
 
+- **Resuelto en E10 T5:** la sección LEADERBOARD ya está en `release.json → store.reviewNotes` (resumida
+  por el tope de 4000 caracteres, con el atajo a la pestaña Ranking) y las notas nombran sólo a
+  Google, Unity Ads y Meta Audience Network.
 - Llegar a Dios lleva horas, así que la nota no promete que el revisor pueda anotarse. Lo que sí
   puede ver: la pestaña **Ranking** aparece en la barra inferior apenas termina el tutorial
   (`tabs.json`: `unlockWhen: tutorialCore`), muestra el tablero y permite **Reportar** con un

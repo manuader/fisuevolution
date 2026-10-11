@@ -94,6 +94,7 @@ struct SettingsView: View {
     @State private var showRestartAlert = false
     @State private var restore = RestoreOutcome.idle
     @State private var showsPrivacyRow = false
+    @State private var showsReset = false
 
     var body: some View {
         // Los volúmenes son `var` del manager y persisten solos en su `didSet`:
@@ -113,6 +114,7 @@ struct SettingsView: View {
                 privacySection
                 legalSection
                 aboutSection
+                dangerSection
             }
             .padding(.horizontal, MenuView.panelInset)
             .padding(.top, Tokens.s12)
@@ -128,6 +130,10 @@ struct SettingsView: View {
         // pantalla de un viaje, no una hoja nueva encima de otra hoja.
         .navigationDestination(for: LegalDocument.Kind.self) { document in
             LegalView(document: document, close: close)
+                .clearNavigationBackdrop()
+        }
+        .navigationDestination(isPresented: $showsReset) {
+            ResetGameFlowView(close: close)
                 .clearNavigationBackdrop()
         }
         .alert("settings.restart.title", isPresented: $showRestartAlert) {
@@ -465,6 +471,32 @@ struct SettingsView: View {
                         .foregroundStyle(Color("PaletteInk").opacity(0.7))
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    // MARK: Zona de peligro
+
+    private var dangerSection: some View {
+        VStack(spacing: Tokens.s12) {
+            SectionHeader("settings.section.danger", tint: Color("PalettePink"))
+            GameCard(style: .danger) {
+                VStack(spacing: Tokens.s8) {
+                    Text("settings.reset.hint")
+                        .font(Tokens.caption)
+                        .foregroundStyle(Color("PaletteInk").opacity(0.75))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    ActionPill(
+                        titleKey: "settings.reset",
+                        systemImage: "trash.fill",
+                        tint: Color("PalettePink"),
+                        identifier: "settings.reset"
+                    ) {
+                        showsReset = true
+                    }
                 }
                 .frame(maxWidth: .infinity)
             }

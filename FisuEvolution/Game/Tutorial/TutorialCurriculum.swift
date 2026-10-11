@@ -26,3 +26,92 @@ enum TutorialCurriculum {
         .explain("core.finish", text: "tutorial.step.finish", pose: "fisura_celebrate"),
     ]
 }
+
+/// Qué enseña una mecánica (PLAN-v2 E9, regla de cobertura).
+enum TutorialCoverage: Equatable {
+    case core(String)
+    case lesson(GameState.TutorialLesson)
+    case inline(TutorialInlineLesson)
+    /// Una pantalla que se explica sola (la pausa publicitaria tiene su pantalla previa; el
+    /// permiso de avisos, su tarjeta). Va con su id para que el registro los nombre.
+    case selfExplained(String)
+    /// Todavía sin lección: tiene que estar en `TutorialMechanic.knownGaps`.
+    case gap
+}
+
+/// Todas las mecánicas del juego. **Cada épica que suma una, suma su caso acá**: el `switch` de
+/// `coverage` no compila sin decir qué la enseña.
+@MainActor
+enum TutorialMechanic: String, CaseIterable {
+    case tap, hire, merge, welcomeChest
+    case quickHire, passiveIncome, characterMultipliers, orgChart, elevatorPanel, elevatorKeypad
+    case floorSwipe, floorFull
+    case offlineDoubling, boosts, dailyGifts, skins, achievements, chests, prestigeAndOro, oroUpgrades
+    case career, store, menuSwipe, characterSheet, newTabs, hirePriceStep, staffedFloors, prestigeGate
+    case customsPackage, mattress, wheel, visitor, visitorPopup, eventChip, album, sideRail
+    case mergeAll, share, oroShopShelf, pendingTriple, autoTap, luckOdds, offers
+    case cosmetics, skinEffects, extraSlots, notificationsPermission, adBreak
+
+    var coverage: TutorialCoverage {
+        switch self {
+        case .tap: .core("core.tap")
+        case .hire: .core("core.hire")
+        case .merge: .core("core.merge")
+        case .welcomeChest: .core("core.finish")
+        case .quickHire: .lesson(.quickHire)
+        case .characterMultipliers: .lesson(.upgrades)
+        case .elevatorPanel: .lesson(.elevator)
+        case .elevatorKeypad: .lesson(.elevatorKeypad)
+        case .skins: .lesson(.skins)
+        case .achievements: .lesson(.achievements)
+        case .oroUpgrades: .lesson(.oroUpgrades)
+        case .dailyGifts: .lesson(.gifts)
+        case .store: .lesson(.store)
+        case .prestigeAndOro: .lesson(.prestige)
+        case .share: .lesson(.share)
+        case .visitor: .lesson(.visitor)
+        case .eventChip: .lesson(.eventChip)
+        case .album: .lesson(.album)
+        case .customsPackage: .lesson(.packages)
+        case .mattress: .lesson(.mattress)
+        case .wheel: .lesson(.wheel)
+        case .sideRail: .lesson(.sideRail)
+        case .mergeAll: .lesson(.mergeAllVideo)
+        case .offlineDoubling: .inline(.offline)
+        case .career: .inline(.career)
+        case .visitorPopup: .inline(.visitorPopup)
+        case .notificationsPermission: .selfExplained(NotificationPermissionCard.lessonID)
+        case .adBreak: .selfExplained(Self.adBreakIntroID)
+        case .passiveIncome, .orgChart, .floorSwipe, .floorFull, .boosts, .chests, .menuSwipe,
+             .characterSheet, .newTabs, .hirePriceStep, .staffedFloors, .prestigeGate, .oroShopShelf,
+             .pendingTriple, .autoTap, .luckOdds, .offers, .cosmetics, .skinEffects, .extraSlots:
+            .gap
+        }
+    }
+
+    /// Lo que E9b tiene que enseñar, con la lección que cierra cada uno. Su cierre exige que
+    /// esté vacío; un caso que gana lección sin salir de acá (o al revés) pone el test en rojo.
+    static let knownGaps: Set<TutorialMechanic> = [
+        // E9b T1: las lecciones del tablero y la torre
+        .passiveIncome, .orgChart, .floorSwipe, .floorFull, .characterSheet, .staffedFloors, .prestigeGate,
+        // E9b T2: las de la economía, el ORO, la tienda y el menú
+        .boosts, .chests, .hirePriceStep, .menuSwipe, .newTabs, .oroShopShelf, .pendingTriple, .autoTap,
+        .luckOdds, .offers, .cosmetics, .skinEffects, .extraSlots,
+    ]
+    /// El techo de hoy: un hueco nuevo sin lección pone el test en rojo.
+    static let knownGapsCeiling = 20
+
+    /// El id con el que la pantalla previa de la pausa publicitaria se publica.
+    static let adBreakIntroID = "adbreak.intro"
+    static let selfExplaining: Set<String> = [NotificationPermissionCard.lessonID, adBreakIntroID]
+
+    /// Anclas que se publican con una variable (`.tutorialAnchor(kind.tutorialTarget)`) y no
+    /// con el literal: las de la columna de E7b-b.
+    static let dynamicAnchors: Set<TutorialTarget> = [.sideRail, .sideWheel, .sideMattress, .sidePackages, .sideBoost]
+
+    static var allCurriculumSteps: [TutorialStep] {
+        TutorialCurriculum.core
+            + GameState.TutorialLesson.allCases.flatMap(\.steps)
+            + TutorialInlineLesson.allCases.flatMap(\.steps)
+    }
+}

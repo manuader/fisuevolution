@@ -22,11 +22,13 @@ final class PickupNode: SKNode {
     private var shakeLeft: TimeInterval = 0
 
     init(kind: Kind, texture: SKTexture, side: CGFloat, waitingClip: ArtClip? = nil,
-         manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared) {
+         manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared,
+         packs: ArtPacks = .shared) {
         self.kind = kind
         sprite = SKSpriteNode(texture: texture)
         waitingVideo = waitingClip.map {
-            LoopingVideoNode(clip: $0, poster: texture, size: .zero, role: .icon, manifest: manifest, pool: pool)
+            LoopingVideoNode(clip: $0, poster: texture, size: .zero, role: .icon, manifest: manifest, pool: pool,
+                             packs: packs)
         }
         super.init()
         addChild(sprite)

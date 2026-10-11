@@ -19,9 +19,9 @@ final class BoardScene: SKScene {
     private lazy var stage = StageController(gameState: gameState)
     private lazy var stageEffects = StageEffects(gameState: gameState)
     /// Las cajas del Paquete y el colchón (PLAN-v2 E5): un colaborador más, como el escenario.
-    private lazy var pickups = PickupController(gameState: gameState)
+    private lazy var pickups = PickupController(gameState: gameState, manifest: loops, pool: videoPool, packs: packs)
     /// La caja que se abre en el turno del tablero.
-    private let packageOpening = PackageOpeningPlayer()
+    private lazy var packageOpening = PackageOpeningPlayer(manifest: loops, pool: videoPool, packs: packs)
 
     /// Campo de juego (estilo Cow Evolution): fondo de escena + personajes
     /// parados en anclas orgánicas — sin grilla visible.
@@ -332,6 +332,7 @@ final class BoardScene: SKScene {
 
     override func didMove(to view: SKView) {
         isDetached = false
+        pickups.setSceneVisible(true)
         updateScrollState()
         revealVideo?.setVisible(true)
         layoutBoard()
@@ -340,6 +341,7 @@ final class BoardScene: SKScene {
 
     override func willMove(from view: SKView) {
         isDetached = true
+        pickups.setSceneVisible(false)
         revealVideo?.setVisible(false)
         updateScrollState()
     }

@@ -89,19 +89,45 @@ struct PackageOpeningPlayerTests {
         #expect(parent.children.isEmpty && pool.liveCount == 0 && !player.isPlaying)
     }
 
-    @Test("con video, las monedas saltan una vez a mitad de la apertura")
-    func videoBurstsOnce() {
+    @Test("con video, las monedas saltan una vez, contadas desde el primer cuadro visto")
+    func videoBurstsOnce() async throws {
         let pool = VideoPlayerPool(policy: .allowAll)
         let player = PackageOpeningPlayer(pool: pool)
         let counts = Counts()
         playVideo(player, in: SKNode(), counts: counts)
-        run(player, seconds: PackageOpeningPlayer.videoBurstSeconds - 0.1, reduceMotion: false)
+        run(player, seconds: PackageOpeningPlayer.videoBurstSeconds + 0.5, reduceMotion: false)
+        #expect(counts.bursts == 0 || player.video?.didShowVideo == true)
+        try await waitFor { player.video?.didShowVideo == true }
+        run(player, seconds: 0.1, reduceMotion: false)
         #expect(counts.bursts == 0)
-        run(player, seconds: 0.3, reduceMotion: false)
+        run(player, seconds: PackageOpeningPlayer.videoBurstSeconds, reduceMotion: false)
         #expect(counts.bursts == 1)
         run(player, seconds: 1, reduceMotion: false)
         #expect(counts.bursts == 1)
         player.cancel()
+    }
+
+    @Test("sin fantasma: la tapa y la caja propia se ven hasta el primer cuadro y se apagan con él")
+    func noGhostUnderTheVideo() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let player = PackageOpeningPlayer(pool: pool)
+        playVideo(player, in: SKNode(), counts: Counts())
+        #expect(player.box?.texture != nil && player.lid?.isHidden == false)
+        try await waitFor { player.video?.didShowVideo == true }
+        player.update(delta: 1.0 / 60, reduceMotion: false)
+        #expect(player.box?.texture == nil && player.lid?.isHidden == true)
+        player.cancel()
+    }
+
+    @Test("si el pool baja un video ya visto antes de su momento, las monedas saltan igual y abre una vez")
+    func burstIsNotLostWhenThePoolDropsTheVideo() async throws {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let player = PackageOpeningPlayer(pool: pool)
+        let counts = Counts()
+        playVideo(player, in: SKNode(), counts: counts)
+        try await waitFor { player.video?.didShowVideo == true }
+        _ = pool.suspend(.overlay)
+        #expect(counts.opened == 1 && counts.bursts == 1)
     }
 
     @Test("el tope por cuadros confirma aunque el video no avise, una sola vez; el aviso tardío no repite")

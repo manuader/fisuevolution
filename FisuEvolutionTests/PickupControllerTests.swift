@@ -167,4 +167,20 @@ struct PickupControllerTests {
         controller.update(delta: 1.0 / 60, reduceMotion: false)
         #expect(pool.liveCount == 1)
     }
+
+    @Test("con la escena fuera del SKView las esperas sueltan el cupo, y al volver lo piden")
+    func detachedSceneReleasesTheLease() async {
+        let pool = VideoPlayerPool(policy: .allowAll)
+        let (gameState, controller) = await pickupsWithVideo(pool: pool)
+        gameState.debugAddPackages(1)
+        gameState.refreshPrizeAccess()
+        controller.update(delta: 1, reduceMotion: false)
+        #expect(pool.liveCount == 1)
+        controller.setSceneVisible(false)
+        #expect(pool.liveCount == 0)
+        controller.update(delta: 1, reduceMotion: false)
+        #expect(pool.liveCount == 0, "el update no lo vuelve a pedir")
+        controller.setSceneVisible(true)
+        #expect(pool.liveCount == 1)
+    }
 }

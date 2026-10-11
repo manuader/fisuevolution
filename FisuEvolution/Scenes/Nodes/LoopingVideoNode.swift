@@ -11,6 +11,7 @@ import SpriteKit
 /// `.once(onEnd:)` es el contrato de `AnimatedArtView`: una pasada y `onEnd` exactamente una vez,
 /// en el acto si no hay video (sin entrada, política quieta, pack ODR sin bajar) y también si el
 /// pool lo baja, el primer cuadro no llega o el vigía vence. `stop()` y el `deinit` no lo llaman.
+/// Al terminar, el último cuadro y el cupo del pool quedan hasta el `stop()` de quien lo montó.
 @MainActor
 final class LoopingVideoNode: SKNode, VideoLeaseHolder {
     private static let fadeDuration: TimeInterval = 0.15

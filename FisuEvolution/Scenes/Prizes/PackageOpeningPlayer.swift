@@ -22,9 +22,15 @@ final class PackageOpeningPlayer {
 
     private let manifest: LoopsManifest
     private let pool: VideoPlayerPool
+    private let packs: ArtPacks
+    private static let clearPoster = SKTexture(
+        image: UIGraphicsImageRenderer(size: CGSize(width: 4, height: 4)).image { _ in }
+    )
 
-    private var box: SKSpriteNode?
-    private var lid: SKSpriteNode?
+    private(set) var box: SKSpriteNode?
+    private(set) var lid: SKSpriteNode?
+    private var playElapsed: TimeInterval = 0
+    private var videoSeen = false
     private var point: CGPoint = .zero
     private var side: CGFloat = 0
     private var elapsed: TimeInterval = 0
@@ -36,9 +42,10 @@ final class PackageOpeningPlayer {
 
     var isPlaying: Bool { box != nil }
 
-    init(manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared) {
+    init(manifest: LoopsManifest = .main, pool: VideoPlayerPool = .shared, packs: ArtPacks = .shared) {
         self.manifest = manifest
         self.pool = pool
+        self.packs = packs
     }
 
     func play(
@@ -66,6 +73,8 @@ final class PackageOpeningPlayer {
         self.point = point
         self.side = side
         elapsed = 0
+        playElapsed = 0
+        videoSeen = false
         burstDone = false
         onBurst = burst
         onOpened = opened
@@ -77,7 +86,7 @@ final class PackageOpeningPlayer {
     private func mountVideo(on box: SKSpriteNode) {
         let mount = MountState()
         let node = LoopingVideoNode(
-            clip: .object("paquete_abre"), poster: PickupArt.texture(.package), size: box.size, role: .popup,
+            clip: .object("paquete_abre"), poster: Self.clearPoster, size: box.size, role: .popup,
             playback: .once { [weak self] in
                 if mount.isMounting {
                     mount.endedAtMount = true
@@ -85,18 +94,14 @@ final class PackageOpeningPlayer {
                     self?.videoEnded()
                 }
             },
-            manifest: manifest, pool: pool
+            manifest: manifest, pool: pool, packs: packs
         )
         node.zPosition = 0.5
         box.addChild(node)
         video = node
         node.setVisible(true)
         mount.isMounting = false
-        if mount.endedAtMount {
-            dropVideo()
-        } else {
-            lid?.isHidden = true
-        }
+        if mount.endedAtMount { dropVideo() }
     }
 
     private final class MountState {
@@ -106,7 +111,7 @@ final class PackageOpeningPlayer {
 
     private func videoEnded() {
         if video?.didShowVideo == true {
-            finish()
+            finishVideo()
         } else {
             dropVideo()
         }
@@ -115,6 +120,11 @@ final class PackageOpeningPlayer {
     /// Vuelve a la animación por código, desde el principio.
     private func dropVideo() {
         releaseVideo()
+        if videoSeen, let box {
+            box.texture = PickupArt.texture(.package)
+            box.color = .white
+        }
+        videoSeen = false
         lid?.isHidden = false
         elapsed = 0
         burstDone = false
@@ -131,6 +141,7 @@ final class PackageOpeningPlayer {
         if video != nil, reduceMotion { dropVideo() }
         elapsed += delta
         if video != nil {
+            playElapsed += delta
             updateVideo()
             return
         }
@@ -167,12 +178,30 @@ final class PackageOpeningPlayer {
         }
     }
 
+    /// Con el primer cuadro visto, el video es la caja entera: se apaga el dibujo propio (si no,
+    /// la caja cerrada se ve por detrás de la tapa que vuela) y el reloj de las monedas arranca ahí.
     private func updateVideo() {
-        if !burstDone, elapsed >= Self.videoBurstSeconds {
+        if !videoSeen, video?.didShowVideo == true {
+            videoSeen = true
+            elapsed = 0
+            box?.texture = nil
+            box?.color = .clear
+            lid?.isHidden = true
+        }
+        if videoSeen, !burstDone, elapsed >= Self.videoBurstSeconds {
             burstDone = true
             onBurst?(point)
         }
-        if elapsed >= Self.videoCapSeconds { finish() }
+        if playElapsed >= Self.videoCapSeconds { finishVideo() }
+    }
+
+    /// Las monedas no se pierden si el video termina antes de su momento.
+    private func finishVideo() {
+        if !burstDone {
+            burstDone = true
+            onBurst?(point)
+        }
+        finish()
     }
 
     /// Se corta (el salto o el watchdog del turno): sin avisos. El cambio en

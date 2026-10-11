@@ -40,6 +40,7 @@ struct ActiveBonusBar: View {
                         // destinado al tablero que tiene abajo.
                         chip(bonus)
                             .allowsHitTesting(false)
+                            .tutorialAnchor(.autoTapChip, when: bonus.effect == .autoTapPerSecond)
                             .accessibilityIdentifier("hud.bonus.chip")
                             .accessibilityLabel(Text("hud.bonus.active.label"))
                     }

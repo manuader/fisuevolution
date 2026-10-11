@@ -202,6 +202,9 @@ struct TutorialTipsTests {
     @Test("la lección de Pintas espera al cofre de bienvenida, que es lo que le da algo que hacer")
     func theSkinsLessonWaitsForTheWelcomeChest() async {
         let gameState = await makeGameState()
+        // Con la bandera del cofre se abren pestañas: el deslizar y el «¡Nuevo!» son de otras lecciones.
+        gameState.markLessonDone(.menuSwipe)
+        gameState.markLessonDone(.newTabs)
         gameState.refreshProjections()
         #expect(gameState.tutorialTip == nil,
                 "partida nueva sin una sola pinta: en Pintas no hay nada que ponerse")

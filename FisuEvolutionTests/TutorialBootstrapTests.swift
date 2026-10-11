@@ -91,7 +91,7 @@ struct TutorialBootstrapTests {
     func veteranKnownLessonsAreExplicit() {
         #expect(GameState.TutorialLesson.veteranKnownLessons == [
             "upgrades", "elevator", "skins", "achievements", "oroUpgrades", "gifts", "store", "prestige",
-            "passive", "orgChart", "floorSwipe", "floorFull",
+            "passive", "orgChart", "floorSwipe", "floorFull", "boosts", "chests",
         ])
         #expect(GameState.TutorialLesson.quickHire.introducedIn == .v2)
         #expect(GameState.TutorialLesson.visitor.introducedIn == .v2)

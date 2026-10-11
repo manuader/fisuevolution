@@ -57,9 +57,10 @@ struct TutorialCoverageTests {
         }
     }
 
-    @Test("los huecos declarados sólo se achican (E9b los vacía; su cierre exige cero)")
+    @Test("los huecos declarados sólo se achican (E9b T3 exige cero o la razón de cada uno)")
     func gapsAreDeclared() {
         #expect(TutorialMechanic.knownGaps.count <= TutorialMechanic.knownGapsCeiling)
-        #expect(TutorialMechanic.knownGaps.count == 13)
+        #expect(TutorialMechanic.knownGaps.count == 1)
+        #expect(TutorialMechanic.knownGaps == [.skinEffects], "las skins por código no existen (E6b T1r)")
     }
 }

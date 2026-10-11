@@ -284,6 +284,249 @@ struct TutorialLessonsTests {
         #expect(gameState.tutorialBoardTarget == nil)
     }
 
+    // MARK: Regalos: boosts y cofres
+
+    /// Todas las pestañas abiertas, como en el fixture de UI.
+    private func openAllTabs(_ gameState: GameState) {
+        gameState.progressiveTabsEnabled = false
+        gameState.refreshProjections()
+    }
+
+    @Test("los boosts: nacen con un boost listo y Regalos aprendido, y no con uno ya usado")
+    func boostsNeedAReadyBoostAndTheGiftsLesson() async throws {
+        let gameState = await makeGameState()
+        only(.boosts, in: gameState)
+        openAllTabs(gameState)
+        gameState.flagDefaults.removeObject(forKey: GameState.TutorialLesson.gifts.defaultsKey)
+        #expect(!gameState.isEligible(.boosts), "Regalos todavía no se enseñó")
+        gameState.markLessonDone(.gifts)
+        #expect(gameState.isEligible(.boosts))
+
+        gameState.player?.meta.stats.boostsActivatedEver = 1
+        #expect(!gameState.isEligible(.boosts), "ya usó uno")
+        gameState.player?.meta.stats.boostsActivatedEver = 0
+        let now = Date().timeIntervalSince1970
+        for boost in try #require(gameState.content).boosts.boosts { gameState.player?.meta.boostActivations[boost.id] = now }
+        #expect(!gameState.isEligible(.boosts), "todos enfriándose: nada que activar")
+        gameState.player?.meta.boostActivations = [:]
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["boosts.open", "boosts.explain"])
+        #expect(gameState.tutorialRun?.steps.last?.target == .giftsBoosts)
+    }
+
+    @Test("los cofres: nacen con uno que se puede abrir")
+    func chestsNeedAnOpenableChest() async throws {
+        let gameState = await makeGameState()
+        only(.chests, in: gameState)
+        openAllTabs(gameState)
+        #expect(!gameState.isEligible(.chests), "sin cofre esperando")
+        gameState.player?.meta.chestsPending = 1
+        #expect(gameState.isEligible(.chests))
+
+        let reachable = gameState.chestUnlockedCharacterTypes
+        let pool = try #require(gameState.content).skins.chestPool
+        gameState.player?.meta.ownedSkins.append(contentsOf: pool.filter { reachable.contains($0.characterType) }.map(\.id))
+        #expect(!pool.allSatisfy { gameState.player?.meta.ownedSkins.contains($0.id) == true }, "falta alguna de más arriba")
+        #expect(!gameState.canOpenChest, "ya tiene todas las pintas a las que llegó")
+        #expect(!gameState.isEligible(.chests), "abrir Regalos no tiene qué ofrecer")
+        gameState.player?.meta.ownedSkins.removeAll()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["chests.open", "chests.explain"])
+        #expect(gameState.tutorialRun?.steps.last?.target == .giftsChest)
+    }
+
+    // MARK: FisuJobs y el menú
+
+    @Test("el +6 %: nace con cinco contrataciones y la fila recomendada a la vista, y no antes")
+    func hirePriceStepNeedsFiveHires() async {
+        let gameState = await makeGameState()
+        only(.hirePriceStep, in: gameState)
+        gameState.debugGrantCoins()
+        gameState.refreshProjections()
+        #expect(!gameState.isEligible(.hirePriceStep), "todavía no contrató cinco")
+        gameState.player?.meta.stats.totalHiresEver = 5
+        #expect(gameState.isEligible(.hirePriceStep))
+        gameState.player?.run.coins = 0
+        gameState.refreshProjections()
+        #expect(!gameState.isEligible(.hirePriceStep), "sin plata la fila no es la recomendada")
+        gameState.debugGrantCoins()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["hire_price_step.open", "hire_price_step.explain"])
+    }
+
+    @Test("deslizar el menú se cumple deslizando, y no nace con dos pestañas")
+    func menuSwipeNeedsAPagerMove() async {
+        let gameState = await makeGameState()
+        only(.menuSwipe, in: gameState)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun == nil, "una partida nueva tiene dos pestañas: no hay a dónde deslizar")
+        openAllTabs(gameState)
+        #expect(gameState.tutorialRun?.step?.id == "menu_swipe.open")
+        gameState.menuDidOpen(at: .upgrades)
+        #expect(gameState.tutorialRun?.step?.id == "menu_swipe.swipe")
+        #expect(gameState.tutorialRun?.step?.hand == .swipe(.left))
+        #expect(gameState.tutorialRun?.step?.target == .menuPager)
+        gameState.menuPageChanged(to: .skins)
+        #expect(gameState.tutorialRun == nil || gameState.tutorialRun?.isFinished == true)
+    }
+
+    @Test("abrir otra página sin deslizar no cumple el deslizar")
+    func openingAnotherPageIsNotASwipe() async {
+        let gameState = await makeGameState()
+        only(.menuSwipe, in: gameState)
+        openAllTabs(gameState)
+        gameState.menuDidOpen(at: .upgrades)
+        gameState.tutorialTipHandled(opening: .skins)
+        #expect(gameState.tutorialRun?.step?.id == "menu_swipe.swipe")
+    }
+
+    @Test("las pestañas nuevas: nacen con un «¡Nuevo!» y no sin él")
+    func newTabsNeedANewBadge() async {
+        let gameState = await makeGameState()
+        only(.newTabs, in: gameState)
+        gameState.refreshProjections()
+        #expect(gameState.newTabs.isEmpty)
+        #expect(gameState.tutorialRun == nil)
+        gameState.progressiveTabsEnabled = false
+        gameState.flagDefaults.set([GameScreen.gifts.rawValue], forKey: GameState.newTabsKey)
+        gameState.refreshProjections()
+        #expect(gameState.newTabs == [.gifts])
+        #expect(gameState.isEligible(.newTabs))
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["new_tabs.explain"])
+    }
+
+    // MARK: La tienda de ORO
+
+    @Test("la tienda de ORO pasa por la mitad «Gastar ORO»")
+    func oroShopNeedsTheSpendHalf() async throws {
+        let gameState = await makeGameState()
+        only(.oroShop, in: gameState)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun == nil, "sin ORO no hay qué gastar")
+        let cheapest = try #require(gameState.cheapestOroShopPrice())
+        gameState.player?.meta.oro = cheapest - 1
+        #expect(!gameState.isEligible(.oroShop), "le falta uno")
+        gameState.player?.meta.oro = cheapest
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["oro_shop.open", "oro_shop.spend", "oro_shop.caps"])
+
+        gameState.menuDidOpen(at: .store)
+        #expect(gameState.tutorialRun?.step?.id == "oro_shop.spend", "abrir la Tienda no basta")
+        gameState.oroShopSpendChosen()
+        #expect(gameState.tutorialRun?.step?.id == "oro_shop.caps")
+    }
+
+    @Test("elegir «Gastar ORO» no cumple el paso de otra lección")
+    func spendingHalfOnlyAnswersTheShopLessons() async {
+        let gameState = await makeGameState()
+        only(.prestige, in: gameState)
+        gameState.startTutorialRun(.lesson("prestige"), steps: GameState.TutorialLesson.prestige.steps)
+        gameState.tutorialSignal(.lessonAction("prestige.open"))
+        let before = gameState.tutorialRun?.step?.id
+        gameState.oroShopSpendChosen()
+        #expect(gameState.tutorialRun?.step?.id == before)
+    }
+
+    @Test("la suerte: nace con la puerta del azar abierta y la tienda de ORO aprendida")
+    func luckNeedsTheChanceGateOpen() async {
+        let gameState = await makeGameState()
+        only(.luck, in: gameState)
+        gameState.debugUnlockFloors(throughTier: 12)
+        gameState.flagDefaults.removeObject(forKey: GameState.TutorialLesson.oroShop.defaultsKey)
+        #expect(!gameState.luckMomentIsOn(chanceAllowed: true), "la tienda de ORO todavía no se enseñó")
+        gameState.markLessonDone(.oroShop)
+        #expect(gameState.luckMomentIsOn(chanceAllowed: true))
+        #expect(!gameState.luckMomentIsOn(chanceAllowed: false), "en una tienda restringida no se vende azar")
+        #expect(!gameState.isEligible(.luck), "la puerta arranca cerrada hasta que StoreKit contesta")
+        #expect(GameState.TutorialLesson.luck.steps.map(\.id) == ["luck.open", "luck.spend", "luck.odds"])
+    }
+
+    @Test("los cosméticos: nacen con una pinta de ORO que el saldo alcanza y la tienda aprendida")
+    func cosmeticsNeedAnAffordableOutfit() async throws {
+        let gameState = await makeGameState()
+        only(.cosmetics, in: gameState)
+        gameState.flagDefaults.removeObject(forKey: GameState.TutorialLesson.oroShop.defaultsKey)
+        let cheapest = try #require(gameState.cheapestCosmeticPrice())
+        gameState.player?.meta.oro = cheapest
+        #expect(!gameState.isEligible(.cosmetics), "la tienda de ORO todavía no se enseñó")
+        gameState.markLessonDone(.oroShop)
+        #expect(gameState.isEligible(.cosmetics))
+        gameState.player?.meta.oro = cheapest - 1
+        #expect(!gameState.isEligible(.cosmetics))
+        gameState.player?.meta.oro = cheapest
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["cosmetics.open", "cosmetics.spend", "cosmetics.where"])
+        #expect(gameState.tutorialRun?.steps.last?.target == .storeCosmetics)
+    }
+
+    @Test("lo más barato de la tienda no cuenta el azar con la puerta cerrada ni lo que el piso no abrió")
+    func cheapestPriceSkipsWhatIsNotOnSale() async throws {
+        let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        func price(_ item: OroShopCatalog.Item) -> Int? { item.price ?? item.levels.first?.price }
+        let onSale = content.oroShop.items.filter { item in
+            !item.isChance && item.unlockFloorId.map { content.floorTable.ordinal(of: $0) == 0 } ?? true
+        }
+        let hidden = content.oroShop.items.filter { !onSale.contains($0) }
+        #expect(!hidden.isEmpty, "el catálogo tiene algo que hoy no se vende")
+        #expect(gameState.cheapestOroShopPrice() == onSale.compactMap(price).min())
+    }
+
+    // MARK: Lo que corre bajo el HUD
+
+    @Test("el ×3 guardado: nace con uno comprado esperando, el de la vuelta o el del diario")
+    func pendingTripleNeedsASavedMultiplier() async {
+        let gameState = await makeGameState()
+        only(.pendingTriple, in: gameState)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun == nil)
+        gameState.player?.meta.engagement.shop.pendingDailyMultiplier = 3
+        #expect(gameState.isEligible(.pendingTriple))
+        gameState.player?.meta.engagement.shop.pendingDailyMultiplier = nil
+        gameState.player?.meta.engagement.shop.pendingOfflineMultiplier = 3
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["pending_triple.explain"])
+    }
+
+    @Test("el auto-tap: nace con el auto-tap corriendo y señala su chip")
+    func autoTapNeedsARunningAutoTap() async {
+        let gameState = await makeGameState()
+        only(.autoTap, in: gameState)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun == nil)
+        gameState.grant(.autoTap(perSecond: 1, seconds: 60), source: "test")
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["auto_tap.explain"])
+        #expect(gameState.tutorialRun?.step?.target == .autoTapChip)
+    }
+
+    @Test("las ofertas: nacen cuando la oferta ya se vio y quedó su chip, no mientras la hoja la presenta")
+    func offersNeedAnOpenedChip() async {
+        let gameState = await makeGameState()
+        only(.offers, in: gameState)
+        gameState.refreshProjections()
+        #expect(!gameState.isEligible(.offers))
+        gameState.debugOpenOffer(id: "renacer")
+        #expect(!gameState.isEligible(.offers), "la hoja todavía no la mostró")
+        gameState.markOfferPresented(id: "renacer")
+        #expect(gameState.isEligible(.offers) == !gameState.visibleOffers().isEmpty)
+        gameState.markLessonDone(.offers)
+        #expect(GameState.TutorialLesson.offers.steps.map(\.id) == ["offers.chip"])
+        #expect(GameState.TutorialLesson.offers.steps.first?.target == .offerChip)
+    }
+
+    @Test("los lugares extra: nacen con un nivel comprado")
+    func extraSlotsNeedAPurchasedLevel() async {
+        let gameState = await makeGameState()
+        only(.extraSlots, in: gameState)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun == nil)
+        gameState.player?.meta.engagement.shop.levels["extra_slots"] = 1
+        gameState.refreshProjections()
+        #expect(gameState.tutorialRun?.steps.map(\.id) == ["extra_slots.explain"])
+    }
+
     // MARK: El registro
 
     @Test("las de la 2.0 no se dan por vistas al veterano, y las de la v1 sí")
@@ -292,6 +535,30 @@ struct TutorialLessonsTests {
         for lesson in v2 { #expect(lesson.introducedIn == .v2, "\(lesson)") }
         let v1: [GameState.TutorialLesson] = [.passive, .upgrades, .orgChart, .elevator, .floorSwipe, .floorFull, .prestige]
         for lesson in v1 { #expect(lesson.introducedIn == .v1, "\(lesson)") }
+    }
+
+    @Test("las de T2 declaran su versión")
+    func declaredReleaseT2() {
+        for lesson in [GameState.TutorialLesson.boosts, .chests] { #expect(lesson.introducedIn == .v1, "\(lesson)") }
+        let v2: [GameState.TutorialLesson] = [.hirePriceStep, .menuSwipe, .newTabs, .oroShop, .luck, .cosmetics,
+                                               .pendingTriple, .autoTap, .offers, .extraSlots]
+        for lesson in v2 { #expect(lesson.introducedIn == .v2, "\(lesson)") }
+    }
+
+    @Test("los huecos de T2 quedaron cubiertos por su lección, salvo el que no existe")
+    func theT2GapsAreCovered() {
+        let expected: [TutorialMechanic: GameState.TutorialLesson] = [
+            .boosts: .boosts, .chests: .chests, .hirePriceStep: .hirePriceStep, .menuSwipe: .menuSwipe,
+            .newTabs: .newTabs, .oroShopShelf: .oroShop, .luckOdds: .luck, .cosmetics: .cosmetics,
+            .pendingTriple: .pendingTriple, .autoTap: .autoTap, .offers: .offers, .extraSlots: .extraSlots,
+        ]
+        for (mechanic, lesson) in expected {
+            #expect(mechanic.coverage == .lesson(lesson), "\(mechanic)")
+            #expect(!TutorialMechanic.knownGaps.contains(mechanic), "\(mechanic)")
+            #expect(lesson.textKey == nil, "\(lesson)")
+        }
+        #expect(TutorialMechanic.knownGaps == [.skinEffects])
+        #expect(TutorialMechanic.gapReasons[.skinEffects]?.isEmpty == false)
     }
 
     @Test("cada lección con guion propio tiene sus pasos y ya no lleva el texto heredado")

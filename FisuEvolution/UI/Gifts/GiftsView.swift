@@ -128,6 +128,7 @@ struct GiftsView: View {
                     if chests > 0 {
                         section("gifts.section.chests")
                         ChestCard(count: chests, canOpen: gameState.canOpenChest, open: openChest)
+                            .tutorialAnchor(.giftsChest)
                             .staggeredAppearance(index: 0)
                     }
 
@@ -147,6 +148,7 @@ struct GiftsView: View {
                             adReady: boostAdReady,
                             boostWatched: { boostWatched(boostId: row.id) }
                         )
+                            .tutorialAnchor(.giftsBoosts, when: offset == 0)
                             .staggeredAppearance(index: chestRows + 2 + offset)
                     }
                     if let payoutAmount {

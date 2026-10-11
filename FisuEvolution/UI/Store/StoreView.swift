@@ -53,6 +53,15 @@ struct StoreView: View {
     enum Segment: String, CaseIterable {
         case buy
         case spend
+
+        /// La bajada de la cabecera es la de la mitad elegida: la de plata habla
+        /// de packs y de skins, la de ORO de en qué se gasta.
+        var subtitleKey: LocalizedStringKey {
+            switch self {
+            case .buy: "store.subtitle"
+            case .spend: "store.subtitle.spend"
+            }
+        }
     }
 
     @State private var segment: Segment = .buy
@@ -130,7 +139,8 @@ struct StoreView: View {
                 titleKey: "store.title",
                 icon: AnyView(GameIcon(artKey: "ui_tab_shop", size: 26) { VectorTabShopIcon() })
             )
-            Text("store.subtitle")
+            Text(segment.subtitleKey)
+                .accessibilityIdentifier("store.subtitle.\(segment.rawValue)")
                 .font(Tokens.caption)
                 .foregroundStyle(Color("PaletteInk").opacity(0.75))
                 .multilineTextAlignment(.center)

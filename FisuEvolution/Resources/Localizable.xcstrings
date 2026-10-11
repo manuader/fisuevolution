@@ -13411,6 +13411,23 @@
         }
       }
     },
+    "tutorial.tip.mattress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your workers stashed cash in the mattress. Tap it to open it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus empleados escondieron plata en el colchón. Tocalo para abrirlo."
+          }
+        }
+      }
+    },
     "tutorial.tip.oro" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13424,6 +13441,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Tu primer ORO! Canjealo en Mejoras por una mejora permanente"
+          }
+        }
+      }
+    },
+    "tutorial.tip.packages" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Customs Package arrived! Tap it: there's a worker inside."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Llegó un Paquete de la Aduana! Tocalo: adentro viene un empleado."
           }
         }
       }
@@ -13543,6 +13577,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¡Tenés visita! Tocá su cara para ver qué trae."
+          }
+        }
+      }
+    },
+    "tutorial.tip.wheel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Wheel is waiting in Gifts: new spins every day."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La Ruleta te espera en Regalos: giros nuevos todos los días."
           }
         }
       }

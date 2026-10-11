@@ -165,6 +165,42 @@ struct TutorialDirectorTests {
         #expect(gameState.showing != .tutorialTip)
     }
 
+    @Test("hasta T6, el timeout de la cola suelta el turno: la lección queda dada y no vuelve")
+    func theQueueTimeoutReleasesTheTurn() async {
+        let gameState = await makeGameState()
+        gameState.debugGrantCoins()
+        #expect(gameState.showing == .tutorialTip)
+        gameState.advanceCelebrations(delta: 12)
+        #expect(gameState.tutorialRun == nil)
+        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey))
+        gameState.syncCelebrations()
+        #expect(gameState.showing != .tutorialTip, "sin corrida no se reencola")
+    }
+
+    @Test("hasta T6, el toque que saltea suelta el turno: la lección queda dada y no vuelve")
+    func theSkippingTapReleasesTheTurn() async {
+        let gameState = await makeGameState()
+        gameState.debugGrantCoins()
+        #expect(gameState.showing == .tutorialTip)
+        gameState.advanceCelebrations(delta: 0.7)
+        #expect(gameState.skipCurrentCelebration())
+        #expect(gameState.tutorialRun == nil)
+        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey))
+        gameState.syncCelebrations()
+        #expect(gameState.showing != .tutorialTip, "sin corrida no se reencola")
+    }
+
+    @Test("abrir otra pestaña no cumple la lección de Mejoras")
+    func anotherScreenDoesNotCompleteTheLesson() async {
+        let gameState = await makeGameState()
+        gameState.debugGrantCoins()
+        #expect(gameState.tutorialTip?.lesson == .upgrades)
+        gameState.tutorialTipHandled(opening: .store)
+        #expect(gameState.tutorialTip?.lesson == .upgrades)
+        #expect(gameState.showing == .tutorialTip)
+        #expect(!UserDefaults.standard.bool(forKey: GameState.TutorialLesson.upgrades.defaultsKey))
+    }
+
     @Test("una lección en pantalla congela los relojes con paciencia (no es un momento calmo)")
     func lessonsFreezePatience() async {
         let gameState = await makeGameState()

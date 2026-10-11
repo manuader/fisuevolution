@@ -54,10 +54,14 @@ extension GameState {
         // comió el globo de la lección de Mejoras (nacida por el fixture de
         // monedas). Mismo criterio que el resto de los fixtures: el estado
         // del tutorial lo decide cada test, nunca el azar del gating.
-        // `--uitest-lesson=<id>` fuerza una lección (gana sobre el orden y la
-        // señal mientras no esté dada) e implica `--uitest-lessons`.
+        // `--uitest-lesson=<id>` fuerza una lección mientras no esté dada: gana
+        // sobre el orden y saltea su señal de gating y `needsCalmBoard`. Implica
+        // `--uitest-lessons`.
         let forcedLesson = arguments.first { $0.hasPrefix("--uitest-lesson=") }
             .map { String($0.dropFirst("--uitest-lesson=".count)) }
+        if let forcedLesson, TutorialLesson(rawValue: forcedLesson) == nil {
+            Log.lifecycle.error("--uitest-lesson: no hay lección \(forcedLesson, privacy: .public)")
+        }
         tutorialEngine.forcedLesson = forcedLesson
         if arguments.contains(where: { $0.hasPrefix("--uitest") }),
            !arguments.contains("--uitest-lessons"), forcedLesson == nil {

@@ -125,6 +125,11 @@ extension GameState {
     /// Arma la corrida, reinicia el reloj y —salvo el núcleo y las tarjetas embebidas— pide
     /// el turno de la cola. Lo usan el director, el núcleo (T5), E9b y los tests.
     func startTutorialRun(_ script: TutorialRun.Script, steps: [TutorialStep]) {
+        // Una corrida por vez: la anterior se suelta sin marcarse (y sin su turno en la cola).
+        if let previous = tutorialRun {
+            Log.lifecycle.error("tutorial: corrida pisada sin terminar: \(String(describing: previous.script), privacy: .public)")
+            if runTakesAQueueTurn(previous) { celebrations.finish(.tutorialTip) }
+        }
         let run = TutorialRun(script: script, steps: steps, probe: tutorialProbe())
         tutorialRun = run
         resetTutorialClock()
@@ -146,6 +151,8 @@ extension GameState {
         startTutorialRun(.lesson(lesson.rawValue), steps: lesson.steps)
     }
 
+    /// La forzada (`--uitest-lesson`) saltea la señal de gating y `needsCalmBoard`: es para
+    /// fixtures que quieren la lección sin armar su momento.
     private func nextLesson() -> TutorialLesson? {
         if let forced = tutorialEngine.forcedLesson.flatMap(TutorialLesson.init(rawValue:)),
            !isLessonDone(forced) {
@@ -167,6 +174,9 @@ extension GameState {
             celebrations.finish(.tutorialTip)
             return
         }
+        // Sin el turno de la cola no avanza: los eventos quedan anotados y cuentan cuando
+        // le toque. Avanzar acá terminaría la lección (y la marcaría dada) sin haberse visto.
+        if runTakesAQueueTurn(run), showing != .tutorialTip { return }
         if !uiCoversBoard, run.rewindToBoard(probe: probe) {
             tutorialRun = run
             resetTutorialClock()
@@ -210,7 +220,9 @@ extension GameState {
     /// queda dada y el ritmo empieza a contar. El Tour y el repaso no marcan lecciones acá:
     /// lo hacen al terminar (E9b).
     func releaseTutorialTurn() {
-        if let id = tutorialRun?.lessonID { TutorialFlags.markLessonDone(id) }
+        // El núcleo y las tarjetas embebidas no tienen turno en la cola: no se sueltan acá.
+        guard let run = tutorialRun, runTakesAQueueTurn(run) else { return }
+        if let id = run.lessonID { TutorialFlags.markLessonDone(id) }
         tutorialRun = nil
         tutorialEngine.pacing.lessonEnded()
     }

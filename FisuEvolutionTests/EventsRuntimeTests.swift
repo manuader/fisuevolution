@@ -162,6 +162,35 @@ struct EventsRuntimeTests {
         #expect(abs(paid - expected) < 1e-6 * max(1, expected))
     }
 
+    @Test("el Aguinaldo se ve 25 s con su chip y su popup, y paga una sola vez")
+    func aguinaldoStaysOnScreenAndPaysOnce() async throws {
+        let gameState = try await game()
+        let content = try #require(gameState.content)
+        let economy = try #require(gameState.economy)
+        let before = try #require(gameState.player)
+        let now = Date().timeIntervalSince1970
+        gameState.startEvent(try event("aguinaldo", in: gameState), now: now)
+        let expected = GameState.coinReward(seconds: 300, player: before, content: content, economy: economy)
+        let paid = try #require(gameState.player?.run.coins) - before.run.coins
+        #expect(abs(paid - expected) < 1e-6 * max(1, expected), "el pago es el de siempre")
+        #expect(gameState.isEventRunning(id: "aguinaldo", now: now + 24))
+        #expect(!gameState.isEventRunning(id: "aguinaldo", now: now + 25))
+        let modifiers = try #require(gameState.player?.run.activeModifiers)
+        for effect in ActiveModifier.Effect.allCases {
+            #expect(ModifierMath.factor(modifiers, effect: effect, now: now + 1) == 1, "\(effect) no se mueve")
+        }
+        let chips = ActiveBonusBuilder.bonuses(
+            from: modifiers, catalog: [:],
+            events: ["event.aguinaldo": EventChipSource(presenterId: "npc_sindicalista", polarity: .positive, duration: 25)],
+            now: now + 1
+        )
+        #expect(chips.compactMap(\.eventId) == ["aguinaldo"])
+        let coinsAfter = try #require(gameState.player?.run.coins)
+        gameState.openEventPopup(id: "aguinaldo")
+        #expect(gameState.eventPopup?.eventId == "aguinaldo")
+        #expect(gameState.player?.run.coins == coinsAfter, "abrir el popup no paga")
+    }
+
     @Test("cortar los negativos deja los mixtos y los positivos")
     func cutNegatives() async throws {
         let gameState = try await game()

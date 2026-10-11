@@ -52,6 +52,11 @@ public enum EventPlanner {
                 called = script
             }
         }
+        if modifiers.isEmpty, event.durationSeconds > 0 {
+            modifiers.append(ActiveModifier(
+                effect: .eventPresence, magnitude: 1, expiresAt: now + event.durationSeconds, sourceKey: event.sourceKey
+            ))
+        }
         return EventApplication(modifiers: modifiers, coinsSeconds: coinsSeconds, boardIntent: intent,
                                 calledScript: called, scene: event.scene)
     }

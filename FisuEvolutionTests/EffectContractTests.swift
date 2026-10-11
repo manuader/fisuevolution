@@ -93,6 +93,9 @@ struct EffectContractTests {
                 let tapPlain = economy.applyTap(type: base, state: &plain, tiers: content.tiers, floorTable: content.floorTable, now: 0)
                 let tapBoosted = economy.applyTap(type: base, state: &boosted, tiers: content.tiers, floorTable: content.floorTable, now: 0)
                 #expect(tapBoosted == tapPlain, "el pasivo no es el toque")
+            case .eventPresence:
+                #expect(chip.isEmpty, "la marca de un evento instantáneo no dice ningún número")
+                #expect(passive(boosted) == passive(plain), "ni toca los ingresos")
             case .eventImmunity:
                 #expect(chip == String(localized: "bonus.chip.immunity"))
                 #expect(passive(boosted) == passive(plain))

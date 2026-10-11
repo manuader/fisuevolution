@@ -22,14 +22,14 @@ struct TabUnlockWiringTests {
 
     private func withDefaults(core: Bool, sessions: Int, _ body: @MainActor () async throws -> Void) async rethrows {
         let defaults = UserDefaults.standard
-        let savedCore = defaults.object(forKey: "fisuTutorialDone")
+        let savedCore = defaults.object(forKey: TutorialFlags.completedKey)
         let savedSessions = defaults.object(forKey: GameState.sessionsAfterPhaseKey)
         let savedNew = defaults.object(forKey: GameState.newTabsKey)
-        defaults.set(core, forKey: "fisuTutorialDone")
+        defaults.set(core, forKey: TutorialFlags.completedKey)
         defaults.set(sessions, forKey: GameState.sessionsAfterPhaseKey)
         defaults.removeObject(forKey: GameState.newTabsKey)
         defer {
-            defaults.set(savedCore, forKey: "fisuTutorialDone")
+            defaults.set(savedCore, forKey: TutorialFlags.completedKey)
             defaults.set(savedSessions, forKey: GameState.sessionsAfterPhaseKey)
             defaults.set(savedNew, forKey: GameState.newTabsKey)
         }
@@ -52,7 +52,7 @@ struct TabUnlockWiringTests {
         try await withDefaults(core: false, sessions: 0) {
             let gameState = await makeGameState()
             gameState.refreshProjections()
-            UserDefaults.standard.set(true, forKey: "fisuTutorialDone")
+            TutorialFlags.setCoreCompleted(true)
             gameState.refreshProjections()
             #expect(gameState.unlockedTabs == [.jobs, .upgrades, .gifts, .menu, .ranking])
             #expect(gameState.newTabs == [.gifts, .menu, .ranking])
@@ -84,7 +84,7 @@ struct TabUnlockWiringTests {
             let gameState = await makeGameState()
             gameState.refreshProjections()
             #expect(gameState.unlockedTabs.contains(.menu))
-            UserDefaults.standard.set(false, forKey: "fisuTutorialDone")
+            TutorialFlags.setCoreCompleted(false)
             gameState.refreshProjections()
             #expect(gameState.unlockedTabs.contains(.menu))
         }

@@ -229,7 +229,7 @@ final class GameState {
     /// promueve lo que el tutorial pide (`+Celebrations`, `beginTutorialPhase`)
     /// y las lecciones contextuales todavía no existen.
     ///
-    /// La fuente es `fisuTutorialDone` en `UserDefaults` —la misma bandera del
+    /// La fuente es `tutorial.v2.completed` en `UserDefaults` —la misma bandera del
     /// overlay—, leída UNA vez en el bootstrap: la cola no lee `AppStorage`, le
     /// llega como estado. La apaga `tutorialPhaseFinished()`, que llama el
     /// overlay al cerrar (por el botón del final o por "Saltar").

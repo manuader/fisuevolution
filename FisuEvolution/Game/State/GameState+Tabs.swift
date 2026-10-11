@@ -53,7 +53,7 @@ extension GameState {
     func tabSignals(player: PlayerState) -> TabUnlockSignals {
         let defaults = UserDefaults.standard
         return TabUnlockSignals(
-            tutorialCoreDone: defaults.bool(forKey: "fisuTutorialDone"),
+            tutorialCoreDone: TutorialFlags.coreCompleted(in: defaults),
             ownsAnySkin: !player.meta.allOwnedSkins.isEmpty,
             hasReceivedChest: player.meta.welcomeChestGiven
                 || player.meta.chestsPending > 0

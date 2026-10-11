@@ -92,7 +92,9 @@ struct MenuPagerView: View {
             .onScrollGeometryChange(for: Int.self) { geometry in
                 Self.pageIndex(offset: geometry.contentOffset.x, width: geometry.containerSize.width)
             } action: { _, index in
-                guard pages.indices.contains(index) else { return }
+                // Sólo mientras el scroll se mueve: el arranque programático
+                // (`scrollTo(start)`) parte del offset 0 y no debe asentar la página 0.
+                guard moving, pages.indices.contains(index) else { return }
                 settle(on: pages[index])
             }
             .onAppear { proxy.scrollTo(start, anchor: .leading) }

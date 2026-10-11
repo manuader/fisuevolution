@@ -356,6 +356,17 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Cierre de E6a (2026-10-11) — La Tienda de ORO, los packs y las ofertas de 24 h
+
+E6a T1–T12 están en `version-2` y T13 es este cierre; con él, **E6a queda entera** (E6b: T1–T7 y T9 integradas, T8 ⏳ espera el OK del dueño en vivo, T10 ⛔). Detalle, la tabla por tarea con su commit, las revisiones opus y los escenarios a mano pendientes en **`Docs/SESION-2026-10-11-v2-e6.md`**.
+
+- **La tienda y las ofertas**: `ShopState`/`OffersState` en el save (E6a T1), `OroShopCatalog`/`OroShop` y `OffersCatalog`/`OffersEngine` puros en EK, `oro_shop.json` (13 ítems) y los packs 160 / 550 / 1.400. `buyOroShopItem` cobra y entrega en un paso con un solo guardado; `creditOffer` acredita una oferta comprada aunque ya no figure abierta.
+- **La pantalla**: `StoreView` con el selector Comprar ORO / Gastar ORO, `OroShopView` y `PurchaseLatch`. Las ofertas son `CelebrationKind.offer` con `OfferChip`/`OfferSheet`/`OfferSheets` y `GameState+Offers`. **T13:** la bajada de la cabecera acompaña a la mitad elegida (`store.subtitle` en Comprar ORO, `store.subtitle.spend` en Gastar ORO), con `OroShopUITests.testTheStoreSubtitleFollowsTheSelectedSide` y RED por mutación visto.
+- **El carry «el cofre queda bajo la hoja al cerrar» NO se reprodujo:** dos UI tests con una puerta DEBUG temporal (hoja de oferta por la cola y desde el chip, `debugOpenChest()` a 1 s) dieron el cofre visible y tocable al cerrar la hoja; se revirtieron. Queda como pregunta al dueño (qué hoja, cómo llegó el cofre).
+- **Verificación:** el `completo` de `582c8ee` (EK 863 · unit 1625 · UI 139 · store 18+2 · iPad 4 · SE 2 · pipeline 97 · pacing Dios 31,34 h · 13 reenc. · Release 0) cubre T1–T12; el de T13 está **pendiente del `completo` de tanda del relevo 33**.
+- **🔒 del dueño (no se hicieron):** comprar ×3 de ingresos, «Fusionar todo» con un tier nuevo, Offline ×3 + 1 h afuera, la oferta Renacer en 18.6 y la tienda en `BEL`; el cofre bajo la hoja; la Bienvenida sin tabla con `.nothingYet`.
+- **Carries:** ancla `.offerChip` condicional y ancla `.oroShop` sin lección (E9a); el chip sólo cubre `.first`; el cofre sin UI test (el gate es nil en el simulador).
+
 ### Cierre de E7b (2026-10-11) — Los anuncios forzados, la columna plegable y el mapa de ubicaciones
 
 E7b-a T1–T5 y E7b-b T1–T7 están en `version-2` (E7b-b T4 se saltea) y E7b-b T8 es este cierre, sólo documentación. **E7b queda cerrada salvo E7b-a T6 y T7 (la mediación por SPM, ⛔ 🔒 del dueño).** Detalle, la tabla por tarea con su commit, lo medido y el porqué de cada default en **`Docs/SESION-2026-10-11-v2-e7b.md`**.
@@ -2190,6 +2201,11 @@ la apertura del paquete es el turno del tablero y no una celebración de la cola
 ruleta al irse; `wheel_ready` es el último aviso del catálogo; `OddsDisclosureView` y `RewardCopy` nacen en E5; el giro con ORO se esconde (no se deshabilita) donde la tienda no lo permite; hasta 3 cajas en el
 tablero. **Desvío decidido:** el default de los accesos (chips bajo el HUD hasta que exista la columna) se cerró con la columna plegable (opción C, abajo) y los chips se borraron.
 
+**Decisiones de E6a** (2026-10-11; B1–B26 aceptadas con su default, §5.22, y la Bienvenida tal cual; el detalle en `Docs/SESION-2026-10-11-v2-e6.md` §6):
+**el ORO de una oferta es ORO comprado** (`creditOffer` acredita por `recordOroPurchase` y no por `+=`; acredita aunque la ventana ya haya vencido porque la compra está cobrada);
+**una oferta se presenta sola una vez** (toma turno sólo en un momento calmo, se marca vista al mostrarse con `markOfferPresented(id:)`/`presentingOfferId` y el chip también la marca; hay un UI test de «una sola vez»);
+**lo que no tiene probabilidades no se vende** (el cofre por ORO se oculta con `LootBoxGate` cerrado, `.nothingYet` no se compra, y la Bienvenida no se ofrece en BE/AU).
+
 **Decisiones de E7b** (2026-10-11; el porqué de cada default de E7b-b en `Docs/SESION-2026-10-11-v2-e7b.md` §6): **el dueño eligió la columna plegable (C)** y por eso E7b-b T4 se saltea y `PlayLayout` no cambia
 (la fija pisaba 15–56 pt de la multitud en todo iPhone; reservarle 64 pt achicaba los personajes a ~83 %); la persiana se recoge a los 3 s y la botonera del ascensor a los 2; «Premios» tapa ~20 pt de la celda 0 en
 reposo, el costo aceptado; «Fusionar todo» por video está una sola vez, en la columna; los demás defaults de E7b-b (el «!» cuenta la ruleta, la lluvia de paquetes la ofrece Paquetes, el diario ×2 sólo duplica
@@ -3094,6 +3110,14 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De E6a (2026-10-11, cierre)
+
+- **Una oferta no se encola sin `isCalmMoment`:** la celebración no tiene timeout; con otra hoja arriba la cola se congelaba hasta 24 h. Las hojas nuevas (`offerSelection`) entran por `syncCover` a `boardIsCovered`.
+- **Toda compra que encola cambios de tablero mira `pendingBoardChanges` e `inFlight` antes de cobrar:** `planMergeAll` no ve la cola y un segundo toque cobraba de nuevo.
+- **El cerrojo de compra corta el cobro, no apaga el botón:** `.disabled` en `PricePill` va contra `GameArtComponents`. Se prueba con un unitario de `PurchaseLatch` con RED, no con `doubleTap()` ni con dos `tap()` (dependen del reloj).
+- **La bajada de la cabecera de `StoreView` depende de la mitad elegida:** una clave de texto de la tienda nueva se prueba con un UI test que cambie de mitad, no mirando una sola.
+- **Un carry que no se reprodujo no se «arregla» a ciegas:** el cofre bajo la hoja dio tocable en dos UI tests con puerta DEBUG temporal; se revirtieron. Si el dueño lo ve, pedir qué hoja y cómo llegó el cofre.
 
 ### De E5b y E7b (2026-10-11, cierres)
 
@@ -4791,8 +4815,8 @@ Siguen vigentes y no estaban en ningún otro lado:
 La cola con orden, BASE y modelo está en `tasks.md` §4.2 (relevo 33). Lo nuevo del 32, además de lo que sigue de abajo (que se mantiene):
 
 - **Al llegar:** confirmar `version-2` = `748a7a7` (240 de 283); reescribir el `comun.md` de la ola (`.superpowers/` no se versiona); `uptime` antes de despachar.
-- **Cierres de controlador (ya hay `completo`):** **E6a T13** (vidriera de `StoreView`/`store.subtitle` con un UI test de punta a punta; el cofre bajo la hoja) y **E5b T7** (docs).
-- **E7b-b T8 o E9a T5, uno solo** (ambos dueños de `GameState`). E9a T5 lleva los carries de la opus de T4: T6 retira (marcando) una lección mostrada cuya elegibilidad murió, o tiene red por tiempo de pared; T7 `openPage` vs `uiCoversBoard`; E9b `SideRailView` mira `step.target`.
+- **Cerradas con docs el 2026-10-11:** E5b T7, E7b-b T8 y E6a T13 (E5, E7b y E6a tienen su SESION del 2026-10-11); de E6a T13 queda el `completo` de tanda del relevo 33 y los escenarios 🔒.
+- **E9a T5** (dueña de `GameState`). E9a T5 lleva los carries de la opus de T4: T6 retira (marcando) una lección mostrada cuya elegibilidad murió, o tiene red por tiempo de pared; T7 `openPage` vs `uiCoversBoard`; E9b `SideRailView` mira `step.target`.
 - **E6b T8** espera el OK del dueño en vivo. **E8d T15 Steps 3–4** (gates en device). Siguen ⛔ E6b T10, E7b-a T6–T7, E8e T9 y T10b–T10f, E9a T6–T10, E9b, E2b T12–T15, E12 T12, E10 T9–T13.
 - **🔒 del dueño:** publicar el sitio (rama local `fisu-v2-release`), notas y políticas; `terms.md` §3 («No tenemos servidores»); la medición de E8e T10a en su SE; B22; `releaseops asc builds` real; mirar lo animado en un iPhone.
 - **Carries del 32:** el pager dispara `menuPageChanged` a mitad de arrastre (`markTabOpened`); sin red el botón de video queda en «Cargando…»; una partida nueva dispara la lección de la columna al terminar el núcleo; clave vieja `tutorial.tip.wheel` sin uso; E10 T9 (aro azul, torre llena, ranking con nombres, 07 = ficha, 6,3" sin correr).
@@ -5267,6 +5291,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-10-v2-e4b.md`**: el cierre de E4b y, con él, de E4 (la tabla por tarea con su commit, la verificación que lo cubre y los siete
   escenarios a mano que quedan para el dueño, el porqué de cada default de «Para el dueño» y lo que le deja a E5b y a E6). Plan cerrado:
   `Docs/superpowers/plans/2026-10-07-v2-e4b-visitantes-eventos.md`.
+- **`Docs/SESION-2026-10-11-v2-e6.md`**: el cierre de E6a (la tabla por tarea con su commit y su revisión opus, la bajada de `StoreView` y el cofre que no se reprodujo, la verificación que lo cubre, los escenarios a mano pendientes del dueño y el estado de E6b). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e6a-tienda-ofertas.md`.
 - **`Docs/SESION-2026-10-11-v2-e5.md`**: el cierre de E5b y, con él, de E5 (la tabla por tarea con su commit, la verificación que lo cubre, los escenarios a mano que quedan para el dueño, el porqué de cada default de
   «Para el dueño» y lo que le deja a E7b, E8, E9 y E2b). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e5b-aduana-colchon-ruleta.md`.
 - **`Docs/SESION-2026-10-11-v2-e7b.md`**: el cierre de E7b-b y de E7b salvo la mediación (la tabla por tarea de E7b-a y E7b-b, la decisión del dueño sobre la columna con lo medido, los pendientes del dueño y el porqué de cada default).

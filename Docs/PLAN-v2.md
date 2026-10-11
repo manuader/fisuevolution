@@ -895,6 +895,14 @@ pergamino, pills caramelo—, iconografía y paleta del juego):
 
 ### E6 — Tienda de ORO + IAP + skins
 
+> **Estado (2026-10-11): E6a HECHA; E6b casi.** E6a (la Tienda de ORO, los packs y las ofertas de 24 h) T1–T13 están en `version-2`;
+> cierre: `Docs/SESION-2026-10-11-v2-e6.md`. E6b: T1–T7 y T9 integradas; **T8 (exclusivas de ORO entre skins de la v1) ⏳ espera el OK
+> del dueño en vivo y T10 (cierre) ⛔.** **Desvíos:** B1–B26 aceptadas con su default y la Bienvenida tal cual; `OddsDisclosureView`
+> y `LootBoxGate` nacieron en E5; la Bienvenida no se ofrece en BE/AU (B21); el selector Comprar/Gastar ORO vive en `StoreView`
+> (sin séptima pestaña) y la bajada de la cabecera sigue a la mitad elegida; sin skins por código (E6b T1r borró los shaders y la
+> galería). `completo` de `582c8ee` (EK 863 · unit 1625 · UI 139 · Release 0) cubre T1–T12; el de T13 queda para el `completo` de
+> tanda del relevo 33. Pendiente: los escenarios a mano de E6a T13 (🔒 del dueño).
+
 - **UI**: `StoreView` gana un selector **"Comprar ORO" / "Gastar ORO"** (no hay séptima pestaña).
   `OroShopView` con estantes Boosts, Atajos, Permanentes, Cosméticos y Suerte, en filas
   `GameCard` + `PricePill`. Catálogo en `oro_shop.json` con niveles, límites y desbloqueos.

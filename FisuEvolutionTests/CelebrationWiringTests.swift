@@ -555,8 +555,8 @@ struct CelebrationWiringTests {
     @Test("resetear la partida desde debug revive el tutorial entero")
     func debugResetRevivesTheTutorial() async throws {
         let gameState = await makeGameState()
-        let defaults = UserDefaults.standard
-        TutorialFlags.setCoreCompleted(true)
+        let defaults = gameState.flagDefaults
+        TutorialFlags.setCoreCompleted(true, in: defaults)
         defaults.set(true, forKey: "tutorial.lesson.upgrades")
         gameState.skinAward = try anAward(gameState)
         gameState.syncCelebrations()
@@ -567,7 +567,7 @@ struct CelebrationWiringTests {
         #expect(gameState.tutorialPhaseActive, "la fase vuelve a estar viva")
         #expect(gameState.showing == nil, "la partida vieja se llevó sus celebraciones")
         #expect(gameState.skinAward == nil)
-        #expect(!TutorialFlags.coreCompleted())
+        #expect(!TutorialFlags.coreCompleted(in: defaults))
         #expect(defaults.object(forKey: "tutorial.lesson.upgrades") == nil,
                 "las lecciones quedan por dar de nuevo")
         // Y la restricción quedó puesta: un premio nuevo espera a la fase.

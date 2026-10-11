@@ -375,6 +375,10 @@ final class GameState {
     /// El guardado diferido de `scheduleSave`; `+Lifecycle` lo cancela al sellar,
     /// porque el guardado de la salida va por `sealTask`.
     @ObservationIgnored var saveTask: Task<Void, Never>?
+    /// "Resetear partida" está escribiendo la partida nueva (`+Reset`). Mientras dura, una compra
+    /// que llega no se acredita —se acreditaría sobre la partida que está por pisarse—: queda
+    /// sin finalizar en StoreKit y `StoreManager.retryUnfinished()` la entrega después.
+    @ObservationIgnored var isResetting = false
     /// `beginBackgroundTask` detrás de un protocolo; lo usa `+Lifecycle`.
     @ObservationIgnored var backgroundTasks: (any BackgroundTaskRunning)?
     /// Las notificaciones locales (E11): las programa el sellado al irse y las

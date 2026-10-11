@@ -23,6 +23,7 @@ struct GameStateResetTests {
             backups: SaveBackupStore(directory: backups)
         )
         let gameState = GameState(repository: repository)
+        gameState.flagDefaults = .isolatedForTest()
         await gameState.bootstrap()
         return World(gameState: gameState, backups: backups, repository: repository)
     }
@@ -48,8 +49,8 @@ struct GameStateResetTests {
         gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
         gameState.player?.meta.oro += 100  // ORO ganado jugando
         let plan = try #require(gameState.resetPlan())
-        let ok = await gameState.resetGame(plan)
-        #expect(ok)
+        let outcome = await gameState.resetGame(plan, repushEntitlements: {})
+        #expect(outcome == .done)
         #expect(gameState.player?.meta.oro == 250, "min(350, 250)")
         #expect(gameState.player?.meta.oroPurchasedLifetime == 250, "lo comprado sigue contando")
     }
@@ -61,7 +62,7 @@ struct GameStateResetTests {
         gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
         #expect(gameState.player?.meta.spendOro(200) == true)
         let plan = try #require(gameState.resetPlan())
-        await gameState.resetGame(plan)
+        await gameState.resetGame(plan, repushEntitlements: {})
         #expect(gameState.player?.meta.oro == 50, "min(50, 250)")
     }
 
@@ -71,7 +72,7 @@ struct GameStateResetTests {
         let gameState = world.gameState
         gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
         let plan = try #require(gameState.resetPlan())
-        await gameState.resetGame(plan)
+        await gameState.resetGame(plan, repushEntitlements: {})
         #expect(gameState.player?.meta.oro == 250)
         gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
         #expect(gameState.player?.meta.oro == 250, "la transacción ya estaba acreditada")
@@ -112,7 +113,7 @@ struct GameStateResetTests {
         gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
         gameState.player?.meta.oro += 77
         let plan = try #require(gameState.resetPlan())
-        await gameState.resetGame(plan)
+        await gameState.resetGame(plan, repushEntitlements: {})
         let file = try #require(resetFiles(in: world.backups).first)
         let saved = try JSONDecoder().decode(PlayerState.self, from: Data(contentsOf: world.backups.appending(path: file)))
         #expect(saved.meta.oro == 327, "la copia es la de antes del reset, no la nueva")
@@ -131,8 +132,8 @@ struct GameStateResetTests {
         )
         let before = try #require(gameState.player)
         let plan = try #require(gameState.resetPlan())
-        let ok = await gameState.resetGame(plan)
-        #expect(!ok)
+        let outcome = await gameState.resetGame(plan, repushEntitlements: {})
+        #expect(outcome == .noBackup)
         #expect(gameState.player == before)
     }
 
@@ -148,9 +149,9 @@ struct GameStateResetTests {
         let before = try #require(gameState.player)
         let plan = try #require(gameState.resetPlan())
 
-        let ok = await gameState.resetGame(plan)
+        let outcome = await gameState.resetGame(plan, repushEntitlements: {})
 
-        #expect(!ok)
+        #expect(outcome == .writeFailed)
         #expect(gameState.player == before, "la memoria sigue con la partida de antes")
         #expect(gameState.player?.meta.resetEpoch == 0)
         guard case .loaded(let onDisk) = await world.repository.load() else {
@@ -166,7 +167,7 @@ struct GameStateResetTests {
         let world = await makeWorld()
         let gameState = world.gameState
         let plan = try #require(gameState.resetPlan())
-        await gameState.resetGame(plan)
+        await gameState.resetGame(plan, repushEntitlements: {})
         #expect(gameState.player?.meta.resetEpoch == 1)
         guard case .loaded(let onDisk) = await world.repository.load() else {
             Issue.record("sin save en disco")
@@ -182,13 +183,59 @@ struct GameStateResetTests {
         let gameState = world.gameState
         gameState.creditStorePurchase(oroPack(amount: 120), transactionID: "tx-1")
         let plan = try #require(gameState.resetPlan())
-        await gameState.resetGame(plan)
+        await gameState.resetGame(plan, repushEntitlements: {})
         // La torre se reconcilia al arrancar (abre sus pestañas): se compara lo que el plan decide.
         #expect(gameState.player?.meta.oro == plan.result.meta.oro)
         #expect(gameState.player?.meta.resetEpoch == plan.result.meta.resetEpoch)
         #expect(gameState.player?.meta.oroPurchases == plan.result.meta.oroPurchases)
         #expect(gameState.player?.meta.creditedPurchases == plan.result.meta.creditedPurchases)
         #expect(gameState.player?.run.units == plan.result.run.units)
+    }
+
+    // MARK: Plan viejo y compras en vuelo
+
+    @Test("un plan viejo (hubo una compra después de mostrarlo) no se ejecuta ni borra la compra")
+    func stalePlanIsRejected() async throws {
+        let world = await makeWorld()
+        let gameState = world.gameState
+        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
+        let plan = try #require(gameState.resetPlan())
+        #expect(gameState.creditStorePurchase(oroPack(amount: 100), transactionID: "tx-2"))
+
+        let outcome = await gameState.resetGame(plan, repushEntitlements: {})
+
+        #expect(outcome == .stale)
+        #expect(gameState.player?.meta.creditedPurchases.contains("tx-2") == true, "la compra nueva sigue ahí")
+        #expect(gameState.player?.meta.oro == 350)
+        #expect(gameState.player?.meta.resetEpoch == 0)
+        #expect(resetFiles(in: world.backups).isEmpty, "ni siquiera se hizo la copia")
+        let fresh = try #require(gameState.resetPlan())
+        #expect(await gameState.resetGame(fresh, repushEntitlements: {}) == .done)
+        #expect(gameState.player?.meta.oro == 350, "con el plan nuevo, las dos compras se conservan")
+    }
+
+    @Test("una compra que llega mientras se escribe la partida nueva no se pierde: espera y se acredita después")
+    func purchaseDuringTheWriteIsNotLost() async throws {
+        let world = await makeWorld()
+        let gameState = world.gameState
+        gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
+        let plan = try #require(gameState.resetPlan())
+
+        let reset = Task { @MainActor in await gameState.resetGame(plan, repushEntitlements: {}) }
+        await Task.yield()
+        try #require(gameState.isResetting, "fixture: el reset sigue escribiendo")
+
+        let credited = gameState.creditStorePurchase(oroPack(amount: 100), transactionID: "tx-2")
+        let revoked = gameState.revokeStorePurchase(transactionID: "tx-1")
+        #expect(!credited, "StoreKit la deja sin finalizar")
+        #expect(!revoked)
+
+        #expect(await reset.value == .done)
+        #expect(!gameState.isResetting)
+        #expect(gameState.player?.meta.creditedPurchases.contains("tx-2") == false, "todavía no entró")
+        #expect(gameState.creditStorePurchase(oroPack(amount: 100), transactionID: "tx-2"), "el reintento sí")
+        #expect(gameState.player?.meta.oro == 350)
+        #expect(gameState.player?.meta.oroPurchasedLifetime == 350)
     }
 
     // MARK: El doble toque
@@ -200,11 +247,12 @@ struct GameStateResetTests {
         gameState.creditStorePurchase(oroPack(amount: 250), transactionID: "tx-1")
         let plan = try #require(gameState.resetPlan())
 
-        async let first = gameState.resetGame(plan)
-        async let second = gameState.resetGame(plan)
+        async let first = gameState.resetGame(plan, repushEntitlements: {})
+        async let second = gameState.resetGame(plan, repushEntitlements: {})
         let results = await [first, second]
 
-        #expect(results.filter { $0 }.count == 1, "uno corre, el otro es rechazado")
+        #expect(results.filter { $0 == .done }.count == 1, "uno corre, el otro es rechazado")
+        #expect(results.filter { $0 == .stale }.count == 1)
         #expect(gameState.player?.meta.resetEpoch == 1, "la época sube una vez, no dos")
         #expect(resetFiles(in: world.backups).count == 1, "y una sola copia")
         #expect(gameState.player?.meta.oro == 250)
@@ -215,9 +263,9 @@ struct GameStateResetTests {
         let world = await makeWorld()
         let gameState = world.gameState
         let plan = try #require(gameState.resetPlan())
-        #expect(await gameState.resetGame(plan))
+        #expect(await gameState.resetGame(plan, repushEntitlements: {}) == .done)
         gameState.player?.run.coins = 999
-        #expect(await gameState.resetGame(plan) == false)
+        #expect(await gameState.resetGame(plan, repushEntitlements: {}) == .stale)
         #expect(gameState.player?.run.coins == 999, "la partida en curso no se pisa")
     }
 
@@ -228,8 +276,9 @@ struct GameStateResetTests {
         let world = await makeWorld()
         let gameState = world.gameState
         let defaults = UserDefaults.standard
-        TutorialFlags.setCoreCompleted(true)
-        TutorialFlags.markLessonDone("upgrades")
+        let flags = gameState.flagDefaults
+        TutorialFlags.setCoreCompleted(true, in: flags)
+        TutorialFlags.markLessonDone("upgrades", in: flags)
         defaults.set("en", forKey: "settings.language")
         defer { defaults.removeObject(forKey: "settings.language") }
         gameState.player?.meta.welcomeChestGiven = true
@@ -240,10 +289,10 @@ struct GameStateResetTests {
         #expect(gameState.showing == .skinAward, "fixture: la partida vieja tenía un sheet")
 
         let plan = try #require(gameState.resetPlan())
-        await gameState.resetGame(plan)
+        await gameState.resetGame(plan, repushEntitlements: {})
 
-        #expect(!TutorialFlags.coreCompleted())
-        #expect(!TutorialFlags.isLessonDone("upgrades"))
+        #expect(!TutorialFlags.coreCompleted(in: flags))
+        #expect(!TutorialFlags.isLessonDone("upgrades", in: flags))
         #expect(gameState.tutorialPhaseActive)
         #expect(gameState.tutorialRun?.script == .core)
         #expect(gameState.player?.meta.welcomeChestGiven == false)

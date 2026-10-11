@@ -13,48 +13,69 @@ extension GameState {
         return ResetPlan.make(current: player, fresh: fresh)
     }
 
-    /// Ejecuta el plan. `false` (y la partida de antes intacta, en memoria y en disco) si no
-    /// hay copia donde guardar la de hoy, si el disco no pudo escribir la nueva, o si ese
-    /// plan ya se ejecutó (el doble toque: la época del plan ya no es mayor que la actual).
+    /// Cómo terminó un `resetGame`. Sólo `.done` cambió algo; en los demás la partida de antes
+    /// sigue intacta, en memoria y en disco.
+    enum ResetOutcome: Equatable {
+        case done
+        /// El plan ya no corresponde a la partida de hoy (se ejecutó, o hubo una compra o un
+        /// reembolso después de mostrarlo): hay que pedir uno nuevo y mostrarlo otra vez.
+        case stale
+        case noBackup
+        case writeFailed
+    }
+
+    /// Ejecuta el plan.
     ///
-    /// El orden importa: 1) la copia de la partida de hoy, 2) se reclama la época en memoria
-    /// (desde acá un segundo toque ya no pasa, aunque el primero siga esperando al disco),
-    /// 3) se escribe la nueva y se verifica, 4) recién entonces la sesión vieja se va. Si el
-    /// paso 3 falla se vuelve a escribir la de antes y la memoria la recupera.
+    /// El orden importa: 1) el plan tiene que ser el de la partida de hoy (si cambió lo
+    /// comprado, ejecutarlo borraría la compra nueva), 2) la copia de la partida de hoy,
+    /// 3) se reclama la época en memoria y se apagan las compras (`isResetting`; desde acá un
+    /// segundo toque ya no pasa y una compra que llegue queda sin finalizar para después),
+    /// 4) se escribe la nueva y se verifica, 5) recién entonces la sesión vieja se va. Si el
+    /// paso 4 falla se vuelve a escribir la de antes y la memoria la recupera.
     ///
-    /// `repushEntitlements` es el `StoreManager.repushEntitlements()` que le pasa quien lo
-    /// tenga a mano (Ajustes): StoreKit manda y el save sólo lo cachea.
+    /// `repushEntitlements` es el `StoreManager.repushEntitlements()` (y el reintento de las
+    /// compras sin finalizar) que le pasa quien lo tenga a mano (Ajustes): StoreKit manda y el
+    /// save sólo lo cachea.
     @discardableResult
-    func resetGame(_ plan: ResetPlan, repushEntitlements: () -> Void = {}) async -> Bool {
-        guard let repository, let old = player, !isRecoveryPending,
-              plan.result.meta.resetEpoch > old.meta.resetEpoch else { return false }
+    func resetGame(_ plan: ResetPlan, repushEntitlements: () -> Void) async -> ResetOutcome {
+        guard let repository, let old = player, !isRecoveryPending else { return .noBackup }
+        guard plan.result.meta.resetEpoch > old.meta.resetEpoch,
+              ResetPlan.make(current: old, fresh: plan.result).result == plan.result else { return .stale }
         guard repository.keepBeforeReset(old) else {
             Log.persistence.error("reset cancelado: no se pudo guardar la copia de antes")
-            return false
+            return .noBackup
         }
         saveTask?.cancel()
+        isResetting = true
         player = plan.result
         guard await repository.saveVerifying(plan.result) else {
             player = old
             await repository.save(old)
+            isResetting = false
             Log.persistence.error("reset cancelado: no se pudo escribir la partida nueva")
-            return false
+            return .writeFailed
         }
-        applyReset(plan)
+        finishReset()
+        isResetting = false
         repushEntitlements()
         await persistNow()
         Log.lifecycle.info("partida reseteada: época \(plan.result.meta.resetEpoch)")
-        return true
+        return .done
     }
 
-    /// La mitad en memoria: la partida del plan, la sesión vieja fuera y el tutorial de
-    /// vuelta. Es lo que hacía `debugResetSave` y lo repite el reset real: sin soltar la
-    /// corrida del tutorial, rehacer la cola y borrar las banderas, la cola puede quedar
-    /// restringida (revisión de E9a T5).
+    /// El reset en memoria, de un tirón (`debugResetSave` lo usa sin disco de por medio).
     func applyReset(_ plan: ResetPlan) {
         player = plan.result
+        finishReset()
+    }
+
+    /// Lo que sigue a tener la partida nueva en `player`: la sesión vieja fuera y el tutorial de
+    /// vuelta. Es lo que hacía `debugResetSave` y lo repite el reset real: sin soltar la corrida
+    /// del tutorial, rehacer la cola y borrar las banderas, la cola puede quedar restringida
+    /// (revisión de E9a T5).
+    func finishReset() {
         clearSessionRuntime()
-        TutorialFlags.wipeGameFlags()
+        TutorialFlags.wipeGameFlags(in: flagDefaults)
         ftueTapped = false
         ftueSpawned = false
         ftueMerged = false
@@ -93,5 +114,17 @@ extension GameState {
         pendingBoardChanges.removeAll()
         inFlightBoardChange = nil
         celebrations = CelebrationQueue()
+        chestReward = nil
+        wheelSheet = nil
+        mattressPopup = nil
+        characterSheet = nil
+        adBreakOffer = nil
+        quickHireOffer = nil
+        offlineRewardDoubled = false
+        extraChestClaimed = false
+        presentingOfferId = nil
+        wheelOpensAfterVisit = false
+        boardSpotlight = nil
+        tutorialBoardTarget = nil
     }
 }

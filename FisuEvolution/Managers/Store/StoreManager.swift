@@ -362,11 +362,15 @@ final class StoreManager {
             return
         }
         let entry = catalog?.products.first { $0.id == transaction.productID }
+        // Sólo se finaliza lo que quedó resuelto en el save: una transacción sin finalizar se
+        // vuelve a entregar, y eso es lo que salva la compra que llega en medio de un reset
+        // (o la de una oferta que este build no conoce).
+        var settled = true
 
         if transaction.revocationDate != nil {
             purchasedProductIDs.remove(transaction.productID)
             if entry?.entitlement == .oro || entry?.entitlement == .offer {
-                gameState?.revokeStorePurchase(transactionID: String(transaction.id))
+                settled = gameState?.revokeStorePurchase(transactionID: String(transaction.id)) ?? false
             }
             Log.store.warning("entitlement revoked: \(transaction.productID)")
         } else {
@@ -375,7 +379,7 @@ final class StoreManager {
             // muere en el medio la plata igual llega. Que no llegue DOS veces
             // lo garantiza la guarda de `creditStorePurchase`, que está en el save.
             if let entry {
-                gameState?.creditStorePurchase(entry, transactionID: String(transaction.id))
+                settled = gameState?.creditStorePurchase(entry, transactionID: String(transaction.id)) ?? false
             }
             // Un consumible no queda "comprado": se vuelve a vender.
             if entry?.isConsumable != true {
@@ -384,7 +388,17 @@ final class StoreManager {
             Log.store.info("entitlement granted: \(transaction.productID)")
         }
         pushEntitlementsToGameState()
-        await transaction.finish()
+        if settled {
+            await transaction.finish()
+        } else {
+            Log.store.warning("transaction left unfinished, it will be delivered again: \(transaction.productID)")
+        }
+    }
+
+    /// Después de "Resetear partida": las compras que llegaron mientras se escribía la partida
+    /// nueva quedaron sin finalizar; acá se vuelven a entregar.
+    func retryUnfinished() async {
+        for await result in Transaction.unfinished { await handle(result) }
     }
 
     private func refreshEntitlements() async {

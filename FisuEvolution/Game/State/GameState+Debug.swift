@@ -571,7 +571,8 @@ extension GameState {
     /// "Resetear partida" del panel = el reset real (`+Reset`) sin sus tres pasos: una
     /// instalación fresca DE VERDAD, no sólo un save nuevo (pedido del dueño, 2026-08-21) —
     /// el tutorial, las lecciones y el puntito viven en `UserDefaults`—, que desde la 2.0
-    /// conserva lo comprado igual que el de Ajustes. Síncrono: los tests de las épicas lo
+    /// conserva lo comprado, `seenCinematics` y la época igual que el de Ajustes (la intro no se
+    /// repite). Síncrono: los tests de las épicas lo
     /// leen en la línea de abajo. Para un borrado total, `--uitest-reset`.
     func debugResetSave() {
         guard let plan = resetPlan(), let player else { return }

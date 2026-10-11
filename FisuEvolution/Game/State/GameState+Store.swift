@@ -258,20 +258,26 @@ extension GameState {
     /// permanentes (remove ads, skins) no pasan por acá: los reescribe entero
     /// `applyStoreEntitlements` en cada sync de StoreKit, que es lo correcto
     /// para algo que se puede restaurar. La plata gastada no se restaura.
-    func creditStorePurchase(_ entry: ProductCatalog.Entry, transactionID: String) {
-        guard let content, var player else { return }
+    ///
+    /// Devuelve si la transacción quedó resuelta (acreditada, o ya lo estaba, o sin nada que
+    /// acreditar): sólo entonces `StoreManager` la finaliza. `false` es «no ahora»: se está
+    /// reseteando la partida, o la oferta no se conoce; queda sin finalizar y vuelve a entregarse.
+    @discardableResult
+    func creditStorePurchase(_ entry: ProductCatalog.Entry, transactionID: String) -> Bool {
+        guard !isResetting else { return false }
+        guard let content, var player else { return false }
         // Por transacción y no por producto: comprar dos veces el mismo pack
         // tiene que acreditar las dos.
-        guard player.meta.creditedPurchases.insert(transactionID).inserted else { return }
+        guard player.meta.creditedPurchases.insert(transactionID).inserted else { return true }
 
         switch entry.entitlement {
         case .coins, .starterPack:
-            guard let minutes = entry.coinMinutes else { return }
+            guard let minutes = entry.coinMinutes else { return false }
             let amount = Self.coinPayout(minutes: minutes, player: player, content: content)
             player.run.coins += amount
             player.meta.lifetimeEarnings += amount
         case .oro:
-            guard let amount = entry.oroAmount else { return }
+            guard let amount = entry.oroAmount else { return false }
             // Sólo el balance. `oroEarnedLifetime` es lo que alimenta el
             // multiplicador global y sube únicamente al reencarnar.
             player.meta.oro += amount
@@ -283,18 +289,19 @@ extension GameState {
             // consume la transacción: no se anota como acreditada sin haber entregado.
             guard content.offers.offer(id: entry.offerId ?? "") != nil else {
                 Log.store.error("offer purchase without a known offer: \(entry.offerId ?? "nil")")
-                return
+                return false
             }
             self.player = player
             creditOffer(entry.offerId, transactionID: transactionID)
-            return
+            return true
         case .removeAds, .skin:
-            return
+            return true
         }
 
         self.player = player
         refreshProjections()
         scheduleSave()
+        return true
     }
 
     var needsPurchasedOroReconstruction: Bool {
@@ -321,11 +328,14 @@ extension GameState {
 
     /// Un reembolso de ORO: la transacción deja de contar como comprada. El
     /// saldo no se toca; el reset de E9 conserva `min(saldo, comprado)`.
-    func revokeStorePurchase(transactionID: String) {
-        guard var player else { return }
+    /// `false` si no se pudo anotar ahora (se está reseteando): el reembolso queda sin finalizar.
+    @discardableResult
+    func revokeStorePurchase(transactionID: String) -> Bool {
+        guard !isResetting, var player else { return false }
         player.meta.revokePurchase(transactionID: transactionID)
         self.player = player
         scheduleSave()
+        return true
     }
 
     /// Qué te da este pack, con el número concreto y ya formateado. La plata

@@ -352,15 +352,16 @@ final class TutorialUITests: XCTestCase {
 
     /// La lección de Mejoras: nace sólo cuando hay una mejora PAGABLE (la regla
     /// de oro del gating), señala el tab con el scrim de las lecciones —tocar el
-    /// tablero no la saltea—, y hacer lo que señala la cumple y la retira para
-    /// siempre.
+    /// tablero no la saltea—, pide comprar un nivel adentro de la hoja y cierra
+    /// en el tablero; dada, no vuelve.
     @MainActor
-    func testLaLeccionDeMejorasSenalaYSeCumpleAlAbrir() throws {
+    func testLaLeccionDeMejorasSenalaCompraYSeCierra() throws {
         let app = XCUIApplication()
         // `--uitest-lessons`: las lecciones arrancan apagadas en cualquier
         // corrida de UI tests (taparían coordenadas de tests ajenos); éste es
         // EL test de la lección, así que las pide.
-        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins", "--uitest-lessons"]
+        app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins", "--uitest-lessons",
+                               "--uitest-tutorial-lock=0.3"]
         app.launch()
 
         let tip = app.otherElements["tutorial.tip"]
@@ -368,7 +369,7 @@ final class TutorialUITests: XCTestCase {
                       "con plata para pagar una mejora, la lección tiene que nacer")
         XCTAssertEqual(tip.value as? String, "upgrades",
                        "la primera lección con plata es la de Mejoras")
-        XCTAssertEqual(app.descendants(matching: .any)["tutorial.step"].value as? String, "upgrades.legacy",
+        XCTAssertEqual(app.descendants(matching: .any)["tutorial.step"].value as? String, "upgrades.open",
                        "la lección la dibuja el renderer único, con su paso")
         XCTAssertFalse(app.buttons["tutorial.confirm"].exists,
                        "un paso de acción no tiene botón: avanza haciéndolo")
@@ -377,17 +378,30 @@ final class TutorialUITests: XCTestCase {
         for _ in 0..<3 { app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap() }
         XCTAssertTrue(tip.exists, "tocar el tablero no saltea la lección")
 
-        // El recorte deja pasar el toque al tab señalado, y tocarlo CUMPLE la
-        // lección.
+        // El recorte deja pasar el toque al tab señalado, y abrirlo pasa al paso de comprar.
         app.buttons["hud.upgrades"].tap()
         XCTAssertTrue(app.buttons["upgrades.tab.permanent"].waitForExistence(timeout: 6),
                       "la lección no puede interceptar la apertura de la hoja")
+        let coach = app.otherElements["tutorial.coach"]
+        XCTAssertTrue(coach.waitForExistence(timeout: 8), "adentro de la hoja la guía el coach de la hoja")
+        let atBuy = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == 'upgrades.buy'"), object: coach)
+        XCTAssertEqual(XCTWaiter().wait(for: [atBuy], timeout: 6), .completed)
+        let multiplier = app.buttons.matching(NSPredicate(format: "identifier ENDSWITH '.multiplier'")).firstMatch
+        XCTAssertTrue(multiplier.waitForExistence(timeout: 6))
+        multiplier.tap()
+        dismissSheet(app)
+
+        // El cierre vive en el tablero: ya no vuelve a pedir «abrí Mejoras».
+        XCTAssertTrue(waitForStep(app, "upgrades.done", timeout: 10))
+        let confirm = app.buttons["tutorial.confirm"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 6))
+        XCTAssertTrue(waitUnlocked(confirm))
+        confirm.tap()
         let gone = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == 0"), object: tip
         )
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 6), .completed,
-                       "abrir el destino tiene que retirar el globo")
-        dismissSheet(app)
+                       "la lección termina con su «Entendido»")
         // Dada es dada: si nace otra lección será otra, nunca la de Mejoras.
         if tip.waitForExistence(timeout: 3) {
             XCTAssertNotEqual(tip.value as? String, "upgrades",

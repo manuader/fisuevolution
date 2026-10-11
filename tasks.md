@@ -665,7 +665,7 @@ que toma · commit o rama · nota.
 | E7b-b-T4 | La multitud le deja lugar a la columna | ⏭️ | — | — | | el dueño eligió C (plegable) |
 | E7b-b-T5 | Las lecciones de la columna | ✅ | T3 | catálogo (snapshot); +TutorialTips | | ∥ T7 |
 | E7b-b-T6 | Diario ×2 y carrera ×2 por video | ✅ | E2a-T11, E2a-T12; E1-T12; E4a-T8; E4b-T3 | catálogo (snapshot) | `6519071` + arreglo `2fb2e90` (merge `4548554`, claves `4b44a4e`, en `v2i/integ-r26`) | · sin revisión opus: el controlador leyó el diff y devolvió un obligatorio (`chooseCareerWithVideo` pagaba sin elección aplicada). **Dudas al dueño:** Diario ×3 + video = ×6 del base; en la Obra social el ×2 duplica sólo la plata |
-| E7b-b-T7 | El botón de video completo y el mapa de ubicaciones | 🔄 | T3, T6; E4b-T3…T5; E5b-T1, E5b-T2 | catálogo (snapshot) | | |
+| E7b-b-T7 | El botón de video completo y el mapa de ubicaciones | 🟢 | T3, T6; E4b-T3…T5; E5b-T1, E5b-T2 | catálogo (snapshot) | | |
 | E7b-b-T8 | Cierre de E7b (controlador) | ⛔ | T1–T7 | `Docs/` | | |
 
 ### E8 — Arte y animación (sin plan por tareas)

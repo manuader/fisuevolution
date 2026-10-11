@@ -11,7 +11,8 @@ extension GameState {
             packagesWaiting: packagesWaiting,
             packagesBlocked: packagesBlocked,
             mattressReady: mattressWaiting,
-            wheelSpinsReady: wheel.bonus + wheel.videoLeft
+            wheelSpinsReady: wheel.bonus + wheel.videoLeft,
+            mattressExtraReady: mattressExtraPending
         )
         if prizeAccess != access { prizeAccess = access }
     }
@@ -27,23 +28,24 @@ extension GameState {
 
     /// El chip o el colchón del tablero: abre su popup.
     func mattressTapped() {
-        guard mattressWaiting, mattressPopup == nil, wheelSheet == nil else { return }
-        tutorialTipCompleted(.mattress)
-        mattressPopup = MattressPopup()
+        guard mattressWaiting || mattressExtraPending, mattressPopup == nil, wheelSheet == nil else { return }
+        if mattressWaiting { tutorialTipCompleted(.mattress) }
+        mattressPopup = MattressPopup(extraOnly: !mattressWaiting)
     }
 
     /// Terminó el video del colchón: lo que salió queda en el popup. Sólo el
     /// primero cuenta: un video que termina con el resultado ya a la vista no
     /// abre otro colchón (que pudo haber aparecido mientras tanto).
     func mattressVideoWatched() {
-        guard mattressPopup?.outcome == nil, mattressPopup != nil, let outcome = openMattress() else { return }
+        guard mattressPopup?.outcome == nil, mattressPopup?.extraOnly == false, let outcome = openMattress() else { return }
         mattressPopup?.outcome = outcome
         refreshPrizeAccess()
     }
 
     /// Terminó el segundo video: "otro colchón".
     func extraMattressVideoWatched() {
-        guard mattressPopup?.outcome != nil, let outcome = openExtraMattress() else { return }
+        guard let popup = mattressPopup, popup.outcome != nil || popup.extraOnly,
+              let outcome = openExtraMattress() else { return }
         mattressPopup?.outcome = outcome
     }
 

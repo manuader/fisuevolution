@@ -251,3 +251,23 @@ struct TreasuresConfigEdgesTests {
         }
     }
 }
+
+@Suite("El «otro colchón» guardado en el save")
+struct TreasureExtraSaveTests {
+    @Test("el «otro colchón» pendiente viaja en el save y un save viejo sin el campo carga en cero")
+    func roundTripAndOldSave() throws {
+        let saved = TreasuresState(secondsUntilNext: 300, waiting: false, extraOpensLeft: 1)
+        let back = try JSONDecoder().decode(TreasuresState.self, from: JSONEncoder().encode(saved))
+        #expect(back == saved)
+        let old = try JSONDecoder().decode(TreasuresState.self, from: Data(#"{"secondsUntilNext":120,"waiting":false}"#.utf8))
+        #expect(old.extraOpensLeft == 0)
+    }
+
+    @Test("un reset borra el «otro colchón» pendiente")
+    func resetClearsIt() {
+        var current = fxState(units: ["a": 1])
+        current.meta.engagement.treasures = TreasuresState(secondsUntilNext: 300, waiting: false, extraOpensLeft: 1)
+        let plan = ResetPlan.make(current: current, fresh: fxState(units: [:]))
+        #expect(plan.result.meta.engagement.treasures == .initial)
+    }
+}

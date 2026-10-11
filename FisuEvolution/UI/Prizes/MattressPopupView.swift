@@ -44,6 +44,12 @@ struct MattressPopupView: View {
                     }
                     ActionPill(titleKey: "mattress.collect", systemImage: "checkmark",
                                identifier: "mattress.collect") { if !watching { dismiss() } }
+                } else if gameState.mattressPopup?.extraOnly == true {
+                    AnimatedArtView(clip: .object("colchon_espera"), role: .popup) {
+                        GameIcon(artKey: "pickup_mattress", size: 160) { MattressGlyph() }
+                    }
+                    RewardedOfferButton(title: String(localized: "mattress.extra"), identifier: "mattress.extra",
+                                        placement: .treasure, isBusy: $watching) { gameState.extraMattressVideoWatched() }
                 } else {
                     Text("mattress.pitch")
                         .font(Tokens.body)

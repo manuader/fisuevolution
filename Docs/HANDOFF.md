@@ -356,6 +356,28 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Cierre de E7b (2026-10-11) — Los anuncios forzados, la columna plegable y el mapa de ubicaciones
+
+E7b-a T1–T5 y E7b-b T1–T7 están en `version-2` (E7b-b T4 se saltea) y E7b-b T8 es este cierre, sólo documentación. **E7b queda cerrada salvo E7b-a T6 y T7 (la mediación por SPM, ⛔ 🔒 del dueño).** Detalle, la tabla por tarea con su commit, lo medido y el porqué de cada default en **`Docs/SESION-2026-10-11-v2-e7b.md`**.
+
+- **E7b-a, los forzados:** un solo lugar (`GameState+Ads`) muestra el intersticial en los cortes naturales (`sheetClosed`, `celebrationsDrained`, `reincarnation`, `offlinePopupDismissed`), la pausa publicitaria (pantalla previa de 5 s, «No, gracias» sin castigo, premio que rota) y el app open al volver; el reloj de la 1.x se fue. «Opciones de privacidad» (UMP) está en Ajustes. `isBoardBusy` es la definición única de calma.
+- **E7b-b, la columna plegable** (`SideRail` + `GameState.sideRail` puros, `UI/SideRail/`): lee `sideRail` y toca por las puertas de E5 (`packageTapped`, `mattressTapped`, `openWheel`). En reposo, «Premios» de 44 pt con el «!» abajo a la izquierda; abierta, la persiana 2×2 (Ruleta · Colchón · Paquetes · Fusionar todo) se recoge a los 3 s. Hereda de la botonera del ascensor la `MetalPlate`, el LED y el resorte. Suma sus dos videos (Fusionar todo, que salió de Regalos, y la lluvia de paquetes), **saca los chips de premios de `StageChips`** y trae el diario ×2, la carrera ×2, el botón de video con precarga y el mapa de ubicaciones pineado (`AdPlacementMapTests`).
+- **Verificación:** `completo` de `582c8ee` (EK 863 · unit 1625 · UI 139 · store 18+2 · iPad 4 · SE 2 · pipeline 97 · pacing Dios 31,34 h · 13 reenc. · Release 0; 2 flakes de carga verdes aislados y 3 rojos de `CustomizationUITests` arreglados en `0ae6ff0d`, ninguno de E7b) más el `rapido3` de `3959b49` VERDE.
+- **🔒 del dueño (no se hicieron):** la mediación por SPM (Unity Ads y Meta, sin AppLovin ni Mintegral); las capturas de la columna (SE, 16 Pro, Pro Max, iPad 13", 10 y 15 lugares); los dos escenarios de PLAN-v2 §8 a mano; la pausa y el botón con el anuncio real; el UMP en región UE.
+- **Carries:** el «!» cuenta la ruleta y queda casi siempre prendido; Diario ×3 + video = ×6; sin red el botón de video queda en «Cargando…»; el ×2 de la pausa se apila con otros ×2; `tutorial.tip.wheel` sin uso; `isCalmMoment` sin unificar con `isSafeMomentForInterstitial`.
+
+### Cierre de E5b (2026-10-11) — La Ruleta, los accesos y las cajas se ven (cierre de E5)
+
+E5b T1–T6 están en `version-2` y T7 es este cierre, sólo documentación; con él, **E5 queda entera** (E5a + E5b). Detalle, la tabla por tarea con su commit y el porqué de cada default en **`Docs/SESION-2026-10-11-v2-e5.md`**.
+
+- **El motor sigue siendo de E5a;** E5b le pone cara sin decidir nada. **`GameState.prizeAccess`** (8 Hz) es la única fuente de los accesos, y sus tres puertas son `packageTapped()`, `mattressTapped()` y `openWheel()`; hoy las toca la columna de E7b y las cajas del tablero.
+- **La Ruleta** (`UI/Wheel/`): `Canvas` + `TimelineView`, geometría pura (`WheelGeometry`), ease-out de 3,8 s, tic por rebanada, la tabla de probabilidades siempre a la vista (`OddsDisclosureView`) y el copy de `RewardCopy`. **Acredita antes de animar.** Vive en Regalos (`WheelGiftCard`) y en la columna; el Conductor de TV la presenta y, si regala un giro, la ruleta se abre cuando su popup termina de cerrarse.
+- **Las cajas y el colchón del tablero** (`Scenes/Prizes/`, 7 ganchos en `BoardScene`): `PickupController` por frame; **la apertura del paquete es parte del turno del tablero de E1** (`PackageOpeningPlayer` dentro de `performBoardChange`), así hereda la revalidación, el salto, el watchdog y la revelación.
+- **Las lecciones** `.packages`/`.mattress`/`.wheel` y el aviso **`wheel_ready`** (último en prioridad del catálogo).
+- **Verificación:** la misma de E7b arriba (`completo` de `582c8ee` + `rapido3` de `3959b49`); `PrizesUITests` y `WheelUITests` entran solos al `completo`. `rojos-declarados.txt` no cambió por E5.
+- **🔒 del dueño:** los seis escenarios a mano de E5b T7 y los tres de E5a (listados en el SESION), las capturas de cada tarea, y tres decisiones: la tabla de probabilidades bajo el pliegue del SE, el «otro colchón» que se pierde si matás la app con el popup abierto, y `wheel_ready` afuera de una ausencia larga (`maxPerAbsence` 3 para 4 motivos).
+- **Carries:** el doble cobro de ORO de la Ruleta sin fixture; `testTheVideoSpinSpinsAndCountsDown` sin RED; el candado `resolving` con Reduce Motion sin test unitario; `wheel_frame` sin usar.
+
 ### Cierre de E4b (2026-10-10) — Los visitantes, los eventos y el Álbum en pantalla
 
 E4b T1–T9 están en `version-2` y T10 es este cierre, sólo documentación; con él, **E4 queda entera** (E4a + E4b). Detalle, la tabla por tarea con su commit y el porqué de cada default en **`Docs/SESION-2026-10-10-v2-e4b.md`**.
@@ -2163,6 +2185,16 @@ y no gasta un giro del cupo de 6; los giros regalados no vencen con el día; el 
 (`LootBoxGate` nace en E5); el paquete entra por el embudo y no por un `placeGrantedUnit` generalizado; el paquete es
 gratis cada 2 min y la palanca es `packages.json`; el cofre de la ruleta suma un cofre pendiente y no lo abre.
 
+**Decisiones de E5b** (2026-10-11; los 13 defaults de «Para el dueño» del plan quedaron tal cual, sin registro de cambio del dueño; el porqué de cada uno en `Docs/SESION-2026-10-11-v2-e5.md` §5):
+la apertura del paquete es el turno del tablero y no una celebración de la cola; la rueda tiene rebanadas iguales y la tabla siempre a la vista; Regalos no prende su puntito por los giros; el Conductor abre la
+ruleta al irse; `wheel_ready` es el último aviso del catálogo; `OddsDisclosureView` y `RewardCopy` nacen en E5; el giro con ORO se esconde (no se deshabilita) donde la tienda no lo permite; hasta 3 cajas en el
+tablero. **Desvío decidido:** el default de los accesos (chips bajo el HUD hasta que exista la columna) se cerró con la columna plegable (opción C, abajo) y los chips se borraron.
+
+**Decisiones de E7b** (2026-10-11; el porqué de cada default de E7b-b en `Docs/SESION-2026-10-11-v2-e7b.md` §6): **el dueño eligió la columna plegable (C)** y por eso E7b-b T4 se saltea y `PlayLayout` no cambia
+(la fija pisaba 15–56 pt de la multitud en todo iPhone; reservarle 64 pt achicaba los personajes a ~83 %); la persiana se recoge a los 3 s y la botonera del ascensor a los 2; «Premios» tapa ~20 pt de la celda 0 en
+reposo, el costo aceptado; «Fusionar todo» por video está una sola vez, en la columna; los demás defaults de E7b-b (el «!» cuenta la ruleta, la lluvia de paquetes la ofrece Paquetes, el diario ×2 sólo duplica
+plata, la carrera ×2 se elige desde el fork, los chips de premios se borran) no cambiaron. **La mediación (E7b-a T6) es sólo Unity Ads y Meta Audience Network por SPM** (decisión del dueño, 2026-10-08) y sigue ⛔.
+
 **Decisiones del dueño del relevo 6** (2026-10-07, preguntadas en vivo; el
 detalle en `Docs/SESION-2026-10-07-v2-relevo-6-ola-d.md` §1):
 
@@ -3062,6 +3094,19 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De E5b y E7b (2026-10-11, cierres)
+
+- **La caja del paquete es parte del turno del tablero:** un `abortBoardCelebration` sin `packageOpening.cancel()` deja la caja huérfana (el gancho vive en `BoardScene`). Cualquier salida nueva del turno cancela la apertura.
+- **Las cajas y el colchón se paran a ≥ 72 pt de cada borde** (`PickupLayout.edgeClearance`) y al costado del visitante, y `PickupLayoutTests` lo exige: si cambia la columna o la botonera, ese test se pone rojo y se alinea la regla, no el test.
+- **Un giro regalado por un visitante abre la ruleta al cerrarse su popup** (`wheelOpensAfterVisit`, `GameState+Prizes`): por eso el `onDismiss` de esa hoja. No mover la apertura a otro momento ni abrirla al aceptar el regalo.
+- **Los accesos tienen una sola fuente, `prizeAccess`:** la columna, las cajas y el LLENO leen la misma cuenta que `packageTapped` (incluye la cola). Una vista que calcule por su cuenta vuelve a mentir con un doble toque.
+- **Un lugar de video nuevo tiene que decir su unidad y sumar su fila a `AdPlacementMapTests`:** `RewardedOfferButton` no tiene default de `placement`; sin la fila el mapa de ubicaciones deja de ser el contrato.
+- **La columna cuelga de la franja de abajo** (`SideRailMount` en `RootView`): si esa franja deja de medir el ancho de la pantalla, en iPad la columna se va al medio.
+- **La persiana no se recoge mientras una lección señala uno de sus botones:** si se recogiera, el ancla desaparece. Sólo se abre al tocar «Premios» o por una lección, nunca por un «!» nuevo.
+- **La proyección de la columna cambia a lo sumo una vez por segundo:** no publicar segundos con decimales, o SwiftUI se invalida a 8 Hz.
+- **La tarjeta de un video de la columna no prende `uiCoversBoard` ni `fullScreenUIActive`:** no es una hoja: la revisión de T2 pidió que no los prenda (tapar el tablero con la columna cambiaría la calma que leen los visitantes y los intersticiales).
+- **Un cambio en `RewardedOfferButton` se prueba con un popup que tenga video:** el P0 de `watching` se escapó porque el agente de T3 sacó de `PrizesUITests` el paso que lo mostraba rojo. Nunca sacar de un UI test el paso que lo vuelve rojo.
 
 ### De E4b y E5a (2026-10-10, cierres)
 
@@ -5222,6 +5267,10 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-10-v2-e4b.md`**: el cierre de E4b y, con él, de E4 (la tabla por tarea con su commit, la verificación que lo cubre y los siete
   escenarios a mano que quedan para el dueño, el porqué de cada default de «Para el dueño» y lo que le deja a E5b y a E6). Plan cerrado:
   `Docs/superpowers/plans/2026-10-07-v2-e4b-visitantes-eventos.md`.
+- **`Docs/SESION-2026-10-11-v2-e5.md`**: el cierre de E5b y, con él, de E5 (la tabla por tarea con su commit, la verificación que lo cubre, los escenarios a mano que quedan para el dueño, el porqué de cada default de
+  «Para el dueño» y lo que le deja a E7b, E8, E9 y E2b). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e5b-aduana-colchon-ruleta.md`.
+- **`Docs/SESION-2026-10-11-v2-e7b.md`**: el cierre de E7b-b y de E7b salvo la mediación (la tabla por tarea de E7b-a y E7b-b, la decisión del dueño sobre la columna con lo medido, los pendientes del dueño y el porqué de cada default).
+  Planes cerrados: `Docs/superpowers/plans/2026-10-07-v2-e7b-a-forzados-mediacion.md` (T6–T7 abiertos) y `…-e7b-b-columna-ubicaciones.md`.
 - **`Docs/SESION-2026-10-10-v2-e5a.md`**: el cierre de E5a (la tabla por tarea con su commit, la verificación que lo cubre, el porqué de cada default de
   «Para el dueño» y lo que le deja a E5b y a E6a). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e5a-aduana-colchon-ruleta.md`.
 - **`Docs/SESION-2026-10-11-v2-relevo-32-ola-ad.md`**: el relevo 32 (el director del tutorial y sus banderas, la columna con lecciones y botón de video con placement, las pintas con video, el arnés de capturas, el sitio preparado, y los arreglos del pager y de `VideoPlaybackPolicy`; el `completo` de `582c8ee` con sus 5 rojos resueltos y el `rapido3` VERDE).

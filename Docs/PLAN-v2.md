@@ -272,7 +272,7 @@ planes, y se corre de a uno lo que se pisa. **Las olas reales y la cola viven en
 | Ofertas 24 h | **"Pack Renacer"** al reencarnar, **"Pack Mudanza"** al abrir un piso nuevo y **oferta de bienvenida** el 2º día de juego (una sola vez). Cada una es un IAP nuevo. |
 | Médico Jr. | **"Obra social"**: inmunidad a los eventos negativos durante 30 min, **más cortar en el acto el evento negativo en curso, más 15 min de producción** al elegirla. Reemplaza al café gratis. |
 | App open | Al volver tras **≥3 min afuera**, como **máximo 1 cada 20 min**. Nunca en el primer arranque, con remove_ads ni en el tutorial. Ajustable a distancia. |
-| Accesos en pantalla (ítem 18) | **Columna lateral fija** a la izquierda, como en Cow Evolution: Ruleta, El Colchón, Paquetes y Boost por video. Badge "!" cuando hay algo listo, reloj cuando falta, y un latido suave. |
+| Accesos en pantalla (ítem 18) | **Columna lateral fija** a la izquierda, como en Cow Evolution: Ruleta, El Colchón, Paquetes y Boost por video. Badge "!" cuando hay algo listo, reloj cuando falta, y un latido suave. **Desvío (dueño, 2026-10-07): la columna es plegable**, no fija: ver E7. |
 | Vendedor Ambulante | Ofrece un boost por video **cada ~3 min de juego activo**, intercalado con las visitas de ~5 min. Si se lo ignora, se va solo. |
 | Efectos de skin (ORO) | Candidatos: Neón, Holograma, Fantasma, Arcoíris, Glitch, Pixel, Oro líquido y Sombra. **Gate: el dueño ve una muestra de cada uno antes de que entren.** Los que queden mal se descartan, y en su lugar **algunas skins existentes pasan a ser exclusivas de ORO** (las elige el dueño). |
 | El Colchón, frecuencia | **Cada ~8 min de juego activo**. No se acumula más de 1. |
@@ -857,10 +857,13 @@ pergamino, pills caramelo—, iconografía y paleta del juego):
 
 ### E5 — Paquete de la Aduana + El Colchón + Ruleta
 
-> **Estado (2026-10-10, relevo 29): E5a (el motor) hecha, E5b (lo que se ve) en curso.** El cierre de E5a es
-> `Docs/SESION-2026-10-10-v2-e5a.md`. **Desvíos:** ninguna de las dudas con default cambió; `LootBoxGate` nació en E5
-> (el plan lo ponía en E6) y el paquete entra por el embudo de E1 y no por un `placeGrantedUnit` generalizado.
-> `completo` de `integ-r29` sobre `7c494ea`: VERDE (EK 845 · unit 1417 · UI 129 + 2 rojos por orden, aislados verdes). Pendiente: los tres escenarios a mano (🔒 del dueño).
+> **Estado (2026-10-11): E5 HECHA (E5a el motor + E5b lo que se ve).** Los cierres son `Docs/SESION-2026-10-10-v2-e5a.md` y
+> `Docs/SESION-2026-10-11-v2-e5.md`. **Desvíos:** ninguna de las dudas con default cambió; `LootBoxGate` nació en E5
+> (el plan lo ponía en E6); el paquete entra por el embudo de E1 y no por un `placeGrantedUnit` generalizado; su apertura
+> es parte del turno del tablero y no una celebración de la cola; `OddsDisclosureView` y `RewardCopy` nacen en E5; y los
+> accesos del paquete y el colchón, que E5b dejó en chips bajo el HUD, pasaron a la **columna plegable** que eligió el
+> dueño en E7 (opción C). `completo` de `582c8ee` (EK 863 · unit 1625 · UI 139 · Release 0) + `rapido3` de `3959b49`:
+> VERDES. Pendiente: los escenarios a mano de E5a y E5b y las capturas (🔒 del dueño).
 
 - **Paquete** (`packages.json`, `PackageScheduler`, `PackageRoller`):
   - 1 cada 120 s de juego activo, hasta 2 en espera; sin acumular offline. Los paquetes regalados
@@ -959,6 +962,15 @@ pergamino, pills caramelo—, iconografía y paleta del juego):
   Colchón (Apple 3.1.1).
 
 ### E7 — Anuncios v2
+
+> **Estado (2026-10-11): E7 HECHA salvo la mediación.** E7a (infraestructura) y E7b-a T1–T5 y E7b-b T1–T8 (T4 saltea)
+> están en `version-2`; **E7b-a T6–T7 (adaptadores de mediación por SPM) siguen ⛔, 🔒 del dueño.** Cierre:
+> `Docs/SESION-2026-10-11-v2-e7b.md`. **Desvíos decididos por el dueño:** (1) la **columna lateral es plegable** (opción C,
+> 2026-10-07): en reposo un botón «Premios» con el «!» abajo a la izquierda, que al tocarlo despliega Ruleta, Colchón,
+> Paquetes y Fusionar todo por 3 s (la fija pisaba 15–56 pt de la multitud en todo iPhone; reservarle 64 pt achicaba
+> los personajes a ~83 %); (2) la mediación es sólo **Unity Ads y Meta Audience Network** por SPM, sin AppLovin ni
+> Mintegral (2026-10-08); (3) «Fusionar todo» por video vive una sola vez, en la columna (sale de Regalos). La pausa
+> publicitaria, el app open y el UMP están hechos. `completo` de `582c8ee` + `rapido3` de `3959b49`: VERDES.
 
 - **Protocolo**: `showRewardedInterstitial()` y `showAppOpen()`, más sus `isReady`/`preload`. La
   vida del inventario es de 55 min, y de 3 h 30 para app open.

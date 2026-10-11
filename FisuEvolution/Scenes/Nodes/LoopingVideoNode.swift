@@ -20,7 +20,7 @@ final class LoopingVideoNode: SKNode, VideoLeaseHolder {
     private static let watchdogSeconds = 1.0
 
     private var url: URL?
-    private let clip: ArtClip
+    let clip: ArtClip
     private let manifest: LoopsManifest
     private let packs: ArtPacks
     private let role: VideoRole

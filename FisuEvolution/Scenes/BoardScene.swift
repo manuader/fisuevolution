@@ -1574,9 +1574,10 @@ final class BoardScene: SKScene {
     /// manifest no hay nada que montar y el reveal es el de siempre.
     private func mountRevealVideo(for type: CharacterType, side: CGFloat, at position: CGPoint, hold: TimeInterval) {
         releaseRevealVideo()
-        guard loops.entry(for: .character(type.id)) != nil else { return }
+        guard let clip = ArtClips.character(
+            type: type.id, skin: gameState.activeSkinID(forCharacterType: type.id), in: loops) else { return }
         let video = LoopingVideoNode(
-            clip: .character(type.id), poster: Self.clearPoster, size: CGSize(width: side, height: side),
+            clip: clip, poster: Self.clearPoster, size: CGSize(width: side, height: side),
             role: .popup, manifest: loops, pool: videoPool, packs: packs)
         video.position = position
         video.zPosition = 209
@@ -1751,7 +1752,8 @@ final class BoardScene: SKScene {
     private func prefetchNextRevealPack() {
         let nextTier = (gameState.player?.run.maxTierReached ?? 0) + 1
         let tag = gameState.content?.tiers.concreteTypes.first { $0.tier == nextTier }
-            .flatMap { loops.odrTag(for: .character($0.id)) }
+            .flatMap { ArtClips.character(type: $0.id, skin: gameState.activeSkinID(forCharacterType: $0.id), in: loops) }
+            .flatMap { loops.odrTag(for: $0) }
         guard tag != prefetchedCharacterTag else { return }
         if let old = prefetchedCharacterTag { packs.release(old) }
         prefetchedCharacterTag = tag

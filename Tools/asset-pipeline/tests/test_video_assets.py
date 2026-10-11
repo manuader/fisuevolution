@@ -139,6 +139,21 @@ class Identificadores(unittest.TestCase):
             with self.subTest(invalido=invalido), self.assertRaises(ValueError):
                 validate_id("personaje", invalido)
 
+    def test_el_clip_de_una_pinta_va_al_pack_del_piso_del_tipo(self):
+        self.assertEqual(odr_tag("personaje", "homeless__pijama"), "anim-piso-1")
+        self.assertEqual(odr_tag("personaje", "god__dinosaurio"), "anim-piso-10")
+        self.assertEqual(odr_tag("personaje", "sp_lizard__pijama"), "anim-especiales")
+
+    def test_valida_la_pinta_contra_skins_json(self):
+        validate_id("personaje", "homeless__pijama")
+        validate_id("personaje", "god__dinosaurio")
+        for invalida in ("homeless__no_existe", "no_tipo__pijama", "homeless__", "homeless___pijama"):
+            with self.subTest(invalida=invalida), self.assertRaises(ValueError):
+                validate_id("personaje", invalida)
+
+    def test_registra_la_pinta_en_characters(self):
+        self.assertEqual(target("personaje", "homeless__pijama"), ("characters", "homeless__pijama"))
+
     def test_un_visitante_es_una_pose(self):
         for valido in ("npc_vecina_talk", "npc_comisario_action", "sp_contador_dios_talk"):
             validate_id("visitante", valido)

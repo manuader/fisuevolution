@@ -251,13 +251,12 @@ struct CustomizationView: View {
     /// tarjetas de una fila la MISMA altura, que la grilla perezosa tampoco hacía.
     private func grid(for type: CharacterType) -> some View {
         let rows = gameState.skinCatalogRows(forCharacterType: type.id)
-        let asset = gameState.content?.manifest.characters[type.id]
         return VStack(spacing: Tokens.s12) {
             ForEach(Self.pairs(of: rows)) { pair in
                 HStack(alignment: .top, spacing: Tokens.s12) {
-                    card(pair.left, asset: asset, type: type)
+                    card(pair.left, type: type)
                     if let right = pair.right {
-                        card(right, asset: asset, type: type)
+                        card(right, type: type)
                     } else {
                         // La media fila de un catálogo impar: sin esto, la última
                         // tarjeta sola se estira a lo ancho de las dos columnas.
@@ -269,11 +268,17 @@ struct CustomizationView: View {
         }
     }
 
-    private func card(_ row: SkinCatalogRow, asset: AssetsManifest.CharacterAsset?, type: CharacterType) -> some View {
+    private func card(_ row: SkinCatalogRow, type: CharacterType) -> some View {
         SkinCard(
             row: row,
-            atlas: asset?.atlas,
-            baseKey: asset?.key,
+            portrait: gameState.content.flatMap {
+                SkinArt.image(
+                    type: type,
+                    skinID: row.id == GameState.baseSkinRowID ? nil : row.id,
+                    skins: $0.skins,
+                    manifest: $0.manifest
+                )
+            },
             price: price(for: row),
             oroBalance: gameState.player?.meta.oro ?? 0,
             equip: { equip(row, on: type.id) },
@@ -366,10 +371,9 @@ private struct SkinRowPair: Identifiable {
 /// diseños distintos.
 private struct SkinCard: View {
     let row: SkinCatalogRow
-    /// Atlas y clave BASE del personaje: de acá sale el preview de la apariencia
-    /// original, y también el respaldo de una skin cuyo arte todavía no exista.
-    let atlas: String?
-    let baseKey: String?
+    /// El retrato de la pinta (`SkinArt`): su textura, en el atlas que le toque, o
+    /// el retrato BASE si su arte todavía no existe.
+    let portrait: Image?
     /// `displayPrice` de StoreKit, sólo para las que están a la venta.
     let price: String?
     let oroBalance: Int
@@ -494,7 +498,7 @@ private struct SkinCard: View {
     }
 
     @ViewBuilder private var art: some View {
-        if let image = previewImage {
+        if let image = portrait {
             if isSilhouette {
                 image.resizable().renderingMode(.template).scaledToFit()
                     .foregroundStyle(Color("PaletteInk"))
@@ -508,19 +512,6 @@ private struct SkinCard: View {
                 .padding(18)
                 .foregroundStyle(Color("PaletteInk").opacity(isSilhouette ? 1 : 0.35))
         }
-    }
-
-    /// Mismo criterio que el tablero y la ficha (`PlaceholderRenderer`): una skin
-    /// catalogada cuyo arte todavía no existe cae al retrato BASE y no a un
-    /// placeholder roto — el catálogo puede shippear antes que el arte.
-    private var previewImage: Image? {
-        guard let atlas else { return nil }
-        if let textureKey = row.textureKey,
-           let skinImage = UIArt.characterImage(atlas: atlas, key: textureKey) {
-            return skinImage
-        }
-        guard let baseKey else { return nil }
-        return UIArt.characterImage(atlas: atlas, key: baseKey)
     }
 
     /// Todo lo que no tenés se ve en silueta, también lo que está a la venta.

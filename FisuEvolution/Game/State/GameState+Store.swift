@@ -161,7 +161,10 @@ extension GameState {
     }
 
     private func packSize(of entry: SkinsConfig.Entry, state: SkinCatalogRow.State, in content: GameContent) -> Int? {
-        guard case .purchasable = state else { return nil }
+        switch state {
+        case .purchasable, .oroPurchasable: break
+        default: return nil
+        }
         let size = content.skins.skins.filter { $0.id == entry.id }.count
         return size > 1 ? size : nil
     }

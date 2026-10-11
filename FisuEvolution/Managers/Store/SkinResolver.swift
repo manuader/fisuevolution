@@ -29,6 +29,13 @@ enum SkinResolver {
         }
     }
 
+    /// El atlas de la textura de una skin cuando no es el del personaje (las
+    /// familias viven en `fam_<familia>`), o `nil`.
+    static func atlas(for skinID: String?, characterType typeID: String, config: SkinsConfig) -> String? {
+        guard let skinID else { return nil }
+        return config.entries(forCharacterType: typeID).first { $0.id == skinID }?.textureAtlas
+    }
+
     static func tintColor(for treatment: Treatment) -> SKColor? {
         guard case let .tint(hex) = treatment else { return nil }
         return SKColor(hex: hex)

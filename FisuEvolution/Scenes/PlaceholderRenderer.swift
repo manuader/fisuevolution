@@ -12,14 +12,15 @@ final class PlaceholderRenderer {
     func texture(
         for type: CharacterType,
         manifest: AssetsManifest,
-        skinTextureKey: String? = nil
+        skinTextureKey: String? = nil,
+        skinAtlas: String? = nil
     ) -> SKTexture? {
         if let asset = manifest.characters[type.id] {
             if let skinTextureKey {
                 // Un key ausente da una textura vacía en SpriteKit. Volvemos al
                 // retrato base en silencio: un asset futuro no puede romper una
                 // partida ya publicada.
-                if let skinTexture = AtlasCache.texture(named: skinTextureKey, inAtlas: asset.atlas) {
+                if let skinTexture = AtlasCache.texture(named: skinTextureKey, inAtlas: skinAtlas ?? asset.atlas) {
                     return skinTexture
                 }
                 Log.assets.info("missing skin texture '\(skinTextureKey)', using base for \(type.id)")

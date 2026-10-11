@@ -104,6 +104,7 @@ struct CharacterSheetView: View {
                 ForEach(options) { option in
                     CharacterPortrait(
                         type: sheet.type,
+                        skinID: option.skin?.id,
                         treatment: treatment(for: option),
                         asSilhouette: !owns(option),
                         animated: option.skin == nil
@@ -175,7 +176,7 @@ struct CharacterSheetView: View {
     private func thumbnail(_ option: SkinOption) -> some View {
         let isSelected = option.id == selectedID
         let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
-        return CharacterPortrait(type: sheet.type, treatment: treatment(for: option), asSilhouette: !owns(option))
+        return CharacterPortrait(type: sheet.type, skinID: option.skin?.id, treatment: treatment(for: option), asSilhouette: !owns(option))
             .padding(4)
             .frame(width: 52, height: 52)
             .background(shape.fill(Color("PaletteYellow").opacity(isSelected ? 0.55 : 0.2)))
@@ -323,6 +324,7 @@ struct CharacterSheetView: View {
 
 private struct CharacterPortrait: View {
     let type: CharacterType
+    let skinID: String?
     let treatment: SkinResolver.Treatment
     /// Una skin que todavía no tenés no se muestra: se ve su SILUETA en tinta
     /// plena (spec §3.10, "personaje misterioso"). Enseñar el arte a color
@@ -369,17 +371,8 @@ private struct CharacterPortrait: View {
     /// cuyo arte todavía no existe cae al retrato BASE, no al SF Symbol — el
     /// catálogo puede shippear antes que el arte sin que la ficha se degrade.
     private var portrait: Image? {
-        guard let asset = gameState.content?.manifest.characters[type.id] else { return nil }
-        if let textureKey,
-           let skinImage = UIArt.characterImage(atlas: asset.atlas, key: textureKey) {
-            return skinImage
-        }
-        return UIArt.characterImage(atlas: asset.atlas, key: asset.key)
-    }
-
-    private var textureKey: String? {
-        guard case let .texture(key) = treatment else { return nil }
-        return key
+        guard let content = gameState.content else { return nil }
+        return SkinArt.image(type: type, skinID: skinID, skins: content.skins, manifest: content.manifest)
     }
 
     private var tintColor: Color? {

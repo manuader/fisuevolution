@@ -13734,6 +13734,23 @@
         }
       }
     },
+    "tutorial.tip.merge_all_video" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lots of duplicates? Tap here: one video merges the whole floor at once."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Muchos repetidos? Tocá acá: con un video se fusiona todo el piso de una."
+          }
+        }
+      }
+    },
     "tutorial.tip.oro" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13819,6 +13836,23 @@
         }
       }
     },
+    "tutorial.tip.side_rail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've got prizes waiting! Tap here to open the column."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tenés premios guardados! Tocá acá para abrir la columna."
+          }
+        }
+      }
+    },
     "tutorial.tip.skins" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13900,6 +13934,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La Ruleta te espera en Regalos: giros nuevos todos los días."
+          }
+        }
+      }
+    },
+    "tutorial.tip.wheel.rail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've got Wheel spins! They're right here, in the column."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Tenés giros de la Ruleta! Están acá, en la columna."
           }
         }
       }

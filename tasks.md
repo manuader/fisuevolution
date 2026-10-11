@@ -1032,6 +1032,12 @@ El dueño contestó «hacé todo lo recomendado» a `Docs/PREGUNTAS-DUENO-v2.md`
 - **B10 y B15, avisos del reset en pantalla:** que la pantalla del reset diga que se pierde un ×3 pagado y que un reembolso sólo descuenta su ORO no está en la fila de E9b T8 (el carry de `skinsLost` sí); hay que sumarlo a su brief.
 - **B24:** la comprobación del chip del visitante contra la columna en release es del gate A8; ninguna fila de `tasks.md` lo lleva.
 
+### 2026-10-10 — relevo 31, en el chat
+
+- **«Fusionar todo» por video aparece una sola vez:** vive en la columna (E7b-b) y sale de Regalos; un solo enfriamiento. Lo hace E7b-b T2.
+- **Oferta de Bienvenida, tal cual:** el veterano que actualiza la recibe al día siguiente; el de BE/AU que cambia de tienda la recibe después; con el cofre sin nada alcanzable se vende sin tabla de probabilidades.
+- **«Hay que terminar el 100 % del juego», desarrollo concurrente:** el relevo sigue despachando mientras corre el `completo`.
+
 ## 8. El camino hasta el final
 
 **La meta del run** (carta del journal): FisuEvolution 2.0 lista para mandar a App Review, con E0–E11

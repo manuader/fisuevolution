@@ -85,7 +85,9 @@ struct OroShopShelves: View {
             OroBalancePill(text: gameState.oroText)
             ForEach(OroShopCatalog.Shelf.allCases, id: \.self) { shelf in
                 let shelfRows = rows.filter { $0.0.item.shelf == shelf }
-                if !shelfRows.isEmpty {
+                if shelf == .cosmetics {
+                    cosmeticsShelf
+                } else if !shelfRows.isEmpty {
                     SectionHeader(LocalizedStringKey(OroShopCopy.shelfKey(shelf)))
                         .frame(maxWidth: .infinity)
                         .padding(.top, Tokens.s8)
@@ -116,6 +118,39 @@ struct OroShopShelves: View {
         }
         .onAppear { packTags.forEach { ArtPacks.shared.prefetch($0) } }
         .onDisappear { packTags.forEach { ArtPacks.shared.release($0) } }
+    }
+
+    /// Las pintas de ORO de `skins.json`: a color, siempre. En la tienda el arte es el
+    /// argumento de venta (en Pintas, lo que no tenés va en silueta).
+    @ViewBuilder private var cosmeticsShelf: some View {
+        let cosmetics = gameState.cosmeticRows
+        if !cosmetics.isEmpty {
+            SectionHeader(LocalizedStringKey(OroShopCopy.shelfKey(.cosmetics)))
+                .frame(maxWidth: .infinity)
+                .padding(.top, Tokens.s8)
+            ForEach(cosmetics) { row in
+                CosmeticItemRow(row: row, preview: preview(for: row)) { purchaseSkin(row.id) }
+            }
+        }
+    }
+
+    private func preview(for row: CosmeticRow) -> Image? {
+        guard let content = gameState.content else { return nil }
+        let type: CharacterType? = switch row.kind {
+        case .outfit(let typeID): content.tiers.type(id: typeID)
+        case .family: gameState.cosmeticPreviewType
+        }
+        guard let type else { return nil }
+        return SkinArt.image(type: type, skinID: row.id, skins: content.skins, manifest: content.manifest)
+    }
+
+    private func purchaseSkin(_ skinID: String) {
+        guard latch.claim() else { return }
+        gameState.buySkinWithOro(skinID: skinID)
+        Task {
+            try? await Task.sleep(for: .seconds(Self.latchSeconds))
+            latch.release()
+        }
     }
 
     /// Los packs ODR de los íconos de la tienda: se precargan al abrirla.
@@ -333,5 +368,67 @@ private struct OroShopItemRow: View {
             .clipShape(shape)
             .overlay(shape.strokeBorder(Color("PaletteBrown").opacity(0.7), lineWidth: 2))
             .accessibilityHidden(true)
+    }
+}
+
+/// Una pinta de ORO del estante de Cosméticos. La tarjeta informa, el botón cobra.
+private struct CosmeticItemRow: View {
+    @Environment(GameState.self) private var gameState
+    let row: CosmeticRow
+    let preview: Image?
+    let buy: () -> Void
+
+    private var name: String {
+        gameState.content?.skins.entry(id: row.id).map(gameState.skinDisplayName(for:)) ?? row.id
+    }
+
+    private var detail: String {
+        switch row.kind {
+        case .family: String(localized: "oroShop.cosmetic.family")
+        case .outfit(let typeID):
+            String(localized: "oroShop.cosmetic.outfit \(gameState.content?.tiers.type(id: typeID)?.localizedName ?? typeID)")
+        }
+    }
+
+    var body: some View {
+        GameCard {
+            HStack(spacing: Tokens.s12) {
+                Group {
+                    if let preview { preview.resizable().scaledToFit() } else { Image(systemName: "sparkles") }
+                }
+                .frame(width: 64, height: 64)
+                .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: name)
+                        .font(Tokens.title)
+                        .foregroundStyle(Color("PaletteInk"))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                    Text(verbatim: detail)
+                        .font(Tokens.body)
+                        .foregroundStyle(Color("PaletteBlue"))
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.7)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                if row.owned {
+                    StateBadge(text: String(localized: "oroShop.cosmetic.owned"), systemImage: "checkmark.circle.fill",
+                               textAlignment: .center, muted: false)
+                        .frame(maxWidth: 110)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("oroShop.cosmetic.owned.\(row.id)")
+                } else {
+                    PricePill(
+                        text: String(row.price),
+                        currency: .oro,
+                        affordable: (gameState.player?.meta.oro ?? 0) >= row.price,
+                        identifier: "oroShop.cosmetic.buy.\(row.id)",
+                        accessibilityPurpose: Text("oroShop.buy.ax \(name)"),
+                        action: buy
+                    )
+                    .layoutPriority(1)
+                }
+            }
+        }
     }
 }

@@ -6,7 +6,10 @@ import Foundation
 /// Los cosméticos no viven acá: son skins con `oroPrice` en `skins.json` (E6b).
 public struct OroShopCatalog: Codable, Sendable, Equatable {
     public enum Shelf: String, Codable, Sendable, CaseIterable {
-        case boosts, shortcuts, permanents, luck
+        case boosts, shortcuts, permanents
+        /// Las pintas de ORO (`skins.json`, E6b): ningún ítem de `oro_shop.json` va acá.
+        case cosmetics
+        case luck
     }
 
     /// Lo que un permanente cambia del juego. Lo lee quien lo usa, desde los niveles.

@@ -1912,7 +1912,12 @@ final class BoardScene: SKScene {
                 skinTextureKey: {
                     if case let .texture(key) = skinTreatment { return key }
                     return nil
-                }()
+                }(),
+                skinAtlas: SkinResolver.atlas(
+                    for: gameState.activeSkinID(forCharacterType: type.id),
+                    characterType: type.id,
+                    config: content.skins
+                )
             ),
             cellIndex: -1,
             cellSize: cellSize,
@@ -2091,7 +2096,8 @@ final class BoardScene: SKScene {
                     skinTextureKey: {
                         if case let .texture(key) = skinTreatment { return key }
                         return nil
-                    }()
+                    }(),
+                    skinAtlas: SkinResolver.atlas(for: wanted[slot]?.skinID, characterType: type.id, config: content.skins)
                 ),
                 cellIndex: slot,
                 cellSize: cellSize,

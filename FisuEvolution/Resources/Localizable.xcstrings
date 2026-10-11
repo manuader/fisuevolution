@@ -12292,6 +12292,23 @@
         }
       }
     },
+    "store.subtitle.spend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spend your ORO on boosts, shortcuts and luck"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gastá tu ORO en boosts, atajos y suerte"
+          }
+        }
+      }
+    },
     "store.title" : {
       "extractionState" : "stale",
       "localizations" : {

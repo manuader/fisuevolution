@@ -66,7 +66,9 @@ struct OroShopShelves: View {
     /// hasta que conteste, está cerrado.
     let chanceAllowed: Bool
 
+    @Environment(\.loopsManifest) private var loops
     @State private var latch = PurchaseLatch()
+    @State private var visibleRows: Set<String> = []
 
     /// Lo que tarda la pantalla en reflejar la compra antes de aceptar otra.
     private static let latchSeconds = 0.6
@@ -78,6 +80,7 @@ struct OroShopShelves: View {
         let rows = gameState.oroShopRows(chanceAllowed: chanceAllowed)
             .map { ($0, ChestOddsDisplay.make(for: $0.item, odds: odds)) }
             .filter { $0.1.isDrawn }
+        let focused = focusedRow(in: rows.map(\.0))
         VStack(spacing: Tokens.s12) {
             OroBalancePill(text: gameState.oroText)
             ForEach(OroShopCatalog.Shelf.allCases, id: \.self) { shelf in
@@ -87,8 +90,14 @@ struct OroShopShelves: View {
                         .frame(maxWidth: .infinity)
                         .padding(.top, Tokens.s8)
                     ForEach(Array(shelfRows.enumerated()), id: \.element.0.id) { offset, entry in
-                        OroShopItemRow(row: entry.0, odds: entry.1, pendingNote: pendingNote(for: entry.0.item)) {
+                        OroShopItemRow(
+                            row: entry.0, odds: entry.1, pendingNote: pendingNote(for: entry.0.item),
+                            clip: entry.0.id == focused ? ArtClips.shopIcon(item: entry.0.id, in: loops) : nil
+                        ) {
                             purchase(entry.0)
+                        }
+                        .onScrollVisibilityChange(threshold: 0.8) { isVisible in
+                            if isVisible { visibleRows.insert(entry.0.id) } else { visibleRows.remove(entry.0.id) }
                         }
                         .staggeredAppearance(index: offset)
                     }
@@ -102,6 +111,24 @@ struct OroShopShelves: View {
                 }
             }
         }
+        .onChange(of: focused) { _, new in
+            if new != nil { gameState.shopIconFocused() }
+        }
+        .onAppear { packTags.forEach { ArtPacks.shared.prefetch($0) } }
+        .onDisappear { packTags.forEach { ArtPacks.shared.release($0) } }
+    }
+
+    /// Los packs ODR de los íconos de la tienda: se precargan al abrirla.
+    private var packTags: Set<String> {
+        Set(ArtClips.shopIconKeys.keys.compactMap { ArtClips.shopIcon(item: $0, in: loops) }
+            .compactMap { loops.odrTag(for: $0) })
+    }
+
+    /// La fila que anima su ícono: la del medio de las visibles, en el orden en que se dibujan.
+    private func focusedRow(in rows: [OroShopRow]) -> String? {
+        let ordered = OroShopCatalog.Shelf.allCases.flatMap { shelf in rows.filter { $0.item.shelf == shelf } }
+        let animatable = Set(ordered.map(\.id).filter { ArtClips.shopIcon(item: $0, in: loops) != nil })
+        return ShopIconFocus.pick(visibleInOrder: ordered.map(\.id).filter(visibleRows.contains), animatable: animatable)
     }
 
     private func purchase(_ row: OroShopRow) {
@@ -176,6 +203,8 @@ private struct OroShopItemRow: View {
     let row: OroShopRow
     let odds: ChestOddsDisplay
     let pendingNote: String?
+    /// El clip del ícono si esta es la fila enfocada; `nil`, póster quieto.
+    let clip: ArtClip?
     let buy: () -> Void
 
     private var name: String { OroShopCopy.name(for: row.item) }
@@ -287,7 +316,11 @@ private struct OroShopItemRow: View {
             .overlay {
                 Group {
                     if let art = UIArt.image(row.item.iconKey) {
-                        art.resizable().scaledToFit()
+                        if let clip {
+                            AnimatedArtView(clip: clip, role: .icon) { art.resizable().scaledToFit() }
+                        } else {
+                            art.resizable().scaledToFit()
+                        }
                     } else {
                         Image(systemName: row.item.symbol)
                             .resizable().scaledToFit()

@@ -25,9 +25,7 @@ import Testing
 
     /// Secciones llenas que todavía nadie pide, con la tarea que las cablea. Al cablearse, la tarea
     /// la saca de acá (el test falla si queda).
-    private static let pendingPlaces: [String: String] = [
-        "shopIcons": "E8e T4 (OroShopView); ui_oro_extra_slots, además, E6b T7",
-    ]
+    private static let pendingPlaces: [String: String] = [:]
 
     private static let definitions: Set<String> = ["ArtClips.swift", "LoopsManifest.swift"]
 

@@ -19,6 +19,11 @@ enum OroShopOutcome: Equatable {
 /// La tienda de ORO en la partida (PLAN-v2 E6): comprar, los ×3 comprados que
 /// esperan su momento y el auto-tap.
 extension GameState {
+    /// El ícono animado de la tienda cambió de fila: un brillo, muy bajo.
+    func shopIconFocused() {
+        audio?.play(.shopShimmer, gain: .ambient)
+    }
+
     /// Lo que la tienda necesita saber de la partida, resuelto acá. `chanceAllowed`
     /// lo pone quien llama (`LootBoxGate`), para que un test no dependa del país
     /// de la máquina.

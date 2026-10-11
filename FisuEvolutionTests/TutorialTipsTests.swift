@@ -302,4 +302,63 @@ struct TutorialTipsTests {
         #expect(gameState.showing != .tutorialTip)
         #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.visitor.defaultsKey))
     }
+
+    @Test("un paquete esperando enseña a tocarlo, y tocarlo cumple la lección")
+    func thePackagesLesson() async {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where lesson != .packages {
+            gameState.markLessonDone(lesson)
+        }
+        gameState.debugAddPackages(1)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .packages)
+        #expect(gameState.showing == .tutorialTip)
+        #expect(GameState.TutorialLesson.packages.anchorTarget == .sidePackages)
+        _ = gameState.packageTapped()
+        #expect(gameState.showing != .tutorialTip)
+        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.packages.defaultsKey))
+    }
+
+    @Test("un colchón esperando enseña a abrirlo, y tocarlo la cumple")
+    func theMattressLesson() async {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where lesson != .mattress {
+            gameState.markLessonDone(lesson)
+        }
+        gameState.debugSpawnMattress()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .mattress)
+        #expect(GameState.TutorialLesson.mattress.anchorTarget == .sideMattress)
+        gameState.mattressTapped()
+        #expect(gameState.showing != .tutorialTip)
+        #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.mattress.defaultsKey))
+    }
+
+    @Test("la ruleta se enseña después de Regalos, y abrir Regalos la cumple")
+    func theWheelLesson() async {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where lesson != .wheel && lesson != .gifts {
+            gameState.markLessonDone(lesson)
+        }
+        gameState.debugAddWheelSpins(1)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip == nil, "sin la lección de Regalos dada, la ruleta espera")
+        gameState.markLessonDone(.gifts)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .wheel)
+        #expect(GameState.TutorialLesson.wheel.destinationScreen == .gifts)
+        gameState.tutorialTipHandled(opening: .gifts)
+        #expect(gameState.showing != .tutorialTip)
+    }
+
+    @Test("una partida nueva no enseña los premios: no hay nada que hacer")
+    func prizeLessonsNeedSomethingToDo() async {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where ![.packages, .mattress].contains(lesson) {
+            gameState.markLessonDone(lesson)
+        }
+        gameState.markLessonDone(.wheel)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip == nil)
+    }
 }

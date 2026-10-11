@@ -30,6 +30,10 @@ enum TutorialTarget: String, Hashable, CaseIterable {
     case eventChip
     /// El botón de compartir un momento viral.
     case share
+    /// Los accesos de E5 (los nombres son los de la columna lateral de E9/E7b:
+    /// el ancla viaja con el botón cuando se mude).
+    case sidePackages
+    case sideMattress
     /// No se ilumina: es la franja que el globo tiene que ESQUIVAR. Sin esto el
     /// globo se apoyaba encima del HUD y lo tapaba entero — y como el HUD es
     /// justamente lo que los pasos siguientes iluminan, el tutorial terminaba

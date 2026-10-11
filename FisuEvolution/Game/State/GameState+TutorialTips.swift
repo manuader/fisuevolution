@@ -320,3 +320,14 @@ extension GameState {
         Log.lifecycle.info("tutorial migrado: núcleo \(plan.coreCompleted), tour \(plan.tourPending)")
     }
 }
+
+/// Las primeras veces que llegan en un popup (PLAN-v2 E9): las aloja la propia celebración.
+enum TutorialInlineLesson: String, CaseIterable, Sendable {
+    case offline
+    case career
+    case visitorPopup = "visitor_popup"
+
+    var steps: [TutorialStep] {
+        [.explain("\(rawValue).inline", text: "tutorial.\(rawValue).inline", surface: .embedded)]
+    }
+}

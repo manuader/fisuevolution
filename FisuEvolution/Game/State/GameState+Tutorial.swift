@@ -75,6 +75,22 @@ extension GameState {
         resetTutorialClock()
     }
 
+    /// La primera vez de un popup: la tarjeta vive adentro de él y no toma turno en la cola.
+    /// Sólo el offline entra con el núcleo vivo: un veterano a medio núcleo puede volver con él.
+    /// Bajo XCTest y `--uitest*` se calla como el resto de las lecciones: un candado de 5 s le
+    /// taparía el popup a un test ajeno.
+    func beginInlineLesson(_ lesson: TutorialInlineLesson) {
+        guard tutorialLessonsAutorun, tutorialRun == nil, !tutorialPhaseActive || lesson == .offline,
+              !TutorialFlags.isLessonDone(lesson.rawValue, in: flagDefaults) else { return }
+        startTutorialRun(.lesson(lesson.rawValue), steps: lesson.steps)
+    }
+
+    /// El popup se cerró: si la tarjeta no se confirmó, no queda dada.
+    func endInlineLesson(_ lesson: TutorialInlineLesson) {
+        guard tutorialRun?.lessonID == lesson.rawValue else { return }
+        tutorialRun = nil
+    }
+
     /// El botón "Entendido". Con el candado puesto no hace nada.
     func confirmTutorialStep() {
         guard let run = tutorialRun, run.step?.clockKind == .explain, run.unlocked else { return }

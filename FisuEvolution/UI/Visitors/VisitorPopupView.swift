@@ -51,6 +51,7 @@ struct VisitorPopupView: View {
         .padding(16)
         // Sin identifier en el contenedor: pisaría el de los botones (trampa 9a-bis).
         .presentationDetents([.fraction(0.62), .large])
+        .inlineLesson(.visitorPopup)
         .fisuSheet()
     }
 

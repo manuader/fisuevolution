@@ -145,6 +145,7 @@ struct OfflineEarningsView: View {
         // Con el video cargando o corriendo la hoja no se cierra de un
         // deslizamiento: el anuncio aparecería sobre el tablero sin dónde acreditar.
         .interactiveDismissDisabled(watching)
+        .inlineLesson(.offline)
         // El tablón no llega a los bordes de la hoja, así que el fondo de
         // sistema dejaba un rectángulo BLANCO alrededor del panel (el defecto
         // que `DailyRewardView` ya corrigió). Transparente, el panel flota

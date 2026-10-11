@@ -27,6 +27,10 @@ struct TutorialTipsTests {
         let gameState = GameState(repository: repository)
         await gameState.bootstrap()
         gameState.tutorialLessonsAutorun = true
+        // Una partida nueva ya tiene un giro de la ruleta listo: sin esto las
+        // lecciones de la columna le ganan el turno a todas las demás.
+        gameState.markLessonDone(.sideRail)
+        gameState.markLessonDone(.wheel)
         return gameState
     }
 
@@ -334,21 +338,65 @@ struct TutorialTipsTests {
         #expect(UserDefaults.standard.bool(forKey: GameState.TutorialLesson.mattress.defaultsKey))
     }
 
-    @Test("la ruleta se enseña después de Regalos, y abrir Regalos la cumple")
+    @Test("la ruleta se enseña en la columna, no en Regalos, y tocarla la cumple")
     func theWheelLesson() async {
         let gameState = await makeGameState()
-        for lesson in GameState.TutorialLesson.allCases where lesson != .wheel && lesson != .gifts {
+        for lesson in GameState.TutorialLesson.allCases where lesson != .wheel {
             gameState.markLessonDone(lesson)
         }
+        UserDefaults.standard.removeObject(forKey: GameState.TutorialLesson.wheel.defaultsKey)
         gameState.debugAddWheelSpins(1)
         gameState.refreshProjections()
-        #expect(gameState.tutorialTip == nil, "sin la lección de Regalos dada, la ruleta espera")
-        gameState.markLessonDone(.gifts)
-        gameState.refreshProjections()
         #expect(gameState.tutorialTip?.lesson == .wheel)
-        #expect(GameState.TutorialLesson.wheel.destinationScreen == .gifts)
-        gameState.tutorialTipHandled(opening: .gifts)
+        #expect(GameState.TutorialLesson.wheel.anchorTarget == .sideWheel)
+        #expect(GameState.TutorialLesson.wheel.destinationScreen == nil)
+        _ = gameState.sideRailTapped(.wheel)
         #expect(gameState.showing != .tutorialTip)
+    }
+
+    @Test("con algo listo en la columna, la primera lección es abrirla, y abrirla la cumple")
+    func openTheRailFirst() async {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where lesson != .sideRail && lesson != .packages {
+            gameState.markLessonDone(lesson)
+        }
+        UserDefaults.standard.removeObject(forKey: GameState.TutorialLesson.sideRail.defaultsKey)
+        gameState.debugAddPackages(1)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .sideRail, "la de los paquetes espera a la de abrir la columna")
+        #expect(GameState.TutorialLesson.sideRail.anchorTarget == .sideRail)
+        gameState.sideRailOpened()
+        #expect(gameState.showing != .tutorialTip)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .packages, "abierta, ahora sí el botón de los paquetes")
+    }
+
+    @Test("sin la lección de abrirla, la de la ruleta no nace: primero se enseña a abrir la columna")
+    func buttonLessonsWaitForTheRailLesson() async {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where lesson != .sideRail {
+            gameState.markLessonDone(lesson)
+        }
+        UserDefaults.standard.removeObject(forKey: GameState.TutorialLesson.sideRail.defaultsKey)
+        gameState.debugAddWheelSpins(1)
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .sideRail)
+    }
+
+    @Test("Fusionar todo por video se enseña con pares en el piso, señalando su botón")
+    func mergeAllVideoLesson() async {
+        let gameState = await makeGameState()
+        for lesson in GameState.TutorialLesson.allCases where lesson != .mergeAllVideo {
+            gameState.markLessonDone(lesson)
+        }
+        gameState.player?.run.units = ["homeless": 4]
+        gameState.reconcileTower()
+        gameState.refreshProjections()
+        #expect(gameState.tutorialTip?.lesson == .mergeAllVideo)
+        #expect(GameState.TutorialLesson.mergeAllVideo.anchorTarget == .sideBoost)
+        #expect(GameState.TutorialLesson.mergeAllVideo.destinationScreen == nil)
+        _ = gameState.sideRailTapped(.boost)
+        #expect(gameState.showing != .tutorialTip, "tocar el botón la cumple")
     }
 
     @Test("una partida nueva no enseña los premios: no hay nada que hacer")

@@ -99,6 +99,7 @@ extension GameState {
     func sideRailTapped(_ kind: SideRailKind) -> SideRailTap {
         switch kind {
         case .wheel:
+            tutorialTipCompleted(.wheel)
             openWheel()
             return wheelSheet != nil ? .acted : .refused
         case .mattress:
@@ -112,8 +113,15 @@ extension GameState {
             }
             return canOfferPackageRainVideo() ? .offer : .refused
         case .boost:
+            tutorialTipCompleted(.mergeAllVideo)
             return canOfferMergeAllVideo() ? .offer : .refused
         }
+    }
+
+    /// El jugador desplegó la columna: la lección de abrirla se cumple y no vuelve.
+    func sideRailOpened() {
+        tutorialTipCompleted(.sideRail)
+        markLessonDone(.sideRail)
     }
 
     /// Terminó el video de una tarjeta de la columna. El cerrojo corta el aviso

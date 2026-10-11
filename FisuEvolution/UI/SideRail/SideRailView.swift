@@ -63,7 +63,7 @@ struct SideRailView: View {
 
     private func column(_ rail: SideRailState) -> some View {
         VStack(alignment: .leading, spacing: Tokens.s4) {
-            if expanded {
+            if isOpen {
                 shutter(rail)
                     .transition(reduceMotion
                         ? .opacity
@@ -81,15 +81,32 @@ struct SideRailView: View {
                     }
                 }
         }
-        .animation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.35), value: expanded)
+        .animation(reduceMotion ? .easeInOut(duration: 0.2) : .spring(duration: 0.35), value: isOpen)
         .animation(.easeInOut(duration: 0.2), value: offer)
+        .onChange(of: lessonHoldsOpen, initial: true) { _, holds in
+            if holds {
+                unfold()
+            } else {
+                // Terminó la lección: desde acá, los 3 s de siempre.
+                activity &+= 1
+            }
+        }
         .task(id: activity) {
             // Con VoiceOver la persiana no se recoge sola: 3 s no alcanzan para leerla.
             guard expanded, !voiceOver else { return }
             try? await Task.sleep(for: SideRailLayout.collapseDelay)
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled, !lessonHoldsOpen else { return }
             expanded = false
         }
+    }
+
+    private var isOpen: Bool { expanded || lessonHoldsOpen }
+
+    /// Una lección señala un botón de la persiana: tiene que estar abierta para
+    /// que el ancla exista, y no se recoge mientras la lección esté en pantalla.
+    private var lessonHoldsOpen: Bool {
+        guard let target = gameState.tutorialTip?.lesson.anchorTarget else { return false }
+        return SideRailKind.allCases.contains { $0.tutorialTarget == target }
     }
 
     private func fold() {
@@ -102,7 +119,10 @@ struct SideRailView: View {
     private func restButton(_ rail: SideRailState) -> some View {
         Button {
             offer = nil
-            if expanded { expanded = false } else { unfold() }
+            if isOpen { expanded = false } else {
+                unfold()
+                gameState.sideRailOpened()
+            }
         } label: {
             GameIcon(artKey: "siderail_prizes", size: 28) { VectorTabGiftsIcon() }
                 .frame(width: SideRailLayout.restSide, height: SideRailLayout.restSide)
@@ -113,12 +133,11 @@ struct SideRailView: View {
                             .offset(x: 6, y: -6)
                     }
                 }
-                .modifier(ReadyPulse(active: rail.readyCount > 0 && !expanded && !reduceMotion))
+                .modifier(ReadyPulse(active: rail.readyCount > 0 && !isOpen && !reduceMotion))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .tutorialAnchor(.sideRail)
-        .modifier(RestingLessonAnchors(active: !expanded))
         .accessibilityIdentifier("siderail.toggle")
         .accessibilityLabel(Text("siderail.toggle.ax"))
         .accessibilityValue(Text(verbatim: String(rail.readyCount)))
@@ -166,22 +185,6 @@ struct SideRailView: View {
         case .refused:
             activity &+= 1
             return false
-        }
-    }
-}
-
-/// Con la persiana recogida, las lecciones de los paquetes y del colchón
-/// (E5b T5) señalan a "Premios": sus botones no están a la vista.
-private struct RestingLessonAnchors: ViewModifier {
-    let active: Bool
-
-    func body(content: Content) -> some View {
-        if active {
-            content
-                .tutorialAnchor(.sidePackages)
-                .tutorialAnchor(.sideMattress)
-        } else {
-            content
         }
     }
 }

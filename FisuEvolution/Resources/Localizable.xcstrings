@@ -6631,6 +6631,57 @@
         }
       }
     },
+    "oroShop.cosmetic.family" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The whole family: all 43 characters"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La familia entera: los 43 personajes"
+          }
+        }
+      }
+    },
+    "oroShop.cosmetic.outfit %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only for %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sólo para %@"
+          }
+        }
+      }
+    },
+    "oroShop.cosmetic.owned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yours: wear it in Looks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuya: ponétela en Pintas"
+          }
+        }
+      }
+    },
     "oroShop.footer.reincarnate" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6967,6 +7018,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Boosts"
+          }
+        }
+      }
+    },
+    "oroShop.shelf.cosmetics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cosmetics"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cosméticos"
           }
         }
       }

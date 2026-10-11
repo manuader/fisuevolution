@@ -83,7 +83,7 @@
 
 ## 2. Progreso
 
-**Hoy: 214 de 269 (79,6 %; el `rapido4` VERDE sobre `6c4a770` (EK 845 · unit 1448) metió a E8e T5 al cierre del relevo 30); antes, 213 de 269 tareas activas integradas en `version-2` (79,2 %; relevo 30: el `rapido3` VERDE de `integ-r30` sobre `c2708aa` (EK 845 · unit 1444 · Release 0) metió a E8e T2 y T3; antes, 211 (78,4 %): el `rapido2` sobre `76de0ff` (unit 1435) metió a E8e T1 y T7; antes, 209: el `rapido1` sobre `2dcf084` (unit 1417) metió a E8 T9. El total subió de 254 a 269 porque entraron al tablero el plan E8e (9 tareas) y el de E8e T10 (6); con 214, E8e T5 ✅ si el `rapido4` sobre `6c4a770` da VERDE. Antes, 208 de 254 (81,9 %; relevo 29: el `completo` de `integ-r29` sobre `7c494ea` (EK 845 · unit 1417 · UI 129 + 2 rojos por orden, aislados verdes) metió a E5b T2, E4b T10 y E5a T9; antes, 205 (80,7 %): el `rapido` VERDE de `integ-r29` sobre `26df563` (EK 845 · unit 1403) metió a E6b T4; antes, 204 (80,3 %; relevo 28, al cierre: el `rapido4` VERDE de `integ-r28` sobre `40f076e` (EK 838 · unit 1396) metió a E6a T8; antes, 203 (79,9 %; relevo 28: el `rapido3` VERDE de `integ-r28` sobre `a5ef14c` (EK 838 · unit 1389) metió a E4b T6, E6a T7 y E4b T9; antes, 200 (78,7 %) al cierre del 27 (E6a T6 y E2b T10, unit 1380); 198 (78,0 %): E4b T4; 197 (77,6 %): E5b T4 y E5b T6; 195 (76,8 %): E6a T4; 194 (76,4 %) al cierre del 26; 188 (74,0 %) al cierre del 25)).** 🟢: **E8e T5** (el colchón espera y se abre; su `rapido4` sobre `6c4a770` está en curso). **E8 T9** ✅ (relevo 30: los recortes del dueño y el Estudio de assets). Antes: 183 en el cierre del 24, 177 (69,7 %) con los cierres del 23, 174 (68,5 %) al cierre del 23 y 162 (63,8 %) al cierre del 22. 274 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 7: **E8e T4** (el ícono de la Tienda de ORO), **E8e T10a** (el spike del tablero animado), **E6a T12** (las ofertas se ven), **E5b T3** (la escena), **E5b T5** (las lecciones), **E7b-b T1** (la columna, pura) y **E8d T15**. E8e T6 espera a E5b T3, E8e T8 a una ventana de `BoardScene`, E6b T5 a E5b T3, E6b T7 a E6a T12; E12 T12 está ⛔ y E12 T16 🔒.
+**Hoy: 214 de 283 (75,6 %; el total sube de 269 a 283 porque entró el plan de E10, 14 tareas, el 2026-10-11); antes, 214 de 269 (79,6 %; el `rapido4` VERDE sobre `6c4a770` (EK 845 · unit 1448) metió a E8e T5 al cierre del relevo 30); antes, 213 de 269 tareas activas integradas en `version-2` (79,2 %; relevo 30: el `rapido3` VERDE de `integ-r30` sobre `c2708aa` (EK 845 · unit 1444 · Release 0) metió a E8e T2 y T3; antes, 211 (78,4 %): el `rapido2` sobre `76de0ff` (unit 1435) metió a E8e T1 y T7; antes, 209: el `rapido1` sobre `2dcf084` (unit 1417) metió a E8 T9. El total subió de 254 a 269 porque entraron al tablero el plan E8e (9 tareas) y el de E8e T10 (6); con 214, E8e T5 ✅ si el `rapido4` sobre `6c4a770` da VERDE. Antes, 208 de 254 (81,9 %; relevo 29: el `completo` de `integ-r29` sobre `7c494ea` (EK 845 · unit 1417 · UI 129 + 2 rojos por orden, aislados verdes) metió a E5b T2, E4b T10 y E5a T9; antes, 205 (80,7 %): el `rapido` VERDE de `integ-r29` sobre `26df563` (EK 845 · unit 1403) metió a E6b T4; antes, 204 (80,3 %; relevo 28, al cierre: el `rapido4` VERDE de `integ-r28` sobre `40f076e` (EK 838 · unit 1396) metió a E6a T8; antes, 203 (79,9 %; relevo 28: el `rapido3` VERDE de `integ-r28` sobre `a5ef14c` (EK 838 · unit 1389) metió a E4b T6, E6a T7 y E4b T9; antes, 200 (78,7 %) al cierre del 27 (E6a T6 y E2b T10, unit 1380); 198 (78,0 %): E4b T4; 197 (77,6 %): E5b T4 y E5b T6; 195 (76,8 %): E6a T4; 194 (76,4 %) al cierre del 26; 188 (74,0 %) al cierre del 25)).** 🟢: **E8e T5** (el colchón espera y se abre; su `rapido4` sobre `6c4a770` está en curso). **E8 T9** ✅ (relevo 30: los recortes del dueño y el Estudio de assets). Antes: 183 en el cierre del 24, 177 (69,7 %) con los cierres del 23, 174 (68,5 %) al cierre del 23 y 162 (63,8 %) al cierre del 22. 274 filas, 5 salteadas (E8b T4/T5/T6/T12 reemplazadas por E8d, E7b-b), más los seguimientos (E1 T5b/T5c/T6c/T9b, E6b T1r, todos ✅). Quedan ⏳ 7: **E8e T4** (el ícono de la Tienda de ORO), **E8e T10a** (el spike del tablero animado), **E6a T12** (las ofertas se ven), **E5b T3** (la escena), **E5b T5** (las lecciones), **E7b-b T1** (la columna, pura) y **E8d T15**. E8e T6 espera a E5b T3, E8e T8 a una ventana de `BoardScene`, E6b T5 a E5b T3, E6b T7 a E6a T12; E12 T12 está ⛔ y E12 T16 🔒.
 
 | Épica | Rama | Punta hoy |
 |---|---|---|
@@ -130,7 +130,8 @@
 | E13 | 14 | 14 |  |  |  |  |  |  |
 | E13b | 11 | 11 |  |  |  |  |  |  |
 | E8e | 15 | 5 |  |  | 2 | 8 |  |  |
-| **Total** | **269** | **214** |  |  | **7** | **47** | **1** | **5** |
+| E10 | 14 |  |  |  | 7 | 6 | 1 |  |
+| **Total** | **283** | **214** |  |  | **14** | **53** | **2** | **5** |
 
 Fuera del conteo:
 
@@ -149,7 +150,7 @@ grep -E '^\| E[0-9a-z-]+-T[0-9]+[ab]? \|[^|]*\| ⏭' tasks.md | grep -vc seguimi
 grep -E '^\| E2a-T[0-9]+ \|[^|]*\| ✅' tasks.md | grep -vc seguimiento                   # una épica: cambiar el prefijo
 ```
 
-Progreso = integradas / (filas de tarea − salteadas). Hoy: 213 / (274 − 5). Las filas de E8e T10 llevan sufijo `a`–`f`: con `[a-f]?` en lugar de `[ab]?` el grep las cuenta todas (con `[ab]?` quedan 270 filas). Con el sufijo el grep levanta
+Progreso = integradas / (filas de tarea − salteadas). Hoy: 214 / (288 − 5). Las filas de E8e T10 llevan sufijo `a`–`f`: con `[a-f]?` en lugar de `[ab]?` el grep las cuenta todas (con `[ab]?` quedan 270 filas). Con el sufijo el grep levanta
 también `E1-T5b` y `E1-T9b`; por eso el `grep -v seguimiento`. Cualquier otro estado se cuenta igual, cambiando el ✅.
 La tabla por épica se recalculó en el relevo 28 (con un script sobre las mismas filas); la columna ⏭️ cuenta las salteadas, que no entran en "Activas"; si discrepa, vale el `grep`.
 
@@ -255,7 +256,7 @@ partirlo.
 BASE de todas: `version-2` en `56d7bfb` (o en `6c4a770` si el `rapido4` dio VERDE y ya se avanzó). Worktrees manuales `worktrees.nosync/v2i-<tarea>`.
 **Un solo dueño de `RootView` y de `GameState` por ola, y uno solo del catálogo.** Revisar cada dependencia contra la tabla de §5 antes de despachar.
 De la ola 30 salen **siete ⏳**: los cinco del 29 (**E6a T12, E5b T3, E7b-b T1, E5b T5, E8d T15**, que no se despacharon) más **E8e T4** y **E8e T10a**, que destrabó E8e T1. El resto de los ⛔ sigue esperando.
-**Reparto sugerido sin pisarse:** E6a T12 es dueña de `RootView`, del catálogo y de `OroShopView` (por eso **E8e T4 no va en paralelo con ella**); E7b-b T1 de `GameState`; E5b T3 de `BoardScene`; E5b T5 sólo toca el catálogo con snapshot; **E8e T10a es un spike opus en una rama desechable (sin archivos compartidos) pero compila: cuenta para el tope.** Con la máquina cargada (la carga llegó a 446 con tres tareas y un `rapido`): E6a T12 y E5b T3 primero, E7b-b T1 y E8e T10a en cuanto uno termine; E8e T4 sólo con E6a T12 ya integrada.
+**Reparto sugerido sin pisarse:** E6a T12 es dueña de `RootView`, del catálogo y de `OroShopView` (por eso **E8e T4 no va en paralelo con ella**); E7b-b T1 de `GameState`; E5b T3 de `BoardScene`; E5b T5 sólo toca el catálogo con snapshot; **E8e T10a es un spike opus en una rama desechable (sin archivos compartidos) pero compila: cuenta para el tope.** **E10 T1, T2, T5, T7 y T8 (filas 9–15) no compilan la app** y no comparten archivos con ninguna ⏳ del juego: llenan cupos sin pelear el tope; E10 T3 y T6 sí compilan. Con la máquina cargada (la carga llegó a 446 con tres tareas y un `rapido`): E6a T12 y E5b T3 primero, E7b-b T1 y E8e T10a en cuanto uno termine; E8e T4 sólo con E6a T12 ya integrada.
 
 | # | Tarea | Modelo | Dueña de / nota |
 |---|---|---|---|
@@ -269,8 +270,15 @@ De la ola 30 salen **siete ⏳**: los cinco del 29 (**E6a T12, E5b T3, E7b-b T1,
 | 6 | **E5b T7; E6a T13; E6b T5, T7–T10; E7b-a T6–T7; E7b-b T2–T3, T5, T7–T8; E8e T6, T8, T9, T10b–T10f; E9a; E9b T1–T5, T8–T10; E2b T9, T12–T15; E12 T12** | — | ⛔ siguen. **E8e T6 espera a E5b T3** (con rev. opus: AVFoundation en `LoopingVideoNode`); **E8e T8 a T1 ✅ y a una ventana de `BoardScene`** (dos líneas, no ∥ E5b T3/E6b T5/E9a T7); E8e T9 a T1–T8 y E8d T15; E8e T10b a T10a 🔒, T10c a T10b, T10d a T10c y a E5b T3, T10f a E6b T5; E5b T7 espera a E5b T3 y T5; E6a T13 a E6a T12; E6b T5 a E5b T3; E6b T7 a E6a T12; E7b-b T2 a E7b-b T1 y T3 a T2, E5b T5 y E6a T12; **E6b T5 espera además a E5b T3** (no a T2 solo); E2b T9 a E7b-b T2; E9a T1 a E6a T12; E9b T8 a E9a T3; E12 T12 a E9b T8 |
 | 7 | **🔒 del dueño** | — | **`PREGUNTAS-DUENO.md`** (A1–A10 gates; B1–B26 ya aceptados con su default, ver §7); **B22:** los dominios de `NSPrivacyTrackingDomains` (AdMob, Unity, Meta) para poder pasar `NSPrivacyTracking` a `true`; **mirar en un iPhone, sin `--uitest-video`, lo animado de E8e** (Álbum, visitante, ilustración del evento, colchón: el movimiento real no se vio en simulador) y qué hacer con los eventos de 0 s; **la medición de E8e T10a en su SE**; **E12 T16** (credenciales de Supabase y `ANTHROPIC_API_KEY`; ahí se despliega `20261009000001_blocklist.sql`); **mediación por SPM** (E7b-a T6: Unity + Meta); **capturas de iPad a ASC** (E10); **escenarios de E11 en device** y de E2a/E8c; **los tres escenarios a mano de E4a** y **los siete de E4b T10** y **los tres de E5a T9**; **captura SE del precio tachado y visual del escenario** (SE/iPad/Reduce Motion); **el chip del visitante contra la columna de E7b en release**; **el loop real del retrato** y **una pasada a mano de iPad/oscuro/VoiceOver/Reduce Motion** de los visitantes, de los eventos con presentador (también el Apagón y los Campeones), del reto, de la Ruleta, de la Tienda de ORO (Comprar/Gastar), de la pausa publicitaria, **del colchón y de los accesos de E5b T2 y de la pinta comprada con ORO (E6b T4)**; un viaje 1 → 10 del ascensor en un SE real; las dudas de los relevos 22 a 29 de abajo |
 | 8 | **Trabajo sin fila (de B1–B26 y B22; lo lleva el controlador)** | sonnet / controlador | **B10/B15:** los avisos del reset de cuenta (un ×3 pagado, las pintas de ORO) van al **brief de E9b T8**; **B24** (chip vs columna) → gate A8; los dominios de B22 son del dueño. La integración de `v2/e8-recortes`, `v2/estudio-assets` y el plan E8e **ya se hizo en el 30** |
+| 9 | **E10 T1** (`releaseops app verify`) | sonnet | ⏳ sin dependencias. No compila la app. Dueña de `Tools/releaseops/releaseops.py`, `rocore/appcheck.py` (nuevo), `tests/test_appcheck.py` (nuevo) y `.claude/skills/release-ops/SKILL.md`. Destraba E10 T12 |
+| 10 | **E10 T2** (`releaseops asc builds`, sólo lectura) | sonnet | ⏳ **no ∥ E10 T1** (mismos archivos de `Tools/releaseops/` y `SKILL.md`): va en cuanto T1 se integre. Sólo `GET` a ASC |
+| 11 | **E10 T3** (la política con Unity, Meta y el ranking) | sonnet | ⏳ compila (cuenta para el tope): `Tools/v2/oraculo.sh tarea LegalDocumentTests PrivacyManifestTests`. Dueña de `Distribution/site/privacy.md` y `FisuEvolution/Resources/Legal/privacy.md`. Destraba E10 T4 (el sitio, sin publicar) |
+| 12 | **E10 T5** (notas a App Review y Novedades, borrador) | sonnet | ⏳ no compila. Dueña de `Distribution/release/release.json` (sólo `store`), `app-review-notes-e12.md` y setup §1.1/§1.8. Las notas están en 3.970/4.000 y nombran a AppLovin y Mintegral |
+| 13 | **E10 T6** (el arnés de capturas de la 2.0) | sonnet | ⏳ compila (UI, cuenta para el tope). Dueña de `FisuEvolutionUITests/AppStoreScreenshotTests.swift` y `Tools/v2/capturas.sh` (nuevo). No toca `RootView` ni el catálogo; si necesita un fixture nuevo, `NEEDS_CONTEXT` |
+| 14 | **E10 T7** (`HANDOFF-v2.md`) | controlador | ⏳ sólo docs (`Docs/HANDOFF-v2.md`) |
+| 15 | **E10 T8** (auditoría de compras y unidades) | haiku o sonnet | ⏳ sólo lectura de ASC/AdMob/sitio; dueña de `Distribution/release/AUDITORIA-<fecha>.md` (nuevo). Nada de `apply`, `screenshot` ni `set-id` |
 
-Lo que **no** se despacha todavía: E5b T7; E6a T13; E6b T5, T7, T8, T10; E7b-b T2–T3, T5, T7–T8; E8e T6, T8, T9, T10b–T10f; E2b T9, T12–T15 (cadena de la EK y de las épicas); E9a (espera a E6a T12); E9b T1–T5, T8–T10.
+Lo que **no** se despacha todavía: E5b T7; E6a T13; E6b T5, T7, T8, T10; E7b-b T2–T3, T5, T7–T8; E8e T6, T8, T9, T10b–T10f; E2b T9, T12–T15 (cadena de la EK y de las épicas); E9a (espera a E6a T12); E9b T1–T5, T8–T10; E10 T4 (tras E10 T3) y E10 T9–T13 (al final; T14 🔒).
 
 Carries del relevo 30 (detalle en `Docs/SESION-2026-10-10-v2-relevo-30-ola-ab.md`; ninguna tarea tuvo revisión opus de código): **E8e T1 → E6b T7:** `ui_oro_extra_slots` en `pendingShopIcons` (E6b T7 lo mueve o el contrato queda rojo). **E8e T7, T2, T3, T5 → dueño:** el movimiento real (Álbum, visitante, ilustración del evento, colchón) no se vio; ODR en simulador; sólo en device.
 **E8e T2:** `visitorArrive` suena también con el presentador de evento (¿sólo visitantes? un `if case .visitor`); captura SE pendiente. **E8e T3 → dueño:** aguinaldo, blanqueo y `startup_comprada` duran 0 s y su ilustración no se ve nunca; `EventChipUITests` y `CorralitoUITests` no corridos → al `completo`. **E8e T5:** tamaño 160 pt (antes 88) y detent 0,66 en la apertura; los sonidos del colchón siguen en `pendingWiring`.
@@ -882,19 +890,35 @@ T5 ← E13-T3; T6 ← E13-T2; T10 ← E13-T6; T12 ← E13-T2, T3, T6, T7; T14 �
 (el reset vuelve `meta.floorChestsAwarded` a 0). En §3.1 E13 suma: `GameState.swift` (T4), `+Bonus`
 (T2, T6), `ContentSystems` (T7), `PlayerState` (T3, T7), `BoardScene` (T11).
 
-### E10 — Release 2.0
+### E10 — Release 2.0 (plan `2026-10-11-v2-e10-release.md`)
 
-| Pieza | Estado | Qué falta |
-|---|---|---|
-| E10 en papel | ✅ | ver "Hechos previos" |
-| Parte de agente: archive desde cero (build ≥ 5), las verificaciones del `.app` de PLAN-v2 §8, capturas de iPhone 6,9" y iPad 13" por idioma, notas a App Review con todos los lugares de anuncios, archivos de `adergames-site` (`app-ads.txt`, `legal.ts`, Términos, `config/ads.json`), `HANDOFF-v2.md` y `balance-log.md` | ⛔ | sin plan por tareas; va al final (§8). ⚠️ `ExportOptions.plist` sube directo |
-| Parte humana | 🔒 | §8 |
+La parte de agente, partida en 14 tareas. **Nada sale de la máquina sin 🔒**: ningún agente exporta (`ExportOptions.plist` sube directo), corre `asc apply`/`listing apply`/`asc screenshot`, pushea `adergames-site` ni toca un panel. «Las 4 redes» son Google + Unity + Meta (el dueño sacó AppLovin y Mintegral el 2026-10-08). Van ya: T1, T2 (no ∥ T1), T3, T5, T6, T7, T8; T4 tras T3; el resto al final (tras E2b T14, E9 y E12). 8 dudas con default.
+
+| ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
+|---|---|---|---|---|---|---|
+| P-E10 | Plan de E10, la parte de agente | ✅ | — | — | (el commit de este plan) | 14 tareas; 8 dudas con default; los 🔒 del dueño en orden al final del plan |
+| E10 en papel | doc ASC/AdMob/mediación, IAP, store metadata, Términos | ✅ | — | — | — | ver "Hechos previos" |
+| E10-T1 | `releaseops app verify`: las verificaciones del `.app` como comando | ⏳ | — | `Tools/releaseops/` (`releaseops.py`, `rocore/appcheck.py`, tests), `SKILL.md` de release-ops | | sonnet, sin revisión; Python, no compila la app. `UIDeviceFamily [1,2]`, `UIRequiresFullScreen`, `NSPrivacyTracking` (ITMS-91064), `GADApplicationIdentifier`, SKAdNetwork (fuente + propio de Google/Unity/Meta), versión y build ≥ 5 |
+| E10-T2 | `releaseops asc builds`: qué build está libre (sólo lectura) | ⏳ | — | `Tools/releaseops/` (`releaseops.py`, `rocore/asc_builds.py`), `SKILL.md` | | sonnet; **no ∥ T1** (mismos archivos); sólo `GET` a ASC; sin credenciales → `NEEDS_CONTEXT` |
+| E10-T3 | La política de privacidad con Unity, Meta y el ranking | ⏳ | — | `Distribution/site/privacy.md`, `Resources/Legal/privacy.md` | | sonnet; compila (`LegalDocumentTests`, `PrivacyManifestTests`); copia byte a byte (`cmp`); sin AppLovin ni Mintegral |
+| E10-T4 | `adergames-site` preparado y sin publicar | ⛔ | T3 | `adergames-site`: `app-ads.txt`, `legal.ts`, `terms.ts`, `config/ads.json` | | sonnet; worktree del sitio en rama local `fisu-v2-release`; `npm run build`; **sin `git push` (Vercel despliega): publicar es 🔒** |
+| E10-T5 | Notas a App Review y Novedades, borrador contra el código | ⏳ | — | `release.json` (sólo `store`), `app-review-notes-e12.md`, setup §1.1/§1.8 | | sonnet; las notas ya van en 3.970/4.000 y nombran a AppLovin y Mintegral; cada lugar de anuncios del código en el texto; `asc listing plan` (dry-run); **no ∥ T11** |
+| E10-T6 | El arnés de capturas de la 2.0 | ⏳ | — | `AppStoreScreenshotTests.swift`, `Tools/v2/capturas.sh` (nuevo) | | sonnet; compila (UI); navega el menú de la 2.0 (hoy usa las hojas de la v1); 17 Pro Max / 17 Pro / iPad Pro 13" × en/es; tamaños con `sips` |
+| E10-T7 | `HANDOFF-v2.md`: iPad, iOS 18 y «37 tiers» | ⏳ | — | `Docs/HANDOFF-v2.md` | | controlador (sólo docs) |
+| E10-T8 | Auditoría de compras y unidades, modo verificación | ⏳ | — | `Distribution/release/AUDITORIA-<fecha>.md` (nuevo) | | haiku o sonnet; sólo lectura: `validate`, `asc status/diff/ready`, `asc listing diff`, `admob plan`, `curl` al sitio |
+| E10-T9 | Las capturas finales y las de revisión de las 3 ofertas | ⛔ | T6; E6a-T13, E7b-b-T8, E9b-T10, E8e-T9, E2b-T14 | `AppStoreScreenshotTests.swift` | | sonnet; `--uitest-offer=<id>` de E6a T12; subirlas es 🔒 (ficha y `asc screenshot`) |
+| E10-T10 | `balance-log.md`: la calibración de la 2.0 | ⛔ | E2b-T14 | `Docs/balance-log.md` | | controlador; si E2b T15 ya la escribió, sólo verifica |
+| E10-T11 | Notas a App Review y Novedades, la versión final | ⛔ | T5; E7b-b-T8, E9b-T10, E12-T18 | `release.json` (sólo `store`) | | sonnet; `asc listing apply`, App Privacy y cuestionario de edad son 🔒 |
+| E10-T12 | Archive desde cero y las verificaciones del `.app` | ⛔ | T1, T2; E2b-T15, E9b-T10, E12-T18, E8e-T9, E7b-a-T7; `completo` VERDE | 🔥 `project.yml` (sólo si el 5 se quemó) | | controlador o sonnet; DerivedData nuevo `.noindex`; `xcodebuild archive` + `app verify`; **nunca `-exportArchive`**: firmar/exportar/subir es 🔒 |
+| E10-T13 | Cierre de E10 (controlador) | ⛔ | T1–T12 | `Docs/` | | auditoría final (T8 de nuevo); HANDOFF §4/§5/§7/§9; la lista de 🔒 en orden |
+| E10-T14 | B22: `NSPrivacyTracking` en `true` con los dominios | 🔒 | 🔒 los dominios de AdMob/Unity/Meta (dueño) | `PrivacyInfo.xcprivacy`, `PrivacyManifestTests` | | sonnet; no frena el cierre (sin dominios sale en `false`) |
+| Parte humana | subir a ASC, TestFlight, App Privacy, edad, sitio, mediación SPM, enviar | 🔒 | — | — | — | §8 y «Lo que queda del dueño» del plan |
 
 ### Inconsistencias y huecos entre planes (abiertas)
 
-1. **E8 y la parte de agente de E10 no tienen plan por tareas.** Sin ellos no hay forma de contar
-   su avance ni de despacharlos; lo mínimo es un plan chico de E8 cuando vuelva el piloto de arte
-   y uno de E10 antes del archive.
+1. **E8 y la parte de agente de E10 no tienen plan por tareas.** ~~Sin ellos no hay forma de contar
+   su avance ni de despacharlos.~~ Cerrado: E8 se partió en E8b–E8e y E10 tiene plan
+   (`2026-10-11-v2-e10-release.md`, 14 tareas).
 2. **E7b-b, cuándo arranca**: su encabezado dice "cuando E4, E5 y E6 cerraron y E7b-a T3 entró";
    su tabla de "Orden" da dependencias más finas por tarea (T6 sólo necesita E2a T11/T12, E1 T12,
    E4a T8 y E4b T3). La tabla de arriba copia la del plan; el controlador decide si adelanta.
@@ -1019,7 +1043,7 @@ El dueño contestó «hacé todo lo recomendado» a `Docs/PREGUNTAS-DUENO-v2.md`
 
 **Trabajo sin fila (para el controlador):**
 
-- **B22, `NSPrivacyTrackingDomains`:** pasar `NSPrivacyTracking` a `true` con los dominios de AdMob/Unity/Meta es 🔒 del dueño (ningún dominio confirmable desde el repo); no hay fila en E10 que lo recoja ni tarea que lo haga cuando los pase.
+- **B22, `NSPrivacyTrackingDomains`:** pasar `NSPrivacyTracking` a `true` con los dominios de AdMob/Unity/Meta es 🔒 del dueño (ningún dominio confirmable desde el repo); **lo recoge E10 T14** (🔒) cuando los pase.
 - **B10 y B15, avisos del reset en pantalla:** que la pantalla del reset diga que se pierde un ×3 pagado y que un reembolso sólo descuenta su ORO no está en la fila de E9b T8 (el carry de `skinsLost` sí); hay que sumarlo a su brief.
 - **B24:** la comprobación del chip del visitante contra la columna en release es del gate A8; ninguna fila de `tasks.md` lo lleva.
 
@@ -1041,7 +1065,7 @@ cerradas y su oráculo `completo` en verde, y sólo los pasos humanos de E10 pen
 9. **E9** (falta el plan): después de E7b.
 10. **E2b** (falta el plan): con todas las fuentes adentro (punto 4 de "Inconsistencias").
 11. **E8** (resto): según los gates del arte; antes de las capturas de E10.
-12. **E10**: la parte de agente (archive, verificaciones, capturas, notas, sitio) y después la
+12. **E10** (plan `2026-10-11-v2-e10-release.md`; T1–T3 y T5–T8 van ya, en paralelo): la parte de agente (archive, verificaciones, capturas, notas, sitio) y después la
     humana.
 
 **Lo que queda humano en E10:**

@@ -85,6 +85,28 @@ struct PlayerStateRepository: Sendable {
         backups?.keepUnreadable(payload)
     }
 
+    /// La copia de la partida que "Resetear partida" está por pisar, sacada de la memoria (la
+    /// que el jugador ve) y no del disco, que puede ir un guardado atrás. `false` si no hay
+    /// dónde guardarla o no se pudo escribir: sin copia no se borra nada.
+    func keepBeforeReset(_ state: PlayerState) -> Bool {
+        guard let backups, let payload = try? JSONEncoder().encode(state) else { return false }
+        return backups.keepBeforeReset(payload) != nil
+    }
+
+    /// Como `save`, pero dice si las dos copias (CoreData y snapshot) quedaron escritas. Lo usa
+    /// el reset, que no puede darse por hecho con un disco a medias.
+    func saveVerifying(_ state: PlayerState) async -> Bool {
+        do {
+            let payload = try JSONEncoder().encode(state)
+            try await persistence.save(payload: payload, schemaVersion: state.schemaVersion, updatedAt: Date())
+            try payload.write(to: snapshotURL, options: .atomic)
+            return true
+        } catch {
+            Log.persistence.error("verified save failed: \(error)")
+            return false
+        }
+    }
+
     private func decode(_ payload: Data, failure: inout String?) -> PlayerState? {
         do {
             let version = try SaveMigrator.version(of: payload)

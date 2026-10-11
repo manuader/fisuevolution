@@ -398,13 +398,20 @@ final class StoreManager {
         pushEntitlementsToGameState()
     }
 
-    private func pushEntitlementsToGameState() {
+    /// Después de "Resetear partida": vuelve a empujar lo que StoreKit dice que es tuyo aunque
+    /// no haya cambiado (sin `force`, `applyStoreEntitlements` no haría nada y el coordinador
+    /// de anuncios no se enteraría de la partida nueva).
+    func repushEntitlements() {
+        pushEntitlementsToGameState(force: true)
+    }
+
+    private func pushEntitlementsToGameState(force: Bool = false) {
         guard let catalog else { return }
         let removedAds = !catalog.removeAdsProductIDs.isDisjoint(with: purchasedProductIDs)
         let ownedSkins = catalog.skinByProductID
             .filter { purchasedProductIDs.contains($0.key) }
             .map(\.value)
             .sorted()
-        gameState?.applyStoreEntitlements(removedAds: removedAds, ownedSkins: ownedSkins)
+        gameState?.applyStoreEntitlements(removedAds: removedAds, ownedSkins: ownedSkins, force: force)
     }
 }

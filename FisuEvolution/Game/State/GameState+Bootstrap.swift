@@ -81,7 +81,7 @@ extension GameState {
         }
     }
 
-    private func newGame(content: GameContent) -> PlayerState {
+    func newGame(content: GameContent) -> PlayerState {
         PlayerState.newGame(
             startTypeId: content.tiers.baseType.id,
             startFloorId: content.floorTable[0].id,

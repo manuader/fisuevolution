@@ -236,9 +236,13 @@ extension GameState {
 
     /// StoreKit es la fuente de verdad; acá solo se cachea en el save.
     /// Las skins de milestone viven aparte (`meta.milestoneSkins`) y NO se pisan.
-    func applyStoreEntitlements(removedAds: Bool, ownedSkins: [String]) {
+    ///
+    /// `force` escribe y avisa aunque nada haya cambiado: después de "Resetear partida" el save
+    /// ya trae lo comprado, pero el coordinador de anuncios y el catálogo de skins tienen que
+    /// enterarse igual de la partida nueva.
+    func applyStoreEntitlements(removedAds: Bool, ownedSkins: [String], force: Bool = false) {
         guard var player else { return }
-        guard player.meta.removedAds != removedAds || player.meta.ownedSkins != ownedSkins else { return }
+        guard force || player.meta.removedAds != removedAds || player.meta.ownedSkins != ownedSkins else { return }
         player.meta.removedAds = removedAds
         ads?.setRemovedAds(removedAds)
         player.meta.ownedSkins = ownedSkins

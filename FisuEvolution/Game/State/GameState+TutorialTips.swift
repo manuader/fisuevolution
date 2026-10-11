@@ -58,17 +58,22 @@ extension GameState {
         case share
         /// El primer especial conseguido: vive en el Álbum de la Oficina central.
         case album
+        /// La columna de Premios con algo listo: enseña a abrirla. Las de sus
+        /// cuatro botones la esperan (E7b).
+        case sideRail
         /// Un Paquete de la Aduana esperando (E5).
         case packages
         /// El Colchón esperando (E5).
         case mattress
-        /// La Ruleta, después de la lección de Regalos (E5).
+        /// La Ruleta, adentro de la columna (E5, E7b).
         case wheel
+        /// Fusionar todo por video, adentro de la columna (E7b): con pares en el piso a la vista.
+        case mergeAllVideo
 
         /// Las que señalan algo del tablero: nunca salen con el tablero ocupado.
         var needsCalmBoard: Bool {
             switch self {
-            case .packages, .mattress, .wheel: true
+            case .sideRail, .packages, .mattress, .wheel: true
             default: false
             }
         }
@@ -106,9 +111,11 @@ extension GameState {
             case .prestige: .prestige
             case .share: .share
             case .album: .menu
+            case .sideRail: .sideRail
             case .packages: .sidePackages
             case .mattress: .sideMattress
-            case .wheel: .gifts
+            case .wheel: .sideWheel
+            case .mergeAllVideo: .sideBoost
             }
         }
 
@@ -120,9 +127,9 @@ extension GameState {
             case .upgrades, .oroUpgrades: .upgrades
             case .skins: .skins
             case .achievements, .album: .menu
-            case .gifts, .wheel: .gifts
+            case .gifts: .gifts
             case .store: .store
-            case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .prestige, .share, .packages, .mattress: nil
+            case .visitor, .eventChip, .elevator, .elevatorKeypad, .quickHire, .prestige, .share, .sideRail, .packages, .mattress, .wheel, .mergeAllVideo: nil
             }
         }
 
@@ -143,9 +150,11 @@ extension GameState {
             case .prestige: "tutorial.tip.prestige"
             case .share: "tutorial.tip.share"
             case .album: "tutorial.tip.album"
+            case .sideRail: "tutorial.tip.side_rail"
             case .packages: "tutorial.tip.packages"
             case .mattress: "tutorial.tip.mattress"
-            case .wheel: "tutorial.tip.wheel"
+            case .wheel: "tutorial.tip.wheel.rail"
+            case .mergeAllVideo: "tutorial.tip.merge_all_video"
             }
         }
     }
@@ -247,15 +256,18 @@ extension GameState {
             // Una partida vieja con especiales la ve una vez: es justo el aviso
             // de que se mudaron del piso al Álbum.
             !(player?.meta.ownedSpecials.isEmpty ?? true)
+        case .sideRail:
+            sideRail.readyCount > 0
         case .packages:
             // Uno que se puede abrir: con todo lleno la lección mandaría a
             // tocar algo que tiembla y no hace nada.
-            prizeAccess.packagesWaiting > 0 && !prizeAccess.packagesBlocked
+            isLessonDone(.sideRail) && prizeAccess.packagesWaiting > 0 && !prizeAccess.packagesBlocked
         case .mattress:
-            prizeAccess.mattressReady
+            isLessonDone(.sideRail) && prizeAccess.mattressReady
         case .wheel:
-            // Después de Regalos: es la lección de esa pestaña la que la presenta.
-            prizeAccess.wheelSpinsReady > 0 && isLessonDone(.gifts)
+            isLessonDone(.sideRail) && prizeAccess.wheelSpinsReady > 0
+        case .mergeAllVideo:
+            isLessonDone(.sideRail) && sideRail.status(of: .boost) == .ready(count: nil)
         }
     }
 

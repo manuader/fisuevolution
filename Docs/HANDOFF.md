@@ -15,6 +15,8 @@
 > principal y excluido de git. Al llegar: este general + el handoff más nuevo
 > de `handoffs/` + `PLAN-v2.md` + `tasks.md` + el journal.
 >
+> 📍 **Estado al cierre del relevo 36 (la ola AH, 2026-10-12; manda sobre los párrafos de abajo):** `version-2` = la punta de `v2i/integ-r36` (código `9696c99e`, pusheado). **Progreso: 259 de 283 (91,5 %).** Entraron **E9b T3, T4, T5 y T10, E9a T10 y E6b T10: E9 y E6b quedan cerradas** salvo lo 🔒 del dueño. `completo` de `f8cbabc8` con 1 rojo real (arreglado en `bbabbb92`) y `rapido` de `9696c99e` VERDE + 20 UI de tutorial/Ajustes. Detalle: `Docs/SESION-2026-10-12-v2-relevo-36-ola-ah.md`. Lo que queda despachable sin el dueño es poco (ver `tasks.md` §4.2, «Relevo 37»).
+>
 > 📍 **Estado al cierre del relevo 35 (la ola AG, 2026-10-11; manda sobre los párrafos de abajo, que son del 34, del 33, del 32, del 31, del 30, del 29, del 28, del 27, del 26, del 25 y del 24):** `version-2` = **`7f05b528`** (código `0dc356dc`, pusheado) **más los docs del cierre** (`v2i/docs-r35`, ff a `version-2`). El **`completo` de `c21d9e47` quedó ROJO sólo unit por 1** (`ChestSourcesTests.openingSpendsThePrestigeChestFirst`: con E6b T8 la bolsa de épica o mejor quedó en 12 y 1+12 aperturas con mínimo épica la agotan; el test se ajustó a 10 vueltas en `0ae88671`, la producción está bien) y, el resto, VERDE: EK 872 · unit 1740 · UI 155 + 4 salteados · store 18+2 · iPad 4 · SE 2 · Release 0 · pipeline 97 · pacing Dios 31,34 h · 13 reenc. El **`rapido` de `0dc356dc` VERDE (EK 875 · unit 1743 · Release 0).**
 > **Progreso: 253 de 283 en `version-2` (89,4 %).** Entraron **E6b T8** (ocho pintas de la v1 pasan a ORO: legendarias a 300, épicas a 150; opus Approved) y **E9b T2** (12 lecciones de la economía, el ORO, la tienda y el menú; `knownGaps` 13 → 1, queda declarado `skinEffects`), más, sin fila: **los eventos de 0 s duran 25 s** (`eventPresence`), **el «otro colchón» se guarda** (opus: el reloj se pausa con el popup abierto; `LossyModifier` en el save) y **el reset conserva las pintas compradas con ORO**. El **spike del tinte de pintas** se hizo y **el dueño lo rechazó** (eligió el PNG real; revertido). El dueño publicó el sitio (`3f03716`, y `e059c84` con los términos corregidos que el primero no traía). Cuatro revisiones opus. Detalle en `Docs/SESION-2026-10-11-v2-relevo-35-ola-ag.md`. Lo que sigue: `tasks.md` §4.2 (relevo 36): **E9b T3**, **E9a T10**, **E6b T10**; E2b espera el playtest de precios del dueño. **Tope real: ≤ 3 tareas compilando.**
 >
@@ -364,6 +366,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 ---
 
 ## 4. Qué cambió, sesión por sesión
+
+### Sesión del 2026-10-12 (relevo 36) — La ola AH: E9 y E6b cerradas
+
+Las lecciones heredadas a pasos con el orden fijado (E9b T3), el Tour de novedades para el veterano (T4), el repaso y el Tour desde Ajustes (T5) y los cierres de E9a, E9 y E6b. El `completo` atrapó un UI test que asumía a Mejoras como primera lección: fixture `--uitest-lessons-done`. 259 de 283. `Docs/SESION-2026-10-12-v2-relevo-36-ola-ah.md`.
 
 ### Cierre de E9 (2026-10-12) — El currículo, el Tour, Ajustes y el reset
 
@@ -3210,6 +3216,11 @@ El panel de debug es el ícono de herramientas del HUD.
 - **La cuota sin plata no se atenúa** en el evento de Corralito: se muestra igual aunque no se pueda pagar (E4b).
 - **`isCalmMoment` no se unificó con `isSafeMomentForInterstitial`:** `naturalBreakContext` suma `fullScreenUI`/`adOnScreen`; no copiar uno al otro, lo unifica E7b.
 
+### De la ola AH (2026-10-12, relevo 36)
+
+- **Fijar el orden de las lecciones rompe los UI tests que asumen cuál nace primero:** E9b T3 puso `quickHire` antes que `upgrades` y `TutorialUITests` (Mejoras) cayó en el `completo`; los unitarios ya marcaban `quickHire` dada. En UI: `--uitest-lessons-done=<ids>`. Todo cambio de orden corre `TutorialUITests` y `TutorialLessonsUITests`.
+- **`LocalizationCompletenessTests.settingsRows` lee el catálogo, no los snapshots:** la fila nueva de Ajustes se suma al test después de aplicar su snapshot.
+
 ### De la ola AG (2026-10-11, relevo 35)
 
 - **Un cambio de la bolsa de cofres rompe tests que cuentan aperturas:** E6b T8 sacó 8 pintas (la bolsa de 41 a 33) y la de épica o mejor quedó en 12; `ChestSourcesTests.openingSpendsThePrestigeChestFirst` (1 + 12 aperturas con mínimo épica) agotaba la bolsa, el mínimo cede por regla y paga rara. Determinista, no flake. Todo cambio de una bolsa corre los tests de aperturas y el test se prueba con vueltas de más.
@@ -4917,6 +4928,13 @@ Siguen vigentes y no estaban en ningún otro lado:
 
 ## 8. Qué queda
 
+### Lo que queda de la 2.0 (cierre del relevo 36)
+
+- **Al llegar:** confirmar `version-2` (código `9696c99e` + los docs del cierre del 36) y **259 de 283** (`grep` de `tasks.md` §2 con `[a-f]?`). Sin oráculo pendiente.
+- **Cerradas el 2026-10-12 (36):** E9 entera (E9b T3, T4, T5, T10, E9a T10) y E6b (T10).
+- **Cola:** `tasks.md` §4.2 «Relevo 37»: casi todo espera al dueño; despachables chicos: los carries sin fila (UI de `extraOnly`, texto de los eventos de 25 s, `menuPageChanged` a mitad de arrastre), `tour.done` con «¡Vamos!», y lo de E10 que no dependa de 🔒.
+- **🔒 del dueño:** los de siempre más los escenarios de los cierres de E6b, E9a y E9, y el aviso de ATT sobre la primera tarjeta del núcleo en device.
+
 ### Lo que queda de la 2.0 (cierre del relevo 35)
 
 La cola con orden, BASE y modelo está en `tasks.md` §4.2 (relevo 36). Lo nuevo del 35, además de lo que sigue de abajo (que se mantiene):
@@ -5443,6 +5461,7 @@ Anotado por si algún día importa, con su medición:
   Planes cerrados: `Docs/superpowers/plans/2026-10-07-v2-e7b-a-forzados-mediacion.md` (T6–T7 abiertos) y `…-e7b-b-columna-ubicaciones.md`.
 - **`Docs/SESION-2026-10-10-v2-e5a.md`**: el cierre de E5a (la tabla por tarea con su commit, la verificación que lo cubre, el porqué de cada default de
   «Para el dueño» y lo que le deja a E5b y a E6a). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e5a-aduana-colchon-ruleta.md`.
+- **`Docs/SESION-2026-10-12-v2-relevo-36-ola-ah.md`**: el relevo 36 (E9b T3–T5 y T10, E9a T10, E6b T10; E9 y E6b cerradas; el fixture `--uitest-lessons-done`).
 - **`Docs/SESION-2026-10-11-v2-relevo-35-ola-ag.md`**: el relevo 35 (el spike del tinte de pintas, hecho y rechazado por el dueño; las ocho pintas de la v1 a ORO con sus precios; las doce lecciones de la economía y el hueco `skinEffects` declarado; los eventos de 0 s a 25 s con `eventPresence`; el otro colchón guardado con su guard y `LossyModifier`; el reset que conserva las pintas de ORO; el `completo` de `c21d9e47` con su único rojo de test de cofres y el `rapido` de `0dc356dc`; las cuatro revisiones opus; el sitio publicado en `3f03716` y `e059c84`).
 - **`Docs/SESION-2026-10-11-v2-relevo-34-ola-af.md`**: el relevo 34 (el coach en las hojas con las manos y el vigilante en opción B, las primeras veces en su popup, la zona de peligro del reset con la salida bloqueada, la regla de cobertura de las lecciones y las lecciones del tablero y la torre; el flake de `CustomizationUITests`; las decisiones chicas del dueño y las pintas sin video; el `completo` de `97811c64` con su único rojo de test y el de `40804c31` pendiente).
 - **`Docs/SESION-2026-10-11-v2-relevo-33-ola-ae.md`**: el relevo 33 (el núcleo del tutorial en el director sin «Saltar», el renderer único del tutorial, el reset de la partida con la copia, la época y las compras que no se pierden, la vidriera de la Tienda y los cierres de E5, E6a y E7b; los dos `completo` con sus flakes de UI y el triaje, las tres revisiones opus —la de E9b T8 pidió cambios—, las dos decisiones del dueño: el cofre bajo la hoja cerrado y el vigilante del núcleo en opción B).

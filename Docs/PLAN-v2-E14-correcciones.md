@@ -20,6 +20,7 @@
 | C9 | Las dos esquinas de arriba, como Cow Evolution: premios a la izquierda; especial + boosts + relojes a la derecha | `SideRailView`, `ActiveBonusBar`, `StageChips`, `PlayColumn`/`HUDView` | **sí: 4 botones** | prompts listos |
 | C10 | La caja y el colchón del tablero: ~90 % más grandes y más arriba, a la vista | `PickupLayout`, `PickupController`, `PickupNode`, `PackageOpeningPlayer` | no | anotada |
 | C11 | Todo lo que se paga con dólar blue sale de la Tienda y va a Mejoras; la Tienda queda sólo para plata real | `StoreView`, `OroShopView`, `UpgradesView`, `MenuPagerView` | no | anotada |
+| C12 | La barra de abajo: los íconos llenan todo el ancho, escalan por dispositivo y llevan leyenda | `BottomMenuBar`, `GameTabBar` (`GameArtComponents.swift`) | no | anotada |
 
 ---
 
@@ -487,3 +488,39 @@ asusta; así se incentiva a entrar a Mejoras. (ORO = dólar blue, C8.)
 
 **Listo cuando:** abrir la Tienda muestra sólo precios en plata real; Mejoras › Permanentes
 muestra los lugares extra de la torre arriba de todo; ninguna compra con blue requiere entrar a la Tienda.
+
+## C12 — La barra de abajo llena todo el ancho
+
+Referencia: `Docs/correcciones-v2/C12-barra-inferior-vacia.jpg` (iPhone 15: cinco pestañas
+amontonadas en el centro, con un tercio de la barra vacío a cada lado).
+
+**Lo que dijo el dueño:** los íconos del menú tienen que llenar la totalidad del ancho de la barra
+inferior y adaptarse a cada dispositivo para tener el tamaño adecuado. Hoy, en un iPhone 15, sobra
+demasiado espacio. Se escalan para llenar el menú y que se entienda qué es cada uno. Pueden llevar
+una leyenda que diga qué es cada uno.
+
+**Hoy (verificado):** `BottomMenuBar` usa lados fijos (`iconSide = 39`, `prominentIconSide = 64`) y
+`GameTabBar` las centra. Las pestañas se desbloquean de a una (`unlockedTabsInBarOrder`): la barra
+tiene entre 3 y 7 (Contratar, Mejoras, Pintas, Regalos, Tienda, Menú, Ranking), y las etiquetas
+(`hud.*.label`) existen pero no se ven.
+
+**Qué hacer:**
+
+1. **Reparto por ancho:** cada pestaña ocupa una fracción igual del ancho útil de la barra (margen
+   lateral fijo, ~`Tokens.s12`), y la destacada del centro (Contratar) ocupa ~1,4 de esas fracciones.
+   El ícono se dimensiona contra su celda (~70 % del ancho de la celda), con un tope para que en iPad
+   no se vuelvan gigantes (ahí, centrado con un ancho máximo de barra, como el resto de las hojas).
+2. **Leyenda visible bajo cada ícono**, con las claves `hud.*.label` que ya existen: `Tokens.caption`
+   (en la destacada, un poco más grande), una línea, `minimumScaleFactor` para el SE y para los
+   textos largos del inglés. La leyenda no cambia los identificadores de accesibilidad
+   (trampa 9a-bis: nunca en el contenedor).
+3. Con 3, 4… 7 pestañas el reparto se recalcula y la entrada de una pestaña nueva sigue animada como
+   hoy. El «!» y el «¡Nuevo!» se anclan a la esquina del ícono, no a la celda.
+4. La altura de la barra crece lo justo para la leyenda; se re-mide todo lo que se ancla contra la
+   barra (la ficha del Fisura, la caja y el colchón de C10, el riel viejo si queda, `bottomInset` del
+   tablero y del escenario).
+5. Se comprueba en SE, iPhone 15, 17 Pro Max e iPad (capturas de las cuatro) y con texto
+   dinámico grande.
+
+**Listo cuando:** en los cuatro dispositivos los íconos cubren la barra de borde a borde sin huecos
+grandes, cada uno con su leyenda legible, con 5 pestañas y con 7.

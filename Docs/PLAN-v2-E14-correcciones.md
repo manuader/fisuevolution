@@ -35,6 +35,7 @@
 | C24 | Compartir es parte de la celebración del personaje nuevo: grande, con su foto, y el juego sigue recién al elegir | celebración de personaje nuevo (`boardCelebration`), `ShareMomentChip` (se retira para este caso) | no | anotada |
 | C25 | Eventos que te llevan directo a la Tienda (plata real) o a gastar dólar blue (Mejoras) | `events.json` (efecto nuevo), `EventPopupView`, navegación a Tienda/Mejoras con foco | quizás (ilustraciones de los eventos nuevos) | anotada |
 | C26 | Videos nuevos de Higgsfield para abrir el cofre y para la Ruleta, pensados para encastrar en el juego | `ChestCinematicPlayer`/`ChestAnim`, `WheelView`, `loops_manifest.json` | **sí: 5 videos** | prompts listos |
+| C27 | Lo mismo para la caja de la Aduana y el Colchón: espera, sacudida y apertura nuevas | `PickupNode`, `PackageOpeningPlayer`, `loops_manifest.json › objects` | **sí: 6 videos** | prompts listos |
 
 ---
 
@@ -1053,3 +1054,28 @@ las referencias del juego (`ui_chest_closed`, `wheel_frame`, `wheel_pointer`) co
 
 **Listo cuando:** abrir un cofre y tirar la Ruleta muestran los videos nuevos encastrados (sin borde
 blanco ni verde, alineados con el premio que dibuja el código) y el dueño los aprobó.
+
+## C27 — Videos nuevos de la caja y del Colchón
+
+**Lo que dijo el dueño:** lo mismo que la Ruleta y el cofre (C26), para la caja y el colchón.
+
+**Hoy:** `loops_manifest.json › objects` tiene `paquete_espera`, `paquete_abre`, `colchon_espera` y
+`colchon_abre` (512×512, matte blanco), los de la tanda aprobada el 2026-10-09.
+
+**Qué hacer:** igual que C26, en las dos piezas del tablero (C10) y en su pantalla de premio (C4):
+
+- `paquete_espera` / `colchon_espera` (loop, blanco): respiran y piden el toque. Reemplazan a los
+  actuales.
+- `paquete_sacude` / `colchon_sacude` (1 s, blanco, **nuevos**): la reacción a cada toque de los tres
+  que abren (C4 «durante»).
+- `paquete_abre` / `colchon_abre` (3 s, **verde**): la caja revienta la cinta y abre las solapas; el
+  colchón se descose con un «pop». Sale **sólo luz**: el premio lo dibuja el código encima.
+  Reemplazan a los actuales.
+
+Prompts en `fisu-v2-premios/video/` (referencias `pickup_package`, `pickup_mattress` como primer
+cuadro). Mismo control de calidad, revisión del dueño e integración de a uno con `video_assets.py`.
+Con el tamaño nuevo de C10 (+85 %), se exporta a 768 en lugar de 512 si el SE lo aguanta (medir
+memoria con el tope de 3 videos).
+
+**Listo cuando:** la caja y el colchón del tablero respiran, saltan con cada toque y se abren a un
+brillo del que sale el premio ilustrado, con los clips nuevos aprobados por el dueño.

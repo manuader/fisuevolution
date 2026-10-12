@@ -56,6 +56,13 @@ extension GameState {
             for id in TutorialLesson.veteranKnownLessons { TutorialFlags.markLessonDone(id, in: defaults) }
             TutorialFlags.markCurrent(in: defaults)
         }
+        // `--uitest-lessons-done=<id>,<id>`: esas lecciones quedan dadas, para que el
+        // test de una lección no dependa de las que el orden pone antes.
+        if let done = arguments.first(where: { $0.hasPrefix("--uitest-lessons-done=") }) {
+            for id in done.dropFirst("--uitest-lessons-done=".count).split(separator: ",") {
+                TutorialFlags.markLessonDone(String(id), in: defaults)
+            }
+        }
         // `--uitest-tutorial-at-finish`: el núcleo retoma en su cierre (los tres
         // milestones hechos, como quien cerró la app ahí). Sin "Saltar", es la
         // forma de llegar al cofre de bienvenida sin jugar el guion entero.

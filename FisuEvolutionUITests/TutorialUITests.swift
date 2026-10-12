@@ -361,7 +361,9 @@ final class TutorialUITests: XCTestCase {
         // corrida de UI tests (taparían coordenadas de tests ajenos); éste es
         // EL test de la lección, así que las pide.
         app.launchArguments = ["--uitest-reset", "--uitest-skip-tutorial", "--uitest-coins", "--uitest-lessons",
-                               "--uitest-tutorial-lock=0.3"]
+                               "--uitest-tutorial-lock=0.3",
+                               // el atajo va antes en el orden (E9b T3): dado, para medir Mejoras
+                               "--uitest-lessons-done=quickHire"]
         app.launch()
 
         let tip = app.otherElements["tutorial.tip"]

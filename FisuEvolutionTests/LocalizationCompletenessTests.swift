@@ -107,7 +107,7 @@ struct LocalizationCompletenessTests {
         case floors
         /// `iap.<productID>.name` y `.desc` (`IAPCopy`), sobre `products.json`.
         case iap
-        /// `LocalizedStringKey(tip.lesson.textKey)` en el globo de las lecciones.
+        /// El texto de los pasos de las lecciones heredadas (`tutorial.tip.*`).
         case tutorialTips
         /// `notif.<id>.title` y `.body` (`NotificationCopy`), sobre `notifications.json`.
         case notifications
@@ -154,7 +154,7 @@ struct LocalizationCompletenessTests {
                     [IAPCopy.nameKey(for: $0.id), IAPCopy.descriptionKey(for: $0.id)]
                 }
             case .tutorialTips:
-                return GameState.TutorialLesson.allCases.compactMap(\.textKey)
+                return GameState.TutorialLesson.allCases.flatMap(\.steps).map(\.textKey).filter { $0.hasPrefix("tutorial.tip.") }
             case .notifications:
                 return content.notifications.kinds.flatMap { [$0.titleKey, $0.bodyKey] }
             case .visitors:

@@ -26,9 +26,11 @@ struct TutorialTipsTests {
         await gameState.bootstrap()
         gameState.tutorialLessonsAutorun = true
         // Una partida nueva ya tiene un giro de la ruleta listo: sin esto las
-        // lecciones de la columna le ganan el turno a todas las demás.
+        // lecciones de la columna le ganan el turno a todas las demás. Con plata, el atajo
+        // (primero del orden) le gana a Mejoras: queda dado para que los tests midan lo suyo.
         gameState.markLessonDone(.sideRail)
         gameState.markLessonDone(.wheel)
+        gameState.markLessonDone(.quickHire)
         return gameState
     }
 
@@ -93,7 +95,7 @@ struct TutorialTipsTests {
         gameState.refreshProjections()
         #expect(gameState.unlockedFloorsCount >= 3)
         #expect(gameState.tutorialTip?.lesson == .elevatorKeypad)
-        #expect(GameState.TutorialLesson.elevatorKeypad.textKey == "tutorial.tip.elevator.hold")
+        #expect(GameState.TutorialLesson.elevatorKeypad.steps.first?.textKey == "tutorial.tip.elevator.hold")
     }
 
     @Test("desplegar la placa cumple la lección aunque no se haya visto")

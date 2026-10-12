@@ -555,21 +555,72 @@ struct TutorialLessonsTests {
         for (mechanic, lesson) in expected {
             #expect(mechanic.coverage == .lesson(lesson), "\(mechanic)")
             #expect(!TutorialMechanic.knownGaps.contains(mechanic), "\(mechanic)")
-            #expect(lesson.textKey == nil, "\(lesson)")
         }
         #expect(TutorialMechanic.knownGaps == [.skinEffects])
         #expect(TutorialMechanic.gapReasons[.skinEffects]?.isEmpty == false)
     }
 
-    @Test("cada lección con guion propio tiene sus pasos y ya no lleva el texto heredado")
-    func scriptedLessonsLeaveTheLegacyText() {
-        let scripted: [GameState.TutorialLesson] = [
-            .quickHire, .passive, .upgrades, .orgChart, .floorSwipe, .floorFull, .staffedFloors, .prestigeGate,
-            .prestige, .characterSheet,
-        ]
-        for lesson in scripted {
-            #expect(lesson.textKey == nil, "\(lesson)")
+    @Test("cada lección declara su versión a mano, y ninguna conserva el paso heredado")
+    func everyLessonIsExplicit() {
+        for lesson in GameState.TutorialLesson.allCases {
             #expect(!lesson.steps.isEmpty, "\(lesson)")
+            #expect(!lesson.steps.contains { $0.id.hasSuffix(".legacy") }, "\(lesson)")
+        }
+    }
+
+    @Test("el orden: lo que se usa primero, se enseña primero")
+    func order() {
+        let all = GameState.TutorialLesson.allCases
+        let index = { (lesson: GameState.TutorialLesson) in all.firstIndex(of: lesson)! }
+        #expect(index(.quickHire) < index(.upgrades))
+        #expect(index(.newTabs) < index(.skins))
+        #expect(index(.newTabs) < index(.store))
+        #expect(index(.newTabs) < index(.menuSwipe))
+        #expect(index(.elevator) < index(.elevatorKeypad))
+        #expect(index(.elevator) < index(.floorSwipe))
+        #expect(index(.oroShop) < index(.luck))
+        #expect(index(.oroShop) < index(.cosmetics))
+        #expect(index(.sideRail) < index(.packages))
+        #expect(index(.sideRail) < index(.mattress))
+        #expect(index(.sideRail) < index(.wheel))
+        #expect(index(.sideRail) < index(.mergeAllVideo))
+    }
+
+    @Test("cada lección está una sola vez y ninguna se perdió")
+    func everyLessonIsListedOnce() {
+        let all = GameState.TutorialLesson.allCases
+        #expect(Set(all).count == all.count)
+        #expect(all.count == 38)
+    }
+
+    @Test("las que dejaron el paso heredado conservan su señal, su ancla y su texto")
+    func formerLegacyLessonsKeepTheirSignal() {
+        typealias Lesson = GameState.TutorialLesson
+        let expected: [(Lesson, TutorialSignal, TutorialTarget, String)] = [
+            (.share, .lessonAction, .share, "tutorial.tip.share"),
+            (.visitor, .lessonAction, .visitor, "tutorial.tip.visitor"),
+            (.eventChip, .lessonAction, .eventChip, "tutorial.tip.event_chip"),
+            (.album, .screenOpened(.menu), .menu, "tutorial.tip.album"),
+            (.packages, .lessonAction, .sidePackages, "tutorial.tip.packages"),
+            (.mattress, .lessonAction, .sideMattress, "tutorial.tip.mattress"),
+            (.wheel, .lessonAction, .sideWheel, "tutorial.tip.wheel.rail"),
+            (.sideRail, .lessonAction, .sideRail, "tutorial.tip.side_rail"),
+            (.mergeAllVideo, .lessonAction, .sideBoost, "tutorial.tip.merge_all_video"),
+            (.elevator, .lessonAction, .map, "tutorial.tip.elevator"),
+            (.elevatorKeypad, .lessonAction, .map, "tutorial.tip.elevator.hold"),
+            (.skins, .screenOpened(.skins), .skins, "tutorial.tip.skins"),
+            (.achievements, .screenOpened(.menu), .menu, "tutorial.tip.achievements"),
+            (.oroUpgrades, .screenOpened(.upgrades), .upgrades, "tutorial.tip.oro"),
+            (.gifts, .screenOpened(.gifts), .gifts, "tutorial.tip.gifts"),
+            (.store, .screenOpened(.store), .store, "tutorial.tip.store"),
+        ]
+        for (lesson, signal, target, textKey) in expected {
+            #expect(lesson.steps.count == 1, "\(lesson)")
+            let step = lesson.steps[0]
+            #expect(step.signal == signal, "\(lesson)")
+            #expect(step.target == target, "\(lesson)")
+            #expect(step.textKey == textKey, "\(lesson)")
+            #expect(step.surface == .board, "\(lesson)")
         }
     }
 

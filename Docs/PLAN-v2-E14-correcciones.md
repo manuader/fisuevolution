@@ -34,6 +34,7 @@
 | C23 | Compartir: la oferta y la imagen compartida muestran al personaje con su skin, no un ícono | `ShareMomentChip`, `ShareCardView` (`ShareCardContent`) | no (usa el arte existente) | anotada |
 | C24 | Compartir es parte de la celebración del personaje nuevo: grande, con su foto, y el juego sigue recién al elegir | celebración de personaje nuevo (`boardCelebration`), `ShareMomentChip` (se retira para este caso) | no | anotada |
 | C25 | Eventos que te llevan directo a la Tienda (plata real) o a gastar dólar blue (Mejoras) | `events.json` (efecto nuevo), `EventPopupView`, navegación a Tienda/Mejoras con foco | quizás (ilustraciones de los eventos nuevos) | anotada |
+| C26 | Videos nuevos de Higgsfield para abrir el cofre y para la Ruleta, pensados para encastrar en el juego | `ChestCinematicPlayer`/`ChestAnim`, `WheelView`, `loops_manifest.json` | **sí: 5 videos** | prompts listos |
 
 ---
 
@@ -1010,3 +1011,45 @@ ninguno abre una pantalla de compra.
 
 **Listo cuando:** en una partida larga aparece, de vez en cuando, un evento que con un toque abre la
 Tienda o Mejoras en el producto que promociona, y nunca dos seguidos ni en el arranque.
+
+## C26 — Videos nuevos del cofre y de la Ruleta (Higgsfield)
+
+**Lo que dijo el dueño:** regenerar con Higgsfield el video de abrir el cofre y el de la Ruleta, para que
+se integren perfecto con la estética y la dinámica del juego. Sin fondo: pedir fondo verde o blanco
+según cómo se vaya a integrar.
+
+**Hoy:** el cofre usa `chest_open.mov` (HEVC con alfa) para el tramo cinemático más los frames de
+`ChestAnim/` (idle y sacudidas, 48 fps, `chest_anim.json` con `chestRect` y `parchmentRect`). La Ruleta
+no tiene video: es un `WheelCanvas` vectorial que gira con `spinSeconds` de `wheel.json`.
+
+**Diseño de la integración (lo que decide los prompts):**
+
+- **El premio nunca va en el video.** Lo decide el juego y lo dibuja el código encima (C4). Por eso
+  el cofre se abre a un brillo vacío y la Ruleta tiene el **disco liso**: los gajos con sus imágenes
+  los pinta `WheelCanvas` encima del disco y son los que giran. El video es el marco con las luces.
+- **Encaja con los tres momentos de C4:** cofre: `cofre_espera` (loop) → toque → `cofre_sacude` (1.º y
+  2.º toque) → `cofre_abre` (3.er toque) → el premio sale del brillo con rayos y partículas →
+  «¡Cobrar!». Ruleta: `ruleta_espera` (loop, luces que corren) → giro (código) → `ruleta_premio`
+  (las luces festejan) → el premio del gajo grande.
+- **Fondo:** blanco puro en los loops de espera y sacudida (`whitebg_cutout.py`, como los 135
+  aprobados); **verde croma** en `cofre_abre` y `ruleta_premio`, porque sus rayos y chispas blancas se
+  perderían recortando blanco (`matte: "verde"`, como la cabina).
+
+**Prompts:** `automatic-image-generation/projects/fisu-v2-premios/video/` (README + 5 `.md`), con
+las referencias del juego (`ui_chest_closed`, `wheel_frame`, `wheel_pointer`) como primer cuadro.
+
+**Qué hacer:**
+
+1. Generar los 5 en Higgsfield con el método aprobado (primer/último cuadro, cámara quieta, sin
+   manos); control cuadro por cuadro; el dueño revisa en la interfaz local (va / regenerar / obviar).
+2. Integrar con `video_assets.py` (de a uno, nunca en paralelo: se pisa el manifest), al
+   `loops_manifest.json` (sección `objects` o una nueva `prizes`), y con un SFX sintetizado por momento
+   (`Tools/audio-synth`).
+3. Cofre: `ChestCinematicPlayer` y `ChestAnim` pasan a los clips nuevos; se recalcula `chestRect` /
+   `parchmentRect` contra el encuadre nuevo. Se retiran el `chest_open.mov` y los frames viejos.
+4. Ruleta: el video va debajo de `WheelCanvas`, alineado al disco (se mide el centro y el radio del
+   disco del clip y se guarda en el manifiesto); la flecha y las luces son del video.
+5. Con Reduce Motion: el póster estático y el giro/la apertura con fundidos.
+
+**Listo cuando:** abrir un cofre y tirar la Ruleta muestran los videos nuevos encastrados (sin borde
+blanco ni verde, alineados con el premio que dibuja el código) y el dueño los aprobó.

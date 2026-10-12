@@ -31,6 +31,7 @@ antes por la **aprobación del dueño en mockups** (G1).
 | D11 | Si C5 mueve el pacing, el agente compensa para sostener Dios en ~45 h e informa los números. |
 | D12 | Mockups en alta fidelidad con el arte real, aprobados antes de programar cada pantalla. |
 | D13 | **G1 cerrada (2026-10-12): el dueño aprobó TODOS los mockups.** Regla del dueño: los mockups son **inspiración, no especificación**: buena disposición, pero no se ven exactamente como el juego. **Nada pixel perfect.** Se usan igual que las referencias de Cow Evolution y AdVenture Capitalist: de ahí se toman la idea, la disposición, la jerarquía y el flujo; la apariencia la dan la identidad del Fisu, la gramática v3 y el arte real. No se copian colores, medidas ni tipografías del CSS del mockup. |
+| D14 | Regla del dueño (2026-10-12): **Cero superposición:** cada elemento tiene un único lugar fijo; nada tapa a nada ni tapa el tablero donde se juega; nada de amontonamiento; todo se toca cómodo (≥ 44 pt, sin vecinos pegados). **Única excepción aceptada:** la botonera del ascensor mientras está abierta tapa la columna de boosts (C30); al cerrarse, todo vuelve a estar a la vista. Cada tarea de pantalla lo comprueba en SE y Pro Max (con el tablero lleno, visitante, caja, colchón, 4+ boosts y un aviso a la vez) y lo deja en su captura. |
 
 ## Gates del dueño
 
@@ -125,5 +126,8 @@ Fuera del relevo, ya en marcha: T1 (batch de Gemini) y T2 (videos generados, esp
 - EK: tests de C5 (bolsa barajada pareja, el vendedor no repite), C17 (migración), C24/C28 (bonus una
   vez, chances del paquete = `PackageRoller`), C25 (`openShop` no toca la economía).
 - Pacing: el simulador después de T6 y al cierre; Dios en ~45 h (D11).
+- **Chequeo de superposición (D14)** en cada tarea de pantalla: SE y Pro Max en el peor caso (tablero lleno,
+  visitante esperando, caja y colchón, 4+ boosts, un aviso); ningún elemento tapa a otro ni al tablero, salvo la
+  botonera del ascensor abierta.
 - Capturas de cada pantalla tocada en SE y Pro Max. La revisión mira que respete la **idea** de su mockup
   (qué hay, en qué orden, qué se destaca), no que se le parezca al píxel (D13).

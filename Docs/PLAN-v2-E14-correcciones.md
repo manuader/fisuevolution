@@ -1147,7 +1147,7 @@ mejores juegos del App Store. Referencias: Cow Evolution y AdVenture Capitalist,
 Boosts, el cartel del cobro y Videos —, sin importar qué está listo para cobrar. Todas las filas pesan
 lo mismo y el texto explicativo va en párrafos (la racha: «Se cobra solo con que aparezcas…»).
 
-### Principios que rigen toda la UI (van al HANDOFF §5 como regla del dueño)
+### Principios que rigen toda la UI (van al HANDOFF §5 como regla del dueño; son 9, el 9 es D14)
 
 1. **Una acción principal por pantalla y por fila**, y se ve primero: el botón más grande y de color es
    lo que conviene hacer ahora; lo secundario es más chico o neutro.
@@ -1164,6 +1164,9 @@ lo mismo y el texto explicativo va en párrafos (la racha: «Se cobra solo con q
    saldo cuenta para arriba, haptic y sonido). Nunca un cambio silencioso.
 7. **Divulgación progresiva:** lo que todavía no se usa no aparece o aparece como «se desbloquea en…»,
    para que el jugador nuevo no vea veinte cosas a la vez.
+9. **Cero superposición (D14, regla del dueño):** cada cosa tiene un único lugar; nada tapa a nada ni al tablero
+   donde se juega; sin amontonamiento; todo fácil de tocar. Única excepción: la botonera del ascensor abierta tapa
+   los boosts (C30) y al cerrarse no tapa nada.
 8. **Legibilidad y accesibilidad:** nada por debajo de `Tokens.caption`, contraste AA sobre el
    pergamino, objetivos de toque ≥ 44 pt, texto dinámico y VoiceOver con label y estado en cada fila.
 

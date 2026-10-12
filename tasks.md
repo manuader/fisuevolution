@@ -986,7 +986,7 @@ La parte de agente, partida en 14 tareas. **Nada sale de la máquina sin 🔒**:
 `Docs/correcciones-v2/mockups/fisu-e14.html`; cada fila nombra su mockup (M…). Decisiones D1–D13 en el plan
 y en §7. Regla D13 (del dueño): los mockups son inspiración, **nada pixel perfect**, como las referencias de Cow Evolution y
 AdVenture Capitalist; la apariencia sale de la gramática v3 y el arte real (FisuJobs manda). Regla del dueño para toda la UI: cero SF Symbols / cápsulas planas, premios siempre
-ilustrados, popups centrados y contenidos (C19, C29).
+ilustrados, popups centrados y contenidos (C19, C29), y **cero superposición** (D14).
 
 | ID | Título | Estado | Depende de | 🔥 / tibios | Commit / rama | Nota |
 |---|---|---|---|---|---|---|
@@ -1233,6 +1233,7 @@ El dueño contestó «hacé todo lo recomendado» a `Docs/PREGUNTAS-DUENO-v2.md`
 | Sellos de premios | los no disponibles no aparecen (D8) | E14-T13 |
 | Arte | se genera ya, con revisión del dueño (D10) | G2, G3 |
 | Pacing | si C5 lo mueve, se compensa para Dios ~45 h e informa (D11) | E14-T6 |
+| Superposición | **cero**: cada elemento en un único lugar, nada tapa a nada ni al tablero, sin amontonamiento, todo fácil de tocar; única excepción, la botonera del ascensor abierta sobre los boosts (D14) | chequeo de peor caso en SE y Pro Max en cada tarea de pantalla |
 
 ## 8. El camino hasta el final
 

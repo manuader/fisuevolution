@@ -365,6 +365,15 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Cierre de E9a (2026-10-12) — El tutorial v2: el motor
+
+E9a T1–T9 están en `version-2` y T10 es este cierre (sólo docs y capturas; el `completo` de cierre lo corre el controlador). Detalle, la tabla por tarea con su commit y su revisión, el escenario a mano y los carries en **`Docs/SESION-2026-10-11-v2-e9a.md`**.
+
+- **Qué entró:** relojes y migración puros en EK (T1), el modelo y `TutorialFlags` (T2), las banderas cableadas (T3), el director con ritmo y watchdog (T4), el núcleo sin «Saltar» con cierre de candado (T5), un solo renderer (T6), el coach adentro de las hojas con las manos (T7), las tarjetas de primera vez (T8) y la cobertura como test (T9).
+- **Escenario a mano (SE e iPad 13", simuladores propios, iOS 26.5):** núcleo entero sin «Saltar» hasta el cofre, el coach adentro de FisuJobs, el cierre que se llena, una lección con scrim que el toque al tablero no cierra, el offline con su tarjeta y un veterano que no repite el núcleo (`tutorial.v2.tourPending = true`): todo OK. Los recorridos con toques se corrieron con los UI tests existentes y un muestreador de capturas (la herramienta de toques no estaba disponible); 18 capturas en `Docs/capturas/e9a/`. Reduce Motion prendido sólo en el SE.
+- **🔒 del dueño:** la mirada visual en un device real (scrim, fundido, Reduce Motion) y el orden del aviso de ATT con el primer paso en una instalación nueva (en el simulador salió arriba de la tarjeta; no verificado en device).
+- **Carries:** `HoldHand` sin lección propia; ancla `.offerChip` condicional; CloudKit no restaura sobre un local vacío.
+
 ### Cierre de E6a (2026-10-11) — La Tienda de ORO, los packs y las ofertas de 24 h
 
 E6a T1–T12 están en `version-2` y T13 es este cierre; con él, **E6a queda entera** (E6b: T1–T7 y T9 integradas, T8 ⏳ espera el OK del dueño en vivo, T10 ⛔). Detalle, la tabla por tarea con su commit, las revisiones opus y los escenarios a mano pendientes en **`Docs/SESION-2026-10-11-v2-e6.md`**.
@@ -2709,6 +2718,7 @@ paréntesis; el porqué completo está en la sesión de cada uno):
     **El reset conserva las pintas compradas con ORO** (`engagement.shop.skins`); las de cofre (`milestoneSkins`) se pierden como antes. El ORO conservado es `min(saldo, comprado)`.
     **El hueco `skinEffects` queda declarado** (la mecánica no existe): E9b T3 cierra con ese único hueco con razón, no con cero. **E6b T8 elegida:** legendarias `agujero_negro`, `dinastia`, `iluminado`, `titan` a 300 ORO; épicas `corona_solar`, `selenita`, `terraformador`, `moneda_propia` a 150; quien las tiene las conserva. El pacing no se movió: Dios 31,34 h · 13 reenc.
 29. **Cierre de E6b: lugares extra, pintas con ORO y familias** (T10, `Docs/SESION-2026-10-11-v2-e6b-cierre.md`). **La capacidad vive en la tabla de pisos** (`FloorTable.expanded(by:)`, `applyExtraSlots` idempotente desde `baseFloorTable`), no en `slots.count`: quien arme una tabla de pisos parte de `content.floorTable`. Los lugares son deltas (+3, +2; 600 y 1500 ORO) sobre la base vigente. **Una pinta de ORO vive en `shop.skins`** (no en `milestoneSkins`): sobrevive a la reencarnación y al reset de cuenta; las de cofre se pierden como antes. **No se vende lo que no se ve:** sin el atlas completo, una familia no se vende, de a una. Las 8 exclusivas de ORO de la v1 salen del cofre (bolsa de 33) y quien las tiene las conserva. Los efectos por shader no existen (decisión del dueño, 2026-10-07): no se reabren. Sin decisión nueva del dueño.
+30. **Cierre de E9a: el tutorial no se saltea y su motor** (T10, `Docs/SESION-2026-10-11-v2-e9a.md`). **Lo que quedó fijo y no se reabre sin el dueño:** sin «Saltar» y tocar el scrim no mueve el paso (la salida es hacerlo); el candado de 5 s y el watchdog de 180 s viven en el tick del director (`advanceTutorial(delta:)`), no en una vista; las banderas `tutorial.v2.*` y `tutorial.lesson.*` son **de la partida** (se van con «Resetear partida» y con `--uitest-reset`) y las del dispositivo (idioma, audio, avisos, UMP, ATT) **no pasan** por `TutorialFlags`; hay **un solo renderer** (`TutorialOverlay`); y toda mecánica nueva es un caso en `TutorialMechanic` que no compila sin su cobertura. Lo demás de E9a ya está en 25–28.
 ---
 
 ## 6. Cómo verificar
@@ -3131,6 +3141,9 @@ se documentaron recién en `version-2`):
 | `--uitest-slow-ad-load` | El stub de anuncios tarda 1,5 s en "cargar" el video antes de presentarlo (E13 T1). Es la ventana para tocar dos veces con el primer toque todavía cargando: sin él el stub presenta en el acto. Lo usa `RewardedOfferUITests` |
 | `--screenshot-mode` | Apaga el andamiaje de DEBUG (contador de FPS, botón de herramientas) y sirve los textos de tienda (review-safe). Lo usa `AppStoreScreenshotTests` para la ficha |
 | `--uitest-unreadable-save` | Planta un save truncado en CoreData y en el snapshot antes de cargar: arranca en la pantalla de recuperación (`SaveRecoveryView`, E1 T5). ⚠️ "Reintentar" re-corre el arranque entero y el fixture vuelve a plantar el save roto, así que la pantalla reaparece: es lo que espera `SaveRecoveryUITests` |
+| `--uitest-tutorial-at-finish` | El núcleo retoma en su cierre (los tres milestones `ftue.*` hechos): sin «Saltar», es la forma de llegar al cierre con su candado de 5 s y al cofre de bienvenida sin jugar el guion entero |
+| `--uitest-tutorial-lock=<s>` | Cambia los 5 s del candado de los pasos de «explicar» (E9a T4). La mayoría de los UI lo bajan a `0.3`; `TutorialLockUITests` lo deja en 5 s o lo sube a `60` para probar que «Entendido» no avanza cerrado |
+| `--uitest-lesson=<id>` | Fuerza una lección mientras no esté dada: gana sobre el orden y saltea su señal y `needsCalmBoard`; implica `--uitest-lessons`. Un id inexistente sólo deja un error en el log. `probe_explain` es una lección sólo de DEBUG (un paso de explicar y nada más) |
 
 El panel de debug es el ícono de herramientas del HUD.
 
@@ -4870,6 +4883,13 @@ Siguen vigentes y no estaban en ningún otro lado:
   cobrado para no competir con el tutorial (y por eso existe
   `--uitest-daily-popup`).
 
+### Del cierre de E9a (2026-10-12)
+
+- **Simular un veterano en el simulador pide editar el plist con el simulador APAGADO.** `simctl spawn <udid> defaults write/delete` escribe en otro dominio que el `UserDefaults.standard` de la app (devuelve «Domain not found») y `cfprefsd` tiene cacheado el plist de la corrida anterior: si lo editás con el simulador prendido, la app arranca con los valores viejos y la migración no corre. Receta: `simctl terminate` → `simctl shutdown` → editar `Library/Preferences/com.manuader.fisuevolution.plist` (con `plistlib`: `plutil` parte las claves por el `.`) borrando `tutorial.v2.*`, `tutorial.lesson.*` y `tutorial.sessionsAfterPhase`, y poniendo `fisuTutorialDone = true` → `simctl boot` → abrir sin argumentos. El save tiene que existir (una corrida previa con `--uitest-reset --uitest-skip-tutorial --uitest-coins`).
+- **Sin la herramienta de toques, los recorridos con dedos se miran corriendo el UI test y sacando `simctl io <udid> screenshot` en un bucle aparte** (~0,7 s). Sirve para el coach, el cierre y el cofre; la imagen no reemplaza el assert.
+- **Una instalación nueva sin argumentos muestra el aviso de ATT sobre el primer paso del núcleo en el simulador** y `simctl privacy … user-tracking` no se deja usar («Operation not permitted»). Para mirar el juego sin el aviso se usa un fixture `--uitest-*`; si el orden en un device real es un problema es del dueño (no verificado).
+- **Un UI test puede caer con `Failed to get background assertion for target app … Timed out` antes de hacer nada** cuando la máquina está a carga muy alta (medido con carga ~750): es del runner, no del test; repetido en un simulador libre pasa.
+
 ## 8. Qué queda
 
 ### Lo que queda de la 2.0 (cierre del relevo 35)
@@ -5388,6 +5408,7 @@ Anotado por si algún día importa, con su medición:
 - **`Docs/SESION-2026-10-10-v2-e4b.md`**: el cierre de E4b y, con él, de E4 (la tabla por tarea con su commit, la verificación que lo cubre y los siete
   escenarios a mano que quedan para el dueño, el porqué de cada default de «Para el dueño» y lo que le deja a E5b y a E6). Plan cerrado:
   `Docs/superpowers/plans/2026-10-07-v2-e4b-visitantes-eventos.md`.
+- **`Docs/SESION-2026-10-11-v2-e9a.md`**: el cierre de E9a (la tabla T1–T9 con su commit y su revisión, el escenario a mano en SE e iPad 13" con sus capturas en `Docs/capturas/e9a/`, lo que no se pudo ver y los carries: `HoldHand` sin lección, el ancla `.offerChip`).
 - **`Docs/SESION-2026-10-11-v2-e6b-cierre.md`**: el cierre de E6b y, con él, de E6 (la tabla por tarea con su commit y su revisión, lo que se descartó y por qué —los efectos por shader—, las decisiones que quedaron, el peso medido, los siete escenarios a mano 🔒 y los carries). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e6b-lugares-skins.md`.
 - **`Docs/SESION-2026-10-11-v2-e6.md`**: el cierre de E6a (la tabla por tarea con su commit y su revisión opus, la bajada de `StoreView` y el cofre que no se reprodujo, la verificación que lo cubre, los escenarios a mano pendientes del dueño y el estado de E6b). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e6a-tienda-ofertas.md`.
 - **`Docs/SESION-2026-10-11-v2-e5.md`**: el cierre de E5b y, con él, de E5 (la tabla por tarea con su commit, la verificación que lo cubre, los escenarios a mano que quedan para el dueño, el porqué de cada default de

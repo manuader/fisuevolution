@@ -1,0 +1,12 @@
+{
+  "tutorial.tour.intro": {"es": "¡Bienvenido a la 2.0! Te muestro lo nuevo en un minuto.", "en": "Welcome to 2.0! Let me show you what's new in a minute."},
+  "tutorial.tour.quick_hire": {"es": "El atajo ahora elige al mejor que te alcanza. Mantenelo apretado para fijar a quien quieras.", "en": "The shortcut now picks the best you can afford. Press and hold it to pin whoever you want."},
+  "tutorial.tour.menu_swipe": {"es": "Las pestañas del Menú ahora se deslizan: pasás de una a otra sin cerrar.", "en": "The Menu tabs now swipe: move from one to the next without closing."},
+  "tutorial.tour.character_sheet": {"es": "Mantené apretado a un empleado: la ficha es nueva, más grande, y te deja despedirlo.", "en": "Press and hold a worker: the card is new, bigger, and lets you fire them."},
+  "tutorial.tour.elevator": {"es": "El ascensor ahora es una botonera. El display te dice en qué piso estás; tocalo para viajar.", "en": "The elevator is now a button panel. The display shows your floor; tap it to travel."},
+  "tutorial.tour.side_rail": {"es": "En «Premios» están la Ruleta, el Colchón, los Paquetes y el boost por video.", "en": "“Prizes” holds the Wheel, the Mattress, the Packages and the video boost."},
+  "tutorial.tour.visitors": {"es": "Ahora te visitan personajes con tratos, y los eventos llegan con cara y cuenta regresiva. Te los presento cuando aparezcan.", "en": "Characters now drop by with deals, and events arrive with a face and a countdown. I'll introduce them when they show up."},
+  "tutorial.tour.album": {"es": "Los especiales que consigas viven en el Álbum, en el Menú.", "en": "The specials you collect live in the Album, in the Menu."},
+  "tutorial.tour.settings": {"es": "En Menú › Ajustes elegís qué avisos te llegan y podés ver el tutorial de nuevo.", "en": "In Menu › Settings you choose which alerts you get and can replay the tutorial."},
+  "tutorial.tour.done": {"es": "¡Eso es todo! A seguir juntando.", "en": "That's it! Back to the grind."}
+}

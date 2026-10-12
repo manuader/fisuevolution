@@ -15180,6 +15180,176 @@
         }
       }
     },
+    "tutorial.tour.album" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The specials you collect live in the Album, in the Menu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los especiales que consigas viven en el Álbum, en el Menú."
+          }
+        }
+      }
+    },
+    "tutorial.tour.character_sheet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press and hold a worker: the card is new, bigger, and lets you fire them."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantené apretado a un empleado: la ficha es nueva, más grande, y te deja despedirlo."
+          }
+        }
+      }
+    },
+    "tutorial.tour.done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That's it! Back to the grind."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Eso es todo! A seguir juntando."
+          }
+        }
+      }
+    },
+    "tutorial.tour.elevator" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The elevator is now a button panel. The display shows your floor; tap it to travel."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El ascensor ahora es una botonera. El display te dice en qué piso estás; tocalo para viajar."
+          }
+        }
+      }
+    },
+    "tutorial.tour.intro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to 2.0! Let me show you what's new in a minute."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Bienvenido a la 2.0! Te muestro lo nuevo en un minuto."
+          }
+        }
+      }
+    },
+    "tutorial.tour.menu_swipe" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Menu tabs now swipe: move from one to the next without closing."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las pestañas del Menú ahora se deslizan: pasás de una a otra sin cerrar."
+          }
+        }
+      }
+    },
+    "tutorial.tour.quick_hire" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The shortcut now picks the best you can afford. Press and hold it to pin whoever you want."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El atajo ahora elige al mejor que te alcanza. Mantenelo apretado para fijar a quien quieras."
+          }
+        }
+      }
+    },
+    "tutorial.tour.settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Menu › Settings you choose which alerts you get and can replay the tutorial."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En Menú › Ajustes elegís qué avisos te llegan y podés ver el tutorial de nuevo."
+          }
+        }
+      }
+    },
+    "tutorial.tour.side_rail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“Prizes” holds the Wheel, the Mattress, the Packages and the video boost."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En «Premios» están la Ruleta, el Colchón, los Paquetes y el boost por video."
+          }
+        }
+      }
+    },
+    "tutorial.tour.visitors" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Characters now drop by with deals, and events arrive with a face and a countdown. I'll introduce them when they show up."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora te visitan personajes con tratos, y los eventos llegan con cara y cuenta regresiva. Te los presento cuando aparezcan."
+          }
+        }
+      }
+    },
     "tutorial.upgrades.buy" : {
       "extractionState" : "manual",
       "localizations" : {

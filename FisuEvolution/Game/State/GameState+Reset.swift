@@ -59,6 +59,7 @@ extension GameState {
         isResetting = false
         repushEntitlements()
         await persistNow()
+        ranking?.resignedActive()
         ranking?.newGameStarted()
         Log.lifecycle.info("partida reseteada: época \(plan.result.meta.resetEpoch)")
         return .done

@@ -355,13 +355,19 @@ struct GameStateResetTests {
 
     // MARK: El ranking
 
-    private func rankingRig(_ gameState: GameState, state: RankingState) async -> (RankingStore, SimulatedRankingClient) {
+    private final class Clock: @unchecked Sendable {
+        var value: TimeInterval = 10_000
+    }
+
+    private func rankingRig(
+        _ gameState: GameState, state: RankingState, clock: Clock = Clock()
+    ) async -> (RankingStore, SimulatedRankingClient) {
         let simulated = SimulatedRankingClient()
         let config = RankingConfig(
             schemaVersion: RankingConfig.supportedSchemaVersion, enabled: true,
             baseURL: URL(string: "https://example.test"), anonKey: "k")
         let store = RankingStore(
-            client: simulated, config: config, appVersion: "2.0",
+            client: simulated, config: config, now: { clock.value }, appVersion: "2.0",
             cacheURL: URL.temporaryDirectory.appending(path: "ranking-board-\(UUID().uuidString).json"))
         gameState.attachRanking(store)
         await store.settled()
@@ -440,5 +446,33 @@ struct GameStateResetTests {
         }
         #expect(order == ["finish", "start"], "la vieja primero")
         #expect(gameState.player?.meta.ranking.carriedSubmission == nil, "enviada, deja de viajar")
+    }
+
+    @Test("tras resetear el reloj espera al núcleo del tutorial, como en una instalación nueva")
+    func resetClockWaitsForTheTutorialCore() async throws {
+        let world = await makeWorld()
+        let gameState = world.gameState
+        let clock = Clock()
+        let (store, _) = await rankingRig(gameState, state: running("vieja"), clock: clock)
+        store.becameActive()
+        await store.settled()
+
+        let plan = try #require(gameState.resetPlan())
+        #expect(await gameState.resetGame(plan, repushEntitlements: {}) == .done)
+        await store.settled()
+        #expect(gameState.tutorialPhaseActive)
+
+        clock.value += 500
+        gameState.handleScenePhase(from: .active, to: .inactive, now: clock.value)
+        clock.value += 100
+        gameState.handleScenePhase(from: .inactive, to: .active, now: clock.value)
+        #expect(gameState.player?.meta.ranking.playedSeconds == 0, "el tutorial no suma")
+
+        clock.value += 100
+        gameState.finishTutorialCore()
+        await store.settled()
+        clock.value += 7
+        gameState.handleScenePhase(from: .active, to: .inactive, now: clock.value)
+        #expect(gameState.player?.meta.ranking.playedSeconds == 7, "desde el núcleo sí cuenta")
     }
 }

@@ -60,6 +60,9 @@ func printProfileHeader(arguments: SimArguments, loaded: LoadedSources) {
     let sources = loaded.loaded.isEmpty ? "—" : "\(loaded.loaded.count) archivos de \(arguments.sourcesURL?.lastPathComponent ?? "?")"
     print("   perfil: \(name) · fuentes: \(sources) · semilla \(arguments.seedFraction)"
         + " · descuento de prestigio \(arguments.prestigeDiscount ? "sí" : "no")")
+    if arguments.profile.ownsShopPermanents, let shop = loaded.sources.shop {
+        print("   tienda: \(shop.extraSlots) lugares · proveedor \(shop.bestSupplierLevel) · \(shop.bonusDailyWheelSpins) giros")
+    }
     for warning in loaded.warnings { print("   \(warning)") }
 }
 
@@ -85,13 +88,15 @@ private func inRange(_ value: Double?, _ range: ClosedRange<Double>) -> Bool {
     value.map { range.contains($0) } ?? false
 }
 
-/// El contrato de la 2.0 (E2b), punto por punto. El 8 y el 9 piden otras
-/// corridas (`.never` y los otros perfiles) y los mide `PacingContractTests`.
+/// El contrato de la 2.0 (E2b), punto por punto, con los números de 45 h
+/// (`tasks.md` §7 «2026-10-12»). El 8 y el 9 piden otras corridas (`.never` y
+/// los otros perfiles) y los mide `PacingContractTests`.
 func printContract(report: PacingSimulator.Report, floorTable: FloorTable) {
-    print("\n-- El contrato de la 2.0 --")
+    print("\n-- El contrato de la 2.0 (45 h) --")
     let minutesOf: (Double) -> String = { String(format: "%.0f min", $0 / 60) }
+    let godRange = 2600.0...2800.0
     let godMinutes = report.godActive.map { $0 / 60 }
-    print("  \(mark(inRange(godMinutes, 1900...2100))) 1 Dios 1.900–2.100 min activos: "
+    print("  \(mark(inRange(godMinutes, godRange))) 1 Dios 2.600–2.800 min activos: "
         + (godMinutes.map { String(format: "%.0f min (%.2f h)", $0, $0 / 60) } ?? "NO ALCANZADO"))
     print("  \(mark((5...6).contains(report.reincarnations))) 2 5 o 6 reencarnaciones: \(report.reincarnations)")
 
@@ -99,43 +104,44 @@ func printContract(report: PacingSimulator.Report, floorTable: FloorTable) {
     var beforeEighty = false
     if let maxed, let god = report.godActive { beforeEighty = maxed < 0.8 * god }
     let afterFifth = (report.reincarnationsAtMaxedUpgrades ?? 0) >= 5
-    print("  \(mark(beforeEighty && afterFifth)) 3 las 7 al tope antes del 80 % de Dios y no antes de la 5ª: "
+    print("  \(mark(beforeEighty && afterFifth)) 3 las líneas al tope antes del 80 % de Dios y no antes de la 5ª: "
         + "\(maxed.map(minutesOf) ?? "—") (\(maxed.flatMap { m in report.godActive.map { String(format: "%.0f%%", m / $0 * 100) } } ?? "—")), "
         + "\(report.reincarnationsAtMaxedUpgrades.map(String.init) ?? "—") reencarnaciones")
 
     let first = report.firstReincarnationActive.map { $0 / 3600 }
-    print("  \(mark(inRange(first, 0.75...1.5))) 4 1ª reencarnación 0,75–1,5 h activas: "
+    print("  \(mark(inRange(first, 1...2))) 4 1ª reencarnación 1–2 h activas: "
         + (first.map { String(format: "%.2f h", $0) } ?? "—"))
 
     let tiers = report.maxTierPerRun
     let farther = zip(tiers, tiers.dropFirst()).allSatisfy { $1 >= $0 + 1 }
-    var slower = 0
-    for (previous, current) in zip(report.tierReachedPerRun, report.tierReachedPerRun.dropFirst()) {
-        for (tier, seconds) in previous where seconds > 0 {
-            if let now = current[tier], now < seconds { continue }
-            slower += 1
+    var later: [String] = []
+    for (index, (previous, current)) in zip(report.tierReachedPerRun, report.tierReachedPerRun.dropFirst()).enumerated() {
+        for (tier, seconds) in previous.sorted(by: { $0.key < $1.key }) where seconds > 0 {
+            if let now = current[tier], now <= seconds { continue }
+            later.append("run \(index + 2) T\(tier)")
         }
     }
-    print("  \(mark(farther && slower == 0 && tiers.count > 1)) 5 cada run un tier más lejos y antes en lo ya visto: "
-        + "\(farther ? "más lejos" : "NO siempre más lejos"), \(slower) tiers no llegaron antes")
+    print("  \(mark(farther && later.isEmpty && tiers.count > 1)) 5 cada run un tier más lejos y antes en lo ya visto: "
+        + "\(farther ? "más lejos" : "NO siempre más lejos"), \(later.count) tiers no llegaron antes")
+    if !later.isEmpty { print("      más tarde: \(later.joined(separator: " · "))") }
 
     let payoff = report.prestigePayoffPerRun
     print("  \(mark(!payoff.isEmpty && payoff.allSatisfy { $0 >= 0.65 })) 6 reencarnar paga ≥ 65 %: "
         + series(payoff) { String(format: "%.0f%%", $0 * 100) })
 
     let bands: [(String, ClosedRange<Double>)] = [
-        ("urban", 0...1.5), ("corporate", 6...10), ("luxury", 35...60), ("island", 200...300),
-        ("moon", 520...680), ("mars", 900...1100), ("solar", 1350...1550), ("galaxy", 1650...1850),
+        ("urban", 0...1.5), ("corporate", 6...12), ("luxury", 45...80), ("island", 270...410),
+        ("moon", 710...930), ("mars", 1230...1500), ("solar", 1840...2110), ("galaxy", 2250...2520),
     ]
     print("  7 primera llegada por piso (min activos):")
     for (id, range) in bands where floorTable.floors.contains(where: { $0.id == id }) {
         let value = report.floorUnlockActiveSeconds[id].map { $0 / 60 }
         print("    \(mark(inRange(value, range))) \(pad(id, 10)) "
-            + "\(value.map { String(format: "%7.1f", $0) } ?? "      —")  (\(Int(range.lowerBound))–\(range.upperBound))")
+            + "\(value.map { String(format: "%7.1f", $0) } ?? "      —")  (\(String(format: "%g–%g", range.lowerBound, range.upperBound)))")
     }
-    print("    \(mark(inRange(godMinutes, 1900...2100))) \(pad("Dios", 10)) "
-        + "\(godMinutes.map { String(format: "%7.1f", $0) } ?? "      —")  (1900–2100)")
-    print("  — 8 sin reencarnar no se llega a Dios · 9 .ads ≥ 55 % y .max ≥ 50 % de .free: los mide PacingContractTests")
+    print("    \(mark(inRange(godMinutes, godRange))) \(pad("Dios", 10)) "
+        + "\(godMinutes.map { String(format: "%7.1f", $0) } ?? "      —")  (2600–2800)")
+    print("  — 8 sin reencarnar no se llega a Dios · 9 .ads ≥ 65 % y .max ≥ 55 % de .free: los mide PacingContractTests")
     print("  \(mark(inRange(report.oroAtGod.map(Double.init), 5000...12000))) guarda del ORO al llegar a Dios 5.000–12.000: "
         + (report.oroAtGod.map(String.init) ?? "—"))
 }

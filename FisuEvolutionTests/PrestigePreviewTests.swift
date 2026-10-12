@@ -176,6 +176,9 @@ struct PrestigePreviewTests {
     @Test("sin la perilla no hay meta: es la v1")
     func withoutTheKnobThereIsNoWall() async throws {
         let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        // La perilla apagada a mano: el `economy.json` de la 2.0 la trae prendida.
+        gameState.economy = StandardEconomy(config: try content.economy.tuned(EconomyKnobs(requiresLastRunWall: false)))
         gameState.giveEarningsForPrestigeTesting(oro: 9)
         gameState.player?.meta.lastRunMaxTier = 13
         gameState.refreshProjections()
@@ -200,6 +203,9 @@ struct PrestigePreviewTests {
     @Test("con la herencia apagada, la hoja no la menciona")
     func noInheritanceNoRow() async throws {
         let gameState = await makeGameState()
+        let content = try #require(gameState.content)
+        // Apagada a mano: el `economy.json` de la 2.0 la trae prendida.
+        gameState.economy = StandardEconomy(config: try content.economy.tuned(EconomyKnobs(inheritsPassiveUnlocks: false)))
         gameState.player?.run.passiveUnlocked = ["homeless": true]
         gameState.giveEarningsForPrestigeTesting(oro: 5)
         let preview = gameState.prestigePreview

@@ -30,7 +30,9 @@ struct MergeEconomyWiringTests {
 
     @Test("con el amortiguador, fusionar y subir la frontera no hace saltar el precio")
     func mergingDoesNotJumpThePrice() async throws {
-        let gameState = try await game(EconomyKnobs(priceReliefPurchases: 24))
+        // Sin reintegro: el `economy.json` de la 2.0 trae r = 1, que devuelve una
+        // compra a la curva al fusionar y movería el precio por otro lado.
+        let gameState = try await game(EconomyKnobs(mergeRefundCounts: 0, priceReliefPurchases: 24))
         gameState.hireCharacter(typeId: "homeless")
         let before = try price(gameState)
         let pair = try homelessPair(gameState)
@@ -42,7 +44,8 @@ struct MergeEconomyWiringTests {
 
     @Test("sin el amortiguador, el precio salta como en la v1")
     func withoutTheCushionThePriceJumps() async throws {
-        let gameState = try await game(EconomyKnobs())
+        // La v1 a mano: la 2.0 embarca K = 12 y r = 1 (E2b T14).
+        let gameState = try await game(EconomyKnobs(mergeRefundCounts: 0, priceReliefPurchases: 0))
         gameState.hireCharacter(typeId: "homeless")
         let before = try price(gameState)
         let pair = try homelessPair(gameState)

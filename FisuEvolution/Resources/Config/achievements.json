@@ -124,7 +124,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 2
+        "amount": 4
       }
     },
     {
@@ -180,7 +180,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 3
+        "amount": 6
       }
     },
     {
@@ -222,7 +222,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 2
+        "amount": 4
       }
     },
     {
@@ -264,7 +264,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 5
+        "amount": 10
       }
     },
     {
@@ -292,7 +292,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 2
+        "amount": 4
       }
     },
     {
@@ -306,7 +306,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 4
+        "amount": 8
       }
     },
     {
@@ -334,7 +334,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 1
+        "amount": 2
       }
     },
     {
@@ -347,7 +347,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 6
+        "amount": 12
       }
     },
     {
@@ -375,7 +375,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 2
+        "amount": 4
       }
     },
     {
@@ -487,7 +487,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 1
+        "amount": 2
       }
     },
     {
@@ -501,7 +501,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 3
+        "amount": 6
       }
     },
     {
@@ -514,7 +514,7 @@
       },
       "reward": {
         "kind": "oro",
-        "amount": 2
+        "amount": 4
       }
     },
     {

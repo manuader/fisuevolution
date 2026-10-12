@@ -85,6 +85,17 @@ private struct RewardedAdsFile: Decodable {
 private struct AdsCadenceFile: Decodable {
     struct Cadence: Decodable { let minSecondsBetweenForced: Double }
     let cadence: Cadence
+    let alternation: [String]?
+
+    /// Cada cuántos segundos sale la pausa bonificada: la cadencia entre
+    /// forzados, repartida según cuántos turnos de la alternancia son el
+    /// intersticial con premio. Espejo de `PacingFixture.adBreakIntervalSeconds`.
+    var adBreakIntervalSeconds: Double {
+        let turns = alternation ?? ["rewardedInterstitial"]
+        let rewarded = turns.filter { $0 == "rewardedInterstitial" }.count
+        guard rewarded > 0 else { return .infinity }
+        return cadence.minSecondsBetweenForced * Double(turns.count) / Double(rewarded)
+    }
 }
 
 /// Cuánto cuesta mirar un video en segundos de sesión del bot.
@@ -119,14 +130,14 @@ func loadSources(from directory: URL, requireDiscount: Bool) -> LoadedSources {
     let wheel = read("wheel.json", as: WheelConfig.self)
     let treasures = read("treasures.json", as: TreasuresConfig.self)
     let rewardedAds = read("rewarded_ads.json", as: RewardedAdsFile.self)
-    let cadence = read("ads.json", as: AdsCadenceFile.self)?.cadence
+    let cadence = read("ads.json", as: AdsCadenceFile.self)
     let mergeAllCooldown = rewardedAds?.sideRail?.mergeAllCooldownSeconds
         ?? rewardedAds?.rewards?.first { $0.id == "merge_all" }?.cooldownSeconds
         ?? 0
     result.sources.ads = AdsSources(
         videoSeconds: videoSeconds, offlineMultiplier: 2, dailyMultiplier: 2, careerMultiplier: 2,
         wheel: wheel, wheelRepeats: true, treasures: treasures,
-        adBreakIntervalSeconds: rewardedAds?.adBreak?.intervalSeconds ?? cadence?.minSecondsBetweenForced ?? .infinity,
+        adBreakIntervalSeconds: rewardedAds?.adBreak?.intervalSeconds ?? cadence?.adBreakIntervalSeconds ?? .infinity,
         adBreakPrizes: rewardedAds?.adBreak?.prizes ?? [],
         mergeAllCooldownSeconds: mergeAllCooldown,
         packageRainCooldownSeconds: rewardedAds?.sideRail?.packageRainCooldownSeconds ?? 0,

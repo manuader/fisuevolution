@@ -478,7 +478,16 @@ struct GameLoopWiringTests {
         // Llenamos luxury de forma intencional con el helper existente. La acción
         // de merge tiene que seguir siendo atómica y publicar sólo la intención UI.
         gameState.debugSetMaxTier(13)
-        for _ in 0..<5 { gameState.debugGrantPair() }
+        // De a pares, y con capacidad impar (15 desde la 2.0) el último lugar se
+        // llena con un Director suelto.
+        let luxury = try #require(gameState.floorTable?.ordinal(of: "luxury"))
+        let capacity = gameState.floorOccupancy(ordinal: luxury).capacity
+        for _ in 0..<capacity / 2 { gameState.debugGrantPair() }
+        if capacity % 2 == 1 {
+            gameState.player?.run.units["director", default: 0] += 1
+            gameState.reconcileTower()
+        }
+        #expect(gameState.floorOccupancy(ordinal: luxury).occupied == capacity, "luxury tiene que estar lleno")
         gameState.setVisibleFloor(2)
         let seniors = slots(of: "senior_programmer", in: gameState)
         let resolution = gameState.handleDrop(fromCell: seniors[0], toCell: seniors[1])

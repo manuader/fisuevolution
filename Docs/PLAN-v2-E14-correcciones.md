@@ -31,6 +31,7 @@
 | C20 | Los avisos de «no hay lugar» / «no alcanza» (y todo toast) salen arriba, no abajo, y no frenan el juego | `RootView` (`TowerNoticeView`, toast de logros), `QuickHireButton` | no | anotada |
 | C21 | El desbloqueo de un piso nuevo no se puede saltear | `BoardScene.tapDuringCelebration`, `CelebrationQueue.skip`, `CinematicOverlay` | no | anotada |
 | C22 | Los 43 personajes base, sólo estáticos: fuera sus videos (los especiales y lo demás siguen animados) | `loops_manifest.json › characters`, `ArtClips`, `BoardScene`, `CharacterSheetView`, `AnimPacks/anim-piso-*` | no | anotada |
+| C23 | Compartir: la oferta y la imagen compartida muestran al personaje con su skin, no un ícono | `ShareMomentChip`, `ShareCardView` (`ShareCardContent`) | no (usa el arte existente) | anotada |
 
 ---
 
@@ -900,3 +901,40 @@ personaje del tablero y su skin activa), `CharacterSheetView` (la ficha), y vía
 
 **Listo cuando:** ningún personaje base reproduce video en ninguna pantalla, el tamaño de los packs
 baja ~8,6 MB, y los especiales siguen animados.
+
+## C23 — Compartir muestra al personaje con su skin
+
+**Lo que dijo el dueño:** cuando aparece el botón de compartir para ganar el bonus, tiene que mostrar
+una imagen del personaje que acabás de desbloquear, con su skin, en vez de sólo un ícono: así el
+jugador tiene más ganas de compartir el logro.
+
+**Hoy (verificado):**
+
+- `ShareMomentChip` es una `ActionPill` con el SF Symbol `square.and.arrow.up` y una X, abajo,
+  apilada sobre los toasts (`bottomPadding`).
+- **La imagen que se comparte también es genérica:** `ShareCardContent` (540×960, por
+  `ImageRenderer`) dibuja un **SF Symbol** en el plato del retrato (`symbolName`: el
+  `spritePlaceholder` del tier, `building.2.fill` para piso, `arrow.triangle.2.circlepath` para
+  reencarnar). O sea, a las redes sale un ícono de sistema, no el personaje.
+
+**Qué hacer:**
+
+1. **La oferta de compartir** pasa a ser una tarjetita con el **retrato del personaje recién
+   desbloqueado con su skin activa** (el PNG `*_idle__<skin>`), su nombre, el bonus («+N min») y el
+   botón de compartir en la gramática de C19 (sin SF Symbols), más su X. Para piso nuevo: el fondo del
+   piso en miniatura con su personaje base; para reencarnación: el Fisura con la skin activa y el arte
+   de la cinemática de reencarnación.
+2. **La imagen compartida** (`ShareCardContent`) muestra el **arte real**: el personaje grande con su
+   skin, sobre el fondo de su piso (foto buena de C1) con el pergamino y el marco de la casa, el
+   título del logro, el logo del juego y el link o el QR de la App Store. Para Dios, la cinemática o
+   el arte de Dios. Fuera los `symbolName`.
+3. `ImageRenderer` no carga assets async: el arte se precarga (UIImage) antes de renderizar, y si
+   falta, el fallback es el retrato vectorial de la casa, nunca un SF Symbol.
+4. Posición: la tarjetita sale **arriba** con los demás avisos (C20), no apilada sobre la barra; se
+   va sola a los 10 s como hoy.
+5. Tests: el render de la tarjeta para `.newCharacter`, `.newFloor`, `.reincarnation` y `.god` no está
+   vacío y contiene la imagen del personaje (snapshot o tamaño de los píxeles no transparentes);
+   UI test de la oferta con su identificador de siempre (`share.offer`).
+
+**Listo cuando:** al desbloquear un personaje, la oferta de compartir muestra su cara con la skin, y la
+imagen que llega a WhatsApp/Instagram es el personaje real sobre su piso, con el logo del juego.

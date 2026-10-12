@@ -5,7 +5,9 @@
 > siempre: FisuJobs es la referencia visual y la gramática v3 es canon; el arte nuevo se genera en
 > `automatic-image-generation` y entra por `Tools/asset-pipeline/dropbox/`.
 >
-> Estado: **recolectando** — no se implementa nada hasta que el dueño cierre la lista.
+> Estado: **lista cerrada (C1–C29) el 2026-10-12.** Plan por tareas:
+> `docs/superpowers/plans/2026-10-12-v2-e14-correcciones-dueno.md` (decisiones D1–D12 y gates G1–G4).
+> Lo visual se programa recién con su mockup aprobado (G1).
 
 | # | Corrección | Toca | Arte nuevo | Estado |
 |---|---|---|---|---|

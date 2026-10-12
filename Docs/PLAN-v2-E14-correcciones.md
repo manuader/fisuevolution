@@ -25,6 +25,7 @@
 | C14 | El atajo de contratar suma la opción «El primero del piso» | `QuickHirePicker`, `QuickHireButton`, `GameState+Hiring`, `meta` del save | no | anotada |
 | C15 | El vendedor se va ofendido si no le comprás; TODOS los popups, centrados, contenidos y con una sola estética | las 10 vistas con `presentationDetents`, `PanelFrames.swift`, `VendorCardsView` | **sí: vendedor enojado** | prompt listo |
 | C16 | Los que se llevan un empleado lo piden como el alien de Cow Evolution: globo con la cara del empleado | `StageController`, `SpeechBubbleNode` (→ globo de pedido), mecánicas `take`/`arrest`/`sale` | no (usa las caras) | anotada |
+| C17 | Intercambiar el orden: Empleado de Fast Food pasa a tier 7 y Chofer de App a tier 8 | `tiers.json`, migración del save | no | anotada |
 
 ---
 
@@ -690,3 +691,33 @@ una esquina como en la referencia, se cambia.
 
 **Listo cuando:** la influencer, el comisario, el puntero y el turista muestran en el escenario un
 globo con la cara del empleado que piden, y se puede entregar por el popup o arrastrándolo.
+
+## C17 — Fast Food antes que Chofer de App
+
+**Lo que dijo el dueño:** intercambiar el orden del Empleado de Fast Food y el Chofer de App.
+
+**Hoy (`Resources/Data/tiers.json`):** … Repartidor (6) → **Chofer de App (7)** → **Empleado de
+Fast Food (8)** → Oficinista (9). Queda: Repartidor (6) → **Fast Food (7)** → **Chofer de App (8)** →
+Oficinista (9).
+
+**Qué hacer:**
+
+1. **Los números quedan en su posición:** los valores por tier (`tapYield`,
+   `passiveYieldPerInstance`, `passiveUnlockCost`, costos de contratación) son de la escalera, no del
+   personaje. Se intercambian los **personajes** (`id`, `displayName`, `spritePlaceholder`, arte), no
+   la economía. Se rehace la cadena `mergesInto`: Repartidor → fast_food → chofer_app → oficinista.
+   El pacing no cambia (Dios a ~45 h intacto).
+2. **Migración del save (crítico, la v1 está publicada):** un jugador que tiene empleados de tier 7 o
+   8 no puede saltar ni retroceder de economía. Los empleados del tablero, el récord de tier, las
+   mejoras por personaje (`maxLevel`, niveles comprados) y el «visto» de la colección se remapean **por
+   posición** (lo que era tier 7 sigue siendo tier 7: ahora con la cara del Fast Food). Las **skins
+   compradas o ganadas siguen al personaje**, no a la posición (el «taxi clásico» sigue siendo del
+   Chofer, el «chef estrella» del Fast Food). Un test de migración con un save v1 real con los dos
+   tiers en el tablero y con skins de cada uno.
+3. Revisar lo que nombra el orden: textos que dicen «después del Repartidor viene…», lecciones del
+   tutorial, logros por tier, cinemáticas de piso, el Álbum, el organigrama (`OrgChartView`), el
+   simulador de balance y los tests de EK que fijan ids por tier.
+4. Los ids no cambian (`fast_food`, `chofer_app`): sólo su lugar en la escalera.
+
+**Listo cuando:** en partida nueva, fusionar dos Repartidores da un Empleado de Fast Food y dos Fast
+Food dan un Chofer de App; un save de la v1 abre con la misma producción por segundo que tenía.

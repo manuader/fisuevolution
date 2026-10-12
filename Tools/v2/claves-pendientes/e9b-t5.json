@@ -1,0 +1,6 @@
+{
+  "settings.section.tutorial": {"es": "Tutorial", "en": "Tutorial"},
+  "settings.tutorial.replay": {"es": "Ver tutorial de nuevo", "en": "Replay the tutorial"},
+  "settings.tutorial.tour": {"es": "Ver novedades de la 2.0", "en": "See what's new in 2.0"},
+  "settings.tutorial.locked": {"es": "Se habilita cuando termines la introducción.", "en": "Unlocks once you finish the intro."}
+}

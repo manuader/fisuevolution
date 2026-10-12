@@ -11,6 +11,8 @@ struct TutorialEngine {
     var lockSeconds = TutorialStepClock.explainLock
     /// `--uitest-lesson=<id>`: gana sobre el orden mientras no esté dada.
     var forcedLesson: String?
+    /// Lo que Ajustes pidió ver (el repaso o el Tour): nace cuando el tablero vuelve a estar libre.
+    var requested: TutorialRun.Script?
 }
 
 /// El director del tutorial v2 (PLAN-v2 E9): arranca guiones, los avanza por señales, cuenta
@@ -33,6 +35,7 @@ extension GameState {
             progressTutorialRun()
             return
         }
+        if startRequestedRunIfDue() { return }
         startNextLessonIfDue()
     }
 
@@ -116,6 +119,48 @@ extension GameState {
     func tutorialTipHandled(opening screen: GameScreen) {
         tutorialEngine.openPage = screen
         tutorialSignal(.screenOpened(screen))
+    }
+
+    // MARK: Lo que pide Ajustes
+
+    /// Ajustes puede ofrecer el repaso y el Tour: con el núcleo sin hacer o vivo no hay nada que
+    /// repasar, y arrancarlo pisaría su fase.
+    var tutorialReplayAvailable: Bool {
+        TutorialFlags.coreCompleted(in: flagDefaults) && !tutorialPhaseActive
+    }
+
+    /// El repaso (el núcleo y las lecciones ya vistas, en demostración). Arranca cuando el tablero
+    /// vuelva a la vista; no toca el save, las banderas ni el cofre de bienvenida.
+    func requestTutorialReplay() {
+        guard tutorialReplayAvailable else { return }
+        tutorialEngine.requested = .replay
+    }
+
+    /// El Tour de novedades otra vez: sin salida anticipada y sin marcar lecciones.
+    func requestTour() {
+        guard tutorialReplayAvailable else { return }
+        tutorialEngine.requested = .tour
+    }
+
+    /// «Terminar repaso»: sólo existe en el repaso.
+    func endReplay() {
+        guard tutorialRun?.script == .replay else { return }
+        celebrationFinished(.tutorialTip)
+    }
+
+    /// Lo pidió el jugador: no mira `tutorialLessonsAutorun` ni el ritmo. Sí espera a que no haya
+    /// una hoja, una celebración ni la ficha encima, y se retira si el núcleo volvió a vivir.
+    private func startRequestedRunIfDue() -> Bool {
+        guard let requested = tutorialEngine.requested else { return false }
+        guard tutorialReplayAvailable else {
+            tutorialEngine.requested = nil
+            return false
+        }
+        guard showing == nil, !uiCoversBoard, characterSheet == nil, shareCardMoment == nil else { return false }
+        tutorialEngine.requested = nil
+        let seen = TutorialLesson.allCases.filter { isLessonDone($0) }
+        startTutorialRun(requested, steps: requested == .tour ? TutorialCurriculum.tour : TutorialCurriculum.replay(seenLessons: seen))
+        return true
     }
 
     // MARK: Lo que la UI lee
@@ -336,8 +381,11 @@ extension GameState {
             tutorialRun = nil
             tutorialEngine.pacing.lessonEnded()
         case .tour:
-            TutorialFlags.setTourPending(false, in: flagDefaults)
-            for lesson in TutorialCurriculum.tourCoveredLessons { markLessonDone(lesson) }
+            // Un Tour pedido desde Ajustes ya no está pendiente: no marca lecciones.
+            if TutorialFlags.tourPending(in: flagDefaults) {
+                TutorialFlags.setTourPending(false, in: flagDefaults)
+                for lesson in TutorialCurriculum.tourCoveredLessons { markLessonDone(lesson) }
+            }
             celebrationFinished(.tutorialTip)
         case .lesson, .replay:
             celebrationFinished(.tutorialTip)

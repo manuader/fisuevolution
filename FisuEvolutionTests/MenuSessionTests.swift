@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 @testable import FisuEvolution
 
@@ -41,5 +42,21 @@ struct MenuSessionTests {
         #expect(MenuPagerView.isMounted(index: 2, current: 3))
         #expect(MenuPagerView.isMounted(index: 4, current: 3))
         #expect(!MenuPagerView.isMounted(index: 5, current: 3))
+    }
+
+    @Test("la página cuenta como vista sólo con el scroll quieto, y una sola vez por cambio")
+    func pageSettlesOnlyWhenQuiet() {
+        let pages: [GameScreen] = [.upgrades, .jobs, .gifts]
+        for moving in [ScrollPhase.interacting, .decelerating, .animating] {
+            #expect(MenuPagerView.settledPage(phase: moving, scrolled: true, nearest: 2, pages: pages, shown: .jobs) == nil,
+                    "con el scroll en \(moving) la página de al lado todavía no se vio")
+        }
+        #expect(MenuPagerView.settledPage(phase: .idle, scrolled: true, nearest: 2, pages: pages, shown: .jobs) == .gifts)
+        #expect(MenuPagerView.settledPage(phase: .idle, scrolled: true, nearest: 1, pages: pages, shown: .jobs) == nil,
+                "volver a la página de partida no es un cambio")
+        #expect(MenuPagerView.settledPage(phase: .idle, scrolled: false, nearest: 2, pages: pages, shown: .jobs) == nil,
+                "el arranque programático no es una página vista")
+        #expect(MenuPagerView.settledPage(phase: .idle, scrolled: true, nearest: nil, pages: pages, shown: .jobs) == nil)
+        #expect(MenuPagerView.settledPage(phase: .idle, scrolled: true, nearest: 9, pages: pages, shown: .jobs) == nil)
     }
 }

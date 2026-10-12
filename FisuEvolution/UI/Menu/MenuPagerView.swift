@@ -43,11 +43,12 @@ struct MenuPagerView: View {
     /// (y perdería su estado).
     @State private var shown: GameScreen
     @State private var locked = false
-    @State private var moving = false
-    /// El dedo sigue apoyado: la página que pasa por debajo todavía no es una página vista.
-    @State private var dragging = false
-    /// La página más cercana al offset, para asentarla cuando suelta.
+    @State private var phase: ScrollPhase = .idle
+    /// La página más cercana al offset: la que queda cuando el scroll se asienta.
     @State private var nearest: Int?
+    /// El scroll se movió de verdad desde la última página asentada: el arranque
+    /// programático (`scrollTo(start)`) parte del offset 0 y no es una página vista.
+    @State private var scrolled = false
     private let start: GameScreen
 
     init(pages: [GameScreen], start: GameScreen, adsProvider: AdsCoordinator,
@@ -92,26 +93,21 @@ struct MenuPagerView: View {
             .scrollPosition(id: $current)
             .scrollIndicators(.hidden)
             .scrollDisabled(locked)
-            .onScrollPhaseChange { old, phase in
-                moving = phase != .idle
-                dragging = phase == .interacting
-                if old == .interacting, phase != .interacting, let nearest, pages.indices.contains(nearest) {
-                    settle(on: pages[nearest])
-                }
+            .onScrollPhaseChange { _, newPhase in
+                phase = newPhase
+                settleIfQuiet()
             }
             .onScrollGeometryChange(for: Int.self) { geometry in
                 Self.pageIndex(offset: geometry.contentOffset.x, width: geometry.containerSize.width)
             } action: { _, index in
-                // Sólo mientras el scroll se mueve: el arranque programático
-                // (`scrollTo(start)`) parte del offset 0 y no debe asentar la página 0.
                 nearest = index
-                guard moving, !dragging, pages.indices.contains(index) else { return }
-                settle(on: pages[index])
+                if phase != .idle { scrolled = true }
+                settleIfQuiet()
             }
             .onAppear { proxy.scrollTo(start, anchor: .leading) }
         }
         .onChange(of: current) { _, page in
-            guard let page, !dragging else { return }
+            guard let page, phase == .idle else { return }
             settle(on: page)
         }
     }
@@ -124,7 +120,26 @@ struct MenuPagerView: View {
         return Int((offset / width).rounded())
     }
 
+    /// La página que cuenta como vista: sólo cuando el scroll queda quieto, nunca
+    /// mientras el dedo arrastra o el paginado todavía desliza (un arrastre que
+    /// vuelve atrás no vio la página de al lado).
+    static func settledPage(phase: ScrollPhase, scrolled: Bool, nearest: Int?, pages: [GameScreen],
+                            shown: GameScreen) -> GameScreen? {
+        guard phase == .idle, scrolled, let nearest, pages.indices.contains(nearest), pages[nearest] != shown else { return nil }
+        return pages[nearest]
+    }
+
+    private func settleIfQuiet() {
+        guard let page = Self.settledPage(phase: phase, scrolled: scrolled, nearest: nearest, pages: pages, shown: shown)
+        else {
+            if phase == .idle { scrolled = false }
+            return
+        }
+        settle(on: page)
+    }
+
     private func settle(on page: GameScreen) {
+        scrolled = false
         guard page != shown else { return }
         shown = page
         onPageChange(page)
@@ -133,7 +148,7 @@ struct MenuPagerView: View {
     @ViewBuilder private func slot(_ page: GameScreen, index: Int) -> some View {
         let isCurrent = index == currentIndex
         Group {
-            if isCurrent || (moving && Self.isMounted(index: index, current: currentIndex)) {
+            if isCurrent || (phase != .idle && Self.isMounted(index: index, current: currentIndex)) {
                 MenuPage(screen: page, adsProvider: adsProvider, onStore: onStore)
                     .environment(\.menuPager, pages.count > 1 ? MenuPagerContext(
                         index: index,

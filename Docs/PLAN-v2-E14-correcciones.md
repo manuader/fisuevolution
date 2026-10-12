@@ -17,6 +17,7 @@
 | C6 | El visitante se queda en el piso donde apareció | `StageController`, `BoardScene` (capa del piso) | no | anotada |
 | C7 | Viaje en ascensor: por las ventanas se ve la torre pasando, piso por piso | `ElevatorRideView`, `ElevatorCabin`, `BoardScene` (cámara) | quizás (ventanas de la cabina en video) | anotada |
 | C8 | La moneda premium deja de llamarse ORO: ahora es el **dólar blue**, con su ícono | `Localizable.xcstrings`, `GameArt` (`ui_oro`), App Store Connect | **sí: `ui_dolar_blue`** | prompt listo |
+| C9 | Las dos esquinas de arriba, como Cow Evolution: premios a la izquierda; especial + boosts + relojes a la derecha | `SideRailView`, `ActiveBonusBar`, `StageChips`, `PlayColumn`/`HUDView` | **sí: 4 botones** | prompts listos |
 
 ---
 
@@ -115,8 +116,8 @@ su popup con animación y mensaje (C2).
 2. Va por encima de cualquier otra capa del tablero (z / overlay), pero debajo de los popups.
 3. Mantiene la accesibilidad de hoy: es el objetivo de toque de VoiceOver.
 
-**Abierto:** si convive con el botón de herramientas en esa esquina o si lo desplaza. Default: va
-debajo de las herramientas, alineada a la derecha.
+**Resuelto:** el botón de herramientas de esa esquina es andamiaje de DEBUG (`RootView`, apagado en el
+modo captura); en Release la esquina está libre. El orden de la columna derecha lo fija C9.
 
 ## C4 — Toda recompensa se ilustra
 
@@ -336,3 +337,64 @@ ajusta al nuevo sentido (p. ej., el Arbolito te cambia plata por blue).
 
 **Listo cuando:** `grep -w ORO` sobre el catálogo da cero en es y en; el ícono nuevo está en todas
 las pantallas donde estaba el viejo; ASC tiene los nombres nuevos.
+
+## C9 — Las esquinas de arriba, ordenadas como Cow Evolution
+
+Referencias: `Docs/correcciones-v2/C9-cow-esquina-izquierda.jpg` (el círculo rojo: la columna de
+botones-sello de la izquierda, imán, ruleta, tesoro y la caja con «Ready») y
+`Docs/correcciones-v2/C9-cow-popup-ganancias.webp` (el popup de ganancias: la ilustración, el monto con
+su moneda y dos opciones lado a lado, ×2 gratis con video y ×3 con la moneda premium).
+
+**Lo que dijo el dueño:** la Ruleta, el Colchón, la Caja y todo lo que hoy está adentro del botón
+de Regalos de la pantalla principal pasan a la **esquina superior izquierda**, con la misma
+disposición que Cow Evolution: cada uno con su ícono propio, uno debajo del otro. Los boosts, los
+multiplicadores (el ×3,5K) y los relojes de eventos, que hoy están arriba a la izquierda, pasan a la
+**esquina superior derecha**, donde también va el aviso del personaje especial. El aviso del
+especial va **arriba de todo** y los boosts y relojes, debajo. Cada cosa en su lugar, sin
+amontonar, pero con botones grandes que se entiendan y se toquen bien. Siempre assets custom, nunca
+botones genéricos.
+
+**Hoy (verificado):** `SideRailView` es una columna plegable abajo a la izquierda. En reposo es un
+solo botón «Premios» (el regalo con el badge «3») y al tocarlo despliega la Ruleta, El Colchón, los
+Paquetes y Fusionar todo, en botones de 30 pt con glifos de 20 pt que se recogen a los 3 s.
+`ActiveBonusBar` (boosts, multiplicador, chip del evento) está arriba a la izquierda. El chip del
+visitante (`StageChips`) está centrado bajo el HUD.
+
+**Qué hacer:**
+
+1. **Izquierda: la columna de premios, siempre desplegada.** Se retira el pliegue y el botón
+   «Premios». Arranca bajo el HUD, pegada al borde izquierdo, con los botones-sello uno debajo del
+   otro: Ruleta, Colchón, Paquete y Fusionar todo (y lo que se sume después a ese riel). Cada uno:
+   - ~56 pt de sello (custom: `ui_rail_wheel`, `ui_rail_mattress`, `ui_rail_package`,
+     `ui_rail_merge_all`, prompts 15 a 18 de `fisu-v2-premios`), objetivo de toque ≥ 60 pt;
+   - debajo, una **cinta** con su estado: «¡Listo!» cuando se puede usar, el reloj LED cuando falta,
+     o el contador (como el «Ready» de la caja de Cow Evolution). La cinta, en la gramática de la
+     casa (píldora caramelo o la cinta del `PanelTitleBanner`);
+   - el «!» que late cuando hay algo para cobrar, en el mismo badge de siempre;
+   - los que no están disponibles todavía no se muestran (no hay sellos grises de relleno), salvo
+     que el dueño pida lo contrario al verlo.
+   Tocar un sello abre su pantalla de premio de C4 (antes, durante y después), no la tarjeta chica
+   de video de hoy.
+2. **Derecha: el especial arriba, debajo lo que corre.** Una sola columna bajo el HUD, pegada al
+   borde derecho, en este orden fijo:
+   1. la tarjeta del personaje especial (C3), siempre la primera;
+   2. los relojes de eventos (el chip del presentador, «En curso», el Apagón…);
+   3. los boosts activos y los multiplicadores (el ×3,5K), uno por fila, con su ícono custom
+      (`ui_boost_*`, `rw_*`) y su tiempo restante.
+   Si son más de 4, los boosts se agrupan en un chip «+N» que despliega el resto.
+3. **Nada se pisa:** las dos columnas respetan la zona del tablero que se toca. Se mide en el SE y
+   en el Pro Max que ninguna tape celdas jugables. Si en el SE no entra todo, se achica el espaciado,
+   no los botones.
+4. **El botón de Regalos de la barra de abajo** queda para lo que es Regalos (el diario, los
+   regalos). El regalo flotante de abajo a la izquierda con el «3» desaparece, porque su contenido
+   ya está a la vista arriba.
+5. **El popup de ganancias offline** (y el diario) toma la composición de la segunda referencia: la
+   ilustración de quién ganó, el monto con el ícono de la moneda, y dos opciones lado a lado, «×2
+   gratis» con video y «×3» con dólar blue (B3: los multiplicadores ya existen; esto es sólo la
+   forma).
+6. Tests: los UI tests del riel (`--uitest-rail-hold`, los cuatro marcos) y los de `ActiveBonusBar`
+   se reescriben a la posición nueva. Accesibilidad: cada sello con su label y su estado.
+
+**Listo cuando:** en la pantalla principal, arriba a la izquierda están los sellos de premios con su
+cinta de estado, y arriba a la derecha la tarjeta del especial y, debajo, los relojes y los boosts.
+Abajo no queda nada flotando sobre el tablero, salvo la ficha del Fisura.

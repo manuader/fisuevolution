@@ -371,6 +371,10 @@ barra, y el aro se interpola con un tween lineal de 1 s entre tick y tick.
 
 ## 4. Qué cambió, sesión por sesión
 
+### Cierre de E7b-a (2026-10-12, relevo 49) — La mediación y los forzados cerrados
+
+E7b-a T6 (Unity Ads 4.21.000 y Meta Audience Network 6.22.000 por SPM, `-ObjC`, SKAdNetwork 89, Ad Inspector en el panel de debug) y T7 (este cierre, sólo documentación). Con esto **E7b queda cerrada entera**. Lo que E7b-a dejó en marcha: un pacer por proceso con la config del sitio (`ForcedAdsSetup`), los cortes naturales como único camino (`GameState+Ads`), la pausa con su pantalla previa, el app open antes del popup offline, el UMP y la mediación. Quedan del dueño: el onboarding de Meta, armar los grupos de mediación en AdMob, «Data Used to Track You» en App Privacy y los escenarios con el anuncio real. Detalle, tabla por tarea con su commit y escenarios con pasos en **`Docs/SESION-2026-10-12-v2-e7b-a-cierre.md`**.
+
 ### Sesión del 2026-10-12 (relevo 38) — La ola AJ: el texto de los eventos de 25 s
 
 `eventPresence` muestra «En curso» (`bonus.chip.event_presence`) en el chip y en el popup del evento; sale la clave muerta `tutorial.tip.wheel`. El «Cargando…» sin red ya estaba resuelto por `InventoryWait`. 259 de 283. `Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`.
@@ -2751,6 +2755,8 @@ paréntesis; el porqué completo está en la sesión de cada uno):
     **El Tour para veteranos** (`TutorialCurriculum.tour`): 10 pasos de sólo explicar, nace con `tutorial.v2.tourPending` y el núcleo hecho, gana sobre cualquier lección, espera un momento tranquilo y no se repite. Al terminar deja dadas `tourCoveredLessons` (`quickHire`, `menuSwipe`, `characterSheet`, `elevator`, `sideRail`). Un veterano a medio núcleo sigue el núcleo y no recibe el Tour.
     **El repaso no toca el save.** Ajustes › Tutorial pide el repaso (el núcleo y las lecciones ya vistas, todo en demostración: pasos de explicar sobre el tablero, sin abrir hojas) o el Tour; lo pedido espera al tablero libre (`tutorialEngine.requested`), no mira `tutorialLessonsAutorun` ni el ritmo, no escribe banderas ni el cofre de bienvenida, y el Tour pedido no marca lecciones. «Terminar repaso» existe sólo en el repaso; el Tour no se termina antes. Con el núcleo sin hacer o vivo (`tutorialReplayAvailable`) las filas quedan apagadas y lo dicen.
     **El reset y su época.** «Resetear partida» sube `meta.resetEpoch` (el resolver deja ganar a la época mayor, así una partida borrada no resucita desde otro dispositivo) y conserva lo comprado con plata: sin anuncios, pintas compradas, y **el ORO comprado que no se gastó, `oro = min(saldo, comprado)`**. Las pintas compradas con ORO viven en `shop.skins` y se conservan; las de cofre se pierden. Las banderas del tutorial son de la partida y se van con el reset (el núcleo vuelve a empezar). Lo que se muestra en el resumen de la zona de peligro es lo que se ejecuta (`ResetPlan`). Lo demás del reset ya está en 26, 27 y 28.
+32. **La mediación de E7b-a: dos redes, por `revision:`, y la app sigue sin declarar rastreo** (T6/T7, relevo 49, `Docs/SESION-2026-10-12-v2-e7b-a-cierre.md`). **Lo que quedó fijo y no se reabre sin el dueño:** sólo **Unity Ads y Meta Audience Network** (AppLovin rechazó la cuenta; Mintegral no se pudo crear); los paquetes de Google van por `revision:` (sus tags llevan ceros y no son semver); `-ObjC` va en la base **y** en la línea de Debug; el `PrivacyInfo.xcprivacy` de la app queda en `NSPrivacyTracking = false` porque describe el código propio, y Meta declara su rastreo (`ep1`/`ep6.facebook.com`) en su propio manifiesto, que Apple suma (E10 T14 / B22 ⏭). App open queda sólo con AdMob. Los defaults de E7b-a (rechazar la pausa cuenta como el corte, los IDs del sitio mandan en Release, `celebrationsDrained` sólo tras las celebraciones grandes) no cambiaron: el porqué de cada uno está en el SESION.
+
 ---
 
 ## 6. Cómo verificar
@@ -3184,6 +3190,16 @@ El panel de debug es el ícono de herramientas del HUD.
 ---
 
 ## 7. Trampas en las que ya caímos
+
+### De E7b-a (2026-10-12, cierre)
+
+- **`OTHER_LDFLAGS` de la configuración Debug pisa al de la base, no lo suma:** `-ObjC` (que piden los adaptadores de mediación) tuvo que repetirse en la línea de Debug (`-ObjC -weak_framework StoreKitTest`). Todo flag nuevo de enlace va en las dos; sin él Debug compila y los adaptadores no se enlazan (`MediationContractTests.adapterIsLinked`).
+- **Un tag de adaptador con ceros a la izquierda no es semver y SPM lo ignora:** `4.21.000` y `6.22.000` van por `revision:` (el SHA del tag) en `project.yml`. Y no se suma el paquete de la red aparte del de Google: cada uno fija su SDK con `exact:`, o SPM no resuelve.
+- **`Package.resolved` no se versiona (el `.xcodeproj` es gitignored):** tras cambiar `project.yml` hay que re-resolver en la integración (en el relevo 49 se re-resolvió ahí tras T6) y los worktrees copian el `Package.resolved` de la punta; con `-disableAutomaticPackageResolution` un resolved viejo falla o resuelve sin los adaptadores nuevos.
+- **La lista de SKAdNetwork no falla si queda corta, sólo se factura menos:** correr `Tools/v2/skadnetwork.py actualizar` (y `verificar`) en cada actualización de un adaptador.
+- **Con un forzado en pantalla la cola de celebraciones queda retenida** (`holdCelebrationsForAd`, se suelta al volver): el SDK presenta un modal y, si la hoja que toma el turno se presenta debajo, no se presenta nunca.
+- **Ningún forzado antes de `settleDelay` desde el corte:** la hoja que se cierra y el anuncio pelean la presentación; el corte espera, decide con el contexto de ese instante y recién entonces muestra.
+- **El app open se decide antes de acreditar el offline:** un app open y el popup offline en el mismo regreso serían dos formatos en un corte (`NaturalBreakPolicyTests`).
 
 ### De E6a (2026-10-11, cierre)
 
@@ -5491,6 +5507,7 @@ Anotado por si algún día importa, con su medición:
   Planes cerrados: `Docs/superpowers/plans/2026-10-07-v2-e7b-a-forzados-mediacion.md` (T6–T7 abiertos) y `…-e7b-b-columna-ubicaciones.md`.
 - **`Docs/SESION-2026-10-10-v2-e5a.md`**: el cierre de E5a (la tabla por tarea con su commit, la verificación que lo cubre, el porqué de cada default de
   «Para el dueño» y lo que le deja a E5b y a E6a). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e5a-aduana-colchon-ruleta.md`.
+- **`Docs/SESION-2026-10-12-v2-e7b-a-cierre.md`**: el cierre de E7b-a y, con él, de E7b entera (la tabla T1–T7 con su commit, lo que entró en la mediación, qué cubren los tests, el porqué de cada default de «Para el dueño», los escenarios 🔒 con pasos y los carries: Meta sin onboarding, app open sólo AdMob, los grupos de AdMob, «Data Used to Track You»). Plan cerrado: `Docs/superpowers/plans/2026-10-07-v2-e7b-a-forzados-mediacion.md`.
 - **`Docs/SESION-2026-10-12-v2-relevo-38-ola-aj.md`**: el relevo 38 (los eventos de 25 s dicen «En curso»; fuera `tutorial.tip.wheel`).
 - **`Docs/SESION-2026-10-12-v2-relevo-37-ola-ai.md`**: el relevo 37 (el UI test del otro colchón `extraOnly`; el pager asienta con el scroll quieto).
 - **`Docs/SESION-2026-10-12-v2-relevo-36-ola-ah.md`**: el relevo 36 (E9b T3–T5 y T10, E9a T10, E6b T10; E9 y E6b cerradas; el fixture `--uitest-lessons-done`).

@@ -1164,11 +1164,11 @@ lo mismo y el texto explicativo va en párrafos (la racha: «Se cobra solo con q
    saldo cuenta para arriba, haptic y sonido). Nunca un cambio silencioso.
 7. **Divulgación progresiva:** lo que todavía no se usa no aparece o aparece como «se desbloquea en…»,
    para que el jugador nuevo no vea veinte cosas a la vez.
+8. **Legibilidad y accesibilidad:** nada por debajo de `Tokens.caption`, contraste AA sobre el
+   pergamino, objetivos de toque ≥ 44 pt, texto dinámico y VoiceOver con label y estado en cada fila.
 9. **Cero superposición (D14, regla del dueño):** cada cosa tiene un único lugar; nada tapa a nada ni al tablero
    donde se juega; sin amontonamiento; todo fácil de tocar. Única excepción: la botonera del ascensor abierta tapa
    los boosts (C30) y al cerrarse no tapa nada.
-8. **Legibilidad y accesibilidad:** nada por debajo de `Tokens.caption`, contraste AA sobre el
-   pergamino, objetivos de toque ≥ 44 pt, texto dinámico y VoiceOver con label y estado en cada fila.
 
 ### Regalos (bonus)
 

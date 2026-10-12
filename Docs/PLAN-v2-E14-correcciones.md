@@ -21,6 +21,7 @@
 | C10 | La caja y el colchón del tablero: ~90 % más grandes y más arriba, a la vista | `PickupLayout`, `PickupController`, `PickupNode`, `PackageOpeningPlayer` | no | anotada |
 | C11 | Todo lo que se paga con dólar blue sale de la Tienda y va a Mejoras; la Tienda queda sólo para plata real | `StoreView`, `OroShopView`, `UpgradesView`, `MenuPagerView` | no | anotada |
 | C12 | La barra de abajo: los íconos llenan todo el ancho, escalan por dispositivo y llevan leyenda | `BottomMenuBar`, `GameTabBar` (`GameArtComponents.swift`) | no | anotada |
+| C13 | El menú deslizable es UNA sola card fija; desliza el contenido de adentro; afuera, transparente | `MenuPagerView`, `panelSheet` (`PanelFrames.swift`), las hojas de cada pestaña | no | anotada |
 
 ---
 
@@ -524,3 +525,47 @@ tiene entre 3 y 7 (Contratar, Mejoras, Pintas, Regalos, Tienda, Menú, Ranking),
 
 **Listo cuando:** en los cuatro dispositivos los íconos cubren la barra de borde a borde sin huecos
 grandes, cada uno con su leyenda legible, con 5 pestañas y con 7.
+
+## C13 — El menú deslizable: una sola card fija, desliza el contenido
+
+Referencia: `Docs/correcciones-v2/C13-menu-cards-deslizan.webp` (a mitad de deslizar de Regalos a la
+página de al lado: se ven dos marcos de madera, uno al lado del otro, y debajo de la card un fondo
+blanco redondeado).
+
+**Lo que dijo el dueño:** al deslizar a izquierda o derecha en el menú (de FisuJobs a Boosts, o
+cualquier otra), hoy se ve cómo una pestaña se desliza sobre la otra, cada una con su card. Quiere
+que el menú sea **una única card fija**, con el marco quieto, y que el deslizamiento ocurra **adentro**
+de la card: cambia el contenido, no la card. Así queda un menú unificado y no parecen muchas
+pestañas distintas. Además, por fuera de la card no puede haber nada: abajo se ve un fondo blanco y
+tiene que ser transparente. La card sí tiene su fondo liso (el pergamino) para leer bien.
+
+**Hoy (verificado):** `MenuPagerView` es un `ScrollView(.horizontal)` donde cada página es una hoja
+entera (su `NavigationStack`, su `panelSheet` con marco de madera, toldo, adorno y su X). Al deslizar se
+montan las vecinas, y por eso pasan marcos completos. La hoja que lo contiene deja ver un fondo blanco
+debajo del panel (la presentación del sheet, no el arte).
+
+**Qué hacer:**
+
+1. **El marco sale de las páginas y queda en el paginador:** `MenuPagerView` dibuja una sola vez el
+   `WoodPanelBackground` + el toldo + la X + la fila de puntos, quietos. Cada página aporta sólo su
+   contenido: el título (la cinta con su ícono) y su cuerpo.
+2. **El deslizamiento horizontal vive dentro del pergamino**, recortado por el borde interior del
+   marco (`columnInset`), con el fundido de los bordes que ya usa la región de scroll. El título de
+   la página desliza con su contenido (o hace un fundido cruzado; a elegir midiendo cuál se lee
+   mejor). Las flechas ‹ › siguen en la cabecera, fijas.
+3. **El adorno propio de cada pestaña** (el moño de Regalos, etc.) cambia con un fundido cruzado al
+   asentarse la página, en vez de deslizar con un marco entero.
+4. **Afuera, transparente:** la hoja del paginador con `presentationBackground(.clear)` y sin ningún
+   contenedor blanco: alrededor del marco se ve el juego atenuado, como en las hojas que ya flotan
+   (`panelSheet` de la hoja contenida). El interior sigue siendo pergamino liso.
+5. Se conservan las reglas que costaron: en reposo se monta sólo la página actual (la X duplicada de
+   `sheet.close` en el árbol de AX), el bloqueo del paginador con un destino empujado (Ajustes,
+   Legales) y el «¡Nuevo!» que no se marca a mitad de arrastre (relevo 37). Al tener una sola X,
+   el problema de la X triplicada desaparece por construcción.
+6. Las vistas que también se abren fuera del paginador (desde un atajo directo) siguen viéndose con
+   su marco propio: el marco se pone afuera, por quien las presenta, no adentro de cada vista.
+7. Tests: `MenuPagerUITests` y `CustomizationUITests` (regla de la ola) y una captura a mitad de
+   deslizar para el dueño.
+
+**Listo cuando:** a mitad de deslizar entre dos pestañas se ve **un solo** marco quieto con dos
+contenidos pasando por adentro, y en ningún momento hay blanco fuera del marco.

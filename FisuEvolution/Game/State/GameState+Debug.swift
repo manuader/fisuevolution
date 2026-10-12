@@ -303,8 +303,11 @@ extension GameState {
     /// y desde que se mide en tiers un fixture que abriera pisos sin frontera
     /// dejaría la torre abierta y **nada contratable salvo el Fisura**, que no
     /// es lo que ningún test que lo usa quiere decir.
-    func debugUnlockFloors(throughTier tier: Int) {
+    /// El tier se recorta a Dios: más arriba no hay frontera posible, y la escalada
+    /// por bandas la recorre tier por tier (con `.max` colgaba el arranque).
+    func debugUnlockFloors(throughTier requestedTier: Int) {
         guard var player, let content else { return }
+        let tier = min(max(1, requestedTier), content.tiers.maxTier)
         let highestOrdinal = content.floorTable.ordinal(forTier: tier)
         player.run.unlockedFloors = content.floorTable.floors.prefix(highestOrdinal + 1).map(\.id)
         player.run.raiseFrontier(to: tier)

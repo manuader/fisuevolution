@@ -57,10 +57,20 @@ struct TutorialCoverageTests {
         }
     }
 
-    @Test("los huecos declarados sólo se achican (E9b T3 exige cero o la razón de cada uno)")
-    func gapsAreDeclared() {
+    @Test("el único hueco es skinEffects: las skins por código no existen (E6b T1r)")
+    func theOnlyGapIsSkinEffects() {
+        #expect(TutorialMechanic.knownGaps == [.skinEffects])
         #expect(TutorialMechanic.knownGaps.count <= TutorialMechanic.knownGapsCeiling)
-        #expect(TutorialMechanic.knownGaps.count == 1)
-        #expect(TutorialMechanic.knownGaps == [.skinEffects], "las skins por código no existen (E6b T1r)")
+        #expect(TutorialMechanic.gapReasons[.skinEffects]?.isEmpty == false)
+    }
+
+    @Test("ninguna lección conserva un paso heredado")
+    func noLessonKeepsALegacyStep() {
+        for mechanic in TutorialMechanic.allCases {
+            if case .lesson(let lesson) = mechanic.coverage {
+                #expect(!lesson.steps.isEmpty, "\(mechanic)")
+                #expect(!lesson.steps.contains { $0.id.hasSuffix(".legacy") }, "\(mechanic) sigue con el paso de la v1")
+            }
+        }
     }
 }

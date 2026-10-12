@@ -21,40 +21,26 @@ extension GameState {
     }
 
     enum TutorialLesson: String, CaseIterable {
-        /// Alguien en escena esperando que lo toquen: la primera visita enseña el
-        /// chip. Va primera: una visita se va sola, y si esperara su turno
-        /// detrás de otra lección se perdería.
-        case visitor
-        /// Un evento corriendo deja su chip: la primera vez se enseña a tocarlo.
-        case eventChip
+        /// El atajo de contratar al mejor, cuando hay algo contratable: tocar, mantener, fijar,
+        /// soltar y el botón gris.
+        case quickHire
         /// Hay una mejora de personaje pagable: el multiplicador.
         case upgrades
         /// Hay un ingreso pasivo pagable (la v1 lo tenía, sin lección).
         case passive
-        /// Se desbloqueó el segundo piso: recién ahora el mapa tiene a dónde ir.
-        case elevator
-        /// El tercer piso: la placa colgante (PLAN-v2 E13, ítem 13).
-        case elevatorKeypad
-        /// El atajo de contratar al mejor, cuando hay algo contratable: tocar, mantener, fijar,
-        /// soltar y el botón gris.
-        case quickHire
-        /// Ya hay jerarquías: cuatro tipos vistos y el Menú abierto.
-        case orgChart
-        /// Dos pisos: también se cambia deslizando.
-        case floorSwipe
-        /// El atajo está gris por piso lleno.
-        case floorFull
-        /// Un piso con todos sus lugares ocupados (pisos en marcha, E2a).
-        case staffedFloors
-        /// Reencarnar pide llegar al tier más alto de la vida anterior (piso móvil, E2a).
-        case prestigeGate
-        /// La ficha del personaje (mantener presionado).
-        case characterSheet
+        /// Una pestaña recién abierta, con su «¡Nuevo!».
+        case newTabs
         /// Ya hay una pinta para ponerse. Desde que las 41 pintas de piso salen
         /// **sólo** de cofres, la primera llega en el cofre de bienvenida, al
         /// cerrar la fase obligatoria — la vía vieja (la skin de milestone del
         /// piso 2) no existe más.
         case skins
+        /// El primer daily cobrado de verdad: el calendario vive en Regalos.
+        case gifts
+        /// Un boost listo para activar en Regalos y ninguno usado todavía.
+        case boosts
+        /// Un cofre ganado y abrible en Regalos.
+        case chests
         /// El primer logro COBRABLE: enseña el circuito del puntito rojo.
         case achievements
         /// El primer ORO en el bolsillo (los logros lo pagan) con una mejora
@@ -63,16 +49,30 @@ extension GameState {
         /// dueño, 2026-08-28: "que te lleve a la pestaña de mejoras
         /// permanentes y te haga elegir").
         case oroUpgrades
-        /// El primer daily cobrado de verdad: el calendario vive en Regalos.
-        case gifts
+        /// Se desbloqueó el segundo piso: recién ahora el mapa tiene a dónde ir.
+        case elevator
+        /// El tercer piso: la placa colgante (PLAN-v2 E13, ítem 13).
+        case elevatorKeypad
+        /// Dos pisos: también se cambia deslizando.
+        case floorSwipe
+        /// El atajo está gris por piso lleno.
+        case floorFull
+        /// La ficha del personaje (mantener presionado).
+        case characterSheet
+        /// Tres pestañas abiertas: el menú también se desliza.
+        case menuSwipe
+        /// Cinco contrataciones: cada compra del mismo empleado encarece la siguiente (+6 %).
+        case hirePriceStep
         /// Una vez, suave, en la segunda sesión con la fase hecha.
         case store
+        /// Un piso con todos sus lugares ocupados (pisos en marcha, E2a).
+        case staffedFloors
         /// El indicador de reencarnar se encendió por primera vez.
         case prestige
+        /// Reencarnar pide llegar al tier más alto de la vida anterior (piso móvil, E2a).
+        case prestigeGate
         /// El primer momento viral ofrecido: el botón de compartir y su premio.
         case share
-        /// El primer especial conseguido: vive en el Álbum de la Oficina central.
-        case album
         /// La columna de Premios con algo listo: enseña a abrirla. Las de sus
         /// cuatro botones la esperan (E7b).
         case sideRail
@@ -84,16 +84,13 @@ extension GameState {
         case wheel
         /// Fusionar todo por video, adentro de la columna (E7b): con pares en el piso a la vista.
         case mergeAllVideo
-        /// Un boost listo para activar en Regalos y ninguno usado todavía.
-        case boosts
-        /// Un cofre ganado y abrible en Regalos.
-        case chests
-        /// Cinco contrataciones: cada compra del mismo empleado encarece la siguiente (+6 %).
-        case hirePriceStep
-        /// Tres pestañas abiertas: el menú también se desliza.
-        case menuSwipe
-        /// Una pestaña recién abierta, con su «¡Nuevo!».
-        case newTabs
+        /// Alguien en escena esperando que lo toquen: la primera visita enseña el
+        /// chip. Una visita se va sola: si otra lección tiene el turno, se pierde.
+        case visitor
+        /// Un evento corriendo deja su chip: la primera vez se enseña a tocarlo.
+        case eventChip
+        /// El primer especial conseguido: vive en el Álbum de la Oficina central.
+        case album
         /// ORO para gastar: la mitad «Gastar ORO» de la Tienda y los topes del día.
         case oroShop
         /// El azar pagado con ORO muestra sus probabilidades a la vista.
@@ -108,6 +105,8 @@ extension GameState {
         case offers
         /// Lugares extra comprados.
         case extraSlots
+        /// Ya hay jerarquías: cuatro tipos vistos y el Menú abierto.
+        case orgChart
 
         /// Las que señalan algo del tablero: nunca salen con el tablero ocupado.
         var needsCalmBoard: Bool {
@@ -127,7 +126,9 @@ extension GameState {
             switch self {
             case .upgrades, .passive, .orgChart, .elevator, .floorSwipe, .floorFull, .skins, .achievements, .oroUpgrades,
                  .gifts, .store, .prestige, .boosts, .chests: .v1
-            default: .v2
+            case .quickHire, .newTabs, .elevatorKeypad, .characterSheet, .menuSwipe, .hirePriceStep, .staffedFloors,
+                 .prestigeGate, .share, .sideRail, .packages, .mattress, .wheel, .mergeAllVideo, .visitor, .eventChip,
+                 .album, .oroShop, .luck, .cosmetics, .pendingTriple, .autoTap, .offers, .extraSlots: .v2
             }
         }
 
@@ -186,49 +187,13 @@ extension GameState {
             }
         }
 
-        /// La clave del globo de las lecciones que todavía son un solo paso heredado. Escrita
-        /// entera, nunca interpolada (trampa 5). `nil` en las que tienen guion propio (`script`).
-        var textKey: String? {
-            switch self {
-            case .visitor: "tutorial.tip.visitor"
-            case .eventChip: "tutorial.tip.event_chip"
-            case .elevator: "tutorial.tip.elevator"
-            case .elevatorKeypad: "tutorial.tip.elevator.hold"
-            case .skins: "tutorial.tip.skins"
-            case .achievements: "tutorial.tip.achievements"
-            case .oroUpgrades: "tutorial.tip.oro"
-            case .gifts: "tutorial.tip.gifts"
-            case .store: "tutorial.tip.store"
-            case .share: "tutorial.tip.share"
-            case .album: "tutorial.tip.album"
-            case .sideRail: "tutorial.tip.side_rail"
-            case .packages: "tutorial.tip.packages"
-            case .mattress: "tutorial.tip.mattress"
-            case .wheel: "tutorial.tip.wheel.rail"
-            case .mergeAllVideo: "tutorial.tip.merge_all_video"
-            case .upgrades, .passive, .quickHire, .orgChart, .floorSwipe, .floorFull, .staffedFloors,
-                 .prestigeGate, .prestige, .characterSheet, .boosts, .chests, .hirePriceStep, .menuSwipe, .newTabs,
-                 .oroShop, .luck, .cosmetics, .pendingTriple, .autoTap, .offers, .extraSlots: nil
-            }
-        }
-
-        /// El guion de la lección (PLAN-v2 E9). E9b los reescribe uno por uno; las que todavía no
-        /// tienen el suyo son un solo paso: el destino de siempre, con el texto de siempre.
-        var steps: [TutorialStep] {
-            script ?? [legacyStep]
-        }
-
-        /// Repite la conducta de la v1: si tiene hoja de destino, abrirla la
-        /// cumple; si no, su acción firma (`tutorialTipCompleted`).
-        var legacyStep: TutorialStep {
-            let signal: TutorialSignal = destinationScreen.map { .screenOpened($0) } ?? .lessonAction
-            return .act("\(rawValue).legacy", signal, text: textKey ?? "", on: anchorTarget)
-        }
-
+        /// El guion de la lección (PLAN-v2 E9): cada una declara el suyo. Las que venían de la v1 y de
+        /// E3b–E7b conservan su señal —abrir su hoja, o su acción firma— y su texto de siempre.
+        ///
         /// ⚠️ El cierre «listo» de Mejoras y del pasivo vive en el tablero y no en la hoja: con la
         /// hoja cerrada `rewindToBoard` devuelve un paso de hoja al que abre la lección, y quien
         /// compró y cerró el menú volvería a oír «abrí Mejoras».
-        private var script: [TutorialStep]? {
+        var steps: [TutorialStep] {
             switch self {
             case .quickHire: [
                 .act("quick_hire.tap", .lessonAction, text: "tutorial.quick_hire.tap", on: .quickHire),
@@ -324,7 +289,54 @@ extension GameState {
             case .extraSlots: [
                 .explain("extra_slots.explain", text: "tutorial.extra_slots.explain"),
             ]
-            default: nil
+            case .elevator: [
+                .act("elevator.open", .lessonAction, text: "tutorial.tip.elevator", on: .map),
+            ]
+            case .elevatorKeypad: [
+                .act("elevator_keypad.open", .lessonAction, text: "tutorial.tip.elevator.hold", on: .map),
+            ]
+            case .skins: [
+                .act("skins.open", .screenOpened(.skins), text: "tutorial.tip.skins", on: .skins),
+            ]
+            case .achievements: [
+                .act("achievements.open", .screenOpened(.menu), text: "tutorial.tip.achievements", on: .menu),
+            ]
+            case .oroUpgrades: [
+                .act("oro_upgrades.open", .screenOpened(.upgrades), text: "tutorial.tip.oro", on: .upgrades),
+            ]
+            case .gifts: [
+                .act("gifts.open", .screenOpened(.gifts), text: "tutorial.tip.gifts", on: .gifts),
+            ]
+            case .store: [
+                .act("store.open", .screenOpened(.store), text: "tutorial.tip.store", on: .store),
+            ]
+            case .share: [
+                .act("share.tap", .lessonAction, text: "tutorial.tip.share", on: .share),
+            ]
+            case .visitor: [
+                .act("visitor.tap", .lessonAction, text: "tutorial.tip.visitor", on: .visitor),
+            ]
+            case .eventChip: [
+                .act("event_chip.tap", .lessonAction, text: "tutorial.tip.event_chip", on: .eventChip),
+            ]
+            case .album: [
+                .act("album.open", .screenOpened(.menu), text: "tutorial.tip.album", on: .menu),
+            ]
+            case .sideRail: [
+                .act("side_rail.open", .lessonAction, text: "tutorial.tip.side_rail", on: .sideRail),
+            ]
+            case .packages: [
+                .act("packages.tap", .lessonAction, text: "tutorial.tip.packages", on: .sidePackages),
+            ]
+            case .mattress: [
+                .act("mattress.tap", .lessonAction, text: "tutorial.tip.mattress", on: .sideMattress),
+            ]
+            case .wheel: [
+                .act("wheel.tap", .lessonAction, text: "tutorial.tip.wheel.rail", on: .sideWheel),
+            ]
+            case .mergeAllVideo: [
+                .act("merge_all_video.tap", .lessonAction, text: "tutorial.tip.merge_all_video", on: .sideBoost),
+            ]
             }
         }
     }

@@ -33,6 +33,7 @@
 | C22 | Los 43 personajes base, sólo estáticos: fuera sus videos (los especiales y lo demás siguen animados) | `loops_manifest.json › characters`, `ArtClips`, `BoardScene`, `CharacterSheetView`, `AnimPacks/anim-piso-*` | no | anotada |
 | C23 | Compartir: la oferta y la imagen compartida muestran al personaje con su skin, no un ícono | `ShareMomentChip`, `ShareCardView` (`ShareCardContent`) | no (usa el arte existente) | anotada |
 | C24 | Compartir es parte de la celebración del personaje nuevo: grande, con su foto, y el juego sigue recién al elegir | celebración de personaje nuevo (`boardCelebration`), `ShareMomentChip` (se retira para este caso) | no | anotada |
+| C25 | Eventos que te llevan directo a la Tienda (plata real) o a gastar dólar blue (Mejoras) | `events.json` (efecto nuevo), `EventPopupView`, navegación a Tienda/Mejoras con foco | quizás (ilustraciones de los eventos nuevos) | anotada |
 
 ---
 
@@ -974,3 +975,38 @@ SESION-2026-08-17); al terminar aparece, aparte y abajo, el chip de compartir (`
 
 **Listo cuando:** al fusionar y descubrir un personaje, aparece su card con su foto y el botón grande
 de compartir, y el tablero sigue recién después de elegir compartir o seguir.
+
+## C25 — Eventos que llevan a la Tienda y a gastar blue
+
+**Lo que dijo el dueño:** que haya eventos que te manden directamente a la Tienda. Lo mismo con la
+tienda de blue (lo que se paga con dólar blue, que por C11 vive en Mejoras).
+
+**Hoy:** `events.json` tiene 18 eventos (plan_platita, devaluación, corralito, liquidación, apagón…);
+ninguno abre una pantalla de compra.
+
+**Qué hacer:**
+
+1. **Un efecto de evento nuevo, `openShop`**, con destino `store` (Tienda, plata real) o `blue`
+   (Mejoras › Boosts/Permanentes, C11) y un **ítem en foco** opcional (`ShopIconFocus`, que ya existe:
+   la pantalla abre con esa fila destacada y animada).
+2. **Eventos nuevos con ese efecto**, con el presentador y el humor de la casa (borrador para que el
+   dueño apruebe el texto, en el registro del Anexo A):
+   - **«Cyber Monday del Conurbano»** → Tienda, foco en el pack destacado.
+   - **«Llegó el blue al barrio»** → Mejoras › Boosts, foco en el ×2 de ingresos.
+   - **«Mudanza de oficinas»** → Mejoras › Permanentes, foco en lugares extra en la torre.
+   - **«Cuevita abierta»** (el Arbolito como presentador, C8) → Tienda, foco en los packs de blue.
+   Cada uno con su ilustración (C4), en el popup de C15, con dos botones: **«¡Vamos!»** (abre el
+   destino) y **«Ahora no»**.
+3. **Sin descuentos inventados:** el evento lleva a la pantalla y destaca; no cambia precios. (Si el
+   dueño quiere una oferta temporal con descuento, ya existe el sistema de ofertas de `offers.json`:
+   se engancha ahí y no en el evento.)
+4. **Para que no se sienta spam:** tope de 1 por sesión y separación mínima de ~4 h entre eventos de
+   este tipo; nunca durante el tutorial, la primera sesión ni con una celebración en curso; si el
+   jugador compró algo en las últimas 24 h, el de Tienda no sale. Peso bajo en el sorteo de eventos.
+5. Apple: el popup no presiona («Ahora no» igual de visible, sin cuenta regresiva falsa) y el
+   destino muestra precios reales del StoreKit.
+6. Tests de EK: el efecto `openShop` no toca la economía; el tope y la separación se respetan; un UI
+   test de «¡Vamos!» que abre la Tienda con la fila en foco.
+
+**Listo cuando:** en una partida larga aparece, de vez en cuando, un evento que con un toque abre la
+Tienda o Mejoras en el producto que promociona, y nunca dos seguidos ni en el arranque.
